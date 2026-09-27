@@ -10,13 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LockRouteImport } from './routes/lock'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
+import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
+import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
+import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LockRoute = LockRouteImport.update({
@@ -29,41 +38,91 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedAdminRoute = AuthedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedTillRoute = AuthedTillRouteImport.update({
+  id: '/till',
+  path: '/till',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AccountPinRoute = AccountPinRouteImport.update({
   id: '/account/pin',
   path: '/account/pin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedTillRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
+  '/admin': typeof AuthedAdminRouteWithChildren
+  '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/admin/': typeof AuthedAdminIndexRoute
+  '/till/': typeof AuthedTillIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/admin': typeof AuthedAdminIndexRoute
+  '/till': typeof AuthedTillIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authed': typeof AuthedRouteWithChildren
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
+  '/_authed/admin': typeof AuthedAdminRouteWithChildren
+  '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/admin/': typeof AuthedAdminIndexRoute
+  '/_authed/till/': typeof AuthedTillIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/lock' | '/login' | '/account/pin'
+  fullPaths:
+    | '/'
+    | '/lock'
+    | '/login'
+    | '/admin'
+    | '/till'
+    | '/account/pin'
+    | '/admin/'
+    | '/till/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/lock' | '/login' | '/account/pin'
-  id: '__root__' | '/' | '/lock' | '/login' | '/account/pin'
+  to: '/' | '/lock' | '/login' | '/account/pin' | '/admin' | '/till'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authed'
+    | '/lock'
+    | '/login'
+    | '/_authed/admin'
+    | '/_authed/till'
+    | '/account/pin'
+    | '/_authed/admin/'
+    | '/_authed/till/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
   LockRoute: typeof LockRoute
   LoginRoute: typeof LoginRoute
   AccountPinRoute: typeof AccountPinRoute
@@ -76,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lock': {
@@ -92,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/admin': {
+      id: '/_authed/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthedAdminRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/till': {
+      id: '/_authed/till'
+      path: '/till'
+      fullPath: '/till'
+      preLoaderRoute: typeof AuthedTillRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/account/pin': {
       id: '/account/pin'
       path: '/account/pin'
@@ -99,11 +179,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountPinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/admin/': {
+      id: '/_authed/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthedAdminIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/till/': {
+      id: '/_authed/till/'
+      path: '/'
+      fullPath: '/till/'
+      preLoaderRoute: typeof AuthedTillIndexRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
   }
 }
 
+interface AuthedAdminRouteChildren {
+  AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
+}
+
+const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminIndexRoute: AuthedAdminIndexRoute,
+}
+
+const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
+  AuthedAdminRouteChildren,
+)
+
+interface AuthedTillRouteChildren {
+  AuthedTillIndexRoute: typeof AuthedTillIndexRoute
+}
+
+const AuthedTillRouteChildren: AuthedTillRouteChildren = {
+  AuthedTillIndexRoute: AuthedTillIndexRoute,
+}
+
+const AuthedTillRouteWithChildren = AuthedTillRoute._addFileChildren(
+  AuthedTillRouteChildren,
+)
+
+interface AuthedRouteChildren {
+  AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
+  AuthedTillRoute: typeof AuthedTillRouteWithChildren
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAdminRoute: AuthedAdminRouteWithChildren,
+  AuthedTillRoute: AuthedTillRouteWithChildren,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedRoute: AuthedRouteWithChildren,
   LockRoute: LockRoute,
   LoginRoute: LoginRoute,
   AccountPinRoute: AccountPinRoute,

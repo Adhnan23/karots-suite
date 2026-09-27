@@ -36,7 +36,7 @@ function ChangePin() {
     setError(null)
     try {
       await api('/auth/pin', { json: { currentPin, newPin, confirmPin } })
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.removeQueries({ queryKey: ['me'] })
       navigate({ to: '/' })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong')

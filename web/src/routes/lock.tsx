@@ -32,7 +32,7 @@ function Lock() {
     setError(null)
     try {
       await api('/auth/unlock', { json: { phone, pin } })
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.removeQueries({ queryKey: ['me'] })
       navigate({ to: '/' })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong')
