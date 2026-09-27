@@ -1,0 +1,23 @@
+# Live-reload config for `make dev`. Rebuilds and restarts the Go server when a
+# .go file changes. The server inherits DATABASE_URL etc. from the shell that
+# ran `make dev`.
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd/server"
+  bin = "./tmp/main"
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "bin", "dist", "web", "node_modules", "backups", ".git", ".playwright-mcp", "docs"]
+  exclude_regex = ["_test\\.go$"]
+  exclude_unchanged = true
+  stop_on_error = true
+  delay = 500
+  kill_delay = "2s"
+  send_interrupt = true
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true
