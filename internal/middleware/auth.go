@@ -174,17 +174,13 @@ func MustChangePin(c echo.Context) bool {
 	return b
 }
 
-// RequirePinChosen redirects a user who still carries a server-assigned PIN to
-// the change-PIN screen. The change-PIN routes and logout stay reachable so the
-// user can always escape the gate. Must run after JWTAuth.
+// RequirePinChosen blocks a user still carrying a server-assigned PIN. The SPA
+// routes PIN_CHANGE_REQUIRED to its change-PIN screen. Must run after JWTAuth.
 func RequirePinChosen() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if MustChangePin(c) {
-				p := c.Request().URL.Path
-				if !strings.HasPrefix(p, "/account/pin") && p != "/logout" {
-					return c.Redirect(303, "/account/pin")
-				}
+				return &apperr.AppError{Status: http.StatusForbidden, Code: "PIN_CHANGE_REQUIRED", Message: "Choose a new PIN to continue"}
 			}
 			return next(c)
 		}
@@ -198,22 +194,13 @@ func IsLocked(c echo.Context) bool {
 	return b
 }
 
-// RequireUnlocked redirects a locked session to the /lock screen. The lock/unlock
-// routes and logout stay reachable so the user can always resume or sign out. Must
-// run after JWTAuth. A GET is redirected; a non-GET (e.g. an HTMX POST fired just
-// as the lock kicked in) gets a 401 the client turns into a full redirect.
+// RequireUnlocked blocks a screen-locked session (identity + open till intact).
+// The SPA routes SESSION_LOCKED to its lock screen. Must run after JWTAuth.
 func RequireUnlocked() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if IsLocked(c) {
-				p := c.Request().URL.Path
-				if p != "/lock" && p != "/unlock" && p != "/logout" {
-					if c.Request().Method == http.MethodGet {
-						return c.Redirect(303, "/lock")
-					}
-					c.Response().Header().Set("HX-Redirect", "/lock")
-					return apperr.Unauthorized("session locked")
-				}
+				return &apperr.AppError{Status: http.StatusForbidden, Code: "SESSION_LOCKED", Message: "Session locked"}
 			}
 			return next(c)
 		}
