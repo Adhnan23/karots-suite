@@ -13,11 +13,12 @@
 @import "./theme/palettes/studio.css";
 @import "./theme/palettes/night.css";
 
-/* ponytail: dark: utilities only fire for an explicit Dark pick, not "System" +
- * OS dark (token-driven colours still switch correctly either way via
- * tokens.css's prefers-color-scheme block). Upgrade if a dark: utility class
- * (not a token) ever needs to react to System mode too. */
-@custom-variant dark (&:is([data-theme="dark"] *));
+/* dark: utilities follow the same rule as the palette tokens: an explicit Dark
+ * pick, or System while the OS is dark. */
+@custom-variant dark {
+  &:is([data-theme="dark"] *) { @slot; }
+  @media (prefers-color-scheme: dark) { &:is(:root:not([data-theme="light"]) *) { @slot; } }
+}
 
 @theme inline {
     --font-sans: "Figtree", system-ui, sans-serif;

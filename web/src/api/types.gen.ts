@@ -23,6 +23,7 @@ export interface LoginResponse {
  */
 export interface LoginInfo {
   installId: string;
+  shopName: string;
   serverTime: string; // RFC3339 UTC
 }
 export interface ChangePinRequest {

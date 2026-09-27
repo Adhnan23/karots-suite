@@ -16,6 +16,7 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 	info := LoginInfo{ServerTime: time.Now().UTC().Format(time.RFC3339)}
 	if cfg, err := h.d.Settings.Get(c.Request().Context()); err == nil && cfg != nil {
 		info.InstallID = cfg.InstallID
+		info.ShopName = cfg.ShopName
 	}
 	return c.JSON(http.StatusOK, info)
 }

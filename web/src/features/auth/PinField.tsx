@@ -55,7 +55,7 @@ export function PinField({ id, value, onChange, onFocus, onEnter, shake, inputRe
         className="absolute inset-0 h-full w-full cursor-text border-0 bg-transparent opacity-0 outline-none"
         style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties}
       />
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: Math.max(4, value.length) }).map((_, i) => (
         <i
           key={i}
           className={cn(

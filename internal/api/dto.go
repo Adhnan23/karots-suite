@@ -19,6 +19,7 @@ type LoginResponse struct {
 // LoginInfo feeds the login page's hidden Konami reveal + console line.
 type LoginInfo struct {
 	InstallID  string `json:"installId"`
+	ShopName   string `json:"shopName"`
 	ServerTime string `json:"serverTime"` // RFC3339 UTC
 }
 

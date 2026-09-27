@@ -50,8 +50,7 @@ function Login() {
 
   return (
     <div className="grid min-h-screen md:grid-cols-[1.15fr_1fr]">
-      {/* login-info doesn't expose the shop name pre-auth, so the hero shows the product name here. */}
-      <LoginHero shopName="Karots Suite" />
+      <LoginHero shopName={info?.shopName || 'Karots Suite'} />
       <form
         autoComplete="off"
         onSubmit={(e) => {
