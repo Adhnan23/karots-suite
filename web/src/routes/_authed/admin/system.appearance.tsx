@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import { applyAppearance } from '@/theme/appearance'
@@ -17,13 +17,6 @@ export const Route = createFileRoute('/_authed/admin/system/appearance')({
 const RADII = ['sharp', 'rounded', 'round'] as const
 const DENSITIES = ['comfortable', 'compact'] as const
 const RECEIPT_STYLES = ['classic', 'modern', 'boxed', 'compact'] as const
-
-/** Preview swatches only — the real tokens live one file per palette in
- * web/src/theme/palettes/*.css; this is just enough colour to tell them apart. */
-const PALETTE_PREVIEW: Record<string, { light: string; dark: string; brand: string }> = {
-  studio: { light: '#EFF0F3', dark: '#111215', brand: '#F2A900' },
-  night: { light: '#EEF0FA', dark: '#0B1020', brand: '#6E5BFF' },
-}
 
 function appearanceQuery() {
   return { queryKey: ['system', 'appearance'], queryFn: () => api<Appearance>('/system/appearance') }
@@ -67,11 +60,17 @@ function SystemAppearance() {
     if (data && !form) setForm(data)
   }, [data, form])
 
+  // Unsaved live-preview changes must not outlive the page: re-apply the saved look on leave.
+  const saved = useRef(data)
+  saved.current = queryClient.getQueryData<Appearance>(['system', 'appearance']) ?? data
+  useEffect(() => () => { if (saved.current) applyAppearance(saved.current) }, [])
+
   const update = (patch: Partial<Appearance>) => {
     setForm((prev) => {
       if (!prev) return prev
       const next = { ...prev, ...patch }
-      applyAppearance(next)
+      // Half-typed hex ("#0f") would feed an invalid colour into the tokens; preview only valid ones.
+      if (next.brandColor === '' || /^#[0-9a-fA-F]{6}$/.test(next.brandColor)) applyAppearance(next)
       return next
     })
   }
@@ -115,11 +114,11 @@ function SystemAppearance() {
             >
               <span className="text-sm font-semibold">{p.name}</span>
               <div className="flex gap-2">
-                <span className="flex h-10 flex-1 items-start justify-end rounded-lg p-1.5" style={{ background: PALETTE_PREVIEW[p.id].light }}>
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: PALETTE_PREVIEW[p.id].brand }} />
+                <span className="flex h-10 flex-1 items-start justify-end rounded-lg p-1.5" style={{ background: p.swatch.light }}>
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.swatch.brand }} />
                 </span>
-                <span className="flex h-10 flex-1 items-start justify-end rounded-lg p-1.5" style={{ background: PALETTE_PREVIEW[p.id].dark }}>
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: PALETTE_PREVIEW[p.id].brand }} />
+                <span className="flex h-10 flex-1 items-start justify-end rounded-lg p-1.5" style={{ background: p.swatch.dark }}>
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.swatch.brand }} />
                 </span>
               </div>
             </button>

@@ -34,11 +34,13 @@ function handleSignOut() {
 /** Tapping the user's name 8 times in the avatar menu opens the hidden system
  * menu (theme.md §6), same gesture as karots-pos. System user only. */
 function useHiddenSystemMenu(isSystem: boolean) {
-  const taps = useRef(0)
+  const taps = useRef({ n: 0, at: 0 })
   return () => {
     if (!isSystem) return
-    taps.current += 1
-    if (taps.current >= 8) window.location.assign('/admin/system/appearance')
+    const now = Date.now()
+    // Taps must be quick (<1.5s apart), as in karots-pos, so stray clicks over a session never add up.
+    taps.current = { n: now - taps.current.at < 1500 ? taps.current.n + 1 : 1, at: now }
+    if (taps.current.n >= 8) window.location.assign('/admin/system/appearance')
   }
 }
 
