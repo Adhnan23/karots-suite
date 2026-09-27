@@ -6,10 +6,12 @@
 package app
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
+	"karots-suite/internal/api"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	appmw "karots-suite/internal/middleware"
@@ -71,8 +73,35 @@ func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string,
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
+	// Account-still-active check consulted by every JWTAuth instance; also
+	// resolves the per-user flags (CanExitKiosk, IsSystem, …) that /me and the
+	// route guards read from the request context.
+	appmw.SetUserValidator(func(ctx context.Context, userID int64) (appmw.UserFlags, bool) {
+		var row struct {
+			Active             bool   `db:"is_active"`
+			CanHandleSuppliers bool   `db:"can_handle_suppliers"`
+			CanManageCredit    bool   `db:"can_manage_credit"`
+			CanSeeCost         bool   `db:"can_see_cost"`
+			IsSystem           bool   `db:"is_system"`
+			Role               string `db:"role"`
+		}
+		if err := sqlxDB.GetContext(ctx, &row,
+			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, is_system, role FROM users WHERE id = $1`, userID); err != nil {
+			return appmw.UserFlags{}, false
+		}
+		return appmw.UserFlags{
+			CanHandleSuppliers: row.CanHandleSuppliers,
+			CanManageCredit:    row.CanManageCredit,
+			CanSeeCost:         row.CanSeeCost,
+			// Admin or the hidden support account may escape the kiosk; a cashier
+			// never can.
+			CanExitKiosk: row.IsSystem || row.Role == "admin",
+			IsSystem:     row.IsSystem,
+		}, row.Active
+	})
+
 	svc := NewServices(sqlxDB, cfg, systemPIN)
-	_ = svc
+	api.Register(e, api.Deps{DB: sqlxDB, Cfg: cfg, Auth: svc.Auth, Settings: svc.Settings, CashRegister: svc.CashRegister})
 
 	return e
 }
