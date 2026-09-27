@@ -6,7 +6,9 @@ aicatalog, productplus, combos, requests). It's a **separate product** from `~/P
 which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 **JSON-only Go backend** plus a **component-based React SPA**, and still ships as **one static binary**.
 
+- **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans and reviews, Sonnet executes, UI gates with screenshots) and the inputs for the next milestone.
 - **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
+- **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/`, one per milestone (M0 Foundation → M8 Ship). Execute tasks in order and tick the checkboxes.
 - **Parity:** `docs/parity.md` lists every karots-pos route. Tick a row only when it's ported *and* has a flow check.
 
