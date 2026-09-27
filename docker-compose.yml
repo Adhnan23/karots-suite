@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: suite_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: suite_db
+      POSTGRES_USER: suite_user
+      POSTGRES_PASSWORD: suite_password
+    ports: ["5433:5432"]
+    volumes: [suite_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suite_user -d suite_db"]
+      interval: 5s
+      retries: 10
+volumes:
+  suite_pg:

@@ -1,0 +1,10 @@
+.env
+bin/
+dist/
+tmp/
+web/node_modules/
+web/test-results/
+web/playwright-report/
+internal/spa/dist/*
+!internal/spa/dist/.gitkeep
+.superpowers/
