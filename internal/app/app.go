@@ -16,6 +16,7 @@ import (
 	"karots-suite/internal/db"
 	appmw "karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
+	"karots-suite/internal/spa"
 	"karots-suite/internal/validator"
 	"karots-suite/migrations"
 
@@ -102,6 +103,7 @@ func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string,
 
 	svc := NewServices(sqlxDB, cfg, systemPIN)
 	api.Register(e, api.Deps{DB: sqlxDB, Cfg: cfg, Auth: svc.Auth, Settings: svc.Settings, CashRegister: svc.CashRegister})
+	e.GET("/*", spa.Handler(spa.Dist()))
 
 	return e
 }
