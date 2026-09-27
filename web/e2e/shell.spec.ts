@@ -27,5 +27,5 @@ test('deep link reload survives', async ({ page }) => {
   await page.goto('/admin?x=1')
   await expect(page).toHaveURL(/\/admin/)
   await page.reload()
-  await expect(page.getByText(/welcome/i)).toBeVisible()
+  await expect(page.getByText(/good (morning|afternoon|evening)/i)).toBeVisible()
 })

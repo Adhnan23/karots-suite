@@ -18,6 +18,7 @@ import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
+import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -63,6 +64,12 @@ const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedAdminSystemAppearanceRoute =
+  AuthedAdminSystemAppearanceRouteImport.update({
+    id: '/system/appearance',
+    path: '/system/appearance',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/account/pin': typeof AccountPinRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
+  '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -81,6 +89,7 @@ export interface FileRoutesByTo {
   '/account/pin': typeof AccountPinRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
+  '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,6 +102,7 @@ export interface FileRoutesById {
   '/account/pin': typeof AccountPinRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
+  '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,8 +115,16 @@ export interface FileRouteTypes {
     | '/account/pin'
     | '/admin/'
     | '/till/'
+    | '/admin/system/appearance'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/lock' | '/login' | '/account/pin' | '/admin' | '/till'
+  to:
+    | '/'
+    | '/lock'
+    | '/login'
+    | '/account/pin'
+    | '/admin'
+    | '/till'
+    | '/admin/system/appearance'
   id:
     | '__root__'
     | '/'
@@ -118,6 +136,7 @@ export interface FileRouteTypes {
     | '/account/pin'
     | '/_authed/admin/'
     | '/_authed/till/'
+    | '/_authed/admin/system/appearance'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -193,15 +212,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillIndexRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/admin/system/appearance': {
+      id: '/_authed/admin/system/appearance'
+      path: '/system/appearance'
+      fullPath: '/admin/system/appearance'
+      preLoaderRoute: typeof AuthedAdminSystemAppearanceRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
   }
 }
 
 interface AuthedAdminRouteChildren {
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
+  AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
 }
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
+  AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,
 }
 
 const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(

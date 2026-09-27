@@ -9,4 +9,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       <Toaster richColors position="top-center" />
     </>
   ),
+  notFoundComponent: () => (
+    <div className="flex min-h-screen items-center justify-center text-muted-foreground">Not found</div>
+  ),
 })
