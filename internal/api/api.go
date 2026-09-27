@@ -47,6 +47,3 @@ func Register(e *echo.Echo, d Deps) {
 
 	e.Any("/api/*", func(echo.Context) error { return apperr.NotFound("endpoint") })
 }
-
-func (h *handlers) registerKiosk(*echo.Group, echo.MiddlewareFunc) {}
-func (h *handlers) registerSystem(*echo.Group)                     {}
