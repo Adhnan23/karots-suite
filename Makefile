@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -31,3 +31,8 @@ test-web:
 # tests assume seeded reference rows (a category, unit, user) exist.
 test-fresh: db-up
 	$(ENV) go run ./cmd/server -reset -seed && $(ENV) go test ./...
+
+# Fixed accounts the Playwright specs log in as (0770000001 admin, 0770000002
+# cashier, PIN 1234) — separate from -seed's own demo users/PINs.
+e2e-seed: migrate
+	docker compose exec -T postgres psql -U suite_user -d suite_db -f - < scripts/e2e-users.sql

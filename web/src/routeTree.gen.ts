@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LockRouteImport } from './routes/lock'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AccountPinRouteImport } from './routes/account.pin'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LockRoute = LockRouteImport.update({
+  id: '/lock',
+  path: '/lock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountPinRoute = AccountPinRouteImport.update({
+  id: '/account/pin',
+  path: '/account/pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/lock': typeof LockRoute
+  '/login': typeof LoginRoute
+  '/account/pin': typeof AccountPinRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/lock': typeof LockRoute
+  '/login': typeof LoginRoute
+  '/account/pin': typeof AccountPinRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/lock': typeof LockRoute
+  '/login': typeof LoginRoute
+  '/account/pin': typeof AccountPinRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/lock' | '/login' | '/account/pin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/lock' | '/login' | '/account/pin'
+  id: '__root__' | '/' | '/lock' | '/login' | '/account/pin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LockRoute: typeof LockRoute
+  LoginRoute: typeof LoginRoute
+  AccountPinRoute: typeof AccountPinRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lock': {
+      id: '/lock'
+      path: '/lock'
+      fullPath: '/lock'
+      preLoaderRoute: typeof LockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/pin': {
+      id: '/account/pin'
+      path: '/account/pin'
+      fullPath: '/account/pin'
+      preLoaderRoute: typeof AccountPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LockRoute: LockRoute,
+  LoginRoute: LoginRoute,
+  AccountPinRoute: AccountPinRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
