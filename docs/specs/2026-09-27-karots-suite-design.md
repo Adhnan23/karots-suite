@@ -64,7 +64,7 @@ karots-pos is about 67k lines of Go, 24k lines of templ and 4.7k lines of JS. It
 - the UI hooks in `internal/plugin` (§7)
 - the whole frontend (`web/`)
 
-**The schema stays identical to karots-pos**, and so do the goose version tables per plugin. A karots-pos shop moves to karots-suite with a karots-pos backup restored into karots-suite. The backup format is shared because `internal/backup` is forked with dynamic table and column discovery.
+**The final schema stays identical to karots-pos, but the migration history does not.** The 75 core migrations are squashed into `00001_baseline.sql`. M0 includes an identity check that the squashed baseline produces the same schema and seed rows as the originals, and the random `install_id` is re-generated per database. Each plugin's migrations are squashed the same way in M7. This is safe because shops never upgrade in place, and backup/restore skips every `goose_db_version*` table. A karots-pos shop moves to karots-suite with a karots-pos backup restored into karots-suite. The backup format is shared because `internal/backup` is forked with dynamic table and column discovery.
 
 ## 4. Architecture
 
