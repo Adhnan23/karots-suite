@@ -44,29 +44,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	e.Validator = validator.New()
 	e.HTTPErrorHandler = middleware.ErrorHandler(false)
 
-	// Same validator BuildServer installs (internal/app/app.go), copied here since
-	// this package can't import app. Without it, CanExitKiosk/IsSystem never set.
-	middleware.SetUserValidator(func(ctx context.Context, userID int64) (middleware.UserFlags, bool) {
-		var row struct {
-			Active             bool   `db:"is_active"`
-			CanHandleSuppliers bool   `db:"can_handle_suppliers"`
-			CanManageCredit    bool   `db:"can_manage_credit"`
-			CanSeeCost         bool   `db:"can_see_cost"`
-			IsSystem           bool   `db:"is_system"`
-			Role               string `db:"role"`
-		}
-		if err := db.GetContext(ctx, &row,
-			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, is_system, role FROM users WHERE id = $1`, userID); err != nil {
-			return middleware.UserFlags{}, false
-		}
-		return middleware.UserFlags{
-			CanHandleSuppliers: row.CanHandleSuppliers,
-			CanManageCredit:    row.CanManageCredit,
-			CanSeeCost:         row.CanSeeCost,
-			CanExitKiosk:       row.IsSystem || row.Role == auth.RoleAdmin,
-			IsSystem:           row.IsSystem,
-		}, row.Active
-	})
+	middleware.SetUserValidator(middleware.DBUserValidator(db))
 
 	a := auth.NewService(db, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
 	Register(e, Deps{DB: db, Cfg: cfg, Auth: a, Settings: settings.NewService(db),
@@ -84,7 +62,7 @@ func (te *testEnv) seedUser(t *testing.T, phone, role string) int64 {
 	if err != nil {
 		t.Fatal(err)
 	}
-	te.db.ExecContext(ctx, `UPDATE users SET must_change_pin=false WHERE id=$1`, u.ID) //nolint:errcheck
+	te.db.ExecContext(ctx, `UPDATE users SET must_change_pin=false WHERE id=$1`, u.ID)  //nolint:errcheck
 	t.Cleanup(func() { te.db.ExecContext(ctx, `DELETE FROM users WHERE id=$1`, u.ID) }) //nolint:errcheck
 	return u.ID
 }

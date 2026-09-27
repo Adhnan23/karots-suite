@@ -101,6 +101,15 @@ func TestPluginTenderLegFiresForNonCoreMethodOnly(t *testing.T) {
 	defer conn.Close()
 	ctx := context.Background()
 
+	// A non-core tender value only exists once a plugin migration adds it (recharge
+	// adds 'wallet'). Core-only builds have none, so there is nothing to dispatch.
+	var hasWallet bool
+	mustSales(t, conn.GetContext(ctx, &hasWallet, `SELECT EXISTS (SELECT 1 FROM pg_enum e
+		JOIN pg_type ty ON ty.oid = e.enumtypid WHERE ty.typname = 'payment_method' AND e.enumlabel = 'wallet')`))
+	if !hasWallet {
+		t.Skip("no plugin tender in payment_method (recharge plugin adds 'wallet' in M7)")
+	}
+
 	var categoryID, unitID, productID, cashierID, sinceSaleID int64
 	mustSales(t, conn.GetContext(ctx, &categoryID, `SELECT id FROM categories LIMIT 1`))
 	mustSales(t, conn.GetContext(ctx, &unitID, `SELECT id FROM units LIMIT 1`))

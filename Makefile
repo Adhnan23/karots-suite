@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -26,3 +26,8 @@ dev: db-up types
 	$(ENV) air & cd web && bun run dev
 test-web:
 	cd web && bun run test
+
+# Wipe the dev DB, migrate + seed it, then run every Go test. Several forked DB
+# tests assume seeded reference rows (a category, unit, user) exist.
+test-fresh: db-up
+	$(ENV) go run ./cmd/server -reset -seed && $(ENV) go test ./...

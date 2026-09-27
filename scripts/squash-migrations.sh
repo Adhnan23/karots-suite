@@ -8,6 +8,10 @@ DUMP() { docker compose exec -T postgres pg_dump -U suite_user -d "$1" --no-owne
            --exclude-table='goose_db_version*' "${@:2}" | grep -v '^\\' ; }  # drop \restrict meta-cmds
 url() { echo "postgres://suite_user:suite_password@localhost:5433/$1?sslmode=disable"; }
 fresh() { PSQL suite_db "DROP DATABASE IF EXISTS $1" && PSQL suite_db "CREATE DATABASE $1"; }
+# The originals always come from karots-pos's migration files (frozen repo), so the
+# check is reproducible any time — no leftover database required.
+ORIG=${ORIG_MIGRATIONS:-$HOME/Projects/go/karots-pos/migrations}
+migrate_orig() { go run ./scripts/migratedir "$(url "$1")" "$ORIG" >/dev/null; }
 migrate() { DATABASE_URL="$(url "$1")" JWT_SECRET=squash-script-throwaway-secret-32b go run ./cmd/server -migrate >/dev/null; }
 normalize() {  # mask values that legitimately differ between two fresh DBs
   sed -E "s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+(\+[0-9:]+)?/TS/g"
@@ -20,8 +24,9 @@ normalize_schema() {  # pg_dump renders `x = ANY (ARRAY[...])` casts differently
     awk '{ while ($0 ~ /\(\(/ || $0 ~ /\)\)/) { gsub(/\(\(/, "("); gsub(/\)\)/, ")") } print }'
 }
 
+fresh squash_orig && migrate_orig squash_orig
+
 if [ "${1:-}" != "--verify-only" ]; then
-  fresh squash_orig && migrate squash_orig
   {
     echo "-- Baseline squashed from karots-pos migrations 0001–$(ls migrations/*.sql | tail -1 | xargs basename)."
     echo "-- +goose Up"
