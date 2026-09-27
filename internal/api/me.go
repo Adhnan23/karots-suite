@@ -10,15 +10,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// appearanceOf maps the forked settings columns to the API shape. The new
-// product has one theme, so the old "skin" only signals whether a brand colour
-// is set ("custom").
+// appearanceOf maps the forked settings columns to the API shape. Skin holds
+// the chosen palette (studio/night) directly now; a brand override is
+// independent of which palette is picked, so it always round-trips.
 func appearanceOf(s *settings.Settings) Appearance {
-	a := Appearance{Radius: s.SkinRadius, Density: s.Density, ReceiptStyle: s.ReceiptStyle}
-	if s.Skin == "custom" {
-		a.BrandColor = s.SkinCustom
+	return Appearance{
+		Palette:      settings.ValidSkin(s.Skin),
+		BrandColor:   s.SkinCustom,
+		Radius:       s.SkinRadius,
+		Density:      s.Density,
+		ReceiptStyle: s.ReceiptStyle,
 	}
-	return a
 }
 
 // Me is the SPA's boot call. JWT only — it must answer while locked or forced to

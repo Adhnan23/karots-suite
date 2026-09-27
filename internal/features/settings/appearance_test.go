@@ -8,9 +8,10 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 		got  string
 		want string
 	}{
-		{"unknown skin → default", ValidSkin("nope"), "default"},
-		{"known skin passes", ValidSkin("teal"), "teal"},
-		{"blank skin → default", ValidSkin(""), "default"},
+		{"unknown skin → studio", ValidSkin("nope"), "studio"},
+		{"known skin passes", ValidSkin("night"), "night"},
+		{"blank skin → studio", ValidSkin(""), "studio"},
+		{"old karots-pos skin restored → studio", ValidSkin("teal"), "studio"},
 		{"unknown density → comfortable", ValidDensity("huge"), "comfortable"},
 		{"known density passes", ValidDensity("compact"), "compact"},
 		{"blank receipt → classic", ValidReceiptStyle(""), "classic"},

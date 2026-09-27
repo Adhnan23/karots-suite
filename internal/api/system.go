@@ -25,17 +25,15 @@ func (h *handlers) GetAppearance(c echo.Context) error {
 }
 
 // PutAppearance stores the locked look. Unknown values fall back to defaults in
-// the forked settings validators; a valid brand colour switches skin to "custom".
+// the forked settings validators. The palette and the brand override are
+// independent: an unknown palette falls back to "studio", but the brand colour
+// (if valid) is kept regardless of which palette is chosen.
 func (h *handlers) PutAppearance(c echo.Context) error {
 	var in Appearance
 	if err := c.Bind(&in); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	skin := "default"
-	if settings.ValidHexColor(in.BrandColor) != "" {
-		skin = "custom"
-	}
-	st, err := h.d.Settings.SetAppearance(c.Request().Context(), skin, in.Density, in.ReceiptStyle, in.BrandColor, in.Radius)
+	st, err := h.d.Settings.SetAppearance(c.Request().Context(), settings.ValidSkin(in.Palette), in.Density, in.ReceiptStyle, in.BrandColor, in.Radius)
 	if err != nil {
 		return err
 	}

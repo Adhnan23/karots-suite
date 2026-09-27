@@ -81,7 +81,7 @@ type Settings struct {
 // Known appearance values. Anything else falls back to the first (default) so a
 // bad or blank value never renders blank.
 var (
-	Skins         = []string{"default", "teal", "plum", "custom"}
+	Skins         = []string{"studio", "night"}
 	Densities     = []string{"comfortable", "compact"}
 	ReceiptStyles = []string{"classic", "modern", "boxed", "compact"}
 	Radii         = []string{"sharp", "rounded", "round"}
@@ -114,7 +114,7 @@ func oneOf(v string, allowed []string, def string) string {
 }
 
 // ValidSkin/ValidDensity/ValidReceiptStyle echo a known value or the default.
-func ValidSkin(v string) string         { return oneOf(v, Skins, "default") }
+func ValidSkin(v string) string         { return oneOf(v, Skins, "studio") }
 func ValidDensity(v string) string      { return oneOf(v, Densities, "comfortable") }
 func ValidReceiptStyle(v string) string { return oneOf(v, ReceiptStyles, "classic") }
 

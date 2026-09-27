@@ -41,7 +41,8 @@ export interface Flags {
  * Appearance is the system-user-locked look. BrandColor "" = theme default.
  */
 export interface Appearance {
-  brandColor: string; // "#rrggbb" or ""
+  palette: string; // "studio" | "night"
+  brandColor: string; // "#rrggbb" or "", overrides the palette's brand in both modes
   radius: string; // "sharp" | "rounded" | "round"
   density: string; // "comfortable" | "compact"
   receiptStyle: string; // "classic" | "modern" | "boxed" | "compact"

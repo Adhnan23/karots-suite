@@ -38,7 +38,8 @@ type Flags struct {
 
 // Appearance is the system-user-locked look. BrandColor "" = theme default.
 type Appearance struct {
-	BrandColor   string `json:"brandColor"`   // "#rrggbb" or ""
+	Palette      string `json:"palette"`      // "studio" | "night"
+	BrandColor   string `json:"brandColor"`   // "#rrggbb" or "", overrides the palette's brand in both modes
 	Radius       string `json:"radius"`       // "sharp" | "rounded" | "round"
 	Density      string `json:"density"`      // "comfortable" | "compact"
 	ReceiptStyle string `json:"receiptStyle"` // "classic" | "modern" | "boxed" | "compact"

@@ -50,3 +50,26 @@ func TestAppearanceRoundTripAndSanitises(t *testing.T) {
 		t.Fatalf("junk not sanitised: %+v", got)
 	}
 }
+
+func TestAppearancePaletteRoundTripAndFallback(t *testing.T) {
+	te := newTestEnv(t)
+	id := te.seedUser(t, "0770009014", "admin")
+	ck := login(t, te, "0770009014")
+	te.db.Exec(`UPDATE users SET is_system=true WHERE id=$1`, id) //nolint:errcheck
+	var before Appearance
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/system/appearance", nil, ck).Body.Bytes(), &before) //nolint:errcheck
+	t.Cleanup(func() { te.do(http.MethodPut, "/api/v1/system/appearance", before, ck) })
+
+	rec := te.do(http.MethodPut, "/api/v1/system/appearance", Appearance{Palette: "night", BrandColor: "#6e5bff"}, ck)
+	var got Appearance
+	json.Unmarshal(rec.Body.Bytes(), &got) //nolint:errcheck
+	if rec.Code != 200 || got.Palette != "night" || got.BrandColor != "#6e5bff" {
+		t.Fatalf("palette round-trip: %d %+v", rec.Code, got)
+	}
+
+	rec = te.do(http.MethodPut, "/api/v1/system/appearance", Appearance{Palette: "bazaar"}, ck)
+	json.Unmarshal(rec.Body.Bytes(), &got) //nolint:errcheck
+	if got.Palette != "studio" {
+		t.Fatalf("unknown palette should fall back to studio: %+v", got)
+	}
+}
