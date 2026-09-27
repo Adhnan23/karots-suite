@@ -38,7 +38,7 @@
   - Postgres runs as container `suite_db` on host port **5433** (DB `suite_db`, user `suite_user`, password `suite_password`).
   - The Go server runs on **3100**, and Vite dev on **5173**, proxying `/api` to 3100.
 - **File size.** Every source file stays at 500 lines or fewer, Go and TS alike.
-- **Visual design.** The UI must not resemble karots-pos: no indigo/slate karots palette, no karots-pos layout. The design is decided in Task 10 with user approval.
+- **Visual design.** The UI must not resemble karots-pos: no indigo/slate karots palette, no karots-pos layout. The design is APPROVED in `docs/design/theme.md` ("Counter": light Studio, dark Night Counter). Every screen works in both modes.
 - **TanStack skills.** Before the first frontend task, and after `bun install`, run `intent list` from `web/` and `intent load` the matching TanStack skills (router, query), per the global instructions.
 
 ## Review Focus
@@ -1849,32 +1849,32 @@ git add -A && git commit -m "feat(web): typed api client, session redirects, kon
 
 ---
 
-### Task 10: Theme design, then tokens and appearance application
+### Task 10: Theme tokens, light/dark mode and appearance application
 
-**This task has a user gate.** No shell or screen styling is final until the user approves the design.
+**The design is APPROVED (2026-09-27): `docs/design/theme.md`.** The theme is "Counter": light mode is Studio and dark mode is Night Counter. Read theme.md in full before starting. It is the source of truth for every token value, font, radius, density, layout and motion rule. The approved mockup is a look demo only; it is not a feature list.
 
 **Files:**
-- Create: `web/src/theme/tokens.css` (imported by `app.css`), `web/src/theme/appearance.ts`, `web/src/theme/appearance.test.ts`, `docs/design/theme.md`
-- Modify: `web/src/app.css`
+- Create:
+  - `web/src/theme/tokens.css` (imported by `app.css`)
+  - `web/src/theme/appearance.ts`, `web/src/theme/appearance.test.ts`
+  - `web/src/theme/mode.ts`, `web/src/theme/mode.test.ts`
+  - `web/src/theme/ModeToggle.tsx`
+- Modify:
+  - `web/src/app.css`
+  - `web/index.html` (title "Karots Suite", plus the pre-paint mode script)
+  - `web/package.json` (add `@fontsource/figtree` and `@fontsource/sora`; remove `@fontsource-variable/geist`)
 
 **Interfaces:**
 - Produces:
   - `applyAppearance(a: Appearance, root?: HTMLElement): void`
-  - CSS tokens used by every component: `--brand`, `--brand-foreground`, `--radius`, and shadcn's `--background`/`--foreground`/`--card`/`--muted`/`--border`, …
-  - `[data-density="compact"]` spacing overrides
-  - `[data-theme="dark"]` plus `prefers-color-scheme`
+  - `type Mode = 'system' | 'light' | 'dark'`, `getMode(): Mode`, `setMode(m: Mode, root?: HTMLElement): void`
+  - `<ModeToggle />`, a three-way sun / moon / monitor control. Tasks 11 and 12 place it on the login page, the admin user menu and the till top bar.
+  - Every token in theme.md §2, for both modes: `:root` holds light; `[data-theme="dark"]` and `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }` hold dark.
+  - `[data-radius]`, and `[data-density]` → `--radius`, `--radius-sm`, `--control-h`, `--gap`, `--pad`
 
-- [ ] **Step 1: Design with the user.** Invoke `frontend-design:frontend-design`. Produce `docs/design/theme.md` with:
-  1. palette (light and dark), with contrast ≥ 4.5:1 for text
-  2. type scale and font (a Google Font or a system stack; it must work offline, so self-host it through `@fontsource/*` or use a system stack)
-  3. radius scale for sharp, rounded and round
-  4. spacing for comfortable and compact
-  5. the admin shell layout at 360px and 1366px
-  6. the till shell layout at 1366×768 and 1024×768
+- [x] **Step 1: Design with the user.** Approved; see `docs/design/theme.md`.
 
-Render static mockups (an HTML artifact is fine) of the login page, admin home at both widths, and the till shell. It **must not** use the karots-pos indigo/slate look or its layouts. **STOP and show the user. Continue only after explicit approval.** Apply requested changes, then re-show.
-
-- [ ] **Step 2: Write the failing test**
+- [ ] **Step 2: Write the failing tests**
 
 ```ts
 // web/src/theme/appearance.test.ts
@@ -1889,11 +1889,47 @@ describe('applyAppearance', () => {
     expect(el.dataset.radius).toBe('round')
     expect(el.dataset.density).toBe('compact')
   })
+  it('picks readable text for a custom brand', () => {
+    const el = document.createElement('div')
+    applyAppearance({ brandColor: '#0f766e', radius: 'rounded', density: 'comfortable', receiptStyle: 'classic' }, el)
+    expect(el.style.getPropertyValue('--brand-foreground')).toBe('#ffffff')
+    applyAppearance({ brandColor: '#ffe066', radius: 'rounded', density: 'comfortable', receiptStyle: 'classic' }, el)
+    expect(el.style.getPropertyValue('--brand-foreground')).toBe('#15161a')
+  })
   it('clears a previous brand when reset to theme default', () => {
     const el = document.createElement('div')
     applyAppearance({ brandColor: '#0f766e', radius: 'rounded', density: 'comfortable', receiptStyle: 'classic' }, el)
     applyAppearance({ brandColor: '', radius: 'rounded', density: 'comfortable', receiptStyle: 'classic' }, el)
     expect(el.style.getPropertyValue('--brand')).toBe('')
+    expect(el.style.getPropertyValue('--brand-foreground')).toBe('')
+  })
+})
+```
+
+```ts
+// web/src/theme/mode.test.ts
+import { beforeEach, describe, expect, it } from 'vitest'
+import { getMode, setMode } from './mode'
+
+describe('mode', () => {
+  beforeEach(() => localStorage.clear())
+  it('defaults to system and sets no data-theme', () => {
+    const el = document.createElement('div')
+    expect(getMode()).toBe('system')
+    setMode('system', el)
+    expect(el.dataset.theme).toBeUndefined()
+  })
+  it('persists light/dark and applies data-theme', () => {
+    const el = document.createElement('div')
+    setMode('dark', el)
+    expect(getMode()).toBe('dark')
+    expect(el.dataset.theme).toBe('dark')
+    setMode('system', el)
+    expect(el.dataset.theme).toBeUndefined()
+  })
+  it('ignores junk in storage', () => {
+    localStorage.setItem('ks-mode', 'purple')
+    expect(getMode()).toBe('system')
   })
 })
 ```
@@ -1904,25 +1940,77 @@ describe('applyAppearance', () => {
 // web/src/theme/appearance.ts
 import type { Appearance } from '@/api/types.gen'
 
-/** Applies the system-locked look to <html>. Tokens in tokens.css read these. */
+/** Applies the system-locked look to <html>. Tokens in tokens.css read these.
+ *  A custom brand overrides both modes, so its text colour is derived here. */
 export function applyAppearance(a: Appearance, root: HTMLElement = document.documentElement) {
-  if (a.brandColor) root.style.setProperty('--brand', a.brandColor)
-  else root.style.removeProperty('--brand')
+  if (a.brandColor) {
+    root.style.setProperty('--brand', a.brandColor)
+    root.style.setProperty('--brand-foreground', readableOn(a.brandColor))
+  } else {
+    root.style.removeProperty('--brand')
+    root.style.removeProperty('--brand-foreground')
+  }
   root.dataset.radius = a.radius
   root.dataset.density = a.density
 }
+
+function readableOn(hex: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  })
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return lum > 0.179 ? '#15161a' : '#ffffff'
+}
 ```
 
-In `tokens.css`, put the approved palette as `:root` and `[data-theme="dark"]` variables, plus `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`. Map `[data-radius="sharp"|"rounded"|"round"]` to `--radius` values. Derive `--brand-foreground` with `color-mix()` or a fixed pair, and point shadcn's `--primary` at `var(--brand)`. Components must use tokens only, never raw colour classes like `bg-indigo-600`.
+```ts
+// web/src/theme/mode.ts
+export type Mode = 'system' | 'light' | 'dark'
+const KEY = 'ks-mode'
+
+/** Per-device light/dark choice (a viewer convenience, not a shop setting). */
+export function getMode(): Mode {
+  try {
+    const v = localStorage.getItem(KEY)
+    return v === 'light' || v === 'dark' ? v : 'system'
+  } catch { return 'system' }
+}
+
+export function setMode(m: Mode, root: HTMLElement = document.documentElement) {
+  try { m === 'system' ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, m) } catch { /* private mode */ }
+  if (m === 'system') delete root.dataset.theme
+  else root.dataset.theme = m
+}
+```
+
+Add a pre-paint script to `web/index.html` `<head>`, so there is no light flash in dark mode:
+
+```html
+<script>try{var m=localStorage.getItem('ks-mode');if(m==='light'||m==='dark')document.documentElement.dataset.theme=m}catch(e){}</script>
+```
+
+`ModeToggle.tsx` is a small segmented control (lucide `Sun` / `Moon` / `Monitor`, `aria-pressed`, `aria-label="Colour mode"`) that calls `setMode` and keeps local state.
+
+In `tokens.css`:
+- Write theme.md §2 exactly: light in `:root`, dark in `[data-theme="dark"]` and in `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`. Set `color-scheme` to match each mode.
+- Also write §4 radius, §5 density, and the §2 `prefers-reduced-transparency` fallback.
+- `body` gets `background: var(--background) var(--bg-art) fixed` and `font-family: var(--font-sans)`.
+
+Map the tokens into Tailwind v4 through `@theme inline` in `app.css`, so `bg-card`, `text-muted-foreground`, `bg-brand`, `text-success` and similar classes exist. Replace shadcn's scaffold colours with these tokens.
+
+Components use tokens only, never raw colour classes such as `bg-indigo-600` or `text-amber-500`.
 
 - [ ] **Step 4: Run the tests**
 
 Run: `cd web && bun run test` → Expected: PASS.
 
+Then run `bun run build`, open the app, and switch the mode in devtools (`document.documentElement.dataset.theme='dark'`) to check that both palettes apply.
+
 - [ ] **Step 5: Commit**
 
 ```bash
-git add -A && git commit -m "feat(web): approved theme tokens + appearance application"
+git add -A && git commit -m "feat(web): Counter theme tokens (light Studio / dark Night), mode toggle, appearance"
 ```
 
 ---
@@ -2027,6 +2115,7 @@ e2e-seed: db-up
 Check what karots-pos `cmd/server/seed.go` creates. The Demo Room logins are owner `0770000001`/`1234`. If `-seed` doesn't create both users with PIN 1234 and `must_change_pin=false`, add a small `scripts/e2e-users.sql` that inserts them using a bcrypt hash generated once with `htpasswd -bnBC 10 "" 1234 | tr -d ':\n'`, and run it in `e2e-seed` instead.
 
 - [ ] **Step 3: Implement the screens.** Use the approved theme and shadcn components.
+  - Every screen here works in light and dark mode. `login.tsx` and `lock.tsx` put `<ModeToggle />` top right (theme.md §6).
   - **`login.tsx`**
     - `useQuery(LoginInfo)` from `/auth/login-info`.
     - On mount, `console.info('POS install ' + installId + ' · server time ' + serverTime)`.
@@ -2080,8 +2169,8 @@ git add -A && git commit -m "feat(web): login (+install-id konami), lock, change
 - Produces:
   - Route context `{ me: Me }` for everything under `_authed`.
   - `adminNav: { to: string; label: string; icon: LucideIcon; mobile?: boolean }[]` in `theme/nav.ts`. In M0 it holds only Home plus System (the system user only). Later milestones append entries.
-  - `<AdminShell>`: a sidebar at 768px and up; below 768px, a top bar, a bottom tab bar (`mobile: true` items) and a "More" `Sheet`.
-  - `<TillShell>`: a full-height desktop frame with `autofit`.
+  - `<AdminShell>`: a 232px sidebar at 1024px and up, and a 72px icon rail at 768–1023px. Below 768px it has a top bar, a bottom tab bar (`mobile: true` items, sliding indicator) and a "More" `Sheet`. `<ModeToggle />` is in the user menu.
+  - `<TillShell>`: a full-height desktop frame with `autofit` and the 60px top bar from theme.md §6, including `<ModeToggle />`.
   - `autofitZoom(needed: number, avail: number, pad?: number): number`
 
 - [ ] **Step 1: Write the failing autofit test.** This ports karots-pos `kioskAutoFit` exactly: it only shrinks, and leaves 16px of slack.
@@ -2172,7 +2261,7 @@ function Authed() {
     - The body is a placeholder "Till — M1".
     - The till is desktop only, with no mobile layout.
   - **`routes/index.tsx`:** in `beforeLoad`, use `ensureQueryData(meQuery)`. A cashier redirects to `/till`, anyone else to `/admin`, and an error redirects to `redirectFor(err) ?? '/login'`.
-  - All UI uses theme tokens only. Before writing `AdminShell`, check it against the approved mockups in `docs/design/theme.md`.
+  - All UI uses theme tokens only. Before writing `AdminShell`, check it against `docs/design/theme.md` §6 and the approved mockup linked there, in BOTH modes.
 
 - [ ] **Step 5: Write the shell e2e test and finish `auth.spec.ts`**
 

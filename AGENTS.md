@@ -18,7 +18,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 - **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A domain bug found here gets fixed in karots-pos too, while that repo is supported.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
-- **One theme for now, and it must not look like karots-pos.** Components use theme tokens only (CSS variables), never raw colour classes.
+- **One theme for now, and it must not look like karots-pos.** Components use theme tokens only (CSS variables), never raw colour classes. The theme is "Counter" in `docs/design/theme.md`: light = Studio, dark = Night Counter. Every screen must work in both modes.
 
 ## Layout
 

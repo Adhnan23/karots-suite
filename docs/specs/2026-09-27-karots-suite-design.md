@@ -173,8 +173,8 @@ routes/       TanStack Router file routes
 ### 6.4 Theme and appearance
 
 - **One new theme.** It deliberately doesn't resemble karots-pos: new shell, typography, spacing and card language. The visual design is done as its own step in M0, using the frontend-design skill with mockups reviewed before building.
-- **Everything visual comes from CSS-variable tokens:** colour, radius, density, font and shadow. Components never hard-code colours. Charts read their palette from tokens. Light and dark mode are both supported.
-- **System menu → Appearance** is visible only to the system user. It covers brand colour, radius, density, light/dark, logo, shop name and receipt style (classic/modern/boxed/compact, same as today). It's stored in the existing settings table and applied at boot, with no rebuild.
+- **Everything visual comes from CSS-variable tokens:** colour, radius, density, font and shadow. Components never hard-code colours. Charts read their palette from tokens. Light and dark mode are both supported on every screen. The approved theme is "Counter" (light Studio, dark Night Counter), in `docs/design/theme.md`. Each device picks System, Light or Dark with a toggle; this is a viewer preference, not a shop setting.
+- **System menu → Appearance** is visible only to the system user. It covers brand colour, radius, density, logo, shop name and receipt style (classic/modern/boxed/compact, same as today). It's stored in the existing settings table and applied at boot, with no rebuild.
 - **Future packs (not built now).** Screens consume shell and variant components through `theme/`, never directly. A second theme later means adding `theme/<pack>/` and a selector in the system menu, with no screen changes.
 
 ### 6.5 Till (cashier) parity checklist
