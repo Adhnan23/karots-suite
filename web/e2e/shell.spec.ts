@@ -15,10 +15,11 @@ test('admin shell is usable at 360px (no horizontal scroll, bottom tabs)', async
   await expect(page.getByRole('navigation', { name: /primary/i })).toBeVisible()
 })
 
-test('admin shell shows sidebar at 1366px', async ({ page }) => {
+test('admin shell shows the dock at 1366px, no sidebar', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 })
   await loginAdmin(page)
-  await expect(page.getByRole('navigation', { name: /sidebar/i })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: /main/i })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: /sidebar/i })).toHaveCount(0)
 })
 
 test('deep link reload survives', async ({ page }) => {

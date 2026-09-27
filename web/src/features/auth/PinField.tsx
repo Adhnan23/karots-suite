@@ -1,5 +1,5 @@
 import { cn } from 'cn'
-import { useEffect, useState, type Ref } from 'react'
+import { useState, type Ref } from 'react'
 
 type Props = {
   id: string
@@ -11,19 +11,20 @@ type Props = {
   inputRef?: Ref<HTMLInputElement>
 }
 
+function isCoarsePointer() {
+  try {
+    return window.matchMedia('(pointer: coarse)').matches
+  } catch {
+    return false
+  }
+}
+
 /** The PIN box: dots for display, a real (invisible) input underneath so a
  * physical keyboard types into it and Enter submits. No browser memory: it is
  * `type="text"` with `-webkit-text-security: disc`, never `type="password"`,
  * so a password manager never offers to save a shared counter's PIN. */
 export function PinField({ id, value, onChange, onFocus, onEnter, shake, inputRef }: Props) {
-  const [inputMode, setInputMode] = useState<'numeric' | 'none'>('numeric')
-  useEffect(() => {
-    try {
-      if (window.matchMedia('(pointer: coarse)').matches) setInputMode('none')
-    } catch {
-      /* matchMedia unavailable */
-    }
-  }, [])
+  const [inputMode] = useState<'numeric' | 'none'>(() => (isCoarsePointer() ? 'none' : 'numeric'))
 
   return (
     <div

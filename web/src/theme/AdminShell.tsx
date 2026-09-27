@@ -1,9 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { LogOut, Menu, PinIcon, UnlockIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { LogOut, PinIcon, Search, UnlockIcon } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import type { Me } from '@/api/types.gen'
+import { CommandPalette } from './CommandPalette'
+import { Dock } from './Dock'
 import { ModeToggle } from './ModeToggle'
 import { adminNav } from './nav'
+import { PhoneTabs } from './PhoneTabs'
+import { Shelf } from './Shelf'
 
 function handleLock() {
   api('/auth/lock', { method: 'POST' }).finally(() => window.location.assign('/lock'))
@@ -29,125 +31,103 @@ function handleSignOut() {
     })
 }
 
-function UserMenu({ me }: { me: Me }) {
+/** Tapping the user's name 8 times in the avatar menu opens the hidden system
+ * menu (theme.md §6), same gesture as karots-pos. System user only. */
+function useHiddenSystemMenu(isSystem: boolean) {
+  const taps = useRef(0)
+  return () => {
+    if (!isSystem) return
+    taps.current += 1
+    if (taps.current >= 8) window.location.assign('/admin/system/appearance')
+  }
+}
+
+function AvatarMenu({ me }: { me: Me }) {
+  const tapName = useHiddenSystemMenu(me.flags.isSystem)
+  const initials = me.user.name.slice(0, 1).toUpperCase()
+
   return (
-    <>
-      <Button variant="outline" size="sm" onClick={handleLock}>
-        <UnlockIcon /> Lock
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">{me.user.name}</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link to="/account/pin">
-              <PinIcon /> Change PIN
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut} variant="destructive">
-            <LogOut /> Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Account"
+          className="grid h-9 w-9 place-items-center rounded-full bg-brand-soft font-bold text-foreground"
+        >
+          {initials}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); tapName() }}>{me.user.name}</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/account/pin">
+            <PinIcon /> Change PIN
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut} variant="destructive">
+          <LogOut /> Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
+/** The dock admin shell (theme.md §6): a top bar, the floating dock + shelf on
+ * desktop/tablet, a floating tab bar on the phone. No sidebar. */
 export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
-  const nav = adminNav.filter((n) => !n.systemOnly || me.flags.isSystem)
-  const mobileNav = nav.filter((n) => n.mobile)
-  const moreNav = nav.filter((n) => !n.mobile)
-  const [moreOpen, setMoreOpen] = useState(false)
+  const [shelf, setShelf] = useState<string | null>(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const shelfArea = shelf && shelf !== 'apps' ? adminNav.find((a) => a.key === shelf) : undefined
 
   return (
-    <div className="min-h-screen bg-background text-foreground md:flex">
-      <nav
-        aria-label="Sidebar"
-        className="sticky top-0 hidden h-screen shrink-0 flex-col gap-1 border-r border-border bg-card p-3 md:flex md:w-[72px] lg:w-[232px]"
-      >
-        <div className="mb-4 truncate px-1 font-display text-lg font-semibold">
-          <span className="lg:hidden">KS</span>
-          <span className="hidden lg:inline">{me.shopName}</span>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="flex items-center gap-3 px-4 pt-4 md:px-10">
+        <span className="grid h-[30px] w-[30px] place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground">K</span>
+        <span className="truncate font-display text-lg font-bold">{me.shopName}</span>
+        <div className="ml-auto flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="hidden min-w-[220px] items-center gap-2 rounded-full border border-border bg-muted px-3 py-2 text-sm text-muted-foreground md:flex"
+          >
+            <Search size={16} />
+            <span className="flex-1 text-left">Search pages, products, bills</span>
+            <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-[11px] font-semibold">Ctrl K</kbd>
+          </button>
+          <ModeToggle />
+          <button
+            type="button"
+            onClick={handleLock}
+            aria-label="Lock"
+            className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-muted px-3 text-sm font-semibold"
+          >
+            <UnlockIcon size={16} /> Lock
+          </button>
+          <AvatarMenu me={me} />
         </div>
-        {nav.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            title={label}
-            className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground [&.active]:bg-brand-soft [&.active]:text-foreground"
-            activeProps={{ className: 'active' }}
-          >
-            <Icon size={18} />
-            <span className="hidden lg:inline">{label}</span>
-          </Link>
-        ))}
-        <Link
-          to="/till"
-          title="Till"
-          className="mt-auto flex items-center gap-2 rounded-lg bg-brand px-2 py-2 text-sm font-medium text-brand-foreground"
-        >
-          <span className="hidden lg:inline">Open the till</span>
-          <span className="lg:hidden">Till</span>
-        </Link>
-      </nav>
+      </header>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
-          <span className="truncate font-display font-semibold md:hidden">{me.shopName}</span>
-          <span className="hidden font-display text-lg font-semibold md:inline" />
-          <div className="ml-auto flex items-center gap-2">
-            <ModeToggle />
-            <UserMenu me={me} />
-          </div>
-        </header>
-        <main className="flex-1 p-4 pb-20 md:pb-4">{children}</main>
-      </div>
+      <main className="p-4 pb-[130px] md:px-10 md:pt-5 md:pb-[110px]">{children}</main>
 
-      <nav
-        aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 flex border-t border-border bg-card md:hidden"
-      >
-        {mobileNav.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground [&.active]:text-brand"
-            activeProps={{ className: 'active' }}
-          >
-            <Icon size={20} />
-            {label}
-          </Link>
-        ))}
-        {moreNav.length > 0 && (
-          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-            <SheetTrigger asChild>
-              <button type="button" className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground">
-                <Menu size={20} />
-                More
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom">
-              <SheetHeader>
-                <SheetTitle>More</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col gap-1 p-4 pt-0">
-                {moreNav.map(({ to, label, icon: Icon }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-muted"
-                  >
-                    <Icon size={18} /> {label}
-                  </Link>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
-        )}
-      </nav>
+      <Dock current={shelf} onToggle={setShelf} />
+      {shelf === 'apps' && <Shelf kind="apps" onClose={() => setShelf(null)} />}
+      {shelfArea && <Shelf kind="area" area={shelfArea} onClose={() => setShelf(null)} />}
+      <PhoneTabs />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }
