@@ -10,6 +10,8 @@
 @import "@fontsource/sora/700.css";
 @import "@fontsource/sora/800.css";
 @import "./theme/tokens.css";
+@import "./theme/palettes/studio.css";
+@import "./theme/palettes/night.css";
 
 /* ponytail: dark: utilities only fire for an explicit Dark pick, not "System" +
  * OS dark (token-driven colours still switch correctly either way via
@@ -42,10 +44,17 @@
     --color-brand-foreground: var(--brand-foreground);
     --color-brand-soft: var(--brand-soft);
     --color-brand-2: var(--brand-2);
+    --color-brand-2-foreground: var(--brand-2-foreground);
+    --color-selected: var(--selected);
+    --color-selected-foreground: var(--selected-foreground);
     --color-success: var(--success);
     --color-danger: var(--danger);
     --color-warning: var(--warning);
     --color-faint: var(--faint);
+    --color-hero: var(--hero);
+    --color-hero-foreground: var(--hero-foreground);
+    --color-hero-muted: var(--hero-muted);
+    --color-bar: var(--bar);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) * 1.4);

@@ -1,0 +1,166 @@
+/* Night palette (docs/design/theme.md §2): violet/cyan glass, both modes. */
+
+:root[data-palette="night"] {
+  color-scheme: light;
+
+  --background: #EEF0FA;
+  --bg-art: radial-gradient(900px 500px at 12% -10%, rgb(124 92 255 / .22), transparent 60%), radial-gradient(700px 500px at 110% 110%, rgb(34 211 238 / .20), transparent 60%);
+  --foreground: #161A33;
+  --card: rgb(255 255 255 / .62);
+  --card-foreground: var(--foreground);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--foreground);
+  --muted: rgb(110 91 255 / .07);
+  --secondary: rgb(110 91 255 / .07);
+  --accent: rgb(110 91 255 / .07);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --muted-foreground: #50577A;
+  --faint: #62698B;
+  --border: rgb(60 50 140 / .12);
+  --input: rgb(60 50 140 / .12);
+  --brand: #6E5BFF;
+  --brand-foreground: #FFFFFF;
+  --brand-soft: rgb(110 91 255 / .13);
+  --brand-2: #0A9FB4;
+  --brand-2-foreground: #FFFFFF;
+  --selected: #6E5BFF;
+  --selected-foreground: #FFFFFF;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: var(--brand);
+  --success: #0F9160;
+  --danger: #D6404E;
+  --destructive: var(--danger);
+  --warning: #A86500;
+  --hero: #151A3A;
+  --hero-foreground: #EEF0FF;
+  --hero-muted: #B5BCDA;
+  --hero-art: radial-gradient(600px 420px at 90% 110%, rgb(47 213 230 / .40), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(139 123 255 / .60), transparent 62%);
+  --glass: blur(18px) saturate(160%);
+  --glow: 0 0 14px rgb(110 91 255 / .45);
+  --bar: rgb(255 255 255 / .66);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 10px 30px rgb(60 50 140 / .10);
+  --shadow-float: inset 0 1px 0 rgb(255 255 255 / .8), 0 18px 50px rgb(60 50 140 / .18);
+  --chart-1: #6E5BFF;
+  --chart-2: #0A9FB4;
+  --chart-3: #0F9160;
+  --chart-4: #A86500;
+  --chart-5: #D6404E;
+  --chart-6: #C026D3;
+}
+
+:root[data-palette="night"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #0B1020;
+  --bg-art: radial-gradient(900px 500px at 12% -10%, rgb(124 92 255 / .35), transparent 60%), radial-gradient(700px 500px at 110% 110%, rgb(34 211 238 / .22), transparent 60%);
+  --foreground: #EAF0FF;
+  --card: rgb(255 255 255 / .055);
+  --card-foreground: var(--foreground);
+  --popover: #161D33;
+  --popover-foreground: var(--foreground);
+  --muted: rgb(255 255 255 / .085);
+  --secondary: rgb(255 255 255 / .085);
+  --accent: rgb(255 255 255 / .085);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --muted-foreground: #A3AECB;
+  --faint: #7A84A6;
+  --border: rgb(255 255 255 / .10);
+  --input: rgb(255 255 255 / .10);
+  --brand: #8B7BFF;
+  --brand-foreground: #0B1020;
+  --brand-soft: rgb(139 123 255 / .18);
+  --brand-2: #2FD5E6;
+  --brand-2-foreground: #0B1020;
+  --selected: #8B7BFF;
+  --selected-foreground: #0B1020;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: var(--brand);
+  --success: #3DDC97;
+  --danger: #FF7C7C;
+  --destructive: var(--danger);
+  --warning: #FFC857;
+  --hero: #070B18;
+  --hero-foreground: #EAF0FF;
+  --hero-muted: #A3AECB;
+  --hero-art: radial-gradient(600px 420px at 90% 110%, rgb(47 213 230 / .35), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(139 123 255 / .55), transparent 62%);
+  --glass: blur(18px) saturate(140%);
+  --glow: 0 0 14px rgb(139 123 255 / .7);
+  --bar: rgb(22 29 51 / .72);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
+  --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
+  --chart-1: #8B7BFF;
+  --chart-2: #2FD5E6;
+  --chart-3: #3DDC97;
+  --chart-4: #FFC857;
+  --chart-5: #FF7C7C;
+  --chart-6: #E879F9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="night"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #0B1020;
+    --bg-art: radial-gradient(900px 500px at 12% -10%, rgb(124 92 255 / .35), transparent 60%), radial-gradient(700px 500px at 110% 110%, rgb(34 211 238 / .22), transparent 60%);
+    --foreground: #EAF0FF;
+    --card: rgb(255 255 255 / .055);
+    --card-foreground: var(--foreground);
+    --popover: #161D33;
+    --popover-foreground: var(--foreground);
+    --muted: rgb(255 255 255 / .085);
+    --secondary: rgb(255 255 255 / .085);
+    --accent: rgb(255 255 255 / .085);
+    --secondary-foreground: var(--foreground);
+    --accent-foreground: var(--foreground);
+    --muted-foreground: #A3AECB;
+    --faint: #7A84A6;
+    --border: rgb(255 255 255 / .10);
+    --input: rgb(255 255 255 / .10);
+    --brand: #8B7BFF;
+    --brand-foreground: #0B1020;
+    --brand-soft: rgb(139 123 255 / .18);
+    --brand-2: #2FD5E6;
+    --brand-2-foreground: #0B1020;
+    --selected: #8B7BFF;
+    --selected-foreground: #0B1020;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: var(--brand);
+    --success: #3DDC97;
+    --danger: #FF7C7C;
+    --destructive: var(--danger);
+    --warning: #FFC857;
+    --hero: #070B18;
+    --hero-foreground: #EAF0FF;
+    --hero-muted: #A3AECB;
+    --hero-art: radial-gradient(600px 420px at 90% 110%, rgb(47 213 230 / .35), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(139 123 255 / .55), transparent 62%);
+    --glass: blur(18px) saturate(140%);
+    --glow: 0 0 14px rgb(139 123 255 / .7);
+    --bar: rgb(22 29 51 / .72);
+    --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
+    --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
+    --chart-1: #8B7BFF;
+    --chart-2: #2FD5E6;
+    --chart-3: #3DDC97;
+    --chart-4: #FFC857;
+    --chart-5: #FF7C7C;
+    --chart-6: #E879F9;
+  }
+}
+
+/* Glass costs GPU time on weak counter PCs; drop it under reduced transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-palette="night"] {
+    --glass: none;
+    --card: #FFFFFF;
+  }
+  :root[data-palette="night"][data-theme="dark"],
+  :root[data-palette="night"]:not([data-theme="light"]) {
+    --glass: none;
+    --card: #121932;
+  }
+}
