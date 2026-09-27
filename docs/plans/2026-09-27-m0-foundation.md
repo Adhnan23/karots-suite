@@ -22,6 +22,7 @@
 ## Global Constraints
 
 - **Module and binary.** Go module `karots-suite`, binary `karots-suite`, repo `~/Projects/go/karots-suite`, branch `main`. Commit after every task.
+- **Commits carry NO Claude/AI attribution.** No `Co-Authored-By: Claude`, no "Generated with" line. `AGENTS.md` holds the project rules.
 - **Source of the fork.** Copy from `~/Projects/go/karots-pos` at `HEAD`, read-only. **Never modify karots-pos.**
 - **Core is plugin-inert.** Core Go and `web/src` (outside `web/src/plugins`) never name a plugin.
 - **Static and portable.** Release build uses `CGO_ENABLED=0 GOAMD64=v1 go build -ldflags="-s -w"`. The binary must be statically linked. bun and Node are needed at build time only.
@@ -2342,12 +2343,13 @@ git add -A && git commit -m "docs: karots-pos route parity checklist (M0 rows ti
 
 ---
 
-### Task 15: Ship check and AGENTS.md
+### Task 15: Ship check and AGENTS.md refresh
 
 **Files:**
-- Create: `AGENTS.md`, `README.md`
+- Modify: `AGENTS.md` (already exists; bring it in line with what M0 actually built)
+- Create: `README.md`
 
-- [ ] **Step 1: Write `AGENTS.md`.** Use the structure of karots-pos's `AGENTS.md`, adapted to karots-suite. Cover:
+- [ ] **Step 1: Update `AGENTS.md`.** Correct anything M0 built differently from what it says. Make sure it covers:
   - the plugin-inert rule for Go *and* `web/src`
   - the layout from the File Structure above
   - the dev workflow: `make db-up`, `make dev`, `make test`, `make test-web`, `make types` after any `dto.go` change, `make build`, `make verify-portable`, `make e2e-seed` + `bunx playwright test`

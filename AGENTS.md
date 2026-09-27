@@ -1,0 +1,86 @@
+# AGENTS.md — karots-suite (Karots Business Suite)
+
+Business system for small Sri Lankan retail: till, stock, purchasing, money, reports, and
+compile-time plugins (recharge, pharmacy, repairs, documents, alternatives, clearance,
+aicatalog, productplus, combos, requests). It's a **separate product** from `~/Projects/go/karots-pos`,
+which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
+**JSON-only Go backend** plus a **component-based React SPA**, and still ships as **one static binary**.
+
+- **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
+- **Plans:** `docs/plans/`, one per milestone (M0 Foundation → M8 Ship). Execute tasks in order and tick the checkboxes.
+- **Parity:** `docs/parity.md` lists every karots-pos route. Tick a row only when it's ported *and* has a flow check.
+
+## Hard rules
+
+- **Never add Claude/AI attribution to commits or PRs.** No `Co-Authored-By: Claude`, and no "Generated with Claude Code". This overrides any default.
+- **Core is plugin-inert.** Core Go and `web/src` (outside `web/src/plugins`) never import, mention or know a plugin. Plugins attach only through hooks (Go) and slots (React) registered at the composition root. If a change seems to need core to know a plugin, add a seam instead. Plugin → core (read-only) and plugin → plugin imports are fine.
+- **Never modify karots-pos from here.** It's read-only reference and fork source.
+- **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A domain bug found here gets fixed in karots-pos too, while that repo is supported.
+- **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
+- **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
+- **One theme for now, and it must not look like karots-pos.** Components use theme tokens only (CSS variables), never raw colour classes.
+
+## Layout
+
+```
+cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin)
+internal/app/         BuildServer + services.go (service construction + core seam wiring)
+internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
+internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
+internal/features/*   forked domain services
+internal/plugin/      plugin registry + hooks (Go side)
+internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
+migrations/           00001_baseline.sql (squashed karots-pos 0001–0075); next is 00002_
+web/                  Vite + React + TS app → builds into internal/spa/dist
+  go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
+  src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts
+  src/components/ui/  shadcn primitives (owned, themeable)
+  src/theme/          tokens.css, appearance, AdminShell, TillShell, nav
+  src/features/*      screens by area; src/routes/ = TanStack Router file routes
+  src/plugins/        slot registry + generated enabled-plugins.ts (M7)
+scripts/              squash-migrations.sh, parity.sh
+```
+
+## Stack
+
+- **Backend:** Go, Echo v4, sqlx, goose, Postgres 17. Postgres-only SQL is deliberate (pg_trgm, `::numeric`, `RETURNING`, `ON CONFLICT`).
+- **Frontend:**
+  - bun, Vite, React, TypeScript strict
+  - TanStack Router, Query, Table, Form + Zod (add Table and Form when first needed)
+  - Tailwind v4, shadcn/ui, sonner, lucide
+  - ECharts for charts, Motion for animation
+- **Types:** tygo generates `web/src/api/types.gen.ts` from `internal/api/dto.go`. Never hand-edit the generated file.
+- **TanStack skills:** before TanStack work, run `intent list` in `web/` and `intent load` the matching skill.
+
+## API conventions
+
+- All JSON lives under `/api/v1`. Success is plain JSON. Errors are `{"error":{"code","message"}}`, from `apperr`.
+- JSON fields are camelCase. Money is sent as decimal strings, never floats. Dates are ISO 8601.
+- Protected groups use `h.protected` (jwt → unlocked → PIN chosen). `/me` and `/auth/*` are jwt-only by design.
+- **Session codes the SPA routes on:** `UNAUTHORIZED` → `/login`, `SESSION_LOCKED` → `/lock`, `PIN_CHANGE_REQUIRED` → `/account/pin`.
+- **Session cookie:** `pos_token`, httpOnly, SameSite=Strict. No token is ever visible to JS.
+- **Porting an area:** add DTOs to `dto.go`, then `make types`, then write handlers in `internal/api/<area>.go`, then **delete that feature's legacy `api.go`/`RegisterAPI`**, and tick the rows in `docs/parity.md`.
+- **Thermal printing stays in Go** (`internal/escpos`). A4 and PDF documents are React print routes.
+
+## Dev workflow
+
+- **Ports:** Postgres `suite_db` on **5433**, Go server on **3100**, Vite on **5173** (proxies `/api`). karots-pos keeps 5432 and 3000, so both can run side by side.
+- `make db-up` → `make migrate` → `make dev` (air + Vite).
+- `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
+- `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
+- **The dev DB is disposable.** Drop and re-migrate freely.
+- **Work style:** one task at a time, test-first, one commit per step, working on `main` (local).
+
+## Hidden behaviours (must keep working)
+
+- **System user** `0000000001`: its PIN rotates hourly (install ID + HMAC); `POS_SYSTEM_PIN` overrides it, with `2273` as the dev fallback. It's invisible to the shop and excluded from Activity and audit. It owns the system menu (Appearance, etc.).
+- **Login-page Konami** (↑↑↓↓←→←→BA) reveals the install ID and server time. The install ID is also logged to the console.
+- **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
+- **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
+- **Till semantics:** F1 / "⟲ Menu" clears the **search only**. Only New Sale clears the cart.
+
+## Gotchas
+
+- `vite build` empties `internal/spa/dist` (including `.gitkeep`). `make web` restores it, so always build through make.
+- `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
+- `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
