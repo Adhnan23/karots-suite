@@ -22,7 +22,7 @@ function handleSignOut() {
 /** Desktop/kiosk till frame (theme.md §6): 60px top bar + autofit body. No mobile layout. */
 export function TillShell({ me, children }: { me: Me; children: ReactNode }) {
   return (
-    <div className="flex h-screen min-w-[1024px] flex-col bg-background text-foreground">
+    <div className="flex h-screen min-w-[1024px] flex-col text-foreground">
       <header className="flex h-[60px] shrink-0 items-center gap-4 border-b border-border bg-card px-4">
         <span className="font-display text-lg font-semibold">{me.shopName}</span>
         <span className="text-sm text-muted-foreground">{me.user.name}</span>

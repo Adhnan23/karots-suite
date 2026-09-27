@@ -38,7 +38,7 @@ export function Dock({ current, onToggle }: { current: string | null; onToggle: 
   return (
     <nav
       aria-label="Main"
-      className="fixed bottom-[18px] left-1/2 z-20 flex -translate-x-1/2 items-end gap-1.5 rounded-3xl border border-border bg-bar p-2 shadow-[var(--shadow-float)] [backdrop-filter:var(--glass)]"
+      className="fixed bottom-[18px] left-1/2 z-20 hidden -translate-x-1/2 items-end gap-1.5 rounded-3xl border border-border bg-bar p-2 shadow-[var(--shadow-float)] [backdrop-filter:var(--glass)] md:flex"
     >
       <Link to="/admin" aria-label="Home" className="grid h-[54px] w-[54px] place-items-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground">
         <Home size={22} />

@@ -30,6 +30,13 @@
 }
 
 body {
-  background: var(--background) var(--bg-art) fixed;
+  /* longhand, not the `background` shorthand: --bg-art is a comma-separated
+   * multi-layer gradient for Night, and a background color is only valid on
+   * the LAST layer of a shorthand — folding it into one declaration made the
+   * whole rule invalid (and silently dropped) the moment --bg-art had 2 layers. */
+  background-color: var(--background);
+  background-image: var(--bg-art);
+  background-attachment: fixed;
+  color: var(--foreground);
   font-family: var(--font-sans);
 }

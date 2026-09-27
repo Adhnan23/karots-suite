@@ -59,6 +59,9 @@ function AvatarMenu({ me }: { me: Me }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); tapName() }}>{me.user.name}</DropdownMenuItem>
+        <div className="flex justify-center px-1.5 py-1 md:hidden">
+          <ModeToggle />
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/account/pin">
@@ -94,11 +97,13 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
   const shelfArea = shelf && shelf !== 'apps' ? adminNav.find((a) => a.key === shelf) : undefined
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="flex items-center gap-3 px-4 pt-4 md:px-10">
-        <span className="grid h-[30px] w-[30px] place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground">K</span>
-        <span className="truncate font-display text-lg font-bold">{me.shopName}</span>
-        <div className="ml-auto flex items-center gap-2.5">
+    <div className="min-h-screen text-foreground">
+      <header className="flex items-center gap-2.5 px-4 pt-4 md:gap-3 md:px-10">
+        <span className="hidden h-[30px] w-[30px] flex-none place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground md:grid">
+          K
+        </span>
+        <span className="min-w-0 flex-1 truncate font-display text-base font-bold md:flex-none md:text-lg">{me.shopName}</span>
+        <div className="ml-auto flex flex-none items-center gap-1.5 md:gap-2.5">
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
@@ -108,20 +113,23 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
             <span className="flex-1 text-left">Search pages, products, bills</span>
             <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-[11px] font-semibold">Ctrl K</kbd>
           </button>
-          <ModeToggle />
+          <div className="hidden md:block">
+            <ModeToggle />
+          </div>
           <button
             type="button"
             onClick={handleLock}
             aria-label="Lock"
-            className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-muted px-3 text-sm font-semibold"
+            className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 text-sm font-semibold md:px-3"
           >
-            <UnlockIcon size={16} /> Lock
+            <UnlockIcon size={16} />
+            <span className="hidden md:inline">Lock</span>
           </button>
           <AvatarMenu me={me} />
         </div>
       </header>
 
-      <main className="p-4 pb-[130px] md:px-10 md:pt-5 md:pb-[110px]">{children}</main>
+      <main className="p-4 pb-[100px] md:px-10 md:pt-5 md:pb-[110px]">{children}</main>
 
       <Dock current={shelf} onToggle={setShelf} />
       {shelf === 'apps' && <Shelf kind="apps" onClose={() => setShelf(null)} />}
