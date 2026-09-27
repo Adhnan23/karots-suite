@@ -63,6 +63,11 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@keyframes shake {
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

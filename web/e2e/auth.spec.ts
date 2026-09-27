@@ -49,3 +49,18 @@ test('cashier lands on /till', async ({ page }) => {
   await login(page, '0770000002')
   await expect(page).toHaveURL(/\/till/)
 })
+
+test('no browser memory: autocomplete off, no password field', async ({ page }) => {
+  await page.goto('/login')
+  await expect(page.locator('form')).toHaveAttribute('autocomplete', 'off')
+  expect(await page.locator('input[type="password"]').count()).toBe(0)
+})
+
+test('the keypad writes into the PIN field and signs in', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill('0770000001')
+  await page.getByLabel('PIN').click()
+  for (const d of ['1', '2', '3', '4']) await page.getByRole('button', { name: d, exact: true }).click()
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await expect(page).toHaveURL(/\/admin/)
+})

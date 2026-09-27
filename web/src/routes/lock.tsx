@@ -1,12 +1,12 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import { meQuery, redirectFor } from '@/api/session'
 import { queryClient } from '@/api/query-client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PinForm } from '@/features/auth/PinForm'
+import { LoginHero } from '@/features/auth/LoginHero'
+import { PinField } from '@/features/auth/PinField'
+import { PinPad, type PinKey } from '@/features/auth/PinPad'
 import { ModeToggle } from '@/theme/ModeToggle'
 
 export const Route = createFileRoute('/lock')({
@@ -26,9 +26,21 @@ export const Route = createFileRoute('/lock')({
 function Lock() {
   const { me } = Route.useRouteContext()
   const navigate = useNavigate()
+  const [phone, setPhone] = useState('')
+  const [pin, setPin] = useState('')
+  const [target, setTarget] = useState<'phone' | 'pin'>('phone')
   const [error, setError] = useState<string | null>(null)
+  const [shake, setShake] = useState(false)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const pinRef = useRef<HTMLInputElement>(null)
 
-  const handleUnlock = async (phone: string, pin: string) => {
+  const handlePadKey = (k: PinKey) => {
+    const apply = (v: string) => (k === 'clear' ? '' : k === 'back' ? v.slice(0, -1) : v + k)
+    if (target === 'phone') setPhone(apply)
+    else setPin((v) => apply(v).slice(0, 6))
+  }
+
+  const handleUnlock = async () => {
     setError(null)
     try {
       await api('/auth/unlock', { json: { phone, pin } })
@@ -36,6 +48,10 @@ function Lock() {
       navigate({ to: '/' })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong')
+      setPin('')
+      setShake(true)
+      setTimeout(() => setShake(false), 350)
+      pinRef.current?.focus()
     }
   }
 
@@ -46,21 +62,77 @@ function Lock() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
-        <ModeToggle />
-      </div>
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="font-display text-xl">Locked — {me.user.name}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <PinForm onSubmit={handleUnlock} submitLabel="Unlock" error={error} />
-          <Button type="button" variant="link" onClick={handleSignOut}>
-            Sign out
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="grid min-h-screen md:grid-cols-[1.15fr_1fr]">
+      <LoginHero shopName={me.shopName} />
+      <form
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleUnlock()
+        }}
+        className="relative flex flex-col justify-center gap-5 p-6 md:p-16"
+      >
+        <div className="absolute top-4 right-4 md:top-6 md:right-6">
+          <ModeToggle />
+        </div>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Locked by {me.user.name}</h2>
+          <p className="text-muted-foreground">Enter the phone number and PIN to unlock.</p>
+        </div>
+        <div className="flex max-w-[360px] flex-col gap-1.5">
+          <label htmlFor="lock-phone" className="text-xs font-bold text-muted-foreground">
+            Phone
+          </label>
+          <input
+            ref={phoneRef}
+            id="lock-phone"
+            name="ks-ph"
+            type="text"
+            inputMode="tel"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="07X XXX XXXX"
+            value={phone}
+            onFocus={() => setTarget('phone')}
+            onChange={(e) => setPhone(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                pinRef.current?.focus()
+              }
+            }}
+            className="h-[54px] rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 font-display text-xl font-bold tracking-wide outline-none focus:border-brand"
+          />
+        </div>
+        <div className="flex max-w-[360px] flex-col gap-1.5">
+          <label htmlFor="lock-pin" className="text-xs font-bold text-muted-foreground">
+            PIN
+          </label>
+          <PinField
+            id="lock-pin"
+            inputRef={pinRef}
+            value={pin}
+            onChange={setPin}
+            onFocus={() => setTarget('pin')}
+            onEnter={handleUnlock}
+            shake={shake}
+          />
+        </div>
+        <p role="alert" className="-my-2 min-h-[21px] text-sm font-semibold text-destructive">
+          {error}
+        </p>
+        <PinPad onKey={handlePadKey} />
+        <button
+          type="submit"
+          className="h-14 max-w-[360px] rounded-[var(--radius-sm)] bg-brand font-semibold text-brand-foreground shadow-[var(--glow)]"
+        >
+          Unlock
+        </button>
+        <button type="button" onClick={handleSignOut} className="text-center text-sm text-muted-foreground hover:underline">
+          Sign out
+        </button>
+      </form>
     </div>
   )
 }
