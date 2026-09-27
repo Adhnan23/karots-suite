@@ -1,195 +1,176 @@
-# Theme — "Counter" (approved 2026-09-27)
+# Theme and palettes (approved 2026-09-27, revised same day)
 
-The one theme for M0–M8. It has two modes that are the same design in two lights:
+**Approved mockups:**
+- Shell, login and palettes: https://claude.ai/artifact/MANYgogqsxC4evmSADNkia. Its Palette and Mode switches show all four combinations, and it lists the tokens at the bottom.
+- Till look and feature density: https://claude.ai/artifact/GkJjnypEes4GmHiHMDzFT5. Use its "Night Counter" and "Studio" directions only.
 
-- **Light mode = "Studio"**: white cards on cool grey, saffron brand, calm and premium.
-- **Dark mode = "Night Counter"**: deep navy with a violet→cyan glow and glass panels.
+**Both mockups are look demos, not feature specs.** The real screens implement every
+karots-pos feature (`docs/parity.md`) in this style. Before building a screen, check
+karots-pos for what it has; don't copy the mockups' fake data or missing features.
 
-Reference mockup (clickable, approved): https://claude.ai/artifact/GkJjnypEes4GmHiHMDzFT5.
-Switch it between "Night Counter" and "Studio" to see both modes.
+## 1. Palettes and modes
 
-**The mockup is a look demo, not a feature spec.** It shows the style of the till and
-dashboard with fake data. The real screens implement every karots-pos feature
-(`docs/parity.md`) in this style, milestone by milestone. Don't copy its data,
-its missing features, or its plain-JS structure.
+These are two separate controls:
 
-The third direction, "Bazaar" (per-category colours and icons, cart and pay stacked),
-is **not** built now. It and other looks become theme packs later (spec §6.4). Keep
-every colour in tokens so a pack can replace them.
-
-## 1. Light and dark mode
-
-- Every screen supports both modes: login, lock, admin (desktop and phone), till,
-  and system pages. There is no screen that only works in one mode.
-- **Each device chooses its own mode:** System (the default, follows the OS),
-  Light, or Dark. This is a per-viewer convenience, not a shop setting. It's stored in
-  `localStorage` under `ks-mode`; wrap every read and write in try/catch, and fall back
-  to System.
-- A `ModeToggle` (sun / moon / monitor) appears on the login page (top right), in the
-  admin header user menu, and in the till top bar.
-- The mode is applied as `data-theme="light"|"dark"` on `<html>`. It's absent for System,
-  and then `prefers-color-scheme` decides. An inline script in `index.html` sets it
-  **before first paint** so there's no flash.
-- The brand colour, radius, density and receipt style stay **system-user only**
-  (hidden system menu → Appearance), as the spec says. A system brand colour overrides
-  the brand in **both** modes.
-
-## 2. Palette tokens
-
-These go in `web/src/theme/tokens.css`. Names follow shadcn so its components work
-unchanged, plus a few of our own. **Warning:** shadcn's `--accent` means a hover/neutral
-background, NOT the brand. The brand is `--brand` (and `--primary` points at it).
-
-| Token | Light (Studio) | Dark (Night) | Use |
+| Control | Who sets it | Values | Stored in |
 |---|---|---|---|
-| `--background` | `#EFF0F3` | `#0B1020` | page |
-| `--bg-art` | `none` | `radial-gradient(900px 500px at 12% -10%, rgb(124 92 255 / .35), transparent 60%), radial-gradient(700px 500px at 110% 110%, rgb(34 211 238 / .22), transparent 60%)` | page glow, on `body` |
-| `--foreground` | `#15161A` | `#EAF0FF` | main text |
-| `--card` / `--card-foreground` | `#FFFFFF` / fg | `rgb(255 255 255 / .055)` / fg | panels, cards |
-| `--popover` / `--popover-foreground` | `#FFFFFF` / fg | `#161D33` / fg | menus and dialogs, always **solid** |
-| `--muted` / `--secondary` / `--accent` | `#F6F7F9` | `rgb(255 255 255 / .085)` | inputs, secondary buttons, hover |
-| `--muted-foreground` | `#5A5E69` | `#A3AECB` | secondary text |
-| `--faint` | `#6E727D` | `#7A84A6` | axis labels, counts, hints (≥4.5:1 on card) |
-| `--border` / `--input` | `#E4E6EB` | `rgb(255 255 255 / .10)` | lines |
-| `--brand` | `#F2A900` | `#8B7BFF` | primary buttons, selected state, chart series 1 |
-| `--brand-foreground` | `#15161A` | `#0B1020` | text on brand |
-| `--brand-soft` | `#FFF4D6` | `rgb(139 123 255 / .18)` | selected backgrounds, flashes |
-| `--brand-2` | `#15161A` | `#2FD5E6` | second accent (phone tab active, glow) |
-| `--primary` / `--primary-foreground` / `--ring` | `var(--brand)` / `var(--brand-foreground)` / `var(--brand)` | same | shadcn wiring |
-| `--success` (money IN) | `#12955A` | `#3DDC97` | paid, change, deltas up, ↓ into drawer |
-| `--danger` = `--destructive` (money OUT) | `#D23F3F` | `#FF7C7C` | remove, deltas down, ↑ out of drawer |
-| `--warning` | `#B66A00` | `#FFC857` | still to pay, expiry, attention |
-| `--shadow` | `0 1px 2px rgb(21 22 26 / .06), 0 10px 28px rgb(21 22 26 / .07)` | `inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35)` | cards |
-| `--glass` | `none` | `blur(18px) saturate(140%)` | `backdrop-filter` on panels |
+| **Palette** | The system user only (hidden system menu → Appearance) | `studio`, `night` (later `bazaar` and others) | `settings.skin` (existing column) |
+| **Mode** | Each device, with the ModeToggle | System (default), Light, Dark | `localStorage` key `ks-mode` |
 
 Rules:
 
-- **Never put brand-coloured text on a light background.** Saffron fails contrast there.
-  In light mode, brand is a fill with `--brand-foreground` on top. Use `--foreground`
-  for text that must stand out.
-- Soft status backgrounds use `color-mix(in srgb, var(--success) 16%, transparent)`,
-  and likewise for warning and danger. Don't add separate tokens for them.
-- Keep karots' money-direction cue: green means money in, red means money out.
-- **Glass costs GPU time.** Apply `--glass` to big panels (cart, pay, cards, sidebar)
-  only, and never to each product tile or table row, because counter PCs are weak. Under
-  `@media (prefers-reduced-transparency: reduce)`, set `--glass: none` and make
-  `--card: #121932`.
+- **Each palette is one colour family with a light AND a dark version.** Switching the mode
+  keeps the palette's colours: Studio stays saffron in both modes, and Night stays
+  violet/cyan glass in both. Mode never changes the palette.
+- **Every palette defines every token** in both modes (§2), and components use only
+  those tokens. Components never check which palette is active: glass, glow and
+  selected colours are tokens too.
+- **One file per palette:** `web/src/theme/palettes/<name>.css`.
+  - Selectors are `:root[data-palette="<name>"]` for light, `:root[data-palette="<name>"][data-theme="dark"]` for dark, and `@media (prefers-color-scheme: dark) { :root[data-palette="<name>"]:not([data-theme="light"]) }`.
+  - Adding a palette means adding one CSS file plus one entry in the palette list. Nothing else changes.
+- **Brand override:** as in karots-pos, the system user may set a brand hex
+  (`settings.skin_custom`). It replaces `--brand` and `--brand-foreground` in both modes of the chosen palette.
+- **Every screen works in all four combinations:** Studio light, Studio dark, Night light, Night dark.
 
-### Charts (ECharts)
+## 2. Palette tokens
 
-Charts read tokens at render time (`getComputedStyle`) and re-render when the mode
-changes. They never hard-code colours.
+These are the same names in every palette. Names follow shadcn, so its components work unchanged.
 
-| Series | Light | Dark |
-|---|---|---|
-| This period | `#D98E00` line, `--brand` area at 14% | `--brand` line + area 14% |
-| Previous period | `--faint`, dashed 4 4 | `--faint`, dashed 4 4 |
-| Categorical 1–6 | `#D98E00 #2F6FEB #12955A #7C5CFF #D23F3F #0E9AA7` | `#8B7BFF #2FD5E6 #3DDC97 #FFC857 #FF7C7C #E879F9` |
+**Warning:** shadcn's `--accent` means a hover/neutral background, NOT the brand. The brand is
+`--brand`, and `--primary` points at it.
 
-Chart styling:
+| Token | Studio light | Studio dark | Night light | Night dark |
+|---|---|---|---|---|
+| `--background` | `#EFF0F3` | `#111215` | `#EEF0FA` | `#0B1020` |
+| `--bg-art` | `none` | `none` | violet `rgb(124 92 255/.22)` at 12% −10% + cyan `rgb(34 211 238/.20)` at 110% 110% | the same gradients at `.35` / `.22` |
+| `--foreground` | `#15161A` | `#EDEEF1` | `#161A33` | `#EAF0FF` |
+| `--card` | `#FFFFFF` | `#1B1C21` | `rgb(255 255 255/.62)` | `rgb(255 255 255/.055)` |
+| `--popover` (always solid) | `#FFFFFF` | `#1F2026` | `#FFFFFF` | `#161D33` |
+| `--muted` = `--secondary` = `--accent` | `#F6F7F9` | `#24262C` | `rgb(110 91 255/.07)` | `rgb(255 255 255/.085)` |
+| `--muted-foreground` | `#5A5E69` | `#A6A9B3` | `#50577A` | `#A3AECB` |
+| `--faint` | `#6E727D` | `#8A8E99` | `#62698B` | `#7A84A6` |
+| `--border` = `--input` | `#E4E6EB` | `#2E3038` | `rgb(60 50 140/.12)` | `rgb(255 255 255/.10)` |
+| `--brand` | `#F2A900` | `#F5B820` | `#6E5BFF` | `#8B7BFF` |
+| `--brand-foreground` | `#15161A` | `#15161A` | `#FFFFFF` | `#0B1020` |
+| `--brand-soft` | `#FFF4D6` | `rgb(245 184 32/.16)` | `rgb(110 91 255/.13)` | `rgb(139 123 255/.18)` |
+| `--brand-2` / `--brand-2-foreground` | `#15161A` / `#FFFFFF` | `#EDEEF1` / `#111215` | `#0A9FB4` / `#FFFFFF` | `#2FD5E6` / `#0B1020` |
+| `--selected` / `--selected-foreground` (pressed tabs, segments, toggles) | `#15161A` / `#FFFFFF` | `#EDEEF1` / `#111215` | `#6E5BFF` / `#FFFFFF` | `#8B7BFF` / `#0B1020` |
+| `--success` (money IN) | `#12955A` | `#3CCB84` | `#0F9160` | `#3DDC97` |
+| `--danger` = `--destructive` (money OUT) | `#D23F3F` | `#F27272` | `#D6404E` | `#FF7C7C` |
+| `--warning` | `#B66A00` | `#F0A23B` | `#A86500` | `#FFC857` |
+| `--hero` / `--hero-foreground` / `--hero-muted` | `#15161A` / `#FFFFFF` / `#B9BCC6` | `#08090B` / `#EDEEF1` / `#A6A9B3` | `#151A3A` / `#EEF0FF` / `#B5BCDA` | `#070B18` / `#EAF0FF` / `#A3AECB` |
+| `--hero-art` | saffron glow (see the mockup) | same | violet + cyan glow | same, stronger |
+| `--glass` | `none` | `none` | `blur(18px) saturate(160%)` | `blur(18px) saturate(140%)` |
+| `--glow` | `none` | `none` | `0 0 14px rgb(110 91 255/.45)` | `0 0 14px rgb(139 123 255/.7)` |
+| `--bar` (floating dock and tab bar) | `rgb(255 255 255/.9)` | `rgb(27 28 33/.92)` | `rgb(255 255 255/.66)` | `rgb(22 29 51/.72)` |
+| `--shadow`, `--shadow-float` | as in the mockup | as in the mockup | as in the mockup | as in the mockup |
+| `--chart-1..6` | `#D98E00 #2F6FEB #12955A #7C5CFF #D23F3F #0E9AA7` | `#F5B820 #5B8DEF #3CCB84 #A48CFF #F27272 #2EC4CF` | `#6E5BFF #0A9FB4 #0F9160 #A86500 #D6404E #C026D3` | `#8B7BFF #2FD5E6 #3DDC97 #FFC857 #FF7C7C #E879F9` |
 
-- Gridlines use `--border`; tooltips are `--foreground` on `--background` (inverted).
-- There's a hover crosshair.
-- The range is a segmented control: 7 / 14 / 30 / 90 days.
+The exact values are in the mockup's CSS: search for `data-pal="studio"` and `data-pal="night"`.
+
+Rules:
+- **Never put `--brand` text on a light background in Studio,** because saffron fails contrast. Use brand as a fill with `--brand-foreground` on it.
+- Soft status backgrounds use `color-mix(in srgb, var(--success) 16%, transparent)`, not extra tokens.
+- Keep karots' money cue: green means money in, red means money out.
+- **Glass costs GPU time.** Use `--glass` on large surfaces only: cards, the dock, shelves and the tab bar. Never use it on each product tile or table row.
+- Under `prefers-reduced-transparency: reduce`, set `--glass: none` and make `--card` solid.
+- **Charts** (ECharts) read `--chart-*`, `--border`, `--faint` and `--foreground` at render time, and re-render on palette or mode change.
 
 ## 3. Type
 
-- **Figtree** (400–800) is used for all UI text. **Sora** (600–800) is used for display:
-  page titles, the till total, KPI values and the sale-complete change amount.
-- Self-host both for offline use with `@fontsource/figtree` and `@fontsource/sora`.
-  Remove the scaffold's Geist font. Set `--font-sans: "Figtree", system-ui, sans-serif`
-  and `--font-display: "Sora", var(--font-sans)`.
-- Use `font-variant-numeric: tabular-nums` everywhere money is shown.
+- **Figtree** (400–800) is used for all UI text. **Sora** (600–800) is used for display: page titles, the login clock, the till total, KPI values and "Give Rs …".
+- Self-host both fonts with `@fontsource/figtree` and `@fontsource/sora`.
+- Use `font-variant-numeric: tabular-nums` wherever money is shown.
 
-| Step | Size / line-height | Weight | Where |
-|---|---|---|---|
-| xs | 12 / 16 | 600 | chips, badges, meta |
-| sm | 13.5 / 20 | 500 | tables, secondary |
-| base | 15 / 22 | 400–600 | body, buttons |
-| lg | 17 / 24 | 700 | card titles, brand |
-| xl | 24 / 30 | 800, display, −0.02em | page titles, KPI values |
-| 2xl | 32 / 36 | 800, display, −0.02em | till total |
-| 3xl | 40 / 44 | 800, display | "Give Rs …" on sale complete |
+Sizes: 12 / 13.5 / 15 (body) / 17 / 24 / 32 / 40. The login clock is 132px on desktop and 64px on a phone.
 
-## 4. Radius (system-selectable)
+## 4. Radius and density (system-selectable, unchanged)
 
-| `data-radius` | `--radius` (cards) | `--radius-sm` (buttons, tiles, inputs) |
-|---|---|---|
-| `sharp` | 6px | 4px |
-| `rounded` (default) | 16px | 11px |
-| `round` | 22px | 14px |
+- **Radius:** sharp is 6/4px, rounded (the default) is 16/11px, round is 22/14px. Pills are always 999px.
+- **Density:** comfortable is `--control-h` 46px, `--gap` 14px and `--pad` 16px. Compact is 38px, 10px and 12px.
 
-Chips, pills, quantity steppers and segmented controls are always `999px`.
+## 5. Login and lock
 
-## 5. Density (system-selectable)
+The reference is the mockup's login frame.
 
-| `data-density` | `--control-h` | `--gap` | `--pad` (card) | till tile min-height |
-|---|---|---|---|---|
-| `comfortable` (default) | 46px | 14px | 16px | 98px |
-| `compact` | 38px | 10px | 12px | 80px |
+- **Desktop / kiosk:** two columns.
+  - **Left:** a `--hero` panel with `--hero-art`, containing:
+    - the brand mark and shop name
+    - a large live clock (updates every 15s)
+    - the date
+    - status pills: server online, counter, and last closed
+    - a small tilted thermal-receipt card showing yesterday's close (`login-info` may add yesterday's totals; omit the receipt if the API doesn't give them)
+  - **Right:** heading "Sign in to the counter", then the phone field, a PIN field with dots, the 3×4 keypad (Clear, 0, Delete), the Sign in button and ModeToggle (top right).
+- **Phone:** the hero becomes a header strip (clock at 64px); the fields and keypad follow.
+- **PIN entry:**
+  - Put a real `<input>` over the dots, so a physical keyboard types into it. Enter submits.
+  - The keypad writes into whichever field was last focused. Use `mousedown` `preventDefault` so focus doesn't leave the field.
+  - On touch devices (`pointer: coarse`), set the PIN input's `inputMode="none"` so the keypad replaces the OS keyboard.
+  - A wrong PIN shakes the box and shows a plain error, then clears the PIN.
+- **No browser memory (shared counter), same as karots-pos:**
+  - Set `autocomplete="off"` on the form and on both inputs, and give them non-standard `name`s.
+  - The PIN is `type="text"` with `-webkit-text-security: disc`, **not** `type="password"`, so password managers never offer to save it.
+  - Don't add `autocorrect` or `spellcheck`.
+- **Install-ID Konami reveal:** keep it (a small line at the bottom of the form).
+- **Lock** uses the same layout. The right side says "Locked by <name>", with the same PIN field, keypad, and a Sign out link.
 
-## 6. Layouts
+## 6. Admin shell: the dock (no sidebar)
 
-### Till (desktop and kiosk only)
+The reference is the mockup's desktop and phone frames.
 
-- **Top bar (60px):**
+**Desktop and tablet (768px and up):**
+- **Top bar** (not sticky chrome, just the page head):
   - brand mark and shop name
-  - cashier and counter
-  - a drawer pill (green dot, "Till open · float Rs …")
-  - hotkey hints
-  - ModeToggle and Lock
-- **At 1366×768 and wider:** three columns, `1fr 392px 356px`, with a gap of `--gap`.
-  1. **Catalog:** search (F2) with groups as pills, a "Frequently sold" default and a
-     tile grid (`minmax(160px,1fr)`).
-  2. **Cart:** lines with a qty stepper, a per-line discount chip, an expiry badge and
-     remove. Held sales sit at the bottom.
-  3. **Pay:** customer picker (balance, advance and limit shown), method buttons, amount
-     with Fill/Add, quick cash, tender list, summary with bill discount, then the
-     due / change / keep banner, Complete, Hold and New sale.
-- **Below 1200px (e.g. 1024×768):** two columns, `1fr 360px`. The cart and pay panels
-  stack in the right column, and pay becomes collapsible above Complete.
-- Under 1024 the kiosk auto-fit scale takes over (Task 12).
+  - breadcrumb (Area / Page)
+  - search pill "Search pages, products, bills" with **Ctrl K**, which opens the command palette (karots-pos has one; it lists every page, plugin pages and "Open the till")
+  - ModeToggle and the avatar menu (Change PIN, Lock, Sign out)
+- **Page tabs:** inside an area, that area's pages show as pill tabs under the top bar.
+- **Dock:** a floating `--bar` pill fixed at bottom centre, with `--glass` and `--shadow-float`.
+  - **Items in order:** Home, then the areas Sell, Inventory, Purchasing, Money, Reports and Setup (karots-pos's sections, `templates/layouts/admin.templ`), a divider, **Apps**, and **Open the till** (brand fill, glow) at the end.
+  - **Behaviour:** icons grow on hover and show a name tip. The current area has a dot under it. Badges (such as "Items to review: 3") come from the badge hook.
+- **Shelf:** clicking an area raises a panel above the dock.
+  - **Left:** a `--hero` "lead" card with the area's key figure (such as "Stock value Rs 1.84M, 12 running low").
+  - **Right:** a 3-column grid of the area's pages, each with an icon, name and one-line description (karots-pos's link descriptions), plus counts.
+  - It closes on Escape or a click outside.
+- **Apps:** a dock tile shaped as a 2×2 grid of plugin colours. It opens a shelf with every enabled plugin as an app card (colour, icon, name, description).
+  - **Plugins never add dock icons themselves.** They register an app card, plus their pages under Apps and in the command palette, so the dock never overflows as plugins arrive (M7).
+  - A plugin page shows as "Apps / Pharmacy / …" in the breadcrumb, with its own page tabs.
+- **Content** gets the full width. Leave bottom padding (~110px) so the dock never covers it.
 
-### Admin (one responsive admin, desktop AND phone)
+**Phone (below 768px):**
+- **Top:** the brand mark, shop name, date and time, and the avatar menu (with ModeToggle).
+- **Bottom:** a floating tab bar (`--bar`, `--glass`) with Home, Sell, **Till** (brand fill, centre), Inventory and More.
+  - **More** raises a sheet with every other area and the plugin apps as icon tiles.
+- **Home:** a hero sales card, 2×2 area tiles each with a live figure, then "Needs your attention".
+- **Tables:** become card lists.
 
-- **1024px and wider:** a 232px sidebar (brand, nav, and "Open the till" pinned at the
-  bottom) plus the main area. The main area has a page header (title, date, range
-  control) and a card grid.
-- **768–1023px:** the sidebar collapses to a 72px icon rail with tooltips.
-- **Below 768px (the phone, designed at 360):**
-  - a top header (shop name and avatar menu with ModeToggle)
-  - a bottom tab bar: Home, Reports, Stock, Money, More, with a sliding indicator
-  - KPI rows become a horizontal swipe (`scroll-snap`)
-  - tables become card lists
-- **Dashboard cards:**
-  - KPIs with a delta vs yesterday and a sparkline
-  - a trend chart (this period vs previous)
-  - payment mix bars
-  - top sellers
-  - a "Needs your attention" list with severity chips (warn / crit / info)
-- These are the look. M5 decides the real card set from karots-pos's dashboard.
+**Hidden system menu:** it's reached as in karots-pos, by tapping the user's name 8 times in the avatar menu. It's system user only and never visible to the shop.
 
-### Login and lock
+## 7. Till
 
-- A centred card on `--background` (dark mode shows the glow).
-- The card holds the brand mark, shop name, phone + PIN, and the install-ID Konami reveal.
-- ModeToggle sits top right. Lock uses the same card with the user's avatar.
+The till look follows the till frame of the first mockup, in whichever palette and mode is active. The layout is unchanged from the earlier approval:
+- **Top bar:** 60px.
+- **1366px and wider:** three columns, `1fr 392px 356px`.
+- **Below 1200px:** two columns, `1fr 360px`, with cart and pay stacked.
+- **Below 1024px:** kiosk auto-fit.
+- **Top bar contents:** ModeToggle and Lock.
 
-## 7. Motion
+## 8. Motion
 
-Use **Motion** (`motion/react`) for:
+Use `motion/react` for:
+- tile lift and press
+- the cart-line flash
+- a tender popping in
+- the sale-complete zoom
+- the dock hover grow
+- shelves and sheets rising (220ms)
+- the tab indicator
+- KPI count-up
 
-- tile hover lift (2px)
-- press scale (0.97)
-- a new/changed cart line flashing `--brand-soft` (0.7s)
-- a tender line popping in
-- the sale-complete card zooming in (spring)
-- the tab indicator sliding
-- a number count-up on KPI values
+Keep durations ≤350ms, and turn everything off under `prefers-reduced-motion`.
 
-Keep durations at or under 350ms. Everything is off under `prefers-reduced-motion`.
+## 9. Not now
 
-## 8. Not now
-
-- Theme packs such as Bazaar, per-client component overrides, and a shop-wide default
-  mode. Per-device mode covers it; add a system default if a shop asks.
+- The Bazaar palette and other packs. They're added later as extra palette files.
+- Per-client component overrides.
+- A shop-wide default mode.

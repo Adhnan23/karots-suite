@@ -2316,11 +2316,51 @@ git add -A && git commit -m "feat(web): guarded admin (responsive) + till (autof
 
 ---
 
+### Task 12R: Rework theme, login and admin shell to the revised design
+
+**Why:** the user reviewed Tasks 10–12 and rejected three things:
+- the plain shadcn login
+- the sidebar admin (it looks like karots-pos)
+- "light = Studio, dark = Night"
+
+The revised, approved design is in `docs/design/theme.md`. **Read all of it first,** then open both mockups linked at its top. Studio and Night are now **palettes**, chosen by the system user, and each palette has its own light AND dark mode. The admin uses a **dock** instead of a sidebar. Keep all behaviour from Tasks 10–12: redirects, lock, auto-lock, Konami, autofit, and the e2e tests. Only the look and structure change.
+
+**Files:**
+- Backend:
+  - `internal/features/settings/settings.go`: set `Skins = []string{"studio","night"}` and make `ValidSkin` fall back to `"studio"`. Old karots-pos values (`default`/`teal`/`plum`/`custom`) that arrive by restore read as `studio`. No migration.
+  - Update `appearance_test.go` to match.
+  - `internal/api/dto.go`: add `Palette string \`json:"palette"\`` to `Appearance`, then run `make types`.
+  - `internal/api/me.go` `appearanceOf`: `Palette: settings.ValidSkin(s.Skin)`. `BrandColor` = `s.SkinCustom` whenever it is a valid hex, regardless of skin.
+  - `internal/api/system.go` `PutAppearance`: `skin = settings.ValidSkin(in.Palette)` and `skin_custom = in.BrandColor`. Remove the "custom" skin logic.
+  - Extend `system_test.go`: PUT palette `night` round-trips, and an unknown palette reads back as `studio`.
+- Frontend:
+  - Replace `web/src/theme/tokens.css`'s colour blocks with `web/src/theme/palettes/studio.css` and `night.css` (theme.md §1–§2; copy the values from the mockup CSS). `tokens.css` keeps the non-colour tokens (radius, density, fonts).
+  - Add `web/src/theme/palettes/index.ts` exporting `PALETTES = [{id:'studio',name:'Studio'},{id:'night',name:'Night'}] as const`.
+  - `appearance.ts`: `applyAppearance` also sets `root.dataset.palette = a.palette || 'studio'`. Add a test.
+  - `index.html`: the pre-paint script also sets `data-palette` from `localStorage` key `ks-palette`, which `applyAppearance` writes as a cache so the first paint uses the shop's palette.
+  - Every component: use `--selected`, `--glow`, `--glass`, `--hero*` and `--bar` from the tokens. There are **no** `[data-theme]` or `[data-palette]` selectors outside `palettes/*.css`.
+  - `routes/login.tsx`, `routes/lock.tsx`, and `features/auth/PinForm.tsx` → `features/auth/` (split: `LoginHero.tsx`, `PinPad.tsx`, `PinField.tsx`). Follow theme.md §5, including the autocomplete rules and keyboard + keypad input.
+  - `theme/AdminShell.tsx` becomes the dock layout of theme.md §6, with new `theme/Dock.tsx`, `theme/Shelf.tsx`, `theme/PhoneTabs.tsx` and `theme/CommandPalette.tsx` (Ctrl K; lists `adminNav` pages and "Open the till").
+  - `theme/nav.ts` becomes `adminNav: NavArea[]`, where each area is `{ key, label, icon, lead?, pages: { to, label, description, badge? }[] }`. It holds the karots-pos areas and descriptions (`templates/layouts/admin.templ`). Pages that don't exist yet are left out until their milestone adds them, and M0 has Home only. Add `apps: AppEntry[]` as the plugin slot (empty in M0; plugins append in M7).
+  - Remove the Appearance nav item. The system menu is reached by tapping the user name 8 times in the avatar menu (theme.md §6), as in karots-pos.
+  - Update `web/e2e/shell.spec.ts`:
+    - At 1366px, `navigation "Main"` (the dock) is visible and there is no `navigation "Sidebar"`.
+    - At 360px, `navigation "Primary"` is visible with no horizontal scroll.
+  - Update the login e2e: typing the PIN with the keyboard works, the keypad works, the form has `autocomplete="off"`, and there is no `input[type=password]`.
+
+- [ ] **Step 1:** Backend palette changes + tests → `make test` green. Commit `feat(api): palette in appearance (studio/night), brand override independent`.
+- [ ] **Step 2:** Palette CSS files + `applyAppearance` palette + pre-paint cache → `bun run test` green. Commit `feat(web): studio and night palettes, each with light and dark`.
+- [ ] **Step 3:** Login and lock per theme.md §5 → e2e auth green. Commit `feat(web): counter login with clock hero and keypad`.
+- [ ] **Step 4:** Dock admin shell, shelf, phone tabs and command palette per §6 → e2e shell green. Commit `feat(web): dock admin shell (no sidebar), shelves, command palette`.
+- [ ] **Step 5:** Screenshot login, admin home at 1366px and 360px, and the till shell in **all four** palette × mode combinations. Compare them with the mockups and fix differences. Then **STOP and show the user** before Task 13.
+
+---
+
 ### Task 13: System menu → Appearance page
 
 **Files:**
 - Create: `web/src/routes/_authed/admin/system.appearance.tsx`, `web/e2e/system.spec.ts`
-- Modify: `web/src/theme/nav.ts` (add "System → Appearance", visible when `me.flags.isSystem`)
+- Reached only by the hidden gesture from Task 12R (no nav item). The page edits **palette** (Studio / Night cards showing a light+dark preview each), brand colour (optional override), radius, density and receipt style, and applies them live.
 
 **Interfaces:**
 - Consumes: `GET/PUT /system/appearance`, `applyAppearance`, `meQuery`.
