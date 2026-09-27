@@ -18,7 +18,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 - **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A domain bug found here gets fixed in karots-pos too, while that repo is supported.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
-- **One theme for now, and it must not look like karots-pos.** Components use theme tokens only (CSS variables), never raw colour classes. The theme is "Counter" in `docs/design/theme.md`: light = Studio, dark = Night Counter. Every screen must work in both modes.
+- **Two palettes, each with light and dark, and it must not look like karots-pos.** Components use theme tokens only (CSS variables — `--brand`, `--hero`, `--bar`, `--selected`, etc.), never raw colour classes, and never branch on which palette is active. See `docs/design/theme.md`: **Studio** and **Night** are chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per palette in `web/src/theme/palettes/`. Every screen works in all four combinations.
 
 ## Layout
 
@@ -35,10 +35,12 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts
   src/components/ui/  shadcn primitives (owned, themeable)
-  src/theme/          tokens.css, appearance, AdminShell, TillShell, nav
+  src/theme/          tokens.css (radius/density) + palettes/*.css, appearance.ts, mode.ts,
+                      AdminShell (dock, no sidebar) + Dock/Shelf/PhoneTabs/CommandPalette, TillShell, nav
+  src/features/auth/  LoginHero, PinField (no browser memory), PinPad, AutoLock
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
   src/plugins/        slot registry + generated enabled-plugins.ts (M7)
-scripts/              squash-migrations.sh, parity.sh
+scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
 ## Stack
@@ -73,14 +75,16 @@ scripts/              squash-migrations.sh, parity.sh
 
 ## Hidden behaviours (must keep working)
 
-- **System user** `0000000001`: its PIN rotates hourly (install ID + HMAC); `POS_SYSTEM_PIN` overrides it, with `2273` as the dev fallback. It's invisible to the shop and excluded from Activity and audit. It owns the system menu (Appearance, etc.).
+- **System user** `0000000001`: its PIN rotates hourly (install ID + HMAC); `POS_SYSTEM_PIN` overrides it, with `2273` as the dev fallback. It's invisible to the shop and excluded from Activity and audit. It reaches Appearance by tapping its own name 8 times in the avatar menu — no nav item, ever.
 - **Login-page Konami** (↑↑↓↓←→←→BA) reveals the install ID and server time. The install ID is also logged to the console.
 - **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
 - **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
-- **Till semantics:** F1 / "⟲ Menu" clears the **search only**. Only New Sale clears the cart.
+- **No browser memory on PIN entry** (shared counter): `autocomplete="off"`, non-standard field names, and PIN inputs are `type="text"` with `-webkit-text-security: disc` — never `type="password"`, or a password manager will offer to save it.
 
 ## Gotchas
 
 - `vite build` empties `internal/spa/dist` (including `.gitkeep`). `make web` restores it, so always build through make.
 - `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
 - `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
+- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3100/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
+- A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.

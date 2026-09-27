@@ -76,12 +76,13 @@ func (s *Service) Return(ctx context.Context, id int64, userID int64) (*Detail, 
 		if err != nil {
 			return apperr.Internal("failed to load sale items", err)
 		}
-		// Service lines (recharge/airtime) can't be returned. If the sale still has
-		// one outstanding, block the whole-sale return rather than silently dropping
-		// it — the cashier can line-return the other items.
+		// Service lines (a plugin's non-stocked products, e.g. a top-up or a repair
+		// job) can't be returned. If the sale still has one outstanding, block the
+		// whole-sale return rather than silently dropping it — the cashier can
+		// line-return the other items.
 		for _, it := range items {
 			if it.IsService && it.Quantity.Sub(it.ReturnedQty).IsPositive() {
-				return apperr.Conflict("this sale includes a recharge item, which can't be returned")
+				return apperr.Conflict("this sale includes a service item, which can't be returned")
 			}
 		}
 		ref := "sale"
@@ -225,7 +226,7 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 				return apperr.Validation("sale line not found on this sale")
 			}
 			if it.IsService {
-				return apperr.Conflict(fmt.Sprintf("%s is a recharge item and can't be returned", it.ProductName))
+				return apperr.Conflict(fmt.Sprintf("%s is a service item and can't be returned", it.ProductName))
 			}
 			if qty.GreaterThan(it.ReturnableQty()) {
 				return apperr.Conflict(fmt.Sprintf("cannot return %s of %s — only %s remain",
