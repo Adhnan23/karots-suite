@@ -6,7 +6,10 @@ import { cn } from '@/lib/utils'
 import { drawerQuery } from './api'
 import { CatalogPanel } from './catalog/CatalogPanel'
 import { CartPanel } from './cart-ui/CartPanel'
+import { CheckoutProvider } from './checkout/CheckoutProvider'
+import { Prompts } from './checkout/Prompts'
 import { OpenRegister } from './drawer/OpenRegister'
+import { PayPanel } from './pay/PayPanel'
 import { TillDialogs } from './TillDialogs'
 import { TillUiProvider, useTillUi } from './TillUi'
 import { PANEL } from './ui'
@@ -29,14 +32,16 @@ function LogoutClose({ logout }: { logout: boolean }) {
 function Body() {
   const drawer = useQuery(drawerQuery).data
   return (
-    <div className="relative grid h-full min-h-0 grid-cols-[1fr_360px] grid-rows-[minmax(0,1fr)_auto] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_392px_356px] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
+    <div className="relative grid h-full min-h-0 grid-cols-[1fr_360px] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_392px_356px] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
         <CatalogPanel />
       </section>
       <section aria-label="Cart" className={cn(PANEL, 'flex min-h-0 flex-col [grid-area:cart]')}>
         <CartPanel />
       </section>
-      <section aria-label="Payment" className={cn(PANEL, 'min-h-0 [grid-area:pay]')} />
+      <section aria-label="Payment" className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden [grid-area:pay]')}>
+        <PayPanel />
+      </section>
       {drawer && !drawer.summary.session && <OpenRegister state={drawer} />}
     </div>
   )
@@ -46,9 +51,12 @@ export function TillScreen({ logout = false }: { logout?: boolean }) {
   return (
     <MotionConfig reducedMotion="user">
       <TillUiProvider>
-        <Body />
-        <TillDialogs />
-        <LogoutClose logout={logout} />
+        <CheckoutProvider>
+          <Body />
+          <TillDialogs />
+          <Prompts />
+          <LogoutClose logout={logout} />
+        </CheckoutProvider>
       </TillUiProvider>
     </MotionConfig>
   )
