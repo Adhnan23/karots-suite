@@ -26,8 +26,10 @@ function handleSignOut() {
   api('/auth/logout', { method: 'POST' })
     .then(() => window.location.assign('/login'))
     .catch((err) => {
-      if (err instanceof ApiError && err.code === 'TILL_OPEN') toast.error(err.message)
-      else window.location.assign('/login')
+      if (err instanceof ApiError && err.code === 'TILL_OPEN') {
+        toast.error(err.message)
+        window.location.assign('/till?logout=1')
+      } else window.location.assign('/login')
     })
 }
 
