@@ -7,18 +7,13 @@ package heldsales
 import (
 	"context"
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	appdb "karots-suite/internal/db"
-	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
-	"karots-suite/internal/response"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
 
@@ -129,52 +124,4 @@ func (s *Service) Hold(ctx context.Context, cashierID int64, in Input) (*HeldSal
 
 func (s *Service) Delete(ctx context.Context, id, cashierID int64) error {
 	return s.repo.Delete(ctx, id, cashierID)
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	rows, err := h.svc.List(c.Request().Context(), middleware.CurrentUserID(c))
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Hold(c echo.Context) error {
-	var in Input
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	out, err := h.svc.Hold(c.Request().Context(), middleware.CurrentUserID(c), in)
-	if err != nil {
-		return err
-	}
-	return response.Created(c, out)
-}
-
-func (h *APIHandler) Delete(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	if err := h.svc.Delete(c.Request().Context(), id, middleware.CurrentUserID(c)); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-// RegisterAPI mounts the held-sales endpoints (all authenticated roles — the
-// cashier terminal owns this feature).
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(db))
-	g := e.Group("/api/held-sales", middleware.JWTAuth(cfg.JWTSecret))
-	g.GET("", api.List)
-	g.POST("", api.Hold)
-	g.DELETE("/:id", api.Delete)
 }

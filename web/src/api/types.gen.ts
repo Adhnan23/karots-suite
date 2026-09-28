@@ -129,6 +129,85 @@ export interface ReceiptRef {
 }
 
 //////////
+// source: dto_sale.go
+
+export interface ServiceComponent {
+  productId: number /* int64 */;
+  quantity: string;
+}
+/**
+ * SaleItemRequest never carries a price for stocked goods: the server prices from
+ * the catalogue, or from BatchID when the cashier picked a lot. PriceOverride is
+ * honoured only for is_service products.
+ */
+export interface SaleItemRequest {
+  productId: number /* int64 */;
+  quantity: string;
+  discount: string;
+  discountType: string; // "fixed" (per unit) | "percent"
+  priceOverride: string;
+  batchId: number /* int64 */;
+  allowOversell: boolean;
+  serials: string[];
+  description: string;
+  components: ServiceComponent[];
+}
+export interface PaymentRequest {
+  method: string; // cash | card | online | credit | <plugin tender>
+  amount: string;
+  reference: string;
+  accountId: number /* int64 */; // card/bank locker for card/online; 0 = none
+  meta?: { [key: string]: string}; // opaque plugin-tender data
+}
+export interface SaleRequest {
+  saleType: string; // retail | wholesale
+  customerId?: number /* int64 */;
+  discount: string;
+  discountType: string;
+  allowOverLimit: boolean;
+  deferDrawerKick: boolean;
+  changeGiven: string; // "" = full computed change
+  onAccountRounding: boolean;
+  items: SaleItemRequest[];
+  payments: PaymentRequest[];
+}
+export interface SaleResult {
+  id: number /* int64 */;
+  receiptNo: string;
+  total: string;
+  paidAmount: string;
+  changeGiven: string;
+  roundingToAccount: string;
+  customerName: string;
+  customerBalanceAfter?: string;
+  methods: string[]; // distinct tender methods, for the complete overlay
+}
+/**
+ * HeldSale.Cart is an opaque JSON document owned by the SPA (see
+ * web/src/features/till/cart/held.ts); the server only checks it is valid JSON.
+ */
+export interface HeldSale {
+  id: number /* int64 */;
+  label: string;
+  saleType: string;
+  customerId?: number /* int64 */;
+  discount: string;
+  cart: string;
+  itemCount: number /* int */;
+  total: string;
+  createdAt: string;
+}
+export interface HoldRequest {
+  label: string;
+  saleType: string;
+  customerId?: number /* int64 */;
+  discount: string;
+  cart: string;
+  itemCount: number /* int */;
+  total: string;
+}
+
+//////////
 // source: dto_till.go
 
 export interface TenderMethod {

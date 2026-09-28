@@ -8,11 +8,13 @@ import (
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/denominations"
+	"karots-suite/internal/features/heldsales"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/features/units"
+	"karots-suite/internal/features/warranty"
 	"karots-suite/internal/middleware"
 
 	"github.com/jmoiron/sqlx"
@@ -33,6 +35,8 @@ type tillServices struct {
 	denoms    *denominations.Service
 	lockers   *lockers.Service
 	receipts  *cashflow.ReceiptService
+	held      *heldsales.Service
+	warranty  *warranty.Service
 }
 
 func newTillServices(db *sqlx.DB) tillServices {
@@ -46,6 +50,8 @@ func newTillServices(db *sqlx.DB) tillServices {
 		denoms:    denominations.NewService(db),
 		lockers:   lockers.NewService(db),
 		receipts:  cashflow.NewReceiptService(db),
+		held:      heldsales.NewService(db),
+		warranty:  warranty.NewService(db),
 	}
 }
 
@@ -56,6 +62,7 @@ func (h *handlers) registerTill(v1 *echo.Group) {
 	h.registerTillCatalog(g)
 	h.registerTillCustomers(g)
 	h.registerTillDrawer(g)
+	h.registerTillSales(g)
 }
 
 func dec2(d decimal.Decimal) string { return d.StringFixed(2) }

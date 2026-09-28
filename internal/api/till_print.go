@@ -2,13 +2,16 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"net/http"
 	"strings"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
@@ -16,6 +19,7 @@ import (
 	"karots-suite/internal/receiptimg"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 const printFailed = "Receipt didn't print — check the printer is on and connected"
@@ -136,4 +140,74 @@ func receiptKindLabel(k string) string {
 		return "Withdrawal"
 	}
 	return k
+}
+
+// TillPrintSale sends a sale receipt to the thermal printer as ESC/POS. ?kick=1
+// (the till's auto-print of a fresh cash sale) folds the drawer pulse into THIS
+// job — one USB job, no inter-job gap. Reprints never pass kick.
+func (h *handlers) TillPrintSale(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	ctx := c.Request().Context()
+	detail, err := h.d.Sales.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	cfg, err := h.d.Settings.Get(ctx)
+	if err != nil {
+		return err
+	}
+	opts := receiptimg.SlipOptions(ctx, cfg, nil)
+	opts.Serials = h.saleSerials(ctx, id)
+	opts.CustomerDue = h.customerDue(ctx, detail)
+	payload := escpos.Document(*detail, *cfg, opts)
+	if c.QueryParam("kick") == "1" && paidCash(detail) {
+		payload = append(escpos.DrawerKick(*cfg), payload...)
+	}
+	if err := escpos.Send(ctx, h.receiptQueue(c, cfg), payload); err != nil {
+		log.Printf("sale %d: print: %v", id, err)
+		return apperr.ConflictCode("PRINT_FAILED", printFailed)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func paidCash(d *sales.Detail) bool {
+	for _, p := range d.Payments {
+		if p.Method == "cash" && p.Amount.IsPositive() {
+			return true
+		}
+	}
+	return false
+}
+
+// customerDue is the customer's outstanding balance for the "Total due" line on
+// credit receipts. Best-effort: zero on any failure.
+func (h *handlers) customerDue(ctx context.Context, d *sales.Detail) decimal.Decimal {
+	if d.Sale.CustomerID == nil {
+		return decimal.Zero
+	}
+	cust, err := h.t.customers.Get(ctx, *d.Sale.CustomerID)
+	if err != nil {
+		return decimal.Zero
+	}
+	return cust.OutstandingBalance
+}
+
+// saleSerials labels the serial-tracked units on the receipt ("SN: … (wty …)").
+func (h *handlers) saleSerials(ctx context.Context, saleID int64) map[int64][]string {
+	units, err := h.t.warranty.UnitsForSale(ctx, saleID)
+	if err != nil || len(units) == 0 {
+		return nil
+	}
+	m := make(map[int64][]string, len(units))
+	for _, u := range units {
+		label := "SN: " + u.SerialNo
+		if u.WarrantyMonths > 0 {
+			label += " (wty " + datetime.Date(u.WarrantyUntil) + ")"
+		}
+		m[u.ProductID] = append(m[u.ProductID], label)
+	}
+	return m
 }
