@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { startAutofit } from '@/lib/autofit'
 import { configQuery } from '@/features/till/api'
+import { DrawerPill } from '@/features/till/drawer/DrawerPill'
 import { TillProvider } from '@/features/till/TillProvider'
 import { TillShell } from '@/theme/TillShell'
 
@@ -16,7 +17,7 @@ function TillLayout() {
   useEffect(() => startAutofit(), [])
   return (
     <TillProvider userId={me.user.id} saleType={cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'}>
-      <TillShell me={me} config={cfg}>
+      <TillShell me={me} config={cfg} status={<DrawerPill />}>
         <Outlet />
       </TillShell>
     </TillProvider>

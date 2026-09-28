@@ -32,7 +32,9 @@ test-web:
 test-fresh: db-up
 	$(ENV) go run ./cmd/server -reset -seed && $(ENV) go test ./...
 
-# Fixed accounts the Playwright specs log in as (0770000001 admin, 0770000002
-# cashier, PIN 1234) — separate from -seed's own demo users/PINs.
-e2e-seed: migrate
-	docker compose exec -T postgres psql -U suite_user -d suite_db -f - < scripts/e2e-users.sql
+# Fresh DB + the fixed e2e logins (0770000001 admin, 0770000002 cashier, PIN 1234)
+# + the till fixtures (products/lots/customer/card account). Resets the dev DB.
+e2e-seed: db-up
+	$(ENV) go run ./cmd/server -reset
+	docker compose exec -T postgres psql -U suite_user -d suite_db -v ON_ERROR_STOP=1 -f - < scripts/e2e-users.sql
+	docker compose exec -T postgres psql -U suite_user -d suite_db -v ON_ERROR_STOP=1 -f - < scripts/e2e-till.sql
