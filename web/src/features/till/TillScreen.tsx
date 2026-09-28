@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { api } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { drawerQuery } from './api'
-import { DrawerActions } from './drawer/DrawerActions'
+import { CatalogPanel } from './catalog/CatalogPanel'
 import { OpenRegister } from './drawer/OpenRegister'
 import { TillDialogs } from './TillDialogs'
 import { TillUiProvider, useTillUi } from './TillUi'
@@ -30,8 +30,7 @@ function Body() {
   return (
     <div className="relative grid h-full min-h-0 grid-cols-[1fr_360px] grid-rows-[minmax(0,1fr)_auto] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_392px_356px] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
-        <div className="min-h-0 flex-1" />
-        <DrawerActions />
+        <CatalogPanel />
       </section>
       <section aria-label="Cart" className={cn(PANEL, 'min-h-0 [grid-area:cart]')} />
       <section aria-label="Payment" className={cn(PANEL, 'min-h-0 [grid-area:pay]')} />

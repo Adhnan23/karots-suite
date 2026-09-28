@@ -1,4 +1,6 @@
 import { slots } from '@/plugins/slots'
+import { ProductInfo } from './catalog/ProductInfo'
+import { QuickItem } from './catalog/QuickItem'
 import { CloseRegister } from './drawer/CloseRegister'
 import { MoneyMove } from './drawer/MoneyMove'
 import { SlipPrompt } from './drawer/SlipPrompt'
@@ -18,6 +20,10 @@ export function TillDialogs() {
       return <CloseRegister logout={d.logout} />
     case 'slip':
       return <SlipPrompt receiptId={d.receiptId} />
+    case 'info':
+      return <ProductInfo product={d.product} />
+    case 'quickItem':
+      return <QuickItem barcode={d.barcode} name={d.name} />
     case 'action': {
       const a = slots.tillActions.find((x) => x.key === d.key)
       return a ? <a.Panel till={till} onClose={ui.close} /> : null
