@@ -1,9 +1,11 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Archive, Lock as LockIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { slots } from '@/plugins/slots'
-import { configQuery, errMsg } from '../api'
+import { configQuery, errMsg, heldQuery } from '../api'
+import { Kbd } from '../bits'
+import { useHold } from '../cart-ui/useHold'
 import { useTillUi } from '../TillUi'
 import { CHIP } from '../ui'
 
@@ -11,10 +13,14 @@ import { CHIP } from '../ui'
 export function DrawerActions() {
   const cfg = useSuspenseQuery(configQuery).data
   const ui = useTillUi()
+  const hold = useHold()
+  const held = useQuery(heldQuery).data ?? []
   const noSale = () =>
     api('/till/drawer/no-sale', { method: 'POST' }).then(() => toast.success('Drawer opened')).catch((e) => toast.error(errMsg(e)))
   return (
     <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Till actions">
+      <button type="button" className={CHIP} onClick={() => void hold()}>Hold <Kbd>F4</Kbd></button>
+      <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length})</button>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'deposit' })}>
         <span className="text-lg leading-none text-success">↓</span> Deposit
       </button>

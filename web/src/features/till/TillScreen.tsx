@@ -5,6 +5,7 @@ import { api } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { drawerQuery } from './api'
 import { CatalogPanel } from './catalog/CatalogPanel'
+import { CartPanel } from './cart-ui/CartPanel'
 import { OpenRegister } from './drawer/OpenRegister'
 import { TillDialogs } from './TillDialogs'
 import { TillUiProvider, useTillUi } from './TillUi'
@@ -32,7 +33,9 @@ function Body() {
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
         <CatalogPanel />
       </section>
-      <section aria-label="Cart" className={cn(PANEL, 'min-h-0 [grid-area:cart]')} />
+      <section aria-label="Cart" className={cn(PANEL, 'flex min-h-0 flex-col [grid-area:cart]')}>
+        <CartPanel />
+      </section>
       <section aria-label="Payment" className={cn(PANEL, 'min-h-0 [grid-area:pay]')} />
       {drawer && !drawer.summary.session && <OpenRegister state={drawer} />}
     </div>

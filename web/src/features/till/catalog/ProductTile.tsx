@@ -35,8 +35,8 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
             {p.badges.map((b) => <span key={b} className="rounded-md bg-brand-soft px-1.5 text-[11px] font-bold">{b}</span>)}
           </span>
         )}
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="text-[15px] font-bold tabular-nums">{money(sym, p.sellingPrice)}</span>
+        <span className="flex flex-col">
+          <span className="whitespace-nowrap text-[15px] font-bold tabular-nums">{money(sym, p.sellingPrice)}</span>
           <span className="text-[11.5px] text-faint">{p.isService ? 'service' : `${qtyText(p.stockQty)} ${p.unitAbbr} left`}</span>
         </span>
       </motion.button>
