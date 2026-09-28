@@ -48,7 +48,7 @@ func newTestEnv(t *testing.T) *testEnv {
 
 	a := auth.NewService(db, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
 	Register(e, Deps{DB: db, Cfg: cfg, Auth: a, Settings: settings.NewService(db),
-		CashRegister: cashregister.NewService(db, sales.NewService(db))})
+		CashRegister: cashregister.NewService(db, sales.NewService(db)), KickDrawer: func(context.Context) {}})
 	return &testEnv{e: e, db: db}
 }
 

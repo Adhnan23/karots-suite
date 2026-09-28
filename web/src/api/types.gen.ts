@@ -60,6 +60,75 @@ export interface Me {
 }
 
 //////////
+// source: dto_drawer.go
+
+export interface DrawerSession {
+  id: number /* int64 */;
+  openingCash: string;
+  openedAt: string; // RFC3339
+}
+/**
+ * DrawerSummary is this user's till session. LastBreakdown is the previous close's
+ * {denominationValue: count}, for "Continue last count".
+ */
+export interface DrawerSummary {
+  session?: DrawerSession;
+  cashSales: string;
+  payIns: string;
+  withdrawals: string;
+  expected: string;
+  lastClosing?: string;
+  lastBreakdown?: { [key: string]: number /* float64 */};
+}
+export interface Denomination {
+  value: string; // decimal string as the breakdown key, e.g. "500"
+  isNote: boolean;
+}
+/**
+ * Locker is a cashier-accessible money account: cash lockers (safe/pocket/other)
+ * for drawer moves, card/bank ones as card/online tender destinations.
+ */
+export interface Locker {
+  id: number /* int64 */;
+  name: string;
+  kind: string; // safe | pocket | other | card | bank
+  balance: string;
+}
+export interface DrawerState {
+  summary: DrawerSummary;
+  denominations: Denomination[];
+  lockers: Locker[];
+}
+export interface OpenDrawerRequest {
+  breakdown: { [key: string]: number /* float64 */};
+  sourceLockerId: number /* int64 */; // 0 = untracked
+}
+export interface CloseDrawerRequest {
+  breakdown: { [key: string]: number /* float64 */};
+  destLockerId: number /* int64 */; // 0 = leave in drawer (if allowed)
+}
+export interface CloseResult {
+  sessionId: number /* int64 */;
+  cashSales: string;
+  expectedCash: string;
+  counted: string;
+  difference: string;
+  receiptId?: number /* int64 */;
+}
+export interface MoneyMoveRequest {
+  amount: string;
+  reason: string;
+  lockerId: number /* int64 */;
+  deferDrawerKick: boolean; // auto-print folds the pulse into the slip job
+}
+/**
+ * ReceiptRef points at the CR- money receipt a drawer move produced (if any).
+ */
+export interface ReceiptRef {
+  receiptId?: number /* int64 */;
+}
+
+//////////
 // source: dto_till.go
 
 export interface TenderMethod {

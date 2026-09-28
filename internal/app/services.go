@@ -29,6 +29,7 @@ type Services struct {
 	Sales        *sales.Service
 	CashRegister *cashregister.Service
 	Cashflow     *cashflow.Service
+	KickDrawer   func(context.Context)
 }
 
 // NewServices builds every domain service with the same core seams karots-pos
@@ -69,7 +70,7 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 
 	a := auth.NewService(db, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
 	a.WithSystemPINValidator(systemPIN)
-	return &Services{Auth: a, Settings: st, Sales: salesSvc, CashRegister: cr, Cashflow: cf}
+	return &Services{Auth: a, Settings: st, Sales: salesSvc, CashRegister: cr, Cashflow: cf, KickDrawer: kick}
 }
 
 // newDrawerKicker builds the best-effort action that pops the physical cash

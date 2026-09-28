@@ -4,6 +4,8 @@
 package api
 
 import (
+	"context"
+
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/auth"
@@ -21,6 +23,7 @@ type Deps struct {
 	Auth         *auth.Service
 	Settings     *settings.Service
 	CashRegister *cashregister.Service
+	KickDrawer   func(context.Context)
 }
 
 type handlers struct {

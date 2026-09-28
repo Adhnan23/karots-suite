@@ -5,7 +5,10 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/customers"
+	"karots-suite/internal/features/denominations"
+	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/stock"
@@ -27,6 +30,9 @@ type tillServices struct {
 	audit     *audit.Service
 	customers *customers.Service
 	stock     *stock.Service
+	denoms    *denominations.Service
+	lockers   *lockers.Service
+	receipts  *cashflow.ReceiptService
 }
 
 func newTillServices(db *sqlx.DB) tillServices {
@@ -37,6 +43,9 @@ func newTillServices(db *sqlx.DB) tillServices {
 		audit:     audit.NewService(db),
 		customers: customers.NewService(db),
 		stock:     stock.NewService(db),
+		denoms:    denominations.NewService(db),
+		lockers:   lockers.NewService(db),
+		receipts:  cashflow.NewReceiptService(db),
 	}
 }
 
@@ -46,6 +55,7 @@ func (h *handlers) registerTill(v1 *echo.Group) {
 	g := v1.Group("/till", h.protected...)
 	h.registerTillCatalog(g)
 	h.registerTillCustomers(g)
+	h.registerTillDrawer(g)
 }
 
 func dec2(d decimal.Decimal) string { return d.StringFixed(2) }
