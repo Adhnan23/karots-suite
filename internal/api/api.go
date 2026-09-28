@@ -26,12 +26,13 @@ type Deps struct {
 type handlers struct {
 	d         Deps
 	protected []echo.MiddlewareFunc // jwt → unlocked → PIN chosen
+	t         tillServices
 }
 
 func Register(e *echo.Echo, d Deps) {
 	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
 	limiter := auth.NewLoginLimiter()
-	h := &handlers{d: d, protected: []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen()}}
+	h := &handlers{d: d, protected: []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen()}, t: newTillServices(d.DB)}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)
@@ -44,6 +45,7 @@ func Register(e *echo.Echo, d Deps) {
 
 	h.registerKiosk(v1, jwt) // Task 6
 	h.registerSystem(v1)     // Task 6
+	h.registerTill(v1)
 
 	e.Any("/api/*", func(echo.Context) error { return apperr.NotFound("endpoint") })
 }

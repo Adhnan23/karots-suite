@@ -58,3 +58,110 @@ export interface Me {
   appearance: Appearance;
   plugins: string[];
 }
+
+//////////
+// source: dto_till.go
+
+export interface TenderMethod {
+  value: string;
+  label: string;
+}
+/**
+ * TillConfig is everything the till needs from settings + the user's flags,
+ * loaded once when the till opens.
+ */
+export interface TillConfig {
+  symbol: string;
+  defaultSaleType: string; // "retail" | "wholesale"
+  askToPrint: boolean;
+  openCashDrawer: boolean;
+  allowUntrackedCash: boolean;
+  defaultLockerId: number /* int64 */; // 0 = none
+  allowContinueLast: boolean;
+  canManageCredit: boolean;
+  canSeeCost: boolean;
+  canChangePin: boolean;
+  isManager: boolean; // admin/manager: shows the Admin link
+  tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
+}
+export interface SaleSuggestion {
+  discountType: string; // "fixed" | "percent"
+  discountValue: string;
+  label: string;
+  prompt: string;
+}
+/**
+ * TillProduct is one sellable card. Money and quantities are decimal strings.
+ */
+export interface TillProduct {
+  id: number /* int64 */;
+  name: string;
+  barcode: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  taxRate: string;
+  stockQty: string;
+  unitAbbr: string;
+  unitAllowDecimal: boolean;
+  isService: boolean;
+  trackSerial: boolean;
+  warrantyMonths: number /* int */;
+  emoji: string;
+  badges: string[];
+  suggestion?: SaleSuggestion;
+}
+export interface ProductPage {
+  items: TillProduct[];
+  total: number /* int */;
+}
+export interface TillGroup {
+  id: number /* int64 */;
+  name: string;
+  emoji: string;
+  hasChildren: boolean;
+  itemCount: number /* int */;
+}
+export interface GroupView {
+  group: TillGroup;
+  breadcrumb: TillGroup[];
+  children: TillGroup[];
+  products: TillProduct[];
+}
+/**
+ * Lot is one live stock batch. ExpiryDate/ReceivedAt are YYYY-MM-DD ("" = none).
+ */
+export interface Lot {
+  batchId: number /* int64 */;
+  batchNo: string;
+  expiryDate: string;
+  qtyRemaining: string;
+  price: string;
+  receivedAt: string;
+}
+export interface DetailRow {
+  label: string;
+  value: string;
+}
+/**
+ * ProductDetail feeds the ⓘ popup. Cost fields are empty unless ShowCost.
+ */
+export interface ProductDetail {
+  id: number /* int64 */;
+  name: string;
+  category: string;
+  barcode: string;
+  unit: string;
+  sellingPrice: string;
+  stockQty: string;
+  warranty: string;
+  showCost: boolean;
+  costPrice: string;
+  marginPct: string;
+  rows: DetailRow[];
+}
+export interface Unit {
+  id: number /* int64 */;
+  name: string;
+  abbreviation: string;
+  allowDecimal: boolean;
+}

@@ -67,3 +67,21 @@ var DetailContributor func(ctx context.Context, productID int64) []DetailRow
 // "print on label" — the selectable options for the barcode label top/bottom
 // line. Set by the web layer from plugin label-field providers; nil = none.
 var LabelFieldProvider func(ctx context.Context, productID int64) []DetailRow
+
+// Decorate fills the plugin-contributed, non-persisted fields (till badges and
+// sale suggestions) on rows, exactly as the legacy List/Get handlers did. The
+// JSON till layer calls it for every product list it returns.
+func Decorate(ctx context.Context, rows []Product) {
+	if BadgeProvider != nil && len(rows) > 0 {
+		ids := make([]int64, len(rows))
+		for i := range rows {
+			ids[i] = rows[i].ID
+		}
+		if m := BadgeProvider(ctx, ids); m != nil {
+			for i := range rows {
+				rows[i].Badges = m[rows[i].ID]
+			}
+		}
+	}
+	applySuggestions(ctx, rows)
+}
