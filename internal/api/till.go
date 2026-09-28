@@ -5,8 +5,10 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
+	"karots-suite/internal/features/stock"
 	"karots-suite/internal/features/units"
 	"karots-suite/internal/middleware"
 
@@ -19,18 +21,22 @@ import (
 // the DB. Services that carry core seams (sales, cash register, drawer kick) come
 // in through Deps instead, wired in app.NewServices.
 type tillServices struct {
-	products *products.Service
-	groups   *productgroups.Service
-	units    *units.Service
-	audit    *audit.Service
+	products  *products.Service
+	groups    *productgroups.Service
+	units     *units.Service
+	audit     *audit.Service
+	customers *customers.Service
+	stock     *stock.Service
 }
 
 func newTillServices(db *sqlx.DB) tillServices {
 	return tillServices{
-		products: products.NewService(db),
-		groups:   productgroups.NewService(db),
-		units:    units.NewService(db),
-		audit:    audit.NewService(db),
+		products:  products.NewService(db),
+		groups:    productgroups.NewService(db),
+		units:     units.NewService(db),
+		audit:     audit.NewService(db),
+		customers: customers.NewService(db),
+		stock:     stock.NewService(db),
 	}
 }
 
@@ -39,6 +45,7 @@ func newTillServices(db *sqlx.DB) tillServices {
 func (h *handlers) registerTill(v1 *echo.Group) {
 	g := v1.Group("/till", h.protected...)
 	h.registerTillCatalog(g)
+	h.registerTillCustomers(g)
 }
 
 func dec2(d decimal.Decimal) string { return d.StringFixed(2) }

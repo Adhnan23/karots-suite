@@ -109,3 +109,53 @@ type Unit struct {
 	Abbreviation string `json:"abbreviation"`
 	AllowDecimal bool   `json:"allowDecimal"`
 }
+
+// ---- Till: customers ----
+
+// TillCustomer: Outstanding > 0 means they owe the shop; < 0 is an advance the
+// shop holds for them.
+type TillCustomer struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Phone       string `json:"phone"`
+	CreditLimit string `json:"creditLimit"`
+	Outstanding string `json:"outstanding"`
+}
+
+type CustomerCreateRequest struct {
+	Name        string `json:"name"`
+	Phone       string `json:"phone"`
+	CreditLimit string `json:"creditLimit"`
+}
+
+type CustomerCreated struct {
+	Customer TillCustomer `json:"customer"`
+	Existed  bool         `json:"existed"` // phone matched an existing customer; that one is returned
+}
+
+type CreditLimitRequest struct {
+	CreditLimit string `json:"creditLimit"`
+}
+
+// ---- Till: quick item / write-off ----
+
+type QuickItemRequest struct {
+	Name    string `json:"name"`
+	Price   string `json:"price"`
+	Qty     string `json:"qty"`
+	Barcode string `json:"barcode"`
+	UnitID  int64  `json:"unitId"`
+}
+
+type GeneratedBarcode struct {
+	Barcode string `json:"barcode"`
+}
+
+// WriteOffRequest removes a lot from stock as damage at the till (the expired-lot
+// prompt's "Write off" button).
+type WriteOffRequest struct {
+	ProductID int64  `json:"productId"`
+	BatchID   int64  `json:"batchId"`
+	Quantity  string `json:"quantity"`
+	Note      string `json:"note"`
+}

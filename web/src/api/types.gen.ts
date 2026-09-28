@@ -165,3 +165,46 @@ export interface Unit {
   abbreviation: string;
   allowDecimal: boolean;
 }
+/**
+ * TillCustomer: Outstanding > 0 means they owe the shop; < 0 is an advance the
+ * shop holds for them.
+ */
+export interface TillCustomer {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  creditLimit: string;
+  outstanding: string;
+}
+export interface CustomerCreateRequest {
+  name: string;
+  phone: string;
+  creditLimit: string;
+}
+export interface CustomerCreated {
+  customer: TillCustomer;
+  existed: boolean; // phone matched an existing customer; that one is returned
+}
+export interface CreditLimitRequest {
+  creditLimit: string;
+}
+export interface QuickItemRequest {
+  name: string;
+  price: string;
+  qty: string;
+  barcode: string;
+  unitId: number /* int64 */;
+}
+export interface GeneratedBarcode {
+  barcode: string;
+}
+/**
+ * WriteOffRequest removes a lot from stock as damage at the till (the expired-lot
+ * prompt's "Write off" button).
+ */
+export interface WriteOffRequest {
+  productId: number /* int64 */;
+  batchId: number /* int64 */;
+  quantity: string;
+  note: string;
+}
