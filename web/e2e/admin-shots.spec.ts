@@ -24,6 +24,24 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /New unit/ }).click()
     await page.getByLabel('Name').fill('Kilogram')
   },
+  categories: async (page) => {
+    const mk = async (name: string, parentId = 0) =>
+      (await (await page.request.post('/api/v1/admin/categories/quick', { data: { name, parentId } })).json()).id as number
+    const food = await mk('Groceries')
+    const rice = await mk('Rice & grains', food)
+    await mk('Basmati', rice)
+    await mk('Red rice', rice)
+    await mk('Spices', food)
+    const st = await mk('Stationery')
+    await mk('Pens', st)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  'category-form': async (page) => {
+    await prep.categories(page)
+    await page.getByRole('button', { name: /^Rice & grains \d/ }).click()
+    await page.getByRole('button', { name: 'Parent category' }).click()
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

@@ -68,6 +68,34 @@ export interface UnitRequest {
   abbreviation: string;
   allowDecimal: boolean;
 }
+/**
+ * CategoryNode is one row of the depth-first category tree. ParentID 0 = top level;
+ * Path holds ancestor ids, root first (not self).
+ */
+export interface CategoryNode {
+  id: number /* int64 */;
+  name: string;
+  parentId: number /* int64 */;
+  depth: number /* int */;
+  childCount: number /* int */;
+  path: number /* int64 */[];
+  productCount: number /* int */; // products filed directly here
+}
+/**
+ * CategoryRequest creates or edits a category. ParentID 0 = top level.
+ */
+export interface CategoryRequest {
+  name: string;
+  parentId: number /* int64 */;
+}
+/**
+ * CategoryQuickResult answers the pickers' inline create (find-or-create under a parent).
+ */
+export interface CategoryQuickResult {
+  id: number /* int64 */;
+  name: string;
+  depth: number /* int */;
+}
 
 //////////
 // source: dto_counter.go

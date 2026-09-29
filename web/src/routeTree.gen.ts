@@ -17,6 +17,7 @@ import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
 import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
+import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
@@ -71,6 +72,11 @@ const AccountPinRoute = AccountPinRouteImport.update({
 const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminCategoriesRoute = AuthedAdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRouteWithChildren
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/credit': typeof AuthedTillCreditRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/account/pin'
+    | '/admin/categories'
     | '/admin/units'
     | '/till/convert'
     | '/till/credit'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/lock'
     | '/login'
     | '/account/pin'
+    | '/admin/categories'
     | '/admin/units'
     | '/till/convert'
     | '/till/credit'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/till'
     | '/account/pin'
+    | '/_authed/admin/categories'
     | '/_authed/admin/units'
     | '/_authed/till/convert'
     | '/_authed/till/credit'
@@ -371,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthedAdminIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/categories': {
+      id: '/_authed/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AuthedAdminCategoriesRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/units': {
@@ -489,12 +508,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedAdminRouteChildren {
+  AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
   AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
 }
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
   AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,

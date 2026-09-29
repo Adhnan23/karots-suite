@@ -32,7 +32,7 @@ Losses report, M5).
 - [x] **0. Admin kit + API group.** `registerAdmin` group, `Page[T]`, kit components, nav wiring,
   phone More sheet lists real pages. Check: shelf, palette, page tabs at 1366 + 360.
 - [x] **1. Units** (`admin_units.go`). List, create, edit, delete (in-use guard).
-- [ ] **2. Categories** (`admin_categories.go`). Nested tree, create/edit/move parent, delete,
+- [x] **2. Categories** (`admin_categories.go`). Nested tree, create/edit/move parent, delete,
   quick-create from a picker (`FindOrCreateByPath`). Shared `CategoryPicker` (with inline create).
 - [ ] **3. Products** (`admin_products.go`). Filtered, paged list (search, category, status,
   low stock), form (all product fields, cost/markup/selling two-way, wholesale, barcode + generate,

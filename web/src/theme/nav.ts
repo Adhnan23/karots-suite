@@ -18,6 +18,7 @@ export const adminNav: NavArea[] = [
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
   {
     key: 'setup', label: 'Setup', icon: Wrench, pages: [
+      { to: '/admin/categories', label: 'Categories', description: 'Product categories' },
       { to: '/admin/units', label: 'Units', description: 'Units of measure' },
     ],
   },

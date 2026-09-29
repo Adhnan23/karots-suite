@@ -1,6 +1,8 @@
 package api
 
 import (
+	"slices"
+
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/middleware"
 
@@ -10,6 +12,7 @@ import (
 // registerAdmin mounts the back-office API (karots-pos /admin): live, unlocked,
 // PIN-chosen session, admin or manager only.
 func (h *handlers) registerAdmin(v1 *echo.Group) {
-	g := v1.Group("/admin", append(h.protected, middleware.RequireRole(auth.RoleAdmin, auth.RoleManager))...)
+	g := v1.Group("/admin", slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})...)
 	h.registerAdminUnits(g)
+	h.registerAdminCategories(g)
 }
