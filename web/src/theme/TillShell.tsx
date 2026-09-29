@@ -1,11 +1,13 @@
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { KeyRound, LayoutDashboard, LockIcon, LogOut } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { Me, TillConfig } from '@/api/types.gen'
 import { Kbd } from '@/features/till/bits'
+import { cn } from '@/lib/utils'
 import { ModeToggle } from './ModeToggle'
+import { TillTabs } from './TillTabs'
 
 const TOP_BTN = 'flex h-9 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground'
 
@@ -17,6 +19,7 @@ function handleLock() {
  * the drawer pill. Tabs: Sell now; M1b adds Returns, Credit, Receipts, … */
 export function TillShell({ me, config, status, children }: { me: Me; config: TillConfig; status?: ReactNode; children: ReactNode }) {
   const navigate = useNavigate()
+  const onSell = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, '') === '/till' })
   function signOut() {
     api('/auth/logout', { method: 'POST' })
       .then(() => window.location.assign('/login'))
@@ -36,16 +39,11 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
         </span>
         <span className="whitespace-nowrap text-[13px] text-muted-foreground">{me.user.name}</span>
         {status}
-        <nav aria-label="Till sections" className="flex items-center gap-1 whitespace-nowrap text-[13px] font-semibold">
-          <Link to="/till" activeOptions={{ exact: true, includeSearch: false }}
-            className="whitespace-nowrap rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted data-[status=active]:bg-selected data-[status=active]:text-selected-foreground">
-            Sell
-          </Link>
-        </nav>
-        <div className="ml-auto hidden items-center gap-2.5 whitespace-nowrap text-[12px] text-muted-foreground min-[1440px]:flex" aria-label="Keyboard shortcuts">
+        <TillTabs config={config} />
+        {onSell && <div className="ml-auto hidden items-center gap-2.5 whitespace-nowrap text-[12px] text-muted-foreground min-[1440px]:flex" aria-label="Keyboard shortcuts">
           <Kbd>F1</Kbd>Menu <Kbd>F2</Kbd>Search <Kbd>F4</Kbd>Hold <Kbd>F9</Kbd>Discount <Kbd>F10</Kbd>Pay
-        </div>
-        <div className="ml-auto flex items-center gap-1 whitespace-nowrap min-[1440px]:ml-0">
+        </div>}
+        <div className={cn('ml-auto flex items-center gap-1 whitespace-nowrap', onSell && 'min-[1440px]:ml-0')}>
           <ModeToggle />
           {config.isManager && (
             <Link to="/admin" className={TOP_BTN} aria-label="Admin" title="Admin">

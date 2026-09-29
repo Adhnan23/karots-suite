@@ -18,6 +18,7 @@ type TillConfig struct {
 	DefaultLockerID    int64          `json:"defaultLockerId"` // 0 = none
 	AllowContinueLast  bool           `json:"allowContinueLast"`
 	CanManageCredit    bool           `json:"canManageCredit"`
+	CanHandleSuppliers bool           `json:"canHandleSuppliers"` // Suppliers + Expenses tabs
 	CanSeeCost         bool           `json:"canSeeCost"`
 	CanChangePin       bool           `json:"canChangePin"`
 	IsManager          bool           `json:"isManager"`     // admin/manager: shows the Admin link

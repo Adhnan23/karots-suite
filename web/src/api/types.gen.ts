@@ -227,6 +227,7 @@ export interface TillConfig {
   defaultLockerId: number /* int64 */; // 0 = none
   allowContinueLast: boolean;
   canManageCredit: boolean;
+  canHandleSuppliers: boolean; // Suppliers + Expenses tabs
   canSeeCost: boolean;
   canChangePin: boolean;
   isManager: boolean; // admin/manager: shows the Admin link

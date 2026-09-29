@@ -44,6 +44,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		AllowUntrackedCash: st.AllowUntrackedCash,
 		AllowContinueLast:  st.AllowContinueLastCount,
 		CanManageCredit:    middleware.MayManageCredit(role, middleware.CanManageCredit(c)),
+		CanHandleSuppliers: middleware.MaySeeSuppliers(role, middleware.CanHandleSuppliers(c)),
 		CanSeeCost:         middleware.MaySeeCost(role, middleware.CanSeeCost(c)),
 		CanChangePin:       role != auth.RoleCashier || h.d.Auth.AllowCashierPinChange(ctx),
 		IsManager:          role == auth.RoleAdmin || role == auth.RoleManager,
