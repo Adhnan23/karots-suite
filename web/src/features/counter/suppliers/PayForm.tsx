@@ -28,9 +28,12 @@ export function PayForm({ s }: { s: SupplierView }) {
   const [method, setMethod] = useState<Method>('cash')
   const [source, setSource] = useState('')
   const [ref, setRef] = useState('')
+  const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const cashLockers = (drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
-  const accounts = method === 'card' ? lockersOf(drawer, 'card') : method === 'online' ? lockersOf(drawer, 'bank') : []
+  // A card machine only takes money in: paying a supplier by card is the owner's
+  // card (outside the shop). Online may leave a shop bank account (karots-pos).
+  const accounts = method === 'online' ? lockersOf(drawer, 'bank') : []
   const a = num(amount)
 
   async function submit(e: { preventDefault(): void }) {
@@ -38,7 +41,7 @@ export function PayForm({ s }: { s: SupplierView }) {
     if (!(a > 0)) return void toast.error('Enter the amount')
     setBusy(true)
     try {
-      const base = { amount, method, reference: ref, note: '', lockerId: num(source), deferDrawerKick: !cfg.askToPrint }
+      const base = { amount, method, reference: ref, note, lockerId: num(source), deferDrawerKick: !cfg.askToPrint }
       const r = refund
         ? await api<ReceiptRef>(`/till/suppliers/${s.id}/refund`, { json: base satisfies SupplierRefundRequest })
         : await api<ReceiptRef>(`/till/suppliers/${s.id}/pay`, { json: { ...base, mode } satisfies SupplierPayRequest })
@@ -94,13 +97,14 @@ export function PayForm({ s }: { s: SupplierView }) {
         <div className={LABEL}>{refund ? 'Into' : 'From'}<SourcePicker value={source} onChange={setSource} lockers={cashLockers} sym={sym} /></div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          <select aria-label="Account" value={source} onChange={(e) => setSource(e.target.value)} className={cn(FIELD, 'appearance-auto')}>
+          <select aria-label="Account" value={source} onChange={(e) => setSource(e.target.value)} disabled={!accounts.length} className={cn(FIELD, 'appearance-auto disabled:opacity-60')}>
             <option value="">{refund ? 'Not into a shop account' : 'Not from a shop account'}</option>
             {accounts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
           <input aria-label="Reference" placeholder="Reference (optional)" value={ref} onChange={(e) => setRef(e.target.value)} className={FIELD} />
         </div>
       )}
+      <input aria-label="Note" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />
       <Button type="submit" size="lg" disabled={busy || !(a > 0)} className="mt-auto h-12 text-[15px]">
         {refund ? `Take ${a > 0 ? money(sym, a) : ''} back` : `Pay ${a > 0 ? money(sym, a) : ''}`}
       </Button>

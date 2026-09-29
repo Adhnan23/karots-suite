@@ -27,6 +27,7 @@ export function CreditForm({ c }: { c: TillCustomer }) {
   const [amount, setAmount] = useState(bal > 0 ? dec(bal) : '')
   const [method, setMethod] = useState('cash')
   const [ref, setRef] = useState('')
+  const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const accounts = method === 'card' ? lockersOf(drawer, 'card') : method === 'online' ? lockersOf(drawer, 'bank') : []
   const [account, setAccount] = useState('')
@@ -44,7 +45,7 @@ export function CreditForm({ c }: { c: TillCustomer }) {
     setBusy(true)
     try {
       if (mode === 'pay') {
-        const body: CreditPaymentRequest = { amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint }
+        const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint }
         const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
         afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, (kick) => printDebtSlip(r.paymentId, kick), method === 'cash')
       } else {
@@ -105,6 +106,7 @@ export function CreditForm({ c }: { c: TillCustomer }) {
       {mode === 'pay' && method !== 'cash' && (
         <input aria-label="Reference" placeholder="Reference (optional)" value={ref} onChange={(e) => setRef(e.target.value)} className={FIELD} />
       )}
+      {mode === 'pay' && <input aria-label="Note" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />}
       <Button type="submit" size="lg" disabled={busy || !(a > 0)} className="h-12 text-[15px]">
         {mode === 'pay' ? `Collect ${a > 0 ? money(sym, a) : ''}` : `Refund ${a > 0 ? money(sym, a) : ''} from the drawer`}
       </Button>

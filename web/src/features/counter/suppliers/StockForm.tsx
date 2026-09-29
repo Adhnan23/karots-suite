@@ -38,7 +38,7 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
   const { net, bill, total } = billTotals(shown, disc, discType)
   const froms = payMethod === 'cash'
     ? [{ id: '', name: 'My drawer' }, ...(drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank').map((l) => ({ id: String(l.id), name: `${l.name} (${money(sym, l.balance)})` }))]
-    : [{ id: '', name: 'Not from a shop account' }, ...lockersOf(drawer, payMethod === 'card' ? 'card' : 'bank').map((l) => ({ id: String(l.id), name: l.name }))]
+    : [{ id: '', name: 'Not from a shop account' }, ...(payMethod === 'online' ? lockersOf(drawer, 'bank') : []).map((l) => ({ id: String(l.id), name: l.name }))]
   const short = orderId !== null && shown.some((l) => num(l.quantity) < num(l.ordered))
 
   async function submit() {

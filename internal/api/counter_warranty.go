@@ -148,7 +148,7 @@ func (h *handlers) CounterPrintWarrantySlip(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}

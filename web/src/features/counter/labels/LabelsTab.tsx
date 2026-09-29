@@ -13,6 +13,7 @@ import { ProductFind } from '../ProductFind'
 import { CounterPage } from '../ui'
 
 const SIZES = ['50x25', '50x30', '40x30', '38x25', '100x50']
+const FORMATS = ['CODE128', 'EAN13', 'EAN8', 'UPC', 'CODE39']
 const COPIES = [1, 6, 12, 24]
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
 const CHIP = 'rounded-full border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground'
@@ -34,15 +35,18 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
   const [bottom, setBottom] = useState(p ? money(sym, p.sellingPrice) : '')
   const [count, setCount] = useState(p ? 12 : 1)
   const [size, setSize] = useState(defSize)
+  const [custom, setCustom] = useState(defSize) // "WxH" typed by hand
+  const [format, setFormat] = useState('CODE128')
+  const printSize = size === 'custom' ? custom : size
   const [busy, setBusy] = useState(false)
   const shownCode = p ? p.barcode || `SKU${p.id}` : code.trim()
-  const [w, h] = size.split('x').map(Number)
+  const [w, h] = printSize.split('x').map(Number)
 
   async function print() {
     if (!shownCode) return void toast.error('Pick a product or type a barcode')
     setBusy(true)
     try {
-      const body: LabelRequest = { productId: p?.id ?? 0, code: p ? '' : code.trim(), format: '', top, bottom, count, size }
+      const body: LabelRequest = { productId: p?.id ?? 0, code: p ? '' : code.trim(), format: p ? '' : format, top, bottom, count, size: printSize }
       await api('/till/labels', { json: body })
       toast.success(`${count} label${count === 1 ? '' : 's'} sent to the printer`)
     } catch (err) {
@@ -76,7 +80,12 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
       {!p && (
         <label className={LABEL}>
           Barcode
-          <input aria-label="Barcode" placeholder="e.g. 4791234567890" value={code} onChange={(e) => setCode(e.target.value)} className={cn(FIELD, 'font-mono')} />
+          <div className="flex gap-1.5">
+            <input aria-label="Barcode" placeholder="e.g. 4791234567890" value={code} onChange={(e) => setCode(e.target.value)} className={cn(FIELD, 'min-w-0 flex-1 font-mono')} />
+            <select aria-label="Barcode format" value={format} onChange={(e) => setFormat(e.target.value)} className={cn(FIELD, 'appearance-auto')}>
+              {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
         </label>
       )}
       <div className="grid grid-cols-2 gap-3">
@@ -99,6 +108,11 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
               {s.replace('x', ' × ')}{s === defSize && <small className="ml-1 opacity-70">default</small>}
             </button>
           ))}
+          <button type="button" aria-pressed={size === 'custom'} onClick={() => setSize('custom')} className={CHIP}>Custom</button>
+          {size === 'custom' && (
+            <input aria-label="Custom size" placeholder="W x H (mm)" value={custom} onChange={(e) => setCustom(e.target.value.replace(/[^\dx]/gi, '').toLowerCase())}
+              className={cn(FIELD, 'h-9 w-28 text-center tabular-nums')} />
+          )}
         </div>
       </div>
       <Button size="lg" onClick={() => void print()} disabled={busy || !shownCode} className="h-12 text-[15px]">

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
@@ -54,9 +55,28 @@ func saleView(d *sales.Detail) SaleView {
 	return v
 }
 
+// dayRange reads ?day=YYYY-MM-DD as [that day, next day) in the shop's zone;
+// no day = unbounded (the latest rows).
+func dayRange(c echo.Context) (*time.Time, *time.Time, error) {
+	d := strings.TrimSpace(c.QueryParam("day"))
+	if d == "" {
+		return nil, nil, nil
+	}
+	from, err := time.ParseInLocation("2006-01-02", d, datetime.Location)
+	if err != nil {
+		return nil, nil, apperr.Validation("day must be YYYY-MM-DD")
+	}
+	to := from.AddDate(0, 0, 1)
+	return &from, &to, nil
+}
+
 // CounterSales finds sales by receipt no / customer name / phone (latest 50).
 func (h *handlers) CounterSales(c echo.Context) error {
-	rows, err := h.d.Sales.List(c.Request().Context(), sales.ListFilter{Query: strings.TrimSpace(c.QueryParam("q")), Limit: 50})
+	from, to, err := dayRange(c)
+	if err != nil {
+		return err
+	}
+	rows, err := h.d.Sales.List(c.Request().Context(), sales.ListFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
 	if err != nil {
 		return err
 	}
@@ -140,7 +160,7 @@ func (h *handlers) CounterPrintRefund(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}

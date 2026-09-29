@@ -1,13 +1,15 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { KeyRound, LayoutDashboard, LockIcon, LogOut } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { KeyRound, LayoutDashboard, LockIcon, LogOut, Search, Store } from 'lucide-react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { Me, TillConfig } from '@/api/types.gen'
 import { Kbd } from '@/features/till/bits'
 import { cn } from '@/lib/utils'
 import { ModeToggle } from './ModeToggle'
+import { CommandPalette } from './CommandPalette'
 import { TillTabs } from './TillTabs'
+import { tillTabList } from './tillTabList'
 
 const TOP_BTN = 'flex h-9 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground'
 
@@ -20,6 +22,22 @@ function handleLock() {
 export function TillShell({ me, config, status, children }: { me: Me; config: TillConfig; status?: ReactNode; children: ReactNode }) {
   const navigate = useNavigate()
   const onSell = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, '') === '/till' })
+  const [palette, setPalette] = useState(false)
+  // Ctrl/Cmd K: jump to any till tab (karots-pos cashier palette).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPalette(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+  const jumps = [
+    ...tillTabList(config).map((t) => ({ key: t.to, label: t.label, to: t.to, icon: Store })),
+    ...(config.isManager ? [{ key: 'admin', label: 'Admin', to: '/admin', icon: LayoutDashboard }] : []),
+  ]
   function signOut() {
     api('/auth/logout', { method: 'POST' })
       .then(() => window.location.assign('/login'))
@@ -44,6 +62,9 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
           <Kbd>F1</Kbd>Menu <Kbd>F2</Kbd>Search <Kbd>F4</Kbd>Hold <Kbd>F9</Kbd>Discount <Kbd>F10</Kbd>Pay
         </div>}
         <div className={cn('ml-auto flex items-center gap-1 whitespace-nowrap', onSell && 'min-[1440px]:ml-0')}>
+          <button type="button" onClick={() => setPalette(true)} className={TOP_BTN} aria-label="Search / jump (Ctrl K)" title="Search / jump (Ctrl K)">
+            <Search size={16} />
+          </button>
           <ModeToggle />
           {config.isManager && (
             <Link to="/admin" className={TOP_BTN} aria-label="Admin" title="Admin">
@@ -64,6 +85,7 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
         </div>
       </header>
       <div className="relative flex-1 overflow-hidden">{children}</div>
+      <CommandPalette open={palette} onOpenChange={setPalette} entries={jumps} />
     </div>
   )
 }

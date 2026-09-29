@@ -5,15 +5,16 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { adminNav } from './nav'
 
-type Entry = { key: string; label: string; to: string; icon: LucideIcon }
+export type PaletteEntry = { key: string; label: string; to: string; icon: LucideIcon }
 
 /** Ctrl/Cmd K command palette (theme.md §6): every ported page and "Open the
- * till". Controlled from the shell, which also owns the Ctrl K key listener. */
-export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+ * till" by default; the till passes its own tabs. Controlled from the shell,
+ * which also owns the Ctrl K key listener. Enter jumps to the top match. */
+export function CommandPalette({ open, onOpenChange, entries: given }: { open: boolean; onOpenChange: (open: boolean) => void; entries?: PaletteEntry[] }) {
   const [q, setQ] = useState('')
   const navigate = useNavigate()
 
-  const entries: Entry[] = [
+  const entries: PaletteEntry[] = given ?? [
     { key: 'home', label: 'Home', to: '/admin', icon: HomeIcon },
     ...adminNav.flatMap((a) => a.pages.map((p) => ({ key: `${a.key}:${p.to}`, label: p.label, to: p.to, icon: a.icon }))),
     { key: 'till', label: 'Open the till', to: '/till', icon: Store },
@@ -35,6 +36,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && filtered[0] && go(filtered[0].to)}
             placeholder="Search pages, products, bills"
             className="flex-1 bg-transparent text-sm outline-none"
           />

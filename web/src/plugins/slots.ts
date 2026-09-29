@@ -30,6 +30,10 @@ export type TillTender = {
 /** A till tab (in the More menu) owned by a plugin, served at /till/x/<key>. */
 export type TillTab = { key: string; label: string; Page: ComponentType }
 
+/** An extra kind in the till's Receipts hub (e.g. a plugin's own job slips). The
+ * Page owns its list and preview; the hub keeps the kind switch above it. */
+export type TillReceiptKind = { key: string; label: string; Page: ComponentType }
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
@@ -39,6 +43,7 @@ export const slots = {
   drawerSections: [] as DrawerSection[],
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],
+  tillReceiptKinds: [] as TillReceiptKind[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */

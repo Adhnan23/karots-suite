@@ -138,6 +138,7 @@ type ReturnResult struct {
 // ---- Credit ----
 
 type CreditPaymentRequest struct {
+	Note            string `json:"note"`
 	Amount          string `json:"amount"`
 	Method          string `json:"method"`    // cash | card | online
 	AccountID       int64  `json:"accountId"` // card/bank locker the money lands in

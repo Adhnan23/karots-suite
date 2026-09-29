@@ -24,6 +24,21 @@ import (
 
 const printFailed = "Receipt didn't print — check the printer is on and connected"
 
+// slipSettings loads settings for a slip print, honouring ?size=58|80 for this
+// one job (karots-pos receiptSizeOverride). It overrides a COPY, never the
+// settings the rest of the request shares.
+func (h *handlers) slipSettings(c echo.Context) (*settings.Settings, error) {
+	cfg, err := h.d.Settings.Get(c.Request().Context())
+	if err != nil {
+		return nil, err
+	}
+	eff := *cfg
+	if sz := c.QueryParam("size"); sz == "58" || sz == "80" {
+		eff.ReceiptWidth = sz
+	}
+	return &eff, nil
+}
+
 // receiptQueue is the print target for the signed-in cashier: their own counter
 // printer when set on their user record, else the shop-wide receipt printer
 // ("" = OS default; "tcp://host:9100" = network).
@@ -49,7 +64,7 @@ func (h *handlers) TillPrintMoneyReceipt(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}
@@ -155,7 +170,7 @@ func (h *handlers) TillPrintSale(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}

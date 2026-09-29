@@ -51,6 +51,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		IsManager:          role == auth.RoleAdmin || role == auth.RoleManager,
 		TenderMethods:      []TenderMethod{},
 		LabelSize:          fmt.Sprintf("%dx%d", st.LabelWidthMM, st.LabelHeightMM),
+		ReceiptWidth:       st.ReceiptWidth,
 		Shop:               ShopHeader{Name: st.ShopName, Address: strOr(st.Address), Phone: strOr(st.Phone), Footer: strOr(st.ReceiptFooter)},
 	}
 	// A DB predating credit-as-a-payment may still hold 'credit' here; fall back

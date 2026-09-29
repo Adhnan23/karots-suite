@@ -7,6 +7,7 @@ import { Seg } from '@/features/till/bits'
 import { configQuery, drawerQuery } from '@/features/till/api'
 import { printDebtSlip, printMoneySlip, printSale, printWarrantySlip } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
+import { slots } from '@/plugins/slots'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
@@ -14,9 +15,13 @@ import { SaleFind } from '../SaleFind'
 import { CounterPage, PaneTitle } from '../ui'
 import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from './Paper'
 
-type Kind = 'sales' | 'cash' | 'credit' | 'warranty'
+type Kind = 'sales' | 'cash' | 'credit' | 'warranty' | `x:${string}`
 type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyReceiptRow } | { kind: 'credit'; row: DebtReceiptRow } | { kind: 'warranty'; row: WarrantyClaimRow }
 
+const MOVE_KINDS: [string, string][] = [
+  ['', 'All kinds'], ['expense', 'Expenses'], ['supplier_payment', 'Supplier payments'], ['supplier_refund', 'Supplier refunds'],
+  ['customer_payment', 'Credit collected'], ['refund', 'Refunds'], ['transfer', 'Drawer moves'],
+]
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 /** Every slip the till has printed: find it, see it as paper, print it again. */
@@ -26,7 +31,17 @@ export function ReceiptsTab() {
   const [kind, setKind] = useState<Kind>('sales')
   const [pick, setPick] = useState<Pick | null>(null)
   const sym = cfg.symbol
-  const kinds = <Seg label="Receipt kind" value={kind} onChange={(k) => { setKind(k); setPick(null) }} options={[['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit'], ['warranty', 'Warranty']]} />
+  const kinds = <Seg label="Receipt kind" value={kind} onChange={(k) => { setKind(k); setPick(null) }} options={[['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit'], ['warranty', 'Warranty'],
+    ...slots.tillReceiptKinds.map((k): [Kind, string] => [`x:${k.key}`, k.label])]} />
+  const PluginPage = kind.startsWith('x:') ? slots.tillReceiptKinds.find((k) => `x:${k.key}` === kind)?.Page : undefined
+  if (PluginPage) {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="px-[14px] pt-[14px]">{kinds}</div>
+        <div className="min-h-0 flex-1"><PluginPage /></div>
+      </div>
+    )
+  }
   return (
     <CounterPage flush aside={<Preview pick={pick} />}>
       {kind === 'sales' ? (
@@ -35,7 +50,7 @@ export function ReceiptsTab() {
           <SaleFind title="Sales" sym={sym} picked={pick?.kind === 'sales' ? pick.id : null} onPick={(id) => setPick({ kind: 'sales', id })} />
         </>
       ) : (
-        <RowList kind={kind} head={<div className="flex items-center justify-between gap-2 px-4 pt-3.5">{kinds}{session && <ShiftLink id={session.id} />}</div>}
+        <RowList kind={kind as 'cash' | 'credit' | 'warranty'} head={<div className="flex items-center justify-between gap-2 px-4 pt-3.5">{kinds}{session && <ShiftLink id={session.id} />}</div>}
           sym={sym} pick={pick} onPick={setPick} />
       )}
     </CounterPage>
@@ -54,9 +69,11 @@ function RowList({ kind, head, sym, pick, onPick }: {
   kind: 'cash' | 'credit' | 'warranty'; head: ReactNode; sym: string; pick: Pick | null; onPick: (p: Pick) => void
 }) {
   const [q, setQ] = useState('')
+  const [day, setDay] = useState('')
+  const [moveKind, setMoveKind] = useState('')
   const dq = useDeferredValue(q.trim())
-  const cash = useQuery({ ...moneyReceiptsQuery(dq), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
-  const credit = useQuery({ ...debtReceiptsQuery(dq), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
+  const cash = useQuery({ ...moneyReceiptsQuery(dq, moveKind, day), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
+  const credit = useQuery({ ...debtReceiptsQuery(dq, day), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
   const claims = useQuery({ ...warrantyClaimsQuery(dq), enabled: kind === 'warranty', placeholderData: keepPreviousData }).data ?? []
   const rows: { key: number; no: string; sub: string; amount: string | null; p: Pick }[] = kind === 'cash'
     ? cash.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.kindLabel}${r.party ? ` · ${r.party}` : ''}`, amount: r.amount, p: { kind: 'cash', row: r } }))
@@ -67,7 +84,17 @@ function RowList({ kind, head, sym, pick, onPick }: {
   return (
     <>
       {head}
-      <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${rows.length} shown`} />
+      <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${rows.length} shown`}
+        right={kind !== 'warranty' && (
+          <span className="flex items-center gap-1.5">
+            {kind === 'cash' && (
+              <select aria-label="Kind of move" value={moveKind} onChange={(e) => setMoveKind(e.target.value)} className={cn(FIELD, 'h-8 appearance-auto px-2 text-[13px]')}>
+                {MOVE_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            )}
+            <input type="date" aria-label="On day" value={day} onChange={(e) => setDay(e.target.value)} className={cn(FIELD, 'h-8 w-[150px] px-2 text-[13px]')} />
+          </span>
+        )} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Find a receipt" placeholder={kind === 'cash' ? 'CR- number, party, locker' : kind === 'credit' ? 'Receipt no, customer' : 'Serial or customer'} autoComplete="off"
@@ -95,25 +122,30 @@ function RowList({ kind, head, sym, pick, onPick }: {
 
 function Preview({ pick }: { pick: Pick | null }) {
   const cfg = useSuspenseQuery(configQuery).data
+  const [size, setSize] = useState<'80' | '58'>(cfg.receiptWidth === '58' ? '58' : '80')
+  const narrow = size === '58'
   const sale = useQuery({ ...saleQuery(pick?.kind === 'sales' ? pick.id : 0), enabled: pick?.kind === 'sales' }).data
   if (!pick) return <p className="m-auto max-w-[260px] p-8 text-center text-faint">Pick a receipt to see it and print it again.</p>
   const paper = pick.kind === 'sales'
-    ? sale && sale.id === pick.id && <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} />
-    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} />
-      : pick.kind === 'credit' ? <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} /> : <WarrantyPaper r={pick.row} shop={cfg.shop} />
-  const reprint = () => void (pick.kind === 'sales' ? printSale(pick.id) : pick.kind === 'cash' ? printMoneySlip(pick.row.id)
-    : pick.kind === 'credit' ? printDebtSlip(pick.row.id) : printWarrantySlip(pick.row.id))
+    ? sale && sale.id === pick.id && <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
+    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
+      : pick.kind === 'credit' ? <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} /> : <WarrantyPaper r={pick.row} shop={cfg.shop} narrow={narrow} />
+  const reprint = () => void (pick.kind === 'sales' ? printSale(pick.id, false, size) : pick.kind === 'cash' ? printMoneySlip(pick.row.id, false, size)
+    : pick.kind === 'credit' ? printDebtSlip(pick.row.id, false, size) : printWarrantySlip(pick.row.id, size))
   const canReprint = pick.kind !== 'warranty' || pick.row.replacementSerial !== ''
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-5">{paper}</div>
+      <div className="relative min-h-0 flex-1 overflow-auto bg-muted/60 p-5">
+        <div className="absolute right-4 top-4"><Seg label="Paper width" value={size} onChange={setSize} options={[['80', '80 mm'], ['58', '58 mm']]} /></div>
+        {paper}
+      </div>
       <footer className="flex gap-2 border-t border-border p-4">
         {pick.kind === 'sales' && (
           <Button variant="secondary" asChild className="h-11 flex-1">
-            <a href={`/print/receipt/${pick.id}`} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open to print (A4 / PDF)</a>
+            <a href={`/print/receipt/${pick.id}`} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Print A4 / PDF</a>
           </Button>
         )}
-        {canReprint && <Button className="h-11 flex-1" onClick={reprint}><Printer size={16} /> Print again</Button>}
+        {canReprint && <Button className="h-11 flex-1" onClick={reprint}><Printer size={16} /> Print again · {size} mm</Button>}
       </footer>
     </div>
   )

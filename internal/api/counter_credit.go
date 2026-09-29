@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/datetime"
@@ -36,6 +37,9 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	in := customers.PaymentInput{Amount: req.Amount, Method: req.Method, AccountID: req.AccountID}
 	if req.Reference != "" {
 		in.Reference = &req.Reference
+	}
+	if n := strings.TrimSpace(req.Note); n != "" {
+		in.Note = &n
 	}
 	if err := c.Validate(&in); err != nil {
 		return err
@@ -125,7 +129,7 @@ func (h *handlers) CounterPrintDebtSlip(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}

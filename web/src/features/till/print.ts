@@ -12,10 +12,18 @@ async function send(path: string) {
   }
 }
 
+const q = (kick: boolean, size?: string) => {
+  const p = new URLSearchParams()
+  if (kick) p.set('kick', '1')
+  if (size) p.set('size', size) // "58" | "80": this one job only (reprints from Receipts)
+  const s = p.toString()
+  return s ? `?${s}` : ''
+}
+
 /** Fire-and-forget: the sale is saved; only the paper is at stake. kick folds the
  * drawer pulse into this ONE printer job (fresh cash sale in auto-print mode). */
-export const printSale = (id: number, kick = false) => send(`/till/sales/${id}/print${kick ? '?kick=1' : ''}`)
-export const printMoneySlip = (id: number, kick = false) => send(`/till/money-receipts/${id}/print${kick ? '?kick=1' : ''}`)
-export const printRefund = (saleId: number, kick = false) => send(`/till/sales/${saleId}/refund-print${kick ? '?kick=1' : ''}`)
-export const printDebtSlip = (paymentId: number, kick = false) => send(`/till/customer-payments/${paymentId}/print${kick ? '?kick=1' : ''}`)
-export const printWarrantySlip = (claimId: number) => send(`/till/warranty-claims/${claimId}/print`)
+export const printSale = (id: number, kick = false, size?: string) => send(`/till/sales/${id}/print${q(kick, size)}`)
+export const printMoneySlip = (id: number, kick = false, size?: string) => send(`/till/money-receipts/${id}/print${q(kick, size)}`)
+export const printRefund = (saleId: number, kick = false, size?: string) => send(`/till/sales/${saleId}/refund-print${q(kick, size)}`)
+export const printDebtSlip = (paymentId: number, kick = false, size?: string) => send(`/till/customer-payments/${paymentId}/print${q(kick, size)}`)
+export const printWarrantySlip = (claimId: number, size?: string) => send(`/till/warranty-claims/${claimId}/print${q(false, size)}`)

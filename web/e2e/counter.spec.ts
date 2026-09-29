@@ -5,7 +5,7 @@ test.describe.configure({ mode: 'serial' })
 
 async function open(page: Page, tab: string) {
   await page.goto('/login')
-  await page.getByLabel('Phone').fill('0770000001')
+  await page.getByLabel('Phone').fill('0770000003') // E2E Manager: sees every tab
   await page.getByLabel('PIN').fill('1234')
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL(/\/(till|admin)/)
@@ -78,13 +78,16 @@ test('return by receipt refunds cash', async ({ page }) => {
 
 test('credit: collect what a customer owes', async ({ page }) => {
   await open(page, 'credit')
-  const cust = (await (await page.request.get('/api/v1/till/customers')).json()).find((c: { name: string }) => c.name === 'E2E Credit')
+  // Its own customer: till.spec's over-limit flow depends on E2E Credit's balance, and specs run in parallel.
+  const name = `E2E Counter ${Date.now()}`
+  const cr = await page.request.post('/api/v1/till/customers', { data: { name, phone: `07${String(Date.now()).slice(-8)}`, creditLimit: '1000' } })
+  const cust = (await cr.json()).customer
   await sell(page, [['4790000000011', '1']], [{ method: 'credit', amount: '100' }], cust.id)
   await page.reload()
-  await page.getByRole('button', { name: /E2E Credit/ }).click()
+  await page.getByRole('button', { name: new RegExp(name) }).click()
   await page.getByRole('button', { name: /^Full / }).click()
   await page.getByRole('button', { name: /^Collect/ }).click()
-  await toast(page, /collected from E2E Credit/)
+  await toast(page, new RegExp(`collected from ${name}`))
 })
 
 test('receipts: a sale shows as paper', async ({ page }) => {
@@ -93,7 +96,7 @@ test('receipts: a sale shows as paper', async ({ page }) => {
   await page.getByLabel('Find a sale').fill(sale.receiptNo)
   await page.getByLabel('Find a sale').press('Enter')
   await expect(page.getByText('TOTAL', { exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Open to print/ })).toHaveAttribute('href', `/print/receipt/${sale.id}`)
+  await expect(page.getByRole('link', { name: /Print A4/ })).toHaveAttribute('href', `/print/receipt/${sale.id}`)
 })
 
 test('warranty: swap a serial, keeping the cover', async ({ page }) => {

@@ -177,6 +177,7 @@ export interface ReturnResult {
   cashRefund: string;
 }
 export interface CreditPaymentRequest {
+  note: string;
   amount: string;
   method: string; // cash | card | online
   accountId: number /* int64 */; // card/bank locker the money lands in
@@ -600,7 +601,8 @@ export interface TillConfig {
   isManager: boolean; // admin/manager: shows the Admin link
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
   labelSize: string; // the shop's default sticker, "WxH" mm
-  shop: ShopHeader; // receipt header/footer for on-screen receipts
+  shop: ShopHeader;
+  receiptWidth: string; // "80" | "58" mm, the shop default          // receipt header/footer for on-screen receipts
 }
 export interface ShopHeader {
   name: string;

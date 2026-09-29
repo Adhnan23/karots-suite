@@ -4,24 +4,7 @@ import type { TillConfig } from '@/api/types.gen'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { slots } from '@/plugins/slots'
-
-type Tab = { to: string; label: string; show?: (c: TillConfig) => boolean }
-
-// Primary tabs sit in the bar; the rest live under More (the bar must fit at 1024).
-const PRIMARY: Tab[] = [
-  { to: '/till', label: 'Sell' },
-  { to: '/till/returns', label: 'Returns' },
-  { to: '/till/credit', label: 'Credit' },
-  { to: '/till/receipts', label: 'Receipts' },
-]
-const MORE: Tab[] = [
-  { to: '/till/write-off', label: 'Write-off' },
-  { to: '/till/convert', label: 'Convert' },
-  { to: '/till/labels', label: 'Labels' },
-  { to: '/till/warranty', label: 'Warranty' },
-  { to: '/till/suppliers', label: 'Suppliers', show: (c) => c.canHandleSuppliers },
-  { to: '/till/expenses', label: 'Expenses', show: (c) => c.canHandleSuppliers },
-]
+import { MORE, PRIMARY } from './tillTabList'
 
 const TAB = 'whitespace-nowrap rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted'
 const ON = 'bg-selected text-selected-foreground hover:bg-selected'

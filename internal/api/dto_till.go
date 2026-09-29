@@ -24,7 +24,8 @@ type TillConfig struct {
 	IsManager          bool           `json:"isManager"`     // admin/manager: shows the Admin link
 	TenderMethods      []TenderMethod `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA
 	LabelSize          string         `json:"labelSize"`     // the shop's default sticker, "WxH" mm
-	Shop               ShopHeader     `json:"shop"`          // receipt header/footer for on-screen receipts
+	Shop               ShopHeader     `json:"shop"`
+	ReceiptWidth       string         `json:"receiptWidth"` // "80" | "58" mm, the shop default          // receipt header/footer for on-screen receipts
 }
 
 type ShopHeader struct {

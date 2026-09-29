@@ -13,7 +13,12 @@ import (
 
 // CounterMoneyReceipts lists CR- money receipts shop-wide (karots-pos ReceiptsCash).
 func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
-	rows, err := h.t.receipts.List(c.Request().Context(), cashflow.ReceiptFilter{Query: strings.TrimSpace(c.QueryParam("q")), Limit: 50})
+	from, to, err := dayRange(c)
+	if err != nil {
+		return err
+	}
+	rows, err := h.t.receipts.List(c.Request().Context(), cashflow.ReceiptFilter{Query: strings.TrimSpace(c.QueryParam("q")),
+		Kind: strings.TrimSpace(c.QueryParam("kind")), From: from, To: to, Limit: 50})
 	if err != nil {
 		return err
 	}
@@ -28,7 +33,11 @@ func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
 
 // CounterDebtReceipts lists credit repayments (karots-pos ReceiptsCredit).
 func (h *handlers) CounterDebtReceipts(c echo.Context) error {
-	rows, err := h.t.customers.ListPayments(c.Request().Context(), customers.DebtFilter{Query: strings.TrimSpace(c.QueryParam("q")), Limit: 50})
+	from, to, err := dayRange(c)
+	if err != nil {
+		return err
+	}
+	rows, err := h.t.customers.ListPayments(c.Request().Context(), customers.DebtFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
 	if err != nil {
 		return err
 	}

@@ -4,12 +4,12 @@ import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, Orde
 
 export const expensesQuery = queryOptions({ queryKey: ['till', 'expenses'], queryFn: () => api<ExpensesPage>('/till/expenses') })
 export const conversionsQuery = queryOptions({ queryKey: ['till', 'conversions'], queryFn: () => api<ConversionRow[]>('/till/conversions') })
-export const salesQuery = (q: string) =>
-  queryOptions({ queryKey: ['till', 'sales', q], queryFn: () => api<SaleSummary[]>(`/till/sales?q=${encodeURIComponent(q)}`) })
-export const moneyReceiptsQuery = (q: string) =>
-  queryOptions({ queryKey: ['till', 'money-receipts', q], queryFn: () => api<MoneyReceiptRow[]>(`/till/money-receipts?q=${encodeURIComponent(q)}`) })
-export const debtReceiptsQuery = (q: string) =>
-  queryOptions({ queryKey: ['till', 'customer-payments', q], queryFn: () => api<DebtReceiptRow[]>(`/till/customer-payments?q=${encodeURIComponent(q)}`) })
+export const salesQuery = (q: string, day = '') =>
+  queryOptions({ queryKey: ['till', 'sales', q, day], queryFn: () => api<SaleSummary[]>(`/till/sales?q=${encodeURIComponent(q)}&day=${day}`) })
+export const moneyReceiptsQuery = (q: string, kind = '', day = '') =>
+  queryOptions({ queryKey: ['till', 'money-receipts', q, kind, day], queryFn: () => api<MoneyReceiptRow[]>(`/till/money-receipts?q=${encodeURIComponent(q)}&kind=${kind}&day=${day}`) })
+export const debtReceiptsQuery = (q: string, day = '') =>
+  queryOptions({ queryKey: ['till', 'customer-payments', q, day], queryFn: () => api<DebtReceiptRow[]>(`/till/customer-payments?q=${encodeURIComponent(q)}&day=${day}`) })
 export const saleQuery = (id: number) => queryOptions({ queryKey: ['till', 'sale', id], queryFn: () => api<SaleView>(`/till/sales/${id}`) })
 export const zQuery = (id: number) => queryOptions({ queryKey: ['till', 'z', id], queryFn: () => api<ZReport>(`/till/z/${id}`) })
 export const warrantyUnitsQuery = (status: string, q: string) =>

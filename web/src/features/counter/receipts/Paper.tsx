@@ -7,9 +7,11 @@ const stamp = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'me
 const METHOD: Record<string, string> = { cash: 'Cash', card: 'Card', online: 'Online', credit: 'On account' }
 
 /** A thermal-receipt look on screen: paper and ink in every palette (it's paper). */
-export function Paper({ shop, children, className }: { shop: ShopHeader; children: ReactNode; className?: string }) {
+export function Paper({ shop, children, className, narrow }: { shop: ShopHeader; children: ReactNode; className?: string; narrow?: boolean }) {
+  // 80 mm ≈ 48 characters a line, 58 mm ≈ 32: the preview narrows to match.
   return (
-    <article className={cn('mx-auto w-[300px] bg-paper px-5 py-6 font-mono text-[12px] leading-relaxed text-ink shadow-[var(--shadow)]', className)}>
+    <article className={cn('mx-auto bg-paper py-6 font-mono leading-relaxed text-ink shadow-[var(--shadow)]',
+      narrow ? 'w-[220px] px-3 text-[11px]' : 'w-[300px] px-5 text-[12px]', className)}>
       <header className="mb-3 text-center">
         <b className="block text-[15px]">{shop.name}</b>
         {shop.address && <span className="block">{shop.address}</span>}
@@ -26,10 +28,10 @@ function Row({ l, r, b }: { l: ReactNode; r: ReactNode; b?: boolean }) {
 }
 const Rule = () => <hr className="my-2 border-dashed border-ink" />
 
-export function SalePaper({ s, shop, sym }: { s: SaleView; shop: ShopHeader; sym: string }) {
+export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHeader; sym: string; narrow?: boolean }) {
   const change = num(s.changeGiven)
   return (
-    <Paper shop={shop}>
+    <Paper shop={shop} narrow={narrow}>
       <Row l={s.receiptNo} r={stamp(s.createdAt)} />
       <Row l={`Cashier: ${s.cashierName}`} r={s.customerName || ''} />
       <Rule />
@@ -52,9 +54,9 @@ export function SalePaper({ s, shop, sym }: { s: SaleView; shop: ShopHeader; sym
   )
 }
 
-export function MoneyPaper({ r, shop, sym }: { r: MoneyReceiptRow; shop: ShopHeader; sym: string }) {
+export function MoneyPaper({ r, shop, sym, narrow }: { r: MoneyReceiptRow; shop: ShopHeader; sym: string; narrow?: boolean }) {
   return (
-    <Paper shop={shop}>
+    <Paper shop={shop} narrow={narrow}>
       <p className="text-center font-bold uppercase">{r.kindLabel}</p>
       <Row l={r.receiptNo} r={stamp(r.createdAt)} />
       <Rule />
@@ -69,9 +71,9 @@ export function MoneyPaper({ r, shop, sym }: { r: MoneyReceiptRow; shop: ShopHea
   )
 }
 
-export function DebtPaper({ r, shop, sym }: { r: DebtReceiptRow; shop: ShopHeader; sym: string }) {
+export function DebtPaper({ r, shop, sym, narrow }: { r: DebtReceiptRow; shop: ShopHeader; sym: string; narrow?: boolean }) {
   return (
-    <Paper shop={shop}>
+    <Paper shop={shop} narrow={narrow}>
       <p className="text-center font-bold uppercase">Credit payment</p>
       <Row l={r.receiptNo} r={stamp(r.createdAt)} />
       <Rule />
@@ -87,9 +89,9 @@ export function DebtPaper({ r, shop, sym }: { r: DebtReceiptRow; shop: ShopHeade
   )
 }
 
-export function WarrantyPaper({ r, shop }: { r: WarrantyClaimRow; shop: ShopHeader }) {
+export function WarrantyPaper({ r, shop, narrow }: { r: WarrantyClaimRow; shop: ShopHeader; narrow?: boolean }) {
   return (
-    <Paper shop={shop}>
+    <Paper shop={shop} narrow={narrow}>
       <p className="text-center font-bold uppercase">Warranty {r.resolution}</p>
       <Row l={`Claim #${r.id}`} r={stamp(r.at)} />
       <Rule />

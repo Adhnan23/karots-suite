@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useHold } from '../cart-ui/useHold'
 import { hotkeyFor } from '../hotkeys'
 import { useTillUi } from '../TillUi'
@@ -16,7 +16,8 @@ export function Hotkeys() {
   const co = useCheckoutCtx()
   const hold = useHold()
   const live = useRef({ ui, co, hold })
-  useEffect(() => {
+  // Before paint, not after: a key pressed the moment a scan lands must see that line.
+  useLayoutEffect(() => {
     live.current = { ui, co, hold }
   })
 
