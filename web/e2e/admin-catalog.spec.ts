@@ -1,0 +1,140 @@
+import { expect, test, type Page } from './fixtures'
+
+// Golden admin catalog flows (M2). Needs `make e2e-seed`. Names carry a run tag so
+// the spec re-runs on the same database.
+test.describe.configure({ mode: 'serial' })
+const tag = Date.now().toString(36).slice(-5)
+
+async function admin(page: Page, path: string) {
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill('0770000003') // E2E Manager
+  await page.getByLabel('PIN').fill('1234')
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.waitForURL(/\/(till|admin)/)
+  await page.goto(path)
+  await page.waitForLoadState('networkidle')
+}
+const toast = (page: Page, text: RegExp) => expect(page.locator('[data-sonner-toast]').filter({ hasText: text }).first()).toBeVisible()
+
+test('units: add one, then delete it', async ({ page }) => {
+  await admin(page, '/admin/units')
+  await page.getByRole('button', { name: /New unit/ }).click()
+  await page.getByLabel('Name').fill(`Tray ${tag}`)
+  await page.getByLabel('Short').fill(`t${tag}`.slice(0, 10))
+  await page.getByRole('button', { name: 'Add unit' }).click()
+  await toast(page, /Unit added/)
+  await page.getByRole('button', { name: new RegExp(`^Tray ${tag}`) }).first().click()
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete unit' }).click()
+  await toast(page, /Unit deleted/)
+  await expect(page.getByText(`Tray ${tag}`)).toHaveCount(0)
+})
+
+test('categories: a sub-category in place, and the picker finds-or-creates', async ({ page }) => {
+  await admin(page, '/admin/categories')
+  await page.getByRole('button', { name: /New category/ }).click()
+  await page.getByLabel('Name').fill(`Snacks ${tag}`)
+  await page.getByRole('button', { name: 'Add category' }).click()
+  await toast(page, /Category added/)
+  await page.getByRole('button', { name: `Add under Snacks ${tag}` }).click()
+  await page.getByLabel('Name').fill(`Crisps ${tag}`)
+  await page.getByRole('button', { name: 'Add category' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(`^Crisps ${tag}`) }).first()).toBeVisible()
+  // No loops: Snacks can't move under its own child — the child isn't offered.
+  await page.getByRole('button', { name: new RegExp(`^Snacks ${tag}`) }).first().click()
+  await page.getByRole('button', { name: 'Parent category' }).click()
+  await page.getByLabel('Search categories').last().fill(`Crisps ${tag}`)
+  await expect(page.getByRole('list', { name: 'Categories' }).last().getByRole('button', { name: new RegExp(`Crisps ${tag}`) })).toHaveCount(0)
+})
+
+test('products: add, find by barcode, edit the price, disable and bring back', async ({ page }) => {
+  await admin(page, '/admin/products')
+  await page.getByRole('button', { name: /New product/ }).click()
+  await page.getByLabel('Name').first().fill(`Kithul ${tag}`)
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByLabel('Search categories').fill('E2E Goods')
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByLabel('Cost').fill('200')
+  await page.getByLabel('Markup').fill('1.5')
+  await expect(page.getByLabel('Selling')).toHaveValue('300.00')
+  await page.getByRole('button', { name: 'Generate' }).click()
+  await expect(page.locator('input[name="prod-code"]')).toHaveValue(/^2\d{12}$/) // in-store EAN-13
+  const code = await page.locator('input[name="prod-code"]').inputValue()
+  await page.getByRole('button', { name: 'Add product' }).click()
+  await toast(page, /Product added/)
+
+  await page.getByLabel('Search products').fill(code) // numeric search must stick in the URL
+  await expect(page.getByRole('button', { name: new RegExp(`^Kithul ${tag}`) }).first()).toBeVisible()
+  await page.getByRole('button', { name: new RegExp(`^Kithul ${tag}`) }).first().click()
+  await page.getByLabel('Selling').fill('320')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await toast(page, /Product saved/)
+
+  await page.getByRole('button', { name: new RegExp(`^Kithul ${tag}`) }).first().click()
+  await page.getByRole('button', { name: 'Disable' }).click()
+  await page.getByRole('button', { name: 'Disable', exact: true }).last().click()
+  await toast(page, /Product disabled/)
+  await expect(page.getByRole('button', { name: new RegExp(`^Kithul ${tag}`) })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Show disabled' }).click()
+  await page.getByRole('button', { name: new RegExp(`^Kithul ${tag}`) }).first().click()
+  await page.getByRole('button', { name: 'Enable' }).click()
+  await toast(page, /Product enabled/)
+})
+
+test('items to review: a till quick-add gets finished', async ({ page }) => {
+  await admin(page, '/admin/products/review')
+  await page.request.post('/api/v1/till/quick-item', { data: { name: `Quick ${tag}`, price: '75', qty: '1', barcode: '', unitId: 0 } })
+  await page.reload()
+  await page.getByRole('button', { name: new RegExp(`^Quick ${tag}`) }).first().click()
+  await expect(page.getByText(/Quick-added at the till/)).toBeVisible()
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByLabel('Search categories').fill('E2E Goods')
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByLabel('Cost').fill('40')
+  await page.getByRole('button', { name: 'Save & finish' }).click()
+  await toast(page, /Item finished/)
+  await expect(page.getByText(`Quick ${tag}`)).toHaveCount(0)
+})
+
+test('services: a tea with a recipe shows what it costs', async ({ page }) => {
+  await admin(page, '/admin/services')
+  await page.getByRole('button', { name: /New service/ }).click()
+  await page.getByLabel('Name').fill(`Tea ${tag}`)
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByLabel('Search categories').fill('E2E Goods')
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByLabel('Price').fill('60')
+  await page.getByRole('button', { name: 'Add service' }).click()
+  await expect(page.getByText(`Recipe — Tea ${tag}`)).toBeVisible() // straight into its recipe
+  await page.getByRole('button', { name: /Add an ingredient/ }).click()
+  await page.getByLabel('Find a product').fill('4790000000011')
+  await page.getByLabel('Find a product').press('Enter')
+  await page.getByLabel('Amount of E2E Milk').fill('0.25')
+  await page.getByLabel('Cost name').first().fill('Gas')
+  await page.getByLabel('Cost amount').first().fill('3')
+  await page.getByRole('button', { name: 'Save recipe' }).click()
+  await toast(page, /Recipe saved/)
+  await expect(page.getByRole('button', { name: new RegExp(`^Tea ${tag}`) }).first()).toBeVisible()
+  await expect(page.getByText('1 ingredient').first()).toBeVisible()
+})
+
+test('cashier menu: a card with a product and a picked emoji', async ({ page }) => {
+  await admin(page, '/admin/groups')
+  await page.getByRole('button', { name: /New group/ }).click()
+  await page.getByLabel('Name').fill(`Drinks ${tag}`)
+  await page.getByRole('button', { name: 'Group emoji' }).click()
+  await page.getByLabel('Search emoji').fill('soda')
+  await page.getByLabel('Search emoji').press('Enter')
+  await page.getByRole('button', { name: 'Add group' }).click()
+  await toast(page, /Group added/)
+  await page.getByRole('button', { name: /Add a product/ }).click()
+  await page.getByLabel('Find a product').fill('4790000000011')
+  await page.getByLabel('Find a product').press('Enter')
+  await page.getByRole('button', { name: 'Emoji for E2E Milk' }).click()
+  await page.getByLabel('Search emoji').fill('milk')
+  await page.getByRole('dialog').getByRole('button', { name: '🥛' }).click()
+  await expect(page.getByRole('button', { name: 'Emoji for E2E Milk' })).toHaveText('🥛')
+  // The till shows the new card.
+  const top = await (await page.request.get('/api/v1/till/groups')).json()
+  expect(JSON.stringify(top)).toContain(`Drinks ${tag}`)
+})

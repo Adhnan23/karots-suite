@@ -137,8 +137,8 @@ function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: P
         <span className="text-faint md:hidden">On hand </span><b className="tabular-nums">{qtyText(p.stockQty)}</b> <small className="text-faint">{p.unitAbbr}</small>
       </span>
       <label className="relative">
-        <span className="sr-only">Counted {p.name}</span>
-        <input data-count inputMode="decimal" value={e.counted} placeholder={qtyText(p.stockQty)} onChange={(x) => onEdit({ counted: clean(x.target.value) })}
+        {/* aria-label on the input: the ±delta below sits inside this label and would otherwise join its name. */}
+        <input data-count aria-label={`Counted ${p.name}`} inputMode="decimal" value={e.counted} placeholder={qtyText(p.stockQty)} onChange={(x) => onEdit({ counted: clean(x.target.value) })}
           onKeyDown={(x) => { if (x.key === 'Enter') { x.preventDefault(); onNext() } }} className={cn(CELL, 'font-bold')} />
         {delta !== 0 && <small className={cn('absolute -bottom-3.5 right-1 text-[10.5px] font-bold', delta > 0 ? 'text-success' : 'text-danger')}>{delta > 0 ? '+' : '−'}{qtyText(Math.abs(delta))}</small>}
       </label>

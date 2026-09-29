@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { AdminProductRow } from '@/api/types.gen'
@@ -24,7 +24,17 @@ export function ProductPicker({ title, onPick, trigger, exclude }: {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const rows = (useQuery({ ...productsQuery({ q: dq, category: 0, low: false, disabled: false, page: 1 }), enabled: open, placeholderData: keepPreviousData }).data?.items ?? [])
     .filter((p) => !exclude?.has(p.id))
+  const qc = useQueryClient()
   const pick = (p: AdminProductRow) => { onPick(p); setOpen(false); setQ('') }
+  // Enter searches exactly what's typed (a scanner types the code and hits Enter
+  // before the debounced list catches up): an exact barcode wins, else the top hit.
+  async function pickTyped() {
+    const term = q.trim()
+    if (!term) return
+    const found = (await qc.fetchQuery(productsQuery({ q: term, category: 0, low: false, disabled: false, page: 1 }))).items.filter((p) => !exclude?.has(p.id))
+    const hit = found.find((p) => p.barcode === term) ?? found[0]
+    if (hit) pick(hit)
+  }
   return (
     <>
       {trigger(() => setOpen(true))}
@@ -32,7 +42,7 @@ export function ProductPicker({ title, onPick, trigger, exclude }: {
         <div className="relative">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
           <input autoFocus aria-label="Find a product" placeholder="Name or barcode" value={q} onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (rows[0] && dq === q.trim()) pick(rows[0]) } }} className={cn(INPUT, 'pl-9')} />
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void pickTyped() } }} className={cn(INPUT, 'pl-9')} />
         </div>
         <ul aria-label="Products" className="-mx-1 min-h-0 flex-1 overflow-auto">
           {rows.map((p) => (
