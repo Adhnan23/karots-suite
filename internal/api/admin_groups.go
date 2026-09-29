@@ -19,16 +19,15 @@ func (h *handlers) registerAdminGroups(g *echo.Group) {
 	g.PUT("/groups/:id", h.AdminGroupUpdate)
 	g.DELETE("/groups/:id", h.AdminGroupDelete)
 	g.POST("/groups/:id/move", h.AdminGroupMove)
-	g.POST("/groups/:id/activate", h.AdminGroupReactivate)
 	g.GET("/groups/:id/items", h.AdminGroupItems)
 	g.POST("/groups/:id/items", h.AdminGroupItemAdd)
 	g.DELETE("/groups/:id/items/:productId", h.AdminGroupItemRemove)
 	g.PUT("/groups/:id/items/:productId/emoji", h.AdminGroupItemEmoji)
 }
 
-// AdminGroups is the whole tree depth-first; ?disabled=1 includes disabled groups.
+// AdminGroups is the whole tree, depth-first.
 func (h *handlers) AdminGroups(c echo.Context) error {
-	rows, err := h.t.groups.Tree(c.Request().Context(), c.QueryParam("disabled") == "1")
+	rows, err := h.t.groups.Tree(c.Request().Context(), false)
 	if err != nil {
 		return err
 	}
@@ -97,8 +96,8 @@ func (h *handlers) AdminGroupUpdate(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// AdminGroupDelete disables a group and its sub-groups (they leave the till;
-// Enable brings them back). Products are never touched.
+// AdminGroupDelete deletes a group with the groups inside it and its product
+// links. Products are never touched.
 func (h *handlers) AdminGroupDelete(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -107,7 +106,7 @@ func (h *handlers) AdminGroupDelete(c echo.Context) error {
 	if err := h.t.groups.Delete(c.Request().Context(), id); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionDelete, "product_group", strconv.FormatInt(id, 10), "disabled with its sub-groups")
+	h.audit(c, audit.ActionDelete, "product_group", strconv.FormatInt(id, 10), "deleted with its sub-groups")
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -120,18 +119,6 @@ func (h *handlers) AdminGroupMove(c echo.Context) error {
 	if err := h.t.groups.Move(c.Request().Context(), id, c.QueryParam("dir")); err != nil {
 		return err
 	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (h *handlers) AdminGroupReactivate(c echo.Context) error {
-	id, err := pathID(c)
-	if err != nil {
-		return err
-	}
-	if err := h.t.groups.Reactivate(c.Request().Context(), id); err != nil {
-		return err
-	}
-	h.audit(c, audit.ActionUpdate, "product_group", strconv.FormatInt(id, 10), "reactivated")
 	return c.NoContent(http.StatusNoContent)
 }
 

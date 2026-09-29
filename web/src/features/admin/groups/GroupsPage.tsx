@@ -11,12 +11,11 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { ProductPicker } from '@/features/admin/products/ProductPicker'
-import { Tag } from '@/features/admin/products/ProductsPage'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
-const groupsQuery = (disabled: boolean) => queryOptions({ queryKey: ['admin', 'groups', disabled], queryFn: () => api<GroupNode[]>(`/admin/groups?disabled=${disabled ? 1 : 0}`) })
+const groupsQuery = queryOptions({ queryKey: ['admin', 'groups'], queryFn: () => api<GroupNode[]>('/admin/groups') })
 const itemsQuery = (id: number) => queryOptions({ queryKey: ['admin', 'groups', 'items', id], queryFn: () => api<GroupItem[]>(`/admin/groups/${id}/items`) })
 
 type Editing = { node: GroupNode | null; parentId: number }
@@ -24,8 +23,7 @@ type Editing = { node: GroupNode | null; parentId: number }
 /** The till's menu cards (karots-pos "Cashier Menu"): nested groups, their
  * order, and the products on each card with an emoji. */
 export function GroupsPage() {
-  const [disabled, setDisabled] = useState(false)
-  const groups = useQuery(groupsQuery(disabled)).data
+  const groups = useQuery(groupsQuery).data
   const [picked, setPicked] = useState(0)
   const [editing, setEditing] = useState<Editing | null>(null)
   const qc = useQueryClient()
@@ -37,11 +35,7 @@ export function GroupsPage() {
   return (
     <>
       <PageHead title="Cashier menu" sub="The group cards on the till. Tap a group to choose which products show on it."
-        actions={<>
-          <button type="button" aria-pressed={disabled} onClick={() => setDisabled(!disabled)}
-            className="rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">Show disabled</button>
-          <Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New group</Button>
-        </>} />
+        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New group</Button>} />
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] md:items-start">
         <div className={cn(SURFACE, 'overflow-hidden')}>
           {!groups?.length ? <EmptyState title={groups ? 'No groups yet' : 'Loading…'}>{groups && 'Make a card for each shelf — Drinks, Snacks — then add the products the cashier reaches for.'}</EmptyState> : (
@@ -54,10 +48,9 @@ export function GroupsPage() {
                     <button type="button" aria-pressed={picked === g.id} onClick={() => setPicked(g.id)} className="flex min-w-0 flex-1 items-center gap-2.5 py-2.5 text-left">
                       <span className="grid h-9 w-9 flex-none place-items-center rounded-[10px] bg-muted text-lg">{g.emoji || '📦'}</span>
                       <span className="min-w-0">
-                        <b className={cn('block truncate', !g.isActive && 'line-through opacity-60')}>{g.name}</b>
+                        <b className="block truncate">{g.name}</b>
                         <small className="opacity-70">{g.itemCount} {g.itemCount === 1 ? 'product' : 'products'}{g.childCount > 0 && ` · ${g.childCount} inside`}</small>
                       </span>
-                      {!g.isActive && <Tag tone="muted">disabled</Tag>}
                     </button>
                     <span className={cn('flex flex-none', picked !== g.id && 'md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100')}>
                       <IconBtn label={`Move ${g.name} up`} disabled={at <= 0} onClick={() => run(() => api(`/admin/groups/${g.id}/move?dir=up`, { method: 'POST' }))}><ArrowUp size={15} /></IconBtn>
@@ -70,8 +63,7 @@ export function GroupsPage() {
             </ul>
           )}
         </div>
-        {cur ? <Items key={cur.id} g={cur} onEdit={() => setEditing({ node: cur, parentId: cur.parentId })} onChanged={refresh}
-          onEnable={() => run(() => api(`/admin/groups/${cur.id}/activate`, { method: 'POST' }))} /> : (
+        {cur ? <Items key={cur.id} g={cur} onEdit={() => setEditing({ node: cur, parentId: cur.parentId })} onChanged={refresh} /> : (
           <div className={cn(SURFACE, 'hidden md:block')}><EmptyState title="Pick a group">Its products — the buttons the cashier taps — show here.</EmptyState></div>
         )}
       </div>
@@ -85,7 +77,7 @@ function IconBtn({ label, disabled, onClick, children }: { label: string; disabl
   return <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick} className="grid h-8 w-8 place-items-center rounded-full enabled:hover:bg-card disabled:opacity-30">{children}</button>
 }
 
-function Items({ g, onEdit, onEnable, onChanged }: { g: GroupNode; onEdit: () => void; onEnable: () => void; onChanged: () => void }) {
+function Items({ g, onEdit, onChanged }: { g: GroupNode; onEdit: () => void; onChanged: () => void }) {
   const items = useQuery(itemsQuery(g.id)).data
   const sym = useSuspenseQuery(configQuery).data.symbol
   const qc = useQueryClient()
@@ -102,7 +94,6 @@ function Items({ g, onEdit, onEnable, onChanged }: { g: GroupNode; onEdit: () =>
           <b className="block truncate font-display text-lg">{g.name}</b>
           <small className="text-muted-foreground">{items ? `${items.length} ${items.length === 1 ? 'product' : 'products'} on this card` : '…'}</small>
         </span>
-        {!g.isActive && <Button variant="outline" className="h-9 px-3" onClick={onEnable}>Enable</Button>}
         <Button variant="ghost" className="h-9 px-3" onClick={onEdit}>Edit</Button>
       </header>
       <ul className="flex flex-col divide-y divide-border">
@@ -149,11 +140,9 @@ function GroupForm({ node, parentId, groups, onClose, onDone }: Editing & { grou
     <FormSheet open onOpenChange={(o) => !o && onClose()} busy={busy} onSubmit={save}
       title={node ? `Edit ${node.name}` : parent ? `New group in ${parent.name}` : 'New group'} submit={node ? 'Save' : 'Add group'}
       extra={node && (
-        node.isActive ? (
-          <ConfirmButton label="Disable" title={`Disable ${node.name}?`} confirm="Disable group"
-            body={`It leaves the till${node.childCount ? `, with the ${node.childCount} groups inside it` : ''}. Products aren't touched, and Enable brings it back.`}
-            onConfirm={async () => { await api(`/admin/groups/${node.id}`, { method: 'DELETE' }); toast.success('Group disabled'); onDone() }} />
-        ) : undefined
+        <ConfirmButton label="Delete" title={`Delete ${node.name}?`} confirm="Delete group"
+          body={`${node.childCount ? `The ${node.childCount} groups inside it go too. ` : ''}Products stay in the catalog — they just leave this card.`}
+          onConfirm={async () => { await api(`/admin/groups/${node.id}`, { method: 'DELETE' }); toast.success('Group deleted'); onDone() }} />
       )}>
       <div className="grid grid-cols-[76px_1fr] gap-3">
         <Field label="Emoji"><EmojiPicker label="Group emoji" value={f.emoji} onChange={(emoji) => setF({ ...f, emoji })} className="h-[var(--control-h)] w-full" /></Field>

@@ -137,4 +137,11 @@ test('cashier menu: a card with a product and a picked emoji', async ({ page }) 
   // The till shows the new card.
   const top = await (await page.request.get('/api/v1/till/groups')).json()
   expect(JSON.stringify(top)).toContain(`Drinks ${tag}`)
+  // Menu cards are layout, not records: Delete really deletes (the product stays).
+  await page.getByRole('button', { name: 'Edit' }).click()
+  await page.getByRole('button', { name: 'Delete', exact: true }).click()
+  await page.getByRole('button', { name: 'Delete group' }).click()
+  await toast(page, /Group deleted/)
+  await expect(page.getByRole('button', { name: new RegExp(`Drinks ${tag}`) })).toHaveCount(0)
+  expect((await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).name).toBe('E2E Milk')
 })
