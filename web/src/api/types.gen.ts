@@ -128,6 +128,37 @@ export interface LabelRequest {
   count: number /* int */;
   size: string; // "WxH" mm
 }
+/**
+ * LabelLayout is where the printer puts everything on one label (dots, 8/mm,
+ * top-left origin) — the preview draws exactly this.
+ */
+export interface LabelLayout {
+  widthMm: number /* int */;
+  heightMm: number /* int */;
+  widthDots: number /* int */;
+  heightDots: number /* int */;
+  texts: LabelText[];
+  barcode: LabelBarcode;
+}
+export interface LabelText {
+  x: number /* int */;
+  y: number /* int */;
+  charW: number /* int */;
+  glyphH: number /* int */;
+  value: string;
+}
+export interface LabelBarcode {
+  x: number /* int */;
+  y: number /* int */;
+  height: number /* int */;
+  narrow: number /* int */;
+  format: string; // as requested ("" = CODE128)
+  code: string;
+  readableH: number /* int */;
+}
+export interface AssignBarcodeRequest {
+  barcode: string;
+}
 export interface SaleSummary {
   id: number /* int64 */;
   receiptNo: string;

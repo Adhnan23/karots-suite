@@ -6,48 +6,111 @@ import (
 	"strings"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/products"
 	"karots-suite/internal/printing"
 	"karots-suite/internal/tspl"
 
 	"github.com/labstack/echo/v4"
 )
 
-// CounterLabels sends a barcode sticker run to the shop's label printer (TSPL;
-// blank = the OS default printer, as in karots-pos).
-func (h *handlers) CounterLabels(c echo.Context) error {
+// labelInput turns a label request into the renderer's input using the shop's
+// label settings. Code may come back blank (nothing picked yet) — fine for a
+// preview, refused by the print.
+func (h *handlers) labelInput(c echo.Context) (tspl.Input, string, error) {
 	ctx := c.Request().Context()
 	var req LabelRequest
 	if err := c.Bind(&req); err != nil {
-		return apperr.BadRequest("invalid request body")
+		return tspl.Input{}, "", apperr.BadRequest("invalid request body")
 	}
 	cfg, err := h.d.Settings.Get(ctx)
 	if err != nil {
-		return err
+		return tspl.Input{}, "", err
 	}
 	code := strings.TrimSpace(req.Code)
 	if code == "" && req.ProductID > 0 {
 		p, err := h.t.products.Get(ctx, req.ProductID)
 		if err != nil {
-			return err
+			return tspl.Input{}, "", err
 		}
 		code = "SKU" + strconv.FormatInt(p.ID, 10)
 		if p.Barcode != nil && *p.Barcode != "" {
 			code = *p.Barcode
 		}
 	}
-	if code == "" {
-		return apperr.Validation("pick a product or enter a barcode")
-	}
 	w, hgt := labelSize(req.Size, cfg.LabelWidthMM, cfg.LabelHeightMM)
-	doc := tspl.Document(tspl.Input{
+	return tspl.Input{
 		Top: strings.TrimSpace(req.Top), Bottom: strings.TrimSpace(req.Bottom),
 		NameLines: cfg.LabelNameLines, BottomLines: cfg.LabelBottomLines, NameFont: cfg.LabelNameFont, BottomFont: cfg.LabelBottomFont,
 		Code: code, Format: req.Format, Count: min(max(req.Count, 1), 200),
 		WidthMM: w, HeightMM: hgt, GapMM: min(max(cfg.LabelGapMM, 0), 20),
-	})
-	if err := printing.Raw(ctx, cfg.LabelPrinter, doc); err != nil {
+	}, cfg.LabelPrinter, nil
+}
+
+// CounterLabels sends a barcode sticker run to the shop's label printer (TSPL;
+// blank = the OS default printer, as in karots-pos).
+func (h *handlers) CounterLabels(c echo.Context) error {
+	in, printer, err := h.labelInput(c)
+	if err != nil {
+		return err
+	}
+	if in.Code == "" {
+		return apperr.Validation("pick a product or enter a barcode")
+	}
+	if err := printing.Raw(c.Request().Context(), printer, tspl.Document(in)); err != nil {
 		return apperr.Internal("could not print labels", err)
 	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// CounterLabelPreview returns exactly where the printer will put everything
+// (tspl.LayoutOf, the same geometry Document prints), for a true-to-paper preview.
+func (h *handlers) CounterLabelPreview(c echo.Context) error {
+	in, _, err := h.labelInput(c)
+	if err != nil {
+		return err
+	}
+	l := tspl.LayoutOf(in)
+	out := LabelLayout{WidthMM: l.WidthMM, HeightMM: l.HeightMM, WidthDots: l.WidthDots, HeightDots: l.HeightDots, Texts: []LabelText{},
+		Barcode: LabelBarcode{X: l.Barcode.X, Y: l.Barcode.Y, Height: l.Barcode.Height, Narrow: l.Barcode.Narrow, Format: in.Format,
+			Code: l.Barcode.Code, ReadableH: l.Barcode.ReadableH}}
+	for _, t := range l.Texts {
+		out.Texts = append(out.Texts, LabelText{X: t.X, Y: t.Y, CharW: t.CharW, GlyphH: t.GlyphH, Value: t.Value})
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+// CounterLabelFields lists a product's custom fields flagged "print on label"
+// (a plugin seam; [] with none), for the label's top/bottom pickers.
+func (h *handlers) CounterLabelFields(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	out := []DetailRow{}
+	if products.LabelFieldProvider != nil {
+		for _, r := range products.LabelFieldProvider(c.Request().Context(), id) {
+			out = append(out, DetailRow{Label: r.Label, Value: r.Value})
+		}
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+// CounterAssignBarcode saves a (generated) barcode on a product that had none,
+// so its label can print (karots-pos labels "Generate barcode").
+func (h *handlers) CounterAssignBarcode(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req AssignBarcodeRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	if err := h.t.products.AssignBarcode(c.Request().Context(), id, strings.TrimSpace(req.Barcode)); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "barcode assigned at the counter: "+req.Barcode)
 	return c.NoContent(http.StatusNoContent)
 }
 

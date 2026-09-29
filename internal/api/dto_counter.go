@@ -75,6 +75,39 @@ type LabelRequest struct {
 	Size      string `json:"size"` // "WxH" mm
 }
 
+// LabelLayout is where the printer puts everything on one label (dots, 8/mm,
+// top-left origin) — the preview draws exactly this.
+type LabelLayout struct {
+	WidthMM    int          `json:"widthMm"`
+	HeightMM   int          `json:"heightMm"`
+	WidthDots  int          `json:"widthDots"`
+	HeightDots int          `json:"heightDots"`
+	Texts      []LabelText  `json:"texts"`
+	Barcode    LabelBarcode `json:"barcode"`
+}
+
+type LabelText struct {
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	CharW  int    `json:"charW"`
+	GlyphH int    `json:"glyphH"`
+	Value  string `json:"value"`
+}
+
+type LabelBarcode struct {
+	X         int    `json:"x"`
+	Y         int    `json:"y"`
+	Height    int    `json:"height"`
+	Narrow    int    `json:"narrow"`
+	Format    string `json:"format"` // as requested ("" = CODE128)
+	Code      string `json:"code"`
+	ReadableH int    `json:"readableH"`
+}
+
+type AssignBarcodeRequest struct {
+	Barcode string `json:"barcode"`
+}
+
 // ---- Sales lookup (Returns, Receipts) ----
 
 type SaleSummary struct {

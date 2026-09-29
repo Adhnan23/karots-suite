@@ -38,8 +38,8 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
   labels: async (page) => {
     await page.getByLabel('Find a product').fill('Milk')
     await page.getByRole('option', { name: /E2E Milk\b(?! Crate)/ }).click()
-    await page.getByRole('button', { name: '24', exact: true }).click()
     await page.getByRole('button', { name: /40 × 30/ }).click()
+    await page.getByLabel('Label preview').waitFor()
   },
   returns: async (page) => {
     const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()

@@ -19,18 +19,18 @@ const narrow = 2
 
 // Input describes a single label run (one design, printed Count times).
 type Input struct {
-	Top     string // free text above the barcode (e.g. name or a model no); blank = omit
-	Bottom  string // free text below the barcode (e.g. price); blank = omit
+	Top         string // free text above the barcode (e.g. name or a model no); blank = omit
+	Bottom      string // free text below the barcode (e.g. price); blank = omit
 	NameLines   int    // max wrapped lines for Top (1–4, default 1)
 	BottomLines int    // max wrapped lines for Bottom (1–4, default 1)
 	NameFont    string // TSPL built-in font for Top: "1"|"2"|"3"|"4" (default "2")
 	BottomFont  string // TSPL built-in font for Bottom (default "3")
-	Code    string // barcode value
-	Format  string // CODE128 | EAN13 | EAN8 | UPC | CODE39 (defaults to CODE128)
-	Count   int    // number of copies (>=1)
-	WidthMM int    // label width  (mm)
-	HeightMM int   // label height (mm)
-	GapMM   int    // gap between labels (mm)
+	Code        string // barcode value
+	Format      string // CODE128 | EAN13 | EAN8 | UPC | CODE39 (defaults to CODE128)
+	Count       int    // number of copies (>=1)
+	WidthMM     int    // label width  (mm)
+	HeightMM    int    // label height (mm)
+	GapMM       int    // gap between labels (mm)
 }
 
 // barcodeType maps the UI format name to the TSPL BARCODE type token.
@@ -49,8 +49,38 @@ func barcodeType(format string) string {
 	}
 }
 
-// Document builds the TSPL byte stream for the label run.
-func Document(in Input) []byte {
+// Text is one placed line of label text (dots, top-left origin).
+type Text struct {
+	X, Y   int
+	Font   string // TSPL built-in font token
+	CharW  int    // per-character width at 1× scale
+	LineH  int    // reserved line height
+	GlyphH int    // glyph height (for an on-screen preview)
+	Value  string // printed text (ASCII-sanitised)
+}
+
+// Barcode is the placed barcode (dots).
+type Barcode struct {
+	X, Y      int
+	Height    int    // bar height, excluding the human-readable digits
+	Narrow    int    // narrow module width
+	Type      string // TSPL type token (128, EAN13, …)
+	Code      string
+	ReadableH int // room reserved under the bars for the digits
+}
+
+// Layout is where everything lands on one label: Document prints it, and the
+// till's preview draws the very same geometry, so what you see is what prints.
+type Layout struct {
+	WidthMM, HeightMM, GapMM int
+	WidthDots, HeightDots    int
+	Texts                    []Text
+	Barcode                  Barcode
+	Count                    int
+}
+
+// LayoutOf positions the label's content for the given run.
+func LayoutOf(in Input) Layout {
 	w := in.WidthMM
 	if w <= 0 {
 		w = 50
@@ -59,18 +89,10 @@ func Document(in Input) []byte {
 	if h <= 0 {
 		h = 25
 	}
-	gap := in.GapMM
-	if gap < 0 {
-		gap = 0
-	}
-	count := in.Count
-	if count < 1 {
-		count = 1
-	}
-
+	gap := max(in.GapMM, 0)
+	count := max(in.Count, 1)
 	widthDots := w * dotsPerMM
 	heightDots := h * dotsPerMM
-
 	// Layout margins (dots). Content is laid out top-down with DIRECTION 0 so the
 	// label's leading edge is the top — origin (0,0) is the top-left corner.
 	const (
@@ -79,14 +101,7 @@ func Document(in Input) []byte {
 		marginBottom = 12
 		readableH    = 26 // height of the barcode's human-readable digits
 	)
-
-	var b strings.Builder
-	fmt.Fprintf(&b, "SIZE %d mm, %d mm\r\n", w, h)
-	fmt.Fprintf(&b, "GAP %d mm, 0 mm\r\n", gap)
-	b.WriteString("DIRECTION 0\r\n")
-	b.WriteString("REFERENCE 0,0\r\n")
-	b.WriteString("CLS\r\n")
-
+	l := Layout{WidthMM: w, HeightMM: h, GapMM: gap, WidthDots: widthDots, HeightDots: heightDots, Count: count}
 	// Top and bottom are free-text slots — the UI chooses what goes where (name on
 	// top & price below, or the reverse). Each is centered and wraps onto up to
 	// its configured line count (NameLines / BottomLines, 1–4, default 1) instead
@@ -99,32 +114,66 @@ func Document(in Input) []byte {
 	botLines := wrapLabelText(ascii(in.Bottom), (widthDots-2*marginX)/botCharW, clampLines(in.BottomLines))
 	nameH := len(topLines) * topLineH
 	priceH := len(botLines) * botLineH
-
 	for i, ln := range topLines {
-		x := centerX(widthDots, len(ln)*topCharW, marginX)
-		fmt.Fprintf(&b, "TEXT %d,%d,\"%s\",0,1,1,\"%s\"\r\n", x, marginTop+i*topLineH, topTok, tsplEscape(ln))
+		l.Texts = append(l.Texts, Text{X: centerX(widthDots, len(ln)*topCharW, marginX), Y: marginTop + i*topLineH,
+			Font: topTok, CharW: topCharW, LineH: topLineH, GlyphH: glyphH(topTok), Value: ln})
 	}
-
 	// Barcode (centered) fills the space between the top text and the reserved
 	// bottom area, leaving room for its own human-readable digits underneath.
-	code := tsplEscape(ascii(in.Code))
+	code := ascii(in.Code)
 	barY := marginTop + nameH
-	barH := heightDots - barY - readableH - priceH - marginBottom
-	if barH < 40 {
-		barH = 40
-	}
-	barX := centerX(widthDots, barcodeWidthDots(in.Format, ascii(in.Code), narrow), marginX)
-	fmt.Fprintf(&b, "BARCODE %d,%d,\"%s\",%d,1,0,%d,%d,\"%s\"\r\n",
-		barX, barY, barcodeType(in.Format), barH, narrow, narrow*2, code)
-
+	barH := max(heightDots-barY-readableH-priceH-marginBottom, 40)
+	l.Barcode = Barcode{X: centerX(widthDots, barcodeWidthDots(in.Format, code, narrow), marginX), Y: barY, Height: barH,
+		Narrow: narrow, Type: barcodeType(in.Format), Code: code, ReadableH: readableH}
 	for i, ln := range botLines {
-		x := centerX(widthDots, len(ln)*botCharW, marginX)
-		priceY := barY + barH + readableH + i*botLineH
-		fmt.Fprintf(&b, "TEXT %d,%d,\"%s\",0,1,1,\"%s\"\r\n", x, priceY, botTok, tsplEscape(ln))
+		l.Texts = append(l.Texts, Text{X: centerX(widthDots, len(ln)*botCharW, marginX), Y: barY + barH + readableH + i*botLineH,
+			Font: botTok, CharW: botCharW, LineH: botLineH, GlyphH: glyphH(botTok), Value: ln})
 	}
+	return l
+}
 
-	fmt.Fprintf(&b, "PRINT %s,1\r\n", strconv.Itoa(count))
+// Document builds the TSPL byte stream for the label run.
+func Document(in Input) []byte {
+	l := LayoutOf(in)
+	var b strings.Builder
+	fmt.Fprintf(&b, "SIZE %d mm, %d mm\r\n", l.WidthMM, l.HeightMM)
+	fmt.Fprintf(&b, "GAP %d mm, 0 mm\r\n", l.GapMM)
+	b.WriteString("DIRECTION 0\r\n")
+	b.WriteString("REFERENCE 0,0\r\n")
+	b.WriteString("CLS\r\n")
+	bc := l.Barcode
+	wroteBar := false
+	for _, t := range l.Texts {
+		if !wroteBar && t.Y >= bc.Y { // bottom lines come after the barcode
+			writeBarcode(&b, bc)
+			wroteBar = true
+		}
+		fmt.Fprintf(&b, "TEXT %d,%d,\"%s\",0,1,1,\"%s\"\r\n", t.X, t.Y, t.Font, tsplEscape(t.Value))
+	}
+	if !wroteBar {
+		writeBarcode(&b, bc)
+	}
+	fmt.Fprintf(&b, "PRINT %s,1\r\n", strconv.Itoa(l.Count))
 	return []byte(b.String())
+}
+
+func writeBarcode(b *strings.Builder, bc Barcode) {
+	fmt.Fprintf(b, "BARCODE %d,%d,\"%s\",%d,1,0,%d,%d,\"%s\"\r\n",
+		bc.X, bc.Y, bc.Type, bc.Height, bc.Narrow, bc.Narrow*2, tsplEscape(bc.Code))
+}
+
+// glyphH is the printed glyph height of a built-in font (see fontMetrics).
+func glyphH(token string) int {
+	switch token {
+	case "1":
+		return 12
+	case "3":
+		return 24
+	case "4":
+		return 32
+	default:
+		return 20
+	}
 }
 
 // fontMetrics returns the TSPL built-in font token plus its per-character width
