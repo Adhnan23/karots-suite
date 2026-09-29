@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { Search, X } from 'lucide-react'
+import { Download, Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DataList } from '@/components/admin/DataList'
 import { INPUT } from '@/components/admin/fields'
@@ -11,6 +11,7 @@ import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { ProductPicker } from '@/features/admin/products/ProductPicker'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { productsQuery } from '@/features/admin/products/queries'
+import { rangeQS } from '@/features/counter/range'
 import { RangePicker } from '@/features/counter/RangePicker'
 import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
@@ -104,6 +105,12 @@ function Moves() {
           {staff.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
         <RangePicker full value={f.range} onChange={(r) => set({ preset: r.preset, from: r.from, to: r.to })} />
+        <span className="flex gap-1.5 md:ml-auto">
+          {[['csv', 'CSV'], ['xlsx', 'Excel']].map(([fmt, l]) => (
+            <a key={fmt} download href={`/api/v1/admin/stock/movements?format=${fmt}&product=${f.product}&type=${f.type}&user=${f.user}${rangeQS(f.range)}`}
+              className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-muted"><Download size={15} /> {l}</a>
+          ))}
+        </span>
       </div>
       <DataList label="Stock movements" rows={data?.items ?? []} rowKey={(m) => m.id}
         empty={<EmptyState title={data ? 'No movements' : 'Loading…'}>{data && 'Nothing moved for this filter.'}</EmptyState>}

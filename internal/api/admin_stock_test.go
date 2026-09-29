@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -40,6 +41,9 @@ func TestAdminStockAdjustAndLots(t *testing.T) {
 	mv := decode[MovementList](t, te.do(http.MethodGet, "/api/v1/admin/stock/movements?type=adjust&product="+pid+"&preset=today", nil, ck))
 	if mv.Total != 1 || mv.Items[0].Quantity != "-2" || mv.Items[0].Note != "broken" || mv.Items[0].Cost != "100.00" {
 		t.Fatalf("movements: %+v", mv)
+	}
+	if rec := te.do(http.MethodGet, "/api/v1/admin/stock/movements?format=csv&type=adjust&product="+pid, nil, ck); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "broken") {
+		t.Fatalf("csv: %d %.120s", rec.Code, rec.Body)
 	}
 	if rec := te.do(http.MethodGet, "/api/v1/admin/stock/movements?type=nonsense", nil, ck); rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("bad type: %d", rec.Code)

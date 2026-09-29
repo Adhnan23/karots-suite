@@ -53,6 +53,17 @@ func (h *handlers) AdminStockMovements(c echo.Context) error {
 		return err
 	}
 	f.From, f.To = from, to
+	if c.QueryParam("format") != "" { // download every match (karots-pos "Download CSV"), not a page
+		rows, _, err := h.t.stock.FindMovements(c.Request().Context(), f)
+		if err != nil {
+			return err
+		}
+		out := make([][]string, 0, len(rows))
+		for _, m := range rows {
+			out = append(out, []string{m.CreatedAt.Format("2006-01-02 15:04"), m.ProductName, m.Type, m.Quantity.String(), dec2(m.Cost), m.UserName, strOr(m.Note)})
+		}
+		return writeSheet(c, "stock_movements_"+time.Now().Format("2006-01-02"), []string{"When", "Product", "Type", "Qty", "Cost", "By", "Note"}, out)
+	}
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	page = max(page, 1)
 	f.Limit, f.Offset = movementPageSize, (page-1)*movementPageSize

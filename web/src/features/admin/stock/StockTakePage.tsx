@@ -1,5 +1,5 @@
 import { keepPreviousData, queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { Download, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -130,7 +130,8 @@ function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: P
     <li className={cn('grid grid-cols-2 gap-2 px-4 py-2.5 md:grid-cols-[minmax(0,2fr)_90px_110px_110px_110px_110px] md:items-center', (e.counted || e.cost || e.selling || e.wholesale) && 'bg-brand-soft')}>
       <span className="col-span-2 min-w-0 md:col-span-1">
         <span className="flex flex-wrap items-center gap-1.5"><b className="truncate">{p.name}</b>{p.multiPrice && <Tag tone="warn">2+ lot prices</Tag>}</span>
-        <small className="text-faint tabular-nums">{p.barcode || p.categoryName}{p.multiPrice && ' · a change comes off the oldest lot — use Stock → Adjust to pick one'}</small>
+        <small className="text-faint tabular-nums">{p.barcode || p.categoryName}
+          {p.multiPrice && <> · a change comes off the oldest lot — <Link to="/admin/stock" search={{ q: p.name }} className="font-semibold text-foreground underline">adjust it there</Link> to pick the lot</>}</small>
       </span>
       <span className="self-center text-[13px] md:text-right md:text-sm">
         <span className="text-faint md:hidden">On hand </span><b className="tabular-nums">{qtyText(p.stockQty)}</b> <small className="text-faint">{p.unitAbbr}</small>
