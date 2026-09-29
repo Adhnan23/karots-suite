@@ -54,7 +54,7 @@ Losses report, M5).
   run history.
 - [x] **11. Labels + damage** (`admin_labels.go`, `admin_damage.go`). Admin label designer reusing
   the counter label components; admin write-off form (lot pick, reason).
-- [ ] **12. Flows, parity, docs.** Playwright `web/e2e/admin-catalog.spec.ts` + `admin-stock.spec.ts`
+- [x] **12. Flows, parity, docs.** Playwright `web/e2e/admin-catalog.spec.ts` + `admin-stock.spec.ts`
   (incl. 360px), the M1 leftover flows (credit refund, supplier refund, warranty by receipt, quick
   create), tick parity rows, status.md handoff to M3, ship check (types, vet, tests, build, plugin
   grep, ≤500 lines), then the milestone review + one `fix:` commit.

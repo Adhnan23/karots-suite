@@ -5,21 +5,21 @@ every milestone.
 
 ## Status (2026-09-29)
 
-**M1 Till is COMPLETE**: M1a sell (`docs/plans/2026-09-28-m1a-till-sell.md`) and M1b counter operations (`docs/plans/2026-09-29-m1b-till-counter.md`). M0 is complete and reviewed.
+**M2 Catalog and stock is COMPLETE** (`docs/plans/2026-09-29-m2-catalog-stock.md`). M0 and M1 (till: sell + counter) were complete before it.
 
-M1b delivered (till tabs: Sell · Returns · Credit · Receipts + More ▾ · Ctrl K palette):
+M2 delivered (admin dock areas **Inventory** and **Setup**; every page works at 360px):
 
-- **Returns:** find a sale (receipt/name/phone, day filter), pick lines, faulty → write off, reason, account-first refund; the cash refund leaves the drawer in the same tx; refund slip.
-- **Credit:** customers who owe / hold an advance; take a payment (cash, card/online to an account, note) or refund an advance; DP- debt slip.
-- **Receipts hub:** sales, cash moves (kind filter), credit payments, warranty claims and plugin kinds (`slots.tillReceiptKinds`); paper preview with an 80/58 mm switch; print again at that width; A4/PDF view; X/Z report page (also linked from the close dialog).
-- **Write-off** (damage / shop use / staff, lot pick), **Convert** (break a pack), **Labels** (designer, preview, format, size presets + custom → TSPL).
-- **Warranty:** by serial (swap keeps the cover, issues from stock) or by receipt for items without a serial.
-- **Suppliers** (supplier flag): pay one amount via the forked waterfall, refund an advance, receive a delivery (walk-in or against an order, line + bill discounts, free qty, expiry, pay-now from drawer/locker/account, keep-the-rest), place an order with wanted-by + printable PO, new products met on a delivery.
-- **Expenses** (supplier flag): category chips, paid from the drawer or a locker, tagged to a service.
-- **Fixes along the way:** a find box's Enter no longer picks a stale result (scanner race); hotkeys see the latest cart before paint; a till closed with nothing counted closes at zero; the login limiter trusts the socket, not `X-Forwarded-For`.
-- **Tests:** `go test ./...`, 77 web unit tests and 37 Playwright flows are green; `make verify-portable` passes.
+- **Admin kit** (`web/src/components/admin/`): PageHead, DataList (table ≥768px, cards below, action columns on both), FormSheet (dialog / bottom sheet), PickerShell, Pager, fields, ConfirmButton (red or plain), EmojiPicker (searchable, curated shop aisles — a till PC has no emoji keyboard). Breadcrumb + area page tabs in the shell, dock current-area dot + badges, phone More sheet lists every page.
+- **Setup:** Units · Categories (nested tree, add a sub-category in place, move with a no-loop guard, delete lifts children; shared CategoryPicker with inline find-or-create) · Cashier menu (nested cards, reorder, products per card with emoji; **Delete really deletes** — a card is layout, not a record) · Barcode labels (the counter's designer + a browser-printable **label sheet** `/print/labels`, also on the counter).
+- **Inventory:** Products (search incl. numeric barcodes, category with sub-categories, running low, disabled; form with cost⇄markup⇄selling, reprice stock on hand, barcode generate, duplicate; + Add barcode on rows) · Items to review (finish backfills past sale cost) · Stock (on hand + per-product lots with lot prices; adjust from the lot that's short; record write-off; movements with who/kind/period + CSV/Excel) · Batches (expired first, write off one or all) · Stock-take (count screen kept across pages, 2+ lot-price warning, count sheet CSV/XLSX/ODS download + import) · Stock intake (scan-or-type restock/create, 1.4 markup, rapid loop + Another like last, labels with top/bottom slots + preview, session undo) · Conversions (run, edit, disable/enable, run history + CSV) · Services & recipes (recipe cost split, what's left of the price).
+- Stock-take and intake follow the Settings toggle (API 403, route redirect, nav hidden).
+- **Where the suite deliberately differs from karots-pos** (user-approved): cashier-menu cards are deleted, not soft-disabled; counts on stock-take survive paging; dialogs never use `window.confirm`.
+- **Bugs fixed on the way:** a numeric barcode in a search box was dropped from the URL (router parses params as JSON — `lib/search.ts`); a scanned code + Enter raced the product picker's debounce; label barcodes are inline SVG so they draw and print at once; DataList actions were missing on phone cards; counter "New product" row was covered by its own search results.
+- **Tests:** `go test ./...`, 97 web unit tests and **64 Playwright flows** (one worker; flows make their own expired lots) are green; `make verify-portable` passes. Parity: **143 rows ticked** (92 in M2, incl. the M1 leftovers now flow-checked).
 
-**NEXT: M2 Catalog and stock** (see the milestone list in the spec). Opus writes the plan, executes it and reviews it.
+**NEXT: M3 Purchasing and people** (spec §11): suppliers (+statements, money flows, receiving discounts, returns), POs → receive/GRN, reorder, customers (+statements, credit, opening balance), users/permissions. Opus writes the plan, executes it and reviews it.
+
+**Porting rule learned in M2:** read karots-pos's `static/js/<screen>.js` and templ, not just the Go handler (intake was first built from the handler and missed its label slots, rapid loop and generate). Where karots-pos is flawed, don't copy the flaw.
 
 ## How we work
 
@@ -51,11 +51,14 @@ What the user rejects:
   - Fill, bill discount %, and change with Keep options
   - an over-limit warning, the sale-complete overlay, and Hold / New sale
 
-## Inputs for M2
+## Inputs for M3
 
-- Read the spec's M2 section, then karots-pos admin products / categories / units / stock / stock-take / labels routes (`internal/web/register_admin*.go`) and their notes in the karots-pos memory.
-- **Still unticked from M1 — needs a real printer (POS80 + label printer) check:** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print`, POST `/receipts/credit/:id/print`, POST `/warranty/:claimId/print`, POST `/labels/send`, GET `/labels`, GET `/receipt/:id`, GET `/orders/print`.
-- **Ported, Go-tested, not yet flow-checked:** credit advance refund (GET `/credit/refund/:id`, POST `/credit/:id/refund`), supplier refund (POST `/:id/refund`), warranty by receipt (GET `/warranty/by-receipt`, POST `/warranty/by-receipt/replace`), receipts warranty tab, quick supplier / product create (`/new`, `/products`, `/products/wanted`). Add flows for them early in M2.
+- Read the spec's M3 section, then karots-pos admin suppliers / purchases / purchase-returns / customers / users routes (`internal/web/register_admin*.go`), their templ **and** `static/js/purchasing.js` + `reorder.js`, and the karots-pos memory notes (`supplier-money-flows.md`, `supplier-at-the-counter.md`, …).
+- Reuse the M2 admin kit and pickers (ProductPicker, CategoryPicker, supplier options). The counter already has supplier pay/receive/order (`features/counter/suppliers/`) — the admin screens should share its line editor and totals, not copy them.
+- **Still unticked — needs a real printer (POS80 + label printer) check:** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print`, POST `/receipts/credit/:id/print`, POST `/warranty/:claimId/print`, POST `/labels/send` (counter + admin), GET `/labels` (counter), GET `/receipt/:id`, GET `/orders/print`.
+- **Not flow-checked yet:** receipts hub warranty tab (GET `/receipts/warranty`, `/receipts/warranty/:claimId`).
+- **Deferred by the spec:** product/customer/supplier import + export → M6; `/reports/*` (batches, low-stock, count-sheet, inventory, …) and `/damage` → M5.
+- Test data: the dev DB is also the Go-test DB, so Go tests leave `T …` rows behind; run `make e2e-seed` before Playwright or screenshots.
 
 ### karots-pos till sources (reference kept from the M1 inputs)
 

@@ -30,6 +30,8 @@ internal/app/         BuildServer + services.go (service construction + core sea
 internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
                       till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)
                       counter*.go — the till's counter tabs (dto_counter.go); reprints take ?size=58|80
+                      admin*.go — /api/v1/admin/* (admin + manager): catalog (dto_catalog.go) and stock
+                      (dto_stock.go); sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
 internal/plugin/      plugin registry + hooks (Go side)
@@ -39,6 +41,8 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts
   src/components/ui/  shadcn primitives (owned, themeable)
+  src/components/admin/ admin kit: PageHead, DataList (table/cards), FormSheet, PickerShell, Pager,
+                      fields, ConfirmButton, EmojiPicker — every admin screen is built from these
   src/theme/          tokens.css (radius/density) + palettes/*.css, appearance.ts, mode.ts,
                       AdminShell (dock, no sidebar) + Dock/Shelf/PhoneTabs/CommandPalette, TillShell, nav
   src/features/auth/  LoginHero, PinField (no browser memory), PinPad, AutoLock
@@ -47,7 +51,9 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
   src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels,
                       warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
-  src/routes/_authed/print/  printable pages (receipt, X/Z report, purchase order) — paper/ink tokens
+  src/features/admin/ admin screens by area (products, categories, units, groups, services, stock,
+                      intake, conversions, labels); shared pickers: CategoryPicker, ProductPicker
+  src/routes/_authed/print/  printable pages (receipt, X/Z report, purchase order, label sheet) — paper/ink tokens
   src/plugins/        slot registry + generated enabled-plugins.ts (M7)
   src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, tillTabs,
                         tillReceiptKinds, before/after-sale)
