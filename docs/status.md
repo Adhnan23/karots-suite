@@ -5,23 +5,21 @@ every milestone.
 
 ## Status (2026-09-29)
 
-**M1a Till: sell is COMPLETE** (plan `docs/plans/2026-09-28-m1a-till-sell.md`), awaiting Opus review. M0 Foundation is complete and reviewed.
+**M1 Till is COMPLETE**: M1a sell (`docs/plans/2026-09-28-m1a-till-sell.md`) and M1b counter operations (`docs/plans/2026-09-29-m1b-till-counter.md`). M0 is complete and reviewed.
 
-What M1a delivered (the till at `/till`):
+M1b delivered (till tabs: Sell · Returns · Credit · Receipts + More ▾ · Ctrl K palette):
 
-- **Drawer:** open with a counted float (continue last count, draft recovery), close and reconcile (also in sign-out mode), withdraw and deposit with the money cue, no-sale, the CR- slip prompt, and the drawer pill. An empty count closes at zero.
-- **Catalogue:** a scan/search box (instant clear for scanners), group chips and drill-down, frequently sold, ⓘ info (cost gated), and a quick item for unknown codes.
-- **Cart, lots and prompts:** a qty stepper, line discounts, lot labels and spill, serials, which-price and expired-lot prompts (sell anyway / write off / back), and the clearance suggestion via a plugin seam.
-- **Pay and tenders:** a customer picker (add customer, edit limit), cash/card/online/on-account/plugin tenders, quick cash, fill, split, keep change or round to account, and a bill discount.
-- **Checkout prompts:** shortfall → on account, the over-limit admin approval, found at till (sell more than the count), and a single-post guard.
-- **Printing:** thermal printing in Go. "Ask before printing" shows an instant change overlay (print / next sale); auto-print sends one job with the drawer kick merged in and shows a change banner in the cart.
-- **Hotkeys:** F1 (clear search only), F2/F3, F4 hold, F9 discount, F10 → amount → Enter, Enter for the next sale, Esc, and a scroll-wheel guard on number inputs.
-- **Persistence:** the cart survives auto-lock and reload (sessionStorage per user); held sales live on the server.
-- **Slots:** `web/src/plugins/slots.ts` (tillMenu, tillActions, drawerSections, tillTenders, tillBeforeCheckout, tillAfterSale) plus Go `TenderMethods`.
-- **Security fix:** the login rate limiter now keys on the socket IP. It trusted `X-Forwarded-For`, so a spoofed header bypassed the PIN brute-force guard. karots-pos likely has the same hole (Echo's default `RealIP`); fix it there too.
-- **Tests:** `go test ./...`, 75 web unit tests and 25 Playwright e2e tests (13 golden till flows) are all green, and `make verify-portable` passes. The e2e specs share `web/e2e/fixtures.ts`, which waits out the login limiter.
+- **Returns:** find a sale (receipt/name/phone, day filter), pick lines, faulty → write off, reason, account-first refund; the cash refund leaves the drawer in the same tx; refund slip.
+- **Credit:** customers who owe / hold an advance; take a payment (cash, card/online to an account, note) or refund an advance; DP- debt slip.
+- **Receipts hub:** sales, cash moves (kind filter), credit payments, warranty claims and plugin kinds (`slots.tillReceiptKinds`); paper preview with an 80/58 mm switch; print again at that width; A4/PDF view; X/Z report page (also linked from the close dialog).
+- **Write-off** (damage / shop use / staff, lot pick), **Convert** (break a pack), **Labels** (designer, preview, format, size presets + custom → TSPL).
+- **Warranty:** by serial (swap keeps the cover, issues from stock) or by receipt for items without a serial.
+- **Suppliers** (supplier flag): pay one amount via the forked waterfall, refund an advance, receive a delivery (walk-in or against an order, line + bill discounts, free qty, expiry, pay-now from drawer/locker/account, keep-the-rest), place an order with wanted-by + printable PO, new products met on a delivery.
+- **Expenses** (supplier flag): category chips, paid from the drawer or a locker, tagged to a service.
+- **Fixes along the way:** a find box's Enter no longer picks a stale result (scanner race); hotkeys see the latest cart before paint; a till closed with nothing counted closes at zero; the login limiter trusts the socket, not `X-Forwarded-For`.
+- **Tests:** `go test ./...`, 77 web unit tests and 37 Playwright flows are green; `make verify-portable` passes.
 
-**NEXT: M1b Till: counter operations.** Opus writes the plan (`docs/plans/<date>-m1b-till-counter.md`), executes it, and reviews it.
+**NEXT: M2 Catalog and stock** (see the milestone list in the spec). Opus writes the plan, executes it and reviews it.
 
 ## How we work
 
@@ -53,20 +51,13 @@ What the user rejects:
   - Fill, bill discount %, and change with Keep options
   - an over-limit warning, the sale-complete overlay, and Hold / New sale
 
-## Inputs for the M1b plan
+## Inputs for M2
 
-- **Scope:**
-  - returns and refunds, write-off (the damage page), convert
-  - credit collection, advances and refunds
-  - the receipts hub with reprints, the browser receipt view and the Z report
-  - labels, warranty
-  - suppliers and expenses at the counter
-- **Tabs:** add them to the tab row in `TillShell` (today it has Sell only).
-- **Cart across tabs:** the till state lives in `TillProvider`, so the cart survives switching to Returns. Keep it that way.
-- **Real-printer check (POS80) during review** for the unticked parity rows: no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print`. POST `/damage` stays unticked until M1b ports the page (M1a only does the expired-lot write-off).
-- The karots-pos sources and memory below still apply.
+- Read the spec's M2 section, then karots-pos admin products / categories / units / stock / stock-take / labels routes (`internal/web/register_admin*.go`) and their notes in the karots-pos memory.
+- **Still unticked from M1 — needs a real printer (POS80 + label printer) check:** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print`, POST `/receipts/credit/:id/print`, POST `/warranty/:claimId/print`, POST `/labels/send`, GET `/labels`, GET `/receipt/:id`, GET `/orders/print`.
+- **Ported, Go-tested, not yet flow-checked:** credit advance refund (GET `/credit/refund/:id`, POST `/credit/:id/refund`), supplier refund (POST `/:id/refund`), warranty by receipt (GET `/warranty/by-receipt`, POST `/warranty/by-receipt/replace`), receipts warranty tab, quick supplier / product create (`/new`, `/products`, `/products/wanted`). Add flows for them early in M2.
 
-### karots-pos till sources (from the M1 inputs)
+### karots-pos till sources (reference kept from the M1 inputs)
 
 The till must do **everything** karots-pos's till does, in the new design. The karots-pos sources to read are in `~/Projects/go/karots-pos`:
 
@@ -112,4 +103,4 @@ The till must do **everything** karots-pos's till does, in the new design. The k
 - **Login hero:** add the tilted receipt card (yesterday's close) and the "Counter 1 / last closed" pills once an API gives that data.
 - **Dock:** areas appear as their pages land (M1–M6). Descriptions come from karots-pos's `templates/layouts/admin.templ`.
 - **M7:** `internal/plugin/hooks.go` comments still describe the templ/Alpine-era cashier URLs. Rewrite them when the plugin slots are built.
-- **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 17 ticked. Tick rows only when a route is ported AND flow-checked.
+- **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 51 ticked. Tick rows only when a route is ported AND flow-checked.

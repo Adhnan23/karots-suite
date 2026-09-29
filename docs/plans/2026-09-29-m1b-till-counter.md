@@ -45,5 +45,5 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
 - [x] **9. Suppliers at the counter** (`cashier_suppliers.go`, `cashier_supplier_pay.go`, `cashier_receive.go`).
   Supplier list → pay / refund, receive walk-in stock, order, receive against an order, quick-create supplier /
   product / wanted item.
-- [ ] **10. Flows, parity, docs.** Playwright flows per tab (`web/e2e/counter.spec.ts`), tick parity rows,
+- [x] **10. Flows, parity, docs.** Playwright flows per tab (`web/e2e/counter.spec.ts`), tick parity rows,
   status.md handoff to M2, and the ship check (types, vet, tests, build, plugin grep, ≤500 lines).

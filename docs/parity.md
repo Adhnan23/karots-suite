@@ -272,62 +272,62 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · PUT `/units/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/users/:id`
 - [x] `internal/web/register_cashier.go` · GET ``
-- [ ] `internal/web/register_cashier.go` · GET `/conversions`
-- [ ] `internal/web/register_cashier.go` · GET `/conversions/run/:id`
-- [ ] `internal/web/register_cashier.go` · GET `/credit`
-- [ ] `internal/web/register_cashier.go` · GET `/credit/pay/:id`
+- [x] `internal/web/register_cashier.go` · GET `/conversions`
+- [x] `internal/web/register_cashier.go` · GET `/conversions/run/:id`
+- [x] `internal/web/register_cashier.go` · GET `/credit`
+- [x] `internal/web/register_cashier.go` · GET `/credit/pay/:id`
 - [ ] `internal/web/register_cashier.go` · GET `/credit/refund/:id`
-- [ ] `internal/web/register_cashier.go` · GET `/credit/table`
-- [ ] `internal/web/register_cashier.go` · GET `/damage`
-- [ ] `internal/web/register_cashier.go` · GET `/:id/order`
-- [ ] `internal/web/register_cashier.go` · GET `/:id/receive`
+- [x] `internal/web/register_cashier.go` · GET `/credit/table`
+- [x] `internal/web/register_cashier.go` · GET `/damage`
+- [x] `internal/web/register_cashier.go` · GET `/:id/order`
+- [x] `internal/web/register_cashier.go` · GET `/:id/receive`
 - [ ] `internal/web/register_cashier.go` · GET `/labels`
 - [x] `internal/web/register_cashier.go` · GET `/lockers`
-- [ ] `internal/web/register_cashier.go` · GET `/money-receipts/:id`
+- [x] `internal/web/register_cashier.go` · GET `/money-receipts/:id`
 - [ ] `internal/web/register_cashier.go` · GET `/new`
-- [ ] `internal/web/register_cashier.go` · GET `/orders/:poID/receive`
+- [x] `internal/web/register_cashier.go` · GET `/orders/:poID/receive`
 - [ ] `internal/web/register_cashier.go` · GET `/orders/print`
-- [ ] `internal/web/register_cashier.go` · GET `/pay/:id`
+- [x] `internal/web/register_cashier.go` · GET `/pay/:id`
 - [ ] `internal/web/register_cashier.go` · GET `/receipt/:id`
-- [ ] `internal/web/register_cashier.go` · GET `/receipts`
-- [ ] `internal/web/register_cashier.go` · GET `/receipts/cash`
-- [ ] `internal/web/register_cashier.go` · GET `/receipts/credit`
-- [ ] `internal/web/register_cashier.go` · GET `/receipts/credit/:id`
-- [ ] `internal/web/register_cashier.go` · GET `/receipts/sales`
+- [x] `internal/web/register_cashier.go` · GET `/receipts`
+- [x] `internal/web/register_cashier.go` · GET `/receipts/cash`
+- [x] `internal/web/register_cashier.go` · GET `/receipts/credit`
+- [x] `internal/web/register_cashier.go` · GET `/receipts/credit/:id`
+- [x] `internal/web/register_cashier.go` · GET `/receipts/sales`
 - [ ] `internal/web/register_cashier.go` · GET `/receipts/warranty`
 - [ ] `internal/web/register_cashier.go` · GET `/receipts/warranty/:claimId`
-- [ ] `internal/web/register_cashier.go` · GET `/returns`
-- [ ] `internal/web/register_cashier.go` · GET `/returns/:id`
-- [ ] `internal/web/register_cashier.go` · GET `/returns/table`
-- [ ] `internal/web/register_cashier.go` · GET `/table`
-- [ ] `internal/web/register_cashier.go` · GET `/warranty`
+- [x] `internal/web/register_cashier.go` · GET `/returns`
+- [x] `internal/web/register_cashier.go` · GET `/returns/:id`
+- [x] `internal/web/register_cashier.go` · GET `/returns/table`
+- [x] `internal/web/register_cashier.go` · GET `/table`
+- [x] `internal/web/register_cashier.go` · GET `/warranty`
 - [ ] `internal/web/register_cashier.go` · GET `/warranty/by-receipt`
-- [ ] `internal/web/register_cashier.go` · GET `/warranty/lookup`
-- [ ] `internal/web/register_cashier.go` · GET `/warranty/table`
-- [ ] `internal/web/register_cashier.go` · GET `/z/:id`
-- [ ] `internal/web/register_cashier.go` · POST ``
-- [ ] `internal/web/register_cashier.go` · POST `/conversions/:id/run`
-- [ ] `internal/web/register_cashier.go` · POST `/credit/:id/payment`
+- [x] `internal/web/register_cashier.go` · GET `/warranty/lookup`
+- [x] `internal/web/register_cashier.go` · GET `/warranty/table`
+- [x] `internal/web/register_cashier.go` · GET `/z/:id`
+- [x] `internal/web/register_cashier.go` · POST ``
+- [x] `internal/web/register_cashier.go` · POST `/conversions/:id/run`
+- [x] `internal/web/register_cashier.go` · POST `/credit/:id/payment`
 - [ ] `internal/web/register_cashier.go` · POST `/credit/:id/refund`
-- [ ] `internal/web/register_cashier.go` · POST `/damage`
+- [x] `internal/web/register_cashier.go` · POST `/damage`
 - [ ] `internal/web/register_cashier.go` · POST `/drawer/open`
-- [ ] `internal/web/register_cashier.go` · POST `/:id/order`
-- [ ] `internal/web/register_cashier.go` · POST `/:id/payment`
-- [ ] `internal/web/register_cashier.go` · POST `/:id/receive`
+- [x] `internal/web/register_cashier.go` · POST `/:id/order`
+- [x] `internal/web/register_cashier.go` · POST `/:id/payment`
+- [x] `internal/web/register_cashier.go` · POST `/:id/receive`
 - [ ] `internal/web/register_cashier.go` · POST `/:id/refund`
 - [ ] `internal/web/register_cashier.go` · POST `/labels/send`
 - [ ] `internal/web/register_cashier.go` · POST `/money-receipts/:id/print`
 - [ ] `internal/web/register_cashier.go` · POST `/new`
-- [ ] `internal/web/register_cashier.go` · POST `/orders/:poID/receive`
+- [x] `internal/web/register_cashier.go` · POST `/orders/:poID/receive`
 - [ ] `internal/web/register_cashier.go` · POST `/print/:id`
 - [ ] `internal/web/register_cashier.go` · POST `/products`
 - [ ] `internal/web/register_cashier.go` · POST `/products/wanted`
 - [x] `internal/web/register_cashier.go` · POST `/quick-item`
 - [ ] `internal/web/register_cashier.go` · POST `/receipts/credit/:id/print`
-- [ ] `internal/web/register_cashier.go` · POST `/sales/:id/partial-return`
+- [x] `internal/web/register_cashier.go` · POST `/sales/:id/partial-return`
 - [ ] `internal/web/register_cashier.go` · POST `/warranty/by-receipt/replace`
 - [ ] `internal/web/register_cashier.go` · POST `/warranty/:claimId/print`
-- [ ] `internal/web/register_cashier.go` · POST `/warranty/replace`
+- [x] `internal/web/register_cashier.go` · POST `/warranty/replace`
 - [x] `internal/web/register_public.go` · GET `/account/pin`
 - [x] `internal/web/register_public.go` · GET `/lock`
 - [x] `internal/web/register_public.go` · GET `/lock/config`

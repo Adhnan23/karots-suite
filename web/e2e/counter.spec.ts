@@ -128,3 +128,40 @@ test('supplier: pay part of an old debt, then take in a delivery', async ({ page
   await toast(page, /Received Rs\. 432\.00 of stock/)
   await expect(page.getByText(/We owe Rs\. 1,432\.00/)).toBeVisible()
 })
+
+test('supplier: place an order, then receive it', async ({ page }) => {
+  await open(page, 'suppliers')
+  await page.getByRole('button', { name: /E2E Distributors/ }).click()
+  await page.getByRole('button', { name: 'Order', exact: true }).click()
+  await page.getByLabel('Add a product').fill('4790000000035')
+  await page.getByLabel('Add a product').press('Enter')
+  await page.getByLabel('Quantity of E2E Yoghurt').fill('12')
+  await page.getByRole('button', { name: /Place order · 1 item/ }).click()
+  await expect(page.getByText(/Order #\d+ placed/)).toBeVisible()
+  await expect(page.getByRole('link', { name: /Print the order/ })).toHaveAttribute('href', /\/print\/order\/\d+/)
+
+  await page.getByRole('button', { name: 'Receive stock' }).click()
+  await page.getByRole('button', { name: /^#\d+/ }).first().click()
+  await expect(page.getByLabel('Quantity of E2E Yoghurt')).toHaveValue('12')
+  await page.getByRole('button', { name: /Receive Rs\. .* of stock/ }).click()
+  await toast(page, /Received .* of stock/)
+})
+
+test('receipts: cash moves and credit payments are listed', async ({ page }) => {
+  await open(page, 'receipts')
+  await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Cash' }).click()
+  await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
+  await page.getByRole('list', { name: 'Receipts' }).getByRole('button').first().click()
+  await expect(page.getByText('AMOUNT', { exact: true })).toBeVisible()
+  await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Credit' }).click()
+  await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
+})
+
+test('the shift read (X) shows sales and movements', async ({ page }) => {
+  await open(page, 'receipts')
+  const popup = page.waitForEvent('popup')
+  await page.getByRole('link', { name: /My shift so far/ }).click()
+  const z = await popup
+  await expect(z.getByText(/Shift so far \(X read\)/)).toBeVisible()
+  await expect(z.getByText('Cash movements')).toBeVisible()
+})

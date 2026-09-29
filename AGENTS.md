@@ -29,6 +29,7 @@ cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init
 internal/app/         BuildServer + services.go (service construction + core seam wiring)
 internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
                       till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)
+                      counter*.go — the till's counter tabs (dto_counter.go); reprints take ?size=58|80
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
 internal/plugin/      plugin registry + hooks (Go side)
@@ -44,8 +45,12 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
                       state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
+  src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels,
+                      warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
+  src/routes/_authed/print/  printable pages (receipt, X/Z report, purchase order) — paper/ink tokens
   src/plugins/        slot registry + generated enabled-plugins.ts (M7)
-  src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, before/after-sale)
+  src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, tillTabs,
+                        tillReceiptKinds, before/after-sale)
 scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
