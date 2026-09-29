@@ -58,3 +58,42 @@ type ProductLots struct {
 type LotPriceRequest struct {
 	SellingPrice string `json:"sellingPrice"`
 }
+
+// BatchGroup is one product's live lots on the Batches page.
+type BatchGroup struct {
+	ProductID    int64    `json:"productId"`
+	Name         string   `json:"name"`
+	UnitAbbr     string   `json:"unitAbbr"`
+	ProductPrice string   `json:"productPrice"`
+	OnHand       string   `json:"onHand"`
+	Value        string   `json:"value"`
+	Expired      int      `json:"expired"`
+	ExpiringSoon int      `json:"expiringSoon"` // within 30 days
+	Lots         []LotRow `json:"lots"`
+}
+
+// BatchesView is every live lot grouped by product, expired first, with shop-wide
+// expiry totals for the alert banners.
+type BatchesView struct {
+	TotalValue    string       `json:"totalValue"`
+	Expired       int          `json:"expired"`
+	ExpiredValue  string       `json:"expiredValue"`
+	ExpiringSoon  int          `json:"expiringSoon"`
+	ExpiringValue string       `json:"expiringValue"`
+	NoExpiry      int          `json:"noExpiry"`
+	Groups        []BatchGroup `json:"groups"`
+}
+
+// ConsumeRequest takes stock out without a sale: reason damage | own_use | staff.
+// BatchID names the lot (0 = oldest first).
+type ConsumeRequest struct {
+	ProductID int64  `json:"productId"`
+	Quantity  string `json:"quantity"`
+	Reason    string `json:"reason"`
+	Note      string `json:"note"`
+	BatchID   int64  `json:"batchId"`
+}
+
+type WriteOffResult struct {
+	Lots int `json:"lots"`
+}

@@ -44,7 +44,7 @@ Losses report, M5).
   link products with emoji, reorder.
 - [x] **6. Stock movement** (`admin_stock.go`). Levels list (search, category, low), movement
   history (product, type, who, dates, paged), adjust (lot-aware), per-product lots.
-- [ ] **7. Batches** (`admin_batches.go`). Grouped by product, expired / expiring banners, write off
+- [x] **7. Batches** (`admin_batches.go`). Grouped by product, expired / expiring banners, write off
   one or all expired, per-lot selling price.
 - [ ] **8. Stock-take** (`admin_stocktake.go`). Count screen (category filter, counted vs on-hand,
   apply), printable count sheet (`/print/count-sheet`), CSV import; all gated by the toggle.

@@ -889,6 +889,47 @@ export interface ProductLots {
 export interface LotPriceRequest {
   sellingPrice: string;
 }
+/**
+ * BatchGroup is one product's live lots on the Batches page.
+ */
+export interface BatchGroup {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  productPrice: string;
+  onHand: string;
+  value: string;
+  expired: number /* int */;
+  expiringSoon: number /* int */; // within 30 days
+  lots: LotRow[];
+}
+/**
+ * BatchesView is every live lot grouped by product, expired first, with shop-wide
+ * expiry totals for the alert banners.
+ */
+export interface BatchesView {
+  totalValue: string;
+  expired: number /* int */;
+  expiredValue: string;
+  expiringSoon: number /* int */;
+  expiringValue: string;
+  noExpiry: number /* int */;
+  groups: BatchGroup[];
+}
+/**
+ * ConsumeRequest takes stock out without a sale: reason damage | own_use | staff.
+ * BatchID names the lot (0 = oldest first).
+ */
+export interface ConsumeRequest {
+  productId: number /* int64 */;
+  quantity: string;
+  reason: string;
+  note: string;
+  batchId: number /* int64 */;
+}
+export interface WriteOffResult {
+  lots: number /* int */;
+}
 
 //////////
 // source: dto_till.go

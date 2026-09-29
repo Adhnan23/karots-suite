@@ -17,6 +17,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/products', label: 'Products', description: 'Product catalogue & pricing' },
       { to: '/admin/products/review', label: 'Items to review', description: 'Quick-added items needing details' },
       { to: '/admin/stock', label: 'Stock', description: 'On-hand levels and movement history' },
+      { to: '/admin/stock/batches', label: 'Batches', description: 'Live lots, expiry alerts and write-offs' },
       { to: '/admin/services', label: 'Services & recipes', description: 'Non-stocked lines and what each one consumes' },
     ],
   },

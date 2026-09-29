@@ -34,6 +34,7 @@ import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/wr
 import { Route as AuthedAdminProductsIndexRouteImport } from './routes/_authed/admin/products/index'
 import { Route as AuthedAdminProductsReviewRouteImport } from './routes/_authed/admin/products/review'
 import { Route as AuthedAdminStockIndexRouteImport } from './routes/_authed/admin/stock/index'
+import { Route as AuthedAdminStockBatchesRouteImport } from './routes/_authed/admin/stock/batches'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 import { Route as AuthedPrintOrderIdRouteImport } from './routes/_authed/print/order.$id'
 import { Route as AuthedPrintReceiptIdRouteImport } from './routes/_authed/print/receipt.$id'
@@ -166,6 +167,11 @@ const AuthedAdminStockIndexRoute = AuthedAdminStockIndexRouteImport.update({
   path: '/stock/',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminStockBatchesRoute = AuthedAdminStockBatchesRouteImport.update({
+  id: '/stock/batches',
+  path: '/stock/batches',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminSystemAppearanceRoute =
   AuthedAdminSystemAppearanceRouteImport.update({
     id: '/system/appearance',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
   '/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
   '/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/_authed/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
   '/_authed/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/_authed/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/till/'
     | '/admin/products/review'
+    | '/admin/stock/batches'
     | '/admin/system/appearance'
     | '/print/order/$id'
     | '/print/receipt/$id'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/admin/products/review'
+    | '/admin/stock/batches'
     | '/admin/system/appearance'
     | '/print/order/$id'
     | '/print/receipt/$id'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/'
     | '/_authed/till/'
     | '/_authed/admin/products/review'
+    | '/_authed/admin/stock/batches'
     | '/_authed/admin/system/appearance'
     | '/_authed/print/order/$id'
     | '/_authed/print/receipt/$id'
@@ -566,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminStockIndexRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/stock/batches': {
+      id: '/_authed/admin/stock/batches'
+      path: '/stock/batches'
+      fullPath: '/admin/stock/batches'
+      preLoaderRoute: typeof AuthedAdminStockBatchesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/system/appearance': {
       id: '/_authed/admin/system/appearance'
       path: '/system/appearance'
@@ -611,6 +630,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
   AuthedAdminProductsReviewRoute: typeof AuthedAdminProductsReviewRoute
+  AuthedAdminStockBatchesRoute: typeof AuthedAdminStockBatchesRoute
   AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
   AuthedAdminProductsIndexRoute: typeof AuthedAdminProductsIndexRoute
   AuthedAdminStockIndexRoute: typeof AuthedAdminStockIndexRoute
@@ -623,6 +643,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
   AuthedAdminProductsReviewRoute: AuthedAdminProductsReviewRoute,
+  AuthedAdminStockBatchesRoute: AuthedAdminStockBatchesRoute,
   AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,
   AuthedAdminProductsIndexRoute: AuthedAdminProductsIndexRoute,
   AuthedAdminStockIndexRoute: AuthedAdminStockIndexRoute,
