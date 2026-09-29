@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 // CounterConversions lists active pack-breaking recipes with on-hand stock.
 func (h *handlers) CounterConversions(c echo.Context) error {
 	rows, err := conversions.NewService(h.d.DB).List(c.Request().Context(), c.QueryParam("search"))

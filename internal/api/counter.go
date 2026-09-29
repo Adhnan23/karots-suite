@@ -13,6 +13,10 @@ import (
 
 // registerCounter mounts the till's counter tabs (M1b). g is /till, already protected.
 func (h *handlers) registerCounter(g *echo.Group) {
+	g.GET("/sales", h.CounterSales)
+	g.GET("/sales/:id", h.CounterSale)
+	g.POST("/sales/:id/return", h.CounterReturn)
+	g.POST("/sales/:id/refund-print", h.CounterPrintRefund)
 	g.POST("/labels", h.CounterLabels)
 	g.GET("/conversions", h.CounterConversions)
 	g.POST("/conversions/:id/run", h.CounterConversionRun)

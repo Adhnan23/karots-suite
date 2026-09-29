@@ -8,7 +8,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, drawerQuery, errMsg } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
-import { afterMove } from '../slip'
+import { afterSlip, moneySlip } from '../slip'
 import { expensesQuery } from '../queries'
 import { CounterPage, PaneTitle, SourcePicker } from '../ui'
 
@@ -42,7 +42,7 @@ export function ExpensesTab() {
         lockerId: num(source), deferDrawerKick: !cfg.askToPrint,
       }
       const res = await api<ReceiptRef>('/till/expenses', { json: body })
-      afterMove(cfg, `Expense recorded — ${money(sym, amount)}`, res.receiptId, source === '')
+      afterSlip(cfg, `Expense recorded — ${money(sym, amount)}`, moneySlip(res.receiptId), source === '')
       setAmount('')
       setNote('')
       setService('0')

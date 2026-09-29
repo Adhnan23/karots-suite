@@ -128,6 +128,54 @@ export interface LabelRequest {
   count: number /* int */;
   size: string; // "WxH" mm
 }
+export interface SaleSummary {
+  id: number /* int64 */;
+  receiptNo: string;
+  createdAt: string;
+  customerName: string;
+  cashierName: string;
+  total: string;
+  status: string; // completed | partially_returned | returned | …
+}
+export interface SaleLine {
+  id: number /* int64 */; // sale_item id
+  name: string;
+  unitAbbr: string;
+  quantity: string;
+  returnedQty: string;
+  unitPrice: string;
+  subtotal: string; // line net (after line discount)
+  refundUnit: string; // what one returned unit refunds (subtotal / qty, 2dp)
+  isService: boolean; // never returnable
+}
+export interface SalePayment {
+  method: string;
+  amount: string;
+}
+export interface SaleView extends SaleSummary {
+  customerId: number /* int64 */; // 0 = walk-in
+  subtotal: string;
+  discount: string;
+  tax: string;
+  paidAmount: string;
+  changeGiven: string;
+  owedOnSale: string; // total − paid when a customer is on it; a return clears this first
+  lines: SaleLine[];
+  payments: SalePayment[];
+}
+export interface ReturnLine {
+  saleItemId: number /* int64 */;
+  quantity: string;
+  disposition: string; // restock (default) | damage
+}
+export interface ReturnRequest {
+  reason: string;
+  lines: ReturnLine[];
+  deferDrawerKick: boolean;
+}
+export interface ReturnResult {
+  cashRefund: string;
+}
 
 //////////
 // source: dto_drawer.go

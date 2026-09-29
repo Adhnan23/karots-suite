@@ -41,6 +41,20 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: '24', exact: true }).click()
     await page.getByRole('button', { name: /40 × 30/ }).click()
   },
+  returns: async (page) => {
+    const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+    const yog = await (await page.request.get('/api/v1/till/products/barcode/4790000000035')).json()
+    const sale = await (await page.request.post('/api/v1/till/sales', { data: {
+      saleType: 'retail', discountType: 'fixed', payments: [{ method: 'cash', amount: '500' }],
+      items: [{ productId: milk.id, quantity: '3', discountType: 'fixed' }, { productId: yog.id, quantity: '1', discountType: 'fixed', allowOversell: true }],
+    } })).json()
+    await page.getByLabel('Find a sale').fill(sale.receiptNo)
+    await page.getByLabel('Find a sale').press('Enter')
+    await page.getByRole('button', { name: 'More E2E Milk' }).click()
+    await page.getByRole('button', { name: 'More E2E Milk' }).click()
+    await page.getByText(/Faulty — don't/).first().click()
+    await page.getByRole('button', { name: 'Wrong item' }).click()
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')

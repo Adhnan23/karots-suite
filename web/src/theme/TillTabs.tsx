@@ -10,6 +10,7 @@ type Tab = { to: string; label: string; show?: (c: TillConfig) => boolean }
 // Primary tabs sit in the bar; the rest live under More (the bar must fit at 1024).
 const PRIMARY: Tab[] = [
   { to: '/till', label: 'Sell' },
+  { to: '/till/returns', label: 'Returns' },
 ]
 const MORE: Tab[] = [
   { to: '/till/write-off', label: 'Write-off' },

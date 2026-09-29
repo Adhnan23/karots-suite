@@ -74,3 +74,63 @@ type LabelRequest struct {
 	Count     int    `json:"count"`
 	Size      string `json:"size"` // "WxH" mm
 }
+
+// ---- Sales lookup (Returns, Receipts) ----
+
+type SaleSummary struct {
+	ID           int64  `json:"id"`
+	ReceiptNo    string `json:"receiptNo"`
+	CreatedAt    string `json:"createdAt"`
+	CustomerName string `json:"customerName"`
+	CashierName  string `json:"cashierName"`
+	Total        string `json:"total"`
+	Status       string `json:"status"` // completed | partially_returned | returned | …
+}
+
+type SaleLine struct {
+	ID          int64  `json:"id"` // sale_item id
+	Name        string `json:"name"`
+	UnitAbbr    string `json:"unitAbbr"`
+	Quantity    string `json:"quantity"`
+	ReturnedQty string `json:"returnedQty"`
+	UnitPrice   string `json:"unitPrice"`
+	Subtotal    string `json:"subtotal"`   // line net (after line discount)
+	RefundUnit  string `json:"refundUnit"` // what one returned unit refunds (subtotal / qty, 2dp)
+	IsService   bool   `json:"isService"`  // never returnable
+}
+
+type SalePayment struct {
+	Method string `json:"method"`
+	Amount string `json:"amount"`
+}
+
+type SaleView struct {
+	SaleSummary `tstype:",extends"`
+	CustomerID  int64         `json:"customerId"` // 0 = walk-in
+	Subtotal    string        `json:"subtotal"`
+	Discount    string        `json:"discount"`
+	Tax         string        `json:"tax"`
+	PaidAmount  string        `json:"paidAmount"`
+	ChangeGiven string        `json:"changeGiven"`
+	OwedOnSale  string        `json:"owedOnSale"` // total − paid when a customer is on it; a return clears this first
+	Lines       []SaleLine    `json:"lines"`
+	Payments    []SalePayment `json:"payments"`
+}
+
+// ---- Returns ----
+
+type ReturnLine struct {
+	SaleItemID  int64  `json:"saleItemId"`
+	Quantity    string `json:"quantity"`
+	Disposition string `json:"disposition"` // restock (default) | damage
+}
+
+type ReturnRequest struct {
+	Reason          string       `json:"reason"`
+	Lines           []ReturnLine `json:"lines"`
+	DeferDrawerKick bool         `json:"deferDrawerKick"`
+}
+
+type ReturnResult struct {
+	CashRefund string `json:"cashRefund"`
+}

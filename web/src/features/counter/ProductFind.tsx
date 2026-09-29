@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 import type { TillProduct } from '@/api/types.gen'
@@ -21,6 +21,14 @@ export function ProductFind({ title, sym, picked, onPick, filter }: {
   const res = useQuery({ ...searchQuery(q), placeholderData: keepPreviousData })
   const items = q.trim() ? (res.data?.items ?? []).filter((p) => !filter || filter(p)) : []
   const pick = (p: TillProduct | undefined) => p && onPick(p)
+  const qc = useQueryClient()
+  // A scan types the code and hits Enter before the list catches up: resolve the
+  // top hit for exactly what's typed. ↑/↓ means the user chose from what they see.
+  const pickEnter = async () => {
+    if (cur > 0) return pick(items[cur])
+    const fresh = (await qc.query(searchQuery(q))).items.filter((p) => !filter || filter(p))
+    pick(fresh[0])
+  }
   return (
     <>
       <PaneTitle title={title} />
@@ -31,7 +39,7 @@ export function ProductFind({ title, sym, picked, onPick, filter }: {
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setCur((i) => Math.min(i + 1, items.length - 1)) }
             else if (e.key === 'ArrowUp') { e.preventDefault(); setCur((i) => Math.max(i - 1, 0)) }
-            else if (e.key === 'Enter') { e.preventDefault(); pick(items[cur]) }
+            else if (e.key === 'Enter' && q.trim()) { e.preventDefault(); void pickEnter() }
           }}
           className={cn(FIELD, 'w-full pl-9')} />
       </div>
