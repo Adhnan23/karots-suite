@@ -55,6 +55,9 @@ func Migrate(sqlxDB *sqlx.DB) error {
 func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now time.Time) bool, pre ...echo.MiddlewareFunc) *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
+	// No proxy in front of a shop binary: trust the socket, never X-Forwarded-For,
+	// or the login rate limiter (PIN brute-force guard) is bypassed by a spoofed header.
+	e.IPExtractor = echo.ExtractIPDirect()
 	e.Validator = validator.New()
 	e.HTTPErrorHandler = appmw.ErrorHandler(cfg.IsProd())
 
