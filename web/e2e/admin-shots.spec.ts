@@ -54,6 +54,26 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.reload()
     await page.waitForLoadState('networkidle')
   },
+  services: async (page) => {
+    const have = await (await page.request.get('/api/v1/admin/services')).json()
+    if (!have.some((s: { name: string }) => s.name === 'Milk tea')) {
+      const cats = await (await page.request.get('/api/v1/admin/categories')).json()
+      const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+      const soap = await (await page.request.get('/api/v1/till/products/barcode/4790000000028')).json()
+      const svc = await (await page.request.post('/api/v1/admin/services', { data: { name: 'Milk tea', categoryId: cats[0].id, unitId: 1, sellingPrice: '60' } })).json()
+      await page.request.post(`/api/v1/admin/products/${svc.id}/recipe`, { data: {
+        components: [{ productId: milk.id, amount: '0.25', mode: 'per_unit', whole: false }, { productId: soap.id, amount: '40', mode: 'yield', whole: false }],
+        costs: [{ label: 'Gas', amount: '3' }] } })
+      await page.request.post('/api/v1/admin/services', { data: { name: 'Photocopy A4', categoryId: cats[0].id, unitId: 1, sellingPrice: '10' } })
+      await page.reload()
+      await page.waitForLoadState('networkidle')
+    }
+  },
+  recipe: async (page) => {
+    await prep.services(page)
+    await page.getByRole('button', { name: /^Milk tea/ }).first().click()
+    await page.getByLabel('Ingredients').waitFor()
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

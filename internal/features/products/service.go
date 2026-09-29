@@ -164,6 +164,15 @@ func (s *Service) GetByBarcode(ctx context.Context, barcode string) (*Product, e
 	return p, nil
 }
 
+// AllServices returns every service product, active first (admin Services list).
+func (s *Service) AllServices(ctx context.Context) ([]Product, error) {
+	rows, err := s.repo.AllServices(ctx)
+	if err != nil {
+		return nil, apperr.Internal("failed to load services", err)
+	}
+	return rows, nil
+}
+
 // ListServices returns active service products for attribution pickers.
 func (s *Service) ListServices(ctx context.Context) ([]Product, error) {
 	rows, err := s.repo.ListServices(ctx)

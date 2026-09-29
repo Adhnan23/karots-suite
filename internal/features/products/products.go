@@ -312,6 +312,16 @@ func (r *Repository) BarcodeExists(ctx context.Context, code string) (bool, erro
 // ListServices returns active service products. Services are few by nature
 // (a photocopy counter, a coffee, a recharge line), so this is an unpaged list
 // meant for pickers that attribute something to a service.
+// AllServices is every service product, disabled ones last, for the admin list
+// (where a disabled service must stay reachable to be enabled again).
+func (r *Repository) AllServices(ctx context.Context) ([]Product, error) {
+	var rows []Product
+	err := r.db.SelectContext(ctx, &rows, selectProduct+`
+		WHERE p.is_service
+		ORDER BY p.is_active DESC, p.name`)
+	return rows, err
+}
+
 func (r *Repository) ListServices(ctx context.Context) ([]Product, error) {
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, selectProduct+`

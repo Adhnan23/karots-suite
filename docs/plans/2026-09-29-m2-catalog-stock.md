@@ -38,7 +38,7 @@ Losses report, M5).
   low stock), form (all product fields, cost/markup/selling two-way, wholesale, barcode + generate,
   supplier, unit, reorder, serial/warranty, expiry tracking), disable/reactivate, barcode assign.
   **Items to review** queue + count badge on the dock.
-- [ ] **4. Services & recipes** (`admin_services.go`, `admin_recipes.go`). Service list/create,
+- [x] **4. Services & recipes** (`admin_services.go`, `admin_recipes.go`). Service list/create,
   recipe editor (ingredients + qty) on any product.
 - [ ] **5. Cashier menu** (`admin_groups.go`). Group tree, create/edit/move/disable/reactivate,
   link products with emoji, reorder.

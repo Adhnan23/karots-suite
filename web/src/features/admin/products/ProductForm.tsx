@@ -52,6 +52,7 @@ function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init
   const priceChanged = !!product && num(prices.selling) !== num(product.sellingPrice)
   const onHand = product ? num(product.stockQty) : 0
   const isCopy = !!init.dupSourceName
+  const svc = !!product?.isService // a service holds no stock: no supplier, reorder or serials
 
   const refresh = () => void qc.invalidateQueries({ queryKey: ['admin'] })
   async function save() {
@@ -139,25 +140,25 @@ function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init
             <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={generate} disabled={!!f.barcode}><Wand2 size={15} /> Generate</Button>
           </div>
         </Field>
-        <Field label="Preferred supplier">
+        {!svc && <Field label="Preferred supplier">
           <select aria-label="Preferred supplier" value={f.supplierId} onChange={(e) => set({ supplierId: Number(e.target.value) })} className={cn(INPUT, 'appearance-auto')}>
             <option value={0}>None</option>
             {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-        </Field>
-        <Field label="Reorder level" hint="Flag as running low at or below this.">
+        </Field>}
+        {!svc && <Field label="Reorder level" hint="Flag as running low at or below this.">
           <input inputMode="numeric" aria-label="Reorder level" value={f.reorderLevel || ''} onChange={(e) => set({ reorderLevel: Number(e.target.value.replace(/\D/g, '')) || 0 })} className={INPUT} placeholder="0" />
-        </Field>
+        </Field>}
         <Field label="Tax %" hint="Leave empty for none.">
           <input inputMode="decimal" aria-label="Tax" value={f.taxRate} onChange={(e) => set({ taxRate: e.target.value.replace(/[^\d.]/g, '') })} className={INPUT} placeholder="0" />
         </Field>
       </div>
-      <div className="grid gap-3 md:grid-cols-[1fr_200px] md:items-end">
+      {!svc && <div className="grid gap-3 md:grid-cols-[1fr_200px] md:items-end">
         <Toggle label="Track serial numbers" hint="Each unit sold records its serial, for warranty claims." checked={f.trackSerial} onChange={(trackSerial) => set({ trackSerial })} />
         <Field label="Warranty (months)">
           <input inputMode="numeric" aria-label="Warranty months" value={f.warrantyMonths || ''} onChange={(e) => set({ warrantyMonths: Math.min(600, Number(e.target.value.replace(/\D/g, '')) || 0) })} className={INPUT} placeholder="None" />
         </Field>
-      </div>
+      </div>}
     </FormSheet>
   )
 }

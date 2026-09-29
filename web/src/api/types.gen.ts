@@ -180,6 +180,66 @@ export interface Option {
 export interface Count {
   count: number /* int */;
 }
+/**
+ * ServiceRow is one service product with its recipe cost (karots-pos Services).
+ * Costs are "" when it has no recipe yet.
+ */
+export interface ServiceRow {
+  id: number /* int64 */;
+  name: string;
+  categoryName: string;
+  unitAbbr: string;
+  sellingPrice: string;
+  stockCost: string;
+  otherCost: string;
+  trueCost: string;
+  margin: string;
+  ingredients: number /* int */;
+  isActive: boolean;
+}
+/**
+ * ServiceRequest creates a non-stocked product. Only what a service carries.
+ */
+export interface ServiceRequest {
+  name: string;
+  categoryId: number /* int64 */;
+  unitId: number /* int64 */;
+  sellingPrice: string;
+}
+/**
+ * RecipeComponent is one stock ingredient. Mode "per_unit" = Amount used per
+ * unit sold; "yield" = one unit of the ingredient makes Amount sales. Whole
+ * rounds usage up (a sheet of paper can't be part used).
+ */
+export interface RecipeComponent {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  costPrice: string;
+  amount: string;
+  mode: string;
+  whole: boolean;
+}
+/**
+ * RecipeCost is a non-stock cost per unit (electricity, a fee): an estimate for
+ * pricing, never charged to profit.
+ */
+export interface RecipeCost {
+  label: string;
+  amount: string;
+}
+export interface Recipe {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  sellingPrice: string;
+  components: RecipeComponent[];
+  costs: RecipeCost[];
+}
+export interface RecipeRequest {
+  components: RecipeComponent[];
+  costs: RecipeCost[];
+}
 
 //////////
 // source: dto_counter.go

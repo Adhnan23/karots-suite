@@ -112,3 +112,61 @@ type Option struct {
 type Count struct {
 	Count int `json:"count"`
 }
+
+// ServiceRow is one service product with its recipe cost (karots-pos Services).
+// Costs are "" when it has no recipe yet.
+type ServiceRow struct {
+	ID           int64  `json:"id"`
+	Name         string `json:"name"`
+	CategoryName string `json:"categoryName"`
+	UnitAbbr     string `json:"unitAbbr"`
+	SellingPrice string `json:"sellingPrice"`
+	StockCost    string `json:"stockCost"`
+	OtherCost    string `json:"otherCost"`
+	TrueCost     string `json:"trueCost"`
+	Margin       string `json:"margin"`
+	Ingredients  int    `json:"ingredients"`
+	IsActive     bool   `json:"isActive"`
+}
+
+// ServiceRequest creates a non-stocked product. Only what a service carries.
+type ServiceRequest struct {
+	Name         string `json:"name"`
+	CategoryID   int64  `json:"categoryId"`
+	UnitID       int64  `json:"unitId"`
+	SellingPrice string `json:"sellingPrice"`
+}
+
+// RecipeComponent is one stock ingredient. Mode "per_unit" = Amount used per
+// unit sold; "yield" = one unit of the ingredient makes Amount sales. Whole
+// rounds usage up (a sheet of paper can't be part used).
+type RecipeComponent struct {
+	ProductID int64  `json:"productId"`
+	Name      string `json:"name"`
+	UnitAbbr  string `json:"unitAbbr"`
+	CostPrice string `json:"costPrice"`
+	Amount    string `json:"amount"`
+	Mode      string `json:"mode"`
+	Whole     bool   `json:"whole"`
+}
+
+// RecipeCost is a non-stock cost per unit (electricity, a fee): an estimate for
+// pricing, never charged to profit.
+type RecipeCost struct {
+	Label  string `json:"label"`
+	Amount string `json:"amount"`
+}
+
+type Recipe struct {
+	ProductID  int64             `json:"productId"`
+	Name       string            `json:"name"`
+	UnitAbbr   string            `json:"unitAbbr"`
+	Selling    string            `json:"sellingPrice"`
+	Components []RecipeComponent `json:"components"`
+	Costs      []RecipeCost      `json:"costs"`
+}
+
+type RecipeRequest struct {
+	Components []RecipeComponent `json:"components"`
+	Costs      []RecipeCost      `json:"costs"`
+}
