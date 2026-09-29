@@ -25,6 +25,7 @@ export const adminNav: NavArea[] = [
   {
     key: 'setup', label: 'Setup', icon: Wrench, pages: [
       { to: '/admin/categories', label: 'Categories', description: 'Product categories' },
+      { to: '/admin/groups', label: 'Cashier menu', description: 'Group cards shown on the till' },
       { to: '/admin/units', label: 'Units', description: 'Units of measure' },
     ],
   },

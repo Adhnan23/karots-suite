@@ -84,12 +84,6 @@ func bindProduct(c echo.Context) (products.CreateInput, ProductRequest, error) {
 	if err := c.Bind(&req); err != nil {
 		return products.CreateInput{}, req, apperr.BadRequest("invalid request body")
 	}
-	opt := func(s string) *string {
-		if s = strings.TrimSpace(s); s == "" {
-			return nil
-		}
-		return &s
-	}
 	orZero := func(s string) string {
 		if s = strings.TrimSpace(s); s == "" {
 			return "0"
@@ -97,7 +91,7 @@ func bindProduct(c echo.Context) (products.CreateInput, ProductRequest, error) {
 		return s
 	}
 	in := products.CreateInput{
-		Name: strings.TrimSpace(req.Name), NameLocal: opt(req.NameLocal), Barcode: opt(req.Barcode), CategoryID: req.CategoryID, UnitID: req.UnitID,
+		Name: strings.TrimSpace(req.Name), NameLocal: optStr(req.NameLocal), Barcode: optStr(req.Barcode), CategoryID: req.CategoryID, UnitID: req.UnitID,
 		CostPrice: orZero(req.CostPrice), SellingPrice: orZero(req.SellingPrice), WholesalePrice: orZero(req.WholesalePrice), TaxRate: orZero(req.TaxRate),
 		ReorderLevel: req.ReorderLevel, TrackSerial: req.TrackSerial, WarrantyMonths: req.WarrantyMonths, RepriceStock: req.RepriceStock,
 	}

@@ -170,3 +170,40 @@ type RecipeRequest struct {
 	Components []RecipeComponent `json:"components"`
 	Costs      []RecipeCost      `json:"costs"`
 }
+
+// GroupNode is one till menu card group, depth-first. ParentID 0 = top level.
+type GroupNode struct {
+	ID         int64  `json:"id"`
+	Name       string `json:"name"`
+	Emoji      string `json:"emoji"`
+	ParentID   int64  `json:"parentId"`
+	Depth      int    `json:"depth"`
+	IsActive   bool   `json:"isActive"`
+	ItemCount  int    `json:"itemCount"`
+	ChildCount int    `json:"childCount"`
+}
+
+// GroupRequest creates or edits a group. ParentID is only read on create
+// (karots-pos never moves a group to another parent).
+type GroupRequest struct {
+	Name     string `json:"name"`
+	Emoji    string `json:"emoji"`
+	ParentID int64  `json:"parentId"`
+}
+
+// GroupItem is a product on a group card; the emoji lives on the link.
+type GroupItem struct {
+	ProductID    int64  `json:"productId"`
+	Name         string `json:"name"`
+	Barcode      string `json:"barcode"`
+	Emoji        string `json:"emoji"`
+	SellingPrice string `json:"sellingPrice"`
+	StockQty     string `json:"stockQty"`
+	UnitAbbr     string `json:"unitAbbr"`
+	IsService    bool   `json:"isService"`
+}
+
+type GroupItemRequest struct {
+	ProductID int64  `json:"productId"`
+	Emoji     string `json:"emoji"`
+}

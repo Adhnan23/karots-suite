@@ -240,6 +240,45 @@ export interface RecipeRequest {
   components: RecipeComponent[];
   costs: RecipeCost[];
 }
+/**
+ * GroupNode is one till menu card group, depth-first. ParentID 0 = top level.
+ */
+export interface GroupNode {
+  id: number /* int64 */;
+  name: string;
+  emoji: string;
+  parentId: number /* int64 */;
+  depth: number /* int */;
+  isActive: boolean;
+  itemCount: number /* int */;
+  childCount: number /* int */;
+}
+/**
+ * GroupRequest creates or edits a group. ParentID is only read on create
+ * (karots-pos never moves a group to another parent).
+ */
+export interface GroupRequest {
+  name: string;
+  emoji: string;
+  parentId: number /* int64 */;
+}
+/**
+ * GroupItem is a product on a group card; the emoji lives on the link.
+ */
+export interface GroupItem {
+  productId: number /* int64 */;
+  name: string;
+  barcode: string;
+  emoji: string;
+  sellingPrice: string;
+  stockQty: string;
+  unitAbbr: string;
+  isService: boolean;
+}
+export interface GroupItemRequest {
+  productId: number /* int64 */;
+  emoji: string;
+}
 
 //////////
 // source: dto_counter.go

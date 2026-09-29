@@ -40,7 +40,7 @@ Losses report, M5).
   **Items to review** queue + count badge on the dock.
 - [x] **4. Services & recipes** (`admin_services.go`, `admin_recipes.go`). Service list/create,
   recipe editor (ingredients + qty) on any product.
-- [ ] **5. Cashier menu** (`admin_groups.go`). Group tree, create/edit/move/disable/reactivate,
+- [x] **5. Cashier menu** (`admin_groups.go`). Group tree, create/edit/move/disable/reactivate,
   link products with emoji, reorder.
 - [ ] **6. Stock movement** (`admin_stock.go`). Levels list (search, category, low), movement
   history (product, type, who, dates, paged), adjust (lot-aware), per-product lots.

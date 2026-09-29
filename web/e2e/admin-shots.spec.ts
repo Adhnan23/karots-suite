@@ -74,6 +74,30 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /^Milk tea/ }).first().click()
     await page.getByLabel('Ingredients').waitFor()
   },
+  groups: async (page) => {
+    const have = await (await page.request.get('/api/v1/admin/groups')).json()
+    if (!have.some((g: { name: string }) => g.name === 'Dairy')) {
+      const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+      const yog = await (await page.request.get('/api/v1/till/products/barcode/4790000000035')).json()
+      const mk = async (name: string, emoji: string, parentId = 0) => (await (await page.request.post('/api/v1/admin/groups', { data: { name, emoji, parentId } })).json()).id
+      const dairy = await mk('Dairy', '🥛')
+      const fresh = await mk('Fresh milk', '🍼', dairy)
+      await mk('Snacks', '🍪')
+      await page.request.post(`/api/v1/admin/groups/${fresh}/items`, { data: { productId: milk.id, emoji: '🥛' } })
+      await page.request.post(`/api/v1/admin/groups/${fresh}/items`, { data: { productId: yog.id, emoji: '🍶' } })
+      await page.reload()
+      await page.waitForLoadState('networkidle')
+    }
+    await page.getByRole('button', { name: /^🍼 Fresh milk/ }).click()
+  },
+  emoji: async (page) => {
+    await prep.groups(page)
+    await page.getByRole('button', { name: 'Emoji for E2E Milk' }).click()
+  },
+  'emoji-search': async (page) => {
+    await prep.emoji(page)
+    await page.getByLabel('Search emoji').fill('milk')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },
