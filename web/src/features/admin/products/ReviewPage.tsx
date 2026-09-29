@@ -2,6 +2,7 @@ import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-quer
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
+import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { DataList } from '@/components/admin/DataList'
 import { EmptyState, PageHead } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
@@ -40,7 +41,8 @@ export function ReviewPage() {
           { key: 'stock', header: 'On hand', num: true, cell: (p) => `${qtyText(p.stockQty)} ${p.unitAbbr}` },
           { key: 'act', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => (
             <span className="flex justify-end gap-1.5">
-              <Button variant="ghost" className="h-9 px-3" onClick={() => fine(p.id)}>Looks fine</Button>
+              <ConfirmButton plain label="Looks fine" className="h-9 px-3" title={`Mark ${p.name} as reviewed?`} confirm="Mark reviewed"
+                body="It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost." onConfirm={() => fine(p.id)} />
               <Button className="h-9 px-3 font-bold" onClick={() => setEditing({ id: p.id })}>Finish</Button>
             </span>
           ) },

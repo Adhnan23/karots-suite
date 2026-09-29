@@ -149,9 +149,11 @@ function GroupForm({ node, parentId, groups, onClose, onDone }: Editing & { grou
     <FormSheet open onOpenChange={(o) => !o && onClose()} busy={busy} onSubmit={save}
       title={node ? `Edit ${node.name}` : parent ? `New group in ${parent.name}` : 'New group'} submit={node ? 'Save' : 'Add group'}
       extra={node && (
-        <ConfirmButton label="Delete" title={`Delete ${node.name}?`} confirm="Delete group"
-          body={`${node.childCount ? `Its ${node.childCount} groups inside go too. ` : ''}The products stay in the catalog; they just leave this card.`}
-          onConfirm={async () => { await api(`/admin/groups/${node.id}`, { method: 'DELETE' }); toast.success('Group deleted'); onDone() }} />
+        node.isActive ? (
+          <ConfirmButton label="Disable" title={`Disable ${node.name}?`} confirm="Disable group"
+            body={`It leaves the till${node.childCount ? `, with the ${node.childCount} groups inside it` : ''}. Products aren't touched, and Enable brings it back.`}
+            onConfirm={async () => { await api(`/admin/groups/${node.id}`, { method: 'DELETE' }); toast.success('Group disabled'); onDone() }} />
+        ) : undefined
       )}>
       <div className="grid grid-cols-[76px_1fr] gap-3">
         <Field label="Emoji"><EmojiPicker label="Group emoji" value={f.emoji} onChange={(emoji) => setF({ ...f, emoji })} className="h-[var(--control-h)] w-full" /></Field>

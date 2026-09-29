@@ -90,7 +90,14 @@ func (r *Repository) Tree(ctx context.Context, includeInactive bool) ([]Group, e
 }
 
 func (r *Repository) Reactivate(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `UPDATE product_groups SET is_active = true WHERE id = $1`, id)
+	// The group and its sub-groups come back together, as they went.
+	_, err := r.db.ExecContext(ctx, `
+		WITH RECURSIVE sub AS (
+			SELECT id FROM product_groups WHERE id = $1
+			UNION ALL
+			SELECT g.id FROM product_groups g JOIN sub ON g.parent_id = sub.id
+		)
+		UPDATE product_groups SET is_active = true WHERE id IN (SELECT id FROM sub)`, id)
 	return err
 }
 
@@ -138,8 +145,17 @@ func (r *Repository) Update(ctx context.Context, id int64, in UpdateInput) error
 	return err
 }
 
+// Delete disables a group and every group under it — the "Disable … products
+// are not deleted" the admin asks for, reversible with Reactivate. (karots-pos
+// hard-deleted here, which left its Reactivate nothing to bring back.)
 func (r *Repository) Delete(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM product_groups WHERE id = $1`, id)
+	_, err := r.db.ExecContext(ctx, `
+		WITH RECURSIVE sub AS (
+			SELECT id FROM product_groups WHERE id = $1
+			UNION ALL
+			SELECT g.id FROM product_groups g JOIN sub ON g.parent_id = sub.id
+		)
+		UPDATE product_groups SET is_active = false WHERE id IN (SELECT id FROM sub)`, id)
 	return err
 }
 

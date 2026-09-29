@@ -14,6 +14,11 @@ import { lotsQuery } from './queries'
 
 type Reason = 'damage' | 'own_use' | 'staff'
 const REASONS: [Reason, string][] = [['damage', 'Damaged / expired'], ['own_use', 'Shop use'], ['staff', 'Staff']]
+const WHY: Record<Reason, string> = {
+  damage: 'Broken or past its date — written off as a loss.',
+  own_use: 'The shop used it — counter supplies, cleaning.',
+  staff: 'Staff took it — food, drinks.',
+}
 
 /** Take stock out without a sale (karots-pos Record Damage): damage, shop use or
  * staff, from the lot it really came out of when there are several. */
@@ -51,7 +56,10 @@ export function WriteOffForm({ onClose }: { onClose: () => void }) {
           <button type="button" aria-label="Product" onClick={open} className={cn(INPUT, 'truncate text-left', !p && 'text-faint')}>{p ? `${p.name} · ${qtyText(p.stockQty)} ${p.unitAbbr} on hand` : 'Pick a product'}</button>
         )} />
       </Field>
-      <Seg label="Reason" value={reason} onChange={setReason} options={REASONS} />
+      <div className="flex flex-col gap-1.5">
+        <Seg label="Reason" value={reason} onChange={setReason} options={REASONS} />
+        <small className="text-faint">{WHY[reason]}</small>
+      </div>
       {lots.length > 1 && (
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Which lot?</legend>

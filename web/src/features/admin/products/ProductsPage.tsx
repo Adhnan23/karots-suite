@@ -13,6 +13,7 @@ import { configQuery } from '@/features/till/api'
 import { money, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { BarcodeForm } from './BarcodeForm'
 import { ProductForm, type Editing } from './ProductForm'
 import { productsQuery } from './queries'
 
@@ -35,6 +36,7 @@ export function ProductsPage() {
   useEffect(() => { if (dq !== f.q) void navigate({ search: (s) => ({ ...s, q: dq, page: 1 }), replace: true }) }, [dq, f.q, navigate])
   const data = useQuery({ ...productsQuery(f), placeholderData: keepPreviousData }).data
   const [editing, setEditing] = useState<Editing | null>(null)
+  const [barcodeFor, setBarcodeFor] = useState<AdminProductRow | null>(null)
   const set = (patch: Partial<typeof f>) => void navigate({ search: (s) => ({ ...s, page: 1, ...patch }) })
   const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
@@ -60,15 +62,21 @@ export function ProductsPage() {
         footer={data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (s) => ({ ...s, page }) })} />}
         columns={[
           { key: 'name', header: 'Product', cell: (p) => <Name p={p} /> },
+          // karots-pos "+ Add barcode": give a barcode-less item one without opening the whole form.
+          { key: 'code', header: '', wide: true, interactive: true, className: 'w-[1%] whitespace-nowrap', cell: (p) => !p.barcode && p.isActive && (
+            <Button variant="ghost" className="h-8 gap-1 px-2 text-[12px]" onClick={() => setBarcodeFor(p)}><Plus size={13} /> Add barcode</Button>
+          ) },
           { key: 'cat', header: 'Category', cell: (p) => <span className="text-muted-foreground">{p.categoryName}</span> },
           { key: 'stock', header: 'On hand', num: true, cell: (p) => p.isService ? <span className="text-faint">service</span> : (
             <span className={cn(p.low && 'font-bold text-warning')}>{qtyText(p.stockQty)} <small className="font-normal text-faint">{p.unitAbbr}</small></span>
           ) },
+          { key: 'reorder', header: 'Reorder at', num: true, wide: true, cell: (p) => <span className="text-muted-foreground">{p.reorderLevel ? `${p.reorderLevel} ${p.unitAbbr}` : '—'}</span> },
           { key: 'cost', header: 'Cost', num: true, cell: (p) => <span className="text-muted-foreground">{money(sym, p.costPrice)}</span> },
           { key: 'price', header: 'Price', num: true, cell: (p) => (
             <span className="flex flex-col items-end"><b>{money(sym, p.sellingPrice)}</b>{Number(p.wholesalePrice) > 0 && <small className="text-faint">wholesale {money(sym, p.wholesalePrice)}</small>}</span>
           ) },
         ]} />
+      {barcodeFor && <BarcodeForm key={barcodeFor.id} p={barcodeFor} onClose={() => setBarcodeFor(null)} />}
       {editing && <ProductForm key={`${editing.id}-${editing.copyOf ?? ''}`} editing={editing} onEdit={setEditing} onClose={() => setEditing(null)} />}
     </>
   )

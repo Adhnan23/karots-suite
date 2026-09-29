@@ -45,11 +45,17 @@ func TestAdminGroups(t *testing.T) {
 	if items := decode[[]GroupItem](t, te.do(http.MethodGet, base+"/items", nil, ck)); len(items) != 0 {
 		t.Fatalf("unlink: %+v", items)
 	}
-	// Deleting the parent takes the sub-group with it.
-	te.do(http.MethodDelete, "/api/v1/admin/groups/"+strconv.FormatInt(drinks, 10), nil, ck)
-	var n int
-	te.db.Get(&n, `SELECT COUNT(*) FROM product_groups WHERE id=$1`, soda) //nolint:errcheck
-	if n != 0 {
-		t.Fatal("sub-group survived its parent")
+	// Disabling the parent disables the sub-group too; enabling brings both back.
+	parent := "/api/v1/admin/groups/" + strconv.FormatInt(drinks, 10)
+	te.do(http.MethodDelete, parent, nil, ck)
+	var active bool
+	te.db.Get(&active, `SELECT is_active FROM product_groups WHERE id=$1`, soda) //nolint:errcheck
+	if active {
+		t.Fatal("sub-group still active after its parent was disabled")
+	}
+	te.do(http.MethodPost, parent+"/activate", nil, ck)
+	te.db.Get(&active, `SELECT is_active FROM product_groups WHERE id=$1`, soda) //nolint:errcheck
+	if !active {
+		t.Fatal("sub-group not back after enabling its parent")
 	}
 }

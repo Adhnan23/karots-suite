@@ -97,8 +97,8 @@ func (h *handlers) AdminGroupUpdate(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// AdminGroupDelete removes a group with its sub-groups and product links (the
-// products themselves stay).
+// AdminGroupDelete disables a group and its sub-groups (they leave the till;
+// Enable brings them back). Products are never touched.
 func (h *handlers) AdminGroupDelete(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -107,7 +107,7 @@ func (h *handlers) AdminGroupDelete(c echo.Context) error {
 	if err := h.t.groups.Delete(c.Request().Context(), id); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionDelete, "product_group", strconv.FormatInt(id, 10), "")
+	h.audit(c, audit.ActionDelete, "product_group", strconv.FormatInt(id, 10), "disabled with its sub-groups")
 	return c.NoContent(http.StatusNoContent)
 }
 
