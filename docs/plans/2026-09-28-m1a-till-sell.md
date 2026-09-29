@@ -7031,7 +7031,7 @@ git commit -m "test(e2e): golden till flows — scan/cash/change, F1, reload, sp
 **Files:**
 - Modify: `docs/parity.md`, `docs/status.md`, `AGENTS.md`
 
-- [ ] **Step 1: Tick parity.** In `docs/parity.md`, tick exactly these `internal/web/register_cashier.go` rows. Each is ported and flow-checked by Task 14.
+- [x] **Step 1: Tick parity.** In `docs/parity.md`, tick exactly these `internal/web/register_cashier.go` rows. Each is ported and flow-checked by Task 14.
   - GET `` (the till)
   - GET `/lockers` (drawer state and card accounts)
   - POST `/quick-item`
@@ -7042,7 +7042,7 @@ git commit -m "test(e2e): golden till flows — scan/cash/change, F1, reload, sp
   - POST `/money-receipts/:id/print`
   - POST `/damage` (M1a only ports the expired-lot write-off; M1b owns the page)
 
-- [ ] **Step 2: Update `docs/status.md`.**
+- [x] **Step 2: Update `docs/status.md`.**
   - Set the status date to today. Say M1a is COMPLETE, awaiting Opus review, and that the next milestone is **M1b Till: counter operations**, with a plan to write.
   - List what M1a delivered in one bullet per area:
     - the drawer
@@ -7064,7 +7064,7 @@ git commit -m "test(e2e): golden till flows — scan/cash/change, F1, reload, sp
     - `plugin/hooks.go` comments (M7)
     - the karots-pos deviation: resume refuses while a sale is in the cart
 
-- [ ] **Step 3: Update `AGENTS.md` layout.** Add these lines under `web/`:
+- [x] **Step 3: Update `AGENTS.md` layout.** Add these lines under `web/`:
 
 ```
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
@@ -7074,7 +7074,7 @@ git commit -m "test(e2e): golden till flows — scan/cash/change, F1, reload, sp
 
   Add this line under `internal/api/`: `till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)`.
 
-- [ ] **Step 4: Ship check.**
+- [x] **Step 4: Ship check.**
 
 Run:
 
@@ -7094,7 +7094,7 @@ Expected:
 - **the plugin grep prints nothing.** Words such as `reload` in `queryClient` code may show up. Read each hit and make sure it is not a plugin reference.
 - no file is over 500 lines
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add docs AGENTS.md

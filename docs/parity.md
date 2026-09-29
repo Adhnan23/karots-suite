@@ -271,7 +271,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · PUT `/suppliers/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/units/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/users/:id`
-- [ ] `internal/web/register_cashier.go` · GET ``
+- [x] `internal/web/register_cashier.go` · GET ``
 - [ ] `internal/web/register_cashier.go` · GET `/conversions`
 - [ ] `internal/web/register_cashier.go` · GET `/conversions/run/:id`
 - [ ] `internal/web/register_cashier.go` · GET `/credit`
@@ -282,7 +282,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_cashier.go` · GET `/:id/order`
 - [ ] `internal/web/register_cashier.go` · GET `/:id/receive`
 - [ ] `internal/web/register_cashier.go` · GET `/labels`
-- [ ] `internal/web/register_cashier.go` · GET `/lockers`
+- [x] `internal/web/register_cashier.go` · GET `/lockers`
 - [ ] `internal/web/register_cashier.go` · GET `/money-receipts/:id`
 - [ ] `internal/web/register_cashier.go` · GET `/new`
 - [ ] `internal/web/register_cashier.go` · GET `/orders/:poID/receive`
@@ -322,7 +322,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_cashier.go` · POST `/print/:id`
 - [ ] `internal/web/register_cashier.go` · POST `/products`
 - [ ] `internal/web/register_cashier.go` · POST `/products/wanted`
-- [ ] `internal/web/register_cashier.go` · POST `/quick-item`
+- [x] `internal/web/register_cashier.go` · POST `/quick-item`
 - [ ] `internal/web/register_cashier.go` · POST `/receipts/credit/:id/print`
 - [ ] `internal/web/register_cashier.go` · POST `/sales/:id/partial-return`
 - [ ] `internal/web/register_cashier.go` · POST `/warranty/by-receipt/replace`

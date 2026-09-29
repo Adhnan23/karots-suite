@@ -3,27 +3,30 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-09-27)
+## Status (2026-09-29)
 
-**M0 Foundation is COMPLETE**, and Opus has reviewed it. The last commit is the review fix `33c799e`.
+**M1a Till: sell is COMPLETE** (plan `docs/plans/2026-09-28-m1a-till-sell.md`), awaiting Opus review. M0 Foundation is complete and reviewed.
 
-What works:
+What M1a delivered (the till at `/till`):
 
-- **Backend and build:** the forked Go domain behind JSON `/api/v1`, a squashed `00001_baseline` migration, and one static binary with the React SPA embedded.
-- **Login:** a clock hero, a keypad plus keyboard PIN entry, and no browser memory of the phone or PIN. The install-ID Konami reveal works.
-- **Sessions:** lock and unlock, change PIN, auto-lock, and the kiosk-exit Konami code.
-- **Theme:** the **Studio** and **Night** palettes, each with light and dark. The palette is set by the system user; the mode is set per device.
-- **Admin:** a **dock** (no sidebar) with shelves, an Apps tile, Ctrl K search and floating phone tabs.
-- **Hidden system menu:** tap your own name 8 times, quickly, in the avatar menu to reach Appearance (palette, brand colour, radius, density, receipt style).
-- **Tests:** `go test ./...`, 21 web unit tests and 12 Playwright e2e tests are all green, and `make verify-portable` passes.
+- **Drawer:** open with a counted float (continue last count, draft recovery), close and reconcile (also in sign-out mode), withdraw and deposit with the money cue, no-sale, the CR- slip prompt, and the drawer pill. An empty count closes at zero.
+- **Catalogue:** a scan/search box (instant clear for scanners), group chips and drill-down, frequently sold, ⓘ info (cost gated), and a quick item for unknown codes.
+- **Cart, lots and prompts:** a qty stepper, line discounts, lot labels and spill, serials, which-price and expired-lot prompts (sell anyway / write off / back), and the clearance suggestion via a plugin seam.
+- **Pay and tenders:** a customer picker (add customer, edit limit), cash/card/online/on-account/plugin tenders, quick cash, fill, split, keep change or round to account, and a bill discount.
+- **Checkout prompts:** shortfall → on account, the over-limit admin approval, found at till (sell more than the count), and a single-post guard.
+- **Printing:** thermal printing in Go. "Ask before printing" shows an instant change overlay (print / next sale); auto-print sends one job with the drawer kick merged in and shows a change banner in the cart.
+- **Hotkeys:** F1 (clear search only), F2/F3, F4 hold, F9 discount, F10 → amount → Enter, Enter for the next sale, Esc, and a scroll-wheel guard on number inputs.
+- **Persistence:** the cart survives auto-lock and reload (sessionStorage per user); held sales live on the server.
+- **Slots:** `web/src/plugins/slots.ts` (tillMenu, tillActions, drawerSections, tillTenders, tillBeforeCheckout, tillAfterSale) plus Go `TenderMethods`.
+- **Security fix:** the login rate limiter now keys on the socket IP. It trusted `X-Forwarded-For`, so a spoofed header bypassed the PIN brute-force guard. karots-pos likely has the same hole (Echo's default `RealIP`); fix it there too.
+- **Tests:** `go test ./...`, 75 web unit tests and 25 Playwright e2e tests (13 golden till flows) are all green, and `make verify-portable` passes. The e2e specs share `web/e2e/fixtures.ts`, which waits out the login limiter.
 
-**NEXT: M1 Till.** Opus writes `docs/plans/<date>-m1-till.md` in a fresh session in THIS
-folder, then a fresh Sonnet session executes it, and Opus reviews at the end.
+**NEXT: M1b Till: counter operations.** Opus writes the plan (`docs/plans/<date>-m1b-till-counter.md`), executes it, and reviews it.
 
 ## How we work
 
 1. **Opus plans.** One plan per milestone in `docs/plans/`, with the same shape as the M0 plan: tasks with files, interfaces, test-first steps and a commit per step.
-2. **Sonnet executes** the plan in a fresh session. At every **UI gate** it must stop and show screenshots (all four palette × mode combinations) before continuing.
+2. **Opus executes** the plan too (Sonnet was dropped on 2026-09-29). At every **UI gate** it takes screenshots in all four palette × mode combinations, reviews them itself, and carries on without waiting for approval unless something needs a product decision.
 3. **Opus reviews** the whole milestone:
    - build, vet, `go test ./...`, web tests, Playwright
    - screenshots in all four combinations
@@ -50,7 +53,20 @@ What the user rejects:
   - Fill, bill discount %, and change with Keep options
   - an over-limit warning, the sale-complete overlay, and Hold / New sale
 
-## Inputs for the M1 (Till) plan
+## Inputs for the M1b plan
+
+- **Scope:**
+  - returns and refunds, write-off (the damage page), convert
+  - credit collection, advances and refunds
+  - the receipts hub with reprints, the browser receipt view and the Z report
+  - labels, warranty
+  - suppliers and expenses at the counter
+- **Tabs:** add them to the tab row in `TillShell` (today it has Sell only).
+- **Cart across tabs:** the till state lives in `TillProvider`, so the cart survives switching to Returns. Keep it that way.
+- **Real-printer check (POS80) during review** for the unticked parity rows: no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print`. POST `/damage` stays unticked until M1b ports the page (M1a only does the expired-lot write-off).
+- The karots-pos sources and memory below still apply.
+
+### karots-pos till sources (from the M1 inputs)
 
 The till must do **everything** karots-pos's till does, in the new design. The karots-pos sources to read are in `~/Projects/go/karots-pos`:
 
@@ -91,8 +107,9 @@ The till must do **everything** karots-pos's till does, in the new design. The k
 
 ## Open items carried forward
 
-- **Till top bar (M1):** add the drawer pill ("Till open · float Rs …"), the counter name and hotkey hints.
+- **Till top bar:** the drawer pill and hotkey hints are done. The counter name on the pill has no data source yet.
+- **karots-pos deviation:** resuming a held sale is refused while another sale is in the cart. karots-pos silently replaced the cart, which lost a live sale.
 - **Login hero:** add the tilted receipt card (yesterday's close) and the "Counter 1 / last closed" pills once an API gives that data.
 - **Dock:** areas appear as their pages land (M1–M6). Descriptions come from karots-pos's `templates/layouts/admin.templ`.
 - **M7:** `internal/plugin/hooks.go` comments still describe the templ/Alpine-era cashier URLs. Rewrite them when the plugin slots are built.
-- **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 14 ticked. Tick rows only when a route is ported AND flow-checked.
+- **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 17 ticked. Tick rows only when a route is ported AND flow-checked.

@@ -6,7 +6,7 @@ aicatalog, productplus, combos, requests). It's a **separate product** from `~/P
 which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 **JSON-only Go backend** plus a **component-based React SPA**, and still ships as **one static binary**.
 
-- **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans and reviews, Sonnet executes, UI gates with screenshots) and the inputs for the next milestone.
+- **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans, executes and reviews; UI gates with self-reviewed screenshots) and the inputs for the next milestone.
 - **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/`, one per milestone (M0 Foundation → M8 Ship). Execute tasks in order and tick the checkboxes.
@@ -28,6 +28,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin)
 internal/app/         BuildServer + services.go (service construction + core seam wiring)
 internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
+                      till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
 internal/plugin/      plugin registry + hooks (Go side)
@@ -41,7 +42,10 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       AdminShell (dock, no sidebar) + Dock/Shelf/PhoneTabs/CommandPalette, TillShell, nav
   src/features/auth/  LoginHero, PinField (no browser memory), PinPad, AutoLock
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
+  src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
+                      state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
   src/plugins/        slot registry + generated enabled-plugins.ts (M7)
+  src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, before/after-sale)
 scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
@@ -89,5 +93,6 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - `vite build` empties `internal/spa/dist` (including `.gitkeep`). `make web` restores it, so always build through make.
 - `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
 - `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
+- The login limiter (burst 10, +1 per 2s) is keyed on the socket IP. The e2e specs import `test` from `e2e/fixtures.ts`, which waits out a 429. Import from there, not `@playwright/test`, or a full run fails on sign-in.
 - Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3100/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
 - A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.

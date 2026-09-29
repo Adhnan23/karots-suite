@@ -9,7 +9,7 @@ import { unitPriceFor } from '../cart/lines'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 
-/** A plugin-proposed markdown (e.g. a clearance price), offered once per new line. */
+/** A plugin-proposed markdown, offered once per new line. */
 export function Suggestion({ product }: { product: TillProduct }) {
   const cfg = useSuspenseQuery(configQuery).data
   const { state, dispatch } = useTill()
