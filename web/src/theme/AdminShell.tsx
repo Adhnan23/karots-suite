@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { LogOut, PinIcon, Search, UnlockIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
@@ -14,7 +14,7 @@ import type { Me } from '@/api/types.gen'
 import { CommandPalette } from './CommandPalette'
 import { Dock } from './Dock'
 import { ModeToggle } from './ModeToggle'
-import { adminNav } from './nav'
+import { navFor, whereIs } from './nav'
 import { PhoneTabs } from './PhoneTabs'
 import { Shelf } from './Shelf'
 
@@ -98,7 +98,10 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const shelfArea = shelf && shelf !== 'apps' ? adminNav.find((a) => a.key === shelf) : undefined
+  const areas = navFor(me)
+  const path = useRouterState({ select: (s) => s.location.pathname })
+  const here = whereIs(areas, path)
+  const shelfArea = shelf && shelf !== 'apps' ? areas.find((a) => a.key === shelf) : undefined
 
   return (
     <div className="min-h-screen text-foreground">
@@ -107,6 +110,14 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
           K
         </span>
         <span className="min-w-0 flex-1 truncate font-display text-base font-bold md:flex-none md:text-lg">{me.shopName}</span>
+        {here && (
+          <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-sm text-muted-foreground md:flex">
+            <span className="text-faint">/</span>
+            <button type="button" onClick={() => setShelf(here.area.key)} className="font-semibold hover:text-foreground">{here.area.label}</button>
+            <span className="text-faint">/</span>
+            <span className="font-semibold text-foreground">{here.page.label}</span>
+          </nav>
+        )}
         <div className="ml-auto flex flex-none items-center gap-1.5 md:gap-2.5">
           <button
             type="button"
@@ -133,13 +144,24 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
         </div>
       </header>
 
+      {here && here.area.pages.length > 1 && (
+        <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10">
+          {here.area.pages.map((p) => (
+            <Link key={p.to} to={p.to} aria-current={p === here.page ? 'page' : undefined}
+              className="whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground aria-[current=page]:border-selected aria-[current=page]:bg-selected aria-[current=page]:text-selected-foreground">
+              {p.label}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       <main className="p-4 pb-[100px] md:px-10 md:pt-5 md:pb-[110px]">{children}</main>
 
-      <Dock current={shelf} onToggle={setShelf} />
+      <Dock areas={areas} here={here?.area.key} current={shelf} onToggle={setShelf} />
       {shelf === 'apps' && <Shelf kind="apps" onClose={() => setShelf(null)} />}
       {shelfArea && <Shelf kind="area" area={shelfArea} onClose={() => setShelf(null)} />}
-      <PhoneTabs />
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <PhoneTabs areas={areas} />
+      <CommandPalette areas={areas} open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }

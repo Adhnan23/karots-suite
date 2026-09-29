@@ -3,20 +3,20 @@ import { Home as HomeIcon, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { adminNav } from './nav'
+import type { NavArea } from './nav'
 
 export type PaletteEntry = { key: string; label: string; to: string; icon: LucideIcon }
 
 /** Ctrl/Cmd K command palette (theme.md §6): every ported page and "Open the
  * till" by default; the till passes its own tabs. Controlled from the shell,
  * which also owns the Ctrl K key listener. Enter jumps to the top match. */
-export function CommandPalette({ open, onOpenChange, entries: given }: { open: boolean; onOpenChange: (open: boolean) => void; entries?: PaletteEntry[] }) {
+export function CommandPalette({ open, onOpenChange, entries: given, areas = [] }: { open: boolean; onOpenChange: (open: boolean) => void; entries?: PaletteEntry[]; areas?: NavArea[] }) {
   const [q, setQ] = useState('')
   const navigate = useNavigate()
 
   const entries: PaletteEntry[] = given ?? [
     { key: 'home', label: 'Home', to: '/admin', icon: HomeIcon },
-    ...adminNav.flatMap((a) => a.pages.map((p) => ({ key: `${a.key}:${p.to}`, label: p.label, to: p.to, icon: a.icon }))),
+    ...areas.flatMap((a) => a.pages.map((p) => ({ key: `${a.key}:${p.to}`, label: p.label, to: p.to, icon: a.icon }))),
     { key: 'till', label: 'Open the till', to: '/till', icon: Store },
   ]
   const filtered = q ? entries.filter((e) => e.label.toLowerCase().includes(q.toLowerCase())) : entries

@@ -53,6 +53,7 @@ func Register(e *echo.Echo, d Deps) {
 	h.registerKiosk(v1, jwt) // Task 6
 	h.registerSystem(v1)     // Task 6
 	h.registerTill(v1)
+	h.registerAdmin(v1)
 
 	e.Any("/api/*", func(echo.Context) error { return apperr.NotFound("endpoint") })
 }

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import type { NavArea } from './nav'
 import { apps } from './nav'
@@ -56,7 +57,7 @@ export function Shelf(props: Props) {
       ) : (
         <div className="grid grid-cols-3 gap-1 gap-x-2.5">
           {props.area.pages.map((p) => (
-            <a key={p.to} href={p.to} className="flex items-start gap-2.5 rounded-xl p-2.5 text-left hover:bg-muted">
+            <Link key={p.to} to={p.to} onClick={props.onClose} className="flex items-start gap-2.5 rounded-xl p-2.5 text-left hover:bg-muted">
               <span>
                 <b className="block text-sm">
                   {p.label}
@@ -64,7 +65,7 @@ export function Shelf(props: Props) {
                 </b>
                 <span className="text-xs text-muted-foreground">{p.description}</span>
               </span>
-            </a>
+            </Link>
           ))}
         </div>
       )}

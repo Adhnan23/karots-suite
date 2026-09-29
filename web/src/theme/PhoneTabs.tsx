@@ -2,13 +2,12 @@ import { Link } from '@tanstack/react-router'
 import { Home, Menu, Store } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { adminNav, apps } from './nav'
+import { apps, type NavArea } from './nav'
 
 /** Phone bottom tab bar (theme.md §6): Home, Till centred and accented, More.
- * More holds any ported areas and plugin apps — none exist yet in M0. */
-export function PhoneTabs() {
+ * More holds every area's pages and the plugin apps. */
+export function PhoneTabs({ areas }: { areas: NavArea[] }) {
   const [open, setOpen] = useState(false)
-  const areas = adminNav.filter((a) => a.pages.length > 0)
   const hasMore = areas.length > 0 || apps.length > 0
 
   return (
@@ -21,6 +20,7 @@ export function PhoneTabs() {
           to="/admin"
           className="flex flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[11px] font-bold text-faint [&.active]:bg-brand-soft [&.active]:text-foreground"
           activeProps={{ className: 'active' }}
+          activeOptions={{ exact: true }}
         >
           <Home size={20} />
           Home
@@ -47,13 +47,22 @@ export function PhoneTabs() {
           <SheetHeader>
             <SheetTitle>More</SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col gap-1 p-4 pt-0">
-            {!hasMore && <p className="text-sm text-muted-foreground">More areas arrive in later milestones.</p>}
+          <div className="flex max-h-[70vh] flex-col gap-4 overflow-auto p-4 pt-0">
             {areas.map((a) => (
-              <div key={a.key} className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground">
-                <a.icon size={18} />
-                {a.label}
-              </div>
+              <section key={a.key}>
+                <h3 className="mb-1.5 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-faint">
+                  <a.icon size={15} />
+                  {a.label}
+                </h3>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {a.pages.map((p) => (
+                    <Link key={p.to} to={p.to} onClick={() => setOpen(false)}
+                      className="rounded-[var(--radius-sm)] border border-border bg-card px-3 py-2.5 text-sm font-semibold">
+                      {p.label}
+                    </Link>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </SheetContent>

@@ -1,17 +1,19 @@
 import { Link } from '@tanstack/react-router'
 import { Home, LayoutGrid, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { adminNav } from './nav'
+import type { NavArea } from './nav'
 
 function DockButton({
   icon: Icon,
   label,
   active,
+  here,
   onClick,
 }: {
   icon: LucideIcon
   label: string
   active: boolean
+  here?: boolean
   onClick: () => void
 }) {
   return (
@@ -23,6 +25,7 @@ function DockButton({
       className="group relative grid h-[54px] w-[54px] place-items-center rounded-2xl text-muted-foreground transition-[width,height,background] hover:h-[62px] hover:w-[62px] hover:bg-muted hover:text-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground"
     >
       <Icon size={22} />
+      {here && <span aria-hidden className="absolute -bottom-1 h-1 w-1 rounded-full bg-foreground" />}
       <span className="pointer-events-none absolute bottom-full mb-2.5 rounded-lg bg-foreground px-2.5 py-1 text-xs font-bold whitespace-nowrap text-background opacity-0 transition-opacity group-hover:opacity-100">
         {label}
       </span>
@@ -31,9 +34,9 @@ function DockButton({
 }
 
 /** The floating dock (theme.md §6): Home, ported areas, a divider, Apps, then
- * Open the till. Areas with no pages yet (all of them in M0) are left out. */
-export function Dock({ current, onToggle }: { current: string | null; onToggle: (key: string | null) => void }) {
-  const areas = adminNav.filter((a) => a.pages.length > 0)
+ * Open the till. `areas` is the user's nav (empty areas already left out); the
+ * area owning the current page gets a dot. */
+export function Dock({ areas, here, current, onToggle }: { areas: NavArea[]; here?: string; current: string | null; onToggle: (key: string | null) => void }) {
 
   return (
     <nav
@@ -50,6 +53,7 @@ export function Dock({ current, onToggle }: { current: string | null; onToggle: 
           icon={a.icon}
           label={a.label}
           active={current === a.key}
+          here={here === a.key}
           onClick={() => onToggle(current === a.key ? null : a.key)}
         />
       ))}

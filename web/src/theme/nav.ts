@@ -1,21 +1,43 @@
 import { BarChart3, Package, ShoppingBag, ShoppingCart, Wallet, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { Me } from '@/api/types.gen'
 
-export type NavPage = { to: string; label: string; description: string; badge?: number }
+/** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
+export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' }
 export type NavArea = { key: string; label: string; icon: LucideIcon; pages: NavPage[] }
 export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string }
 
-/** karots-pos's admin areas (templates/layouts/admin.templ). Each area's `pages`
- * fills in as its milestone ports it; M0 has none, so the dock only shows Home,
- * Apps and the till link — no shelf opens for an area with nothing in it yet. */
+/** karots-pos's admin areas and link descriptions (templates/layouts/admin.templ).
+ * Each area's `pages` fills in as its milestone ports it; an area with none stays
+ * off the dock. */
 export const adminNav: NavArea[] = [
   { key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [] },
   { key: 'stock', label: 'Inventory', icon: Package, pages: [] },
   { key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [] },
   { key: 'money', label: 'Money', icon: Wallet, pages: [] },
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
-  { key: 'setup', label: 'Setup', icon: Wrench, pages: [] },
+  {
+    key: 'setup', label: 'Setup', icon: Wrench, pages: [
+      { to: '/admin/units', label: 'Units', description: 'Units of measure' },
+    ],
+  },
 ]
+
+/** The nav this user sees: gated pages dropped, empty areas dropped. */
+export function navFor(me: Me): NavArea[] {
+  return adminNav
+    .map((a) => ({ ...a, pages: a.pages.filter((p) => p.gate !== 'stockTake' || me.stockTakeEnabled) }))
+    .filter((a) => a.pages.length > 0)
+}
+
+/** The area and page owning a path (longest matching page wins, so /admin/stock/take beats /admin/stock). */
+export function whereIs(areas: NavArea[], path: string): { area: NavArea; page: NavPage } | undefined {
+  let best: { area: NavArea; page: NavPage } | undefined
+  for (const area of areas)
+    for (const page of area.pages)
+      if ((path === page.to || path.startsWith(page.to + '/')) && (!best || page.to.length > best.page.to.length)) best = { area, page }
+  return best
+}
 
 /** Plugin slot for the dock's Apps tile (theme.md §6). Empty until M7. */
 export const apps: AppEntry[] = []

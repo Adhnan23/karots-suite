@@ -55,8 +55,18 @@ export interface Me {
   mustChangePin: boolean;
   shopName: string;
   lockTimeoutMinutes: number /* int */;
+  stockTakeEnabled: boolean; // gates Stock-take + Intake (karots-pos toggle)
   appearance: Appearance;
   plugins: string[];
+}
+
+//////////
+// source: dto_catalog.go
+
+export interface UnitRequest {
+  name: string;
+  abbreviation: string;
+  allowDecimal: boolean;
 }
 
 //////////

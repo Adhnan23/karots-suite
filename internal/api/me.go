@@ -47,6 +47,6 @@ func (h *handlers) Me(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	me.ShopName, me.LockTimeoutMinutes, me.Appearance = st.ShopName, st.LockTimeoutMinutes, appearanceOf(st)
+	me.ShopName, me.LockTimeoutMinutes, me.StockTakeEnabled, me.Appearance = st.ShopName, st.LockTimeoutMinutes, st.StockTakeEnabled, appearanceOf(st)
 	return c.JSON(http.StatusOK, me)
 }

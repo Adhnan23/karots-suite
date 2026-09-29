@@ -1,0 +1,15 @@
+package api
+
+import (
+	"karots-suite/internal/features/auth"
+	"karots-suite/internal/middleware"
+
+	"github.com/labstack/echo/v4"
+)
+
+// registerAdmin mounts the back-office API (karots-pos /admin): live, unlocked,
+// PIN-chosen session, admin or manager only.
+func (h *handlers) registerAdmin(v1 *echo.Group) {
+	g := v1.Group("/admin", append(h.protected, middleware.RequireRole(auth.RoleAdmin, auth.RoleManager))...)
+	h.registerAdminUnits(g)
+}
