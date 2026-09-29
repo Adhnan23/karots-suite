@@ -165,3 +165,81 @@ test('the shift read (X) shows sales and movements', async ({ page }) => {
   await expect(z.getByText(/Shift so far \(X read\)/)).toBeVisible()
   await expect(z.getByText('Cash movements')).toBeVisible()
 })
+
+// ---- M1 features ported earlier, flow-checked in M2 ----
+
+test('credit: hand back a customer’s advance from the drawer', async ({ page }) => {
+  await open(page, 'credit')
+  const cust = (await (await page.request.get('/api/v1/till/customers')).json()).find((c: { name: string }) => c.name === 'E2E Credit')
+  // Overpay what they owe, so they hold a Rs. 300 advance.
+  const owes = Math.max(0, Number(cust.outstanding))
+  await page.request.post(`/api/v1/till/customers/${cust.id}/payment`, { data: { amount: String(owes + 300), method: 'cash', accountId: 0, reference: '', note: 'e2e', deferDrawerKick: true } })
+  await page.reload()
+  await page.getByRole('group', { name: 'Show' }).getByRole('button', { name: 'Advance' }).click()
+  await page.getByRole('button', { name: /E2E Credit/ }).click()
+  await page.getByRole('group', { name: 'Action' }).getByRole('button', { name: 'Refund advance' }).click()
+  await expect(page.getByLabel('Amount')).toHaveValue('300.00')
+  await page.getByRole('button', { name: /Refund Rs\. 300\.00 from the drawer/ }).click()
+  await toast(page, /advance refunded/)
+  const after = (await (await page.request.get('/api/v1/till/customers')).json()).find((c: { name: string }) => c.name === 'E2E Credit')
+  expect(Number(after.outstanding)).toBe(0)
+})
+
+test('supplier: add one at the counter, overpay, take the advance back', async ({ page }) => {
+  await open(page, 'suppliers')
+  const name = `E2E Quick ${Date.now().toString(36).slice(-5)}`
+  await page.getByRole('button', { name: 'New', exact: true }).click()
+  await page.getByLabel('Supplier name').fill(name)
+  await page.getByLabel('Supplier phone').fill('0110000000')
+  await page.getByLabel('Supplier name').press('Enter')
+  await page.getByRole('button', { name: new RegExp(name) }).click()
+  await page.getByLabel('Amount').fill('400')
+  await page.getByRole('button', { name: /^Pay Rs\. 400\.00/ }).click()
+  await toast(page, new RegExp(`Paid Rs\\. 400\\.00 to ${name}`))
+  await page.getByRole('group', { name: 'Direction' }).getByRole('button', { name: 'They pay us back' }).click()
+  await expect(page.getByLabel('Amount')).toHaveValue('400.00')
+  await page.getByRole('button', { name: /Take Rs\. 400\.00 back/ }).click()
+  await toast(page, new RegExp(`Received Rs\\. 400\\.00 back from ${name}`))
+})
+
+test('supplier: a new product met on a delivery, and a wanted item on an order', async ({ page }) => {
+  await open(page, 'suppliers')
+  const tag = Date.now().toString(36).slice(-5)
+  await page.getByRole('button', { name: /E2E Distributors/ }).click()
+  await page.getByRole('button', { name: 'Receive stock' }).click()
+  await page.getByLabel('Add a product').fill(`Jaggery ${tag}`)
+  await page.getByRole('button', { name: new RegExp(`New product “Jaggery ${tag}”`) }).click()
+  await page.getByLabel('New product cost').fill('150')
+  await page.getByLabel('New product selling price').fill('210')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page.getByLabel(`Quantity of Jaggery ${tag}`).fill('5')
+  await page.getByRole('button', { name: /Receive Rs\. 750\.00 of stock/ }).click()
+  await toast(page, /Received Rs\. 750\.00 of stock/)
+  expect(Number((await (await page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(`Jaggery ${tag}`)}`)).json()).items[0].stockQty)).toBe(5)
+
+  await page.getByRole('button', { name: 'Order', exact: true }).click()
+  await page.getByLabel('Add a product').fill(`Treacle ${tag}`)
+  await page.getByRole('button', { name: new RegExp(`New product “Treacle ${tag}”`) }).click()
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page.getByLabel(`Quantity of Treacle ${tag}`).fill('6')
+  await page.getByRole('button', { name: /Place order · 1 item/ }).click()
+  await expect(page.getByText(/Order #\d+ placed/)).toBeVisible()
+  // A wanted item waits in Items to review for its real details.
+  const review = await (await page.request.get('/api/v1/admin/products/review')).json()
+  expect(review.some((p: { name: string }) => p.name === `Treacle ${tag}`)).toBeTruthy()
+})
+
+test('warranty: replace an unserialled item by its receipt', async ({ page }) => {
+  await open(page, 'warranty')
+  const phone = await product(page, '4790000000066')
+  const sale = await (await page.request.post('/api/v1/till/sales', { data: {
+    saleType: 'retail', discountType: 'fixed', payments: [{ method: 'cash', amount: '25000' }],
+    items: [{ productId: phone.id, quantity: '1', discountType: 'fixed' }],
+  } })).json()
+  await page.getByRole('group', { name: 'Find by' }).getByRole('button', { name: 'By receipt' }).click()
+  await page.getByLabel('Receipt number').fill(sale.receiptNo)
+  await page.getByLabel('Receipt number').press('Enter')
+  await page.getByRole('button', { name: 'Replace one E2E Phone' }).click()
+  await toast(page, /Replacement recorded/)
+  await expect(page.getByText(/1 replaced/)).toBeVisible()
+})

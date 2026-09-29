@@ -37,7 +37,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
   const addTop = async () => {
     const fresh = (await qc.query(searchQuery(q))).items.filter((p) => !p.isService) // a scan's Enter beats the list
     if (fresh[0]) add(fresh[0])
-    else setNewName(q.trim())
+    else { setNewName(q.trim()); setQ('') } // close the results: they'd cover the new-product row
   }
 
   return (
@@ -56,7 +56,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
               </li>
             ))}
             <li>
-              <button type="button" onClick={() => setNewName(q.trim())} className="flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[13px] font-semibold text-brand hover:bg-muted">
+              <button type="button" onClick={() => { setNewName(q.trim()); setQ('') }} className="flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[13px] font-semibold text-brand hover:bg-muted">
                 <Plus size={14} /> New product “{q.trim()}”
               </button>
             </li>
