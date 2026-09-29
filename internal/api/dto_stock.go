@@ -185,3 +185,46 @@ type IntakeItem struct {
 	StockQty     string `json:"stockQty"`
 	UnitAbbr     string `json:"unitAbbr"`
 }
+
+// AdminConversion is a pack-breaking recipe: 1 From unit makes Ratio To units.
+type AdminConversion struct {
+	ID            int64  `json:"id"`
+	FromProductID int64  `json:"fromProductId"`
+	ToProductID   int64  `json:"toProductId"`
+	FromName      string `json:"fromName"`
+	ToName        string `json:"toName"`
+	FromUnit      string `json:"fromUnit"`
+	ToUnit        string `json:"toUnit"`
+	Ratio         string `json:"ratio"`
+	FromStock     string `json:"fromStock"`
+	ToStock       string `json:"toStock"`
+	Note          string `json:"note"`
+	IsActive      bool   `json:"isActive"`
+}
+
+// ConversionRequest creates (products + ratio) or edits (ratio + note) a conversion.
+type ConversionRequest struct {
+	FromProductID int64  `json:"fromProductId"`
+	ToProductID   int64  `json:"toProductId"`
+	Ratio         string `json:"ratio"`
+	Note          string `json:"note"`
+}
+
+type ConversionRunRow struct {
+	ID        int64  `json:"id"`
+	FromName  string `json:"fromName"`
+	ToName    string `json:"toName"`
+	FromQty   string `json:"fromQty"`
+	ToQty     string `json:"toQty"`
+	FromUnit  string `json:"fromUnit"`
+	ToUnit    string `json:"toUnit"`
+	UserName  string `json:"userName"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type ConversionRunList struct {
+	Items    []ConversionRunRow `json:"items"`
+	Total    int                `json:"total"`
+	Page     int                `json:"page"`
+	PageSize int                `json:"pageSize"`
+}

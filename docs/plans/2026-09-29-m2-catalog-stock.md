@@ -50,7 +50,7 @@ Losses report, M5).
   apply), printable count sheet (`/print/count-sheet`), CSV import; all gated by the toggle.
 - [x] **9. Stock intake** (`admin_intake.go`). One search box → restock or create, cost⇄markup⇄
   selling, supplier, opening qty, label print, session list with undo. Gated by the toggle.
-- [ ] **10. Conversions** (`admin_conversions.go`). List, create/edit, disable/reactivate, run,
+- [x] **10. Conversions** (`admin_conversions.go`). List, create/edit, disable/reactivate, run,
   run history.
 - [ ] **11. Labels + damage** (`admin_labels.go`, `admin_damage.go`). Admin label designer reusing
   the counter label components; admin write-off form (lot pick, reason).

@@ -149,6 +149,14 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Add stock', exact: true }).click()
     await page.getByText('Nothing yet').waitFor({ state: 'detached' })
   },
+  'conv-run': async (page) => {
+    await page.getByRole('button', { name: 'Run', exact: true }).first().click()
+    await page.getByLabel('Packs to break').fill('2')
+  },
+  'conv-runs': async (page) => {
+    await page.getByRole('button', { name: 'Run history' }).click()
+    await page.waitForLoadState('networkidle')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

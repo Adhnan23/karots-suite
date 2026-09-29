@@ -20,6 +20,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/stock/batches', label: 'Batches', description: 'Live lots, expiry alerts and write-offs' },
       { to: '/admin/stock/take', label: 'Stock-take', description: 'Count and reconcile on-hand quantities', gate: 'stockTake' },
       { to: '/admin/inventory/intake', label: 'Stock intake', description: 'Add or restock items, set quantity, and print labels in one place', gate: 'stockTake' },
+      { to: '/admin/conversions', label: 'Conversions', description: 'Repack / break bulk into sellable units' },
       { to: '/admin/services', label: 'Services & recipes', description: 'Non-stocked lines and what each one consumes' },
     ],
   },

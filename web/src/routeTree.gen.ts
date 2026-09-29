@@ -18,6 +18,7 @@ import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
+import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
@@ -85,6 +86,11 @@ const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
 const AuthedAdminCategoriesRoute = AuthedAdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminConversionsRoute = AuthedAdminConversionsRouteImport.update({
+  id: '/conversions',
+  path: '/conversions',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminGroupsRoute = AuthedAdminGroupsRouteImport.update({
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
+  '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
+  '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
   '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
+  '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/till'
     | '/account/pin'
     | '/admin/categories'
+    | '/admin/conversions'
     | '/admin/groups'
     | '/admin/services'
     | '/admin/units'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/account/pin'
     | '/admin/categories'
+    | '/admin/conversions'
     | '/admin/groups'
     | '/admin/services'
     | '/admin/units'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/_authed/till'
     | '/account/pin'
     | '/_authed/admin/categories'
+    | '/_authed/admin/conversions'
     | '/_authed/admin/groups'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
@@ -489,6 +501,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AuthedAdminCategoriesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/conversions': {
+      id: '/_authed/admin/conversions'
+      path: '/conversions'
+      fullPath: '/admin/conversions'
+      preLoaderRoute: typeof AuthedAdminConversionsRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/groups': {
@@ -664,6 +683,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedAdminRouteChildren {
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
+  AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
@@ -679,6 +699,7 @@ interface AuthedAdminRouteChildren {
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
+  AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,

@@ -1021,6 +1021,49 @@ export interface IntakeItem {
   stockQty: string;
   unitAbbr: string;
 }
+/**
+ * AdminConversion is a pack-breaking recipe: 1 From unit makes Ratio To units.
+ */
+export interface AdminConversion {
+  id: number /* int64 */;
+  fromProductId: number /* int64 */;
+  toProductId: number /* int64 */;
+  fromName: string;
+  toName: string;
+  fromUnit: string;
+  toUnit: string;
+  ratio: string;
+  fromStock: string;
+  toStock: string;
+  note: string;
+  isActive: boolean;
+}
+/**
+ * ConversionRequest creates (products + ratio) or edits (ratio + note) a conversion.
+ */
+export interface ConversionRequest {
+  fromProductId: number /* int64 */;
+  toProductId: number /* int64 */;
+  ratio: string;
+  note: string;
+}
+export interface ConversionRunRow {
+  id: number /* int64 */;
+  fromName: string;
+  toName: string;
+  fromQty: string;
+  toQty: string;
+  fromUnit: string;
+  toUnit: string;
+  userName: string;
+  createdAt: string;
+}
+export interface ConversionRunList {
+  items: ConversionRunRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
 
 //////////
 // source: dto_till.go

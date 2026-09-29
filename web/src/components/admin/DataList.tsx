@@ -56,15 +56,19 @@ export function DataList<T>({ rows, columns, rowKey, onRow, empty, label, footer
             {rows.map((r) => (
               <li key={rowKey(r)}>
                 <button type="button" disabled={!onRow} onClick={onRow && (() => onRow(r))}
-                  className="flex w-full flex-col gap-1 px-4 py-3 text-left enabled:active:bg-muted">
+                  className="flex w-full flex-col gap-1 px-4 pt-3 pb-3 text-left enabled:active:bg-muted">
                   <span className="font-semibold">{first.cell(r)}</span>
-                  {rest.filter((c) => !c.wide).map((c) => (
+                  {rest.filter((c) => !c.wide && !c.interactive).map((c) => (
                     <span key={c.key} className="flex justify-between gap-3 text-[13px]">
                       <span className="text-faint">{c.header}</span>
                       <span className={cn('text-right', c.num && 'tabular-nums')}>{c.cell(r)}</span>
                     </span>
                   ))}
                 </button>
+                {/* Action columns (Run, Adjust, Looks fine…) stay reachable on a phone. */}
+                {rest.some((c) => c.interactive) && (
+                  <div className="flex justify-end px-3 pb-2.5">{rest.filter((c) => c.interactive).map((c) => <span key={c.key}>{c.cell(r)}</span>)}</div>
+                )}
               </li>
             ))}
           </ul>
