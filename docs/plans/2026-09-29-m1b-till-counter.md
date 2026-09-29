@@ -37,7 +37,7 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
   qty per line → refund method (cash / to account) → slip.
 - [x] **6. Credit** (`cashier_credit.go`). Customers with balance/advance → take a payment (cash/card/online) or
   refund an advance → debt receipt slip. Open to every cashier (karots-pos parity; only over-limit selling is gated).
-- [ ] **7. Receipts + Z report** (`cashier_receipts.go`, `cashier.go` Receipt/ZReport). A hub with filters
+- [x] **7. Receipts + Z report** (`cashier_receipts.go`, `cashier.go` Receipt/ZReport). A hub with filters
   (sales · cash moves · credit · warranty) and a detail pane with reprint. Browser receipt view `/print/receipt/:id`.
   The Z report for the user's own session.
 - [ ] **8. Warranty** (`cashier_warranty.go`). Look up by serial or by receipt → claim → replace (stock swap) →

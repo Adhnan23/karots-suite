@@ -97,6 +97,7 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
               <dd className={cn('font-display text-xl font-bold', diff < 0 ? 'text-danger' : 'text-success')}>{diff > 0 ? '+' : ''}{money(cfg.symbol, diff)}</dd>
             </dl>
             <DialogFooter>
+              <Button variant="secondary" asChild><a href={`/print/z/${result.sessionId}`} target="_blank" rel="noreferrer">Day-end (Z) report</a></Button>
               {cfg.askToPrint && result.receiptId && <Button variant="secondary" onClick={() => void printMoneySlip(result.receiptId!)}>Print slip</Button>}
               <Button autoFocus onClick={() => void done()}>{logout ? 'Sign out' : 'Done'}</Button>
             </DialogFooter>

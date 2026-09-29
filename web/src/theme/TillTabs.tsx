@@ -12,6 +12,7 @@ const PRIMARY: Tab[] = [
   { to: '/till', label: 'Sell' },
   { to: '/till/returns', label: 'Returns' },
   { to: '/till/credit', label: 'Credit' },
+  { to: '/till/receipts', label: 'Receipts' },
 ]
 const MORE: Tab[] = [
   { to: '/till/write-off', label: 'Write-off' },

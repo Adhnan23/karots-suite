@@ -22,9 +22,12 @@ import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/con
 import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
 import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
+import { Route as AuthedTillReceiptsRouteImport } from './routes/_authed/till/receipts'
 import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/returns'
 import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
+import { Route as AuthedPrintReceiptIdRouteImport } from './routes/_authed/print/receipt.$id'
+import { Route as AuthedPrintZIdRouteImport } from './routes/_authed/print/z.$id'
 import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key'
 
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +94,11 @@ const AuthedTillLabelsRoute = AuthedTillLabelsRouteImport.update({
   path: '/labels',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillReceiptsRoute = AuthedTillReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedTillReturnsRoute = AuthedTillReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
@@ -107,6 +115,16 @@ const AuthedAdminSystemAppearanceRoute =
     path: '/system/appearance',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedPrintReceiptIdRoute = AuthedPrintReceiptIdRouteImport.update({
+  id: '/print/receipt/$id',
+  path: '/print/receipt/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPrintZIdRoute = AuthedPrintZIdRouteImport.update({
+  id: '/print/z/$id',
+  path: '/print/z/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedTillXKeyRoute = AuthedTillXKeyRouteImport.update({
   id: '/x/$key',
   path: '/x/$key',
@@ -124,11 +142,14 @@ export interface FileRoutesByFullPath {
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
+  '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
+  '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
 }
 export interface FileRoutesByTo {
@@ -140,11 +161,14 @@ export interface FileRoutesByTo {
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
+  '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
+  '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
 }
 export interface FileRoutesById {
@@ -160,11 +184,14 @@ export interface FileRoutesById {
   '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
   '/_authed/till/labels': typeof AuthedTillLabelsRoute
+  '/_authed/till/receipts': typeof AuthedTillReceiptsRoute
   '/_authed/till/returns': typeof AuthedTillReturnsRoute
   '/_authed/till/write-off': typeof AuthedTillWriteOffRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/_authed/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
+  '/_authed/print/z/$id': typeof AuthedPrintZIdRoute
   '/_authed/till/x/$key': typeof AuthedTillXKeyRoute
 }
 export interface FileRouteTypes {
@@ -180,11 +207,14 @@ export interface FileRouteTypes {
     | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
+    | '/till/receipts'
     | '/till/returns'
     | '/till/write-off'
     | '/admin/'
     | '/till/'
     | '/admin/system/appearance'
+    | '/print/receipt/$id'
+    | '/print/z/$id'
     | '/till/x/$key'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,11 +226,14 @@ export interface FileRouteTypes {
     | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
+    | '/till/receipts'
     | '/till/returns'
     | '/till/write-off'
     | '/admin'
     | '/till'
     | '/admin/system/appearance'
+    | '/print/receipt/$id'
+    | '/print/z/$id'
     | '/till/x/$key'
   id:
     | '__root__'
@@ -215,11 +248,14 @@ export interface FileRouteTypes {
     | '/_authed/till/credit'
     | '/_authed/till/expenses'
     | '/_authed/till/labels'
+    | '/_authed/till/receipts'
     | '/_authed/till/returns'
     | '/_authed/till/write-off'
     | '/_authed/admin/'
     | '/_authed/till/'
     | '/_authed/admin/system/appearance'
+    | '/_authed/print/receipt/$id'
+    | '/_authed/print/z/$id'
     | '/_authed/till/x/$key'
   fileRoutesById: FileRoutesById
 }
@@ -324,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillLabelsRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/receipts': {
+      id: '/_authed/till/receipts'
+      path: '/receipts'
+      fullPath: '/till/receipts'
+      preLoaderRoute: typeof AuthedTillReceiptsRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/till/returns': {
       id: '/_authed/till/returns'
       path: '/returns'
@@ -344,6 +387,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/system/appearance'
       preLoaderRoute: typeof AuthedAdminSystemAppearanceRouteImport
       parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/print/receipt/$id': {
+      id: '/_authed/print/receipt/$id'
+      path: '/print/receipt/$id'
+      fullPath: '/print/receipt/$id'
+      preLoaderRoute: typeof AuthedPrintReceiptIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/print/z/$id': {
+      id: '/_authed/print/z/$id'
+      path: '/print/z/$id'
+      fullPath: '/print/z/$id'
+      preLoaderRoute: typeof AuthedPrintZIdRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/till/x/$key': {
       id: '/_authed/till/x/$key'
@@ -374,6 +431,7 @@ interface AuthedTillRouteChildren {
   AuthedTillCreditRoute: typeof AuthedTillCreditRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
   AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
+  AuthedTillReceiptsRoute: typeof AuthedTillReceiptsRoute
   AuthedTillReturnsRoute: typeof AuthedTillReturnsRoute
   AuthedTillWriteOffRoute: typeof AuthedTillWriteOffRoute
   AuthedTillIndexRoute: typeof AuthedTillIndexRoute
@@ -385,6 +443,7 @@ const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillCreditRoute: AuthedTillCreditRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
   AuthedTillLabelsRoute: AuthedTillLabelsRoute,
+  AuthedTillReceiptsRoute: AuthedTillReceiptsRoute,
   AuthedTillReturnsRoute: AuthedTillReturnsRoute,
   AuthedTillWriteOffRoute: AuthedTillWriteOffRoute,
   AuthedTillIndexRoute: AuthedTillIndexRoute,
@@ -398,11 +457,15 @@ const AuthedTillRouteWithChildren = AuthedTillRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedTillRoute: typeof AuthedTillRouteWithChildren
+  AuthedPrintReceiptIdRoute: typeof AuthedPrintReceiptIdRoute
+  AuthedPrintZIdRoute: typeof AuthedPrintZIdRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedTillRoute: AuthedTillRouteWithChildren,
+  AuthedPrintReceiptIdRoute: AuthedPrintReceiptIdRoute,
+  AuthedPrintZIdRoute: AuthedPrintZIdRoute,
 }
 
 const AuthedRouteWithChildren =

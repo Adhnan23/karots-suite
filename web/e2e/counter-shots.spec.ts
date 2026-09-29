@@ -66,6 +66,21 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /E2E Credit/ }).click()
     await page.getByLabel('Amount').fill('200')
   },
+  receipts: async (page) => {
+    const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+    await page.request.post('/api/v1/till/sales', { data: {
+      saleType: 'retail', discountType: 'fixed', payments: [{ method: 'cash', amount: '500' }],
+      items: [{ productId: milk.id, quantity: '2', discountType: 'fixed' }],
+    } })
+    await page.reload()
+    await page.getByLabel('Find a sale').press('Enter')
+    await page.getByText('TOTAL', { exact: true }).waitFor()
+  },
+  zreport: async (page) => {
+    const st = await (await page.request.get('/api/v1/till/drawer')).json()
+    await page.goto(`/print/z/${st.summary.session.id}`)
+    await page.getByText('Cash movements').waitFor()
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')

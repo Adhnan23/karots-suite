@@ -48,4 +48,15 @@ func TestCounterReturn(t *testing.T) {
 	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/sales/%d/return", res.ID), ReturnRequest{Lines: []ReturnLine{{SaleItemID: line, Quantity: "2"}}}, ck); rec.Code != http.StatusConflict {
 		t.Fatalf("over-return: %d %s", rec.Code, rec.Body)
 	}
+
+	// The shift's Z read (still open = an X read): one sale, its return, cash split.
+	sid := decode[DrawerState](t, te.do(http.MethodGet, "/api/v1/till/drawer", nil, ck)).Summary.Session.ID
+	z := decode[ZReport](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/z/%d", sid), nil, ck))
+	if z.SalesCount != 1 || z.Gross != "300.00" || z.Returns != "200.00" || z.ClosedAt != "" || len(z.ByMethod) != 1 || len(z.Moves) == 0 {
+		t.Fatalf("z read: %+v", z)
+	}
+	other := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "cashier")
+	if rec := te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/z/%d", sid), nil, other); rec.Code != http.StatusForbidden {
+		t.Fatalf("another cashier's Z: %d", rec.Code)
+	}
 }

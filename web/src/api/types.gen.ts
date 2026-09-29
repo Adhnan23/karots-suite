@@ -192,6 +192,68 @@ export interface AdvanceRefundRequest {
   amount: string;
   deferDrawerKick: boolean;
 }
+export interface MoneyReceiptRow {
+  id: number /* int64 */;
+  receiptNo: string;
+  kind: string;
+  kindLabel: string;
+  fromLabel: string;
+  toLabel: string;
+  party: string;
+  amount: string;
+  note: string;
+  createdAt: string;
+  createdBy: string;
+}
+export interface DebtReceiptRow {
+  id: number /* int64 */;
+  receiptNo: string;
+  createdAt: string;
+  customerName: string;
+  customerPhone: string;
+  amount: string;
+  method: string;
+  balanceBefore: string; // "" = not recorded
+  balanceAfter: string;
+  cashierName: string;
+}
+export interface ZMethod {
+  method: string;
+  amount: string;
+}
+export interface ZMove {
+  at: string;
+  type: string; // opening | sale | credit_payment | withdrawal | expense | pay_in | …
+  reason: string;
+  amount: string;
+}
+export interface ZFloatItem {
+  name: string;
+  balance: string;
+}
+export interface ZFloatGroup {
+  group: string;
+  items: ZFloatItem[];
+  total: string;
+}
+export interface ZReport {
+  sessionId: number /* int64 */;
+  cashierName: string;
+  openedAt: string;
+  closedAt: string; // "" = still open (an X read)
+  openingCash: string;
+  expectedCash: string; // "" until closed
+  closingCash: string;
+  difference: string;
+  salesCount: number /* int */;
+  gross: string;
+  discount: string;
+  returns: string;
+  net: string;
+  byMethod: ZMethod[];
+  moves: ZMove[];
+  floats: ZFloatGroup[]; // plugin money locations (M7)
+}
 
 //////////
 // source: dto_drawer.go
@@ -367,6 +429,13 @@ export interface TillConfig {
   isManager: boolean; // admin/manager: shows the Admin link
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
   labelSize: string; // the shop's default sticker, "WxH" mm
+  shop: ShopHeader; // receipt header/footer for on-screen receipts
+}
+export interface ShopHeader {
+  name: string;
+  address: string;
+  phone: string;
+  footer: string;
 }
 export interface SaleSuggestion {
   discountType: string; // "fixed" | "percent"

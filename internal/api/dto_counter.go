@@ -155,3 +155,76 @@ type AdvanceRefundRequest struct {
 	Amount          string `json:"amount"`
 	DeferDrawerKick bool   `json:"deferDrawerKick"`
 }
+
+// ---- Receipts hub ----
+
+type MoneyReceiptRow struct {
+	ID        int64  `json:"id"`
+	ReceiptNo string `json:"receiptNo"`
+	Kind      string `json:"kind"`
+	KindLabel string `json:"kindLabel"`
+	FromLabel string `json:"fromLabel"`
+	ToLabel   string `json:"toLabel"`
+	Party     string `json:"party"`
+	Amount    string `json:"amount"`
+	Note      string `json:"note"`
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+}
+
+type DebtReceiptRow struct {
+	ID            int64  `json:"id"`
+	ReceiptNo     string `json:"receiptNo"`
+	CreatedAt     string `json:"createdAt"`
+	CustomerName  string `json:"customerName"`
+	CustomerPhone string `json:"customerPhone"`
+	Amount        string `json:"amount"`
+	Method        string `json:"method"`
+	BalanceBefore string `json:"balanceBefore"` // "" = not recorded
+	BalanceAfter  string `json:"balanceAfter"`
+	CashierName   string `json:"cashierName"`
+}
+
+// ---- Z report (day-end for one drawer session) ----
+
+type ZMethod struct {
+	Method string `json:"method"`
+	Amount string `json:"amount"`
+}
+
+type ZMove struct {
+	At     string `json:"at"`
+	Type   string `json:"type"` // opening | sale | credit_payment | withdrawal | expense | pay_in | …
+	Reason string `json:"reason"`
+	Amount string `json:"amount"`
+}
+
+type ZFloatItem struct {
+	Name    string `json:"name"`
+	Balance string `json:"balance"`
+}
+
+type ZFloatGroup struct {
+	Group string       `json:"group"`
+	Items []ZFloatItem `json:"items"`
+	Total string       `json:"total"`
+}
+
+type ZReport struct {
+	SessionID    int64         `json:"sessionId"`
+	CashierName  string        `json:"cashierName"`
+	OpenedAt     string        `json:"openedAt"`
+	ClosedAt     string        `json:"closedAt"` // "" = still open (an X read)
+	OpeningCash  string        `json:"openingCash"`
+	ExpectedCash string        `json:"expectedCash"` // "" until closed
+	ClosingCash  string        `json:"closingCash"`
+	Difference   string        `json:"difference"`
+	SalesCount   int           `json:"salesCount"`
+	Gross        string        `json:"gross"`
+	Discount     string        `json:"discount"`
+	Returns      string        `json:"returns"`
+	Net          string        `json:"net"`
+	ByMethod     []ZMethod     `json:"byMethod"`
+	Moves        []ZMove       `json:"moves"`
+	Floats       []ZFloatGroup `json:"floats"` // plugin money locations (M7)
+}

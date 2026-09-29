@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -49,5 +50,18 @@ func TestCounterCredit(t *testing.T) {
 	}
 	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/customers/%d/refund", cid), AdvanceRefundRequest{Amount: "1"}, ck); rec.Code < 400 || rec.Code >= 500 {
 		t.Fatalf("refund with no advance left: %d", rec.Code)
+	}
+
+	// Receipts hub: both collections are listed with their balances; the drawer
+	// moves (open, collections, refund) show as CR- money receipts.
+	var name string
+	te.db.Get(&name, `SELECT name FROM customers WHERE id=$1`, cid) //nolint:errcheck
+	debts := decode[[]DebtReceiptRow](t, te.do(http.MethodGet, "/api/v1/till/customer-payments?q="+url.QueryEscape(name), nil, ck))
+	if len(debts) != 2 || debts[0].Method != "Cash" || debts[0].BalanceAfter == "" {
+		t.Fatalf("credit receipts: %+v", debts)
+	}
+	money := decode[[]MoneyReceiptRow](t, te.do(http.MethodGet, "/api/v1/till/money-receipts?q="+url.QueryEscape(name), nil, ck))
+	if len(money) < 3 || money[0].KindLabel == "" {
+		t.Fatalf("money receipts for %s: %+v", name, money)
 	}
 }
