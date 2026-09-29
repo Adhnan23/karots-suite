@@ -13,7 +13,7 @@ import (
 
 // CounterMoneyReceipts lists CR- money receipts shop-wide (karots-pos ReceiptsCash).
 func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
-	from, to, err := dayRange(c)
+	from, to, err := listRange(c)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
 
 // CounterDebtReceipts lists credit repayments (karots-pos ReceiptsCredit).
 func (h *handlers) CounterDebtReceipts(c echo.Context) error {
-	from, to, err := dayRange(c)
+	from, to, err := listRange(c)
 	if err != nil {
 		return err
 	}

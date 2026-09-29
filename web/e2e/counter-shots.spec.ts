@@ -73,6 +73,7 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
       items: [{ productId: milk.id, quantity: '2', discountType: 'fixed' }],
     } })
     await page.reload()
+    await page.getByLabel('Period').selectOption('this-week')
     await page.getByLabel('Find a sale').press('Enter')
     await page.getByText('TOTAL', { exact: true }).waitFor()
   },

@@ -11,6 +11,8 @@ import { slots } from '@/plugins/slots'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
+import { LATEST, type Range } from '../range'
+import { RangePicker } from '../RangePicker'
 import { SaleFind } from '../SaleFind'
 import { CounterPage, PaneTitle } from '../ui'
 import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from './Paper'
@@ -69,12 +71,12 @@ function RowList({ kind, head, sym, pick, onPick }: {
   kind: 'cash' | 'credit' | 'warranty'; head: ReactNode; sym: string; pick: Pick | null; onPick: (p: Pick) => void
 }) {
   const [q, setQ] = useState('')
-  const [day, setDay] = useState('')
+  const [range, setRange] = useState<Range>(LATEST)
   const [moveKind, setMoveKind] = useState('')
   const dq = useDeferredValue(q.trim())
-  const cash = useQuery({ ...moneyReceiptsQuery(dq, moveKind, day), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
-  const credit = useQuery({ ...debtReceiptsQuery(dq, day), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
-  const claims = useQuery({ ...warrantyClaimsQuery(dq), enabled: kind === 'warranty', placeholderData: keepPreviousData }).data ?? []
+  const cash = useQuery({ ...moneyReceiptsQuery(dq, moveKind, range), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
+  const credit = useQuery({ ...debtReceiptsQuery(dq, range), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
+  const claims = useQuery({ ...warrantyClaimsQuery(dq, range), enabled: kind === 'warranty', placeholderData: keepPreviousData }).data ?? []
   const rows: { key: number; no: string; sub: string; amount: string | null; p: Pick }[] = kind === 'cash'
     ? cash.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.kindLabel}${r.party ? ` · ${r.party}` : ''}`, amount: r.amount, p: { kind: 'cash', row: r } }))
     : kind === 'credit'
@@ -85,14 +87,14 @@ function RowList({ kind, head, sym, pick, onPick }: {
     <>
       {head}
       <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${rows.length} shown`}
-        right={kind !== 'warranty' && (
+        right={(
           <span className="flex items-center gap-1.5">
             {kind === 'cash' && (
               <select aria-label="Kind of move" value={moveKind} onChange={(e) => setMoveKind(e.target.value)} className={cn(FIELD, 'h-8 appearance-auto px-2 text-[13px]')}>
                 {MOVE_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             )}
-            <input type="date" aria-label="On day" value={day} onChange={(e) => setDay(e.target.value)} className={cn(FIELD, 'h-8 w-[150px] px-2 text-[13px]')} />
+            <RangePicker value={range} onChange={setRange} />
           </span>
         )} />
       <div className="relative mx-3 mb-2">
@@ -135,8 +137,8 @@ function Preview({ pick }: { pick: Pick | null }) {
   const canReprint = pick.kind !== 'warranty' || pick.row.replacementSerial !== ''
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="relative min-h-0 flex-1 overflow-auto bg-muted/60 p-5">
-        <div className="absolute right-4 top-4"><Seg label="Paper width" value={size} onChange={setSize} options={[['80', '80 mm'], ['58', '58 mm']]} /></div>
+      <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-5">
+        <div className="mb-3 flex justify-end"><Seg label="Paper width" value={size} onChange={setSize} options={[['80', '80 mm'], ['58', '58 mm']]} /></div>
         {paper}
       </div>
       <footer className="flex gap-2 border-t border-border p-4">

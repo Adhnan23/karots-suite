@@ -20,11 +20,10 @@ func TestCounterReturn(t *testing.T) {
 	if len(found) != 1 || found[0].ID != res.ID {
 		t.Fatalf("lookup by receipt: %+v", found)
 	}
-	today := time.Now().Format("2006-01-02")
-	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?day="+today+"&q="+res.ReceiptNo, nil, ck)); len(got) != 1 {
+	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?preset=today&q="+res.ReceiptNo, nil, ck)); len(got) != 1 {
 		t.Fatalf("today's filter misses the sale: %+v", got)
 	}
-	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?day=2001-01-01&q="+res.ReceiptNo, nil, ck)); len(got) != 0 {
+	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?from=2001-01-01&to=2001-01-02&q="+res.ReceiptNo, nil, ck)); len(got) != 0 {
 		t.Fatalf("another day's filter finds it: %+v", got)
 	}
 	v := decode[SaleView](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/sales/%d", res.ID), nil, ck))

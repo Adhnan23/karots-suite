@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/datetime"
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/reports"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/receiptimg"
@@ -55,24 +55,25 @@ func saleView(d *sales.Detail) SaleView {
 	return v
 }
 
-// dayRange reads ?day=YYYY-MM-DD as [that day, next day) in the shop's zone;
-// no day = unbounded (the latest rows).
-func dayRange(c echo.Context) (*time.Time, *time.Time, error) {
-	d := strings.TrimSpace(c.QueryParam("day"))
-	if d == "" {
+// listRange reads a list's period: ?preset=today|this-week|last-week|this-month|
+// last-month|this-year, or ?from=&to= (YYYY-MM-DD, inclusive), via the forked
+// reports.ResolveRange (karots-pos resolveReceiptRange). Nothing = unbounded
+// (the latest rows).
+func listRange(c echo.Context) (*time.Time, *time.Time, error) {
+	preset, from, to := c.QueryParam("preset"), c.QueryParam("from"), c.QueryParam("to")
+	if preset == "" && from == "" && to == "" {
 		return nil, nil, nil
 	}
-	from, err := time.ParseInLocation("2006-01-02", d, datetime.Location)
+	f, t, _, _, err := reports.ResolveRange(preset, from, to)
 	if err != nil {
-		return nil, nil, apperr.Validation("day must be YYYY-MM-DD")
+		return nil, nil, apperr.Validation(err.Error())
 	}
-	to := from.AddDate(0, 0, 1)
-	return &from, &to, nil
+	return &f, &t, nil
 }
 
 // CounterSales finds sales by receipt no / customer name / phone (latest 50).
 func (h *handlers) CounterSales(c echo.Context) error {
-	from, to, err := dayRange(c)
+	from, to, err := listRange(c)
 	if err != nil {
 		return err
 	}

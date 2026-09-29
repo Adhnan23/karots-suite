@@ -5,6 +5,8 @@ import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { FIELD } from '@/features/till/ui'
 import { salesQuery } from './queries'
+import { LATEST, type Range } from './range'
+import { RangePicker } from './RangePicker'
 import { PaneTitle } from './ui'
 
 const STATUS: Record<string, string> = { partially_returned: 'part returned', returned: 'returned', voided: 'voided' }
@@ -17,21 +19,20 @@ const when = (iso: string) => {
 /** Find a sale by receipt no, customer name or phone; latest first. Enter picks the top hit. */
 export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: string; picked: number | null; onPick: (id: number) => void }) {
   const [q, setQ] = useState('')
-  const [day, setDay] = useState('')
+  const [range, setRange] = useState<Range>(LATEST)
   const dq = useDeferredValue(q.trim())
-  const rows = useQuery({ ...salesQuery(dq, day), placeholderData: keepPreviousData }).data ?? []
+  const rows = useQuery({ ...salesQuery(dq, range), placeholderData: keepPreviousData }).data ?? []
   const qc = useQueryClient()
   // Enter must use the results for exactly what's typed: a scanner types the
   // receipt no and hits Enter before the list catches up, and picking the stale
   // top row would open the wrong sale.
   const pickTop = async () => {
-    const hits = await qc.query(salesQuery(q.trim(), day))
+    const hits = await qc.query(salesQuery(q.trim(), range))
     if (hits[0]) onPick(hits[0].id)
   }
   return (
     <>
-      <PaneTitle title={title} sub={dq || day ? `${rows.length} found` : 'latest sales'}
-        right={<input type="date" aria-label="Sales on day" value={day} onChange={(e) => setDay(e.target.value)} className={cn(FIELD, 'h-8 w-[150px] px-2 text-[13px]')} />} />
+      <PaneTitle title={title} sub={dq || range.preset ? `${rows.length} found` : 'latest sales'} right={<RangePicker value={range} onChange={setRange} />} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Find a sale" placeholder="Receipt no, customer name or phone" autoComplete="off" value={q}

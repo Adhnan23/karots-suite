@@ -119,7 +119,11 @@ func (h *handlers) CounterWarrantyReceiptReplace(c echo.Context) error {
 
 // CounterWarrantyClaims lists claims for the Receipts hub (?q= serial / customer).
 func (h *handlers) CounterWarrantyClaims(c echo.Context) error {
-	rows, err := h.t.warranty.ListClaims(c.Request().Context(), warranty.ClaimFilter{Search: strings.TrimSpace(c.QueryParam("q")), Limit: 50})
+	from, to, err := listRange(c)
+	if err != nil {
+		return err
+	}
+	rows, err := h.t.warranty.ListClaims(c.Request().Context(), warranty.ClaimFilter{Search: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
 	if err != nil {
 		return err
 	}
