@@ -98,6 +98,27 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await prep.emoji(page)
     await page.getByLabel('Search emoji').fill('milk')
   },
+  lots: async (page) => {
+    await page.getByLabel('Search products').fill('Lot Soap')
+    await page.getByRole('button', { name: /^E2E Lot Soap/ }).first().click()
+    await page.getByLabel('Lots').waitFor()
+  },
+  adjust: async (page) => {
+    await prep.lots(page)
+    await page.getByRole('button', { name: 'Adjust the count' }).click()
+    await page.getByLabel('Actually there').fill('7')
+    await page.getByRole('button', { name: 'Missing' }).click()
+  },
+  moves: async (page) => {
+    const soap = await (await page.request.get('/api/v1/till/products/barcode/4790000000028')).json()
+    const have = await (await page.request.get(`/api/v1/admin/stock/movements?type=adjust&product=${soap.id}`)).json()
+    if (have.total === 0) {
+      await page.request.post('/api/v1/admin/stock/adjust', { data: { productId: soap.id, newQuantity: '9', note: 'Count correction', batchId: 0 } })
+      await page.request.post('/api/v1/admin/stock/adjust', { data: { productId: soap.id, newQuantity: '12', note: 'Found extra', batchId: 0 } })
+    }
+    await page.goto('/admin/stock?view=moves')
+    await page.waitForLoadState('networkidle')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

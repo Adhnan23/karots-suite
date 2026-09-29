@@ -42,7 +42,7 @@ Losses report, M5).
   recipe editor (ingredients + qty) on any product.
 - [x] **5. Cashier menu** (`admin_groups.go`). Group tree, create/edit/move/disable/reactivate,
   link products with emoji, reorder.
-- [ ] **6. Stock movement** (`admin_stock.go`). Levels list (search, category, low), movement
+- [x] **6. Stock movement** (`admin_stock.go`). Levels list (search, category, low), movement
   history (product, type, who, dates, paged), adjust (lot-aware), per-product lots.
 - [ ] **7. Batches** (`admin_batches.go`). Grouped by product, expired / expiring banners, write off
   one or all expired, per-lot selling price.

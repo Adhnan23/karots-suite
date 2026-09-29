@@ -828,6 +828,69 @@ export interface HoldRequest {
 }
 
 //////////
+// source: dto_stock.go
+
+/**
+ * MovementRow is one line of the stock audit trail. Quantity is signed (+in,
+ * −out); Cost is always the positive worth moved.
+ */
+export interface MovementRow {
+  id: number /* int64 */;
+  productId: number /* int64 */;
+  productName: string;
+  type: string;
+  quantity: string;
+  cost: string;
+  note: string;
+  userName: string;
+  createdAt: string;
+}
+export interface MovementList {
+  items: MovementRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+/**
+ * AdjustRequest sets a product's on-hand to an absolute count. BatchID names
+ * the lot a reduction comes off (0 = oldest first).
+ */
+export interface AdjustRequest {
+  productId: number /* int64 */;
+  newQuantity: string;
+  note: string;
+  batchId: number /* int64 */;
+}
+/**
+ * LotRow is one live lot. SellingPrice "" = follows the product's price.
+ */
+export interface LotRow {
+  id: number /* int64 */;
+  batchNo: string;
+  expiryDate: string; // YYYY-MM-DD or ""
+  qtyReceived: string;
+  qtyRemaining: string;
+  costPrice: string;
+  sellingPrice: string;
+  source: string;
+  createdAt: string;
+}
+export interface ProductLots {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  sellingPrice: string;
+  stockQty: string;
+  lots: LotRow[];
+}
+/**
+ * LotPriceRequest re-prices one lot; "" = follow the product again.
+ */
+export interface LotPriceRequest {
+  sellingPrice: string;
+}
+
+//////////
 // source: dto_till.go
 
 export interface TenderMethod {
