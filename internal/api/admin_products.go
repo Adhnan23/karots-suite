@@ -84,6 +84,11 @@ func bindProduct(c echo.Context) (products.CreateInput, ProductRequest, error) {
 	if err := c.Bind(&req); err != nil {
 		return products.CreateInput{}, req, apperr.BadRequest("invalid request body")
 	}
+	return bindProductReq(c, req)
+}
+
+// bindProductReq maps and validates a product form (blank money = 0).
+func bindProductReq(c echo.Context, req ProductRequest) (products.CreateInput, ProductRequest, error) {
 	orZero := func(s string) string {
 		if s = strings.TrimSpace(s); s == "" {
 			return "0"

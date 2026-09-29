@@ -983,6 +983,44 @@ export interface ImportSummary {
   errors: ImportRowError[];
   notes: string[];
 }
+/**
+ * IntakeCreateRequest is a new product plus its opening count.
+ */
+export interface IntakeCreateRequest {
+  product: ProductRequest;
+  quantity: string;
+}
+/**
+ * IntakeRestockRequest adds Quantity to a product; blank prices stay as they are.
+ */
+export interface IntakeRestockRequest {
+  productId: number /* int64 */;
+  quantity: string;
+  costPrice: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+}
+/**
+ * IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
+ */
+export interface IntakeUndoRequest {
+  productId: number /* int64 */;
+  qty: string;
+  kind: string;
+}
+/**
+ * IntakeItem is one row of the intake session list (Qty = what this row added).
+ */
+export interface IntakeItem {
+  productId: number /* int64 */;
+  name: string;
+  barcode: string;
+  sellingPrice: string;
+  qty: string;
+  kind: string; // create | restock
+  stockQty: string;
+  unitAbbr: string;
+}
 
 //////////
 // source: dto_till.go

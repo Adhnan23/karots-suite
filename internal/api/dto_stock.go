@@ -151,3 +151,37 @@ type ImportSummary struct {
 	Errors    []ImportRowError `json:"errors"`
 	Notes     []string         `json:"notes"`
 }
+
+// IntakeCreateRequest is a new product plus its opening count.
+type IntakeCreateRequest struct {
+	Product  ProductRequest `json:"product"`
+	Quantity string         `json:"quantity"`
+}
+
+// IntakeRestockRequest adds Quantity to a product; blank prices stay as they are.
+type IntakeRestockRequest struct {
+	ProductID      int64  `json:"productId"`
+	Quantity       string `json:"quantity"`
+	CostPrice      string `json:"costPrice"`
+	SellingPrice   string `json:"sellingPrice"`
+	WholesalePrice string `json:"wholesalePrice"`
+}
+
+// IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
+type IntakeUndoRequest struct {
+	ProductID int64  `json:"productId"`
+	Qty       string `json:"qty"`
+	Kind      string `json:"kind"`
+}
+
+// IntakeItem is one row of the intake session list (Qty = what this row added).
+type IntakeItem struct {
+	ProductID    int64  `json:"productId"`
+	Name         string `json:"name"`
+	Barcode      string `json:"barcode"`
+	SellingPrice string `json:"sellingPrice"`
+	Qty          string `json:"qty"`
+	Kind         string `json:"kind"` // create | restock
+	StockQty     string `json:"stockQty"`
+	UnitAbbr     string `json:"unitAbbr"`
+}

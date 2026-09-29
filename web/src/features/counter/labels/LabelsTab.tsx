@@ -12,20 +12,13 @@ import { cn } from '@/lib/utils'
 import { ProductFind } from '../ProductFind'
 import { CounterPage } from '../ui'
 import { LabelPreview } from './LabelPreview'
+import { LABEL_SIZES as SIZES, labelCount, saveSlot, slotDefault, slotOptions, slotValue } from './slots'
 
-const SIZES = ['50x25', '50x30', '40x30', '38x25', '100x50']
 const FORMATS = ['CODE128', 'EAN13', 'EAN8', 'UPC', 'CODE39']
 const COPIES = [1, 6, 12, 24]
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
 const CHIP = 'rounded-full border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground'
 
-// The top/bottom field choice sticks per device (karots-pos label.slot.*).
-const slotDefault = (which: 'top' | 'bottom', fallback: string) => {
-  try { return localStorage.getItem(`label.slot.${which}`) || fallback } catch { return fallback }
-}
-const saveSlot = (which: 'top' | 'bottom', v: string) => {
-  try { localStorage.setItem(`label.slot.${which}`, v) } catch { /* private window: just don't remember */ }
-}
 
 /** Barcode stickers: pick a product (or type a code), check the preview, print. */
 export function LabelsTab() {
@@ -44,12 +37,7 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
     queryKey: ['till', 'label-fields', p?.id], queryFn: () => api<DetailRow[]>(`/till/products/${p!.id}/label-fields`), enabled: !!p,
   }).data ?? []
   // Product labels pick a FIELD per line; custom labels type free text.
-  const options = p ? [
-    { key: 'name', label: 'Name', value: p.name },
-    { key: 'price', label: 'Price', value: money(sym, p.sellingPrice) },
-    ...fields.map((f) => ({ key: `f:${f.label}`, label: f.label, value: f.value })),
-    { key: 'none', label: '— none —', value: '' },
-  ] : []
+  const options = p ? slotOptions(p.name, money(sym, p.sellingPrice), fields) : []
   const [topKey, setTopKey] = useState(() => slotDefault('top', 'name'))
   const [bottomKey, setBottomKey] = useState(() => slotDefault('bottom', 'price'))
   const [top, setTop] = useState('')
@@ -57,11 +45,11 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
   const [code, setCode] = useState('')
   const [format, setFormat] = useState('CODE128')
   const [barcode, setBarcode] = useState(p?.barcode ?? '')
-  const [count, setCount] = useState(p ? Math.min(200, Math.max(1, Math.floor(num(p.stockQty)))) : 1)
+  const [count, setCount] = useState(p ? labelCount(num(p.stockQty)) : 1)
   const [size, setSize] = useState(defSize)
   const [custom, setCustom] = useState(defSize)
   const [busy, setBusy] = useState(false)
-  const val = (key: string) => options.find((o) => o.key === key)?.value ?? ''
+  const val = (key: string) => slotValue(options, key)
   const req: LabelRequest = p
     ? { productId: barcode ? p.id : 0, code: barcode, format: 'CODE128', top: val(topKey), bottom: val(bottomKey), count, size: size === 'custom' ? custom : size }
     : { productId: 0, code: code.trim(), format, top, bottom, count, size: size === 'custom' ? custom : size }

@@ -125,6 +125,30 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.keyboard.type('480')
     await page.getByLabel('Cost of E2E Milk', { exact: true }).fill('82')
   },
+  'intake-restock': async (page) => {
+    await page.getByLabel('Scan or search').fill('4790000000011')
+    await page.getByLabel('Scan or search').press('Enter')
+    await page.getByLabel('Quantity to add').fill('24')
+    await page.getByLabel('Selling').fill('110')
+  },
+  'intake-new': async (page) => {
+    await page.getByLabel('Scan or search').fill('Kithul treacle 750ml')
+    await page.getByLabel('Scan or search').press('Enter')
+    await page.getByLabel('Cost').fill('900')
+    await page.getByLabel('Markup').fill('1.3')
+    await page.getByLabel('Opening quantity').fill('6')
+    await page.getByRole('button', { name: 'Generate' }).click()
+  },
+  'intake-session': async (page) => {
+    await prep['intake-restock'](page)
+    await page.getByLabel('Print labels on save').uncheck()
+    await page.getByRole('button', { name: 'Add stock', exact: true }).click()
+    await page.getByLabel('Scan or search').fill('4790000000028')
+    await page.getByLabel('Scan or search').press('Enter')
+    await page.getByLabel('Quantity to add').fill('10')
+    await page.getByRole('button', { name: 'Add stock', exact: true }).click()
+    await page.getByText('Nothing yet').waitFor({ state: 'detached' })
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },
