@@ -15,4 +15,5 @@ func (h *handlers) registerAdmin(v1 *echo.Group) {
 	g := v1.Group("/admin", slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})...)
 	h.registerAdminUnits(g)
 	h.registerAdminCategories(g)
+	h.registerAdminProducts(g)
 }

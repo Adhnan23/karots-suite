@@ -12,7 +12,12 @@ export type AppEntry = { key: string; label: string; description: string; icon: 
  * off the dock. */
 export const adminNav: NavArea[] = [
   { key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [] },
-  { key: 'stock', label: 'Inventory', icon: Package, pages: [] },
+  {
+    key: 'stock', label: 'Inventory', icon: Package, pages: [
+      { to: '/admin/products', label: 'Products', description: 'Product catalogue & pricing' },
+      { to: '/admin/products/review', label: 'Items to review', description: 'Quick-added items needing details' },
+    ],
+  },
   { key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [] },
   { key: 'money', label: 'Money', icon: Wallet, pages: [] },
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
@@ -24,10 +29,11 @@ export const adminNav: NavArea[] = [
   },
 ]
 
-/** The nav this user sees: gated pages dropped, empty areas dropped. */
-export function navFor(me: Me): NavArea[] {
+/** The nav this user sees: gated pages dropped, empty areas dropped, live
+ * badges (page path → count) attached. */
+export function navFor(me: Me, badges: Record<string, number> = {}): NavArea[] {
   return adminNav
-    .map((a) => ({ ...a, pages: a.pages.filter((p) => p.gate !== 'stockTake' || me.stockTakeEnabled) }))
+    .map((a) => ({ ...a, pages: a.pages.filter((p) => p.gate !== 'stockTake' || me.stockTakeEnabled).map((p) => (badges[p.to] ? { ...p, badge: badges[p.to] } : p)) }))
     .filter((a) => a.pages.length > 0)
 }
 

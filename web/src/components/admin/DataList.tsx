@@ -10,6 +10,8 @@ export type Column<T> = {
   num?: boolean
   /** Hidden from the phone card (the card shows the first column as its title). */
   wide?: boolean
+  /** Holds its own buttons: sits above the row's stretched click target. */
+  interactive?: boolean
   className?: string
 }
 
@@ -37,9 +39,15 @@ export function DataList<T>({ rows, columns, rowKey, onRow, empty, label, footer
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={rowKey(r)} onClick={onRow && (() => onRow(r))}
-                  className={cn('border-b border-border last:border-0', onRow && 'cursor-pointer hover:bg-muted')}>
-                  {columns.map((c) => <td key={c.key} className={cn('px-4 py-2.5', c.num && 'text-right tabular-nums', c.className)}>{c.cell(r)}</td>)}
+                <tr key={rowKey(r)} className={cn('relative border-b border-border last:border-0', onRow && 'cursor-pointer hover:bg-muted focus-within:bg-muted')}>
+                  {columns.map((c, i) => (
+                    <td key={c.key} className={cn('px-4 py-2.5', c.num && 'text-right tabular-nums', c.interactive && 'relative z-10', c.className)}>
+                      {i === 0 && onRow ? (
+                        // Stretched over the row: the whole row clicks, and it's one Tab stop with Enter.
+                        <button type="button" onClick={() => onRow(r)} className="text-left outline-none after:absolute after:inset-0 focus-visible:underline">{c.cell(r)}</button>
+                      ) : c.cell(r)}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

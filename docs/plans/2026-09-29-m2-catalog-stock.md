@@ -34,7 +34,7 @@ Losses report, M5).
 - [x] **1. Units** (`admin_units.go`). List, create, edit, delete (in-use guard).
 - [x] **2. Categories** (`admin_categories.go`). Nested tree, create/edit/move parent, delete,
   quick-create from a picker (`FindOrCreateByPath`). Shared `CategoryPicker` (with inline create).
-- [ ] **3. Products** (`admin_products.go`). Filtered, paged list (search, category, status,
+- [x] **3. Products** (`admin_products.go`). Filtered, paged list (search, category, status,
   low stock), form (all product fields, cost/markup/selling two-way, wholesale, barcode + generate,
   supplier, unit, reorder, serial/warranty, expiry tracking), disable/reactivate, barcode assign.
   **Items to review** queue + count badge on the dock.

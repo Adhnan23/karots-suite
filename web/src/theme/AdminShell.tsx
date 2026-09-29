@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { LogOut, PinIcon, Search, UnlockIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Me } from '@/api/types.gen'
+import { reviewCountQuery } from '@/features/admin/products/queries'
 import { CommandPalette } from './CommandPalette'
 import { Dock } from './Dock'
 import { ModeToggle } from './ModeToggle'
@@ -98,7 +100,8 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const areas = navFor(me)
+  const review = useQuery(reviewCountQuery).data?.count ?? 0
+  const areas = navFor(me, { '/admin/products/review': review })
   const path = useRouterState({ select: (s) => s.location.pathname })
   const here = whereIs(areas, path)
   const shelfArea = shelf && shelf !== 'apps' ? areas.find((a) => a.key === shelf) : undefined
@@ -147,9 +150,10 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
       {here && here.area.pages.length > 1 && (
         <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10">
           {here.area.pages.map((p) => (
-            <Link key={p.to} to={p.to} aria-current={p === here.page ? 'page' : undefined}
-              className="whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground aria-[current=page]:border-selected aria-[current=page]:bg-selected aria-[current=page]:text-selected-foreground">
+            <Link key={p.to} to={p.to} activeOptions={{ exact: true }} data-on={p === here.page || undefined}
+              className="whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground data-on:border-selected data-on:bg-selected data-on:text-selected-foreground">
               {p.label}
+              {p.badge ? <span className="ml-1.5 rounded-full bg-danger px-1.5 text-[11px] font-extrabold text-white">{p.badge}</span> : null}
             </Link>
           ))}
         </nav>

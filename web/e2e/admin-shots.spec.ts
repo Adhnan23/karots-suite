@@ -42,6 +42,18 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /^Rice & grains \d/ }).click()
     await page.getByRole('button', { name: 'Parent category' }).click()
   },
+  'product-form': async (page) => {
+    await page.getByLabel('Search products').fill('E2E Milk')
+    await page.getByRole('button', { name: /^E2E Milk\b/ }).first().click()
+    await page.getByLabel('Selling').fill('135')
+  },
+  review: async (page) => {
+    const have = await (await page.request.get('/api/v1/admin/products/review')).json()
+    if (have.length === 0) for (const [name, price] of [['Coconut scraper', '450'], ['Blue gift bag', '60']])
+      await page.request.post('/api/v1/till/quick-item', { data: { name, price, qty: '1', barcode: '', unitId: 0 } })
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },
@@ -55,6 +67,7 @@ for (const palette of ['studio', 'night']) {
         await login(page, '0000000001', process.env.POS_SYSTEM_PIN ?? '2273')
         const cur = await (await page.request.get('/api/v1/system/appearance')).json()
         await page.request.put('/api/v1/system/appearance', { data: { ...cur, palette } })
+        await page.goto('about:blank')
         await page.context().clearCookies()
         await page.addInitScript((m) => localStorage.setItem('ks-mode', m), mode)
         await login(page, '0770000001', '1234')

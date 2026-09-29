@@ -20,9 +20,9 @@ export function FormSheet({ open, onOpenChange, title, submit, busy, onSubmit, e
 }) {
   const phone = useIsPhone()
   const body = (
-    <form autoComplete="off" className="flex min-h-0 flex-col gap-4" onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit() }}>
-      <div className="flex min-h-0 flex-col gap-3.5 overflow-auto">{children}</div>
-      <div className="flex items-center gap-2">
+    <form autoComplete="off" className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit() }}>
+      <div className="-mx-1 flex min-h-0 flex-col gap-3.5 overflow-auto px-1 pb-1">{children}</div>
+      <div className="flex flex-wrap items-center gap-2">
         {extra}
         <Button type="button" variant="ghost" className="ml-auto h-10 px-4" onClick={() => onOpenChange(false)}>Cancel</Button>
         <Button type="submit" disabled={busy} className="h-10 px-5 font-bold">{submit}</Button>
@@ -32,14 +32,14 @@ export function FormSheet({ open, onOpenChange, title, submit, busy, onSubmit, e
   const head = <span className="font-display text-lg font-bold">{title}</span>
   return phone ? (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[92vh] rounded-t-[22px] p-4">
+      <SheetContent side="bottom" className="max-h-[92vh] gap-3 rounded-t-[22px] p-4">
         <SheetTitle asChild>{head}</SheetTitle>
         {body}
       </SheetContent>
     </Sheet>
   ) : (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('max-h-[88vh] gap-4 p-5 sm:max-w-md', wide && 'sm:max-w-2xl')}>
+      <DialogContent className={cn('flex max-h-[88vh] flex-col gap-4 p-5 sm:max-w-md', wide && 'sm:max-w-2xl')}>
         <DialogTitle asChild>{head}</DialogTitle>
         {body}
       </DialogContent>

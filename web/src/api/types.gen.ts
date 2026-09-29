@@ -96,6 +96,90 @@ export interface CategoryQuickResult {
   name: string;
   depth: number /* int */;
 }
+/**
+ * AdminProductRow is one line of the admin product list.
+ */
+export interface AdminProductRow {
+  id: number /* int64 */;
+  name: string;
+  nameLocal: string;
+  barcode: string;
+  categoryId: number /* int64 */;
+  categoryName: string;
+  unitAbbr: string;
+  costPrice: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  stockQty: string;
+  reorderLevel: number /* int */;
+  low: boolean; // on hand at or below the reorder level
+  isActive: boolean;
+  isService: boolean;
+  needsReview: boolean;
+  trackSerial: boolean;
+  hasExpiry: boolean;
+  supplierName: string;
+  createdBy: string; // who quick-added it (review queue)
+  createdAt: string;
+}
+/**
+ * ProductList is a page of the admin product list.
+ */
+export interface ProductList {
+  items: AdminProductRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+/**
+ * AdminProduct is a product for the edit form.
+ */
+export interface AdminProduct extends AdminProductRow {
+  unitId: number /* int64 */;
+  taxRate: string;
+  warrantyMonths: number /* int */;
+  supplierId: number /* int64 */;
+}
+/**
+ * ProductRequest creates or edits a product. Money and tax are decimal strings;
+ * SupplierID 0 = none. RepriceStock makes lots on the shelf follow a new selling
+ * price. DupSourceName is set when saving a Duplicate: the copy must be renamed.
+ */
+export interface ProductRequest {
+  name: string;
+  nameLocal: string;
+  barcode: string;
+  categoryId: number /* int64 */;
+  unitId: number /* int64 */;
+  costPrice: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  taxRate: string;
+  reorderLevel: number /* int */;
+  trackSerial: boolean;
+  warrantyMonths: number /* int */;
+  supplierId: number /* int64 */;
+  repriceStock: boolean;
+  dupSourceName: string;
+}
+/**
+ * ProductSaved answers a product save; Message says what else happened (a
+ * finished review item gets its past sale lines' cost corrected).
+ */
+export interface ProductSaved {
+  id: number /* int64 */;
+  message: string;
+}
+/**
+ * Option is an id + name pair for pickers (suppliers, units).
+ */
+export interface Option {
+  id: number /* int64 */;
+  name: string;
+}
+export interface Count {
+  count: number /* int */;
+}
 
 //////////
 // source: dto_counter.go
