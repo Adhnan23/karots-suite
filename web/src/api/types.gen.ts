@@ -176,6 +176,22 @@ export interface ReturnRequest {
 export interface ReturnResult {
   cashRefund: string;
 }
+export interface CreditPaymentRequest {
+  amount: string;
+  method: string; // cash | card | online
+  accountId: number /* int64 */; // card/bank locker the money lands in
+  reference: string;
+  deferDrawerKick: boolean;
+}
+export interface CreditPaymentResult {
+  paymentId: number /* int64 */; // for the debt slip
+  receiptNo: string;
+  balanceAfter: string;
+}
+export interface AdvanceRefundRequest {
+  amount: string;
+  deferDrawerKick: boolean;
+}
 
 //////////
 // source: dto_drawer.go

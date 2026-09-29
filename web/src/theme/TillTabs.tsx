@@ -11,6 +11,7 @@ type Tab = { to: string; label: string; show?: (c: TillConfig) => boolean }
 const PRIMARY: Tab[] = [
   { to: '/till', label: 'Sell' },
   { to: '/till/returns', label: 'Returns' },
+  { to: '/till/credit', label: 'Credit' },
 ]
 const MORE: Tab[] = [
   { to: '/till/write-off', label: 'Write-off' },

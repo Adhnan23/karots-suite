@@ -17,3 +17,4 @@ async function send(path: string) {
 export const printSale = (id: number, kick = false) => send(`/till/sales/${id}/print${kick ? '?kick=1' : ''}`)
 export const printMoneySlip = (id: number, kick = false) => send(`/till/money-receipts/${id}/print${kick ? '?kick=1' : ''}`)
 export const printRefund = (saleId: number, kick = false) => send(`/till/sales/${saleId}/refund-print${kick ? '?kick=1' : ''}`)
+export const printDebtSlip = (paymentId: number, kick = false) => send(`/till/customer-payments/${paymentId}/print${kick ? '?kick=1' : ''}`)

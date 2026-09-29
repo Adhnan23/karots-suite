@@ -19,6 +19,7 @@ import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
+import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
 import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
 import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/returns'
@@ -75,6 +76,11 @@ const AuthedTillConvertRoute = AuthedTillConvertRouteImport.update({
   path: '/convert',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillCreditRoute = AuthedTillCreditRouteImport.update({
+  id: '/credit',
+  path: '/credit',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
   '/till/convert': typeof AuthedTillConvertRoute
+  '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
   '/till/convert': typeof AuthedTillConvertRoute
+  '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
+  '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
   '/_authed/till/labels': typeof AuthedTillLabelsRoute
   '/_authed/till/returns': typeof AuthedTillReturnsRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/till'
     | '/account/pin'
     | '/till/convert'
+    | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
     | '/till/returns'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/account/pin'
     | '/till/convert'
+    | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
     | '/till/returns'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authed/till'
     | '/account/pin'
     | '/_authed/till/convert'
+    | '/_authed/till/credit'
     | '/_authed/till/expenses'
     | '/_authed/till/labels'
     | '/_authed/till/returns'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillConvertRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/credit': {
+      id: '/_authed/till/credit'
+      path: '/credit'
+      fullPath: '/till/credit'
+      preLoaderRoute: typeof AuthedTillCreditRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/till/expenses': {
       id: '/_authed/till/expenses'
       path: '/expenses'
@@ -352,6 +371,7 @@ const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
 
 interface AuthedTillRouteChildren {
   AuthedTillConvertRoute: typeof AuthedTillConvertRoute
+  AuthedTillCreditRoute: typeof AuthedTillCreditRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
   AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
   AuthedTillReturnsRoute: typeof AuthedTillReturnsRoute
@@ -362,6 +382,7 @@ interface AuthedTillRouteChildren {
 
 const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillConvertRoute: AuthedTillConvertRoute,
+  AuthedTillCreditRoute: AuthedTillCreditRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
   AuthedTillLabelsRoute: AuthedTillLabelsRoute,
   AuthedTillReturnsRoute: AuthedTillReturnsRoute,

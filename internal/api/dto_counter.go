@@ -134,3 +134,24 @@ type ReturnRequest struct {
 type ReturnResult struct {
 	CashRefund string `json:"cashRefund"`
 }
+
+// ---- Credit ----
+
+type CreditPaymentRequest struct {
+	Amount          string `json:"amount"`
+	Method          string `json:"method"`    // cash | card | online
+	AccountID       int64  `json:"accountId"` // card/bank locker the money lands in
+	Reference       string `json:"reference"`
+	DeferDrawerKick bool   `json:"deferDrawerKick"`
+}
+
+type CreditPaymentResult struct {
+	PaymentID    int64  `json:"paymentId"` // for the debt slip
+	ReceiptNo    string `json:"receiptNo"`
+	BalanceAfter string `json:"balanceAfter"`
+}
+
+type AdvanceRefundRequest struct {
+	Amount          string `json:"amount"`
+	DeferDrawerKick bool   `json:"deferDrawerKick"`
+}

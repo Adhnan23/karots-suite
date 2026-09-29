@@ -55,6 +55,17 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByText(/Faulty — don't/).first().click()
     await page.getByRole('button', { name: 'Wrong item' }).click()
   },
+  credit: async (page) => {
+    const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+    const cust = (await (await page.request.get('/api/v1/till/customers')).json()).find((c: { name: string }) => c.name === 'E2E Credit')
+    await page.request.post('/api/v1/till/sales', { data: {
+      saleType: 'retail', discountType: 'fixed', customerId: cust.id, payments: [{ method: 'credit', amount: '300' }],
+      items: [{ productId: milk.id, quantity: '3', discountType: 'fixed' }],
+    } })
+    await page.reload()
+    await page.getByRole('button', { name: /E2E Credit/ }).click()
+    await page.getByLabel('Amount').fill('200')
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')
