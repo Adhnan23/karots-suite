@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('shop admin cannot reach system appearance', async ({ page }) => {
   await page.goto('/login')

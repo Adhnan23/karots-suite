@@ -6720,7 +6720,7 @@ git commit -m "feat(web): till sale complete (instant change, print/next), auto-
 - Consumes: every till screen, and the fixed e2e users from `scripts/e2e-users.sql`.
 - Produces: the M1a flow checks that `docs/parity.md` rows are ticked against.
 
-- [ ] **Step 1: Seed.** Create `scripts/e2e-till.sql`:
+- [x] **Step 1: Seed.** Create `scripts/e2e-till.sql`:
 
 ```sql
 -- Till fixtures for Playwright. Runs after `-reset` + e2e-users.sql (make e2e-seed).
@@ -6779,7 +6779,7 @@ e2e-seed: db-up
 Run: `make e2e-seed`
 Expected: no SQL errors. If a column default differs (for example `lockers.cashier_access` has no default or `customers.outstanding_balance` is `NULL`), set it explicitly in the INSERT. Don't change the schema.
 
-- [ ] **Step 2: The flows.** Create `web/e2e/till.spec.ts`:
+- [x] **Step 2: The flows.** Create `web/e2e/till.spec.ts`:
 
 ```ts
 import { expect, test, type Page } from '@playwright/test'
@@ -7004,7 +7004,7 @@ test('signing out with the till open goes to the count, then signs out', async (
 })
 ```
 
-- [ ] **Step 3: Run the tests.**
+- [x] **Step 3: Run the tests.**
 
 Run:
 
@@ -7017,7 +7017,7 @@ Expected: every spec passes, the M0 specs included. `till-shots.spec.ts` shows a
 
 If a flow fails on a karots-pos behaviour difference, fix the app, not the test, unless the test contradicts karots-pos. Show the failing output in the task report.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 git add scripts/e2e-till.sql Makefile web/e2e/till.spec.ts

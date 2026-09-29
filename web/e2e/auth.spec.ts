@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 
 // Seeded by `make e2e-seed` (Step 2): admin 0770000001 / cashier 0770000002, PIN 1234.
 const login = async (page: Page, phone: string) => {
