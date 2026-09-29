@@ -119,6 +119,12 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.goto('/admin/stock?view=moves')
     await page.waitForLoadState('networkidle')
   },
+  take: async (page) => {
+    await page.getByLabel('Counted E2E Lot Soap').fill('8')
+    await page.getByLabel('Counted E2E Lot Soap').press('Enter')
+    await page.keyboard.type('480')
+    await page.getByLabel('Cost of E2E Milk', { exact: true }).fill('82')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

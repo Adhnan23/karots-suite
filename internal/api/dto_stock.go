@@ -97,3 +97,57 @@ type ConsumeRequest struct {
 type WriteOffResult struct {
 	Lots int `json:"lots"`
 }
+
+// StockTakeRow is one product on the count screen. MultiPrice = its live lots
+// carry different prices, so a count here can't say which lot a change is in.
+type StockTakeRow struct {
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	Barcode          string `json:"barcode"`
+	CategoryName     string `json:"categoryName"`
+	UnitAbbr         string `json:"unitAbbr"`
+	UnitAllowDecimal bool   `json:"unitAllowDecimal"`
+	StockQty         string `json:"stockQty"`
+	CostPrice        string `json:"costPrice"`
+	SellingPrice     string `json:"sellingPrice"`
+	WholesalePrice   string `json:"wholesalePrice"`
+	MultiPrice       bool   `json:"multiPrice"`
+}
+
+type StockTakeList struct {
+	Items    []StockTakeRow `json:"items"`
+	Total    int            `json:"total"`
+	Page     int            `json:"page"`
+	PageSize int            `json:"pageSize"`
+}
+
+// CountLine is one row of a count; blank fields leave that value alone.
+type CountLine struct {
+	ProductID int64  `json:"productId"`
+	Counted   string `json:"counted"`
+	Cost      string `json:"cost"`
+	Selling   string `json:"selling"`
+	Wholesale string `json:"wholesale"`
+}
+
+type StockTakeRequest struct {
+	Lines []CountLine `json:"lines"`
+}
+
+type StockTakeResult struct {
+	Saved int `json:"saved"`
+}
+
+type ImportRowError struct {
+	Line    int    `json:"line"`
+	Message string `json:"message"`
+}
+
+// ImportSummary answers any spreadsheet import.
+type ImportSummary struct {
+	Updated   int              `json:"updated"`
+	Unchanged int              `json:"unchanged"`
+	Skipped   int              `json:"skipped"`
+	Errors    []ImportRowError `json:"errors"`
+	Notes     []string         `json:"notes"`
+}

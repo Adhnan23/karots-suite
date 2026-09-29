@@ -46,7 +46,7 @@ Losses report, M5).
   history (product, type, who, dates, paged), adjust (lot-aware), per-product lots.
 - [x] **7. Batches** (`admin_batches.go`). Grouped by product, expired / expiring banners, write off
   one or all expired, per-lot selling price.
-- [ ] **8. Stock-take** (`admin_stocktake.go`). Count screen (category filter, counted vs on-hand,
+- [x] **8. Stock-take** (`admin_stocktake.go`). Count screen (category filter, counted vs on-hand,
   apply), printable count sheet (`/print/count-sheet`), CSV import; all gated by the toggle.
 - [ ] **9. Stock intake** (`admin_intake.go`). One search box → restock or create, cost⇄markup⇄
   selling, supplier, opening qty, label print, session list with undo. Gated by the toggle.

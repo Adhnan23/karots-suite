@@ -930,6 +930,59 @@ export interface ConsumeRequest {
 export interface WriteOffResult {
   lots: number /* int */;
 }
+/**
+ * StockTakeRow is one product on the count screen. MultiPrice = its live lots
+ * carry different prices, so a count here can't say which lot a change is in.
+ */
+export interface StockTakeRow {
+  id: number /* int64 */;
+  name: string;
+  barcode: string;
+  categoryName: string;
+  unitAbbr: string;
+  unitAllowDecimal: boolean;
+  stockQty: string;
+  costPrice: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  multiPrice: boolean;
+}
+export interface StockTakeList {
+  items: StockTakeRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+/**
+ * CountLine is one row of a count; blank fields leave that value alone.
+ */
+export interface CountLine {
+  productId: number /* int64 */;
+  counted: string;
+  cost: string;
+  selling: string;
+  wholesale: string;
+}
+export interface StockTakeRequest {
+  lines: CountLine[];
+}
+export interface StockTakeResult {
+  saved: number /* int */;
+}
+export interface ImportRowError {
+  line: number /* int */;
+  message: string;
+}
+/**
+ * ImportSummary answers any spreadsheet import.
+ */
+export interface ImportSummary {
+  updated: number /* int */;
+  unchanged: number /* int */;
+  skipped: number /* int */;
+  errors: ImportRowError[];
+  notes: string[];
+}
 
 //////////
 // source: dto_till.go
