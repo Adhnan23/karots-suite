@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, freshProduct, receiveExpired, test, type Page } from './fixtures'
 
 // The rest of the M2 admin routes, so every ported route has a flow. Needs `make e2e-seed`.
 test.describe.configure({ mode: 'serial' })
@@ -104,8 +104,8 @@ test('lots: price one lot, then let it follow the product again', async ({ page 
 
 test('batches: write off every expired lot at once', async ({ page }) => {
   await admin(page, '/admin/stock/batches')
-  const expiredBefore = (await (await page.request.get('/api/v1/admin/stock/batches')).json()).expired
-  test.skip(expiredBefore === 0, 'no expired lot left in this database — reseed')
+  await receiveExpired(page, await freshProduct(page, `Old milk ${tag}`))
+  await page.reload()
   await page.getByRole('button', { name: 'Write off all' }).click()
   await page.getByRole('button', { name: 'Write off', exact: true }).last().click()
   await toast(page, /expired lots? written off/)
@@ -121,4 +121,30 @@ test('stock-take: download the count sheet, fill it, import it', async ({ page }
   await expect(page.getByText('Count imported')).toBeVisible()
   await expect(page.getByText('Updated')).toBeVisible()
   expect(Number((await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).stockQty)).toBe(333)
+})
+
+test('category picker creates in place; a category and a card get renamed', async ({ page }) => {
+  await admin(page, '/admin/products')
+  await page.getByRole('button', { name: /New product/ }).click()
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByRole('button', { name: 'Add under E2E Goods' }).click()
+  await page.getByLabel('New category name').fill(`Inline ${tag}`)
+  await page.getByLabel('New category name').press('Enter')
+  await expect(page.getByRole('button', { name: 'Category' })).toHaveText(new RegExp(`E2E Goods › Inline ${tag}`))
+  await page.keyboard.press('Escape')
+
+  await page.goto('/admin/categories')
+  await page.getByRole('button', { name: new RegExp(`^Inline ${tag}`) }).first().click()
+  await page.getByLabel('Name').fill(`Renamed ${tag}`)
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await toast(page, /Category saved/)
+
+  await page.goto('/admin/groups')
+  await page.request.post('/api/v1/admin/groups', { data: { name: `Card ${tag}`, emoji: '', parentId: 0 } })
+  await page.reload()
+  await page.getByRole('button', { name: new RegExp(`^📦 Card ${tag}`) }).click()
+  await page.getByRole('button', { name: 'Edit' }).click()
+  await page.getByLabel('Name').fill(`Card2 ${tag}`)
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await toast(page, /Group saved/)
 })

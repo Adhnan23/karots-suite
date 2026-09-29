@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, freshProduct, receiveExpired, test, type Page } from './fixtures'
 
 // Golden admin stock flows (M2). Needs `make e2e-seed`.
 test.describe.configure({ mode: 'serial' })
@@ -36,12 +36,17 @@ test('stock: adjust a count down from the lot that’s short, and see it in move
 })
 
 test('batches: write off the expired lot only', async ({ page }) => {
-  await admin(page, '/admin/stock/batches')
-  const before = await qty(page, '4790000000035')
+  await admin(page, '/admin/stock')
+  const id = await freshProduct(page, `Curd ${tag}`)
+  await receiveExpired(page, id, '3')
+  await page.request.post('/api/v1/admin/stock/adjust', { data: { productId: id, newQuantity: '5', note: 'fresh lot', batchId: 0 } }) // + 2 unexpired
+  await page.goto('/admin/stock/batches')
+  await page.getByLabel('Search products').fill(`Curd ${tag}`)
   await page.getByRole('button', { name: 'Write off', exact: true }).first().click()
   await page.getByRole('button', { name: 'Write off', exact: true }).last().click()
   await toast(page, /expired lot written off/)
-  expect(await qty(page, '4790000000035')).toBe(before - 3)
+  const lots = await (await page.request.get(`/api/v1/admin/stock/lots/${id}`)).json()
+  expect(Number(lots.stockQty)).toBe(2) // only the good lot is left
 })
 
 test('stock-take: count two products, save once', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, receiveExpired, test, type Page } from './fixtures'
 
 // Golden till flows (spec §9). Needs `make e2e-seed`. Serial: they share one drawer.
 test.describe.configure({ mode: 'serial' })
@@ -145,6 +145,10 @@ test('which price? pick the dearer lot', async ({ page }) => {
 })
 
 test('expired lot first: sell anyway', async ({ page }) => {
+  // Its own expired lot (another flow may have written the seeded one off).
+  await login(page, '0770000003')
+  await receiveExpired(page, (await (await page.request.get(`/api/v1/till/products/barcode/${YOGHURT}`)).json()).id)
+  await page.context().clearCookies()
   await login(page, '0770000002')
   await ensureOpen(page)
   await scan(page, YOGHURT)
