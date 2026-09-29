@@ -95,7 +95,8 @@ func (h *handlers) TillCloseDrawer(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	res, err := h.d.CashRegister.Close(c.Request().Context(), middleware.CurrentUserID(c),
-		cashregister.CloseInput{Breakdown: breakdownJSON(req.Breakdown), DestLockerID: req.DestLockerID})
+		// ClosingCash "0" is only the fallback: an empty count (drawer emptied) closes at zero.
+		cashregister.CloseInput{Breakdown: breakdownJSON(req.Breakdown), ClosingCash: "0", DestLockerID: req.DestLockerID})
 	if err != nil {
 		return err
 	}

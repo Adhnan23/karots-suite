@@ -53,6 +53,12 @@ func TestTillDrawerLifecycle(t *testing.T) {
 	if st.Summary.Session != nil || st.Summary.LastClosing == nil || st.Summary.LastBreakdown["500"] != 2 {
 		t.Fatalf("after close %+v", st.Summary)
 	}
+	// Nothing counted (the drawer was emptied) closes at zero, not a validation error.
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"100": 1}}, ck)
+	rec = te.do(http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{Breakdown: map[string]float64{}}, ck)
+	if res := decode[CloseResult](t, rec); rec.Code != 200 || res.Counted != "0.00" || res.Difference != "-100.00" {
+		t.Fatalf("empty close %d %s", rec.Code, rec.Body)
+	}
 }
 
 func TestTillNoSaleNeedsDrawerEnabled(t *testing.T) {
