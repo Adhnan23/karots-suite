@@ -102,7 +102,7 @@ The till must do **everything** karots-pos's till does, in the new design. The k
 ## Open items carried forward
 
 - **Stock → batch sheet (user asked, not started):** the sheet opened by clicking a Stock row is unclear. Title it "Batches of …", label the box **Batch price** (blank = follows the product), add per-batch **Set count** and **Remove batch** (count correction or write-off), and rename or drop the bottom "Adjust the count" shortcut (it adjusts the whole product, not the batch).
-- **Product import / export** is M6 by the spec. The user may want it earlier (e.g. start of M3); ask when planning M3.
+- **Product import / export** stays in M6 (user confirmed 2026-09-29).
 
 - **Till top bar:** the drawer pill and hotkey hints are done. The counter name on the pill has no data source yet.
 - **karots-pos deviation:** resuming a held sale is refused while another sale is in the cart. karots-pos silently replaced the cart, which lost a live sale.
