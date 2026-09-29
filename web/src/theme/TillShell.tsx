@@ -34,10 +34,10 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
     <div className="flex h-screen min-w-[1024px] flex-col text-foreground">
       <header className="flex h-[60px] shrink-0 items-center gap-4 border-b border-border bg-card px-[18px] [backdrop-filter:var(--glass)]">
         <span className="flex min-w-0 max-w-[220px] items-center gap-2 truncate font-display text-[17px] font-bold whitespace-nowrap">
-          <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-lg bg-brand text-sm font-extrabold text-brand-foreground shadow-[var(--glow)]">K</span>
-          {me.shopName}
+          <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-lg bg-brand text-sm font-extrabold text-brand-foreground shadow-[var(--glow)]" title={`${me.shopName} · ${me.user.name}`}>K</span>
+          <span className="hidden truncate min-[1440px]:inline">{me.shopName}</span>
         </span>
-        <span className="whitespace-nowrap text-[13px] text-muted-foreground">{me.user.name}</span>
+        <span className="hidden whitespace-nowrap text-[13px] text-muted-foreground min-[1440px]:inline">{me.user.name}</span>
         {status}
         <TillTabs config={config} />
         {onSell && <div className="ml-auto hidden items-center gap-2.5 whitespace-nowrap text-[12px] text-muted-foreground min-[1440px]:flex" aria-label="Keyboard shortcuts">

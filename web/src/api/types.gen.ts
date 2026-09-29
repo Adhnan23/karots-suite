@@ -60,6 +60,46 @@ export interface Me {
 }
 
 //////////
+// source: dto_counter.go
+
+/**
+ * CounterMoneyRequest is the cash side of a counter action (expense, supplier
+ * payment…): where the cash comes from. LockerID 0 = the cashier's own drawer.
+ */
+export interface CounterMoneyRequest {
+  lockerId: number /* int64 */;
+  deferDrawerKick: boolean; // auto-print folds the pulse into the slip job
+}
+export interface ServiceOption {
+  id: number /* int64 */;
+  name: string;
+}
+export interface CounterExpense {
+  id: number /* int64 */;
+  category: string;
+  amount: string;
+  description: string;
+  serviceName: string;
+  paidByName: string;
+  createdAt: string;
+}
+/**
+ * ExpensesPage is the Expenses tab: category suggestions, services a cost can be
+ * tagged to, and today's expenses.
+ */
+export interface ExpensesPage {
+  categories: string[];
+  services: ServiceOption[];
+  today: CounterExpense[];
+}
+export interface ExpenseRequest extends CounterMoneyRequest {
+  category: string;
+  amount: string;
+  description: string;
+  serviceProductId: number /* int64 */;
+}
+
+//////////
 // source: dto_drawer.go
 
 export interface DrawerSession {

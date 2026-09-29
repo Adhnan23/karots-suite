@@ -1,0 +1,44 @@
+import type { ReactNode } from 'react'
+import { money } from '@/lib/money'
+import { cn } from '@/lib/utils'
+import { PANEL } from '@/features/till/ui'
+
+/** A counter tab: the job on the left, the context (list/history) on the right. */
+export function CounterPage({ children, aside }: { children: ReactNode; aside: ReactNode }) {
+  return (
+    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-[14px] p-[14px]">
+      <section className={cn(PANEL, 'flex min-h-0 flex-col overflow-auto p-5')}>{children}</section>
+      <aside className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden')}>{aside}</aside>
+    </div>
+  )
+}
+
+export function PaneTitle({ title, sub, right }: { title: string; sub?: ReactNode; right?: ReactNode }) {
+  return (
+    <header className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3.5">
+      <span className="font-bold">{title}{sub && <small className="ml-2 font-medium text-muted-foreground">{sub}</small>}</span>
+      {right}
+    </header>
+  )
+}
+
+/** Tap-to-pick tiles for "where does the cash come from". value "" = my drawer. */
+export function SourcePicker({ value, onChange, lockers, sym }: {
+  value: string
+  onChange: (v: string) => void
+  lockers: { id: number; name: string; balance: string }[]
+  sym: string
+}) {
+  const opts = [{ v: '', name: 'My drawer', sub: 'cash in the till' }, ...lockers.map((l) => ({ v: String(l.id), name: l.name, sub: money(sym, l.balance) }))]
+  return (
+    <div role="radiogroup" aria-label="Paid from" className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-1.5">
+      {opts.map((o) => (
+        <button key={o.v} type="button" role="radio" aria-checked={value === o.v} onClick={() => onChange(o.v)}
+          className="flex flex-col items-start rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2 text-left aria-checked:border-brand aria-checked:bg-brand aria-checked:text-brand-foreground">
+          <b className="text-[13px]">{o.name}</b>
+          <small className="text-[11.5px] opacity-75 tabular-nums">{o.sub}</small>
+        </button>
+      ))}
+    </div>
+  )
+}

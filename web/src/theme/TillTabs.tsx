@@ -11,7 +11,9 @@ type Tab = { to: string; label: string; show?: (c: TillConfig) => boolean }
 const PRIMARY: Tab[] = [
   { to: '/till', label: 'Sell' },
 ]
-const MORE: Tab[] = []
+const MORE: Tab[] = [
+  { to: '/till/expenses', label: 'Expenses', show: (c) => c.canHandleSuppliers },
+]
 
 const TAB = 'whitespace-nowrap rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted'
 const ON = 'bg-selected text-selected-foreground hover:bg-selected'

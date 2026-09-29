@@ -63,6 +63,7 @@ func (h *handlers) registerTill(v1 *echo.Group) {
 	h.registerTillCustomers(g)
 	h.registerTillDrawer(g)
 	h.registerTillSales(g)
+	h.registerCounter(g)
 }
 
 func dec2(d decimal.Decimal) string { return d.StringFixed(2) }

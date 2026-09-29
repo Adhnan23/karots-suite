@@ -18,6 +18,7 @@ import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
+import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key'
 
@@ -65,6 +66,11 @@ const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedAdminSystemAppearanceRoute =
   AuthedAdminSystemAppearanceRouteImport.update({
     id: '/system/appearance',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRouteWithChildren
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/till/expenses': typeof AuthedTillExpensesRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/till/expenses': typeof AuthedTillExpensesRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/till/expenses': typeof AuthedTillExpensesRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/account/pin'
+    | '/till/expenses'
     | '/admin/'
     | '/till/'
     | '/admin/system/appearance'
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/lock'
     | '/login'
     | '/account/pin'
+    | '/till/expenses'
     | '/admin'
     | '/till'
     | '/admin/system/appearance'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/till'
     | '/account/pin'
+    | '/_authed/till/expenses'
     | '/_authed/admin/'
     | '/_authed/till/'
     | '/_authed/admin/system/appearance'
@@ -224,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillIndexRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/expenses': {
+      id: '/_authed/till/expenses'
+      path: '/expenses'
+      fullPath: '/till/expenses'
+      preLoaderRoute: typeof AuthedTillExpensesRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/admin/system/appearance': {
       id: '/_authed/admin/system/appearance'
       path: '/system/appearance'
@@ -256,11 +275,13 @@ const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
 )
 
 interface AuthedTillRouteChildren {
+  AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
   AuthedTillIndexRoute: typeof AuthedTillIndexRoute
   AuthedTillXKeyRoute: typeof AuthedTillXKeyRoute
 }
 
 const AuthedTillRouteChildren: AuthedTillRouteChildren = {
+  AuthedTillExpensesRoute: AuthedTillExpensesRoute,
   AuthedTillIndexRoute: AuthedTillIndexRoute,
   AuthedTillXKeyRoute: AuthedTillXKeyRoute,
 }

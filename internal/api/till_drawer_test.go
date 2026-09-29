@@ -9,6 +9,7 @@ import (
 
 func TestTillDrawerLifecycle(t *testing.T) {
 	te := newTestEnv(t)
+	te.db.Exec(`UPDATE settings SET allow_untracked_cash = true`) //nolint:errcheck // the withdraw below has no locker
 	// A fresh phone each run: opening/moving the drawer anchors this user via
 	// RESTRICT FKs (cash_register.user_id, cash_movements.user_id), so seedUser's
 	// cleanup can never delete it and a fixed phone would collide on the next run.

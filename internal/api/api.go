@@ -9,6 +9,7 @@ import (
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/auth"
+	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"
@@ -24,6 +25,7 @@ type Deps struct {
 	Auth         *auth.Service
 	Settings     *settings.Service
 	CashRegister *cashregister.Service
+	Cashflow     *cashflow.Service
 	Sales        *sales.Service
 	KickDrawer   func(context.Context)
 }

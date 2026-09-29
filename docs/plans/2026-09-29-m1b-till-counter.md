@@ -25,10 +25,10 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
 
 ## Tasks
 
-- [ ] **1. Tabs + counter scaffold.** `TillShell` tab row + More menu, `slots.tillTabs`, `canHandleSuppliers`
+- [x] **1. Tabs + counter scaffold.** `TillShell` tab row + More menu, `slots.tillTabs`, `canHandleSuppliers`
   in `TillConfig`, a shared `CounterLayout` (find/act panes), and route stubs. Check: tabs at 1024/1366, and the
   cart survives Sell → Returns → Sell.
-- [ ] **2. Expenses** (`cashier_expenses.go`). List today's counter expenses, and record one (category, amount,
+- [x] **2. Expenses** (`cashier_expenses.go`). List today's counter expenses, and record one (category, amount,
   note, paid from the drawer or a locker). Gated by the supplier flag.
 - [ ] **3. Write-off + Convert** (`cashier_damage.go`, `cashier_conversions.go`). Write-off: product search →
   lot → qty → reason. Convert: pick a conversion recipe → qty → run.
