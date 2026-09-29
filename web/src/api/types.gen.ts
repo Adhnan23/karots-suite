@@ -312,6 +312,114 @@ export interface WarrantyReceiptReplaceRequest {
 export interface WarrantyClaimRef {
   claimId: number /* int64 */;
 }
+export interface SupplierRow {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  contact: string;
+  owed: string; // what the shop owes them (negative = they hold our advance)
+  oldDebt: string; // opening balance not tied to an invoice
+  creditDays: number /* int */;
+}
+export interface SupplierInvoice {
+  id: number /* int64 */;
+  invoiceNo: string;
+  date: string;
+  dueDate: string; // "" = none
+  total: string;
+  balance: string;
+}
+export interface SupplierOrder {
+  id: number /* int64 */;
+  date: string;
+  total: string;
+  notes: string;
+}
+export interface SupplierView extends SupplierRow {
+  invoices: SupplierInvoice[]; // open, oldest first
+  orders: SupplierOrder[]; // drafts waiting to be received
+}
+/**
+ * SupplierPayRequest pays one amount, spread by the forked waterfall:
+ * Mode "pay" = open invoices oldest-first, "old" = old debt first; the rest is an advance.
+ */
+export interface SupplierPayRequest extends CounterMoneyRequest {
+  amount: string;
+  mode: string;
+  method: string; // cash | card | online
+  reference: string;
+  note: string;
+}
+/**
+ * SupplierRefundRequest takes money back from a supplier (into the drawer or a locker).
+ */
+export interface SupplierRefundRequest extends CounterMoneyRequest {
+  amount: string;
+  method: string;
+  reference: string;
+  note: string;
+}
+export interface StockLine {
+  productId: number /* int64 */;
+  name: string;
+  ordered: string; // on an order; "" for walk-in deliveries
+  quantity: string;
+  freeQty: string;
+  costPrice: string;
+  sellingPrice: string;
+  expiryDate: string; // YYYY-MM-DD or ""
+}
+export interface OrderView {
+  id: number /* int64 */;
+  supplierId: number /* int64 */;
+  supplierName: string;
+  date: string;
+  status: string; // draft until received
+  notes: string;
+  lines: StockLine[];
+}
+/**
+ * PayNow settles part of a delivery on the spot (clamped to what's owed on it).
+ */
+export interface PayNow {
+  amount: string; // "" / 0 = all on credit
+  method: string;
+  lockerId: number /* int64 */;
+}
+export interface ReceiveRequest {
+  invoiceNo: string;
+  notes: string;
+  lines: StockLine[];
+  keepRemainder: boolean; // against an order: the unreceived rest stays on order
+  pay: PayNow;
+  deferDrawerKick: boolean;
+}
+export interface ReceiveResult {
+  purchaseId: number /* int64 */;
+  total: string;
+  paid: string;
+  receiptId?: number /* int64 */; // CR- slip when cash left the counter
+}
+export interface OrderRequest {
+  notes: string;
+  lines: StockLine[];
+}
+export interface NewSupplierRequest {
+  name: string;
+  phone: string;
+}
+/**
+ * IntakeProductRequest creates a product first met on a delivery (Wanted = while
+ * taking an order: prices are never taken from a quote).
+ */
+export interface IntakeProductRequest {
+  name: string;
+  barcode: string;
+  costPrice: string;
+  sellingPrice: string;
+  unitId: number /* int64 */;
+  wanted: boolean;
+}
 
 //////////
 // source: dto_drawer.go

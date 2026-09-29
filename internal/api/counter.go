@@ -36,6 +36,16 @@ func (h *handlers) registerCounter(g *echo.Group) {
 	sup := g.Group("", middleware.RequireSupplierAccess())
 	sup.GET("/expenses", h.CounterExpenses)
 	sup.POST("/expenses", h.CounterExpenseCreate)
+	sup.GET("/suppliers", h.CounterSuppliers)
+	sup.GET("/suppliers/:id", h.CounterSupplier)
+	sup.POST("/suppliers/:id/pay", h.CounterSupplierPay)
+	sup.POST("/suppliers/:id/refund", h.CounterSupplierRefund)
+	sup.POST("/suppliers", h.CounterSupplierCreate)
+	sup.POST("/suppliers/:id/receive", h.CounterReceiveWalkIn)
+	sup.POST("/suppliers/:id/order", h.CounterOrderCreate)
+	sup.GET("/orders/:id", h.CounterOrder)
+	sup.POST("/orders/:id/receive", h.CounterReceiveOrder)
+	sup.POST("/intake-products", h.CounterIntakeProduct)
 }
 
 // counterSource resolves where counter cash comes from: the cashier's own drawer
@@ -54,6 +64,15 @@ func (h *handlers) counterSource(c echo.Context, lockerID int64) (cashflow.Locat
 		}
 	}
 	return cashflow.Location{}, apperr.Forbidden("you can't take cash from there")
+}
+
+// counterSlip is afterCounterMove for moves that may not touch the counter at
+// all (card/online with no account): then there's no slip and nothing to pop.
+func (h *handlers) counterSlip(c echo.Context, loc cashflow.Location, req CounterMoneyRequest, rec *cashflow.Receipt) error {
+	if rec == nil {
+		return c.JSON(http.StatusCreated, ReceiptRef{})
+	}
+	return h.afterCounterMove(c.Request().Context(), c, loc, req, rec)
 }
 
 // afterCounterMove pops the drawer for a till cash move unless the SPA will

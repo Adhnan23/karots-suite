@@ -58,3 +58,7 @@ SELECT 'E2E Phone', '4790000000066', id, 1, 20000, 25000, 12 FROM categories WHE
 INSERT INTO warranty_units (product_id, serial_no, customer_id, sold_at, warranty_months, warranty_until, source)
 SELECT p.id, 'E2E-SN-0001', c.id, now() - interval '2 months', 12, (now() + interval '10 months')::date, 'sale'
 FROM products p, customers c WHERE p.name = 'E2E Phone' AND c.name = 'E2E Credit';
+
+-- A supplier the shop still owes an old debt to, for the Suppliers tab.
+INSERT INTO suppliers (name, phone, credit_days, opening_balance, outstanding_balance)
+VALUES ('E2E Distributors', '0112345678', 30, 1500, 1500);

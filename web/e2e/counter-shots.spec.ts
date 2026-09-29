@@ -87,6 +87,18 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('New serial').fill('E2E-SN-0002')
     await page.getByRole('button', { name: 'Not charging' }).click()
   },
+  suppliers: async (page) => {
+    const sup = (await (await page.request.get('/api/v1/till/suppliers?q=E2E%20Distributors')).json())[0]
+    const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+    const soap = await (await page.request.get('/api/v1/till/products/barcode/4790000000028')).json()
+    await page.request.post(`/api/v1/till/suppliers/${sup.id}/order`, { data: { notes: '', lines: [
+      { productId: milk.id, quantity: '24' }, { productId: soap.id, quantity: '12' }] } })
+    await page.getByRole('button', { name: /E2E Distributors/ }).click()
+    await page.getByRole('button', { name: 'Receive stock' }).click()
+    await page.getByRole('button', { name: /^#\d+/ }).first().click()
+    await page.getByLabel('Quantity of E2E Lot Soap').fill('10')
+    await page.getByLabel('Pay now').fill('1000')
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')

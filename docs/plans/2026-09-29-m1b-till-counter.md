@@ -42,7 +42,7 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
   The Z report for the user's own session.
 - [x] **8. Warranty** (`cashier_warranty.go`). Look up by serial or by receipt → claim → replace (stock swap) →
   claim slip.
-- [ ] **9. Suppliers at the counter** (`cashier_suppliers.go`, `cashier_supplier_pay.go`, `cashier_receive.go`).
+- [x] **9. Suppliers at the counter** (`cashier_suppliers.go`, `cashier_supplier_pay.go`, `cashier_receive.go`).
   Supplier list → pay / refund, receive walk-in stock, order, receive against an order, quick-create supplier /
   product / wanted item.
 - [ ] **10. Flows, parity, docs.** Playwright flows per tab (`web/e2e/counter.spec.ts`), tick parity rows,

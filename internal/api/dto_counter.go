@@ -297,3 +297,124 @@ type WarrantyReceiptReplaceRequest struct {
 type WarrantyClaimRef struct {
 	ClaimID int64 `json:"claimId"`
 }
+
+// ---- Suppliers at the counter ----
+
+type SupplierRow struct {
+	ID         int64  `json:"id"`
+	Name       string `json:"name"`
+	Phone      string `json:"phone"`
+	Contact    string `json:"contact"`
+	Owed       string `json:"owed"`    // what the shop owes them (negative = they hold our advance)
+	OldDebt    string `json:"oldDebt"` // opening balance not tied to an invoice
+	CreditDays int    `json:"creditDays"`
+}
+
+type SupplierInvoice struct {
+	ID        int64  `json:"id"`
+	InvoiceNo string `json:"invoiceNo"`
+	Date      string `json:"date"`
+	DueDate   string `json:"dueDate"` // "" = none
+	Total     string `json:"total"`
+	Balance   string `json:"balance"`
+}
+
+type SupplierOrder struct {
+	ID    int64  `json:"id"`
+	Date  string `json:"date"`
+	Total string `json:"total"`
+	Notes string `json:"notes"`
+}
+
+type SupplierView struct {
+	SupplierRow `tstype:",extends"`
+	Invoices    []SupplierInvoice `json:"invoices"` // open, oldest first
+	Orders      []SupplierOrder   `json:"orders"`   // drafts waiting to be received
+}
+
+// SupplierPayRequest pays one amount, spread by the forked waterfall:
+// Mode "pay" = open invoices oldest-first, "old" = old debt first; the rest is an advance.
+type SupplierPayRequest struct {
+	CounterMoneyRequest `tstype:",extends"`
+	Amount              string `json:"amount"`
+	Mode                string `json:"mode"`
+	Method              string `json:"method"` // cash | card | online
+	Reference           string `json:"reference"`
+	Note                string `json:"note"`
+}
+
+// SupplierRefundRequest takes money back from a supplier (into the drawer or a locker).
+type SupplierRefundRequest struct {
+	CounterMoneyRequest `tstype:",extends"`
+	Amount              string `json:"amount"`
+	Method              string `json:"method"`
+	Reference           string `json:"reference"`
+	Note                string `json:"note"`
+}
+
+// ---- Receiving stock and orders at the counter ----
+
+type StockLine struct {
+	ProductID    int64  `json:"productId"`
+	Name         string `json:"name"`
+	Ordered      string `json:"ordered"` // on an order; "" for walk-in deliveries
+	Quantity     string `json:"quantity"`
+	FreeQty      string `json:"freeQty"`
+	CostPrice    string `json:"costPrice"`
+	SellingPrice string `json:"sellingPrice"`
+	ExpiryDate   string `json:"expiryDate"` // YYYY-MM-DD or ""
+}
+
+type OrderView struct {
+	ID           int64       `json:"id"`
+	SupplierID   int64       `json:"supplierId"`
+	SupplierName string      `json:"supplierName"`
+	Date         string      `json:"date"`
+	Status       string      `json:"status"` // draft until received
+	Notes        string      `json:"notes"`
+	Lines        []StockLine `json:"lines"`
+}
+
+// PayNow settles part of a delivery on the spot (clamped to what's owed on it).
+type PayNow struct {
+	Amount   string `json:"amount"` // "" / 0 = all on credit
+	Method   string `json:"method"`
+	LockerID int64  `json:"lockerId"`
+}
+
+type ReceiveRequest struct {
+	InvoiceNo       string      `json:"invoiceNo"`
+	Notes           string      `json:"notes"`
+	Lines           []StockLine `json:"lines"`
+	KeepRemainder   bool        `json:"keepRemainder"` // against an order: the unreceived rest stays on order
+	Pay             PayNow      `json:"pay"`
+	DeferDrawerKick bool        `json:"deferDrawerKick"`
+}
+
+type ReceiveResult struct {
+	PurchaseID int64  `json:"purchaseId"`
+	Total      string `json:"total"`
+	Paid       string `json:"paid"`
+	ReceiptID  *int64 `json:"receiptId,omitempty"` // CR- slip when cash left the counter
+}
+
+type OrderRequest struct {
+	Notes string      `json:"notes"`
+	Lines []StockLine `json:"lines"`
+}
+
+type NewSupplierRequest struct {
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
+}
+
+// IntakeProductRequest creates a product first met on a delivery (Wanted = while
+// taking an order: prices are never taken from a quote).
+type IntakeProductRequest struct {
+	Name         string `json:"name"`
+	Barcode      string `json:"barcode"`
+	CostPrice    string `json:"costPrice"`
+	SellingPrice string `json:"sellingPrice"`
+	UnitID       int64  `json:"unitId"`
+	Wanted       bool   `json:"wanted"`
+}

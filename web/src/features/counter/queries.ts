@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, SaleSummary, SaleView, WarrantyClaimRow, WarrantyReceiptView, WarrantyUnitRow, WarrantyUnitView, ZReport } from '@/api/types.gen'
+import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, OrderView, SaleSummary, SaleView, SupplierRow, SupplierView, WarrantyClaimRow, WarrantyReceiptView, WarrantyUnitRow, WarrantyUnitView, ZReport } from '@/api/types.gen'
 
 export const expensesQuery = queryOptions({ queryKey: ['till', 'expenses'], queryFn: () => api<ExpensesPage>('/till/expenses') })
 export const conversionsQuery = queryOptions({ queryKey: ['till', 'conversions'], queryFn: () => api<ConversionRow[]>('/till/conversions') })
@@ -20,3 +20,7 @@ export const warrantyReceiptQuery = (no: string) =>
   queryOptions({ queryKey: ['till', 'warranty-receipt', no], queryFn: () => api<WarrantyReceiptView>(`/till/warranty/receipt?no=${encodeURIComponent(no)}`), retry: false })
 export const warrantyClaimsQuery = (q: string) =>
   queryOptions({ queryKey: ['till', 'warranty-claims', q], queryFn: () => api<WarrantyClaimRow[]>(`/till/warranty-claims?q=${encodeURIComponent(q)}`) })
+export const suppliersQuery = (q: string) =>
+  queryOptions({ queryKey: ['till', 'suppliers', q], queryFn: () => api<SupplierRow[]>(`/till/suppliers?q=${encodeURIComponent(q)}`) })
+export const supplierQuery = (id: number) => queryOptions({ queryKey: ['till', 'supplier', id], queryFn: () => api<SupplierView>(`/till/suppliers/${id}`) })
+export const orderQuery = (id: number) => queryOptions({ queryKey: ['till', 'order', id], queryFn: () => api<OrderView>(`/till/orders/${id}`) })
