@@ -7,7 +7,9 @@ import { drawerQuery } from './api'
 import { CatalogPanel } from './catalog/CatalogPanel'
 import { CartPanel } from './cart-ui/CartPanel'
 import { CheckoutProvider } from './checkout/CheckoutProvider'
+import { Hotkeys } from './checkout/Hotkeys'
 import { Prompts } from './checkout/Prompts'
+import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
 import { PayPanel } from './pay/PayPanel'
 import { TillDialogs } from './TillDialogs'
@@ -43,10 +45,12 @@ function Body() {
         <PayPanel />
       </section>
       {drawer && !drawer.summary.session && <OpenRegister state={drawer} />}
+      <SaleComplete />
     </div>
   )
 }
 
+/** The sell screen (theme.md §7): catalogue | cart | pay. */
 export function TillScreen({ logout = false }: { logout?: boolean }) {
   return (
     <MotionConfig reducedMotion="user">
@@ -55,6 +59,7 @@ export function TillScreen({ logout = false }: { logout?: boolean }) {
           <Body />
           <TillDialogs />
           <Prompts />
+          <Hotkeys />
           <LogoutClose logout={logout} />
         </CheckoutProvider>
       </TillUiProvider>

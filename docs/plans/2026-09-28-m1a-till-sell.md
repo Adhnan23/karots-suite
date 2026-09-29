@@ -5604,7 +5604,7 @@ git commit -m "feat(web): till cart — qty stepper, line discounts, lot labels 
 - Produces:
   - `useCheckoutCtx(): { run(s?, confirmed?), answer(action|null, confirmed), dismiss(), newSale(), busy, prompt, consumable, done: SaleResult | null }`. Task 13 uses `done` and `newSale`.
 
-- [ ] **Step 1: Write the failing test** (Review Focus 4). Create `web/src/features/till/checkout/useCheckout.test.tsx`:
+- [x] **Step 1: Write the failing test** (Review Focus 4). Create `web/src/features/till/checkout/useCheckout.test.tsx`:
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -5668,7 +5668,7 @@ describe('useCheckout', () => {
 Run: `cd web && bunx vitest run src/features/till/checkout`
 Expected: FAIL (the module is missing).
 
-- [ ] **Step 2: The engine.** Create `web/src/features/till/checkout/useCheckout.ts`:
+- [x] **Step 2: The engine.** Create `web/src/features/till/checkout/useCheckout.ts`:
 
 ```ts
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -5785,7 +5785,7 @@ export function useCheckoutCtx() {
 }
 ```
 
-- [ ] **Step 3: Prompts.** Create `web/src/features/till/checkout/Prompts.tsx`:
+- [x] **Step 3: Prompts.** Create `web/src/features/till/checkout/Prompts.tsx`:
 
 ```tsx
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -5857,7 +5857,7 @@ export function Prompts() {
 }
 ```
 
-- [ ] **Step 4: Customer.** Create `web/src/features/till/pay/CustomerPicker.tsx`:
+- [x] **Step 4: Customer.** Create `web/src/features/till/pay/CustomerPicker.tsx`:
 
 ```tsx
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
@@ -6035,7 +6035,7 @@ export function AddCustomer() {
 }
 ```
 
-- [ ] **Step 5: Tender, summary, banner.** Create `web/src/features/till/pay/Tender.tsx`:
+- [x] **Step 5: Tender, summary, banner.** Create `web/src/features/till/pay/Tender.tsx`:
 
 ```tsx
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -6293,7 +6293,7 @@ export function ChangeBanner() {
 }
 ```
 
-- [ ] **Step 6: The panel and wiring.** Create `web/src/features/till/pay/PayPanel.tsx`:
+- [x] **Step 6: The panel and wiring.** Create `web/src/features/till/pay/PayPanel.tsx`:
 
 ```tsx
 import { useSuspenseQuery } from '@tanstack/react-query'
@@ -6384,12 +6384,12 @@ function ClearSale() {
       </section>
 ```
 
-- [ ] **Step 7: Test and check.**
+- [x] **Step 7: Test and check.**
 
 Run: `cd web && bunx vitest run && bunx tsc -b && bun run lint`
 Expected: PASS, including `useCheckout.test.tsx`.
 
-- [ ] **Step 8: UI GATE 3 — pay.**
+- [x] **Step 8: UI GATE 3 — pay.**
   1. `make build`, start the binary, and run `make e2e-seed`.
   2. Run `SHOTS=gate3 SHOTS_SCENE=sale bunx playwright test e2e/till-shots.spec.ts`.
   3. With the Playwright MCP browser, in all four combinations, capture:
@@ -6400,7 +6400,7 @@ Expected: PASS, including `useCheckout.test.tsx`.
      - Add customer, and the credit-limit edit
   4. **Stop.** Show the screenshots and wait for approval.
 
-- [ ] **Step 9: Commit** after approval.
+- [x] **Step 9: Commit** after approval.
 
 ```bash
 git add web
@@ -6430,7 +6430,7 @@ git commit -m "feat(web): till pay panel + checkout engine — customer picker (
   - `METHOD_LABEL` and `balanceText` (Task 12)
 - Produces: the finished sell screen.
 
-- [ ] **Step 1: Write the failing reducer test.** Append to `web/src/features/till/cart/store.test.ts`:
+- [x] **Step 1: Write the failing reducer test.** Append to `web/src/features/till/cart/store.test.ts`:
 
 ```ts
 describe('post-sale change banner', () => {
@@ -6445,9 +6445,9 @@ describe('post-sale change banner', () => {
 Run: `cd web && bunx vitest run src/features/till/cart/store.test.ts`
 Expected: FAIL (a type error, because the action doesn't exist).
 
-- [ ] **Step 2: Implement.** In `store.ts`, add `| { type: 'clearPostSaleChange' }` to `Action` and a case `case 'clearPostSaleChange': return { ...s, postSaleChange: 0 }`. Run the test again. Expected: PASS.
+- [x] **Step 2: Implement.** In `store.ts`, add `| { type: 'clearPostSaleChange' }` to `Action` and a case `case 'clearPostSaleChange': return { ...s, postSaleChange: 0 }`. Run the test again. Expected: PASS.
 
-- [ ] **Step 3: The overlay.** Create `web/src/features/till/checkout/SaleComplete.tsx`:
+- [x] **Step 3: The overlay.** Create `web/src/features/till/checkout/SaleComplete.tsx`:
 
 ```tsx
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -6510,7 +6510,7 @@ export function SaleComplete() {
 
 The completed-sale reprint is deliberately `printSale(res.id)` with no kick. In prompt mode the server already popped the drawer at sale time.
 
-- [ ] **Step 4: The post-sale banner.** Create `web/src/features/till/cart-ui/PostSaleChange.tsx`:
+- [x] **Step 4: The post-sale banner.** Create `web/src/features/till/cart-ui/PostSaleChange.tsx`:
 
 ```tsx
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -6554,7 +6554,7 @@ export function PostSaleChange() {
 
 In `CartPanel.tsx`, render `<PostSaleChange />` directly under the `<header>`.
 
-- [ ] **Step 5: Hotkeys.** Create `web/src/features/till/checkout/Hotkeys.tsx`:
+- [x] **Step 5: Hotkeys.** Create `web/src/features/till/checkout/Hotkeys.tsx`:
 
 ```tsx
 import { useEffect, useRef } from 'react'
@@ -6608,7 +6608,7 @@ export function Hotkeys() {
 }
 ```
 
-- [ ] **Step 6: Final screen.** Replace `web/src/features/till/TillScreen.tsx` with the finished version:
+- [x] **Step 6: Final screen.** Replace `web/src/features/till/TillScreen.tsx` with the finished version:
 
 ```tsx
 import { useQuery } from '@tanstack/react-query'
@@ -6681,7 +6681,7 @@ export function TillScreen({ logout = false }: { logout?: boolean }) {
 }
 ```
 
-- [ ] **Step 7: Test and check.**
+- [x] **Step 7: Test and check.**
 
 Run: `cd web && bunx vitest run && bunx tsc -b && bun run lint`
 Expected: PASS.
@@ -6696,7 +6696,7 @@ Then check these by hand on `make build`:
 - **Auto-lock** (set `lockTimeoutMinutes` to 1 via the admin later, or call `POST /api/v1/auth/lock` with curl) followed by unlock brings the same cart back.
 - **With `ask_to_print=false`** (`UPDATE settings SET ask_to_print=false`), a sale shows the green change banner in the cart instead of the overlay.
 
-- [ ] **Step 8: UI GATE 4 — the complete flow.**
+- [x] **Step 8: UI GATE 4 — the complete flow.**
   1. Run `SHOTS=gate4 SHOTS_SCENE=done bunx playwright test e2e/till-shots.spec.ts`, which captures the sale-complete overlay.
   2. Capture the post-sale change banner (auto-print mode) and the till at 1024 wide (two-column layout) with the MCP browser, in all four combinations.
   3. **Stop.** Show the screenshots and wait for approval.

@@ -5,6 +5,7 @@ import { configQuery } from '../api'
 import { useTill } from '../TillProvider'
 import { CartLineRow } from './CartLineRow'
 import { HeldStrip } from './HeldSales'
+import { PostSaleChange } from './PostSaleChange'
 
 export function CartPanel() {
   const cfg = useSuspenseQuery(configQuery).data
@@ -24,6 +25,7 @@ export function CartPanel() {
         <span>Current sale</span>
         <small className="font-medium text-muted-foreground">{qtyText(items)} items</small>
       </header>
+      <PostSaleChange />
       <div ref={list} className="flex min-h-0 flex-1 flex-col overflow-auto px-2.5 pb-2.5">
         {state.lines.length
           ? state.lines.map((l) => <CartLineRow key={l.key} line={l} sym={cfg.symbol} />)

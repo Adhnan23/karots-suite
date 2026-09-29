@@ -34,6 +34,7 @@ export type Action =
   | { type: 'approveOverLimit' }
   | { type: 'resume'; held: HeldSale }
   | { type: 'newSale'; saleType: SaleType; change?: number }
+  | { type: 'clearPostSaleChange' }
   | { type: 'clearNotice' }
   | { type: 'restore'; state: TillState }
 
@@ -119,6 +120,8 @@ export function tillReducer(s: TillState, a: Action): TillState {
     }
     case 'newSale':
       return { ...initialState(a.saleType), seq: s.seq, postSaleChange: a.change ?? 0 }
+    case 'clearPostSaleChange':
+      return { ...s, postSaleChange: 0 }
     case 'clearNotice':
       return { ...s, notice: null }
     case 'restore':

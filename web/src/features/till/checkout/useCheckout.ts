@@ -44,12 +44,12 @@ export function useCheckout() {
       }
       const res = await api<SaleResult>('/till/sales', { json: buildSaleRequest(s, gate.payments, { deferDrawerKick: !cfg.askToPrint }) })
       void Promise.allSettled(slots.tillAfterSale.map((fn) => fn({ saleId: res.id, lines: s.lines })))
-      toast.success('Sale complete')
       if (cfg.askToPrint) {
         setDone(res)
       } else {
         // No modal: print in the background (drawer pulse merged into the ONE job)
         // and reset straight away; the change survives as a banner.
+        toast.success('Sale complete')
         void printSale(res.id, true)
         dispatch({ type: 'newSale', saleType, change: num(res.changeGiven) })
       }

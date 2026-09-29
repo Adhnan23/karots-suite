@@ -41,17 +41,18 @@ async function setScene(page: Page) {
     await s.fill(code)
     await s.press('Enter')
   }
-  await s.fill('4790000000028')
-  await s.press('Enter')
-  await page.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /120\.00/ }).click()
   const amount = page.getByLabel('Amount tendered')
   if (scene === 'done') {
+    // No lot soap here: each completed run sells one, and 8 runs drain its 5-unit first lot.
     await amount.fill('1000')
     await amount.press('Enter')
     await amount.press('Enter')
     await page.getByRole('dialog', { name: /complete/ }).waitFor()
     return
   }
+  await s.fill('4790000000028')
+  await s.press('Enter')
+  await page.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /120\.00/ }).click()
   await page.getByRole('button', { name: /Walk-in customer/ }).click()
   await page.getByLabel('Search customers').fill('E2E Credit')
   await page.getByLabel('Search customers').press('Enter')

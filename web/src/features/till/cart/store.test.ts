@@ -40,4 +40,9 @@ describe('tillReducer', () => {
     expect(s.lines).toEqual([])
     expect(s.saleType).toBe('wholesale')
   })
+  it('clears on demand without touching the (already empty) cart', () => {
+    let s = tillReducer(initialState('retail'), { type: 'newSale', saleType: 'retail', change: 25 })
+    s = tillReducer(s, { type: 'clearPostSaleChange' })
+    expect(s.postSaleChange).toBe(0)
+  })
 })
