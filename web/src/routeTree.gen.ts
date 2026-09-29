@@ -18,7 +18,9 @@ import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
+import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
+import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key'
 
@@ -66,9 +68,19 @@ const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillConvertRoute = AuthedTillConvertRouteImport.update({
+  id: '/convert',
+  path: '/convert',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
+const AuthedTillWriteOffRoute = AuthedTillWriteOffRouteImport.update({
+  id: '/write-off',
+  path: '/write-off',
   getParentRoute: () => AuthedTillRoute,
 } as any)
 const AuthedAdminSystemAppearanceRoute =
@@ -90,7 +102,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRouteWithChildren
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/till/convert': typeof AuthedTillConvertRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -101,7 +115,9 @@ export interface FileRoutesByTo {
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/till/convert': typeof AuthedTillConvertRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -116,7 +132,9 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
+  '/_authed/till/write-off': typeof AuthedTillWriteOffRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
@@ -131,7 +149,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/account/pin'
+    | '/till/convert'
     | '/till/expenses'
+    | '/till/write-off'
     | '/admin/'
     | '/till/'
     | '/admin/system/appearance'
@@ -142,7 +162,9 @@ export interface FileRouteTypes {
     | '/lock'
     | '/login'
     | '/account/pin'
+    | '/till/convert'
     | '/till/expenses'
+    | '/till/write-off'
     | '/admin'
     | '/till'
     | '/admin/system/appearance'
@@ -156,7 +178,9 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/till'
     | '/account/pin'
+    | '/_authed/till/convert'
     | '/_authed/till/expenses'
+    | '/_authed/till/write-off'
     | '/_authed/admin/'
     | '/_authed/till/'
     | '/_authed/admin/system/appearance'
@@ -236,11 +260,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillIndexRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/convert': {
+      id: '/_authed/till/convert'
+      path: '/convert'
+      fullPath: '/till/convert'
+      preLoaderRoute: typeof AuthedTillConvertRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/till/expenses': {
       id: '/_authed/till/expenses'
       path: '/expenses'
       fullPath: '/till/expenses'
       preLoaderRoute: typeof AuthedTillExpensesRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
+    '/_authed/till/write-off': {
+      id: '/_authed/till/write-off'
+      path: '/write-off'
+      fullPath: '/till/write-off'
+      preLoaderRoute: typeof AuthedTillWriteOffRouteImport
       parentRoute: typeof AuthedTillRoute
     }
     '/_authed/admin/system/appearance': {
@@ -275,13 +313,17 @@ const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
 )
 
 interface AuthedTillRouteChildren {
+  AuthedTillConvertRoute: typeof AuthedTillConvertRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
+  AuthedTillWriteOffRoute: typeof AuthedTillWriteOffRoute
   AuthedTillIndexRoute: typeof AuthedTillIndexRoute
   AuthedTillXKeyRoute: typeof AuthedTillXKeyRoute
 }
 
 const AuthedTillRouteChildren: AuthedTillRouteChildren = {
+  AuthedTillConvertRoute: AuthedTillConvertRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
+  AuthedTillWriteOffRoute: AuthedTillWriteOffRoute,
   AuthedTillIndexRoute: AuthedTillIndexRoute,
   AuthedTillXKeyRoute: AuthedTillXKeyRoute,
 }

@@ -159,4 +159,5 @@ type WriteOffRequest struct {
 	BatchID   int64  `json:"batchId"`
 	Quantity  string `json:"quantity"`
 	Note      string `json:"note"`
+	Reason    string `json:"reason"` // damage (default) | own_use | staff — decides the P&L line
 }

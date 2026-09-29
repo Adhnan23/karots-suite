@@ -98,6 +98,23 @@ export interface ExpenseRequest extends CounterMoneyRequest {
   description: string;
   serviceProductId: number /* int64 */;
 }
+/**
+ * ConversionRow is one "break a pack" recipe: 1 From = Ratio × To.
+ */
+export interface ConversionRow {
+  id: number /* int64 */;
+  fromName: string;
+  toName: string;
+  fromUnit: string;
+  toUnit: string;
+  ratio: string;
+  fromStock: string;
+  toStock: string;
+  note: string;
+}
+export interface RunConversionRequest {
+  quantity: string; // source units to convert
+}
 
 //////////
 // source: dto_drawer.go
@@ -396,4 +413,5 @@ export interface WriteOffRequest {
   batchId: number /* int64 */;
   quantity: string;
   note: string;
+  reason: string; // damage (default) | own_use | staff — decides the P&L line
 }

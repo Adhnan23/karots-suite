@@ -3,11 +3,11 @@ import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { PANEL } from '@/features/till/ui'
 
-/** A counter tab: the job on the left, the context (list/history) on the right. */
-export function CounterPage({ children, aside }: { children: ReactNode; aside: ReactNode }) {
+/** A counter tab: two panels. flush = the left panel lays out its own padding (a find list). */
+export function CounterPage({ children, aside, flush }: { children: ReactNode; aside: ReactNode; flush?: boolean }) {
   return (
     <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-[14px] p-[14px]">
-      <section className={cn(PANEL, 'flex min-h-0 flex-col overflow-auto p-5')}>{children}</section>
+      <section className={cn(PANEL, 'flex min-h-0 flex-col', flush ? 'overflow-hidden' : 'overflow-auto p-5')}>{children}</section>
       <aside className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden')}>{aside}</aside>
     </div>
   )

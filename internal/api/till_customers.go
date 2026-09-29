@@ -108,20 +108,27 @@ func (h *handlers) TillQuickItem(c echo.Context) error {
 	return c.JSON(http.StatusOK, tillProduct(*p))
 }
 
-// TillWriteOff writes a lot off as damage (batch-specific) so the till stops
-// offering it. Same permission as karots-pos's cashier damage route (any role).
+// writeOffMsg is the audit line per reason (karots-pos consumeMsg).
+var writeOffMsg = map[string]string{"damage": "wrote off at till", "own_use": "shop own use at till", "staff": "staff welfare at till"}
+
+// TillWriteOff removes stock for a non-sale reason (damage by default; the
+// Write-off tab also books own use / staff welfare), batch-specific so the till
+// stops offering that lot. Same permission as karots-pos's cashier damage route.
 func (h *handlers) TillWriteOff(c echo.Context) error {
 	var req WriteOffRequest
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: req.Quantity, Reason: "damage", Note: req.Note, BatchID: req.BatchID}
+	if req.Reason == "" {
+		req.Reason = "damage"
+	}
+	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: req.Quantity, Reason: req.Reason, Note: req.Note, BatchID: req.BatchID}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
 	if err := h.t.stock.Consume(c.Request().Context(), in, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(req.ProductID, 10), "wrote off at till: "+req.Note)
+	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(req.ProductID, 10), writeOffMsg[req.Reason]+": "+req.Note)
 	return c.NoContent(http.StatusNoContent)
 }

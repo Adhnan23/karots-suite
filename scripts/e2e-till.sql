@@ -40,3 +40,14 @@ WHERE g.name = 'E2E Dairy' AND p.name IN ('E2E Milk', 'E2E Yoghurt');
 
 INSERT INTO customers (name, phone, credit_limit) VALUES ('E2E Credit', '0771000001', 1000);
 INSERT INTO lockers (name, kind, cashier_access) VALUES ('E2E Card machine', 'card', true);
+
+-- A pack the Convert tab breaks open: 1 crate = 12 milk.
+INSERT INTO products (name, barcode, category_id, unit_id, cost_price, selling_price)
+SELECT 'E2E Milk Crate', '4790000000059', id, 1, 900, 1150 FROM categories WHERE name = 'E2E Goods';
+INSERT INTO stock (product_id, quantity) SELECT id, 3 FROM products WHERE name = 'E2E Milk Crate'
+ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity;
+INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, selling_price)
+SELECT id, 3, 3, 900, 0 FROM products WHERE name = 'E2E Milk Crate';
+INSERT INTO product_conversions (from_product_id, to_product_id, ratio, note)
+SELECT c.id, m.id, 12, 'Open a crate when the fridge runs low' FROM products c, products m
+WHERE c.name = 'E2E Milk Crate' AND m.name = 'E2E Milk';

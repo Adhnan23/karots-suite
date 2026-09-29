@@ -41,3 +41,22 @@ type ExpenseRequest struct {
 	Description         string `json:"description"`
 	ServiceProductID    int64  `json:"serviceProductId"`
 }
+
+// ---- Convert ----
+
+// ConversionRow is one "break a pack" recipe: 1 From = Ratio × To.
+type ConversionRow struct {
+	ID        int64  `json:"id"`
+	FromName  string `json:"fromName"`
+	ToName    string `json:"toName"`
+	FromUnit  string `json:"fromUnit"`
+	ToUnit    string `json:"toUnit"`
+	Ratio     string `json:"ratio"`
+	FromStock string `json:"fromStock"`
+	ToStock   string `json:"toStock"`
+	Note      string `json:"note"`
+}
+
+type RunConversionRequest struct {
+	Quantity string `json:"quantity"` // source units to convert
+}

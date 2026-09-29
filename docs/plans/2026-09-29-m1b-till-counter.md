@@ -30,7 +30,7 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
   cart survives Sell → Returns → Sell.
 - [x] **2. Expenses** (`cashier_expenses.go`). List today's counter expenses, and record one (category, amount,
   note, paid from the drawer or a locker). Gated by the supplier flag.
-- [ ] **3. Write-off + Convert** (`cashier_damage.go`, `cashier_conversions.go`). Write-off: product search →
+- [x] **3. Write-off + Convert** (`cashier_damage.go`, `cashier_conversions.go`). Write-off: product search →
   lot → qty → reason. Convert: pick a conversion recipe → qty → run.
 - [ ] **4. Labels** (`cashier_labels.go`). Pick products and qty, then send to the label printer.
 - [ ] **5. Returns** (`cashier_returns.go`). Find a sale by receipt no/phone/today's list → returnable lines →

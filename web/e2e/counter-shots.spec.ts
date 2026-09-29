@@ -27,6 +27,18 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Electricity', exact: true }).click()
     await page.getByLabel('Amount').fill('1200')
   },
+  'write-off': async (page) => {
+    await page.getByLabel('Find a product').fill('Lot Soap')
+    await page.getByRole('option').first().click()
+    await page.getByRole('radio', { name: /Shop use/ }).click()
+    await page.getByRole('radio', { name: /120\.00/ }).click()
+    await page.getByLabel('Quantity').fill('2')
+    await page.getByLabel('Note').fill('Washing the counter')
+  },
+  convert: async (page) => {
+    await page.getByRole('button', { name: /Milk Crate/ }).click()
+    await page.getByLabel('Packs to open').fill('2')
+  },
 }
 
 for (const palette of ['studio', 'night']) {
@@ -44,7 +56,7 @@ for (const palette of ['studio', 'night']) {
         if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 4 }, sourceLockerId: 0 } })
         await page.goto(`/till/${tab}`)
         await page.waitForLoadState('networkidle')
-        if (palette === 'studio' && mode === 'light' && width === 1366) await prep[tab]?.(page)
+        await prep[tab]?.(page)
         await page.waitForTimeout(300)
         await page.screenshot({ path: `shots/${gate}/${tab}-${palette}-${mode}-${width}.png` })
       })

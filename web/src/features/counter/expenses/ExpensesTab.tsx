@@ -1,17 +1,17 @@
-import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { ExpenseRequest, ExpensesPage, ReceiptRef } from '@/api/types.gen'
+import type { ExpenseRequest, ReceiptRef } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, drawerQuery, errMsg } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { afterMove } from '../slip'
+import { expensesQuery } from '../queries'
 import { CounterPage, PaneTitle, SourcePicker } from '../ui'
 
-export const expensesQuery = queryOptions({ queryKey: ['till', 'expenses'], queryFn: () => api<ExpensesPage>('/till/expenses') })
 
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
