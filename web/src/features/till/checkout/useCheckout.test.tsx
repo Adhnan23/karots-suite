@@ -8,7 +8,7 @@ import { TillProvider, useTill } from '../TillProvider'
 import { useCheckout } from './useCheckout'
 
 const cfg: TillConfig = { symbol: 'Rs.', defaultSaleType: 'retail', askToPrint: false, openCashDrawer: false, allowUntrackedCash: true,
-  defaultLockerId: 0, allowContinueLast: true, canManageCredit: false, canHandleSuppliers: false, canSeeCost: false, canChangePin: true, isManager: false, tenderMethods: [] }
+  defaultLockerId: 0, allowContinueLast: true, canManageCredit: false, canHandleSuppliers: false, canSeeCost: false, canChangePin: true, isManager: false, tenderMethods: [], labelSize: '50x25' }
 const drawer: DrawerState = { summary: { cashSales: '0', payIns: '0', withdrawals: '0', expected: '0' }, denominations: [], lockers: [] }
 const sale: SaleResult = { id: 42, receiptNo: 'S-1', total: '100.00', paidAmount: '150.00', changeGiven: '50.00', roundingToAccount: '0.00', customerName: '', methods: ['cash'] }
 

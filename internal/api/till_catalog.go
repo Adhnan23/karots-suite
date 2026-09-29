@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -49,6 +50,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		CanChangePin:       role != auth.RoleCashier || h.d.Auth.AllowCashierPinChange(ctx),
 		IsManager:          role == auth.RoleAdmin || role == auth.RoleManager,
 		TenderMethods:      []TenderMethod{},
+		LabelSize:          fmt.Sprintf("%dx%d", st.LabelWidthMM, st.LabelHeightMM),
 	}
 	// A DB predating credit-as-a-payment may still hold 'credit' here; fall back
 	// to retail so the till stays usable (karots-pos cashier.POS did the same).

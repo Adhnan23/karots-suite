@@ -49,6 +49,8 @@
     --color-selected: var(--selected);
     --color-selected-foreground: var(--selected-foreground);
     --color-success: var(--success);
+    --color-paper: var(--paper);
+    --color-ink: var(--ink);
     --color-danger: var(--danger);
     --color-warning: var(--warning);
     --color-faint: var(--faint);

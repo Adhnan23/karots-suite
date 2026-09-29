@@ -40,3 +40,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Physical media (label/receipt previews): paper is white and ink is black in every
+ * palette and mode, because that's what comes out of the printer. */
+:root {
+  --paper: #fff;
+  --ink: #000;
+}

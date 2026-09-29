@@ -20,6 +20,7 @@ import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/ind
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
+import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
 import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key'
@@ -78,6 +79,11 @@ const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillLabelsRoute = AuthedTillLabelsRouteImport.update({
+  id: '/labels',
+  path: '/labels',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedTillWriteOffRoute = AuthedTillWriteOffRouteImport.update({
   id: '/write-off',
   path: '/write-off',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/account/pin': typeof AccountPinRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/labels': typeof AuthedTillLabelsRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/account/pin': typeof AccountPinRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/labels': typeof AuthedTillLabelsRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/account/pin': typeof AccountPinRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
+  '/_authed/till/labels': typeof AuthedTillLabelsRoute
   '/_authed/till/write-off': typeof AuthedTillWriteOffRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/account/pin'
     | '/till/convert'
     | '/till/expenses'
+    | '/till/labels'
     | '/till/write-off'
     | '/admin/'
     | '/till/'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/account/pin'
     | '/till/convert'
     | '/till/expenses'
+    | '/till/labels'
     | '/till/write-off'
     | '/admin'
     | '/till'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/account/pin'
     | '/_authed/till/convert'
     | '/_authed/till/expenses'
+    | '/_authed/till/labels'
     | '/_authed/till/write-off'
     | '/_authed/admin/'
     | '/_authed/till/'
@@ -274,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillExpensesRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/labels': {
+      id: '/_authed/till/labels'
+      path: '/labels'
+      fullPath: '/till/labels'
+      preLoaderRoute: typeof AuthedTillLabelsRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/till/write-off': {
       id: '/_authed/till/write-off'
       path: '/write-off'
@@ -315,6 +334,7 @@ const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
 interface AuthedTillRouteChildren {
   AuthedTillConvertRoute: typeof AuthedTillConvertRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
+  AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
   AuthedTillWriteOffRoute: typeof AuthedTillWriteOffRoute
   AuthedTillIndexRoute: typeof AuthedTillIndexRoute
   AuthedTillXKeyRoute: typeof AuthedTillXKeyRoute
@@ -323,6 +343,7 @@ interface AuthedTillRouteChildren {
 const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillConvertRoute: AuthedTillConvertRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
+  AuthedTillLabelsRoute: AuthedTillLabelsRoute,
   AuthedTillWriteOffRoute: AuthedTillWriteOffRoute,
   AuthedTillIndexRoute: AuthedTillIndexRoute,
   AuthedTillXKeyRoute: AuthedTillXKeyRoute,

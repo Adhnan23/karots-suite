@@ -13,6 +13,7 @@ import (
 
 // registerCounter mounts the till's counter tabs (M1b). g is /till, already protected.
 func (h *handlers) registerCounter(g *echo.Group) {
+	g.POST("/labels", h.CounterLabels)
 	g.GET("/conversions", h.CounterConversions)
 	g.POST("/conversions/:id/run", h.CounterConversionRun)
 	sup := g.Group("", middleware.RequireSupplierAccess())

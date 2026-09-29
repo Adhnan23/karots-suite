@@ -32,7 +32,7 @@ Spec §6.5 · parity rows `internal/web/register_cashier.go` + `register_*` supp
   note, paid from the drawer or a locker). Gated by the supplier flag.
 - [x] **3. Write-off + Convert** (`cashier_damage.go`, `cashier_conversions.go`). Write-off: product search →
   lot → qty → reason. Convert: pick a conversion recipe → qty → run.
-- [ ] **4. Labels** (`cashier_labels.go`). Pick products and qty, then send to the label printer.
+- [x] **4. Labels** (`cashier_labels.go`). Pick products and qty, then send to the label printer.
 - [ ] **5. Returns** (`cashier_returns.go`). Find a sale by receipt no/phone/today's list → returnable lines →
   qty per line → refund method (cash / to account) → slip.
 - [ ] **6. Credit** (`cashier_credit.go`). Customers with balance/advance → take a payment (cash/card/online) or

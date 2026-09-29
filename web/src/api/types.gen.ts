@@ -115,6 +115,19 @@ export interface ConversionRow {
 export interface RunConversionRequest {
   quantity: string; // source units to convert
 }
+/**
+ * LabelRequest prints Count copies of one sticker. ProductID fills a blank Code
+ * from the product (its barcode, else SKU<id>); Size "" = the shop default.
+ */
+export interface LabelRequest {
+  productId: number /* int64 */;
+  code: string;
+  format: string; // CODE128 (default) | EAN13 | EAN8 | UPC | CODE39
+  top: string;
+  bottom: string;
+  count: number /* int */;
+  size: string; // "WxH" mm
+}
 
 //////////
 // source: dto_drawer.go
@@ -289,6 +302,7 @@ export interface TillConfig {
   canChangePin: boolean;
   isManager: boolean; // admin/manager: shows the Admin link
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
+  labelSize: string; // the shop's default sticker, "WxH" mm
 }
 export interface SaleSuggestion {
   discountType: string; // "fixed" | "percent"

@@ -14,6 +14,7 @@ const PRIMARY: Tab[] = [
 const MORE: Tab[] = [
   { to: '/till/write-off', label: 'Write-off' },
   { to: '/till/convert', label: 'Convert' },
+  { to: '/till/labels', label: 'Labels' },
   { to: '/till/expenses', label: 'Expenses', show: (c) => c.canHandleSuppliers },
 ]
 

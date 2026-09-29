@@ -60,3 +60,17 @@ type ConversionRow struct {
 type RunConversionRequest struct {
 	Quantity string `json:"quantity"` // source units to convert
 }
+
+// ---- Labels ----
+
+// LabelRequest prints Count copies of one sticker. ProductID fills a blank Code
+// from the product (its barcode, else SKU<id>); Size "" = the shop default.
+type LabelRequest struct {
+	ProductID int64  `json:"productId"`
+	Code      string `json:"code"`
+	Format    string `json:"format"` // CODE128 (default) | EAN13 | EAN8 | UPC | CODE39
+	Top       string `json:"top"`
+	Bottom    string `json:"bottom"`
+	Count     int    `json:"count"`
+	Size      string `json:"size"` // "WxH" mm
+}

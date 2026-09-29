@@ -35,6 +35,12 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Quantity').fill('2')
     await page.getByLabel('Note').fill('Washing the counter')
   },
+  labels: async (page) => {
+    await page.getByLabel('Find a product').fill('Milk')
+    await page.getByRole('option', { name: /E2E Milk\b(?! Crate)/ }).click()
+    await page.getByRole('button', { name: '24', exact: true }).click()
+    await page.getByRole('button', { name: /40 × 30/ }).click()
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')

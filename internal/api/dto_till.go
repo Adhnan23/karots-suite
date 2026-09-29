@@ -23,6 +23,7 @@ type TillConfig struct {
 	CanChangePin       bool           `json:"canChangePin"`
 	IsManager          bool           `json:"isManager"`     // admin/manager: shows the Admin link
 	TenderMethods      []TenderMethod `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA
+	LabelSize          string         `json:"labelSize"`     // the shop's default sticker, "WxH" mm
 }
 
 // ---- Till: catalog ----
