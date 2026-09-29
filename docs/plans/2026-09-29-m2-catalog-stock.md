@@ -52,7 +52,7 @@ Losses report, M5).
   selling, supplier, opening qty, label print, session list with undo. Gated by the toggle.
 - [x] **10. Conversions** (`admin_conversions.go`). List, create/edit, disable/reactivate, run,
   run history.
-- [ ] **11. Labels + damage** (`admin_labels.go`, `admin_damage.go`). Admin label designer reusing
+- [x] **11. Labels + damage** (`admin_labels.go`, `admin_damage.go`). Admin label designer reusing
   the counter label components; admin write-off form (lot pick, reason).
 - [ ] **12. Flows, parity, docs.** Playwright `web/e2e/admin-catalog.spec.ts` + `admin-stock.spec.ts`
   (incl. 360px), the M1 leftover flows (credit refund, supplier refund, warranty by receipt, quick

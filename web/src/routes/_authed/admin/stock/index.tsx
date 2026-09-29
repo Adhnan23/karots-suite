@@ -1,8 +1,9 @@
+import { searchStr } from '@/lib/search'
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { StockPage } from '@/features/admin/stock/StockPage'
 
 type Search = { view?: 'levels' | 'moves'; q?: string; category?: number; low?: boolean; page?: number; product?: number; type?: string; user?: number; preset?: string; from?: string; to?: string }
-const str = (v: unknown) => (typeof v === 'string' ? v : '')
+const str = searchStr
 
 export const Route = createFileRoute('/_authed/admin/stock/')({
   validateSearch: (s: Record<string, unknown>): Search => ({

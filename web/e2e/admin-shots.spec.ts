@@ -157,6 +157,23 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Run history' }).click()
     await page.waitForLoadState('networkidle')
   },
+  'labels-product': async (page) => {
+    await page.getByRole('button', { name: /From a product/ }).click()
+    await page.getByLabel('Find a product').fill('Lot Soap')
+    await page.getByRole('button', { name: /^E2E Lot Soap/ }).click()
+    await page.getByLabel('Label preview').waitFor()
+  },
+  'label-sheet': async (page) => {
+    await page.goto('/print/labels?code=4790000000011&top=E2E%20Milk&bottom=Rs.%20100.00&count=12&size=50x25')
+    await page.getByLabel('Label 12').waitFor()
+  },
+  'write-off': async (page) => {
+    await page.getByRole('button', { name: 'Record write-off' }).click()
+    await page.getByRole('button', { name: 'Product', exact: true }).click()
+    await page.getByLabel('Find a product').fill('Lot Soap')
+    await page.getByRole('button', { name: /^E2E Lot Soap/ }).click()
+    await page.getByLabel('Quantity').fill('2')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

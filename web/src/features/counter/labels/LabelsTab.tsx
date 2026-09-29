@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Printer, Wand2, X } from 'lucide-react'
+import { FileText, Printer, Wand2, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -31,7 +31,12 @@ export function LabelsTab() {
   )
 }
 
-function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: string; defSize: string; onClear: () => void }) {
+/** The fields the designer reads — a till product or an admin product row both fit. */
+export type LabelProduct = Pick<TillProduct, 'id' | 'name' | 'barcode' | 'sellingPrice' | 'stockQty'>
+
+/** Pick top/bottom lines, count and size for a product (or a typed custom
+ * barcode), preview, then print to the label printer or open a printable sheet. */
+export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null; sym: string; defSize: string; onClear?: () => void }) {
   const qc = useQueryClient()
   const fields = useQuery({
     queryKey: ['till', 'label-fields', p?.id], queryFn: () => api<DetailRow[]>(`/till/products/${p!.id}/label-fields`), enabled: !!p,
@@ -97,7 +102,7 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
           <h2 className="font-display text-xl font-bold">{p ? p.name : 'Custom label'}</h2>
           <p className="text-[13px] text-muted-foreground">{p ? 'Choose what goes above and below the barcode.' : 'Pick a product on the left, or type any barcode.'}</p>
         </div>
-        {p && <button type="button" aria-label="Clear product" onClick={onClear} className="text-faint hover:text-foreground"><X size={18} /></button>}
+        {p && onClear && <button type="button" aria-label="Clear product" onClick={onClear} className="text-faint hover:text-foreground"><X size={18} /></button>}
       </div>
 
       <div className="rounded-[var(--radius-sm)] bg-muted py-5"><LabelPreview req={req} /></div>
@@ -150,9 +155,17 @@ function Designer({ p, sym, defSize, onClear }: { p: TillProduct | null; sym: st
           )}
         </div>
       </div>
-      <Button size="lg" onClick={() => void print()} disabled={busy || !canPrint} className="h-12 text-[15px]">
-        <Printer size={18} /> {canPrint ? `Print ${count} label${count === 1 ? '' : 's'}` : p ? 'Needs a barcode first' : 'Type a barcode to print'}
-      </Button>
+      <div className="flex gap-2">
+        <Button size="lg" onClick={() => void print()} disabled={busy || !canPrint} className="h-12 flex-1 text-[15px]">
+          <Printer size={18} /> {canPrint ? `Print ${count} label${count === 1 ? '' : 's'}` : p ? 'Needs a barcode first' : 'Type a barcode to print'}
+        </Button>
+        {/* No label printer? The same labels as a page for any printer (karots-pos "Generate sheet"). */}
+        <a aria-disabled={!canPrint} target="_blank" rel="noopener" title="Printable sheet for an ordinary printer"
+          href={`/print/labels?${new URLSearchParams({ productId: String(req.productId), code: req.code, format: req.format, top: req.top, bottom: req.bottom, count: String(count), size: req.size })}`}
+          className="flex h-12 items-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold aria-disabled:pointer-events-none aria-disabled:opacity-40 hover:bg-muted">
+          <FileText size={16} /> Sheet ↗
+        </a>
+      </div>
     </div>
   )
 }

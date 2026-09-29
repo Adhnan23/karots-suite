@@ -20,8 +20,10 @@ import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/ind
 import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
 import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
+import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/labels'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
+import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
 import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
@@ -98,6 +100,11 @@ const AuthedAdminGroupsRoute = AuthedAdminGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminLabelsRoute = AuthedAdminLabelsRouteImport.update({
+  id: '/labels',
+  path: '/labels',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -107,6 +114,11 @@ const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
   id: '/units',
   path: '/units',
   getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedPrintLabelsRoute = AuthedPrintLabelsRouteImport.update({
+  id: '/print/labels',
+  path: '/print/labels',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
   id: '/',
@@ -228,8 +240,10 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
+  '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
+  '/print/labels': typeof AuthedPrintLabelsRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
@@ -261,8 +275,10 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
+  '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
+  '/print/labels': typeof AuthedPrintLabelsRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
@@ -298,8 +314,10 @@ export interface FileRoutesById {
   '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
   '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
+  '/_authed/admin/labels': typeof AuthedAdminLabelsRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
+  '/_authed/print/labels': typeof AuthedPrintLabelsRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
@@ -335,8 +353,10 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/groups'
+    | '/admin/labels'
     | '/admin/services'
     | '/admin/units'
+    | '/print/labels'
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
@@ -368,8 +388,10 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/groups'
+    | '/admin/labels'
     | '/admin/services'
     | '/admin/units'
+    | '/print/labels'
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
@@ -404,8 +426,10 @@ export interface FileRouteTypes {
     | '/_authed/admin/categories'
     | '/_authed/admin/conversions'
     | '/_authed/admin/groups'
+    | '/_authed/admin/labels'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
+    | '/_authed/print/labels'
     | '/_authed/till/convert'
     | '/_authed/till/credit'
     | '/_authed/till/expenses'
@@ -517,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminGroupsRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/labels': {
+      id: '/_authed/admin/labels'
+      path: '/labels'
+      fullPath: '/admin/labels'
+      preLoaderRoute: typeof AuthedAdminLabelsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/services': {
       id: '/_authed/admin/services'
       path: '/services'
@@ -530,6 +561,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/units'
       preLoaderRoute: typeof AuthedAdminUnitsRouteImport
       parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/print/labels': {
+      id: '/_authed/print/labels'
+      path: '/print/labels'
+      fullPath: '/print/labels'
+      preLoaderRoute: typeof AuthedPrintLabelsRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/till/': {
       id: '/_authed/till/'
@@ -685,6 +723,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
   AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
+  AuthedAdminLabelsRoute: typeof AuthedAdminLabelsRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
@@ -701,6 +740,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
   AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
+  AuthedAdminLabelsRoute: AuthedAdminLabelsRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
@@ -752,6 +792,7 @@ const AuthedTillRouteWithChildren = AuthedTillRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedTillRoute: typeof AuthedTillRouteWithChildren
+  AuthedPrintLabelsRoute: typeof AuthedPrintLabelsRoute
   AuthedPrintOrderIdRoute: typeof AuthedPrintOrderIdRoute
   AuthedPrintReceiptIdRoute: typeof AuthedPrintReceiptIdRoute
   AuthedPrintZIdRoute: typeof AuthedPrintZIdRoute
@@ -760,6 +801,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedTillRoute: AuthedTillRouteWithChildren,
+  AuthedPrintLabelsRoute: AuthedPrintLabelsRoute,
   AuthedPrintOrderIdRoute: AuthedPrintOrderIdRoute,
   AuthedPrintReceiptIdRoute: AuthedPrintReceiptIdRoute,
   AuthedPrintZIdRoute: AuthedPrintZIdRoute,

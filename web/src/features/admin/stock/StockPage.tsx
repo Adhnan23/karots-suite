@@ -20,6 +20,7 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { AdjustForm } from './AdjustForm'
 import { LotsSheet } from './LotsSheet'
+import { WriteOffForm } from './WriteOffForm'
 import { MOVE_TYPES, moveLabel, movementsQuery, staffQuery } from './queries'
 
 const route = getRouteApi('/_authed/admin/stock/')
@@ -30,10 +31,15 @@ export function StockPage() {
   const s = route.useSearch()
   const navigate = route.useNavigate()
   const view = s.view ?? 'levels'
+  const [writeOff, setWriteOff] = useState(false)
   return (
     <>
       <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its lots, or adjust a count.' : 'Every unit in and out — who, when and why.'}
-        actions={<Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements']]} />} />
+        actions={<>
+          <Button variant="outline" className="h-10 px-3" onClick={() => setWriteOff(true)}>Record write-off</Button>
+          <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements']]} />
+        </>} />
+      {writeOff && <WriteOffForm onClose={() => setWriteOff(false)} />}
       {view === 'levels' ? <Levels /> : <Moves />}
     </>
   )
