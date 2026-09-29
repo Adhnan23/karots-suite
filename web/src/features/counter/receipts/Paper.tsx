@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { DebtReceiptRow, MoneyReceiptRow, SaleView, ShopHeader } from '@/api/types.gen'
+import type { DebtReceiptRow, MoneyReceiptRow, SaleView, ShopHeader, WarrantyClaimRow } from '@/api/types.gen'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
@@ -83,6 +83,23 @@ export function DebtPaper({ r, shop, sym }: { r: DebtReceiptRow; shop: ShopHeade
       {r.balanceBefore && <Row l="Balance before" r={money(sym, r.balanceBefore)} />}
       {r.balanceAfter && <Row l="Balance now" r={money(sym, r.balanceAfter)} />}
       {r.cashierName && <Row l="Cashier" r={r.cashierName} />}
+    </Paper>
+  )
+}
+
+export function WarrantyPaper({ r, shop }: { r: WarrantyClaimRow; shop: ShopHeader }) {
+  return (
+    <Paper shop={shop}>
+      <p className="text-center font-bold uppercase">Warranty {r.resolution}</p>
+      <Row l={`Claim #${r.id}`} r={stamp(r.at)} />
+      <Rule />
+      <span className="block font-bold">{r.productName}</span>
+      {r.oldSerial && <Row l="Old serial" r={r.oldSerial} />}
+      {r.replacementSerial && <Row l="New serial" r={r.replacementSerial} />}
+      {r.customerName && <Row l="Customer" r={r.customerName} />}
+      {r.reason && <Row l="Reason" r={r.reason} />}
+      <Rule />
+      <Row l="Handled by" r={r.handledBy} />
     </Paper>
   )
 }

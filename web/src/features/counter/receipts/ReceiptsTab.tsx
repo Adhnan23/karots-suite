@@ -1,21 +1,21 @@
 import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ExternalLink, Printer, Search } from 'lucide-react'
 import { type ReactNode, useDeferredValue, useState } from 'react'
-import type { DebtReceiptRow, MoneyReceiptRow } from '@/api/types.gen'
+import type { DebtReceiptRow, MoneyReceiptRow, WarrantyClaimRow } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
 import { configQuery, drawerQuery } from '@/features/till/api'
-import { printDebtSlip, printMoneySlip, printSale } from '@/features/till/print'
+import { printDebtSlip, printMoneySlip, printSale, printWarrantySlip } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { debtReceiptsQuery, moneyReceiptsQuery, saleQuery } from '../queries'
+import { debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
 import { SaleFind } from '../SaleFind'
 import { CounterPage, PaneTitle } from '../ui'
-import { DebtPaper, MoneyPaper, SalePaper } from './Paper'
+import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from './Paper'
 
-type Kind = 'sales' | 'cash' | 'credit'
-type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyReceiptRow } | { kind: 'credit'; row: DebtReceiptRow }
+type Kind = 'sales' | 'cash' | 'credit' | 'warranty'
+type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyReceiptRow } | { kind: 'credit'; row: DebtReceiptRow } | { kind: 'warranty'; row: WarrantyClaimRow }
 
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
@@ -26,7 +26,7 @@ export function ReceiptsTab() {
   const [kind, setKind] = useState<Kind>('sales')
   const [pick, setPick] = useState<Pick | null>(null)
   const sym = cfg.symbol
-  const kinds = <Seg label="Receipt kind" value={kind} onChange={(k) => { setKind(k); setPick(null) }} options={[['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit']]} />
+  const kinds = <Seg label="Receipt kind" value={kind} onChange={(k) => { setKind(k); setPick(null) }} options={[['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit'], ['warranty', 'Warranty']]} />
   return (
     <CounterPage flush aside={<Preview pick={pick} />}>
       {kind === 'sales' ? (
@@ -51,23 +51,26 @@ function ShiftLink({ id }: { id: number }) {
 }
 
 function RowList({ kind, head, sym, pick, onPick }: {
-  kind: 'cash' | 'credit'; head: ReactNode; sym: string; pick: Pick | null; onPick: (p: Pick) => void
+  kind: 'cash' | 'credit' | 'warranty'; head: ReactNode; sym: string; pick: Pick | null; onPick: (p: Pick) => void
 }) {
   const [q, setQ] = useState('')
   const dq = useDeferredValue(q.trim())
   const cash = useQuery({ ...moneyReceiptsQuery(dq), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
   const credit = useQuery({ ...debtReceiptsQuery(dq), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
-  const rows: { key: number; no: string; sub: string; amount: string; p: Pick }[] = kind === 'cash'
+  const claims = useQuery({ ...warrantyClaimsQuery(dq), enabled: kind === 'warranty', placeholderData: keepPreviousData }).data ?? []
+  const rows: { key: number; no: string; sub: string; amount: string | null; p: Pick }[] = kind === 'cash'
     ? cash.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.kindLabel}${r.party ? ` · ${r.party}` : ''}`, amount: r.amount, p: { kind: 'cash', row: r } }))
-    : credit.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.customerName} · ${r.method}`, amount: r.amount, p: { kind: 'credit', row: r } }))
+    : kind === 'credit'
+      ? credit.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.customerName} · ${r.method}`, amount: r.amount, p: { kind: 'credit', row: r } }))
+      : claims.map((r) => ({ key: r.id, no: r.productName, sub: `${when(r.at)} · ${r.oldSerial || 'by receipt'}${r.customerName ? ` · ${r.customerName}` : ''}`, amount: null, p: { kind: 'warranty', row: r } }))
   const on = (p: Pick) => pick !== null && pick.kind === p.kind && 'row' in pick && 'row' in p && pick.row.id === p.row.id
   return (
     <>
       {head}
-      <PaneTitle title={kind === 'cash' ? 'Cash moves' : 'Credit payments'} sub={`${rows.length} shown`} />
+      <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${rows.length} shown`} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
-        <input autoFocus aria-label="Find a receipt" placeholder={kind === 'cash' ? 'CR- number, party, locker' : 'Receipt no, customer'} autoComplete="off"
+        <input autoFocus aria-label="Find a receipt" placeholder={kind === 'cash' ? 'CR- number, party, locker' : kind === 'credit' ? 'Receipt no, customer' : 'Serial or customer'} autoComplete="off"
           value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && rows[0] && onPick(rows[0].p)}
           className={cn(FIELD, 'w-full pl-9')} />
       </div>
@@ -81,7 +84,7 @@ function RowList({ kind, head, sym, pick, onPick }: {
                 <b className="text-[14px] tabular-nums">{r.no}</b>
                 <small className="block truncate opacity-70">{r.sub}</small>
               </span>
-              <b className="tabular-nums">{money(sym, r.amount)}</b>
+              {r.amount && <b className="tabular-nums">{money(sym, r.amount)}</b>}
             </button>
           </li>
         ))}
@@ -96,8 +99,11 @@ function Preview({ pick }: { pick: Pick | null }) {
   if (!pick) return <p className="m-auto max-w-[260px] p-8 text-center text-faint">Pick a receipt to see it and print it again.</p>
   const paper = pick.kind === 'sales'
     ? sale && sale.id === pick.id && <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} />
-    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} /> : <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} />
-  const reprint = () => void (pick.kind === 'sales' ? printSale(pick.id) : pick.kind === 'cash' ? printMoneySlip(pick.row.id) : printDebtSlip(pick.row.id))
+    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} />
+      : pick.kind === 'credit' ? <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} /> : <WarrantyPaper r={pick.row} shop={cfg.shop} />
+  const reprint = () => void (pick.kind === 'sales' ? printSale(pick.id) : pick.kind === 'cash' ? printMoneySlip(pick.row.id)
+    : pick.kind === 'credit' ? printDebtSlip(pick.row.id) : printWarrantySlip(pick.row.id))
+  const canReprint = pick.kind !== 'warranty' || pick.row.replacementSerial !== ''
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-5">{paper}</div>
@@ -107,7 +113,7 @@ function Preview({ pick }: { pick: Pick | null }) {
             <a href={`/print/receipt/${pick.id}`} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open to print (A4 / PDF)</a>
           </Button>
         )}
-        <Button className="h-11 flex-1" onClick={reprint}><Printer size={16} /> Print again</Button>
+        {canReprint && <Button className="h-11 flex-1" onClick={reprint}><Printer size={16} /> Print again</Button>}
       </footer>
     </div>
   )

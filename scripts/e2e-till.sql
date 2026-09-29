@@ -51,3 +51,10 @@ SELECT id, 3, 3, 900, 0 FROM products WHERE name = 'E2E Milk Crate';
 INSERT INTO product_conversions (from_product_id, to_product_id, ratio, note)
 SELECT c.id, m.id, 12, 'Open a crate when the fridge runs low' FROM products c, products m
 WHERE c.name = 'E2E Milk Crate' AND m.name = 'E2E Milk';
+
+-- A serial-tracked phone with a year of cover, for the Warranty tab.
+INSERT INTO products (name, barcode, category_id, unit_id, cost_price, selling_price, warranty_months)
+SELECT 'E2E Phone', '4790000000066', id, 1, 20000, 25000, 12 FROM categories WHERE name = 'E2E Goods';
+INSERT INTO warranty_units (product_id, serial_no, customer_id, sold_at, warranty_months, warranty_until, source)
+SELECT p.id, 'E2E-SN-0001', c.id, now() - interval '2 months', 12, (now() + interval '10 months')::date, 'sale'
+FROM products p, customers c WHERE p.name = 'E2E Phone' AND c.name = 'E2E Credit';

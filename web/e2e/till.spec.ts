@@ -50,7 +50,7 @@ test('open the till with a counted float', async ({ page }) => {
   await expect(dlg.getByText(/1,000\.00/).first()).toBeVisible()
   await dlg.getByRole('button', { name: 'Open the till' }).click()
   await skipSlip(page)
-  await expect(page.getByText(/Till open · float .*1,000\.00/)).toBeVisible()
+  await expect(page.getByTitle(/Till open · float .*1,000\.00/)).toBeVisible()
 })
 
 test('three fast scans = qty 3; cash with change; Enter starts the next sale', async ({ page }) => {

@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, SaleSummary, SaleView, ZReport } from '@/api/types.gen'
+import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, SaleSummary, SaleView, WarrantyClaimRow, WarrantyReceiptView, WarrantyUnitRow, WarrantyUnitView, ZReport } from '@/api/types.gen'
 
 export const expensesQuery = queryOptions({ queryKey: ['till', 'expenses'], queryFn: () => api<ExpensesPage>('/till/expenses') })
 export const conversionsQuery = queryOptions({ queryKey: ['till', 'conversions'], queryFn: () => api<ConversionRow[]>('/till/conversions') })
@@ -12,3 +12,11 @@ export const debtReceiptsQuery = (q: string) =>
   queryOptions({ queryKey: ['till', 'customer-payments', q], queryFn: () => api<DebtReceiptRow[]>(`/till/customer-payments?q=${encodeURIComponent(q)}`) })
 export const saleQuery = (id: number) => queryOptions({ queryKey: ['till', 'sale', id], queryFn: () => api<SaleView>(`/till/sales/${id}`) })
 export const zQuery = (id: number) => queryOptions({ queryKey: ['till', 'z', id], queryFn: () => api<ZReport>(`/till/z/${id}`) })
+export const warrantyUnitsQuery = (status: string, q: string) =>
+  queryOptions({ queryKey: ['till', 'warranty', status, q], queryFn: () => api<WarrantyUnitRow[]>(`/till/warranty?status=${status}&q=${encodeURIComponent(q)}`) })
+export const warrantySerialQuery = (serial: string) =>
+  queryOptions({ queryKey: ['till', 'warranty-serial', serial], queryFn: () => api<WarrantyUnitView>(`/till/warranty/serial/${encodeURIComponent(serial)}`), retry: false })
+export const warrantyReceiptQuery = (no: string) =>
+  queryOptions({ queryKey: ['till', 'warranty-receipt', no], queryFn: () => api<WarrantyReceiptView>(`/till/warranty/receipt?no=${encodeURIComponent(no)}`), retry: false })
+export const warrantyClaimsQuery = (q: string) =>
+  queryOptions({ queryKey: ['till', 'warranty-claims', q], queryFn: () => api<WarrantyClaimRow[]>(`/till/warranty-claims?q=${encodeURIComponent(q)}`) })

@@ -81,6 +81,12 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.goto(`/print/z/${st.summary.session.id}`)
     await page.getByText('Cash movements').waitFor()
   },
+  warranty: async (page) => {
+    await page.getByLabel('Serial number').fill('E2E-SN-0001')
+    await page.getByLabel('Serial number').press('Enter')
+    await page.getByLabel('New serial').fill('E2E-SN-0002')
+    await page.getByRole('button', { name: 'Not charging' }).click()
+  },
   convert: async (page) => {
     await page.getByRole('button', { name: /Milk Crate/ }).click()
     await page.getByLabel('Packs to open').fill('2')

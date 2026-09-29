@@ -24,6 +24,7 @@ import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/ex
 import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
 import { Route as AuthedTillReceiptsRouteImport } from './routes/_authed/till/receipts'
 import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/returns'
+import { Route as AuthedTillWarrantyRouteImport } from './routes/_authed/till/warranty'
 import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
 import { Route as AuthedPrintReceiptIdRouteImport } from './routes/_authed/print/receipt.$id'
@@ -104,6 +105,11 @@ const AuthedTillReturnsRoute = AuthedTillReturnsRouteImport.update({
   path: '/returns',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedTillWarrantyRoute = AuthedTillWarrantyRouteImport.update({
+  id: '/warranty',
+  path: '/warranty',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
 const AuthedTillWriteOffRoute = AuthedTillWriteOffRouteImport.update({
   id: '/write-off',
   path: '/write-off',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
+  '/till/warranty': typeof AuthedTillWarrantyRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
+  '/till/warranty': typeof AuthedTillWarrantyRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_authed/till/labels': typeof AuthedTillLabelsRoute
   '/_authed/till/receipts': typeof AuthedTillReceiptsRoute
   '/_authed/till/returns': typeof AuthedTillReturnsRoute
+  '/_authed/till/warranty': typeof AuthedTillWarrantyRoute
   '/_authed/till/write-off': typeof AuthedTillWriteOffRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/till/labels'
     | '/till/receipts'
     | '/till/returns'
+    | '/till/warranty'
     | '/till/write-off'
     | '/admin/'
     | '/till/'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/till/labels'
     | '/till/receipts'
     | '/till/returns'
+    | '/till/warranty'
     | '/till/write-off'
     | '/admin'
     | '/till'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authed/till/labels'
     | '/_authed/till/receipts'
     | '/_authed/till/returns'
+    | '/_authed/till/warranty'
     | '/_authed/till/write-off'
     | '/_authed/admin/'
     | '/_authed/till/'
@@ -374,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillReturnsRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/till/warranty': {
+      id: '/_authed/till/warranty'
+      path: '/warranty'
+      fullPath: '/till/warranty'
+      preLoaderRoute: typeof AuthedTillWarrantyRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
     '/_authed/till/write-off': {
       id: '/_authed/till/write-off'
       path: '/write-off'
@@ -433,6 +452,7 @@ interface AuthedTillRouteChildren {
   AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
   AuthedTillReceiptsRoute: typeof AuthedTillReceiptsRoute
   AuthedTillReturnsRoute: typeof AuthedTillReturnsRoute
+  AuthedTillWarrantyRoute: typeof AuthedTillWarrantyRoute
   AuthedTillWriteOffRoute: typeof AuthedTillWriteOffRoute
   AuthedTillIndexRoute: typeof AuthedTillIndexRoute
   AuthedTillXKeyRoute: typeof AuthedTillXKeyRoute
@@ -445,6 +465,7 @@ const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillLabelsRoute: AuthedTillLabelsRoute,
   AuthedTillReceiptsRoute: AuthedTillReceiptsRoute,
   AuthedTillReturnsRoute: AuthedTillReturnsRoute,
+  AuthedTillWarrantyRoute: AuthedTillWarrantyRoute,
   AuthedTillWriteOffRoute: AuthedTillWriteOffRoute,
   AuthedTillIndexRoute: AuthedTillIndexRoute,
   AuthedTillXKeyRoute: AuthedTillXKeyRoute,
