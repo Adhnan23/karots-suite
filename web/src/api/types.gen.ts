@@ -368,6 +368,8 @@ export interface StockLine {
   costPrice: string;
   sellingPrice: string;
   expiryDate: string; // YYYY-MM-DD or ""
+  discount: string; // what the supplier took off this line
+  discountType: string; // fixed = Rs per unit · percent = off qty × cost
 }
 export interface OrderView {
   id: number /* int64 */;
@@ -388,6 +390,8 @@ export interface PayNow {
 }
 export interface ReceiveRequest {
   invoiceNo: string;
+  discount: string; // whole-bill discount
+  discountType: string; // fixed = Rs off · percent = off the net after line discounts
   notes: string;
   lines: StockLine[];
   keepRemainder: boolean; // against an order: the unreceived rest stays on order
@@ -401,6 +405,7 @@ export interface ReceiveResult {
   receiptId?: number /* int64 */; // CR- slip when cash left the counter
 }
 export interface OrderRequest {
+  wantedBy: string; // YYYY-MM-DD or "" (the order's expected date)
   notes: string;
   lines: StockLine[];
 }

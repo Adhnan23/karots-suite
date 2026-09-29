@@ -62,3 +62,7 @@ FROM products p, customers c WHERE p.name = 'E2E Phone' AND c.name = 'E2E Credit
 -- A supplier the shop still owes an old debt to, for the Suppliers tab.
 INSERT INTO suppliers (name, phone, credit_days, opening_balance, outstanding_balance)
 VALUES ('E2E Distributors', '0112345678', 30, 1500, 1500);
+INSERT INTO stock (product_id, quantity) SELECT id, 3 FROM products WHERE name = 'E2E Phone'
+ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity;
+INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, selling_price)
+SELECT id, 3, 3, 20000, 0 FROM products WHERE name = 'E2E Phone';

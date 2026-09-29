@@ -97,6 +97,8 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Receive stock' }).click()
     await page.getByRole('button', { name: /^#\d+/ }).first().click()
     await page.getByLabel('Quantity of E2E Lot Soap').fill('10')
+    await page.getByLabel('Discount on E2E Milk', { exact: true }).fill('5')
+    await page.getByLabel('Bill discount', { exact: true }).fill('100')
     await page.getByLabel('Pay now').fill('1000')
   },
   convert: async (page) => {

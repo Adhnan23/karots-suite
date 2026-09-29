@@ -5,15 +5,19 @@ import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
+import { Seg } from '@/features/till/bits'
 import { errMsg, searchQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { lineDiscount, lineGross, lineNet } from './totals'
 
 const CELL = cn(FIELD, 'h-9 min-w-0 px-2 text-right tabular-nums')
 const blank = (p: TillProduct, prices: boolean, cost = ''): StockLine => ({
   productId: p.id, name: p.name, ordered: '', quantity: '1', freeQty: '', costPrice: cost, sellingPrice: prices ? p.sellingPrice : '', expiryDate: '',
+  discount: '', discountType: 'fixed',
 })
+const dec = (v: string) => v.replace(/[^\d.]/g, '')
 
 /** The delivery / order lines: scan or search to add, type the numbers in place. */
 export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
@@ -69,23 +73,39 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
       <ul aria-label="Lines" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto pb-2">
         {lines.length === 0 && <li className="m-auto p-6 text-center text-faint">{fromOrder ? 'Loading the order…' : 'Nothing added yet.'}</li>}
         {lines.map((l, i) => (
-          <li key={l.productId} className={cn('grid items-center gap-1.5 rounded-[var(--radius-sm)] bg-muted px-2 py-1.5',
-            withPrices ? 'grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
+          <li key={l.productId} className="rounded-[var(--radius-sm)] bg-muted px-2 py-1.5">
+           <div className={cn('grid items-center gap-1.5', withPrices ? 'grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
             <span className="min-w-0">
               <b className="block truncate text-[13px]">{l.name}</b>
               {l.ordered && <small className="text-muted-foreground tabular-nums">ordered {qtyText(l.ordered)}</small>}
-              {withPrices && num(l.costPrice) > 0 && <small className="block text-muted-foreground tabular-nums">{money(sym, num(l.quantity) * num(l.costPrice))}</small>}
             </span>
-            <input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: e.target.value.replace(/[^\d.]/g, '') })} className={CELL} />
+            <input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: dec(e.target.value) })} className={CELL} />
             {withPrices && (
               <>
-                <input aria-label={`Free ${l.name}`} inputMode="decimal" placeholder="0" value={l.freeQty} onChange={(e) => set(i, { freeQty: e.target.value.replace(/[^\d.]/g, '') })} className={CELL} />
-                <input aria-label={`Cost of ${l.name}`} inputMode="decimal" placeholder="cost" value={l.costPrice} onChange={(e) => set(i, { costPrice: e.target.value.replace(/[^\d.]/g, '') })}
+                <input aria-label={`Free ${l.name}`} inputMode="decimal" placeholder="0" value={l.freeQty} onChange={(e) => set(i, { freeQty: dec(e.target.value) })} className={CELL} />
+                <input aria-label={`Cost of ${l.name}`} inputMode="decimal" placeholder="cost" value={l.costPrice} onChange={(e) => set(i, { costPrice: dec(e.target.value) })}
                   className={cn(CELL, !(num(l.costPrice) > 0) && 'border-warning')} />
-                <input aria-label={`Selling price of ${l.name}`} inputMode="decimal" placeholder="same" value={l.sellingPrice} onChange={(e) => set(i, { sellingPrice: e.target.value.replace(/[^\d.]/g, '') })} className={CELL} />
+                <input aria-label={`Selling price of ${l.name}`} inputMode="decimal" placeholder="same" value={l.sellingPrice} onChange={(e) => set(i, { sellingPrice: dec(e.target.value) })} className={CELL} />
               </>
             )}
             <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className="text-faint hover:text-danger"><X size={15} /></button>
+           </div>
+            {withPrices && (
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
+                Discount
+                <input aria-label={`Discount on ${l.name}`} inputMode="decimal" placeholder="0" value={l.discount} onChange={(e) => set(i, { discount: dec(e.target.value) })} className={cn(CELL, 'h-7 w-16')} />
+                <Seg label={`Discount type for ${l.name}`} value={l.discountType === 'percent' ? 'percent' : 'fixed'} onChange={(t) => set(i, { discountType: t })}
+                  options={[['fixed', `${sym}/unit`], ['percent', '%']]} />
+                <span className="ml-2">Expires</span>
+                <input type="date" aria-label={`Expiry of ${l.name}`} value={l.expiryDate} onChange={(e) => set(i, { expiryDate: e.target.value })} className={cn(FIELD, 'h-7 w-[140px] px-2 text-[12px]')} />
+                {lineGross(l) > 0 && (
+                  <b className="ml-auto text-[13px] text-foreground tabular-nums">
+                    {lineDiscount(l) > 0 && <s className="mr-1.5 font-normal text-muted-foreground">{money(sym, lineGross(l))}</s>}
+                    {money(sym, lineNet(l))}
+                  </b>
+                )}
+              </div>
+            )}
           </li>
         ))}
       </ul>

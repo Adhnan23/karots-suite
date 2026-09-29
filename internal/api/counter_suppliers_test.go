@@ -98,6 +98,13 @@ func TestCounterReceiveAndOrder(t *testing.T) {
 		t.Fatalf("after delivery: %+v", v)
 	}
 
+	// Discounts: 10% off the line (600 → 540), then Rs 20 off the bill → 520.
+	rec = te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/suppliers/%d/receive", sup.ID), ReceiveRequest{Discount: "20", DiscountType: "fixed",
+		Lines: []StockLine{{ProductID: f.plainID, Quantity: "10", CostPrice: "60", Discount: "10", DiscountType: "percent"}}}, ck)
+	if rr := decode[ReceiveResult](t, rec); rec.Code != http.StatusCreated || rr.Total != "520.00" {
+		t.Fatalf("discounted delivery: %d %s", rec.Code, rec.Body)
+	}
+
 	// An order without prices (cost falls back to the product's), then received.
 	rec = te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/suppliers/%d/order", sup.ID), OrderRequest{Lines: []StockLine{{ProductID: f.scarceID, Quantity: "4"}}}, ck)
 	ord := decode[SupplierOrder](t, rec)

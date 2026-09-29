@@ -362,7 +362,9 @@ type StockLine struct {
 	FreeQty      string `json:"freeQty"`
 	CostPrice    string `json:"costPrice"`
 	SellingPrice string `json:"sellingPrice"`
-	ExpiryDate   string `json:"expiryDate"` // YYYY-MM-DD or ""
+	ExpiryDate   string `json:"expiryDate"`   // YYYY-MM-DD or ""
+	Discount     string `json:"discount"`     // what the supplier took off this line
+	DiscountType string `json:"discountType"` // fixed = Rs per unit · percent = off qty × cost
 }
 
 type OrderView struct {
@@ -384,6 +386,8 @@ type PayNow struct {
 
 type ReceiveRequest struct {
 	InvoiceNo       string      `json:"invoiceNo"`
+	Discount        string      `json:"discount"`     // whole-bill discount
+	DiscountType    string      `json:"discountType"` // fixed = Rs off · percent = off the net after line discounts
 	Notes           string      `json:"notes"`
 	Lines           []StockLine `json:"lines"`
 	KeepRemainder   bool        `json:"keepRemainder"` // against an order: the unreceived rest stays on order
@@ -399,8 +403,9 @@ type ReceiveResult struct {
 }
 
 type OrderRequest struct {
-	Notes string      `json:"notes"`
-	Lines []StockLine `json:"lines"`
+	WantedBy string      `json:"wantedBy"` // YYYY-MM-DD or "" (the order's expected date)
+	Notes    string      `json:"notes"`
+	Lines    []StockLine `json:"lines"`
 }
 
 type NewSupplierRequest struct {

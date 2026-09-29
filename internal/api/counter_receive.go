@@ -37,7 +37,7 @@ func (h *handlers) itemInputs(ctx context.Context, lines []StockLine) ([]purchas
 			cost = p.CostPrice.String()
 		}
 		out = append(out, purchases.ItemInput{ProductID: l.ProductID, Quantity: l.Quantity, FreeQty: l.FreeQty, CostPrice: cost,
-			SellingPrice: l.SellingPrice, ExpiryDate: l.ExpiryDate, OrderedQty: l.Ordered})
+			SellingPrice: l.SellingPrice, ExpiryDate: l.ExpiryDate, OrderedQty: l.Ordered, Discount: l.Discount, DiscountType: l.DiscountType})
 	}
 	return out, nil
 }
@@ -113,7 +113,8 @@ func (h *handlers) CounterReceiveWalkIn(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in := purchases.CreateInput{SupplierID: id, InvoiceNo: optStr(req.InvoiceNo), Notes: optStr(req.Notes), Items: items}
+	in := purchases.CreateInput{SupplierID: id, InvoiceNo: optStr(req.InvoiceNo), Notes: optStr(req.Notes), Items: items,
+		Discount: req.Discount, DiscountType: req.DiscountType}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -151,7 +152,8 @@ func (h *handlers) CounterReceiveOrder(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in := purchases.ReceiveInput{InvoiceNo: optStr(req.InvoiceNo), Notes: optStr(req.Notes), Items: items, KeepRemainder: req.KeepRemainder}
+	in := purchases.ReceiveInput{InvoiceNo: optStr(req.InvoiceNo), Notes: optStr(req.Notes), Items: items, KeepRemainder: req.KeepRemainder,
+		Discount: req.Discount, DiscountType: req.DiscountType}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -216,7 +218,7 @@ func (h *handlers) CounterOrderCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in := purchases.CreateInput{SupplierID: id, Notes: optStr(req.Notes), Items: items}
+	in := purchases.CreateInput{SupplierID: id, Notes: optStr(req.Notes), Items: items, ExpectedDate: strings.TrimSpace(req.WantedBy)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
