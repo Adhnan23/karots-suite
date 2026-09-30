@@ -76,8 +76,11 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	entries := make([]LedgerEntry, 0, len(creditSales)+len(returns)+len(pays)+1)
 	// An onboarding opening balance is the carried-forward debit that predates all
 	// recorded activity, so the running balance reconciles to OutstandingBalance.
+	// A negative one (allowed by AdjustOpening) is a pre-system advance: a credit.
 	if cust.OpeningBalance.IsPositive() {
 		entries = append(entries, LedgerEntry{Date: cust.CreatedAt, Kind: "Opening balance", Debit: cust.OpeningBalance})
+	} else if cust.OpeningBalance.IsNegative() {
+		entries = append(entries, LedgerEntry{Date: cust.CreatedAt, Kind: "Opening balance", Credit: cust.OpeningBalance.Neg()})
 	}
 	for _, r := range creditSales {
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Credit sale", Ref: r.Ref, Debit: r.Amount})

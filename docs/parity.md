@@ -8,7 +8,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 - [x] `internal/web/register_admin.go` · DELETE `/categories/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/conversions/:id`
-- [ ] `internal/web/register_admin.go` · DELETE `/customers/:id`
+- [x] `internal/web/register_admin.go` · DELETE `/customers/:id`
 - [ ] `internal/web/register_admin.go` · DELETE `/denominations/:id`
 - [ ] `internal/web/register_admin.go` · DELETE `/expenses/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/groups/:id`
@@ -38,16 +38,16 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · GET `/conversions/run/:id`
 - [x] `internal/web/register_admin.go` · GET `/conversions/runs`
 - [x] `internal/web/register_admin.go` · GET `/conversions/table`
-- [ ] `internal/web/register_admin.go` · GET `/customers`
+- [x] `internal/web/register_admin.go` · GET `/customers`
 - [ ] `internal/web/register_admin.go` · GET `/customers/export`
-- [ ] `internal/web/register_admin.go` · GET `/customers/form`
-- [ ] `internal/web/register_admin.go` · GET `/customers/form/:id`
-- [ ] `internal/web/register_admin.go` · GET `/customers/:id/statement`
+- [x] `internal/web/register_admin.go` · GET `/customers/form`
+- [x] `internal/web/register_admin.go` · GET `/customers/form/:id`
+- [x] `internal/web/register_admin.go` · GET `/customers/:id/statement`
 - [ ] `internal/web/register_admin.go` · GET `/customers/import`
 - [ ] `internal/web/register_admin.go` · GET `/customers/import/template`
-- [ ] `internal/web/register_admin.go` · GET `/customers/opening/:id`
-- [ ] `internal/web/register_admin.go` · GET `/customers/pay/:id`
-- [ ] `internal/web/register_admin.go` · GET `/customers/table`
+- [x] `internal/web/register_admin.go` · GET `/customers/opening/:id`
+- [x] `internal/web/register_admin.go` · GET `/customers/pay/:id`
+- [x] `internal/web/register_admin.go` · GET `/customers/table`
 - [ ] `internal/web/register_admin.go` · GET `/damage`
 - [ ] `internal/web/register_admin.go` · GET `/damage/table`
 - [ ] `internal/web/register_admin.go` · GET `/dashboard/charts`
@@ -195,10 +195,10 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · POST `/conversions`
 - [x] `internal/web/register_admin.go` · POST `/conversions/:id/activate`
 - [x] `internal/web/register_admin.go` · POST `/conversions/:id/run`
-- [ ] `internal/web/register_admin.go` · POST `/customers`
-- [ ] `internal/web/register_admin.go` · POST `/customers/:id/activate`
-- [ ] `internal/web/register_admin.go` · POST `/customers/:id/opening`
-- [ ] `internal/web/register_admin.go` · POST `/customers/:id/payment`
+- [x] `internal/web/register_admin.go` · POST `/customers`
+- [x] `internal/web/register_admin.go` · POST `/customers/:id/activate`
+- [x] `internal/web/register_admin.go` · POST `/customers/:id/opening`
+- [x] `internal/web/register_admin.go` · POST `/customers/:id/payment`
 - [ ] `internal/web/register_admin.go` · POST `/customers/import`
 - [ ] `internal/web/register_admin.go` · POST `/data/restore`
 - [ ] `internal/web/register_admin.go` · POST `/data/restore-file`
@@ -260,7 +260,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · POST `/warranty/replace`
 - [x] `internal/web/register_admin.go` · PUT `/categories/:id`
 - [x] `internal/web/register_admin.go` · PUT `/conversions/:id`
-- [ ] `internal/web/register_admin.go` · PUT `/customers/:id`
+- [x] `internal/web/register_admin.go` · PUT `/customers/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/denominations/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/expenses/:id`
 - [x] `internal/web/register_admin.go` · PUT `/groups/:id`

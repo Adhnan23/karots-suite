@@ -56,7 +56,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   409), archive/reactivate, **reassign** products to another supplier, opening adjust, **pay**
   (open-invoice allocations, pay opening, advance, method + source) and **refund** (capped at
   credit), payment history, statement print.
-- [ ] **3. Customers** (`admin_customers.go`). List (search, active/archived, owing / advance,
+- [x] **3. Customers** (`admin_customers.go`). List (search, active/archived, owing / advance,
   over limit), create/edit (name, phone, address, credit limit, opening on create; phone dup →
   409), delete/reactivate, opening adjust, **payment** (amount, method, money account, apply to
   opening), statement print.

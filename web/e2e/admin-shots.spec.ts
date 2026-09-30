@@ -36,7 +36,32 @@ async function supplierWithHistory(page: Page): Promise<number> {
   return s.id
 }
 
+/** A credit customer with history: old debt, a credit sale's worth of activity, a payment. */
+async function customerWithHistory(page: Page): Promise<number> {
+  const post = async (url: string, data: unknown) => (await page.request.post(url, { data })).json()
+  const n = String(Date.now()).slice(-7)
+  const mk = (name: string, phone: string, limit: string, opening: string) => post('/api/v1/admin/customers', { name, phone, address: 'Kandy Road, Peradeniya', creditLimit: limit, openingBalance: opening })
+  const c = await mk('Kamala Perera', `071${n}`, '5000', '3200')
+  await mk('Sunil Traders', `072${n}`, '2000', '2600')
+  await mk('Ruwan Silva', `075${n}`, '0', '0')
+  await post(`/api/v1/admin/customers/${c.id}/payment`, { amount: '1200', method: 'online', reference: 'TXN4471', note: '', source: '', oldDebtFirst: false })
+  return c.id
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  customers: async (page) => {
+    await customerWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  customer: async (page) => {
+    await page.goto(`/admin/customers/${await customerWithHistory(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
+  'customer-pay': async (page) => {
+    await prep.customer(page)
+    await page.getByRole('button', { name: '↓ Collect' }).click()
+  },
   suppliers: async (page) => {
     await supplierWithHistory(page)
     await page.reload()

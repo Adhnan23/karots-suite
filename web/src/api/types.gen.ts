@@ -784,6 +784,63 @@ export interface Statement {
   totalCredit: string;
   balance: string;
 }
+/**
+ * AdminCustomerRow is one customer on the admin list. Owed < 0 = an advance
+ * they hold with the shop. OldDebt is the correctable pre-system part.
+ */
+export interface AdminCustomerRow {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  address: string;
+  creditLimit: string;
+  owed: string;
+  oldDebt: string;
+  loyalty: number /* int */;
+  overLimit: boolean;
+  active: boolean;
+}
+export interface AdminCustomerList {
+  items: AdminCustomerRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+  /**
+   * Owed / Advance sum every matching customer.
+   */
+  owed: string;
+  advance: string;
+}
+/**
+ * AdminCustomerDetail adds the customer's recent ledger, newest first.
+ */
+export interface AdminCustomerDetail extends AdminCustomerRow {
+  since: string;
+  recent: StatementLine[];
+}
+/**
+ * CustomerRequest creates or edits a customer; OpeningBalance is read on create only.
+ */
+export interface CustomerRequest {
+  name: string;
+  phone: string;
+  address: string;
+  creditLimit: string;
+  openingBalance: string;
+}
+/**
+ * CustomerPayRequest collects a credit repayment in the back office. Source is
+ * a MoneySource value: cash needs one; card / online may name the card / bank
+ * account it lands in ("" = recorded only).
+ */
+export interface CustomerPayRequest {
+  amount: string;
+  method: string;
+  reference: string;
+  note: string;
+  source: string;
+  oldDebtFirst: boolean;
+}
 
 //////////
 // source: dto_purchasing.go

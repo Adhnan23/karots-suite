@@ -11,7 +11,11 @@ export type AppEntry = { key: string; label: string; description: string; icon: 
  * Each area's `pages` fills in as its milestone ports it; an area with none stays
  * off the dock. */
 export const adminNav: NavArea[] = [
-  { key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [] },
+  {
+    key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [
+      { to: '/admin/customers', label: 'Customers', description: 'Accounts, credit limits & statements' },
+    ],
+  },
   {
     key: 'stock', label: 'Inventory', icon: Package, pages: [
       { to: '/admin/products', label: 'Products', description: 'Product catalogue & pricing' },
