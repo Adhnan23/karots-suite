@@ -99,13 +99,13 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · GET `/purchase-returns`
 - [ ] `internal/web/register_admin.go` · GET `/purchase-returns/:id`
 - [ ] `internal/web/register_admin.go` · GET `/purchase-returns/new`
-- [ ] `internal/web/register_admin.go` · GET `/purchases`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/:id`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/:id/edit`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/:id/grn`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/:id/receive`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/new`
-- [ ] `internal/web/register_admin.go` · GET `/purchases/po/print`
+- [x] `internal/web/register_admin.go` · GET `/purchases`
+- [x] `internal/web/register_admin.go` · GET `/purchases/:id`
+- [x] `internal/web/register_admin.go` · GET `/purchases/:id/edit`
+- [x] `internal/web/register_admin.go` · GET `/purchases/:id/grn`
+- [x] `internal/web/register_admin.go` · GET `/purchases/:id/receive`
+- [x] `internal/web/register_admin.go` · GET `/purchases/new`
+- [x] `internal/web/register_admin.go` · GET `/purchases/po/print`
 - [ ] `internal/web/register_admin.go` · GET `/purchasing`
 - [ ] `internal/web/register_admin.go` · GET `/receipts`
 - [ ] `internal/web/register_admin.go` · GET `/receipts/cash`
@@ -225,12 +225,12 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · POST `/products/:id/recipe`
 - [x] `internal/web/register_admin.go` · POST `/products/:id/review-done`
 - [ ] `internal/web/register_admin.go` · POST `/products/import`
-- [ ] `internal/web/register_admin.go` · POST `/purchases`
+- [x] `internal/web/register_admin.go` · POST `/purchases`
 - [ ] `internal/web/register_admin.go` · POST `/purchases/draft`
-- [ ] `internal/web/register_admin.go` · POST `/purchases/:id/delete`
-- [ ] `internal/web/register_admin.go` · POST `/purchases/:id/edit`
-- [ ] `internal/web/register_admin.go` · POST `/purchases/:id/receive`
-- [ ] `internal/web/register_admin.go` · POST `/purchases/receive`
+- [x] `internal/web/register_admin.go` · POST `/purchases/:id/delete`
+- [x] `internal/web/register_admin.go` · POST `/purchases/:id/edit`
+- [x] `internal/web/register_admin.go` · POST `/purchases/:id/receive`
+- [x] `internal/web/register_admin.go` · POST `/purchases/receive`
 - [ ] `internal/web/register_admin.go` · POST `/receipts/credit/:id/print`
 - [ ] `internal/web/register_admin.go` · POST `/receipts/warranty/:claimId/print`
 - [ ] `internal/web/register_admin.go` · POST `/recovery`

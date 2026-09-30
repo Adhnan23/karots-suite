@@ -60,14 +60,14 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   over limit), create/edit (name, phone, address, credit limit, opening on create; phone dup →
   409), delete/reactivate, opening adjust, **payment** (amount, method, money account, apply to
   opening), statement print.
-- [ ] **4. Purchases list + detail** (`admin_purchases.go`). Orders (drafts) and Received tabs
+- [x] **4. Purchases list + detail** (`admin_purchases.go`). Orders (drafts) and Received tabs
   (supplier, dates, search), detail (lines ordered vs received, discounts, paid / credited /
   balance, links to GRN / edit / receive), delete draft (received = 422).
-- [ ] **5. Order entry** — new PO, edit draft, **receive now** (walk-in GRN). Supplier picker
+- [x] **5. Order entry** — new PO, edit draft, **receive now** (walk-in GRN). Supplier picker
   (preferred-supplier prefill), product search lines (qty, free, cost, sell, item discount Rs/%,
   expiry), bill discount Rs/%, expected date, notes. Receive-now adds invoice no, due date, pay now
   (amount clamped to what's left after credit settlement, method, source).
-- [ ] **6. Receive an order + prints.** Ordered (read-only) vs received, **+ Add forgotten item**,
+- [x] **6. Receive an order + prints.** Ordered (read-only) vs received, **+ Add forgotten item**,
   **keep remainder** as a new draft when short, **margin guard** (cost ≥ sell or below prior
   markup → flag + one-click suggested sell), invoice / due / pay now. `/print/po` (combined or one
   per supplier, shop ↔ supplier block) and `/print/grn/:id`.

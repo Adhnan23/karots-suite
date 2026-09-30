@@ -72,6 +72,12 @@ func (h *handlers) payOnDelivery(ctx context.Context, tx *sqlx.Tx, c echo.Contex
 	if err != nil {
 		return amt, nil, src, err
 	}
+	return h.settleDelivery(ctx, tx, pur, amt, method, src, userID)
+}
+
+// settleDelivery pays up to what's still owed on a just-booked purchase (credit
+// settlement may already have covered some of it) from src.
+func (h *handlers) settleDelivery(ctx context.Context, tx *sqlx.Tx, pur *purchases.Detail, amt decimal.Decimal, method string, src cashflow.Location, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
 	fresh, err := purchases.NewRepository(tx).FindByID(ctx, pur.Purchase.ID)
 	if err != nil {
 		return amt, nil, src, apperr.Internal("failed to re-read the invoice", err)

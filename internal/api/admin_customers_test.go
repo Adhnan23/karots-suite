@@ -9,13 +9,15 @@ import (
 
 func TestAdminCustomers(t *testing.T) {
 	te := newTestEnv(t)
-	ck := te.login(t, "0770009603", "admin")
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
 	sfx := time.Now().UnixNano()
 	var safe, bank int64
 	te.db.Get(&safe, `INSERT INTO lockers (name, kind, allow_negative) VALUES ($1, 'safe', true) RETURNING id`, fmt.Sprintf("T cust safe %d", sfx)) //nolint:errcheck
-	te.db.Get(&bank, `INSERT INTO lockers (name, kind) VALUES ($1, 'bank') RETURNING id`, fmt.Sprintf("T cust bank %d", sfx))                         //nolint:errcheck
+	te.db.Get(&bank, `INSERT INTO lockers (name, kind) VALUES ($1, 'bank') RETURNING id`, fmt.Sprintf("T cust bank %d", sfx))                       //nolint:errcheck
 	path := func(id int64, rest string) string { return fmt.Sprintf("/api/v1/admin/customers/%d%s", id, rest) }
-	get := func(id int64) AdminCustomerDetail { return decode[AdminCustomerDetail](t, te.do(http.MethodGet, path(id, ""), nil, ck)) }
+	get := func(id int64) AdminCustomerDetail {
+		return decode[AdminCustomerDetail](t, te.do(http.MethodGet, path(id, ""), nil, ck))
+	}
 	phone := fmt.Sprintf("07%08d", sfx%100_000_000)
 
 	rec := te.do(http.MethodPost, "/api/v1/admin/customers", CustomerRequest{Name: fmt.Sprintf("T Cust %d", sfx), Phone: phone, CreditLimit: "1000", OpeningBalance: "1500"}, ck)

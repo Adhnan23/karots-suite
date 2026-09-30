@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminSupplierDetail, AdminSupplierList, Statement } from '@/api/types.gen'
+import type { AdminSupplierDetail, AdminSupplierList, PurchaseDetail, PurchaseList, Statement } from '@/api/types.gen'
 
 export type SupplierFilter = { q: string; show: '' | 'owing' | 'credit'; disabled: boolean; page: number }
 
@@ -12,3 +12,14 @@ export const suppliersQuery = (f: SupplierFilter) =>
 export const supplierQuery = (id: number) => queryOptions({ queryKey: ['admin', 'supplier', id], queryFn: () => api<AdminSupplierDetail>(`/admin/suppliers/${id}`) })
 export const statementQuery = (kind: 'supplier' | 'customer', id: number) =>
   queryOptions({ queryKey: ['admin', 'statement', kind, id], queryFn: () => api<Statement>(`/admin/${kind}s/${id}/statement`) })
+
+export type PurchaseFilter = { tab: 'orders' | 'received'; q: string; supplier: number; unpaid: boolean; page: number }
+
+export const purchasesQuery = (f: PurchaseFilter) =>
+  queryOptions({
+    queryKey: ['admin', 'purchases', f],
+    queryFn: () => api<PurchaseList>(`/admin/purchases?tab=${f.tab}&q=${encodeURIComponent(f.q)}&supplier=${f.supplier}&unpaid=${f.unpaid ? 1 : 0}&page=${f.page}`),
+  })
+export const purchaseQuery = (id: number) => queryOptions({ queryKey: ['admin', 'purchase', id], queryFn: () => api<PurchaseDetail>(`/admin/purchases/${id}`) })
+export const purchasesPrintQuery = (ids: string) =>
+  queryOptions({ queryKey: ['admin', 'purchases-print', ids], queryFn: () => api<PurchaseDetail[]>(`/admin/purchases/print?ids=${ids}`) })

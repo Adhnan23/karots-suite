@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, freshProduct, test, type Page } from './fixtures'
 
 // M3 purchasing admin flows (suppliers, purchases, returns, reorder). Needs `make e2e-seed`.
 test.describe.configure({ mode: 'serial' })
@@ -94,4 +94,90 @@ test('suppliers: in credit → take a refund; move products; disable and re-enab
   await toast(page, /disabled/)
   await page.getByRole('button', { name: 'Re-enable' }).click()
   await toast(page, /re-enabled/)
+})
+
+test('purchases: order → edit → receive short with an extra item, margin fix, pay from the safe, rest kept on order; PO + GRN print', async ({ page }) => {
+  await admin(page, '/admin/purchases')
+  const sup = `Order Supplier ${tag}`
+  await page.request.post('/api/v1/admin/suppliers', { data: { name: sup, contact: '', phone: '', address: '', creditDays: 14, openingBalance: '' } })
+  const tea = `PO Tea ${tag}`
+  const rice = `PO Rice ${tag}`
+  await freshProduct(page, tea) // cost 40, sells 60
+  await freshProduct(page, rice)
+  const add = async (name: string) => {
+    await page.getByLabel('Add a product').fill(name)
+    await page.getByRole('button', { name: new RegExp(`^${name}`) }).click()
+  }
+  await page.getByRole('link', { name: 'New order' }).click()
+  await pick(page, 'Supplier', sup)
+  await add(tea)
+  await page.getByLabel(`Quantity of ${tea}`).fill('10')
+  await expect(page.getByLabel(`Cost of ${tea}`)).toHaveValue('40.00') // prefilled from the product
+  await page.getByRole('button', { name: /Place order/ }).click()
+  await toast(page, /Order #\d+ placed/)
+  await expect(page.getByText('ordered', { exact: true })).toBeVisible()
+  const id = page.url().split('/').pop()!
+
+  await page.getByRole('link', { name: 'Edit' }).click()
+  await page.getByLabel(`Quantity of ${tea}`).fill('12')
+  await page.getByRole('button', { name: 'Save order' }).click()
+  await toast(page, /Order updated/)
+  await expect(page.getByText(/12 pcs/)).toBeVisible()
+
+  await page.goto(`/print/po?ids=${id}`)
+  await expect(page.getByText(`Purchase order #${id}`).last()).toBeVisible()
+  await page.goto(`/admin/purchases/${id}`)
+
+  await page.getByRole('link', { name: 'Receive' }).click()
+  await page.getByLabel(`Quantity of ${tea}`).fill('8')
+  await page.getByLabel(`Cost of ${tea}`).fill('100') // dearer than it sells for → the guard steps in
+  await page.getByRole('button', { name: 'Use Rs. 150.00' }).click() // keeps its 1.5× markup
+  await expect(page.getByText('Sells under its usual markup')).toHaveCount(0)
+  await add(rice)
+  await page.getByLabel(`Cost of ${rice}`).fill('45')
+  await page.getByLabel('Their invoice no').fill(`INV-${tag}`)
+  await page.getByLabel('Pay now').fill('100')
+  await pick(page, 'Pay the cash from', 'E2E Safe')
+  await expect(page.getByText("Keep what didn't come on a new order")).toBeVisible()
+  await page.getByRole('button', { name: /Receive Rs\..* of stock/ }).click()
+  await toast(page, /paid Rs\. 100\.00/)
+  await expect(page.getByText('4 short')).toBeVisible()
+  await expect(page.getByText('not on the order')).toBeVisible()
+
+  await page.goto(`/print/grn/${id}`)
+  await expect(page.getByText('Goods received note')).toBeVisible()
+  await expect(page.getByText(`their invoice INV-${tag}`)).toBeVisible()
+
+  const orders = await (await page.request.get(`/api/v1/admin/purchases?tab=orders&q=${encodeURIComponent(sup)}`)).json()
+  expect(orders.total).toBe(1) // the 4 that didn't come
+})
+
+test('purchases: receive a walk-in delivery on credit; it shows under Received → Still owed', async ({ page }) => {
+  await admin(page, '/admin/purchases')
+  const sup = `Walk-in Supplier ${tag}`
+  await page.request.post('/api/v1/admin/suppliers', { data: { name: sup, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })
+  const item = `Walk-in Salt ${tag}`
+  await freshProduct(page, item)
+  await page.getByRole('link', { name: 'Receive delivery' }).click()
+  await pick(page, 'Supplier', sup)
+  await page.getByLabel('Add a product').fill(item)
+  await page.getByRole('button', { name: new RegExp(`^${item}`) }).click()
+  await page.getByLabel(`Quantity of ${item}`).fill('3')
+  await page.getByLabel(`Cost of ${item}`).fill('70')
+  await page.getByRole('button', { name: /Receive Rs\. 210\.00 of stock/ }).click()
+  await toast(page, /on credit/)
+  await expect(page.getByText('unpaid')).toBeVisible()
+  await page.goto('/admin/purchases?tab=received&unpaid=true')
+  await page.getByLabel('Search purchases').fill(sup)
+  await expect(page.getByRole('button', { name: new RegExp(sup) }).first()).toBeVisible()
+
+  const sid = (await (await page.request.get(`/api/v1/admin/suppliers?q=${encodeURIComponent(sup)}`)).json()).items[0].id
+  const po = await (await page.request.post('/api/v1/admin/purchases', { data: { supplierId: sid, invoiceNo: '', notes: '', expectedDate: '', dueDate: '', discount: '', discountType: 'fixed',
+    lines: [{ productId: (await (await page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(item)}`)).json()).items[0].id, name: '', ordered: '', quantity: '1', freeQty: '', costPrice: '70', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed' }],
+    keepRemainder: false, pay: { amount: '', method: 'cash', source: '' } } })).json()
+  await page.goto(`/admin/purchases/${po.id}`)
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete', exact: true }).last().click()
+  await toast(page, new RegExp(`Order #${po.id} deleted`))
+  await page.waitForURL(/\/admin\/purchases$/)
 })

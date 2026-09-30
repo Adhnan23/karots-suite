@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"karots-suite/internal/apperr"
@@ -96,4 +98,49 @@ func (s *Service) ListBetween(ctx context.Context, from, to time.Time) ([]Purcha
 		return nil, apperr.Internal("failed to list purchases", err)
 	}
 	return rows, nil
+}
+
+// Filter narrows the admin purchase list. Q matches the invoice no or the
+// supplier's name.
+type Filter struct {
+	Draft      bool
+	SupplierID int64
+	Q          string
+	Unpaid     bool // received with something still owed
+	Page       int
+	Limit      int
+}
+
+// Find is the paged purchase list, newest first, with the matching count.
+func (s *Service) Find(ctx context.Context, f Filter) ([]Purchase, int, error) {
+	cond, args := "pu.status <> 'draft'", []any{}
+	if f.Draft {
+		cond = "pu.status = 'draft'"
+	}
+	add := func(sql string, v any) {
+		args = append(args, v)
+		cond += " AND " + strings.ReplaceAll(sql, "$?", "$"+strconv.Itoa(len(args)))
+	}
+	if f.SupplierID > 0 {
+		add("pu.supplier_id = $?", f.SupplierID)
+	}
+	if q := strings.TrimSpace(f.Q); q != "" {
+		add("(pu.invoice_no ILIKE '%' || $? || '%' OR s.name ILIKE '%' || $? || '%')", q)
+	}
+	if f.Unpaid {
+		cond += " AND pu.total - pu.paid_amount - pu.credited_amount > 0"
+	}
+	from := ` FROM purchases pu JOIN suppliers s ON s.id = pu.supplier_id LEFT JOIN users u ON u.id = pu.received_by WHERE ` + cond
+	var total int
+	if err := s.db.GetContext(ctx, &total, `SELECT COUNT(*)`+from, args...); err != nil {
+		return nil, 0, apperr.Internal("failed to count purchases", err)
+	}
+	limit := max(1, min(f.Limit, 200))
+	var rows []Purchase
+	err := s.db.SelectContext(ctx, &rows, `SELECT pu.*, s.name AS supplier_name, u.name AS received_by_name`+from+
+		` ORDER BY pu.created_at DESC, pu.id DESC LIMIT `+strconv.Itoa(limit)+` OFFSET `+strconv.Itoa((max(f.Page, 1)-1)*limit), args...)
+	if err != nil {
+		return nil, 0, apperr.Internal("failed to list purchases", err)
+	}
+	return rows, total, nil
 }

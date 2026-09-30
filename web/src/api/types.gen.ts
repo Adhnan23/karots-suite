@@ -950,6 +950,82 @@ export interface ReassignRequest {
 export interface CountResult {
   count: number /* int */;
 }
+/**
+ * PurchaseRow is one purchase order (draft) or received delivery (GRN).
+ */
+export interface PurchaseRow {
+  id: number /* int64 */;
+  supplierId: number /* int64 */;
+  supplierName: string;
+  invoiceNo: string;
+  status: string; // draft | received | partial | paid (karots-pos purchase_status)
+  date: string;
+  expectedDate: string; // "" = none
+  dueDate: string;
+  total: string;
+  paid: string;
+  credited: string; // value returned against it
+  balance: string;
+  by: string;
+}
+export interface PurchaseList {
+  items: PurchaseRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+/**
+ * PurchaseLine is a line as stored, plus the product's current cost and price
+ * (the receive screen's margin guard). Ordered is "" for lines not on the order.
+ */
+export interface PurchaseLine extends StockLine {
+  net: string; // line payable after its discount
+  curCost: string;
+  curSell: string;
+  unitAbbr: string;
+}
+/**
+ * PurchaseParty is the supplier block on a PO / GRN.
+ */
+export interface PurchaseParty {
+  name: string;
+  contact: string;
+  phone: string;
+  address: string;
+}
+export interface PurchaseDetail extends PurchaseRow {
+  supplier: PurchaseParty;
+  subtotal: string;
+  discount: string; // resolved bill discount
+  discountType: string; // as entered
+  discountValue: string; // as entered
+  notes: string;
+  lines: PurchaseLine[];
+}
+/**
+ * AdminPayNow is paying on delivery from the back office (MoneySource value).
+ */
+export interface AdminPayNow {
+  amount: string; // "" / 0 = all on credit
+  method: string;
+  source: string;
+}
+/**
+ * PurchaseRequest is an order (draft), an edit of one, a walk-in delivery or
+ * receiving an order. Invoice / due / pay / keepRemainder apply to receiving.
+ */
+export interface PurchaseRequest {
+  supplierId: number /* int64 */;
+  invoiceNo: string;
+  notes: string;
+  expectedDate: string;
+  dueDate: string;
+  discount: string;
+  discountType: string;
+  lines: StockLine[];
+  keepRemainder: boolean;
+  pay: AdminPayNow;
+}
 
 //////////
 // source: dto_sale.go

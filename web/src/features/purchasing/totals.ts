@@ -16,3 +16,18 @@ export function billTotals(lines: StockLine[], discount: string, type: string) {
   const bill = clamp(type === 'percent' ? (net * num(discount)) / 100 : num(discount), net)
   return { net, bill, total: r2(net - bill) }
 }
+
+export type Current = { cost: string; sell: string }
+
+/** karots-pos receive margin guard. The suggestion keeps the product's current
+ * markup on the new cost (20% when it has none); a line is flagged when it would
+ * sell at or below cost, or under that suggestion. Blank sell = the current price. */
+export function marginHint(l: StockLine, cur?: Current): number | null {
+  const cost = num(l.costPrice)
+  if (!cur || !(cost > 0)) return null
+  const curCost = num(cur.cost)
+  const curSell = num(cur.sell)
+  const sell = num(l.sellingPrice) || curSell
+  const suggest = r2(curCost > 0 && curSell > 0 ? (cost * curSell) / curCost : cost * 1.2)
+  return (sell > 0 && cost >= sell) || suggest > sell + 0.005 ? suggest : null
+}

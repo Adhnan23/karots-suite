@@ -48,7 +48,49 @@ async function customerWithHistory(page: Page): Promise<number> {
   return c.id
 }
 
+/** Two orders and a part-received delivery from the supplier-with-history. */
+async function purchasesWithHistory(page: Page): Promise<{ order: number; received: number }> {
+  const sup = await supplierWithHistory(page)
+  const post = async (url: string, data: unknown) => (await page.request.post(url, { data })).json()
+  const byCode = async (c: string) => (await (await page.request.get(`/api/v1/till/products/barcode/${c}`)).json()).id as number
+  const milk = await byCode('4790000000011')
+  const soap = await byCode('4790000000028')
+  const l = (productId: number, quantity: string, costPrice: string, ordered = '') => ({ productId, name: '', ordered, quantity, freeQty: '', costPrice, sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed' })
+  const order = (await post('/api/v1/admin/purchases', { supplierId: sup, invoiceNo: '', notes: 'Deliver before noon', expectedDate: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10), dueDate: '', discount: '5', discountType: 'percent', lines: [l(milk, '24', '85'), l(soap, '12', '50')], keepRemainder: false, pay: { amount: '', method: 'cash', source: '' } })).id
+  const second = (await post('/api/v1/admin/purchases', { supplierId: sup, invoiceNo: '', notes: '', expectedDate: '', dueDate: '', discount: '', discountType: 'fixed', lines: [l(milk, '48', '85'), l(soap, '6', '52')], keepRemainder: false, pay: { amount: '', method: 'cash', source: '' } })).id
+  await post(`/api/v1/admin/purchases/${second}/receive`, { supplierId: sup, invoiceNo: 'CT-1102', notes: '', expectedDate: '', dueDate: new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10), discount: '', discountType: 'fixed', lines: [l(milk, '40', '88', '48'), l(soap, '6', '52', '6')], keepRemainder: true, pay: { amount: '1000', method: 'online', source: '' } })
+  return { order, received: second }
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  purchases: async (page) => {
+    await purchasesWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  'purchases-received': async (page) => {
+    await purchasesWithHistory(page)
+    await page.goto('/admin/purchases?tab=received')
+    await page.waitForLoadState('networkidle')
+  },
+  purchase: async (page) => {
+    await page.goto(`/admin/purchases/${(await purchasesWithHistory(page)).received}`)
+    await page.waitForLoadState('networkidle')
+  },
+  'purchase-receive': async (page) => {
+    await page.goto(`/admin/purchases/${(await purchasesWithHistory(page)).order}/receive`)
+    await page.waitForLoadState('networkidle')
+    await page.getByLabel('Quantity of E2E Milk').fill('20')
+    await page.getByLabel('Cost of E2E Milk').fill('120')
+  },
+  po: async (page) => {
+    await page.goto(`/print/po?ids=${(await purchasesWithHistory(page)).order}`)
+    await page.waitForLoadState('networkidle')
+  },
+  grn: async (page) => {
+    await page.goto(`/print/grn/${(await purchasesWithHistory(page)).received}`)
+    await page.waitForLoadState('networkidle')
+  },
   customers: async (page) => {
     await customerWithHistory(page)
     await page.reload()

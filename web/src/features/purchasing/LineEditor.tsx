@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, X } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
@@ -10,7 +10,7 @@ import { errMsg, searchQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { lineDiscount, lineGross, lineNet } from './totals'
+import { type Current, lineDiscount, lineGross, lineNet, marginHint } from './totals'
 
 const CELL = cn(FIELD, 'h-9 min-w-0 px-2 text-right tabular-nums')
 const blank = (p: TillProduct, prices: boolean, cost = ''): StockLine => ({
@@ -19,24 +19,28 @@ const blank = (p: TillProduct, prices: boolean, cost = ''): StockLine => ({
 })
 const dec = (v: string) => v.replace(/[^\d.]/g, '')
 
-/** The delivery / order lines: scan or search to add, type the numbers in place. */
-export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
+/** The delivery / order lines: scan or search to add, type the numbers in place.
+ * The admin passes `onAdd` (prefill a line, e.g. its current cost) and `current`
+ * (each product's cost and price now), which turns on the margin guard. */
+export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd, current }: {
   lines: StockLine[]; onChange: (l: StockLine[]) => void; withPrices: boolean; sym: string; fromOrder: boolean
+  onAdd?: (p: TillProduct) => Promise<Partial<StockLine>>; current?: Record<number, Current>
 }) {
   const [q, setQ] = useState('')
   const [newName, setNewName] = useState<string | null>(null)
   const qc = useQueryClient()
   const hits = useQuery({ ...searchQuery(q), placeholderData: keepPreviousData }).data?.items.filter((p) => !p.isService) ?? []
   const set = (i: number, patch: Partial<StockLine>) => onChange(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)))
-  const add = (p: TillProduct, cost?: string) => {
-    const at = lines.findIndex((l) => l.productId === p.id)
-    if (at >= 0) set(at, { quantity: String(num(lines[at].quantity) + 1) })
-    else onChange([...lines, blank(p, withPrices, cost)])
+  const add = async (p: TillProduct, cost?: string) => {
     setQ('')
+    const at = lines.findIndex((l) => l.productId === p.id)
+    if (at >= 0) return set(at, { quantity: String(num(lines[at].quantity) + 1) })
+    const extra = onAdd ? await onAdd(p).catch(() => ({})) : {}
+    onChange([...lines, { ...blank(p, withPrices, cost), ...extra }])
   }
   const addTop = async () => {
     const fresh = (await qc.query(searchQuery(q))).items.filter((p) => !p.isService) // a scan's Enter beats the list
-    if (fresh[0]) add(fresh[0])
+    if (fresh[0]) void add(fresh[0])
     else { setNewName(q.trim()); setQ('') } // close the results: they'd cover the new-product row
   }
 
@@ -50,7 +54,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
           <ul className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-auto rounded-[var(--radius-sm)] border border-border bg-card p-1 shadow-[var(--shadow)]">
             {hits.slice(0, 8).map((p) => (
               <li key={p.id}>
-                <button type="button" onClick={() => add(p)} className="flex w-full justify-between gap-3 rounded-md px-2.5 py-1.5 text-left text-[13px] hover:bg-muted">
+                <button type="button" onClick={() => void add(p)} className="flex w-full justify-between gap-3 rounded-md px-2.5 py-1.5 text-left text-[13px] hover:bg-muted">
                   <span className="truncate">{p.name}</span><small className="text-muted-foreground tabular-nums">{qtyText(p.stockQty)} {p.unitAbbr}</small>
                 </button>
               </li>
@@ -63,9 +67,9 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
           </ul>
         )}
       </div>
-      {newName !== null && <NewProduct name={newName} wanted={!withPrices} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) add(p, cost) }} />}
-      <div className={cn('grid items-center gap-1.5 px-1 pb-1 text-[11.5px] font-semibold text-muted-foreground',
-        withPrices ? 'grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
+      {newName !== null && <NewProduct name={newName} wanted={!withPrices} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
+      <div className={cn('items-center gap-1.5 px-1 pb-1 text-[11.5px] font-semibold text-muted-foreground',
+        withPrices ? 'hidden md:grid md:grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid grid-cols-[minmax(0,1fr)_80px_24px]')}>
         <span>Item</span><span className="text-right">Qty</span>
         {withPrices && <><span className="text-right">Free</span><span className="text-right">Cost</span><span className="text-right">Sell</span></>}
         <span />
@@ -74,21 +78,22 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
         {lines.length === 0 && <li className="m-auto p-6 text-center text-faint">{fromOrder ? 'Loading the order…' : 'Nothing added yet.'}</li>}
         {lines.map((l, i) => (
           <li key={l.productId} className="rounded-[var(--radius-sm)] bg-muted px-2 py-1.5">
-           <div className={cn('grid items-center gap-1.5', withPrices ? 'grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
-            <span className="min-w-0">
+           {/* Phone (admin at 360px): name + remove on top, the four numbers under it with captions. */}
+           <div className={cn('grid items-center gap-1.5', withPrices ? 'grid-cols-[repeat(4,minmax(0,1fr))_24px] md:grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
+            <span className={cn('min-w-0', withPrices && 'col-span-4 md:col-span-1')}>
               <b className="block truncate text-[13px]">{l.name}</b>
               {l.ordered && <small className="text-muted-foreground tabular-nums">ordered {qtyText(l.ordered)}</small>}
             </span>
-            <input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: dec(e.target.value) })} className={CELL} />
+            <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'max-md:order-none')}><X size={15} /></button>
+            <Cell caption="Qty" on={withPrices}><input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: dec(e.target.value) })} className={CELL} /></Cell>
             {withPrices && (
               <>
-                <input aria-label={`Free ${l.name}`} inputMode="decimal" placeholder="0" value={l.freeQty} onChange={(e) => set(i, { freeQty: dec(e.target.value) })} className={CELL} />
-                <input aria-label={`Cost of ${l.name}`} inputMode="decimal" placeholder="cost" value={l.costPrice} onChange={(e) => set(i, { costPrice: dec(e.target.value) })}
-                  className={cn(CELL, !(num(l.costPrice) > 0) && 'border-warning')} />
-                <input aria-label={`Selling price of ${l.name}`} inputMode="decimal" placeholder="same" value={l.sellingPrice} onChange={(e) => set(i, { sellingPrice: dec(e.target.value) })} className={CELL} />
+                <Cell caption="Free" on><input aria-label={`Free ${l.name}`} inputMode="decimal" placeholder="0" value={l.freeQty} onChange={(e) => set(i, { freeQty: dec(e.target.value) })} className={CELL} /></Cell>
+                <Cell caption="Cost" on><input aria-label={`Cost of ${l.name}`} inputMode="decimal" placeholder="cost" value={l.costPrice} onChange={(e) => set(i, { costPrice: dec(e.target.value) })}
+                  className={cn(CELL, !(num(l.costPrice) > 0) && 'border-warning')} /></Cell>
+                <Cell caption="Sell" on><input aria-label={`Selling price of ${l.name}`} inputMode="decimal" placeholder="same" value={l.sellingPrice} onChange={(e) => set(i, { sellingPrice: dec(e.target.value) })} className={CELL} /></Cell>
               </>
             )}
-            <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className="text-faint hover:text-danger"><X size={15} /></button>
            </div>
             {withPrices && (
               <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
@@ -106,10 +111,33 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder }: {
                 )}
               </div>
             )}
+            {withPrices && <MarginHint l={l} cur={current?.[l.productId]} sym={sym} onUse={(v) => set(i, { sellingPrice: v })} />}
           </li>
         ))}
       </ul>
     </div>
+  )
+}
+
+/** A number cell; on a phone it gets a caption (the column header is hidden there). */
+function Cell({ caption, on, children }: { caption: string; on: boolean; children: ReactNode }) {
+  if (!on) return children
+  return (
+    <span className="flex min-w-0 flex-col gap-0.5 md:contents">
+      <small className="text-[10.5px] font-semibold text-faint md:hidden">{caption}</small>
+      {children}
+    </span>
+  )
+}
+
+function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: string; onUse: (v: string) => void }) {
+  const suggest = marginHint(l, cur)
+  if (suggest === null) return null
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-2 rounded-md bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] px-2 py-1 text-[12px] font-semibold text-warning">
+      Sells under its usual markup{cur && num(cur.sell) > 0 && ` (now ${money(sym, cur.sell)})`}
+      <button type="button" onClick={() => onUse(suggest.toFixed(2))} className="rounded-full bg-card px-2 py-0.5 text-foreground">Use {money(sym, suggest)}</button>
+    </p>
   )
 }
 

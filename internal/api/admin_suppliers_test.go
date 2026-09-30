@@ -10,7 +10,7 @@ import (
 func TestAdminSuppliers(t *testing.T) {
 	te := newTestEnv(t)
 	f := te.seedTill(t)
-	ck := te.login(t, "0770009602", "admin")
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
 	sfx := time.Now().UnixNano()
 	var safe int64
 	if err := te.db.Get(&safe, `INSERT INTO lockers (name, kind, allow_negative) VALUES ($1, 'safe', true) RETURNING id`, fmt.Sprintf("T safe %d", sfx)); err != nil {
@@ -18,7 +18,9 @@ func TestAdminSuppliers(t *testing.T) {
 	}
 	src := fmt.Sprintf("locker:%d", safe)
 	path := func(id int64, rest string) string { return fmt.Sprintf("/api/v1/admin/suppliers/%d%s", id, rest) }
-	get := func(id int64) AdminSupplierDetail { return decode[AdminSupplierDetail](t, te.do(http.MethodGet, path(id, ""), nil, ck)) }
+	get := func(id int64) AdminSupplierDetail {
+		return decode[AdminSupplierDetail](t, te.do(http.MethodGet, path(id, ""), nil, ck))
+	}
 
 	name := fmt.Sprintf("T Admin Supplier %d", sfx)
 	rec := te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: name, Phone: "0711111111", CreditDays: 30, OpeningBalance: "1000"}, ck)

@@ -102,3 +102,78 @@ type ReassignRequest struct {
 type CountResult struct {
 	Count int `json:"count"`
 }
+
+// PurchaseRow is one purchase order (draft) or received delivery (GRN).
+type PurchaseRow struct {
+	ID           int64  `json:"id"`
+	SupplierID   int64  `json:"supplierId"`
+	SupplierName string `json:"supplierName"`
+	InvoiceNo    string `json:"invoiceNo"`
+	Status       string `json:"status"` // draft | received | partial | paid (karots-pos purchase_status)
+	Date         string `json:"date"`
+	ExpectedDate string `json:"expectedDate"` // "" = none
+	DueDate      string `json:"dueDate"`
+	Total        string `json:"total"`
+	Paid         string `json:"paid"`
+	Credited     string `json:"credited"` // value returned against it
+	Balance      string `json:"balance"`
+	By           string `json:"by"`
+}
+
+type PurchaseList struct {
+	Items    []PurchaseRow `json:"items"`
+	Total    int           `json:"total"`
+	Page     int           `json:"page"`
+	PageSize int           `json:"pageSize"`
+}
+
+// PurchaseLine is a line as stored, plus the product's current cost and price
+// (the receive screen's margin guard). Ordered is "" for lines not on the order.
+type PurchaseLine struct {
+	StockLine `tstype:",extends"`
+	Net       string `json:"net"` // line payable after its discount
+	CurCost   string `json:"curCost"`
+	CurSell   string `json:"curSell"`
+	UnitAbbr  string `json:"unitAbbr"`
+}
+
+// PurchaseParty is the supplier block on a PO / GRN.
+type PurchaseParty struct {
+	Name    string `json:"name"`
+	Contact string `json:"contact"`
+	Phone   string `json:"phone"`
+	Address string `json:"address"`
+}
+
+type PurchaseDetail struct {
+	PurchaseRow  `tstype:",extends"`
+	Supplier     PurchaseParty  `json:"supplier"`
+	Subtotal     string         `json:"subtotal"`
+	Discount     string         `json:"discount"`      // resolved bill discount
+	DiscountType string         `json:"discountType"`  // as entered
+	DiscountVal  string         `json:"discountValue"` // as entered
+	Notes        string         `json:"notes"`
+	Lines        []PurchaseLine `json:"lines"`
+}
+
+// AdminPayNow is paying on delivery from the back office (MoneySource value).
+type AdminPayNow struct {
+	Amount string `json:"amount"` // "" / 0 = all on credit
+	Method string `json:"method"`
+	Source string `json:"source"`
+}
+
+// PurchaseRequest is an order (draft), an edit of one, a walk-in delivery or
+// receiving an order. Invoice / due / pay / keepRemainder apply to receiving.
+type PurchaseRequest struct {
+	SupplierID    int64       `json:"supplierId"`
+	InvoiceNo     string      `json:"invoiceNo"`
+	Notes         string      `json:"notes"`
+	ExpectedDate  string      `json:"expectedDate"`
+	DueDate       string      `json:"dueDate"`
+	Discount      string      `json:"discount"`
+	DiscountType  string      `json:"discountType"`
+	Lines         []StockLine `json:"lines"`
+	KeepRemainder bool        `json:"keepRemainder"`
+	Pay           AdminPayNow `json:"pay"`
+}

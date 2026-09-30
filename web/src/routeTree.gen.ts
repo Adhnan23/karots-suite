@@ -24,6 +24,7 @@ import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/la
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
+import { Route as AuthedPrintPoRouteImport } from './routes/_authed/print/po'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
 import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
@@ -39,16 +40,22 @@ import { Route as AuthedAdminCustomersIdRouteImport } from './routes/_authed/adm
 import { Route as AuthedAdminInventoryIntakeRouteImport } from './routes/_authed/admin/inventory/intake'
 import { Route as AuthedAdminProductsIndexRouteImport } from './routes/_authed/admin/products/index'
 import { Route as AuthedAdminProductsReviewRouteImport } from './routes/_authed/admin/products/review'
+import { Route as AuthedAdminPurchasesIndexRouteImport } from './routes/_authed/admin/purchases/index'
+import { Route as AuthedAdminPurchasesNewRouteImport } from './routes/_authed/admin/purchases/new'
 import { Route as AuthedAdminStockIndexRouteImport } from './routes/_authed/admin/stock/index'
 import { Route as AuthedAdminStockBatchesRouteImport } from './routes/_authed/admin/stock/batches'
 import { Route as AuthedAdminStockTakeRouteImport } from './routes/_authed/admin/stock/take'
 import { Route as AuthedAdminSuppliersIndexRouteImport } from './routes/_authed/admin/suppliers/index'
 import { Route as AuthedAdminSuppliersIdRouteImport } from './routes/_authed/admin/suppliers/$id'
 import { Route as AuthedAdminSystemAppearanceRouteImport } from './routes/_authed/admin/system.appearance'
+import { Route as AuthedPrintGrnIdRouteImport } from './routes/_authed/print/grn.$id'
 import { Route as AuthedPrintOrderIdRouteImport } from './routes/_authed/print/order.$id'
 import { Route as AuthedPrintReceiptIdRouteImport } from './routes/_authed/print/receipt.$id'
 import { Route as AuthedPrintZIdRouteImport } from './routes/_authed/print/z.$id'
 import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key'
+import { Route as AuthedAdminPurchasesIdIndexRouteImport } from './routes/_authed/admin/purchases/$id/index'
+import { Route as AuthedAdminPurchasesIdEditRouteImport } from './routes/_authed/admin/purchases/$id/edit'
+import { Route as AuthedAdminPurchasesIdReceiveRouteImport } from './routes/_authed/admin/purchases/$id/receive'
 import { Route as AuthedPrintStatementKindIdRouteImport } from './routes/_authed/print/statement.$kind.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -123,6 +130,11 @@ const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
 const AuthedPrintLabelsRoute = AuthedPrintLabelsRouteImport.update({
   id: '/print/labels',
   path: '/print/labels',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPrintPoRoute = AuthedPrintPoRouteImport.update({
+  id: '/print/po',
+  path: '/print/po',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedTillIndexRoute = AuthedTillIndexRouteImport.update({
@@ -204,6 +216,17 @@ const AuthedAdminProductsReviewRoute =
     path: '/products/review',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminPurchasesIndexRoute =
+  AuthedAdminPurchasesIndexRouteImport.update({
+    id: '/purchases/',
+    path: '/purchases/',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminPurchasesNewRoute = AuthedAdminPurchasesNewRouteImport.update({
+  id: '/purchases/new',
+  path: '/purchases/new',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminStockIndexRoute = AuthedAdminStockIndexRouteImport.update({
   id: '/stock/',
   path: '/stock/',
@@ -236,6 +259,11 @@ const AuthedAdminSystemAppearanceRoute =
     path: '/system/appearance',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedPrintGrnIdRoute = AuthedPrintGrnIdRouteImport.update({
+  id: '/print/grn/$id',
+  path: '/print/grn/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPrintOrderIdRoute = AuthedPrintOrderIdRouteImport.update({
   id: '/print/order/$id',
   path: '/print/order/$id',
@@ -256,6 +284,24 @@ const AuthedTillXKeyRoute = AuthedTillXKeyRouteImport.update({
   path: '/x/$key',
   getParentRoute: () => AuthedTillRoute,
 } as any)
+const AuthedAdminPurchasesIdIndexRoute =
+  AuthedAdminPurchasesIdIndexRouteImport.update({
+    id: '/purchases/$id/',
+    path: '/purchases/$id/',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminPurchasesIdEditRoute =
+  AuthedAdminPurchasesIdEditRouteImport.update({
+    id: '/purchases/$id/edit',
+    path: '/purchases/$id/edit',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminPurchasesIdReceiveRoute =
+  AuthedAdminPurchasesIdReceiveRouteImport.update({
+    id: '/purchases/$id/receive',
+    path: '/purchases/$id/receive',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 const AuthedPrintStatementKindIdRoute =
   AuthedPrintStatementKindIdRouteImport.update({
     id: '/print/statement/$kind/$id',
@@ -277,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
+  '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
@@ -291,19 +338,25 @@ export interface FileRoutesByFullPath {
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/print/grn/$id': typeof AuthedPrintGrnIdRoute
   '/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
   '/admin/customers/': typeof AuthedAdminCustomersIndexRoute
   '/admin/products/': typeof AuthedAdminProductsIndexRoute
+  '/admin/purchases/': typeof AuthedAdminPurchasesIndexRoute
   '/admin/stock/': typeof AuthedAdminStockIndexRoute
   '/admin/suppliers/': typeof AuthedAdminSuppliersIndexRoute
+  '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
+  '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
+  '/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -317,6 +370,7 @@ export interface FileRoutesByTo {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
+  '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
@@ -331,19 +385,25 @@ export interface FileRoutesByTo {
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
   '/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/print/grn/$id': typeof AuthedPrintGrnIdRoute
   '/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
   '/admin/customers': typeof AuthedAdminCustomersIndexRoute
   '/admin/products': typeof AuthedAdminProductsIndexRoute
+  '/admin/purchases': typeof AuthedAdminPurchasesIndexRoute
   '/admin/stock': typeof AuthedAdminStockIndexRoute
   '/admin/suppliers': typeof AuthedAdminSuppliersIndexRoute
+  '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
+  '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
+  '/admin/purchases/$id': typeof AuthedAdminPurchasesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -361,6 +421,7 @@ export interface FileRoutesById {
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/print/labels': typeof AuthedPrintLabelsRoute
+  '/_authed/print/po': typeof AuthedPrintPoRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
@@ -375,19 +436,25 @@ export interface FileRoutesById {
   '/_authed/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/_authed/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
   '/_authed/admin/products/review': typeof AuthedAdminProductsReviewRoute
+  '/_authed/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
   '/_authed/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/_authed/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/_authed/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
   '/_authed/admin/system/appearance': typeof AuthedAdminSystemAppearanceRoute
+  '/_authed/print/grn/$id': typeof AuthedPrintGrnIdRoute
   '/_authed/print/order/$id': typeof AuthedPrintOrderIdRoute
   '/_authed/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/_authed/print/z/$id': typeof AuthedPrintZIdRoute
   '/_authed/till/x/$key': typeof AuthedTillXKeyRoute
   '/_authed/admin/customers/': typeof AuthedAdminCustomersIndexRoute
   '/_authed/admin/products/': typeof AuthedAdminProductsIndexRoute
+  '/_authed/admin/purchases/': typeof AuthedAdminPurchasesIndexRoute
   '/_authed/admin/stock/': typeof AuthedAdminStockIndexRoute
   '/_authed/admin/suppliers/': typeof AuthedAdminSuppliersIndexRoute
+  '/_authed/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
+  '/_authed/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/_authed/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
+  '/_authed/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -405,6 +472,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/print/labels'
+    | '/print/po'
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
@@ -419,19 +487,25 @@ export interface FileRouteTypes {
     | '/admin/customers/$id'
     | '/admin/inventory/intake'
     | '/admin/products/review'
+    | '/admin/purchases/new'
     | '/admin/stock/batches'
     | '/admin/stock/take'
     | '/admin/suppliers/$id'
     | '/admin/system/appearance'
+    | '/print/grn/$id'
     | '/print/order/$id'
     | '/print/receipt/$id'
     | '/print/z/$id'
     | '/till/x/$key'
     | '/admin/customers/'
     | '/admin/products/'
+    | '/admin/purchases/'
     | '/admin/stock/'
     | '/admin/suppliers/'
+    | '/admin/purchases/$id/edit'
+    | '/admin/purchases/$id/receive'
     | '/print/statement/$kind/$id'
+    | '/admin/purchases/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -445,6 +519,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/print/labels'
+    | '/print/po'
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
@@ -459,19 +534,25 @@ export interface FileRouteTypes {
     | '/admin/customers/$id'
     | '/admin/inventory/intake'
     | '/admin/products/review'
+    | '/admin/purchases/new'
     | '/admin/stock/batches'
     | '/admin/stock/take'
     | '/admin/suppliers/$id'
     | '/admin/system/appearance'
+    | '/print/grn/$id'
     | '/print/order/$id'
     | '/print/receipt/$id'
     | '/print/z/$id'
     | '/till/x/$key'
     | '/admin/customers'
     | '/admin/products'
+    | '/admin/purchases'
     | '/admin/stock'
     | '/admin/suppliers'
+    | '/admin/purchases/$id/edit'
+    | '/admin/purchases/$id/receive'
     | '/print/statement/$kind/$id'
+    | '/admin/purchases/$id'
   id:
     | '__root__'
     | '/'
@@ -488,6 +569,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/services'
     | '/_authed/admin/units'
     | '/_authed/print/labels'
+    | '/_authed/print/po'
     | '/_authed/till/convert'
     | '/_authed/till/credit'
     | '/_authed/till/expenses'
@@ -502,19 +584,25 @@ export interface FileRouteTypes {
     | '/_authed/admin/customers/$id'
     | '/_authed/admin/inventory/intake'
     | '/_authed/admin/products/review'
+    | '/_authed/admin/purchases/new'
     | '/_authed/admin/stock/batches'
     | '/_authed/admin/stock/take'
     | '/_authed/admin/suppliers/$id'
     | '/_authed/admin/system/appearance'
+    | '/_authed/print/grn/$id'
     | '/_authed/print/order/$id'
     | '/_authed/print/receipt/$id'
     | '/_authed/print/z/$id'
     | '/_authed/till/x/$key'
     | '/_authed/admin/customers/'
     | '/_authed/admin/products/'
+    | '/_authed/admin/purchases/'
     | '/_authed/admin/stock/'
     | '/_authed/admin/suppliers/'
+    | '/_authed/admin/purchases/$id/edit'
+    | '/_authed/admin/purchases/$id/receive'
     | '/_authed/print/statement/$kind/$id'
+    | '/_authed/admin/purchases/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -632,6 +720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPrintLabelsRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/print/po': {
+      id: '/_authed/print/po'
+      path: '/print/po'
+      fullPath: '/print/po'
+      preLoaderRoute: typeof AuthedPrintPoRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/till/': {
       id: '/_authed/till/'
       path: '/'
@@ -737,6 +832,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminProductsReviewRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/purchases/': {
+      id: '/_authed/admin/purchases/'
+      path: '/purchases'
+      fullPath: '/admin/purchases/'
+      preLoaderRoute: typeof AuthedAdminPurchasesIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/purchases/new': {
+      id: '/_authed/admin/purchases/new'
+      path: '/purchases/new'
+      fullPath: '/admin/purchases/new'
+      preLoaderRoute: typeof AuthedAdminPurchasesNewRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/stock/': {
       id: '/_authed/admin/stock/'
       path: '/stock'
@@ -779,6 +888,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminSystemAppearanceRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/print/grn/$id': {
+      id: '/_authed/print/grn/$id'
+      path: '/print/grn/$id'
+      fullPath: '/print/grn/$id'
+      preLoaderRoute: typeof AuthedPrintGrnIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/print/order/$id': {
       id: '/_authed/print/order/$id'
       path: '/print/order/$id'
@@ -807,6 +923,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTillXKeyRouteImport
       parentRoute: typeof AuthedTillRoute
     }
+    '/_authed/admin/purchases/$id/': {
+      id: '/_authed/admin/purchases/$id/'
+      path: '/purchases/$id'
+      fullPath: '/admin/purchases/$id/'
+      preLoaderRoute: typeof AuthedAdminPurchasesIdIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/purchases/$id/edit': {
+      id: '/_authed/admin/purchases/$id/edit'
+      path: '/purchases/$id/edit'
+      fullPath: '/admin/purchases/$id/edit'
+      preLoaderRoute: typeof AuthedAdminPurchasesIdEditRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/purchases/$id/receive': {
+      id: '/_authed/admin/purchases/$id/receive'
+      path: '/purchases/$id/receive'
+      fullPath: '/admin/purchases/$id/receive'
+      preLoaderRoute: typeof AuthedAdminPurchasesIdReceiveRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/print/statement/$kind/$id': {
       id: '/_authed/print/statement/$kind/$id'
       path: '/print/statement/$kind/$id'
@@ -828,14 +965,19 @@ interface AuthedAdminRouteChildren {
   AuthedAdminCustomersIdRoute: typeof AuthedAdminCustomersIdRoute
   AuthedAdminInventoryIntakeRoute: typeof AuthedAdminInventoryIntakeRoute
   AuthedAdminProductsReviewRoute: typeof AuthedAdminProductsReviewRoute
+  AuthedAdminPurchasesNewRoute: typeof AuthedAdminPurchasesNewRoute
   AuthedAdminStockBatchesRoute: typeof AuthedAdminStockBatchesRoute
   AuthedAdminStockTakeRoute: typeof AuthedAdminStockTakeRoute
   AuthedAdminSuppliersIdRoute: typeof AuthedAdminSuppliersIdRoute
   AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
   AuthedAdminCustomersIndexRoute: typeof AuthedAdminCustomersIndexRoute
   AuthedAdminProductsIndexRoute: typeof AuthedAdminProductsIndexRoute
+  AuthedAdminPurchasesIndexRoute: typeof AuthedAdminPurchasesIndexRoute
   AuthedAdminStockIndexRoute: typeof AuthedAdminStockIndexRoute
   AuthedAdminSuppliersIndexRoute: typeof AuthedAdminSuppliersIndexRoute
+  AuthedAdminPurchasesIdEditRoute: typeof AuthedAdminPurchasesIdEditRoute
+  AuthedAdminPurchasesIdReceiveRoute: typeof AuthedAdminPurchasesIdReceiveRoute
+  AuthedAdminPurchasesIdIndexRoute: typeof AuthedAdminPurchasesIdIndexRoute
 }
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
@@ -849,14 +991,19 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminCustomersIdRoute: AuthedAdminCustomersIdRoute,
   AuthedAdminInventoryIntakeRoute: AuthedAdminInventoryIntakeRoute,
   AuthedAdminProductsReviewRoute: AuthedAdminProductsReviewRoute,
+  AuthedAdminPurchasesNewRoute: AuthedAdminPurchasesNewRoute,
   AuthedAdminStockBatchesRoute: AuthedAdminStockBatchesRoute,
   AuthedAdminStockTakeRoute: AuthedAdminStockTakeRoute,
   AuthedAdminSuppliersIdRoute: AuthedAdminSuppliersIdRoute,
   AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,
   AuthedAdminCustomersIndexRoute: AuthedAdminCustomersIndexRoute,
   AuthedAdminProductsIndexRoute: AuthedAdminProductsIndexRoute,
+  AuthedAdminPurchasesIndexRoute: AuthedAdminPurchasesIndexRoute,
   AuthedAdminStockIndexRoute: AuthedAdminStockIndexRoute,
   AuthedAdminSuppliersIndexRoute: AuthedAdminSuppliersIndexRoute,
+  AuthedAdminPurchasesIdEditRoute: AuthedAdminPurchasesIdEditRoute,
+  AuthedAdminPurchasesIdReceiveRoute: AuthedAdminPurchasesIdReceiveRoute,
+  AuthedAdminPurchasesIdIndexRoute: AuthedAdminPurchasesIdIndexRoute,
 }
 
 const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
@@ -899,6 +1046,8 @@ interface AuthedRouteChildren {
   AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedTillRoute: typeof AuthedTillRouteWithChildren
   AuthedPrintLabelsRoute: typeof AuthedPrintLabelsRoute
+  AuthedPrintPoRoute: typeof AuthedPrintPoRoute
+  AuthedPrintGrnIdRoute: typeof AuthedPrintGrnIdRoute
   AuthedPrintOrderIdRoute: typeof AuthedPrintOrderIdRoute
   AuthedPrintReceiptIdRoute: typeof AuthedPrintReceiptIdRoute
   AuthedPrintZIdRoute: typeof AuthedPrintZIdRoute
@@ -909,6 +1058,8 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedTillRoute: AuthedTillRouteWithChildren,
   AuthedPrintLabelsRoute: AuthedPrintLabelsRoute,
+  AuthedPrintPoRoute: AuthedPrintPoRoute,
+  AuthedPrintGrnIdRoute: AuthedPrintGrnIdRoute,
   AuthedPrintOrderIdRoute: AuthedPrintOrderIdRoute,
   AuthedPrintReceiptIdRoute: AuthedPrintReceiptIdRoute,
   AuthedPrintZIdRoute: AuthedPrintZIdRoute,
