@@ -83,7 +83,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   role, PIN / reset — forces re-login, can see cost, can manage credit, can handle suppliers,
   receipt printer), deactivate/reactivate. System user never listed; last admin can't be
   deactivated or demoted.
-- [ ] **10. Flows, parity, docs.** Playwright `admin-purchasing.spec.ts` + `admin-people.spec.ts`
+- [x] **10. Flows, parity, docs.** Playwright `admin-purchasing.spec.ts` + `admin-people.spec.ts`
   (incl. 360px): supplier pay / refund / opening, PO → partial receive → remainder draft, return
   credits the invoice, reorder → drafts, customer payment / opening, user create + login + flags.
   Tick parity rows, status.md handoff to M4, ship check (types, vet, tests, build, plugin grep,

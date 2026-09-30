@@ -30,8 +30,10 @@ internal/app/         BuildServer + services.go (service construction + core sea
 internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
                       till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)
                       counter*.go — the till's counter tabs (dto_counter.go); reprints take ?size=58|80
-                      admin*.go — /api/v1/admin/* (admin + manager): catalog (dto_catalog.go) and stock
-                      (dto_stock.go); sheets.go = CSV/XLSX/ODS download + import helpers
+                      admin*.go — /api/v1/admin/* (admin + manager): catalog (dto_catalog.go), stock
+                      (dto_stock.go), purchasing — suppliers, purchases, reorder, returns, money sources
+                      (dto_purchasing.go) — and people — customers, users (admin only) (dto_people.go);
+                      sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
 internal/plugin/      plugin registry + hooks (Go side)
@@ -53,7 +55,10 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
   src/features/admin/ admin screens by area (products, categories, units, groups, services, stock,
                       intake, conversions, labels); shared pickers: CategoryPicker, ProductPicker
-  src/routes/_authed/print/  printable pages (receipt, X/Z report, purchase order, label sheet) — paper/ink tokens
+  src/features/purchasing/ suppliers, purchases (entry / receive / PO + GRN docs), reorder, returns;
+                      shared LineEditor + totals (margin guard) used by the counter too, MoneySourcePicker
+  src/features/people/ customers, users, OpeningSheet (old balance), StatementSheet (print)
+  src/routes/_authed/print/  printable pages (receipt, X/Z report, order, PO, GRN, statement, label sheet) — paper/ink tokens
   src/plugins/        slot registry + generated enabled-plugins.ts (M7)
   src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, tillTabs,
                         tillReceiptKinds, before/after-sale)
