@@ -181,3 +181,32 @@ test('purchases: receive a walk-in delivery on credit; it shows under Received �
   await toast(page, new RegExp(`Order #${po.id} deleted`))
   await page.waitForURL(/\/admin\/purchases$/)
 })
+
+test('reorder: tick items across two searches, pick suppliers, one order per supplier, PO print opens', async ({ page }) => {
+  await admin(page, '/admin/reorder')
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
+  const mkSup = async (n: string) => (await (await page.request.post('/api/v1/admin/suppliers', { data: { name: n, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })).json()).id as number
+  const a = await mkSup(`Reorder Dairy ${tag}`)
+  await mkSup(`Reorder Grains ${tag}`)
+  for (const [name, sup] of [[`Low Yoghurt ${tag}`, a], [`Low Flour ${tag}`, 0]] as const)
+    await page.request.post('/api/v1/admin/products', { data: { name, nameLocal: '', barcode: '', categoryId: cat.id, unitId: 1, costPrice: '40', sellingPrice: '60', wholesalePrice: '', taxRate: '',
+      reorderLevel: 5, trackSerial: false, warrantyMonths: 0, supplierId: sup, repriceStock: false, dupSourceName: '' } })
+  await page.reload()
+
+  await page.getByLabel('Search products').fill(`Low Yoghurt ${tag}`)
+  await expect(page.getByLabel(`Quantity of Low Yoghurt ${tag}`)).toHaveValue('10') // 2 × reorder level, nothing on hand
+  await page.getByLabel(`Order Low Yoghurt ${tag}`).check()
+  await page.getByLabel('Search products').fill(`Low Flour ${tag}`)
+  await page.getByLabel(`Order Low Flour ${tag}`).check()
+  await expect(page.getByText('2 items')).toBeVisible()
+  await expect(page.getByText('1 need a supplier')).toBeVisible()
+  await pick(page, `Supplier for Low Flour ${tag}`, `Reorder Grains ${tag}`)
+  await page.getByLabel(`Quantity of Low Flour ${tag}`).fill('25')
+  const popup = page.waitForEvent('popup')
+  await page.getByRole('button', { name: 'Create orders' }).click()
+  await toast(page, /2 purchase orders created/)
+  await expect((await popup).getByText(/Purchase order #\d+/).first()).toBeVisible()
+  const orders = await (await page.request.get(`/api/v1/admin/purchases?tab=orders&q=${encodeURIComponent(`Reorder Grains ${tag}`)}`)).json()
+  expect(orders.total).toBe(1)
+  expect(orders.items[0].total).toBe('1000.00') // 25 × 40
+})

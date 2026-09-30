@@ -29,6 +29,7 @@ func (h *handlers) registerAdminPurchases(g *echo.Group) {
 	g.GET("/purchases", h.AdminPurchases)
 	g.POST("/purchases", h.AdminPurchaseOrder)
 	g.POST("/purchases/receive", h.AdminPurchaseReceiveNow)
+	g.POST("/purchases/draft", h.AdminReorderBuild)
 	g.GET("/purchases/print", h.AdminPurchasesPrint)
 	g.GET("/purchases/:id", h.AdminPurchase)
 	g.PUT("/purchases/:id", h.AdminPurchaseUpdate)

@@ -21,6 +21,7 @@ import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admi
 import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
 import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/labels'
+import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/reorder'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
@@ -115,6 +116,11 @@ const AuthedAdminGroupsRoute = AuthedAdminGroupsRouteImport.update({
 const AuthedAdminLabelsRoute = AuthedAdminLabelsRouteImport.update({
   id: '/labels',
   path: '/labels',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminReorderRoute = AuthedAdminReorderRouteImport.update({
+  id: '/reorder',
+  path: '/reorder',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
@@ -320,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
+  '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
+  '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
   '/_authed/admin/labels': typeof AuthedAdminLabelsRoute
+  '/_authed/admin/reorder': typeof AuthedAdminReorderRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/print/labels': typeof AuthedPrintLabelsRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/admin/conversions'
     | '/admin/groups'
     | '/admin/labels'
+    | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
     | '/print/labels'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/admin/conversions'
     | '/admin/groups'
     | '/admin/labels'
+    | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
     | '/print/labels'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/conversions'
     | '/_authed/admin/groups'
     | '/_authed/admin/labels'
+    | '/_authed/admin/reorder'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
     | '/_authed/print/labels'
@@ -697,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/labels'
       fullPath: '/admin/labels'
       preLoaderRoute: typeof AuthedAdminLabelsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reorder': {
+      id: '/_authed/admin/reorder'
+      path: '/reorder'
+      fullPath: '/admin/reorder'
+      preLoaderRoute: typeof AuthedAdminReorderRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/services': {
@@ -959,6 +978,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
   AuthedAdminLabelsRoute: typeof AuthedAdminLabelsRoute
+  AuthedAdminReorderRoute: typeof AuthedAdminReorderRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
@@ -985,6 +1005,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
   AuthedAdminLabelsRoute: AuthedAdminLabelsRoute,
+  AuthedAdminReorderRoute: AuthedAdminReorderRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,

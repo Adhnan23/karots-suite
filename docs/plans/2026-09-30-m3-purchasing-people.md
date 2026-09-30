@@ -71,7 +71,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   **keep remainder** as a new draft when short, **margin guard** (cost ≥ sell or below prior
   markup → flag + one-click suggested sell), invoice / due / pay now. `/print/po` (combined or one
   per supplier, shop ↔ supplier block) and `/print/grn/:id`.
-- [ ] **7. Reorder** (`admin_reorder.go`). Items at/below reorder level (category filter), demand
+- [x] **7. Reorder** (`admin_reorder.go`). Items at/below reorder level (category filter), demand
   hint (90-day avg × 14-day lead − on hand, fallback 2× reorder), sold-last-year column, pick +
   qty + supplier (defaults to preferred) → one draft per supplier → open `/print/po`.
 - [ ] **8. Purchase returns** (`admin_purchase_returns.go`). List, new (supplier, product lines

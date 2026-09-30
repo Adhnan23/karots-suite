@@ -226,7 +226,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · POST `/products/:id/review-done`
 - [ ] `internal/web/register_admin.go` · POST `/products/import`
 - [x] `internal/web/register_admin.go` · POST `/purchases`
-- [ ] `internal/web/register_admin.go` · POST `/purchases/draft`
+- [x] `internal/web/register_admin.go` · POST `/purchases/draft`
 - [x] `internal/web/register_admin.go` · POST `/purchases/:id/delete`
 - [x] `internal/web/register_admin.go` · POST `/purchases/:id/edit`
 - [x] `internal/web/register_admin.go` · POST `/purchases/:id/receive`

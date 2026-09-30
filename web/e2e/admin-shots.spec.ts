@@ -63,6 +63,17 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  reorder: async (page) => {
+    const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
+    const n = Date.now().toString(36).slice(-3)
+    for (const [name, lvl] of [[`Basmati 5kg ${n}`, 8], [`Coconut oil 1L ${n}`, 12], [`Dhal 1kg ${n}`, 6]] as const)
+      await page.request.post('/api/v1/admin/products', { data: { name, nameLocal: '', barcode: '', categoryId: cat.id, unitId: 1, costPrice: '420', sellingPrice: '520', wholesalePrice: '', taxRate: '',
+        reorderLevel: lvl, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '' } })
+    await page.reload()
+    await page.getByLabel('Search products').fill(n)
+    await page.getByLabel(`Order Basmati 5kg ${n}`).check()
+    await page.getByLabel(`Order Dhal 1kg ${n}`).check()
+  },
   purchases: async (page) => {
     await purchasesWithHistory(page)
     await page.reload()

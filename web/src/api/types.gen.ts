@@ -1026,6 +1026,47 @@ export interface PurchaseRequest {
   keepRemainder: boolean;
   pay: AdminPayNow;
 }
+/**
+ * ReorderRow is a product at or under its reorder level. Suggested is the
+ * demand-based order qty (90-day sales × 14-day lead − on hand), or 2 × reorder
+ * level − on hand with no sales history. Sold* are units sold in that window.
+ */
+export interface ReorderRow {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  onHand: string;
+  reorderLevel: number /* int */;
+  cost: string;
+  supplierId: number /* int64 */; // preferred; 0 = none
+  supplierName: string;
+  suggested: string;
+  fromSales: boolean; // Suggested came from sales history
+  soldWeek: string;
+  soldMonth: string;
+  soldLastYear: string; // the same 90 days a year ago
+}
+export interface ReorderList {
+  items: ReorderRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+export interface ReorderLine {
+  productId: number /* int64 */;
+  supplierId: number /* int64 */;
+  quantity: string;
+  costPrice: string;
+}
+/**
+ * ReorderRequest builds one purchase order per supplier from the picked lines.
+ */
+export interface ReorderRequest {
+  lines: ReorderLine[];
+}
+export interface IDsResult {
+  ids: number /* int64 */[];
+}
 
 //////////
 // source: dto_sale.go

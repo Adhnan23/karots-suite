@@ -177,3 +177,45 @@ type PurchaseRequest struct {
 	KeepRemainder bool        `json:"keepRemainder"`
 	Pay           AdminPayNow `json:"pay"`
 }
+
+// ReorderRow is a product at or under its reorder level. Suggested is the
+// demand-based order qty (90-day sales × 14-day lead − on hand), or 2 × reorder
+// level − on hand with no sales history. Sold* are units sold in that window.
+type ReorderRow struct {
+	ProductID    int64  `json:"productId"`
+	Name         string `json:"name"`
+	UnitAbbr     string `json:"unitAbbr"`
+	OnHand       string `json:"onHand"`
+	ReorderLevel int    `json:"reorderLevel"`
+	Cost         string `json:"cost"`
+	SupplierID   int64  `json:"supplierId"` // preferred; 0 = none
+	SupplierName string `json:"supplierName"`
+	Suggested    string `json:"suggested"`
+	FromSales    bool   `json:"fromSales"` // Suggested came from sales history
+	SoldWeek     string `json:"soldWeek"`
+	SoldMonth    string `json:"soldMonth"`
+	SoldLastYear string `json:"soldLastYear"` // the same 90 days a year ago
+}
+
+type ReorderList struct {
+	Items    []ReorderRow `json:"items"`
+	Total    int          `json:"total"`
+	Page     int          `json:"page"`
+	PageSize int          `json:"pageSize"`
+}
+
+type ReorderLine struct {
+	ProductID  int64  `json:"productId"`
+	SupplierID int64  `json:"supplierId"`
+	Quantity   string `json:"quantity"`
+	CostPrice  string `json:"costPrice"`
+}
+
+// ReorderRequest builds one purchase order per supplier from the picked lines.
+type ReorderRequest struct {
+	Lines []ReorderLine `json:"lines"`
+}
+
+type IDsResult struct {
+	IDs []int64 `json:"ids"`
+}

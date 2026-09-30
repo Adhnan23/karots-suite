@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminSupplierDetail, AdminSupplierList, PurchaseDetail, PurchaseList, Statement } from '@/api/types.gen'
+import type { AdminSupplierDetail, AdminSupplierList, PurchaseDetail, PurchaseList, ReorderList, Statement } from '@/api/types.gen'
 
 export type SupplierFilter = { q: string; show: '' | 'owing' | 'credit'; disabled: boolean; page: number }
 
@@ -23,3 +23,10 @@ export const purchasesQuery = (f: PurchaseFilter) =>
 export const purchaseQuery = (id: number) => queryOptions({ queryKey: ['admin', 'purchase', id], queryFn: () => api<PurchaseDetail>(`/admin/purchases/${id}`) })
 export const purchasesPrintQuery = (ids: string) =>
   queryOptions({ queryKey: ['admin', 'purchases-print', ids], queryFn: () => api<PurchaseDetail[]>(`/admin/purchases/print?ids=${ids}`) })
+
+export type ReorderFilter = { q: string; category: number; supplier: number; page: number }
+export const reorderQuery = (f: ReorderFilter) =>
+  queryOptions({
+    queryKey: ['admin', 'reorder', f],
+    queryFn: () => api<ReorderList>(`/admin/reorder?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}`),
+  })
