@@ -19,7 +19,47 @@ async function login(page: Page, phone: string, pin: string) {
   await page.waitForURL(/\/(admin|till)/)
 }
 
+/** A supplier with history for the M3 shots: old debt, two deliveries, a payment. */
+async function supplierWithHistory(page: Page): Promise<number> {
+  const post = async (url: string, data: unknown) => (await page.request.post(url, { data })).json()
+  const mk = (name: string, opening: string, phone = '', contact = '', days = 0) =>
+    post('/api/v1/admin/suppliers', { name, contact, phone, address: 'Pettah, Colombo 11', creditDays: days, openingBalance: opening })
+  const n = Date.now().toString(36).slice(-3)
+  const s = await mk(`Ceylon Traders ${n}`, '2500', '0112345678', 'Nimal', 30)
+  await mk(`Kandy Dairy ${n}`, '0', '0812233445', 'Sunil', 14)
+  await mk(`Galle Spices ${n}`, '800', '0912222333')
+  const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+  for (const [qty, inv] of [['24', 'CT-1041'], ['12', 'CT-1077']])
+    await post(`/api/v1/till/suppliers/${s.id}/receive`, { invoiceNo: inv, discount: '', discountType: 'fixed', notes: '', keepRemainder: false, deferDrawerKick: true,
+      pay: { amount: '', method: 'cash', lockerId: 0 }, lines: [{ productId: milk.id, name: '', ordered: '', quantity: qty, freeQty: '', costPrice: '85', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed' }] })
+  await post(`/api/v1/admin/suppliers/${s.id}/payment`, { amount: '1500', mode: 'old', allocations: [], advance: '', oldDebt: '', method: 'online', reference: 'BOC 88213', note: '', source: '' })
+  return s.id
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  suppliers: async (page) => {
+    await supplierWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  supplier: async (page) => {
+    await page.goto(`/admin/suppliers/${await supplierWithHistory(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
+  'supplier-pay': async (page) => {
+    await prep.supplier(page)
+    await page.getByRole('button', { name: '↑ Pay' }).click()
+    await page.getByRole('button', { name: 'Split exactly' }).click()
+  },
+  'supplier-opening': async (page) => {
+    await prep.supplier(page)
+    await page.getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'Old balance' }).click()
+  },
+  statement: async (page) => {
+    await page.goto(`/print/statement/supplier/${await supplierWithHistory(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
   'unit-form': async (page) => {
     await page.getByRole('button', { name: /New unit/ }).click()
     await page.getByLabel('Name').fill('Kilogram')

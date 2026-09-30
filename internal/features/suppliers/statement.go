@@ -77,7 +77,16 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		return nil, apperr.Internal("failed to load supplier payments", err)
 	}
 
-	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+1)
+	// Money a supplier handed back (supplierpay refunds) raises the payable back
+	// toward zero — leaving it out left the running balance short of the real one.
+	var refunds []payRow
+	if err := s.db.SelectContext(ctx, &refunds, `
+		SELECT created_at, method, reference, amount
+		FROM supplier_refunds WHERE supplier_id = $1 ORDER BY created_at`, id); err != nil {
+		return nil, apperr.Internal("failed to load supplier refunds", err)
+	}
+
+	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+len(refunds)+1)
 	// The opening balance is the carried-forward figure from before this system: a
 	// debit when we owed them, a credit when they owed us (a pre-system advance).
 	if sup.OpeningBalance.IsPositive() {
@@ -97,6 +106,13 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 			ref += " · " + *r.Reference
 		}
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Payment", Ref: ref, Credit: r.Amount})
+	}
+	for _, r := range refunds {
+		ref := r.Method
+		if r.Reference != nil && strings.TrimSpace(*r.Reference) != "" {
+			ref += " · " + *r.Reference
+		}
+		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Refund received", Ref: ref, Debit: r.Amount})
 	}
 	sort.SliceStable(entries, func(i, j int) bool { return entries[i].Date.Before(entries[j].Date) })
 

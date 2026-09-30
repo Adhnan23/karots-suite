@@ -40,6 +40,7 @@ WHERE g.name = 'E2E Dairy' AND p.name IN ('E2E Milk', 'E2E Yoghurt');
 
 INSERT INTO customers (name, phone, credit_limit) VALUES ('E2E Credit', '0771000001', 1000);
 INSERT INTO lockers (name, kind, cashier_access) VALUES ('E2E Card machine', 'card', true);
+INSERT INTO lockers (name, kind, cashier_access, allow_negative) VALUES ('E2E Safe', 'safe', false, true);
 
 -- A pack the Convert tab breaks open: 1 crate = 12 milk.
 INSERT INTO products (name, barcode, category_id, unit_id, cost_price, selling_price)

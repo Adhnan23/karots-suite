@@ -749,6 +749,43 @@ export interface ReceiptRef {
 }
 
 //////////
+// source: dto_people.go
+
+/**
+ * OpeningRequest corrects the still-unpaid old (pre-system) balance of a
+ * customer or supplier. Negative = a pre-system credit / advance.
+ */
+export interface OpeningRequest {
+  opening: string;
+  note: string;
+}
+/**
+ * StatementLine is one ledger line; Balance runs forward.
+ */
+export interface StatementLine {
+  date: string;
+  kind: string;
+  ref: string;
+  debit: string;
+  credit: string;
+  balance: string;
+}
+/**
+ * Statement is a customer's or supplier's printable ledger.
+ */
+export interface Statement {
+  name: string;
+  phone: string;
+  address: string;
+  contact: string;
+  since: string;
+  lines: StatementLine[];
+  totalDebit: string;
+  totalCredit: string;
+  balance: string;
+}
+
+//////////
 // source: dto_purchasing.go
 
 /**
@@ -762,6 +799,99 @@ export interface MoneySource {
   group: string; // "Lockers" | "Tills"
   kind: string; // locker kind (safe, bank, pocket, other, card) or "till"
   balance: string;
+}
+/**
+ * AdminSupplierRow is one supplier on the admin list. Owed < 0 = they owe us
+ * (returns worth more than was owed, or an advance). OldDebt is the still-unpaid
+ * pre-system opening, the only part of Owed an admin may correct.
+ */
+export interface AdminSupplierRow {
+  id: number /* int64 */;
+  name: string;
+  contact: string;
+  phone: string;
+  address: string;
+  creditDays: number /* int */;
+  owed: string;
+  oldDebt: string;
+  active: boolean;
+}
+export interface AdminSupplierList {
+  items: AdminSupplierRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+  /**
+   * Owed / Credit sum every matching supplier (payables vs what suppliers owe us).
+   */
+  owed: string;
+  credit: string;
+}
+/**
+ * SupplierMoneyRow is one payment to, or refund from, a supplier.
+ */
+export interface SupplierMoneyRow {
+  kind: string; // payment | refund
+  date: string;
+  method: string;
+  reference: string;
+  note: string;
+  by: string;
+  amount: string;
+}
+export interface AdminSupplierDetail extends AdminSupplierRow {
+  invoices: SupplierInvoice[]; // open, oldest first
+  orders: SupplierOrder[]; // drafts not yet received
+  money: SupplierMoneyRow[]; // newest first
+  products: number /* int */; // products defaulting to this supplier
+}
+/**
+ * SupplierRequest creates or edits a supplier. OpeningBalance is read on create
+ * only; afterwards it changes through the opening adjust.
+ */
+export interface SupplierRequest {
+  name: string;
+  contact: string;
+  phone: string;
+  address: string;
+  creditDays: number /* int */;
+  openingBalance: string;
+}
+export interface PayAlloc {
+  purchaseId: number /* int64 */;
+  amount: string;
+}
+/**
+ * AdminSupplierPayRequest pays a supplier from the back office. With no
+ * allocations, advance or oldDebt, Amount waterfalls (Mode "pay" = invoices
+ * first, "old" = old debt first); otherwise the split is exactly as given.
+ */
+export interface AdminSupplierPayRequest {
+  amount: string;
+  mode: string;
+  allocations: PayAlloc[];
+  advance: string;
+  oldDebt: string;
+  method: string;
+  reference: string;
+  note: string;
+  source: string; // MoneySource value; "" = outside the shop (not for cash)
+}
+/**
+ * AdminMoneyRequest is money a party hands back (supplier refund).
+ */
+export interface AdminMoneyRequest {
+  amount: string;
+  method: string;
+  reference: string;
+  note: string;
+  source: string;
+}
+export interface ReassignRequest {
+  toId: number /* int64 */;
+}
+export interface CountResult {
+  count: number /* int */;
 }
 
 //////////

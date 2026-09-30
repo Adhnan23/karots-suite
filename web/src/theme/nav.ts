@@ -24,7 +24,11 @@ export const adminNav: NavArea[] = [
       { to: '/admin/services', label: 'Services & recipes', description: 'Non-stocked lines and what each one consumes' },
     ],
   },
-  { key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [] },
+  {
+    key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [
+      { to: '/admin/suppliers', label: 'Suppliers', description: 'Supplier accounts & payables' },
+    ],
+  },
   { key: 'money', label: 'Money', icon: Wallet, pages: [] },
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
   {

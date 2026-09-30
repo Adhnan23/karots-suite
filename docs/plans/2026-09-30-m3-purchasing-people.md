@@ -51,7 +51,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   The counter PayForm stays the counter's: the admin pay form adds per-invoice allocations, an
   old-debt amount and any locker/till as source. `SupplierPicker`, `OpeningSheet`, nav entries and
   the `'admin'` gate land with their first screen (tasks 2, 5, 9).
-- [ ] **2. Suppliers** (`admin_suppliers.go`). List (search, active/archived, owing / in credit),
+- [x] **2. Suppliers** (`admin_suppliers.go`). List (search, active/archived, owing / in credit),
   create/edit (name, contact person, phone, address, credit days, opening on create; dup name →
   409), archive/reactivate, **reassign** products to another supplier, opening adjust, **pay**
   (open-invoice allocations, pay opening, advance, method + source) and **refund** (capped at

@@ -14,7 +14,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · DELETE `/groups/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/groups/:id/items/:productId`
 - [x] `internal/web/register_admin.go` · DELETE `/products/:id`
-- [ ] `internal/web/register_admin.go` · DELETE `/suppliers/:id`
+- [x] `internal/web/register_admin.go` · DELETE `/suppliers/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/units/:id`
 - [ ] `internal/web/register_admin.go` · DELETE `/users/:id`
 - [ ] `internal/web/register_admin.go` · GET ``
@@ -167,17 +167,17 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · GET `/stock/take`
 - [x] `internal/web/register_admin.go` · GET `/stock/take/import`
 - [x] `internal/web/register_admin.go` · GET `/stock/take/sheet`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers`
+- [x] `internal/web/register_admin.go` · GET `/suppliers`
 - [ ] `internal/web/register_admin.go` · GET `/suppliers/export`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/form`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/form/:id`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/:id/statement`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/form`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/form/:id`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/:id/statement`
 - [ ] `internal/web/register_admin.go` · GET `/suppliers/import`
 - [ ] `internal/web/register_admin.go` · GET `/suppliers/import/template`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/opening/:id`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/pay/:id`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/reassign/:id`
-- [ ] `internal/web/register_admin.go` · GET `/suppliers/table`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/opening/:id`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/pay/:id`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/reassign/:id`
+- [x] `internal/web/register_admin.go` · GET `/suppliers/table`
 - [x] `internal/web/register_admin.go` · GET `/units`
 - [x] `internal/web/register_admin.go` · GET `/units/form`
 - [x] `internal/web/register_admin.go` · GET `/units/form/:id`
@@ -246,12 +246,12 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · POST `/stock/expired/write-off-all`
 - [x] `internal/web/register_admin.go` · POST `/stock/take`
 - [x] `internal/web/register_admin.go` · POST `/stock/take/import`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers/:id/activate`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers/:id/opening`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers/:id/payment`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers/:id/reassign`
-- [ ] `internal/web/register_admin.go` · POST `/suppliers/:id/refund`
+- [x] `internal/web/register_admin.go` · POST `/suppliers`
+- [x] `internal/web/register_admin.go` · POST `/suppliers/:id/activate`
+- [x] `internal/web/register_admin.go` · POST `/suppliers/:id/opening`
+- [x] `internal/web/register_admin.go` · POST `/suppliers/:id/payment`
+- [x] `internal/web/register_admin.go` · POST `/suppliers/:id/reassign`
+- [x] `internal/web/register_admin.go` · POST `/suppliers/:id/refund`
 - [ ] `internal/web/register_admin.go` · POST `/suppliers/import`
 - [x] `internal/web/register_admin.go` · POST `/units`
 - [ ] `internal/web/register_admin.go` · POST `/users`
@@ -268,7 +268,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · PUT `/lockers/:id`
 - [x] `internal/web/register_admin.go` · PUT `/products/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/settings`
-- [ ] `internal/web/register_admin.go` · PUT `/suppliers/:id`
+- [x] `internal/web/register_admin.go` · PUT `/suppliers/:id`
 - [x] `internal/web/register_admin.go` · PUT `/units/:id`
 - [ ] `internal/web/register_admin.go` · PUT `/users/:id`
 - [x] `internal/web/register_cashier.go` · GET ``
