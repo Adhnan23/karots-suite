@@ -38,6 +38,7 @@ type AdjustInput struct {
 	// units that actually went missing may have been from the newest delivery,
 	// and once lots carry different prices that guess leaves the books offering a
 	// price for stock the shop no longer has. Zero keeps the old FEFO behaviour.
+	// On an increase it names the lot to top up (zero opens an adjustment lot).
 	BatchID int64 `json:"batch_id" form:"batch_id"`
 }
 
@@ -71,7 +72,21 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 		moved := decimal.Zero
 		// Keep batches consistent: a positive delta opens an adjustment batch,
 		// a negative delta is depleted FEFO.
-		if delta.IsPositive() {
+		if delta.IsPositive() && in.BatchID > 0 {
+			// A batch's own count going up (Stock → batch → Set count): top up
+			// that lot so its price and expiry stay with the units.
+			b, err := repo.LockBatch(ctx, in.BatchID, in.ProductID)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return apperr.NotFound("batch")
+				}
+				return apperr.Internal("failed to read batch", err)
+			}
+			if _, err := repo.RestockLot(ctx, &in.BatchID, in.ProductID, delta); err != nil {
+				return apperr.Internal("failed to top up batch", err)
+			}
+			moved = b.CostPrice.Mul(delta)
+		} else if delta.IsPositive() {
 			cost := decimal.Zero
 			if p, err := repo.productCost(ctx, in.ProductID); err == nil {
 				cost = p

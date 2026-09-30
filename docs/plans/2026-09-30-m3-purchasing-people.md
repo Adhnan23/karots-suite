@@ -43,7 +43,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
 
 ## Tasks
 
-- [ ] **0. Stock batch sheet** (open item the user asked for). Title "Batches of …", **Batch
+- [x] **0. Stock batch sheet** (open item the user asked for). Title "Batches of …", **Batch
   price** label (blank = follows the product), per-batch **Set count** and **Remove batch**
   (count correction / write-off), drop the whole-product "Adjust the count" shortcut from that sheet.
 - [ ] **1. Shared purchasing kit + nav.** Move LineEditor / totals / PayForm to

@@ -101,11 +101,16 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
   lots: async (page) => {
     await page.getByLabel('Search products').fill('Lot Soap')
     await page.getByRole('button', { name: /^E2E Lot Soap/ }).first().click()
-    await page.getByLabel('Lots').waitFor()
+    await page.getByLabel('Batches', { exact: true }).waitFor()
+  },
+  'batch-count': async (page) => {
+    await prep.lots(page)
+    await page.getByLabel('Batch 1').getByRole('button', { name: 'Set count' }).click()
+    await page.getByLabel('Batch 2').getByRole('button', { name: 'Remove batch' }).click()
   },
   adjust: async (page) => {
-    await prep.lots(page)
-    await page.getByRole('button', { name: 'Adjust the count' }).click()
+    await page.getByLabel('Search products').fill('Lot Soap')
+    await page.getByRole('button', { name: 'Adjust', exact: true }).first().click()
     await page.getByLabel('Actually there').fill('7')
     await page.getByRole('button', { name: 'Missing' }).click()
   },

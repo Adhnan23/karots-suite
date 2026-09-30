@@ -49,6 +49,16 @@ func TestAdminStockAdjustAndLots(t *testing.T) {
 		t.Fatalf("bad type: %d", rec.Code)
 	}
 
+	// A batch's Set count up tops up that same lot (keeps its price), no new lot.
+	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/adjust", AdjustRequest{ProductID: f.lotID, NewQuantity: "9", Note: "found", BatchID: priced.ID}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("adjust up: %d %s", rec.Code, rec.Body)
+	}
+	te.db.Get(&left, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, priced.ID) //nolint:errcheck
+	if n := len(decode[ProductLots](t, te.do(http.MethodGet, "/api/v1/admin/stock/lots/"+pid, nil, ck)).Lots); left != 4 || n != 2 {
+		t.Fatalf("top-up: lot left %v, %d lots", left, n)
+	}
+	te.do(http.MethodPost, "/api/v1/admin/stock/adjust", AdjustRequest{ProductID: f.lotID, NewQuantity: "8", BatchID: priced.ID}, ck)
+
 	// Lot price: set, then blank → follows the product again.
 	path := "/api/v1/admin/stock/batches/" + strconv.FormatInt(priced.ID, 10) + "/price"
 	te.do(http.MethodPost, path, LotPriceRequest{SellingPrice: ""}, ck)

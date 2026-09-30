@@ -24,7 +24,8 @@ type MovementList struct {
 }
 
 // AdjustRequest sets a product's on-hand to an absolute count. BatchID names
-// the lot a reduction comes off (0 = oldest first).
+// the lot the change applies to: a reduction comes off it (0 = oldest first),
+// an increase tops it up (0 = a new adjustment lot).
 type AdjustRequest struct {
 	ProductID   int64  `json:"productId"`
 	NewQuantity string `json:"newQuantity"`

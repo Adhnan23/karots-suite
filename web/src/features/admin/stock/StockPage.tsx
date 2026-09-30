@@ -34,7 +34,7 @@ export function StockPage() {
   const [writeOff, setWriteOff] = useState(false)
   return (
     <>
-      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its lots, or adjust a count.' : 'Every unit in and out — who, when and why.'}
+      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : 'Every unit in and out — who, when and why.'}
         actions={<>
           <Button variant="outline" className="h-10 px-3" onClick={() => setWriteOff(true)}>Record write-off</Button>
           <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements']]} />
@@ -78,7 +78,7 @@ function Levels() {
           { key: 'value', header: 'Value at cost', num: true, cell: (p) => <span className="text-muted-foreground">{money(sym, Math.max(0, num(p.stockQty)) * num(p.costPrice))}</span> },
           { key: 'adj', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => <Button variant="ghost" className="h-9 px-3" onClick={() => setAdjust(p.id)}>Adjust</Button> },
         ]} />
-      {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} onAdjust={() => { setAdjust(lots); setLots(0) }} />}
+      {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
       {adjust > 0 && <AdjustForm key={adjust} productId={adjust} onClose={() => setAdjust(0)} />}
     </>
   )

@@ -63,7 +63,7 @@ export function BatchesPage() {
           </ul>
         )}
       </div>
-      {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} onAdjust={() => setLots(0)} />}
+      {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
     </>
   )
 }
