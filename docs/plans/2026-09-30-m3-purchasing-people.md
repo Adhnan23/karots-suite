@@ -74,9 +74,11 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
 - [x] **7. Reorder** (`admin_reorder.go`). Items at/below reorder level (category filter), demand
   hint (90-day avg × 14-day lead − on hand, fallback 2× reorder), sold-last-year column, pick +
   qty + supplier (defaults to preferred) → one draft per supplier → open `/print/po`.
-- [ ] **8. Purchase returns** (`admin_purchase_returns.go`). List, new (supplier, product lines
-  with batch pick, qty, cost, reason, reference) → debit note crediting invoices oldest-first,
-  read-only detail (no edit/delete — correct with an opposing entry).
+- [x] **8. Purchase returns** (`admin_purchase_returns.go`). List, read-only detail, and — an
+  upgrade on karots-pos (user, 2026-09-30), where any product could go to any supplier at a typed
+  cost — a return is made **against one received delivery**: only its lines, at most what's left
+  of the lot it created, priced at that lot's real cost (after line + bill discounts and free
+  units, server-side), credited to that delivery's bill first, then oldest first.
 - [ ] **9. Users** (`admin_users.go`, admin only). List (role, active), create/edit (name, phone,
   role, PIN / reset — forces re-login, can see cost, can manage credit, can handle suppliers,
   receipt printer), deactivate/reactivate. System user never listed; last admin can't be

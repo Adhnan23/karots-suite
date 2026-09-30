@@ -210,3 +210,34 @@ test('reorder: tick items across two searches, pick suppliers, one order per sup
   expect(orders.total).toBe(1)
   expect(orders.items[0].total).toBe('1000.00') // 25 × 40
 })
+
+test('purchase returns: from a delivery with discounts — only its lines, at the cost after discounts, off its bill', async ({ page }) => {
+  await admin(page, '/admin/suppliers')
+  const sup = `Return Supplier ${tag}`
+  const item = `Return Jam ${tag}`
+  const sid = (await (await page.request.post('/api/v1/admin/suppliers', { data: { name: sup, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })).json()).id
+  const pid = await freshProduct(page, item)
+  // 10 × 100 less 10% on the line and 100 off the bill → 800 for 10 = 80 each.
+  const grn = (await (await page.request.post('/api/v1/admin/purchases/receive', { data: { supplierId: sid, invoiceNo: `JAM-${tag}`, notes: '', expectedDate: '', dueDate: '', discount: '100', discountType: 'fixed',
+    lines: [{ productId: pid, name: '', ordered: '', quantity: '10', freeQty: '', costPrice: '100', sellingPrice: '', expiryDate: '', discount: '10', discountType: 'percent' }], keepRemainder: false, pay: { amount: '', method: 'cash', source: '' } } })).json()).purchaseId
+  await page.goto(`/admin/purchases/${grn}`)
+  await page.getByRole('link', { name: 'Return goods' }).click()
+  await expect(page.getByText(/10 of 10 pcs left from this delivery · Rs\. 80\.00 each/)).toBeVisible()
+  await expect(page.getByText('after discounts')).toBeVisible()
+  await page.getByLabel(`Return how many ${item}`).fill('11')
+  await expect(page.getByText('More than is left from this delivery.')).toBeVisible()
+  await page.getByLabel(`Return how many ${item}`).fill('4')
+  await page.getByLabel('Reason').fill('Damaged in transit')
+  await page.getByRole('button', { name: 'Return Rs. 320.00 of goods' }).click()
+  await toast(page, new RegExp(`Returned Rs\\. 320\\.00 of stock to ${sup}`))
+  await expect(page.getByText(`JAM-${tag}`)).toBeVisible()
+  expect((await (await page.request.get(`/api/v1/admin/suppliers/${sid}`)).json()).owed).toBe('480.00')
+  expect((await (await page.request.get(`/api/v1/admin/purchases/${grn}`)).json()).credited).toBe('320.00')
+
+  // From the supplier page: pick the delivery; 6 are left.
+  await page.goto(`/admin/suppliers/${sid}`)
+  await page.getByRole('button', { name: 'More' }).click()
+  await page.getByRole('menuitem', { name: 'Return goods' }).click()
+  await pick(page, 'Delivery', `JAM-${tag}`)
+  await expect(page.getByText(/6 of 10 pcs left/)).toBeVisible()
+})

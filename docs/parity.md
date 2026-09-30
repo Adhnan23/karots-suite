@@ -96,9 +96,9 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · GET `/products/review/count`
 - [x] `internal/web/register_admin.go` · GET `/products/review/table`
 - [x] `internal/web/register_admin.go` · GET `/products/table`
-- [ ] `internal/web/register_admin.go` · GET `/purchase-returns`
-- [ ] `internal/web/register_admin.go` · GET `/purchase-returns/:id`
-- [ ] `internal/web/register_admin.go` · GET `/purchase-returns/new`
+- [x] `internal/web/register_admin.go` · GET `/purchase-returns`
+- [x] `internal/web/register_admin.go` · GET `/purchase-returns/:id`
+- [x] `internal/web/register_admin.go` · GET `/purchase-returns/new`
 - [x] `internal/web/register_admin.go` · GET `/purchases`
 - [x] `internal/web/register_admin.go` · GET `/purchases/:id`
 - [x] `internal/web/register_admin.go` · GET `/purchases/:id/edit`

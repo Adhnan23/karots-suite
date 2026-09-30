@@ -32,6 +32,7 @@ export const adminNav: NavArea[] = [
     key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [
       { to: '/admin/purchases', label: 'Purchases', description: 'Record goods received (GRN)' },
       { to: '/admin/reorder', label: 'Reorder', description: 'Items at or below reorder level — order them in one go' },
+      { to: '/admin/purchase-returns', label: 'Purchase returns', description: 'Return stock to suppliers' },
       { to: '/admin/suppliers', label: 'Suppliers', description: 'Supplier accounts & payables' },
     ],
   },

@@ -10,17 +10,13 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/features/suppliers"
-	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
-	"karots-suite/internal/response"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
 
@@ -34,6 +30,10 @@ type PurchaseReturn struct {
 	CreatedAt  time.Time       `db:"created_at"  json:"created_at"`
 	// joined
 	SupplierName string `db:"supplier_name" json:"supplier_name"`
+	// The delivery it went back from (through the lots it drained); nil for an
+	// old return made without one.
+	PurchaseID *int64  `db:"purchase_id" json:"purchase_id,omitempty"`
+	InvoiceNo  *string `db:"invoice_no"  json:"invoice_no,omitempty"`
 }
 
 type Item struct {
@@ -56,7 +56,7 @@ type Detail struct {
 type ItemInput struct {
 	ProductID int64  `json:"product_id" validate:"required,gt=0"`
 	Quantity  string `json:"quantity"   validate:"required"`
-	CostPrice string `json:"cost_price" validate:"required"`
+	CostPrice string `json:"cost_price"` // ignored against a delivery (the lot's cost)
 	// BatchID names the lot physically going back. Sending back a damaged NEW
 	// delivery must not drain the OLDEST lot, which is what plain FEFO did — that
 	// left the shop's records claiming stock it no longer had, at a price the till
@@ -65,7 +65,12 @@ type ItemInput struct {
 }
 
 type CreateInput struct {
-	SupplierID int64       `json:"supplier_id" validate:"required,gt=0"`
+	SupplierID int64 `json:"supplier_id" validate:"required,gt=0"`
+	// PurchaseID ties the return to one received delivery: every line must name
+	// a lot that delivery created, is priced at that lot's cost (what was really
+	// paid, after discounts and free units), and credits that bill first. Zero
+	// keeps the old free-form return (any lot, cost as given, oldest bill first).
+	PurchaseID int64       `json:"purchase_id"`
 	Reference  *string     `json:"reference"`
 	Reason     *string     `json:"reason"`
 	Items      []ItemInput `json:"items" validate:"required,min=1,dive"`
@@ -107,9 +112,16 @@ func (r *Repository) InsertAllocation(ctx context.Context, prID, purchaseID int6
 func (r *Repository) List(ctx context.Context) ([]PurchaseReturn, error) {
 	var rows []PurchaseReturn
 	err := r.q.SelectContext(ctx, &rows, `
-		SELECT pr.*, s.name AS supplier_name
+		SELECT pr.*, s.name AS supplier_name, src.purchase_id, src.invoice_no
 		FROM purchase_returns pr
 		JOIN suppliers s ON s.id = pr.supplier_id
+		LEFT JOIN LATERAL (
+			SELECT pi.purchase_id, pu.invoice_no
+			FROM purchase_return_items pri
+			JOIN stock_batches b ON b.id = pri.batch_id
+			JOIN purchase_items pi ON pi.id = b.purchase_item_id
+			JOIN purchases pu ON pu.id = pi.purchase_id
+			WHERE pri.purchase_return_id = pr.id LIMIT 1) src ON true
 		ORDER BY pr.created_at DESC`)
 	return rows, err
 }
@@ -117,14 +129,31 @@ func (r *Repository) List(ctx context.Context) ([]PurchaseReturn, error) {
 func (r *Repository) FindByID(ctx context.Context, id int64) (*PurchaseReturn, error) {
 	var pr PurchaseReturn
 	err := r.q.GetContext(ctx, &pr, `
-		SELECT pr.*, s.name AS supplier_name
+		SELECT pr.*, s.name AS supplier_name, src.purchase_id, src.invoice_no
 		FROM purchase_returns pr
 		JOIN suppliers s ON s.id = pr.supplier_id
+		LEFT JOIN LATERAL (
+			SELECT pi.purchase_id, pu.invoice_no
+			FROM purchase_return_items pri
+			JOIN stock_batches b ON b.id = pri.batch_id
+			JOIN purchase_items pi ON pi.id = b.purchase_item_id
+			JOIN purchases pu ON pu.id = pi.purchase_id
+			WHERE pri.purchase_return_id = pr.id LIMIT 1) src ON true
 		WHERE pr.id = $1`, id)
 	if err != nil {
 		return nil, err
 	}
 	return &pr, nil
+}
+
+// purchaseOfLot is the purchase a lot came in on (0 when it wasn't a purchase lot).
+func (r *Repository) purchaseOfLot(ctx context.Context, purchaseItemID *int64) (int64, error) {
+	if purchaseItemID == nil {
+		return 0, nil
+	}
+	var id int64
+	err := r.q.GetContext(ctx, &id, `SELECT purchase_id FROM purchase_items WHERE id = $1`, *purchaseItemID)
+	return id, err
 }
 
 func (r *Repository) Items(ctx context.Context, prID int64) ([]Item, error) {
@@ -179,6 +208,12 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 
 		ref := "purchase_return"
 		total := decimal.Zero
+		if in.PurchaseID > 0 {
+			pu, err := puRepo.FindByID(ctx, in.PurchaseID)
+			if err != nil || pu.SupplierID != in.SupplierID || pu.Status == "draft" {
+				return apperr.Validation("that delivery isn't one received from this supplier")
+			}
+		}
 		type line struct {
 			productID           int64
 			batchID             *int64
@@ -190,9 +225,11 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 			if err != nil || !qty.IsPositive() {
 				return apperr.Validation("quantity must be greater than zero")
 			}
-			cost, err := money.Parse(it.CostPrice)
-			if err != nil || cost.IsNegative() {
-				return apperr.Validation("cost price is invalid")
+			cost := decimal.Zero // against a delivery it comes from the lot, below
+			if in.PurchaseID == 0 {
+				if cost, err = money.Parse(it.CostPrice); err != nil || cost.IsNegative() {
+					return apperr.Validation("cost price is invalid")
+				}
 			}
 			ok, err := stk.DecrementGuarded(ctx, it.ProductID, qty)
 			if err != nil {
@@ -213,6 +250,13 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 					}
 					return apperr.Internal("failed to load batch", berr)
 				}
+				if in.PurchaseID > 0 {
+					from, ferr := repo.purchaseOfLot(ctx, b.PurchaseItemID)
+					if ferr != nil || from != in.PurchaseID {
+						return apperr.Validation("that item didn't come in on this delivery")
+					}
+					cost = b.CostPrice // what was really paid for these units
+				}
 				if b.QtyRemaining.LessThan(qty) {
 					return apperr.Conflict("only " + b.QtyRemaining.String() + " left in that batch")
 				}
@@ -221,6 +265,8 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 				}
 				id := b.ID
 				batchID = &id
+			} else if in.PurchaseID > 0 {
+				return apperr.Validation("pick the delivery's lot for every line")
 			} else if _, err := stk.DepleteFEFO(ctx, it.ProductID, qty); err != nil {
 				return apperr.Internal("failed to deplete batches", err)
 			}
@@ -261,6 +307,16 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 			if err != nil {
 				return apperr.Internal("failed to load open invoices", err)
 			}
+			// A return against a delivery credits that bill first, then the rest
+			// oldest first like any other credit.
+			if in.PurchaseID > 0 {
+				for i, pu := range open {
+					if pu.ID == in.PurchaseID {
+						open = append(append([]purchases.Purchase{pu}, open[:i]...), open[i+1:]...)
+						break
+					}
+				}
+			}
 			left := total
 			for _, pu := range open {
 				if !left.IsPositive() {
@@ -291,38 +347,4 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 		return nil, err
 	}
 	return detail, nil
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	rows, err := h.svc.List(c.Request().Context())
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Create(c echo.Context) error {
-	var in CreateInput
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	d, err := h.svc.Create(c.Request().Context(), in, middleware.CurrentUserID(c))
-	if err != nil {
-		return err
-	}
-	return response.Created(c, d)
-}
-
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(db))
-	g := e.Group("/api/purchase-returns", middleware.JWTAuth(cfg.JWTSecret), middleware.RequireRole("admin", "manager"))
-	g.GET("", api.List)
-	g.POST("", api.Create)
 }

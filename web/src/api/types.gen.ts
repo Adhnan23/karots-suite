@@ -1067,6 +1067,74 @@ export interface ReorderRequest {
 export interface IDsResult {
   ids: number /* int64 */[];
 }
+/**
+ * PurchaseReturnRow is a debit note: stock sent back to a supplier.
+ */
+export interface PurchaseReturnRow {
+  id: number /* int64 */;
+  supplierId: number /* int64 */;
+  supplierName: string;
+  purchaseId: number /* int64 */; // the delivery it went back from; 0 = an old free-form return
+  invoiceNo: string; // that delivery's invoice no
+  reference: string;
+  reason: string;
+  total: string;
+  date: string;
+}
+export interface PurchaseReturnList {
+  items: PurchaseReturnRow[];
+  total: number /* int */;
+  page: number /* int */;
+  pageSize: number /* int */;
+}
+export interface PurchaseReturnLine {
+  productId: number /* int64 */;
+  name: string;
+  quantity: string;
+  costPrice: string;
+  subtotal: string;
+  batchId: number /* int64 */; // 0 = oldest first
+}
+export interface PurchaseReturnDetail extends PurchaseReturnRow {
+  lines: PurchaseReturnLine[];
+}
+export interface PurchaseReturnItem {
+  productId: number /* int64 */;
+  quantity: string;
+  costPrice: string; // ignored: the lot's cost is what goes back
+  batchId: number /* int64 */; // the lot the delivery created
+}
+/**
+ * PurchaseReturnRequest sends part of one received delivery back, at what those
+ * units really cost (after discounts and free units); the value credits that
+ * delivery's bill first, then the supplier's other open bills oldest first.
+ */
+export interface PurchaseReturnRequest {
+  supplierId: number /* int64 */;
+  purchaseId: number /* int64 */;
+  reference: string;
+  reason: string;
+  lines: PurchaseReturnItem[];
+}
+/**
+ * ReturnableLine is one line of a received delivery that can still go back:
+ * Left is what remains of the lot it created; Cost is that lot's real unit cost
+ * (after line + bill discounts and free units), ListCost what the bill said.
+ */
+export interface ReturnableLine {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  batchId: number /* int64 */;
+  received: string; // paid + free
+  left: string;
+  cost: string;
+  listCost: string;
+  expiry: string;
+}
+export interface ReturnableList {
+  lines: ReturnableLine[];
+}
 
 //////////
 // source: dto_sale.go

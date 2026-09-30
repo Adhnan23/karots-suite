@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Ban, FileText, MoreHorizontal, MoveRight, Pencil, Scale } from 'lucide-react'
+import { ArrowLeft, Ban, FileText, MoreHorizontal, MoveRight, Pencil, Scale, Undo2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -79,6 +79,7 @@ export function SupplierPage({ id }: { id: number }) {
               <DropdownMenuContent align="end">
                 {owed < 0 && <DropdownMenuItem onSelect={() => setSheet('pay')}>Pay an advance</DropdownMenuItem>}
                 <DropdownMenuItem onSelect={() => setSheet('opening')}><Scale size={15} /> Old balance</DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/admin/purchase-returns/new" search={{ supplier: id }}><Undo2 size={15} /> Return goods</Link></DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setSheet('move')}><MoveRight size={15} /> Move products ({s.products})</DropdownMenuItem>
                 <DropdownMenuItem className="text-danger" onSelect={() => setSheet('disable')}><Ban size={15} /> Disable</DropdownMenuItem>
               </DropdownMenuContent>

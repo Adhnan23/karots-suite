@@ -219,3 +219,74 @@ type ReorderRequest struct {
 type IDsResult struct {
 	IDs []int64 `json:"ids"`
 }
+
+// PurchaseReturnRow is a debit note: stock sent back to a supplier.
+type PurchaseReturnRow struct {
+	ID           int64  `json:"id"`
+	SupplierID   int64  `json:"supplierId"`
+	SupplierName string `json:"supplierName"`
+	PurchaseID   int64  `json:"purchaseId"` // the delivery it went back from; 0 = an old free-form return
+	InvoiceNo    string `json:"invoiceNo"`  // that delivery's invoice no
+	Reference    string `json:"reference"`
+	Reason       string `json:"reason"`
+	Total        string `json:"total"`
+	Date         string `json:"date"`
+}
+
+type PurchaseReturnList struct {
+	Items    []PurchaseReturnRow `json:"items"`
+	Total    int                 `json:"total"`
+	Page     int                 `json:"page"`
+	PageSize int                 `json:"pageSize"`
+}
+
+type PurchaseReturnLine struct {
+	ProductID int64  `json:"productId"`
+	Name      string `json:"name"`
+	Quantity  string `json:"quantity"`
+	CostPrice string `json:"costPrice"`
+	Subtotal  string `json:"subtotal"`
+	BatchID   int64  `json:"batchId"` // 0 = oldest first
+}
+
+type PurchaseReturnDetail struct {
+	PurchaseReturnRow `tstype:",extends"`
+	Lines             []PurchaseReturnLine `json:"lines"`
+}
+
+type PurchaseReturnItem struct {
+	ProductID int64  `json:"productId"`
+	Quantity  string `json:"quantity"`
+	CostPrice string `json:"costPrice"` // ignored: the lot's cost is what goes back
+	BatchID   int64  `json:"batchId"`   // the lot the delivery created
+}
+
+// PurchaseReturnRequest sends part of one received delivery back, at what those
+// units really cost (after discounts and free units); the value credits that
+// delivery's bill first, then the supplier's other open bills oldest first.
+type PurchaseReturnRequest struct {
+	SupplierID int64                `json:"supplierId"`
+	PurchaseID int64                `json:"purchaseId"`
+	Reference  string               `json:"reference"`
+	Reason     string               `json:"reason"`
+	Lines      []PurchaseReturnItem `json:"lines"`
+}
+
+// ReturnableLine is one line of a received delivery that can still go back:
+// Left is what remains of the lot it created; Cost is that lot's real unit cost
+// (after line + bill discounts and free units), ListCost what the bill said.
+type ReturnableLine struct {
+	ProductID int64  `json:"productId"`
+	Name      string `json:"name"`
+	UnitAbbr  string `json:"unitAbbr"`
+	BatchID   int64  `json:"batchId"`
+	Received  string `json:"received"` // paid + free
+	Left      string `json:"left"`
+	Cost      string `json:"cost"`
+	ListCost  string `json:"listCost"`
+	Expiry    string `json:"expiry"`
+}
+
+type ReturnableList struct {
+	Lines []ReturnableLine `json:"lines"`
+}

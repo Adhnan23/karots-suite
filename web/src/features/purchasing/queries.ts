@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminSupplierDetail, AdminSupplierList, PurchaseDetail, PurchaseList, ReorderList, Statement } from '@/api/types.gen'
+import type { AdminSupplierDetail, AdminSupplierList, PurchaseDetail, PurchaseList, PurchaseReturnDetail, PurchaseReturnList, ReorderList, ReturnableList, Statement } from '@/api/types.gen'
 
 export type SupplierFilter = { q: string; show: '' | 'owing' | 'credit'; disabled: boolean; page: number }
 
@@ -30,3 +30,10 @@ export const reorderQuery = (f: ReorderFilter) =>
     queryKey: ['admin', 'reorder', f],
     queryFn: () => api<ReorderList>(`/admin/reorder?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}`),
   })
+
+export const purchaseReturnsQuery = (supplier: number, page: number) =>
+  queryOptions({ queryKey: ['admin', 'purchase-returns', supplier, page], queryFn: () => api<PurchaseReturnList>(`/admin/purchase-returns?supplier=${supplier}&page=${page}`) })
+export const purchaseReturnQuery = (id: number) =>
+  queryOptions({ queryKey: ['admin', 'purchase-return', id], queryFn: () => api<PurchaseReturnDetail>(`/admin/purchase-returns/${id}`) })
+export const returnableQuery = (purchaseId: number) =>
+  queryOptions({ queryKey: ['admin', 'returnable', purchaseId], queryFn: () => api<ReturnableList>(`/admin/purchases/${purchaseId}/returnable`) })

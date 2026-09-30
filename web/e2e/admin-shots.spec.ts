@@ -63,6 +63,21 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  'return-entry': async (page) => {
+    await page.goto(`/admin/purchase-returns/new?purchase=${(await purchasesWithHistory(page)).received}`)
+    await page.waitForLoadState('networkidle')
+    await page.getByLabel('Return how many E2E Milk').fill('6')
+    await page.getByLabel('Reason').fill('Short-dated')
+  },
+  returns: async (page) => {
+    const sup = await supplierWithHistory(page)
+    const milk = (await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).id
+    const grn = (await (await page.request.get(`/api/v1/admin/purchases?tab=received&supplier=${sup}`)).json()).items[0].id
+    const lot = (await (await page.request.get(`/api/v1/admin/purchases/${grn}/returnable`)).json()).lines.find((l: { productId: number }) => l.productId === milk)
+    await page.request.post('/api/v1/admin/purchase-returns', { data: { supplierId: sup, purchaseId: grn, reference: 'DN-204', reason: 'Damaged in transit', lines: [{ productId: milk, quantity: '3', costPrice: '', batchId: lot.batchId }] } })
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
   reorder: async (page) => {
     const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
     const n = Date.now().toString(36).slice(-3)

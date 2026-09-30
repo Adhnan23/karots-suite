@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, FileText, PackageCheck, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, FileText, PackageCheck, Pencil, Trash2, Undo2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
@@ -56,6 +56,7 @@ export function PurchasePage({ id }: { id: number }) {
           ) : (
             <>
               {num(p.balance) > 0 && <Button className={cn(act, 'font-bold')} asChild><Link to="/admin/suppliers/$id" params={{ id: String(p.supplierId) }}>↑ Pay {p.supplierName}</Link></Button>}
+              <Button variant="outline" className={act} asChild><Link to="/admin/purchase-returns/new" search={{ purchase: id }}><Undo2 size={15} /> Return goods</Link></Button>
               <Button variant="outline" className={act} asChild><a href={`/print/grn/${id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Goods received note</a></Button>
             </>
           )}
