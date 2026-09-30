@@ -16,7 +16,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · DELETE `/products/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/suppliers/:id`
 - [x] `internal/web/register_admin.go` · DELETE `/units/:id`
-- [ ] `internal/web/register_admin.go` · DELETE `/users/:id`
+- [x] `internal/web/register_admin.go` · DELETE `/users/:id`
 - [ ] `internal/web/register_admin.go` · GET ``
 - [ ] `internal/web/register_admin.go` · GET `/activity`
 - [ ] `internal/web/register_admin.go` · GET `/activity/export`
@@ -182,10 +182,10 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · GET `/units/form`
 - [x] `internal/web/register_admin.go` · GET `/units/form/:id`
 - [x] `internal/web/register_admin.go` · GET `/units/table`
-- [ ] `internal/web/register_admin.go` · GET `/users`
-- [ ] `internal/web/register_admin.go` · GET `/users/form`
-- [ ] `internal/web/register_admin.go` · GET `/users/form/:id`
-- [ ] `internal/web/register_admin.go` · GET `/users/table`
+- [x] `internal/web/register_admin.go` · GET `/users`
+- [x] `internal/web/register_admin.go` · GET `/users/form`
+- [x] `internal/web/register_admin.go` · GET `/users/form/:id`
+- [x] `internal/web/register_admin.go` · GET `/users/table`
 - [ ] `internal/web/register_admin.go` · GET `/warranty`
 - [ ] `internal/web/register_admin.go` · GET `/warranty/by-receipt`
 - [ ] `internal/web/register_admin.go` · GET `/warranty/lookup`
@@ -254,8 +254,8 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_admin.go` · POST `/suppliers/:id/refund`
 - [ ] `internal/web/register_admin.go` · POST `/suppliers/import`
 - [x] `internal/web/register_admin.go` · POST `/units`
-- [ ] `internal/web/register_admin.go` · POST `/users`
-- [ ] `internal/web/register_admin.go` · POST `/users/:id/activate`
+- [x] `internal/web/register_admin.go` · POST `/users`
+- [x] `internal/web/register_admin.go` · POST `/users/:id/activate`
 - [ ] `internal/web/register_admin.go` · POST `/warranty/by-receipt/replace`
 - [ ] `internal/web/register_admin.go` · POST `/warranty/replace`
 - [x] `internal/web/register_admin.go` · PUT `/categories/:id`
@@ -270,7 +270,7 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [ ] `internal/web/register_admin.go` · PUT `/settings`
 - [x] `internal/web/register_admin.go` · PUT `/suppliers/:id`
 - [x] `internal/web/register_admin.go` · PUT `/units/:id`
-- [ ] `internal/web/register_admin.go` · PUT `/users/:id`
+- [x] `internal/web/register_admin.go` · PUT `/users/:id`
 - [x] `internal/web/register_cashier.go` · GET ``
 - [x] `internal/web/register_cashier.go` · GET `/conversions`
 - [x] `internal/web/register_cashier.go` · GET `/conversions/run/:id`

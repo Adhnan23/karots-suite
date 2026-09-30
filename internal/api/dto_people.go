@@ -82,3 +82,31 @@ type CustomerPayRequest struct {
 	Source       string `json:"source"`
 	OldDebtFirst bool   `json:"oldDebtFirst"`
 }
+
+// StaffUser is a login on the Users page (the hidden system user never is).
+type StaffUser struct {
+	ID                 int64  `json:"id"`
+	Name               string `json:"name"`
+	Phone              string `json:"phone"`
+	Role               string `json:"role"` // admin | manager | cashier
+	Active             bool   `json:"active"`
+	MustChangePin      bool   `json:"mustChangePin"`
+	ReceiptPrinter     string `json:"receiptPrinter"`
+	CanHandleSuppliers bool   `json:"canHandleSuppliers"`
+	CanManageCredit    bool   `json:"canManageCredit"`
+	CanSeeCost         bool   `json:"canSeeCost"`
+	Since              string `json:"since"`
+}
+
+// StaffRequest creates or edits a login. Pin is required on create; on edit a
+// blank Pin keeps the current one (a new one signs them out everywhere).
+type StaffRequest struct {
+	Name               string `json:"name"`
+	Phone              string `json:"phone"`
+	Role               string `json:"role"`
+	Pin                string `json:"pin"`
+	ReceiptPrinter     string `json:"receiptPrinter"`
+	CanHandleSuppliers bool   `json:"canHandleSuppliers"`
+	CanManageCredit    bool   `json:"canManageCredit"`
+	CanSeeCost         bool   `json:"canSeeCost"`
+}

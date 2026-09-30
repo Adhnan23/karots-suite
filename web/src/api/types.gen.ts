@@ -841,6 +841,36 @@ export interface CustomerPayRequest {
   source: string;
   oldDebtFirst: boolean;
 }
+/**
+ * StaffUser is a login on the Users page (the hidden system user never is).
+ */
+export interface StaffUser {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  role: string; // admin | manager | cashier
+  active: boolean;
+  mustChangePin: boolean;
+  receiptPrinter: string;
+  canHandleSuppliers: boolean;
+  canManageCredit: boolean;
+  canSeeCost: boolean;
+  since: string;
+}
+/**
+ * StaffRequest creates or edits a login. Pin is required on create; on edit a
+ * blank Pin keeps the current one (a new one signs them out everywhere).
+ */
+export interface StaffRequest {
+  name: string;
+  phone: string;
+  role: string;
+  pin: string;
+  receiptPrinter: string;
+  canHandleSuppliers: boolean;
+  canManageCredit: boolean;
+  canSeeCost: boolean;
+}
 
 //////////
 // source: dto_purchasing.go

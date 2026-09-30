@@ -24,6 +24,7 @@ import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/la
 import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/reorder'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
+import { Route as AuthedAdminUsersRouteImport } from './routes/_authed/admin/users'
 import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
 import { Route as AuthedPrintPoRouteImport } from './routes/_authed/print/po'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
@@ -134,6 +135,11 @@ const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
 const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
   id: '/units',
   path: '/units',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminUsersRoute = AuthedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedPrintLabelsRoute = AuthedPrintLabelsRouteImport.update({
@@ -350,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
+  '/admin/users': typeof AuthedAdminUsersRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
   '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
@@ -401,6 +408,7 @@ export interface FileRoutesByTo {
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
+  '/admin/users': typeof AuthedAdminUsersRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
   '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
@@ -456,6 +464,7 @@ export interface FileRoutesById {
   '/_authed/admin/reorder': typeof AuthedAdminReorderRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
+  '/_authed/admin/users': typeof AuthedAdminUsersRoute
   '/_authed/print/labels': typeof AuthedPrintLabelsRoute
   '/_authed/print/po': typeof AuthedPrintPoRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
@@ -511,6 +520,7 @@ export interface FileRouteTypes {
     | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
+    | '/admin/users'
     | '/print/labels'
     | '/print/po'
     | '/till/convert'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
+    | '/admin/users'
     | '/print/labels'
     | '/print/po'
     | '/till/convert'
@@ -616,6 +627,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/reorder'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
+    | '/_authed/admin/users'
     | '/_authed/print/labels'
     | '/_authed/print/po'
     | '/_authed/till/convert'
@@ -769,6 +781,13 @@ declare module '@tanstack/react-router' {
       path: '/units'
       fullPath: '/admin/units'
       preLoaderRoute: typeof AuthedAdminUnitsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/users': {
+      id: '/_authed/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthedAdminUsersRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/print/labels': {
@@ -1041,6 +1060,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminReorderRoute: typeof AuthedAdminReorderRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
+  AuthedAdminUsersRoute: typeof AuthedAdminUsersRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
   AuthedAdminCustomersIdRoute: typeof AuthedAdminCustomersIdRoute
   AuthedAdminInventoryIntakeRoute: typeof AuthedAdminInventoryIntakeRoute
@@ -1071,6 +1091,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminReorderRoute: AuthedAdminReorderRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
+  AuthedAdminUsersRoute: AuthedAdminUsersRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
   AuthedAdminCustomersIdRoute: AuthedAdminCustomersIdRoute,
   AuthedAdminInventoryIntakeRoute: AuthedAdminInventoryIntakeRoute,

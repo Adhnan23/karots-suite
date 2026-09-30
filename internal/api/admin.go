@@ -29,5 +29,6 @@ func (h *handlers) registerAdmin(v1 *echo.Group) {
 	h.registerAdminPurchases(g)
 	h.registerAdminReorder(g)
 	h.registerAdminPurchaseReturns(g)
+	h.registerAdminUsers(g)
 	g.POST("/labels/send", h.CounterLabels) // same sticker run as the counter (task 11 adds the admin page)
 }

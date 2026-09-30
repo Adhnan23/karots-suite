@@ -19,7 +19,12 @@ describe('whereIs', () => {
 
 describe('navFor', () => {
   it('hides stock-take pages when the toggle is off', () => {
-    const me = { stockTakeEnabled: false } as Me
-    expect(navFor(me).flatMap((a) => a.pages).some((p) => p.gate)).toBe(false)
+    const me = { stockTakeEnabled: false, user: { id: 1, name: 'A', role: 'admin' } } as Me
+    expect(navFor(me).flatMap((a) => a.pages).some((p) => p.gate === 'stockTake')).toBe(false)
+  })
+  it('shows Users to admins only', () => {
+    const as = (role: string) => navFor({ stockTakeEnabled: true, user: { id: 1, name: 'A', role } } as Me).flatMap((a) => a.pages).some((p) => p.to === '/admin/users')
+    expect(as('admin')).toBe(true)
+    expect(as('manager')).toBe(false)
   })
 })

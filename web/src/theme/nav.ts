@@ -3,7 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
 
 /** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
-export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' }
+/** gate 'admin': admins only (Users). */
+export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' }
 export type NavArea = { key: string; label: string; icon: LucideIcon; pages: NavPage[] }
 export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string }
 
@@ -44,6 +45,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/groups', label: 'Cashier menu', description: 'Group cards shown on the till' },
       { to: '/admin/units', label: 'Units', description: 'Units of measure' },
       { to: '/admin/labels', label: 'Barcode labels', description: 'Print product labels' },
+      { to: '/admin/users', label: 'Users', description: 'Staff accounts & roles', gate: 'admin' },
     ],
   },
 ]
@@ -52,7 +54,7 @@ export const adminNav: NavArea[] = [
  * badges (page path → count) attached. */
 export function navFor(me: Me, badges: Record<string, number> = {}): NavArea[] {
   return adminNav
-    .map((a) => ({ ...a, pages: a.pages.filter((p) => p.gate !== 'stockTake' || me.stockTakeEnabled).map((p) => (badges[p.to] ? { ...p, badge: badges[p.to] } : p)) }))
+    .map((a) => ({ ...a, pages: a.pages.filter((p) => (p.gate !== 'stockTake' || me.stockTakeEnabled) && (p.gate !== 'admin' || me.user.role === 'admin')).map((p) => (badges[p.to] ? { ...p, badge: badges[p.to] } : p)) }))
     .filter((a) => a.pages.length > 0)
 }
 

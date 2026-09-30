@@ -70,3 +70,47 @@ test('customers: add with old debt over the limit, collect cash into the safe, e
   await expect(page.getByRole('button', { name: new RegExp(name) }).first()).toBeVisible()
   await page.request.post('/api/v1/admin/customers', { data: { name: 'Dup', phone, address: '', creditLimit: '', openingBalance: '' } }).then((r) => expect(r.status()).toBe(409))
 })
+
+test('users: add a cashier with counter rights, they sign in; reset their PIN; deactivate; managers never see Users', async ({ page, browser }) => {
+  await admin(page, '/admin/users')
+  const phone = `076${phoneTag}`
+  await page.getByRole('button', { name: 'New user' }).click()
+  await page.getByLabel('Name').fill(`Nimali ${tag}`)
+  await page.getByLabel('Phone').fill(phone)
+  await page.getByLabel('PIN').fill('4321')
+  await page.locator('label', { hasText: 'Counter operations' }).click()
+  await page.getByRole('button', { name: 'Add user' }).click()
+  await toast(page, new RegExp(`Nimali ${tag} can now sign in`))
+  const card = page.getByRole('button', { name: new RegExp(`Nimali ${tag}`) })
+  await expect(card.getByText('Counter operations')).toBeVisible()
+
+  const signIn = async (pin: string) => {
+    const ctx = await browser.newContext()
+    const r = await ctx.request.post('/api/v1/auth/login', { data: { phone, pin } })
+    await ctx.close()
+    return r.status()
+  }
+  expect(await signIn('4321')).toBe(200)
+  await card.click()
+  await page.getByLabel('PIN').fill('8765')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await toast(page, /new PIN set/)
+  expect(await signIn('4321')).toBe(401)
+  expect(await signIn('8765')).toBe(200)
+
+  await card.click()
+  await page.getByRole('button', { name: 'Deactivate' }).click()
+  await page.getByRole('button', { name: 'Deactivate', exact: true }).last().click()
+  await toast(page, /can no longer sign in/)
+  expect(await signIn('8765')).not.toBe(200)
+
+  // A manager: no Users in the nav, and the page sends them back.
+  await page.context().clearCookies()
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill('0770000003')
+  await page.getByLabel('PIN').fill('1234')
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.waitForURL(/\/(till|admin)/)
+  await page.goto('/admin/users')
+  await page.waitForURL(/\/admin\/?$/)
+})

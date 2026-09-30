@@ -78,6 +78,19 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.reload()
     await page.waitForLoadState('networkidle')
   },
+  users: async (page) => {
+    const n = String(Date.now()).slice(-6)
+    for (const [name, role, extra] of [['Nimali Fernando', 'cashier', { canHandleSuppliers: true, canSeeCost: true }], ['Kasun Jayasinghe', 'manager', {}], ['Dilani Perera', 'cashier', { canManageCredit: true, receiptPrinter: 'tcp://192.168.1.51:9100' }]] as const)
+      await page.request.post('/api/v1/admin/users', { data: { name, phone: `07${role.length}${n}${name.length % 10}`, role, pin: '4321', receiptPrinter: '', canHandleSuppliers: false, canManageCredit: false, canSeeCost: false, ...extra } })
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  'user-form': async (page) => {
+    await page.getByRole('button', { name: 'New user' }).click()
+    await page.getByLabel('Name').fill('Tharindu Silva')
+    await page.getByLabel('Phone').fill('0771234567')
+    await page.getByLabel('PIN').fill('4321')
+  },
   reorder: async (page) => {
     const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
     const n = Date.now().toString(36).slice(-3)

@@ -79,7 +79,7 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
   cost — a return is made **against one received delivery**: only its lines, at most what's left
   of the lot it created, priced at that lot's real cost (after line + bill discounts and free
   units, server-side), credited to that delivery's bill first, then oldest first.
-- [ ] **9. Users** (`admin_users.go`, admin only). List (role, active), create/edit (name, phone,
+- [x] **9. Users** (`admin_users.go`, admin only). List (role, active), create/edit (name, phone,
   role, PIN / reset — forces re-login, can see cost, can manage credit, can handle suppliers,
   receipt printer), deactivate/reactivate. System user never listed; last admin can't be
   deactivated or demoted.
