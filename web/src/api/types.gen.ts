@@ -749,6 +749,22 @@ export interface ReceiptRef {
 }
 
 //////////
+// source: dto_purchasing.go
+
+/**
+ * MoneySource is somewhere admin money can come from or go to: a locker (with
+ * its live balance) or a cashier's open till. Value is what requests send back
+ * ("locker:3", "till:5"); "" means outside the shop (card/online not tracked).
+ */
+export interface MoneySource {
+  value: string;
+  label: string;
+  group: string; // "Lockers" | "Tills"
+  kind: string; // locker kind (safe, bank, pocket, other, card) or "till"
+  balance: string;
+}
+
+//////////
 // source: dto_sale.go
 
 export interface ServiceComponent {

@@ -27,9 +27,8 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
 
 - **API:** `/api/v1/admin/*` as in M2 (`RequireRole(admin, manager)`); `/admin/users*` adds
   `RequireRole(admin)`. Lists use `Page[T]`. Cost fields only when `CanSeeCost`.
-- **Reuse, don't copy:** the counter's supplier `LineEditor` + `totals.ts` + `PayForm`
-  (`features/counter/suppliers/`) move to `features/purchasing/` (shared) and both the counter and
-  admin import them. Counter + admin receive/pay go through the same Go service calls.
+- **Reuse, don't copy:** the counter's supplier `LineEditor` + `totals.ts` live in
+  `features/purchasing/` and both the counter and admin import them. Counter + admin receive/pay go through the same Go service calls.
 - **Money** only through `supplierpay` / `customers` / `cashflow.MoveTx`. Stock only through the
   purchases/purchasereturns services (lot-aware).
 - **Opening adjust** is one shared `OpeningSheet` (Total, locked-to-transactions part read-only,
@@ -46,9 +45,12 @@ lower lot cost), `editable-opening-balance-plan.md` (opening_unlinked, negative 
 - [x] **0. Stock batch sheet** (open item the user asked for). Title "Batches of …", **Batch
   price** label (blank = follows the product), per-batch **Set count** and **Remove batch**
   (count correction / write-off), drop the whole-product "Adjust the count" shortcut from that sheet.
-- [ ] **1. Shared purchasing kit + nav.** Move LineEditor / totals / PayForm to
-  `features/purchasing/` (counter unchanged in behaviour, its tests still green), `SupplierPicker`
-  (search + inline create), `OpeningSheet`, nav entries + `'admin'` gate.
+- [x] **1. Shared purchasing kit.** LineEditor + totals move to `features/purchasing/` (the
+  counter imports them). `GET /admin/money-sources` (lockers with balance + open tills) +
+  `parseLocation` and `MoneySourcePicker` (cash → safe/pocket/till, card → card, online → bank).
+  The counter PayForm stays the counter's: the admin pay form adds per-invoice allocations, an
+  old-debt amount and any locker/till as source. `SupplierPicker`, `OpeningSheet`, nav entries and
+  the `'admin'` gate land with their first screen (tasks 2, 5, 9).
 - [ ] **2. Suppliers** (`admin_suppliers.go`). List (search, active/archived, owing / in credit),
   create/edit (name, contact person, phone, address, credit days, opening on create; dup name →
   409), archive/reactivate, **reassign** products to another supplier, opening adjust, **pay**

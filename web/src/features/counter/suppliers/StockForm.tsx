@@ -12,8 +12,8 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { orderQuery } from '../queries'
 import { afterSlip, moneySlip } from '../slip'
-import { LineEditor } from './LineEditor'
-import { billTotals } from './totals'
+import { LineEditor } from '@/features/purchasing/LineEditor'
+import { billTotals } from '@/features/purchasing/totals'
 
 /** Take in a delivery (walk-in or against an order) or place an order. */
 export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'order'; supplier: SupplierView; orderId: number | null }) {
