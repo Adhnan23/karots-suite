@@ -45,8 +45,26 @@ func TestAdminPurchaseReturns(t *testing.T) {
 	if code, _ := post(PurchaseReturnRequest{SupplierID: sup.ID, PurchaseID: got.PurchaseID, Lines: []PurchaseReturnItem{{ProductID: f.plainID, Quantity: "1", BatchID: otherLot.BatchID}}}); code != http.StatusUnprocessableEntity {
 		t.Fatalf("another delivery's lot: %d", code)
 	}
+	// Without a delivery: only stock that didn't come on one (old / opening stock),
+	// at that lot's own cost — a typed price is ignored, delivery lots are refused.
 	if code, _ := post(PurchaseReturnRequest{SupplierID: sup.ID, Lines: []PurchaseReturnItem{{ProductID: f.plainID, Quantity: "1", CostPrice: "100"}}}); code != http.StatusUnprocessableEntity {
-		t.Fatalf("return without a delivery: %d", code)
+		t.Fatalf("no delivery and no lot: %d", code)
+	}
+	if code, _ := post(PurchaseReturnRequest{SupplierID: sup.ID, Lines: []PurchaseReturnItem{{ProductID: f.plainID, Quantity: "1", BatchID: plain.BatchID}}}); code != http.StatusUnprocessableEntity {
+		t.Fatalf("a delivery's lot without its delivery: %d", code)
+	}
+	var old LotRow
+	for _, l := range decode[ProductLots](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/stock/lots/%d", f.scarceID), nil, ck)).Lots {
+		if !l.FromDelivery {
+			old = l // seedTill's lot: stock from before any delivery, cost 50
+		}
+	}
+	code, r0 := post(PurchaseReturnRequest{SupplierID: sup.ID, Reason: "old stock", Lines: []PurchaseReturnItem{{ProductID: f.scarceID, Quantity: "1", CostPrice: "999", BatchID: old.ID}}})
+	if code != http.StatusCreated || r0.Total != "50.00" || r0.PurchaseID != 0 {
+		t.Fatalf("old stock return: %d %+v", code, r0)
+	}
+	if op := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", older.PurchaseID), nil, ck)); op.Credited != "50.00" {
+		t.Fatalf("old stock credit goes to the oldest bill: %+v", op.PurchaseRow)
 	}
 	if code, _ := post(PurchaseReturnRequest{SupplierID: sup.ID, PurchaseID: got.PurchaseID, Lines: []PurchaseReturnItem{{ProductID: f.plainID, Quantity: "13", BatchID: plain.BatchID}}}); code < 400 {
 		t.Fatalf("more than came in: %d", code)
@@ -60,7 +78,7 @@ func TestAdminPurchaseReturns(t *testing.T) {
 	}
 	gp := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", got.PurchaseID), nil, ck))
 	op := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", older.PurchaseID), nil, ck))
-	if gp.Credited != "272.72" || op.Credited != "0.00" {
+	if gp.Credited != "272.72" || op.Credited != "50.00" {
 		t.Fatalf("credited: returned bill %s, older bill %s", gp.Credited, op.Credited)
 	}
 	if left := decode[ReturnableList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d/returnable", got.PurchaseID), nil, ck)).Lines[0].Left; left != "8" {
@@ -70,7 +88,7 @@ func TestAdminPurchaseReturns(t *testing.T) {
 	if len(d.Lines) != 1 || d.Lines[0].CostPrice != "68.18" || d.Reason != "damaged" || d.InvoiceNo != "" {
 		t.Fatalf("detail: %+v", d)
 	}
-	if l := decode[PurchaseReturnList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchase-returns?supplier=%d", sup.ID), nil, ck)); l.Total != 1 {
+	if l := decode[PurchaseReturnList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchase-returns?supplier=%d", sup.ID), nil, ck)); l.Total != 2 {
 		t.Fatalf("list: %+v", l)
 	}
 }

@@ -44,6 +44,7 @@ type LotRow struct {
 	SellingPrice string `json:"sellingPrice"`
 	Source       string `json:"source"`
 	CreatedAt    string `json:"createdAt"`
+	FromDelivery bool   `json:"fromDelivery"` // came on a purchase (returned against it); false = old / opening / adjusted stock
 }
 
 type ProductLots struct {

@@ -1293,6 +1293,7 @@ export interface LotRow {
   sellingPrice: string;
   source: string;
   createdAt: string;
+  fromDelivery: boolean; // came on a purchase (returned against it); false = old / opening / adjusted stock
 }
 export interface ProductLots {
   productId: number /* int64 */;

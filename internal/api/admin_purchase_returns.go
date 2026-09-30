@@ -131,9 +131,6 @@ func (h *handlers) AdminPurchaseReturnCreate(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	if req.PurchaseID <= 0 {
-		return apperr.Validation("pick the delivery the goods came in on")
-	}
 	in := purchasereturns.CreateInput{SupplierID: req.SupplierID, PurchaseID: req.PurchaseID, Reference: optStr(req.Reference), Reason: optStr(req.Reason)}
 	for _, l := range req.Lines {
 		in.Items = append(in.Items, purchasereturns.ItemInput{ProductID: l.ProductID, Quantity: strings.TrimSpace(l.Quantity), CostPrice: strings.TrimSpace(l.CostPrice), BatchID: l.BatchID})

@@ -10,6 +10,7 @@ import { errMsg, searchQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { QtyStepper } from './QtyStepper'
 import { type Current, lineDiscount, lineGross, lineNet, marginHint } from './totals'
 
 const CELL = cn(FIELD, 'h-9 min-w-0 px-2 text-right tabular-nums')
@@ -69,7 +70,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
       </div>
       {newName !== null && <NewProduct name={newName} wanted={!withPrices} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
       <div className={cn('items-center gap-1.5 px-1 pb-1 text-[11.5px] font-semibold text-muted-foreground',
-        withPrices ? 'hidden md:grid md:grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid grid-cols-[minmax(0,1fr)_80px_24px]')}>
+        withPrices ? 'hidden md:grid md:grid-cols-[minmax(0,1fr)_112px_52px_76px_76px_24px]' : 'grid grid-cols-[minmax(0,1fr)_112px_24px]')}>
         <span>Item</span><span className="text-right">Qty</span>
         {withPrices && <><span className="text-right">Free</span><span className="text-right">Cost</span><span className="text-right">Sell</span></>}
         <span />
@@ -79,7 +80,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
         {lines.map((l, i) => (
           <li key={l.productId} className="rounded-[var(--radius-sm)] bg-muted px-2 py-1.5">
            {/* Phone (admin at 360px): name + remove on top, the four numbers under it with captions. */}
-           <div className={cn('grid items-center gap-1.5', withPrices ? 'grid-cols-[repeat(4,minmax(0,1fr))_24px] md:grid-cols-[minmax(0,1fr)_64px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_80px_24px]')}>
+           <div className={cn('grid items-center gap-1.5', withPrices ? 'grid-cols-[repeat(4,minmax(0,1fr))_24px] md:grid-cols-[minmax(0,1fr)_112px_52px_76px_76px_24px]' : 'grid-cols-[minmax(0,1fr)_112px_24px]')}>
             <span className={cn('min-w-0', withPrices && 'col-span-4 md:col-span-1')}>
               <b className="block truncate text-[13px]">{l.name}</b>
               {l.ordered && <small className="text-muted-foreground tabular-nums">ordered {qtyText(l.ordered)}</small>}
@@ -90,7 +91,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
               )}
             </span>
             <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'max-md:order-none')}><X size={15} /></button>
-            <Cell caption="Qty" on={withPrices}><input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: dec(e.target.value) })} className={CELL} /></Cell>
+            <Cell caption="Qty" on={withPrices}><QtyStepper label={`Quantity of ${l.name}`} name={l.name} value={l.quantity} onChange={(v) => set(i, { quantity: v })} /></Cell>
             {withPrices && (
               <>
                 <Cell caption="Free" on><input aria-label={`Free ${l.name}`} inputMode="decimal" placeholder="0" value={l.freeQty} onChange={(e) => set(i, { freeQty: dec(e.target.value) })} className={CELL} /></Cell>
@@ -128,7 +129,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
 function Cell({ caption, on, children }: { caption: string; on: boolean; children: ReactNode }) {
   if (!on) return children
   return (
-    <span className="flex min-w-0 flex-col gap-0.5 md:contents">
+    <span className="col-span-2 flex min-w-0 flex-col gap-0.5 md:contents">
       <small className="text-[10.5px] font-semibold text-faint md:hidden">{caption}</small>
       {children}
     </span>

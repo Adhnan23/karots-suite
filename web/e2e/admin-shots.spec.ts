@@ -69,6 +69,17 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Return how many E2E Milk').fill('6')
     await page.getByLabel('Reason').fill('Short-dated')
   },
+  'return-old': async (page) => {
+    const sup = await supplierWithHistory(page)
+    await page.goto(`/admin/purchase-returns/new?supplier=${sup}`)
+    await page.waitForLoadState('networkidle')
+    const sel = page.getByLabel('Delivery')
+    await sel.selectOption((await sel.locator('option', { hasText: 'Not from a delivery' }).getAttribute('value'))!)
+    await page.getByRole('button', { name: 'Add a product' }).click()
+    await page.getByLabel('Find a product').fill('Lot Soap')
+    await page.getByRole('button', { name: /^E2E Lot Soap/ }).first().click()
+    await page.getByRole('button', { name: 'More E2E Lot Soap' }).click()
+  },
   returns: async (page) => {
     const sup = await supplierWithHistory(page)
     const milk = (await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).id

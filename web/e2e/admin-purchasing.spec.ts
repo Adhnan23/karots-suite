@@ -259,4 +259,22 @@ test('purchase returns: from a delivery with discounts — only its lines, at th
   await page.getByRole('menuitem', { name: 'Return goods' }).click()
   await pick(page, 'Delivery', `JAM-${tag}`)
   await expect(page.getByText(/6 of 10 pcs left/)).toBeVisible()
+  await page.getByRole('button', { name: `More ${item}` }).click() // touch stepper
+  await page.getByRole('button', { name: `More ${item}` }).click()
+  await expect(page.getByLabel(`Return how many ${item}`)).toHaveValue('2')
+
+  // Old stock — counted in, never on a delivery — goes back at its own cost (40), off the oldest bill.
+  const old = `Old Pickle ${tag}`
+  const oid = await freshProduct(page, old)
+  await page.request.post('/api/v1/admin/stock/adjust', { data: { productId: oid, newQuantity: '5', note: 'opening stock', batchId: 0 } })
+  await pick(page, 'Delivery', 'Not from a delivery')
+  await page.getByRole('button', { name: 'Add a product' }).click()
+  await page.getByLabel('Find a product').fill(old)
+  await page.getByRole('button', { name: new RegExp(`^${old}`) }).click()
+  await expect(page.getByText(/5 pcs left of old stock · Rs\. 40\.00 each/)).toBeVisible()
+  await page.getByRole('button', { name: `More ${old}` }).click()
+  await page.getByRole('button', { name: `More ${old}` }).click()
+  await page.getByRole('button', { name: 'Return Rs. 80.00 of goods' }).click()
+  await toast(page, /Returned Rs\. 80\.00 of stock/)
+  expect((await (await page.request.get(`/api/v1/admin/suppliers/${sid}`)).json()).owed).toBe('400.00')
 })

@@ -56,7 +56,7 @@ type Detail struct {
 type ItemInput struct {
 	ProductID int64  `json:"product_id" validate:"required,gt=0"`
 	Quantity  string `json:"quantity"   validate:"required"`
-	CostPrice string `json:"cost_price"` // ignored against a delivery (the lot's cost)
+	CostPrice string `json:"cost_price"` // ignored: every line is priced at its lot's cost
 	// BatchID names the lot physically going back. Sending back a damaged NEW
 	// delivery must not drain the OLDEST lot, which is what plain FEFO did — that
 	// left the shop's records claiming stock it no longer had, at a price the till
@@ -67,9 +67,11 @@ type ItemInput struct {
 type CreateInput struct {
 	SupplierID int64 `json:"supplier_id" validate:"required,gt=0"`
 	// PurchaseID ties the return to one received delivery: every line must name
-	// a lot that delivery created, is priced at that lot's cost (what was really
-	// paid, after discounts and free units), and credits that bill first. Zero
-	// keeps the old free-form return (any lot, cost as given, oldest bill first).
+	// a lot that delivery created and credits that bill first. Zero is stock that
+	// came on no delivery (opening / old / adjusted stock): every line must name
+	// such a lot, and the credit goes oldest bill first. Either way each line is
+	// priced at its lot's own cost — what was really paid, after discounts and
+	// free units — never a typed one.
 	PurchaseID int64       `json:"purchase_id"`
 	Reference  *string     `json:"reference"`
 	Reason     *string     `json:"reason"`
@@ -225,12 +227,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 			if err != nil || !qty.IsPositive() {
 				return apperr.Validation("quantity must be greater than zero")
 			}
-			cost := decimal.Zero // against a delivery it comes from the lot, below
-			if in.PurchaseID == 0 {
-				if cost, err = money.Parse(it.CostPrice); err != nil || cost.IsNegative() {
-					return apperr.Validation("cost price is invalid")
-				}
-			}
+			cost := decimal.Zero // the lot's own cost, below
 			ok, err := stk.DecrementGuarded(ctx, it.ProductID, qty)
 			if err != nil {
 				return apperr.Internal("failed to update stock", err)
@@ -255,7 +252,14 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 					if ferr != nil || from != in.PurchaseID {
 						return apperr.Validation("that item didn't come in on this delivery")
 					}
-					cost = b.CostPrice // what was really paid for these units
+				} else if b.PurchaseItemID != nil {
+					return apperr.Validation("that stock came on a delivery — return it against that delivery")
+				}
+				cost = b.CostPrice // what was really paid for these units
+				if !cost.IsPositive() { // a lot entered with a blank cost: the product's cost, as COGS does
+					if cost, err = stk.ProductCost(ctx, it.ProductID); err != nil {
+						return apperr.Internal("failed to read product cost", err)
+					}
 				}
 				if b.QtyRemaining.LessThan(qty) {
 					return apperr.Conflict("only " + b.QtyRemaining.String() + " left in that batch")
@@ -265,10 +269,8 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 				}
 				id := b.ID
 				batchID = &id
-			} else if in.PurchaseID > 0 {
-				return apperr.Validation("pick the delivery's lot for every line")
-			} else if _, err := stk.DepleteFEFO(ctx, it.ProductID, qty); err != nil {
-				return apperr.Internal("failed to deplete batches", err)
+			} else {
+				return apperr.Validation("pick the lot going back for every line")
 			}
 			sub := qty.Mul(cost).Round(2)
 			total = total.Add(sub)
