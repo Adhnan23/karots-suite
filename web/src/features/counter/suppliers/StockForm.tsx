@@ -42,8 +42,10 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
   const short = orderId !== null && shown.some((l) => num(l.quantity) < num(l.ordered))
 
   async function submit() {
-    if (!shown.length) return void toast.error(mode === 'order' ? 'Add what you want to order' : 'Add what came in')
-    if (mode === 'receive' && shown.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line needs its cost price')
+    // A line that didn't come at all (0) is left off; the server keeps it on order.
+    const sent = mode === 'receive' ? shown.filter((l) => num(l.quantity) > 0) : shown
+    if (!sent.length) return void toast.error(mode === 'order' ? 'Add what you want to order' : 'Enter what came in')
+    if (mode === 'receive' && sent.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line that came in needs its cost price')
     setBusy(true)
     try {
       if (mode === 'order') {
@@ -52,7 +54,7 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
         toast.success(`Order placed with ${supplier.name}`)
       } else {
         const body: ReceiveRequest = {
-          invoiceNo: invoice, notes, lines: shown, keepRemainder: keepRest && short, deferDrawerKick: !cfg.askToPrint,
+          invoiceNo: invoice, notes, lines: sent, keepRemainder: keepRest && short, deferDrawerKick: !cfg.askToPrint,
           discount: disc, discountType: discType, pay: { amount: pay, method: payMethod, lockerId: num(payFrom) },
         }
         const url = orderId ? `/till/orders/${orderId}/receive` : `/till/suppliers/${supplier.id}/receive`

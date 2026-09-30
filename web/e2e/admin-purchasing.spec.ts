@@ -102,8 +102,10 @@ test('purchases: order → edit → receive short with an extra item, margin fix
   await page.request.post('/api/v1/admin/suppliers', { data: { name: sup, contact: '', phone: '', address: '', creditDays: 14, openingBalance: '' } })
   const tea = `PO Tea ${tag}`
   const rice = `PO Rice ${tag}`
+  const salt = `PO Salt ${tag}`
   await freshProduct(page, tea) // cost 40, sells 60
   await freshProduct(page, rice)
+  await freshProduct(page, salt)
   const add = async (name: string) => {
     await page.getByLabel('Add a product').fill(name)
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click()
@@ -113,6 +115,8 @@ test('purchases: order → edit → receive short with an extra item, margin fix
   await add(tea)
   await page.getByLabel(`Quantity of ${tea}`).fill('10')
   await expect(page.getByLabel(`Cost of ${tea}`)).toHaveValue('40.00') // prefilled from the product
+  await add(rice)
+  await page.getByLabel(`Quantity of ${rice}`).fill('5')
   await page.getByRole('button', { name: /Place order/ }).click()
   await toast(page, /Order #\d+ placed/)
   await expect(page.getByText('ordered', { exact: true })).toBeVisible()
@@ -134,8 +138,9 @@ test('purchases: order → edit → receive short with an extra item, margin fix
   await page.getByLabel(`Cost of ${tea}`).fill('100') // dearer than it sells for → the guard steps in
   await page.getByRole('button', { name: 'Use Rs. 150.00' }).click() // keeps its 1.5× markup
   await expect(page.getByText('Sells under its usual markup')).toHaveCount(0)
-  await add(rice)
-  await page.getByLabel(`Cost of ${rice}`).fill('45')
+  await page.getByLabel(`Quantity of ${rice}`).fill('0') // none of it came
+  await add(salt) // came, but wasn't ordered
+  await page.getByLabel(`Cost of ${salt}`).fill('45')
   await page.getByLabel('Their invoice no').fill(`INV-${tag}`)
   await page.getByLabel('Pay now').fill('100')
   await pick(page, 'Pay the cash from', 'E2E Safe')
@@ -150,7 +155,9 @@ test('purchases: order → edit → receive short with an extra item, margin fix
   await expect(page.getByText(`their invoice INV-${tag}`)).toBeVisible()
 
   const orders = await (await page.request.get(`/api/v1/admin/purchases?tab=orders&q=${encodeURIComponent(sup)}`)).json()
-  expect(orders.total).toBe(1) // the 4 that didn't come
+  expect(orders.total).toBe(1) // what didn't come stays on order: 4 tea + all 5 rice
+  const rest = await (await page.request.get(`/api/v1/admin/purchases/${orders.items[0].id}`)).json()
+  expect(rest.lines.map((l: { name: string; quantity: string }) => `${l.name}:${l.quantity}`).sort()).toEqual([`${rice}:5`, `${tea}:4`])
 })
 
 test('purchases: receive a walk-in delivery on credit; it shows under Received → Still owed', async ({ page }) => {

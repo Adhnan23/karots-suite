@@ -80,13 +80,15 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
   }
 
   async function save() {
+    // A line that didn't come at all (0) is left off; the server keeps it on order.
+    const sent = receiving ? shown.filter((l) => num(l.quantity) > 0) : shown
     if (!sup) return void toast.error('Pick the supplier')
-    if (!shown.length) return void toast.error(receiving ? 'Add what came in' : 'Add what you want to order')
-    if (receiving && shown.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line needs its cost price')
+    if (!sent.length) return void toast.error(receiving ? 'Enter what came in' : 'Add what you want to order')
+    if (receiving && sent.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line that came in needs its cost price')
     setBusy(true)
     try {
       const body: PurchaseRequest = { supplierId: sup, invoiceNo: invoice, notes, expectedDate: expected, dueDate: receiving ? dueDate : '', discount: disc, discountType: discType,
-        lines: shown, keepRemainder: keepRest && short, pay: { amount: receiving ? pay : '', method, source } }
+        lines: sent, keepRemainder: keepRest && short, pay: { amount: receiving ? pay : '', method, source } }
       let to = id
       if (mode === 'order') to = (await api<PurchaseRow>('/admin/purchases', { json: body })).id
       else if (mode === 'edit') await api(`/admin/purchases/${id}`, { method: 'PUT', json: body })
