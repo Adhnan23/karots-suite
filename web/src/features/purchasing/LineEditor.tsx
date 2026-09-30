@@ -83,6 +83,11 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
             <span className={cn('min-w-0', withPrices && 'col-span-4 md:col-span-1')}>
               <b className="block truncate text-[13px]">{l.name}</b>
               {l.ordered && <small className="text-muted-foreground tabular-nums">ordered {qtyText(l.ordered)}</small>}
+              {l.ordered && num(l.quantity) !== num(l.ordered) && (
+                <small className={cn('ml-1.5 font-bold tabular-nums', num(l.quantity) < num(l.ordered) ? 'text-warning' : 'text-brand')}>
+                  {num(l.quantity) < num(l.ordered) ? `${qtyText(num(l.ordered) - num(l.quantity))} short` : `${qtyText(num(l.quantity) - num(l.ordered))} extra`}
+                </small>
+              )}
             </span>
             <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'max-md:order-none')}><X size={15} /></button>
             <Cell caption="Qty" on={withPrices}><input aria-label={`Quantity of ${l.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: dec(e.target.value) })} className={CELL} /></Cell>
@@ -142,7 +147,10 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
 }
 
 function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
-  const [f, setF] = useState({ name, barcode: '', cost: '', sell: '' })
+  // A scanned code that found nothing is the new product's barcode, not its name
+  // (karots-pos carries it over so the next delivery finds it by scan).
+  const scanned = /^\d{6,}$/.test(name)
+  const [f, setF] = useState({ name: scanned ? '' : name, barcode: scanned ? name : '', cost: '', sell: '' })
   const [busy, setBusy] = useState(false)
   async function save() {
     setBusy(true)
@@ -159,7 +167,7 @@ function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; o
   }
   return (
     <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-[var(--radius-sm)] border border-brand p-2">
-      <input autoFocus aria-label="New product name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={cn(FIELD, 'h-9 min-w-[160px] flex-1')} />
+      <input autoFocus aria-label="New product name" placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={cn(FIELD, 'h-9 min-w-[160px] flex-1')} />
       <input aria-label="New product barcode" placeholder="Barcode" value={f.barcode} onChange={(e) => setF({ ...f, barcode: e.target.value })} className={cn(FIELD, 'h-9 w-32')} />
       {!wanted && (
         <>

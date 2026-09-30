@@ -14,6 +14,7 @@ import { money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { day } from '../purchases/PurchasesPage'
 import { purchaseQuery, purchasesQuery, returnableQuery } from '../queries'
+import { useFormKeys } from '../useFormKeys'
 
 /** Send goods back from one received delivery (an upgrade on karots-pos, where
  * any product could go to any supplier at any typed cost). Only that delivery's
@@ -55,6 +56,7 @@ export function ReturnEntry({ supplierId, purchaseId }: { supplierId: number; pu
       setBusy(false)
     }
   }
+  useFormKeys(null, () => { if (!busy && pid && total > 0 && !over) void save() })
   const label = (d: { invoiceNo: string; id: number; date: string; total: string }) => `${d.invoiceNo || `GRN #${d.id}`} · ${day(d.date)} · ${money(sym, d.total)}`
 
   return (

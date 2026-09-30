@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { Search, ShoppingCart, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -11,6 +11,7 @@ import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Pager } from '@/components/admin/Pager'
 import { Button } from '@/components/ui/button'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
+import { Tag } from '@/features/admin/products/ProductsPage'
 import { suppliersQuery } from '@/features/counter/queries'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
@@ -89,7 +90,8 @@ export function ReorderPage() {
 
   return (
     <>
-      <PageHead title="Reorder" sub="Everything at or under its reorder level, with how much to buy. Tick items, then make the orders." />
+      <PageHead title="Reorder" sub="Everything at or under its reorder level, with how much to buy. Tick items, then make the orders."
+        actions={<Button variant="outline" className="h-10 px-4" asChild><Link to="/admin/purchases/new">Manual purchase order →</Link></Button>} />
       <div className="mb-3 grid gap-2 md:flex md:flex-wrap md:items-center">
         <div className="relative md:w-72">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
@@ -100,10 +102,11 @@ export function ReorderPage() {
           <option value={0}>Any usual supplier</option>
           {sups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
+        {(f.q || f.category > 0 || f.supplier > 0) && <Button variant="ghost" className="h-10 px-3" onClick={() => { setQ(''); set({ q: '', category: 0, supplier: 0 }) }}>Clear filters</Button>}
       </div>
       <section className={cn(SURFACE, 'mb-24 overflow-hidden')}>
         {!data || data.items.length === 0 ? (
-          <EmptyState title={!data ? 'Loading…' : f.q || f.category || f.supplier ? 'Nothing matches' : 'Nothing is running low'}>
+          <EmptyState title={!data ? 'Loading…' : f.q || f.category || f.supplier ? 'Nothing matches' : 'Everything is above its reorder level 🎉'}>
             {data && !f.q && 'Set a reorder level on products to see them here when they run low.'}
           </EmptyState>
         ) : (
@@ -115,7 +118,7 @@ export function ReorderPage() {
                 <li key={r.productId} className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 md:grid-cols-[28px_minmax(0,1fr)_110px_220px]', on && 'bg-brand-soft/40')}>
                   <input type="checkbox" aria-label={`Order ${r.name}`} checked={on} onChange={(e) => tick(r, e.target.checked)} className="size-5 accent-[var(--brand)]" />
                   <span className="min-w-0">
-                    <b className="block truncate">{r.name}</b>
+                    <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}</b>
                     <small className="block text-faint tabular-nums">
                       <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel} · cost {money(sym, r.cost)}
                     </small>

@@ -19,8 +19,11 @@ export const sourcesFor = (all: MoneySource[], m: Method) =>
 export function MoneySourcePicker({ method, value, onChange, sym, into, label }: {
   method: Method; value: string; onChange: (v: string) => void; sym: string; into?: boolean; label?: string
 }) {
-  const opts = sourcesFor(useQuery(moneySourcesQuery).data ?? [], method)
+  const all = useQuery(moneySourcesQuery).data
+  const opts = sourcesFor(all ?? [], method)
   const groups = [...new Set(opts.map((o) => o.group))]
+  if (method === 'cash' && all && opts.length === 0)
+    return <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] px-3 py-2 text-[13px] font-semibold text-warning">No cash locker or open till to use. Open a till, or add a cash locker first.</p>
   return (
     <select aria-label={label ?? (into ? 'Into' : 'From')} value={value} onChange={(e) => onChange(e.target.value)} className={cn(INPUT, 'appearance-auto')}>
       <option value="">{method === 'cash' ? `— ${into ? 'where it goes' : 'where it comes from'} —` : into ? 'Not into a shop account' : 'Not from a shop account'}</option>

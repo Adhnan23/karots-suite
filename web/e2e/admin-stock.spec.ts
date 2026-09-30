@@ -24,7 +24,7 @@ test('stock: adjust a count down from the lot that’s short, and see it in move
   await admin(page, '/admin/stock')
   const before = await qty(page, '4790000000028')
   await page.getByLabel('Search products').fill('4790000000028')
-  await page.getByRole('button', { name: 'Adjust' }).first().click()
+  await page.getByRole('row', { name: /E2E Lot Soap/ }).getByRole('button', { name: 'Adjust' }).click() // not before the search has filtered
   await page.getByLabel('Actually there').fill(String(before - 1))
   await page.getByRole('radio', { name: /at Rs\. 120\.00/ }).check()
   await page.getByRole('button', { name: 'Missing' }).click()

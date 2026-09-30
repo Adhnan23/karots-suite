@@ -130,6 +130,7 @@ test('purchases: order → edit → receive short with an extra item, margin fix
 
   await page.getByRole('link', { name: 'Receive' }).click()
   await page.getByLabel(`Quantity of ${tea}`).fill('8')
+  await expect(page.getByText('4 short')).toBeVisible()
   await page.getByLabel(`Cost of ${tea}`).fill('100') // dearer than it sells for → the guard steps in
   await page.getByRole('button', { name: 'Use Rs. 150.00' }).click() // keeps its 1.5× markup
   await expect(page.getByText('Sells under its usual markup')).toHaveCount(0)
@@ -164,7 +165,18 @@ test('purchases: receive a walk-in delivery on credit; it shows under Received �
   await page.getByRole('button', { name: new RegExp(`^${item}`) }).click()
   await page.getByLabel(`Quantity of ${item}`).fill('3')
   await page.getByLabel(`Cost of ${item}`).fill('70')
-  await page.getByRole('button', { name: /Receive Rs\. 210\.00 of stock/ }).click()
+  // A scanned code nobody knows becomes the new product's barcode, not its name.
+  const code = `99${Date.now()}`.slice(0, 13)
+  await page.getByLabel('Add a product').fill(code)
+  await page.getByLabel('Add a product').press('Enter')
+  await expect(page.getByLabel('New product barcode')).toHaveValue(code)
+  await expect(page.getByLabel('New product name')).toHaveValue('')
+  await page.getByRole('button', { name: 'Cancel' }).click()
+  await page.getByLabel('Pay now').fill('50')
+  await page.getByRole('button', { name: 'All', exact: true }).click()
+  await expect(page.getByLabel('Pay now')).toHaveValue('210.00')
+  await page.getByLabel('Pay now').fill('')
+  await page.keyboard.press('F10') // karots-pos: F10 saves
   await toast(page, /on credit/)
   await expect(page.getByText('unpaid')).toBeVisible()
   await page.goto('/admin/purchases?tab=received&unpaid=true')

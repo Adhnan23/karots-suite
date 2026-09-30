@@ -99,7 +99,7 @@ function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose:
         : <Button type="button" variant="outline" className="h-10 px-4" onClick={() => void toggle().catch((e) => toast.error(errMsg(e)))}>Reactivate</Button>)}>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Name"><input autoFocus aria-label="Name" value={f.name} onChange={(e) => up({ name: e.target.value })} className={INPUT} /></Field>
-        <Field label="Phone (signs in with)"><input aria-label="Phone" inputMode="tel" autoComplete="off" value={f.phone} onChange={(e) => up({ phone: e.target.value })} className={INPUT} /></Field>
+        <Field label="Phone" hint="They sign in with this and their PIN."><input aria-label="Phone" inputMode="tel" autoComplete="off" placeholder="07XXXXXXXX" value={f.phone} onChange={(e) => up({ phone: e.target.value })} className={INPUT} /></Field>
       </div>
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Role</legend>

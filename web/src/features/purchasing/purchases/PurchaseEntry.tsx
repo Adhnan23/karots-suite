@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { LineEditor } from '../LineEditor'
 import { type Method, MoneySourcePicker } from '../MoneySource'
 import { purchaseQuery } from '../queries'
+import { useFormKeys } from '../useFormKeys'
 import { SupplierForm } from '../suppliers/SupplierForm'
 import { billTotals, type Current } from '../totals'
 
@@ -65,7 +66,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
   const shown = lines ?? []
   const supplier = sups.find((x) => x.id === sup)
   // Due date follows the supplier's credit days until typed over.
-  useEffect(() => { if (receiving && supplier?.creditDays && !due) setDue(plusDays(supplier.creditDays)) }, [receiving, supplier, due])
+  const dueDate = due || (supplier?.creditDays ? plusDays(supplier.creditDays) : '')
   const { net, bill, total } = billTotals(shown, disc, discType)
   const short = mode === 'receive' && shown.some((l) => l.ordered && num(l.quantity) < num(l.ordered))
 
@@ -84,7 +85,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
     if (receiving && shown.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line needs its cost price')
     setBusy(true)
     try {
-      const body: PurchaseRequest = { supplierId: sup, invoiceNo: invoice, notes, expectedDate: expected, dueDate: receiving ? due : '', discount: disc, discountType: discType,
+      const body: PurchaseRequest = { supplierId: sup, invoiceNo: invoice, notes, expectedDate: expected, dueDate: receiving ? dueDate : '', discount: disc, discountType: discType,
         lines: shown, keepRemainder: keepRest && short, pay: { amount: receiving ? pay : '', method, source } }
       let to = id
       if (mode === 'order') to = (await api<PurchaseRow>('/admin/purchases', { json: body })).id
@@ -107,6 +108,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
     }
   }
 
+  useFormKeys(() => document.querySelector<HTMLInputElement>('[aria-label="Add a product"]')?.focus(), () => { if (!busy && shown.length && sup) void save() })
   const submitLabel = mode === 'order' ? `Place order · ${money(sym, total)}` : mode === 'edit' ? 'Save order' : `Receive ${money(sym, total)} of stock`
   return (
     <>
@@ -131,7 +133,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
           {receiving ? (
             <div className="grid grid-cols-2 gap-2">
               <Field label="Their invoice no"><input aria-label="Their invoice no" value={invoice} onChange={(e) => setInvoice(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
-              <Field label="Pay by"><input type="date" aria-label="Pay by" value={due} onChange={(e) => setDue(e.target.value)} className={INPUT} /></Field>
+              <Field label="Pay by"><input type="date" aria-label="Pay by" value={dueDate} onChange={(e) => setDue(e.target.value)} className={INPUT} /></Field>
             </div>
           ) : (
             <Field label="Expected on"><input type="date" aria-label="Expected on" value={expected} onChange={(e) => setExpected(e.target.value)} className={INPUT} /></Field>
@@ -150,7 +152,12 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
           </dl>
           {receiving && (
             <div className="flex flex-col gap-2 rounded-[var(--radius-sm)] bg-muted p-3">
-              <Field label="Pay now"><input aria-label="Pay now" inputMode="decimal" placeholder="Blank = on credit" value={pay} onChange={(e) => setPay(e.target.value.replace(/[^\d.]/g, ''))} className={cn(INPUT, 'bg-card tabular-nums')} /></Field>
+              <Field label="Pay now">
+                <div className="flex gap-1.5">
+                  <input aria-label="Pay now" inputMode="decimal" placeholder="Blank = on credit" value={pay} onChange={(e) => setPay(e.target.value.replace(/[^\d.]/g, ''))} className={cn(INPUT, 'min-w-0 flex-1 bg-card tabular-nums')} />
+                  <button type="button" onClick={() => setPay(total.toFixed(2))} className="rounded-[var(--radius-sm)] border border-border bg-card px-3 text-[13px] font-bold">All</button>
+                </div>
+              </Field>
               {num(pay) > 0 && (
                 <>
                   <Seg label="Pay by method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
@@ -166,6 +173,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
             </label>
           )}
           <Button size="lg" disabled={busy || !shown.length || !sup} onClick={() => void save()} className="h-12 text-[15px] font-bold">{submitLabel}</Button>
+          <small className="-mt-1 hidden text-center text-faint md:block">F4 add a product · F10 save</small>
         </aside>
       </div>
       {adding && <SupplierForm onClose={() => setAdding(false)} onSaved={(r: AdminSupplierRow) => { void qc.invalidateQueries({ queryKey: ['till'] }); setSup(r.id) }} />}

@@ -75,6 +75,7 @@ export function PurchasePage({ id }: { id: number }) {
                       {draft ? `${qtyText(l.quantity)} ${l.unitAbbr}` : l.ordered ? `${qtyText(l.quantity)} of ${qtyText(l.ordered)} ordered` : `${qtyText(l.quantity)} ${l.unitAbbr} · not on the order`}
                       {num(l.freeQty) > 0 && ` + ${qtyText(l.freeQty)} free`} · {money(sym, l.costPrice)} each
                       {num(l.discount) > 0 && ` · −${l.discountType === 'percent' ? `${l.discount}%` : `${money(sym, l.discount)}/unit`}`}
+                      {num(l.sellingPrice) > 0 && ` · sells at ${money(sym, l.sellingPrice)}`}
                       {l.expiryDate && ` · exp ${l.expiryDate}`}
                     </small>
                     {diff !== 0 && <small className={cn('ml-2 font-bold', diff < 0 ? 'text-warning' : 'text-brand')}>{diff < 0 ? `${qtyText(-diff)} short` : `${qtyText(diff)} extra`}</small>}
