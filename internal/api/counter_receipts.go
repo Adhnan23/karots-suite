@@ -18,7 +18,7 @@ func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
 		return err
 	}
 	rows, err := h.t.receipts.List(c.Request().Context(), cashflow.ReceiptFilter{Query: strings.TrimSpace(c.QueryParam("q")),
-		Kind: strings.TrimSpace(c.QueryParam("kind")), From: from, To: to, Limit: 50})
+		Kind: strings.TrimSpace(c.QueryParam("kind")), From: from, To: to, Limit: counterPage, Offset: listOffset(c)})
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (h *handlers) CounterDebtReceipts(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	rows, err := h.t.customers.ListPayments(c.Request().Context(), customers.DebtFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
+	rows, err := h.t.customers.ListPayments(c.Request().Context(), customers.DebtFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: counterPage, Offset: listOffset(c)})
 	if err != nil {
 		return err
 	}

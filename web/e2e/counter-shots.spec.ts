@@ -77,6 +77,22 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Find a sale').press('Enter')
     await page.getByText('TOTAL', { exact: true }).waitFor()
   },
+  // SHOTS_TAB=returns SHOTS_PREP=older: a list past one page ends in "Show older".
+  older: async (page) => {
+    if (!(await (await page.request.get('/api/v1/till/sales?q=&offset=50')).json()).length) {
+      const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+      for (let i = 0; i < 51; i++) {
+        await page.request.post('/api/v1/till/sales', { data: {
+          saleType: 'retail', discountType: 'fixed', payments: [{ method: 'cash', amount: '200' }],
+          items: [{ productId: milk.id, quantity: '1', discountType: 'fixed' }],
+        } })
+      }
+      await page.reload()
+    }
+    const list = page.getByRole('list', { name: 'Sales' })
+    await page.getByRole('button', { name: 'Show older' }).waitFor()
+    await list.evaluate((el) => { el.scrollTop = el.scrollHeight })
+  },
   zreport: async (page) => {
     const st = await (await page.request.get('/api/v1/till/drawer')).json()
     await page.goto(`/print/z/${st.summary.session.id}`)
@@ -123,7 +139,7 @@ for (const palette of ['studio', 'night']) {
         if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 4 }, sourceLockerId: 0 } })
         await page.goto(`/till/${tab}`)
         await page.waitForLoadState('networkidle')
-        await prep[tab]?.(page)
+        await prep[process.env.SHOTS_PREP ?? tab]?.(page)
         await page.waitForTimeout(300)
         await page.screenshot({ path: `shots/${gate}/${tab}-${palette}-${mode}-${width}.png` })
       })

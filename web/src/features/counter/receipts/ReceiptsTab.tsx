@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ExternalLink, Printer, Search } from 'lucide-react'
 import { type ReactNode, useDeferredValue, useState } from 'react'
 import type { DebtReceiptRow, MoneyReceiptRow, WarrantyClaimRow } from '@/api/types.gen'
@@ -10,11 +10,11 @@ import { FIELD } from '@/features/till/ui'
 import { slots } from '@/plugins/slots'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
+import { countText, debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
 import { LATEST, type Range } from '../range'
 import { RangePicker } from '../RangePicker'
 import { SaleFind } from '../SaleFind'
-import { CounterPage, PaneTitle } from '../ui'
+import { CounterPage, MoreRows, PaneTitle } from '../ui'
 import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from './Paper'
 
 type Kind = 'sales' | 'cash' | 'credit' | 'warranty' | `x:${string}`
@@ -74,9 +74,13 @@ function RowList({ kind, head, sym, pick, onPick }: {
   const [range, setRange] = useState<Range>(LATEST)
   const [moveKind, setMoveKind] = useState('')
   const dq = useDeferredValue(q.trim())
-  const cash = useQuery({ ...moneyReceiptsQuery(dq, moveKind, range), enabled: kind === 'cash', placeholderData: keepPreviousData }).data ?? []
-  const credit = useQuery({ ...debtReceiptsQuery(dq, range), enabled: kind === 'credit', placeholderData: keepPreviousData }).data ?? []
-  const claims = useQuery({ ...warrantyClaimsQuery(dq, range), enabled: kind === 'warranty', placeholderData: keepPreviousData }).data ?? []
+  const cashQ = useInfiniteQuery({ ...moneyReceiptsQuery(dq, moveKind, range), enabled: kind === 'cash', placeholderData: keepPreviousData })
+  const creditQ = useInfiniteQuery({ ...debtReceiptsQuery(dq, range), enabled: kind === 'credit', placeholderData: keepPreviousData })
+  const claimsQ = useInfiniteQuery({ ...warrantyClaimsQuery(dq, range), enabled: kind === 'warranty', placeholderData: keepPreviousData })
+  const list = kind === 'cash' ? cashQ : kind === 'credit' ? creditQ : claimsQ
+  const cash = cashQ.data?.pages.flat() ?? []
+  const credit = creditQ.data?.pages.flat() ?? []
+  const claims = claimsQ.data?.pages.flat() ?? []
   const rows: { key: number; no: string; sub: string; amount: string | null; p: Pick }[] = kind === 'cash'
     ? cash.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.kindLabel}${r.party ? ` · ${r.party}` : ''}`, amount: r.amount, p: { kind: 'cash', row: r } }))
     : kind === 'credit'
@@ -86,7 +90,7 @@ function RowList({ kind, head, sym, pick, onPick }: {
   return (
     <>
       {head}
-      <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${rows.length} shown`}
+      <PaneTitle title={kind === 'cash' ? 'Cash moves' : kind === 'credit' ? 'Credit payments' : 'Warranty claims'} sub={`${countText(rows.length, list.hasNextPage)} shown`}
         right={(
           <span className="flex items-center gap-1.5">
             {kind === 'cash' && (
@@ -117,6 +121,7 @@ function RowList({ kind, head, sym, pick, onPick }: {
             </button>
           </li>
         ))}
+        <MoreRows list={list} />
       </ul>
     </>
   )

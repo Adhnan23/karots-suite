@@ -44,7 +44,7 @@ func claimRow(cl warranty.Claim) WarrantyClaimRow {
 
 // CounterWarrantyUnits lists serial-tracked units (?status=all|active|expired|replaced&q=).
 func (h *handlers) CounterWarrantyUnits(c echo.Context) error {
-	rows, err := h.t.warranty.List(c.Request().Context(), c.QueryParam("status"), strings.TrimSpace(c.QueryParam("q")))
+	rows, err := h.t.warranty.List(c.Request().Context(), c.QueryParam("status"), strings.TrimSpace(c.QueryParam("q")), counterPage, listOffset(c))
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (h *handlers) CounterWarrantyClaims(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	rows, err := h.t.warranty.ListClaims(c.Request().Context(), warranty.ClaimFilter{Search: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
+	rows, err := h.t.warranty.ListClaims(c.Request().Context(), warranty.ClaimFilter{Search: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: counterPage, Offset: listOffset(c)})
 	if err != nil {
 		return err
 	}

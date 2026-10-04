@@ -1,13 +1,13 @@
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { FIELD } from '@/features/till/ui'
-import { salesQuery } from './queries'
+import { countText, salesQuery } from './queries'
 import { LATEST, type Range } from './range'
 import { RangePicker } from './RangePicker'
-import { PaneTitle } from './ui'
+import { MoreRows, PaneTitle } from './ui'
 
 const STATUS: Record<string, string> = { partially_returned: 'part returned', returned: 'returned', voided: 'voided' }
 const when = (iso: string) => {
@@ -16,23 +16,24 @@ const when = (iso: string) => {
   return today ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString([], { day: 'numeric', month: 'short' })
 }
 
-/** Find a sale by receipt no, customer name or phone; latest first. Enter picks the top hit. */
+/** Find a sale by receipt no, customer name, phone or product sold; latest first, 50 at a time. Enter picks the top hit. */
 export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: string; picked: number | null; onPick: (id: number) => void }) {
   const [q, setQ] = useState('')
   const [range, setRange] = useState<Range>(LATEST)
   const dq = useDeferredValue(q.trim())
-  const rows = useQuery({ ...salesQuery(dq, range), placeholderData: keepPreviousData }).data ?? []
+  const list = useInfiniteQuery({ ...salesQuery(dq, range), placeholderData: keepPreviousData })
+  const rows = list.data?.pages.flat() ?? []
   const qc = useQueryClient()
   // Enter must use the results for exactly what's typed: a scanner types the
   // receipt no and hits Enter before the list catches up, and picking the stale
   // top row would open the wrong sale.
   const pickTop = async () => {
-    const hits = await qc.query(salesQuery(q.trim(), range))
+    const hits = (await qc.fetchInfiniteQuery(salesQuery(q.trim(), range))).pages[0] ?? []
     if (hits[0]) onPick(hits[0].id)
   }
   return (
     <>
-      <PaneTitle title={title} sub={dq || range.preset ? `${rows.length} found` : 'latest sales'} right={<RangePicker value={range} onChange={setRange} />} />
+      <PaneTitle title={title} sub={dq || range.preset ? `${countText(rows.length, list.hasNextPage)} found` : 'latest sales'} right={<RangePicker value={range} onChange={setRange} />} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Find a sale" placeholder="Receipt no, customer, phone or product" autoComplete="off" value={q}
@@ -54,6 +55,7 @@ export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: s
             </button>
           </li>
         ))}
+        <MoreRows list={list} />
       </ul>
     </>
   )

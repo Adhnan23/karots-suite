@@ -20,6 +20,9 @@ func TestCounterReturn(t *testing.T) {
 	if len(found) != 1 || found[0].ID != res.ID {
 		t.Fatalf("lookup by receipt: %+v", found)
 	}
+	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?offset=1&q="+res.ReceiptNo, nil, ck)); len(got) != 0 {
+		t.Fatalf("the next page repeats the first: %+v", got)
+	}
 	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?preset=today&q="+res.ReceiptNo, nil, ck)); len(got) != 1 {
 		t.Fatalf("today's filter misses the sale: %+v", got)
 	}

@@ -75,6 +75,16 @@ func strOr(p *string) string {
 	return *p
 }
 
+// counterPage is how many rows a counter list loads at a time; the SPA asks
+// for the next page with ?offset= while the last one came back full.
+const counterPage = 50
+
+// listOffset reads a list's ?offset= (rows already shown; 0 when absent).
+func listOffset(c echo.Context) int {
+	n, _ := strconv.Atoi(c.QueryParam("offset"))
+	return max(n, 0)
+}
+
 func pathID(c echo.Context) (int64, error) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || id <= 0 {

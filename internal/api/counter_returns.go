@@ -79,7 +79,7 @@ func (h *handlers) CounterSales(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	rows, err := h.d.Sales.List(c.Request().Context(), sales.ListFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: 50})
+	rows, err := h.d.Sales.List(c.Request().Context(), sales.ListFilter{Query: strings.TrimSpace(c.QueryParam("q")), From: from, To: to, Limit: counterPage, Offset: listOffset(c)})
 	if err != nil {
 		return err
 	}

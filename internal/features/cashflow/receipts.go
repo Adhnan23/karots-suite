@@ -50,8 +50,9 @@ type ReceiptFilter struct {
 	Query string // matches receipt_no / party / from_label / to_label (blank = any)
 	Kind  string // exact kind (blank = any)
 	From  *time.Time
-	To    *time.Time
-	Limit int
+	To     *time.Time
+	Limit  int
+	Offset int // rows to skip (a list's later pages)
 }
 
 // ReceiptRepository runs receipt queries against either the pool or a tx.
@@ -117,7 +118,7 @@ func (r *ReceiptRepository) List(ctx context.Context, f ReceiptFilter) ([]Receip
 		       mr.from_label ILIKE '%' || $4 || '%' OR
 		       mr.to_label   ILIKE '%' || $4 || '%')
 		ORDER BY mr.created_at DESC, mr.id DESC
-		LIMIT $5`, f.From, f.To, kind, q, limit)
+		LIMIT $5 OFFSET $6`, f.From, f.To, kind, q, limit, max(f.Offset, 0))
 	return rows, err
 }
 

@@ -171,8 +171,9 @@ type DebtReceipt struct {
 type DebtFilter struct {
 	Query string
 	From  *time.Time
-	To    *time.Time
-	Limit int
+	To     *time.Time
+	Limit  int
+	Offset int // rows to skip (a list's later pages); used only with Limit
 }
 
 const debtSelect = `
@@ -205,8 +206,8 @@ func (s *Service) ListPayments(ctx context.Context, f DebtFilter) ([]DebtReceipt
 	}
 	q += ` ORDER BY cp.id DESC`
 	if f.Limit > 0 {
-		q += fmt.Sprintf(` LIMIT $%d`, n)
-		args = append(args, f.Limit)
+		q += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, n, n+1)
+		args = append(args, f.Limit, max(f.Offset, 0))
 	}
 	var rows []DebtReceipt
 	if err := s.db.SelectContext(ctx, &rows, q, args...); err != nil {

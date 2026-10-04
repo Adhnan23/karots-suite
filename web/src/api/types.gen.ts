@@ -413,7 +413,7 @@ export interface SaleView extends SaleSummary {
   tax: string;
   paidAmount: string;
   changeGiven: string;
-  owedOnSale: string; // total − paid when a customer is on it; a return clears this first
+  owedOnSale: string; // total − paid − earlier returns' credit when a customer is on it; a return clears this first
   lines: SaleLine[];
   payments: SalePayment[];
 }

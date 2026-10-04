@@ -1,11 +1,11 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { Seg } from '@/features/till/bits'
 import { FIELD } from '@/features/till/ui'
 import { cn } from '@/lib/utils'
-import { warrantyUnitsQuery } from '../queries'
-import { CounterPage, PaneTitle } from '../ui'
+import { countText, warrantyUnitsQuery } from '../queries'
+import { CounterPage, MoreRows, PaneTitle } from '../ui'
 import { ReceiptClaim } from './ReceiptClaim'
 import { UnitClaim } from './UnitClaim'
 
@@ -38,10 +38,11 @@ function UnitList({ picked, onPick }: { picked: string | null; onPick: (s: strin
   const [q, setQ] = useState('')
   const [status, setStatus] = useState<Status>('active')
   const dq = useDeferredValue(q.trim())
-  const rows = useQuery({ ...warrantyUnitsQuery(status, dq), placeholderData: keepPreviousData }).data ?? []
+  const list = useInfiniteQuery({ ...warrantyUnitsQuery(status, dq), placeholderData: keepPreviousData })
+  const rows = list.data?.pages.flat() ?? []
   return (
     <>
-      <PaneTitle title="Warranty" sub={`${rows.length} unit${rows.length === 1 ? '' : 's'}`}
+      <PaneTitle title="Warranty" sub={`${countText(rows.length, list.hasNextPage)} unit${rows.length === 1 ? '' : 's'}`}
         right={<Seg label="Status" value={status} onChange={setStatus} options={[['active', 'Covered'], ['expired', 'Expired'], ['replaced', 'Replaced'], ['all', 'All']]} />} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
@@ -66,6 +67,7 @@ function UnitList({ picked, onPick }: { picked: string | null; onPick: (s: strin
             </button>
           </li>
         ))}
+        <MoreRows list={list} />
       </ul>
     </>
   )

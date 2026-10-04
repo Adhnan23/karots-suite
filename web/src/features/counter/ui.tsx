@@ -1,3 +1,4 @@
+import type { UseInfiniteQueryResult } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -10,6 +11,20 @@ export function CounterPage({ children, aside, flush }: { children: ReactNode; a
       <section className={cn(PANEL, 'flex min-h-0 flex-col', flush ? 'overflow-hidden' : 'overflow-auto p-5')}>{children}</section>
       <aside className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden')}>{aside}</aside>
     </div>
+  )
+}
+
+/** The last row of a paged list (queries.ts paged): older rows are one tap away,
+ *  so a list never stops silently at its newest page. */
+export function MoreRows({ list }: { list: UseInfiniteQueryResult<unknown> }) {
+  if (!list.hasNextPage) return null
+  return (
+    <li>
+      <button type="button" disabled={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()}
+        className="w-full rounded-[var(--radius-sm)] px-3 py-2.5 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-60">
+        {list.isFetchingNextPage ? 'Loading…' : 'Show older'}
+      </button>
+    </li>
   )
 }
 

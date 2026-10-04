@@ -148,7 +148,7 @@ func (r *Repository) UnitsForSale(ctx context.Context, saleID int64) ([]Unit, er
 
 // ListUnits returns warranty units filtered by status and an optional search on
 // serial number or product name. status is one of all|active|expired|replaced.
-func (r *Repository) ListUnits(ctx context.Context, status, search string, limit int) ([]Unit, error) {
+func (r *Repository) ListUnits(ctx context.Context, status, search string, limit, offset int) ([]Unit, error) {
 	if limit <= 0 || limit > 500 {
 		limit = 100
 	}
@@ -182,7 +182,7 @@ func (r *Repository) ListUnits(ctx context.Context, status, search string, limit
 		    OR ($2 = 'replaced' AND wu.status = 'replaced')
 		  )
 		ORDER BY wu.created_at DESC
-		LIMIT $3`, s, status, limit)
+		LIMIT $3 OFFSET $4`, s, status, limit, max(offset, 0))
 	return rows, err
 }
 
@@ -205,6 +205,7 @@ type ClaimFilter struct {
 	From   *time.Time
 	To     *time.Time
 	Limit  int
+	Offset int // rows to skip (a list's later pages)
 }
 
 // claimSelect lists claims with everything the receipts table + a reprinted slip
@@ -242,7 +243,7 @@ func (r *Repository) ListClaims(ctx context.Context, f ClaimFilter) ([]Claim, er
 		       OR ru.serial_no ILIKE '%' || $3 || '%'
 		       OR c.name       ILIKE '%' || $3 || '%')
 		ORDER BY wc.id DESC
-		LIMIT $4`, f.From, f.To, s, limit)
+		LIMIT $4 OFFSET $5`, f.From, f.To, s, limit, max(f.Offset, 0))
 	return rows, err
 }
 

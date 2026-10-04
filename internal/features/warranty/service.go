@@ -182,9 +182,9 @@ func (s *Service) RecordReceiptReplacement(ctx context.Context, saleID, productI
 	return claimID, nil
 }
 
-// List returns warranty units for the overview table.
-func (s *Service) List(ctx context.Context, status, search string) ([]Unit, error) {
-	rows, err := s.repo.ListUnits(ctx, status, search, 100)
+// List returns a page of warranty units for the overview table.
+func (s *Service) List(ctx context.Context, status, search string, limit, offset int) ([]Unit, error) {
+	rows, err := s.repo.ListUnits(ctx, status, search, limit, offset)
 	if err != nil {
 		return nil, apperr.Internal("failed to list warranty units", err)
 	}
