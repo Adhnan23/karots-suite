@@ -37,7 +37,7 @@ func TestLotCost(t *testing.T) {
 		want                          string
 	}{
 		// buy 10 @ 100 + 2 free: 1000 spread over 12 units.
-		{"bonus units blend down", "1000", "12", "2", "100", "83.3333"},
+		{"bonus units blend down", "1000", "12", "2", "100", "83.33"},
 		// no freebies: exact list cost, no divide, no drift.
 		{"no free units keeps list cost", "1000", "10", "0", "100", "100"},
 		// a free (unpriced) line: zero lets the batch inherit the product cost.

@@ -92,3 +92,49 @@ func TestAdminPurchaseReturns(t *testing.T) {
 		t.Fatalf("list: %+v", l)
 	}
 }
+
+// Free units + line discount + bill discount all reach the return price, and
+// sending the WHOLE delivery back clears exactly what its bill was:
+//
+//	A: 10 @ 100 + 2 free, 10% line discount → line 900
+//	B:  5 @ 200                             → line 1000
+//	bill: Rs 190 off the 1900               → owed 1710
+//
+// The bill discount spreads ×0.9, so A's lot is 900×0.9/12 = 67.50, B's 180.
+func TestPurchaseReturnFromMixedDiscountDelivery(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	sup := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Mixed Supplier %d", time.Now().UnixNano())}, ck))
+	receive := func() (int64, ReturnableLine, ReturnableLine) {
+		got := decode[ReceiveResult](t, te.do(http.MethodPost, "/api/v1/admin/purchases/receive", PurchaseRequest{SupplierID: sup.ID, Discount: "190", DiscountType: "fixed", Lines: []StockLine{
+			{ProductID: f.plainID, Quantity: "10", FreeQty: "2", CostPrice: "100", Discount: "10", DiscountType: "percent"},
+			{ProductID: f.lotID, Quantity: "5", CostPrice: "200", DiscountType: "fixed"},
+		}}, ck))
+		rl := decode[ReturnableList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d/returnable", got.PurchaseID), nil, ck))
+		if len(rl.Lines) != 2 || rl.Lines[0].Cost != "67.50" || rl.Lines[1].Cost != "180.00" {
+			t.Fatalf("lot costs A/B, want 67.50/180.00: %+v", rl.Lines)
+		}
+		return got.PurchaseID, rl.Lines[0], rl.Lines[1]
+	}
+	post := func(pid int64, lines ...PurchaseReturnItem) PurchaseReturnRow {
+		rec := te.do(http.MethodPost, "/api/v1/admin/purchase-returns", PurchaseReturnRequest{SupplierID: sup.ID, PurchaseID: pid, Lines: lines}, ck)
+		if rec.Code != http.StatusCreated {
+			t.Fatalf("return: %d %s", rec.Code, rec.Body)
+		}
+		return decode[PurchaseReturnRow](t, rec)
+	}
+
+	pid, a, b := receive()
+	if r := post(pid, PurchaseReturnItem{ProductID: f.plainID, Quantity: "3", BatchID: a.BatchID}, PurchaseReturnItem{ProductID: f.lotID, Quantity: "2", BatchID: b.BatchID}); r.Total != "562.50" {
+		t.Fatalf("credited %s, want 562.50 (3×67.50 + 2×180)", r.Total)
+	}
+
+	pid, a, b = receive()
+	if r := post(pid, PurchaseReturnItem{ProductID: f.plainID, Quantity: "12", BatchID: a.BatchID}, PurchaseReturnItem{ProductID: f.lotID, Quantity: "5", BatchID: b.BatchID}); r.Total != "1710.00" {
+		t.Fatalf("whole delivery credited %s, want the bill's 1710", r.Total)
+	}
+	if p := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", pid), nil, ck)); p.Credited != "1710.00" {
+		t.Fatalf("delivery bill credited %s, want 1710 (fully cleared)", p.Credited)
+	}
+}
