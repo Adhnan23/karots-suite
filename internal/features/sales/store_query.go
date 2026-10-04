@@ -82,15 +82,36 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
 		  AND ($8::text IS NULL OR EXISTS (
 		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $8::payment_method))
-		  AND ($9::text IS NULL OR
-		       s.receipt_no ILIKE '%' || $9 || '%' OR
-		       c.name       ILIKE '%' || $9 || '%' OR
-		       c.phone      ILIKE '%' || $9 || '%')`+hourClause("s", "$10", "$11", "$12")+`
+		  AND `+searchMatch("$9")+hourClause("s", "$10", "$11", "$12")+`
 		ORDER BY s.created_at DESC, s.id DESC
 		LIMIT $6 OFFSET $7`,
 		f.From, f.To, f.CashierID, status, receipt, f.Limit, f.Offset, method, query,
 		tzName(), f.FromHour, f.ToHour)
 	return rows, err
+}
+
+// searchMatch is the sales search (receipt no / customer name / phone / what
+// was sold), shared by List and Summarize so the totals match the rows. p is the
+// query's placeholder, e.g. "$9". A sale matches by a line when every word of
+// the query appears in that ONE line's product name + label, in any order, with
+// separators squashed ("mineral 1l" → "Mineral Water 1L", "flipflop" → "Flip
+// Flop") — the till's rules minus typo rescue, which on sales history surfaces
+// unrelated receipts. A scanned barcode matches exactly. EXISTS, so a sale with
+// several matching lines is listed (and counted) once. ' -_/.' mirrors
+// products.squashChars; keep them in sync.
+func searchMatch(p string) string {
+	return `(` + p + `::text IS NULL OR
+	       s.receipt_no ILIKE '%' || ` + p + ` || '%' OR
+	       c.name       ILIKE '%' || ` + p + ` || '%' OR
+	       c.phone      ILIKE '%' || ` + p + ` || '%' OR
+	       EXISTS (SELECT 1 FROM sale_items si JOIN products pr ON pr.id = si.product_id
+	               WHERE si.sale_id = s.id
+	                 AND (pr.barcode = ` + p + ` OR NOT EXISTS (
+	                      SELECT 1 FROM regexp_split_to_table(lower(btrim(` + p + `::text)), '\s+') AS tok
+	                      WHERE NOT (
+	                          lower(pr.name || ' ' || COALESCE(si.description, '')) LIKE '%' || tok || '%'
+	                          OR translate(lower(pr.name || ' ' || COALESCE(si.description, '')), ' -_/.', '')
+	                             LIKE '%' || translate(tok, ' -_/.', '') || '%')))))`
 }
 
 // saleProfitAgg is the per-sale cost/pass-through/returns aggregate, mirroring
@@ -183,10 +204,7 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
 		  AND ($6::text IS NULL OR EXISTS (
 		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $6::payment_method))
-		  AND ($7::text IS NULL OR
-		       s.receipt_no ILIKE '%' || $7 || '%' OR
-		       c.name       ILIKE '%' || $7 || '%' OR
-		       c.phone      ILIKE '%' || $7 || '%')`+hourClause("s", "$8", "$9", "$10"),
+		  AND `+searchMatch("$7")+hourClause("s", "$8", "$9", "$10"),
 		f.From, f.To, f.CashierID, status, receipt, method, query,
 		tzName(), f.FromHour, f.ToHour)
 	return &out, err

@@ -196,3 +196,51 @@ func TestReturnsClearOnlyTheDebtLeft(t *testing.T) {
 		t.Errorf("customer balance %s after returning everything, want 0", balance)
 	}
 }
+
+// The sales search finds a sale by what was sold on it — a customer who lost
+// the receipt only remembers the product. Both lines of this sale match
+// "TEST return disc", yet the sale must be listed once, and the summary must
+// count it once too.
+func TestSalesSearchFindsSaleByProductOnce(t *testing.T) {
+	conn := salesTestDB(t)
+	t.Cleanup(func() { conn.Close() }) // after discountedSale's cleanup (LIFO), which needs it
+	ctx := context.Background()
+	svc, d, _, _, _ := discountedSale(t, ctx, conn)
+
+	rows, err := svc.List(ctx, ListFilter{Query: "test return disc", Limit: 50})
+	mustSales(t, err)
+	hits := 0
+	for _, r := range rows {
+		if r.ID == d.Sale.ID {
+			hits++
+		}
+	}
+	if hits != 1 {
+		t.Errorf("sale listed %d times for a product search, want once", hits)
+	}
+	sum, err := svc.Summarize(ctx, ListFilter{Query: "test return disc"})
+	mustSales(t, err)
+	if sum.Count != len(rows) {
+		t.Errorf("summary counts %d sales, list shows %d", sum.Count, len(rows))
+	}
+	// Till rules: words in any order, and squashed separators, both find it…
+	for _, q := range []string{"disc test", "A returndisc"} {
+		rows, err := svc.List(ctx, ListFilter{Query: q, Limit: 50})
+		mustSales(t, err)
+		found := false
+		for _, r := range rows {
+			found = found || r.ID == d.Sale.ID
+		}
+		if !found {
+			t.Errorf("search %q did not find the sale", q)
+		}
+	}
+	// …but every word must match: one word that isn't in the name rules it out.
+	for _, q := range []string{"test zzz", "no product is called this"} {
+		none, err := svc.List(ctx, ListFilter{Query: q, Limit: 50})
+		mustSales(t, err)
+		if len(none) != 0 {
+			t.Errorf("search %q matched %d sales, want none", q, len(none))
+		}
+	}
+}

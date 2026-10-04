@@ -35,7 +35,7 @@ export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: s
       <PaneTitle title={title} sub={dq || range.preset ? `${rows.length} found` : 'latest sales'} right={<RangePicker value={range} onChange={setRange} />} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
-        <input autoFocus aria-label="Find a sale" placeholder="Receipt no, customer name or phone" autoComplete="off" value={q}
+        <input autoFocus aria-label="Find a sale" placeholder="Receipt no, customer, phone or product" autoComplete="off" value={q}
           onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void pickTop()}
           className={cn(FIELD, 'w-full pl-9')} />
       </div>

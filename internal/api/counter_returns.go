@@ -73,7 +73,7 @@ func listRange(c echo.Context) (*time.Time, *time.Time, error) {
 	return &f, &t, nil
 }
 
-// CounterSales finds sales by receipt no / customer name / phone (latest 50).
+// CounterSales finds sales by receipt no / customer name / phone / product sold.
 func (h *handlers) CounterSales(c echo.Context) error {
 	from, to, err := listRange(c)
 	if err != nil {
