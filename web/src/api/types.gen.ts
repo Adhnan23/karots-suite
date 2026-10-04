@@ -397,7 +397,9 @@ export interface SaleLine {
   returnedQty: string;
   unitPrice: string;
   subtotal: string; // line net (after line discount)
-  refundUnit: string; // what one returned unit refunds (subtotal / qty, 2dp)
+  refundUnit: string; // what one unit was paid (paid / qty, 2dp), for display
+  paid: string; // what the whole line was paid: net shared down by the bill discount
+  refundLeft: string; // paid minus earlier refunds: what returning the rest refunds
   isService: boolean; // never returnable
 }
 export interface SalePayment {

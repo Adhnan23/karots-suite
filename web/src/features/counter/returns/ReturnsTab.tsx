@@ -16,6 +16,9 @@ import { CounterPage } from '../ui'
 
 const REASONS = ['Wrong item', 'Faulty', 'Changed mind', 'Expired']
 const left = (l: SaleLine) => num(l.quantity) - num(l.returnedQty)
+/** What returning n of a line refunds — the server's sales.lineRefund: part of a line
+ *  is its paid value pro-rata, the rest of it is exactly what's left of that value. */
+const refundOf = (l: SaleLine, n: number) => (n <= 0 ? 0 : n >= left(l) ? num(l.refundLeft) : r2((num(l.paid) * n) / num(l.quantity)))
 
 /** Take goods back against a receipt: pick the lines, say if they're faulty, refund. */
 export function ReturnsTab() {
@@ -39,7 +42,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
   const [faulty, setFaulty] = useState<Record<number, boolean>>({})
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
-  const value = r2(sale.lines.reduce((s, l) => s + num(l.refundUnit) * (qty[l.id] ?? 0), 0))
+  const value = r2(sale.lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))
   const offAccount = Math.min(value, num(sale.owedOnSale))
   const cash = r2(value - offAccount)
   const picked = sale.lines.filter((l) => (qty[l.id] ?? 0) > 0)

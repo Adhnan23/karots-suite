@@ -10,11 +10,34 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// MarkItemFullyReturned sets returned_qty = quantity for a line.
-func (r *Repository) MarkItemFullyReturned(ctx context.Context, itemID int64) error {
-	_, err := r.q.ExecContext(ctx,
-		`UPDATE sale_items SET returned_qty = quantity WHERE id = $1`, itemID)
-	return err
+// PaidFactorSQL is what each Rs of line net was actually paid: the sale total
+// over the sum of its line nets (sale_items.subtotal already has the item
+// discount off; the bill discount and tax live only on the sale). One factor
+// every reader multiplies by, so the refund, the sales list, the day-end
+// summary and the Returns report all agree with the cash that went back.
+// Correlated on the outer `s`.
+const PaidFactorSQL = `COALESCE(s.total / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id), 0), 1)`
+
+func (r *Repository) PaidFactor(ctx context.Context, saleID int64) (decimal.Decimal, error) {
+	var f decimal.Decimal
+	err := r.q.GetContext(ctx, &f, `SELECT `+PaidFactorSQL+` FROM sales s WHERE s.id = $1`, saleID)
+	return f, err
+}
+
+// CreditReduced is what earlier returns on a sale already took off the
+// customer's account. sales.paid_amount never changes, so the debt a return can
+// still clear is total − paid − this.
+func (r *Repository) CreditReduced(ctx context.Context, saleID int64) (decimal.Decimal, error) {
+	var v decimal.Decimal
+	err := r.q.GetContext(ctx, &v, `SELECT COALESCE(SUM(credit_reduction), 0) FROM sale_returns WHERE sale_id = $1`, saleID)
+	return v, err
+}
+
+// RefundedForItem is what earlier returns already refunded on one sale line.
+func (r *Repository) RefundedForItem(ctx context.Context, saleItemID int64) (decimal.Decimal, error) {
+	var v decimal.Decimal
+	err := r.q.GetContext(ctx, &v, `SELECT COALESCE(SUM(refund_amount), 0) FROM sale_return_items WHERE sale_item_id = $1`, saleItemID)
+	return v, err
 }
 
 // AddReturnedQty increments a line's returned quantity (guarded so it never

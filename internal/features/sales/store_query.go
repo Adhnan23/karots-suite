@@ -98,7 +98,7 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 const saleProfitAgg = `
 	SELECT
 	  COALESCE(SUM(si.subtotal) FILTER (WHERE p.pass_through), 0)                                          AS pt_face,
-	  COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty) FILTER (WHERE NOT p.pass_through), 0) AS ret_val,
+	  COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty) FILTER (WHERE NOT p.pass_through), 0) * ` + PaidFactorSQL + ` AS ret_val,
 	  COALESCE(SUM((si.quantity - si.returned_qty) * si.cost_price) FILTER (WHERE NOT p.pass_through), 0)  AS cogs
 	FROM sale_items si JOIN products p ON p.id = si.product_id
 	WHERE si.sale_id = s.id`

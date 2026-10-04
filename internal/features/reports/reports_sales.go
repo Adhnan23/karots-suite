@@ -8,6 +8,7 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/datetime"
+	"karots-suite/internal/features/sales"
 
 	"github.com/shopspring/decimal"
 )
@@ -60,7 +61,7 @@ func (s *Service) Returns(ctx context.Context, from, to time.Time) ([]ReturnRow,
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT s.created_at AS sale_date, s.receipt_no, p.name AS product_name,
 		       si.returned_qty AS qty,
-		       ((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty) AS refund_value,
+		       ((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+sales.PaidFactorSQL+`) AS refund_value,
 		       c.name AS customer
 		FROM sale_items si
 		JOIN sales s     ON s.id = si.sale_id

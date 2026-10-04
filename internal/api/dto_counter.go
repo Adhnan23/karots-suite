@@ -128,7 +128,9 @@ type SaleLine struct {
 	ReturnedQty string `json:"returnedQty"`
 	UnitPrice   string `json:"unitPrice"`
 	Subtotal    string `json:"subtotal"`   // line net (after line discount)
-	RefundUnit  string `json:"refundUnit"` // what one returned unit refunds (subtotal / qty, 2dp)
+	RefundUnit  string `json:"refundUnit"` // what one unit was paid (paid / qty, 2dp), for display
+	Paid        string `json:"paid"`       // what the whole line was paid: net shared down by the bill discount
+	RefundLeft  string `json:"refundLeft"` // paid minus earlier refunds: what returning the rest refunds
 	IsService   bool   `json:"isService"`  // never returnable
 }
 
@@ -145,7 +147,7 @@ type SaleView struct {
 	Tax         string        `json:"tax"`
 	PaidAmount  string        `json:"paidAmount"`
 	ChangeGiven string        `json:"changeGiven"`
-	OwedOnSale  string        `json:"owedOnSale"` // total − paid when a customer is on it; a return clears this first
+	OwedOnSale  string        `json:"owedOnSale"` // total − paid − earlier returns' credit when a customer is on it; a return clears this first
 	Lines       []SaleLine    `json:"lines"`
 	Payments    []SalePayment `json:"payments"`
 }

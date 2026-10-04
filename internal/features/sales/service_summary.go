@@ -58,12 +58,12 @@ func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to t
 	}
 	out.Count, out.Gross, out.Discount = agg.Count, agg.Gross, agg.Discount
 
-	// Returns booked against this cashier's sales in the window, valued per unit
-	// at the line's net price — mirrors the P&L so the day-end Net is net of
-	// refunds (matches the cash actually kept after refunds out of the drawer).
+	// Returns booked against this cashier's sales in the window, valued at what
+	// was paid (line net shared down by the bill discount) — so the day-end Net
+	// is net of refunds and matches the cash actually kept in the drawer.
 	var returns decimal.Decimal
 	err = s.db.GetContext(ctx, &returns, `
-		SELECT COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty), 0)
+		SELECT COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+PaidFactorSQL+`), 0)
 		FROM sale_items si JOIN sales s ON s.id = si.sale_id
 		WHERE s.cashier_id = $1 AND s.created_at >= $2 AND s.created_at <= $3 AND s.status <> 'void'`,
 		cashierID, from, to)

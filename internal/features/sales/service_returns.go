@@ -44,105 +44,58 @@ func (s *Service) ReturnReceipt(ctx context.Context, saleID int64) (*ReturnRecei
 	return rr, nil
 }
 
-// Return reverses a completed sale: every line is restocked and audited, any
-// credit balance the sale created is removed from the customer, and the sale is
-// marked 'returned' (which also excludes it from revenue in reports). One tx.
+// Return sends back everything still on a sale, in its own tx. See ReturnTx.
 func (s *Service) Return(ctx context.Context, id int64, userID int64) (*Detail, error) {
 	var detail *Detail
 	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		saleRepo := NewRepository(tx)
-		stkRepo := stock.NewRepository(tx)
-		custRepo := customers.NewRepository(tx)
-
-		sale, err := saleRepo.FindByID(ctx, id)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return apperr.NotFound("sale")
-			}
-			return apperr.Internal("failed to load sale", err)
-		}
-		if sale.Status == "returned" {
-			return apperr.Conflict("this sale has already been returned")
-		}
-		// A partial return already restocked some lines AND reduced the customer's
-		// credit by that portion. A full return here would remove the full original
-		// owed again, over-crediting the customer — so funnel the remainder through
-		// line-level returns (PartialReturn), which is credit-correct.
-		if sale.Status == "partially_returned" {
-			return apperr.Conflict("this sale was already partially returned — use line returns for the rest")
-		}
-
-		items, err := saleRepo.Items(ctx, id)
-		if err != nil {
-			return apperr.Internal("failed to load sale items", err)
-		}
-		// Service lines (a plugin's non-stocked products, e.g. a top-up or a repair
-		// job) can't be returned. If the sale still has one outstanding, block the
-		// whole-sale return rather than silently dropping it — the cashier can
-		// line-return the other items.
-		for _, it := range items {
-			if it.IsService && it.Quantity.Sub(it.ReturnedQty).IsPositive() {
-				return apperr.Conflict("this sale includes a service item, which can't be returned")
-			}
-		}
-		ref := "sale"
-		for _, it := range items {
-			remaining := it.Quantity.Sub(it.ReturnedQty)
-			if !remaining.IsPositive() {
-				continue
-			}
-			if err := stkRepo.Increment(ctx, it.ProductID, remaining); err != nil {
-				return apperr.Internal("failed to restock", err)
-			}
-			// Put it back where it came from when we know; only open a return lot
-			// when we do not, so returns stop fragmenting the batch list.
-			back, berr := stkRepo.RestockLot(ctx, it.BatchID, it.ProductID, remaining)
-			if berr != nil {
-				return apperr.Internal("failed to restock batch", berr)
-			}
-			if !back {
-				if _, err := stkRepo.InsertBatch(ctx, stock.NewBatch{
-					ProductID: it.ProductID, Quantity: remaining, CostPrice: it.CostPrice,
-					SellingPrice: returnedLotPrice(it), Source: "return",
-				}); err != nil {
-					return apperr.Internal("failed to restock batch", err)
-				}
-			}
-			if err := stkRepo.InsertMovement(ctx, stock.MovementInput{
-				ProductID: it.ProductID, Type: stock.MoveReturn, Quantity: remaining,
-				ReferenceID: &id, ReferenceType: &ref, UserID: userID,
-				Note: strPtr("return of " + sale.ReceiptNo),
-			}); err != nil {
-				return apperr.Internal("failed to record return movement", err)
-			}
-			if err := saleRepo.MarkItemFullyReturned(ctx, it.ID); err != nil {
-				return apperr.Internal("failed to mark line returned", err)
-			}
-		}
-
-		// Remove any credit this sale created from the customer's balance.
-		if sale.CustomerID != nil {
-			if owed := sale.Total.Sub(sale.PaidAmount); owed.IsPositive() {
-				if err := custRepo.AddBalance(ctx, *sale.CustomerID, owed.Neg()); err != nil {
-					return apperr.Internal("failed to adjust customer balance", err)
-				}
-			}
-		}
-
-		if err := saleRepo.UpdateStatus(ctx, id, "returned"); err != nil {
-			return apperr.Internal("failed to update sale status", err)
-		}
-		d, err := s.loadDetail(ctx, saleRepo, id)
-		if err != nil {
-			return err
-		}
+		d, _, _, err := s.ReturnTx(ctx, tx, id, userID)
 		detail = d
-		return nil
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 	return detail, nil
+}
+
+// ReturnTx is a line return of every remaining line (restocked), so a whole-sale
+// return records its return and refund exactly as the line path does — what was
+// paid after item and bill discounts — and works after a partial return. Like
+// PartialReturnTx it returns the cash-refund portion and the return id, so the
+// caller moves that cash out of a named place in the same tx.
+func (s *Service) ReturnTx(ctx context.Context, tx *sqlx.Tx, id, userID int64) (*Detail, decimal.Decimal, int64, error) {
+	saleRepo := NewRepository(tx)
+	sale, err := saleRepo.FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, decimal.Zero, 0, apperr.NotFound("sale")
+		}
+		return nil, decimal.Zero, 0, apperr.Internal("failed to load sale", err)
+	}
+	if sale.Status == "returned" {
+		return nil, decimal.Zero, 0, apperr.Conflict("this sale has already been returned")
+	}
+	items, err := saleRepo.Items(ctx, id)
+	if err != nil {
+		return nil, decimal.Zero, 0, apperr.Internal("failed to load sale items", err)
+	}
+	var lines []ReturnLineInput
+	for _, it := range items {
+		if !it.ReturnableQty().IsPositive() {
+			continue
+		}
+		// Service lines (a plugin's non-stocked products) can't be returned: block
+		// the whole-sale return rather than silently dropping one — the cashier
+		// can line-return the other items.
+		if it.IsService {
+			return nil, decimal.Zero, 0, apperr.Conflict("this sale includes a service item, which can't be returned — return the other items line by line")
+		}
+		lines = append(lines, ReturnLineInput{SaleItemID: it.ID, Quantity: it.ReturnableQty().String()})
+	}
+	if len(lines) == 0 {
+		return nil, decimal.Zero, 0, apperr.Conflict("nothing left on this sale to return")
+	}
+	return s.PartialReturnTx(ctx, tx, id, PartialReturnInput{Lines: lines}, userID)
 }
 
 func strPtr(s string) *string { return &s }
@@ -211,6 +164,10 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 
 		ref := "sale"
 		totalRefundValue := decimal.Zero
+		factor, err := saleRepo.PaidFactor(ctx, saleID)
+		if err != nil {
+			return apperr.Internal("failed to value the return", err)
+		}
 		returnID, err = saleRepo.InsertSaleReturn(ctx, saleID, userID, decimal.Zero, decimal.Zero, in.Reason)
 		if err != nil {
 			return apperr.Internal("failed to open return", err)
@@ -232,6 +189,12 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 				return apperr.Conflict(fmt.Sprintf("cannot return %s of %s — only %s remain",
 					money.Display(qty), it.ProductName, money.Display(it.ReturnableQty())))
 			}
+			// Refund what the customer PAID for these units (it is read before
+			// AddReturnedQty, so ReturnableQty is what was left before this return).
+			lineRefund, err := s.lineRefund(ctx, saleRepo, *it, qty, factor)
+			if err != nil {
+				return err
+			}
 			ok, err := saleRepo.AddReturnedQty(ctx, it.ID, qty)
 			if err != nil {
 				return apperr.Internal("failed to update returned qty", err)
@@ -239,9 +202,6 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			if !ok {
 				return apperr.Conflict("return quantity exceeds what was sold")
 			}
-			// per-unit refund value = line net / line qty
-			unitValue := it.Subtotal.Div(it.Quantity).Round(2)
-			lineRefund := unitValue.Mul(qty).Round(2)
 			totalRefundValue = totalRefundValue.Add(lineRefund)
 
 			if err := stkRepo.Increment(ctx, it.ProductID, qty); err != nil {
@@ -303,7 +263,14 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 		// the remainder is a cash refund.
 		creditReduction := decimal.Zero
 		if sale.CustomerID != nil {
-			owed := sale.Total.Sub(sale.PaidAmount)
+			// Only the debt earlier returns haven't already cleared: two returns
+			// on a part-paid credit sale used to each clear up to the whole debt,
+			// over-crediting the customer and refunding no cash.
+			prior, err := saleRepo.CreditReduced(ctx, saleID)
+			if err != nil {
+				return apperr.Internal("failed to read earlier returns", err)
+			}
+			owed := sale.Total.Sub(sale.PaidAmount).Sub(prior)
 			if owed.IsPositive() {
 				creditReduction = decimal.Min(totalRefundValue, owed)
 				if err := custRepo.AddBalance(ctx, *sale.CustomerID, creditReduction.Neg()); err != nil {
@@ -341,4 +308,20 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 		return nil, decimal.Zero, 0, err
 	}
 	return detail, cashRefund, returnID, nil
+}
+
+// lineRefund values qty units of a line at what was paid: the line net (item
+// discount already off) shared down by the bill discount. The last of a line
+// takes exactly what's left of its paid value, so a line returned in parts
+// refunds what was paid, to the cent.
+func (s *Service) lineRefund(ctx context.Context, repo *Repository, it SaleItem, qty, factor decimal.Decimal) (decimal.Decimal, error) {
+	linePaid := it.PaidValue(factor)
+	if !qty.Equal(it.ReturnableQty()) {
+		return linePaid.Mul(qty).Div(it.Quantity).Round(2), nil
+	}
+	prior, err := repo.RefundedForItem(ctx, it.ID)
+	if err != nil {
+		return decimal.Zero, apperr.Internal("failed to read earlier refunds", err)
+	}
+	return decimal.Max(linePaid.Sub(prior), decimal.Zero), nil
 }

@@ -33,21 +33,23 @@ func saleView(d *sales.Detail) SaleView {
 		PaidAmount: dec2(s.PaidAmount), ChangeGiven: dec2(s.ChangeGiven), OwedOnSale: "0.00", Lines: []SaleLine{}, Payments: []SalePayment{}}
 	if s.CustomerID != nil {
 		v.CustomerID = *s.CustomerID
-		if owed := s.Total.Sub(s.PaidAmount); owed.IsPositive() {
+		if owed := s.Total.Sub(s.PaidAmount).Sub(d.CreditReduced); owed.IsPositive() {
 			v.OwedOnSale = dec2(owed)
 		}
 	}
 	for _, it := range d.Items {
-		unit := decimal.Zero
+		// Valued exactly as sales.PartialReturnTx refunds: part of a line is
+		// paid × qty / quantity, the rest of it is what's left of paid.
+		paid, unit := it.PaidValue(d.PaidFactor), decimal.Zero
 		if it.Quantity.IsPositive() {
-			unit = it.Subtotal.Div(it.Quantity).Round(2) // same rounding as sales.PartialReturnTx
+			unit = paid.Div(it.Quantity).Round(2)
 		}
 		name := it.ProductName
 		if it.Description != nil && *it.Description != "" {
 			name = *it.Description
 		}
 		v.Lines = append(v.Lines, SaleLine{ID: it.ID, Name: name, UnitAbbr: it.UnitAbbr, Quantity: it.Quantity.String(),
-			ReturnedQty: it.ReturnedQty.String(), UnitPrice: dec2(it.UnitPrice), Subtotal: dec2(it.Subtotal), RefundUnit: dec2(unit), IsService: it.IsService})
+			ReturnedQty: it.ReturnedQty.String(), UnitPrice: dec2(it.UnitPrice), Subtotal: dec2(it.Subtotal), RefundUnit: dec2(unit), Paid: dec2(paid), RefundLeft: dec2(decimal.Max(paid.Sub(it.Refunded), decimal.Zero)), IsService: it.IsService})
 	}
 	for _, p := range d.Payments {
 		v.Payments = append(v.Payments, SalePayment{Method: p.Method, Amount: dec2(p.Amount)})

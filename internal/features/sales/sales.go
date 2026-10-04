@@ -73,6 +73,14 @@ type SaleItem struct {
 	UnitAbbr       string `db:"unit_abbr"       json:"unit_abbr"`
 	IsService      bool   `db:"is_service"      json:"is_service"` // service line (e.g. recharge) — non-returnable, no stock
 	WarrantyMonths int    `db:"warranty_months" json:"warranty_months"`
+	// Refunded is what earlier returns refunded on this line (Items only).
+	Refunded decimal.Decimal `db:"refunded" json:"refunded"`
+}
+
+// PaidValue is what the customer paid for the whole line: its net shared down
+// by the bill discount (factor = Repository.PaidFactor).
+func (i SaleItem) PaidValue(factor decimal.Decimal) decimal.Decimal {
+	return i.Subtotal.Mul(factor).Round(2)
 }
 
 // ReturnableQty is how much of this line can still be sent back.
@@ -117,6 +125,10 @@ type Detail struct {
 	Sale     Sale       `json:"sale"`
 	Items    []SaleItem `json:"items"`
 	Payments []Payment  `json:"payments"`
+	// PaidFactor is what each Rs of line net was paid (Repository.PaidFactor).
+	PaidFactor decimal.Decimal `json:"paid_factor"`
+	// CreditReduced is what returns already took off the customer's account.
+	CreditReduced decimal.Decimal `json:"credit_reduced"`
 }
 
 // --- repository ---
@@ -205,7 +217,8 @@ func (r *Repository) Items(ctx context.Context, saleID int64) ([]SaleItem, error
 	var rows []SaleItem
 	err := r.q.SelectContext(ctx, &rows, `
 		SELECT si.*, p.name AS product_name, u.abbreviation AS unit_abbr, p.is_service AS is_service,
-		       p.warranty_months AS warranty_months
+		       p.warranty_months AS warranty_months,
+		       (SELECT COALESCE(SUM(r.refund_amount), 0) FROM sale_return_items r WHERE r.sale_item_id = si.id) AS refunded
 		FROM sale_items si
 		JOIN products p ON p.id = si.product_id
 		JOIN units u    ON u.id = p.unit_id
