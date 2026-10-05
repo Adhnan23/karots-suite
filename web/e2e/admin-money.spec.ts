@@ -106,6 +106,13 @@ test('cash flow, till sessions, receipts and finance', async ({ page }) => {
   await pick(page, 'Place', bank)
   await expect(page.getByLabel('Movements').locator('visible=true').getByText('moved').first()).toBeVisible()
 
+  // A fresh seed has no till session yet — open one so the list has a row.
+  if (!(await (await page.request.get('/api/v1/till/drawer')).json()).summary.session)
+    await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 2 }, sourceLockerId: 0 } })
+  // …and one cash sale, so Finance has a trend to chart this month.
+  const milk = await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()
+  await page.request.post('/api/v1/till/sales', { data: { saleType: 'retail', discountType: 'fixed',
+    items: [{ productId: milk.id, quantity: '1', discountType: 'fixed' }], payments: [{ method: 'cash', amount: '1000' }] } })
   await page.goto('/admin/tills')
   await page.getByLabel('Sessions').locator('visible=true').getByRole('button').first().click()
   await page.waitForURL(/\/admin\/tills\/\d+/)
@@ -121,7 +128,7 @@ test('cash flow, till sessions, receipts and finance', async ({ page }) => {
   await page.getByLabel('Find a receipt').fill(safe)
   await page.getByLabel('Receipts').locator('visible=true').getByRole('button').first().click()
   await expect(page.getByRole('button', { name: /Print again/ })).toBeVisible()
-  await expect(page.getByText('80 mm')).toBeVisible()
+  await expect(page.getByRole('button', { name: '80 mm', exact: true })).toHaveAttribute('aria-pressed', 'true')
 
   await page.goto('/admin/finance')
   await expect(page.getByText('Revenue and profit')).toBeVisible()
