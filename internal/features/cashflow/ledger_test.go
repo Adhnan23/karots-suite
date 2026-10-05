@@ -62,6 +62,9 @@ func TestRangeTotalsWholeRangeAndInternalMoves(t *testing.T) {
 
 	from, to := time.Date(2099, 3, 1, 0, 0, 0, 0, time.Local), time.Date(2099, 3, 2, 0, 0, 0, 0, time.Local)
 	leg(a, "1000", "external", day, nil, nil)                    // money in
+	if _, err := tx.ExecContext(ctx, `INSERT INTO locker_ledger (locker_id, balance_delta, kind, created_at) VALUES ($1, 400, 'open_balance', $2)`, b, day); err != nil {
+		t.Fatal(err) // an opening balance: its own line, not "money in"
+	}
 	leg(a, "-300", "locker", day.Add(time.Minute), b, nil)       // A → B: moved, not in/out
 	leg(b, "300", "locker", day.Add(time.Minute), a, nil)        //
 	leg(a, "-100", "external", day.Add(2*time.Minute), nil, nil) // money out
@@ -88,8 +91,10 @@ func TestRangeTotalsWholeRangeAndInternalMoves(t *testing.T) {
 	want("In", tot.In, 1067)
 	want("Out", tot.Out, 150)
 	want("Moved", tot.Moved, 500)
-	if tot.Rows != 68 {
-		t.Errorf("Rows = %d, want 68", tot.Rows)
+	want("Openings", tot.Openings, 400)
+	want("Net", tot.Net, 1067+400-150)
+	if tot.Rows != 69 {
+		t.Errorf("Rows = %d, want 69", tot.Rows)
 	}
 
 	// Paging through the ledger visits every row once, and the outside rows add
@@ -103,7 +108,7 @@ func TestRangeTotalsWholeRangeAndInternalMoves(t *testing.T) {
 		}
 		seen += len(page)
 		for _, r := range page {
-			if r.Internal {
+			if r.Internal || r.Kind == "open_balance" {
 				continue
 			}
 			if r.Delta.IsPositive() {
@@ -113,8 +118,8 @@ func TestRangeTotalsWholeRangeAndInternalMoves(t *testing.T) {
 			}
 		}
 	}
-	if seen != 68 || !in.Equal(tot.In) || !out.Equal(tot.Out) {
-		t.Errorf("paged: %d rows, in %s, out %s; want 68, %s, %s", seen, in, out, tot.In, tot.Out)
+	if seen != 69 || !in.Equal(tot.In) || !out.Equal(tot.Out) {
+		t.Errorf("paged: %d rows, in %s, out %s; want 69, %s, %s", seen, in, out, tot.In, tot.Out)
 	}
 
 	// The place and kind filters; an empty range is zeros, not an error.

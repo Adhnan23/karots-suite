@@ -95,12 +95,15 @@ type Totals struct {
 	Rows      int             `db:"rows"` // ledger rows in range
 	TillSales decimal.Decimal // cash taken for sales at the tills, net of change
 	In        decimal.Decimal `db:"in"`  // other money in from outside (credit collected, card/online takings, interest, …)
+	Openings  decimal.Decimal `db:"openings"` // opening balances of lockers made in range: money already there, not money in
 	Out       decimal.Decimal `db:"out"` // money that left the shop (expenses, suppliers, refunds, …)
 	Moved     decimal.Decimal // moved between the shop's own places, each move counted once
-	Net       decimal.Decimal // TillSales + In − Out
+	Net       decimal.Decimal // TillSales + In + Openings − Out
 }
 
-// RangeTotals: internal moves are left out of In/Out (a transfer is not money
+// RangeTotals: opening balances are their own line (money a locker already
+// held when it was added, not money that came in), and internal moves are left
+// out of In/Out (a transfer is not money
 // gained once and lost once). Till cash sales never appear as ledger rows (they
 // reach a locker as an internal move when the till closes), so they're counted
 // from the payments themselves, the same way the drawer does.
@@ -108,8 +111,9 @@ func RangeTotals(ctx context.Context, q db.Queryer, from, to time.Time) (Totals,
 	var t Totals
 	err := q.GetContext(ctx, &t, `
 		SELECT count(*) AS "rows",
-		       COALESCE(SUM(GREATEST(delta,0)) FILTER (WHERE NOT internal), 0) AS "in",
-		       COALESCE(SUM(GREATEST(-delta,0)) FILTER (WHERE NOT internal), 0) AS "out"
+		       COALESCE(SUM(GREATEST(delta,0)) FILTER (WHERE NOT internal AND kind <> 'open_balance'), 0) AS "in",
+		       COALESCE(SUM(delta) FILTER (WHERE kind = 'open_balance'), 0) AS "openings",
+		       COALESCE(SUM(GREATEST(-delta,0)) FILTER (WHERE NOT internal AND kind <> 'open_balance'), 0) AS "out"
 		FROM (`+ledgerUnion+`) x`, from, to)
 	if err != nil {
 		return t, apperr.Internal("failed to total cash flow", err)
@@ -132,6 +136,6 @@ func RangeTotals(ctx context.Context, q db.Queryer, from, to time.Time) (Totals,
 	if err != nil {
 		return t, apperr.Internal("failed to total cash flow", err)
 	}
-	t.Net = t.TillSales.Add(t.In).Sub(t.Out)
+	t.Net = t.TillSales.Add(t.In).Add(t.Openings).Sub(t.Out)
 	return t, nil
 }

@@ -79,7 +79,7 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out.TillSales, out.In, out.Out, out.Moved, out.Net, out.Rows = dec2(tot.TillSales), dec2(tot.In), dec2(tot.Out), dec2(tot.Moved), dec2(tot.Net), tot.Rows
+	out.TillSales, out.In, out.Openings, out.Out, out.Moved, out.Net, out.Rows = dec2(tot.TillSales), dec2(tot.In), dec2(tot.Openings), dec2(tot.Out), dec2(tot.Moved), dec2(tot.Net), tot.Rows
 
 	// Net position: what the shop has and is owed, less what it owes. Customers
 	// and suppliers sit on both sides, so dues and advances are summed apart.

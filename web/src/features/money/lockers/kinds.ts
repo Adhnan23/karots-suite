@@ -12,7 +12,7 @@ export const kindOf = (k: string) => KINDS.find((x) => x.kind === k) ?? KINDS[KI
 
 /** What a ledger row was (locker_ledger.kind). */
 export const LEDGER_KINDS: Record<string, string> = {
-  open_balance: 'Opening balance', transfer: 'Transfer', payment: 'Paid out', intake: 'Money in',
+  open_balance: 'Opening balance', transfer: 'Transfer', payment: 'Payment', intake: 'Money in',
   bank_charge: 'Bank charge', interest: 'Interest', adjust: 'Adjustment',
 }
 

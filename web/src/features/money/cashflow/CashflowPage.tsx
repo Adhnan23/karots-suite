@@ -106,8 +106,8 @@ export function CashflowPage() {
             <Stat label="↓ Other money in" v={d.in} sym={sym} tone="in" hint="credit, interest, takings…" />
             <Stat label="↑ Money out" v={d.out} sym={sym} tone="out" hint="expenses, suppliers, refunds" />
             <Stat label="⇄ Moved between your places" v={d.moved} sym={sym} hint="not in, not out" />
-            <div className="col-span-2 flex items-baseline justify-between gap-3 border-t border-border px-4 py-3 md:col-span-4">
-              <span className="font-semibold">Net change</span>
+            <div className="col-span-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-border px-4 py-3 md:col-span-4">
+              <span className="font-semibold">Net change{num(d.openings) !== 0 && <small className="ml-2 font-normal text-muted-foreground">incl. {money(sym, d.openings)} opening balances of lockers added</small>}</span>
               <Delta sym={sym} v={d.net} className="font-display text-2xl" />
             </div>
           </section>

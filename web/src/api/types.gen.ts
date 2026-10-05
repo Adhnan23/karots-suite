@@ -956,6 +956,7 @@ export interface AdminCashflow {
   cashOnHand: string;
   tillSales: string;
   in: string;
+  openings: string; // opening balances of lockers added in range (not money in)
   out: string;
   moved: string;
   net: string;

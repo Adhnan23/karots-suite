@@ -181,6 +181,7 @@ type AdminCashflow struct {
 	CashOnHand  string           `json:"cashOnHand"`
 	TillSales   string           `json:"tillSales"`
 	In          string           `json:"in"`
+	Openings    string           `json:"openings"` // opening balances of lockers added in range (not money in)
 	Out         string           `json:"out"`
 	Moved       string           `json:"moved"`
 	Net         string           `json:"net"`

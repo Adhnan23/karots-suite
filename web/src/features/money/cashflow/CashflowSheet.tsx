@@ -26,6 +26,7 @@ export function CashflowSheet({ d, rows, shop, sym }: { d: AdminCashflow; rows: 
           <p className="pb-1 font-bold uppercase tracking-wider">In the range</p>
           {sum('Cash sales at the tills', d.tillSales)}
           {sum('Other money in', d.in)}
+          {num(d.openings) !== 0 && sum('Opening balances of lockers added', d.openings)}
           {sum('Money out', d.out)}
           {sum('Moved between your places', d.moved)}
           <div className="flex justify-between border-t-2 border-ink py-1 font-bold"><span>Net change</span><span className="tabular-nums">{money(sym, d.net)}</span></div>
