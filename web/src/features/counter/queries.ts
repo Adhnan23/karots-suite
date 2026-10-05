@@ -7,7 +7,7 @@ import type { ConversionRow, DebtReceiptRow, ExpensesPage, MoneyReceiptRow, Orde
 const PAGE = 50
 /** A counter list that pages instead of stopping silently at its newest rows:
  *  the next page is asked for (?offset=) while the last one came back full. */
-const paged = <T,>(queryKey: readonly unknown[], url: string) =>
+export const paged = <T,>(queryKey: readonly unknown[], url: string) =>
   infiniteQueryOptions({
     queryKey, initialPageParam: 0,
     queryFn: ({ pageParam }) => api<T[]>(`${url}&offset=${pageParam}`),

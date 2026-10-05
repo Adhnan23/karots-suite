@@ -37,7 +37,11 @@ export const adminNav: NavArea[] = [
       { to: '/admin/suppliers', label: 'Suppliers', description: 'Supplier accounts & payables' },
     ],
   },
-  { key: 'money', label: 'Money', icon: Wallet, pages: [] },
+  {
+    key: 'money', label: 'Money', icon: Wallet, pages: [
+      { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
+    ],
+  },
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
   {
     key: 'setup', label: 'Setup', icon: Wrench, pages: [

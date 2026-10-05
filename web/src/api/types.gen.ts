@@ -751,6 +751,75 @@ export interface ReceiptRef {
 }
 
 //////////
+// source: dto_money.go
+
+/**
+ * AdminLocker is one locker on the Money → Lockers page (karots-pos LockersPage):
+ * its live balance, whether it may go below zero, whether cashiers may use it
+ * from the till, and whether the till's dialogs pre-select it.
+ */
+export interface AdminLocker {
+  id: number /* int64 */;
+  name: string;
+  kind: string; // safe | bank | pocket | card | other
+  balance: string;
+  overdraft: boolean;
+  cashierAccess: boolean;
+  active: boolean;
+  tillDefault: boolean;
+}
+/**
+ * AdminLockerList is the lockers page: every locker, the total across the
+ * active ones, and the till's cash settings that live on the same page.
+ */
+export interface AdminLockerList {
+  items: AdminLocker[];
+  total: string;
+  tillCash: TillCashRequest;
+}
+/**
+ * LockerRequest creates or edits a locker. OpeningBalance is read on create
+ * only (an open_balance ledger row); Active on edit only.
+ */
+export interface LockerRequest {
+  name: string;
+  kind: string;
+  openingBalance: string;
+  overdraft: boolean;
+  cashierAccess: boolean;
+}
+/**
+ * TillCashRequest is the till's cash-move settings: the locker its open /
+ * deposit / withdraw / close dialogs pre-select (0 = none), and whether cash
+ * may leave the drawer without a locker (karots-pos cashier-default-locker).
+ */
+export interface TillCashRequest {
+  defaultLockerId: number /* int64 */;
+  allowUntracked: boolean;
+}
+/**
+ * AdminLockerView is one locker's ledger page header: the locker and how much
+ * its balance moved over the whole chosen range.
+ */
+export interface AdminLockerView {
+  locker: AdminLocker;
+  net: string;
+}
+/**
+ * LockerLedgerRow is one movement on a locker's ledger. Delta > 0 = money in.
+ * ReceiptID is the CR- receipt its move wrote (0 = none found).
+ */
+export interface LockerLedgerRow {
+  id: number /* int64 */;
+  at: string;
+  kind: string; // open_balance | transfer | payment | intake | bank_charge | interest | adjust
+  note: string;
+  delta: string;
+  receiptId: number /* int64 */;
+  receiptNo: string;
+}
+
+//////////
 // source: dto_people.go
 
 /**

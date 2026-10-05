@@ -62,7 +62,46 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
   return { order, received: second }
 }
 
+/** Four lockers (made once), the safe as the till default, and some money through
+ * the safe: a customer paying in, a supplier paid out. Returns the safe's id. */
+async function lockersWithHistory(page: Page): Promise<number> {
+  const post = async (url: string, data: unknown) => (await page.request.post(url, { data })).json()
+  const have = (await (await page.request.get('/api/v1/admin/lockers')).json()).items as { id: number; name: string }[]
+  const find = (n: string) => have.find((l) => l.name === n)?.id
+  for (const [name, kind, openingBalance, overdraft, cashierAccess] of [['Shop safe', 'safe', '48250', false, true], ['BOC current account', 'bank', '312500', false, false],
+    ["Owner's pocket", 'pocket', '0', true, false], ['Card machine', 'card', '18640', false, true]] as const)
+    if (!find(name)) have.push(await post('/api/v1/admin/lockers', { name, kind, openingBalance, overdraft, cashierAccess }))
+  const safe = find('Shop safe')!
+  await page.request.put('/api/v1/admin/settings/till-cash', { data: { defaultLockerId: safe, allowUntracked: false } })
+  if ((await (await page.request.get(`/api/v1/admin/lockers/${safe}/ledger?`)).json()).length < 3) {
+    await post(`/api/v1/admin/customers/${await customerWithHistory(page)}/payment`, { amount: '1800', method: 'cash', reference: '', note: 'Paid at the shop', source: `locker:${safe}`, oldDebtFirst: false })
+    await post(`/api/v1/admin/suppliers/${await supplierWithHistory(page)}/payment`, { amount: '1000', mode: 'old', allocations: [], advance: '', oldDebt: '', method: 'cash', reference: '', note: 'Old balance', source: `locker:${safe}` })
+  }
+  return safe
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  lockers: async (page) => {
+    await lockersWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  'till-cash': async (page) => {
+    await prep.lockers(page)
+    await page.getByRole('region', { name: 'At the till' }).scrollIntoViewIfNeeded()
+  },
+  locker: async (page) => {
+    await page.goto(`/admin/lockers/${await lockersWithHistory(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
+  'locker-form': async (page) => {
+    await lockersWithHistory(page)
+    await page.reload()
+    await page.getByRole('button', { name: 'New locker' }).click()
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Sampath savings')
+    await page.getByRole('radio', { name: 'Bank account' }).click()
+    await page.getByLabel('Opening balance').fill('150000')
+  },
   'return-entry': async (page) => {
     await page.goto(`/admin/purchase-returns/new?purchase=${(await purchasesWithHistory(page)).received}`)
     await page.waitForLoadState('networkidle')

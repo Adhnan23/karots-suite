@@ -72,6 +72,10 @@ type LedgerEntry struct {
 	Note               string          `db:"note"                 json:"note"`
 	CreatedBy          *int64          `db:"created_by"           json:"created_by,omitempty"`
 	CreatedAt          time.Time       `db:"created_at"           json:"created_at"`
+	// ReceiptID / ReceiptNo: the CR- receipt written by the same move, when one
+	// can be matched (same transaction time, amount and ref). Read-only.
+	ReceiptID *int64  `db:"receipt_id" json:"receipt_id,omitempty"`
+	ReceiptNo *string `db:"receipt_no" json:"receipt_no,omitempty"`
 }
 
 // LedgerInput records one ledger row. It is deliberately generic so later slices
@@ -214,12 +218,16 @@ func (r *Repository) AddEntry(ctx context.Context, in LedgerInput) (int64, error
 // LedgerFilter narrows a locker's ledger by date range (To is exclusive — the
 // web layer passes the day after the chosen end date).
 type LedgerFilter struct {
-	From  *time.Time
-	To    *time.Time
-	Limit int
+	From   *time.Time
+	To     *time.Time
+	Limit  int
+	Offset int // rows to skip (a list's later pages)
 }
 
-// Ledger returns a locker's entries in the given range, newest first.
+// Ledger returns a locker's entries in the given range, newest first, each with
+// the CR- receipt its move wrote. A move writes its ledger legs and receipt in
+// one transaction, so they share created_at (now() is the tx start); amount and
+// ref narrow it to this leg's receipt when one tx made several moves.
 func (r *Repository) Ledger(ctx context.Context, lockerID int64, f LedgerFilter) ([]LedgerEntry, error) {
 	limit := f.Limit
 	if limit <= 0 {
@@ -227,13 +235,31 @@ func (r *Repository) Ledger(ctx context.Context, lockerID int64, f LedgerFilter)
 	}
 	var rows []LedgerEntry
 	err := r.q.SelectContext(ctx, &rows, `
-		SELECT * FROM locker_ledger
+		SELECT le.*, mr.id AS receipt_id, mr.receipt_no
+		FROM locker_ledger le
+		LEFT JOIN LATERAL (
+			SELECT id, receipt_no FROM money_receipts m
+			WHERE m.created_at = le.created_at AND m.amount = abs(le.balance_delta)
+			  AND m.ref_kind IS NOT DISTINCT FROM le.ref_kind AND m.ref_id IS NOT DISTINCT FROM le.ref_id
+			ORDER BY m.id LIMIT 1
+		) mr ON true
+		WHERE le.locker_id = $1
+		  AND ($2::timestamptz IS NULL OR le.created_at >= $2)
+		  AND ($3::timestamptz IS NULL OR le.created_at <  $3)
+		ORDER BY le.created_at DESC, le.id DESC LIMIT $4 OFFSET $5`,
+		lockerID, f.From, f.To, limit, max(f.Offset, 0))
+	return rows, err
+}
+
+// NetChange sums a locker's ledger over the whole range (not a page of it).
+func (r *Repository) NetChange(ctx context.Context, lockerID int64, from, to *time.Time) (decimal.Decimal, error) {
+	var net decimal.Decimal
+	err := r.q.GetContext(ctx, &net, `
+		SELECT COALESCE(SUM(balance_delta), 0) FROM locker_ledger
 		WHERE locker_id = $1
 		  AND ($2::timestamptz IS NULL OR created_at >= $2)
-		  AND ($3::timestamptz IS NULL OR created_at <  $3)
-		ORDER BY created_at DESC, id DESC LIMIT $4`,
-		lockerID, f.From, f.To, limit)
-	return rows, err
+		  AND ($3::timestamptz IS NULL OR created_at <  $3)`, lockerID, from, to)
+	return net, err
 }
 
 // --------------------------------------------------------------------- Service
@@ -392,6 +418,14 @@ func (s *Service) SetActive(ctx context.Context, id int64, active bool) error {
 		return apperr.Internal("failed to update locker", err)
 	}
 	return nil
+}
+
+func (s *Service) NetChange(ctx context.Context, lockerID int64, from, to *time.Time) (decimal.Decimal, error) {
+	net, err := s.repo.NetChange(ctx, lockerID, from, to)
+	if err != nil {
+		return net, apperr.Internal("failed to load locker ledger", err)
+	}
+	return net, nil
 }
 
 func (s *Service) Ledger(ctx context.Context, lockerID int64, f LedgerFilter) ([]LedgerEntry, error) {

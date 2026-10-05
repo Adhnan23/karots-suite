@@ -40,6 +40,8 @@ import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/wr
 import { Route as AuthedAdminCustomersIndexRouteImport } from './routes/_authed/admin/customers/index'
 import { Route as AuthedAdminCustomersIdRouteImport } from './routes/_authed/admin/customers/$id'
 import { Route as AuthedAdminInventoryIntakeRouteImport } from './routes/_authed/admin/inventory/intake'
+import { Route as AuthedAdminLockersIndexRouteImport } from './routes/_authed/admin/lockers/index'
+import { Route as AuthedAdminLockersIdRouteImport } from './routes/_authed/admin/lockers/$id'
 import { Route as AuthedAdminProductsIndexRouteImport } from './routes/_authed/admin/products/index'
 import { Route as AuthedAdminProductsReviewRouteImport } from './routes/_authed/admin/products/review'
 import { Route as AuthedAdminPurchaseReturnsIndexRouteImport } from './routes/_authed/admin/purchase-returns/index'
@@ -219,6 +221,16 @@ const AuthedAdminInventoryIntakeRoute =
     path: '/inventory/intake',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminLockersIndexRoute = AuthedAdminLockersIndexRouteImport.update({
+  id: '/lockers/',
+  path: '/lockers/',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminLockersIdRoute = AuthedAdminLockersIdRouteImport.update({
+  id: '/lockers/$id',
+  path: '/lockers/$id',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminProductsIndexRoute =
   AuthedAdminProductsIndexRouteImport.update({
     id: '/products/',
@@ -372,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/till/': typeof AuthedTillIndexRoute
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
+  '/admin/lockers/$id': typeof AuthedAdminLockersIdRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
@@ -386,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
   '/admin/customers/': typeof AuthedAdminCustomersIndexRoute
+  '/admin/lockers/': typeof AuthedAdminLockersIndexRoute
   '/admin/products/': typeof AuthedAdminProductsIndexRoute
   '/admin/purchase-returns/': typeof AuthedAdminPurchaseReturnsIndexRoute
   '/admin/purchases/': typeof AuthedAdminPurchasesIndexRoute
@@ -424,6 +438,7 @@ export interface FileRoutesByTo {
   '/till': typeof AuthedTillIndexRoute
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
+  '/admin/lockers/$id': typeof AuthedAdminLockersIdRoute
   '/admin/products/review': typeof AuthedAdminProductsReviewRoute
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
@@ -438,6 +453,7 @@ export interface FileRoutesByTo {
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
   '/admin/customers': typeof AuthedAdminCustomersIndexRoute
+  '/admin/lockers': typeof AuthedAdminLockersIndexRoute
   '/admin/products': typeof AuthedAdminProductsIndexRoute
   '/admin/purchase-returns': typeof AuthedAdminPurchaseReturnsIndexRoute
   '/admin/purchases': typeof AuthedAdminPurchasesIndexRoute
@@ -480,6 +496,7 @@ export interface FileRoutesById {
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
   '/_authed/admin/inventory/intake': typeof AuthedAdminInventoryIntakeRoute
+  '/_authed/admin/lockers/$id': typeof AuthedAdminLockersIdRoute
   '/_authed/admin/products/review': typeof AuthedAdminProductsReviewRoute
   '/_authed/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/_authed/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
@@ -494,6 +511,7 @@ export interface FileRoutesById {
   '/_authed/print/z/$id': typeof AuthedPrintZIdRoute
   '/_authed/till/x/$key': typeof AuthedTillXKeyRoute
   '/_authed/admin/customers/': typeof AuthedAdminCustomersIndexRoute
+  '/_authed/admin/lockers/': typeof AuthedAdminLockersIndexRoute
   '/_authed/admin/products/': typeof AuthedAdminProductsIndexRoute
   '/_authed/admin/purchase-returns/': typeof AuthedAdminPurchaseReturnsIndexRoute
   '/_authed/admin/purchases/': typeof AuthedAdminPurchasesIndexRoute
@@ -536,6 +554,7 @@ export interface FileRouteTypes {
     | '/till/'
     | '/admin/customers/$id'
     | '/admin/inventory/intake'
+    | '/admin/lockers/$id'
     | '/admin/products/review'
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
@@ -550,6 +569,7 @@ export interface FileRouteTypes {
     | '/print/z/$id'
     | '/till/x/$key'
     | '/admin/customers/'
+    | '/admin/lockers/'
     | '/admin/products/'
     | '/admin/purchase-returns/'
     | '/admin/purchases/'
@@ -588,6 +608,7 @@ export interface FileRouteTypes {
     | '/till'
     | '/admin/customers/$id'
     | '/admin/inventory/intake'
+    | '/admin/lockers/$id'
     | '/admin/products/review'
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
@@ -602,6 +623,7 @@ export interface FileRouteTypes {
     | '/print/z/$id'
     | '/till/x/$key'
     | '/admin/customers'
+    | '/admin/lockers'
     | '/admin/products'
     | '/admin/purchase-returns'
     | '/admin/purchases'
@@ -643,6 +665,7 @@ export interface FileRouteTypes {
     | '/_authed/till/'
     | '/_authed/admin/customers/$id'
     | '/_authed/admin/inventory/intake'
+    | '/_authed/admin/lockers/$id'
     | '/_authed/admin/products/review'
     | '/_authed/admin/purchase-returns/$id'
     | '/_authed/admin/purchase-returns/new'
@@ -657,6 +680,7 @@ export interface FileRouteTypes {
     | '/_authed/print/z/$id'
     | '/_authed/till/x/$key'
     | '/_authed/admin/customers/'
+    | '/_authed/admin/lockers/'
     | '/_authed/admin/products/'
     | '/_authed/admin/purchase-returns/'
     | '/_authed/admin/purchases/'
@@ -895,6 +919,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminInventoryIntakeRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/lockers/': {
+      id: '/_authed/admin/lockers/'
+      path: '/lockers'
+      fullPath: '/admin/lockers/'
+      preLoaderRoute: typeof AuthedAdminLockersIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/lockers/$id': {
+      id: '/_authed/admin/lockers/$id'
+      path: '/lockers/$id'
+      fullPath: '/admin/lockers/$id'
+      preLoaderRoute: typeof AuthedAdminLockersIdRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/products/': {
       id: '/_authed/admin/products/'
       path: '/products'
@@ -1064,6 +1102,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
   AuthedAdminCustomersIdRoute: typeof AuthedAdminCustomersIdRoute
   AuthedAdminInventoryIntakeRoute: typeof AuthedAdminInventoryIntakeRoute
+  AuthedAdminLockersIdRoute: typeof AuthedAdminLockersIdRoute
   AuthedAdminProductsReviewRoute: typeof AuthedAdminProductsReviewRoute
   AuthedAdminPurchaseReturnsIdRoute: typeof AuthedAdminPurchaseReturnsIdRoute
   AuthedAdminPurchaseReturnsNewRoute: typeof AuthedAdminPurchaseReturnsNewRoute
@@ -1073,6 +1112,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminSuppliersIdRoute: typeof AuthedAdminSuppliersIdRoute
   AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
   AuthedAdminCustomersIndexRoute: typeof AuthedAdminCustomersIndexRoute
+  AuthedAdminLockersIndexRoute: typeof AuthedAdminLockersIndexRoute
   AuthedAdminProductsIndexRoute: typeof AuthedAdminProductsIndexRoute
   AuthedAdminPurchaseReturnsIndexRoute: typeof AuthedAdminPurchaseReturnsIndexRoute
   AuthedAdminPurchasesIndexRoute: typeof AuthedAdminPurchasesIndexRoute
@@ -1095,6 +1135,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
   AuthedAdminCustomersIdRoute: AuthedAdminCustomersIdRoute,
   AuthedAdminInventoryIntakeRoute: AuthedAdminInventoryIntakeRoute,
+  AuthedAdminLockersIdRoute: AuthedAdminLockersIdRoute,
   AuthedAdminProductsReviewRoute: AuthedAdminProductsReviewRoute,
   AuthedAdminPurchaseReturnsIdRoute: AuthedAdminPurchaseReturnsIdRoute,
   AuthedAdminPurchaseReturnsNewRoute: AuthedAdminPurchaseReturnsNewRoute,
@@ -1104,6 +1145,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminSuppliersIdRoute: AuthedAdminSuppliersIdRoute,
   AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,
   AuthedAdminCustomersIndexRoute: AuthedAdminCustomersIndexRoute,
+  AuthedAdminLockersIndexRoute: AuthedAdminLockersIndexRoute,
   AuthedAdminProductsIndexRoute: AuthedAdminProductsIndexRoute,
   AuthedAdminPurchaseReturnsIndexRoute: AuthedAdminPurchaseReturnsIndexRoute,
   AuthedAdminPurchasesIndexRoute: AuthedAdminPurchasesIndexRoute,

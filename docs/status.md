@@ -26,7 +26,7 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
   - `d66ac18`: deleting an expense left its cash out — now Void puts it back, plus a `plugin.ExpenseOwner` hook;
   - `9f17be1`: Cash Flow totals came from 500 rows and counted transfers twice.
 
-  Task 0 ported the receivables fix.
+  Task 0 ported the receivables fix. Task 1 (2026-10-05): Money → Lockers (tiles with live balances, total, badges, archive / bring back, "At the till" default locker + untracked cash-out via `PUT /admin/settings/till-cash`), and the `/admin/lockers/$id` ledger (range, paged 50, net from SQL, each move row reprints its CR- receipt — matched on the move's tx time + amount + ref).
 
 **NEXT: M4 Money** (spec §11): cashflow, lockers, expenses (+categories), bill-pay / get-money, settle card, receipts hub (S- / CR- / DP- / warranty), finance hub.
 

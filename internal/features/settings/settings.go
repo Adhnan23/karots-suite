@@ -289,6 +289,14 @@ func (r *Repository) SetAppearance(ctx context.Context, skin, density, receiptSt
 	return err
 }
 
+// SetTillCash writes only the till's cash-move settings: the locker its
+// dialogs pre-select (nil = none) and whether cash may leave untracked.
+func (r *Repository) SetTillCash(ctx context.Context, defaultLockerID *int64, allowUntracked bool) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE settings SET default_locker_id=$1, allow_untracked_cash=$2 WHERE id = 1`, defaultLockerID, allowUntracked)
+	return err
+}
+
 type Service struct{ repo *Repository }
 
 func NewService(q db.Queryer) *Service { return &Service{repo: NewRepository(q)} }
@@ -317,6 +325,15 @@ func (s *Service) SetAppearance(ctx context.Context, skin, density, receiptStyle
 		return nil, apperr.Internal("failed to update appearance", err)
 	}
 	return s.Get(ctx)
+}
+
+// SetTillCash stores the till's default locker and untracked-cash toggle,
+// leaving every other setting as it is.
+func (s *Service) SetTillCash(ctx context.Context, defaultLockerID *int64, allowUntracked bool) error {
+	if err := s.repo.SetTillCash(ctx, defaultLockerID, allowUntracked); err != nil {
+		return apperr.Internal("failed to update till cash settings", err)
+	}
+	return nil
 }
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (*Settings, error) {
