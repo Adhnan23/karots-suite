@@ -18,11 +18,13 @@ const MethodOnAccount = "credit"
 type Tender struct {
 	Paid      decimal.Decimal
 	OnAccount decimal.Decimal
+	// Cash is the cash part of Paid — the only part change can come out of.
+	Cash decimal.Decimal
 }
 
 // SplitTender sorts parallel method/amount lists into the two figures.
 func SplitTender(methods []string, amounts []decimal.Decimal) Tender {
-	t := Tender{Paid: decimal.Zero, OnAccount: decimal.Zero}
+	t := Tender{Paid: decimal.Zero, OnAccount: decimal.Zero, Cash: decimal.Zero}
 	for i, m := range methods {
 		if i >= len(amounts) {
 			break
@@ -31,6 +33,9 @@ func SplitTender(methods []string, amounts []decimal.Decimal) Tender {
 			t.OnAccount = t.OnAccount.Add(amounts[i])
 		} else {
 			t.Paid = t.Paid.Add(amounts[i])
+		}
+		if m == "cash" {
+			t.Cash = t.Cash.Add(amounts[i])
 		}
 	}
 	return t
@@ -48,6 +53,12 @@ func CheckTender(t Tender, total decimal.Decimal, hasCustomer bool, availableCre
 	if covered.LessThan(total) {
 		return apperr.Validation(money.Display(total.Sub(covered)) +
 			" is unpaid — take the money, or put it on a customer's account")
+	}
+	// Change is handed back from the drawer, so it can't be more than the cash
+	// handed over: a card or online payment above what's due would turn the
+	// difference into cash out of the till.
+	if change := covered.Sub(total); change.GreaterThan(t.Cash) && !t.OnAccount.IsPositive() {
+		return apperr.Validation("card and online can't be more than what's due — only cash gets change")
 	}
 	if !t.OnAccount.IsPositive() {
 		return nil

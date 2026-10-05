@@ -29,7 +29,7 @@ func TestCheckTenderAcceptsExactCash(t *testing.T) {
 }
 
 func TestCheckTenderAcceptsOverpaymentInCash(t *testing.T) {
-	tn := Tender{Paid: td("2000"), OnAccount: decimal.Zero}
+	tn := Tender{Paid: td("2000"), Cash: td("2000"), OnAccount: decimal.Zero}
 	if err := CheckTender(tn, td("1200"), false, decimal.Zero, false); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -140,5 +140,25 @@ func TestSaleCreditSummary(t *testing.T) {
 	}
 	if _, ok := (Sale{Status: "completed", Total: d("300"), PaidAmount: d("300")}).Credit(d("0")); ok {
 		t.Error("paid sale should have no credit summary")
+	}
+}
+
+// Change comes out of the drawer, so only cash can be over-paid: a card or
+// online payment above what's due would hand the difference back as cash.
+func TestCheckTenderRejectsChangeFromCardOrOnline(t *testing.T) {
+	over := SplitTender([]string{"card"}, []decimal.Decimal{td("5000")})
+	if err := CheckTender(over, td("200"), false, decimal.Zero, false); err == nil {
+		t.Error("a card payment above the bill was accepted")
+	}
+	split := SplitTender([]string{"card", "cash"}, []decimal.Decimal{td("150"), td("100")})
+	if err := CheckTender(split, td("200"), false, decimal.Zero, false); err != nil {
+		t.Errorf("card 150 + cash 100 for 200 (50 change from the cash): %v", err)
+	}
+	if !split.Cash.Equal(td("100")) {
+		t.Errorf("Cash = %s, want 100", split.Cash)
+	}
+	tooMuch := SplitTender([]string{"card", "cash"}, []decimal.Decimal{td("250"), td("100")})
+	if err := CheckTender(tooMuch, td("200"), false, decimal.Zero, false); err == nil {
+		t.Error("change bigger than the cash handed over was accepted")
 	}
 }

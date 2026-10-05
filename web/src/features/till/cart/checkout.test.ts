@@ -61,3 +61,15 @@ describe('buildSaleRequest', () => {
     expect(req.items[0]).toMatchObject({ productId: 1, quantity: '1', batchId: 0 })
   })
 })
+
+describe('only cash gets change', () => {
+  it('caps a card amount at what is due, leaves cash alone', () => {
+    let s = withLine(initialState('retail'))
+    s = tillReducer(s, { type: 'draft', patch: { method: 'card', amount: '5000' } })
+    s = tillReducer(s, { type: 'commitDraft' })
+    expect(s.tenders.map((t) => [t.method, t.amount])).toEqual([['card', '100.00']])
+    s = tillReducer(withLine(initialState('retail')), { type: 'draft', patch: { method: 'cash', amount: '5000' } })
+    s = tillReducer(s, { type: 'commitDraft' })
+    expect(s.tenders.map((t) => [t.method, t.amount])).toEqual([['cash', '5000']])
+  })
+})

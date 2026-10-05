@@ -1,6 +1,7 @@
 import type { HeldSale, Lot, TillProduct } from '@/api/types.gen'
 import { fromHeld } from './held'
 import { addProduct, serviceLine, setQty, syncSerials } from './lines'
+import { balanceDue, saleTotal } from './totals'
 import type { DiscountType, Payment, SaleType, ServiceLineInput, TillState } from './types'
 
 export const blankDraft = (method: string): Payment => ({ method, amount: '', reference: '', accountId: '', meta: {} })
@@ -95,9 +96,15 @@ export function tillReducer(s: TillState, a: Action): TillState {
       return { ...s, billDiscount: a.value ?? s.billDiscount, billDiscountType: a.discountType ?? s.billDiscountType }
     case 'draft':
       return { ...s, draft: { ...s.draft, ...a.patch } }
-    case 'commitDraft':
+    case 'commitDraft': {
       if (!(Number(s.draft.amount) > 0) || !s.draft.method) return s
-      return { ...s, tenders: [...s.tenders, s.draft], draft: { ...blankDraft(s.draft.method), accountId: s.draft.accountId } }
+      // Only cash gets change, so card / online / a plugin tender is capped at
+      // what's still due (the server refuses more — sales.CheckTender).
+      const due = balanceDue(saleTotal(s), s.tenders)
+      const pay = s.draft.method !== 'cash' && s.draft.method !== 'credit' && Number(s.draft.amount) > due ? { ...s.draft, amount: due.toFixed(2) } : s.draft
+      if (!(Number(pay.amount) > 0)) return s
+      return { ...s, tenders: [...s.tenders, pay], draft: { ...blankDraft(s.draft.method), accountId: s.draft.accountId } }
+    }
     case 'addTender':
       return { ...s, tenders: [...s.tenders, a.payment] }
     case 'removeTender':
