@@ -138,6 +138,50 @@ test('cash flow, till sessions, receipts and finance', async ({ page }) => {
   await expect(page.getByText('Owed right now')).toBeVisible()
 })
 
+test('locker edit / archive / bring back, denominations, expense edit, cash-flow print', async ({ page }) => {
+  const spare = `Flow Spare ${tag}`
+  await admin(page, '/admin/lockers')
+  await newLocker(page, spare, 'Safe', '0')
+  await page.getByRole('button', { name: `${spare} actions` }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill(`${spare} 2`)
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(tile(page, `${spare} 2`)).toBeVisible()
+  await page.getByRole('button', { name: `${spare} 2 actions` }).click()
+  await page.getByRole('menuitem', { name: 'Archive' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Archive' }).click()
+  await toast(page, new RegExp(`${spare} 2 archived`))
+  await page.getByRole('button', { name: 'Show archived' }).click()
+  await page.getByRole('button', { name: `${spare} 2 actions` }).click()
+  await page.getByRole('menuitem', { name: 'Bring back' }).click()
+  await toast(page, new RegExp(`${spare} 2 is back in use`))
+
+  // a value no seed uses: 7, then edited to 3
+  await page.goto('/admin/denominations')
+  await page.getByRole('button', { name: 'Add' }).click()
+  await page.getByLabel('Value').fill('7')
+  await page.getByRole('button', { name: 'Coin', exact: true }).click()
+  await page.getByRole('button', { name: 'Add', exact: true }).last().click()
+  await toast(page, /Added/)
+  await page.getByRole('button', { name: 'Edit Rs. 7.00' }).click()
+  await page.getByLabel('Value').fill('3')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await page.getByRole('switch', { name: 'Rs. 3.00 in circulation' }).click({ force: true })
+  await expect(page.getByRole('switch', { name: 'Rs. 3.00 in circulation' })).not.toBeChecked()
+  await page.getByRole('button', { name: 'Remove Rs. 3.00?' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Remove' }).click()
+  await toast(page, /Rs\. 3\.00 removed/)
+
+  await page.goto(`/admin/expenses?preset=today&q=${encodeURIComponent(`Flow fee ${tag}`)}`)
+  await page.getByRole('button', { name: new RegExp(`Flow fee ${tag}`) }).locator('visible=true').first().click()
+  await page.getByLabel('Note').fill(`Flow fee ${tag} (March)`)
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByLabel('Expenses').locator('visible=true').getByText(`Flow fee ${tag} (March)`)).toBeVisible()
+
+  await page.goto('/print/cashflow?preset=today')
+  await expect(page.getByText(bank).first()).toBeVisible()
+})
+
 test.describe('at 360px', () => {
   test.use({ viewport: { width: 360, height: 780 } })
   test('lockers, expenses and finance read as cards and tables on a phone', async ({ page }) => {

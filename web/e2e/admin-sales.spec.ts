@@ -44,6 +44,9 @@ test('sales: find a cash sale, return it with the refund paid from a locker', as
   await page.getByLabel('Status').selectOption('partially_returned')
   await expect(page.getByLabel('Sales').locator('visible=true').getByText(sale.receiptNo)).toBeVisible()
 
+  const csv = await (await page.request.get(`/api/v1/admin/sales/export?format=csv&q=${sale.receiptNo}`)).text()
+  expect(csv).toContain(sale.receiptNo)
+
   await page.goto('/admin/lockers')
   const left = (5000 - Number(sale.total) / 2).toLocaleString('en-US', { minimumFractionDigits: 2 })
   await expect(tile(page, safe)).toContainText(`Rs. ${left}`)
