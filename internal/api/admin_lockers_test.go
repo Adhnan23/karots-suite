@@ -137,6 +137,14 @@ func TestAdminTillCashSettings(t *testing.T) {
 			t.Fatalf("till default badge on %+v", r)
 		}
 	}
+	// Archiving the default locker clears it, keeping the untracked switch.
+	if rec := te.do(http.MethodDelete, "/api/v1/admin/lockers/"+strconv.FormatInt(lid, 10), nil, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("archive: %d", rec.Code)
+	}
+	if got := decode[AdminLockerList](t, te.do(http.MethodGet, "/api/v1/admin/lockers", nil, ck)); got.TillCash.DefaultLockerID != 0 || got.TillCash.AllowUntracked == orig.Allow {
+		t.Fatalf("archived default kept %+v", got.TillCash)
+	}
+	te.db.Exec(`UPDATE lockers SET is_active=true WHERE id=$1`, lid) //nolint:errcheck
 	// 0 = no default.
 	if rec := te.do(http.MethodPut, "/api/v1/admin/settings/till-cash", TillCashRequest{}, ck); rec.Code != http.StatusNoContent {
 		t.Fatalf("clear: %d", rec.Code)

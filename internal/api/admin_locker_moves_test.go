@@ -77,6 +77,21 @@ func TestAdminLockerMoves(t *testing.T) {
 		t.Fatal("an overdraw left rows behind")
 	}
 
+	// An archived locker neither gives nor takes money (any money path, not
+	// just the pickers) — bring it back first.
+	shelf := mk("T mv shelf", "safe", "50")
+	if rec := te.do(http.MethodDelete, "/api/v1/admin/lockers/"+strconv.FormatInt(shelf, 10), nil, ck); rec.Code >= 300 {
+		t.Fatalf("archive: %d %s", rec.Code, rec.Body)
+	}
+	for _, in := range []LockerTransferRequest{{FromID: safe, ToID: shelf, Amount: "1"}, {FromID: shelf, ToID: safe, Amount: "1"}} {
+		if rec := te.do(http.MethodPost, "/api/v1/admin/lockers/transfer", in, ck); rec.Code != http.StatusUnprocessableEntity {
+			t.Fatalf("archived %+v: %d %s", in, rec.Code, rec.Body)
+		}
+	}
+	if bal(shelf) != "50.00" {
+		t.Fatalf("archived locker moved: %s", bal(shelf))
+	}
+
 	// Bank charge books an expense in the same move; interest and adjust don't.
 	adj := func(typ, amt, note string) int {
 		return te.do(http.MethodPost, "/api/v1/admin/lockers/"+strconv.FormatInt(bank, 10)+"/adjust", LockerAdjustRequest{Type: typ, Amount: amt, Note: note}, ck).Code
@@ -114,5 +129,9 @@ func TestAdminLockerMoves(t *testing.T) {
 		settle(SettleCardRequest{CardID: card, BankID: safe, Gross: "10"}) != http.StatusUnprocessableEntity ||
 		settle(SettleCardRequest{CardID: card, BankID: bank, Gross: "10", Fee: "10"}) != http.StatusUnprocessableEntity {
 		t.Fatal("a forged kind or fee ≥ gross was accepted")
+	}
+	// A typed zero fee is no fee (no expense booked).
+	if c := settle(SettleCardRequest{CardID: card, BankID: bank, Gross: "50", Fee: "0.00"}); c != http.StatusCreated || bal(card) != "150.00" {
+		t.Fatalf("zero fee: %d card=%s", c, bal(card))
 	}
 }

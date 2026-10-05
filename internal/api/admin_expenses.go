@@ -14,7 +14,6 @@ import (
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/expenses"
-	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
@@ -259,16 +258,9 @@ func (h *handlers) voidExpenseTx(ctx context.Context, tx *sqlx.Tx, id int64, des
 	if err != nil {
 		return nil, err
 	}
-	if pay.Paid {
-		if dest.Kind == cashflow.KindExternal {
-			return nil, apperr.Validation("this expense was paid from " + pay.From + " — pick where the money goes back")
-		}
-		if dest.Kind == cashflow.KindLocker {
-			l, err := lockers.NewRepository(tx).Get(ctx, dest.ID)
-			if err != nil || !l.IsActive {
-				return nil, apperr.Validation("pick a locker that is still in use")
-			}
-		}
+	// (an archived dest locker is refused by MoveTx, rolling the delete back)
+	if pay.Paid && dest.Kind == cashflow.KindExternal {
+		return nil, apperr.Validation("this expense was paid from " + pay.From + " — pick where the money goes back")
 	}
 	e, err := expenses.NewRepository(tx).DeleteReturning(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {

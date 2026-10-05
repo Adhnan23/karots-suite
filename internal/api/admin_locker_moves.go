@@ -121,7 +121,7 @@ func (h *handlers) AdminSettleCard(c echo.Context) error {
 		return err
 	}
 	fee := decimal.Zero
-	if strings.TrimSpace(in.Fee) != "" && strings.TrimSpace(in.Fee) != "0" {
+	if f := strings.Trim(strings.TrimSpace(in.Fee), "0.,"); f != "" { // "", "0", "0.00" = no fee
 		if fee, err = parseAmount(in.Fee, "service fee"); err != nil {
 			return err
 		}

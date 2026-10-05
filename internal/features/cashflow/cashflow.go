@@ -153,6 +153,24 @@ func (s *Service) MoveTx(ctx context.Context, tx *sqlx.Tx, in MoveInput) (*Recei
 		toSess = sess
 	}
 
+	// An archived locker is out of use: no money in or out until it's brought
+	// back (the pickers hide it; this covers every other path).
+	for _, loc := range []Location{in.From, in.To} {
+		if loc.Kind != KindLocker {
+			continue
+		}
+		l, err := lrepo.Get(ctx, loc.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperr.NotFound("locker")
+		}
+		if err != nil {
+			return nil, apperr.Internal("failed to load locker", err)
+		}
+		if !l.IsActive {
+			return nil, apperr.Validation(l.Name + " is archived — bring it back first")
+		}
+	}
+
 	if err := s.guardSource(ctx, crepo, lrepo, in, fromSess); err != nil {
 		return nil, err
 	}

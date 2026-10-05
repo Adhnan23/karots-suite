@@ -19,7 +19,8 @@ export function ConfirmButton({ label, title, body, confirm, onConfirm, classNam
   const [busy, setBusy] = useState(false)
   return (
     <>
-      <Button type="button" variant={plain ? 'ghost' : 'destructive'} className={className ?? 'h-10 px-4'} onClick={() => setOpen(true)}>{label}</Button>
+      <Button type="button" variant={plain ? 'ghost' : 'destructive'} className={className ?? 'h-10 px-4'}
+        aria-label={typeof label === 'string' ? undefined : title} onClick={() => setOpen(true)}>{label}</Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="gap-3 p-5 sm:max-w-sm">
           <DialogTitle className="font-display text-lg font-bold">{title}</DialogTitle>

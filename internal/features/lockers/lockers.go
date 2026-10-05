@@ -188,13 +188,19 @@ func (r *Repository) Update(ctx context.Context, id int64, name, kind string, al
 	return nil
 }
 
-// SetActive flips a locker's active flag (archive / restore).
+// SetActive archives or brings back a locker. Archiving the till's default
+// locker clears that default in the same statement, so the till never keeps
+// pre-picking a locker that can't take money.
 func (r *Repository) SetActive(ctx context.Context, id int64, active bool) error {
-	res, err := r.q.ExecContext(ctx, `UPDATE lockers SET is_active=$1 WHERE id=$2`, active, id)
+	var n int
+	err := r.q.QueryRowxContext(ctx, `
+		WITH l AS (UPDATE lockers SET is_active=$1 WHERE id=$2 RETURNING id),
+		     s AS (UPDATE settings SET default_locker_id=NULL WHERE NOT $1 AND default_locker_id IN (SELECT id FROM l))
+		SELECT count(*) FROM l`, active, id).Scan(&n)
 	if err != nil {
 		return err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	if n == 0 {
 		return sql.ErrNoRows
 	}
 	return nil
