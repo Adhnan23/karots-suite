@@ -1039,6 +1039,42 @@ export interface DenominationRequest {
   isNote: boolean;
   active: boolean;
 }
+/**
+ * AdminSaleRow is one sale on Sell → Sales. Paid = tendered less change;
+ * Profit is after cost, returns and pass-through (admins and managers always
+ * see cost).
+ */
+export interface AdminSaleRow extends SaleSummary {
+  paid: string;
+  profit: string;
+}
+/**
+ * AdminSalesSummary covers every sale the filters match (SQL, not the page).
+ */
+export interface AdminSalesSummary {
+  count: number /* int */;
+  total: string;
+  paid: string;
+  profit: string;
+  margin: string; // percent, 1 dp
+}
+/**
+ * AdminReturnRequest is a return from the admin: the counter's lines plus
+ * Source, where any cash refund leaves from (a MoneySource value; required
+ * only when there is cash to give back).
+ */
+export interface AdminReturnRequest {
+  reason: string;
+  lines: ReturnLine[];
+  source: string;
+}
+/**
+ * AdminReturnResult is the cash refunded and its CR- receipt (nil = no cash).
+ */
+export interface AdminReturnResult {
+  cashRefund: string;
+  receiptId?: number /* int64 */;
+}
 
 //////////
 // source: dto_people.go

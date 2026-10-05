@@ -1,5 +1,5 @@
 import { test, type Page } from './fixtures'
-import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, supplierWithHistory, tillWithHistory } from './shot-data'
+import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
 
 // UI-gate screenshots for admin pages (not a behaviour test). Needs `make e2e-seed`.
 //   SHOTS=m2-1 SHOTS_PATH=/admin/units bunx playwright test e2e/admin-shots.spec.ts
@@ -35,6 +35,18 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  sales: async (page) => {
+    await salesWithHistory(page)
+    await page.goto('/admin/sales?preset=today')
+    await page.waitForLoadState('networkidle')
+  },
+  'sale-return': async (page) => {
+    await prep.sales(page)
+    await page.getByLabel('Sales').locator('visible=true').getByRole('button').last().click()
+    await page.getByRole('button', { name: 'Return goods' }).click()
+    await page.getByRole('button', { name: /^More / }).first().click()
+    await page.getByRole('button', { name: 'Faulty' }).click()
+  },
   receipts: async (page) => {
     await expensesWithHistory(page)
     await page.goto('/admin/receipts?tab=cash')

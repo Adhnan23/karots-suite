@@ -13,12 +13,8 @@ import { FIELD } from '@/features/till/ui'
 import { SaleFind } from '../SaleFind'
 import { afterSlip } from '../slip'
 import { CounterPage } from '../ui'
+import { left, REASONS, refundOf } from './refund'
 
-const REASONS = ['Wrong item', 'Faulty', 'Changed mind', 'Expired']
-const left = (l: SaleLine) => num(l.quantity) - num(l.returnedQty)
-/** What returning n of a line refunds — the server's sales.lineRefund: part of a line
- *  is its paid value pro-rata, the rest of it is exactly what's left of that value. */
-const refundOf = (l: SaleLine, n: number) => (n <= 0 ? 0 : n >= left(l) ? num(l.refundLeft) : r2((num(l.paid) * n) / num(l.quantity)))
 
 /** Take goods back against a receipt: pick the lines, say if they're faulty, refund. */
 export function ReturnsTab() {

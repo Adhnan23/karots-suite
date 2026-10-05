@@ -25,6 +25,7 @@ import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/gr
 import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/labels'
 import { Route as AuthedAdminReceiptsRouteImport } from './routes/_authed/admin/receipts'
 import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/reorder'
+import { Route as AuthedAdminSalesRouteImport } from './routes/_authed/admin/sales'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedAdminUsersRouteImport } from './routes/_authed/admin/users'
@@ -151,6 +152,11 @@ const AuthedAdminReceiptsRoute = AuthedAdminReceiptsRouteImport.update({
 const AuthedAdminReorderRoute = AuthedAdminReorderRouteImport.update({
   id: '/reorder',
   path: '/reorder',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminSalesRoute = AuthedAdminSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/admin/reorder': typeof AuthedAdminReorderRoute
+  '/admin/sales': typeof AuthedAdminSalesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/admin/reorder': typeof AuthedAdminReorderRoute
+  '/admin/sales': typeof AuthedAdminSalesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
@@ -548,6 +556,7 @@ export interface FileRoutesById {
   '/_authed/admin/labels': typeof AuthedAdminLabelsRoute
   '/_authed/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/_authed/admin/reorder': typeof AuthedAdminReorderRoute
+  '/_authed/admin/sales': typeof AuthedAdminSalesRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/admin/users': typeof AuthedAdminUsersRoute
@@ -614,6 +623,7 @@ export interface FileRouteTypes {
     | '/admin/labels'
     | '/admin/receipts'
     | '/admin/reorder'
+    | '/admin/sales'
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
@@ -676,6 +686,7 @@ export interface FileRouteTypes {
     | '/admin/labels'
     | '/admin/receipts'
     | '/admin/reorder'
+    | '/admin/sales'
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/labels'
     | '/_authed/admin/receipts'
     | '/_authed/admin/reorder'
+    | '/_authed/admin/sales'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
     | '/_authed/admin/users'
@@ -911,6 +923,13 @@ declare module '@tanstack/react-router' {
       path: '/reorder'
       fullPath: '/admin/reorder'
       preLoaderRoute: typeof AuthedAdminReorderRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/sales': {
+      id: '/_authed/admin/sales'
+      path: '/sales'
+      fullPath: '/admin/sales'
+      preLoaderRoute: typeof AuthedAdminSalesRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/services': {
@@ -1265,6 +1284,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminLabelsRoute: typeof AuthedAdminLabelsRoute
   AuthedAdminReceiptsRoute: typeof AuthedAdminReceiptsRouteWithChildren
   AuthedAdminReorderRoute: typeof AuthedAdminReorderRoute
+  AuthedAdminSalesRoute: typeof AuthedAdminSalesRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminUsersRoute: typeof AuthedAdminUsersRoute
@@ -1304,6 +1324,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminLabelsRoute: AuthedAdminLabelsRoute,
   AuthedAdminReceiptsRoute: AuthedAdminReceiptsRouteWithChildren,
   AuthedAdminReorderRoute: AuthedAdminReorderRoute,
+  AuthedAdminSalesRoute: AuthedAdminSalesRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminUsersRoute: AuthedAdminUsersRoute,

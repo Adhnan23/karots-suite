@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
@@ -126,21 +127,7 @@ func (h *handlers) CounterReturn(c echo.Context) error {
 	}
 	ctx := c.Request().Context()
 	userID := middleware.CurrentUserID(c)
-	cash := decimal.Zero
-	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
-		d, refund, returnID, err := h.d.Sales.PartialReturnTx(ctx, tx, id, in, userID)
-		if err != nil {
-			return err
-		}
-		cash = refund
-		if !refund.IsPositive() {
-			return nil
-		}
-		_, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.Till(userID), To: cashflow.External(), Amount: refund,
-			Reason: "cash refund: " + d.Sale.ReceiptNo, ReceiptKind: "refund", Party: strOr(d.Sale.CustomerName),
-			Ref: &cashflow.Ref{Kind: "sale_return", ID: returnID}, ActorID: userID})
-		return err
-	})
+	cash, _, err := h.returnSale(ctx, id, in, func() (cashflow.Location, error) { return cashflow.Till(userID), nil }, userID)
 	if err != nil {
 		return err
 	}
@@ -149,6 +136,34 @@ func (h *handlers) CounterReturn(c echo.Context) error {
 		h.d.KickDrawer(ctx)
 	}
 	return c.JSON(http.StatusOK, ReturnResult{CashRefund: dec2(cash)})
+}
+
+// returnSale takes goods back (sales.PartialReturnTx: restock or damage, a
+// credit sale's debt cleared first) and pays the cash part out of from() in
+// the SAME tx (karots-pos refundCashTx). from is asked only when there is cash
+// to refund. Returns the cash refunded and its CR- receipt (nil when none).
+func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialReturnInput, from func() (cashflow.Location, error), userID int64) (decimal.Decimal, *cashflow.Receipt, error) {
+	cash := decimal.Zero
+	var rec *cashflow.Receipt
+	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		d, refund, returnID, err := h.d.Sales.PartialReturnTx(ctx, tx, id, in, userID)
+		if err != nil {
+			return err
+		}
+		cash = refund
+		if !refund.IsPositive() {
+			return nil
+		}
+		src, err := from()
+		if err != nil {
+			return err
+		}
+		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: refund,
+			Reason: "cash refund: " + d.Sale.ReceiptNo, ReceiptKind: "refund", Party: strOr(d.Sale.CustomerName),
+			Ref: &cashflow.Ref{Kind: "sale_return", ID: returnID}, ActorID: userID})
+		return err
+	})
+	return cash, rec, err
 }
 
 // CounterPrintRefund prints the latest return's refund slip. ?kick=1 folds the

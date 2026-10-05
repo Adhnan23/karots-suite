@@ -141,6 +141,7 @@ type ListSummary struct {
 	Gross    decimal.Decimal `db:"gross"`
 	Discount decimal.Decimal `db:"discount"`
 	Net      decimal.Decimal `db:"net"`
+	Paid     decimal.Decimal `db:"paid"` // tendered less change: what customers handed over
 	COGS     decimal.Decimal `db:"cogs"`
 	Profit   decimal.Decimal `db:"profit"`
 	// NetRev is revenue net of pass-through face value and returns — the base for
@@ -190,6 +191,7 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		       COALESCE(SUM(s.subtotal), 0)                     AS gross,
 		       COALESCE(SUM(s.discount), 0)                     AS discount,
 		       COALESCE(SUM(s.total), 0)                        AS net,
+		       COALESCE(SUM(s.paid_amount - s.change_given), 0) AS paid,
 		       COALESCE(SUM(agg.cogs), 0)                       AS cogs,
 		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val - agg.cogs), 0) AS profit,
 		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val), 0)           AS net_rev

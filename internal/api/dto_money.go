@@ -257,3 +257,36 @@ type DenominationRequest struct {
 	IsNote bool   `json:"isNote"`
 	Active bool   `json:"active"`
 }
+
+// AdminSaleRow is one sale on Sell → Sales. Paid = tendered less change;
+// Profit is after cost, returns and pass-through (admins and managers always
+// see cost).
+type AdminSaleRow struct {
+	SaleSummary `tstype:",extends"`
+	Paid        string `json:"paid"`
+	Profit      string `json:"profit"`
+}
+
+// AdminSalesSummary covers every sale the filters match (SQL, not the page).
+type AdminSalesSummary struct {
+	Count  int    `json:"count"`
+	Total  string `json:"total"`
+	Paid   string `json:"paid"`
+	Profit string `json:"profit"`
+	Margin string `json:"margin"` // percent, 1 dp
+}
+
+// AdminReturnRequest is a return from the admin: the counter's lines plus
+// Source, where any cash refund leaves from (a MoneySource value; required
+// only when there is cash to give back).
+type AdminReturnRequest struct {
+	Reason string       `json:"reason"`
+	Lines  []ReturnLine `json:"lines"`
+	Source string       `json:"source"`
+}
+
+// AdminReturnResult is the cash refunded and its CR- receipt (nil = no cash).
+type AdminReturnResult struct {
+	CashRefund string `json:"cashRefund"`
+	ReceiptID  *int64 `json:"receiptId,omitempty"`
+}

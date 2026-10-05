@@ -84,3 +84,20 @@ export async function tillWithHistory(page: Page): Promise<number> {
   await post('/api/v1/till/drawer/open', { breakdown: { 1000: 3, 500: 4 }, sourceLockerId: safe })
   return (await closed())!
 }
+
+/** A few sales today on the admin's open till (made once): cash, card, and one
+ * on credit. */
+export async function salesWithHistory(page: Page) {
+  await tillWithHistory(page)
+  if (((await (await page.request.get('/api/v1/admin/sales?preset=today&q=')).json()) as unknown[]).length >= 3) return
+  const byCode = async (c: string) => (await (await page.request.get(`/api/v1/till/products/barcode/${c}`)).json()).id as number
+  const milk = await byCode('4790000000011')
+  const soap = await byCode('4790000000028')
+  const cust = (await (await page.request.get('/api/v1/admin/customers?q=Kamala')).json()).items?.[0]?.id ?? await customerWithHistory(page)
+  const sale = (items: [number, string][], payments: { method: string; amount: string }[], customerId?: number) =>
+    page.request.post('/api/v1/till/sales', { data: { saleType: 'retail', discountType: 'fixed', customerId, payments,
+      items: items.map(([productId, quantity]) => ({ productId, quantity, discountType: 'fixed' })) } })
+  await sale([[milk, '4'], [soap, '2']], [{ method: 'cash', amount: '1000' }])
+  await sale([[soap, '6']], [{ method: 'card', amount: '1000' }])
+  await sale([[milk, '3']], [{ method: 'credit', amount: '0' }], cust)
+}

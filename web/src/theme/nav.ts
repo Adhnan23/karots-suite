@@ -14,6 +14,7 @@ export type AppEntry = { key: string; label: string; description: string; icon: 
 export const adminNav: NavArea[] = [
   {
     key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [
+      { to: '/admin/sales', label: 'Sales', description: 'Every sale — reprint, export, take goods back' },
       { to: '/admin/customers', label: 'Customers', description: 'Accounts, credit limits & statements' },
     ],
   },

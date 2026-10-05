@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminCashflow, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
+import type { AdminCashflow, AdminSaleRow, AdminSalesSummary, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type Range, rangeQS } from '@/features/counter/range'
 
@@ -30,3 +30,9 @@ export const tillsQuery = (f: TillFilter) =>
 export const tillQuery = (id: number) => queryOptions({ queryKey: ['admin', 'till', id], queryFn: () => api<TillSessionView>(`/admin/tills/${id}`) })
 export const tillCashiersQuery = queryOptions({ queryKey: ['admin', 'till-cashiers'], queryFn: () => api<CashierOption[]>('/admin/tills/cashiers') })
 export const denominationsQuery = queryOptions({ queryKey: ['admin', 'denominations'], queryFn: () => api<AdminDenomination[]>('/admin/denominations') })
+
+export type SalesFilter = Range & { status: string; method: string; q: string }
+export const salesQS = (f: SalesFilter) => `status=${f.status}&method=${f.method}&q=${encodeURIComponent(f.q)}${rangeQS(f)}`
+export const adminSalesQuery = (f: SalesFilter) => paged<AdminSaleRow>(['admin', 'sales', f], `/admin/sales?${salesQS(f)}`)
+export const adminSalesSummaryQuery = (f: SalesFilter) =>
+  queryOptions({ queryKey: ['admin', 'sales-summary', f], queryFn: () => api<AdminSalesSummary>(`/admin/sales/summary?${salesQS(f)}`) })
