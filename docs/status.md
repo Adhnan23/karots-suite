@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-09-30)
+## Status (2026-10-05)
 
 **M3 Purchasing and people is COMPLETE** (`docs/plans/2026-09-30-m3-purchasing-people.md`). M0, M1 (till) and M2 (catalog + stock) were complete before it.
 
@@ -20,6 +20,13 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
 - **karots-pos bugs fixed here and in karots-pos (`ababde1`):** the supplier statement left out supplier refunds; the customer statement dropped a negative opening balance (a pre-system advance). Both made the running balance disagree with the real one.
 - **karots-pos fixes of 2026-10-04 carried over** (`docs/karots-pos-fixes-2026-10-04.md`, before M4): a return refunds what was PAID (bill discount shared pro-rata, `sales.PaidFactorSQL`, also in the sales-list profit, Z-report Net and Returns report; the counter return preview shows the same figure); the whole-sale return is a line return of every remaining line; lot cost rounds to 2dp; the sales search finds a sale by the product sold (till word rules, no fuzzy); the counter lists (Returns / Receipts sales, cash, credit, warranty claims, warranty register) page 50 at a time with "Show older"; the dead legacy `sales.RegisterAPI` is gone. **Found while porting, fixed here and in karots-pos (`d55ac5f`):** returns on a part-paid credit sale each cleared up to the whole debt (over-crediting, no cash back); now only what earlier returns left.
 - **Tests:** `go test ./...`, 100 web unit tests and **73 Playwright flows** green; `make verify-portable` passes. Parity: **196 rows ticked** (53 in M3). Legacy `RegisterAPI` files removed for customers, suppliers, purchases and purchase returns.
+
+- **M4 started (2026-10-05):** plan `docs/plans/2026-10-05-m4-money.md`. Four karots-pos money flaws were fixed there first, unpushed for the user to push:
+  - `9d1bccd`: customer advances hid real dues;
+  - `d66ac18`: deleting an expense left its cash out — now Void puts it back, plus a `plugin.ExpenseOwner` hook;
+  - `9f17be1`: Cash Flow totals came from 500 rows and counted transfers twice.
+
+  Task 0 ported the receivables fix.
 
 **NEXT: M4 Money** (spec §11): cashflow, lockers, expenses (+categories), bill-pay / get-money, settle card, receipts hub (S- / CR- / DP- / warranty), finance hub.
 

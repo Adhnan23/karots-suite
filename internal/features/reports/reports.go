@@ -44,8 +44,11 @@ type PL struct {
 	ZeroCostRevenue decimal.Decimal `json:"zero_cost_revenue"`
 	ZeroCostLines   int             `json:"zero_cost_lines"`
 	NetProfit       decimal.Decimal `json:"net_profit"`  // gross - expenses - losses - own use - staff welfare - stock corrections + recoveries + other income
-	Receivables     decimal.Decimal `json:"receivables"` // customer dues (current snapshot)
-	Payables        decimal.Decimal `json:"payables"`    // supplier dues (current snapshot; credits excluded)
+	Receivables     decimal.Decimal `json:"receivables"` // customer dues (current snapshot; advances excluded)
+	// CustomerAdvances is what the shop holds for customers who paid ahead (a
+	// negative balance) — money the shop owes back, reported apart from dues.
+	CustomerAdvances decimal.Decimal `json:"customer_advances"`
+	Payables         decimal.Decimal `json:"payables"` // supplier dues (current snapshot; credits excluded)
 	// SupplierCredit is the mirror of Payables: what suppliers owe US, from
 	// returned goods or advances paid ahead of a delivery.
 	SupplierCredit decimal.Decimal  `json:"supplier_credit"`
@@ -220,7 +223,13 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 		Sub(pl.OwnUse).Sub(pl.StaffWelfare).Sub(pl.StockCorrections).
 		Add(pl.Recoveries).Add(pl.OtherIncome).Add(pl.RegisterDiff)
 
-	_ = s.db.GetContext(ctx, &pl.Receivables, `SELECT COALESCE(SUM(outstanding_balance),0) FROM customers`)
+	// Only customers who OWE count as receivables. One holding an advance has a
+	// negative balance; summing raw netted it against everyone else's dues and
+	// understated what the shop is owed. The advance is owed back — reported apart.
+	_ = s.db.GetContext(ctx, &pl.Receivables,
+		`SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM customers`)
+	_ = s.db.GetContext(ctx, &pl.CustomerAdvances,
+		`SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM customers`)
 	// Only suppliers we actually OWE count as payables. A supplier in credit (goods
 	// returned, or an advance paid) has a negative balance, and summing it raw
 	// netted that credit against everyone else's invoices — understating the debt.
