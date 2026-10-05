@@ -86,7 +86,36 @@ async function pick(page: Page, label: string, text: string) {
   await sel.selectOption((await sel.locator('option', { hasText: text }).first().getAttribute('value'))!)
 }
 
+/** A month of expenses (made once): some paid from the safe, some from outside. */
+async function expensesWithHistory(page: Page) {
+  const safe = await lockersWithHistory(page)
+  if (((await (await page.request.get('/api/v1/admin/expenses?preset=this-month&q=CEB')).json()) as unknown[]).length) return
+  const d = (n: number) => new Date(Date.now() - n * 864e5).toLocaleDateString('en-CA')
+  for (const [category, amount, description, n, source] of [['Rent', '45000', 'October shop rent', 4, ''], ['Electricity', '8420', 'CEB bill', 3, `locker:${safe}`],
+    ['Transport', '1200', 'Tuk to Pettah wholesale', 2, `locker:${safe}`], ['Salary', '15000', 'Nimali — half month', 1, ''], ['Water', '1350', 'NWSDB', 0, `locker:${safe}`]] as const)
+    await page.request.post('/api/v1/admin/expenses', { data: { category, amount, description, date: d(n), serviceId: 0, source } })
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  expenses: async (page) => {
+    await expensesWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  'expense-new': async (page) => {
+    await prep.expenses(page)
+    await page.getByRole('button', { name: '↑ Record expense' }).click()
+    await page.getByRole('button', { name: 'Transport', exact: true }).click()
+    await page.getByLabel('Amount', { exact: true }).fill('650')
+    await pick(page, 'Paid from', 'Shop safe')
+    await page.getByLabel('Note').fill('Courier to Kandy')
+  },
+  'expense-void': async (page) => {
+    await prep.expenses(page)
+    await page.getByRole('button', { name: /^Electricity.*CEB bill/ }).locator('visible=true').first().click()
+    await page.getByRole('button', { name: 'Void…' }).click()
+    await page.waitForLoadState('networkidle')
+  },
   lockers: async (page) => {
     await lockersWithHistory(page)
     await page.reload()

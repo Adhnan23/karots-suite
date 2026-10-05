@@ -40,6 +40,7 @@ export const adminNav: NavArea[] = [
   {
     key: 'money', label: 'Money', icon: Wallet, pages: [
       { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
+      { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],
   },
   { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },

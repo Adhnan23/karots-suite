@@ -112,7 +112,7 @@ func TestAdminTillCashSettings(t *testing.T) {
 	}
 	t.Cleanup(func() {
 		te.db.Exec(`UPDATE settings SET default_locker_id=$1, allow_untracked_cash=$2 WHERE id=1`, orig.Def, orig.Allow) //nolint:errcheck
-		te.db.Exec(`DELETE FROM lockers WHERE id=$1`, lid)                                                                 //nolint:errcheck
+		te.db.Exec(`DELETE FROM lockers WHERE id=$1`, lid)                                                               //nolint:errcheck
 	})
 	others := func() string {
 		var s string

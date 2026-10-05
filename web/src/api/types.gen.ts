@@ -846,6 +846,73 @@ export interface SettleCardRequest {
   gross: string;
   fee: string;
 }
+/**
+ * AdminExpenseRow is one expense on Money → Expenses. PaidFrom is where its
+ * cash left ("" = outside the shop, no money moved); a paid expense's amount
+ * can't be edited, only voided.
+ */
+export interface AdminExpenseRow {
+  id: number /* int64 */;
+  date: string; // YYYY-MM-DD
+  category: string;
+  amount: string;
+  description: string;
+  paidBy: string;
+  serviceId: number /* int64 */;
+  serviceName: string;
+  paidFrom: string;
+}
+/**
+ * ExpenseCategoryTotal is one category chip: its share of the range.
+ */
+export interface ExpenseCategoryTotal {
+  category: string;
+  count: number /* int */;
+  total: string;
+}
+/**
+ * AdminExpenseSummary heads the expenses list: the total of every match (from
+ * SQL, not the loaded page), the range's per-category totals, and the form's
+ * category suggestions and taggable services.
+ */
+export interface AdminExpenseSummary {
+  total: string;
+  count: number /* int */;
+  byCategory: ExpenseCategoryTotal[];
+  categories: string[];
+  services: ServiceOption[];
+}
+/**
+ * AdminExpenseRequest records or edits an expense. Source ("locker:3",
+ * "till:5", "" = outside the shop) is read on create only; on edit Amount
+ * may change only while no money moved for it.
+ */
+export interface AdminExpenseRequest {
+  category: string;
+  amount: string;
+  description: string;
+  date: string; // YYYY-MM-DD; "" = today
+  serviceId: number /* int64 */;
+  source: string;
+}
+/**
+ * ExpenseVoidInfo prepares the void sheet: whether money moved for it and from
+ * where, the place to put it back (pre-picked: the locker it left, if still in
+ * use), and the plugin record that owns it ("" = none; a claimed one can't be
+ * voided here).
+ */
+export interface ExpenseVoidInfo {
+  paid: boolean;
+  from: string;
+  source: string;
+  owner: string;
+}
+/**
+ * ExpenseVoidRequest is where a paid expense's money goes back.
+ */
+export interface ExpenseVoidRequest {
+  dest: string;
+}
 
 //////////
 // source: dto_people.go

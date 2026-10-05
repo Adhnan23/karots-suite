@@ -371,7 +371,7 @@ func counterpartyTag(k Kind) *string {
 
 func tillSessionErr(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
-		return apperr.Conflict("that till has no open session")
+		return apperr.Validation("that till is closed")
 	}
 	return apperr.Internal("failed to load till session", err)
 }

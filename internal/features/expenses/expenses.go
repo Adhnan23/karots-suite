@@ -5,19 +5,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"strings"
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	"karots-suite/internal/db"
-	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
-	"karots-suite/internal/response"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
 
@@ -35,6 +30,9 @@ type Expense struct {
 	// never enters COGS: the core P&L still counts it once, as an expense.
 	ServiceProductID *int64  `db:"service_product_id" json:"service_product_id,omitempty"`
 	ServiceName      *string `db:"service_name"       json:"service_name,omitempty"`
+	// PaidFrom is the source label of the money move booked for it (List only);
+	// nil = no money moved (paid from outside the shop).
+	PaidFrom *string `db:"paid_from" json:"paid_from,omitempty"`
 }
 
 type CreateInput struct {
@@ -46,28 +44,54 @@ type CreateInput struct {
 	ServiceProductID int64 `json:"service_product_id" form:"service_product_id"`
 }
 
-// Filter narrows the expense list by date range.
+// Filter narrows the expense list: expense_date in [From, To) (To exclusive,
+// as reports.ResolveRange gives it), an exact category, and words matched in
+// the category / description. Limit 0 = 500.
 type Filter struct {
-	From *time.Time
-	To   *time.Time
+	From     *time.Time
+	To       *time.Time
+	Category string
+	Query    string
+	Limit    int
+	Offset   int
 }
+
+const filterWhere = `
+		WHERE ($1::timestamptz IS NULL OR e.expense_date >= $1)
+		  AND ($2::timestamptz IS NULL OR e.expense_date <  $2)
+		  AND ($3 = '' OR e.category = $3)
+		  AND ($4 = '' OR e.category ILIKE '%' || $4 || '%' OR e.description ILIKE '%' || $4 || '%')`
 
 type Repository struct{ q db.Queryer }
 
 func NewRepository(q db.Queryer) *Repository { return &Repository{q: q} }
 
 func (r *Repository) List(ctx context.Context, f Filter) ([]Expense, error) {
+	limit := f.Limit
+	if limit <= 0 {
+		limit = 500
+	}
 	var rows []Expense
 	err := r.q.SelectContext(ctx, &rows, `
-		SELECT e.*, u.name AS paid_by_name, sp.name AS service_name
+		SELECT e.*, u.name AS paid_by_name, sp.name AS service_name,
+		       (SELECT from_label FROM money_receipts mr WHERE mr.ref_kind = 'expense' AND mr.ref_id = e.id ORDER BY mr.id LIMIT 1) AS paid_from
 		FROM expenses e
 		LEFT JOIN users u ON u.id = e.paid_by
-		LEFT JOIN products sp ON sp.id = e.service_product_id
-		WHERE ($1::date IS NULL OR e.expense_date >= $1)
-		  AND ($2::date IS NULL OR e.expense_date <= $2)
+		LEFT JOIN products sp ON sp.id = e.service_product_id`+filterWhere+`
 		ORDER BY e.expense_date DESC, e.id DESC
-		LIMIT 500`, f.From, f.To)
+		LIMIT $5 OFFSET $6`, f.From, f.To, f.Category, strings.TrimSpace(f.Query), limit, max(f.Offset, 0))
 	return rows, err
+}
+
+// Sum totals every expense the filter matches (not a page of them).
+func (r *Repository) Sum(ctx context.Context, f Filter) (decimal.Decimal, int, error) {
+	var out struct {
+		Total decimal.Decimal `db:"total"`
+		Count int             `db:"count"`
+	}
+	err := r.q.GetContext(ctx, &out, `SELECT COALESCE(SUM(e.amount),0) AS total, COUNT(*) AS count FROM expenses e`+filterWhere,
+		f.From, f.To, f.Category, strings.TrimSpace(f.Query))
+	return out.Total, out.Count, err
 }
 
 func (r *Repository) Create(ctx context.Context, category string, amount decimal.Decimal, desc *string, paidBy *int64, date time.Time, serviceID *int64) (*Expense, error) {
@@ -111,9 +135,47 @@ func (r *Repository) Update(ctx context.Context, id int64, category string, amou
 	return nil
 }
 
-func (r *Repository) Delete(ctx context.Context, id int64) error {
-	_, err := r.q.ExecContext(ctx, `DELETE FROM expenses WHERE id = $1`, id)
-	return err
+// DeleteReturning removes an expense and returns what it was, so a void can put
+// exactly that amount back. sql.ErrNoRows when it is already gone (a second
+// click waits on the row lock, then finds nothing — no double refund).
+func (r *Repository) DeleteReturning(ctx context.Context, id int64) (*Expense, error) {
+	var e Expense
+	err := r.q.GetContext(ctx, &e, `DELETE FROM expenses WHERE id = $1 RETURNING *`, id)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+// Payment says where an expense's cash came from. Paid is true when a money
+// move (CR- receipt) was booked for it; LockerID is the locker it left (0 when
+// it left a till); From is the receipt's source label for display.
+type Payment struct {
+	Paid     bool
+	LockerID int64
+	From     string
+}
+
+// PaidFrom looks up the money move booked for an expense, over q (a tx or the db).
+func PaidFrom(ctx context.Context, q db.Queryer, id int64) (Payment, error) {
+	var p Payment
+	err := q.GetContext(ctx, &p.From, `
+		SELECT from_label FROM money_receipts
+		WHERE ref_kind = 'expense' AND ref_id = $1 ORDER BY id LIMIT 1`, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return p, nil
+	}
+	if err != nil {
+		return p, apperr.Internal("failed to load the expense payment", err)
+	}
+	p.Paid = true
+	err = q.GetContext(ctx, &p.LockerID, `
+		SELECT locker_id FROM locker_ledger
+		WHERE ref_kind = 'expense' AND ref_id = $1 AND balance_delta < 0 ORDER BY id LIMIT 1`, id)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return p, apperr.Internal("failed to load the expense payment", err)
+	}
+	return p, nil
 }
 
 // TotalBetween sums expenses in [from, to]; used by the finance report.
@@ -213,6 +275,21 @@ func (s *Service) Update(ctx context.Context, id int64, in CreateInput) error {
 			return apperr.Validation("date must be YYYY-MM-DD")
 		}
 	}
+	// Once cash has left a till or locker for it, the amount is what was paid:
+	// changing it here would leave the books disagreeing with the money moved.
+	cur, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !amt.Equal(cur.Amount) {
+		pay, err := PaidFrom(ctx, s.repo.q, id)
+		if err != nil {
+			return err
+		}
+		if pay.Paid {
+			return apperr.Validation("this expense was paid from " + pay.From + ", so its amount can't change — void it and record it again")
+		}
+	}
 	err = s.repo.Update(ctx, id, strings.TrimSpace(in.Category), amt, in.Description, date, serviceRef(in.ServiceProductID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperr.NotFound("expense")
@@ -221,59 +298,6 @@ func (s *Service) Update(ctx context.Context, id int64, in CreateInput) error {
 		return apperr.Internal("failed to update expense", err)
 	}
 	return nil
-}
-
-func (s *Service) Delete(ctx context.Context, id int64) error {
-	if err := s.repo.Delete(ctx, id); err != nil {
-		return apperr.Internal("failed to delete expense", err)
-	}
-	return nil
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	rows, err := h.svc.List(c.Request().Context(), Filter{})
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Create(c echo.Context) error {
-	var in CreateInput
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	e, err := h.svc.Create(c.Request().Context(), in, middleware.CurrentUserID(c))
-	if err != nil {
-		return err
-	}
-	return response.Created(c, e)
-}
-
-func (h *APIHandler) Delete(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	if err := h.svc.Delete(c.Request().Context(), id); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(db))
-	g := e.Group("/api/expenses", middleware.JWTAuth(cfg.JWTSecret), middleware.RequireRole("admin", "manager"))
-	g.GET("", api.List)
-	g.POST("", api.Create)
-	g.DELETE("/:id", api.Delete)
 }
 
 // DefaultCategories is the built-in expense category list, in the canonical

@@ -84,3 +84,63 @@ type SettleCardRequest struct {
 	Fee    string `json:"fee"`
 }
 
+// AdminExpenseRow is one expense on Money → Expenses. PaidFrom is where its
+// cash left ("" = outside the shop, no money moved); a paid expense's amount
+// can't be edited, only voided.
+type AdminExpenseRow struct {
+	ID          int64  `json:"id"`
+	Date        string `json:"date"` // YYYY-MM-DD
+	Category    string `json:"category"`
+	Amount      string `json:"amount"`
+	Description string `json:"description"`
+	PaidBy      string `json:"paidBy"`
+	ServiceID   int64  `json:"serviceId"`
+	ServiceName string `json:"serviceName"`
+	PaidFrom    string `json:"paidFrom"`
+}
+
+// ExpenseCategoryTotal is one category chip: its share of the range.
+type ExpenseCategoryTotal struct {
+	Category string `json:"category"`
+	Count    int    `json:"count"`
+	Total    string `json:"total"`
+}
+
+// AdminExpenseSummary heads the expenses list: the total of every match (from
+// SQL, not the loaded page), the range's per-category totals, and the form's
+// category suggestions and taggable services.
+type AdminExpenseSummary struct {
+	Total      string                 `json:"total"`
+	Count      int                    `json:"count"`
+	ByCategory []ExpenseCategoryTotal `json:"byCategory"`
+	Categories []string               `json:"categories"`
+	Services   []ServiceOption        `json:"services"`
+}
+
+// AdminExpenseRequest records or edits an expense. Source ("locker:3",
+// "till:5", "" = outside the shop) is read on create only; on edit Amount
+// may change only while no money moved for it.
+type AdminExpenseRequest struct {
+	Category    string `json:"category"`
+	Amount      string `json:"amount"`
+	Description string `json:"description"`
+	Date        string `json:"date"` // YYYY-MM-DD; "" = today
+	ServiceID   int64  `json:"serviceId"`
+	Source      string `json:"source"`
+}
+
+// ExpenseVoidInfo prepares the void sheet: whether money moved for it and from
+// where, the place to put it back (pre-picked: the locker it left, if still in
+// use), and the plugin record that owns it ("" = none; a claimed one can't be
+// voided here).
+type ExpenseVoidInfo struct {
+	Paid   bool   `json:"paid"`
+	From   string `json:"from"`
+	Source string `json:"source"`
+	Owner  string `json:"owner"`
+}
+
+// ExpenseVoidRequest is where a paid expense's money goes back.
+type ExpenseVoidRequest struct {
+	Dest string `json:"dest"`
+}

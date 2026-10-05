@@ -135,6 +135,7 @@ var (
 	receiptTabs            hook[ReceiptTab]
 	supplierActions        hook[CashierSupplierAction]
 	plIncomes              hook[PLIncome]
+	expenseOwners          hook[ExpenseOwner]
 	activityContribs       hook[ActivityContributor]
 	moneyLocationProviders hook[MoneyLocationProvider]
 	readinessProviders     hook[ReadinessProvider]
@@ -151,6 +152,28 @@ type ReceiptTab struct {
 	Label       string
 	CashierHref string
 	AdminHref   string
+}
+
+// ExpenseOwner lets a plugin claim core expense rows that its own records point
+// at (an expense_id column). Expenses refuses to void a claimed expense —
+// deleting it there would leave the plugin's record pointing at nothing and its
+// own state (a float, a payout) un-reversed. Return the label of the owning
+// record (e.g. "a reload float top-up"), or "" when not claimed (karots-pos d66ac18).
+type ExpenseOwner func(ctx context.Context, expenseID int64) (string, error)
+
+// ExpenseClaim returns the first plugin claim on an expense, or "" if none.
+// A failing owner counts as a claim, so an error never lets a void through.
+func ExpenseClaim(ctx context.Context, expenseID int64) string {
+	for _, o := range expenseOwners.all() {
+		label, err := o(ctx, expenseID)
+		if err != nil {
+			return "a plugin record (couldn't be checked)"
+		}
+		if label != "" {
+			return label
+		}
+	}
+	return ""
 }
 
 // PLIncome lets a plugin contribute an income line to the core Profit & Loss.
@@ -244,7 +267,8 @@ func (r *Registry) AddReceiptTab(t ReceiptTab)           { receiptTabs.add(curre
 func (r *Registry) AddCashierSupplierAction(a CashierSupplierAction) {
 	supplierActions.add(current, a)
 }
-func (r *Registry) AddPLIncome(s PLIncome) { plIncomes.add(current, s) }
+func (r *Registry) AddPLIncome(s PLIncome)         { plIncomes.add(current, s) }
+func (r *Registry) AddExpenseOwner(o ExpenseOwner) { expenseOwners.add(current, o) }
 func (r *Registry) AddActivityContributor(a ActivityContributor) {
 	activityContribs.add(current, a)
 }

@@ -5,13 +5,10 @@ import (
 	"strings"
 	"time"
 
-	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
-	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/expenses"
 	"karots-suite/internal/middleware"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -69,23 +66,7 @@ func (h *handlers) CounterExpenseCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	userID := middleware.CurrentUserID(c)
-	reason := in.Category
-	if in.Description != nil {
-		reason += " - " + *in.Description
-	}
-	var rec *cashflow.Receipt
-	var id int64
-	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
-		e, err := expenses.NewService(h.d.DB).CreateInTx(ctx, tx, in, userID)
-		if err != nil {
-			return err
-		}
-		id = e.ID
-		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: e.Amount,
-			Reason: reason, ReceiptKind: "expense", Ref: &cashflow.Ref{Kind: "expense", ID: e.ID}, ActorID: userID})
-		return err
-	})
+	id, rec, err := h.recordExpense(ctx, in, src, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}

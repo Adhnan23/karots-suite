@@ -27,8 +27,8 @@ func TestAdminLockerMoves(t *testing.T) {
 	var ids []int64
 	t.Cleanup(func() {
 		te.db.Exec(`DELETE FROM money_receipts WHERE created_at IN (SELECT created_at FROM locker_ledger WHERE locker_id = ANY($1))`, pq.Array(ids)) //nolint:errcheck
-		te.db.Exec(`DELETE FROM locker_ledger WHERE locker_id = ANY($1)`, pq.Array(ids))                                                            //nolint:errcheck
-		te.db.Exec(`DELETE FROM lockers WHERE id = ANY($1)`, pq.Array(ids))                                                                         //nolint:errcheck
+		te.db.Exec(`DELETE FROM locker_ledger WHERE locker_id = ANY($1)`, pq.Array(ids))                                                             //nolint:errcheck
+		te.db.Exec(`DELETE FROM lockers WHERE id = ANY($1)`, pq.Array(ids))                                                                          //nolint:errcheck
 	})
 	mk := func(name, kind, opening string) int64 {
 		l := decode[AdminLocker](t, te.do(http.MethodPost, "/api/v1/admin/lockers", LockerRequest{Name: name, Kind: kind, OpeningBalance: opening}, ck))
@@ -98,7 +98,9 @@ func TestAdminLockerMoves(t *testing.T) {
 	}
 
 	// Settle: card −gross, bank +net, one fee expense.
-	settle := func(r SettleCardRequest) int { return te.do(http.MethodPost, "/api/v1/admin/lockers/settle-card", r, ck).Code }
+	settle := func(r SettleCardRequest) int {
+		return te.do(http.MethodPost, "/api/v1/admin/lockers/settle-card", r, ck).Code
+	}
 	if c := settle(SettleCardRequest{CardID: card, BankID: bank, Gross: "600", Fee: "12"}); c != http.StatusCreated {
 		t.Fatalf("settle: %d", c)
 	}

@@ -46,11 +46,11 @@ func validKind(k string) bool {
 // Locker is a money-holding location. Balance is computed (SUM of ledger
 // deltas), never stored.
 type Locker struct {
-	ID            int64           `db:"id"             json:"id"`
-	Name          string          `db:"name"           json:"name"`
-	Kind          string          `db:"kind"           json:"kind"`
-	AllowNegative bool            `db:"allow_negative" json:"allow_negative"`
-	IsActive      bool            `db:"is_active"      json:"is_active"`
+	ID            int64  `db:"id"             json:"id"`
+	Name          string `db:"name"           json:"name"`
+	Kind          string `db:"kind"           json:"kind"`
+	AllowNegative bool   `db:"allow_negative" json:"allow_negative"`
+	IsActive      bool   `db:"is_active"      json:"is_active"`
 	// CashierAccess lets cashiers move money into or out of this locker from the
 	// till. On by default; turn it off for a locker only the owner should touch.
 	CashierAccess bool            `db:"cashier_access" json:"cashier_access"`
@@ -272,7 +272,7 @@ type CreateInput struct {
 	OpeningBalance string `form:"opening_balance" json:"opening_balance"`
 	// CashierAccess is an HTML checkbox. A new locker's form ships it ticked, so
 	// an omitted value here means the owner deliberately unticked it.
-	CashierAccess  string `form:"cashier_access"  json:"cashier_access"`
+	CashierAccess string `form:"cashier_access"  json:"cashier_access"`
 }
 
 // UpdateInput is the admin edit-locker form.

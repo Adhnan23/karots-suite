@@ -2,6 +2,7 @@ package reports
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 )
@@ -13,7 +14,9 @@ func TestReceivablesExcludeCustomerAdvances(t *testing.T) {
 	conn := reportsTestDB(t)
 	defer conn.Close()
 	ctx := context.Background()
-	tx, err := conn.BeginTxx(ctx, nil)
+	// Repeatable read: other packages' tests commit customers in parallel, and
+	// the P&L must see only this tx's snapshot.
+	tx, err := conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	mustR(t, err)
 	defer tx.Rollback() //nolint:errcheck
 

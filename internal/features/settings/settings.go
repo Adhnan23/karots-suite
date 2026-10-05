@@ -18,37 +18,37 @@ import (
 )
 
 type Settings struct {
-	ID                    int       `db:"id"                json:"id"`
-	ShopName              string    `db:"shop_name"         json:"shop_name"`
-	ShopNameSi            *string   `db:"shop_name_si"      json:"shop_name_si,omitempty"`
-	Address               *string   `db:"address"           json:"address,omitempty"`
-	Phone                 *string   `db:"phone"             json:"phone,omitempty"`
-	CurrencyCode          string    `db:"currency_code"     json:"currency_code"`
-	CurrencySymbol        string    `db:"currency_symbol"   json:"currency_symbol"`
-	ReceiptFooter         *string   `db:"receipt_footer"    json:"receipt_footer,omitempty"`
-	ReceiptWidth          string    `db:"receipt_width"     json:"receipt_width"`
-	LogoURL               *string   `db:"logo_url"          json:"logo_url,omitempty"`
-	LogoData              string    `db:"logo_data"         json:"logo_data,omitempty"`
-	TaxRegistered         bool      `db:"tax_registered"    json:"tax_registered"`
-	TaxRegNo              *string   `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
-	LowStockAlerts        bool      `db:"low_stock_alerts"  json:"low_stock_alerts"`
-	AskToPrint            bool      `db:"ask_to_print"      json:"ask_to_print"`
-	ForcePinChange        bool      `db:"force_pin_change"          json:"force_pin_change"`
-	AllowCashierPinChange bool      `db:"allow_cashier_pin_change"  json:"allow_cashier_pin_change"`
-	DefaultSaleType       string    `db:"default_sale_type" json:"default_sale_type"`
-	ReceiptPrinter        string    `db:"receipt_printer"   json:"receipt_printer"`
-	LabelPrinter          string    `db:"label_printer"     json:"label_printer"`
-	LabelWidthMM          int       `db:"label_width_mm"    json:"label_width_mm"`
-	LabelHeightMM         int       `db:"label_height_mm"   json:"label_height_mm"`
-	LabelGapMM            int       `db:"label_gap_mm"      json:"label_gap_mm"`
-	LabelNameLines        int       `db:"label_name_lines"   json:"label_name_lines"`
-	LabelBottomLines      int       `db:"label_bottom_lines" json:"label_bottom_lines"`
-	LabelNameFont         string    `db:"label_name_font"    json:"label_name_font"`
-	LabelBottomFont       string    `db:"label_bottom_font"  json:"label_bottom_font"`
-	LockTimeoutMinutes    int       `db:"lock_timeout_minutes" json:"lock_timeout_minutes"`
-	StockTakeEnabled      bool      `db:"stock_take_enabled"   json:"stock_take_enabled"`
-	OpenCashDrawer        bool      `db:"open_cash_drawer"  json:"open_cash_drawer"`
-	DrawerKickPin         int       `db:"drawer_kick_pin"   json:"drawer_kick_pin"`
+	ID                    int     `db:"id"                json:"id"`
+	ShopName              string  `db:"shop_name"         json:"shop_name"`
+	ShopNameSi            *string `db:"shop_name_si"      json:"shop_name_si,omitempty"`
+	Address               *string `db:"address"           json:"address,omitempty"`
+	Phone                 *string `db:"phone"             json:"phone,omitempty"`
+	CurrencyCode          string  `db:"currency_code"     json:"currency_code"`
+	CurrencySymbol        string  `db:"currency_symbol"   json:"currency_symbol"`
+	ReceiptFooter         *string `db:"receipt_footer"    json:"receipt_footer,omitempty"`
+	ReceiptWidth          string  `db:"receipt_width"     json:"receipt_width"`
+	LogoURL               *string `db:"logo_url"          json:"logo_url,omitempty"`
+	LogoData              string  `db:"logo_data"         json:"logo_data,omitempty"`
+	TaxRegistered         bool    `db:"tax_registered"    json:"tax_registered"`
+	TaxRegNo              *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
+	LowStockAlerts        bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
+	AskToPrint            bool    `db:"ask_to_print"      json:"ask_to_print"`
+	ForcePinChange        bool    `db:"force_pin_change"          json:"force_pin_change"`
+	AllowCashierPinChange bool    `db:"allow_cashier_pin_change"  json:"allow_cashier_pin_change"`
+	DefaultSaleType       string  `db:"default_sale_type" json:"default_sale_type"`
+	ReceiptPrinter        string  `db:"receipt_printer"   json:"receipt_printer"`
+	LabelPrinter          string  `db:"label_printer"     json:"label_printer"`
+	LabelWidthMM          int     `db:"label_width_mm"    json:"label_width_mm"`
+	LabelHeightMM         int     `db:"label_height_mm"   json:"label_height_mm"`
+	LabelGapMM            int     `db:"label_gap_mm"      json:"label_gap_mm"`
+	LabelNameLines        int     `db:"label_name_lines"   json:"label_name_lines"`
+	LabelBottomLines      int     `db:"label_bottom_lines" json:"label_bottom_lines"`
+	LabelNameFont         string  `db:"label_name_font"    json:"label_name_font"`
+	LabelBottomFont       string  `db:"label_bottom_font"  json:"label_bottom_font"`
+	LockTimeoutMinutes    int     `db:"lock_timeout_minutes" json:"lock_timeout_minutes"`
+	StockTakeEnabled      bool    `db:"stock_take_enabled"   json:"stock_take_enabled"`
+	OpenCashDrawer        bool    `db:"open_cash_drawer"  json:"open_cash_drawer"`
+	DrawerKickPin         int     `db:"drawer_kick_pin"   json:"drawer_kick_pin"`
 	// AllowUntrackedCash lets a till move cash without naming a locker (the money
 	// leg then goes to External — untracked). When false, cash-OUT (withdraw /
 	// close) must pick a locker; cash-IN (open / deposit) is never blocked.
@@ -62,14 +62,14 @@ type Settings struct {
 	// InstallID identifies this shop's install. The owner reads it to the
 	// developer, who derives the support PIN from it — it is an identifier, not a
 	// secret, so showing it is safe and is the whole point.
-	InstallID string    `db:"install_id" json:"install_id"`
+	InstallID string `db:"install_id" json:"install_id"`
 	// Skin/Density/ReceiptStyle are the system-user-locked appearance (see
 	// migration 0068). Skin = vendor brand identity (colour/cards, light+dark);
 	// distinct from the per-user light/dark "theme" toggle. Only the system-user
 	// panel writes these; the admin Settings UPDATE never touches them.
-	Skin         string    `db:"skin"          json:"skin"`
-	Density      string    `db:"density"       json:"density"`
-	ReceiptStyle string    `db:"receipt_style" json:"receipt_style"`
+	Skin         string `db:"skin"          json:"skin"`
+	Density      string `db:"density"       json:"density"`
+	ReceiptStyle string `db:"receipt_style" json:"receipt_style"`
 	// SkinCustom is a brand hex (e.g. "#7c3aed") used when Skin == "custom"; the
 	// full colour ramp is derived from it at render time. Blank otherwise.
 	SkinCustom string `db:"skin_custom" json:"skin_custom"`
@@ -140,23 +140,23 @@ type UpdateInput struct {
 	// *PrinterNet are the optional "network printer" text inputs (tcp://host:9100).
 	// When non-empty they override the matching dropdown; merged in SettingsUpdate.
 	// Not stored as separate columns.
-	ReceiptPrinterNet string `json:"-" form:"receipt_printer_net" validate:"omitempty,max=100"`
-	LabelPrinterNet   string `json:"-" form:"label_printer_net"   validate:"omitempty,max=100"`
-	LabelWidthMM      int    `json:"label_width_mm"    form:"label_width_mm"     validate:"omitempty,min=10,max=200"`
-	LabelHeightMM     int    `json:"label_height_mm"   form:"label_height_mm"    validate:"omitempty,min=10,max=200"`
-	LabelGapMM        int    `json:"label_gap_mm"      form:"label_gap_mm"       validate:"omitempty,min=0,max=20"`
-	LabelNameLines    int    `json:"label_name_lines"   form:"label_name_lines"   validate:"omitempty,min=1,max=4"`
-	LabelBottomLines  int    `json:"label_bottom_lines" form:"label_bottom_lines" validate:"omitempty,min=1,max=4"`
-	LabelNameFont     string `json:"label_name_font"    form:"label_name_font"    validate:"omitempty,oneof=1 2 3 4"`
-	LabelBottomFont   string `json:"label_bottom_font"  form:"label_bottom_font"  validate:"omitempty,oneof=1 2 3 4"`
-	LockTimeoutMinutes int   `json:"lock_timeout_minutes" form:"lock_timeout_minutes" validate:"omitempty,min=0,max=1440"`
-	StockTakeEnabled  bool   `json:"stock_take_enabled"   form:"stock_take_enabled"`
-	OpenCashDrawer    bool   `json:"open_cash_drawer"     form:"open_cash_drawer"`
-	DrawerKickPin     int    `json:"drawer_kick_pin"      form:"drawer_kick_pin" validate:"omitempty,oneof=0 1"`
-	AllowUntrackedCash bool  `json:"allow_untracked_cash" form:"allow_untracked_cash"`
+	ReceiptPrinterNet  string `json:"-" form:"receipt_printer_net" validate:"omitempty,max=100"`
+	LabelPrinterNet    string `json:"-" form:"label_printer_net"   validate:"omitempty,max=100"`
+	LabelWidthMM       int    `json:"label_width_mm"    form:"label_width_mm"     validate:"omitempty,min=10,max=200"`
+	LabelHeightMM      int    `json:"label_height_mm"   form:"label_height_mm"    validate:"omitempty,min=10,max=200"`
+	LabelGapMM         int    `json:"label_gap_mm"      form:"label_gap_mm"       validate:"omitempty,min=0,max=20"`
+	LabelNameLines     int    `json:"label_name_lines"   form:"label_name_lines"   validate:"omitempty,min=1,max=4"`
+	LabelBottomLines   int    `json:"label_bottom_lines" form:"label_bottom_lines" validate:"omitempty,min=1,max=4"`
+	LabelNameFont      string `json:"label_name_font"    form:"label_name_font"    validate:"omitempty,oneof=1 2 3 4"`
+	LabelBottomFont    string `json:"label_bottom_font"  form:"label_bottom_font"  validate:"omitempty,oneof=1 2 3 4"`
+	LockTimeoutMinutes int    `json:"lock_timeout_minutes" form:"lock_timeout_minutes" validate:"omitempty,min=0,max=1440"`
+	StockTakeEnabled   bool   `json:"stock_take_enabled"   form:"stock_take_enabled"`
+	OpenCashDrawer     bool   `json:"open_cash_drawer"     form:"open_cash_drawer"`
+	DrawerKickPin      int    `json:"drawer_kick_pin"      form:"drawer_kick_pin" validate:"omitempty,oneof=0 1"`
+	AllowUntrackedCash bool   `json:"allow_untracked_cash" form:"allow_untracked_cash"`
 	// DefaultLockerID: 0 (blank select) means "no default" and is stored as NULL.
-	DefaultLockerID   int64  `json:"default_locker_id"    form:"default_locker_id"`
-	AllowContinueLastCount bool `json:"allow_continue_last_count" form:"allow_continue_last_count"`
+	DefaultLockerID        int64 `json:"default_locker_id"    form:"default_locker_id"`
+	AllowContinueLastCount bool  `json:"allow_continue_last_count" form:"allow_continue_last_count"`
 }
 
 // LogoSrc returns the logo to use: the uploaded, self-contained image (works
