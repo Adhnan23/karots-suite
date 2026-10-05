@@ -15,6 +15,7 @@ import (
 
 func (h *handlers) registerAdminMoney(g *echo.Group) {
 	g.GET("/money-sources", h.AdminMoneySources)
+	g.GET("/money-receipts/:id", h.AdminMoneyReceipt)
 }
 
 // AdminMoneySources lists active lockers and open tills (karots-pos

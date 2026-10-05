@@ -42,6 +42,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/cashflow', label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
       { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
       { to: '/admin/tills', label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },
+      { to: '/admin/receipts', label: 'Receipts', description: 'Sale, cash, credit and warranty slips — find and reprint' },
       { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],
   },

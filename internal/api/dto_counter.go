@@ -206,6 +206,8 @@ type MoneyReceiptRow struct {
 	Note      string `json:"note"`
 	CreatedAt string `json:"createdAt"`
 	CreatedBy string `json:"createdBy"`
+	RefKind   string `json:"refKind"` // the record it was for: expense | sale | supplier_payment | … ("" = none)
+	RefID     int64  `json:"refId"`
 }
 
 type DebtReceiptRow struct {

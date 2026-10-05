@@ -61,10 +61,17 @@ func TestAdminExpenses(t *testing.T) {
 		t.Fatal("an overdraw left the expense behind")
 	}
 	rec = te.do(http.MethodPost, "/api/v1/admin/expenses", AdminExpenseRequest{Category: "Transport", Amount: "300", Description: "T ex taxi", Source: loc(safe)}, ck)
-	if rec.Code != http.StatusCreated || decode[ReceiptRef](t, rec).ReceiptID == nil || bal(safe) != "700.00" {
+	if rec.Code != http.StatusCreated || bal(safe) != "700.00" {
 		t.Fatalf("create: %d %s, safe %s", rec.Code, rec.Body, bal(safe))
 	}
+	rid := decode[ReceiptRef](t, rec).ReceiptID
 	taxi := find("T ex taxi")
+	if rid == nil {
+		t.Fatal("no receipt")
+	}
+	if mr := decode[MoneyReceiptRow](t, te.do(http.MethodGet, "/api/v1/admin/money-receipts/"+strconv.FormatInt(*rid, 10), nil, ck)); mr.RefKind != "expense" || mr.RefID != taxi.ID || mr.Amount != "300.00" {
+		t.Fatalf("receipt %+v", mr)
+	}
 	if taxi.PaidFrom != "T ex safe" || taxi.Amount != "300.00" || count(`SELECT count(*) FROM money_receipts WHERE ref_kind='expense' AND ref_id=$1 AND kind='expense'`, taxi.ID) != 1 {
 		t.Fatalf("listed %+v", taxi)
 	}

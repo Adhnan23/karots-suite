@@ -24,11 +24,33 @@ func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
 	}
 	out := make([]MoneyReceiptRow, 0, len(rows))
 	for _, r := range rows {
-		out = append(out, MoneyReceiptRow{ID: r.ID, ReceiptNo: r.ReceiptNo, Kind: r.Kind, KindLabel: receiptKindLabel(r.Kind),
-			FromLabel: r.FromLabel, ToLabel: r.ToLabel, Party: r.Party, Amount: dec2(r.Amount), Note: r.Note,
-			CreatedAt: r.CreatedAt.Format(time.RFC3339), CreatedBy: strOr(r.CreatedByName)})
+		out = append(out, moneyReceiptRow(r))
 	}
 	return c.JSON(http.StatusOK, out)
+}
+
+func moneyReceiptRow(r cashflow.Receipt) MoneyReceiptRow {
+	row := MoneyReceiptRow{ID: r.ID, ReceiptNo: r.ReceiptNo, Kind: r.Kind, KindLabel: receiptKindLabel(r.Kind),
+		FromLabel: r.FromLabel, ToLabel: r.ToLabel, Party: r.Party, Amount: dec2(r.Amount), Note: r.Note,
+		CreatedAt: r.CreatedAt.Format(time.RFC3339), CreatedBy: strOr(r.CreatedByName), RefKind: strOr(r.RefKind)}
+	if r.RefID != nil {
+		row.RefID = *r.RefID
+	}
+	return row
+}
+
+// AdminMoneyReceipt is one CR- receipt, for the receipts hub's deep link
+// (karots-pos /admin/money-receipts/:id).
+func (h *handlers) AdminMoneyReceipt(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	r, err := h.t.receipts.Get(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, moneyReceiptRow(*r))
 }
 
 // CounterDebtReceipts lists credit repayments (karots-pos ReceiptsCredit).

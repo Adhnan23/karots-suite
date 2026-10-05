@@ -459,6 +459,8 @@ export interface MoneyReceiptRow {
   note: string;
   createdAt: string;
   createdBy: string;
+  refKind: string; // the record it was for: expense | sale | supplier_payment | … ("" = none)
+  refId: number /* int64 */;
 }
 export interface DebtReceiptRow {
   id: number /* int64 */;

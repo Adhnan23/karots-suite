@@ -23,6 +23,7 @@ import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/adm
 import { Route as AuthedAdminDenominationsRouteImport } from './routes/_authed/admin/denominations'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
 import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/labels'
+import { Route as AuthedAdminReceiptsRouteImport } from './routes/_authed/admin/receipts'
 import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/reorder'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
@@ -69,6 +70,7 @@ import { Route as AuthedTillXKeyRouteImport } from './routes/_authed/till/x.$key
 import { Route as AuthedAdminPurchasesIdIndexRouteImport } from './routes/_authed/admin/purchases/$id/index'
 import { Route as AuthedAdminPurchasesIdEditRouteImport } from './routes/_authed/admin/purchases/$id/edit'
 import { Route as AuthedAdminPurchasesIdReceiveRouteImport } from './routes/_authed/admin/purchases/$id/receive'
+import { Route as AuthedAdminReceiptsCashIdRouteImport } from './routes/_authed/admin/receipts/cash.$id'
 import { Route as AuthedPrintStatementKindIdRouteImport } from './routes/_authed/print/statement.$kind.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -139,6 +141,11 @@ const AuthedAdminGroupsRoute = AuthedAdminGroupsRouteImport.update({
 const AuthedAdminLabelsRoute = AuthedAdminLabelsRouteImport.update({
   id: '/labels',
   path: '/labels',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminReceiptsRoute = AuthedAdminReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminReorderRoute = AuthedAdminReorderRouteImport.update({
@@ -385,6 +392,12 @@ const AuthedAdminPurchasesIdReceiveRoute =
     path: '/purchases/$id/receive',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminReceiptsCashIdRoute =
+  AuthedAdminReceiptsCashIdRouteImport.update({
+    id: '/cash/$id',
+    path: '/cash/$id',
+    getParentRoute: () => AuthedAdminReceiptsRoute,
+  } as any)
 const AuthedPrintStatementKindIdRoute =
   AuthedPrintStatementKindIdRouteImport.update({
     id: '/print/statement/$kind/$id',
@@ -405,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/admin/denominations': typeof AuthedAdminDenominationsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
+  '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
@@ -451,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/admin/tills/': typeof AuthedAdminTillsIndexRoute
   '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
+  '/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -465,6 +480,7 @@ export interface FileRoutesByTo {
   '/admin/denominations': typeof AuthedAdminDenominationsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
+  '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
@@ -511,6 +527,7 @@ export interface FileRoutesByTo {
   '/admin/tills': typeof AuthedAdminTillsIndexRoute
   '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
+  '/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/admin/purchases/$id': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -529,6 +546,7 @@ export interface FileRoutesById {
   '/_authed/admin/denominations': typeof AuthedAdminDenominationsRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
   '/_authed/admin/labels': typeof AuthedAdminLabelsRoute
+  '/_authed/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
   '/_authed/admin/reorder': typeof AuthedAdminReorderRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
@@ -575,6 +593,7 @@ export interface FileRoutesById {
   '/_authed/admin/tills/': typeof AuthedAdminTillsIndexRoute
   '/_authed/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/_authed/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
+  '/_authed/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
   '/_authed/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/_authed/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -593,6 +612,7 @@ export interface FileRouteTypes {
     | '/admin/denominations'
     | '/admin/groups'
     | '/admin/labels'
+    | '/admin/receipts'
     | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
@@ -639,6 +659,7 @@ export interface FileRouteTypes {
     | '/admin/tills/'
     | '/admin/purchases/$id/edit'
     | '/admin/purchases/$id/receive'
+    | '/admin/receipts/cash/$id'
     | '/print/statement/$kind/$id'
     | '/admin/purchases/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -653,6 +674,7 @@ export interface FileRouteTypes {
     | '/admin/denominations'
     | '/admin/groups'
     | '/admin/labels'
+    | '/admin/receipts'
     | '/admin/reorder'
     | '/admin/services'
     | '/admin/units'
@@ -699,6 +721,7 @@ export interface FileRouteTypes {
     | '/admin/tills'
     | '/admin/purchases/$id/edit'
     | '/admin/purchases/$id/receive'
+    | '/admin/receipts/cash/$id'
     | '/print/statement/$kind/$id'
     | '/admin/purchases/$id'
   id:
@@ -716,6 +739,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/denominations'
     | '/_authed/admin/groups'
     | '/_authed/admin/labels'
+    | '/_authed/admin/receipts'
     | '/_authed/admin/reorder'
     | '/_authed/admin/services'
     | '/_authed/admin/units'
@@ -762,6 +786,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/tills/'
     | '/_authed/admin/purchases/$id/edit'
     | '/_authed/admin/purchases/$id/receive'
+    | '/_authed/admin/receipts/cash/$id'
     | '/_authed/print/statement/$kind/$id'
     | '/_authed/admin/purchases/$id/'
   fileRoutesById: FileRoutesById
@@ -872,6 +897,13 @@ declare module '@tanstack/react-router' {
       path: '/labels'
       fullPath: '/admin/labels'
       preLoaderRoute: typeof AuthedAdminLabelsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/receipts': {
+      id: '/_authed/admin/receipts'
+      path: '/receipts'
+      fullPath: '/admin/receipts'
+      preLoaderRoute: typeof AuthedAdminReceiptsRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/reorder': {
@@ -1196,6 +1228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminPurchasesIdReceiveRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/receipts/cash/$id': {
+      id: '/_authed/admin/receipts/cash/$id'
+      path: '/cash/$id'
+      fullPath: '/admin/receipts/cash/$id'
+      preLoaderRoute: typeof AuthedAdminReceiptsCashIdRouteImport
+      parentRoute: typeof AuthedAdminReceiptsRoute
+    }
     '/_authed/print/statement/$kind/$id': {
       id: '/_authed/print/statement/$kind/$id'
       path: '/print/statement/$kind/$id'
@@ -1206,6 +1245,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedAdminReceiptsRouteChildren {
+  AuthedAdminReceiptsCashIdRoute: typeof AuthedAdminReceiptsCashIdRoute
+}
+
+const AuthedAdminReceiptsRouteChildren: AuthedAdminReceiptsRouteChildren = {
+  AuthedAdminReceiptsCashIdRoute: AuthedAdminReceiptsCashIdRoute,
+}
+
+const AuthedAdminReceiptsRouteWithChildren =
+  AuthedAdminReceiptsRoute._addFileChildren(AuthedAdminReceiptsRouteChildren)
+
 interface AuthedAdminRouteChildren {
   AuthedAdminCashflowRoute: typeof AuthedAdminCashflowRoute
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
@@ -1213,6 +1263,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminDenominationsRoute: typeof AuthedAdminDenominationsRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
   AuthedAdminLabelsRoute: typeof AuthedAdminLabelsRoute
+  AuthedAdminReceiptsRoute: typeof AuthedAdminReceiptsRouteWithChildren
   AuthedAdminReorderRoute: typeof AuthedAdminReorderRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
@@ -1251,6 +1302,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminDenominationsRoute: AuthedAdminDenominationsRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
   AuthedAdminLabelsRoute: AuthedAdminLabelsRoute,
+  AuthedAdminReceiptsRoute: AuthedAdminReceiptsRouteWithChildren,
   AuthedAdminReorderRoute: AuthedAdminReorderRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
