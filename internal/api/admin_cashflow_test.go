@@ -23,12 +23,22 @@ func TestAdminCashflow(t *testing.T) {
 	}
 	get := func() AdminCashflow { return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck)) }
 	d := func(s string) decimal.Decimal { v, _ := decimal.NewFromString(s); return v }
+	// The two test lockers' total (not cash on hand: parallel tests sell at open tills).
+	pair := func(cf AdminCashflow) string {
+		sum := decimal.Zero
+		for _, p := range cf.Places {
+			if p.Value == "locker:"+strconv.FormatInt(ids[0], 10) || p.Value == "locker:"+strconv.FormatInt(ids[1], 10) {
+				sum = sum.Add(d(p.Balance))
+			}
+		}
+		return sum.String()
+	}
 	before := get()
 	if rec := te.do(http.MethodPost, "/api/v1/admin/lockers/transfer", LockerTransferRequest{FromID: ids[0], ToID: ids[1], Amount: "40", Note: "T cf move"}, ck); rec.Code != http.StatusCreated {
 		t.Fatalf("transfer: %d %s", rec.Code, rec.Body)
 	}
 	after := get()
-	if after.In != before.In || after.Out != before.Out || !d(after.Moved).Sub(d(before.Moved)).Equal(decimal.NewFromInt(40)) || after.CashOnHand != before.CashOnHand {
+	if after.In != before.In || after.Out != before.Out || !d(after.Moved).Sub(d(before.Moved)).Equal(decimal.NewFromInt(40)) || pair(after) != pair(before) {
 		t.Fatalf("transfer moved in/out: before %+v after %+v", before, after)
 	}
 	rows := decode[[]CashflowRow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow/ledger?preset=today&place=locker:"+strconv.FormatInt(ids[1], 10), nil, ck))

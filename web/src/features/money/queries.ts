@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminCashflow, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
+import type { AdminCashflow, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type Range, rangeQS } from '@/features/counter/range'
 
@@ -23,3 +23,10 @@ export const cashflowQuery = (r: Range) => queryOptions({ queryKey: ['admin', 'c
 export const cashflowLedgerQuery = (r: Range, place: string, kind: string) =>
   paged<CashflowRow>(['admin', 'cashflow-ledger', r, place, kind], `/admin/cashflow/ledger?${cfQS(r)}&place=${encodeURIComponent(place)}&kind=${kind}`)
 export const cashflowPrintQuery = (r: Range) => queryOptions({ queryKey: ['admin', 'cashflow-print', r], queryFn: () => api<CashflowRow[]>(`/admin/cashflow/ledger?${cfQS(r)}&all=1`) })
+
+export type TillFilter = Range & { user: number; open: boolean }
+export const tillsQuery = (f: TillFilter) =>
+  paged<TillSessionRow>(['admin', 'tills', f], `/admin/tills?user=${f.user || ''}&open=${f.open ? 1 : ''}${rangeQS(f)}`)
+export const tillQuery = (id: number) => queryOptions({ queryKey: ['admin', 'till', id], queryFn: () => api<TillSessionView>(`/admin/tills/${id}`) })
+export const tillCashiersQuery = queryOptions({ queryKey: ['admin', 'till-cashiers'], queryFn: () => api<CashierOption[]>('/admin/tills/cashiers') })
+export const denominationsQuery = queryOptions({ queryKey: ['admin', 'denominations'], queryFn: () => api<AdminDenomination[]>('/admin/denominations') })

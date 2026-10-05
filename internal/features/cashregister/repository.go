@@ -142,6 +142,39 @@ func (r *Repository) SessionsInRange(ctx context.Context, from, to time.Time) ([
 	return rows, err
 }
 
+// SessionFilter narrows the admin's session list: opened in [From, To), one
+// cashier (0 = all), still open only. Newest first.
+type SessionFilter struct {
+	From, To *time.Time
+	UserID   int64
+	OpenOnly bool
+	Limit    int
+	Offset   int
+}
+
+func (r *Repository) ListSessions(ctx context.Context, f SessionFilter) ([]SessionRow, error) {
+	var rows []SessionRow
+	err := r.q.SelectContext(ctx, &rows, `
+		SELECT cr.*, u.name AS user_name
+		FROM cash_register cr JOIN users u ON u.id = cr.user_id
+		WHERE ($1::timestamptz IS NULL OR cr.opened_at >= $1)
+		  AND ($2::timestamptz IS NULL OR cr.opened_at <  $2)
+		  AND ($3 = 0 OR cr.user_id = $3)
+		  AND (NOT $4 OR cr.closed_at IS NULL)
+		ORDER BY cr.opened_at DESC, cr.id DESC LIMIT $5 OFFSET $6`, f.From, f.To, f.UserID, f.OpenOnly, f.Limit, max(f.Offset, 0))
+	return rows, err
+}
+
+// Cashiers lists everyone who has ever opened a till, for the list's filter.
+func (r *Repository) Cashiers(ctx context.Context) ([]SessionRow, error) {
+	var rows []SessionRow
+	err := r.q.SelectContext(ctx, &rows, `
+		SELECT DISTINCT ON (u.id) cr.*, u.name AS user_name
+		FROM cash_register cr JOIN users u ON u.id = cr.user_id
+		ORDER BY u.id, cr.opened_at DESC`)
+	return rows, err
+}
+
 func (r *Repository) FindByID(ctx context.Context, id int64) (*SessionRow, error) {
 	var s SessionRow
 	err := r.q.GetContext(ctx, &s, `

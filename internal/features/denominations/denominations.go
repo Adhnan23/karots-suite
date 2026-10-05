@@ -7,17 +7,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	"karots-suite/internal/db"
-	"karots-suite/internal/middleware"
-	"karots-suite/internal/response"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -140,76 +135,26 @@ func (s *Service) Update(ctx context.Context, id int64, in Input) error {
 	return nil
 }
 
+// Delete removes a denomination no saved drawer count uses; one that a count
+// does is refused (take it out of circulation instead), so old counts keep
+// meaning what they said.
 func (s *Service) Delete(ctx context.Context, id int64) error {
+	d, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	var used bool
+	if err := s.repo.db.GetContext(ctx, &used, `
+		SELECT EXISTS (SELECT 1 FROM cash_register WHERE opening_breakdown ?| $1 OR closing_breakdown ?| $1)
+		    OR EXISTS (SELECT 1 FROM cash_movements WHERE breakdown ?| $1)`,
+		pq.Array([]string{d.Value.String(), d.Value.StringFixed(2)})); err != nil {
+		return apperr.Internal("failed to check denomination use", err)
+	}
+	if used {
+		return apperr.Conflict("a saved drawer count uses it — take it out of circulation instead")
+	}
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return apperr.Internal("failed to delete denomination", err)
 	}
 	return nil
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	// Cashiers counting the drawer want only active denominations; the admin
-	// management screen asks for ?all=1 to see inactive ones too.
-	rows, err := h.svc.List(c.Request().Context(), c.QueryParam("all") != "1")
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Create(c echo.Context) error {
-	var in Input
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	d, err := h.svc.Create(c.Request().Context(), in)
-	if err != nil {
-		return err
-	}
-	return response.Created(c, d)
-}
-
-func (h *APIHandler) Update(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	var in Input
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	if err := h.svc.Update(c.Request().Context(), id, in); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func (h *APIHandler) Delete(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	if err := h.svc.Delete(c.Request().Context(), id); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func RegisterAPI(e *echo.Echo, sqlxDB *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(sqlxDB))
-	g := e.Group("/api/denominations", middleware.JWTAuth(cfg.JWTSecret))
-	g.GET("", api.List)
-	g.POST("", api.Create, middleware.RequireRole("admin", "manager"))
-	g.PUT("/:id", api.Update, middleware.RequireRole("admin", "manager"))
-	g.DELETE("/:id", api.Delete, middleware.RequireRole("admin", "manager"))
 }

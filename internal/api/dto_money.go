@@ -202,3 +202,58 @@ type CashflowRow struct {
 	ReceiptID int64  `json:"receiptId"`
 	ReceiptNo string `json:"receiptNo"`
 }
+
+// TillSessionRow is one till session (karots-pos /admin/cash-register).
+// Expected is live for an open till; Counted / Difference are "" until it
+// closes. Difference < 0 = short, > 0 = over.
+type TillSessionRow struct {
+	ID         int64  `json:"id"`
+	UserID     int64  `json:"userId"`
+	Cashier    string `json:"cashier"`
+	OpenedAt   string `json:"openedAt"`
+	ClosedAt   string `json:"closedAt"`
+	Open       bool   `json:"open"`
+	Opening    string `json:"opening"`
+	Expected   string `json:"expected"`
+	Counted    string `json:"counted"`
+	Difference string `json:"difference"`
+}
+
+// TillMove is one drawer movement in a session.
+type TillMove struct {
+	At     string `json:"at"`
+	Type   string `json:"type"` // opening | pay_in | withdrawal | expense | credit_payment | refund | closing
+	Amount string `json:"amount"`
+	Reason string `json:"reason"`
+}
+
+// TillSessionView is one session: its money, every movement, and the drawer
+// counts by denomination ({value: count}) at open and close.
+type TillSessionView struct {
+	Session      TillSessionRow     `json:"session"`
+	Moves        []TillMove         `json:"moves"`
+	OpeningCount map[string]float64 `json:"openingCount"`
+	ClosingCount map[string]float64 `json:"closingCount"`
+}
+
+// CashierOption is someone who has opened a till (the list's filter).
+type CashierOption struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// AdminDenomination is a note or coin the drawer count offers; Active = still
+// in circulation (shown in the count).
+type AdminDenomination struct {
+	ID     int64  `json:"id"`
+	Value  string `json:"value"`
+	IsNote bool   `json:"isNote"`
+	Active bool   `json:"active"`
+}
+
+// DenominationRequest adds or edits one.
+type DenominationRequest struct {
+	Value  string `json:"value"`
+	IsNote bool   `json:"isNote"`
+	Active bool   `json:"active"`
+}

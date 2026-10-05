@@ -41,6 +41,7 @@ export const adminNav: NavArea[] = [
     key: 'money', label: 'Money', icon: Wallet, pages: [
       { to: '/admin/cashflow', label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
       { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
+      { to: '/admin/tills', label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },
       { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],
   },
@@ -50,6 +51,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/categories', label: 'Categories', description: 'Product categories' },
       { to: '/admin/groups', label: 'Cashier menu', description: 'Group cards shown on the till' },
       { to: '/admin/units', label: 'Units', description: 'Units of measure' },
+      { to: '/admin/denominations', label: 'Denominations', description: 'Notes and coins for the drawer count' },
       { to: '/admin/labels', label: 'Barcode labels', description: 'Print product labels' },
       { to: '/admin/users', label: 'Users', description: 'Staff accounts & roles', gate: 'admin' },
     ],

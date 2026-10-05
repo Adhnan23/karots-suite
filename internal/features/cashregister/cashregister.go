@@ -373,6 +373,23 @@ func (s *Service) Close(ctx context.Context, userID int64, in CloseInput) (*Clos
 	return res, nil
 }
 
+// ListSessions pages the admin's till sessions (karots-pos showed the newest 100).
+func (s *Service) ListSessions(ctx context.Context, f SessionFilter) ([]SessionRow, error) {
+	rows, err := s.repo.ListSessions(ctx, f)
+	if err != nil {
+		return nil, apperr.Internal("failed to list register sessions", err)
+	}
+	return rows, nil
+}
+
+func (s *Service) Cashiers(ctx context.Context) ([]SessionRow, error) {
+	rows, err := s.repo.Cashiers(ctx)
+	if err != nil {
+		return nil, apperr.Internal("failed to list cashiers", err)
+	}
+	return rows, nil
+}
+
 func (s *Service) RecentSessions(ctx context.Context, limit int) ([]SessionRow, error) {
 	rows, err := s.repo.RecentSessions(ctx, limit)
 	if err != nil {

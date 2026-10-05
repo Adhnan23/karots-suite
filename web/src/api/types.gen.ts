@@ -976,6 +976,67 @@ export interface CashflowRow {
   receiptId: number /* int64 */;
   receiptNo: string;
 }
+/**
+ * TillSessionRow is one till session (karots-pos /admin/cash-register).
+ * Expected is live for an open till; Counted / Difference are "" until it
+ * closes. Difference < 0 = short, > 0 = over.
+ */
+export interface TillSessionRow {
+  id: number /* int64 */;
+  userId: number /* int64 */;
+  cashier: string;
+  openedAt: string;
+  closedAt: string;
+  open: boolean;
+  opening: string;
+  expected: string;
+  counted: string;
+  difference: string;
+}
+/**
+ * TillMove is one drawer movement in a session.
+ */
+export interface TillMove {
+  at: string;
+  type: string; // opening | pay_in | withdrawal | expense | credit_payment | refund | closing
+  amount: string;
+  reason: string;
+}
+/**
+ * TillSessionView is one session: its money, every movement, and the drawer
+ * counts by denomination ({value: count}) at open and close.
+ */
+export interface TillSessionView {
+  session: TillSessionRow;
+  moves: TillMove[];
+  openingCount: { [key: string]: number /* float64 */};
+  closingCount: { [key: string]: number /* float64 */};
+}
+/**
+ * CashierOption is someone who has opened a till (the list's filter).
+ */
+export interface CashierOption {
+  id: number /* int64 */;
+  name: string;
+}
+/**
+ * AdminDenomination is a note or coin the drawer count offers; Active = still
+ * in circulation (shown in the count).
+ */
+export interface AdminDenomination {
+  id: number /* int64 */;
+  value: string;
+  isNote: boolean;
+  active: boolean;
+}
+/**
+ * DenominationRequest adds or edits one.
+ */
+export interface DenominationRequest {
+  value: string;
+  isNote: boolean;
+  active: boolean;
+}
 
 //////////
 // source: dto_people.go

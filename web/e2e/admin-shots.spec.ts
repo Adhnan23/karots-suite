@@ -96,7 +96,39 @@ async function expensesWithHistory(page: Page) {
     await page.request.post('/api/v1/admin/expenses', { data: { category, amount, description, date: d(n), serviceId: 0, source } })
 }
 
+/** A closed till session (deposit, withdraw, counted short) and the till open
+ * again, made once. Returns the closed session's id. */
+async function tillWithHistory(page: Page): Promise<number> {
+  const safe = await lockersWithHistory(page)
+  const closed = async () => ((await (await page.request.get('/api/v1/admin/tills?preset=today')).json()) as { id: number; open: boolean }[]).find((s) => !s.open)?.id
+  const have = await closed()
+  if (have) return have
+  const post = (url: string, data: unknown) => page.request.post(url, { data })
+  if (!(await (await page.request.get('/api/v1/till/drawer')).json()).summary?.session)
+    await post('/api/v1/till/drawer/open', { breakdown: { 1000: 4, 500: 2 }, sourceLockerId: safe })
+  await post('/api/v1/till/drawer/deposit', { amount: '2000', reason: 'Change float top-up', lockerId: safe, deferDrawerKick: true })
+  await post('/api/v1/till/drawer/withdraw', { amount: '3000', reason: 'Banked mid-day', lockerId: safe, deferDrawerKick: true })
+  const s = (await (await page.request.get('/api/v1/till/drawer')).json()).summary
+  const expected = Number(s.expected)
+  await post('/api/v1/till/drawer/close', { breakdown: { 5000: Math.floor((expected - 50) / 5000), 100: Math.round(((expected - 50) % 5000) / 100) }, destLockerId: safe })
+  await post('/api/v1/till/drawer/open', { breakdown: { 1000: 3, 500: 4 }, sourceLockerId: safe })
+  return (await closed())!
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  tills: async (page) => {
+    await tillWithHistory(page)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  },
+  till: async (page) => {
+    await page.goto(`/admin/tills/${await tillWithHistory(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
+  denominations: async (page) => {
+    await page.goto('/admin/denominations')
+    await page.waitForLoadState('networkidle')
+  },
   cashflow: async (page) => {
     await expensesWithHistory(page)
     await page.goto('/admin/cashflow?preset=this-month')
