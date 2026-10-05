@@ -913,6 +913,69 @@ export interface ExpenseVoidInfo {
 export interface ExpenseVoidRequest {
   dest: string;
 }
+/**
+ * CashPlace is one place's live balance on Cash flow. Value is the MoneySource
+ * value for the ledger's place filter ("" for a plugin location).
+ */
+export interface CashPlace {
+  value: string;
+  name: string;
+  kind: string; // locker kind, "till", or "plugin"
+  balance: string;
+}
+/**
+ * CashPlaceGroup is a plugin's money locations (e.g. a carrier's float):
+ * owned by the shop but not cash on hand.
+ */
+export interface CashPlaceGroup {
+  group: string;
+  items: CashPlace[];
+  total: string;
+}
+/**
+ * NetLine is one line of the net-position card. Sign +1 adds, −1 subtracts.
+ */
+export interface NetLine {
+  label: string;
+  amount: string;
+  sign: number /* int */;
+}
+/**
+ * AdminCashflow is the Cash flow page (karots-pos /admin/cashflow, with its
+ * 9f17be1 fix): live balances, the range's totals from SQL over the whole range
+ * (moves between the shop's own places counted once, apart from in / out), and
+ * the net position line by line.
+ */
+export interface AdminCashflow {
+  from: string; // YYYY-MM-DD, inclusive
+  to: string;
+  places: CashPlace[];
+  plugins: CashPlaceGroup[];
+  cashOnHand: string;
+  tillSales: string;
+  in: string;
+  out: string;
+  moved: string;
+  net: string;
+  rows: number /* int */;
+  netLines: NetLine[];
+  netPosition: string;
+}
+/**
+ * CashflowRow is one ledger line. Moved = one side of a move between the
+ * shop's own places (left out of in / out).
+ */
+export interface CashflowRow {
+  at: string;
+  place: string;
+  location: string;
+  kind: string;
+  delta: string;
+  note: string;
+  moved: boolean;
+  receiptId: number /* int64 */;
+  receiptNo: string;
+}
 
 //////////
 // source: dto_people.go

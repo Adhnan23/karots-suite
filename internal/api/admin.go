@@ -27,6 +27,7 @@ func (h *handlers) registerAdmin(v1 *echo.Group) {
 	h.registerAdminLockers(g)
 	h.registerAdminLockerMoves(g)
 	h.registerAdminExpenses(g)
+	h.registerAdminCashflow(g)
 	h.registerAdminSuppliers(g)
 	h.registerAdminCustomers(g)
 	h.registerAdminPurchases(g)

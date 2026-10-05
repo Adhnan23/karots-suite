@@ -39,6 +39,7 @@ export const adminNav: NavArea[] = [
   },
   {
     key: 'money', label: 'Money', icon: Wallet, pages: [
+      { to: '/admin/cashflow', label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
       { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
       { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],

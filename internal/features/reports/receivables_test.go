@@ -2,7 +2,6 @@ package reports
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 )
@@ -14,11 +13,13 @@ func TestReceivablesExcludeCustomerAdvances(t *testing.T) {
 	conn := reportsTestDB(t)
 	defer conn.Close()
 	ctx := context.Background()
-	// Repeatable read: other packages' tests commit customers in parallel, and
-	// the P&L must see only this tx's snapshot.
-	tx, err := conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := conn.BeginTxx(ctx, nil)
 	mustR(t, err)
 	defer tx.Rollback() //nolint:errcheck
+	// Other packages' tests write customers in parallel: hold them off until the
+	// rollback, so the P&L sees only the two rows below.
+	_, err = tx.ExecContext(ctx, `LOCK TABLE customers IN SHARE ROW EXCLUSIVE MODE`)
+	mustR(t, err)
 
 	// Only the two test customers: zero everyone else inside the rolled-back tx.
 	_, err = tx.ExecContext(ctx, `UPDATE customers SET outstanding_balance = 0`)

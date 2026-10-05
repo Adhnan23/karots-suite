@@ -144,3 +144,61 @@ type ExpenseVoidInfo struct {
 type ExpenseVoidRequest struct {
 	Dest string `json:"dest"`
 }
+
+// CashPlace is one place's live balance on Cash flow. Value is the MoneySource
+// value for the ledger's place filter ("" for a plugin location).
+type CashPlace struct {
+	Value   string `json:"value"`
+	Name    string `json:"name"`
+	Kind    string `json:"kind"` // locker kind, "till", or "plugin"
+	Balance string `json:"balance"`
+}
+
+// CashPlaceGroup is a plugin's money locations (e.g. a carrier's float):
+// owned by the shop but not cash on hand.
+type CashPlaceGroup struct {
+	Group string      `json:"group"`
+	Items []CashPlace `json:"items"`
+	Total string      `json:"total"`
+}
+
+// NetLine is one line of the net-position card. Sign +1 adds, −1 subtracts.
+type NetLine struct {
+	Label  string `json:"label"`
+	Amount string `json:"amount"`
+	Sign   int    `json:"sign"`
+}
+
+// AdminCashflow is the Cash flow page (karots-pos /admin/cashflow, with its
+// 9f17be1 fix): live balances, the range's totals from SQL over the whole range
+// (moves between the shop's own places counted once, apart from in / out), and
+// the net position line by line.
+type AdminCashflow struct {
+	From        string           `json:"from"` // YYYY-MM-DD, inclusive
+	To          string           `json:"to"`
+	Places      []CashPlace      `json:"places"`
+	Plugins     []CashPlaceGroup `json:"plugins"`
+	CashOnHand  string           `json:"cashOnHand"`
+	TillSales   string           `json:"tillSales"`
+	In          string           `json:"in"`
+	Out         string           `json:"out"`
+	Moved       string           `json:"moved"`
+	Net         string           `json:"net"`
+	Rows        int              `json:"rows"`
+	NetLines    []NetLine        `json:"netLines"`
+	NetPosition string           `json:"netPosition"`
+}
+
+// CashflowRow is one ledger line. Moved = one side of a move between the
+// shop's own places (left out of in / out).
+type CashflowRow struct {
+	At        string `json:"at"`
+	Place     string `json:"place"`
+	Location  string `json:"location"`
+	Kind      string `json:"kind"`
+	Delta     string `json:"delta"`
+	Note      string `json:"note"`
+	Moved     bool   `json:"moved"`
+	ReceiptID int64  `json:"receiptId"`
+	ReceiptNo string `json:"receiptNo"`
+}

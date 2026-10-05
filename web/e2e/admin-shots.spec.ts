@@ -97,6 +97,21 @@ async function expensesWithHistory(page: Page) {
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  cashflow: async (page) => {
+    await expensesWithHistory(page)
+    await page.goto('/admin/cashflow?preset=this-month')
+    await page.waitForLoadState('networkidle')
+  },
+  'cashflow-ledger': async (page) => {
+    await prep.cashflow(page)
+    await page.getByRole('region', { name: 'Net position' }).scrollIntoViewIfNeeded()
+    await page.getByLabel('Movements').locator('visible=true').first().scrollIntoViewIfNeeded()
+  },
+  'cashflow-print': async (page) => {
+    await expensesWithHistory(page)
+    await page.goto('/print/cashflow?preset=this-month')
+    await page.waitForLoadState('networkidle')
+  },
   expenses: async (page) => {
     await expensesWithHistory(page)
     await page.reload()

@@ -17,6 +17,7 @@ import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
 import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
+import { Route as AuthedAdminCashflowRouteImport } from './routes/_authed/admin/cashflow'
 import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
 import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
@@ -25,6 +26,7 @@ import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/r
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedAdminUsersRouteImport } from './routes/_authed/admin/users'
+import { Route as AuthedPrintCashflowRouteImport } from './routes/_authed/print/cashflow'
 import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
 import { Route as AuthedPrintPoRouteImport } from './routes/_authed/print/po'
 import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index'
@@ -105,6 +107,11 @@ const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminCashflowRoute = AuthedAdminCashflowRouteImport.update({
+  id: '/cashflow',
+  path: '/cashflow',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminCategoriesRoute = AuthedAdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -144,6 +151,11 @@ const AuthedAdminUsersRoute = AuthedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedPrintCashflowRoute = AuthedPrintCashflowRouteImport.update({
+  id: '/print/cashflow',
+  path: '/print/cashflow',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedPrintLabelsRoute = AuthedPrintLabelsRouteImport.update({
   id: '/print/labels',
@@ -368,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRouteWithChildren
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
@@ -376,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
+  '/print/cashflow': typeof AuthedPrintCashflowRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
   '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
@@ -423,6 +437,7 @@ export interface FileRoutesByTo {
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
@@ -431,6 +446,7 @@ export interface FileRoutesByTo {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
+  '/print/cashflow': typeof AuthedPrintCashflowRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
   '/print/po': typeof AuthedPrintPoRoute
   '/till/convert': typeof AuthedTillConvertRoute
@@ -482,6 +498,7 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
   '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
@@ -490,6 +507,7 @@ export interface FileRoutesById {
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/admin/users': typeof AuthedAdminUsersRoute
+  '/_authed/print/cashflow': typeof AuthedPrintCashflowRoute
   '/_authed/print/labels': typeof AuthedPrintLabelsRoute
   '/_authed/print/po': typeof AuthedPrintPoRoute
   '/_authed/till/convert': typeof AuthedTillConvertRoute
@@ -541,6 +559,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/account/pin'
+    | '/admin/cashflow'
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/groups'
@@ -549,6 +568,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
+    | '/print/cashflow'
     | '/print/labels'
     | '/print/po'
     | '/till/convert'
@@ -596,6 +616,7 @@ export interface FileRouteTypes {
     | '/lock'
     | '/login'
     | '/account/pin'
+    | '/admin/cashflow'
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/groups'
@@ -604,6 +625,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
+    | '/print/cashflow'
     | '/print/labels'
     | '/print/po'
     | '/till/convert'
@@ -654,6 +676,7 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/till'
     | '/account/pin'
+    | '/_authed/admin/cashflow'
     | '/_authed/admin/categories'
     | '/_authed/admin/conversions'
     | '/_authed/admin/groups'
@@ -662,6 +685,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/services'
     | '/_authed/admin/units'
     | '/_authed/admin/users'
+    | '/_authed/print/cashflow'
     | '/_authed/print/labels'
     | '/_authed/print/po'
     | '/_authed/till/convert'
@@ -771,6 +795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminIndexRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/cashflow': {
+      id: '/_authed/admin/cashflow'
+      path: '/cashflow'
+      fullPath: '/admin/cashflow'
+      preLoaderRoute: typeof AuthedAdminCashflowRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/categories': {
       id: '/_authed/admin/categories'
       path: '/categories'
@@ -826,6 +857,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthedAdminUsersRouteImport
       parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/print/cashflow': {
+      id: '/_authed/print/cashflow'
+      path: '/print/cashflow'
+      fullPath: '/print/cashflow'
+      preLoaderRoute: typeof AuthedPrintCashflowRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/print/labels': {
       id: '/_authed/print/labels'
@@ -1111,6 +1149,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedAdminRouteChildren {
+  AuthedAdminCashflowRoute: typeof AuthedAdminCashflowRoute
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
   AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
@@ -1145,6 +1184,7 @@ interface AuthedAdminRouteChildren {
 }
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminCashflowRoute: AuthedAdminCashflowRoute,
   AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
   AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
@@ -1217,6 +1257,7 @@ const AuthedTillRouteWithChildren = AuthedTillRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedTillRoute: typeof AuthedTillRouteWithChildren
+  AuthedPrintCashflowRoute: typeof AuthedPrintCashflowRoute
   AuthedPrintLabelsRoute: typeof AuthedPrintLabelsRoute
   AuthedPrintPoRoute: typeof AuthedPrintPoRoute
   AuthedPrintGrnIdRoute: typeof AuthedPrintGrnIdRoute
@@ -1229,6 +1270,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedTillRoute: AuthedTillRouteWithChildren,
+  AuthedPrintCashflowRoute: AuthedPrintCashflowRoute,
   AuthedPrintLabelsRoute: AuthedPrintLabelsRoute,
   AuthedPrintPoRoute: AuthedPrintPoRoute,
   AuthedPrintGrnIdRoute: AuthedPrintGrnIdRoute,
