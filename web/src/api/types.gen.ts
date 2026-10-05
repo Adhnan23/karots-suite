@@ -818,6 +818,34 @@ export interface LockerLedgerRow {
   receiptId: number /* int64 */;
   receiptNo: string;
 }
+/**
+ * LockerTransferRequest moves money from one locker to another.
+ */
+export interface LockerTransferRequest {
+  fromId: number /* int64 */;
+  toId: number /* int64 */;
+  amount: string;
+  note: string;
+}
+/**
+ * LockerAdjustRequest is a bank charge (out, books an expense), interest (in),
+ * or a manual count correction up / down (note required).
+ */
+export interface LockerAdjustRequest {
+  type: string; // bank_charge | interest | adjust_up | adjust_down
+  amount: string;
+  note: string;
+}
+/**
+ * SettleCardRequest banks a card-machine batch: Gross leaves the card account,
+ * Gross − Fee lands in the bank, and Fee is booked as an expense.
+ */
+export interface SettleCardRequest {
+  cardId: number /* int64 */;
+  bankId: number /* int64 */;
+  gross: string;
+  fee: string;
+}
 
 //////////
 // source: dto_people.go

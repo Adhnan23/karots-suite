@@ -80,6 +80,12 @@ async function lockersWithHistory(page: Page): Promise<number> {
   return safe
 }
 
+/** Choose the option of a labelled <select> whose text starts with `text`. */
+async function pick(page: Page, label: string, text: string) {
+  const sel = page.getByLabel(label, { exact: true })
+  await sel.selectOption((await sel.locator('option', { hasText: text }).first().getAttribute('value'))!)
+}
+
 const prep: Record<string, (page: Page) => Promise<void>> = {
   lockers: async (page) => {
     await lockersWithHistory(page)
@@ -93,6 +99,28 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
   locker: async (page) => {
     await page.goto(`/admin/lockers/${await lockersWithHistory(page)}`)
     await page.waitForLoadState('networkidle')
+  },
+  'locker-transfer': async (page) => {
+    await prep.lockers(page)
+    await page.getByRole('button', { name: 'Move money' }).click()
+    await pick(page, 'From', 'Shop safe')
+    await pick(page, 'To', 'BOC current')
+    await page.getByLabel('Amount', { exact: true }).fill('25000')
+    await page.getByLabel('Note').fill("Banked the week's takings")
+  },
+  'locker-adjust': async (page) => {
+    await page.goto(`/admin/lockers/${await lockersWithHistory(page)}`)
+    await page.getByRole('button', { name: 'Adjust' }).click()
+    await page.getByRole('radio', { name: /Count is lower/ }).click()
+    await page.getByLabel('Amount', { exact: true }).fill('500')
+    await page.getByLabel('Note').fill('Counted the safe — one note short')
+  },
+  'settle-card': async (page) => {
+    await prep.lockers(page)
+    await page.getByRole('button', { name: 'Settle card' }).click()
+    await pick(page, 'Card machine', 'Card machine')
+    await pick(page, 'Into bank', 'BOC current')
+    await page.getByLabel('Service fee').fill('372.80')
   },
   'locker-form': async (page) => {
     await lockersWithHistory(page)

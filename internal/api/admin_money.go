@@ -7,8 +7,10 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/money"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 func (h *handlers) registerAdminMoney(g *echo.Group) {
@@ -56,4 +58,16 @@ func parseLocation(v string) (cashflow.Location, error) {
 		return cashflow.Till(id), nil
 	}
 	return cashflow.Location{}, apperr.Validation("invalid money source")
+}
+
+// parseAmount reads a money amount typed by a person: spaces and thousands
+// commas dropped, then a plain decimal above zero with at most 2 dp. what names
+// the field in the error ("amount", "fee", …).
+func parseAmount(s, what string) (decimal.Decimal, error) {
+	s = strings.NewReplacer(",", "", " ", "").Replace(s)
+	v, err := money.Parse(s)
+	if err != nil || s == "" || strings.ContainsAny(s, "eE") || !v.IsPositive() || !v.Equal(v.Round(2)) {
+		return decimal.Zero, apperr.Validation("enter a valid " + what)
+	}
+	return v, nil
 }

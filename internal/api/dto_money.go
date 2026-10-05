@@ -58,3 +58,29 @@ type LockerLedgerRow struct {
 	ReceiptID int64  `json:"receiptId"`
 	ReceiptNo string `json:"receiptNo"`
 }
+
+// LockerTransferRequest moves money from one locker to another.
+type LockerTransferRequest struct {
+	FromID int64  `json:"fromId"`
+	ToID   int64  `json:"toId"`
+	Amount string `json:"amount"`
+	Note   string `json:"note"`
+}
+
+// LockerAdjustRequest is a bank charge (out, books an expense), interest (in),
+// or a manual count correction up / down (note required).
+type LockerAdjustRequest struct {
+	Type   string `json:"type"` // bank_charge | interest | adjust_up | adjust_down
+	Amount string `json:"amount"`
+	Note   string `json:"note"`
+}
+
+// SettleCardRequest banks a card-machine batch: Gross leaves the card account,
+// Gross − Fee lands in the bank, and Fee is booked as an expense.
+type SettleCardRequest struct {
+	CardID int64  `json:"cardId"`
+	BankID int64  `json:"bankId"`
+	Gross  string `json:"gross"`
+	Fee    string `json:"fee"`
+}
+
