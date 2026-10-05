@@ -1075,6 +1075,86 @@ export interface AdminReturnResult {
   cashRefund: string;
   receiptId?: number /* int64 */;
 }
+/**
+ * FinanceLine is one P&L line or one labelled amount.
+ */
+export interface FinanceLine {
+  label: string;
+  amount: string;
+}
+/**
+ * FinancePoint is one period on the trend (Day = period start, YYYY-MM-DD).
+ */
+export interface FinancePoint {
+  day: string;
+  revenue: string;
+  profit: string;
+}
+/**
+ * FinanceSlice is one payment method's share of takings.
+ */
+export interface FinanceSlice {
+  method: string;
+  count: number /* int */;
+  total: string;
+}
+/**
+ * FinanceCategory is one category's revenue and profit.
+ */
+export interface FinanceCategory {
+  category: string;
+  revenue: string;
+  profit: string;
+}
+/**
+ * FinanceProduct is a top seller.
+ */
+export interface FinanceProduct {
+  name: string;
+  qty: string;
+  revenue: string;
+  profit: string;
+}
+/**
+ * AdminFinance is the Finance hub (karots-pos /admin/finance, its Overview,
+ * Profit and Cash tabs in one read): the P&L for the range (plugin income lines
+ * folded into net profit), the trend at a grain fitting the range, the payment
+ * mix, profit by category, top products, and the money owed either way.
+ */
+export interface AdminFinance {
+  from: string;
+  to: string;
+  grain: string; // day | week | month
+  salesCount: number /* int */;
+  grossRevenue: string;
+  returns: string;
+  revenue: string;
+  cogs: string;
+  grossProfit: string;
+  grossMargin: string; // percent, 1 dp
+  expenses: string;
+  losses: string;
+  ownUse: string;
+  staffWelfare: string;
+  stockCorrections: string;
+  recoveries: string;
+  otherIncome: string;
+  pluginIncome: FinanceLine[];
+  netProfit: string;
+  zeroCostLines: number /* int */;
+  zeroCostRevenue: string;
+  received: string;
+  cashWithdrawn: string;
+  registerDiff: string;
+  receivables: string;
+  customerAdvances: string;
+  payables: string;
+  supplierCredit: string;
+  trend: FinancePoint[];
+  byPayment: FinanceSlice[];
+  categories: FinanceCategory[];
+  topProducts: FinanceProduct[];
+}
 
 //////////
 // source: dto_people.go

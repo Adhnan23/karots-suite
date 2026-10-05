@@ -64,7 +64,7 @@ These are the same names in every palette. Names follow shadcn, so its component
 | `--glow` | `none` | `none` | `0 0 14px rgb(110 91 255/.45)` | `0 0 14px rgb(139 123 255/.7)` |
 | `--bar` (floating dock and tab bar) | `rgb(255 255 255/.9)` | `rgb(27 28 33/.92)` | `rgb(255 255 255/.66)` | `rgb(22 29 51/.72)` |
 | `--shadow`, `--shadow-float` | as in the mockup | as in the mockup | as in the mockup | as in the mockup |
-| `--chart-1..6` | `#D98E00 #2F6FEB #12955A #7C5CFF #D23F3F #0E9AA7` | `#F5B820 #5B8DEF #3CCB84 #A48CFF #F27272 #2EC4CF` | `#6E5BFF #0A9FB4 #0F9160 #A86500 #D6404E #C026D3` | `#8B7BFF #2FD5E6 #3DDC97 #FFC857 #FF7C7C #E879F9` |
+| `--chart-1..6` | `#EDA100 #1BAF7A #2A78D6 #E87BA4 #D23F3F #0E9AA7` | `#C98500 #199E70 #3987E5 #D55181 #F27272 #2EC4CF` | `#4A3AA7 #1BAF7A #2A78D6 #E87BA4 #D6404E #C026D3` | `#9085E9 #199E70 #3987E5 #D55181 #FF7C7C #E879F9` |
 
 The exact values are in the mockup's CSS: search for `data-pal="studio"` and `data-pal="night"`.
 
@@ -74,7 +74,7 @@ Rules:
 - Keep karots' money cue: green means money in, red means money out.
 - **Glass costs GPU time.** Use `--glass` on large surfaces only: cards, the dock, shelves and the tab bar. Never use it on each product tile or table row.
 - Under `prefers-reduced-transparency: reduce`, set `--glass: none` and make `--card` solid.
-- **Charts** (ECharts) read `--chart-*`, `--border`, `--faint` and `--foreground` at render time, and re-render on palette or mode change.
+- **Charts** (ECharts) use `--chart-1..4` as the categorical order (validated with the dataviz palette checks, 2026-10-05: adjacent pairs incl. a donut's wrap, both modes, each mode's own surface; slots 5–6 are unvalidated spares). They read `--chart-*`, `--border`, `--faint` and `--foreground` at render time, and re-render on palette or mode change.
 
 ## 3. Type
 

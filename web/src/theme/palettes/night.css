@@ -42,10 +42,10 @@
   --bar: rgb(255 255 255 / .66);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 10px 30px rgb(60 50 140 / .10);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .8), 0 18px 50px rgb(60 50 140 / .18);
-  --chart-1: #6E5BFF;
-  --chart-2: #0A9FB4;
-  --chart-3: #0F9160;
-  --chart-4: #A86500;
+  --chart-1: #4A3AA7;
+  --chart-2: #1BAF7A;
+  --chart-3: #2A78D6;
+  --chart-4: #E87BA4;
   --chart-5: #D6404E;
   --chart-6: #C026D3;
 }
@@ -92,10 +92,10 @@
   --bar: rgb(22 29 51 / .72);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
-  --chart-1: #8B7BFF;
-  --chart-2: #2FD5E6;
-  --chart-3: #3DDC97;
-  --chart-4: #FFC857;
+  --chart-1: #9085E9;
+  --chart-2: #199E70;
+  --chart-3: #3987E5;
+  --chart-4: #D55181;
   --chart-5: #FF7C7C;
   --chart-6: #E879F9;
 }
@@ -143,10 +143,10 @@
     --bar: rgb(22 29 51 / .72);
     --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
     --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
-    --chart-1: #8B7BFF;
-    --chart-2: #2FD5E6;
-    --chart-3: #3DDC97;
-    --chart-4: #FFC857;
+    --chart-1: #9085E9;
+    --chart-2: #199E70;
+    --chart-3: #3987E5;
+    --chart-4: #D55181;
     --chart-5: #FF7C7C;
     --chart-6: #E879F9;
   }

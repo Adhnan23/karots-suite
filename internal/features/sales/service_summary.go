@@ -74,7 +74,9 @@ func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to t
 	out.Net = agg.Net.Sub(returns)
 
 	err = s.db.SelectContext(ctx, &out.ByMethod, `
-		SELECT pmt.method AS method, COALESCE(SUM(pmt.amount),0) AS amount
+		-- Change always leaves as cash, so cash is what the drawer kept.
+		SELECT pmt.method AS method,
+		       COALESCE(SUM(pmt.amount),0) - COALESCE(SUM(s.change_given) FILTER (WHERE pmt.method = 'cash'),0) AS amount
 		FROM payments pmt JOIN sales s ON s.id = pmt.sale_id
 		WHERE s.cashier_id = $1 AND s.created_at >= $2 AND s.created_at <= $3 AND s.status <> 'void'
 		GROUP BY pmt.method ORDER BY pmt.method`,

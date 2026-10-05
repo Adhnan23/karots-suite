@@ -35,6 +35,21 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  finance: async (page) => {
+    await salesWithHistory(page)
+    await page.goto('/admin/finance')
+    await page.waitForLoadState('networkidle')
+  },
+  'finance-profit': async (page) => {
+    await salesWithHistory(page)
+    await page.goto('/admin/finance?tab=profit')
+    await page.waitForLoadState('networkidle')
+  },
+  'finance-cash': async (page) => {
+    await salesWithHistory(page)
+    await page.goto('/admin/finance?tab=cash')
+    await page.waitForLoadState('networkidle')
+  },
   sales: async (page) => {
     await salesWithHistory(page)
     await page.goto('/admin/sales?preset=today')

@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminCashflow, AdminSaleRow, AdminSalesSummary, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
+import type { AdminCashflow, AdminFinance, AdminSaleRow, AdminSalesSummary, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type Range, rangeQS } from '@/features/counter/range'
 
@@ -36,3 +36,5 @@ export const salesQS = (f: SalesFilter) => `status=${f.status}&method=${f.method
 export const adminSalesQuery = (f: SalesFilter) => paged<AdminSaleRow>(['admin', 'sales', f], `/admin/sales?${salesQS(f)}`)
 export const adminSalesSummaryQuery = (f: SalesFilter) =>
   queryOptions({ queryKey: ['admin', 'sales-summary', f], queryFn: () => api<AdminSalesSummary>(`/admin/sales/summary?${salesQS(f)}`) })
+
+export const financeQuery = (r: Range) => queryOptions({ queryKey: ['admin', 'finance', r], queryFn: () => api<AdminFinance>(`/admin/finance?${(rangeQS(r) || '&preset=this-month').slice(1)}`) })

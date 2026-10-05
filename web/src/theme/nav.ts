@@ -40,6 +40,7 @@ export const adminNav: NavArea[] = [
   },
   {
     key: 'money', label: 'Money', icon: Wallet, pages: [
+      { to: '/admin/finance', label: 'Finance', description: 'Revenue, profit, and the money owed either way' },
       { to: '/admin/cashflow', label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
       { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
       { to: '/admin/tills', label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },

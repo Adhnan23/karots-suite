@@ -21,6 +21,7 @@ import { Route as AuthedAdminCashflowRouteImport } from './routes/_authed/admin/
 import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
 import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
 import { Route as AuthedAdminDenominationsRouteImport } from './routes/_authed/admin/denominations'
+import { Route as AuthedAdminFinanceRouteImport } from './routes/_authed/admin/finance'
 import { Route as AuthedAdminGroupsRouteImport } from './routes/_authed/admin/groups'
 import { Route as AuthedAdminLabelsRouteImport } from './routes/_authed/admin/labels'
 import { Route as AuthedAdminReceiptsRouteImport } from './routes/_authed/admin/receipts'
@@ -134,6 +135,11 @@ const AuthedAdminDenominationsRoute =
     path: '/denominations',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminFinanceRoute = AuthedAdminFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminGroupsRoute = AuthedAdminGroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
@@ -422,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/denominations': typeof AuthedAdminDenominationsRoute
+  '/admin/finance': typeof AuthedAdminFinanceRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
@@ -485,6 +492,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
   '/admin/denominations': typeof AuthedAdminDenominationsRoute
+  '/admin/finance': typeof AuthedAdminFinanceRoute
   '/admin/groups': typeof AuthedAdminGroupsRoute
   '/admin/labels': typeof AuthedAdminLabelsRoute
   '/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
@@ -552,6 +560,7 @@ export interface FileRoutesById {
   '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
   '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
   '/_authed/admin/denominations': typeof AuthedAdminDenominationsRoute
+  '/_authed/admin/finance': typeof AuthedAdminFinanceRoute
   '/_authed/admin/groups': typeof AuthedAdminGroupsRoute
   '/_authed/admin/labels': typeof AuthedAdminLabelsRoute
   '/_authed/admin/receipts': typeof AuthedAdminReceiptsRouteWithChildren
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/denominations'
+    | '/admin/finance'
     | '/admin/groups'
     | '/admin/labels'
     | '/admin/receipts'
@@ -682,6 +692,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/conversions'
     | '/admin/denominations'
+    | '/admin/finance'
     | '/admin/groups'
     | '/admin/labels'
     | '/admin/receipts'
@@ -748,6 +759,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/categories'
     | '/_authed/admin/conversions'
     | '/_authed/admin/denominations'
+    | '/_authed/admin/finance'
     | '/_authed/admin/groups'
     | '/_authed/admin/labels'
     | '/_authed/admin/receipts'
@@ -895,6 +907,13 @@ declare module '@tanstack/react-router' {
       path: '/denominations'
       fullPath: '/admin/denominations'
       preLoaderRoute: typeof AuthedAdminDenominationsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/finance': {
+      id: '/_authed/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AuthedAdminFinanceRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/groups': {
@@ -1280,6 +1299,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
   AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
   AuthedAdminDenominationsRoute: typeof AuthedAdminDenominationsRoute
+  AuthedAdminFinanceRoute: typeof AuthedAdminFinanceRoute
   AuthedAdminGroupsRoute: typeof AuthedAdminGroupsRoute
   AuthedAdminLabelsRoute: typeof AuthedAdminLabelsRoute
   AuthedAdminReceiptsRoute: typeof AuthedAdminReceiptsRouteWithChildren
@@ -1320,6 +1340,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
   AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,
   AuthedAdminDenominationsRoute: AuthedAdminDenominationsRoute,
+  AuthedAdminFinanceRoute: AuthedAdminFinanceRoute,
   AuthedAdminGroupsRoute: AuthedAdminGroupsRoute,
   AuthedAdminLabelsRoute: AuthedAdminLabelsRoute,
   AuthedAdminReceiptsRoute: AuthedAdminReceiptsRouteWithChildren,

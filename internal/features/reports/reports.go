@@ -21,7 +21,7 @@ type PL struct {
 	GrossRevenue decimal.Decimal `json:"gross_revenue"` // sale totals before returns (excl. void)
 	Returns      decimal.Decimal `json:"returns"`       // value of returned lines, by sale date
 	Revenue      decimal.Decimal `json:"revenue"`       // net revenue = gross - returns
-	Received     decimal.Decimal `json:"received"`      // tender taken AT point of sale (excludes later debt collections — see Cashflow view for true cash in)
+	Received     decimal.Decimal `json:"received"`      // tender taken AT point of sale less change given back (excludes later debt collections — see Cashflow view for true cash in)
 	COGS         decimal.Decimal `json:"cogs"`          // cost of goods sold, net of returns
 	GrossProfit  decimal.Decimal `json:"gross_profit"`  // revenue - COGS
 	GrossMargin  decimal.Decimal `json:"gross_margin"`  // gross profit / revenue, percent
@@ -92,7 +92,7 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	if err := s.db.GetContext(ctx, &head, `
 		SELECT COUNT(*) AS count,
 		       COALESCE(SUM(total),0) AS gross,
-		       COALESCE(SUM(paid_amount),0) AS paid
+		       COALESCE(SUM(paid_amount - change_given),0) AS paid
 		FROM sales
 		WHERE status <> 'void' AND created_at >= $1 AND created_at < $2`,
 		from, to); err != nil {
@@ -264,7 +264,11 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	}
 
 	if err := s.db.SelectContext(ctx, &pl.ByPayment, `
-		SELECT pmt.method, COUNT(*) AS count, COALESCE(SUM(pmt.amount),0) AS total
+		-- Change always leaves as cash, so the cash share is net of it.
+		-- ponytail: a sale with two cash payment rows would subtract its change twice;
+		-- the till records one cash row per sale.
+		SELECT pmt.method, COUNT(*) AS count,
+		       COALESCE(SUM(pmt.amount),0) - COALESCE(SUM(s.change_given) FILTER (WHERE pmt.method = 'cash'),0) AS total
 		FROM payments pmt JOIN sales s ON s.id = pmt.sale_id
 		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
 		GROUP BY pmt.method ORDER BY total DESC`, from, to); err != nil {

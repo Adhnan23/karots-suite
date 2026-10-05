@@ -290,3 +290,77 @@ type AdminReturnResult struct {
 	CashRefund string `json:"cashRefund"`
 	ReceiptID  *int64 `json:"receiptId,omitempty"`
 }
+
+// FinanceLine is one P&L line or one labelled amount.
+type FinanceLine struct {
+	Label  string `json:"label"`
+	Amount string `json:"amount"`
+}
+
+// FinancePoint is one period on the trend (Day = period start, YYYY-MM-DD).
+type FinancePoint struct {
+	Day     string `json:"day"`
+	Revenue string `json:"revenue"`
+	Profit  string `json:"profit"`
+}
+
+// FinanceSlice is one payment method's share of takings.
+type FinanceSlice struct {
+	Method string `json:"method"`
+	Count  int    `json:"count"`
+	Total  string `json:"total"`
+}
+
+// FinanceCategory is one category's revenue and profit.
+type FinanceCategory struct {
+	Category string `json:"category"`
+	Revenue  string `json:"revenue"`
+	Profit   string `json:"profit"`
+}
+
+// FinanceProduct is a top seller.
+type FinanceProduct struct {
+	Name    string `json:"name"`
+	Qty     string `json:"qty"`
+	Revenue string `json:"revenue"`
+	Profit  string `json:"profit"`
+}
+
+// AdminFinance is the Finance hub (karots-pos /admin/finance, its Overview,
+// Profit and Cash tabs in one read): the P&L for the range (plugin income lines
+// folded into net profit), the trend at a grain fitting the range, the payment
+// mix, profit by category, top products, and the money owed either way.
+type AdminFinance struct {
+	From            string            `json:"from"`
+	To              string            `json:"to"`
+	Grain           string            `json:"grain"` // day | week | month
+	SalesCount      int               `json:"salesCount"`
+	GrossRevenue    string            `json:"grossRevenue"`
+	Returns         string            `json:"returns"`
+	Revenue         string            `json:"revenue"`
+	COGS            string            `json:"cogs"`
+	GrossProfit     string            `json:"grossProfit"`
+	GrossMargin     string            `json:"grossMargin"` // percent, 1 dp
+	Expenses        string            `json:"expenses"`
+	Losses          string            `json:"losses"`
+	OwnUse          string            `json:"ownUse"`
+	StaffWelfare    string            `json:"staffWelfare"`
+	StockCorrection string            `json:"stockCorrections"`
+	Recoveries      string            `json:"recoveries"`
+	OtherIncome     string            `json:"otherIncome"`
+	PluginIncome    []FinanceLine     `json:"pluginIncome"`
+	NetProfit       string            `json:"netProfit"`
+	ZeroCostLines   int               `json:"zeroCostLines"`
+	ZeroCostRevenue string            `json:"zeroCostRevenue"`
+	Received        string            `json:"received"`
+	CashWithdrawn   string            `json:"cashWithdrawn"`
+	RegisterDiff    string            `json:"registerDiff"`
+	Receivables     string            `json:"receivables"`
+	Advances        string            `json:"customerAdvances"`
+	Payables        string            `json:"payables"`
+	SupplierCredit  string            `json:"supplierCredit"`
+	Trend           []FinancePoint    `json:"trend"`
+	ByPayment       []FinanceSlice    `json:"byPayment"`
+	Categories      []FinanceCategory `json:"categories"`
+	TopProducts     []FinanceProduct  `json:"topProducts"`
+}
