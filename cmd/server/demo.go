@@ -6,14 +6,17 @@ import (
 	"time"
 
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/purchasereturns"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/sales"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/shopspring/decimal"
 )
 
 // demo builds a transaction-rich shop on top of the entity seed: backdated
@@ -68,7 +71,14 @@ func demo(db *sqlx.DB) error {
 	expenseSvc := expenses.NewService(db)
 	custSvc := customers.NewService(db)
 	purRetSvc := purchasereturns.NewService(db)
+	// Wired like internal/app: closing a till banks its cash into a locker
+	// (required unless untracked cash is allowed), so the demo needs a safe.
 	regSvc := cashregister.NewService(db, saleSvc).WithAudit(audit.NewService(db))
+	regSvc.WithLockerLeg(cashflow.NewService(db, saleSvc).TillLockerLeg)
+	safe, err := lockers.NewService(db).Create(ctx, lockers.CreateInput{Name: "Shop Safe", Kind: lockers.KindSafe}, adminID)
+	if err != nil {
+		return fmt.Errorf("demo safe: %w", err)
+	}
 
 	// ---- Purchases (restock well above opening, create supplier dues) ----
 	expiry := func(n int) string { return now.AddDate(0, 0, n).Format("2006-01-02") }
@@ -117,7 +127,7 @@ func demo(db *sqlx.DB) error {
 		if _, err := regSvc.PayIn(ctx, cashierID, cashregister.MovementInput{Amount: "2000", Reason: "extra cash"}); err != nil {
 			return fmt.Errorf("demo pay-in: %w", err)
 		}
-		if _, err := regSvc.Close(ctx, cashierID, cashregister.CloseInput{ClosingCash: "12000"}); err != nil {
+		if _, err := regSvc.Close(ctx, cashierID, cashregister.CloseInput{ClosingCash: "12000", DestLockerID: safe.ID}); err != nil {
 			return fmt.Errorf("demo close register A: %w", err)
 		}
 		if err := touch(db, `UPDATE cash_register SET opened_at=$1, closed_at=$2 WHERE id=$3`, day(6, 9), day(6, 18), sess.ID); err != nil {
@@ -131,6 +141,22 @@ func demo(db *sqlx.DB) error {
 	}
 	type sitem = sales.ItemInput
 	mkSale := func(in sales.CreateInput, daysAgo, hour int) (*sales.Detail, error) {
+		// A credit sale must say what goes on account (a shortfall is refused):
+		// the bill at shelf price, less any cash handed over.
+		if in.SaleType == "credit" {
+			rest := decimal.Zero
+			for _, it := range in.Items {
+				var price decimal.Decimal
+				if err := db.GetContext(ctx, &price, `SELECT selling_price FROM products WHERE id=$1`, it.ProductID); err != nil {
+					return nil, err
+				}
+				rest = rest.Add(price.Mul(decimal.RequireFromString(it.Quantity)))
+			}
+			for _, p := range in.Payments {
+				rest = rest.Sub(decimal.RequireFromString(p.Amount))
+			}
+			in.Payments = append(in.Payments, sales.PaymentInput{Method: sales.MethodOnAccount, Amount: rest.String()})
+		}
 		d, err := saleSvc.Create(ctx, in, cashierID)
 		if err != nil {
 			return nil, err
@@ -257,11 +283,23 @@ func demo(db *sqlx.DB) error {
 		return err
 	}
 	// Purchase return: send 5 Mineral Water back to the beverage supplier.
+	// A return names the lot going back and the delivery it came on.
 	ret := "DN-1001"
+	var lot struct {
+		BatchID    int64 `db:"batch_id"`
+		PurchaseID int64 `db:"purchase_id"`
+	}
+	if err := db.GetContext(ctx, &lot, `
+		SELECT b.id AS batch_id, pi.purchase_id FROM stock_batches b
+		JOIN purchase_items pi ON pi.id = b.purchase_item_id
+		WHERE b.product_id = $1 ORDER BY b.id DESC LIMIT 1`, prods["1000000000055"]); err != nil {
+		return fmt.Errorf("demo purchase return lot: %w", err)
+	}
 	if _, err := purRetSvc.Create(ctx, purchasereturns.CreateInput{
 		SupplierID: sup("Lanka Beverages Agency"),
+		PurchaseID: lot.PurchaseID,
 		Reference:  &ret,
-		Items:      []purchasereturns.ItemInput{{ProductID: prods["1000000000055"], Quantity: "5", CostPrice: "60"}},
+		Items:      []purchasereturns.ItemInput{{ProductID: prods["1000000000055"], Quantity: "5", BatchID: lot.BatchID}},
 	}, adminID); err != nil {
 		return fmt.Errorf("demo purchase return: %w", err)
 	}
@@ -273,7 +311,7 @@ func demo(db *sqlx.DB) error {
 	if sess, err := regSvc.Open(ctx, cashierID, cashregister.OpenInput{OpeningCash: "10000"}); err != nil {
 		return fmt.Errorf("demo open register B: %w", err)
 	} else {
-		if _, err := regSvc.Close(ctx, cashierID, cashregister.CloseInput{ClosingCash: "9800"}); err != nil {
+		if _, err := regSvc.Close(ctx, cashierID, cashregister.CloseInput{ClosingCash: "9800", DestLockerID: safe.ID}); err != nil {
 			return fmt.Errorf("demo close register B: %w", err)
 		}
 		if err := touch(db, `UPDATE cash_register SET opened_at=$1, closed_at=$2 WHERE id=$3`, day(3, 9), day(3, 18), sess.ID); err != nil {
