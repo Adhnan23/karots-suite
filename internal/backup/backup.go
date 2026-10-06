@@ -130,9 +130,8 @@ func Dump(ctx context.Context, db *sqlx.DB, generatedAt string, w io.Writer, opt
 }
 
 // Restore reads a gzipped JSON snapshot from r and replaces the current data
-// with it, all in one transaction. Foreign keys are disabled for the load via
-// session_replication_role, so insertion order (incl. self-referential tables)
-// never matters.
+// with it, all in one transaction. Foreign keys are dropped for the load and
+// re-added (validated) before commit, so insertion order never matters.
 func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 	gz, err := gzip.NewReader(r)
 	if err != nil {
@@ -163,11 +162,6 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 	}
 	defer tx.Rollback()
 
-	// Disable FK enforcement for the load (scoped to this tx).
-	if _, err := tx.ExecContext(ctx, `SET LOCAL session_replication_role = 'replica'`); err != nil {
-		return fmt.Errorf("cannot disable foreign keys for restore (the database role needs that privilege): %w", err)
-	}
-
 	// Clear the tables we're about to reload. For a full restore (ReplaceAll)
 	// this includes current tables absent from the archive — otherwise stale
 	// rows (e.g. a plugin the source binary lacked) would survive the restore.
@@ -191,6 +185,29 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 		}
 	}
 
+	// Drop the foreign keys and switch off user triggers (e.g. products →
+	// auto-create stock row) for the load, restoring both before commit, so row
+	// order never matters and triggers don't add rows the archive already has.
+	// Done after TRUNCATE so CASCADE still clears referencing rows. This only
+	// needs table ownership — installed shops run as the database owner, not a
+	// superuser, so session_replication_role is not available to them.
+	fks, err := dropForeignKeys(ctx, tx)
+	if err != nil {
+		return fmt.Errorf("drop foreign keys: %w", err)
+	}
+	var trigTables []string
+	if err := tx.SelectContext(ctx, &trigTables, `
+		SELECT DISTINCT tgrelid::regclass::text FROM pg_trigger t
+		JOIN pg_class c ON c.oid = t.tgrelid
+		WHERE NOT t.tgisinternal AND t.tgenabled <> 'D' AND c.relnamespace = 'public'::regnamespace`); err != nil {
+		return err
+	}
+	for _, tbl := range trigTables {
+		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` DISABLE TRIGGER USER`); err != nil {
+			return fmt.Errorf("disable triggers on %s: %w", tbl, err)
+		}
+	}
+
 	for _, t := range arc.Tables {
 		if !exists[t.Name] || skipTable(t.Name) {
 			continue
@@ -211,7 +228,42 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 		return fmt.Errorf("reset receipt sequences: %w", err)
 	}
 
+	for _, tbl := range trigTables {
+		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` ENABLE TRIGGER USER`); err != nil {
+			return fmt.Errorf("enable triggers on %s: %w", tbl, err)
+		}
+	}
+	// Re-adding validates every key, so a backup with dangling references fails
+	// here (and rolls back) instead of leaving broken data behind.
+	for _, fk := range fks {
+		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+fk.Table+` ADD CONSTRAINT `+quoteIdent(fk.Name)+` `+fk.Def); err != nil {
+			return fmt.Errorf("backup data breaks %s on %s: %w", fk.Name, fk.Table, err)
+		}
+	}
+
 	return tx.Commit()
+}
+
+type foreignKey struct{ Table, Name, Def string }
+
+// dropForeignKeys drops every FK in the public schema and returns their
+// definitions so they can be re-added.
+func dropForeignKeys(ctx context.Context, tx *sqlx.Tx) ([]foreignKey, error) {
+	var fks []foreignKey
+	err := tx.SelectContext(ctx, &fks, `
+		SELECT conrelid::regclass::text AS table, conname AS name, pg_get_constraintdef(oid) AS def
+		FROM pg_constraint
+		WHERE contype = 'f' AND connamespace = 'public'::regnamespace
+		ORDER BY conrelid::regclass::text, conname`)
+	if err != nil {
+		return nil, err
+	}
+	for _, fk := range fks {
+		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+fk.Table+` DROP CONSTRAINT `+quoteIdent(fk.Name)); err != nil {
+			return nil, err
+		}
+	}
+	return fks, nil
 }
 
 // --- helpers ---
