@@ -34,6 +34,9 @@ export type TillTab = { key: string; label: string; Page: ComponentType }
  * Page owns its list and preview; the hub keeps the kind switch above it. */
 export type TillReceiptKind = { key: string; label: string; Page: ComponentType }
 
+/** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
+export type ReportCard = { href: string; title: string; desc: string }
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
@@ -44,6 +47,7 @@ export const slots = {
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
+  reportCards: [] as ReportCard[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */

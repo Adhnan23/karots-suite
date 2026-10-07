@@ -1,64 +1,20 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { AlertTriangle } from 'lucide-react'
-import { lazy, type ReactNode, Suspense, useMemo, useState } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import type { AdminFinance } from '@/api/types.gen'
-import type { ChartTheme } from '@/components/charts/Chart'
+import { ChartCard, ChartTable as Table } from '@/components/charts/ChartCard'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { RangePicker } from '@/features/counter/RangePicker'
+import { Kpi } from '@/features/reports/kit/Kpi'
 import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
-import { useIsPhone } from '@/lib/useMedia'
 import { cn } from '@/lib/utils'
-import type { EChartsCoreOption } from 'echarts/core'
 import { financeQuery } from '../queries'
 import { categoryOption, methodLabel, paymentOption, trendOption } from './charts'
 
-const Chart = lazy(() => import('@/components/charts/Chart'))
 const route = getRouteApi('/_authed/admin/finance')
-
-/** A chart with its table: phones get the table, desktops the chart with a
- * switch to the table (the chart's accessible twin). */
-function ChartCard({ title, sub, option, label, table, height, empty }: {
-  title: string; sub?: string; option: (t: ChartTheme) => EChartsCoreOption; label: string; table: ReactNode; height?: number; empty?: boolean
-}) {
-  const phone = useIsPhone()
-  const [view, setView] = useState<'chart' | 'table' | null>(null)
-  const v = view ?? (phone ? 'table' : 'chart')
-  return (
-    <section aria-label={title} className={cn(SURFACE, 'flex min-w-0 flex-col gap-3 p-4')}>
-      <header className="flex items-start justify-between gap-2">
-        <div><h2 className="font-display text-base font-bold">{title}</h2>{sub && <p className="text-[12px] text-muted-foreground">{sub}</p>}</div>
-        {!empty && <Seg label={`${title} view`} value={v} onChange={setView} options={[['chart', 'Chart'], ['table', 'Table']]} />}
-      </header>
-      {empty ? <p className="py-10 text-center text-sm text-faint">Nothing in this range.</p>
-        : v === 'chart' ? <Suspense fallback={<div style={{ height: height ?? 260 }} />}><Chart option={option} label={label} height={height} /></Suspense> : table}
-    </section>
-  )
-}
-
-function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
-  return (
-    <div className="max-h-80 overflow-auto">
-      <table className="w-full text-sm">
-        <thead><tr className="border-b border-border text-left text-[12px] text-faint">{head.map((h, i) => <th key={h} className={cn('py-1.5 font-semibold', i > 0 && 'text-right')}>{h}</th>)}</tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i} className="border-b border-border last:border-0">{r.map((c, j) => <td key={j} className={cn('py-1.5', j > 0 && 'text-right tabular-nums')}>{c}</td>)}</tr>)}</tbody>
-      </table>
-    </div>
-  )
-}
-
-function Kpi({ amount, label, v, sub, tone, className }: { amount: string; label: string; v: string; sub?: string; tone?: 'in' | 'out' | 'sign'; className?: string }) {
-  const n = num(amount)
-  return (
-    <div className={cn('flex min-w-0 flex-col gap-0.5 px-4 py-3', className)}>
-      <small className="text-[12px] font-semibold text-muted-foreground">{label}</small>
-      <b className={cn('font-display text-xl tabular-nums md:text-2xl', tone === 'in' && n > 0 && 'text-success', tone === 'out' && n > 0 && 'text-danger', tone === 'sign' && n < 0 && 'text-danger')}>{v}</b>
-      {sub && <small className="text-[12px] text-faint">{sub}</small>}
-    </div>
-  )
-}
 
 /** Finance (karots-pos /admin/finance): how the business did over a range —
  * Overview, the profit statement, and the money owed either way. */

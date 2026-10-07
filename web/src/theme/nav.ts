@@ -48,7 +48,11 @@ export const adminNav: NavArea[] = [
       { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],
   },
-  { key: 'reports', label: 'Reports', icon: BarChart3, pages: [] },
+  {
+    key: 'reports', label: 'Reports', icon: BarChart3, pages: [
+      { to: '/admin/reports', label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
+    ],
+  },
   {
     key: 'setup', label: 'Setup', icon: Wrench, pages: [
       { to: '/admin/categories', label: 'Categories', description: 'Product categories' },

@@ -56,6 +56,7 @@ export interface Me {
   shopName: string;
   lockTimeoutMinutes: number /* int */;
   stockTakeEnabled: boolean; // gates Stock-take + Intake (karots-pos toggle)
+  taxRegistered: boolean; // shows the Tax report (karots-pos hides it otherwise)
   appearance: Appearance;
   plugins: string[];
 }

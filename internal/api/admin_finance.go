@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/plugin"
 
@@ -30,13 +29,9 @@ func financeGrain(days int) string {
 // Cash). Nothing chosen = this month.
 func (h *handlers) AdminFinance(c echo.Context) error {
 	ctx := c.Request().Context()
-	preset := c.QueryParam("preset")
-	if preset == "" && c.QueryParam("from") == "" {
-		preset = "this-month"
-	}
-	from, to, fs, ts, err := reports.ResolveRange(preset, c.QueryParam("from"), c.QueryParam("to"))
+	from, to, fs, ts, err := reportRange(c)
 	if err != nil {
-		return apperr.Validation(err.Error())
+		return err
 	}
 	rep := reports.NewService(h.d.DB)
 	pl, err := rep.Compute(ctx, from, to)

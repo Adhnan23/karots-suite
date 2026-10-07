@@ -9,12 +9,13 @@ const PRESETS: [string, string][] = [
 const SMALL = cn(FIELD, 'h-8 px-2 text-[13px]')
 
 /** When: a preset, or two dates. Sits in a list's header; `full` = admin filter-bar size. */
-export function RangePicker({ value, onChange, full }: { value: Range; onChange: (r: Range) => void; full?: boolean }) {
+/** `noLatest`: a report always covers a period, so "Latest" isn't offered. */
+export function RangePicker({ value, onChange, full, noLatest }: { value: Range; onChange: (r: Range) => void; full?: boolean; noLatest?: boolean }) {
   const size = full ? cn(FIELD, 'w-full md:w-auto') : SMALL
   return (
     <span className={cn('flex flex-wrap items-center gap-1.5', !full && 'justify-end')}>
       <select aria-label="Period" value={value.preset} onChange={(e) => onChange({ ...value, preset: e.target.value })} className={cn(size, 'appearance-auto')}>
-        {PRESETS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        {PRESETS.filter(([v]) => !noLatest || v).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </select>
       {value.preset === 'custom' && (
         <>

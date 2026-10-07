@@ -48,5 +48,6 @@ func (h *handlers) Me(c echo.Context) error {
 		return err
 	}
 	me.ShopName, me.LockTimeoutMinutes, me.StockTakeEnabled, me.Appearance = st.ShopName, st.LockTimeoutMinutes, st.StockTakeEnabled, appearanceOf(st)
+	me.TaxRegistered = st.TaxRegistered
 	return c.JSON(http.StatusOK, me)
 }

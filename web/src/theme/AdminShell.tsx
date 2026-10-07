@@ -108,7 +108,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
 
   return (
     <div className="min-h-screen text-foreground">
-      <header className="flex items-center gap-2.5 px-4 pt-4 md:gap-3 md:px-10">
+      <header className="flex items-center gap-2.5 px-4 pt-4 md:gap-3 md:px-10 print:hidden">
         <span className="hidden h-[30px] w-[30px] flex-none place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground md:grid">
           K
         </span>
@@ -148,7 +148,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
       </header>
 
       {here && here.area.pages.length > 1 && (
-        <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10">
+        <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10 print:hidden">
           {here.area.pages.map((p) => (
             <Link key={p.to} to={p.to} activeOptions={{ exact: true }} data-on={p === here.page || undefined}
               className="whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground data-on:border-selected data-on:bg-selected data-on:text-selected-foreground">
@@ -159,12 +159,14 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
         </nav>
       )}
 
-      <main className="p-4 pb-[100px] md:px-10 md:pt-5 md:pb-[110px]">{children}</main>
+      <main className="p-4 pb-[100px] md:px-10 md:pt-5 md:pb-[110px] print:p-0">{children}</main>
 
-      <Dock areas={areas} here={here?.area.key} current={shelf} onToggle={setShelf} />
-      {shelf === 'apps' && <Shelf kind="apps" onClose={() => setShelf(null)} />}
-      {shelfArea && <Shelf kind="area" area={shelfArea} onClose={() => setShelf(null)} />}
-      <PhoneTabs areas={areas} />
+      <div className="print:hidden">
+        <Dock areas={areas} here={here?.area.key} current={shelf} onToggle={setShelf} />
+        {shelf === 'apps' && <Shelf kind="apps" onClose={() => setShelf(null)} />}
+        {shelfArea && <Shelf kind="area" area={shelfArea} onClose={() => setShelf(null)} />}
+        <PhoneTabs areas={areas} />
+      </div>
       <CommandPalette areas={areas} open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
