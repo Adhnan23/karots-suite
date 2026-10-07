@@ -30,9 +30,10 @@ func tillCustomer(c customers.Customer) TillCustomer {
 }
 
 // TillCustomers returns every active customer; the till filters client-side
-// (name/phone, top 50), exactly as karots-pos did.
+// (name/phone, top 50), as karots-pos did. Every one: List stops at 100 by
+// name, so customer 101 could not be picked at the till.
 func (h *handlers) TillCustomers(c echo.Context) error {
-	rows, err := h.t.customers.List(c.Request().Context(), "")
+	rows, err := h.t.customers.AllActive(c.Request().Context())
 	if err != nil {
 		return err
 	}
