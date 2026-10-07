@@ -3,9 +3,9 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-05)
+## Status (2026-10-07)
 
-**M4 Money is COMPLETE** (`docs/plans/2026-10-05-m4-money.md`, 2026-10-05). M0, M1 (till), M2 (catalog + stock) and M3 (purchasing + people, below) were complete before it.
+**M5 Reports and dashboard is COMPLETE** (`docs/plans/2026-10-07-m5-reports.md`, 2026-10-07). M0–M4 were complete before it (M3 and M4 below).
 
 M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reorder · Purchase returns · Suppliers; **Setup** → Users, admin only; every page works at 360px):
 
@@ -29,7 +29,14 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
   - **karots-pos money flaws fixed in both repos:** receivables vs customer advances (`9d1bccd`), expense delete left its cash out (`d66ac18`), Cash Flow totals from 500 rows / transfers counted twice (`9f17be1`), received money counted the change (`3c0cd9d`), only cash gets change (`c5553e7`), and from the M4 review an archived locker took / gave money and stayed the till default (`15f5554`). **Unpushed in karots-pos for the user to push: `c5553e7`, `15f5554`.**
   - **Tests:** `go test ./...`, 101 web unit tests and **80 Playwright flows** green (`admin-money.spec.ts`, `admin-sales.spec.ts` new); `make verify-portable` passes; core plugin-inert; every hand-written file ≤ 500 lines. Parity: **243 rows ticked** (47 in M4).
 
-**NEXT: M5 Reports and dashboard** (spec §11 table): dashboard (carousel, vs-yesterday), every report, Activity, audit, `/damage`; ECharts; CSV / XLSX / ODS. Done when every report renders on desktop and at 360px. Start a fresh session: read this file, `AGENTS.md`, the spec, then write `docs/plans/<date>-m5-reports.md`.
+- **M5 Reports and dashboard (2026-10-07)** — Home is the dashboard; dock **Reports** → the hub + every report (shelf and Ctrl K list them; no tab row); **Sell** → Warranty; **Setup** → Activity (admin only). Every page works at 360px:
+  - **Kit** (`features/reports/kit/`): `ReportPage` (Print + `ExportMenu`, `RangePicker noLatest`), `Kpi` / `KpiStrip` (▲▼ vs before), `BarCell`, `AgingBar`, `numbers.ts`, URL search helpers (`rangeSearch` / `reportQS`; **id filters are numbers** — strings were written quoted). Server: `reportRange` / `prevPeriod` / `wantsSheet` — every report answers `?format=csv|xlsx|ods` with every row.
+  - **Reports:** Sales (+ hour window, drill-in; the receipts / export are the M4 Sales list's), Peak hours, Top products (Pareto of every product sold), Product sales (vs last year), Sales by cashier, Returns (by return date), Customer / Supplier dues (aging, disabled debtors), Spend by supplier, Purchases, Profit by category (tree), Expenses, Tax (tax-registered only), Inventory valuation (by lots, rows add up), Count sheet (+ `/print/count-sheet`), Top-up & reorder, Losses & Recovery (damage + warranty, Recover sheet), Recipe variance, Service profit. **Folded into existing pages:** Finance (+ export), Cash register = Till sessions (+ totals, export), Batches (+ export), Low stock = Reorder (+ `/print/low-stock`).
+  - **Activity** keyset-paged by `(when, source, id)` (rows of one transaction all show), the audit log is its "Changes" source; never the system user. **Warranty register** reuses the counter's `/till/warranty*` endpoints and claim panels (`InfoSheet`). **Dashboard** per the approved mockup (KPIs + sparklines vs yesterday, trend vs the period before, payment mix, top sellers, needs attention, latest sales).
+  - **karots-pos flaws fixed in both repos (all pushed):** P&L returns at the sticker price + trend ≠ P&L + UTC day buckets (`275d885`); cashiers merged by name, product-sales UTC days (`d8ee75f`); dues skipped disabled debtors, credited bills aged as unpaid, spend counted returned goods (`3e1b2e1`, `0fabbca`); the till's customer picker stopped at 100 customers (`cd8158f`); report days were the server process's / UTC days, not the shop's (`f93bf97`). Suite-only upgrades: Pareto of the whole, valuation rows by lots, losses list both kinds in range, activity uncapped.
+  - **Tests:** `go test ./...`, 104 web unit tests and **87 Playwright flows** green (`admin-reports.spec.ts` new: every report at 1366 + 360 with no side scroll); `make verify-portable` passes; core plugin-inert; every hand-written file ≤ 500 lines. Parity: **296 rows ticked** (53 in M5).
+
+**NEXT: M6 Data and settings** (spec §11): backup / restore, auto-backups, exports, imports (products / customers / suppliers), Settings, Appearance, setup / init, catalog sync endpoint. Done when a karots-pos backup restores into karots-suite. Start a fresh session: read this file, `AGENTS.md`, the spec, then write `docs/plans/<date>-m6-data-settings.md`.
 
 **Porting rule (M2, confirmed again in M3):** read karots-pos's `static/js/<screen>.js` and templ, not just the Go handler, and sweep the finished screens against them (the M3 sweep found F4/F10, Pay all, per-line variance, scan → barcode). Where karots-pos is flawed, don't copy the flaw — the user wants upgrades ("this is its upgrade").
 
@@ -63,16 +70,15 @@ What the user rejects:
   - Fill, bill discount %, and change with Keep options
   - an over-limit warning, the sale-complete overlay, and Hold / New sale
 
-## Inputs for M5
+## Inputs for M6
 
-- **Routes to port** (unticked in `docs/parity.md`, `internal/web/register_admin.go`): the admin home `GET ""` (dashboard), `/activity` (+ `/table`, `/export`), `/audit`, `/damage` (+ `/table`), `/reports` (hub) and every `/reports/*`: batches, cash-register, count-sheet (+ print), customer-dues, expenses, finance, inventory, losses, low-stock (+ print; link it to `/admin/reorder`), peak-hours, product-sales, profit-by-category, purchases, recipe-variance, returns, sales, sales-by-cashier, sales/:id/lines, sales-trend, service-profit, supplier-dues, supplier-spend, tax, tender, top-products, topup-reorder, warranty.
-- Read each karots-pos handler **and** its templ + `static/js` (the porting rule), and the karots-pos memory notes on reports / dashboard (`receipts-dashboard-sales-kiosk-polish.md`, …). Don't copy a flaw: totals come from SQL over the whole range (never a capped row list), returns are valued at what was PAID (`sales.PaidFactorSQL`), received money is net of change, customer advances are not dues (`PL.CustomerAdvances`).
-- **Reuse from M4:** Finance already has the P&L, trend, payment mix, profit by category, top products and money owed (`internal/api/admin_finance.go`, `features/money/finance/` — `charts.ts` themes ECharts from the palette, lazy chunk, table view by default on phones, `--chart-1..4`). Reports should share it rather than re-derive it. Range picking: `RangePicker` + `listRange`; exports: `sheets.go` `writeSheet` (CSV / XLSX / ODS); paging: `counterPage` / `listOffset` + "Show older".
-- Activity and audit never show the system user. Report filters live in the URL (TanStack Router search params).
+- **Routes to port** (unticked in `docs/parity.md`): `/backup`, `/data` (+ `/data/backup`, `/data/backup-file`, `/data/restore`, `/data/restore-file`, `/data/settings/export` + import), `POST /restore`, `/settings` (GET / PUT, `/settings/logo` + clear, `/settings/printer/test`), `/setup`, and the product / customer / supplier `export` · `import` · `import/template` rows.
+- **Already in the suite:** `internal/backup` (restore works for a non-superuser owner, `8e33688`), the narrow `PUT /admin/settings/till-cash` (M4), System → Appearance (M0). Settings must keep owning `stock_take_enabled` (gates Stock-take / Intake), `tax_registered` (gates the Tax report, `/me.taxRegistered`), the default locker / untracked cash, receipt style.
+- **Restore must check damage from old write-side bugs** (memory): data written by karots-pos before the fixes above (e.g. returns valued at the sticker price are only a *reading* bug — nothing to repair; check the write-side ones listed in the M3/M4 notes).
+- **Exports:** reuse `sheets.go` `writeSheet` (csv / xlsx / ods) and the kit's `ExportMenu`.
 - **Still unticked, needs a real printer (POS80 + label printer):** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, POST `/labels/send` (counter + admin), GET `/labels` (counter), GET `/receipt/:id`, GET `/orders/print`.
-- **Ported but without a flow yet:** GET `/receipts/credit/:id`, `/receipts/warranty/:claimId` (admin + cashier), cashier GET `/receipts/warranty`. Add a flow, then tick them.
-- **Deferred by the spec:** product / customer / supplier import + export → M6.
-- Test data: the dev DB is also the Go-test DB, so Go tests leave `T …` rows behind. Run `make e2e-seed` before Playwright or screenshots, and kill :3100 / :5173 first. `admin-money.spec.ts` opens a till session and makes a sale itself when the seed has none.
+- **Plugin seams waiting for M7:** `slots.reportCards` (hub "More"), `plugin.ActivityContributor` (now gets `Filter.Before` / `Limit` — honour them, the merge filters with `Cursor.After`), `plugin.CollectReadiness` (Top-up; the old `EditURL` inline editor isn't rendered — give it a React slot then).
+- Test data: the dev DB is also the Go-test DB. Run `make e2e-seed` before Playwright or screenshots, and kill :3100 / :5173 first. The reports spec sells milk only — the till flows need the seeded soap lots.
 
 ### karots-pos till sources (reference kept from the M1 inputs)
 
