@@ -265,7 +265,9 @@ type DenominationRequest struct {
 type AdminSaleRow struct {
 	SaleSummary `tstype:",extends"`
 	Paid        string `json:"paid"`
+	COGS        string `json:"cogs"`
 	Profit      string `json:"profit"`
+	Margin      string `json:"margin"` // percent of net revenue, 1 dp
 }
 
 // AdminSalesSummary covers every sale the filters match (SQL, not the page).

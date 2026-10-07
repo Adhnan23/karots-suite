@@ -31,8 +31,10 @@ export const tillQuery = (id: number) => queryOptions({ queryKey: ['admin', 'til
 export const tillCashiersQuery = queryOptions({ queryKey: ['admin', 'till-cashiers'], queryFn: () => api<CashierOption[]>('/admin/tills/cashiers') })
 export const denominationsQuery = queryOptions({ queryKey: ['admin', 'denominations'], queryFn: () => api<AdminDenomination[]>('/admin/denominations') })
 
-export type SalesFilter = Range & { status: string; method: string; q: string }
-export const salesQS = (f: SalesFilter) => `status=${f.status}&method=${f.method}&q=${encodeURIComponent(f.q)}${rangeQS(f)}`
+/** fromHour / toHour: the Sales report's shop-time hour window ('' = any). */
+export type SalesFilter = Range & { status: string; method: string; q: string; fromHour?: string; toHour?: string }
+export const salesQS = (f: SalesFilter) =>
+  `status=${f.status}&method=${f.method}&q=${encodeURIComponent(f.q)}${f.fromHour ? `&fromHour=${f.fromHour}` : ''}${f.toHour ? `&toHour=${f.toHour}` : ''}${rangeQS(f)}`
 export const adminSalesQuery = (f: SalesFilter) => paged<AdminSaleRow>(['admin', 'sales', f], `/admin/sales?${salesQS(f)}`)
 export const adminSalesSummaryQuery = (f: SalesFilter) =>
   queryOptions({ queryKey: ['admin', 'sales-summary', f], queryFn: () => api<AdminSalesSummary>(`/admin/sales/summary?${salesQS(f)}`) })

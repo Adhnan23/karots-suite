@@ -57,6 +57,8 @@ import { Route as AuthedAdminPurchaseReturnsNewRouteImport } from './routes/_aut
 import { Route as AuthedAdminPurchasesIndexRouteImport } from './routes/_authed/admin/purchases/index'
 import { Route as AuthedAdminPurchasesNewRouteImport } from './routes/_authed/admin/purchases/new'
 import { Route as AuthedAdminReportsIndexRouteImport } from './routes/_authed/admin/reports/index'
+import { Route as AuthedAdminReportsPeakHoursRouteImport } from './routes/_authed/admin/reports/peak-hours'
+import { Route as AuthedAdminReportsSalesRouteImport } from './routes/_authed/admin/reports/sales'
 import { Route as AuthedAdminStockIndexRouteImport } from './routes/_authed/admin/stock/index'
 import { Route as AuthedAdminStockBatchesRouteImport } from './routes/_authed/admin/stock/batches'
 import { Route as AuthedAdminStockTakeRouteImport } from './routes/_authed/admin/stock/take'
@@ -325,6 +327,17 @@ const AuthedAdminReportsIndexRoute = AuthedAdminReportsIndexRouteImport.update({
   path: '/reports/',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminReportsPeakHoursRoute =
+  AuthedAdminReportsPeakHoursRouteImport.update({
+    id: '/reports/peak-hours',
+    path: '/reports/peak-hours',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminReportsSalesRoute = AuthedAdminReportsSalesRouteImport.update({
+  id: '/reports/sales',
+  path: '/reports/sales',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAdminStockIndexRoute = AuthedAdminStockIndexRouteImport.update({
   id: '/stock/',
   path: '/stock/',
@@ -464,6 +477,8 @@ export interface FileRoutesByFullPath {
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
+  '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
@@ -529,6 +544,8 @@ export interface FileRoutesByTo {
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
+  '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
@@ -598,6 +615,8 @@ export interface FileRoutesById {
   '/_authed/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/_authed/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/_authed/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/_authed/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
+  '/_authed/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/_authed/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/_authed/admin/stock/take': typeof AuthedAdminStockTakeRoute
   '/_authed/admin/suppliers/$id': typeof AuthedAdminSuppliersIdRoute
@@ -667,6 +686,8 @@ export interface FileRouteTypes {
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
     | '/admin/purchases/new'
+    | '/admin/reports/peak-hours'
+    | '/admin/reports/sales'
     | '/admin/stock/batches'
     | '/admin/stock/take'
     | '/admin/suppliers/$id'
@@ -732,6 +753,8 @@ export interface FileRouteTypes {
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
     | '/admin/purchases/new'
+    | '/admin/reports/peak-hours'
+    | '/admin/reports/sales'
     | '/admin/stock/batches'
     | '/admin/stock/take'
     | '/admin/suppliers/$id'
@@ -800,6 +823,8 @@ export interface FileRouteTypes {
     | '/_authed/admin/purchase-returns/$id'
     | '/_authed/admin/purchase-returns/new'
     | '/_authed/admin/purchases/new'
+    | '/_authed/admin/reports/peak-hours'
+    | '/_authed/admin/reports/sales'
     | '/_authed/admin/stock/batches'
     | '/_authed/admin/stock/take'
     | '/_authed/admin/suppliers/$id'
@@ -1173,6 +1198,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReportsIndexRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/reports/peak-hours': {
+      id: '/_authed/admin/reports/peak-hours'
+      path: '/reports/peak-hours'
+      fullPath: '/admin/reports/peak-hours'
+      preLoaderRoute: typeof AuthedAdminReportsPeakHoursRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reports/sales': {
+      id: '/_authed/admin/reports/sales'
+      path: '/reports/sales'
+      fullPath: '/admin/reports/sales'
+      preLoaderRoute: typeof AuthedAdminReportsSalesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/stock/': {
       id: '/_authed/admin/stock/'
       path: '/stock'
@@ -1335,6 +1374,8 @@ interface AuthedAdminRouteChildren {
   AuthedAdminPurchaseReturnsIdRoute: typeof AuthedAdminPurchaseReturnsIdRoute
   AuthedAdminPurchaseReturnsNewRoute: typeof AuthedAdminPurchaseReturnsNewRoute
   AuthedAdminPurchasesNewRoute: typeof AuthedAdminPurchasesNewRoute
+  AuthedAdminReportsPeakHoursRoute: typeof AuthedAdminReportsPeakHoursRoute
+  AuthedAdminReportsSalesRoute: typeof AuthedAdminReportsSalesRoute
   AuthedAdminStockBatchesRoute: typeof AuthedAdminStockBatchesRoute
   AuthedAdminStockTakeRoute: typeof AuthedAdminStockTakeRoute
   AuthedAdminSuppliersIdRoute: typeof AuthedAdminSuppliersIdRoute
@@ -1377,6 +1418,8 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminPurchaseReturnsIdRoute: AuthedAdminPurchaseReturnsIdRoute,
   AuthedAdminPurchaseReturnsNewRoute: AuthedAdminPurchaseReturnsNewRoute,
   AuthedAdminPurchasesNewRoute: AuthedAdminPurchasesNewRoute,
+  AuthedAdminReportsPeakHoursRoute: AuthedAdminReportsPeakHoursRoute,
+  AuthedAdminReportsSalesRoute: AuthedAdminReportsSalesRoute,
   AuthedAdminStockBatchesRoute: AuthedAdminStockBatchesRoute,
   AuthedAdminStockTakeRoute: AuthedAdminStockTakeRoute,
   AuthedAdminSuppliersIdRoute: AuthedAdminSuppliersIdRoute,

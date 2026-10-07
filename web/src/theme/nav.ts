@@ -1,11 +1,13 @@
 import { BarChart3, Package, ShoppingBag, ShoppingCart, Wallet, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
+import { REPORTS } from '@/features/reports/hub'
 
 /** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
-/** gate 'admin': admins only (Users). */
-export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' }
-export type NavArea = { key: string; label: string; icon: LucideIcon; pages: NavPage[] }
+/** gate 'admin': admins only (Users). gate 'tax': only for a tax-registered shop (Tax report). */
+export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' | 'tax' }
+/** noTabs: too many pages for the tab row (Reports) — the shelf and Ctrl K list them. */
+export type NavArea = { key: string; label: string; icon: LucideIcon; pages: NavPage[]; noTabs?: boolean }
 export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string }
 
 /** karots-pos's admin areas and link descriptions (templates/layouts/admin.templ).
@@ -49,8 +51,9 @@ export const adminNav: NavArea[] = [
     ],
   },
   {
-    key: 'reports', label: 'Reports', icon: BarChart3, pages: [
+    key: 'reports', label: 'Reports', icon: BarChart3, noTabs: true, pages: [
       { to: '/admin/reports', label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
+      ...REPORTS.filter((r) => r.to.startsWith('/admin/reports/')).map((r): NavPage => ({ to: r.to, label: r.title, description: r.desc, gate: r.gate })),
     ],
   },
   {
@@ -69,7 +72,7 @@ export const adminNav: NavArea[] = [
  * badges (page path → count) attached. */
 export function navFor(me: Me, badges: Record<string, number> = {}): NavArea[] {
   return adminNav
-    .map((a) => ({ ...a, pages: a.pages.filter((p) => (p.gate !== 'stockTake' || me.stockTakeEnabled) && (p.gate !== 'admin' || me.user.role === 'admin')).map((p) => (badges[p.to] ? { ...p, badge: badges[p.to] } : p)) }))
+    .map((a) => ({ ...a, pages: a.pages.filter((p) => (p.gate !== 'stockTake' || me.stockTakeEnabled) && (p.gate !== 'admin' || me.user.role === 'admin') && (p.gate !== 'tax' || me.taxRegistered)).map((p) => (badges[p.to] ? { ...p, badge: badges[p.to] } : p)) }))
     .filter((a) => a.pages.length > 0)
 }
 

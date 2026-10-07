@@ -128,19 +128,20 @@ type PeakBucket struct {
 }
 
 // PeakHours buckets non-void sales in [from,to) by local day-of-week and
-// hour-of-day — the staffing view (when are we busy). Timezone comes from the
+// hour-of-day, revenue counted as the P&L counts it — the staffing view (when are we busy). Timezone comes from the
 // same datetime package the rest of the app displays with.
 func (s *Service) PeakHours(ctx context.Context, from, to time.Time) ([]PeakBucket, error) {
 	tz := datetime.Location.String()
 	var rows []PeakBucket
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT EXTRACT(DOW  FROM (created_at AT TIME ZONE $3))::int AS dow,
-		       EXTRACT(HOUR FROM (created_at AT TIME ZONE $3))::int AS hour,
+		SELECT EXTRACT(DOW  FROM (s.created_at AT TIME ZONE $3))::int AS dow,
+		       EXTRACT(HOUR FROM (s.created_at AT TIME ZONE $3))::int AS hour,
 		       COUNT(*) AS count,
-		       COALESCE(SUM(total),0) AS revenue
-		FROM sales
-		WHERE status <> 'void' AND created_at >= $1 AND created_at < $2
-		GROUP BY 1, 2`, from, to, tz); err != nil {
+		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val),0) AS revenue
+		FROM sales s
+		JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
+		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+		GROUP BY 1, 2 ORDER BY 1, 2`, from, to, tz); err != nil {
 		return nil, apperr.Internal("failed to load peak hours", err)
 	}
 	return rows, nil

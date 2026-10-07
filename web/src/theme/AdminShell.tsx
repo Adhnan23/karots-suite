@@ -147,7 +147,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
         </div>
       </header>
 
-      {here && here.area.pages.length > 1 && (
+      {here && here.area.pages.length > 1 && !here.area.noTabs && (
         <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10 print:hidden">
           {here.area.pages.map((p) => (
             <Link key={p.to} to={p.to} activeOptions={{ exact: true }} data-on={p === here.page || undefined}

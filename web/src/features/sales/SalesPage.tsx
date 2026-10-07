@@ -16,14 +16,10 @@ import { configQuery } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { METHODS, STATUS, STATUS_TAG } from './filters'
 import { SaleSheet } from './SaleSheet'
 
 const route = getRouteApi('/_authed/admin/sales')
-const STATUS: [string, string][] = [['', 'Any status'], ['completed', 'Completed'], ['credit', 'On credit'], ['partially_returned', 'Part returned'], ['returned', 'Returned']]
-// ponytail: plugin tenders are left out — they're stored under a core payment
-// method, so filtering by their own key would match nothing; add when one isn't.
-const METHODS: [string, string][] = [['', 'Any payment'], ['cash', 'Cash'], ['card', 'Card'], ['online', 'Online'], ['credit', 'Credit']]
-const STATUS_TAG: Record<string, [string, 'warn' | 'muted' | 'danger']> = { credit: ['credit', 'warn'], partially_returned: ['part returned', 'muted'], returned: ['returned', 'muted'], void: ['void', 'danger'] }
 
 /** Sales (karots-pos /admin/sales): every sale by range, status, payment and
  * search — the totals over every match, export, and a sheet per sale with

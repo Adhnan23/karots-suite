@@ -37,7 +37,7 @@ export function ReportsHub({ me }: { me: Me }) {
       <PageHead title="Reports" sub="Pick one, set the period, then export it or print it." />
       <div className="flex flex-col gap-7">
         {GROUPS.map(([g, label]) => {
-          const cards = REPORTS.filter((r) => r.group === g && (!r.when || r.when(me)))
+          const cards = REPORTS.filter((r) => r.group === g && (r.gate !== 'tax' || me.taxRegistered))
           return cards.length > 0 && <Group key={g} label={label}>{cards.map((r) => <Card key={r.to} {...r} />)}</Group>
         })}
         {slots.reportCards.length > 0 && (

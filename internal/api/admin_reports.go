@@ -13,6 +13,7 @@ import (
 // Each report is one GET answering JSON, or a sheet when ?format= is set
 // (writeSheet over every row in range, never one page).
 func (h *handlers) registerAdminReports(g *echo.Group) {
+	h.registerReportsSales(g)
 }
 
 // reportRange is a report's period: a preset or from / to (to inclusive of its

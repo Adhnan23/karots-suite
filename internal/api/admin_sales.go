@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/sales"
@@ -24,11 +25,22 @@ func (h *handlers) registerAdminSales(g *echo.Group) {
 
 // salesFilter reads the list's filters (karots-pos salesFilterFromQuery):
 // range, ?status=, ?method=, ?q= (receipt / customer / product, the till's
-// word rules). No range = all time.
+// word rules), ?fromHour= / ?toHour= (shop-time hours, inclusive — the Sales
+// report's window). No range = all time.
 func salesFilter(c echo.Context) (sales.ListFilter, error) {
 	from, to, err := listRange(c)
 	return sales.ListFilter{From: from, To: to, Status: strings.TrimSpace(c.QueryParam("status")), Method: strings.TrimSpace(c.QueryParam("method")),
-		Query: strings.TrimSpace(c.QueryParam("q"))}, err
+		Query: strings.TrimSpace(c.QueryParam("q")), FromHour: hourParam(c, "fromHour"), ToHour: hourParam(c, "toHour")}, err
+}
+
+// hourParam is an hour of the day (0–23), or nil when absent or out of range
+// (the filter is then skipped).
+func hourParam(c echo.Context, name string) *int {
+	n, err := strconv.Atoi(c.QueryParam(name))
+	if err != nil || n < 0 || n > 23 {
+		return nil
+	}
+	return &n
 }
 
 // AdminSales pages the sales, newest first.
@@ -44,7 +56,7 @@ func (h *handlers) AdminSales(c echo.Context) error {
 	}
 	out := make([]AdminSaleRow, 0, len(rows))
 	for _, s := range rows {
-		out = append(out, AdminSaleRow{SaleSummary: saleSummary(s), Paid: dec2(s.PaidAmount.Sub(s.ChangeGiven)), Profit: dec2(s.Profit)})
+		out = append(out, AdminSaleRow{SaleSummary: saleSummary(s), Paid: dec2(s.PaidAmount.Sub(s.ChangeGiven)), COGS: dec2(s.COGS), Profit: dec2(s.Profit), Margin: s.Margin.StringFixed(1)})
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -72,7 +84,7 @@ func (h *handlers) AdminSalesExport(c echo.Context) error {
 	}
 	ctx := c.Request().Context()
 	f.Limit = sales.MaxListLimit
-	header := []string{"Receipt", "When", "Cashier", "Customer", "Type", "Subtotal", "Discount", "Total", "Paid", "Change", "Profit", "Status"}
+	header := []string{"Receipt", "When", "Cashier", "Customer", "Type", "Subtotal", "Discount", "Total", "Paid", "Change", "COGS", "Profit", "Status"}
 	var out [][]string
 	for {
 		rows, err := h.d.Sales.List(ctx, f)
@@ -80,8 +92,8 @@ func (h *handlers) AdminSalesExport(c echo.Context) error {
 			return err
 		}
 		for _, s := range rows {
-			out = append(out, []string{s.ReceiptNo, s.CreatedAt.Format("2006-01-02 15:04"), s.CashierName, strOr(s.CustomerName), s.SaleType,
-				dec2(s.Subtotal), dec2(s.Discount), dec2(s.Total), dec2(s.PaidAmount), dec2(s.ChangeGiven), dec2(s.Profit), s.Status})
+			out = append(out, []string{s.ReceiptNo, datetime.DateTime(s.CreatedAt), s.CashierName, strOr(s.CustomerName), s.SaleType,
+				dec2(s.Subtotal), dec2(s.Discount), dec2(s.Total), dec2(s.PaidAmount), dec2(s.ChangeGiven), dec2(s.COGS), dec2(s.Profit), s.Status})
 		}
 		if len(rows) < f.Limit {
 			break

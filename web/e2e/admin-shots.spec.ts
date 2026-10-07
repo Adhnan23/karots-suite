@@ -8,7 +8,7 @@ import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, sal
 const gate = process.env.SHOTS
 const path = process.env.SHOTS_PATH ?? '/admin'
 const prepKey = process.env.SHOTS_PREP ?? ''
-const name = prepKey || path.replace(/^\/admin\/?/, '').replace(/\//g, '-') || 'home'
+const name = process.env.SHOTS_NAME || prepKey || path.replace(/^\/admin\/?/, '').replace(/\//g, '-') || 'home'
 test.skip(!gate, 'set SHOTS=<gate> to take UI-gate screenshots')
 test.describe.configure({ mode: 'serial' })
 
@@ -35,6 +35,12 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  /** Any report page over today's sales: SHOTS_PREP=with-sales SHOTS_NAME=<name>. */
+  'with-sales': async (page) => {
+    await salesWithHistory(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
   finance: async (page) => {
     await salesWithHistory(page)
     await page.goto('/admin/finance')

@@ -1048,7 +1048,9 @@ export interface DenominationRequest {
  */
 export interface AdminSaleRow extends SaleSummary {
   paid: string;
+  cogs: string;
   profit: string;
+  margin: string; // percent of net revenue, 1 dp
 }
 /**
  * AdminSalesSummary covers every sale the filters match (SQL, not the page).
@@ -1574,6 +1576,58 @@ export interface ReturnableLine {
 }
 export interface ReturnableList {
   lines: ReturnableLine[];
+}
+
+//////////
+// source: dto_reports.go
+
+/**
+ * SalesReportSum is the headline over every sale the filters match (SQL).
+ * Revenue is net of pass-through face and returns (the P&L's revenue); Total
+ * is the sale totals, which the average basket divides.
+ */
+export interface SalesReportSum {
+  count: number /* int */;
+  revenue: string;
+  total: string;
+  discount: string;
+  cogs: string;
+  profit: string;
+  margin: string; // percent, 1 dp
+  avgBasket: string;
+}
+/**
+ * SalesReport is the Sales report's head (karots-pos SalesReport): this range,
+ * the equal-length range before it (same filters) for the ▲▼ deltas, and the
+ * trend by Grain. The receipts are the admin sales list's pages.
+ */
+export interface SalesReport {
+  from: string;
+  to: string;
+  grain: string;
+  sum: SalesReportSum;
+  prev: SalesReportSum;
+  trend: FinancePoint[];
+}
+/**
+ * PeakCell is one weekday × hour cell in shop time. Dow 0 = Sunday.
+ */
+export interface PeakCell {
+  dow: number /* int */;
+  hour: number /* int */;
+  count: number /* int */;
+  revenue: string;
+}
+/**
+ * PeakHoursReport is sales by weekday and hour (karots-pos Peak Hours). Only
+ * cells with sales are sent.
+ */
+export interface PeakHoursReport {
+  from: string;
+  to: string;
+  count: number /* int */;
+  revenue: string;
+  cells: PeakCell[];
 }
 
 //////////
