@@ -20,3 +20,6 @@ export function pctText(p: number | null): string {
   const r = Math.round(p * 10) / 10
   return `${(r === 0 ? 0 : r).toFixed(1)}%`
 }
+
+/** "2026-10-01 – 2026-10-07", or the one day. */
+export const periodText = (from: string, to: string) => (from === to ? from : `${from} – ${to}`)

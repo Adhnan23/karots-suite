@@ -57,10 +57,15 @@ import { Route as AuthedAdminPurchaseReturnsNewRouteImport } from './routes/_aut
 import { Route as AuthedAdminPurchasesIndexRouteImport } from './routes/_authed/admin/purchases/index'
 import { Route as AuthedAdminPurchasesNewRouteImport } from './routes/_authed/admin/purchases/new'
 import { Route as AuthedAdminReportsIndexRouteImport } from './routes/_authed/admin/reports/index'
+import { Route as AuthedAdminReportsCustomerDuesRouteImport } from './routes/_authed/admin/reports/customer-dues'
 import { Route as AuthedAdminReportsPeakHoursRouteImport } from './routes/_authed/admin/reports/peak-hours'
 import { Route as AuthedAdminReportsProductSalesRouteImport } from './routes/_authed/admin/reports/product-sales'
+import { Route as AuthedAdminReportsPurchasesRouteImport } from './routes/_authed/admin/reports/purchases'
+import { Route as AuthedAdminReportsReturnsRouteImport } from './routes/_authed/admin/reports/returns'
 import { Route as AuthedAdminReportsSalesRouteImport } from './routes/_authed/admin/reports/sales'
 import { Route as AuthedAdminReportsSalesByCashierRouteImport } from './routes/_authed/admin/reports/sales-by-cashier'
+import { Route as AuthedAdminReportsSupplierDuesRouteImport } from './routes/_authed/admin/reports/supplier-dues'
+import { Route as AuthedAdminReportsSupplierSpendRouteImport } from './routes/_authed/admin/reports/supplier-spend'
 import { Route as AuthedAdminReportsTopProductsRouteImport } from './routes/_authed/admin/reports/top-products'
 import { Route as AuthedAdminStockIndexRouteImport } from './routes/_authed/admin/stock/index'
 import { Route as AuthedAdminStockBatchesRouteImport } from './routes/_authed/admin/stock/batches'
@@ -330,6 +335,12 @@ const AuthedAdminReportsIndexRoute = AuthedAdminReportsIndexRouteImport.update({
   path: '/reports/',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminReportsCustomerDuesRoute =
+  AuthedAdminReportsCustomerDuesRouteImport.update({
+    id: '/reports/customer-dues',
+    path: '/reports/customer-dues',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 const AuthedAdminReportsPeakHoursRoute =
   AuthedAdminReportsPeakHoursRouteImport.update({
     id: '/reports/peak-hours',
@@ -342,6 +353,18 @@ const AuthedAdminReportsProductSalesRoute =
     path: '/reports/product-sales',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminReportsPurchasesRoute =
+  AuthedAdminReportsPurchasesRouteImport.update({
+    id: '/reports/purchases',
+    path: '/reports/purchases',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminReportsReturnsRoute =
+  AuthedAdminReportsReturnsRouteImport.update({
+    id: '/reports/returns',
+    path: '/reports/returns',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 const AuthedAdminReportsSalesRoute = AuthedAdminReportsSalesRouteImport.update({
   id: '/reports/sales',
   path: '/reports/sales',
@@ -351,6 +374,18 @@ const AuthedAdminReportsSalesByCashierRoute =
   AuthedAdminReportsSalesByCashierRouteImport.update({
     id: '/reports/sales-by-cashier',
     path: '/reports/sales-by-cashier',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminReportsSupplierDuesRoute =
+  AuthedAdminReportsSupplierDuesRouteImport.update({
+    id: '/reports/supplier-dues',
+    path: '/reports/supplier-dues',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminReportsSupplierSpendRoute =
+  AuthedAdminReportsSupplierSpendRouteImport.update({
+    id: '/reports/supplier-spend',
+    path: '/reports/supplier-spend',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
 const AuthedAdminReportsTopProductsRoute =
@@ -498,10 +533,15 @@ export interface FileRoutesByFullPath {
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
+  '/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
+  '/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/admin/reports/top-products': typeof AuthedAdminReportsTopProductsRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
@@ -568,10 +608,15 @@ export interface FileRoutesByTo {
   '/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
+  '/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
+  '/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/admin/reports/top-products': typeof AuthedAdminReportsTopProductsRoute
   '/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/admin/stock/take': typeof AuthedAdminStockTakeRoute
@@ -642,10 +687,15 @@ export interface FileRoutesById {
   '/_authed/admin/purchase-returns/$id': typeof AuthedAdminPurchaseReturnsIdRoute
   '/_authed/admin/purchase-returns/new': typeof AuthedAdminPurchaseReturnsNewRoute
   '/_authed/admin/purchases/new': typeof AuthedAdminPurchasesNewRoute
+  '/_authed/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/_authed/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/_authed/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
+  '/_authed/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/_authed/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/_authed/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/_authed/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/_authed/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
+  '/_authed/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/_authed/admin/reports/top-products': typeof AuthedAdminReportsTopProductsRoute
   '/_authed/admin/stock/batches': typeof AuthedAdminStockBatchesRoute
   '/_authed/admin/stock/take': typeof AuthedAdminStockTakeRoute
@@ -716,10 +766,15 @@ export interface FileRouteTypes {
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
     | '/admin/purchases/new'
+    | '/admin/reports/customer-dues'
     | '/admin/reports/peak-hours'
     | '/admin/reports/product-sales'
+    | '/admin/reports/purchases'
+    | '/admin/reports/returns'
     | '/admin/reports/sales'
     | '/admin/reports/sales-by-cashier'
+    | '/admin/reports/supplier-dues'
+    | '/admin/reports/supplier-spend'
     | '/admin/reports/top-products'
     | '/admin/stock/batches'
     | '/admin/stock/take'
@@ -786,10 +841,15 @@ export interface FileRouteTypes {
     | '/admin/purchase-returns/$id'
     | '/admin/purchase-returns/new'
     | '/admin/purchases/new'
+    | '/admin/reports/customer-dues'
     | '/admin/reports/peak-hours'
     | '/admin/reports/product-sales'
+    | '/admin/reports/purchases'
+    | '/admin/reports/returns'
     | '/admin/reports/sales'
     | '/admin/reports/sales-by-cashier'
+    | '/admin/reports/supplier-dues'
+    | '/admin/reports/supplier-spend'
     | '/admin/reports/top-products'
     | '/admin/stock/batches'
     | '/admin/stock/take'
@@ -859,10 +919,15 @@ export interface FileRouteTypes {
     | '/_authed/admin/purchase-returns/$id'
     | '/_authed/admin/purchase-returns/new'
     | '/_authed/admin/purchases/new'
+    | '/_authed/admin/reports/customer-dues'
     | '/_authed/admin/reports/peak-hours'
     | '/_authed/admin/reports/product-sales'
+    | '/_authed/admin/reports/purchases'
+    | '/_authed/admin/reports/returns'
     | '/_authed/admin/reports/sales'
     | '/_authed/admin/reports/sales-by-cashier'
+    | '/_authed/admin/reports/supplier-dues'
+    | '/_authed/admin/reports/supplier-spend'
     | '/_authed/admin/reports/top-products'
     | '/_authed/admin/stock/batches'
     | '/_authed/admin/stock/take'
@@ -1237,6 +1302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReportsIndexRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/reports/customer-dues': {
+      id: '/_authed/admin/reports/customer-dues'
+      path: '/reports/customer-dues'
+      fullPath: '/admin/reports/customer-dues'
+      preLoaderRoute: typeof AuthedAdminReportsCustomerDuesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/reports/peak-hours': {
       id: '/_authed/admin/reports/peak-hours'
       path: '/reports/peak-hours'
@@ -1251,6 +1323,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReportsProductSalesRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/reports/purchases': {
+      id: '/_authed/admin/reports/purchases'
+      path: '/reports/purchases'
+      fullPath: '/admin/reports/purchases'
+      preLoaderRoute: typeof AuthedAdminReportsPurchasesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reports/returns': {
+      id: '/_authed/admin/reports/returns'
+      path: '/reports/returns'
+      fullPath: '/admin/reports/returns'
+      preLoaderRoute: typeof AuthedAdminReportsReturnsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/reports/sales': {
       id: '/_authed/admin/reports/sales'
       path: '/reports/sales'
@@ -1263,6 +1349,20 @@ declare module '@tanstack/react-router' {
       path: '/reports/sales-by-cashier'
       fullPath: '/admin/reports/sales-by-cashier'
       preLoaderRoute: typeof AuthedAdminReportsSalesByCashierRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reports/supplier-dues': {
+      id: '/_authed/admin/reports/supplier-dues'
+      path: '/reports/supplier-dues'
+      fullPath: '/admin/reports/supplier-dues'
+      preLoaderRoute: typeof AuthedAdminReportsSupplierDuesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reports/supplier-spend': {
+      id: '/_authed/admin/reports/supplier-spend'
+      path: '/reports/supplier-spend'
+      fullPath: '/admin/reports/supplier-spend'
+      preLoaderRoute: typeof AuthedAdminReportsSupplierSpendRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/reports/top-products': {
@@ -1434,10 +1534,15 @@ interface AuthedAdminRouteChildren {
   AuthedAdminPurchaseReturnsIdRoute: typeof AuthedAdminPurchaseReturnsIdRoute
   AuthedAdminPurchaseReturnsNewRoute: typeof AuthedAdminPurchaseReturnsNewRoute
   AuthedAdminPurchasesNewRoute: typeof AuthedAdminPurchasesNewRoute
+  AuthedAdminReportsCustomerDuesRoute: typeof AuthedAdminReportsCustomerDuesRoute
   AuthedAdminReportsPeakHoursRoute: typeof AuthedAdminReportsPeakHoursRoute
   AuthedAdminReportsProductSalesRoute: typeof AuthedAdminReportsProductSalesRoute
+  AuthedAdminReportsPurchasesRoute: typeof AuthedAdminReportsPurchasesRoute
+  AuthedAdminReportsReturnsRoute: typeof AuthedAdminReportsReturnsRoute
   AuthedAdminReportsSalesRoute: typeof AuthedAdminReportsSalesRoute
   AuthedAdminReportsSalesByCashierRoute: typeof AuthedAdminReportsSalesByCashierRoute
+  AuthedAdminReportsSupplierDuesRoute: typeof AuthedAdminReportsSupplierDuesRoute
+  AuthedAdminReportsSupplierSpendRoute: typeof AuthedAdminReportsSupplierSpendRoute
   AuthedAdminReportsTopProductsRoute: typeof AuthedAdminReportsTopProductsRoute
   AuthedAdminStockBatchesRoute: typeof AuthedAdminStockBatchesRoute
   AuthedAdminStockTakeRoute: typeof AuthedAdminStockTakeRoute
@@ -1481,10 +1586,15 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminPurchaseReturnsIdRoute: AuthedAdminPurchaseReturnsIdRoute,
   AuthedAdminPurchaseReturnsNewRoute: AuthedAdminPurchaseReturnsNewRoute,
   AuthedAdminPurchasesNewRoute: AuthedAdminPurchasesNewRoute,
+  AuthedAdminReportsCustomerDuesRoute: AuthedAdminReportsCustomerDuesRoute,
   AuthedAdminReportsPeakHoursRoute: AuthedAdminReportsPeakHoursRoute,
   AuthedAdminReportsProductSalesRoute: AuthedAdminReportsProductSalesRoute,
+  AuthedAdminReportsPurchasesRoute: AuthedAdminReportsPurchasesRoute,
+  AuthedAdminReportsReturnsRoute: AuthedAdminReportsReturnsRoute,
   AuthedAdminReportsSalesRoute: AuthedAdminReportsSalesRoute,
   AuthedAdminReportsSalesByCashierRoute: AuthedAdminReportsSalesByCashierRoute,
+  AuthedAdminReportsSupplierDuesRoute: AuthedAdminReportsSupplierDuesRoute,
+  AuthedAdminReportsSupplierSpendRoute: AuthedAdminReportsSupplierSpendRoute,
   AuthedAdminReportsTopProductsRoute: AuthedAdminReportsTopProductsRoute,
   AuthedAdminStockBatchesRoute: AuthedAdminStockBatchesRoute,
   AuthedAdminStockTakeRoute: AuthedAdminStockTakeRoute,

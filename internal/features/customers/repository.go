@@ -47,7 +47,8 @@ type OwingRow struct {
 	OldestCredit *time.Time `db:"oldest_credit" json:"oldest_credit,omitempty"`
 }
 
-// Owing lists active customers who currently owe money, biggest balance first.
+// Owing lists customers who currently owe money, biggest balance first — a
+// deactivated one too: the debt is still owed and Finance's receivables count it.
 func (r *Repository) Owing(ctx context.Context) ([]OwingRow, error) {
 	var rows []OwingRow
 	err := r.q.SelectContext(ctx, &rows, `
@@ -55,7 +56,7 @@ func (r *Repository) Owing(ctx context.Context) ([]OwingRow, error) {
 		       (SELECT MIN(s.created_at) FROM sales s
 		         WHERE s.customer_id = c.id AND s.status = 'credit') AS oldest_credit
 		FROM customers c
-		WHERE c.is_active = true AND c.outstanding_balance > 0
+		WHERE c.outstanding_balance > 0
 		ORDER BY c.outstanding_balance DESC`)
 	return rows, err
 }

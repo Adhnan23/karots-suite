@@ -46,6 +46,3 @@ export function ReportPage({ title, sub, range, onRange, caption, filters, expor
     </>
   )
 }
-
-/** "2026-10-01 – 2026-10-07", or the one day. */
-export const periodText = (from: string, to: string) => (from === to ? from : `${from} – ${to}`)

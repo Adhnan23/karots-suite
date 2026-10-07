@@ -38,15 +38,17 @@ type OwingRow struct {
 	OldestUnpaid *time.Time `db:"oldest_unpaid" json:"oldest_unpaid,omitempty"`
 }
 
-// Owing lists active suppliers with an outstanding payable, biggest first.
+// Owing lists suppliers with an outstanding payable, biggest first — a
+// disabled one too (Finance's payables count it). The oldest unpaid bill is one
+// with something left after payments AND goods credited back (Balance).
 func (r *Repository) Owing(ctx context.Context) ([]OwingRow, error) {
 	var rows []OwingRow
 	err := r.q.SelectContext(ctx, &rows, `
 		SELECT s.*,
 		       (SELECT MIN(pu.created_at) FROM purchases pu
-		         WHERE pu.supplier_id = s.id AND pu.status <> 'draft' AND pu.total > pu.paid_amount) AS oldest_unpaid
+		         WHERE pu.supplier_id = s.id AND pu.status <> 'draft' AND pu.total > pu.paid_amount + pu.credited_amount) AS oldest_unpaid
 		FROM suppliers s
-		WHERE s.is_active = true AND s.outstanding_balance > 0
+		WHERE s.outstanding_balance > 0
 		ORDER BY s.outstanding_balance DESC`)
 	return rows, err
 }

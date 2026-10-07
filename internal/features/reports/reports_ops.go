@@ -81,27 +81,29 @@ func (s *Service) ReorderNeeds(ctx context.Context, cats ...string) ([]ReorderNe
 
 // SupplierSpendRow is one supplier's purchasing tally for the spend report.
 type SupplierSpendRow struct {
-	Supplier string          `db:"supplier" json:"supplier"`
-	Orders   int             `db:"orders"   json:"orders"`
-	Spend    decimal.Decimal `db:"spend"    json:"spend"`
-	Paid     decimal.Decimal `db:"paid"     json:"paid"`
-	Due      decimal.Decimal `db:"due"      json:"due"`
+	SupplierID int64           `db:"supplier_id" json:"supplier_id"`
+	Supplier   string          `db:"supplier" json:"supplier"`
+	Orders     int             `db:"orders"   json:"orders"`
+	Spend      decimal.Decimal `db:"spend"    json:"spend"`
+	Paid       decimal.Decimal `db:"paid"     json:"paid"`
+	Due        decimal.Decimal `db:"due"      json:"due"`
 }
 
 // SupplierSpend ranks suppliers by what you bought from them over a period
 // (received GRNs, drafts excluded) — the supplier twin of Top Products, and the
 // "who do we buy most from" cut neither Purchases (per-GRN) nor Supplier Dues
-// (current payables) gives.
+// (current payables) gives. Goods sent back (credited to the bill) are not
+// spend, and not due.
 func (s *Service) SupplierSpend(ctx context.Context, from, to time.Time) ([]SupplierSpendRow, error) {
 	var rows []SupplierSpendRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT sup.name AS supplier, COUNT(*) AS orders,
-		       COALESCE(SUM(pu.total),0) AS spend,
+		SELECT sup.id AS supplier_id, sup.name AS supplier, COUNT(*) AS orders,
+		       COALESCE(SUM(pu.total - pu.credited_amount),0) AS spend,
 		       COALESCE(SUM(pu.paid_amount),0) AS paid,
-		       COALESCE(SUM(pu.total - pu.paid_amount),0) AS due
+		       COALESCE(SUM(pu.total - pu.paid_amount - pu.credited_amount),0) AS due
 		FROM purchases pu JOIN suppliers sup ON sup.id = pu.supplier_id
 		WHERE pu.status <> 'draft' AND pu.created_at >= $1 AND pu.created_at < $2
-		GROUP BY sup.name
+		GROUP BY sup.id, sup.name
 		ORDER BY spend DESC`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute supplier spend", err)
 	}

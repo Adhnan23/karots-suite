@@ -9,8 +9,8 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarCell } from '../kit/BarCell'
 import { Kpi, KpiStrip } from '../kit/Kpi'
-import { pctText, share } from '../kit/numbers'
-import { periodText, ReportPage } from '../kit/ReportPage'
+import { pctText, periodText, share } from '../kit/numbers'
+import { ReportPage } from '../kit/ReportPage'
 import { rangeOf, reportQS } from '../kit/search'
 import { topProductsQuery } from '../queries'
 
@@ -32,11 +32,8 @@ export function TopProductsPage() {
   const metric = (x: { qty: string; revenue: string; profit: string }) => (order === 'qty' ? x.qty : x[order])
   const whole = d ? metric(d) : '0'
   const top = d?.rows[0] ? num(metric(d.rows[0])) : 0
-  let run = 0
-  const rows = (d?.rows ?? []).map((x, i) => {
-    run += num(metric(x))
-    return { ...x, rank: i + 1, bar: top > 0 ? (num(metric(x)) / top) * 100 : null, cum: share(String(run), whole) }
-  })
+  const runs = (d?.rows ?? []).reduce<number[]>((acc, x) => [...acc, (acc.at(-1) ?? 0) + num(metric(x))], [])
+  const rows = (d?.rows ?? []).map((x, i) => ({ ...x, rank: i + 1, bar: top > 0 ? (num(metric(x)) / top) * 100 : null, cum: share(String(runs[i]), whole) }))
   const pareto = rows.find((x) => (x.cum ?? 0) >= 80)
 
   return (

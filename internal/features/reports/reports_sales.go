@@ -45,31 +45,76 @@ func (s *Service) SalesByCashier(ctx context.Context, from, to time.Time) ([]Cas
 	return rows, nil
 }
 
-// ReturnRow is one returned line for the returns report.
-type ReturnRow struct {
-	SaleDate    time.Time       `db:"sale_date"    json:"sale_date"`
-	ReceiptNo   string          `db:"receipt_no"   json:"receipt_no"`
-	ProductName string          `db:"product_name" json:"product_name"`
-	Qty         decimal.Decimal `db:"qty"          json:"qty"`
-	RefundValue decimal.Decimal `db:"refund_value" json:"refund_value"`
-	Customer    *string         `db:"customer"     json:"customer,omitempty"`
+// ReturnLine is one returned line, dated when the money went back (the
+// return), with its sale's date beside it. Refund is what was actually given
+// for it (sale_return_items, the bill discount already shared out).
+type ReturnLine struct {
+	When      time.Time       `db:"created_at"`
+	SaleID    int64           `db:"sale_id"`
+	ReceiptNo string          `db:"receipt_no"`
+	SaleDate  time.Time       `db:"sale_date"`
+	Product   string          `db:"product"`
+	Qty       decimal.Decimal `db:"qty"`
+	Refund    decimal.Decimal `db:"refund"`
+	Customer  *string         `db:"customer"`
+	Reason    *string         `db:"reason"`
 }
 
-// Returns lists returned lines (full or partial) for sales in the period.
-func (s *Service) Returns(ctx context.Context, from, to time.Time) ([]ReturnRow, error) {
-	var rows []ReturnRow
-	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT s.created_at AS sale_date, s.receipt_no, p.name AS product_name,
-		       si.returned_qty AS qty,
-		       ((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+sales.PaidFactorSQL+`) AS refund_value,
-		       c.name AS customer
-		FROM sale_items si
-		JOIN sales s     ON s.id = si.sale_id
-		JOIN products p  ON p.id = si.product_id
+// ReturnTotals is every return made in [from,to).
+type ReturnTotals struct {
+	Returns  int             `db:"returns"`
+	Receipts int             `db:"receipts"`
+	Qty      decimal.Decimal `db:"qty"`
+	Refund   decimal.Decimal `db:"refund"`
+}
+
+// ReturnProduct is one product's returns in range.
+type ReturnProduct struct {
+	Name   string          `db:"name"`
+	Qty    decimal.Decimal `db:"qty"`
+	Refund decimal.Decimal `db:"refund"`
+}
+
+const returnsFrom = `
+		FROM sale_return_items ri
+		JOIN sale_returns r   ON r.id = ri.return_id
+		JOIN sales s          ON s.id = r.sale_id
+		JOIN products p       ON p.id = ri.product_id
 		LEFT JOIN customers c ON c.id = s.customer_id
-		WHERE si.returned_qty > 0 AND s.status <> 'void'
-		  AND s.created_at >= $1 AND s.created_at < $2
-		ORDER BY s.created_at DESC, s.receipt_no`, from, to); err != nil {
+		WHERE r.created_at >= $1 AND r.created_at < $2`
+
+// ReturnsIn totals the returns made in [from,to) — by return date, so a refund
+// given today on last month's sale is today's.
+func (s *Service) ReturnsIn(ctx context.Context, from, to time.Time) (*ReturnTotals, error) {
+	var t ReturnTotals
+	if err := s.db.GetContext(ctx, &t, `
+		SELECT COUNT(DISTINCT r.id) AS returns, COUNT(DISTINCT r.sale_id) AS receipts,
+		       COALESCE(SUM(ri.quantity),0) AS qty, COALESCE(SUM(ri.refund_amount),0) AS refund`+returnsFrom, from, to); err != nil {
+		return nil, apperr.Internal("failed to total returns", err)
+	}
+	return &t, nil
+}
+
+// MostReturned is the products with the most refunded in [from,to).
+func (s *Service) MostReturned(ctx context.Context, from, to time.Time, limit int) ([]ReturnProduct, error) {
+	var rows []ReturnProduct
+	if err := s.db.SelectContext(ctx, &rows, `
+		SELECT p.name, SUM(ri.quantity) AS qty, SUM(ri.refund_amount) AS refund`+returnsFrom+`
+		GROUP BY p.id, p.name ORDER BY refund DESC, qty DESC LIMIT $3`, from, to, limit); err != nil {
+		return nil, apperr.Internal("failed to rank returned products", err)
+	}
+	return rows, nil
+}
+
+// ReturnLines pages the returned lines in [from,to), newest first. limit 0 =
+// every line (the export).
+func (s *Service) ReturnLines(ctx context.Context, from, to time.Time, limit, offset int) ([]ReturnLine, error) {
+	var rows []ReturnLine
+	if err := s.db.SelectContext(ctx, &rows, `
+		SELECT r.created_at, s.id AS sale_id, s.receipt_no, s.created_at AS sale_date, p.name AS product,
+		       ri.quantity AS qty, ri.refund_amount AS refund, c.name AS customer, r.reason`+returnsFrom+`
+		ORDER BY r.created_at DESC, ri.id DESC
+		LIMIT NULLIF($3, 0) OFFSET $4`, from, to, limit, offset); err != nil {
 		return nil, apperr.Internal("failed to load returns", err)
 	}
 	return rows, nil

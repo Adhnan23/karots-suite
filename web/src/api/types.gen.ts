@@ -1707,6 +1707,123 @@ export interface CashierReport {
   avgBasket: string;
   rows: CashierRow[];
 }
+/**
+ * ReturnTop is one of the most-returned products in range.
+ */
+export interface ReturnTop {
+  name: string;
+  qty: string;
+  refund: string;
+}
+/**
+ * ReturnsReport is the Returns report's head: every return MADE in range (by
+ * the return's date), what went back, and the ten most-returned products. Its
+ * lines page from /reports/returns/lines.
+ */
+export interface ReturnsReport {
+  from: string;
+  to: string;
+  returns: number /* int */;
+  receipts: number /* int */;
+  qty: string;
+  refund: string;
+  top: ReturnTop[];
+}
+/**
+ * ReturnLineRow is one returned line. When is the return; SaleDate (shop
+ * date) is the sale it came from.
+ */
+export interface ReturnLineRow {
+  when: string;
+  saleId: number /* int64 */;
+  receiptNo: string;
+  saleDate: string;
+  product: string;
+  qty: string;
+  refund: string;
+  customer: string;
+  reason: string;
+}
+/**
+ * DueRow is one customer who owes us, or one supplier we owe. Terms is the
+ * credit limit (customers) or "N days" credit (suppliers); Flag = over the
+ * limit / past the supplier's credit days.
+ */
+export interface DueRow {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  balance: string;
+  terms: string;
+  oldest: string; // oldest unpaid credit sale / bill, shop date; "" when none
+  ageDays: number /* int */;
+  flag: boolean;
+  disabled: boolean;
+}
+/**
+ * DuesReport is Customer dues or Supplier dues (karots-pos): who owes, aged by
+ * the oldest unpaid credit sale / bill into 0–30 / 31–60 / 61–90 / 90+ days.
+ */
+export interface DuesReport {
+  count: number /* int */;
+  total: string;
+  flagged: number /* int */;
+  flaggedSum: string;
+  oldestDays: number /* int */;
+  buckets: string[];
+  rows: DueRow[];
+}
+/**
+ * SpendRow is what was bought from one supplier in range, net of goods sent
+ * back.
+ */
+export interface SpendRow {
+  supplierId: number /* int64 */;
+  supplier: string;
+  orders: number /* int */;
+  spend: string;
+  paid: string;
+  due: string;
+}
+/**
+ * SupplierSpendReport ranks suppliers by spend (karots-pos Spend by Supplier).
+ */
+export interface SupplierSpendReport {
+  from: string;
+  to: string;
+  orders: number /* int */;
+  spend: string;
+  paid: string;
+  due: string;
+  rows: SpendRow[];
+}
+/**
+ * PurchaseReportRow is one received delivery. Due is what's left after
+ * payments and goods credited back.
+ */
+export interface PurchaseReportRow {
+  id: number /* int64 */;
+  when: string;
+  supplier: string;
+  invoice: string;
+  total: string;
+  paid: string;
+  credited: string;
+  due: string;
+}
+/**
+ * PurchasesReport is the deliveries received in range (karots-pos Purchases).
+ */
+export interface PurchasesReport {
+  from: string;
+  to: string;
+  count: number /* int */;
+  total: string;
+  paid: string;
+  credited: string;
+  due: string;
+  rows: PurchaseReportRow[];
+}
 
 //////////
 // source: dto_sale.go

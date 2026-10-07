@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
+import { ArrowLeftRight, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -15,7 +15,12 @@ export const REPORTS: ReportEntry[] = [
   { to: '/admin/reports/product-sales', title: 'Product sales', desc: 'One product over time, beside last year', group: 'sales', icon: LineChart },
   { to: '/admin/reports/sales-by-cashier', title: 'Sales by cashier', desc: 'Takings and discounts per cashier', group: 'sales', icon: UserRound },
   { to: '/admin/reports/peak-hours', title: 'Peak hours', desc: 'Busiest days and hours — plan staff and breaks', group: 'sales', icon: Clock },
+  { to: '/admin/reports/returns', title: 'Returns', desc: 'Goods taken back and money refunded', group: 'sales', icon: Undo2 },
+  { to: '/admin/reports/customer-dues', title: 'Customer dues', desc: 'Who owes you, and for how long', group: 'sales', icon: Users },
   { to: '/admin/finance', title: 'Finance and P&L', desc: 'Revenue, cost, profit, dues and how the money came in', group: 'money', icon: Wallet },
+  { to: '/admin/reports/purchases', title: 'Purchases', desc: 'Deliveries received, and what’s still to pay', group: 'stock', icon: PackageCheck },
+  { to: '/admin/reports/supplier-spend', title: 'Spend by supplier', desc: 'Who you buy the most from', group: 'stock', icon: Truck },
+  { to: '/admin/reports/supplier-dues', title: 'Supplier dues', desc: 'Who you owe, and what’s overdue', group: 'stock', icon: HandCoins },
   { to: '/admin/reorder', title: 'Low stock', desc: 'Items at or below their reorder level — order or print them', group: 'stock', icon: PackageSearch },
 ]
 

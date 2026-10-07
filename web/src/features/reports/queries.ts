@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { CashierReport, PeakHoursReport, ProductSalesReport, SalesReport, TopProductsReport } from '@/api/types.gen'
+import type { CashierReport, DuesReport, PeakHoursReport, ProductSalesReport, PurchasesReport, ReturnLineRow, ReturnsReport, SalesReport, SupplierSpendReport, TopProductsReport } from '@/api/types.gen'
+import { paged } from '@/features/counter/queries'
 import { type SalesFilter, salesQS } from '@/features/money/queries'
 import { rangeOf, type RangeSearch, reportQS } from './kit/search'
 
@@ -14,3 +15,9 @@ export const peakHoursQuery = (s: RangeSearch) => report<PeakHoursReport>('peak-
 export const topProductsQuery = (s: RangeSearch & { order?: string }) => report<TopProductsReport>('top-products', s)
 export const productSalesQuery = (s: RangeSearch & { product?: string; grain?: string }) => report<ProductSalesReport>('product-sales', s)
 export const cashiersQuery = (s: RangeSearch) => report<CashierReport>('sales-by-cashier', s)
+export const returnsQuery = (s: RangeSearch) => report<ReturnsReport>('returns', s)
+export const returnLinesQuery = (s: RangeSearch) => paged<ReturnLineRow>(['admin', 'report', 'return-lines', s], `/admin/reports/returns/lines?${reportQS(s)}`)
+export const duesQuery = (kind: 'customer' | 'supplier') =>
+  queryOptions({ queryKey: ['admin', 'report', `${kind}-dues`], queryFn: () => api<DuesReport>(`/admin/reports/${kind}-dues`) })
+export const spendQuery = (s: RangeSearch) => report<SupplierSpendReport>('supplier-spend', s)
+export const purchasesReportQuery = (s: RangeSearch) => report<PurchasesReport>('purchases', s)

@@ -18,7 +18,7 @@ export function Kpi({ amount, label, v, sub, tone, change, fallIsGood, className
   return (
     <div className={cn('flex min-w-0 flex-col gap-0.5 px-4 py-3', className)}>
       <small className="text-[12px] font-semibold text-muted-foreground">{label}</small>
-      <b className={cn('font-display text-xl tabular-nums md:text-2xl', tone === 'in' && n > 0 && 'text-success', tone === 'out' && n > 0 && 'text-danger', tone === 'sign' && n < 0 && 'text-danger')}>{v}</b>
+      <b className={cn('font-display text-lg tabular-nums md:text-2xl', tone === 'in' && n > 0 && 'text-success', tone === 'out' && n > 0 && 'text-danger', tone === 'sign' && n < 0 && 'text-danger')}>{v}</b>
       {change != null && (
         <small className={cn('inline-flex items-center gap-0.5 text-[12px] font-semibold tabular-nums', good ? 'text-success' : 'text-danger')}>
           {up ? <ArrowUpRight size={13} aria-hidden /> : <ArrowDownRight size={13} aria-hidden />}
