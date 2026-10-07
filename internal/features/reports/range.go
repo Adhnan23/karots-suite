@@ -6,45 +6,25 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
-	"karots-suite/internal/middleware"
-	"karots-suite/internal/response"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
+	"karots-suite/internal/datetime"
 )
 
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) Finance(c echo.Context) error {
-	from, to, err := ParseRange(c.QueryParam("from"), c.QueryParam("to"))
-	if err != nil {
-		return err
-	}
-	pl, err := h.svc.Compute(c.Request().Context(), from, to)
-	if err != nil {
-		return err
-	}
-	return response.OK(c, pl)
-}
-
 // ParseRange parses optional from/to (YYYY-MM-DD), defaulting to the current
-// calendar month. `to` is made exclusive (end of day).
+// calendar month. `to` is made exclusive (end of day). Days are the shop's days
+// (datetime.Location), not the server process's zone or UTC.
 func ParseRange(fromStr, toStr string) (time.Time, time.Time, error) {
-	now := time.Now()
-	from := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	now := time.Now().In(datetime.Location)
+	from := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, datetime.Location)
 	to := from.AddDate(0, 1, 0)
 	if fromStr != "" {
-		t, err := time.Parse("2006-01-02", fromStr)
+		t, err := time.ParseInLocation("2006-01-02", fromStr, datetime.Location)
 		if err != nil {
 			return from, to, apperr.BadRequest("from must be YYYY-MM-DD")
 		}
 		from = t
 	}
 	if toStr != "" {
-		t, err := time.Parse("2006-01-02", toStr)
+		t, err := time.ParseInLocation("2006-01-02", toStr, datetime.Location)
 		if err != nil {
 			return from, to, apperr.BadRequest("to must be YYYY-MM-DD")
 		}
@@ -75,8 +55,8 @@ func ResolveRange(preset, fromStr, toStr string) (from, to time.Time, fromOut, t
 		return
 	}
 
-	now := time.Now()
-	loc := now.Location()
+	loc := datetime.Location
+	now := time.Now().In(loc)
 	day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 	switch preset {
 	case "today":
@@ -109,10 +89,4 @@ func ResolveRange(preset, fromStr, toStr string) (from, to time.Time, fromOut, t
 func weekStart(d time.Time) time.Time {
 	off := (int(d.Weekday()) + 6) % 7 // Mon=0 … Sun=6
 	return d.AddDate(0, 0, -off)
-}
-
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(db))
-	g := e.Group("/api/reports", middleware.JWTAuth(cfg.JWTSecret), middleware.RequireRole("admin", "manager"))
-	g.GET("/finance", api.Finance)
 }
