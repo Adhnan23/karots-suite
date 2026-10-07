@@ -419,3 +419,97 @@ type TopupReport struct {
 	Available     string           `json:"available"`
 	Gap           string           `json:"gap"` // available − need; negative = short
 }
+
+// VarianceLine is one ingredient: what recipes say was used against what the
+// stock actually moved. Drift is Diff as a % of expected (1 dp).
+type VarianceLine struct {
+	Ingredient string `json:"ingredient"`
+	Unit       string `json:"unit"`
+	Expected   string `json:"expected"`
+	Actual     string `json:"actual"`
+	Diff       string `json:"diff"`
+	Drift      string `json:"drift"`
+}
+
+// RecipeVarianceReport (karots-pos Recipe Variance). Drifting counts the
+// ingredients more than 10% off, over every row.
+type RecipeVarianceReport struct {
+	From     string         `json:"from"`
+	To       string         `json:"to"`
+	Drifting int            `json:"drifting"`
+	Rows     []VarianceLine `json:"rows"`
+}
+
+// ServiceLine is one service's takings, what its recipe consumed, the
+// expenses booked against it, and what's left.
+type ServiceLine struct {
+	ProductID int64  `json:"productId"`
+	Name      string `json:"name"`
+	Units     string `json:"units"`
+	Revenue   string `json:"revenue"`
+	COGS      string `json:"cogs"`
+	Gross     string `json:"gross"`
+	Expenses  string `json:"expenses"`
+	Net       string `json:"net"`
+	Margin    string `json:"margin"`
+}
+
+// ServiceProfitReport (karots-pos Service Profit): did each counter pay for itself.
+type ServiceProfitReport struct {
+	From     string        `json:"from"`
+	To       string        `json:"to"`
+	Revenue  string        `json:"revenue"`
+	Expenses string        `json:"expenses"`
+	Net      string        `json:"net"`
+	Rows     []ServiceLine `json:"rows"`
+}
+
+// RecoveryOutcome is one outcome's tally in range.
+type RecoveryOutcome struct {
+	Outcome   string `json:"outcome"`
+	Count     int    `json:"count"`
+	LossValue string `json:"lossValue"`
+	Recovered string `json:"recovered"`
+}
+
+// LossesReport is Losses & Recovery's head (karots-pos): stock lost to damage
+// and warranty replacements in range, against what suppliers made good.
+type LossesReport struct {
+	From          string            `json:"from"`
+	To            string            `json:"to"`
+	DamageCount   int               `json:"damageCount"`
+	DamageCost    string            `json:"damageCost"`
+	WarrantyCount int               `json:"warrantyCount"`
+	WarrantyCost  string            `json:"warrantyCost"`
+	Recovered     string            `json:"recovered"`
+	Net           string            `json:"net"` // lost − recovered
+	Outcomes      []RecoveryOutcome `json:"outcomes"`
+}
+
+// LossRow is one loss in range. SourceID 0 = its claim can't be traced, so it
+// can't be recovered; Outcome "" = not recovered yet.
+type LossRow struct {
+	Kind      string `json:"kind"`
+	SourceID  int64  `json:"sourceId"`
+	ID        int64  `json:"id"`
+	Product   string `json:"product"`
+	Qty       string `json:"qty"`
+	Loss      string `json:"loss"`
+	Note      string `json:"note"`
+	By        string `json:"by"`
+	At        string `json:"at"`
+	Outcome   string `json:"outcome"`
+	Recovered string `json:"recovered"`
+}
+
+// RecoveryRequest books what a supplier made good on one loss (karots-pos
+// RecoveryRecord): replacement (restocked) | paid (credited against what we
+// owe them — cash handed over is a supplier refund instead) | written_off.
+type RecoveryRequest struct {
+	SourceType string `json:"sourceType"`
+	SourceID   int64  `json:"sourceId"`
+	Outcome    string `json:"outcome"`
+	SupplierID int64  `json:"supplierId"`
+	Amount     string `json:"amount"`
+	Note       string `json:"note"`
+}

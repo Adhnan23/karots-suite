@@ -57,6 +57,11 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
   },
+  'warranty-unit': async (page) => {
+    await page.getByRole('button', { name: 'All' }).click()
+    await page.getByLabel('Units').locator('visible=true').getByRole('button').first().click()
+    await page.getByRole('dialog').waitFor()
+  },
   'product-sales': async (page) => {
     await prep['with-sales'](page)
     await page.getByLabel('Products').locator('visible=true').getByRole('button').first().click()

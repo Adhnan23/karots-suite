@@ -30,6 +30,7 @@ import { Route as AuthedAdminSalesRouteImport } from './routes/_authed/admin/sal
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedAdminUsersRouteImport } from './routes/_authed/admin/users'
+import { Route as AuthedAdminWarrantyRouteImport } from './routes/_authed/admin/warranty'
 import { Route as AuthedPrintCashflowRouteImport } from './routes/_authed/print/cashflow'
 import { Route as AuthedPrintCountSheetRouteImport } from './routes/_authed/print/count-sheet'
 import { Route as AuthedPrintLabelsRouteImport } from './routes/_authed/print/labels'
@@ -63,13 +64,16 @@ import { Route as AuthedAdminReportsCountSheetRouteImport } from './routes/_auth
 import { Route as AuthedAdminReportsCustomerDuesRouteImport } from './routes/_authed/admin/reports/customer-dues'
 import { Route as AuthedAdminReportsExpensesRouteImport } from './routes/_authed/admin/reports/expenses'
 import { Route as AuthedAdminReportsInventoryRouteImport } from './routes/_authed/admin/reports/inventory'
+import { Route as AuthedAdminReportsLossesRouteImport } from './routes/_authed/admin/reports/losses'
 import { Route as AuthedAdminReportsPeakHoursRouteImport } from './routes/_authed/admin/reports/peak-hours'
 import { Route as AuthedAdminReportsProductSalesRouteImport } from './routes/_authed/admin/reports/product-sales'
 import { Route as AuthedAdminReportsProfitByCategoryRouteImport } from './routes/_authed/admin/reports/profit-by-category'
 import { Route as AuthedAdminReportsPurchasesRouteImport } from './routes/_authed/admin/reports/purchases'
+import { Route as AuthedAdminReportsRecipeVarianceRouteImport } from './routes/_authed/admin/reports/recipe-variance'
 import { Route as AuthedAdminReportsReturnsRouteImport } from './routes/_authed/admin/reports/returns'
 import { Route as AuthedAdminReportsSalesRouteImport } from './routes/_authed/admin/reports/sales'
 import { Route as AuthedAdminReportsSalesByCashierRouteImport } from './routes/_authed/admin/reports/sales-by-cashier'
+import { Route as AuthedAdminReportsServiceProfitRouteImport } from './routes/_authed/admin/reports/service-profit'
 import { Route as AuthedAdminReportsSupplierDuesRouteImport } from './routes/_authed/admin/reports/supplier-dues'
 import { Route as AuthedAdminReportsSupplierSpendRouteImport } from './routes/_authed/admin/reports/supplier-spend'
 import { Route as AuthedAdminReportsTaxRouteImport } from './routes/_authed/admin/reports/tax'
@@ -197,6 +201,11 @@ const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
 const AuthedAdminUsersRoute = AuthedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminWarrantyRoute = AuthedAdminWarrantyRouteImport.update({
+  id: '/warranty',
+  path: '/warranty',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedPrintCashflowRoute = AuthedPrintCashflowRouteImport.update({
@@ -377,6 +386,12 @@ const AuthedAdminReportsInventoryRoute =
     path: '/reports/inventory',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminReportsLossesRoute =
+  AuthedAdminReportsLossesRouteImport.update({
+    id: '/reports/losses',
+    path: '/reports/losses',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 const AuthedAdminReportsPeakHoursRoute =
   AuthedAdminReportsPeakHoursRouteImport.update({
     id: '/reports/peak-hours',
@@ -401,6 +416,12 @@ const AuthedAdminReportsPurchasesRoute =
     path: '/reports/purchases',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
+const AuthedAdminReportsRecipeVarianceRoute =
+  AuthedAdminReportsRecipeVarianceRouteImport.update({
+    id: '/reports/recipe-variance',
+    path: '/reports/recipe-variance',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
 const AuthedAdminReportsReturnsRoute =
   AuthedAdminReportsReturnsRouteImport.update({
     id: '/reports/returns',
@@ -416,6 +437,12 @@ const AuthedAdminReportsSalesByCashierRoute =
   AuthedAdminReportsSalesByCashierRouteImport.update({
     id: '/reports/sales-by-cashier',
     path: '/reports/sales-by-cashier',
+    getParentRoute: () => AuthedAdminRoute,
+  } as any)
+const AuthedAdminReportsServiceProfitRoute =
+  AuthedAdminReportsServiceProfitRouteImport.update({
+    id: '/reports/service-profit',
+    path: '/reports/service-profit',
     getParentRoute: () => AuthedAdminRoute,
   } as any)
 const AuthedAdminReportsSupplierDuesRoute =
@@ -564,6 +591,7 @@ export interface FileRoutesByFullPath {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
+  '/admin/warranty': typeof AuthedAdminWarrantyRoute
   '/print/cashflow': typeof AuthedPrintCashflowRoute
   '/print/count-sheet': typeof AuthedPrintCountSheetRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
@@ -591,13 +619,16 @@ export interface FileRoutesByFullPath {
   '/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/admin/reports/expenses': typeof AuthedAdminReportsExpensesRoute
   '/admin/reports/inventory': typeof AuthedAdminReportsInventoryRoute
+  '/admin/reports/losses': typeof AuthedAdminReportsLossesRoute
   '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
   '/admin/reports/profit-by-category': typeof AuthedAdminReportsProfitByCategoryRoute
   '/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/admin/reports/recipe-variance': typeof AuthedAdminReportsRecipeVarianceRoute
   '/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/admin/reports/service-profit': typeof AuthedAdminReportsServiceProfitRoute
   '/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
   '/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/admin/reports/tax': typeof AuthedAdminReportsTaxRoute
@@ -647,6 +678,7 @@ export interface FileRoutesByTo {
   '/admin/services': typeof AuthedAdminServicesRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
+  '/admin/warranty': typeof AuthedAdminWarrantyRoute
   '/print/cashflow': typeof AuthedPrintCashflowRoute
   '/print/count-sheet': typeof AuthedPrintCountSheetRoute
   '/print/labels': typeof AuthedPrintLabelsRoute
@@ -674,13 +706,16 @@ export interface FileRoutesByTo {
   '/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/admin/reports/expenses': typeof AuthedAdminReportsExpensesRoute
   '/admin/reports/inventory': typeof AuthedAdminReportsInventoryRoute
+  '/admin/reports/losses': typeof AuthedAdminReportsLossesRoute
   '/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
   '/admin/reports/profit-by-category': typeof AuthedAdminReportsProfitByCategoryRoute
   '/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/admin/reports/recipe-variance': typeof AuthedAdminReportsRecipeVarianceRoute
   '/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/admin/reports/service-profit': typeof AuthedAdminReportsServiceProfitRoute
   '/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
   '/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/admin/reports/tax': typeof AuthedAdminReportsTaxRoute
@@ -734,6 +769,7 @@ export interface FileRoutesById {
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/admin/users': typeof AuthedAdminUsersRoute
+  '/_authed/admin/warranty': typeof AuthedAdminWarrantyRoute
   '/_authed/print/cashflow': typeof AuthedPrintCashflowRoute
   '/_authed/print/count-sheet': typeof AuthedPrintCountSheetRoute
   '/_authed/print/labels': typeof AuthedPrintLabelsRoute
@@ -761,13 +797,16 @@ export interface FileRoutesById {
   '/_authed/admin/reports/customer-dues': typeof AuthedAdminReportsCustomerDuesRoute
   '/_authed/admin/reports/expenses': typeof AuthedAdminReportsExpensesRoute
   '/_authed/admin/reports/inventory': typeof AuthedAdminReportsInventoryRoute
+  '/_authed/admin/reports/losses': typeof AuthedAdminReportsLossesRoute
   '/_authed/admin/reports/peak-hours': typeof AuthedAdminReportsPeakHoursRoute
   '/_authed/admin/reports/product-sales': typeof AuthedAdminReportsProductSalesRoute
   '/_authed/admin/reports/profit-by-category': typeof AuthedAdminReportsProfitByCategoryRoute
   '/_authed/admin/reports/purchases': typeof AuthedAdminReportsPurchasesRoute
+  '/_authed/admin/reports/recipe-variance': typeof AuthedAdminReportsRecipeVarianceRoute
   '/_authed/admin/reports/returns': typeof AuthedAdminReportsReturnsRoute
   '/_authed/admin/reports/sales': typeof AuthedAdminReportsSalesRoute
   '/_authed/admin/reports/sales-by-cashier': typeof AuthedAdminReportsSalesByCashierRoute
+  '/_authed/admin/reports/service-profit': typeof AuthedAdminReportsServiceProfitRoute
   '/_authed/admin/reports/supplier-dues': typeof AuthedAdminReportsSupplierDuesRoute
   '/_authed/admin/reports/supplier-spend': typeof AuthedAdminReportsSupplierSpendRoute
   '/_authed/admin/reports/tax': typeof AuthedAdminReportsTaxRoute
@@ -821,6 +860,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
+    | '/admin/warranty'
     | '/print/cashflow'
     | '/print/count-sheet'
     | '/print/labels'
@@ -848,13 +888,16 @@ export interface FileRouteTypes {
     | '/admin/reports/customer-dues'
     | '/admin/reports/expenses'
     | '/admin/reports/inventory'
+    | '/admin/reports/losses'
     | '/admin/reports/peak-hours'
     | '/admin/reports/product-sales'
     | '/admin/reports/profit-by-category'
     | '/admin/reports/purchases'
+    | '/admin/reports/recipe-variance'
     | '/admin/reports/returns'
     | '/admin/reports/sales'
     | '/admin/reports/sales-by-cashier'
+    | '/admin/reports/service-profit'
     | '/admin/reports/supplier-dues'
     | '/admin/reports/supplier-spend'
     | '/admin/reports/tax'
@@ -904,6 +947,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/units'
     | '/admin/users'
+    | '/admin/warranty'
     | '/print/cashflow'
     | '/print/count-sheet'
     | '/print/labels'
@@ -931,13 +975,16 @@ export interface FileRouteTypes {
     | '/admin/reports/customer-dues'
     | '/admin/reports/expenses'
     | '/admin/reports/inventory'
+    | '/admin/reports/losses'
     | '/admin/reports/peak-hours'
     | '/admin/reports/product-sales'
     | '/admin/reports/profit-by-category'
     | '/admin/reports/purchases'
+    | '/admin/reports/recipe-variance'
     | '/admin/reports/returns'
     | '/admin/reports/sales'
     | '/admin/reports/sales-by-cashier'
+    | '/admin/reports/service-profit'
     | '/admin/reports/supplier-dues'
     | '/admin/reports/supplier-spend'
     | '/admin/reports/tax'
@@ -990,6 +1037,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/services'
     | '/_authed/admin/units'
     | '/_authed/admin/users'
+    | '/_authed/admin/warranty'
     | '/_authed/print/cashflow'
     | '/_authed/print/count-sheet'
     | '/_authed/print/labels'
@@ -1017,13 +1065,16 @@ export interface FileRouteTypes {
     | '/_authed/admin/reports/customer-dues'
     | '/_authed/admin/reports/expenses'
     | '/_authed/admin/reports/inventory'
+    | '/_authed/admin/reports/losses'
     | '/_authed/admin/reports/peak-hours'
     | '/_authed/admin/reports/product-sales'
     | '/_authed/admin/reports/profit-by-category'
     | '/_authed/admin/reports/purchases'
+    | '/_authed/admin/reports/recipe-variance'
     | '/_authed/admin/reports/returns'
     | '/_authed/admin/reports/sales'
     | '/_authed/admin/reports/sales-by-cashier'
+    | '/_authed/admin/reports/service-profit'
     | '/_authed/admin/reports/supplier-dues'
     | '/_authed/admin/reports/supplier-spend'
     | '/_authed/admin/reports/tax'
@@ -1211,6 +1262,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthedAdminUsersRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/warranty': {
+      id: '/_authed/admin/warranty'
+      path: '/warranty'
+      fullPath: '/admin/warranty'
+      preLoaderRoute: typeof AuthedAdminWarrantyRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/print/cashflow': {
@@ -1444,6 +1502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReportsInventoryRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/reports/losses': {
+      id: '/_authed/admin/reports/losses'
+      path: '/reports/losses'
+      fullPath: '/admin/reports/losses'
+      preLoaderRoute: typeof AuthedAdminReportsLossesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/reports/peak-hours': {
       id: '/_authed/admin/reports/peak-hours'
       path: '/reports/peak-hours'
@@ -1472,6 +1537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReportsPurchasesRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/reports/recipe-variance': {
+      id: '/_authed/admin/reports/recipe-variance'
+      path: '/reports/recipe-variance'
+      fullPath: '/admin/reports/recipe-variance'
+      preLoaderRoute: typeof AuthedAdminReportsRecipeVarianceRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/admin/reports/returns': {
       id: '/_authed/admin/reports/returns'
       path: '/reports/returns'
@@ -1491,6 +1563,13 @@ declare module '@tanstack/react-router' {
       path: '/reports/sales-by-cashier'
       fullPath: '/admin/reports/sales-by-cashier'
       preLoaderRoute: typeof AuthedAdminReportsSalesByCashierRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/reports/service-profit': {
+      id: '/_authed/admin/reports/service-profit'
+      path: '/reports/service-profit'
+      fullPath: '/admin/reports/service-profit'
+      preLoaderRoute: typeof AuthedAdminReportsServiceProfitRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/reports/supplier-dues': {
@@ -1682,6 +1761,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminUsersRoute: typeof AuthedAdminUsersRoute
+  AuthedAdminWarrantyRoute: typeof AuthedAdminWarrantyRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
   AuthedAdminCustomersIdRoute: typeof AuthedAdminCustomersIdRoute
   AuthedAdminInventoryIntakeRoute: typeof AuthedAdminInventoryIntakeRoute
@@ -1694,13 +1774,16 @@ interface AuthedAdminRouteChildren {
   AuthedAdminReportsCustomerDuesRoute: typeof AuthedAdminReportsCustomerDuesRoute
   AuthedAdminReportsExpensesRoute: typeof AuthedAdminReportsExpensesRoute
   AuthedAdminReportsInventoryRoute: typeof AuthedAdminReportsInventoryRoute
+  AuthedAdminReportsLossesRoute: typeof AuthedAdminReportsLossesRoute
   AuthedAdminReportsPeakHoursRoute: typeof AuthedAdminReportsPeakHoursRoute
   AuthedAdminReportsProductSalesRoute: typeof AuthedAdminReportsProductSalesRoute
   AuthedAdminReportsProfitByCategoryRoute: typeof AuthedAdminReportsProfitByCategoryRoute
   AuthedAdminReportsPurchasesRoute: typeof AuthedAdminReportsPurchasesRoute
+  AuthedAdminReportsRecipeVarianceRoute: typeof AuthedAdminReportsRecipeVarianceRoute
   AuthedAdminReportsReturnsRoute: typeof AuthedAdminReportsReturnsRoute
   AuthedAdminReportsSalesRoute: typeof AuthedAdminReportsSalesRoute
   AuthedAdminReportsSalesByCashierRoute: typeof AuthedAdminReportsSalesByCashierRoute
+  AuthedAdminReportsServiceProfitRoute: typeof AuthedAdminReportsServiceProfitRoute
   AuthedAdminReportsSupplierDuesRoute: typeof AuthedAdminReportsSupplierDuesRoute
   AuthedAdminReportsSupplierSpendRoute: typeof AuthedAdminReportsSupplierSpendRoute
   AuthedAdminReportsTaxRoute: typeof AuthedAdminReportsTaxRoute
@@ -1740,6 +1823,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminUsersRoute: AuthedAdminUsersRoute,
+  AuthedAdminWarrantyRoute: AuthedAdminWarrantyRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
   AuthedAdminCustomersIdRoute: AuthedAdminCustomersIdRoute,
   AuthedAdminInventoryIntakeRoute: AuthedAdminInventoryIntakeRoute,
@@ -1752,14 +1836,17 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminReportsCustomerDuesRoute: AuthedAdminReportsCustomerDuesRoute,
   AuthedAdminReportsExpensesRoute: AuthedAdminReportsExpensesRoute,
   AuthedAdminReportsInventoryRoute: AuthedAdminReportsInventoryRoute,
+  AuthedAdminReportsLossesRoute: AuthedAdminReportsLossesRoute,
   AuthedAdminReportsPeakHoursRoute: AuthedAdminReportsPeakHoursRoute,
   AuthedAdminReportsProductSalesRoute: AuthedAdminReportsProductSalesRoute,
   AuthedAdminReportsProfitByCategoryRoute:
     AuthedAdminReportsProfitByCategoryRoute,
   AuthedAdminReportsPurchasesRoute: AuthedAdminReportsPurchasesRoute,
+  AuthedAdminReportsRecipeVarianceRoute: AuthedAdminReportsRecipeVarianceRoute,
   AuthedAdminReportsReturnsRoute: AuthedAdminReportsReturnsRoute,
   AuthedAdminReportsSalesRoute: AuthedAdminReportsSalesRoute,
   AuthedAdminReportsSalesByCashierRoute: AuthedAdminReportsSalesByCashierRoute,
+  AuthedAdminReportsServiceProfitRoute: AuthedAdminReportsServiceProfitRoute,
   AuthedAdminReportsSupplierDuesRoute: AuthedAdminReportsSupplierDuesRoute,
   AuthedAdminReportsSupplierSpendRoute: AuthedAdminReportsSupplierSpendRoute,
   AuthedAdminReportsTaxRoute: AuthedAdminReportsTaxRoute,

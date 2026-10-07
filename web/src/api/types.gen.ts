@@ -2037,6 +2037,108 @@ export interface TopupReport {
   available: string;
   gap: string; // available − need; negative = short
 }
+/**
+ * VarianceLine is one ingredient: what recipes say was used against what the
+ * stock actually moved. Drift is Diff as a % of expected (1 dp).
+ */
+export interface VarianceLine {
+  ingredient: string;
+  unit: string;
+  expected: string;
+  actual: string;
+  diff: string;
+  drift: string;
+}
+/**
+ * RecipeVarianceReport (karots-pos Recipe Variance). Drifting counts the
+ * ingredients more than 10% off, over every row.
+ */
+export interface RecipeVarianceReport {
+  from: string;
+  to: string;
+  drifting: number /* int */;
+  rows: VarianceLine[];
+}
+/**
+ * ServiceLine is one service's takings, what its recipe consumed, the
+ * expenses booked against it, and what's left.
+ */
+export interface ServiceLine {
+  productId: number /* int64 */;
+  name: string;
+  units: string;
+  revenue: string;
+  cogs: string;
+  gross: string;
+  expenses: string;
+  net: string;
+  margin: string;
+}
+/**
+ * ServiceProfitReport (karots-pos Service Profit): did each counter pay for itself.
+ */
+export interface ServiceProfitReport {
+  from: string;
+  to: string;
+  revenue: string;
+  expenses: string;
+  net: string;
+  rows: ServiceLine[];
+}
+/**
+ * RecoveryOutcome is one outcome's tally in range.
+ */
+export interface RecoveryOutcome {
+  outcome: string;
+  count: number /* int */;
+  lossValue: string;
+  recovered: string;
+}
+/**
+ * LossesReport is Losses & Recovery's head (karots-pos): stock lost to damage
+ * and warranty replacements in range, against what suppliers made good.
+ */
+export interface LossesReport {
+  from: string;
+  to: string;
+  damageCount: number /* int */;
+  damageCost: string;
+  warrantyCount: number /* int */;
+  warrantyCost: string;
+  recovered: string;
+  net: string; // lost − recovered
+  outcomes: RecoveryOutcome[];
+}
+/**
+ * LossRow is one loss in range. SourceID 0 = its claim can't be traced, so it
+ * can't be recovered; Outcome "" = not recovered yet.
+ */
+export interface LossRow {
+  kind: string;
+  sourceId: number /* int64 */;
+  id: number /* int64 */;
+  product: string;
+  qty: string;
+  loss: string;
+  note: string;
+  by: string;
+  at: string;
+  outcome: string;
+  recovered: string;
+}
+/**
+ * RecoveryRequest books what a supplier made good on one loss (karots-pos
+ * RecoveryRecord): replacement (restocked) | paid (credited against what we
+ * owe them — cash handed over is a supplier refund instead) | written_off.
+ */
+export interface RecoveryRequest {
+  sourceType: string;
+  sourceId: number /* int64 */;
+  outcome: string;
+  supplierId: number /* int64 */;
+  amount: string;
+  note: string;
+}
 
 //////////
 // source: dto_sale.go

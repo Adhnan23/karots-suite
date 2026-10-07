@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { CashierReport, CategoryProfitReport, CountSheet, InventoryProduct, InventoryReport, TopupReport, DuesReport, ExpensesReport, TaxReport, PeakHoursReport, ProductSalesReport, PurchasesReport, ReturnLineRow, ReturnsReport, SalesReport, SupplierSpendReport, TopProductsReport } from '@/api/types.gen'
+import type { CashierReport, CategoryProfitReport, LossesReport, LossRow, RecipeVarianceReport, ServiceProfitReport, CountSheet, InventoryProduct, InventoryReport, TopupReport, DuesReport, ExpensesReport, TaxReport, PeakHoursReport, ProductSalesReport, PurchasesReport, ReturnLineRow, ReturnsReport, SalesReport, SupplierSpendReport, TopProductsReport } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type SalesFilter, salesQS } from '@/features/money/queries'
 import { rangeOf, type RangeSearch, reportQS } from './kit/search'
@@ -32,3 +32,7 @@ export const countSheetQuery = (s: { category?: string; supplier?: string }) =>
   queryOptions({ queryKey: ['admin', 'report', 'count-sheet', s], queryFn: () => api<CountSheet>(`/admin/reports/count-sheet?${reportQS({ preset: '', ...s })}`) })
 export const topupQuery = (s: { category?: string }) =>
   queryOptions({ queryKey: ['admin', 'report', 'topup', s], queryFn: () => api<TopupReport>(`/admin/reports/topup?${reportQS({ preset: '', ...s })}`) })
+export const varianceQuery = (s: RangeSearch) => report<RecipeVarianceReport>('recipe-variance', s)
+export const serviceProfitQuery = (s: RangeSearch) => report<ServiceProfitReport>('service-profit', s)
+export const lossesQuery = (s: RangeSearch) => report<LossesReport>('losses', s)
+export const lossLinesQuery = (s: RangeSearch) => paged<LossRow>(['admin', 'report', 'loss-lines', s], `/admin/reports/losses/lines?${reportQS(s)}`)

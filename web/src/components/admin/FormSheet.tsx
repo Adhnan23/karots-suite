@@ -46,3 +46,25 @@ export function FormSheet({ open, onOpenChange, title, submit, busy, onSubmit, e
     </Dialog>
   )
 }
+
+/** A panel in the same dialog (desktop) / bottom sheet (phone) with no form
+ * of its own — for panels that carry their own actions (a warranty claim). */
+export function InfoSheet({ open, onOpenChange, title, children }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode }) {
+  const phone = useIsPhone()
+  const head = <span className="font-display text-lg font-bold">{title}</span>
+  return phone ? (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[92vh] gap-0 overflow-auto rounded-t-[22px] p-0 pt-4">
+        <SheetTitle asChild><span className="px-5">{head}</span></SheetTitle>
+        {children}
+      </SheetContent>
+    </Sheet>
+  ) : (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-auto p-0 pt-5 sm:max-w-lg">
+        <DialogTitle asChild><span className="px-5">{head}</span></DialogTitle>
+        {children}
+      </DialogContent>
+    </Dialog>
+  )
+}

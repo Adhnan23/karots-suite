@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Boxes, CalendarClock, ClipboardList, Fuel, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
+import { ArrowLeftRight, ChefHat, HeartCrack, Scale, Boxes, CalendarClock, ClipboardList, Fuel, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -29,6 +29,9 @@ export const REPORTS: ReportEntry[] = [
   { to: '/admin/reports/purchases', title: 'Purchases', desc: 'Deliveries received, and what’s still to pay', group: 'stock', icon: PackageCheck },
   { to: '/admin/reports/supplier-spend', title: 'Spend by supplier', desc: 'Who you buy the most from', group: 'stock', icon: Truck },
   { to: '/admin/reports/supplier-dues', title: 'Supplier dues', desc: 'Who you owe, and what’s overdue', group: 'stock', icon: HandCoins },
+  { to: '/admin/reports/losses', title: 'Losses and recovery', desc: 'Damage and warranty losses, and what suppliers made good', group: 'stock', icon: HeartCrack },
+  { to: '/admin/reports/recipe-variance', title: 'Recipe variance', desc: 'Ingredients the recipes say were used, against actual', group: 'stock', icon: Scale },
+  { to: '/admin/reports/service-profit', title: 'Service profit', desc: 'Did each service pay for itself', group: 'stock', icon: ChefHat },
   { to: '/admin/reorder', title: 'Low stock', desc: 'Items at or below their reorder level — order or print them', group: 'stock', icon: PackageSearch },
 ]
 
