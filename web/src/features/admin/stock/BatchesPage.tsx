@@ -7,6 +7,7 @@ import type { BatchesView, BatchGroup, WriteOffResult } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { INPUT } from '@/components/admin/fields'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
+import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { Seg } from '@/features/till/bits'
@@ -38,7 +39,7 @@ export function BatchesPage() {
   }
   return (
     <>
-      <PageHead title="Batches" sub="Every live lot, expiring first. Write off what’s past its date." />
+      <PageHead title="Batches" sub="Every live lot, expiring first. Write off what’s past its date." actions={<ExportMenu url="/api/v1/admin/stock/batches" />} />
       {v && (
         <div className="mb-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
           <Stat tone="danger" label="Expired" value={`${v.expired} ${v.expired === 1 ? 'lot' : 'lots'}`} sub={money(sym, v.expiredValue)}

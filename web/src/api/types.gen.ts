@@ -1902,6 +1902,141 @@ export interface TillTotals {
   overShort: string;
   short: number /* int */;
 }
+/**
+ * UnitAmount is a quantity in one unit ("120 kg").
+ */
+export interface UnitAmount {
+  unit: string;
+  qty: string;
+}
+/**
+ * InventoryNode is one row of the category breakdown: a child category over
+ * its whole subtree, or (Direct) the products filed on the category itself.
+ */
+export interface InventoryNode {
+  id: number /* int64 */;
+  name: string;
+  direct: boolean;
+  hasChildren: boolean;
+  skus: number /* int */;
+  inStock: number /* int */;
+  costValue: string;
+  retailValue: string;
+}
+/**
+ * Crumb is one step of the path from the whole shop down to a category.
+ */
+export interface Crumb {
+  id: number /* int64 */;
+  name: string;
+}
+/**
+ * InventoryReport is the stock on hand valued at cost (by its lots) and at
+ * retail for one branch of the catalogue (karots-pos Inventory Valuation).
+ * Its products page from /reports/inventory/products.
+ */
+export interface InventoryReport {
+  skus: number /* int */;
+  inStock: number /* int */;
+  units: UnitAmount[];
+  costValue: string;
+  retailValue: string;
+  margin: string;
+  marginPct: string;
+  missingCost: number /* int */;
+  negativeQty: number /* int */;
+  breadcrumb: Crumb[];
+  children: InventoryNode[];
+}
+/**
+ * InventoryProduct is one product's stock and what it's worth.
+ */
+export interface InventoryProduct {
+  id: number /* int64 */;
+  name: string;
+  barcode: string;
+  category: string;
+  unit: string;
+  qty: string;
+  costValue: string;
+  retailValue: string;
+}
+/**
+ * CountSheetLine is one product to count on the shelf.
+ */
+export interface CountSheetLine {
+  id: number /* int64 */;
+  name: string;
+  barcode: string;
+  unit: string;
+  category: string; // "Drinks > Soft drinks"
+  onHand: string;
+}
+/**
+ * CountSheet is the physical-count worklist (karots-pos Stock Count Sheet):
+ * active stocked products in a category (any depth) and / or from a supplier,
+ * grouped by category path. Category / Supplier name the filters.
+ */
+export interface CountSheet {
+  category: string;
+  supplier: string;
+  rows: CountSheetLine[];
+}
+/**
+ * ReadinessLine is one thing a plugin says needs topping up.
+ */
+export interface ReadinessLine {
+  name: string;
+  have: string;
+  target: string;
+  need: string;
+}
+/**
+ * ReadinessGroup is one plugin's readiness section (e.g. a reload float).
+ */
+export interface ReadinessGroup {
+  title: string;
+  need: string;
+  rows: ReadinessLine[];
+}
+/**
+ * TopupStockRow is one product at or under its reorder level and what it
+ * costs to bring it back up.
+ */
+export interface TopupStockRow {
+  productId: number /* int64 */;
+  category: string;
+  product: string;
+  onHand: string;
+  reorder: number /* int */;
+  short: string;
+  cost: string;
+  restock: string;
+}
+/**
+ * PlaceBalance is money in one place now.
+ */
+export interface PlaceBalance {
+  name: string;
+  balance: string;
+}
+/**
+ * TopupReport is Top-up & reorder (karots-pos): what must be topped up (plugin
+ * floats, stock under its level) against the money on hand to pay for it.
+ */
+export interface TopupReport {
+  plugins: ReadinessGroup[];
+  pluginNeed: string;
+  stock: TopupStockRow[];
+  stockNeed: string;
+  totalNeed: string;
+  physical: PlaceBalance[];
+  physicalTotal: string;
+  bank: PlaceBalance[];
+  bankTotal: string;
+  available: string;
+  gap: string; // available − need; negative = short
+}
 
 //////////
 // source: dto_sale.go

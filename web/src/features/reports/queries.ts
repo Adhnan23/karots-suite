@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { CashierReport, CategoryProfitReport, DuesReport, ExpensesReport, TaxReport, PeakHoursReport, ProductSalesReport, PurchasesReport, ReturnLineRow, ReturnsReport, SalesReport, SupplierSpendReport, TopProductsReport } from '@/api/types.gen'
+import type { CashierReport, CategoryProfitReport, CountSheet, InventoryProduct, InventoryReport, TopupReport, DuesReport, ExpensesReport, TaxReport, PeakHoursReport, ProductSalesReport, PurchasesReport, ReturnLineRow, ReturnsReport, SalesReport, SupplierSpendReport, TopProductsReport } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type SalesFilter, salesQS } from '@/features/money/queries'
 import { rangeOf, type RangeSearch, reportQS } from './kit/search'
@@ -24,3 +24,11 @@ export const purchasesReportQuery = (s: RangeSearch) => report<PurchasesReport>(
 export const categoryProfitQuery = (s: RangeSearch & { category?: string }) => report<CategoryProfitReport>('profit-by-category', s)
 export const expensesReportQuery = (s: RangeSearch) => report<ExpensesReport>('expenses', s)
 export const taxQuery = (s: RangeSearch) => report<TaxReport>('tax', s)
+export const inventoryQuery = (s: { category?: string; zero?: string }) =>
+  queryOptions({ queryKey: ['admin', 'report', 'inventory', s], queryFn: () => api<InventoryReport>(`/admin/reports/inventory?${reportQS({ preset: '', ...s })}`) })
+export const inventoryProductsQuery = (s: { category?: string; zero?: string }) =>
+  paged<InventoryProduct>(['admin', 'report', 'inventory-products', s], `/admin/reports/inventory/products?${reportQS({ preset: '', ...s })}`)
+export const countSheetQuery = (s: { category?: string; supplier?: string }) =>
+  queryOptions({ queryKey: ['admin', 'report', 'count-sheet', s], queryFn: () => api<CountSheet>(`/admin/reports/count-sheet?${reportQS({ preset: '', ...s })}`) })
+export const topupQuery = (s: { category?: string }) =>
+  queryOptions({ queryKey: ['admin', 'report', 'topup', s], queryFn: () => api<TopupReport>(`/admin/reports/topup?${reportQS({ preset: '', ...s })}`) })

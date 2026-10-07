@@ -23,11 +23,15 @@ func (h *handlers) registerAdminBatches(g *echo.Group) {
 }
 
 // AdminBatches is every live lot, grouped by product: expired first, then
-// expiring within 30 days, then the rest by name (karots-pos Batches page).
+// expiring within 30 days, then the rest by name (karots-pos Batches page and
+// Batches / Expiry report); ?format= downloads every lot.
 func (h *handlers) AdminBatches(c echo.Context) error {
 	rows, err := h.t.stock.AllBatches(c.Request().Context())
 	if err != nil {
 		return err
+	}
+	if wantsSheet(c) {
+		return batchesSheet(c, rows)
 	}
 	now := time.Now()
 	soon := now.AddDate(0, 0, 30)
@@ -133,4 +137,23 @@ func (h *handlers) AdminStockConsume(c echo.Context) error {
 	}
 	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(req.ProductID, 10), req.Reason+" "+in.Quantity)
 	return c.NoContent(http.StatusNoContent)
+}
+
+// batchesSheet is every live lot as a download (karots-pos Batches report
+// CSV). "Own price" says whether the lot carries its own price (and so can be
+// picked at the till) or follows the product.
+func batchesSheet(c echo.Context, rows []stock.Batch) error {
+	out := make([][]string, 0, len(rows))
+	for _, b := range rows {
+		expiry, own := "", "no"
+		if b.ExpiryDate != nil {
+			expiry = b.ExpiryDate.Format("2006-01-02")
+		}
+		if b.SellingPrice.IsPositive() {
+			own = "yes"
+		}
+		out = append(out, []string{b.ProductName, strOr(b.BatchNo), expiry, b.QtyRemaining.String(), b.UnitAbbr, dec2(b.CostPrice),
+			dec2(b.EffectivePrice(b.ProductPrice)), own, dec2(b.QtyRemaining.Mul(b.CostPrice))})
+	}
+	return writeSheet(c, "batches_"+time.Now().Format("2006-01-02"), []string{"Product", "Batch", "Expiry", "Remaining", "Unit", "Cost", "Sells at", "Own price", "Value"}, out)
 }

@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { Search, ShoppingCart, X } from 'lucide-react'
+import { Printer, Search, ShoppingCart, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -10,6 +10,7 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Pager } from '@/components/admin/Pager'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { suppliersQuery } from '@/features/counter/queries'
@@ -91,7 +92,18 @@ export function ReorderPage() {
   return (
     <>
       <PageHead title="Reorder" sub="Everything at or under its reorder level, with how much to buy. Tick items, then make the orders."
-        actions={<Button variant="outline" className="h-10 px-4" asChild><Link to="/admin/purchases/new">Manual purchase order →</Link></Button>} />
+        actions={(
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild><Button variant="outline" className="h-10 gap-1.5 px-4"><Printer size={16} /> Print</Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}`} target="_blank" rel="noreferrer">This page</a></DropdownMenuItem>
+                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&all=1`} target="_blank" rel="noreferrer">Everything</a></DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" className="h-10 px-4" asChild><Link to="/admin/purchases/new">Manual purchase order →</Link></Button>
+          </>
+        )} />
       <div className="mb-3 grid gap-2 md:flex md:flex-wrap md:items-center">
         <div className="relative md:w-72">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />

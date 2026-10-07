@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
+import { ArrowLeftRight, Boxes, CalendarClock, ClipboardList, Fuel, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -22,6 +22,10 @@ export const REPORTS: ReportEntry[] = [
   { to: '/admin/reports/expenses', title: 'Expenses by category', desc: 'Where the running costs went', group: 'money', icon: Receipt },
   { to: '/admin/tills', title: 'Cash register', desc: 'Till sessions with over / short, totals and export', group: 'money', icon: Landmark },
   { to: '/admin/reports/tax', title: 'Tax', desc: 'Tax charged at the till, day by day', group: 'money', icon: Calculator, gate: 'tax' },
+  { to: '/admin/reports/inventory', title: 'Inventory valuation', desc: 'Stock on hand at cost and at selling price', group: 'stock', icon: Boxes },
+  { to: '/admin/stock/batches', title: 'Batches and expiry', desc: 'Live lots, what’s expired or close to it', group: 'stock', icon: CalendarClock },
+  { to: '/admin/reports/count-sheet', title: 'Stock count sheet', desc: 'A printable shelf count by category or supplier', group: 'stock', icon: ClipboardList },
+  { to: '/admin/reports/topup', title: 'Top-up and reorder', desc: 'What needs buying against the money on hand', group: 'stock', icon: Fuel },
   { to: '/admin/reports/purchases', title: 'Purchases', desc: 'Deliveries received, and what’s still to pay', group: 'stock', icon: PackageCheck },
   { to: '/admin/reports/supplier-spend', title: 'Spend by supplier', desc: 'Who you buy the most from', group: 'stock', icon: Truck },
   { to: '/admin/reports/supplier-dues', title: 'Supplier dues', desc: 'Who you owe, and what’s overdue', group: 'stock', icon: HandCoins },

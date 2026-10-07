@@ -9,7 +9,6 @@ import (
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/datetime"
 
-	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -40,6 +39,7 @@ func (s *Service) ExpensesByCategory(ctx context.Context, from, to time.Time) ([
 // ReorderNeed is one product at/under its reorder level, for the Top-up &
 // Reorder readiness report.
 type ReorderNeed struct {
+	ProductID int64           `db:"product_id"`
 	Category  string          `db:"category"`
 	Product   string          `db:"product"`
 	OnHand    decimal.Decimal `db:"on_hand"`
@@ -60,20 +60,25 @@ func (n ReorderNeed) Shortfall() decimal.Decimal {
 func (n ReorderNeed) RestockCost() decimal.Decimal { return n.Shortfall().Mul(n.CostPrice) }
 
 // ReorderNeeds lists active, stock-tracked products at or under their reorder
-// level (reorder_level > 0), optionally narrowed to a set of category names.
-// Newest-need first isn't meaningful here, so it orders by category then product.
-func (s *Service) ReorderNeeds(ctx context.Context, cats ...string) ([]ReorderNeed, error) {
+// level (reorder_level > 0), optionally narrowed to one category and every
+// category under it, ordered by category then product.
+func (s *Service) ReorderNeeds(ctx context.Context, categoryID *int64) ([]ReorderNeed, error) {
 	var rows []ReorderNeed
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT c.name AS category, p.name AS product,
+		WITH RECURSIVE sub AS (
+			SELECT id FROM categories WHERE id = $1
+		  UNION ALL
+			SELECT c.id FROM categories c JOIN sub ON c.parent_id = sub.id
+		)
+		SELECT p.id AS product_id, c.name AS category, p.name AS product,
 		       COALESCE(st.quantity,0) AS on_hand, p.reorder_level, p.cost_price
 		FROM products p
 		JOIN categories c ON c.id = p.category_id
 		LEFT JOIN stock st ON st.product_id = p.id
 		WHERE p.is_active AND NOT p.is_service AND NOT p.pass_through
 		  AND p.reorder_level > 0 AND COALESCE(st.quantity,0) <= p.reorder_level
-		  AND ($1::text[] IS NULL OR cardinality($1::text[]) = 0 OR c.name = ANY($1::text[]))
-		ORDER BY c.name, p.name`, pq.Array(cats)); err != nil {
+		  AND ($1::bigint IS NULL OR p.category_id IN (SELECT id FROM sub))
+		ORDER BY c.name, p.name`, categoryID); err != nil {
 		return nil, apperr.Internal("failed to load reorder needs", err)
 	}
 	return rows, nil

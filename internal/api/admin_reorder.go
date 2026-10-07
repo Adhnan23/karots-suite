@@ -26,7 +26,7 @@ func (h *handlers) registerAdminReorder(g *echo.Group) {
 
 // AdminReorder is the low-stock worklist with a demand hint per product
 // (karots-pos low-stock PO builder + reorderDemand): search, category (with its
-// sub-categories), preferred supplier.
+// sub-categories), preferred supplier; ?all=1 every match on one page.
 func (h *handlers) AdminReorder(c echo.Context) error {
 	page := max(1, atoiOr(c.QueryParam("page"), 1))
 	q := products.ListQuery{Search: strings.TrimSpace(c.QueryParam("q")), LowStock: true, Page: page, Limit: reorderPageSize}
@@ -40,6 +40,22 @@ func (h *handlers) AdminReorder(c echo.Context) error {
 	rows, total, err := h.t.products.List(ctx, q)
 	if err != nil {
 		return err
+	}
+	// ?all=1: every low-stock product (the low-stock print's "Print all"),
+	// walked a full page at a time — List caps one call at MaxListLimit.
+	if c.QueryParam("all") == "1" {
+		q.Limit, rows = products.MaxListLimit, nil
+		for q.Page = 1; ; q.Page++ {
+			got, n, err := h.t.products.List(ctx, q)
+			if err != nil {
+				return err
+			}
+			rows, total = append(rows, got...), n
+			if len(got) == 0 || len(rows) >= n {
+				break
+			}
+		}
+		page = 1
 	}
 	ids := make([]int64, 0, len(rows))
 	for _, p := range rows {

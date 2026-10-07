@@ -296,3 +296,126 @@ type TillTotals struct {
 	OverShort string `json:"overShort"`
 	Short     int    `json:"short"`
 }
+
+// UnitAmount is a quantity in one unit ("120 kg").
+type UnitAmount struct {
+	Unit string `json:"unit"`
+	Qty  string `json:"qty"`
+}
+
+// InventoryNode is one row of the category breakdown: a child category over
+// its whole subtree, or (Direct) the products filed on the category itself.
+type InventoryNode struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Direct      bool   `json:"direct"`
+	HasChildren bool   `json:"hasChildren"`
+	SKUs        int    `json:"skus"`
+	InStock     int    `json:"inStock"`
+	CostValue   string `json:"costValue"`
+	RetailValue string `json:"retailValue"`
+}
+
+// Crumb is one step of the path from the whole shop down to a category.
+type Crumb struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// InventoryReport is the stock on hand valued at cost (by its lots) and at
+// retail for one branch of the catalogue (karots-pos Inventory Valuation).
+// Its products page from /reports/inventory/products.
+type InventoryReport struct {
+	SKUs        int             `json:"skus"`
+	InStock     int             `json:"inStock"`
+	Units       []UnitAmount    `json:"units"`
+	CostValue   string          `json:"costValue"`
+	RetailValue string          `json:"retailValue"`
+	Margin      string          `json:"margin"`
+	MarginPct   string          `json:"marginPct"`
+	MissingCost int             `json:"missingCost"`
+	NegativeQty int             `json:"negativeQty"`
+	Breadcrumb  []Crumb         `json:"breadcrumb"`
+	Children    []InventoryNode `json:"children"`
+}
+
+// InventoryProduct is one product's stock and what it's worth.
+type InventoryProduct struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Barcode     string `json:"barcode"`
+	Category    string `json:"category"`
+	Unit        string `json:"unit"`
+	Qty         string `json:"qty"`
+	CostValue   string `json:"costValue"`
+	RetailValue string `json:"retailValue"`
+}
+
+// CountSheetLine is one product to count on the shelf.
+type CountSheetLine struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Barcode  string `json:"barcode"`
+	Unit     string `json:"unit"`
+	Category string `json:"category"` // "Drinks > Soft drinks"
+	OnHand   string `json:"onHand"`
+}
+
+// CountSheet is the physical-count worklist (karots-pos Stock Count Sheet):
+// active stocked products in a category (any depth) and / or from a supplier,
+// grouped by category path. Category / Supplier name the filters.
+type CountSheet struct {
+	Category string           `json:"category"`
+	Supplier string           `json:"supplier"`
+	Rows     []CountSheetLine `json:"rows"`
+}
+
+// ReadinessLine is one thing a plugin says needs topping up.
+type ReadinessLine struct {
+	Name   string `json:"name"`
+	Have   string `json:"have"`
+	Target string `json:"target"`
+	Need   string `json:"need"`
+}
+
+// ReadinessGroup is one plugin's readiness section (e.g. a reload float).
+type ReadinessGroup struct {
+	Title string          `json:"title"`
+	Need  string          `json:"need"`
+	Rows  []ReadinessLine `json:"rows"`
+}
+
+// TopupStockRow is one product at or under its reorder level and what it
+// costs to bring it back up.
+type TopupStockRow struct {
+	ProductID int64  `json:"productId"`
+	Category  string `json:"category"`
+	Product   string `json:"product"`
+	OnHand    string `json:"onHand"`
+	Reorder   int    `json:"reorder"`
+	Short     string `json:"short"`
+	Cost      string `json:"cost"`
+	Restock   string `json:"restock"`
+}
+
+// PlaceBalance is money in one place now.
+type PlaceBalance struct {
+	Name    string `json:"name"`
+	Balance string `json:"balance"`
+}
+
+// TopupReport is Top-up & reorder (karots-pos): what must be topped up (plugin
+// floats, stock under its level) against the money on hand to pay for it.
+type TopupReport struct {
+	Plugins       []ReadinessGroup `json:"plugins"`
+	PluginNeed    string           `json:"pluginNeed"`
+	Stock         []TopupStockRow  `json:"stock"`
+	StockNeed     string           `json:"stockNeed"`
+	TotalNeed     string           `json:"totalNeed"`
+	Physical      []PlaceBalance   `json:"physical"`
+	PhysicalTotal string           `json:"physicalTotal"`
+	Bank          []PlaceBalance   `json:"bank"`
+	BankTotal     string           `json:"bankTotal"`
+	Available     string           `json:"available"`
+	Gap           string           `json:"gap"` // available − need; negative = short
+}
