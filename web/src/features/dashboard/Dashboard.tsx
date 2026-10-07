@@ -39,13 +39,13 @@ function Tile({ label, value, change, fallIsGood, sub, spark, to }: {
         )}
       </span>
       <span className="flex items-end justify-between gap-2">
-        <b className="font-display text-[22px] leading-tight tabular-nums whitespace-nowrap md:text-2xl">{value}</b>
-        {spark && <Spark values={spark} className="flex-none text-brand" />}
+        <b className="font-display text-[20px] leading-tight tabular-nums whitespace-nowrap md:text-2xl">{value}</b>
+        {spark && <Spark values={spark} className="h-auto w-14 min-w-0 shrink text-brand md:w-[84px]" />}
       </span>
       <small className="text-[12px] text-faint">{sub}</small>
     </>
   )
-  const cls = cn(SURFACE, 'flex min-w-[78%] snap-start flex-col gap-1 px-4 py-3.5 md:min-w-0')
+  const cls = cn(SURFACE, 'flex min-w-[78%] snap-start flex-col gap-1 overflow-hidden px-4 py-3.5 md:min-w-0')
   return to ? <Link to={to} className={cn(cls, 'transition-colors hover:border-selected')}>{body}</Link> : <div className={cls}>{body}</div>
 }
 
