@@ -2174,6 +2174,57 @@ export interface ActivityFilters {
   users: CashierOption[];
   sources: ActivityOption[];
 }
+/**
+ * DashboardDay is one shop day's takings, counted as the P&L counts them.
+ */
+export interface DashboardDay {
+  count: number /* int */;
+  revenue: string;
+  profit: string;
+  margin: string;
+  avgBasket: string;
+}
+/**
+ * DashboardAttention is what needs someone today (each 0 = nothing).
+ */
+export interface DashboardAttention {
+  lowStock: number /* int */;
+  expired: number /* int */;
+  expiring: number /* int */; // within 30 days
+  review: number /* int */; // quick-added items needing details
+  overLimit: number /* int */;
+  overLimitSum: string;
+}
+/**
+ * Dashboard is the admin home (karots-pos Dashboard): today against
+ * yesterday, the last 14 days for the sparklines, money in the open tills
+ * and owed to the shop, today's payment mix, what needs attention, and the
+ * latest sales.
+ */
+export interface Dashboard {
+  today: DashboardDay;
+  yesterday: DashboardDay;
+  spark: FinancePoint[];
+  tillCash: string;
+  openTills: number /* int */;
+  owed: string;
+  owing: number /* int */;
+  paid: FinanceSlice[];
+  attention: DashboardAttention;
+  recent: AdminSaleRow[];
+}
+/**
+ * DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /
+ * 30 / 90 days): revenue per period with the period before laid beside it
+ * (same length, Prev[i] is the matching earlier period), and the top sellers.
+ */
+export interface DashboardCharts {
+  days: number /* int */;
+  grain: string;
+  cur: FinancePoint[];
+  prev: FinancePoint[];
+  top: TopProductRow[];
+}
 
 //////////
 // source: dto_sale.go

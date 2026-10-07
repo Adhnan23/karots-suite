@@ -20,6 +20,7 @@ func (h *handlers) registerAdminReports(g *echo.Group) {
 	h.registerReportsStock(g)
 	h.registerReportsOps(g)
 	h.registerAdminActivity(g)
+	h.registerAdminDashboard(g)
 }
 
 // reportRange is a report's period: a preset or from / to (to inclusive of its

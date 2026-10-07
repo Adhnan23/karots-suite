@@ -544,3 +544,50 @@ type ActivityFilters struct {
 	Users   []CashierOption  `json:"users"`
 	Sources []ActivityOption `json:"sources"`
 }
+
+// DashboardDay is one shop day's takings, counted as the P&L counts them.
+type DashboardDay struct {
+	Count     int    `json:"count"`
+	Revenue   string `json:"revenue"`
+	Profit    string `json:"profit"`
+	Margin    string `json:"margin"`
+	AvgBasket string `json:"avgBasket"`
+}
+
+// DashboardAttention is what needs someone today (each 0 = nothing).
+type DashboardAttention struct {
+	LowStock     int    `json:"lowStock"`
+	Expired      int    `json:"expired"`
+	Expiring     int    `json:"expiring"` // within 30 days
+	Review       int    `json:"review"`   // quick-added items needing details
+	OverLimit    int    `json:"overLimit"`
+	OverLimitSum string `json:"overLimitSum"`
+}
+
+// Dashboard is the admin home (karots-pos Dashboard): today against
+// yesterday, the last 14 days for the sparklines, money in the open tills
+// and owed to the shop, today's payment mix, what needs attention, and the
+// latest sales.
+type Dashboard struct {
+	Today     DashboardDay       `json:"today"`
+	Yesterday DashboardDay       `json:"yesterday"`
+	Spark     []FinancePoint     `json:"spark"`
+	TillCash  string             `json:"tillCash"`
+	OpenTills int                `json:"openTills"`
+	Owed      string             `json:"owed"`
+	Owing     int                `json:"owing"`
+	Paid      []FinanceSlice     `json:"paid"`
+	Attention DashboardAttention `json:"attention"`
+	Recent    []AdminSaleRow     `json:"recent"`
+}
+
+// DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /
+// 30 / 90 days): revenue per period with the period before laid beside it
+// (same length, Prev[i] is the matching earlier period), and the top sellers.
+type DashboardCharts struct {
+	Days  int             `json:"days"`
+	Grain string          `json:"grain"`
+	Cur   []FinancePoint  `json:"cur"`
+	Prev  []FinancePoint  `json:"prev"`
+	Top   []TopProductRow `json:"top"`
+}
