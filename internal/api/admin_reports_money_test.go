@@ -17,16 +17,16 @@ func TestMoneyReports(t *testing.T) {
 	admin := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
 	var cashier, unit int64
 	te.db.Get(&cashier, `SELECT id FROM users ORDER BY id LIMIT 1`) //nolint:errcheck
-	te.db.Get(&unit, `SELECT id FROM units LIMIT 1`)               //nolint:errcheck
+	te.db.Get(&unit, `SELECT id FROM units LIMIT 1`)                //nolint:errcheck
 	t.Cleanup(func() {
-		te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-RM-%'`)                       //nolint:errcheck
-		te.db.Exec(`DELETE FROM products WHERE name LIKE 'T rm %'`)                          //nolint:errcheck
-		te.db.Exec(`DELETE FROM categories WHERE name LIKE 'T rm %'`)                        //nolint:errcheck
-		te.db.Exec(`DELETE FROM expenses WHERE category LIKE 'T rm %'`)                      //nolint:errcheck
+		te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-RM-%'`)                                       //nolint:errcheck
+		te.db.Exec(`DELETE FROM products WHERE name LIKE 'T rm %'`)                                          //nolint:errcheck
+		te.db.Exec(`DELETE FROM categories WHERE name LIKE 'T rm %'`)                                        //nolint:errcheck
+		te.db.Exec(`DELETE FROM expenses WHERE category LIKE 'T rm %'`)                                      //nolint:errcheck
 		te.db.Exec(`DELETE FROM cash_register WHERE opened_at >= '2097-02-01' AND opened_at < '2097-03-01'`) //nolint:errcheck
 	})
 	var parent, child int64
-	te.db.Get(&parent, `INSERT INTO categories (name) VALUES ('T rm Drinks') RETURNING id`)                          //nolint:errcheck
+	te.db.Get(&parent, `INSERT INTO categories (name) VALUES ('T rm Drinks') RETURNING id`)                      //nolint:errcheck
 	te.db.Get(&child, `INSERT INTO categories (name, parent_id) VALUES ('T rm Juice', $1) RETURNING id`, parent) //nolint:errcheck
 	sell := func(n int, cat int64, price, cost int, at string, tax int) {
 		var pid, sid int64

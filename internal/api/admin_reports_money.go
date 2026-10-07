@@ -68,7 +68,16 @@ func (h *handlers) ReportCategoryProfit(c echo.Context) error {
 	var walk func(ids []int64, depth int)
 	walk = func(ids []int64, depth int) {
 		ids = append([]int64(nil), ids...)
-		sort.SliceStable(ids, func(i, j int) bool { return sub[ids[j]] == nil || sub[ids[i]] != nil && sub[ids[i]].profit.GreaterThan(sub[ids[j]].profit) })
+		// Siblings by profit, biggest first; categories with no sales (skipped
+		// below) sort last.
+		has := func(id int64) bool { return sub[id] != nil }
+		sort.SliceStable(ids, func(i, j int) bool {
+			a, b := ids[i], ids[j]
+			if has(a) != has(b) {
+				return has(a)
+			}
+			return has(a) && sub[a].profit.GreaterThan(sub[b].profit)
+		})
 		for _, id := range ids {
 			x := sub[id]
 			if x == nil {

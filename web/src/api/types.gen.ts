@@ -1902,6 +1902,10 @@ export interface TillTotals {
   overShort: string;
   short: number /* int */;
 }
+
+//////////
+// source: dto_reports_ops.go
+
 /**
  * UnitAmount is a quantity in one unit ("120 kg").
  */

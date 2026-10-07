@@ -21,8 +21,8 @@ func TestProductReportsAndCashiers(t *testing.T) {
 	te.db.Get(&cat, `SELECT id FROM categories LIMIT 1`) //nolint:errcheck
 	te.db.Get(&unit, `SELECT id FROM units LIMIT 1`)     //nolint:errcheck
 	t.Cleanup(func() {
-		te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-RP-%'`)          //nolint:errcheck
-		te.db.Exec(`DELETE FROM products WHERE name LIKE 'T rp %'`)             //nolint:errcheck
+		te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-RP-%'`)             //nolint:errcheck
+		te.db.Exec(`DELETE FROM products WHERE name LIKE 'T rp %'`)                //nolint:errcheck
 		te.db.Exec(`DELETE FROM users WHERE phone IN ('0700000991','0700000992')`) //nolint:errcheck
 	})
 	cashier := func(phone string) (id int64) {

@@ -18,7 +18,7 @@ func TestDashboard(t *testing.T) {
 	admin := te.login(t, phone(), "admin")
 	cashier := te.login(t, phone(), "cashier")
 	var who int64
-	te.db.Get(&who, `SELECT id FROM users ORDER BY id LIMIT 1`) //nolint:errcheck
+	te.db.Get(&who, `SELECT id FROM users ORDER BY id LIMIT 1`)                         //nolint:errcheck
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM sales WHERE receipt_no = 'T-DASH-1'`) }) //nolint:errcheck
 
 	before := decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin))

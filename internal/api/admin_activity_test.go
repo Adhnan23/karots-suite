@@ -20,10 +20,10 @@ func TestActivity(t *testing.T) {
 	manager := te.login(t, phone(), "manager")
 	var who, sys int64
 	te.db.Get(&who, `INSERT INTO users (name, phone, pin_hash, role) VALUES ('T act staff', $1, 'x', 'cashier') RETURNING id`, phone()) //nolint:errcheck
-	te.db.Get(&sys, `SELECT id FROM users WHERE is_system LIMIT 1`)                                                                    //nolint:errcheck
+	te.db.Get(&sys, `SELECT id FROM users WHERE is_system LIMIT 1`)                                                                     //nolint:errcheck
 	t.Cleanup(func() {
 		te.db.Exec(`DELETE FROM audit_log WHERE entity = 'T-act'`) //nolint:errcheck
-		te.db.Exec(`DELETE FROM users WHERE id = $1`, who)          //nolint:errcheck
+		te.db.Exec(`DELETE FROM users WHERE id = $1`, who)         //nolint:errcheck
 	})
 	// 120 audit rows from T act staff at one instant, and one from the system user.
 	te.db.MustExec(`INSERT INTO audit_log (user_id, user_name, action, entity, entity_id, created_at)
