@@ -38,6 +38,13 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
 
 **NEXT: M6 Data and settings** (spec §11): backup / restore, auto-backups, exports, imports (products / customers / suppliers), Settings, Appearance, setup / init, catalog sync endpoint. Done when a karots-pos backup restores into karots-suite. Start a fresh session: read this file, `AGENTS.md`, the spec, then write `docs/plans/<date>-m6-data-settings.md`.
 
+**After M6, before plugins (user, 2026-10-07): M6.5 Acceptance and polish.** The core is then complete, so the user runs the suite side by side with karots-pos before any plugin is ported. M6 ends by preparing it:
+- a runnable build + short run steps (suite next to karots-pos, own ports and DB);
+- a real karots-pos backup restored into the suite, then the same day's figures compared in both (Z report, P&L, stock value, dues);
+- a side-by-side checklist by area (till, counter, stock, purchasing, money, reports) for the user to work through;
+- real hardware: POS80 receipt printer, label printer, drawer kick (the 11 printer-only parity rows), an old-screen kiosk PC, a phone for the admin.
+The user's notes become a bug / polish list fixed in small commits (same way of working). M7 Plugins starts after that. The M6.5 build is for the user to test, not a customer release (plugin shops can't switch until M7).
+
 **Porting rule (M2, confirmed again in M3):** read karots-pos's `static/js/<screen>.js` and templ, not just the Go handler, and sweep the finished screens against them (the M3 sweep found F4/F10, Pay all, per-line variance, scan → barcode). Where karots-pos is flawed, don't copy the flaw — the user wants upgrades ("this is its upgrade").
 
 ## How we work
