@@ -20,7 +20,7 @@ const route = getRouteApi('/_authed/admin/reports/inventory')
  * down by category — tap one to go inside it. */
 export function InventoryPage() {
   const s = route.useSearch()
-  const f = { category: s.category ?? '', zero: s.zero ?? '' }
+  const f = { category: s.category ? String(s.category) : '', zero: s.zero ?? '' }
   const navigate = route.useNavigate()
   const set = (p: Partial<typeof s>) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
   const sym = useSuspenseQuery(configQuery).data.symbol
@@ -39,10 +39,10 @@ export function InventoryPage() {
         </label>
       )}>
       <nav aria-label="Category path" className="-mb-1 flex flex-wrap items-center gap-0.5">
-        <button type="button" className={cn(crumb, !f.category && 'text-foreground')} onClick={() => set({ category: '' })}>Whole shop</button>
+        <button type="button" className={cn(crumb, !f.category && 'text-foreground')} onClick={() => set({ category: 0 })}>Whole shop</button>
         {d?.breadcrumb.map((c) => (
           <span key={c.id} className="flex items-center gap-0.5"><ChevronRight size={14} className="text-faint" />
-            <button type="button" className={cn(crumb, String(c.id) === f.category && 'text-foreground')} onClick={() => set({ category: String(c.id) })}>{c.name}</button>
+            <button type="button" className={cn(crumb, String(c.id) === f.category && 'text-foreground')} onClick={() => set({ category: c.id })}>{c.name}</button>
           </span>
         ))}
       </nav>
@@ -67,7 +67,7 @@ export function InventoryPage() {
           <ul className="flex flex-col divide-y divide-border text-sm">
             {d.children.map((c) => (
               <li key={`${c.id}-${c.direct}`}>
-                <button type="button" disabled={c.direct} onClick={() => set({ category: String(c.id) })}
+                <button type="button" disabled={c.direct} onClick={() => set({ category: c.id })}
                   className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-left enabled:hover:text-brand md:grid-cols-[minmax(0,1fr)_120px_minmax(140px,30%)_auto]">
                   <span className="flex min-w-0 flex-col"><b className="truncate">{c.direct ? `Filed on ${c.name} itself` : c.name}</b><small className="text-faint">{c.inStock} of {c.skus} in stock</small></span>
                   <span className="hidden text-right tabular-nums text-muted-foreground md:block">{money(sym, c.retailValue)}</span>

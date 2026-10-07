@@ -131,7 +131,7 @@ export function Dashboard() {
           <ol className="flex flex-col divide-y divide-border text-sm">
             {ch.top.map((p, i) => (
               <li key={p.productId}>
-                <Link to="/admin/reports/product-sales" search={{ product: String(p.productId) }} className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-2.5 py-2 hover:text-brand">
+                <Link to="/admin/reports/product-sales" search={{ product: p.productId }} className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-2.5 py-2 hover:text-brand">
                   <span className="font-bold text-faint">{i + 1}</span>
                   <span className="min-w-0"><span className="block truncate">{p.name}</span><span className="mt-1 block h-1.5 rounded-r bg-brand/80" style={{ width: `${topMax ? (num(p.revenue) / topMax) * 100 : 0}%` }} /></span>
                   <b className="tabular-nums">{money(sym, p.revenue)}</b>

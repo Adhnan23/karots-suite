@@ -21,7 +21,7 @@ export function TopupPage() {
   const s = route.useSearch()
   const navigate = route.useNavigate()
   const sym = useSuspenseQuery(configQuery).data.symbol
-  const d = useQuery({ ...topupQuery({ category: s.category ?? '' }), placeholderData: keepPreviousData }).data
+  const d = useQuery({ ...topupQuery({ category: s.category ? String(s.category) : '' }), placeholderData: keepPreviousData }).data
   const gap = num(d?.gap ?? '0')
   const places = (title: string, rows: { name: string; balance: string }[], total: string) => (
     <section aria-label={title} className={cn(SURFACE, 'p-4')}>
@@ -33,7 +33,7 @@ export function TopupPage() {
     <ReportPage title="Top-up and reorder" sub="What needs buying or topping up, and whether the money on hand covers it."
       filters={(
         <>
-          <div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(s.category) || 0} onChange={(id) => void navigate({ search: { category: id ? String(id) : undefined }, replace: true })} /></div>
+          <div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(s.category) || 0} onChange={(id) => void navigate({ search: { category: id || undefined }, replace: true })} /></div>
           <Button variant="outline" className="h-10 px-4 md:ml-auto" asChild><Link to="/admin/reorder">Order them →</Link></Button>
         </>
       )}>

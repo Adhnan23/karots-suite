@@ -31,9 +31,9 @@ const activityQuery = (f: F) => infiniteQueryOptions({
  * by person, kind, period and words. Admins only. */
 export function ActivityPage() {
   const s = route.useSearch()
-  const f: F = { ...rangeOf(s), user: s.user ?? '', source: s.source ?? '', q: s.q ?? '' }
+  const f: F = { ...rangeOf(s), user: s.user ? String(s.user) : '', source: s.source ?? '', q: s.q ?? '' }
   const navigate = route.useNavigate()
-  const set = (p: Partial<F>) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
+  const set = (p: Partial<Omit<F, 'user'>> & { user?: number }) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
   const sym = useSuspenseQuery(configQuery).data.symbol
   const opts = useQuery(filtersQuery).data
   const [q, setQ] = useState(f.q)
@@ -54,7 +54,7 @@ export function ActivityPage() {
             <input aria-label="Search activity" placeholder="Search what was done" value={q} onChange={(e) => setQ(e.target.value)} className={cn(INPUT, 'pl-9')} />
           </div>
           <div className="grid grid-cols-2 gap-2 md:flex">
-            <select aria-label="Who" value={f.user} onChange={(e) => set({ user: e.target.value })} className={sel}>
+            <select aria-label="Who" value={f.user} onChange={(e) => set({ user: Number(e.target.value) })} className={sel}>
               <option value="">Everyone</option>
               {opts?.users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>

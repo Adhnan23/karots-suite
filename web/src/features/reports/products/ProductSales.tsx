@@ -27,7 +27,7 @@ export function ProductSalesPage() {
   const navigate = route.useNavigate()
   const set = (p: Partial<typeof s>) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
   const sym = useSuspenseQuery(configQuery).data.symbol
-  const q = { ...r, product: s.product ?? '', grain: s.grain ?? '' }
+  const q = { ...r, product: s.product ? String(s.product) : '', grain: s.grain ?? '' }
   const d = useQuery({ ...productSalesQuery(q), placeholderData: keepPreviousData }).data
   const option = useMemo(() => d && productPeriodOption(d.rows, d.grain), [d])
   const picked = !!s.product && d?.productId === Number(s.product)
@@ -37,7 +37,7 @@ export function ProductSalesPage() {
       range={r} onRange={(x) => set(x)} caption={d && periodText(d.from, d.to)}
       filters={(
         <>
-          <ProductPicker title="Product to show" onPick={(p) => set({ product: String(p.id) })} trigger={(open) => (
+          <ProductPicker title="Product to show" onPick={(p) => set({ product: p.id })} trigger={(open) => (
             <button type="button" aria-label="Product" onClick={open} className={cn(INPUT, 'truncate text-left md:w-72', !picked && 'text-faint')}>{picked ? d.name : 'Pick a product'}</button>
           )} />
           <Seg label="Group by" value={d?.grain ?? 'day'} onChange={(g) => set({ grain: g })} options={[['day', 'Day'], ['week', 'Week'], ['month', 'Month']]} />

@@ -55,7 +55,7 @@ export function TopProductsPage() {
         </p>
       )}
       <DataList label="Products" rows={rows} rowKey={(x) => x.productId}
-        onRow={(x) => void navigate({ to: '/admin/reports/product-sales', search: { preset: s.preset, from: s.from, to: s.to, product: String(x.productId) } })}
+        onRow={(x) => void navigate({ to: '/admin/reports/product-sales', search: { preset: s.preset, from: s.from, to: s.to, product: x.productId } })}
         empty={<EmptyState title={d ? 'Nothing sold in this period' : 'Loading…'} />}
         columns={[
           { key: 'name', header: 'Product', cell: (x) => <span className="flex items-baseline gap-2"><small className="w-6 flex-none text-right tabular-nums text-faint">{x.rank}</small><b>{x.name}</b></span> },

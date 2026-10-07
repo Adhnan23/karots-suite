@@ -20,7 +20,7 @@ const route = getRouteApi('/_authed/admin/reports/profit-by-category')
 export function CategoryProfitPage() {
   const s = route.useSearch()
   const r = rangeOf(s)
-  const q = { ...r, category: s.category ?? '' }
+  const q = { ...r, category: s.category ? String(s.category) : '' }
   const navigate = route.useNavigate()
   const set = (p: Partial<typeof s>) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
   const sym = useSuspenseQuery(configQuery).data.symbol
@@ -29,7 +29,7 @@ export function CategoryProfitPage() {
   return (
     <ReportPage title="Profit by category" sub="What each category sold, what it cost, and what it made — sub-categories inside their parent."
       range={r} onRange={(x) => set(x)} caption={d && periodText(d.from, d.to)} exportUrl={`/api/v1/admin/reports/profit-by-category?${reportQS(q)}`}
-      filters={<div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(q.category) || 0} onChange={(id) => set({ category: id ? String(id) : '' })} /></div>}>
+      filters={<div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(q.category) || 0} onChange={(id) => set({ category: id })} /></div>}>
       <KpiStrip label="Headline" cols={4}>
         <Kpi label="Revenue" amount={d?.revenue} v={d ? money(sym, d.revenue) : '…'} />
         <Kpi label="Cost of goods" v={d ? money(sym, d.cogs) : '…'} />
@@ -37,7 +37,7 @@ export function CategoryProfitPage() {
         <Kpi label="Margin" v={d ? `${d.margin}%` : '…'} />
       </KpiStrip>
       <DataList label="Categories" rows={d?.nodes ?? []} rowKey={(x) => x.id}
-        onRow={(x) => set({ category: String(x.id) })}
+        onRow={(x) => set({ category: x.id })}
         empty={<EmptyState title={d ? 'Nothing sold in this period' : 'Loading…'} />}
         columns={[
           { key: 'name', header: 'Category', cell: (x) => (

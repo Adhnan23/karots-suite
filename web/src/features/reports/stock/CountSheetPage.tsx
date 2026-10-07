@@ -21,7 +21,7 @@ const route = getRouteApi('/_authed/admin/reports/count-sheet')
 export function CountSheetPage() {
   const s = route.useSearch()
   const { me } = route.useRouteContext()
-  const f = { category: s.category ?? '', supplier: s.supplier ?? '' }
+  const f = { category: s.category ? String(s.category) : '', supplier: s.supplier ? String(s.supplier) : '' }
   const navigate = route.useNavigate()
   const set = (p: Partial<typeof s>) => void navigate({ search: (x) => ({ ...x, ...p }), replace: true })
   const sups = useQuery(suppliersQuery('')).data ?? []
@@ -30,8 +30,8 @@ export function CountSheetPage() {
     <ReportPage title="Stock count sheet" sub="What to count on the shelf, grouped by category. Print it, count, then enter the counts."
       filters={(
         <>
-          <div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(f.category) || 0} onChange={(id) => set({ category: id ? String(id) : '' })} /></div>
-          <select aria-label="Supplier" value={f.supplier} onChange={(e) => set({ supplier: e.target.value })} className={cn(INPUT, 'appearance-auto md:w-60')}>
+          <div className="md:w-72"><CategoryPicker label="Category" noneLabel="Every category" value={Number(f.category) || 0} onChange={(id) => set({ category: id })} /></div>
+          <select aria-label="Supplier" value={f.supplier} onChange={(e) => set({ supplier: Number(e.target.value) })} className={cn(INPUT, 'appearance-auto md:w-60')}>
             <option value="">Every supplier</option>
             {sups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
