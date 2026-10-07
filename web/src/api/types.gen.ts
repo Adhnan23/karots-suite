@@ -1629,6 +1629,84 @@ export interface PeakHoursReport {
   revenue: string;
   cells: PeakCell[];
 }
+/**
+ * TopProductRow is one product's net units, revenue and profit in range.
+ */
+export interface TopProductRow {
+  productId: number /* int64 */;
+  name: string;
+  qty: string;
+  revenue: string;
+  profit: string;
+  margin: string; // percent, 1 dp
+}
+/**
+ * TopProductsReport ranks products by Order (revenue | qty | profit). The
+ * totals cover every product sold in range, not just the ranked rows, so a
+ * row's share and the Pareto line are of the whole.
+ */
+export interface TopProductsReport {
+  from: string;
+  to: string;
+  order: string;
+  products: number /* int */;
+  qty: string;
+  revenue: string;
+  profit: string;
+  margin: string;
+  rows: TopProductRow[];
+}
+/**
+ * ProductPeriod is one period of one product, with the same period a year
+ * earlier beside it.
+ */
+export interface ProductPeriod {
+  day: string;
+  qty: string;
+  revenue: string;
+  lastYearQty: string;
+  lastYearRevenue: string;
+}
+/**
+ * ProductSalesReport is one product over time (karots-pos Product Sales).
+ * ProductID 0 = none picked yet (empty rows).
+ */
+export interface ProductSalesReport {
+  from: string;
+  to: string;
+  grain: string;
+  productId: number /* int64 */;
+  name: string;
+  qty: string;
+  revenue: string;
+  lastYearQty: string;
+  rows: ProductPeriod[];
+}
+/**
+ * CashierRow is one cashier's takings in range (gross before discounts, net
+ * after; pass-through face value excluded).
+ */
+export interface CashierRow {
+  cashier: string;
+  count: number /* int */;
+  gross: string;
+  discount: string;
+  net: string;
+  avgBasket: string;
+}
+/**
+ * CashierReport is Sales by cashier, biggest takings first.
+ */
+export interface CashierReport {
+  from: string;
+  to: string;
+  count: number /* int */;
+  gross: string;
+  discount: string;
+  net: string;
+  avgBasket: string;
+  rows: CashierRow[];
+}
 
 //////////
 // source: dto_sale.go

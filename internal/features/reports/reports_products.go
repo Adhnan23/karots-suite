@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
@@ -126,7 +127,7 @@ type ProductPeriodRow struct {
 }
 
 // ProductSalesByPeriod is one product's net units + revenue grouped by day/week/
-// month over [from,to). Powers the per-product sales graph (with a last-year
+// month (shop time) over [from,to). Powers the per-product sales graph (with a last-year
 // overlay obtained by calling it again over the shifted range).
 func (s *Service) ProductSalesByPeriod(ctx context.Context, productID int64, from, to time.Time, gran string) ([]ProductPeriodRow, error) {
 	switch gran {
@@ -136,14 +137,14 @@ func (s *Service) ProductSalesByPeriod(ctx context.Context, productID int64, fro
 	}
 	var rows []ProductPeriodRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT date_trunc($4, s.created_at) AS day,
+		SELECT date_trunc($4, s.created_at AT TIME ZONE $5) AS day,
 		       COALESCE(SUM(si.quantity - si.returned_qty),0) AS qty,
 		       COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ),0) AS revenue
 		FROM sales s
 		JOIN sale_items si ON si.sale_id = s.id
 		WHERE s.status <> 'void' AND si.product_id = $1
 		  AND s.created_at >= $2 AND s.created_at < $3
-		GROUP BY 1 ORDER BY 1`, productID, from, to, gran); err != nil {
+		GROUP BY 1 ORDER BY 1`, productID, from, to, gran, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load product sales", err)
 	}
 	return rows, nil
@@ -173,4 +174,34 @@ func (s *Service) ProductQtySold(ctx context.Context, ids []int64, from, to time
 		out[r.ProductID] = r.Qty
 	}
 	return out, nil
+}
+
+// ProductTotals is every product sold in [from,to) together, counted as
+// TopProducts counts each one — the whole a ranked page is a share of.
+type ProductTotals struct {
+	Products int             `db:"products"`
+	Qty      decimal.Decimal `db:"qty"`
+	Revenue  decimal.Decimal `db:"revenue"`
+	Profit   decimal.Decimal `db:"profit"`
+}
+
+func (s *Service) ProductTotals(ctx context.Context, from, to time.Time) (*ProductTotals, error) {
+	var t ProductTotals
+	if err := s.db.GetContext(ctx, &t, `
+		SELECT COUNT(*) AS products, COALESCE(SUM(qty),0) AS qty, COALESCE(SUM(revenue),0) AS revenue, COALESCE(SUM(profit),0) AS profit
+		FROM (
+			SELECT SUM(si.quantity - si.returned_qty) AS qty,
+			       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
+			       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+			            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+			GROUP BY p.id
+			HAVING SUM(si.quantity - si.returned_qty) > 0
+		) x`, from, to); err != nil {
+		return nil, apperr.Internal("failed to total products", err)
+	}
+	return &t, nil
 }

@@ -41,6 +41,12 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
   },
+  'product-sales': async (page) => {
+    await prep['with-sales'](page)
+    await page.getByLabel('Products').locator('visible=true').getByRole('button').first().click()
+    await page.waitForLoadState('networkidle')
+    if (page.viewportSize()!.width > 700) await page.locator('canvas').first().waitFor()
+  },
   finance: async (page) => {
     await salesWithHistory(page)
     await page.goto('/admin/finance')

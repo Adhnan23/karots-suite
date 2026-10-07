@@ -3,12 +3,12 @@ import type { FinanceCategory, FinancePoint, FinanceSlice } from '@/api/types.ge
 import type { ChartTheme } from '@/components/charts/Chart'
 import { money, num } from '@/lib/money'
 
-const axis = (t: ChartTheme) => ({
+export const axis = (t: ChartTheme) => ({
   axisLine: { lineStyle: { color: t.border } }, axisTick: { show: false }, axisLabel: { color: t.faint, fontSize: 11 },
   splitLine: { lineStyle: { color: t.border, opacity: 0.6 } },
 })
-const tip = (t: ChartTheme) => ({ backgroundColor: t.card, borderColor: t.border, textStyle: { color: t.fg, fontSize: 12 }, confine: true })
-const short = (sym: string) => (v: number) => (Math.abs(v) >= 1000 ? `${sym} ${(v / 1000).toFixed(v % 1000 ? 1 : 0)}k` : `${sym} ${v}`)
+export const tip = (t: ChartTheme) => ({ backgroundColor: t.card, borderColor: t.border, textStyle: { color: t.fg, fontSize: 12 }, confine: true })
+export const short = (sym: string) => (v: number) => (Math.abs(v) >= 1000 ? `${sym} ${(v / 1000).toFixed(v % 1000 ? 1 : 0)}k` : `${sym} ${v}`)
 export const methodLabel = (m: string) => ({ cash: 'Cash', card: 'Card', online: 'Online', credit: 'Credit' })[m] ?? m
 
 /** Revenue and profit over the range — one money axis, two 2px lines, a

@@ -39,7 +39,7 @@ func (s *Service) SalesByCashier(ctx context.Context, from, to time.Time) ([]Cas
 			WHERE p.pass_through GROUP BY si.sale_id
 		) pt ON pt.sale_id = s.id
 		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-		GROUP BY u.name ORDER BY net DESC`, from, to); err != nil {
+		GROUP BY u.id, u.name ORDER BY net DESC`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute sales by cashier", err)
 	}
 	return rows, nil

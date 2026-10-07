@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Clock, PackageSearch, ReceiptText, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowLeftRight, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -11,6 +11,9 @@ export const GROUPS: [ReportGroup, string][] = [['sales', 'Sales and customers']
 
 export const REPORTS: ReportEntry[] = [
   { to: '/admin/reports/sales', title: 'Sales', desc: 'Receipts, profit and the trend, against the period before', group: 'sales', icon: TrendingUp },
+  { to: '/admin/reports/top-products', title: 'Top products', desc: 'Best sellers by revenue, units or profit', group: 'sales', icon: Trophy },
+  { to: '/admin/reports/product-sales', title: 'Product sales', desc: 'One product over time, beside last year', group: 'sales', icon: LineChart },
+  { to: '/admin/reports/sales-by-cashier', title: 'Sales by cashier', desc: 'Takings and discounts per cashier', group: 'sales', icon: UserRound },
   { to: '/admin/reports/peak-hours', title: 'Peak hours', desc: 'Busiest days and hours — plan staff and breaks', group: 'sales', icon: Clock },
   { to: '/admin/finance', title: 'Finance and P&L', desc: 'Revenue, cost, profit, dues and how the money came in', group: 'money', icon: Wallet },
   { to: '/admin/reorder', title: 'Low stock', desc: 'Items at or below their reorder level — order or print them', group: 'stock', icon: PackageSearch },
