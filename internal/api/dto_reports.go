@@ -225,3 +225,74 @@ type PurchasesReport struct {
 	Due      string              `json:"due"`
 	Rows     []PurchaseReportRow `json:"rows"`
 }
+
+// CategoryProfitNode is one category with its whole subtree's sales (a parent
+// includes its children's). Depth 0 = the top of what's shown.
+type CategoryProfitNode struct {
+	ID       int64  `json:"id"`
+	ParentID *int64 `json:"parentId"`
+	Name     string `json:"name"`
+	Depth    int    `json:"depth"`
+	Revenue  string `json:"revenue"`
+	COGS     string `json:"cogs"`
+	Profit   string `json:"profit"`
+	Margin   string `json:"margin"`
+}
+
+// CategoryProfitReport is Profit by category (karots-pos): the tree in
+// display order (siblings by profit), the totals counting each line once.
+type CategoryProfitReport struct {
+	From    string               `json:"from"`
+	To      string               `json:"to"`
+	Revenue string               `json:"revenue"`
+	COGS    string               `json:"cogs"`
+	Profit  string               `json:"profit"`
+	Margin  string               `json:"margin"`
+	Nodes   []CategoryProfitNode `json:"nodes"`
+}
+
+// ExpenseCatTotal is one expense category's total in range.
+type ExpenseCatTotal struct {
+	Category string `json:"category"`
+	Count    int    `json:"count"`
+	Total    string `json:"total"`
+}
+
+// ExpensesReport is Expenses by category (karots-pos), biggest first.
+type ExpensesReport struct {
+	From  string            `json:"from"`
+	To    string            `json:"to"`
+	Count int               `json:"count"`
+	Total string            `json:"total"`
+	Rows  []ExpenseCatTotal `json:"rows"`
+}
+
+// TaxDay is one shop day's tax charged at sale.
+type TaxDay struct {
+	Day   string `json:"day"`
+	Count int    `json:"count"`
+	Base  string `json:"base"`
+	Tax   string `json:"tax"`
+}
+
+// TaxReport is the Tax summary (karots-pos, tax-registered shops only).
+type TaxReport struct {
+	From  string   `json:"from"`
+	To    string   `json:"to"`
+	Count int      `json:"count"`
+	Base  string   `json:"base"`
+	Tax   string   `json:"tax"`
+	Rows  []TaxDay `json:"rows"`
+}
+
+// TillTotals is every till session the Till sessions filters match (SQL, not
+// the page): the karots-pos Cash Register report's totals. Expected / counted
+// / over-short cover closed sessions.
+type TillTotals struct {
+	Sessions  int    `json:"sessions"`
+	Opening   string `json:"opening"`
+	Expected  string `json:"expected"`
+	Counted   string `json:"counted"`
+	OverShort string `json:"overShort"`
+	Short     int    `json:"short"`
+}

@@ -1,4 +1,4 @@
-import { ArrowLeftRight, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
+import { ArrowLeftRight, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -18,6 +18,10 @@ export const REPORTS: ReportEntry[] = [
   { to: '/admin/reports/returns', title: 'Returns', desc: 'Goods taken back and money refunded', group: 'sales', icon: Undo2 },
   { to: '/admin/reports/customer-dues', title: 'Customer dues', desc: 'Who owes you, and for how long', group: 'sales', icon: Users },
   { to: '/admin/finance', title: 'Finance and P&L', desc: 'Revenue, cost, profit, dues and how the money came in', group: 'money', icon: Wallet },
+  { to: '/admin/reports/profit-by-category', title: 'Profit by category', desc: 'Revenue, cost and profit per category', group: 'money', icon: FolderTree },
+  { to: '/admin/reports/expenses', title: 'Expenses by category', desc: 'Where the running costs went', group: 'money', icon: Receipt },
+  { to: '/admin/tills', title: 'Cash register', desc: 'Till sessions with over / short, totals and export', group: 'money', icon: Landmark },
+  { to: '/admin/reports/tax', title: 'Tax', desc: 'Tax charged at the till, day by day', group: 'money', icon: Calculator, gate: 'tax' },
   { to: '/admin/reports/purchases', title: 'Purchases', desc: 'Deliveries received, and what’s still to pay', group: 'stock', icon: PackageCheck },
   { to: '/admin/reports/supplier-spend', title: 'Spend by supplier', desc: 'Who you buy the most from', group: 'stock', icon: Truck },
   { to: '/admin/reports/supplier-dues', title: 'Supplier dues', desc: 'Who you owe, and what’s overdue', group: 'stock', icon: HandCoins },

@@ -161,8 +161,33 @@ func (r *Repository) ListSessions(ctx context.Context, f SessionFilter) ([]Sessi
 		  AND ($2::timestamptz IS NULL OR cr.opened_at <  $2)
 		  AND ($3 = 0 OR cr.user_id = $3)
 		  AND (NOT $4 OR cr.closed_at IS NULL)
-		ORDER BY cr.opened_at DESC, cr.id DESC LIMIT $5 OFFSET $6`, f.From, f.To, f.UserID, f.OpenOnly, f.Limit, max(f.Offset, 0))
+		ORDER BY cr.opened_at DESC, cr.id DESC LIMIT NULLIF($5, 0) OFFSET $6`, f.From, f.To, f.UserID, f.OpenOnly, f.Limit, max(f.Offset, 0))
 	return rows, err
+}
+
+// SessionTotals is every session the filter matches together (its Limit and
+// Offset are ignored): count, money in and out of the drawers, over / short.
+type SessionTotals struct {
+	Sessions  int             `db:"sessions"`
+	Opening   decimal.Decimal `db:"opening"`
+	Expected  decimal.Decimal `db:"expected"`
+	Counted   decimal.Decimal `db:"counted"`
+	OverShort decimal.Decimal `db:"over_short"`
+	Short     int             `db:"short"`
+}
+
+func (r *Repository) SessionTotals(ctx context.Context, f SessionFilter) (*SessionTotals, error) {
+	var t SessionTotals
+	err := r.q.GetContext(ctx, &t, `
+		SELECT COUNT(*) AS sessions, COALESCE(SUM(opening_cash),0) AS opening,
+		       COALESCE(SUM(expected_cash),0) AS expected, COALESCE(SUM(closing_cash),0) AS counted,
+		       COALESCE(SUM(difference),0) AS over_short, COUNT(*) FILTER (WHERE difference < 0) AS short
+		FROM cash_register cr
+		WHERE ($1::timestamptz IS NULL OR cr.opened_at >= $1)
+		  AND ($2::timestamptz IS NULL OR cr.opened_at <  $2)
+		  AND ($3 = 0 OR cr.user_id = $3)
+		  AND (NOT $4 OR cr.closed_at IS NULL)`, f.From, f.To, f.UserID, f.OpenOnly)
+	return &t, err
 }
 
 // Cashiers lists everyone who has ever opened a till, for the list's filter.

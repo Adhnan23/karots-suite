@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AdminCashflow, AdminFinance, AdminSaleRow, AdminSalesSummary, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
+import type { AdminCashflow, AdminFinance, AdminSaleRow, AdminSalesSummary, AdminDenomination, CashierOption, TillSessionRow, TillSessionView, TillTotals, AdminExpenseRow, AdminExpenseSummary, AdminLockerList, CashflowRow, AdminLockerView, ExpenseVoidInfo, LockerLedgerRow } from '@/api/types.gen'
 import { paged } from '@/features/counter/queries'
 import { type Range, rangeQS } from '@/features/counter/range'
 
@@ -25,8 +25,9 @@ export const cashflowLedgerQuery = (r: Range, place: string, kind: string) =>
 export const cashflowPrintQuery = (r: Range) => queryOptions({ queryKey: ['admin', 'cashflow-print', r], queryFn: () => api<CashflowRow[]>(`/admin/cashflow/ledger?${cfQS(r)}&all=1`) })
 
 export type TillFilter = Range & { user: number; open: boolean }
-export const tillsQuery = (f: TillFilter) =>
-  paged<TillSessionRow>(['admin', 'tills', f], `/admin/tills?user=${f.user || ''}&open=${f.open ? 1 : ''}${rangeQS(f)}`)
+export const tillQS = (f: TillFilter) => `user=${f.user || ''}&open=${f.open ? 1 : ''}${rangeQS(f)}`
+export const tillsQuery = (f: TillFilter) => paged<TillSessionRow>(['admin', 'tills', f], `/admin/tills?${tillQS(f)}`)
+export const tillTotalsQuery = (f: TillFilter) => queryOptions({ queryKey: ['admin', 'till-totals', f], queryFn: () => api<TillTotals>(`/admin/tills/summary?${tillQS(f)}`) })
 export const tillQuery = (id: number) => queryOptions({ queryKey: ['admin', 'till', id], queryFn: () => api<TillSessionView>(`/admin/tills/${id}`) })
 export const tillCashiersQuery = queryOptions({ queryKey: ['admin', 'till-cashiers'], queryFn: () => api<CashierOption[]>('/admin/tills/cashiers') })
 export const denominationsQuery = queryOptions({ queryKey: ['admin', 'denominations'], queryFn: () => api<AdminDenomination[]>('/admin/denominations') })

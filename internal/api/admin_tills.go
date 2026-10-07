@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/denominations"
@@ -16,6 +17,7 @@ import (
 
 func (h *handlers) registerAdminTills(g *echo.Group) {
 	g.GET("/tills", h.AdminTills)
+	g.GET("/tills/summary", h.AdminTillsSummary)
 	g.GET("/tills/cashiers", h.AdminTillCashiers)
 	g.GET("/tills/:id", h.AdminTill)
 	g.GET("/denominations", h.AdminDenominations)
@@ -46,16 +48,25 @@ func (h *handlers) tillRow(c echo.Context, s cashregister.SessionRow) TillSessio
 	return r
 }
 
-// AdminTills pages till sessions, newest first: ?preset/from/to on the opening
-// time, ?user= one cashier, ?open=1 the tills open now.
-func (h *handlers) AdminTills(c echo.Context) error {
+// tillFilter reads the sessions' filters: ?preset/from/to on the opening time,
+// ?user= one cashier, ?open=1 the tills open now.
+func tillFilter(c echo.Context) (cashregister.SessionFilter, error) {
 	from, to, err := listRange(c)
+	user, _ := strconv.ParseInt(c.QueryParam("user"), 10, 64)
+	return cashregister.SessionFilter{From: from, To: to, UserID: user, OpenOnly: c.QueryParam("open") == "1"}, err
+}
+
+// AdminTills pages till sessions, newest first; ?format= downloads every
+// match (karots-pos Cash Register report).
+func (h *handlers) AdminTills(c echo.Context) error {
+	f, err := tillFilter(c)
 	if err != nil {
 		return err
 	}
-	user, _ := strconv.ParseInt(c.QueryParam("user"), 10, 64)
-	rows, err := h.d.CashRegister.ListSessions(c.Request().Context(), cashregister.SessionFilter{From: from, To: to, UserID: user,
-		OpenOnly: c.QueryParam("open") == "1", Limit: counterPage, Offset: listOffset(c)})
+	if !wantsSheet(c) {
+		f.Limit, f.Offset = counterPage, listOffset(c)
+	}
+	rows, err := h.d.CashRegister.ListSessions(c.Request().Context(), f)
 	if err != nil {
 		return err
 	}
@@ -63,7 +74,32 @@ func (h *handlers) AdminTills(c echo.Context) error {
 	for _, s := range rows {
 		out = append(out, h.tillRow(c, s))
 	}
+	if wantsSheet(c) {
+		sheet := make([][]string, 0, len(out))
+		for i, r := range out {
+			closed := ""
+			if rows[i].ClosedAt != nil {
+				closed = datetime.DateTime(*rows[i].ClosedAt)
+			}
+			sheet = append(sheet, []string{r.Cashier, datetime.DateTime(rows[i].OpenedAt), closed, r.Opening, r.Expected, r.Counted, r.Difference})
+		}
+		return writeSheet(c, "till_sessions_"+datetime.Date(time.Now()), []string{"Cashier", "Opened", "Closed", "Opening", "Expected", "Counted", "Over/Short"}, sheet)
+	}
 	return c.JSON(http.StatusOK, out)
+}
+
+// AdminTillsSummary totals every session the filters match (SQL).
+func (h *handlers) AdminTillsSummary(c echo.Context) error {
+	f, err := tillFilter(c)
+	if err != nil {
+		return err
+	}
+	t, err := h.d.CashRegister.SessionTotals(c.Request().Context(), f)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, TillTotals{Sessions: t.Sessions, Opening: dec2(t.Opening), Expected: dec2(t.Expected), Counted: dec2(t.Counted),
+		OverShort: dec2(t.OverShort), Short: t.Short})
 }
 
 func (h *handlers) AdminTillCashiers(c echo.Context) error {

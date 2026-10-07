@@ -67,6 +67,9 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 		net = net.Add(amt)
 	}
 	out.NetProfit = dec2(net)
+	if wantsSheet(c) {
+		return financeSheet(c, out)
+	}
 	for _, r := range trend {
 		out.Trend = append(out.Trend, FinancePoint{Day: r.Day.Format("2006-01-02"), Revenue: dec2(r.Revenue), Profit: dec2(r.Profit)})
 	}
@@ -80,4 +83,21 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 		out.TopProducts = append(out.TopProducts, FinanceProduct{Name: p.ProductName, Qty: p.Qty.String(), Revenue: dec2(p.Revenue), Profit: dec2(p.Profit)})
 	}
 	return c.JSON(http.StatusOK, out)
+}
+
+// financeSheet is the P&L as a download (karots-pos Finance report's CSV):
+// the statement, plugin income, then the balances either way.
+func financeSheet(c echo.Context, f AdminFinance) error {
+	rows := [][]string{
+		{"Gross revenue", f.GrossRevenue}, {"Returns", f.Returns}, {"Net revenue", f.Revenue}, {"Cost of goods sold", f.COGS},
+		{"Gross profit", f.GrossProfit}, {"Expenses", f.Expenses}, {"Losses (damage, warranty)", f.Losses}, {"Own use", f.OwnUse},
+		{"Staff welfare", f.StaffWelfare}, {"Stock corrections", f.StockCorrection}, {"Till over / short", f.RegisterDiff},
+		{"Revenue sold at no recorded cost", f.ZeroCostRevenue}, {"Recovered from suppliers", f.Recoveries}, {"Other income (interest)", f.OtherIncome},
+	}
+	for _, l := range f.PluginIncome {
+		rows = append(rows, []string{l.Label, l.Amount})
+	}
+	rows = append(rows, []string{"Net profit", f.NetProfit}, []string{"Received at sale", f.Received}, []string{"Receivables", f.Receivables},
+		[]string{"Customer advances (owed back)", f.Advances}, []string{"Payables", f.Payables}, []string{"Supplier credit (they owe us)", f.SupplierCredit})
+	return writeSheet(c, "finance_"+f.From+"_"+f.To, []string{"Line", "Amount"}, rows)
 }

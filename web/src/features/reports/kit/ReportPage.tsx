@@ -1,10 +1,10 @@
-import { Download, Printer } from 'lucide-react'
+import { Printer } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { PageHead } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { RangePicker } from '@/features/counter/RangePicker'
 import type { Range } from '@/features/counter/range'
+import { ExportMenu } from './ExportMenu'
 
 /** Every report's frame (karots-pos: "set the range, then Print / Save as PDF"):
  * title, Export (csv / xlsx / ods of every row for the live filters) and Print
@@ -15,23 +15,13 @@ export function ReportPage({ title, sub, range, onRange, caption, filters, expor
   title: string; sub: ReactNode; range?: Range; onRange?: (r: Range) => void; caption?: string
   filters?: ReactNode; exportUrl?: string; children: ReactNode
 }) {
-  const sep = exportUrl?.includes('?') ? '&' : '?'
   return (
     <>
       <PageHead title={title} sub={sub}
         actions={(
           <>
             <Button variant="outline" className="h-10 gap-1.5 px-4 print:hidden" onClick={() => window.print()}><Printer size={16} /> Print</Button>
-            {exportUrl && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button variant="outline" className="h-10 gap-1.5 px-4 print:hidden"><Download size={16} /> Export</Button></DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {(['csv', 'xlsx', 'ods'] as const).map((f) => (
-                    <DropdownMenuItem key={f} asChild><a href={`${exportUrl}${sep}format=${f}`}>{f.toUpperCase()}</a></DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {exportUrl && <ExportMenu url={exportUrl} />}
           </>
         )} />
       {(range || filters) && (

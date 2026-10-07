@@ -373,6 +373,16 @@ func (s *Service) Close(ctx context.Context, userID int64, in CloseInput) (*Clos
 	return res, nil
 }
 
+// SessionTotals totals every session the filter matches (the Cash Register
+// report's figures).
+func (s *Service) SessionTotals(ctx context.Context, f SessionFilter) (*SessionTotals, error) {
+	t, err := s.repo.SessionTotals(ctx, f)
+	if err != nil {
+		return nil, apperr.Internal("failed to total till sessions", err)
+	}
+	return t, nil
+}
+
 // ListSessions pages the admin's till sessions (karots-pos showed the newest 100).
 func (s *Service) ListSessions(ctx context.Context, f SessionFilter) ([]SessionRow, error) {
 	rows, err := s.repo.ListSessions(ctx, f)

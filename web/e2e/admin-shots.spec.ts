@@ -49,6 +49,14 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
   },
+  /** Money reports: sales, expenses and a closed till. */
+  'with-money': async (page) => {
+    await salesWithHistory(page)
+    await expensesWithHistory(page)
+    await tillWithHistory(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
   'product-sales': async (page) => {
     await prep['with-sales'](page)
     await page.getByLabel('Products').locator('visible=true').getByRole('button').first().click()

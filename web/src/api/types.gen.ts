@@ -1824,6 +1824,84 @@ export interface PurchasesReport {
   due: string;
   rows: PurchaseReportRow[];
 }
+/**
+ * CategoryProfitNode is one category with its whole subtree's sales (a parent
+ * includes its children's). Depth 0 = the top of what's shown.
+ */
+export interface CategoryProfitNode {
+  id: number /* int64 */;
+  parentId?: number /* int64 */;
+  name: string;
+  depth: number /* int */;
+  revenue: string;
+  cogs: string;
+  profit: string;
+  margin: string;
+}
+/**
+ * CategoryProfitReport is Profit by category (karots-pos): the tree in
+ * display order (siblings by profit), the totals counting each line once.
+ */
+export interface CategoryProfitReport {
+  from: string;
+  to: string;
+  revenue: string;
+  cogs: string;
+  profit: string;
+  margin: string;
+  nodes: CategoryProfitNode[];
+}
+/**
+ * ExpenseCatTotal is one expense category's total in range.
+ */
+export interface ExpenseCatTotal {
+  category: string;
+  count: number /* int */;
+  total: string;
+}
+/**
+ * ExpensesReport is Expenses by category (karots-pos), biggest first.
+ */
+export interface ExpensesReport {
+  from: string;
+  to: string;
+  count: number /* int */;
+  total: string;
+  rows: ExpenseCatTotal[];
+}
+/**
+ * TaxDay is one shop day's tax charged at sale.
+ */
+export interface TaxDay {
+  day: string;
+  count: number /* int */;
+  base: string;
+  tax: string;
+}
+/**
+ * TaxReport is the Tax summary (karots-pos, tax-registered shops only).
+ */
+export interface TaxReport {
+  from: string;
+  to: string;
+  count: number /* int */;
+  base: string;
+  tax: string;
+  rows: TaxDay[];
+}
+/**
+ * TillTotals is every till session the Till sessions filters match (SQL, not
+ * the page): the karots-pos Cash Register report's totals. Expected / counted
+ * / over-short cover closed sessions.
+ */
+export interface TillTotals {
+  sessions: number /* int */;
+  opening: string;
+  expected: string;
+  counted: string;
+  overShort: string;
+  short: number /* int */;
+}
 
 //////////
 // source: dto_sale.go

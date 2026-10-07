@@ -6,7 +6,9 @@ import type { AdminFinance } from '@/api/types.gen'
 import { ChartCard, ChartTable as Table } from '@/components/charts/ChartCard'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { RangePicker } from '@/features/counter/RangePicker'
+import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { Kpi } from '@/features/reports/kit/Kpi'
+import { rangeQS } from '@/features/counter/range'
 import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
@@ -28,7 +30,8 @@ export function FinancePage() {
   const d = useQuery(financeQuery(r)).data
   return (
     <>
-      <PageHead title="Finance" sub="How the business did — sales, profit, and the money owed either way." />
+      <PageHead title="Finance" sub="How the business did — sales, profit, and the money owed either way."
+        actions={<ExportMenu url={`/api/v1/admin/finance?${(rangeQS(r) || '&preset=this-month').slice(1)}`} />} />
       <div className="mb-4 grid gap-2 md:flex md:flex-wrap md:items-center md:justify-between">
         <Seg label="Finance view" value={tab} onChange={(t) => set({ tab: t })} options={[['overview', 'Overview'], ['profit', 'Profit'], ['cash', 'Money owed']]} />
         <span className="flex flex-wrap items-center gap-2">

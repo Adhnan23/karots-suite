@@ -10,7 +10,9 @@ import { configQuery } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { stamp } from '../format'
-import { tillCashiersQuery, tillsQuery } from '../queries'
+import { Kpi, KpiStrip } from '@/features/reports/kit/Kpi'
+import { ExportMenu } from '@/features/reports/kit/ExportMenu'
+import { tillCashiersQuery, tillQS, tillTotalsQuery, tillsQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/tills/')
 
@@ -34,11 +36,13 @@ export function TillsPage() {
   const cashiers = useQuery(tillCashiersQuery).data ?? []
   const list = useInfiniteQuery(tillsQuery(f))
   const rows = list.data?.pages.flat() ?? []
+  const t = useQuery(tillTotalsQuery(f)).data
   const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
     <>
-      <PageHead title="Till sessions" sub="Every open and close: what the drawer should have held, and what was counted." />
+      <PageHead title="Till sessions" sub="Every open and close: what the drawer should have held, and what was counted."
+        actions={<ExportMenu url={`/api/v1/admin/tills?${tillQS(f)}`} />} />
       <div className="mb-3 grid gap-2 md:flex md:flex-wrap md:items-center">
         <RangePicker full value={f} onChange={(r) => set(r)} />
         <select aria-label="Cashier" value={f.user} onChange={(e) => set({ user: Number(e.target.value) })} className={cn(INPUT, 'appearance-auto md:w-56')}>
@@ -47,6 +51,14 @@ export function TillsPage() {
         </select>
         <button type="button" aria-pressed={f.open} onClick={() => set({ open: !f.open })} className={cn(chip, 'justify-self-start')}>Open now</button>
         <small className="text-[13px] text-muted-foreground md:ml-auto">{countText(rows.length, !!list.hasNextPage)} session{rows.length === 1 ? '' : 's'}</small>
+      </div>
+      <div className="mb-3">
+        <KpiStrip label="Totals" cols={4}>
+          <Kpi label="Sessions" v={t ? String(t.sessions) : '…'} sub={t && `${money(sym, t.opening)} opened with`} />
+          <Kpi label="Should have held" v={t ? money(sym, t.expected) : '…'} sub="closed sessions" />
+          <Kpi label="Counted" v={t ? money(sym, t.counted) : '…'} />
+          <Kpi label="Over / short" v={t ? <OverShort sym={sym} v={t.overShort} /> : '…'} sub={t && t.short > 0 ? `${t.short} session${t.short === 1 ? '' : 's'} short` : undefined} />
+        </KpiStrip>
       </div>
       <DataList label="Sessions" rows={rows} rowKey={(r) => r.id} onRow={(r) => void go({ to: '/admin/tills/$id', params: { id: String(r.id) } })}
         empty={<EmptyState title={list.isPending ? 'Loading…' : f.open ? 'No till is open' : 'No sessions in this range'} />}
