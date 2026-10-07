@@ -1,6 +1,6 @@
 # karots-pos → karots-suite parity
 
-Generated 2026-09-27 from karots-pos a1ae36b.
+Generated 2026-09-27 from karots-pos a1ae36b; rows added after it are marked with the karots-pos commit (checked against 0ce1a07..f93bf97 on 2026-10-07).
 Tick a row only when the route's behaviour is ported to /api/v1 + the SPA AND has a flow check.
 Format: file · METHOD path (paths are relative to that file's route group).
 
@@ -343,6 +343,11 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `internal/web/register_system.go` · GET `/appearance`
 - [ ] `internal/web/register_system.go` · GET `/appearance/receipt-preview`
 - [x] `internal/web/register_system.go` · POST `/appearance`
+- [x] `internal/web/register_admin.go` · GET `/expenses/:id/void/form` — added in karots-pos d66ac18; the M4 Void sheet (admin-money flow)
+- [x] `internal/web/register_admin.go` · POST `/sales/:id/partial-return` — added in karots-pos 4e36047; the M4 admin return (admin-sales flow)
+- [ ] `internal/web/register_admin.go` · GET `/update/badge` — self-update, added in karots-pos fd2607f (M6)
+- [ ] `internal/web/register_admin.go` · POST `/update/apply` — self-update (M6)
+- [ ] `internal/web/register_admin.go` · POST `/update/check` — self-update (M6)
 
 ## plugins/aicatalog
 
