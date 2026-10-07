@@ -8,6 +8,7 @@ import (
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
+	"karots-suite/internal/features/sales"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
@@ -116,10 +117,12 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	}
 	pl.GrossRevenue = pl.GrossRevenue.Sub(passThrough)
 
-	// Returns: value of returned lines (valued per unit as line net / qty, matching
-	// the refund actually given), for sales in this period.
+	// Returns: value of returned lines at what was paid for them (line net / qty
+	// × the sale's paid factor, so a bill discount is shared out — the refund
+	// actually given), for sales in this period. Gross is the discounted total,
+	// so the line sticker price here would take back more than came in.
 	if err := s.db.GetContext(ctx, &pl.Returns, `
-		SELECT COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty ),0)
+		SELECT COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+sales.PaidFactorSQL+` ),0)
 		FROM sale_items si JOIN sales s ON s.id = si.sale_id
 		JOIN products p ON p.id = si.product_id
 		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`,

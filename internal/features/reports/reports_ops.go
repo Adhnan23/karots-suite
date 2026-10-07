@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
@@ -185,13 +186,13 @@ type TaxSummary struct {
 func (s *Service) TaxSummary(ctx context.Context, from, to time.Time) (*TaxSummary, error) {
 	var rows []TaxDayRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT date_trunc('day', created_at) AS day,
+		SELECT date_trunc('day', created_at AT TIME ZONE $3) AS day,
 		       COUNT(*) AS count,
 		       COALESCE(SUM(total - tax),0) AS base,
 		       COALESCE(SUM(tax),0) AS tax
 		FROM sales
 		WHERE status <> 'void' AND created_at >= $1 AND created_at < $2
-		GROUP BY 1 ORDER BY 1`, from, to); err != nil {
+		GROUP BY 1 ORDER BY 1`, from, to, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load tax summary", err)
 	}
 	out := &TaxSummary{Rows: rows}

@@ -74,7 +74,7 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 		FROM sales s
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
-		JOIN LATERAL (`+saleProfitAgg+`) agg ON true
+		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
 		WHERE ($1::timestamptz IS NULL OR s.created_at >= $1)
 		  AND ($2::timestamptz IS NULL OR s.created_at <  $2)
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
@@ -114,9 +114,9 @@ func searchMatch(p string) string {
 	                             LIKE '%' || translate(tok, ' -_/.', '') || '%')))))`
 }
 
-// saleProfitAgg is the per-sale cost/pass-through/returns aggregate, mirroring
+// ProfitAggSQL is the per-sale cost/pass-through/returns aggregate, mirroring
 // the Finance P&L definitions. Correlated on the outer `s`.
-const saleProfitAgg = `
+const ProfitAggSQL = `
 	SELECT
 	  COALESCE(SUM(si.subtotal) FILTER (WHERE p.pass_through), 0)                                          AS pt_face,
 	  COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty) FILTER (WHERE NOT p.pass_through), 0) * ` + PaidFactorSQL + ` AS ret_val,
@@ -198,7 +198,7 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		FROM sales s
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
-		JOIN LATERAL (`+saleProfitAgg+`) agg ON true
+		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
 		WHERE ($1::timestamptz IS NULL OR s.created_at >= $1)
 		  AND ($2::timestamptz IS NULL OR s.created_at <  $2)
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)

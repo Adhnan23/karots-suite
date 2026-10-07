@@ -90,7 +90,9 @@ func (s *Service) DailySales(ctx context.Context, from, to time.Time) ([]DayRow,
 
 // SalesByPeriod is net revenue/profit grouped by day, week or month. `gran` must
 // be one of day/week/month; anything else falls back to day. Each row's Day is
-// the period start (truncated date).
+// the period start in shop time. Revenue is counted exactly as Compute counts it
+// (sale total less pass-through face and returns at what was paid, via the same
+// per-sale aggregate the sales list uses), so the periods add up to the P&L.
 func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran string) ([]DayRow, error) {
 	switch gran {
 	case "day", "week", "month":
@@ -101,16 +103,16 @@ func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran st
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT d.day, d.count, d.revenue, d.revenue - d.cogs AS profit
 		FROM (
-			SELECT date_trunc($3, s.created_at) AS day,
-			       COUNT(DISTINCT s.id) AS count,
-			       COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ),0) AS revenue,
-			       COALESCE(SUM( (si.quantity - si.returned_qty) * si.cost_price ),0) AS cogs
+			SELECT date_trunc($3, s.created_at AT TIME ZONE $4) AS day,
+			       COUNT(*) AS count,
+			       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val),0) AS revenue,
+			       COALESCE(SUM(agg.cogs),0) AS cogs
 			FROM sales s
-			JOIN sale_items si ON si.sale_id = s.id
+			JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
 			WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
 			GROUP BY 1
 		) d
-		ORDER BY d.day`, from, to, gran); err != nil {
+		ORDER BY d.day`, from, to, gran, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load sales by period", err)
 	}
 	return rows, nil

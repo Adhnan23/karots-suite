@@ -105,7 +105,7 @@ func TestReturnRefundsWhatWasPaidAfterBillDiscount(t *testing.T) {
 	// The sales list values the returns the same way the refunds were paid.
 	var retVal decimal.Decimal
 	mustSales(t, conn.GetContext(ctx, &retVal,
-		`SELECT ret_val FROM sales s, LATERAL (`+saleProfitAgg+`) a WHERE s.id = $1`, d.Sale.ID))
+		`SELECT ret_val FROM sales s, LATERAL (`+ProfitAggSQL+`) a WHERE s.id = $1`, d.Sale.ID))
 	if !retVal.Round(2).Equal(decimal.NewFromInt(360)) {
 		t.Errorf("sales list return value %s, want 360", retVal)
 	}
