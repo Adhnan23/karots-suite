@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChefHat, HeartCrack, Scale, Boxes, CalendarClock, ClipboardList, Fuel, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
+import { ArrowLeftRight, History, ChefHat, HeartCrack, Scale, Boxes, CalendarClock, ClipboardList, Fuel, Calculator, FolderTree, Landmark, Receipt, HandCoins, Truck, Undo2, Users, PackageCheck, Clock, LineChart, PackageSearch, ReceiptText, Trophy, TrendingUp, UserRound, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
@@ -39,4 +39,5 @@ export const REPORTS: ReportEntry[] = [
 export const LIVE: { to: string; title: string; desc: string; icon: LucideIcon }[] = [
   { to: '/admin/cashflow', title: 'Cash flow', desc: 'Live balances and money in / out', icon: ArrowLeftRight },
   { to: '/admin/receipts', title: 'Receipts', desc: 'Find and print any slip again', icon: ReceiptText },
+  { to: '/admin/activity', title: 'Activity', desc: 'Who did what — the audit trail (admins)', icon: History },
 ]

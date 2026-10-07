@@ -29,6 +29,7 @@ const (
 // Row is one normalized activity entry from any source. Amount is a signed money
 // delta where the source has one (cash, locker), else zero.
 type Row struct {
+	ID       int64           `db:"id"         json:"id"` // the row's id in its own source
 	When     time.Time       `db:"created_at" json:"when"`
 	UserID   *int64          `db:"user_id"    json:"user_id,omitempty"`
 	UserName string          `db:"user_name"  json:"user_name"`
@@ -46,7 +47,41 @@ type Filter struct {
 	UserID   *int64
 	Source   string // "", "all", or a specific source id
 	Query    string // free-text ILIKE over action / detail / user name
-	Limit    int
+	Limit    int    // 0 = every match (the export)
+	// Before pages: only rows after this one in the view's order (when ↓,
+	// source, id ↓). A tuple, not a time — one transaction writes several
+	// rows at the same now(), and a time-only cursor would skip some.
+	Before *Cursor
+}
+
+// Cursor is the last row of a page.
+type Cursor struct {
+	At     time.Time
+	Source string
+	ID     int64
+}
+
+// After reports whether r comes after c in the view's order (so belongs on
+// the next page) — for contributors that filter in Go.
+func (c Cursor) After(r Row) bool {
+	switch {
+	case !r.When.Equal(c.At):
+		return r.When.Before(c.At)
+	case r.Source != c.Source:
+		return r.Source > c.Source
+	}
+	return r.ID < c.ID
+}
+
+// Less orders rows for the view: newest first, then source, then id ↓.
+func Less(a, b Row) bool {
+	switch {
+	case !a.When.Equal(b.When):
+		return a.When.After(b.When)
+	case a.Source != b.Source:
+		return a.Source < b.Source
+	}
+	return a.ID > b.ID
 }
 
 // UserRef is one entry in the "who" filter dropdown.
@@ -63,25 +98,25 @@ func NewService(db *sqlx.DB) *Service { return &Service{db: db} }
 // built in SQL so one round trip returns display-ready rows. user_name comes
 // inline for audit, joined from users for the id-based sources.
 const coreUnion = `
-(SELECT created_at, user_id, user_name, 'audit'::text AS source, action::text AS action,
+(SELECT id, created_at, user_id, user_name, 'audit'::text AS source, action::text AS action,
         (entity || COALESCE(' #'||entity_id,'') || COALESCE(' — '||detail,''))::text AS detail,
         0::numeric AS amount
    FROM audit_log)
 UNION ALL
-(SELECT m.created_at, m.user_id, COALESCE(u.name,'')::text, 'stock'::text, m.type::text,
-        (COALESCE(p.name,'product #'||m.product_id::text) || ' × ' || m.quantity::text
+(SELECT m.id, m.created_at, m.user_id, COALESCE(u.name,'')::text, 'stock'::text, m.type::text,
+        (COALESCE(p.name,'product #'||m.product_id::text) || ' × ' || trim_scale(m.quantity)::text
          || COALESCE(' — '||m.note,''))::text,
         0::numeric
    FROM stock_movements m
    LEFT JOIN users u ON u.id = m.user_id
    LEFT JOIN products p ON p.id = m.product_id)
 UNION ALL
-(SELECT c.created_at, c.user_id, COALESCE(u.name,'')::text, 'cash'::text, c.type::text,
+(SELECT c.id, c.created_at, c.user_id, COALESCE(u.name,'')::text, 'cash'::text, c.type::text,
         COALESCE(c.reason,'')::text, c.amount
    FROM cash_movements c
    LEFT JOIN users u ON u.id = c.user_id)
 UNION ALL
-(SELECT l.created_at, l.created_by, COALESCE(u.name,'')::text, 'locker'::text,
+(SELECT l.id, l.created_at, l.created_by, COALESCE(u.name,'')::text, 'locker'::text,
         COALESCE(l.ref_kind, l.kind)::text,
         (COALESCE(lk.name,'locker #'||l.locker_id::text)
          || COALESCE(' — '||l.counterparty,'') || COALESCE(' '||l.note,''))::text,
@@ -90,14 +125,10 @@ UNION ALL
    LEFT JOIN users u ON u.id = l.created_by
    LEFT JOIN lockers lk ON lk.id = l.locker_id)`
 
-// List returns the core-source rows matching f, newest first. The web layer
-// merges these with plugin contributors, then sorts and paginates the whole set.
-// ponytail: in-memory merge/paginate downstream, bounded here by the date filter
-// + Limit cap; move to a materialized union if a busy shop's volume ever hurts.
+// List returns the core-source rows matching f in the view's order, f.Limit
+// at a time after f.Before (0 = every match). The web layer merges plugin
+// contributors' rows the same way.
 func (s *Service) List(ctx context.Context, f Filter) ([]Row, error) {
-	if f.Limit <= 0 || f.Limit > 20000 {
-		f.Limit = 20000
-	}
 	var source, query *string
 	if f.Source != "" && f.Source != "all" {
 		source = &f.Source
@@ -105,9 +136,15 @@ func (s *Service) List(ctx context.Context, f Filter) ([]Row, error) {
 	if f.Query != "" {
 		query = &f.Query
 	}
+	var bAt *time.Time
+	var bSrc *string
+	var bID *int64
+	if f.Before != nil {
+		bAt, bSrc, bID = &f.Before.At, &f.Before.Source, &f.Before.ID
+	}
 	var rows []Row
 	err := s.db.SelectContext(ctx, &rows, `
-		SELECT created_at, user_id, user_name, source, action, detail, amount
+		SELECT id, created_at, user_id, user_name, source, action, detail, amount
 		FROM (`+coreUnion+`) t
 		WHERE ($1::timestamptz IS NULL OR created_at >= $1)
 		  AND ($2::timestamptz IS NULL OR created_at <  $2)
@@ -118,9 +155,11 @@ func (s *Service) List(ctx context.Context, f Filter) ([]Row, error) {
 		                        OR user_name ILIKE '%'||$5||'%')
 		  -- Hide the hidden system/support account's actions from the trail.
 		  AND (user_id IS NULL OR user_id NOT IN (SELECT id FROM users WHERE is_system))
-		ORDER BY created_at DESC
-		LIMIT $6`,
-		f.From, f.To, f.UserID, source, query, f.Limit)
+		  AND ($7::timestamptz IS NULL OR created_at < $7
+		       OR (created_at = $7 AND (source > $8 OR (source = $8 AND id < $9))))
+		ORDER BY created_at DESC, source, id DESC
+		LIMIT NULLIF($6, 0)`,
+		f.From, f.To, f.UserID, source, query, f.Limit, bAt, bSrc, bID)
 	return rows, err
 }
 

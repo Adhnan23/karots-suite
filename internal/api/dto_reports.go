@@ -513,3 +513,34 @@ type RecoveryRequest struct {
 	Amount     string `json:"amount"`
 	Note       string `json:"note"`
 }
+
+// ActivityRow is one "who did what" entry. Amount is a signed money delta
+// (cash drawer, lockers), "" when the source has none.
+type ActivityRow struct {
+	When   string `json:"when"`
+	User   string `json:"user"`
+	Source string `json:"source"`
+	Action string `json:"action"`
+	Detail string `json:"detail"`
+	Amount string `json:"amount"`
+}
+
+// ActivityPage is one page of Activity; Next is the cursor for the page after
+// it ("" = that was the last).
+type ActivityPage struct {
+	Rows []ActivityRow `json:"rows"`
+	Next string        `json:"next"`
+}
+
+// ActivityOption is one Who or Source choice.
+type ActivityOption struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// ActivityFilters are Activity's Who (staff, never the system user) and
+// Source (the core trails + plugin contributors) choices.
+type ActivityFilters struct {
+	Users   []CashierOption  `json:"users"`
+	Sources []ActivityOption `json:"sources"`
+}

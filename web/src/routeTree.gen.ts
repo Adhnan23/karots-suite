@@ -17,6 +17,7 @@ import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
 import { Route as AuthedTillRouteImport } from './routes/_authed/till'
 import { Route as AccountPinRouteImport } from './routes/account.pin'
 import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
+import { Route as AuthedAdminActivityRouteImport } from './routes/_authed/admin/activity'
 import { Route as AuthedAdminCashflowRouteImport } from './routes/_authed/admin/cashflow'
 import { Route as AuthedAdminCategoriesRouteImport } from './routes/_authed/admin/categories'
 import { Route as AuthedAdminConversionsRouteImport } from './routes/_authed/admin/conversions'
@@ -135,6 +136,11 @@ const AccountPinRoute = AccountPinRouteImport.update({
 const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminActivityRoute = AuthedAdminActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminCashflowRoute = AuthedAdminCashflowRouteImport.update({
@@ -578,6 +584,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthedAdminRouteWithChildren
   '/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/admin/activity': typeof AuthedAdminActivityRoute
   '/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
@@ -665,6 +672,7 @@ export interface FileRoutesByTo {
   '/lock': typeof LockRoute
   '/login': typeof LoginRoute
   '/account/pin': typeof AccountPinRoute
+  '/admin/activity': typeof AuthedAdminActivityRoute
   '/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/admin/categories': typeof AuthedAdminCategoriesRoute
   '/admin/conversions': typeof AuthedAdminConversionsRoute
@@ -756,6 +764,7 @@ export interface FileRoutesById {
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/till': typeof AuthedTillRouteWithChildren
   '/account/pin': typeof AccountPinRoute
+  '/_authed/admin/activity': typeof AuthedAdminActivityRoute
   '/_authed/admin/cashflow': typeof AuthedAdminCashflowRoute
   '/_authed/admin/categories': typeof AuthedAdminCategoriesRoute
   '/_authed/admin/conversions': typeof AuthedAdminConversionsRoute
@@ -847,6 +856,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/till'
     | '/account/pin'
+    | '/admin/activity'
     | '/admin/cashflow'
     | '/admin/categories'
     | '/admin/conversions'
@@ -934,6 +944,7 @@ export interface FileRouteTypes {
     | '/lock'
     | '/login'
     | '/account/pin'
+    | '/admin/activity'
     | '/admin/cashflow'
     | '/admin/categories'
     | '/admin/conversions'
@@ -1024,6 +1035,7 @@ export interface FileRouteTypes {
     | '/_authed/admin'
     | '/_authed/till'
     | '/account/pin'
+    | '/_authed/admin/activity'
     | '/_authed/admin/cashflow'
     | '/_authed/admin/categories'
     | '/_authed/admin/conversions'
@@ -1171,6 +1183,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthedAdminIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/activity': {
+      id: '/_authed/admin/activity'
+      path: '/activity'
+      fullPath: '/admin/activity'
+      preLoaderRoute: typeof AuthedAdminActivityRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/cashflow': {
@@ -1748,6 +1767,7 @@ const AuthedAdminReceiptsRouteWithChildren =
   AuthedAdminReceiptsRoute._addFileChildren(AuthedAdminReceiptsRouteChildren)
 
 interface AuthedAdminRouteChildren {
+  AuthedAdminActivityRoute: typeof AuthedAdminActivityRoute
   AuthedAdminCashflowRoute: typeof AuthedAdminCashflowRoute
   AuthedAdminCategoriesRoute: typeof AuthedAdminCategoriesRoute
   AuthedAdminConversionsRoute: typeof AuthedAdminConversionsRoute
@@ -1810,6 +1830,7 @@ interface AuthedAdminRouteChildren {
 }
 
 const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminActivityRoute: AuthedAdminActivityRoute,
   AuthedAdminCashflowRoute: AuthedAdminCashflowRoute,
   AuthedAdminCategoriesRoute: AuthedAdminCategoriesRoute,
   AuthedAdminConversionsRoute: AuthedAdminConversionsRoute,

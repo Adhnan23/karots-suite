@@ -2139,6 +2139,41 @@ export interface RecoveryRequest {
   amount: string;
   note: string;
 }
+/**
+ * ActivityRow is one "who did what" entry. Amount is a signed money delta
+ * (cash drawer, lockers), "" when the source has none.
+ */
+export interface ActivityRow {
+  when: string;
+  user: string;
+  source: string;
+  action: string;
+  detail: string;
+  amount: string;
+}
+/**
+ * ActivityPage is one page of Activity; Next is the cursor for the page after
+ * it ("" = that was the last).
+ */
+export interface ActivityPage {
+  rows: ActivityRow[];
+  next: string;
+}
+/**
+ * ActivityOption is one Who or Source choice.
+ */
+export interface ActivityOption {
+  id: string;
+  label: string;
+}
+/**
+ * ActivityFilters are Activity's Who (staff, never the system user) and
+ * Source (the core trails + plugin contributors) choices.
+ */
+export interface ActivityFilters {
+  users: CashierOption[];
+  sources: ActivityOption[];
+}
 
 //////////
 // source: dto_sale.go
