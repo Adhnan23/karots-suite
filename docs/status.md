@@ -43,6 +43,8 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
 - a real karots-pos backup restored into the suite, then the same day's figures compared in both (Z report, P&L, stock value, dues);
 - a side-by-side checklist by area (till, counter, stock, purchasing, money, reports) for the user to work through;
 - real hardware: POS80 receipt printer, label printer, drawer kick (the 11 printer-only parity rows), an old-screen kiosk PC, a phone for the admin.
+- the user also runs a **core-only karots-pos** (bootstrap with no plugins) beside it, so the comparison is core against core; give the build steps for both;
+- a **"different on purpose" list** (`docs/differences.md`, gathered from every milestone's "Upgrades over karots-pos", "Done:" notes and the user's decisions — e.g. Cash register = Till sessions, Returns by return date, audit = Activity "Changes", Low stock = Reorder, menu cards hard-delete) so the user can tell a deliberate change from a miss and answer keep / change / add back.
 The user's notes become a bug / polish list fixed in small commits (same way of working). M7 Plugins starts after that. The M6.5 build is for the user to test, not a customer release (plugin shops can't switch until M7).
 
 **Porting rule (M2, confirmed again in M3):** read karots-pos's `static/js/<screen>.js` and templ, not just the Go handler, and sweep the finished screens against them (the M3 sweep found F4/F10, Pay all, per-line variance, scan → barcode). Where karots-pos is flawed, don't copy the flaw — the user wants upgrades ("this is its upgrade").
