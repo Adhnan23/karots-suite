@@ -131,6 +131,7 @@ The reference is the mockup's desktop and phone frames.
 - **Shelf:** clicking an area raises a panel above the dock.
   - **Left:** a `--hero` "lead" card with the area's key figure (such as "Stock value Rs 1.84M, 12 running low").
   - **Right:** a 3-column grid of the area's pages, each with an icon, name and one-line description (karots-pos's link descriptions), plus counts.
+  - **As built (M6.5, user: "bland, full of text"):** the grid is icon chip + name only, in fixed-height rows; the description of the page pointed at / focused shows in the lead card (fixed height, so the shelf never resizes), else the area's one-line blurb. Hover fills the chip with `--brand` and lifts it — no grey hover block; the current page's chip is `--selected`. The lead card's key figure is not built yet.
   - It closes on Escape or a click outside.
 - **Apps:** a dock tile shaped as a 2×2 grid of plugin colours. It opens a shelf with every enabled plugin as an app card (colour, icon, name, description).
   - **Plugins never add dock icons themselves.** They register an app card, plus their pages under Apps and in the command palette, so the dock never overflows as plugins arrive (M7).

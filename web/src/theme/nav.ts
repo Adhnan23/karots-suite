@@ -1,13 +1,14 @@
-import { BarChart3, Package, ShoppingBag, ShoppingCart, Wallet, Wrench } from 'lucide-react'
+import { ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
 import { REPORTS } from '@/features/reports/hub'
 
 /** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
 /** gate 'admin': admins only (Users). gate 'tax': only for a tax-registered shop (Tax report). */
-export type NavPage = { to: string; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' | 'tax' }
+export type NavPage = { to: string; icon: LucideIcon; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' | 'tax' }
 /** noTabs: too many pages for the tab row (Reports) — the shelf and Ctrl K list them. */
-export type NavArea = { key: string; label: string; icon: LucideIcon; pages: NavPage[]; noTabs?: boolean }
+/** blurb: the shelf's lead card line while no page is pointed at. */
+export type NavArea = { key: string; label: string; icon: LucideIcon; blurb?: string; pages: NavPage[]; noTabs?: boolean }
 export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string }
 
 /** karots-pos's admin areas and link descriptions (templates/layouts/admin.templ).
@@ -15,59 +16,59 @@ export type AppEntry = { key: string; label: string; description: string; icon: 
  * off the dock. */
 export const adminNav: NavArea[] = [
   {
-    key: 'sell', label: 'Sell', icon: ShoppingCart, pages: [
-      { to: '/admin/sales', label: 'Sales', description: 'Every sale — reprint, export, take goods back' },
-      { to: '/admin/customers', label: 'Customers', description: 'Accounts, credit limits & statements' },
-      { to: '/admin/warranty', label: 'Warranty', description: 'Units sold with cover — swap a faulty one, claim by receipt' },
+    key: 'sell', label: 'Sell', icon: ShoppingCart, blurb: 'What was sold, who bought it, and what they owe.', pages: [
+      { to: '/admin/sales', icon: ReceiptText, label: 'Sales', description: 'Every sale — reprint, export, take goods back' },
+      { to: '/admin/customers', icon: Users, label: 'Customers', description: 'Accounts, credit limits & statements' },
+      { to: '/admin/warranty', icon: ShieldCheck, label: 'Warranty', description: 'Units sold with cover — swap a faulty one, claim by receipt' },
     ],
   },
   {
-    key: 'stock', label: 'Inventory', icon: Package, pages: [
-      { to: '/admin/products', label: 'Products', description: 'Product catalogue & pricing' },
-      { to: '/admin/products/review', label: 'Items to review', description: 'Quick-added items needing details' },
-      { to: '/admin/stock', label: 'Stock', description: 'On-hand levels and movement history' },
-      { to: '/admin/stock/batches', label: 'Batches', description: 'Live lots, expiry alerts and write-offs' },
-      { to: '/admin/stock/take', label: 'Stock-take', description: 'Count and reconcile on-hand quantities', gate: 'stockTake' },
-      { to: '/admin/inventory/intake', label: 'Stock intake', description: 'Add or restock items, set quantity, and print labels in one place', gate: 'stockTake' },
-      { to: '/admin/conversions', label: 'Conversions', description: 'Repack / break bulk into sellable units' },
-      { to: '/admin/services', label: 'Services & recipes', description: 'Non-stocked lines and what each one consumes' },
+    key: 'stock', label: 'Inventory', icon: Package, blurb: 'What’s on the shelf, what’s running out, what’s going off.', pages: [
+      { to: '/admin/products', icon: Package, label: 'Products', description: 'Product catalogue & pricing' },
+      { to: '/admin/products/review', icon: ListChecks, label: 'Items to review', description: 'Quick-added items needing details' },
+      { to: '/admin/stock', icon: Warehouse, label: 'Stock', description: 'On-hand levels and movement history' },
+      { to: '/admin/stock/batches', icon: CalendarClock, label: 'Batches', description: 'Live lots, expiry alerts and write-offs' },
+      { to: '/admin/stock/take', icon: ClipboardCheck, label: 'Stock-take', description: 'Count and reconcile on-hand quantities', gate: 'stockTake' },
+      { to: '/admin/inventory/intake', icon: ScanBarcode, label: 'Stock intake', description: 'Add or restock items, set quantity, and print labels in one place', gate: 'stockTake' },
+      { to: '/admin/conversions', icon: Shuffle, label: 'Conversions', description: 'Repack / break bulk into sellable units' },
+      { to: '/admin/services', icon: ChefHat, label: 'Services & recipes', description: 'Non-stocked lines and what each one consumes' },
     ],
   },
   {
-    key: 'buy', label: 'Purchasing', icon: ShoppingBag, pages: [
-      { to: '/admin/purchases', label: 'Purchases', description: 'Record goods received (GRN)' },
-      { to: '/admin/reorder', label: 'Reorder', description: 'Items at or below reorder level — order them in one go' },
-      { to: '/admin/purchase-returns', label: 'Purchase returns', description: 'Return stock to suppliers' },
-      { to: '/admin/suppliers', label: 'Suppliers', description: 'Supplier accounts & payables' },
+    key: 'buy', label: 'Purchasing', icon: ShoppingBag, blurb: 'What’s coming in, what to order, and what you owe suppliers.', pages: [
+      { to: '/admin/purchases', icon: PackageCheck, label: 'Purchases', description: 'Record goods received (GRN)' },
+      { to: '/admin/reorder', icon: RefreshCw, label: 'Reorder', description: 'Items at or below reorder level — order them in one go' },
+      { to: '/admin/purchase-returns', icon: Undo2, label: 'Purchase returns', description: 'Return stock to suppliers' },
+      { to: '/admin/suppliers', icon: Truck, label: 'Suppliers', description: 'Supplier accounts & payables' },
     ],
   },
   {
-    key: 'money', label: 'Money', icon: Wallet, pages: [
-      { to: '/admin/finance', label: 'Finance', description: 'Revenue, profit, and the money owed either way' },
-      { to: '/admin/cashflow', label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
-      { to: '/admin/lockers', label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
-      { to: '/admin/tills', label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },
-      { to: '/admin/receipts', label: 'Receipts', description: 'Sale, cash, credit and warranty slips — find and reprint' },
-      { to: '/admin/expenses', label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
+    key: 'money', label: 'Money', icon: Wallet, blurb: 'Where the money is, how it moved, and what it earned.', pages: [
+      { to: '/admin/finance', icon: TrendingUp, label: 'Finance', description: 'Revenue, profit, and the money owed either way' },
+      { to: '/admin/cashflow', icon: ArrowLeftRight, label: 'Cash flow', description: 'Where the money is, how it moved, and what the business is worth' },
+      { to: '/admin/lockers', icon: Vault, label: 'Lockers', description: 'Safes, bank accounts and pockets — balances and ledgers' },
+      { to: '/admin/tills', icon: Banknote, label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },
+      { to: '/admin/receipts', icon: ReceiptText, label: 'Receipts', description: 'Sale, cash, credit and warranty slips — find and reprint' },
+      { to: '/admin/expenses', icon: HandCoins, label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
     ],
   },
   {
-    key: 'reports', label: 'Reports', icon: BarChart3, noTabs: true, pages: [
-      { to: '/admin/reports', label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
-      ...REPORTS.filter((r) => r.to.startsWith('/admin/reports/')).map((r): NavPage => ({ to: r.to, label: r.title, description: r.desc, gate: r.gate })),
+    key: 'reports', label: 'Reports', icon: BarChart3, noTabs: true, blurb: 'Every report — pick a range, then print or export.', pages: [
+      { to: '/admin/reports', icon: LayoutGrid, label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
+      ...REPORTS.filter((r) => r.to.startsWith('/admin/reports/')).map((r): NavPage => ({ to: r.to, icon: r.icon, label: r.title, description: r.desc, gate: r.gate })),
     ],
   },
   {
-    key: 'setup', label: 'Setup', icon: Wrench, pages: [
-      { to: '/admin/categories', label: 'Categories', description: 'Product categories' },
-      { to: '/admin/groups', label: 'Cashier menu', description: 'Group cards shown on the till' },
-      { to: '/admin/units', label: 'Units', description: 'Units of measure' },
-      { to: '/admin/denominations', label: 'Denominations', description: 'Notes and coins for the drawer count' },
-      { to: '/admin/labels', label: 'Barcode labels', description: 'Print product labels' },
-      { to: '/admin/users', label: 'Users', description: 'Staff accounts & roles', gate: 'admin' },
-      { to: '/admin/settings', label: 'Settings', description: 'Shop name, receipt, tax, till cash rules, printers' },
-      { to: '/admin/data', label: 'Data', description: 'Backups, restore and spreadsheets in and out', gate: 'admin' },
-      { to: '/admin/activity', label: 'Activity', description: 'Who did what — changes, stock, the drawer and lockers', gate: 'admin' },
+    key: 'setup', label: 'Setup', icon: Wrench, blurb: 'How the shop, the till and the staff are set up.', pages: [
+      { to: '/admin/categories', icon: FolderTree, label: 'Categories', description: 'Product categories' },
+      { to: '/admin/groups', icon: LayoutDashboard, label: 'Cashier menu', description: 'Group cards shown on the till' },
+      { to: '/admin/units', icon: Ruler, label: 'Units', description: 'Units of measure' },
+      { to: '/admin/denominations', icon: Coins, label: 'Denominations', description: 'Notes and coins for the drawer count' },
+      { to: '/admin/labels', icon: Barcode, label: 'Barcode labels', description: 'Print product labels' },
+      { to: '/admin/users', icon: UserCog, label: 'Users', description: 'Staff accounts & roles', gate: 'admin' },
+      { to: '/admin/settings', icon: Settings, label: 'Settings', description: 'Shop name, receipt, tax, till cash rules, printers' },
+      { to: '/admin/data', icon: Database, label: 'Data', description: 'Backups, restore and spreadsheets in and out', gate: 'admin' },
+      { to: '/admin/activity', icon: History, label: 'Activity', description: 'Who did what — changes, stock, the drawer and lockers', gate: 'admin' },
     ],
   },
 ]

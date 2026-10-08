@@ -57,8 +57,9 @@ export function PhoneTabs({ areas }: { areas: NavArea[] }) {
                 <div className="grid grid-cols-2 gap-1.5">
                   {a.pages.map((p) => (
                     <Link key={p.to} to={p.to} onClick={() => setOpen(false)}
-                      className="rounded-[var(--radius-sm)] border border-border bg-card px-3 py-2.5 text-sm font-semibold">
-                      {p.label}
+                      className="flex min-w-0 items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-card px-3 py-2.5 text-sm font-semibold">
+                      <p.icon size={16} className="flex-none text-muted-foreground" />
+                      <span className="truncate">{p.label}</span>
                     </Link>
                   ))}
                 </div>

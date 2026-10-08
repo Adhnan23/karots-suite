@@ -4,8 +4,8 @@ import { navFor, whereIs, type NavArea } from './nav'
 
 const areas: NavArea[] = [
   { key: 'stock', label: 'Inventory', icon: (() => null) as never, pages: [
-    { to: '/admin/stock', label: 'Stock', description: '' },
-    { to: '/admin/stock/take', label: 'Stock-take', description: '', gate: 'stockTake' },
+    { to: '/admin/stock', icon: (() => null) as never, label: 'Stock', description: '' },
+    { to: '/admin/stock/take', icon: (() => null) as never, label: 'Stock-take', description: '', gate: 'stockTake' },
   ] },
 ]
 
