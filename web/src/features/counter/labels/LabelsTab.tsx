@@ -155,7 +155,8 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
           )}
         </div>
       </div>
-      <div className="flex gap-2">
+      {/* Pinned to the panel's foot: on a short screen the settings scroll, Print stays in reach. */}
+      <div className="sticky bottom-0 -mx-5 -mb-5 mt-auto flex gap-2 border-t border-border bg-card px-5 py-3">
         <Button size="lg" onClick={() => void print()} disabled={busy || !canPrint} className="h-12 flex-1 text-[15px]">
           <Printer size={18} /> {canPrint ? `Print ${count} label${count === 1 ? '' : 's'}` : p ? 'Needs a barcode first' : 'Type a barcode to print'}
         </Button>
