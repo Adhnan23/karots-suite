@@ -1,4 +1,5 @@
 import { queryOptions, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -14,10 +15,14 @@ export const settingsQuery = queryOptions({ queryKey: ['admin', 'settings'], que
  * the till's cached config (symbol, receipt header) all read settings. */
 export function useSettingsSaved() {
   const qc = useQueryClient()
+  const router = useRouter()
   return (page: SettingsPage) => {
     // A save's answer leaves out the printers (slow to find): keep the list.
     qc.setQueryData(settingsQuery.queryKey, (old?: SettingsPage) => ({ ...page, printers: page.printers ?? old?.printers ?? [] }))
     void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'admin' || q.queryKey[1] !== 'settings' })
+    // The menu and pages read /me from the route context, set once on load:
+    // fetch it fresh and re-run the route so stock-take / tax pages show at once.
+    void qc.refetchQueries({ queryKey: ['me'], type: 'all' }).then(() => router.invalidate())
   }
 }
 

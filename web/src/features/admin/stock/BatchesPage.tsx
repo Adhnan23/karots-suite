@@ -1,5 +1,5 @@
 import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { ChevronRight, Search } from 'lucide-react'
+import { ChevronRight, Pencil, Search } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -125,7 +125,7 @@ function Group({ g, sym, onLots, onDone }: { g: BatchGroup; sym: string; onLots:
               )
             })}
           </ul>
-          <Button variant="ghost" className="mt-1.5 h-8 px-2 text-[13px]" onClick={onLots}>Lot prices…</Button>
+          <Button variant="outline" className="mt-2 h-8 px-3 text-[13px]" onClick={onLots}><Pencil size={14} /> Edit batches — price, count, remove</Button>
         </div>
       )}
     </li>
