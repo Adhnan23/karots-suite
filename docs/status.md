@@ -46,6 +46,23 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
   - **Self-update moved whole to M8** (user, 2026-10-08).
   - **Tests:** `go test ./...`, 104 web unit tests and **92 Playwright flows** green (`admin-data.spec.ts` new); `make verify-portable` passes; every hand-written file ≤ 500 lines. Parity: **324 rows ticked** (26 in M6).
 
+**M6.5 in progress (2026-10-08) — resume here.** The user is comparing the suite with a core-only
+karots-pos on one demo shop (`docs/acceptance.md` § "The demo shop both apps hold now").
+- **To bring it back up after a reboot:** `docker start suite_db pos_db pos_printer`, then start both
+  apps as in that section (karots-pos `dist/karots-pos-core` on :3000 with `pos_db`; the suite
+  `bin/karots-suite` on :3100 with `suite_accept`, `BACKUP_DIR=~/karots-accept/suite-backups`).
+  Receipts print to http://localhost:8631/recus. Demo PINs: owner 1234, manager 2222, cashiers
+  1111 / 1112 / 1113. **Stop the :3100 demo before Playwright** — it reuses whatever runs there.
+- **Done in M6.5 so far:** Karots icon + installable app (manifest; a true install needs https or
+  localhost); receipt credit line → "Karots Business Suite" + contact (a receipt redesign was
+  rejected and reverted — the layout stays as karots-pos's).
+- **Waiting for the user's OK — `afd86dc`:** the till top bar (drawer chip with a panel, shortcuts
+  behind a keyboard button with pin, tabs as a dynamic row). Screens were shown; next: the user
+  tries it as Dilani, then run `till.spec` / `counter.spec` / `shell.spec` (some click "More",
+  which now shows tabs directly at test width), fix, and confirm. Revert `afd86dc` if rejected.
+- **Open question from the user (no decision yet):** a "file mode" with no separate database
+  server — see the discussion at the end of this session (embedded Postgres in a data folder).
+
 **M6.5 Acceptance and polish (user, 2026-10-07) — prepared in M6: `docs/acceptance.md` + `docs/differences.md`.** The user runs the suite side by side with a core-only karots-pos before any plugin is ported. What it covers:
 - a runnable build + short run steps (suite next to karots-pos, own ports and DB);
 - a real karots-pos backup restored into the suite, then the same day's figures compared in both (Z report, P&L, stock value, dues);
