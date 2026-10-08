@@ -14,6 +14,9 @@ import (
 	appdb "karots-suite/internal/db"
 )
 
+// keepScratch leaves the scratch database in place (KAROTS_POS_KEEP).
+var keepScratch bool
+
 // scratchDB creates an empty database for one test and drops it afterwards.
 // Skipped unless DATABASE_URL is set.
 func scratchDB(t *testing.T, name string) *sqlx.DB {
@@ -38,7 +41,9 @@ func scratchDB(t *testing.T, name string) *sqlx.DB {
 	}
 	t.Cleanup(func() {
 		db.Close()
-		admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`)
+		if !keepScratch {
+			admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`)
+		}
 		admin.Close()
 	})
 	return db
