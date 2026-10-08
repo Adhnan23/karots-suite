@@ -4,10 +4,9 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { Me, TillConfig } from '@/api/types.gen'
-import { Kbd } from '@/features/till/bits'
-import { cn } from '@/lib/utils'
 import { ModeToggle } from './ModeToggle'
 import { CommandPalette } from './CommandPalette'
+import { TillKeys } from './TillKeys'
 import { TillTabs } from './TillTabs'
 import { tillTabList } from './tillTabList'
 
@@ -58,10 +57,8 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
         <span className="hidden whitespace-nowrap text-[13px] text-muted-foreground min-[1440px]:inline">{me.user.name}</span>
         {status}
         <TillTabs config={config} />
-        {onSell && <div className="ml-auto hidden items-center gap-2.5 whitespace-nowrap text-[12px] text-muted-foreground min-[1440px]:flex" aria-label="Keyboard shortcuts">
-          <Kbd>F1</Kbd>Menu <Kbd>F2</Kbd>Search <Kbd>F4</Kbd>Hold <Kbd>F9</Kbd>Discount <Kbd>F10</Kbd>Pay
-        </div>}
-        <div className={cn('ml-auto flex items-center gap-1 whitespace-nowrap', onSell && 'min-[1440px]:ml-0')}>
+        <div className="ml-auto flex items-center gap-1 whitespace-nowrap">
+          {onSell && <TillKeys />}
           <button type="button" onClick={() => setPalette(true)} className={TOP_BTN} aria-label="Search / jump (Ctrl K)" title="Search / jump (Ctrl K)">
             <Search size={16} />
           </button>

@@ -3,7 +3,8 @@ import { slots } from '@/plugins/slots'
 
 export type Tab = { to: string; label: string; show?: (c: TillConfig) => boolean }
 
-// Primary tabs sit in the bar; the rest live under More (the bar must fit at 1024).
+// The tab order. The bar shows as many as fit, in this order (TillTabs); the
+// rest go under More.
 export const PRIMARY: Tab[] = [
   { to: '/till', label: 'Sell' },
   { to: '/till/returns', label: 'Returns' },

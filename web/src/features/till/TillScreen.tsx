@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
+import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { api } from '@/api/client'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,22 @@ function LogoutClose({ logout }: { logout: boolean }) {
   return null
 }
 
+/** ?drawer=…: open the drawer move picked from the top bar's chip, then drop the
+ * flag so a reload doesn't open it again. */
+function DrawerMoveFromBar({ drawer }: { drawer?: 'deposit' | 'withdraw' | 'close' }) {
+  const { open } = useTillUi()
+  const navigate = useNavigate()
+  const handled = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    // Once per flag: opening the dialog re-renders the till, which must not reopen it.
+    if (!drawer || handled.current === drawer) return
+    handled.current = drawer
+    open({ kind: drawer })
+    void navigate({ to: '/till', search: {}, replace: true }).then(() => { handled.current = undefined })
+  }, [drawer, open, navigate])
+  return null
+}
+
 function Body() {
   const drawer = useQuery(drawerQuery).data
   return (
@@ -51,7 +68,7 @@ function Body() {
 }
 
 /** The sell screen (theme.md §7): catalogue | cart | pay. */
-export function TillScreen({ logout = false }: { logout?: boolean }) {
+export function TillScreen({ logout = false, drawer }: { logout?: boolean; drawer?: 'deposit' | 'withdraw' | 'close' }) {
   return (
     <MotionConfig reducedMotion="user">
       <TillUiProvider>
@@ -61,6 +78,7 @@ export function TillScreen({ logout = false }: { logout?: boolean }) {
           <Prompts />
           <Hotkeys />
           <LogoutClose logout={logout} />
+          <DrawerMoveFromBar drawer={drawer} />
         </CheckoutProvider>
       </TillUiProvider>
     </MotionConfig>
