@@ -73,6 +73,15 @@ karots-pos on one demo shop (`docs/acceptance.md` § "The demo shop both apps ho
   does), so no database install. A shop that grows moves to server mode by: backup in the suite →
   install PostgreSQL → set `DATABASE_URL` in `.env` → start (migrations run) → restore. Server
   mode stays as it is. Not built.
+- **Idea for M8 (user, 2026-10-08): Practice mode** for the system user. A "Practice mode" button
+  (dashboard / hidden system menu) copies the whole shop into a throwaway database (the suite's own
+  backup → restore) and opens a second suite process on it at its own port (e.g. :3200) with a
+  "PRACTICE — nothing here is real" banner; sell, print, return, close the till, debug the cashier
+  side freely; Exit deletes the copy. Only the system user's session moves; staff keep selling on the
+  real shop. No domain code changes (a sidecar process, not in-memory fakes — rejected as too risky).
+  Pairs with file mode (the copy is a temp folder). Option then: block the system user from selling
+  on the real shop ("use Practice mode"). **Until then the system user can still sell for real** (user:
+  keep it, it's how they debug the cashier side) — its sales show "System" as the cashier.
 
 **M6.5 Acceptance and polish (user, 2026-10-07) — prepared in M6: `docs/acceptance.md` + `docs/differences.md`.** The user runs the suite side by side with a core-only karots-pos before any plugin is ported. What it covers:
 - a runnable build + short run steps (suite next to karots-pos, own ports and DB);
