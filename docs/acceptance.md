@@ -141,7 +141,7 @@ Work through each in both apps. Note anything missing, wrong, slower or confusin
 
 | Device | What to check | Parity rows it ticks |
 |---|---|---|
-| POS80 receipt printer | sale receipt, reprint, money / credit / warranty slips, Z, test slip from Settings | POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, GET `/receipt/:id`, GET `/orders/print` |
+| POS80 receipt printer | sale receipt, reprint, money / credit / warranty slips, Z, test slip from Settings | POST `/settings/printer/test`, POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, GET `/receipt/:id`, GET `/orders/print` |
 | Cash drawer on the printer | opens on cash events and no-sale (pin 2, else pin 5), not on card-only | POST `/drawer/open` |
 | Label printer | labels from the counter and admin, the default size from Settings | POST `/labels/send` (counter + admin), GET `/labels` (counter) |
 | Old-screen kiosk PC | till fits under 1080p, kiosk Konami exit (admin / system) | — |

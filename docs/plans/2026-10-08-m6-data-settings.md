@@ -97,7 +97,7 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
 
 ## Tasks
 
-- [ ] **0. Backup engine upgrades + data API** (`internal/backup/`, `internal/api/admin_data.go`, `dto_data.go`).
+- [x] **0. Backup engine upgrades + data API** (`internal/backup/`, `internal/api/admin_data.go`, `dto_data.go`).
   - **Go first** (`internal/backup/restore_db_test.go`, rolled back / own schema as the existing
     tests do): an archive with (a) an extra column on `units`, (b) a table the DB lacks
     (`recharge_bills`), (c) `products` missing a column that has a default → restore succeeds,
@@ -119,7 +119,12 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
   - Go API tests: manager → 403; restore writes the `-before-restore` file; traversal → 400;
     response clears `pos_token`.
   - No UI yet (task 2). Commit.
-- [ ] **1. Data check — damage from old write-side bugs** (`internal/features/datacheck/`).
+  - Done: `Restore` = `ReadArchive` (checks the file, touches nothing) + `RestoreArchive`; the
+    handler reads first, so a bad file never writes a safety copy (found at the UI gate: failed
+    test restores piled up copies that count toward `BACKUP_KEEP`). `Config.BackupFolder()` =
+    `BACKUP_DIR` or `./backups` (the safety copy needs a home on an install without automatic
+    backups; `backups/` is git-ignored). Row helpers moved to `restore_rows.go` (≤ 500 lines).
+- [x] **1. Data check — damage from old write-side bugs** (`internal/features/datacheck/`).
   - First read the fix commits and their notes (`status.md` M3/M4/M5, `docs/karots-pos-fixes-2026-10-04.md`)
     and list which ones **stored** wrong data (read-only bugs need nothing). Expected at least:
     returns on a part-paid credit sale over-credited the customer (`d55ac5f`); a deleted expense left
@@ -132,7 +137,14 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     finding (and a clean seed expects none). Plugin checks: a `plugin.DataChecker` seam only if a
     check needs it — not now.
   - `GET /admin/data/check` (admin) + included in `RestoreResult`. Commit.
-- [ ] **2. Data page** (`features/data/`, `routes/_authed/admin/data.tsx`, settings sheet endpoints).
+  - Done: six checks (`datacheck.go`): over-credited returns (`d55ac5f`), refunds over what was
+    paid (`b256484`), "returned" sales with no return (`3f77ef3`), deleted expenses' money
+    (`d66ac18` — legs netted per ref, because the suite's own Void deletes the expense and puts the
+    money back under the same ref), change beyond the cash (`c5553e7`), money in archived lockers
+    (`15f5554`). Dropped: customer balance vs ledger (repayments only logged since 0028, so old
+    shops would all flag), stock vs lots (oversell makes them differ legitimately), admin returns
+    with no cash move (cashier refunds carry no ref to tell them apart).
+- [x] **2. Data page** (`features/data/`, `routes/_authed/admin/data.tsx`, settings sheet endpoints).
   - Sections (karots-pos `data.templ`, in the suite look): **Backup** (Full · Choose what to include —
     one checkbox per plugin group, empty in core — · Catalogue & setup only); **Restore** (pick a file
     → `ConfirmButton` that needs typing `RESTORE`, a progress state, then the report + data check, then
@@ -144,7 +156,9 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     `default_locker_id`, `id`, `updated_at` server-side). Go test: an imported `install_id` is ignored;
     an unknown column is reported, not applied.
   - Dock Setup → Data (admin). Screens 1366 + 360, 4 combos. Commit.
-- [ ] **3. Settings** (`internal/api/admin_settings.go`, `features/settings/`, `routes/_authed/admin/settings.tsx`).
+  - Done: `features/data/` (`DataPage`, `RestoreDialog`, `DataCheck`); `apiUpload` in
+    `api/client.ts` (stock-take reuses it). The list shows the newest 8 backups + "Show all".
+- [x] **3. Settings** (`internal/api/admin_settings.go`, `features/settings/`, `routes/_authed/admin/settings.tsx`).
   - `GET /admin/settings` → `{settings, printers (printing.Queues), lockers (active)}`;
     `PUT /admin/settings` (`settings.UpdateInput`, network-printer override as karots-pos);
     `POST /admin/settings/logo` (multipart, `receiptimg.ToDataURI(…, 400)`, 8 MB) + `POST /admin/settings/logo/clear`;
@@ -158,7 +172,11 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
   - `default_sale_type` stays `retail` unless the user picks wholesale (karots-pos landmine note).
   - Go tests: cashier → 403; a bad receipt width → 422; logo too big / not an image → 422; saving
     stock-take off hides Stock-take in `/me`. Dock Setup → Settings. Screens. Commit.
-- [ ] **4. Import + export: products, customers, suppliers.**
+  - Done: `ShopSettings` DTO (camelCase) mapped onto `settings.UpdateInput`; each card sends the
+    saved settings with only its own fields; one printer box (detected queues as a datalist, or a
+    typed `tcp://`); the receipt preview shows the saved settings (+ logo on `Paper`);
+    `slots.settingsSections` for M7; the legacy settings `RegisterAPI` is gone.
+- [x] **4. Import + export: products, customers, suppliers.**
   - `internal/api/admin_import.go` (≤ 500 lines, split per entity if needed): for each entity
     `GET …/export?format=csv|xlsx|ods` (every active row, the template's columns),
     `GET …/import/template?format=`, `POST …/import` → `ImportResult{created, updated, skipped, errors: [{line, message}]}`.
@@ -170,7 +188,13 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     barcode, re-import updates, bad middle row → partial success with `line N`.
   - SPA: `components/admin/ImportSheet.tsx` + an Import / Export pair on the Products, Customers and
     Suppliers list heads; after import, invalidate the list query. Screens. Commit.
-- [ ] **5. Setup checklist + Stock Capture sync.**
+  - Done: `admin_import.go` + `sheet_cells.go` (`amountCell` / `wholeCell`). **Found and fixed in
+    both repos:** a customer import duplicated "077-123 4567" and every phoneless customer
+    (karots-pos `776fd8e`); a typed "1,250.00" imported as 0, and re-importing a name + price sheet
+    wiped cost / category / supplier (customers' limit and address, suppliers' contact and terms) —
+    now `Given` columns only (karots-pos `5305a0f`). Also: Excel number cells read raw, a CSV's blank
+    lines keep later rows on their line. UI: `components/admin/ImportSheet.tsx` (`SpreadsheetMenu`).
+- [x] **5. Setup checklist + Stock Capture sync.**
   - `GET /admin/setup` (admin) → steps from karots-pos `setupStatus` (shop named ≠ "My Shop", a staff
     login other than the system user, categories, products, a default locker, a receipt printer, a
     first sale), each with its suite route. Dashboard card "Get the shop ready" (progress + next step),
@@ -183,7 +207,9 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     Go test: login → token → catalog rows; no token → 401; field names match the app's
     `parseSyncCatalog` (`id,name,name_local,barcode,category,unit,selling_price,stock_qty,is_service`).
   - Commit.
-- [ ] **6. M6.5 preparation** (docs + one script; no product code).
+  - Done: `admin_setup.go` (system user = `users.is_system`, not the phone env), `SetupCard` on the
+    dashboard; `legacy_sync.go`; `products/api.go` deleted.
+- [x] **6. M6.5 preparation** (docs + one script; no product code).
   - **Real restore:** take a backup from karots-pos's dev `pos_db` (plugins on) **and** the user's
     real backup if one is in reach (ask once, don't block on it); restore each into a fresh suite DB;
     check row counts per table vs the archive, next receipt numbers, a sale + till open/close, the data
@@ -200,7 +226,12 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     return date, audit = Activity "Changes", Low stock = Reorder, menu cards hard-delete, held-sale
     resume refused with a live cart, …), one line each with **keep / change / add back** for the user.
   - Commit.
-- [ ] **7. Flows, parity, docs.**
+  - Done: `TestRestoreKarotsPosBackup` (opt-in: `KAROTS_POS_BACKUP` / `KAROTS_POS_DSN`,
+    `KAROTS_POS_KEEP`). Restored: dev `pos_db`, `printshop.gz`, `m-u-m-digital-20260922-142337`,
+    `pos-backup-20260917-133552` — all tables match, receipt numbers follow on, only plugin tables
+    left out. Both run-step builds were tried (suite `-migrate` / `-init`, karots-pos core-only
+    bootstrap).
+- [x] **7. Flows, parity, docs.**
   - Playwright `admin-data.spec.ts` at 1366 + 360: backup downloads (full + setup-only); restore of
     that file (typed confirm → report → sign in again → data still there); auto-backup list shows the
     `-before-restore` file; settings save round-trip (shop name on the receipt preview, stock-take
@@ -211,3 +242,5 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
     to push, if any); spec §11 unchanged.
   - Ship check: types, vet, tests, build, `verify-portable`, plugin grep, ≤ 500 lines.
   - Milestone review + one `fix:` commit.
+  - Done: `admin-data.spec.ts` (5 flows); 92 Playwright flows, 104 web unit tests, `go test ./...`
+    green; `verify-portable` OK; 26 parity rows ticked (324 in all).

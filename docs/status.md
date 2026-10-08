@@ -3,9 +3,9 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-07)
+## Status (2026-10-08)
 
-**M5 Reports and dashboard is COMPLETE** (`docs/plans/2026-10-07-m5-reports.md`, 2026-10-07). M0–M4 were complete before it (M3 and M4 below).
+**M6 Data and settings is COMPLETE** (`docs/plans/2026-10-08-m6-data-settings.md`, 2026-10-08) — the core (M0–M6) is done. **NEXT: M6.5 Acceptance** — the user works through `docs/acceptance.md` beside a core-only karots-pos and answers `docs/differences.md`; their notes become small fix commits. M7 Plugins after that. M0–M5 summaries below.
 
 M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reorder · Purchase returns · Suppliers; **Setup** → Users, admin only; every page works at 360px):
 
@@ -36,9 +36,16 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
   - **karots-pos flaws fixed in both repos (all pushed):** P&L returns at the sticker price + trend ≠ P&L + UTC day buckets (`275d885`); cashiers merged by name, product-sales UTC days (`d8ee75f`); dues skipped disabled debtors, credited bills aged as unpaid, spend counted returned goods (`3e1b2e1`, `0fabbca`); the till's customer picker stopped at 100 customers (`cd8158f`); report days were the server process's / UTC days, not the shop's (`f93bf97`). Suite-only upgrades: Pareto of the whole, valuation rows by lots, losses list both kinds in range, activity uncapped.
   - **Tests:** `go test ./...`, 104 web unit tests and **87 Playwright flows** green (`admin-reports.spec.ts` new: every report at 1366 + 360 with no side scroll); `make verify-portable` passes; core plugin-inert; every hand-written file ≤ 500 lines. Parity: **296 rows ticked** (53 in M5).
 
-**NEXT: M6 Data and settings** (spec §11): backup / restore, auto-backups, exports, imports (products / customers / suppliers), Settings, Appearance, setup / init, catalog sync endpoint. Done when a karots-pos backup restores into karots-suite. Start a fresh session: read this file, `AGENTS.md`, the spec, then write `docs/plans/<date>-m6-data-settings.md`. **Plan written: `docs/plans/2026-10-08-m6-data-settings.md`.**
+- **M6 Data and settings (2026-10-08)** — dock **Setup** → Settings (admin + manager) · Data (admin); dashboard "Get the shop ready" card (admins); **Sheets ▾** on Products, Customers, Suppliers. Every page works at 360px:
+  - **Data:** backup (everything / choose plugin groups / catalogue & setup only), restore (upload or from the backup folder) behind a typed RESTORE — the file is checked first, a **safety copy** of the current data is saved (listed as "Before restore"), a backup from another schema version loads the common columns and lists the plugin tables it left out, then everyone is signed out; automatic backups list; settings sheet export / import (keeps this shop's install id, printers, default locker); **data check** (`internal/features/datacheck`): figures old karots-pos versions saved wrongly, read-only.
+  - **Settings:** every karots-pos setting, card by card, receipt preview, logo kept offline, printer test slip (needs a printer — its parity row waits for M6.5), `slots.settingsSections` for M7.
+  - **Import / export** for products, customers, suppliers (CSV / XLSX / ODS, template, per-line report). **Stock Capture** syncs from the suite unchanged (`POST /api/auth/login`, `GET /api/sync/catalog`, `legacy_sync.go`).
+  - **Real backups restored** (`TestRestoreKarotsPosBackup`, opt-in): dev `pos_db`, `printshop.gz`, `m-u-m-digital-20260922-142337` (22,239 rows), `pos-backup-20260917-133552` — every table matches, receipt numbers follow on. The data check found 1 over-refund and 6 "returned" sales with no return record in the user's own backups (`docs/acceptance.md` §3).
+  - **karots-pos bugs fixed here and in karots-pos — UNPUSHED, for the user to push: `776fd8e`** (customer import duplicated "077-123 4567" and phoneless customers), **`5305a0f`** ("1,250.00" imported as 0; a name + price sheet wiped cost / category / supplier, customers' limit / address, suppliers' contact / terms; Excel number cells; CSV line numbers).
+  - **Self-update moved whole to M8** (user, 2026-10-08).
+  - **Tests:** `go test ./...`, 104 web unit tests and **92 Playwright flows** green (`admin-data.spec.ts` new); `make verify-portable` passes; every hand-written file ≤ 500 lines. Parity: **324 rows ticked** (26 in M6).
 
-**After M6, before plugins (user, 2026-10-07): M6.5 Acceptance and polish.** The core is then complete, so the user runs the suite side by side with karots-pos before any plugin is ported. M6 ends by preparing it:
+**M6.5 Acceptance and polish (user, 2026-10-07) — prepared in M6: `docs/acceptance.md` + `docs/differences.md`.** The user runs the suite side by side with a core-only karots-pos before any plugin is ported. What it covers:
 - a runnable build + short run steps (suite next to karots-pos, own ports and DB);
 - a real karots-pos backup restored into the suite, then the same day's figures compared in both (Z report, P&L, stock value, dues);
 - a side-by-side checklist by area (till, counter, stock, purchasing, money, reports) for the user to work through;
@@ -79,17 +86,13 @@ What the user rejects:
   - Fill, bill discount %, and change with Keep options
   - an over-limit warning, the sale-complete overlay, and Hold / New sale
 
-## Inputs for M6
+## Inputs for M6.5 and M7
 
-- **Routes to port** (unticked in `docs/parity.md`): `/backup`, `/data` (+ `/data/backup`, `/data/backup-file`, `/data/restore`, `/data/restore-file`, `/data/settings/export` + import), `POST /restore`, `/settings` (GET / PUT, `/settings/logo` + clear, `/settings/printer/test`), `/setup`, and the product / customer / supplier `export` · `import` · `import/template` rows.
-- **Self-update (karots-pos `fd2607f`, 2026-10, ~1,300 lines) — moved WHOLE to M8 (user, 2026-10-08; no suite shop exists before then):** `internal/update` (check a release feed, download gzipped in the background with progress, install only a release signed by the release key whose SHA-256 matches, **back up first**, swap the binary keeping `.old`, relaunch in place — `syscall.Exec` on Linux / a detached copy on Windows — and put the old one back after two failed boots), `cmd/server/update.go`, admin-only `GET /update/badge`, `POST /update/check`, `POST /update/apply`, the update card on Setup → Data, a Setup badge and the dashboard banner (admins). Read its memory / AGENTS notes and `update_test.go` before porting. **Decide first (product):** karots-suite is a separate product, so it needs its own release feed / key / bucket path — never install a karots-pos binary over the suite or the reverse.
-- **Self-update, release side → M8 (Ship):** `cmd/release` (`make release`, `release-add` picker form, `release-list`, `release-keygen`, notes), upload to R2 over its S3 API with retry, `shops.json` (a shop's install id + plugin set), `bootstrap -install-id` / `-X`.
-- **Already in the suite:** `internal/backup` (restore works for a non-superuser owner, `8e33688`), the narrow `PUT /admin/settings/till-cash` (M4), System → Appearance (M0). Settings must keep owning `stock_take_enabled` (gates Stock-take / Intake), `tax_registered` (gates the Tax report, `/me.taxRegistered`), the default locker / untracked cash, receipt style.
-- **Restore must check damage from old write-side bugs** (memory): data written by karots-pos before the fixes above (e.g. returns valued at the sticker price are only a *reading* bug — nothing to repair; check the write-side ones listed in the M3/M4 notes).
-- **Exports:** reuse `sheets.go` `writeSheet` (csv / xlsx / ods) and the kit's `ExportMenu`.
-- **Still unticked, needs a real printer (POS80 + label printer):** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, POST `/labels/send` (counter + admin), GET `/labels` (counter), GET `/receipt/:id`, GET `/orders/print`.
-- **Plugin seams waiting for M7:** `slots.reportCards` (hub "More"), `plugin.ActivityContributor` (now gets `Filter.Before` / `Limit` — honour them, the merge filters with `Cursor.After`), `plugin.CollectReadiness` (Top-up; the old `EditURL` inline editor isn't rendered — give it a React slot then).
-- Test data: the dev DB is also the Go-test DB. Run `make e2e-seed` before Playwright or screenshots, and kill :3100 / :5173 first. The reports spec sells milk only — the till flows need the seeded soap lots.
+- **M6.5:** follow `docs/acceptance.md`. Fix the user's notes in small commits (same way of working); tick the 12 printer-only rows (the 11 below + POST `/settings/printer/test`) once checked on real hardware.
+- **Still unticked, needs a real printer (POS80 + label printer):** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, POST `/labels/send` (counter + admin), GET `/labels` (counter), GET `/receipt/:id`, GET `/orders/print`, POST `/settings/printer/test`.
+- **Plugin seams waiting for M7:** `slots.reportCards` (hub "More"), `slots.settingsSections` (Settings), `plugin.DataGroup` (Data → choose what to include; a plugin that doesn't register one is lumped into core), `plugin.ActivityContributor` (gets `Filter.Before` / `Limit` — honour them, the merge filters with `Cursor.After`), `plugin.CollectReadiness` (Top-up; the old `EditURL` inline editor isn't rendered — give it a React slot then). A restored plugin shop's plugin tables come back only once its plugin is compiled in.
+- **M8 (Ship) — self-update, both sides (user, 2026-10-08):** the shop side (karots-pos `fd2607f`: `internal/update` — check a release feed, download gzipped with progress, install only a signed release whose SHA-256 matches, **back up first**, swap keeping `.old`, relaunch in place, roll back after two failed boots; `cmd/server/update.go`; admin `GET /update/badge`, `POST /update/check`, `POST /update/apply`; the card on Setup → Data, a Setup badge, the dashboard banner) and the release side (`cmd/release`, R2 upload, `shops.json`, `bootstrap -install-id` / `-X`). The suite needs its **own** feed / key / bucket path — never install a karots-pos binary over the suite or the reverse.
+- Test data: the dev DB is also the Go-test DB. Run `make e2e-seed` before Playwright or screenshots, and kill :3100 / :5173 first. The e2e server keeps backups in `./backups` (git-ignored); `admin-data.spec.ts` restores a backup it took seconds earlier, so the data is the same for later specs.
 
 ### karots-pos till sources (reference kept from the M1 inputs)
 
