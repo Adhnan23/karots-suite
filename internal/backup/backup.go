@@ -129,27 +129,41 @@ func Dump(ctx context.Context, db *sqlx.DB, generatedAt string, w io.Writer, opt
 	return enc.Encode(arc)
 }
 
+// RestoreReport says what a restore loaded and what it had to leave out
+// because this build's schema differs from the one that wrote the backup.
+type RestoreReport struct {
+	Tables         int      `json:"tables"`
+	Rows           int      `json:"rows"`
+	SkippedTables  []string `json:"skippedTables"`  // in the backup, not in this schema (e.g. a plugin's)
+	DroppedColumns []string `json:"droppedColumns"` // "table.column" in the backup, not in this schema
+}
+
 // Restore reads a gzipped JSON snapshot from r and replaces the current data
 // with it, all in one transaction. Foreign keys are dropped for the load and
 // re-added (validated) before commit, so insertion order never matters.
-func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
+//
+// Only the columns both the backup and this schema have are loaded, so a
+// backup from an older or newer version still restores: a column this schema
+// lacks is dropped (and reported), a column the backup lacks takes its default.
+func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) (RestoreReport, error) {
+	var rep RestoreReport
 	gz, err := gzip.NewReader(r)
 	if err != nil {
-		return fmt.Errorf("not a valid backup file (gzip): %w", err)
+		return rep, fmt.Errorf("not a valid backup file (gzip): %w", err)
 	}
 	defer gz.Close()
 	var arc Archive
 	if err := json.NewDecoder(gz).Decode(&arc); err != nil {
-		return fmt.Errorf("not a valid backup file (json): %w", err)
+		return rep, fmt.Errorf("not a valid backup file (json): %w", err)
 	}
 	if arc.Version != FormatVersion {
-		return fmt.Errorf("unsupported backup version %d (expected %d)", arc.Version, FormatVersion)
+		return rep, fmt.Errorf("unsupported backup version %d (expected %d)", arc.Version, FormatVersion)
 	}
 
 	// Which dumped tables actually exist in the current schema.
 	existing, err := publicTables(ctx, db)
 	if err != nil {
-		return err
+		return rep, err
 	}
 	exists := map[string]bool{}
 	for _, t := range existing {
@@ -158,7 +172,7 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
-		return err
+		return rep, err
 	}
 	defer tx.Rollback()
 
@@ -181,7 +195,7 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 	}
 	if len(toClear) > 0 {
 		if _, err := tx.ExecContext(ctx, `TRUNCATE `+strings.Join(toClear, ", ")+` RESTART IDENTITY CASCADE`); err != nil {
-			return fmt.Errorf("truncate failed: %w", err)
+			return rep, fmt.Errorf("truncate failed: %w", err)
 		}
 	}
 
@@ -193,30 +207,42 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 	// superuser, so session_replication_role is not available to them.
 	fks, err := dropForeignKeys(ctx, tx)
 	if err != nil {
-		return fmt.Errorf("drop foreign keys: %w", err)
+		return rep, fmt.Errorf("drop foreign keys: %w", err)
 	}
 	var trigTables []string
 	if err := tx.SelectContext(ctx, &trigTables, `
 		SELECT DISTINCT tgrelid::regclass::text FROM pg_trigger t
 		JOIN pg_class c ON c.oid = t.tgrelid
 		WHERE NOT t.tgisinternal AND t.tgenabled <> 'D' AND c.relnamespace = 'public'::regnamespace`); err != nil {
-		return err
+		return rep, err
 	}
 	for _, tbl := range trigTables {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` DISABLE TRIGGER USER`); err != nil {
-			return fmt.Errorf("disable triggers on %s: %w", tbl, err)
+			return rep, fmt.Errorf("disable triggers on %s: %w", tbl, err)
 		}
 	}
 
 	for _, t := range arc.Tables {
-		if !exists[t.Name] || skipTable(t.Name) {
+		if skipTable(t.Name) {
 			continue
 		}
+		if !exists[t.Name] {
+			rep.SkippedTables = append(rep.SkippedTables, t.Name)
+			continue
+		}
+		cols, err := tableColumns(ctx, db, t.Name)
+		if err != nil {
+			return rep, err
+		}
+		t, dropped := projectColumns(t, cols)
+		rep.DroppedColumns = append(rep.DroppedColumns, dropped...)
+		rep.Tables++
+		rep.Rows += len(t.Rows)
 		if err := insertRows(ctx, tx, t); err != nil {
-			return fmt.Errorf("restore %s: %w", t.Name, err)
+			return rep, fmt.Errorf("restore %s: %w", t.Name, err)
 		}
 		if err := resetSequences(ctx, tx, t.Name, t.Columns); err != nil {
-			return fmt.Errorf("reset sequences for %s: %w", t.Name, err)
+			return rep, fmt.Errorf("reset sequences for %s: %w", t.Name, err)
 		}
 	}
 
@@ -225,23 +251,23 @@ func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) error {
 	// Advance them explicitly or the first post-restore receipt collides on the
 	// unique receipt_no constraint.
 	if err := resetReceiptSequences(ctx, tx, exists); err != nil {
-		return fmt.Errorf("reset receipt sequences: %w", err)
+		return rep, fmt.Errorf("reset receipt sequences: %w", err)
 	}
 
 	for _, tbl := range trigTables {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` ENABLE TRIGGER USER`); err != nil {
-			return fmt.Errorf("enable triggers on %s: %w", tbl, err)
+			return rep, fmt.Errorf("enable triggers on %s: %w", tbl, err)
 		}
 	}
 	// Re-adding validates every key, so a backup with dangling references fails
 	// here (and rolls back) instead of leaving broken data behind.
 	for _, fk := range fks {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+fk.Table+` ADD CONSTRAINT `+quoteIdent(fk.Name)+` `+fk.Def); err != nil {
-			return fmt.Errorf("backup data breaks %s on %s: %w", fk.Name, fk.Table, err)
+			return rep, fmt.Errorf("backup data breaks %s on %s: %w", fk.Name, fk.Table, err)
 		}
 	}
 
-	return tx.Commit()
+	return rep, tx.Commit()
 }
 
 type foreignKey struct{ Table, Name, Def string }
@@ -325,6 +351,41 @@ func dumpRows(ctx context.Context, db *sqlx.DB, table string, cols []string) ([]
 		out = append(out, rec)
 	}
 	return out, rows.Err()
+}
+
+// projectColumns keeps only the archive columns present in cols (this schema's
+// columns for the table) and returns the names it dropped as "table.column".
+func projectColumns(t Table, cols []string) (Table, []string) {
+	have := make(map[string]bool, len(cols))
+	for _, c := range cols {
+		have[c] = true
+	}
+	var keep []int
+	var dropped []string
+	for i, c := range t.Columns {
+		if have[c] {
+			keep = append(keep, i)
+		} else {
+			dropped = append(dropped, t.Name+"."+c)
+		}
+	}
+	if len(dropped) == 0 {
+		return t, nil
+	}
+	out := Table{Name: t.Name, Columns: make([]string, len(keep)), Rows: make([][]*string, len(t.Rows))}
+	for j, i := range keep {
+		out.Columns[j] = t.Columns[i]
+	}
+	for r, row := range t.Rows {
+		rec := make([]*string, len(keep))
+		for j, i := range keep {
+			if i < len(row) {
+				rec[j] = row[i]
+			}
+		}
+		out.Rows[r] = rec
+	}
+	return out, dropped
 }
 
 func insertRows(ctx context.Context, tx *sqlx.Tx, t Table) error {

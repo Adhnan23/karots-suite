@@ -72,7 +72,7 @@ func TestRestoreAsNonSuperuser(t *testing.T) {
 	if err := Dump(ctx, db, "test", &buf, DumpOpts{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := Restore(ctx, db, &buf); err != nil {
+	if _, err := Restore(ctx, db, &buf); err != nil {
 		t.Fatalf("restore as non-superuser: %v", err)
 	}
 

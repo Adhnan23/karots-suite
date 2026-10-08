@@ -66,6 +66,16 @@ func Load() *Config {
 
 func (c *Config) IsProd() bool { return c.Env == "production" }
 
+// BackupFolder is where backup files live for the Data page: BACKUP_DIR, or
+// ./backups when it is unset — the safety copy taken before a restore must land
+// somewhere even on an install without automatic backups.
+func (c *Config) BackupFolder() string {
+	if c.BackupDir != "" {
+		return c.BackupDir
+	}
+	return "backups"
+}
+
 func mustEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {

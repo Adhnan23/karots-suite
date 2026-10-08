@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -17,14 +18,18 @@ import (
 // FileName in name.go for the full naming scheme.
 const fileSuffix = ".json.gz"
 
-// WriteSnapshot dumps all data to dir/<shop>-<timestamp>.json.gz, returning the
-// final path. It writes to a temporary file and renames it into place so a crash
+// WriteSnapshot dumps all data to dir/<shop>-<timestamp>[-tag].json.gz, returning
+// the final path (tag "" for the scheduled ones, "before-restore" for the safety copy). It writes to a temporary file and renames it into place so a crash
 // mid-dump never leaves a half-written ".gz" that looks restorable.
-func WriteSnapshot(ctx context.Context, db *sqlx.DB, dir string, now time.Time) (string, error) {
+func WriteSnapshot(ctx context.Context, db *sqlx.DB, dir string, now time.Time, tag string) (string, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("create backup dir: %w", err)
 	}
-	final := filepath.Join(dir, FileName(shopName(ctx, db), now, false))
+	name := FileName(shopName(ctx, db), now, false)
+	if tag != "" {
+		name = strings.TrimSuffix(name, fileSuffix) + "-" + tag + fileSuffix
+	}
+	final := filepath.Join(dir, name)
 	tmp := final + ".tmp"
 
 	f, err := os.Create(tmp)
@@ -85,7 +90,7 @@ func Rotate(dir string, keep int) (pruned int, err error) {
 // ctx is cancelled. Intended to be launched with `go RunScheduler(...)`.
 func RunScheduler(ctx context.Context, db *sqlx.DB, dir string, interval time.Duration, keep int) {
 	runOnce := func() {
-		path, err := WriteSnapshot(ctx, db, dir, time.Now())
+		path, err := WriteSnapshot(ctx, db, dir, time.Now(), "")
 		if err != nil {
 			log.Printf("auto-backup: snapshot failed: %v", err)
 			return

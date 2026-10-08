@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,8 +26,9 @@ import (
 )
 
 type testEnv struct {
-	e  *echo.Echo
-	db *sqlx.DB
+	e   *echo.Echo
+	db  *sqlx.DB
+	cfg *config.Config
 }
 
 func newTestEnv(t *testing.T) *testEnv {
@@ -50,7 +52,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	a := auth.NewService(db, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
 	Register(e, Deps{DB: db, Cfg: cfg, Auth: a, Settings: settings.NewService(db),
 		CashRegister: cashregister.NewService(db, sales.NewService(db)), Sales: sales.NewService(db), Cashflow: cashflow.NewService(db, sales.NewService(db)), KickDrawer: func(context.Context) {}})
-	return &testEnv{e: e, db: db}
+	return &testEnv{e: e, db: db, cfg: cfg}
 }
 
 // seedUser creates an active user with PIN 1234 and removes it after the test.
@@ -99,4 +101,21 @@ func errCode(rec *httptest.ResponseRecorder) string {
 	var b struct{ Error struct{ Code string } }
 	json.Unmarshal(rec.Body.Bytes(), &b) //nolint:errcheck
 	return b.Error.Code
+}
+
+// upload posts one file as multipart field `field`.
+func (te *testEnv) upload(path, field, filename string, data []byte, cookie *http.Cookie) *httptest.ResponseRecorder {
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	fw, _ := mw.CreateFormFile(field, filename)
+	fw.Write(data) //nolint:errcheck
+	mw.Close()
+	req := httptest.NewRequest(http.MethodPost, path, &body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	if cookie != nil {
+		req.AddCookie(cookie)
+	}
+	rec := httptest.NewRecorder()
+	te.e.ServeHTTP(rec, req)
+	return rec
 }

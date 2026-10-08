@@ -685,6 +685,72 @@ export interface IntakeProductRequest {
 }
 
 //////////
+// source: dto_data.go
+
+/**
+ * DataGroup is one plugin's tables, offered as a "choose what to include" box.
+ */
+export interface DataGroup {
+  key: string;
+  name: string;
+}
+/**
+ * BackupFileRow is one backup file in the backup folder.
+ */
+export interface BackupFileRow {
+  name: string;
+  size: number /* int64 */;
+  modifiedAt: any /* time.Time */;
+  beforeRestore: boolean; // the safety copy taken before a restore
+}
+/**
+ * DataPage is GET /admin/data.
+ */
+export interface DataPage {
+  folder: string;
+  autoBackups: boolean; // BACKUP_DIR set → the scheduler runs
+  intervalHours: number /* int */;
+  keep: number /* int */;
+  groups: DataGroup[];
+  backups: BackupFileRow[];
+}
+/**
+ * RestoreReport says what a restore loaded and what this schema could not take.
+ */
+export interface RestoreReport {
+  tables: number /* int */;
+  rows: number /* int */;
+  skippedTables: string[];
+  droppedColumns: string[];
+}
+/**
+ * CheckFindingRow is one example row of a data-check finding.
+ */
+export interface CheckFindingRow {
+  ref: string;
+  detail: string;
+}
+/**
+ * CheckFinding is one kind of suspicious stored data (read-only report).
+ */
+export interface CheckFinding {
+  key: string;
+  title: string;
+  explain: string;
+  count: number /* int */;
+  sample: CheckFindingRow[];
+}
+/**
+ * RestoreResult is POST /admin/data/restore and /admin/data/backups/:name/restore.
+ * The session is ended — the SPA sends the user to sign in again.
+ */
+export interface RestoreResult {
+  report: RestoreReport;
+  safetyCopy: string; // file name of the copy taken first
+  check: CheckFinding[];
+}
+
+//////////
 // source: dto_drawer.go
 
 export interface DrawerSession {
