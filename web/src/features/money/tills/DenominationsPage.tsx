@@ -81,7 +81,7 @@ export function DenominationsPage() {
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-muted-foreground">
                   <span className="hidden sm:inline">In circulation</span>
                   <input type="checkbox" role="switch" aria-label={`${money(sym, d.value)} in circulation`} checked={d.active} onChange={() => void toggle(d)} className="peer sr-only" />
-                  <span aria-hidden className="relative h-6 w-10 flex-none rounded-full bg-border transition-colors peer-checked:bg-selected peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-card after:shadow after:transition-transform peer-checked:after:translate-x-4" />
+                  <span aria-hidden className="relative h-6 w-10 flex-none rounded-full bg-border transition-colors peer-checked:bg-selected peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-muted-foreground peer-checked:after:bg-selected-foreground after:shadow after:transition-transform peer-checked:after:translate-x-4" />
                 </label>
                 <Button variant="ghost" size="icon" aria-label={`Edit ${money(sym, d.value)}`} className="size-9" onClick={() => setEditing(d)}><Pencil size={15} /></Button>
                 <ConfirmButton plain className="size-9 p-0" label={<Trash2 size={15} />} title={`Remove ${money(sym, d.value)}?`}
