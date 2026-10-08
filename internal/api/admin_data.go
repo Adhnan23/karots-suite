@@ -11,6 +11,7 @@ import (
 	"karots-suite/internal/backup"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/auth"
+	"karots-suite/internal/features/datacheck"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 
@@ -23,6 +24,7 @@ func (h *handlers) registerAdminData(g *echo.Group) {
 	d.GET("", h.AdminData)
 	d.GET("/backup", h.AdminDataBackup)
 	d.POST("/restore", h.AdminDataRestore, echomw.BodyLimit("256M"))
+	d.GET("/check", h.AdminDataCheck)
 	d.GET("/backups/:name", h.AdminDataBackupFile)
 	d.POST("/backups/:name/restore", h.AdminDataRestoreFile)
 }
@@ -186,5 +188,39 @@ func baseName(p string) string {
 	return p
 }
 
-// dataCheck lists suspicious stored data (task 1 fills it in).
-func (h *handlers) dataCheck(echo.Context) []CheckFinding { return []CheckFinding{} }
+// checkFindings runs the data check (stored data older karots-pos versions
+// wrote wrongly — see internal/features/datacheck).
+func (h *handlers) checkFindings(c echo.Context) ([]CheckFinding, error) {
+	found, err := datacheck.Run(c.Request().Context(), h.d.DB)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]CheckFinding, 0, len(found))
+	for _, f := range found {
+		rows := make([]CheckFindingRow, len(f.Sample))
+		for i, r := range f.Sample {
+			rows[i] = CheckFindingRow{Ref: r.Ref, Detail: r.Detail}
+		}
+		out = append(out, CheckFinding{Key: f.Key, Title: f.Title, Explain: f.Explain, Count: f.Count, Sample: rows})
+	}
+	return out, nil
+}
+
+// dataCheck is checkFindings for after a restore: a failed check must not hide
+// the restore's success, so it logs and reports nothing.
+func (h *handlers) dataCheck(c echo.Context) []CheckFinding {
+	out, err := h.checkFindings(c)
+	if err != nil {
+		c.Logger().Errorf("data check: %v", err)
+		return []CheckFinding{}
+	}
+	return out
+}
+
+func (h *handlers) AdminDataCheck(c echo.Context) error {
+	out, err := h.checkFindings(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}

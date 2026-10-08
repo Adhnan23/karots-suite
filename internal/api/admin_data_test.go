@@ -79,3 +79,15 @@ func TestAdminData(t *testing.T) {
 		t.Errorf("missing file: %d", rec.Code)
 	}
 }
+
+func TestAdminDataCheck(t *testing.T) {
+	te := newTestEnv(t)
+	ph := fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000)
+	rec := te.do(http.MethodGet, "/api/v1/admin/data/check", nil, te.login(t, ph, "admin"))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("check: %d %s", rec.Code, rec.Body)
+	}
+	for _, f := range decode[[]CheckFinding](t, rec) {
+		t.Logf("dev DB finding: %s × %d", f.Key, f.Count)
+	}
+}
