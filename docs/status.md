@@ -56,6 +56,14 @@ karots-pos on one demo shop (`docs/acceptance.md` § "The demo shop both apps ho
 - **Done in M6.5 so far:** Karots icon + installable app (manifest; a true install needs https or
   localhost); receipt credit line → "Karots Business Suite" + contact (a receipt redesign was
   rejected and reverted — the layout stays as karots-pos's).
+- **Fixed from the user's notes (2026-10-08):** Settings stock-take toggle updates the menu without a
+  reload; Batches' edit sheet behind a visible "Edit batches" button; kiosk lockdown ported from
+  karots-pos `core.js` (F-keys, browser combos, right-click; F1 on a counter tab → Sell) with the
+  **system user exempt** (suite-only); Lockers "At the till" alignment; switch knob readable in dark;
+  the dock shelf rebuilt per theme.md §6 (icon tiles, lead card, fixed heights; lead-card figure not
+  built); **ask before printing shows the real receipt** (`?preview=1` on every slip endpoint, decoded
+  from the printer bytes) in the sale overlay and one Print / Skip prompt for drawer + counter.
+  The till top bar (`afd86dc`) now passes its e2e; **92 Playwright flows green**.
 - **Waiting for the user's OK — `afd86dc`:** the till top bar (drawer chip with a panel, shortcuts
   behind a keyboard button with pin, tabs as a dynamic row). Screens were shown; next: the user
   tries it as Dilani, then run `till.spec` / `counter.spec` / `shell.spec` (some click "More",
