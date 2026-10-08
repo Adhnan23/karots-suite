@@ -60,8 +60,11 @@ karots-pos on one demo shop (`docs/acceptance.md` § "The demo shop both apps ho
   behind a keyboard button with pin, tabs as a dynamic row). Screens were shown; next: the user
   tries it as Dilani, then run `till.spec` / `counter.spec` / `shell.spec` (some click "More",
   which now shows tabs directly at test width), fix, and confirm. Revert `afd86dc` if rejected.
-- **Open question from the user (no decision yet):** a "file mode" with no separate database
-  server — see the discussion at the end of this session (embedded Postgres in a data folder).
+- **Idea for M8 (user, 2026-10-08):** a **file mode** for single-PC shops — binary + `.env` + a
+  `data/` folder, the binary running its own embedded Postgres (as Demo Room's `internal/demodb`
+  does), so no database install. A shop that grows moves to server mode by: backup in the suite →
+  install PostgreSQL → set `DATABASE_URL` in `.env` → start (migrations run) → restore. Server
+  mode stays as it is. Not built.
 
 **M6.5 Acceptance and polish (user, 2026-10-07) — prepared in M6: `docs/acceptance.md` + `docs/differences.md`.** The user runs the suite side by side with a core-only karots-pos before any plugin is ported. What it covers:
 - a runnable build + short run steps (suite next to karots-pos, own ports and DB);
