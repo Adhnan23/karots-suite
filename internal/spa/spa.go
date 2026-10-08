@@ -2,12 +2,16 @@ package spa
 
 import (
 	"io/fs"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
+
+// The web app manifest (installable app) has no type in Go's table.
+func init() { _ = mime.AddExtensionType(".webmanifest", "application/manifest+json") }
 
 // Handler serves real files; any other path that is not an asset gets
 // index.html so client-side routes survive a reload. /api/* never reaches here

@@ -49,3 +49,11 @@ func TestNotBuiltGives503(t *testing.T) {
 		t.Fatalf("%d", rec.Code)
 	}
 }
+
+// The browser only offers "Install" when the manifest comes back as JSON.
+func TestManifestServedAsManifestJSON(t *testing.T) {
+	rec := serve(t, fstest.MapFS{"index.html": {Data: []byte("<html>")}, "manifest.webmanifest": {Data: []byte("{}")}}, "/manifest.webmanifest")
+	if rec.Code != http.StatusOK || rec.Header().Get("Content-Type") != "application/manifest+json" {
+		t.Fatalf("%d %q", rec.Code, rec.Header().Get("Content-Type"))
+	}
+}
