@@ -49,7 +49,7 @@ function UnitList({ picked, onPick }: { picked: string | null; onPick: (s: strin
         {/* Enter looks the typed serial up directly — a scan is exact, the list may lag. */}
         <input autoFocus aria-label="Serial number" placeholder="Scan a serial, or type a product" autoComplete="off" value={q}
           onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && q.trim() && onPick(q.trim())}
-          className={cn(FIELD, 'w-full pl-9 font-mono')} />
+          className={cn(FIELD, 'w-full pl-9 font-mono placeholder:font-sans')} />
       </div>
       <ul aria-label="Units" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-2.5 pb-2.5">
         {rows.length === 0 && <li className="m-auto p-8 text-center text-faint">No units here.</li>}
@@ -82,7 +82,7 @@ function ReceiptFind({ onFind }: { onFind: (no: string) => void }) {
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Receipt number" placeholder="Scan or type the receipt no, then Enter" autoComplete="off" value={no}
           onChange={(e) => setNo(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && no.trim() && onFind(no.trim().toUpperCase())}
-          className={cn(FIELD, 'w-full pl-9 font-mono')} />
+          className={cn(FIELD, 'w-full pl-9 font-mono placeholder:font-sans')} />
       </div>
       <p className="px-5 text-[13px] text-muted-foreground">Works on any past sale with warranted items — nothing needed to be recorded at the time.</p>
     </>
