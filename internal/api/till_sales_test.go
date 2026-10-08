@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -24,6 +25,17 @@ func TestTillCashSaleAndLotPrice(t *testing.T) {
 	res := decode[SaleResult](t, rec)
 	if rec.Code != 201 || res.ReceiptNo == "" || res.Total != "100.00" || res.ChangeGiven != "50.00" || len(res.Methods) != 1 {
 		t.Fatalf("cash sale %d %+v", rec.Code, res)
+	}
+
+	// ?preview=1 answers with the slip as the paper shows it — no printer needed.
+	pv := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/sales/%d/print?preview=1", res.ID), nil, ck)
+	slip := decode[SlipPreview](t, pv)
+	var text []string
+	for _, l := range slip.Lines {
+		text = append(text, l.Text)
+	}
+	if pv.Code != 200 || slip.Columns == 0 || !strings.Contains(strings.Join(text, "\n"), res.ReceiptNo) || !strings.Contains(strings.Join(text, "\n"), "Karots Business Suite") {
+		t.Fatalf("sale preview %d %+v", pv.Code, slip)
 	}
 
 	lots := decode[[]Lot](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/products/%d/lots", f.lotID), nil, ck))

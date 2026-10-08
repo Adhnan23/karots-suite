@@ -171,3 +171,24 @@ type WriteOffRequest struct {
 	Note      string `json:"note"`
 	Reason    string `json:"reason"` // damage (default) | own_use | staff — decides the P&L line
 }
+
+// SlipPreview is a slip as the paper shows it: any slip print endpoint answers
+// ?preview=1 with this instead of printing. Decoded from the exact ESC/POS bytes
+// the printer would get (escpos.Preview), so the screen can't drift from paper.
+type SlipPreview struct {
+	Width   string     `json:"width"`   // "58" | "80"
+	Columns int        `json:"columns"` // Font A characters per line
+	Dots    int        `json:"dots"`    // print head width; a raster's share of the line
+	Lines   []SlipLine `json:"lines"`
+}
+
+type SlipLine struct {
+	Text      string `json:"text"`
+	Align     string `json:"align"` // left | center | right
+	Bold      bool   `json:"bold"`
+	Wide      bool   `json:"wide"`  // double width
+	Tall      bool   `json:"tall"`  // double height
+	Small     bool   `json:"small"` // Font B
+	Image     string `json:"image,omitempty"`
+	ImageDots int    `json:"imageDots,omitempty"`
+}

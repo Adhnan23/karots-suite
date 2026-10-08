@@ -6,7 +6,7 @@ import { api, ApiError } from '@/api/client'
 import type { WarrantyClaimRef, WarrantyReplaceRequest } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { configQuery, errMsg } from '@/features/till/api'
-import { printWarrantySlip } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { cn } from '@/lib/utils'
 import { warrantySerialQuery } from '../queries'
@@ -52,7 +52,7 @@ export function UnitClaim({ serial, onSerial }: { serial: string; onSerial: (s: 
     try {
       const body: WarrantyReplaceRequest = { unitId: u!.id, newSerial: next.trim(), reason }
       const r = await api<WarrantyClaimRef>('/till/warranty/replace', { json: body })
-      afterSlip(cfg, `Swapped ${u!.serial} → ${next.trim()}`, () => printWarrantySlip(r.claimId), false)
+      afterSlip(cfg, `Swapped ${u!.serial} → ${next.trim()}`, slipPath.warranty(r.claimId), false)
       void qc.invalidateQueries({ queryKey: ['till'] })
       onSerial(next.trim())
     } catch (err) {

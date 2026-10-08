@@ -2863,3 +2863,24 @@ export interface WriteOffRequest {
   note: string;
   reason: string; // damage (default) | own_use | staff — decides the P&L line
 }
+/**
+ * SlipPreview is a slip as the paper shows it: any slip print endpoint answers
+ * ?preview=1 with this instead of printing. Decoded from the exact ESC/POS bytes
+ * the printer would get (escpos.Preview), so the screen can't drift from paper.
+ */
+export interface SlipPreview {
+  width: string; // "58" | "80"
+  columns: number /* int */; // Font A characters per line
+  dots: number /* int */; // print head width; a raster's share of the line
+  lines: SlipLine[];
+}
+export interface SlipLine {
+  text: string;
+  align: string; // left | center | right
+  bold: boolean;
+  wide: boolean; // double width
+  tall: boolean; // double height
+  small: boolean; // Font B
+  image?: string;
+  imageDots?: number /* int */;
+}

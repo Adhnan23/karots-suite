@@ -183,6 +183,9 @@ func (h *handlers) CounterPrintRefund(c echo.Context) error {
 		return err
 	}
 	payload := escpos.ReturnDocument(*rr, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))
+	if ok, err := previewSlip(c, cfg, payload); ok {
+		return err
+	}
 	if c.QueryParam("kick") == "1" {
 		payload = append(escpos.DrawerKick(*cfg), payload...)
 	}

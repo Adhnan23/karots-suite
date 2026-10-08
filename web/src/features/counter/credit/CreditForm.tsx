@@ -7,7 +7,7 @@ import type { AdvanceRefundRequest, CreditPaymentRequest, CreditPaymentResult, R
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
 import { configQuery, drawerQuery, errMsg, lockersOf } from '@/features/till/api'
-import { printDebtSlip } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -47,7 +47,7 @@ export function CreditForm({ c }: { c: TillCustomer }) {
       if (mode === 'pay') {
         const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint }
         const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
-        afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, (kick) => printDebtSlip(r.paymentId, kick), method === 'cash')
+        afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, slipPath.debt(r.paymentId), method === 'cash')
       } else {
         const body: AdvanceRefundRequest = { amount, deferDrawerKick: !cfg.askToPrint }
         const r = await api<ReceiptRef>(`/till/customers/${c.id}/refund`, { json: body })

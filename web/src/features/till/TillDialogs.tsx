@@ -9,7 +9,6 @@ import { Suggestion } from './cart-ui/Suggestion'
 import { useCheckoutCtx } from './checkout/CheckoutProvider'
 import { CloseRegister } from './drawer/CloseRegister'
 import { MoneyMove } from './drawer/MoneyMove'
-import { SlipPrompt } from './drawer/SlipPrompt'
 import { AddCustomer } from './pay/AddCustomer'
 import { useTillApi, useTillUi } from './TillUi'
 
@@ -44,8 +43,6 @@ export function TillDialogs() {
       return <MoneyMove kind={d.kind} />
     case 'close':
       return <CloseRegister logout={d.logout} />
-    case 'slip':
-      return <SlipPrompt receiptId={d.receiptId} />
     case 'info':
       return <ProductInfo product={d.product} />
     case 'quickItem':

@@ -137,6 +137,9 @@ func (h *handlers) CounterPrintDebtSlip(c echo.Context) error {
 		CustomerPhone: strOr(r.CustomerPhone), Method: methodOr(r.Method), CashierName: strOr(r.CashierName),
 		Amount: r.Amount, BalanceBefore: r.BalanceBefore, BalanceAfter: r.BalanceAfter}
 	payload := escpos.DebtDocument(slip, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))
+	if ok, err := previewSlip(c, cfg, payload); ok {
+		return err
+	}
 	if c.QueryParam("kick") == "1" {
 		payload = append(escpos.DrawerKick(*cfg), payload...)
 	}

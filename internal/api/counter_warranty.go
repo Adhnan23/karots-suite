@@ -158,7 +158,11 @@ func (h *handlers) CounterPrintWarrantySlip(c echo.Context) error {
 	}
 	slip := escpos.WarrantySlip{ProductName: u.ProductName, OldSerial: cl.OldSerial, NewSerial: u.SerialNo,
 		WarrantyUntil: datetime.Date(u.WarrantyUntil), WarrantyLeft: monthsLeft(u.WarrantyUntil), CustomerName: strOr(u.CustomerName)}
-	if err := escpos.Send(ctx, h.receiptQueue(c, cfg), escpos.WarrantyDocument(slip, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))); err != nil {
+	payload := escpos.WarrantyDocument(slip, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))
+	if ok, err := previewSlip(c, cfg, payload); ok {
+		return err
+	}
+	if err := escpos.Send(ctx, h.receiptQueue(c, cfg), payload); err != nil {
 		log.Printf("warranty slip %d: %v", id, err)
 		return apperr.ConflictCode("PRINT_FAILED", printFailed)
 	}

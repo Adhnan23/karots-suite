@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { startAutofit } from '@/lib/autofit'
 import { configQuery } from '@/features/till/api'
 import { DrawerPill } from '@/features/till/drawer/DrawerPill'
+import { SlipAskHost } from '@/features/till/SlipAsk'
 import { TillProvider } from '@/features/till/TillProvider'
 import { TillShell } from '@/theme/TillShell'
 
@@ -19,6 +20,7 @@ function TillLayout() {
     <TillProvider userId={me.user.id} saleType={cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'}>
       <TillShell me={me} config={cfg} status={<DrawerPill />}>
         <Outlet />
+        <SlipAskHost />
       </TillShell>
     </TillProvider>
   )

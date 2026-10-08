@@ -3,7 +3,8 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import type { Lot, TillGroup, TillProduct } from '@/api/types.gen'
 import type { TillApi } from '@/plugins/slots'
 import { configQuery, drawerQuery } from './api'
-import { printMoneySlip } from './print'
+import { printMoneySlip, slipPath } from './print'
+import { askToPrint } from './SlipAsk'
 import { useTill } from './TillProvider'
 
 /** One till dialog at a time (karots-pos anyModalOpen). */
@@ -11,7 +12,6 @@ export type Dialog =
   | { kind: 'withdraw' }
   | { kind: 'deposit' }
   | { kind: 'close'; logout?: boolean }
-  | { kind: 'slip'; receiptId: number }
   | { kind: 'held' }
   | { kind: 'clearSale' }
   | { kind: 'quickItem'; barcode: string; name: string }
@@ -56,7 +56,7 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
     },
     afterMove: (id, mergeKick = false) => {
       if (!id) return
-      if (cfg.askToPrint) setDialog({ kind: 'slip', receiptId: id })
+      if (cfg.askToPrint) askToPrint({ path: slipPath.money(id), title: 'Print the receipt?', note: 'A cash receipt was recorded for this drawer move.' })
       else void printMoneySlip(id, mergeKick)
     },
   }), [dialog, search, stack, menu, cfg.askToPrint])

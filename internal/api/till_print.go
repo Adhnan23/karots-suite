@@ -51,6 +51,23 @@ func (h *handlers) receiptQueue(c echo.Context, cfg *settings.Settings) string {
 	return cfg.ReceiptPrinter
 }
 
+// previewSlip answers ?preview=1 with the slip as the paper shows it, instead of
+// printing. Call it with the slip's bytes BEFORE the drawer kick is folded in and
+// before the printer lookup: a preview never opens the drawer and needs no printer.
+func previewSlip(c echo.Context, cfg *settings.Settings, payload []byte) (bool, error) {
+	if c.QueryParam("preview") != "1" {
+		return false, nil
+	}
+	p := SlipPreview{Width: "80", Columns: escpos.Columns(cfg.ReceiptWidth), Dots: receiptimg.PrinterDots(cfg.ReceiptWidth)}
+	if cfg.ReceiptWidth == "58" {
+		p.Width = "58"
+	}
+	for _, l := range escpos.Preview(payload) {
+		p.Lines = append(p.Lines, SlipLine{Text: l.Text, Align: l.Align, Bold: l.Bold, Wide: l.Wide, Tall: l.Tall, Small: l.Small, Image: l.Image, ImageDots: l.ImageDots})
+	}
+	return true, c.JSON(http.StatusOK, p)
+}
+
 // TillPrintMoneyReceipt prints a CR- slip (till open/close/withdraw/deposit).
 // ?kick=1 (fresh withdraw/deposit in auto-print mode) folds the drawer pulse into
 // this one job; reprints never pass it.
@@ -68,11 +85,14 @@ func (h *handlers) TillPrintMoneyReceipt(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	slip := moneySlip(cfg, *rec, receiptimg.SlipOptions(ctx, cfg, nil))
+	if ok, err := previewSlip(c, cfg, slip); ok {
+		return err
+	}
 	target := h.receiptQueue(c, cfg)
 	if strings.TrimSpace(target) == "" {
 		return apperr.ConflictCode("NO_PRINTER", "No receipt printer configured")
 	}
-	slip := moneySlip(cfg, *rec, receiptimg.SlipOptions(ctx, cfg, nil))
 	if c.QueryParam("kick") == "1" {
 		slip = append(escpos.DrawerKick(*cfg), slip...)
 	}
@@ -180,6 +200,9 @@ func (h *handlers) TillPrintSale(c echo.Context) error {
 	opts.Serials = h.saleSerials(ctx, id)
 	opts.CustomerDue = h.customerDue(ctx, detail)
 	payload := escpos.Document(*detail, *cfg, opts)
+	if ok, err := previewSlip(c, cfg, payload); ok {
+		return err
+	}
 	if c.QueryParam("kick") == "1" && paidCash(detail) {
 		payload = append(escpos.DrawerKick(*cfg), payload...)
 	}

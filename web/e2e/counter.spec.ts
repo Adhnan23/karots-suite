@@ -20,7 +20,18 @@ async function sell(page: Page, lines: [string, string][], payments: object[], c
   const items = await Promise.all(lines.map(async ([code, qty]) => ({ productId: (await product(page, code)).id, quantity: qty, discountType: 'fixed' })))
   return (await page.request.post('/api/v1/till/sales', { data: { saleType: 'retail', discountType: 'fixed', customerId, items, payments } })).json()
 }
-const toast = (page: Page, text: RegExp) => expect(page.locator('[data-sonner-toast]').filter({ hasText: text }).first()).toBeVisible()
+/** An action that may make a slip: with "ask before printing" on, the Print / Skip
+ * prompt shows the message and the receipt as it will print — check it, skip it.
+ * Actions with no slip still just toast. */
+async function done(page: Page, text: RegExp) {
+  const ask = page.getByRole('dialog', { name: 'Print the receipt?' }).filter({ hasText: text })
+  await expect(ask.or(page.locator('[data-sonner-toast]').filter({ hasText: text })).first()).toBeVisible()
+  if (await ask.isVisible()) {
+    await expect(ask.getByLabel('Receipt preview')).toContainText('Karots Business Suite')
+    await ask.getByRole('button', { name: 'Skip' }).click()
+    await expect(ask).toBeHidden()
+  }
+}
 
 test('the cart survives a trip to another tab', async ({ page }) => {
   await open(page, '')
@@ -40,7 +51,7 @@ test('expense from the drawer lands in today’s list', async ({ page }) => {
   await page.getByLabel('Amount').fill('250')
   await page.getByLabel('Note').fill('e2e tuk')
   await page.getByRole('button', { name: /Record expense/ }).click()
-  await toast(page, /Expense recorded/)
+  await done(page, /Expense recorded/)
   await expect(page.getByText('e2e tuk')).toBeVisible()
 })
 
@@ -52,7 +63,7 @@ test('write-off as shop use takes stock out', async ({ page }) => {
   await page.getByRole('radio', { name: /Shop use/ }).click()
   await page.getByLabel('Quantity').fill('1')
   await page.getByRole('button', { name: /out of stock/ }).click()
-  await toast(page, /shop use/)
+  await done(page, /shop use/)
   expect(Number((await product(page, '4790000000028')).stockQty)).toBe(before - 1)
 })
 
@@ -61,7 +72,7 @@ test('convert opens a crate into 12 milk', async ({ page }) => {
   const before = Number((await product(page, '4790000000011')).stockQty)
   await page.getByRole('button', { name: /Milk Crate/ }).click()
   await page.getByRole('button', { name: /Open 1 pcs/ }).click()
-  await toast(page, /Opened 1/)
+  await done(page, /Opened 1/)
   expect(Number((await product(page, '4790000000011')).stockQty)).toBe(before + 12)
 })
 
@@ -72,7 +83,7 @@ test('return by receipt refunds cash', async ({ page }) => {
   await page.getByLabel('Find a sale').press('Enter')
   await page.getByRole('button', { name: 'More E2E Milk' }).click()
   await page.getByRole('button', { name: /Refund Rs\. 100\.00 cash/ }).click()
-  await toast(page, /Give back Rs\. 100\.00/)
+  await done(page, /Give back Rs\. 100\.00/)
   await expect(page.getByText('1 already back')).toBeVisible()
 })
 
@@ -87,7 +98,7 @@ test('credit: collect what a customer owes', async ({ page }) => {
   await page.getByRole('button', { name: new RegExp(name) }).click()
   await page.getByRole('button', { name: /^Full / }).click()
   await page.getByRole('button', { name: /^Collect/ }).click()
-  await toast(page, new RegExp(`collected from ${name}`))
+  await done(page, new RegExp(`collected from ${name}`))
 })
 
 test('receipts: a sale shows as paper', async ({ page }) => {
@@ -105,7 +116,7 @@ test('warranty: swap a serial, keeping the cover', async ({ page }) => {
   await page.getByLabel('Serial number').press('Enter')
   await page.getByLabel('New serial').fill(`E2E-SN-${Date.now()}`)
   await page.getByRole('button', { name: 'Swap for the new unit' }).click()
-  await toast(page, /Swapped E2E-SN-0001/)
+  await done(page, /Swapped E2E-SN-0001/)
   await expect(page.getByRole('heading', { name: 'E2E Phone' })).toBeVisible()
 })
 
@@ -114,7 +125,7 @@ test('supplier: pay part of an old debt, then take in a delivery', async ({ page
   await page.getByRole('button', { name: /E2E Distributors/ }).click()
   await page.getByLabel('Amount').fill('500')
   await page.getByRole('button', { name: /^Pay Rs\. 500\.00/ }).click()
-  await toast(page, /Paid Rs\. 500\.00 to E2E Distributors/)
+  await done(page, /Paid Rs\. 500\.00 to E2E Distributors/)
   await expect(page.getByText(/We owe Rs\. 1,000\.00/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Receive stock' }).click()
@@ -125,7 +136,7 @@ test('supplier: pay part of an old debt, then take in a delivery', async ({ page
   await page.getByLabel('Discount on E2E Milk').fill('10')
   await page.getByRole('group', { name: 'Discount type for E2E Milk' }).getByRole('button', { name: '%' }).click()
   await page.getByRole('button', { name: /Receive Rs\. 432\.00 of stock/ }).click()
-  await toast(page, /Received Rs\. 432\.00 of stock/)
+  await done(page, /Received Rs\. 432\.00 of stock/)
   await expect(page.getByText(/We owe Rs\. 1,432\.00/)).toBeVisible()
 })
 
@@ -144,7 +155,7 @@ test('supplier: place an order, then receive it', async ({ page }) => {
   await page.getByRole('button', { name: /^#\d+/ }).first().click()
   await expect(page.getByLabel('Quantity of E2E Yoghurt')).toHaveValue('12')
   await page.getByRole('button', { name: /Receive Rs\. .* of stock/ }).click()
-  await toast(page, /Received .* of stock/)
+  await done(page, /Received .* of stock/)
 })
 
 test('receipts: cash moves and credit payments are listed', async ({ page }) => {
@@ -180,7 +191,7 @@ test('credit: hand back a customer’s advance from the drawer', async ({ page }
   await page.getByRole('group', { name: 'Action' }).getByRole('button', { name: 'Refund advance' }).click()
   await expect(page.getByLabel('Amount')).toHaveValue('300.00')
   await page.getByRole('button', { name: /Refund Rs\. 300\.00 from the drawer/ }).click()
-  await toast(page, /advance refunded/)
+  await done(page, /advance refunded/)
   const after = (await (await page.request.get('/api/v1/till/customers')).json()).find((c: { name: string }) => c.name === 'E2E Credit')
   expect(Number(after.outstanding)).toBe(0)
 })
@@ -195,11 +206,11 @@ test('supplier: add one at the counter, overpay, take the advance back', async (
   await page.getByRole('button', { name: new RegExp(name) }).click()
   await page.getByLabel('Amount').fill('400')
   await page.getByRole('button', { name: /^Pay Rs\. 400\.00/ }).click()
-  await toast(page, new RegExp(`Paid Rs\\. 400\\.00 to ${name}`))
+  await done(page, new RegExp(`Paid Rs\\. 400\\.00 to ${name}`))
   await page.getByRole('group', { name: 'Direction' }).getByRole('button', { name: 'They pay us back' }).click()
   await expect(page.getByLabel('Amount')).toHaveValue('400.00')
   await page.getByRole('button', { name: /Take Rs\. 400\.00 back/ }).click()
-  await toast(page, new RegExp(`Received Rs\\. 400\\.00 back from ${name}`))
+  await done(page, new RegExp(`Received Rs\\. 400\\.00 back from ${name}`))
 })
 
 test('supplier: a new product met on a delivery, and a wanted item on an order', async ({ page }) => {
@@ -214,7 +225,7 @@ test('supplier: a new product met on a delivery, and a wanted item on an order',
   await page.getByRole('button', { name: 'Add', exact: true }).click()
   await page.getByLabel(`Quantity of Jaggery ${tag}`).fill('5')
   await page.getByRole('button', { name: /Receive Rs\. 750\.00 of stock/ }).click()
-  await toast(page, /Received Rs\. 750\.00 of stock/)
+  await done(page, /Received Rs\. 750\.00 of stock/)
   expect(Number((await (await page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(`Jaggery ${tag}`)}`)).json()).items[0].stockQty)).toBe(5)
 
   await page.getByRole('button', { name: 'Order', exact: true }).click()
@@ -240,6 +251,6 @@ test('warranty: replace an unserialled item by its receipt', async ({ page }) =>
   await page.getByLabel('Receipt number').fill(sale.receiptNo)
   await page.getByLabel('Receipt number').press('Enter')
   await page.getByRole('button', { name: 'Replace one E2E Phone' }).click()
-  await toast(page, /Replacement recorded/)
+  await done(page, /Replacement recorded/)
   await expect(page.getByText(/1 replaced/)).toBeVisible()
 })

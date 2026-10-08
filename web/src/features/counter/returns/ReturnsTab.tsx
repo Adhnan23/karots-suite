@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, errMsg } from '@/features/till/api'
-import { printRefund } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { SaleFind } from '../SaleFind'
 import { afterSlip } from '../slip'
@@ -54,7 +54,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
       }
       const res = await api<ReturnResult>(`/till/sales/${sale.id}/return`, { json: body })
       const c = num(res.cashRefund)
-      afterSlip(cfg, c > 0 ? `Give back ${money(sym, c)} — return recorded` : 'Return recorded', (kick) => printRefund(sale.id, kick), c > 0)
+      afterSlip(cfg, c > 0 ? `Give back ${money(sym, c)} — return recorded` : 'Return recorded', slipPath.refund(sale.id), c > 0)
       void qc.invalidateQueries({ queryKey: ['till'] })
     } catch (err) {
       toast.error(errMsg(err))

@@ -20,10 +20,21 @@ const q = (kick: boolean, size?: string) => {
   return s ? `?${s}` : ''
 }
 
+/** Each slip's print endpoint. POST prints it; POST …?preview=1 answers with the
+ * slip as the paper shows it (SlipPaper). */
+export const slipPath = {
+  sale: (id: number) => `/till/sales/${id}/print`,
+  money: (id: number) => `/till/money-receipts/${id}/print`,
+  refund: (saleId: number) => `/till/sales/${saleId}/refund-print`,
+  debt: (paymentId: number) => `/till/customer-payments/${paymentId}/print`,
+  warranty: (claimId: number) => `/till/warranty-claims/${claimId}/print`,
+}
+
 /** Fire-and-forget: the sale is saved; only the paper is at stake. kick folds the
  * drawer pulse into this ONE printer job (fresh cash sale in auto-print mode). */
-export const printSale = (id: number, kick = false, size?: string) => send(`/till/sales/${id}/print${q(kick, size)}`)
-export const printMoneySlip = (id: number, kick = false, size?: string) => send(`/till/money-receipts/${id}/print${q(kick, size)}`)
-export const printRefund = (saleId: number, kick = false, size?: string) => send(`/till/sales/${saleId}/refund-print${q(kick, size)}`)
-export const printDebtSlip = (paymentId: number, kick = false, size?: string) => send(`/till/customer-payments/${paymentId}/print${q(kick, size)}`)
-export const printWarrantySlip = (claimId: number, size?: string) => send(`/till/warranty-claims/${claimId}/print${q(false, size)}`)
+export const printSlip = (path: string, kick = false, size?: string) => send(`${path}${q(kick, size)}`)
+export const printSale = (id: number, kick = false, size?: string) => printSlip(slipPath.sale(id), kick, size)
+export const printMoneySlip = (id: number, kick = false, size?: string) => printSlip(slipPath.money(id), kick, size)
+export const printRefund = (saleId: number, kick = false, size?: string) => printSlip(slipPath.refund(saleId), kick, size)
+export const printDebtSlip = (paymentId: number, kick = false, size?: string) => printSlip(slipPath.debt(paymentId), kick, size)
+export const printWarrantySlip = (claimId: number, size?: string) => printSlip(slipPath.warranty(claimId), false, size)
