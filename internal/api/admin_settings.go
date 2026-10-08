@@ -1,0 +1,169 @@
+package api
+
+import (
+	"io"
+	"net/http"
+	"strings"
+
+	"karots-suite/internal/apperr"
+	"karots-suite/internal/escpos"
+	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/settings"
+	"karots-suite/internal/printing"
+	"karots-suite/internal/receiptimg"
+
+	"github.com/labstack/echo/v4"
+	echomw "github.com/labstack/echo/v4/middleware"
+)
+
+// registerAdminSettings mounts Setup → Settings (admin + manager, as karots-pos).
+func (h *handlers) registerAdminSettings(g *echo.Group) {
+	g.GET("/settings", h.AdminSettings)
+	g.PUT("/settings", h.AdminSettingsSave)
+	g.POST("/settings/logo", h.AdminSettingsLogo, echomw.BodyLimit("8M"))
+	g.POST("/settings/logo/clear", h.AdminSettingsLogoClear)
+	g.POST("/settings/printer/test", h.AdminSettingsPrinterTest)
+}
+
+func str(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func strPtr(s string) *string {
+	s = strings.TrimSpace(s)
+	return &s
+}
+
+func toShopSettings(s *settings.Settings) ShopSettings {
+	out := ShopSettings{
+		ShopName: s.ShopName, ShopNameLocal: str(s.ShopNameSi), Address: str(s.Address), Phone: str(s.Phone),
+		CurrencyCode: s.CurrencyCode, CurrencySymbol: s.CurrencySymbol, LogoURL: str(s.LogoURL),
+		ReceiptFooter: str(s.ReceiptFooter), ReceiptWidth: s.ReceiptWidth, DefaultSaleType: s.DefaultSaleType,
+		AskToPrint: s.AskToPrint, TaxRegistered: s.TaxRegistered, TaxRegNo: str(s.TaxRegNo),
+		OpenCashDrawer: s.OpenCashDrawer, DrawerKickPin: s.DrawerKickPin, AllowUntrackedCash: s.AllowUntrackedCash,
+		AllowContinueLastCount: s.AllowContinueLastCount, LowStockAlerts: s.LowStockAlerts, StockTakeEnabled: s.StockTakeEnabled,
+		ForcePinChange: s.ForcePinChange, AllowCashierPinChange: s.AllowCashierPinChange, LockTimeoutMinutes: s.LockTimeoutMinutes,
+		ReceiptPrinter: s.ReceiptPrinter, LabelPrinter: s.LabelPrinter,
+		LabelWidthMM: s.LabelWidthMM, LabelHeightMM: s.LabelHeightMM, LabelGapMM: s.LabelGapMM,
+		LabelNameLines: s.LabelNameLines, LabelBottomLines: s.LabelBottomLines,
+		LabelNameFont: s.LabelNameFont, LabelBottomFont: s.LabelBottomFont,
+	}
+	if s.DefaultLockerID != nil {
+		out.DefaultLockerID = *s.DefaultLockerID
+	}
+	return out
+}
+
+func (h *handlers) AdminSettings(c echo.Context) error {
+	ctx := c.Request().Context()
+	s, err := h.d.Settings.Get(ctx)
+	if err != nil {
+		return err
+	}
+	page := SettingsPage{Settings: toShopSettings(s), Logo: s.LogoSrc(), LogoUploaded: s.LogoData != "",
+		Printers: printing.Queues(ctx), Lockers: []SettingsLocker{}}
+	if page.Printers == nil {
+		page.Printers = []string{}
+	}
+	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active ORDER BY name`); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, page)
+}
+
+func (h *handlers) AdminSettingsSave(c echo.Context) error {
+	var in ShopSettings
+	if err := c.Bind(&in); err != nil {
+		return apperr.BadRequest("invalid settings")
+	}
+	ctx := c.Request().Context()
+	if in.DefaultLockerID > 0 {
+		l, err := h.t.lockers.Get(ctx, in.DefaultLockerID)
+		if err != nil {
+			return err
+		}
+		if !l.IsActive {
+			return apperr.Validation("that locker is archived")
+		}
+	}
+	up := settings.UpdateInput{
+		ShopName: strings.TrimSpace(in.ShopName), ShopNameSi: strPtr(in.ShopNameLocal), Address: strPtr(in.Address),
+		Phone: strPtr(in.Phone), CurrencyCode: strings.TrimSpace(in.CurrencyCode), CurrencySymbol: strings.TrimSpace(in.CurrencySymbol),
+		LogoURL: strPtr(in.LogoURL), ReceiptFooter: strPtr(in.ReceiptFooter), ReceiptWidth: in.ReceiptWidth,
+		TaxRegistered: in.TaxRegistered, TaxRegNo: strPtr(in.TaxRegNo), LowStockAlerts: in.LowStockAlerts,
+		AskToPrint: in.AskToPrint, ForcePinChange: in.ForcePinChange, AllowCashierPinChange: in.AllowCashierPinChange,
+		DefaultSaleType: in.DefaultSaleType, ReceiptPrinter: strings.TrimSpace(in.ReceiptPrinter), LabelPrinter: strings.TrimSpace(in.LabelPrinter),
+		LabelWidthMM: in.LabelWidthMM, LabelHeightMM: in.LabelHeightMM, LabelGapMM: in.LabelGapMM,
+		LabelNameLines: in.LabelNameLines, LabelBottomLines: in.LabelBottomLines,
+		LabelNameFont: in.LabelNameFont, LabelBottomFont: in.LabelBottomFont,
+		LockTimeoutMinutes: in.LockTimeoutMinutes, StockTakeEnabled: in.StockTakeEnabled,
+		OpenCashDrawer: in.OpenCashDrawer, DrawerKickPin: in.DrawerKickPin,
+		AllowUntrackedCash: in.AllowUntrackedCash, DefaultLockerID: in.DefaultLockerID,
+		AllowContinueLastCount: in.AllowContinueLastCount,
+	}
+	if err := c.Validate(&up); err != nil {
+		return err
+	}
+	if _, err := h.d.Settings.Update(ctx, up); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionSettings, "settings", "", "updated shop settings")
+	return h.AdminSettings(c)
+}
+
+// AdminSettingsLogo stores an uploaded image, scaled down to 400px, as a data
+// URI in the settings row so it prints and previews offline.
+func (h *handlers) AdminSettingsLogo(c echo.Context) error {
+	fh, err := c.FormFile("logo")
+	if err != nil {
+		return apperr.BadRequest("choose an image file")
+	}
+	f, err := fh.Open()
+	if err != nil {
+		return apperr.BadRequest("could not read the uploaded file")
+	}
+	defer f.Close()
+	data, err := io.ReadAll(io.LimitReader(f, 8<<20))
+	if err != nil {
+		return err
+	}
+	uri, err := receiptimg.ToDataURI(data, 400)
+	if err != nil {
+		return apperr.Validation("that file is not a picture we can use — try a PNG or JPEG")
+	}
+	if err := h.d.Settings.SetLogo(c.Request().Context(), uri); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionSettings, "settings", "logo", "uploaded a logo")
+	return h.AdminSettings(c)
+}
+
+func (h *handlers) AdminSettingsLogoClear(c echo.Context) error {
+	if err := h.d.Settings.SetLogo(c.Request().Context(), ""); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionSettings, "settings", "logo", "removed the logo")
+	return h.AdminSettings(c)
+}
+
+// AdminSettingsPrinterTest prints a short slip on the SAVED receipt printer and
+// pops the drawer — a one-click hardware check during setup.
+func (h *handlers) AdminSettingsPrinterTest(c echo.Context) error {
+	ctx := c.Request().Context()
+	s, err := h.d.Settings.Get(ctx)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(s.ReceiptPrinter) == "" {
+		return apperr.Validation("pick and save a receipt printer first")
+	}
+	if err := escpos.Send(ctx, s.ReceiptPrinter, escpos.TestDocument(*s)); err != nil {
+		return apperr.Validation("the test slip didn't print: " + err.Error())
+	}
+	escpos.KickDrawer(ctx, *s)
+	h.audit(c, audit.ActionSettings, "settings", "", "sent a printer test")
+	return c.NoContent(http.StatusNoContent)
+}

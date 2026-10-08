@@ -8,13 +8,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	"karots-suite/internal/db"
-	"karots-suite/internal/middleware"
-	"karots-suite/internal/response"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 )
 
 type Settings struct {
@@ -341,40 +335,4 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (*Settings, error)
 		return nil, apperr.Internal("failed to update settings", err)
 	}
 	return s.Get(ctx)
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) Get(c echo.Context) error {
-	s, err := h.svc.Get(c.Request().Context())
-	if err != nil {
-		return err
-	}
-	return response.OK(c, s)
-}
-
-func (h *APIHandler) Update(c echo.Context) error {
-	var in UpdateInput
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	s, err := h.svc.Update(c.Request().Context(), in)
-	if err != nil {
-		return err
-	}
-	return response.OK(c, s)
-}
-
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) *Service {
-	svc := NewService(db)
-	api := NewAPIHandler(svc)
-	g := e.Group("/api/settings", middleware.JWTAuth(cfg.JWTSecret))
-	g.GET("", api.Get)
-	g.PUT("", api.Update, middleware.RequireRole("admin"))
-	return svc
 }

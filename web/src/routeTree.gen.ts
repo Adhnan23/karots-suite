@@ -30,6 +30,7 @@ import { Route as AuthedAdminReceiptsRouteImport } from './routes/_authed/admin/
 import { Route as AuthedAdminReorderRouteImport } from './routes/_authed/admin/reorder'
 import { Route as AuthedAdminSalesRouteImport } from './routes/_authed/admin/sales'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
+import { Route as AuthedAdminSettingsRouteImport } from './routes/_authed/admin/settings'
 import { Route as AuthedAdminUnitsRouteImport } from './routes/_authed/admin/units'
 import { Route as AuthedAdminUsersRouteImport } from './routes/_authed/admin/users'
 import { Route as AuthedAdminWarrantyRouteImport } from './routes/_authed/admin/warranty'
@@ -203,6 +204,11 @@ const AuthedAdminSalesRoute = AuthedAdminSalesRouteImport.update({
 const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminSettingsRoute = AuthedAdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminUnitsRoute = AuthedAdminUnitsRouteImport.update({
@@ -603,6 +609,7 @@ export interface FileRoutesByFullPath {
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/sales': typeof AuthedAdminSalesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
+  '/admin/settings': typeof AuthedAdminSettingsRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
   '/admin/warranty': typeof AuthedAdminWarrantyRoute
@@ -692,6 +699,7 @@ export interface FileRoutesByTo {
   '/admin/reorder': typeof AuthedAdminReorderRoute
   '/admin/sales': typeof AuthedAdminSalesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
+  '/admin/settings': typeof AuthedAdminSettingsRoute
   '/admin/units': typeof AuthedAdminUnitsRoute
   '/admin/users': typeof AuthedAdminUsersRoute
   '/admin/warranty': typeof AuthedAdminWarrantyRoute
@@ -785,6 +793,7 @@ export interface FileRoutesById {
   '/_authed/admin/reorder': typeof AuthedAdminReorderRoute
   '/_authed/admin/sales': typeof AuthedAdminSalesRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
+  '/_authed/admin/settings': typeof AuthedAdminSettingsRoute
   '/_authed/admin/units': typeof AuthedAdminUnitsRoute
   '/_authed/admin/users': typeof AuthedAdminUsersRoute
   '/_authed/admin/warranty': typeof AuthedAdminWarrantyRoute
@@ -878,6 +887,7 @@ export interface FileRouteTypes {
     | '/admin/reorder'
     | '/admin/sales'
     | '/admin/services'
+    | '/admin/settings'
     | '/admin/units'
     | '/admin/users'
     | '/admin/warranty'
@@ -967,6 +977,7 @@ export interface FileRouteTypes {
     | '/admin/reorder'
     | '/admin/sales'
     | '/admin/services'
+    | '/admin/settings'
     | '/admin/units'
     | '/admin/users'
     | '/admin/warranty'
@@ -1059,6 +1070,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/reorder'
     | '/_authed/admin/sales'
     | '/_authed/admin/services'
+    | '/_authed/admin/settings'
     | '/_authed/admin/units'
     | '/_authed/admin/users'
     | '/_authed/admin/warranty'
@@ -1286,6 +1298,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/admin/services'
       preLoaderRoute: typeof AuthedAdminServicesRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/settings': {
+      id: '/_authed/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthedAdminSettingsRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/units': {
@@ -1799,6 +1818,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminReorderRoute: typeof AuthedAdminReorderRoute
   AuthedAdminSalesRoute: typeof AuthedAdminSalesRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
+  AuthedAdminSettingsRoute: typeof AuthedAdminSettingsRoute
   AuthedAdminUnitsRoute: typeof AuthedAdminUnitsRoute
   AuthedAdminUsersRoute: typeof AuthedAdminUsersRoute
   AuthedAdminWarrantyRoute: typeof AuthedAdminWarrantyRoute
@@ -1863,6 +1883,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminReorderRoute: AuthedAdminReorderRoute,
   AuthedAdminSalesRoute: AuthedAdminSalesRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
+  AuthedAdminSettingsRoute: AuthedAdminSettingsRoute,
   AuthedAdminUnitsRoute: AuthedAdminUnitsRoute,
   AuthedAdminUsersRoute: AuthedAdminUsersRoute,
   AuthedAdminWarrantyRoute: AuthedAdminWarrantyRoute,

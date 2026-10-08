@@ -7,12 +7,13 @@ const stamp = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'me
 const METHOD: Record<string, string> = { cash: 'Cash', card: 'Card', online: 'Online', credit: 'On account' }
 
 /** A thermal-receipt look on screen: paper and ink in every palette (it's paper). */
-export function Paper({ shop, children, className, narrow }: { shop: ShopHeader; children: ReactNode; className?: string; narrow?: boolean }) {
+export function Paper({ shop, children, className, narrow, logo }: { shop: ShopHeader; children: ReactNode; className?: string; narrow?: boolean; logo?: string }) {
   // 80 mm ≈ 48 characters a line, 58 mm ≈ 32: the preview narrows to match.
   return (
     <article className={cn('mx-auto bg-paper py-6 font-mono leading-relaxed text-ink shadow-[var(--shadow)]',
       narrow ? 'w-[220px] px-3 text-[11px]' : 'w-[300px] px-5 text-[12px]', className)}>
       <header className="mb-3 text-center">
+        {logo && <img src={logo} alt="" className="mx-auto mb-2 max-h-16 max-w-[70%] object-contain grayscale" />}
         <b className="block text-[15px]">{shop.name}</b>
         {shop.address && <span className="block">{shop.address}</span>}
         {shop.phone && <span className="block">{shop.phone}</span>}

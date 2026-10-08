@@ -2384,6 +2384,65 @@ export interface HoldRequest {
 }
 
 //////////
+// source: dto_settings.go
+
+/**
+ * ShopSettings is every setting the Settings page edits. Appearance (System →
+ * Appearance) and the install id are not here. DefaultLockerID 0 = none.
+ */
+export interface ShopSettings {
+  shopName: string;
+  shopNameLocal: string;
+  address: string;
+  phone: string;
+  currencyCode: string;
+  currencySymbol: string;
+  logoUrl: string;
+  receiptFooter: string;
+  receiptWidth: string; // "80" | "58"
+  defaultSaleType: string; // "retail" | "wholesale"
+  askToPrint: boolean;
+  taxRegistered: boolean;
+  taxRegNo: string;
+  openCashDrawer: boolean;
+  drawerKickPin: number /* int */; // 0 = pin 2, 1 = pin 5
+  allowUntrackedCash: boolean;
+  defaultLockerId: number /* int64 */;
+  allowContinueLastCount: boolean;
+  lowStockAlerts: boolean;
+  stockTakeEnabled: boolean;
+  forcePinChange: boolean;
+  allowCashierPinChange: boolean;
+  lockTimeoutMinutes: number /* int */;
+  receiptPrinter: string; // a detected queue or tcp://host:9100; "" = system default
+  labelPrinter: string;
+  labelWidthMm: number /* int */;
+  labelHeightMm: number /* int */;
+  labelGapMm: number /* int */;
+  labelNameLines: number /* int */;
+  labelBottomLines: number /* int */;
+  labelNameFont: string; // "1".."4"
+  labelBottomFont: string; // "1".."4"
+}
+/**
+ * SettingsLocker is an active locker for the default-locker picker.
+ */
+export interface SettingsLocker {
+  id: number /* int64 */;
+  name: string;
+}
+/**
+ * SettingsPage is GET /admin/settings.
+ */
+export interface SettingsPage {
+  settings: ShopSettings;
+  logo: string; // what prints: the uploaded image, else the URL; "" = none
+  logoUploaded: boolean; // an uploaded image (works offline) is set
+  printers: string[]; // queues detected on this computer
+  lockers: SettingsLocker[];
+}
+
+//////////
 // source: dto_stock.go
 
 /**

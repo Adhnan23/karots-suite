@@ -37,6 +37,9 @@ export type TillReceiptKind = { key: string; label: string; Page: ComponentType 
 /** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
 export type ReportCard = { href: string; title: string; desc: string }
 
+/** A section on Setup → Settings owned by a plugin (karots-pos plugin.SettingsSections). */
+export type SettingsSection = { key: string; title: string; Section: ComponentType }
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
@@ -48,6 +51,7 @@ export const slots = {
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   reportCards: [] as ReportCard[],
+  settingsSections: [] as SettingsSection[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */
