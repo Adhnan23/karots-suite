@@ -5,7 +5,7 @@ every milestone.
 
 ## Status (2026-10-08)
 
-**M6 Data and settings is COMPLETE** (`docs/plans/2026-10-08-m6-data-settings.md`, 2026-10-08) — the core (M0–M6) is done. **NEXT: M6.5 Acceptance** — the user works through `docs/acceptance.md` beside a core-only karots-pos and answers `docs/differences.md`; their notes become small fix commits. M7 Plugins after that. M0–M5 summaries below.
+**M6.5 Acceptance and polish is CLOSED** (2026-10-08, user: "wrap this and end it cleanly") — the core (M0–M6) is done and was tried beside a core-only karots-pos; the user's notes are fixed (below). **NEXT: M7 Plugins** — write `docs/plans/<date>-m7-plugins.md` first (the seams waiting for it are listed under "Inputs for M6.5 and M7"). M0–M6 summaries below.
 
 M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reorder · Purchase returns · Suppliers; **Setup** → Users, admin only; every page works at 360px):
 
@@ -46,28 +46,38 @@ M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reor
   - **Self-update moved whole to M8** (user, 2026-10-08).
   - **Tests:** `go test ./...`, 104 web unit tests and **92 Playwright flows** green (`admin-data.spec.ts` new); `make verify-portable` passes; every hand-written file ≤ 500 lines. Parity: **324 rows ticked** (26 in M6).
 
-**M6.5 in progress (2026-10-08) — resume here.** The user is comparing the suite with a core-only
-karots-pos on one demo shop (`docs/acceptance.md` § "The demo shop both apps hold now").
-- **To bring it back up after a reboot:** `docker start suite_db pos_db pos_printer`, then start both
-  apps as in that section (karots-pos `dist/karots-pos-core` on :3000 with `pos_db`; the suite
-  `bin/karots-suite` on :3100 with `suite_accept`, `BACKUP_DIR=~/karots-accept/suite-backups`).
-  Receipts print to http://localhost:8631/recus. Demo PINs: owner 1234, manager 2222, cashiers
-  1111 / 1112 / 1113. **Stop the :3100 demo before Playwright** — it reuses whatever runs there.
-- **Done in M6.5 so far:** Karots icon + installable app (manifest; a true install needs https or
-  localhost); receipt credit line → "Karots Business Suite" + contact (a receipt redesign was
-  rejected and reverted — the layout stays as karots-pos's).
-- **Fixed from the user's notes (2026-10-08):** Settings stock-take toggle updates the menu without a
-  reload; Batches' edit sheet behind a visible "Edit batches" button; kiosk lockdown ported from
-  karots-pos `core.js` (F-keys, browser combos, right-click; F1 on a counter tab → Sell) with the
-  **system user exempt** (suite-only); Lockers "At the till" alignment; switch knob readable in dark;
-  the dock shelf rebuilt per theme.md §6 (icon tiles, lead card, fixed heights; lead-card figure not
-  built); **ask before printing shows the real receipt** (`?preview=1` on every slip endpoint, decoded
-  from the printer bytes) in the sale overlay and one Print / Skip prompt for drawer + counter.
-  The till top bar (`afd86dc`) now passes its e2e; **92 Playwright flows green**.
-- **Waiting for the user's OK — `afd86dc`:** the till top bar (drawer chip with a panel, shortcuts
-  behind a keyboard button with pin, tabs as a dynamic row). Screens were shown; next: the user
-  tries it as Dilani, then run `till.spec` / `counter.spec` / `shell.spec` (some click "More",
-  which now shows tabs directly at test width), fix, and confirm. Revert `afd86dc` if rejected.
+**M6.5 closed (2026-10-08).** The user compared the suite with a core-only karots-pos on one demo
+shop (`docs/acceptance.md` § "The demo shop both apps hold now").
+- **Demo left clean:** both apps were re-loaded from `~/karots-accept/sunil-core-demo.json.gz` at the
+  end (identical: 21 products, 337 sales to Oct 7, Rs. 802,570.00, Dilani's till open) and stopped.
+  **To bring it back:** `docker start suite_db pos_db pos_printer`, then start both apps as in that
+  section (karots-pos `dist/karots-pos-core` on :3000 with `pos_db`; the suite `bin/karots-suite` on
+  :3100 with `suite_accept`, `BACKUP_DIR=~/karots-accept/suite-backups`). Receipts print to
+  http://localhost:8631/recus. Demo PINs: owner 1234, manager 2222, cashiers 1111 / 1112 / 1113;
+  **system user 2273 in both** (karots-pos-core's computed `-support-pin` was refused; its `.env`
+  `POS_SYSTEM_PIN` works). **Stop the :3100 demo before Playwright** — it reuses whatever runs there.
+- **Done in M6.5:** Karots icon + installable app; receipt credit line → "Karots Business Suite" +
+  contact (a receipt redesign was rejected and reverted — the layout stays as karots-pos's); the till
+  top bar (`afd86dc`: drawer chip with a panel, shortcuts behind a keyboard button with pin, tabs as a
+  dynamic row) — kept, the user worked in it all through M6.5.
+- **Fixed from the user's notes:** Settings stock-take toggle updates the menu without a reload;
+  Batches' edit sheet behind a visible "Edit batches" button; kiosk lockdown ported from karots-pos
+  `core.js` (F-keys, browser combos, right-click; F1 on a counter tab → Sell) with the **system user
+  exempt** (suite-only); Lockers "At the till" alignment; switch knob readable in dark; the dock shelf
+  rebuilt per theme.md §6 (icon tiles, lead card, fixed heights); **ask before printing shows the real
+  receipt** (`?preview=1` on every slip endpoint, decoded from the printer bytes by `escpos.Preview`)
+  in the sale overlay and one Print / Skip prompt (`SlipAsk`) for drawer + every counter tab; Print on
+  the sale overlay also starts the next sale; Returns' first-line highlight no longer clipped.
+- **Found in the self-review and fixed:** Suppliers / Expenses send a cashier without the right back
+  to Sell (a typed URL showed a blank page); Labels' Print pinned to the panel foot; on a short kiosk
+  screen a pinned Total + Still to pay / Change line over Complete sale (`TotalStrip`); Warranty
+  placeholder in the normal font.
+- **Closing checks:** `go vet`, `go test ./...`, 106 web unit tests, **92 Playwright flows** green;
+  `make verify-portable` passes; touched files ≤ 500 lines; core still plugin-inert.
+- **Left open (not blocking M7):** the 12 printer-only parity rows (the emulator can check all but
+  the drawer); the shelf lead card's live figure (theme.md §6); Receipts / Sales sheets could use the
+  true slip preview instead of their HTML look-alike (offered, not asked for); the §2 same-day figure
+  comparison was not reported back as a checklist.
 - **Idea for M8 (user, 2026-10-08):** a **file mode** for single-PC shops — binary + `.env` + a
   `data/` folder, the binary running its own embedded Postgres (as Demo Room's `internal/demodb`
   does), so no database install. A shop that grows moves to server mode by: backup in the suite →
