@@ -80,8 +80,9 @@ exactly the same records:
   337 sales over eight weeks, a return, a repayment, expenses, till sessions.
 - Every date was moved back one day (`shift-one-day.py`), so the history ends at **yesterday's
   close** and today starts empty. One till (Dilani's) is still open from yesterday.
-- Logins: Ayesha (owner, admin) `0770000001`, Ruwan (manager) `0770000002`, cashiers Dilani /
-  Kasun / Nadeesha `0770000003`–`5`, PIN **1234** for all. System user as usual.
+- Logins (phone / PIN): Ayesha (owner, admin) `0770000001` / `1234`, Ruwan (manager)
+  `0770000002` / `2222`, cashiers Dilani `0770000003` / `1111`, Kasun `0770000004` / `1112`,
+  Nadeesha `0770000005` / `1113`. System user as usual.
 - Where: karots-pos (core only, `dist/karots-pos-core`) on **:3000** with `pos_db`; the suite on
   **:3100** with `suite_accept`, automatic backups in `~/karots-accept/suite-backups`. Logs in
   `~/karots-accept/*.log`.
