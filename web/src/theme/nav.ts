@@ -65,6 +65,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/denominations', label: 'Denominations', description: 'Notes and coins for the drawer count' },
       { to: '/admin/labels', label: 'Barcode labels', description: 'Print product labels' },
       { to: '/admin/users', label: 'Users', description: 'Staff accounts & roles', gate: 'admin' },
+      { to: '/admin/data', label: 'Data', description: 'Backups, restore and spreadsheets in and out', gate: 'admin' },
       { to: '/admin/activity', label: 'Activity', description: 'Who did what — changes, stock, the drawer and lockers', gate: 'admin' },
     ],
   },

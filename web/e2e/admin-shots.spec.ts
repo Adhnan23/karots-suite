@@ -469,6 +469,15 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /^E2E Lot Soap/ }).click()
     await page.getByLabel('Quantity').fill('2')
   },
+  /** Data page: a bad restore leaves a "before restore" copy, then pick a file. */
+  'data-restore': async (page) => {
+    await page.request.post('/api/v1/admin/data/restore', { multipart: { backup: { name: 'x.json.gz', mimeType: 'application/gzip', buffer: Buffer.from('x') } } })
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.locator('input[type=file][accept^=".gz"]').setInputFiles({ name: 'karots-pos-20261008-090000.json.gz', mimeType: 'application/gzip', buffer: Buffer.from('x') })
+    await page.getByRole('dialog').waitFor()
+    await page.getByLabel(/Type RESTORE/).fill('RESTORE')
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },
@@ -490,7 +499,7 @@ for (const palette of ['studio', 'night']) {
         await page.waitForLoadState('networkidle')
         await prep[prepKey]?.(page)
         await page.waitForTimeout(300)
-        await page.screenshot({ path: `shots/${gate}/${name}-${palette}-${mode}-${width}.png` })
+        await page.screenshot({ path: `shots/${gate}/${name}-${palette}-${mode}-${width}.png`, fullPage: !!process.env.SHOTS_FULL })
       })
     }
   }

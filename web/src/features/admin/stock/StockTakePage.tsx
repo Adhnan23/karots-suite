@@ -3,7 +3,7 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { Download, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { api, ApiError } from '@/api/client'
+import { api, apiUpload } from '@/api/client'
 import type { CountLine, ImportSummary, StockTakeList, StockTakeResult, StockTakeRow } from '@/api/types.gen'
 import { INPUT } from '@/components/admin/fields'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
@@ -66,13 +66,8 @@ export function StockTakePage() {
     }
   }
   async function upload(fl: File) {
-    const fd = new FormData()
-    fd.append('file', fl)
     try {
-      const res = await fetch('/api/v1/admin/stock/take/import', { method: 'POST', body: fd, credentials: 'same-origin' })
-      const body = await res.json()
-      if (!res.ok) throw new ApiError(res.status, body?.error?.code, body?.error?.message ?? res.statusText, '')
-      setResult(body as ImportSummary)
+      setResult(await apiUpload<ImportSummary>('/admin/stock/take/import', 'file', fl))
       void qc.invalidateQueries({ queryKey: ['admin'] })
     } catch (e) {
       toast.error(errMsg(e))

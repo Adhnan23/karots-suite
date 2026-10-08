@@ -146,20 +146,34 @@ type RestoreReport struct {
 // backup from an older or newer version still restores: a column this schema
 // lacks is dropped (and reported), a column the backup lacks takes its default.
 func Restore(ctx context.Context, db *sqlx.DB, r io.Reader) (RestoreReport, error) {
-	var rep RestoreReport
+	arc, err := ReadArchive(r)
+	if err != nil {
+		return RestoreReport{}, err
+	}
+	return RestoreArchive(ctx, db, arc)
+}
+
+// ReadArchive decodes and checks a backup file without touching the database,
+// so a bad file is refused before anything (even a safety copy) is written.
+func ReadArchive(r io.Reader) (*Archive, error) {
 	gz, err := gzip.NewReader(r)
 	if err != nil {
-		return rep, fmt.Errorf("not a valid backup file (gzip): %w", err)
+		return nil, fmt.Errorf("not a valid backup file (gzip): %w", err)
 	}
 	defer gz.Close()
 	var arc Archive
 	if err := json.NewDecoder(gz).Decode(&arc); err != nil {
-		return rep, fmt.Errorf("not a valid backup file (json): %w", err)
+		return nil, fmt.Errorf("not a valid backup file (json): %w", err)
 	}
 	if arc.Version != FormatVersion {
-		return rep, fmt.Errorf("unsupported backup version %d (expected %d)", arc.Version, FormatVersion)
+		return nil, fmt.Errorf("unsupported backup version %d (expected %d)", arc.Version, FormatVersion)
 	}
+	return &arc, nil
+}
 
+// RestoreArchive loads a decoded archive (see Restore).
+func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreReport, error) {
+	var rep RestoreReport
 	// Which dumped tables actually exist in the current schema.
 	existing, err := publicTables(ctx, db)
 	if err != nil {

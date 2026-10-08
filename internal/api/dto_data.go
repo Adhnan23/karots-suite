@@ -58,3 +58,10 @@ type RestoreResult struct {
 	SafetyCopy string         `json:"safetyCopy"` // file name of the copy taken first
 	Check      []CheckFinding `json:"check"`
 }
+
+// SettingsImportResult is POST /admin/data/settings/import.
+type SettingsImportResult struct {
+	Applied int      `json:"applied"`
+	Skipped []string `json:"skipped"` // this install's own (identity, printers, default locker)
+	Unknown []string `json:"unknown"` // not a setting in this version
+}

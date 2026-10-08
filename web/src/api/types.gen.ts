@@ -749,6 +749,14 @@ export interface RestoreResult {
   safetyCopy: string; // file name of the copy taken first
   check: CheckFinding[];
 }
+/**
+ * SettingsImportResult is POST /admin/data/settings/import.
+ */
+export interface SettingsImportResult {
+  applied: number /* int */;
+  skipped: string[]; // this install's own (identity, printers, default locker)
+  unknown: string[]; // not a setting in this version
+}
 
 //////////
 // source: dto_drawer.go

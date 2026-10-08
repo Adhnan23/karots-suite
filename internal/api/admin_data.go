@@ -25,6 +25,8 @@ func (h *handlers) registerAdminData(g *echo.Group) {
 	d.GET("/backup", h.AdminDataBackup)
 	d.POST("/restore", h.AdminDataRestore, echomw.BodyLimit("256M"))
 	d.GET("/check", h.AdminDataCheck)
+	d.GET("/settings/export", h.AdminSettingsExport)
+	d.POST("/settings/import", h.AdminSettingsImport)
 	d.GET("/backups/:name", h.AdminDataBackupFile)
 	d.POST("/backups/:name/restore", h.AdminDataRestoreFile)
 }
@@ -155,11 +157,15 @@ func (h *handlers) AdminDataRestoreFile(c echo.Context) error {
 func (h *handlers) restoreFrom(c echo.Context, r io.Reader, label string) error {
 	ctx := c.Request().Context()
 	who := middleware.CurrentUserName(c)
+	arc, err := backup.ReadArchive(r)
+	if err != nil {
+		return apperr.Validation("that file can't be restored, nothing was changed: " + err.Error())
+	}
 	safety, err := backup.WriteSnapshot(ctx, h.d.DB, h.d.Cfg.BackupFolder(), time.Now(), backup.BeforeRestoreTag)
 	if err != nil {
 		return apperr.Validation("could not save a copy of the current data first, so nothing was restored: " + err.Error())
 	}
-	rep, err := backup.Restore(ctx, h.d.DB, r)
+	rep, err := backup.RestoreArchive(ctx, h.d.DB, arc)
 	if err != nil {
 		return apperr.Validation("restore failed, nothing was changed: " + err.Error())
 	}

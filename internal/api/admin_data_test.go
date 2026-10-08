@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"net/http"
@@ -56,6 +57,23 @@ func TestAdminData(t *testing.T) {
 		t.Fatal("a failed restore removed products")
 	}
 
+	// A bad file is refused before the safety copy: nothing is written.
+	if page := decode[DataPage](t, te.do(http.MethodGet, "/api/v1/admin/data", nil, ck)); len(page.Backups) != 0 {
+		t.Fatalf("a bad file left a copy: %+v", page.Backups)
+	}
+	// A good file that breaks on load (a row pointing at no unit) rolls back,
+	// after the safety copy.
+	var arc bytes.Buffer
+	gw := gzip.NewWriter(&arc)
+	gw.Write([]byte(`{"version":1,"tables":[{"name":"products","columns":["id","name","unit_id"],"rows":[["999999","x","999999"]]}]}`)) //nolint:errcheck
+	gw.Close()
+	if rec := te.upload("/api/v1/admin/data/restore", "backup", "fk.json.gz", arc.Bytes(), ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("fk restore: %d %s", rec.Code, rec.Body)
+	}
+	te.db.Get(&after, `SELECT count(*) FROM products`) //nolint:errcheck
+	if after < products {
+		t.Fatal("a failed restore removed products")
+	}
 	page := decode[DataPage](t, te.do(http.MethodGet, "/api/v1/admin/data", nil, ck))
 	if len(page.Backups) != 1 || !page.Backups[0].BeforeRestore || !page.AutoBackups {
 		t.Fatalf("data page: %+v", page)
@@ -89,5 +107,45 @@ func TestAdminDataCheck(t *testing.T) {
 	}
 	for _, f := range decode[[]CheckFinding](t, rec) {
 		t.Logf("dev DB finding: %s × %d", f.Key, f.Count)
+	}
+}
+
+// A settings sheet carries the shop's look and rules, never its identity or
+// hardware; an unknown key is reported, not applied.
+func TestAdminSettingsSheet(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	var before struct {
+		InstallID string  `db:"install_id"`
+		Footer    *string `db:"receipt_footer"`
+	}
+	te.db.Get(&before, `SELECT install_id, receipt_footer FROM settings ORDER BY id LIMIT 1`) //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_footer=$1`, before.Footer) })  //nolint:errcheck
+
+	rec := te.do(http.MethodGet, "/api/v1/admin/data/settings/export", nil, ck)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "install_id,"+before.InstallID+",no") {
+		t.Fatalf("export: %d %.200s", rec.Code, rec.Body)
+	}
+	sheet := "Key,Value\ninstall_id,DEADBEEF\nreceipt_footer,Thank you — sheet\nno_such_setting,1\nreceipt_printer,tcp://x:9100\n"
+	rec = te.upload("/api/v1/admin/data/settings/import", "file", "s.csv", []byte(sheet), ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("import: %d %s", rec.Code, rec.Body)
+	}
+	res := decode[SettingsImportResult](t, rec)
+	if res.Applied != 1 || len(res.Unknown) != 1 || len(res.Skipped) != 2 {
+		t.Fatalf("result: %+v", res)
+	}
+	var id, footer string
+	te.db.QueryRow(`SELECT install_id, receipt_footer FROM settings ORDER BY id LIMIT 1`).Scan(&id, &footer) //nolint:errcheck
+	if id != before.InstallID || footer != "Thank you — sheet" {
+		t.Fatalf("after import: install_id %q footer %q", id, footer)
+	}
+	bad := "key,value\nreceipt_width,wide\nreceipt_footer,should not land\n"
+	if rec := te.upload("/api/v1/admin/data/settings/import", "file", "s.csv", []byte(bad), ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("bad value: %d %s", rec.Code, rec.Body)
+	}
+	te.db.Get(&footer, `SELECT receipt_footer FROM settings ORDER BY id LIMIT 1`) //nolint:errcheck
+	if footer != "Thank you — sheet" {
+		t.Fatal("a failed import changed settings")
 	}
 }
