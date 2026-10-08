@@ -86,7 +86,8 @@ exactly the same records:
   **:3100** with `suite_accept`, automatic backups in `~/karots-accept/suite-backups`. Logs in
   `~/karots-accept/*.log`.
 - **Receipt printer = the emulator** for both (`tcp://localhost:9100`): `docker start pos_printer`,
-  then every printed slip shows at <http://localhost:8631/recus>. The drawer kick is off (no
+  then every printed slip shows at <http://localhost:8631/recus>. The emulator draws the receipt
+  barcode as a single placeholder bar (its number shows under it) — the real bars only on a printer. The drawer kick is off (no
   drawer to see); the 12 printer-only rows can be checked here except the drawer.
 
 To load it again (both apps stopped): reset `pos_db` with `./dist/karots-pos-core -reset`, drop
