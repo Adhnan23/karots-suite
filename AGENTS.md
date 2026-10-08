@@ -101,6 +101,7 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - **Login-page Konami** (↑↑↓↓←→←→BA) reveals the install ID and server time. The install ID is also logged to the console.
 - **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
 - **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
+- **Kiosk lockdown** (`web/src/lib/lockdown.ts`, karots-pos `core.js`): F1–F12 never reach the browser; F1 on a counter tab goes back to Sell; on the till / account / lock pages browser Ctrl combos, Alt+←/→ and right-click (outside text boxes) are off. **The system user is exempt** (support needs DevTools) — suite-only.
 - **Till semantics:** F1 / "⟲ Menu" clears the **search only**. Only New Sale clears the cart.
 - **No browser memory on PIN entry** (shared counter): `autocomplete="off"`, non-standard field names, and PIN inputs are `type="text"` with `-webkit-text-security: disc` — never `type="password"`, or a password manager will offer to save it.
 
