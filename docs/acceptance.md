@@ -69,6 +69,31 @@ Done in M6 (2026-10-08): the dev `pos_db` (all plugins), `printshop.gz` (1,593 r
 (22,275 rows) all restore: every core table has exactly the backup's rows, the next S- / CR- /
 DP- numbers follow on, no column was dropped, and only plugin tables were left out.
 
+### The demo shop both apps hold now (set up 2026-10-08)
+
+Both apps were loaded from **one file**, `~/karots-accept/sunil-core-demo.json.gz`, so they hold
+exactly the same records:
+
+- **Sunil Super Mart**, core only: Demo Room's "core" shop with its plugins and combos removed,
+  plus a tea counter so recipes are covered. 21 products (bulk rice / sugar sacks broken into
+  1 kg bags by conversions, recipe goods), 3 suppliers with purchases, 4 credit customers,
+  337 sales over eight weeks, a return, a repayment, expenses, till sessions.
+- Every date was moved back one day (`shift-one-day.py`), so the history ends at **yesterday's
+  close** and today starts empty. One till (Dilani's) is still open from yesterday.
+- Logins: Ayesha (owner, admin) `0770000001`, Ruwan (manager) `0770000002`, cashiers Dilani /
+  Kasun / Nadeesha `0770000003`–`5`, PIN **1234** for all. System user as usual.
+- Where: karots-pos (core only, `dist/karots-pos-core`) on **:3000** with `pos_db`; the suite on
+  **:3100** with `suite_accept`, automatic backups in `~/karots-accept/suite-backups`. Logs in
+  `~/karots-accept/*.log`.
+- **Receipt printer = the emulator** for both (`tcp://localhost:9100`): `docker start pos_printer`,
+  then every printed slip shows at <http://localhost:8631/recus>. The drawer kick is off (no
+  drawer to see); the 12 printer-only rows can be checked here except the drawer.
+
+To load it again (both apps stopped): reset `pos_db` with `./dist/karots-pos-core -reset`, drop
+and re-create `suite_accept` and `-migrate`, then restore the file in each app's Setup → Data.
+`coreonly-generator.go.txt` (in the same folder) shows how the file was made from Demo Room's
+generator; it lived untracked in karots-pos for one run.
+
 ## 2. The same day's figures in both
 
 Pick a busy day in the backup and read the same figures in each app. They should agree. Where
