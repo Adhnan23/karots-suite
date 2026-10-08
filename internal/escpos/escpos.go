@@ -239,7 +239,7 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 	b.Write([]byte{esc, 'M', 1}) // select Font B (smaller)
 	// Font B is narrower (~42 cols on a 58mm roll), so pad over the wider budget.
 	fw := w * 4 / 3
-	line(b, center("POS built by Adhnan", fw))
+	line(b, center("Karots Business Suite", fw))
 	line(b, center("adhnanmsa@gmail.com | 0769626396", fw))
 	b.Write([]byte{esc, 'M', 0}) // back to Font A
 	// Feed past the head-to-cutter gap (plus a little margin) before cutting.
