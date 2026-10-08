@@ -14,7 +14,7 @@ import { PANEL } from '../ui'
 import { useCheckoutCtx } from './CheckoutProvider'
 
 /** "Ask before printing" mode: the change shows instantly beside the receipt as it
- * will print; Print or start the next sale. */
+ * will print; Print (prints and starts the next sale) or just start the next sale. */
 export function SaleComplete() {
   const co = useCheckoutCtx()
   const cfg = useSuspenseQuery(configQuery).data
@@ -50,7 +50,7 @@ export function SaleComplete() {
             </p>
           )}
           <div className="mt-3 flex gap-2">
-            <Button variant="secondary" onClick={() => void printSale(res.id)}><Printer size={16} /> Print receipt</Button>
+            <Button variant="secondary" onClick={() => { void printSale(res.id); co.newSale() }}><Printer size={16} /> Print receipt</Button>
             <Button autoFocus onClick={co.newSale}>Start next sale <Kbd className="border-current bg-transparent text-current">Enter</Kbd></Button>
           </div>
         </div>

@@ -77,7 +77,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
           <small className="block text-muted-foreground">{sale.payments.map((p) => p.method).join(' + ')}</small>
         </div>
       </header>
-      <ul aria-label="Items on the receipt" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-3">
+      <ul aria-label="Items on the receipt" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-3 py-1">
         {sale.lines.map((l) => {
           const n = qty[l.id] ?? 0
           const can = !l.isService && left(l) > 0
