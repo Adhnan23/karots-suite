@@ -138,6 +138,19 @@ What the user rejects:
 
 - **M6.5:** follow `docs/acceptance.md`. Fix the user's notes in small commits (same way of working); tick the 12 printer-only rows (the 11 below + POST `/settings/printer/test`) once checked on real hardware.
 - **Still unticked, needs a real printer (POS80 + label printer):** no-sale (POST `/drawer/open`), POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, POST `/labels/send` (counter + admin), GET `/labels` (counter), GET `/receipt/:id`, GET `/orders/print`, POST `/settings/printer/test`.
+- **M7 shape (user, 2026-10-08) — not started:** M7 is split into parts, each with its own plan,
+  parity rows, e2e and review. **M7.0 Groundwork** first (bootstrap writes `enabled-plugins.ts`, the
+  React slots, `internal/plugin/hooks.go` rewritten for the SPA, one tiny plugin proving the path),
+  then one part per plugin, smallest first: M7.1 clearance (5 rows) · M7.2 requests (7) · M7.3
+  productplus (8) · M7.4 combos (9) · M7.5 alternatives (15) · M7.6 documents (22) · M7.7 aicatalog
+  (28) · M7.8 pharmacy (30) · M7.9 repairs (32) · M7.10 recharge (46). Reorder if a shop needs one sooner.
+- **Reinterpret, don't replicate (user, 2026-10-08):** karots-pos's plugins grew one request at a
+  time; the suite rebuilds each one as it should have been designed, seen whole. Every plugin part
+  starts with a **rethink step before its plan**: read the whole karots-pos plugin (Go, templ, JS,
+  data), list everything it does, mark what was awkward / duplicated / bolted on, and propose a better
+  version (keep · change · merge, and how the old data maps over) for the user to decide. **Hard
+  constraint:** a karots-pos shop's plugin data must still come across by backup → restore —
+  changed tables need a mapping on restore, and no capability a shop relies on disappears silently.
 - **Plugin seams waiting for M7:** `slots.reportCards` (hub "More"), `slots.settingsSections` (Settings), `plugin.DataGroup` (Data → choose what to include; a plugin that doesn't register one is lumped into core), `plugin.ActivityContributor` (gets `Filter.Before` / `Limit` — honour them, the merge filters with `Cursor.After`), `plugin.CollectReadiness` (Top-up; the old `EditURL` inline editor isn't rendered — give it a React slot then). A restored plugin shop's plugin tables come back only once its plugin is compiled in.
 - **M8 (Ship) — self-update, both sides (user, 2026-10-08):** the shop side (karots-pos `fd2607f`: `internal/update` — check a release feed, download gzipped with progress, install only a signed release whose SHA-256 matches, **back up first**, swap keeping `.old`, relaunch in place, roll back after two failed boots; `cmd/server/update.go`; admin `GET /update/badge`, `POST /update/check`, `POST /update/apply`; the card on Setup → Data, a Setup badge, the dashboard banner) and the release side (`cmd/release`, R2 upload, `shops.json`, `bootstrap -install-id` / `-X`). The suite needs its **own** feed / key / bucket path — never install a karots-pos binary over the suite or the reverse.
 - Test data: the dev DB is also the Go-test DB. Run `make e2e-seed` before Playwright or screenshots, and kill :3100 / :5173 first. The e2e server keeps backups in `./backups` (git-ignored); `admin-data.spec.ts` restores a backup it took seconds earlier, so the data is the same for later specs.
