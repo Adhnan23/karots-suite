@@ -179,14 +179,11 @@ func framedHeader(b *bytes.Buffer, w int, name string, cfg settings.Settings, op
 		}
 	}
 	border()
-	// Secondary-language raster can't live inside the ASCII box; center it under,
-	// then a spacer line so the next text starts on its own row after the image
-	// (the plain header gets one from Breathing).
+	// Secondary-language raster can't live inside the ASCII box; center it under.
 	if len(opts.SubName) > 0 {
 		b.Write([]byte{esc, 'a', 1})
 		b.Write(opts.SubName)
 		b.Write([]byte{esc, 'a', 0})
-		line(b, "")
 	}
 }
 
@@ -209,8 +206,8 @@ func Title(b *bytes.Buffer, cfg settings.Settings, title string, w int) {
 }
 
 // Footer writes the shared, centered footer at the bottom of EVERY receipt — the
-// shop's own footer message from Settings (or a thank-you line when it has
-// none), and the product credit line in the small font — then feeds past the cutter gap and cuts. This
+// shop's own footer message from Settings, a thank-you line, and the builder
+// credit line in the small font — then feeds past the cutter gap and cuts. This
 // is what makes every receipt end the same way.
 func Footer(b *bytes.Buffer, cfg settings.Settings) {
 	w := columns(cfg.ReceiptWidth)
@@ -233,9 +230,7 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 			line(b, center(ln, w))
 		}
 	}
-	// The built-in thank-you only when the shop hasn't written its own footer,
-	// so a receipt never thanks the customer twice.
-	if style.ThankYou && deref(cfg.ReceiptFooter) == "" {
+	if style.ThankYou {
 		line(b, center("Thank you! Come again.", w))
 	}
 	if style.Breathing {
@@ -244,7 +239,7 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 	b.Write([]byte{esc, 'M', 1}) // select Font B (smaller)
 	// Font B is narrower (~42 cols on a 58mm roll), so pad over the wider budget.
 	fw := w * 4 / 3
-	line(b, center("Karots Business Suite", fw))
+	line(b, center("POS built by Adhnan", fw))
 	line(b, center("adhnanmsa@gmail.com | 0769626396", fw))
 	b.Write([]byte{esc, 'M', 0}) // back to Font A
 	// Feed past the head-to-cutter gap (plus a little margin) before cutting.

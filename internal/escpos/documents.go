@@ -31,43 +31,36 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 	Init(&b)
 	Header(&b, cfg, opts)
 
-	// --- Ticket strip: receipt no + time, who served, for whom ---
-	b.Write([]byte{esc, 'a', 0})        // left
-	if StyleFor(cfg).HeaderRule == "" { // a ruled header already ends in a rule
-		divider(&b, cfg, w)
-	}
-	b.Write([]byte{esc, 'E', 1})
-	line(&b, leftRight(d.Sale.ReceiptNo, datetime.DateTime(d.Sale.CreatedAt), w))
-	b.Write([]byte{esc, 'E', 0})
-	line(&b, "Served by "+ascii(d.Sale.CashierName))
+	// --- Meta (left) ---
+	b.Write([]byte{esc, 'a', 0}) // left
+	divider(&b, cfg, w)
+	line(&b, leftRight("Receipt:", d.Sale.ReceiptNo, w))
+	line(&b, leftRight("Date:", datetime.DateTime(d.Sale.CreatedAt), w))
+	line(&b, leftRight("Cashier:", ascii(d.Sale.CashierName), w))
 	if d.Sale.CustomerName != nil && *d.Sale.CustomerName != "" {
-		line(&b, "Customer: "+ascii(*d.Sale.CustomerName))
+		line(&b, leftRight("Customer:", ascii(*d.Sale.CustomerName), w))
 	}
 	divider(&b, cfg, w)
 
-	// --- Items: ITEM / QTY / AMOUNT ---
-	tableHead(&b, w)
-	_, qw, _ := itemCols(w)
-	itemDisc, units := decimal.Zero, decimal.Zero
+	// --- Items ---
+	itemDisc := decimal.Zero
 	for _, it := range d.Items {
-		units = units.Add(it.Quantity)
-		qty := qtyText(it.Quantity)
-		if u := ascii(it.UnitAbbr); u != "" && u != "pcs" && u != "pc" {
-			if len(qty)+len(u)+1 <= qw {
-				qty += " " + u
-			} else if len(qty)+len(u) <= qw {
-				qty += u
-			}
+		for _, ln := range wrap(ascii(it.ProductName), w) {
+			line(&b, ln)
 		}
-		itemRow(&b, w, ascii(it.ProductName), qty, money.Display(it.Gross()))
-		// The unit price under the name when it isn't obvious (more than one, or
-		// discounted: was -> now), so the amounts add up on paper.
+		qty := money.Display(it.Quantity) + " " + ascii(it.UnitAbbr) + " x " + money.Display(it.UnitPrice)
+		// The qty line always shows the GROSS (qty × unit price); a discount then
+		// shows the discounted unit price (was -> now), its own reduction, and the
+		// resulting line total, so the numbers add up on paper (a printer can't
+		// strike-through like the webview does).
+		if it.Discount.IsPositive() {
+			qty += " -> " + money.Display(it.NetUnitPrice())
+		}
+		line(&b, leftRight("  "+qty, money.Display(it.Gross()), w))
 		if it.Discount.IsPositive() {
 			itemDisc = itemDisc.Add(it.Discount)
-			line(&b, "  @ "+money.Display(it.UnitPrice)+" -> "+money.Display(it.NetUnitPrice()))
-			line(&b, leftRight("  Discount"+discSuffix(it.DiscountType, it.DiscountValue), "-"+money.Display(it.Discount), w))
-		} else if !it.Quantity.Equal(decimal.NewFromInt(1)) {
-			line(&b, "  @ "+money.Display(it.UnitPrice))
+			line(&b, leftRight("  You saved"+discSuffix(it.DiscountType, it.DiscountValue), "-"+money.Display(it.Discount), w))
+			line(&b, leftRight("  Line total", money.Display(it.Subtotal), w))
 		}
 		if until := it.WarrantyUntil(d.Sale.CreatedAt); !until.IsZero() {
 			warr := strconv.Itoa(it.WarrantyMonths) + "-month warranty until " + datetime.Date(until)
@@ -82,78 +75,70 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 		}
 	}
 	divider(&b, cfg, w)
-	line(&b, plural(len(d.Items), "item")+", "+qtyText(units)+" units")
 
-	// --- Totals, right-hand block ---
+	// --- Totals ---
 	// Sale.Discount holds item discounts + bill discount; split them so the
 	// receipt mirrors the cashier screen (item discounts shown per line above).
-	// Subtotal only when a discount or tax sits between it and the total.
-	if d.Sale.Discount.IsPositive() || d.Sale.Tax.IsPositive() {
-		sumRow(&b, w, "Subtotal", money.Format(sym, d.Sale.Subtotal))
-	}
+	line(&b, leftRight("Subtotal", money.Format(sym, d.Sale.Subtotal), w))
 	if itemDisc.IsPositive() {
-		sumRow(&b, w, "Item discounts", "-"+money.Format(sym, itemDisc))
+		line(&b, leftRight("Item savings", "-"+money.Format(sym, itemDisc), w))
 	}
 	if billDisc := d.Sale.Discount.Sub(itemDisc); billDisc.IsPositive() {
-		sumRow(&b, w, "Bill discount"+discSuffix(d.Sale.DiscountType, d.Sale.DiscountValue), "-"+money.Format(sym, billDisc))
+		line(&b, leftRight("Bill saving"+discSuffix(d.Sale.DiscountType, d.Sale.DiscountValue), "-"+money.Format(sym, billDisc), w))
 	}
 	if d.Sale.Tax.IsPositive() {
-		sumRow(&b, w, "Tax", money.Format(sym, d.Sale.Tax))
+		line(&b, leftRight("Tax", money.Format(sym, d.Sale.Tax), w))
 	}
+	// TOTAL — emphasized and set off with blank lines so it stands out.
 	line(&b, "")
 	bigLine(&b, cfg, "TOTAL", money.Format(sym, d.Sale.Total), w)
-
-	// One line per tender (cash / card / online / …).
-	gap := true
-	for _, p := range d.Payments {
-		if p.Method == "credit" { // shown as "On account" below
-			continue
-		}
-		if gap {
-			line(&b, "")
-			gap = false
-		}
-		sumRow(&b, w, "Paid by "+strings.ToLower(ascii(p.Method)), money.Format(sym, p.Amount))
+	if d.Sale.Discount.IsPositive() {
+		line(&b, leftRight("You saved", money.Format(sym, d.Sale.Discount), w))
 	}
 
-	// A credit sale says what went on the account and where the account now
-	// stands (owed, or the advance left) — one figure each, never the same
-	// amount twice. A cash sale ends on the change.
+	// Payment breakdown: one line per tender (cash/card/online/...). This
+	// replaces the old single "Paid" row — the per-method lines already show it.
+	if len(d.Payments) > 0 {
+		line(&b, "")
+		for _, p := range d.Payments {
+			line(&b, leftRight(capitalize(ascii(p.Method)), money.Format(sym, p.Amount), w))
+		}
+	}
+
+	// Change/Due last, emphasized. A credit sale shows what is still owed (Due)
+	// instead of Change, plus the customer's account after it: TOTAL DUE when they
+	// owe, ADVANCE LEFT when a prior advance covered the sale (with the part it
+	// paid shown as "From advance").
 	if cs, ok := d.Sale.Credit(opts.CustomerDue); ok {
 		line(&b, "")
 		if cs.FromAdvance.IsPositive() {
-			sumRow(&b, w, "From advance", "-"+money.Format(sym, cs.FromAdvance))
+			line(&b, leftRight("From advance", "-"+money.Format(sym, cs.FromAdvance), w))
 		}
 		if due := cs.Due.Sub(cs.FromAdvance); due.IsPositive() {
-			sumRow(&b, w, "On account", money.Format(sym, due))
+			bigLine(&b, cfg, "DUE", money.Format(sym, due), w)
 		}
 		if cs.Balance.IsNegative() {
 			bigLine(&b, cfg, "ADVANCE LEFT", money.Format(sym, cs.Balance.Neg()), w)
 		} else {
-			bigLine(&b, cfg, "BALANCE OWED", money.Format(sym, cs.Balance), w)
+			bigLine(&b, cfg, "TOTAL DUE", money.Format(sym, cs.Balance), w)
 		}
 	} else if d.Sale.ChangeGiven.IsPositive() {
 		line(&b, "")
 		bigLine(&b, cfg, "CHANGE", money.Format(sym, d.Sale.ChangeGiven), w)
 	}
-	// Rounding: cash the customer left behind (paid - change - total), booked to
-	// their account (On account) or kept as a rounding gain.
+	// Rounding: cash the customer left behind (paid - change - total). It stayed
+	// in the drawer; shown here so the slip explains why cash out < change due —
+	// booked to an account customer's balance (On account) or kept as a rounding
+	// gain (walk-in money, tied to no one).
 	if kept := d.Sale.PaidAmount.Sub(d.Sale.ChangeGiven).Sub(d.Sale.Total); kept.IsPositive() {
 		if d.Sale.RoundingToAccount.IsPositive() {
-			sumRow(&b, w, "Kept on account", money.Format(sym, d.Sale.RoundingToAccount))
+			line(&b, leftRight("On account", money.Format(sym, d.Sale.RoundingToAccount), w))
 		}
 		if cash := kept.Sub(d.Sale.RoundingToAccount); cash.IsPositive() {
-			sumRow(&b, w, "Change kept", money.Format(sym, cash))
+			line(&b, leftRight("Change kept", money.Format(sym, cash), w))
 		}
 	}
-	if d.Sale.Discount.IsPositive() {
-		line(&b, "")
-		b.Write([]byte{esc, 'E', 1})
-		line(&b, center("** You saved "+money.Format(sym, d.Sale.Discount)+" **", w))
-		b.Write([]byte{esc, 'E', 0})
-	}
-	line(&b, "")
-	receiptBarcode(&b, d.Sale.ReceiptNo)
+	divider(&b, cfg, w)
 
 	Footer(&b, cfg)
 	return b.Bytes()
@@ -366,12 +351,4 @@ func DebtDocument(s DebtSlip, cfg settings.Settings, opts Options) []byte {
 	}
 	Footer(&b, cfg)
 	return b.Bytes()
-}
-
-// plural is "1 item" / "3 items".
-func plural(n int, word string) string {
-	if n == 1 {
-		return "1 " + word
-	}
-	return strconv.Itoa(n) + " " + word + "s"
 }

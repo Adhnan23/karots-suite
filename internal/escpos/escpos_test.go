@@ -56,7 +56,7 @@ func sampleDetail() sales.Detail {
 // RoundingToAccount=100 it went onto the customer's balance instead.
 // TestDocumentLineDiscountAndWarranty pins the Thread-C receipt changes: a
 // discounted line prints the GROSS on the qty line (not the net) plus a
-// discount line (was -> now price and the amount off), and a warranty product prints its duration + expiry.
+// "Line total" line, and a warranty product prints its duration + expiry.
 func TestDocumentLineDiscountAndWarranty(t *testing.T) {
 	d := decimal.RequireFromString
 	cust := "Walk-in"
@@ -75,15 +75,15 @@ func TestDocumentLineDiscountAndWarranty(t *testing.T) {
 		Payments: []sales.Payment{{Method: "cash", Amount: d("225.00")}},
 	}
 	s := string(Document(det, cfg("80"), Options{}))
-	for _, want := range []string{"250.00", "@ 250.00 -> 225.00", "Discount", "-25.00", "You saved Rs. 25.00", "12-month warranty until 2027-06-10"} {
+	for _, want := range []string{"250.00", "You saved", "Line total", "-> 225.00", "225.00", "12-month warranty until 2027-06-10"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("receipt missing %q\n%s", want, s)
 		}
 	}
 	// The plain sample (no discounts, no warranty) must NOT sprout these lines.
 	plain := string(Document(sampleDetail(), cfg("80"), Options{}))
-	if strings.Contains(plain, " -> ") || strings.Contains(plain, "warranty until") {
-		t.Errorf("plain receipt should have no line-discount/warranty rows\n%s", plain)
+	if strings.Contains(plain, "Line total") || strings.Contains(plain, "warranty until") {
+		t.Errorf("plain receipt should have no line-total/warranty rows\n%s", plain)
 	}
 }
 
@@ -99,16 +99,16 @@ func TestDocumentShowsRounding(t *testing.T) {
 	if !strings.Contains(s, "Change kept") || !strings.Contains(s, "Rs. 100.00") {
 		t.Errorf("expected Change kept 100.00 line, got:\n%s", s)
 	}
-	if strings.Contains(s, "Kept on account") {
-		t.Errorf("walk-in kept must not be labelled Kept on account")
+	if strings.Contains(s, "On account") {
+		t.Errorf("walk-in kept must not be labelled On account")
 	}
 
 	onAcct := sampleDetail()
 	onAcct.Sale.ChangeGiven = d("500.00")
 	onAcct.Sale.RoundingToAccount = d("100.00")
 	s = string(Document(onAcct, cfg("80"), Options{}))
-	if !strings.Contains(s, "Kept on account") || !strings.Contains(s, "Rs. 100.00") {
-		t.Errorf("expected Kept on account 100.00 line, got:\n%s", s)
+	if !strings.Contains(s, "On account") || !strings.Contains(s, "Rs. 100.00") {
+		t.Errorf("expected On account 100.00 line, got:\n%s", s)
 	}
 	if strings.Contains(s, "Change kept") {
 		t.Errorf("fully-attributed kept must not also show a Change kept line")
@@ -129,25 +129,8 @@ func TestDocumentCreditSalePaidFromAdvance(t *testing.T) {
 			t.Errorf("missing %q in:\n%s", want, s)
 		}
 	}
-	if strings.Contains(s, "BALANCE OWED") {
-		t.Errorf("advance-covered sale must not print BALANCE OWED:\n%s", s)
-	}
-}
-
-// A credit sale prints what went on the account once and where the account
-// stands once — karots-pos printed DUE and TOTAL DUE with the same figure.
-func TestDocumentCreditSaleOneFigureEach(t *testing.T) {
-	d := decimal.RequireFromString
-	det := sampleDetail()
-	det.Sale.Status = "credit"
-	det.Sale.PaidAmount = d("0")
-	det.Sale.ChangeGiven = d("0")
-	det.Payments = nil
-	owed := d("1400")
-	det.Sale.CustomerBalanceAfter = &owed
-	s := string(Document(det, cfg("80"), Options{}))
-	if strings.Count(s, "1,400.00") != 3 || !strings.Contains(s, "On account") || !strings.Contains(s, "BALANCE OWED") || strings.Contains(s, "TOTAL DUE") {
-		t.Errorf("want TOTAL, On account and BALANCE OWED once each:\n%s", s)
+	if strings.Contains(s, "TOTAL DUE") {
+		t.Errorf("advance-covered sale must not print TOTAL DUE:\n%s", s)
 	}
 }
 
@@ -181,19 +164,14 @@ func TestDocumentIsASCIIAndCut(t *testing.T) {
 	}
 
 	text := string(out)
-	for _, want := range []string{"Karots Store", "R-0001", "Served by Kamal", "ITEM", "QTY", "AMOUNT", "Onion", "2.25kg", "@ 400.00",
-		"2 items, 3.25 units", "TOTAL", "Rs. 1,400.00", "Paid by cash", "CHANGE", "Goods sold are not returnable", "Karots Business Suite"} {
+	for _, want := range []string{"Karots Store", "R-0001", "Onion", "2.25 kg x 400.00", "TOTAL", "Rs. 1,400.00", "CHANGE", "Thank you! Come again."} {
 		if !strings.Contains(text, want) {
-			t.Errorf("receipt missing %q\n%s", want, text)
+			t.Errorf("receipt missing %q", want)
 		}
 	}
-	// The shop's own footer replaces the built-in thank-you; no karots-pos credit.
-	if strings.Contains(text, "Thank you") || strings.Contains(text, "Adhnan") {
-		t.Errorf("receipt should not thank twice or carry the karots-pos credit\n%s", text)
-	}
-	// The receipt number as a CODE39 barcode (GS k 69).
-	if !strings.Contains(text, string([]byte{gs, 'k', 69, byte(len("R-0001"))})+"R-0001") {
-		t.Errorf("receipt has no scannable receipt barcode")
+	// The standalone "Paid" row was removed in favour of the per-tender lines.
+	if strings.Contains(text, "Paid") {
+		t.Errorf("receipt should no longer contain a 'Paid' row")
 	}
 }
 

@@ -15,7 +15,6 @@ same figures, so a figure that differs and isn't below is a bug.
 | # | The suite | karots-pos | Your call |
 |---|---|---|---|
 | 1 | Resuming a held sale is refused while another sale is in the cart. | Silently replaced the live cart, so that sale was lost. | |
-| 1a | **The printed receipt has its own layout:** receipt no + time on one bold line, "Served by" / customer, an ITEM / QTY / AMOUNT table (unit price under the name only when it isn't obvious), "4 items, 6 units", a right-hand totals block (Subtotal only when a discount or tax sits between), "Paid by cash", a credit sale's "On account" + **BALANCE OWED** (or ADVANCE LEFT) once each, a "You saved" banner, the receipt number as a **barcode** (scan it at the counter), the shop's footer *or* a thank-you (not both), and "Karots Business Suite" + contact as the credit line. The four receipt styles still apply on top. | The karots-pos layout: Receipt / Date / Cashier rows, name then "qty x price" lines, DUE and TOTAL DUE with the same figure, two thank-you lines, "POS built by Adhnan". | |
 
 ## Catalogue and stock
 

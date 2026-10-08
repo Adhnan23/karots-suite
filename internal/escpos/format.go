@@ -83,7 +83,7 @@ func divider(b *bytes.Buffer, cfg settings.Settings, w int) {
 // bigLine prints a label/amount line emphasised per the style's TotalMode:
 // "double" (double-height bold, the character count stays the same so
 // leftRight's padding still lines up), "reverse" (a white-on-black bar), or
-// "bold" (a plain bold single line). Used for TOTAL, CHANGE, BALANCE OWED, ADVANCE LEFT.
+// "bold" (a plain bold single line). Used for TOTAL, CHANGE, DUE, TOTAL DUE.
 func bigLine(b *bytes.Buffer, cfg settings.Settings, l, r string, w int) {
 	switch StyleFor(cfg).TotalMode {
 	case "reverse": // white-on-black bar (GS B 1 … GS B 0)
