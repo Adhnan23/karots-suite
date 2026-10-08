@@ -478,6 +478,15 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('dialog').waitFor()
     await page.getByLabel(/Type RESTORE/).fill('RESTORE')
   },
+  /** A list page's Sheets ▾ → Import, run on a sheet with one bad row. */
+  'import-sheet': async (page) => {
+    await page.getByRole('button', { name: 'Sheets' }).click()
+    await page.getByRole('menuitem', { name: /Import from a sheet/ }).click()
+    const csv = 'name,phone,credit_limit,opening_balance\nShot Kamal,0779001122,"5,000",1200\nShot Bad,,abc,\n'
+    await page.locator('input[type=file][accept=".csv,.xlsx,.ods"]').setInputFiles({ name: 'customers.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
+    await page.getByRole('button', { name: 'Import', exact: true }).click()
+    await page.getByLabel('Import result').waitFor()
+  },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import type { AdminProductRow } from '@/api/types.gen'
 import { DataList } from '@/components/admin/DataList'
 import { INPUT } from '@/components/admin/fields'
+import { SpreadsheetMenu } from '@/components/admin/ImportSheet'
 import { EmptyState, PageHead } from '@/components/admin/PageHead'
 import { Pager } from '@/components/admin/Pager'
 import { Button } from '@/components/ui/button'
@@ -43,7 +44,7 @@ export function ProductsPage() {
   return (
     <>
       <PageHead title="Products" sub={data && `${data.total} ${f.low ? 'running low' : 'products'}${f.category ? ' in this category' : ''}`}
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ id: 0 })}><Plus size={16} /> New product</Button>} />
+        actions={<><SpreadsheetMenu entity="products" /><Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ id: 0 })}><Plus size={16} /> New product</Button></>} />
       <div className="mb-3 grid gap-2 md:flex md:flex-wrap md:items-center">
         <div className="relative md:w-80">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />

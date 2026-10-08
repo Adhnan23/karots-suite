@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import type { AdminCustomerRow } from '@/api/types.gen'
 import { DataList } from '@/components/admin/DataList'
 import { INPUT } from '@/components/admin/fields'
+import { SpreadsheetMenu } from '@/components/admin/ImportSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Pager } from '@/components/admin/Pager'
 import { Button } from '@/components/ui/button'
@@ -49,7 +50,7 @@ export function CustomersPage() {
   return (
     <>
       <PageHead title="Customers" sub="Credit accounts, limits and what's due."
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New customer</Button>} />
+        actions={<><SpreadsheetMenu entity="customers" /><Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New customer</Button></>} />
       {data && (
         <div className="mb-3 grid grid-cols-2 gap-2 md:max-w-md">
           <button type="button" onClick={() => flip('owing')} className={cn(SURFACE, 'flex flex-col items-start px-4 py-3 text-left', f.show === 'owing' && 'border-selected')}>

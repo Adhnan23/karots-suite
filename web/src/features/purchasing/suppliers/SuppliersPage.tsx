@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import type { AdminSupplierRow } from '@/api/types.gen'
 import { DataList } from '@/components/admin/DataList'
 import { INPUT } from '@/components/admin/fields'
+import { SpreadsheetMenu } from '@/components/admin/ImportSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Pager } from '@/components/admin/Pager'
 import { Button } from '@/components/ui/button'
@@ -48,7 +49,7 @@ export function SuppliersPage() {
   return (
     <>
       <PageHead title="Suppliers" sub="Who you buy from, and what's owed either way."
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New supplier</Button>} />
+        actions={<><SpreadsheetMenu entity="suppliers" /><Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New supplier</Button></>} />
       {data && (
         <div className="mb-3 grid grid-cols-2 gap-2 md:max-w-md">
           <button type="button" onClick={() => set({ show: f.show === 'owing' ? '' : 'owing' })} className={cn(SURFACE, 'flex flex-col items-start px-4 py-3 text-left', f.show === 'owing' && 'border-selected')}>

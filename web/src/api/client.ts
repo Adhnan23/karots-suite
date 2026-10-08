@@ -28,10 +28,12 @@ export async function api<T = void>(path: string, opts: Opts = {}): Promise<T> {
   return body as T
 }
 
-/** POSTs one file as multipart `field` to /api/v1 and returns the JSON reply. */
-export async function apiUpload<T>(path: string, field: string, file: File): Promise<T> {
+/** POSTs one file as multipart `field` (plus any extra form fields) to /api/v1
+ * and returns the JSON reply. */
+export async function apiUpload<T>(path: string, field: string, file: File, extra: Record<string, string> = {}): Promise<T> {
   const fd = new FormData()
   fd.append(field, file)
+  for (const [k, v] of Object.entries(extra)) fd.append(k, v)
   const res = await fetch(`/api/v1${path}`, { method: 'POST', body: fd, credentials: 'same-origin' })
   const body = await res.json().catch(() => null)
   if (!res.ok) throw new ApiError(res.status, body?.error?.code ?? 'HTTP_ERROR', body?.error?.message ?? res.statusText, path)
