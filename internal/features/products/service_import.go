@@ -38,6 +38,57 @@ type ImportRow struct {
 	// barcode updates the right product (and is realigned) instead of duplicating.
 	// Off for routine imports; on for deliberate catalogue merges.
 	MatchByName bool
+	// Given names the columns the sheet really fills for this row (canonical
+	// names: "name_local", "category", "cost_price", …). When updating an
+	// existing product only those change — a price-update sheet with just name
+	// and price must not wipe the cost, category or supplier. nil = all given.
+	Given map[string]bool
+}
+
+// keepMissing puts back an existing product's value for every column the row
+// doesn't fill (see ImportRow.Given).
+func keepMissing(w writeRow, p *Product, given map[string]bool) writeRow {
+	if given == nil {
+		return w
+	}
+	keep := func(col string) bool { return !given[col] }
+	if keep("name_local") {
+		w.NameLocal = p.NameLocal
+	}
+	if keep("barcode") {
+		w.Barcode = p.Barcode
+	}
+	if keep("category") {
+		w.CategoryID = p.CategoryID
+	}
+	if keep("unit") {
+		w.UnitID = p.UnitID
+	}
+	if keep("cost_price") {
+		w.Cost = p.CostPrice
+	}
+	if keep("selling_price") {
+		w.Selling = p.SellingPrice
+	}
+	if keep("wholesale_price") {
+		w.Wholesale = p.WholesalePrice
+	}
+	if keep("tax_rate") {
+		w.Tax = p.TaxRate
+	}
+	if keep("reorder_level") {
+		w.Reorder = p.ReorderLevel
+	}
+	if keep("track_serial") {
+		w.TrackSerial = p.TrackSerial
+	}
+	if keep("warranty_months") {
+		w.WarrantyMonths = p.WarrantyMonths
+	}
+	if keep("supplier") {
+		w.PreferredSupplier = p.PreferredSupplierID
+	}
+	return w
 }
 
 // ImportResult reports what a single row did, for the import summary.
@@ -100,7 +151,7 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 			}
 		}
 		if existing != nil {
-			if uerr := repo.Update(ctx, existing.ID, w); uerr != nil {
+			if uerr := repo.Update(ctx, existing.ID, keepMissing(w, existing, in.Given)); uerr != nil {
 				return mapWriteErr(uerr)
 			}
 			res.Action = "updated"

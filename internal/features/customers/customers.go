@@ -245,6 +245,9 @@ type ImportRow struct {
 	Address        string
 	CreditLimit    decimal.Decimal
 	OpeningBalance decimal.Decimal
+	// Given names the columns the sheet fills for this row ("phone",
+	// "address", "credit_limit"); an existing customer keeps the rest. nil = all.
+	Given map[string]bool
 }
 
 // ImportResult reports what one import row did, for the summary.
@@ -284,7 +287,19 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 			return ferr
 		}
 		if existing != nil {
-			if uerr := r.Update(ctx, existing.ID, name, phone, address, in.CreditLimit); uerr != nil {
+			limit := in.CreditLimit
+			if in.Given != nil {
+				if !in.Given["phone"] {
+					phone = existing.Phone
+				}
+				if !in.Given["address"] {
+					address = existing.Address
+				}
+				if !in.Given["credit_limit"] {
+					limit = existing.CreditLimit
+				}
+			}
+			if uerr := r.Update(ctx, existing.ID, name, phone, address, limit); uerr != nil {
 				return uerr
 			}
 			res.Action = "updated"

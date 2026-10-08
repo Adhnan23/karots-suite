@@ -165,7 +165,9 @@ type ImportResult struct {
 // ImportOne upserts one supplier in a transaction, matching an existing active
 // supplier by case-insensitive name. The opening balance (already parsed into
 // in.OpeningBalance) is applied on create only, so re-imports never re-add it.
-func (s *Service) ImportOne(ctx context.Context, in CreateInput, opening decimal.Decimal) (ImportResult, error) {
+// given names the columns the sheet fills ("contact_person", "phone",
+// "address", "credit_days"); an existing supplier keeps the rest. nil = all.
+func (s *Service) ImportOne(ctx context.Context, in CreateInput, opening decimal.Decimal, given map[string]bool) (ImportResult, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	if in.Name == "" {
 		return ImportResult{}, apperr.Validation("name is required")
@@ -174,6 +176,20 @@ func (s *Service) ImportOne(ctx context.Context, in CreateInput, opening decimal
 	err := db.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		r := NewRepository(tx)
 		if existing, ferr := r.FindByName(ctx, in.Name); ferr == nil {
+			if given != nil {
+				if !given["contact_person"] {
+					in.ContactPerson = existing.ContactPerson
+				}
+				if !given["phone"] {
+					in.Phone = existing.Phone
+				}
+				if !given["address"] {
+					in.Address = existing.Address
+				}
+				if !given["credit_days"] {
+					in.CreditDays = existing.CreditDays
+				}
+			}
 			if uerr := r.Update(ctx, existing.ID, in); uerr != nil {
 				return uerr
 			}

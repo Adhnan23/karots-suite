@@ -5,7 +5,10 @@ import (
 	"bytes"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/xuri/excelize/v2"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -89,4 +92,36 @@ func buildODS(rowsXML string) []byte {
 	_, _ = io.WriteString(w, content)
 	_ = zw.Close()
 	return buf.Bytes()
+}
+
+// A sheet typed in Excel holds numbers, not text: a 13-digit barcode and a
+// price formatted "#,##0.00" must read back as the plain digits, never as
+// "4.79E+12" or "1,250.00".
+func TestReadXLSXNumbersAsTyped(t *testing.T) {
+	f := excelize.NewFile()
+	defer f.Close()
+	f.SetCellStr("Sheet1", "A1", "barcode")
+	f.SetCellStr("Sheet1", "B1", "price")
+	f.SetCellInt("Sheet1", "A2", 4790000000011)
+	f.SetCellFloat("Sheet1", "B2", 1250.5, -1, 64)
+	style, _ := f.NewStyle(&excelize.Style{NumFmt: 4}) // #,##0.00
+	f.SetCellStyle("Sheet1", "B2", "B2", style)
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := Read("x.xlsx", &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rows[1][0] != "4790000000011" || rows[1][1] != "1250.5" {
+		t.Fatalf("row = %q, want barcode digits and 1250.5", rows[1])
+	}
+}
+
+func TestReadCSVKeepsBlankLines(t *testing.T) {
+	rows, err := Read("x.csv", strings.NewReader("name\na\n\nb\n"))
+	if err != nil || len(rows) != 4 || rows[3][0] != "b" || len(rows[2]) != 0 {
+		t.Fatalf("rows = %q, %v", rows, err)
+	}
 }

@@ -18,7 +18,9 @@ func readXLSX(b []byte) ([][]string, error) {
 	if len(sheets) == 0 {
 		return nil, errors.New("the workbook has no sheets")
 	}
-	return f.GetRows(sheets[0]) // first sheet; trailing empty cells trimmed per row
+	// Raw values: a number reads as typed ("1250.5"), not as its display format
+	// ("1,250.50", "4.79E+12"). First sheet; trailing empty cells trimmed per row.
+	return f.GetRows(sheets[0], excelize.Options{RawCellValue: true})
 }
 
 func writeXLSX(w io.Writer, header []string, rows [][]string) error {
