@@ -82,6 +82,19 @@ func (r *Repository) FindByPhone(ctx context.Context, phone string) (*Customer, 
 	return &c, nil
 }
 
+// FindPhonelessByName finds an active customer with no phone by name (any case).
+func (r *Repository) FindPhonelessByName(ctx context.Context, name string) (*Customer, error) {
+	var c Customer
+	err := r.q.GetContext(ctx, &c, `
+		SELECT * FROM customers
+		WHERE lower(name) = lower($1) AND COALESCE(phone, '') = '' AND is_active = true
+		ORDER BY id LIMIT 1`, name)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (r *Repository) Create(ctx context.Context, name string, phone, address *string, limit, opening decimal.Decimal) (*Customer, error) {
 	var c Customer
 	err := r.q.GetContext(ctx, &c, `

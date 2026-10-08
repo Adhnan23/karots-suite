@@ -262,7 +262,9 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 	if name == "" {
 		return ImportResult{}, apperr.Validation("name is required")
 	}
-	phone := nilIfBlank(in.Phone)
+	// Same phone key as Create ("077-123 4567" = "0771234567"), so a re-import
+	// or a differently typed list never duplicates a customer.
+	phone := nilIfBlank(normalizePhone(in.Phone))
 	address := nilIfBlank(in.Address)
 	var res ImportResult
 	err := db.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
@@ -274,6 +276,12 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 			} else if !errors.Is(ferr, sql.ErrNoRows) {
 				return ferr
 			}
+		} else if c, ferr := r.FindPhonelessByName(ctx, name); ferr == nil {
+			// No phone to match on: the same name without a phone is the same
+			// customer, so re-importing a phoneless list updates instead of doubling.
+			existing = c
+		} else if !errors.Is(ferr, sql.ErrNoRows) {
+			return ferr
 		}
 		if existing != nil {
 			if uerr := r.Update(ctx, existing.ID, name, phone, address, in.CreditLimit); uerr != nil {
