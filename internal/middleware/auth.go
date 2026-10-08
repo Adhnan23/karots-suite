@@ -80,6 +80,9 @@ func JWTAuth(secret string) echo.MiddlewareFunc {
 				if !ok {
 					return apperr.Unauthorized("your account is no longer active — please sign in again")
 				}
+				if (f.Role != "" && f.Role != claims.Role) || (f.Name != "" && f.Name != claims.Name) {
+					return apperr.Unauthorized("your account changed — please sign in again")
+				}
 				flags = f
 			}
 			c.Set(ctxUserID, claims.UserID)

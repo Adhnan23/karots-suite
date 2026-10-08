@@ -11,6 +11,10 @@ import (
 // UserFlags carries per-user permissions that are not expressible as a role.
 // It is a plain struct so this package keeps no dependency on the auth feature.
 type UserFlags struct {
+	// Name and Role are the account as it is now. A token carrying another name
+	// or role was issued to someone else (a restore reuses ids) or before a role
+	// change, so JWTAuth ends that session. Blank = not checked.
+	Name, Role string
 	// CanHandleSuppliers lets a cashier pay suppliers, take in deliveries and
 	// place orders from the till. Meaningless for admins and managers, who may
 	// always do so.

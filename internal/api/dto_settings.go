@@ -50,6 +50,6 @@ type SettingsPage struct {
 	Settings     ShopSettings     `json:"settings"`
 	Logo         string           `json:"logo"`         // what prints: the uploaded image, else the URL; "" = none
 	LogoUploaded bool             `json:"logoUploaded"` // an uploaded image (works offline) is set
-	Printers     []string         `json:"printers"`     // queues detected on this computer
+	Printers     []string         `json:"printers"`     // queues detected on this computer; null in a save's answer (keep the list you have)
 	Lockers      []SettingsLocker `json:"lockers"`
 }

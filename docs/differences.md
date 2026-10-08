@@ -59,7 +59,7 @@ same figures, so a figure that differs and isn't below is a bug.
 
 | # | The suite | karots-pos | Your call |
 |---|---|---|---|
-| 21 | Restore first **saves a copy of the current data** (the undo, listed as "Before restore"), refuses a bad file before touching anything, needs RESTORE typed, and then **signs everyone out**. | Restored straight over the data with no copy; the session carried on. | |
+| 21 | Restore first **saves a copy of the current data** (the undo, listed as "Before restore"), refuses a bad file before touching anything, needs RESTORE typed, and then signs you out. Any session whose account the backup changed (another person on that id, another role) ends too — as it does when an admin changes someone's role. | Restored straight over the data with no copy; every session carried on, even as whoever now had its id. | |
 | 22 | A backup from another version restores: columns the suite lacks are dropped and reported, and tables it lacks (plugins) are left out and listed. | Any schema difference failed the whole restore. | |
 | 23 | A **data check** lists figures old versions saved wrongly (Setup → Data and after every restore). It changes nothing. | — | |
 | 24 | Settings save **card by card**; the printer field takes a detected printer or a typed `tcp://` address in one box; a failed test print says why. | One long form and one Save; a separate network-address box. | |

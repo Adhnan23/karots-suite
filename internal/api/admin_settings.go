@@ -57,16 +57,23 @@ func toShopSettings(s *settings.Settings) ShopSettings {
 	return out
 }
 
-func (h *handlers) AdminSettings(c echo.Context) error {
+func (h *handlers) AdminSettings(c echo.Context) error { return h.settingsPage(c, true) }
+
+// settingsPage answers the Settings page. Finding the printers asks the OS
+// (lpstat / the spooler), which can take seconds, so a save answers without
+// them (printers: null) and the page keeps the list it has.
+func (h *handlers) settingsPage(c echo.Context, withPrinters bool) error {
 	ctx := c.Request().Context()
 	s, err := h.d.Settings.Get(ctx)
 	if err != nil {
 		return err
 	}
-	page := SettingsPage{Settings: toShopSettings(s), Logo: s.LogoSrc(), LogoUploaded: s.LogoData != "",
-		Printers: printing.Queues(ctx), Lockers: []SettingsLocker{}}
-	if page.Printers == nil {
-		page.Printers = []string{}
+	page := SettingsPage{Settings: toShopSettings(s), Logo: s.LogoSrc(), LogoUploaded: s.LogoData != "", Lockers: []SettingsLocker{}}
+	if withPrinters {
+		page.Printers = printing.Queues(ctx)
+		if page.Printers == nil {
+			page.Printers = []string{}
+		}
 	}
 	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active ORDER BY name`); err != nil {
 		return err
@@ -111,7 +118,7 @@ func (h *handlers) AdminSettingsSave(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionSettings, "settings", "", "updated shop settings")
-	return h.AdminSettings(c)
+	return h.settingsPage(c, false)
 }
 
 // AdminSettingsLogo stores an uploaded image, scaled down to 400px, as a data
@@ -138,7 +145,7 @@ func (h *handlers) AdminSettingsLogo(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionSettings, "settings", "logo", "uploaded a logo")
-	return h.AdminSettings(c)
+	return h.settingsPage(c, false)
 }
 
 func (h *handlers) AdminSettingsLogoClear(c echo.Context) error {
@@ -146,7 +153,7 @@ func (h *handlers) AdminSettingsLogoClear(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionSettings, "settings", "logo", "removed the logo")
-	return h.AdminSettings(c)
+	return h.settingsPage(c, false)
 }
 
 // AdminSettingsPrinterTest prints a short slip on the SAVED receipt printer and

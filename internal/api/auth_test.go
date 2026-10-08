@@ -2,9 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 )
 
 func TestLoginSetsStrictHttpOnlyCookieAndMeWorks(t *testing.T) {
@@ -93,5 +95,41 @@ func TestLogoutClearsCookie(t *testing.T) {
 		if c.Name == ck.Name && c.MaxAge >= 0 {
 			t.Fatal("cookie not cleared")
 		}
+	}
+}
+
+// A session belongs to the person it was issued to. After a restore brings in
+// another shop's users (ids reused) or an admin changes someone's role, the old
+// token must not act as whoever now has that id or with the old role.
+func TestSessionEndsWhenTheUserBehindItChanges(t *testing.T) {
+	te := newTestEnv(t)
+	phone := fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000)
+	id := te.seedUser(t, phone, "admin")
+	ck := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: phone, Pin: "1234"}, nil))
+	if rec := te.do(http.MethodGet, "/api/v1/me", nil, ck); rec.Code != http.StatusOK {
+		t.Fatalf("me: %d", rec.Code)
+	}
+	te.db.Exec(`UPDATE users SET role = 'cashier' WHERE id = $1`, id) //nolint:errcheck
+	if rec := te.do(http.MethodGet, "/api/v1/admin/settings", nil, ck); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("demoted admin's old session: %d", rec.Code)
+	}
+	te.db.Exec(`UPDATE users SET role = 'admin', name = 'Someone Else' WHERE id = $1`, id) //nolint:errcheck
+	if rec := te.do(http.MethodGet, "/api/v1/me", nil, ck); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("session after the id became someone else: %d", rec.Code)
+	}
+}
+
+// Editing your own name keeps you signed in (a fresh session comes back).
+func TestEditingYourselfKeepsYourSession(t *testing.T) {
+	te := newTestEnv(t)
+	phone := fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000)
+	id := te.seedUser(t, phone, "admin")
+	ck := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: phone, Pin: "1234"}, nil))
+	rec := te.do(http.MethodPut, fmt.Sprintf("/api/v1/admin/users/%d", id), StaffRequest{Name: "T Renamed", Phone: phone, Role: "admin"}, ck)
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("edit self: %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.do(http.MethodGet, "/api/v1/me", nil, sessionCookie(t, rec)); rec.Code != http.StatusOK {
+		t.Fatalf("me after renaming yourself: %d", rec.Code)
 	}
 }

@@ -15,7 +15,8 @@ export const settingsQuery = queryOptions({ queryKey: ['admin', 'settings'], que
 export function useSettingsSaved() {
   const qc = useQueryClient()
   return (page: SettingsPage) => {
-    qc.setQueryData(settingsQuery.queryKey, page)
+    // A save's answer leaves out the printers (slow to find): keep the list.
+    qc.setQueryData(settingsQuery.queryKey, (old?: SettingsPage) => ({ ...page, printers: page.printers ?? old?.printers ?? [] }))
     void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'admin' || q.queryKey[1] !== 'settings' })
   }
 }

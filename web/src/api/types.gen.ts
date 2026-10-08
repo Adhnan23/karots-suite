@@ -2459,7 +2459,7 @@ export interface SettingsPage {
   settings: ShopSettings;
   logo: string; // what prints: the uploaded image, else the URL; "" = none
   logoUploaded: boolean; // an uploaded image (works offline) is set
-  printers: string[]; // queues detected on this computer
+  printers: string[]; // queues detected on this computer; null in a save's answer (keep the list you have)
   lockers: SettingsLocker[];
 }
 

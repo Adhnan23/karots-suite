@@ -69,7 +69,7 @@ export function RestoreDialog({ source, onClose }: { source: RestoreSource; onCl
             <DialogTitle className="font-display text-lg font-bold">Restore {label}?</DialogTitle>
             <DialogDescription>
               Every sale, product, customer, supplier, user and setting is replaced by what's in this backup.
-              A copy of what's here now is saved first, so you can undo by restoring that copy. Everyone is signed out.
+              A copy of what's here now is saved first, so you can undo by restoring that copy. You sign in again, and so does anyone whose account the backup changes.
             </DialogDescription>
             <label className="grid gap-1.5 text-sm font-semibold">
               Type {WORD} to go ahead

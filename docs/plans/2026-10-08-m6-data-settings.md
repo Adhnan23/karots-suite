@@ -243,4 +243,6 @@ data_files,data_settings,admin_settings,setup,import_products,import_customers,i
   - Ship check: types, vet, tests, build, `verify-portable`, plugin grep, ≤ 500 lines.
   - Milestone review + one `fix:` commit.
   - Done: `admin-data.spec.ts` (5 flows); 92 Playwright flows, 104 web unit tests, `go test ./...`
-    green; `verify-portable` OK; 26 parity rows ticked (324 in all).
+    green; `verify-portable` OK; 26 parity rows ticked (324 in all). Review `fix:` commit: sessions end
+    when the account's name or role changes (restore reuses ids; demotion — karots-pos `9fa1158`, role
+    only there), self-edit re-issues the session, settings saves skip `lpstat`, blank `groups=`.

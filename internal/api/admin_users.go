@@ -114,6 +114,19 @@ func (h *handlers) AdminUserUpdate(c echo.Context) error {
 		detail += ", PIN reset"
 	}
 	h.audit(c, audit.ActionUpdate, "user", strconv.FormatInt(id, 10), detail)
+	// A session carries its holder's name and role; editing your own would
+	// otherwise sign you out (JWTAuth), so hand back a fresh one.
+	if id == middleware.CurrentUserID(c) {
+		u, err := h.d.Auth.GetUser(c.Request().Context(), id)
+		if err != nil {
+			return err
+		}
+		token, err := h.d.Auth.AccessTokenFor(u)
+		if err != nil {
+			return err
+		}
+		h.setCookie(c, token)
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 

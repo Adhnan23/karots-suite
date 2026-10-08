@@ -67,7 +67,12 @@ func (h *handlers) AdminDataBackup(c echo.Context) error {
 	setupOnly := c.QueryParam("setupOnly") == "1"
 	if choose || setupOnly {
 		groups := plugin.CollectDataGroups()
-		keep := qp["groups"]
+		keep := []string{}
+		for _, k := range qp["groups"] { // "groups=" alone = none of them
+			if k != "" {
+				keep = append(keep, k)
+			}
+		}
 		if !choose {
 			keep = make([]string, 0, len(groups))
 			for _, g := range groups {
