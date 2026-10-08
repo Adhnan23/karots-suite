@@ -50,7 +50,7 @@ test('open the till with a counted float', async ({ page }) => {
   await expect(dlg.getByText(/1,000\.00/).first()).toBeVisible()
   await dlg.getByRole('button', { name: 'Open the till' }).click()
   await skipSlip(page)
-  await expect(page.getByTitle(/Till open · float .*1,000\.00/)).toBeVisible()
+  await expect(page.getByRole('button', { name: /Till open, .*1,000\.00 in the drawer/ })).toBeVisible()
 })
 
 test('three fast scans = qty 3; cash with change; Enter starts the next sale', async ({ page }) => {
@@ -152,7 +152,7 @@ test('expired lot first: sell anyway', async ({ page }) => {
   await login(page, '0770000002')
   await ensureOpen(page)
   await scan(page, YOGHURT)
-  await page.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /Expired/ }).click()
+  await page.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /Expired/ }).first().click()
   await expect(page.getByRole('dialog', { name: 'This lot is expired' })).toBeVisible()
   await page.getByRole('button', { name: 'Sell anyway' }).click()
   await expect(cart(page).getByText(/^exp /)).toBeVisible()
