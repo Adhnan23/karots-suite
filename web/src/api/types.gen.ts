@@ -757,6 +757,17 @@ export interface SettingsImportResult {
   skipped: string[]; // this install's own (identity, printers, default locker)
   unknown: string[]; // not a setting in this version
 }
+/**
+ * EntityImportResult answers a product / customer / supplier import: the good
+ * rows land, each bad one is reported by its line in the sheet.
+ */
+export interface EntityImportResult {
+  created: number /* int */;
+  updated: number /* int */;
+  skipped: number /* int */;
+  errors: ImportRowError[];
+  notes: string[];
+}
 
 //////////
 // source: dto_drawer.go

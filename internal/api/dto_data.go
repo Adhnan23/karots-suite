@@ -65,3 +65,13 @@ type SettingsImportResult struct {
 	Skipped []string `json:"skipped"` // this install's own (identity, printers, default locker)
 	Unknown []string `json:"unknown"` // not a setting in this version
 }
+
+// EntityImportResult answers a product / customer / supplier import: the good
+// rows land, each bad one is reported by its line in the sheet.
+type EntityImportResult struct {
+	Created int              `json:"created"`
+	Updated int              `json:"updated"`
+	Skipped int              `json:"skipped"`
+	Errors  []ImportRowError `json:"errors"`
+	Notes   []string         `json:"notes"`
+}
