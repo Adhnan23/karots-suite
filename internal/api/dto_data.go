@@ -75,3 +75,12 @@ type EntityImportResult struct {
 	Errors  []ImportRowError `json:"errors"`
 	Notes   []string         `json:"notes"`
 }
+
+// SetupStep is one go-live step on the dashboard's "Get the shop ready" card.
+type SetupStep struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	Hint  string `json:"hint"`
+	To    string `json:"to"` // the SPA page that finishes it
+	Done  bool   `json:"done"`
+}

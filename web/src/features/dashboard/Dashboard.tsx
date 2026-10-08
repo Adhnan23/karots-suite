@@ -16,6 +16,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { compareOption } from './charts'
 import { dashboardChartsQuery, dashboardQuery } from './queries'
+import { SetupCard } from './SetupCard'
 import { Spark } from './Spark'
 
 const route = getRouteApi('/_authed/admin/')
@@ -97,6 +98,8 @@ export function Dashboard() {
         <Seg label="Chart range" value={String(days)} onChange={(v) => void navigate({ search: { days: v === '14' ? undefined : Number(v) }, replace: true })}
           options={[['7', '7 days'], ['14', '14 days'], ['30', '30 days'], ['90', '90 days']]} />
       </div>
+
+      {me.user.role === 'admin' && <SetupCard />}
 
       <div aria-label="Today" role="group" className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
         <Tile label="Sales today" value={d ? money(sym, d.today.revenue) : '…'} change={d ? delta(d.today.revenue, d.yesterday.revenue) : null}

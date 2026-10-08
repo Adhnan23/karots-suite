@@ -768,6 +768,16 @@ export interface EntityImportResult {
   errors: ImportRowError[];
   notes: string[];
 }
+/**
+ * SetupStep is one go-live step on the dashboard's "Get the shop ready" card.
+ */
+export interface SetupStep {
+  key: string;
+  label: string;
+  hint: string;
+  to: string; // the SPA page that finishes it
+  done: boolean;
+}
 
 //////////
 // source: dto_drawer.go

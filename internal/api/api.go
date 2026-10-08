@@ -54,6 +54,7 @@ func Register(e *echo.Echo, d Deps) {
 	h.registerSystem(v1)     // Task 6
 	h.registerTill(v1)
 	h.registerAdmin(v1)
+	h.registerLegacySync(e, limiter, jwt)
 
 	e.Any("/api/*", func(echo.Context) error { return apperr.NotFound("endpoint") })
 }
