@@ -16,9 +16,9 @@ export function Field({ label, hint, children, className }: { label: string; hin
 }
 
 /** A labelled on/off switch row. */
-export function Toggle({ label, hint, checked, onChange }: { label: string; hint?: ReactNode; checked: boolean; onChange: (v: boolean) => void }) {
+export function Toggle({ label, hint, checked, onChange, className }: { label: string; hint?: ReactNode; checked: boolean; onChange: (v: boolean) => void; className?: string }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2.5">
+    <label className={cn('flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2.5', className)}>
       <span className="flex flex-col text-sm font-semibold">
         {label}
         {hint && <small className="font-normal text-faint">{hint}</small>}

@@ -161,9 +161,12 @@ function TillCash({ sym, lockers, value }: { sym: string; lockers: AdminLocker[]
           {lockers.map((l) => <option key={l.id} value={l.id}>{l.name} ({money(sym, l.balance)})</option>)}
         </select>
       </Field>
-      <div className="self-end">
-        <Toggle label="Cash may leave untracked" hint="Off = a withdraw or close must name the locker it goes into. Opening and deposits are never blocked."
+      {/* Same label / control / hint shape as the select beside it, so the two line up. */}
+      <div className="flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground">
+        Untracked cash
+        <Toggle label="Cash may leave untracked" className="h-[var(--control-h)] py-0"
           checked={value.allowUntracked} onChange={(allowUntracked) => !busy && void save({ allowUntracked })} />
+        <small className="font-normal text-faint">Off = a withdraw or close must name the locker it goes into. Opening and deposits are never blocked.</small>
       </div>
     </section>
   )
