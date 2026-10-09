@@ -35,7 +35,7 @@ func (h *handlers) registerAdminCustomers(g *echo.Group) {
 
 func adminCustomerRow(c customers.Customer) AdminCustomerRow {
 	return AdminCustomerRow{ID: c.ID, Name: c.Name, Phone: strOr(c.Phone), Address: strOr(c.Address), CreditLimit: dec2(c.CreditLimit),
-		Owed: dec2(c.OutstandingBalance), OldDebt: dec2(c.OpeningUnlinked), Loyalty: c.LoyaltyPoints,
+		Owed: dec2(c.OutstandingBalance), OldDebt: dec2(c.OpeningUnlinked),
 		OverLimit: c.CreditLimit.IsPositive() && c.OutstandingBalance.GreaterThan(c.CreditLimit), Active: c.IsActive}
 }
 

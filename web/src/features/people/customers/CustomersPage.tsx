@@ -92,7 +92,6 @@ export function CustomersPage() {
             </span>
           ) },
           { key: 'limit', header: 'Limit', num: true, wide: true, cell: (r) => <span className="text-muted-foreground">{num(r.creditLimit) ? money(sym, r.creditLimit) : 'no credit'}</span> },
-          { key: 'pts', header: 'Points', num: true, wide: true, cell: (r) => <span className="text-muted-foreground">{r.loyalty || '—'}</span> },
           { key: 'owed', header: 'Balance', num: true, cell: (r) => <Due sym={sym} owed={r.owed} /> },
         ]} />
       {adding && <CustomerForm onClose={() => setAdding(false)} onSaved={open} />}

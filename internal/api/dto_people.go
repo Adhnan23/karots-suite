@@ -40,7 +40,6 @@ type AdminCustomerRow struct {
 	CreditLimit string `json:"creditLimit"`
 	Owed        string `json:"owed"`
 	OldDebt     string `json:"oldDebt"`
-	Loyalty     int    `json:"loyalty"`
 	OverLimit   bool   `json:"overLimit"`
 	Active      bool   `json:"active"`
 }

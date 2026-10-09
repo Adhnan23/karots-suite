@@ -1303,7 +1303,6 @@ export interface AdminCustomerRow {
   creditLimit: string;
   owed: string;
   oldDebt: string;
-  loyalty: number /* int */;
   overLimit: boolean;
   active: boolean;
 }

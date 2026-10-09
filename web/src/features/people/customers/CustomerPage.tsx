@@ -47,7 +47,7 @@ export function CustomerPage({ id }: { id: number }) {
           <h1 className="flex flex-wrap items-center gap-2 font-display text-[24px] font-bold tracking-tight md:text-[28px]">
             {c.name}{!c.active && <Tag tone="muted">disabled</Tag>}{c.overLimit && <Tag tone="danger">over limit</Tag>}
           </h1>
-          <p className="text-sm text-muted-foreground">{[c.phone, c.address].filter(Boolean).join(' · ')}{c.loyalty > 0 && ` · ${c.loyalty} points`} · since {new Date(c.since).toLocaleDateString([], { month: 'short', year: 'numeric' })}</p>
+          <p className="text-sm text-muted-foreground">{[c.phone, c.address].filter(Boolean).join(' · ')} · since {new Date(c.since).toLocaleDateString([], { month: 'short', year: 'numeric' })}</p>
           <div className="mt-3">
             <small className="block text-[12px] font-semibold text-muted-foreground">{owed < 0 ? 'Advance they hold' : owed > 0 ? '↓ Due to us' : 'Balance'}</small>
             <Due sym={sym} owed={c.owed} big />
