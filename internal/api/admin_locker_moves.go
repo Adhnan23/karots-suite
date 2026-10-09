@@ -42,6 +42,13 @@ func (h *handlers) AdminLockerTransfer(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	// A card-machine account isn't a transfer end: its money reaches the bank
+	// only through Settle card, which books the card company's fee.
+	for _, id := range []int64{in.FromID, in.ToID} {
+		if err := h.d.Cashflow.RequirePlace(c.Request().Context(), cashflow.Locker(id), ""); err != nil {
+			return err
+		}
+	}
 	rec, err := h.d.Cashflow.Move(c.Request().Context(), cashflow.MoveInput{From: cashflow.Locker(in.FromID), To: cashflow.Locker(in.ToID),
 		Amount: amt, Reason: strings.TrimSpace(in.Note), ActorID: middleware.CurrentUserID(c)})
 	if err != nil {

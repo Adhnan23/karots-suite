@@ -113,3 +113,30 @@ func TestExpenseNeverTouchesACardAccount(t *testing.T) {
 		t.Errorf("counter expense from the card account: %d %s", rec.Code, rec.Body)
 	}
 }
+
+// A locker transfer never moves money into or out of a card-machine account —
+// card takings reach the bank only through Settle card, which books the fee.
+// Safe ↔ bank (banking the takings, drawing cash) is fine.
+func TestTransferNeverTouchesACardAccount(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	safe, bank, card := moneyPlaces(t, te)
+	move := func(from, to int64) int {
+		return te.do(http.MethodPost, "/api/v1/admin/lockers/transfer", LockerTransferRequest{FromID: from, ToID: to, Amount: "5"}, ck).Code
+	}
+	for _, c := range []struct {
+		name     string
+		from, to int64
+		want     int
+	}{
+		{"safe → card", safe, card, http.StatusUnprocessableEntity},
+		{"card → bank", card, bank, http.StatusUnprocessableEntity},
+		{"card → safe", card, safe, http.StatusUnprocessableEntity},
+		{"safe → bank", safe, bank, http.StatusCreated},
+		{"bank → safe", bank, safe, http.StatusCreated},
+	} {
+		if got := move(c.from, c.to); got != c.want {
+			t.Errorf("%s: %d, want %d", c.name, got, c.want)
+		}
+	}
+}

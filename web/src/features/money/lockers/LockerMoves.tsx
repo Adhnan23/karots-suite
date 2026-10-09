@@ -60,7 +60,9 @@ function After({ sym, l, delta }: { sym: string; l?: AdminLocker; delta: number 
 }
 
 /** Move money between two of your lockers (karots-pos LockerTransferForm). */
-export function TransferSheet({ lockers, from, sym, onClose }: { lockers: AdminLocker[]; from?: number; sym: string; onClose: () => void }) {
+export function TransferSheet({ lockers: all, from, sym, onClose }: { lockers: AdminLocker[]; from?: number; sym: string; onClose: () => void }) {
+  // Never a card-machine account: card takings reach the bank only through Settle card.
+  const lockers = all.filter((l) => l.kind !== 'card')
   const [f, setF] = useState({ fromId: from ?? 0, toId: 0, amount: '', note: '' })
   const { busy, run } = useMove(onClose)
   const a = num(f.amount.replace(/,/g, ''))

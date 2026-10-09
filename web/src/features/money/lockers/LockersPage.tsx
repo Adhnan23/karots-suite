@@ -68,7 +68,7 @@ export function LockersPage() {
       ) : (
         <ul aria-label="Lockers" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {data?.items.map((l) => <LockerTile key={l.id} l={l} sym={sym} onEdit={() => setEditing(l)} onArchive={() => setArchiving(l)}
-            onMove={active.length >= 2 ? () => setMove({ kind: 'transfer', l }) : undefined} onAdjust={() => setMove({ kind: 'adjust', l })}
+            onMove={active.length >= 2 && l.kind !== 'card' ? () => setMove({ kind: 'transfer', l }) : undefined} onAdjust={() => setMove({ kind: 'adjust', l })}
             onReactivate={() => void setActive(l, true).catch((e) => toast.error(errMsg(e)))} />)}
         </ul>
       )}

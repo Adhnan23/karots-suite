@@ -56,7 +56,7 @@ export function LockerPage() {
           {l?.active && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="h-10 gap-1.5 px-3.5" onClick={() => setMove('adjust')}><SlidersHorizontal size={15} /> Adjust</Button>
-              {others.length >= 2 && <Button variant="outline" className="h-10 gap-1.5 px-3.5" onClick={() => setMove('transfer')}><ArrowLeftRight size={15} /> Move money</Button>}
+              {others.length >= 2 && l.kind !== 'card' && <Button variant="outline" className="h-10 gap-1.5 px-3.5" onClick={() => setMove('transfer')}><ArrowLeftRight size={15} /> Move money</Button>}
             </div>
           )}
           <div>
