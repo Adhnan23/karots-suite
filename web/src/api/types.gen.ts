@@ -1337,8 +1337,8 @@ export interface CustomerRequest {
 }
 /**
  * CustomerPayRequest collects a credit repayment in the back office. Source is
- * a MoneySource value: cash needs one; card / online may name the card / bank
- * account it lands in ("" = recorded only).
+ * a MoneySource value: a cash locker or till for cash, the card / bank account
+ * for card / online.
  */
 export interface CustomerPayRequest {
   amount: string;
@@ -1347,6 +1347,14 @@ export interface CustomerPayRequest {
   note: string;
   source: string;
   oldDebtFirst: boolean;
+}
+/**
+ * CustomerRefundRequest hands a customer's advance back in cash from Source (a
+ * cash locker or till MoneySource value).
+ */
+export interface CustomerRefundRequest {
+  amount: string;
+  source: string;
 }
 /**
  * StaffUser is a login on the Users page (the hidden system user never is).

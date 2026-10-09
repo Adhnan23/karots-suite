@@ -2,10 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest } from '@/api/types.gen'
+import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest, CustomerRefundRequest, ReceiptRef } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@/features/purchasing/MoneySource'
+import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
 import { printDebtSlip } from '@/features/till/print'
@@ -58,6 +59,41 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
       {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource(m === 'cash' ? '' : sourcesFor(sources, m)[0]?.value ?? '') }} options={methods} />}
       <Field label={where}><MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
       <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
+    </FormSheet>
+  )
+}
+
+/** Hand a customer's advance back in cash from a cash locker or open till, with
+ * a refund receipt (the counter's Refund advance, from the back office). */
+export function RefundSheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: string; onClose: () => void }) {
+  const qc = useQueryClient()
+  const advance = Math.max(-num(c.owed), 0)
+  const [amount, setAmount] = useState(dec(advance))
+  const [source, setSource] = useState('')
+  const [busy, setBusy] = useState(false)
+  const a = num(amount)
+  async function save() {
+    setBusy(true)
+    try {
+      const body: CustomerRefundRequest = { amount, source }
+      moneyDone(`Give ${c.name} ${money(sym, a)} — advance refunded`, await api<ReceiptRef>(`/admin/customers/${c.id}/refund`, { json: body }))
+      void qc.invalidateQueries({ queryKey: ['admin'] })
+      void qc.invalidateQueries({ queryKey: ['till'] })
+      onClose()
+    } catch (e) {
+      toast.error(errMsg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Refund ${c.name}`} submit={`↑ Refund ${a > 0 ? money(sym, a) : ''}`} busy={busy || !(a > 0) || a > advance + 0.004 || !source} onSubmit={save}>
+      <p className="text-sm text-muted-foreground">Holds an advance of <b className="text-foreground tabular-nums">{money(sym, advance)}</b></p>
+      <Field label="Amount to hand back" hint={a > advance + 0.004 ? `No more than the ${money(sym, advance)} they hold.` : undefined}>
+        <input autoFocus aria-label="Amount to hand back" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0.00"
+          className={cn(INPUT, 'h-[52px] font-display text-2xl font-bold tabular-nums')} />
+      </Field>
+      <Field label="Cash from"><MoneySourcePicker method="cash" value={source} onChange={setSource} sym={sym} label="Cash from" /></Field>
     </FormSheet>
   )
 }

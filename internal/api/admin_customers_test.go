@@ -62,6 +62,25 @@ func TestAdminCustomers(t *testing.T) {
 	if d := get(cu.ID); d.Owed != "-200.00" || inBank != "1200.00" || len(d.Recent) != 3 || d.Recent[0].Kind != "Payment" {
 		t.Fatalf("after online: %+v, bank %s", d, inBank)
 	}
+	// Hand 150 of the 200 advance back in cash: never from a bank, never more than held.
+	refund := func(amount string, from int64) int {
+		return te.do(http.MethodPost, path(cu.ID, "/refund"), CustomerRefundRequest{Amount: amount, Source: fmt.Sprintf("locker:%d", from)}, ck).Code
+	}
+	if code := refund("150", bank); code != http.StatusUnprocessableEntity {
+		t.Fatalf("refund from a bank: %d", code)
+	}
+	if code := refund("300", safe); code < 400 {
+		t.Fatalf("refund over the advance: %d", code)
+	}
+	if code := refund("150", safe); code != http.StatusCreated {
+		t.Fatalf("refund: %d", code)
+	}
+	if d := get(cu.ID); d.Owed != "-50.00" {
+		t.Fatalf("after refund: owed %s", d.Owed)
+	}
+	if code := te.do(http.MethodPost, path(cu.ID, "/payment"), CustomerPayRequest{Amount: "150", Method: "cash", Source: fmt.Sprintf("locker:%d", safe)}, ck).Code; code != http.StatusCreated {
+		t.Fatalf("re-collect: %d", code)
+	}
 
 	// Old balance → -100 (a pre-system advance): the statement still reconciles.
 	if rec := te.do(http.MethodPost, path(cu.ID, "/opening"), OpeningRequest{Opening: "-100", Note: "was in credit"}, ck); rec.Code != http.StatusNoContent {

@@ -29,6 +29,7 @@ func (h *handlers) registerAdminCustomers(g *echo.Group) {
 	g.POST("/customers/:id/activate", h.AdminCustomerReactivate)
 	g.POST("/customers/:id/opening", h.AdminCustomerOpening)
 	g.POST("/customers/:id/payment", h.AdminCustomerPay)
+	g.POST("/customers/:id/refund", h.AdminCustomerRefund)
 	g.GET("/customers/:id/statement", h.AdminCustomerStatement)
 }
 
@@ -267,4 +268,47 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 		h.d.KickDrawer(ctx)
 	}
 	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
+}
+
+// AdminCustomerRefund hands a customer's advance back in cash from a picked
+// cash locker or open till, with a CR- refund receipt — the admin twin of the
+// counter's advance refund.
+func (h *handlers) AdminCustomerRefund(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req CustomerRefundRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	ctx := c.Request().Context()
+	src, err := h.cashPlace(ctx, req.Source, "comes from")
+	if err != nil {
+		return err
+	}
+	cu, err := h.t.customers.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	userID := middleware.CurrentUserID(c)
+	var rec *cashflow.Receipt
+	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		res, err := h.t.customers.RefundAdvanceTx(ctx, tx, id, strings.TrimSpace(req.Amount), userID)
+		if err != nil {
+			return err
+		}
+		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: res.Amount,
+			Reason: "advance refunded: " + cu.Name, ReceiptKind: "refund", Party: cu.Name,
+			Ref: &cashflow.Ref{Kind: "customer_payment", ID: res.PaymentID}, ActorID: userID})
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "advance refunded "+dec2(rec.Amount)+" to "+cu.Name)
+	if src.Kind == cashflow.KindTill {
+		h.d.KickDrawer(ctx)
+	}
+	return c.JSON(http.StatusCreated, ReceiptRef{ReceiptID: &rec.ID})
 }

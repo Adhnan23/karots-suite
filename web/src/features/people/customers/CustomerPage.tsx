@@ -15,10 +15,10 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { customerQuery } from '../queries'
 import { CustomerForm } from './CustomerForm'
-import { PaySheet } from './CustomerPay'
+import { PaySheet, RefundSheet } from './CustomerPay'
 import { Due } from './CustomersPage'
 
-type Sheet = 'pay' | 'edit' | 'opening' | 'disable' | null
+type Sheet = 'pay' | 'refund' | 'edit' | 'opening' | 'disable' | null
 
 /** One customer: what's due (or their advance), how much of the limit is used,
  * and the latest bills, returns and payments — collect, edit, old balance and
@@ -62,6 +62,7 @@ export function CustomerPage({ id }: { id: number }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {c.active && <Button className={cn(act, 'font-bold')} onClick={() => setSheet('pay')}>↓ Collect</Button>}
+          {owed < 0 && <Button variant="outline" className={cn(act, 'font-bold')} onClick={() => setSheet('refund')}>↑ Refund</Button>}
           <Button variant="outline" className={act} onClick={() => setSheet('edit')}><Pencil size={15} /> Edit</Button>
           <Button variant="outline" className={act} asChild><a href={`/print/statement/customer/${id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Statement</a></Button>
           <DropdownMenu>
@@ -97,6 +98,7 @@ export function CustomerPage({ id }: { id: number }) {
       </section>
 
       {sheet === 'pay' && <PaySheet c={c} sym={sym} onClose={() => setSheet(null)} />}
+      {sheet === 'refund' && <RefundSheet c={c} sym={sym} onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <CustomerForm c={c} onClose={() => setSheet(null)} />}
       {sheet === 'opening' && <OpeningSheet kind="customer" id={id} name={c.name} owed={c.owed} oldDebt={c.oldDebt} sym={sym} onClose={() => setSheet(null)} />}
       {sheet === 'disable' && (

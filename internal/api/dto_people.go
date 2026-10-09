@@ -72,8 +72,8 @@ type CustomerRequest struct {
 }
 
 // CustomerPayRequest collects a credit repayment in the back office. Source is
-// a MoneySource value: cash needs one; card / online may name the card / bank
-// account it lands in ("" = recorded only).
+// a MoneySource value: a cash locker or till for cash, the card / bank account
+// for card / online.
 type CustomerPayRequest struct {
 	Amount       string `json:"amount"`
 	Method       string `json:"method"`
@@ -81,6 +81,13 @@ type CustomerPayRequest struct {
 	Note         string `json:"note"`
 	Source       string `json:"source"`
 	OldDebtFirst bool   `json:"oldDebtFirst"`
+}
+
+// CustomerRefundRequest hands a customer's advance back in cash from Source (a
+// cash locker or till MoneySource value).
+type CustomerRefundRequest struct {
+	Amount string `json:"amount"`
+	Source string `json:"source"`
 }
 
 // StaffUser is a login on the Users page (the hidden system user never is).
