@@ -16,9 +16,10 @@ import { expenseVoidQuery } from '../queries'
 const today = () => new Date().toLocaleDateString('en-CA')
 const amt = (v: string) => v.replace(/[^\d.,]/g, '')
 
-/** Every place of ours money can leave or come back to, or outside the shop (""). */
+/** Every place of ours money can leave or come back to, or outside the shop ("").
+ * Never a card-machine account: its money leaves only through Settle card. */
 export function PlacePicker({ label, value, onChange, sym, outside }: { label: string; value: string; onChange: (v: string) => void; sym: string; outside?: string }) {
-  const all = useQuery(moneySourcesQuery).data ?? []
+  const all = (useQuery(moneySourcesQuery).data ?? []).filter((s) => s.kind !== 'card')
   return (
     <select aria-label={label} value={value} onChange={(e) => onChange(e.target.value)} className={cn(INPUT, 'appearance-auto')}>
       <option value="">{outside ?? '— pick —'}</option>

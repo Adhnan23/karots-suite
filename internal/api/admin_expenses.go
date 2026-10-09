@@ -40,6 +40,10 @@ func (h *handlers) recordExpense(ctx context.Context, in expenses.CreateInput, s
 	if in.Description != nil && *in.Description != "" {
 		reason += " - " + *in.Description
 	}
+	// Never out of a card-machine account: that money leaves only through Settle card.
+	if err := h.d.Cashflow.RequirePlace(ctx, src, ""); err != nil {
+		return 0, nil, err
+	}
 	var id int64
 	var rec *cashflow.Receipt
 	err := db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
@@ -261,6 +265,9 @@ func (h *handlers) voidExpenseTx(ctx context.Context, tx *sqlx.Tx, id int64, des
 	// (an archived dest locker is refused by MoveTx, rolling the delete back)
 	if pay.Paid && dest.Kind == cashflow.KindExternal {
 		return nil, apperr.Validation("this expense was paid from " + pay.From + " — pick where the money goes back")
+	}
+	if err := cashflow.RequirePlaceTx(ctx, tx, dest, ""); err != nil {
+		return nil, err
 	}
 	e, err := expenses.NewRepository(tx).DeleteReturning(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {

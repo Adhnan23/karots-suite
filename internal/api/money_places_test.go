@@ -80,3 +80,36 @@ func TestSupplierMoneyFitsItsPlace(t *testing.T) {
 		}
 	}
 }
+
+// An expense is never paid from, or voided back into, a card-machine account —
+// that money is still with the card company until Settle card. A bank or a
+// cash locker is fine.
+func TestExpenseNeverTouchesACardAccount(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "manager")
+	safe, bank, card := moneyPlaces(t, te)
+	loc := func(id int64) string { return fmt.Sprintf("locker:%d", id) }
+	cat := fmt.Sprintf("T place %d", time.Now().UnixNano())
+	create := func(src string) int {
+		return te.do(http.MethodPost, "/api/v1/admin/expenses", AdminExpenseRequest{Category: cat, Amount: "5", Source: src}, ck).Code
+	}
+	if code := create(loc(card)); code != http.StatusUnprocessableEntity {
+		t.Errorf("admin expense from the card account: %d", code)
+	}
+	if code := create(loc(bank)); code != http.StatusCreated {
+		t.Errorf("admin expense from the bank: %d", code)
+	}
+	if code := create(loc(safe)); code != http.StatusCreated {
+		t.Fatalf("admin expense from the safe: %d", code)
+	}
+	var id int64
+	if err := te.db.Get(&id, `SELECT max(id) FROM expenses WHERE category=$1`, cat); err != nil {
+		t.Fatal(err)
+	}
+	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/admin/expenses/%d/void", id), ExpenseVoidRequest{Dest: loc(card)}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("void into the card account: %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/till/expenses", ExpenseRequest{Category: cat, Amount: "1", CounterMoneyRequest: CounterMoneyRequest{LockerID: card}}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("counter expense from the card account: %d %s", rec.Code, rec.Body)
+	}
+}
