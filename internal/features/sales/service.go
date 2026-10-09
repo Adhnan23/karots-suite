@@ -162,6 +162,15 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		return nil, apperr.Validation("discount must be a non-negative amount")
 	}
 	billDiscType := normDiscountType(in.DiscountType)
+	// A card/online tender must name the card/bank account its money lands in;
+	// without one the sale would record money that reaches no account.
+	for _, p := range in.Payments {
+		if (p.Method == "card" || p.Method == "online") && p.AccountID <= 0 {
+			if amt, perr := money.Parse(p.Amount); perr == nil && amt.IsPositive() {
+				return nil, apperr.Validation("choose the card or bank account for the " + p.Method + " payment")
+			}
+		}
+	}
 
 	var detail *Detail
 	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
@@ -370,10 +379,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			}
 			// Card/online money lands in a chosen account (card- or bank-kind locker)
 			// so non-cash takings are tracked and reconcilable. Cash stays in the
-			// drawer (computed, not moved); credit is a debt, not money. When no
-			// account was picked (none configured) the line is recorded only — the
-			// pre-existing behaviour — so nothing breaks for shops not set up yet.
-			if s.nonCashLeg != nil && p.AccountID > 0 && (p.Method == "card" || p.Method == "online") {
+			// drawer (computed, not moved); credit is a debt, not money. Create
+			// refused a card/online line with no account up front.
+			if s.nonCashLeg != nil && (p.Method == "card" || p.Method == "online") {
 				if err := s.nonCashLeg(ctx, tx, NonCashPayment{
 					AccountID: p.AccountID,
 					Method:    p.Method,

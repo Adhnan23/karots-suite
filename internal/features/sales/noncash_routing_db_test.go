@@ -77,11 +77,20 @@ func TestNonCashLegFiresForCardOnlineWithAccountOnly(t *testing.T) {
 		t.Errorf("cash: hook calls = %d, want 0", len(calls))
 	}
 
-	// Card with NO account picked → record-only fallback, hook not fired.
+	// Card/online with NO account picked → refused (the money would reach no
+	// account), hook not fired.
 	calls = nil
-	ring(PaymentInput{Method: "card", Amount: "25", AccountID: 0})
+	for _, m := range []string{"card", "online"} {
+		if _, err := svc.Create(ctx, CreateInput{
+			SaleType: "retail",
+			Items:    []ItemInput{{ProductID: productID, Quantity: "1", AllowOversell: true}},
+			Payments: []PaymentInput{{Method: m, Amount: "25"}},
+		}, cashierID); err == nil {
+			t.Errorf("%s without account: want refusal, got a sale", m)
+		}
+	}
 	if len(calls) != 0 {
-		t.Errorf("card without account: hook calls = %d, want 0 (record-only fallback)", len(calls))
+		t.Errorf("card without account: hook calls = %d, want 0", len(calls))
 	}
 }
 

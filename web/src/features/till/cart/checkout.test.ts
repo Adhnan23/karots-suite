@@ -9,7 +9,7 @@ const withLine = (s: TillState, over: Partial<TillState['lines'][number]> = {}) 
   return { ...t, lines: t.lines.map((l) => ({ ...l, isService: false, stock: 10, priceOverride: '', ...over })) }
 }
 const cust: TillCustomer = { id: 5, name: 'Nimal', phone: '077', creditLimit: '1000.00', outstanding: '950.00' }
-const ctx = (p: Partial<GateCtx> = {}): GateCtx => ({ customer: null, canManageCredit: false, accountKinds: { card: false, online: false }, confirmed: false, ...p })
+const ctx = (p: Partial<GateCtx> = {}): GateCtx => ({ customer: null, canManageCredit: false, confirmed: false, ...p })
 
 describe('checkoutGate', () => {
   it('walk-in with a blank cash draft = exact cash', () => {
@@ -36,10 +36,10 @@ describe('checkoutGate', () => {
     expect('prompt' in checkoutGate(s, ctx())).toBe(true)
     expect('ok' in checkoutGate(s, ctx({ confirmed: true }))).toBe(true)
   })
-  it('card needs its account when one is set up; serials must be complete', () => {
+  it('card always needs its account; serials must be complete', () => {
     let s = withLine(initialState('retail'))
     s = tillReducer(s, { type: 'draft', patch: { method: 'card', amount: '100' } })
-    expect(checkoutGate(s, ctx({ accountKinds: { card: true, online: false } }))).toEqual({ error: 'Choose the account for the card payment' })
+    expect(checkoutGate(s, ctx())).toEqual({ error: 'Choose the account for the card payment' })
     const t = withLine(initialState('retail'), { trackSerial: true, serials: [''] })
     expect(checkoutGate(t, ctx())).toEqual({ error: 'Enter 1 serial number(s) for Item' })
   })

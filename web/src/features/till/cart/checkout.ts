@@ -12,7 +12,6 @@ export type Prompt =
 export type GateCtx = {
   customer: TillCustomer | null
   canManageCredit: boolean
-  accountKinds: { card: boolean; online: boolean } // a card / bank locker is set up
   confirmed: boolean // the tender prompt already answered (cannot loop)
 }
 
@@ -50,7 +49,7 @@ export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
   }
   if (payments.some((p) => num(p.amount) > 0 && !p.method)) return { error: 'Choose a payment method for each amount' }
   for (const p of payments) {
-    if ((p.method === 'card' || p.method === 'online') && num(p.amount) > 0 && ctx.accountKinds[p.method] && !p.accountId) {
+    if ((p.method === 'card' || p.method === 'online') && num(p.amount) > 0 && !p.accountId) {
       return { error: `Choose the account for the ${p.method} payment` }
     }
   }

@@ -63,8 +63,8 @@ type PaymentInput struct {
 	Amount    string  `json:"amount"    validate:"required"`
 	Reference *string `json:"reference"`
 	// AccountID is the money account a non-cash tender (card/online) lands in — a
-	// card-kind locker for card, a bank-kind locker for online. 0 = none picked
-	// (or none configured): the line is recorded as a payment only, no money moved.
+	// card-kind locker for card, a bank-kind locker for online. Required for a
+	// card/online line with an amount (Create refuses 0).
 	AccountID int64 `json:"account_id"`
 	// Meta is opaque per-line data for a plugin tender method (core never reads it;
 	// e.g. recharge "wallet" carries {"device_id":"N"}). Handed to the plugin hook.

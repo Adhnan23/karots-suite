@@ -5,7 +5,7 @@ import { api, ApiError } from '@/api/client'
 import type { SaleResult } from '@/api/types.gen'
 import { num } from '@/lib/money'
 import { slots } from '@/plugins/slots'
-import { configQuery, customersQuery, drawerQuery, errMsg, lockersOf, useRefreshTill } from '../api'
+import { configQuery, customersQuery, errMsg, useRefreshTill } from '../api'
 import { buildSaleRequest, checkoutGate, type Prompt } from '../cart/checkout'
 import { tillReducer, type Action } from '../cart/store'
 import type { SaleType, TillState } from '../cart/types'
@@ -15,7 +15,6 @@ import { useTill } from '../TillProvider'
 export function useCheckout() {
   const { state, dispatch } = useTill()
   const cfg = useSuspenseQuery(configQuery).data
-  const drawer = useQuery(drawerQuery).data
   const customers = useQuery(customersQuery).data
   const refresh = useRefreshTill()
   const [prompt, setPrompt] = useState<Prompt | null>(null)
@@ -31,7 +30,6 @@ export function useCheckout() {
     const customer = (customers ?? []).find((c) => c.id === s.customerId) ?? null
     const gate = checkoutGate(s, {
       customer, canManageCredit: cfg.canManageCredit, confirmed,
-      accountKinds: { card: lockersOf(drawer, 'card').length > 0, online: lockersOf(drawer, 'bank').length > 0 },
     })
     if ('prompt' in gate) return setPrompt(gate.prompt)
     if ('error' in gate) return void toast.error(gate.error)
@@ -65,7 +63,7 @@ export function useCheckout() {
       inFlight.current = false
       setBusy(false)
     }
-  }, [state, customers, cfg, drawer, dispatch, refresh, saleType])
+  }, [state, customers, cfg, dispatch, refresh, saleType])
 
   /** Resolve a prompt: apply the action (if any) and re-run on the NEXT state. */
   const answer = useCallback((action: Action | null, confirmed: boolean) => {
