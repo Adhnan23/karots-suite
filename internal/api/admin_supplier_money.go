@@ -23,11 +23,17 @@ import (
 
 // adminMoneyLoc resolves an admin form's source/destination. Cash has to name
 // one; card and online may be outside the shop (karots-pos parsePaymentSource).
-func adminMoneyLoc(method, source string) (cashflow.Location, error) {
+// The place must fit the method: cash a till or cash locker, card / online a
+// bank account, never a card-machine account (cashflow.RequirePlace).
+func (h *handlers) adminMoneyLoc(ctx context.Context, method, source string) (cashflow.Location, error) {
 	if method == "cash" && strings.TrimSpace(source) == "" {
 		return cashflow.Location{}, apperr.Validation("pick where the cash comes from or goes to")
 	}
-	return parseLocation(source)
+	loc, err := parseLocation(source)
+	if err != nil {
+		return loc, err
+	}
+	return loc, h.d.Cashflow.RequirePlace(ctx, loc, method)
 }
 
 // optAmount parses a blank-able, non-negative amount.
@@ -100,7 +106,7 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	if !ok {
 		return apperr.Validation("invalid payment method")
 	}
-	src, err := adminMoneyLoc(method, req.Source)
+	src, err := h.adminMoneyLoc(c.Request().Context(), method, req.Source)
 	if err != nil {
 		return err
 	}
@@ -154,7 +160,7 @@ func (h *handlers) AdminSupplierRefund(c echo.Context) error {
 	if err != nil || !amt.IsPositive() {
 		return apperr.Validation("enter the amount received")
 	}
-	dest, err := adminMoneyLoc(method, req.Source)
+	dest, err := h.adminMoneyLoc(c.Request().Context(), method, req.Source)
 	if err != nil {
 		return err
 	}

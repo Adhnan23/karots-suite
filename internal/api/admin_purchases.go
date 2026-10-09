@@ -231,7 +231,7 @@ func (h *handlers) adminPayOnDelivery(ctx context.Context, tx *sqlx.Tx, d *purch
 	if !ok {
 		return amt, nil, cashflow.External(), apperr.Validation("invalid payment method")
 	}
-	src, err := adminMoneyLoc(method, pay.Source)
+	src, err := h.adminMoneyLoc(ctx, method, pay.Source)
 	if err != nil {
 		return amt, nil, src, err
 	}

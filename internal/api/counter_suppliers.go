@@ -39,11 +39,17 @@ func normSupplierMethod(m string) (string, bool) {
 
 // supplierMoneyLoc: cash always touches the counter (drawer or a cashier locker);
 // card/online touch a locker only when one is picked, else it's outside the shop.
+// The place must fit the method: cash a drawer or cash locker, card / online a
+// bank account, never a card-machine account (cashflow.RequirePlace).
 func (h *handlers) supplierMoneyLoc(c echo.Context, method string, lockerID int64) (cashflow.Location, error) {
 	if method != "cash" && lockerID == 0 {
 		return cashflow.External(), nil
 	}
-	return h.counterSource(c, lockerID)
+	loc, err := h.counterSource(c, lockerID)
+	if err != nil {
+		return loc, err
+	}
+	return loc, h.d.Cashflow.RequirePlace(c.Request().Context(), loc, method)
 }
 
 // paySupplierTx books a supplier payment and, unless it was paid from outside

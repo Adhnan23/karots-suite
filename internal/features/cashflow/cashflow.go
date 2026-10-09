@@ -55,6 +55,44 @@ func External() Location { return Location{Kind: KindExternal} }
 
 func (l Location) tracked() bool { return l.Kind != KindExternal }
 
+// RequirePlace refuses a place that money paid by method can't come out of or
+// go into (lockers.Accepts): cash needs a till or a cash-holding locker, card /
+// online a bank account, and a card-machine account is never one — its money
+// leaves only through Settle card. method "" takes a till or any non-card
+// locker. External (the untracked far side) always passes. Pickers only offer
+// fitting places; this stops a forged or stale value (karots-pos RequirePlace).
+func (s *Service) RequirePlace(ctx context.Context, loc Location, method string) error {
+	return RequirePlaceTx(ctx, s.db, loc, method)
+}
+
+// RequirePlaceTx is RequirePlace reading through q (a caller's tx sees lockers
+// it has not committed yet).
+func RequirePlaceTx(ctx context.Context, q appdb.Queryer, loc Location, method string) error {
+	switch loc.Kind {
+	case KindTill:
+		if method == "" || method == "cash" {
+			return nil
+		}
+		return apperr.Validation("a till only holds cash — pick the bank account the " + method + " payment uses")
+	case KindLocker:
+		l, err := lockers.NewRepository(q).Get(ctx, loc.ID)
+		if err != nil {
+			return apperr.NotFound("locker")
+		}
+		if lockers.Accepts(l.Kind, method) {
+			return nil
+		}
+		if l.Kind == lockers.KindCard {
+			return apperr.Validation(l.Name + " is a card-machine account — its money only moves to the bank through Settle card")
+		}
+		if method == "cash" {
+			return apperr.Validation("cash can only go into or come from a cash locker or a till, not " + l.Name)
+		}
+		return apperr.Validation(method + " payments go through a bank account, not " + l.Name)
+	}
+	return nil
+}
+
 // Ref softly links the move's locker ledger rows back to the domain record that
 // caused it (an expense, a supplier payment, a customer payment, ...).
 type Ref struct {

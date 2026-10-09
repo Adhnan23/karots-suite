@@ -27,8 +27,8 @@ function MethodSource({ method, setMethod, source, setSource, sym, into }: {
   return (
     <>
       <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-      {method === 'card' && !into ? (
-        <p className="text-[13px] text-muted-foreground">A card payment to a supplier is the owner's card — nothing leaves a shop account.</p>
+      {method === 'card' ? (
+        <p className="text-[13px] text-muted-foreground">{into ? "A card refund from a supplier goes back to the owner's card — nothing lands in a shop account." : "A card payment to a supplier is the owner's card — nothing leaves a shop account."}</p>
       ) : (
         <Field label={where} hint={method === 'online' ? 'Pick the bank account so its balance stays right.' : undefined}>
           <MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into={into} label={where} />

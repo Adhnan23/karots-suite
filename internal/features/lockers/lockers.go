@@ -39,6 +39,23 @@ const (
 // a bank or card-machine account, which cash can't be put into or taken from.
 func HoldsCash(kind string) bool { return kind != KindBank && kind != KindCard }
 
+// Accepts reports whether money paid by method can come out of, or go into, a
+// locker of this kind: cash ↔ a cash-holding locker, card / online ↔ a bank
+// account, and a move that names no method (an expense, a transfer) takes
+// either. A card-machine account takes none of them — its money is still with
+// the card company and leaves only through Settle card.
+func Accepts(kind, method string) bool {
+	switch {
+	case kind == KindCard:
+		return false
+	case method == "":
+		return true
+	case method == "cash":
+		return HoldsCash(kind)
+	}
+	return kind == KindBank
+}
+
 func validKind(k string) bool {
 	switch k {
 	case KindSafe, KindBank, KindPocket, KindOther, KindCard:
