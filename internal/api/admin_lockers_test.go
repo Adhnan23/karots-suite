@@ -145,6 +145,25 @@ func TestAdminTillCashSettings(t *testing.T) {
 		t.Fatalf("archived default kept %+v", got.TillCash)
 	}
 	te.db.Exec(`UPDATE lockers SET is_active=true WHERE id=$1`, lid) //nolint:errcheck
+	// The default must hold cash: a bank account is refused, and turning the
+	// default into one clears it.
+	var bank int64
+	if err := te.db.Get(&bank, `INSERT INTO lockers (name, kind) VALUES ('T till bank', 'bank') RETURNING id`); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM lockers WHERE id=$1`, bank) }) //nolint:errcheck
+	if rec := te.do(http.MethodPut, "/api/v1/admin/settings/till-cash", TillCashRequest{DefaultLockerID: bank}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("bank as default: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPut, "/api/v1/admin/settings/till-cash", TillCashRequest{DefaultLockerID: lid}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("re-set default: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPut, "/api/v1/admin/lockers/"+strconv.FormatInt(lid, 10), LockerRequest{Name: "T till default", Kind: "bank"}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("make it a bank: %d %s", rec.Code, rec.Body)
+	}
+	if got := decode[AdminLockerList](t, te.do(http.MethodGet, "/api/v1/admin/lockers", nil, ck)); got.TillCash.DefaultLockerID != 0 {
+		t.Fatalf("bank default kept %+v", got.TillCash)
+	}
 	// 0 = no default.
 	if rec := te.do(http.MethodPut, "/api/v1/admin/settings/till-cash", TillCashRequest{}, ck); rec.Code != http.StatusNoContent {
 		t.Fatalf("clear: %d", rec.Code)

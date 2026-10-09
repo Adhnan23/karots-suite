@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tag } from '@/features/admin/products/ProductsPage'
-import { configQuery, errMsg } from '@/features/till/api'
+import { configQuery, errMsg, holdsCash } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { lockersQuery } from '../queries'
@@ -72,7 +72,7 @@ export function LockersPage() {
             onReactivate={() => void setActive(l, true).catch((e) => toast.error(errMsg(e)))} />)}
         </ul>
       )}
-      {data && <TillCash sym={sym} lockers={active} value={data.tillCash} />}
+      {data && <TillCash sym={sym} lockers={active.filter(holdsCash)} value={data.tillCash} />}
       {move?.kind === 'transfer' && <TransferSheet lockers={active} from={move.l?.id} sym={sym} onClose={() => setMove(null)} />}
       {move?.kind === 'settle' && <SettleSheet lockers={active} sym={sym} onClose={() => setMove(null)} />}
       {move?.kind === 'adjust' && move.l && <AdjustSheet l={move.l} sym={sym} onClose={() => setMove(null)} />}

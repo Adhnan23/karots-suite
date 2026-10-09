@@ -79,7 +79,7 @@ func (h *handlers) cashPlace(ctx context.Context, v, what string) (cashflow.Loca
 	if err != nil {
 		return loc, err
 	}
-	if l.Kind == lockers.KindBank || l.Kind == lockers.KindCard {
+	if !lockers.HoldsCash(l.Kind) {
 		return loc, apperr.Validation("cash can only go into or come from a cash locker or a till, not " + l.Name)
 	}
 	return loc, nil

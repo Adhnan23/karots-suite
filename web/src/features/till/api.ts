@@ -29,6 +29,8 @@ export const heldQuery = queryOptions({ queryKey: ['till', 'held'], queryFn: () 
 
 /** Card tenders land in 'card' lockers, online ones in 'bank' lockers. */
 export const lockersOf = (d: DrawerState | undefined, kind: 'card' | 'bank') => (d?.lockers ?? []).filter((l) => l.kind === kind)
+/** Lockers that hold notes and coins — the only places till cash may go to or come from. */
+export const holdsCash = (l: { kind: string }) => l.kind !== 'bank' && l.kind !== 'card'
 
 /** Everything the till caches except its config: refetch after a sale or stock change. */
 export function useRefreshTill() {

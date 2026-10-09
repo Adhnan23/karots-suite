@@ -8,6 +8,7 @@ import (
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/settings"
 	"karots-suite/internal/printing"
 	"karots-suite/internal/receiptimg"
@@ -75,7 +76,7 @@ func (h *handlers) settingsPage(c echo.Context, withPrinters bool) error {
 			page.Printers = []string{}
 		}
 	}
-	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active ORDER BY name`); err != nil {
+	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active AND kind NOT IN ('bank', 'card') ORDER BY name`); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, page)
@@ -94,6 +95,9 @@ func (h *handlers) AdminSettingsSave(c echo.Context) error {
 		}
 		if !l.IsActive {
 			return apperr.Validation("that locker is archived")
+		}
+		if !lockers.HoldsCash(l.Kind) {
+			return apperr.Validation("the till's default locker must hold cash — " + l.Name + " is a bank or card account")
 		}
 	}
 	up := settings.UpdateInput{

@@ -7,7 +7,7 @@ import type { DrawerState, ReceiptRef } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { configQuery, drawerQuery, errMsg } from '../api'
+import { configQuery, drawerQuery, errMsg, holdsCash } from '../api'
 import { useTillUi } from '../TillUi'
 import { PANEL } from '../ui'
 import { clearOpenDraft, fromBreakdown, loadOpenDraft, lockerDefault, saveOpenDraft, toBreakdown, type Counts } from './count'
@@ -21,8 +21,9 @@ export function OpenRegister({ state }: { state: DrawerState }) {
   const ui = useTillUi()
   const qc = useQueryClient()
   const draft = useMemo(() => loadOpenDraft(), [])
+  const lockers = state.lockers.filter(holdsCash)
   const [counts, setCounts] = useState<Counts>(draft?.counts ?? {})
-  const [lockerId, setLockerId] = useState(draft?.lockerId ?? lockerDefault(state.lockers, cfg.defaultLockerId, 'in', true))
+  const [lockerId, setLockerId] = useState(draft?.lockerId ?? lockerDefault(lockers, cfg.defaultLockerId, 'in', true))
   const [busy, setBusy] = useState(false)
   const sections = useDrawerSections('open')
   const last = state.summary.lastClosing
@@ -75,7 +76,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
         <div className={cn('mt-5 grid gap-6', sections.nodes.length > 0 && 'grid-cols-2')}>
           <div className="flex flex-col gap-4">
             <DenomCounter denoms={state.denominations} counts={counts} onChange={setCounts} sym={cfg.symbol} label="Opening float" />
-            <LockerSelect label="Float taken from" lockers={state.lockers} value={lockerId} onChange={setLockerId}
+            <LockerSelect label="Float taken from" lockers={lockers} value={lockerId} onChange={setLockerId}
               untrackedLabel="— already in the drawer —" sym={cfg.symbol} />
           </div>
           {sections.nodes.length > 0 && <div className="flex flex-col gap-4">{sections.nodes}</div>}

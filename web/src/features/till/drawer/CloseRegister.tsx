@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { configQuery, drawerQuery, errMsg } from '../api'
+import { configQuery, drawerQuery, errMsg, holdsCash } from '../api'
 import { printMoneySlip } from '../print'
 import { useTillUi } from '../TillUi'
 import { countTotal, lockerDefault, toBreakdown, type Counts } from './count'
@@ -20,7 +20,7 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
   const d = useQuery(drawerQuery).data
   const ui = useTillUi()
   const qc = useQueryClient()
-  const lockers = d?.lockers ?? []
+  const lockers = (d?.lockers ?? []).filter(holdsCash)
   const denoms = d?.denominations ?? []
   const [counts, setCounts] = useState<Counts>({})
   const [lockerId, setLockerId] = useState(() => lockerDefault(lockers, cfg.defaultLockerId, 'out', cfg.allowUntrackedCash))

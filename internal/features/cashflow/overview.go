@@ -94,6 +94,9 @@ func (s *Service) TillLockerLeg(ctx context.Context, tx *sqlx.Tx, ev cashregiste
 		if err != nil {
 			return 0, apperr.NotFound("locker")
 		}
+		if !lockers.HoldsCash(l.Kind) {
+			return 0, apperr.Validation("till cash can only go into or come from a cash locker, not " + l.Name)
+		}
 		if out && !l.AllowNegative && ev.Amount.GreaterThan(l.Balance) {
 			return 0, apperr.Conflict(l.Name + " only has " + money.Display(l.Balance) + " available")
 		}

@@ -207,6 +207,9 @@ func (h *handlers) AdminTillCash(c echo.Context) error {
 		if !l.IsActive {
 			return apperr.Validation("that locker is archived")
 		}
+		if !lockers.HoldsCash(l.Kind) {
+			return apperr.Validation("the till's default locker must hold cash — " + l.Name + " is a bank or card account")
+		}
 		def = &in.DefaultLockerID
 	}
 	if err := h.d.Settings.SetTillCash(ctx, def, in.AllowUntracked); err != nil {

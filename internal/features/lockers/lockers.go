@@ -35,6 +35,10 @@ const (
 	KindCard = "card"
 )
 
+// HoldsCash reports whether a locker kind holds notes and coins — anything but
+// a bank or card-machine account, which cash can't be put into or taken from.
+func HoldsCash(kind string) bool { return kind != KindBank && kind != KindCard }
+
 func validKind(k string) bool {
 	switch k {
 	case KindSafe, KindBank, KindPocket, KindOther, KindCard:
@@ -174,15 +178,20 @@ func (r *Repository) Create(ctx context.Context, name, kind string, allowNeg, ca
 	return &l, nil
 }
 
-// Update edits a locker's editable fields (not its balance).
+// Update edits a locker's editable fields (not its balance). Archiving the
+// till's default locker, or making it a bank / card account, clears that
+// default in the same statement (the till's default must hold cash).
 func (r *Repository) Update(ctx context.Context, id int64, name, kind string, allowNeg, isActive, cashierAccess bool) error {
-	res, err := r.q.ExecContext(ctx, `
-		UPDATE lockers SET name=$1, kind=$2, allow_negative=$3, is_active=$4, cashier_access=$5 WHERE id=$6`,
-		name, kind, allowNeg, isActive, cashierAccess, id)
+	var n int
+	err := r.q.QueryRowxContext(ctx, `
+		WITH l AS (UPDATE lockers SET name=$1, kind=$2, allow_negative=$3, is_active=$4, cashier_access=$5 WHERE id=$6 RETURNING id),
+		     s AS (UPDATE settings SET default_locker_id=NULL WHERE (NOT $4 OR $2 IN ('bank','card')) AND default_locker_id IN (SELECT id FROM l))
+		SELECT count(*) FROM l`,
+		name, kind, allowNeg, isActive, cashierAccess, id).Scan(&n)
 	if err != nil {
 		return err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	if n == 0 {
 		return sql.ErrNoRows
 	}
 	return nil
