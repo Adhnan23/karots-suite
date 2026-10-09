@@ -40,6 +40,8 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 	kick := newDrawerKicker(st)
 	// One cashflow service backs both the till-locker hook (cash events) and the
 	// sale non-cash hook (card/online tenders land in a card/bank account).
+	// Its sales instance only reads cash totals (it can't be salesSvc, which needs
+	// cf's leg). Anything that rings a sale — plugins too — must use salesSvc.
 	cf := cashflow.NewService(db, sales.NewService(db))
 	// Plugin tenders (e.g. recharge "wallet") settle their own ledger inside the
 	// sale's tx. The dispatcher bridges core→plugin at the composition root, so
@@ -56,7 +58,7 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 		return nil
 	}
 	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenderLeg(pluginTenderLeg)
-	cr := cashregister.NewService(db, sales.NewService(db)).WithAudit(audit.NewService(db))
+	cr := cashregister.NewService(db, salesSvc).WithAudit(audit.NewService(db))
 	// Wire the locker side of till cash events (opening float from a locker,
 	// banking at close, mid-shift moves to/from a locker) through cashflow, which
 	// imports cashregister — so the hook is injected here rather than imported.
