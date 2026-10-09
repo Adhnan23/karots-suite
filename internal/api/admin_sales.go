@@ -128,10 +128,7 @@ func (h *handlers) AdminSaleReturn(c echo.Context) error {
 	ctx := c.Request().Context()
 	var src cashflow.Location
 	from := func() (cashflow.Location, error) {
-		if strings.TrimSpace(req.Source) == "" {
-			return src, apperr.Validation("pick where the refund cash comes from")
-		}
-		src, err = parseLocation(req.Source)
+		src, err = h.cashPlace(ctx, req.Source, "comes from")
 		return src, err
 	}
 	cash, rec, err := h.returnSale(ctx, id, in, from, middleware.CurrentUserID(c))

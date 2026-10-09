@@ -42,6 +42,13 @@ func TestAdminCustomers(t *testing.T) {
 	if rec := te.do(http.MethodPost, path(cu.ID, "/payment"), CustomerPayRequest{Amount: "500", Method: "online", Source: fmt.Sprintf("locker:%d", safe)}, ck); rec.Code < 400 {
 		t.Fatalf("online into a safe: %d", rec.Code)
 	}
+	// Money has to land somewhere real: online with no account, cash into a bank.
+	if rec := te.do(http.MethodPost, path(cu.ID, "/payment"), CustomerPayRequest{Amount: "500", Method: "online"}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("online into no account: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPost, path(cu.ID, "/payment"), CustomerPayRequest{Amount: "500", Method: "cash", Source: fmt.Sprintf("locker:%d", bank)}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("cash into a bank: %d", rec.Code)
+	}
 	rec = te.do(http.MethodPost, path(cu.ID, "/payment"), CustomerPayRequest{Amount: "500", Method: "cash", Source: fmt.Sprintf("locker:%d", safe)}, ck)
 	if rec.Code != http.StatusCreated || decode[CreditPaymentResult](t, rec).BalanceAfter != "1000.00" {
 		t.Fatalf("cash pay: %d %s", rec.Code, rec.Body)

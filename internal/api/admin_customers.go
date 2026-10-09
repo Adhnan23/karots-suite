@@ -217,7 +217,13 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if !ok {
 		return apperr.Validation("invalid payment method")
 	}
-	dest, err := adminMoneyLoc(method, req.Source)
+	ctx := c.Request().Context()
+	var dest cashflow.Location
+	if method == "cash" {
+		dest, err = h.cashPlace(ctx, req.Source, "goes into")
+	} else {
+		dest, err = parseLocation(req.Source)
+	}
 	if err != nil {
 		return err
 	}
@@ -231,7 +237,6 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
-	ctx := c.Request().Context()
 	cu, err := h.t.customers.Get(ctx, id)
 	if err != nil {
 		return err

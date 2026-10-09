@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/money"
 
 	"github.com/labstack/echo/v4"
@@ -59,6 +61,28 @@ func parseLocation(v string) (cashflow.Location, error) {
 		return cashflow.Till(id), nil
 	}
 	return cashflow.Location{}, apperr.Validation("invalid money source")
+}
+
+// cashPlace resolves a picked place where notes and coins change hands with a
+// customer (collect, advance refund, sale-return refund): a cash locker or a
+// till, never a bank or card account. The picker only offers those; this stops
+// a forged value (karots-pos requireCash).
+func (h *handlers) cashPlace(ctx context.Context, v, what string) (cashflow.Location, error) {
+	if strings.TrimSpace(v) == "" {
+		return cashflow.Location{}, apperr.Validation("pick where the cash " + what)
+	}
+	loc, err := parseLocation(v)
+	if err != nil || loc.Kind != cashflow.KindLocker {
+		return loc, err
+	}
+	l, err := h.t.lockers.Get(ctx, loc.ID)
+	if err != nil {
+		return loc, err
+	}
+	if l.Kind == lockers.KindBank || l.Kind == lockers.KindCard {
+		return loc, apperr.Validation("cash can only go into or come from a cash locker or a till, not " + l.Name)
+	}
+	return loc, nil
 }
 
 // parseAmount reads a money amount typed by a person: spaces and thousands
