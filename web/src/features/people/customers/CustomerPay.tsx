@@ -1,11 +1,11 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
-import { type Method, MoneySourcePicker } from '@/features/purchasing/MoneySource'
+import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@/features/purchasing/MoneySource'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
 import { printDebtSlip } from '@/features/till/print'
@@ -13,9 +13,12 @@ import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 /** Collect a credit repayment (karots-pos Collect Payment): cash into a locker
- * or open till, card / online into its account. Over what's owed = an advance. */
+ * or open till, card / online into its account — Card / Online only show when
+ * the shop has that kind of account. Over what's owed = an advance. */
 export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: string; onClose: () => void }) {
   const qc = useQueryClient()
+  const sources = useQuery(moneySourcesQuery).data ?? []
+  const methods = ([['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']] as [Method, string][]).filter(([m]) => m === 'cash' || sourcesFor(sources, m).length > 0)
   const owed = Math.max(num(c.owed), 0)
   const old = num(c.oldDebt)
   const [amount, setAmount] = useState(owed > 0 ? dec(owed) : '')
@@ -25,7 +28,7 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
   const [reference, setReference] = useState('')
   const [busy, setBusy] = useState(false)
   const a = num(amount)
-  const where = method === 'cash' ? 'Cash into' : method === 'card' ? 'Card account (optional)' : 'Bank account (optional)'
+  const where = method === 'cash' ? 'Cash into' : method === 'card' ? 'Card account' : 'Bank account'
   async function save() {
     setBusy(true)
     try {
@@ -52,8 +55,8 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
         </div>
       </Field>
       {old > 0 && <Seg label="Clear first" value={oldFirst ? 'old' : 'new'} onChange={(v) => setOldFirst(v === 'old')} options={[['new', 'Recent bills first'], ['old', 'Old debt first']]} />}
-      <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-      <Field label={where}><MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into label={where} /></Field>
+      {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource(m === 'cash' ? '' : sourcesFor(sources, m)[0]?.value ?? '') }} options={methods} />}
+      <Field label={where}><MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
       <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
     </FormSheet>
   )

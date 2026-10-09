@@ -202,8 +202,8 @@ func (h *handlers) AdminCustomerOpening(c echo.Context) error {
 }
 
 // AdminCustomerPay collects a credit repayment (karots-pos CustomerPay): cash
-// into a locker or open till; card / online into the named card / bank account,
-// or recorded only. The payment and the money move commit together.
+// into a locker or open till; card / online into the named card / bank account.
+// The payment and the money move commit together.
 func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -225,6 +225,9 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 		return apperr.Validation("a " + method + " payment lands in a card or bank account, not a till")
 	}
 	in := customers.PaymentInput{Amount: strings.TrimSpace(req.Amount), Method: method, Reference: optStr(req.Reference), Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst}
+	if method != "cash" && dest.Kind == cashflow.KindLocker {
+		in.AccountID = dest.ID // RecordPaymentTx refuses card/online with none
+	}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -237,13 +240,13 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
-		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || dest.Kind == cashflow.KindExternal {
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
 			return err
 		}
 		mv := cashflow.MoveInput{From: cashflow.External(), To: dest, Amount: res.Amount, Reason: "credit collected: " + cu.Name,
 			ReceiptKind: "customer_payment", Party: cu.Name, Ref: &cashflow.Ref{Kind: "customer_payment", ID: res.PaymentID}, ActorID: userID}
 		if method != "cash" { // AccountLocationTx is the trust boundary for a non-cash account
-			if mv.To, err = cashflow.AccountLocationTx(ctx, tx, dest.ID, method); err != nil {
+			if mv.To, err = cashflow.AccountLocationTx(ctx, tx, in.AccountID, method); err != nil {
 				return err
 			}
 			mv.LockerKind = "payment"

@@ -15,9 +15,10 @@ export const sourcesFor = (all: MoneySource[], m: Method) =>
   all.filter((s) => (m === 'cash' ? s.kind !== 'card' && s.kind !== 'bank' : s.kind === (m === 'card' ? 'card' : 'bank')))
 
 /** Admin money source/destination. Cash must name one; card and online may be
- * outside the shop (""). */
-export function MoneySourcePicker({ method, value, onChange, sym, into, label }: {
-  method: Method; value: string; onChange: (v: string) => void; sym: string; into?: boolean; label?: string
+ * outside the shop ("") unless `required` (money from a customer must land in
+ * a shop account). */
+export function MoneySourcePicker({ method, value, onChange, sym, into, label, required }: {
+  method: Method; value: string; onChange: (v: string) => void; sym: string; into?: boolean; label?: string; required?: boolean
 }) {
   const all = useQuery(moneySourcesQuery).data
   const opts = sourcesFor(all ?? [], method)
@@ -26,7 +27,7 @@ export function MoneySourcePicker({ method, value, onChange, sym, into, label }:
     return <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] px-3 py-2 text-[13px] font-semibold text-warning">No cash locker or open till to use. Open a till, or add a cash locker first.</p>
   return (
     <select aria-label={label ?? (into ? 'Into' : 'From')} value={value} onChange={(e) => onChange(e.target.value)} className={cn(INPUT, 'appearance-auto')}>
-      <option value="">{method === 'cash' ? `— ${into ? 'where it goes' : 'where it comes from'} —` : into ? 'Not into a shop account' : 'Not from a shop account'}</option>
+      {!(required && method !== 'cash') && <option value="">{method === 'cash' ? `— ${into ? 'where it goes' : 'where it comes from'} —` : into ? 'Not into a shop account' : 'Not from a shop account'}</option>}
       {groups.map((g) => (
         <optgroup key={g} label={g}>
           {opts.filter((o) => o.group === g).map((o) => (

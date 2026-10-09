@@ -50,6 +50,18 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 	if method == "" {
 		method = "cash"
 	}
+	// A repayment must land somewhere: cash in a drawer or cash locker, card/online
+	// in the picked card/bank account. Without one the debt would shrink with no
+	// money anywhere, so refuse it.
+	switch method {
+	case "cash":
+	case "card", "online":
+		if in.AccountID <= 0 {
+			return nil, apperr.Validation("choose the card or bank account this payment goes into")
+		}
+	default:
+		return nil, apperr.Validation("payment method must be cash, card or online")
+	}
 	r := NewRepository(tx)
 	cust, err := r.FindByID(ctx, id)
 	if err != nil {

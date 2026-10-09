@@ -58,16 +58,13 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 		}
 		mv := cashflow.MoveInput{From: cashflow.External(), Amount: res.Amount, Reason: "credit collected: " + cust.Name,
 			ReceiptKind: "customer_payment", Party: cust.Name, Ref: &cashflow.Ref{Kind: "customer_payment", ID: res.PaymentID}, ActorID: userID}
-		switch {
-		case res.Method == "cash":
+		if res.Method == "cash" {
 			mv.To = cashflow.Till(userID)
-		case (res.Method == "card" || res.Method == "online") && in.AccountID > 0:
+		} else { // card/online: RecordPaymentTx already refused a missing account
 			if mv.To, err = cashflow.AccountLocationTx(ctx, tx, in.AccountID, res.Method); err != nil {
 				return err
 			}
 			mv.LockerKind = "payment"
-		default:
-			return nil // recorded only (no account set up for that method)
 		}
 		_, err = h.d.Cashflow.MoveTx(ctx, tx, mv)
 		return err

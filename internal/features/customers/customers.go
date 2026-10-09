@@ -64,8 +64,8 @@ type PaymentInput struct {
 	// the transactional balance. Admin-only; the cashier flow leaves it false.
 	ApplyToOpening bool `json:"apply_to_opening" form:"apply_to_opening"`
 	// AccountID is the money account a card/online repayment lands in (a card- or
-	// bank-kind locker). 0 = none picked/configured → recorded only, no money move.
-	// The web layer books the move; the customers service ignores it.
+	// bank-kind locker). Required for card/online (RecordPaymentTx refuses 0); the
+	// api layer books the move into it.
 	AccountID int64 `json:"account_id" form:"account_id"`
 }
 
