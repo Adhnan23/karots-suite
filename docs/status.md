@@ -210,4 +210,5 @@ The till must do **everything** karots-pos's till does, in the new design. The k
 - **Login hero:** add the tilted receipt card (yesterday's close) and the "Counter 1 / last closed" pills once an API gives that data.
 - **Dock:** areas appear as their pages land (M1–M6). Descriptions come from karots-pos's `templates/layouts/admin.templ`.
 - **M7:** `internal/plugin/hooks.go` comments still describe the templ/Alpine-era cashier URLs. Rewrite them when the plugin slots are built.
+- **Flaky Go test:** `TestAdminIntake` fails on a fresh `-reset -seed` DB ("Stock-take is turned off in Settings") and passes once other tests have run. It relies on a setting it never turns on. Seen at `a3cdf08` too, so it isn't from the 2026-10-09 money fixes. Fix: have the test turn stock-take on itself.
 - **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 51 ticked. Tick rows only when a route is ported AND flow-checked.
