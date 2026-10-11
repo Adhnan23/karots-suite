@@ -11,6 +11,7 @@ import (
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
+	"karots-suite/internal/plugin"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -58,8 +59,16 @@ func (h *handlers) AdminIntakeCreate(c echo.Context) error {
 			return apperr.Validation("the quantity must be a number")
 		}
 	}
+	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true}
+	if err := checkExtras(ctx, req.Product, x); err != nil {
+		return err
+	}
 	p, err := h.t.products.Create(ctx, in)
 	if err != nil {
+		return err
+	}
+	x.ProductID = p.ID
+	if err := saveExtras(ctx, req.Product, x); err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "intake created "+in.Name)

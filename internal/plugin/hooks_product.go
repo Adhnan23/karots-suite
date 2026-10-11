@@ -2,19 +2,26 @@ package plugin
 
 import (
 	"context"
-	"net/url"
+	"encoding/json"
 )
 
-// ProductFormValidate runs BEFORE a product is created/updated on the admin form.
-// A plugin returns an apperr.Validation when a required custom field is missing;
-// core aborts the save and shows the error. The client-side `required` attribute
-// covers the everyday case — this is the server backstop.
-type ProductFormValidate func(ctx context.Context, form url.Values) error
+// ExtraCtx is the product a plugin's extras belong to. ProductID is 0 while
+// validating a new product; IsNew is true on create (admin form and intake).
+type ExtraCtx struct {
+	ProductID  int64
+	CategoryID int64
+	IsNew      bool
+}
 
-// ProductSaved runs AFTER a successful product create/update, with the raw form,
-// so a plugin can persist its own fields (e.g. custom-field values). Errors are
-// surfaced but the product is already saved.
-type ProductSaved func(ctx context.Context, productID int64, form url.Values) error
+// ProductExtras lets a plugin carry its own data on the product form and intake
+// (ProductRequest.extra[Key], opaque to core). Validate runs for every key sent
+// BEFORE the product is written — an error refuses the save and nothing is
+// written; Save runs AFTER, with the product's id. A key no plugin owns is a 400.
+type ProductExtras struct {
+	Key      string
+	Validate func(ctx context.Context, x ExtraCtx, raw json.RawMessage) error
+	Save     func(ctx context.Context, x ExtraCtx, raw json.RawMessage) error
+}
 
 // ProductSearchContributor lets a plugin add product ids to a search. Match
 // returns the ids whose plugin-owned, searchable data matches the query; the web
@@ -103,8 +110,7 @@ type ProductReorderAnnotator struct {
 }
 
 var (
-	productValidators        hook[ProductFormValidate]
-	productSavedHooks        hook[ProductSaved]
+	productExtras            hook[ProductExtras]
 	productSearchers         hook[ProductSearchContributor]
 	productMetaProviders     hook[ProductMetaProvider]
 	productBadgeProviders    hook[ProductBadgeProvider]
@@ -114,10 +120,7 @@ var (
 	productReorderAnnotators hook[ProductReorderAnnotator]
 )
 
-func (r *Registry) AddProductFormValidate(v ProductFormValidate) {
-	productValidators.add(current, v)
-}
-func (r *Registry) AddProductSaved(s ProductSaved) { productSavedHooks.add(current, s) }
+func (r *Registry) AddProductExtras(x ProductExtras) { productExtras.add(current, x) }
 func (r *Registry) AddProductSearchContributor(s ProductSearchContributor) {
 	productSearchers.add(current, s)
 }
@@ -140,8 +143,7 @@ func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 	productReorderAnnotators.add(current, a)
 }
 
-func ProductFormValidators() []ProductFormValidate          { return productValidators.all() }
-func ProductSavedHooks() []ProductSaved                     { return productSavedHooks.all() }
+func ProductExtrasHooks() []ProductExtras                   { return productExtras.all() }
 func ProductSearchContributors() []ProductSearchContributor { return productSearchers.all() }
 func ProductMetaProviders() []ProductMetaProvider           { return productMetaProviders.all() }
 func ProductBadgeProviders() []ProductBadgeProvider         { return productBadgeProviders.all() }

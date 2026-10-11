@@ -1,5 +1,7 @@
 package api
 
+import "encoding/json"
+
 // ---- Admin: catalog (units, categories, products, services, groups) ----
 
 type UnitRequest struct {
@@ -69,31 +71,33 @@ type ProductList struct {
 // AdminProduct is a product for the edit form.
 type AdminProduct struct {
 	AdminProductRow `tstype:",extends"`
-	UnitID         int64  `json:"unitId"`
-	TaxRate        string `json:"taxRate"`
-	WarrantyMonths int    `json:"warrantyMonths"`
-	SupplierID     int64  `json:"supplierId"`
+	UnitID          int64  `json:"unitId"`
+	TaxRate         string `json:"taxRate"`
+	WarrantyMonths  int    `json:"warrantyMonths"`
+	SupplierID      int64  `json:"supplierId"`
 }
 
 // ProductRequest creates or edits a product. Money and tax are decimal strings;
 // SupplierID 0 = none. RepriceStock makes lots on the shelf follow a new selling
 // price. DupSourceName is set when saving a Duplicate: the copy must be renamed.
+// Extra holds each plugin's own data by key (opaque to core; see plugin.ProductExtras).
 type ProductRequest struct {
-	Name           string `json:"name"`
-	NameLocal      string `json:"nameLocal"`
-	Barcode        string `json:"barcode"`
-	CategoryID     int64  `json:"categoryId"`
-	UnitID         int64  `json:"unitId"`
-	CostPrice      string `json:"costPrice"`
-	SellingPrice   string `json:"sellingPrice"`
-	WholesalePrice string `json:"wholesalePrice"`
-	TaxRate        string `json:"taxRate"`
-	ReorderLevel   int    `json:"reorderLevel"`
-	TrackSerial    bool   `json:"trackSerial"`
-	WarrantyMonths int    `json:"warrantyMonths"`
-	SupplierID     int64  `json:"supplierId"`
-	RepriceStock   bool   `json:"repriceStock"`
-	DupSourceName  string `json:"dupSourceName"`
+	Name           string                     `json:"name"`
+	NameLocal      string                     `json:"nameLocal"`
+	Barcode        string                     `json:"barcode"`
+	CategoryID     int64                      `json:"categoryId"`
+	UnitID         int64                      `json:"unitId"`
+	CostPrice      string                     `json:"costPrice"`
+	SellingPrice   string                     `json:"sellingPrice"`
+	WholesalePrice string                     `json:"wholesalePrice"`
+	TaxRate        string                     `json:"taxRate"`
+	ReorderLevel   int                        `json:"reorderLevel"`
+	TrackSerial    bool                       `json:"trackSerial"`
+	WarrantyMonths int                        `json:"warrantyMonths"`
+	SupplierID     int64                      `json:"supplierId"`
+	RepriceStock   bool                       `json:"repriceStock"`
+	DupSourceName  string                     `json:"dupSourceName"`
+	Extra          map[string]json.RawMessage `json:"extra,omitempty" tstype:"{ [key: string]: unknown }"`
 }
 
 // ProductSaved answers a product save; Message says what else happened (a

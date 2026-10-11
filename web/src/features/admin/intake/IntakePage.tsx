@@ -11,6 +11,7 @@ import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { editPrice, markupOf, type Prices } from '@/features/admin/products/price'
 import { productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
+import { extraBody, type Extras, ProductExtras } from '@/features/admin/products/ProductExtras'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
@@ -235,6 +236,8 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
   const [unit, setUnit] = useState(sticky.unitId)
   const [supplier, setSupplier] = useState(sticky.supplierId)
   const [busy, setBusy] = useState(false)
+  const [extras, setExtras] = useState<Extras>({})
+  const [round, setRound] = useState(0) // remounts plugin sections after each save
   const [like, setLike] = useState(lastNew)
   const nameRef = useRef<HTMLInputElement>(null)
   const qtyRef = useRef<HTMLInputElement>(null)
@@ -248,7 +251,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
     try {
       const item = await api<IntakeItem>('/admin/inventory/intake/create', { json: { quantity: d.qty, product: {
         name: d.name, nameLocal: '', barcode: d.barcode, categoryId: cat, unitId, costPrice: d.cost, sellingPrice: d.selling, wholesalePrice: d.wholesale, taxRate: '',
-        reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: supplier, repriceStock: false, dupSourceName: '',
+        reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: supplier, repriceStock: false, dupSourceName: '', extra: extraBody(extras),
       } } })
       sticky = { categoryId: cat, unitId, supplierId: supplier, markup: d.markup }
       lastNew = d
@@ -257,6 +260,8 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
       onSaved(item)
       // Rapid loop: stay on New, keep category/unit/supplier/markup, clear the rest, back to the name.
       setD(blank('', ''))
+      setExtras({})
+      setRound((r) => r + 1)
       nameRef.current?.focus()
     } catch (err) {
       toast.error(errMsg(err))
@@ -301,6 +306,8 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
       <Field label="Opening quantity">
         <input ref={qtyRef} autoFocus={!!init.name} aria-label="Opening quantity" inputMode="decimal" value={d.qty} onChange={(e) => setD({ ...d, qty: clean(e.target.value) })} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} placeholder="0" />
       </Field>
+      <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
+      <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
       <LabelBlock opts={labels} set={setLabels} name={d.name} price={d.selling} barcode={d.barcode} qty={d.qty} />
       <div className="flex gap-2">
         <Button type="button" variant="ghost" className="h-11 px-4" onClick={onCancel}>Cancel</Button>

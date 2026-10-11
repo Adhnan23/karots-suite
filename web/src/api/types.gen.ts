@@ -145,6 +145,7 @@ export interface AdminProduct extends AdminProductRow {
  * ProductRequest creates or edits a product. Money and tax are decimal strings;
  * SupplierID 0 = none. RepriceStock makes lots on the shelf follow a new selling
  * price. DupSourceName is set when saving a Duplicate: the copy must be renamed.
+ * Extra holds each plugin's own data by key (opaque to core; see plugin.ProductExtras).
  */
 export interface ProductRequest {
   name: string;
@@ -162,6 +163,7 @@ export interface ProductRequest {
   supplierId: number /* int64 */;
   repriceStock: boolean;
   dupSourceName: string;
+  extra?: { [key: string]: unknown };
 }
 /**
  * ProductSaved answers a product save; Message says what else happened (a

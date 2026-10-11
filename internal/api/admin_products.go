@@ -9,6 +9,7 @@ import (
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/suppliers"
+	"karots-suite/internal/plugin"
 
 	"github.com/labstack/echo/v4"
 )
@@ -121,8 +122,17 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 	if src := strings.TrimSpace(req.DupSourceName); src != "" && strings.EqualFold(src, in.Name) {
 		return apperr.Validation("change the name before saving the copy")
 	}
-	p, err := h.t.products.Create(c.Request().Context(), in)
+	ctx := c.Request().Context()
+	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true}
+	if err := checkExtras(ctx, req, x); err != nil {
+		return err
+	}
+	p, err := h.t.products.Create(ctx, in)
 	if err != nil {
+		return err
+	}
+	x.ProductID = p.ID
+	if err := saveExtras(ctx, req, x); err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "created "+in.Name)
@@ -136,13 +146,20 @@ func (h *handlers) AdminProductUpdate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in, _, err := bindProduct(c)
+	in, req, err := bindProduct(c)
 	if err != nil {
 		return err
 	}
 	ctx := c.Request().Context()
+	x := plugin.ExtraCtx{ProductID: id, CategoryID: in.CategoryID}
+	if err := checkExtras(ctx, req, x); err != nil {
+		return err
+	}
 	p, err := h.t.products.Update(ctx, id, in)
 	if err != nil {
+		return err
+	}
+	if err := saveExtras(ctx, req, x); err != nil {
 		return err
 	}
 	out := ProductSaved{ID: id, Message: "Product saved"}

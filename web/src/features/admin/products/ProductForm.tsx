@@ -14,6 +14,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { editPrice, marginText, markupOf, type Prices } from './price'
+import { extraBody, type Extras, ProductExtras } from './ProductExtras'
 import { productQuery, supplierOptionsQuery } from './queries'
 
 /** id 0 = new; copyOf = duplicate that product (saved as a new one, must be renamed). */
@@ -35,10 +36,10 @@ export function ProductForm({ editing, onEdit, onClose }: { editing: Editing; on
   const src = editing.id || editing.copyOf || 0
   const p = useQuery({ ...productQuery(src), enabled: src > 0 }).data
   if (src > 0 && !p) return null
-  return <Form product={editing.id ? p : undefined} init={p ? fromProduct(p, !editing.id) : blank} onEdit={onEdit} onClose={onClose} />
+  return <Form product={editing.id ? p : undefined} sourceId={editing.copyOf ?? 0} init={p ? fromProduct(p, !editing.id) : blank} onEdit={onEdit} onClose={onClose} />
 }
 
-function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init: ProductRequest; onEdit: (e: Editing) => void; onClose: () => void }) {
+function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminProduct; sourceId: number; init: ProductRequest; onEdit: (e: Editing) => void; onClose: () => void }) {
   const qc = useQueryClient()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const units = useQuery(unitsQuery).data ?? []
@@ -46,6 +47,7 @@ function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init
   const [f, setF] = useState<ProductRequest>(() => ({ ...init, unitId: init.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || 0 }))
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
+  const [extras, setExtras] = useState<Extras>({})
   const set = (patch: Partial<ProductRequest>) => setF((x) => ({ ...x, ...patch }))
   const price = (field: keyof Prices, v: string) => setPrices((p) => editPrice(p, field, v.replace(/[^\d.]/g, '')))
   const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
@@ -58,7 +60,7 @@ function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init
   async function save() {
     setBusy(true)
     try {
-      const body: ProductRequest = { ...f, unitId, costPrice: prices.cost, sellingPrice: prices.selling, repriceStock: priceChanged && f.repriceStock }
+      const body: ProductRequest = { ...f, unitId, costPrice: prices.cost, sellingPrice: prices.selling, repriceStock: priceChanged && f.repriceStock, extra: extraBody(extras) }
       const r = product
         ? await api<ProductSaved>(`/admin/products/${product.id}`, { method: 'PUT', json: body })
         : await api<ProductSaved>('/admin/products', { json: body })
@@ -159,6 +161,7 @@ function Form({ product, init, onEdit, onClose }: { product?: AdminProduct; init
           <input inputMode="numeric" aria-label="Warranty months" value={f.warrantyMonths || ''} onChange={(e) => set({ warrantyMonths: Math.min(600, Number(e.target.value.replace(/\D/g, '')) || 0) })} className={INPUT} placeholder="None" />
         </Field>
       </div>}
+      <ProductExtras productId={product?.id ?? 0} sourceId={sourceId} categoryId={f.categoryId} where="form" extras={extras} setExtras={setExtras} />
     </FormSheet>
   )
 }

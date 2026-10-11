@@ -56,6 +56,15 @@ export type AppEntry = { key: string; label: string; description: string; icon: 
  * ('' on the page's own root), for the plugin's own sub-pages. */
 export type AdminPage = { key: string; Page: ComponentType<{ path: string }> }
 
+/** A plugin block on the admin product form and the intake New item form. value is
+ * what the Section last passed to onChange, sent as ProductRequest.extra[key]
+ * (checked by the plugin's Go ProductExtras before the save). productId 0 = a new
+ * product; sourceId is the product being duplicated (0 otherwise). */
+export type ProductFormSection = {
+  key: string
+  Section: ComponentType<{ productId: number; sourceId: number; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
+}
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
@@ -70,6 +79,7 @@ export const slots = {
   tillReceiptKinds: [] as TillReceiptKind[],
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
+  productFormSections: [] as ProductFormSection[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */
