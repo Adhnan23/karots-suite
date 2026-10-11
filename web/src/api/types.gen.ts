@@ -2098,7 +2098,7 @@ export interface ReadinessLine {
   need: string;
 }
 /**
- * ReadinessGroup is one plugin's readiness section (e.g. a reload float).
+ * ReadinessGroup is one plugin's readiness section (e.g. a plugin's float).
  */
 export interface ReadinessGroup {
   title: string;

@@ -1,7 +1,10 @@
-import { ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
+import { Home as HomeIcon, Store, ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
 import { REPORTS } from '@/features/reports/hub'
+import { slots, type AppEntry } from '@/plugins/slots'
+
+export type { AppEntry }
 
 /** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
 /** gate 'admin': admins only (Users). gate 'tax': only for a tax-registered shop (Tax report). */
@@ -9,7 +12,6 @@ export type NavPage = { to: string; icon: LucideIcon; label: string; description
 /** noTabs: too many pages for the tab row (Reports) — the shelf and Ctrl K list them. */
 /** blurb: the shelf's lead card line while no page is pointed at. */
 export type NavArea = { key: string; label: string; icon: LucideIcon; blurb?: string; pages: NavPage[]; noTabs?: boolean }
-export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string }
 
 /** karots-pos's admin areas and link descriptions (templates/layouts/admin.templ).
  * Each area's `pages` fills in as its milestone ports it; an area with none stays
@@ -90,5 +92,17 @@ export function whereIs(areas: NavArea[], path: string): { area: NavArea; page: 
   return best
 }
 
-/** Plugin slot for the dock's Apps tile (theme.md §6). Empty until M7. */
-export const apps: AppEntry[] = []
+/** The dock's Apps tile (theme.md §6): whatever the compiled-in plugins registered. */
+export const apps: AppEntry[] = slots.apps
+
+export type PaletteEntry = { key: string; label: string; to: string; icon: LucideIcon }
+
+/** Ctrl K's default list: Home, every page the user can reach, the plugin apps, the till. */
+export function paletteItems(areas: NavArea[]): PaletteEntry[] {
+  return [
+    { key: 'home', label: 'Home', to: '/admin', icon: HomeIcon },
+    ...areas.flatMap((a) => a.pages.map((p) => ({ key: `${a.key}:${p.to}`, label: p.label, to: p.to, icon: a.icon }))),
+    ...apps.map((a) => ({ key: `app:${a.key}`, label: a.label, to: a.to, icon: a.icon })),
+    { key: 'till', label: 'Open the till', to: '/till', icon: Store },
+  ]
+}

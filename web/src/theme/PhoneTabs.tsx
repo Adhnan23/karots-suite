@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Home, Menu, Store } from 'lucide-react'
+import { Home, LayoutGrid, Menu, Store } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { apps, type NavArea } from './nav'
@@ -65,6 +65,23 @@ export function PhoneTabs({ areas }: { areas: NavArea[] }) {
                 </div>
               </section>
             ))}
+            {apps.length > 0 && (
+              <section>
+                <h3 className="mb-1.5 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-faint">
+                  <LayoutGrid size={15} />
+                  Apps
+                </h3>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {apps.map((a) => (
+                    <Link key={a.key} to={a.to} onClick={() => setOpen(false)}
+                      className="flex min-w-0 items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-card px-3 py-2.5 text-sm font-semibold">
+                      <a.icon size={16} className="flex-none text-muted-foreground" />
+                      <span className="truncate">{a.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </SheetContent>
       </Sheet>

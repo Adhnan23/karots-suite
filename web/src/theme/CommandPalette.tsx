@@ -1,11 +1,9 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Home as HomeIcon, Store } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import type { NavArea } from './nav'
+import { paletteItems, type NavArea, type PaletteEntry } from './nav'
 
-export type PaletteEntry = { key: string; label: string; to: string; icon: LucideIcon }
+export type { PaletteEntry }
 
 /** Ctrl/Cmd K command palette (theme.md §6): every ported page and "Open the
  * till" by default; the till passes its own tabs. Controlled from the shell,
@@ -14,11 +12,7 @@ export function CommandPalette({ open, onOpenChange, entries: given, areas = [] 
   const [q, setQ] = useState('')
   const navigate = useNavigate()
 
-  const entries: PaletteEntry[] = given ?? [
-    { key: 'home', label: 'Home', to: '/admin', icon: HomeIcon },
-    ...areas.flatMap((a) => a.pages.map((p) => ({ key: `${a.key}:${p.to}`, label: p.label, to: p.to, icon: a.icon }))),
-    { key: 'till', label: 'Open the till', to: '/till', icon: Store },
-  ]
+  const entries: PaletteEntry[] = given ?? paletteItems(areas)
   const filtered = q ? entries.filter((e) => e.label.toLowerCase().includes(q.toLowerCase())) : entries
 
   const go = (to: string) => {

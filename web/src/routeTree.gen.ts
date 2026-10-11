@@ -99,6 +99,7 @@ import { Route as AuthedAdminPurchasesIdIndexRouteImport } from './routes/_authe
 import { Route as AuthedAdminPurchasesIdEditRouteImport } from './routes/_authed/admin/purchases/$id/edit'
 import { Route as AuthedAdminPurchasesIdReceiveRouteImport } from './routes/_authed/admin/purchases/$id/receive'
 import { Route as AuthedAdminReceiptsCashIdRouteImport } from './routes/_authed/admin/receipts/cash.$id'
+import { Route as AuthedAdminXKeySplatRouteImport } from './routes/_authed/admin/x.$key.$'
 import { Route as AuthedPrintStatementKindIdRouteImport } from './routes/_authed/print/statement.$kind.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -582,6 +583,11 @@ const AuthedAdminReceiptsCashIdRoute =
     path: '/cash/$id',
     getParentRoute: () => AuthedAdminReceiptsRoute,
   } as any)
+const AuthedAdminXKeySplatRoute = AuthedAdminXKeySplatRouteImport.update({
+  id: '/x/$key/$',
+  path: '/x/$key/$',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedPrintStatementKindIdRoute =
   AuthedPrintStatementKindIdRouteImport.update({
     id: '/print/statement/$kind/$id',
@@ -678,6 +684,7 @@ export interface FileRoutesByFullPath {
   '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
+  '/admin/x/$key/$': typeof AuthedAdminXKeySplatRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -768,6 +775,7 @@ export interface FileRoutesByTo {
   '/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
+  '/admin/x/$key/$': typeof AuthedAdminXKeySplatRoute
   '/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/admin/purchases/$id': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -862,6 +870,7 @@ export interface FileRoutesById {
   '/_authed/admin/purchases/$id/edit': typeof AuthedAdminPurchasesIdEditRoute
   '/_authed/admin/purchases/$id/receive': typeof AuthedAdminPurchasesIdReceiveRoute
   '/_authed/admin/receipts/cash/$id': typeof AuthedAdminReceiptsCashIdRoute
+  '/_authed/admin/x/$key/$': typeof AuthedAdminXKeySplatRoute
   '/_authed/print/statement/$kind/$id': typeof AuthedPrintStatementKindIdRoute
   '/_authed/admin/purchases/$id/': typeof AuthedAdminPurchasesIdIndexRoute
 }
@@ -956,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin/purchases/$id/edit'
     | '/admin/purchases/$id/receive'
     | '/admin/receipts/cash/$id'
+    | '/admin/x/$key/$'
     | '/print/statement/$kind/$id'
     | '/admin/purchases/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -1046,6 +1056,7 @@ export interface FileRouteTypes {
     | '/admin/purchases/$id/edit'
     | '/admin/purchases/$id/receive'
     | '/admin/receipts/cash/$id'
+    | '/admin/x/$key/$'
     | '/print/statement/$kind/$id'
     | '/admin/purchases/$id'
   id:
@@ -1139,6 +1150,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/purchases/$id/edit'
     | '/_authed/admin/purchases/$id/receive'
     | '/_authed/admin/receipts/cash/$id'
+    | '/_authed/admin/x/$key/$'
     | '/_authed/print/statement/$kind/$id'
     | '/_authed/admin/purchases/$id/'
   fileRoutesById: FileRoutesById
@@ -1783,6 +1795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminReceiptsCashIdRouteImport
       parentRoute: typeof AuthedAdminReceiptsRoute
     }
+    '/_authed/admin/x/$key/$': {
+      id: '/_authed/admin/x/$key/$'
+      path: '/x/$key/$'
+      fullPath: '/admin/x/$key/$'
+      preLoaderRoute: typeof AuthedAdminXKeySplatRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/print/statement/$kind/$id': {
       id: '/_authed/print/statement/$kind/$id'
       path: '/print/statement/$kind/$id'
@@ -1866,6 +1885,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminTillsIndexRoute: typeof AuthedAdminTillsIndexRoute
   AuthedAdminPurchasesIdEditRoute: typeof AuthedAdminPurchasesIdEditRoute
   AuthedAdminPurchasesIdReceiveRoute: typeof AuthedAdminPurchasesIdReceiveRoute
+  AuthedAdminXKeySplatRoute: typeof AuthedAdminXKeySplatRoute
   AuthedAdminPurchasesIdIndexRoute: typeof AuthedAdminPurchasesIdIndexRoute
 }
 
@@ -1932,6 +1952,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminTillsIndexRoute: AuthedAdminTillsIndexRoute,
   AuthedAdminPurchasesIdEditRoute: AuthedAdminPurchasesIdEditRoute,
   AuthedAdminPurchasesIdReceiveRoute: AuthedAdminPurchasesIdReceiveRoute,
+  AuthedAdminXKeySplatRoute: AuthedAdminXKeySplatRoute,
   AuthedAdminPurchasesIdIndexRoute: AuthedAdminPurchasesIdIndexRoute,
 }
 

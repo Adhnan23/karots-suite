@@ -43,13 +43,13 @@ export function Shelf(props: Props) {
         ) : (
           <div className="grid grid-cols-4 gap-2.5">
             {apps.map((a) => (
-              <button key={a.key} type="button" className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left">
-                <span className="grid h-11 w-11 place-items-center rounded-[13px] text-white" style={{ background: a.color }}>
+              <Link key={a.key} to={a.to} onClick={props.onClose} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left transition-colors hover:border-brand">
+                <span className="grid h-11 w-11 place-items-center rounded-[13px] text-brand-foreground" style={{ background: a.color }}>
                   <a.icon size={20} />
                 </span>
                 <b className="text-sm">{a.label}</b>
                 <span className="text-xs text-muted-foreground">{a.description}</span>
-              </button>
+              </Link>
             ))}
           </div>
         )

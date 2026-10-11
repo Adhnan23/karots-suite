@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { CartLine, ServiceLineInput } from '@/features/till/cart/types'
 
@@ -40,10 +41,20 @@ export type ReportCard = { href: string; title: string; desc: string }
 /** A section on Setup → Settings owned by a plugin (karots-pos plugin.SettingsSections). */
 export type SettingsSection = { key: string; title: string; Section: ComponentType }
 
+/** A tile on the dock's Apps shelf (also in Ctrl K and the phone's More). color is a
+ * theme token expression such as 'var(--brand)', never a raw colour. */
+export type AppEntry = { key: string; label: string; description: string; icon: LucideIcon; color: string; to: string }
+
+/** A plugin's admin page, served at /admin/x/<key>/*; path is what follows the key
+ * ('' on the page's own root), for the plugin's own sub-pages. */
+export type AdminPage = { key: string; Page: ComponentType<{ path: string }> }
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
 export const slots = {
+  apps: [] as AppEntry[],
+  adminPages: [] as AdminPage[],
   tillMenu: [] as TillMenuRoot[],
   tillActions: [] as TillAction[],
   drawerSections: [] as DrawerSection[],
