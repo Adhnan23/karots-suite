@@ -33,5 +33,6 @@ describe('combo matching', () => {
     expect(p[1].take[0].qty).toBe(2)
     expect(findPartials([pair], [line(1, 1), line(2, 1)])).toEqual([])
     expect(findPartials([pair], [line(5, 1)])).toEqual([])
+    expect(findPartials([pair], [line(1, 1), line(2, 1, { batchId: 3 })])).toEqual([]) // P2 is there, on a picked lot
   })
 })

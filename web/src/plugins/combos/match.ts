@@ -46,6 +46,9 @@ export function findPartials(combos: Combo[], lines: CartLine[]): Partial[] {
     if (c.problem || !c.members.length) continue
     const got = c.members.map((m) => Math.min(have(lines, m.productId), Number(m.qty)))
     if (got.every((g, i) => g >= Number(c.members[i].qty)) || got.every((g) => g === 0)) continue
+    // A "missing" item already in the cart on a line the combo can't use (a picked
+    // lot, a discount, another group) isn't missing: adding it again would double it.
+    if (c.members.some((m, i) => got[i] < Number(m.qty) && lines.some((l) => l.productId === m.productId && !plain(l)))) continue
     const take: Partial['take'] = []
     c.members.forEach((m, i) => {
       let need = got[i]
