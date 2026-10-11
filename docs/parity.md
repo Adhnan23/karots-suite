@@ -382,21 +382,21 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/alternatives
 
-- [ ] `plugins/alternatives/alternatives.go` · DELETE `/alternatives/members/:pid`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/:id`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/:id/tiers`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/new`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/reorder`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/reorder/export`
-- [ ] `plugins/alternatives/alternatives.go` · GET `/alternatives/tiers/:tid/search`
-- [ ] `plugins/alternatives/alternatives.go` · POST `/alternatives`
-- [ ] `plugins/alternatives/alternatives.go` · POST `/alternatives/:id/active`
-- [ ] `plugins/alternatives/alternatives.go` · POST `/alternatives/:id/tiers`
-- [ ] `plugins/alternatives/alternatives.go` · POST `/alternatives/tiers/:tid/active`
-- [ ] `plugins/alternatives/alternatives.go` · POST `/alternatives/tiers/:tid/members`
-- [ ] `plugins/alternatives/alternatives.go` · PUT `/alternatives/:id`
-- [ ] `plugins/alternatives/alternatives.go` · PUT `/alternatives/tiers/:tid`
+- [x] `plugins/alternatives/alternatives.go` · DELETE `/alternatives/members/:pid` → DELETE /api/v1/x/alternatives/members/:pid, ✕ on a member (group page)
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives` → GET /api/v1/x/alternatives, Apps → Alternatives (cards: tiers vs level, Low, Low only, CSV)
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/:id` → GET /api/v1/x/alternatives/:id, the group page (tiers best first, members, health)
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/:id/tiers` → same group read (React re-renders; no fragment)
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/new` → client-side New group sheet
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/reorder` → merged into core Reorder: plugin notes + Hide covered items (ProductReorderAnnotator), and the group list's tier status
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/reorder/export` → group list CSV (client-side)
+- [x] `plugins/alternatives/alternatives.go` · GET `/alternatives/tiers/:tid/search` → shared ProductPicker with "In <group>" hints (GET /api/v1/x/alternatives/membership)
+- [x] `plugins/alternatives/alternatives.go` · POST `/alternatives` → POST /api/v1/x/alternatives (with a blank first tier)
+- [x] `plugins/alternatives/alternatives.go` · POST `/alternatives/:id/active` → POST /api/v1/x/alternatives/:id/active
+- [x] `plugins/alternatives/alternatives.go` · POST `/alternatives/:id/tiers` → POST /api/v1/x/alternatives/:id/tiers, Add a quality tier (names the first tier too)
+- [x] `plugins/alternatives/alternatives.go` · POST `/alternatives/tiers/:tid/active` → POST /api/v1/x/alternatives/tiers/:tid/active
+- [x] `plugins/alternatives/alternatives.go` · POST `/alternatives/tiers/:tid/members` → POST /api/v1/x/alternatives/tiers/:tid/members (409 IN_OTHER_GROUP → Move here?)
+- [x] `plugins/alternatives/alternatives.go` · PUT `/alternatives/:id` → PUT /api/v1/x/alternatives/:id, Rename
+- [x] `plugins/alternatives/alternatives.go` · PUT `/alternatives/tiers/:tid` → PUT /api/v1/x/alternatives/tiers/:tid, tier name + reorder level
 
 ## plugins/clearance
 
