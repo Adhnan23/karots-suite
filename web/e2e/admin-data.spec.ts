@@ -121,6 +121,29 @@ test('import: a customer sheet with one bad row; product export downloads', asyn
   expect(dl.suggestedFilename()).toBe('products.xlsx')
 })
 
+test('products export: Skip disabled off adds a disabled one with active = no; a re-import keeps it disabled', async ({ page }) => {
+  await signIn(page)
+  const code = `SKIP${tag}`
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json())[0]
+  const id = (await (await page.request.post('/api/v1/admin/products', { data: {
+    name: `Skip ${tag}`, nameLocal: '', barcode: code, categoryId: cat.id, unitId: 1, costPrice: '40', sellingPrice: '60', wholesalePrice: '', taxRate: '',
+    reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '',
+  } })).json()).id
+  await page.request.delete(`/api/v1/admin/products/${id}`)
+  const csv = async (qs: string) => (await page.request.get(`/api/v1/admin/products/export?format=csv${qs}`)).text()
+  expect(await csv('')).not.toContain(code) // Skip disabled on: today's sheet
+  const lines = (await csv('&disabled=1')).split('\n')
+  expect(lines[0].split(',')).toContain('active')
+  const row = lines.find((l) => l.includes(code))!
+  expect(row.split(',')).toContain('no')
+  const res = await page.request.post('/api/v1/admin/products/import?disabled=1', { multipart: { file: { name: 'p.csv', mimeType: 'text/csv', buffer: Buffer.from(`${lines[0]}\n${row}\n`) } } })
+  expect(res.ok()).toBe(true)
+  const p = await (await page.request.get(`/api/v1/admin/products/${id}`)).json()
+  expect(p.isActive).toBe(false)
+  const again = await (await page.request.get(`/api/v1/admin/products?q=${code}&disabled=1&page=1`)).json()
+  expect(again.total).toBe(1) // matched, not added again
+})
+
 test('setup checklist on the dashboard; Data and Settings fit a phone', async ({ page }) => {
   await signIn(page)
   await open(page, '/admin')
