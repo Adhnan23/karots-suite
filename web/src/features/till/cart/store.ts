@@ -1,4 +1,5 @@
 import type { HeldSale, Lot, TillProduct } from '@/api/types.gen'
+import { addGroup, breakGroup, removeGroup, setGroupCount, type GroupInput } from './groups'
 import { fromHeld } from './held'
 import { addProduct, serviceLine, setQty, syncSerials } from './lines'
 import { balanceDue, saleTotal } from './totals'
@@ -16,6 +17,10 @@ export type Action =
   | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[] }
   | { type: 'quickSet'; product: TillProduct; qty: number }
   | { type: 'addService'; line: ServiceLineInput }
+  | { type: 'addGroup'; group: GroupInput }
+  | { type: 'groupCount'; id: number; count: number }
+  | { type: 'breakGroup'; id: number; key: number }
+  | { type: 'removeGroup'; id: number }
   | { type: 'setQty'; key: number; qty: number; lots: Lot[] }
   | { type: 'remove'; key: number }
   | { type: 'lineDiscount'; key: number; discount: string; discountType: DiscountType }
@@ -58,7 +63,7 @@ export function tillReducer(s: TillState, a: Action): TillState {
     }
     case 'quickSet': {
       let st = s
-      let hit = s.lines.find((l) => l.productId === a.product.id && !l.isService)
+      let hit = s.lines.find((l) => l.productId === a.product.id && !l.isService && !l.group)
       if (!hit) {
         const r = addProduct(s.lines, s.seq, a.product, s.saleType, undefined, [])
         st = { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.key }
@@ -71,6 +76,16 @@ export function tillReducer(s: TillState, a: Action): TillState {
       const key = s.seq + 1
       return { ...s, lines: [...s.lines, serviceLine(key, a.line)], seq: key, lastAddedKey: key, postSaleChange: 0 }
     }
+    case 'addGroup': {
+      const r = addGroup(s.lines, s.seq, s.saleType, a.group)
+      return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.seq, postSaleChange: 0 }
+    }
+    case 'groupCount':
+      return { ...s, lines: setGroupCount(s.lines, a.id, a.count) }
+    case 'breakGroup':
+      return { ...s, lines: breakGroup(s.lines, a.id, a.key) }
+    case 'removeGroup':
+      return { ...s, lines: removeGroup(s.lines, a.id) }
     case 'setQty': {
       const r = setQty(s.lines, s.seq, a.key, a.qty, a.lots)
       return { ...s, lines: r.lines, seq: r.seq, notice: r.notice }

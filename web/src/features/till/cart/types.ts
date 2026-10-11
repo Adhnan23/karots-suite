@@ -26,7 +26,11 @@ export type CartLine = {
   description: string
   components: Component[]
   plugin?: Record<string, unknown> // opaque data a plugin slot attached (M7)
+  group?: LineGroup // lines a plugin added together (a combo): scaled, removed and broken together
 }
+
+/** id is unique in the cart; per is this line's qty in one set (qty = per × count). */
+export type LineGroup = { id: number; label: string; per: number; count: number }
 
 export type Payment = {
   method: string // '' = not picked yet

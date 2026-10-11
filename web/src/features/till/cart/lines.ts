@@ -38,7 +38,7 @@ export function syncSerials(l: CartLine): CartLine {
   return { ...l, serials }
 }
 
-function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: Lot): CartLine {
+export function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: Lot): CartLine {
   return syncSerials({
     key, productId: p.id, name: p.name,
     unitPrice: lot ? num(lot.price) : unitPriceFor(p, saleType),
@@ -55,7 +55,7 @@ function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: Lot): Ca
 /** Add one unit. A line is product AND lot — merging on product alone would re-price. */
 export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleType: SaleType, lot: Lot | undefined, lots: Lot[]): LinesResult {
   const batchId = lot?.batchId ?? 0
-  const hit = lines.find((l) => l.productId === p.id && l.batchId === batchId && !l.isService)
+  const hit = lines.find((l) => l.productId === p.id && l.batchId === batchId && !l.isService && !l.group)
   if (hit) return setQty(lines, seq, hit.key, hit.qty + 1, lots)
   const key = seq + 1
   return { lines: [...lines, newLine(key, p, saleType, lot)], seq: key, key, notice: null }
