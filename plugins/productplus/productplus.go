@@ -29,4 +29,17 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "productplus", Name: "Product Plus (custom fields)",
 		Tables: []string{"pp_fields", "pp_values", "pp_field_categories"}})
+	p.registerHooks(reg)
+
+	h := handlers{p}
+	a := reg.Admin() // /api/v1/x — admin + manager
+	a.GET("/productplus/fields", h.fields)
+	a.POST("/productplus/fields", h.create)
+	a.PUT("/productplus/fields/:id", h.update)
+	a.GET("/productplus/fields/:id/impact", h.impact)
+	a.POST("/productplus/fields/:id/active", h.setActive)
+	a.POST("/productplus/fields/:id/move", h.move)
+	a.GET("/productplus/form", h.form)
+	a.GET("/productplus/grid", h.grid)
+	a.PUT("/productplus/values", h.values)
 }
