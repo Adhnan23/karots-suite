@@ -19,6 +19,14 @@ type SaleItemRequest struct {
 	Serials       []string           `json:"serials"`
 	Description   string             `json:"description"`
 	Components    []ServiceComponent `json:"components"`
+	Group         *SaleLineGroup     `json:"group,omitempty"` // lines added together; receipts print them as one block
+}
+
+// SaleLineGroup: no numbers the groups within the sale, sets is how many sets.
+type SaleLineGroup struct {
+	No    int    `json:"no"`
+	Label string `json:"label"`
+	Sets  string `json:"sets"`
 }
 
 type PaymentRequest struct {

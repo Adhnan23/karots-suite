@@ -68,6 +68,10 @@ type SaleItem struct {
 	// several lots), so it answers "why was this price used" without pretending to
 	// be a complete lot trace.
 	BatchID *int64 `db:"batch_id" json:"batch_id,omitempty"`
+	// Line group (see ItemInput.Group); all NULL for a plain line.
+	LineGroup      *int             `db:"line_group"       json:"line_group,omitempty"`
+	LineGroupLabel *string          `db:"line_group_label" json:"line_group_label,omitempty"`
+	LineGroupSets  *decimal.Decimal `db:"line_group_sets"  json:"line_group_sets,omitempty"`
 	// joined
 	ProductName    string `db:"product_name"    json:"product_name"`
 	UnitAbbr       string `db:"unit_abbr"       json:"unit_abbr"`
@@ -181,9 +185,11 @@ func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
 
 func (r *Repository) InsertItem(ctx context.Context, saleID int64, it SaleItem) error {
 	_, err := r.q.ExecContext(ctx, `
-		INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, cost_price, discount, discount_type, discount_value, subtotal, description, batch_id)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-		saleID, it.ProductID, it.Quantity, it.UnitPrice, it.CostPrice, it.Discount, it.DiscountType, it.DiscountValue, it.Subtotal, it.Description, it.BatchID)
+		INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, cost_price, discount, discount_type, discount_value, subtotal, description, batch_id,
+			line_group, line_group_label, line_group_sets)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+		saleID, it.ProductID, it.Quantity, it.UnitPrice, it.CostPrice, it.Discount, it.DiscountType, it.DiscountValue, it.Subtotal, it.Description, it.BatchID,
+		it.LineGroup, it.LineGroupLabel, it.LineGroupSets)
 	return err
 }
 

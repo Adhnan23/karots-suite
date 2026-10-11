@@ -12,6 +12,7 @@ import (
 	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 func (h *handlers) registerTillSales(g *echo.Group) {
@@ -35,11 +36,16 @@ func saleInput(r SaleRequest) sales.CreateInput {
 		for _, c := range it.Components {
 			comps = append(comps, sales.ServiceComponent{ProductID: c.ProductID, Quantity: c.Quantity})
 		}
-		in.Items = append(in.Items, sales.ItemInput{
+		item := sales.ItemInput{
 			ProductID: it.ProductID, Quantity: it.Quantity, Discount: it.Discount, DiscountType: it.DiscountType,
 			PriceOverride: it.PriceOverride, BatchID: it.BatchID, AllowOversell: it.AllowOversell,
 			Serials: it.Serials, Description: it.Description, Components: comps,
-		})
+		}
+		if g := it.Group; g != nil {
+			sets, _ := decimal.NewFromString(g.Sets) // a bad value stays 0 and is refused as a validation error
+			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets}
+		}
+		in.Items = append(in.Items, item)
 	}
 	for _, p := range r.Payments {
 		pi := sales.PaymentInput{Method: p.Method, Amount: p.Amount, AccountID: p.AccountID, Meta: p.Meta}

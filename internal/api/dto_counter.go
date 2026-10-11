@@ -132,6 +132,9 @@ type SaleLine struct {
 	Paid        string `json:"paid"`       // what the whole line was paid: net shared down by the bill discount
 	RefundLeft  string `json:"refundLeft"` // paid minus earlier refunds: what returning the rest refunds
 	IsService   bool   `json:"isService"`  // never returnable
+	Group       int    `json:"group"`      // line group number in the sale, 0 = a plain line
+	GroupLabel  string `json:"groupLabel"`
+	GroupSets   string `json:"groupSets"`
 }
 
 type SalePayment struct {

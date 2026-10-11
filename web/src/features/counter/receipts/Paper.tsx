@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { DebtReceiptRow, MoneyReceiptRow, SaleView, ShopHeader, WarrantyClaimRow } from '@/api/types.gen'
-import { money, num, qtyText } from '@/lib/money'
+import { money, num, qtyText, r2 } from '@/lib/money'
+import { saleLineBlocks } from '@/lib/saleLines'
 import { cn } from '@/lib/utils'
 
 const stamp = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
@@ -36,13 +37,23 @@ export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHea
       <Row l={s.receiptNo} r={stamp(s.createdAt)} />
       <Row l={`Cashier: ${s.cashierName}`} r={s.customerName || ''} />
       <Rule />
-      {s.lines.map((l) => (
-        <div key={l.id} className="mb-1">
-          <span className="block">{l.name}</span>
-          <Row l={`  ${qtyText(l.quantity)} × ${money('', l.unitPrice).trim()}`} r={money('', l.subtotal).trim()} />
-          {num(l.returnedQty) > 0 && <span className="block">  returned {qtyText(l.returnedQty)}</span>}
-        </div>
-      ))}
+      {saleLineBlocks(s.lines).map((x) => (x.kind === 'line'
+        ? (
+          <div key={x.line.id} className="mb-1">
+            <span className="block">{x.line.name}</span>
+            <Row l={`  ${qtyText(x.line.quantity)} × ${money('', x.line.unitPrice).trim()}`} r={money('', x.line.subtotal).trim()} />
+            {num(x.line.returnedQty) > 0 && <span className="block">  returned {qtyText(x.line.returnedQty)}</span>}
+          </div>
+        )
+        : (
+          <div key={`g${x.no}`} className="mb-1">
+            <span className="block">{x.label}</span>
+            <Row l={`  ${qtyText(x.sets)} × ${money('', r2(x.net / num(x.sets))).trim()}`} r={money('', x.net).trim()} />
+            {x.lines.map((l) => (
+              <span key={l.id} className="block whitespace-pre">{`   - ${l.name} ×${qtyText(l.quantity)}`}{num(l.returnedQty) > 0 && `, returned ${qtyText(l.returnedQty)}`}</span>
+            ))}
+          </div>
+        )))}
       <Rule />
       <Row l="Subtotal" r={money(sym, s.subtotal)} />
       {num(s.discount) > 0 && <Row l="Discount" r={`-${money(sym, s.discount)}`} />}

@@ -35,6 +35,16 @@ type ItemInput struct {
 	// consuming paper). Honoured only for is_service products; the line's
 	// cost_price becomes the summed FEFO cost of the consumed components.
 	Components []ServiceComponent `json:"components"`
+	// Group marks lines the till added together (a plugin's group): receipts
+	// print them as one block. nil = a plain line.
+	Group *LineGroup `json:"group"`
+}
+
+// LineGroup: No numbers the groups within one sale, Sets is how many sets.
+type LineGroup struct {
+	No    int             `json:"no"`
+	Label string          `json:"label"`
+	Sets  decimal.Decimal `json:"sets"`
 }
 
 // ServiceComponent is one consumable a service line draws down from stock.

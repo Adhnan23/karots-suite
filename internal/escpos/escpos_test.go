@@ -341,3 +341,24 @@ func TestDebtDocumentOmitsNullBalances(t *testing.T) {
 		t.Errorf("expected no balance block when balances are nil")
 	}
 }
+
+func TestDocumentPrintsALineGroupAsOneBlock(t *testing.T) {
+	d := decimal.RequireFromString
+	no, label, sets := 1, "Milk + Cookies (combo)", d("2")
+	member := func(name, unit, disc, net string) sales.SaleItem {
+		return sales.SaleItem{ProductName: name, Quantity: d("2"), UnitAbbr: "pc", UnitPrice: d(unit),
+			Discount: d(disc), DiscountType: "fixed", DiscountValue: d(disc).Div(d("2")), Subtotal: d(net),
+			LineGroup: &no, LineGroupLabel: &label, LineGroupSets: &sets}
+	}
+	det := sampleDetail()
+	det.Items = append([]sales.SaleItem{member("Milk 1L", "380.00", "50.68", "709.32"), member("Cookies 200g", "220.00", "29.32", "410.68")}, det.Items...)
+	s := string(Document(det, cfg("80"), Options{}))
+	for _, want := range []string{"Milk + Cookies (combo)", "2 x 600.00 -> 560.00", "1,200.00", "-80.00", "1,120.00", " - Milk 1L x2", " - Cookies 200g x2"} {
+		if !strings.Contains(s, want) {
+			t.Errorf("receipt missing %q\n%s", want, s)
+		}
+	}
+	if strings.Contains(s, "354.66") || strings.Contains(s, "-50.68") {
+		t.Errorf("a group's members must not print their own prices\n%s", s)
+	}
+}

@@ -298,7 +298,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		if pickedBatch != nil {
 			batchID = &pickedBatch.ID
 		}
-		lines = append(lines, SaleItem{
+		item := SaleItem{
 			BatchID:       batchID,
 			ProductID:     p.ID,
 			Quantity:      qty,
@@ -309,7 +309,16 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			DiscountValue: discValue,
 			Subtotal:      lineNet,
 			Description:   desc,
-		})
+		}
+		if g := it.Group; g != nil {
+			label := strings.TrimSpace(g.Label)
+			if g.No <= 0 || label == "" || len(label) > 120 || !g.Sets.IsPositive() {
+				return apperr.Validation("a line group needs a number, a label and its sets")
+			}
+			no, sets := g.No, g.Sets
+			item.LineGroup, item.LineGroupLabel, item.LineGroupSets = &no, &label, &sets
+		}
+		lines = append(lines, item)
 		if len(lineComps) > 0 {
 			componentMoves[len(lines)-1] = lineComps
 		}

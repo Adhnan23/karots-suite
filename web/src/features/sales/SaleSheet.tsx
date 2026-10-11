@@ -89,6 +89,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
               <div className="flex items-center gap-3">
                 <span className="min-w-0 flex-1">
                   <b className="block truncate text-[14px]">{l.name}</b>
+                  {l.groupLabel && <span className="mr-1.5 inline-block rounded-md bg-brand-soft px-1.5 text-[11px] font-bold">{l.groupLabel}</span>}
                   <small className="text-muted-foreground tabular-nums">
                     sold {qtyText(l.quantity)} {l.unitAbbr} · {qtyText(left(l))} can come back · {money(sym, l.refundUnit)} each
                   </small>

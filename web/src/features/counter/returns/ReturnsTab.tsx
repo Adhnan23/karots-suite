@@ -86,6 +86,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
               <div className="flex items-center gap-3">
                 <span className="min-w-0 flex-1">
                   <b className="block truncate text-[14px]">{l.name}</b>
+                  {l.groupLabel && <span className="mr-1.5 inline-block rounded-md bg-brand-soft px-1.5 text-[11px] font-bold">{l.groupLabel}</span>}
                   <small className="text-muted-foreground tabular-nums">
                     {qtyText(l.quantity)} {l.unitAbbr} × {money(sym, l.refundUnit)}
                     {num(l.returnedQty) > 0 && ` · ${qtyText(l.returnedQty)} already back`}

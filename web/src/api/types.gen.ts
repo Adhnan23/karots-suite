@@ -412,6 +412,9 @@ export interface SaleLine {
   paid: string; // what the whole line was paid: net shared down by the bill discount
   refundLeft: string; // paid minus earlier refunds: what returning the rest refunds
   isService: boolean; // never returnable
+  group: number /* int */; // line group number in the sale, 0 = a plain line
+  groupLabel: string;
+  groupSets: string;
 }
 export interface SalePayment {
   method: string;
@@ -2365,6 +2368,15 @@ export interface SaleItemRequest {
   serials: string[];
   description: string;
   components: ServiceComponent[];
+  group?: SaleLineGroup; // lines added together; receipts print them as one block
+}
+/**
+ * SaleLineGroup: no numbers the groups within the sale, sets is how many sets.
+ */
+export interface SaleLineGroup {
+  no: number /* int */;
+  label: string;
+  sets: string;
 }
 export interface PaymentRequest {
   method: string; // cash | card | online | credit | <plugin tender>
