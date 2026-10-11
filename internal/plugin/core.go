@@ -38,4 +38,7 @@ type Core struct {
 	// repairer from a chosen locker, exactly like the core expense/bill-pay flow.
 	Cashflow *cashflow.Service
 	Lockers  *lockers.Service
+	// ProductSheetNameTaken says a column name the products sheet already reads
+	// as one of its own (so a plugin's sheet column must not use it).
+	ProductSheetNameTaken func(name string) bool
 }

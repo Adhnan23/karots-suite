@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -19,6 +20,17 @@ import (
 type sheetExtra struct {
 	hook plugin.ProductSheetColumns
 	cols []string
+}
+
+// ProductSheetNameTaken reports whether a column header would be read as one of
+// the products sheet's own columns (their names, synonyms such as "Price" or
+// "SKU", and "active"), so a plugin can refuse a column name that would clash.
+func ProductSheetNameTaken(name string) bool {
+	k := strings.ToLower(strings.TrimSpace(name))
+	if _, ok := productSynonyms[k]; ok || k == "active" {
+		return true
+	}
+	return slices.Contains(productColumns, k) || slices.Contains(productColumns, strings.ReplaceAll(k, " ", "_"))
 }
 
 // AdminProductSheetExtras lists the plugin column groups Sheets can toggle.

@@ -135,3 +135,14 @@ func TestProductSheetOptions(t *testing.T) {
 		t.Fatalf("export with extras: %s", l)
 	}
 }
+
+func TestProductSheetNameTaken(t *testing.T) {
+	for name, want := range map[string]bool{
+		"Barcode": true, " price ": true, "SKU": true, "Selling Price": true, "name local": true, "Active": true,
+		"Model no": false, "Grade": false, "Size": false,
+	} {
+		if got := ProductSheetNameTaken(name); got != want {
+			t.Errorf("%q: got %v, want %v", name, got, want)
+		}
+	}
+}

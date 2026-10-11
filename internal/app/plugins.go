@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 
+	"karots-suite/internal/api"
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/expenses"
@@ -32,6 +33,8 @@ func startPlugins(e *echo.Echo, db *sqlx.DB, cfg *config.Config, svc *Services) 
 		Stock:        stock.NewService(db),
 		Cashflow:     svc.Cashflow,
 		Lockers:      lockers.NewService(db),
+
+		ProductSheetNameTaken: api.ProductSheetNameTaken,
 	}, mux, e)
 	plugin.SetupAll(reg)
 	bridgeProductHooks()

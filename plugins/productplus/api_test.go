@@ -27,7 +27,8 @@ func testAPI(t *testing.T, f *fixture) (*Plugin, func(method, path, body string)
 	e.HTTPErrorHandler = middleware.ErrorHandler(false)
 	mux := plugin.NewMux()
 	p := &Plugin{}
-	p.Setup(plugin.NewRegistry(plugin.Core{DB: f.db, Audit: audit.NewService(f.db)}, mux, e))
+	p.Setup(plugin.NewRegistry(plugin.Core{DB: f.db, Audit: audit.NewService(f.db),
+		ProductSheetNameTaken: func(n string) bool { return strings.EqualFold(n, "Price") }}, mux, e))
 	x := e.Group("/api/v1/x")
 	admin := e.Group("/api/v1/x", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -149,5 +150,28 @@ func TestHooks(t *testing.T) {
 	}
 	if v, _ := f.stored(pid, model); v != "XJ-2" {
 		t.Fatalf("good cell beside a bad one: %q", v)
+	}
+}
+
+// A label that would clash as a products sheet column is refused: one core
+// reads (the fake says "Price") or another field's; keeping its own label is fine.
+func TestLabelClash(t *testing.T) {
+	f := setup(t)
+	_, do := testAPI(t, f)
+	if rec := do("POST", "/fields", `{"label":"price","type":"text"}`); rec.Code != 422 || !strings.Contains(rec.Body.String(), "sheet column") {
+		t.Fatalf("core column: %d %s", rec.Code, rec.Body)
+	}
+	body := fmt.Sprintf(`{"label":"%s Size","type":"text"}`, f.tag)
+	rec := do("POST", "/fields", body)
+	if rec.Code != 201 {
+		t.Fatalf("create: %d %s", rec.Code, rec.Body)
+	}
+	id := decode[FieldDTO](t, rec).ID
+	rec = do("POST", "/fields", fmt.Sprintf(`{"label":"%s SIZE","type":"text"}`, f.tag))
+	if rec.Code != 422 || !strings.Contains(rec.Body.String(), "already called") {
+		t.Fatalf("same label again: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("PUT", fmt.Sprintf("/fields/%d", id), body); rec.Code != 200 {
+		t.Fatalf("keeping its own label: %d %s", rec.Code, rec.Body)
 	}
 }

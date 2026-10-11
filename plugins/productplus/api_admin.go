@@ -80,12 +80,38 @@ func (h handlers) create(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if err := h.labelFree(c, f.Label, 0); err != nil {
+		return err
+	}
 	id, err := h.p.store.CreateField(c.Request().Context(), f, r.Scope)
 	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, strconv.FormatInt(id, 10), "added custom field "+f.Label+" ("+f.Type+")")
 	return h.one(c, id, http.StatusCreated)
+}
+
+// labelFree refuses a label that would clash as a products sheet column: one
+// core already reads (name, price, sku, …) or another field's. A field keeping
+// its own label (e.g. an old one restored from karots-pos) is left alone.
+func (h handlers) labelFree(c echo.Context, label string, id int64) error {
+	all, err := h.p.store.Fields(c.Request().Context(), true)
+	if err != nil {
+		return err
+	}
+	for _, f := range all {
+		if !strings.EqualFold(f.Label, label) {
+			continue
+		}
+		if f.ID == id {
+			return nil
+		}
+		return apperr.Validation("another field is already called " + f.Label)
+	}
+	if taken := h.p.core.ProductSheetNameTaken; taken != nil && taken(label) {
+		return apperr.Validation(`"` + label + `" is already a products sheet column — pick another label`)
+	}
+	return nil
 }
 
 // PUT /fields/:id — a lossy type change needs confirmLoss (409 otherwise); a
@@ -101,6 +127,9 @@ func (h handlers) update(c echo.Context) error {
 	}
 	f, err := r.toField()
 	if err != nil {
+		return err
+	}
+	if err := h.labelFree(c, f.Label, id); err != nil {
 		return err
 	}
 	f.ID = id
