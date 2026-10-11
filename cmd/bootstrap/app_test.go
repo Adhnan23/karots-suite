@@ -77,6 +77,23 @@ func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
 
 func post(t *testing.T, h http.Handler, body string) *httptest.ResponseRecorder {
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest("POST", "/api/build", strings.NewReader(body)))
+	req := httptest.NewRequest("POST", "/api/build", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	h.ServeHTTP(rec, req)
 	return rec
+}
+
+// Another site open in the browser can't start a build: a cross-site form or
+// text/plain POST is refused, only a same-origin JSON call (which needs a CORS
+// preflight this server never answers) gets through.
+func TestAppBuildRefusesCrossSitePosts(t *testing.T) {
+	ran := false
+	app := testApp(func(buildOpts, io.Writer) (buildResult, error) { ran = true; return buildResult{}, nil })
+	req := httptest.NewRequest("POST", "/api/build", strings.NewReader(`{"plugins":[],"os":"linux","arch":"amd64","name":"shop"}`))
+	req.Header.Set("Content-Type", "text/plain")
+	rec := httptest.NewRecorder()
+	app.ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnsupportedMediaType || ran {
+		t.Fatalf("text/plain POST: %d, ran=%v", rec.Code, ran)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"os"
@@ -75,6 +76,12 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 	})
 	mux.HandleFunc("GET /api/state", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, http.StatusOK, st) })
 	mux.HandleFunc("POST /api/build", func(w http.ResponseWriter, r *http.Request) {
+		// JSON only: a cross-site page can't send it without a CORS preflight,
+		// which this server never answers — so no other site can start a build.
+		if mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); mt != "application/json" {
+			writeErr(w, http.StatusUnsupportedMediaType, "send JSON")
+			return
+		}
 		var in appBuild
 		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&in); err != nil {
 			writeErr(w, http.StatusBadRequest, "bad request: "+err.Error())
