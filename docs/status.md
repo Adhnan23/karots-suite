@@ -35,11 +35,11 @@ changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
     restore with no mapping. Apps → Clearance page (two tabs, Rules sheet, 360px cards), till badge /
     prompt / ⓘ through the core hooks. `docs/differences.md` rows 28–33.
   - **Closing checks (2026-10-11):** `make verify` (check-core, vet, core-only build, `tsc -b`), `go test ./...`,
-    107 web unit tests, **97 Playwright flows** green with every plugin built in (`plugin-clearance.spec.ts`
+    108 web unit tests, **97 Playwright flows** green with every plugin built in (`plugin-clearance.spec.ts`
     new), `make verify-portable` passes. Restore of a karots-pos-shaped clearance backup is tested
     (`plugins/clearance/restore_db_test.go`); the user's real backups weren't on this machine to try.
-    Parity: **329 rows ticked** (5 clearance). Left open: `web/e2e/admin-shots.spec.ts` is 515 lines (over
-    500 before M7.0); clearance "Disable all" refreshes the list only on success.
+    Parity: **329 rows ticked** (5 clearance). Both open items fixed after: admin-shots' prep steps moved to `web/e2e/shot-prep.ts`;
+    clearance writes refresh the page even when they fail.
 - **Inputs for M7.1+ (seams deferred to their first user, still generic):** `TenderMethod.Options` /
   `NotAtTill`; `SaleLineHook{Key, SettleTx}` (hooked cart lines settled inside the sale tx); credit
   repayments taking a plugin method with `paid_into`; the three slots above. A plugin's JSON types
