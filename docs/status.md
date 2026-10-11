@@ -5,6 +5,15 @@ every milestone.
 
 ## Status (2026-10-11)
 
+**M7.2 Product Plus — IN PROGRESS (2026-10-11).** Spec `docs/specs/2026-10-11-m7-2-productplus-design.md`, plan
+`docs/plans/2026-10-11-m7-2-productplus.md` (user chose A–E + F Skip disabled + default change asks new/all + lossy
+type change warns). **Tasks 1–6 done** (core seams: product extras, list line, sheet columns + Skip disabled; plugin
+store, API + hooks; Apps → Product Plus fields page). **Resume at Task 7** (form + intake section), then 8 (Fill in),
+9 (e2e, restore, parity, docs, review). Ledger with rulings: `.superpowers/sdd/2026-10-11-m7-2-productplus/progress.md`
+(git-ignored). User check (2026-10-11): "print on label" and "show in stock intake" are the **Label** / **Stock intake**
+chips; label top/bottom options already come through core's `/till/products/:id/label-fields` (shared label Designer:
+admin Labels, counter Labels, intake restock) — confirm both in Task 7's UI gate with screenshots.
+
 **M7.1 Customer requests is DONE** (plan `docs/plans/2026-10-11-m7-1-requests.md`, spec
 `docs/specs/2026-10-11-m7-1-requests-design.md`); M7.0 Plugin groundwork + Clearance before it. **NEXT: M7.2
 productplus** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change · merge +
