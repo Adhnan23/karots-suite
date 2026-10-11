@@ -166,3 +166,13 @@ five karots-pos parity rows (GET page, approve, dismiss→snooze, disable, setti
 Lot-only discounts at the till (the till discounts per line, not per lot — would need a core
 seam with no second user yet); a clearance-recovered report; the deferred money seams in §4; every
 other plugin.
+
+## 9. Changed while planning (2026-10-11)
+
+- **No `0004` migration:** `clearance_markdowns.updated_at` already is the approval / dismiss time,
+  so "ended" and "snoozed" are computed from it and a karots-pos backup restores with no mapping.
+  §6 "Data and old backups" is superseded by this.
+- **Plugins weren't started at all:** `SetupAll` is never called and the `Mux` never mounted —
+  M7.0 wires both (plan Task 2).
+- **No SPA visibility filter:** nothing in the suite sets `plugin.SetVisibilityFilter` (no demo
+  profiles), so `/me.plugins` just lists keys; §5's filter returns only if Demo Room needs it.
