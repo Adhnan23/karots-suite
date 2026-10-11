@@ -21,8 +21,13 @@ export type TillApi = {
 
 /** A strip above the cart's foot (e.g. "these items make a deal — Apply"). */
 export type TillCartHint = { key: string; Hint: ComponentType<{ till: TillApi; lines: CartLine[] }> }
-/** A small note under a plain (ungrouped) cart line's name. */
+/** A small note across a plain (ungrouped) cart line, under its name and qty. */
 export type TillLineHint = { key: string; Hint: ComponentType<{ till: TillApi; line: CartLine; lines: CartLine[] }> }
+
+/** Offered inside the "sell more than the count shows?" prompt for that line (e.g.
+ * an in-stock swap) — so the count isn't corrected up when there's a better way.
+ * onDone closes the prompt (checkout doesn't go on: the cart changed). */
+export type TillShortHint = { key: string; Hint: ComponentType<{ till: TillApi; line: CartLine; onDone: () => void }> }
 
 /** A chip beside the group chips that opens a plugin menu in the catalogue area. */
 export type TillMenuRoot = { key: string; label: string; emoji?: string; Panel: ComponentType<{ till: TillApi; onDone: () => void }> }
@@ -91,6 +96,7 @@ export const slots = {
   tillActions: [] as TillAction[],
   tillCartHints: [] as TillCartHint[],
   tillLineHints: [] as TillLineHint[],
+  tillShortHints: [] as TillShortHint[],
   drawerSections: [] as DrawerSection[],
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],

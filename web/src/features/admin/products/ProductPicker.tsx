@@ -11,12 +11,14 @@ import { cn } from '@/lib/utils'
 import { productsQuery } from './queries'
 
 /** Find a stocked product by name or barcode. `trigger` renders the button that
- * opens it; Enter picks the top hit (a scanner types the code then Enter). */
-export function ProductPicker({ title, onPick, trigger, exclude }: {
+ * opens it; Enter picks the top hit (a scanner types the code then Enter).
+ * hint adds a short note under a row (e.g. where it already sits). */
+export function ProductPicker({ title, onPick, trigger, exclude, hint }: {
   title: string
   onPick: (p: AdminProductRow) => void
   trigger: (open: () => void) => ReactNode
   exclude?: ReadonlySet<number>
+  hint?: (p: AdminProductRow) => string | undefined
 }) {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -51,6 +53,7 @@ export function ProductPicker({ title, onPick, trigger, exclude }: {
                 <span className="min-w-0 flex-1">
                   <b className="block truncate">{p.name}</b>
                   <small className="text-faint tabular-nums">{p.barcode || p.categoryName}</small>
+                  {hint?.(p) && <small className="block font-semibold text-warning">{hint(p)}</small>}
                 </span>
                 <span className="text-right text-[13px] tabular-nums">
                   <span className="block">{money(sym, p.sellingPrice)}</span>
