@@ -25,6 +25,13 @@ async function setPalette(page: Page, palette: string) {
     const milk = (await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).id
     expect((await page.request.post(`/api/v1/x/clearance/${milk}/approve`, { data: { percent: '10' } })).ok()).toBe(true)
   }
+  if (scene === 'requests' && !(await (await page.request.get('/api/v1/x/requests/similar?q=umbrella')).json()).length) {
+    // An open request asked twice and a won't-stock one (the plugin must be built in).
+    const add = async (note: string) => (await (await page.request.post('/api/v1/x/requests', { data: { note, name: '', phone: '' } })).json()).id
+    const open = await add('Umbrella red, large')
+    await page.request.post(`/api/v1/x/requests/${open}/asks`, { data: { name: 'Mala', phone: '' } })
+    await page.request.post(`/api/v1/x/requests/${await add('Umbrella with torch')}/decline`, { data: { reason: 'supplier stopped making them' } })
+  }
   expect((await page.request.put('/api/v1/system/appearance', { data: { ...cur, palette } })).ok()).toBe(true)
   await page.context().clearCookies()
 }
@@ -42,6 +49,18 @@ async function setScene(page: Page) {
     await page.reload()
   }
   const s = page.getByLabel('Scan a barcode or search products')
+  if (scene === 'requests') {
+    const shot = async (name: string) =>
+      page.screenshot({ path: `shots/${gate}/${name}-${await page.evaluate(() => document.documentElement.dataset.palette ?? '')}-${await page.evaluate(() => localStorage.getItem('ks-mode'))}-${page.viewportSize()!.width}.png` })
+    await s.fill('zzq no such thing')
+    await s.press('Enter')
+    await page.getByText('Not stocked? Note a request').waitFor()
+    await shot('requests-nomatch')
+    await page.getByText('Not stocked? Note a request').click()
+    await page.getByRole('textbox', { name: 'What did they ask for?' }).fill('umbrella')
+    await page.getByText('Asked before').waitFor()
+    return
+  }
   if (scene === 'clearance') {
     await s.fill('E2E Milk')
     await page.getByText('Clearance -10%').first().waitFor()
