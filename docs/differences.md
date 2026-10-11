@@ -66,3 +66,14 @@ same figures, so a figure that differs and isn't below is a bug.
 | 25 | The **setup checklist** is a "Get the shop ready" card on the dashboard (admins, until done). | On the Setup hub page. | |
 | 26 | The settings sheet import says which keys it kept as this shop's own and which aren't settings. | Reported only how many it imported. | |
 | 27 | Self-update is **not in the suite yet**. It comes with the release tooling in M8. | Setup → Data update card, badge and banner. | |
+
+## Plugins (M7)
+
+| # | The suite | karots-pos | Your call |
+|---|---|---|---|
+| 28 | **Clearance:** an approved markdown **ends by itself** once the stock it was approved for has sold out or a fresh batch comes in; the product shows again if it's still slow. *(Your decision, 2026-10-11.)* | A markdown stayed on forever, so fresh stock sold at the clearance price. | keep |
+| 29 | **Clearance:** Dismiss is **Snooze** — the product is hidden for one "slow after" period (60 days by default) and comes back if it still isn't selling; **Bring back** undoes it. *(Your decision.)* | Dismissed products never came back. | keep |
+| 30 | **Clearance:** dead stock has **Disable all shown** behind a confirm. *(Your decision.)* | One Disable click per product. | keep |
+| 31 | **Clearance:** when a batch is about to expire, the safe markdown is worked out from **that batch's own cost**. *(Your decision.)* | From the product's latest cost, which often allowed too little to sell it in time. | keep |
+| 32 | **Clearance:** the suggested % is cut to one decimal (17.8%, never rounded up past the safe floor); a batch expiring **today** still counts as expiring; a running markdown stays on the list after it starts selling. | 17.826…%; a batch expiring today dropped off; a selling markdown vanished from the page. | |
+| 33 | **Building a shop's binary:** the **Shop Builder** opens in the browser (tick plugins, OS, processor, binary name, keep or mint the install id, live build log, support PIN at the end) and runs on Windows, macOS and Linux with only Go and bun. *(Your request, 2026-10-11.)* | A terminal checkbox menu that needed make and bash. | keep |

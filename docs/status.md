@@ -3,9 +3,48 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-08)
+## Status (2026-10-11)
 
-**M6.5 Acceptance and polish is CLOSED** (2026-10-08, user: "wrap this and end it cleanly") — the core (M0–M6) is done and was tried beside a core-only karots-pos; the user's notes are fixed (below). **NEXT: M7 Plugins** — write `docs/plans/<date>-m7-plugins.md` first (the seams waiting for it are listed under "Inputs for M6.5 and M7"). M0–M6 summaries below.
+**M7.0 Plugin groundwork + Clearance is DONE** (plan `docs/plans/2026-10-11-m7-0-groundwork-clearance.md`,
+spec `docs/specs/2026-10-11-m7-0-groundwork-clearance-design.md`). **NEXT: M7.1 requests** — start with
+its **rethink** (read the whole karots-pos plugin, propose keep · change · merge + old-data mapping,
+the user decides), then its plan. Rule (user, 2026-10-11): **core never references a plugin and never
+changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
+
+- **M7.0 delivered:**
+  - **Core is plugin-free and checked:** `make check-core` (in `make verify`) fails on any plugin name in
+    core (code, comments, tests) or a committed plugin selection. A sale paid with a method no plugin
+    settles is refused before anything is written (`sales.WithPluginTenders(known, leg)`).
+  - **Plugins start:** `internal/app/plugins.go` runs every plugin's Setup over the wired services
+    (`plugin.Core.Sales` is the wired one), mounts plugin routes at **`/api/v1/x`** (Admin = admin +
+    manager, Cashier = signed in, Public), and feeds the till's product hooks (badges, sale
+    suggestion, ⓘ rows, label fields, search). `Plugin.Key()`; `/me.plugins` lists keys.
+  - **Go hooks are data/behaviour only.** Old templ-era hook → React slot: AdminNavEntry →
+    `slots.apps` + `slots.adminPages` (`/admin/x/<key>/*`); CashierTab → `tillTabs`; CashierMenuRoot →
+    `tillMenu`; DrawerSection → `drawerSections`; ReceiptTab → `tillReceiptKinds`; ReportCard →
+    `reportCards`; PaletteEntry → apps feed Ctrl K. **Removed with no slot yet** (add one with the
+    first plugin that needs it): CashierSupplierAction (recharge's float purchase), ReadinessRow's
+    inline target editor (recharge), ProductRowAction (productplus?).
+  - **Shop Builder** (`cmd/bootstrap`, user request): `make bootstrap` opens it in the browser — tick
+    plugins, OS / processor, binary name, keep a shop's install id or mint one, live build log, support
+    PIN at the end. Flags for scripts. Runs on Windows / macOS / Linux with only Go + bun (no make).
+  - **Clearance** (`plugins/clearance`, `web/src/plugins/clearance`), reinterpreted (user, all four):
+    a markdown ends itself when its stock sells out or a fresh lot arrives; dismiss = snooze for one
+    stale period (+ Bring back); dead stock "Disable all shown"; expiring lots floor at their own cost.
+    karots-pos migrations byte-for-byte — "ended" / "snoozed" come from `updated_at`, so old backups
+    restore with no mapping. Apps → Clearance page (two tabs, Rules sheet, 360px cards), till badge /
+    prompt / ⓘ through the core hooks. `docs/differences.md` rows 28–33.
+  - **Closing checks (2026-10-11):** `make verify` (check-core, vet, core-only build, `tsc -b`), `go test ./...`,
+    107 web unit tests, **97 Playwright flows** green with every plugin built in (`plugin-clearance.spec.ts`
+    new), `make verify-portable` passes. Restore of a karots-pos-shaped clearance backup is tested
+    (`plugins/clearance/restore_db_test.go`); the user's real backups weren't on this machine to try.
+    Parity: **329 rows ticked** (5 clearance). Left open: `web/e2e/admin-shots.spec.ts` is 515 lines (over
+    500 before M7.0); clearance "Disable all" refreshes the list only on success.
+- **Inputs for M7.1+ (seams deferred to their first user, still generic):** `TenderMethod.Options` /
+  `NotAtTill`; `SaleLineHook{Key, SettleTx}` (hooked cart lines settled inside the sale tx); credit
+  repayments taking a plugin method with `paid_into`; the three slots above. A plugin's JSON types
+  live in the plugin (mirrored by hand in its `web/src/plugins/<key>/types.ts`). e2e specs that need a
+  plugin are `web/e2e/plugin-<key>.spec.ts`.
 
 M3 delivered (dock: **Sell** → Customers; **Purchasing** → Purchases · Reorder · Purchase returns · Suppliers; **Setup** → Users, admin only; every page works at 360px):
 
@@ -210,6 +249,5 @@ The till must do **everything** karots-pos's till does, in the new design. The k
 - **karots-pos deviation:** resuming a held sale is refused while another sale is in the cart. karots-pos silently replaced the cart, which lost a live sale.
 - **Login hero:** add the tilted receipt card (yesterday's close) and the "Counter 1 / last closed" pills once an API gives that data.
 - **Dock:** areas appear as their pages land (M1–M6). Descriptions come from karots-pos's `templates/layouts/admin.templ`.
-- **M7:** `internal/plugin/hooks.go` comments still describe the templ/Alpine-era cashier URLs. Rewrite them when the plugin slots are built.
 - **Flaky Go test:** `TestAdminIntake` fails on a fresh `-reset -seed` DB ("Stock-take is turned off in Settings") and passes once other tests have run. It relies on a setting it never turns on. Seen at `a3cdf08` too, so it isn't from the 2026-10-09 money fixes. Fix: have the test turn stock-take on itself.
 - **`docs/parity.md`:** 539 karots-pos routes (212 of them plugin routes), 51 ticked. Tick rows only when a route is ported AND flow-checked.

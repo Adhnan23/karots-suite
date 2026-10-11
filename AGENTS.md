@@ -25,7 +25,12 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 ## Layout
 
 ```
-cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin)
+cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin);
+                      enabled_plugins.go is GENERATED (committed core-only)
+cmd/bootstrap/        Shop Builder: no flags = browser app (pick plugins / OS / install id, build);
+                      flags for scripts; writes both plugin lists, builds, restores them core-only
+plugins/<key>/        a plugin's Go half: plugin.json, init() → plugin.Register, own migrations
+                      (goose_db_version_<key>), JSON routes on reg.Admin()/Cashier() → /api/v1/x/…
 internal/app/         BuildServer + services.go (service construction + core seam wiring)
 internal/api/         JSON /api/v1 — dto.go (all request/response types) + one file per area
                       till*.go — /api/v1/till/* (config, catalog, customers, drawer, sales, held, printing)
@@ -36,7 +41,7 @@ internal/api/         JSON /api/v1 — dto.go (all request/response types) + one
                       sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
-internal/plugin/      plugin registry + hooks (Go side)
+internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
 migrations/           00001_baseline.sql (squashed karots-pos 0001–0075); next is 00002_
 web/                  Vite + React + TS app → builds into internal/spa/dist
@@ -59,9 +64,11 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       shared LineEditor + totals (margin guard) used by the counter too, MoneySourcePicker
   src/features/people/ customers, users, OpeningSheet (old balance), StatementSheet (print)
   src/routes/_authed/print/  printable pages (receipt, X/Z report, order, PO, GRN, statement, label sheet) — paper/ink tokens
-  src/plugins/        slot registry + generated enabled-plugins.ts (M7)
-  src/plugins/slots.ts  typed plugin slots (tillMenu, tillActions, drawerSections, tillTenders, tillTabs,
-                        tillReceiptKinds, before/after-sale)
+  src/plugins/        slots.ts + GENERATED enabled-plugins.ts (committed core-only) + <key>/index.tsx
+                      (each plugin's React half: export default register(slots))
+  src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
+                        drawerSections, tillTenders, tillTabs, tillReceiptKinds, reportCards,
+                        settingsSections, before/after-sale)
 scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
@@ -92,6 +99,10 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
+- **Plugins:** `make plugins P=all` (or `P=clearance,…`) compiles plugins into the working tree for dev;
+  `make core-only` puts the lists back — **never commit a plugin selection**. `make check-core` (in
+  `make verify`) fails if core names a plugin or a list isn't core-only. Playwright builds with every
+  plugin. A shop build: `make bootstrap` (Shop Builder in the browser).
 - **The dev DB is disposable.** Drop and re-migrate freely.
 - **Work style:** one task at a time, test-first, one commit per step, working on `main` (local).
 

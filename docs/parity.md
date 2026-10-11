@@ -400,11 +400,11 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/clearance
 
-- [ ] `plugins/clearance/clearance.go` · GET `/clearance`
-- [ ] `plugins/clearance/clearance.go` · POST `/clearance/:pid/approve`
-- [ ] `plugins/clearance/clearance.go` · POST `/clearance/:pid/disable`
-- [ ] `plugins/clearance/clearance.go` · POST `/clearance/:pid/dismiss`
-- [ ] `plugins/clearance/clearance.go` · POST `/clearance/settings`
+- [x] `plugins/clearance/clearance.go` · GET `/clearance` → GET /api/v1/x/clearance, Apps → Clearance
+- [x] `plugins/clearance/clearance.go` · POST `/clearance/:pid/approve` → same path under /api/v1/x
+- [x] `plugins/clearance/clearance.go` · POST `/clearance/:pid/disable` → POST /api/v1/x/clearance/disable (one or many)
+- [x] `plugins/clearance/clearance.go` · POST `/clearance/:pid/dismiss` → /snooze + /unsnooze (snoozes one stale period)
+- [x] `plugins/clearance/clearance.go` · POST `/clearance/settings` → PUT /api/v1/x/clearance/settings (Rules sheet)
 
 ## plugins/combos
 
