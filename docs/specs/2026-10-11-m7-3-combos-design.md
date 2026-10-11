@@ -45,6 +45,12 @@ page, a table and a bar chart, and nothing more.
   - ×N is how many full sets the cart holds. Apply takes those units off the plain lines (a line left at 0
     disappears) and adds the combo group, in one step.
   - ✕ hides that combo's hint until the next sale. Several combos can show; applying one re-checks the others.
+  - **Part of a combo (user, 2026-10-11):** when a plain line is a member of a combo but the cart doesn't
+    hold a full set (only Milk, or what's left after a break), the line itself shows a small chip:
+    **🎁 Milk + Cookies · add Cookies 200g · save Rs 40**. Tapping it takes the members already there and
+    adds the missing ones as one combo set. ✕ on the combo's strip hides its chips too.
+  - **Cart look: A (user, 2026-10-11)** — the header with its member lines always shown (mockup
+    https://claude.ai/artifact/VpUnYn5UQSZLigFRasLivZ).
 - **D. Dates.** Optional **Starts** / **Ends** (dates, inclusive, shop's local date). Outside them a combo
   isn't on the till menu, isn't hinted and doesn't badge. Admin shows **Scheduled** / **Ended**.
 - **E. Health.**
@@ -77,7 +83,8 @@ page, a table and a bar chart, and nothing more.
    group isn't added and the error text is returned ("Shampoo is not available"). `plugin` lands on every
    line's `plugin` field, so `tillAfterSale` sees it.
 3. **Slot `tillCartHints: { key, Hint: ComponentType<{ till: TillApi; lines: CartLine[] }> }`**, rendered
-   above the cart total.
+   above the cart total, and **`tillLineHints: { key, Hint: ComponentType<{ till: TillApi; line: CartLine; lines: CartLine[] }> }`**,
+   rendered under each plain (ungrouped) line's name.
 
 Nothing changes on the server for core: the sale posts lines with fixed per-unit discounts as today. A
 core-only build renders no hints and never creates a group.
