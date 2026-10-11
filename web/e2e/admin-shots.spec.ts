@@ -35,6 +35,13 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  /** Clearance with one live markdown (the plugin must be built in). */
+  'clearance-live': async (page) => {
+    const soap = (await (await page.request.get('/api/v1/till/products/barcode/4790000000028')).json()).id as number
+    await page.request.post(`/api/v1/x/clearance/${soap}/approve`, { data: { percent: '15' } })
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
   /** Any report page over today's sales: SHOTS_PREP=with-sales SHOTS_NAME=<name>. */
   'with-sales': async (page) => {
     await salesWithHistory(page)

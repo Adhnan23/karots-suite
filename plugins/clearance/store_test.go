@@ -19,6 +19,8 @@ func TestSuggestPercentFlooredAtCost(t *testing.T) {
 		{"unclamped", "200", "100", "20", "5", "20"},
 		// price already at/under floor → nothing safe to give.
 		{"already cheap", "100", "100", "20", "5", "0"},
+		// floor 945 of 1150 allows 17.826…% — cut down to one decimal, never rounded up past the floor.
+		{"one decimal, rounded down", "1150", "900", "20", "5", "17.8"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

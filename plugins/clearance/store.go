@@ -56,7 +56,8 @@ func suggestPercent(sell, cost, defaultPct, minMarginPct decimal.Decimal) decima
 	if defaultPct.LessThan(maxPct) {
 		return defaultPct
 	}
-	return maxPct
+	// One decimal for a person to read, cut down so it never crosses the floor.
+	return maxPct.Truncate(1)
 }
 
 // newPrice applies a percent off a selling price, rounded to 2dp.

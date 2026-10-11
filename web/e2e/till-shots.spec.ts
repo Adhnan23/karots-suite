@@ -20,6 +20,11 @@ async function login(page: Page, phone: string, pin: string) {
 async function setPalette(page: Page, palette: string) {
   await login(page, '0000000001', process.env.POS_SYSTEM_PIN ?? '2273')
   const cur = await (await page.request.get('/api/v1/system/appearance')).json()
+  if (scene === 'clearance') {
+    // A live clearance markdown on milk (the plugin must be built in).
+    const milk = (await (await page.request.get('/api/v1/till/products/barcode/4790000000011')).json()).id
+    expect((await page.request.post(`/api/v1/x/clearance/${milk}/approve`, { data: { percent: '10' } })).ok()).toBe(true)
+  }
   expect((await page.request.put('/api/v1/system/appearance', { data: { ...cur, palette } })).ok()).toBe(true)
   await page.context().clearCookies()
 }
@@ -37,6 +42,15 @@ async function setScene(page: Page) {
     await page.reload()
   }
   const s = page.getByLabel('Scan a barcode or search products')
+  if (scene === 'clearance') {
+    await s.fill('E2E Milk')
+    await page.getByText('Clearance -10%').first().waitFor()
+    await page.screenshot({ path: `shots/${gate}/clearance-badge-${await page.evaluate(() => document.documentElement.dataset.palette ?? '')}-${await page.evaluate(() => localStorage.getItem('ks-mode'))}-${page.viewportSize()!.width}.png` })
+    await s.fill('4790000000011')
+    await s.press('Enter')
+    await page.waitForTimeout(400)
+    return
+  }
   for (const code of ['4790000000011', '4790000000011']) {
     await s.fill(code)
     await s.press('Enter')
@@ -72,7 +86,7 @@ for (const palette of ['studio', 'night']) {
         await page.goto('/till')
         await page.waitForLoadState('networkidle')
         await setScene(page)
-        await page.screenshot({ path: `shots/${gate}/${scene}-${palette}-${mode}-${width}.png` })
+        await page.screenshot({ path: `shots/${gate}/${scene === 'clearance' ? 'till-clearance' : scene}-${palette}-${mode}-${width}.png` })
         await ctx.close()
       })
     }
