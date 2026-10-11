@@ -1,4 +1,4 @@
-import { Home as HomeIcon, Store, ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
+import { Home as HomeIcon, Store, ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, Puzzle, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
 import { REPORTS } from '@/features/reports/hub'
@@ -55,10 +55,15 @@ export const adminNav: NavArea[] = [
     ],
   },
   {
-    key: 'reports', label: 'Reports', icon: BarChart3, noTabs: true, blurb: 'Every report — pick a range, then print or export.', pages: [
-      { to: '/admin/reports', icon: LayoutGrid, label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
-      ...REPORTS.filter((r) => r.to.startsWith('/admin/reports/')).map((r): NavPage => ({ to: r.to, icon: r.icon, label: r.title, description: r.desc, gate: r.gate })),
-    ],
+    key: 'reports', label: 'Reports', icon: BarChart3, noTabs: true, blurb: 'Every report — pick a range, then print or export.',
+    // A getter: plugins register their report cards after this module loads.
+    get pages(): NavPage[] {
+      return [
+        { to: '/admin/reports', icon: LayoutGrid, label: 'All reports', description: 'Sales, money, stock and suppliers — set a range, export or print' },
+        ...REPORTS.filter((r) => r.to.startsWith('/admin/reports/')).map((r): NavPage => ({ to: r.to, icon: r.icon, label: r.title, description: r.desc, gate: r.gate })),
+        ...slots.reportCards.map((c): NavPage => ({ to: c.href, icon: Puzzle, label: c.title, description: c.desc })),
+      ]
+    },
   },
   {
     key: 'setup', label: 'Setup', icon: Wrench, blurb: 'How the shop, the till and the staff are set up.', pages: [

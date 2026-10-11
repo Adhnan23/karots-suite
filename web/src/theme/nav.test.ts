@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Me } from '@/api/types.gen'
 import { slots } from '@/plugins/slots'
-import { apps, navFor, paletteItems, whereIs, type NavArea } from './nav'
+import { adminNav, apps, navFor, paletteItems, whereIs, type NavArea } from './nav'
 
 const areas: NavArea[] = [
   { key: 'stock', label: 'Inventory', icon: (() => null) as never, pages: [
@@ -40,6 +40,18 @@ describe('plugin apps', () => {
       expect(paletteItems(areas)).toContainEqual(expect.objectContaining({ label: 'Stock', to: '/admin/stock' }))
     } finally {
       slots.apps.length = 0
+    }
+  })
+})
+
+describe('plugin reports', () => {
+  it('show on the Reports shelf even when registered after nav loads', () => {
+    slots.reportCards.push({ href: '/admin/x/demo/report', title: 'Demo report', desc: 'A plugin report' })
+    try {
+      const reports = adminNav.find((a) => a.key === 'reports')!
+      expect(reports.pages).toContainEqual(expect.objectContaining({ label: 'Demo report', to: '/admin/x/demo/report' }))
+    } finally {
+      slots.reportCards.length = 0
     }
   })
 })
