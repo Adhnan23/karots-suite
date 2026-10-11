@@ -1,0 +1,7 @@
+{
+  "key": "combos",
+  "name": "Combos",
+  "import": "karots-suite/plugins/combos",
+  "version": "2.0.0",
+  "description": "Product deals — a group of products (or one product in bulk, e.g. buy-3-get-1-free) at % off, Rs off or a set price, between optional dates. The till rings a combo as real lines kept together, spots combos as items are scanned, and a report shows what each combo sold and gave away."
+}
