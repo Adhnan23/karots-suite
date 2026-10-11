@@ -8,10 +8,10 @@ import (
 )
 
 func TestBuckets(t *testing.T) {
-	all := []string{"products", "sales", "combos", "combo_items", "recharge_devices", "goose_db_version"}
+	all := []string{"products", "sales", "alpha", "alpha_items", "beta_devices", "goose_db_version"}
 	groups := []plugin.DataGroup{
-		{Key: "combos", Tables: []string{"combos", "combo_items"}},
-		{Key: "recharge", Tables: []string{"recharge_devices"}},
+		{Key: "alpha", Tables: []string{"alpha", "alpha_items"}},
+		{Key: "beta", Tables: []string{"beta_devices"}},
 	}
 
 	// Core = everything minus goose minus plugin tables.
@@ -19,9 +19,9 @@ func TestBuckets(t *testing.T) {
 		t.Fatalf("CoreTables = %v, want %v", got, want)
 	}
 
-	// Keep recharge only -> exclude the combos group's tables.
-	got := ExcludeFor(groups, []string{"recharge"})
-	want := []string{"combos", "combo_items"}
+	// Keep beta only -> exclude the alpha group's tables.
+	got := ExcludeFor(groups, []string{"beta"})
+	want := []string{"alpha", "alpha_items"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("ExcludeFor = %v, want %v", got, want)
 	}

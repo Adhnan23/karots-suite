@@ -71,7 +71,7 @@ type SaleItem struct {
 	// joined
 	ProductName    string `db:"product_name"    json:"product_name"`
 	UnitAbbr       string `db:"unit_abbr"       json:"unit_abbr"`
-	IsService      bool   `db:"is_service"      json:"is_service"` // service line (e.g. recharge) — non-returnable, no stock
+	IsService      bool   `db:"is_service"      json:"is_service"` // service line (e.g. a top-up) — non-returnable, no stock
 	WarrantyMonths int    `db:"warranty_months" json:"warranty_months"`
 	// Refunded is what earlier returns refunded on this line (Items only).
 	Refunded decimal.Decimal `db:"refunded" json:"refunded"`

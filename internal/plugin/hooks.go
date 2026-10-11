@@ -51,9 +51,8 @@ type ReportCard struct {
 }
 
 // TenderMethod adds a payment method to the cashier POS split-tender selector.
-// Value must be a payment_method enum value the plugin's migration added (e.g.
-// "wallet"); Label is shown in the dropdown. The carrier picker and the
-// post-checkout attribution for the wallet tender are handled in the cashier JS.
+// Value must be a payment_method enum value the plugin's migration added; Label
+// is shown on the till. Any detail picker is the plugin's React slots.tillTenders entry.
 type TenderMethod struct {
 	Value string
 	Label string
@@ -67,7 +66,7 @@ type TenderMethod struct {
 
 // TenderSettle is what a TenderMethod.SettleTx receives for one tender line on a
 // sale: the sale id, the amount tendered, the acting cashier, and the method's
-// opaque per-line Meta (e.g. recharge wallet's {"device_id":"N"}).
+// opaque per-line Meta.
 type TenderSettle struct {
 	SaleID  int64
 	Amount  decimal.Decimal
@@ -92,7 +91,7 @@ type CashierMenuRoot struct {
 // fragment and posts it to the section's save URL around the drawer call. The
 // fragment is plain inputs (no hx-*); core never references the plugin's domain.
 type DrawerSection struct {
-	Key          string // stable id, e.g. "recharge"
+	Key          string // stable id, e.g. the plugin key
 	OpenFormURL  string // GET → HTML input rows for the Open-till dialog
 	CloseFormURL string // GET → HTML input rows for the Close-register dialog
 	SaveOpenURL  string // POST (form-encoded) target, after the till opens
@@ -116,7 +115,7 @@ type CashierSupplierAction struct {
 }
 
 // LogoutGuard reports whether a user has unfinished plugin work that must be
-// resolved before they may log out — e.g. an open recharge float session. When
+// resolved before they may log out — e.g. an open plugin float session. When
 // Block is true the web layer refuses to log the user out and instead sends them
 // to Redirect (a page where they can resolve it) with Reason shown as a banner.
 // Guards must be cheap (one indexed query) and fail open (return Block=false on
@@ -180,9 +179,9 @@ func ExpenseClaim(ctx context.Context, expenseID int64) string {
 // Amount is summed for the [from,to) range and folded into the P&L by the web
 // layer (which owns both reports and plugins, so core reports stay plugin-free).
 // Keep Amount cheap — one query — and defensive: return (0, err) rather than
-// failing the whole P&L. Used e.g. by recharge for service charge + realized
-// float commission, whose reload face value is excluded from core revenue via
-// the pass_through product flag.
+// failing the whole P&L. E.g. a plugin's service charges or commission, whose
+// pass-through face value is excluded from core revenue via the pass_through
+// product flag.
 type PLIncome struct {
 	Label  string
 	Amount func(ctx context.Context, from, to time.Time) (decimal.Decimal, error)
@@ -201,8 +200,8 @@ type ActivityContributor struct {
 }
 
 // MoneyLocationProvider lets a plugin contribute live money-location balances —
-// money the shop owns that isn't a core locker or till, e.g. recharge carrier
-// float sitting in devices — to the core Cash Flow overview (its own balance
+// money the shop owns that isn't a core locker or till, e.g. float a plugin
+// holds on devices — to the core Cash Flow overview (its own balance
 // card + a net-worth line) and to the day-end Z report (a section). Balances are
 // current; keep the query cheap and return (nil, err) so a plugin issue never
 // breaks either page. Group is the card/section heading.
@@ -227,7 +226,7 @@ type MoneyLocationGroup struct {
 
 // ReadinessProvider lets a plugin contribute sections to the core "Top-up &
 // Reorder" report — a not-time-based snapshot of "what must I top up, and can I
-// afford it". Recharge uses it for per-device float (current vs a recommended
+// afford it". E.g. a plugin's per-device float (current vs a recommended
 // level, the shortfall being cash to buy). Return (nil, err) defensively; a
 // plugin issue must never break the report.
 type ReadinessProvider func(ctx context.Context) ([]ReadinessSection, error)
@@ -283,7 +282,7 @@ func (r *Registry) AddDataGroup(g DataGroup) { dataGroups.add(current, g) }
 // DataGroup lets a plugin declare the database tables it owns, so the backup
 // layer can offer per-plugin include/exclude in a selective export and compute
 // "core = everything minus every plugin's tables" — all without core importing
-// any plugin. Key is a stable id (e.g. "recharge"); Name is the display label;
+// any plugin. Key is a stable id (the plugin key); Name is the display label;
 // Tables are the exact table names from the plugin's migrations.
 type DataGroup struct {
 	Key    string
@@ -340,7 +339,7 @@ func CashierMenuRoots() []CashierMenuRoot         { return cashierMenuRoots.all(
 func DrawerSections() []DrawerSection             { return drawerSections.all() }
 
 // CashierMenuRootsJSON renders the menu roots as a JSON array for the cashier
-// Alpine scope: [{"emoji":"📶","label":"Reload & Bills","url":"/cashier/recharge/menu"}].
+// Alpine scope: [{"emoji":"…","label":"…","url":"…"}].
 // Field names are explicit json tags (lower-case) since the cashier JS reads
 // r.emoji / r.label / r.url.
 func CashierMenuRootsJSON() string {
@@ -359,7 +358,7 @@ func CashierMenuRootsJSON() string {
 }
 
 // DrawerSectionsJSON renders the drawer sections for the cashier Alpine scope:
-// [{"key":"recharge","openFormUrl":"…","closeFormUrl":"…","saveOpenUrl":"…","saveCloseUrl":"…"}].
+// [{"key":"…","openFormUrl":"…","closeFormUrl":"…","saveOpenUrl":"…","saveCloseUrl":"…"}].
 func DrawerSectionsJSON() string {
 	type s struct {
 		Key          string `json:"key"`

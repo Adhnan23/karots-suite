@@ -18,7 +18,7 @@ func get(t *testing.T, e *echo.Echo, path string) (int, string) {
 
 // A plugin route on the same admin path as a core route must override the core
 // handler, and a brand-new plugin path must be reachable. This is the contract
-// the recharge plugin relies on (override drawer open/close, add Reload).
+// a plugin relies on (override a core route, add its own).
 func TestMuxOverrideAndAdd(t *testing.T) {
 	e := echo.New()
 	ag := e.Group("/admin")

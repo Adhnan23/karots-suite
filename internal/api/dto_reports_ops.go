@@ -83,7 +83,7 @@ type ReadinessLine struct {
 	Need   string `json:"need"`
 }
 
-// ReadinessGroup is one plugin's readiness section (e.g. a reload float).
+// ReadinessGroup is one plugin's readiness section (e.g. a plugin's float).
 type ReadinessGroup struct {
 	Title string          `json:"title"`
 	Need  string          `json:"need"`

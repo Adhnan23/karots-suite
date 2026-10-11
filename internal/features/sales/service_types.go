@@ -10,7 +10,7 @@ type ItemInput struct {
 	Discount     string `json:"discount"`
 	DiscountType string `json:"discount_type" validate:"omitempty,oneof=fixed percent"`
 	// PriceOverride sets the unit price for a service line (is_service products,
-	// e.g. a recharge top-up amount). Ignored for normal stocked products, whose
+	// e.g. a top-up amount). Ignored for normal stocked products, whose
 	// price is always recomputed server-side from the catalogue.
 	PriceOverride string `json:"price_override"`
 	// BatchID names the lot the cashier picked at the "which price?" prompt when a
@@ -59,15 +59,15 @@ type serialBatch struct {
 }
 
 type PaymentInput struct {
-	Method    string  `json:"method"    validate:"required,oneof=cash card online wallet credit"`
+	Method    string  `json:"method"    validate:"required"` // core or a plugin method; Create refuses any other
 	Amount    string  `json:"amount"    validate:"required"`
 	Reference *string `json:"reference"`
 	// AccountID is the money account a non-cash tender (card/online) lands in — a
 	// card-kind locker for card, a bank-kind locker for online. Required for a
 	// card/online line with an amount (Create refuses 0).
 	AccountID int64 `json:"account_id"`
-	// Meta is opaque per-line data for a plugin tender method (core never reads it;
-	// e.g. recharge "wallet" carries {"device_id":"N"}). Handed to the plugin hook.
+	// Meta is opaque per-line data for a plugin tender method (core never reads
+	// it). Handed to the plugin hook.
 	Meta map[string]string `json:"meta"`
 }
 

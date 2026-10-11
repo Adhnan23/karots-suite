@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"karots-suite/internal/apperr"
 	"karots-suite/internal/config"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
@@ -43,21 +44,29 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 	// Its sales instance only reads cash totals (it can't be salesSvc, which needs
 	// cf's leg). Anything that rings a sale — plugins too — must use salesSvc.
 	cf := cashflow.NewService(db, sales.NewService(db))
-	// Plugin tenders (e.g. recharge "wallet") settle their own ledger inside the
-	// sale's tx. The dispatcher bridges core→plugin at the composition root, so
-	// core sales never imports any plugin; a method with no registered SettleTx is
-	// simply recorded on the sale.
-	pluginTenderLeg := func(ctx context.Context, tx *sqlx.Tx, ev sales.PluginTender) error {
+	// Plugin tenders settle their own ledger inside the sale's tx. The dispatcher
+	// bridges core→plugin at the composition root, so core sales never imports a
+	// plugin. A method no plugin settles is refused — it would be money recorded
+	// as landing nowhere.
+	pluginTender := func(method string) (plugin.TenderMethod, bool) {
 		for _, t := range plugin.TenderMethods() {
-			if t.Value == ev.Method && t.SettleTx != nil {
-				return t.SettleTx(ctx, tx, plugin.TenderSettle{
-					SaleID: ev.SaleID, Amount: ev.Amount, Meta: ev.Meta, ActorID: ev.ActorID,
-				})
+			if t.Value == method {
+				return t, true
 			}
 		}
-		return nil
+		return plugin.TenderMethod{}, false
 	}
-	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenderLeg(pluginTenderLeg)
+	known := func(method string) bool { _, ok := pluginTender(method); return ok }
+	pluginTenderLeg := func(ctx context.Context, tx *sqlx.Tx, ev sales.PluginTender) error {
+		t, ok := pluginTender(ev.Method)
+		if !ok || t.SettleTx == nil {
+			return apperr.Validation("no plugin settles the " + ev.Method + " payment method")
+		}
+		return t.SettleTx(ctx, tx, plugin.TenderSettle{
+			SaleID: ev.SaleID, Amount: ev.Amount, Meta: ev.Meta, ActorID: ev.ActorID,
+		})
+	}
+	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg)
 	cr := cashregister.NewService(db, salesSvc).WithAudit(audit.NewService(db))
 	// Wire the locker side of till cash events (opening float from a locker,
 	// banking at close, mid-shift moves to/from a locker) through cashflow, which

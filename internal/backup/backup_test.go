@@ -6,12 +6,12 @@ import (
 )
 
 func TestTablesToClear(t *testing.T) {
-	existing := []string{"products", "sales", "combos", "goose_db_version"}
+	existing := []string{"products", "sales", "alpha", "goose_db_version"}
 	archive := []string{"products", "sales"} // backup had no combos
 
 	// ReplaceAll: clear everything current (incl. combos), never goose.
 	got := tablesToClear(existing, archive, RestoreReplaceAll)
-	want := []string{"products", "sales", "combos"}
+	want := []string{"products", "sales", "alpha"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("ReplaceAll = %v, want %v", got, want)
 	}

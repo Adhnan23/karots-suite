@@ -45,7 +45,7 @@ type Product struct {
 	// Plugin-contributed, not persisted: till-card badge pins (e.g. quality tier).
 	Badges []string `db:"-" json:"badges,omitempty"`
 	// Plugin-contributed, not persisted: an optional till line-discount suggestion
-	// (e.g. a clearance markdown) the cashier is prompted to apply.
+	// (e.g. a plugin markdown) the cashier is prompted to apply.
 	Suggestion *SaleSuggestion `db:"-" json:"suggestion,omitempty"`
 }
 
@@ -310,7 +310,7 @@ func (r *Repository) BarcodeExists(ctx context.Context, code string) (bool, erro
 }
 
 // ListServices returns active service products. Services are few by nature
-// (a photocopy counter, a coffee, a recharge line), so this is an unpaged list
+// (a print counter, a coffee, a top-up line), so this is an unpaged list
 // meant for pickers that attribute something to a service.
 // AllServices is every service product, disabled ones last, for the admin list
 // (where a disabled service must stay reachable to be enabled again).

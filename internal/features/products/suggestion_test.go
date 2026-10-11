@@ -9,7 +9,7 @@ func TestApplySuggestionSetsField(t *testing.T) {
 	orig := SaleSuggestionProvider
 	t.Cleanup(func() { SaleSuggestionProvider = orig })
 	SaleSuggestionProvider = func(_ context.Context, ids []int64) map[int64]SaleSuggestion {
-		return map[int64]SaleSuggestion{7: {DiscountType: "percent", DiscountValue: "20", Label: "Clearance -20%", Prompt: "Apply?"}}
+		return map[int64]SaleSuggestion{7: {DiscountType: "percent", DiscountValue: "20", Label: "Markdown -20%", Prompt: "Apply?"}}
 	}
 	rows := []Product{{ID: 7}, {ID: 9}}
 	applySuggestions(context.Background(), rows)

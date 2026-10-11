@@ -127,7 +127,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 
 		unitPrice := p.SellingPrice
 		if p.IsService && strings.TrimSpace(it.PriceOverride) != "" {
-			// Service lines (e.g. recharge) carry a per-line amount, not a
+			// Service lines (e.g. a top-up) carry a per-line amount, not a
 			// fixed catalogue price.
 			ov, err := money.Parse(it.PriceOverride)
 			if err != nil || ov.IsNegative() {

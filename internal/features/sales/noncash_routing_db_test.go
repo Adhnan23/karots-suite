@@ -101,22 +101,23 @@ func lastMethod(cs []NonCashPayment) string {
 	return cs[len(cs)-1].Method
 }
 
-// A plugin tender (a method core doesn't settle itself, e.g. "wallet") is
+// A plugin tender (a method core doesn't settle itself) is
 // dispatched to the plugin-tender hook inside the sale tx, carrying its Meta;
 // core methods (cash/card/online/credit) never reach it. Pins coreTender + the
-// in-tx dispatch that makes wallet atomic with the sale.
+// in-tx dispatch that makes a plugin tender atomic with the sale.
 func TestPluginTenderLegFiresForNonCoreMethodOnly(t *testing.T) {
 	conn := salesTestDB(t)
 	defer conn.Close()
 	ctx := context.Background()
 
-	// A non-core tender value only exists once a plugin migration adds it (recharge
-	// adds 'wallet'). Core-only builds have none, so there is nothing to dispatch.
-	var hasWallet bool
-	mustSales(t, conn.GetContext(ctx, &hasWallet, `SELECT EXISTS (SELECT 1 FROM pg_enum e
-		JOIN pg_type ty ON ty.oid = e.enumtypid WHERE ty.typname = 'payment_method' AND e.enumlabel = 'wallet')`))
-	if !hasWallet {
-		t.Skip("no plugin tender in payment_method (recharge plugin adds 'wallet' in M7)")
+	// A non-core tender value only exists once a plugin migration adds it to the
+	// payment_method enum. Core-only databases have none, so there is nothing to dispatch.
+	var method string
+	mustSales(t, conn.GetContext(ctx, &method, `SELECT COALESCE(MIN(e.enumlabel::text), '') FROM pg_enum e
+		JOIN pg_type ty ON ty.oid = e.enumtypid WHERE ty.typname = 'payment_method'
+		AND e.enumlabel NOT IN ('cash','card','online','credit')`))
+	if method == "" {
+		t.Skip("no plugin tender in payment_method")
 	}
 
 	var categoryID, unitID, productID, cashierID, sinceSaleID int64
@@ -136,7 +137,7 @@ func TestPluginTenderLegFiresForNonCoreMethodOnly(t *testing.T) {
 	}()
 
 	var calls []PluginTender
-	svc := NewService(conn).WithPluginTenderLeg(func(ctx context.Context, tx *sqlx.Tx, ev PluginTender) error {
+	svc := NewService(conn).WithPluginTenders(func(m string) bool { return m == method }, func(ctx context.Context, tx *sqlx.Tx, ev PluginTender) error {
 		calls = append(calls, ev)
 		return nil
 	})
@@ -150,11 +151,11 @@ func TestPluginTenderLegFiresForNonCoreMethodOnly(t *testing.T) {
 		mustSales(t, err)
 	}
 
-	// A non-core method ("wallet") → dispatched once, method + meta carried.
+	// A non-core method → dispatched once, method + meta carried.
 	calls = nil
-	ring(PaymentInput{Method: "wallet", Amount: "25", Meta: map[string]string{"device_id": "9"}})
-	if len(calls) != 1 || calls[0].Method != "wallet" || calls[0].Meta["device_id"] != "9" {
-		t.Fatalf("wallet: calls=%d method/meta wrong: %+v", len(calls), calls)
+	ring(PaymentInput{Method: method, Amount: "25", Meta: map[string]string{"place": "9"}})
+	if len(calls) != 1 || calls[0].Method != method || calls[0].Meta["place"] != "9" {
+		t.Fatalf("%s: calls=%d method/meta wrong: %+v", method, len(calls), calls)
 	}
 
 	// Core methods never reach the plugin hook.

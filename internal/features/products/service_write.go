@@ -228,7 +228,7 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (*Produc
 // Rename changes only a product's name, leaving every other field untouched.
 //
 // A narrow operation on purpose: callers that hold a product id but not a full
-// UpdateInput (the recharge plugin renaming a carrier's hidden service product)
+// UpdateInput (a plugin renaming a hidden service product it owns)
 // would otherwise have to reconstruct every field from a Product and convert the
 // decimals back to strings, which loses precision and silently drops anything
 // added to the input struct later.

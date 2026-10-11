@@ -10,7 +10,7 @@ import (
 
 // SlipOptions renders the shop logo and the secondary (non-Latin) shop name to
 // ESC/POS raster blocks so EVERY thermal slip — sale, return, warranty, credit,
-// money receipt, recharge — carries the same branding. Failures are non-fatal:
+// money receipt, a plugin slip — carries the same branding. Failures are non-fatal:
 // the receipt still prints without that element. Callers pass the embedded static
 // FS so a "/static/…" logo path resolves; a data: URI or http(s) logo needs no FS.
 func SlipOptions(ctx context.Context, cfg *settings.Settings, staticFS fs.FS) escpos.Options {

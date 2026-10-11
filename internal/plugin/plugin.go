@@ -17,7 +17,7 @@ type Plugin interface {
 	// Name is a human label for logs and the bootstrapper.
 	Name() string
 	// Migrations returns the plugin's embedded migration filesystem and a unique
-	// goose version-table suffix (e.g. "recharge" → goose_db_version_recharge).
+	// goose version-table suffix (e.g. "alpha" → goose_db_version_alpha).
 	// Return (nil, "") when the plugin has no migrations. The suffix keeps the
 	// plugin's schema versioning separate from core, so enabling a plugin later
 	// on a live database applies only its migrations — never a wipe.

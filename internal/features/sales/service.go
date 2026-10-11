@@ -22,7 +22,8 @@ type Service struct {
 	repo            *Repository
 	drawerKick      func(ctx context.Context) // optional; fires post-commit on a cash sale
 	nonCashLeg      NonCashLeg                // optional; books card/online money into an account
-	pluginTenderLeg PluginTenderLeg           // optional; books a plugin tender (e.g. wallet) in-tx
+	pluginTenderLeg PluginTenderLeg           // optional; books a plugin tender in-tx
+	pluginTender    func(method string) bool  // optional; is this a method a plugin registered?
 }
 
 // WithDrawerKick injects a best-effort action fired AFTER a cash-tendered sale
@@ -58,9 +59,8 @@ func (s *Service) WithNonCashLeg(fn NonCashLeg) *Service {
 }
 
 // PluginTender is a tender line whose method is not one core handles (cash, card,
-// online, credit) — i.e. a method a plugin registered (e.g. recharge "wallet").
-// Meta carries that method's opaque per-line data (core never interprets it —
-// wallet puts its device_id there).
+// online, credit) — i.e. a method a plugin registered. Meta carries that
+// method's opaque per-line data; core never interprets it.
 type PluginTender struct {
 	Method  string
 	Amount  decimal.Decimal
@@ -70,15 +70,16 @@ type PluginTender struct {
 }
 
 // PluginTenderLeg books the money side of a plugin tender on the sale's own tx,
-// so the plugin's ledger (e.g. a wallet device float) commits atomically with the
-// sale instead of a best-effort call after it. Injected from the composition root
-// (main.go), which dispatches to whatever plugin registered the method — so core
-// stays free of any specific plugin. nil = plugin tenders recorded only.
+// so the plugin's own ledger commits atomically with the sale instead of a
+// best-effort call after it. Injected from the composition root, which dispatches
+// to whatever plugin registered the method — so core stays free of any plugin.
 type PluginTenderLeg func(ctx context.Context, tx *sqlx.Tx, ev PluginTender) error
 
-// WithPluginTenderLeg injects the plugin-tender hook. Returns the service.
-func (s *Service) WithPluginTenderLeg(fn PluginTenderLeg) *Service {
-	s.pluginTenderLeg = fn
+// WithPluginTenders injects the plugin-tender seam: known reports whether a
+// method is one a plugin registered, leg books it inside the sale's tx. Without
+// it every non-core method is refused. Returns the service.
+func (s *Service) WithPluginTenders(known func(method string) bool, leg PluginTenderLeg) *Service {
+	s.pluginTender, s.pluginTenderLeg = known, leg
 	return s
 }
 
@@ -93,7 +94,7 @@ func coreTender(method string) bool {
 }
 
 // tenderPaidCash reports whether a sale's payment split includes a positive cash
-// line — the condition for popping the physical drawer. Card/online/wallet/credit
+// line — the condition for popping the physical drawer. Card/online/plugin/credit
 // move no drawer cash.
 func tenderPaidCash(ps []PaymentInput) bool {
 	for _, p := range ps {
@@ -162,6 +163,13 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		return nil, apperr.Validation("discount must be a non-negative amount")
 	}
 	billDiscType := normDiscountType(in.DiscountType)
+	// A method neither core nor a plugin settles would be money that lands
+	// nowhere: refuse it before anything is written.
+	for _, p := range in.Payments {
+		if !coreTender(p.Method) && (s.pluginTender == nil || !s.pluginTender(p.Method)) {
+			return nil, apperr.Validation("unknown payment method: " + p.Method)
+		}
+	}
 	// A card/online tender must name the card/bank account its money lands in;
 	// without one the sale would record money that reaches no account.
 	for _, p := range in.Payments {
@@ -307,7 +315,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			}
 			if serviceProducts[lines[i].ProductID] {
 				// Service line: no inventory of its own, but record a movement for
-				// each consumable it drew down (e.g. paper for a document job).
+				// each consumable it drew down (e.g. paper for a printing service).
 				refType := "sale"
 				for _, comp := range componentMoves[i] {
 					if err := stkRepo.InsertMovement(ctx, stock.MovementInput{
@@ -393,7 +401,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 					return err
 				}
 			}
-			// A plugin tender (e.g. recharge "wallet") settles its own ledger inside
+			// A plugin tender settles its own ledger inside
 			// this tx so it can't silently miss like a best-effort post-sale call.
 			// Dispatched generically — core doesn't know which plugin handles it.
 			if s.pluginTenderLeg != nil && !coreTender(p.Method) {

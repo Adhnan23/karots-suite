@@ -75,7 +75,7 @@ func Init(b *bytes.Buffer) {
 // Header writes the shared, centered branding block at the top of EVERY receipt —
 // logo, the shop name in double-width bold, the secondary-language (Sinhala/Tamil)
 // name image, address, phone and VAT no — so a sale, a money receipt and a
-// recharge slip all carry identical branding. Text is centered by space-padding
+// plugin slip all carry identical branding. Text is centered by space-padding
 // (see center()); the printer is left in left-align mode for the body.
 func Header(b *bytes.Buffer, cfg settings.Settings, opts Options) {
 	w := columns(cfg.ReceiptWidth)
@@ -248,7 +248,7 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 }
 
 // Exported thin wrappers so slip builders in other packages (money receipts,
-// recharge) render rows with exactly the same alignment as the sale receipt.
+// a plugin) render rows with exactly the same alignment as the sale receipt.
 func Line(b *bytes.Buffer, s string)                        { line(b, s) }
 func Divider(b *bytes.Buffer, cfg settings.Settings, w int) { divider(b, cfg, w) }
 func LeftRight(l, r string, w int) string                   { return leftRight(l, r, w) }

@@ -42,13 +42,13 @@ type ProductBadgeProvider struct {
 }
 
 // SaleSuggestion is an optional line discount a plugin proposes when a product
-// is added at the till (e.g. a clearance markdown). The cashier is prompted to
+// is added at the till (e.g. a markdown on slow stock). The cashier is prompted to
 // apply or skip it; applying sets the line's existing discount fields.
 type SaleSuggestion struct {
 	DiscountType  string // "percent" | "fixed" (matches sale_items.discount_type)
 	DiscountValue string // percent (e.g. "20") or fixed per-unit amount
-	Label         string // short badge/summary, e.g. "Clearance -20%"
-	Prompt        string // popup body, e.g. "Clearance item — apply 20% off?"
+	Label         string // short badge/summary, e.g. "Markdown -20%"
+	Prompt        string // popup body, e.g. "Slow item — apply 20% off?"
 }
 
 // ProductSaleSuggestionProvider supplies a line-discount suggestion per product

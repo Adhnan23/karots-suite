@@ -62,7 +62,7 @@ func (s *Service) ListAll(ctx context.Context) ([]Product, error) {
 
 // ByIDs returns the given products (full rows incl. stock_qty), preserving the id
 // order and silently dropping ids that don't resolve. Used to pull specific
-// products into a list — e.g. the reorder worklist adding low-tier alternatives.
+// products into a list — e.g. the reorder worklist adding a plugin's related products.
 func (s *Service) ByIDs(ctx context.Context, ids []int64) ([]Product, error) {
 	rows, err := s.repo.byIDsOrdered(ctx, ids)
 	if err != nil {
