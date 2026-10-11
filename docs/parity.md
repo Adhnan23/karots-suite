@@ -408,15 +408,15 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/combos
 
-- [ ] `plugins/combos/combos.go` · GET `/combos`
-- [ ] `plugins/combos/combos.go` · GET `/combos/:id/edit`
-- [ ] `plugins/combos/combos.go` · GET `/combos/menu`
-- [ ] `plugins/combos/combos.go` · GET `/combos/new`
-- [ ] `plugins/combos/combos.go` · GET `/combos/panel`
-- [ ] `plugins/combos/combos.go` · POST `/combos/create`
-- [ ] `plugins/combos/combos.go` · POST `/combos/:id/delete`
-- [ ] `plugins/combos/combos.go` · POST `/combos/:id/toggle`
-- [ ] `plugins/combos/combos.go` · POST `/combos/:id/update`
+- [x] `plugins/combos/combos.go` · GET `/combos` → GET /api/v1/x/combos, Apps → Combos (cards: deal, dates, health, sold count)
+- [x] `plugins/combos/combos.go` · GET `/combos/:id/edit` → client-side Edit combo sheet (ComboSheet)
+- [x] `plugins/combos/combos.go` · GET `/combos/menu` → GET /api/v1/x/combos/till, the till's 🎁 Combos menu (slots.tillMenu)
+- [x] `plugins/combos/combos.go` · GET `/combos/new` → client-side New combo sheet (ComboSheet)
+- [x] `plugins/combos/combos.go` · GET `/combos/panel` → client-side combo detail in the till menu; Add = TillApi.addGroup (cart line group)
+- [x] `plugins/combos/combos.go` · POST `/combos/create` → POST /api/v1/x/combos (price / percent / fixed, dates, audited)
+- [x] `plugins/combos/combos.go` · POST `/combos/:id/delete` → DELETE /api/v1/x/combos/:id (sales history kept)
+- [x] `plugins/combos/combos.go` · POST `/combos/:id/toggle` → POST /api/v1/x/combos/:id/active
+- [x] `plugins/combos/combos.go` · POST `/combos/:id/update` → PUT /api/v1/x/combos/:id
 
 ## plugins/documents
 

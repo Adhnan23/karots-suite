@@ -5,9 +5,36 @@ every milestone.
 
 ## Status (2026-10-11)
 
-**M7.2 Product Plus is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-2-productplus.md`, spec
-`docs/specs/2026-10-11-m7-2-productplus-design.md`). **NEXT: M7.3 combos** — start with its **rethink** (read the
+**M7.3 Combos is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-3-combos.md`, spec
+`docs/specs/2026-10-11-m7-3-combos-design.md`). **NEXT: M7.4 alternatives** — start with its **rethink** (read the
 whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
+
+- **M7.3 delivered (user chose A–H, 2026-10-11; clickable till mockup https://claude.ai/artifact/VpUnYn5UQSZLigFRasLivZ, look A):**
+  - **A** three kinds — Combo price · % off · Rs off — exact to the cent from the line's real price (wholesale too);
+    leftover cents split a line. Pure `web/src/plugins/combos/pricing.ts`.
+  - **B** a combo stays together in the cart (header − / + sets, save, ×; removing an item asks to break it; the
+    same combo again adds sets). **C** the till spots full sets scanned one by one (strip: Apply) and part sets
+    (chip on the line: add the rest). **D** Starts / Ends dates. **E** health: a disabled member blocks Add.
+    **F** sold count per card. **G** Reports → More → Combos (sets, sales, discount given, bills, CSV).
+  - **H (receipt):** a combo prints as one block ("Name (combo)", sets × set price → combo price, You saved, Line
+    total, then its items) — the one approved change to the frozen receipt layout; A4 receipt and sale views
+    group the same way; Returns tags each item.
+  - **Core seams (generic):** cart line groups (`CartLine.group`, reducer `addGroup` / `groupCount` /
+    `breakGroup` / `removeGroup`, `TillApi.addGroup` + `saleType`), slots `tillCartHints` / `tillLineHints`, and
+    sale line groups — **core migration `00002_sale_line_groups.sql`** (`sale_items.line_group`, `_label`,
+    `_sets`; old sales have none), `SaleItemRequest.group`, `SaleLine.group*`, `escpos` `printGroup`.
+  - **Data:** karots-pos `0001_combos.sql` byte for byte + `0002_window_sales.sql` (dates, `combo_sales`); an old
+    backup restores with no mapping (`plugins/combos/restore_db_test.go`).
+  - **karots-pos bug fixed in both:** Rs-off combos on a wholesale sale (karots-pos `d83f02c`, **unpushed** for
+    the user).
+  - **Checks (2026-10-11):** `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 137 web unit
+    tests, **116 Playwright flows** (`plugin-combos.spec.ts` new, 6), `make verify-portable`. Parity **353** (9
+    combos). `docs/differences.md` rows 47–53.
+  - **Also fixed:** plugin reports now show on the dock's Reports shelf too (`theme/nav.ts`), not only on the
+    Reports page.
+
+**M7.2 Product Plus is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-2-productplus.md`, spec
+`docs/specs/2026-10-11-m7-2-productplus-design.md`). 
 
 - **M7.2 delivered (user chose A–F, 2026-10-11):**
   - **Fields per category** (subcategories inherit); every surface (form, intake, search, list line, ⓘ, label,
