@@ -573,10 +573,10 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/requests
 
-- [ ] `plugins/requests/requests.go` · GET `/requests`
-- [ ] `plugins/requests/requests.go` · GET `/requests/:id/convert`
-- [ ] `plugins/requests/requests.go` · POST `/requests`
-- [ ] `plugins/requests/requests.go` · POST `/requests/clear-converted`
-- [ ] `plugins/requests/requests.go` · POST `/requests/:id/convert`
-- [ ] `plugins/requests/requests.go` · POST `/requests/:id/delete`
-- [ ] `plugins/requests/requests.go` · POST `/requests/:id/update`
+- [x] `plugins/requests/requests.go` · GET `/requests` → GET /api/v1/x/requests (tabs Open · To call · Done), Apps → Customer requests
+- [x] `plugins/requests/requests.go` · GET `/requests/:id/convert` → client-side Make product sheet
+- [x] `plugins/requests/requests.go` · POST `/requests` → POST /api/v1/x/requests (till Note request + no-match link; + /:id/asks, /similar)
+- [x] `plugins/requests/requests.go` · POST `/requests/clear-converted` → POST /api/v1/x/requests/clear-done (won't-stock rows stay)
+- [x] `plugins/requests/requests.go` · POST `/requests/:id/convert` → POST /api/v1/x/requests/:id/product (+ /link, /decline, /reopen, /merge)
+- [x] `plugins/requests/requests.go` · POST `/requests/:id/delete` → DELETE /api/v1/x/requests/:id
+- [x] `plugins/requests/requests.go` · POST `/requests/:id/update` → PUT /api/v1/x/requests/:id (+ PUT /:id/asks/:ask)
