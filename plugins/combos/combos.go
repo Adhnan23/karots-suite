@@ -28,6 +28,17 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "combos", Name: "Combos / deals",
 		Tables: []string{"combos", "combo_items", "combo_sales"}})
+	h := handlers{p}
+	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
+	t.GET("/combos/till", h.till)
+	t.POST("/combos/sold", h.sold)
+	a := reg.Admin() // admin + manager
+	a.GET("/combos", h.list)
+	a.GET("/combos/report", h.report)
+	a.POST("/combos", h.create)
+	a.PUT("/combos/:id", h.update)
+	a.POST("/combos/:id/active", h.setActive)
+	a.DELETE("/combos/:id", h.remove)
 	// Flag member products in till search so the cashier knows a combo exists.
 	reg.AddProductBadgeProvider(plugin.ProductBadgeProvider{Batch: p.store.BadgesFor})
 }
