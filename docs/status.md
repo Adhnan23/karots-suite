@@ -5,19 +5,40 @@ every milestone.
 
 ## Status (2026-10-11)
 
-**M7.2 Product Plus — IN PROGRESS (2026-10-11).** Spec `docs/specs/2026-10-11-m7-2-productplus-design.md`, plan
-`docs/plans/2026-10-11-m7-2-productplus.md` (user chose A–E + F Skip disabled + default change asks new/all + lossy
-type change warns). **Tasks 1–6 done** (core seams: product extras, list line, sheet columns + Skip disabled; plugin
-store, API + hooks; Apps → Product Plus fields page). **Resume at Task 7** (form + intake section), then 8 (Fill in),
-9 (e2e, restore, parity, docs, review). Ledger with rulings: `.superpowers/sdd/2026-10-11-m7-2-productplus/progress.md`
-(git-ignored). User check (2026-10-11): "print on label" and "show in stock intake" are the **Label** / **Stock intake**
-chips; label top/bottom options already come through core's `/till/products/:id/label-fields` (shared label Designer:
-admin Labels, counter Labels, intake restock) — confirm both in Task 7's UI gate with screenshots.
+**M7.2 Product Plus is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-2-productplus.md`, spec
+`docs/specs/2026-10-11-m7-2-productplus-design.md`). **NEXT: M7.3 combos** — start with its **rethink** (read the
+whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
+
+- **M7.2 delivered (user chose A–F, 2026-10-11):**
+  - **Fields per category** (subcategories inherit); every surface (form, intake, search, list line, ⓘ, label,
+    Fill in, sheets) shows a field only in scope; a product moved out keeps its values, hidden.
+  - **Fill in** (Apps → Product Plus → Fill in): fields × products grid, Missing only, category, search, per-cell
+    errors, "N changes · Save", leaving unsaved asks (in-app dialog). "N missing" on a field opens it there.
+  - **Required is real:** no default needed; missing = in scope, no value, blank default; form / intake refuse blank.
+  - **Safer edits:** default change asks Only new (old default written onto untouched products) / Change existing
+    too; a chosen value equal to the default is kept; a lossy type change needs a tick (409 `DATA_LOSS` otherwise).
+    The form sends only edited values, the product's own and blank required ones — an untouched field keeps
+    reading the default (so "Change existing" still moves it).
+  - **Core seams (generic):** `slots.productFormSections` + `ProductRequest.extra` (Validate before the write,
+    unknown key 400), `products.MetaProvider` (list line), `ProductSheetColumns` (Sheets ▾ "Include …" toggle on
+    export / template / import). **Core feature F:** Sheets ▾ **Skip disabled** (off adds an `active` column; import
+    honours it and matches a disabled product instead of duplicating it).
+  - **Label / Stock intake chips confirmed** (gate shots): a Label field is a top/bottom line option in the shared
+    label Designer; intake New item shows only intake fields.
+  - **Data:** karots-pos 0001–0004 byte for byte + `0005_field_scope.sql`; an old backup restores with **no mapping**
+    (`plugins/productplus/restore_db_test.go`: every field applies everywhere, nothing missing, search works).
+  - **Checks (2026-10-11):** `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 114 web unit
+    tests, **110 Playwright flows** (`plugin-productplus.spec.ts` new, Skip disabled in `admin-data.spec.ts`),
+    `make verify-portable`. Parity **344** (8 productplus). `docs/differences.md` rows 39–46.
+  - **Found, for later milestones:** a karots-pos DB that used repairs / recharge has `payments.method` values
+    `deposit` / `wallet` the suite enum lacks, so `TestRestoreKarotsPosBackup` against this machine's karots-pos dev DB
+    fails until M7.9 repairs / M7.10 recharge add them (their migrations must). karots-pos's dev DB has no pp rows.
+  - **No sheet clashes (user, 2026-10-11):** a field label the products sheet already reads (its columns, synonyms
+    like Price / SKU / Qty, `active` — core's `plugin.Core.ProductSheetNameTaken`) or another field's label is
+    refused; a field keeping its own label (an old karots-pos one) can still be edited.
 
 **M7.1 Customer requests is DONE** (plan `docs/plans/2026-10-11-m7-1-requests.md`, spec
-`docs/specs/2026-10-11-m7-1-requests-design.md`); M7.0 Plugin groundwork + Clearance before it. **NEXT: M7.2
-productplus** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change · merge +
-old-data mapping, the user decides), then its plan. Rule (user, 2026-10-11): **core never references a plugin
+`docs/specs/2026-10-11-m7-1-requests-design.md`); M7.0 Plugin groundwork + Clearance before it. Rule (user, 2026-10-11): **core never references a plugin
 and never changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
 
 - **M7.1 delivered (user chose A–E, 2026-10-11):**

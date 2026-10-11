@@ -478,14 +478,14 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/productplus
 
-- [ ] `plugins/productplus/productplus.go` · GET `/productplus`
-- [ ] `plugins/productplus/productplus.go` · GET `/productplus/form`
-- [ ] `plugins/productplus/productplus.go` · GET `/productplus/form/:id`
-- [ ] `plugins/productplus/productplus.go` · GET `/productplus/table`
-- [ ] `plugins/productplus/productplus.go` · POST `/productplus`
-- [ ] `plugins/productplus/productplus.go` · POST `/productplus/:id/active`
-- [ ] `plugins/productplus/productplus.go` · POST `/productplus/:id/move`
-- [ ] `plugins/productplus/productplus.go` · PUT `/productplus/:id`
+- [x] `plugins/productplus/productplus.go` · GET `/productplus` → GET /api/v1/x/productplus/fields (+ ?disabled=1), Apps → Product Plus (Fields · Fill in)
+- [x] `plugins/productplus/productplus.go` · GET `/productplus/form` → client-side Add a field sheet (FieldSheet)
+- [x] `plugins/productplus/productplus.go` · GET `/productplus/form/:id` → client-side Edit field sheet; type-change loss from GET /api/v1/x/productplus/fields/:id/impact
+- [x] `plugins/productplus/productplus.go` · GET `/productplus/table` → client-side fields list (DataList) with missing counts
+- [x] `plugins/productplus/productplus.go` · POST `/productplus` → POST /api/v1/x/productplus/fields (scope, audited)
+- [x] `plugins/productplus/productplus.go` · POST `/productplus/:id/active` → POST /api/v1/x/productplus/fields/:id/active
+- [x] `plugins/productplus/productplus.go` · POST `/productplus/:id/move` → POST /api/v1/x/productplus/fields/:id/move
+- [x] `plugins/productplus/productplus.go` · PUT `/productplus/:id` → PUT /api/v1/x/productplus/fields/:id (defaultFor new/all, confirmLoss)
 
 ## plugins/recharge
 

@@ -68,7 +68,7 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       (each plugin's React half: export default register(slots))
   src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
                         drawerSections, tillTenders, tillTabs, tillReceiptKinds, reportCards,
-                        settingsSections, before/after-sale)
+                        settingsSections, productFormSections, before/after-sale)
 scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
