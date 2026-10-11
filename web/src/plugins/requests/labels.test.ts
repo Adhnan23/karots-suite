@@ -6,12 +6,12 @@ const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000).toISOStr
 
 describe('askLabel', () => {
   it('counts the asks and says when the last one was', () => {
-    expect(askLabel(3, daysAgo(2), now)).toBe('Asked 3× · last 2 days ago')
+    expect(askLabel(3, daysAgo(2), now)).toBe('Asked 3× · last asked 2 days ago')
   })
   it('a single ask today', () => {
     expect(askLabel(1, daysAgo(0), now)).toBe('Asked today')
   })
   it('yesterday', () => {
-    expect(askLabel(2, daysAgo(1), now)).toBe('Asked 2× · last yesterday')
+    expect(askLabel(2, daysAgo(1), now)).toBe('Asked 2× · last asked yesterday')
   })
 })

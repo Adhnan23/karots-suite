@@ -6,8 +6,8 @@ export function whenLabel(iso: string, now = new Date()): string {
   return n <= 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`
 }
 
-/** "Asked 3× · last 2 days ago", or "Asked today" for one ask. */
+/** "Asked 3× · last asked 2 days ago", or "Asked today" for one ask. */
 export function askLabel(count: number, lastAsked: string, now = new Date()): string {
   const when = whenLabel(lastAsked, now)
-  return count <= 1 ? `Asked ${when}` : `Asked ${count}× · last ${when}`
+  return count <= 1 ? `Asked ${when}` : `Asked ${count}× · last asked ${when}`
 }

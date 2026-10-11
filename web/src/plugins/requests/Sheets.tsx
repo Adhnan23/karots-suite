@@ -1,15 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { PickerShell } from '@/components/admin/PickerShell'
+import { Button } from '@/components/ui/button'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { supplierOptionsQuery } from '@/features/admin/products/queries'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
-import { decline, listQuery, makeProduct, merge, updateNote } from './api'
+import { decline, deleteAsk, listQuery, makeProduct, merge, updateAsk, updateNote } from './api'
 import { askLabel } from './labels'
 import type { RequestRow } from './types'
 
@@ -90,13 +92,37 @@ export function DeclineSheet({ r, onClose }: SheetProps) {
 
 export function EditSheet({ r, onClose }: SheetProps) {
   const [note, setNote] = useState(r.note)
+  const [asks, setAsks] = useState(r.asks.map((a) => ({ ...a, removed: false })))
   const [busy, setBusy] = useState(false)
+  const set = (i: number, patch: Partial<(typeof asks)[number]>) => setAsks(asks.map((a, j) => (j === i ? { ...a, ...patch } : a)))
+  async function save() {
+    if (note.trim() !== r.note) await updateNote(r.id, note.trim())
+    for (const [i, a] of asks.entries()) {
+      const was = r.asks[i]
+      if (a.removed) await deleteAsk(r.id, a.id)
+      else if (a.name.trim() !== was.name || a.phone.trim() !== was.phone) await updateAsk(r.id, a.id, { name: a.name.trim(), phone: a.phone.trim() })
+    }
+  }
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title="Edit request" submit="Save" busy={busy}
-      onSubmit={() => run(setBusy, () => updateNote(r.id, note.trim()), 'Request saved', onClose)}>
+      onSubmit={() => run(setBusy, save, 'Request saved', onClose)}>
       <Field label="What they asked for">
         <textarea required autoFocus rows={3} aria-label="What they asked for" value={note} onChange={(e) => setNote(e.target.value)} className={cn(INPUT, 'h-auto py-2')} />
       </Field>
+      {asks.map((a, i) => !a.removed && (
+        <fieldset key={a.id} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+          <Field label={i === 0 ? 'Customer' : `Customer ${i + 1}`}>
+            <input aria-label={`Name of customer ${i + 1}`} placeholder="Name" value={a.name} onChange={(e) => set(i, { name: e.target.value })} className={INPUT} />
+          </Field>
+          <Field label="Phone">
+            <input aria-label={`Phone of customer ${i + 1}`} inputMode="tel" placeholder="Phone" value={a.phone} onChange={(e) => set(i, { phone: e.target.value })} className={INPUT} />
+          </Field>
+          {/* The first ask is the request itself — remove the request instead. */}
+          {a.id > 0
+            ? <Button type="button" variant="ghost" className="h-10 w-10 p-0" aria-label={`Remove customer ${i + 1}`} onClick={() => set(i, { removed: true })}><X size={16} /></Button>
+            : <span className="w-10" />}
+        </fieldset>
+      ))}
     </FormSheet>
   )
 }
