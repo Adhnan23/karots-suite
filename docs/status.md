@@ -6,7 +6,9 @@ every milestone.
 ## Status (2026-10-11)
 
 **M7.4 Alternatives is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-4-alternatives.md`, spec
-`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **NEXT: M7.5 documents** — start with its **rethink** (read the
+`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **NEXT (user, 2026-10-11): first decide and fix the two
+M7.4 open items below** (Reorder suggestion for pulled-in members; focus in the found-at-till prompt), **then M7.5
+documents** — start with its **rethink** (read the
 whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
 
 - **M7.4 delivered (user chose A–G, 2026-10-11):**
