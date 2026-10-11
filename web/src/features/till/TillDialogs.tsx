@@ -59,7 +59,7 @@ export function TillDialogs() {
       return <ClearSale />
     case 'action': {
       const a = slots.tillActions.find((x) => x.key === d.key)
-      return a ? <a.Panel till={till} onClose={ui.close} /> : null
+      return a ? <a.Panel till={till} onClose={ui.close} text={d.text} /> : null
     }
     default:
       return null

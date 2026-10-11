@@ -19,7 +19,7 @@ export type Dialog =
   | { kind: 'info'; product: TillProduct }
   | { kind: 'pricePick'; product: TillProduct; lots: Lot[] }
   | { kind: 'suggestion'; product: TillProduct }
-  | { kind: 'action'; key: string }
+  | { kind: 'action'; key: string; text?: string }
 
 type Ui = {
   dialog: Dialog | null

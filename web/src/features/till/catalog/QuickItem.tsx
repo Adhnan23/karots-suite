@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { num } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
 import { errMsg, unitsQuery } from '../api'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
@@ -70,6 +71,12 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
             <input aria-label="Barcode" placeholder="Barcode (optional)" autoComplete="off" value={barcode} onChange={(e) => setBarcode(e.target.value)} className={cn(FIELD, 'min-w-0 flex-1')} />
             <Button type="button" variant="secondary" className="h-[var(--control-h)]" onClick={generate}>Generate</Button>
           </div>
+          {slots.tillActions.filter((a) => a.noMatch).map((a) => (
+            <button key={a.key} type="button" className="col-span-2 justify-self-start text-sm font-medium text-brand hover:underline"
+              onClick={() => ui.open({ kind: 'action', key: a.key, text: name.trim() })}>
+              {a.noMatch}
+            </button>
+          ))}
           <DialogFooter className="col-span-2">
             <Button type="button" variant="ghost" onClick={ui.close}>Cancel</Button>
             <Button type="submit">Add to cart</Button>

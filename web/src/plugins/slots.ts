@@ -11,8 +11,15 @@ export type TillApi = {
 /** A chip beside the group chips that opens a plugin menu in the catalogue area. */
 export type TillMenuRoot = { key: string; label: string; emoji?: string; Panel: ComponentType<{ till: TillApi; onDone: () => void }> }
 
-/** A button in the till's action row (beside Deposit / Withdraw) opening a panel. */
-export type TillAction = { key: string; label: string; Panel: ComponentType<{ till: TillApi; onClose: () => void }> }
+/** A button in the till's action row (beside Deposit / Withdraw) opening a panel.
+ * noMatch, when set, is a link label also offered when a till search finds nothing;
+ * the panel then gets that search as text. */
+export type TillAction = {
+  key: string
+  label: string
+  noMatch?: string
+  Panel: ComponentType<{ till: TillApi; onClose: () => void; text?: string }>
+}
 
 /** Extra counts in the Open/Close till dialogs (side by side with the cash count).
  * register(save) on mount; save runs around the drawer call — returning false
