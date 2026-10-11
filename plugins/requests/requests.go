@@ -28,4 +28,23 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "requests", Name: "Customer requests / wanted",
 		Tables: []string{"requests", "request_asks"}})
+
+	h := handlers{p}
+	t := reg.Cashier() // /api/v1/x — anyone signed in: the till notes and re-asks
+	t.GET("/requests/similar", h.similar)
+	t.POST("/requests", h.add)
+	t.POST("/requests/:id/asks", h.askAgain)
+	a := reg.Admin() // admin + manager
+	a.GET("/requests", h.list)
+	a.POST("/requests/clear-done", h.clearDone)
+	a.PUT("/requests/:id", h.updateNote)
+	a.DELETE("/requests/:id", h.remove)
+	a.PUT("/requests/:id/asks/:ask", h.updateAsk)
+	a.DELETE("/requests/:id/asks/:ask", h.deleteAsk)
+	a.POST("/requests/:id/asks/:ask/called", h.called)
+	a.POST("/requests/:id/product", h.makeProduct)
+	a.POST("/requests/:id/link", h.link)
+	a.POST("/requests/:id/decline", h.decline)
+	a.POST("/requests/:id/reopen", h.reopen)
+	a.POST("/requests/:id/merge", h.merge)
 }

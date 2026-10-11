@@ -87,6 +87,23 @@ func words(q string) []string {
 
 var tabStages = map[string][]string{"open": {"open", "waiting"}, "call": {"call"}, "done": {"done"}}
 
+func stagesOf(tab string) []string {
+	if st, ok := tabStages[tab]; ok {
+		return st
+	}
+	return tabStages["open"]
+}
+
+// tabWhere keeps a tab's stages ($1) whose note matches every search word ($2).
+const tabWhere = `WHERE stage = ANY($1) AND NOT EXISTS (SELECT 1 FROM unnest($2::text[]) w WHERE s.note NOT ILIKE w)`
+
+// Count is how many requests List would page through.
+func (s *Store) Count(ctx context.Context, tab, q string) (int, error) {
+	var n int
+	err := s.db.GetContext(ctx, &n, baseSQL+`SELECT count(*) FROM s `+tabWhere, pq.Array(stagesOf(tab)), pq.Array(words(q)))
+	return n, err
+}
+
 // List is one tab's page, most-asked first, with every tab's count.
 func (s *Store) List(ctx context.Context, tab, q string, limit, offset int) ([]Request, Counts, error) {
 	var counts Counts
@@ -96,15 +113,10 @@ func (s *Store) List(ctx context.Context, tab, q string, limit, offset int) ([]R
 		count(*) FILTER (WHERE stage = 'done') AS done FROM s`); err != nil {
 		return nil, counts, err
 	}
-	stages, ok := tabStages[tab]
-	if !ok {
-		stages = tabStages["open"]
-	}
 	rows := []Request{}
-	err := s.db.SelectContext(ctx, &rows, baseSQL+`SELECT `+cols+` FROM s
-		WHERE stage = ANY($1) AND NOT EXISTS (SELECT 1 FROM unnest($2::text[]) w WHERE s.note NOT ILIKE w)
+	err := s.db.SelectContext(ctx, &rows, baseSQL+`SELECT `+cols+` FROM s `+tabWhere+`
 		ORDER BY asks DESC, last_asked DESC, id DESC LIMIT $3 OFFSET $4`,
-		pq.Array(stages), pq.Array(words(q)), limit, offset)
+		pq.Array(stagesOf(tab)), pq.Array(words(q)), limit, offset)
 	if err != nil {
 		return nil, counts, err
 	}
