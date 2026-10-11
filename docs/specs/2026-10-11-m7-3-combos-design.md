@@ -67,6 +67,20 @@ page, a table and a bar chart, and nothing more.
   - Counts from the day the plugin is in the suite. Voided sales are left out; returns aren't netted (a
     returned combo still counts as sold — noted on the page).
 
+- **H. A combo prints as one block (user, 2026-10-11)** — the one change to the frozen receipt layout:
+  ```
+  Milk + Cookies (combo)
+    2 x 600.00 -> 560.00          1,200.00
+    You saved                       -80.00
+    Line total                    1,120.00
+     - Milk 1L x2
+     - Cookies 200g x2
+  ```
+  Same style as a discounted line (qty = sets, unit = a set's full → combo price), members listed without
+  prices. Subtotal / Item savings / totals unchanged. The same grouping shows on the A4 receipt, reprints,
+  the preview and the receipts hub sale view. The Returns screen keeps one row per member (you return items)
+  with a "Milk + Cookies (combo)" tag.
+
 ## 3. Core seams (generic; no plugin named)
 
 1. **Line groups in the cart** (`web/src/features/till/cart`):
@@ -86,8 +100,13 @@ page, a table and a bar chart, and nothing more.
    above the cart total, and **`tillLineHints: { key, Hint: ComponentType<{ till: TillApi; line: CartLine; lines: CartLine[] }> }`**,
    rendered under each plain (ungrouped) line's name.
 
-Nothing changes on the server for core: the sale posts lines with fixed per-unit discounts as today. A
-core-only build renders no hints and never creates a group.
+4. **Sale line groups (H):** the sale request's line gets `group?: { no, label }` (from `CartLine.group`;
+   `no` numbers the groups within the sale). Core migration **`00002_sale_line_groups.sql`**:
+   `sale_items.line_group INT NULL`, `sale_items.line_group_label TEXT NULL`. `sales.Detail` items carry
+   them; `escpos.Document` prints a group as one block (above), and the React receipt / sale views do the
+   same. Old sales and karots-pos backups have no groups and print as before.
+
+A core-only build renders no hints, never creates a group and prints every receipt as before.
 
 ## 4. Data and old backups
 
