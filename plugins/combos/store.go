@@ -106,7 +106,7 @@ func (s *Store) list(ctx context.Context, where string, args ...any) ([]Combo, e
 	if where != "" {
 		q += ` WHERE ` + where
 	}
-	q += ` ORDER BY c.is_active DESC, c.name, c.id`
+	q += ` ORDER BY c.is_active DESC, COALESCE(c.starts_on > CURRENT_DATE OR c.ends_on < CURRENT_DATE, false), c.name, c.id`
 	var out []Combo
 	if err := s.db.SelectContext(ctx, &out, q, args...); err != nil {
 		return nil, err

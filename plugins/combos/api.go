@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/reports"
 	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
@@ -275,11 +276,10 @@ func reportRow(r ReportRow) ReportRowDTO {
 }
 
 func (h handlers) report(c echo.Context) error {
-	from, to := c.QueryParam("from"), c.QueryParam("to")
-	for _, d := range []string{from, to} {
-		if _, err := time.Parse("2006-01-02", d); err != nil {
-			return apperr.Validation("from and to are YYYY-MM-DD")
-		}
+	// The period the core reports use (preset, or from / to inclusive days).
+	from, to, _, _, err := reports.ResolveRange(c.QueryParam("preset"), c.QueryParam("from"), c.QueryParam("to"))
+	if err != nil {
+		return apperr.Validation(err.Error())
 	}
 	r, err := h.p.store.Report(c.Request().Context(), from, to)
 	if err != nil {

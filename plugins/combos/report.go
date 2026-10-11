@@ -2,6 +2,7 @@ package combos
 
 import (
 	"context"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -22,15 +23,15 @@ type Report struct {
 	Totals ReportRow
 }
 
-// Report sums combo_sales per combo for sales dated from..to (inclusive,
-// YYYY-MM-DD, the sale's own date), leaving voided sales out.
-func (s *Store) Report(ctx context.Context, from, to string) (Report, error) {
+// Report sums combo_sales per combo for sales made in [from, to), leaving
+// voided sales out.
+func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) {
 	var r Report
 	err := s.db.SelectContext(ctx, &r.Rows, `
 		SELECT cs.combo_id, MAX(cs.name) AS name, SUM(cs.sets) AS sets, SUM(cs.net) AS net,
 		       SUM(cs.discount) AS discount, COUNT(DISTINCT cs.sale_id) AS bills
 		FROM combo_sales cs JOIN sales s ON s.id = cs.sale_id
-		WHERE s.status <> 'void' AND s.created_at::date BETWEEN $1::date AND $2::date
+		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
 		GROUP BY cs.combo_id, CASE WHEN cs.combo_id IS NULL THEN cs.name END
 		ORDER BY sets DESC, name`, from, to)
 	if err != nil {

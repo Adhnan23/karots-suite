@@ -206,8 +206,9 @@ func TestSoldAndReport(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	day := time.Now().Format("2006-01-02")
-	rep, err := s.Report(ctx, day, day)
+	from := time.Now().Add(-time.Hour)
+	to := time.Now().Add(time.Hour)
+	rep, err := s.Report(ctx, from, to)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +229,7 @@ func TestSoldAndReport(t *testing.T) {
 	if err := s.Delete(ctx, id); err != nil {
 		t.Fatal(err)
 	}
-	rep, _ = s.Report(ctx, day, day)
+	rep, _ = s.Report(ctx, from, to)
 	found := false
 	for _, r := range rep.Rows {
 		found = found || r.Name == "Sold "+tag

@@ -101,7 +101,7 @@ func TestAPI(t *testing.T) {
 		t.Fatalf("sold = %d %s", rec.Code, rec.Body)
 	}
 	day := time.Now().Format("2006-01-02")
-	rep := decode[ReportDTO](t, do("GET", "/report?from="+day+"&to="+day, ""))
+	rep := decode[ReportDTO](t, do("GET", "/report?preset=today", ""))
 	found := false
 	for _, r := range rep.Rows {
 		found = found || (r.Name == "Pair "+tag && r.Sets == "2" && r.Discount == "80.00" && r.Bills == 1)
