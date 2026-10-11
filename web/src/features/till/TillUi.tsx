@@ -1,8 +1,9 @@
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { api } from '@/api/client'
 import type { Lot, TillGroup, TillProduct } from '@/api/types.gen'
 import type { TillApi } from '@/plugins/slots'
-import { configQuery, drawerQuery } from './api'
+import { configQuery, drawerQuery, errMsg } from './api'
 import { printMoneySlip, slipPath } from './print'
 import { askToPrint } from './SlipAsk'
 import { useTill } from './TillProvider'
@@ -73,10 +74,25 @@ export function useTillUi() {
 /** The narrow surface plugin till components get (slots.ts). */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useTillApi(): TillApi {
-  const { dispatch } = useTill()
+  const { state, dispatch } = useTill()
   const qc = useQueryClient()
+  const saleType = state.saleType
   return useMemo(() => ({
     addServiceLine: (line) => dispatch({ type: 'addService', line }),
+    addGroup: async (g) => {
+      const items = []
+      for (const it of g.items) {
+        try {
+          const product = await qc.fetchQuery({ queryKey: ['till', 'product', it.productId], queryFn: () => api<TillProduct>(`/till/products/${it.productId}`), staleTime: 30_000 })
+          items.push({ product, per: it.per, discount: it.discount })
+        } catch (e) {
+          return `${errMsg(e, 'An item')} — the group wasn't added`
+        }
+      }
+      dispatch({ type: 'addGroup', group: { label: g.label, count: g.count, items, take: g.take, plugin: g.plugin } })
+      return null
+    },
+    saleType,
     refreshDrawer: () => void qc.invalidateQueries({ queryKey: drawerQuery.queryKey }),
-  }), [dispatch, qc])
+  }), [dispatch, qc, saleType])
 }

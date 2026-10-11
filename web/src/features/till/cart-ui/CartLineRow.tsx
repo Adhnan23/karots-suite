@@ -4,11 +4,13 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
 import { priceOptionsQuery } from '../api'
 import { Seg } from '../bits'
 import { lotsFor } from '../cart/lines'
 import { lineDiscount, lineGross } from '../cart/totals'
 import type { CartLine } from '../cart/types'
+import { useTillApi } from '../TillUi'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
@@ -39,7 +41,8 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
 }
 
 export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
-  const { dispatch } = useTill()
+  const { state, dispatch } = useTill()
+  const till = useTillApi()
   const opts = useQuery(priceOptionsQuery).data
   const [text, setText] = useState(qtyText(line.qty))
   useEffect(() => setText(qtyText(line.qty)), [line.qty])
@@ -50,7 +53,10 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
   return (
     <motion.div initial={{ backgroundColor: 'var(--brand-soft)' }} animate={{ backgroundColor: 'rgba(0,0,0,0)' }} transition={{ duration: 0.7 }}
       className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 rounded-[var(--radius-sm)] border-t border-dashed border-border px-2 py-2.5 first:border-t-0">
-      <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
+      <div className="min-w-0">
+        <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
+        {slots.tillLineHints.map(({ key, Hint }) => <Hint key={key} till={till} line={line} lines={state.lines} />)}
+      </div>
       <div className="flex items-center gap-0.5 rounded-full border border-border bg-muted p-0.5">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
         <input aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}

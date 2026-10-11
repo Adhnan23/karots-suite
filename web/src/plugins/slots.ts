@@ -1,12 +1,25 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
-import type { CartLine, ServiceLineInput } from '@/features/till/cart/types'
+import type { CartLine, SaleType, ServiceLineInput } from '@/features/till/cart/types'
+
+/** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
+export type GroupLineInput = { productId: number; per: number; discount: string }
 
 /** What a plugin till component may do to the sale in progress. */
 export type TillApi = {
   addServiceLine(line: ServiceLineInput): void
+  /** Add lines that stay together in the cart (− / + scale them, removing one breaks the
+   * group back to full price). take moves units off existing plain lines in the same step;
+   * plugin lands on every line. Resolves to an error text, or null when added. */
+  addGroup(group: { label: string; count: number; items: GroupLineInput[]; take?: { key: number; qty: number }[]; plugin?: Record<string, unknown> }): Promise<string | null>
+  saleType: SaleType
   refreshDrawer(): void
 }
+
+/** A strip above the cart's foot (e.g. "these items make a deal — Apply"). */
+export type TillCartHint = { key: string; Hint: ComponentType<{ till: TillApi; lines: CartLine[] }> }
+/** A small note under a plain (ungrouped) cart line's name. */
+export type TillLineHint = { key: string; Hint: ComponentType<{ till: TillApi; line: CartLine; lines: CartLine[] }> }
 
 /** A chip beside the group chips that opens a plugin menu in the catalogue area. */
 export type TillMenuRoot = { key: string; label: string; emoji?: string; Panel: ComponentType<{ till: TillApi; onDone: () => void }> }
@@ -73,6 +86,8 @@ export const slots = {
   adminPages: [] as AdminPage[],
   tillMenu: [] as TillMenuRoot[],
   tillActions: [] as TillAction[],
+  tillCartHints: [] as TillCartHint[],
+  tillLineHints: [] as TillLineHint[],
   drawerSections: [] as DrawerSection[],
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],

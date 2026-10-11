@@ -1,8 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { qtyText } from '@/lib/money'
+import { slots } from '@/plugins/slots'
 import { configQuery } from '../api'
+import { grouped } from '../cart/groups'
+import { useTillApi } from '../TillUi'
 import { useTill } from '../TillProvider'
+import { CartGroup } from './CartGroup'
 import { CartLineRow } from './CartLineRow'
 import { HeldStrip } from './HeldSales'
 import { PostSaleChange } from './PostSaleChange'
@@ -10,6 +14,7 @@ import { PostSaleChange } from './PostSaleChange'
 export function CartPanel() {
   const cfg = useSuspenseQuery(configQuery).data
   const { state } = useTill()
+  const till = useTillApi()
   const list = useRef<HTMLDivElement>(null)
   const prev = useRef(state.lines.length)
   // Follow growth only: a freshly scanned line below the fold stays in view, but
@@ -28,9 +33,16 @@ export function CartPanel() {
       <PostSaleChange />
       <div ref={list} className="flex min-h-0 flex-1 flex-col overflow-auto px-2.5 pb-2.5">
         {state.lines.length
-          ? state.lines.map((l) => <CartLineRow key={l.key} line={l} sym={cfg.symbol} />)
+          ? grouped(state.lines).map((x) => (x.kind === 'line'
+            ? <CartLineRow key={x.line.key} line={x.line} sym={cfg.symbol} />
+            : <CartGroup key={`g${x.id}`} id={x.id} label={x.label} count={x.count} lines={x.lines} sym={cfg.symbol} />))
           : <p className="m-auto p-8 text-center text-faint">Cart is empty. Scan or tap a product to start.</p>}
       </div>
+      {slots.tillCartHints.length > 0 && state.lines.length > 0 && (
+        <div className="flex flex-col gap-1.5 px-2.5 pb-2 empty:hidden">
+          {slots.tillCartHints.map(({ key, Hint }) => <Hint key={key} till={till} lines={state.lines} />)}
+        </div>
+      )}
       <HeldStrip />
     </>
   )
