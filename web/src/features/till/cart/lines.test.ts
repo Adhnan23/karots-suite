@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Lot, TillProduct } from '@/api/types.gen'
-import { addProduct, lotExpired, lotsFor, serviceLine, setQty, unitPriceFor } from './lines'
+import { addProduct, lotExpired, lotsFor, serviceLine, setQty, swapProduct, unitPriceFor } from './lines'
 
 const prod = (p: Partial<TillProduct> = {}): TillProduct => ({
   id: 7, name: 'Soap', barcode: '', sellingPrice: '100.00', wholesalePrice: '90.00', taxRate: '0',
@@ -70,5 +70,34 @@ describe('quantities', () => {
     const r = setQty(r0.lines, r0.seq, r0.key, 10, lots)
     expect(r.lines.map((l) => l.qty)).toEqual([4, 1])
     expect(r.notice?.tone).toBe('error')
+  })
+})
+
+describe('swapping a line', () => {
+  const short = () => {
+    let r = addProduct([], 0, prod({ stockQty: '0' }), 'retail', lot(3, '100', '0'), [])
+    r = setQty(r.lines, r.seq, r.key, 3, [])
+    return { ...r, lines: r.lines.map((l) => ({ ...l, discount: '10', allowOversell: true })) }
+  }
+  it('replaces the product in place, keeps the qty, resets discount, lot and found-at-till', () => {
+    const r = short()
+    const out = swapProduct(r.lines, r.lines[0].key, prod({ id: 8, name: 'Lux', sellingPrice: '120.00', wholesalePrice: '0', stockQty: '9' }), 'wholesale')
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ key: r.lines[0].key, productId: 8, name: 'Lux', qty: 3, unitPrice: 120, stock: 9, discount: '', batchId: 0, allowOversell: false })
+  })
+  it('merges into a plain line of that product already in the cart', () => {
+    const r = short()
+    const lux = prod({ id: 8, name: 'Lux', stockQty: '9' })
+    const both = addProduct(r.lines, r.seq, lux, 'retail', undefined, [])
+    const out = swapProduct(both.lines, r.lines[0].key, lux, 'retail')
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ productId: 8, qty: 4 })
+  })
+  it('never touches a group or service line', () => {
+    const r = short()
+    const grouped = r.lines.map((l) => ({ ...l, group: { id: 1, label: 'Deal', per: 1, count: 3 } }))
+    expect(swapProduct(grouped, grouped[0].key, prod({ id: 8 }), 'retail')).toBe(grouped)
+    const svc = [serviceLine(1, { productId: 5, name: 'Fix', price: 50 })]
+    expect(swapProduct(svc, 1, prod({ id: 8 }), 'retail')).toBe(svc)
   })
 })

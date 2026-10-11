@@ -92,6 +92,15 @@ export function useTillApi(): TillApi {
       dispatch({ type: 'addGroup', group: { label: g.label, count: g.count, items, take: g.take, plugin: g.plugin } })
       return null
     },
+    swapLine: async (key, productId) => {
+      try {
+        const product = await qc.fetchQuery({ queryKey: ['till', 'product', productId], queryFn: () => api<TillProduct>(`/till/products/${productId}`), staleTime: 30_000 })
+        dispatch({ type: 'swap', key, product })
+        return null
+      } catch (e) {
+        return errMsg(e, "Couldn't swap")
+      }
+    },
     saleType,
     refreshDrawer: () => void qc.invalidateQueries({ queryKey: drawerQuery.queryKey }),
   }), [dispatch, qc, saleType])

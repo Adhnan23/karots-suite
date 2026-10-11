@@ -12,6 +12,9 @@ export type TillApi = {
    * group back to full price). take moves units off existing plain lines in the same step;
    * plugin lands on every line. Resolves to an error text, or null when added. */
   addGroup(group: { label: string; count: number; items: GroupLineInput[]; take?: { key: number; qty: number }[]; plugin?: Record<string, unknown> }): Promise<string | null>
+  /** Put another product on a plain line, keeping its qty (merges into a plain
+   * line of that product). Resolves to an error text, or null when swapped. */
+  swapLine(key: number, productId: number): Promise<string | null>
   saleType: SaleType
   refreshDrawer(): void
 }
