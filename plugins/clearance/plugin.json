@@ -1,0 +1,7 @@
+{
+  "key": "clearance",
+  "name": "Clearance",
+  "import": "karots-suite/plugins/clearance",
+  "version": "2.0.0",
+  "description": "Mark down slow and expiring stock before it becomes a loss: a margin-safe discount the cashier is offered at the till, which ends by itself once that stock is gone. Dismissed items come back after a while; dead stock can be retired in one go."
+}
