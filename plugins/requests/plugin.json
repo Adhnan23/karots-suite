@@ -1,0 +1,7 @@
+{
+  "key": "requests",
+  "name": "Customer requests",
+  "import": "karots-suite/plugins/requests",
+  "version": "2.0.0",
+  "description": "Cashiers note items a customer asked for that the shop doesn't carry; repeat asks add up instead of duplicating. Admin makes a product, links an existing one or marks it won't stock, and once it's in stock the list says whom to call."
+}
