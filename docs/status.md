@@ -5,11 +5,29 @@ every milestone.
 
 ## Status (2026-10-11)
 
-**M7.0 Plugin groundwork + Clearance is DONE** (plan `docs/plans/2026-10-11-m7-0-groundwork-clearance.md`,
-spec `docs/specs/2026-10-11-m7-0-groundwork-clearance-design.md`). **NEXT: M7.1 requests** — rethink
-approved (user, 2026-10-11: A–E all yes), spec `docs/specs/2026-10-11-m7-1-requests-design.md`, plan
-`docs/plans/2026-10-11-m7-1-requests.md` — execute it. Rule (user, 2026-10-11): **core never references a plugin and never
-changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
+**M7.1 Customer requests is DONE** (plan `docs/plans/2026-10-11-m7-1-requests.md`, spec
+`docs/specs/2026-10-11-m7-1-requests-design.md`); M7.0 Plugin groundwork + Clearance before it. **NEXT: M7.2
+productplus** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change · merge +
+old-data mapping, the user decides), then its plan. Rule (user, 2026-10-11): **core never references a plugin
+and never changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
+
+- **M7.1 delivered (user chose A–E, 2026-10-11):**
+  - **Asks add up:** the till's Note request shows matching requests while typing — **Asked again** adds this
+    customer instead of a duplicate; admin rows say "Asked 3× · last asked 2 days ago", most-asked first; Merge.
+  - **Three ways to close:** Make product (+ cost, supplier), Link to an existing product, Won't stock with a
+    reason the till shows the next asker; Reopen. Edit changes the note and each customer's name / phone.
+  - **Waiting list:** a request with a product and an uncalled phone shows "Waiting for stock", then **To call**
+    once the product has stock (`tel:` links, Called ✓), then Done. Clear done spares won't-stock rows.
+  - **Generic till seam:** `TillAction.noMatch` — Quick item (a search that found nothing) lists those actions
+    with the search text (`text` prop on the panel). Core names no plugin.
+  - **Data:** karots-pos `0001_requests.sql` byte for byte + `0002_asks.sql` (`reason`, `called_at`,
+    `request_asks`); the request row is its first ask, so an old backup restores with **no mapping**
+    (`plugins/requests/restore_db_test.go`). Apps → Customer requests (Open · To call · Done, 360px cards).
+  - **Checks:** `make verify`, `go test ./...` core-only and with every plugin (with plugins in, run it with
+    `-p 1`: TestAdminData's product count races with plugin DB tests on the shared dev DB), 111 web unit tests,
+    **102 Playwright flows** (`plugin-requests.spec.ts` new), `make verify-portable`. Parity **336** (7 requests).
+    `docs/differences.md` rows 34–38. Real karots-pos backups with requests weren't on this machine to try.
+  - **Parked (user, 2026-10-11): special / advance orders** — see "Idea after M7.10" below.
 
 - **M7.0 delivered:**
   - **Core is plugin-free and checked:** `make check-core` (in `make verify`) fails on any plugin name in
