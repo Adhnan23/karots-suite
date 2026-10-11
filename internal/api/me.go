@@ -41,7 +41,7 @@ func (h *handlers) Me(c echo.Context) error {
 		Plugins:       []string{},
 	}
 	for _, p := range plugin.All() {
-		me.Plugins = append(me.Plugins, p.Name())
+		me.Plugins = append(me.Plugins, p.Key())
 	}
 	st, err := h.d.Settings.Get(ctx)
 	if err != nil {

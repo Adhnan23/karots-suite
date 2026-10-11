@@ -82,7 +82,8 @@ func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string,
 	appmw.SetUserValidator(appmw.DBUserValidator(sqlxDB))
 
 	svc := NewServices(sqlxDB, cfg, systemPIN)
-	api.Register(e, api.Deps{DB: sqlxDB, Cfg: cfg, Auth: svc.Auth, Settings: svc.Settings, CashRegister: svc.CashRegister, Cashflow: svc.Cashflow, Sales: svc.Sales, KickDrawer: svc.KickDrawer})
+	mountPlugins := startPlugins(e, sqlxDB, cfg, svc)
+	api.Register(e, api.Deps{DB: sqlxDB, Cfg: cfg, Auth: svc.Auth, Settings: svc.Settings, CashRegister: svc.CashRegister, Cashflow: svc.Cashflow, Sales: svc.Sales, KickDrawer: svc.KickDrawer, MountPlugins: mountPlugins})
 	e.GET("/*", spa.Handler(spa.Dist()))
 
 	return e

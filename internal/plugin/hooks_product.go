@@ -81,14 +81,6 @@ type ProductLabelFieldProvider struct {
 	Rows func(ctx context.Context, productID int64) ([]DetailRow, error)
 }
 
-// ProductRowAction is a plugin-contributed button on each admin product-list row
-// (e.g. Product Plus's "Duplicate"). Href returns the URL for a given product id;
-// the button opens it in the shared admin modal (hx-get), like Edit.
-type ProductRowAction struct {
-	Label string
-	Href  func(productID int64) string
-}
-
 // ReorderNote annotates one low-stock product on the reorder worklist. Covered
 // means an interchangeable equivalent is in stock, so the item need not be
 // reordered even though it reads low; Note is a short explanation shown on the row.
@@ -119,7 +111,6 @@ var (
 	productSaleSuggesters    hook[ProductSaleSuggestionProvider]
 	productDetailProviders   hook[ProductDetailContributor]
 	productLabelProviders    hook[ProductLabelFieldProvider]
-	productRowActions        hook[ProductRowAction]
 	productReorderAnnotators hook[ProductReorderAnnotator]
 )
 
@@ -145,9 +136,6 @@ func (r *Registry) AddProductDetailContributor(p ProductDetailContributor) {
 func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
 	productLabelProviders.add(current, p)
 }
-func (r *Registry) AddProductRowAction(a ProductRowAction) {
-	productRowActions.add(current, a)
-}
 func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 	productReorderAnnotators.add(current, a)
 }
@@ -162,5 +150,4 @@ func ProductSaleSuggestionProviders() []ProductSaleSuggestionProvider {
 }
 func ProductDetailContributors() []ProductDetailContributor   { return productDetailProviders.all() }
 func ProductLabelFieldProviders() []ProductLabelFieldProvider { return productLabelProviders.all() }
-func ProductRowActions() []ProductRowAction                   { return productRowActions.all() }
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }

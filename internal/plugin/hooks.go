@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"karots-suite/internal/features/activity"
@@ -11,44 +10,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Additive UI hooks. A plugin's Setup registers these; the template layer reads
-// them through the exported getters to weave plugin UI into the core shell. They
-// are additive only — overriding a whole page is done via the route Mux instead.
-
-// AdminNavEntry adds an admin destination. If Section names an existing section
-// key (e.g. "setup"), the link is nested under it; if Section is empty, a new
-// top-level section is created from SectionLabel + Icon holding this one link.
-type AdminNavEntry struct {
-	Section      string // existing section key to nest under; "" = new top-level section
-	SectionLabel string // label for the new top-level section (when Section == "")
-	Icon         string // emoji/icon for the new top-level section
-	Href         string
-	Label        string
-	Key          string
-	Desc         string
-}
-
-// CashierTab adds a link to the cashier shell.
-type CashierTab struct {
-	Href  string
-	Label string
-	Key   string
-}
-
-// PaletteEntry adds a command-palette destination.
-type PaletteEntry struct {
-	Href  string
-	Label string
-	Group string
-}
-
-// ReportCard adds a card to the core Reports hub (/admin/reports). Registered by
-// a plugin so its report shows alongside the built-in ones when it's enabled.
-type ReportCard struct {
-	Href  string
-	Label string
-	Desc  string
-}
+// Data and behaviour hooks only. A plugin's Setup registers these and core reads
+// them through the getters below. A plugin's UI is React, registered into
+// web/src/plugins/slots.ts — never HTML or URLs handed to core from Go.
 
 // TenderMethod adds a payment method to the cashier POS split-tender selector.
 // Value must be a payment_method enum value the plugin's migration added; Label
@@ -74,46 +38,6 @@ type TenderSettle struct {
 	ActorID int64
 }
 
-// CashierMenuRoot adds a card at the ROOT of the cashier menu (alongside the
-// product-group cards). Tapping it navigates into ChildrenURL, a GET that returns
-// the menu-node JSON protocol ({"nodes":[…]}). This replaces the old quick-action
-// strip: a plugin's actions live in the same drill-down menu as products.
-type CashierMenuRoot struct {
-	Key         string
-	Emoji       string
-	Label       string
-	ChildrenURL string
-}
-
-// DrawerSection contributes an extra panel to the till OPEN and CLOSE dialogs
-// (e.g. a plugin's per-session sub-ledger the cashier counts alongside the
-// drawer). Core renders an empty slot; client-side it loads each section's form
-// fragment and posts it to the section's save URL around the drawer call. The
-// fragment is plain inputs (no hx-*); core never references the plugin's domain.
-type DrawerSection struct {
-	Key          string // stable id, e.g. the plugin key
-	OpenFormURL  string // GET → HTML input rows for the Open-till dialog
-	CloseFormURL string // GET → HTML input rows for the Close-register dialog
-	SaveOpenURL  string // POST (form-encoded) target, after the till opens
-	SaveCloseURL string // POST (form-encoded) target, before the till closes
-}
-
-// CashierSupplierAction adds a button to the cashier Suppliers page (the counter
-// supplier section). A plugin registers it so an action that belongs with
-// "paying a supplier" — e.g. buying reload float from a carrier — lives there
-// instead of on the plugin's own page, where a cashier once fired it by mistake.
-// The button hx-gets FormURL (a GET returning an HTML fragment, typically a
-// modal) into #modal-container; that fragment posts to the plugin's own
-// endpoint. Core never learns what the action does. Gated the same as the page:
-// only cashiers with supplier access (and admins/managers) ever see it, because
-// the page they're on is.
-type CashierSupplierAction struct {
-	Key     string
-	Emoji   string
-	Label   string
-	FormURL string // GET → HTML fragment (the plugin's form), loaded into #modal-container
-}
-
 // LogoutGuard reports whether a user has unfinished plugin work that must be
 // resolved before they may log out — e.g. an open plugin float session. When
 // Block is true the web layer refuses to log the user out and instead sends them
@@ -123,16 +47,8 @@ type CashierSupplierAction struct {
 type LogoutGuard func(ctx context.Context, userID int64) (block bool, redirect, reason string)
 
 var (
-	adminNav               hook[AdminNavEntry]
-	cashierTabs            hook[CashierTab]
-	paletteEntries         hook[PaletteEntry]
-	reportCards            hook[ReportCard]
-	cashierMenuRoots       hook[CashierMenuRoot]
-	drawerSections         hook[DrawerSection]
 	tenderMethods          hook[TenderMethod]
 	logoutGuards           hook[LogoutGuard]
-	receiptTabs            hook[ReceiptTab]
-	supplierActions        hook[CashierSupplierAction]
 	plIncomes              hook[PLIncome]
 	expenseOwners          hook[ExpenseOwner]
 	activityContribs       hook[ActivityContributor]
@@ -140,18 +56,6 @@ var (
 	readinessProviders     hook[ReadinessProvider]
 	dataGroups             hook[DataGroup]
 )
-
-// ReceiptTab adds a tab to the unified Receipts page on BOTH the admin and cashier
-// shells. The core page renders a tab button (Label) plus a panel that lazy-loads
-// the plugin's own fragment endpoint for the current role: CashierHref on the
-// cashier shell, AdminHref on the admin shell. Key must be unique across plugins.
-// A plugin may register several (e.g. one per receipt kind).
-type ReceiptTab struct {
-	Key         string
-	Label       string
-	CashierHref string
-	AdminHref   string
-}
 
 // ExpenseOwner lets a plugin claim core expense rows that its own records point
 // at (an expense_id column). Expenses refuses to void a claimed expense —
@@ -239,33 +143,18 @@ type ReadinessSection struct {
 }
 
 // ReadinessRow is one thing to top up. Have/Target are pre-formatted for display;
-// Need is the money to reach the target (0 when at/over). When EditURL is set the
-// report renders an inline target editor: an input named EditName seeded with
-// EditValue that POSTs to EditURL (the plugin updates the target and responds
-// HX-Refresh so the report reloads).
+// Need is the money to reach the target (0 when at/over). An inline target editor
+// comes back as a React slot when the first plugin needs one.
 type ReadinessRow struct {
-	Name      string
-	Have      string
-	Target    string
-	Need      decimal.Decimal
-	EditURL   string
-	EditName  string
-	EditValue string
+	Name   string
+	Have   string
+	Target string
+	Need   decimal.Decimal
 }
 
 // Hook registration — plugins call these from Setup.
-func (r *Registry) AddAdminNav(e AdminNavEntry)          { adminNav.add(current, e) }
-func (r *Registry) AddCashierTab(t CashierTab)           { cashierTabs.add(current, t) }
-func (r *Registry) AddPaletteEntry(p PaletteEntry)       { paletteEntries.add(current, p) }
-func (r *Registry) AddReportCard(rc ReportCard)          { reportCards.add(current, rc) }
-func (r *Registry) AddCashierMenuRoot(m CashierMenuRoot) { cashierMenuRoots.add(current, m) }
-func (r *Registry) AddDrawerSection(s DrawerSection)     { drawerSections.add(current, s) }
-func (r *Registry) AddTenderMethod(t TenderMethod)       { tenderMethods.add(current, t) }
-func (r *Registry) AddLogoutGuard(g LogoutGuard)         { logoutGuards.add(current, g) }
-func (r *Registry) AddReceiptTab(t ReceiptTab)           { receiptTabs.add(current, t) }
-func (r *Registry) AddCashierSupplierAction(a CashierSupplierAction) {
-	supplierActions.add(current, a)
-}
+func (r *Registry) AddTenderMethod(t TenderMethod) { tenderMethods.add(current, t) }
+func (r *Registry) AddLogoutGuard(g LogoutGuard)   { logoutGuards.add(current, g) }
 func (r *Registry) AddPLIncome(s PLIncome)         { plIncomes.add(current, s) }
 func (r *Registry) AddExpenseOwner(o ExpenseOwner) { expenseOwners.add(current, o) }
 func (r *Registry) AddActivityContributor(a ActivityContributor) {
@@ -328,57 +217,9 @@ func CollectMoneyLocations(ctx context.Context) []MoneyLocationGroup {
 	return out
 }
 
-// Getters for the template layer.
-func AdminNav() []AdminNavEntry                   { return adminNav.all() }
-func CashierTabs() []CashierTab                   { return cashierTabs.all() }
-func PaletteEntries() []PaletteEntry              { return paletteEntries.all() }
-func ReportCards() []ReportCard                   { return reportCards.all() }
+// Getters for core.
 func PLIncomes() []PLIncome                       { return plIncomes.all() }
 func ActivityContributors() []ActivityContributor { return activityContribs.all() }
-func CashierMenuRoots() []CashierMenuRoot         { return cashierMenuRoots.all() }
-func DrawerSections() []DrawerSection             { return drawerSections.all() }
 
-// CashierMenuRootsJSON renders the menu roots as a JSON array for the cashier
-// Alpine scope: [{"emoji":"…","label":"…","url":"…"}].
-// Field names are explicit json tags (lower-case) since the cashier JS reads
-// r.emoji / r.label / r.url.
-func CashierMenuRootsJSON() string {
-	type r struct {
-		Emoji string `json:"emoji"`
-		Label string `json:"label"`
-		URL   string `json:"url"`
-	}
-	roots := cashierMenuRoots.all()
-	out := make([]r, 0, len(roots))
-	for _, m := range roots {
-		out = append(out, r{m.Emoji, m.Label, m.ChildrenURL})
-	}
-	b, _ := json.Marshal(out)
-	return string(b)
-}
-
-// DrawerSectionsJSON renders the drawer sections for the cashier Alpine scope:
-// [{"key":"…","openFormUrl":"…","closeFormUrl":"…","saveOpenUrl":"…","saveCloseUrl":"…"}].
-func DrawerSectionsJSON() string {
-	type s struct {
-		Key          string `json:"key"`
-		OpenFormURL  string `json:"openFormUrl"`
-		CloseFormURL string `json:"closeFormUrl"`
-		SaveOpenURL  string `json:"saveOpenUrl"`
-		SaveCloseURL string `json:"saveCloseUrl"`
-	}
-	secs := drawerSections.all()
-	out := make([]s, 0, len(secs))
-	for _, d := range secs {
-		out = append(out, s{d.Key, d.OpenFormURL, d.CloseFormURL, d.SaveOpenURL, d.SaveCloseURL})
-	}
-	b, _ := json.Marshal(out)
-	return string(b)
-}
 func TenderMethods() []TenderMethod { return tenderMethods.all() }
 func LogoutGuards() []LogoutGuard   { return logoutGuards.all() }
-func ReceiptTabs() []ReceiptTab     { return receiptTabs.all() }
-
-// CashierSupplierActions returns the plugin-contributed buttons for the cashier
-// Suppliers page.
-func CashierSupplierActions() []CashierSupplierAction { return supplierActions.all() }

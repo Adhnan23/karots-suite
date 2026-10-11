@@ -5,6 +5,7 @@ package api
 
 import (
 	"context"
+	"slices"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/config"
@@ -28,6 +29,9 @@ type Deps struct {
 	Cashflow     *cashflow.Service
 	Sales        *sales.Service
 	KickDrawer   func(context.Context)
+	// MountPlugins mounts the compiled-in plugins' routes onto /api/v1/x groups
+	// carrying core's guards (public, signed-in, admin + manager). nil = none.
+	MountPlugins func(public, cashier, admin *echo.Group)
 }
 
 type handlers struct {
@@ -55,6 +59,10 @@ func Register(e *echo.Echo, d Deps) {
 	h.registerTill(v1)
 	h.registerAdmin(v1)
 	h.registerLegacySync(e, limiter, jwt)
+	if d.MountPlugins != nil {
+		admin := slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})
+		d.MountPlugins(v1.Group("/x"), v1.Group("/x", h.protected...), v1.Group("/x", admin...))
+	}
 
 	e.Any("/api/*", func(echo.Context) error { return apperr.NotFound("endpoint") })
 }

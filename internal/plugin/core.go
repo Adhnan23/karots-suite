@@ -17,11 +17,11 @@ import (
 
 // Core is the frozen API surface a plugin may use: the database, the loaded
 // config, and a curated set of core services. Plugins depend only on this (and
-// the Registry) — never on internal/web — so the UI layer can evolve freely.
+// the Registry) — never on internal/api — so the API layer can evolve freely.
 //
-// The service instances here are the SAME ones the core UI uses (built once in
-// the web layer), so a plugin sale, expense or audit entry is identical to a
-// core one.
+// The service instances here are the SAME wired ones the core API uses (built
+// once in internal/app), so a plugin sale, expense or audit entry is identical
+// to a core one.
 type Core struct {
 	DB  *sqlx.DB
 	Cfg *config.Config
