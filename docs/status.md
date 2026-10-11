@@ -6,9 +6,9 @@ every milestone.
 ## Status (2026-10-11)
 
 **M7.0 Plugin groundwork + Clearance is DONE** (plan `docs/plans/2026-10-11-m7-0-groundwork-clearance.md`,
-spec `docs/specs/2026-10-11-m7-0-groundwork-clearance-design.md`). **NEXT: M7.1 requests** — start with
-its **rethink** (read the whole karots-pos plugin, propose keep · change · merge + old-data mapping,
-the user decides), then its plan. Rule (user, 2026-10-11): **core never references a plugin and never
+spec `docs/specs/2026-10-11-m7-0-groundwork-clearance-design.md`). **NEXT: M7.1 requests** — rethink
+approved (user, 2026-10-11: A–E all yes), spec `docs/specs/2026-10-11-m7-1-requests-design.md`, plan
+`docs/plans/2026-10-11-m7-1-requests.md` — execute it. Rule (user, 2026-10-11): **core never references a plugin and never
 changes for one plugin — only generic hooks.** M0–M6.5 summaries below.
 
 - **M7.0 delivered:**
@@ -122,6 +122,11 @@ shop (`docs/acceptance.md` § "The demo shop both apps hold now").
   does), so no database install. A shop that grows moves to server mode by: backup in the suite →
   install PostgreSQL → set `DATABASE_URL` in `.env` → start (migrations run) → restore. Server
   mode stays as it is. Not built.
+- **Idea after M7.10 (user, 2026-10-11): special / advance orders** — bakery cakes ("1kg chocolate,
+  name 'Amaya', Friday"), print jobs, party orders: a customer order with a due date, a deposit taken
+  at the till (money must land somewhere real), ready → collected, the balance rung as a sale. karots-pos
+  shops misused Customer Requests for this (Demo Room's bakery / comms seeds). Revisit once every plugin
+  is ported; likely its own plugin or a requests extension. Not built.
 - **Idea for M8 (user, 2026-10-08): Practice mode** for the system user. A "Practice mode" button
   (dashboard / hidden system menu) copies the whole shop into a throwaway database (the suite's own
   backup → restore) and opens a second suite process on it at its own port (e.g. :3200) with a
