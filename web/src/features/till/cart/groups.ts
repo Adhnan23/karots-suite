@@ -17,6 +17,9 @@ export function addGroup(lines: CartLine[], seq: number, saleType: SaleType, g: 
       .filter((l) => l.qty > 0)
   }
   const count = Math.max(1, Math.round(g.count))
+  // The same group again (label and members) adds sets to the one in the cart.
+  const same = sameGroup(next, g)
+  if (same) return { lines: setGroupCount(next, same.id, same.count + count), seq }
   const id = ++seq
   const added = g.items.map((it) => {
     const l = newLine(++seq, it.product, saleType)
@@ -26,6 +29,18 @@ export function addGroup(lines: CartLine[], seq: number, saleType: SaleType, g: 
     })
   })
   return { lines: [...next, ...added], seq }
+}
+
+const memberKey = (productId: number, per: number, discount: string) => `${productId}:${per}:${Number(discount).toFixed(2)}`
+
+function sameGroup(lines: CartLine[], g: GroupInput) {
+  const want = g.items.map((it) => memberKey(it.product.id, it.per, it.discount)).sort().join('|')
+  for (const l of lines) {
+    if (!l.group || l.group.label !== g.label) continue
+    const have = lines.filter((x) => x.group?.id === l.group!.id).map((x) => memberKey(x.productId, x.group!.per, x.discount)).sort().join('|')
+    if (have === want) return l.group
+  }
+  return null
 }
 
 /** Set how many sets: every line follows; 0 removes the group. */

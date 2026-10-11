@@ -22,6 +22,13 @@ describe('cart line groups', () => {
     expect(s.lines[1].serials).toEqual(['']) // serial boxes follow qty as on a normal add
     expect(new Set(s.lines.map((l) => l.key)).size).toBe(2)
   })
+  it('the same group again adds sets to the one in the cart', () => {
+    let s = withPair()
+    s = tillReducer(s, { type: 'addGroup', group: { ...pair, count: 2 } })
+    expect(s.lines).toHaveLength(2)
+    expect(s.lines.map((l) => l.qty)).toEqual([3, 3])
+    expect(s.lines[0].group!.count).toBe(3)
+  })
   it('take moves units off plain lines in the same step', () => {
     let s = initialState('retail')
     s = tillReducer(s, { type: 'quickSet', product: milk, qty: 3 })
