@@ -1,4 +1,5 @@
 import type { Page } from './fixtures'
+import { editField, productPlusFields } from './shot-prep-productplus'
 import { requestsWithHistory } from './shot-prep-requests'
 import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
 
@@ -492,5 +493,25 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
   /** Products → Sheets ▾ open (export options). */
   'sheets-menu': async (page) => {
     await page.getByRole('button', { name: 'Sheets' }).click()
+  },
+  /** Product Plus fields list (SHOTS_PATH=/admin/x/productplus). */
+  'pp-fields': async (page) => {
+    await productPlusFields(page)
+    await page.reload()
+  },
+  /** Edit sheet: Model no switched to Number (lossy warning). */
+  'pp-type': async (page) => {
+    await productPlusFields(page)
+    await page.reload()
+    await editField(page, 'Model no')
+    await page.getByLabel('Type').selectOption('number')
+    await page.getByRole('alert').waitFor()
+  },
+  /** Edit sheet: Grade's default changed (only new / all choice). */
+  'pp-default': async (page) => {
+    await productPlusFields(page)
+    await page.reload()
+    await editField(page, 'Grade')
+    await page.getByRole('combobox', { name: 'Default' }).selectOption('B')
   },
 }
