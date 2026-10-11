@@ -67,3 +67,9 @@ INSERT INTO stock (product_id, quantity) SELECT id, 3 FROM products WHERE name =
 ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity;
 INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, selling_price)
 SELECT id, 3, 3, 20000, 0 FROM products WHERE name = 'E2E Phone';
+
+-- Two products idle for 9 months with nothing on hand (dead stock for flows that
+-- retire old lines). Kept out of every other flow by name.
+INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, created_at)
+SELECT v.name, c.id, 1, 30, 45, now() - interval '9 months'
+FROM (VALUES ('E2E Old Torch'), ('E2E Old Gloves')) AS v(name), categories c WHERE c.name = 'E2E Goods';
