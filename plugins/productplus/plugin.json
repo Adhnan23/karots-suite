@@ -1,0 +1,7 @@
+{
+  "key": "productplus",
+  "name": "Product Plus",
+  "import": "karots-suite/plugins/productplus",
+  "version": "2.0.0",
+  "description": "Extra product fields (text, number, yes/no, dropdown, date) for all products or chosen categories — on the product form and stock intake, the till ⓘ, labels, search and the product list. Fill in a field across many products, see which are missing a required one, and carry the fields in product sheets behind a toggle."
+}
