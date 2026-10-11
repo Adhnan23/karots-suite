@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/products"
 	"karots-suite/internal/plugin"
 )
 
@@ -125,5 +127,37 @@ func TestProductExtras(t *testing.T) {
 	}
 	if x := lastFakeSave(t); x.ProductID != decode[IntakeItem](t, rec).ProductID || !x.IsNew {
 		t.Fatalf("intake save: %+v", x)
+	}
+}
+
+func TestProductListMeta(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009533", "admin")
+	var name string
+	te.db.Get(&name, `SELECT name FROM products WHERE id=$1`, f.plainID) //nolint:errcheck
+	list := func() ProductList {
+		return decode[ProductList](t, te.do(http.MethodGet, "/api/v1/admin/products?q="+url.QueryEscape(name), nil, ck))
+	}
+	for _, r := range list().Items {
+		if r.Meta != "" {
+			t.Fatalf("meta with no provider: %+v", r)
+		}
+	}
+	calls := 0
+	products.MetaProvider = func(_ context.Context, ids []int64) map[int64]string {
+		calls++
+		return map[int64]string{f.plainID: "Grade: B"}
+	}
+	t.Cleanup(func() { products.MetaProvider = nil })
+	l := list()
+	var got string
+	for _, r := range l.Items {
+		if r.ID == f.plainID {
+			got = r.Meta
+		}
+	}
+	if got != "Grade: B" || calls != 1 {
+		t.Fatalf("meta %q after %d calls (want one call for the page)", got, calls)
 	}
 }

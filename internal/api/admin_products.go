@@ -61,6 +61,16 @@ func (h *handlers) AdminProducts(c echo.Context) error {
 	for _, p := range rows {
 		out.Items = append(out.Items, productRow(p))
 	}
+	if products.MetaProvider != nil && len(rows) > 0 {
+		ids := make([]int64, len(rows))
+		for i, p := range rows {
+			ids[i] = p.ID
+		}
+		meta := products.MetaProvider(c.Request().Context(), ids)
+		for i := range out.Items {
+			out.Items[i].Meta = meta[out.Items[i].ID]
+		}
+	}
 	return c.JSON(http.StatusOK, out)
 }
 

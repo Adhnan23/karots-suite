@@ -74,6 +74,24 @@ func bridgeProductHooks() {
 			return out
 		}
 	}
+	if ps := plugin.ProductMetaProviders(); len(ps) > 0 {
+		products.MetaProvider = func(ctx context.Context, ids []int64) map[int64]string {
+			out := map[int64]string{}
+			for _, p := range ps {
+				m, err := p.Batch(ctx, ids)
+				if err != nil {
+					continue
+				}
+				for id, s := range m {
+					if out[id] != "" {
+						s = out[id] + " · " + s
+					}
+					out[id] = s
+				}
+			}
+			return out
+		}
+	}
 	if ps := plugin.ProductDetailContributors(); len(ps) > 0 {
 		products.DetailContributor = func(ctx context.Context, id int64) []products.DetailRow {
 			return detailRows(ctx, id, func(p plugin.ProductDetailContributor) func(context.Context, int64) ([]plugin.DetailRow, error) { return p.Rows }, ps)

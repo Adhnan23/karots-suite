@@ -93,6 +93,7 @@ function Name({ p }: { p: AdminProductRow }) {
         {p.low && p.isActive && <Tag tone="danger">low</Tag>}
       </span>
       <small className="font-normal text-faint tabular-nums">{p.barcode || 'no barcode'}{p.nameLocal && ` · ${p.nameLocal}`}</small>
+      {p.meta && <small className="line-clamp-1 font-normal break-all text-muted-foreground" title={p.meta}>{p.meta}</small>}
     </span>
   )
 }

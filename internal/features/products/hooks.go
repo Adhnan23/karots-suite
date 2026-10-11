@@ -58,6 +58,11 @@ type DetailRow struct {
 	Value string `json:"value"`
 }
 
+// MetaProvider, when non-nil, returns a short display line per product for the
+// admin product list (e.g. a plugin's custom fields), for one page of ids in one
+// call. Omit an id for nothing to show.
+var MetaProvider func(ctx context.Context, productIDs []int64) map[int64]string
+
 // DetailContributor, when non-nil, returns extra labeled rows for the till
 // product-info popup (a plugin's custom fields marked "show at till"). Set by the
 // web layer from plugin detail contributors; nil = core rows only.

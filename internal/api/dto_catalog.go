@@ -58,6 +58,7 @@ type AdminProductRow struct {
 	SupplierName string `json:"supplierName"`
 	CreatedBy    string `json:"createdBy"` // who quick-added it (review queue)
 	CreatedAt    string `json:"createdAt"`
+	Meta         string `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
 }
 
 // ProductList is a page of the admin product list.

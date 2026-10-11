@@ -122,6 +122,7 @@ export interface AdminProductRow {
   supplierName: string;
   createdBy: string; // who quick-added it (review queue)
   createdAt: string;
+  meta: string; // a plugin's short line under the name ("Grade: B · Waterproof")
 }
 /**
  * ProductList is a page of the admin product list.
