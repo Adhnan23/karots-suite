@@ -57,7 +57,7 @@ func TestProductExtras(t *testing.T) {
 	useFakeExtras()
 	te := newTestEnv(t)
 	f := te.seedTill(t)
-	ck := te.login(t, "0770009521", "admin")
+	ck := te.login(t, "0770009532", "admin")
 	var cat int64
 	te.db.Get(&cat, `SELECT category_id FROM products WHERE id=$1`, f.plainID) //nolint:errcheck
 	name := fmt.Sprintf("T extras %d", time.Now().UnixNano())
@@ -69,9 +69,10 @@ func TestProductExtras(t *testing.T) {
 		return map[string]json.RawMessage{"fake": json.RawMessage(fmt.Sprintf(`{"ok":%v}`, ok))}
 	}
 	t.Cleanup(func() {
-		te.db.Exec(`DELETE FROM stock_batches WHERE product_id IN (SELECT id FROM products WHERE name LIKE $1)`, name+"%") //nolint:errcheck
-		te.db.Exec(`DELETE FROM stock WHERE product_id IN (SELECT id FROM products WHERE name LIKE $1)`, name+"%")         //nolint:errcheck
-		te.db.Exec(`DELETE FROM products WHERE name LIKE $1`, name+"%")                                                    //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock_movements WHERE product_id IN (SELECT id FROM products WHERE name LIKE $1)`, name+"%") //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock_batches WHERE product_id IN (SELECT id FROM products WHERE name LIKE $1)`, name+"%")   //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock WHERE product_id IN (SELECT id FROM products WHERE name LIKE $1)`, name+"%")           //nolint:errcheck
+		te.db.Exec(`DELETE FROM products WHERE name LIKE $1`, name+"%")                                                      //nolint:errcheck
 	})
 
 	// Refused before anything is written.
