@@ -1,4 +1,5 @@
 import type { Page } from './fixtures'
+import { requestsWithHistory } from './shot-prep-requests'
 import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
 
 // The SHOTS_PREP steps for admin-shots.spec.ts: each builds the data a page needs
@@ -471,6 +472,19 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.locator('input[type=file][accept=".csv,.xlsx,.ods"]').setInputFiles({ name: 'customers.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
     await page.getByRole('button', { name: 'Import', exact: true }).click()
     await page.getByLabel('Import result').waitFor()
+  },
+  requests: async (page) => {
+    await requestsWithHistory(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
+  'requests-menu': async (page) => {
+    await prep.requests(page)
+    await page.getByRole('button', { name: /Actions for Shot: umbrella, red/ }).first().click()
+  },
+  'requests-product': async (page) => {
+    await prep['requests-menu'](page)
+    await page.getByRole('menuitem', { name: 'Make product' }).click()
   },
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
