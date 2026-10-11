@@ -64,10 +64,10 @@ func (r *Repository) Count(ctx context.Context, q ListQuery) (int, error) {
 		WHERE (p.is_active = true OR $7) AND (p.is_service = false OR $6)
 		  AND (`+searchClause+` OR p.id = ANY($9::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
-		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level)
+		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($10::bigint[]))
 		  AND ($8::bigint IS NULL OR p.preferred_supplier_id = $8)`,
 		toks, raw, fuzzy, q.CategoryID, q.LowStock, q.IncludeServices, q.IncludeInactive, q.PreferredSupplierID,
-		pq.Array(searchMatchIDs(ctx, q)))
+		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs))
 	return n, err
 }
 

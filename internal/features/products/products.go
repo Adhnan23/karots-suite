@@ -102,6 +102,9 @@ type ListQuery struct {
 	// Fuzzy enables typo-tolerant matching. Not a query param: the service sets
 	// it only for the rescue pass after a strict search came back empty.
 	Fuzzy bool `query:"-" form:"-"`
+	// AlsoIDs widens LowStock to "low, or one of these" (a plugin pulling whole
+	// groups into the reorder list). The other filters still apply.
+	AlsoIDs []int64 `query:"-" form:"-"`
 }
 
 // MaxListLimit is the largest page List will serve. Callers that need the whole
@@ -186,12 +189,12 @@ func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 		WHERE (p.is_active = true OR $9) AND (p.is_service = false OR $8)
 		  AND (`+searchClause+` OR p.id = ANY($11::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
-		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level)
+		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[]))
 		  AND ($10::bigint IS NULL OR p.preferred_supplier_id = $10)
 		ORDER BY `+searchRank+` p.name, p.id
 		LIMIT $6 OFFSET $7`,
 		toks, raw, fuzzy, q.CategoryID, q.LowStock, q.Limit, q.offset(), q.IncludeServices, q.IncludeInactive, q.PreferredSupplierID,
-		pq.Array(searchMatchIDs(ctx, q)))
+		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs))
 	return rows, err
 }
 

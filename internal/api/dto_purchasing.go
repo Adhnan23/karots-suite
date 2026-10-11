@@ -195,13 +195,19 @@ type ReorderRow struct {
 	SoldWeek     string `json:"soldWeek"`
 	SoldMonth    string `json:"soldMonth"`
 	SoldLastYear string `json:"soldLastYear"` // the same 90 days a year ago
+	Note         string `json:"note"`         // a plugin's note (e.g. an equivalent in stock)
+	Covered      bool   `json:"covered"`      // a plugin says an equivalent covers it
 }
 
+// ReorderList: Annotated = some plugin notes rows, so the page offers Hide
+// covered items (?hideCovered=1); Hidden is how many covered rows that hid.
 type ReorderList struct {
-	Items    []ReorderRow `json:"items"`
-	Total    int          `json:"total"`
-	Page     int          `json:"page"`
-	PageSize int          `json:"pageSize"`
+	Items     []ReorderRow `json:"items"`
+	Total     int          `json:"total"`
+	Page      int          `json:"page"`
+	PageSize  int          `json:"pageSize"`
+	Annotated bool         `json:"annotated"`
+	Hidden    int          `json:"hidden"`
 }
 
 type ReorderLine struct {

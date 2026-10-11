@@ -38,7 +38,7 @@ function SupplierSelect({ value, onChange, sups, label }: { value: number; onCha
  * searches as you like, then make one purchase order per supplier. */
 export function ReorderPage() {
   const s = route.useSearch()
-  const f = { q: s.q ?? '', category: s.category ?? 0, supplier: s.supplier ?? 0, page: s.page ?? 1 }
+  const f = { q: s.q ?? '', category: s.category ?? 0, supplier: s.supplier ?? 0, page: s.page ?? 1, hideCovered: s.hideCovered ?? false }
   const navigate = route.useNavigate()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const sups = useQuery(suppliersQuery('')).data ?? []
@@ -97,8 +97,8 @@ export function ReorderPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="outline" className="h-10 gap-1.5 px-4"><Printer size={16} /> Print</Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}`} target="_blank" rel="noreferrer">This page</a></DropdownMenuItem>
-                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&all=1`} target="_blank" rel="noreferrer">Everything</a></DropdownMenuItem>
+                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}${f.hideCovered ? '&hideCovered=true' : ''}`} target="_blank" rel="noreferrer">This page</a></DropdownMenuItem>
+                <DropdownMenuItem asChild><a href={`/print/low-stock?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}${f.hideCovered ? '&hideCovered=true' : ''}&all=1`} target="_blank" rel="noreferrer">Everything</a></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="outline" className="h-10 px-4" asChild><Link to="/admin/purchases/new">Manual purchase order →</Link></Button>
@@ -114,6 +114,12 @@ export function ReorderPage() {
           <option value={0}>Any usual supplier</option>
           {sups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
+        {data?.annotated && (
+          <label className="flex h-10 items-center gap-2 text-sm text-muted-foreground">
+            <input type="checkbox" checked={f.hideCovered} onChange={(e) => set({ hideCovered: e.target.checked })} className="size-4 accent-[var(--brand)]" />
+            Hide covered items{f.hideCovered && data.hidden > 0 && <span className="text-faint">({data.hidden} hidden)</span>}
+          </label>
+        )}
         {(f.q || f.category > 0 || f.supplier > 0) && <Button variant="ghost" className="h-10 px-3" onClick={() => { setQ(''); set({ q: '', category: 0, supplier: 0 }) }}>Clear filters</Button>}
       </div>
       <section className={cn(SURFACE, 'mb-24 overflow-hidden')}>
@@ -137,6 +143,7 @@ export function ReorderPage() {
                     <small className="block text-faint tabular-nums">
                       {r.fromSales ? 'from sales' : 'no recent sales — 2× reorder level'}{r.soldWeek && ` · ${r.soldWeek} this week`}{r.soldMonth && ` · ${r.soldMonth} this month`}{r.soldLastYear && ` · ${r.soldLastYear} same time last year`}
                     </small>
+                    {r.note && <small className={cn('block font-semibold', r.covered ? 'text-success' : 'text-brand')}>{r.note}</small>}
                   </span>
                   <label className="col-start-2 flex items-center gap-2 text-[13px] text-muted-foreground md:col-start-auto">
                     <span className="md:hidden">Order</span>

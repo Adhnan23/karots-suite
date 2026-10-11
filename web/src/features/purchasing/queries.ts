@@ -24,11 +24,11 @@ export const purchaseQuery = (id: number) => queryOptions({ queryKey: ['admin', 
 export const purchasesPrintQuery = (ids: string) =>
   queryOptions({ queryKey: ['admin', 'purchases-print', ids], queryFn: () => api<PurchaseDetail[]>(`/admin/purchases/print?ids=${ids}`) })
 
-export type ReorderFilter = { q: string; category: number; supplier: number; page: number; all?: boolean }
+export type ReorderFilter = { q: string; category: number; supplier: number; page: number; hideCovered?: boolean; all?: boolean }
 export const reorderQuery = (f: ReorderFilter) =>
   queryOptions({
     queryKey: ['admin', 'reorder', f],
-    queryFn: () => api<ReorderList>(`/admin/reorder?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}${f.all ? '&all=1' : ''}`),
+    queryFn: () => api<ReorderList>(`/admin/reorder?q=${encodeURIComponent(f.q)}&category=${f.category}&supplier=${f.supplier}&page=${f.page}${f.hideCovered ? '&hideCovered=1' : ''}${f.all ? '&all=1' : ''}`),
   })
 
 export const purchaseReturnsQuery = (supplier: number, page: number) =>

@@ -1602,12 +1602,20 @@ export interface ReorderRow {
   soldWeek: string;
   soldMonth: string;
   soldLastYear: string; // the same 90 days a year ago
+  note: string; // a plugin's note (e.g. an equivalent in stock)
+  covered: boolean; // a plugin says an equivalent covers it
 }
+/**
+ * ReorderList: Annotated = some plugin notes rows, so the page offers Hide
+ * covered items (?hideCovered=1); Hidden is how many covered rows that hid.
+ */
 export interface ReorderList {
   items: ReorderRow[];
   total: number /* int */;
   page: number /* int */;
   pageSize: number /* int */;
+  annotated: boolean;
+  hidden: number /* int */;
 }
 export interface ReorderLine {
   productId: number /* int64 */;
