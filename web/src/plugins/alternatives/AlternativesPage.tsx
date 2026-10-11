@@ -73,6 +73,7 @@ function NewGroup({ onClose }: { onClose: () => void }) {
     try {
       const g = await createGroup(name)
       toast.success(`${g.name} added`)
+      onClose()
       void navigate({ to: '/admin/x/$key/$', params: { key: 'alternatives', _splat: String(g.id) } })
     } catch (e) {
       toast.error(errMsg(e))
