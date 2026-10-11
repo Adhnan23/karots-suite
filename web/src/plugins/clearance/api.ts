@@ -7,12 +7,15 @@ const base = '/x/clearance'
 
 export const clearanceQuery = queryOptions({ queryKey: ['x', 'clearance'], queryFn: () => api<ClearancePageData>(base) })
 
-/** Every write refreshes the page and the till's catalogue (badges, prompts). */
+/** Every write refreshes the page and the till's catalogue (badges, prompts) —
+ * also when it fails, since "Disable all" may have disabled some before an error. */
 async function write<T>(p: Promise<T>): Promise<T> {
-  const r = await p
-  await queryClient.invalidateQueries({ queryKey: ['x', 'clearance'] })
-  void queryClient.invalidateQueries({ queryKey: ['till'] })
-  return r
+  try {
+    return await p
+  } finally {
+    await queryClient.invalidateQueries({ queryKey: ['x', 'clearance'] })
+    void queryClient.invalidateQueries({ queryKey: ['till'] })
+  }
 }
 
 export const approve = (id: number, percent: string) => write(api(`${base}/${id}/approve`, { json: { percent } }))
