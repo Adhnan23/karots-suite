@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowDown, ArrowUp, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -7,8 +8,10 @@ import { EmptyState, PageHead } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { errMsg } from '@/features/till/api'
+import { cn } from '@/lib/utils'
 import { fieldsQuery, moveField, setActive } from './api'
 import { CHIP, FieldSheet } from './FieldSheet'
+import { FillIn } from './FillIn'
 import { type FieldDTO, TYPE_LABEL } from './types'
 
 async function act(p: Promise<unknown>, done?: string) {
@@ -33,9 +36,14 @@ function Flags({ f }: { f: FieldDTO }) {
   )
 }
 
+const TABS = [{ path: '', label: 'Fields' }, { path: 'fill', label: 'Fill in' }]
+
 /** Apps → Product Plus: the custom fields (karots-pos field manager) with where
- * each applies, where it shows, and how many products are missing a required one. */
-export function FieldsPage({ fillLink }: { fillLink: (f: FieldDTO) => React.ReactNode }) {
+ * each applies, where it shows, and how many products are missing a required one;
+ * Fill in (sub-path /fill) sets them across many products. */
+export function FieldsPage({ path }: { path: string }) {
+  const go = useNavigate()
+  const fill = path === 'fill'
   const [disabled, setDisabled] = useState(false)
   const [editing, setEditing] = useState<FieldDTO | 'new' | null>(null)
   const data = useQuery(fieldsQuery(disabled)).data
@@ -43,11 +51,15 @@ export function FieldsPage({ fillLink }: { fillLink: (f: FieldDTO) => React.Reac
   return (
     <>
       <PageHead title="Product Plus" sub="Extra fields for your products — on the product form, the till, labels, search and sheets."
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing('new')}><Plus size={16} /> Add field</Button>} />
+        actions={!fill && <Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing('new')}><Plus size={16} /> Add field</Button>} />
       <div className="mb-3 flex flex-wrap gap-1.5">
-        <button type="button" aria-pressed={disabled} className={CHIP} onClick={() => setDisabled(!disabled)}>Show disabled</button>
+        {TABS.map((t) => (
+          <button key={t.path} type="button" aria-pressed={path === t.path} className={CHIP}
+            onClick={() => void go({ to: '/admin/x/$key/$', params: { key: 'productplus', _splat: t.path } })}>{t.label}</button>
+        ))}
+        {!fill && <button type="button" aria-pressed={disabled} className={cn(CHIP, 'ml-auto')} onClick={() => setDisabled(!disabled)}>Show disabled</button>}
       </div>
-      <DataList label="Custom fields" rows={rows} rowKey={(f) => f.id} onRow={(f) => setEditing(f)}
+      {fill ? <FillIn /> : <DataList label="Custom fields" rows={rows} rowKey={(f) => f.id} onRow={(f) => setEditing(f)}
         empty={<EmptyState title={!data ? 'Loading…' : 'No custom fields yet'}>{data && 'Add one — a model number, a grade, a size, an expiry date…'}</EmptyState>}
         columns={[
           { key: 'label', header: 'Field', cell: (f) => (
@@ -58,7 +70,9 @@ export function FieldsPage({ fillLink }: { fillLink: (f: FieldDTO) => React.Reac
           ) },
           { key: 'for', header: 'For', cell: (f) => <span className="text-muted-foreground">{f.scope.length ? f.scope.map((c) => c.name).join(', ') : 'All products'}</span> },
           { key: 'flags', header: 'Shows', cell: (f) => <Flags f={f} /> },
-          { key: 'missing', header: 'Missing', interactive: true, cell: (f) => f.missing > 0 ? fillLink(f) : <span className="text-faint">—</span> },
+          { key: 'missing', header: 'Missing', interactive: true, cell: (f) => f.missing > 0 ? (
+            <Link to="/admin/x/$key/$" params={{ key: 'productplus', _splat: 'fill' }} search={{ field: f.id, missing: 1 }}><Tag tone="warn">{`${f.missing} missing`}</Tag></Link>
+          ) : <span className="text-faint">—</span> },
           { key: 'act', header: '', interactive: true, className: 'w-[1%] whitespace-nowrap', cell: (f) => (
             <span className="flex items-center gap-1">
               <Button variant="ghost" className="h-9 w-9 p-0" aria-label={`Move ${f.label} up`} onClick={() => void act(moveField(f.id, 'up'))}><ArrowUp size={16} /></Button>
@@ -68,7 +82,8 @@ export function FieldsPage({ fillLink }: { fillLink: (f: FieldDTO) => React.Reac
               </Button>
             </span>
           ) },
-        ]} />
+        ]}
+      />}
       {editing && <FieldSheet key={editing === 'new' ? 0 : editing.id} field={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
     </>
   )

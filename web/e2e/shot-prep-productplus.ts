@@ -4,7 +4,7 @@ import type { Page } from './fixtures'
 const PHONE = '4790000000066' // E2E Phone, in E2E Goods
 
 // A required text field most products are missing, a dropdown with a default, a
-// yes/no, and a date scoped to E2E Goods. Once.
+// yes/no, a date scoped to E2E Goods and a required number. Once.
 export async function productPlusFields(page: Page) {
   const base = '/api/v1/x/productplus'
   const fields = await (await page.request.get(`${base}/fields?disabled=1`)).json()
@@ -18,6 +18,7 @@ export async function productPlusFields(page: Page) {
   await add({ label: 'Grade', type: 'select', options: ['A', 'B', 'C'], defaultValue: 'A', showAtTill: true })
   await add({ label: 'Waterproof', type: 'bool', searchable: true, showInIntake: true })
   await add({ label: 'Best before', type: 'date', scope: goods ? [goods.id] : [] })
+  await add({ label: 'Weight g', type: 'number', required: true })
   const id = (await (await page.request.get(`/api/v1/till/products/barcode/${PHONE}`)).json()).id as number
   await page.request.put(`${base}/values`, { data: [{ productId: id, fieldId: model, value: 'SM-A055F' }] })
 }
@@ -102,5 +103,25 @@ export const ppPrep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Scan or search').press('Enter')
     await page.getByLabel('Top line').selectOption({ label: 'Model no' })
     await page.getByLabel('Top line').evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  },
+  /** SHOTS_PATH=/admin/x/productplus: Fill in on Weight g's missing products
+   * (+ Model no at ≥ md) with an errored cell and unsaved ones. */
+  'pp-fill': async (page) => {
+    await fresh(page)
+    const fields: { id: number; label: string }[] = await (await page.request.get('/api/v1/x/productplus/fields')).json()
+    const wid = fields.find((f) => f.label === 'Weight g')!.id
+    const all: { rows: { id: number }[] } = await (await page.request.get(`/api/v1/x/productplus/grid?fields=${wid}&categoryId=0&q=&page=1`)).json()
+    await page.request.put('/api/v1/x/productplus/values', { data: all.rows.map((r) => ({ productId: r.id, fieldId: wid, value: '' })) }) // every run starts all-missing
+    await page.goto(`/admin/x/productplus/fill?field=${wid}&missing=1`)
+    await page.waitForLoadState('networkidle')
+    if ((page.viewportSize()?.width ?? 0) >= 768) await page.getByRole('button', { name: 'Model no', exact: true }).click()
+    const weight = page.getByRole('textbox', { name: /^Weight g for / })
+    await weight.nth(0).fill('12,5')
+    await weight.nth(1).fill('250')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await page.getByRole('alert').filter({ hasText: 'not a number' }).waitFor()
+    await page.waitForLoadState('networkidle')
+    await weight.nth(1).fill('300')
+    if ((page.viewportSize()?.width ?? 0) >= 768) await page.getByRole('textbox', { name: /^Model no for / }).nth(2).fill('XJ-9')
   },
 }

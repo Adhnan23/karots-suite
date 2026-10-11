@@ -26,3 +26,7 @@ export type Cell = { productId: number; fieldId: number; value: string }
 export type SaveResult = { saved: number; errors: (Omit<Cell, 'value'> & { message: string })[] }
 
 export const TYPE_LABEL: Record<FieldType, string> = { text: 'Text', textarea: 'Long text', number: 'Number', bool: 'Yes / No', select: 'Dropdown', date: 'Date' }
+
+/** Fill in: a product × field cell's key, and the edits the grid holds. */
+export const cellKey = (productId: number, fieldId: number) => `${productId}:${fieldId}`
+export type Edits = { dirty: Record<string, string>; errors: Record<string, string>; edit: (productId: number, fieldId: number, v: string) => void }
