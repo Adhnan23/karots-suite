@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -109,7 +110,8 @@ func TestAPIFields(t *testing.T) {
 		t.Fatalf("grid missing: %+v", grid)
 	}
 	form := decode[[]FormFieldDTO](t, do("GET", fmt.Sprintf("/form?productId=%d&categoryId=%d", p1, f.child), ""))
-	if len(form) != 1 || form[0].Value != "7" || !form[0].Required {
+	form = slices.DeleteFunc(form, func(x FormFieldDTO) bool { return !strings.HasPrefix(x.Label, f.tag) }) // shared DB: only ours
+	if len(form) != 1 || form[0].Value != "7" || !form[0].Required || !form[0].Own {
 		t.Fatalf("form: %+v", form)
 	}
 }

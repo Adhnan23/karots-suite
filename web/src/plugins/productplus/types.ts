@@ -17,7 +17,7 @@ export type FieldRequest = {
 
 export type Impact = { lossy: number; total: number; usingDefault: number }
 
-export type FormField = { id: number; key: string; label: string; type: FieldType; hint: string; required: boolean; options: string[]; value: string; removed: boolean }
+export type FormField = { id: number; key: string; label: string; type: FieldType; hint: string; required: boolean; options: string[]; value: string; removed: boolean; own: boolean }
 
 /** values: fieldId → own value, null = reads the default; a field that doesn't apply has no key. */
 export type GridRow = { id: number; name: string; categoryName: string; values: Record<string, string | null> }

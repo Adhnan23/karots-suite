@@ -15,11 +15,11 @@ export const impactQuery = (id: number, type: FieldType, options: string[]) =>
     enabled: id > 0,
   })
 
+/** categoryId 0 (none picked yet) lists the fields for all products. */
 export const formQuery = (productId: number, categoryId: number, where: 'form' | 'intake') =>
   queryOptions({
     queryKey: ['x', 'productplus', 'form', productId, categoryId, where],
     queryFn: () => api<FormField[]>(`${base}/form?${new URLSearchParams({ productId: String(productId), categoryId: String(categoryId), where })}`),
-    enabled: categoryId > 0,
   })
 
 export const gridQuery = (fields: number[], categoryId: number, missing: boolean, q: string, page: number) =>

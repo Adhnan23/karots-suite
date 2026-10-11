@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
 	appdb "karots-suite/internal/db"
+	"karots-suite/internal/plugin"
 	"karots-suite/plugins/productplus/migrations"
 
 	"github.com/jmoiron/sqlx"
@@ -94,6 +96,18 @@ func (f *fixture) stored(pid int64, fl Field) (string, bool) {
 	return v, err == nil
 }
 
+// mine keeps the rows of this test's fields (labels start with its tag): the
+// shared dev DB may hold other fields, such as e2e or screenshot data.
+func (f *fixture) mine(rows []plugin.DetailRow, _ error) []plugin.DetailRow {
+	return slices.DeleteFunc(rows, func(r plugin.DetailRow) bool { return !strings.HasPrefix(r.Label, f.tag) })
+}
+
+// mineMeta is a list line cut down to this test's fields.
+func (f *fixture) mineMeta(m string) string {
+	parts := slices.DeleteFunc(strings.Split(m, " · "), func(p string) bool { return !strings.HasPrefix(p, f.tag) })
+	return strings.Join(parts, " · ")
+}
+
 func formValue(t *testing.T, s *Store, pid, cat int64, fl Field) (string, bool) {
 	t.Helper()
 	rows, err := s.FormFields(context.Background(), pid, cat, "form")
@@ -127,10 +141,10 @@ func TestScope(t *testing.T) {
 	if _, ok := formValue(t, f.s, inChild, f.other, model); ok {
 		t.Fatal("form shows an out-of-scope field")
 	}
-	if rows, _ := f.s.TillRows(ctx, inChild); len(rows) != 0 {
+	if rows := f.mine(f.s.TillRows(ctx, inChild)); len(rows) != 0 {
 		t.Fatalf("till rows out of scope: %+v", rows)
 	}
-	if m, _ := f.s.MetaFor(ctx, []int64{inChild}); m[inChild] != "" {
+	if m, _ := f.s.MetaFor(ctx, []int64{inChild}); f.mineMeta(m[inChild]) != "" {
 		t.Fatalf("meta out of scope: %q", m[inChild])
 	}
 	if ids, _ := f.s.MatchProductIDs(ctx, "xj-900"); slices.Contains(ids, inChild) {
@@ -143,7 +157,7 @@ func TestScope(t *testing.T) {
 	if ids, _ := f.s.MatchProductIDs(ctx, "xj-900"); !slices.Contains(ids, inChild) {
 		t.Fatal("search misses the value once back in scope")
 	}
-	if rows, _ := f.s.TillRows(ctx, inChild); len(rows) != 1 || rows[0].Value != "XJ-900" {
+	if rows := f.mine(f.s.TillRows(ctx, inChild)); len(rows) != 1 || rows[0].Value != "XJ-900" {
 		t.Fatalf("till rows: %+v", rows)
 	}
 }
@@ -300,13 +314,13 @@ func TestSearchMetaRows(t *testing.T) {
 		t.Fatalf("search a yes/no by label: %v", ids)
 	}
 	m, _ := f.s.MetaFor(ctx, []int64{p, q})
-	if m[p] != f.tag+" Grade: Gold"+f.tag+" · "+f.tag+" Waterproof" || m[q] != f.tag+" Grade: Silver"+f.tag {
+	if f.mineMeta(m[p]) != f.tag+" Grade: Gold"+f.tag+" · "+f.tag+" Waterproof" || f.mineMeta(m[q]) != f.tag+" Grade: Silver"+f.tag {
 		t.Fatalf("meta: %q / %q", m[p], m[q])
 	}
-	if rows, _ := f.s.LabelRows(ctx, q); len(rows) != 1 || rows[0].Value != "Silver"+f.tag {
+	if rows := f.mine(f.s.LabelRows(ctx, q)); len(rows) != 1 || rows[0].Value != "Silver"+f.tag {
 		t.Fatalf("label rows: %+v", rows)
 	}
-	if rows, _ := f.s.TillRows(ctx, q); len(rows) != 1 {
+	if rows := f.mine(f.s.TillRows(ctx, q)); len(rows) != 1 {
 		t.Fatalf("till rows skip a No yes/no: %+v", rows)
 	}
 }

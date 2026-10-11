@@ -307,7 +307,6 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
         <input ref={qtyRef} autoFocus={!!init.name} aria-label="Opening quantity" inputMode="decimal" value={d.qty} onChange={(e) => setD({ ...d, qty: clean(e.target.value) })} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} placeholder="0" />
       </Field>
       <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
-      <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
       <LabelBlock opts={labels} set={setLabels} name={d.name} price={d.selling} barcode={d.barcode} qty={d.qty} />
       <div className="flex gap-2">
         <Button type="button" variant="ghost" className="h-11 px-4" onClick={onCancel}>Cancel</Button>

@@ -58,6 +58,7 @@ type FormFieldDTO struct {
 	Options  []string `json:"options"`
 	Value    string   `json:"value"`
 	Removed  bool     `json:"removed"` // a dropdown value whose option was removed
+	Own      bool     `json:"own"`     // the product's own value (false = reads the default)
 }
 
 type GridDTO struct {
@@ -84,7 +85,7 @@ func fieldDTO(f Field, st Stats) FieldDTO {
 
 func formDTO(ff FormField) FormFieldDTO {
 	return FormFieldDTO{ID: ff.Field.ID, Key: ff.Field.Key, Label: ff.Field.Label, Type: ff.Field.Type, Hint: ff.Field.Hint,
-		Required: ff.Field.Required, Options: orEmpty(ff.Field.Options), Value: ff.Value, Removed: ff.Removed}
+		Required: ff.Field.Required, Options: orEmpty(ff.Field.Options), Value: ff.Value, Removed: ff.Removed, Own: ff.Own}
 }
 
 func orEmpty(s []string) []string {
