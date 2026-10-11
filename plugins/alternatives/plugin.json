@@ -1,0 +1,7 @@
+{
+  "key": "alternatives",
+  "name": "Alternatives",
+  "import": "karots-suite/plugins/alternatives",
+  "version": "2.0.0",
+  "description": "Group interchangeable products, with optional quality tiers. The till finds the whole group, offers an in-stock swap when a line is short and lists alternatives in the product info; the Reorder page judges stock per tier."
+}
