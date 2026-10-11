@@ -23,6 +23,19 @@ type ProductExtras struct {
 	Save     func(ctx context.Context, x ExtraCtx, raw json.RawMessage) error
 }
 
+// ProductSheetColumns lets a plugin add its own columns to the products sheet
+// (export, template, import) when the admin ticks its toggle (Label) on
+// Products → Sheets. Columns names them (the header); Export returns each
+// product's cells in that order (omit an id for blanks); Import gets one row's
+// non-blank cells keyed by column, after core saved the product, and returns a
+// note for the import report (a bad cell is a note, not a failed row).
+type ProductSheetColumns struct {
+	Key, Label string
+	Columns    func(ctx context.Context) ([]string, error)
+	Export     func(ctx context.Context, productIDs []int64) (map[int64][]string, error)
+	Import     func(ctx context.Context, productID, categoryID int64, cells map[string]string) (note string, err error)
+}
+
 // ProductSearchContributor lets a plugin add product ids to a search. Match
 // returns the ids whose plugin-owned, searchable data matches the query; the web
 // layer folds them into products.SearchContributor (which products.List ORs into
@@ -111,6 +124,7 @@ type ProductReorderAnnotator struct {
 
 var (
 	productExtras            hook[ProductExtras]
+	productSheetColumns      hook[ProductSheetColumns]
 	productSearchers         hook[ProductSearchContributor]
 	productMetaProviders     hook[ProductMetaProvider]
 	productBadgeProviders    hook[ProductBadgeProvider]
@@ -121,6 +135,9 @@ var (
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras) { productExtras.add(current, x) }
+func (r *Registry) AddProductSheetColumns(x ProductSheetColumns) {
+	productSheetColumns.add(current, x)
+}
 func (r *Registry) AddProductSearchContributor(s ProductSearchContributor) {
 	productSearchers.add(current, s)
 }
@@ -144,6 +161,7 @@ func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 }
 
 func ProductExtrasHooks() []ProductExtras                   { return productExtras.all() }
+func ProductSheetColumnsHooks() []ProductSheetColumns       { return productSheetColumns.all() }
 func ProductSearchContributors() []ProductSearchContributor { return productSearchers.all() }
 func ProductMetaProviders() []ProductMetaProvider           { return productMetaProviders.all() }
 func ProductBadgeProviders() []ProductBadgeProvider         { return productBadgeProviders.all() }

@@ -256,14 +256,15 @@ const searchRank = `
 		ELSE 3
 	END,`
 
-// ListAll returns every active, non-service product with no pagination, for
-// spreadsheet export where the whole catalog must round-trip (the paginated
-// List clamps Limit to 100, so it can never stream more than one page).
-func (r *Repository) ListAll(ctx context.Context) ([]Product, error) {
+// ListAll returns every non-service product (active only unless
+// includeDisabled) with no pagination, for spreadsheet export where the whole
+// catalog must round-trip (the paginated List clamps Limit to 100, so it can
+// never stream more than one page).
+func (r *Repository) ListAll(ctx context.Context, includeDisabled bool) ([]Product, error) {
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, selectProduct+`
-		WHERE p.is_active = true AND p.is_service = false
-		ORDER BY p.name, p.id`)
+		WHERE (p.is_active = true OR $1) AND p.is_service = false
+		ORDER BY p.name, p.id`, includeDisabled)
 	return rows, err
 }
 

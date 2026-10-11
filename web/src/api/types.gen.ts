@@ -143,6 +143,13 @@ export interface AdminProduct extends AdminProductRow {
   supplierId: number /* int64 */;
 }
 /**
+ * SheetExtra is a plugin's column group that Products → Sheets can include.
+ */
+export interface SheetExtra {
+  key: string;
+  label: string;
+}
+/**
  * ProductRequest creates or edits a product. Money and tax are decimal strings;
  * SupplierID 0 = none. RepriceStock makes lots on the shelf follow a new selling
  * price. DupSourceName is set when saving a Duplicate: the copy must be renamed.

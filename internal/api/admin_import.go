@@ -83,10 +83,15 @@ func (h *handlers) registerAdminImports(g *echo.Group) {
 		{"/suppliers", supplierColumns, h.AdminSuppliersExport, h.AdminSuppliersImport},
 	} {
 		name, cols := strings.TrimPrefix(e.path, "/"), e.columns
+		tmpl := func(c echo.Context) error { return writeSheet(c, name+"-template", cols, nil) }
+		if name == "products" {
+			tmpl = h.AdminProductsTemplate
+		}
 		g.GET(e.path+"/export", e.export)
-		g.GET(e.path+"/import/template", func(c echo.Context) error { return writeSheet(c, name+"-template", cols, nil) })
+		g.GET(e.path+"/import/template", tmpl)
 		g.POST(e.path+"/import", e.imp, limit)
 	}
+	g.GET("/products/sheet-extras", h.AdminProductSheetExtras)
 }
 
 func money2(d decimal.Decimal) string { return d.StringFixed(2) }
@@ -164,7 +169,12 @@ func (h *handlers) finishImport(c echo.Context, entity string, res EntityImportR
 
 func (h *handlers) AdminProductsExport(c echo.Context) error {
 	ctx := c.Request().Context()
-	rows, err := h.t.products.ListAll(ctx)
+	xs, err := sheetExtras(c)
+	if err != nil {
+		return err
+	}
+	withDisabled := c.QueryParam("disabled") == "1"
+	rows, err := h.t.products.ListAll(ctx, withDisabled)
 	if err != nil {
 		return err
 	}
@@ -184,7 +194,9 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 		}
 	}
 	out := make([][]string, 0, len(rows))
+	ids := make([]int64, 0, len(rows))
 	for _, p := range rows {
+		ids = append(ids, p.ID)
 		cat := path[p.CategoryID]
 		if cat == "" {
 			cat = p.CategoryName
@@ -195,8 +207,14 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 			fmt.Sprint(p.ReorderLevel), p.StockQty.String(), str(p.PreferredSupplierName),
 			fmt.Sprint(p.TrackSerial), fmt.Sprint(p.WarrantyMonths),
 		})
+		if withDisabled {
+			out[len(out)-1] = append(out[len(out)-1], map[bool]string{true: "yes", false: "no"}[p.IsActive])
+		}
 	}
-	return writeSheet(c, "products", productColumns, out)
+	if err := extraCells(c, xs, ids, out); err != nil {
+		return err
+	}
+	return writeSheet(c, "products", productSheetHeader(withDisabled, xs), out)
 }
 
 var productLabels = map[string]string{"cost_price": "cost price", "selling_price": "selling price",
@@ -205,6 +223,10 @@ var productLabels = map[string]string{"cost_price": "cost price", "selling_price
 func (h *handlers) AdminProductsImport(c echo.Context) error {
 	ctx := c.Request().Context()
 	col, recs, err := readImportSheet(c, productSynonyms, "name")
+	if err != nil {
+		return err
+	}
+	xs, err := sheetExtras(c)
 	if err != nil {
 		return err
 	}
@@ -254,14 +276,25 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		if err != nil {
 			return "", "", err
 		}
+		var active *bool
+		if a := get("active"); a != "" {
+			v := yesCell(a)
+			active = &v
+		}
 		r, err := h.t.products.ImportOne(ctx, products.ImportRow{
 			Name: get("name"), NameLocal: get("name_local"), Barcode: get("barcode"),
 			CategoryID: catID, UnitID: unit, UserID: user, PreferredSupplier: supID,
 			Cost: amt["cost_price"], Selling: amt["selling_price"], Wholesale: amt["wholesale_price"], Tax: amt["tax_rate"],
 			Reorder: reorder, WarrantyMonths: warranty, TrackSerial: yesCell(get("track_serial")),
-			OpeningQty: amt["opening_qty"], MatchByName: matchByName, Given: givenCols(col, get),
+			OpeningQty: amt["opening_qty"], MatchByName: matchByName, Given: givenCols(col, get), Active: active,
 		})
-		return r.Action, r.Note, err
+		if err != nil {
+			return "", "", err
+		}
+		if n := importExtras(c, xs, r.ProductID, catID, get); n != "" {
+			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
+		}
+		return r.Action, r.Note, nil
 	})
 	return h.finishImport(c, "product", res)
 }

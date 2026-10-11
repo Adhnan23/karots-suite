@@ -50,10 +50,11 @@ func (s *Service) listOnce(ctx context.Context, q ListQuery) ([]Product, int, er
 	return rows, total, nil
 }
 
-// ListAll returns the entire active catalog unpaginated, for CSV/spreadsheet
-// export (List clamps Limit to 100 and would export only the first page).
-func (s *Service) ListAll(ctx context.Context) ([]Product, error) {
-	rows, err := s.repo.ListAll(ctx)
+// ListAll returns the whole catalogue unpaginated (disabled products too on
+// request), for spreadsheet export (List clamps Limit to 100 and would export
+// only the first page).
+func (s *Service) ListAll(ctx context.Context, includeDisabled bool) ([]Product, error) {
+	rows, err := s.repo.ListAll(ctx, includeDisabled)
 	if err != nil {
 		return nil, apperr.Internal("failed to list products", err)
 	}

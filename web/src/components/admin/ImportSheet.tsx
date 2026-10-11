@@ -1,12 +1,12 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, FileSpreadsheet, FileUp, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { apiUpload } from '@/api/client'
-import type { EntityImportResult } from '@/api/types.gen'
+import { api, apiUpload } from '@/api/client'
+import type { EntityImportResult, SheetExtra } from '@/api/types.gen'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { errMsg } from '@/features/till/api'
 
 type Entity = 'products' | 'customers' | 'suppliers'
@@ -27,32 +27,70 @@ const HELP: Record<Entity, string[]> = {
   ],
 }
 
+/** Products' sheet options: skip disabled (on = core export as always) and the
+ * plugin column groups to include. Remembered per device. */
+type Opts = { skipDisabled: boolean; extras: string[] }
+const OPTS_KEY = 'ks-sheets-products'
+function loadOpts(): Opts {
+  try {
+    return { skipDisabled: true, extras: [], ...JSON.parse(localStorage.getItem(OPTS_KEY) ?? '{}') }
+  } catch {
+    return { skipDisabled: true, extras: [] }
+  }
+}
+
+/** The query string the options add (only what differs from the core sheet). */
+function optsQS(o: Opts, offered: SheetExtra[]) {
+  const keys = o.extras.filter((k) => offered.some((x) => x.key === k))
+  return `${o.skipDisabled ? '' : '&disabled=1'}${keys.length ? `&extras=${keys.join(',')}` : ''}`
+}
+
 /** Spreadsheets ▾ on a list page: export in three formats, a blank template,
- * and import from a sheet (karots-pos's import modal + export links). */
+ * and import from a sheet (karots-pos's import modal + export links). Products
+ * also get Skip disabled and one toggle per plugin column group. */
 export function SpreadsheetMenu({ entity }: { entity: Entity }) {
   const [open, setOpen] = useState(false)
   const base = `/api/v1/admin/${entity}`
+  const products = entity === 'products'
+  const offered = useQuery({ queryKey: ['admin', 'sheet-extras'], queryFn: () => api<SheetExtra[]>('/admin/products/sheet-extras'), enabled: products, staleTime: Infinity }).data ?? []
+  const [opts, setOptsState] = useState(loadOpts)
+  const setOpts = (o: Opts) => {
+    setOptsState(o)
+    try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)) } catch { /* private window: per session only */ }
+  }
+  const qs = products ? optsQS(opts, offered) : ''
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="h-10 gap-1.5 px-4"><FileSpreadsheet size={16} /> Sheets</Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuItem onSelect={() => setOpen(true)}><Upload size={15} /> Import from a sheet…</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs text-muted-foreground">Export every {entity.slice(0, -1)}</DropdownMenuLabel>
           {(['csv', 'xlsx', 'ods'] as const).map((f) => (
-            <DropdownMenuItem key={f} asChild><a href={`${base}/export?format=${f}`} download><Download size={15} /> {f.toUpperCase()}</a></DropdownMenuItem>
+            <DropdownMenuItem key={f} asChild><a href={`${base}/export?format=${f}${qs}`} download><Download size={15} /> {f.toUpperCase()}</a></DropdownMenuItem>
           ))}
+          {products && <>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem checked={opts.skipDisabled} onSelect={(e) => e.preventDefault()}
+              onCheckedChange={(skipDisabled) => setOpts({ ...opts, skipDisabled })}>Skip disabled</DropdownMenuCheckboxItem>
+            {offered.map((x) => (
+              <DropdownMenuCheckboxItem key={x.key} checked={opts.extras.includes(x.key)} onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(on) => setOpts({ ...opts, extras: on ? [...opts.extras, x.key] : opts.extras.filter((k) => k !== x.key) })}>
+                Include {x.label.toLowerCase()}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </>}
         </DropdownMenuContent>
       </DropdownMenu>
-      {open && <ImportSheet entity={entity} onClose={() => setOpen(false)} />}
+      {open && <ImportSheet entity={entity} qs={qs} included={offered.filter((x) => opts.extras.includes(x.key))} onClose={() => setOpen(false)} />}
     </>
   )
 }
 
-function ImportSheet({ entity, onClose }: { entity: Entity; onClose: () => void }) {
+function ImportSheet({ entity, qs, included, onClose }: { entity: Entity; qs: string; included: SheetExtra[]; onClose: () => void }) {
   const input = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [byName, setByName] = useState(false)
@@ -64,7 +102,7 @@ function ImportSheet({ entity, onClose }: { entity: Entity; onClose: () => void 
     if (!file) return void input.current?.click()
     setBusy(true)
     try {
-      setRes(await apiUpload<EntityImportResult>(`/admin/${entity}/import`, 'file', file, byName ? { matchByName: 'true' } : {}))
+      setRes(await apiUpload<EntityImportResult>(`/admin/${entity}/import${qs.replace('&', '?')}`, 'file', file, byName ? { matchByName: 'true' } : {}))
       setFile(null)
       void qc.invalidateQueries({ queryKey: ['admin'] })
     } catch (e) {
@@ -82,7 +120,7 @@ function ImportSheet({ entity, onClose }: { entity: Entity; onClose: () => void 
       <div className="flex flex-wrap gap-2 text-sm">
         <span className="text-muted-foreground">Blank template:</span>
         {(['csv', 'xlsx', 'ods'] as const).map((f) => (
-          <a key={f} className="font-semibold text-brand underline-offset-2 hover:underline" href={`/api/v1/admin/${entity}/import/template?format=${f}`} download>{f.toUpperCase()}</a>
+          <a key={f} className="font-semibold text-brand underline-offset-2 hover:underline" href={`/api/v1/admin/${entity}/import/template?format=${f}${qs}`} download>{f.toUpperCase()}</a>
         ))}
       </div>
       <button type="button" onClick={() => input.current?.click()}
@@ -97,6 +135,9 @@ function ImportSheet({ entity, onClose }: { entity: Entity; onClose: () => void 
           <input type="checkbox" className="mt-0.5 size-4 accent-[var(--brand)]" checked={byName} onChange={(e) => setByName(e.target.checked)} />
           <span><b>Also match by name</b> — a row whose barcode isn’t found updates the product with the same name and takes its barcode. Leave off unless merging a catalogue.</span>
         </label>
+      )}
+      {included.length > 0 && (
+        <p className="text-[13px] text-muted-foreground">Also importing: <b className="text-foreground">{included.map((x) => x.label).join(', ')}</b> (turn off in Sheets ▾).</p>
       )}
       {res && <ImportReport r={res} />}
     </FormSheet>

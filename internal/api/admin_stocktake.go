@@ -161,7 +161,7 @@ func (h *handlers) AdminStockTakeApply(c echo.Context) error {
 // AdminStockTakeSheet downloads the count sheet: every active product with its
 // on-hand, cost and prices, and a blank counted_qty column.
 func (h *handlers) AdminStockTakeSheet(c echo.Context) error {
-	rows, err := h.t.products.ListAll(c.Request().Context())
+	rows, err := h.t.products.ListAll(c.Request().Context(), false)
 	if err != nil {
 		return err
 	}

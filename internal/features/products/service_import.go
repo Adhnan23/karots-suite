@@ -38,6 +38,10 @@ type ImportRow struct {
 	// barcode updates the right product (and is realigned) instead of duplicating.
 	// Off for routine imports; on for deliberate catalogue merges.
 	MatchByName bool
+	// Active, when the sheet has an "active" column, enables or disables the
+	// product; it also lets the row match a disabled product (an export with
+	// disabled products round-trips instead of duplicating them). nil = leave as is.
+	Active *bool
 	// Given names the columns the sheet really fills for this row (canonical
 	// names: "name_local", "category", "cost_price", …). When updating an
 	// existing product only those change — a price-update sheet with just name
@@ -93,8 +97,9 @@ func keepMissing(w writeRow, p *Product, given map[string]bool) writeRow {
 
 // ImportResult reports what a single row did, for the import summary.
 type ImportResult struct {
-	Action string // "created" | "updated"
-	Note   string // optional caveat, e.g. opening stock skipped
+	ProductID int64
+	Action    string // "created" | "updated"
+	Note      string // optional caveat, e.g. opening stock skipped
 }
 
 // ImportOne upserts one catalog row in a single transaction. It matches an
@@ -150,11 +155,27 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 				return ferr
 			}
 		}
+		if existing == nil && in.Active != nil {
+			if p, ferr := findDisabled(ctx, tx, w.Barcode, name); ferr == nil {
+				existing = p
+			} else if !errors.Is(ferr, sql.ErrNoRows) {
+				return ferr
+			}
+		}
 		if existing != nil {
+			if !existing.IsActive { // repo.Update writes active products only; setActive below restores the sheet's value
+				on := true
+				if err := setActive(ctx, tx, existing.ID, &on); err != nil {
+					return err
+				}
+			}
 			if uerr := repo.Update(ctx, existing.ID, keepMissing(w, existing, in.Given)); uerr != nil {
 				return mapWriteErr(uerr)
 			}
-			res.Action = "updated"
+			res.ProductID, res.Action = existing.ID, "updated"
+			if err := setActive(ctx, tx, existing.ID, in.Active); err != nil {
+				return err
+			}
 			if in.OpeningQty.IsPositive() {
 				if existing.StockQty.IsZero() {
 					if serr := seedOpeningStock(ctx, tx, existing.ID, in.OpeningQty, in.Cost, in.UserID); serr != nil {
@@ -170,7 +191,10 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 		if ierr != nil {
 			return mapWriteErr(ierr)
 		}
-		res.Action = "created"
+		res.ProductID, res.Action = id, "created"
+		if err := setActive(ctx, tx, id, in.Active); err != nil {
+			return err
+		}
 		if in.OpeningQty.IsPositive() {
 			if serr := seedOpeningStock(ctx, tx, id, in.OpeningQty, in.Cost, in.UserID); serr != nil {
 				return serr
@@ -182,6 +206,27 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 		return ImportResult{}, err
 	}
 	return res, nil
+}
+
+// findDisabled matches a disabled product by barcode, else (no barcode) by name.
+func findDisabled(ctx context.Context, tx *sqlx.Tx, barcode *string, name string) (*Product, error) {
+	var p Product
+	err := tx.GetContext(ctx, &p, selectProduct+`
+		WHERE NOT p.is_active AND NOT p.is_service
+		  AND (p.barcode = $1 OR ($1::text IS NULL AND LOWER(p.name) = LOWER($2)))
+		ORDER BY p.id LIMIT 1`, barcode, name)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func setActive(ctx context.Context, tx *sqlx.Tx, id int64, active *bool) error {
+	if active == nil {
+		return nil
+	}
+	_, err := tx.ExecContext(ctx, `UPDATE products SET is_active=$2 WHERE id=$1`, id, *active)
+	return err
 }
 
 // IntakeInput is a product first met on a supplier's delivery note.

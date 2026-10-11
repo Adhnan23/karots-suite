@@ -489,4 +489,8 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
   shelf: async (page) => {
     await page.getByRole('button', { name: 'Setup' }).first().click()
   },
+  /** Products → Sheets ▾ open (export options). */
+  'sheets-menu': async (page) => {
+    await page.getByRole('button', { name: 'Sheets' }).click()
+  },
 }
