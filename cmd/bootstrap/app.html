@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Builder</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠</text></svg>">
+<style>
+:root {
+  --bg: #0B1020; --fg: #EAF0FF; --muted: #A3AECB; --card: rgb(255 255 255 / .055); --card-2: rgb(255 255 255 / .085);
+  --border: rgb(255 255 255 / .10); --brand: #8B7BFF; --brand-fg: #0B1020; --brand-soft: rgb(139 123 255 / .18);
+  --cyan: #2FD5E6; --ok: #34D399; --bad: #FB7185; --warn: #FBBF24; --radius: 18px;
+  --art: radial-gradient(900px 500px at 12% -10%, rgb(124 92 255 / .35), transparent 60%), radial-gradient(700px 500px at 110% 110%, rgb(34 211 238 / .22), transparent 60%);
+  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; color: var(--fg); font: 15px/1.45 Figtree, "Segoe UI", system-ui, sans-serif;
+  background-color: var(--bg); background-image: var(--art); background-attachment: fixed; }
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 120px; }
+header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.mark { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 24px;
+  background: linear-gradient(135deg, var(--brand), var(--cyan)); box-shadow: 0 10px 30px rgb(139 123 255 / .35); }
+h1 { margin: 0; font: 600 24px/1.1 Sora, Figtree, system-ui, sans-serif; letter-spacing: -.01em; }
+.sub { color: var(--muted); font-size: 14px; }
+.grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; backdrop-filter: blur(14px); }
+.panel h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.link { background: none; border: 0; color: var(--brand); font: inherit; font-size: 13px; cursor: pointer; padding: 4px; }
+.plugins { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.plugin { position: relative; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 16px 16px 16px 52px;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--card); transition: border-color .15s, background .15s, transform .15s; }
+.plugin:hover { transform: translateY(-1px); border-color: rgb(139 123 255 / .45); }
+.plugin[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
+.plugin .tick { position: absolute; left: 16px; top: 17px; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--border);
+  display: grid; place-items: center; font-size: 13px; color: transparent; }
+.plugin[aria-pressed="true"] .tick { background: var(--brand); border-color: var(--brand); color: var(--brand-fg); }
+.plugin b { display: block; font-size: 15px; }
+.plugin small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+.plugin .ver { position: absolute; right: 12px; top: 14px; font: 11px var(--mono); color: var(--muted); }
+.empty { grid-column: 1 / -1; color: var(--muted); padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 14px; }
+label.f { display: block; margin-top: 16px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; margin-top: 6px; border-radius: 12px; background: var(--card-2); }
+.seg button { border: 0; border-radius: 9px; padding: 9px 6px; font: 600 13px Figtree, system-ui, sans-serif; color: var(--muted); background: none; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+input { width: 100%; margin-top: 6px; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2);
+  color: var(--fg); font: 15px var(--mono); outline: none; }
+input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.hint.bad { color: var(--bad); }
+.note { margin-top: 16px; padding: 10px 12px; border-radius: 12px; font-size: 13px; background: rgb(251 191 36 / .12); color: var(--warn); }
+.go { width: 100%; margin-top: 20px; padding: 14px; border: 0; border-radius: 14px; cursor: pointer; font: 700 16px Figtree, system-ui, sans-serif;
+  color: var(--brand-fg); background: linear-gradient(135deg, var(--brand), var(--cyan)); box-shadow: 0 12px 30px rgb(139 123 255 / .35); }
+.go:disabled { opacity: .55; cursor: wait; }
+.summary { margin-top: 10px; font-size: 13px; color: var(--muted); text-align: center; }
+.log { margin-top: 20px; display: none; }
+.log.on { display: block; }
+pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border-radius: 12px; background: rgb(0 0 0 / .35);
+  font: 12.5px/1.5 var(--mono); color: #C9D2F0; white-space: pre-wrap; word-break: break-word; }
+.done { display: none; margin-top: 16px; padding: 18px; border-radius: 14px; border: 1px solid rgb(52 211 153 / .4); background: rgb(52 211 153 / .1); }
+.done.on { display: block; }
+.done.fail { border-color: rgb(251 113 133 / .45); background: rgb(251 113 133 / .1); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin-top: 10px; font-size: 14px; }
+.kv span { color: var(--muted); }
+.kv code { font: 600 14px var(--mono); word-break: break-all; }
+.pin { font-size: 20px !important; letter-spacing: .12em; color: var(--cyan); }
+.spin { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--brand-fg); border-right-color: transparent; animation: s .7s linear infinite; vertical-align: -1px; margin-right: 8px; }
+@keyframes s { to { transform: rotate(1turn); } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="mark">🛠</div>
+    <div><h1>Shop Builder</h1><div class="sub">Karots Business Suite — pick what this shop gets, then build its one binary.</div></div>
+  </header>
+  <div class="grid">
+    <section class="panel">
+      <div class="row"><h2>Plugins</h2><span><button class="link" id="all">Select all</button><button class="link" id="none">Core only</button></span></div>
+      <div class="plugins" id="plugins"></div>
+    </section>
+    <section class="panel">
+      <h2>Build</h2>
+      <label class="f">Runs on</label>
+      <div class="seg" id="os"></div>
+      <label class="f">Processor</label>
+      <div class="seg" id="arch"></div>
+      <label class="f" for="name">Binary name</label>
+      <input id="name" autocomplete="off" spellcheck="false">
+      <div class="hint" id="nameHint"></div>
+      <label class="f" for="iid">Install id</label>
+      <input id="iid" autocomplete="off" spellcheck="false" placeholder="New — leave empty" maxlength="32">
+      <div class="hint" id="iidHint">Empty mints a new one. Paste a shop's id to keep its support PIN (e.g. rebuilding for an existing shop).</div>
+      <div class="note" id="secret" hidden>POS_SUPPORT_SECRET isn't set, so this build uses the shared support PIN and no install id is baked in.</div>
+      <button class="go" id="go">Build</button>
+      <div class="summary" id="summary"></div>
+    </section>
+  </div>
+  <section class="panel log" id="log">
+    <h2>Build log</h2>
+    <pre id="out"></pre>
+    <div class="done" id="done"></div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id)
+const OS = [['linux', 'Linux'], ['windows', 'Windows'], ['darwin', 'macOS'], ['freebsd', 'FreeBSD']]
+const ARCH = [['amd64', 'Intel / AMD'], ['arm64', 'ARM']]
+const s = { picked: new Set(), os: 'linux', arch: 'amd64', plugins: [] }
+
+function seg(el, opts, key) {
+  el.innerHTML = ''
+  for (const [v, label] of opts) {
+    const b = document.createElement('button')
+    b.type = 'button'; b.textContent = label; b.setAttribute('aria-pressed', s[key] === v)
+    b.onclick = () => { s[key] = v; seg(el, opts, key); summary() }
+    el.append(b)
+  }
+}
+function plugins() {
+  const el = $('plugins'); el.innerHTML = ''
+  if (!s.plugins.length) { el.innerHTML = '<div class="empty">No plugins under plugins/*/plugin.json yet — this builds the core.</div>'; return }
+  for (const p of s.plugins) {
+    const b = document.createElement('button')
+    b.type = 'button'; b.className = 'plugin'; b.setAttribute('aria-pressed', s.picked.has(p.key))
+    b.innerHTML = '<span class="tick">✓</span><span class="ver"></span><b></b><small></small>'
+    b.querySelector('b').textContent = p.name
+    b.querySelector('small').textContent = p.description
+    b.querySelector('.ver').textContent = p.version ? 'v' + p.version : ''
+    b.onclick = () => { s.picked.has(p.key) ? s.picked.delete(p.key) : s.picked.add(p.key); plugins(); summary() }
+    el.append(b)
+  }
+}
+function valid() {
+  const name = $('name').value.trim(), iid = $('iid').value.trim().toUpperCase()
+  const nameOk = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(name)
+  const iidOk = iid === '' || /^[0-9A-Z]{4,32}$/.test(iid)
+  $('nameHint').textContent = nameOk ? '' : 'Letters, digits, dot, dash or underscore.'
+  $('nameHint').className = 'hint' + (nameOk ? '' : ' bad')
+  $('iidHint').className = 'hint' + (iidOk ? '' : ' bad')
+  $('iidHint').textContent = iidOk ? (iid ? 'Rebuilding for shop ' + iid + ' — its support PIN stays the same.' : 'Empty mints a new one. Paste a shop\'s id to keep its support PIN.') : '4–32 letters or digits, e.g. 3FA2C91B.'
+  return nameOk && iidOk
+}
+function summary() {
+  const n = s.picked.size, osName = OS.find((o) => o[0] === s.os)[1]
+  const file = $('name').value.trim() + (s.os === 'windows' ? '.exe' : '')
+  $('summary').textContent = `dist/${file} · ${osName} · ${n ? n + ' plugin' + (n > 1 ? 's' : '') : 'core only'}`
+  $('go').disabled = !valid() || s.building
+}
+async function build() {
+  if (!valid()) return
+  s.building = true; summary()
+  $('go').innerHTML = '<span class="spin"></span>Building…'
+  $('log').classList.add('on'); $('out').textContent = ''; $('done').className = 'done'
+  const res = await fetch('/api/build', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plugins: s.plugins.filter((p) => s.picked.has(p.key)).map((p) => p.key), os: s.os, arch: s.arch, name: $('name').value.trim(), installId: $('iid').value.trim() }) })
+  let text = ''
+  if (!res.ok) { text = (await res.json()).error; finish(null, text); return }
+  const reader = res.body.getReader(), dec = new TextDecoder()
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    text += dec.decode(value, { stream: true })
+    $('out').textContent = text.replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
+  }
+  const r = text.match(/@@RESULT (.*)/), e = text.match(/@@ERROR (.*)/)
+  finish(r ? JSON.parse(r[1]) : null, e ? e[1] : r ? null : 'The build stopped without a result — see the log.')
+}
+function finish(r, err) {
+  s.building = false; $('go').textContent = 'Build'; summary()
+  const d = $('done'); d.className = 'done on' + (err ? ' fail' : ''); d.innerHTML = ''
+  const h = document.createElement('b'); h.textContent = err ? 'Build failed' : '✓ Built'; d.append(h)
+  const kv = document.createElement('div'); kv.className = 'kv'; d.append(kv)
+  const add = (k, v, cls) => { const a = document.createElement('span'); a.textContent = k; const b = document.createElement('code'); b.textContent = v; if (cls) b.className = cls; kv.append(a, b) }
+  if (err) { add('Why', err); return }
+  add('Binary', r.binary)
+  if (r.installId) { add('Install id', r.installId); add('Support login', '0000000001'); add('Support PIN', r.supportPin, 'pin'); add('', 'The PIN rotates hourly — recompute it from the install id.') }
+  else add('Support', 'Shared support PIN (no POS_SUPPORT_SECRET)')
+}
+fetch('/api/state').then((r) => r.json()).then((st) => {
+  Object.assign(s, { plugins: st.plugins, os: st.os, arch: st.arch })
+  $('name').value = st.name; $('secret').hidden = st.hasSecret
+  seg($('os'), OS, 'os'); seg($('arch'), ARCH, 'arch'); plugins(); summary()
+})
+$('name').oninput = summary; $('iid').oninput = summary; $('go').onclick = build
+$('all').onclick = () => { s.plugins.forEach((p) => s.picked.add(p.key)); plugins(); summary() }
+$('none').onclick = () => { s.picked.clear(); plugins(); summary() }
+</script>
+</body>
+</html>

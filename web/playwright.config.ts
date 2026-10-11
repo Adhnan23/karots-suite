@@ -6,7 +6,8 @@ export default defineConfig({
   expect: { timeout: 15_000 }, // sign-ins may wait out the login limiter (e2e/fixtures.ts)
   use: { baseURL: 'http://localhost:3100' },
   webServer: {
-    command: 'cd .. && make build && set -a && . ./.env && set +a && ./bin/karots-suite',
+    // Every ported plugin is built in; the tree goes back to core-only straight after.
+    command: 'cd .. && make plugins P=all && make build && make core-only && set -a && . ./.env && set +a && ./bin/karots-suite',
     url: 'http://localhost:3100/api/v1/auth/login-info',
     reuseExistingServer: true,
     timeout: 180_000,

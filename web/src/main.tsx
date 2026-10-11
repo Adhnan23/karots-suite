@@ -8,6 +8,7 @@ import { startLockdown } from '@/lib/lockdown'
 import { meQuery } from '@/api/session'
 import type { Me } from '@/api/types.gen'
 import './app.css'
+import '@/plugins/enabled-plugins' // the compiled-in plugins register into the slots
 
 export const router = createRouter({ routeTree, context: { queryClient }, defaultPreload: 'intent' })
 declare module '@tanstack/react-router' {

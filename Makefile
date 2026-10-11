@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -42,3 +42,17 @@ e2e-seed: db-up
 # Core never names a plugin (AGENTS.md hard rule); the generated plugin lists are core-only.
 check-core:
 	bash scripts/check-core.sh
+
+# Per-shop build: opens the bootstrap app in the browser (pick plugins, target,
+# install id). Scripts pass flags instead: go run ./cmd/bootstrap -plugins all -os windows
+bootstrap:
+	go run ./cmd/bootstrap
+# Dev: compile plugins into the working tree (P=all or P=clearance,requests).
+# Never commit the result — make core-only puts the lists back (check-core enforces it).
+plugins:
+	go run ./cmd/bootstrap -write-only -plugins $(or $(P),all)
+core-only:
+	go run ./cmd/bootstrap -write-only -plugins none
+# Core is plugin-inert and still builds with no plugin at all.
+verify: check-core
+	go vet ./... && go build ./... && cd web && bunx tsc -b
