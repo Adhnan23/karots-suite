@@ -92,6 +92,9 @@ func TestAPI(t *testing.T) {
 	if m[fmt.Sprint(king)].Group != "USB "+tag || m[fmt.Sprint(sand)].Tier != "Genuine" {
 		t.Fatalf("membership: %+v", m)
 	}
+	if all := decode[map[string]MembershipDTO](t, do("GET", "/membership", "")); all[fmt.Sprint(king)].TierID != tid {
+		t.Fatalf("all memberships: %d rows", len(all))
+	}
 	if p := decode[MembershipDTO](t, do("GET", fmt.Sprintf("/product/%d", king), "")); p.TierID != tid || p.GroupID != g.ID {
 		t.Fatalf("product: %+v", p)
 	}

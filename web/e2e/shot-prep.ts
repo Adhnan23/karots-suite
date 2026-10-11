@@ -1,4 +1,5 @@
 import type { Page } from './fixtures'
+import { alternativesData } from './shot-prep-alternatives'
 import { ppPrep } from './shot-prep-productplus'
 import { requestsWithHistory } from './shot-prep-requests'
 import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
@@ -473,6 +474,22 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.locator('input[type=file][accept=".csv,.xlsx,.ods"]').setInputFiles({ name: 'customers.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
     await page.getByRole('button', { name: 'Import', exact: true }).click()
     await page.getByLabel('Import result').waitFor()
+  },
+  alternatives: async (page) => {
+    await alternativesData(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
+  'alternatives-group': async (page) => {
+    await page.goto(`/admin/x/alternatives/${await alternativesData(page)}`)
+    await page.waitForLoadState('networkidle')
+  },
+  'alternatives-product': async (page) => {
+    await alternativesData(page)
+    await page.goto('/admin/products?q=HP%20v150')
+    await page.getByText('HP v150 32GB').filter({ visible: true }).first().click()
+    await page.getByLabel('Alternatives group').waitFor()
+    await page.getByLabel('Alternatives group').scrollIntoViewIfNeeded()
   },
   requests: async (page) => {
     await requestsWithHistory(page)

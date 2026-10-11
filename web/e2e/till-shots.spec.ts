@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { alternativesData } from './shot-prep-alternatives'
 
 // UI-gate screenshots (not a behaviour test). Needs `make e2e-seed` data.
 //   SHOTS=gate1 SHOTS_SCENE=closed bunx playwright test e2e/till-shots.spec.ts
@@ -32,6 +33,7 @@ async function setPalette(page: Page, palette: string) {
     await page.request.post(`/api/v1/x/requests/${open}/asks`, { data: { name: 'Mala', phone: '' } })
     await page.request.post(`/api/v1/x/requests/${await add('Umbrella with torch')}/decline`, { data: { reason: 'supplier stopped making them' } })
   }
+  if (scene === 'alternatives') await alternativesData(page) // the plugin must be built in
   expect((await page.request.put('/api/v1/system/appearance', { data: { ...cur, palette } })).ok()).toBe(true)
   await page.context().clearCookies()
 }
@@ -59,6 +61,22 @@ async function setScene(page: Page) {
     await page.getByText('Not stocked? Note a request').click()
     await page.getByRole('textbox', { name: 'What did they ask for?' }).fill('umbrella')
     await page.getByText('Asked before').waitFor()
+    return
+  }
+  if (scene === 'alternatives') {
+    // The whole group shows for one member's name; the out-of-stock one gets a swap chip in the cart.
+    await s.fill('Kingston')
+    await page.getByText('Generic USB 32GB').first().waitFor()
+    await page.screenshot({ path: `shots/${gate}/alternatives-search-${await page.evaluate(() => document.documentElement.dataset.palette ?? '')}-${await page.evaluate(() => localStorage.getItem('ks-mode'))}-${page.viewportSize()!.width}.png` })
+    await page.getByRole('button', { name: /Kingston DataTraveler/ }).first().click()
+    await page.getByText(/swap for/).waitFor()
+    await page.screenshot({ path: `shots/${gate}/alternatives-cart-${await page.evaluate(() => document.documentElement.dataset.palette ?? '')}-${await page.evaluate(() => localStorage.getItem('ks-mode'))}-${page.viewportSize()!.width}.png` })
+    // Checkout: the found-at-till prompt offers the swaps first.
+    const amount = page.getByLabel('Amount tendered')
+    await amount.fill('2000')
+    await amount.press('Enter')
+    await amount.press('Enter')
+    await page.getByText(/In stock instead/).waitFor()
     return
   }
   if (scene === 'clearance') {

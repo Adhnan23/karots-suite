@@ -20,13 +20,14 @@ type Membership struct {
 	Tier      string `db:"tier"`
 }
 
-// Memberships maps each given product that is in a group to where it sits.
+// Memberships maps each given product that is in a group to where it sits; no
+// ids = every grouped product (the admin picker's hints).
 func (s *Store) Memberships(ctx context.Context, ids []int64) (map[int64]Membership, error) {
 	var rows []Membership
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT m.product_id, t.group_id, m.tier_id, g.name AS grp, t.name AS tier
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id JOIN alt_groups g ON g.id = t.group_id
-		WHERE m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
+		WHERE COALESCE(cardinality($1::bigint[]), 0) = 0 OR m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 	out := make(map[int64]Membership, len(rows))

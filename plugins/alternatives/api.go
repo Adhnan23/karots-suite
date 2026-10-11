@@ -315,7 +315,7 @@ func (h handlers) removeMember(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// membership: ?ids=1,2,3 → where each grouped product sits (picker hints).
+// membership: ?ids=1,2,3 → where each grouped product sits; no ids = all (picker hints).
 func (h handlers) membership(c echo.Context) error {
 	var ids []int64
 	for _, s := range strings.Split(c.QueryParam("ids"), ",") {
