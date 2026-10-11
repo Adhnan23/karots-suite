@@ -32,8 +32,10 @@ sheets carry custom fields behind a toggle. Core gains a Skip disabled toggle on
    must ignore an empty `extra` (Task 1).
 3. **Scope.** Subcategories inherit. A product moved out of scope keeps its values but hides them on
    every surface: search, ⓘ, label, meta, form, grid, export (Task 4).
-4. **Sparse values.** Saving the default deletes the row. A yes/no unticked against a Yes default stores
-   "" and doesn't snap back (Task 4).
+4. **Default change and type change.** "Only new products" must leave every existing in-scope product
+   reading exactly what it read before. A value someone chose that equals the default is kept. A lossy
+   type change without `confirmLoss` must change nothing. A yes/no unticked against a Yes default stores
+   "" (Task 4).
 5. **Sheets.** With both toggles at their defaults, the export is byte-identical to today's (Task 3).
 6. **A cashier on plugin routes** gets 403 (Task 5).
 
@@ -126,27 +128,33 @@ sheets carry custom fields behind a toggle. Core gains a Skip disabled toggle on
     - A yes/no field → never missing.
     - A disabled product is not counted.
   - Values:
-    - `SetValues` with the default deletes the row.
+    - `SetValues` with a value equal to the default **keeps** a row.
+    - Default change, `new`: products with no row get the old default stored, so they read the same;
+      `all`: they read the new one; both run in one tx.
     - A yes/no with a Yes default set to "" stores "".
     - A bad number / option / date → per-cell error while the others save.
-  - Type lock: `UpdateField` from number to date with values → error; text → textarea → ok; with no values, any change is ok.
-  - Search: a value substring; a yes/no by label when Yes only; out of scope → not found.
+  - Type change:
+    - `Impact` counts `lossy` (text → number: values that don't parse; → yes/no: anything but "1" / "";
+      → text / long text: 0).
+    - `UpdateField` with `lossy > 0` and no `confirmLoss` → `ErrDataLoss`, nothing changed.
+    - With `confirmLoss`, the fitting values stay and the rest are deleted, in one tx.
+  - Search: a value substring; a product with no row is found by its **default**; a yes/no by label when Yes only; out of scope → not found. `MetaFor` also shows the default for a product with no row.
   - `Grid(fields, categoryID (+ subtree), missingOnly, q, page)` returns rows and total, with `null` for reads-default.
 - [ ] **Step 3:** `make plugins P=productplus && go test ./plugins/productplus` → FAIL.
 - [ ] **Step 4: implement.**
-  - `store.go`: field CRUD (karots-pos `fieldColumns` + scope), move, active, `KeyExists`/slug, counts (`valueCount`, `missing`, `usingDefault`), with the type lock in `UpdateField`.
+  - `store.go`: field CRUD (karots-pos `fieldColumns` + scope), move, active, `KeyExists`/slug, counts (`valueCount`, `missing`, `usingDefault`), with the default change (`new` / `all`) and the type change (`Impact`, `confirmLoss`) in `UpdateField`, all in one tx.
   - `scope.go`: `appliesSQL` (the recursive-CTE helper from spec §4, one place) and `SetScope` (replace rows, in a tx with the field write).
   - `values.go`: `FormFields(productID, categoryID, where)`, `SetValues([]Cell) (saved, []CellError)`, `coerce(field, raw)` shared by the form, grid and sheets (yes/no words → "1" / ""), and `MetaFor`, `TillRows`, `LabelRows`, `MatchProductIDs` (from karots-pos, plus scope), and `Grid`.
   - `productplus.go`: `init` → `plugin.Register`, `Key()` "productplus", `Migrations()`, data group (three tables). Hooks come in Task 5.
 - [ ] **Step 5:** PASS, then `make core-only && make check-core`.
-- [ ] **Step 6: commit** `feat(productplus): store — karots-pos tables kept byte for byte, fields scoped to categories (subcategories inherit), missing counts, Fill in grid, typed values with per-cell errors, type lock`
+- [ ] **Step 6: commit** `feat(productplus): store — karots-pos tables kept byte for byte, fields scoped to categories (subcategories inherit), missing counts, Fill in grid, typed values with per-cell errors; a default change asks new or all, a lossy type change needs a confirm`
 
 ### Task 5: Product Plus API + hooks
 
 **Files:** `plugins/productplus/{api.go,api_admin.go,hooks.go,api_test.go}`, `productplus.go`.
 
 - [ ] **Step 1: failing test** (httptest, the requests `api_test.go` pattern):
-  - A field with an empty label → 400; a dropdown with no options → 400; a type change with values → 409.
+  - A field with an empty label → 400; a dropdown with no options → 400; a lossy type change without `confirmLoss` → 409 with `{lossy}`; `GET /fields/:id/impact` counts match.
   - `PUT /values` with one bad cell → 200 with `errors` of length 1, and the rest saved.
   - The extras `Validate`:
     - a blank required field present in the payload → 400 naming the label;
@@ -179,15 +187,21 @@ sheets carry custom fields behind a toggle. Core gains a Skip disabled toggle on
     - **"14 missing"** links to Fill in (`?tab=fill&field=&missing=1`);
     - ▲▼, Edit, Disable / Enable.
   - **`FieldSheet` (`FormSheet`):**
-    - label, type (locked with a hint once values exist, except text ↔ long text), options (one per line; a removed option still in use warns "3 products keep it");
-    - default, with the live "Applies to N products with no value of their own" when it changes;
+    - label;
+    - type: changing it calls `impact`, and when values would be lost a warning block says "12 of 40
+      products' values don't fit Number and will be deleted. This can't be undone". Save then needs a
+      confirm (`ConfirmButton`, destructive). Text ↔ long text never warns;
+    - options (one per line; a removed option still in use warns "3 products keep it");
+    - default: when it changes on an existing field, a choice appears with **Only new products**
+      preselected ("existing products keep <old>") or **Change existing products too** ("N products will
+      become <new>");
     - help text, required, searchable;
     - Where it shows chips (Till ⓘ · Label · Stock intake);
     - scope: All products or categories (a multi-pick built on the core `CategoryPicker`).
   - **`index.tsx`:** Apps tile (`ListPlus`, "Product Plus", "Extra fields for your products") and `adminPages`.
 - [ ] **Step 4:** `tsc -b`, `bun run test`, `check-core`.
-- [ ] **Step 5: UI gate.** Shots of the list (with missing counts and a scoped field), the sheet (locked type, default warning, scope picked), at 1366 + 360 in 4 combos. Match Requests / Clearance.
-- [ ] **Step 6: commit** `feat(productplus): Apps → Product Plus — fields with category scope, where-it-shows chips, missing counts, type lock and default warnings`
+- [ ] **Step 5: UI gate.** Shots of the list (with missing counts and a scoped field), the sheet (lossy type warning, default new / all choice, scope picked), at 1366 + 360 in 4 combos. Match Requests / Clearance.
+- [ ] **Step 6: commit** `feat(productplus): Apps → Product Plus — fields with category scope, where-it-shows chips, missing counts, default change for new or all products, a warning before a type change loses data`
 
 ### Task 7: Product form + intake section (UI gate)
 

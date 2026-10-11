@@ -10,8 +10,8 @@ is a **toggle**: when it's off, a sheet carries only the core product columns, e
   - Each field has a label, a key slugged from the label (unique, never changes), a default, help text, and
     switches for required, searchable, till ⓘ, label and stock intake.
   - ▲▼ order, disable / enable (with a Show disabled filter), and every change audited (`product_field`).
-- **Values are sparse.** A product with no `pp_values` row reads the field's default. Saving a value equal
-  to the default deletes the row.
+- **Values are sparse.** A product with no `pp_values` row reads the field's default. (karots-pos also
+  deleted a row that equalled the default; the suite keeps it, see D.)
 - **Product form and intake "New item".**
   - The fields appear in both. Intake shows only the fields marked for intake.
   - The server checks number, dropdown option and `YYYY-MM-DD` date.
@@ -47,11 +47,31 @@ is a **toggle**: when it's off, a sheet carries only the core product columns, e
   - The field list shows "14 products missing", which opens Fill in on that field with Missing only.
   - The product form and intake still refuse a blank required field that they show.
   - Quick-add, Stock Capture and sheet import never block. Their products simply show up as missing.
-- **D. Safer edits.**
-  - Changing a default shows, before saving, "Applies to N products with no value of their own".
-  - Once a field has stored values, its **type is locked**, except between text and long text.
-  - Removing a dropdown option keeps products that have it. They show "X (removed)" as today, and Fill
-    in can find them.
+- **D. Safer edits (user, 2026-10-11).**
+  - **Changing a default asks once:**
+    - **Only new products** (preselected): before the new default is saved, the **old default is written
+      as a stored value** onto every in-scope product that has none, so existing products keep what they
+      showed, permanently.
+    - **Change existing products too**: products with no value of their own move to the new default.
+      The dialog shows the count ("70 products will become C").
+    - Both run in one tx with the field update.
+  - **A value someone chose is kept even when it equals the default.** The form, Fill in and sheet import
+    write a row for every value they're given. Only a product nobody has touched has no row, and that is
+    exactly the set that "Change existing products too" moves. (karots-pos deleted a row that equalled
+    the default, so a deliberate choice was lost when the default changed.)
+  - **Changing the type warns that data will be lost:**
+    - The server counts the stored values that don't fit the new type (`lossy`). Text → number keeps
+      the values that parse; anything → yes/no keeps "1" / "" only; anything → text or long text keeps
+      everything.
+    - When `lossy > 0`, the save is refused (409) unless `confirmLoss` is sent.
+    - The sheet shows "12 of 40 products' values don't fit Number and will be deleted. This can't be
+      undone", and the user must confirm.
+    - The values that fit stay. The ones that don't are deleted in the same tx.
+    - Text ↔ long text never warns.
+  - **Removing a dropdown option** keeps products that have it. They show "X (removed)" as today, and
+    Fill in can find them.
+  - **Search and the list line also see the default** for an in-scope product with no row. karots-pos
+    searched and listed stored rows only.
 - **E. Sheets toggle.**
   - Products → Sheets ▾ gets **Include custom fields** (shown only when a plugin offers columns). It
     applies to export, the template and import.
@@ -125,7 +145,8 @@ Apart from F, a core-only build shows and sends nothing new.
 | call | does |
 |---|---|
 | `GET /fields?disabled=1` | fields with `scope: [{id, name}]`, `valueCount`, `missing` (required only), `usingDefault` |
-| `POST /fields` / `PUT /fields/:id` | create / edit (type lock, options, scope); audited |
+| `POST /fields` / `PUT /fields/:id` | create / edit, with options, scope, `defaultFor: "new"\|"all"` and `confirmLoss`; audited |
+| `GET /fields/:id/impact?type=&default=` | `{lossy, total, usingDefault}`, so the sheet can warn before saving |
 | `POST /fields/:id/active` `{active}` · `POST /fields/:id/move` `{dir}` | as karots-pos |
 | `GET /form?productId=&categoryId=&where=form\|intake` | fields in scope with each one's value for the product (default when none, `removed` flag) |
 | `GET /grid?fields=1,2&categoryId=&missing=1&q=&page=` | `{rows: [{id, name, categoryName, values: {fieldId: value \| null}}], total}`; `null` = reads the default |
@@ -137,7 +158,8 @@ Every write is audited. A product's extras save goes through seam 1, not through
 
 - **Go:**
   - Store DB tests: the scope (a subcategory inherits, a moved product hides and keeps its values),
-    missing (a default or a yes/no is never missing), the type lock, sparse save, search by value and by
+    missing (a default or a yes/no is never missing), default change for new vs all, type change with
+    lossy count + confirm (fitting values kept), a chosen value equal to the default kept, search by value and by
     yes/no label within the scope, meta, ⓘ and label rows.
   - Core API tests with a fake extras hook (validate refusal → 400 and nothing written; unknown key →
     400) and a fake sheet column (export / import with and without `extras`).
@@ -152,7 +174,7 @@ Every write is audited. A product's extras save goes through seam 1, not through
   4. Fill in → Missing only → save two cells.
   5. Export with the toggle on and off (header columns), and import a value back. Export with Skip
      disabled off includes a disabled product with `active` = no, and a re-import keeps it disabled.
-  6. The type lock message.
+  6. Default change → "Only new products" keeps old products as they were; a lossy type change asks first.
   7. 360px with no side scroll.
 
 ## 7. Out of scope
