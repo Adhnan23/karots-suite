@@ -80,7 +80,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
       <ul aria-label="Items on the receipt" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-3 py-1">
         {sale.lines.map((l) => {
           const n = qty[l.id] ?? 0
-          const can = !l.isService && left(l) > 0
+          const can = left(l) > 0
           return (
             <li key={l.id} className={cn('rounded-[var(--radius-sm)] px-3 py-2', n > 0 ? 'bg-[color-mix(in_srgb,var(--brand)_12%,var(--card))] ring-1 ring-brand' : 'bg-muted', !can && 'opacity-50')}>
               <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
                   <small className="text-muted-foreground tabular-nums">
                     {qtyText(l.quantity)} {l.unitAbbr} × {money(sym, l.refundUnit)}
                     {num(l.returnedQty) > 0 && ` · ${qtyText(l.returnedQty)} already back`}
-                    {l.isService && ' · service, not returnable'}
+                    {l.isService && ' · service — nothing goes back on a shelf'}
                   </small>
                 </span>
                 {can && (
@@ -101,7 +101,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
                   </div>
                 )}
               </div>
-              {n > 0 && (
+              {n > 0 && !l.isService && (
                 <label className="mt-1.5 flex items-center gap-2 text-[12.5px] text-muted-foreground">
                   <input type="checkbox" className="accent-[var(--brand)]" checked={!!faulty[l.id]} onChange={(e) => setFaulty((f) => ({ ...f, [l.id]: e.target.checked }))} />
                   Faulty — don't put it back on the shelf (write it off)

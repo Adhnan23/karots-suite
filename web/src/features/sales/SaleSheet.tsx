@@ -25,7 +25,7 @@ export function SaleSheet({ id, onClose }: { id: number; onClose: () => void }) 
   const sale = useQuery(saleQuery(id)).data
   const [mode, setMode] = useState<'receipt' | 'return'>('receipt')
   if (!sale) return null
-  const canReturn = sale.lines.some((l) => !l.isService && left(l) > 0)
+  const canReturn = sale.lines.some((l) => left(l) > 0)
   const head = canReturn && <Seg label="View" value={mode} onChange={setMode} options={[['receipt', 'Receipt'], ['return', 'Return goods']]} />
   return mode === 'return' ? <ReturnSheet sale={sale} head={head} onClose={onClose} /> : <ReceiptView sale={sale} head={head} onClose={onClose} />
 }
@@ -51,7 +51,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
   const [reason, setReason] = useState('')
   const [source, setSource] = useState('')
   const [busy, setBusy] = useState(false)
-  const lines = sale.lines.filter((l) => !l.isService && left(l) > 0)
+  const lines = sale.lines.filter((l) => left(l) > 0)
   const value = r2(lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))
   const offAccount = Math.min(value, num(sale.owedOnSale))
   const cash = r2(value - offAccount)
@@ -100,7 +100,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
                   <button type="button" aria-label={`More ${l.name}`} onClick={() => bump(l, 1)} className="grid size-8 place-items-center rounded-full border border-border bg-card"><Plus size={14} /></button>
                 </div>
               </div>
-              {n > 0 && (
+              {n > 0 && !l.isService && (
                 <label className="mt-1.5 flex items-center gap-2 text-[12.5px] text-muted-foreground">
                   <input type="checkbox" className="accent-[var(--brand)]" checked={!!faulty[l.id]} onChange={(e) => setFaulty((f) => ({ ...f, [l.id]: e.target.checked }))} />
                   Faulty — write it off instead of back to stock

@@ -84,12 +84,6 @@ func (s *Service) ReturnTx(ctx context.Context, tx *sqlx.Tx, id, userID int64) (
 		if !it.ReturnableQty().IsPositive() {
 			continue
 		}
-		// Service lines (a plugin's non-stocked products) can't be returned: block
-		// the whole-sale return rather than silently dropping one — the cashier
-		// can line-return the other items.
-		if it.IsService {
-			return nil, decimal.Zero, 0, apperr.Conflict("this sale includes a service item, which can't be returned — return the other items line by line")
-		}
 		lines = append(lines, ReturnLineInput{SaleItemID: it.ID, Quantity: it.ReturnableQty().String()})
 	}
 	if len(lines) == 0 {
@@ -182,9 +176,6 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			if err != nil {
 				return apperr.Validation("sale line not found on this sale")
 			}
-			if it.IsService {
-				return apperr.Conflict(fmt.Sprintf("%s is a service item and can't be returned", it.ProductName))
-			}
 			if qty.GreaterThan(it.ReturnableQty()) {
 				return apperr.Conflict(fmt.Sprintf("cannot return %s of %s — only %s remain",
 					money.Display(qty), it.ProductName, money.Display(it.ReturnableQty())))
@@ -204,6 +195,26 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			}
 			totalRefundValue = totalRefundValue.Add(lineRefund)
 
+			// A service line holds no stock, so nothing goes back on a shelf — but
+			// what it consumed (the paper of a spoilt copy job, the cup of a spilt
+			// coffee) is gone. Returning the line takes its COGS off the P&L with
+			// the revenue, so book that cost as a loss instead.
+			if it.IsService {
+				if loss := it.CostPrice.Mul(qty).Round(2); loss.IsPositive() {
+					if err := stkRepo.InsertMovement(ctx, stock.MovementInput{
+						ProductID: it.ProductID, Type: stock.MoveDamage, Quantity: decimal.Zero,
+						ReferenceID: &returnID, ReferenceType: &ref, UserID: userID,
+						Note: strPtr("used by a returned service line (" + sale.ReceiptNo + ")"),
+						Cost: loss,
+					}); err != nil {
+						return apperr.Internal("failed to record the used materials", err)
+					}
+				}
+				if err := saleRepo.InsertSaleReturnItem(ctx, returnID, it.ID, it.ProductID, qty, lineRefund); err != nil {
+					return apperr.Internal("failed to record return line", err)
+				}
+				continue
+			}
 			if err := stkRepo.Increment(ctx, it.ProductID, qty); err != nil {
 				return apperr.Internal("failed to restock", err)
 			}
