@@ -6,8 +6,7 @@ every milestone.
 ## Status (2026-10-11)
 
 **M7.4 Alternatives is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-4-alternatives.md`, spec
-`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **NEXT (user, 2026-10-11): first decide and fix the two
-M7.4 open items below** (Reorder suggestion for pulled-in members; focus in the found-at-till prompt), **then M7.5
+`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **NEXT: M7.5
 documents** — start with its **rethink** (read the
 whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
 
@@ -31,8 +30,9 @@ whole karots-pos plugin, propose keep · change · merge + old-data mapping, the
   - **Checks (2026-10-11):** `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 144 web unit
     tests, **122 Playwright flows** (`plugin-alternatives.spec.ts` new, 6), `make verify-portable`. Parity **368**
     (15 alternatives). `docs/differences.md` rows 54–58.
-  - **Open for the user:** a pulled-in member (not low on its own) suggests 0 to order — the buyer types the qty;
-    the found-at-till prompt still focuses "Sell N" (Enter = sell anyway).
+  - **Open items fixed (user chose, 2026-10-12):** a member in a low tier suggests its share of the tier's need
+    (2 × level − total, split evenly, rounded up; generic `ReorderNote.Suggest`, the larger figure wins); the
+    found-at-till prompt focuses the best swap (Enter swaps; with no swaps "Sell N" keeps it).
 
 **M7.3 Combos is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-3-combos.md`, spec
 `docs/specs/2026-10-11-m7-3-combos-design.md`).
