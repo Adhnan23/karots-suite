@@ -1,6 +1,7 @@
 package documents
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -166,6 +167,10 @@ func (h handlers) ownUse(c echo.Context) error {
 		for _, x := range q.Components {
 			if err := h.p.core.Stock.ConsumeTx(ctx, tx, stock.ConsumeInput{ProductID: x.ProductID, Quantity: x.Qty.String(),
 				Reason: "own_use", Note: "Print & Copy shop use: " + desc}, uid); err != nil {
+				var ae *apperr.AppError
+				if errors.As(err, &ae) && ae.Status == http.StatusConflict {
+					return apperr.Conflict("the count shows too little paper or toner for this — correct the count, then record it")
+				}
 				return err
 			}
 		}

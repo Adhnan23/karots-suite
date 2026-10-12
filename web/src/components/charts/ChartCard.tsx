@@ -33,8 +33,8 @@ export function ChartTable({ head, rows }: { head: string[]; rows: ReactNode[][]
   return (
     <div className="max-h-80 overflow-auto">
       <table className="w-full text-sm">
-        <thead><tr className="border-b border-border text-left text-[12px] text-faint">{head.map((h, i) => <th key={h} className={cn('py-1.5 font-semibold', i > 0 && 'text-right')}>{h}</th>)}</tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i} className="border-b border-border last:border-0">{r.map((c, j) => <td key={j} className={cn('py-1.5', j > 0 && 'text-right tabular-nums')}>{c}</td>)}</tr>)}</tbody>
+        <thead><tr className="border-b border-border text-left text-[12px] text-faint">{head.map((h, i) => <th key={h} className={cn('py-1.5 font-semibold', i > 0 && 'pl-3 text-right')}>{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i} className="border-b border-border last:border-0">{r.map((c, j) => <td key={j} className={cn('py-1.5', j > 0 && 'whitespace-nowrap pl-3 text-right tabular-nums')}>{c}</td>)}</tr>)}</tbody>
       </table>
     </div>
   )
