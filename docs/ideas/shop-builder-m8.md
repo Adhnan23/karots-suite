@@ -4,10 +4,26 @@ Captured 2026-10-12 from the user. It pulls together the M8 ideas already in `do
 file mode, practice mode) and adds the phone ([Pocket Cashier](pocket-cashier.md)). **Not planned yet**: it gets a
 rethink and a spec at M8.
 
+## Start from what karots-pos already has (CLI)
+
+karots-pos has the release + update half working as a CLI (fork it, as the domain code was):
+
+- **`cmd/release`** — `keygen` (signing key into `.env`), `add` (register a shop: OS / CPU / plugins), `list`, then
+  `release [-notes "…"] [shop …]` builds every (or the named) shop's binary from **`shops.json`** and publishes it
+  to the update host (Cloudflare R2, S3 API); `-no-upload` builds only, for a first install. Each shop has a
+  **secret channel** (its bucket folder), so `shops.json` stays in a private repo and the bucket is never listable.
+  Needs `POS_RELEASE_KEY`, `POS_SUPPORT_SECRET`, `UPDATE_BASE_URL`, `R2_*` in `.env`.
+- **`internal/update`** — the shop side: check the feed, download, install only a signed release whose SHA-256
+  matches, back up first, swap keeping `.old`, relaunch, roll back after two failed boots (Windows relaunch too).
+
+So M8 = port those two (the suite's own key, feed and bucket path), then make the browser Shop Builder a **UI over
+the same `shops.json`** (add / edit a shop, build, publish, see who's behind) — the CLI stays for scripts. New on top:
+each shop's **mode** (file / server) and the **phone app** below.
+
 ## One place that knows every shop
 
-Today's Shop Builder (`cmd/bootstrap`) builds one binary at a time. The idea: it keeps a **list of shops** (the
-release side's `shops.json` already does the start of this). For each shop it holds:
+Today's suite Shop Builder (`cmd/bootstrap`) builds one binary at a time. The idea: it works from the **list of
+shops** (`shops.json`, as karots-pos `cmd/release` keeps it). For each shop it holds:
 
 - the shop's name, **install id** (support PIN), OS / processor;
 - its **plugins**;
