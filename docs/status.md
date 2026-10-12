@@ -8,6 +8,10 @@ every milestone.
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
 
+**Product rule (user, 2026-10-12): the system must never stop a sale.** Sri Lankan shops keep selling regardless;
+if the system gets in the way they drop it. Prefer "sell, then flag for review" (found-at-till, look-alike duplicates)
+over refusing; design every plugin and M8 with this in mind.
+
 **Idea for after the suite ships (user, 2026-10-12):** Pocket Cashier — a phone backup till that syncs every
 minute and replays its offline sales on top of the backend. See `docs/ideas/pocket-cashier.md`.
 **M8 big picture (user, 2026-10-12):** one Shop Builder that knows every shop (install id, OS, plugins, file /

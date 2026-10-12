@@ -3,6 +3,12 @@
 Captured 2026-10-12 from the user, so it isn't forgotten. **Not planned yet** — start with a rethink and a spec
 once karots-suite (M8) is done.
 
+## Why (user, 2026-10-12)
+
+In Sri Lanka a shop runs no matter what. If the system ever stops a sale (power cut, dead PC, a refusing prompt), the
+shop drops the system, not the sale. **The system must never be the reason a sale can't happen.** Pocket Cashier is
+that rule for power cuts.
+
 ## The idea
 
 A phone app that is a **backup till**. While it can reach the shop's backend (LAN IP, a VPS, or Tailscale), it keeps a
