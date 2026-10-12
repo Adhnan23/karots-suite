@@ -83,7 +83,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
           </span>
         )}
         {line.warrantyMonths > 0 && <span className="rounded-md bg-muted px-1.5">{line.warrantyMonths} mo warranty</span>}
-        {line.allowOversell && <span className="font-semibold text-warning">found at till</span>}
+        {line.allowOversell && <span className="font-semibold text-warning">{line.isService ? 'material count corrected' : 'found at till'}</span>}
         <DiscountChip line={line} sym={sym} />
         <button type="button" aria-label={`Remove ${line.name}`} onClick={() => dispatch({ type: 'remove', key: line.key })}
           className="ml-auto grid place-items-center p-0.5 text-faint hover:text-danger"><X size={15} /></button>

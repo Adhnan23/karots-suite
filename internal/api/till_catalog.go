@@ -165,6 +165,21 @@ func (h *handlers) TillGroup(c echo.Context) error {
 	for _, p := range prods {
 		out.Products = append(out.Products, groupProduct(p))
 	}
+	// Group cards carry plugin pins like search results do (a till menu root
+	// claims a product by one).
+	if products.BadgeProvider != nil && len(prods) > 0 {
+		ids := make([]int64, len(prods))
+		for i, p := range prods {
+			ids[i] = p.ProductID
+		}
+		if m := products.BadgeProvider(ctx, ids); m != nil {
+			for i := range out.Products {
+				if b := m[out.Products[i].ID]; b != nil {
+					out.Products[i].Badges = b
+				}
+			}
+		}
+	}
 	return c.JSON(http.StatusOK, out)
 }
 
