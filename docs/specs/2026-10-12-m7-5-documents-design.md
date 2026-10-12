@@ -68,20 +68,22 @@ Combos are not involved (they are sets of different products).
 ## 3. Data
 
 - karots-pos `00001_documents.sql`, `00002_labour_per_job.sql`, `00004_consumables_to_core.sql`,
-  `00005_job_kind_reversal.sql` **byte for byte** (no 00003 in karots-pos either).
-- **New `00006_suite.sql`:**
+  `00005_job_kind_reversal.sql` and the karots-pos fix `00006_fractional_consumables.sql` **byte for byte** (no
+  00003 in karots-pos either).
+- **New `00007_suite.sql`:**
   - `doc_job` + `sale_item_id BIGINT REFERENCES sale_items ON DELETE SET NULL`, `size VARCHAR(20)`,
     `color BOOLEAN`, `double_side BOOLEAN`, `sheets DECIMAL(14,3)` — all NULL on old rows.
   - karots-pos 00004 copied every NULL-size consumable into recipes (`whole_units = true`) **and** left it in
-    `doc_consumable`. 00006 splits them: a fractional one (toner, 0.0002 per copy) becomes recipe-only with
+    `doc_consumable`. 00007 splits them: a fractional one (toner, 0.0002 per copy) becomes recipe-only with
     `whole_units = false`; a whole one is paper and stays, and its recipe copy is deleted (it would count the
     sheets again, per copy).
   - **karots-pos bug fixed here:** rounded up to whole units, that fractional toner took a whole cartridge per
-    job — the `.Ceil()` bug recipes were built to fix. Same fix as a bug-fix commit in karots-pos.
+    job — the `.Ceil()` bug recipes were built to fix. Fixed in karots-pos too (`56e6fcd`: its resolver plus 00006, copied here so a backup at
+    version 6 restores cleanly).
 - `doc_job` rows are written **after** the sale (`tillAfterSale`, best-effort like combos):
   `POST /x/documents/jobs {saleId, jobs[]}`; the server links each job to its sale line (same sale, product
   and description, not yet linked) and refuses jobs that match no line.
-- An old backup restores with no mapping beyond 00006 (`restore_db_test.go`).
+- An old backup restores with no mapping beyond 00007 (`restore_db_test.go`).
 
 ## 4. API (`/api/v1/x/documents`)
 

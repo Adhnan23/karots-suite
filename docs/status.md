@@ -3,7 +3,38 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-11)
+## Status (2026-10-12)
+
+**M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
+`docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
+
+**NEXT: M7.6 aicatalog** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change ·
+merge + old-data mapping, the user decides), then its plan.
+
+- **M7.5 delivered (user: "do whatever you recommended", A–I, 2026-10-12):**
+  - **A** a print service is a core service (`doc_service` = the link: kind, category, on/off); Apps → Print & Copy
+    (new or from an existing service; Edit = core ProductForm, Toner & ink = core RecipeEditor).
+  - **B** price grid: size rows × B&W/Colour × 1/2-side, **bulk bands** "from N copies" (the user's bulk-discount
+    question: bands + the ordinary line discount; combos not involved). **C** paper per sheet by size (2-side =
+    ⌈n/2⌉), toner/ink per copy via the recipe, one resolver (`resolve.go`).
+  - **D** till: 🖨 chip → service chips → job panel (bands, "N more for Rs X each", Enter adds, cheapest size first);
+    a job line's qty is fixed. **E** custom = typed price + note. **F** labour worklist dropped (expense tagged to the
+    service). **H** Shop use (in-place confirm, one tx). **I** Reports → Print & Copy (copies / sheets / sales / shop
+    use, returned copies off, CSV); jobs recorded after the sale (`tillAfterSale`), linked to their sale line.
+  - **G (core):** a service line can be returned — refunded, nothing restocked, its cost booked as a `damage`
+    movement (qty 0) so P&L Losses keep the wasted paper. Works for recipe services (coffee) too. A recharge veto
+    hook waits for M7.10.
+  - **Core seams (generic):** `TillMenuRoot.claims` (+ Panel `product`), `ServiceLineInput.fixedQty`,
+    `stock.ConsumeTx`. **Core fixes:** group cards now carry plugin pins (they were always empty), chart tables have
+    column gaps, a service line's corrected material count reads "material count corrected" (was "found at till").
+  - **Data:** karots-pos 00001/2/4/5 + its new **00006** byte for byte; suite **00007** splits paper vs recipe
+    (`restore_db_test.go`). **karots-pos bug fixed (`56e6fcd`, unpushed):** a fractional any-size consumable (toner)
+    rounded up to a whole cartridge per job.
+  - **Open (for the user):** core till search lists no services (karots-pos the same), so a print service — or a
+    coffee — is reached by its group card, the 🖨 chip or a scan, not by typing its name. Say if search should find
+    services.
+  - **Checks (2026-10-12):** `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 149 web unit
+    tests, **128 Playwright flows** (`plugin-documents.spec.ts` new, 6), `make verify-portable`, parity **390** (22 documents), `docs/differences.md` 59–63.
 
 **M7.4 Alternatives is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-4-alternatives.md`, spec
 `docs/specs/2026-10-11-m7-4-alternatives-design.md`). **Demo with every plugin (2026-10-12, for the user to try):** `~/karots-accept/karots-suite-all` (built with
@@ -12,10 +43,6 @@ all 5 done plugins) runs on :3100 against `suite_accept` (plugin tables added), 
 from `scripts/seed-plugins.py` (+ 3 new 0-stock products: Nadu Rice, Keeri Samba, Fanta 1L; clearance settings
 lowered to 21 days / 15%). Core-only copy from before: `~/karots-accept/suite_accept-core-only-2026-10-12.dump`
 (`pg_restore`). **Stop it before Playwright.** The user's notes from it become small fix commits.
-
-**NEXT: M7.5
-documents** — start with its **rethink** (read the
-whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
 
 - **M7.4 delivered (user chose A–G, 2026-10-11):**
   - **A** tiers optional: a group starts as a plain list (one blank-named tier, "Reorder when the group has ≤ N");

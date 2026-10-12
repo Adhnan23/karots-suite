@@ -420,28 +420,28 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/documents
 
-- [ ] `plugins/documents/documents.go` · GET `/documents`
-- [ ] `plugins/documents/documents.go` · GET `/documents/job`
-- [ ] `plugins/documents/documents.go` · GET `/documents/job/:id/reverse`
-- [ ] `plugins/documents/documents.go` · GET `/documents/labour`
-- [ ] `plugins/documents/documents.go` · GET `/documents/menu`
-- [ ] `plugins/documents/documents.go` · GET `/documents/prices`
-- [ ] `plugins/documents/documents.go` · GET `/documents/quote`
-- [ ] `plugins/documents/documents.go` · GET `/documents/receipts`
-- [ ] `plugins/documents/documents.go` · GET `/documents/report`
-- [ ] `plugins/documents/documents.go` · GET `/documents/services`
-- [ ] `plugins/documents/documents.go` · POST `/documents/consumable/:id/delete`
-- [ ] `plugins/documents/documents.go` · POST `/documents/job/:id/reverse`
-- [ ] `plugins/documents/documents.go` · POST `/documents/labour/:job/dismiss`
-- [ ] `plugins/documents/documents.go` · POST `/documents/labour/:job/pay`
-- [ ] `plugins/documents/documents.go` · POST `/documents/ownuse`
-- [ ] `plugins/documents/documents.go` · POST `/documents/price/:id/delete`
-- [ ] `plugins/documents/documents.go` · POST `/documents/record`
-- [ ] `plugins/documents/documents.go` · POST `/documents/services`
-- [ ] `plugins/documents/documents.go` · POST `/documents/services/:id/activate`
-- [ ] `plugins/documents/documents.go` · POST `/documents/services/:id/consumable`
-- [ ] `plugins/documents/documents.go` · POST `/documents/services/:id/delete`
-- [ ] `plugins/documents/documents.go` · POST `/documents/services/:id/price`
+- [x] `plugins/documents/documents.go` · GET `/documents` → GET /api/v1/x/documents/services, Apps → Print & Copy (cards: prices, paper, health)
+- [x] `plugins/documents/documents.go` · GET `/documents/job` → till job panel (🖨 Print & Copy menu; claims its services picked on a group card or scanned) from GET /api/v1/x/documents/till
+- [x] `plugins/documents/documents.go` · GET `/documents/job/:id/reverse` → core Returns: a service line is returnable (refund, nothing restocked, materials booked as a loss)
+- [x] `plugins/documents/documents.go` · GET `/documents/labour` → dropped by design: pay the work as an expense tagged to the service (Service profit shows the net)
+- [x] `plugins/documents/documents.go` · GET `/documents/menu` → slot tillMenu (🖨 Print & Copy chip → service chips)
+- [x] `plugins/documents/documents.go` · GET `/documents/prices` → GET /api/v1/x/documents/till (offers + price bands per size × colour × side)
+- [x] `plugins/documents/documents.go` · GET `/documents/quote` → GET /api/v1/x/documents/quote (band, sheets, paper + recipe components)
+- [x] `plugins/documents/documents.go` · GET `/documents/receipts` → dropped by design: core Receipts / sales search find jobs by their line description
+- [x] `plugins/documents/documents.go` · GET `/documents/report` → GET /api/v1/x/documents/report, Reports → Print & Copy (copies, sheets, sales, shop use; CSV); money view = core Service profit
+- [x] `plugins/documents/documents.go` · GET `/documents/services` → GET /api/v1/x/documents/services
+- [x] `plugins/documents/documents.go` · POST `/documents/consumable/:id/delete` → PUT /api/v1/x/documents/services/:id/grid (paper per size, replaced with the grid)
+- [x] `plugins/documents/documents.go` · POST `/documents/job/:id/reverse` → core Returns (see the GET row)
+- [x] `plugins/documents/documents.go` · POST `/documents/labour/:job/dismiss` → dropped by design (see labour)
+- [x] `plugins/documents/documents.go` · POST `/documents/labour/:job/pay` → dropped by design (see labour)
+- [x] `plugins/documents/documents.go` · POST `/documents/ownuse` → POST /api/v1/x/documents/own-use, Shop use in the job panel (one tx)
+- [x] `plugins/documents/documents.go` · POST `/documents/price/:id/delete` → PUT /api/v1/x/documents/services/:id/grid
+- [x] `plugins/documents/documents.go` · POST `/documents/record` → POST /api/v1/x/documents/jobs after the sale (tillAfterSale), linked to its sale line
+- [x] `plugins/documents/documents.go` · POST `/documents/services` → POST /api/v1/x/documents/services (a new core service, or an existing one)
+- [x] `plugins/documents/documents.go` · POST `/documents/services/:id/activate` → POST /api/v1/x/documents/services/:id/active
+- [x] `plugins/documents/documents.go` · POST `/documents/services/:id/consumable` → PUT /api/v1/x/documents/services/:id/grid (paper); toner & ink = core RecipeEditor
+- [x] `plugins/documents/documents.go` · POST `/documents/services/:id/delete` → POST /api/v1/x/documents/services/:id/active (off, never deleted)
+- [x] `plugins/documents/documents.go` · POST `/documents/services/:id/price` → PUT /api/v1/x/documents/services/:id/grid (price grid with bulk bands)
 
 ## plugins/pharmacy
 
