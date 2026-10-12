@@ -32,7 +32,7 @@ function SizeCard({ row, onChange, onRemove }: { row: GridRow; onChange: (r: Gri
           className={cn(INPUT, 'h-10 max-w-[180px] font-display text-[16px] font-bold')} />
         {!row.size && <small className="text-[12px] text-muted-foreground">used for any size without its own row</small>}
         <span className="flex-1" />
-        <Button variant="ghost" className="h-9 px-2.5 text-muted-foreground" aria-label={`Remove ${row.size || 'Any size'}`} onClick={onRemove}><X size={16} /></Button>
+        <Button type="button" variant="ghost" className="h-9 px-2.5 text-muted-foreground" aria-label={`Remove ${row.size || 'Any size'}`} onClick={onRemove}><X size={16} /></Button>
       </header>
       <div className="hidden grid-cols-[104px_repeat(4,minmax(0,1fr))_32px] gap-2 text-[11.5px] font-bold uppercase tracking-wide text-faint sm:grid">
         <span>Price each</span>{CELLS.map((c) => <span key={c} className="text-right">{c}</span>)}<span />
@@ -48,10 +48,10 @@ function SizeCard({ row, onChange, onRemove }: { row: GridRow; onChange: (r: Gri
               <input aria-label={`${row.size || 'Any size'} ${c} from ${t.minQty}`} inputMode="decimal" placeholder="—" value={t.cells[ci]} onChange={(e) => cell(i, ci, e.target.value)} className={SMALL} />
             </label>
           ))}
-          {i > 0 ? <Button variant="ghost" className="col-span-2 h-9 justify-self-end px-2 text-muted-foreground sm:col-span-1" aria-label="Remove band" onClick={() => onChange({ ...row, tiers: row.tiers.filter((_, j) => j !== i) })}><X size={15} /></Button> : <span className="hidden sm:block" />}
+          {i > 0 ? <Button type="button" variant="ghost" className="col-span-2 h-9 justify-self-end px-2 text-muted-foreground sm:col-span-1" aria-label="Remove band" onClick={() => onChange({ ...row, tiers: row.tiers.filter((_, j) => j !== i) })}><X size={15} /></Button> : <span className="hidden sm:block" />}
         </div>
       ))}
-      <Button variant="ghost" className="h-9 self-start gap-1.5 px-2.5 text-[13px]" onClick={() => onChange({ ...row, tiers: [...row.tiers, blankTier(lastMin < 100 ? 100 : lastMin * 2)] })}>
+      <Button type="button" variant="ghost" className="h-9 self-start gap-1.5 px-2.5 text-[13px]" onClick={() => onChange({ ...row, tiers: [...row.tiers, blankTier(lastMin < 100 ? 100 : lastMin * 2)] })}>
         <Plus size={14} /> Bulk price band
       </Button>
       <div className="flex flex-col gap-1.5 border-t border-dashed border-border pt-3">
@@ -61,12 +61,12 @@ function SizeCard({ row, onChange, onRemove }: { row: GridRow; onChange: (r: Gri
             <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
             <input aria-label={`${p.name} per sheet`} inputMode="decimal" value={p.perSheet} onChange={(e) => onChange({ ...row, paper: row.paper.map((x, j) => (j === i ? { ...x, perSheet: e.target.value.replace(/[^\d.]/g, '') } : x)) })} className={cn(SMALL, 'w-20')} />
             <span className="text-[12px] text-muted-foreground">a sheet</span>
-            <Button variant="ghost" className="h-9 px-2 text-muted-foreground" aria-label={`Remove ${p.name}`} onClick={() => onChange({ ...row, paper: row.paper.filter((_, j) => j !== i) })}><X size={15} /></Button>
+            <Button type="button" variant="ghost" className="h-9 px-2 text-muted-foreground" aria-label={`Remove ${p.name}`} onClick={() => onChange({ ...row, paper: row.paper.filter((_, j) => j !== i) })}><X size={15} /></Button>
           </div>
         ))}
         <ProductPicker title={`Paper for ${row.size || 'any size'}`} exclude={new Set(row.paper.map((p) => p.productId))}
           onPick={(p) => onChange({ ...row, paper: [...row.paper, { productId: p.id, name: p.name, perSheet: '1' }] })}
-          trigger={(open) => <Button variant="ghost" className="h-9 self-start gap-1.5 px-2.5 text-[13px]" onClick={open}><Plus size={14} /> {row.paper.length ? 'Another paper' : 'Pick the paper'}</Button>} />
+          trigger={(open) => <Button type="button" variant="ghost" className="h-9 self-start gap-1.5 px-2.5 text-[13px]" onClick={open}><Plus size={14} /> {row.paper.length ? 'Another paper' : 'Pick the paper'}</Button>} />
       </div>
     </section>
   )
@@ -108,7 +108,7 @@ function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void })
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[12.5px] font-semibold text-muted-foreground">Add a size:</span>
             {[...SUGGEST.filter((z) => !used.has(z.toLowerCase())), ...(used.has('') ? [] : [''])].map((z) => (
-              <Button key={z || 'any'} variant="outline" className="h-8 gap-1 rounded-full px-3 text-[12.5px]" onClick={() => setRows([...rows, { size: z, tiers: [blankTier(1)], paper: [] }])}>
+              <Button type="button" key={z || 'any'} variant="outline" className="h-8 gap-1 rounded-full px-3 text-[12.5px]" onClick={() => setRows([...rows, { size: z, tiers: [blankTier(1)], paper: [] }])}>
                 <Plus size={13} /> {z || 'Any size'}
               </Button>
             ))}

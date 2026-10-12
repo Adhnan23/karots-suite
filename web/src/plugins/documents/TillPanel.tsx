@@ -43,7 +43,7 @@ export function TillPanel({ till, product }: { till: TillApi; onDone: () => void
           const f = from(s)
           return (
             <motion.button key={s.id} type="button" onClick={() => setPicked(s.id)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.12 }}
-              aria-pressed={current?.id === s.id} className={cn(TILE, 'min-h-[84px] aria-pressed:border-selected aria-pressed:ring-1 aria-pressed:ring-selected')}>
+              className={cn(TILE, 'min-h-[84px] aria-pressed:border-selected aria-pressed:ring-1 aria-pressed:ring-selected')}>
               <span className="flex items-center gap-2 text-[14px] font-semibold leading-tight"><span aria-hidden className="text-[20px]">{EMOJI[s.category]}</span>{s.name}</span>
               <span className="text-[12.5px] text-muted-foreground tabular-nums">{s.kind === 'custom' ? 'Price at the till' : f !== null ? `from ${money(sym, f)}` : 'No prices yet'}</span>
             </motion.button>
