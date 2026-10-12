@@ -3,6 +3,8 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+
+	"github.com/shopspring/decimal"
 )
 
 // ExtraCtx is the product a plugin's extras belong to. ProductID is 0 while
@@ -103,10 +105,13 @@ type ProductLabelFieldProvider struct {
 
 // ReorderNote annotates one low-stock product on the reorder worklist. Covered
 // means an interchangeable equivalent is in stock, so the item need not be
-// reordered even though it reads low; Note is a short explanation shown on the row.
+// reordered even though it reads low; Note is a short explanation shown on the row;
+// Suggest (optional) is the least quantity to suggest ordering — the row shows the
+// larger of it and core's own figure.
 type ReorderNote struct {
 	Covered bool
 	Note    string
+	Suggest decimal.Decimal
 }
 
 // ProductReorderAnnotator lets a plugin annotate the low-stock/reorder page: given

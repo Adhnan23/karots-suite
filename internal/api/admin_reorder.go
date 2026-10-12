@@ -84,7 +84,7 @@ func (h *handlers) AdminReorder(c echo.Context) error {
 			need = v.Div(decimal.NewFromInt(trailing)).Mul(decimal.NewFromInt(lead)).Sub(p.StockQty).Ceil()
 			r.FromSales = true
 		}
-		r.Suggested = decimal.Max(need, decimal.Zero).String()
+		r.Suggested = decimal.Max(need, notes[p.ID].Suggest, decimal.Zero).String()
 		out.Items = append(out.Items, r)
 	}
 	return c.JSON(http.StatusOK, out)
@@ -151,7 +151,7 @@ func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, h
 			if cur.Note != "" && n.Note != "" {
 				n.Note = cur.Note + " · " + n.Note
 			}
-			notes[id] = plugin.ReorderNote{Covered: cur.Covered || n.Covered, Note: n.Note}
+			notes[id] = plugin.ReorderNote{Covered: cur.Covered || n.Covered, Note: n.Note, Suggest: decimal.Max(cur.Suggest, n.Suggest)}
 		}
 	}
 	for _, p := range every {

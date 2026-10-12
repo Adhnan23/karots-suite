@@ -99,11 +99,11 @@ func (p *Plugin) reorderNotes(ctx context.Context, ids []int64) (map[int64]plugi
 		note := "⇄ " + where + " has " + total
 		switch {
 		case c.Low:
-			note = "⇄ " + where + " is low: " + total + " (reorder at " + itoa(c.ReorderLevel) + ")"
+			note = "⇄ " + where + " is low: " + total + " (reorder at " + itoa(c.ReorderLevel) + ") — order ~" + money.Qty(c.Need) + " of each"
 		case c.Covered:
 			note = "⇄ Covered — " + where + " has " + total
 		}
-		out[id] = plugin.ReorderNote{Covered: c.Covered, Note: note}
+		out[id] = plugin.ReorderNote{Covered: c.Covered, Note: note, Suggest: c.Need}
 	}
 	return out, nil
 }

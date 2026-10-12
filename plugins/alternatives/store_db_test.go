@@ -138,6 +138,9 @@ func TestGroupsTiersAndMembers(t *testing.T) {
 	if !cov[king].Covered || cov[king].Tier != "Genuine" || !cov[noname].Low || cov[noname].Covered {
 		t.Fatalf("coverage: %+v", cov)
 	}
+	if !cov[king].Need.IsZero() || cov[noname].Need.String() != "5" {
+		t.Fatalf("a low tier needs 2 × level − total, shared by its members (Cheap: 2×3−1 = 5): %+v", cov)
+	}
 	if _, ok := cov[off]; ok {
 		t.Fatal("a disabled member has no coverage")
 	}
