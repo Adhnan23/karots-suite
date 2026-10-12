@@ -14,7 +14,7 @@ SELECT s.product_id, dc.product_id, dc.qty_per_unit, false
 FROM doc_consumable dc
 JOIN doc_service s ON s.id = dc.service_id
 WHERE dc.size IS NULL AND dc.qty_per_unit <> trunc(dc.qty_per_unit)
-ON CONFLICT (product_id, component_product_id) DO UPDATE SET whole_units = false;
+ON CONFLICT (product_id, component_product_id) DO UPDATE SET whole_units = false; -- karots-pos 00006 does it too
 
 DELETE FROM doc_consumable
 WHERE size IS NULL AND qty_per_unit <> trunc(qty_per_unit);
