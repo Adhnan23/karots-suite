@@ -6,7 +6,14 @@ every milestone.
 ## Status (2026-10-11)
 
 **M7.4 Alternatives is DONE (2026-10-11)** (plan `docs/plans/2026-10-11-m7-4-alternatives.md`, spec
-`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **NEXT: M7.5
+`docs/specs/2026-10-11-m7-4-alternatives-design.md`). **Demo with every plugin (2026-10-12, for the user to try):** `~/karots-accept/karots-suite-all` (built with
+all 5 done plugins) runs on :3100 against `suite_accept` (plugin tables added), printer emulator
+`pos_printer` at http://localhost:8631/recus (shop receipt printer set to `tcp://localhost:9100`). Plugin data
+from `scripts/seed-plugins.py` (+ 3 new 0-stock products: Nadu Rice, Keeri Samba, Fanta 1L; clearance settings
+lowered to 21 days / 15%). Core-only copy from before: `~/karots-accept/suite_accept-core-only-2026-10-12.dump`
+(`pg_restore`). **Stop it before Playwright.** The user's notes from it become small fix commits.
+
+**NEXT: M7.5
 documents** — start with its **rethink** (read the
 whole karots-pos plugin, propose keep · change · merge + old-data mapping, the user decides), then its plan.
 
