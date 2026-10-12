@@ -153,9 +153,11 @@ test('checkout: the found-at-till prompt offers the swap before correcting the c
   await amount.press('Enter')
   const prompt = page.getByRole('dialog', { name: 'Sell more than the count shows?' })
   await expect(prompt.getByText(/In stock instead/)).toBeVisible()
-  await prompt.getByRole('button', { name: new RegExp(GEN) }).click()
+  // The best swap (Genuine) has the focus, so Enter swaps instead of selling anyway.
+  await expect(prompt.getByRole('button', { name: new RegExp(SAN) })).toBeFocused()
+  await page.keyboard.press('Enter')
   await expect(prompt).toBeHidden()
-  await expect(cart(page).getByText(GEN)).toBeVisible()
+  await expect(cart(page).getByText(SAN)).toBeVisible()
   await expect(cart(page).getByText(OUT)).toBeHidden()
   // Nothing was sold and the count wasn't touched.
   const p = await json<{ stockQty: string }>(page.request.get(`/api/v1/till/products/${ids.out}`))
@@ -169,7 +171,7 @@ test('ⓘ lists the alternatives; Reorder hides covered items and pulls in a low
   const g = await json<Group>(page.request.get(`${base}/${ids.group}`))
   const cheap = g.tiers.find((t) => t.name === 'Cheap')!
   expect((await page.request.put(`${base}/tiers/${cheap.id}`, { data: { name: 'Cheap', reorderLevel: 100 } })).ok()).toBe(true)
-  type Row = { productId: number; covered: boolean; note: string }
+  type Row = { productId: number; covered: boolean; note: string; suggested: string }
   const list = async (qs: string) => json<{ items: Row[]; annotated: boolean; hidden: number }>(page.request.get(`/api/v1/admin/reorder?all=1&q=AL%20&${qs}`))
   const plain = await list('')
   expect(plain.annotated).toBe(true)
@@ -180,7 +182,9 @@ test('ⓘ lists the alternatives; Reorder hides covered items and pulls in a low
   const got = hid.items.map((r) => r.productId)
   expect(got).not.toContain(ids.out)
   expect(got).toContain(ids.gen) // not low on its own; its tier (28 ≤ 100) is
-  expect(hid.items.find((r) => r.productId === ids.gen)!.note).toContain('is low')
+  const gen = hid.items.find((r) => r.productId === ids.gen)!
+  expect(gen.note).toContain('is low')
+  expect(Number(gen.suggested)).toBeGreaterThan(0) // its share of the tier's need, not 0
 
   await page.goto('/admin/reorder')
   await page.getByLabel('Hide covered items').check()
