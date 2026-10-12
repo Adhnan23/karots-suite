@@ -56,14 +56,16 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
       <div className="min-w-0">
         <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
       </div>
-      <div className="flex items-center gap-0.5 rounded-full border border-border bg-muted p-0.5">
+      {line.fixedQty ? (
+        <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
+      ) : <div className="flex items-center gap-0.5 rounded-full border border-border bg-muted p-0.5">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
         <input aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
           onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))} onBlur={() => setQty(num(text))}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
           className="w-10 bg-transparent text-center text-[14px] font-bold tabular-nums outline-none" />
         <button type="button" aria-label={`More ${line.name}`} onClick={() => setQty(line.qty + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
-      </div>
+      </div>}
       <div className="min-w-[84px] text-right text-[14.5px] font-bold tabular-nums">
         {disc > 0 && <s className="block text-[11.5px] font-medium text-faint">{money(sym, gross)}</s>}
         {money(sym, gross - disc)}

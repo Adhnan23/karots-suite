@@ -83,7 +83,7 @@ export function CatalogPanel() {
 
       {menuRoot ? (
         <div className={cn(PANEL, 'min-h-0 flex-1 overflow-auto p-4')}>
-          <menuRoot.Panel till={till} onDone={() => ui.setMenu(null)} />
+          <menuRoot.Panel key={ui.menuProduct?.id ?? 0} till={till} product={ui.menuProduct ?? undefined} onDone={() => ui.setMenu(null)} />
         </div>
       ) : (
         <>

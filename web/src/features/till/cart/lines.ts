@@ -81,13 +81,14 @@ export function serviceLine(key: number, d: ServiceLineInput): CartLine {
     isService: true, allowDecimal: false, batchId: 0, batchRemaining: 0, batchLabel: '', allowOversell: false,
     discount: '', discountType: 'fixed', trackSerial: false, warrantyMonths: 0, serials: [],
     priceOverride: String(unit), description: d.description ?? '', components: d.components ?? [], plugin: d.plugin,
+    ...(d.fixedQty && { fixedQty: true }),
   }
 }
 
 /** Set a line's qty: clamp ≥ 0, whole units round, serials follow, lots spill. */
 export function setQty(lines: CartLine[], seq: number, key: number, qty: number, lots: Lot[]): LinesResult {
   const next = lines.map((l) => {
-    if (l.key !== key) return l
+    if (l.key !== key || l.fixedQty) return l
     let q = Math.max(0, num(qty))
     if (!l.allowDecimal) q = Math.round(q)
     return syncSerials({ ...l, qty: q })

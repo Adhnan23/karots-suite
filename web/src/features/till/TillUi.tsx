@@ -31,7 +31,8 @@ type Ui = {
   stack: TillGroup[] // group drill-down breadcrumb; [] = top menu
   setStack: (s: TillGroup[]) => void
   menu: string | null // open plugin menu root (slots.tillMenu key)
-  setMenu: (k: string | null) => void
+  menuProduct: TillProduct | null // the picked product a menu root claimed
+  setMenu: (k: string | null, product?: TillProduct) => void
   /** F1 / ⟲ Menu: back to the top menu and refocus the scanner. NEVER touches the cart. */
   reset: () => void
   /** After a till cash move: prompt to print the CR- slip, or auto-print it. */
@@ -45,14 +46,20 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [search, setSearch] = useState('')
   const [stack, setStack] = useState<TillGroup[]>([])
-  const [menu, setMenu] = useState<string | null>(null)
+  const [menu, setMenuKey] = useState<string | null>(null)
+  const [menuProduct, setMenuProduct] = useState<TillProduct | null>(null)
   const value = useMemo<Ui>(() => ({
     dialog, open: setDialog, close: () => setDialog(null),
-    search, setSearch, stack, setStack, menu, setMenu,
+    search, setSearch, stack, setStack, menu, menuProduct,
+    setMenu: (k, product) => {
+      setMenuKey(k)
+      setMenuProduct(product ?? null)
+    },
     reset: () => {
       setSearch('')
       setStack([])
-      setMenu(null)
+      setMenuKey(null)
+      setMenuProduct(null)
       document.getElementById('till-search')?.focus()
     },
     afterMove: (id, mergeKick = false) => {
@@ -60,7 +67,7 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
       if (cfg.askToPrint) askToPrint({ path: slipPath.money(id), title: 'Print the receipt?', note: 'A cash receipt was recorded for this drawer move.' })
       else void printMoneySlip(id, mergeKick)
     },
-  }), [dialog, search, stack, menu, cfg.askToPrint])
+  }), [dialog, search, stack, menu, menuProduct, cfg.askToPrint])
   return <UiCtx.Provider value={value}>{children}</UiCtx.Provider>
 }
 

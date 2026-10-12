@@ -27,6 +27,7 @@ export type CartLine = {
   components: Component[]
   plugin?: Record<string, unknown> // opaque data a plugin slot attached (M7)
   group?: LineGroup // lines a plugin added together (a combo): scaled, removed and broken together
+  fixedQty?: boolean // a plugin job priced and costed for this qty: × removes it, nothing changes the qty
 }
 
 /** id is unique in the cart; per is this line's qty in one set (qty = per × count). */
@@ -49,6 +50,7 @@ export type ServiceLineInput = {
   description?: string
   components?: Component[]
   plugin?: Record<string, unknown>
+  fixedQty?: boolean
 }
 
 export type Notice = { tone: 'success' | 'error'; text: string } | null

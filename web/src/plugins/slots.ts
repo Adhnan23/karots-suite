@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
+import type { TillProduct } from '@/api/types.gen'
 import type { CartLine, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
@@ -29,8 +30,16 @@ export type TillLineHint = { key: string; Hint: ComponentType<{ till: TillApi; l
  * onDone closes the prompt (checkout doesn't go on: the cart changed). */
 export type TillShortHint = { key: string; Hint: ComponentType<{ till: TillApi; line: CartLine; onDone: () => void }> }
 
-/** A chip beside the group chips that opens a plugin menu in the catalogue area. */
-export type TillMenuRoot = { key: string; label: string; emoji?: string; Panel: ComponentType<{ till: TillApi; onDone: () => void }> }
+/** A chip beside the group chips that opens a plugin menu in the catalogue area.
+ * claims, when set, is asked before the till adds a picked product (search, card,
+ * scan): true opens this Panel with that product instead of adding a line. */
+export type TillMenuRoot = {
+  key: string
+  label: string
+  emoji?: string
+  claims?: (p: TillProduct) => boolean
+  Panel: ComponentType<{ till: TillApi; onDone: () => void; product?: TillProduct }>
+}
 
 /** A button in the till's action row (beside Deposit / Withdraw) opening a panel.
  * noMatch, when set, is a link label also offered when a till search finds nothing;

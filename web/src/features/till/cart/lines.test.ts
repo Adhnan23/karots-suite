@@ -48,6 +48,12 @@ describe('adding', () => {
     const a = serviceLine(1, { productId: 3, name: 'Copy', price: 100, qty: 20, unitPrice: 5 })
     expect(a).toMatchObject({ qty: 20, unitPrice: 5, priceOverride: '5', isService: true })
   })
+  it('a fixed-qty job line keeps its qty whatever is asked', () => {
+    const a = serviceLine(1, { productId: 3, name: 'Copy', price: 100, qty: 20, unitPrice: 5, fixedQty: true })
+    expect(setQty([a], 1, 1, 25, []).lines[0].qty).toBe(20)
+    expect(setQty([a], 1, 1, 0, []).lines[0].qty).toBe(20)
+    expect(serviceLine(2, { productId: 3, name: 'Copy', price: 5 }).fixedQty).toBeUndefined()
+  })
 })
 
 describe('quantities', () => {
