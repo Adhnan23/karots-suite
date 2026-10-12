@@ -10,6 +10,8 @@ every milestone.
 
 **Idea for after the suite ships (user, 2026-10-12):** Pocket Cashier — a phone backup till that syncs every
 minute and replays its offline sales on top of the backend. See `docs/ideas/pocket-cashier.md`.
+**For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
+series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
 **NEXT: M7.6 aicatalog** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change ·
 merge + old-data mapping, the user decides), then its plan.

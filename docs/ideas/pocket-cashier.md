@@ -26,8 +26,12 @@ returns, drawer moves, write-offs), oldest first, and the backend **applies them
 
 ## Things to work out (when this becomes a plan)
 
-- **Idempotency:** every phone action carries a unique id, so a replay that's interrupted and sent again never
-  double-books a sale.
+- **Duplicates, two layers (user, 2026-10-12):**
+  1. *Exact:* every phone action carries a unique id, so a replay that's interrupted and sent again never
+     double-books — skipped silently, no prompt.
+  2. *Look-alike:* a replayed sale that closely matches one the PC already has (same items and total, times a few
+     minutes apart — e.g. rung on both during the cut) is applied but **flagged for review**, and admin decides
+     (keep both, or void one). Two customers buying the same tea is real, so this never auto-deletes.
 - **Stock that moved meanwhile:** a phone sale of something that has since run out on the PC → treat it like
   found-at-till (the sale is real; the count is corrected and flagged for review), never refuse it after the fact.
 - **Receipt numbers:** the phone needs its own series (e.g. `P-…`) so it never clashes with the PC's `S-…`.
