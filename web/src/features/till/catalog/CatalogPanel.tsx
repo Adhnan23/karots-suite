@@ -23,7 +23,7 @@ export function CatalogPanel() {
   const current = ui.stack.at(-1)
   const top = useQuery(groupsQuery).data ?? []
   const group = useQuery({ ...groupQuery(current?.id ?? 0), enabled: !!current && !searching })
-  const results = useQuery({ ...searchQuery(q), enabled: searching })
+  const results = useQuery({ ...searchQuery(q, true), enabled: searching })
   const picks = useQuery(quickPicksQuery).data ?? []
   const opts = useQuery(priceOptionsQuery).data
   const add = useAddProduct()

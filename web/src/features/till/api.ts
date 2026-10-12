@@ -9,10 +9,11 @@ export const drawerQuery = queryOptions({ queryKey: ['till', 'drawer'], queryFn:
 export const groupsQuery = queryOptions({ queryKey: ['till', 'groups'], queryFn: () => api<TillGroup[]>('/till/groups'), staleTime: 60_000 })
 export const groupQuery = (id: number) =>
   queryOptions({ queryKey: ['till', 'group', id], queryFn: () => api<GroupView>(`/till/groups/${id}`) })
-export const searchQuery = (q: string) =>
+/** services: the Sell screen also finds services (tea, a photocopy); stock screens don't. */
+export const searchQuery = (q: string, services = false) =>
   queryOptions({
-    queryKey: ['till', 'search', q],
-    queryFn: ({ signal }) => api<ProductPage>(`/till/products?search=${encodeURIComponent(q)}`, { signal }),
+    queryKey: ['till', 'search', q, services],
+    queryFn: ({ signal }) => api<ProductPage>(`/till/products?search=${encodeURIComponent(q)}${services ? '&services=1' : ''}`, { signal }),
     enabled: q.trim() !== '',
   })
 /** Which products ask "which price?". Best-effort, refreshed every 90s and on focus

@@ -132,6 +132,14 @@ test('picking the service from a group card opens its job panel', async ({ page 
   await expect(cart(page).getByText(/Cart is empty/)).toBeVisible() // nothing added on the pick
 })
 
+test('typing the service at the till finds it and Enter opens its job panel', async ({ page }) => {
+  await till(page)
+  await page.getByLabel('Scan a barcode or search products').fill(COPY)
+  await page.getByLabel('Scan a barcode or search products').press('Enter')
+  await expect(page.getByRole('region', { name: COPY })).toBeVisible()
+  await expect(cart(page).getByText(/Cart is empty/)).toBeVisible()
+})
+
 test('shop use takes the paper off stock with no sale', async ({ page }) => {
   await till(page)
   await openService(page)

@@ -30,9 +30,9 @@ merge + old-data mapping, the user decides), then its plan.
   - **Data:** karots-pos 00001/2/4/5 + its new **00006** byte for byte; suite **00007** splits paper vs recipe
     (`restore_db_test.go`). **karots-pos bug fixed (`56e6fcd`, unpushed):** a fractional any-size consumable (toner)
     rounded up to a whole cartridge per job.
-  - **Open (for the user):** core till search lists no services (karots-pos the same), so a print service — or a
-    coffee — is reached by its group card, the 🖨 chip or a scan, not by typing its name. Say if search should find
-    services.
+  - **Till search finds services (user, 2026-10-12):** `GET /till/products?services=1`, sent only by the Sell screen
+    (search + Enter); stock screens (write-off, labels, purchasing) still leave services out. A print service found
+    this way opens its job panel; a coffee adds as before.
   - **Checks (2026-10-12):** `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 149 web unit
     tests, **128 Playwright flows** (`plugin-documents.spec.ts` new, 6), `make verify-portable`, parity **390** (22 documents), `docs/differences.md` 59–63.
 

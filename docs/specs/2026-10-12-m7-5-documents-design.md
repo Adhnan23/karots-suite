@@ -37,7 +37,7 @@ Combos are not involved (they are sets of different products).
   - A **🖨 Print & Copy** menu chip opens the service list → the job panel: size buttons, colour and side
     toggles (only those the grid offers), qty, the live price ("Rs 8.00 each · Rs 160.00", tier named when
     one applies), **Enter** adds, **Shop use** (H).
-  - Picking a print service any other way (a group card, a scan; core till search lists no services) opens
+  - Picking a print service any other way (a group card, a scan, the Sell screen's search — which now finds services) opens
     the same panel instead of adding a bare line. **Core seam (generic):** `TillMenuRoot.claims?(p: TillProduct)` — the till asks each
     menu root before adding a product and opens the claiming root's panel with that product; the plugin
     claims by the **🖨** badge it gives its services (`ProductBadgeProvider`).

@@ -43,7 +43,7 @@ export function useEntry() {
       }
     }
     const q = e.kind === 'barcode' ? e.code : e.q
-    const page = await qc.fetchQuery(searchQuery(q))
+    const page = await qc.fetchQuery(searchQuery(q, true))
     if (page.items.length === 1) return add(page.items[0])
     if (page.items.length === 0) {
       const digits = /^\d+$/.test(q)
