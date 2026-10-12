@@ -1,8 +1,9 @@
 # Idea: the big Shop Builder (M8)
 
 Captured 2026-10-12 from the user. It pulls together the M8 ideas already in `docs/status.md` (Shop Builder, self-update,
-file mode, practice mode) and adds the phone ([Pocket Cashier](pocket-cashier.md)). **Not planned yet**: it gets a
-rethink and a spec at M8.
+file mode, practice mode). **Not planned yet**: it gets a rethink and a spec at M8. **The phone app is NOT part of
+M8** (user, 2026-10-12) — it stays the later [Pocket Cashier](pocket-cashier.md) project; the last section only
+keeps the note of how it could plug in.
 
 ## Start from what karots-pos already has (CLI)
 
@@ -18,7 +19,7 @@ karots-pos has the release + update half working as a CLI (fork it, as the domai
 
 So M8 = port those two (the suite's own key, feed and bucket path), then make the browser Shop Builder a **UI over
 the same `shops.json`** (add / edit a shop, build, publish, see who's behind) — the CLI stays for scripts. New on top:
-each shop's **mode** (file / server) and the **phone app** below.
+each shop's **mode** (file / server).
 
 ## One place that knows every shop
 
@@ -36,7 +37,7 @@ From that list it can **build** a shop's binary, **publish** an update only that
 checked, backup first, rollback after two failed boots, as karots-pos `internal/update` does), and show which
 shops are behind.
 
-## The phone: it takes the shop's plugins automatically
+## Later, not M8: the phone takes the shop's plugins automatically
 
 The phone app shouldn't be a per-shop build. Proposal: **the shop's own binary serves the phone app** (a
 PWA, an installable web app) from the same SPA build it already embeds. So:
