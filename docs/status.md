@@ -8,6 +8,9 @@ every milestone.
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
 
+**Idea for after the suite ships (user, 2026-10-12):** Pocket Cashier — a phone backup till that syncs every
+minute and replays its offline sales on top of the backend. See `docs/ideas/pocket-cashier.md`.
+
 **NEXT: M7.6 aicatalog** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change ·
 merge + old-data mapping, the user decides), then its plan.
 
