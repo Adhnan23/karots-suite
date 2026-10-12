@@ -29,9 +29,10 @@ Combos are not involved (they are sets of different products).
   1-side · Colour 2-side; a blank cell = not offered. **Quantity tiers** are "from N copies" bands under a
   size, each with its own four cells. Same `doc_price` rows as karots-pos (size NULL = any; the greatest
   `min_qty ≤ qty` wins; a size-specific row beats the NULL-size fallback).
-- **C. Paper by size.** Each size row names its paper product (sheets per impression, default 1).
-  Double-sided: sheets = ⌈copies ÷ 2⌉. Stored in `doc_consumable` with a size. Size-independent consumption is
-  **only** the core recipe — one resolver (`resolve.go`), no item can be taken twice.
+- **C. Paper by size.** Each size row names its paper (how much one sheet uses, default 1; any-size row =
+  fallback when a size has none of its own). Paper is counted **per sheet**, whole units: double-sided =
+  ⌈copies ÷ 2⌉ sheets. Everything used **per copy** (toner, ink) is the core recipe, fractional. One resolver
+  (`resolve.go`); a product named both ways is taken once, as paper.
 - **D. Till.**
   - A **🖨 Print & Copy** menu chip opens the service list → the job panel: size buttons, colour and side
     toggles (only those the grid offers), qty, the live price ("Rs 8.00 each · Rs 160.00", tier named when
@@ -71,13 +72,12 @@ Combos are not involved (they are sets of different products).
 - **New `00006_suite.sql`:**
   - `doc_job` + `sale_item_id BIGINT REFERENCES sale_items ON DELETE SET NULL`, `size VARCHAR(20)`,
     `color BOOLEAN`, `double_side BOOLEAN`, `sheets DECIMAL(14,3)` — all NULL on old rows.
-  - Any NULL-size `doc_consumable` row left over (added after karots-pos 00004 ran) moves into
-    `product_recipes` (`ON CONFLICT DO NOTHING`) and the NULL-size rows are deleted, so C's "one resolver"
-    holds.
-  - **karots-pos bug fixed here:** 00004 copied those rows with `whole_units = true`, so a fractional toner
-    (0.0002 per copy) consumed a whole cartridge per job — exactly the `.Ceil()` bug recipes were built to
-    fix. Copied rows with a fractional `qty_per_unit` get `whole_units = false`. Same fix as a bug-fix commit
-    in karots-pos.
+  - karots-pos 00004 copied every NULL-size consumable into recipes (`whole_units = true`) **and** left it in
+    `doc_consumable`. 00006 splits them: a fractional one (toner, 0.0002 per copy) becomes recipe-only with
+    `whole_units = false`; a whole one is paper and stays, and its recipe copy is deleted (it would count the
+    sheets again, per copy).
+  - **karots-pos bug fixed here:** rounded up to whole units, that fractional toner took a whole cartridge per
+    job — the `.Ceil()` bug recipes were built to fix. Same fix as a bug-fix commit in karots-pos.
 - `doc_job` rows are written **after** the sale (`tillAfterSale`, best-effort like combos):
   `POST /x/documents/jobs {saleId, jobs[]}`; the server links each job to its sale line (same sale, product
   and description, not yet linked) and refuses jobs that match no line.

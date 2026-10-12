@@ -183,6 +183,12 @@ func (s *Service) Damage(ctx context.Context, in DamageInput, userID int64) erro
 // staff consumption all take this one path: they differ only in which line the
 // cost lands on, never in how stock and cost are computed.
 func (s *Service) Consume(ctx context.Context, in ConsumeInput, userID int64) error {
+	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return s.ConsumeTx(ctx, tx, in, userID) })
+}
+
+// ConsumeTx is Consume inside the caller's transaction, so several removals
+// (everything one job used) commit or fail together.
+func (s *Service) ConsumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) error {
 	mtype, ok := consumeReasons[in.Reason]
 	if !ok {
 		return apperr.Validation("unknown reason for removing stock")
@@ -191,27 +197,25 @@ func (s *Service) Consume(ctx context.Context, in ConsumeInput, userID int64) er
 	if err != nil || !qty.IsPositive() {
 		return apperr.Validation("quantity must be greater than zero")
 	}
-	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		repo := NewRepository(tx)
-		ok, err := repo.DecrementGuarded(ctx, in.ProductID, qty)
-		if err != nil {
-			return apperr.Internal("failed to update stock", err)
-		}
-		if !ok {
-			return apperr.Conflict("not enough stock")
-		}
-		cost, err := repo.depleteChosen(ctx, in.ProductID, in.BatchID, qty)
-		if err != nil {
-			return err
-		}
-		return repo.InsertMovement(ctx, MovementInput{
-			ProductID: in.ProductID,
-			Type:      mtype,
-			Quantity:  qty.Neg(),
-			UserID:    userID,
-			Note:      nilIfEmpty(in.Note),
-			Cost:      cost.Mul(qty), // total worth consumed
-		})
+	repo := NewRepository(tx)
+	ok, err = repo.DecrementGuarded(ctx, in.ProductID, qty)
+	if err != nil {
+		return apperr.Internal("failed to update stock", err)
+	}
+	if !ok {
+		return apperr.Conflict("not enough stock")
+	}
+	cost, err := repo.depleteChosen(ctx, in.ProductID, in.BatchID, qty)
+	if err != nil {
+		return err
+	}
+	return repo.InsertMovement(ctx, MovementInput{
+		ProductID: in.ProductID,
+		Type:      mtype,
+		Quantity:  qty.Neg(),
+		UserID:    userID,
+		Note:      nilIfEmpty(in.Note),
+		Cost:      cost.Mul(qty), // total worth consumed
 	})
 }
 
