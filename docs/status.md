@@ -10,6 +10,9 @@ every milestone.
 
 **Idea for after the suite ships (user, 2026-10-12):** Pocket Cashier — a phone backup till that syncs every
 minute and replays its offline sales on top of the backend. See `docs/ideas/pocket-cashier.md`.
+**M8 big picture (user, 2026-10-12):** one Shop Builder that knows every shop (install id, OS, plugins, file /
+server mode, update channel), builds and updates each one, and the shop's own binary serves the phone app (a PWA)
+with that shop's plugins. See `docs/ideas/shop-builder-m8.md`.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
