@@ -120,7 +120,9 @@ test("batch sheet: set one batch's count, then remove batches (not there / write
   await toast(page, /7 .* taken off the count/)
   await page.getByLabel('Batch 1').getByRole('button', { name: 'Remove batch' }).click()
   await page.getByRole('button', { name: /Write off \(damaged/ }).click()
-  await toast(page, /3 .* written off/)
+  // A write-off asks about the supplier in place (a prompt, not a toast).
+  await expect(page.getByRole('status', { name: 'Supplier claim' })).toContainText('3 written off.')
+  await page.getByRole('button', { name: 'Later' }).click()
   expect((await (await page.request.get(`/api/v1/admin/stock/lots/${id}`)).json()).stockQty).toBe('0')
 })
 
@@ -130,7 +132,7 @@ test('batches: write off every expired lot at once', async ({ page }) => {
   await page.reload()
   await page.getByRole('button', { name: 'Write off all' }).click()
   await page.getByRole('button', { name: 'Write off', exact: true }).last().click()
-  await toast(page, /expired lots? written off/)
+  await expect(page.getByRole('status', { name: 'Supplier claim' })).toContainText(/expired lots? written off/)
   expect((await (await page.request.get('/api/v1/admin/stock/batches')).json()).expired).toBe(0)
 })
 

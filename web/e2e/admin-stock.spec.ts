@@ -44,7 +44,7 @@ test('batches: write off the expired lot only', async ({ page }) => {
   await page.getByLabel('Search products').fill(`Curd ${tag}`)
   await page.getByRole('button', { name: 'Write off', exact: true }).first().click()
   await page.getByRole('button', { name: 'Write off', exact: true }).last().click()
-  await toast(page, /expired lot written off/)
+  await expect(page.getByRole('status', { name: 'Supplier claim' })).toContainText('written off.')
   const lots = await (await page.request.get(`/api/v1/admin/stock/lots/${id}`)).json()
   expect(Number(lots.stockQty)).toBe(2) // only the good lot is left
 })

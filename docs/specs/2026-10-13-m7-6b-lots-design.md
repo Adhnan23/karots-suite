@@ -86,3 +86,19 @@ DTOs in `dto_stock.go`, `make types`.
 - Web unit: the intake default-batch matcher; the merge defaults (weighted cost, earliest expiry).
 - Playwright: Batches sheet add + merge (edit the cost), stock-take expander save, intake picks the matching
   batch then a new one; 360 px for the Batches sheet, the merge prompt and the stock-take expander.
+
+## 9. Added during the build (user, 2026-10-13)
+
+- **Stock-take batch lines** take a cost and own selling price too; **wholesale stays per product** (read-only
+  on batch lines — the till never asks which batch for a wholesale sale).
+- **Write-off follow-up:** a damage write-off (Batches sheet, Batches page, Stock → Record write-off) asks in a
+  prompt — never a toast — whether the supplier will replace it or pay for it; the write-off answers its loss id
+  (`ConsumeResult.lossId`); a write-off naming a batch remembers it (`reference_type = 'batch'`).
+- **Replacement like intake:** Recover → Replaced it asks which batch (matching default), expiry, selling price
+  (a new one moves the product too) and **extra per unit** (0 = free); the batch cost is the lost unit cost +
+  extra; the extra × qty is owed to the supplier (`loss_recoveries.extra_charge`, migration `00004`) or paid now
+  (counter: cash from the till; admin: a cash locker) — a failed payment leaves it owed, with a warning.
+- **Settle where the delivery is received:** admin receive / delivery page and the counter's Suppliers tab show
+  the supplier's expired batches and unsettled write-offs (`GET …/suppliers/:id/claims`,
+  `POST …/claims/expired/:lot`; the counter also gets `/till/recovery`, `/till/stock/lots/:id`).
+- **Supplier statement** shows recovery credits and replacement charges (bug fixed in karots-pos too).

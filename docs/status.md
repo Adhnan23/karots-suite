@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-13)
+## Status (2026-10-13, M7.6b done)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -20,7 +20,7 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
-**NEXT: M7.6, split three ways (user, 2026-10-13):**
+**NEXT: M7.6c AI Assistant** (spec approved, write its plan). M7.6, split three ways (user, 2026-10-13):
 - **M7.6a (core) — extra barcodes + Merge products — DONE (2026-10-13)** (spec
   `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`, plan `docs/plans/2026-10-13-m7-6a-barcodes-merge.md`):
   - `00003_product_barcodes.sql`: `product_barcodes` (source, added, last scanned), `products.barcode_scanned_at`,
@@ -41,11 +41,18 @@ series per device (`P-…` beside `S-…`), and a sale may carry the time it rea
   - Review fixes: setting the main barcode to one of its own extras keeps the old main as an extra (form + import),
     in one transaction; the held-bill check reads only the cart's product spots (both cart shapes). `/dist/`
     (Shop Builder output) is git-ignored.
-- **M7.6b (core) — lots in stock take** (count / add / remove / merge lots per product) **+ intake asks which lot**
-  (a matching lot — same cost, price, expiry — is the default, else New lot; purchase receive always opens its own
-  lot). Merging only moves qty into the oldest lot; old lot rows stay at 0 for history. **NEXT: write its spec**
-  (read `internal/features/stock/batches.go`, `admin_stocktake.go`, the stock-take sheet and karots-pos's
-  `batch-dual-pricing-design` note first).
+- **M7.6b (core) — batches DONE (2026-10-13)** (spec `docs/specs/2026-10-13-m7-6b-lots-design.md` §1–9, plan
+  `docs/plans/2026-10-13-m7-6b-lots.md`; `docs/differences.md` 68–73):
+  - `stock.AddStock` (top up a named batch — qty received too — or open one with cost / price / expiry) and
+    `stock.MergeBatches` (into the oldest; no movement; emptied rows stay at 0). Batches sheet **+ Add batch**,
+    **Merge batches** (weighted cost / earliest expiry / oldest price, all editable).
+  - Stock-take **batch by batch** (count, cost, own price, + batch); count sheet one row per batch (`batch`,
+    `expiry` columns; old sheets import as before). Wholesale stays per product.
+  - Intake asks **which batch** (`matchBatch`), expiry on restock and new items; undo comes off that batch.
+  - Write-off → **supplier claim prompt**; Recover → **Replaced it like intake** + extra per unit (owed or paid
+    now), migration **`00004_recovery_extra_charge.sql`**; **settle on the receive pages** (admin + counter).
+  - **Bug fixed in both repos:** the supplier statement left out recovery credits — karots-pos **`bd5fdff`
+    UNPUSHED** for the user.
 - **M7.6c — AI Assistant (aicatalog)** — spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md` (rethink approved:
   ✨ Identify inside core screens, Clean up page with duplicates → merge, paste mode first; bulk entry, Insights and
   further AI uses / MCP dropped — most shops have no AI API).
