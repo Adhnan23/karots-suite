@@ -106,11 +106,11 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   categories list / delete leaves a non-empty one. Commit `feat(aicatalog): catalogue clean-up — categories, uncategorized, names, duplicates; one undo`
 
 ### Task 6: core web seams — `productAssists`, exported merge confirm
-- [ ] `slots.ts`: `ProductAssist = { key; Assist: ComponentType<{ name: string; barcode: string; where: 'form'|'intake';
+- [x] `slots.ts`: `ProductAssist = { key; Assist: ComponentType<{ name: string; barcode: string; where: 'form'|'intake';
   fill: (f: { name?: string; categoryId?: number; extra?: unknown }) => void }> }`, `productAssists: []`.
-- [ ] `ProductForm.tsx` and intake `NewItem`: render each Assist under the Name input; `fill` sets name / category and
+- [x] `ProductForm.tsx` and intake `NewItem`: render each Assist under the Name input; `fill` sets name / category and
   `extras[key] = extra`. Core-only build renders nothing.
-- [ ] `MergeInto.tsx`: `export function MergeConfirm`. `bunx tsc -b`, `make test-web`, `make check-core`. Commit
+- [x] `MergeInto.tsx`: `export function MergeConfirm`. `bunx tsc -b`, `make test-web`, `make check-core`. Commit
   `feat(web): productAssists slot under the product name; merge confirm can be opened by a caller`
 
 ### Task 7: ✨ Identify (UI gate)

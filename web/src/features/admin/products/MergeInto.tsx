@@ -29,7 +29,8 @@ export function MergeInto({ from, trigger, onDone }: {
   )
 }
 
-function MergeConfirm({ from, into, onClose, onDone }: { from: { id: number; name: string }; into: { id: number; name: string }; onClose: () => void; onDone: () => void }) {
+/** The merge confirm on its own — for a caller that already knows both products. */
+export function MergeConfirm({ from, into, onClose, onDone }: { from: { id: number; name: string }; into: { id: number; name: string }; onClose: () => void; onDone: () => void }) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const qc = useQueryClient()
   const path = `/admin/products/${from.id}/merge/${into.id}`

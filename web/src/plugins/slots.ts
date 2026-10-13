@@ -95,6 +95,15 @@ export type ProductFormSection = {
   Section: ComponentType<{ productId: number; sourceId: number; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
 }
 
+/** A helper under the Name field of the product form and intake's New item (e.g. identify a
+ * product from what was typed). fill sets the name and/or category on the form; extra lands in
+ * extras[key], sent as ProductRequest.extra[key] when the person saves. */
+export type ProductAssist = {
+  key: string
+  Assist: ComponentType<{ name: string; barcode: string; where: 'form' | 'intake'; fill: (f: AssistFill) => void }>
+}
+export type AssistFill = { name?: string; categoryId?: number; extra?: unknown }
+
 export type SaleHookCtx = { saleId: number; lines: CartLine[] }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
@@ -113,6 +122,7 @@ export const slots = {
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],
+  productAssists: [] as ProductAssist[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */

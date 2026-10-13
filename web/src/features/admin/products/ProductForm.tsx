@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
-import { extraBody, type Extras, ProductExtras } from './ProductExtras'
+import { extraBody, type Extras, ProductAssists, ProductExtras } from './ProductExtras'
 import { productQuery, supplierOptionsQuery } from './queries'
 
 /** id 0 = new; copyOf = duplicate that product (saved as a new one, must be renamed). */
@@ -116,9 +116,12 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
         </p>
       )}
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Name" hint={isCopy && f.name.trim().toLowerCase() === init.dupSourceName.toLowerCase() ? <span className="text-warning">Change the name — a copy can't keep the original's.</span> : undefined}>
-          <input autoFocus required maxLength={150} name="prod-name" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
-        </Field>
+        <div className="flex flex-col gap-2">
+          <Field label="Name" hint={isCopy && f.name.trim().toLowerCase() === init.dupSourceName.toLowerCase() ? <span className="text-warning">Change the name — a copy can't keep the original's.</span> : undefined}>
+            <input autoFocus required maxLength={150} name="prod-name" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
+          </Field>
+          <ProductAssists name={f.name} barcode={f.barcode} where="form" onFill={({ name, categoryId }) => set({ ...(name && { name }), ...(categoryId && { categoryId }) })} setExtras={setExtras} />
+        </div>
         <Field label="Local name" hint="Optional — Sinhala / Tamil, printed on receipts.">
           <input name="prod-local" value={f.nameLocal} onChange={(e) => set({ nameLocal: e.target.value })} className={INPUT} />
         </Field>

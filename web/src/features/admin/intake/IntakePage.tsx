@@ -12,7 +12,7 @@ import { editPrice, markupOf, type Prices } from '@/features/admin/products/pric
 import { productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
 import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
-import { extraBody, type Extras, ProductExtras } from '@/features/admin/products/ProductExtras'
+import { extraBody, type Extras, ProductAssists, ProductExtras } from '@/features/admin/products/ProductExtras'
 import { configQuery, errMsg } from '@/features/till/api'
 import { hasBarcode } from '@/lib/barcode'
 import { money, num, qtyText } from '@/lib/money'
@@ -295,7 +295,11 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
         )}
       </div>
       {init.barcode && d.barcode === init.barcode && <SameAsExisting code={init.barcode} source="intake" onLinked={(p) => onLinked(p, init.barcode)} />}
-      <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
+      <div className="flex flex-col gap-2">
+        <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
+        <ProductAssists key={round} name={d.name} barcode={d.barcode} where="intake" setExtras={setExtras}
+          onFill={({ name, categoryId }) => { if (name) setD((x) => ({ ...x, name })); if (categoryId) setCat(categoryId) }} />
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Category"><CategoryPicker label="Category" allowCreate value={cat} onChange={setCat} /></Field>
         <Field label="Unit">
