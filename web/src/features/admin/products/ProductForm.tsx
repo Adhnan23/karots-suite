@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Copy, Merge, Wand2 } from 'lucide-react'
+import { Copy, Merge, Scale, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -14,6 +14,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
+import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
 import { extraBody, type Extras, ProductAssists, ProductExtras } from './ProductExtras'
@@ -50,6 +51,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
+  const [loose, setLoose] = useState(false)
   const set = (patch: Partial<ProductRequest>) => setF((x) => ({ ...x, ...patch }))
   const price = (field: keyof Prices, v: string) => setPrices((p) => editPrice(p, field, v.replace(/[^\d.]/g, '')))
   const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
@@ -91,6 +93,8 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
 
   const title = product ? (product.needsReview ? `Finish ${product.name}` : `Edit ${product.name}`) : isCopy ? 'Duplicate product' : 'New product'
   return (
+    <>
+    {loose && product && <LooseVersion product={product} onClose={() => setLoose(false)} onOpen={(id) => { setLoose(false); onEdit({ id }) }} />}
     <FormSheet open wide onOpenChange={(o) => !o && onClose()} title={title} busy={busy} onSubmit={save}
       submit={product?.needsReview ? 'Save & finish' : product ? 'Save' : 'Add product'}
       extra={product && (
@@ -107,6 +111,9 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
             <MergeInto from={product} onDone={onClose} trigger={(open) => (
               <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={open}><Merge size={15} /> Merge into…</Button>
             )} />
+          )}
+          {product.isActive && !svc && (
+            <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={() => setLoose(true)}><Scale size={15} /> Make a loose version…</Button>
           )}
         </div>
       )}>
@@ -174,5 +181,6 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
       </div>}
       <ProductExtras productId={product?.id ?? 0} sourceId={sourceId} categoryId={f.categoryId} where="form" extras={extras} setExtras={setExtras} />
     </FormSheet>
+    </>
   )
 }
