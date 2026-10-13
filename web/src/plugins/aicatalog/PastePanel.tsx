@@ -2,7 +2,7 @@ import { ClipboardPaste, Copy, ExternalLink, LoaderCircle, TriangleAlert } from 
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { chatbot, chatbots, looksLikeAnswer, openChatbot } from './ask'
+import { currentBot, looksLikeAnswer, openChatbot } from './ask'
 
 async function copyText(text: string, fallback: HTMLTextAreaElement | null) {
   try {
@@ -13,7 +13,7 @@ async function copyText(text: string, fallback: HTMLTextAreaElement | null) {
   }
 }
 
-/** The paste path, the main one: Copy & open the chatbot, then paste its whole answer — it is read
+/** The paste path, the main one: Copy (and open the chatbot, if this device chose one), then paste its whole answer — it is read
  * the moment it lands. While waiting, coming back to this tab reads the clipboard (when the browser
  * allows it) and fills the box if it holds an answer. */
 export function PastePanel({ prompt, reply, error, reading, onType, onReply, onCopied, extra, compact }: {
@@ -31,7 +31,9 @@ export function PastePanel({ prompt, reply, error, reading, onType, onReply, onC
   const [show, setShow] = useState(false)
   const promptRef = useRef<HTMLTextAreaElement>(null)
   const replyRef = useRef<HTMLTextAreaElement>(null)
-  const bot = chatbots[chatbot()].label
+  const choice = currentBot()
+  const bot = choice.url ? choice.label : 'Chatbot'
+  const button = choice.url ? `Copy & open ${choice.label}` : 'Copy prompt'
 
   // Back from the chatbot: read the clipboard once per return.
   useEffect(() => {
@@ -62,7 +64,7 @@ export function PastePanel({ prompt, reply, error, reading, onType, onReply, onC
     <div className={cn('flex flex-col gap-2.5', !compact && 'gap-3')}>
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" onClick={copy} className="h-10 gap-1.5 px-4 font-bold">
-          {copied ? <Copy size={15} /> : <ExternalLink size={15} />} {copied ? 'Copy again' : `Copy & open ${bot}`}
+          {copied || !choice.url ? <Copy size={15} /> : <ExternalLink size={15} />} {copied ? 'Copy again' : button}
         </Button>
         <button type="button" onClick={() => setShow((v) => !v)} className="text-[13px] font-semibold text-muted-foreground underline-offset-2 hover:underline">
           {show ? 'Hide prompt' : 'Show prompt'}
@@ -76,7 +78,7 @@ export function PastePanel({ prompt, reply, error, reading, onType, onReply, onC
         <span className="relative">
           <textarea ref={replyRef} value={reply} name="ai-reply" autoComplete="off" spellCheck={false} disabled={reading}
             aria-label="Chatbot answer" aria-invalid={!!error}
-            placeholder={copied ? `Paste ${bot}'s whole answer here — it's read as soon as it lands` : `After asking ${bot}, paste its whole answer here`}
+            placeholder={copied ? 'Paste the whole answer here — it\'s read as soon as it lands' : 'After asking your chatbot, paste its whole answer here'}
             onChange={(e) => onType(e.target.value)}
             onPaste={(e) => { const t = e.clipboardData.getData('text'); if (t.trim()) { e.preventDefault(); onReply(t) } }}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onReply(reply) } }}

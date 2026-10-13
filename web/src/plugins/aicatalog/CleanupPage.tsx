@@ -124,8 +124,8 @@ export function CleanupPage() {
             {applied ? (
               <>
                 <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[14px] font-semibold"><Check size={16} className="flex-none text-brand" /> {applied}</span>
-                {pv.next >= 0 ? <Button className="h-10 px-4 font-bold" onClick={() => start(pv.next)}>Next part ({pv.chunk + 1} of {pv.chunks})</Button>
-                  : <Button variant="outline" className="h-10 px-4" onClick={() => { dispatch({ t: 'reset' }); setRunId(0) }}>Done</Button>}
+                <Button variant={pv.next >= 0 ? 'ghost' : 'outline'} className="h-10 px-4" onClick={() => { dispatch({ t: 'reset' }); setRunId(0) }}>{pv.next >= 0 ? 'Stop here' : 'Done'}</Button>
+                {pv.next >= 0 && <Button className="h-10 px-4 font-bold" onClick={() => start(pv.next)}>Next part ({pv.chunk + 1} of {pv.chunks})</Button>}
               </>
             ) : (
               <>

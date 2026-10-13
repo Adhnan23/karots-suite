@@ -85,9 +85,12 @@ export function Identify({ name, barcode, fill }: Props) {
       {(state.k === 'awaiting' || state.k === 'reading') && (
         <PastePanel compact prompt={state.prompt} reply={state.reply} error={state.k === 'awaiting' ? state.error : undefined} reading={state.k === 'reading'}
           onType={(reply) => dispatch({ t: 'type', reply })} onReply={onReply} onCopied={() => !asked.short && setPrimed(true)}
-          extra={asked.short && (
+          extra={asked.short ? (
             <button type="button" onClick={() => { setPrimed(false); start(false) }} className="text-[13px] font-semibold text-muted-foreground underline-offset-2 hover:underline"
               title="A fresh chat doesn't know the rules yet — copy the full prompt">Full prompt (new chat)</button>
+          ) : (
+            <button type="button" onClick={() => { setPrimed(true); start(true) }} className="text-[13px] font-semibold text-muted-foreground underline-offset-2 hover:underline"
+              title="Your chat already knows the rules (and any you added) — send just this item">Short prompt (chat already set up)</button>
           )} />
       )}
 

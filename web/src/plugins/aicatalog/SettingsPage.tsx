@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { loadModels, saveSettings, settingsQuery, testAI } from './api'
-import { type Chatbot, chatbot, chatbots, setChatbot } from './ask'
+import { CopyChoice } from './CopyChoice'
 import type { Settings } from './types'
 
 const PRESETS = [
@@ -31,7 +31,6 @@ export function SettingsPage() {
 function Form({ init }: { init: Settings }) {
   const qc = useQueryClient()
   const [s, setS] = useState<Settings>({ ...init, apiKey: '' })
-  const [bot, setBot] = useState<Chatbot>(chatbot)
   const [models, setModels] = useState<string[]>([])
   const [busy, setBusy] = useState<'' | 'save' | 'models' | 'test'>('')
   const set = (p: Partial<Settings>) => setS((x) => ({ ...x, ...p }))
@@ -76,15 +75,9 @@ function Form({ init }: { init: Settings }) {
 
       {s.manualMode ? (
         <section className="flex flex-col gap-3 rounded-[var(--radius)] border border-border bg-card p-4">
-          <b className="text-[14px]">Chatbot the Copy button opens <span className="font-normal text-faint">(this device)</span></b>
-          <div className="flex flex-wrap gap-1.5">
-            {(Object.keys(chatbots) as Chatbot[]).map((k) => (
-              <button key={k} type="button" aria-pressed={bot === k} onClick={() => { setBot(k); setChatbot(k) }}
-                className="rounded-full border border-border bg-card px-4 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
-                {chatbots[k].label}
-              </button>
-            ))}
-          </div>
+          <b className="text-[14px]">The Copy button <span className="font-normal text-faint">(this device)</span></b>
+          <p className="-mt-1 text-[13px] text-muted-foreground">Copy only keeps using the chat you already have open — its history and any rules you taught it. Pick a chatbot to have Copy open it — or add your own (a Gem, a custom GPT). Kept on this device only.</p>
+          <CopyChoice />
           <p className="flex gap-2 text-[13px] text-muted-foreground">
             <PanelRight size={16} className="mt-0.5 flex-none text-brand" />
             <span>Tip: keep the chatbot beside this page instead of switching tabs — in Chrome open <b className="text-foreground">Gemini in the side panel</b>; in Firefox use the <b className="text-foreground">AI chatbot in the sidebar</b>. Gemini searches the web for free, which helps with part numbers. Chrome can also read the answer from the clipboard when you come back; in Firefox, press Ctrl+V in the answer box.</span>

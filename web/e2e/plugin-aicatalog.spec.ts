@@ -69,6 +69,10 @@ test('a bad paste keeps the text and says why', async ({ page }) => {
   await dlg.getByLabel('Chatbot answer').press('Enter')
   await expect(dlg.getByRole('alert')).toContainText('paste the whole reply')
   await expect(dlg.getByLabel('Chatbot answer')).toHaveValue("I'm not sure what that is, sorry.")
+  // A chat that already has the rules (and the shop's own tweaks) gets just the item.
+  await dlg.getByRole('button', { name: 'Short prompt (chat already set up)' }).click()
+  await expect(dlg.getByLabel('Prompt to copy')).toHaveValue(/^Next item: mystery part/)
+  await expect(dlg.getByRole('button', { name: 'Full prompt (new chat)' })).toBeVisible()
 })
 
 test('identify from Items to review and from intake', async ({ page }) => {
@@ -103,9 +107,8 @@ test('coming back from the chatbot reads its answer from the clipboard', async (
   await login(page, '/admin/products')
   await page.getByRole('button', { name: 'New product' }).click()
   const dlg = await identifyInForm(page, `clip ${tag}`)
-  const popup = context.waitForEvent('page')
-  await dlg.getByRole('button', { name: /^Copy & open/ }).click()
-  await (await popup).close()
+  await dlg.getByRole('button', { name: 'Copy prompt' }).click() // the default: copy only, no new tab
+  expect(context.pages()).toHaveLength(1)
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(`clip ${tag}`) // the prompt was copied
   await page.evaluate((t) => navigator.clipboard.writeText(t), `Here you go: ${answer(`Clip Item ${tag}`, 'Misc')}`)
   await page.evaluate(() => window.dispatchEvent(new Event('focus')))
@@ -132,13 +135,31 @@ test('clean-up: one change unticked, apply, then undo; a duplicate opens the mer
   await expect(page.getByRole('dialog')).toContainText(`Merge into ${pre}`)
   await page.keyboard.press('Escape')
 
-  await page.getByRole('button', { name: 'Done' }).click()
+  await page.getByRole('button', { name: /^(Done|Stop here)$/ }).click() // Stop here when the shop has more parts
   await page.getByRole('button', { name: /Undo last clean-up/ }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Undo' }).click()
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Undone' })).toBeVisible()
   rows = await names()
   expect(rows.find((p) => p.name === `${pre} Sunlight soap`)?.categoryName).toBe('Uncategorized')
   expect(rows.find((p) => p.name === `${pre} Coke 1L`)?.categoryName).toBe(`${pre} drink`)
+})
+
+test('your own chatbot: added in Settings, the Copy button opens it; removed, back to Copy only', async ({ page }) => {
+  await login(page, '/admin/x/aicatalog/settings')
+  await page.getByRole('button', { name: 'Add chatbot' }).click()
+  await page.getByLabel('Chatbot name').fill('My Gem')
+  await page.getByLabel('Chatbot address').fill('javascript:alert(1)')
+  await expect(page.getByText('Use a web address starting with https://')).toBeVisible()
+  await page.getByLabel('Chatbot address').fill('https://gemini.google.com/gem/shop-namer')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Copy & open My Gem' })).toHaveAttribute('aria-pressed', 'true')
+  await page.goto('/admin/products')
+  await page.getByRole('button', { name: 'New product' }).click()
+  const dlg = await identifyInForm(page, 'gem test')
+  await expect(dlg.getByRole('button', { name: 'Copy & open My Gem' })).toBeVisible()
+  await page.goto('/admin/x/aicatalog/settings')
+  await page.getByRole('button', { name: 'Remove My Gem' }).click()
+  await expect(page.getByRole('button', { name: 'Copy only' })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('settings and clean-up fit a phone', async ({ page }) => {
@@ -189,6 +210,6 @@ test.describe('API mode', () => {
     fail = true
     await dlg.getByRole('button', { name: 'Identify' }).click()
     await expect(dlg.getByRole('alert')).toContainText('model overloaded')
-    await expect(dlg.getByRole('button', { name: /^Copy & open/ })).toBeVisible()
+    await expect(dlg.getByRole('button', { name: 'Copy prompt' })).toBeVisible()
   })
 })

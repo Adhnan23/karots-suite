@@ -175,12 +175,17 @@ func (h handlers) cleanup(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// preview drops every op naming a category or product this chunk doesn't have
-// (so the page never lists a change apply would skip) and orders look-alike pairs.
+// preview drops every op naming a category or an active product that doesn't
+// exist (so the page never lists a change apply would skip) and orders look-alike
+// pairs. A product outside this chunk is fine — a reply pasted from another part
+// still applies.
 func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64]string, prods []CleanupProduct) (CleanupPreview, error) {
 	names := map[int64]string{}
 	for _, p := range prods {
 		names[p.ID] = p.Name
+	}
+	if err := h.p.store.ProductNames(ctx, referenced(plan), names); err != nil {
+		return CleanupPreview{}, apperr.Internal("read products", err)
 	}
 	cat := func(id int64) bool { _, ok := paths[id]; return ok }
 	prod := func(id int64) bool { _, ok := names[id]; return ok }
@@ -237,6 +242,40 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 		dups = append(dups, DupPair{Keep: a, Drop: b, Reason: d.Reason})
 	}
 	return CleanupPreview{Plan: out, Categories: paths, Products: names, Duplicates: dups}, nil
+}
+
+// referenced lists every product id the plan names.
+func referenced(p CleanupPlan) []int64 {
+	var ids []int64
+	for _, o := range p.Moves {
+		ids = append(ids, o.ProductID)
+	}
+	for _, o := range p.Uncategorized {
+		ids = append(ids, o.ProductID)
+	}
+	for _, o := range p.Names {
+		ids = append(ids, o.ProductID)
+	}
+	for _, d := range p.Duplicates {
+		ids = append(ids, d.A, d.B)
+	}
+	return ids
+}
+
+// ProductNames adds the names of the active, non-service products among ids to names.
+func (s *Store) ProductNames(ctx context.Context, ids []int64, names map[int64]string) error {
+	var rows []struct {
+		ID   int64  `db:"id"`
+		Name string `db:"name"`
+	}
+	if err := s.db.SelectContext(ctx, &rows, `SELECT id, name FROM products
+		WHERE id = ANY($1) AND is_active AND is_service = false`, pq.Array(ids)); err != nil {
+		return err
+	}
+	for _, r := range rows {
+		names[r.ID] = r.Name
+	}
+	return nil
 }
 
 func pathsByID(rows []CatRow) map[int64]string {

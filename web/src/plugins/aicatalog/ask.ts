@@ -48,27 +48,70 @@ export function looksLikeAnswer(text: string): boolean {
   }
 }
 
-export const chatbots = {
-  gemini: { label: 'Gemini', url: 'https://gemini.google.com/app' },
-  chatgpt: { label: 'ChatGPT', url: 'https://chatgpt.com/' },
-  claude: { label: 'Claude', url: 'https://claude.ai/new' },
-} as const
-export type Chatbot = keyof typeof chatbots
+/** What the Copy button does on this device: copy only (the default — paste into a chat you already
+ * have open, keeping its history and your own rules), or copy and open a chatbot: the three built in
+ * or the shop's own (a Gem, a custom GPT…), kept in this browser only. */
+export type Bot = { key: string; label: string; url: string; custom?: boolean }
+export const BUILT_IN: Bot[] = [
+  { key: 'copy', label: 'Copy only', url: '' },
+  { key: 'gemini', label: 'Gemini', url: 'https://gemini.google.com/app' },
+  { key: 'chatgpt', label: 'ChatGPT', url: 'https://chatgpt.com/' },
+  { key: 'claude', label: 'Claude', url: 'https://claude.ai/new' },
+]
 
-const BOT_KEY = 'ks-aicat-bot' // per device: which chatbot the Copy button opens
-export function chatbot(): Chatbot {
+const BOT_KEY = 'ks-aicat-bot' // per device: which Bot the Copy button uses
+const BOTS_KEY = 'ks-aicat-bots' // per device: the shop's own chatbots
+
+const read = (k: string) => {
   try {
-    const v = localStorage.getItem(BOT_KEY)
-    return v && v in chatbots ? (v as Chatbot) : 'gemini'
+    return localStorage.getItem(k)
   } catch {
-    return 'gemini'
+    return null
   }
 }
-export function setChatbot(b: Chatbot) {
+const write = (k: string, v: string) => {
   try {
-    localStorage.setItem(BOT_KEY, b)
-  } catch { /* private window: the default stays */ }
+    localStorage.setItem(k, v)
+  } catch { /* private window: the choice isn't remembered */ }
 }
+
+/** A chatbot address must be a plain web link — never javascript: or data: (it would run in the shop app). */
+export function safeUrl(raw: string): string | null {
+  try {
+    const u = new URL(raw.trim())
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null
+  } catch {
+    return null
+  }
+}
+
+export function customBots(): Bot[] {
+  try {
+    const list = JSON.parse(read(BOTS_KEY) ?? '[]') as Bot[]
+    return Array.isArray(list) ? list.filter((b) => b && typeof b.label === 'string' && safeUrl(b.url)).map((b) => ({ ...b, custom: true })) : []
+  } catch {
+    return []
+  }
+}
+export const allBots = () => [...BUILT_IN, ...customBots()]
+
+export function addBot(label: string, url: string): Bot | null {
+  const href = safeUrl(url)
+  if (!label.trim() || !href) return null
+  const bot = { key: `custom-${Date.now()}`, label: label.trim(), url: href }
+  write(BOTS_KEY, JSON.stringify([...customBots().map(({ key, label, url }) => ({ key, label, url })), bot]))
+  return { ...bot, custom: true }
+}
+export function removeBot(key: string) {
+  write(BOTS_KEY, JSON.stringify(customBots().filter((b) => b.key !== key).map(({ key, label, url }) => ({ key, label, url }))))
+}
+
+/** The Copy button's choice; a removed one falls back to Copy only. */
+export function currentBot(): Bot {
+  const k = read(BOT_KEY)
+  return allBots().find((b) => b.key === k) ?? BUILT_IN[0]
+}
+export const setBot = (key: string) => write(BOT_KEY, key)
 
 const PRIMED = 'ks-aicat-primed' // this tab's chat already has the full rules
 export function primed(): boolean {
@@ -88,7 +131,8 @@ export function setPrimed(on: boolean) {
 /** Opens the chatbot in one reused tab ('ai-chatbot'). A tab already on the chatbot is only
  * focused — navigating it again would start a new chat and lose the rules it was given. */
 export function openChatbot() {
-  const url = chatbots[chatbot()].url
+  const url = currentBot().url
+  if (!url) return // copy only
   const w = window.open('', 'ai-chatbot')
   if (!w) return void window.open(url, '_blank', 'noopener')
   try {
