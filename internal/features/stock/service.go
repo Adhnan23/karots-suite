@@ -225,13 +225,23 @@ func consumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) 
 	if err != nil {
 		return 0, err
 	}
+	// A removal from a named batch remembers it, so a damage write-off can be
+	// traced to the delivery (and supplier) the batch came on.
+	var refType *string
+	var refID *int64
+	if in.BatchID > 0 {
+		t, id := "batch", in.BatchID
+		refType, refID = &t, &id
+	}
 	return repo.InsertMovementID(ctx, MovementInput{
-		ProductID: in.ProductID,
-		Type:      mtype,
-		Quantity:  qty.Neg(),
-		UserID:    userID,
-		Note:      nilIfEmpty(in.Note),
-		Cost:      cost.Mul(qty), // total worth consumed
+		ReferenceType: refType,
+		ReferenceID:   refID,
+		ProductID:     in.ProductID,
+		Type:          mtype,
+		Quantity:      qty.Neg(),
+		UserID:        userID,
+		Note:          nilIfEmpty(in.Note),
+		Cost:          cost.Mul(qty), // total worth consumed
 	})
 }
 

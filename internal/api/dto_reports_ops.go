@@ -304,3 +304,22 @@ type DashboardCharts struct {
 	Prev  []FinancePoint  `json:"prev"`
 	Top   []TopProductRow `json:"top"`
 }
+
+// ClaimLot is an expired batch still on the shelf, to settle with its supplier.
+type ClaimLot struct {
+	LotID     int64  `json:"lotId"`
+	ProductID int64  `json:"productId"`
+	Product   string `json:"product"`
+	Unit      string `json:"unit"`
+	Qty       string `json:"qty"`
+	Expiry    string `json:"expiry"`
+	Cost      string `json:"cost"`
+}
+
+// SupplierClaims is what to settle with a supplier when their delivery comes:
+// expired batches on the shelf (write off, then settle) and write-offs still
+// waiting on them.
+type SupplierClaims struct {
+	Expired []ClaimLot `json:"expired"`
+	Waiting []LossRow  `json:"waiting"`
+}

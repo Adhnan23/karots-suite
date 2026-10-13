@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { LossRow, RecoveryRequest } from '@/api/types.gen'
+import type { AdminSupplierPayRequest, LossRow, ProductLots, RecoveryRequest, SupplierPayRequest } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { suppliersQuery } from '@/features/counter/queries'
@@ -10,18 +10,21 @@ import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
 import { BatchChoice } from '@/features/admin/intake/BatchChoice'
 import { matchBatch } from '@/features/admin/stock/batches'
-import { lotsQuery } from '@/features/admin/stock/queries'
+import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
 import { dec, money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 /** What a supplier made good on one loss: replaced it (back in stock, asked
  * like intake — which batch, expiry, a new price, any extra they charged now
  * it costs more), credited us any amount (full or part), or nothing.
- * supplierId pre-picks the supplier (a delivery from them is being received). */
-export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: LossRow; sym: string; supplierId?: number; onClose: () => void }) {
+ * supplierId pre-picks the supplier (their delivery is being received);
+ * base '/till' is the counter's Suppliers tab (an extra paid now leaves the drawer). */
+export function RecoverSheet({ loss, sym, supplierId = 0, base = '/admin', onClose }: {
+  loss: LossRow; sym: string; supplierId?: number; base?: '/admin' | '/till'; onClose: () => void
+}) {
   const qc = useQueryClient()
   const sups = useQuery(suppliersQuery('')).data ?? []
-  const lotsData = useQuery({ ...lotsQuery(loss.productId), enabled: loss.productId > 0 }).data
+  const lotsData = useQuery({ queryKey: [base.slice(1), 'lots', loss.productId], queryFn: () => api<ProductLots>(`${base}/stock/lots/${loss.productId}`), enabled: loss.productId > 0 }).data
   const lots = lotsData?.lots ?? []
   const productPrice = lotsData?.sellingPrice ?? ''
   const [outcome, setOutcome] = useState<'replacement' | 'paid' | 'written_off'>('replacement')
@@ -32,6 +35,8 @@ export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: Los
   const [selling, setSelling] = useState('')
   const [expiry, setExpiry] = useState('')
   const [picked, setPicked] = useState<number | null>(null)
+  const [payNow, setPayNow] = useState(false)
+  const [source, setSource] = useState('')
   const [busy, setBusy] = useState(false)
   const lostUnit = num(loss.qty) > 0 ? num(loss.loss) / num(loss.qty) : 0
   const unitCost = lostUnit + num(extra)
@@ -44,7 +49,21 @@ export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: Los
       const replace = outcome === 'replacement'
       const body: RecoveryRequest = { sourceType: loss.kind, sourceId: loss.sourceId, outcome, supplierId: needSupplier ? supplier : 0, amount, note,
         batchId: replace ? batchId : 0, expiry: replace && !batchId ? expiry : '', extraPerUnit: replace ? extra : '', sellingPrice: replace && num(selling) !== num(productPrice) ? selling : '' }
-      await api('/admin/recovery', { json: body })
+      await api(`${base}/recovery`, { json: body })
+      const extraTotal = dec(num(extra) * num(loss.qty))
+      if (replace && payNow && num(extraTotal) > 0) {
+        // The extra goes on what we owe them; paying it now takes it straight off again.
+        const note = `extra for replacing ${loss.product}`
+        try {
+          if (base === '/till') await api(`/till/suppliers/${supplier}/pay`, { json: { amount: extraTotal, mode: 'pay', method: 'cash', reference: '', note, lockerId: 0, deferDrawerKick: false } satisfies SupplierPayRequest })
+          else await api(`/admin/suppliers/${supplier}/payment`, { json: { amount: extraTotal, mode: 'pay', allocations: [], advance: '', oldDebt: '', method: 'cash', reference: '', note, source } satisfies AdminSupplierPayRequest })
+        } catch (e) {
+          // The replacement is booked; only the payment didn't go — the extra stays owed.
+          toast.warning(`Replacement recorded, but the extra wasn't paid (${errMsg(e)}) — it stays on what you owe them.`)
+          void qc.invalidateQueries({ queryKey: [base.slice(1)] })
+          return onClose()
+        }
+      }
       toast.success('Recovery recorded')
       void qc.invalidateQueries({ queryKey: ['admin'] })
       void qc.invalidateQueries({ queryKey: ['till'] })
@@ -57,7 +76,8 @@ export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: Los
   }
   const clean = (v: string) => v.replace(/[^\d.]/g, '')
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record" busy={busy || (needSupplier && !supplier)} onSubmit={save}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record"
+      busy={busy || (needSupplier && !supplier) || (payNow && base === '/admin' && num(extra) > 0 && !source)} onSubmit={save}>
       <p className="text-sm text-muted-foreground">Lost {qtyText(loss.qty)} worth {money(sym, loss.loss)} at cost ({money(sym, lostUnit)} each).</p>
       <Seg label="What the supplier did" value={outcome} onChange={setOutcome}
         options={[['replacement', 'Replaced it'], ['paid', 'Credited us'], ['written_off', 'Nothing']]} />
@@ -77,7 +97,7 @@ export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: Los
         </>
       )}
       {outcome === 'written_off' && <p className="text-[13px] text-muted-foreground">The loss stands in full.</p>}
-      {needSupplier && (
+      {needSupplier && !supplierId && (
         <Field label="Supplier">
           <select aria-label="Supplier" value={supplier} onChange={(e) => setSupplier(Number(e.target.value))} className={cn(INPUT, 'appearance-auto')}>
             <option value={0}>Pick the supplier</option>
@@ -86,7 +106,13 @@ export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: Los
         </Field>
       )}
       {outcome === 'replacement' && num(extra) > 0 && (
-        <p className="text-[13px] text-muted-foreground">{money(sym, num(extra) * num(loss.qty))} goes on what you owe them — no cash moves now.</p>
+        <>
+          <Seg label="The extra" value={payNow ? 'now' : 'owe'} onChange={(v) => setPayNow(v === 'now')}
+            options={[['owe', `Add ${money(sym, num(extra) * num(loss.qty))} to what we owe`], ['now', 'Pay it now']]} />
+          {payNow && (base === '/till'
+            ? <p className="text-[13px] text-muted-foreground">Paid in cash from this till.</p>
+            : <Field label="Paid from"><MoneySourcePicker method="cash" value={source} onChange={setSource} sym={sym} /></Field>)}
+        </>
       )}
       {outcome === 'paid' && (
         <>

@@ -2406,6 +2406,27 @@ export interface DashboardCharts {
   prev: FinancePoint[];
   top: TopProductRow[];
 }
+/**
+ * ClaimLot is an expired batch still on the shelf, to settle with its supplier.
+ */
+export interface ClaimLot {
+  lotId: number /* int64 */;
+  productId: number /* int64 */;
+  product: string;
+  unit: string;
+  qty: string;
+  expiry: string;
+  cost: string;
+}
+/**
+ * SupplierClaims is what to settle with a supplier when their delivery comes:
+ * expired batches on the shelf (write off, then settle) and write-offs still
+ * waiting on them.
+ */
+export interface SupplierClaims {
+  expired: ClaimLot[];
+  waiting: LossRow[];
+}
 
 //////////
 // source: dto_sale.go

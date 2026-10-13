@@ -57,3 +57,42 @@ func TestReplacementWithAnExtraCharge(t *testing.T) {
 		t.Fatalf("an extra charge with no supplier: %d", rec.Code)
 	}
 }
+
+// A delivery from a supplier is when their expired / written-off stock gets
+// settled: the receive pages list it (a batch's own delivery supplier, else the
+// product's preferred one), on the counter too.
+func TestSupplierClaims(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	sup := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers",
+		SupplierRequest{Name: fmt.Sprintf("T Claims Supplier %d", time.Now().UnixNano())}, ck))
+	te.db.MustExec(`UPDATE products SET preferred_supplier_id=$1 WHERE id=$2`, sup.ID, f.plainID)
+	var lot int64
+	te.db.Get(&lot, `INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, expiry_date, source)
+		VALUES ($1, 2, 2, 50, CURRENT_DATE - 3, 'adjust') RETURNING id`, f.plainID) //nolint:errcheck
+	te.db.MustExec(`UPDATE stock SET quantity = quantity + 2 WHERE product_id=$1`, f.plainID)
+	base := fmt.Sprintf("/api/v1/admin/suppliers/%d/claims", sup.ID)
+
+	c := decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck))
+	if len(c.Expired) != 1 || c.Expired[0].LotID != lot || c.Expired[0].Qty != "2" {
+		t.Fatalf("expired on the shelf: %+v", c)
+	}
+	loss := decode[ConsumeResult](t, te.do(http.MethodPost, fmt.Sprintf("%s/expired/%d", base, lot), nil, ck)).LossID
+	c = decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck))
+	if len(c.Expired) != 0 || len(c.Waiting) != 1 || c.Waiting[0].SourceID != loss || c.Waiting[0].ProductID != f.plainID {
+		t.Fatalf("after the write-off: %+v", c)
+	}
+
+	cash := te.login(t, fmt.Sprintf("07%08d", (time.Now().UnixNano()+7)%100_000_000), "manager") // the counter, as someone who deals with suppliers
+	tc := decode[SupplierClaims](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/suppliers/%d/claims", sup.ID), nil, cash))
+	if len(tc.Waiting) != 1 {
+		t.Fatalf("counter claims: %+v", tc)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/till/recovery", RecoveryRequest{SourceType: "damage", SourceID: loss, Outcome: "written_off"}, cash); rec.Code >= 300 {
+		t.Fatalf("counter settles: %d %s", rec.Code, rec.Body)
+	}
+	if c = decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck)); len(c.Waiting) != 0 {
+		t.Fatalf("settled stays listed: %+v", c)
+	}
+}

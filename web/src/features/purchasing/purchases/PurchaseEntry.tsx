@@ -18,6 +18,7 @@ import { LineEditor } from '../LineEditor'
 import { type Method, MoneySourcePicker } from '../MoneySource'
 import { purchaseQuery } from '../queries'
 import { useFormKeys } from '../useFormKeys'
+import { SupplierClaimsPanel } from '../SupplierClaims'
 import { SupplierForm } from '../suppliers/SupplierForm'
 import { billTotals, type Current } from '../totals'
 
@@ -118,6 +119,7 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
         <ArrowLeft size={14} /> {id ? `Order #${id}` : 'Purchases'}
       </Link>
       <h1 className="mb-4 font-display text-[24px] font-bold tracking-tight md:text-[28px]">{TITLE[mode]}{mode === 'receive' && supplier && ` from ${supplier.name}`}</h1>
+      {receiving && sup > 0 && <SupplierClaimsPanel supplierId={sup} sym={sym} className="mb-4" />}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className={cn(SURFACE, 'flex min-h-[420px] flex-col pt-4')}>
           <LineEditor lines={shown} onChange={setLines} withPrices sym={sym} fromOrder={id > 0 && !existing} onAdd={onAdd} current={current} />

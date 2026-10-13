@@ -11,6 +11,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { purchaseQuery } from '../queries'
 import { day, StatusTag } from './PurchasesPage'
+import { SupplierClaimsPanel } from '../SupplierClaims'
 
 /** One order or delivery: lines (ordered vs received), discounts and what's
  * paid, credited and still owed — receive / edit / print from here. */
@@ -62,6 +63,7 @@ export function PurchasePage({ id }: { id: number }) {
           )}
         </div>
       </header>
+      {!draft && <SupplierClaimsPanel supplierId={p.supplierId} sym={sym} className="mb-4" />}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section className={cn(SURFACE, 'overflow-hidden')}>
           <ul aria-label="Lines" className="divide-y divide-border">

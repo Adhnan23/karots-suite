@@ -14,6 +14,7 @@ import { supplierQuery, suppliersQuery } from '../queries'
 import { CounterPage, PaneTitle } from '../ui'
 import { PayForm } from './PayForm'
 import { StockForm } from './StockForm'
+import { SupplierClaimsPanel } from '@/features/purchasing/SupplierClaims'
 
 type Job = 'pay' | 'receive' | 'order'
 
@@ -129,6 +130,7 @@ function Workspace({ id }: { id: number }) {
           {orderId && <a href={`/print/order/${orderId}`} target="_blank" rel="noreferrer" className="ml-auto flex items-center gap-1 text-muted-foreground hover:text-foreground">Print <ExternalLink size={13} /></a>}
         </div>
       )}
+      <SupplierClaimsPanel supplierId={s.id} sym={cfg.symbol} base="/till" className="mx-5 mb-3" />
       {job === 'pay' && <PayForm s={s} />}
       {job === 'receive' && <StockForm key={`r-${orderId ?? 0}`} mode="receive" supplier={s} orderId={orderId} />}
       {job === 'order' && <StockForm key="o" mode="order" supplier={s} orderId={null} />}

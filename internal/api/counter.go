@@ -49,6 +49,9 @@ func (h *handlers) registerCounter(g *echo.Group) {
 	sup.GET("/orders/:id", h.CounterOrder)
 	sup.POST("/orders/:id/receive", h.CounterReceiveOrder)
 	sup.POST("/intake-products", h.CounterIntakeProduct)
+	registerSupplierClaims(sup, h)
+	sup.POST("/recovery", h.AdminRecovery)
+	sup.GET("/stock/lots/:id", h.AdminProductLots)
 }
 
 // counterSource resolves where counter cash comes from: the cashier's own drawer
