@@ -76,16 +76,16 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   Commit `feat(aicatalog): AI client, identify and clean-up prompts, tolerant parsers`
 
 ### Task 4: API — settings, identify, category; learn on save; ⓘ row; merger
-- [ ] `api.go` on `reg.Admin()`: `GET/PUT /aicatalog/settings` (`hasKey`, never the key), `POST /aicatalog/settings/models`,
+- [x] `api.go` on `reg.Admin()`: `GET/PUT /aicatalog/settings` (`hasKey`, never the key), `POST /aicatalog/settings/models`,
   `POST /aicatalog/settings/test` (models/test take the typed provider, base URL, model and key — blank key = stored),
   `POST /aicatalog/identify {query, barcode, hint, reply, short}` → `{result}` | `{prompt, error?}`: `reply` set → parse;
   paste mode or API error → prompt (`short` → `IdentifyFollowUp`); `POST /aicatalog/category {path}` → `{id}` via
   `categories.FindOrCreateByPath` on the normalised path.
-- [ ] `ProductExtras{Key:"aicatalog"}`: Validate = valid JSON `{name, category, specs, explanation, source, query}` with
+- [x] `ProductExtras{Key:"aicatalog"}`: Validate = valid JSON `{name, category, specs, explanation, source, query}` with
   source ∈ `ai_confident|user_picked|user_explained`; Save → `LearnItem`.
-- [ ] `ProductDetailContributor`: "AI identified" · `<name> — <specs>` (specs only when non-empty).
-- [ ] `ProductMerger`: if `into` has a row delete `from`'s, else move it (focus 5) + `merge_db_test.go`.
-- [ ] `api_test.go` (DATABASE_URL-gated, plugintest): settings round trip never echoes the key; paste mode returns a
+- [x] `ProductDetailContributor`: "AI identified" · `<name> — <specs>` (specs only when non-empty).
+- [x] `ProductMerger`: if `into` has a row delete `from`'s, else move it (focus 5) + `merge_db_test.go`.
+- [x] `api_test.go` (DATABASE_URL-gated, plugintest): settings round trip never echoes the key; paste mode returns a
   prompt; reply parsed; API failure (fake 500) → prompt + error; category path created once then reused (focus 4); extras
   saved with a product → ⓘ row. Commit `feat(aicatalog): identify, settings and category routes; a pick is learnt on save and shown in ⓘ`
 

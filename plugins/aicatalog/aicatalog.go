@@ -35,4 +35,6 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	p.cats = categories.NewService(reg.Core.DB)
 	reg.AddDataGroup(dataGroup)
+	p.registerHooks(reg)
+	p.routes(reg)
 }
