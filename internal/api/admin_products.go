@@ -25,6 +25,7 @@ func (h *handlers) registerAdminProducts(g *echo.Group) {
 	g.PUT("/products/:id", h.AdminProductUpdate)
 	g.DELETE("/products/:id", h.AdminProductDisable)
 	g.POST("/products/:id/activate", h.AdminProductReactivate)
+	g.POST("/products/:id/loose", h.AdminProductLoose)
 	g.POST("/products/:id/review-done", h.AdminProductReviewDone)
 	g.POST("/products/:id/barcode", h.CounterAssignBarcode) // same rule as the counter: only when it has none
 	g.GET("/products/:id/barcodes", h.AdminBarcodes)

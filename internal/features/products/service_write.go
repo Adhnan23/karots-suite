@@ -16,15 +16,25 @@ import (
 )
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (*Product, error) {
-	w, err := toWriteRow(in)
+	id, err := CreateTx(ctx, s.db, in)
 	if err != nil {
 		return nil, err
 	}
-	id, err := s.repo.Insert(ctx, w)
-	if err != nil {
-		return nil, mapWriteErr(err)
-	}
 	return s.Get(ctx, id)
+}
+
+// CreateTx is Create on the caller's handle (a tx, when the new product is one
+// part of a bigger change — a loose version makes its conversion alongside).
+func CreateTx(ctx context.Context, q appdb.Queryer, in CreateInput) (int64, error) {
+	w, err := toWriteRow(in)
+	if err != nil {
+		return 0, err
+	}
+	id, err := NewRepository(q).Insert(ctx, w)
+	if err != nil {
+		return 0, mapWriteErr(err)
+	}
+	return id, nil
 }
 
 // QuickInput is a till-side quick-add: the cashier hit an item that isn't in the

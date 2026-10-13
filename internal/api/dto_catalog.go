@@ -258,3 +258,24 @@ type GroupItemRequest struct {
 	ProductID int64  `json:"productId"`
 	Emoji     string `json:"emoji"`
 }
+
+// LooseVersionRequest makes a packed product's loose version in one go: the
+// product (category, supplier, tax, reorder, warranty, local name copied from the
+// source), the conversion "1 source unit = Ratio of these", and — when
+// ConvertNow (source units) is above zero — the first run. Extra is each
+// plugin's data for the new product, as on the product form.
+type LooseVersionRequest struct {
+	Name         string                     `json:"name"`
+	UnitID       int64                      `json:"unitId"`
+	Ratio        string                     `json:"ratio"`
+	SellingPrice string                     `json:"sellingPrice"`
+	Barcode      string                     `json:"barcode"`
+	ConvertNow   string                     `json:"convertNow"`
+	Extra        map[string]json.RawMessage `json:"extra,omitempty" tstype:"{ [key: string]: unknown }"`
+}
+
+// LooseVersionResult names what was made.
+type LooseVersionResult struct {
+	ProductID    int64 `json:"productId"`
+	ConversionID int64 `json:"conversionId"`
+}

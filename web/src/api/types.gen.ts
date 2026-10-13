@@ -334,6 +334,29 @@ export interface GroupItemRequest {
   productId: number /* int64 */;
   emoji: string;
 }
+/**
+ * LooseVersionRequest makes a packed product's loose version in one go: the
+ * product (category, supplier, tax, reorder, warranty, local name copied from the
+ * source), the conversion "1 source unit = Ratio of these", and — when
+ * ConvertNow (source units) is above zero — the first run. Extra is each
+ * plugin's data for the new product, as on the product form.
+ */
+export interface LooseVersionRequest {
+  name: string;
+  unitId: number /* int64 */;
+  ratio: string;
+  sellingPrice: string;
+  barcode: string;
+  convertNow: string;
+  extra?: { [key: string]: unknown };
+}
+/**
+ * LooseVersionResult names what was made.
+ */
+export interface LooseVersionResult {
+  productId: number /* int64 */;
+  conversionId: number /* int64 */;
+}
 
 //////////
 // source: dto_counter.go
