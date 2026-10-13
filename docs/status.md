@@ -38,6 +38,9 @@ series per device (`P-…` beside `S-…`), and a sale may carry the time it rea
     `docs/differences.md` 65–67. No karots-pos routes (suite-only feature).
   - e2e fixture: pages a spec opens itself (`browser.newPage()` in a beforeAll) now wait out the login limiter too —
     the extra sign-ins tipped plugin-alternatives' beforeAll into a 429.
+  - Review fixes: setting the main barcode to one of its own extras keeps the old main as an extra (form + import),
+    in one transaction; the held-bill check reads only the cart's product spots (both cart shapes). `/dist/`
+    (Shop Builder output) is git-ignored.
 - **M7.6b (core) — lots in stock take** (count / add / remove / merge lots per product) **+ intake asks which lot**
   (a matching lot — same cost, price, expiry — is the default, else New lot; purchase receive always opens its own
   lot). Merging only moves qty into the oldest lot; old lot rows stay at 0 for history. **NEXT: write its spec**
