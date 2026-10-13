@@ -80,6 +80,9 @@ function TierHead({ t, tiered, first, last, canDelete }: { t: Tier; tiered: bool
 }
 
 function TierCard({ g, t, i, tiered, onPick }: { g: Group; t: Tier; i: number; tiered: boolean; onPick: (t: Tier, p: AdminProductRow) => void }) {
+  // A member sold by another unit than the group's first (a loose version) shows it:
+  // the till asks how many when swapping to it.
+  const baseUnit = g.tiers.flatMap((x) => x.members)[0]?.unit ?? ''
   const where = useQuery(membershipQuery).data ?? {}
   const mine = new Set(g.tiers.flatMap((x) => x.members.map((m) => m.productId)))
   return (
@@ -95,7 +98,10 @@ function TierCard({ g, t, i, tiered, onPick }: { g: Group; t: Tier; i: number; t
         {t.members.map((m) => (
           <li key={m.productId} className={cn('flex items-center gap-3 py-2 text-[14px]', !m.active && 'text-faint')}>
             <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-              <span className="max-w-full truncate font-semibold">{m.name}</span>
+              <span className="flex max-w-full items-center gap-1.5">
+                <span className="truncate font-semibold">{m.name}</span>
+                {m.unit && m.unit !== baseUnit && <Tag tone="muted">{m.unit}</Tag>}
+              </span>
               {!m.active && <Tag tone="warn">Disabled — not counted</Tag>}
             </span>
             <span className="shrink-0 tabular-nums text-muted-foreground">{qtyText(m.stock)} left</span>

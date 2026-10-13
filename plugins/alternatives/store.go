@@ -49,6 +49,7 @@ type Member struct {
 	Name      string          `db:"name"`
 	Stock     decimal.Decimal `db:"stock"`
 	Active    bool            `db:"active"`
+	Unit      string          `db:"unit"` // abbreviation
 }
 
 const tierCols = `t.id, t.group_id, t.name, t.reorder_level, t.sort_order, t.is_active,
@@ -107,9 +108,10 @@ func (s *Store) Group(ctx context.Context, id int64) (Group, error) {
 	var ms []Member
 	if err := s.db.SelectContext(ctx, &ms, `
 		SELECT m.product_id, m.tier_id, COALESCE(p.name, 'Deleted product #' || m.product_id) AS name,
-		       COALESCE(st.quantity, 0) AS stock, COALESCE(p.is_active, false) AS active
+		       COALESCE(st.quantity, 0) AS stock, COALESCE(p.is_active, false) AS active, COALESCE(u.abbreviation, '') AS unit
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
 		LEFT JOIN products p ON p.id = m.product_id LEFT JOIN stock st ON st.product_id = m.product_id
+		LEFT JOIN units u ON u.id = p.unit_id
 		WHERE t.group_id = $1 ORDER BY COALESCE(p.is_active, false) DESC, lower(COALESCE(p.name, '')), m.product_id`, id); err != nil {
 		return g, err
 	}

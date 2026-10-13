@@ -23,7 +23,7 @@ export type Action =
   | { type: 'removeGroup'; id: number }
   | { type: 'setQty'; key: number; qty: number; lots: Lot[] }
   | { type: 'remove'; key: number }
-  | { type: 'swap'; key: number; product: TillProduct }
+  | { type: 'swap'; key: number; product: TillProduct; qty?: number }
   | { type: 'lineDiscount'; key: number; discount: string; discountType: DiscountType }
   | { type: 'serial'; key: number; index: number; value: string }
   | { type: 'approveOversell'; key: number }
@@ -94,7 +94,7 @@ export function tillReducer(s: TillState, a: Action): TillState {
     case 'remove':
       return { ...s, lines: s.lines.filter((l) => l.key !== a.key) }
     case 'swap':
-      return { ...s, lines: swapProduct(s.lines, a.key, a.product, s.saleType) }
+      return { ...s, lines: swapProduct(s.lines, a.key, a.product, s.saleType, a.qty) }
     case 'lineDiscount':
       return mapLine(s, a.key, (l) => ({ ...l, discount: a.discount, discountType: a.discountType }))
     case 'serial':

@@ -103,6 +103,14 @@ func TestAPI(t *testing.T) {
 	if len(alts) != 1 || alts[0].ProductID != sand || alts[0].Tier != "Genuine" || alts[0].SellingPrice != "100.00" {
 		t.Fatalf("till: %+v", alts)
 	}
+	if !alts[0].SameUnit || alts[0].Unit == "" {
+		t.Fatalf("same-unit alt: %+v", alts[0])
+	}
+	// Sold by another unit (a loose version): the till must ask how many.
+	db.MustExec(`UPDATE products SET unit_id = (SELECT id FROM units WHERE id <> products.unit_id ORDER BY id LIMIT 1) WHERE id = $1`, sand)
+	if a := decode[[]AltDTO](t, do("GET", fmt.Sprintf("/till/%d?cashier=1", king), "")); len(a) != 1 || a[0].SameUnit {
+		t.Fatalf("other-unit alt: %+v", a)
+	}
 	if rec := do("DELETE", fmt.Sprintf("/members/%d", king), ""); rec.Code != 204 {
 		t.Fatalf("remove = %d", rec.Code)
 	}

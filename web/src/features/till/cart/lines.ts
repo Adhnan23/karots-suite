@@ -62,15 +62,17 @@ export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleT
 }
 
 /** Put another product on a plain line (an in-stock alternative), keeping its qty
- * and place; discount, lot, serials and found-at-till start over. A plain line
- * of that product already in the cart takes the qty instead. */
-export function swapProduct(lines: CartLine[], key: number, p: TillProduct, saleType: SaleType): CartLine[] {
+ * and place — or taking qty when given (another unit: 1 bag ≠ 1 kg, so the till
+ * asks); discount, lot, serials and found-at-till start over. A plain line of
+ * that product already in the cart takes the qty instead. */
+export function swapProduct(lines: CartLine[], key: number, p: TillProduct, saleType: SaleType, qty?: number): CartLine[] {
   const l = lines.find((x) => x.key === key)
   if (!l || l.group || l.isService) return lines
+  const want = qty && qty > 0 ? qty : l.qty
   const hit = lines.find((x) => x.key !== key && x.productId === p.id && x.batchId === 0 && !x.group && !x.isService)
-  if (hit) return lines.filter((x) => x.key !== key).map((x) => (x === hit ? syncSerials({ ...x, qty: x.qty + l.qty }) : x))
-  const qty = p.unitAllowDecimal ? l.qty : Math.max(1, Math.round(l.qty))
-  return lines.map((x) => (x.key === key ? syncSerials({ ...newLine(key, p, saleType), qty }) : x))
+  if (hit) return lines.filter((x) => x.key !== key).map((x) => (x === hit ? syncSerials({ ...x, qty: x.qty + want }) : x))
+  const q = p.unitAllowDecimal ? want : Math.max(1, Math.round(want))
+  return lines.map((x) => (x.key === key ? syncSerials({ ...newLine(key, p, saleType), qty: q }) : x))
 }
 
 export function serviceLine(key: number, d: ServiceLineInput): CartLine {

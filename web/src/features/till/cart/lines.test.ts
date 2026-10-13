@@ -99,6 +99,14 @@ describe('swapping a line', () => {
     expect(out).toHaveLength(1)
     expect(out[0]).toMatchObject({ productId: 8, qty: 4 })
   })
+  it('takes the asked qty when the unit differs (3 bags → 2.5 kg loose)', () => {
+    const r = short()
+    const loose = prod({ id: 9, name: 'Rice (loose)', unitAbbr: 'kg', unitAllowDecimal: true, stockQty: '25' })
+    expect(swapProduct(r.lines, r.lines[0].key, loose, 'retail', 2.5)[0]).toMatchObject({ productId: 9, qty: 2.5 })
+    // merging into a line of that product adds the asked qty, not the old line's
+    const both = addProduct(r.lines, r.seq, loose, 'retail', undefined, [])
+    expect(swapProduct(both.lines, r.lines[0].key, loose, 'retail', 2.5)[0]).toMatchObject({ productId: 9, qty: 3.5 })
+  })
   it('never touches a group or service line', () => {
     const r = short()
     const grouped = r.lines.map((l) => ({ ...l, group: { id: 1, label: 'Deal', per: 1, count: 3 } }))

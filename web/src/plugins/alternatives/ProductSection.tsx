@@ -21,14 +21,15 @@ export function ProductSection(p: Props) {
  * joins its source's group only when asked (and the swap then asks how many). */
 function LooseSection({ sourceId, onChange }: Props) {
   const cur = useQuery(productTierQuery(sourceId)).data
+  const group = useQuery(groupsQuery(true)).data?.find((g) => g.id === cur?.groupId)
   const [on, setOn] = useState(false)
   useEffect(() => {
     onChange(on && cur?.tierId ? { tierId: cur.tierId } : undefined)
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- onChange is a fresh arrow each render
   }, [on, cur?.tierId])
-  if (!cur?.tierId) return null
+  if (!cur?.tierId || !group) return null
   return (
-    <Toggle label={`Also offer as an alternative in ${cur.group}`} checked={on} onChange={setOn}
+    <Toggle label={`Also offer as an alternative in ${group.name}`} checked={on} onChange={setOn}
       hint="When the original runs out, the till offers this — and asks how many, since the unit differs." />
   )
 }

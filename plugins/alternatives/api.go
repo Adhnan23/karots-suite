@@ -20,6 +20,7 @@ type MemberDTO struct {
 	Name      string `json:"name"`
 	Stock     string `json:"stock"`
 	Active    bool   `json:"active"`
+	Unit      string `json:"unit"`
 }
 
 type TierDTO struct {
@@ -47,6 +48,11 @@ type AltDTO struct {
 	Stock          string `json:"stock"`
 	SellingPrice   string `json:"sellingPrice"`
 	WholesalePrice string `json:"wholesalePrice"`
+	// Unit is the alternative's unit (abbreviation); SameUnit says whether it
+	// matches the short product's. A different unit can't keep the line's
+	// quantity (1 bag ≠ 1 kg), so the till asks how many.
+	Unit     string `json:"unit"`
+	SameUnit bool   `json:"sameUnit"`
 }
 
 type MembershipDTO struct {
@@ -84,7 +90,7 @@ func groupDTO(g Group) GroupDTO {
 		td := TierDTO{ID: t.ID, Name: t.Name, ReorderLevel: t.ReorderLevel, Active: t.IsActive, Total: t.Total.String(), Low: t.Low,
 			Members: make([]MemberDTO, 0, len(t.Members))}
 		for _, m := range t.Members {
-			td.Members = append(td.Members, MemberDTO{ProductID: m.ProductID, Name: m.Name, Stock: m.Stock.String(), Active: m.Active})
+			td.Members = append(td.Members, MemberDTO{ProductID: m.ProductID, Name: m.Name, Stock: m.Stock.String(), Active: m.Active, Unit: m.Unit})
 		}
 		out.Tiers = append(out.Tiers, td)
 	}
@@ -360,7 +366,8 @@ func (h handlers) till(c echo.Context) error {
 	out := make([]AltDTO, 0, len(alts))
 	for _, a := range alts {
 		out = append(out, AltDTO{ProductID: a.ProductID, Name: a.Name, Tier: a.Tier, Stock: a.Stock.String(),
-			SellingPrice: a.SellingPrice.StringFixed(2), WholesalePrice: a.WholesalePrice.StringFixed(2)})
+			SellingPrice: a.SellingPrice.StringFixed(2), WholesalePrice: a.WholesalePrice.StringFixed(2),
+			Unit: a.Unit, SameUnit: a.SameUnit})
 	}
 	return c.JSON(http.StatusOK, out)
 }

@@ -126,6 +126,8 @@ type Alt struct {
 	Stock          decimal.Decimal `db:"stock"`
 	SellingPrice   decimal.Decimal `db:"selling_price"`
 	WholesalePrice decimal.Decimal `db:"wholesale_price"`
+	Unit           string          `db:"unit"`      // abbreviation
+	SameUnit       bool            `db:"same_unit"` // as the short product's
 }
 
 // Alternatives lists the product's in-stock live siblings, best tier first, then
@@ -133,8 +135,10 @@ type Alt struct {
 func (s *Store) Alternatives(ctx context.Context, productID int64, limit int) ([]Alt, error) {
 	rows := []Alt{}
 	err := s.db.SelectContext(ctx, &rows, `
-		SELECT m.product_id, p.name, t.name AS tier, st.quantity AS stock, p.selling_price, p.wholesale_price
+		SELECT m.product_id, p.name, t.name AS tier, st.quantity AS stock, p.selling_price, p.wholesale_price,
+		       u.abbreviation AS unit, p.unit_id = (SELECT unit_id FROM products WHERE id = $1) AS same_unit
 		FROM `+liveMembers+` JOIN stock st ON st.product_id = m.product_id
+		JOIN units u ON u.id = p.unit_id
 		WHERE g.id = (SELECT t2.group_id FROM `+liveMembersAs2+` WHERE m2.product_id = $1)
 		  AND m.product_id <> $1 AND NOT p.is_service AND st.quantity > 0
 		ORDER BY t.sort_order, t.id, st.quantity DESC, p.name

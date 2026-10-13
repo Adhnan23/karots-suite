@@ -91,7 +91,7 @@ export function LooseVersion({ product, onClose, onOpen }: { product: AdminProdu
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Selling a ${unit || 'unit'}`} hint={marginText(costPer, f.sellingPrice)}>
-          <input aria-label="Selling" inputMode="decimal" value={f.sellingPrice} onChange={(e) => set({ sellingPrice: clean(e.target.value) })} className={cn(INPUT, 'font-bold tabular-nums')} placeholder="0.00" />
+          <input aria-label="Loose selling price" inputMode="decimal" value={f.sellingPrice} onChange={(e) => set({ sellingPrice: clean(e.target.value) })} className={cn(INPUT, 'font-bold tabular-nums')} placeholder="0.00" />
         </Field>
         <Field label={`Open now (${product.unitAbbr})`} hint={tooMany ? <span className="text-danger">Only {qtyText(onHand)} on hand</span> : now > 0 && ratio > 0 ? `→ ${qtyText(now * ratio)} ${unit} in stock` : `${qtyText(onHand)} on hand · optional`}>
           <input aria-label="Convert now" inputMode="decimal" value={f.convertNow} onChange={(e) => set({ convertNow: clean(e.target.value) })} className={cn(INPUT, 'tabular-nums', tooMany && 'border-danger')} placeholder="0" />
