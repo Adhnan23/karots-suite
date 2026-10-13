@@ -20,8 +20,15 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
-**NEXT: M7.6 aicatalog** — start with its **rethink** (read the whole karots-pos plugin, propose keep · change ·
-merge + old-data mapping, the user decides), then its plan.
+**NEXT: M7.6, split three ways (user, 2026-10-13):**
+- **M7.6a (core) — extra barcodes + Merge products** — spec `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`
+  (approved); plan next.
+- **M7.6b (core) — lots in stock take** (count / add / remove / merge lots per product) **+ intake asks which lot**
+  (a matching lot — same cost, price, expiry — is the default, else New lot; purchase receive always opens its own
+  lot). Merging only moves qty into the oldest lot; old lot rows stay at 0 for history. Spec after M7.6a.
+- **M7.6c — AI Assistant (aicatalog)** — spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md` (rethink approved:
+  ✨ Identify inside core screens, Clean up page with duplicates → merge, paste mode first; bulk entry, Insights and
+  further AI uses / MCP dropped — most shops have no AI API).
 
 - **M7.5 delivered (user: "do whatever you recommended", A–I, 2026-10-12):**
   - **A** a print service is a core service (`doc_service` = the link: kind, category, on/off); Apps → Print & Copy

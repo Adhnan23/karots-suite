@@ -1,4 +1,7 @@
-# M7.6 — AI Assistant (aicatalog) (design)
+# M7.6c — AI Assistant (aicatalog) (design)
+
+Built **after** M7.6a (extra barcodes, Merge products — `2026-10-13-m7-6a-barcodes-merge-design.md`) and M7.6b
+(lots in stock take / intake). The duplicate finder (H) opens M7.6a's merge.
 
 The user approved the rethink on 2026-10-13: **A–C and E–H as recommended** ("do whatever you recommended"); **D (Insights) dropped** — "remove that as well", the plugin is catalogue help for whoever sets the shop up, not a shop-owner feature.
 Plugin key stays `aicatalog` (old backups carry `goose_db_version_aicatalog` and `aicatalog_*`); the display
@@ -35,14 +38,22 @@ Rule carried over: **the AI suggests, a person confirms.** Nothing the AI says i
 - **B. No bulk entry.** No queue, no staging table. Suite migration drops `aicatalog_mock_products`; an old
   backup still restores (restore already skips tables this schema lacks). Products a karots-pos commit created
   are ordinary products already.
-- **C. Optimize categories, change by change.** Apps → AI Assistant → **Tidy categories**.
-  - Sends the category tree (id | name | parent | count) and the active products (id | name | category) —
-    one request when it fits, else chunks of 150 (same as karots-pos).
-  - Plan = merges, re-parents, renames, product moves (same JSON as karots-pos). Shown as a list, **each change
-    ticked by default with its reason; untick to skip**. Apply ticked → one transaction, invalid ops skipped
-    (unknown ids, cycles, self-merge — karots-pos `ApplyPlan` rules).
-  - **Undo last tidy** replays the stored undo ops (re-creates merged categories with their old ids, restores
-    product placements). One level, a chunked session reverts as one (karots-pos behaviour).
+- **C. Catalogue clean-up** (user, 2026-10-13: "optimize needs more attention"). Apps → AI Assistant →
+  **Clean up**, four ticked lists from one AI pass (one prompt; chunks of 150 products when the shop is big):
+  1. **Categories** — merges, re-parents, renames (karots-pos plan JSON), and product moves to a better
+     existing category.
+  2. **Uncategorized** — a suggested category (existing path, or a new one created on apply) for every product
+     in Uncategorized / no category.
+  3. **Names** — product renames that follow the Naming style setting (only sent when one is set).
+  4. **Duplicates** — see H.
+  - Each change ticked by default with its reason; untick to skip. **Apply ticked** → one transaction, invalid
+    ops skipped (unknown ids, cycles, self-merge — karots-pos `ApplyPlan` rules), undo ops stored (renames
+    store the old name).
+  - **Undo last clean-up** replays them (re-creates merged categories with their old ids, restores placements
+    and names). One level; a chunked session reverts as one (karots-pos behaviour). Product merges (H) are not
+    part of it — they're core merges, confirmed one by one.
+  - **Delete empty categories** button (no AI): categories with no products and no children, listed, one
+    confirm.
 - **D. No Insights.** The AI Insights page and its Reports card are not carried over.
 - **E. Paste mode first (user, 2026-10-13: "i used aicatalog most of the time with prompt copy paste mode").**
   - **Paste is the default** for a new shop; the API is the optional extra. Every AI action's paste flow is
@@ -53,6 +64,14 @@ Rule carried over: **the AI suggests, a person confirms.** Nothing the AI says i
     around it (karots-pos parsers), so a plain copy of the whole answer works.
   - Inside the product form the paste step stays in the same small panel under Name — no page change, the form
     keeps what was typed.
+  - **Reads the clipboard on return** (user chose, 2026-10-13): while a reply is awaited, coming back to the tab
+    reads the clipboard (`navigator.clipboard.readText`, asked once) and fills the reply box when it holds a
+    parsable answer — so the round trip is Copy → paste + Enter in Gemini → Gemini's copy button → back. Needs a
+    secure page (`localhost` or https); over plain LAN http the browser refuses and the person pastes (Ctrl+V).
+  - **Short follow-ups:** the first prompt of a session carries the full rules, categories and naming style;
+    later identify prompts are short ("Next item: 6201 ZZ — same rules, JSON only") since the chat remembers.
+    **Full prompt** button for a fresh chat. Session = the browser tab's lifetime.
+  - Settings page tip: **Chrome's Gemini side panel** keeps the chatbot beside the page (no tab switching).
 - **Settings (Apps → AI Assistant → Settings).**
   - **Paste mode / API** switch at the top; the API fields show only for API.
   - Provider preset (Gemini, Groq, OpenRouter, OpenAI, Ollama, LM Studio, llama.cpp) fills base URL + model;
@@ -65,9 +84,9 @@ Rule carried over: **the AI suggests, a person confirms.** Nothing the AI says i
   every dump (download and automatic) writes those as `''`. After a restore the key is re-entered. The key is
   also never in any JSON response (`hasKey: bool` only).
 - **G. ⓘ row.** `ProductDetailContributor`: "AI identified · <name> — <specs>" (specs only when known).
-- **H. Possible duplicates.** Tidy categories also returns look-alike product pairs ("Coke 1L" / "Coca Cola 1
-  Ltr") with a reason. Listed under the plan, **suggestion only**: each opens the product form to rename or
-  disable. Nothing is merged automatically (sales history stays on each product).
+- **H. Duplicates.** The clean-up also returns look-alike product pairs ("Coke 1L" / "Coca Cola 1 Ltr") with
+  a reason and which one to keep (the one with more sales). Each row's **Merge…** opens the core merge confirm
+  (M7.6a) with both filled — the person checks the counts and confirms, one pair at a time. Never automatic.
 
 Not on the till: the plugin has no till surface and can't stop a sale.
 
@@ -80,9 +99,10 @@ Not on the till: the plugin has no till surface and can't stop a sale.
 | POST | `/settings/test` | one tiny request |
 | POST | `/identify` | `{query, barcode, hint, reply?}` → `{result}` or `{prompt, error?}` |
 | POST | `/category` | `{path}` → `{id}` (find or create) |
-| POST | `/tidy` | `{offset, reply?}` → `{plan, chunk, chunks}` or `{prompt, error?}` |
-| POST | `/tidy/apply` | `{plan (ticked only), runId}` → `{summary, runId}` |
-| GET / POST | `/tidy/last`, `/tidy/undo` | last un-reverted run; revert it |
+| POST | `/cleanup` | `{offset, reply?}` → `{plan, chunk, chunks}` or `{prompt, error?}` (plan = categories, uncategorized, names, duplicates) |
+| POST | `/cleanup/apply` | `{plan (ticked only, no duplicates), runId}` → `{summary, runId}` |
+| GET / POST | `/cleanup/empty-categories` | list / delete empty categories |
+| GET / POST | `/cleanup/last`, `/cleanup/undo` | last un-reverted run; revert it |
 
 One shape for every AI action: send without `reply` → the server answers (API mode) or hands back the prompt
 (paste mode, or the call failed with `error`); send again with `reply` → the server parses it. Parsers are
@@ -107,7 +127,7 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
 - Identify / pick / category / manual identify → ✨ Identify (A).
 - Barcode / price / qty / save → **core Intake** (already ported; A adds identify to it).
 - Mock row × 3, enrich, apply, commit, revert, clear → **dropped by design (M7.6, user: bulk unused)**.
-- Optimize (preview, manual, apply, revert) → Tidy categories (C).
+- Optimize (preview, manual, apply, revert) → Clean up (C).
 - Insights (page, sales, reorder, manual) → **dropped by design (M7.6, user: shop owners won't use AI)**.
 - Settings, models, test-key → Settings (E). GET `/ai-catalog` → Apps → AI Assistant.
 
@@ -119,6 +139,7 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
 - Web unit: the ask → prompt → paste state machine.
 - Playwright (`plugin-aicatalog.spec.ts`), **paste mode for every flow** (the main path): identify in the
   product form (paste a fenced reply with prose) fills name + new category and the ⓘ row shows after save;
-  identify from Items to review and from Intake; a bad paste keeps the text and says why; tidy with one change
+  identify from Items to review and from Intake; a bad paste keeps the text and says why; clean-up with one change
   unticked, then undo. **One API-mode flow** against a fake provider the test server points at
-  (no real key), plus API failure → the same panel offers the prompt. 360 px for settings and tidy.
+  (no real key), plus API failure → the same panel offers the prompt. duplicate row opens the merge confirm; clipboard read on return (Playwright grants
+  `clipboard-read`). 360 px for settings and clean-up.
