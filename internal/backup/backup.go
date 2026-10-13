@@ -178,6 +178,11 @@ func ReadArchive(r io.Reader) (*Archive, error) {
 // RestoreArchive loads a decoded archive (see Restore).
 func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreReport, error) {
 	var rep RestoreReport
+	// A secret column comes in blank too — an older build's backup may carry it.
+	secret := secretColumns(plugin.CollectDataGroups())
+	for _, t := range arc.Tables {
+		setColumns(t.Columns, t.Rows, secret[t.Name], "")
+	}
 	// Which dumped tables actually exist in the current schema.
 	existing, err := publicTables(ctx, db)
 	if err != nil {

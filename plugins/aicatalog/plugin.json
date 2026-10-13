@@ -1,0 +1,7 @@
+{
+  "key": "aicatalog",
+  "name": "AI Assistant",
+  "import": "karots-suite/plugins/aicatalog",
+  "version": "2.0.0",
+  "description": "Catalogue help for whoever sets the shop up: ✨ Identify a product from a name or code inside the product form and intake, and a Clean up page that tidies categories, fills in uncategorized items, fixes names and finds duplicates to merge. Works with any free chatbot by copy and paste — no API key needed."
+}

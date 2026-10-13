@@ -38,26 +38,26 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
 ---
 
 ### Task 1: core — `DataGroup.Secret` blanked in every dump
-- [ ] `internal/plugin/hooks.go`: `DataGroup.Secret []string` ("table.column"; doc: written as `''` in every dump).
-- [ ] `internal/backup/backup.go` `Dump`: after `dumpRows`, blank every column named by any `plugin.CollectDataGroups()`
+- [x] `internal/plugin/hooks.go`: `DataGroup.Secret []string` ("table.column"; doc: written as `''` in every dump).
+- [x] `internal/backup/backup.go` `Dump`: after `dumpRows`, blank every column named by any `plugin.CollectDataGroups()`
   group's `Secret` for that table (a `blankColumns(cols, rows, names)` beside `zeroColumns`, value `""` not NULL). One
   place, so the download, the scheduler and the before-restore snapshot all blank it.
-- [ ] Test (`backup/secret_db_test.go`, DATABASE_URL-gated): a temp table + a registered group with `Secret` → the
+- [x] Test (`backup/secret_db_test.go`, DATABASE_URL-gated): a temp table + a registered group with `Secret` → the
   dump's row has `""`, other columns intact. Commit `feat(backup): a plugin can mark columns secret — every dump writes them blank`
 
 ### Task 2: plugin skeleton, migrations, store, restore
-- [ ] `plugins/aicatalog/plugin.json` (key, name "AI Assistant", import, version 2.0.0, description), `aicatalog.go`
+- [x] `plugins/aicatalog/plugin.json` (key, name "AI Assistant", import, version 2.0.0, description), `aicatalog.go`
   (`init` → `plugin.Register`, `Key()`, `Migrations()`), `migrations/` = karots-pos 0001–0007 copied + `embed.go`.
-- [ ] `0008_suite.sql` (Up/Down): `DROP TABLE aicatalog_mock_products`; `ALTER TABLE aicatalog_settings DROP COLUMN
+- [x] `0008_suite.sql` (Up/Down): `DROP TABLE aicatalog_mock_products`; `ALTER TABLE aicatalog_settings DROP COLUMN
   default_markup`; `ALTER COLUMN manual_mode SET DEFAULT true`; `UPDATE aicatalog_settings SET manual_mode = true WHERE api_key = ''`.
-- [ ] `store.go`: `Settings` (no markup), `GetSettings` / `SaveSettings` (blank key keeps the stored one), `LearnItem`,
+- [x] `store.go`: `Settings` (no markup), `GetSettings` / `SaveSettings` (blank key keeps the stored one), `LearnItem`,
   `GetItem`, `CategoryPaths` (forked, cap 200).
-- [ ] `Setup`: DataGroup `{Key:"aicatalog", Name:"AI Assistant", Tables: items, optimize_runs, settings, Secret:
+- [x] `Setup`: DataGroup `{Key:"aicatalog", Name:"AI Assistant", Tables: items, optimize_runs, settings, Secret:
   ["aicatalog_settings.api_key"]}`.
-- [ ] `restore_db_test.go` (clearance pattern): a karots-pos 0007 DB with a mock draft + committed draft, a run, an item
+- [x] `restore_db_test.go` (clearance pattern): a karots-pos 0007 DB with a mock draft + committed draft, a run, an item
   and a key (`manual_mode=false`) → dump → restore into a suite DB at 0008: item + run + settings across,
   `manual_mode` still false, mock table in `SkippedTables`, `api_key = ''` (focus 3). Fresh migrate → `manual_mode` true.
-- [ ] `make plugins P=all` → `go test ./plugins/aicatalog/...` → `make core-only`. Commit
+- [x] `make plugins P=all` → `go test ./plugins/aicatalog/...` → `make core-only`. Commit
   `feat(aicatalog): plugin skeleton — karots-pos migrations byte for byte, paste mode by default, key kept out of backups`
 
 ### Task 3: AI client, prompts, parsers
