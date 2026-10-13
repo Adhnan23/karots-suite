@@ -13,3 +13,19 @@ export const barcodesPrep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('region', { name: 'Other barcodes' }).scrollIntoViewIfNeeded()
   },
 }
+
+/** SHOTS_PREP=intake-unknown (SHOTS_PATH=/admin/inventory/intake) and purchase-unknown
+ * (SHOTS_PATH=/admin/purchases/new): an unknown code scanned, its new-item panel open. */
+Object.assign(barcodesPrep, {
+  'intake-unknown': async (page: Page) => {
+    await page.getByLabel('Scan or search').fill('6009876543213')
+    await page.getByLabel('Scan or search').press('Enter')
+    await page.getByRole('button', { name: 'Same as an existing one' }).waitFor()
+  },
+  'purchase-unknown': async (page: Page) => {
+    const input = page.getByLabel('Add a product')
+    await input.fill('6009876543213')
+    await input.press('Enter')
+    await page.getByRole('button', { name: 'Same as an existing one' }).waitFor()
+  },
+})

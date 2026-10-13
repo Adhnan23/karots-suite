@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { editPrice, markupOf, type Prices } from '@/features/admin/products/price'
 import { productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
+import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { extraBody, type Extras, ProductExtras } from '@/features/admin/products/ProductExtras'
 import { configQuery, errMsg } from '@/features/till/api'
@@ -19,7 +20,7 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { initialLabels, LabelBlock, labelRequest, type LabelOpts } from './LabelBlock'
 
-type Mode = { kind: 'restock'; p: AdminProductRow } | { kind: 'new'; name: string; barcode: string } | null
+type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 'new'; name: string; barcode: string } | null
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
 const looksScanned = (s: string) => /^\d{6,}$/.test(s.trim())
 
@@ -50,7 +51,7 @@ export function IntakePage() {
     if (!term) return
     const found = (await qc.fetchQuery(productsQuery({ q: term, category: 0, low: false, disabled: false, page: 1 }))).items
     const exact = found.find((p) => hasBarcode(p, term)) ?? (found.length === 1 ? found[0] : undefined)
-    setMode(exact ? { kind: 'restock', p: exact } : looksScanned(term) ? { kind: 'new', name: '', barcode: term } : { kind: 'new', name: term, barcode: '' })
+    setMode(exact ? { kind: 'restock', p: exact, scanned: hasBarcode(exact, term) ? term : undefined } : looksScanned(term) ? { kind: 'new', name: '', barcode: term } : { kind: 'new', name: term, barcode: '' })
   }
   async function printLabels(item: IntakeItem, fields: DetailRow[] = []) {
     const body = labelRequest(labels, { productId: item.productId, name: item.name, price: item.sellingPrice, barcode: item.barcode, qty: item.qty }, cfg.symbol, fields)
@@ -132,8 +133,9 @@ export function IntakePage() {
             )}
           </section>
         <div className={cn(SURFACE, 'p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1')}>
-          {mode?.kind === 'restock' ? <Restock key={mode.p.id} p={mode.p} labels={labels} setLabels={setLabels} onSaved={(x, f) => { saved(x, f); done(mode, q) }} onCancel={back} />
-            : mode?.kind === 'new' ? <NewItem key={`${mode.name}|${mode.barcode}`} init={mode} labels={labels} setLabels={setLabels} onSaved={(x) => { saved(x); setQ('') }} onCancel={back} />
+          {mode?.kind === 'restock' ? <Restock key={mode.p.id} p={mode.p} scanned={mode.scanned} labels={labels} setLabels={setLabels} onSaved={(x, f) => { saved(x, f); done(mode, q) }} onCancel={back} />
+            : mode?.kind === 'new' ? <NewItem key={`${mode.name}|${mode.barcode}`} init={mode} labels={labels} setLabels={setLabels} onSaved={(x) => { saved(x); setQ('') }} onCancel={back}
+              onLinked={(p, code) => setMode({ kind: 'restock', p, scanned: code })} />
               : <EmptyState title="Scan or search to start">Enter on a scanned barcode opens the item straight away — or a new product if it isn’t in the catalog yet.</EmptyState>}
         </div>
       </div>
@@ -153,7 +155,7 @@ function PriceRow({ prices, set, wholesale, setWholesale }: { prices: Prices; se
   )
 }
 
-function Restock({ p, labels, setLabels, onSaved, onCancel }: { p: AdminProductRow; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem, fields: DetailRow[]) => void; onCancel: () => void }) {
+function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: AdminProductRow; scanned?: string; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem, fields: DetailRow[]) => void; onCancel: () => void }) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const qc = useQueryClient()
   const fields = useQuery({ queryKey: ['till', 'label-fields', p.id], queryFn: () => api<DetailRow[]>(`/till/products/${p.id}/label-fields`) }).data ?? []
@@ -183,7 +185,7 @@ function Restock({ p, labels, setLabels, onSaved, onCancel }: { p: AdminProductR
     try {
       const changed = (a: string, b: string) => (num(a) !== num(b) ? a : '')
       const item = await api<IntakeItem>('/admin/inventory/intake/restock', { json: {
-        productId: p.id, quantity: qty, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice),
+        productId: p.id, quantity: qty, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice), scanned: scanned ?? '',
       } })
       toast.success(`${p.name}: +${qtyText(qty)}`)
       onSaved(item, fields)
@@ -228,7 +230,7 @@ type Draft = { name: string; barcode: string; cost: string; markup: string; sell
 let sticky = { categoryId: 0, unitId: 0, supplierId: 0, markup: '1.4' }
 let lastNew: Draft | null = null
 
-function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name: string; barcode: string }; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem) => void; onCancel: () => void }) {
+function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { init: { name: string; barcode: string }; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem) => void; onCancel: () => void; onLinked: (p: AdminProductRow, code: string) => void }) {
   const units = useQuery(unitsQuery).data ?? []
   const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const blank = (name: string, barcode: string): Draft => ({ name, barcode, cost: '', markup: sticky.markup, selling: '', wholesale: '', qty: '' })
@@ -280,6 +282,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel }: { init: { name:
             onClick={() => { setD({ ...like, barcode: '', qty: '' }); nameRef.current?.focus() }}><RotateCcw size={14} /> Another like last</Button>
         )}
       </div>
+      {init.barcode && d.barcode === init.barcode && <SameAsExisting code={init.barcode} source="intake" onLinked={(p) => onLinked(p, init.barcode)} />}
       <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Category"><CategoryPicker label="Category" allowCreate value={cat} onChange={setCat} /></Field>

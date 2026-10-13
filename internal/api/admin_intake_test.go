@@ -60,3 +60,23 @@ func TestAdminIntake(t *testing.T) {
 		t.Fatalf("after undo: active %v qty %v", active, qty)
 	}
 }
+
+// A restock opened by scanning a code stamps that code's last scan, like the till.
+func TestAdminIntakeRestockStampsScannedCode(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009583", "manager")
+	te.db.MustExec(`INSERT INTO product_barcodes (product_id, barcode, source) VALUES ($1, 'TEST-INTAKE-X', 'form')`, f.plainID)
+	t.Cleanup(func() {
+		te.db.Exec(`DELETE FROM product_barcodes WHERE barcode = 'TEST-INTAKE-X'`)                                 //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock_movements WHERE user_id IN (SELECT id FROM users WHERE phone='0770009583')`) //nolint:errcheck
+	})
+	rec := te.do(http.MethodPost, "/api/v1/admin/inventory/intake/restock", IntakeRestockRequest{ProductID: f.plainID, Quantity: "1", Scanned: "TEST-INTAKE-X"}, ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("restock: %d %s", rec.Code, rec.Body)
+	}
+	var stamped bool
+	if err := te.db.Get(&stamped, `SELECT last_scanned_at IS NOT NULL FROM product_barcodes WHERE barcode = 'TEST-INTAKE-X'`); err != nil || !stamped {
+		t.Fatalf("intake scan not stamped: %v", err)
+	}
+}

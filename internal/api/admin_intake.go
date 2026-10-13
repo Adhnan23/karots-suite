@@ -108,6 +108,9 @@ func (h *handlers) AdminIntakeRestock(c echo.Context) error {
 		SellingPrice: strings.TrimSpace(req.SellingPrice)}, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
+	if req.Scanned != "" {
+		h.t.products.BarcodeScanned(ctx, req.Scanned)
+	}
 	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(p.ID, 10), "intake restock +"+add.String())
 	item, err := h.intakeItem(ctx, p.ID, add.String(), "restock")
 	if err != nil {

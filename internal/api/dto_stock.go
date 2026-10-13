@@ -167,6 +167,7 @@ type IntakeRestockRequest struct {
 	CostPrice      string `json:"costPrice"`
 	SellingPrice   string `json:"sellingPrice"`
 	WholesalePrice string `json:"wholesalePrice"`
+	Scanned        string `json:"scanned"` // the code scanned to open it, if any (stamps its last scan)
 }
 
 // IntakeUndoRequest backs out one session row; Kind "create" also disables the product.

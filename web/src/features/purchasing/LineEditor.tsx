@@ -3,8 +3,9 @@ import { Plus, Search, X } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
+import type { AdminProductRow, IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
+import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { Seg } from '@/features/till/bits'
 import { errMsg, searchQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
@@ -68,7 +69,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
           </ul>
         )}
       </div>
-      {newName !== null && <NewProduct name={newName} wanted={!withPrices} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
+      {newName !== null && <NewProduct name={newName} wanted={!withPrices} canLink={!!onAdd} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
       <div className={cn('items-center gap-1.5 px-1 pb-1 text-[11.5px] font-semibold text-muted-foreground',
         withPrices ? 'hidden md:grid md:grid-cols-[minmax(0,1fr)_112px_52px_76px_76px_24px]' : 'grid grid-cols-[minmax(0,1fr)_112px_24px]')}>
         <span>Item</span><span className="text-right">Qty</span>
@@ -147,7 +148,7 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
   )
 }
 
-function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
+function NewProduct({ name, wanted, canLink, onDone }: { name: string; wanted: boolean; canLink: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
   // A scanned code that found nothing is the new product's barcode, not its name
   // (karots-pos carries it over so the next delivery finds it by scan).
   const scanned = /^\d{6,}$/.test(name)
@@ -166,8 +167,11 @@ function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; o
       setBusy(false)
     }
   }
+  // Admin only: the counter's cashier never links barcodes (an unknown scan there stays a new item).
+  const linked = async (p: AdminProductRow) => onDone(await api<TillProduct>(`/till/products/${p.id}`))
   return (
     <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-[var(--radius-sm)] border border-brand p-2">
+      {scanned && canLink && <div className="basis-full"><SameAsExisting code={name} source="receive" onLinked={(p) => void linked(p)} /></div>}
       <input autoFocus aria-label="New product name" placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={cn(FIELD, 'h-9 min-w-[160px] flex-1')} />
       <input aria-label="New product barcode" placeholder="Barcode" value={f.barcode} onChange={(e) => setF({ ...f, barcode: e.target.value })} className={cn(FIELD, 'h-9 w-32')} />
       {!wanted && (

@@ -2693,6 +2693,7 @@ export interface IntakeRestockRequest {
   costPrice: string;
   sellingPrice: string;
   wholesalePrice: string;
+  scanned: string; // the code scanned to open it, if any (stamps its last scan)
 }
 /**
  * IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
