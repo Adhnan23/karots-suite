@@ -61,17 +61,17 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   `feat(aicatalog): plugin skeleton — karots-pos migrations byte for byte, paste mode by default, key kept out of backups`
 
 ### Task 3: AI client, prompts, parsers
-- [ ] `ai.go`: fork `Client` (timeout **45 s**), `call` / `callGemini` / `complete` / `ListModels` / `Ping`,
+- [x] `ai.go`: fork `Client` (timeout **45 s**), `call` / `callGemini` / `complete` / `ListModels` / `Ping`,
   `apiErrMessage`, `withCustom`, `withNaming`, `searchEnabled`, `isLocal`. Drop Insights / enrich / `Ask`.
-- [ ] `prompts.go`: `systemPrompt` (forked) + "Reply with JSON only."; `IdentifyPrompt(q, hint, cats, custom, naming)`;
+- [x] `prompts.go`: `systemPrompt` (forked) + "Reply with JSON only."; `IdentifyPrompt(q, hint, cats, custom, naming)`;
   `IdentifyFollowUp(q, hint) = "Next item: <q> — same rules, JSON only."` (+ hint line). `cleanupSystemPrompt` = karots-pos
   optimize prompt extended with `"uncategorized":[{"product_id","category":"A > B","reason"}]`, `"names":[{"product_id","to","reason"}]`
   (only when a naming style is set — the prompt says so and carries it), `"duplicates":[{"a","b","reason"}]`;
   `CleanupPrompt(cats, prods, uncatIDs, naming, custom)`. PRODUCTS rows mark uncategorized ones (`|U`).
-- [ ] `parse.go`: `parseIdentify`, `parseCleanup` (outermost `{…}`, tolerant of fences / prose); error text for the UI:
+- [x] `parse.go`: `parseIdentify`, `parseCleanup` (outermost `{…}`, tolerant of fences / prose); error text for the UI:
   "Couldn't find an answer in that — paste the whole reply (it should contain JSON starting with {)." Normalise category
   paths (`/` → `>`, trim).
-- [ ] `ai_test.go`: parsers — fenced, prose-wrapped, bad JSON, empty; `httptest` fakes — OpenAI-compat answer, Gemini
+- [x] `ai_test.go`: parsers — fenced, prose-wrapped, bad JSON, empty; `httptest` fakes — OpenAI-compat answer, Gemini
   native answer (multi-part concatenated), `{"error":{"message"}}` and Gemini array error surfaced, no key + non-local → error.
   Commit `feat(aicatalog): AI client, identify and clean-up prompts, tolerant parsers`
 
