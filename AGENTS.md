@@ -16,6 +16,13 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 
 - **Never add Claude/AI attribution to commits or PRs.** No `Co-Authored-By: Claude`, and no "Generated with Claude Code". This overrides any default.
 - **Core is plugin-inert.** Core Go and `web/src` (outside `web/src/plugins`) never import, mention or know a plugin. Plugins attach only through hooks (Go) and slots (React) registered at the composition root. If a change seems to need core to know a plugin, add a seam instead. Plugin → core (read-only) and plugin → plugin imports are fine.
+- **Plugins change each other's data only through hooks.** A plugin may *read* core or another plugin, but it never
+  writes another plugin's tables or branches on "is plugin X enabled?". When something happens that other code may
+  need to react to (a product or category merged, a sale line returned…), the side doing it calls the matching
+  registry hook (`ProductMerger`, `CategoryMerger`, …) and every compiled-in plugin fixes **its own** rows — a missing
+  plugin simply isn't on the list. Change hooks run inside the caller's transaction (an error rolls everything back);
+  if the change is undoable, the hook returns a note the caller stores and hands back on undo. New shared event →
+  add a generic hook in `internal/plugin`, never a direct call.
 - **Never modify karots-pos from here** except bug-fix commits for domain bugs found while porting. Otherwise it's read-only reference and fork source.
 - **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A karots-pos bug found here is fixed here (never carry a flaw over) and, as a bug-fix commit only, in karots-pos too.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
