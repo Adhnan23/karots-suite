@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -24,7 +25,7 @@ import (
 // come back as "line N: reason".
 
 var productColumns = []string{
-	"name", "name_local", "barcode", "category", "unit",
+	"name", "name_local", "barcode", "extra_barcodes", "category", "unit",
 	"cost_price", "selling_price", "wholesale_price", "tax_rate",
 	"reorder_level", "opening_qty", "supplier", "track_serial", "warranty_months",
 }
@@ -34,6 +35,7 @@ var productSynonyms = map[string]string{
 	"sinhala": "name_local", "tamil": "name_local", "local": "name_local",
 	"local name": "name_local", "name (local)": "name_local", "name_si": "name_local",
 	"code": "barcode", "sku": "barcode",
+	"extra barcodes": "extra_barcodes", "other barcodes": "extra_barcodes", "barcodes": "extra_barcodes",
 	"category path": "category", "categories": "category",
 	"uom":  "unit",
 	"cost": "cost_price", "buying price": "cost_price", "cost price": "cost_price",
@@ -202,7 +204,7 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 			cat = p.CategoryName
 		}
 		out = append(out, []string{
-			p.Name, str(p.NameLocal), str(p.Barcode), cat, p.UnitAbbr,
+			p.Name, str(p.NameLocal), str(p.Barcode), strings.Join(p.Barcodes, ";"), cat, p.UnitAbbr,
 			money2(p.CostPrice), money2(p.SellingPrice), money2(p.WholesalePrice), money2(p.TaxRate),
 			fmt.Sprint(p.ReorderLevel), p.StockQty.String(), str(p.PreferredSupplierName),
 			fmt.Sprint(p.TrackSerial), fmt.Sprint(p.WarrantyMonths),
@@ -291,12 +293,31 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		if err != nil {
 			return "", "", err
 		}
+		if n := h.importBarcodes(ctx, r.ProductID, get("extra_barcodes")); n != "" {
+			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
+		}
 		if n := importExtras(c, xs, r.ProductID, catID, get); n != "" {
 			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
 		}
 		return r.Action, r.Note, nil
 	})
 	return h.finishImport(c, "product", res)
+}
+
+// importBarcodes adds a row's extra barcodes (";" or "," between them); it never
+// removes one. A code another product carries is a note for the report, not a
+// failed row.
+func (h *handlers) importBarcodes(ctx context.Context, productID int64, cell string) string {
+	var notes []string
+	for _, code := range strings.FieldsFunc(cell, func(r rune) bool { return r == ';' || r == ',' }) {
+		if code = strings.TrimSpace(code); code == "" {
+			continue
+		}
+		if err := h.t.products.AddBarcode(ctx, productID, code, "import"); err != nil {
+			notes = append(notes, "barcode "+code+" skipped: "+err.Error())
+		}
+	}
+	return strings.Join(notes, "; ")
 }
 
 // ---- customers ----

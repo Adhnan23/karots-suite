@@ -163,3 +163,18 @@ func TestBarcodeAddRemoveMakeMain(t *testing.T) {
 		t.Fatal("removed extra still exists")
 	}
 }
+
+// Setting a product's main barcode to one of its own extras (the form, or an import
+// row matched by that extra) is a swap, not a clash: the code leaves the extras.
+func TestMainBarcodeCanTakeOwnExtra(t *testing.T) {
+	conn, a, _ := barcodeFixture(t)
+	ctx := context.Background()
+	if _, err := conn.ExecContext(ctx, `UPDATE products SET barcode = 'TEST-B-EXTRA' WHERE id = $1`, a); err != nil {
+		t.Fatalf("own extra as main: %v", err)
+	}
+	var n int
+	must(t, conn.GetContext(ctx, &n, `SELECT COUNT(*) FROM product_barcodes WHERE barcode = 'TEST-B-EXTRA'`))
+	if n != 0 {
+		t.Fatal("the code is both main and extra")
+	}
+}

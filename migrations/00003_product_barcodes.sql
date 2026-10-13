@@ -19,8 +19,8 @@ ALTER TABLE products
     -- pointing at it resolves, but every list hides it.
     ADD COLUMN merged_into_id BIGINT REFERENCES products(id);
 
--- One code, one product: a main barcode may not equal another product's extra,
--- and an extra may not equal any main barcode but its own product's. The advisory
+-- One code, one product: a main barcode may not equal another product's extra
+-- (its own extra moves up), and an extra may not equal any main barcode. The advisory
 -- lock on the code makes two concurrent writers of the same code queue up, so the
 -- check can't be raced past.
 -- +goose StatementBegin
@@ -31,6 +31,8 @@ BEGIN
     END IF;
     PERFORM pg_advisory_xact_lock(hashtext('barcode:' || NEW.barcode));
     IF TG_TABLE_NAME = 'products' THEN
+        -- Its own extra becoming the main barcode is a swap: the code leaves the extras.
+        DELETE FROM product_barcodes WHERE barcode = NEW.barcode AND product_id = NEW.id;
         IF EXISTS (SELECT 1 FROM product_barcodes WHERE barcode = NEW.barcode) THEN
             RAISE EXCEPTION 'barcode % is already used', NEW.barcode USING ERRCODE = 'unique_violation';
         END IF;
