@@ -178,3 +178,25 @@ func TestMainBarcodeCanTakeOwnExtra(t *testing.T) {
 		t.Fatal("the code is both main and extra")
 	}
 }
+
+// Typing one of its own extras into the main Barcode field (or an import row matched
+// by that extra) swaps them: the old main stays on as an extra, so it still scans.
+func TestUpdateToOwnExtraKeepsOldMain(t *testing.T) {
+	conn, a, _ := barcodeFixture(t)
+	ctx := context.Background()
+	svc := NewService(conn)
+	p, err := svc.Get(ctx, a)
+	must(t, err)
+	code := "TEST-B-EXTRA"
+	_, err = svc.Update(ctx, a, UpdateInput{Name: p.Name, Barcode: &code, CategoryID: p.CategoryID, UnitID: p.UnitID,
+		CostPrice: p.CostPrice.String(), SellingPrice: p.SellingPrice.String()})
+	must(t, err)
+	if got, err := svc.GetByBarcode(ctx, "TEST-B-MAIN"); err != nil || got.ID != a {
+		t.Fatalf("the old main barcode no longer scans: %v", err)
+	}
+	list, err := svc.Barcodes(ctx, a)
+	must(t, err)
+	if len(list) != 2 || list[0].Barcode != "TEST-B-EXTRA" || !list[0].Main || list[1].Barcode != "TEST-B-MAIN" {
+		t.Fatalf("barcodes after the swap: %+v", list)
+	}
+}

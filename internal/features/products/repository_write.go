@@ -5,7 +5,9 @@ package products
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 
@@ -111,6 +113,20 @@ func (r *Repository) Insert(ctx context.Context, w writeRow) (int64, error) {
 }
 
 func (r *Repository) Update(ctx context.Context, id int64, w writeRow) error {
+	// The main barcode set to one of its own extras is a swap: the trigger lifts the
+	// extra, and the old main stays on as an extra so it still scans.
+	var old struct {
+		Barcode   *string    `db:"barcode"`
+		ScannedAt *time.Time `db:"barcode_scanned_at"`
+		Swap      bool       `db:"swap"`
+	}
+	if w.Barcode != nil {
+		if err := r.db.GetContext(ctx, &old, `SELECT barcode, barcode_scanned_at,
+			EXISTS (SELECT 1 FROM product_barcodes WHERE product_id = $1 AND barcode = $2) AS swap
+			FROM products WHERE id = $1`, id, *w.Barcode); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+	}
 	res, err := r.db.ExecContext(ctx, `
 		UPDATE products SET
 			name=$1, name_local=$2, barcode=$3, category_id=$4, unit_id=$5,
@@ -126,7 +142,11 @@ func (r *Repository) Update(ctx context.Context, id int64, w writeRow) error {
 	if n, _ := res.RowsAffected(); n == 0 {
 		return sql.ErrNoRows
 	}
-	return nil
+	if old.Swap && old.Barcode != nil && *old.Barcode != *w.Barcode {
+		_, err = r.db.ExecContext(ctx, `INSERT INTO product_barcodes (product_id, barcode, source, last_scanned_at) VALUES ($1, $2, 'form', $3)`,
+			id, *old.Barcode, old.ScannedAt)
+	}
+	return err
 }
 
 func (r *Repository) SoftDelete(ctx context.Context, id int64) error {
