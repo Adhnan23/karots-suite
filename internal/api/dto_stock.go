@@ -115,6 +115,12 @@ type ConsumeRequest struct {
 	BatchID   int64  `json:"batchId"`
 }
 
+// ConsumeResult answers a removal: LossID is the damage it booked (0 for shop
+// use / staff), which a supplier recovery can then be recorded against.
+type ConsumeResult struct {
+	LossID int64 `json:"lossId"`
+}
+
 type WriteOffResult struct {
 	Lots int `json:"lots"`
 }

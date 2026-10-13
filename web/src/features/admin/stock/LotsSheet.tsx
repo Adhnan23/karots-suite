@@ -2,7 +2,7 @@ import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-quer
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AddBatchRequest, AdjustRequest, ConsumeRequest, LotRow, MergeBatchesRequest, ProductLots } from '@/api/types.gen'
+import type { AddBatchRequest, AdjustRequest, ConsumeRequest, ConsumeResult, LotRow, MergeBatchesRequest, ProductLots } from '@/api/types.gen'
 import { INPUT } from '@/components/admin/fields'
 import { PickerShell } from '@/components/admin/PickerShell'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { AddBatchForm } from './AddBatchForm'
+import { useSupplierClaim } from './claim'
 import { MergePrompt } from './MergeBatches'
 import { lotsQuery } from './queries'
 
@@ -39,6 +40,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
   const [busy, setBusy] = useState(false)
   const [tool, setTool] = useState<'add' | 'merge' | null>(null)
   const [ticked, setTicked] = useState<number[]>([])
+  const claim = useSupplierClaim(sym, true)
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['admin'] })
     void qc.invalidateQueries({ queryKey: ['till'] })
@@ -57,7 +59,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
     setBusy(true)
     try {
       await fn()
-      toast.success(msg)
+      if (msg) toast.success(msg)
       setEdit(null)
       refresh()
     } catch (e) {
@@ -83,7 +85,10 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
     const done = `${qtyText(l.qtyRemaining)} ${p!.unitAbbr} ${writeOff ? 'written off' : 'taken off the count'}`
     if (writeOff) {
       const body: ConsumeRequest = { productId, quantity: l.qtyRemaining, reason: 'damage', note: 'Batch removed', batchId: l.id }
-      return run(done, () => api('/admin/stock/damage', { json: body }))
+      return run('', async () => {
+        const r = await api<ConsumeResult>('/admin/stock/damage', { json: body })
+        claim.ask(r.lossId, p!.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
+      })
     }
     const body: AdjustRequest = { productId, newQuantity: totalWith(l, 0), note: 'Batch not there', batchId: l.id }
     return run(done, () => api('/admin/stock/adjust', { json: body }))
@@ -93,6 +98,8 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
     setEdit(edit?.id === id && edit.mode === mode ? null : { id, mode })
   }
   return (
+    <>
+    {claim.sheet}
     <PickerShell fit open onOpenChange={(o) => !o && onClose()} title={p ? `Batches of ${p.name}` : 'Batches'}>
       {p && (
         <>
@@ -160,6 +167,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
               onCancel={() => { setTool(null); setTicked([]) }} onMerge={(r) => void write(`${r.batchIds.length} batches merged`, 'merge', r)} />
           )}
           {tool === 'merge' && ticked.length < 2 && <p className="text-sm text-muted-foreground">Tick the batches to merge — they join the oldest one.</p>}
+          {claim.banner}
           {tool === null && (
             <div className="flex flex-wrap gap-1.5">
               <Button variant="outline" size="sm" onClick={() => { setEdit(null); setTool('add') }}>+ Add batch</Button>
@@ -171,5 +179,6 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
         </>
       )}
     </PickerShell>
+    </>
   )
 }

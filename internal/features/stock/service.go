@@ -183,33 +183,49 @@ func (s *Service) Damage(ctx context.Context, in DamageInput, userID int64) erro
 // staff consumption all take this one path: they differ only in which line the
 // cost lands on, never in how stock and cost are computed.
 func (s *Service) Consume(ctx context.Context, in ConsumeInput, userID int64) error {
-	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return s.ConsumeTx(ctx, tx, in, userID) })
+	_, err := s.ConsumeID(ctx, in, userID)
+	return err
+}
+
+// ConsumeID is Consume answering the movement it booked (a damage write-off is
+// the loss a supplier recovery is recorded against).
+func (s *Service) ConsumeID(ctx context.Context, in ConsumeInput, userID int64) (id int64, err error) {
+	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		id, err = consumeTx(ctx, tx, in, userID)
+		return err
+	})
+	return id, err
 }
 
 // ConsumeTx is Consume inside the caller's transaction, so several removals
 // (everything one job used) commit or fail together.
 func (s *Service) ConsumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) error {
+	_, err := consumeTx(ctx, tx, in, userID)
+	return err
+}
+
+func consumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) (int64, error) {
 	mtype, ok := consumeReasons[in.Reason]
 	if !ok {
-		return apperr.Validation("unknown reason for removing stock")
+		return 0, apperr.Validation("unknown reason for removing stock")
 	}
 	qty, err := money.Parse(in.Quantity)
 	if err != nil || !qty.IsPositive() {
-		return apperr.Validation("quantity must be greater than zero")
+		return 0, apperr.Validation("quantity must be greater than zero")
 	}
 	repo := NewRepository(tx)
 	ok, err = repo.DecrementGuarded(ctx, in.ProductID, qty)
 	if err != nil {
-		return apperr.Internal("failed to update stock", err)
+		return 0, apperr.Internal("failed to update stock", err)
 	}
 	if !ok {
-		return apperr.Conflict("not enough stock")
+		return 0, apperr.Conflict("not enough stock")
 	}
 	cost, err := repo.depleteChosen(ctx, in.ProductID, in.BatchID, qty)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return repo.InsertMovement(ctx, MovementInput{
+	return repo.InsertMovementID(ctx, MovementInput{
 		ProductID: in.ProductID,
 		Type:      mtype,
 		Quantity:  qty.Neg(),

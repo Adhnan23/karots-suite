@@ -1,9 +1,10 @@
 import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { ChevronRight, Pencil, Search } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { BatchesView, BatchGroup, WriteOffResult } from '@/api/types.gen'
+import type { BatchesView, BatchGroup, ConsumeResult, WriteOffResult } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { INPUT } from '@/components/admin/fields'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
@@ -12,8 +13,9 @@ import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
-import { money, qtyText } from '@/lib/money'
+import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { useSupplierClaim } from './claim'
 import { daysLeft, ExpiryTag, LotsSheet } from './LotsSheet'
 
 const batchesQuery = queryOptions({ queryKey: ['admin', 'batches'], queryFn: () => api<BatchesView>('/admin/stock/batches') })
@@ -27,6 +29,8 @@ export function BatchesPage() {
   const [q, setQ] = useState('')
   const [show, setShow] = useState<Show>('all')
   const [lots, setLots] = useState(0)
+  const claim = useSupplierClaim(sym)
+  const navigate = useNavigate()
   const refresh = () => { void qc.invalidateQueries({ queryKey: ['admin'] }); void qc.invalidateQueries({ queryKey: ['till'] }) }
   const needle = q.trim().toLowerCase()
   const groups = (v?.groups ?? []).filter((g) => (!needle || g.name.toLowerCase().includes(needle))
@@ -34,7 +38,12 @@ export function BatchesPage() {
 
   async function writeOffAll() {
     const r = await api<WriteOffResult>('/admin/stock/expired/write-off-all', { method: 'POST' })
-    toast.success(r.lots ? `${r.lots} expired ${r.lots === 1 ? 'lot' : 'lots'} written off` : 'No expired stock to write off')
+    if (!r.lots) toast.success('No expired stock to write off')
+    else toast.success(`${r.lots} expired ${r.lots === 1 ? 'lot' : 'lots'} written off`, {
+      duration: 12_000,
+      description: 'Will the supplier replace them or pay for them? Record it per item in Losses & Recovery.',
+      action: { label: 'Open Losses', onClick: () => void navigate({ to: '/admin/reports/losses' }) },
+    })
     refresh()
   }
   return (
@@ -60,11 +69,12 @@ export function BatchesPage() {
       <div className={cn(SURFACE, 'overflow-hidden')}>
         {groups.length === 0 ? <EmptyState title={v ? 'Nothing here' : 'Loading…'}>{v && show !== 'all' && 'No lots need attention right now.'}</EmptyState> : (
           <ul aria-label="Products with lots" className="divide-y divide-border">
-            {groups.map((g) => <Group key={g.productId} g={g} sym={sym} onLots={() => setLots(g.productId)} onDone={refresh} />)}
+            {groups.map((g) => <Group key={g.productId} g={g} sym={sym} onLots={() => setLots(g.productId)} onDone={refresh} onClaim={claim.ask} />)}
           </ul>
         )}
       </div>
       {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
+      {claim.sheet}
     </>
   )
 }
@@ -80,7 +90,9 @@ function Stat({ label, value, sub, tone, action }: { label: string; value: strin
   )
 }
 
-function Group({ g, sym, onLots, onDone }: { g: BatchGroup; sym: string; onLots: () => void; onDone: () => void }) {
+function Group({ g, sym, onLots, onDone, onClaim }: {
+  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, product: string, qty: string, value: number) => void
+}) {
   const [open, setOpen] = useState(g.expired > 0 || g.expiringSoon > 0)
   return (
     <li>
@@ -115,8 +127,8 @@ function Group({ g, sym, onLots, onDone }: { g: BatchGroup; sym: string; onLots:
                       <ConfirmButton label="Write off" title={`Write off ${qtyText(l.qtyRemaining)} ${g.unitAbbr} of ${g.name}?`} confirm="Write off" className="h-8 px-3 text-[12px]"
                         body={`Expired ${l.expiryDate}. It leaves the shelf as damage.`}
                         onConfirm={async () => {
-                          await api('/admin/stock/damage', { json: { productId: g.productId, quantity: l.qtyRemaining, reason: 'damage', note: `expired ${l.expiryDate}`, batchId: l.id } })
-                          toast.success(`${g.name}: expired lot written off`)
+                          const r = await api<ConsumeResult>('/admin/stock/damage', { json: { productId: g.productId, quantity: l.qtyRemaining, reason: 'damage', note: `expired ${l.expiryDate}`, batchId: l.id } })
+                          onClaim(r.lossId, g.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
                           onDone()
                         }} />
                     </span>

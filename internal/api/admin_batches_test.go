@@ -24,7 +24,7 @@ func TestAdminBatches(t *testing.T) {
 	}
 
 	// One lot: shop use from the chosen lot.
-	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "1", Reason: "own_use"}, ck); rec.Code != http.StatusNoContent {
+	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "1", Reason: "own_use"}, ck); rec.Code != http.StatusOK {
 		t.Fatalf("consume: %d %s", rec.Code, rec.Body)
 	}
 	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "1", Reason: "gift"}, ck); rec.Code != http.StatusUnprocessableEntity {

@@ -2667,6 +2667,13 @@ export interface ConsumeRequest {
   note: string;
   batchId: number /* int64 */;
 }
+/**
+ * ConsumeResult answers a removal: LossID is the damage it booked (0 for shop
+ * use / staff), which a supplier recovery can then be recorded against.
+ */
+export interface ConsumeResult {
+  lossId: number /* int64 */;
+}
 export interface WriteOffResult {
   lots: number /* int */;
 }

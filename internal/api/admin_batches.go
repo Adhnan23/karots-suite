@@ -132,11 +132,16 @@ func (h *handlers) AdminStockConsume(c echo.Context) error {
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
-	if err := h.t.stock.Consume(c.Request().Context(), in, middleware.CurrentUserID(c)); err != nil {
+	id, err := h.t.stock.ConsumeID(c.Request().Context(), in, middleware.CurrentUserID(c))
+	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(req.ProductID, 10), req.Reason+" "+in.Quantity)
-	return c.NoContent(http.StatusNoContent)
+	out := ConsumeResult{}
+	if req.Reason == "damage" {
+		out.LossID = id
+	}
+	return c.JSON(http.StatusOK, out)
 }
 
 // batchesSheet is every live lot as a download (karots-pos Batches report

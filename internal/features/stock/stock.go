@@ -106,6 +106,17 @@ func (r *Repository) InsertMovement(ctx context.Context, m MovementInput) error 
 	return err
 }
 
+// InsertMovementID is InsertMovement answering the new row's id.
+func (r *Repository) InsertMovementID(ctx context.Context, m MovementInput) (int64, error) {
+	var id int64
+	err := r.q.GetContext(ctx, &id, `
+		INSERT INTO stock_movements
+			(product_id, type, quantity, reference_id, reference_type, user_id, note, cost)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+		m.ProductID, m.Type, m.Quantity, m.ReferenceID, m.ReferenceType, m.UserID, m.Note, m.Cost)
+	return id, err
+}
+
 // MaxMovementLimit is the largest page ListMovements will serve.
 const MaxMovementLimit = 500
 

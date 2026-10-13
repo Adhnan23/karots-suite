@@ -2,7 +2,7 @@ import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-quer
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdminProductRow, ConsumeRequest } from '@/api/types.gen'
+import type { AdminProductRow, ConsumeRequest, ConsumeResult } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { ProductPicker } from '@/features/admin/products/ProductPicker'
@@ -22,7 +22,11 @@ const WHY: Record<Reason, string> = {
 
 /** Take stock out without a sale (karots-pos Record Damage): damage, shop use or
  * staff, from the lot it really came out of when there are several. */
-export function WriteOffForm({ onClose }: { onClose: () => void }) {
+export function WriteOffForm({ onClose, onDamaged }: {
+  onClose: () => void
+  /** A damage write-off: ask whether the supplier will make it good (useSupplierClaim). */
+  onDamaged: (lossId: number, product: string, qty: string, value: number) => void
+}) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const qc = useQueryClient()
   const [p, setP] = useState<AdminProductRow | null>(null)
@@ -38,8 +42,9 @@ export function WriteOffForm({ onClose }: { onClose: () => void }) {
     setBusy(true)
     try {
       const body: ConsumeRequest = { productId: p.id, quantity: qty, reason, note, batchId: lots.length > 1 ? chosen?.id ?? 0 : 0 }
-      await api('/admin/stock/damage', { json: body })
-      toast.success(`${p.name}: −${qtyText(qty)} ${p.unitAbbr} (${REASONS.find(([r]) => r === reason)?.[1].toLowerCase()})`)
+      const r = await api<ConsumeResult>('/admin/stock/damage', { json: body })
+      if (r.lossId) onDamaged(r.lossId, p.name, qty, num(qty) * num(chosen?.costPrice ?? p.costPrice))
+      else toast.success(`${p.name}: −${qtyText(qty)} ${p.unitAbbr} (${REASONS.find(([r]) => r === reason)?.[1].toLowerCase()})`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
       void qc.invalidateQueries({ queryKey: ['till'] })
       onClose()

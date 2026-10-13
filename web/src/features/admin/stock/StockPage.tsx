@@ -19,6 +19,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { AdjustForm } from './AdjustForm'
+import { useSupplierClaim } from './claim'
 import { LotsSheet } from './LotsSheet'
 import { WriteOffForm } from './WriteOffForm'
 import { MOVE_TYPES, moveLabel, movementsQuery, staffQuery } from './queries'
@@ -32,6 +33,7 @@ export function StockPage() {
   const navigate = route.useNavigate()
   const view = s.view ?? 'levels'
   const [writeOff, setWriteOff] = useState(false)
+  const claim = useSupplierClaim(useSuspenseQuery(configQuery).data.symbol)
   return (
     <>
       <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : 'Every unit in and out — who, when and why.'}
@@ -39,7 +41,8 @@ export function StockPage() {
           <Button variant="outline" className="h-10 px-3" onClick={() => setWriteOff(true)}>Record write-off</Button>
           <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements']]} />
         </>} />
-      {writeOff && <WriteOffForm onClose={() => setWriteOff(false)} />}
+      {writeOff && <WriteOffForm onClose={() => setWriteOff(false)} onDamaged={claim.ask} />}
+      {claim.sheet}
       {view === 'levels' ? <Levels /> : <Moves />}
     </>
   )

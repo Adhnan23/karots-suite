@@ -114,3 +114,36 @@ func TestAdminIntakeChoosesTheBatch(t *testing.T) {
 }
 
 func mustF(s string) float64 { v, _ := strconv.ParseFloat(s, 64); return v }
+
+// A write-off answers the loss it booked, so the Batches sheet can ask straight
+// away whether the supplier will replace it or pay for it (in part, too).
+func TestWriteOffAnswersItsLossForRecovery(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	const phone = "0770009564"
+	clean := func() {
+		te.db.Exec(`DELETE FROM loss_recoveries WHERE handled_by IN (SELECT id FROM users WHERE phone=$1)`, phone) //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock_movements WHERE user_id IN (SELECT id FROM users WHERE phone=$1)`, phone)    //nolint:errcheck
+	}
+	clean()
+	ck := te.login(t, phone, "manager")
+	t.Cleanup(clean)
+	rec := te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "2", Reason: "damage", Note: "expired"}, ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("write-off: %d %s", rec.Code, rec.Body)
+	}
+	r := decode[ConsumeResult](t, rec)
+	var mtype string
+	te.db.Get(&mtype, `SELECT type FROM stock_movements WHERE id=$1`, r.LossID) //nolint:errcheck
+	if r.LossID == 0 || mtype != "damage" {
+		t.Fatalf("loss id %d is a %q movement", r.LossID, mtype)
+	}
+	var sup int64
+	te.db.Get(&sup, `SELECT id FROM suppliers ORDER BY id LIMIT 1`) //nolint:errcheck
+	if sup == 0 {
+		t.Skip("no supplier to credit")
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/recovery", RecoveryRequest{SourceType: "damage", SourceID: r.LossID, Outcome: "paid", SupplierID: sup, Amount: "30"}, ck); rec.Code >= 300 {
+		t.Fatalf("partial credit: %d %s", rec.Code, rec.Body)
+	}
+}

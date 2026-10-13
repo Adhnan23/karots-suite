@@ -86,7 +86,19 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		return nil, apperr.Internal("failed to load supplier refunds", err)
 	}
 
-	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+len(refunds)+1)
+	// A supplier's credit for a damaged or faulty item (Losses & Recovery →
+	// Credited us) lowers the payable too; leaving it out left the running
+	// balance above the real one.
+	var credits []evRow
+	if err := s.db.SelectContext(ctx, &credits, `
+		SELECT lr.created_at, p.name AS ref, lr.recovered_value AS amount
+		FROM loss_recoveries lr JOIN products p ON p.id = lr.product_id
+		WHERE lr.supplier_id = $1 AND lr.outcome = 'paid' AND lr.recovered_value > 0
+		ORDER BY lr.created_at`, id); err != nil {
+		return nil, apperr.Internal("failed to load supplier credits", err)
+	}
+
+	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+len(refunds)+len(credits)+1)
 	// The opening balance is the carried-forward figure from before this system: a
 	// debit when we owed them, a credit when they owed us (a pre-system advance).
 	if sup.OpeningBalance.IsPositive() {
@@ -113,6 +125,9 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 			ref += " · " + *r.Reference
 		}
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Refund received", Ref: ref, Debit: r.Amount})
+	}
+	for _, r := range credits {
+		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Credit for a loss", Ref: r.Ref, Credit: r.Amount})
 	}
 	sort.SliceStable(entries, func(i, j int) bool { return entries[i].Date.Before(entries[j].Date) })
 
