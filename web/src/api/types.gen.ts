@@ -390,6 +390,11 @@ export interface ConversionRow {
 }
 export interface RunConversionRequest {
   quantity: string; // source units to convert
+  /**
+   * ToQty is what was really weighed out; blank = quantity × ratio. The
+   * bags' cost spreads over it.
+   */
+  toQty?: string;
 }
 /**
  * LabelRequest prints Count copies of one sticker. ProductID fills a blank Code
@@ -2833,6 +2838,7 @@ export interface AdminConversion {
   ratio: string;
   fromStock: string;
   toStock: string;
+  fromCost: string; // source's cost: the run sheet's cost hint
   note: string;
   isActive: boolean;
 }

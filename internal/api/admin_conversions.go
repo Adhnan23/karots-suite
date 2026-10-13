@@ -42,7 +42,7 @@ func (h *handlers) AdminConversions(c echo.Context) error {
 	for _, r := range rows {
 		out = append(out, AdminConversion{ID: r.ID, FromProductID: r.FromProductID, ToProductID: r.ToProductID, FromName: r.FromName, ToName: r.ToName,
 			FromUnit: r.FromUnitAbbr, ToUnit: r.ToUnitAbbr, Ratio: r.Ratio.String(), FromStock: r.FromStock.String(), ToStock: r.ToStock.String(),
-			Note: strOr(r.Note), IsActive: r.IsActive})
+			FromCost: r.FromCost.String(), Note: strOr(r.Note), IsActive: r.IsActive})
 	}
 	return c.JSON(http.StatusOK, out)
 }

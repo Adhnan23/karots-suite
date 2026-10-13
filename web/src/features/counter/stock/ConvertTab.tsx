@@ -9,6 +9,7 @@ import { num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { errMsg } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
+import { yieldNote } from '@/features/admin/conversions/yield'
 import { conversionsQuery } from '../queries'
 import { CounterPage, PaneTitle } from '../ui'
 
@@ -53,19 +54,24 @@ export function ConvertTab() {
 function RunForm({ r }: { r: ConversionRow }) {
   const qc = useQueryClient()
   const [qty, setQty] = useState('1')
+  // null = "what the ratio says"; typed = what was really weighed out.
+  const [got, setGot] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const n = num(qty)
-  const out = n * num(r.ratio)
+  const expected = n * num(r.ratio)
+  const out = got === null ? expected : num(got)
+  const note = yieldNote(n, expected, out, r.toUnit)
   const tooMany = n > num(r.fromStock)
 
   async function run(e: { preventDefault(): void }) {
     e.preventDefault()
-    if (!(n > 0) || tooMany) return
+    if (!(n > 0) || tooMany || !(out > 0)) return
     setBusy(true)
     try {
-      await api(`/till/conversions/${r.id}/run`, { json: { quantity: qty } })
+      await api(`/till/conversions/${r.id}/run`, { json: { quantity: qty, toQty: note ? String(out) : undefined } })
       toast.success(`Opened ${qtyText(n)} ${r.fromUnit} → ${qtyText(out)} ${r.toUnit} ${r.toName}`)
       setQty('1')
+      setGot(null)
       void qc.invalidateQueries({ queryKey: ['till'] })
     } catch (err) {
       toast.error(errMsg(err))
@@ -93,8 +99,14 @@ function RunForm({ r }: { r: ConversionRow }) {
         </div>
         {tooMany && <small className="text-danger">Only {qtyText(r.fromStock)} {r.fromUnit} on hand.</small>}
       </label>
+      <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground">
+        Got ({r.toUnit})
+        <input aria-label="Got" inputMode="decimal" value={got ?? qtyText(expected)} onChange={(e) => setGot(e.target.value.replace(/[^\d.]/g, ''))}
+          className={cn(FIELD, 'h-12 font-display text-xl font-bold tabular-nums', note && 'border-warning')} />
+        <small className={note ? 'text-warning' : 'font-normal text-faint'}>{note || 'What really came out — leave it if it matched.'}</small>
+      </label>
       {r.note && <p className="text-[13px] text-muted-foreground">{r.note}</p>}
-      <Button type="submit" size="lg" disabled={busy || !(n > 0) || tooMany} className="h-12 text-[15px]">
+      <Button type="submit" size="lg" disabled={busy || !(n > 0) || tooMany || !(out > 0)} className="h-12 text-[15px]">
         Open {qtyText(n || 0)} {r.fromUnit} → get {qtyText(out || 0)} {r.toUnit}
       </Button>
     </form>

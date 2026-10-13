@@ -244,6 +244,7 @@ type AdminConversion struct {
 	Ratio         string `json:"ratio"`
 	FromStock     string `json:"fromStock"`
 	ToStock       string `json:"toStock"`
+	FromCost      string `json:"fromCost"` // source's cost: the run sheet's cost hint
 	Note          string `json:"note"`
 	IsActive      bool   `json:"isActive"`
 }

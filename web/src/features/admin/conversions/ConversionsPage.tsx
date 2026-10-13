@@ -1,4 +1,4 @@
-import { keepPreviousData, queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowRight, Download, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -16,10 +16,11 @@ import { Tag } from '@/features/admin/products/ProductsPage'
 import { LATEST, rangeQS, type Range } from '@/features/counter/range'
 import { RangePicker } from '@/features/counter/RangePicker'
 import { Seg } from '@/features/till/bits'
-import { errMsg } from '@/features/till/api'
+import { configQuery, errMsg } from '@/features/till/api'
 import { num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { yieldNote } from './yield'
 
 const convQuery = (q: string, disabled: boolean) => queryOptions({ queryKey: ['admin', 'conversions', q, disabled], queryFn: () => api<AdminConversion[]>(`/admin/conversions?q=${encodeURIComponent(q)}&disabled=${disabled ? 1 : 0}`) })
 const runsQuery = (conv: number, r: Range, page: number) => queryOptions({ queryKey: ['admin', 'conversion-runs', conv, r, page], queryFn: () => api<ConversionRunList>(`/admin/conversions/runs?conversion=${conv}&page=${page}${rangeQS(r)}`) })
@@ -155,13 +156,18 @@ function EditConversion({ c, onClose }: { c: AdminConversion; onClose: () => voi
 
 function RunConversion({ c, onClose }: { c: AdminConversion; onClose: () => void }) {
   const done = useDone(onClose)
+  const sym = useSuspenseQuery(configQuery).data.symbol
   const [qty, setQty] = useState('1')
+  // null = "what the ratio says"; typed = what was really weighed out.
+  const [got, setGot] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const makes = num(qty) * num(c.ratio)
+  const expected = num(qty) * num(c.ratio)
+  const makes = got === null ? expected : num(got)
+  const note = yieldNote(num(qty), expected, makes, c.toUnit, { sym, perPack: num(c.fromCost) })
   async function save() {
     setBusy(true)
     try {
-      await api(`/admin/conversions/${c.id}/run`, { json: { quantity: qty } })
+      await api(`/admin/conversions/${c.id}/run`, { json: { quantity: qty, toQty: note ? String(makes) : undefined } })
       done(`${qtyText(qty)} ${c.fromUnit} → ${qtyText(makes)} ${c.toUnit} ${c.toName}`)
     } catch (e) {
       toast.error(errMsg(e))
@@ -170,9 +176,13 @@ function RunConversion({ c, onClose }: { c: AdminConversion; onClose: () => void
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Break ${c.fromName}`} submit={`Make ${qtyText(makes)} ${c.toUnit}`} busy={busy || !(num(qty) > 0) || num(qty) > num(c.fromStock)} onSubmit={save}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Break ${c.fromName}`} submit={`Make ${qtyText(makes)} ${c.toUnit}`} busy={busy || !(num(qty) > 0) || num(qty) > num(c.fromStock) || !(makes > 0)} onSubmit={save}>
       <Field label={`How many ${c.fromUnit} to break`} hint={`${qtyText(c.fromStock)} ${c.fromUnit} on hand`}>
         <input autoFocus aria-label="Packs to break" inputMode="decimal" value={qty} onChange={(e) => setQty(clean(e.target.value))} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} />
+      </Field>
+      <Field label={`Got (${c.toUnit})`} hint={note ? <span className="font-semibold text-warning">{note}</span> : 'What really came out — leave it if it matched.'}>
+        <input aria-label="Got" inputMode="decimal" value={got ?? qtyText(expected)} onChange={(e) => setGot(clean(e.target.value))}
+          className={cn(INPUT, 'tabular-nums', note && 'border-warning')} />
       </Field>
       <div className="grid grid-cols-2 gap-2 text-center">
         <div className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] p-3"><small className="text-danger">↑ Out</small><b className="block font-display text-xl tabular-nums">{qtyText(qty)} {c.fromUnit}</b><small className="text-faint">{c.fromName}</small></div>
