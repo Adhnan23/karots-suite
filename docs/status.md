@@ -53,6 +53,9 @@ series per device (`P-…` beside `S-…`), and a sale may carry the time it rea
     now), migration **`00004_recovery_extra_charge.sql`**; **settle on the receive pages** (admin + counter).
   - **Bug fixed in both repos:** the supplier statement left out recovery credits — karots-pos **`bd5fdff`
     UNPUSHED** for the user.
+  - Checks (2026-10-13): `go test ./...` core-only and with every plugin (`-p 1`), 161 web unit tests,
+    **138 Playwright flows** (`batches.spec.ts` 4 new; write-off specs now expect the prompt), `make verify-portable`,
+    `make check-core`. Self-reviewed (no fresh reviewer this session).
 - **M7.6c — AI Assistant (aicatalog)** — spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md` (rethink approved:
   ✨ Identify inside core screens, Clean up page with duplicates → merge, paste mode first; bulk entry, Insights and
   further AI uses / MCP dropped — most shops have no AI API).
