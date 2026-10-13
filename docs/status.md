@@ -28,7 +28,12 @@ prop `ProductFormSection.kind` ('copy' | 'loose'); `TillApi.swapLine(key, produc
 sameUnit`. Value per batch is exact to half a cent a unit (cost_price is 2 dp per unit). User asked: the lost weight is
 not a write-off — it is in the loose cost (lower margin); a "expected vs got" column in run history was offered, not built.
 Checks: 150 Playwright flows (dev DB reseeded), go test all-plugins + core-only, 175 web unit tests, verify, verify-portable.
-**NEXT:** the rest of the user's whole-M7 review, then M7.7.
+**User tried M7.6d on the :3100 demo (2026-10-13): "everything looks good"** (demo binary updated; the previous one is
+`~/karots-accept/karots-suite-all.m76c`). User decision: no expense on a conversion run — staff do it as part of their
+day, wages already cover it; the lost weight is in the loose cost.
+**NEXT (fresh session): M7.7 pharmacy** (after it: M7.8 repairs, then recharge — the roadmap below still shows the old
+numbers, each plugin moved up one). Start with the **rethink step** (read the whole karots-pos plugin and its memory
+notes, propose keep · change · merge + how old data maps over), let the user decide, then the spec and the plan.
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
