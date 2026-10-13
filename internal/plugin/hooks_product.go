@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/shopspring/decimal"
 )
@@ -127,7 +128,18 @@ type ProductReorderAnnotator struct {
 	LowMembers func(ctx context.Context) ([]int64, error)
 }
 
+// ProductMerger moves a plugin's own rows when core merges a duplicate product
+// (fromID) into the one the shop keeps (intoID). Merge runs inside core's merge
+// transaction, after core moved its tables and before the duplicate is retired; it
+// must collapse its own doubles (the kept product's row wins) and leave nothing on
+// fromID. An error rolls the whole merge back.
+type ProductMerger struct {
+	Key   string
+	Merge func(ctx context.Context, tx *sqlx.Tx, fromID, intoID int64) error
+}
+
 var (
+	productMergers           hook[ProductMerger]
 	productExtras            hook[ProductExtras]
 	productSheetColumns      hook[ProductSheetColumns]
 	productSearchers         hook[ProductSearchContributor]
@@ -140,6 +152,7 @@ var (
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras) { productExtras.add(current, x) }
+func (r *Registry) AddProductMerger(m ProductMerger) { productMergers.add(current, m) }
 func (r *Registry) AddProductSheetColumns(x ProductSheetColumns) {
 	productSheetColumns.add(current, x)
 }
@@ -166,6 +179,7 @@ func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 }
 
 func ProductExtrasHooks() []ProductExtras                   { return productExtras.all() }
+func ProductMergers() []ProductMerger                       { return productMergers.all() }
 func ProductSheetColumnsHooks() []ProductSheetColumns       { return productSheetColumns.all() }
 func ProductSearchContributors() []ProductSearchContributor { return productSearchers.all() }
 func ProductMetaProviders() []ProductMetaProvider           { return productMetaProviders.all() }

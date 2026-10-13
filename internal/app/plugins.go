@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"karots-suite/internal/api"
 	"karots-suite/internal/config"
@@ -45,6 +46,16 @@ func startPlugins(e *echo.Echo, db *sqlx.DB, cfg *config.Config, svc *Services) 
 // it (a core-only build leaves them nil). Every provider's result is merged; a
 // provider that errors is skipped, so a plugin issue never breaks the till.
 func bridgeProductHooks() {
+	if ms := plugin.ProductMergers(); len(ms) > 0 {
+		products.MergeHook = func(ctx context.Context, tx *sqlx.Tx, from, into int64) error {
+			for _, m := range ms {
+				if err := m.Merge(ctx, tx, from, into); err != nil {
+					return fmt.Errorf("%s: %w", m.Key, err)
+				}
+			}
+			return nil
+		}
+	}
 	if ps := plugin.ProductBadgeProviders(); len(ps) > 0 {
 		products.BadgeProvider = func(ctx context.Context, ids []int64) map[int64][]string {
 			out := map[int64][]string{}
@@ -97,12 +108,16 @@ func bridgeProductHooks() {
 	}
 	if ps := plugin.ProductDetailContributors(); len(ps) > 0 {
 		products.DetailContributor = func(ctx context.Context, id int64) []products.DetailRow {
-			return detailRows(ctx, id, func(p plugin.ProductDetailContributor) func(context.Context, int64) ([]plugin.DetailRow, error) { return p.Rows }, ps)
+			return detailRows(ctx, id, func(p plugin.ProductDetailContributor) func(context.Context, int64) ([]plugin.DetailRow, error) {
+				return p.Rows
+			}, ps)
 		}
 	}
 	if ps := plugin.ProductLabelFieldProviders(); len(ps) > 0 {
 		products.LabelFieldProvider = func(ctx context.Context, id int64) []products.DetailRow {
-			return detailRows(ctx, id, func(p plugin.ProductLabelFieldProvider) func(context.Context, int64) ([]plugin.DetailRow, error) { return p.Rows }, ps)
+			return detailRows(ctx, id, func(p plugin.ProductLabelFieldProvider) func(context.Context, int64) ([]plugin.DetailRow, error) {
+				return p.Rows
+			}, ps)
 		}
 	}
 	if ps := plugin.ProductSearchContributors(); len(ps) > 0 {
