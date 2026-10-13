@@ -2,7 +2,8 @@
 
 The user approved the rethink on 2026-10-13: **A–G as recommended, plus H** ("do whatever you recommended").
 Plugin key stays `aicatalog` (old backups carry `goose_db_version_aicatalog` and `aicatalog_*`); the display
-name is **AI Assistant**. MCP is out (see `docs/ideas/ai-uses.md`).
+name is **AI Assistant**. No further AI uses and no MCP (user, 2026-10-13: most shops have no AI API and buyers
+won't use it — photo bills, supplier messages, ask-your-shop, Sinhala/Tamil names were all dropped, not parked).
 
 ## 1. Why it changes
 
@@ -47,12 +48,20 @@ insights only narrate figures core already computed.
   reports), a Sales & profit panel and a Reorder panel. Each shows the figures from core
   (`reports` P&L and the reorder list) and **Explain** sends only those figures with the "use only these,
   invent nothing" guardrail. Plain text answer.
-- **E. Settings (Apps → AI Assistant → Settings).**
+- **E. Paste mode first (user, 2026-10-13: "i used aicatalog most of the time with prompt copy paste mode").**
+  - **Paste is the default** for a new shop; the API is the optional extra. Every AI action's paste flow is
+    the main path, not a fallback screen: one **Copy & open Gemini / ChatGPT / Claude** button (copies the
+    prompt, opens or reuses one `ai-chatbot` tab), then a reply box that **reads the reply as soon as it is
+    pasted** (no extra click; a bad paste says what's wrong and keeps the text).
+  - Prompts carry an "answer with JSON only" line and the parser tolerates the chatbot's prose and code fences
+    around it (karots-pos parsers), so a plain copy of the whole answer works.
+  - Inside the product form the paste step stays in the same small panel under Name — no page change, the form
+    keeps what was typed.
+- **Settings (Apps → AI Assistant → Settings).**
+  - **Paste mode / API** switch at the top; the API fields show only for API.
   - Provider preset (Gemini, Groq, OpenRouter, OpenAI, Ollama, LM Studio, llama.cpp) fills base URL + model;
     **Load models**; **Test AI**; key typed once (never sent back to the browser, blank = keep).
   - **Web search** (Gemini only), **Naming style** (identify only), **Custom instructions** (every prompt).
-  - **Paste mode** switch (no key: copy the prompt into any chatbot, paste the reply). Copy-and-open buttons for
-    Gemini / ChatGPT / Claude.
   - **Default markup is dropped** — core price fields do cost ⇄ markup ⇄ selling.
   - **Paste fallback everywhere:** every AI action answers with either the result, or (paste mode, or the API
     call failed) the prompt to copy + a box to paste the reply into. The same request, never a dead end.
@@ -90,7 +99,9 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
 - karots-pos `0001_init.sql`–`0007_naming_style.sql` byte for byte, same file names (goose versions must
   match an old backup's `goose_db_version_aicatalog`).
 - Suite **`0008_suite.sql`**: `DROP TABLE aicatalog_mock_products`; `ALTER TABLE aicatalog_settings DROP
-  COLUMN default_markup`. Duplicate pairs (H) are not stored.
+  COLUMN default_markup`; `manual_mode` defaults to true and a settings row with no key is switched to paste
+  (a fresh install starts in paste mode; a restored shop keeps its own choice, as restore replaces the row).
+  Duplicate pairs (H) are not stored.
 - Data group: `aicatalog_items`, `aicatalog_optimize_runs`, `aicatalog_settings`; `Secret:
   ["aicatalog_settings.api_key"]`.
 - `restore_db_test.go`: a karots-pos shop at 0007 with drafts, a committed draft, an optimize run, a learnt
@@ -111,7 +122,8 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
   restored), secret column blanked in a dump, the AI client against an `httptest` fake (OpenAI-compat and
   Gemini shapes, error messages surfaced).
 - Web unit: the ask → prompt → paste state machine.
-- Playwright (`plugin-aicatalog.spec.ts`) against a fake provider the test server points at (no real key):
-  identify in the product form fills name + new category and the ⓘ row shows after save; identify from Items
-  to review; paste mode (copy prompt, paste reply); tidy with one change unticked, then undo; explain sales;
-  360 px for settings, tidy and explain.
+- Playwright (`plugin-aicatalog.spec.ts`), **paste mode for every flow** (the main path): identify in the
+  product form (paste a fenced reply with prose) fills name + new category and the ⓘ row shows after save;
+  identify from Items to review and from Intake; a bad paste keeps the text and says why; tidy with one change
+  unticked, then undo; explain sales. **One API-mode flow** against a fake provider the test server points at
+  (no real key), plus API failure → the same panel offers the prompt. 360 px for settings, tidy and explain.
