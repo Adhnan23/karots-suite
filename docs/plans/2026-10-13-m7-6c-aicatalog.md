@@ -127,14 +127,14 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   Commit `feat(aicatalog): ✨ Identify in the product form and intake — paste first, reads the reply as it lands`
 
 ### Task 8: Apps → AI Assistant — Settings and Clean up (UI gate)
-- [ ] App tile + `adminPages` (`/admin/x/aicatalog`, tabs **Clean up** · **Settings**).
-- [ ] `SettingsPage.tsx`: Paste mode / API switch first; chatbot choice (paste); API: provider preset (Gemini, Groq,
+- [x] App tile + `adminPages` (`/admin/x/aicatalog`, tabs **Clean up** · **Settings**).
+- [x] `SettingsPage.tsx`: Paste mode / API switch first; chatbot choice (paste); API: provider preset (Gemini, Groq,
   OpenRouter, OpenAI, Ollama, LM Studio, llama.cpp → base URL + model), Load models, Test AI, key (placeholder
   "saved — leave blank to keep"), web search (Gemini only); Naming style; Custom instructions; Chrome Gemini side-panel tip.
-- [ ] `CleanupPage.tsx`: Start → PastePanel or plan; four ticked lists (Categories, Uncategorized, Names, Duplicates)
+- [x] `CleanupPage.tsx`: Start → PastePanel or plan; four ticked lists (Categories, Uncategorized, Names, Duplicates)
   with reasons; Apply ticked (duplicates excluded) → summary, next chunk; **Undo last clean-up** (shows the summary);
   duplicate row **Merge…** → `MergeConfirm`; **Delete empty categories** (list + one confirm).
-- [ ] Shots: both pages, 4 combos, 360px (card edges). Commit `feat(aicatalog): AI Assistant settings and clean-up pages`
+- [x] Shots: both pages, 4 combos, 360px (card edges). Commit `feat(aicatalog): AI Assistant settings and clean-up pages`
 
 ### Task 9: e2e, parity, docs
 - [ ] `web/e2e/plugin-aicatalog.spec.ts` (import `test` from `./fixtures`; paste mode): identify in the product form with
