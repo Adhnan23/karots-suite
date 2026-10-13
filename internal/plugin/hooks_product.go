@@ -138,7 +138,21 @@ type ProductMerger struct {
 	Merge func(ctx context.Context, tx *sqlx.Tx, fromID, intoID int64) error
 }
 
+// CategoryMerger keeps a plugin's own category references right when a category
+// (fromID) is folded into another (intoID) — its products and sub-categories move
+// to intoID, then fromID is deleted. Merge runs inside that transaction, before
+// the delete, and returns a note of exactly what it changed (nil = nothing); the
+// caller stores the note with its undo and later hands it to Unmerge, after
+// fromID is back with its old id, to reverse just that change. A plugin that keeps
+// category ids implements it; an error rolls the merge back.
+type CategoryMerger struct {
+	Key     string
+	Merge   func(ctx context.Context, tx *sqlx.Tx, fromID, intoID int64) (json.RawMessage, error)
+	Unmerge func(ctx context.Context, tx *sqlx.Tx, note json.RawMessage) error
+}
+
 var (
+	categoryMergers          hook[CategoryMerger]
 	productMergers           hook[ProductMerger]
 	productExtras            hook[ProductExtras]
 	productSheetColumns      hook[ProductSheetColumns]
@@ -151,8 +165,9 @@ var (
 	productReorderAnnotators hook[ProductReorderAnnotator]
 )
 
-func (r *Registry) AddProductExtras(x ProductExtras) { productExtras.add(current, x) }
-func (r *Registry) AddProductMerger(m ProductMerger) { productMergers.add(current, m) }
+func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(current, x) }
+func (r *Registry) AddProductMerger(m ProductMerger)   { productMergers.add(current, m) }
+func (r *Registry) AddCategoryMerger(m CategoryMerger) { categoryMergers.add(current, m) }
 func (r *Registry) AddProductSheetColumns(x ProductSheetColumns) {
 	productSheetColumns.add(current, x)
 }
@@ -180,6 +195,7 @@ func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 
 func ProductExtrasHooks() []ProductExtras                   { return productExtras.all() }
 func ProductMergers() []ProductMerger                       { return productMergers.all() }
+func CategoryMergers() []CategoryMerger                     { return categoryMergers.all() }
 func ProductSheetColumnsHooks() []ProductSheetColumns       { return productSheetColumns.all() }
 func ProductSearchContributors() []ProductSearchContributor { return productSearchers.all() }
 func ProductMetaProviders() []ProductMetaProvider           { return productMetaProviders.all() }

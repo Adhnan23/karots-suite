@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"karots-suite/internal/plugin"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -153,3 +155,38 @@ func TestEmptyCategories(t *testing.T) {
 }
 
 func itoa(i int64) string { b, _ := json.Marshal(i); return string(b) }
+
+// A plugin that keeps category ids (CategoryMerger) is asked on merge, and on
+// undo gets back exactly the note it returned.
+func TestApplyMergeAsksPlugins(t *testing.T) {
+	db := freshDB(t, "aicatalog_apply_plugins")
+	ctx := context.Background()
+	st := NewStore(db)
+	from, into := cat(t, db, "Bearing", nil), cat(t, db, "Bearings", nil)
+	var merged [][2]int64
+	var unmerged []string
+	(&plugin.Registry{}).AddCategoryMerger(plugin.CategoryMerger{Key: "test-scope",
+		Merge: func(_ context.Context, _ *sqlx.Tx, f, i int64) (json.RawMessage, error) {
+			if f != from {
+				return nil, nil // another test's merge: nothing of ours
+			}
+			merged = append(merged, [2]int64{f, i})
+			return json.RawMessage(`{"fields":[7]}`), nil
+		},
+		Unmerge: func(_ context.Context, _ *sqlx.Tx, note json.RawMessage) error {
+			unmerged = append(unmerged, string(note))
+			return nil
+		}})
+	if _, _, err := st.ApplyPlan(ctx, planOf(t, `{"merges":[{"from":`+itoa(from)+`,"into":`+itoa(into)+`}]}`), 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	if len(merged) != 1 || merged[0] != [2]int64{from, into} {
+		t.Fatalf("merge calls %v", merged)
+	}
+	if _, err := st.Revert(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(unmerged) != 1 || unmerged[0] != `{"fields":[7]}` {
+		t.Fatalf("unmerge got %v", unmerged)
+	}
+}

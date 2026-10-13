@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"karots-suite/internal/features/categories"
+	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -116,9 +117,8 @@ func (s *Store) ApplyPlan(ctx context.Context, plan CleanupPlan, userID, runID i
 		nRep++
 	}
 
-	// Merges (from -> into): move products & child categories, then delete from.
-	// ponytail: a plugin that keeps category ids without an FK (Product Plus field
-	// scopes) is not re-pointed — undo restores the old id, so its rows match again.
+	// Merges (from -> into): move products & child categories, let plugins
+	// (CategoryMerger) re-point their own references, then delete from.
 	for _, op := range plan.Merges {
 		if !catExists[op.From] || !catExists[op.Into] || op.From == op.Into {
 			continue
@@ -147,13 +147,24 @@ func (s *Store) ApplyPlan(ctx context.Context, plan CleanupPlan, userID, runID i
 				return "", 0, err
 			}
 		}
+		// Plugins that keep category ids re-point them; their notes ride the undo.
+		notes := map[string]json.RawMessage{}
+		for _, m := range plugin.CategoryMergers() {
+			note, err := m.Merge(ctx, tx, op.From, op.Into)
+			if err != nil {
+				return "", 0, fmt.Errorf("%s: %w", m.Key, err)
+			}
+			if note != nil {
+				notes[m.Key] = note
+			}
+		}
 		if _, err := tx.ExecContext(ctx, `DELETE FROM categories WHERE id=$1`, op.From); err != nil {
 			return "", 0, err
 		}
 		catExists[op.From] = false
 		undo = append(undo, map[string]any{
 			"kind": "unmerge", "id": op.From, "name": name, "parent_id": parent,
-			"products": prodIDs, "children": childIDs,
+			"products": prodIDs, "children": childIDs, "plugins": notes,
 		})
 		nMerge++
 	}
@@ -378,6 +389,9 @@ func revertOp(ctx context.Context, tx *sqlx.Tx, op map[string]any) error {
 				return err
 			}
 		}
+		if err := unmergePlugins(ctx, tx, op["plugins"]); err != nil {
+			return err
+		}
 		// Keep the id sequence ahead of any reused id.
 		_, _ = tx.ExecContext(ctx, `SELECT setval(pg_get_serial_sequence('categories','id'), (SELECT max(id) FROM categories))`)
 		return nil
@@ -415,4 +429,21 @@ func toIntSlice(v any) []int64 {
 		out = append(out, toInt(e))
 	}
 	return out
+}
+
+// unmergePlugins hands each plugin its note from the merge (a run applied before
+// a plugin was added has none for it; a plugin since removed is skipped).
+func unmergePlugins(ctx context.Context, tx *sqlx.Tx, v any) error {
+	notes, _ := v.(map[string]any)
+	for _, m := range plugin.CategoryMergers() {
+		note, ok := notes[m.Key]
+		if !ok {
+			continue
+		}
+		raw, _ := json.Marshal(note)
+		if err := m.Unmerge(ctx, tx, raw); err != nil {
+			return fmt.Errorf("%s: %w", m.Key, err)
+		}
+	}
+	return nil
 }
