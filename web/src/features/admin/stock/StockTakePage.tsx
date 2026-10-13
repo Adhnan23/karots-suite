@@ -1,5 +1,5 @@
 import { keepPreviousData, queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getRouteApi, Link } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import { Download, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -17,6 +17,7 @@ import { errMsg } from '@/features/till/api'
 import { num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { StockTakeLots } from './StockTakeLots'
 
 const route = getRouteApi('/_authed/admin/stock/take')
 type F = { q: string; category: number; supplier: number; page: number }
@@ -26,7 +27,8 @@ const takeQuery = (f: F) => queryOptions({
 })
 const CELL = cn(INPUT, 'h-10 px-2.5 text-right tabular-nums')
 type Edit = Omit<CountLine, 'productId'>
-const EMPTY: Edit = { counted: '', cost: '', selling: '', wholesale: '' }
+const EMPTY: Edit = { counted: '', cost: '', selling: '', wholesale: '', batches: [], newBatches: [] }
+const touched = (e: Edit) => !!(e.counted || e.cost || e.selling || e.wholesale || e.batches.length || e.newBatches.length)
 
 /** Count and reconcile on-hand (karots-pos Stock-take): type what's on the
  * shelf, optionally correct cost and prices, save. Or do it in a spreadsheet. */
@@ -45,7 +47,7 @@ export function StockTakePage() {
   const [result, setResult] = useState<ImportSummary | null>(null)
   const file = useRef<HTMLInputElement>(null)
   const list = useRef<HTMLDivElement>(null)
-  const dirty = Object.entries(edits).filter(([, e]) => e.counted || e.cost || e.selling || e.wholesale)
+  const dirty = Object.entries(edits).filter(([, e]) => touched(e))
   // Typed counts are kept across filters and pages (keyed by product), so one Save covers the whole walk round the shop.
   const set = (patch: Partial<F>) => void navigate({ search: (x) => ({ ...x, page: 1, ...patch }) })
   const edit = (id: number, patch: Partial<Edit>) => setEdits((x) => ({ ...x, [id]: { ...(x[id] ?? EMPTY), ...patch } }))
@@ -119,21 +121,27 @@ export function StockTakePage() {
 }
 
 function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: Partial<Edit>) => void; onNext: () => void }) {
+  const [byLot, setByLot] = useState(false)
+  const many = (p.lots?.length ?? 0) >= 2
+  // Counting by batch replaces the product count (the server ignores it too); closing drops the batch counts.
+  const toggle = () => { onEdit(byLot ? { batches: [], newBatches: [] } : { counted: '' }); setByLot(!byLot) }
   const delta = e.counted === '' ? 0 : num(e.counted) - num(p.stockQty)
   const clean = (v: string) => v.replace(/[^\d.]/g, '')
   return (
-    <li className={cn('grid grid-cols-2 gap-2 px-4 py-2.5 md:grid-cols-[minmax(0,2fr)_90px_110px_110px_110px_110px] md:items-center', (e.counted || e.cost || e.selling || e.wholesale) && 'bg-brand-soft')}>
+    <li className={cn('grid grid-cols-2 gap-2 px-4 py-2.5 md:grid-cols-[minmax(0,2fr)_90px_110px_110px_110px_110px] md:items-center', touched(e) && 'bg-brand-soft')}>
       <span className="col-span-2 min-w-0 md:col-span-1">
         <span className="flex flex-wrap items-center gap-1.5"><b className="truncate">{p.name}</b>{p.multiPrice && <Tag tone="warn">2+ lot prices</Tag>}</span>
         <small className="text-faint tabular-nums">{p.barcode || p.categoryName}
-          {p.multiPrice && <> · a change comes off the oldest lot — <Link to="/admin/stock" search={{ q: p.name }} className="font-semibold text-foreground underline">adjust it there</Link> to pick the lot</>}</small>
+          {many && !byLot && <> · a count comes off the oldest batch</>}</small>
+        {many && <button type="button" aria-expanded={byLot} onClick={toggle} className="block text-[12.5px] font-semibold text-brand underline-offset-2 hover:underline">
+          {byLot ? '▾ count the product as a whole' : `▸ count its ${p.lots.length} batches one by one`}</button>}
       </span>
       <span className="self-center text-[13px] md:text-right md:text-sm">
         <span className="text-faint md:hidden">On hand </span><b className="tabular-nums">{qtyText(p.stockQty)}</b> <small className="text-faint">{p.unitAbbr}</small>
       </span>
       <label className="relative">
         {/* aria-label on the input: the ±delta below sits inside this label and would otherwise join its name. */}
-        <input data-count aria-label={`Counted ${p.name}`} inputMode="decimal" value={e.counted} placeholder={qtyText(p.stockQty)} onChange={(x) => onEdit({ counted: clean(x.target.value) })}
+        <input data-count aria-label={`Counted ${p.name}`} inputMode="decimal" value={e.counted} disabled={byLot} placeholder={byLot ? 'by batch' : qtyText(p.stockQty)} onChange={(x) => onEdit({ counted: clean(x.target.value) })}
           onKeyDown={(x) => { if (x.key === 'Enter') { x.preventDefault(); onNext() } }} className={cn(CELL, 'font-bold')} />
         {delta !== 0 && <small className={cn('absolute -bottom-3.5 right-1 text-[10.5px] font-bold', delta > 0 ? 'text-success' : 'text-danger')}>{delta > 0 ? '+' : '−'}{qtyText(Math.abs(delta))}</small>}
       </label>
@@ -146,6 +154,8 @@ function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: P
           </label>
         ))}
       </div>
+      {byLot && <StockTakeLots name={p.name} unit={p.unitAbbr} lots={p.lots} batches={e.batches} added={e.newBatches}
+        onBatches={(batches) => onEdit({ batches })} onAdded={(newBatches) => onEdit({ newBatches })} />}
     </li>
   )
 }

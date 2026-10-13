@@ -20,7 +20,7 @@ import (
 const stockTakePageSize = 50
 
 // The count sheet layout, and the headers an uploaded sheet may use instead.
-var stockTakeColumns = []string{"barcode", "name", "current_qty", "counted_qty", "cost", "selling_price", "wholesale_price"}
+var stockTakeColumns = []string{"barcode", "name", "current_qty", "counted_qty", "cost", "selling_price", "wholesale_price", "batch", "expiry"}
 var stockTakeSynonyms = map[string]string{
 	"code": "barcode", "sku": "barcode", "product": "name", "item": "name",
 	"on hand": "current_qty", "current": "current_qty", "system qty": "current_qty",
@@ -28,6 +28,7 @@ var stockTakeSynonyms = map[string]string{
 	"cost price": "cost", "cost_price": "cost", "buying price": "cost",
 	"selling": "selling_price", "selling price": "selling_price", "sell price": "selling_price", "retail": "selling_price", "retail price": "selling_price", "price": "selling_price",
 	"wholesale": "wholesale_price", "wholesale price": "wholesale_price", "trade price": "wholesale_price",
+	"lot": "batch", "batch id": "batch", "lot id": "batch", "batch no": "batch", "expiry date": "expiry",
 }
 
 func (h *handlers) registerAdminStockTake(g *echo.Group) {
@@ -68,12 +69,26 @@ func (h *handlers) AdminStockTake(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	ids := make([]int64, len(rows))
+	for i, p := range rows {
+		ids[i] = p.ID
+	}
+	lots, err := h.t.stock.LiveLotsFor(ctx, ids)
+	if err != nil {
+		return err
+	}
 	out := StockTakeList{Items: make([]StockTakeRow, 0, len(rows)), Total: total, Page: max(page, 1), PageSize: stockTakePageSize}
 	for _, p := range rows {
 		_, many := multi[p.ID]
+		var lr []LotRow
+		if len(lots[p.ID]) >= 2 {
+			for _, b := range lots[p.ID] {
+				lr = append(lr, lotRow(b))
+			}
+		}
 		out.Items = append(out.Items, StockTakeRow{ID: p.ID, Name: p.Name, Barcode: strOr(p.Barcode), CategoryName: p.CategoryName, UnitAbbr: p.UnitAbbr,
 			UnitAllowDecimal: p.UnitAllowDecimal, StockQty: p.StockQty.String(), CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice),
-			WholesalePrice: dec2(p.WholesalePrice), MultiPrice: many})
+			WholesalePrice: dec2(p.WholesalePrice), MultiPrice: many, Lots: lr})
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -115,6 +130,10 @@ func (h *handlers) applyCount(ctx context.Context, p *products.Product, l CountL
 			return false, err
 		}
 		changed = true
+	}
+	if len(l.Batches) > 0 || len(l.NewBatches) > 0 {
+		c, err := h.applyLotCounts(ctx, l, note, userID)
+		return changed || c, err
 	}
 	if s := strings.TrimSpace(l.Counted); s != "" {
 		target, err := money.Parse(s)
@@ -159,15 +178,28 @@ func (h *handlers) AdminStockTakeApply(c echo.Context) error {
 }
 
 // AdminStockTakeSheet downloads the count sheet: every active product with its
-// on-hand, cost and prices, and a blank counted_qty column.
+// on-hand, cost and prices, and a blank counted_qty column — one row per batch
+// for a product with 2+ batches (the batch column says which).
 func (h *handlers) AdminStockTakeSheet(c echo.Context) error {
 	rows, err := h.t.products.ListAll(c.Request().Context(), false)
 	if err != nil {
 		return err
 	}
+	ids := make([]int64, len(rows))
+	for i, p := range rows {
+		ids[i] = p.ID
+	}
+	lots, err := h.t.stock.LiveLotsFor(c.Request().Context(), ids)
+	if err != nil {
+		return err
+	}
 	out := make([][]string, 0, len(rows))
 	for _, p := range rows {
-		out = append(out, []string{strOr(p.Barcode), p.Name, p.StockQty.String(), "", dec2(p.CostPrice), dec2(p.SellingPrice), dec2(p.WholesalePrice)})
+		if len(lots[p.ID]) >= 2 {
+			out = append(out, lotSheetRows(p, lots[p.ID])...)
+			continue
+		}
+		out = append(out, []string{strOr(p.Barcode), p.Name, p.StockQty.String(), "", dec2(p.CostPrice), dec2(p.SellingPrice), dec2(p.WholesalePrice), "", ""})
 	}
 	return writeSheet(c, "stock-count-sheet", stockTakeColumns, out)
 }
@@ -206,7 +238,12 @@ func (h *handlers) AdminStockTakeImport(c echo.Context) error {
 			fail(line, "no product with barcode "+barcode)
 			continue
 		}
-		changed, err := h.applyCount(ctx, p, CountLine{ProductID: p.ID, Counted: counted, Cost: get("cost"), Selling: get("selling_price"), Wholesale: get("wholesale_price")}, "stock-take sheet", uid)
+		var changed bool
+		if batch := get("batch"); batch != "" {
+			changed, err = h.importLotRow(ctx, p, batch, counted, get("cost"), get("selling_price"), uid)
+		} else {
+			changed, err = h.applyCount(ctx, p, CountLine{ProductID: p.ID, Counted: counted, Cost: get("cost"), Selling: get("selling_price"), Wholesale: get("wholesale_price")}, "stock-take sheet", uid)
+		}
 		switch {
 		case err != nil:
 			fail(line, importErrMsg(err))

@@ -2686,6 +2686,7 @@ export interface StockTakeRow {
   sellingPrice: string;
   wholesalePrice: string;
   multiPrice: boolean;
+  lots: LotRow[]; // only when it has 2+ live batches (counted one by one)
 }
 export interface StockTakeList {
   items: StockTakeRow[];
@@ -2694,7 +2695,8 @@ export interface StockTakeList {
   pageSize: number /* int */;
 }
 /**
- * CountLine is one row of a count; blank fields leave that value alone.
+ * CountLine is one row of a count; blank fields leave that value alone. With
+ * Batches the product is counted batch by batch and Counted is ignored.
  */
 export interface CountLine {
   productId: number /* int64 */;
@@ -2702,6 +2704,15 @@ export interface CountLine {
   cost: string;
   selling: string;
   wholesale: string;
+  batches: BatchCount[];
+  newBatches: AddBatchRequest[];
+}
+/**
+ * BatchCount is what is really in one batch.
+ */
+export interface BatchCount {
+  batchId: number /* int64 */;
+  counted: string;
 }
 export interface StockTakeRequest {
   lines: CountLine[];

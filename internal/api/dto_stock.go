@@ -133,6 +133,7 @@ type StockTakeRow struct {
 	SellingPrice     string `json:"sellingPrice"`
 	WholesalePrice   string `json:"wholesalePrice"`
 	MultiPrice       bool   `json:"multiPrice"`
+	Lots             []LotRow `json:"lots"` // only when it has 2+ live batches (counted one by one)
 }
 
 type StockTakeList struct {
@@ -142,13 +143,22 @@ type StockTakeList struct {
 	PageSize int            `json:"pageSize"`
 }
 
-// CountLine is one row of a count; blank fields leave that value alone.
+// CountLine is one row of a count; blank fields leave that value alone. With
+// Batches the product is counted batch by batch and Counted is ignored.
 type CountLine struct {
-	ProductID int64  `json:"productId"`
-	Counted   string `json:"counted"`
-	Cost      string `json:"cost"`
-	Selling   string `json:"selling"`
-	Wholesale string `json:"wholesale"`
+	ProductID  int64             `json:"productId"`
+	Counted    string            `json:"counted"`
+	Cost       string            `json:"cost"`
+	Selling    string            `json:"selling"`
+	Wholesale  string            `json:"wholesale"`
+	Batches    []BatchCount      `json:"batches"`
+	NewBatches []AddBatchRequest `json:"newBatches"`
+}
+
+// BatchCount is what is really in one batch.
+type BatchCount struct {
+	BatchID int64  `json:"batchId"`
+	Counted string `json:"counted"`
 }
 
 type StockTakeRequest struct {
