@@ -2,6 +2,7 @@ import type { Page } from './fixtures'
 import { aicatalogPrep } from './shot-prep-aicatalog'
 import { alternativesData } from './shot-prep-alternatives'
 import { barcodesPrep } from './shot-prep-barcodes'
+import { loosePrep } from './shot-prep-loose'
 import { ppPrep } from './shot-prep-productplus'
 import { requestsWithHistory } from './shot-prep-requests'
 import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
@@ -521,4 +522,5 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Sheets' }).click()
   },
   ...ppPrep,
+  ...loosePrep,
 }

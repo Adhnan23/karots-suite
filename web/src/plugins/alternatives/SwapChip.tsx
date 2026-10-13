@@ -40,7 +40,7 @@ export function SwapChip({ till, line, onDone }: { till: TillApi; line: CartLine
           <button key={a.productId} ref={i === 0 ? first : undefined} type="button" onClick={() => (a.sameUnit ? void swap(a.productId, a.name) : setAsk(a))}
             className={inPrompt ? 'rounded-[var(--radius-sm)] border border-brand bg-brand-soft px-3 py-2 text-left font-semibold hover:bg-brand hover:text-brand-foreground'
               : 'max-w-full rounded-md border border-dashed border-brand bg-brand-soft px-2 py-0.5 text-left font-semibold hover:border-solid'}>
-            ⇄ {a.name}{a.tier && ` · ${a.tier}`}{!a.sameUnit && ` · ${a.unit}`} · {qtyText(a.stock)}{a.sameUnit ? '' : ` ${a.unit}`} left · {money(sym, price)}{!a.sameUnit && `/${a.unit}`}
+            ⇄ {a.name}{a.tier && ` · ${a.tier}`} · {qtyText(a.stock)}{a.sameUnit ? '' : ` ${a.unit}`} left · {money(sym, price)}{!a.sameUnit && `/${a.unit}`}
           </button>
         )
       })}
