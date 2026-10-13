@@ -137,12 +137,12 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
 - [x] Shots: both pages, 4 combos, 360px (card edges). Commit `feat(aicatalog): AI Assistant settings and clean-up pages`
 
 ### Task 9: e2e, parity, docs
-- [ ] `web/e2e/plugin-aicatalog.spec.ts` (import `test` from `./fixtures`; paste mode): identify in the product form with
+- [x] `web/e2e/plugin-aicatalog.spec.ts` (import `test` from `./fixtures`; paste mode): identify in the product form with
   a fenced + prose reply → name + new category filled, save, ⓘ row; identify from Items to review and intake; bad paste
   keeps text + message; clean-up with one change unticked → apply → undo; duplicate Merge… opens the confirm; clipboard
   read on return (`clipboard-read` granted). **API mode:** a Node `http` fake on a free port (`/chat/completions`, OpenAI
   shape; base URL localhost so no key) → identify answers directly; fake returns 500 → same panel offers the prompt.
   360px: settings + clean-up.
-- [ ] `docs/parity.md`: 28 aicatalog rows ticked or marked dropped by design (spec §5). `docs/differences.md`: new rows.
-- [ ] Full checks: `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), `make test-web`, full
+- [x] `docs/parity.md`: 28 aicatalog rows ticked or marked dropped by design (spec §5). `docs/differences.md`: new rows.
+- [x] Full checks: `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), `make test-web`, full
   Playwright, `make verify-portable`. `docs/status.md` + memory updated. Commit `docs: M7.6c done — AI Assistant`

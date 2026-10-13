@@ -351,34 +351,34 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/aicatalog
 
-- [ ] `plugins/aicatalog/aicatalog.go` · DELETE `/ai-catalog/mock/row/:id`
-- [ ] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog`
-- [ ] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog/insights`
-- [ ] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog/optimize`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/barcode`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/category`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/identify`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/identify/manual`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/manual`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/reorder`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/sales`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/apply`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/clear`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/commit`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/enrich`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/revert`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/row`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/row/:id`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/models`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/apply`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/manual`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/revert`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/pick`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/price`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/qty`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/save`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/settings`
-- [ ] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/test-key`
+- [x] `plugins/aicatalog/aicatalog.go` · DELETE `/ai-catalog/mock/row/:id` → dropped by design (M7.6, user: bulk entry unused — "i have to verify everything")
+- [x] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog` → Apps → AI Assistant (Clean up · Settings); ✨ Identify sits in the core product form and intake
+- [x] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog/insights` → dropped by design (M7.6, user: shop owners won't use AI)
+- [x] `plugins/aicatalog/aicatalog.go` · GET `/ai-catalog/optimize` → POST /api/v1/x/aicatalog/cleanup → Clean up (categories, uncategorized, names, duplicates)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/barcode` → core Intake / product form barcode (already ported)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/category` → POST /api/v1/x/aicatalog/category (find or create the picked path)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/identify` → POST /api/v1/x/aicatalog/identify → ✨ Identify under the product name
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/identify/manual` → same route with `reply` (paste mode is the main path)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/manual` → dropped by design (see insights)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/reorder` → dropped by design (see insights)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/insights/sales` → dropped by design (see insights)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/apply` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/clear` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/commit` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/enrich` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/revert` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/row` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/mock/row/:id` → dropped by design (see mock row)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/models` → POST /api/v1/x/aicatalog/settings/models (Load models)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/apply` → POST /api/v1/x/aicatalog/cleanup/apply (ticked changes, one run per session)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/manual` → POST /api/v1/x/aicatalog/cleanup with `reply`
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/optimize/revert` → POST /api/v1/x/aicatalog/cleanup/undo (Undo last clean-up)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/pick` → pick fills the form; learnt on save via ProductExtras (aicatalog_items) → ⓘ "AI identified"
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/price` → core price fields (cost ⇄ markup ⇄ selling); default markup dropped
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/qty` → core Intake opening quantity
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/save` → core product form / intake save
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/settings` → GET/PUT /api/v1/x/aicatalog/settings (key never sent back; blank = keep; blanked in backups)
+- [x] `plugins/aicatalog/aicatalog.go` · POST `/ai-catalog/test-key` → POST /api/v1/x/aicatalog/settings/test (Test AI)
 
 ## plugins/alternatives
 

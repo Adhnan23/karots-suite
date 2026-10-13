@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-13, M7.6b done)
+## Status (2026-10-13, M7.6c done — M7.6 complete)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -20,7 +20,7 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
-**NEXT: M7.6c AI Assistant** (spec approved, write its plan). M7.6, split three ways (user, 2026-10-13):
+**NEXT: the whole-M7 review (the user runs it)**, then M7.7. M7.6, split three ways (user, 2026-10-13):
 - **M7.6a (core) — extra barcodes + Merge products — DONE (2026-10-13)** (spec
   `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`, plan `docs/plans/2026-10-13-m7-6a-barcodes-merge.md`):
   - `00003_product_barcodes.sql`: `product_barcodes` (source, added, last scanned), `products.barcode_scanned_at`,
@@ -56,9 +56,24 @@ series per device (`P-…` beside `S-…`), and a sale may carry the time it rea
   - Checks (2026-10-13): `go test ./...` core-only and with every plugin (`-p 1`), 161 web unit tests,
     **138 Playwright flows** (`batches.spec.ts` 4 new; write-off specs now expect the prompt), `make verify-portable`,
     `make check-core`. Self-reviewed (no fresh reviewer this session).
-- **M7.6c — AI Assistant (aicatalog)** — spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md` (rethink approved:
-  ✨ Identify inside core screens, Clean up page with duplicates → merge, paste mode first; bulk entry, Insights and
-  further AI uses / MCP dropped — most shops have no AI API).
+- **M7.6c — AI Assistant (aicatalog) DONE (2026-10-13)** (spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md`, plan
+  `docs/plans/2026-10-13-m7-6c-aicatalog.md`; `docs/differences.md` 74–78; parity 28 aicatalog rows → **418** ticked):
+  - **✨ Identify** under the Name field of the product form (so Items to review) and intake's New item — core slot
+    `productAssists` (fill name / category / extra); a pick creates a missing category path and is learnt on save
+    (`aicatalog_items`, ⓘ "AI identified · name — specs"). Sure answer or up to 4 options, "None of these — let me explain".
+  - **Paste mode first** (default for a fresh shop / no key): Copy & open Gemini / ChatGPT / Claude (one reused tab, a tab
+    already on the chatbot is only focused), the reply is read on paste / Enter, Chrome reads the clipboard on return
+    (**Firefox: Ctrl+V** — it allows clipboard reads only right after a click), short follow-up prompts per tab, Full prompt.
+    API optional (presets, Load models, Test AI); an API failure offers the same paste panel.
+  - **Clean up**: categories / uncategorized / names (naming style) / duplicates (keep = more sales → core `MergeConfirm`,
+    now exported); apply ticked = one run per chunked session, Undo last clean-up, Delete empty categories.
+  - **Core seams (generic):** `DataGroup.Secret` (blank in every dump AND every restore — the key never travels);
+    slot `productAssists`; **`CategoryMerger`** hook (user asked for the long-term fix: a category merge lets each plugin
+    re-point its own category ids and returns a note; undo hands the note back) — Product Plus keeps field scopes on the
+    kept category. Bulk entry, Insights, default markup dropped; suite migration `0008_suite.sql` (karots-pos 0001–0007 byte for byte).
+  - Checks (2026-10-13): `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 168 web unit tests,
+    **145 Playwright flows** (`plugin-aicatalog.spec.ts` 7 new, incl. an API-mode flow against a local fake provider),
+    `make verify-portable`. Self-reviewed (the user runs one whole-M7 review next).
 
 - **M7.5 delivered (user: "do whatever you recommended", A–I, 2026-10-12):**
   - **A** a print service is a core service (`doc_service` = the link: kind, category, on/off); Apps → Print & Copy
