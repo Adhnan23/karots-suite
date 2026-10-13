@@ -20,7 +20,23 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
-**NEXT: the whole-M7 review (the user runs it)**, then M7.7. M7.6, split three ways (user, 2026-10-13):
+**NEXT (fresh session): M7.6d Loose versions** — spec `docs/specs/2026-10-13-m7-6d-loose-versions-design.md`, plan
+`docs/plans/2026-10-13-m7-6d-loose-versions.md` (user approved all of it, 2026-10-13: Make a loose version… in one sheet,
+conversion keeps each bag's batch / expiry / cost and takes the real yield, no "extra cost" money, Product Plus copies,
+alternatives only when ticked, a swap to another unit asks how many). Then the user's whole-M7 review continues, then M7.7.
+**Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
+started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
+`pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
+previous build is `karots-suite-all.m75`. Stop it before a full Playwright run (or test on :3101).
+**Changed during the review (2026-10-13, user asks):** AI Assistant — **Copy only** is the default (keeps the chat the user
+already has; Copy & open Gemini / ChatGPT / Claude optional), **own chatbots** (name + https address, this browser only,
+removable; built-ins fixed), **Short prompt (chat already set up)**, identify sees **what each category holds** (3 newest
+example items, "group only", "has sub-categories"), a **new category / new sub-category** badge on options, clean-up
+**Stop here** between parts and its preview keeps real products outside the part. Alternatives — the product form's group
+is a **searchable picker with + New group** (no tiers there; groups stay independent of categories). The box now shows
+even before the first group exists (user may want it hidden again). Not yet re-run after these: the full Playwright suite
+and `go test` with every plugin (spec-level runs passed).
+M7.6, split three ways (user, 2026-10-13):
 - **M7.6a (core) — extra barcodes + Merge products — DONE (2026-10-13)** (spec
   `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`, plan `docs/plans/2026-10-13-m7-6a-barcodes-merge.md`):
   - `00003_product_barcodes.sql`: `product_barcodes` (source, added, last scanned), `products.barcode_scanned_at`,
