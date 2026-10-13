@@ -35,7 +35,7 @@ Today: per batch Set count, Remove, Batch price. New:
 
 ## 3. Stock-take per batch
 
-- A product with 2+ live batches gets a **▸ batches** expander under its row: one count input per batch
+- A product with 2+ live batches gets a **▸ batches** expander under its row: per batch a count, cost and own selling price (user, 2026-10-13)
   (qty, expiry, cost, own price shown) and **+ batch** (qty, cost, price, expiry).
 - While its batch counts are open the product-level count input is disabled (no double apply).
 - Save sends `CountLine.batches: [{batchId, counted}]` and `newBatches: [{qty, cost, price, expiry}]`;
