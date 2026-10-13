@@ -80,7 +80,7 @@ const fuzzyThreshold = 0.45
 // Reads as: "no token fails to match", which is how ANDing a variable number of
 // terms is expressed without building SQL by hand.
 var searchClause = `
-	($1::text[] IS NULL OR p.barcode = $2 OR NOT EXISTS (
+	($1::text[] IS NULL OR ` + barcodeIs("$2") + ` OR NOT EXISTS (
 		SELECT 1 FROM unnest($1::text[]) AS tok
 		WHERE NOT (
 			lower(p.name) LIKE '%' || tok || '%'

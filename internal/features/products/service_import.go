@@ -212,8 +212,8 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 func findDisabled(ctx context.Context, tx *sqlx.Tx, barcode *string, name string) (*Product, error) {
 	var p Product
 	err := tx.GetContext(ctx, &p, selectProduct+`
-		WHERE NOT p.is_active AND NOT p.is_service
-		  AND (p.barcode = $1 OR ($1::text IS NULL AND LOWER(p.name) = LOWER($2)))
+		WHERE NOT p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL
+		  AND (`+barcodeIs("$1")+` OR ($1::text IS NULL AND LOWER(p.name) = LOWER($2)))
 		ORDER BY p.id LIMIT 1`, barcode, name)
 	if err != nil {
 		return nil, err

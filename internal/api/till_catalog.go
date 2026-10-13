@@ -204,6 +204,7 @@ func (h *handlers) TillProductByBarcode(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	h.t.products.BarcodeScanned(ctx, c.Param("code"))
 	one := []products.Product{*p}
 	products.Decorate(ctx, one)
 	return c.JSON(http.StatusOK, tillProduct(one[0]))

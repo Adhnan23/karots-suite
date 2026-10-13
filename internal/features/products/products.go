@@ -35,6 +35,10 @@ type Product struct {
 	PreferredSupplierID *int64          `db:"preferred_supplier_id" json:"preferred_supplier_id,omitempty"`
 	CreatedBy           *int64          `db:"created_by"            json:"created_by,omitempty"`
 	CreatedAt           time.Time       `db:"created_at"            json:"created_at"`
+	// BarcodeScannedAt is when the main barcode was last scanned (nil = never since
+	// extra barcodes arrived). MergedIntoID is set on a duplicate a merge retired.
+	BarcodeScannedAt *time.Time `db:"barcode_scanned_at" json:"barcode_scanned_at,omitempty"`
+	MergedIntoID     *int64     `db:"merged_into_id"     json:"merged_into_id,omitempty"`
 	// Joined, read-only:
 	CategoryName          string          `db:"category_name"           json:"category_name"`
 	UnitAbbr              string          `db:"unit_abbr"               json:"unit_abbr"`
@@ -42,6 +46,8 @@ type Product struct {
 	StockQty              decimal.Decimal `db:"stock_qty"               json:"stock_qty"`
 	CreatedByName         *string         `db:"created_by_name"         json:"created_by_name,omitempty"`
 	PreferredSupplierName *string         `db:"preferred_supplier_name" json:"preferred_supplier_name,omitempty"`
+	// Barcodes are the extra codes (product_barcodes), oldest first; Barcode is the main one.
+	Barcodes pq.StringArray `db:"barcodes" json:"barcodes"`
 	// Plugin-contributed, not persisted: till-card badge pins (e.g. quality tier).
 	Badges []string `db:"-" json:"badges,omitempty"`
 	// Plugin-contributed, not persisted: an optional till line-discount suggestion
@@ -138,7 +144,8 @@ const selectProduct = `
 	SELECT p.*, c.name AS category_name, u.abbreviation AS unit_abbr,
 	       u.allow_decimal AS unit_allow_decimal,
 	       COALESCE(s.quantity, 0) AS stock_qty,
-	       psup.name AS preferred_supplier_name
+	       psup.name AS preferred_supplier_name,
+	       ARRAY(SELECT pb.barcode FROM product_barcodes pb WHERE pb.product_id = p.id ORDER BY pb.id) AS barcodes
 	FROM products p
 	JOIN categories c ON c.id = p.category_id
 	JOIN units u      ON u.id = p.unit_id
@@ -186,7 +193,7 @@ func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 	toks, raw, fuzzy := q.searchArgs()
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, subcatsCTE+selectProduct+`
-		WHERE (p.is_active = true OR $9) AND (p.is_service = false OR $8)
+		WHERE (p.is_active = true OR $9) AND p.merged_into_id IS NULL AND (p.is_service = false OR $8)
 		  AND (`+searchClause+` OR p.id = ANY($11::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
 		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[]))
@@ -247,13 +254,19 @@ func (r *Repository) byIDsOrdered(ctx context.Context, ids []int64) ([]Product, 
 	return out, nil
 }
 
+// barcodeIs is true when product p carries the code in $n, as its main barcode
+// or one of its extras. Every barcode lookup goes through it.
+func barcodeIs(n string) string {
+	return `(p.barcode = ` + n + ` OR EXISTS (SELECT 1 FROM product_barcodes pb WHERE pb.product_id = p.id AND pb.barcode = ` + n + `))`
+}
+
 // searchRank puts the most likely hit first when the user is searching: an exact
 // barcode, then names that START with what was typed (so "pen" leads with "Pen
 // Box", not "Atlas Chooty Blue Pen"), then everything else alphabetically. With
 // no search term every product ranks 3 and the order collapses to plain by-name.
-const searchRank = `
+var searchRank = `
 	CASE
-		WHEN $2::text IS NOT NULL AND p.barcode = $2 THEN 0
+		WHEN $2::text IS NOT NULL AND ` + barcodeIs("$2") + ` THEN 0
 		WHEN $2::text IS NOT NULL AND lower(p.name) LIKE lower($2) || '%' THEN 1
 		WHEN $2::text IS NOT NULL AND lower(p.name) LIKE '%' || lower($2) || '%' THEN 2
 		ELSE 3
@@ -266,7 +279,7 @@ const searchRank = `
 func (r *Repository) ListAll(ctx context.Context, includeDisabled bool) ([]Product, error) {
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, selectProduct+`
-		WHERE (p.is_active = true OR $1) AND p.is_service = false
+		WHERE (p.is_active = true OR $1) AND p.merged_into_id IS NULL AND p.is_service = false
 		ORDER BY p.name, p.id`, includeDisabled)
 	return rows, err
 }
@@ -283,7 +296,7 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*Product, error) {
 func (r *Repository) FindByBarcode(ctx context.Context, barcode string) (*Product, error) {
 	var p Product
 	err := r.db.GetContext(ctx, &p,
-		selectProduct+` WHERE p.barcode = $1 AND p.is_active = true`, barcode)
+		selectProduct+` WHERE `+barcodeIs("$1")+` AND p.is_active = true`, barcode)
 	if err != nil {
 		return nil, err
 	}
@@ -305,11 +318,12 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*Product, err
 }
 
 // BarcodeExists reports whether any product (active or not) already carries this
-// barcode, so a generated code never shadows an existing or deactivated product.
+// barcode, main or extra, so a generated code never shadows an existing or deactivated product.
 func (r *Repository) BarcodeExists(ctx context.Context, code string) (bool, error) {
 	var exists bool
 	err := r.db.GetContext(ctx, &exists,
-		`SELECT EXISTS(SELECT 1 FROM products WHERE barcode = $1)`, code)
+		`SELECT EXISTS(SELECT 1 FROM products WHERE barcode = $1)
+		   OR EXISTS(SELECT 1 FROM product_barcodes WHERE barcode = $1)`, code)
 	return exists, err
 }
 
@@ -321,7 +335,7 @@ func (r *Repository) BarcodeExists(ctx context.Context, code string) (bool, erro
 func (r *Repository) AllServices(ctx context.Context) ([]Product, error) {
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, selectProduct+`
-		WHERE p.is_service
+		WHERE p.is_service AND p.merged_into_id IS NULL
 		ORDER BY p.is_active DESC, p.name`)
 	return rows, err
 }
@@ -332,4 +346,15 @@ func (r *Repository) ListServices(ctx context.Context) ([]Product, error) {
 		WHERE p.is_service AND p.is_active
 		ORDER BY p.name`)
 	return rows, err
+}
+
+// TouchBarcode stamps when a code was last scanned (till, intake), on the extra
+// that carries it or on the product whose main barcode it is. Unknown codes are a
+// no-op.
+func (r *Repository) TouchBarcode(ctx context.Context, code string) error {
+	if _, err := r.db.ExecContext(ctx, `UPDATE product_barcodes SET last_scanned_at = now() WHERE barcode = $1`, code); err != nil {
+		return err
+	}
+	_, err := r.db.ExecContext(ctx, `UPDATE products SET barcode_scanned_at = now() WHERE barcode = $1`, code)
+	return err
 }

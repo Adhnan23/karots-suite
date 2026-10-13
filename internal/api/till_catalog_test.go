@@ -79,3 +79,21 @@ func TestTillCatalog(t *testing.T) {
 		t.Fatalf("quick picks %d", picks.Code)
 	}
 }
+
+// A scan of an extra barcode finds its product and stamps when that code was last
+// seen (the product form shows it, so an owner knows which old codes still sell).
+func TestTillScanOfExtraBarcodeStampsIt(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009101", "cashier")
+	te.db.MustExec(`INSERT INTO product_barcodes (product_id, barcode, source) VALUES ($1, 'TEST-TILL-EXTRA', 'form')`, f.plainID)
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM product_barcodes WHERE barcode = 'TEST-TILL-EXTRA'`) }) //nolint:errcheck
+	rec := te.do(http.MethodGet, "/api/v1/till/products/barcode/TEST-TILL-EXTRA", nil, ck)
+	if p := decode[TillProduct](t, rec); rec.Code != 200 || p.ID != f.plainID {
+		t.Fatalf("extra scan %d %+v", rec.Code, p)
+	}
+	var stamped bool
+	if err := te.db.Get(&stamped, `SELECT last_scanned_at IS NOT NULL FROM product_barcodes WHERE barcode = 'TEST-TILL-EXTRA'`); err != nil || !stamped {
+		t.Fatalf("last scan not stamped: %v", err)
+	}
+}

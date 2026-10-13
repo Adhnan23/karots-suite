@@ -153,6 +153,12 @@ func (s *Service) LotsFor(ctx context.Context, productID int64) ([]stock.PriceOp
 	return rows, nil
 }
 
+// BarcodeScanned records that a code was just scanned at the counter (its "last
+// scanned" date). Best effort: a failure here must never stop a sale.
+func (s *Service) BarcodeScanned(ctx context.Context, code string) {
+	_ = s.repo.TouchBarcode(ctx, strings.TrimSpace(code))
+}
+
 // GetByBarcode powers the cashier scanner and price-check lookups.
 func (s *Service) GetByBarcode(ctx context.Context, barcode string) (*Product, error) {
 	p, err := s.repo.FindByBarcode(ctx, strings.TrimSpace(barcode))
