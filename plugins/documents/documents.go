@@ -25,6 +25,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "documents", Name: "Print & Copy",
 		Tables: []string{"doc_service", "doc_price", "doc_consumable", "doc_job", "doc_payout"}})
+	reg.AddProductMerger(plugin.ProductMerger{Key: "documents", Merge: mergeProduct})
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
 	t.GET("/documents/till", h.till)

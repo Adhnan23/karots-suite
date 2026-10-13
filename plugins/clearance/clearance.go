@@ -29,6 +29,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 
 	reg.AddDataGroup(plugin.DataGroup{Key: "clearance", Name: "Clearance / markdowns",
 		Tables: []string{"clearance_markdowns", "clearance_settings"}})
+	reg.AddProductMerger(plugin.ProductMerger{Key: "clearance", Merge: mergeProduct})
 	// The till: card badge, apply / skip prompt and ⓘ row — live markdowns only.
 	reg.AddProductBadgeProvider(plugin.ProductBadgeProvider{Batch: p.store.BadgesFor})
 	reg.AddProductSaleSuggestionProvider(plugin.ProductSaleSuggestionProvider{Batch: p.store.SuggestionsFor})

@@ -29,6 +29,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "productplus", Name: "Product Plus (custom fields)",
 		Tables: []string{"pp_fields", "pp_values", "pp_field_categories"}})
+	reg.AddProductMerger(plugin.ProductMerger{Key: "productplus", Merge: mergeProduct})
 	p.registerHooks(reg)
 
 	h := handlers{p}

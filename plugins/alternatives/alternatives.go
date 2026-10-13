@@ -32,6 +32,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "alternatives", Name: "Alternatives / interchangeable",
 		Tables: []string{"alt_groups", "alt_members", "alt_tiers"}})
+	reg.AddProductMerger(plugin.ProductMerger{Key: "alternatives", Merge: mergeProduct})
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till's swap chip
 	t.GET("/alternatives/till/:pid", h.till)
