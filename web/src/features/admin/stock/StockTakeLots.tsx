@@ -7,32 +7,46 @@ import { cn } from '@/lib/utils'
 import { AddBatchForm } from './AddBatchForm'
 import { ExpiryTag } from './LotsSheet'
 
-/** A stock-take row counted batch by batch: one count per batch, plus batches
- * found that aren't listed. Kept with the row's edits until Save counts. */
-export function StockTakeLots({ name, unit, lots, batches, added, onBatches, onAdded }: {
-  name: string; unit: string; lots: LotRow[]; batches: BatchCount[]; added: AddBatchRequest[]
+/** A stock-take row counted batch by batch: each batch's count, cost and own
+ * selling price, plus batches found that aren't listed. Kept with the row's
+ * edits until Save counts. */
+export function StockTakeLots({ name, unit, productPrice, lots, batches, added, onBatches, onAdded }: {
+  name: string; unit: string; productPrice: string; lots: LotRow[]; batches: BatchCount[]; added: AddBatchRequest[]
   onBatches: (b: BatchCount[]) => void; onAdded: (a: AddBatchRequest[]) => void
 }) {
   const [adding, setAdding] = useState(false)
-  const counted = (id: number) => batches.find((b) => b.batchId === id)?.counted ?? ''
-  const setCount = (id: number, v: string) =>
-    onBatches([...batches.filter((b) => b.batchId !== id), ...(v === '' ? [] : [{ batchId: id, counted: v }])])
+  const line = (id: number): BatchCount => batches.find((b) => b.batchId === id) ?? { batchId: id, counted: '', cost: '', selling: '' }
+  const set = (id: number, patch: Partial<BatchCount>) => {
+    const next = { ...line(id), ...patch }
+    onBatches([...batches.filter((b) => b.batchId !== id), ...(next.counted || next.cost || next.selling ? [next] : [])])
+  }
+  const clean = (v: string) => v.replace(/[^\d.]/g, '')
   return (
     <div aria-label={`Batches of ${name}`} role="group" className="col-span-2 flex flex-col gap-4 rounded-[var(--radius-sm)] bg-muted p-2 md:col-span-6 md:-mx-2">
       {lots.map((l, i) => {
-        const v = counted(l.id)
+        const b = line(l.id)
+        const v = b.counted
         const d = v === '' ? 0 : num(v) - num(l.qtyRemaining)
         return (
           <div key={l.id} className="grid grid-cols-[minmax(0,1fr)_110px] items-center gap-2 md:grid-cols-[minmax(0,2fr)_90px_110px_110px_110px_110px]">
             <span className="min-w-0 text-sm md:col-span-2">
               <b className="tabular-nums">{qtyText(l.qtyRemaining)}</b> <small className="text-faint">{unit}</small> <ExpiryTag ymd={l.expiryDate} />
-              <small className="block text-faint">Batch {i + 1}{l.expiryDate && ` · exp ${l.expiryDate}`} · cost {l.costPrice}{l.sellingPrice && ` · sells at ${l.sellingPrice}`}</small>
+              <small className="block text-faint">Batch {i + 1}{l.expiryDate && ` · exp ${l.expiryDate}`}{!l.sellingPrice && ' · follows the product price'}</small>
             </span>
             <label className="relative">
               <input aria-label={`Counted ${name} batch ${i + 1}`} inputMode="decimal" value={v} placeholder={qtyText(l.qtyRemaining)}
-                onChange={(e) => setCount(l.id, e.target.value.replace(/[^\d.]/g, ''))} className={cn(INPUT, 'h-10 px-2.5 text-right font-bold tabular-nums')} />
+                onChange={(e) => set(l.id, { counted: clean(e.target.value) })} className={cn(INPUT, 'h-10 px-2.5 text-right font-bold tabular-nums')} />
               {d !== 0 && <small className={cn('absolute -bottom-3.5 right-1 text-[10.5px] font-bold', d > 0 ? 'text-success' : 'text-danger')}>{d > 0 ? '+' : '−'}{qtyText(Math.abs(d))}</small>}
             </label>
+            <div className="col-span-2 grid grid-cols-2 gap-2 md:contents">
+              {([['cost', 'Cost', l.costPrice], ['selling', 'Selling', l.sellingPrice || productPrice]] as const).map(([k, lb, ph]) => (
+                <label key={k} className="flex flex-col gap-0.5">
+                  <small className="text-[11px] font-semibold text-faint md:hidden">{lb}</small>
+                  <input aria-label={`${lb} of ${name} batch ${i + 1}`} inputMode="decimal" value={b[k]} placeholder={ph}
+                    onChange={(e) => set(l.id, { [k]: clean(e.target.value) })} className={cn(INPUT, 'h-10 px-2.5 text-right tabular-nums')} />
+                </label>
+              ))}
+            </div>
           </div>
         )
       })}

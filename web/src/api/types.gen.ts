@@ -2708,11 +2708,14 @@ export interface CountLine {
   newBatches: AddBatchRequest[];
 }
 /**
- * BatchCount is what is really in one batch.
+ * BatchCount is one batch's line in a count: what is really in it, and its
+ * cost / own selling price. Blank leaves that value alone.
  */
 export interface BatchCount {
   batchId: number /* int64 */;
   counted: string;
+  cost: string;
+  selling: string;
 }
 export interface StockTakeRequest {
   lines: CountLine[];

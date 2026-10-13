@@ -55,10 +55,7 @@ func (h *handlers) liveLot(ctx context.Context, productID, batchID int64) (*stoc
 func (h *handlers) applyLotCounts(ctx context.Context, l CountLine, note string, userID int64) (bool, error) {
 	changed := false
 	for _, b := range l.Batches {
-		if strings.TrimSpace(b.Counted) == "" {
-			continue
-		}
-		c, err := h.countLot(ctx, l.ProductID, b.BatchID, b.Counted, note, userID)
+		c, err := h.applyLot(ctx, l.ProductID, b.BatchID, b.Counted, b.Cost, b.Selling, note, userID)
 		if err != nil {
 			return false, err
 		}
@@ -77,14 +74,19 @@ func (h *handlers) applyLotCounts(ctx context.Context, l CountLine, note string,
 	return changed, nil
 }
 
-// importLotRow applies one count-sheet row that names a batch: its count, and
-// its cost / own price when given (blank leaves them).
+// importLotRow applies one count-sheet row that names a batch.
 func (h *handlers) importLotRow(ctx context.Context, p *products.Product, batch, counted, cost, selling string, userID int64) (bool, error) {
 	id, err := strconv.ParseInt(strings.TrimSpace(batch), 10, 64)
 	if err != nil {
 		return false, apperr.Validation("batch must be the batch number from the downloaded sheet")
 	}
-	lot, err := h.liveLot(ctx, p.ID, id)
+	return h.applyLot(ctx, p.ID, id, counted, cost, selling, "stock-take sheet", userID)
+}
+
+// applyLot applies one batch's counted line: its cost and own selling price,
+// then its count. A blank field leaves that value alone.
+func (h *handlers) applyLot(ctx context.Context, productID, id int64, counted, cost, selling, note string, userID int64) (bool, error) {
+	lot, err := h.liveLot(ctx, productID, id)
 	if err != nil {
 		return false, err
 	}
@@ -113,7 +115,10 @@ func (h *handlers) importLotRow(ctx context.Context, p *products.Product, batch,
 			changed = true
 		}
 	}
-	c, err := h.countLot(ctx, p.ID, id, counted, "stock-take sheet", userID)
+	if strings.TrimSpace(counted) == "" {
+		return changed, nil
+	}
+	c, err := h.countLot(ctx, productID, id, counted, note, userID)
 	return changed || c, err
 }
 

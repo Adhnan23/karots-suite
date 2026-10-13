@@ -39,7 +39,7 @@ func TestStockTakeByBatch(t *testing.T) {
 	// Batch counts win; the product-level count on the same line is ignored.
 	res := decode[StockTakeResult](t, te.do(http.MethodPost, "/api/v1/admin/stock/take", StockTakeRequest{Lines: []CountLine{{
 		ProductID: f.lotID, Counted: "99",
-		Batches:    []BatchCount{{BatchID: a.ID, Counted: "3"}, {BatchID: b.ID, Counted: "6"}},
+		Batches:    []BatchCount{{BatchID: a.ID, Counted: "3", Cost: "48", Selling: "95"}, {BatchID: b.ID, Counted: "6"}},
 		NewBatches: []AddBatchRequest{{Qty: "2", Cost: "40", Expiry: "2027-06-30"}},
 	}}}, ck))
 	var qa, qb, qty float64
@@ -48,6 +48,11 @@ func TestStockTakeByBatch(t *testing.T) {
 	te.db.Get(&qty, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID) //nolint:errcheck
 	if res.Saved != 1 || qa != 3 || qb != 6 || qty != 11 {
 		t.Fatalf("by batch: saved %d, batches %v / %v, stock %v (want 3 / 6, 11)", res.Saved, qa, qb, qty)
+	}
+	var ac, ap float64
+	te.db.QueryRow(`SELECT cost_price, selling_price FROM stock_batches WHERE id=$1`, a.ID).Scan(&ac, &ap) //nolint:errcheck
+	if ac != 48 || ap != 95 {
+		t.Fatalf("batch cost / price %v / %v, want 48 / 95", ac, ap)
 	}
 
 	// The sheet: one row per batch for this product, batch id in the batch column.

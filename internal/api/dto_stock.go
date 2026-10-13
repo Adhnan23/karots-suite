@@ -155,10 +155,13 @@ type CountLine struct {
 	NewBatches []AddBatchRequest `json:"newBatches"`
 }
 
-// BatchCount is what is really in one batch.
+// BatchCount is one batch's line in a count: what is really in it, and its
+// cost / own selling price. Blank leaves that value alone.
 type BatchCount struct {
 	BatchID int64  `json:"batchId"`
 	Counted string `json:"counted"`
+	Cost    string `json:"cost"`
+	Selling string `json:"selling"`
 }
 
 type StockTakeRequest struct {

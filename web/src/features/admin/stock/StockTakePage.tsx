@@ -154,7 +154,7 @@ function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: P
           </label>
         ))}
       </div>
-      {byLot && <StockTakeLots name={p.name} unit={p.unitAbbr} lots={p.lots} batches={e.batches} added={e.newBatches}
+      {byLot && <StockTakeLots name={p.name} unit={p.unitAbbr} productPrice={p.sellingPrice} lots={p.lots} batches={e.batches} added={e.newBatches}
         onBatches={(batches) => onEdit({ batches })} onAdded={(newBatches) => onEdit({ newBatches })} />}
     </li>
   )
