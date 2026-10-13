@@ -3,6 +3,7 @@ package products
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 
 	appdb "karots-suite/internal/db"
@@ -128,5 +129,37 @@ func TestMergedProductIsHiddenEverywhere(t *testing.T) {
 	defer tx.Rollback() //nolint:errcheck
 	if p, err := findDisabled(ctx, tx, nil, "TEST bc Coca Cola"); err == nil {
 		t.Fatalf("import would revive a merged product: %+v", p)
+	}
+}
+
+// Add refuses a code another product carries (naming it), Make main swaps the two
+// codes keeping the old main as an extra, Remove drops an extra only.
+func TestBarcodeAddRemoveMakeMain(t *testing.T) {
+	conn, a, b := barcodeFixture(t)
+	ctx := context.Background()
+	svc := NewService(conn)
+	err := svc.AddBarcode(ctx, b, "TEST-B-EXTRA", "form")
+	if err == nil || !strings.Contains(err.Error(), "TEST bc Coke 1L") {
+		t.Fatalf("taken code must name its product: %v", err)
+	}
+	if err := svc.AddBarcode(ctx, b, "TEST-B-NEW", "bogus"); err == nil {
+		t.Fatal("unknown source accepted")
+	}
+	must(t, svc.AddBarcode(ctx, b, "TEST-B-NEW", "intake"))
+	must(t, svc.MakeMainBarcode(ctx, a, "TEST-B-EXTRA"))
+	list, err := svc.Barcodes(ctx, a)
+	must(t, err)
+	if len(list) != 2 || !list[0].Main || list[0].Barcode != "TEST-B-EXTRA" || list[1].Main || list[1].Barcode != "TEST-B-MAIN" {
+		t.Fatalf("after make main: %+v", list)
+	}
+	if err := svc.RemoveBarcode(ctx, a, "TEST-B-EXTRA"); err == nil {
+		t.Fatal("the main barcode was removed as an extra")
+	}
+	if err := svc.RemoveBarcode(ctx, b, "TEST-B-MAIN"); err == nil {
+		t.Fatal("removed another product's extra")
+	}
+	must(t, svc.RemoveBarcode(ctx, a, "TEST-B-MAIN"))
+	if ok, _ := NewRepository(conn).BarcodeExists(ctx, "TEST-B-MAIN"); ok {
+		t.Fatal("removed extra still exists")
 	}
 }

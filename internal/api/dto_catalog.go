@@ -37,28 +37,45 @@ type CategoryQuickResult struct {
 
 // AdminProductRow is one line of the admin product list.
 type AdminProductRow struct {
-	ID           int64  `json:"id"`
-	Name         string `json:"name"`
-	NameLocal    string `json:"nameLocal"`
-	Barcode      string `json:"barcode"`
-	CategoryID   int64  `json:"categoryId"`
-	CategoryName string `json:"categoryName"`
-	UnitAbbr     string `json:"unitAbbr"`
-	CostPrice    string `json:"costPrice"`
-	SellingPrice string `json:"sellingPrice"`
-	Wholesale    string `json:"wholesalePrice"`
-	StockQty     string `json:"stockQty"`
-	ReorderLevel int    `json:"reorderLevel"`
-	Low          bool   `json:"low"` // on hand at or below the reorder level
-	IsActive     bool   `json:"isActive"`
-	IsService    bool   `json:"isService"`
-	NeedsReview  bool   `json:"needsReview"`
-	TrackSerial  bool   `json:"trackSerial"`
-	HasExpiry    bool   `json:"hasExpiry"`
-	SupplierName string `json:"supplierName"`
-	CreatedBy    string `json:"createdBy"` // who quick-added it (review queue)
-	CreatedAt    string `json:"createdAt"`
-	Meta         string `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
+	ID           int64    `json:"id"`
+	Name         string   `json:"name"`
+	NameLocal    string   `json:"nameLocal"`
+	Barcode      string   `json:"barcode"`  // the main barcode (labels print it)
+	Barcodes     []string `json:"barcodes"` // extra barcodes, oldest first
+	CategoryID   int64    `json:"categoryId"`
+	CategoryName string   `json:"categoryName"`
+	UnitAbbr     string   `json:"unitAbbr"`
+	CostPrice    string   `json:"costPrice"`
+	SellingPrice string   `json:"sellingPrice"`
+	Wholesale    string   `json:"wholesalePrice"`
+	StockQty     string   `json:"stockQty"`
+	ReorderLevel int      `json:"reorderLevel"`
+	Low          bool     `json:"low"` // on hand at or below the reorder level
+	IsActive     bool     `json:"isActive"`
+	IsService    bool     `json:"isService"`
+	NeedsReview  bool     `json:"needsReview"`
+	TrackSerial  bool     `json:"trackSerial"`
+	HasExpiry    bool     `json:"hasExpiry"`
+	SupplierName string   `json:"supplierName"`
+	CreatedBy    string   `json:"createdBy"` // who quick-added it (review queue)
+	CreatedAt    string   `json:"createdAt"`
+	Meta         string   `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
+}
+
+// ProductBarcode is one of a product's codes for the form's Barcodes block: the
+// main one first, then extras. Dates are ISO 8601; "" = never scanned.
+type ProductBarcode struct {
+	Barcode       string `json:"barcode"`
+	Main          bool   `json:"main"`
+	Source        string `json:"source"` // intake | receive | form | merge | import ("" for the main one)
+	AddedAt       string `json:"addedAt"`
+	LastScannedAt string `json:"lastScannedAt"`
+}
+
+// BarcodeRequest adds an extra barcode; Source says where it was added.
+type BarcodeRequest struct {
+	Barcode string `json:"barcode"`
+	Source  string `json:"source"`
 }
 
 // ProductList is a page of the admin product list.

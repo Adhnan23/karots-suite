@@ -27,13 +27,17 @@ func (h *handlers) registerAdminProducts(g *echo.Group) {
 	g.POST("/products/:id/activate", h.AdminProductReactivate)
 	g.POST("/products/:id/review-done", h.AdminProductReviewDone)
 	g.POST("/products/:id/barcode", h.CounterAssignBarcode) // same rule as the counter: only when it has none
+	g.GET("/products/:id/barcodes", h.AdminBarcodes)
+	g.POST("/products/:id/barcodes", h.AdminBarcodeAdd)
+	g.DELETE("/products/:id/barcodes/:code", h.AdminBarcodeRemove)
+	g.POST("/products/:id/barcodes/:code/main", h.AdminBarcodeMain)
 	g.GET("/barcode/generate", h.TillGenerateBarcode)
 	g.GET("/supplier-options", h.AdminSupplierOptions)
 }
 
 func productRow(p products.Product) AdminProductRow {
 	return AdminProductRow{
-		ID: p.ID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode), CategoryID: p.CategoryID, CategoryName: p.CategoryName,
+		ID: p.ID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode), Barcodes: barcodesOf(p), CategoryID: p.CategoryID, CategoryName: p.CategoryName,
 		UnitAbbr: p.UnitAbbr, CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice), Wholesale: dec2(p.WholesalePrice),
 		StockQty: p.StockQty.String(), ReorderLevel: p.ReorderLevel, Low: !p.IsService && p.IsLowStock(), IsActive: p.IsActive, IsService: p.IsService,
 		NeedsReview: p.NeedsReview, TrackSerial: p.TrackSerial, HasExpiry: p.HasExpiry, SupplierName: strOr(p.PreferredSupplierName),

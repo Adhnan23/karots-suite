@@ -104,7 +104,8 @@ export interface AdminProductRow {
   id: number /* int64 */;
   name: string;
   nameLocal: string;
-  barcode: string;
+  barcode: string; // the main barcode (labels print it)
+  barcodes: string[]; // extra barcodes, oldest first
   categoryId: number /* int64 */;
   categoryName: string;
   unitAbbr: string;
@@ -123,6 +124,24 @@ export interface AdminProductRow {
   createdBy: string; // who quick-added it (review queue)
   createdAt: string;
   meta: string; // a plugin's short line under the name ("Grade: B · Waterproof")
+}
+/**
+ * ProductBarcode is one of a product's codes for the form's Barcodes block: the
+ * main one first, then extras. Dates are ISO 8601; "" = never scanned.
+ */
+export interface ProductBarcode {
+  barcode: string;
+  main: boolean;
+  source: string; // intake | receive | form | merge | import ("" for the main one)
+  addedAt: string;
+  lastScannedAt: string;
+}
+/**
+ * BarcodeRequest adds an extra barcode; Source says where it was added.
+ */
+export interface BarcodeRequest {
+  barcode: string;
+  source: string;
 }
 /**
  * ProductList is a page of the admin product list.
