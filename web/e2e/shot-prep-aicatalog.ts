@@ -37,28 +37,28 @@ export const aicatalogPrep: Record<string, (page: Page) => Promise<void>> = {
 
 type Cat = { id: number; name: string }
 /** Fixed shot data: a near-duplicate category pair, an uncategorized item and a look-alike pair. */
-export async function cleanupData(page: Page) {
+export async function cleanupData(page: Page, pre = 'AI shot') {
   const cats = (await (await page.request.get('/api/v1/admin/categories')).json()) as Cat[]
   const cat = async (name: string) => cats.find((c) => c.name === name)?.id
     ?? (await (await page.request.post('/api/v1/admin/categories/quick', { data: { name, parentId: 0 } })).json()).id as number
-  const prods = (await (await page.request.get('/api/v1/admin/products?q=AI%20shot&pageSize=50')).json()).items as { id: number; name: string }[]
+  const prods = (await (await page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(pre)}&pageSize=50`)).json()).items as { id: number; name: string }[]
   const prod = async (name: string, categoryId: number) => prods.find((p) => p.name === name)?.id
     ?? (await (await page.request.post('/api/v1/admin/products', { data: {
       name, nameLocal: '', barcode: '', categoryId, unitId: 1, costPrice: '40', sellingPrice: '60', wholesalePrice: '', taxRate: '',
       reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '',
     } })).json()).id as number
-  const drinks = await cat('AI shot Drinks'), drink = await cat('AI shot drink'), uncat = await cat('Uncategorized')
+  const drinks = await cat(`${pre} Drinks`), drink = await cat(`${pre} drink`), uncat = await cat('Uncategorized')
   const ids = {
     drinks, drink,
-    coke: await prod('AI shot Coke 1L', drink), cola: await prod('AI shot Coca Cola 1 Ltr', drinks),
-    soap: await prod('AI shot Sunlight soap', uncat), sprite: await prod('AI shot sprite 500ml', drinks),
+    coke: await prod(`${pre} Coke 1L`, drink), cola: await prod(`${pre} Coca Cola 1 Ltr`, drinks),
+    soap: await prod(`${pre} Sunlight soap`, uncat), sprite: await prod(`${pre} sprite 500ml`, drinks),
   }
   return JSON.stringify({
     renames: [], reparents: [],
     merges: [{ from: ids.drink, into: ids.drinks, reason: 'Same category — one is singular and lower case.' }],
     moves: [],
     uncategorized: [{ product_id: ids.soap, category: 'Household > Soap', reason: 'A bar soap for washing clothes.' }],
-    names: [{ product_id: ids.sprite, to: 'AI shot Sprite 500ml', reason: 'Brand names start with a capital.' }],
+    names: [{ product_id: ids.sprite, to: `${pre} Sprite 500ml`, reason: 'Brand names start with a capital.' }],
     duplicates: [{ a: ids.coke, b: ids.cola, reason: 'Both are a 1 litre bottle of Coca-Cola.' }],
   })
 }

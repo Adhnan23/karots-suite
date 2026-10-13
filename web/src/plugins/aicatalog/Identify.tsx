@@ -79,7 +79,7 @@ export function Identify({ name, barcode, fill }: Props) {
       <header className="flex items-center gap-2">
         <Sparkles size={15} className="text-brand" />
         <b className="flex-1 text-[13px]">Identify “{asked.query}”</b>
-        <button type="button" aria-label="Close" onClick={() => dispatch({ t: 'reset' })} className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-muted"><X size={15} /></button>
+        <button type="button" aria-label="Close identify" onClick={() => dispatch({ t: 'reset' })} className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-muted"><X size={15} /></button>
       </header>
 
       {(state.k === 'awaiting' || state.k === 'reading') && (

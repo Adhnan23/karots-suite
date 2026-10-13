@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Check, FolderX, LoaderCircle, Merge, Sparkles, Undo2 } from 'lucide-react'
+import { ArrowRight, Check, FolderX, LoaderCircle, Merge, Sparkles } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
@@ -188,7 +188,7 @@ function LastRun({ onUndone }: { onUndone: () => void }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius)] border border-border bg-muted px-4 py-3">
       <span className="min-w-0 flex-1 text-[13px]"><b>Last clean-up:</b> <span className="text-muted-foreground">{run.summary}</span></span>
-      <ConfirmButton plain label={<><Undo2 size={14} /> Undo last clean-up</>} title="Undo the last clean-up?" confirm="Undo" className="h-9 gap-1.5 border border-border bg-card px-3"
+      <ConfirmButton plain label="Undo last clean-up" title="Undo the last clean-up?" confirm="Undo" className="h-9 gap-1.5 border border-border bg-card px-3"
         body="Puts categories, products and names back the way they were before it. Product merges are not undone."
         onConfirm={async () => {
           try {
