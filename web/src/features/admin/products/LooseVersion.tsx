@@ -103,7 +103,7 @@ export function LooseVersion({ product, onClose, onOpen }: { product: AdminProdu
           <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={generate} disabled={!!f.barcode}><Wand2 size={15} /> Generate</Button>
         </div>
       </Field>
-      <ProductExtras productId={0} sourceId={product.id} categoryId={product.categoryId} where="form" extras={extras} setExtras={setExtras} />
+      <ProductExtras productId={0} sourceId={product.id} kind="loose" categoryId={product.categoryId} where="form" extras={extras} setExtras={setExtras} />
     </FormSheet>
   )
 }

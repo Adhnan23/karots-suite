@@ -90,9 +90,11 @@ export type AdminPage = { key: string; Page: ComponentType<{ path: string }> }
  * what the Section last passed to onChange, sent as ProductRequest.extra[key]
  * (checked by the plugin's Go ProductExtras before the save). productId 0 = a new
  * product; sourceId is the product being duplicated (0 otherwise). */
+/** kind says what a new product with a sourceId is: a 'copy' (Duplicate — default) or a
+ * 'loose' version of it (another unit, e.g. a 25 kg bag sold by the kg). */
 export type ProductFormSection = {
   key: string
-  Section: ComponentType<{ productId: number; sourceId: number; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
+  Section: ComponentType<{ productId: number; sourceId: number; kind?: 'copy' | 'loose'; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
 }
 
 /** A helper under the Name field of the product form and intake's New item (e.g. identify a

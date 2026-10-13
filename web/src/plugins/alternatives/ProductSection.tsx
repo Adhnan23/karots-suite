@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ComponentProps, useEffect, useState } from 'react'
-import { Field, INPUT } from '@/components/admin/fields'
+import { Field, INPUT, Toggle } from '@/components/admin/fields'
 import { cn } from '@/lib/utils'
 import type { ProductFormSection } from '../slots'
 import { groupsQuery, productTierQuery } from './api'
@@ -13,7 +13,27 @@ const SELECT = cn(INPUT, 'appearance-auto')
 /** "Alternatives" on the product form and intake New item: which group (and tier)
  * the product sits in. A duplicate starts in its source's group. Sends a choice
  * only when there is one to make (a change, or a copy of a grouped product). */
-export function ProductSection({ productId, sourceId, onChange }: Props) {
+export function ProductSection(p: Props) {
+  return p.kind === 'loose' ? <LooseSection {...p} /> : <Membership {...p} />
+}
+
+/** A loose version is sold by another unit, and a till swap keeps the quantity — so it
+ * joins its source's group only when asked (and the swap then asks how many). */
+function LooseSection({ sourceId, onChange }: Props) {
+  const cur = useQuery(productTierQuery(sourceId)).data
+  const [on, setOn] = useState(false)
+  useEffect(() => {
+    onChange(on && cur?.tierId ? { tierId: cur.tierId } : undefined)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- onChange is a fresh arrow each render
+  }, [on, cur?.tierId])
+  if (!cur?.tierId) return null
+  return (
+    <Toggle label={`Also offer as an alternative in ${cur.group}`} checked={on} onChange={setOn}
+      hint="When the original runs out, the till offers this — and asks how many, since the unit differs." />
+  )
+}
+
+function Membership({ productId, sourceId, onChange }: Props) {
   const groups = useQuery(groupsQuery(true)).data
   const cur = useQuery(productTierQuery(productId || sourceId)).data
   const [pick, setPick] = useState<number | null>(null) // tier id; null = untouched
