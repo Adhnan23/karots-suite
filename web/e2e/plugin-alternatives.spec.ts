@@ -195,13 +195,40 @@ test('ⓘ lists the alternatives; Reorder hides covered items and pulls in a low
 test('the product form moves a product out of its group', async ({ page }) => {
   await login(page, `/admin/products?q=${encodeURIComponent(GEN)}`)
   await page.getByText(GEN).filter({ visible: true }).first().click()
-  const sel = page.getByLabel('Alternatives group')
-  await expect(sel).toHaveValue(String(ids.group))
+  const pick = page.getByRole('button', { name: 'Alternatives group' })
+  await expect(pick).toContainText(GROUP)
   await expect(page.getByLabel('Alternatives tier')).toBeVisible()
-  await sel.selectOption({ label: 'None' })
+  await pick.click()
+  await page.getByRole('list', { name: 'Groups' }).getByRole('button', { name: 'None' }).click()
+  await expect(pick).toContainText('None')
   await page.getByRole('button', { name: 'Save' }).click()
   await toast(page, /saved|updated/i)
   expect((await json<{ tierId: number }>(page.request.get(`${base}/product/${ids.gen}`))).tierId).toBe(0)
+})
+
+test('the group picker searches groups and makes a new group on the spot', async ({ page }) => {
+  await login(page, '/admin/products')
+  await page.getByRole('button', { name: 'New product' }).click()
+  const dlg = page.getByRole('dialog')
+  await dlg.locator('input[name="prod-name"]').fill(`AL Spot ${tag}`)
+  await dlg.getByLabel('Selling').fill('120')
+  await dlg.getByRole('button', { name: 'Category' }).click()
+  await page.getByRole('list', { name: 'Categories' }).getByRole('button').first().click()
+  await dlg.getByRole('button', { name: 'Alternatives group' }).click()
+  await page.getByLabel('Search groups').fill(GROUP)
+  await expect(page.getByRole('list', { name: 'Groups' }).getByRole('button', { name: new RegExp(GROUP) })).toBeVisible()
+  await page.getByLabel('Search groups').fill('')
+  await page.getByRole('button', { name: 'New group' }).click()
+  await page.getByLabel('New group name').fill(`AL Spot group ${tag}`)
+  await page.getByLabel('New group name').press('Enter')
+  await expect(dlg.getByRole('button', { name: 'Alternatives group' })).toContainText(`AL Spot group ${tag}`)
+  await expect(dlg.getByLabel('Alternatives tier')).toBeHidden() // a new group has no tiers
+  await dlg.getByRole('button', { name: 'Add product' }).click()
+  await expect(dlg).toBeHidden()
+  const pid = ((await json<{ items: { id: number; name: string }[] }>(page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(`AL Spot ${tag}`)}`))).items)
+    .find((p) => p.name === `AL Spot ${tag}`)!.id
+  const made = (await json<{ id: number; name: string }[]>(page.request.get(base))).find((g) => g.name === `AL Spot group ${tag}`)!
+  expect((await json<{ groupId: number }>(page.request.get(`${base}/product/${pid}`))).groupId).toBe(made.id)
 })
 
 test('Apps → Alternatives fits 360px', async ({ page }) => {

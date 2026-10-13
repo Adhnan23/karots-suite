@@ -4,6 +4,7 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { cn } from '@/lib/utils'
 import type { ProductFormSection } from '../slots'
 import { groupsQuery, productTierQuery } from './api'
+import { GroupPicker } from './GroupPicker'
 import { hasTiers } from './labels'
 
 type Props = ComponentProps<ProductFormSection['Section']>
@@ -24,20 +25,13 @@ export function ProductSection({ productId, sourceId, onChange }: Props) {
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- onChange is a fresh arrow each render
   }, [send, tierId])
 
-  if (!groups?.length) return null
+  if (!groups) return null
   const group = groups.find((g) => g.tiers.some((t) => t.id === tierId))
-  const firstTier = (gid: number) => {
-    const g = groups.find((x) => x.id === gid)
-    return (g?.tiers.find((t) => t.active) ?? g?.tiers[0])?.id ?? 0
-  }
   return (
     <fieldset className="grid gap-3 rounded-[var(--radius-sm)] border border-border p-3 md:grid-cols-2">
       <legend className="px-1 text-[12px] font-bold uppercase tracking-wide text-faint">Alternatives</legend>
       <Field label="Group" hint="Products that do the same job: the till offers them when this runs out.">
-        <select aria-label="Alternatives group" value={group?.id ?? 0} onChange={(e) => setPick(firstTier(Number(e.target.value)))} className={SELECT}>
-          <option value={0}>None</option>
-          {groups.map((g) => <option key={g.id} value={g.id}>{g.name}{g.active ? '' : ' (off)'}</option>)}
-        </select>
+        <GroupPicker groups={groups} value={group?.id ?? 0} onPick={setPick} />
       </Field>
       {group && hasTiers(group) && (
         <Field label="Tier">

@@ -495,6 +495,11 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Alternatives group').waitFor()
     await page.getByLabel('Alternatives group').scrollIntoViewIfNeeded()
   },
+  'alternatives-picker': async (page) => {
+    await prep['alternatives-product'](page)
+    await page.getByRole('button', { name: 'Alternatives group' }).click()
+    await page.getByRole('button', { name: 'New group' }).click()
+  },
   requests: async (page) => {
     await requestsWithHistory(page)
     await page.goto(path)
