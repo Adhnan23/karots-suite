@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-12)
+## Status (2026-10-13)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -21,11 +21,28 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
 **NEXT: M7.6, split three ways (user, 2026-10-13):**
-- **M7.6a (core) — extra barcodes + Merge products** — spec `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`
-  (approved); plan next.
+- **M7.6a (core) — extra barcodes + Merge products — DONE (2026-10-13)** (spec
+  `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`, plan `docs/plans/2026-10-13-m7-6a-barcodes-merge.md`):
+  - `00003_product_barcodes.sql`: `product_barcodes` (source, added, last scanned), `products.barcode_scanned_at`,
+    `merged_into_id`; a trigger keeps one code on one product (its own extra may become main). One lookup
+    (`barcodeIs`) for scan / search / import / generate; the till scan and intake restock stamp the last scan.
+  - Product form **Other barcodes** (Make main, Remove, Add); intake and purchase entry **Same as an existing one**
+    (admin only — the counter's LineEditor never links); products sheet **extra_barcodes** column (`;`).
+  - **Merge into…** (form footer; Items to review → Same as an existing one): preview + confirm, price choice
+    (keep its own price on its lots / follow the kept one), refused across units / service vs stock / held bill.
+    `products.Merge` moves every FK (test reads the catalog), collapses set-up doubles, retires the duplicate
+    (hidden everywhere). Generic **`ProductMerger`** hook — all six plugins implement it.
+  - User note (2026-10-13): handy for cheap brands that **change barcode every batch** — each new code joins at intake.
+  - Checks (2026-10-13): `make verify`, `go test ./...` core-only and with every plugin (`-p 1`), 156 web unit tests,
+    **134 Playwright flows** (`barcodes.spec.ts` 3, `products-merge.spec.ts` 2 new), `make verify-portable`,
+    `docs/differences.md` 65–67. No karots-pos routes (suite-only feature).
+  - e2e fixture: pages a spec opens itself (`browser.newPage()` in a beforeAll) now wait out the login limiter too —
+    the extra sign-ins tipped plugin-alternatives' beforeAll into a 429.
 - **M7.6b (core) — lots in stock take** (count / add / remove / merge lots per product) **+ intake asks which lot**
   (a matching lot — same cost, price, expiry — is the default, else New lot; purchase receive always opens its own
-  lot). Merging only moves qty into the oldest lot; old lot rows stay at 0 for history. Spec after M7.6a.
+  lot). Merging only moves qty into the oldest lot; old lot rows stay at 0 for history. **NEXT: write its spec**
+  (read `internal/features/stock/batches.go`, `admin_stocktake.go`, the stock-take sheet and karots-pos's
+  `batch-dual-pricing-design` note first).
 - **M7.6c — AI Assistant (aicatalog)** — spec `docs/specs/2026-10-13-m7-6c-aicatalog-design.md` (rethink approved:
   ✨ Identify inside core screens, Clean up page with duplicates → merge, paste mode first; bulk entry, Insights and
   further AI uses / MCP dropped — most shops have no AI API).
