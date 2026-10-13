@@ -31,6 +31,8 @@ func (h *handlers) registerAdminProducts(g *echo.Group) {
 	g.POST("/products/:id/barcodes", h.AdminBarcodeAdd)
 	g.DELETE("/products/:id/barcodes/:code", h.AdminBarcodeRemove)
 	g.POST("/products/:id/barcodes/:code/main", h.AdminBarcodeMain)
+	g.GET("/products/:id/merge/:into", h.AdminMergePreview)
+	g.POST("/products/:id/merge/:into", h.AdminMerge)
 	g.GET("/barcode/generate", h.TillGenerateBarcode)
 	g.GET("/supplier-options", h.AdminSupplierOptions)
 }

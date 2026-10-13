@@ -224,3 +224,30 @@ func TestMergeRollsBackOnPluginError(t *testing.T) {
 		t.Fatalf("partly merged: barcode %v lots %d", code, lots)
 	}
 }
+
+// The merge through the admin API: managers only, a preview with the counts, then
+// the merge itself; a refusal is a 422 with the reason.
+func TestAdminMergeAPI(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	dup, main, _ := mergeDup(t, te, f)
+	ck := te.login(t, "0770009594", "manager")
+	cashier := te.login(t, "0770009595", "cashier")
+	path := fmt.Sprintf("/api/v1/admin/products/%d/merge/%d", dup, f.plainID)
+	if rec := te.do(http.MethodGet, path, nil, cashier); rec.Code != http.StatusForbidden {
+		t.Fatalf("cashier preview: %d", rec.Code)
+	}
+	pv := decode[MergePreview](t, te.do(http.MethodGet, path, nil, ck))
+	if pv.Refusal != "" || pv.Barcodes != 2 || pv.Stock != "4" || !pv.PriceClash || pv.FromPrice != "90.00" || pv.IntoPrice != "100.00" {
+		t.Fatalf("preview %+v", pv)
+	}
+	if rec := te.do(http.MethodPost, path, MergeRequest{LotPrice: "kept"}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("merge: %d %s", rec.Code, rec.Body)
+	}
+	if p := decode[TillProduct](t, te.do(http.MethodGet, "/api/v1/till/products/barcode/"+main, nil, cashier)); p.ID != f.plainID {
+		t.Fatalf("old code scans to %d", p.ID)
+	}
+	if rec := te.do(http.MethodPost, path, MergeRequest{LotPrice: "kept"}, ck); rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "already merged") {
+		t.Fatalf("merge twice: %d %s", rec.Code, rec.Body)
+	}
+}

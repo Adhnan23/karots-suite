@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Copy, Wand2 } from 'lucide-react'
+import { Copy, Merge, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -14,6 +14,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
+import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
 import { extraBody, type Extras, ProductExtras } from './ProductExtras'
 import { productQuery, supplierOptionsQuery } from './queries'
@@ -102,6 +103,11 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
             <Button type="button" variant="outline" className="h-10 px-4" onClick={() => act(`/admin/products/${product.id}/activate`, 'Product enabled').catch((e) => toast.error(errMsg(e)))}>Enable</Button>
           )}
           <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={() => onEdit({ id: 0, copyOf: product.id })}><Copy size={15} /> Duplicate</Button>
+          {product.isActive && (
+            <MergeInto from={product} onDone={onClose} trigger={(open) => (
+              <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={open}><Merge size={15} /> Merge into…</Button>
+            )} />
+          )}
         </div>
       )}>
       {product?.needsReview && (

@@ -29,3 +29,23 @@ Object.assign(barcodesPrep, {
     await page.getByRole('button', { name: 'Same as an existing one' }).waitFor()
   },
 })
+
+/** SHOTS_PREP=merge-review (SHOTS_PATH=/admin/products/review): a quick-added "Milk 1L" (Rs 90,
+ * 4 on hand at its own price) → Same as an existing one → E2E Milk: the merge confirm with a
+ * price choice. */
+Object.assign(barcodesPrep, {
+  'merge-review': async (page: Page) => {
+    const have = await (await page.request.get('/api/v1/admin/products/review')).json()
+    if (!have.some((p: { name: string }) => p.name === 'Milk 1L')) {
+      const p = await (await page.request.post('/api/v1/till/quick-item', { data: { name: 'Milk 1L', price: '90', qty: '1', barcode: '6001111222233', unitId: 0 } })).json()
+      const id = p.id ?? p.productId
+      if (id) await page.request.post('/api/v1/admin/inventory/intake/restock', { data: { productId: id, quantity: '4', costPrice: '', sellingPrice: '', wholesalePrice: '', scanned: '' } })
+    }
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.getByRole('button', { name: 'Same as an existing one' }).first().click()
+    await page.getByLabel('Find a product').fill('E2E Milk')
+    await page.getByRole('button', { name: /^E2E Milk\b/ }).first().click()
+    await page.getByRole('button', { name: 'Merge', exact: true }).waitFor()
+  },
+})

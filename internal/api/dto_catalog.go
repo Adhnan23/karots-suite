@@ -78,6 +78,29 @@ type BarcodeRequest struct {
 	Source  string `json:"source"`
 }
 
+// MergePreview is what merging one product into another would move (the confirm
+// screen). Refusal, when set, is why it can't run. Prices and stock are decimal
+// strings; PriceClash = the prices differ and some of its stock follows its own.
+type MergePreview struct {
+	FromName   string `json:"fromName"`
+	IntoName   string `json:"intoName"`
+	Barcodes   int    `json:"barcodes"`
+	Stock      string `json:"stock"`
+	Lots       int    `json:"lots"`
+	Sales      int    `json:"sales"`
+	Purchases  int    `json:"purchases"`
+	PriceClash bool   `json:"priceClash"`
+	FromPrice  string `json:"fromPrice"`
+	IntoPrice  string `json:"intoPrice"`
+	Refusal    string `json:"refusal"`
+}
+
+// MergeRequest merges; LotPrice "keep" keeps the duplicate's stock at its own price,
+// "kept" lets it follow the kept product's.
+type MergeRequest struct {
+	LotPrice string `json:"lotPrice"`
+}
+
 // ProductList is a page of the admin product list.
 type ProductList struct {
 	Items    []AdminProductRow `json:"items"`

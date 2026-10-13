@@ -8,6 +8,7 @@ import { EmptyState, PageHead } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, qtyText } from '@/lib/money'
+import { MergeInto } from './MergeInto'
 import { ProductForm, type Editing } from './ProductForm'
 import { reviewQuery } from './queries'
 
@@ -43,6 +44,9 @@ export function ReviewPage() {
             <span className="flex justify-end gap-1.5">
               <ConfirmButton plain label="Looks fine" className="h-9 px-3" title={`Mark ${p.name} as reviewed?`} confirm="Mark reviewed"
                 body="It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost." onConfirm={() => fine(p.id)} />
+              <MergeInto from={p} onDone={() => undefined} trigger={(open) => (
+                <Button variant="outline" className="h-9 px-3" onClick={open}>Same as an existing one</Button>
+              )} />
               <Button className="h-9 px-3 font-bold" onClick={() => setEditing({ id: p.id })}>Finish</Button>
             </span>
           ) },

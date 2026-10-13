@@ -144,6 +144,31 @@ export interface BarcodeRequest {
   source: string;
 }
 /**
+ * MergePreview is what merging one product into another would move (the confirm
+ * screen). Refusal, when set, is why it can't run. Prices and stock are decimal
+ * strings; PriceClash = the prices differ and some of its stock follows its own.
+ */
+export interface MergePreview {
+  fromName: string;
+  intoName: string;
+  barcodes: number /* int */;
+  stock: string;
+  lots: number /* int */;
+  sales: number /* int */;
+  purchases: number /* int */;
+  priceClash: boolean;
+  fromPrice: string;
+  intoPrice: string;
+  refusal: string;
+}
+/**
+ * MergeRequest merges; LotPrice "keep" keeps the duplicate's stock at its own price,
+ * "kept" lets it follow the kept product's.
+ */
+export interface MergeRequest {
+  lotPrice: string;
+}
+/**
  * ProductList is a page of the admin product list.
  */
 export interface ProductList {
