@@ -1,6 +1,6 @@
 # M7.6 — AI Assistant (aicatalog) (design)
 
-The user approved the rethink on 2026-10-13: **A–G as recommended, plus H** ("do whatever you recommended").
+The user approved the rethink on 2026-10-13: **A–C and E–H as recommended** ("do whatever you recommended"); **D (Insights) dropped** — "remove that as well", the plugin is catalogue help for whoever sets the shop up, not a shop-owner feature.
 Plugin key stays `aicatalog` (old backups carry `goose_db_version_aicatalog` and `aicatalog_*`); the display
 name is **AI Assistant**. No further AI uses and no MCP (user, 2026-10-13: most shops have no AI API and buyers
 won't use it — photo bills, supplier messages, ask-your-shop, Sinhala/Tamil names were all dropped, not parked).
@@ -14,8 +14,7 @@ labels are core Intake, which the suite already has. **The user does not use bul
 also do the same thing so i have to verify everything"), so the queue and the staging table go. In the suite
 the AI is a **helper inside the screens the shop already uses**, never a parallel way to add products.
 
-Rule carried over: **the AI suggests, a person confirms.** Nothing the AI says is written without a click, and
-insights only narrate figures core already computed.
+Rule carried over: **the AI suggests, a person confirms.** Nothing the AI says is written without a click.
 
 ## 2. What it does
 
@@ -44,10 +43,7 @@ insights only narrate figures core already computed.
     (unknown ids, cycles, self-merge — karots-pos `ApplyPlan` rules).
   - **Undo last tidy** replays the stored undo ops (re-creates merged categories with their old ids, restores
     product placements). One level, a chunked session reverts as one (karots-pos behaviour).
-- **D. Insights as a Reports card.** Reports → **Explain these numbers**: period picker (same presets as core
-  reports), a Sales & profit panel and a Reorder panel. Each shows the figures from core
-  (`reports` P&L and the reorder list) and **Explain** sends only those figures with the "use only these,
-  invent nothing" guardrail. Plain text answer.
+- **D. No Insights.** The AI Insights page and its Reports card are not carried over.
 - **E. Paste mode first (user, 2026-10-13: "i used aicatalog most of the time with prompt copy paste mode").**
   - **Paste is the default** for a new shop; the API is the optional extra. Every AI action's paste flow is
     the main path, not a fallback screen: one **Copy & open Gemini / ChatGPT / Claude** button (copies the
@@ -87,7 +83,6 @@ Not on the till: the plugin has no till surface and can't stop a sale.
 | POST | `/tidy` | `{offset, reply?}` → `{plan, chunk, chunks}` or `{prompt, error?}` |
 | POST | `/tidy/apply` | `{plan (ticked only), runId}` → `{summary, runId}` |
 | GET / POST | `/tidy/last`, `/tidy/undo` | last un-reverted run; revert it |
-| POST | `/insights/:kind` | `kind = sales | reorder`, `{from, to, reply?}` → `{facts, text}` or `{prompt, facts}` |
 
 One shape for every AI action: send without `reply` → the server answers (API mode) or hands back the prompt
 (paste mode, or the call failed with `error`); send again with `reply` → the server parses it. Parsers are
@@ -113,7 +108,7 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
 - Barcode / price / qty / save → **core Intake** (already ported; A adds identify to it).
 - Mock row × 3, enrich, apply, commit, revert, clear → **dropped by design (M7.6, user: bulk unused)**.
 - Optimize (preview, manual, apply, revert) → Tidy categories (C).
-- Insights (page, sales, reorder, manual) → Reports card (D).
+- Insights (page, sales, reorder, manual) → **dropped by design (M7.6, user: shop owners won't use AI)**.
 - Settings, models, test-key → Settings (E). GET `/ai-catalog` → Apps → AI Assistant.
 
 ## 6. Checks
@@ -125,5 +120,5 @@ karots-pos's (`parseIdentify`, `parseOptimizePlan`) — tolerant of code fences 
 - Playwright (`plugin-aicatalog.spec.ts`), **paste mode for every flow** (the main path): identify in the
   product form (paste a fenced reply with prose) fills name + new category and the ⓘ row shows after save;
   identify from Items to review and from Intake; a bad paste keeps the text and says why; tidy with one change
-  unticked, then undo; explain sales. **One API-mode flow** against a fake provider the test server points at
-  (no real key), plus API failure → the same panel offers the prompt. 360 px for settings, tidy and explain.
+  unticked, then undo. **One API-mode flow** against a fake provider the test server points at
+  (no real key), plus API failure → the same panel offers the prompt. 360 px for settings and tidy.
