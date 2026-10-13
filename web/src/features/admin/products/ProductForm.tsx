@@ -13,6 +13,7 @@ import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { BarcodesBlock } from './BarcodesBlock'
 import { editPrice, marginText, markupOf, type Prices } from './price'
 import { extraBody, type Extras, ProductExtras } from './ProductExtras'
 import { productQuery, supplierOptionsQuery } from './queries'
@@ -155,6 +156,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
           <input inputMode="decimal" aria-label="Tax" value={f.taxRate} onChange={(e) => set({ taxRate: e.target.value.replace(/[^\d.]/g, '') })} className={INPUT} placeholder="0" />
         </Field>
       </div>
+      {product && <BarcodesBlock productId={product.id} onMain={(barcode) => set({ barcode })} />}
       {!svc && <div className="grid gap-3 md:grid-cols-[1fr_200px] md:items-end">
         <Toggle label="Track serial numbers" hint="Each unit sold records its serial, for warranty claims." checked={f.trackSerial} onChange={(trackSerial) => set({ trackSerial })} />
         <Field label="Warranty (months)">

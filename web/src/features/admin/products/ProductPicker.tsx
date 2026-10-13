@@ -5,6 +5,7 @@ import type { AdminProductRow } from '@/api/types.gen'
 import { INPUT } from '@/components/admin/fields'
 import { PickerShell } from '@/components/admin/PickerShell'
 import { configQuery } from '@/features/till/api'
+import { hasBarcode } from '@/lib/barcode'
 import { money, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
@@ -34,7 +35,7 @@ export function ProductPicker({ title, onPick, trigger, exclude, hint }: {
     const term = q.trim()
     if (!term) return
     const found = (await qc.fetchQuery(productsQuery({ q: term, category: 0, low: false, disabled: false, page: 1 }))).items.filter((p) => !exclude?.has(p.id))
-    const hit = found.find((p) => p.barcode === term) ?? found[0]
+    const hit = found.find((p) => hasBarcode(p, term)) ?? found[0]
     if (hit) pick(hit)
   }
   return (

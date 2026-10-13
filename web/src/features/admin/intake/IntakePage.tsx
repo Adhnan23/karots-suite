@@ -13,6 +13,7 @@ import { productsQuery, supplierOptionsQuery } from '@/features/admin/products/q
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { extraBody, type Extras, ProductExtras } from '@/features/admin/products/ProductExtras'
 import { configQuery, errMsg } from '@/features/till/api'
+import { hasBarcode } from '@/lib/barcode'
 import { money, num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
@@ -48,7 +49,7 @@ export function IntakePage() {
     const term = q.trim()
     if (!term) return
     const found = (await qc.fetchQuery(productsQuery({ q: term, category: 0, low: false, disabled: false, page: 1 }))).items
-    const exact = found.find((p) => p.barcode === term) ?? (found.length === 1 ? found[0] : undefined)
+    const exact = found.find((p) => hasBarcode(p, term)) ?? (found.length === 1 ? found[0] : undefined)
     setMode(exact ? { kind: 'restock', p: exact } : looksScanned(term) ? { kind: 'new', name: '', barcode: term } : { kind: 'new', name: term, barcode: '' })
   }
   async function printLabels(item: IntakeItem, fields: DetailRow[] = []) {
