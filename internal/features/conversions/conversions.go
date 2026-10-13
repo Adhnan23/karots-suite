@@ -8,20 +8,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"strings"
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	appdb "karots-suite/internal/db"
-	"karots-suite/internal/features/stock"
-	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
-	"karots-suite/internal/response"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
 
@@ -60,10 +54,6 @@ type CreateInput struct {
 type UpdateInput struct {
 	Ratio string  `json:"ratio" form:"ratio" validate:"required"`
 	Note  *string `json:"note"  form:"note"`
-}
-
-type RunInput struct {
-	Quantity string `json:"quantity" form:"quantity" validate:"required"`
 }
 
 type Repository struct{ q appdb.Queryer }
@@ -235,123 +225,4 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 		return apperr.Internal("failed to remove conversion", err)
 	}
 	return nil
-}
-
-// Run converts `fromQty` units of the source product into `fromQty * ratio`
-// units of the destination, moving the value across in one transaction.
-func (s *Service) Run(ctx context.Context, conversionID int64, fromQty decimal.Decimal, userID int64) error {
-	if !fromQty.IsPositive() {
-		return apperr.Validation("quantity must be greater than zero")
-	}
-	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		repo := NewRepository(tx)
-		stk := stock.NewRepository(tx)
-
-		cv, err := repo.FindByID(ctx, conversionID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return apperr.NotFound("conversion")
-			}
-			return apperr.Internal("failed to load conversion", err)
-		}
-
-		toQty := fromQty.Mul(cv.Ratio).Round(3)
-
-		// Deplete the source product.
-		ok, err := stk.DecrementGuarded(ctx, cv.FromProductID, fromQty)
-		if err != nil {
-			return apperr.Internal("failed to update source stock", err)
-		}
-		if !ok {
-			return apperr.Conflict("not enough stock of the source product")
-		}
-		cost, err := stk.DepleteFEFO(ctx, cv.FromProductID, fromQty)
-		if err != nil {
-			return apperr.Internal("failed to deplete source batches", err)
-		}
-		refOut := "conversion"
-		cid := conversionID
-		if err := stk.InsertMovement(ctx, stock.MovementInput{
-			ProductID: cv.FromProductID, Type: stock.MoveConversion, Quantity: fromQty.Neg(),
-			ReferenceID: &cid, ReferenceType: &refOut, UserID: userID,
-		}); err != nil {
-			return apperr.Internal("failed to record source movement", err)
-		}
-
-		// Open a destination batch carrying the moved value.
-		childUnitCost := decimal.Zero
-		if toQty.IsPositive() {
-			childUnitCost = cost.Mul(fromQty).Div(toQty).Round(2)
-		}
-		if err := stk.Increment(ctx, cv.ToProductID, toQty); err != nil {
-			return apperr.Internal("failed to update destination stock", err)
-		}
-		if _, err := stk.InsertBatch(ctx, stock.NewBatch{
-			ProductID: cv.ToProductID, Quantity: toQty, CostPrice: childUnitCost, Source: "conversion",
-		}); err != nil {
-			return apperr.Internal("failed to open destination batch", err)
-		}
-		if err := stk.InsertMovement(ctx, stock.MovementInput{
-			ProductID: cv.ToProductID, Type: stock.MoveConversion, Quantity: toQty,
-			ReferenceID: &cid, ReferenceType: &refOut, UserID: userID,
-		}); err != nil {
-			return apperr.Internal("failed to record destination movement", err)
-		}
-
-		return repo.LogRun(ctx, conversionID, cv.FromProductID, cv.ToProductID, userID, fromQty, toQty)
-	})
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	rows, err := h.svc.List(c.Request().Context(), c.QueryParam("search"))
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Create(c echo.Context) error {
-	var in CreateInput
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	cv, err := h.svc.Create(c.Request().Context(), in)
-	if err != nil {
-		return err
-	}
-	return response.Created(c, cv)
-}
-
-func (h *APIHandler) Run(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	var in RunInput
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	qty, err := money.Parse(in.Quantity)
-	if err != nil {
-		return apperr.Validation("quantity is invalid")
-	}
-	if err := h.svc.Run(c.Request().Context(), id, qty, middleware.CurrentUserID(c)); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func RegisterAPI(e *echo.Echo, db *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(db))
-	g := e.Group("/api/conversions", middleware.JWTAuth(cfg.JWTSecret), middleware.RequireRole("admin", "manager"))
-	g.GET("", api.List)
-	g.POST("", api.Create)
-	g.POST("/:id/run", api.Run)
 }

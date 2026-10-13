@@ -38,8 +38,15 @@ func TestAdminConversions(t *testing.T) {
 	if scarce != 13 {
 		t.Fatalf("1 box → 12 more: have %v", scarce)
 	}
+	// What was really counted out: 11 of the 12 (blank "Got" = 12, above).
+	if rec := te.do(http.MethodPost, base+"/run", RunConversionRequest{Quantity: "1", ToQty: "11"}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("run with got: %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.do(http.MethodPost, base+"/run", RunConversionRequest{Quantity: "1", ToQty: "-2"}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("negative got: %d", rec.Code)
+	}
 	runs := decode[ConversionRunList](t, te.do(http.MethodGet, "/api/v1/admin/conversions/runs?conversion="+strconv.FormatInt(id, 10)+"&preset=today", nil, ck))
-	if runs.Total != 1 || runs.Items[0].ToQty != "12" {
+	if runs.Total != 2 || runs.Items[0].ToQty != "11" || runs.Items[1].ToQty != "12" {
 		t.Fatalf("runs: %+v", runs)
 	}
 

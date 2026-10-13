@@ -59,6 +59,9 @@ type ConversionRow struct {
 
 type RunConversionRequest struct {
 	Quantity string `json:"quantity"` // source units to convert
+	// ToQty is what was really weighed out; blank = quantity × ratio. The
+	// bags' cost spreads over it.
+	ToQty string `json:"toQty,omitempty"`
 }
 
 // ---- Labels ----

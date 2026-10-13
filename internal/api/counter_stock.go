@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
@@ -11,6 +12,7 @@ import (
 	"karots-suite/internal/money"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 // CounterConversions lists active pack-breaking recipes with on-hand stock.
@@ -41,9 +43,22 @@ func (h *handlers) CounterConversionRun(c echo.Context) error {
 	if err != nil || !qty.IsPositive() {
 		return apperr.Validation("quantity is invalid")
 	}
-	if err := conversions.NewService(h.d.DB).Run(c.Request().Context(), id, qty, middleware.CurrentUserID(c)); err != nil {
+	got := decimal.Zero
+	if strings.TrimSpace(req.ToQty) != "" {
+		if got, err = money.Parse(req.ToQty); err != nil || !got.IsPositive() {
+			return apperr.Validation("the amount you got is invalid")
+		}
+	}
+	if err := conversions.NewService(h.d.DB).Run(c.Request().Context(), id, qty, got, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionUpdate, "conversion", strconv.FormatInt(id, 10), "ran conversion ("+qty.String()+")")
+	h.audit(c, audit.ActionUpdate, "conversion", strconv.FormatInt(id, 10), "ran conversion ("+qty.String()+gotNote(got)+")")
 	return c.NoContent(http.StatusNoContent)
+}
+
+func gotNote(got decimal.Decimal) string {
+	if got.IsZero() {
+		return ""
+	}
+	return " → got " + got.String()
 }
