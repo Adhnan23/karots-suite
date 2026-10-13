@@ -1,13 +1,14 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, LoaderCircle, MessageSquareText, RotateCcw, Sparkles, X } from 'lucide-react'
 import { type ComponentProps, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { categoriesQuery } from '@/features/admin/categories/queries'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import type { ProductAssist } from '../slots'
 import { findCategory, identify } from './api'
-import { primed, setPrimed } from './ask'
+import { existingPaths, firstNew, primed, setPrimed } from './ask'
 import { PastePanel } from './PastePanel'
 import type { Candidate, IdentifyResult } from './types'
 import { useAsk } from './useAsk'
@@ -129,11 +130,32 @@ function Answers({ r, busy, onPick }: { r: IdentifyResult; busy: boolean; onPick
             <Button type="button" size="sm" disabled={busy} variant={r.confident ? 'default' : 'outline'} className="h-8 gap-1 px-3"
               onClick={() => onPick(c, r.confident)}><Check size={14} /> Use this</Button>
           </div>
-          {c.category && <span className="self-start rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">{c.category}</span>}
+          {c.category && <CategoryPath path={c.category} />}
           {c.explanation && <p className="text-[13px] text-foreground">{c.explanation}</p>}
           {c.specs && <p className="text-[12px] tabular-nums text-faint">{c.specs}</p>}
         </article>
       ))}
     </div>
+  )
+}
+
+/** The suggested category, with the levels a pick would create marked "new". */
+function CategoryPath({ path }: { path: string }) {
+  const nodes = useQuery(categoriesQuery).data
+  const parts = path.split('>').map((p) => p.trim()).filter(Boolean)
+  const from = nodes ? firstNew(path, existingPaths(nodes)) : -1
+  return (
+    <span className="flex flex-wrap items-center gap-1.5 self-start">
+      <span className="rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
+        {parts.map((p, i) => (
+          <span key={i}>{i > 0 && ' > '}{from >= 0 && i >= from ? <b className="text-foreground">{p}</b> : p}</span>
+        ))}
+      </span>
+      {from >= 0 && (
+        <span className="rounded-full border border-[color-mix(in_srgb,var(--brand)_45%,var(--border))] px-2 py-0.5 text-[11px] font-bold text-brand">
+          new {from === 0 ? 'category' : 'sub-category'}
+        </span>
+      )}
+    </span>
   )
 }

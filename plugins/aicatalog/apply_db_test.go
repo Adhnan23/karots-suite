@@ -3,6 +3,7 @@ package aicatalog
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"karots-suite/internal/plugin"
@@ -188,5 +189,35 @@ func TestApplyMergeAsksPlugins(t *testing.T) {
 	}
 	if len(unmerged) != 1 || unmerged[0] != `{"fields":[7]}` {
 		t.Fatalf("unmerge got %v", unmerged)
+	}
+}
+
+// Identify's category lines: items of its own (newest 3 as examples), a group whose
+// items all sit in sub-categories, a parent with both, and an empty one.
+func TestCategoryLines(t *testing.T) {
+	db := freshDB(t, "aicatalog_cat_lines")
+	ctx := context.Background()
+	parts := cat(t, db, "Spare parts", nil)
+	brakes := cat(t, db, "Brakes", parts)
+	bearings := cat(t, db, "Bearings", nil)
+	sealed := cat(t, db, "Sealed", bearings)
+	prod(t, db, "CT100 brake shoe", brakes)
+	for _, n := range []string{"6201", "6202", "6203", "6305"} {
+		prod(t, db, n, bearings)
+	}
+	prod(t, db, "6201-2RS", sealed)
+	lines, err := NewStore(db).CategoryLines(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"Bearings — 4 items, e.g. 6305, 6203, 6202; has sub-categories",
+		"Bearings > Sealed — 1 item, e.g. 6201-2RS",
+		"Old shop — empty",
+		"Spare parts — group only: its items sit in its sub-categories",
+		"Spare parts > Brakes — 1 item, e.g. CT100 brake shoe",
+	}
+	if strings.Join(lines, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("got\n%s\nwant\n%s", strings.Join(lines, "\n"), strings.Join(want, "\n"))
 	}
 }

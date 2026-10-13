@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -97,33 +99,74 @@ func (s *Store) Categories(ctx context.Context) ([]CatRow, error) {
 	return rows, err
 }
 
-// CategoryPaths returns every category as a "Parent > Child" path, so identify
-// can have the AI reuse one instead of inventing a near-duplicate.
-func (s *Store) CategoryPaths(ctx context.Context) ([]string, error) {
-	rows, err := s.Categories(ctx)
-	if err != nil {
+// catInfo is one category for the identify prompt: what sits in it directly.
+type catInfo struct {
+	ID       int64  `db:"id"`
+	Name     string `db:"name"`
+	ParentID *int64 `db:"parent_id"`
+	Items    int    `db:"items"`    // active products filed directly here
+	Children int    `db:"children"` // sub-categories
+	Examples string `db:"examples"` // up to 3 of those products' names, newest first
+}
+
+// CategoryLines describes every category for identify, so the AI reuses one
+// instead of inventing a near-duplicate, and can tell a category that holds items
+// from a group whose items all sit in its sub-categories:
+//
+//	Bearings — 12 items, e.g. 6201-2Z Ball Bearing, 6305 ZZ; has sub-categories
+//	Spare parts — group only: its items sit in its sub-categories
+func (s *Store) CategoryLines(ctx context.Context) ([]string, error) {
+	var rows []catInfo
+	if err := s.db.SelectContext(ctx, &rows, `
+		SELECT c.id, c.name, c.parent_id,
+		       (SELECT count(*) FROM products p WHERE p.category_id = c.id AND p.is_active) AS items,
+		       (SELECT count(*) FROM categories k WHERE k.parent_id = c.id) AS children,
+		       COALESCE((SELECT string_agg(left(x.name, 40), ', ') FROM (
+		           SELECT p.name FROM products p WHERE p.category_id = c.id AND p.is_active
+		           ORDER BY p.id DESC LIMIT 3) x), '') AS examples
+		FROM categories c
+		ORDER BY c.parent_id NULLS FIRST, c.name`); err != nil {
 		return nil, err
 	}
-	byID := make(map[int64]CatRow, len(rows))
+	paths := pathsByID(catRows(rows))
+	// By path, so a parent sits right above its sub-categories.
+	sort.Slice(rows, func(i, j int) bool { return strings.ToLower(paths[rows[i].ID]) < strings.ToLower(paths[rows[j].ID]) })
+	lines := make([]string, 0, len(rows))
 	for _, r := range rows {
-		byID[r.ID] = r
-	}
-	paths := make([]string, 0, len(rows))
-	for _, r := range rows {
-		parts := []string{r.Name}
-		cur := r
-		for i := 0; i < 20 && cur.ParentID != nil; i++ {
-			p, ok := byID[*cur.ParentID]
-			if !ok {
-				break
-			}
-			parts = append([]string{p.Name}, parts...)
-			cur = p
-		}
-		paths = append(paths, strings.Join(parts, " > "))
-		if len(paths) >= 200 { // ponytail: dozens typical; cap guards a huge tree
+		lines = append(lines, categoryLine(paths[r.ID], r))
+		if len(lines) >= 200 { // ponytail: dozens typical; cap guards a huge tree
 			break
 		}
 	}
-	return paths, nil
+	return lines, nil
+}
+
+func catRows(in []catInfo) []CatRow {
+	out := make([]CatRow, len(in))
+	for i, r := range in {
+		out[i] = CatRow{ID: r.ID, Name: r.Name, ParentID: r.ParentID, Count: r.Items}
+	}
+	return out
+}
+
+func categoryLine(path string, r catInfo) string {
+	sub := ""
+	if r.Children > 0 {
+		sub = "; has sub-categories"
+	}
+	switch {
+	case r.Items > 0:
+		return fmt.Sprintf("%s — %d item%s, e.g. %s%s", path, r.Items, plural(r.Items), r.Examples, sub)
+	case r.Children > 0:
+		return path + " — group only: its items sit in its sub-categories"
+	default:
+		return path + " — empty"
+	}
+}
+
+func plural(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
 }

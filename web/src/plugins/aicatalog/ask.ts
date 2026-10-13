@@ -143,3 +143,17 @@ export function openChatbot() {
   } catch { /* already on the chatbot (another origin): just bring it forward */ }
   w.focus()
 }
+
+/** Every existing category as a lower-case "a > b" path (core's tree: path = the ancestors' ids). */
+export function existingPaths(nodes: { id: number; name: string; path: number[] | null }[]): Set<string> {
+  const name = new Map(nodes.map((n) => [n.id, n.name]))
+  return new Set(nodes.map((n) => [...(n.path ?? []).map((id) => name.get(id) ?? ''), n.name].join(' > ').toLowerCase()))
+}
+
+/** Where a suggested path stops matching the shop's tree: the index of its first level that a pick
+ * would create, or -1 when every level exists. Matched case-insensitively, like the server. */
+export function firstNew(path: string, existing: Set<string>): number {
+  const parts = path.split('>').map((p) => p.trim()).filter(Boolean)
+  for (let i = 0; i < parts.length; i++) if (!existing.has(parts.slice(0, i + 1).join(' > ').toLowerCase())) return i
+  return -1
+}

@@ -49,6 +49,7 @@ test('identify in the product form: a pasted answer in prose and a fence fills n
   await dlg.getByLabel('Chatbot answer').fill(`Sure! Here it is:\n\`\`\`json\n${answer(name, `Bearings ${tag} / Ball`, '12x32x10 mm')}\n\`\`\`\nAnything else?`)
   await dlg.getByLabel('Chatbot answer').press('Enter')
   await expect(dlg.getByText('The AI is sure')).toBeVisible()
+  await expect(dlg.getByText('new category')).toBeVisible() // neither level exists yet
   await dlg.getByRole('button', { name: 'Use this' }).click()
   await expect(dlg.locator('input[name="prod-name"]')).toHaveValue(name)
   await expect(dlg.getByRole('button', { name: 'Category' })).toContainText('Ball')

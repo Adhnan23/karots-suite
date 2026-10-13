@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addBot, allBots, type AskState, askReducer, currentBot, looksLikeAnswer, removeBot, safeUrl, setBot } from './ask'
+import { addBot, allBots, type AskState, askReducer, currentBot, existingPaths, firstNew, looksLikeAnswer, removeBot, safeUrl, setBot } from './ask'
 
 type R = { name: string }
 const run = (acts: Parameters<typeof askReducer<R>>[1][], s: AskState<R> = { k: 'idle' }) => acts.reduce(askReducer<R>, s)
@@ -57,5 +57,19 @@ describe('chatbot choices', () => {
     expect(currentBot().key).toBe('copy')
     removeBot('gemini') // built-ins can't be removed
     expect(allBots()).toHaveLength(4)
+  })
+})
+
+describe('new category levels', () => {
+  const have = existingPaths([
+    { id: 1, name: 'Bearings', path: [] },
+    { id: 2, name: 'Sealed', path: [1] },
+    { id: 3, name: 'Spare parts', path: null },
+  ])
+  it('finds where a suggested path stops matching', () => {
+    expect(firstNew('bearings > SEALED', have)).toBe(-1)
+    expect(firstNew('Bearings > Open Bearings', have)).toBe(1)
+    expect(firstNew('Garden > Hoses', have)).toBe(0)
+    expect(firstNew('Sealed', have)).toBe(0) // a sub-category name alone is a new top level
   })
 })

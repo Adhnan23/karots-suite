@@ -155,7 +155,7 @@ func (h handlers) identify(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	cats, err := h.p.store.CategoryPaths(ctx)
+	cats, err := h.p.store.CategoryLines(ctx)
 	if err != nil {
 		return apperr.Internal("read categories", err)
 	}

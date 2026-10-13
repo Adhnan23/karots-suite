@@ -28,7 +28,12 @@ answering. If you cannot confirm what it is, set confident=false and offer your
 best options instead of guessing a single answer.
 If a list of the shop's EXISTING categories is given, and one of them fits the
 item, REUSE its exact path verbatim instead of inventing a new name — so similar
-items land together. Only propose a new category when none of the existing ones fit.`
+items land together. Only propose a new category when none of the existing ones fit.
+Each existing category says what is in it, with example items — compare the item
+with those examples, not just the category name. A category marked "group only"
+holds no items itself: put the item in one of its sub-categories, or propose a new
+sub-category under it ("Group > New"). A category that has items AND sub-categories
+can take the item directly when it fits none of the sub-categories.`
 
 // withCustom appends the owner's standing custom instructions (every prompt).
 func withCustom(system, custom string) string {
@@ -59,7 +64,7 @@ func identifyUserMsg(query, barcode, hint string, cats []string) string {
 		user += "\nAdditional context from the shop owner: " + strings.TrimSpace(hint)
 	}
 	if len(cats) > 0 {
-		user += "\n\nEXISTING shop categories (reuse a fitting one verbatim, else propose new):\n- " + strings.Join(cats, "\n- ")
+		user += "\n\nEXISTING shop categories (path — what is in it; reuse a fitting path verbatim, else propose new):\n- " + strings.Join(cats, "\n- ")
 	}
 	return user
 }
