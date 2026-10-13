@@ -125,3 +125,36 @@ func TestAPICategoryOnceAndLearn(t *testing.T) {
 		t.Error("an unknown source should be refused")
 	}
 }
+
+// The preview drops ops naming things this chunk lacks and keeps the look-alike with more sales.
+func TestAPICleanupPreview(t *testing.T) {
+	db := freshDB(t, "aicatalog_api_cleanup")
+	_, do := testAPI(t, db)
+	c := cat(t, db, "Drinks", nil)
+	a, b := prod(t, db, "Coke 1L", c), prod(t, db, "Coca Cola 1 Ltr", c)
+	var uid int64
+	mustExec(t, db, &uid, `INSERT INTO users (name, phone, pin_hash) VALUES ('T', '0770009999', 'x') RETURNING id`)
+	mustExec(t, db, nil, `INSERT INTO sales (receipt_no, total, cashier_id) VALUES ('S-1', 2, $1)`, uid)
+	mustExec(t, db, nil, `INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal) VALUES ((SELECT max(id) FROM sales), $1, 1, 2, 2)`, b)
+	if r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", `{"offset":0}`)); r.Result != nil || !strings.Contains(r.Prompt, "|Coke 1L|") {
+		t.Fatalf("paste mode prompt: %+v", r)
+	}
+	reply := `{"renames":[{"id":999999,"to":"x"}],"moves":[{"product_id":` + itoa(a) + `,"category_id":` + itoa(c) + `}],
+		"duplicates":[{"a":` + itoa(a) + `,"b":` + itoa(b) + `,"reason":"same drink"},{"a":` + itoa(b) + `,"b":` + itoa(a) + `},{"a":` + itoa(a) + `,"b":999999}]}`
+	body, _ := json.Marshal(CleanupRequest{Reply: reply})
+	r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
+	if r.Result == nil {
+		t.Fatalf("%+v", r)
+	}
+	pv := r.Result
+	if len(pv.Plan.Renames) != 0 || len(pv.Plan.Moves) != 1 || len(pv.Duplicates) != 1 || pv.Duplicates[0].Keep.ID != b || pv.Duplicates[0].Drop.ID != a || pv.Next != -1 || pv.Chunks != 1 {
+		t.Fatalf("preview %+v", pv)
+	}
+	ap := decode[ApplyReply](t, do("POST", "/cleanup/apply", `{"plan":{"merges":[]},"runId":0}`))
+	if ap.Summary != "No changes applied." {
+		t.Fatalf("empty apply %+v", ap)
+	}
+	if rec := do("POST", "/cleanup/undo", ""); rec.Code != 422 {
+		t.Fatalf("undo with nothing: %d", rec.Code)
+	}
+}

@@ -90,18 +90,18 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   saved with a product → ⓘ row. Commit `feat(aicatalog): identify, settings and category routes; a pick is learnt on save and shown in ⓘ`
 
 ### Task 5: clean-up — plan, apply, undo, empty categories
-- [ ] `cleanup.go` (store): `CleanupCategories`, `CleanupProducts(limit, offset)` (active, non-service, with `uncat` =
+- [x] `cleanup.go` (store): `CleanupCategories`, `CleanupProducts(limit, offset)` (active, non-service, with `uncat` =
   no category or one named "Uncategorized"), `CountCleanupProducts`, `SalesCounts(ids)`.
-- [ ] `apply.go`: fork `ApplyPlan` / `isDescendant` / `Revert` / `revertOp` / `LatestRun` and extend: uncategorized →
+- [x] `apply.go`: fork `ApplyPlan` / `isDescendant` / `Revert` / `revertOp` / `LatestRun` and extend: uncategorized →
   `FindOrCreateByPath` inside the tx (undo `created_category` → delete when empty) + `move_product`; names →
   `rename_product` (skip when blank, same, or another active product already has that name — checked with a SELECT, never
   a failing UPDATE); duplicates never applied. Summary counts all six kinds. Chunks thread `runID`.
-- [ ] Duplicates in the preview: server drops pairs with unknown / same / retired ids and orders each as `{keep, drop}`
+- [x] Duplicates in the preview: server drops pairs with unknown / same / retired ids and orders each as `{keep, drop}`
   by sales count (ties: lower id kept).
-- [ ] Routes: `POST /aicatalog/cleanup {offset, reply}` → `{plan, chunk, chunks, offset, next}` | `{prompt, error?}`;
+- [x] Routes: `POST /aicatalog/cleanup {offset, reply}` → `{plan, chunk, chunks, offset, next}` | `{prompt, error?}`;
   `POST /aicatalog/cleanup/apply {plan, runId}`; `GET /aicatalog/cleanup/last`, `POST /aicatalog/cleanup/undo`;
   `GET/POST /aicatalog/cleanup/empty-categories` (no products, no children; POST deletes the listed ids that are still empty).
-- [ ] `apply_db_test.go`: each skip rule (focus 2), rename + merge + move + uncategorized-new-path + product rename →
+- [x] `apply_db_test.go`: each skip rule (focus 2), rename + merge + move + uncategorized-new-path + product rename →
   undo restores ids, names, parents and placements and deletes the created category; two chunks revert as one; empty
   categories list / delete leaves a non-empty one. Commit `feat(aicatalog): catalogue clean-up — categories, uncategorized, names, duplicates; one undo`
 

@@ -53,6 +53,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	a.POST("/aicatalog/settings/test", h.test)
 	a.POST("/aicatalog/identify", h.identify)
 	a.POST("/aicatalog/category", h.category)
+	h.cleanupRoutes(a)
 }
 
 func settingsDTO(s Settings) SettingsDTO {
