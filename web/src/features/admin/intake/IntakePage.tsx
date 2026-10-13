@@ -18,6 +18,9 @@ import { hasBarcode } from '@/lib/barcode'
 import { money, num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { matchBatch } from '@/features/admin/stock/batches'
+import { lotsQuery } from '@/features/admin/stock/queries'
+import { BatchChoice } from './BatchChoice'
 import { initialLabels, LabelBlock, labelRequest, type LabelOpts } from './LabelBlock'
 
 type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 'new'; name: string; barcode: string } | null
@@ -71,7 +74,7 @@ export function IntakePage() {
   }
   async function undo(item: IntakeItem, i: number) {
     try {
-      await api('/admin/inventory/intake/undo', { json: { productId: item.productId, qty: item.qty, kind: item.kind } })
+      await api('/admin/inventory/intake/undo', { json: { productId: item.productId, qty: item.qty, kind: item.kind, batchId: item.batchId } })
       setSession((s) => s.filter((_, j) => j !== i))
       toast.success(item.kind === 'create' ? `${item.name} removed (find it under Show disabled)` : `${item.name}: −${qtyText(item.qty)}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -164,6 +167,12 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   const [wholesale, setWholesale] = useState(num(p.wholesalePrice) ? p.wholesalePrice : '')
   const [barcode, setBarcode] = useState(p.barcode)
   const [busy, setBusy] = useState(false)
+  const lots = useQuery(lotsQuery(p.id)).data?.lots ?? []
+  const [expiry, setExpiry] = useState('')
+  // The batch it goes into: the matching one until the person picks by hand.
+  const [picked, setPicked] = useState<number | null>(null)
+  const auto = matchBatch(lots, { cost: prices.cost, selling: prices.selling, expiry }, p.sellingPrice)
+  const batchId = picked ?? auto
   // A barcode-less item gets one minted and saved, so its label scans at the till (karots-pos genBarcode).
   async function generate() {
     setBusy(true)
@@ -186,6 +195,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
       const changed = (a: string, b: string) => (num(a) !== num(b) ? a : '')
       const item = await api<IntakeItem>('/admin/inventory/intake/restock', { json: {
         productId: p.id, quantity: qty, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice), scanned: scanned ?? '',
+        batchId, expiry: batchId ? '' : expiry,
       } })
       toast.success(`${p.name}: +${qtyText(qty)}`)
       onSaved(item, fields)
@@ -216,6 +226,8 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
       </Field>
       <PriceRow prices={prices} set={(f, v) => setPrices((x) => editPrice(x, f, v, true))} wholesale={wholesale} setWholesale={setWholesale} />
       {num(prices.selling) !== num(p.sellingPrice) && <p className="text-[12px] text-muted-foreground">The new price goes on the product and sticks to the stock you’re adding now; stock already on the shelf keeps its price.</p>}
+      <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className={cn(INPUT, 'md:w-56')} /></Field>
+      {lots.length > 0 && <BatchChoice lots={lots} value={batchId} auto={auto} unit={p.unitAbbr} sym={sym} productPrice={p.sellingPrice} onPick={setPicked} />}
       <LabelBlock opts={labels} set={setLabels} name={p.name} price={prices.selling} barcode={barcode} qty={qty} fields={fields} />
       <div className="flex gap-2">
         <Button type="button" variant="ghost" className="h-11 px-4" onClick={onCancel}>Cancel</Button>
@@ -225,7 +237,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   )
 }
 
-type Draft = { name: string; barcode: string; cost: string; markup: string; selling: string; wholesale: string; qty: string }
+type Draft = { name: string; barcode: string; cost: string; markup: string; selling: string; wholesale: string; qty: string; expiry: string }
 // Kept between new items (karots-pos rapid loop): category, unit, supplier and markup.
 let sticky = { categoryId: 0, unitId: 0, supplierId: 0, markup: '1.4' }
 let lastNew: Draft | null = null
@@ -233,7 +245,7 @@ let lastNew: Draft | null = null
 function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { init: { name: string; barcode: string }; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem) => void; onCancel: () => void; onLinked: (p: AdminProductRow, code: string) => void }) {
   const units = useQuery(unitsQuery).data ?? []
   const suppliers = useQuery(supplierOptionsQuery).data ?? []
-  const blank = (name: string, barcode: string): Draft => ({ name, barcode, cost: '', markup: sticky.markup, selling: '', wholesale: '', qty: '' })
+  const blank = (name: string, barcode: string): Draft => ({ name, barcode, cost: '', markup: sticky.markup, selling: '', wholesale: '', qty: '', expiry: '' })
   const [d, setD] = useState<Draft>(() => blank(init.name, init.barcode))
   const [cat, setCat] = useState(sticky.categoryId)
   const [unit, setUnit] = useState(sticky.unitId)
@@ -252,7 +264,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
     e.preventDefault()
     setBusy(true)
     try {
-      const item = await api<IntakeItem>('/admin/inventory/intake/create', { json: { quantity: d.qty, product: {
+      const item = await api<IntakeItem>('/admin/inventory/intake/create', { json: { quantity: d.qty, expiry: d.expiry, product: {
         name: d.name, nameLocal: '', barcode: d.barcode, categoryId: cat, unitId, costPrice: d.cost, sellingPrice: d.selling, wholesalePrice: d.wholesale, taxRate: '',
         reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: supplier, repriceStock: false, dupSourceName: '', extra: extraBody(extras),
       } } })
@@ -310,6 +322,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
       <Field label="Opening quantity">
         <input ref={qtyRef} autoFocus={!!init.name} aria-label="Opening quantity" inputMode="decimal" value={d.qty} onChange={(e) => setD({ ...d, qty: clean(e.target.value) })} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} placeholder="0" />
       </Field>
+      <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={d.expiry} onChange={(e) => setD({ ...d, expiry: e.target.value })} className={cn(INPUT, 'md:w-56')} /></Field>
       <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
       <LabelBlock opts={labels} set={setLabels} name={d.name} price={d.selling} barcode={d.barcode} qty={d.qty} />
       <div className="flex gap-2">
