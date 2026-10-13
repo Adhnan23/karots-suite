@@ -56,6 +56,25 @@ type ProductLots struct {
 	Lots         []LotRow `json:"lots"`
 }
 
+// AddBatchRequest opens a batch by hand (Batches → + Add batch). Blank cost =
+// the product's, blank price = follows the product, blank expiry = none.
+type AddBatchRequest struct {
+	Qty          string `json:"qty"`
+	Cost         string `json:"cost"`
+	SellingPrice string `json:"sellingPrice"`
+	Expiry       string `json:"expiry"` // YYYY-MM-DD or ""
+}
+
+// MergeBatchesRequest folds batches into the oldest of them with the values the
+// prompt shows: blank cost = weighted average, blank expiry = none, blank
+// price = follows the product.
+type MergeBatchesRequest struct {
+	BatchIDs     []int64 `json:"batchIds"`
+	Cost         string  `json:"cost"`
+	Expiry       string  `json:"expiry"`
+	SellingPrice string  `json:"sellingPrice"`
+}
+
 // LotPriceRequest re-prices one lot; "" = follow the product again.
 type LotPriceRequest struct {
 	SellingPrice string `json:"sellingPrice"`
@@ -158,6 +177,7 @@ type ImportSummary struct {
 type IntakeCreateRequest struct {
 	Product  ProductRequest `json:"product"`
 	Quantity string         `json:"quantity"`
+	Expiry   string         `json:"expiry"` // YYYY-MM-DD or ""
 }
 
 // IntakeRestockRequest adds Quantity to a product; blank prices stay as they are.
@@ -168,6 +188,8 @@ type IntakeRestockRequest struct {
 	SellingPrice   string `json:"sellingPrice"`
 	WholesalePrice string `json:"wholesalePrice"`
 	Scanned        string `json:"scanned"` // the code scanned to open it, if any (stamps its last scan)
+	BatchID        int64  `json:"batchId"` // the batch to top up; 0 = a new batch
+	Expiry         string `json:"expiry"`  // a new batch's expiry, YYYY-MM-DD or ""
 }
 
 // IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
@@ -175,6 +197,7 @@ type IntakeUndoRequest struct {
 	ProductID int64  `json:"productId"`
 	Qty       string `json:"qty"`
 	Kind      string `json:"kind"`
+	BatchID   int64  `json:"batchId"` // the batch the row went into (0 = oldest first)
 }
 
 // IntakeItem is one row of the intake session list (Qty = what this row added).
@@ -187,6 +210,7 @@ type IntakeItem struct {
 	Kind         string `json:"kind"` // create | restock
 	StockQty     string `json:"stockQty"`
 	UnitAbbr     string `json:"unitAbbr"`
+	BatchID      int64  `json:"batchId"` // the batch the units went into
 }
 
 // AdminConversion is a pack-breaking recipe: 1 From unit makes Ratio To units.

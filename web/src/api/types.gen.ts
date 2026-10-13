@@ -2603,6 +2603,27 @@ export interface ProductLots {
   lots: LotRow[];
 }
 /**
+ * AddBatchRequest opens a batch by hand (Batches → + Add batch). Blank cost =
+ * the product's, blank price = follows the product, blank expiry = none.
+ */
+export interface AddBatchRequest {
+  qty: string;
+  cost: string;
+  sellingPrice: string;
+  expiry: string; // YYYY-MM-DD or ""
+}
+/**
+ * MergeBatchesRequest folds batches into the oldest of them with the values the
+ * prompt shows: blank cost = weighted average, blank expiry = none, blank
+ * price = follows the product.
+ */
+export interface MergeBatchesRequest {
+  batchIds: number /* int64 */[];
+  cost: string;
+  expiry: string;
+  sellingPrice: string;
+}
+/**
  * LotPriceRequest re-prices one lot; "" = follow the product again.
  */
 export interface LotPriceRequest {
@@ -2708,6 +2729,7 @@ export interface ImportSummary {
 export interface IntakeCreateRequest {
   product: ProductRequest;
   quantity: string;
+  expiry: string; // YYYY-MM-DD or ""
 }
 /**
  * IntakeRestockRequest adds Quantity to a product; blank prices stay as they are.
@@ -2719,6 +2741,8 @@ export interface IntakeRestockRequest {
   sellingPrice: string;
   wholesalePrice: string;
   scanned: string; // the code scanned to open it, if any (stamps its last scan)
+  batchId: number /* int64 */; // the batch to top up; 0 = a new batch
+  expiry: string; // a new batch's expiry, YYYY-MM-DD or ""
 }
 /**
  * IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
@@ -2727,6 +2751,7 @@ export interface IntakeUndoRequest {
   productId: number /* int64 */;
   qty: string;
   kind: string;
+  batchId: number /* int64 */; // the batch the row went into (0 = oldest first)
 }
 /**
  * IntakeItem is one row of the intake session list (Qty = what this row added).
@@ -2740,6 +2765,7 @@ export interface IntakeItem {
   kind: string; // create | restock
   stockQty: string;
   unitAbbr: string;
+  batchId: number /* int64 */; // the batch the units went into
 }
 /**
  * AdminConversion is a pack-breaking recipe: 1 From unit makes Ratio To units.

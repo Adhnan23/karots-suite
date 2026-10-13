@@ -26,6 +26,8 @@ func (h *handlers) registerAdminStock(g *echo.Group) {
 	g.GET("/stock/movements", h.AdminStockMovements)
 	g.POST("/stock/adjust", h.AdminStockAdjust)
 	g.GET("/stock/lots/:id", h.AdminProductLots)
+	g.POST("/stock/lots/:id/add", h.AdminAddBatch)
+	g.POST("/stock/lots/:id/merge", h.AdminMergeBatches)
 	g.POST("/stock/batches/:id/price", h.AdminBatchPrice)
 	g.GET("/staff-options", h.AdminStaffOptions)
 }

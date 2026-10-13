@@ -26,13 +26,13 @@ func (h *handlers) registerAdminIntake(g *echo.Group) {
 	in.POST("/undo", h.AdminIntakeUndo)
 }
 
-func (h *handlers) intakeItem(ctx context.Context, id int64, qty, kind string) (IntakeItem, error) {
+func (h *handlers) intakeItem(ctx context.Context, id int64, qty, kind string, batchID int64) (IntakeItem, error) {
 	p, err := h.t.products.Get(ctx, id)
 	if err != nil {
 		return IntakeItem{}, err
 	}
 	return IntakeItem{ProductID: p.ID, Name: p.Name, Barcode: strOr(p.Barcode), SellingPrice: dec2(p.SellingPrice), Qty: qty, Kind: kind,
-		StockQty: p.StockQty.String(), UnitAbbr: p.UnitAbbr}, nil
+		StockQty: p.StockQty.String(), UnitAbbr: p.UnitAbbr, BatchID: batchID}, nil
 }
 
 // AdminIntakeCreate adds a new product and its opening count. A name that
@@ -72,12 +72,14 @@ func (h *handlers) AdminIntakeCreate(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "intake created "+in.Name)
+	var bid int64
 	if n.IsPositive() {
-		if err := h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: p.ID, NewQuantity: n.String(), Note: "stock intake"}, middleware.CurrentUserID(c)); err != nil {
+		// The opening batch follows the product's price (stamping it would freeze it).
+		if bid, err = h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: p.ID, Qty: n.String(), Expiry: req.Expiry, Note: "stock intake"}, middleware.CurrentUserID(c)); err != nil {
 			return err
 		}
 	}
-	item, err := h.intakeItem(ctx, p.ID, n.String(), "create")
+	item, err := h.intakeItem(ctx, p.ID, n.String(), "create", bid)
 	if err != nil {
 		return err
 	}
@@ -104,15 +106,18 @@ func (h *handlers) AdminIntakeRestock(c echo.Context) error {
 	if _, err := h.applyCount(ctx, p, CountLine{ProductID: p.ID, Cost: req.CostPrice, Selling: req.SellingPrice, Wholesale: req.WholesalePrice}, "", 0); err != nil {
 		return err
 	}
-	if err := h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: p.ID, NewQuantity: p.StockQty.Add(add).String(), Note: "stock intake restock",
-		SellingPrice: strings.TrimSpace(req.SellingPrice)}, middleware.CurrentUserID(c)); err != nil {
+	// A top-up keeps that batch's own cost / price / expiry; a new price is
+	// stamped only on a new batch.
+	bid, err := h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: p.ID, BatchID: req.BatchID, Qty: add.String(),
+		Price: strings.TrimSpace(req.SellingPrice), Expiry: req.Expiry, Note: "stock intake restock"}, middleware.CurrentUserID(c))
+	if err != nil {
 		return err
 	}
 	if req.Scanned != "" {
 		h.t.products.BarcodeScanned(ctx, req.Scanned)
 	}
 	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(p.ID, 10), "intake restock +"+add.String())
-	item, err := h.intakeItem(ctx, p.ID, add.String(), "restock")
+	item, err := h.intakeItem(ctx, p.ID, add.String(), "restock", bid)
 	if err != nil {
 		return err
 	}
@@ -134,7 +139,12 @@ func (h *handlers) AdminIntakeUndo(c echo.Context) error {
 	}
 	if delta, err := money.Parse(strings.TrimSpace(req.Qty)); err == nil && delta.IsPositive() {
 		left := decimal.Max(p.StockQty.Sub(delta), decimal.Zero)
-		if err := h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: p.ID, NewQuantity: left.String(), Note: "stock intake undo"}, middleware.CurrentUserID(c)); err != nil {
+		// Off the batch the row went into, unless some of it has sold since: then oldest first.
+		bid := req.BatchID
+		if bid > 0 && !h.lotHolds(ctx, p.ID, bid, p.StockQty.Sub(left)) {
+			bid = 0
+		}
+		if err := h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: p.ID, NewQuantity: left.String(), Note: "stock intake undo", BatchID: bid}, middleware.CurrentUserID(c)); err != nil {
 			return err
 		}
 	}
@@ -145,4 +155,18 @@ func (h *handlers) AdminIntakeUndo(c echo.Context) error {
 	}
 	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(p.ID, 10), "intake undo ("+req.Kind+")")
 	return c.NoContent(http.StatusNoContent)
+}
+
+// lotHolds reports whether a live batch of the product still holds qty.
+func (h *handlers) lotHolds(ctx context.Context, productID, batchID int64, qty decimal.Decimal) bool {
+	lots, err := h.t.stock.Batches(ctx, productID)
+	if err != nil {
+		return false
+	}
+	for _, b := range lots {
+		if b.ID == batchID {
+			return !b.QtyRemaining.LessThan(qty)
+		}
+	}
+	return false
 }
