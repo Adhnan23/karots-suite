@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-13, M7.6c done — M7.6 complete)
+## Status (2026-10-13, M7.6d done)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -20,10 +20,15 @@ phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
-**NEXT (fresh session): M7.6d Loose versions** — spec `docs/specs/2026-10-13-m7-6d-loose-versions-design.md`, plan
-`docs/plans/2026-10-13-m7-6d-loose-versions.md` (user approved all of it, 2026-10-13: Make a loose version… in one sheet,
-conversion keeps each bag's batch / expiry / cost and takes the real yield, no "extra cost" money, Product Plus copies,
-alternatives only when ticked, a swap to another unit asks how many). Then the user's whole-M7 review continues, then M7.7.
+**M7.6d Loose versions DONE (2026-10-13)** (plan `docs/plans/2026-10-13-m7-6d-loose-versions.md`, differences 79–81):
+Make a loose version… (core `POST /admin/products/:id/loose`, one tx via `conversions.MakeLoose` + `products.CreateTx`;
+plugin extras validate before, save after, as a plain create); `stock.DepleteFEFOLots`; a run opens one loose batch per bag
+(expiry / batch no / cost carried — karots-pos fix `16b7b97`, UNPUSHED for the user) and takes **Got** (`toQty`); slot
+prop `ProductFormSection.kind` ('copy' | 'loose'); `TillApi.swapLine(key, productId, qty?)`; alternatives `AltDTO.unit /
+sameUnit`. Value per batch is exact to half a cent a unit (cost_price is 2 dp per unit). User asked: the lost weight is
+not a write-off — it is in the loose cost (lower margin); a "expected vs got" column in run history was offered, not built.
+Checks: 150 Playwright flows (dev DB reseeded), go test all-plugins + core-only, 175 web unit tests, verify, verify-portable.
+**NEXT:** the rest of the user's whole-M7 review, then M7.7.
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
