@@ -114,16 +114,16 @@ The duplicate rows open core's existing merge confirm (exported from `MergeInto.
   `feat(web): productAssists slot under the product name; merge confirm can be opened by a caller`
 
 ### Task 7: ✨ Identify (UI gate)
-- [ ] `web/src/plugins/aicatalog/ask.ts`: pure reducer `idle → asking → result | awaiting(prompt) → result | error(text kept)`
+- [x] `web/src/plugins/aicatalog/ask.ts`: pure reducer `idle → asking → result | awaiting(prompt) → result | error(text kept)`
   + `readReply` (calls the endpoint with `reply`) — `ask.test.ts` (Vitest): paste mode, bad paste keeps text, API fail → awaiting.
-- [ ] `PastePanel.tsx` (shared): **Copy & open chatbot** (clipboard write + `window.open(url, 'ai-chatbot')`, chatbot from
+- [x] `PastePanel.tsx` (shared): **Copy & open chatbot** (clipboard write + `window.open(url, 'ai-chatbot')`, chatbot from
   settings: Gemini / ChatGPT / Claude), reply box parses on paste (no button), **reads the clipboard when the tab regains
   focus** while awaiting (`navigator.clipboard.readText`, failures silent), **Full prompt** button.
-- [ ] `Identify.tsx` (the Assist): ✨ Identify (disabled with no name / barcode); one sure answer or up to 4 options
+- [x] `Identify.tsx` (the Assist): ✨ Identify (disabled with no name / barcode); one sure answer or up to 4 options
   (name, category, specs, explanation) + "None of these — let me explain" (hint → ask again, source `user_explained`);
   pick → `POST /category` → `fill({name, categoryId, extra})`, invalidate the categories query. First prompt per tab full,
   later `short` (sessionStorage `ks-aicat-primed`).
-- [ ] `index.tsx`: register `productAssists`. Shots: form + intake, paste state and options, 4 combos at 1366, form at 360.
+- [x] `index.tsx`: register `productAssists`. Shots: form + intake, paste state and options, 4 combos at 1366, form at 360.
   Commit `feat(aicatalog): ✨ Identify in the product form and intake — paste first, reads the reply as it lands`
 
 ### Task 8: Apps → AI Assistant — Settings and Clean up (UI gate)

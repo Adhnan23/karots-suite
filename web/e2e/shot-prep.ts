@@ -1,4 +1,5 @@
 import type { Page } from './fixtures'
+import { aicatalogPrep } from './shot-prep-aicatalog'
 import { alternativesData } from './shot-prep-alternatives'
 import { barcodesPrep } from './shot-prep-barcodes'
 import { ppPrep } from './shot-prep-productplus'
@@ -25,6 +26,7 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 
 export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
+  ...aicatalogPrep,
   /** Any report page over today's sales: SHOTS_PREP=with-sales SHOTS_NAME=<name>. */
   'with-sales': async (page) => {
     await salesWithHistory(page)
