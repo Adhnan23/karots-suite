@@ -43,7 +43,7 @@ internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
-migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes; next is 00004_
+migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge; next is 00005_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts

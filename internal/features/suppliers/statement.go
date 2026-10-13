@@ -97,8 +97,17 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		ORDER BY lr.created_at`, id); err != nil {
 		return nil, apperr.Internal("failed to load supplier credits", err)
 	}
+	// What a supplier asked on top to replace one (it costs more now) raises it.
+	var charges []evRow
+	if err := s.db.SelectContext(ctx, &charges, `
+		SELECT lr.created_at, p.name AS ref, lr.extra_charge AS amount
+		FROM loss_recoveries lr JOIN products p ON p.id = lr.product_id
+		WHERE lr.supplier_id = $1 AND lr.extra_charge > 0
+		ORDER BY lr.created_at`, id); err != nil {
+		return nil, apperr.Internal("failed to load replacement charges", err)
+	}
 
-	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+len(refunds)+len(credits)+1)
+	entries := make([]LedgerEntry, 0, len(purchases)+len(returns)+len(pays)+len(refunds)+len(credits)+len(charges)+1)
 	// The opening balance is the carried-forward figure from before this system: a
 	// debit when we owed them, a credit when they owed us (a pre-system advance).
 	if sup.OpeningBalance.IsPositive() {
@@ -128,6 +137,9 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	}
 	for _, r := range credits {
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Credit for a loss", Ref: r.Ref, Credit: r.Amount})
+	}
+	for _, r := range charges {
+		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Replacement charge", Ref: r.Ref, Debit: r.Amount})
 	}
 	sort.SliceStable(entries, func(i, j int) bool { return entries[i].Date.Before(entries[j].Date) })
 

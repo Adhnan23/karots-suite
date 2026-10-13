@@ -130,7 +130,7 @@ func (h *handlers) ReportLossLines(c echo.Context) error {
 	}
 	out := make([]LossRow, 0, len(rows))
 	for _, l := range rows {
-		r := LossRow{Kind: l.Kind, ID: l.MovementID, Product: l.Product, Qty: l.Quantity.String(), Loss: dec2(l.LossValue), Note: strOr(l.Note), By: l.By,
+		r := LossRow{Kind: l.Kind, ID: l.MovementID, ProductID: l.ProductID, Product: l.Product, Qty: l.Quantity.String(), Loss: dec2(l.LossValue), Note: strOr(l.Note), By: l.By,
 			At: l.At.Format(time.RFC3339), Outcome: strOr(l.Outcome), Recovered: dec2(l.Recovered)}
 		if l.SourceID != nil {
 			r.SourceID = *l.SourceID
@@ -147,12 +147,25 @@ func (h *handlers) AdminRecovery(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	in := recovery.CreateInput{SourceType: req.SourceType, SourceID: req.SourceID, Outcome: req.Outcome, RecoveredAmount: strings.TrimSpace(req.Amount), Note: strings.TrimSpace(req.Note)}
+	in := recovery.CreateInput{SourceType: req.SourceType, SourceID: req.SourceID, Outcome: req.Outcome, RecoveredAmount: strings.TrimSpace(req.Amount), Note: strings.TrimSpace(req.Note),
+		BatchID: req.BatchID, Expiry: strings.TrimSpace(req.Expiry), ExtraPerUnit: strings.TrimSpace(req.ExtraPerUnit), Price: strings.TrimSpace(req.SellingPrice)}
 	if req.SupplierID > 0 {
 		in.SupplierID = &req.SupplierID
 	}
-	if err := recovery.NewService(h.d.DB).Record(c.Request().Context(), in, middleware.CurrentUserID(c)); err != nil {
+	ctx := c.Request().Context()
+	if err := recovery.NewService(h.d.DB).Record(ctx, in, middleware.CurrentUserID(c)); err != nil {
 		return err
+	}
+	// A replacement at a new selling price moves the product's price too, as
+	// at intake (the new batch already carries it).
+	if req.Outcome == recovery.OutcomeReplacement && in.Price != "" {
+		if pid, err := recovery.NewService(h.d.DB).LossProduct(ctx, in.SourceType, in.SourceID); err == nil {
+			if p, err := h.t.products.Get(ctx, pid); err == nil {
+				if _, err := h.applyCount(ctx, p, CountLine{ProductID: p.ID, Selling: in.Price}, "", 0); err != nil {
+					return err
+				}
+			}
+		}
 	}
 	h.audit(c, audit.ActionUpdate, req.SourceType, strconv.FormatInt(req.SourceID, 10), "supplier recovery: "+req.Outcome)
 	return c.NoContent(http.StatusNoContent)

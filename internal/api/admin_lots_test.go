@@ -147,3 +147,49 @@ func TestWriteOffAnswersItsLossForRecovery(t *testing.T) {
 		t.Fatalf("partial credit: %d %s", rec.Code, rec.Body)
 	}
 }
+
+// A supplier replacement goes where intake would put it: the batch picked (a
+// top-up, no new batch) or a new batch with its expiry, valued at what was lost.
+func TestReplacementGoesIntoTheChosenBatch(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	const phone = "0770009565"
+	clean := func() {
+		te.db.Exec(`DELETE FROM loss_recoveries WHERE handled_by IN (SELECT id FROM users WHERE phone=$1)`, phone) //nolint:errcheck
+		te.db.Exec(`DELETE FROM stock_movements WHERE user_id IN (SELECT id FROM users WHERE phone=$1)`, phone)    //nolint:errcheck
+	}
+	clean()
+	ck := te.login(t, phone, "manager")
+	t.Cleanup(clean)
+	var lot int64
+	te.db.Get(&lot, `SELECT id FROM stock_batches WHERE product_id=$1 ORDER BY id LIMIT 1`, f.plainID) //nolint:errcheck
+	var before float64
+	te.db.Get(&before, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, lot) //nolint:errcheck
+	writeOff := func() int64 {
+		return decode[ConsumeResult](t, te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "2", Reason: "damage", BatchID: lot}, ck)).LossID
+	}
+	count := func() (n int) {
+		te.db.Get(&n, `SELECT COUNT(*) FROM stock_batches WHERE product_id=$1`, f.plainID) //nolint:errcheck
+		return n
+	}
+
+	n := count()
+	if rec := te.do(http.MethodPost, "/api/v1/admin/recovery", RecoveryRequest{SourceType: "damage", SourceID: writeOff(), Outcome: "replacement", BatchID: lot}, ck); rec.Code >= 300 {
+		t.Fatalf("replace into batch: %d %s", rec.Code, rec.Body)
+	}
+	var after float64
+	te.db.Get(&after, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, lot) //nolint:errcheck
+	if after != before || count() != n {
+		t.Fatalf("batch %v → %v, %d → %d batches: the replacement should top up the batch it was picked for", before, after, n, count())
+	}
+
+	if rec := te.do(http.MethodPost, "/api/v1/admin/recovery", RecoveryRequest{SourceType: "damage", SourceID: writeOff(), Outcome: "replacement", Expiry: "2027-08-31"}, ck); rec.Code >= 300 {
+		t.Fatalf("replace as new: %d %s", rec.Code, rec.Body)
+	}
+	var exp string
+	var cost float64
+	te.db.QueryRow(`SELECT to_char(expiry_date,'YYYY-MM-DD'), cost_price FROM stock_batches WHERE product_id=$1 ORDER BY id DESC LIMIT 1`, f.plainID).Scan(&exp, &cost) //nolint:errcheck
+	if count() != n+1 || exp != "2027-08-31" || cost != 50 {
+		t.Fatalf("new replacement batch: %d batches, exp %q, cost %v (want the lost cost 50)", count(), exp, cost)
+	}
+}

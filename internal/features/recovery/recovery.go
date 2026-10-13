@@ -39,6 +39,7 @@ type Recovery struct {
 	Quantity       decimal.Decimal `db:"quantity"        json:"quantity"`
 	LossValue      decimal.Decimal `db:"loss_value"      json:"loss_value"`
 	RecoveredValue decimal.Decimal `db:"recovered_value" json:"recovered_value"`
+	ExtraCharge    decimal.Decimal `db:"extra_charge"    json:"extra_charge"`
 	Note           *string         `db:"note"            json:"note,omitempty"`
 	HandledBy      int64           `db:"handled_by"      json:"handled_by"`
 	CreatedAt      time.Time       `db:"created_at"       json:"created_at"`
@@ -52,6 +53,13 @@ type CreateInput struct {
 	Outcome         string `form:"outcome"`
 	RecoveredAmount string `form:"recovered_amount"`
 	Note            string `form:"note"`
+	// A replacement joins BatchID (0 = a new batch with Expiry), as at intake.
+	BatchID int64
+	Expiry  string
+	// ExtraPerUnit is what the supplier asked on top for a replacement (owed
+	// to SupplierID, added to the batch cost); Price stamps a new batch.
+	ExtraPerUnit string
+	Price        string
 }
 
 // DamageLoss is a damage write-off row for the admin Damage report, with any
@@ -133,11 +141,11 @@ func (r *Repository) Insert(ctx context.Context, rec Recovery) (int64, error) {
 	var id int64
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO loss_recoveries
-			(source_type, source_id, product_id, supplier_id, outcome, quantity, loss_value, recovered_value, note, handled_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+			(source_type, source_id, product_id, supplier_id, outcome, quantity, loss_value, recovered_value, note, handled_by, extra_charge)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 		RETURNING id`,
 		rec.SourceType, rec.SourceID, rec.ProductID, rec.SupplierID, rec.Outcome,
-		rec.Quantity, rec.LossValue, rec.RecoveredValue, rec.Note, rec.HandledBy)
+		rec.Quantity, rec.LossValue, rec.RecoveredValue, rec.Note, rec.HandledBy, rec.ExtraCharge)
 	return id, err
 }
 

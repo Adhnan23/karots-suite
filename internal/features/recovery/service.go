@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
@@ -85,6 +86,17 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 		}
 		paidAmount = amt
 	}
+	extra := decimal.Zero
+	if in.Outcome == OutcomeReplacement && strings.TrimSpace(in.ExtraPerUnit) != "" {
+		v, err := money.Parse(in.ExtraPerUnit)
+		if err != nil || v.IsNegative() {
+			return apperr.Validation("the extra must be an amount (0 if the replacement is free)")
+		}
+		if v.IsPositive() && (in.SupplierID == nil || *in.SupplierID <= 0) {
+			return apperr.Validation("select the supplier who asked for the extra")
+		}
+		extra = v
+	}
 
 	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
@@ -134,36 +146,28 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 
 		switch in.Outcome {
 		case OutcomeReplacement:
-			// Supplier returned goods → bring them back into inventory at the
-			// product's current cost, mirroring an adjustment restock.
-			cost, err := stk.ProductCost(ctx, src.ProductID)
-			if err != nil {
-				return apperr.Internal("failed to read product cost", err)
+			// Supplier returned goods → back into inventory where intake would
+			// put them: the batch picked (a top-up) or a new batch with its
+			// expiry, valued at what was lost per unit so the recovered value
+			// is the loss (the product's cost may have moved since).
+			// Any extra the supplier asked on top is owed to them and is part
+			// of what this stock cost.
+			cost := decimal.Zero
+			if src.Quantity.IsPositive() {
+				cost = src.LossValue.Div(src.Quantity).Round(2)
 			}
-			src2 := "recovery"
-			if _, err := stk.InsertBatch(ctx, stock.NewBatch{
-				ProductID: src.ProductID,
-				Quantity:  src.Quantity,
-				CostPrice: cost,
-				Source:    src2,
-			}); err != nil {
-				return apperr.Internal("failed to restock replacement", err)
-			}
-			if err := stk.Increment(ctx, src.ProductID, src.Quantity); err != nil {
-				return apperr.Internal("failed to update stock", err)
-			}
+			cost = cost.Add(extra)
 			refType := "recovery"
-			note := "supplier replacement received"
-			if err := stk.InsertMovement(ctx, stock.MovementInput{
-				ProductID:     src.ProductID,
-				Type:          stock.MoveRecovery,
-				Quantity:      src.Quantity,
-				ReferenceType: &refType,
-				UserID:        userID,
-				Note:          &note,
-				Cost:          cost.Mul(src.Quantity),
-			}); err != nil {
-				return apperr.Internal("failed to record stock movement", err)
+			if _, err := stk.AddStock(ctx, stock.AddStockInput{ProductID: src.ProductID, BatchID: in.BatchID, Qty: src.Quantity.String(),
+				Cost: cost.String(), Price: in.Price, Expiry: in.Expiry, Note: "supplier replacement received", Source: "recovery",
+				Move: stock.MoveRecovery, RefType: &refType}, userID); err != nil {
+				return err
+			}
+			if extra.IsPositive() {
+				rec.ExtraCharge = extra.Mul(src.Quantity).Round(2)
+				if err := suppliers.NewRepository(tx).AddBalance(ctx, *in.SupplierID, rec.ExtraCharge); err != nil {
+					return apperr.Internal("failed to charge supplier", err)
+				}
 			}
 			// The goods came back, so the original loss is recovered in kind.
 			rec.RecoveredValue = src.LossValue
@@ -184,6 +188,23 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 		}
 		return nil
 	})
+}
+
+// LossProduct is the product a loss is of.
+func (s *Service) LossProduct(ctx context.Context, sourceType string, sourceID int64) (int64, error) {
+	var (
+		src *source
+		err error
+	)
+	if sourceType == SourceWarranty {
+		src, err = s.repo.warrantySource(ctx, sourceID)
+	} else {
+		src, err = s.repo.damageSource(ctx, sourceID)
+	}
+	if err != nil {
+		return 0, err
+	}
+	return src.ProductID, nil
 }
 
 func nilIfEmpty(s string) *string {

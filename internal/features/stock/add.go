@@ -1,6 +1,7 @@
 package stock
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
@@ -26,6 +27,11 @@ type AddStockInput struct {
 	Price     string
 	Expiry    string
 	Note      string
+	// Source / Move / RefType name a new batch's source and the movement
+	// (default "adjust"); a supplier replacement uses "recovery".
+	Source  string
+	Move    string
+	RefType *string
 }
 
 // ParseExpiry reads a YYYY-MM-DD expiry; blank is no expiry.
@@ -90,7 +96,7 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 			return 0, err
 		}
 		if batchID, err = r.InsertBatch(ctx, NewBatch{ProductID: in.ProductID, Quantity: qty, CostPrice: cost,
-			SellingPrice: price, ExpiryDate: exp, Source: "adjust"}); err != nil {
+			SellingPrice: price, ExpiryDate: exp, Source: cmp.Or(in.Source, "adjust")}); err != nil {
 			return 0, apperr.Internal("failed to open batch", err)
 		}
 		// InsertBatch fills a blank cost from the product; value the movement the same.
@@ -103,7 +109,7 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 		in.ProductID, qty); err != nil {
 		return 0, apperr.Internal("failed to update stock", err)
 	}
-	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: MoveAdjust, Quantity: qty,
+	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: in.RefType,
 		UserID: userID, Note: nilIfEmpty(in.Note), Cost: cost.Mul(qty)}); err != nil {
 		return 0, apperr.Internal("failed to record movement", err)
 	}

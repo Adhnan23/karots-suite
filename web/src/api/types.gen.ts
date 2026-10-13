@@ -2288,6 +2288,7 @@ export interface LossRow {
   kind: string;
   sourceId: number /* int64 */;
   id: number /* int64 */;
+  productId: number /* int64 */;
   product: string;
   qty: string;
   loss: string;
@@ -2309,6 +2310,15 @@ export interface RecoveryRequest {
   supplierId: number /* int64 */;
   amount: string;
   note: string;
+  batchId: number /* int64 */; // replacement: the batch it joins (0 = a new batch)
+  expiry: string; // replacement in a new batch: its expiry, YYYY-MM-DD or ""
+  /**
+   * Replacement: what the supplier asked on top, per unit (it costs more now;
+   * 0 = free) — owed to SupplierID and added to the batch cost — and the new
+   * batch's selling price ("" = unchanged; a new price also goes on the product).
+   */
+  extraPerUnit: string;
+  sellingPrice: string;
 }
 /**
  * ActivityRow is one "who did what" entry. Amount is a signed money delta

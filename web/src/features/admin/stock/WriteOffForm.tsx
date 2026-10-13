@@ -25,7 +25,7 @@ const WHY: Record<Reason, string> = {
 export function WriteOffForm({ onClose, onDamaged }: {
   onClose: () => void
   /** A damage write-off: ask whether the supplier will make it good (useSupplierClaim). */
-  onDamaged: (lossId: number, product: string, qty: string, value: number) => void
+  onDamaged: (lossId: number, productId: number, product: string, qty: string, value: number) => void
 }) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const qc = useQueryClient()
@@ -43,7 +43,7 @@ export function WriteOffForm({ onClose, onDamaged }: {
     try {
       const body: ConsumeRequest = { productId: p.id, quantity: qty, reason, note, batchId: lots.length > 1 ? chosen?.id ?? 0 : 0 }
       const r = await api<ConsumeResult>('/admin/stock/damage', { json: body })
-      if (r.lossId) onDamaged(r.lossId, p.name, qty, num(qty) * num(chosen?.costPrice ?? p.costPrice))
+      if (r.lossId) onDamaged(r.lossId, p.id, p.name, qty, num(qty) * num(chosen?.costPrice ?? p.costPrice))
       else toast.success(`${p.name}: −${qtyText(qty)} ${p.unitAbbr} (${REASONS.find(([r]) => r === reason)?.[1].toLowerCase()})`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
       void qc.invalidateQueries({ queryKey: ['till'] })

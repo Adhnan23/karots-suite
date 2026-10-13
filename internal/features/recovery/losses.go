@@ -18,6 +18,7 @@ type Loss struct {
 	Kind       string          `db:"kind"` // damage | warranty
 	SourceID   *int64          `db:"source_id"`
 	MovementID int64           `db:"movement_id"`
+	ProductID  int64           `db:"product_id"`
 	Product    string          `db:"product"`
 	Quantity   decimal.Decimal `db:"quantity"`
 	LossValue  decimal.Decimal `db:"loss_value"`
@@ -34,7 +35,7 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 	var rows []Loss
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT * FROM (
-			SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.name AS product, ABS(m.quantity) AS quantity,
+			SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.id AS product_id, p.name AS product, ABS(m.quantity) AS quantity,
 			       m.cost AS loss_value, m.note, COALESCE(u.name, '') AS by, m.created_at,
 			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered
 			FROM stock_movements m
@@ -43,7 +44,7 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 			LEFT JOIN loss_recoveries lr ON lr.source_type = 'damage' AND lr.source_id = m.id
 			WHERE m.type = 'damage' AND m.created_at >= $1 AND m.created_at < $2
 		  UNION ALL
-			SELECT 'warranty', wcl.unit_id, m.id, p.name, ABS(m.quantity),
+			SELECT 'warranty', wcl.unit_id, m.id, p.id, p.name, ABS(m.quantity),
 			       m.cost, m.note, COALESCE(u.name, ''), m.created_at,
 			       lr.outcome, COALESCE(lr.recovered_value, 0)
 			FROM stock_movements m

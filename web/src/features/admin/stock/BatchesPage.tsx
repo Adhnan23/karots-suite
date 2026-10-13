@@ -8,6 +8,7 @@ import type { BatchesView, BatchGroup, ConsumeResult, WriteOffResult } from '@/a
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { INPUT } from '@/components/admin/fields'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
+import { PickerShell } from '@/components/admin/PickerShell'
 import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
@@ -15,7 +16,7 @@ import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { useSupplierClaim } from './claim'
+import { ClaimPrompt, useSupplierClaim } from './claim'
 import { daysLeft, ExpiryTag, LotsSheet } from './LotsSheet'
 
 const batchesQuery = queryOptions({ queryKey: ['admin', 'batches'], queryFn: () => api<BatchesView>('/admin/stock/batches') })
@@ -31,6 +32,7 @@ export function BatchesPage() {
   const [lots, setLots] = useState(0)
   const claim = useSupplierClaim(sym)
   const navigate = useNavigate()
+  const [allDone, setAllDone] = useState(0)
   const refresh = () => { void qc.invalidateQueries({ queryKey: ['admin'] }); void qc.invalidateQueries({ queryKey: ['till'] }) }
   const needle = q.trim().toLowerCase()
   const groups = (v?.groups ?? []).filter((g) => (!needle || g.name.toLowerCase().includes(needle))
@@ -39,11 +41,7 @@ export function BatchesPage() {
   async function writeOffAll() {
     const r = await api<WriteOffResult>('/admin/stock/expired/write-off-all', { method: 'POST' })
     if (!r.lots) toast.success('No expired stock to write off')
-    else toast.success(`${r.lots} expired ${r.lots === 1 ? 'lot' : 'lots'} written off`, {
-      duration: 12_000,
-      description: 'Will the supplier replace them or pay for them? Record it per item in Losses & Recovery.',
-      action: { label: 'Open Losses', onClick: () => void navigate({ to: '/admin/reports/losses' }) },
-    })
+    else setAllDone(r.lots)
     refresh()
   }
   return (
@@ -75,6 +73,13 @@ export function BatchesPage() {
       </div>
       {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
       {claim.sheet}
+      {allDone > 0 && (
+        <PickerShell fit open onOpenChange={(o) => !o && setAllDone(0)} title="Written off">
+          <ClaimPrompt title={`${allDone} expired ${allDone === 1 ? 'lot' : 'lots'} written off.`} goLabel="Open Losses & Recovery"
+            body="Will the supplier replace them or pay for them (in full or part)? Record it item by item in Losses & Recovery — now or later."
+            later={() => setAllDone(0)} go={() => void navigate({ to: '/admin/reports/losses' })} />
+        </PickerShell>
+      )}
     </>
   )
 }
@@ -91,7 +96,7 @@ function Stat({ label, value, sub, tone, action }: { label: string; value: strin
 }
 
 function Group({ g, sym, onLots, onDone, onClaim }: {
-  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, product: string, qty: string, value: number) => void
+  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, productId: number, product: string, qty: string, value: number) => void
 }) {
   const [open, setOpen] = useState(g.expired > 0 || g.expiringSoon > 0)
   return (
@@ -128,7 +133,7 @@ function Group({ g, sym, onLots, onDone, onClaim }: {
                         body={`Expired ${l.expiryDate}. It leaves the shelf as damage.`}
                         onConfirm={async () => {
                           const r = await api<ConsumeResult>('/admin/stock/damage', { json: { productId: g.productId, quantity: l.qtyRemaining, reason: 'damage', note: `expired ${l.expiryDate}`, batchId: l.id } })
-                          onClaim(r.lossId, g.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
+                          onClaim(r.lossId, g.productId, g.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
                           onDone()
                         }} />
                     </span>

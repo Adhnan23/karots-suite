@@ -197,6 +197,7 @@ type LossRow struct {
 	Kind      string `json:"kind"`
 	SourceID  int64  `json:"sourceId"`
 	ID        int64  `json:"id"`
+	ProductID int64  `json:"productId"`
 	Product   string `json:"product"`
 	Qty       string `json:"qty"`
 	Loss      string `json:"loss"`
@@ -217,6 +218,13 @@ type RecoveryRequest struct {
 	SupplierID int64  `json:"supplierId"`
 	Amount     string `json:"amount"`
 	Note       string `json:"note"`
+	BatchID    int64  `json:"batchId"` // replacement: the batch it joins (0 = a new batch)
+	Expiry     string `json:"expiry"`  // replacement in a new batch: its expiry, YYYY-MM-DD or ""
+	// Replacement: what the supplier asked on top, per unit (it costs more now;
+	// 0 = free) — owed to SupplierID and added to the batch cost — and the new
+	// batch's selling price ("" = unchanged; a new price also goes on the product).
+	ExtraPerUnit string `json:"extraPerUnit"`
+	SellingPrice string `json:"sellingPrice"`
 }
 
 // ActivityRow is one "who did what" entry. Amount is a signed money delta

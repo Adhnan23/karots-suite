@@ -8,27 +8,46 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { suppliersQuery } from '@/features/counter/queries'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
-import { money, qtyText } from '@/lib/money'
+import { BatchChoice } from '@/features/admin/intake/BatchChoice'
+import { matchBatch } from '@/features/admin/stock/batches'
+import { lotsQuery } from '@/features/admin/stock/queries'
+import { dec, money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
-/** What a supplier made good on one loss: replaced it (back in stock), credited
- * us any amount (full or part), or nothing. Losses & Recovery and the batch
- * write-offs open it. */
-export function RecoverSheet({ loss, sym, onClose }: { loss: LossRow; sym: string; onClose: () => void }) {
+/** What a supplier made good on one loss: replaced it (back in stock, asked
+ * like intake — which batch, expiry, a new price, any extra they charged now
+ * it costs more), credited us any amount (full or part), or nothing.
+ * supplierId pre-picks the supplier (a delivery from them is being received). */
+export function RecoverSheet({ loss, sym, supplierId = 0, onClose }: { loss: LossRow; sym: string; supplierId?: number; onClose: () => void }) {
   const qc = useQueryClient()
   const sups = useQuery(suppliersQuery('')).data ?? []
+  const lotsData = useQuery({ ...lotsQuery(loss.productId), enabled: loss.productId > 0 }).data
+  const lots = lotsData?.lots ?? []
+  const productPrice = lotsData?.sellingPrice ?? ''
   const [outcome, setOutcome] = useState<'replacement' | 'paid' | 'written_off'>('replacement')
-  const [supplier, setSupplier] = useState(0)
+  const [supplier, setSupplier] = useState(supplierId)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
+  const [extra, setExtra] = useState('')
+  const [selling, setSelling] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [picked, setPicked] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
+  const lostUnit = num(loss.qty) > 0 ? num(loss.loss) / num(loss.qty) : 0
+  const unitCost = lostUnit + num(extra)
+  const auto = matchBatch(lots, { cost: dec(unitCost), selling: selling || productPrice, expiry }, productPrice)
+  const batchId = picked ?? auto
+  const needSupplier = outcome === 'paid' || (outcome === 'replacement' && num(extra) > 0)
   async function save() {
     setBusy(true)
     try {
-      const body: RecoveryRequest = { sourceType: loss.kind, sourceId: loss.sourceId, outcome, supplierId: supplier, amount, note }
+      const replace = outcome === 'replacement'
+      const body: RecoveryRequest = { sourceType: loss.kind, sourceId: loss.sourceId, outcome, supplierId: needSupplier ? supplier : 0, amount, note,
+        batchId: replace ? batchId : 0, expiry: replace && !batchId ? expiry : '', extraPerUnit: replace ? extra : '', sellingPrice: replace && num(selling) !== num(productPrice) ? selling : '' }
       await api('/admin/recovery', { json: body })
       toast.success('Recovery recorded')
       void qc.invalidateQueries({ queryKey: ['admin'] })
+      void qc.invalidateQueries({ queryKey: ['till'] })
       onClose()
     } catch (e) {
       toast.error(errMsg(e))
@@ -36,21 +55,41 @@ export function RecoverSheet({ loss, sym, onClose }: { loss: LossRow; sym: strin
       setBusy(false)
     }
   }
+  const clean = (v: string) => v.replace(/[^\d.]/g, '')
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record" busy={busy} onSubmit={save}>
-      <p className="text-sm text-muted-foreground">Lost {qtyText(loss.qty)} worth {money(sym, loss.loss)} at cost.</p>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record" busy={busy || (needSupplier && !supplier)} onSubmit={save}>
+      <p className="text-sm text-muted-foreground">Lost {qtyText(loss.qty)} worth {money(sym, loss.loss)} at cost ({money(sym, lostUnit)} each).</p>
       <Seg label="What the supplier did" value={outcome} onChange={setOutcome}
         options={[['replacement', 'Replaced it'], ['paid', 'Credited us'], ['written_off', 'Nothing']]} />
-      {outcome === 'replacement' && <p className="text-[13px] text-muted-foreground">The replacement goes back on the shelf ({qtyText(loss.qty)} back in stock).</p>}
+      {outcome === 'replacement' && (
+        <>
+          <p className="text-[13px] text-muted-foreground">{qtyText(loss.qty)} go back on the shelf.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="Extra they asked, each" hint={`0 if free · cost ${money(sym, unitCost)} each`}>
+              <input aria-label="Extra per unit" inputMode="decimal" value={extra} onChange={(e) => setExtra(clean(e.target.value))} placeholder="0.00" className={INPUT} />
+            </Field>
+            <Field label="Selling price">
+              <input aria-label="Selling price" inputMode="decimal" value={selling} onChange={(e) => setSelling(clean(e.target.value))} placeholder={productPrice} className={INPUT} />
+            </Field>
+          </div>
+          <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className={INPUT} /></Field>
+          {lots.length > 0 && <BatchChoice lots={lots} value={batchId} auto={auto} unit={lotsData?.unitAbbr ?? ''} sym={sym} productPrice={productPrice} onPick={setPicked} />}
+        </>
+      )}
       {outcome === 'written_off' && <p className="text-[13px] text-muted-foreground">The loss stands in full.</p>}
+      {needSupplier && (
+        <Field label="Supplier">
+          <select aria-label="Supplier" value={supplier} onChange={(e) => setSupplier(Number(e.target.value))} className={cn(INPUT, 'appearance-auto')}>
+            <option value={0}>Pick the supplier</option>
+            {sups.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </Field>
+      )}
+      {outcome === 'replacement' && num(extra) > 0 && (
+        <p className="text-[13px] text-muted-foreground">{money(sym, num(extra) * num(loss.qty))} goes on what you owe them — no cash moves now.</p>
+      )}
       {outcome === 'paid' && (
         <>
-          <Field label="Supplier">
-            <select value={supplier} onChange={(e) => setSupplier(Number(e.target.value))} className={cn(INPUT, 'appearance-auto')}>
-              <option value={0}>Pick the supplier</option>
-              {sups.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </Field>
           <Field label="Amount credited">
             <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className={INPUT} />
           </Field>

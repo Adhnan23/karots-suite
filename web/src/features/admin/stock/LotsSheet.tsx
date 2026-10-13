@@ -87,7 +87,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
       const body: ConsumeRequest = { productId, quantity: l.qtyRemaining, reason: 'damage', note: 'Batch removed', batchId: l.id }
       return run('', async () => {
         const r = await api<ConsumeResult>('/admin/stock/damage', { json: body })
-        claim.ask(r.lossId, p!.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
+        claim.ask(r.lossId, productId, p!.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
       })
     }
     const body: AdjustRequest = { productId, newQuantity: totalWith(l, 0), note: 'Batch not there', batchId: l.id }
