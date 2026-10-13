@@ -120,95 +120,6 @@ func (r *Repository) FoundAtTill(ctx context.Context, productID, batchID int64, 
 	})
 }
 
-// consumedLot is one batch's contribution to a depletion: how much was taken
-// and what that batch says it cost.
-type consumedLot struct {
-	Qty  decimal.Decimal
-	Cost decimal.Decimal
-}
-
-// costOfConsumed returns the weighted-average cost per unit of a depletion.
-//
-// A lot whose batch cost is zero is charged at productCost instead. Cost is
-// frozen into a batch when the batch is created, so stock added before its cost
-// was entered — a blank cost box at intake — is stuck at zero even after the
-// product's cost is corrected. Left alone it books Rs 0 of COGS and reports the
-// whole sale as profit, which is worse than being slightly stale.
-//
-// The rescue is per lot, not on the final average: one properly-costed batch
-// would lift the average above zero and hide the free one. A product whose own
-// cost is also zero stays at zero — that one really is free.
-func costOfConsumed(lots []consumedLot, qty, productCost decimal.Decimal) decimal.Decimal {
-	if !qty.IsPositive() {
-		return decimal.Zero
-	}
-	total := decimal.Zero
-	for _, l := range lots {
-		cost := l.Cost
-		if cost.IsZero() {
-			cost = productCost
-		}
-		total = total.Add(l.Qty.Mul(cost))
-	}
-	return total.Div(qty).Round(2)
-}
-
-// DepleteFEFO consumes qty from a product's batches, earliest-expiry-first, and
-// returns the weighted-average cost of the consumed units (for COGS snapshots).
-// It assumes the caller already passed the atomic stock.quantity guard, so the
-// batches should always cover qty; if a rounding shortfall remains it is charged
-// against the last touched batch's cost (or zero) rather than failing.
-//
-// Runs inside the caller's transaction (r.q is the *sqlx.Tx).
-func (r *Repository) DepleteFEFO(ctx context.Context, productID int64, qty decimal.Decimal) (decimal.Decimal, error) {
-	if !qty.IsPositive() {
-		return decimal.Zero, nil
-	}
-	type batchRow struct {
-		ID        int64           `db:"id"`
-		Remaining decimal.Decimal `db:"qty_remaining"`
-		Cost      decimal.Decimal `db:"cost_price"`
-	}
-	var batches []batchRow
-	// FOR UPDATE locks the rows we are about to consume for the tx's lifetime.
-	if err := r.q.SelectContext(ctx, &batches, `
-		SELECT id, qty_remaining, cost_price
-		FROM stock_batches
-		WHERE product_id = $1 AND qty_remaining > 0
-		ORDER BY expiry_date NULLS LAST, id
-		FOR UPDATE`, productID); err != nil {
-		return decimal.Zero, err
-	}
-
-	remaining := qty
-	lots := make([]consumedLot, 0, len(batches))
-	zeroCost := false
-	for _, b := range batches {
-		if !remaining.IsPositive() {
-			break
-		}
-		take := decimal.Min(b.Remaining, remaining)
-		if _, err := r.q.ExecContext(ctx,
-			`UPDATE stock_batches SET qty_remaining = qty_remaining - $1 WHERE id = $2`,
-			take, b.ID); err != nil {
-			return decimal.Zero, err
-		}
-		lots = append(lots, consumedLot{Qty: take, Cost: b.Cost})
-		zeroCost = zeroCost || b.Cost.IsZero()
-		remaining = remaining.Sub(take)
-	}
-
-	// Only pay for the extra lookup when something actually needs rescuing.
-	fallback := decimal.Zero
-	if zeroCost {
-		var err error
-		if fallback, err = r.productCost(ctx, productID); err != nil {
-			return decimal.Zero, err
-		}
-	}
-	return costOfConsumed(lots, qty, fallback), nil
-}
-
 // PriceOption is one live lot offered to the cashier when a product's batches
 // disagree on price: enough to match the sticker on the package in the
 // customer's hand (the price itself, plus expiry / batch no / when it arrived).
@@ -352,7 +263,7 @@ func (r *Repository) DepleteBatch(ctx context.Context, batchID int64, qty decima
 			return decimal.Zero, err
 		}
 	}
-	return costOfConsumed([]consumedLot{{Qty: qty, Cost: b.Cost}}, qty, fallback), nil
+	return costOfConsumed([]ConsumedLot{{Qty: qty, Cost: b.Cost}}, qty, fallback), nil
 }
 
 // depleteChosen removes qty from a named lot, or falls back to FEFO when no lot
