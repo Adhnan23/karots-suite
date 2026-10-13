@@ -9,3 +9,4 @@ internal/spa/dist/*
 !internal/spa/dist/.gitkeep
 .superpowers/
 backups/
+/dist/

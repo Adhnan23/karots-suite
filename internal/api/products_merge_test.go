@@ -251,3 +251,44 @@ func TestAdminMergeAPI(t *testing.T) {
 		t.Fatalf("merge twice: %d %s", rec.Code, rec.Body)
 	}
 }
+
+// The held-bill check reads where a held cart names products — a line, or a recipe
+// component of a line, in either cart shape — not any "id" anywhere in the JSON.
+func TestMergeHeldBillCheckIsPrecise(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ctx := context.Background()
+	svc := products.NewService(te.db)
+	dup, _, _ := mergeDup(t, te, f)
+	var uid int64
+	te.db.Get(&uid, `SELECT id FROM users LIMIT 1`) //nolint:errcheck
+	held := func(cart string) (refused bool) {
+		t.Helper()
+		var id int64
+		if err := te.db.Get(&id, `INSERT INTO held_sales (cashier_id, cart) VALUES ($1, $2) RETURNING id`, uid, cart); err != nil {
+			t.Fatal(err)
+		}
+		defer te.db.MustExec(`DELETE FROM held_sales WHERE id = $1`, id)
+		pv, err := svc.MergePreview(ctx, dup, f.plainID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return strings.Contains(pv.Refusal, "held")
+	}
+	other := f.scarceID
+	cases := []struct {
+		name, cart string
+		want       bool
+	}{
+		{"a line", fmt.Sprintf(`{"lines":[{"productId":%d}]}`, dup), true},
+		{"a recipe component", fmt.Sprintf(`{"lines":[{"productId":%d,"components":[{"productId":%d,"quantity":"1"}]}]}`, other, dup), true},
+		{"a karots-pos line", fmt.Sprintf(`[{"id":%d,"qty":1}]`, dup), true},
+		{"a karots-pos component", fmt.Sprintf(`[{"id":%d,"components":[{"product_id":%d}]}]`, other, dup), true},
+		{"another number that happens to match", fmt.Sprintf(`{"lines":[{"productId":%d,"key":%d,"batchId":%d}],"customer":{"id":%d}}`, other, dup, dup, dup), false},
+	}
+	for _, c := range cases {
+		if got := held(c.cart); got != c.want {
+			t.Errorf("%s: refused=%v, want %v", c.name, got, c.want)
+		}
+	}
+}

@@ -200,3 +200,30 @@ func TestUpdateToOwnExtraKeepsOldMain(t *testing.T) {
 		t.Fatalf("barcodes after the swap: %+v", list)
 	}
 }
+
+// The swap is all or nothing: if keeping the old main fails, the main barcode is
+// not changed either (the test injects the failure with a temporary trigger).
+func TestUpdateSwapIsAtomic(t *testing.T) {
+	conn, a, _ := barcodeFixture(t)
+	ctx := context.Background()
+	conn.MustExec(`CREATE FUNCTION test_refuse_main() RETURNS trigger AS $$
+		BEGIN IF NEW.barcode = 'TEST-B-MAIN' THEN RAISE EXCEPTION 'injected'; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql`)
+	conn.MustExec(`CREATE TRIGGER test_refuse_main BEFORE INSERT ON product_barcodes FOR EACH ROW EXECUTE FUNCTION test_refuse_main()`)
+	t.Cleanup(func() {
+		conn.Exec(`DROP TRIGGER IF EXISTS test_refuse_main ON product_barcodes`) //nolint:errcheck
+		conn.Exec(`DROP FUNCTION IF EXISTS test_refuse_main()`)                  //nolint:errcheck
+	})
+	svc := NewService(conn)
+	p, err := svc.Get(ctx, a)
+	must(t, err)
+	code := "TEST-B-EXTRA"
+	if _, err := svc.Update(ctx, a, UpdateInput{Name: p.Name, Barcode: &code, CategoryID: p.CategoryID, UnitID: p.UnitID,
+		CostPrice: p.CostPrice.String(), SellingPrice: p.SellingPrice.String()}); err == nil {
+		t.Fatal("the injected failure was swallowed")
+	}
+	var main string
+	must(t, conn.GetContext(ctx, &main, `SELECT barcode FROM products WHERE id = $1`, a))
+	if main != "TEST-B-MAIN" {
+		t.Fatalf("half a swap: main is %q", main)
+	}
+}

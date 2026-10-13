@@ -208,7 +208,9 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (*Produc
 	if err != nil {
 		return nil, err
 	}
-	if err := s.repo.Update(ctx, id, w); err != nil {
+	// One transaction: a main barcode swapped with one of its own extras is several
+	// statements, and half of it would drop a code that still has to scan.
+	if err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return NewRepository(tx).Update(ctx, id, w) }); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("product")
 		}
