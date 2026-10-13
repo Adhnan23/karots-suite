@@ -51,3 +51,17 @@ func TestSetupOnlyExclude(t *testing.T) {
 		t.Fatalf("SetupOnlyExclude = %v, want %v", got, want)
 	}
 }
+
+func TestSecretColumnsBlanked(t *testing.T) {
+	sec := secretColumns([]plugin.DataGroup{{Key: "x", Secret: []string{"x_settings.api_key", "bad"}}})
+	if !reflect.DeepEqual(sec, map[string][]string{"x_settings": {"api_key"}}) {
+		t.Fatalf("secretColumns = %v", sec)
+	}
+	one, key := "1", "sk-live"
+	cols := []string{"id", "api_key"}
+	rows := [][]*string{{&one, &key}}
+	setColumns(cols, rows, sec["x_settings"], "")
+	if *rows[0][1] != "" || *rows[0][0] != "1" {
+		t.Fatalf("key not blanked or id touched: %v %v", *rows[0][0], *rows[0][1])
+	}
+}

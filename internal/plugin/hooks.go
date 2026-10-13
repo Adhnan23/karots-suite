@@ -172,11 +172,14 @@ func (r *Registry) AddDataGroup(g DataGroup) { dataGroups.add(current, g) }
 // layer can offer per-plugin include/exclude in a selective export and compute
 // "core = everything minus every plugin's tables" — all without core importing
 // any plugin. Key is a stable id (the plugin key); Name is the display label;
-// Tables are the exact table names from the plugin's migrations.
+// Tables are the exact table names from the plugin's migrations. Secret names
+// "table.column"s (an API key) that every dump writes as ” — re-entered after
+// a restore.
 type DataGroup struct {
 	Key    string
 	Name   string
 	Tables []string
+	Secret []string
 }
 
 // CollectDataGroups returns every plugin-declared data group, in registration

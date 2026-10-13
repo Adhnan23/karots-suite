@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"strings"
 
 	"karots-suite/internal/plugin"
 
@@ -81,11 +82,30 @@ var SetupZeroColumns = map[string][]string{
 // zeroColumns rewrites the named columns of every row to "0" in place. Used to
 // strip carried-over balances from a setup-only export.
 func zeroColumns(cols []string, rows [][]*string, zeroCols []string) {
-	if len(zeroCols) == 0 {
+	setColumns(cols, rows, zeroCols, "0")
+}
+
+// secretColumns maps table -> the columns plugin groups marked Secret
+// ("table.column"), which every dump writes as "".
+func secretColumns(groups []plugin.DataGroup) map[string][]string {
+	out := map[string][]string{}
+	for _, g := range groups {
+		for _, s := range g.Secret {
+			if t, c, ok := strings.Cut(s, "."); ok {
+				out[t] = append(out[t], c)
+			}
+		}
+	}
+	return out
+}
+
+// setColumns rewrites the named columns of every row to val in place.
+func setColumns(cols []string, rows [][]*string, names []string, val string) {
+	if len(names) == 0 {
 		return
 	}
 	want := map[string]bool{}
-	for _, z := range zeroCols {
+	for _, z := range names {
 		want[z] = true
 	}
 	var idx []int
@@ -97,11 +117,10 @@ func zeroColumns(cols []string, rows [][]*string, zeroCols []string) {
 	if len(idx) == 0 {
 		return
 	}
-	zero := "0"
 	for _, row := range rows {
 		for _, i := range idx {
 			if i < len(row) {
-				row[i] = &zero
+				row[i] = &val
 			}
 		}
 	}

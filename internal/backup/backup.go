@@ -21,6 +21,8 @@ import (
 	"io"
 	"strings"
 
+	"karots-suite/internal/plugin"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -105,6 +107,7 @@ func Dump(ctx context.Context, db *sqlx.DB, generatedAt string, w io.Writer, opt
 	for _, t := range opts.Exclude {
 		exclude[t] = true
 	}
+	secret := secretColumns(plugin.CollectDataGroups())
 	arc := Archive{Version: FormatVersion, GeneratedAt: generatedAt, Partial: opts.Partial, Groups: opts.Groups}
 	for _, t := range names {
 		if exclude[t] {
@@ -121,6 +124,7 @@ func Dump(ctx context.Context, db *sqlx.DB, generatedAt string, w io.Writer, opt
 		if zc := opts.Zero[t]; len(zc) > 0 {
 			zeroColumns(cols, rows, zc)
 		}
+		setColumns(cols, rows, secret[t], "")
 		arc.Tables = append(arc.Tables, Table{Name: t, Columns: cols, Rows: rows})
 	}
 	gz := gzip.NewWriter(w)
