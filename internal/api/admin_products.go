@@ -26,6 +26,7 @@ func (h *handlers) registerAdminProducts(g *echo.Group) {
 	g.DELETE("/products/:id", h.AdminProductDisable)
 	g.POST("/products/:id/activate", h.AdminProductReactivate)
 	g.POST("/products/:id/loose", h.AdminProductLoose)
+	g.POST("/products/:id/fold", h.AdminProductFold)
 	g.POST("/products/:id/review-done", h.AdminProductReviewDone)
 	g.POST("/products/:id/barcode", h.CounterAssignBarcode) // same rule as the counter: only when it has none
 	g.GET("/products/:id/barcodes", h.AdminBarcodes)
@@ -97,7 +98,9 @@ func (h *handlers) AdminProduct(c echo.Context) error {
 	if p.PreferredSupplierID != nil {
 		sup = *p.PreferredSupplierID
 	}
-	return c.JSON(http.StatusOK, AdminProduct{AdminProductRow: productRow(*p), UnitID: p.UnitID, TaxRate: p.TaxRate.String(), WarrantyMonths: p.WarrantyMonths, SupplierID: sup})
+	out := AdminProduct{AdminProductRow: productRow(*p), UnitID: p.UnitID, TaxRate: p.TaxRate.String(), WarrantyMonths: p.WarrantyMonths, SupplierID: sup}
+	out.FoldFrom = h.foldSource(c.Request().Context(), id)
+	return c.JSON(http.StatusOK, out)
 }
 
 func bindProduct(c echo.Context) (products.CreateInput, ProductRequest, error) {

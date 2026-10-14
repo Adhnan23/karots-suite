@@ -139,6 +139,26 @@ type AdminProduct struct {
 	TaxRate         string `json:"taxRate"`
 	WarrantyMonths  int    `json:"warrantyMonths"`
 	SupplierID      int64  `json:"supplierId"`
+	// FoldFrom: the card this loose product is cut from (an active conversion
+	// into it), offered as "Fold <card> into packs". Nil when there is none.
+	FoldFrom *FoldSource `json:"foldFrom,omitempty"`
+}
+
+// FoldSource is the card side of a card + loose twin.
+type FoldSource struct {
+	ConversionID int64  `json:"conversionId"`
+	Name         string `json:"name"`
+	Ratio        string `json:"ratio"`
+	SellingPrice string `json:"sellingPrice"`
+	Stock        string `json:"stock"`
+	UnitAbbr     string `json:"unitAbbr"`
+}
+
+// FoldRequest names the pack the card becomes (Card, Strip…).
+type FoldRequest struct {
+	ConversionID int64  `json:"conversionId"`
+	Name         string `json:"name"`
+	Rename       string `json:"rename"` // the product's new name ("Amoxil 250", dropping "(loose)"); "" = keep
 }
 
 // SheetExtra is a plugin's column group that Products → Sheets can include.

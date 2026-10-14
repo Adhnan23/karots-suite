@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Copy, Merge, Scale, Wand2 } from 'lucide-react'
+import { Copy, Merge, Package, Scale, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -14,6 +14,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
+import { FoldPacks } from './FoldPacks'
 import { PacksBlock } from './PacksBlock'
 import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
@@ -53,6 +54,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
   const [loose, setLoose] = useState(false)
+  const [fold, setFold] = useState(false)
   const set = (patch: Partial<ProductRequest>) => setF((x) => ({ ...x, ...patch }))
   const price = (field: keyof Prices, v: string) => setPrices((p) => editPrice(p, field, v.replace(/[^\d.]/g, '')))
   const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
@@ -95,6 +97,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const title = product ? (product.needsReview ? `Finish ${product.name}` : `Edit ${product.name}`) : isCopy ? 'Duplicate product' : 'New product'
   return (
     <>
+    {fold && product?.foldFrom && <FoldPacks product={product} from={product.foldFrom} onClose={() => { setFold(false); onClose() }} />}
     {loose && product && <LooseVersion product={product} onClose={() => setLoose(false)} onOpen={(id) => { setLoose(false); onEdit({ id }) }} />}
     <FormSheet open wide onOpenChange={(o) => !o && onClose()} title={title} busy={busy} onSubmit={save}
       submit={product?.needsReview ? 'Save & finish' : product ? 'Save' : 'Add product'}
@@ -115,6 +118,9 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
           )}
           {product.isActive && !svc && (
             <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={() => setLoose(true)}><Scale size={15} /> Make a loose version…</Button>
+          )}
+          {product.isActive && product.foldFrom && (
+            <Button type="button" variant="ghost" className="h-10 gap-1.5 px-3" onClick={() => setFold(true)}><Package size={15} /> Fold {product.foldFrom.name} into packs…</Button>
           )}
         </div>
       )}>

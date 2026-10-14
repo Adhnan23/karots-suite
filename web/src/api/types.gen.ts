@@ -210,6 +210,30 @@ export interface AdminProduct extends AdminProductRow {
   taxRate: string;
   warrantyMonths: number /* int */;
   supplierId: number /* int64 */;
+  /**
+   * FoldFrom: the card this loose product is cut from (an active conversion
+   * into it), offered as "Fold <card> into packs". Nil when there is none.
+   */
+  foldFrom?: FoldSource;
+}
+/**
+ * FoldSource is the card side of a card + loose twin.
+ */
+export interface FoldSource {
+  conversionId: number /* int64 */;
+  name: string;
+  ratio: string;
+  sellingPrice: string;
+  stock: string;
+  unitAbbr: string;
+}
+/**
+ * FoldRequest names the pack the card becomes (Card, Strip…).
+ */
+export interface FoldRequest {
+  conversionId: number /* int64 */;
+  name: string;
+  rename: string; // the product's new name ("Amoxil 250", dropping "(loose)"); "" = keep
 }
 /**
  * SheetExtra is a plugin's column group that Products → Sheets can include.
