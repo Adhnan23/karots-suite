@@ -131,6 +131,9 @@ day, wages already cover it; the lost weight is in the loose cost.
   otherwise product tax rates are ignored (hint on the product form; Settings refuses "registered" without a number).
   karots-pos still charges tax whatever the setting — not changed there (its live shops would suddenly stop charging tax);
   a shop moving over that charges VAT must enter its number in Settings → Tax.
+- **Demo updated for M7.8 (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against `suite_accept`;
+  previous binary `karots-suite-all.m77`, DB backup `suite_accept-before-m78-2026-10-14.dump`. Repairs demo parts (Phone
+  parts): Galaxy A12 screen 4,000, iPhone 11 battery 5,500, USB-C charging port 900 — 5 each. No demo jobs.
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
