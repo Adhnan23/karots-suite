@@ -19,11 +19,14 @@ export function billTotals(lines: StockLine[], discount: string, type: string) {
 
 export type Current = { cost: string; sell: string }
 
+/** Units in what the line counts: a pack size when bought by the pack, else 1. */
+export const lineSize = (l: StockLine) => (num(l.packSize) > 1 ? num(l.packSize) : 1)
+
 /** karots-pos receive margin guard. The suggestion keeps the product's current
  * markup on the new cost (20% when it has none); a line is flagged when it would
  * sell at or below cost, or under that suggestion. Blank sell = the current price. */
 export function marginHint(l: StockLine, cur?: Current): number | null {
-  const cost = num(l.costPrice)
+  const cost = num(l.costPrice) / lineSize(l) // per unit, like the selling price
   if (!cur || !(cost > 0)) return null
   const curCost = num(cur.cost)
   const curSell = num(cur.sell)

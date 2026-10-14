@@ -62,6 +62,10 @@ type ItemInput struct {
 	// OrderedQty carries the originally-ordered amount through a receive so the
 	// draft's planned qty is preserved alongside the actually-received quantity.
 	OrderedQty string `json:"ordered_qty"`
+	// PackSize > 1: Quantity, FreeQty, CostPrice and a fixed Discount were entered
+	// per pack (3 cards @ 250). The payable is worked out on those, then the line
+	// is stored in units (× size) at a unit cost (÷ size). OrderedQty stays units.
+	PackSize string `json:"pack_size"`
 }
 
 type CreateInput struct {

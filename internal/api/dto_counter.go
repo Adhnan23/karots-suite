@@ -410,6 +410,7 @@ type StockLine struct {
 	ExpiryDate   string `json:"expiryDate"`   // YYYY-MM-DD or ""
 	Discount     string `json:"discount"`     // what the supplier took off this line
 	DiscountType string `json:"discountType"` // fixed = Rs per unit · percent = off qty × cost
+	PackSize     string `json:"packSize"`     // > 1: qty, free, cost and a fixed discount are per pack ("" = units)
 }
 
 type OrderView struct {

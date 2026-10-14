@@ -37,7 +37,7 @@ func (h *handlers) itemInputs(ctx context.Context, lines []StockLine) ([]purchas
 			cost = p.CostPrice.String()
 		}
 		out = append(out, purchases.ItemInput{ProductID: l.ProductID, Quantity: l.Quantity, FreeQty: l.FreeQty, CostPrice: cost,
-			SellingPrice: l.SellingPrice, ExpiryDate: l.ExpiryDate, OrderedQty: l.Ordered, Discount: l.Discount, DiscountType: l.DiscountType})
+			SellingPrice: l.SellingPrice, ExpiryDate: l.ExpiryDate, OrderedQty: l.Ordered, Discount: l.Discount, DiscountType: l.DiscountType, PackSize: l.PackSize})
 	}
 	return out, nil
 }

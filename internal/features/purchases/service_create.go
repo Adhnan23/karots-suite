@@ -147,6 +147,18 @@ func parseLines(items []ItemInput) ([]PurchaseItem, decimal.Decimal, error) {
 		disc := resolveItemDiscount(discType, discVal, lineGross, qty)
 		lineNet := lineGross.Sub(disc)
 		subtotal = subtotal.Add(lineNet)
+		// Bought by the pack: what is owed is settled above, on the pack numbers;
+		// stock, batches and the unit cost are kept in units.
+		if strings.TrimSpace(it.PackSize) != "" {
+			size, err := money.Parse(it.PackSize)
+			if err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) {
+				return nil, decimal.Zero, apperr.Validation("pack size must be more than 1")
+			}
+			qty, free, cost = qty.Mul(size), free.Mul(size), cost.Div(size).Round(2)
+			if discType == "fixed" {
+				discVal = discVal.Div(size).Round(2)
+			}
+		}
 		lines = append(lines, PurchaseItem{
 			ProductID: it.ProductID, Quantity: qty, FreeQty: free, CostPrice: cost,
 			SellingPrice: selling, ExpiryDate: expiry,

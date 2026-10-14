@@ -739,6 +739,7 @@ export interface StockLine {
   expiryDate: string; // YYYY-MM-DD or ""
   discount: string; // what the supplier took off this line
   discountType: string; // fixed = Rs per unit · percent = off qty × cost
+  packSize: string; // > 1: qty, free, cost and a fixed discount are per pack ("" = units)
 }
 export interface OrderView {
   id: number /* int64 */;

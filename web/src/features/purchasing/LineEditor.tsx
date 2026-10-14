@@ -12,12 +12,12 @@ import { FIELD } from '@/features/till/ui'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { QtyStepper } from './QtyStepper'
-import { type Current, lineDiscount, lineGross, lineNet, marginHint } from './totals'
+import { type Current, lineDiscount, lineGross, lineNet, lineSize, marginHint } from './totals'
 
 const CELL = cn(FIELD, 'h-9 min-w-0 px-2 text-right tabular-nums')
 const blank = (p: TillProduct, prices: boolean, cost = ''): StockLine => ({
   productId: p.id, name: p.name, ordered: '', quantity: '1', freeQty: '', costPrice: cost, sellingPrice: prices ? p.sellingPrice : '', expiryDate: '',
-  discount: '', discountType: 'fixed',
+  discount: '', discountType: 'fixed', packSize: '',
 })
 const dec = (v: string) => v.replace(/[^\d.]/g, '')
 
@@ -85,11 +85,12 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
             <span className={cn('min-w-0', withPrices && 'col-span-4 md:col-span-1')}>
               <b className="block truncate text-[13px]">{l.name}</b>
               {l.ordered && <small className="text-muted-foreground tabular-nums">ordered {qtyText(l.ordered)}</small>}
-              {l.ordered && num(l.quantity) !== num(l.ordered) && (
-                <small className={cn('ml-1.5 font-bold tabular-nums', num(l.quantity) < num(l.ordered) ? 'text-warning' : 'text-brand')}>
-                  {num(l.quantity) < num(l.ordered) ? `${qtyText(num(l.ordered) - num(l.quantity))} short` : `${qtyText(num(l.quantity) - num(l.ordered))} extra`}
+              {l.ordered && num(l.quantity) * lineSize(l) !== num(l.ordered) && (
+                <small className={cn('ml-1.5 font-bold tabular-nums', num(l.quantity) * lineSize(l) < num(l.ordered) ? 'text-warning' : 'text-brand')}>
+                  {num(l.quantity) * lineSize(l) < num(l.ordered) ? `${qtyText(num(l.ordered) - num(l.quantity) * lineSize(l))} short` : `${qtyText(num(l.quantity) * lineSize(l) - num(l.ordered))} extra`}
                 </small>
               )}
+              <PackIn l={l} onPick={(size) => set(i, packSwitch(l, size))} />
             </span>
             <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'max-md:order-none')}><X size={15} /></button>
             <Cell caption="Qty" on={withPrices}><QtyStepper label={`Quantity of ${l.name}`} name={l.name} value={l.quantity} onChange={(v) => set(i, { quantity: v })} /></Cell>
@@ -107,7 +108,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
                 Discount
                 <input aria-label={`Discount on ${l.name}`} inputMode="decimal" placeholder="0" value={l.discount} onChange={(e) => set(i, { discount: dec(e.target.value) })} className={cn(CELL, 'h-7 w-16')} />
                 <Seg label={`Discount type for ${l.name}`} value={l.discountType === 'percent' ? 'percent' : 'fixed'} onChange={(t) => set(i, { discountType: t })}
-                  options={[['fixed', `${sym}/unit`], ['percent', '%']]} />
+                  options={[['fixed', `${sym}/${lineSize(l) > 1 ? 'pack' : 'unit'}`], ['percent', '%']]} />
                 <span className="ml-2">Expires</span>
                 <input type="date" aria-label={`Expiry of ${l.name}`} value={l.expiryDate} onChange={(e) => set(i, { expiryDate: e.target.value })} className={cn(FIELD, 'h-7 w-[140px] px-2 text-[12px]')} />
                 {lineGross(l) > 0 && (
@@ -123,6 +124,25 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
         ))}
       </ul>
     </div>
+  )
+}
+
+/** Switch what the line counts in, keeping the cost the same per unit. */
+export function packSwitch(l: StockLine, size: number): Partial<StockLine> {
+  const cost = num(l.costPrice) > 0 ? ((num(l.costPrice) / lineSize(l)) * (size > 1 ? size : 1)).toFixed(2) : l.costPrice
+  return { packSize: size > 1 ? String(size) : '', costPrice: cost }
+}
+
+/** "in pcs · Card ×12 · Box ×120" for a product sold by the pack: qty, free and
+ * cost are then per pack (the selling price stays per unit). */
+function PackIn({ l, onPick }: { l: StockLine; onPick: (size: number) => void }) {
+  const p = useQuery({ queryKey: ['till', 'product', l.productId], queryFn: () => api<TillProduct>(`/till/products/${l.productId}`), staleTime: 60_000 }).data
+  if (!p?.packs.length) return null
+  const opts: [string, string][] = [['1', p.unitAbbr], ...p.packs.slice(0, 3).map((k): [string, string] => [qtyText(k.size), `${k.name} ×${qtyText(k.size)}`])]
+  return (
+    <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+      in <Seg label={`Count ${l.name} in`} value={String(lineSize(l))} options={opts} onChange={(v) => onPick(num(v))} />
+    </span>
   )
 }
 

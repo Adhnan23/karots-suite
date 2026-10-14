@@ -3,7 +3,7 @@ import type { StockLine } from '@/api/types.gen'
 import { billTotals, lineNet, marginHint } from './totals'
 
 const line = (p: Partial<StockLine>): StockLine => ({
-  productId: 1, name: 'x', ordered: '', quantity: '10', freeQty: '', costPrice: '60', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed', ...p,
+  productId: 1, name: 'x', ordered: '', quantity: '10', freeQty: '', costPrice: '60', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed', packSize: '', ...p,
 })
 
 describe('supplier delivery totals (match purchases on the server)', () => {
@@ -31,5 +31,19 @@ describe('receive margin guard (karots-pos suggestSell / marginWarn)', () => {
     expect(marginHint(line({ costPrice: '40' }), cur)).toBeNull() // cheaper: fine
     expect(marginHint(line({ costPrice: '' }), cur)).toBeNull()
     expect(marginHint(line({ costPrice: '60' }))).toBeNull()
+  })
+})
+
+describe('bought by the pack', () => {
+  it('owes qty × pack cost and judges margin per unit', () => {
+    const l = line({ quantity: '3', costPrice: '250', packSize: '12', sellingPrice: '26' })
+    expect(lineNet(l)).toBe(750)
+    expect(marginHint(l, { cost: '20.83', sell: '26' })).toBeNull() // 20.83 a tablet, as before
+    expect(marginHint(l, { cost: '20', sell: '26' })).toBe(27.08) // dearer now: keep the markup
+  })
+  it('switching to a card keeps the cost the same per unit', async () => {
+    const { packSwitch } = await import('./LineEditor')
+    expect(packSwitch(line({ costPrice: '20.84' }), 12)).toEqual({ packSize: '12', costPrice: '250.08' })
+    expect(packSwitch(line({ costPrice: '250', packSize: '12' }), 1)).toEqual({ packSize: '', costPrice: '20.83' })
   })
 })

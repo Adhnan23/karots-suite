@@ -9,7 +9,7 @@ import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { editPrice, markupOf, type Prices } from '@/features/admin/products/price'
-import { productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
+import { packsQuery, productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
 import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { extraBody, type Extras, ProductAssists, ProductExtras } from '@/features/admin/products/ProductExtras'
@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { matchBatch } from '@/features/admin/stock/batches'
 import { lotsQuery } from '@/features/admin/stock/queries'
 import { BatchChoice } from './BatchChoice'
+import { PackEntry } from './PackEntry'
 import { initialLabels, LabelBlock, labelRequest, type LabelOpts } from './LabelBlock'
 
 type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 'new'; name: string; barcode: string } | null
@@ -164,6 +165,12 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   const fields = useQuery({ queryKey: ['till', 'label-fields', p.id], queryFn: () => api<DetailRow[]>(`/till/products/${p.id}/label-fields`) }).data ?? []
   const [qty, setQty] = useState('')
   const [prices, setPrices] = useState<Prices>({ cost: p.costPrice, markup: markupOf(p.costPrice, p.sellingPrice), selling: p.sellingPrice })
+  // Counted by the pack? A scanned card's code picks the card; the count is then in cards.
+  const packs = useQuery(packsQuery(p.id)).data ?? []
+  const [packId, setPackId] = useState<number | null>(null)
+  const pack = packs.find((k) => k.id === (packId ?? packs.find((x) => scanned && x.barcodes.includes(scanned))?.id ?? 0))
+  const size = pack ? num(pack.size) : 1
+  const units = String(+(num(qty) * size).toFixed(3))
   const [wholesale, setWholesale] = useState(num(p.wholesalePrice) ? p.wholesalePrice : '')
   const [barcode, setBarcode] = useState(p.barcode)
   const [busy, setBusy] = useState(false)
@@ -194,10 +201,10 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
     try {
       const changed = (a: string, b: string) => (num(a) !== num(b) ? a : '')
       const item = await api<IntakeItem>('/admin/inventory/intake/restock', { json: {
-        productId: p.id, quantity: qty, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice), scanned: scanned ?? '',
+        productId: p.id, quantity: units, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice), scanned: scanned ?? '',
         batchId, expiry: batchId ? '' : expiry,
       } })
-      toast.success(`${p.name}: +${qtyText(qty)}`)
+      toast.success(`${p.name}: +${qtyText(units)} ${p.unitAbbr}`)
       onSaved(item, fields)
     } catch (err) {
       toast.error(errMsg(err))
@@ -221,9 +228,11 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
           <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={generate}><Wand2 size={14} /> Generate barcode</Button>
         </div>
       )}
-      <Field label={`How many ${p.unitAbbr} came in`}>
+      <Field label={`How many ${pack ? `${pack.name.toLowerCase()}s` : p.unitAbbr} came in`} hint={pack && num(qty) > 0 ? `= ${qtyText(units)} ${p.unitAbbr}` : undefined}>
         <input autoFocus required aria-label="Quantity to add" inputMode="decimal" value={qty} onChange={(e) => setQty(clean(e.target.value))} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} placeholder="0" />
       </Field>
+      {packs.length > 0 && <PackEntry packs={packs} pack={pack} unit={p.unitAbbr} cost={prices.cost} sym={sym}
+        onPick={(id) => setPackId(id)} onPackCost={(v) => setPrices((x) => editPrice(x, 'cost', v, true))} />}
       <PriceRow prices={prices} set={(f, v) => setPrices((x) => editPrice(x, f, v, true))} wholesale={wholesale} setWholesale={setWholesale} />
       {num(prices.selling) !== num(p.sellingPrice) && <p className="text-[12px] text-muted-foreground">The new price goes on the product and sticks to the stock you’re adding now; stock already on the shelf keeps its price.</p>}
       <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className={cn(INPUT, 'md:w-56')} /></Field>
