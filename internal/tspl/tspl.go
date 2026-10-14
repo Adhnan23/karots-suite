@@ -31,6 +31,9 @@ type Input struct {
 	WidthMM     int    // label width  (mm)
 	HeightMM    int    // label height (mm)
 	GapMM       int    // gap between labels (mm)
+	// Lines makes a text-only label (no barcode): each line left-aligned, wrapped
+	// to the width; lines that don't fit the height are dropped.
+	Lines []string
 }
 
 // barcodeType maps the UI format name to the TSPL BARCODE type token.
@@ -102,6 +105,20 @@ func LayoutOf(in Input) Layout {
 		readableH    = 26 // height of the barcode's human-readable digits
 	)
 	l := Layout{WidthMM: w, HeightMM: h, GapMM: gap, WidthDots: widthDots, HeightDots: heightDots, Count: count}
+	if len(in.Lines) > 0 {
+		tok, charW, lineH := fontMetrics(in.NameFont, "2")
+		y := marginTop
+		for _, line := range in.Lines {
+			for _, ln := range wrapLabelText(ascii(line), (widthDots-2*marginX)/charW, 4) {
+				if y+lineH > heightDots-marginBottom+lineH/4 { // keep a part-line margin
+					return l
+				}
+				l.Texts = append(l.Texts, Text{X: marginX, Y: y, Font: tok, CharW: charW, LineH: lineH, GlyphH: glyphH(tok), Value: ln})
+				y += lineH
+			}
+		}
+		return l
+	}
 	// Top and bottom are free-text slots — the UI chooses what goes where (name on
 	// top & price below, or the reverse). Each is centered and wraps onto up to
 	// its configured line count (NameLines / BottomLines, 1–4, default 1) instead
@@ -144,13 +161,13 @@ func Document(in Input) []byte {
 	bc := l.Barcode
 	wroteBar := false
 	for _, t := range l.Texts {
-		if !wroteBar && t.Y >= bc.Y { // bottom lines come after the barcode
+		if !wroteBar && bc.Code != "" && t.Y >= bc.Y { // bottom lines come after the barcode
 			writeBarcode(&b, bc)
 			wroteBar = true
 		}
 		fmt.Fprintf(&b, "TEXT %d,%d,\"%s\",0,1,1,\"%s\"\r\n", t.X, t.Y, t.Font, tsplEscape(t.Value))
 	}
-	if !wroteBar {
+	if !wroteBar && bc.Code != "" {
 		writeBarcode(&b, bc)
 	}
 	fmt.Fprintf(&b, "PRINT %s,1\r\n", strconv.Itoa(l.Count))

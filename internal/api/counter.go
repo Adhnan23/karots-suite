@@ -32,6 +32,7 @@ func (h *handlers) registerCounter(g *echo.Group) {
 	g.POST("/warranty-claims/:id/print", h.CounterPrintWarrantySlip)
 	g.POST("/labels", h.CounterLabels)
 	g.POST("/labels/preview", h.CounterLabelPreview)
+	g.POST("/labels/text", h.CounterTextLabel)
 	g.GET("/products/:id/label-fields", h.CounterLabelFields)
 	g.POST("/products/:id/barcode", h.CounterAssignBarcode)
 	g.GET("/conversions", h.CounterConversions)

@@ -482,6 +482,15 @@ export interface LabelRequest {
   size: string; // "WxH" mm
 }
 /**
+ * TextLabelRequest prints a text-only label (no barcode) on the label printer —
+ * e.g. a plugin's dose sticker. Lines print top-down, left-aligned, wrapped.
+ */
+export interface TextLabelRequest {
+  lines: string[];
+  count: number /* int */;
+  size: string; // "WxH" mm; blank = the shop's label size
+}
+/**
  * LabelLayout is where the printer puts everything on one label (dots, 8/mm,
  * top-left origin) — the preview draws exactly this.
  */

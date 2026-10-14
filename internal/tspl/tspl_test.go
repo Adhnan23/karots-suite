@@ -125,3 +125,31 @@ func TestAsciiSanitisesAndEscapes(t *testing.T) {
 		t.Errorf("embedded quotes should be escaped:\n%s", out)
 	}
 }
+
+// A text-only label (a dose sticker, a shelf note): left-aligned lines, no
+// barcode; a long line wraps, and lines that would fall off the label are dropped.
+func TestTextLabel(t *testing.T) {
+	in := Input{Lines: []string{"Nimal Perera  14 Oct", "Metfor 500mg x 60", "1-0-1  Morning, Night", "30 days - After meals"}, Count: 2, WidthMM: 40, HeightMM: 30}
+	out := string(Document(in))
+	if strings.Contains(out, "BARCODE") {
+		t.Fatalf("a text label has no barcode:\n%s", out)
+	}
+	for _, w := range []string{"Nimal Perera", "Metfor 500mg x 60", "Morning, Night", "After meals", "PRINT 2,1"} {
+		if !strings.Contains(out, w) {
+			t.Errorf("missing %q\n%s", w, out)
+		}
+	}
+	l := LayoutOf(in)
+	for i, tx := range l.Texts {
+		if tx.Y+tx.LineH > l.HeightDots || tx.X+len(tx.Value)*tx.CharW > l.WidthDots {
+			t.Errorf("line %d off the label: %+v", i, tx)
+		}
+		if i > 0 && tx.Y <= l.Texts[i-1].Y {
+			t.Errorf("lines must go down the label: %+v", l.Texts)
+		}
+	}
+	many := LayoutOf(Input{Lines: []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}, WidthMM: 40, HeightMM: 30})
+	if last := many.Texts[len(many.Texts)-1]; last.Y+last.LineH > many.HeightDots {
+		t.Fatalf("an overflowing line was kept: %+v", last)
+	}
+}

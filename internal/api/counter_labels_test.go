@@ -69,3 +69,41 @@ func TestCounterLabelPreviewMatchesPrint(t *testing.T) {
 		t.Fatal("label fields must be [] not null")
 	}
 }
+
+// A text-only label (a plugin's dose sticker, a shelf note) goes to the same
+// label printer at the shop's label size, with no barcode.
+func TestCounterTextLabel(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, "0770009402", "cashier")
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	got := make(chan []byte, 1)
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		b, _ := io.ReadAll(conn)
+		conn.Close()
+		got <- b
+	}()
+	var was string
+	te.db.Get(&was, `SELECT label_printer FROM settings`)                           //nolint:errcheck
+	te.db.Exec(`UPDATE settings SET label_printer=$1`, "tcp://"+ln.Addr().String()) //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET label_printer=$1`, was) })   //nolint:errcheck
+
+	rec := te.do(http.MethodPost, "/api/v1/till/labels/text", TextLabelRequest{Lines: []string{"Metfor 500mg x 60", "1-0-1  Morning, Night"}, Count: 1, Size: "40x30"}, ck)
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("print: %d %s", rec.Code, rec.Body)
+	}
+	doc := <-got
+	if !bytes.Contains(doc, []byte("Morning, Night")) || bytes.Contains(doc, []byte("BARCODE")) {
+		t.Fatalf("text label:\n%s", doc)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/till/labels/text", TextLabelRequest{Lines: []string{" "}}, ck); rec.Code < 400 || rec.Code >= 500 {
+		t.Fatal(fmt.Sprintf("blank lines must be refused: %d", rec.Code))
+	}
+}

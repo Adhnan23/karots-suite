@@ -63,6 +63,35 @@ func (h *handlers) CounterLabels(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// CounterTextLabel prints a text-only label (no barcode) at the shop's label
+// size — a plugin's dose sticker, a shelf note.
+func (h *handlers) CounterTextLabel(c echo.Context) error {
+	ctx := c.Request().Context()
+	var req TextLabelRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	var lines []string
+	for _, l := range req.Lines {
+		if l = strings.TrimSpace(l); l != "" {
+			lines = append(lines, l)
+		}
+	}
+	if len(lines) == 0 || len(lines) > 12 {
+		return apperr.Validation("a label needs 1 to 12 lines of text")
+	}
+	cfg, err := h.d.Settings.Get(ctx)
+	if err != nil {
+		return err
+	}
+	w, hgt := labelSize(req.Size, cfg.LabelWidthMM, cfg.LabelHeightMM)
+	in := tspl.Input{Lines: lines, Count: min(max(req.Count, 1), 50), WidthMM: w, HeightMM: hgt, GapMM: min(max(cfg.LabelGapMM, 0), 20)}
+	if err := printing.Raw(ctx, cfg.LabelPrinter, tspl.Document(in)); err != nil {
+		return apperr.Internal("could not print the label", err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 // CounterLabelPreview returns exactly where the printer will put everything
 // (tspl.LayoutOf, the same geometry Document prints), for a true-to-paper preview.
 func (h *handlers) CounterLabelPreview(c echo.Context) error {
