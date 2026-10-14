@@ -70,6 +70,11 @@ day, wages already cover it; the lost weight is in the loose cost.
   pharmacy's form section = Controlled (schedule) + Prescription-only (hint, never blocks). **G** till ⓘ "⚠ Controlled".
   **H** dispensing log + CSV. **I** requires Product Plus + Alternatives. Old data: all 7 `pharmacy_*` tables restore;
   old `pharmacy_cd_ledger` becomes a read-only "Old register". Days helper "1-0-1 × 2 days = 4" lives in pharmacy.
+- **Demo updated for M7.7a + M7.7b (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against
+  `suite_accept`; previous binary `karots-suite-all.m76d`, DB backup `suite_accept-before-m77-2026-10-14.dump`. Pharmacy
+  demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
+  (controlled, Schedule II), Panadol (Card ×12); patients Nimal Perera (Penicillin allergy, repeat script Metformin 1-0-1 ×60
+  + Panadol tds ×30) and Kamala Silva. No fake sales. Printer emulator `pos_printer` on :8631.
 - After M7.7: M7.8 repairs, then recharge (the roadmap below still shows the old numbers, each plugin moved up one).
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
