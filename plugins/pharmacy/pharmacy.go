@@ -19,7 +19,8 @@ import (
 func init() { plugin.Register(&Plugin{}) }
 
 type Plugin struct {
-	core plugin.Core
+	core  plugin.Core
+	store *Store
 }
 
 func (p *Plugin) Name() string { return "Pharmacy" }
@@ -30,9 +31,21 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "pharmacy"
 
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
+	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "pharmacy", Name: "Pharmacy", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "pharmacy", Merge: mergeProduct})
 	// No CategoryMerger: pharmacy keeps no category ids.
+	h := handlers{p}
+	t := reg.Cashier() // /api/v1/x — anyone signed in: the till's 💊 panel and the pages
+	t.GET("/pharmacy/patients", h.search)
+	t.POST("/pharmacy/patients", h.register)
+	t.POST("/pharmacy/patients/from-customer/:cid", h.fromCustomer)
+	t.GET("/pharmacy/patients/:id", h.patient)
+	t.PUT("/pharmacy/patients/:id", h.updatePatient)
+	t.GET("/pharmacy/patients/:id/scripts", h.scripts)
+	t.POST("/pharmacy/prescriptions", h.createScript)
+	t.PUT("/pharmacy/prescriptions/:id", h.updateScript)
+	t.POST("/pharmacy/prescriptions/:id/active", h.scriptActive)
 }
 
 // dataTables is every pharmacy_* table, parents first.

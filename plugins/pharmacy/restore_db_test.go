@@ -20,8 +20,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// restoreDB is a fresh database with core, Alternatives and pharmacy migrated.
-func restoreDB(t *testing.T) *sqlx.DB {
+// freshDB is a fresh database with core, Alternatives and pharmacy migrated.
+func freshDB(t *testing.T) *sqlx.DB {
 	t.Helper()
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
@@ -32,7 +32,7 @@ func restoreDB(t *testing.T) *sqlx.DB {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { admin.Close() })
-	const name = "pharmacy_restore_db"
+	const name = "pharmacy_test_db"
 	admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`) //nolint:errcheck
 	if _, err := admin.Exec(`CREATE DATABASE ` + name); err != nil {
 		t.Fatal(err)
@@ -61,7 +61,7 @@ func restoreDB(t *testing.T) *sqlx.DB {
 // mapping: patients, scripts with per-drug refill rows, dispenses and the old
 // hand-kept controlled register all come back.
 func TestKarotsPosPharmacyRestore(t *testing.T) {
-	db := restoreDB(t)
+	db := freshDB(t)
 	must := func(err error) {
 		t.Helper()
 		if err != nil {
