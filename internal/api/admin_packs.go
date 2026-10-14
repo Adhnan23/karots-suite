@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
@@ -102,4 +103,36 @@ func (h *handlers) AdminPackBarcodeRemove(c echo.Context) error {
 	}
 	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "removed pack barcode "+code)
 	return c.NoContent(http.StatusNoContent)
+}
+
+// TillPackCreate: the cashier is asked for "2 cards" of something nobody gave a
+// card size. They read it off the box; the pack follows the unit price and goes
+// on Items to review. A pack of that name already there is just returned.
+func (h *handlers) TillPackCreate(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req PackRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	ctx := c.Request().Context()
+	ks, err := h.t.products.Packs(ctx, id)
+	if err != nil {
+		return apperr.Internal("failed to load packs", err)
+	}
+	for _, k := range ks {
+		if strings.EqualFold(k.Name, strings.TrimSpace(req.Name)) {
+			return c.JSON(http.StatusOK, TillPack{ID: k.ID, Name: k.Name, Size: k.Size.String(),
+				SellingPrice: dec2(k.SellingPrice), WholesalePrice: dec2(k.WholesalePrice)})
+		}
+	}
+	k, err := h.t.products.SavePack(ctx, id, products.PackInput{Name: req.Name, Size: req.Size, SetAtTill: true})
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "pack "+k.Name+" ×"+k.Size.String()+" set at the till")
+	return c.JSON(http.StatusCreated, TillPack{ID: k.ID, Name: k.Name, Size: k.Size.String(),
+		SellingPrice: dec2(k.SellingPrice), WholesalePrice: dec2(k.WholesalePrice)})
 }

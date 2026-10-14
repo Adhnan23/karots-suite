@@ -213,7 +213,7 @@ func (r *Repository) ReassignPreferredSupplier(ctx context.Context, fromID, toID
 func (r *Repository) CountNeedsReview(ctx context.Context) (int, error) {
 	var n int
 	err := r.db.GetContext(ctx, &n,
-		`SELECT COUNT(*) FROM products WHERE needs_review = true AND is_active = true`)
+		`SELECT COUNT(*) FROM products p WHERE p.is_active = true AND `+reviewWhere)
 	return n, err
 }
 
@@ -225,21 +225,29 @@ func (r *Repository) ListNeedsReview(ctx context.Context) ([]Product, error) {
 		SELECT p.*, c.name AS category_name, u.abbreviation AS unit_abbr,
 		       u.allow_decimal AS unit_allow_decimal,
 		       COALESCE(s.quantity, 0) AS stock_qty,
-		       cb.name AS created_by_name
+		       cb.name AS created_by_name,
+		       (SELECT string_agg(k.name || ' ×' || trim_scale(k.size)::text, ', ' ORDER BY k.size)
+		          FROM product_packs k WHERE k.product_id = p.id AND k.set_at_till) AS till_pack
 		FROM products p
 		JOIN categories c ON c.id = p.category_id
 		JOIN units u      ON u.id = p.unit_id
 		LEFT JOIN stock s ON s.product_id = p.id
 		LEFT JOIN users cb ON cb.id = p.created_by
-		WHERE p.is_active = true AND p.needs_review = true
+		WHERE p.is_active = true AND `+reviewWhere+`
 		ORDER BY p.created_at DESC`)
 	return rows, err
 }
 
-// ClearReview marks a product as reviewed (admin has finished its setup).
+// reviewWhere: quick-added at the till, or a pack size a cashier set there.
+const reviewWhere = `(p.needs_review = true OR EXISTS (SELECT 1 FROM product_packs k WHERE k.product_id = p.id AND k.set_at_till))`
+
+// ClearReview marks a product as reviewed (admin has finished its setup),
+// till-set pack sizes included.
 func (r *Repository) ClearReview(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx,
-		`UPDATE products SET needs_review = false WHERE id = $1`, id)
+	if _, err := r.db.ExecContext(ctx, `UPDATE products SET needs_review = false WHERE id = $1`, id); err != nil {
+		return err
+	}
+	_, err := r.db.ExecContext(ctx, `UPDATE product_packs SET set_at_till = false WHERE product_id = $1 AND set_at_till`, id)
 	return err
 }
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -28,6 +29,7 @@ func (h *handlers) registerTillCatalog(g *echo.Group) {
 	g.GET("/price-options", h.TillPriceOptions)
 	g.GET("/quick-picks", h.TillQuickPicks)
 	g.GET("/units", h.TillUnits)
+	g.POST("/products/:id/packs", h.TillPackCreate)
 }
 
 func (h *handlers) TillConfig(c echo.Context) error {
@@ -75,7 +77,7 @@ func tillProduct(p products.Product) TillProduct {
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
 		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
-		Badges: p.Badges,
+		Badges: p.Badges, Packs: []TillPack{},
 	}
 	if out.Badges == nil {
 		out.Badges = []string{}
@@ -94,6 +96,26 @@ func tillProducts(rows []products.Product) []TillProduct {
 	return out
 }
 
+// withPacks fills each product's packs (one query for the page).
+func (h *handlers) withPacks(ctx context.Context, ps []TillProduct) []TillProduct {
+	ids := make([]int64, len(ps))
+	for i, p := range ps {
+		ids[i] = p.ID
+		ps[i].Packs = []TillPack{}
+	}
+	m, err := products.PacksFor(ctx, h.d.DB, ids)
+	if err != nil {
+		return ps // the till still sells by the unit
+	}
+	for i := range ps {
+		for _, k := range m[ps[i].ID] {
+			ps[i].Packs = append(ps[i].Packs, TillPack{ID: k.ID, Name: k.Name, Size: k.Size.String(),
+				SellingPrice: dec2(k.SellingPrice), WholesalePrice: dec2(k.WholesalePrice)})
+		}
+	}
+	return ps
+}
+
 func groupProduct(p productgroups.GroupProduct) TillProduct {
 	return TillProduct{
 		ID: p.ProductID, Name: p.Name, Barcode: strOr(p.Barcode),
@@ -101,7 +123,7 @@ func groupProduct(p productgroups.GroupProduct) TillProduct {
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
 		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
-		Emoji: strOr(p.Emoji), Badges: []string{},
+		Emoji: strOr(p.Emoji), Badges: []string{}, Packs: []TillPack{},
 	}
 }
 
@@ -180,6 +202,7 @@ func (h *handlers) TillGroup(c echo.Context) error {
 			}
 		}
 	}
+	out.Products = h.withPacks(ctx, out.Products)
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -195,7 +218,7 @@ func (h *handlers) TillProducts(c echo.Context) error {
 		return err
 	}
 	products.Decorate(ctx, rows)
-	return c.JSON(http.StatusOK, ProductPage{Items: tillProducts(rows), Total: total})
+	return c.JSON(http.StatusOK, ProductPage{Items: h.withPacks(ctx, tillProducts(rows)), Total: total})
 }
 
 func (h *handlers) TillProductByBarcode(c echo.Context) error {
@@ -207,7 +230,11 @@ func (h *handlers) TillProductByBarcode(c echo.Context) error {
 	h.t.products.BarcodeScanned(ctx, c.Param("code"))
 	one := []products.Product{*p}
 	products.Decorate(ctx, one)
-	return c.JSON(http.StatusOK, tillProduct(one[0]))
+	out := h.withPacks(ctx, []TillProduct{tillProduct(one[0])})[0]
+	if _, packID, err := products.PackForBarcode(ctx, h.d.DB, c.Param("code")); err == nil {
+		out.ScannedPackID = packID
+	}
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h *handlers) TillProduct(c echo.Context) error {
@@ -222,7 +249,7 @@ func (h *handlers) TillProduct(c echo.Context) error {
 	}
 	one := []products.Product{*p}
 	products.Decorate(ctx, one)
-	return c.JSON(http.StatusOK, tillProduct(one[0]))
+	return c.JSON(http.StatusOK, h.withPacks(ctx, []TillProduct{tillProduct(one[0])})[0])
 }
 
 // TillProductDetail is the ⓘ popup. Cost/margin only for users allowed to see
@@ -290,7 +317,7 @@ func (h *handlers) TillQuickPicks(c echo.Context) error {
 		return err
 	}
 	products.Decorate(ctx, rows)
-	return c.JSON(http.StatusOK, tillProducts(rows))
+	return c.JSON(http.StatusOK, h.withPacks(c.Request().Context(), tillProducts(rows)))
 }
 
 func (h *handlers) TillUnits(c echo.Context) error {

@@ -61,6 +61,19 @@ type TillProduct struct {
 	Emoji            string          `json:"emoji"`
 	Badges           []string        `json:"badges"`
 	Suggestion       *SaleSuggestion `json:"suggestion,omitempty"`
+	// Packs: other ways to sell it (Card ×12), smallest first. ScannedPackID is
+	// set on a barcode lookup when the code was a pack's (add that pack).
+	Packs         []TillPack `json:"packs"`
+	ScannedPackID int64      `json:"scannedPackId,omitempty"`
+}
+
+// TillPack prices "0.00": selling follows size × unit; wholesale follows selling.
+type TillPack struct {
+	ID             int64  `json:"id"`
+	Name           string `json:"name"`
+	Size           string `json:"size"`
+	SellingPrice   string `json:"sellingPrice"`
+	WholesalePrice string `json:"wholesalePrice"`
 }
 
 type ProductPage struct {

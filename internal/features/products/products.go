@@ -48,6 +48,8 @@ type Product struct {
 	PreferredSupplierName *string         `db:"preferred_supplier_name" json:"preferred_supplier_name,omitempty"`
 	// Barcodes are the extra codes (product_barcodes), oldest first; Barcode is the main one.
 	Barcodes pq.StringArray `db:"barcodes" json:"barcodes"`
+	// TillPack names pack sizes a cashier set at the till ("Card ×28"); review list only.
+	TillPack *string `db:"till_pack" json:"-"`
 	// Plugin-contributed, not persisted: till-card badge pins (e.g. quality tier).
 	Badges []string `db:"-" json:"badges,omitempty"`
 	// Plugin-contributed, not persisted: an optional till line-discount suggestion

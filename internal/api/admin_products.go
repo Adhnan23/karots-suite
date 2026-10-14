@@ -44,7 +44,7 @@ func productRow(p products.Product) AdminProductRow {
 		UnitAbbr: p.UnitAbbr, CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice), Wholesale: dec2(p.WholesalePrice),
 		StockQty: p.StockQty.String(), ReorderLevel: p.ReorderLevel, Low: !p.IsService && p.IsLowStock(), IsActive: p.IsActive, IsService: p.IsService,
 		NeedsReview: p.NeedsReview, TrackSerial: p.TrackSerial, HasExpiry: p.HasExpiry, SupplierName: strOr(p.PreferredSupplierName),
-		CreatedBy: strOr(p.CreatedByName), CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedBy: strOr(p.CreatedByName), TillPack: strOr(p.TillPack), CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }
 
@@ -180,6 +180,10 @@ func (h *handlers) AdminProductUpdate(c echo.Context) error {
 		return err
 	}
 	out := ProductSaved{ID: id, Message: "Product saved"}
+	// The form shows its packs, so saving it counts as checking a till-set size.
+	if err := h.t.products.ClearPacksSetAtTill(ctx, id); err != nil {
+		return apperr.Internal("failed to update packs", err)
+	}
 	if !p.NeedsReview {
 		h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "updated "+in.Name)
 		return c.JSON(http.StatusOK, out)

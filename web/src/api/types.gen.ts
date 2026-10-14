@@ -122,6 +122,7 @@ export interface AdminProductRow {
   hasExpiry: boolean;
   supplierName: string;
   createdBy: string; // who quick-added it (review queue)
+  tillPack: string; // pack sizes set at the till, to check (review queue)
   createdAt: string;
   meta: string; // a plugin's short line under the name ("Grade: B · Waterproof")
 }
@@ -2975,6 +2976,22 @@ export interface TillProduct {
   emoji: string;
   badges: string[];
   suggestion?: SaleSuggestion;
+  /**
+   * Packs: other ways to sell it (Card ×12), smallest first. ScannedPackID is
+   * set on a barcode lookup when the code was a pack's (add that pack).
+   */
+  packs: TillPack[];
+  scannedPackId?: number /* int64 */;
+}
+/**
+ * TillPack prices "0.00": selling follows size × unit; wholesale follows selling.
+ */
+export interface TillPack {
+  id: number /* int64 */;
+  name: string;
+  size: string;
+  sellingPrice: string;
+  wholesalePrice: string;
 }
 export interface ProductPage {
   items: TillProduct[];

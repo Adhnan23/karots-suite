@@ -3,7 +3,7 @@ import type { TillProduct } from '@/api/types.gen'
 import { initialState, tillReducer } from './store'
 
 const p: TillProduct = { id: 1, name: 'Milk', barcode: '1', sellingPrice: '100.00', wholesalePrice: '0.00', taxRate: '0',
-  stockQty: '5', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, emoji: '', badges: [] }
+  stockQty: '5', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, emoji: '', badges: [], packs: [] }
 
 describe('tillReducer', () => {
   it('picking a customer un-picks the default cash tender; walk-in restores it', () => {

@@ -58,6 +58,7 @@ type AdminProductRow struct {
 	HasExpiry    bool     `json:"hasExpiry"`
 	SupplierName string   `json:"supplierName"`
 	CreatedBy    string   `json:"createdBy"` // who quick-added it (review queue)
+	TillPack     string   `json:"tillPack"`  // pack sizes set at the till, to check (review queue)
 	CreatedAt    string   `json:"createdAt"`
 	Meta         string   `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
 }
