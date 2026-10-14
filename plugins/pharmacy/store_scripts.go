@@ -39,6 +39,7 @@ type ScriptItem struct {
 	ProductName string          `db:"product_name"`
 	GroupName   string          `db:"group_name"`
 	Dosage      string          `db:"dosage"`
+	Note        string          `db:"note"` // how to take it (After meals …)
 	Quantity    decimal.Decimal `db:"quantity"`
 	PerDay      decimal.Decimal `db:"per_day"`
 	IsRepeat    bool            `db:"is_repeat"`
@@ -66,7 +67,7 @@ const itemSelect = `
 	SELECT i.id, i.prescription_id AS rx_id, rx.patient_id, i.product_id, gg.gid AS group_id,
 	       COALESCE(NULLIF(i.drug_text, ''), pr.name, g.name, '') AS drug,
 	       COALESCE(pr.name, '') AS product_name, COALESCE(g.name, '') AS group_name,
-	       i.dosage, i.quantity, i.per_day, rx.is_repeat, rx.active,
+	       i.dosage, i.note, i.quantity, i.per_day, rx.is_repeat, rx.active,
 	       ds.dispensed, ld.last_at, COALESCE(ld.days_supply, 0) AS days_supply, i.called_at
 	FROM pharmacy_prescription_items i
 	JOIN pharmacy_prescriptions rx ON rx.id = i.prescription_id
@@ -137,6 +138,7 @@ type ItemInput struct {
 	GroupID   *int64
 	DrugText  string
 	Dosage    string
+	Note      string
 	Quantity  decimal.Decimal
 	PerDay    decimal.Decimal
 }
@@ -145,7 +147,7 @@ func (in *ScriptInput) clean() error {
 	in.PrescriberName, in.PrescriberReg = strings.TrimSpace(in.PrescriberName), strings.TrimSpace(in.PrescriberReg)
 	kept := in.Items[:0]
 	for _, it := range in.Items {
-		it.DrugText, it.Dosage = strings.TrimSpace(it.DrugText), strings.TrimSpace(it.Dosage)
+		it.DrugText, it.Dosage, it.Note = strings.TrimSpace(it.DrugText), strings.TrimSpace(it.Dosage), strings.TrimSpace(it.Note)
 		if it.ProductID == nil && it.GroupID == nil && it.DrugText == "" {
 			continue
 		}
@@ -242,17 +244,20 @@ func saveItems(ctx context.Context, tx execer, rxID int64, items []ItemInput) er
 		var err error
 		if it.ID > 0 {
 			res, err = tx.ExecContext(ctx, `UPDATE pharmacy_prescription_items SET product_id = $2, group_id = `+group+`,
-				drug_text = $4, dosage = $5, quantity = $6, per_day = $7 WHERE id = $8 AND prescription_id = $1`,
-				rxID, it.ProductID, it.GroupID, it.DrugText, it.Dosage, it.Quantity, it.PerDay, it.ID)
+				drug_text = $4, dosage = $5, quantity = $6, per_day = $7, note = $9 WHERE id = $8 AND prescription_id = $1`,
+				rxID, it.ProductID, it.GroupID, it.DrugText, it.Dosage, it.Quantity, it.PerDay, it.ID, it.Note)
 		} else {
-			res, err = tx.ExecContext(ctx, `INSERT INTO pharmacy_prescription_items (prescription_id, product_id, group_id, drug_text, dosage, quantity, per_day)
-				VALUES ($1, $2, `+group+`, $4, $5, $6, $7)`, rxID, it.ProductID, it.GroupID, it.DrugText, it.Dosage, it.Quantity, it.PerDay)
+			res, err = tx.ExecContext(ctx, `INSERT INTO pharmacy_prescription_items (prescription_id, product_id, group_id, drug_text, dosage, quantity, per_day, note)
+				VALUES ($1, $2, `+group+`, $4, $5, $6, $7, $8)`, rxID, it.ProductID, it.GroupID, it.DrugText, it.Dosage, it.Quantity, it.PerDay, it.Note)
 		}
 		if err != nil {
 			return err
 		}
 		if n, _ := res.RowsAffected(); n == 0 {
 			return apperr.Validation("a medicine line is not on this prescription — reload it")
+		}
+		if err := learnDose(ctx, tx, it.Dosage, it.PerDay); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -305,6 +310,7 @@ type Medicine struct {
 	Name    string `db:"name" json:"name"`
 	Members int    `db:"members" json:"members"` // a group's products
 	Dose    string `db:"dose" json:"dose"`       // usual dose (a group: its first member's that has one)
+	Note    string `db:"note" json:"note"`       // usual instruction (the same way)
 }
 
 // Medicines finds groups first, then products, by name.
@@ -315,53 +321,14 @@ func (s *Store) Medicines(ctx context.Context, q string) ([]Medicine, error) {
 	}
 	err := s.db.SelectContext(ctx, &out, `
 		(SELECT 'group' AS kind, g.id, g.name, COUNT(m.product_id)::int AS members,
-		        COALESCE((array_agg(md.dose ORDER BY t.sort_order, t.id) FILTER (WHERE md.dose <> ''))[1], '') AS dose
+		        COALESCE((array_agg(md.dose ORDER BY t.sort_order, t.id) FILTER (WHERE md.dose <> ''))[1], '') AS dose,
+		        COALESCE((array_agg(md.note ORDER BY t.sort_order, t.id) FILTER (WHERE md.note <> ''))[1], '') AS note
 		 FROM alt_groups g LEFT JOIN alt_tiers t ON t.group_id = g.id LEFT JOIN alt_members m ON m.tier_id = t.id
 		 LEFT JOIN pharmacy_medicines md ON md.product_id = m.product_id
 		 WHERE g.is_active AND g.name ILIKE '%' || $1 || '%' GROUP BY g.id, g.name ORDER BY g.name LIMIT 8)
 		UNION ALL
-		(SELECT 'product', p.id, p.name, 0, COALESCE(md.dose, '') FROM products p
+		(SELECT 'product', p.id, p.name, 0, COALESCE(md.dose, ''), COALESCE(md.note, '') FROM products p
 		 LEFT JOIN pharmacy_medicines md ON md.product_id = p.id
 		 WHERE p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL AND p.name ILIKE '%' || $1 || '%' ORDER BY p.name LIMIT 8)`, q)
 	return out, err
-}
-
-// Dose is a remembered dose: how it is written, doses a day, how often used.
-type Dose struct {
-	Dose   string          `db:"dose" json:"dose"`
-	PerDay decimal.Decimal `db:"per_day" json:"perDay"`
-	Uses   int             `db:"uses" json:"uses"`
-}
-
-// builtinDoses are always offered (doses a day from DosesPerDay).
-var builtinDoses = []string{"1-0-1", "0-0-1", "1-0-0", "1-1-1", "1-1-1-1", "½-0-½", "bd", "tds"}
-
-// Doses is the shop's dose memory: every dose written on a prescription or set
-// as a usual dose, with its most common doses a day, most used first; then the
-// built-in ones not used yet.
-func (s *Store) Doses(ctx context.Context) ([]Dose, error) {
-	out := []Dose{}
-	if err := s.db.SelectContext(ctx, &out, `
-		WITH d AS (
-			SELECT dosage AS dose, per_day FROM pharmacy_prescription_items WHERE dosage <> ''
-			UNION ALL SELECT dose, 0 FROM pharmacy_medicines WHERE dose <> ''
-		)
-		SELECT MIN(dose) AS dose, COUNT(*)::int AS uses,
-		       COALESCE(MODE() WITHIN GROUP (ORDER BY per_day) FILTER (WHERE per_day > 0), 0) AS per_day
-		FROM d GROUP BY lower(trim(dose)) ORDER BY uses DESC, dose LIMIT 60`); err != nil {
-		return nil, err
-	}
-	seen := map[string]bool{}
-	for i, d := range out {
-		seen[strings.ToLower(strings.TrimSpace(d.Dose))] = true
-		if !d.PerDay.IsPositive() {
-			out[i].PerDay = DosesPerDay(d.Dose)
-		}
-	}
-	for _, b := range builtinDoses {
-		if !seen[strings.ToLower(b)] {
-			out = append(out, Dose{Dose: b, PerDay: DosesPerDay(b)})
-		}
-	}
-	return out, nil
 }

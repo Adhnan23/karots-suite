@@ -51,6 +51,7 @@ type ScriptItemDTO struct {
 	ProductName string      `json:"productName"`
 	GroupName   string      `json:"groupName"`
 	Dosage      string      `json:"dosage"`
+	Note        string      `json:"note"`
 	Quantity    string      `json:"quantity"`
 	PerDay      string      `json:"perDay"`
 	Dispensed   string      `json:"dispensed"`
@@ -246,7 +247,7 @@ func (h handlers) scripts(c echo.Context) error {
 		for _, it := range sc.Items {
 			due := it.NextDue()
 			x := ScriptItemDTO{ID: it.ID, ProductID: it.ProductID, GroupID: it.GroupID, Drug: it.Drug, ProductName: it.ProductName,
-				GroupName: it.GroupName, Dosage: it.Dosage, Quantity: it.Quantity.String(), PerDay: it.PerDay.String(),
+				GroupName: it.GroupName, Dosage: it.Dosage, Note: it.Note, Quantity: it.Quantity.String(), PerDay: it.PerDay.String(),
 				Dispensed: it.Dispensed.String(), Owed: it.Owed().String(), LastAt: iso(it.LastAt), NextDue: iso(due)}
 			if sc.Active {
 				x.Status = dueStatus(due, now)
@@ -281,6 +282,7 @@ type scriptIn struct {
 		GroupID   *int64 `json:"groupId"`
 		DrugText  string `json:"drugText"`
 		Dosage    string `json:"dosage"`
+		Note      string `json:"note"`
 		Quantity  string `json:"quantity"`
 		PerDay    string `json:"perDay"`
 	} `json:"items"`
@@ -307,7 +309,7 @@ func bindScript(c echo.Context) (scriptIn, ScriptInput, error) {
 			return in, out, err
 		}
 		out.Items = append(out.Items, ItemInput{ID: it.ID, ProductID: it.ProductID, GroupID: it.GroupID, DrugText: it.DrugText,
-			Dosage: it.Dosage, Quantity: q, PerDay: pd})
+			Dosage: it.Dosage, Note: it.Note, Quantity: q, PerDay: pd})
 	}
 	return in, out, nil
 }
@@ -370,4 +372,65 @@ func (h handlers) doses(c echo.Context) error {
 		return fail("list doses", err)
 	}
 	return c.JSON(http.StatusOK, ds)
+}
+
+func (h handlers) notes(c echo.Context) error {
+	ns, err := h.p.store.Notes(c.Request().Context())
+	if err != nil {
+		return fail("list instructions", err)
+	}
+	return c.JSON(http.StatusOK, ns)
+}
+
+type doseIn struct {
+	Dose   string `json:"dose"`
+	Words  string `json:"words"`
+	PerDay string `json:"perDay"`
+}
+
+func bindDose(c echo.Context) (DoseInput, error) {
+	var in doseIn
+	if err := c.Bind(&in); err != nil {
+		return DoseInput{}, apperr.Validation("invalid dose")
+	}
+	pd, err := parseQty(in.PerDay, "doses a day")
+	return DoseInput{Dose: in.Dose, Words: in.Words, PerDay: pd}, err
+}
+
+func (h handlers) createDose(c echo.Context) error {
+	in, err := bindDose(c)
+	if err != nil {
+		return err
+	}
+	id, err := h.p.store.CreateDose(c.Request().Context(), in)
+	if err != nil {
+		return fail("add dose", err)
+	}
+	return c.JSON(http.StatusOK, map[string]int64{"id": id})
+}
+
+func (h handlers) updateDose(c echo.Context) error {
+	id, err := param(c, "id")
+	if err != nil {
+		return err
+	}
+	in, err := bindDose(c)
+	if err != nil {
+		return err
+	}
+	if err := h.p.store.SaveDose(c.Request().Context(), id, in); err != nil {
+		return fail("save dose", err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h handlers) deleteDose(c echo.Context) error {
+	id, err := param(c, "id")
+	if err != nil {
+		return err
+	}
+	if err := h.p.store.DeleteDose(c.Request().Context(), id); err != nil {
+		return fail("delete dose", err)
+	}
+	return c.NoContent(http.StatusNoContent)
 }

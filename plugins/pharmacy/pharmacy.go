@@ -51,11 +51,15 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.GET("/pharmacy/till-info", h.tillInfo)
 	t.GET("/pharmacy/medicines", h.medicines)
 	t.GET("/pharmacy/doses", h.doses)
+	t.GET("/pharmacy/notes", h.notes)
 	a := reg.Admin() // admin + manager
 	a.GET("/pharmacy/product/:pid", h.productFlags)
 	a.GET("/pharmacy/controlled", h.controlled)
 	a.GET("/pharmacy/controlled/missing", h.unrecorded)
 	a.GET("/pharmacy/controlled/:pid", h.drugRegister)
+	a.POST("/pharmacy/doses", h.createDose)
+	a.PUT("/pharmacy/doses/:id", h.updateDose)
+	a.DELETE("/pharmacy/doses/:id", h.deleteDose)
 	a.GET("/pharmacy/refills", h.refills)
 	a.POST("/pharmacy/refills/:id/called", h.called)
 	a.GET("/pharmacy/dispenses", h.dispenses)
@@ -68,5 +72,5 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 var dataTables = []string{
 	"pharmacy_patients", "pharmacy_prescriptions", "pharmacy_prescription_items",
 	"pharmacy_dispenses", "pharmacy_dispense_items",
-	"pharmacy_controlled_products", "pharmacy_cd_ledger", "pharmacy_medicines",
+	"pharmacy_controlled_products", "pharmacy_cd_ledger", "pharmacy_medicines", "pharmacy_doses",
 }

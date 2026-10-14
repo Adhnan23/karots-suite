@@ -62,6 +62,12 @@ func freshDB(t *testing.T) *sqlx.DB {
 // hand-kept controlled register all come back.
 func TestKarotsPosPharmacyRestore(t *testing.T) {
 	db := freshDB(t)
+	must2 := func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 	must := func(err error) {
 		t.Helper()
 		if err != nil {
@@ -129,6 +135,18 @@ func TestKarotsPosPharmacyRestore(t *testing.T) {
 	reg, err := st.RegisterFor(ctx, prod, nil)
 	if err != nil || len(reg.Old) != 2 || reg.Old[1].Patient != "Nimal Perera" || reg.Schedule != "Schedule II" {
 		t.Fatalf("old register: %+v %v", reg, err)
+	}
+	// A full restore empties the dose list (a karots-pos backup has none): the
+	// usual doses come back, named, with the old prescription's dose beside them.
+	db.MustExec(`TRUNCATE pharmacy_doses`)
+	doses, err := st.Doses(ctx)
+	must2(err)
+	names := map[string]string{}
+	for _, d := range doses {
+		names[d.Dose] = d.Words
+	}
+	if names["1-0-1"] != "Morning · Night" || len(doses) < 15 {
+		t.Fatalf("doses after a restore: %+v", doses)
 	}
 	// New rows after a restore get fresh ids.
 	var n int64

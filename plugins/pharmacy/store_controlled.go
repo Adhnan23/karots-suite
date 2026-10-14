@@ -20,6 +20,7 @@ type MedicineFlags struct {
 	RxOnly     bool   `db:"rx_only"    json:"rxOnly"`
 	Medicine   bool   `db:"medicine"   json:"medicine"`
 	Dose       string `db:"dose"       json:"dose"` // usual dose, "" = none
+	Note       string `db:"note"       json:"note"` // usual instruction (After meals …)
 }
 
 // Flags maps each given product with a mark to its flags.
@@ -30,11 +31,11 @@ func (s *Store) Flags(ctx context.Context, ids []int64) (map[int64]MedicineFlags
 	}
 	err := s.db.SelectContext(ctx, &rows, `
 		SELECT p.id, c.product_id IS NOT NULL AS controlled, COALESCE(c.schedule, '') AS schedule, COALESCE(m.rx_only, false) AS rx_only,
-		       true AS medicine, COALESCE(m.dose, '') AS dose
+		       true AS medicine, COALESCE(m.dose, '') AS dose, COALESCE(m.note, '') AS note
 		FROM unnest($1::bigint[]) AS p(id)
 		LEFT JOIN pharmacy_controlled_products c ON c.product_id = p.id
 		LEFT JOIN pharmacy_medicines m ON m.product_id = p.id
-		WHERE c.product_id IS NOT NULL OR m.rx_only OR m.dose <> '' OR EXISTS (SELECT 1 FROM alt_members a WHERE a.product_id = p.id)`, pq.Array(ids))
+		WHERE c.product_id IS NOT NULL OR m.rx_only OR m.dose <> '' OR m.note <> '' OR EXISTS (SELECT 1 FROM alt_members a WHERE a.product_id = p.id)`, pq.Array(ids))
 	out := make(map[int64]MedicineFlags, len(rows))
 	for _, r := range rows {
 		out[r.ID] = r.MedicineFlags
@@ -59,9 +60,12 @@ func (s *Store) SetFlags(ctx context.Context, productID int64, f MedicineFlags) 
 		return err
 	}
 	// A controlled drug is always prescription-only.
-	if _, err := tx.ExecContext(ctx, `INSERT INTO pharmacy_medicines (product_id, rx_only, dose) VALUES ($1, $2, $3)
-		ON CONFLICT (product_id) DO UPDATE SET rx_only = EXCLUDED.rx_only, dose = EXCLUDED.dose`,
-		productID, f.RxOnly || f.Controlled, strings.TrimSpace(f.Dose)); err != nil {
+	if _, err := tx.ExecContext(ctx, `INSERT INTO pharmacy_medicines (product_id, rx_only, dose, note) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (product_id) DO UPDATE SET rx_only = EXCLUDED.rx_only, dose = EXCLUDED.dose, note = EXCLUDED.note`,
+		productID, f.RxOnly || f.Controlled, strings.TrimSpace(f.Dose), strings.TrimSpace(f.Note)); err != nil {
+		return err
+	}
+	if err := learnDose(ctx, tx, f.Dose, decimal.Zero); err != nil {
 		return err
 	}
 	return tx.Commit()
