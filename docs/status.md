@@ -44,8 +44,8 @@ removable; built-ins fixed), **Short prompt (chat already set up)**, identify se
 example items, "group only", "has sub-categories"), a **new category / new sub-category** badge on options, clean-up
 **Stop here** between parts and its preview keeps real products outside the part. Alternatives — the product form's group
 is a **searchable picker with + New group** (no tiers there; groups stay independent of categories). The box now shows
-even before the first group exists (user may want it hidden again). Not yet re-run after these: the full Playwright suite
-and `go test` with every plugin (spec-level runs passed).
+even before the first group exists (user may want it hidden again). Re-run 2026-10-14: the full Playwright suite
+(150 passed, 24 shot steps skipped) and `go test -p 1 ./...` with every plugin — all green.
 M7.6, split three ways (user, 2026-10-13):
 - **M7.6a (core) — extra barcodes + Merge products — DONE (2026-10-13)** (spec
   `docs/specs/2026-10-13-m7-6a-barcodes-merge-design.md`, plan `docs/plans/2026-10-13-m7-6a-barcodes-merge.md`):
