@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { PageHead } from '@/components/admin/PageHead'
 import { fieldsQuery } from '../productplus/api'
-import { refillsQuery, unrecordedQuery } from './api'
+import { dosesQuery, refillsQuery, unrecordedQuery } from './api'
 import { ControlledTab } from './ControlledTab'
 import { CHIP, useGo } from './nav'
 import { DispensedTab } from './DispensedTab'
+import { DosesTab } from './DosesTab'
 import { PatientPage } from './PatientPage'
 import { PatientsTab } from './PatientsTab'
 import { RefillsTab } from './RefillsTab'
@@ -17,6 +18,7 @@ export function PharmacyPage({ path }: { path: string }) {
   const [tab, id] = path.split('/')
   const due = useQuery(refillsQuery).data?.length ?? 0
   const missing = useQuery(unrecordedQuery).data?.length ?? 0
+  const unnamed = useQuery(dosesQuery).data?.filter((d) => !d.words).length ?? 0
   if (tab === 'patients' && Number(id)) return <PatientPage id={Number(id)} />
   if (tab === 'controlled' && Number(id)) return <RegisterPage productId={Number(id)} />
   const tabs = [
@@ -24,6 +26,7 @@ export function PharmacyPage({ path }: { path: string }) {
     { path: 'refills', label: `Refills due${due ? ` · ${due}` : ''}` },
     { path: 'controlled', label: `Controlled${missing ? ` · ${missing} to record` : ''}` },
     { path: 'dispensed', label: 'Dispensed' },
+    { path: 'doses', label: `Doses${unnamed ? ` · ${unnamed} new` : ''}` },
   ]
   return (
     <>
@@ -32,7 +35,7 @@ export function PharmacyPage({ path }: { path: string }) {
         {tabs.map((t) => <button key={t.path} type="button" aria-pressed={(tab ?? '') === t.path} className={CHIP} onClick={() => go(t.path)}>{t.label}</button>)}
       </div>
       <GenericHint />
-      {tab === 'refills' ? <RefillsTab /> : tab === 'controlled' ? <ControlledTab /> : tab === 'dispensed' ? <DispensedTab /> : <PatientsTab />}
+      {tab === 'refills' ? <RefillsTab /> : tab === 'controlled' ? <ControlledTab /> : tab === 'dispensed' ? <DispensedTab /> : tab === 'doses' ? <DosesTab /> : <PatientsTab />}
     </>
   )
 }

@@ -93,6 +93,7 @@ test('the till registers a patient, writes a script, adds from it; the sale reco
   await page.getByLabel('Dosage 1').fill('1-0-1')
   await expect(page.getByLabel('A day 1')).toHaveValue('2')
   await page.getByLabel('Tablets 1').fill('8') // 4 days: inside the refill window straight away
+  await page.getByLabel('How to take 1').fill('After meals')
   await page.getByRole('button', { name: 'Save prescription' }).click()
   await toast(page, /Prescription added/)
 
@@ -109,6 +110,14 @@ test('the till registers a patient, writes a script, adds from it; the sale reco
   await toast(page, new RegExp(`Added 8 × ${METFOR}`))
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(cart(page).getByText(`For ${NAME}’s ${GROUP}`)).toBeVisible()
+  // The dose label: patient, medicine, dose in words, days and how to take it.
+  await cart(page).getByRole('button', { name: 'Label' }).click()
+  const label = cart(page).getByLabel('Dose label')
+  await expect(label).toContainText(NAME)
+  await expect(label).toContainText(`${METFOR} × 8`)
+  await expect(label).toContainText('1-0-1  Morning · Night')
+  await expect(label).toContainText('4 days · After meals')
+  await cart(page).getByRole('button', { name: 'Close' }).click()
   await complete(page)
 
   ids.patient = (await json<{ patientId: number }[]>(page.request.get(`/api/v1/x/pharmacy/patients?q=${PHONE}`)))[0].patientId
@@ -180,10 +189,27 @@ test('product form: a usual dose, ℞ then Controlled; the till’s Days… star
   if (await yes.isVisible().catch(() => false)) await yes.click()
 })
 
+test('doses: the list starts with the usual ones; a new one is named and deleted', async ({ page }) => {
+  await login(page, '0770000001', '/admin/x/pharmacy/doses')
+  const list = page.getByRole('table', { name: 'Doses' })
+  await expect(list.getByRole('row').filter({ hasText: 'Morning · Noon · Night' })).toBeVisible()
+  await page.getByRole('button', { name: 'New dose' }).click()
+  await page.getByLabel('Dose', { exact: true }).fill(`1 every ${tag} hours`)
+  await page.getByLabel('On the label').fill('Every few hours')
+  await page.getByLabel('Doses a day').fill('3')
+  await page.getByRole('button', { name: 'Save dose' }).click()
+  const row = list.getByRole('row').filter({ hasText: `1 every ${tag} hours` })
+  await expect(row).toContainText('Every few hours')
+  await row.getByRole('button').first().click()
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).last().click()
+  await expect(row).toHaveCount(0)
+})
+
 test('the pharmacy pages fit a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 })
   await login(page, '0770000001', '/admin/x/pharmacy')
-  for (const p of ['', `patients/${ids.patient}`, 'refills', 'controlled', `controlled/${ids.diaz}`, 'dispensed']) {
+  for (const p of ['', `patients/${ids.patient}`, 'refills', 'controlled', `controlled/${ids.diaz}`, 'dispensed', 'doses']) {
     await page.goto(`/admin/x/pharmacy/${p}`)
     await page.waitForLoadState('networkidle')
     expect(await page.evaluate(() => document.documentElement.scrollWidth), p).toBeLessThanOrEqual(360)

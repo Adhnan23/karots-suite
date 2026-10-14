@@ -15,6 +15,7 @@ export const recentSalesQuery = (q: string) => queryOptions({ queryKey: key('rec
 export const medicinesQuery = (q: string) => queryOptions({ queryKey: key('medicines', q), queryFn: () => api<Medicine[]>(`${base}/medicines?q=${encodeURIComponent(q)}`), staleTime: 30_000 })
 /** The shop's dose memory (most used first, then the common ones). */
 export const dosesQuery = queryOptions({ queryKey: key('doses'), queryFn: () => api<Dose[]>(`${base}/doses`), staleTime: 60_000 })
+export const notesQuery = queryOptions({ queryKey: key('notes'), queryFn: () => api<string[]>(`${base}/notes`), staleTime: 60_000 })
 export const productFlagsQuery = (pid: number) =>
   queryOptions({ queryKey: key('product', pid), queryFn: () => api<Flags>(`${base}/product/${pid}`), enabled: pid > 0 })
 /** The cart's controlled / Rx-only products (cached briefly; ids sorted so the key is stable). */
@@ -49,3 +50,9 @@ export const setScriptActive = (id: number, active: boolean) => write(api(`${bas
 export type DispenseInput = { saleId: number; patientId: number; prescriptionId?: number; prescriber?: string; lines?: { productId: number; rxItemId: number }[] }
 export const recordDispense = (d: DispenseInput) => write(api<{ id: number }>(`${base}/dispenses`, { json: d }))
 export const markCalled = (itemId: number) => write(api(`${base}/refills/${itemId}/called`, { method: 'POST' }))
+export type DoseBody = { dose: string; words: string; perDay: string }
+export const createDose = (d: DoseBody) => write(api<{ id: number }>(`${base}/doses`, { json: d }))
+export const updateDose = (id: number, d: DoseBody) => write(api(`${base}/doses/${id}`, { method: 'PUT', json: d }))
+export const deleteDose = (id: number) => write(api(`${base}/doses/${id}`, { method: 'DELETE' }))
+/** A text-only sticker on the label printer (core POST /till/labels/text). */
+export const printTextLabel = (lines: string[], count = 1) => api('/till/labels/text', { json: { lines, count, size: '' } })

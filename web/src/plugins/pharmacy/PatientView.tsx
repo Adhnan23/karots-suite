@@ -53,7 +53,7 @@ export function PatientView({ till, patientId, onChange, onPast, onClose }: {
       </div>
       <Allergies p={p} />
       {scripts && active.length === 0 && <p className="rounded-[var(--radius)] border border-dashed border-border p-3 text-sm text-muted-foreground">No prescriptions on file — add one, or sell as usual.</p>}
-      {active.map((s) => <ScriptCard key={s.id} s={s} onAdd={(it, n) => it.suggest && void add(it.suggest.productId, it.suggest.name, n, { pharmacy: { rxItemId: it.id, drug: it.drug } })} />)}
+      {active.map((s) => <ScriptCard key={s.id} s={s} onAdd={(it, n) => it.suggest && void add(it.suggest.productId, it.suggest.name, n, { pharmacy: { rxItemId: it.id, drug: it.drug, dose: it.dosage, note: it.note } })} />)}
       {stopped.length > 0 && (
         <button type="button" className="justify-self-start text-xs font-semibold text-muted-foreground underline" onClick={() => setShowStopped((v) => !v)}>
           {showStopped ? 'Hide' : 'Show'} {stopped.length} stopped prescription{stopped.length === 1 ? '' : 's'}

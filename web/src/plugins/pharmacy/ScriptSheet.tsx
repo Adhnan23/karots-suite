@@ -9,12 +9,12 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { createScript, dosesQuery, medicinesQuery, updateScript } from './api'
 import { perDayOf, supplyDays } from './dosage'
-import { DoseInput } from './DoseInput'
+import { DoseInput, NoteInput } from './DoseInput'
 import type { Script, ScriptItemInput } from './types'
 
 type Row = ScriptItemInput & { key: number; label: string; perDayTouched: boolean }
 let next = 1
-const blank = (): Row => ({ key: next++, drugText: '', dosage: '', quantity: '', perDay: '', label: '', perDayTouched: false })
+const blank = (): Row => ({ key: next++, drugText: '', dosage: '', note: '', quantity: '', perDay: '', label: '', perDayTouched: false })
 const today = () => new Date().toLocaleDateString('en-CA')
 
 /** Write or edit a prescription: the doctor, then one row per medicine — a medicine
@@ -28,7 +28,7 @@ export function ScriptSheet({ patientId, script, onClose }: { patientId: number;
   const [notes, setNotes] = useState(script?.notes ?? '')
   const [rows, setRows] = useState<Row[]>(() => script?.items.length
     ? script.items.map((it) => ({ key: next++, id: it.id, productId: it.productId, groupId: it.groupId, drugText: it.productId || it.groupId ? '' : it.drug,
-      label: it.groupName || it.productName, dosage: it.dosage, quantity: it.quantity === '0' ? '' : it.quantity, perDay: it.perDay === '0' ? '' : it.perDay, perDayTouched: true }))
+      label: it.groupName || it.productName, dosage: it.dosage, note: it.note, quantity: it.quantity === '0' ? '' : it.quantity, perDay: it.perDay === '0' ? '' : it.perDay, perDayTouched: true }))
     : [blank()])
   const [busy, setBusy] = useState(false)
   const set = (key: number, p: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...p } : r)))
@@ -39,7 +39,7 @@ export function ScriptSheet({ patientId, script, onClose }: { patientId: number;
     setBusy(true)
     try {
       const body = { patientId, prescriberName: doc, prescriberReg: reg, prescribedOn: on, notes, isRepeat: repeat, repeatIntervalDays: Number(every) || 0,
-        items: items.map(({ id, productId, groupId, drugText, dosage, quantity, perDay }) => ({ id, productId, groupId, drugText, dosage, quantity, perDay })) }
+        items: items.map(({ id, productId, groupId, drugText, dosage, note, quantity, perDay }) => ({ id, productId, groupId, drugText, dosage, note, quantity, perDay })) }
       if (script) await updateScript(script.id, body)
       else await createScript(body)
       toast.success(script ? 'Prescription saved' : 'Prescription added')
@@ -98,6 +98,9 @@ function ItemRow({ row, n, onChange, onRemove }: { row: Row; n: number; onChange
         <span>{days > 0 ? `${days} days` : ''}</span>
         {onRemove && <button type="button" aria-label={`Remove medicine ${n}`} onClick={onRemove} className="rounded-full p-1 hover:bg-muted"><X className="size-4" /></button>}
       </div>
+      <div className="md:col-span-5">
+        <NoteInput label={`How to take ${n}`} value={row.note} onChange={(v) => onChange({ note: v })} placeholder="How to take it — e.g. After meals (optional)" className={INPUT} />
+      </div>
     </div>
   )
 }
@@ -128,7 +131,8 @@ function MedicinePick({ row, n, onChange }: { row: Row; n: number; onChange: (p:
               onClick={() => {
                 // The medicine's usual dose fills an empty dosage (the doctor's always wins).
                 const dose = !row.dosage && m.dose ? { dosage: m.dose, ...(!row.perDayTouched ? { perDay: String(perDayOf(m.dose, doses) || '') } : {}) } : {}
-                onChange({ ...(m.kind === 'group' ? { groupId: m.id } : { productId: m.id }), label: m.name, drugText: '', ...dose })
+                const note = !row.note && m.note ? { note: m.note } : {}
+                onChange({ ...(m.kind === 'group' ? { groupId: m.id } : { productId: m.id }), label: m.name, drugText: '', ...dose, ...note })
                 setOpen(false)
               }}
               className="flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-[14px] hover:bg-muted">
