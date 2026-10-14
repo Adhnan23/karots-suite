@@ -15,7 +15,7 @@ export type Script = {
 export type ScriptItemInput = { id?: number; productId?: number | null; groupId?: number | null; drugText: string; dosage: string; quantity: string; perDay: string }
 export type ScriptInput = Omit<Script, 'id' | 'active' | 'items'> & { patientId: number; items: ScriptItemInput[] }
 export type RecentSale = { id: number; receipt: string; at: string; total: string; customer: string; items: string; recorded: string; medicines: number }
-export type Flags = { controlled: boolean; schedule: string; rxOnly: boolean; medicine?: boolean }
+export type Flags = { controlled: boolean; schedule: string; rxOnly: boolean; medicine?: boolean; dose: string }
 export type Controlled = { productId: number; name: string; schedule: string; stock: string; unrecorded: number; oldRows: number }
 export type RegisterRow = {
   id: number; at: string; type: string; in: string; out: string; balance: string; saleId: number | null
@@ -24,7 +24,8 @@ export type RegisterRow = {
 export type OldEntry = { at: string; direction: 'in' | 'out'; qty: string; patient: string; prescriber: string; reference: string; notes: string }
 export type Register = Controlled & { from: string; opening: string; rows: RegisterRow[]; old: OldEntry[] }
 export type Unrecorded = { saleId: number; receipt: string; at: string; productId: number; name: string; qty: string }
-export type Medicine = { kind: 'group' | 'product'; id: number; name: string; members: number }
+export type Medicine = { kind: 'group' | 'product'; id: number; name: string; members: number; dose: string }
+export type Dose = { dose: string; perDay: string; uses: number }
 export type Refill = {
   itemId: number; rxId: number; patientId: number; patient: string; phone: string; prescriber: string; drug: string; dosage: string
   isRepeat: boolean; lastAt: string; due: string; status: 'overdue' | 'soon'; calledAt: string

@@ -7,8 +7,9 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { errMsg } from '@/features/till/api'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
-import { createScript, medicinesQuery, updateScript } from './api'
-import { dosesPerDay, supplyDays } from './dosage'
+import { createScript, dosesQuery, medicinesQuery, updateScript } from './api'
+import { perDayOf, supplyDays } from './dosage'
+import { DoseInput } from './DoseInput'
 import type { Script, ScriptItemInput } from './types'
 
 type Row = ScriptItemInput & { key: number; label: string; perDayTouched: boolean }
@@ -86,12 +87,8 @@ function ItemRow({ row, n, onChange, onRemove }: { row: Row; n: number; onChange
   return (
     <div className="grid gap-2 rounded-[var(--radius-sm)] border border-border bg-card p-2.5 md:grid-cols-[1fr_7rem_6rem_6rem_auto] md:items-center">
       <MedicinePick row={row} n={n} onChange={onChange} />
-      <input aria-label={`Dosage ${n}`} placeholder="1-0-1" value={row.dosage} className={INPUT}
-        onChange={(e) => {
-          const d = e.target.value
-          const auto = dosesPerDay(d)
-          onChange({ dosage: d, ...(!row.perDayTouched ? { perDay: auto ? String(auto) : '' } : {}) })
-        }} />
+      <DoseInput label={`Dosage ${n}`} value={row.dosage} className={INPUT}
+        onChange={(d, per) => onChange({ dosage: d, ...(!row.perDayTouched ? { perDay: per ? String(per) : '' } : {}) })} />
       <input aria-label={`Tablets ${n}`} placeholder="Qty" inputMode="decimal" value={row.quantity} onChange={(e) => onChange({ quantity: e.target.value })} className={INPUT} />
       <label className="flex items-center gap-1.5 text-[12px] text-faint">
         <input aria-label={`A day ${n}`} inputMode="decimal" value={row.perDay} onChange={(e) => onChange({ perDay: e.target.value, perDayTouched: true })} className={cn(INPUT, 'w-14 px-2 text-center')} />
@@ -110,6 +107,7 @@ function MedicinePick({ row, n, onChange }: { row: Row; n: number; onChange: (p:
   const [open, setOpen] = useState(false)
   const q = useDebounced(row.drugText.trim(), 200)
   const hits = useQuery({ ...medicinesQuery(q), enabled: open && q.length > 1 }).data ?? []
+  const doses = useQuery(dosesQuery).data
   if (row.productId || row.groupId) {
     return (
       <span className="flex h-[var(--control-h)] items-center gap-2 rounded-[var(--radius-sm)] border border-brand bg-brand-soft px-3 text-[14px] font-semibold">
@@ -127,7 +125,12 @@ function MedicinePick({ row, n, onChange }: { row: Row; n: number; onChange: (p:
         <div className="absolute inset-x-0 top-full z-50 mt-1 grid max-h-64 overflow-auto rounded-[var(--radius-sm)] border border-border bg-popover p-1 shadow-[var(--shadow-float)]">
           {hits.map((m) => (
             <button key={`${m.kind}${m.id}`} type="button" onMouseDown={(e) => e.preventDefault()}
-              onClick={() => { onChange(m.kind === 'group' ? { groupId: m.id, label: m.name, drugText: '' } : { productId: m.id, label: m.name, drugText: '' }); setOpen(false) }}
+              onClick={() => {
+                // The medicine's usual dose fills an empty dosage (the doctor's always wins).
+                const dose = !row.dosage && m.dose ? { dosage: m.dose, ...(!row.perDayTouched ? { perDay: String(perDayOf(m.dose, doses) || '') } : {}) } : {}
+                onChange({ ...(m.kind === 'group' ? { groupId: m.id } : { productId: m.id }), label: m.name, drugText: '', ...dose })
+                setOpen(false)
+              }}
               className="flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-[14px] hover:bg-muted">
               <span className="truncate font-medium">{m.name}</span>
               <small className="text-faint">{m.kind === 'group' ? `group · ${m.members} brand${m.members === 1 ? '' : 's'}` : 'product'}</small>

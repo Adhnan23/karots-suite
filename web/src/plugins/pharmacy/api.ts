@@ -2,7 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { type Range, rangeQS } from '@/features/counter/range'
 import { queryClient } from '@/api/query-client'
-import type { Controlled, Flags, Found, LogRow, Medicine, Patient, RecentSale, Refill, Register, Script, ScriptInput, Unrecorded } from './types'
+import type { Controlled, Dose, Flags, Found, LogRow, Medicine, Patient, RecentSale, Refill, Register, Script, ScriptInput, Unrecorded } from './types'
 
 const base = '/x/pharmacy'
 const key = (...k: unknown[]) => ['x', 'pharmacy', ...k]
@@ -13,6 +13,8 @@ export const patientQuery = (id: number) => queryOptions({ queryKey: key('patien
 export const scriptsQuery = (id: number) => queryOptions({ queryKey: key('scripts', id), queryFn: () => api<Script[]>(`${base}/patients/${id}/scripts`), enabled: id > 0 })
 export const recentSalesQuery = (q: string) => queryOptions({ queryKey: key('recent', q), queryFn: () => api<RecentSale[]>(`${base}/sales/recent?q=${encodeURIComponent(q)}`) })
 export const medicinesQuery = (q: string) => queryOptions({ queryKey: key('medicines', q), queryFn: () => api<Medicine[]>(`${base}/medicines?q=${encodeURIComponent(q)}`), staleTime: 30_000 })
+/** The shop's dose memory (most used first, then the common ones). */
+export const dosesQuery = queryOptions({ queryKey: key('doses'), queryFn: () => api<Dose[]>(`${base}/doses`), staleTime: 60_000 })
 export const productFlagsQuery = (pid: number) =>
   queryOptions({ queryKey: key('product', pid), queryFn: () => api<Flags>(`${base}/product/${pid}`), enabled: pid > 0 })
 /** The cart's controlled / Rx-only products (cached briefly; ids sorted so the key is stable). */

@@ -50,6 +50,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.GET("/pharmacy/sales/recent", h.recentSales)
 	t.GET("/pharmacy/till-info", h.tillInfo)
 	t.GET("/pharmacy/medicines", h.medicines)
+	t.GET("/pharmacy/doses", h.doses)
 	a := reg.Admin() // admin + manager
 	a.GET("/pharmacy/product/:pid", h.productFlags)
 	a.GET("/pharmacy/controlled", h.controlled)

@@ -186,8 +186,8 @@ func decodeFlags(raw json.RawMessage) (MedicineFlags, error) {
 	if err := json.Unmarshal(raw, &f); err != nil {
 		return f, apperr.BadRequest("invalid pharmacy section")
 	}
-	if len(f.Schedule) > 60 {
-		return f, apperr.Validation("keep the schedule short (60 letters)")
+	if len(f.Schedule) > 60 || len(f.Dose) > 40 {
+		return f, apperr.Validation("keep the schedule (60 letters) and the usual dose (40) short")
 	}
 	return f, nil
 }

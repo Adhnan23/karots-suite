@@ -156,6 +156,30 @@ test('refills due is a call list: WhatsApp the patient, Called takes them off', 
   await expect(row).toHaveCount(0)
 })
 
+test('product form: a usual dose, ℞ then Controlled; the till’s Days… starts from the usual dose', async ({ page }) => {
+  await login(page, '0770000001', `/admin/products?q=${encodeURIComponent(METFOR)}`)
+  await page.getByRole('button', { name: METFOR }).first().click()
+  await expect(page.getByRole('switch', { name: /Controlled drug/ })).toHaveCount(0) // only for a prescription medicine
+  await page.getByText('Prescription medicine (℞)').click()
+  await expect(page.getByRole('switch', { name: /Controlled drug/ })).toBeVisible()
+  await page.getByText('Prescription medicine (℞)').click()
+  await page.getByLabel('Usual dose', { exact: true }).fill('0-0-1')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect.poll(async () => (await json<{ dose: string; rxOnly: boolean }>(page.request.get(`/api/v1/x/pharmacy/product/${ids.metfor}`))).dose).toBe('0-0-1')
+
+  await till(page)
+  await search(page).fill(METFOR)
+  await page.getByRole('button', { name: new RegExp(METFOR) }).first().click()
+  await cart(page).getByRole('button', { name: 'Days…' }).click()
+  await expect(cart(page).getByLabel('Dose', { exact: true })).toHaveValue('0-0-1')
+  await cart(page).getByLabel('Days', { exact: true }).fill('5')
+  await cart(page).getByRole('button', { name: 'Set 5' }).click()
+  await expect(cart(page).getByLabel(`Quantity of ${METFOR}`)).toHaveValue('5')
+  await page.getByRole('button', { name: 'New sale' }).click()
+  const yes = page.getByRole('dialog').getByRole('button', { name: /new sale|clear/i })
+  if (await yes.isVisible().catch(() => false)) await yes.click()
+})
+
 test('the pharmacy pages fit a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 })
   await login(page, '0770000001', '/admin/x/pharmacy')

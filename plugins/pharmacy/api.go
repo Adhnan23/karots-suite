@@ -363,3 +363,11 @@ func (h handlers) medicines(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, rows)
 }
+
+func (h handlers) doses(c echo.Context) error {
+	ds, err := h.p.store.Doses(c.Request().Context())
+	if err != nil {
+		return fail("list doses", err)
+	}
+	return c.JSON(http.StatusOK, ds)
+}

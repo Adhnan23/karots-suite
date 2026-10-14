@@ -304,6 +304,7 @@ type Medicine struct {
 	ID      int64  `db:"id" json:"id"`
 	Name    string `db:"name" json:"name"`
 	Members int    `db:"members" json:"members"` // a group's products
+	Dose    string `db:"dose" json:"dose"`       // usual dose (a group: its first member's that has one)
 }
 
 // Medicines finds groups first, then products, by name.
@@ -313,11 +314,54 @@ func (s *Store) Medicines(ctx context.Context, q string) ([]Medicine, error) {
 		return out, nil
 	}
 	err := s.db.SelectContext(ctx, &out, `
-		(SELECT 'group' AS kind, g.id, g.name, COUNT(m.product_id)::int AS members
+		(SELECT 'group' AS kind, g.id, g.name, COUNT(m.product_id)::int AS members,
+		        COALESCE((array_agg(md.dose ORDER BY t.sort_order, t.id) FILTER (WHERE md.dose <> ''))[1], '') AS dose
 		 FROM alt_groups g LEFT JOIN alt_tiers t ON t.group_id = g.id LEFT JOIN alt_members m ON m.tier_id = t.id
+		 LEFT JOIN pharmacy_medicines md ON md.product_id = m.product_id
 		 WHERE g.is_active AND g.name ILIKE '%' || $1 || '%' GROUP BY g.id, g.name ORDER BY g.name LIMIT 8)
 		UNION ALL
-		(SELECT 'product', p.id, p.name, 0 FROM products p
+		(SELECT 'product', p.id, p.name, 0, COALESCE(md.dose, '') FROM products p
+		 LEFT JOIN pharmacy_medicines md ON md.product_id = p.id
 		 WHERE p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL AND p.name ILIKE '%' || $1 || '%' ORDER BY p.name LIMIT 8)`, q)
 	return out, err
+}
+
+// Dose is a remembered dose: how it is written, doses a day, how often used.
+type Dose struct {
+	Dose   string          `db:"dose" json:"dose"`
+	PerDay decimal.Decimal `db:"per_day" json:"perDay"`
+	Uses   int             `db:"uses" json:"uses"`
+}
+
+// builtinDoses are always offered (doses a day from DosesPerDay).
+var builtinDoses = []string{"1-0-1", "0-0-1", "1-0-0", "1-1-1", "1-1-1-1", "½-0-½", "bd", "tds"}
+
+// Doses is the shop's dose memory: every dose written on a prescription or set
+// as a usual dose, with its most common doses a day, most used first; then the
+// built-in ones not used yet.
+func (s *Store) Doses(ctx context.Context) ([]Dose, error) {
+	out := []Dose{}
+	if err := s.db.SelectContext(ctx, &out, `
+		WITH d AS (
+			SELECT dosage AS dose, per_day FROM pharmacy_prescription_items WHERE dosage <> ''
+			UNION ALL SELECT dose, 0 FROM pharmacy_medicines WHERE dose <> ''
+		)
+		SELECT MIN(dose) AS dose, COUNT(*)::int AS uses,
+		       COALESCE(MODE() WITHIN GROUP (ORDER BY per_day) FILTER (WHERE per_day > 0), 0) AS per_day
+		FROM d GROUP BY lower(trim(dose)) ORDER BY uses DESC, dose LIMIT 60`); err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{}
+	for i, d := range out {
+		seen[strings.ToLower(strings.TrimSpace(d.Dose))] = true
+		if !d.PerDay.IsPositive() {
+			out[i].PerDay = DosesPerDay(d.Dose)
+		}
+	}
+	for _, b := range builtinDoses {
+		if !seen[strings.ToLower(b)] {
+			out = append(out, Dose{Dose: b, PerDay: DosesPerDay(b)})
+		}
+	}
+	return out, nil
 }

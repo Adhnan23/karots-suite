@@ -35,3 +35,10 @@ export function supplyDays(tablets: number, perDay: number): number {
 export function tabletsFor(perDay: number, days: number): number {
   return perDay > 0 && days > 0 ? Math.ceil(perDay * days - 1e-9) : 0
 }
+
+/** Doses a day for a dose: the shop's remembered one (GET /doses), else the 1-0-1 reader. */
+export function perDayOf(dose: string, memory: { dose: string; perDay: string }[] | undefined): number {
+  const k = dose.trim().toLowerCase()
+  const hit = memory?.find((d) => d.dose.trim().toLowerCase() === k && Number(d.perDay) > 0)
+  return hit ? Number(hit.perDay) : dosesPerDay(dose)
+}

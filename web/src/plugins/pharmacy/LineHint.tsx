@@ -4,8 +4,9 @@ import type { CartLine } from '@/features/till/cart/types'
 import { FIELD } from '@/features/till/ui'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '../slots'
-import { tillInfoQuery } from './api'
-import { dosesPerDay, tabletsFor } from './dosage'
+import { dosesQuery, tillInfoQuery } from './api'
+import { perDayOf, tabletsFor } from './dosage'
+import { DoseInput } from './DoseInput'
 import { salePatient } from './sale'
 
 /** Under a cart line: which script it is for, reminders that never block (a controlled
@@ -36,19 +37,21 @@ export function LineHint({ till, line }: { till: TillApi; line: CartLine }) {
           </button>
         )}
       </div>
-      {days && <DaysForm onSet={(n) => { till.setLineQty(line.key, n); setDays(false) }} onCancel={() => setDays(false)} />}
+      {days && <DaysForm usual={f?.dose ?? ''} onSet={(n) => { till.setLineQty(line.key, n); setDays(false) }} onCancel={() => setDays(false)} />}
     </div>
   )
 }
 
 /** "1-0-1 × 2 days = 4" → Set 4 on the line. */
-function DaysForm({ onSet, onCancel }: { onSet: (n: number) => void; onCancel: () => void }) {
-  const [dose, setDose] = useState('1-0-1')
+function DaysForm({ usual, onSet, onCancel }: { usual: string; onSet: (n: number) => void; onCancel: () => void }) {
+  const doses = useQuery(dosesQuery).data
+  const [dose, setDose] = useState(usual || '1-0-1')
+  const [per, setPer] = useState<number | null>(null) // null = read from the dose (remembered first)
   const [days, setDays] = useState('')
-  const n = tabletsFor(dosesPerDay(dose), Number(days) || 0)
+  const n = tabletsFor(per ?? perDayOf(dose, doses), Number(days) || 0)
   return (
     <form className="flex flex-wrap items-center gap-1.5 text-[12.5px]" onSubmit={(e) => { e.preventDefault(); if (n > 0) onSet(n) }}>
-      <input aria-label="Dose" value={dose} onChange={(e) => setDose(e.target.value)} className={cn(FIELD, 'h-8 w-20 px-2 text-center text-[13px]')} />
+      <DoseInput label="Dose" value={dose} onChange={(d, p) => { setDose(d); setPer(p) }} className={cn(FIELD, 'h-8 w-24 px-2 text-center text-[13px]')} />
       <span>×</span>
       <input autoFocus aria-label="Days" inputMode="numeric" placeholder="days" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))}
         className={cn(FIELD, 'h-8 w-16 px-2 text-center text-[13px]')} />
