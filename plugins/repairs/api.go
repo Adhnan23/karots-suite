@@ -24,7 +24,7 @@ type PartDTO struct {
 	ProductID    int64  `json:"productId"`
 	Name         string `json:"name"`
 	Qty          string `json:"qty"`
-	Price        string `json:"price"`    // today's selling price, each
+	Price        string `json:"price"`       // today's selling price, each
 	OldDiscount  string `json:"oldDiscount"` // a karots-pos row's discount ("10%" / "80.00 each"), "" for new rows
 	WarrantyDays int    `json:"warrantyDays"`
 }
@@ -85,7 +85,7 @@ type JobDTO struct {
 	Estimate      string       `json:"estimate"`
 	Deposits      []DepositDTO `json:"deposits"`
 	DepositTotal  string       `json:"depositTotal"`
-	LegacyHeld    string       `json:"legacyHeld"` // a karots-pos deposit still held (cash)
+	LegacyHeld    string       `json:"legacyHeld"`  // a karots-pos deposit still held (cash)
 	Outstanding   string       `json:"outstanding"` // the customer's balance now (negative = advance)
 	RepairerPaid  string       `json:"repairerPaid"`
 	Payouts       []PayoutDTO  `json:"payouts"`

@@ -26,8 +26,8 @@ import (
 )
 
 type fixture struct {
-	db         *sqlx.DB
-	do         func(method, path, body string) *httptest.ResponseRecorder
+	db               *sqlx.DB
+	do               func(method, path, body string) *httptest.ResponseRecorder
 	sales            *sales.Service
 	cust, part, user int64
 }

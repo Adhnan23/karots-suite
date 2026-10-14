@@ -11,11 +11,11 @@ func d(s string) decimal.Decimal { return decimal.RequireFromString(s) }
 
 func TestOnAccountPrefill(t *testing.T) {
 	for _, c := range []struct{ dep, out, bill, want string }{
-		{"500", "-500", "2000", "500"},  // the deposit is still an advance
-		{"500", "-200", "2000", "200"},  // part of it went on another buy
-		{"500", "300", "2000", "0"},     // they owe now: never add debt
-		{"500", "-900", "300", "300"},   // bill smaller than the deposit
-		{"0", "-900", "300", "0"},       // no deposit on this job
+		{"500", "-500", "2000", "500"}, // the deposit is still an advance
+		{"500", "-200", "2000", "200"}, // part of it went on another buy
+		{"500", "300", "2000", "0"},    // they owe now: never add debt
+		{"500", "-900", "300", "300"},  // bill smaller than the deposit
+		{"0", "-900", "300", "0"},      // no deposit on this job
 	} {
 		if got := onAccountPrefill(d(c.dep), d(c.out), d(c.bill)); !got.Equal(d(c.want)) {
 			t.Errorf("dep %s out %s bill %s: got %s want %s", c.dep, c.out, c.bill, got, c.want)
