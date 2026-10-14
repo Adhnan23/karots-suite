@@ -31,9 +31,28 @@ Checks: 150 Playwright flows (dev DB reseeded), go test all-plugins + core-only,
 **User tried M7.6d on the :3100 demo (2026-10-13): "everything looks good"** (demo binary updated; the previous one is
 `~/karots-accept/karots-suite-all.m76c`). User decision: no expense on a conversion run — staff do it as part of their
 day, wages already cover it; the lost weight is in the loose cost.
-**NEXT (fresh session): M7.7 pharmacy** (after it: M7.8 repairs, then recharge — the roadmap below still shows the old
-numbers, each plugin moved up one). Start with the **rethink step** (read the whole karots-pos plugin and its memory
-notes, propose keep · change · merge + how old data maps over), let the user decide, then the spec and the plan.
+**M7.7 pharmacy — rethink DONE (2026-10-14), split in two (user: "do the recommended way"):**
+- **M7.7a Packs (core) — IN PROGRESS** (spec `docs/specs/2026-10-14-m7-7a-packs-design.md`, plan
+  `docs/plans/2026-10-14-m7-7a-packs.md`). User's problem: card→loose conversions bloat a pharmacy catalogue (every card
+  needs a "(loose)" twin; customers ask 2–3 tablets, "2 days' worth", 14 tablets of a 12-card). Fix: a product counts in
+  tablets and carries packs (Card ×12 with its own price + barcode); full packs ring at the pack price automatically
+  ("14 = 1 Card + 2"); a card size nobody set can be set at the till (flagged in Items to review); buy / intake by the
+  card; fold existing card + loose twins. Generic (cigarettes, eggs) — core names no plugin.
+- **M7.7b Pharmacy (plugin) — after 7a.** Approved rethink (keep · change · drop vs karots-pos):
+  **A** dispense during the sale — till action 💊 Patient (pick / register, allergies in red, scripts with due badges,
+  Add a script line as its alternatives group's best in-stock member); after-sale records the dispense from the sale
+  lines (pieces by group, days = pieces ÷ doses/day); "Record for a past receipt" when forgotten; optional generic seam
+  `TillApi` customer get/set (patient becomes the sale's customer). Drops the Dispense tab, sale picker, typed qty/days.
+  **B** patient = core customer + profile (keep), patient page at 360px. **C** prescriptions: a drug line points at an
+  alternatives group (free text allowed), dosage understands **1-0-1**, repeat / stop / edit kept. **D** refills due =
+  call list (📞, WhatsApp, Called today), same per-drug logic (lead 5 days, one-off grace 30). **E** controlled register
+  read from core stock movements (no double entry); OUT rows carry patient + doctor snapshots; a controlled sale
+  without a patient still sells → **Needs a record** list. **F** no medicine wizard: core form + Product Plus fields
+  (Generic name / Strength set up by the shop — pharmacy must not write Product Plus data) + Alternatives + packs;
+  pharmacy's form section = Controlled (schedule) + Prescription-only (hint, never blocks). **G** till ⓘ "⚠ Controlled".
+  **H** dispensing log + CSV. **I** requires Product Plus + Alternatives. Old data: all 7 `pharmacy_*` tables restore;
+  old `pharmacy_cd_ledger` becomes a read-only "Old register". Days helper "1-0-1 × 2 days = 4" lives in pharmacy.
+- After M7.7: M7.8 repairs, then recharge (the roadmap below still shows the old numbers, each plugin moved up one).
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
