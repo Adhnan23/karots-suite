@@ -75,6 +75,12 @@ day, wages already cover it; the lost weight is in the loose cost.
   (`GET /x/pharmacy/doses`: every prescription dose + usual dose with its most common per-day, plus 1-0-1 / tds… —
   user chose this over a managed dose table; a table only if printed dose labels need it); product **Usual dose**
   (migration `0008`); **Controlled only for a prescription medicine** (server keeps controlled ⇒ ℞).
+- **Dose labels (user, 2026-10-14):** 🏷 Label on a medicine's cart line prints a dose sticker on the label printer via a
+  new core **text-only label** (`tspl.Input.Lines`, `POST /till/labels/text`; ½ × · now print as ASCII look-alikes):
+  with a patient — name + date, medicine × qty, dose + its words, days · how to take it; without — medicine × qty + date
+  first. **Pharmacy → Doses** (migration `0009`, `pharmacy_doses`): pre-filled with the usual doses (put back whenever the
+  list is empty, e.g. after a full restore), learns doses used elsewhere (flagged "new" to name), add / edit / delete.
+  **How to take it** (instruction) on prescription lines, product form and Days… — common ones + those used (memory).
 - **Demo updated for M7.7a + M7.7b (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against
   `suite_accept`; previous binary `karots-suite-all.m76d`, DB backup `suite_accept-before-m77-2026-10-14.dump`. Pharmacy
   demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
