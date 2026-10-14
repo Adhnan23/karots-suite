@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { Me, TillConfig } from '@/api/types.gen'
+import { TouchToggle } from './TouchToggle'
 import { ModeToggle } from './ModeToggle'
 import { CommandPalette } from './CommandPalette'
 import { TillKeys } from './TillKeys'
@@ -59,6 +60,7 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
         <TillTabs config={config} />
         <div className="ml-auto flex items-center gap-1 whitespace-nowrap">
           {onSell && <TillKeys />}
+          {onSell && <TouchToggle className={TOP_BTN} />}
           <button type="button" onClick={() => setPalette(true)} className={TOP_BTN} aria-label="Search / jump (Ctrl K)" title="Search / jump (Ctrl K)">
             <Search size={16} />
           </button>

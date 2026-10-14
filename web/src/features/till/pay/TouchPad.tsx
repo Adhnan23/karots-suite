@@ -2,10 +2,11 @@ import { Delete } from 'lucide-react'
 import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-/** Shows a touch-screen helper only where it helps: a touch screen (coarse
- * pointer) tall enough to fit it — never on a mouse-and-keyboard counter or a
- * short screen, where it would only push Complete sale away. */
-export const TOUCH_ONLY = 'hidden [@media(any-pointer:coarse)_and_(min-height:760px)]:grid'
+/** Shows a touch-screen helper where it helps: by default (Auto) a touch screen
+ * (coarse pointer) tall enough to fit it — not a mouse-and-keyboard counter or a
+ * short screen, where it would only push Complete sale away. The till header's
+ * Touch keys switch makes it always (data-touch=on) or never (off) on this device. */
+export const TOUCH_ONLY = 'hidden [@media(any-pointer:coarse)_and_(min-height:760px)]:grid [:root[data-touch=on]_&]:grid [:root[data-touch=off]_&]:hidden'
 
 // The till box the keypad types into: the last one focused (search, amount, qty,
 // discount…), the amount box until one is.
