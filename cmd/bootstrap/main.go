@@ -39,11 +39,12 @@ import (
 
 // manifest mirrors plugins/<key>/plugin.json.
 type manifest struct {
-	Key         string `json:"key"`
-	Name        string `json:"name"`
-	Import      string `json:"import"`
-	Version     string `json:"version"`
-	Description string `json:"description"`
+	Key         string   `json:"key"`
+	Name        string   `json:"name"`
+	Import      string   `json:"import"`
+	Version     string   `json:"version"`
+	Description string   `json:"description"`
+	Requires    []string `json:"requires"` // plugins always built alongside this one
 }
 
 func main() {
@@ -153,7 +154,36 @@ func selectPlugins(all []manifest, flagVal string) ([]manifest, error) {
 		}
 		sel = append(sel, m)
 	}
-	return sel, nil
+	return withRequired(all, sel), nil
+}
+
+// withRequired adds the plugins the selection requires, in discovery order.
+func withRequired(all, sel []manifest) []manifest {
+	want := map[string]bool{}
+	var add func(k string)
+	add = func(k string) {
+		if want[k] {
+			return
+		}
+		want[k] = true
+		for _, m := range all {
+			if m.Key == k {
+				for _, r := range m.Requires {
+					add(r)
+				}
+			}
+		}
+	}
+	for _, m := range sel {
+		add(m.Key)
+	}
+	var out []manifest
+	for _, m := range all {
+		if want[m.Key] {
+			out = append(out, m)
+		}
+	}
+	return out
 }
 
 func names(sel []manifest) string {

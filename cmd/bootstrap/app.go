@@ -96,6 +96,7 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 			}
 			o.Plugins = append(o.Plugins, m)
 		}
+		o.Plugins = withRequired(all, o.Plugins)
 		if err := o.check(); err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return

@@ -1,0 +1,8 @@
+{
+  "key": "pharmacy",
+  "name": "Pharmacy",
+  "import": "karots-suite/plugins/pharmacy",
+  "version": "2.0.0",
+  "requires": ["productplus", "alternatives"],
+  "description": "Patients (a customer with allergies and a profile), prescriptions that understand 1-0-1, a 💊 Patient panel at the till that adds a script's medicine and records the dispense from the sale itself, a refill call list, and a controlled-drug register read from stock movements. Comes with Product Plus and Alternatives."
+}

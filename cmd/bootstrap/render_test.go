@@ -63,3 +63,12 @@ func TestSelect(t *testing.T) {
 		t.Error("no -plugins must be refused (say all or none)")
 	}
 }
+
+// A plugin that needs others brings them along (pharmacy → productplus + alternatives).
+func TestSelectRequires(t *testing.T) {
+	all := []manifest{{Key: "alpha"}, {Key: "beta"}, {Key: "gamma", Requires: []string{"alpha"}}}
+	got, err := selectPlugins(all, "gamma")
+	if err != nil || names(got) != "alpha, gamma" {
+		t.Fatalf("got %q, %v; want alpha, gamma", names(got), err)
+	}
+}
