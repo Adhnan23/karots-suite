@@ -87,3 +87,16 @@ func isCode(err error, code string) bool {
 	ae, ok := apperr.As(err)
 	return ok && ae.Code == code
 }
+
+// Rename used to write a products.updated_at column that never existed, so every
+// rename failed (karots-pos recharge carriers swallowed the error).
+func TestRenameDB(t *testing.T) {
+	conn, a, _ := barcodeFixture(t)
+	ctx := context.Background()
+	must(t, NewService(conn).Rename(ctx, a, "TEST bc renamed"))
+	var name string
+	must(t, conn.GetContext(ctx, &name, `SELECT name FROM products WHERE id = $1`, a))
+	if name != "TEST bc renamed" {
+		t.Fatalf("name %q", name)
+	}
+}

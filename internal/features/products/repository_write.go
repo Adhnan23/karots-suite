@@ -78,7 +78,7 @@ func (r *Repository) Count(ctx context.Context, q ListQuery) (int, error) {
 func (r *Repository) Rename(ctx context.Context, id int64, name string) error {
 	var got int64
 	return r.db.GetContext(ctx, &got,
-		`UPDATE products SET name = $2, updated_at = now() WHERE id = $1 RETURNING id`, id, name)
+		`UPDATE products SET name = $2 WHERE id = $1 RETURNING id`, id, name)
 }
 
 type writeRow struct {
