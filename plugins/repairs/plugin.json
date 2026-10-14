@@ -1,0 +1,7 @@
+{
+  "key": "repairs",
+  "name": "Repairs",
+  "import": "karots-suite/plugins/repairs",
+  "version": "2.0.0",
+  "description": "Repair jobs from drop-off to pickup: device, fault, parts and labour, promised date, warranty, a ticket label and slip. Deposits are the customer's advance, pickup is the normal till and Pay, and the outside repairer is paid as an expense."
+}
