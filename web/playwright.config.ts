@@ -7,9 +7,10 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:3100' },
   webServer: {
     // Every ported plugin is built in; the tree goes back to core-only straight after.
-    command: 'cd .. && make plugins P=all && make build && make core-only && set -a && . ./.env && set +a && ./bin/karots-suite',
+    // A fresh e2e DB each run: stale rows from an earlier run fail unrelated flows.
+    command: 'cd .. && make e2e-seed && make plugins P=all && make build && make core-only && set -a && . ./.env && set +a && ./bin/karots-suite',
     url: 'http://localhost:3100/api/v1/auth/login-info',
     reuseExistingServer: true,
-    timeout: 180_000,
+    timeout: 300_000,
   },
 })
