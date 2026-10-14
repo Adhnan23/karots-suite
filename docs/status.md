@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-14, M7.7a packs done)
+## Status (2026-10-14, M7.7b pharmacy done)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -44,9 +44,16 @@ day, wages already cover it; the lost weight is in the loose cost.
   `updated_at` column (always failed) — karots-pos `2d58d9f` (recharge carrier renames).
   Checks (2026-10-14): 154 Playwright flows (`packs.spec.ts` 4 new; dev DB reseeded), `go test -p 1` core-only and
   all plugins, 192 web unit tests, `make verify`, `make verify-portable`. Dev server for shots ran on :3101.
-- **NEXT (fresh session): M7.7b Pharmacy (plugin)** — spec `docs/specs/2026-10-14-m7-7b-pharmacy-design.md`, plan
-  `docs/plans/2026-10-14-m7-7b-pharmacy.md`; **Task 1 (core till seams: `TillApi.customerId / setCustomer /
-  addProduct / saleMeta / setSaleMeta`, `SaleHookCtx.customerId / meta`) is DONE** — start at Task 2. Approved rethink (keep · change · drop vs karots-pos):
+- **M7.7b Pharmacy (plugin) — DONE (2026-10-14)** (spec `docs/specs/2026-10-14-m7-7b-pharmacy-design.md`, plan
+  `docs/plans/2026-10-14-m7-7b-pharmacy.md`; `docs/differences.md` 87–93; parity 30 pharmacy rows ticked). Built as approved
+  below, plus: Add for a **repeat** script is a full fill every visit (a one-off: what is still owed); the after-sale record
+  fills **any of the patient's active scripts** (tag first, then medicine group); a cashier medicine search
+  (`GET /x/pharmacy/medicines`) for the till's prescription sheet; plugin.json **`requires`** (Shop Builder brings Product
+  Plus + Alternatives along). **karots-pos bug fixed (`51e6c6d`):** editing a prescription deleted and re-inserted its drug
+  rows, cutting every hand-over link (refill reminders stopped). A restored karots-pos backup leaves the suite's new columns
+  blank; readers fall back to live names / the product's group. Checks (2026-10-14): **158 Playwright flows** (`plugin-pharmacy.spec.ts` 4 new; dev DB reseeded with `make e2e-seed` first — a dirty DB failed 7 unrelated flows), `go test -p 1` core-only and all plugins, 214 web unit tests, `make verify`, `make verify-portable`. Final review: self-review (no reviewer agent).
+  Not built (ponytail, ask if wanted): an allergy ⇄ medicine check (Penicillin vs Amoxicillin), register paging.
+  Approved rethink (keep · change · drop vs karots-pos):
   **A** dispense during the sale — till action 💊 Patient (pick / register, allergies in red, scripts with due badges,
   Add a script line as its alternatives group's best in-stock member); after-sale records the dispense from the sale
   lines (pieces by group, days = pieces ÷ doses/day); "Record for a past receipt" when forgotten; optional generic seam

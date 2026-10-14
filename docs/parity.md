@@ -445,36 +445,36 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/pharmacy
 
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled/:pid`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled/product-search`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/customer-search`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/patient`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/patient-search`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/rx-rows`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/sale`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/sales`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/medicines/new`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/new`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/patients/:id`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/prescriptions/:id/edit`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/refills`
-- [ ] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/refills-count`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled/:pid/entries`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled/:pid/remove`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/dispense`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/dispense/register`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/medicines`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id/dispenses`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id/prescriptions`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/prescriptions/:id`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/prescriptions/:id/active`
-- [ ] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/receipt-lookup`
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy` → Apps → Pharmacy → Patients (`GET /x/pharmacy/patients`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled` → Pharmacy → Controlled (`GET /x/pharmacy/controlled`, Needs a record)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled/:pid` → a drug's register, read from core stock movements, printable (`GET /x/pharmacy/controlled/:pid`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/controlled/product-search` → dropped by design: the controlled mark is on the product form (Pharmacy section)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/customer-search` → `GET /x/pharmacy/patients?customers=1` (customers become patients on pick)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense` → dropped by design (M7.7b A): the till's 💊 Patient panel; the dispense records itself after the sale
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/patient` → 💊 Patient → pick (`GET /x/pharmacy/patients/:id`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/patient-search` → 💊 Patient search (`GET /x/pharmacy/patients?q=&customers=1`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/rx-rows` → dropped by design: tablets per script line come from the sale (`POST /x/pharmacy/dispenses`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/sale` → dropped by design: the sale itself is recorded (tillAfterSale)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/dispense/sales` → 💊 Patient → Record for a past receipt (`GET /x/pharmacy/sales/recent`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/medicines/new` → dropped by design (M7.7b F): core product form + Product Plus fields + Alternatives + packs
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/new` → Patients → New patient / till Register a new patient
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/patients/:id` → patient page (`/admin/x/pharmacy/patients/:id`)
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/prescriptions/:id/edit` → prescription sheet → Edit
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/refills` → Pharmacy → Refills due call list (`GET /x/pharmacy/refills`) + Reports card
+- [x] `plugins/pharmacy/pharmacy.go` · GET `/pharmacy/refills-count` → the Refills due tab count / Reports card
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled` → product form Pharmacy section (ProductExtras `pharmacy`)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled/:pid/entries` → dropped by design (M7.7b E): the register is core stock movements; the old hand-kept rows show as Old register
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/controlled/:pid/remove` → product form: untick Controlled drug (history kept)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/dispense` → `POST /x/pharmacy/dispenses` (after the sale, a past receipt, or Add record)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/dispense/register` → `POST /x/pharmacy/patients`
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/medicines` → dropped by design (M7.7b F)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients` → `POST /x/pharmacy/patients`
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id` → `PUT /x/pharmacy/patients/:id` (profile)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id/dispenses` → `POST /x/pharmacy/dispenses`
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/patients/:id/prescriptions` → `POST /x/pharmacy/prescriptions`
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/prescriptions/:id` → `PUT /x/pharmacy/prescriptions/:id` (lines keep their ids — karots-pos fix `51e6c6d`)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/prescriptions/:id/active` → `POST /x/pharmacy/prescriptions/:id/active` (Stop / Resume)
+- [x] `plugins/pharmacy/pharmacy.go` · POST `/pharmacy/receipt-lookup` → Record for a past receipt / Needs a record → Add record
 
 ## plugins/productplus
 
