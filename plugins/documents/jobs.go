@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"karots-suite/internal/features/reports"
 	"time"
 
 	"karots-suite/internal/apperr"
@@ -104,7 +105,8 @@ type OwnUse struct {
 }
 
 // Report sums jobs made in [from, to). Copies and revenue are what was kept
-// (returned copies off; a karots-pos reversal leaves its job out); sheets are
+// (returned copies off, a bill discount shared out as core counts a line; a
+// karots-pos reversal leaves its job out); sheets are
 // what was printed, kept or not — that paper is gone either way.
 func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) {
 	r := Report{Rows: []ReportRow{}}
@@ -114,13 +116,13 @@ func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) 
 		       COALESCE(SUM(CASE WHEN si.id IS NULL THEN j.qty ELSE si.quantity - si.returned_qty END), 0) AS copies,
 		       COALESCE(SUM(j.sheets), 0) AS sheets,
 		       COALESCE(SUM(CASE WHEN si.id IS NULL THEN j.line_total
-		                         ELSE si.subtotal / NULLIF(si.quantity, 0) * (si.quantity - si.returned_qty) END), 0) AS revenue
+		                         ELSE `+reports.KeptRevenueSQL+` END), 0) AS revenue
 		FROM doc_job j
 		LEFT JOIN doc_service sv ON sv.id = j.service_id
 		LEFT JOIN products p ON p.id = sv.product_id
 		LEFT JOIN sale_items si ON si.id = j.sale_item_id
-		LEFT JOIN sales sa ON sa.id = j.sale_id
-		WHERE j.kind = 'sale' AND j.reversed_at IS NULL AND (sa.status IS NULL OR sa.status <> 'void')
+		LEFT JOIN sales s ON s.id = j.sale_id
+		WHERE j.kind = 'sale' AND j.reversed_at IS NULL AND (s.status IS NULL OR s.status <> 'void')
 		  AND j.created_at >= $1 AND j.created_at < $2
 		GROUP BY 1, 2, 3, 4, 5
 		ORDER BY revenue DESC, name`, from, to)

@@ -31,8 +31,8 @@ func (s *Service) TopProducts(ctx context.Context, from, to time.Time, orderBy s
 	q := `
 		SELECT p.id AS product_id, p.name AS product_name,
 		       SUM(si.quantity - si.returned_qty) AS qty,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+		       SUM( ` + KeptRevenueSQL + ` ) AS revenue,
+		       SUM( ` + KeptRevenueSQL + `
 		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
 		FROM sale_items si
 		JOIN sales s ON s.id = si.sale_id
@@ -47,6 +47,15 @@ func (s *Service) TopProducts(ctx context.Context, from, to time.Time, orderBy s
 	}
 	return rows, nil
 }
+
+// KeptRevenueSQL is what a sale line actually brought in for the units kept,
+// before tax: the line net (item discount off) per unit × kept qty × the sale's
+// pre-tax paid factor ((total − tax) ÷ its line nets), so a bill discount is shared
+// out across the lines. Without the factor every line-level report (categories,
+// products, services) read the bill discount as revenue the shop never got. Tax
+// stays out as before (the Tax report holds it). Correlated on `si` and `s`.
+const KeptRevenueSQL = `((si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+	* COALESCE((s.total - s.tax) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id), 0), 1))`
 
 // grossMargin is gross profit as a percent of net revenue (0 when revenue is 0).
 func grossMargin(profit, revenue decimal.Decimal) decimal.Decimal {
@@ -74,9 +83,9 @@ func (s *Service) ProfitByCategory(ctx context.Context, from, to time.Time, cats
 	var rows []CategoryProfit
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT cat.id AS cat_id, cat.parent_id, cat.name AS category,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
+		       SUM( `+KeptRevenueSQL+` ) AS revenue,
 		       SUM( (si.quantity - si.returned_qty) * si.cost_price ) AS cogs,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+		       SUM( `+KeptRevenueSQL+`
 		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
 		FROM sale_items si
 		JOIN sales s     ON s.id = si.sale_id
@@ -139,7 +148,7 @@ func (s *Service) ProductSalesByPeriod(ctx context.Context, productID int64, fro
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT date_trunc($4, s.created_at AT TIME ZONE $5) AS day,
 		       COALESCE(SUM(si.quantity - si.returned_qty),0) AS qty,
-		       COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ),0) AS revenue
+		       COALESCE(SUM( `+KeptRevenueSQL+` ),0) AS revenue
 		FROM sales s
 		JOIN sale_items si ON si.sale_id = s.id
 		WHERE s.status <> 'void' AND si.product_id = $1
@@ -191,8 +200,8 @@ func (s *Service) ProductTotals(ctx context.Context, from, to time.Time) (*Produ
 		SELECT COUNT(*) AS products, COALESCE(SUM(qty),0) AS qty, COALESCE(SUM(revenue),0) AS revenue, COALESCE(SUM(profit),0) AS profit
 		FROM (
 			SELECT SUM(si.quantity - si.returned_qty) AS qty,
-			       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
-			       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+			       SUM( `+KeptRevenueSQL+` ) AS revenue,
+			       SUM( `+KeptRevenueSQL+`
 			            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
 			FROM sale_items si
 			JOIN sales s ON s.id = si.sale_id

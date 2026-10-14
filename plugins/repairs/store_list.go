@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"karots-suite/internal/features/sales"
+	"karots-suite/internal/features/reports"
 
 	"github.com/shopspring/decimal"
 )
@@ -89,8 +89,9 @@ func (s *Store) Suggestions(ctx context.Context) (Suggestions, error) {
 }
 
 // ReportRow is one collected job: revenue and cost are its pickup sale's lines
-// of the job's parts and the labour product, net of returns, × the sale's paid
-// factor (a bill discount shared out, as core's P&L counts it). A void sale counts 0.
+// of the job's parts and the labour product, kept qty, bill discount shared out —
+// counted as core's category / product reports count a line (reports.KeptRevenueSQL).
+// A void sale counts 0.
 type ReportRow struct {
 	ID          int64           `db:"id"`
 	TicketNo    string          `db:"ticket_no"`
@@ -112,7 +113,7 @@ func (s *Store) Report(ctx context.Context, from, to time.Time, labour int64) ([
 		                                    WHERE rp.job_id = j.id), 0) AS repairer
 		FROM repair_jobs j
 		LEFT JOIN LATERAL (
-			SELECT SUM(CASE WHEN si.quantity > 0 THEN si.subtotal * (si.quantity - si.returned_qty) / si.quantity ELSE 0 END * `+sales.PaidFactorSQL+`) AS revenue,
+			SELECT SUM(`+reports.KeptRevenueSQL+`) AS revenue,
 			       SUM(si.cost_price * (si.quantity - si.returned_qty)) AS cost
 			FROM sale_items si JOIN sales s ON s.id = si.sale_id
 			WHERE si.sale_id = j.sale_id AND s.status <> 'void'

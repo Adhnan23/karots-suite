@@ -253,11 +253,11 @@ func (s *Service) ServiceProfit(ctx context.Context, from, to time.Time) ([]Serv
 		WITH sold AS (
 			SELECT si.product_id,
 			       SUM(si.quantity - si.returned_qty) AS units,
-			       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
+			       SUM( `+KeptRevenueSQL+` ) AS revenue,
 			       SUM( (si.quantity - si.returned_qty) * si.cost_price ) AS cogs
 			FROM sale_items si
-			JOIN sales sa ON sa.id = si.sale_id
-			WHERE sa.status <> 'void' AND sa.created_at >= $1 AND sa.created_at < $2
+			JOIN sales s ON s.id = si.sale_id
+			WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
 			GROUP BY si.product_id
 		),
 		tagged AS (

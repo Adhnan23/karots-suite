@@ -252,8 +252,8 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	if err := s.db.SelectContext(ctx, &pl.TopProducts, `
 		SELECT p.name AS product_name,
 		       SUM(si.quantity - si.returned_qty) AS qty,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) ) AS revenue,
-		       SUM( (si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
+		       SUM( `+KeptRevenueSQL+` ) AS revenue,
+		       SUM( `+KeptRevenueSQL+`
 		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
 		FROM sale_items si
 		JOIN sales s ON s.id = si.sale_id
