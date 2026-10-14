@@ -2,7 +2,6 @@ import { useInfiniteQuery, useQuery, useSuspenseQuery } from '@tanstack/react-qu
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { ArrowLeft, ArrowLeftRight, Printer, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import type { LockerLedgerRow } from '@/api/types.gen'
 import { DataList } from '@/components/admin/DataList'
 import { EmptyState, SURFACE } from '@/components/admin/PageHead'
@@ -10,8 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { countText } from '@/features/counter/queries'
 import { RangePicker } from '@/features/counter/RangePicker'
-import { configQuery, errMsg } from '@/features/till/api'
-import { printMoneySlip } from '@/features/till/print'
+import { configQuery } from '@/features/till/api'
+import { slipPath } from '@/features/till/print'
+import { reprintSlip } from '@/features/till/SlipAsk'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { lockerLedgerQuery, lockerQuery, lockersQuery } from '../queries'
@@ -37,7 +37,7 @@ export function LockerPage() {
   const others = useQuery(lockersQuery(false)).data?.items ?? []
   const [move, setMove] = useState<'transfer' | 'adjust' | null>(null)
   const net = num(v?.net)
-  const reprint = (row: LockerLedgerRow) => void printMoneySlip(row.receiptId).then(() => toast.success(`${row.receiptNo} sent to the printer`), (e) => toast.error(errMsg(e)))
+  const reprint = (row: LockerLedgerRow) => void reprintSlip(slipPath.money(row.receiptId), row.receiptNo)
 
   return (
     <>

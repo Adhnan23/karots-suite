@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, test, type Page, slipAsked } from './fixtures'
 
 // M4 money admin flows: lockers, moves, expenses, cash flow, tills, receipts,
 // finance. Needs `make e2e-seed`.
@@ -45,7 +45,7 @@ test('lockers: create, move money, ledger, bank charge books an expense, settle 
   await page.getByLabel('Amount', { exact: true }).fill('1,000')
   await page.getByLabel('Note').fill('Banked the takings')
   await page.getByRole('button', { name: '⇄ Move it' }).click()
-  await toast(page, new RegExp(`Moved Rs\\. 1,000\\.00 from ${safe} to ${bank}`))
+  await slipAsked(page, new RegExp(`Moved Rs\\. 1,000\\.00 from ${safe} to ${bank}`))
   await expect(tile(page, safe)).toContainText('Rs. 4,000.00')
 
   await page.getByRole('button', { name: `${bank} actions` }).click()
@@ -54,7 +54,7 @@ test('lockers: create, move money, ledger, bank charge books an expense, settle 
   await page.getByLabel('Amount', { exact: true }).fill('25')
   await page.getByLabel('Note').fill(`Flow fee ${tag}`)
   await page.getByRole('button', { name: 'Record it' }).click()
-  await toast(page, /Bank charge of Rs\. 25\.00 recorded/)
+  await slipAsked(page, /Bank charge of Rs\. 25\.00 recorded/)
 
   await page.getByRole('button', { name: 'Settle card' }).click()
   await pick(page, 'Card machine', card)
@@ -63,7 +63,7 @@ test('lockers: create, move money, ledger, bank charge books an expense, settle 
   await page.getByLabel('Service fee').fill('40')
   await expect(page.getByText('Rs. 1,960.00')).toBeVisible()
   await page.getByRole('button', { name: 'Settle', exact: true }).click()
-  await toast(page, new RegExp(`Settled Rs\\. 1,960\\.00 into ${bank}`))
+  await slipAsked(page, new RegExp(`Settled Rs\\. 1,960\\.00 into ${bank}`))
   await expect(tile(page, bank)).toContainText('Rs. 2,935.00')
   await expect(tile(page, card)).toContainText('Rs. 0.00')
 
@@ -86,14 +86,14 @@ test('expenses: pay one from a locker, void it back into the same locker', async
   await pick(page, 'Paid from', safe)
   await page.getByLabel('Note').fill(`Flow taxi ${tag}`)
   await page.getByRole('button', { name: '↑ Record it' }).click()
-  await toast(page, /Transport · Rs\. 300\.00 recorded/)
+  await slipAsked(page, /Transport · Rs\. 300\.00 recorded/)
 
   await page.getByRole('button', { name: new RegExp(`Flow taxi ${tag}`) }).locator('visible=true').first().click()
   await expect(page.getByLabel('Amount', { exact: true })).toHaveJSProperty('readOnly', true)
   await page.getByRole('button', { name: 'Void…' }).click()
   await expect(page.getByLabel('Put it back into')).toHaveValue(/^locker:\d+$/)
   await page.getByRole('button', { name: 'Void expense' }).click()
-  await toast(page, /Voided — Rs\. 300\.00 put back/)
+  await slipAsked(page, /Voided — Rs\. 300\.00 put back/)
 
   await page.goto('/admin/lockers')
   await expect(tile(page, safe)).toContainText('Rs. 4,000.00')

@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { SlipAskHost } from '@/features/till/SlipAsk'
 import { AdminShell } from '@/theme/AdminShell'
 
 export const Route = createFileRoute('/_authed/admin')({
@@ -13,6 +14,7 @@ function AdminLayout() {
   return (
     <AdminShell me={me}>
       <Outlet />
+      <SlipAskHost />
     </AdminShell>
   )
 }

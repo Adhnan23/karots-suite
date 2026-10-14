@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
+import type { LabelRequest } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
 import type { Bill, Config, Job, JobInput, Report, Row, Suggestions } from './types'
 
@@ -42,6 +43,9 @@ export const refundHeld = (id: number) => write(api<{ receiptId: number; amount:
 export const getBill = (id: number) => api<Bill>(`${base}/jobs/${id}/bill`)
 export const saveConfig = (c: Config) => write(api(`${base}/config`, { method: 'PUT', json: c }))
 export const slipPath = (id: number) => `${base}/jobs/${id}/print`
-/** The ticket on the label printer: its scan code, ticket + device on top, the customer under. */
-export const printTicketLabel = (j: Job) =>
-  api('/till/labels', { json: { productId: 0, code: j.ticketCode, format: 'CODE128', top: `${j.ticketNo} · ${j.deviceModel || j.repairType}`, bottom: `${j.customerName} ${j.customerPhone}`.trim(), count: 1, size: '' } })
+/** The ticket label: its scan code, ticket + device on top, the customer under. */
+export const ticketLabel = (j: Job): LabelRequest => ({
+  productId: 0, code: j.ticketCode, format: 'CODE128', top: `${j.ticketNo} · ${j.deviceModel || j.repairType}`,
+  bottom: `${j.customerName} ${j.customerPhone}`.trim(), count: 1, size: '',
+})
+export const printLabel = (req: LabelRequest) => api('/till/labels', { json: req })

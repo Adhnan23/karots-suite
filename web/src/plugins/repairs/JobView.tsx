@@ -1,17 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, MessageCircle, Pencil, Phone, Printer, ReceiptText, Tag } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
 import { configQuery as tillConfigQuery, errMsg } from '@/features/till/api'
-import { printSlip } from '@/features/till/print'
+import { slipOut } from '@/features/till/SlipAsk'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '../slots'
-import { cancelJob, jobQuery, printTicketLabel, setStatus, setUrgent, slipPath } from './api'
+import { cancelJob, jobQuery, printLabel, setStatus, setUrgent, slipPath, ticketLabel } from './api'
 import { JobLines } from './JobLines'
 import { JobMoney } from './JobMoney'
+import { LabelAsk } from './LabelAsk'
 import { putOnBill } from './till'
 import type { Job } from './types'
 import { device, readyMessage, STATUS, statusTone, waNumber } from './words'
@@ -26,6 +27,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
 }) {
   const job = useQuery(jobQuery(id)).data
   const cfg = useQuery(tillConfigQuery).data
+  const [labelAsk, setLabelAsk] = useState(false)
   if (!job || !cfg) return <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
   const sym = cfg.symbol
   const open = job.status !== 'collected' && job.status !== 'cancelled'
@@ -39,12 +41,14 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
   }
   async function label() {
     try {
-      await printTicketLabel(job!)
+      await printLabel(ticketLabel(job!))
       toast.success('Ticket label sent to the label printer')
     } catch (e) {
       toast.error(errMsg(e))
     }
   }
+  // Settings' "ask before printing" holds for this slip as for every core one.
+  const slip = () => void slipOut(slipPath(job.id), `Repair slip — ${job.ticketNo}`, { title: 'Print the repair slip?' })
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <div className="flex flex-wrap items-start gap-3">
@@ -101,8 +105,8 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
       {extra?.(job)}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <Button type="button" variant="ghost" size="sm" onClick={() => void label()}><Tag className="size-4" /> Label</Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => void printSlip(slipPath(job.id))}><Printer className="size-4" /> Slip</Button>
+        <Button type="button" variant="ghost" size="sm" onClick={() => setLabelAsk(true)}><Tag className="size-4" /> Label</Button>
+        <Button type="button" variant="ghost" size="sm" onClick={slip}><Printer className="size-4" /> Slip</Button>
         {open && <Button type="button" variant="ghost" size="sm" onClick={onEdit}><Pencil className="size-4" /> Edit</Button>}
         {open && (
           <ConfirmButton plain label="Cancel job" title={`Cancel ${job.ticketNo}?`} confirm="Cancel the job"
@@ -113,6 +117,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
           <Button type="button" className="ml-auto" onClick={() => void bill()}><ReceiptText className="size-4" /> Put on the bill</Button>
         )}
       </div>
+      {labelAsk && <LabelAsk req={ticketLabel(job)} onPrint={() => void label()} onClose={() => setLabelAsk(false)} />}
     </div>
   )
 }

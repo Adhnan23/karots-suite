@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, test, type Page, slipAsked } from './fixtures'
 
 // M4 admin Sales: filter, then a return whose cash refund leaves a picked
 // locker. Needs `make e2e-seed`.
@@ -39,7 +39,7 @@ test('sales: find a cash sale, return it with the refund paid from a locker', as
   const src = page.getByLabel('Refund cash from')
   await src.selectOption((await src.locator('option', { hasText: safe }).getAttribute('value'))!)
   await pay.click()
-  await toast(page, new RegExp(`Returned — Rs\\. ${refund} refunded`))
+  await slipAsked(page, new RegExp(`Returned — Rs\\. ${refund} refunded`))
 
   await page.getByLabel('Status').selectOption('partially_returned')
   await expect(page.getByLabel('Sales').locator('visible=true').getByText(sale.receiptNo)).toBeVisible()

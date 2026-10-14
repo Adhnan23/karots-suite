@@ -1,7 +1,6 @@
 import { useInfiniteQuery, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Printer } from 'lucide-react'
-import { toast } from 'sonner'
 import type { AdminCashflow, CashflowRow } from '@/api/types.gen'
 import { DataList } from '@/components/admin/DataList'
 import { INPUT } from '@/components/admin/fields'
@@ -11,8 +10,9 @@ import { Tag } from '@/features/admin/products/ProductsPage'
 import { countText } from '@/features/counter/queries'
 import { rangeQS } from '@/features/counter/range'
 import { RangePicker } from '@/features/counter/RangePicker'
-import { configQuery, errMsg } from '@/features/till/api'
-import { printMoneySlip } from '@/features/till/print'
+import { configQuery } from '@/features/till/api'
+import { slipPath } from '@/features/till/print'
+import { reprintSlip } from '@/features/till/SlipAsk'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { FLOW_KINDS } from '../lockers/kinds'
@@ -73,7 +73,7 @@ export function CashflowPage() {
   const d = useQuery(cashflowQuery(r)).data
   const list = useInfiniteQuery(cashflowLedgerQuery(r, place, kind))
   const rows = list.data?.pages.flat() ?? []
-  const reprint = (row: CashflowRow) => void printMoneySlip(row.receiptId).then(() => toast.success(`${row.receiptNo} sent to the printer`), (e) => toast.error(errMsg(e)))
+  const reprint = (row: CashflowRow) => void reprintSlip(slipPath.money(row.receiptId), row.receiptNo)
   const placeChip = 'flex min-w-0 flex-col items-start rounded-[var(--radius-sm)] border border-white/15 bg-white/5 px-3 py-2 text-left aria-pressed:border-hero-foreground aria-pressed:bg-white/15'
 
   return (

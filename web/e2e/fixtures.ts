@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test'
+import { test as base, expect as pwExpect } from '@playwright/test'
 
 import type { Page } from '@playwright/test'
 
@@ -62,4 +62,13 @@ export async function freshProduct(page: import('@playwright/test').Page, name: 
   } })
   if (!res.ok()) throw new Error(`create product: ${res.status()} ${await res.text()}`)
   return (await res.json()).id
+}
+
+/** A money action with a slip, in a shop that asks before printing (the e2e shop
+ * does): the Print / Skip prompt carries the message — check it and Skip. */
+export async function slipAsked(page: Page, text: RegExp) {
+  const dlg = page.getByRole('dialog', { name: /^(Print|Reprint)/ })
+  await pwExpect(dlg.getByText(text)).toBeVisible()
+  await dlg.getByRole('button', { name: 'Skip' }).click()
+  await pwExpect(dlg).toBeHidden()
 }

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, test, type Page, slipAsked } from './fixtures'
 
 // M3 people admin flows (customers, users). Needs `make e2e-seed`.
 test.describe.configure({ mode: 'serial' })
@@ -38,7 +38,7 @@ test('customers: add with old debt over the limit, collect cash into the safe, e
   await page.getByLabel('Amount received').fill('700')
   await pick(page, 'Cash into', 'E2E Safe')
   await page.getByRole('button', { name: /↓ Collect Rs\. 700\.00/ }).click()
-  await toast(page, /Collected Rs\. 700\.00/)
+  await slipAsked(page, /Collected Rs\. 700\.00/)
   await expect(page.getByLabel('Latest activity').getByText('Payment')).toBeVisible()
   await expect(page.getByText('Rs. 200.00 left of a Rs. 1,000.00 limit')).toBeVisible()
 

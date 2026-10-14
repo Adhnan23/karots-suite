@@ -9,7 +9,8 @@ import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
-import { printDebtSlip } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
+import { slipOut } from '@/features/till/SlipAsk'
 import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
@@ -35,7 +36,7 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
     try {
       const body: CustomerPayRequest = { amount, method, reference, note: '', source, oldDebtFirst: oldFirst }
       const r = await api<CreditPaymentResult>(`/admin/customers/${c.id}/payment`, { json: body })
-      toast.success(`Collected ${money(sym, a)} · ${r.receiptNo}`, { duration: 10_000, action: { label: 'Print slip', onClick: () => void printDebtSlip(r.paymentId) } })
+      void slipOut(slipPath.debt(r.paymentId), `Collected ${money(sym, a)} · ${r.receiptNo}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
       void qc.invalidateQueries({ queryKey: ['till'] })
       onClose()

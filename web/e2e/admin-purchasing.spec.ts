@@ -1,4 +1,4 @@
-import { expect, freshProduct, test, type Page } from './fixtures'
+import { expect, freshProduct, test, type Page, slipAsked } from './fixtures'
 
 // M3 purchasing admin flows (suppliers, purchases, returns, reorder). Needs `make e2e-seed`.
 test.describe.configure({ mode: 'serial' })
@@ -42,7 +42,7 @@ test('suppliers: add one, pay old debt in cash from the safe, correct the old ba
   await page.getByLabel('Amount paid').fill('400')
   await pick(page, 'Pay the cash from', 'E2E Safe')
   await page.getByRole('button', { name: /↑ Pay Rs\. 400\.00/ }).click()
-  await toast(page, new RegExp(`Paid Rs\\. 400\\.00 to ${name}`))
+  await slipAsked(page, new RegExp(`Paid Rs\\. 400\\.00 to ${name}`))
   await expect(page.getByLabel('Payments and refunds').getByText('↑ Paid to them')).toBeVisible()
 
   await page.getByRole('button', { name: 'More' }).click()
@@ -71,7 +71,7 @@ test('suppliers: in credit → take a refund; move products; disable and re-enab
   await page.getByLabel('Amount received').fill('100')
   await pick(page, 'Put the cash into', 'E2E Safe')
   await page.getByRole('button', { name: /Record Rs\. 100\.00/ }).click()
-  await toast(page, /Received Rs\. 100\.00 back/)
+  await slipAsked(page, /Received Rs\. 100\.00 back/)
 
   const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
   await page.request.post('/api/v1/admin/products', { data: {
@@ -146,7 +146,7 @@ test('purchases: order → edit → receive short with an extra item, margin fix
   await pick(page, 'Pay the cash from', 'E2E Safe')
   await expect(page.getByText("Keep what didn't come on a new order")).toBeVisible()
   await page.getByRole('button', { name: /Receive Rs\..* of stock/ }).click()
-  await toast(page, /paid Rs\. 100\.00/)
+  await slipAsked(page, /paid Rs\. 100\.00/)
   await expect(page.getByText('4 short')).toBeVisible()
   await expect(page.getByText('not on the order')).toBeVisible()
 

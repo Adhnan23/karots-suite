@@ -106,6 +106,15 @@ test('a job with a deposit is picked up on the normal Pay: the deposit pre-fille
   await d.getByRole('button', { name: 'Add labour' }).click()
   await expect(d.getByText(/Estimate\s*Rs\. 5,500\.00/)).toBeVisible()
   await deposit(page, '1000')
+  // The slip follows Settings' "ask before printing" (on in the e2e shop); the label shows its preview.
+  await d.getByRole('button', { name: 'Slip' }).click()
+  const ask = page.getByRole('dialog', { name: 'Print the repair slip?' })
+  await expect(ask.getByLabel('Receipt preview')).toBeVisible()
+  await ask.getByRole('button', { name: 'Skip' }).click()
+  await d.getByRole('button', { name: 'Label' }).click()
+  const lab = page.getByRole('dialog', { name: 'Print the ticket label?' })
+  await expect(lab.getByLabel('Label preview')).toBeVisible()
+  await lab.getByRole('button', { name: 'Cancel' }).click()
   const ticket = (await d.locator('.font-display.text-lg').first().innerText()).trim()
   await page.keyboard.press('Escape')
 

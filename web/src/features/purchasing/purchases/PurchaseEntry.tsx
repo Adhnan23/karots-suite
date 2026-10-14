@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { suppliersQuery } from '@/features/counter/queries'
 import { Seg } from '@/features/till/bits'
 import { configQuery, errMsg } from '@/features/till/api'
-import { printMoneySlip } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
+import { slipOut } from '@/features/till/SlipAsk'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { LineEditor } from '../LineEditor'
@@ -98,7 +99,8 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
         to = r.purchaseId
         const rid = r.receiptId
         const msg = `Received ${money(sym, r.total)} of stock${num(r.paid) > 0 ? ` · paid ${money(sym, r.paid)}` : ' on credit'}`
-        toast.success(msg, rid ? { duration: 10_000, action: { label: 'Print receipt', onClick: () => void printMoneySlip(rid) } } : undefined)
+        if (rid) void slipOut(slipPath.money(rid), msg)
+        else toast.success(msg)
       }
       if (!receiving) toast.success(mode === 'order' ? `Order #${to} placed with ${supplier?.name ?? 'the supplier'}` : 'Order updated')
       void qc.invalidateQueries({ queryKey: ['admin'] })

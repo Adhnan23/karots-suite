@@ -7,17 +7,18 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
-import { printMoneySlip } from '@/features/till/print'
+import { slipPath } from '@/features/till/print'
+import { slipOut } from '@/features/till/SlipAsk'
 import { dec, money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { type Method, MoneySourcePicker } from '../MoneySource'
 
 const amt = (v: string) => v.replace(/[^\d.]/g, '')
 
-/** After an admin money move: say so, and offer the slip when one was made. */
+/** After an admin money move: say so, and its slip goes by Settings' print rule. */
 export function moneyDone(msg: string, r: ReceiptRef) {
-  const id = r.receiptId
-  toast.success(msg, id ? { duration: 10_000, action: { label: 'Print receipt', onClick: () => void printMoneySlip(id, false) } } : undefined)
+  if (!r.receiptId) return void toast.success(msg)
+  void slipOut(slipPath.money(r.receiptId), msg)
 }
 
 function MethodSource({ method, setMethod, source, setSource, sym, into }: {
