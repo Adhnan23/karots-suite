@@ -70,6 +70,11 @@ day, wages already cover it; the lost weight is in the loose cost.
   pharmacy's form section = Controlled (schedule) + Prescription-only (hint, never blocks). **G** till ⓘ "⚠ Controlled".
   **H** dispensing log + CSV. **I** requires Product Plus + Alternatives. Old data: all 7 `pharmacy_*` tables restore;
   old `pharmacy_cd_ledger` becomes a read-only "Old register". Days helper "1-0-1 × 2 days = 4" lives in pharmacy.
+- **M7.7b follow-ups from the demo (user, 2026-10-14):** Days… moved onto a medicine's cart line (core seam
+  `TillApi.setLineQty`); a script line's Add has linked days ⇄ tablets boxes; a **dose list the shop builds by using it**
+  (`GET /x/pharmacy/doses`: every prescription dose + usual dose with its most common per-day, plus 1-0-1 / tds… —
+  user chose this over a managed dose table; a table only if printed dose labels need it); product **Usual dose**
+  (migration `0008`); **Controlled only for a prescription medicine** (server keeps controlled ⇒ ℞).
 - **Demo updated for M7.7a + M7.7b (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against
   `suite_accept`; previous binary `karots-suite-all.m76d`, DB backup `suite_accept-before-m77-2026-10-14.dump`. Pharmacy
   demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
