@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/features/sales"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -87,8 +89,8 @@ func (s *Store) Suggestions(ctx context.Context) (Suggestions, error) {
 }
 
 // ReportRow is one collected job: revenue and cost are its pickup sale's lines
-// of the job's parts and the labour product, net of returns (a bill discount on
-// the sale is not spread onto them — ponytail: spread it if shops use it on repairs).
+// of the job's parts and the labour product, net of returns, × the sale's paid
+// factor (a bill discount shared out, as core's P&L counts it). A void sale counts 0.
 type ReportRow struct {
 	ID          int64           `db:"id"`
 	TicketNo    string          `db:"ticket_no"`
@@ -110,10 +112,10 @@ func (s *Store) Report(ctx context.Context, from, to time.Time, labour int64) ([
 		                                    WHERE rp.job_id = j.id), 0) AS repairer
 		FROM repair_jobs j
 		LEFT JOIN LATERAL (
-			SELECT SUM(CASE WHEN si.quantity > 0 THEN si.subtotal * (si.quantity - si.returned_qty) / si.quantity ELSE 0 END) AS revenue,
+			SELECT SUM(CASE WHEN si.quantity > 0 THEN si.subtotal * (si.quantity - si.returned_qty) / si.quantity ELSE 0 END * `+sales.PaidFactorSQL+`) AS revenue,
 			       SUM(si.cost_price * (si.quantity - si.returned_qty)) AS cost
-			FROM sale_items si
-			WHERE si.sale_id = j.sale_id
+			FROM sale_items si JOIN sales s ON s.id = si.sale_id
+			WHERE si.sale_id = j.sale_id AND s.status <> 'void'
 			  AND (si.product_id = $3 OR si.product_id IN (SELECT product_id FROM repair_parts WHERE job_id = j.id))
 		) r ON true
 		WHERE j.status = 'collected' AND j.collected_at >= $1 AND j.collected_at < $2

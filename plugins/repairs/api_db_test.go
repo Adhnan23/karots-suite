@@ -205,3 +205,28 @@ func TestPayout(t *testing.T) {
 		t.Fatalf("after void: %+v", j)
 	}
 }
+
+// A bill discount on the pickup sale is shared out onto the job's lines, as
+// core's P&L counts it: 1,000 labour + 1,000 of something else − 200 off the
+// bill = 1,800 paid, so the job took 900.
+func TestReportSharesBillDiscount(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	j := decode[JobDTO](t, f.do("POST", "/jobs", fmt.Sprintf(`{"customerId":%d,"deviceModel":"Nokia"}`, f.cust)))
+	decode[JobDTO](t, f.do("POST", fmt.Sprintf("/jobs/%d/charges", j.ID), `{"label":"Fitting","amount":"1000"}`))
+	lab, err := NewStore(f.db).LabourID(ctx)
+	must(t, err)
+	var other int64
+	must(t, f.db.Get(&other, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, is_service)
+		VALUES ('Data transfer', (SELECT id FROM categories LIMIT 1), (SELECT id FROM units LIMIT 1), 0, 0, true) RETURNING id`))
+	sale, err := f.sales.Create(ctx, sales.CreateInput{CustomerID: &f.cust, SaleType: "retail", AllowOverLimit: true,
+		Discount: "200", DiscountType: "fixed",
+		Items: []sales.ItemInput{{ProductID: lab, Quantity: "1", PriceOverride: "1000"}, {ProductID: other, Quantity: "1", PriceOverride: "1000"}},
+		Payments: []sales.PaymentInput{{Method: "credit", Amount: "1800"}}}, f.user)
+	must(t, err)
+	decode[JobDTO](t, f.do("POST", fmt.Sprintf("/jobs/%d/collected", j.ID), fmt.Sprintf(`{"saleId":%d}`, sale.Sale.ID)))
+	rep := decode[ReportDTO](t, f.do("GET", "/report", ""))
+	if len(rep.Rows) != 1 || rep.Rows[0].Revenue != "900.00" {
+		t.Fatalf("report: %+v", rep)
+	}
+}
