@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import type { TillProduct } from '@/api/types.gen'
+import { num } from '@/lib/money'
 import { slots } from '@/plugins/slots'
 import { priceOptionsQuery } from '../api'
 import { lotsFor } from '../cart/lines'
@@ -23,12 +24,19 @@ export function useAddProduct() {
       return
     }
     const lots = lotsFor(opts, p.id)
+    // A pack's own barcode adds that pack; otherwise a product sold by the pack asks how.
+    const scanned = p.packs.find((k) => k.id === p.scannedPackId)
+    const units = scanned ? num(scanned.size) : undefined
     if (lots.length) {
-      ui.open({ kind: 'pricePick', product: p, lots })
+      ui.open({ kind: 'pricePick', product: p, lots, units })
+      return
+    }
+    if (!scanned && p.packs.length && !p.isService) {
+      ui.open({ kind: 'packPick', product: p, lots })
       return
     }
     const isNew = !state.lines.some((l) => l.productId === p.id && l.batchId === 0 && !l.isService)
-    dispatch({ type: 'add', product: p, lots })
+    dispatch({ type: 'add', product: p, lots, units })
     if (p.suggestion && isNew) ui.open({ kind: 'suggestion', product: p })
   }, [opts, state.lines, dispatch, ui])
 }

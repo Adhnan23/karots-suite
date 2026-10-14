@@ -3,8 +3,9 @@ import { api } from '@/api/client'
 import type { ProductDetail, TillProduct } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { money, qtyText } from '@/lib/money'
+import { money, num, qtyText } from '@/lib/money'
 import { configQuery } from '../api'
+import { linePacks, packGross } from '../cart/packs'
 import { useTillUi } from '../TillUi'
 import { useAddProduct } from './useAddProduct'
 
@@ -18,6 +19,12 @@ export function ProductInfo({ product }: { product: TillProduct }) {
     ['Price', money(cfg.symbol, d?.sellingPrice ?? product.sellingPrice)],
     ['In stock', product.isService ? 'service' : `${qtyText(d?.stockQty ?? product.stockQty)} ${product.unitAbbr}`],
   ]
+  for (const k of product.packs ?? []) {
+    rows.push([`${k.name} ×${qtyText(k.size)}`, num(k.sellingPrice) > 0 ? money(cfg.symbol, k.sellingPrice) : `${money(cfg.symbol, num(k.size) * num(product.sellingPrice))} (follows the unit price)`])
+  }
+  if (product.packs?.length && !product.isService) {
+    rows[1][1] += ` = ${packGross(num(d?.stockQty ?? product.stockQty), 0, linePacks(product, 'retail')).label || 'less than a pack'}`
+  }
   if (d?.category) rows.push(['Category', d.category])
   if (d?.barcode) rows.push(['Barcode', d.barcode])
   if (d?.warranty) rows.push(['Warranty', d.warranty])

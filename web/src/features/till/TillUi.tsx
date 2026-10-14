@@ -18,7 +18,8 @@ export type Dialog =
   | { kind: 'quickItem'; barcode: string; name: string }
   | { kind: 'addCustomer' }
   | { kind: 'info'; product: TillProduct }
-  | { kind: 'pricePick'; product: TillProduct; lots: Lot[] }
+  | { kind: 'pricePick'; product: TillProduct; lots: Lot[]; units?: number }
+  | { kind: 'packPick'; product: TillProduct; lot?: Lot; lots: Lot[] }
   | { kind: 'suggestion'; product: TillProduct }
   | { kind: 'action'; key: string; text?: string }
 

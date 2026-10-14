@@ -4,6 +4,7 @@ import { slots } from '@/plugins/slots'
 import { ProductInfo } from './catalog/ProductInfo'
 import { QuickItem } from './catalog/QuickItem'
 import { HeldSales } from './cart-ui/HeldSales'
+import { PackPick } from './cart-ui/PackPick'
 import { PricePick } from './cart-ui/PricePick'
 import { Suggestion } from './cart-ui/Suggestion'
 import { useCheckoutCtx } from './checkout/CheckoutProvider'
@@ -48,7 +49,9 @@ export function TillDialogs() {
     case 'quickItem':
       return <QuickItem barcode={d.barcode} name={d.name} />
     case 'pricePick':
-      return <PricePick product={d.product} lots={d.lots} />
+      return <PricePick product={d.product} lots={d.lots} units={d.units} />
+    case 'packPick':
+      return <PackPick product={d.product} lot={d.lot} lots={d.lots} />
     case 'suggestion':
       return <Suggestion product={d.product} />
     case 'held':

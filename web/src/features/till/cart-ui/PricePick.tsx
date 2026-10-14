@@ -15,7 +15,7 @@ import { useTillUi } from '../TillUi'
 
 /** The cashier reads the sticker: pick the lot (1–9, Enter = the FEFO one). An
  * expired lot asks again: sell anyway / write it off / back. */
-export function PricePick({ product, lots: cached }: { product: TillProduct; lots: Lot[] }) {
+export function PricePick({ product, lots: cached, units }: { product: TillProduct; lots: Lot[]; units?: number }) {
   const cfg = useSuspenseQuery(configQuery).data
   const ui = useTillUi()
   const { dispatch } = useTill()
@@ -25,7 +25,9 @@ export function PricePick({ product, lots: cached }: { product: TillProduct; lot
 
   function commit(lot: Lot, all: Lot[] = lots) {
     ui.close()
-    dispatch({ type: 'add', product, lot, lots: all })
+    // Sold by the pack too and not scanned as one: ask how, for this lot.
+    if (!units && product.packs.length && !product.isService) return ui.open({ kind: 'packPick', product, lot, lots: all })
+    dispatch({ type: 'add', product, lot, lots: all, units })
     if (product.suggestion) ui.open({ kind: 'suggestion', product })
   }
   const pick = (lot: Lot) => (lotExpired(lot) ? setExpired(lot) : commit(lot))
