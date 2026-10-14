@@ -11,6 +11,7 @@ import { dosesQuery, printTextLabel, tillInfoQuery } from './api'
 import { perDayOf, supplyDays, tabletsFor } from './dosage'
 import { DoseInput, NoteInput } from './DoseInput'
 import { doseLabel } from './label'
+import { DoseLabelPreview } from './LabelPreview'
 import { salePatient } from './sale'
 
 /** Dose and instruction set with Days… per cart line, kept on the sale (TillApi.saleMeta). */
@@ -104,7 +105,7 @@ function LabelForm({ lines: l, onDone }: { lines: { patient?: string; drug: stri
   }
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <pre aria-label="Dose label" className="rounded-md border border-border bg-paper px-2.5 py-1.5 font-mono text-[11.5px] leading-snug text-[var(--ink)]">{text.join('\n')}</pre>
+      <DoseLabelPreview lines={text} />
       <button type="button" disabled={busy} onClick={() => void print()} className="rounded-md bg-brand px-2.5 py-1 text-[12.5px] font-bold text-brand-foreground disabled:opacity-50">Print label</button>
       <button type="button" onClick={onDone} className="px-1 text-[12.5px] text-muted-foreground hover:text-foreground">Close</button>
     </div>

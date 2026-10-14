@@ -13,6 +13,8 @@ import { errMsg } from '@/features/till/api'
 import { qtyText } from '@/lib/money'
 import { createDose, deleteDose, dosesQuery, updateDose } from './api'
 import { dosesPerDay } from './dosage'
+import { doseLabel } from './label'
+import { DoseLabelPreview } from './LabelPreview'
 import type { Dose } from './types'
 
 /** Pharmacy → Doses: how a dose is written, what it means on the dose label, doses a day.
@@ -69,6 +71,10 @@ function DoseSheet({ dose, onClose }: { dose: Dose | null; onClose: () => void }
         <Field label="A day" hint="0 = when needed">
           <input aria-label="Doses a day" inputMode="decimal" value={f.perDay} onChange={(e) => setF({ ...f, perDay: e.target.value.replace(/[^\d.]/g, '') })} className={INPUT} />
         </Field>
+      </div>
+      <div className="grid gap-1">
+        <span className="text-[13px] font-semibold text-muted-foreground">On a label (sample medicine)</span>
+        <DoseLabelPreview lines={doseLabel({ patient: 'Nimal Perera', drug: 'Panadol 500mg', qty: (Number(f.perDay) || 1) * 5, dose: f.dose || '1-0-1', words: f.words, perDay: Number(f.perDay) || 0, note: 'After meals' })} />
       </div>
     </FormSheet>
   )

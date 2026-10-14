@@ -92,7 +92,8 @@ test('the till registers a patient, writes a script, adds from it; the sale reco
   await page.getByRole('button', { name: new RegExp(`${GROUP}.*group`) }).click()
   await page.getByLabel('Dosage 1').fill('1-0-1')
   await expect(page.getByLabel('A day 1')).toHaveValue('2')
-  await page.getByLabel('Tablets 1').fill('8') // 4 days: inside the refill window straight away
+  await page.getByLabel('Days 1').fill('4') // 4 days: inside the refill window straight away
+  await expect(page.getByLabel('Tablets 1')).toHaveValue('8') // days fill the tablets (2 a day)
   await page.getByLabel('How to take 1').fill('After meals')
   await page.getByRole('button', { name: 'Save prescription' }).click()
   await toast(page, /Prescription added/)
@@ -114,9 +115,9 @@ test('the till registers a patient, writes a script, adds from it; the sale reco
   await cart(page).getByRole('button', { name: 'Label' }).click()
   const label = cart(page).getByLabel('Dose label')
   await expect(label).toContainText(NAME)
-  await expect(label).toContainText(`${METFOR} × 8`)
-  await expect(label).toContainText('1-0-1  Morning · Night')
-  await expect(label).toContainText('4 days · After meals')
+  await expect(label).toContainText(`${METFOR} x 8`) // as the printer prints it
+  await expect(label).toContainText('1-0-1 Morning - Night')
+  await expect(label).toContainText('4 days - After meals')
   await cart(page).getByRole('button', { name: 'Close' }).click()
   await complete(page)
 
@@ -201,6 +202,7 @@ test('doses: the list starts with the usual ones; a new one is named and deleted
   await page.getByLabel('Dose', { exact: true }).fill(`1 every ${tag} hours`)
   await page.getByLabel('On the label').fill('Every few hours')
   await page.getByLabel('Doses a day').fill('3')
+  await expect(page.getByLabel('Dose label')).toContainText('Every few') // the label as it prints (wraps on a 40 mm label)
   await page.getByRole('button', { name: 'Save dose' }).click()
   const row = list.getByRole('row').filter({ hasText: `1 every ${tag} hours` })
   await expect(row).toContainText('Every few hours')

@@ -8,7 +8,7 @@ import { errMsg } from '@/features/till/api'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { createScript, dosesQuery, medicinesQuery, updateScript } from './api'
-import { perDayOf, supplyDays } from './dosage'
+import { perDayOf, supplyDays, tabletsFor } from './dosage'
 import { DoseInput, NoteInput } from './DoseInput'
 import type { Script, ScriptItemInput } from './types'
 
@@ -85,17 +85,22 @@ function ItemRow({ row, n, onChange, onRemove }: { row: Row; n: number; onChange
   const per = Number(row.perDay) || 0
   const days = supplyDays(Number(row.quantity) || 0, per)
   return (
-    <div className="grid gap-2 rounded-[var(--radius-sm)] border border-border bg-card p-2.5 md:grid-cols-[1fr_7rem_6rem_6rem_auto] md:items-center">
+    <div className="grid gap-2 rounded-[var(--radius-sm)] border border-border bg-card p-2.5 md:grid-cols-[1fr_7rem_auto_auto_auto] md:items-center">
       <MedicinePick row={row} n={n} onChange={onChange} />
       <DoseInput label={`Dosage ${n}`} value={row.dosage} className={INPUT}
-        onChange={(d, per) => onChange({ dosage: d, ...(!row.perDayTouched ? { perDay: per ? String(per) : '' } : {}) })} />
-      <input aria-label={`Tablets ${n}`} placeholder="Qty" inputMode="decimal" value={row.quantity} onChange={(e) => onChange({ quantity: e.target.value })} className={INPUT} />
+        onChange={(d, p) => onChange({ dosage: d, ...(!row.perDayTouched ? { perDay: p ? String(p) : '' } : {}) })} />
+      {/* Days or tablets: type either, the other follows (doses a day). */}
+      <span className="flex items-center gap-1.5 text-[12px] text-faint">
+        <input aria-label={`Days ${n}`} inputMode="numeric" placeholder="days" disabled={!per} value={days || ''} className={cn(INPUT, 'w-16 px-2 text-center')}
+          onChange={(e) => onChange({ quantity: String(tabletsFor(per, Number(e.target.value.replace(/\D/g, '')) || 0) || '') })} />
+        days =
+        <input aria-label={`Tablets ${n}`} placeholder="qty" inputMode="decimal" value={row.quantity} onChange={(e) => onChange({ quantity: e.target.value })} className={cn(INPUT, 'w-16 px-2 text-center')} />
+      </span>
       <label className="flex items-center gap-1.5 text-[12px] text-faint">
         <input aria-label={`A day ${n}`} inputMode="decimal" value={row.perDay} onChange={(e) => onChange({ perDay: e.target.value, perDayTouched: true })} className={cn(INPUT, 'w-14 px-2 text-center')} />
         a day
       </label>
-      <div className="flex items-center justify-between gap-2 text-[12px] text-faint md:justify-end">
-        <span>{days > 0 ? `${days} days` : ''}</span>
+      <div className="flex items-center justify-end">
         {onRemove && <button type="button" aria-label={`Remove medicine ${n}`} onClick={onRemove} className="rounded-full p-1 hover:bg-muted"><X className="size-4" /></button>}
       </div>
       <div className="md:col-span-5">
