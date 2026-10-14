@@ -23,10 +23,10 @@ series per device (`P-…` beside `S-…`), and a sale may carry the time it rea
 **M7.6d Loose versions DONE (2026-10-13)** (plan `docs/plans/2026-10-13-m7-6d-loose-versions.md`, differences 79–81):
 Make a loose version… (core `POST /admin/products/:id/loose`, one tx via `conversions.MakeLoose` + `products.CreateTx`;
 plugin extras validate before, save after, as a plain create); `stock.DepleteFEFOLots`; a run opens one loose batch per bag
-(expiry / batch no / cost carried — karots-pos fix `16b7b97`, UNPUSHED for the user) and takes **Got** (`toQty`); slot
+(expiry / batch no / cost carried — karots-pos fix `16b7b97`, pushed) and takes **Got** (`toQty`); slot
 prop `ProductFormSection.kind` ('copy' | 'loose'); `TillApi.swapLine(key, productId, qty?)`; alternatives `AltDTO.unit /
 sameUnit`. Value per batch is exact to half a cent a unit (cost_price is 2 dp per unit). User asked: the lost weight is
-not a write-off — it is in the loose cost (lower margin); a "expected vs got" column in run history was offered, not built.
+not a write-off — it is in the loose cost (lower margin). User (2026-10-14): that is correct; no "expected vs got" column in run history.
 Checks: 150 Playwright flows (dev DB reseeded), go test all-plugins + core-only, 175 web unit tests, verify, verify-portable.
 **User tried M7.6d on the :3100 demo (2026-10-13): "everything looks good"** (demo binary updated; the previous one is
 `~/karots-accept/karots-suite-all.m76c`). User decision: no expense on a conversion run — staff do it as part of their
