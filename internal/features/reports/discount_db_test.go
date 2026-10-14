@@ -130,3 +130,56 @@ func TestDiscountedSaleInEveryReport(t *testing.T) {
 		t.Errorf("Product totals profit %s, want 132", tot.Profit.Round(2))
 	}
 }
+
+// Tax is the government's, not the shop's: a VAT-registered shop's sale of Rs 100
+// + 18% shows Rs 100 revenue everywhere, Rs 18 as tax collected, Rs 118 received.
+// A shop that isn't registered (or has no number) charges no tax at all, whatever
+// rate a product carries.
+func TestTaxIsNotRevenue(t *testing.T) {
+	db := discountDB(t)
+	ctx := context.Background()
+	var cat, unit, user, item int64
+	mustR(t, db.Get(&cat, `INSERT INTO categories (name) VALUES ('Taxed') RETURNING id`))
+	mustR(t, db.Get(&unit, `SELECT id FROM units LIMIT 1`))
+	mustR(t, db.Get(&user, `INSERT INTO users (name, phone, pin_hash) VALUES ('Cashier', '0700000000', 'x') RETURNING id`))
+	mustR(t, db.Get(&item, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, tax_rate)
+		VALUES ('Shampoo', $1, $2, 60, 100, 18) RETURNING id`, cat, unit))
+	db.MustExec(`UPDATE stock SET quantity = 10 WHERE product_id = $1`, item)
+	sell := func(paid string) *sales.Detail {
+		d, err := sales.NewService(db).Create(ctx, sales.CreateInput{SaleType: "retail",
+			Items:    []sales.ItemInput{{ProductID: item, Quantity: "1"}},
+			Payments: []sales.PaymentInput{{Method: "cash", Amount: paid}}}, user)
+		mustR(t, err)
+		return d
+	}
+	// Ticked "registered" but no number: still no tax.
+	db.MustExec(`UPDATE settings SET tax_registered = true, tax_reg_no = '' WHERE id = 1`)
+	if d := sell("100"); !d.Sale.Tax.IsZero() || !d.Sale.Total.Equal(decimal.NewFromInt(100)) {
+		t.Fatalf("unregistered shop charged tax: total %s tax %s", d.Sale.Total, d.Sale.Tax)
+	}
+	db.MustExec(`DELETE FROM payments; DELETE FROM sale_items; DELETE FROM sales`)
+
+	db.MustExec(`UPDATE settings SET tax_reg_no = '123456789-7000' WHERE id = 1`)
+	if d := sell("118"); !d.Sale.Tax.Equal(decimal.NewFromInt(18)) || !d.Sale.Total.Equal(decimal.NewFromInt(118)) {
+		t.Fatalf("registered shop: total %s tax %s", d.Sale.Total, d.Sale.Tax)
+	}
+	from, to := time.Now().Add(-time.Hour), time.Now().Add(time.Hour)
+	r := NewService(db)
+	pl, err := r.Compute(ctx, from, to)
+	mustR(t, err)
+	hundred := decimal.NewFromInt(100)
+	if !pl.Revenue.Equal(hundred) || !pl.Tax.Equal(decimal.NewFromInt(18)) || !pl.Received.Equal(decimal.NewFromInt(118)) ||
+		!pl.GrossProfit.Equal(decimal.NewFromInt(40)) {
+		t.Fatalf("P&L revenue %s tax %s received %s profit %s", pl.Revenue, pl.Tax, pl.Received, pl.GrossProfit)
+	}
+	days, err := r.SalesByPeriod(ctx, from, to, "day")
+	mustR(t, err)
+	cash, err := r.SalesByCashier(ctx, from, to)
+	mustR(t, err)
+	cats, err := r.ProfitByCategory(ctx, from, to)
+	mustR(t, err)
+	if len(days) != 1 || !days[0].Revenue.Round(2).Equal(hundred) || len(cash) != 1 || !cash[0].Net.Equal(hundred) ||
+		len(cats) != 1 || !cats[0].Revenue.Round(2).Equal(hundred) {
+		t.Fatalf("pre-tax everywhere: days %+v cashier %+v categories %+v", days, cash, cats)
+	}
+}

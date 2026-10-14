@@ -356,6 +356,7 @@ type AdminFinance struct {
 	ZeroCostLines   int               `json:"zeroCostLines"`
 	ZeroCostRevenue string            `json:"zeroCostRevenue"`
 	Received        string            `json:"received"`
+	Tax             string            `json:"tax"` // tax charged on the period's sales — owed to the tax office, not revenue
 	CashWithdrawn   string            `json:"cashWithdrawn"`
 	RegisterDiff    string            `json:"registerDiff"`
 	Receivables     string            `json:"receivables"`

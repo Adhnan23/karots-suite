@@ -100,6 +100,11 @@ func (h *handlers) AdminSettingsSave(c echo.Context) error {
 			return apperr.Validation("the till's default locker must hold cash — " + l.Name + " is a bank or card account")
 		}
 	}
+	// Tax is charged only with a registration number (sales.TaxOnSQL): say so
+	// here rather than let "registered" with no number quietly charge nothing.
+	if in.TaxRegistered && strings.TrimSpace(in.TaxRegNo) == "" {
+		return apperr.Validation("enter the VAT registration number — without it no tax is charged")
+	}
 	up := settings.UpdateInput{
 		ShopName: strings.TrimSpace(in.ShopName), ShopNameSi: strPtr(in.ShopNameLocal), Address: strPtr(in.Address),
 		Phone: strPtr(in.Phone), CurrencyCode: strings.TrimSpace(in.CurrencyCode), CurrencySymbol: strings.TrimSpace(in.CurrencySymbol),

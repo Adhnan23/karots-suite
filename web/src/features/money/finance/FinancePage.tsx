@@ -81,7 +81,7 @@ function ProfitTab({ d, sym }: { d: AdminFinance; sym: string }) {
       <section aria-label="Profit and loss" className={cn(SURFACE, 'p-5')}>
         <h2 className="mb-2 font-display text-lg font-bold">Profit and loss</h2>
         <ul className="divide-y divide-border text-sm">
-          {line('Sales', d.grossRevenue)}
+          {line(num(d.tax) > 0 ? 'Sales (before tax)' : 'Sales', d.grossRevenue)}
           {line('Returns', d.returns, { sign: '−', skipZero: true })}
           {line('Net revenue', d.revenue, { strong: true })}
           {line('Cost of goods sold', d.cogs, { sign: '−' })}
@@ -131,6 +131,7 @@ function CashTab({ d, sym }: { d: AdminFinance; sym: string }) {
       {card('In this range', (
         <ul className="divide-y divide-border text-sm">
           {row('↓ Received at sale', d.received, undefined, 'text-success')}
+          {num(d.tax) > 0 && row('Tax collected — owed to the tax office', d.tax)}
           {row('↑ Taken out of the tills', d.cashWithdrawn)}
           {row(diff < 0 ? 'Tills came up short' : diff > 0 ? 'Tills came up over' : 'Tills balanced', String(Math.abs(diff)), <Link to="/admin/tills" className={go}>Till sessions</Link>, diff < 0 ? 'text-danger' : diff > 0 ? 'text-success' : undefined)}
           <li className="py-2"><Link to="/admin/cashflow" className={go}>Every movement → Cash flow</Link></li>

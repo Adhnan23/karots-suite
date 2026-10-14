@@ -38,6 +38,10 @@ type saleLines struct {
 // Results land in *res only on success; early returns leave it untouched and
 // the caller aborts the transaction. Returns a single error so the item-loop
 // body could move here unchanged.
+// TaxOnSQL says whether the shop may charge tax: registered for it, with its
+// registration number set. Everything that shows or charges tax reads this.
+const TaxOnSQL = `SELECT tax_registered AND COALESCE(btrim(tax_reg_no), '') <> '' FROM settings WHERE id = 1`
+
 func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInput, cashierID int64, res *saleLines) error {
 	prodRepo := products.NewRepository(tx)
 	stkRepo := stock.NewRepository(tx)
@@ -51,6 +55,14 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 	componentMoves := map[int][]ServiceComponentParsed{}
 	serialSeen := map[string]bool{}
 	var serialBatches []serialBatch
+
+	// Tax is charged only by a shop registered for it (registered AND a
+	// registration number): an unregistered shop may not add tax to a bill, so
+	// any tax rate left on its products is ignored.
+	var taxOn bool
+	if err := tx.GetContext(ctx, &taxOn, TaxOnSQL); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return apperr.Internal("failed to read tax settings", err)
+	}
 
 	ids := make([]int64, 0, len(in.Items))
 	for _, it := range in.Items {
@@ -169,7 +181,10 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		// Clamped to [0, lineGross] so the net is never negative.
 		disc := resolveItemDiscount(discType, discValue, lineGross, qty)
 		lineNet := lineGross.Sub(disc)
-		lineTax := lineNet.Mul(p.TaxRate).Div(hundred).Round(2)
+		lineTax := decimal.Zero
+		if taxOn {
+			lineTax = lineNet.Mul(p.TaxRate).Div(hundred).Round(2)
+		}
 
 		subtotal = subtotal.Add(lineGross)
 		itemDiscTotal = itemDiscTotal.Add(disc)

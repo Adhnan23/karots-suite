@@ -31,7 +31,7 @@ func (s *Service) SalesByCashier(ctx context.Context, from, to time.Time) ([]Cas
 		SELECT u.name AS cashier, COUNT(*) AS count,
 		       COALESCE(SUM(s.subtotal),0) - COALESCE(SUM(pt.amt),0) AS gross,
 		       COALESCE(SUM(s.discount),0) AS discount,
-		       COALESCE(SUM(s.total),0)    - COALESCE(SUM(pt.amt),0) AS net
+		       COALESCE(SUM(s.total - s.tax),0) - COALESCE(SUM(pt.amt),0) AS net
 		FROM sales s JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN (
 			SELECT si.sale_id, SUM(si.subtotal) AS amt
@@ -136,7 +136,7 @@ func (s *Service) DailySales(ctx context.Context, from, to time.Time) ([]DayRow,
 // SalesByPeriod is net revenue/profit grouped by day, week or month. `gran` must
 // be one of day/week/month; anything else falls back to day. Each row's Day is
 // the period start in shop time. Revenue is counted exactly as Compute counts it
-// (sale total less pass-through face and returns at what was paid, via the same
+// (sale total before tax, less pass-through face and returns at what was paid, via the same
 // per-sale aggregate the sales list uses), so the periods add up to the P&L.
 func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran string) ([]DayRow, error) {
 	switch gran {
@@ -150,7 +150,7 @@ func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran st
 		FROM (
 			SELECT date_trunc($3, s.created_at AT TIME ZONE $4) AS day,
 			       COUNT(*) AS count,
-			       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val),0) AS revenue,
+			       COALESCE(SUM(s.total - s.tax - agg.pt_face - agg.ret_val * `+preTaxShareSQL+`),0) AS revenue,
 			       COALESCE(SUM(agg.cogs),0) AS cogs
 			FROM sales s
 			JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
@@ -182,7 +182,7 @@ func (s *Service) PeakHours(ctx context.Context, from, to time.Time) ([]PeakBuck
 		SELECT EXTRACT(DOW  FROM (s.created_at AT TIME ZONE $3))::int AS dow,
 		       EXTRACT(HOUR FROM (s.created_at AT TIME ZONE $3))::int AS hour,
 		       COUNT(*) AS count,
-		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val),0) AS revenue
+		       COALESCE(SUM(s.total - s.tax - agg.pt_face - agg.ret_val * `+preTaxShareSQL+`),0) AS revenue
 		FROM sales s
 		JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
 		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2

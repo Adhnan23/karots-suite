@@ -55,7 +55,7 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 		GrossProfit: dec2(pl.GrossProfit), GrossMargin: pl.GrossMargin.StringFixed(1), Expenses: dec2(pl.Expenses), Losses: dec2(pl.Losses),
 		OwnUse: dec2(pl.OwnUse), StaffWelfare: dec2(pl.StaffWelfare), StockCorrection: dec2(pl.StockCorrections), Recoveries: dec2(pl.Recoveries),
 		OtherIncome: dec2(pl.OtherIncome), ZeroCostLines: pl.ZeroCostLines, ZeroCostRevenue: dec2(pl.ZeroCostRevenue),
-		Received: dec2(pl.Received), CashWithdrawn: dec2(pl.CashWithdrawn), RegisterDiff: dec2(pl.RegisterDiff),
+		Received: dec2(pl.Received), Tax: dec2(pl.Tax), CashWithdrawn: dec2(pl.CashWithdrawn), RegisterDiff: dec2(pl.RegisterDiff),
 		Receivables: dec2(pl.Receivables), Advances: dec2(pl.CustomerAdvances), Payables: dec2(pl.Payables), SupplierCredit: dec2(pl.SupplierCredit),
 		Trend: []FinancePoint{}, ByPayment: []FinanceSlice{}, Categories: []FinanceCategory{}, TopProducts: []FinanceProduct{}}
 	for _, s := range plugin.PLIncomes() {
@@ -89,7 +89,7 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 // the statement, plugin income, then the balances either way.
 func financeSheet(c echo.Context, f AdminFinance) error {
 	rows := [][]string{
-		{"Gross revenue", f.GrossRevenue}, {"Returns", f.Returns}, {"Net revenue", f.Revenue}, {"Cost of goods sold", f.COGS},
+		{"Gross revenue (before tax)", f.GrossRevenue}, {"Returns", f.Returns}, {"Net revenue", f.Revenue}, {"Cost of goods sold", f.COGS},
 		{"Gross profit", f.GrossProfit}, {"Expenses", f.Expenses}, {"Losses (damage, warranty)", f.Losses}, {"Own use", f.OwnUse},
 		{"Staff welfare", f.StaffWelfare}, {"Stock corrections", f.StockCorrection}, {"Till over / short", f.RegisterDiff},
 		{"Revenue sold at no recorded cost", f.ZeroCostRevenue}, {"Recovered from suppliers", f.Recoveries}, {"Other income (interest)", f.OtherIncome},
@@ -97,7 +97,7 @@ func financeSheet(c echo.Context, f AdminFinance) error {
 	for _, l := range f.PluginIncome {
 		rows = append(rows, []string{l.Label, l.Amount})
 	}
-	rows = append(rows, []string{"Net profit", f.NetProfit}, []string{"Received at sale", f.Received}, []string{"Receivables", f.Receivables},
+	rows = append(rows, []string{"Net profit", f.NetProfit}, []string{"Received at sale", f.Received}, []string{"Tax collected (owed to the tax office)", f.Tax}, []string{"Receivables", f.Receivables},
 		[]string{"Customer advances (owed back)", f.Advances}, []string{"Payables", f.Payables}, []string{"Supplier credit (they owe us)", f.SupplierCredit})
 	return writeSheet(c, "finance_"+f.From+"_"+f.To, []string{"Line", "Amount"}, rows)
 }

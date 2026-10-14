@@ -55,11 +55,15 @@ export function SettingsPage() {
             )}
           </Section>
           <Logo page={page} />
-          <Section title="Tax" sub="Show tax on receipts and turn on the Tax report." saved={s} keys={['taxRegistered', 'taxRegNo']}>
+          <Section title="Tax" sub="Only a shop registered for VAT may add tax to a bill. Until this is on with its number, no tax is charged — even on products that have a tax rate." saved={s} keys={['taxRegistered', 'taxRegNo']}>
             {({ v, set }) => (
               <>
-                <Toggle label="Tax registered" checked={v.taxRegistered} onChange={(x) => set('taxRegistered', x)} />
-                {v.taxRegistered && <Field label="Registration number"><input className={INPUT} value={v.taxRegNo} onChange={(e) => set('taxRegNo', e.target.value)} /></Field>}
+                <Toggle label="Registered for VAT" checked={v.taxRegistered} onChange={(x) => set('taxRegistered', x)} />
+                {v.taxRegistered && (
+                  <Field label="VAT registration number" hint="Printed on receipts. Products' tax rates apply from the next sale.">
+                    <input className={INPUT} value={v.taxRegNo} onChange={(e) => set('taxRegNo', e.target.value)} />
+                  </Field>
+                )}
               </>
             )}
           </Section>

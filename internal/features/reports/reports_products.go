@@ -54,8 +54,16 @@ func (s *Service) TopProducts(ctx context.Context, from, to time.Time, orderBy s
 // out across the lines. Without the factor every line-level report (categories,
 // products, services) read the bill discount as revenue the shop never got. Tax
 // stays out as before (the Tax report holds it). Correlated on `si` and `s`.
-const KeptRevenueSQL = `((si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty)
-	* COALESCE((s.total - s.tax) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id), 0), 1))`
+const KeptRevenueSQL = `((si.subtotal / NULLIF(si.quantity,0)) * (si.quantity - si.returned_qty) * ` + preTaxFactorSQL + `)`
+
+// preTaxFactorSQL is what each Rs of line net brought in before tax: (sale total −
+// tax) ÷ the sale's line nets — the bill discount shared out, tax left out (it is
+// the government's, shown on its own line). Correlated on `s`.
+const preTaxFactorSQL = `COALESCE((s.total - s.tax) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id), 0), 1)`
+
+// preTaxShareSQL turns an amount counted at what was paid (tax in) into its
+// pre-tax part. Correlated on `s`.
+const preTaxShareSQL = `COALESCE((s.total - s.tax) / NULLIF(s.total, 0), 1)`
 
 // grossMargin is gross profit as a percent of net revenue (0 when revenue is 0).
 func grossMargin(profit, revenue decimal.Decimal) decimal.Decimal {

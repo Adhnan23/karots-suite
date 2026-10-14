@@ -8,7 +8,6 @@ import (
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
-	"karots-suite/internal/features/sales"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
@@ -22,6 +21,7 @@ type PL struct {
 	GrossRevenue decimal.Decimal `json:"gross_revenue"` // sale totals before returns (excl. void)
 	Returns      decimal.Decimal `json:"returns"`       // value of returned lines, by sale date
 	Revenue      decimal.Decimal `json:"revenue"`       // net revenue = gross - returns
+	Tax          decimal.Decimal `json:"tax"`           // tax charged on the period's sales — owed to the tax office, not revenue
 	Received     decimal.Decimal `json:"received"`      // tender taken AT point of sale less change given back (excludes later debt collections — see Cashflow view for true cash in)
 	COGS         decimal.Decimal `json:"cogs"`          // cost of goods sold, net of returns
 	GrossProfit  decimal.Decimal `json:"gross_profit"`  // revenue - COGS
@@ -82,17 +82,20 @@ func NewService(db *sqlx.DB) *Service { return &Service{db: db} }
 func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) {
 	pl := &PL{From: from, To: to}
 
-	// Gross sales (every real sale at its original total) and cash collected. A
+	// Gross sales (every real sale at its original total, before tax — tax
+	// collected is the government's, shown as its own line) and cash collected. A
 	// return is accounted by sale date: it reduces this sale's period below via the
 	// Returns figure and the net COGS, rather than dropping the whole sale.
 	var head struct {
 		Count int             `db:"count"`
 		Gross decimal.Decimal `db:"gross"`
 		Paid  decimal.Decimal `db:"paid"`
+		Tax   decimal.Decimal `db:"tax"`
 	}
 	if err := s.db.GetContext(ctx, &head, `
 		SELECT COUNT(*) AS count,
-		       COALESCE(SUM(total),0) AS gross,
+		       COALESCE(SUM(total - tax),0) AS gross,
+		       COALESCE(SUM(tax),0) AS tax,
 		       COALESCE(SUM(paid_amount - change_given),0) AS paid
 		FROM sales
 		WHERE status <> 'void' AND created_at >= $1 AND created_at < $2`,
@@ -102,6 +105,7 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	pl.SalesCount = head.Count
 	pl.GrossRevenue = head.Gross
 	pl.Received = head.Paid
+	pl.Tax = head.Tax
 
 	// Pass-through lines (resold airtime, bill face value) are money passing
 	// through, not the shop's margin — subtract their face value from revenue. A
@@ -122,7 +126,7 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	// actually given), for sales in this period. Gross is the discounted total,
 	// so the line sticker price here would take back more than came in.
 	if err := s.db.GetContext(ctx, &pl.Returns, `
-		SELECT COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+sales.PaidFactorSQL+` ),0)
+		SELECT COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+preTaxFactorSQL+` ),0)
 		FROM sale_items si JOIN sales s ON s.id = si.sale_id
 		JOIN products p ON p.id = si.product_id
 		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`,

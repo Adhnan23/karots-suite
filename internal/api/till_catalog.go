@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"karots-suite/internal/features/sales"
 	"net/http"
 	"strconv"
 
@@ -96,8 +97,17 @@ func tillProducts(rows []products.Product) []TillProduct {
 	return out
 }
 
-// withPacks fills each product's packs (one query for the page).
+// withPacks fills each product's packs (one query for the page), and drops the
+// tax rates when the shop isn't registered for tax — the sale won't charge them
+// (sales.TaxOnSQL), so the till's total must not show them either.
 func (h *handlers) withPacks(ctx context.Context, ps []TillProduct) []TillProduct {
+	var taxOn bool
+	_ = h.d.DB.GetContext(ctx, &taxOn, sales.TaxOnSQL) // no settings row = off
+	for i := range ps {
+		if !taxOn {
+			ps[i].TaxRate = "0"
+		}
+	}
 	ids := make([]int64, len(ps))
 	for i, p := range ps {
 		ids[i] = p.ID

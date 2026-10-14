@@ -1389,6 +1389,7 @@ export interface AdminFinance {
   zeroCostLines: number /* int */;
   zeroCostRevenue: string;
   received: string;
+  tax: string; // tax charged on the period's sales — owed to the tax office, not revenue
   cashWithdrawn: string;
   registerDiff: string;
   receivables: string;

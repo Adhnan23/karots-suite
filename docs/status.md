@@ -17,6 +17,10 @@ minute and replays its offline sales on top of the backend. See `docs/ideas/pock
 **M8 big picture (user, 2026-10-12):** one Shop Builder that knows every shop (install id, OS, plugins, file /
 server mode, update channel), builds and updates each one — forked from karots-pos `cmd/release` + `internal/update`. The
 phone app is not in M8 (later, Pocket Cashier). See `docs/ideas/shop-builder-m8.md`.
+**For M8 — VAT tax invoice (user, 2026-10-14):** before the first VAT-registered shop goes live, print the IRD's tax
+invoice format (Gazette 2481/22, in force 1 July 2026; not issuing a valid one is an offence) as an extra print for
+registered shops only — get the gazette's field list from an accountant first, and have the shop's accountant check one
+printed invoice and the Tax report. SSCL / income tax stay with the accountant (reports give the turnover).
 **For M8 (so it isn't blocked later):** a unique client id on every sale request (a repeat is booked once), receipt
 series per device (`P-…` beside `S-…`), and a sale may carry the time it really happened.
 
@@ -121,6 +125,12 @@ day, wages already cover it; the lost weight is in the loose cost.
   with one rule `reports.KeptRevenueSQL` (pre-tax paid factor), differences 102, karots-pos `71f61bc`. Open question for the
   user: the P&L's revenue is the sale total **including tax** while line reports are pre-tax (same as karots-pos; matters
   only for a shop that charges tax).
+- **Tax (user chose, 2026-10-14):** the P&L, sales trend, peak hours and sales by cashier count revenue **before tax**; the
+  Finance page shows **Tax collected — owed to the tax office** on its own line (and in the sheet). **Tax is charged only by a
+  VAT-registered shop with its registration number** (`sales.TaxOnSQL`, read by the sale and by the till's product prices);
+  otherwise product tax rates are ignored (hint on the product form; Settings refuses "registered" without a number).
+  karots-pos still charges tax whatever the setting — not changed there (its live shops would suddenly stop charging tax);
+  a shop moving over that charges VAT must enter its number in Settings → Tax.
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,

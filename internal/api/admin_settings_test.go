@@ -28,7 +28,7 @@ func TestAdminSettings(t *testing.T) {
 	})
 
 	in := orig
-	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered = "Test Shop", "Come again", !orig.StockTakeEnabled, true
+	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", !orig.StockTakeEnabled, true, "123456789-7000"
 	rec := te.do(http.MethodPut, "/api/v1/admin/settings", in, ck)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("save: %d %s", rec.Code, rec.Body)
@@ -43,10 +43,11 @@ func TestAdminSettings(t *testing.T) {
 	}
 
 	for name, bad := range map[string]func(*ShopSettings){
-		"receipt width": func(s *ShopSettings) { s.ReceiptWidth = "100" },
-		"no shop name":  func(s *ShopSettings) { s.ShopName = " " },
-		"sale type":     func(s *ShopSettings) { s.DefaultSaleType = "bulk" },
-		"locker":        func(s *ShopSettings) { s.DefaultLockerID = 999999999 },
+		"receipt width":  func(s *ShopSettings) { s.ReceiptWidth = "100" },
+		"no shop name":   func(s *ShopSettings) { s.ShopName = " " },
+		"sale type":      func(s *ShopSettings) { s.DefaultSaleType = "bulk" },
+		"locker":         func(s *ShopSettings) { s.DefaultLockerID = 999999999 },
+		"vat, no number": func(s *ShopSettings) { s.TaxRegistered, s.TaxRegNo = true, " " },
 	} {
 		b := orig
 		bad(&b)

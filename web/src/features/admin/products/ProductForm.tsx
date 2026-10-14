@@ -21,6 +21,7 @@ import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
 import { extraBody, type Extras, ProductAssists, ProductExtras } from './ProductExtras'
 import { productQuery, supplierOptionsQuery } from './queries'
+import { meQuery } from '@/api/session'
 
 /** id 0 = new; copyOf = duplicate that product (saved as a new one, must be renamed). */
 export type Editing = { id: number; copyOf?: number }
@@ -45,6 +46,7 @@ export function ProductForm({ editing, onEdit, onClose }: { editing: Editing; on
 }
 
 function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminProduct; sourceId: number; init: ProductRequest; onEdit: (e: Editing) => void; onClose: () => void }) {
+  const me = useQuery(meQuery).data
   const qc = useQueryClient()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const units = useQuery(unitsQuery).data ?? []
@@ -175,7 +177,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
         {!svc && <Field label="Reorder level" hint="Flag as running low at or below this.">
           <input inputMode="numeric" aria-label="Reorder level" value={f.reorderLevel || ''} onChange={(e) => set({ reorderLevel: Number(e.target.value.replace(/\D/g, '')) || 0 })} className={INPUT} placeholder="0" />
         </Field>}
-        <Field label="Tax %" hint="Leave empty for none.">
+        <Field label="Tax %" hint={me?.taxRegistered ? 'Leave empty for none.' : 'Not charged: the shop isn\'t registered for VAT (Settings → Tax).'}>
           <input inputMode="decimal" aria-label="Tax" value={f.taxRate} onChange={(e) => set({ taxRate: e.target.value.replace(/[^\d.]/g, '') })} className={INPUT} placeholder="0" />
         </Field>
       </div>

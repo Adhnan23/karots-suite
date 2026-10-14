@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"karots-suite/internal/features/settings"
 	"karots-suite/internal/middleware"
@@ -48,6 +49,7 @@ func (h *handlers) Me(c echo.Context) error {
 		return err
 	}
 	me.ShopName, me.LockTimeoutMinutes, me.StockTakeEnabled, me.Appearance = st.ShopName, st.LockTimeoutMinutes, st.StockTakeEnabled, appearanceOf(st)
-	me.TaxRegistered = st.TaxRegistered
+	// Registered with its number = tax is charged (sales.TaxOnSQL); the Tax report and hints follow it.
+	me.TaxRegistered = st.TaxRegistered && st.TaxRegNo != nil && strings.TrimSpace(*st.TaxRegNo) != ""
 	return c.JSON(http.StatusOK, me)
 }
