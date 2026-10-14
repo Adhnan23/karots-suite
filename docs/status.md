@@ -81,6 +81,13 @@ day, wages already cover it; the lost weight is in the loose cost.
   first. **Pharmacy → Doses** (migration `0009`, `pharmacy_doses`): pre-filled with the usual doses (put back whenever the
   list is empty, e.g. after a full restore), learns doses used elsewhere (flagged "new" to name), add / edit / delete.
   **How to take it** (instruction) on prescription lines, product form and Days… — common ones + those used (memory).
+- **Returns roll back the script (2026-10-14):** a prescription line's given tablets and run-out days are read net of
+  core Returns on the dispense's sale; the dispense keeps what was sold (↩ in history / log); the controlled register
+  follows returns via stock movements. Dose sheet / till Label show a **true-to-print preview** (`/till/labels/text/preview`,
+  `cut` = doesn't fit); prescription lines have days ⇄ tablets. **Final checks (2026-10-14):** full Playwright 128 passed
+  + the 4 files that failed while `go test` ran alongside re-run alone 40/40; `go test -p 1` all plugins (44 ok); 219 web
+  unit tests. Packs show on the product form for a saved, non-service product whose unit is whole (pcs) — rice in kg
+  uses a loose version instead (user asked how medicines get packs).
 - **Demo updated for M7.7a + M7.7b (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against
   `suite_accept`; previous binary `karots-suite-all.m76d`, DB backup `suite_accept-before-m77-2026-10-14.dump`. Pharmacy
   demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
