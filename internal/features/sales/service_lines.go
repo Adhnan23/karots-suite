@@ -52,6 +52,15 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 	serialSeen := map[string]bool{}
 	var serialBatches []serialBatch
 
+	ids := make([]int64, 0, len(in.Items))
+	for _, it := range in.Items {
+		ids = append(ids, it.ProductID)
+	}
+	packs, err := products.PacksFor(ctx, tx, ids)
+	if err != nil {
+		return apperr.Internal("failed to load packs", err)
+	}
+
 	for _, it := range in.Items {
 		p, err := prodRepo.FindByID(ctx, it.ProductID)
 		if err != nil {
@@ -146,6 +155,16 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			unitPrice = pickedBatch.SellingPrice
 		}
 		lineGross := qty.Mul(unitPrice).Round(2)
+		// Sold by the pack too: full packs ring at the pack price (never dearer
+		// than their units). A combo's lines keep their own per-unit deal.
+		var packLabel *string
+		if ks := packs[p.ID]; len(ks) > 0 && !p.IsService && it.Group == nil {
+			gross, label := PackGross(qty, unitPrice, packPrices(ks), in.SaleType == "wholesale")
+			lineGross = gross
+			if label != "" {
+				packLabel = &label
+			}
+		}
 		// Per-item discount: fixed is per-unit (× qty), percent is off the line.
 		// Clamped to [0, lineGross] so the net is never negative.
 		disc := resolveItemDiscount(discType, discValue, lineGross, qty)
@@ -309,6 +328,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			DiscountValue: discValue,
 			Subtotal:      lineNet,
 			Description:   desc,
+			PackLabel:     packLabel,
 		}
 		if g := it.Group; g != nil {
 			label := strings.TrimSpace(g.Label)

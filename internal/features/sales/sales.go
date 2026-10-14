@@ -188,10 +188,10 @@ func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
 func (r *Repository) InsertItem(ctx context.Context, saleID int64, it SaleItem) error {
 	_, err := r.q.ExecContext(ctx, `
 		INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, cost_price, discount, discount_type, discount_value, subtotal, description, batch_id,
-			line_group, line_group_label, line_group_sets)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+			line_group, line_group_label, line_group_sets, pack_label)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
 		saleID, it.ProductID, it.Quantity, it.UnitPrice, it.CostPrice, it.Discount, it.DiscountType, it.DiscountValue, it.Subtotal, it.Description, it.BatchID,
-		it.LineGroup, it.LineGroupLabel, it.LineGroupSets)
+		it.LineGroup, it.LineGroupLabel, it.LineGroupSets, it.PackLabel)
 	return err
 }
 

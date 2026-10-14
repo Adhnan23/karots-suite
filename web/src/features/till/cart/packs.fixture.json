@@ -1,0 +1,12 @@
+[
+  { "case": "14 of a 12-card", "qty": "14", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "250", "wholesale": "0" }], "gross": "302.00", "label": "1 Card + 2" },
+  { "case": "two full cards", "qty": "24", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "250", "wholesale": "0" }], "gross": "500.00", "label": "2 Cards" },
+  { "case": "less than a card", "qty": "5", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "250", "wholesale": "0" }], "gross": "130.00", "label": "" },
+  { "case": "box and card", "qty": "135", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "250", "wholesale": "0" }, { "name": "Box", "size": "120", "selling": "2400", "wholesale": "2300" }], "gross": "2728.00", "label": "1 Box + 1 Card + 3" },
+  { "case": "pack dearer than units", "qty": "12", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "400", "wholesale": "0" }], "gross": "312.00", "label": "1 Card" },
+  { "case": "pack follows the unit price", "qty": "12", "unit": "26", "wholesale": false, "packs": [{ "name": "Card", "size": "12", "selling": "0", "wholesale": "0" }], "gross": "312.00", "label": "1 Card" },
+  { "case": "wholesale: card at its selling price only if cheaper", "qty": "12", "unit": "20", "wholesale": true, "packs": [{ "name": "Card", "size": "12", "selling": "250", "wholesale": "0" }], "gross": "240.00", "label": "1 Card" },
+  { "case": "wholesale pack price", "qty": "120", "unit": "20", "wholesale": true, "packs": [{ "name": "Box", "size": "120", "selling": "2500", "wholesale": "2300" }], "gross": "2300.00", "label": "1 Box" },
+  { "case": "no packs", "qty": "3", "unit": "20.5", "wholesale": false, "packs": [], "gross": "61.50", "label": "" },
+  { "case": "plural of a name ending in x", "qty": "40", "unit": "5", "wholesale": false, "packs": [{ "name": "Box", "size": "20", "selling": "90", "wholesale": "0" }], "gross": "180.00", "label": "2 Boxes" }
+]
