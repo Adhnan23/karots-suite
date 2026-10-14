@@ -20,7 +20,8 @@ type slot struct {
 	PerDay    decimal.Decimal
 }
 
-// saleLine is one product on the sale, its lines summed, net of returns.
+// saleLine is one product on the sale, its lines summed (as sold; returns are
+// taken off when the script is read, so a later return counts too).
 type saleLine struct {
 	ProductID int64           `db:"product_id"`
 	Name      string          `db:"name"`
@@ -157,14 +158,16 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 	}
 	var lines []saleLine
 	if err := s.db.SelectContext(ctx, &lines, `
-		SELECT si.product_id, p.name, SUM(si.quantity - si.returned_qty) AS qty, mem.group_id,
+		SELECT si.product_id, p.name, SUM(si.quantity) AS qty, mem.group_id,
 		       (mem.group_id IS NOT NULL OR EXISTS (SELECT 1 FROM pharmacy_medicines m WHERE m.product_id = si.product_id)
 		        OR EXISTS (SELECT 1 FROM pharmacy_controlled_products c WHERE c.product_id = si.product_id)) AS medicine
 		FROM sale_items si JOIN products p ON p.id = si.product_id
 		LEFT JOIN LATERAL (SELECT t.group_id FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
 			WHERE m.product_id = si.product_id) mem ON true
 		WHERE si.sale_id = $1 AND NOT p.is_service
-		GROUP BY si.product_id, p.name, mem.group_id ORDER BY MIN(si.id)`, in.SaleID); err != nil {
+		GROUP BY si.product_id, p.name, mem.group_id
+		HAVING SUM(si.quantity - si.returned_qty) > 0 -- what came back already is taken off when read
+		ORDER BY MIN(si.id)`, in.SaleID); err != nil {
 		return 0, err
 	}
 	parts := allocate(slots, lines, in.Tags)

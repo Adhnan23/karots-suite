@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 )
 
 // sale books a sale of (product, qty) pairs directly (core's sale path is not the
@@ -47,7 +48,8 @@ func TestRecordDispense(t *testing.T) {
 		Days    int    `db:"days_supply"`
 	}
 	f.db.Select(&rows, `SELECT product_id, quantity::bigint AS quantity, prescription_item_id, days_supply FROM pharmacy_dispense_items WHERE dispense_id = $1 ORDER BY id`, id) //nolint:errcheck
-	if len(rows) != 2 || rows[0].Product != f.gluco || rows[0].Qty != 12 || rows[1].Qty != 10 || rows[0].Days != 11 || rows[1].Days != 11 || rows[0].Item == nil {
+	// Stored as sold (12 + 12); the 2 returned come off when the script is read.
+	if len(rows) != 2 || rows[0].Product != f.gluco || rows[0].Qty != 12 || rows[1].Qty != 12 || rows[0].Days != 12 || rows[1].Days != 12 || rows[0].Item == nil {
 		t.Fatalf("rows: %+v", rows)
 	}
 	var who, doc string
@@ -56,7 +58,7 @@ func TestRecordDispense(t *testing.T) {
 		t.Fatalf("snapshots %q %q", who, doc)
 	}
 	sc, _ := f.st.Script(ctx, rx)
-	if !sc.Items[0].Dispensed.Equal(dec(22)) || !sc.Items[0].Owed().Equal(dec(60)) || sc.Items[0].DaysSupply != 11 {
+	if !sc.Items[0].Dispensed.Equal(dec(22)) || !sc.Items[0].Owed().Equal(dec(60)) || sc.Items[0].DaysSupply != 11 { // 12 × 22/24
 		t.Fatalf("script line after: %+v", sc.Items[0])
 	}
 	// A second record of the same sale is refused; soap alone is nothing to record.
@@ -98,5 +100,38 @@ func TestRecordDispenseFindsScripts(t *testing.T) {
 		if !s.Items[0].Dispensed.Equal(dec(want)) {
 			t.Errorf("script %d dispensed %s, want %d", sc, s.Items[0].Dispensed, want)
 		}
+	}
+}
+
+// A returned sale gives back what the script was given: "given" and the days
+// shrink with the return (60 / 30 days, 20 back → 40 / 20 days); a hand-over
+// returned in full no longer counts — the one before it does.
+func TestReturnRollsBackTheScript(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	p, _ := f.st.Register(ctx, "Ret P", "0719999999", Profile{})
+	g := f.group
+	rx, _ := f.st.CreateScript(ctx, p.ID, 0, ScriptInput{IsRepeat: true, Items: []ItemInput{{GroupID: &g, Dosage: "1-0-1", Quantity: dec(60)}}})
+	first := f.sale(t, [2]int64{f.metfor, 20})
+	if _, err := f.st.RecordDispense(ctx, DispenseInput{SaleID: first, PatientID: p.ID}); err != nil {
+		t.Fatal(err)
+	}
+	f.db.MustExec(`UPDATE pharmacy_dispenses SET dispensed_at = now() - interval '5 days' WHERE sale_id = $1`, first)
+	second := f.sale(t, [2]int64{f.metfor, 60})
+	if _, err := f.st.RecordDispense(ctx, DispenseInput{SaleID: second, PatientID: p.ID}); err != nil {
+		t.Fatal(err)
+	}
+	line := func() ScriptItem { sc, _ := f.st.Script(ctx, rx); return sc.Items[0] }
+	if it := line(); !it.Dispensed.Equal(dec(80)) || it.DaysSupply != 30 {
+		t.Fatalf("before the return: %+v", it)
+	}
+	f.db.MustExec(`UPDATE sale_items SET returned_qty = 20 WHERE sale_id = $1`, second)
+	if it := line(); !it.Dispensed.Equal(dec(60)) || it.DaysSupply != 20 {
+		t.Fatalf("20 of 60 returned: given %s, days %d", it.Dispensed, it.DaysSupply)
+	}
+	f.db.MustExec(`UPDATE sale_items SET returned_qty = 60 WHERE sale_id = $1`, second)
+	it := line()
+	if !it.Dispensed.Equal(dec(20)) || it.DaysSupply != 10 || it.LastAt == nil || time.Since(*it.LastAt) < 4*24*time.Hour {
+		t.Fatalf("all of it returned — the earlier hand-over counts: %+v", it)
 	}
 }

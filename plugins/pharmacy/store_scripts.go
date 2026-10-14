@@ -75,11 +75,22 @@ const itemSelect = `
 	LEFT JOIN LATERAL (SELECT COALESCE(i.group_id, (SELECT t.group_id FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
 		WHERE m.product_id = i.product_id)) AS gid) gg ON true
 	LEFT JOIN alt_groups g ON g.id = gg.gid
-	LEFT JOIN LATERAL (SELECT COALESCE(SUM(di.quantity), 0) AS dispensed FROM pharmacy_dispense_items di
-		WHERE di.prescription_item_id = i.id) ds ON true
-	LEFT JOIN LATERAL (SELECT d.dispensed_at AS last_at, di.days_supply FROM pharmacy_dispense_items di
+	LEFT JOIN LATERAL (SELECT COALESCE(SUM(n.net), 0) AS dispensed FROM pharmacy_dispense_items di
 		JOIN pharmacy_dispenses d ON d.id = di.dispense_id
-		WHERE di.prescription_item_id = i.id ORDER BY d.dispensed_at DESC, di.id DESC LIMIT 1) ld ON true`
+		CROSS JOIN LATERAL (`+netOfReturns+`) n
+		WHERE di.prescription_item_id = i.id) ds ON true
+	LEFT JOIN LATERAL (SELECT d.dispensed_at AS last_at,
+		       floor(MAX(di.days_supply) * SUM(n.net) / NULLIF(SUM(di.quantity), 0))::int AS days_supply
+		FROM pharmacy_dispense_items di JOIN pharmacy_dispenses d ON d.id = di.dispense_id
+		CROSS JOIN LATERAL (`+netOfReturns+`) n
+		WHERE di.prescription_item_id = i.id
+		GROUP BY d.id, d.dispensed_at HAVING SUM(n.net) > 0
+		ORDER BY d.dispensed_at DESC, d.id DESC LIMIT 1) ld ON true`
+
+// netOfReturns is a dispense row's tablets less what came back on its sale (core
+// Returns): the script's "given" and the days it covers shrink with a return.
+const netOfReturns = `SELECT GREATEST(di.quantity - COALESCE((SELECT SUM(si.returned_qty) FROM sale_items si
+		WHERE si.sale_id = d.sale_id AND si.product_id = di.product_id), 0), 0) AS net`
 
 const scriptSelect = `
 	SELECT id, patient_id, prescriber_name, prescriber_reg, prescribed_on, notes, is_repeat,
