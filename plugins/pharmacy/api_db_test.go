@@ -1,6 +1,7 @@
 package pharmacy
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
@@ -109,5 +110,25 @@ func TestAPIDispense(t *testing.T) {
 	recent := decode[[]RecentSaleDTO](t, do("GET", "/sales/recent", ""))
 	if len(recent) == 0 || recent[0].Recorded != "Ruwan" {
 		t.Fatalf("recent: %+v", recent)
+	}
+}
+
+func TestAPIControlled(t *testing.T) {
+	f := newFixture(t)
+	do := testAPI(t, f.db)
+	f.st.SetFlags(context.Background(), f.pana, MedicineFlags{Controlled: true}) //nolint:errcheck
+	info := decode[map[string]MedicineFlags](t, do("GET", fmt.Sprintf("/till-info?ids=%d,%d,x", f.pana, f.metfor), ""))
+	if len(info) != 1 || !info[fmt.Sprint(f.pana)].Controlled {
+		t.Fatalf("till info: %+v", info)
+	}
+	if rec := do("GET", "/controlled?cashier=1", ""); rec.Code != 403 {
+		t.Fatalf("a cashier must not open the register: %d", rec.Code)
+	}
+	if list := decode[[]ControlledDTO](t, do("GET", "/controlled", "")); len(list) != 1 || list[0].Stock != "100" {
+		t.Fatalf("list: %+v", list)
+	}
+	r := decode[RegisterDTO](t, do("GET", fmt.Sprintf("/controlled/%d?from=2026-01-01", f.pana), ""))
+	if r.Opening != "100" || len(r.Rows) != 0 || r.From != "2026-01-01" {
+		t.Fatalf("register: %+v", r)
 	}
 }

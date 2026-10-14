@@ -48,6 +48,15 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.POST("/pharmacy/prescriptions/:id/active", h.scriptActive)
 	t.POST("/pharmacy/dispenses", h.dispense)
 	t.GET("/pharmacy/sales/recent", h.recentSales)
+	t.GET("/pharmacy/till-info", h.tillInfo)
+	a := reg.Admin() // admin + manager
+	a.GET("/pharmacy/product/:pid", h.productFlags)
+	a.GET("/pharmacy/controlled", h.controlled)
+	a.GET("/pharmacy/controlled/missing", h.unrecorded)
+	a.GET("/pharmacy/controlled/:pid", h.drugRegister)
+
+	reg.AddProductDetailContributor(plugin.ProductDetailContributor{Rows: p.detailRows})
+	reg.AddProductExtras(plugin.ProductExtras{Key: "pharmacy", Validate: p.validateExtra, Save: p.saveExtra})
 }
 
 // dataTables is every pharmacy_* table, parents first.

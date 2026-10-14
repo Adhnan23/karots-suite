@@ -25,9 +25,10 @@ type RecentSaleDTO struct {
 // past receipt). lines tag a product with the script line it was added for.
 func (h handlers) dispense(c echo.Context) error {
 	var in struct {
-		SaleID         int64 `json:"saleId"`
-		PatientID      int64 `json:"patientId"`
-		PrescriptionID int64 `json:"prescriptionId"`
+		SaleID         int64  `json:"saleId"`
+		PatientID      int64  `json:"patientId"`
+		PrescriptionID int64  `json:"prescriptionId"`
+		Prescriber     string `json:"prescriber"`
 		Lines          []struct {
 			ProductID int64 `json:"productId"`
 			RxItemID  int64 `json:"rxItemId"`
@@ -43,7 +44,7 @@ func (h handlers) dispense(c echo.Context) error {
 		}
 	}
 	id, err := h.p.store.RecordDispense(c.Request().Context(), DispenseInput{SaleID: in.SaleID, PatientID: in.PatientID,
-		PrescriptionID: in.PrescriptionID, Tags: tags, By: middleware.CurrentUserID(c)})
+		PrescriptionID: in.PrescriptionID, Prescriber: in.Prescriber, Tags: tags, By: middleware.CurrentUserID(c)})
 	if errors.Is(err, ErrNothingToRecord) {
 		return apperr.Validation("there are no medicines on this receipt")
 	}

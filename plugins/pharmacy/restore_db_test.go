@@ -112,6 +112,24 @@ func TestKarotsPosPharmacyRestore(t *testing.T) {
 			t.Fatalf("%s came back empty", tb)
 		}
 	}
+	// It shows: the patient, the script with its hand-over (refill due from the
+	// per-drug row), the old hand-kept register beside the movements.
+	st := NewStore(db)
+	ctx := context.Background()
+	if found, _ := st.Search(ctx, "nimal", false, 5); len(found) != 1 || found[0].Allergies != "Penicillin" {
+		t.Fatalf("patient: %+v", found)
+	}
+	scs, err := st.Scripts(ctx, 1)
+	if err != nil || len(scs) != 1 || len(scs[0].Items) != 1 {
+		t.Fatalf("scripts: %+v %v", scs, err)
+	}
+	if it := scs[0].Items[0]; !it.Dispensed.Equal(dec(30)) || it.NextDue() == nil || it.Drug != "Panadol 500mg" {
+		t.Fatalf("old line: %+v", it)
+	}
+	reg, err := st.RegisterFor(ctx, prod, nil)
+	if err != nil || len(reg.Old) != 2 || reg.Old[1].Patient != "Nimal Perera" || reg.Schedule != "Schedule II" {
+		t.Fatalf("old register: %+v %v", reg, err)
+	}
 	// New rows after a restore get fresh ids.
 	var n int64
 	must(db.Get(&n, `INSERT INTO pharmacy_prescriptions (patient_id) VALUES (1) RETURNING id`))

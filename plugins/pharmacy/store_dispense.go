@@ -87,7 +87,8 @@ func allocate(slots []slot, lines []saleLine, tags map[int64]int64) []part {
 type DispenseInput struct {
 	SaleID         int64
 	PatientID      int64
-	PrescriptionID int64 // 0 = no script
+	PrescriptionID int64  // 0 = no script
+	Prescriber     string // the doctor, when there is no script on file
 	Tags           map[int64]int64
 	By             int64
 }
@@ -129,7 +130,7 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 		return 0, err
 	}
 	var slots []slot
-	prescriber := ""
+	prescriber := strings.TrimSpace(in.Prescriber)
 	if in.PrescriptionID > 0 {
 		sc, err := s.Script(ctx, in.PrescriptionID)
 		if err != nil {
