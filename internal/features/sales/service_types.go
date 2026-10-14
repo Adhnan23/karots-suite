@@ -1,6 +1,7 @@
 package sales
 
 import (
+	"encoding/json"
 	"github.com/shopspring/decimal"
 )
 
@@ -38,6 +39,10 @@ type ItemInput struct {
 	// Group marks lines the till added together (a plugin's group): receipts
 	// print them as one block. nil = a plain line.
 	Group *LineGroup `json:"group"`
+	// Plugin is the opaque data plugins put on the cart line, by plugin key
+	// (e.g. the repair job it came from). Core never reads it; it is handed to
+	// the line hook inside the sale's transaction.
+	Plugin map[string]json.RawMessage `json:"plugin"`
 }
 
 // LineGroup: No numbers the groups within one sale, Sets is how many sets.

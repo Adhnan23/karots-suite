@@ -41,6 +41,14 @@ func saleInput(r SaleRequest) sales.CreateInput {
 			PriceOverride: it.PriceOverride, BatchID: it.BatchID, AllowOversell: it.AllowOversell,
 			Serials: it.Serials, Description: it.Description, Components: comps,
 		}
+		for k, v := range it.Plugin {
+			if b, err := json.Marshal(v); err == nil {
+				if item.Plugin == nil {
+					item.Plugin = map[string]json.RawMessage{}
+				}
+				item.Plugin[k] = b
+			}
+		}
 		if g := it.Group; g != nil {
 			sets, _ := decimal.NewFromString(g.Sets) // a bad value stays 0 and is refused as a validation error
 			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets}

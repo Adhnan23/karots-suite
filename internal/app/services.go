@@ -66,7 +66,24 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 			SaleID: ev.SaleID, Amount: ev.Amount, Meta: ev.Meta, ActorID: ev.ActorID,
 		})
 	}
-	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg)
+	// Tagged cart lines: each plugin's hook gets the lines carrying its key, in the sale's tx.
+	lineHook := func(ctx context.Context, tx *sqlx.Tx, ev sales.TaggedSale) error {
+		for _, h := range plugin.SaleLineHooks() {
+			out := plugin.SaleLines{SaleID: ev.SaleID, CustomerID: ev.CustomerID, ActorID: ev.ActorID}
+			for _, l := range ev.Lines {
+				if d, ok := l.Plugin[h.Key]; ok {
+					out.Lines = append(out.Lines, plugin.SaleLine{ProductID: l.ProductID, Quantity: l.Quantity, Data: d})
+				}
+			}
+			if len(out.Lines) > 0 {
+				if err := h.Record(ctx, tx, out); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg).WithLineHook(lineHook)
 	cr := cashregister.NewService(db, salesSvc).WithAudit(audit.NewService(db))
 	// Wire the locker side of till cash events (opening float from a locker,
 	// banking at close, mid-shift moves to/from a locker) through cashflow, which

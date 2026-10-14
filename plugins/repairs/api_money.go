@@ -167,60 +167,6 @@ func (h handlers) linkDeposit(c echo.Context) error {
 	return h.respond(c, d.Job.ID)
 }
 
-// collected marks the job picked up on the sale that rang it (the till's
-// after-sale): the sale must be the job customer's and carry a job line.
-func (h handlers) collected(c echo.Context) error {
-	d, err := h.open(c)
-	if err != nil {
-		return err
-	}
-	var req struct {
-		SaleID int64 `json:"saleId"`
-	}
-	if err := c.Bind(&req); err != nil || req.SaleID <= 0 {
-		return apperr.BadRequest("invalid request body")
-	}
-	ctx := c.Request().Context()
-	sale, err := h.p.core.Sales.Get(ctx, req.SaleID)
-	if err != nil {
-		return err
-	}
-	if d.Job.CustomerID != nil && (sale.Sale.CustomerID == nil || *sale.Sale.CustomerID != *d.Job.CustomerID) {
-		return apperr.Validation("that sale is not this customer's")
-	}
-	labour, err := h.p.store.LabourID(ctx)
-	if err != nil {
-		return err
-	}
-	ours := map[int64]bool{labour: true}
-	for _, p := range d.Parts {
-		ours[p.ProductID] = true
-	}
-	found := false
-	for _, it := range sale.Items {
-		found = found || ours[it.ProductID]
-	}
-	if !found {
-		return apperr.Validation("that sale has none of this repair's lines")
-	}
-	cfg, err := h.p.store.Config(ctx)
-	if err != nil {
-		return err
-	}
-	var until *time.Time
-	if d.Job.ReworkOf == nil { // a free re-repair runs on the original's warranty
-		until = jobWarrantyUntil(cfg.WarrantyMode, d, time.Now())
-	}
-	ok, err := h.p.store.MarkCollected(ctx, h.p.core.DB, d.Job.ID, req.SaleID, until)
-	if err != nil {
-		return err
-	}
-	if ok {
-		h.audit(c, audit.ActionUpdate, d.Job.ID, "repair collected: "+d.Job.TicketNo+" on "+sale.Sale.ReceiptNo)
-	}
-	return h.respond(c, d.Job.ID)
-}
-
 // rework opens a free warranty re-repair of a collected job, linked to it.
 func (h handlers) rework(c echo.Context) error {
 	id, err := idParam(c, "id")

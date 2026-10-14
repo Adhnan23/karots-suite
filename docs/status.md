@@ -110,8 +110,11 @@ day, wages already cover it; the lost weight is in the loose cost.
   core-only and all plugins (45 ok; `TestTillCatalog` failed once right after Playwright on the shared DB, then 4 clean runs),
   221 web unit tests, `make verify`, `make verify-portable`. Self-reviewed gates: till 1366 Night dark + Studio light, admin
   360 + 1366 (fixed two 360px overflows: grid columns pinned to minmax(0,1fr)).
-  Ceilings: the profit report doesn't spread a bill discount onto the job lines; a failed after-sale leaves the job open
-  (the toast says so — collect it again from the panel isn't built; reopen the receipt if it happens).
+  **Gaps closed (2026-10-14, user asked):** the profit report shares a bill discount (`sales.PaidFactorSQL`, as core's
+  P&L); pickup is recorded **inside the sale's transaction** by a new generic core hook **`plugin.SaleLineHook`** (the till
+  sends each cart line's `plugin` data with the sale; `sales.WithLineHook`, dispatched per plugin key at the composition
+  root) — no after-sale call, a failed sale leaves the job open, another customer paying still collects (never stops a
+  sale). Pharmacy's dispense could move onto the same hook later (still after-sale).
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,

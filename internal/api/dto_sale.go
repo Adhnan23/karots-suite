@@ -20,6 +20,9 @@ type SaleItemRequest struct {
 	Description   string             `json:"description"`
 	Components    []ServiceComponent `json:"components"`
 	Group         *SaleLineGroup     `json:"group,omitempty"` // lines added together; receipts print them as one block
+	// Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);
+	// each plugin's sale-line hook reads its own key inside the sale's tx.
+	Plugin map[string]any `json:"plugin,omitempty"`
 }
 
 // SaleLineGroup: no numbers the groups within the sale, sets is how many sets.

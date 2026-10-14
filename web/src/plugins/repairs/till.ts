@@ -1,6 +1,6 @@
 import { toast } from 'sonner'
 import type { SaleHookCtx, TillApi } from '../slots'
-import { getBill, markCollected } from './api'
+import { getBill } from './api'
 import type { Job, LineTag } from './types'
 
 /** A scanned ticket (RPR000012) or a typed ticket number (R-0012). */
@@ -30,20 +30,10 @@ export async function putOnBill(till: TillApi, job: Job): Promise<string | null>
   return null
 }
 
-/** After a sale with job lines, mark each job collected. Best-effort: the sale
- * stands; a failure says where to look. */
-export async function afterSale({ saleId, lines }: SaleHookCtx) {
-  const jobs = new Map<number, string>()
-  for (const l of lines) {
-    const t = tagOf(l.plugin)
-    if (t) jobs.set(t.job, t.ticket)
-  }
-  for (const [id, ticket] of jobs) {
-    try {
-      await markCollected(id, saleId)
-      toast.success(`${ticket} collected`)
-    } catch {
-      toast.warning(`Sale saved, but ${ticket} is still open — open it in 🔧 Repairs`)
-    }
-  }
+/** After a sale with job lines: the sale itself marked each job collected (its
+ * tagged lines, in the sale's transaction) — just say so. */
+export function afterSale({ lines }: SaleHookCtx) {
+  const tickets = new Set(lines.map((l) => tagOf(l.plugin)?.ticket).filter(Boolean))
+  for (const t of tickets) toast.success(`${t} collected`)
+  return Promise.resolve()
 }

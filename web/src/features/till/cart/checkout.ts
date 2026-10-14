@@ -76,6 +76,7 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
       priceOverride: l.priceOverride, batchId: l.batchId, allowOversell: l.allowOversell,
       serials: l.trackSerial ? l.serials.map((x) => x.trim()) : [], description: l.description, components: l.components,
       group: l.group ? { no: groupNo.get(l.group.id)!, label: l.group.label, sets: String(l.group.count) } : undefined,
+      plugin: l.plugin && Object.keys(l.plugin).length ? l.plugin : undefined,
     })),
     payments: payments.filter((p) => num(p.amount) > 0).map((p) => ({
       method: p.method, amount: String(num(p.amount)), reference: p.reference, accountId: num(p.accountId),

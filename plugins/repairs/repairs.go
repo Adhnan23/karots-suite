@@ -44,6 +44,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "repairs", Name: "Repairs", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "repairs", Merge: mergeProduct})
+	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "repairs", Record: recordPickup})
 	reg.AddTenderMethod(plugin.TenderMethod{Value: legacyDeposit, Label: "Deposit held", Hidden: true, SettleTx: settleLegacyDeposit})
 	p.routes(reg)
 }

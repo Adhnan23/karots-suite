@@ -2541,6 +2541,11 @@ export interface SaleItemRequest {
   description: string;
   components: ServiceComponent[];
   group?: SaleLineGroup; // lines added together; receipts print them as one block
+  /**
+   * Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);
+   * each plugin's sale-line hook reads its own key inside the sale's tx.
+   */
+  plugin?: { [key: string]: any};
 }
 /**
  * SaleLineGroup: no numbers the groups within the sale, sets is how many sets.

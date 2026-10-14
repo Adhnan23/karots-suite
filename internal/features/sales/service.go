@@ -3,6 +3,7 @@ package sales
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -24,6 +25,35 @@ type Service struct {
 	nonCashLeg      NonCashLeg                // optional; books card/online money into an account
 	pluginTenderLeg PluginTenderLeg           // optional; books a plugin tender in-tx
 	pluginTender    func(method string) bool  // optional; is this a method a plugin registered?
+	lineHook        LineHook                  // optional; plugins record their tagged lines in-tx
+}
+
+// TaggedLine is a sale line that carries plugin data (ItemInput.Plugin).
+type TaggedLine struct {
+	ProductID int64
+	Quantity  decimal.Decimal
+	Plugin    map[string]json.RawMessage
+}
+
+// TaggedSale is a completed sale's tagged lines, handed to the line hook.
+type TaggedSale struct {
+	SaleID     int64
+	CustomerID *int64
+	ActorID    int64
+	Lines      []TaggedLine
+}
+
+// LineHook lets plugins record what their tagged lines mean (a repair job picked
+// up, …) inside the sale's own tx — so the record can't miss the way a call
+// after the sale can. Injected from the composition root, which dispatches each
+// plugin's data to that plugin; core never knows which. An error rolls the sale
+// back, so a hook records and never refuses (a sale is never stopped).
+type LineHook func(ctx context.Context, tx *sqlx.Tx, ev TaggedSale) error
+
+// WithLineHook injects the tagged-line seam. Returns the service.
+func (s *Service) WithLineHook(fn LineHook) *Service {
+	s.lineHook = fn
+	return s
 }
 
 // WithDrawerKick injects a best-effort action fired AFTER a cash-tendered sale
@@ -412,6 +442,21 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 					Meta:    p.Meta,
 					ActorID: cashierID,
 				}); err != nil {
+					return err
+				}
+			}
+		}
+
+		if s.lineHook != nil {
+			ev := TaggedSale{SaleID: saleID, CustomerID: in.CustomerID, ActorID: cashierID}
+			for _, it := range in.Items {
+				if len(it.Plugin) > 0 {
+					q, _ := decimal.NewFromString(it.Quantity) // buildSaleLines already refused a bad qty
+					ev.Lines = append(ev.Lines, TaggedLine{ProductID: it.ProductID, Quantity: q, Plugin: it.Plugin})
+				}
+			}
+			if len(ev.Lines) > 0 {
+				if err := s.lineHook(ctx, tx, ev); err != nil {
 					return err
 				}
 			}

@@ -36,7 +36,6 @@ export const removePart = (id: number, pid: number) => job(id, `/parts/${pid}`, 
 export const addCharge = (id: number, label: string, amount: string) => job(id, '/charges', { json: { label, amount } })
 export const removeCharge = (id: number, cid: number) => job(id, `/charges/${cid}`, { method: 'DELETE' })
 export const linkDeposit = (id: number, paymentId: number) => job(id, '/deposits', { json: { paymentId } })
-export const markCollected = (id: number, saleId: number) => job(id, '/collected', { json: { saleId } })
 export const startRework = (id: number) => job(id, '/rework', { method: 'POST' })
 export const payRepairer = (id: number, amount: string, source: string, note: string) => job(id, '/payouts', { json: { amount, source, note } })
 export const refundHeld = (id: number) => write(api<{ receiptId: number; amount: string }>(`${base}/jobs/${id}/refund-held`, { method: 'POST' }))

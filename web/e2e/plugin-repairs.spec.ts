@@ -150,6 +150,27 @@ test('a collected job in warranty is redone free: its lines go on the bill at 10
   await toast(page, /collected/)
 })
 
+test('the sale itself collects the job — even when the cashier changes the customer at Pay', async ({ page }) => {
+  await till(page)
+  await newJob(page, `Redmi ${tag}`)
+  const d = panel(page)
+  await d.getByLabel('Labour', { exact: true }).fill('Port clean')
+  await d.getByLabel('Labour amount').fill('300')
+  await d.getByRole('button', { name: 'Add labour' }).click()
+  await expect(d.getByText('Port clean')).toBeVisible()
+  await d.getByRole('button', { name: 'Put on the bill' }).click()
+  await toast(page, /is on the bill/)
+  // Someone else pays: the cashier switches the sale to walk-in.
+  await page.getByRole('button', { name: new RegExp(NAME) }).first().click()
+  await page.getByRole('listbox', { name: 'Customers' }).getByRole('option', { name: 'Walk-in' }).click()
+  await page.getByRole('button', { name: 'Cash', exact: true }).click()
+  await page.getByRole('button', { name: 'Fill' }).click()
+  await complete(page)
+  await toast(page, /collected/)
+  const rows = await json<{ id: number; status: string }[]>(page.request.get(`/api/v1/x/repairs/jobs?show=all&q=${encodeURIComponent(`Redmi ${tag}`)}`))
+  expect(rows[0].status).toBe('collected')
+})
+
 test('a quick fix is a labour line on the bill — no job', async ({ page }) => {
   await till(page)
   await page.getByRole('button', { name: '🔧 Repairs' }).click()

@@ -73,3 +73,12 @@ describe('only cash gets change', () => {
     expect(s.tenders.map((t) => [t.method, t.amount])).toEqual([['cash', '5000']])
   })
 })
+
+describe('buildSaleRequest plugin data', () => {
+  it('sends a line\'s plugin data with the sale (for the plugins\' in-sale hooks); plain lines send none', () => {
+    const two = withLine(withLine(initialState('retail')))
+    const s = { ...two, lines: two.lines.map((l, i) => (i === 1 ? { ...l, plugin: { repairs: { job: 7, ticket: 'R-0007' } } } : l)) }
+    const req = buildSaleRequest(s, [{ method: 'cash', amount: '200', reference: '', accountId: '', meta: {} }], { deferDrawerKick: true })
+    expect(req.items.map((i) => i.plugin)).toEqual([undefined, { repairs: { job: 7, ticket: 'R-0007' } }])
+  })
+})

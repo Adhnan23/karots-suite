@@ -35,7 +35,16 @@ type fixture struct {
 func newFixture(t *testing.T) fixture {
 	t.Helper()
 	db := freshDB(t)
-	f := fixture{db: db, sales: sales.NewService(db)}
+	// The sale runs the repairs line hook in its tx, as the composition root wires it.
+	f := fixture{db: db, sales: sales.NewService(db).WithLineHook(func(ctx context.Context, tx *sqlx.Tx, ev sales.TaggedSale) error {
+		out := plugin.SaleLines{SaleID: ev.SaleID, CustomerID: ev.CustomerID, ActorID: ev.ActorID}
+		for _, l := range ev.Lines {
+			if d, ok := l.Plugin["repairs"]; ok {
+				out.Lines = append(out.Lines, plugin.SaleLine{ProductID: l.ProductID, Quantity: l.Quantity, Data: d})
+			}
+		}
+		return recordPickup(ctx, tx, out)
+	})}
 	must(t, db.Get(new(int64), `INSERT INTO categories (name) VALUES ('Phones') RETURNING id`))
 	must(t, db.Get(&f.user, `INSERT INTO users (name, phone, pin_hash) VALUES ('Cashier', '0700000000', 'x') RETURNING id`))
 	must(t, db.Get(&f.cust, `INSERT INTO customers (name, phone) VALUES ('Kamal Silva', '0712223334') RETURNING id`))
@@ -67,6 +76,11 @@ func decode[T any](t *testing.T, rec *httptest.ResponseRecorder) T {
 		t.Fatalf("%d %s: %v", rec.Code, rec.Body, err)
 	}
 	return v
+}
+
+// tag is the cart line data Put on the bill gives a job's lines.
+func tag(job int64) map[string]json.RawMessage {
+	return map[string]json.RawMessage{"repairs": json.RawMessage(fmt.Sprintf(`{"job":%d,"ticket":"R"}`, job))}
 }
 
 // advance records a core customer payment (the credit form) and returns its id.
@@ -114,15 +128,13 @@ func TestJobDepositPickup(t *testing.T) {
 	}
 	// The till rings it: labour only here (no stock in the fixture), all on account.
 	sale, err := f.sales.Create(context.Background(), sales.CreateInput{CustomerID: &f.cust, SaleType: "retail", AllowOverLimit: true,
-		Items:    []sales.ItemInput{{ProductID: b.Lines[1].ProductID, Quantity: "1", PriceOverride: "1500"}},
+		Items:    []sales.ItemInput{{ProductID: b.Lines[1].ProductID, Quantity: "1", PriceOverride: "1500", Plugin: tag(j.ID)}},
 		Payments: []sales.PaymentInput{{Method: "credit", Amount: "1500"}}}, f.user)
 	must(t, err)
-	j = decode[JobDTO](t, f.do("POST", path+"/collected", fmt.Sprintf(`{"saleId":%d}`, sale.Sale.ID)))
-	if j.Status != "collected" || j.SaleID == nil || j.WarrantyUntil == "" || !j.InWarranty || j.Outstanding != "500.00" {
+	// The sale itself collected the job (its tagged line, in the sale's tx).
+	j = decode[JobDTO](t, f.do("GET", path, ""))
+	if j.Status != "collected" || j.SaleID == nil || *j.SaleID != sale.Sale.ID || j.WarrantyUntil == "" || !j.InWarranty || j.Outstanding != "500.00" {
 		t.Fatalf("collected: %+v", j)
-	}
-	if rec := f.do("POST", path+"/collected", fmt.Sprintf(`{"saleId":%d}`, sale.Sale.ID)); rec.Code < 400 {
-		t.Fatal("a collected job can't be collected again")
 	}
 	// Free re-repair: a linked job whose bill is 100% off and pre-fills nothing.
 	rw := decode[JobDTO](t, f.do("POST", path+"/rework", ""))
@@ -138,21 +150,38 @@ func TestJobDepositPickup(t *testing.T) {
 	}
 }
 
-// A sale of someone else, or with none of the job's lines, doesn't collect it.
-func TestCollectedChecksTheSale(t *testing.T) {
+// Pickup never stops a sale: another customer paying still collects the job; a
+// job already closed is left as it is; a sale that fails leaves the job open.
+func TestPickupNeverStopsTheSale(t *testing.T) {
 	f := newFixture(t)
-	j := decode[JobDTO](t, f.do("POST", "/jobs", fmt.Sprintf(`{"customerId":%d,"deviceModel":"iPhone"}`, f.cust)))
-	decode[JobDTO](t, f.do("POST", fmt.Sprintf("/jobs/%d/charges", j.ID), `{"amount":"500"}`))
+	ctx := context.Background()
+	lab, err := NewStore(f.db).LabourID(ctx)
+	must(t, err)
 	var other int64
-	must(t, f.db.Get(&other, `INSERT INTO customers (name) VALUES ('Someone') RETURNING id`))
-	lab, err := NewStore(f.db).LabourID(context.Background())
-	must(t, err)
-	sale, err := f.sales.Create(context.Background(), sales.CreateInput{CustomerID: &other, SaleType: "retail", AllowOverLimit: true,
-		Items:    []sales.ItemInput{{ProductID: lab, Quantity: "1", PriceOverride: "500"}},
-		Payments: []sales.PaymentInput{{Method: "credit", Amount: "500"}}}, f.user)
-	must(t, err)
-	if rec := f.do("POST", fmt.Sprintf("/jobs/%d/collected", j.ID), fmt.Sprintf(`{"saleId":%d}`, sale.Sale.ID)); rec.Code < 400 {
-		t.Fatalf("another customer's sale collected it: %d", rec.Code)
+	must(t, f.db.Get(&other, `INSERT INTO customers (name) VALUES ('Brother') RETURNING id`))
+	open := decode[JobDTO](t, f.do("POST", "/jobs", fmt.Sprintf(`{"customerId":%d,"deviceModel":"iPhone"}`, f.cust)))
+	gone := decode[JobDTO](t, f.do("POST", "/jobs", fmt.Sprintf(`{"customerId":%d,"deviceModel":"Nokia"}`, f.cust)))
+	decode[JobDTO](t, f.do("POST", fmt.Sprintf("/jobs/%d/cancel", gone.ID), ""))
+	ring := func(cust int64, amount string, job int64, allow bool) error {
+		_, err := f.sales.Create(ctx, sales.CreateInput{CustomerID: &cust, SaleType: "retail", AllowOverLimit: allow,
+			Items:    []sales.ItemInput{{ProductID: lab, Quantity: "1", PriceOverride: amount, Plugin: tag(job)}},
+			Payments: []sales.PaymentInput{{Method: "credit", Amount: amount}}}, f.user)
+		return err
+	}
+	// Over the credit limit: the sale fails, so the job must stay open.
+	if ring(other, "500", open.ID, false) == nil {
+		t.Fatal("expected the over-limit sale to fail")
+	}
+	if j := decode[JobDTO](t, f.do("GET", fmt.Sprintf("/jobs/%d", open.ID), "")); j.Status != "received" {
+		t.Fatalf("a failed sale collected the job: %+v", j)
+	}
+	must(t, ring(other, "500", open.ID, true))
+	if j := decode[JobDTO](t, f.do("GET", fmt.Sprintf("/jobs/%d", open.ID), "")); j.Status != "collected" {
+		t.Fatalf("someone else paying: %+v", j)
+	}
+	must(t, ring(f.cust, "100", gone.ID, true))
+	if j := decode[JobDTO](t, f.do("GET", fmt.Sprintf("/jobs/%d", gone.ID), "")); j.Status != "cancelled" {
+		t.Fatalf("a cancelled job changed: %+v", j)
 	}
 }
 
@@ -219,12 +248,11 @@ func TestReportSharesBillDiscount(t *testing.T) {
 	var other int64
 	must(t, f.db.Get(&other, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, is_service)
 		VALUES ('Data transfer', (SELECT id FROM categories LIMIT 1), (SELECT id FROM units LIMIT 1), 0, 0, true) RETURNING id`))
-	sale, err := f.sales.Create(ctx, sales.CreateInput{CustomerID: &f.cust, SaleType: "retail", AllowOverLimit: true,
+	_, err = f.sales.Create(ctx, sales.CreateInput{CustomerID: &f.cust, SaleType: "retail", AllowOverLimit: true,
 		Discount: "200", DiscountType: "fixed",
-		Items: []sales.ItemInput{{ProductID: lab, Quantity: "1", PriceOverride: "1000"}, {ProductID: other, Quantity: "1", PriceOverride: "1000"}},
+		Items:    []sales.ItemInput{{ProductID: lab, Quantity: "1", PriceOverride: "1000", Plugin: tag(j.ID)}, {ProductID: other, Quantity: "1", PriceOverride: "1000"}},
 		Payments: []sales.PaymentInput{{Method: "credit", Amount: "1800"}}}, f.user)
 	must(t, err)
-	decode[JobDTO](t, f.do("POST", fmt.Sprintf("/jobs/%d/collected", j.ID), fmt.Sprintf(`{"saleId":%d}`, sale.Sale.ID)))
 	rep := decode[ReportDTO](t, f.do("GET", "/report", ""))
 	if len(rep.Rows) != 1 || rep.Rows[0].Revenue != "900.00" {
 		t.Fatalf("report: %+v", rep)
