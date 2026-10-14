@@ -46,7 +46,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
     }
   }
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <div className="flex flex-wrap items-start gap-3">
         <button type="button" aria-label="Back to the list" onClick={onBack} className="mt-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"><ArrowLeft className="size-4" /></button>
         <div className="grid min-w-[68px] place-items-center rounded-[var(--radius)] bg-brand-soft px-2.5 py-2 text-center">

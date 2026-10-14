@@ -21,7 +21,7 @@ export function JobLines({ job, sym }: { job: Job; sym: string }) {
   const empty = job.parts.length === 0 && job.charges.length === 0
   if (empty && !open) return null
   return (
-    <section aria-label="Parts and labour" className="grid gap-2 rounded-[var(--radius)] border border-border p-3">
+    <section aria-label="Parts and labour" className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-[var(--radius)] border border-border p-3">
       <div className="flex items-baseline justify-between">
         <h3 className="font-display text-[15px] font-bold">Parts & labour</h3>
         <span className="text-[13px] text-muted-foreground">{job.saleReceipt ? <>Paid on <b className="text-foreground">{job.saleReceipt}</b></> : job.reworkOf ? 'Free — warranty re-repair' : <>Estimate <b className="font-display text-base text-foreground tabular-nums">{money(sym, num(job.estimate))}</b></>}</span>
@@ -47,7 +47,7 @@ export function JobLines({ job, sym }: { job: Job; sym: string }) {
         ))}
       </ul>
       {open && (
-        <div className="grid gap-2 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-2">
           <AddPart job={job} sym={sym} byPart={byPart} />
           <AddLabour job={job} sym={sym} />
         </div>
@@ -76,7 +76,7 @@ function AddPart({ job, sym, byPart }: { job: Job; sym: string; byPart: boolean 
     }
   }
   return (
-    <div className="relative grid gap-1.5">
+    <div className="relative grid min-w-0 gap-1.5">
       {pick ? (
         <form className="flex gap-1.5" onSubmit={(e) => { e.preventDefault(); void add() }}>
           <button type="button" onClick={() => setPick(null)} className={cn(FIELD, 'min-w-0 flex-1 truncate text-left font-semibold')} title="Change the part">{pick.name}</button>
@@ -85,7 +85,7 @@ function AddPart({ job, sym, byPart }: { job: Job; sym: string; byPart: boolean 
           <Button type="submit" size="icon" aria-label="Add part"><Plus className="size-4" /></Button>
         </form>
       ) : (
-        <input aria-label="Add a part" placeholder="+ Part — search or scan" value={q} onChange={(e) => setQ(e.target.value)} className={FIELD} />
+        <input aria-label="Add a part" placeholder="+ Part — search or scan" value={q} onChange={(e) => setQ(e.target.value)} className={cn(FIELD, 'w-full min-w-0')} />
       )}
       {found && found.length > 0 && (
         <ul className="absolute top-full z-10 mt-1 grid w-full gap-0.5 rounded-[var(--radius-sm)] border border-border bg-popover p-1 shadow-lg">
@@ -120,7 +120,7 @@ function AddLabour({ job, sym }: { job: Job; sym: string }) {
   return (
     <form className="flex gap-1.5" onSubmit={(e) => { e.preventDefault(); void add() }}>
       <input aria-label="Labour" list="rp-labour" placeholder="+ Labour (e.g. Fitting)" value={label} onChange={(e) => setLabel(e.target.value)} className={cn(FIELD, 'min-w-0 flex-1')} />
-      <input aria-label="Labour amount" placeholder={money(sym, 0)} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'w-28 tabular-nums')} />
+      <input aria-label="Labour amount" placeholder={money(sym, 0)} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'w-24 min-w-0 tabular-nums')} />
       <Button type="submit" size="icon" aria-label="Add labour"><Plus className="size-4" /></Button>
       <datalist id="rp-labour">{used.map((l) => <option key={l} value={l} />)}</datalist>
     </form>
