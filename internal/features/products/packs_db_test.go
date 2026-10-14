@@ -89,7 +89,7 @@ func isCode(err error, code string) bool {
 }
 
 // Rename used to write a products.updated_at column that never existed, so every
-// rename failed (karots-pos recharge carriers swallowed the error).
+// rename failed (karots-pos callers swallowed the error).
 func TestRenameDB(t *testing.T) {
 	conn, a, _ := barcodeFixture(t)
 	ctx := context.Background()
