@@ -15,7 +15,7 @@ export type Script = {
 export type ScriptItemInput = { id?: number; productId?: number | null; groupId?: number | null; drugText: string; dosage: string; quantity: string; perDay: string }
 export type ScriptInput = Omit<Script, 'id' | 'active' | 'items'> & { patientId: number; items: ScriptItemInput[] }
 export type RecentSale = { id: number; receipt: string; at: string; total: string; customer: string; items: string; recorded: string; medicines: number }
-export type Flags = { controlled: boolean; schedule: string; rxOnly: boolean }
+export type Flags = { controlled: boolean; schedule: string; rxOnly: boolean; medicine?: boolean }
 export type Controlled = { productId: number; name: string; schedule: string; stock: string; unrecorded: number; oldRows: number }
 export type RegisterRow = {
   id: number; at: string; type: string; in: string; out: string; balance: string; saleId: number | null

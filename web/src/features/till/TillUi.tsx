@@ -3,7 +3,8 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import { api } from '@/api/client'
 import type { Lot, TillGroup, TillProduct } from '@/api/types.gen'
 import type { TillApi } from '@/plugins/slots'
-import { configQuery, drawerQuery, errMsg } from './api'
+import { configQuery, drawerQuery, errMsg, priceOptionsQuery } from './api'
+import { lotsFor } from './cart/lines'
 import { printMoneySlip, slipPath } from './print'
 import { askToPrint } from './SlipAsk'
 import { useTill } from './TillProvider'
@@ -122,7 +123,8 @@ export function useTillApi(): TillApi {
         return errMsg(e, "Couldn't add it")
       }
     },
+    setLineQty: (key, qty) => dispatch({ type: 'setQty', key, qty, lots: lotsFor(qc.getQueryData(priceOptionsQuery.queryKey), state.lines.find((l) => l.key === key)?.productId ?? 0) }),
     saleMeta: state.meta ?? {},
     setSaleMeta: (key, value) => dispatch({ type: 'saleMeta', key, value }),
-  }), [dispatch, qc, saleType, state.customerId, state.meta])
+  }), [dispatch, qc, saleType, state.customerId, state.meta, state.lines])
 }

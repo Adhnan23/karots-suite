@@ -121,7 +121,7 @@ func TestAPIControlled(t *testing.T) {
 	do := testAPI(t, f.db)
 	f.st.SetFlags(context.Background(), f.pana, MedicineFlags{Controlled: true}) //nolint:errcheck
 	info := decode[map[string]MedicineFlags](t, do("GET", fmt.Sprintf("/till-info?ids=%d,%d,x", f.pana, f.metfor), ""))
-	if len(info) != 1 || !info[fmt.Sprint(f.pana)].Controlled {
+	if len(info) != 2 || !info[fmt.Sprint(f.pana)].Controlled || !info[fmt.Sprint(f.metfor)].Medicine || info[fmt.Sprint(f.metfor)].Controlled {
 		t.Fatalf("till info: %+v", info)
 	}
 	if rec := do("GET", "/controlled?cashier=1", ""); rec.Code != 403 {

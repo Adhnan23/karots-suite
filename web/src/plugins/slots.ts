@@ -27,6 +27,8 @@ export type TillApi = {
   addProduct(productId: number, opts?: { units?: number; plugin?: Record<string, unknown> }): Promise<string | null>
   /** A plugin's notes on the sale in progress (kept on hold / resume, cleared by New sale),
    * handed to tillAfterSale as ctx.meta. undefined removes the key. */
+  /** Set a cart line's qty, as typing it on the line would (whole units round, lots spill). */
+  setLineQty(key: number, qty: number): void
   saleMeta: Record<string, unknown>
   setSaleMeta(key: string, value: unknown): void
 }

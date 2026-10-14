@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dosesPerDay, supplyDays } from './dosage'
+import { dosesPerDay, supplyDays, tabletsFor } from './dosage'
 
 describe('dosesPerDay (mirrors Go DosesPerDay)', () => {
   it.each([
@@ -14,5 +14,14 @@ describe('supplyDays', () => {
     expect(supplyDays(60, 2)).toBe(30)
     expect(supplyDays(14, 3)).toBe(4)
     expect(supplyDays(10, 0)).toBe(0)
+  })
+})
+
+describe('tabletsFor', () => {
+  it('dose × days, a part tablet rounds up', () => {
+    expect(tabletsFor(2, 2)).toBe(4) // 1-0-1 × 2 days
+    expect(tabletsFor(1.5, 3)).toBe(5) // 1/2-0-1 × 3 = 4.5 → 5
+    expect(tabletsFor(0, 3)).toBe(0)
+    expect(tabletsFor(2, 0)).toBe(0)
   })
 })

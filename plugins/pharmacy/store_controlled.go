@@ -12,11 +12,13 @@ import (
 )
 
 // MedicineFlags is what the pharmacy marks on a product: controlled (+ schedule)
-// and prescription-only. Hints at the till, never a block.
+// and prescription-only — hints at the till, never a block. Medicine (read-only)
+// = grouped, Rx-only or controlled: the till offers Days… on its line.
 type MedicineFlags struct {
 	Controlled bool   `db:"controlled" json:"controlled"`
 	Schedule   string `db:"schedule"   json:"schedule"`
 	RxOnly     bool   `db:"rx_only"    json:"rxOnly"`
+	Medicine   bool   `db:"medicine"   json:"medicine"`
 }
 
 // Flags maps each given product with a mark to its flags.
@@ -26,11 +28,12 @@ func (s *Store) Flags(ctx context.Context, ids []int64) (map[int64]MedicineFlags
 		MedicineFlags
 	}
 	err := s.db.SelectContext(ctx, &rows, `
-		SELECT p.id, c.product_id IS NOT NULL AS controlled, COALESCE(c.schedule, '') AS schedule, COALESCE(m.rx_only, false) AS rx_only
+		SELECT p.id, c.product_id IS NOT NULL AS controlled, COALESCE(c.schedule, '') AS schedule, COALESCE(m.rx_only, false) AS rx_only,
+		       true AS medicine
 		FROM unnest($1::bigint[]) AS p(id)
 		LEFT JOIN pharmacy_controlled_products c ON c.product_id = p.id
 		LEFT JOIN pharmacy_medicines m ON m.product_id = p.id
-		WHERE c.product_id IS NOT NULL OR m.rx_only`, pq.Array(ids))
+		WHERE c.product_id IS NOT NULL OR m.rx_only OR EXISTS (SELECT 1 FROM alt_members a WHERE a.product_id = p.id)`, pq.Array(ids))
 	out := make(map[int64]MedicineFlags, len(rows))
 	for _, r := range rows {
 		out[r.ID] = r.MedicineFlags

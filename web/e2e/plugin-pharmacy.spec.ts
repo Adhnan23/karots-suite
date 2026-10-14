@@ -96,7 +96,16 @@ test('the till registers a patient, writes a script, adds from it; the sale reco
   await page.getByRole('button', { name: 'Save prescription' }).click()
   await toast(page, /Prescription added/)
 
-  await page.getByRole('button', { name: new RegExp(`Add 8 · ${METFOR}`) }).click()
+  // Add by days or by tablets: the boxes follow each other (2 a day).
+  const days = page.getByLabel(`Days of ${GROUP}`)
+  const tabs = page.getByLabel(`Tablets of ${GROUP}`)
+  await expect(tabs).toHaveValue('8')
+  await expect(days).toHaveValue('4')
+  await days.fill('3')
+  await expect(tabs).toHaveValue('6')
+  await tabs.fill('8')
+  await expect(days).toHaveValue('4')
+  await page.getByRole('button', { name: new RegExp(`Add · ${METFOR}`) }).click()
   await toast(page, new RegExp(`Added 8 × ${METFOR}`))
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(cart(page).getByText(`For ${NAME}’s ${GROUP}`)).toBeVisible()
@@ -114,6 +123,11 @@ test('a controlled drug without a patient is only a hint; the sale goes through 
   await search(page).fill(DIAZ)
   await page.getByRole('button', { name: new RegExp(DIAZ) }).first().click()
   await expect(cart(page).getByText('⚠ Controlled — add the patient (💊)')).toBeVisible()
+  // Days… on a medicine line: 1-0-1 × 3 days sets it to 6.
+  await cart(page).getByRole('button', { name: 'Days…' }).click()
+  await cart(page).getByLabel('Days', { exact: true }).fill('3')
+  await cart(page).getByRole('button', { name: 'Set 6' }).click()
+  await expect(cart(page).getByLabel(`Quantity of ${DIAZ}`)).toHaveValue('6')
   await complete(page)
 
   await login(page, '0770000001', '/admin/x/pharmacy/controlled')
@@ -129,7 +143,7 @@ test('a controlled drug without a patient is only a hint; the sale goes through 
   await page.goto(`/admin/x/pharmacy/controlled/${ids.diaz}`)
   const reg = page.getByRole('table', { name: 'Register' })
   await expect(reg.getByRole('row').filter({ hasText: 'Sold' })).toContainText(`${NAME} · Dr Perera`)
-  await expect(reg.getByRole('row').last()).toContainText('49') // 50 counted in, 1 sold
+  await expect(reg.getByRole('row').last()).toContainText('44') // 50 counted in, 6 sold
 })
 
 test('refills due is a call list: WhatsApp the patient, Called takes them off', async ({ page }) => {

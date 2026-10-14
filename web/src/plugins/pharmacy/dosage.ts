@@ -30,3 +30,8 @@ export function dosesPerDay(dosage: string): number {
 export function supplyDays(tablets: number, perDay: number): number {
   return perDay > 0 && tablets > 0 ? Math.floor(tablets / perDay) : 0
 }
+
+/** Tablets for perDay a day over days (a part tablet rounds up: never short). */
+export function tabletsFor(perDay: number, days: number): number {
+  return perDay > 0 && days > 0 ? Math.ceil(perDay * days - 1e-9) : 0
+}

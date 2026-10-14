@@ -16,8 +16,15 @@ func TestControlledRegister(t *testing.T) {
 		t.Fatal(err)
 	}
 	flags, _ := f.st.Flags(ctx, []int64{drug, f.metfor})
-	if fl := flags[drug]; !fl.Controlled || fl.Schedule != "Schedule II" || !fl.RxOnly || len(flags) != 1 {
+	if fl := flags[drug]; !fl.Controlled || fl.Schedule != "Schedule II" || !fl.RxOnly || !fl.Medicine || len(flags) != 2 {
 		t.Fatalf("flags: %+v", flags)
+	}
+	// A grouped product is a medicine (Days… at the till) without being marked.
+	if fl := flags[f.metfor]; !fl.Medicine || fl.Controlled || fl.RxOnly {
+		t.Fatalf("grouped: %+v", fl)
+	}
+	if other, _ := f.st.Flags(ctx, []int64{f.gluco + 999}); len(other) != 0 {
+		t.Fatalf("an unknown product has no flags: %+v", other)
 	}
 	p, _ := f.st.Register(ctx, "Saman", "0714444444", Profile{})
 	move := func(typ string, qty int, ref string, refID int64) {
