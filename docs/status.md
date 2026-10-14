@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-13, M7.6d done)
+## Status (2026-10-14, M7.7a packs done)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -32,13 +32,21 @@ Checks: 150 Playwright flows (dev DB reseeded), go test all-plugins + core-only,
 `~/karots-accept/karots-suite-all.m76c`). User decision: no expense on a conversion run — staff do it as part of their
 day, wages already cover it; the lost weight is in the loose cost.
 **M7.7 pharmacy — rethink DONE (2026-10-14), split in two (user: "do the recommended way"):**
-- **M7.7a Packs (core) — IN PROGRESS** (spec `docs/specs/2026-10-14-m7-7a-packs-design.md`, plan
-  `docs/plans/2026-10-14-m7-7a-packs.md`). User's problem: card→loose conversions bloat a pharmacy catalogue (every card
-  needs a "(loose)" twin; customers ask 2–3 tablets, "2 days' worth", 14 tablets of a 12-card). Fix: a product counts in
-  tablets and carries packs (Card ×12 with its own price + barcode); full packs ring at the pack price automatically
-  ("14 = 1 Card + 2"); a card size nobody set can be set at the till (flagged in Items to review); buy / intake by the
-  card; fold existing card + loose twins. Generic (cigarettes, eggs) — core names no plugin.
-- **M7.7b Pharmacy (plugin) — after 7a.** Approved rethink (keep · change · drop vs karots-pos):
+- **M7.7a Packs (core) — DONE (2026-10-14)** (spec `docs/specs/2026-10-14-m7-7a-packs-design.md`, plan
+  `docs/plans/2026-10-14-m7-7a-packs.md`; `docs/differences.md` 82–86). User's problem: card→loose conversions bloat a
+  pharmacy catalogue (every card needs a "(loose)" twin; customers ask 2–3 tablets, "2 days' worth", 14 of a 12-card).
+  Built: `product_packs` (migration `00005`; pack barcodes in `product_barcodes.pack_id`; `sale_items.pack_label`);
+  full packs ring at the pack price, never dearer (`sales.PackGross` = web `cart/packs.ts`, one JSON fixture); till
+  chooser (1 tablet / 1 Card), card barcode adds a card, line split "= 1 Card + 2" + **+ Card**, **Pack…** at the till
+  (size typed by the cashier → Items to review); receipt "14 pcs (1 Card + 2)"; product form **Packs** block; stock
+  split in lists; purchases / receive / intake **by the card** (`packSize`: payable exact, stock in units); **Fold
+  <card> into packs…** for old twins (+ rename). **Core bug fixed in both repos:** `products.Rename` wrote a missing
+  `updated_at` column (always failed) — karots-pos `2d58d9f` (recharge carrier renames).
+  Checks (2026-10-14): 154 Playwright flows (`packs.spec.ts` 4 new; dev DB reseeded), `go test -p 1` core-only and
+  all plugins, 192 web unit tests, `make verify`, `make verify-portable`. Dev server for shots ran on :3101.
+- **NEXT (fresh session): M7.7b Pharmacy (plugin)** — spec `docs/specs/2026-10-14-m7-7b-pharmacy-design.md`, plan
+  `docs/plans/2026-10-14-m7-7b-pharmacy.md`; **Task 1 (core till seams: `TillApi.customerId / setCustomer /
+  addProduct / saleMeta / setSaleMeta`, `SaleHookCtx.customerId / meta`) is DONE** — start at Task 2. Approved rethink (keep · change · drop vs karots-pos):
   **A** dispense during the sale — till action 💊 Patient (pick / register, allergies in red, scripts with due badges,
   Add a script line as its alternatives group's best in-stock member); after-sale records the dispense from the sale
   lines (pieces by group, days = pieces ÷ doses/day); "Record for a past receipt" when forgotten; optional generic seam
