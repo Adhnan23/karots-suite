@@ -1,7 +1,9 @@
 import { num, r2 } from '@/lib/money'
+import { packed, packGross } from './packs'
 import type { CartLine, DiscountType, Payment, TillState } from './types'
 
-export const lineGross = (l: CartLine) => num(l.qty) * num(l.unitPrice)
+export const lineGross = (l: CartLine) =>
+  packed(l) ? packGross(num(l.qty), num(l.unitPrice), l.packs!).gross : num(l.qty) * num(l.unitPrice)
 
 /** Fixed is per unit (× qty); percent is off the line gross; clamped to [0, gross]. */
 export function lineDiscount(l: CartLine) {

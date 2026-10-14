@@ -3,7 +3,7 @@ import { addGroup, breakGroup, removeGroup, setGroupCount, type GroupInput } fro
 import { fromHeld } from './held'
 import { addProduct, serviceLine, setQty, swapProduct, syncSerials } from './lines'
 import { balanceDue, saleTotal } from './totals'
-import type { DiscountType, Payment, SaleType, ServiceLineInput, TillState } from './types'
+import type { DiscountType, LinePack, Payment, SaleType, ServiceLineInput, TillState } from './types'
 
 export const blankDraft = (method: string): Payment => ({ method, amount: '', reference: '', accountId: '', meta: {} })
 
@@ -14,7 +14,8 @@ export const initialState = (saleType: SaleType): TillState => ({
 })
 
 export type Action =
-  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[] }
+  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[]; units?: number }
+  | { type: 'linePacks'; key: number; packs: LinePack[]; qty?: number }
   | { type: 'quickSet'; product: TillProduct; qty: number }
   | { type: 'addService'; line: ServiceLineInput }
   | { type: 'addGroup'; group: GroupInput }
@@ -59,7 +60,7 @@ const mapLine = (s: TillState, key: number, f: (l: TillState['lines'][number]) =
 export function tillReducer(s: TillState, a: Action): TillState {
   switch (a.type) {
     case 'add': {
-      const r = addProduct(s.lines, s.seq, a.product, s.saleType, a.lot, a.lots)
+      const r = addProduct(s.lines, s.seq, a.product, s.saleType, a.lot, a.lots, a.units)
       return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.key, notice: r.notice, postSaleChange: 0 }
     }
     case 'quickSet': {
@@ -95,6 +96,12 @@ export function tillReducer(s: TillState, a: Action): TillState {
       return { ...s, lines: s.lines.filter((l) => l.key !== a.key) }
     case 'swap':
       return { ...s, lines: swapProduct(s.lines, a.key, a.product, s.saleType, a.qty) }
+    case 'linePacks': {
+      const st = mapLine(s, a.key, (l) => ({ ...l, packs: a.packs }))
+      if (a.qty === undefined) return st
+      const r = setQty(st.lines, st.seq, a.key, a.qty, [])
+      return { ...st, lines: r.lines, seq: r.seq, notice: r.notice }
+    }
     case 'lineDiscount':
       return mapLine(s, a.key, (l) => ({ ...l, discount: a.discount, discountType: a.discountType }))
     case 'serial':

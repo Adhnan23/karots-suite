@@ -28,7 +28,11 @@ export type CartLine = {
   plugin?: Record<string, unknown> // opaque data a plugin slot attached (M7)
   group?: LineGroup // lines a plugin added together (a combo): scaled, removed and broken together
   fixedQty?: boolean // a plugin job priced and costed for this qty: × removes it, nothing changes the qty
+  packs?: LinePack[] // also sold by the pack: full packs ring at the pack price (cart/packs.ts)
 }
+
+/** A pack on a cart line; price is for the sale type it was added under (0 = size × unit). */
+export type LinePack = { id: number; name: string; size: number; price: number }
 
 /** id is unique in the cart; per is this line's qty in one set (qty = per × count). */
 export type LineGroup = { id: number; label: string; per: number; count: number }

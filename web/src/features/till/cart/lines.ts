@@ -1,5 +1,6 @@
 import type { Lot, TillProduct } from '@/api/types.gen'
 import { num, qtyText } from '@/lib/money'
+import { linePacks } from './packs'
 import type { CartLine, Notice, SaleType, ServiceLineInput } from './types'
 
 export const MAX_STOCK = Number.MAX_SAFE_INTEGER
@@ -49,16 +50,18 @@ export function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: L
     allowOversell: false, discount: '', discountType: 'fixed',
     trackSerial: p.trackSerial, warrantyMonths: p.warrantyMonths, serials: [],
     priceOverride: '', description: '', components: [],
+    ...(p.packs?.length && !p.isService && { packs: linePacks(p, saleType) }),
   })
 }
 
-/** Add one unit. A line is product AND lot — merging on product alone would re-price. */
-export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleType: SaleType, lot: Lot | undefined, lots: Lot[]): LinesResult {
+/** Add one unit (or a pack's worth). A line is product AND lot — merging on product alone would re-price. */
+export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleType: SaleType, lot: Lot | undefined, lots: Lot[], units = 1): LinesResult {
   const batchId = lot?.batchId ?? 0
   const hit = lines.find((l) => l.productId === p.id && l.batchId === batchId && !l.isService && !l.group)
-  if (hit) return setQty(lines, seq, hit.key, hit.qty + 1, lots)
+  if (hit) return setQty(lines, seq, hit.key, hit.qty + units, lots)
   const key = seq + 1
-  return { lines: [...lines, newLine(key, p, saleType, lot)], seq: key, key, notice: null }
+  const added = [...lines, newLine(key, p, saleType, lot)]
+  return units === 1 ? { lines: added, seq: key, key, notice: null } : setQty(added, key, key, units, lots)
 }
 
 /** Put another product on a plain line (an in-stock alternative), keeping its qty
