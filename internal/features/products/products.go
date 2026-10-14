@@ -145,7 +145,7 @@ const selectProduct = `
 	       u.allow_decimal AS unit_allow_decimal,
 	       COALESCE(s.quantity, 0) AS stock_qty,
 	       psup.name AS preferred_supplier_name,
-	       ARRAY(SELECT pb.barcode FROM product_barcodes pb WHERE pb.product_id = p.id ORDER BY pb.id) AS barcodes
+	       ARRAY(SELECT pb.barcode FROM product_barcodes pb WHERE pb.product_id = p.id AND pb.pack_id IS NULL ORDER BY pb.id) AS barcodes
 	FROM products p
 	JOIN categories c ON c.id = p.category_id
 	JOIN units u      ON u.id = p.unit_id

@@ -34,7 +34,7 @@ func (s *Service) Barcodes(ctx context.Context, productID int64) ([]BarcodeRow, 
 		FROM products WHERE id = $1 AND barcode IS NOT NULL
 		UNION ALL
 		SELECT barcode, false, source, added_at, last_scanned_at
-		FROM product_barcodes WHERE product_id = $1
+		FROM product_barcodes WHERE product_id = $1 AND pack_id IS NULL
 		ORDER BY main DESC, added_at`, productID)
 	return rows, err
 }
@@ -84,7 +84,7 @@ func (s *Service) AddBarcode(ctx context.Context, productID int64, code, source 
 // RemoveBarcode drops one of a product's extra codes. The main barcode is
 // changed through the product form, never removed here.
 func (s *Service) RemoveBarcode(ctx context.Context, productID int64, code string) error {
-	res, err := s.db.ExecContext(ctx, `DELETE FROM product_barcodes WHERE product_id = $1 AND barcode = $2`, productID, strings.TrimSpace(code))
+	res, err := s.db.ExecContext(ctx, `DELETE FROM product_barcodes WHERE product_id = $1 AND barcode = $2 AND pack_id IS NULL`, productID, strings.TrimSpace(code))
 	if err != nil {
 		return apperr.Internal("failed to remove barcode", err)
 	}
@@ -102,7 +102,7 @@ func (s *Service) MakeMainBarcode(ctx context.Context, productID int64, code str
 		var extra struct {
 			LastScannedAt *time.Time `db:"last_scanned_at"`
 		}
-		err := tx.GetContext(ctx, &extra, `DELETE FROM product_barcodes WHERE product_id = $1 AND barcode = $2 RETURNING last_scanned_at`, productID, code)
+		err := tx.GetContext(ctx, &extra, `DELETE FROM product_barcodes WHERE product_id = $1 AND barcode = $2 AND pack_id IS NULL RETURNING last_scanned_at`, productID, code)
 		if errors.Is(err, sql.ErrNoRows) {
 			return apperr.NotFound("extra barcode")
 		}

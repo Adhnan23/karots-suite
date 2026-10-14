@@ -72,6 +72,27 @@ type ProductBarcode struct {
 	LastScannedAt string `json:"lastScannedAt"`
 }
 
+// AdminPack is one way to sell / buy a product by more than one unit (Card ×12).
+// Prices "0.00" mean: follows the unit price (selling) / the selling price (wholesale).
+type AdminPack struct {
+	ID             int64    `json:"id"`
+	Name           string   `json:"name"`
+	Size           string   `json:"size"`
+	SellingPrice   string   `json:"sellingPrice"`
+	WholesalePrice string   `json:"wholesalePrice"`
+	SetAtTill      bool     `json:"setAtTill"`
+	Barcodes       []string `json:"barcodes"`
+}
+
+// PackRequest creates / edits a pack; Barcode adds one code to it ("" = none).
+type PackRequest struct {
+	Name           string `json:"name"`
+	Size           string `json:"size"`
+	SellingPrice   string `json:"sellingPrice"`
+	WholesalePrice string `json:"wholesalePrice"`
+	Barcode        string `json:"barcode"`
+}
+
 // BarcodeRequest adds an extra barcode; Source says where it was added.
 type BarcodeRequest struct {
 	Barcode string `json:"barcode"`

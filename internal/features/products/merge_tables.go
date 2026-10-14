@@ -71,6 +71,20 @@ func mergeTables(ctx context.Context, tx *sqlx.Tx, from, into int64) error {
 			return err
 		}
 	}
+	// Packs: one the kept product already has (same name) takes the duplicate's
+	// codes; the rest move across as they are.
+	for _, q := range []string{
+		`UPDATE product_barcodes b SET pack_id = k.id FROM product_packs f JOIN product_packs k
+		   ON k.product_id = $2 AND lower(k.name) = lower(f.name)
+		 WHERE b.pack_id = f.id AND f.product_id = $1`,
+		`DELETE FROM product_packs f USING product_packs k
+		 WHERE f.product_id = $1 AND k.product_id = $2 AND lower(k.name) = lower(f.name)`,
+		`UPDATE product_packs SET product_id = $2 WHERE product_id = $1`,
+	} {
+		if _, err := tx.ExecContext(ctx, q, from, into); err != nil {
+			return err
+		}
+	}
 	if _, err := tx.ExecContext(ctx, `UPDATE product_barcodes SET product_id = $2, source = 'merge' WHERE product_id = $1`, from, into); err != nil {
 		return err
 	}

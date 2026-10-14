@@ -72,6 +72,8 @@ type SaleItem struct {
 	LineGroup      *int             `db:"line_group"       json:"line_group,omitempty"`
 	LineGroupLabel *string          `db:"line_group_label" json:"line_group_label,omitempty"`
 	LineGroupSets  *decimal.Decimal `db:"line_group_sets"  json:"line_group_sets,omitempty"`
+	// PackLabel is the split the line was sold as ("1 Card + 2"); nil = no pack fitted.
+	PackLabel *string `db:"pack_label" json:"pack_label,omitempty"`
 	// joined
 	ProductName    string `db:"product_name"    json:"product_name"`
 	UnitAbbr       string `db:"unit_abbr"       json:"unit_abbr"`

@@ -137,6 +137,29 @@ export interface ProductBarcode {
   lastScannedAt: string;
 }
 /**
+ * AdminPack is one way to sell / buy a product by more than one unit (Card ×12).
+ * Prices "0.00" mean: follows the unit price (selling) / the selling price (wholesale).
+ */
+export interface AdminPack {
+  id: number /* int64 */;
+  name: string;
+  size: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  setAtTill: boolean;
+  barcodes: string[];
+}
+/**
+ * PackRequest creates / edits a pack; Barcode adds one code to it ("" = none).
+ */
+export interface PackRequest {
+  name: string;
+  size: string;
+  sellingPrice: string;
+  wholesalePrice: string;
+  barcode: string;
+}
+/**
  * BarcodeRequest adds an extra barcode; Source says where it was added.
  */
 export interface BarcodeRequest {

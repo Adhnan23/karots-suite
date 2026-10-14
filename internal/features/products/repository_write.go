@@ -122,7 +122,7 @@ func (r *Repository) Update(ctx context.Context, id int64, w writeRow) error {
 	}
 	if w.Barcode != nil {
 		if err := r.db.GetContext(ctx, &old, `SELECT barcode, barcode_scanned_at,
-			EXISTS (SELECT 1 FROM product_barcodes WHERE product_id = $1 AND barcode = $2) AS swap
+			EXISTS (SELECT 1 FROM product_barcodes WHERE product_id = $1 AND barcode = $2 AND pack_id IS NULL) AS swap
 			FROM products WHERE id = $1`, id, *w.Barcode); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
