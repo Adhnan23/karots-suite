@@ -8,7 +8,7 @@ import { FIELD } from '@/features/till/ui'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '../slots'
 import { dosesQuery, printTextLabel, tillInfoQuery } from './api'
-import { perDayOf, tabletsFor } from './dosage'
+import { perDayOf, supplyDays, tabletsFor } from './dosage'
 import { DoseInput, NoteInput } from './DoseInput'
 import { doseLabel } from './label'
 import { salePatient } from './sale'
@@ -47,7 +47,7 @@ export function LineHint({ till, line }: { till: TillApi; line: CartLine }) {
         {dose && !open && <button type="button" onClick={() => setOpen('label')} className={cn(CHIP, 'inline-flex items-center gap-1')}><TagIcon size={11} /> Label</button>}
       </div>
       {open === 'days' && (
-        <DaysForm usual={dose} usualNote={note} onCancel={() => setOpen(null)} onSet={(n, d, nt) => {
+        <DaysForm qty={line.qty} usual={dose} usualNote={note} onCancel={() => setOpen(null)} onSet={(n, d, nt) => {
           till.setLineQty(line.key, n)
           till.setSaleMeta('pharmacyLines', { ...(till.saleMeta.pharmacyLines as LineDoses | undefined), [line.key]: { dose: d, note: nt } })
           setOpen(null)
@@ -59,13 +59,17 @@ export function LineHint({ till, line }: { till: TillApi; line: CartLine }) {
 }
 
 /** "1-0-1 × 2 days = 4" (+ how to take it) → Set 4 on the line; the dose and note go on its label. */
-function DaysForm({ usual, usualNote, onSet, onCancel }: { usual: string; usualNote: string; onSet: (n: number, dose: string, note: string) => void; onCancel: () => void }) {
+function DaysForm({ qty, usual, usualNote, onSet, onCancel }: { qty: number; usual: string; usualNote: string; onSet: (n: number, dose: string, note: string) => void; onCancel: () => void }) {
   const doses = useQuery(dosesQuery).data
   const [dose, setDose] = useState(usual || '1-0-1')
   const [per, setPer] = useState<number | null>(null) // null = read from the dose (the list first)
   const [note, setNote] = useState(usualNote)
-  const [days, setDays] = useState('')
-  const n = tabletsFor(per ?? perDayOf(dose, doses), Number(days) || 0)
+  const perDay = per ?? perDayOf(dose, doses)
+  // Days start from what the line already holds (6 at 1-1-1 = 2 days), when that is whole days.
+  const held = supplyDays(qty, perDay)
+  const [typed, setDays] = useState<string | null>(null)
+  const days = typed ?? (held > 0 && tabletsFor(perDay, held) === qty ? String(held) : '')
+  const n = tabletsFor(perDay, Number(days) || 0)
   const box = cn(FIELD, 'h-8 px-2 text-center text-[13px]')
   return (
     <form className="flex flex-wrap items-center gap-1.5 text-[12.5px]" onSubmit={(e) => { e.preventDefault(); if (n > 0) onSet(n, dose.trim(), note.trim()) }}>

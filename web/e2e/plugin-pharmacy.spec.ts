@@ -184,6 +184,10 @@ test('product form: a usual dose, ℞ then Controlled; the till’s Days… star
   await cart(page).getByLabel('Days', { exact: true }).fill('5')
   await cart(page).getByRole('button', { name: 'Set 5' }).click()
   await expect(cart(page).getByLabel(`Quantity of ${METFOR}`)).toHaveValue('5')
+  // Opening Days… again shows what the line holds, not an empty box.
+  await cart(page).getByRole('button', { name: 'Days…' }).click()
+  await expect(cart(page).getByLabel('Days', { exact: true })).toHaveValue('5')
+  await cart(page).getByRole('button', { name: 'Cancel' }).click()
   await page.getByRole('button', { name: 'New sale' }).click()
   const yes = page.getByRole('dialog').getByRole('button', { name: /new sale|clear/i })
   if (await yes.isVisible().catch(() => false)) await yes.click()
