@@ -93,7 +93,7 @@ day, wages already cover it; the lost weight is in the loose cost.
   demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
   (controlled, Schedule II), Panadol (Card ×12); patients Nimal Perera (Penicillin allergy, repeat script Metformin 1-0-1 ×60
   + Panadol tds ×30) and Kamala Silva. No fake sales. Printer emulator `pos_printer` on :8631.
-- After M7.7: M7.8 repairs, then recharge (the roadmap below still shows the old numbers, each plugin moved up one).
+- **NEXT (fresh session): M7.8 Repairs** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7), then spec + plan; then recharge. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
