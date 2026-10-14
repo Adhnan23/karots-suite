@@ -57,10 +57,10 @@ function DoseSheet({ dose, onClose }: { dose: Dose | null; onClose: () => void }
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={dose ? `Dose ${dose.dose}` : 'New dose'} submit="Save dose" busy={busy} onSubmit={() => void save()}
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={dose ? `Dose ${dose.dose}` : 'New dose'} submit="Save dose" busy={busy} onSubmit={() => void save()} wide
       extra={dose && <ConfirmButton label="Delete" title={`Delete ${dose.dose}?`} confirm="Delete" body="Prescriptions keep what they say; it comes back if someone types it again."
         onConfirm={async () => { try { await deleteDose(dose.id); toast.success('Dose deleted'); onClose() } catch (e) { toast.error(errMsg(e)) } }} />}>
-      <div className="grid gap-3 md:grid-cols-[10rem_1fr_7rem]">
+      <div className="grid gap-3 md:grid-cols-[8rem_1fr_6rem]">
         <Field label="Dose" hint="As written">
           <input aria-label="Dose" value={f.dose} maxLength={40} placeholder="1-0-1" className={INPUT}
             onChange={(e) => { const d = e.target.value; const per = dosesPerDay(d); setF({ ...f, dose: d, ...(!dose && per ? { perDay: String(per) } : {}) }) }} />
