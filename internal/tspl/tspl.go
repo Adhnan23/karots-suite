@@ -325,9 +325,17 @@ func tsplEscape(s string) string {
 // ascii keeps printable ASCII and replaces anything else with '?', so the
 // printer's built-in font never renders garbage for non-Latin text. (Use the
 // HTML label sheet if you need non-Latin glyphs.)
+// lookAlike is the ASCII a label printer can print for common typography.
+var lookAlike = map[rune]string{'½': "1/2", '¼': "1/4", '¾': "3/4", '×': "x", '·': "-", '•': "-", '–': "-", '—': "-",
+	'‘': "'", '’': "'", '“': `"`, '”': `"`, '…': "..."}
+
 func ascii(s string) string {
 	var b strings.Builder
 	for _, r := range s {
+		if a, ok := lookAlike[r]; ok {
+			b.WriteString(a)
+			continue
+		}
 		switch {
 		case r >= 0x20 && r < 0x7F:
 			b.WriteRune(r)

@@ -153,3 +153,13 @@ func TestTextLabel(t *testing.T) {
 		t.Fatalf("an overflowing line was kept: %+v", last)
 	}
 }
+
+// Common typography prints as its ASCII look-alike instead of "?".
+func TestASCIILookAlikes(t *testing.T) {
+	if got := ascii("½-0-½ × 2 · Morning – Night — ‘x’ “y”"); got != "1/2-0-1/2 x 2 - Morning - Night - 'x' \"y\"" {
+		t.Fatalf("got %q", got)
+	}
+	if got := ascii("සිංහල"); got != "?????" {
+		t.Fatalf("other scripts still show as ?: %q", got)
+	}
+}
