@@ -65,8 +65,11 @@ func (h *handlers) AdminProducts(c echo.Context) error {
 		return err
 	}
 	out := ProductList{Items: make([]AdminProductRow, 0, len(rows)), Total: total, Page: max(page, 1), PageSize: productPageSize}
+	splits := h.stockSplits(c.Request().Context(), rows)
 	for _, p := range rows {
-		out.Items = append(out.Items, productRow(p))
+		r := productRow(p)
+		r.StockSplit = splits[p.ID]
+		out.Items = append(out.Items, r)
 	}
 	if products.MetaProvider != nil && len(rows) > 0 {
 		ids := make([]int64, len(rows))

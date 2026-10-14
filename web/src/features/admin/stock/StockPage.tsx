@@ -76,7 +76,7 @@ function Levels() {
         footer={data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (x) => ({ ...x, page }) })} />}
         columns={[
           { key: 'name', header: 'Product', cell: (p) => <span className="flex flex-col"><span className="flex items-center gap-1.5"><b>{p.name}</b>{p.low && <Tag tone="danger">low</Tag>}</span><small className="text-faint">{p.categoryName}</small></span> },
-          { key: 'qty', header: 'On hand', num: true, cell: (p) => <b className={cn(p.low && 'text-warning')}>{qtyText(p.stockQty)} <small className="font-normal text-faint">{p.unitAbbr}</small></b> },
+          { key: 'qty', header: 'On hand', num: true, cell: (p) => <b className={cn(p.low && 'text-warning')}>{qtyText(p.stockQty)} <small className="font-normal text-faint">{p.unitAbbr}</small>{p.stockSplit && <small className="block font-normal text-faint">= {p.stockSplit}</small>}</b> },
           { key: 'reorder', header: 'Reorder at', num: true, cell: (p) => <span className="text-muted-foreground">{p.reorderLevel || '—'}</span> },
           { key: 'value', header: 'Value at cost', num: true, cell: (p) => <span className="text-muted-foreground">{money(sym, Math.max(0, num(p.stockQty)) * num(p.costPrice))}</span> },
           { key: 'adj', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => <Button variant="ghost" className="h-9 px-3" onClick={() => setAdjust(p.id)}>Adjust</Button> },

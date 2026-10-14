@@ -137,7 +137,7 @@ function Row({ p, e, onEdit, onNext }: { p: StockTakeRow; e: Edit; onEdit: (x: P
           {byLot ? '▾ count the product as a whole' : `▸ count its ${p.lots.length} batches one by one`}</button>}
       </span>
       <span className="self-center text-[13px] md:text-right md:text-sm">
-        <span className="text-faint md:hidden">On hand </span><b className="tabular-nums">{qtyText(p.stockQty)}</b> <small className="text-faint">{p.unitAbbr}</small>
+        <span className="text-faint md:hidden">On hand </span><b className="tabular-nums">{qtyText(p.stockQty)}</b> <small className="text-faint">{p.unitAbbr}{p.stockSplit && ` = ${p.stockSplit}`}</small>
       </span>
       <label className="relative">
         {/* aria-label on the input: the ±delta below sits inside this label and would otherwise join its name. */}

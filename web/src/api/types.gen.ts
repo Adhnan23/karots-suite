@@ -123,6 +123,7 @@ export interface AdminProductRow {
   supplierName: string;
   createdBy: string; // who quick-added it (review queue)
   tillPack: string; // pack sizes set at the till, to check (review queue)
+  stockSplit: string; // on hand as packs ("2 Cards + 10"), "" = no packs
   createdAt: string;
   meta: string; // a plugin's short line under the name ("Grade: B · Waterproof")
 }
@@ -511,6 +512,7 @@ export interface SaleLine {
   group: number /* int */; // line group number in the sale, 0 = a plain line
   groupLabel: string;
   groupSets: string;
+  packLabel: string; // the split sold ("1 Card + 2"), "" = none
 }
 export interface SalePayment {
   method: string;
@@ -2777,6 +2779,7 @@ export interface StockTakeRow {
   wholesalePrice: string;
   multiPrice: boolean;
   lots: LotRow[]; // only when it has 2+ live batches (counted one by one)
+  stockSplit: string; // on hand as packs ("2 Cards + 10")
 }
 export interface StockTakeList {
   items: StockTakeRow[];

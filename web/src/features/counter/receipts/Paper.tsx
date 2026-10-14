@@ -41,7 +41,7 @@ export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHea
         ? (
           <div key={x.line.id} className="mb-1">
             <span className="block">{x.line.name}</span>
-            <Row l={`  ${qtyText(x.line.quantity)} × ${money('', x.line.unitPrice).trim()}`} r={money('', x.line.subtotal).trim()} />
+            <Row l={x.line.packLabel ? `  ${qtyText(x.line.quantity)} ${x.line.unitAbbr} (${x.line.packLabel})` : `  ${qtyText(x.line.quantity)} × ${money('', x.line.unitPrice).trim()}`} r={money('', x.line.subtotal).trim()} />
             {num(x.line.returnedQty) > 0 && <span className="block">  returned {qtyText(x.line.returnedQty)}</span>}
           </div>
         )

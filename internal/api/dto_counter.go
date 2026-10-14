@@ -138,6 +138,7 @@ type SaleLine struct {
 	Group       int    `json:"group"`      // line group number in the sale, 0 = a plain line
 	GroupLabel  string `json:"groupLabel"`
 	GroupSets   string `json:"groupSets"`
+	PackLabel   string `json:"packLabel"` // the split sold ("1 Card + 2"), "" = none
 }
 
 type SalePayment struct {

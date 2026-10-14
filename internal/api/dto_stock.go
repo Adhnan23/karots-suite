@@ -140,6 +140,7 @@ type StockTakeRow struct {
 	WholesalePrice   string `json:"wholesalePrice"`
 	MultiPrice       bool   `json:"multiPrice"`
 	Lots             []LotRow `json:"lots"` // only when it has 2+ live batches (counted one by one)
+	StockSplit       string   `json:"stockSplit"` // on hand as packs ("2 Cards + 10")
 }
 
 type StockTakeList struct {

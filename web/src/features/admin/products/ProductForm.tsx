@@ -14,6 +14,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
+import { PacksBlock } from './PacksBlock'
 import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
@@ -173,6 +174,9 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
         </Field>
       </div>
       {product && <BarcodesBlock productId={product.id} onMain={(barcode) => set({ barcode })} />}
+      {product && !svc && !units.find((u) => u.id === unitId)?.allowDecimal && (
+        <PacksBlock productId={product.id} unit={product.unitAbbr} unitPrice={prices.selling} stockQty={product.stockQty} sym={sym} />
+      )}
       {!svc && <div className="grid gap-3 md:grid-cols-[1fr_200px] md:items-end">
         <Toggle label="Track serial numbers" hint="Each unit sold records its serial, for warranty claims." checked={f.trackSerial} onChange={(trackSerial) => set({ trackSerial })} />
         <Field label="Warranty (months)">

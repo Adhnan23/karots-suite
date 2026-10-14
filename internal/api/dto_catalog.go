@@ -59,6 +59,7 @@ type AdminProductRow struct {
 	SupplierName string   `json:"supplierName"`
 	CreatedBy    string   `json:"createdBy"` // who quick-added it (review queue)
 	TillPack     string   `json:"tillPack"`  // pack sizes set at the till, to check (review queue)
+	StockSplit   string   `json:"stockSplit"` // on hand as packs ("2 Cards + 10"), "" = no packs
 	CreatedAt    string   `json:"createdAt"`
 	Meta         string   `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
 }

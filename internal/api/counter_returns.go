@@ -51,6 +51,7 @@ func saleView(d *sales.Detail) SaleView {
 		}
 		line := SaleLine{ID: it.ID, Name: name, UnitAbbr: it.UnitAbbr, Quantity: it.Quantity.String(),
 			ReturnedQty: it.ReturnedQty.String(), UnitPrice: dec2(it.UnitPrice), Subtotal: dec2(it.Subtotal), RefundUnit: dec2(unit), Paid: dec2(paid), RefundLeft: dec2(decimal.Max(paid.Sub(it.Refunded), decimal.Zero)), IsService: it.IsService}
+		line.PackLabel = strOr(it.PackLabel)
 		if it.LineGroup != nil && it.LineGroupLabel != nil && it.LineGroupSets != nil {
 			line.Group, line.GroupLabel, line.GroupSets = *it.LineGroup, *it.LineGroupLabel, it.LineGroupSets.String()
 		}

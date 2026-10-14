@@ -3,7 +3,7 @@ import type { SaleLine } from '@/api/types.gen'
 import { saleLineBlocks } from './saleLines'
 
 const line = (id: number, group = 0, subtotal = '100.00'): SaleLine => ({ id, name: `L${id}`, unitAbbr: 'pc', quantity: '2', returnedQty: '0', unitPrice: '60.00',
-  subtotal, refundUnit: '50.00', paid: subtotal, refundLeft: subtotal, isService: false, group, groupLabel: group ? 'Pair (combo)' : '', groupSets: group ? '2' : '' })
+  subtotal, refundUnit: '50.00', paid: subtotal, refundLeft: subtotal, isService: false, group, groupLabel: group ? 'Pair (combo)' : '', groupSets: group ? '2' : '', packLabel: '' })
 
 describe('saleLineBlocks', () => {
   it('gathers a group where its first line stood and sums its net', () => {

@@ -77,6 +77,7 @@ func (h *handlers) AdminStockTake(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	splits := h.stockSplits(ctx, rows)
 	out := StockTakeList{Items: make([]StockTakeRow, 0, len(rows)), Total: total, Page: max(page, 1), PageSize: stockTakePageSize}
 	for _, p := range rows {
 		_, many := multi[p.ID]
@@ -88,7 +89,7 @@ func (h *handlers) AdminStockTake(c echo.Context) error {
 		}
 		out.Items = append(out.Items, StockTakeRow{ID: p.ID, Name: p.Name, Barcode: strOr(p.Barcode), CategoryName: p.CategoryName, UnitAbbr: p.UnitAbbr,
 			UnitAllowDecimal: p.UnitAllowDecimal, StockQty: p.StockQty.String(), CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice),
-			WholesalePrice: dec2(p.WholesalePrice), MultiPrice: many, Lots: lr})
+			WholesalePrice: dec2(p.WholesalePrice), MultiPrice: many, Lots: lr, StockSplit: splits[p.ID]})
 	}
 	return c.JSON(http.StatusOK, out)
 }
