@@ -18,6 +18,8 @@ export type TillApi = {
    * error text, or null when swapped. */
   swapLine(key: number, productId: number, qty?: number): Promise<string | null>
   saleType: SaleType
+  /** The cart's lines as they are now (read-only). */
+  lines: CartLine[]
   refreshDrawer(): void
   /** The sale's customer (null = walk-in) and setting it (e.g. a patient picked in a panel). */
   customerId: number | null

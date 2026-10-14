@@ -111,6 +111,7 @@ export function useTillApi(): TillApi {
       }
     },
     saleType,
+    lines: state.lines,
     refreshDrawer: () => void qc.invalidateQueries({ queryKey: drawerQuery.queryKey }),
     customerId: state.customerId,
     setCustomer: (id) => dispatch({ type: 'customer', id }),

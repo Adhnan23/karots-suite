@@ -77,6 +77,7 @@ type JobDTO struct {
 	WarrantyUntil string       `json:"warrantyUntil"`
 	InWarranty    bool         `json:"inWarranty"`
 	SaleID        *int64       `json:"saleId"`
+	SaleReceipt   string       `json:"saleReceipt"` // the pickup sale's receipt no
 	ReworkOf      *int64       `json:"reworkOf"`
 	ReadyAt       string       `json:"readyAt"`
 	CancelledAt   string       `json:"cancelledAt"`

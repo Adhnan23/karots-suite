@@ -63,6 +63,11 @@ func (h handlers) respond(c echo.Context, id int64) error {
 			out.Outstanding = dec2(cust.OutstandingBalance)
 		}
 	}
+	if d.Job.SaleID != nil {
+		if s, err := h.p.core.Sales.Get(ctx, *d.Job.SaleID); err == nil {
+			out.SaleReceipt = s.Sale.ReceiptNo
+		}
+	}
 	return c.JSON(http.StatusOK, out)
 }
 
