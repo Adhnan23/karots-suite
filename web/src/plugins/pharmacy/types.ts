@@ -25,3 +25,12 @@ export type OldEntry = { at: string; direction: 'in' | 'out'; qty: string; patie
 export type Register = Controlled & { from: string; opening: string; rows: RegisterRow[]; old: OldEntry[] }
 export type Unrecorded = { saleId: number; receipt: string; at: string; productId: number; name: string; qty: string }
 export type Medicine = { kind: 'group' | 'product'; id: number; name: string; members: number }
+export type Refill = {
+  itemId: number; rxId: number; patientId: number; patient: string; phone: string; prescriber: string; drug: string; dosage: string
+  isRepeat: boolean; lastAt: string; due: string; status: 'overdue' | 'soon'; calledAt: string
+}
+export type LogItem = { drug: string; qty: string; days: number; controlled: boolean }
+export type LogRow = {
+  id: number; at: string; patientId: number; patient: string; prescriber: string; saleId: number | null; receipt: string
+  by: string; returned: boolean; controlled: boolean; items: LogItem[]
+}

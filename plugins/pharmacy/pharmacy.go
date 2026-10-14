@@ -55,6 +55,9 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.GET("/pharmacy/controlled", h.controlled)
 	a.GET("/pharmacy/controlled/missing", h.unrecorded)
 	a.GET("/pharmacy/controlled/:pid", h.drugRegister)
+	a.GET("/pharmacy/refills", h.refills)
+	a.POST("/pharmacy/refills/:id/called", h.called)
+	a.GET("/pharmacy/dispenses", h.dispenses)
 
 	reg.AddProductDetailContributor(plugin.ProductDetailContributor{Rows: p.detailRows})
 	reg.AddProductExtras(plugin.ProductExtras{Key: "pharmacy", Validate: p.validateExtra, Save: p.saveExtra})

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dueBadge, qtyOf } from './labels'
+import { dueBadge, qtyOf, waNumber } from './labels'
 
 const now = new Date('2026-10-14T10:00:00+05:30')
 const at = (d: string) => new Date(`${d}T09:00:00+05:30`).toISOString()
@@ -21,5 +21,12 @@ describe('qtyOf', () => {
     expect(qtyOf({ owed: '38', quantity: '60' })).toBe(38)
     expect(qtyOf({ owed: '0', quantity: '60' })).toBe(60)
     expect(qtyOf({ owed: '0', quantity: '0' })).toBe(1)
+  })
+})
+
+describe('waNumber', () => {
+  it('local 0… becomes 94…', () => {
+    expect(waNumber('077 123-4567')).toBe('94771234567')
+    expect(waNumber('+94771234567')).toBe('94771234567')
   })
 })

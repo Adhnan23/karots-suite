@@ -16,4 +16,5 @@ export default function pharmacy(s: typeof Slots) {
   s.tillActions.push({ key: 'pharmacy', label: '💊 Patient', Panel: PatientPanel })
   s.tillLineHints.push({ key: 'pharmacy', Hint: LineHint })
   s.tillAfterSale.push(afterSale)
+  s.reportCards.push({ href: '/admin/x/pharmacy/refills', title: 'Pharmacy — Refills due', desc: 'Patients about to run out of a medicine, to call or WhatsApp' })
 }

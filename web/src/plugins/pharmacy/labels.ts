@@ -29,3 +29,15 @@ export const TONE: Record<Tone, string> = {
   warn: 'text-warning bg-[color-mix(in_srgb,var(--warning)_14%,transparent)]',
   muted: 'text-muted-foreground bg-muted',
 }
+
+/** A Sri Lankan number for wa.me: 0771234567 → 94771234567. */
+export function waNumber(phone: string): string {
+  const d = phone.replace(/\D/g, '')
+  return d.startsWith('0') ? `94${d.slice(1)}` : d
+}
+
+export const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+
+/** The refill reminder a patient gets on WhatsApp. */
+export const refillMessage = (drug: string, dueIso: string) =>
+  `Your ${drug} ${new Date(dueIso) < new Date() ? 'ran out' : 'runs out'} on ${shortDate(dueIso)} — we have it ready.`

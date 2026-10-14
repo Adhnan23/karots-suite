@@ -135,3 +135,22 @@ func TestAPIControlled(t *testing.T) {
 		t.Fatalf("register: %+v", r)
 	}
 }
+
+func TestAPILog(t *testing.T) {
+	f := newFixture(t)
+	do := testAPI(t, f.db)
+	p := decode[PatientDTO](t, do("POST", "/patients", `{"name":"Log P","phone":"0727777777"}`))
+	do("POST", "/dispenses", fmt.Sprintf(`{"saleId":%d,"patientId":%d}`, f.sale(t, [2]int64{f.metfor, 4}), p.ID))
+	if rows := decode[[]LogRowDTO](t, do("GET", "/dispenses?preset=today", "")); len(rows) != 1 || rows[0].Items[0].Qty != "4" {
+		t.Fatalf("log: %+v", rows)
+	}
+	if rows := decode[[]LogRowDTO](t, do("GET", fmt.Sprintf("/dispenses?patient=%d", p.ID), "")); len(rows) != 1 {
+		t.Fatalf("history: %+v", rows)
+	}
+	if rows := decode[[]RefillDTO](t, do("GET", "/refills", "")); len(rows) != 0 {
+		t.Fatalf("refills: %+v", rows)
+	}
+	if rec := do("GET", "/refills?cashier=1", ""); rec.Code != 403 {
+		t.Fatal("refills are for admin / manager")
+	}
+}
