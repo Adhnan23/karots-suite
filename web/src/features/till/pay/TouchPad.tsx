@@ -46,7 +46,7 @@ export function TouchPad() {
   return (
     // pointerdown default would move focus to the key; keep it in the box.
     <div role="group" aria-label="Keypad" onPointerDown={(e) => e.preventDefault()} onMouseDown={(e) => e.preventDefault()}
-      className={cn(TOUCH_ONLY, 'grid-cols-4 gap-1.5')}>
+      className="grid grid-cols-4 gap-1.5">
       {KEYS.map((k) => (
         <button key={k} type="button" onClick={() => press(k)}
           aria-label={k === 'back' ? 'Delete' : k === 'clear' ? 'Clear' : k === 'enter' ? 'Enter' : k}

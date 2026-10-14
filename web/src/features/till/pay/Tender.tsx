@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { dec, money, num, r2, short } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { NoteTray } from './NoteTray'
-import { TouchPad } from './TouchPad'
+import { TouchKeys } from './TouchKeys'
 import { slots } from '@/plugins/slots'
 import { Button } from '@/components/ui/button'
 import { configQuery, drawerQuery, lockersOf } from '../api'
@@ -24,6 +23,7 @@ export function Tender() {
   const co = useCheckoutCtx()
   // The shop's notes (Denominations) — what a customer can hand over.
   const notes = (drawer?.denominations ?? []).filter((x) => x.isNote).map((x) => num(x.value))
+  const coins = (drawer?.denominations ?? []).filter((x) => !x.isNote).map((x) => num(x.value))
   const card = lockersOf(drawer, 'card')
   const bank = lockersOf(drawer, 'bank')
   const d = state.draft
@@ -91,21 +91,19 @@ export function Tender() {
         // Cash: what a customer would hand over in notes. Card, online, on account…:
         // just the exact due (they can't pay more), with the draft's account / details.
         <div className="grid grid-cols-4 gap-1.5" role="group" aria-label={d.method === 'cash' ? 'Cash handed over' : 'Pay the exact amount'}>
-          {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined) : [r2(due)]).map((v, i) => (
+          {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined).slice(0, 7) : [r2(due)]).map((v, i) => (
             <button key={v} type="button"
               onClick={() => dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
-              className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius-sm)] border border-border px-1 py-1 leading-tight hover:bg-muted">
-              {i === 0 && <small className="text-[10.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</small>}
-              <b className="font-display text-[15px] tabular-nums">{short(v)}</b>
+              className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 text-[13px] font-bold tabular-nums',
+                i === 0 ? 'col-span-2 border-[color-mix(in_srgb,var(--brand)_45%,transparent)] bg-brand-soft hover:bg-[color-mix(in_srgb,var(--brand)_22%,transparent)]' : 'border-border bg-card hover:bg-muted')}>
+              {i === 0 && <span className="text-[11.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</span>}
+              {short(v)}
             </button>
           ))}
         </div>
       )}
-      {d.method === 'cash' && due > 0 && (
-        <NoteTray notes={notes.length ? notes : LKR_NOTES} amount={d.amount}
-          onChange={(amount) => dispatch({ type: 'draft', patch: { amount } })} />
-      )}
-      <TouchPad />
+      <TouchKeys cash={d.method === 'cash' && due > 0} notes={notes.length ? notes : LKR_NOTES} coins={coins} amount={d.amount}
+        onAmount={(amount) => dispatch({ type: 'draft', patch: { amount } })} />
       <div className="flex flex-col gap-1">
         <AnimatePresence initial={false}>
           {state.tenders.map((p, i) => (

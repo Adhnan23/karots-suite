@@ -134,6 +134,11 @@ day, wages already cover it; the lost weight is in the loose cost.
 - **Demo updated for M7.8 (2026-10-14):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against `suite_accept`;
   previous binary `karots-suite-all.m77`, DB backup `suite_accept-before-m78-2026-10-14.dump`. Repairs demo parts (Phone
   parts): Galaxy A12 screen 4,000, iPhone 11 battery 5,500, USB-C charging port 900 — 5 each. No demo jobs.
+- **Till cash & touch (user, 2026-10-14, after M7.8):** quick-cash chips by the shop's notes (640 → Exact · 650 · 700 ·
+  1,000 · 2,000 · 5,000; never a note wasted), Exact / Remaining for card & other methods, one-line pills, Exact spans two.
+  Touch keys (till header ✋ Auto · On · Off, per device): a **Notes / Keypad** switch — tinted banknote tiles + coins
+  (tap 500 ×1 + 100 ×2 = 700) or a keypad typing into the focused box. Every slip now follows "ask before printing"
+  (`slipOut`, admin too); labels get a preview. Demo on :3100 has all of it.
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
