@@ -93,16 +93,13 @@ func dueStatus(due *time.Time, now time.Time) string {
 	return "covered"
 }
 
-// owed is what a script line still needs: the rest of a one-off; for a repeat,
-// the rest of the current fill — a whole fresh one once the last is complete.
+// owed is what Add puts in the cart: the rest of a one-off; for a repeat, a
+// full fill every time (the patient is back because the last one ran out).
 func owed(qty, dispensed decimal.Decimal, repeat bool) decimal.Decimal {
 	if !qty.IsPositive() {
 		return decimal.Zero
 	}
 	if repeat {
-		if r := dispensed.Mod(qty); r.IsPositive() {
-			return qty.Sub(r)
-		}
 		return qty
 	}
 	return decimal.Max(qty.Sub(dispensed), decimal.Zero)

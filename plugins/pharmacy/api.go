@@ -355,3 +355,11 @@ func (h handlers) scriptActive(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (h handlers) medicines(c echo.Context) error {
+	rows, err := h.p.store.Medicines(c.Request().Context(), c.QueryParam("q"))
+	if err != nil {
+		return fail("find medicines", err)
+	}
+	return c.JSON(http.StatusOK, rows)
+}

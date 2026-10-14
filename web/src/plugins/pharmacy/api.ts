@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { queryClient } from '@/api/query-client'
-import type { Controlled, Flags, Found, Patient, RecentSale, Register, Script, ScriptInput, Unrecorded } from './types'
+import type { Controlled, Flags, Found, Medicine, Patient, RecentSale, Register, Script, ScriptInput, Unrecorded } from './types'
 
 const base = '/x/pharmacy'
 const key = (...k: unknown[]) => ['x', 'pharmacy', ...k]
@@ -11,6 +11,7 @@ export const searchQuery = (q: string, customers = false) =>
 export const patientQuery = (id: number) => queryOptions({ queryKey: key('patient', id), queryFn: () => api<Patient>(`${base}/patients/${id}`), enabled: id > 0 })
 export const scriptsQuery = (id: number) => queryOptions({ queryKey: key('scripts', id), queryFn: () => api<Script[]>(`${base}/patients/${id}/scripts`), enabled: id > 0 })
 export const recentSalesQuery = (q: string) => queryOptions({ queryKey: key('recent', q), queryFn: () => api<RecentSale[]>(`${base}/sales/recent?q=${encodeURIComponent(q)}`) })
+export const medicinesQuery = (q: string) => queryOptions({ queryKey: key('medicines', q), queryFn: () => api<Medicine[]>(`${base}/medicines?q=${encodeURIComponent(q)}`), staleTime: 30_000 })
 export const productFlagsQuery = (pid: number) =>
   queryOptions({ queryKey: key('product', pid), queryFn: () => api<Flags>(`${base}/product/${pid}`), enabled: pid > 0 })
 /** The cart's controlled / Rx-only products (cached briefly; ids sorted so the key is stable). */

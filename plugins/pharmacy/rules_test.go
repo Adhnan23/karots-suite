@@ -66,8 +66,8 @@ func TestDueStatus(t *testing.T) {
 	}
 }
 
-// What the Add button puts in the cart: the rest of a one-off; a repeat starts
-// a fresh fill once the last one is complete.
+// What the Add button puts in the cart: the rest of a one-off; a repeat is a
+// fresh full fill every visit (it comes back when the last one runs out).
 func TestOwed(t *testing.T) {
 	d := decimal.NewFromInt
 	for _, c := range []struct {
@@ -76,7 +76,7 @@ func TestOwed(t *testing.T) {
 		want      int64
 	}{
 		{60, 0, false, 60}, {60, 20, false, 40}, {60, 60, false, 0}, {60, 80, false, 0},
-		{60, 60, true, 60}, {60, 90, true, 30}, {0, 10, true, 0},
+		{60, 60, true, 60}, {60, 56, true, 60}, {60, 0, true, 60}, {0, 10, true, 0},
 	} {
 		if got := owed(d(c.qty), d(c.done), c.repeat); !got.Equal(d(c.want)) {
 			t.Errorf("owed(%d, %d, %v) = %s, want %d", c.qty, c.done, c.repeat, got, c.want)

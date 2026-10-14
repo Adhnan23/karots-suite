@@ -56,7 +56,7 @@ func TestRecordDispense(t *testing.T) {
 		t.Fatalf("snapshots %q %q", who, doc)
 	}
 	sc, _ := f.st.Script(ctx, rx)
-	if !sc.Items[0].Dispensed.Equal(dec(22)) || !sc.Items[0].Owed().Equal(dec(38)) || sc.Items[0].DaysSupply != 11 {
+	if !sc.Items[0].Dispensed.Equal(dec(22)) || !sc.Items[0].Owed().Equal(dec(60)) || sc.Items[0].DaysSupply != 11 {
 		t.Fatalf("script line after: %+v", sc.Items[0])
 	}
 	// A second record of the same sale is refused; soap alone is nothing to record.
@@ -69,5 +69,34 @@ func TestRecordDispense(t *testing.T) {
 	recent, err := f.st.RecentSales(ctx, "", 10)
 	if err != nil || len(recent) < 2 || recent[1].Recorded != "Sunil" || recent[1].Medicines != 3 {
 		t.Fatalf("recent: %+v %v", recent, err)
+	}
+}
+
+// With no script named, the sale fills the patient's active scripts (each line
+// by its group); the record takes the first filled script and its doctor.
+func TestRecordDispenseFindsScripts(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	p, _ := f.st.Register(ctx, "Kumari", "0715555555", Profile{})
+	g, pana := f.group, f.pana
+	old, _ := f.st.CreateScript(ctx, p.ID, 0, ScriptInput{PrescriberName: "Dr Old", Items: []ItemInput{{GroupID: &g, Dosage: "1-0-1", Quantity: dec(20)}}})
+	f.st.SetScriptActive(ctx, old, false) //nolint:errcheck
+	a, _ := f.st.CreateScript(ctx, p.ID, 0, ScriptInput{PrescriberName: "Dr A", Items: []ItemInput{{GroupID: &g, Dosage: "1-0-1", Quantity: dec(20)}}})
+	b, _ := f.st.CreateScript(ctx, p.ID, 0, ScriptInput{PrescriberName: "Dr B", Items: []ItemInput{{ProductID: &pana, Dosage: "tds", Quantity: dec(9)}}})
+	id, err := f.st.RecordDispense(ctx, DispenseInput{SaleID: f.sale(t, [2]int64{f.metfor, 20}, [2]int64{f.pana, 9}), PatientID: p.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rx int64
+	var doc string
+	f.db.QueryRow(`SELECT prescription_id, prescriber_name FROM pharmacy_dispenses WHERE id = $1`, id).Scan(&rx, &doc) //nolint:errcheck
+	if rx != a || doc != "Dr A" {
+		t.Fatalf("header: rx %d doc %q", rx, doc)
+	}
+	for sc, want := range map[int64]int64{a: 20, b: 9, old: 0} {
+		s, _ := f.st.Script(ctx, sc)
+		if !s.Items[0].Dispensed.Equal(dec(want)) {
+			t.Errorf("script %d dispensed %s, want %d", sc, s.Items[0].Dispensed, want)
+		}
 	}
 }

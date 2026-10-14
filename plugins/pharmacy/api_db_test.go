@@ -82,6 +82,9 @@ func TestAPIPatientScript(t *testing.T) {
 	if scs = decode[[]ScriptDTO](t, do("GET", fmt.Sprintf("/patients/%d/scripts", p.ID), "")); scs[0].Active || scs[0].Items[0].Suggest != nil {
 		t.Fatalf("a stopped script suggests nothing: %+v", scs[0])
 	}
+	if ms := decode[[]Medicine](t, do("GET", "/medicines?q=metf", "")); len(ms) != 2 || ms[0].Kind != "group" || ms[0].Members != 2 || ms[1].ID != f.metfor {
+		t.Fatalf("medicines: %+v", ms)
+	}
 	if rec := do("POST", "/prescriptions", fmt.Sprintf(`{"patientId":%d,"items":[]}`, p.ID)); rec.Code < 400 {
 		t.Fatal("a script with no medicine must be refused")
 	}

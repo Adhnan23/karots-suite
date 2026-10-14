@@ -24,3 +24,4 @@ export type RegisterRow = {
 export type OldEntry = { at: string; direction: 'in' | 'out'; qty: string; patient: string; prescriber: string; reference: string; notes: string }
 export type Register = Controlled & { from: string; opening: string; rows: RegisterRow[]; old: OldEntry[] }
 export type Unrecorded = { saleId: number; receipt: string; at: string; productId: number; name: string; qty: string }
+export type Medicine = { kind: 'group' | 'product'; id: number; name: string; members: number }

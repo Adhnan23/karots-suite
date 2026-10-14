@@ -297,3 +297,27 @@ func (s *Store) Suggest(ctx context.Context, it ScriptItem) (*Suggest, error) {
 	}
 	return &out, err
 }
+
+// Medicine is a prescription form pick: a medicine group (any brand fills it) or a product.
+type Medicine struct {
+	Kind    string `db:"kind" json:"kind"` // group | product
+	ID      int64  `db:"id" json:"id"`
+	Name    string `db:"name" json:"name"`
+	Members int    `db:"members" json:"members"` // a group's products
+}
+
+// Medicines finds groups first, then products, by name.
+func (s *Store) Medicines(ctx context.Context, q string) ([]Medicine, error) {
+	out := []Medicine{}
+	if q = strings.TrimSpace(q); q == "" {
+		return out, nil
+	}
+	err := s.db.SelectContext(ctx, &out, `
+		(SELECT 'group' AS kind, g.id, g.name, COUNT(m.product_id)::int AS members
+		 FROM alt_groups g LEFT JOIN alt_tiers t ON t.group_id = g.id LEFT JOIN alt_members m ON m.tier_id = t.id
+		 WHERE g.is_active AND g.name ILIKE '%' || $1 || '%' GROUP BY g.id, g.name ORDER BY g.name LIMIT 8)
+		UNION ALL
+		(SELECT 'product', p.id, p.name, 0 FROM products p
+		 WHERE p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL AND p.name ILIKE '%' || $1 || '%' ORDER BY p.name LIMIT 8)`, q)
+	return out, err
+}

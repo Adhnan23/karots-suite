@@ -129,8 +129,8 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 		}
 		return 0, err
 	}
-	var slots []slot
-	prescriber := strings.TrimSpace(in.Prescriber)
+	// The named script, else every active script of the patient's (newest first).
+	var items []ScriptItem
 	if in.PrescriptionID > 0 {
 		sc, err := s.Script(ctx, in.PrescriptionID)
 		if err != nil {
@@ -139,10 +139,21 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 		if sc.PatientID != in.PatientID {
 			return 0, apperr.Validation("that prescription is another patient's")
 		}
-		prescriber = sc.PrescriberName
-		for _, it := range sc.Items {
-			slots = append(slots, slot{ID: it.ID, GroupID: it.GroupID, ProductID: it.ProductID, PerDay: it.PerDay})
+		items = sc.Items
+	} else {
+		scs, err := s.Scripts(ctx, in.PatientID)
+		if err != nil {
+			return 0, err
 		}
+		for _, sc := range scs {
+			if sc.Active {
+				items = append(items, sc.Items...)
+			}
+		}
+	}
+	slots := make([]slot, 0, len(items))
+	for _, it := range items {
+		slots = append(slots, slot{ID: it.ID, GroupID: it.GroupID, ProductID: it.ProductID, PerDay: it.PerDay})
 	}
 	var lines []saleLine
 	if err := s.db.SelectContext(ctx, &lines, `
@@ -164,10 +175,25 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 	for _, p := range parts {
 		days = max(days, p.Days)
 	}
+	// The record's script is the named one, else the first one the sale filled.
+	rxID := in.PrescriptionID
+	for _, p := range parts {
+		for _, it := range items {
+			if rxID == 0 && it.ID == p.RxItemID {
+				rxID = it.RxID
+			}
+		}
+	}
+	prescriber := strings.TrimSpace(in.Prescriber)
+	if prescriber == "" && rxID > 0 {
+		if err := s.db.GetContext(ctx, &prescriber, `SELECT prescriber_name FROM pharmacy_prescriptions WHERE id = $1`, rxID); err != nil {
+			return 0, err
+		}
+	}
 
 	var rx *int64
-	if in.PrescriptionID > 0 {
-		rx = &in.PrescriptionID
+	if rxID > 0 {
+		rx = &rxID
 	}
 	var id int64
 	if err := tx.GetContext(ctx, &id, `

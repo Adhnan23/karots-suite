@@ -99,7 +99,7 @@ func TestPatientsAndScripts(t *testing.T) {
 	}
 	sc, _ = f.st.Script(ctx, id)
 	if len(sc.Items) != 1 || sc.Items[0].ID != met.ID || !sc.Items[0].Dispensed.Equal(dec(30)) ||
-		!sc.Items[0].Owed().Equal(dec(60)) || sc.Items[0].NextDue() == nil {
+		!sc.Items[0].Owed().Equal(dec(90)) || sc.Items[0].NextDue() == nil {
 		t.Fatalf("after edit: %+v", sc.Items)
 	}
 	// A line id from another script is refused.
