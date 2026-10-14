@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -105,5 +106,31 @@ func TestCounterTextLabel(t *testing.T) {
 	}
 	if rec := te.do(http.MethodPost, "/api/v1/till/labels/text", TextLabelRequest{Lines: []string{" "}}, ck); rec.Code < 400 || rec.Code >= 500 {
 		t.Fatal(fmt.Sprintf("blank lines must be refused: %d", rec.Code))
+	}
+}
+
+// The text label's preview is the print's own layout: its lines, no barcode, and
+// whether anything was cut off the bottom.
+func TestCounterTextLabelPreview(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, "0770009402", "cashier")
+	rec := te.do(http.MethodPost, "/api/v1/till/labels/text/preview", TextLabelRequest{Lines: []string{"Metfor 500mg x 60", "1-0-1  Morning · Night"}, Size: "40x30"}, ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("preview: %d %s", rec.Code, rec.Body)
+	}
+	var l LabelLayout
+	if err := json.Unmarshal(rec.Body.Bytes(), &l); err != nil {
+		t.Fatal(err)
+	}
+	if len(l.Texts) != 2 || l.Texts[1].Value != "1-0-1 Morning - Night" || l.Barcode.Code != "" || l.Cut || l.WidthMM != 40 {
+		t.Fatalf("layout: %+v", l)
+	}
+	long := make([]string, 12)
+	for i := range long {
+		long[i] = "line"
+	}
+	rec = te.do(http.MethodPost, "/api/v1/till/labels/text/preview", TextLabelRequest{Lines: long, Size: "40x30"}, ck)
+	if json.Unmarshal(rec.Body.Bytes(), &l); !l.Cut {
+		t.Fatalf("12 lines on 40x30 must say cut: %+v", l)
 	}
 }

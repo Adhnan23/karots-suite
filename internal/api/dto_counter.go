@@ -95,6 +95,7 @@ type LabelLayout struct {
 	HeightDots int          `json:"heightDots"`
 	Texts      []LabelText  `json:"texts"`
 	Barcode    LabelBarcode `json:"barcode"`
+	Cut        bool         `json:"cut"` // a text label's lines didn't all fit
 }
 
 type LabelText struct {

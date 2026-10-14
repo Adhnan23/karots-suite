@@ -80,6 +80,7 @@ type Layout struct {
 	Texts                    []Text
 	Barcode                  Barcode
 	Count                    int
+	Cut                      bool // a text label's lines didn't all fit (the rest were dropped)
 }
 
 // LayoutOf positions the label's content for the given run.
@@ -111,6 +112,7 @@ func LayoutOf(in Input) Layout {
 		for _, line := range in.Lines {
 			for _, ln := range wrapLabelText(ascii(line), (widthDots-2*marginX)/charW, 4) {
 				if y+lineH > heightDots-marginBottom+lineH/4 { // keep a part-line margin
+					l.Cut = true
 					return l
 				}
 				l.Texts = append(l.Texts, Text{X: marginX, Y: y, Font: tok, CharW: charW, LineH: lineH, GlyphH: glyphH(tok), Value: ln})

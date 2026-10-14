@@ -63,13 +63,11 @@ func (h *handlers) CounterLabels(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// CounterTextLabel prints a text-only label (no barcode) at the shop's label
-// size — a plugin's dose sticker, a shelf note.
-func (h *handlers) CounterTextLabel(c echo.Context) error {
-	ctx := c.Request().Context()
+// textLabelInput reads a text-only label request at the shop's label size.
+func (h *handlers) textLabelInput(c echo.Context) (tspl.Input, string, error) {
 	var req TextLabelRequest
 	if err := c.Bind(&req); err != nil {
-		return apperr.BadRequest("invalid request body")
+		return tspl.Input{}, "", apperr.BadRequest("invalid request body")
 	}
 	var lines []string
 	for _, l := range req.Lines {
@@ -78,18 +76,36 @@ func (h *handlers) CounterTextLabel(c echo.Context) error {
 		}
 	}
 	if len(lines) == 0 || len(lines) > 12 {
-		return apperr.Validation("a label needs 1 to 12 lines of text")
+		return tspl.Input{}, "", apperr.Validation("a label needs 1 to 12 lines of text")
 	}
-	cfg, err := h.d.Settings.Get(ctx)
+	cfg, err := h.d.Settings.Get(c.Request().Context())
+	if err != nil {
+		return tspl.Input{}, "", err
+	}
+	w, hgt := labelSize(req.Size, cfg.LabelWidthMM, cfg.LabelHeightMM)
+	return tspl.Input{Lines: lines, Count: min(max(req.Count, 1), 50), WidthMM: w, HeightMM: hgt, GapMM: min(max(cfg.LabelGapMM, 0), 20)}, cfg.LabelPrinter, nil
+}
+
+// CounterTextLabel prints a text-only label (no barcode) at the shop's label
+// size — a plugin's dose sticker, a shelf note.
+func (h *handlers) CounterTextLabel(c echo.Context) error {
+	in, printer, err := h.textLabelInput(c)
 	if err != nil {
 		return err
 	}
-	w, hgt := labelSize(req.Size, cfg.LabelWidthMM, cfg.LabelHeightMM)
-	in := tspl.Input{Lines: lines, Count: min(max(req.Count, 1), 50), WidthMM: w, HeightMM: hgt, GapMM: min(max(cfg.LabelGapMM, 0), 20)}
-	if err := printing.Raw(ctx, cfg.LabelPrinter, tspl.Document(in)); err != nil {
+	if err := printing.Raw(c.Request().Context(), printer, tspl.Document(in)); err != nil {
 		return apperr.Internal("could not print the label", err)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// CounterTextLabelPreview is the text label's print layout (cut = lines dropped).
+func (h *handlers) CounterTextLabelPreview(c echo.Context) error {
+	in, _, err := h.textLabelInput(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, labelLayoutDTO(in))
 }
 
 // CounterLabelPreview returns exactly where the printer will put everything
@@ -99,14 +115,19 @@ func (h *handlers) CounterLabelPreview(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	return c.JSON(http.StatusOK, labelLayoutDTO(in))
+}
+
+// labelLayoutDTO is exactly where the printer puts everything (tspl.LayoutOf).
+func labelLayoutDTO(in tspl.Input) LabelLayout {
 	l := tspl.LayoutOf(in)
-	out := LabelLayout{WidthMM: l.WidthMM, HeightMM: l.HeightMM, WidthDots: l.WidthDots, HeightDots: l.HeightDots, Texts: []LabelText{},
+	out := LabelLayout{WidthMM: l.WidthMM, HeightMM: l.HeightMM, WidthDots: l.WidthDots, HeightDots: l.HeightDots, Texts: []LabelText{}, Cut: l.Cut,
 		Barcode: LabelBarcode{X: l.Barcode.X, Y: l.Barcode.Y, Height: l.Barcode.Height, Narrow: l.Barcode.Narrow, Format: in.Format,
 			Code: l.Barcode.Code, ReadableH: l.Barcode.ReadableH}}
 	for _, t := range l.Texts {
 		out.Texts = append(out.Texts, LabelText{X: t.X, Y: t.Y, CharW: t.CharW, GlyphH: t.GlyphH, Value: t.Value})
 	}
-	return c.JSON(http.StatusOK, out)
+	return out
 }
 
 // CounterLabelFields lists a product's custom fields flagged "print on label"

@@ -152,6 +152,9 @@ func TestTextLabel(t *testing.T) {
 	if last := many.Texts[len(many.Texts)-1]; last.Y+last.LineH > many.HeightDots {
 		t.Fatalf("an overflowing line was kept: %+v", last)
 	}
+	if !many.Cut || l.Cut {
+		t.Fatalf("Cut says whether lines were dropped: many %v, fits %v", many.Cut, l.Cut)
+	}
 }
 
 // Common typography prints as its ASCII look-alike instead of "?".

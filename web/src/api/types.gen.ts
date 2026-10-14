@@ -501,6 +501,7 @@ export interface LabelLayout {
   heightDots: number /* int */;
   texts: LabelText[];
   barcode: LabelBarcode;
+  cut: boolean; // a text label's lines didn't all fit
 }
 export interface LabelText {
   x: number /* int */;
