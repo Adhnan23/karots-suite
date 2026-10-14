@@ -14,7 +14,7 @@ export const initialState = (saleType: SaleType): TillState => ({
 })
 
 export type Action =
-  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[]; units?: number; plugin?: Record<string, unknown> }
+  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[]; units?: number; plugin?: Record<string, unknown>; discount?: { value: string; type: DiscountType } }
   | { type: 'saleMeta'; key: string; value: unknown }
   | { type: 'linePacks'; key: number; packs: LinePack[]; qty?: number }
   | { type: 'quickSet'; product: TillProduct; qty: number }
@@ -62,7 +62,13 @@ export function tillReducer(s: TillState, a: Action): TillState {
   switch (a.type) {
     case 'add': {
       const r = addProduct(s.lines, s.seq, a.product, s.saleType, a.lot, a.lots, a.units, a.plugin)
-      return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.key, notice: r.notice, postSaleChange: 0 }
+      // A plugin's discount lands on the line(s) just added: with plugin data, every line of
+      // that product carrying it (lots may split it); otherwise the added line.
+      const tag = JSON.stringify(a.plugin ?? null)
+      const lines = !a.discount ? r.lines : r.lines.map((l) => (
+        (a.plugin ? l.productId === a.product.id && JSON.stringify(l.plugin ?? null) === tag : l.key === r.key)
+          ? { ...l, discount: a.discount!.value, discountType: a.discount!.type } : l))
+      return { ...s, lines, seq: r.seq, lastAddedKey: r.key, notice: r.notice, postSaleChange: 0 }
     }
     case 'quickSet': {
       let st = s

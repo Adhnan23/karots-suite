@@ -2960,6 +2960,7 @@ export interface ConversionRunList {
 export interface TenderMethod {
   value: string;
   label: string;
+  hidden: boolean; // not offered in the Pay picker; a plugin pre-fills it (TillApi.addTender)
 }
 /**
  * TillConfig is everything the till needs from settings + the user's flags,

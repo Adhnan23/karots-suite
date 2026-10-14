@@ -16,18 +16,22 @@ import { afterSlip, moneySlip } from '../slip'
 type Mode = 'pay' | 'refund'
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
 
-export function CreditForm({ c }: { c: TillCustomer }) {
+/** A plugin may open it pre-filled (amount, note, mode) and hear the result (onDone),
+ * e.g. a deposit taken against a job. */
+export type CreditFormOpts = { amount?: string; note?: string; mode?: Mode; onDone?: (r: { mode: Mode; paymentId: number; amount: string }) => void }
+
+export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts }) {
   const cfg = useSuspenseQuery(configQuery).data
   const drawer = useQuery(drawerQuery).data
   const qc = useQueryClient()
   const sym = cfg.symbol
   const bal = num(c.outstanding)
   const advance = bal < 0 ? -bal : 0
-  const [mode, setMode] = useState<Mode>('pay')
-  const [amount, setAmount] = useState(bal > 0 ? dec(bal) : '')
+  const [mode, setMode] = useState<Mode>(opts?.mode ?? 'pay')
+  const [amount, setAmount] = useState(opts?.amount ?? (bal > 0 ? dec(bal) : ''))
   const [method, setMethod] = useState('cash')
   const [ref, setRef] = useState('')
-  const [note, setNote] = useState('')
+  const [note, setNote] = useState(opts?.note ?? '')
   const [busy, setBusy] = useState(false)
   const accounts = method === 'card' ? lockersOf(drawer, 'card') : method === 'online' ? lockersOf(drawer, 'bank') : []
   const [account, setAccount] = useState('')
@@ -48,10 +52,12 @@ export function CreditForm({ c }: { c: TillCustomer }) {
         const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint }
         const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
         afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, slipPath.debt(r.paymentId), method === 'cash')
+        opts?.onDone?.({ mode, paymentId: r.paymentId, amount })
       } else {
         const body: AdvanceRefundRequest = { amount, deferDrawerKick: !cfg.askToPrint }
         const r = await api<ReceiptRef>(`/till/customers/${c.id}/refund`, { json: body })
         afterSlip(cfg, `Give ${c.name} ${money(sym, a)} — advance refunded`, moneySlip(r.receiptId), true)
+        opts?.onDone?.({ mode, paymentId: 0, amount })
       }
       void qc.invalidateQueries({ queryKey: ['till'] })
     } catch (err) {
@@ -68,7 +74,7 @@ export function CreditForm({ c }: { c: TillCustomer }) {
           <h2 className="font-display text-xl font-bold">{c.name}</h2>
           <p className="text-[13px] text-muted-foreground tabular-nums">{c.phone || 'no phone'}{num(c.creditLimit) > 0 && ` · limit ${money(sym, c.creditLimit)}`}</p>
         </div>
-        {advance > 0 && (
+        {advance > 0 && !opts?.mode && (
           <Seg label="Action" value={mode} onChange={(m) => { setMode(m); setAmount(m === 'refund' ? dec(advance) : '') }}
             options={[['pay', 'Take payment'], ['refund', 'Refund advance']]} />
         )}

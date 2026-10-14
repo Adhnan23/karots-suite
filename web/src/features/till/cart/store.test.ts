@@ -25,6 +25,17 @@ describe('tillReducer', () => {
     expect(s.tenders).toHaveLength(1)
     expect(s.draft).toMatchObject({ method: 'cash', amount: '' })
   })
+  it('a plugin discount lands only on the plugin-tagged line just added', () => {
+    let s = tillReducer(initialState('retail'), { type: 'add', product: p, lots: [] })
+    s = tillReducer(s, { type: 'add', product: p, lots: [], plugin: { job: 7 }, discount: { value: '100', type: 'percent' } })
+    expect(s.lines).toHaveLength(2)
+    expect(s.lines[0]).toMatchObject({ discount: '' })
+    expect(s.lines[1]).toMatchObject({ discount: '100', discountType: 'percent', plugin: { job: 7 } })
+  })
+  it('addTender puts a pre-filled payment row on the sale', () => {
+    const s = tillReducer(initialState('retail'), { type: 'addTender', payment: { method: 'credit', amount: '500.00', reference: '', accountId: '', meta: {} } })
+    expect(s.tenders).toEqual([{ method: 'credit', amount: '500.00', reference: '', accountId: '', meta: {} }])
+  })
   it('quickSet sets (not adds) the quantity, idempotent on re-scan', () => {
     let s = tillReducer(initialState('retail'), { type: 'quickSet', product: p, qty: 3 })
     s = tillReducer(s, { type: 'quickSet', product: p, qty: 3 })

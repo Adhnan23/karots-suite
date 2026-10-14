@@ -20,6 +20,9 @@ import (
 type TenderMethod struct {
 	Value string
 	Label string
+	// Hidden keeps it out of the till's Pay picker: only a plugin pre-fills it on a
+	// sale (TillApi.addTender) — e.g. money taken earlier and held for one job.
+	Hidden bool
 	// SettleTx, when set, books this tender's plugin-side money movement inside the
 	// core sale's transaction (so it commits atomically with the sale rather than a
 	// best-effort call afterwards). Optional — a tender without one is recorded on

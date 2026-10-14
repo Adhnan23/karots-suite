@@ -117,12 +117,13 @@ export function useTillApi(): TillApi {
     addProduct: async (productId, opts) => {
       try {
         const product = await qc.fetchQuery({ queryKey: ['till', 'product', productId], queryFn: () => api<TillProduct>(`/till/products/${productId}`), staleTime: 30_000 })
-        dispatch({ type: 'add', product, lots: [], units: opts?.units, plugin: opts?.plugin })
+        dispatch({ type: 'add', product, lots: [], units: opts?.units, plugin: opts?.plugin, discount: opts?.discount })
         return null
       } catch (e) {
         return errMsg(e, "Couldn't add it")
       }
     },
+    addTender: (method, amount, meta) => dispatch({ type: 'addTender', payment: { method, amount, reference: '', accountId: '', meta: meta ?? {} } }),
     setLineQty: (key, qty) => dispatch({ type: 'setQty', key, qty, lots: lotsFor(qc.getQueryData(priceOptionsQuery.queryKey), state.lines.find((l) => l.key === key)?.productId ?? 0) }),
     saleMeta: state.meta ?? {},
     setSaleMeta: (key, value) => dispatch({ type: 'saleMeta', key, value }),

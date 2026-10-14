@@ -3,8 +3,9 @@ package api
 // ---- Till: config ----
 
 type TenderMethod struct {
-	Value string `json:"value"`
-	Label string `json:"label"`
+	Value  string `json:"value"`
+	Label  string `json:"label"`
+	Hidden bool   `json:"hidden"` // not offered in the Pay picker; a plugin pre-fills it (TillApi.addTender)
 }
 
 // TillConfig is everything the till needs from settings + the user's flags,

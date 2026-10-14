@@ -24,7 +24,10 @@ export type TillApi = {
   setCustomer(id: number | null): void
   /** Add a product by id: units (default 1) of it, skipping the pack chooser; plugin data
    * keeps it its own line. Resolves to an error text, or null when added. */
-  addProduct(productId: number, opts?: { units?: number; plugin?: Record<string, unknown> }): Promise<string | null>
+  addProduct(productId: number, opts?: { units?: number; plugin?: Record<string, unknown>; discount?: { value: string; type: 'fixed' | 'percent' } }): Promise<string | null>
+  /** Put a payment row on the sale (e.g. On account for a deposit already taken); the
+   * cashier can still remove it at Pay. */
+  addTender(method: string, amount: string, meta?: Record<string, string>): void
   /** A plugin's notes on the sale in progress (kept on hold / resume, cleared by New sale),
    * handed to tillAfterSale as ctx.meta. undefined removes the key. */
   /** Set a cart line's qty, as typing it on the line would (whole units round, lots spill). */
@@ -56,11 +59,14 @@ export type TillMenuRoot = {
 
 /** A button in the till's action row (beside Deposit / Withdraw) opening a panel.
  * noMatch, when set, is a link label also offered when a till search finds nothing;
- * the panel then gets that search as text. */
+ * the panel then gets that search as text. claimsText, when set, is asked first on
+ * every Enter in the scan box (e.g. a scanned job ticket): true opens this panel with
+ * that text instead of looking it up as a product. */
 export type TillAction = {
   key: string
   label: string
   noMatch?: string
+  claimsText?: (text: string) => boolean
   Panel: ComponentType<{ till: TillApi; onClose: () => void; text?: string }>
 }
 

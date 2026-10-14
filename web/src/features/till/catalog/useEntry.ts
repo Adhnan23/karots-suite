@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { TillProduct } from '@/api/types.gen'
+import { slots } from '@/plugins/slots'
 import { errMsg, searchQuery } from '../api'
 import { parseEntry } from '../cart/entry'
 import { useTill } from '../TillProvider'
@@ -23,6 +24,9 @@ export function useEntry() {
     const e = parseEntry(raw)
     if (e.kind === 'empty') return
     ui.setSearch('')
+    const text = raw.trim()
+    const claim = slots.tillActions.find((a) => a.claimsText?.(text))
+    if (claim) return ui.open({ kind: 'action', key: claim.key, text })
     if (e.kind === 'quick') {
       // Phone rush handoff: SET the qty (idempotent on re-scan), no lot prompt.
       if (e.qty <= 0) return void toast.error('Quick-sale code has no quantity')

@@ -17,9 +17,9 @@ import { left, REASONS, refundOf } from './refund'
 
 
 /** Take goods back against a receipt: pick the lines, say if they're faulty, refund. */
-export function ReturnsTab() {
+export function ReturnsTab({ sale: initial }: { sale?: number }) {
   const cfg = useSuspenseQuery(configQuery).data
-  const [id, setId] = useState<number | null>(null)
+  const [id, setId] = useState<number | null>(initial ?? null)
   const sale = useQuery({ queryKey: ['till', 'sale', id], queryFn: () => api<SaleView>(`/till/sales/${id}`), enabled: id !== null }).data
   return (
     <CounterPage flush aside={sale && sale.id === id ? <ReturnForm key={`${sale.id}-${sale.status}-${sale.lines.map((l) => l.returnedQty).join()}`} sale={sale} /> : (
