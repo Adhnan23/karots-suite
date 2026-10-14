@@ -21,6 +21,7 @@ func newFixture(t *testing.T) fixture {
 	db := freshDB(t)
 	f := fixture{db: db, st: NewStore(db)}
 	db.MustExec(`INSERT INTO categories (name) VALUES ('Medicines')`)
+	db.MustExec(`INSERT INTO users (name, phone, pin_hash) VALUES ('Cashier', '0700000000', 'x')`)
 	prod := func(name string, stock int) int64 {
 		var id int64
 		if err := db.Get(&id, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price)

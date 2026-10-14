@@ -85,3 +85,29 @@ func TestAPIPatientScript(t *testing.T) {
 		t.Fatal("a script with no medicine must be refused")
 	}
 }
+
+func TestAPIDispense(t *testing.T) {
+	f := newFixture(t)
+	do := testAPI(t, f.db)
+	p := decode[PatientDTO](t, do("POST", "/patients", `{"name":"Ruwan","phone":"0723333333"}`))
+	sale := f.sale(t, [2]int64{f.pana, 9})
+	body := fmt.Sprintf(`{"patientId":%d,"items":[{"productId":%d,"dosage":"tds","quantity":"9"}]}`, p.ID, f.pana)
+	rx := decode[map[string]int64](t, do("POST", "/prescriptions", body))["id"]
+	scs := decode[[]ScriptDTO](t, do("GET", fmt.Sprintf("/patients/%d/scripts", p.ID), ""))
+	rec := do("POST", "/dispenses", fmt.Sprintf(`{"saleId":%d,"patientId":%d,"prescriptionId":%d,"lines":[{"productId":%d,"rxItemId":%d}]}`,
+		sale, p.ID, rx, f.pana, scs[0].Items[0].ID))
+	if rec.Code != 200 {
+		t.Fatalf("dispense: %d %s", rec.Code, rec.Body)
+	}
+	scs = decode[[]ScriptDTO](t, do("GET", fmt.Sprintf("/patients/%d/scripts", p.ID), ""))
+	if it := scs[0].Items[0]; it.Dispensed != "9" || it.Owed != "0" || it.NextDue == nil {
+		t.Fatalf("after: %+v", it)
+	}
+	if rec = do("POST", "/dispenses", fmt.Sprintf(`{"saleId":%d,"patientId":%d}`, sale, p.ID)); rec.Code != 409 {
+		t.Fatalf("again: %d %s", rec.Code, rec.Body)
+	}
+	recent := decode[[]RecentSaleDTO](t, do("GET", "/sales/recent", ""))
+	if len(recent) == 0 || recent[0].Recorded != "Ruwan" {
+		t.Fatalf("recent: %+v", recent)
+	}
+}

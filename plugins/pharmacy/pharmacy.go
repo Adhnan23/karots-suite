@@ -46,6 +46,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.POST("/pharmacy/prescriptions", h.createScript)
 	t.PUT("/pharmacy/prescriptions/:id", h.updateScript)
 	t.POST("/pharmacy/prescriptions/:id/active", h.scriptActive)
+	t.POST("/pharmacy/dispenses", h.dispense)
+	t.GET("/pharmacy/sales/recent", h.recentSales)
 }
 
 // dataTables is every pharmacy_* table, parents first.
