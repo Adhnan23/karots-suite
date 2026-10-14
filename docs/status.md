@@ -52,7 +52,10 @@ day, wages already cover it; the lost weight is in the loose cost.
   Plus + Alternatives along). **karots-pos bug fixed (`51e6c6d`):** editing a prescription deleted and re-inserted its drug
   rows, cutting every hand-over link (refill reminders stopped). A restored karots-pos backup leaves the suite's new columns
   blank; readers fall back to live names / the product's group. Checks (2026-10-14): **158 Playwright flows** (`plugin-pharmacy.spec.ts` 4 new; dev DB reseeded with `make e2e-seed` first — a dirty DB failed 7 unrelated flows), `go test -p 1` core-only and all plugins, 214 web unit tests, `make verify`, `make verify-portable`. Final review: self-review (no reviewer agent).
-  Not built (ponytail, ask if wanted): an allergy ⇄ medicine check (Penicillin vs Amoxicillin), register paging.
+  **User decision (2026-10-14): no allergy ⇄ medicine check** (which chemicals clash with which allergy types gets
+  complicated — the red allergy banner is enough). Register paging not built (add if a register gets slow).
+  **Playwright stays one worker, one server (user, 2026-10-14)** — don't propose parallel servers; Playwright reseeds
+  the e2e DB when it starts its own server (`c60e25b`).
   Approved rethink (keep · change · drop vs karots-pos):
   **A** dispense during the sale — till action 💊 Patient (pick / register, allergies in red, scripts with due badges,
   Add a script line as its alternatives group's best in-stock member); after-sale records the dispense from the sale
