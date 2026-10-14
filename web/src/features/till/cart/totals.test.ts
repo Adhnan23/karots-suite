@@ -67,9 +67,18 @@ describe('tenders', () => {
       { value: 1000, qty: 1 }, { value: 100, qty: 2 }, { value: 50, qty: 1 }, { value: 20, qty: 1 },
     ])
   })
-  it('quickCash offers exact then round notes at or above the due', () => {
-    expect(quickCash(1270)).toEqual([1270, 1500, 2000, 5000])
-    expect(quickCash(6200)).toEqual([6200, 6500, 7000])
+  it('quickCash offers exact, then what a customer would hand over in notes', () => {
+    // 640: no 500 alone covers it — 650 (500+100+50), 700 (500+100+100), or one big note.
+    expect(quickCash(640)).toEqual([640, 650, 700, 1000, 2000, 5000])
+    expect(quickCash(1270)).toEqual([1270, 1300, 1500, 2000, 5000])
+    // 8000 = 5000+2000+1000 wastes the 1000 (5000+2000 already covers 6200): not offered.
+    expect(quickCash(6200)).toEqual([6200, 6500, 7000, 10000])
+    expect(quickCash(615)).toEqual([615, 620, 650, 700, 1000, 2000, 5000])
+    expect(quickCash(4999.5)).toEqual([4999.5, 5000])
+    expect(quickCash(500)).toEqual([500, 1000, 2000, 5000])
     expect(quickCash(0)).toEqual([])
+  })
+  it('quickCash follows the shop\'s own notes', () => {
+    expect(quickCash(640, [100, 1000])).toEqual([640, 700, 1000])
   })
 })

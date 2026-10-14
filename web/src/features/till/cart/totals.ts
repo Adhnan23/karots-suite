@@ -78,9 +78,37 @@ export function tenderIssue(t: number, paid: number, onAccount: number, hasCusto
   return null
 }
 
-/** Quick-cash chips: exact, then the next 500 / 1000, then 5000 — only ≥ the due. */
-export function quickCash(due: number): number[] {
+/** Sri Lanka's notes, used until the drawer's own list (Denominations) has loaded. */
+export const LKR_NOTES = [20, 50, 100, 500, 1000, 2000, 5000]
+
+/** Quick-cash chips: exact, then what a customer would really hand over — for each
+ * note, the due rounded up to it (640 → 650, 700, 1000, 2000, 5000) — keeping only
+ * amounts that waste no note: a customer doesn't add a note they could keep
+ * (6200 by 5000 + 2000 + 1000 = 8000 is dropped; 5000 + 2000 already covers it).
+ * Up to 8, smallest first — two rows of four. */
+export function quickCash(due: number, notes: number[] = LKR_NOTES): number[] {
   if (due <= 0) return []
-  const c = [r2(due), Math.ceil(due / 500) * 500, Math.ceil(due / 1000) * 1000, 5000]
-  return [...new Set(c)].filter((v) => v >= due).slice(0, 4)
+  const exact = r2(due)
+  const desc = [...new Set(notes.filter((n) => n > 0))].sort((a, b) => b - a)
+  const out = new Set<number>([exact])
+  for (const n of desc) {
+    const c = Math.ceil(due / n - 1e-9) * n
+    if (c > exact && noWastedNote(c, due, desc)) out.add(c)
+  }
+  return [...out].sort((a, b) => a - b).slice(0, 8)
+}
+
+/** c paid in the fewest notes (greedy): true when no note could be left out and
+ * still cover due. An amount the notes can't make is never offered. */
+function noWastedNote(c: number, due: number, desc: number[]): boolean {
+  let left = c
+  let smallest = 0
+  for (const n of desc) {
+    const k = Math.floor(left / n + 1e-9)
+    if (k > 0) {
+      left = r2(left - k * n)
+      smallest = n
+    }
+  }
+  return left === 0 && c - smallest < due
 }

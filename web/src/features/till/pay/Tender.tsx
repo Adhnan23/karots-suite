@@ -2,13 +2,15 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Banknote, BookUser, CreditCard, Smartphone, Wallet, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
-import { dec, money, num } from '@/lib/money'
+import { dec, money, num, r2, short } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { NoteTray } from './NoteTray'
+import { TouchPad } from './TouchPad'
 import { slots } from '@/plugins/slots'
 import { Button } from '@/components/ui/button'
 import { configQuery, drawerQuery, lockersOf } from '../api'
 import { blankDraft } from '../cart/store'
-import { balanceDue, quickCash, saleTotal } from '../cart/totals'
+import { balanceDue, LKR_NOTES, quickCash, saleTotal } from '../cart/totals'
 import { useCheckoutCtx } from '../checkout/CheckoutProvider'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
@@ -20,6 +22,8 @@ export function Tender() {
   const drawer = useQuery(drawerQuery).data
   const { state, dispatch } = useTill()
   const co = useCheckoutCtx()
+  // The shop's notes (Denominations) — what a customer can hand over.
+  const notes = (drawer?.denominations ?? []).filter((x) => x.isNote).map((x) => num(x.value))
   const card = lockersOf(drawer, 'card')
   const bank = lockersOf(drawer, 'bank')
   const d = state.draft
@@ -83,16 +87,25 @@ export function Tender() {
           onClick={() => dispatch({ type: 'draft', patch: { amount: due > 0 ? dec(due) : '' } })}>Fill</Button>
         <Button className="h-[var(--control-h)]" disabled={!(num(d.amount) > 0)} onClick={commit}>Add</Button>
       </div>
-      {d.method === 'cash' && due > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {quickCash(due).map((v, i) => (
-            <button key={v} type="button" onClick={() => dispatch({ type: 'addTender', payment: { ...blankDraft('cash'), amount: dec(v) } })}
-              className="flex-1 whitespace-nowrap rounded-full border border-border px-2 py-1.5 text-[12.5px] font-bold tabular-nums hover:bg-muted">
-              {i === 0 ? 'Exact ' : ''}{money(cfg.symbol, v)}
+      {d.method !== '' && due > 0 && (
+        // Cash: what a customer would hand over in notes. Card, online, on account…:
+        // just the exact due (they can't pay more), with the draft's account / details.
+        <div className="grid grid-cols-4 gap-1.5" role="group" aria-label={d.method === 'cash' ? 'Cash handed over' : 'Pay the exact amount'}>
+          {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined) : [r2(due)]).map((v, i) => (
+            <button key={v} type="button"
+              onClick={() => dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
+              className="flex min-w-0 flex-col items-center justify-center rounded-[var(--radius-sm)] border border-border px-1 py-1 leading-tight hover:bg-muted">
+              {i === 0 && <small className="text-[10.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</small>}
+              <b className="font-display text-[15px] tabular-nums">{short(v)}</b>
             </button>
           ))}
         </div>
       )}
+      {d.method === 'cash' && due > 0 && (
+        <NoteTray notes={notes.length ? notes : LKR_NOTES} amount={d.amount}
+          onChange={(amount) => dispatch({ type: 'draft', patch: { amount } })} />
+      )}
+      <TouchPad />
       <div className="flex flex-col gap-1">
         <AnimatePresence initial={false}>
           {state.tenders.map((p, i) => (
