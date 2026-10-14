@@ -115,6 +115,12 @@ day, wages already cover it; the lost weight is in the loose cost.
   sends each cart line's `plugin` data with the sale; `sales.WithLineHook`, dispatched per plugin key at the composition
   root) — no after-sale call, a failed sale leaves the job open, another customer paying still collects (never stops a
   sale). Pharmacy's dispense could move onto the same hook later (still after-sale).
+- **Core check — discounts in finance reports (user asked, 2026-10-14):** a real sale with a line discount and a bill
+  discount (`internal/features/reports/discount_db_test.go`). Line discounts were right everywhere; the **bill discount was
+  missing from every line-level report** (categories, top products, product trend, service profit, Print & Copy) — fixed
+  with one rule `reports.KeptRevenueSQL` (pre-tax paid factor), differences 102, karots-pos `71f61bc`. Open question for the
+  user: the P&L's revenue is the sale total **including tax** while line reports are pre-tax (same as karots-pos; matters
+  only for a shop that charges tax).
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
