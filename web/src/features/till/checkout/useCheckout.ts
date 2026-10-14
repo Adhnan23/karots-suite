@@ -41,7 +41,7 @@ export function useCheckout() {
         if (msg) return void toast.error(msg)
       }
       const res = await api<SaleResult>('/till/sales', { json: buildSaleRequest(s, gate.payments, { deferDrawerKick: !cfg.askToPrint }) })
-      void Promise.allSettled(slots.tillAfterSale.map((fn) => fn({ saleId: res.id, lines: s.lines })))
+      void Promise.allSettled(slots.tillAfterSale.map((fn) => fn({ saleId: res.id, lines: s.lines, customerId: s.customerId, meta: s.meta ?? {} })))
       if (cfg.askToPrint) {
         setDone(res)
       } else {

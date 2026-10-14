@@ -19,6 +19,16 @@ export type TillApi = {
   swapLine(key: number, productId: number, qty?: number): Promise<string | null>
   saleType: SaleType
   refreshDrawer(): void
+  /** The sale's customer (null = walk-in) and setting it (e.g. a patient picked in a panel). */
+  customerId: number | null
+  setCustomer(id: number | null): void
+  /** Add a product by id: units (default 1) of it, skipping the pack chooser; plugin data
+   * keeps it its own line. Resolves to an error text, or null when added. */
+  addProduct(productId: number, opts?: { units?: number; plugin?: Record<string, unknown> }): Promise<string | null>
+  /** A plugin's notes on the sale in progress (kept on hold / resume, cleared by New sale),
+   * handed to tillAfterSale as ctx.meta. undefined removes the key. */
+  saleMeta: Record<string, unknown>
+  setSaleMeta(key: string, value: unknown): void
 }
 
 /** A strip above the cart's foot (e.g. "these items make a deal — Apply"). */
@@ -107,7 +117,8 @@ export type ProductAssist = {
 }
 export type AssistFill = { name?: string; categoryId?: number; extra?: unknown }
 
-export type SaleHookCtx = { saleId: number; lines: CartLine[] }
+/** customerId and meta (the plugins' notes set with TillApi.setSaleMeta) as they were at completion. */
+export type SaleHookCtx = { saleId: number; lines: CartLine[]; customerId: number | null; meta: Record<string, unknown> }
 
 /** Filled by enabled plugins at the composition root (M7). Core renders whatever is here. */
 export const slots = {

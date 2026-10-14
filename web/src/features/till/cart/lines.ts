@@ -55,12 +55,13 @@ export function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: L
 }
 
 /** Add one unit (or a pack's worth). A line is product AND lot — merging on product alone would re-price. */
-export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleType: SaleType, lot: Lot | undefined, lots: Lot[], units = 1): LinesResult {
+export function addProduct(lines: CartLine[], seq: number, p: TillProduct, saleType: SaleType, lot: Lot | undefined, lots: Lot[], units = 1, plugin?: Record<string, unknown>): LinesResult {
   const batchId = lot?.batchId ?? 0
-  const hit = lines.find((l) => l.productId === p.id && l.batchId === batchId && !l.isService && !l.group)
+  const tag = JSON.stringify(plugin ?? null) // a plugin's line (e.g. for a prescription) stays its own line
+  const hit = lines.find((l) => l.productId === p.id && l.batchId === batchId && !l.isService && !l.group && JSON.stringify(l.plugin ?? null) === tag)
   if (hit) return setQty(lines, seq, hit.key, hit.qty + units, lots)
   const key = seq + 1
-  const added = [...lines, newLine(key, p, saleType, lot)]
+  const added = [...lines, { ...newLine(key, p, saleType, lot), ...(plugin && { plugin }) }]
   return units === 1 ? { lines: added, seq: key, key, notice: null } : setQty(added, key, key, units, lots)
 }
 

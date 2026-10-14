@@ -111,5 +111,18 @@ export function useTillApi(): TillApi {
     },
     saleType,
     refreshDrawer: () => void qc.invalidateQueries({ queryKey: drawerQuery.queryKey }),
-  }), [dispatch, qc, saleType])
+    customerId: state.customerId,
+    setCustomer: (id) => dispatch({ type: 'customer', id }),
+    addProduct: async (productId, opts) => {
+      try {
+        const product = await qc.fetchQuery({ queryKey: ['till', 'product', productId], queryFn: () => api<TillProduct>(`/till/products/${productId}`), staleTime: 30_000 })
+        dispatch({ type: 'add', product, lots: [], units: opts?.units, plugin: opts?.plugin })
+        return null
+      } catch (e) {
+        return errMsg(e, "Couldn't add it")
+      }
+    },
+    saleMeta: state.meta ?? {},
+    setSaleMeta: (key, value) => dispatch({ type: 'saleMeta', key, value }),
+  }), [dispatch, qc, saleType, state.customerId, state.meta])
 }

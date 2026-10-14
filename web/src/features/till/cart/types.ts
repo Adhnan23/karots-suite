@@ -73,5 +73,6 @@ export type TillState = {
   roundToAccount: boolean
   overLimitApproved: boolean
   postSaleChange: number // auto-print mode: last sale's change, shown until the next add
+  meta?: Record<string, unknown> // plugins' notes on the sale in progress (TillApi.setSaleMeta), kept on hold
   notice: Notice
 }

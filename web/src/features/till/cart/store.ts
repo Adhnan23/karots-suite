@@ -8,13 +8,14 @@ import type { DiscountType, LinePack, Payment, SaleType, ServiceLineInput, TillS
 export const blankDraft = (method: string): Payment => ({ method, amount: '', reference: '', accountId: '', meta: {} })
 
 export const initialState = (saleType: SaleType): TillState => ({
-  lines: [], seq: 0, lastAddedKey: 0, saleType, customerId: null, billDiscount: '', billDiscountType: 'fixed',
+  lines: [], seq: 0, lastAddedKey: 0, saleType, customerId: null, billDiscount: '', billDiscountType: 'fixed', meta: {},
   tenders: [], draft: blankDraft('cash'), keep: '', roundToAccount: false, overLimitApproved: false,
   postSaleChange: 0, notice: null,
 })
 
 export type Action =
-  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[]; units?: number }
+  | { type: 'add'; product: TillProduct; lot?: Lot; lots: Lot[]; units?: number; plugin?: Record<string, unknown> }
+  | { type: 'saleMeta'; key: string; value: unknown }
   | { type: 'linePacks'; key: number; packs: LinePack[]; qty?: number }
   | { type: 'quickSet'; product: TillProduct; qty: number }
   | { type: 'addService'; line: ServiceLineInput }
@@ -60,7 +61,7 @@ const mapLine = (s: TillState, key: number, f: (l: TillState['lines'][number]) =
 export function tillReducer(s: TillState, a: Action): TillState {
   switch (a.type) {
     case 'add': {
-      const r = addProduct(s.lines, s.seq, a.product, s.saleType, a.lot, a.lots, a.units)
+      const r = addProduct(s.lines, s.seq, a.product, s.saleType, a.lot, a.lots, a.units, a.plugin)
       return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.key, notice: r.notice, postSaleChange: 0 }
     }
     case 'quickSet': {
@@ -96,6 +97,12 @@ export function tillReducer(s: TillState, a: Action): TillState {
       return { ...s, lines: s.lines.filter((l) => l.key !== a.key) }
     case 'swap':
       return { ...s, lines: swapProduct(s.lines, a.key, a.product, s.saleType, a.qty) }
+    case 'saleMeta': {
+      const meta = { ...(s.meta ?? {}) }
+      if (a.value === undefined) delete meta[a.key]
+      else meta[a.key] = a.value
+      return { ...s, meta }
+    }
     case 'linePacks': {
       const st = mapLine(s, a.key, (l) => ({ ...l, packs: a.packs }))
       if (a.qty === undefined) return st
@@ -146,7 +153,7 @@ export function tillReducer(s: TillState, a: Action): TillState {
       const r = fromHeld(a.held, s.seq)
       const saleType = a.held.saleType === 'wholesale' ? 'wholesale' : 'retail'
       return syncDefaultTender({
-        ...initialState(saleType), seq: r.seq, lines: r.lines, customerId: a.held.customerId ?? null,
+        ...initialState(saleType), seq: r.seq, lines: r.lines, customerId: a.held.customerId ?? null, meta: r.meta,
         billDiscount: Number(a.held.discount) ? String(Number(a.held.discount)) : '', billDiscountType: r.billDiscountType,
       })
     }
