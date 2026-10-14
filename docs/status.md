@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Status (2026-10-14, M7.7b pharmacy done)
+## Status (2026-10-14, M7.8 repairs done)
 
 **M7.5 Print & Copy (documents) is DONE (2026-10-12)** (plan `docs/plans/2026-10-12-m7-5-documents.md`, spec
 `docs/specs/2026-10-12-m7-5-documents-design.md`). The all-plugins demo in `~/karots-accept` (under M7.4) predates it.
@@ -93,7 +93,27 @@ day, wages already cover it; the lost weight is in the loose cost.
   demo data: Glucophage / Metfor (group Metformin 500mg, Card ×10; Glucophage out of stock), Amoxil (℞), Diazepam 5mg
   (controlled, Schedule II), Panadol (Card ×12); patients Nimal Perera (Penicillin allergy, repeat script Metformin 1-0-1 ×60
   + Panadol tds ×30) and Kamala Silva. No fake sales. Printer emulator `pos_printer` on :8631.
-- **NEXT (fresh session): M7.8 Repairs** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7), then spec + plan; then recharge. (The roadmap below still shows the old numbers, each plugin moved up one.)
+- **M7.8 Repairs (plugin) — DONE (2026-10-14)** (spec `docs/specs/2026-10-14-m7-8-repairs-design.md`, plan
+  `docs/plans/2026-10-14-m7-8-repairs.md`; `docs/differences.md` 94–101; parity 32 repairs rows ticked). User's complaint
+  that drove it: karots-pos's repair collect used **its own payment form and inputs** — in the suite **all repair money
+  goes through core**: **Put on the bill** (job lines tagged 🔧 R-0012, customer set, deposit pre-filled as **On account**
+  via new seam `TillApi.addTender`) → the normal Pay; after-sale marks the job collected. Deposit = the customer's
+  **advance** (core CreditForm, new `opts` amount / note / mode / onDone), so a job needs a registered customer; cancel →
+  refund through the same form; Quick fix = a labour line; Pay the repairer = core expense (`repair_payouts`, live);
+  Free re-repair = lines at 100% off (`addProduct` `discount`); faulty part = core Returns (`/till/returns?sale=`). Other
+  core seams: `TillAction.claimsText` (a scanned RPR ticket opens the panel), `TillApi.lines`, `TenderMethod.Hidden`
+  (karots-pos held deposits settle via the hidden `deposit` tender). Labour product **Repair labour** (Repairs category),
+  made on first use, never adopted by name. Warranty by days / part on Apps → Repairs → Warranty.
+  **karots-pos bug fixed (`679829e`):** cancelling a job with a deposit left it in the drawer; the till's job panel now
+  cancels and refunds in one tx, admin cancel refuses while a deposit is held.
+  Checks (2026-10-14): **164 Playwright flows** passed (24 shot steps skipped; `plugin-repairs.spec.ts` 4 new), `go test -p 1`
+  core-only and all plugins (45 ok; `TestTillCatalog` failed once right after Playwright on the shared DB, then 4 clean runs),
+  221 web unit tests, `make verify`, `make verify-portable`. Self-reviewed gates: till 1366 Night dark + Studio light, admin
+  360 + 1366 (fixed two 360px overflows: grid columns pinned to minmax(0,1fr)).
+  Ceilings: the profit report doesn't spread a bill discount onto the job lines; a failed after-sale leaves the job open
+  (the toast says so — collect it again from the panel isn't built; reopen the receipt if it happens).
+- **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
+  then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the

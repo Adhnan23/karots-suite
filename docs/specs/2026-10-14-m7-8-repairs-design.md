@@ -60,7 +60,7 @@ In the suite the job is a worksheet; money goes only through core: the cart and 
   - **Return a faulty part** → core counter **Returns** opened on the pickup sale (**core seam:**
     `/till/returns?sale=<id>`), where "faulty" sends it to damage. Labour lines are services, refunded only if
     the cashier ticks them.
-  Warranty mode **By days / By part** and **default warranty days** move to Settings (`settingsSections`).
+  Warranty mode **By days / By part** and **default warranty days** live on Apps → Repairs → **Warranty** (as built — next to the jobs they govern).
 - **I. Kept.** Ticket **label** on the label printer (core `POST /till/labels` with the code, top "R-0012 ·
   device", bottom the customer); **repair slip** on the receipt printer from Go (claim ticket while open; lines
   + warranty once collected; `?preview=1` like core slips); **deadline changes in the audit log**; **profit

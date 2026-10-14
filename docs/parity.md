@@ -538,38 +538,38 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/repairs
 
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/apply`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/find`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/:id`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/:id/receipt`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/menu`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/new`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/quick`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/ready-count`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/receipts`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/report`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/search`
-- [ ] `plugins/repairs/repairs.go` · GET `/repairs/suggest`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/charge/:cid/delete`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/config/warranty-mode`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/cancel`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/charge`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/charge/:cid/delete`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/collect`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/deposit`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/part`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/part/:pid/delete`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/pay-repairer`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/print`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/rework`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/status`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/urgent`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/:id/warranty-refund`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/part/:pid/delete`
-- [ ] `plugins/repairs/repairs.go` · POST `/repairs/quick`
+- [x] `plugins/repairs/repairs.go` · GET `/repairs` → Apps → Repairs (`GET /x/repairs/jobs`), till 🔧 Repairs list
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/apply` → 🔧 Repairs → New job (`POST /x/repairs/jobs`)
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/find` → 🔧 Repairs find box; a scanned RPR ticket on Sell opens the job (`TillAction.claimsText`)
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/:id` → the job (`GET /x/repairs/jobs/:id`), till panel and admin page
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/:id/receipt` → repair slip preview (`POST /x/repairs/jobs/:id/print?preview=1`); the sale is in core Receipts
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/menu` → till 🔧 Repairs action
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/new` → Apps → Repairs → New job
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/quick` → 🔧 Repairs → Quick fix (a labour line on the bill)
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/ready-count` → Ready tab / Ready for pickup list
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/receipts` → dropped: the pickup sale is in core Receipts; the slip prints from the job
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/report` → Apps → Repairs → Profit (`GET /x/repairs/report`), report card
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/search` → `GET /x/repairs/jobs?q=`
+- [x] `plugins/repairs/repairs.go` · GET `/repairs/suggest` → `GET /x/repairs/suggest`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs` → `POST /x/repairs/jobs`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/charge/:cid/delete` → `DELETE /x/repairs/jobs/:id/charges/:cid`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/config/warranty-mode` → Apps → Repairs → Warranty (`PUT /x/repairs/config`)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id` → `PUT /x/repairs/jobs/:id` (Edit)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/cancel` → `POST /x/repairs/jobs/:id/cancel` + deposit back via core credit form refund
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/charge` → `POST /x/repairs/jobs/:id/charges` (labour)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/charge/:cid/delete` → `DELETE /x/repairs/jobs/:id/charges/:cid`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/collect` → Put on the bill → normal Pay; after-sale `POST /x/repairs/jobs/:id/collected`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/deposit` → Take a deposit = core customer payment (CreditForm) + `POST /x/repairs/jobs/:id/deposits`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/part` → `POST /x/repairs/jobs/:id/parts`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/part/:pid/delete` → `DELETE /x/repairs/jobs/:id/parts/:pid`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/pay-repairer` → Pay the repairer (`POST /x/repairs/jobs/:id/payouts`, a core expense)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/print` → `POST /x/repairs/jobs/:id/print`; ticket label via core `POST /till/labels`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/rework` → Free re-repair (`POST /x/repairs/jobs/:id/rework`)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/status` → `POST /x/repairs/jobs/:id/status`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/urgent` → `POST /x/repairs/jobs/:id/urgent` (deadline change audited)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/:id/warranty-refund` → Return a faulty part → core counter Returns on the pickup sale (`/till/returns?sale=`)
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/part/:pid/delete` → `DELETE /x/repairs/jobs/:id/parts/:pid`
+- [x] `plugins/repairs/repairs.go` · POST `/repairs/quick` → Quick fix labour line
 
 ## plugins/requests
 
