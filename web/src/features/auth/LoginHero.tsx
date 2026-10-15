@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
-const CoinGame = lazy(() => import('./CoinGame'))
+const GAMES = [lazy(() => import('./CoinGame')), lazy(() => import('./BlockGame'))]
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -13,7 +13,7 @@ function useClock() {
 
 /** Left panel of login/lock (theme.md §5): brand on top, a live clock and the date
  * in the middle, the server status at the foot. Collapses to a compact header strip
- * on a phone. Tapping the clock 7 times opens a little coin game (an easter egg). */
+ * on a phone. Tapping the clock 7 times opens a little game, coins or blocks at random (an easter egg). */
 export function LoginHero({ shopName }: { shopName: string }) {
   const now = useClock()
   const h24 = now.getHours()
@@ -21,12 +21,14 @@ export function LoginHero({ shopName }: { shopName: string }) {
   const ampm = h24 < 12 ? 'AM' : 'PM'
   const hours = h24 % 12 || 12
   const date = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  const [game, setGame] = useState(false)
+  const [game, setGame] = useState<number | null>(null)
   const taps = useRef<number[]>([])
+  const Game = game === null ? null : GAMES[game]
+  const close = useCallback(() => setGame(null), [])
   const tap = () => {
     const t = Date.now()
     taps.current = [...taps.current.filter((x) => t - x < 3000), t]
-    if (taps.current.length >= 7) { taps.current = []; setGame(true) }
+    if (taps.current.length >= 7) { taps.current = []; setGame(Math.floor(Math.random() * GAMES.length)) }
   }
 
   return (
@@ -48,7 +50,7 @@ export function LoginHero({ shopName }: { shopName: string }) {
           Server online
         </span>
       </div>
-      {game && <Suspense><CoinGame onClose={() => setGame(false)} /></Suspense>}
+      {Game && <Suspense><Game onClose={close} /></Suspense>}
     </div>
   )
 }

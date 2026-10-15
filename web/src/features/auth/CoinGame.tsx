@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { readBest, saveBest, token } from './games'
 
 const BEST = 'ks-coin-best'
 const VALUES = [1, 2, 5, 10]
@@ -7,20 +8,6 @@ const LIVES = 3
 
 /** v 0 = a heart: catch it for a life back (missing one costs nothing). */
 type Coin = { x: number; y: number; r: number; v: number; vy: number }
-
-/** A theme token resolved to a colour the canvas can paint with. */
-function token(name: string) {
-  const el = document.createElement('span')
-  el.style.color = `var(${name})`
-  document.body.appendChild(el)
-  const c = getComputedStyle(el).color
-  el.remove()
-  return c
-}
-
-function best() {
-  try { return Number(localStorage.getItem(BEST)) || 0 } catch { return 0 }
-}
 
 /** The login / lock easter egg: catch the falling coins in the till. Drag, move the
  * mouse or use ← →; three misses and it's over. Esc (or ✕) closes. Best score is
@@ -42,7 +29,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
     size()
 
     let state: 'ready' | 'play' | 'over' = 'ready'
-    let coins: Coin[] = [], score = 0, lives = LIVES, top = best(), spawn = 0, flash = 0
+    let coins: Coin[] = [], score = 0, lives = LIVES, top = readBest(BEST), spawn = 0, flash = 0
     let x = W / 2, keyDir = 0, last = performance.now(), raf = 0
     // Fair drops: coins land one after another (clock in frames), each within reach
     // of the last at the drawer's keyboard speed — never two you can't both catch.
@@ -53,7 +40,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
     const start = () => { coins = []; score = 0; lives = LIVES; spawn = 0; state = 'play'; lastLand = clock; lastX = x }
     const over = () => {
       state = 'over'
-      if (score > top) { top = score; try { localStorage.setItem(BEST, String(top)) } catch { /* private mode */ } }
+      if (score > top) { top = score; saveBest(BEST, top) }
     }
 
     function step(now: number) {

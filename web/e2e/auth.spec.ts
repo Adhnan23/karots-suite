@@ -32,11 +32,11 @@ test('konami on login reveals the install id', async ({ page }) => {
   await expect(page.getByText(/^[0-9A-F]{8}$/)).toBeVisible()
 })
 
-test('seven taps on the clock open the coin game; Esc closes it', async ({ page }) => {
+test('seven taps on the clock open a game (coins or blocks); Esc closes it', async ({ page }) => {
   await page.goto('/login')
   const clock = page.getByText(/^\d{1,2}:\d{2}/).first()
   for (let i = 0; i < 7; i++) await clock.click()
-  const game = page.getByRole('dialog', { name: 'Coin game' })
+  const game = page.getByRole('dialog', { name: /Coin game|Blocks game/ })
   await expect(game).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(game).toBeHidden()
