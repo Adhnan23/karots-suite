@@ -143,6 +143,13 @@ day, wages already cover it; the lost weight is in the loose cost.
   default; `combos_settings`, migration combos 0003): a full set in the cart rings as the combo by itself — part sets
   still only hint; a combo the cashier breaks apart isn't re-applied (the Apply card offers it) until the cart empties —
   the plugin's per-sale notes (✕ hidden, broken) live in sale meta, so an emptied cart / New sale forgets them.
+- **Till & login polish (user, 2026-10-15):** cart / pay columns grow on wide screens (1080p: 480 / 440 px); touch-sized
+  line chips ("Set pack"); a cart-header **Clear**; product cards 4 a row at 1080p with the price pinned to the foot, a
+  tinted initial, counter-safe facts (packs + price, warranty, serial, Sold by kg, barcode's last 4) and **Low stock**
+  (`TillProduct.lowStock`, at/below the reorder level) — never cost or wholesale (the customer sees the screen).
+  Login / lock: centred clock, bigger centred form; lock shows "Locked N min ago" and an open sale's item count.
+  **Clock easter egg** (7 taps): a games menu — Coin catch, Blocks, Shop Rush (see AGENTS.md hidden behaviours).
+  **Future idea (not now):** sell the games as plugins — the Shop Builder compiles each in, all, or none.
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
