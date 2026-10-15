@@ -96,7 +96,7 @@ export function CatalogPanel() {
             </span>
             <span>{products.length} items</span>
           </div>
-          <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(176px,1fr))] gap-2.5 overflow-auto p-0.5">
+          <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(clamp(168px,11vw,230px),1fr))] gap-2.5 overflow-auto p-0.5">
             {!searching && children.map((g) => <GroupCard key={`g${g.id}`} group={g} onOpen={() => ui.setStack([...ui.stack, g])} />)}
             {products.map((p) => (
               <ProductTile key={p.id} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}

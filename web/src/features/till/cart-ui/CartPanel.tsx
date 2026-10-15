@@ -1,10 +1,11 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { Trash2 } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { qtyText } from '@/lib/money'
 import { slots } from '@/plugins/slots'
 import { configQuery } from '../api'
 import { grouped } from '../cart/groups'
-import { useTillApi } from '../TillUi'
+import { useTillApi, useTillUi } from '../TillUi'
 import { useTill } from '../TillProvider'
 import { CartGroup } from './CartGroup'
 import { CartLineRow } from './CartLineRow'
@@ -15,6 +16,7 @@ export function CartPanel() {
   const cfg = useSuspenseQuery(configQuery).data
   const { state } = useTill()
   const till = useTillApi()
+  const ui = useTillUi()
   const list = useRef<HTMLDivElement>(null)
   const prev = useRef(state.lines.length)
   // Follow growth only: a freshly scanned line below the fold stays in view, but
@@ -28,7 +30,15 @@ export function CartPanel() {
     <>
       <header className="flex items-center justify-between px-4 pb-2.5 pt-3.5 font-bold">
         <span>Current sale</span>
-        <small className="font-medium text-muted-foreground">{qtyText(items)} items</small>
+        <span className="flex items-center gap-2">
+          <small className="font-medium text-muted-foreground">{qtyText(items)} items</small>
+          {state.lines.length > 0 && (
+            <button type="button" onClick={() => ui.open({ kind: 'clearSale' })}
+              className="flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-[12.5px] font-semibold text-muted-foreground hover:border-danger hover:text-danger">
+              <Trash2 size={14} /> Clear
+            </button>
+          )}
+        </span>
       </header>
       <PostSaleChange />
       <div ref={list} className="flex min-h-0 flex-1 flex-col overflow-auto px-2.5 pb-2.5">

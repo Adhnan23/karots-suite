@@ -81,6 +81,16 @@ test('F1 clears the search, never the cart; a reload keeps the cart', async ({ p
   await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1')
 })
 
+test('Clear in the cart header asks, then empties the sale', async ({ page }) => {
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  await scan(page, MILK)
+  await cart(page).getByRole('button', { name: 'Clear' }).click()
+  await page.getByRole('button', { name: 'Clear sale' }).click()
+  await expect(cart(page).getByText(/Cart is empty/)).toBeVisible()
+  await expect(cart(page).getByRole('button', { name: 'Clear' })).toHaveCount(0)
+})
+
 test('note tray: tap notes, Undo walks back one at a time, Clear empties', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('ks-touch', 'on'))
   await login(page, '0770000002')
@@ -95,7 +105,7 @@ test('note tray: tap notes, Undo walks back one at a time, Clear empties', async
   await undo.click()
   await expect(amount(page)).toHaveValue('500')
   await page.getByRole('button', { name: 'Add a 100 note' }).click()
-  await page.getByRole('button', { name: 'Clear', exact: true }).click()
+  await page.getByRole('button', { name: 'Clear the notes' }).click()
   await expect(amount(page)).toHaveValue('')
   await expect(undo).toBeDisabled()
 })

@@ -28,7 +28,7 @@ export function NoteTray({ notes, coins, amount, onChange, switcher }: { notes: 
             className="flex h-8 items-center gap-1 rounded-[var(--radius-sm)] border border-border bg-muted px-3 text-sm font-semibold text-muted-foreground active:scale-95 disabled:opacity-40">
             <Undo2 size={16} />Undo
           </button>
-          <button type="button" onClick={() => set([])} disabled={!taps.length}
+          <button type="button" onClick={() => set([])} disabled={!taps.length} aria-label="Clear the notes"
             className="h-8 rounded-[var(--radius-sm)] border border-border bg-muted px-3 text-sm font-semibold text-muted-foreground active:scale-95 disabled:opacity-40">
             Clear
           </button>
