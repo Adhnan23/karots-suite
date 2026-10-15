@@ -151,10 +151,11 @@ test('removing one member asks, then the rest go back to full price', async ({ p
   await expect(cart(page).getByRole('button', { name: re(`${PAIR} · add ${BUN}`) })).toBeVisible()
 })
 
-test('Settings → Combos auto apply: a full set rings as the combo by itself; a broken one stays apart', async ({ page }) => {
+test('Settings → Combos auto apply: a full set rings as the combo by itself; a broken one stays apart till the cart empties', async ({ page }) => {
   await login(page, '/admin/settings')
   const sw = page.getByRole('switch', { name: /Apply combos automatically/ })
-  await sw.check({ force: true })
+  await page.locator('label').filter({ hasText: 'Apply combos automatically' }).click()
+  await expect(sw).toBeChecked()
   await toast(page, /Combos apply automatically/)
   try {
     await till(page)
@@ -169,6 +170,13 @@ test('Settings → Combos auto apply: a full set rings as the combo by itself; a
     await expect(cart(page).getByLabel(`Quantity of ${BUN}`)).toHaveValue('1')
     await expect(cart(page).getByText(`${PAIR} (combo)`)).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Apply' })).toBeVisible() // still offered, by hand
+    // Emptying the cart forgets the break: the next full set applies itself again.
+    await cart(page).getByRole('button', { name: `Remove ${TEA}` }).click()
+    await cart(page).getByRole('button', { name: `Remove ${BUN}` }).click()
+    await expect(cart(page).getByText(/Cart is empty/)).toBeVisible()
+    await scan(page, codes.tea)
+    await scan(page, codes.bun)
+    await expect(cart(page).getByText(`${PAIR} (combo)`)).toBeVisible()
   } finally {
     expect((await page.request.put(`${base}/settings`, { data: { autoApply: false } })).ok()).toBe(true)
   }

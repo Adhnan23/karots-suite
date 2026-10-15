@@ -38,7 +38,8 @@ export type TillApi = {
   setSaleMeta(key: string, value: unknown): void
 }
 
-/** A strip above the cart's foot (e.g. "these items make a deal — Apply"). */
+/** A strip above the cart's foot (e.g. "these items make a deal — Apply"); mounted on an
+ * empty cart too (render nothing then). */
 export type TillCartHint = { key: string; Hint: ComponentType<{ till: TillApi; lines: CartLine[] }> }
 /** A small note across a plain (ungrouped) cart line, under its name and qty. */
 export type TillLineHint = { key: string; Hint: ComponentType<{ till: TillApi; line: CartLine; lines: CartLine[] }> }

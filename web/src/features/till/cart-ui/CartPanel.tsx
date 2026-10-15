@@ -38,7 +38,8 @@ export function CartPanel() {
             : <CartGroup key={`g${x.id}`} id={x.id} label={x.label} count={x.count} lines={x.lines} sym={cfg.symbol} />))
           : <p className="m-auto p-8 text-center text-faint">Cart is empty. Scan or tap a product to start.</p>}
       </div>
-      {slots.tillCartHints.length > 0 && state.lines.length > 0 && (
+      {/* Mounted on an empty cart too: a hint may reset its notes on the sale then. */}
+      {slots.tillCartHints.length > 0 && (
         <div className="flex flex-col gap-1.5 px-2.5 pb-2 empty:hidden">
           {slots.tillCartHints.map(({ key, Hint }) => <Hint key={key} till={till} lines={state.lines} />)}
         </div>

@@ -141,7 +141,8 @@ day, wages already cover it; the lost weight is in the loose cost.
   (`slipOut`, admin too); labels get a preview. Demo on :3100 has all of it.
   Note tray **Undo** (one tap back at a time) and **Clear**. **Combos auto apply** (Settings → Combos, per shop, off by
   default; `combos_settings`, migration combos 0003): a full set in the cart rings as the combo by itself — part sets
-  still only hint; a combo the cashier breaks or removes isn't re-applied that sale (the Apply card offers it instead).
+  still only hint; a combo the cashier breaks apart isn't re-applied (the Apply card offers it) until the cart empties —
+  the plugin's per-sale notes (✕ hidden, broken) live in sale meta, so an emptied cart / New sale forgets them.
 - **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
   then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
