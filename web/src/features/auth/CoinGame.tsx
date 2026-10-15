@@ -5,6 +5,7 @@ const BEST = 'ks-coin-best'
 const VALUES = [1, 2, 5, 10]
 const LIVES = 3
 
+/** v 0 = a heart: catch it for a life back (missing one costs nothing). */
 type Coin = { x: number; y: number; r: number; v: number; vy: number }
 
 /** A theme token resolved to a colour the canvas can paint with. */
@@ -73,15 +74,17 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
           if (land < lastLand + GAP) { land = lastLand + GAP; vy = fall / (land - clock) }
           const reach = SPEED * (land - lastLand) * 0.75 + t.w * 0.4
           const cx = Math.max(r, Math.min(W - r, lastX + (Math.random() * 2 - 1) * reach))
-          coins.push({ x: cx, y: -r, r, v, vy })
+          // Now and then, when a life is down, a heart falls instead.
+          const heart = lives < LIVES && !coins.some((c) => c.v === 0) && Math.random() < 0.12
+          coins.push({ x: cx, y: -r, r: heart ? 20 : r, v: heart ? 0 : v, vy })
           lastLand = land
           lastX = cx
           spawn = Math.max(330, 900 - score * 3)
         }
         for (const c of coins) c.y += c.vy * dt
         coins = coins.filter((c) => {
-          if (c.y + c.r >= t.y && c.y - c.r <= t.y + t.h && Math.abs(c.x - x) <= t.w / 2 + c.r * 0.5) { score += c.v; flash = 8; return false }
-          if (c.y - c.r > H) { lives--; if (lives <= 0) over(); return false }
+          if (c.y + c.r >= t.y && c.y - c.r <= t.y + t.h && Math.abs(c.x - x) <= t.w / 2 + c.r * 0.5) { if (c.v) score += c.v; else lives = Math.min(LIVES, lives + 1); flash = 8; return false }
+          if (c.y - c.r > H) { if (c.v) { lives--; if (lives <= 0) over() } return false }
           return true
         })
       }
@@ -100,6 +103,11 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
       ctx.fillStyle = col.bg
       ctx.fillRect(0, 0, W, H)
       for (const c of coins) {
+        if (!c.v) {
+          ctx.font = `${c.r * 2}px ui-sans-serif, system-ui, sans-serif`; ctx.fillStyle = col.bad; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+          ctx.fillText('♥', c.x, c.y + 2); ctx.textBaseline = 'alphabetic'
+          continue
+        }
         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fillStyle = col.coin; ctx.fill()
         ctx.lineWidth = 2; ctx.strokeStyle = col.coinFg; ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(c.x, c.y, c.r - 4, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1
         ctx.font = `800 ${c.r * 0.9}px ui-sans-serif, system-ui, sans-serif`; ctx.fillStyle = col.coinFg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
@@ -114,7 +122,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
       text('●'.repeat(lives) + '○'.repeat(LIVES - lives), 22, 56, lives === 1 ? col.bad : col.fg, 'right')
       if (state === 'ready') {
         text('Catch the coins', 54, H / 2 - 30, col.fg)
-        text('Drag, move the mouse or use ← →  ·  tap or Space to start  ·  Esc to close', 18, H / 2 + 14, col.muted, 'center', 600)
+        text('Catch coins, and ♥ for a life back  ·  drag, mouse or ← →  ·  tap or Space to start  ·  Esc to close', 18, H / 2 + 14, col.muted, 'center', 600)
       } else if (state === 'over') {
         text(`Rs ${score}`, 72, H / 2 - 30, col.coin)
         text(score >= top && score > 0 ? 'New best!' : `Best Rs ${top}`, 22, H / 2 + 12, col.fg, 'center', 700)
