@@ -90,10 +90,10 @@ test('a product sold by the card: chooser, 14 = 1 card + 2, the card code adds a
   await page.keyboard.press('Enter')
 })
 
-test('no card size yet: Pack… asks once, sells 2 cards, and the size waits on Items to review', async ({ page }) => {
+test('no card size yet: Set pack asks once, sells 2 cards, and the size waits on Items to review', async ({ page }) => {
   await till(page)
   await search(page, THYROX)
-  await page.getByRole('button', { name: 'Pack…' }).click()
+  await page.getByRole('button', { name: 'Set pack' }).click()
   await page.getByLabel('Units in one pack').fill('28')
   await page.getByLabel('Packs to sell').fill('2')
   await page.getByRole('button', { name: 'Save & add' }).click()

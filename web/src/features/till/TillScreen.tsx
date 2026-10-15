@@ -51,7 +51,7 @@ function DrawerMoveFromBar({ drawer }: { drawer?: 'deposit' | 'withdraw' | 'clos
 function Body() {
   const drawer = useQuery(drawerQuery).data
   return (
-    <div className="relative grid h-full min-h-0 grid-cols-[1fr_360px] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_392px_356px] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
+    <div className="relative grid h-full min-h-0 grid-cols-[1fr_clamp(360px,40vw,460px)] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_clamp(392px,25vw,480px)_clamp(356px,23vw,440px)] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
         <CatalogPanel />
       </section>

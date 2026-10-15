@@ -23,9 +23,9 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}
-        className={cn('flex items-center gap-1 rounded-full border border-dashed border-border px-2 py-0.5 text-[11.5px] font-semibold',
+        className={cn('flex h-7 items-center gap-1 rounded-full border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
-        <Tag size={12} />
+        <Tag size={14} />
         {on ? (line.discountType === 'percent' ? `${line.discount}% off` : `${money(sym, line.discount)} off each`) : 'Discount'}
       </button>
     )
@@ -91,7 +91,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         <PackChips line={line} sym={sym} onQty={setQty} />
         <DiscountChip line={line} sym={sym} />
         <button type="button" aria-label={`Remove ${line.name}`} onClick={() => dispatch({ type: 'remove', key: line.key })}
-          className="ml-auto grid place-items-center p-0.5 text-faint hover:text-danger"><X size={15} /></button>
+          className="ml-auto grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
       </div>
       {line.trackSerial && line.serials.length > 0 && (
         <div className="col-span-full grid grid-cols-2 gap-1.5">

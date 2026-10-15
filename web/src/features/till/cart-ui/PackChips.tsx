@@ -12,12 +12,12 @@ import type { CartLine } from '../cart/types'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
-const CHIP = 'flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-semibold'
+const CHIP = 'flex h-7 items-center gap-1 rounded-full px-2.5 text-[12.5px] font-semibold'
 const NAMES = ['Card', 'Box', 'Packet', 'Strip', 'Tray', 'Bottle']
 
 /** Under a cart line of something sold by the pack: the split as handed over
  * ("= 1 Card + 2") and + one pack. A whole-unit line with no pack gets a quiet
- * "Pack…" to set one up right here (the cashier reads the size off the box). */
+ * "Set pack" to set one up right here (the cashier reads the size off the box). */
 export function PackChips({ line, sym, onQty }: { line: CartLine; sym: string; onQty: (q: number) => void }) {
   const [asking, setAsking] = useState(false)
   if (line.isService || line.group || line.fixedQty) return null
@@ -27,7 +27,7 @@ export function PackChips({ line, sym, onQty }: { line: CartLine; sym: string; o
       <>
         <button type="button" onClick={() => setAsking(true)}
           className={cn(CHIP, 'border border-dashed border-border text-muted-foreground hover:text-foreground')}>
-          <Package size={12} /> Pack…
+          <Package size={14} /> Set pack
         </button>
         {asking && <PackSize line={line} onClose={() => setAsking(false)} />}
       </>
@@ -41,7 +41,7 @@ export function PackChips({ line, sym, onQty }: { line: CartLine; sym: string; o
         <button key={k.id} type="button" onClick={() => onQty(line.qty + k.size)} aria-label={`One more ${k.name} of ${line.name}`}
           title={`${k.name} of ${k.size} · ${money(sym, k.price > 0 && k.price < k.size * line.unitPrice ? k.price : k.size * line.unitPrice)}`}
           className={cn(CHIP, 'border border-border bg-card hover:border-brand')}>
-          <Plus size={12} /> {k.name}
+          <Plus size={14} /> {k.name}
         </button>
       ))}
     </>

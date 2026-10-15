@@ -33,7 +33,7 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
         </div>
         <div className="flex items-center gap-1">
           <span className="min-w-[72px] text-right text-[14.5px] font-bold tabular-nums">{money(sym, net)}</span>
-          <button type="button" aria-label={`Remove ${label}`} onClick={() => dispatch({ type: 'removeGroup', id })} className="grid place-items-center p-0.5 text-faint hover:text-danger"><X size={15} /></button>
+          <button type="button" aria-label={`Remove ${label}`} onClick={() => dispatch({ type: 'removeGroup', id })} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
         </div>
       </div>
       {lines.map((l) => (
@@ -42,7 +42,7 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
           <div className="text-right text-[13.5px] tabular-nums">
             <s className="mr-1.5 text-[11.5px] text-faint">{money(sym, lineGross(l))}</s>{money(sym, lineGross(l) - lineDiscount(l))}
           </div>
-          <button type="button" aria-label={`Remove ${l.name} from ${label}`} onClick={() => setBreaking(l)} className="grid place-items-center p-0.5 text-faint hover:text-danger"><X size={15} /></button>
+          <button type="button" aria-label={`Remove ${l.name} from ${label}`} onClick={() => setBreaking(l)} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
           {l.trackSerial && l.serials.length > 0 && (
             <div className="col-span-full grid grid-cols-2 gap-1.5">
               {l.serials.map((s, i) => (
