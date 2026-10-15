@@ -159,7 +159,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
           <p className="text-hero-muted">
             {phase === 'over'
               ? score >= best && score > 0 ? 'New best!' : `Best ${best}. Three unhappy customers and the shop shuts.`
-              : 'Customers ask for things: ring them up, then take the cash and give change from the drawer, or swipe the card and key in the amount — no totals, work it out — and hand over the receipt — before they lose patience. Three mistakes and the shop shuts.'}
+              : 'Customers ask for things: ring them up, then take the cash and give change from the drawer, or swipe the card and key in the amount — work the change out yourself — and hand over the receipt — before they lose patience. Three mistakes and the shop shuts.'}
           </p>
           <button type="button" onClick={start} className="h-14 rounded-[var(--radius-sm)] bg-brand px-10 text-lg font-bold text-brand-foreground">
             {phase === 'over' ? 'Open again' : 'Open the shop'}
@@ -213,12 +213,13 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
                     {phase === 'ring' && <button type="button" aria-label={`Fewer ${p.name}`} onClick={() => add(id, -1)} className={cn(chip, 'grid size-8 place-items-center')}><Minus size={14} /></button>}
                     <b className="w-6 text-center tabular-nums">{q}</b>
                     {phase === 'ring' && <button type="button" aria-label={`More ${p.name}`} onClick={() => add(id, 1)} className={cn(chip, 'grid size-8 place-items-center')}><Plus size={14} /></button>}
-                    <span className="w-16 text-right text-sm text-hero-muted tabular-nums">@ {priceOf(id)}</span>
+                    <span className="w-16 text-right tabular-nums">{priceOf(id) * q}</span>
                   </div>
                 )
               })}
               {!Object.keys(cart).length && <p className="text-sm text-hero-muted">Tap the products they ask for.</p>}
             </div>
+            <div className="flex justify-between border-t border-white/15 pt-2 font-display text-xl font-bold"><span>Total</span><span className="tabular-nums">Rs {cartTotal}</span></div>
             {phase === 'ring' && (
               <button type="button" onClick={charge} disabled={!cartTotal} className="h-12 rounded-[var(--radius-sm)] bg-brand font-bold text-brand-foreground disabled:opacity-40">Charge</button>
             )}
