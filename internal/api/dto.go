@@ -25,6 +25,8 @@ type LoginInfo struct {
 	// easter-egg shop game's cash drawer.
 	Notes []string `json:"notes"`
 	Coins []string `json:"coins"`
+	// The receipt header every customer already gets on paper (the shop game's receipt).
+	Receipt ShopHeader `json:"receipt"`
 }
 
 type ChangePinRequest struct {

@@ -17,6 +17,7 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 	if cfg, err := h.d.Settings.Get(c.Request().Context()); err == nil && cfg != nil {
 		info.InstallID = cfg.InstallID
 		info.ShopName = cfg.ShopName
+		info.Receipt = ShopHeader{Name: cfg.ShopName, Address: strOr(cfg.Address), Phone: strOr(cfg.Phone), Footer: strOr(cfg.ReceiptFooter)}
 	}
 	info.Notes, info.Coins = []string{}, []string{}
 	if rows, err := h.t.denoms.List(c.Request().Context(), true); err == nil {

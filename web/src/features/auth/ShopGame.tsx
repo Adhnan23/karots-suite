@@ -7,6 +7,7 @@ import { LKR_NOTES } from '@/features/till/cart/totals'
 import { cn } from '@/lib/utils'
 import { readBest, saveBest } from './games'
 import { CardPay, CashDrawer } from './ShopPay'
+import { ReceiptOut } from './ShopReceipt'
 
 const BEST = 'ks-shop-best'
 const LIVES = 3
@@ -27,8 +28,8 @@ const LKR_COINS = [10, 5, 2, 1]
 
 type Order = Record<string, number>
 type Customer = { name: string; face: string; order: Order; total: number; card: boolean; given: number; time: number }
-type Phase = 'ready' | 'ring' | 'pay' | 'cash' | 'card' | 'over'
-const WAITING: Phase[] = ['ring', 'pay', 'cash', 'card']
+type Phase = 'ready' | 'ring' | 'pay' | 'cash' | 'card' | 'receipt' | 'over'
+const WAITING: Phase[] = ['ring', 'pay', 'cash', 'card', 'receipt']
 
 const rand = (n: number) => Math.floor(Math.random() * n)
 const priceOf = (id: string) => PRODUCTS.find((p) => p.id === id)!.price
@@ -69,6 +70,8 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
   const [left, setLeft] = useState(0)
   const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null)
   const busy = useRef(false)
+  const customer = useRef<HTMLElement>(null)
+  const [handing, setHanding] = useState(false)
 
   const notesKey = notes.join()
   const newCustomer = useCallback((n: number) => {
@@ -125,11 +128,14 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
     if (card !== c.card) return finish(false, c.card ? 'They wanted to pay by card' : 'They were paying cash')
     setPhase(card ? 'card' : 'cash')
   }
+  // Paid right: print the receipt — the sale ends when it's in the customer's hand.
   const give = (v: number) => {
     const due = c.given - c.total
-    finish(v === due, v === due ? (due ? 'Right change ✓' : 'Exact money ✓') : `Change should be Rs ${due}`)
+    if (v === due) setPhase('receipt')
+    else finish(false, `Change should be Rs ${due}`)
   }
-  const charged = (v: number) => finish(v === c.total, v === c.total ? 'Card approved ✓' : `Charged Rs ${v} — it was Rs ${c.total}`)
+  const charged = (v: number) => (v === c.total ? setPhase('receipt') : finish(false, `Charged Rs ${v} — it was Rs ${c.total}`))
+  const delivered = () => finish(true, c.card ? 'Card sale done ✓' : 'Right change ✓')
   const pct = Math.max(0, Math.min(100, (left / c.time) * 100))
 
   const panel = 'rounded-[var(--radius)] bg-white/[0.07] p-4'
@@ -153,7 +159,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
           <p className="text-hero-muted">
             {phase === 'over'
               ? score >= best && score > 0 ? 'New best!' : `Best ${best}. Three unhappy customers and the shop shuts.`
-              : 'Customers ask for things: ring them up, then take the cash and give change from the drawer, or swipe the card and key in the amount — before they lose patience. Three mistakes and the shop shuts.'}
+              : 'Customers ask for things: ring them up, then take the cash and give change from the drawer, or swipe the card and key in the amount — no totals, work it out — and hand over the receipt — before they lose patience. Three mistakes and the shop shuts.'}
           </p>
           <button type="button" onClick={start} className="h-14 rounded-[var(--radius-sm)] bg-brand px-10 text-lg font-bold text-brand-foreground">
             {phase === 'over' ? 'Open again' : 'Open the shop'}
@@ -161,7 +167,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
         </div>
       ) : (
         <div className="grid min-h-0 flex-1 gap-4 md:grid-cols-[300px_1fr_320px]">
-          <section className={cn(panel, 'flex flex-col gap-3')}>
+          <section ref={customer} className={cn(panel, 'flex flex-col gap-3 transition', handing && 'ring-2 ring-brand')}>
             <div className="flex items-center gap-3">
               <span className="text-5xl">{c.face}</span>
               <div><b className="text-lg">{c.name}</b><p className="text-sm text-hero-muted">wants…</p></div>
@@ -207,13 +213,12 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
                     {phase === 'ring' && <button type="button" aria-label={`Fewer ${p.name}`} onClick={() => add(id, -1)} className={cn(chip, 'grid size-8 place-items-center')}><Minus size={14} /></button>}
                     <b className="w-6 text-center tabular-nums">{q}</b>
                     {phase === 'ring' && <button type="button" aria-label={`More ${p.name}`} onClick={() => add(id, 1)} className={cn(chip, 'grid size-8 place-items-center')}><Plus size={14} /></button>}
-                    <span className="w-16 text-right tabular-nums">{priceOf(id) * q}</span>
+                    <span className="w-16 text-right text-sm text-hero-muted tabular-nums">@ {priceOf(id)}</span>
                   </div>
                 )
               })}
               {!Object.keys(cart).length && <p className="text-sm text-hero-muted">Tap the products they ask for.</p>}
             </div>
-            <div className="flex justify-between border-t border-white/15 pt-2 font-display text-xl font-bold"><span>Total</span><span className="tabular-nums">Rs {cartTotal}</span></div>
             {phase === 'ring' && (
               <button type="button" onClick={charge} disabled={!cartTotal} className="h-12 rounded-[var(--radius-sm)] bg-brand font-bold text-brand-foreground disabled:opacity-40">Charge</button>
             )}
@@ -225,6 +230,11 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
             )}
             {phase === 'cash' && <CashDrawer key={c.name + c.total} given={c.given} notes={notes} coins={coins} onGive={give} />}
             {phase === 'card' && <CardPay key={c.name + c.total} onDone={charged} />}
+            {phase === 'receipt' && (
+              <ReceiptOut key={c.name + c.total} shop={info?.receipt ?? { name: info?.shopName || 'Karots Suite', address: '', phone: '', footer: '' }}
+                no={served + 1} total={c.total} card={c.card} given={c.given} target={customer} onDragging={setHanding} onDelivered={delivered}
+                lines={Object.entries(c.order).map(([id, q]) => ({ name: PRODUCTS.find((p) => p.id === id)!.name, qty: q, price: priceOf(id) }))} />
+            )}
           </section>
         </div>
       )}

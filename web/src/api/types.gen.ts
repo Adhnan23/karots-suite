@@ -31,6 +31,10 @@ export interface LoginInfo {
    */
   notes: string[];
   coins: string[];
+  /**
+   * The receipt header every customer already gets on paper (the shop game's receipt).
+   */
+  receipt: ShopHeader;
 }
 export interface ChangePinRequest {
   currentPin: string;

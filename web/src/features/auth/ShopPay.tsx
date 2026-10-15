@@ -18,7 +18,7 @@ export function CashDrawer({ given, notes, coins, onGive }: { given: number; not
       </div>
       <button type="button" onClick={() => onGive(num(change))}
         className="h-12 rounded-[var(--radius-sm)] bg-brand font-bold text-brand-foreground">
-        Give change · Rs {num(change)}
+        Give change
       </button>
     </div>
   )
