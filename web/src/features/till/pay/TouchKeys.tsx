@@ -13,15 +13,18 @@ const saved = (): Pane => { try { return localStorage.getItem(KEY) === 'keys' ? 
 export function TouchKeys({ cash, notes, coins, amount, onAmount }: { cash: boolean; notes: number[]; coins: number[]; amount: string; onAmount: (v: string) => void }) {
   const [pane, setPane] = useState<Pane>(saved)
   const show: Pane = cash ? pane : 'keys'
+  const switcher = cash && (
+    <Seg label="Touch input" value={pane} options={[['notes', 'Notes'], ['keys', 'Keypad']]}
+      onChange={(p) => { setPane(p); try { localStorage.setItem(KEY, p) } catch { /* private mode */ } }} />
+  )
   return (
     <div className={cn(TOUCH_ONLY, 'gap-2')}>
-      {cash && (
-        <div className="flex justify-end">
-          <Seg label="Touch input" value={pane} options={[['notes', 'Notes'], ['keys', 'Keypad']]}
-            onChange={(p) => { setPane(p); try { localStorage.setItem(KEY, p) } catch { /* private mode */ } }} />
-        </div>
+      {show === 'notes' ? <NoteTray notes={notes} coins={coins} amount={amount} onChange={onAmount} switcher={switcher} /> : (
+        <>
+          {switcher && <div className="flex justify-end">{switcher}</div>}
+          <TouchPad />
+        </>
       )}
-      {show === 'notes' ? <NoteTray notes={notes} coins={coins} amount={amount} onChange={onAmount} /> : <TouchPad />}
     </div>
   )
 }

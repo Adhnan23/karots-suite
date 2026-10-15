@@ -81,6 +81,25 @@ test('F1 clears the search, never the cart; a reload keeps the cart', async ({ p
   await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1')
 })
 
+test('note tray: tap notes, Undo walks back one at a time, Clear empties', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('ks-touch', 'on'))
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  await scan(page, MILK)
+  await page.getByRole('button', { name: 'Cash', exact: true }).click()
+  for (const n of [500, 100, 100]) await page.getByRole('button', { name: `Add a ${n} note` }).click()
+  await expect(amount(page)).toHaveValue('700')
+  const undo = page.getByRole('button', { name: 'Undo the last note' })
+  await undo.click()
+  await expect(amount(page)).toHaveValue('600')
+  await undo.click()
+  await expect(amount(page)).toHaveValue('500')
+  await page.getByRole('button', { name: 'Add a 100 note' }).click()
+  await page.getByRole('button', { name: 'Clear', exact: true }).click()
+  await expect(amount(page)).toHaveValue('')
+  await expect(undo).toBeDisabled()
+})
+
 test('split tender: card then cash', async ({ page }) => {
   await login(page, '0770000002')
   await ensureOpen(page)
