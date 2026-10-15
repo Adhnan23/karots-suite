@@ -71,6 +71,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
   const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null)
   const busy = useRef(false)
   const customer = useRef<HTMLElement>(null)
+  const hand = useRef<HTMLDivElement>(null)
   const [handing, setHanding] = useState(false)
 
   const notesKey = notes.join()
@@ -138,25 +139,25 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
   const delivered = () => finish(true, c.card ? 'Card sale done ✓' : 'Right change ✓')
   const pct = Math.max(0, Math.min(100, (left / c.time) * 100))
 
-  const panel = 'rounded-[var(--radius)] bg-white/[0.07] p-4'
-  const chip = 'rounded-[var(--radius-sm)] bg-white/10 font-bold active:scale-95 hover:bg-white/15'
+  const panel = 'rounded-[var(--radius)] border border-border bg-card p-4 shadow-[var(--shadow)]'
+  const chip = 'rounded-[var(--radius-sm)] border border-border bg-card font-bold shadow-[var(--shadow)] hover:border-brand active:scale-95'
   return (
-    <div role="dialog" aria-label="Shop game" className="fixed inset-0 z-[100] flex flex-col gap-4 overflow-auto bg-hero p-4 text-left text-hero-foreground select-none md:p-6">
+    <div role="dialog" aria-label="Shop game" className="fixed inset-0 z-[100] flex flex-col gap-4 overflow-auto bg-background p-4 text-left text-foreground select-none md:p-6">
       <header className="flex items-center gap-4">
         <b className="font-display text-2xl">🏪 Shop Rush</b>
         <span className="font-display text-xl tabular-nums">{score}</span>
-        <span className="text-sm text-hero-muted">Best {best} · served {served}</span>
+        <span className="text-sm text-muted-foreground">Best {best} · served {served}</span>
         <span className="ml-auto flex gap-1" aria-label={`${lives} hearts left`}>
-          {Array.from({ length: LIVES }, (_, i) => <Heart key={i} size={22} className={i < lives ? 'fill-destructive text-destructive' : 'text-hero-muted'} />)}
+          {Array.from({ length: LIVES }, (_, i) => <Heart key={i} size={22} className={i < lives ? 'fill-destructive text-destructive' : 'text-muted-foreground'} />)}
         </span>
-        <button type="button" aria-label="Close the game" onClick={onClose} className="grid size-11 place-items-center rounded-full bg-white/10 hover:bg-white/20"><X size={20} /></button>
+        <button type="button" aria-label="Close the game" onClick={onClose} className="grid size-11 place-items-center rounded-full bg-muted hover:bg-border"><X size={20} /></button>
       </header>
 
       {phase === 'ready' || phase === 'over' ? (
         <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
           <div className="text-6xl">{phase === 'over' ? '🔒' : '🛒'}</div>
           <h2 className="font-display text-3xl font-bold">{phase === 'over' ? `Shop closed · ${score}` : 'Shop Rush'}</h2>
-          <p className="text-hero-muted">
+          <p className="text-muted-foreground">
             {phase === 'over'
               ? score >= best && score > 0 ? 'New best!' : `Best ${best}. Three unhappy customers and the shop shuts.`
               : 'Customers ask for things: ring them up, then take the cash and give change from the drawer, or swipe the card and key in the amount — work the change out yourself — and hand over the receipt — before they lose patience. Three mistakes and the shop shuts.'}
@@ -170,22 +171,24 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
           <section ref={customer} className={cn(panel, 'flex flex-col gap-3 transition', handing && 'ring-2 ring-brand')}>
             <div className="flex items-center gap-3">
               <span className="text-5xl">{c.face}</span>
-              <div><b className="text-lg">{c.name}</b><p className="text-sm text-hero-muted">wants…</p></div>
+              <div><b className="text-lg">{c.name}</b><p className="text-sm text-muted-foreground">wants…</p></div>
             </div>
-            <ul className="flex flex-col gap-1.5 rounded-[var(--radius-sm)] bg-white/10 p-3 text-[17px] font-semibold">
+            <ul className="flex flex-col gap-1.5 rounded-[var(--radius-sm)] bg-muted p-3 text-[17px] font-semibold">
               {Object.entries(c.order).map(([id, q]) => {
                 const p = PRODUCTS.find((x) => x.id === id)!
                 return <li key={id}>{q} × {p.emoji} {p.name}</li>
               })}
             </ul>
             {phase !== 'ring' && (
-              <p className="rounded-[var(--radius-sm)] border-[1.5px] border-brand bg-white/10 p-3 font-semibold">
+              <p className="rounded-[var(--radius-sm)] border-[1.5px] border-brand bg-brand-soft p-3 font-semibold">
                 {c.card ? '💳 “Card, please.”' : `💵 “Cash.” Hands you Rs ${c.given}`}
               </p>
             )}
+            {/* The customer's card waits here until it's dragged to the reader. */}
+            <div ref={hand} />
             <div className="mt-auto">
-              <div className="mb-1 flex justify-between text-sm text-hero-muted"><span>Patience</span><span className="tabular-nums">{Math.ceil(left)}s</span></div>
-              <div className="h-3 overflow-hidden rounded-full bg-white/10">
+              <div className="mb-1 flex justify-between text-sm text-muted-foreground"><span>Patience</span><span className="tabular-nums">{Math.ceil(left)}s</span></div>
+              <div className="h-3 overflow-hidden rounded-full bg-muted">
                 <div className={cn('h-full rounded-full transition-[width] duration-100', pct < 30 ? 'bg-destructive' : 'bg-brand')} style={{ width: `${pct}%` }} />
               </div>
             </div>
@@ -197,7 +200,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
                 className={cn(chip, 'flex flex-col items-center gap-1.5 py-7 text-lg disabled:opacity-40')}>
                 <span className="text-6xl">{p.emoji}</span>
                 <span>{p.name}</span>
-                <span className="text-sm font-semibold text-hero-muted tabular-nums">Rs {p.price}</span>
+                <span className="text-sm font-semibold text-muted-foreground tabular-nums">Rs {p.price}</span>
               </button>
             ))}
           </section>
@@ -217,9 +220,9 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
                   </div>
                 )
               })}
-              {!Object.keys(cart).length && <p className="text-sm text-hero-muted">Tap the products they ask for.</p>}
+              {!Object.keys(cart).length && <p className="text-sm text-muted-foreground">Tap the products they ask for.</p>}
             </div>
-            <div className="flex justify-between border-t border-white/15 pt-2 font-display text-xl font-bold"><span>Total</span><span className="tabular-nums">Rs {cartTotal}</span></div>
+            <div className="flex justify-between border-t border-border pt-2 font-display text-xl font-bold"><span>Total</span><span className="tabular-nums">Rs {cartTotal}</span></div>
             {phase === 'ring' && (
               <button type="button" onClick={charge} disabled={!cartTotal} className="h-12 rounded-[var(--radius-sm)] bg-brand font-bold text-brand-foreground disabled:opacity-40">Charge</button>
             )}
@@ -229,8 +232,8 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
                 <button type="button" onClick={() => take(true)} className={cn(chip, 'h-12')}>💳 Card</button>
               </div>
             )}
-            {phase === 'cash' && <CashDrawer key={c.name + c.total} given={c.given} notes={notes} coins={coins} onGive={give} />}
-            {phase === 'card' && <CardPay key={c.name + c.total} onDone={charged} />}
+            {phase === 'cash' && <CashDrawer key={c.name + c.total} hand={hand} given={c.given} notes={notes} coins={coins} onGive={give} />}
+            {phase === 'card' && <CardPay key={c.name + c.total} hand={hand} onDone={charged} />}
             {phase === 'receipt' && (
               <ReceiptOut key={c.name + c.total} shop={info?.receipt ?? { name: info?.shopName || 'Karots Suite', address: '', phone: '', footer: '' }}
                 no={served + 1} total={c.total} card={c.card} given={c.given} target={customer} onDragging={setHanding} onDelivered={delivered}
@@ -242,7 +245,7 @@ export default function ShopGame({ onClose }: { onClose: () => void }) {
 
       {flash && (
         <div className="pointer-events-none fixed inset-0 grid place-items-center">
-          <div className={cn('rounded-[var(--radius)] px-8 py-5 font-display text-2xl font-bold shadow-[var(--shadow)]', flash.ok ? 'bg-success text-hero-foreground' : 'bg-destructive text-hero-foreground')}>
+          <div className={cn('rounded-[var(--radius)] px-8 py-5 font-display text-2xl font-bold shadow-[var(--shadow)]', flash.ok ? 'bg-success text-[var(--paper)]' : 'bg-destructive text-[var(--paper)]')}>
             {flash.text}
           </div>
         </div>

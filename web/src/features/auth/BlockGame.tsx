@@ -16,7 +16,7 @@ const SHAPES: Record<string, number[][]> = {
   L: [[2, 0], [0, 1], [1, 1], [2, 1]],
 }
 const KINDS = Object.keys(SHAPES)
-const TINT: Record<string, string> = { I: '--chart-3', O: '--chart-1', T: '--hero-foreground', S: '--chart-2', Z: '--chart-5', J: '--chart-4', L: '--chart-6' }
+const TINT: Record<string, string> = { I: '--chart-3', O: '--chart-1', T: '--foreground', S: '--chart-2', Z: '--chart-5', J: '--chart-4', L: '--chart-6' }
 const LINE_SCORE = [0, 100, 300, 500, 800]
 
 type Piece = { k: string; cells: number[][]; x: number; y: number }
@@ -35,7 +35,7 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const cv = canvas.current!
     const ctx = cv.getContext('2d')!
-    const col = { bg: token('--hero'), fg: token('--hero-foreground'), muted: token('--hero-muted'), brand: token('--brand') }
+    const col = { bg: token('--background'), fg: token('--foreground'), muted: token('--muted-foreground'), brand: token('--brand'), paper: token('--paper') }
     const tint = Object.fromEntries(KINDS.map((k) => [k, token(TINT[k])]))
     let W = 0, H = 0
     const size = () => {
@@ -117,7 +117,7 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
       ctx.fillStyle = c
       if (ghost) { ctx.globalAlpha = 0.25; ctx.fillRect(x + 1, y + 1, s - 2, s - 2); ctx.globalAlpha = 1; return }
       ctx.beginPath(); ctx.roundRect(x + 1, y + 1, s - 2, s - 2, 4); ctx.fill()
-      ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(x + 4, y + 4, s - 8, 3)
+      ctx.globalAlpha = 0.25; ctx.fillStyle = col.paper; ctx.fillRect(x + 4, y + 4, s - 8, 3); ctx.globalAlpha = 1
     }
     function label(s: string, x: number, y: number, px: number, c: string, weight = 800) {
       ctx.font = `${weight} ${px}px ui-sans-serif, system-ui, sans-serif`; ctx.fillStyle = c; ctx.textAlign = 'left'; ctx.fillText(s, x, y)
@@ -129,10 +129,11 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
       const s = Math.floor(Math.min((H - 190) / ROWS, (W - 40) / (COLS + 7)))
       const bw = s * COLS, bh = s * ROWS
       const bx = Math.floor((W - bw - s * 6) / 2), by = 40
-      ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(bx, by, bw, bh)
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1
+      ctx.globalAlpha = 0.05; ctx.fillStyle = col.fg; ctx.fillRect(bx, by, bw, bh)
+      ctx.globalAlpha = 0.08; ctx.strokeStyle = col.fg; ctx.lineWidth = 1
       for (let i = 1; i < COLS; i++) { ctx.beginPath(); ctx.moveTo(bx + i * s, by); ctx.lineTo(bx + i * s, by + bh); ctx.stroke() }
       for (let j = 1; j < ROWS; j++) { ctx.beginPath(); ctx.moveTo(bx, by + j * s); ctx.lineTo(bx + bw, by + j * s); ctx.stroke() }
+      ctx.globalAlpha = 1
       board.forEach((row, y) => row.forEach((k, x) => k && block(bx + x * s, by + y * s, s, tint[k])))
       if (state === 'play') {
         let gy = cur.y
@@ -150,7 +151,7 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
         for (const [cx, cy] of SHAPES[next]) block(px + cx * ns, by + 194 + cy * ns, ns, tint[next])
       }
       if (state !== 'play') {
-        ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(bx, by, bw, bh)
+        ctx.globalAlpha = 0.85; ctx.fillStyle = col.bg; ctx.fillRect(bx, by, bw, bh); ctx.globalAlpha = 1
         ctx.textAlign = 'center'
         ctx.font = '800 30px ui-sans-serif, system-ui, sans-serif'; ctx.fillStyle = state === 'over' ? col.brand : col.fg
         ctx.fillText(state === 'over' ? `${score}` : 'Blocks', bx + bw / 2, by + bh / 2 - 20)
@@ -178,7 +179,7 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
     }
   }, [onClose])
 
-  const btn = 'grid size-16 place-items-center rounded-full bg-white/10 text-hero-foreground active:scale-95 active:bg-white/20'
+  const btn = 'grid size-16 place-items-center rounded-full border border-border bg-card text-foreground shadow-[var(--shadow)] active:scale-95 active:bg-muted'
   const pad: [Act, typeof ChevronLeft, string][] = [
     ['left', ChevronLeft, 'Move left'], ['rotate', RotateCw, 'Rotate'], ['down', ArrowDown, 'Down one row'],
     ['drop', ChevronsDown, 'Drop'], ['right', ChevronRight, 'Move right'],
@@ -187,7 +188,7 @@ export default function BlockGame({ onClose }: { onClose: () => void }) {
     <div role="dialog" aria-label="Blocks game" className="fixed inset-0 z-[100] touch-none select-none">
       <canvas ref={canvas} className="block h-full w-full" />
       <button type="button" aria-label="Close the game" onClick={onClose}
-        className="absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-white/10 text-hero-foreground hover:bg-white/20">
+        className="absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-muted text-foreground hover:bg-border">
         <X size={20} />
       </button>
       <div className="absolute inset-x-0 bottom-6 flex justify-center gap-3" onPointerDown={(e) => e.preventDefault()}>

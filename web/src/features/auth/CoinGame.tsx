@@ -18,7 +18,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const cv = canvas.current!
     const ctx = cv.getContext('2d')!
-    const col = { bg: token('--hero'), fg: token('--hero-foreground'), muted: token('--hero-muted'), coin: token('--brand'), coinFg: token('--brand-foreground'), bad: token('--danger') }
+    const col = { bg: token('--background'), fg: token('--foreground'), muted: token('--muted-foreground'), coin: token('--brand'), coinFg: token('--brand-foreground'), bad: token('--danger') }
     let W = 0, H = 0
     const size = () => {
       const dpr = window.devicePixelRatio || 1
@@ -60,7 +60,9 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
           let land = clock + fall / vy
           if (land < lastLand + GAP) { land = lastLand + GAP; vy = fall / (land - clock) }
           const reach = SPEED * (land - lastLand) * 0.75 + t.w * 0.4
-          const cx = Math.max(r, Math.min(W - r, lastX + (Math.random() * 2 - 1) * reach))
+          // Anywhere in reach that's on screen (clamping a wide reach would pile coins on the edges).
+          const lo = Math.max(r, lastX - reach), hi = Math.min(W - r, lastX + reach)
+          const cx = lo + Math.random() * Math.max(0, hi - lo)
           // Now and then, when a life is down, a heart falls instead.
           const heart = lives < LIVES && !coins.some((c) => c.v === 0) && Math.random() < 0.12
           coins.push({ x: cx, y: -r, r: heart ? 20 : r, v: heart ? 0 : v, vy })
@@ -145,7 +147,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
     <div role="dialog" aria-label="Coin game" className="fixed inset-0 z-[100] touch-none">
       <canvas ref={canvas} className="block h-full w-full" />
       <button type="button" aria-label="Close the game" onClick={onClose}
-        className="absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-white/10 text-hero-foreground hover:bg-white/20">
+        className="absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-muted text-foreground hover:bg-border">
         <X size={20} />
       </button>
     </div>

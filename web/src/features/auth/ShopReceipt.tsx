@@ -24,9 +24,9 @@ export function ReceiptOut({ shop, no, lines, total, card, given, target, onDrag
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <p className="text-sm text-hero-muted">{printed ? 'Hand the receipt over — drag it to the customer' : 'Printing…'}</p>
+      <p className="text-sm text-muted-foreground">{printed ? 'Hand the receipt over — drag it to the customer' : 'Printing…'}</p>
       {/* The printer's mouth; the paper grows out of it. */}
-      <div className="h-3 w-[240px] rounded-full bg-black/40 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]" />
+      <div className="h-3 w-[240px] rounded-full bg-[color-mix(in_srgb,var(--ink)_55%,transparent)] shadow-[inset_0_2px_4px_color-mix(in_srgb,var(--ink)_60%,transparent)]" />
       <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} transition={{ duration: 1.4, ease: 'linear' }}
         onAnimationComplete={() => setPrinted(true)}
         className={cn('-mt-2 w-[220px] touch-none', printed ? 'cursor-grab' : 'overflow-hidden', drag && 'relative z-10 cursor-grabbing')}
