@@ -21,10 +21,10 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
   onInfo: () => void
 }) {
   const out = !p.isService && num(p.stockQty) <= 0
-  // Counter-safe facts only (never cost or margin): what a cashier gets asked about.
+  // Counter-safe facts only (never cost, margin or the wholesale price — the customer
+  // can see this screen): what a cashier gets asked about.
   const facts = [
-    num(p.wholesalePrice) > 0 && num(p.wholesalePrice) !== num(p.sellingPrice) && `Wholesale ${money(sym, p.wholesalePrice)}`,
-    ...p.packs.map((k) => `${k.name} ×${qtyText(k.size)}`),
+    ...p.packs.map((k) => `${k.name} ×${qtyText(k.size)} · ${money(sym, num(k.sellingPrice) > 0 ? k.sellingPrice : num(k.size) * num(p.sellingPrice))}`),
     p.warrantyMonths > 0 && `${p.warrantyMonths} mo warranty`,
     p.trackSerial && 'Serial no.',
   ].filter(Boolean)
