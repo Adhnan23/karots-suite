@@ -32,14 +32,21 @@ test('konami on login reveals the install id', async ({ page }) => {
   await expect(page.getByText(/^[0-9A-F]{8}$/)).toBeVisible()
 })
 
-test('seven taps on the clock open a game (coins, blocks or the shop); Esc closes it', async ({ page }) => {
+test('seven taps on the clock open the games menu; a game opens, Esc comes back, Esc closes', async ({ page }) => {
   await page.goto('/login')
   const clock = page.getByText(/^\d{1,2}:\d{2}/).first()
   for (let i = 0; i < 7; i++) await clock.click()
-  const game = page.getByRole('dialog', { name: /Coin game|Blocks game|Shop game/ })
-  await expect(game).toBeVisible()
+  const menu = page.getByRole('dialog', { name: 'Games' })
+  await expect(menu).toBeVisible()
+  await menu.getByRole('button', { name: /Shop Rush/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Shop game' })).toBeVisible()
   await page.keyboard.press('Escape')
-  await expect(game).toBeHidden()
+  await expect(menu).toBeVisible()
+  await page.keyboard.press('2')
+  await expect(page.getByRole('dialog', { name: 'Blocks game' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByLabel('Phone')).toBeVisible()
 })
 

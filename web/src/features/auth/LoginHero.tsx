@@ -1,6 +1,6 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { GameMenu } from './GameMenu'
 
-const GAMES = [lazy(() => import('./CoinGame')), lazy(() => import('./BlockGame')), lazy(() => import('./ShopGame'))]
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -13,7 +13,7 @@ function useClock() {
 
 /** Left panel of login/lock (theme.md §5): brand on top, a live clock and the date
  * in the middle, the server status at the foot. Collapses to a compact header strip
- * on a phone. Tapping the clock 7 times opens a little game at random: coins, blocks or the shop (an easter egg). */
+ * on a phone. Tapping the clock 7 times opens a games menu (coins, blocks, the shop) (an easter egg). */
 export function LoginHero({ shopName }: { shopName: string }) {
   const now = useClock()
   const h24 = now.getHours()
@@ -21,14 +21,13 @@ export function LoginHero({ shopName }: { shopName: string }) {
   const ampm = h24 < 12 ? 'AM' : 'PM'
   const hours = h24 % 12 || 12
   const date = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  const [game, setGame] = useState<number | null>(null)
+  const [games, setGames] = useState(false)
   const taps = useRef<number[]>([])
-  const Game = game === null ? null : GAMES[game]
-  const close = useCallback(() => setGame(null), [])
+  const close = useCallback(() => setGames(false), [])
   const tap = () => {
     const t = Date.now()
     taps.current = [...taps.current.filter((x) => t - x < 3000), t]
-    if (taps.current.length >= 7) { taps.current = []; setGame(Math.floor(Math.random() * GAMES.length)) }
+    if (taps.current.length >= 7) { taps.current = []; setGames(true) }
   }
 
   return (
@@ -50,7 +49,7 @@ export function LoginHero({ shopName }: { shopName: string }) {
           Server online
         </span>
       </div>
-      {Game && <Suspense><Game onClose={close} /></Suspense>}
+      {games && <GameMenu onClose={close} />}
     </div>
   )
 }
