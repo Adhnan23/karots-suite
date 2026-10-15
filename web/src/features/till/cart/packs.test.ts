@@ -17,7 +17,7 @@ describe('packGross mirrors Go sales.PackGross', () => {
 })
 
 const panadol: TillProduct = { id: 7, name: 'Panadol', barcode: '', sellingPrice: '26.00', wholesalePrice: '0.00', taxRate: '0',
-  stockQty: '100', unitAbbr: 'tab', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, emoji: '', badges: [],
+  stockQty: '100', unitAbbr: 'tab', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, lowStock: false, emoji: '', badges: [],
   packs: [{ id: 3, name: 'Card', size: '12', sellingPrice: '250.00', wholesalePrice: '0.00' }] }
 
 describe('cart with packs', () => {

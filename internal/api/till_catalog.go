@@ -79,6 +79,7 @@ func tillProduct(p products.Product) TillProduct {
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
 		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
 		Badges: p.Badges, Packs: []TillPack{},
+		LowStock: !p.IsService && p.ReorderLevel > 0 && p.IsLowStock(),
 	}
 	if out.Badges == nil {
 		out.Badges = []string{}
@@ -134,6 +135,7 @@ func groupProduct(p productgroups.GroupProduct) TillProduct {
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
 		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
 		Emoji: strOr(p.Emoji), Badges: []string{}, Packs: []TillPack{},
+		LowStock: !p.IsService && p.ReorderLevel > 0 && p.StockQty.LessThanOrEqual(decimal.NewFromInt(int64(p.ReorderLevel))),
 	}
 }
 

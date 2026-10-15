@@ -3018,6 +3018,10 @@ export interface TillProduct {
   isService: boolean;
   trackSerial: boolean;
   warrantyMonths: number /* int */;
+  /**
+   * LowStock: on hand is at or below the product's reorder level (none set = never).
+   */
+  lowStock: boolean;
   emoji: string;
   badges: string[];
   suggestion?: SaleSuggestion;

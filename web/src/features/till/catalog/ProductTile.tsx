@@ -27,6 +27,8 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
     ...p.packs.map((k) => `${k.name} ×${qtyText(k.size)} · ${money(sym, num(k.sellingPrice) > 0 ? k.sellingPrice : num(k.size) * num(p.sellingPrice))}`),
     p.warrantyMonths > 0 && `${p.warrantyMonths} mo warranty`,
     p.trackSerial && 'Serial no.',
+    p.unitAllowDecimal && `Sold by ${p.unitAbbr}`,
+    p.barcode.length > 4 && `#…${p.barcode.slice(-4)}`,
   ].filter(Boolean)
   return (
     <div className="relative">
@@ -38,8 +40,9 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
           {p.emoji || p.name.trim().charAt(0).toUpperCase()}
         </span>
         <span className="line-clamp-2 pr-6 text-[16.5px] font-semibold leading-tight">{p.name}</span>
-        {(note || p.badges.length > 0) && (
+        {(note || (p.lowStock && !out) || p.badges.length > 0) && (
           <span className="flex flex-wrap gap-1.5">
+            {p.lowStock && !out && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-danger">Low stock</span>}
             {note && <span className="rounded-md bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-warning">{note}</span>}
             {p.badges.map((b) => <span key={b} className="rounded-md bg-brand-soft px-2 py-0.5 text-[12.5px] font-bold">{b}</span>)}
           </span>

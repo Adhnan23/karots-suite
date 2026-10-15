@@ -4,7 +4,7 @@ import { fromHeld, toHeldBlob } from './held'
 import { initialState, tillReducer } from './store'
 
 const p: TillProduct = { id: 5, name: 'Tab', barcode: '', sellingPrice: '10.00', wholesalePrice: '0.00', taxRate: '0', stockQty: '50',
-  unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, emoji: '', badges: [], packs: [] }
+  unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [] }
 
 describe('plugin seams on the sale', () => {
   it('sale notes survive hold → resume and are cleared by New sale', () => {

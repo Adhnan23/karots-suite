@@ -6,7 +6,7 @@ import { initialState, tillReducer } from './store'
 import type { TillState } from './types'
 
 const prod = (id: number, name: string, price: string, trackSerial = false): TillProduct => ({ id, name, barcode: String(id), sellingPrice: price,
-  wholesalePrice: '0.00', taxRate: '0', stockQty: '9', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial, warrantyMonths: 0, emoji: '', badges: [], packs: [] })
+  wholesalePrice: '0.00', taxRate: '0', stockQty: '9', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial, warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [] })
 const milk = prod(1, 'Milk', '380.00')
 const cookies = prod(2, 'Cookies', '220.00', true)
 const pair = { label: 'Milk + Cookies', count: 1, items: [{ product: milk, per: 1, discount: '25.34' }, { product: cookies, per: 1, discount: '14.66' }], plugin: { combos: { comboId: 7 } } }

@@ -40,9 +40,10 @@ type GroupProduct struct {
 	StockQty         decimal.Decimal `db:"stock_qty"          json:"stock_qty"`
 	// IsService marks a product that holds no stock of its own (coffee, a
 	// photocopy). The till must know, or it greys the card out at stock 0.
-	IsService bool    `db:"is_service" json:"is_service"`
-	Emoji     *string `db:"emoji"              json:"emoji"`
-	SortOrder int     `db:"sort_order"         json:"sort_order"`
+	IsService    bool    `db:"is_service" json:"is_service"`
+	ReorderLevel int     `db:"reorder_level" json:"reorder_level"`
+	Emoji        *string `db:"emoji"              json:"emoji"`
+	SortOrder    int     `db:"sort_order"         json:"sort_order"`
 }
 
 type CreateInput struct {
@@ -109,7 +110,7 @@ func (r *Repository) Products(ctx context.Context, groupID int64) ([]GroupProduc
 		SELECT p.id AS product_id, p.name, p.barcode, p.selling_price, p.wholesale_price,
 		       p.tax_rate, p.track_serial, p.warranty_months,
 		       u.abbreviation AS unit_abbr, u.allow_decimal AS unit_allow_decimal,
-		       COALESCE(s.quantity, 0) AS stock_qty, p.is_service,
+		       COALESCE(s.quantity, 0) AS stock_qty, p.is_service, p.reorder_level,
 		       i.emoji, i.sort_order
 		FROM product_group_items i
 		JOIN products p   ON p.id = i.product_id

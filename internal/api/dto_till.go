@@ -47,21 +47,23 @@ type SaleSuggestion struct {
 
 // TillProduct is one sellable card. Money and quantities are decimal strings.
 type TillProduct struct {
-	ID               int64           `json:"id"`
-	Name             string          `json:"name"`
-	Barcode          string          `json:"barcode"`
-	SellingPrice     string          `json:"sellingPrice"`
-	WholesalePrice   string          `json:"wholesalePrice"`
-	TaxRate          string          `json:"taxRate"`
-	StockQty         string          `json:"stockQty"`
-	UnitAbbr         string          `json:"unitAbbr"`
-	UnitAllowDecimal bool            `json:"unitAllowDecimal"`
-	IsService        bool            `json:"isService"`
-	TrackSerial      bool            `json:"trackSerial"`
-	WarrantyMonths   int             `json:"warrantyMonths"`
-	Emoji            string          `json:"emoji"`
-	Badges           []string        `json:"badges"`
-	Suggestion       *SaleSuggestion `json:"suggestion,omitempty"`
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	Barcode          string `json:"barcode"`
+	SellingPrice     string `json:"sellingPrice"`
+	WholesalePrice   string `json:"wholesalePrice"`
+	TaxRate          string `json:"taxRate"`
+	StockQty         string `json:"stockQty"`
+	UnitAbbr         string `json:"unitAbbr"`
+	UnitAllowDecimal bool   `json:"unitAllowDecimal"`
+	IsService        bool   `json:"isService"`
+	TrackSerial      bool   `json:"trackSerial"`
+	WarrantyMonths   int    `json:"warrantyMonths"`
+	// LowStock: on hand is at or below the product's reorder level (none set = never).
+	LowStock   bool            `json:"lowStock"`
+	Emoji      string          `json:"emoji"`
+	Badges     []string        `json:"badges"`
+	Suggestion *SaleSuggestion `json:"suggestion,omitempty"`
 	// Packs: other ways to sell it (Card ×12), smallest first. ScannedPackID is
 	// set on a barcode lookup when the code was a pack's (add that pack).
 	Packs         []TillPack `json:"packs"`

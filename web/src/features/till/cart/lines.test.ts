@@ -5,7 +5,7 @@ import { addProduct, lotExpired, lotsFor, serviceLine, setQty, swapProduct, unit
 const prod = (p: Partial<TillProduct> = {}): TillProduct => ({
   id: 7, name: 'Soap', barcode: '', sellingPrice: '100.00', wholesalePrice: '90.00', taxRate: '0',
   stockQty: '10', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false,
-  warrantyMonths: 0, emoji: '', badges: [], packs: [], ...p,
+  warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [], ...p,
 })
 const lot = (batchId: number, price: string, qty: string, expiryDate = ''): Lot => ({
   batchId, batchNo: '', expiryDate, qtyRemaining: qty, price, receivedAt: '2026-09-01',
