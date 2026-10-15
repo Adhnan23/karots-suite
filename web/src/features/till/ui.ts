@@ -8,4 +8,4 @@ export const FIELD =
   'h-[var(--control-h)] rounded-[var(--radius-sm)] border border-border bg-muted px-3 text-[15px] text-foreground outline-none placeholder:text-faint focus-visible:ring-2 focus-visible:ring-ring'
 /** Product and group cards: no glass (GPU), lift on hover via motion. */
 export const TILE =
-  'relative flex aspect-[5/4] min-h-[120px] w-full flex-col justify-between gap-2 overflow-hidden rounded-[var(--radius-sm)] border border-border bg-card p-3 text-left shadow-[var(--shadow)]'
+  'relative flex h-full min-h-[max(140px,16vh)] w-full flex-col justify-between gap-2 overflow-hidden rounded-[var(--radius-sm)] border border-border bg-card p-3 text-left shadow-[var(--shadow)]'
