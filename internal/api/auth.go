@@ -18,6 +18,16 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 		info.InstallID = cfg.InstallID
 		info.ShopName = cfg.ShopName
 	}
+	info.Notes, info.Coins = []string{}, []string{}
+	if rows, err := h.t.denoms.List(c.Request().Context(), true); err == nil {
+		for _, d := range rows {
+			if d.IsNote {
+				info.Notes = append(info.Notes, d.Value.String())
+			} else {
+				info.Coins = append(info.Coins, d.Value.String())
+			}
+		}
+	}
 	return c.JSON(http.StatusOK, info)
 }
 

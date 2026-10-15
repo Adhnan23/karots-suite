@@ -21,6 +21,10 @@ type LoginInfo struct {
 	InstallID  string `json:"installId"`
 	ShopName   string `json:"shopName"`
 	ServerTime string `json:"serverTime"` // RFC3339 UTC
+	// The shop's active notes and coins (face values only), for the login / lock
+	// easter-egg shop game's cash drawer.
+	Notes []string `json:"notes"`
+	Coins []string `json:"coins"`
 }
 
 type ChangePinRequest struct {

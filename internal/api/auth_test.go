@@ -72,6 +72,9 @@ func TestLoginInfoPublic(t *testing.T) {
 	json.Unmarshal(rec.Body.Bytes(), &li) //nolint:errcheck
 	if rec.Code != 200 || !regexp.MustCompile(`^[0-9A-F]{8}$`).MatchString(li.InstallID) || li.ServerTime == "" {
 		t.Fatalf("%d %+v", rec.Code, li)
+	}	// Notes and coins are always lists (the shop game's drawer), never null.
+	if li.Notes == nil || li.Coins == nil {
+		t.Fatalf("notes / coins missing: %s", rec.Body)
 	}
 }
 

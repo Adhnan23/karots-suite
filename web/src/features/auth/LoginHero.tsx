@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
-const GAMES = [lazy(() => import('./CoinGame')), lazy(() => import('./BlockGame'))]
+const GAMES = [lazy(() => import('./CoinGame')), lazy(() => import('./BlockGame')), lazy(() => import('./ShopGame'))]
 
 function useClock() {
   const [now, setNow] = useState(() => new Date())
@@ -13,7 +13,7 @@ function useClock() {
 
 /** Left panel of login/lock (theme.md §5): brand on top, a live clock and the date
  * in the middle, the server status at the foot. Collapses to a compact header strip
- * on a phone. Tapping the clock 7 times opens a little game, coins or blocks at random (an easter egg). */
+ * on a phone. Tapping the clock 7 times opens a little game at random: coins, blocks or the shop (an easter egg). */
 export function LoginHero({ shopName }: { shopName: string }) {
   const now = useClock()
   const h24 = now.getHours()
