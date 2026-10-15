@@ -119,6 +119,7 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 
 - **System user** `0000000001`: its PIN rotates hourly (install ID + HMAC); `POS_SYSTEM_PIN` overrides it, with `2273` as the dev fallback. It's invisible to the shop and excluded from Activity and audit. It reaches Appearance by tapping its own name 8 times in the avatar menu — no nav item, ever.
 - **Login-page Konami** (↑↑↓↓←→←→BA) reveals the install ID and server time. The install ID is also logged to the console.
+- **Clock easter egg:** 7 taps on the login / lock clock (within 3s) open a coin-catch game (`features/auth/CoinGame.tsx`, best score per device); Esc closes it. It only paints over the page.
 - **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
 - **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
 - **Kiosk lockdown** (`web/src/lib/lockdown.ts`, karots-pos `core.js`): F1–F12 never reach the browser; F1 on a counter tab goes back to Sell; on the till / account / lock pages browser Ctrl combos, Alt+←/→ and right-click (outside text boxes) are off. **The system user is exempt** (support needs DevTools) — suite-only.

@@ -37,6 +37,7 @@ function Login() {
     setError(null)
     try {
       await api<LoginResponse>('/auth/login', { json: { phone, pin } })
+      try { sessionStorage.removeItem('ks-locked-at') } catch { /* ignore */ } // a fresh sign-in starts no lock clock
       queryClient.removeQueries({ queryKey: ['me'] })
       navigate({ to: '/' })
     } catch (err) {
@@ -57,71 +58,73 @@ function Login() {
           e.preventDefault()
           handleSubmit()
         }}
-        className="relative flex flex-col justify-center gap-5 p-6 md:p-16"
+        className="relative flex flex-col justify-center p-6 md:items-center md:p-16"
       >
         <div className="absolute top-4 right-4 md:top-6 md:right-6">
           <ModeToggle />
         </div>
-        <div className="flex flex-col gap-1">
-          <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Sign in to the counter</h2>
-          <p className="text-muted-foreground">Your phone number, then your PIN.</p>
-        </div>
-        <div className="flex max-w-[360px] flex-col gap-1.5">
-          <label htmlFor="login-phone" className="text-xs font-bold text-muted-foreground">
-            Phone
-          </label>
-          <input
-            ref={phoneRef}
-            id="login-phone"
-            name="ks-ph"
-            type="text"
-            inputMode="tel"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder="07X XXX XXXX"
-            value={phone}
-            onFocus={() => setTarget('phone')}
-            onChange={(e) => setPhone(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                pinRef.current?.focus()
-              }
-            }}
-            className="h-[54px] rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 font-display text-xl font-bold tracking-wide outline-none focus:border-brand"
-          />
-        </div>
-        <div className="flex max-w-[360px] flex-col gap-1.5">
-          <label htmlFor="login-pin" className="text-xs font-bold text-muted-foreground">
-            PIN
-          </label>
-          <PinField
-            id="login-pin"
-            inputRef={pinRef}
-            value={pin}
-            onChange={setPin}
-            onFocus={() => setTarget('pin')}
-            onEnter={handleSubmit}
-            shake={shake}
-          />
-        </div>
-        <p role="alert" className="-my-2 min-h-[21px] text-sm font-semibold text-destructive">
-          {error}
-        </p>
-        <PinPad onKey={handlePadKey} />
-        <button
-          type="submit"
-          className="h-14 max-w-[360px] rounded-[var(--radius-sm)] bg-brand font-semibold text-brand-foreground shadow-[var(--glow)]"
-        >
-          Sign in
-        </button>
-        {reveal && info && (
-          <p className="flex gap-3.5 text-sm text-muted-foreground">
-            Install ID <b className="font-mono text-foreground">{info.installId}</b>
-            Server time <b className="font-mono text-foreground">{info.serverTime}</b>
+        <div className="flex w-full flex-col gap-5 md:max-w-[440px]">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Sign in to the counter</h2>
+            <p className="text-muted-foreground">Your phone number, then your PIN.</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="login-phone" className="text-xs font-bold text-muted-foreground">
+              Phone
+            </label>
+            <input
+              ref={phoneRef}
+              id="login-phone"
+              name="ks-ph"
+              type="text"
+              inputMode="tel"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="07X XXX XXXX"
+              value={phone}
+              onFocus={() => setTarget('phone')}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  pinRef.current?.focus()
+                }
+              }}
+              className="h-[62px] rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 font-display text-2xl font-bold tracking-wide outline-none focus:border-brand"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="login-pin" className="text-xs font-bold text-muted-foreground">
+              PIN
+            </label>
+            <PinField
+              id="login-pin"
+              inputRef={pinRef}
+              value={pin}
+              onChange={setPin}
+              onFocus={() => setTarget('pin')}
+              onEnter={handleSubmit}
+              shake={shake}
+            />
+          </div>
+          <p role="alert" className="-my-2 min-h-[21px] text-sm font-semibold text-destructive">
+            {error}
           </p>
-        )}
+          <PinPad onKey={handlePadKey} />
+          <button
+            type="submit"
+            className="h-16 rounded-[var(--radius-sm)] bg-brand text-lg font-semibold text-brand-foreground shadow-[var(--glow)]"
+          >
+            Sign in
+          </button>
+          {reveal && info && (
+            <p className="flex gap-3.5 text-sm text-muted-foreground">
+              Install ID <b className="font-mono text-foreground">{info.installId}</b>
+              Server time <b className="font-mono text-foreground">{info.serverTime}</b>
+            </p>
+          )}
+        </div>
       </form>
     </div>
   )

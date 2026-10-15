@@ -32,6 +32,17 @@ test('konami on login reveals the install id', async ({ page }) => {
   await expect(page.getByText(/^[0-9A-F]{8}$/)).toBeVisible()
 })
 
+test('seven taps on the clock open the coin game; Esc closes it', async ({ page }) => {
+  await page.goto('/login')
+  const clock = page.getByText(/^\d{1,2}:\d{2}/).first()
+  for (let i = 0; i < 7; i++) await clock.click()
+  const game = page.getByRole('dialog', { name: 'Coin game' })
+  await expect(game).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(game).toBeHidden()
+  await expect(page.getByLabel('Phone')).toBeVisible()
+})
+
 test('admin lands on /admin; lock + reload stays locked; unlock resumes', async ({ page }) => {
   await login(page, '0770000001')
   await expect(page).toHaveURL(/\/admin/)
@@ -39,6 +50,7 @@ test('admin lands on /admin; lock + reload stays locked; unlock resumes', async 
   await expect(page).toHaveURL(/\/lock$/)
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/lock$/)
+  await expect(page.getByText(/Locked (just now|\d+ min ago)/)).toBeVisible()
   await page.getByLabel('Phone').fill('0770000001')
   await page.getByLabel('PIN').fill('1234')
   await page.getByRole('button', { name: /unlock/i }).click()

@@ -29,7 +29,7 @@ export function PinField({ id, value, onChange, onFocus, onEnter, shake, inputRe
   return (
     <div
       className={cn(
-        'relative flex h-[54px] items-center gap-3 rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 focus-within:border-brand',
+        'relative flex h-[62px] items-center gap-3 rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 focus-within:border-brand',
         shake && 'animate-[shake_0.35s_ease]',
       )}
     >

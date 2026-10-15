@@ -8,7 +8,7 @@ export type PinKey = (typeof KEYS)[number]
 export function PinPad({ onKey }: { onKey: (key: PinKey) => void }) {
   return (
     <div
-      className="grid max-w-[360px] grid-cols-3 gap-2.5"
+      className="grid grid-cols-3 gap-3"
       onMouseDown={(e) => e.preventDefault()}
     >
       {KEYS.map((k) =>
@@ -17,7 +17,7 @@ export function PinPad({ onKey }: { onKey: (key: PinKey) => void }) {
             key={k}
             type="button"
             onClick={() => onKey(k)}
-            className="h-[58px] rounded-[var(--radius-sm)] border border-border bg-muted text-sm font-bold text-muted-foreground"
+            className="h-[68px] rounded-[var(--radius-sm)] border border-border bg-muted text-sm font-bold text-muted-foreground"
           >
             Clear
           </button>
@@ -27,7 +27,7 @@ export function PinPad({ onKey }: { onKey: (key: PinKey) => void }) {
             type="button"
             aria-label="Delete"
             onClick={() => onKey(k)}
-            className="flex h-[58px] items-center justify-center rounded-[var(--radius-sm)] border border-border bg-muted text-muted-foreground"
+            className="flex h-[68px] items-center justify-center rounded-[var(--radius-sm)] border border-border bg-muted text-muted-foreground"
           >
             <Delete size={20} />
           </button>
@@ -36,7 +36,7 @@ export function PinPad({ onKey }: { onKey: (key: PinKey) => void }) {
             key={k}
             type="button"
             onClick={() => onKey(k)}
-            className="h-[58px] rounded-[var(--radius-sm)] border border-border bg-card font-display text-xl font-bold shadow-[var(--shadow)] active:scale-95"
+            className="h-[68px] rounded-[var(--radius-sm)] border border-border bg-card font-display text-2xl font-bold shadow-[var(--shadow)] active:scale-95"
           >
             {k}
           </button>
