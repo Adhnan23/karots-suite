@@ -43,9 +43,13 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
     let state: 'ready' | 'play' | 'over' = 'ready'
     let coins: Coin[] = [], score = 0, lives = LIVES, top = best(), spawn = 0, flash = 0
     let x = W / 2, keyDir = 0, last = performance.now(), raf = 0
+    // Fair drops: coins land one after another (clock in frames), each within reach
+    // of the last at the drawer's keyboard speed — never two you can't both catch.
+    const SPEED = 12, GAP = 16
+    let clock = 0, lastLand = 0, lastX = W / 2
     const tray = () => ({ w: Math.min(170, W * 0.3), h: 26, y: H - 70 })
 
-    const start = () => { coins = []; score = 0; lives = LIVES; spawn = 0; state = 'play' }
+    const start = () => { coins = []; score = 0; lives = LIVES; spawn = 0; state = 'play'; lastLand = clock; lastX = x }
     const over = () => {
       state = 'over'
       if (score > top) { top = score; try { localStorage.setItem(BEST, String(top)) } catch { /* private mode */ } }
@@ -54,6 +58,7 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
     function step(now: number) {
       const dt = Math.min(50, now - last) / 16.67
       last = now
+      clock += dt
       const t = tray()
       x = Math.max(t.w / 2, Math.min(W - t.w / 2, x + keyDir * 12 * dt))
       if (state === 'play') {
@@ -62,7 +67,15 @@ export default function CoinGame({ onClose }: { onClose: () => void }) {
         if (spawn <= 0) {
           const v = VALUES[Math.floor(Math.random() * VALUES.length)]
           const r = 16 + VALUES.indexOf(v) * 5
-          coins.push({ x: r + Math.random() * (W - 2 * r), y: -r, r, v, vy: 3 + Math.random() * 1.5 + Math.min(6, score / 60) })
+          const fall = t.y + r // from just above the screen to the drawer
+          let vy = 3 + Math.random() * 1.5 + Math.min(6, score / 60)
+          let land = clock + fall / vy
+          if (land < lastLand + GAP) { land = lastLand + GAP; vy = fall / (land - clock) }
+          const reach = SPEED * (land - lastLand) * 0.75 + t.w * 0.4
+          const cx = Math.max(r, Math.min(W - r, lastX + (Math.random() * 2 - 1) * reach))
+          coins.push({ x: cx, y: -r, r, v, vy })
+          lastLand = land
+          lastX = cx
           spawn = Math.max(330, 900 - score * 3)
         }
         for (const c of coins) c.y += c.vy * dt
