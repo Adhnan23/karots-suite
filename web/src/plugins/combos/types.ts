@@ -41,3 +41,5 @@ export type ComboRequest = {
 
 export type ReportRow = { comboId: number | null; name: string; sets: string; net: string; discount: string; bills: number }
 export type Report = { rows: ReportRow[]; totals: ReportRow }
+
+export type Settings = { autoApply: boolean }
