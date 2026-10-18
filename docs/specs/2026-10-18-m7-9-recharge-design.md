@@ -40,8 +40,9 @@ karots-pos grew recharge one request at a time:
   its own `commission` row (+float) next to the move. **Packages** per carrier: name, price, **float used**
   (e.g. "Dialog 100 data", 100, 88) — commission = price − float used. Live balance after a 100 package from
   1,000: **912**.
-- **C. Counts check what's left.** Open / Close till dialogs (drawer section): each float device with its
-  expected balance pre-filled, count optional (blank = not counted). Admin **Count now** on the Float page. A
+- **C. Counts check what's left.** Not in the Open dialog (user, 2026-10-18: "do we need them always?" — no); the
+  Close dialog has a folded, optional **📲 Check the reload phones** that opens each float device with its expected
+  balance (blank = not counted). Core seam: `DrawerSection.on` (which dialogs a section shows in). Admin **Count now** on the Float page. A
   count writes a `count` row (counted − expected): labelled **+ unexplained (promo?)** or **short**. The Float
   page **suggests a rate** from the last 30 days when counts keep coming out the same way ("counts suggest Dialog
   reload ≈ 3.4%, not 3% — update?"); one tap updates it, never automatic.
