@@ -86,6 +86,9 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
       <div class="seg" id="os"></div>
       <label class="f">Processor</label>
       <div class="seg" id="arch"></div>
+      <label class="f">Database</label>
+      <div class="seg" id="mode"></div>
+      <div class="hint" id="modeHint"></div>
       <label class="f" for="name">Binary name</label>
       <input id="name" autocomplete="off" spellcheck="false">
       <div class="hint" id="nameHint"></div>
@@ -107,7 +110,8 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
 const $ = (id) => document.getElementById(id)
 const OS = [['linux', 'Linux'], ['windows', 'Windows'], ['darwin', 'macOS'], ['freebsd', 'FreeBSD']]
 const ARCH = [['amd64', 'Intel / AMD'], ['arm64', 'ARM']]
-const s = { picked: new Set(), os: 'linux', arch: 'amd64', plugins: [] }
+const MODE = [['file', 'One PC (file mode)'], ['server', 'Server (PostgreSQL)']]
+const s = { picked: new Set(), os: 'linux', arch: 'amd64', mode: 'server', plugins: [] }
 
 function seg(el, opts, key) {
   el.innerHTML = ''
@@ -142,11 +146,17 @@ function valid() {
   $('iidHint').textContent = iidOk ? (iid ? 'Rebuilding for shop ' + iid + ' — its support PIN stays the same.' : 'Empty mints a new one. Paste a shop\'s id to keep its support PIN.') : '4–32 letters or digits, e.g. 3FA2C91B.'
   return nameOk && iidOk
 }
+function fileOk() { return s.os === 'windows' ? s.arch === 'amd64' : s.os === 'linux' || s.os === 'darwin' }
 function summary() {
   const n = s.picked.size, osName = OS.find((o) => o[0] === s.os)[1]
   const file = $('name').value.trim() + (s.os === 'windows' ? '.exe' : '')
-  $('summary').textContent = `dist/${file} · ${osName} · ${n ? n + ' plugin' + (n > 1 ? 's' : '') : 'core only'}`
-  $('go').disabled = !valid() || s.building
+  const modeOk = s.mode === 'server' || fileOk()
+  $('modeHint').className = 'hint' + (modeOk ? '' : ' bad')
+  $('modeHint').textContent = !modeOk ? 'File mode has no PostgreSQL for this system — pick Server, or Linux / macOS / Windows on Intel / AMD.'
+    : s.mode === 'file' ? 'Runs its own PostgreSQL from a data folder next to the program — nothing to install (+15 MB). Move to a server later by backup → restore.'
+    : 'Needs a PostgreSQL server and DATABASE_URL in the .env.'
+  $('summary').textContent = `dist/${file} · ${osName} · ${s.mode === 'file' ? 'one PC' : 'server'} · ${n ? n + ' plugin' + (n > 1 ? 's' : '') : 'core only'}`
+  $('go').disabled = !valid() || !modeOk || s.building
 }
 async function build() {
   if (!valid()) return
@@ -154,7 +164,7 @@ async function build() {
   $('go').innerHTML = '<span class="spin"></span>Building…'
   $('log').classList.add('on'); $('out').textContent = ''; $('done').className = 'done'
   const res = await fetch('/api/build', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plugins: s.plugins.filter((p) => s.picked.has(p.key)).map((p) => p.key), os: s.os, arch: s.arch, name: $('name').value.trim(), installId: $('iid').value.trim() }) })
+    body: JSON.stringify({ plugins: s.plugins.filter((p) => s.picked.has(p.key)).map((p) => p.key), os: s.os, arch: s.arch, mode: s.mode, name: $('name').value.trim(), installId: $('iid').value.trim() }) })
   let text = ''
   if (!res.ok) { text = (await res.json()).error; finish(null, text); return }
   const reader = res.body.getReader(), dec = new TextDecoder()
@@ -181,7 +191,7 @@ function finish(r, err) {
 fetch('/api/state').then((r) => r.json()).then((st) => {
   Object.assign(s, { plugins: st.plugins, os: st.os, arch: st.arch })
   $('name').value = st.name; $('secret').hidden = st.hasSecret
-  seg($('os'), OS, 'os'); seg($('arch'), ARCH, 'arch'); plugins(); summary()
+  seg($('os'), OS, 'os'); seg($('arch'), ARCH, 'arch'); seg($('mode'), MODE, 'mode'); plugins(); summary()
 })
 $('name').oninput = summary; $('iid').oninput = summary; $('go').onclick = build
 $('all').onclick = () => { s.plugins.forEach((p) => s.picked.add(p.key)); plugins(); summary() }

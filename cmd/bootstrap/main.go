@@ -18,6 +18,7 @@
 //	-os / -arch  target GOOS (linux | windows | darwin | freebsd) / GOARCH (amd64 | arm64)
 //	-name        output binary base name (default karots-suite)
 //	-out         output directory (default dist)
+//	-mode        server (DATABASE_URL, default) | file (embeds its own PostgreSQL, one PC)
 //	-install-id  reuse a shop's install id (keeps its support PIN)
 //	-X           extra space-separated -X name=value pairs for -ldflags (M8 release tool)
 //	-write-only  write the two plugin lists and stop (no build, no restore)
@@ -62,6 +63,7 @@ func run() error {
 		archFlag    = flag.String("arch", "amd64", "target GOARCH: amd64 | arm64")
 		nameFlag    = flag.String("name", "karots-suite", "output binary base name")
 		outFlag     = flag.String("out", "dist", "output directory")
+		modeFlag    = flag.String("mode", "server", "database: server (DATABASE_URL) | file (its own PostgreSQL, one PC)")
 		installID   = flag.String("install-id", "", "reuse this shop's install id (keeps its support PIN)")
 		extraX      = flag.String("X", "", "extra space-separated -X name=value pairs for -ldflags")
 		writeOnly   = flag.Bool("write-only", false, "write the plugin lists and stop (dev)")
@@ -89,7 +91,7 @@ func run() error {
 		fmt.Println("plugin lists:", names(sel))
 		return nil
 	}
-	res, err := build(buildOpts{Plugins: sel, OS: *osFlag, Arch: *archFlag, Name: *nameFlag, Out: *outFlag, InstallID: *installID, ExtraX: *extraX}, os.Stdout)
+	res, err := build(buildOpts{Plugins: sel, OS: *osFlag, Arch: *archFlag, Name: *nameFlag, Out: *outFlag, InstallID: *installID, ExtraX: *extraX, Mode: *modeFlag}, os.Stdout)
 	if err != nil {
 		return err
 	}

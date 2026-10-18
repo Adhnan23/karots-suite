@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/filedb"
 	"karots-suite/internal/support"
 )
 
@@ -20,6 +21,7 @@ type buildOpts struct {
 	OS, Arch  string
 	Name, Out string
 	InstallID string // "" = mint a new one (only when POS_SUPPORT_SECRET is set)
+	Mode      string // "server" (DATABASE_URL, default) | "file" (its own PostgreSQL, one PC)
 	ExtraX    string
 }
 
@@ -41,7 +43,14 @@ var (
 func (o *buildOpts) check() error {
 	o.OS, o.Arch = strings.ToLower(strings.TrimSpace(o.OS)), strings.ToLower(strings.TrimSpace(o.Arch))
 	o.InstallID = support.Normalise(o.InstallID)
+	if o.Mode == "" {
+		o.Mode = "server"
+	}
 	switch {
+	case o.Mode != "server" && o.Mode != "file":
+		return fmt.Errorf("unsupported mode %q (server | file)", o.Mode)
+	case o.Mode == "file" && !filedb.Supported(o.OS, o.Arch):
+		return fmt.Errorf("file mode has no PostgreSQL for %s/%s (Linux, macOS, Windows on Intel / AMD)", o.OS, o.Arch)
 	case !validOS[o.OS]:
 		return fmt.Errorf("unsupported OS %q (linux | windows | darwin | freebsd)", o.OS)
 	case !validArch[o.Arch]:
@@ -70,7 +79,26 @@ func build(o buildOpts, log io.Writer) (buildResult, error) {
 		bin += ".exe"
 	}
 	res := buildResult{Binary: filepath.Join(o.Out, bin), InstallID: id, SupportPIN: pin}
-	fmt.Fprintf(log, "Building %s for %s/%s with %s\n", res.Binary, o.OS, o.Arch, names(o.Plugins))
+	fmt.Fprintf(log, "Building %s for %s/%s (%s mode) with %s\n", res.Binary, o.OS, o.Arch, o.Mode, names(o.Plugins))
+	args := []string{"build", "-ldflags=" + ldflags, "-o", res.Binary}
+	if o.Mode == "file" {
+		cache, err := os.UserCacheDir()
+		if err != nil {
+			return res, err
+		}
+		fmt.Fprintf(log, "→ PostgreSQL %s for %s/%s (downloaded once, then cached)\n", filedb.PGVersion, o.OS, o.Arch)
+		src, err := filedb.FetchBundle(filepath.Join(cache, "karots-suite-filedb"), o.OS, o.Arch)
+		if err != nil {
+			return res, err
+		}
+		cleanup, err := placeBundle(src, bundlePath)
+		if err != nil {
+			return res, err
+		}
+		defer cleanup()
+		args = append(args, "-tags", "filemode")
+	}
+	args = append(args, "./cmd/server")
 	err = withSelection(goListPath, tsListPath, o.Plugins, func() error {
 		if err := buildSPA(log); err != nil { // the SPA embeds the selected plugins' React halves
 			return err
@@ -80,9 +108,28 @@ func build(o buildOpts, log io.Writer) (buildResult, error) {
 		if o.Arch == "amd64" {
 			env = append(env, "GOAMD64=v1")
 		}
-		return sh(log, env, "go", "build", "-ldflags="+ldflags, "-o", res.Binary, "./cmd/server")
+		return sh(log, env, "go", args...)
 	})
 	return res, err
+}
+
+// bundlePath is where a `-tags filemode` build embeds PostgreSQL from (gitignored).
+var bundlePath = filepath.Join("internal", "filedb", "bundle", "postgres.txz")
+
+// placeBundle copies the target's PostgreSQL bundle in for the build; cleanup
+// removes it again, so the tree is clean after every build, as with the plugin lists.
+func placeBundle(src, dst string) (cleanup func(), err error) {
+	b, err := os.ReadFile(src)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return nil, err
+	}
+	if err := os.WriteFile(dst, b, 0o644); err != nil {
+		return nil, err
+	}
+	return func() { os.Remove(dst) }, nil
 }
 
 // supportFlags bakes this shop's install id and support seed — never the master

@@ -46,6 +46,7 @@ type appBuild struct {
 	Arch      string   `json:"arch"`
 	Name      string   `json:"name"`
 	InstallID string   `json:"installId"`
+	Mode      string   `json:"mode"`
 }
 
 // serveApp runs the bootstrap app on addr (loopback only) and opens it in the
@@ -87,7 +88,7 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 			writeErr(w, http.StatusBadRequest, "bad request: "+err.Error())
 			return
 		}
-		o := buildOpts{OS: in.OS, Arch: in.Arch, Name: in.Name, Out: st.Out, InstallID: in.InstallID}
+		o := buildOpts{OS: in.OS, Arch: in.Arch, Name: in.Name, Out: st.Out, InstallID: in.InstallID, Mode: in.Mode}
 		for _, k := range in.Plugins {
 			m, ok := byKey[k]
 			if !ok {

@@ -72,3 +72,41 @@ func TestSelectRequires(t *testing.T) {
 		t.Fatalf("got %q, %v; want alpha, gamma", names(got), err)
 	}
 }
+
+func TestFileModeCheck(t *testing.T) {
+	ok := buildOpts{OS: "windows", Arch: "amd64", Name: "shop", Mode: "file"}
+	if err := ok.check(); err != nil {
+		t.Fatal(err)
+	}
+	for _, o := range []buildOpts{
+		{OS: "freebsd", Arch: "amd64", Name: "shop", Mode: "file"},
+		{OS: "windows", Arch: "arm64", Name: "shop", Mode: "file"},
+		{OS: "linux", Arch: "amd64", Name: "shop", Mode: "cloud"},
+	} {
+		if err := o.check(); err == nil {
+			t.Errorf("%+v: expected a refusal", o)
+		}
+	}
+	if o := (buildOpts{OS: "linux", Arch: "amd64", Name: "shop"}); o.check() != nil || o.Mode != "server" {
+		t.Fatalf("no mode = server: %+v", o)
+	}
+}
+
+func TestPlaceBundleCleansUp(t *testing.T) {
+	dir := t.TempDir()
+	src, dst := filepath.Join(dir, "src.txz"), filepath.Join(dir, "bundle", "postgres.txz")
+	if err := os.WriteFile(src, []byte("pg"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cleanup, err := placeBundle(src, dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(dst); string(b) != "pg" {
+		t.Fatal("bundle not placed")
+	}
+	cleanup()
+	if _, err := os.Stat(dst); !os.IsNotExist(err) {
+		t.Fatal("bundle left in the tree")
+	}
+}
