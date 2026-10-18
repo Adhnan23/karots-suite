@@ -212,7 +212,13 @@ day, wages already cover it; the lost weight is in the loose cost.
   copy refused, kill -9 → restart with data, clean stop leaves no Postgres; builder made Linux (39 MB) and Windows
   all-plugins (50 MB) file-mode binaries. **Left for the user: a Windows check** (double-click → till; close the
   window → no `postgres.exe` left; start again → same data; Sinhala product search) and one file → server move.
-  **NEXT: M8b self-update + release tooling** (spec first; stop / start Postgres around the swap).
+  **NEXT: M8b Shop Builder** (spec first).
+- **M8 reordered (user, 2026-10-18):** **M8b Shop Builder** — shop profiles (plugins, database mode, install id,
+  update channel, each shop's `.env`: JWT secret, DB URL) and the install scripts (`install.sh`, `build.ps1`,
+  `install.ps1`, karots-pos style) that put the profile's `.env` beside the binary → **M8c self-update + release**
+  (build every shop or a new one from its profile → publish to R2 → each shop checks and self-updates; stop / start
+  Postgres around the swap) → **M8d Demo Room** + README → **M8e Pocket Cashier groundwork**. A shop's first
+  hand-installed binary should come after M8c, so it already carries the updater.
   (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
