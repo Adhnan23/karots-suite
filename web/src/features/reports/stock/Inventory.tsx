@@ -30,7 +30,7 @@ export function InventoryPage() {
   const top = Math.max(0, ...(d?.children.map((c) => num(c.costValue)) ?? []))
   const crumb = 'rounded-full px-2.5 py-1 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground'
   return (
-    <ReportPage title="Inventory valuation" sub="What the stock on hand is worth — at what you paid for it, and at what it sells for."
+    <ReportPage rows={list} title="Inventory valuation" sub="What the stock on hand is worth — at what you paid for it, and at what it sells for."
       exportUrl={`/api/v1/admin/reports/inventory?${reportQS({ preset: '', ...f })}`}
       filters={(
         <label className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">

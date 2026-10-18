@@ -32,7 +32,7 @@ export function LossesPage() {
   const rows = list.data?.pages.flat() ?? []
   const [recover, setRecover] = useState<LossRow | null>(null)
   return (
-    <ReportPage title="Losses and recovery" sub="Stock lost to damage and warranty swaps, and what suppliers made good."
+    <ReportPage rows={list} title="Losses and recovery" sub="Stock lost to damage and warranty swaps, and what suppliers made good."
       range={r} onRange={(x) => void navigate({ search: (p) => ({ ...p, ...x }), replace: true })} caption={d && periodText(d.from, d.to)}
       exportUrl={`/api/v1/admin/reports/losses?${reportQS(r)}`}>
       <KpiStrip label="Headline" cols={4}>

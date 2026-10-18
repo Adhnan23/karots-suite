@@ -44,7 +44,7 @@ export function ActivityPage() {
   const label = (src: string) => opts?.sources.find((o) => o.id === src)?.label ?? src
   const sel = cn(INPUT, 'appearance-auto md:w-48')
   return (
-    <ReportPage title="Activity" sub="Who did what — changes, stock moves, the cash drawer and lockers."
+    <ReportPage rows={list} title="Activity" sub="Who did what — changes, stock moves, the cash drawer and lockers."
       range={f} onRange={(r) => set(r)} caption={rows.length ? undefined : periodText(f.from || '', f.to || '') || undefined}
       exportUrl={`/api/v1/admin/activity?${reportQS(f)}`}
       filters={(

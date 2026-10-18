@@ -30,7 +30,7 @@ export function ReturnsPage() {
   const [open, setOpen] = useState<number | null>(null)
   const top = num(d?.top[0]?.refund ?? '0')
   return (
-    <ReportPage title="Returns" sub="Goods taken back and money refunded, by the day it went back."
+    <ReportPage rows={list} title="Returns" sub="Goods taken back and money refunded, by the day it went back."
       range={r} onRange={(x) => void navigate({ search: (p) => ({ ...p, ...x }), replace: true })} caption={d && periodText(d.from, d.to)}
       exportUrl={`/api/v1/admin/reports/returns?${reportQS(r)}`}>
       <KpiStrip label="Headline" cols={4}>

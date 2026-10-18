@@ -50,7 +50,7 @@ export function SalesReportPage() {
   const grainWord = { day: 'day', week: 'week', month: 'month' }[d?.grain ?? 'day']
 
   return (
-    <ReportPage title="Sales" sub="Every sale in a period — what came in, what it cost, and how it compares with the period before."
+    <ReportPage rows={list} title="Sales" sub="Every sale in a period — what came in, what it cost, and how it compares with the period before."
       range={f} onRange={(r) => set(r)} caption={d && periodText(d.from, d.to)} exportUrl={`/api/v1/admin/sales/export?${salesQS(f)}`}
       filters={(
         <div className="grid grid-cols-2 gap-2 md:flex">
