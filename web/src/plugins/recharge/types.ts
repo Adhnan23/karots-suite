@@ -17,7 +17,6 @@ export type TillData = {
 export type CountResult = { deviceId: number; expected: string; counted: string; diff: string }
 export type Source = { value: string; label: string; balance: string }
 export type SaleLine = { saleItemId: number; kind: string; label: string; left: string }
-export type OldSlip = { no: string; at: string; title: string; detail: string; amount: string; charge: string; by: string }
 export type Suggestion = { carrierId: number; carrier: string; current: string; suggested: string; counts: number; extra: string; reloads: string }
 export type FloatPage = { floats: Float[]; total: string; suggestions: Suggestion[]; today: string; month: string; newPackages: number }
 export type Setup = { carriers: Carrier[]; devices: Device[]; packages: Package[] }

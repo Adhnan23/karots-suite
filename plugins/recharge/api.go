@@ -32,7 +32,6 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	t.POST("/recharge/packages/quick", h.quickPackage)
 	t.POST("/recharge/counts/drawer", h.drawerCounts)
 	t.GET("/recharge/sale-lines", h.saleLines)
-	t.GET("/recharge/old-slips", h.oldSlips)
 	t.GET("/recharge/refill/sources", h.counterSources, middleware.RequireSupplierAccess())
 	t.POST("/recharge/refill/counter", h.counterRefill, middleware.RequireSupplierAccess())
 	a := reg.Admin() // admin + manager

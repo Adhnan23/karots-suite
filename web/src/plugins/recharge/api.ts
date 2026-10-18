@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { queryClient } from '@/api/query-client'
-import type { CountResult, FloatPage, LedgerRow, OldSlip, Package, Rate, Report, SaleLine, Setup, Source, TillData } from './types'
+import type { CountResult, FloatPage, LedgerRow, Package, Rate, Report, SaleLine, Setup, Source, TillData } from './types'
 
 const base = '/x/recharge'
 export const key = (...k: unknown[]) => ['x', 'recharge', ...k]
@@ -9,7 +9,6 @@ export const key = (...k: unknown[]) => ['x', 'recharge', ...k]
 export const tillDataQuery = queryOptions({ queryKey: key('till'), queryFn: () => api<TillData>(`${base}/till`), staleTime: 15_000 })
 export const saleLinesQuery = (sale: number) => queryOptions({ queryKey: key('sale-lines', sale), queryFn: () => api<SaleLine[]>(`${base}/sale-lines?sale=${sale}`), staleTime: 60_000 })
 export const sourcesQuery = queryOptions({ queryKey: key('sources'), queryFn: () => api<Source[]>(`${base}/refill/sources`) })
-export const oldSlipsQuery = (q: string) => queryOptions({ queryKey: key('old-slips', q), queryFn: () => api<OldSlip[]>(`${base}/old-slips?q=${encodeURIComponent(q)}`) })
 export const setupQuery = queryOptions({ queryKey: key('setup'), queryFn: () => api<Setup>(`${base}/setup`) })
 export const floatQuery = queryOptions({ queryKey: key('float'), queryFn: () => api<FloatPage>(`${base}/float`) })
 export const ledgerQuery = (qs: string) => queryOptions({ queryKey: key('ledger', qs), queryFn: () => api<LedgerRow[]>(`${base}/ledger?${qs}`) })

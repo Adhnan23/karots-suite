@@ -492,8 +492,8 @@ Format: file · METHOD path (paths are relative to that file's route group).
 - [x] `plugins/recharge/recharge.go` · GET `/recharge` → Apps → Reload & Bills → Float (`GET /x/recharge/float`); the till 📲 menu
 - [x] `plugins/recharge/recharge.go` · GET `/recharge/accounts` → 📲 Pay a bill / Cash out account chips: banks + money devices (`GET /x/recharge/till`)
 - [x] `plugins/recharge/recharge.go` · GET `/recharge/banks` → bank lockers open to the till in `GET /x/recharge/till`
-- [x] `plugins/recharge/recharge.go` · GET `/recharge/bill/:id` → old RB- slips: till Receipts → Reload & Bills (old) (`GET /x/recharge/old-slips`); new bills are on the sale receipt
-- [x] `plugins/recharge/recharge.go` · GET `/recharge/bills` → dropped (user, 2026-10-18): admin bill-pay page — bills go through the till cart; old ones listed in the report / old slips
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/bill/:id` → dropped (user, 2026-10-18): old karots-pos slips aren't restored per plugin; bills are on the sale receipt
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/bills` → dropped (user, 2026-10-18): admin bill-pay page — bills go through the till cart; old ones listed in the report
 - [x] `plugins/recharge/recharge.go` · GET `/recharge/carriers` → Apps → Reload & Bills → Carriers (`GET /x/recharge/setup`)
 - [x] `plugins/recharge/recharge.go` · GET `/recharge/device-form` → Carriers → Add device sheet
 - [x] `plugins/recharge/recharge.go` · GET `/recharge/devices` → devices with floats in `GET /x/recharge/till` / setup
