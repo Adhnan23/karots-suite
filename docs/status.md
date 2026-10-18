@@ -150,8 +150,15 @@ day, wages already cover it; the lost weight is in the loose cost.
   Login / lock: centred clock, bigger centred form; lock shows "Locked N min ago" and an open sale's item count.
   **Clock easter egg** (7 taps): a games menu — Coin catch, Blocks, Shop Rush (see AGENTS.md hidden behaviours).
   **Future idea (not now):** sell the games as plugins — the Shop Builder compiles each in, all, or none.
-- **NEXT (fresh session): M7.9 Recharge** — rethink proposal first (keep · change · drop vs karots-pos, as for M7.7 / M7.8),
-  then spec + plan. (The roadmap below still shows the old numbers, each plugin moved up one.)
+- **M7.9 Reload & Bills (recharge) — rethink APPROVED (2026-10-18)**, spec `docs/specs/2026-10-18-m7-9-recharge-design.md`,
+  plan `docs/plans/2026-10-18-m7-9-recharge.md`. User: every customer money flow through the cart + Pay (as repairs) —
+  incl. **cash out as payout lines** (a cart may total below zero: "Give the customer"); **commission booked as it
+  happens** (rates per carrier per kind, packages with float used) so 1,000 − a 100 package reads 912; counts at open /
+  close only check what's left (rate suggestions); running float per device (no session); buying float is **not an
+  expense** (karots-pos P&L bug, fix there too); never block on a low float. Dropped: get money on credit, admin
+  bill-pay page. **Future idea:** modems with USSD / SIM Toolkit (`docs/ideas/recharge-modems.md`).
+- **NEXT: execute the M7.9 plan** (Task 1 core payout lines first). (The roadmap below still shows the old numbers,
+  each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
