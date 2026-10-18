@@ -120,12 +120,14 @@ karots-pos migrations 00001–00019 byte for byte (00003 adds `payment_method 'w
 - `recharge_packages (id, carrier_id, name, price, float_cost, is_active, sort, added_at_till_by NULL,
   reviewed_at NULL)` — a till-added package carries its cashier until an admin reviews it.
 - `recharge_counts (id, device_id, counted, expected, session_id NULL, created_by, created_at)`.
-- `recharge_transactions`: types + `commission`, `count`, `cashout`, `carried`; columns `parent_id`
-  (commission → its move), `package_id`, `customer_number`, `bank_locker_id`, `bill_type`.
+- `recharge_transactions`: types + `commission`, `count`, `cashout`; `session_id` nullable; columns `sale_item_id`,
+  `parent_id` (commission → its move), `package_id`, `count_id`, `customer_number`, `bill_type`. Bank bills keep
+  their row in `recharge_bill_tx` (+ `sale_id`, `sale_item_id`, `returned`).
 - `recharge_config (key, product_id)` — the plugin's own products (Bill payment, Wallet deposit, Cash out:
-  pass-through services; Service charge: a normal service), created once in a **Reload & Bills** category.
-- **Old balances:** one `carried` row per device = karots-pos `DeviceBalances()` − Σ its `float_delta`, so the
-  running balance equals what karots-pos showed. `carried` is never earnings. Old `recharge_device_sessions`,
+  pass-through services; Service charge: a normal service), created once in karots-pos's **Recharge** category.
+- **Old balances:** a device's balance is karots-pos's own formula — its last old closed session's closing + every
+  float row since (all rows when never closed). A restore lands after the migrations, so nothing is converted; the
+  suite never writes `recharge_device_sessions`, and its counts are `count` float rows that simply add on. Old `recharge_device_sessions`,
   `recharge_bill_tx`, `recharge_topups`, `recharge_carrier_sessions` stay as read-only history.
 
 ProductMerger: carrier and config product ids. DataGroup: every `recharge_*` table.

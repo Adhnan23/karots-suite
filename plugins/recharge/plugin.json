@@ -1,0 +1,7 @@
+{
+  "key": "recharge",
+  "name": "Reload & Bills",
+  "import": "karots-suite/plugins/recharge",
+  "version": "2.0.0",
+  "description": "Mobile-money agent at the till: reloads, carrier packages, bill payments, wallet deposits and cash outs as cart lines on the normal Pay (credit, split, card, receipt). One running float per device with the carrier's commission booked as it happens, float counts at open and close, buying float, and a wallet tender for any sale."
+}
