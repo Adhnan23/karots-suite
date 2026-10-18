@@ -53,7 +53,13 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddMoneyLocationProvider(plugin.MoneyLocationProvider{Group: "Reload float", List: p.store.moneyLocations})
 	reg.AddReadinessProvider(p.readiness)
 	reg.AddActivityContributor(plugin.ActivityContributor{Source: "recharge", List: p.store.activityRows})
+	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "recharge", Record: p.recordSale})
+	reg.AddReturnLineHook(plugin.ReturnLineHook{Key: "recharge", Record: p.recordReturn})
+	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Wallet (eZ Cash / mCash)", SettleTx: p.settleWallet})
 }
+
+// walletMethod is karots-pos's payment_method value (its migration 00003 added it).
+const walletMethod = "wallet"
 
 // mergeProduct follows a carrier's or the plugin's own product into the kept one.
 func mergeProduct(ctx context.Context, tx *sqlx.Tx, from, into int64) error {
