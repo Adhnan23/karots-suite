@@ -195,6 +195,11 @@ day, wages already cover it; the lost weight is in the loose cost.
   The demo stays on :3100. Old karots-pos RB-/RL- slips section dropped (everything is a sale; `4804a4e`).
 - **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
 - **Special / advance orders: SKIPPED (user, 2026-10-18)** — proposal made (new `orders` plugin on the repairs pattern: agreed price holds, deposit = advance, "What to make" list), user: skip it, come back only if a shop needs it. **NEXT: M8 Ship.**
+- **M8 order (user, 2026-10-18):** **M8a file mode** (embedded Postgres, single-PC shops) → **M8b self-update +
+  release tooling** (fork karots-pos `internal/update` + `cmd/release`, the suite's own key / feed / bucket) →
+  **M8c Shop Builder** over `shops.json` → **M8d Demo Room** + install scripts + README → **M8e Pocket Cashier
+  groundwork** (client id per sale request, per-device receipt series, real sale time). **Practice mode is removed
+  from M8.** The VAT tax invoice waits for the accountant's field list. Each part: spec first, then its plan.
   (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
@@ -516,7 +521,7 @@ shop (`docs/acceptance.md` § "The demo shop both apps hold now").
   at the till (money must land somewhere real), ready → collected, the balance rung as a sale. karots-pos
   shops misused Customer Requests for this (Demo Room's bakery / comms seeds). Revisit once every plugin
   is ported; likely its own plugin or a requests extension. Not built.
-- **Idea for M8 (user, 2026-10-08): Practice mode** for the system user. A "Practice mode" button
+- **Idea (user, 2026-10-08; REMOVED from M8 2026-10-18, not planned): Practice mode** for the system user. A "Practice mode" button
   (dashboard / hidden system menu) copies the whole shop into a throwaway database (the suite's own
   backup → restore) and opens a second suite process on it at its own port (e.g. :3200) with a
   "PRACTICE — nothing here is real" banner; sell, print, return, close the till, debug the cashier

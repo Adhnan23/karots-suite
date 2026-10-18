@@ -1,7 +1,7 @@
 # Idea: the big Shop Builder (M8)
 
 Captured 2026-10-12 from the user. It pulls together the M8 ideas already in `docs/status.md` (Shop Builder, self-update,
-file mode, practice mode). **Not planned yet**: it gets a rethink and a spec at M8. **The phone app is NOT part of
+file mode; practice mode was removed from M8 on 2026-10-18). **Not planned yet**: it gets a rethink and a spec at M8. **The phone app is NOT part of
 M8** (user, 2026-10-12) — it stays the later [Pocket Cashier](pocket-cashier.md) project; the last section only
 keeps the note of how it could plug in.
 
