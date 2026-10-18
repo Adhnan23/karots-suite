@@ -23,6 +23,13 @@ each shop's **mode** (file / server).
 
 ## One place that knows every shop
 
+**Each shop's `.env` lives in its profile (user, 2026-10-18).** Not written by the builder at M8a on purpose:
+a shop profile (plugins, database mode, install id, update channel) also keeps that shop's **`JWT_SECRET`** and
+its other `.env` values (mostly defaults; `DATABASE_URL` only for server mode). The local install scripts in
+karots-pos style (`install.sh`, `build.ps1`, `install.ps1`) drop the right `.env` next to the binary, and
+self-update builds each shop's binary from its profile. The user can always pull a shop's `.env` from their
+own system. A file-mode shop needs no `.env` at all (secret + backups self-set in `data/`).
+
 Today's suite Shop Builder (`cmd/bootstrap`) builds one binary at a time. The idea: it works from the **list of
 shops** (`shops.json`, as karots-pos `cmd/release` keeps it). For each shop it holds:
 
