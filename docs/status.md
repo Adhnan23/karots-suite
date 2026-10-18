@@ -170,6 +170,11 @@ day, wages already cover it; the lost weight is in the loose cost.
   prints a line's own label; the login page fit at 360px (since the 10-15 polish); the pinned total strip wrapped.
   Checks (2026-10-18): Playwright 171 + the 2 failures fixed and re-run (recharge 4/4, shell, auth — 15/15), 24 shot
   steps skipped; `go test -p 1` core-only and all plugins (46 ok); 229 web unit tests; `make verify`; verify-portable.
+- **Demo updated for M7.9 (2026-10-18):** `~/karots-accept/karots-suite-all` (all plugins) on :3100 against `suite_accept`;
+  previous binary `karots-suite-all.pre-m79`, DB backup `suite_accept-before-m79-2026-10-18.dump`. Recharge demo data:
+  Dialog (reload 3%, bill charge 30, deposit charge 20, cash out 0.5%, wallet 1%; Shop phone 8,500, target 20,000;
+  packages Night 50, Data 100, Data 299, Anytime 549), Mobitel (reload 2.5%; Reload SIM 4,200 and mCash SIM 12,000 —
+  two floats on one SIM; Data 200), bank BOC current account. No demo sales.
 - **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
 - **NEXT:** advance / special orders (parked "after M7.10" = after recharge) — rethink proposal first; then M8 Ship.
   (The roadmap below still shows the old numbers, each plugin moved up one.)
