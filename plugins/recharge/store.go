@@ -28,6 +28,8 @@ type Carrier struct {
 	Name      string `db:"name"       json:"name"`
 	ProductID int64  `db:"product_id" json:"productId"`
 	IsActive  bool   `db:"is_active"  json:"isActive"`
+	// SupplierID is the carrier's usual float dealer (a core supplier), 0 = none.
+	SupplierID int64 `db:"supplier_id" json:"supplierId"`
 }
 
 // Device is a SIM / phone / terminal under a carrier holding a float. Reload and
@@ -43,6 +45,7 @@ type Device struct {
 	TracksFloat bool            `db:"tracks_float"      json:"-"`
 	IsActive    bool            `db:"is_active"         json:"isActive"`
 	Target      decimal.Decimal `db:"recommended_float" json:"target"`
+	SupplierID  int64           `db:"supplier_id"       json:"supplierId"` // the carrier's usual dealer
 }
 
 // Package is a carrier package sold from its float.
@@ -60,14 +63,14 @@ type Package struct {
 
 func (s *Store) Carriers(ctx context.Context, all bool) ([]Carrier, error) {
 	out := []Carrier{}
-	err := s.db.SelectContext(ctx, &out, `SELECT id, name, product_id, is_active FROM recharge_carriers
+	err := s.db.SelectContext(ctx, &out, `SELECT id, name, product_id, is_active, COALESCE(supplier_id, 0) AS supplier_id FROM recharge_carriers
 		WHERE is_active OR $1 ORDER BY NOT is_active, name`, all)
 	return out, err
 }
 
 func (s *Store) Carrier(ctx context.Context, q appdb.Queryer, id int64) (*Carrier, error) {
 	var c Carrier
-	err := q.GetContext(ctx, &c, `SELECT id, name, product_id, is_active FROM recharge_carriers WHERE id = $1`, id)
+	err := q.GetContext(ctx, &c, `SELECT id, name, product_id, is_active, COALESCE(supplier_id, 0) AS supplier_id FROM recharge_carriers WHERE id = $1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, apperr.NotFound("carrier")
 	}
@@ -107,6 +110,15 @@ func (s *Store) CreateCarrier(ctx context.Context, name string) (int64, error) {
 }
 
 // RenameCarrier renames a carrier and its product (a rebrand keeps its history).
+// SetCarrierSupplier sets (0 clears) the carrier's usual float dealer.
+func (s *Store) SetCarrierSupplier(ctx context.Context, id, supplierID int64) error {
+	if _, err := s.Carrier(ctx, s.db, id); err != nil {
+		return err
+	}
+	_, err := s.db.ExecContext(ctx, `UPDATE recharge_carriers SET supplier_id = NULLIF($2, 0) WHERE id = $1`, id, supplierID)
+	return err
+}
+
 func (s *Store) RenameCarrier(ctx context.Context, id int64, name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -146,7 +158,7 @@ func (s *Store) SetCarrierActive(ctx context.Context, id int64, on bool) error {
 }
 
 const deviceCols = `d.id, d.carrier_id, c.name AS carrier, d.label, COALESCE(d.number, '') AS number, d.for_recharge, d.for_money,
-	d.tracks_float, d.is_active, d.recommended_float`
+	d.tracks_float, d.is_active, d.recommended_float, COALESCE(c.supplier_id, 0) AS supplier_id`
 
 func (s *Store) Devices(ctx context.Context, all bool) ([]Device, error) {
 	out := []Device{}

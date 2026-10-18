@@ -26,6 +26,7 @@ type TxInput struct {
 	PackageID      *int64
 	CountID        *int64
 	ExpenseID      *int64
+	PurchaseID     *int64 // a refill's core supplier bill
 	CustomerNumber string
 	BillType       string
 	Reference      string
@@ -48,10 +49,10 @@ func recordTx(ctx context.Context, q appdb.Queryer, in TxInput) (int64, error) {
 	}
 	err := q.GetContext(ctx, &id, `
 		INSERT INTO recharge_transactions (carrier_id, device_id, type, amount, cash_delta, float_delta, sale_id, sale_item_id,
-			parent_id, package_id, count_id, expense_id, customer_number, bill_type, reference, note, created_by)
-		VALUES ($1,$2,$3,$4,0,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
+			parent_id, package_id, count_id, expense_id, customer_number, bill_type, reference, note, created_by, purchase_id)
+		VALUES ($1,$2,$3,$4,0,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
 		in.CarrierID, in.DeviceID, in.Type, in.Amount, in.FloatDelta, in.SaleID, in.SaleItemID, in.ParentID, in.PackageID,
-		in.CountID, in.ExpenseID, nullStr(in.CustomerNumber), nullStr(in.BillType), nullStr(in.Reference), nullStr(in.Note), by)
+		in.CountID, in.ExpenseID, nullStr(in.CustomerNumber), nullStr(in.BillType), nullStr(in.Reference), nullStr(in.Note), by, in.PurchaseID)
 	return id, err
 }
 

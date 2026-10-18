@@ -73,7 +73,7 @@ func (r *Repository) InsertPayment(ctx context.Context, supplierID int64, amount
 	var id int64
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO supplier_payments (supplier_id, amount, method, reference, note, paid_by)
-		VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+		VALUES ($1,$2,$3,$4,$5,NULLIF($6::bigint, 0)) RETURNING id`,
 		supplierID, amount, method, reference, note, paidBy)
 	return id, err
 }

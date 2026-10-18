@@ -12,6 +12,9 @@ import (
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/purchases"
+	"karots-suite/internal/features/supplierpay"
+	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 
@@ -37,6 +40,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	a.POST("/recharge/carriers", h.createCarrier)
 	a.PUT("/recharge/carriers/:id", h.renameCarrier)
 	a.POST("/recharge/carriers/:id/active", h.carrierActive)
+	a.PUT("/recharge/carriers/:id/supplier", h.carrierSupplier)
 	a.PUT("/recharge/carriers/:id/rates", h.setRates)
 	a.POST("/recharge/devices", h.createDevice)
 	a.PUT("/recharge/devices/:id", h.updateDevice)
@@ -242,14 +246,18 @@ func (h handlers) counterSources(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// RefillInput buys float from the carrier: paid from Source (cash place or bank),
-// the device's float up by Amount, plus any bonus the carrier gave on it.
+// RefillInput buys float from a dealer (a core supplier): a supplier bill for
+// Amount, on Credit or paid now from Source (cash place or bank); the device's
+// float up by Amount, plus any bonus the dealer gave on it. Reference is the
+// dealer's invoice number.
 type RefillInput struct {
-	DeviceID  int64           `json:"deviceId"`
-	Amount    decimal.Decimal `json:"amount"`
-	Bonus     decimal.Decimal `json:"bonus"`
-	Source    string          `json:"source"`
-	Reference string          `json:"reference"`
+	DeviceID   int64           `json:"deviceId"`
+	SupplierID int64           `json:"supplierId"`
+	Amount     decimal.Decimal `json:"amount"`
+	Bonus      decimal.Decimal `json:"bonus"`
+	Credit     bool            `json:"credit"`
+	Source     string          `json:"source"`
+	Reference  string          `json:"reference"`
 }
 
 func parseSource(v string) (cashflow.Location, error) {
@@ -273,6 +281,9 @@ func (h handlers) counterRefill(c echo.Context) error {
 	in, err := bind[RefillInput](c)
 	if err != nil {
 		return err
+	}
+	if in.Credit {
+		return h.refill(c, in, cashflow.External())
 	}
 	ctx := c.Request().Context()
 	uid := middleware.CurrentUserID(c)
@@ -301,6 +312,9 @@ func (h handlers) adminRefill(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if in.Credit {
+		return h.refill(c, in, cashflow.External())
+	}
 	src, err := parseSource(in.Source)
 	if err != nil {
 		return err
@@ -308,17 +322,34 @@ func (h handlers) adminRefill(c echo.Context) error {
 	return h.refill(c, in, src)
 }
 
-// refill pays the carrier and puts the float on the device in one tx. Buying
-// float is cash turned into float — no expense (karots-pos booked one, which
-// the P&L counted as a loss).
+// refill books the float as a core supplier bill and puts it on the device in
+// one tx. Paid now = core's supplier payment on that bill and the money leaving
+// src (as the counter's Pay); on credit = the bill alone, owed like any delivery.
+// Buying float is cash turned into float — no expense (karots-pos booked one,
+// which the P&L counted as a loss).
 func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location) error {
 	if !in.Amount.IsPositive() || in.Bonus.IsNegative() {
-		return apperr.Validation("enter the amount paid for the float")
+		return apperr.Validation("enter the amount of float bought")
+	}
+	if in.SupplierID <= 0 {
+		return apperr.Validation("pick who sold the float")
 	}
 	ctx := c.Request().Context()
 	uid := middleware.CurrentUserID(c)
-	if err := h.p.core.Cashflow.RequirePlace(ctx, src, ""); err != nil {
-		return err
+	method := "cash"
+	if src.Kind == cashflow.KindLocker {
+		l, err := h.p.core.Lockers.Get(ctx, src.ID)
+		if err != nil {
+			return err
+		}
+		if l.Kind == "bank" {
+			method = "online"
+		}
+	}
+	if !in.Credit {
+		if err := h.p.core.Cashflow.RequirePlace(ctx, src, method); err != nil {
+			return err
+		}
 	}
 	var rec *cashflow.Receipt
 	err := appdb.WithTx(ctx, h.p.core.DB, func(tx *sqlx.Tx) error {
@@ -326,27 +357,51 @@ func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location) 
 		if err != nil {
 			return err
 		}
-		ref := strings.TrimSpace(in.Reference)
-		reason := "Float for " + dv.Carrier + " · " + dv.Label
-		if ref != "" {
-			reason += " #" + ref
+		sup, err := suppliers.NewRepository(tx).FindByID(ctx, in.SupplierID)
+		if err != nil {
+			return apperr.NotFound("supplier")
 		}
-		if rec, err = h.p.core.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: in.Amount,
-			Reason: reason, ReceiptKind: "supplier_payment", Party: dv.Carrier, ActorID: uid}); err != nil {
+		ref := strings.TrimSpace(in.Reference)
+		bill, err := purchases.CreateBillTx(ctx, tx, purchases.BillInput{SupplierID: sup.ID, Amount: in.Amount, InvoiceNo: ref,
+			Notes: "Reload float · " + dv.Carrier + " · " + dv.Label}, uid)
+		if err != nil {
 			return err
 		}
+		pid := bill.Purchase.ID
+		note := "on credit · bill #" + strconv.FormatInt(pid, 10)
+		// An advance the dealer holds may already have settled it; pay the rest.
+		if owe := bill.Purchase.Balance(); !in.Credit && owe.IsPositive() {
+			res, err := supplierpay.NewService(h.p.core.DB).PayTx(ctx, tx, sup.ID, supplierpay.PayInput{Method: method, Reference: ref,
+				Note: "reload float", Allocations: []supplierpay.Alloc{{PurchaseID: pid, Amount: owe}}}, uid)
+			if err != nil {
+				return err
+			}
+			note = "paid · bill #" + strconv.FormatInt(pid, 10)
+			if src.Kind != cashflow.KindExternal {
+				if rec, err = h.p.core.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: res.Total,
+					Reason: "supplier payment: " + sup.Name, ReceiptKind: "supplier_payment", Party: sup.Name,
+					Ref: &cashflow.Ref{Kind: "supplier_payment", ID: res.PaymentID}, ActorID: uid}); err != nil {
+					return err
+				}
+				note += " · money receipt " + rec.ReceiptNo
+			}
+		}
 		_, err = recordWithCommission(ctx, tx, TxInput{CarrierID: dv.CarrierID, DeviceID: dv.ID, Type: "refill", Amount: in.Amount,
-			FloatDelta: in.Amount, Reference: ref, Note: "money receipt " + rec.ReceiptNo, CreatedBy: uid}, in.Bonus.Round(2))
+			FloatDelta: in.Amount, PurchaseID: &pid, Reference: ref, Note: note, CreatedBy: uid}, in.Bonus.Round(2))
 		return err
 	})
 	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "recharge_refill", in.DeviceID, "float bought "+in.Amount.StringFixed(2))
-	if src.Kind == cashflow.KindTill {
-		h.kick(ctx)
+	var receiptID int64
+	if rec != nil {
+		receiptID = rec.ID
+		if src.Kind == cashflow.KindTill {
+			h.kick(ctx)
+		}
 	}
-	return c.JSON(http.StatusCreated, map[string]any{"receiptId": rec.ID})
+	return c.JSON(http.StatusCreated, map[string]any{"receiptId": receiptID})
 }
 
 // kick pops the drawer (best-effort, off the request — core's drawer kicker).

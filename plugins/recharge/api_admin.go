@@ -80,6 +80,24 @@ func (h handlers) renameCarrier(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (h handlers) carrierSupplier(c echo.Context) error {
+	id, err := idParam(c, "id")
+	if err != nil {
+		return err
+	}
+	in, err := bind[struct {
+		SupplierID int64 `json:"supplierId"`
+	}](c)
+	if err != nil {
+		return err
+	}
+	if err := h.p.store.SetCarrierSupplier(c.Request().Context(), id, in.SupplierID); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "recharge_carrier", id, "float dealer set")
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (h handlers) carrierActive(c echo.Context) error {
 	id, err := idParam(c, "id")
 	if err != nil {

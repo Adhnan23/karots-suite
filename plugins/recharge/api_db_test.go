@@ -86,13 +86,30 @@ func TestRechargeAPI(t *testing.T) {
 		t.Fatal("a quick package with no commission was taken")
 	}
 
-	ref := decode[map[string]int64](t, do("POST", "/refill", `{"deviceId":`+ds+`,"amount":"2000","bonus":"20","source":"locker:`+strconv.FormatInt(safe, 10)+`"}`))
+	var dealer int64
+	must(t, db.Get(&dealer, `INSERT INTO suppliers (name) VALUES ('Dialog dealer') RETURNING id`))
+	dl := strconv.FormatInt(dealer, 10)
+	if rec := do("PUT", "/carriers/"+cs+"/supplier", `{"supplierId":`+dl+`}`); rec.Code != 204 {
+		t.Fatalf("dealer: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("POST", "/refill", `{"deviceId":`+ds+`,"amount":"2000","source":"locker:`+strconv.FormatInt(safe, 10)+`"}`); rec.Code < 400 {
+		t.Fatal("float bought from nobody went through")
+	}
+	ref := decode[map[string]int64](t, do("POST", "/refill", `{"deviceId":`+ds+`,"supplierId":`+dl+`,"amount":"2000","bonus":"20","reference":"F-1","source":"locker:`+strconv.FormatInt(safe, 10)+`"}`))
 	var exps int
 	must(t, db.Get(&exps, `SELECT count(*) FROM expenses`))
 	if ref["receiptId"] == 0 || exps != 0 {
 		t.Fatalf("refill receipt %v, expenses %d (buying float is not a cost)", ref, exps)
 	}
-	if rec := do("POST", "/refill", `{"deviceId":`+ds+`,"amount":"100","source":"locker:999999"}`); rec.Code < 400 {
+	owed := func() (o string, open int) {
+		must(t, db.Get(&o, `SELECT outstanding_balance::text FROM suppliers WHERE id = $1`, dealer))
+		must(t, db.Get(&open, `SELECT count(*) FROM purchases WHERE supplier_id = $1 AND status <> 'paid'`, dealer))
+		return
+	}
+	if o, open := owed(); o != "0.00" || open != 0 {
+		t.Fatalf("paid now: dealer owed %s with %d open bills, want 0 / 0", o, open)
+	}
+	if rec := do("POST", "/refill", `{"deviceId":`+ds+`,"supplierId":`+dl+`,"amount":"100","source":"locker:999999"}`); rec.Code < 400 {
 		t.Fatal("a refill from a locker that doesn't exist went through")
 	}
 
@@ -115,5 +132,15 @@ func TestRechargeAPI(t *testing.T) {
 	rep := decode[Report](t, do("GET", "/report?preset=today", ""))
 	if len(rep.Counts) != 1 || len(rep.Lines) == 0 {
 		t.Fatalf("report: %+v", rep)
+	}
+
+	// On credit: the bill is owed (the dealer's normal Pay settles it), no money moves.
+	cr := decode[map[string]int64](t, do("POST", "/refill", `{"deviceId":`+ds+`,"supplierId":`+dl+`,"amount":"500","credit":true}`))
+	if o, open := owed(); cr["receiptId"] != 0 || o != "500.00" || open != 1 {
+		t.Fatalf("on credit: receipt %v, dealer owed %s with %d open bills, want none / 500 / 1", cr, o, open)
+	}
+	fp = decode[FloatPage](t, do("GET", "/float", ""))
+	if !fp.Total.Equal(d("3500")) || fp.Floats[0].SupplierID != dealer {
+		t.Fatalf("float after credit: %+v", fp)
 	}
 }
