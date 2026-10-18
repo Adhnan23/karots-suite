@@ -50,7 +50,7 @@ function Login() {
   }
 
   return (
-    <div className="grid min-h-screen md:grid-cols-[1.15fr_1fr]">
+    <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] md:grid-cols-[1.15fr_1fr]">
       <LoginHero shopName={info?.shopName || 'Karots Suite'} />
       <form
         autoComplete="off"
@@ -91,7 +91,7 @@ function Login() {
                   pinRef.current?.focus()
                 }
               }}
-              className="h-[62px] rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 font-display text-2xl font-bold tracking-wide outline-none focus:border-brand"
+              className="h-[62px] w-full min-w-0 rounded-[var(--radius-sm)] border-[1.5px] border-border bg-card px-4 font-display text-2xl font-bold tracking-wide outline-none focus:border-brand"
             />
           </div>
           <div className="flex flex-col gap-1.5">
