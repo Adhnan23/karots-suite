@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
-import type { TillProduct } from '@/api/types.gen'
+import type { SaleLine, TillProduct } from '@/api/types.gen'
 import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
@@ -97,6 +97,14 @@ export type TillTab = { key: string; label: string; Page: ComponentType }
  * Page owns its list and preview; the hub keeps the kind switch above it. */
 export type TillReceiptKind = { key: string; label: string; Page: ComponentType }
 
+/** A plugin's input on a line being returned at the counter (e.g. how much float came
+ * back). Render nothing for lines the plugin doesn't own; value goes to the return
+ * request's line.plugin[key], read by the plugin's Go ReturnLineHook. */
+export type ReturnLineField = {
+  key: string
+  Field: ComponentType<{ saleId: number; line: SaleLine; qty: number; value: unknown; onChange: (v: unknown) => void }>
+}
+
 /** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
 export type ReportCard = { href: string; title: string; desc: string }
 
@@ -147,6 +155,7 @@ export const slots = {
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
+  returnLineFields: [] as ReturnLineField[],
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],

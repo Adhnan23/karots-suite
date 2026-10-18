@@ -7,6 +7,7 @@ import type { ReturnRequest, ReturnResult, SaleLine, SaleView } from '@/api/type
 import { Button } from '@/components/ui/button'
 import { money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
 import { configQuery, errMsg } from '@/features/till/api'
 import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
@@ -36,6 +37,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
   const sym = cfg.symbol
   const [qty, setQty] = useState<Record<number, number>>({})
   const [faulty, setFaulty] = useState<Record<number, boolean>>({})
+  const [extra, setExtra] = useState<Record<number, Record<string, unknown>>>({}) // plugin Returns fields, by line then key
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const value = r2(sale.lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))
@@ -50,7 +52,8 @@ function ReturnForm({ sale }: { sale: SaleView }) {
     try {
       const body: ReturnRequest = {
         reason: reason.trim(), deferDrawerKick: !cfg.askToPrint,
-        lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock' })),
+        lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock',
+          plugin: extra[l.id] && Object.keys(extra[l.id]).length ? extra[l.id] : undefined })),
       }
       const res = await api<ReturnResult>(`/till/sales/${sale.id}/return`, { json: body })
       const c = num(res.cashRefund)
@@ -101,6 +104,10 @@ function ReturnForm({ sale }: { sale: SaleView }) {
                   </div>
                 )}
               </div>
+              {n > 0 && slots.returnLineFields.map(({ key, Field }) => (
+                <Field key={key} saleId={sale.id} line={l} qty={n} value={extra[l.id]?.[key]}
+                  onChange={(v) => setExtra((x) => ({ ...x, [l.id]: { ...x[l.id], [key]: v } }))} />
+              ))}
               {n > 0 && !l.isService && (
                 <label className="mt-1.5 flex items-center gap-2 text-[12.5px] text-muted-foreground">
                   <input type="checkbox" className="accent-[var(--brand)]" checked={!!faulty[l.id]} onChange={(e) => setFaulty((f) => ({ ...f, [l.id]: e.target.checked }))} />

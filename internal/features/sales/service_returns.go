@@ -3,6 +3,7 @@ package sales
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -103,6 +104,9 @@ type ReturnLineInput struct {
 	// puts them back into sellable stock; "damage" writes them off as a loss so
 	// faulty items never re-enter inventory. The customer is refunded either way.
 	Disposition string `json:"disposition"`
+	// Plugin is what a plugin's Returns field sent for this line, by plugin key
+	// (e.g. how much float came back); handed to the return hook.
+	Plugin map[string]json.RawMessage `json:"plugin"`
 }
 
 type PartialReturnInput struct {
@@ -158,6 +162,7 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 
 		ref := "sale"
 		totalRefundValue := decimal.Zero
+		var returned []ReturnedLine
 		factor, err := saleRepo.PaidFactor(ctx, saleID)
 		if err != nil {
 			return apperr.Internal("failed to value the return", err)
@@ -194,6 +199,7 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 				return apperr.Conflict("return quantity exceeds what was sold")
 			}
 			totalRefundValue = totalRefundValue.Add(lineRefund)
+			returned = append(returned, ReturnedLine{SaleItemID: it.ID, ProductID: it.ProductID, Quantity: qty, Refund: lineRefund, Plugin: ln.Plugin})
 
 			// A service line holds no stock, so nothing goes back on a shelf — but
 			// what it consumed (the paper of a spoilt copy job, the cup of a spilt
@@ -267,6 +273,12 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 				}); err != nil {
 					return apperr.Internal("failed to record damage movement", err)
 				}
+			}
+		}
+
+		if s.returnHook != nil && len(returned) > 0 {
+			if err := s.returnHook(ctx, tx, ReturnedSale{SaleID: saleID, ReturnID: returnID, ActorID: userID, Lines: returned}); err != nil {
+				return err
 			}
 		}
 

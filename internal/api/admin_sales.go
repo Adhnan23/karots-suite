@@ -120,7 +120,7 @@ func (h *handlers) AdminSaleReturn(c echo.Context) error {
 		in.Reason = &r
 	}
 	for _, l := range req.Lines {
-		in.Lines = append(in.Lines, sales.ReturnLineInput{SaleItemID: l.SaleItemID, Quantity: l.Quantity, Disposition: l.Disposition})
+		in.Lines = append(in.Lines, sales.ReturnLineInput{SaleItemID: l.SaleItemID, Quantity: l.Quantity, Disposition: l.Disposition, Plugin: pluginData(l.Plugin)})
 	}
 	if err := c.Validate(&in); err != nil {
 		return err

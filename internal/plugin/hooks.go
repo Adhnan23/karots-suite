@@ -39,7 +39,15 @@ type TenderSettle struct {
 	Amount  decimal.Decimal
 	Meta    map[string]string
 	ActorID int64
+	// CustomerPaymentID is set (SaleID 0) when the tender pays off a customer's
+	// account instead of a sale (till or admin repayment); CustomerID with it.
+	CustomerPaymentID int64
+	CustomerID        int64
 }
+
+// OnPayments says a tender can also take a customer's credit repayment: shown,
+// settled by SettleTx in the payment's tx. Hidden ones never are.
+func (t TenderMethod) OnPayments() bool { return !t.Hidden && t.SettleTx != nil }
 
 // LogoutGuard reports whether a user has unfinished plugin work that must be
 // resolved before they may log out — e.g. an open plugin float session. When

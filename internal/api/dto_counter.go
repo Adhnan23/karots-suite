@@ -174,6 +174,9 @@ type ReturnLine struct {
 	SaleItemID  int64  `json:"saleItemId"`
 	Quantity    string `json:"quantity"`
 	Disposition string `json:"disposition"` // restock (default) | damage
+	// Plugin is what plugin Returns fields set for this line, by plugin key
+	// (slots.returnLineFields); each plugin's return hook reads its own key.
+	Plugin map[string]any `json:"plugin,omitempty"`
 }
 
 type ReturnRequest struct {
@@ -189,12 +192,13 @@ type ReturnResult struct {
 // ---- Credit ----
 
 type CreditPaymentRequest struct {
-	Note            string `json:"note"`
-	Amount          string `json:"amount"`
-	Method          string `json:"method"`    // cash | card | online
-	AccountID       int64  `json:"accountId"` // card/bank locker the money lands in
-	Reference       string `json:"reference"`
-	DeferDrawerKick bool   `json:"deferDrawerKick"`
+	Note            string            `json:"note"`
+	Amount          string            `json:"amount"`
+	Method          string            `json:"method"`    // cash | card | online | a plugin tender
+	AccountID       int64             `json:"accountId"` // card/bank locker the money lands in
+	Reference       string            `json:"reference"`
+	DeferDrawerKick bool              `json:"deferDrawerKick"`
+	Meta            map[string]string `json:"meta,omitempty"` // a plugin tender's detail (slots.tillTenders)
 }
 
 type CreditPaymentResult struct {

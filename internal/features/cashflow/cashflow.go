@@ -121,6 +121,10 @@ type MoveInput struct {
 	// ActorID is the user performing the move (recorded as created_by on locker
 	// ledger rows). For a till leg the drawer's own cashier id is used.
 	ActorID int64
+	// Recorded is money that already moved outside the suite (a bill paid in the
+	// bank's app before it was rung up): written as it happened, with no overdraw
+	// guard — refusing would only stop the counter. The place rule still applies.
+	Recorded bool
 }
 
 // Service performs atomic money moves.
@@ -209,8 +213,10 @@ func (s *Service) MoveTx(ctx context.Context, tx *sqlx.Tx, in MoveInput) (*Recei
 		}
 	}
 
-	if err := s.guardSource(ctx, crepo, lrepo, in, fromSess); err != nil {
-		return nil, err
+	if !in.Recorded {
+		if err := s.guardSource(ctx, crepo, lrepo, in, fromSess); err != nil {
+			return nil, err
+		}
 	}
 	if err := s.writeLeg(ctx, crepo, lrepo, in, true, fromSess, toSess); err != nil {
 		return nil, err

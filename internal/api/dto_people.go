@@ -80,6 +80,8 @@ type CustomerPayRequest struct {
 	Note         string `json:"note"`
 	Source       string `json:"source"`
 	OldDebtFirst bool   `json:"oldDebtFirst"`
+	// Meta is a plugin tender's detail (Method = a plugin tender; Source unused).
+	Meta map[string]string `json:"meta,omitempty"`
 }
 
 // CustomerRefundRequest hands a customer's advance back in cash from Source (a

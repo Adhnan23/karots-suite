@@ -60,7 +60,9 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 			return nil, apperr.Validation("choose the card or bank account this payment goes into")
 		}
 	default:
-		return nil, apperr.Validation("payment method must be cash, card or online")
+		if !in.Plugin {
+			return nil, apperr.Validation("payment method must be cash, card or online")
+		}
 	}
 	r := NewRepository(tx)
 	cust, err := r.FindByID(ctx, id)

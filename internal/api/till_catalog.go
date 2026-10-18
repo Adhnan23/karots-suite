@@ -66,7 +66,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		out.DefaultLockerID = *st.DefaultLockerID
 	}
 	for _, t := range plugin.TenderMethods() {
-		out.TenderMethods = append(out.TenderMethods, TenderMethod{Value: t.Value, Label: t.Label, Hidden: t.Hidden})
+		out.TenderMethods = append(out.TenderMethods, TenderMethod{Value: t.Value, Label: t.Label, Hidden: t.Hidden, OnPayments: t.OnPayments()})
 	}
 	return c.JSON(http.StatusOK, out)
 }

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest, CustomerRefundRequest, ReceiptRef } from '@/api/types.gen'
+import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest, CustomerRefundRequest, ReceiptRef, TenderMethod } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@/features/purchasing/MoneySource'
@@ -13,6 +13,9 @@ import { slipPath } from '@/features/till/print'
 import { slipOut } from '@/features/till/SlipAsk'
 import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
+
+const tenderMethodsQuery = { queryKey: ['admin', 'tender-methods'], queryFn: () => api<TenderMethod[]>('/admin/tender-methods') }
 
 /** Collect a credit repayment (karots-pos Collect Payment): cash into a locker
  * or open till, card / online into its account — Card / Online only show when
@@ -20,11 +23,18 @@ import { cn } from '@/lib/utils'
 export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: string; onClose: () => void }) {
   const qc = useQueryClient()
   const sources = useQuery(moneySourcesQuery).data ?? []
-  const methods = ([['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']] as [Method, string][]).filter(([m]) => m === 'cash' || sourcesFor(sources, m).length > 0)
+  const plugins = useQuery(tenderMethodsQuery).data ?? []
+  const methods: [string, string][] = [
+    ...([['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']] as [Method, string][]).filter(([m]) => m === 'cash' || sourcesFor(sources, m).length > 0),
+    ...plugins.map((t): [string, string] => [t.value, t.label]),
+  ]
   const owed = Math.max(num(c.owed), 0)
   const old = num(c.oldDebt)
   const [amount, setAmount] = useState(owed > 0 ? dec(owed) : '')
-  const [method, setMethod] = useState<Method>('cash')
+  const [method, setMethod] = useState('cash')
+  const [meta, setMeta] = useState<Record<string, string>>({}) // a plugin tender's detail
+  const core = method === 'cash' || method === 'card' || method === 'online'
+  const PluginDetail = slots.tillTenders.find((t) => t.value === method)?.Detail
   const [source, setSource] = useState('')
   const [oldFirst, setOldFirst] = useState(false)
   const [reference, setReference] = useState('')
@@ -34,7 +44,7 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
   async function save() {
     setBusy(true)
     try {
-      const body: CustomerPayRequest = { amount, method, reference, note: '', source, oldDebtFirst: oldFirst }
+      const body: CustomerPayRequest = { amount, method, reference, note: '', source: core ? source : '', oldDebtFirst: oldFirst, meta: core ? undefined : meta }
       const r = await api<CreditPaymentResult>(`/admin/customers/${c.id}/payment`, { json: body })
       void slipOut(slipPath.debt(r.paymentId), `Collected ${money(sym, a)} · ${r.receiptNo}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -57,8 +67,9 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
         </div>
       </Field>
       {old > 0 && <Seg label="Clear first" value={oldFirst ? 'old' : 'new'} onChange={(v) => setOldFirst(v === 'old')} options={[['new', 'Recent bills first'], ['old', 'Old debt first']]} />}
-      {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource(m === 'cash' ? '' : sourcesFor(sources, m)[0]?.value ?? '') }} options={methods} />}
-      <Field label={where}><MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
+      {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setMeta({}); setSource(m === 'cash' || !['card', 'online'].includes(m) ? '' : sourcesFor(sources, m as Method)[0]?.value ?? '') }} options={methods} />}
+      {core ? <Field label={where}><MoneySourcePicker method={method as Method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
+        : PluginDetail && <PluginDetail meta={meta} setMeta={setMeta} />}
       <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
     </FormSheet>
   )

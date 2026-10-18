@@ -72,7 +72,7 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 			out := plugin.SaleLines{SaleID: ev.SaleID, CustomerID: ev.CustomerID, ActorID: ev.ActorID}
 			for _, l := range ev.Lines {
 				if d, ok := l.Plugin[h.Key]; ok {
-					out.Lines = append(out.Lines, plugin.SaleLine{ProductID: l.ProductID, Quantity: l.Quantity, Data: d})
+					out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Amount: l.Amount, Data: d})
 				}
 			}
 			if len(out.Lines) > 0 {
@@ -83,7 +83,21 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 		}
 		return nil
 	}
-	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg).WithLineHook(lineHook)
+	// Returned lines: every plugin's hook sees them all (it owns rows by sale item), with its own field data.
+	returnHook := func(ctx context.Context, tx *sqlx.Tx, ev sales.ReturnedSale) error {
+		for _, h := range plugin.ReturnLineHooks() {
+			out := plugin.ReturnLines{SaleID: ev.SaleID, ReturnID: ev.ReturnID, ActorID: ev.ActorID}
+			for _, l := range ev.Lines {
+				out.Lines = append(out.Lines, plugin.ReturnLine{SaleItemID: l.SaleItemID, ProductID: l.ProductID,
+					Quantity: l.Quantity, Refund: l.Refund, Data: l.Plugin[h.Key]})
+			}
+			if err := h.Record(ctx, tx, out); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg).WithLineHook(lineHook).WithReturnHook(returnHook)
 	cr := cashregister.NewService(db, salesSvc).WithAudit(audit.NewService(db))
 	// Wire the locker side of till cash events (opening float from a locker,
 	// banking at close, mid-shift moves to/from a locker) through cashflow, which

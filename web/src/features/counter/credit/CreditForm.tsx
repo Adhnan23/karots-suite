@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Banknote, CreditCard, Smartphone } from 'lucide-react'
+import { Banknote, CreditCard, Smartphone, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -11,6 +11,7 @@ import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
 import { afterSlip, moneySlip } from '../slip'
 
 type Mode = 'pay' | 'refund'
@@ -33,12 +34,15 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
   const [ref, setRef] = useState('')
   const [note, setNote] = useState(opts?.note ?? '')
   const [busy, setBusy] = useState(false)
+  const [meta, setMeta] = useState<Record<string, string>>({}) // a plugin tender's detail
+  const PluginDetail = slots.tillTenders.find((t) => t.value === method)?.Detail
   const accounts = method === 'card' ? lockersOf(drawer, 'card') : method === 'online' ? lockersOf(drawer, 'bank') : []
   const [account, setAccount] = useState('')
   const methods = [
     { v: 'cash', label: 'Cash', Icon: Banknote },
     ...(lockersOf(drawer, 'card').length ? [{ v: 'card', label: 'Card', Icon: CreditCard }] : []),
     ...(lockersOf(drawer, 'bank').length ? [{ v: 'online', label: 'Online', Icon: Smartphone }] : []),
+    ...cfg.tenderMethods.filter((t) => t.onPayments).map((t) => ({ v: t.value, label: t.label, Icon: Wallet })),
   ]
   const a = num(amount)
   const after = mode === 'pay' ? bal - a : bal + a
@@ -49,7 +53,8 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
     setBusy(true)
     try {
       if (mode === 'pay') {
-        const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint }
+        const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint,
+          meta: Object.keys(meta).length ? meta : undefined }
         const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
         afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, slipPath.debt(r.paymentId), method === 'cash')
         opts?.onDone?.({ mode, paymentId: r.paymentId, amount })
@@ -97,13 +102,14 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
       {mode === 'pay' && methods.length > 1 && (
         <div role="radiogroup" aria-label="Paid by" className="grid grid-cols-3 gap-1.5">
           {methods.map(({ v, label, Icon }) => (
-            <button key={v} type="button" role="radio" aria-checked={method === v} onClick={() => { setMethod(v); setAccount('') }}
+            <button key={v} type="button" role="radio" aria-checked={method === v} onClick={() => { setMethod(v); setAccount(''); setMeta({}) }}
               className="flex flex-col items-center gap-1 rounded-[var(--radius-sm)] border border-border bg-muted py-2 text-[12px] font-bold aria-checked:border-brand aria-checked:bg-brand aria-checked:text-brand-foreground">
               <Icon size={18} />{label}
             </button>
           ))}
         </div>
       )}
+      {mode === 'pay' && PluginDetail && <PluginDetail meta={meta} setMeta={setMeta} />}
       {accounts.length > 1 && (
         <select aria-label="Account" value={account || String(accounts[0].id)} onChange={(e) => setAccount(e.target.value)} className={cn(FIELD, 'appearance-auto')}>
           {accounts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}

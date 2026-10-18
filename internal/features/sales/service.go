@@ -26,13 +26,44 @@ type Service struct {
 	pluginTenderLeg PluginTenderLeg           // optional; books a plugin tender in-tx
 	pluginTender    func(method string) bool  // optional; is this a method a plugin registered?
 	lineHook        LineHook                  // optional; plugins record their tagged lines in-tx
+	returnHook      ReturnHook                // optional; plugins follow returned lines in-tx
 }
 
 // TaggedLine is a sale line that carries plugin data (ItemInput.Plugin).
 type TaggedLine struct {
+	ItemID    int64 // sale_items.id
 	ProductID int64
 	Quantity  decimal.Decimal
+	Amount    decimal.Decimal // the line's net (after its discount); a payout is negative
 	Plugin    map[string]json.RawMessage
+}
+
+// ReturnedLine is one line coming back in a return, with the plugin data the
+// till sent for it (ReturnLineInput.Plugin).
+type ReturnedLine struct {
+	SaleItemID int64
+	ProductID  int64
+	Quantity   decimal.Decimal
+	Refund     decimal.Decimal // what these units are refunded (bill discount shared out)
+	Plugin     map[string]json.RawMessage
+}
+
+// ReturnedSale is one return's lines, handed to the return hook.
+type ReturnedSale struct {
+	SaleID   int64
+	ReturnID int64
+	ActorID  int64
+	Lines    []ReturnedLine
+}
+
+// ReturnHook lets plugins put their own rows right when sale lines come back (a
+// float returned, …), inside the return's tx. Injected from the composition root.
+type ReturnHook func(ctx context.Context, tx *sqlx.Tx, ev ReturnedSale) error
+
+// WithReturnHook injects the return seam. Returns the service.
+func (s *Service) WithReturnHook(fn ReturnHook) *Service {
+	s.returnHook = fn
+	return s
 }
 
 // TaggedSale is a completed sale's tagged lines, handed to the line hook.
@@ -352,9 +383,11 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 
 		for i := range lines {
 			lines[i].SaleID = saleID
-			if err := saleRepo.InsertItem(ctx, saleID, lines[i]); err != nil {
+			id, err := saleRepo.InsertItem(ctx, saleID, lines[i])
+			if err != nil {
 				return apperr.Internal("failed to save sale item", err)
 			}
+			lines[i].ID = id
 			if serviceProducts[lines[i].ProductID] {
 				// Service line: no inventory of its own, but record a movement for
 				// each consumable it drew down (e.g. paper for a printing service).
@@ -461,10 +494,10 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 
 		if s.lineHook != nil {
 			ev := TaggedSale{SaleID: saleID, CustomerID: in.CustomerID, ActorID: cashierID}
-			for _, it := range in.Items {
+			for i, it := range in.Items { // buildSaleLines makes one line per item, in order
 				if len(it.Plugin) > 0 {
-					q, _ := decimal.NewFromString(it.Quantity) // buildSaleLines already refused a bad qty
-					ev.Lines = append(ev.Lines, TaggedLine{ProductID: it.ProductID, Quantity: q, Plugin: it.Plugin})
+					ev.Lines = append(ev.Lines, TaggedLine{ItemID: lines[i].ID, ProductID: it.ProductID, Quantity: lines[i].Quantity,
+						Amount: lines[i].Subtotal, Plugin: it.Plugin})
 				}
 			}
 			if len(ev.Lines) > 0 {

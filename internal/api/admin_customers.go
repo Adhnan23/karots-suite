@@ -12,6 +12,7 @@ import (
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/middleware"
+	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -214,11 +215,14 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
+	ctx := c.Request().Context()
+	if tender, ok := paymentTender(req.Method); ok {
+		return h.adminPluginPay(c, id, req, tender)
+	}
 	method, ok := normSupplierMethod(req.Method)
 	if !ok {
 		return apperr.Validation("invalid payment method")
 	}
-	ctx := c.Request().Context()
 	var dest cashflow.Location
 	if method == "cash" {
 		dest, err = h.cashPlace(ctx, req.Source, "goes into")
@@ -267,6 +271,31 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if dest.Kind == cashflow.KindTill {
 		h.d.KickDrawer(ctx)
 	}
+	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
+}
+
+// adminPluginPay takes a repayment by a plugin tender (e.g. into a device's
+// float): the payment row and the plugin's booking commit together.
+func (h *handlers) adminPluginPay(c echo.Context, id int64, req CustomerPayRequest, tender plugin.TenderMethod) error {
+	ctx := c.Request().Context()
+	in := customers.PaymentInput{Amount: strings.TrimSpace(req.Amount), Method: tender.Value, Reference: optStr(req.Reference),
+		Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst, Plugin: true}
+	if err := c.Validate(&in); err != nil {
+		return err
+	}
+	userID := middleware.CurrentUserID(c)
+	var res *customers.PaymentResult
+	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		var err error
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
+			return err
+		}
+		return tender.SettleTx(ctx, tx, plugin.TenderSettle{Amount: res.Amount, Meta: req.Meta, ActorID: userID, CustomerPaymentID: res.PaymentID, CustomerID: id})
+	})
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+in.Amount+" by "+tender.Label)
 	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 }
 

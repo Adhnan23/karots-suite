@@ -14,6 +14,7 @@ import (
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/middleware"
+	"karots-suite/internal/plugin"
 	"karots-suite/internal/receiptimg"
 
 	"github.com/jmoiron/sqlx"
@@ -35,6 +36,8 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	in := customers.PaymentInput{Amount: req.Amount, Method: req.Method, AccountID: req.AccountID}
+	tender, isPlugin := paymentTender(req.Method)
+	in.Plugin = isPlugin
 	if req.Reference != "" {
 		in.Reference = &req.Reference
 	}
@@ -55,6 +58,9 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 		var err error
 		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
 			return err
+		}
+		if isPlugin { // the plugin books where the money landed
+			return tender.SettleTx(ctx, tx, plugin.TenderSettle{Amount: res.Amount, Meta: req.Meta, ActorID: userID, CustomerPaymentID: res.PaymentID, CustomerID: id})
 		}
 		mv := cashflow.MoveInput{From: cashflow.External(), Amount: res.Amount, Reason: "credit collected: " + cust.Name,
 			ReceiptKind: "customer_payment", Party: cust.Name, Ref: &cashflow.Ref{Kind: "customer_payment", ID: res.PaymentID}, ActorID: userID}

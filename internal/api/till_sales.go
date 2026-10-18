@@ -41,14 +41,7 @@ func saleInput(r SaleRequest) sales.CreateInput {
 			PriceOverride: it.PriceOverride, BatchID: it.BatchID, AllowOversell: it.AllowOversell,
 			Serials: it.Serials, Description: it.Description, Components: comps, Payout: it.Payout,
 		}
-		for k, v := range it.Plugin {
-			if b, err := json.Marshal(v); err == nil {
-				if item.Plugin == nil {
-					item.Plugin = map[string]json.RawMessage{}
-				}
-				item.Plugin[k] = b
-			}
-		}
+		item.Plugin = pluginData(it.Plugin)
 		if g := it.Group; g != nil {
 			sets, _ := decimal.NewFromString(g.Sets) // a bad value stays 0 and is refused as a validation error
 			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets}
@@ -152,4 +145,19 @@ func (h *handlers) TillDeleteHeld(c echo.Context) error {
 		return err
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// pluginData turns a line's plugin data (by plugin key) into what the sale /
+// return hooks read; nil when there is none.
+func pluginData(m map[string]any) map[string]json.RawMessage {
+	var out map[string]json.RawMessage
+	for k, v := range m {
+		if b, err := json.Marshal(v); err == nil {
+			if out == nil {
+				out = map[string]json.RawMessage{}
+			}
+			out[k] = b
+		}
+	}
+	return out
 }

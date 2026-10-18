@@ -6,6 +6,8 @@ type TenderMethod struct {
 	Value  string `json:"value"`
 	Label  string `json:"label"`
 	Hidden bool   `json:"hidden"` // not offered in the Pay picker; a plugin pre-fills it (TillApi.addTender)
+	// OnPayments: also takes a customer's credit repayment (till CreditForm, admin Pay).
+	OnPayments bool `json:"onPayments"`
 }
 
 // TillConfig is everything the till needs from settings + the user's flags,

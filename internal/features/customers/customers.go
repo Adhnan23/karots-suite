@@ -67,6 +67,9 @@ type PaymentInput struct {
 	// bank-kind locker). Required for card/online (RecordPaymentTx refuses 0); the
 	// api layer books the move into it.
 	AccountID int64 `json:"account_id" form:"account_id"`
+	// Plugin marks Method as a plugin tender the api layer checked
+	// (plugin.TenderMethod.OnPayments); its SettleTx books where the money lands.
+	Plugin bool `json:"-" form:"-"`
 }
 
 // CustomerPayment is one recorded credit repayment (the statement ledger).

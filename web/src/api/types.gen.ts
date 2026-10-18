@@ -577,6 +577,11 @@ export interface ReturnLine {
   saleItemId: number /* int64 */;
   quantity: string;
   disposition: string; // restock (default) | damage
+  /**
+   * Plugin is what plugin Returns fields set for this line, by plugin key
+   * (slots.returnLineFields); each plugin's return hook reads its own key.
+   */
+  plugin?: { [key: string]: any};
 }
 export interface ReturnRequest {
   reason: string;
@@ -589,10 +594,11 @@ export interface ReturnResult {
 export interface CreditPaymentRequest {
   note: string;
   amount: string;
-  method: string; // cash | card | online
+  method: string; // cash | card | online | a plugin tender
   accountId: number /* int64 */; // card/bank locker the money lands in
   reference: string;
   deferDrawerKick: boolean;
+  meta?: { [key: string]: string}; // a plugin tender's detail (slots.tillTenders)
 }
 export interface CreditPaymentResult {
   paymentId: number /* int64 */; // for the debt slip
@@ -1503,6 +1509,10 @@ export interface CustomerPayRequest {
   note: string;
   source: string;
   oldDebtFirst: boolean;
+  /**
+   * Meta is a plugin tender's detail (Method = a plugin tender; Source unused).
+   */
+  meta?: { [key: string]: string};
 }
 /**
  * CustomerRefundRequest hands a customer's advance back in cash from Source (a
@@ -2982,6 +2992,10 @@ export interface TenderMethod {
   value: string;
   label: string;
   hidden: boolean; // not offered in the Pay picker; a plugin pre-fills it (TillApi.addTender)
+  /**
+   * OnPayments: also takes a customer's credit repayment (till CreditForm, admin Pay).
+   */
+  onPayments: boolean;
 }
 /**
  * TillConfig is everything the till needs from settings + the user's flags,
