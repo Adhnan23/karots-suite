@@ -42,7 +42,7 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
     { v: 'cash', label: 'Cash', Icon: Banknote },
     ...(lockersOf(drawer, 'card').length ? [{ v: 'card', label: 'Card', Icon: CreditCard }] : []),
     ...(lockersOf(drawer, 'bank').length ? [{ v: 'online', label: 'Online', Icon: Smartphone }] : []),
-    ...cfg.tenderMethods.filter((t) => t.onPayments).map((t) => ({ v: t.value, label: t.label, Icon: Wallet })),
+    ...cfg.tenderMethods.filter((t) => t.onPayments).map((t) => ({ v: t.value, label: t.label, Icon: slots.tillTenders.find((x) => x.value === t.value)?.Icon ?? Wallet })),
   ]
   const a = num(amount)
   const after = mode === 'pay' ? bal - a : bal + a

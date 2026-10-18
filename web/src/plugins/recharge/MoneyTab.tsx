@@ -65,7 +65,18 @@ export function MoneyTab({ mode, till, data, sym }: { mode: MoneyMode; till: Til
           </label>
           <label className={LABEL}>
             Account / reference number
-            <input aria-label="Account number" autoComplete="off" value={ref} onChange={(e) => setRef(e.target.value)} className={cn(FIELD, 'tabular-nums')} />
+            <input aria-label="Account number" list="recharge-bill-refs" autoComplete="off" value={ref} className={cn(FIELD, 'tabular-nums')}
+              onChange={(e) => {
+                const v = e.target.value
+                setRef(v)
+                // A number paid before brings its bill back too.
+                const hit = !billType.trim() && data.bills.find((b) => b.ref === v)
+                if (hit && hit.billType) setBillType(hit.billType)
+              }} />
+            <datalist id="recharge-bill-refs">
+              {data.bills.filter((b) => !billType.trim() || b.billType.toLowerCase() === billType.trim().toLowerCase())
+                .map((b) => <option key={`${b.billType}-${b.ref}`} value={b.ref}>{b.billType}</option>)}
+            </datalist>
           </label>
         </div>
       )}

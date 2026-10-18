@@ -85,7 +85,14 @@ type TillData struct {
 	Packages  []Package        `json:"packages"`
 	Banks     []Bank           `json:"banks"`
 	BillTypes []string         `json:"billTypes"`
+	Bills     []RecentBill     `json:"bills"`    // bill + account number pairs used before (suggestions)
 	Products  map[string]int64 `json:"products"` // billpay | deposit | cashout | charge
+}
+
+// RecentBill is a bill type and account number paid before, newest first.
+type RecentBill struct {
+	BillType string `db:"bill_type" json:"billType"`
+	Ref      string `db:"ref"       json:"ref"`
 }
 
 // TillCarrier is a carrier with its rates (the till shows the charge it offers).
@@ -96,7 +103,7 @@ type TillCarrier struct {
 
 func (h handlers) till(c echo.Context) error {
 	ctx := c.Request().Context()
-	out := TillData{Carriers: []TillCarrier{}, Banks: []Bank{}, BillTypes: []string{}}
+	out := TillData{Carriers: []TillCarrier{}, Banks: []Bank{}, BillTypes: []string{}, Bills: []RecentBill{}}
 	cs, err := h.p.store.Carriers(ctx, false)
 	if err != nil {
 		return err
@@ -128,6 +135,13 @@ func (h handlers) till(c echo.Context) error {
 			SELECT bill_type, created_at FROM recharge_bill_tx WHERE COALESCE(bill_type, '') <> ''
 			UNION ALL SELECT bill_type, created_at FROM recharge_transactions WHERE COALESCE(bill_type, '') <> '') x
 		GROUP BY bill_type) y ORDER BY at DESC LIMIT 30`); err != nil {
+		return err
+	}
+	if err := h.p.store.db.SelectContext(ctx, &out.Bills, `SELECT bill_type, ref FROM (
+		SELECT COALESCE(bill_type, '') AS bill_type, reference AS ref, max(created_at) AS at FROM (
+			SELECT bill_type, reference, created_at FROM recharge_bill_tx WHERE COALESCE(reference, '') <> '' AND type = 'billpay'
+			UNION ALL SELECT bill_type, reference, created_at FROM recharge_transactions WHERE COALESCE(reference, '') <> '' AND type = 'billpay') x
+		GROUP BY 1, 2) y ORDER BY at DESC LIMIT 200`); err != nil {
 		return err
 	}
 	if out.Products, err = h.p.store.ProductIDs(ctx); err != nil {

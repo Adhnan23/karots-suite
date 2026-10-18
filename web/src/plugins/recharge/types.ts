@@ -11,6 +11,7 @@ export type Package = { id: number; carrierId: number; name: string; price: stri
 export type Bank = { id: number; name: string; balance: string }
 export type TillData = {
   carriers: Carrier[]; floats: Float[]; packages: Package[]; banks: Bank[]; billTypes: string[]
+  bills: { billType: string; ref: string }[] // bill + account number pairs paid before, newest first
   products: { billpay: number; deposit: number; cashout: number; charge: number }
 }
 export type CountResult = { deviceId: number; expected: string; counted: string; diff: string }

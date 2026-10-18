@@ -89,6 +89,8 @@ export type DrawerSection = {
 /** Detail picker for a plugin tender method listed in TillConfig.tenderMethods. */
 export type TillTender = {
   value: string
+  /** The tender's button icon (a wallet when none). */
+  Icon?: LucideIcon
   Detail: ComponentType<{ meta: Record<string, string>; setMeta: (m: Record<string, string>) => void }>
 }
 
@@ -106,6 +108,10 @@ export type ReturnLineField = {
   key: string
   Field: ComponentType<{ saleId: number; line: SaleLine; qty: number; value: unknown; onChange: (v: unknown) => void }>
 }
+
+/** A button on the counter's Suppliers tab (e.g. buying a carrier's reload float);
+ * its Panel takes the supplier workspace's place. */
+export type SupplierAction = { key: string; label: string; Panel: ComponentType<{ onClose: () => void }> }
 
 /** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
 export type ReportCard = { href: string; title: string; desc: string }
@@ -158,6 +164,7 @@ export const slots = {
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   returnLineFields: [] as ReturnLineField[],
+  supplierActions: [] as SupplierAction[],
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],

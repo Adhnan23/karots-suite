@@ -15,17 +15,28 @@ import { CounterPage, PaneTitle } from '../ui'
 import { PayForm } from './PayForm'
 import { StockForm } from './StockForm'
 import { SupplierClaimsPanel } from '@/features/purchasing/SupplierClaims'
+import { slots } from '@/plugins/slots'
 
 type Job = 'pay' | 'receive' | 'order'
 
 /** Suppliers at the counter: pay what the shop owes, take in a delivery, place an order. */
 export function SuppliersTab() {
   const [id, setId] = useState<number | null>(null)
+  const [action, setAction] = useState<string | null>(null) // a plugin's supplier action (slots.supplierActions)
+  const Action = slots.supplierActions.find((a) => a.key === action)?.Panel
   return (
-    <CounterPage flush aside={id ? <Workspace key={id} id={id} /> : (
+    <CounterPage flush aside={Action ? <Action onClose={() => setAction(null)} /> : id ? <Workspace key={id} id={id} /> : (
       <p className="m-auto max-w-[280px] p-8 text-center text-faint">Pick a supplier — or add one if they're new.</p>
     )}>
-      <SupplierList picked={id} onPick={setId} />
+      {slots.supplierActions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-3 pt-3">
+          {slots.supplierActions.map((a) => (
+            <button key={a.key} type="button" aria-pressed={action === a.key} onClick={() => { setAction(a.key); setId(null) }}
+              className="rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{a.label}</button>
+          ))}
+        </div>
+      )}
+      <SupplierList picked={id} onPick={(n) => { setId(n); setAction(null) }} />
     </CounterPage>
   )
 }

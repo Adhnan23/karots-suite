@@ -56,7 +56,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "recharge", Record: p.recordSale})
 	reg.AddReturnLineHook(plugin.ReturnLineHook{Key: "recharge", Record: p.recordReturn})
 	p.routes(reg)
-	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Wallet", SettleTx: p.settleWallet})
+	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Mobile money", SettleTx: p.settleWallet})
 }
 
 // walletMethod is karots-pos's payment_method value (its migration 00003 added it).

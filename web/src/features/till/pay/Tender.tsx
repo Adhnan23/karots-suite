@@ -34,7 +34,7 @@ export function Tender() {
     ...(card.length ? [{ value: 'card', label: 'Card', Icon: CreditCard }] : []),
     ...(bank.length ? [{ value: 'online', label: 'Online', Icon: Smartphone }] : []),
     { value: 'credit', label: 'On account', Icon: BookUser },
-    ...cfg.tenderMethods.filter((m) => !m.hidden).map((m) => ({ value: m.value, label: m.label, Icon: Wallet })),
+    ...cfg.tenderMethods.filter((m) => !m.hidden).map((m) => ({ value: m.value, label: m.label, Icon: slots.tillTenders.find((t) => t.value === m.value)?.Icon ?? Wallet })),
   ]
   const accounts = d.method === 'card' ? card : d.method === 'online' ? bank : []
   const PluginDetail = slots.tillTenders.find((t) => t.value === d.method)?.Detail

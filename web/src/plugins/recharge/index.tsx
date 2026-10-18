@@ -1,4 +1,5 @@
-import { Smartphone } from 'lucide-react'
+import { Smartphone, SmartphoneNfc } from 'lucide-react'
+import { BuyFloatPanel } from './BuyFloatPanel'
 import type { slots as Slots } from '../slots'
 import { DrawerCounts } from './DrawerCounts'
 import { LineHint } from './LineHint'
@@ -17,7 +18,8 @@ export default function recharge(s: typeof Slots) {
   s.tillMenu.push({ key: 'recharge', label: 'Reload & Bills', emoji: '📲', claims, Panel: TillPanel })
   s.tillLineHints.push({ key: 'recharge', Hint: LineHint })
   s.drawerSections.push({ key: 'recharge', on: ['close'], Section: DrawerCounts })
-  s.tillTenders.push({ value: 'wallet', Detail: WalletTender })
+  s.tillTenders.push({ value: 'wallet', Icon: SmartphoneNfc, Detail: WalletTender })
+  s.supplierActions.push({ key: 'recharge-float', label: '📲 Buy reload float', Panel: BuyFloatPanel })
   s.returnLineFields.push({ key: 'recharge', Field: ReturnField })
   s.tillReceiptKinds.push({ key: 'recharge-old', label: 'Reload & Bills (old)', Page: OldSlips })
   s.apps.push({ key: 'recharge', label: 'Reload & Bills', description: 'Floats, carriers, packages and commission', icon: Smartphone, color: 'var(--brand)', to: '/admin/x/recharge' })
