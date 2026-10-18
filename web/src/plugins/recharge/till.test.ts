@@ -4,8 +4,8 @@ import type { TillApi } from '../slots'
 import { addBill, addCashout, addPackage, addReload, chargeFor, goesBelow, inCart, tagOf } from './till'
 import type { Carrier, Float, TillData } from './types'
 
-const carrier: Carrier = { id: 1, name: 'Dialog', productId: 50, isActive: true, rates: [{ kind: 'billpay', percent: '0', fixed: '0', charge: '30' }] }
-const f: Float = { id: 7, carrierId: 1, carrier: 'Dialog', label: 'Shop phone', number: '', reload: true, money: true, isActive: true, target: '0', balance: '100', lastCount: null, lastMove: null }
+const carrier: Carrier = { id: 1, name: 'Dialog', productId: 50, isActive: true, supplierId: 0, rates: [{ kind: 'billpay', percent: '0', fixed: '0', charge: '30' }] }
+const f: Float = { id: 7, carrierId: 1, carrier: 'Dialog', label: 'Shop phone', number: '', reload: true, money: true, isActive: true, target: '0', supplierId: 0, balance: '100', lastCount: null, lastMove: null }
 const data = { products: { billpay: 60, deposit: 61, cashout: 62, charge: 63 } } as TillData
 function fake() {
   const lines: (ServiceLineInput | (PayoutInput & { payout: true }))[] = []

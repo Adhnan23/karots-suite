@@ -30,11 +30,12 @@ export const quickPackage = (carrierId: number, name: string, price: string, com
 export const drawerCounts = (counts: { deviceId: number; counted: string }[]) =>
   write(api<CountResult[]>(`${base}/counts/drawer`, { json: { counts } }))
 export const adminCounts = (counts: { deviceId: number; counted: string }[]) => write(api<CountResult[]>(`${base}/counts`, { json: { counts } }))
-export type RefillIn = { deviceId: number; amount: string; bonus: string; source: string; reference: string }
+export type RefillIn = { deviceId: number; supplierId: number; amount: string; bonus: string; credit: boolean; source: string; reference: string }
 export const counterRefill = (r: RefillIn) => write(api<{ receiptId: number }>(`${base}/refill/counter`, { json: r }))
 export const adminRefill = (r: RefillIn) => write(api<{ receiptId: number }>(`${base}/refill`, { json: r }))
 export const createCarrier = (name: string) => write(api<{ id: number }>(`${base}/carriers`, { json: { name } }))
 export const renameCarrier = (id: number, name: string) => write(api(`${base}/carriers/${id}`, { method: 'PUT', json: { name } }))
+export const carrierSupplier = (id: number, supplierId: number) => write(api(`${base}/carriers/${id}/supplier`, { method: 'PUT', json: { supplierId } }))
 export const carrierActive = (id: number, on: boolean) => write(api(`${base}/carriers/${id}/active`, { json: { on } }))
 export const setRates = (id: number, rates: Rate[]) => write(api(`${base}/carriers/${id}/rates`, { method: 'PUT', json: rates }))
 export type DeviceIn = { carrierId: number; label: string; number: string; reload: boolean; money: boolean; target: string; opening: string }

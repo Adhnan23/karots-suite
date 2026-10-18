@@ -17,26 +17,16 @@ import { StockForm } from './StockForm'
 import { SupplierClaimsPanel } from '@/features/purchasing/SupplierClaims'
 import { slots } from '@/plugins/slots'
 
-type Job = 'pay' | 'receive' | 'order'
+type Job = 'pay' | 'receive' | 'order' | `x:${string}` // x: = a plugin's job (slots.supplierJobs)
 
 /** Suppliers at the counter: pay what the shop owes, take in a delivery, place an order. */
 export function SuppliersTab() {
   const [id, setId] = useState<number | null>(null)
-  const [action, setAction] = useState<string | null>(null) // a plugin's supplier action (slots.supplierActions)
-  const Action = slots.supplierActions.find((a) => a.key === action)?.Panel
   return (
-    <CounterPage flush aside={Action ? <Action onClose={() => setAction(null)} /> : id ? <Workspace key={id} id={id} /> : (
+    <CounterPage flush aside={id ? <Workspace key={id} id={id} /> : (
       <p className="m-auto max-w-[280px] p-8 text-center text-faint">Pick a supplier — or add one if they're new.</p>
     )}>
-      {slots.supplierActions.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-3 pt-3">
-          {slots.supplierActions.map((a) => (
-            <button key={a.key} type="button" aria-pressed={action === a.key} onClick={() => { setAction(a.key); setId(null) }}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{a.label}</button>
-          ))}
-        </div>
-      )}
-      <SupplierList picked={id} onPick={(n) => { setId(n); setAction(null) }} />
+      <SupplierList picked={id} onPick={setId} />
     </CounterPage>
   )
 }
@@ -115,6 +105,7 @@ function Workspace({ id }: { id: number }) {
   const [orderId, setOrderId] = useState<number | null>(null)
   if (!s) return null
   const owed = num(s.owed)
+  const Plugin = slots.supplierJobs.find((j) => `x:${j.key}` === job)?.Panel
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
@@ -125,7 +116,8 @@ function Workspace({ id }: { id: number }) {
             {s.creditDays > 0 && ` · ${s.creditDays} days credit`}
           </p>
         </div>
-        <Seg label="Job" value={job} onChange={(j) => { setJob(j); setOrderId(null) }} options={[['pay', owed < 0 ? 'Pay / refund' : 'Pay'], ['receive', 'Receive stock'], ['order', 'Order']]} />
+        <Seg label="Job" value={job} onChange={(j) => { setJob(j); setOrderId(null) }} options={[['pay', owed < 0 ? 'Pay / refund' : 'Pay'], ['receive', 'Receive stock'], ['order', 'Order'],
+          ...slots.supplierJobs.map((j): [Job, string] => [`x:${j.key}`, j.label])]} />
       </header>
       {job === 'receive' && s.orders.length > 0 && (
         <div className="mx-5 mb-3 flex flex-wrap items-center gap-1.5 rounded-[var(--radius-sm)] bg-muted p-2 text-[13px]">
@@ -145,6 +137,7 @@ function Workspace({ id }: { id: number }) {
       {job === 'pay' && <PayForm s={s} />}
       {job === 'receive' && <StockForm key={`r-${orderId ?? 0}`} mode="receive" supplier={s} orderId={orderId} />}
       {job === 'order' && <StockForm key="o" mode="order" supplier={s} orderId={null} />}
+      {Plugin && <Plugin supplier={s} />}
     </div>
   )
 }

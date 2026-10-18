@@ -1,10 +1,10 @@
 /** Reload & Bills JSON (plugins/recharge, Go). Money is a decimal string. */
 export type Kind = 'reload' | 'billpay' | 'deposit' | 'cashout' | 'wallet_in'
 export type Rate = { kind: Kind; percent: string; fixed: string; charge: string }
-export type Carrier = { id: number; name: string; productId: number; isActive: boolean; rates: Rate[] }
+export type Carrier = { id: number; name: string; productId: number; isActive: boolean; supplierId: number; rates: Rate[] } // supplierId = usual float dealer, 0 none
 export type Device = {
   id: number; carrierId: number; carrier: string; label: string; number: string
-  reload: boolean; money: boolean; isActive: boolean; target: string
+  reload: boolean; money: boolean; isActive: boolean; target: string; supplierId: number
 }
 export type Float = Device & { balance: string; lastCount: string | null; lastMove: string | null }
 export type Package = { id: number; carrierId: number; name: string; price: string; floatCost: string; isActive: boolean; sort: number; addedBy: string }

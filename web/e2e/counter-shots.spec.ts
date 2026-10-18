@@ -18,6 +18,22 @@ async function login(page: Page, phone: string, pin: string) {
 }
 
 const prep: Record<string, (page: Page) => Promise<void>> = {
+  // Reload & Bills: a dealer selling a carrier's float. SHOTS_TAB=suppliers SHOTS_PREP=float
+  float: async (page) => {
+    const post = async (url: string, data: object, method = 'post') => (await page.request.fetch(`/api/v1${url}`, { method, data })).json().catch(() => ({}))
+    const sup = await post('/till/suppliers', { name: 'Float Dealer', phone: '0771234567' })
+    const c = await post('/x/recharge/carriers', { name: 'Dialog' })
+    await post(`/x/recharge/carriers/${c.id}/supplier`, { supplierId: sup.id }, 'put')
+    await post('/x/recharge/devices', { carrierId: c.id, label: 'Shop phone', number: '', reload: true, money: true, target: '5000', opening: '1200' })
+    const m = await post('/x/recharge/carriers', { name: 'Mobitel' })
+    await post('/x/recharge/devices', { carrierId: m.id, label: 'Shop SIM', number: '', reload: true, money: false, target: '0', opening: '300' })
+    await page.reload()
+    await page.getByLabel('Find a supplier').fill('Float Dealer')
+    await page.getByRole('list', { name: 'Suppliers' }).getByRole('button', { name: /Float Dealer/ }).first().click()
+    await page.getByRole('group', { name: 'Job' }).getByRole('button', { name: '📲 Float' }).click()
+    await page.getByLabel('Float bought').fill('2500')
+    await page.getByLabel('Bill number').fill('F-2231')
+  },
   expenses: async (page) => {
     await page.getByRole('button', { name: 'Transport', exact: true }).click()
     await page.getByLabel('Amount').fill('350')

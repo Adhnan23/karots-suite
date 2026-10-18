@@ -6,10 +6,11 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { EmptyState, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
+import { supplierOptionsQuery } from '@/features/admin/products/queries'
 import { configQuery as tillConfigQuery, errMsg } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { carrierActive, createCarrier, deviceActive, renameCarrier, reviewPackage, setRates, setupQuery } from './api'
+import { carrierActive, carrierSupplier, createCarrier, deviceActive, renameCarrier, reviewPackage, setRates, setupQuery } from './api'
 import { DeviceSheet, PackageSheet } from './CarrierSheets'
 import type { Carrier, Device, Kind, Package, Rate } from './types'
 
@@ -33,6 +34,7 @@ type Sheet = { kind: 'carrier'; c?: Carrier } | { kind: 'rates'; c: Carrier } | 
 export function CarriersTab() {
   const sym = useQuery(tillConfigQuery).data?.symbol ?? 'Rs.'
   const setup = useQuery(setupQuery).data
+  const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const [sheet, setSheet] = useState<Sheet>(null)
   if (!setup) return null
   return (
@@ -46,6 +48,14 @@ export function CarriersTab() {
             <Button size="sm" variant="ghost" onClick={() => setSheet({ kind: 'carrier', c })}><Pencil className="size-3.5" /> Rename</Button>
             <Button size="sm" variant="ghost" onClick={() => void run(carrierActive(c.id, !c.isActive))}>{c.isActive ? 'Turn off' : 'Turn on'}</Button>
           </header>
+          <label className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+            Float usually bought from
+            <select aria-label={`${c.name} float dealer`} value={c.supplierId} onChange={(e) => void run(carrierSupplier(c.id, Number(e.target.value)), 'Dealer saved')}
+              className={cn(INPUT, 'h-8 w-auto min-w-0 max-w-full appearance-auto py-0')}>
+              <option value={0}>No usual dealer</option>
+              {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </label>
           <Rates c={c} onEdit={() => setSheet({ kind: 'rates', c })} />
           <List title="Devices" onAdd={() => setSheet({ kind: 'device', c })} add="Add device">
             {setup.devices.filter((d) => d.carrierId === c.id).map((d) => (

@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
-import type { SaleLine, TillProduct } from '@/api/types.gen'
+import type { SaleLine, SupplierView, TillProduct } from '@/api/types.gen'
 import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
@@ -109,9 +109,9 @@ export type ReturnLineField = {
   Field: ComponentType<{ saleId: number; line: SaleLine; qty: number; value: unknown; onChange: (v: unknown) => void }>
 }
 
-/** A button on the counter's Suppliers tab (e.g. buying a carrier's reload float);
- * its Panel takes the supplier workspace's place. */
-export type SupplierAction = { key: string; label: string; Panel: ComponentType<{ onClose: () => void }> }
+/** A job in a supplier's workspace on the counter's Suppliers tab, beside Pay · Receive
+ * stock · Order (e.g. buying reload float from a dealer); its Panel gets that supplier. */
+export type SupplierJob = { key: string; label: string; Panel: ComponentType<{ supplier: SupplierView }> }
 
 /** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
 export type ReportCard = { href: string; title: string; desc: string }
@@ -164,7 +164,7 @@ export const slots = {
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   returnLineFields: [] as ReturnLineField[],
-  supplierActions: [] as SupplierAction[],
+  supplierJobs: [] as SupplierJob[],
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],

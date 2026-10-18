@@ -24,8 +24,8 @@ async function login(page: Page, phone: string, to: string) {
 const cart = (page: Page) => page.getByRole('region', { name: 'Cart' })
 const menu = (page: Page) => page.getByRole('tabpanel')
 
-async function till(page: Page) {
-  await login(page, '0770000002', '/till')
+async function till(page: Page, phone = '0770000002') {
+  await login(page, phone, '/till')
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
   if (await dlg.isVisible()) {
     await dlg.getByLabel(/Count of .*500\.00/).fill('40')
@@ -148,4 +148,39 @@ test('a failed reload comes back through Returns and puts its float back; admin 
   await expect(card.getByText(/new — added at the till/)).toBeVisible()
   await card.getByRole('button', { name: 'Looks right' }).click()
   await expect(card.getByText(/new — added at the till/)).toBeHidden()
+})
+
+test('float comes from a dealer like any supplier: on credit, then paid now from the drawer', async ({ page }) => {
+  const DEALER = `Float Dealer ${tag}`
+  await login(page, '0770000001', '/admin/x/recharge/carriers')
+  const sup = await json<{ id: number }>(page.request.post('/api/v1/till/suppliers', { data: { name: DEALER, phone: '' } }))
+  await page.reload()
+  await page.getByLabel(`${CARRIER} float dealer`).selectOption(String(sup.id))
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Dealer saved' }).first()).toBeVisible()
+
+  await till(page, '0770000003') // the manager deals with suppliers
+  const before = await float(page)
+  await page.goto('/till/suppliers')
+  await page.getByLabel('Find a supplier').fill(DEALER)
+  await page.getByRole('list', { name: 'Suppliers' }).getByRole('button', { name: new RegExp(DEALER) }).click()
+  await page.getByRole('group', { name: 'Job' }).getByRole('button', { name: '📲 Float' }).click()
+  const devices = page.getByRole('group', { name: 'Device' })
+  await expect(devices.getByRole('button').first()).toContainText(CARRIER) // the dealer's carrier comes first
+  await devices.getByRole('button', { name: new RegExp(`${CARRIER} · Shop phone`) }).click()
+
+  await page.getByLabel('Float bought').fill('1000')
+  await page.getByRole('group', { name: 'Paying' }).getByRole('button', { name: 'On credit' }).click()
+  await page.getByLabel('Bill number').fill(`F${tag}`)
+  await page.getByRole('button', { name: /Buy on credit/ }).click()
+  await expect(page.getByText(/We owe Rs\. 1,000\.00/)).toBeVisible()
+  await expect.poll(() => float(page)).toBe(before + 1000)
+
+  await page.getByLabel('Float bought').fill('500')
+  await page.getByRole('group', { name: 'Paying' }).getByRole('button', { name: 'Paid now' }).click()
+  await page.getByRole('button', { name: /^Buy Rs\. 500\.00/ }).click()
+  await skipPrint(page)
+  await expect.poll(() => float(page)).toBe(before + 1500)
+  await expect(page.getByText(/We owe Rs\. 1,000\.00/)).toBeVisible() // the paid one is settled; the credit one is still owed
+  const v = await json<{ invoices: { invoiceNo: string; balance: string }[] }>(page.request.get(`/api/v1/till/suppliers/${sup.id}`))
+  expect(v.invoices.map((i) => [i.invoiceNo, i.balance])).toEqual([[`F${tag}`, '1000.00']])
 })

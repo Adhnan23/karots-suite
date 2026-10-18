@@ -28,6 +28,17 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
   ...aicatalogPrep,
+  /** Reload & Bills carriers, one with its usual float dealer (a normal supplier). */
+  'recharge-carriers': async (page) => {
+    const post = async (url: string, data: object, method = 'post') => (await page.request.fetch(`/api/v1${url}`, { method, data })).json().catch(() => ({}))
+    const sup = await post('/till/suppliers', { name: 'Lanka Reload Distributors', phone: '' })
+    const c = await post('/x/recharge/carriers', { name: 'Dialog' })
+    await post(`/x/recharge/carriers/${c.id}/supplier`, { supplierId: sup.id }, 'put')
+    await post('/x/recharge/devices', { carrierId: c.id, label: 'Shop phone', number: '0771234567', reload: true, money: true, target: '5000', opening: '1200' })
+    await post('/x/recharge/carriers', { name: 'Mobitel' })
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
   /** Any report page over today's sales: SHOTS_PREP=with-sales SHOTS_NAME=<name>. */
   'with-sales': async (page) => {
     await salesWithHistory(page)
