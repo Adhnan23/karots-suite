@@ -34,8 +34,10 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 ```
 cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin);
                       enabled_plugins.go is GENERATED (committed core-only)
-cmd/bootstrap/        Shop Builder: no flags = browser app (pick plugins / OS / install id, build);
-                      flags for scripts; writes both plugin lists, builds, restores them core-only
+cmd/bootstrap/        Shop Builder: no flags = browser app (pick plugins / OS / database mode / install id,
+                      build); flags for scripts; writes both plugin lists, builds, restores them core-only
+internal/filedb/      file mode: the shop's own PostgreSQL 17 in data/ next to the binary (no DATABASE_URL +
+                      a `-tags filemode` build, which embeds bundle/postgres.txz — placed by the builder)
 plugins/<key>/        a plugin's Go half: plugin.json, init() → plugin.Register, own migrations
                       (goose_db_version_<key>), JSON routes on reg.Admin()/Cashier() → /api/v1/x/…
 internal/app/         BuildServer + services.go (service construction + core seam wiring)
@@ -113,6 +115,10 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   `make core-only` puts the lists back — **never commit a plugin selection**. `make check-core` (in
   `make verify`) fails if core names a plugin or a list isn't core-only. Playwright builds with every
   plugin. A shop build: `make bootstrap` (Shop Builder in the browser).
+- **File mode** (one-PC shops): Shop Builder → Database "One PC", or `go run ./cmd/bootstrap -plugins none
+  -mode file`. Run the binary with no `DATABASE_URL` (and no `.env` setting it): data, auto-backups and the
+  generated secret go to `data/` beside it (`-data` / `FILE_DB_PORT`, default 5434). `go test ./internal/filedb`
+  downloads PostgreSQL once into the user cache (skipped with `-short` or offline).
 - **The dev DB is disposable.** Drop and re-migrate freely.
 - **Work style:** one task at a time, test-first, one commit per step, working on `main` (local).
 
@@ -136,3 +142,4 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3100/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
 - Go DB tests and Playwright share `suite_db`: never run `go test` while a Playwright run is going — it fails unrelated flows (a restore, the drawer, duplicate names).
 - A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.
+- **File mode never uses a plain `C` locale:** pg_trgm then treats every Sinhala / Tamil letter as punctuation and search finds nothing. Never let embedded-postgres see a data folder it can't use either — it **wipes and re-inits** one whose `PG_VERSION` doesn't match (`filedb.checkDataDir` refuses first).

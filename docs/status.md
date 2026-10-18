@@ -200,6 +200,19 @@ day, wages already cover it; the lost weight is in the loose cost.
   **M8c Shop Builder** over `shops.json` → **M8d Demo Room** + install scripts + README → **M8e Pocket Cashier
   groundwork** (client id per sale request, per-device receipt series, real sale time). **Practice mode is removed
   from M8.** The VAT tax invoice waits for the accountant's field list. Each part: spec first, then its plan.
+- **M8a File mode DONE (2026-10-18)** (spec `docs/specs/2026-10-18-m8a-file-mode-design.md`, plan
+  `docs/plans/2026-10-18-m8a-file-mode.md`; user: "do as recommended"). `internal/filedb` runs PostgreSQL 17.5 from
+  `data/` next to the binary (embedded in `-tags filemode` builds, never downloaded at the shop): restart keeps the
+  data, a Postgres left by a crash is stopped first (the app claims its HTTP port before that, so a second copy
+  stops there), a folder of another major / not Postgres is refused (the library would wipe it), C.UTF-8 on Linux
+  (plain C breaks Sinhala search), root refused. No `.env` needed: JWT secret generated into `data/secret`,
+  auto-backup on into `data/backups`. Setup → Data "Where the shop is kept" (+ move-to-server steps, copy-backups
+  nudge); Konami shows the mode. Shop Builder: **Database** One PC / Server, `-mode file|server` (bundle fetched
+  once into the builder's cache, SHA-256 checked, removed after the build). Checked on Linux: fresh start, second
+  copy refused, kill -9 → restart with data, clean stop leaves no Postgres; builder made Linux (39 MB) and Windows
+  all-plugins (50 MB) file-mode binaries. **Left for the user: a Windows check** (double-click → till; close the
+  window → no `postgres.exe` left; start again → same data; Sinhala product search) and one file → server move.
+  **NEXT: M8b self-update + release tooling** (spec first; stop / start Postgres around the swap).
   (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator

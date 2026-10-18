@@ -41,7 +41,8 @@ exactly as it is.
   karots-suite(.exe)
   data/
     pg/        the database (Postgres data dir)
-    runtime/   Postgres program, unpacked from the binary on each start
+    cache/     the Postgres bundle, written from the binary
+    runtime/   Postgres program, unpacked from cache/ on each start
     backups/   automatic backups (on by default in file mode)
     secret     generated JWT secret + DB password (0600)
     postgres.log
