@@ -42,6 +42,7 @@ func (h *handlers) AdminData(c echo.Context) error {
 		AutoBackups:   h.d.Cfg.BackupDir != "",
 		IntervalHours: int(h.d.Cfg.BackupInterval / time.Hour),
 		Keep:          h.d.Cfg.BackupKeep,
+		FileDataDir:   h.d.Cfg.FileDataDir,
 		Groups:        []DataGroup{},
 		Backups:       make([]BackupFileRow, 0, len(files)),
 	}

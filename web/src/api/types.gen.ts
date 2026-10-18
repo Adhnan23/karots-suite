@@ -25,6 +25,7 @@ export interface LoginInfo {
   installId: string;
   shopName: string;
   serverTime: string; // RFC3339 UTC
+  fileMode: boolean; // the shop runs its own PostgreSQL (one PC)
   /**
    * The shop's active notes and coins (face values only), for the login / lock
    * easter-egg shop game's cash drawer.
@@ -875,6 +876,7 @@ export interface DataPage {
   keep: number /* int */;
   groups: DataGroup[];
   backups: BackupFileRow[];
+  fileDataDir: string; // file mode: the shop's own data folder; "" = server mode
 }
 /**
  * RestoreReport says what a restore loaded and what this schema could not take.

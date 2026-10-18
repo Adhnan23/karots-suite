@@ -13,7 +13,7 @@ import (
 )
 
 func (h *handlers) LoginInfo(c echo.Context) error {
-	info := LoginInfo{ServerTime: time.Now().UTC().Format(time.RFC3339)}
+	info := LoginInfo{ServerTime: time.Now().UTC().Format(time.RFC3339), FileMode: h.d.Cfg.FileDataDir != ""}
 	if cfg, err := h.d.Settings.Get(c.Request().Context()); err == nil && cfg != nil {
 		info.InstallID = cfg.InstallID
 		info.ShopName = cfg.ShopName

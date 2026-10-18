@@ -26,6 +26,7 @@ type DataPage struct {
 	Keep          int             `json:"keep"`
 	Groups        []DataGroup     `json:"groups"`
 	Backups       []BackupFileRow `json:"backups"`
+	FileDataDir   string          `json:"fileDataDir"` // file mode: the shop's own data folder; "" = server mode
 }
 
 // RestoreReport says what a restore loaded and what this schema could not take.

@@ -119,9 +119,10 @@ function Login() {
             Sign in
           </button>
           {reveal && info && (
-            <p className="flex gap-3.5 text-sm text-muted-foreground">
+            <p className="flex flex-wrap gap-x-3.5 gap-y-1 text-sm text-muted-foreground">
               Install ID <b className="font-mono text-foreground">{info.installId}</b>
               Server time <b className="font-mono text-foreground">{info.serverTime}</b>
+              Mode <b className="font-mono text-foreground">{info.fileMode ? 'file' : 'server'}</b>
             </p>
           )}
         </div>

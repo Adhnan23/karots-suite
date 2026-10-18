@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ChevronRight, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { ChevronRight, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { apiUpload } from '@/api/client'
@@ -62,9 +62,30 @@ export function DataPage() {
           <p className="mb-2.5 text-sm text-muted-foreground">Looks for figures older versions of the software saved wrongly. It changes nothing.</p>
           {check ? <DataCheckList findings={check} /> : <p className="text-sm text-faint">Checking…</p>}
         </Card>
+        {data && <Card title="Where the shop is kept" icon={<Database size={18} />} className="lg:col-span-2"><Where dir={data.fileDataDir} /></Card>}
       </div>
       {restore && <RestoreDialog source={restore} onClose={() => setRestore(null)} />}
     </>
+  )
+}
+
+/** File mode (the shop's own PostgreSQL in a folder on this PC) or server mode. */
+function Where({ dir }: { dir: string }) {
+  if (!dir) return <p className="text-sm text-muted-foreground">Server mode: the shop runs on a PostgreSQL server (DATABASE_URL in the .env).</p>
+  return (
+    <div className="space-y-2.5 text-sm">
+      <p>File mode: this PC keeps the whole shop in <b className="break-all font-mono">{dir}</b>.</p>
+      <p className="text-muted-foreground">The automatic backups sit on the same disk. Copy them to a USB stick or a cloud folder now and then, so a broken disk doesn&apos;t take them too.</p>
+      <details className="text-muted-foreground">
+        <summary className="cursor-pointer font-semibold text-foreground">Moving to a server</summary>
+        <ol className="mt-1.5 list-decimal space-y-1 pl-5">
+          <li>Download a backup (above).</li>
+          <li>Install PostgreSQL on the server.</li>
+          <li>Put <span className="font-mono">DATABASE_URL=…</span> in the .env next to this program.</li>
+          <li>Start the program again, then restore the backup here.</li>
+        </ol>
+      </details>
+    </div>
   )
 }
 
