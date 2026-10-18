@@ -189,6 +189,9 @@ day, wages already cover it; the lost weight is in the loose cost.
   Inventory, Activity) now load every row before Print / Ctrl+P (`ReportPage rows=`; `e2e/report-print.spec.ts`). An
   A4-PDF audit of every report found no other gap (no clipping; long reports run onto more pages). karots-pos fixed too
   (`dfb5871`: `?all=1` sheet + core.js `reportPrint`; Recipe Variance's "showing X of Y" note had swapped numbers).
+  **Firefox (user uses it too):** printouts now use the desktop layout on paper in every browser (`app.css`: `md:`
+  also applies in print; phone-only tweaks are `phone:`, never printed — was Firefox printing phone cards). Checked
+  with real Firefox print-to-PDF (script kept outside the repo): suite and karots-pos print every row.
   The demo stays on :3100. Old karots-pos RB-/RL- slips section dropped (everything is a sale; `4804a4e`).
 - **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
 - **NEXT:** advance / special orders (parked "after M7.10" = after recharge) — rethink proposal first; then M8 Ship.
