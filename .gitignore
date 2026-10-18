@@ -10,3 +10,4 @@ internal/spa/dist/*
 .superpowers/
 backups/
 /dist/
+internal/filedb/bundle/

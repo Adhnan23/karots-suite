@@ -3,6 +3,7 @@ module karots-suite
 go 1.26.3
 
 require (
+	github.com/fergusstrange/embedded-postgres v1.34.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-text/typesetting v0.3.4
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -32,6 +33,7 @@ require (
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
