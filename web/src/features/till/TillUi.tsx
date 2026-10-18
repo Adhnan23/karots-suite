@@ -88,6 +88,7 @@ export function useTillApi(): TillApi {
   const saleType = state.saleType
   return useMemo(() => ({
     addServiceLine: (line) => dispatch({ type: 'addService', line }),
+    addPayout: (line) => dispatch({ type: 'addPayout', line }),
     addGroup: async (g) => {
       const items = []
       for (const it of g.items) {

@@ -32,6 +32,10 @@ const Rule = () => <hr className="my-2 border-dashed border-ink" />
 
 export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHeader; sym: string; narrow?: boolean }) {
   const change = num(s.changeGiven)
+  // Payout lines (negative) are money handed to the customer: shown as Given, kept out of
+  // the subtotal; a sale they take below zero ends in Given, not TOTAL.
+  const given = -s.lines.reduce((t, l) => t + Math.min(0, num(l.subtotal)), 0)
+  const below = num(s.total) < 0
   return (
     <Paper shop={shop} narrow={narrow}>
       <Row l={s.receiptNo} r={stamp(s.createdAt)} />
@@ -41,7 +45,7 @@ export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHea
         ? (
           <div key={x.line.id} className="mb-1">
             <span className="block">{x.line.name}</span>
-            <Row l={x.line.packLabel ? `  ${qtyText(x.line.quantity)} ${x.line.unitAbbr} (${x.line.packLabel})` : `  ${qtyText(x.line.quantity)} × ${money('', x.line.unitPrice).trim()}`} r={money('', x.line.subtotal).trim()} />
+            {num(x.line.subtotal) < 0 ? <Row l="  Given" r={`-${money('', -num(x.line.subtotal)).trim()}`} /> : <Row l={x.line.packLabel ? `  ${qtyText(x.line.quantity)} ${x.line.unitAbbr} (${x.line.packLabel})` : `  ${qtyText(x.line.quantity)} × ${money('', x.line.unitPrice).trim()}`} r={money('', x.line.subtotal).trim()} />}
             {num(x.line.returnedQty) > 0 && <span className="block">  returned {qtyText(x.line.returnedQty)}</span>}
           </div>
         )
@@ -55,12 +59,13 @@ export function SalePaper({ s, shop, sym, narrow }: { s: SaleView; shop: ShopHea
           </div>
         )))}
       <Rule />
-      <Row l="Subtotal" r={money(sym, s.subtotal)} />
+      <Row l="Subtotal" r={money(sym, num(s.subtotal) + given)} />
       {num(s.discount) > 0 && <Row l="Discount" r={`-${money(sym, s.discount)}`} />}
       {num(s.tax) > 0 && <Row l="Tax" r={money(sym, s.tax)} />}
-      <Row l="TOTAL" r={money(sym, s.total)} b />
-      {s.payments.map((p, i) => <Row key={i} l={METHOD[p.method] ?? p.method} r={money(sym, p.amount)} />)}
-      {change > 0 && <Row l="Change" r={money(sym, change)} />}
+      {given > 0 && <Row l="Given to customer" r={`-${money(sym, given)}`} />}
+      {!below && <Row l="TOTAL" r={money(sym, s.total)} b />}
+      {s.payments.filter((p) => num(p.amount) !== 0).map((p, i) => <Row key={i} l={METHOD[p.method] ?? p.method} r={money(sym, p.amount)} />)}
+      {change > 0 && <Row l={below ? 'GIVEN' : 'Change'} r={money(sym, change)} b={below} />}
       {s.status !== 'completed' && <p className="mt-2 text-center font-bold uppercase">{s.status.replace('_', ' ')}</p>}
     </Paper>
   )

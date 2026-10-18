@@ -48,7 +48,7 @@ export function ChangeBanner() {
     tone = 'bg-[color-mix(in_srgb,var(--success)_16%,transparent)]'
     body = (
       <>
-        <p className="flex items-baseline justify-between font-bold">Change to give <b className="font-display text-[22px] text-success tabular-nums">{money(sym, give)}</b></p>
+        <p className="flex items-baseline justify-between font-bold">{t < 0 ? 'Give the customer' : 'Change to give'} <b className="font-display text-[22px] text-success tabular-nums">{money(sym, give)}</b></p>
         {notes.length > 0 && <p className="text-muted-foreground tabular-nums">{notes.map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>}
         {canKeep && (
           <div className="flex flex-wrap items-center gap-1.5">

@@ -27,6 +27,7 @@ type saleLines struct {
 	subtotal        decimal.Decimal
 	taxTotal        decimal.Decimal
 	itemDiscTotal   decimal.Decimal
+	payouts         decimal.Decimal // Σ payout lines (≤ 0), kept out of the bill discount
 	serviceProducts map[int64]bool
 	componentMoves  map[int][]ServiceComponentParsed
 	serialBatches   []serialBatch
@@ -50,6 +51,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 	subtotal := decimal.Zero
 	taxTotal := decimal.Zero
 	itemDiscTotal := decimal.Zero
+	payouts := decimal.Zero
 	lines := make([]SaleItem, 0, len(in.Items))
 	serviceProducts := map[int64]bool{}
 	componentMoves := map[int][]ServiceComponentParsed{}
@@ -120,6 +122,17 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				}
 			}
 			serialBatches = append(serialBatches, serialBatch{productID: p.ID, months: p.WarrantyMonths, serials: serials})
+		}
+		if it.Payout {
+			item, err := payoutLine(p, it, qty)
+			if err != nil {
+				return err
+			}
+			serviceProducts[p.ID] = true
+			subtotal = subtotal.Add(item.Subtotal)
+			payouts = payouts.Add(item.Subtotal)
+			lines = append(lines, item)
+			continue
 		}
 		discValue, err := money.Parse(it.Discount)
 		if err != nil || discValue.IsNegative() {
@@ -364,9 +377,37 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		subtotal:        subtotal,
 		taxTotal:        taxTotal,
 		itemDiscTotal:   itemDiscTotal,
+		payouts:         payouts,
 		serviceProducts: serviceProducts,
 		componentMoves:  componentMoves,
 		serialBatches:   serialBatches,
 	}
 	return nil
+}
+
+// payoutLine prices a payout (money handed to the customer): one unit of a
+// pass-through service product, the amount from PriceOverride stored negative,
+// with no discount, tax, cost, components or group.
+func payoutLine(p *products.Product, it ItemInput, qty decimal.Decimal) (SaleItem, error) {
+	if !p.IsService || !p.PassThrough {
+		return SaleItem{}, apperr.Validation(fmt.Sprintf("%s can't be paid out", p.Name))
+	}
+	if !qty.Equal(decimal.NewFromInt(1)) {
+		return SaleItem{}, apperr.Validation("a payout is one line of one")
+	}
+	if d, err := money.Parse(it.Discount); err != nil || !d.IsZero() || len(it.Components) > 0 || it.Group != nil {
+		return SaleItem{}, apperr.Validation("a payout can't be discounted or grouped")
+	}
+	amt, err := money.Parse(it.PriceOverride)
+	if err != nil || !amt.IsPositive() {
+		return SaleItem{}, apperr.Validation(fmt.Sprintf("enter the amount to give for %s", p.Name))
+	}
+	var desc *string
+	if s := strings.TrimSpace(it.Description); s != "" {
+		desc = &s
+	}
+	return SaleItem{
+		ProductID: p.ID, Quantity: qty, UnitPrice: amt.Neg(), Subtotal: amt.Neg(),
+		DiscountType: "fixed", Description: desc,
+	}, nil
 }

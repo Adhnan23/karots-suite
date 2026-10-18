@@ -23,6 +23,9 @@ type SaleItemRequest struct {
 	// Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);
 	// each plugin's sale-line hook reads its own key inside the sale's tx.
 	Plugin map[string]any `json:"plugin,omitempty"`
+	// Payout: money handed to the customer (priceOverride = the amount) on a
+	// pass-through service product — the sale may then total below zero.
+	Payout bool `json:"payout,omitempty"`
 }
 
 // SaleLineGroup: no numbers the groups within the sale, sets is how many sets.

@@ -49,7 +49,15 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 	// --- Totals ---
 	// Sale.Discount holds item discounts + bill discount; split them so the
 	// receipt mirrors the cashier screen (item discounts shown per line above).
-	line(&b, leftRight("Subtotal", money.Format(sym, d.Sale.Subtotal), w))
+	// Payout lines (negative) are money handed over: kept out of the subtotal and
+	// shown on their own; a sale they take below zero ends in GIVEN, not TOTAL.
+	given := decimal.Zero
+	for _, it := range d.Items {
+		if it.Subtotal.IsNegative() {
+			given = given.Sub(it.Subtotal)
+		}
+	}
+	line(&b, leftRight("Subtotal", money.Format(sym, d.Sale.Subtotal.Add(given)), w))
 	if itemDisc.IsPositive() {
 		line(&b, leftRight("Item savings", "-"+money.Format(sym, itemDisc), w))
 	}
@@ -59,9 +67,14 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 	if d.Sale.Tax.IsPositive() {
 		line(&b, leftRight("Tax", money.Format(sym, d.Sale.Tax), w))
 	}
+	if given.IsPositive() {
+		line(&b, leftRight("Given to customer", "-"+money.Format(sym, given), w))
+	}
 	// TOTAL — emphasized and set off with blank lines so it stands out.
 	line(&b, "")
-	bigLine(&b, cfg, "TOTAL", money.Format(sym, d.Sale.Total), w)
+	if !d.Sale.Total.IsNegative() {
+		bigLine(&b, cfg, "TOTAL", money.Format(sym, d.Sale.Total), w)
+	}
 	if d.Sale.Discount.IsPositive() {
 		line(&b, leftRight("You saved", money.Format(sym, d.Sale.Discount), w))
 	}
@@ -71,6 +84,9 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 	if len(d.Payments) > 0 {
 		line(&b, "")
 		for _, p := range d.Payments {
+			if p.Amount.IsZero() {
+				continue // a payout sale's empty cash row
+			}
 			line(&b, leftRight(capitalize(ascii(p.Method)), money.Format(sym, p.Amount), w))
 		}
 	}
@@ -94,7 +110,11 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 		}
 	} else if d.Sale.ChangeGiven.IsPositive() {
 		line(&b, "")
-		bigLine(&b, cfg, "CHANGE", money.Format(sym, d.Sale.ChangeGiven), w)
+		label := "CHANGE"
+		if d.Sale.Total.IsNegative() {
+			label = "GIVEN"
+		}
+		bigLine(&b, cfg, label, money.Format(sym, d.Sale.ChangeGiven), w)
 	}
 	// Rounding: cash the customer left behind (paid - change - total). It stayed
 	// in the drawer; shown here so the slip explains why cash out < change due —

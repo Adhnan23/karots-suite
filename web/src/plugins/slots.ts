@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TillProduct } from '@/api/types.gen'
-import type { CartLine, SaleType, ServiceLineInput } from '@/features/till/cart/types'
+import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
 export type GroupLineInput = { productId: number; per: number; discount: string }
@@ -9,6 +9,9 @@ export type GroupLineInput = { productId: number; per: number; discount: string 
 /** What a plugin till component may do to the sale in progress. */
 export type TillApi = {
   addServiceLine(line: ServiceLineInput): void
+  /** Money the shop hands the customer (a pass-through service product): the cart may then
+   * total below zero and Pay gives it out as cash, netted with anything bought. */
+  addPayout(line: PayoutInput): void
   /** Add lines that stay together in the cart (− / + scale them, removing one breaks the
    * group back to full price). take moves units off existing plain lines in the same step;
    * plugin lands on every line. Resolves to an error text, or null when added. */

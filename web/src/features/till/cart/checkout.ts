@@ -48,6 +48,9 @@ export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
     if (l.serials.filter((x) => x.trim() !== '').length < n) return { error: `Enter ${n} serial number(s) for ${l.name}` }
   }
   if (payments.some((p) => num(p.amount) > 0 && !p.method)) return { error: 'Choose a payment method for each amount' }
+  if (t < 0 && payments.some((p) => num(p.amount) > 0 && p.method !== 'cash')) {
+    return { error: 'Money given to the customer goes out in cash — take off the other payments' }
+  }
   for (const p of payments) {
     if ((p.method === 'card' || p.method === 'online') && num(p.amount) > 0 && !p.accountId) {
       return { error: `Choose the account for the ${p.method} payment` }
@@ -77,6 +80,7 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
       serials: l.trackSerial ? l.serials.map((x) => x.trim()) : [], description: l.description, components: l.components,
       group: l.group ? { no: groupNo.get(l.group.id)!, label: l.group.label, sets: String(l.group.count) } : undefined,
       plugin: l.plugin && Object.keys(l.plugin).length ? l.plugin : undefined,
+      payout: l.payout || undefined,
     })),
     payments: payments.filter((p) => num(p.amount) > 0).map((p) => ({
       method: p.method, amount: String(num(p.amount)), reference: p.reference, accountId: num(p.accountId),

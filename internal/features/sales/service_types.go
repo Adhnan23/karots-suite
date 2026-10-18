@@ -43,6 +43,12 @@ type ItemInput struct {
 	// (e.g. the repair job it came from). Core never reads it; it is handed to
 	// the line hook inside the sale's transaction.
 	Plugin map[string]json.RawMessage `json:"plugin"`
+	// Payout marks money the shop hands the customer (e.g. a cash out):
+	// PriceOverride is the amount, stored as a negative line on a pass-through
+	// service product, one unit, never discounted, taxed or returned. Only
+	// payouts can take a sale below zero; the difference leaves the drawer as
+	// change.
+	Payout bool `json:"payout"`
 }
 
 // LineGroup: No numbers the groups within one sale, Sets is how many sets.

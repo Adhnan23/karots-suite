@@ -106,7 +106,7 @@ SELECT s.receipt_no AS ref,
        'change ' || to_char(s.change_given, 'FM999,999,990.00') || ', cash handed over ' ||
        to_char(COALESCE(SUM(p.amount) FILTER (WHERE p.method = 'cash'), 0), 'FM999,999,990.00') AS detail
 FROM sales s LEFT JOIN payments p ON p.sale_id = s.id
-WHERE s.change_given > 0
+WHERE s.change_given > 0 AND s.total >= 0
 GROUP BY s.id
 HAVING s.change_given > COALESCE(SUM(p.amount) FILTER (WHERE p.method = 'cash'), 0) + 0.01
 ORDER BY s.created_at DESC`,

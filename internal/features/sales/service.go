@@ -230,11 +230,12 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		serviceProducts := sl.serviceProducts
 		componentMoves := sl.componentMoves
 		serialBatches := sl.serialBatches
-		// Resolve the bill discount against the pre-tax net (after item discounts).
-		billDiscount := resolveBillDiscount(billDiscType, billDiscValue, subtotal.Sub(itemDiscTotal))
+		// Resolve the bill discount against the pre-tax net (after item discounts)
+		// of the goods — a payout is money handed over, never discounted.
+		billDiscount := resolveBillDiscount(billDiscType, billDiscValue, subtotal.Sub(sl.payouts).Sub(itemDiscTotal))
 		discount := itemDiscTotal.Add(billDiscount)
 		total := subtotal.Sub(discount).Add(taxTotal).Round(2)
-		if total.IsNegative() {
+		if total.Sub(sl.payouts).IsNegative() {
 			return apperr.Validation("bill discount exceeds the sale total")
 		}
 
@@ -249,6 +250,17 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			amounts = append(amounts, amt)
 		}
 		tender := SplitTender(methods, amounts)
+		if total.IsNegative() {
+			// The shop is paying the customer: only cash leaves the drawer, so
+			// no card / online / plugin / account line may ride along.
+			if tender.Paid.Sub(tender.Cash).IsPositive() || tender.OnAccount.IsPositive() {
+				return apperr.Validation("money given to the customer goes out in cash — take off the other payments")
+			}
+			if tender.Cash.IsZero() {
+				// One cash row (0) so by-method totals subtract its change.
+				in.Payments = append(in.Payments, PaymentInput{Method: "cash", Amount: "0"})
+			}
+		}
 
 		// The customer is only loaded when something is going on their account,
 		// so an ordinary cash sale still costs no extra query.
@@ -409,7 +421,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			}
 			// Skip blank/zero tender lines (e.g. an unused method in a multi-tender
 			// form); negative amounts were already rejected above.
-			if !amt.IsPositive() {
+			if !amt.IsPositive() && !(total.IsNegative() && p.Method == "cash") {
 				continue
 			}
 			if err := saleRepo.InsertPayment(ctx, saleID, p.Method, amt, p.Reference); err != nil {
@@ -475,7 +487,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 	// Post-commit: pop the physical drawer when the sale actually took cash.
 	// Skipped when the till will fold the pulse into the receipt print (a single
 	// USB job — see DeferDrawerKick); the drawer still pops, just in that one job.
-	if s.drawerKick != nil && tenderPaidCash(in.Payments) && !in.DeferDrawerKick {
+	if s.drawerKick != nil && (tenderPaidCash(in.Payments) || detail.Sale.Total.IsNegative()) && !in.DeferDrawerKick {
 		s.drawerKick(ctx)
 	}
 	return detail, nil

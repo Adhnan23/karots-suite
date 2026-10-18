@@ -16,7 +16,13 @@ import (
 // every reader multiplies by, so the refund, the sales list, the day-end
 // summary and the Returns report all agree with the cash that went back.
 // Correlated on the outer `s`.
-const PaidFactorSQL = `COALESCE(s.total / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id), 0), 1)`
+// Payout lines (the only negative ones) are money handed over, not goods: they
+// come off the total and stay out of the base.
+const PaidFactorSQL = `COALESCE((s.total - ` + PayoutsSQL + `) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x WHERE x.sale_id = s.id AND x.subtotal > 0), 0), 1)`
+
+// PayoutsSQL is the sale's payout lines (≤ 0) — money the shop handed the
+// customer. Correlated on `s`.
+const PayoutsSQL = `(SELECT COALESCE(SUM(x.subtotal), 0) FROM sale_items x WHERE x.sale_id = s.id AND x.subtotal < 0)`
 
 func (r *Repository) PaidFactor(ctx context.Context, saleID int64) (decimal.Decimal, error) {
 	var f decimal.Decimal
@@ -73,7 +79,7 @@ func (r *Repository) FindItem(ctx context.Context, saleID, itemID int64) (*SaleI
 func (r *Repository) OutstandingItems(ctx context.Context, saleID int64) (int, error) {
 	var n int
 	err := r.q.GetContext(ctx, &n,
-		`SELECT COUNT(*) FROM sale_items WHERE sale_id = $1 AND returned_qty < quantity`, saleID)
+		`SELECT COUNT(*) FROM sale_items WHERE sale_id = $1 AND returned_qty < quantity AND subtotal >= 0`, saleID)
 	return n, err
 }
 

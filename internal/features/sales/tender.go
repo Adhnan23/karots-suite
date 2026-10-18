@@ -57,7 +57,8 @@ func CheckTender(t Tender, total decimal.Decimal, hasCustomer bool, availableCre
 	// Change is handed back from the drawer, so it can't be more than the cash
 	// handed over: a card or online payment above what's due would turn the
 	// difference into cash out of the till.
-	if change := covered.Sub(total); change.GreaterThan(t.Cash) && !t.OnAccount.IsPositive() {
+	// A payout (total below zero) is change too: what the customer is given.
+	if change := covered.Sub(total); change.GreaterThan(t.Cash.Add(decimal.Max(total.Neg(), decimal.Zero))) && !t.OnAccount.IsPositive() {
 		return apperr.Validation("card and online can't be more than what's due — only cash gets change")
 	}
 	if !t.OnAccount.IsPositive() {

@@ -3,7 +3,7 @@ import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery } from '../api'
 import { Kbd, Seg } from '../bits'
-import { billDiscount, itemDiscountTotal, saleTotal, subtotal, taxTotal } from '../cart/totals'
+import { billDiscount, goodsSubtotal, itemDiscountTotal, payoutTotal, saleTotal, taxTotal } from '../cart/totals'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
@@ -15,9 +15,11 @@ export function Summary() {
   const idisc = itemDiscountTotal(ls)
   const bdisc = billDiscount(ls, state.billDiscount, state.billDiscountType)
   const tax = taxTotal(ls)
+  const given = payoutTotal(ls)
+  const t = saleTotal(state)
   return (
     <div className="flex flex-col gap-1.5 text-[13.5px]">
-      <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span className="tabular-nums">{money(sym, subtotal(ls))}</span></div>
+      <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span className="tabular-nums">{money(sym, goodsSubtotal(ls))}</span></div>
       {idisc > 0 && <div className="flex justify-between text-success"><span>Item discounts</span><span className="tabular-nums">−{money(sym, idisc)}</span></div>}
       <div className="flex items-center justify-between gap-2 text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -32,9 +34,10 @@ export function Summary() {
         <span className="tabular-nums">{bdisc > 0 ? `−${money(sym, bdisc)}` : '—'}</span>
       </div>
       {tax > 0 && <div className="flex justify-between text-muted-foreground"><span>Tax</span><span className="tabular-nums">{money(sym, tax)}</span></div>}
+      {given > 0 && <div className="flex justify-between text-warning"><span>Given to the customer</span><span className="tabular-nums">−{money(sym, given)}</span></div>}
       <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2">
-        <span className="font-semibold text-muted-foreground">Total</span>
-        <b className="font-display text-[32px] font-extrabold tracking-tight tabular-nums">{money(sym, saleTotal(state))}</b>
+        <span className="font-semibold text-muted-foreground">{t < 0 ? 'Give the customer' : 'Total'}</span>
+        <b className={cn('font-display text-[32px] font-extrabold tracking-tight tabular-nums', t < 0 && 'text-warning')}>{money(sym, Math.abs(t))}</b>
       </div>
     </div>
   )

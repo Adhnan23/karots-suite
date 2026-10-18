@@ -2557,6 +2557,11 @@ export interface SaleItemRequest {
    * each plugin's sale-line hook reads its own key inside the sale's tx.
    */
   plugin?: { [key: string]: any};
+  /**
+   * Payout: money handed to the customer (priceOverride = the amount) on a
+   * pass-through service product — the sale may then total below zero.
+   */
+  payout?: boolean;
 }
 /**
  * SaleLineGroup: no numbers the groups within the sale, sets is how many sets.

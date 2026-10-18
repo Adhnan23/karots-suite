@@ -7,6 +7,7 @@ export const lineGross = (l: CartLine) =>
 
 /** Fixed is per unit (× qty); percent is off the line gross; clamped to [0, gross]. */
 export function lineDiscount(l: CartLine) {
+  if (l.payout) return 0
   const g = lineGross(l)
   const v = num(l.discount)
   const d = l.discountType === 'percent' ? (g * v) / 100 : v * num(l.qty)
@@ -17,9 +18,14 @@ export const lineNet = (l: CartLine) => lineGross(l) - lineDiscount(l)
 export const subtotal = (ls: CartLine[]) => ls.reduce((s, l) => s + lineGross(l), 0)
 export const itemDiscountTotal = (ls: CartLine[]) => ls.reduce((s, l) => s + lineDiscount(l), 0)
 
-/** Bill discount resolved against the net after item discounts. */
+/** What payout lines hand the customer (a positive amount). */
+export const payoutTotal = (ls: CartLine[]) => -ls.reduce((s, l) => s + (l.payout ? lineGross(l) : 0), 0)
+/** Subtotal of the goods (payouts left out). */
+export const goodsSubtotal = (ls: CartLine[]) => subtotal(ls) + payoutTotal(ls)
+
+/** Bill discount resolved against the goods' net after item discounts (never a payout). */
 export function billDiscount(ls: CartLine[], value: string, type: DiscountType) {
-  const base = subtotal(ls) - itemDiscountTotal(ls)
+  const base = goodsSubtotal(ls) - itemDiscountTotal(ls)
   const v = num(value)
   const d = type === 'percent' ? (base * v) / 100 : v
   return Math.min(Math.max(d, 0), base)
@@ -28,8 +34,9 @@ export function billDiscount(ls: CartLine[], value: string, type: DiscountType) 
 /** Tax on each discounted line net (the server's rule). */
 export const taxTotal = (ls: CartLine[]) => ls.reduce((s, l) => s + (lineNet(l) * l.taxRate) / 100, 0)
 
+/** Below zero only through payouts: then it's what the customer is given (as change). */
 export const total = (ls: CartLine[], value: string, type: DiscountType) =>
-  r2(Math.max(0, subtotal(ls) - itemDiscountTotal(ls) - billDiscount(ls, value, type) + taxTotal(ls)))
+  r2(Math.max(-payoutTotal(ls), subtotal(ls) - itemDiscountTotal(ls) - billDiscount(ls, value, type) + taxTotal(ls)))
 
 export const saleTotal = (s: TillState) => total(s.lines, s.billDiscount, s.billDiscountType)
 

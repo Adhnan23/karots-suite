@@ -1,7 +1,7 @@
 import type { Lot, TillProduct } from '@/api/types.gen'
 import { num, qtyText } from '@/lib/money'
 import { linePacks } from './packs'
-import type { CartLine, Notice, SaleType, ServiceLineInput } from './types'
+import type { CartLine, Notice, PayoutInput, SaleType, ServiceLineInput } from './types'
 
 export const MAX_STOCK = Number.MAX_SAFE_INTEGER
 export type LinesResult = { lines: CartLine[]; seq: number; key: number; notice: Notice }
@@ -89,6 +89,12 @@ export function serviceLine(key: number, d: ServiceLineInput): CartLine {
     priceOverride: String(unit), description: d.description ?? '', components: d.components ?? [], plugin: d.plugin,
     ...(d.fixedQty && { fixedQty: true }),
   }
+}
+
+/** A payout line: one of, priced negative, fixed (sales.payoutLine is the server's twin). */
+export function payoutLine(key: number, d: PayoutInput): CartLine {
+  return { ...serviceLine(key, { productId: d.productId, name: d.name, price: -d.amount, description: d.description, plugin: d.plugin, fixedQty: true }),
+    priceOverride: String(d.amount), payout: true }
 }
 
 /** Set a line's qty: clamp ≥ 0, whole units round, serials follow, lots spill. */

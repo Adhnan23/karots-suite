@@ -43,6 +43,11 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 	for _, ln := range wrap(ascii(it.ProductName), w) {
 		line(b, ln)
 	}
+	if it.Subtotal.IsNegative() { // a payout: money handed to the customer
+		line(b, leftRight("  Given", "-"+money.Display(it.Subtotal.Neg()), w))
+		extras(b, it, soldAt, w, opts, "  ")
+		return decimal.Zero
+	}
 	qty := money.Display(it.Quantity) + " " + ascii(it.UnitAbbr) + " x " + money.Display(it.UnitPrice)
 	// The qty line always shows the GROSS (qty × unit price); a discount then
 	// shows the discounted unit price (was -> now), its own reduction, and the

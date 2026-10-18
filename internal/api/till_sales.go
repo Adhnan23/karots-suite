@@ -39,7 +39,7 @@ func saleInput(r SaleRequest) sales.CreateInput {
 		item := sales.ItemInput{
 			ProductID: it.ProductID, Quantity: it.Quantity, Discount: it.Discount, DiscountType: it.DiscountType,
 			PriceOverride: it.PriceOverride, BatchID: it.BatchID, AllowOversell: it.AllowOversell,
-			Serials: it.Serials, Description: it.Description, Components: comps,
+			Serials: it.Serials, Description: it.Description, Components: comps, Payout: it.Payout,
 		}
 		for k, v := range it.Plugin {
 			if b, err := json.Marshal(v); err == nil {

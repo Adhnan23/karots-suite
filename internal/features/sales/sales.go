@@ -90,7 +90,13 @@ func (i SaleItem) PaidValue(factor decimal.Decimal) decimal.Decimal {
 }
 
 // ReturnableQty is how much of this line can still be sent back.
-func (i SaleItem) ReturnableQty() decimal.Decimal { return i.Quantity.Sub(i.ReturnedQty) }
+// A payout line (negative: money handed over) is never returnable.
+func (i SaleItem) ReturnableQty() decimal.Decimal {
+	if i.Subtotal.IsNegative() {
+		return decimal.Zero
+	}
+	return i.Quantity.Sub(i.ReturnedQty)
+}
 
 // Gross is the line amount before its discount (qty × unit price). Subtotal
 // stores the NET (after discount); adding the discount back recovers the gross,

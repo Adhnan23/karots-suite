@@ -1,9 +1,9 @@
 import type { HeldSale, Lot, TillProduct } from '@/api/types.gen'
 import { addGroup, breakGroup, removeGroup, setGroupCount, type GroupInput } from './groups'
 import { fromHeld } from './held'
-import { addProduct, serviceLine, setQty, swapProduct, syncSerials } from './lines'
+import { addProduct, payoutLine, serviceLine, setQty, swapProduct, syncSerials } from './lines'
 import { balanceDue, saleTotal } from './totals'
-import type { DiscountType, LinePack, Payment, SaleType, ServiceLineInput, TillState } from './types'
+import type { DiscountType, LinePack, Payment, PayoutInput, SaleType, ServiceLineInput, TillState } from './types'
 
 export const blankDraft = (method: string): Payment => ({ method, amount: '', reference: '', accountId: '', meta: {} })
 
@@ -19,6 +19,7 @@ export type Action =
   | { type: 'linePacks'; key: number; packs: LinePack[]; qty?: number }
   | { type: 'quickSet'; product: TillProduct; qty: number }
   | { type: 'addService'; line: ServiceLineInput }
+  | { type: 'addPayout'; line: PayoutInput }
   | { type: 'addGroup'; group: GroupInput }
   | { type: 'groupCount'; id: number; count: number }
   | { type: 'breakGroup'; id: number; key: number }
@@ -84,6 +85,10 @@ export function tillReducer(s: TillState, a: Action): TillState {
     case 'addService': {
       const key = s.seq + 1
       return { ...s, lines: [...s.lines, serviceLine(key, a.line)], seq: key, lastAddedKey: key, postSaleChange: 0 }
+    }
+    case 'addPayout': {
+      const key = s.seq + 1
+      return { ...s, lines: [...s.lines, payoutLine(key, a.line)], seq: key, lastAddedKey: key, postSaleChange: 0 }
     }
     case 'addGroup': {
       const r = addGroup(s.lines, s.seq, s.saleType, a.group)

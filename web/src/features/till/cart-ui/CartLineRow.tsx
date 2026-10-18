@@ -69,7 +69,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
       </div>}
       <div className="min-w-[84px] text-right text-[14.5px] font-bold tabular-nums">
         {disc > 0 && <s className="block text-[11.5px] font-medium text-faint">{money(sym, gross)}</s>}
-        {money(sym, gross - disc)}
+        {gross < 0 ? `−${money(sym, -gross)}` : money(sym, gross - disc)}
       </div>
       {slots.tillLineHints.length > 0 && (
         <div className="col-span-full empty:hidden">
@@ -77,10 +77,10 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         </div>
       )}
       <div className="col-span-full flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
-        <span className="tabular-nums">
+        {line.payout ? <span className="font-semibold text-warning">Given to the customer</span> : <span className="tabular-nums">
           {money(sym, line.unitPrice)} each
           {line.packs?.map((k) => k.price > 0 && k.price < k.size * line.unitPrice && <span key={k.id}> · {k.name} {money(sym, k.price)}</span>)}
-        </span>
+        </span>}
         {line.batchLabel && (
           <span className={cn('rounded-md px-1.5 font-semibold', expired ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>
             {line.batchLabel}
@@ -89,7 +89,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         {line.warrantyMonths > 0 && <span className="rounded-md bg-muted px-1.5">{line.warrantyMonths} mo warranty</span>}
         {line.allowOversell && <span className="font-semibold text-warning">{line.isService ? 'material count corrected' : 'found at till'}</span>}
         <PackChips line={line} sym={sym} onQty={setQty} />
-        <DiscountChip line={line} sym={sym} />
+        {!line.payout && <DiscountChip line={line} sym={sym} />}
         <button type="button" aria-label={`Remove ${line.name}`} onClick={() => dispatch({ type: 'remove', key: line.key })}
           className="ml-auto grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
       </div>
