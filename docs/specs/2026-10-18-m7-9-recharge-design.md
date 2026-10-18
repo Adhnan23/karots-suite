@@ -49,6 +49,11 @@ karots-pos grew recharge one request at a time:
   - **Reload** — carrier → device (skipped when only one) → amount (quick 50 / 100 / 200 / 500 + keypad) or a
     **package tile**; optional **customer number**. Line on the carrier's pass-through product ("Dialog reload ·
     077 123 4567", "Dialog 100 data"). Float −price, commission row, in the sale tx (`SaleLineHook`).
+  - **+ New package** (user, 2026-10-18 — a new package turns up mid-rush): on the carrier's package tiles, any
+    cashier types name, price and the **commission** the carrier's app shows for it (float used = price −
+    commission) → saved to the carrier's packages **and** added to the cart in one tap. It sells at once and is
+    marked **"new — added at the till by <cashier>"** on Carriers until an admin opens it (review, never a block).
+    A name already on that carrier offers the existing package instead of a duplicate.
   - **Pay a bill** — account (a cashier-access **bank locker** or a **money device**), bill type (learned from
     use), reference / account number, amount → a pass-through **Bill payment** line ("Electricity · 0123456").
     Bank: `cashflow.MoveTx` locker → External (biller) in the sale tx; device: float −amount + commission.
@@ -112,7 +117,8 @@ karots-pos migrations 00001–00019 byte for byte (00003 adds `payment_method 'w
 `00020_suite.sql`:
 - `recharge_rates (carrier_id, kind, percent, fixed, charge)` — kind ∈ reload / billpay / deposit / cashout /
   wallet_in; `charge` = the default service charge for that kind. PK (carrier_id, kind).
-- `recharge_packages (id, carrier_id, name, price, float_cost, is_active, sort)`.
+- `recharge_packages (id, carrier_id, name, price, float_cost, is_active, sort, added_at_till_by NULL,
+  reviewed_at NULL)` — a till-added package carries its cashier until an admin reviews it.
 - `recharge_counts (id, device_id, counted, expected, session_id NULL, created_by, created_at)`.
 - `recharge_transactions`: types + `commission`, `count`, `cashout`, `carried`; columns `parent_id`
   (commission → its move), `package_id`, `customer_number`, `bank_locker_id`, `bill_type`.
@@ -128,6 +134,7 @@ ProductMerger: carrier and config product ids. DataGroup: every `recharge_*` tab
 
 Cashier: `GET /till` (carriers, devices with balance, packages, rates / charges, bill types, banks the
 cashier may use), `GET /devices?purpose=reload|money`, `POST /counts` (drawer section; `{sessionId, counts[]}`),
+`POST /packages` (quick add from the till: name, price, commission → the package),
 `GET /old-slips?…`, `GET /old-slips/:kind/:id`, `POST /old-slips/:kind/:id/print`, `POST /refill` (supplier
 access). Admin: `GET|POST|PUT /carriers`, `POST /carriers/:id/toggle`, `PUT /carriers/:id/rates`,
 `GET|POST|PUT /packages`, `POST|PUT /devices`, `POST /devices/:id/toggle`, `GET /float`, `POST /counts`,
@@ -141,5 +148,6 @@ DB: reload sale → float −100 +12; bill from bank (Recorded, below zero allow
 negative total → drawer −4,950; wallet tender + credit repayment by wallet; refill (no expense); return of a
 reload with none / all float back; karots-pos-shaped restore → balances equal the old `DeviceBalances()`,
 earnings add-back. Vitest: payout cart totals, Pay "Give the customer". Playwright `plugin-recharge.spec.ts`:
-package reload + bill + service charge on one bill paid by credit; cash out + goods → give change; close till with
+package reload + bill + service charge on one bill paid by credit; quick-add a new package at the till → sold
+and flagged "new" on Carriers; cash out + goods → give change; close till with
 a count; admin rate suggestion; return a failed reload.
