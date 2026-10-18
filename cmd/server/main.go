@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,6 +18,7 @@ import (
 	"karots-suite/internal/backup"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
+	"karots-suite/internal/filedb"
 )
 
 func main() {
@@ -27,6 +29,7 @@ func main() {
 	resetFlag := flag.Bool("reset", false, "drop ALL data and re-run migrations (optionally combine with -seed/-demo)")
 	forceFlag := flag.Bool("force", false, "allow -reset against a production database")
 	supportFor := flag.String("support-pin", "", "print the support PIN for an install id (read it off the shop's login screen) and exit")
+	dataDir := flag.String("data", "", "file mode: the data folder (default: data/ next to the binary)")
 	flag.Parse()
 
 	// Needs no database: the shop reads their Install ID down the phone and this
@@ -40,7 +43,26 @@ func main() {
 	// a shop can just run the executable. Anything already exported wins.
 	config.LoadDotEnv()
 
+	// File mode: no DATABASE_URL and a build that carries its own PostgreSQL.
+	var fileDB *filedb.DB
+	var ln net.Listener
+	if os.Getenv("DATABASE_URL") == "" && filedb.Available() {
+		fileDB, ln = startFileMode(*dataDir)
+		defer func() {
+			log.Println("file mode: stopping PostgreSQL…")
+			if err := fileDB.Stop(); err != nil {
+				log.Printf("stop PostgreSQL: %v", err)
+			}
+		}()
+	}
+
 	cfg := config.Load()
+	if fileDB != nil {
+		cfg.FileDataDir = fileDB.Dir
+		log.Printf("file mode: data in %s", fileDB.Dir)
+	} else {
+		log.Printf("server mode (DATABASE_URL)")
+	}
 
 	sqlxDB, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
@@ -64,6 +86,9 @@ func main() {
 	// path). Runs on every boot, including -migrate and after -reset.
 	if err := app.Migrate(sqlxDB); err != nil {
 		log.Fatal(err)
+	}
+	if ln != nil && (*migrateOnly || *resetFlag || *seedOnly || *demoOnly || *initOnly) {
+		ln.Close() // a one-shot command doesn't serve
 	}
 	if *migrateOnly {
 		log.Println("migrations applied")
@@ -137,6 +162,7 @@ func main() {
 	}
 
 	// Start with graceful shutdown.
+	e.Listener = ln // file mode claimed the port already; nil = Echo listens itself
 	go func() {
 		addr := fmt.Sprintf(":%d", cfg.ServerPort)
 		log.Printf("POS server listening on %s (env=%s)", addr, cfg.Env)
@@ -153,6 +179,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
-		log.Fatalf("forced shutdown: %v", err)
+		log.Printf("forced shutdown: %v", err)
 	}
 }

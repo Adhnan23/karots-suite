@@ -33,15 +33,23 @@ func LoadDotEnv() {
 // dotEnvPaths lists where a .env may sit, nearest-to-the-binary first.
 func dotEnvPaths() []string {
 	var paths []string
-	if exe, err := os.Executable(); err == nil {
-		// Resolve symlinks so a binary on the PATH still finds the file that was
-		// shipped alongside the real executable.
-		if resolved, rerr := filepath.EvalSymlinks(exe); rerr == nil {
-			exe = resolved
-		}
-		paths = append(paths, filepath.Join(filepath.Dir(exe), ".env"))
+	if dir := ExeDir(); dir != "" {
+		paths = append(paths, filepath.Join(dir, ".env"))
 	}
 	return append(paths, ".env")
+}
+
+// ExeDir is the folder of the running binary ("" if unknown). Symlinks are
+// resolved so a binary on the PATH still finds what was shipped beside the real one.
+func ExeDir() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	if resolved, rerr := filepath.EvalSymlinks(exe); rerr == nil {
+		exe = resolved
+	}
+	return filepath.Dir(exe)
 }
 
 // loadDotEnvFile applies one file, reporting whether it was read.

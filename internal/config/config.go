@@ -38,6 +38,9 @@ type Config struct {
 	BackupInterval time.Duration
 	// BackupKeep is how many automatic backup files to retain (oldest pruned).
 	BackupKeep int
+	// FileDataDir is the data folder of a file-mode shop (its own PostgreSQL);
+	// empty in server mode.
+	FileDataDir string
 }
 
 func Load() *Config {
