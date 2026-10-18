@@ -364,3 +364,46 @@ func (s *Service) UpdateDraft(ctx context.Context, id int64, in CreateInput, use
 	}
 	return detail, nil
 }
+
+// BillInput is a supplier bill with no lines: something bought that isn't stock
+// (a carrier's reload float, a service). It is owed like any delivery.
+type BillInput struct {
+	SupplierID int64
+	Amount     decimal.Decimal
+	InvoiceNo  string
+	Notes      string
+}
+
+// CreateBillTx records a received purchase with no lines, its full amount added
+// to the supplier's balance (any advance they hold settles it first). Paying it
+// now is the caller's supplierpay.PayTx + cashflow.MoveTx, as with CreateTx.
+// userID 0 (a system job) leaves received_by empty.
+func CreateBillTx(ctx context.Context, tx *sqlx.Tx, in BillInput, userID int64) (*Detail, error) {
+	if !in.Amount.IsPositive() {
+		return nil, apperr.Validation("enter the bill amount")
+	}
+	amt := in.Amount.Round(2)
+	repo := NewRepository(tx)
+	id, err := repo.InsertPurchase(ctx, purchaseRow{
+		SupplierID: in.SupplierID, InvoiceNo: optStr(in.InvoiceNo), Status: "received",
+		Subtotal: amt, Discount: decimal.Zero, DiscountType: "fixed", DiscountValue: decimal.Zero,
+		Total: amt, Paid: decimal.Zero, ReceivedBy: userID, Notes: optStr(in.Notes),
+	})
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	if err := suppliers.NewRepository(tx).AddBalance(ctx, in.SupplierID, amt); err != nil {
+		return nil, apperr.Internal("failed to update supplier balance", err)
+	}
+	if err := applySettlement(ctx, tx, in.SupplierID, id); err != nil {
+		return nil, err
+	}
+	return loadDetailTx(ctx, repo, id)
+}
+
+func optStr(s string) *string {
+	if s = strings.TrimSpace(s); s == "" {
+		return nil
+	}
+	return &s
+}

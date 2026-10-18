@@ -93,7 +93,7 @@ func (r *Repository) InsertPurchase(ctx context.Context, p purchaseRow) (int64, 
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO purchases
 			(supplier_id, invoice_no, status, subtotal, discount, discount_type, discount_value, total, paid_amount, due_date, expected_date, received_by, notes)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NULLIF($12::bigint, 0),$13) RETURNING id`,
 		p.SupplierID, p.InvoiceNo, p.Status, p.Subtotal, p.Discount, p.DiscountType, p.DiscountValue, p.Total, p.Paid, p.DueDate, p.ExpectedDate, p.ReceivedBy, p.Notes)
 	return id, err
 }
