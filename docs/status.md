@@ -157,8 +157,22 @@ day, wages already cover it; the lost weight is in the loose cost.
   close only check what's left (rate suggestions); running float per device (no session); buying float is **not an
   expense** (karots-pos P&L bug, fix there too); never block on a low float. Dropped: get money on credit, admin
   bill-pay page. **Future idea:** modems with USSD / SIM Toolkit (`docs/ideas/recharge-modems.md`).
-- **NEXT: execute the M7.9 plan** (Task 1 core payout lines first). (The roadmap below still shows the old numbers,
-  each plugin moved up one.)
+- **M7.9 Reload & Bills — DONE (2026-10-18)** (spec `docs/specs/2026-10-18-m7-9-recharge-design.md`, plan
+  `docs/plans/2026-10-18-m7-9-recharge.md`; `docs/differences.md` 108–118; parity 46 recharge rows ticked). Built:
+  core **payout lines** (`TillApi.addPayout`; a sale may total below zero, Pay says *Give the customer*, receipts print
+  *Given* / *GIVEN*), `plugin.ReturnLineHook` + `slots.returnLineFields`, plugin tenders on **credit repayments**,
+  `cashflow.MoveInput.Recorded`, `DrawerSection.on`, `ServiceLineInput.noDiscount`; the plugin: running float per
+  device (karots-pos's own formula — a restored backup reads as it did), commission per carrier × kind booked with each
+  move, packages (+ **New package** at the till, flagged until *Looks right*), bank bills, cash out, wallet tender,
+  Returns "how much came back?", optional folded float check at Close only (user: not every open/close), admin Float
+  (rate suggestions, a week-old-count reminder, Count now, Buy float), Carriers, Ledger + CSV, Report. **karots-pos fix
+  `e8eb07b`:** buying float booked an expense (the P&L counted every refill as a loss). Also fixed: the thermal slip
+  prints a line's own label; the login page fit at 360px (since the 10-15 polish); the pinned total strip wrapped.
+  Checks (2026-10-18): Playwright 171 + the 2 failures fixed and re-run (recharge 4/4, shell, auth — 15/15), 24 shot
+  steps skipped; `go test -p 1` core-only and all plugins (46 ok); 229 web unit tests; `make verify`; verify-portable.
+- **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
+- **NEXT:** advance / special orders (parked "after M7.10" = after recharge) — rethink proposal first; then M8 Ship.
+  (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the

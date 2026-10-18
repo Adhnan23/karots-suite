@@ -489,52 +489,52 @@ Format: file · METHOD path (paths are relative to that file's route group).
 
 ## plugins/recharge
 
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/accounts`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/banks`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/bill/:id`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/bills`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/carriers`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/device-form`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/devices`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/devices/balances`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/devices/:id/edit`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/drawer/close`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/drawer/open`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/:id/edit`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/ledger`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/menu`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/menu/bill`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/menu/float`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/menu/reload/carriers`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/menu/reload/devices`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/receipts/bill`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/receipts/recharge`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/refill`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/refills`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/reload/:id/reverse`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/report`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/table`
-- [ ] `plugins/recharge/recharge.go` · GET `/recharge/tx/:id`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/bank-tx`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/bill/:id/print`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/close`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/devices`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/delete`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/recommended-float`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/toggle`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/update`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/:id/rename`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/:id/toggle`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/menu/reload`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/open`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/refill`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/reload`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/reload/:id/reverse`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/tx`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/tx/:id/print`
-- [ ] `plugins/recharge/recharge.go` · POST `/recharge/wallet`
+- [x] `plugins/recharge/recharge.go` · GET `/recharge` → Apps → Reload & Bills → Float (`GET /x/recharge/float`); the till 📲 menu
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/accounts` → 📲 Pay a bill / Cash out account chips: banks + money devices (`GET /x/recharge/till`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/banks` → bank lockers open to the till in `GET /x/recharge/till`
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/bill/:id` → old RB- slips: till Receipts → Reload & Bills (old) (`GET /x/recharge/old-slips`); new bills are on the sale receipt
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/bills` → dropped (user, 2026-10-18): admin bill-pay page — bills go through the till cart; old ones listed in the report / old slips
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/carriers` → Apps → Reload & Bills → Carriers (`GET /x/recharge/setup`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/device-form` → Carriers → Add device sheet
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/devices` → devices with floats in `GET /x/recharge/till` / setup
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/devices/balances` → Float page balances (`GET /x/recharge/float`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/devices/:id/edit` → Carriers → device Edit sheet
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/drawer/close` → Close dialog: folded optional 📲 Check the reload phones (`DrawerSection.on: [close]`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/drawer/open` → dropped: no float count at open — commission is booked live (user, 2026-10-18)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/:id/edit` → Carriers → Rename sheet
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/ledger` → Apps → Reload & Bills → Ledger (`GET /x/recharge/ledger`, CSV)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/menu` → till 📲 Reload & Bills menu (`tillMenu`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/menu/bill` → 📲 → Pay a bill (cart line, normal Pay)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/menu/float` → 📲 → Send to wallet / Cash out (cart lines; cash out = payout line) and Float
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/menu/reload/carriers` → 📲 → Reload carrier chips
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/menu/reload/devices` → 📲 → Reload device chips with live float
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/receipts/bill` → till Receipts → Reload & Bills (old); new bills on the sale receipt
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/receipts/recharge` → till Receipts → Reload & Bills (old); float bought = core money receipt
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/refill` → 📲 → Float → Buy float (supplier access) (`GET /x/recharge/refill/sources`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/refills` → Float page → Buy float; history in the Ledger
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/reload/:id/reverse` → core Returns on the reload line + the "how much came back?" field (`slots.returnLineFields`)
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/report` → Apps → Reload & Bills → Report (`GET /x/recharge/report`), Reports hub card
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/table` → Carriers page
+- [x] `plugins/recharge/recharge.go` · GET `/recharge/tx/:id` → old RL- slips in till Receipts → Reload & Bills (old)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge` → Carriers → Add carrier (`POST /x/recharge/carriers`)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/bank-tx` → bill / cash out lines settle in the sale (`SaleLineHook`, cashflow recorded); admin page dropped
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/bill/:id/print` → new bills print on the sale receipt; old RB- slips listed (no thermal reprint)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/close` → `POST /x/recharge/counts/drawer` from the Close dialog
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/devices` → `POST /x/recharge/devices` (float on it now = starting balance)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/delete` → Retire (`POST /x/recharge/devices/:id/active`)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/recommended-float` → device form Target float (Top-up readiness)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/toggle` → Retire / Bring back
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/devices/:id/update` → `PUT /x/recharge/devices/:id`
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/:id/rename` → `PUT /x/recharge/carriers/:id`
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/:id/toggle` → Turn off / on (`POST /x/recharge/carriers/:id/active`)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/menu/reload` → reload / package cart lines; float + commission booked in the sale (`SaleLineHook`)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/open` → dropped: no opening count (running float per device)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/refill` → `POST /x/recharge/refill/counter` and admin `/refill` — no expense (karots-pos fix `e8eb07b`)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/reload` → reload cart line on the carrier product (pass-through)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/reload/:id/reverse` → core Returns + `ReturnLineHook` (float back all / none / part, commission share back)
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/tx` → Send to wallet / Cash out as cart lines on the normal Pay
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/tx/:id/print` → old RL- slips listed; new moves print on the sale / money receipt
+- [x] `plugins/recharge/recharge.go` · POST `/recharge/wallet` → Wallet tender (`TenderMethod` wallet + `slots.tillTenders`), also on credit repayments
 
 ## plugins/repairs
 

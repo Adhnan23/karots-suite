@@ -74,10 +74,11 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/plugins/        slots.ts + GENERATED enabled-plugins.ts (committed core-only) + <key>/index.tsx
                       (each plugin's React half: export default register(slots))
   src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
-                        tillCartHints, tillLineHints, drawerSections, tillTenders, tillTabs,
-                        tillReceiptKinds, reportCards, settingsSections, productFormSections,
-                        before/after-sale); TillApi.addGroup = cart line groups (kept together,
-                        stored on sale_items.line_group*, printed as one block)
+                        tillCartHints, tillLineHints, drawerSections (on: open|close), tillTenders,
+                        tillTabs, tillReceiptKinds, returnLineFields, reportCards, settingsSections,
+                        productFormSections, before/after-sale); TillApi.addGroup = cart line groups
+                        (kept together, stored on sale_items.line_group*, printed as one block);
+                        TillApi.addPayout = money given to the customer (a sale may total below zero)
 scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
 ```
 
