@@ -175,6 +175,23 @@ day, wages already cover it; the lost weight is in the loose cost.
   Dialog (reload 3%, bill charge 30, deposit charge 20, cash out 0.5%, wallet 1%; Shop phone 8,500, target 20,000;
   packages Night 50, Data 100, Data 299, Anytime 549), Mobitel (reload 2.5%; Reload SIM 4,200 and mCash SIM 12,000 —
   two floats on one SIM; Data 200), bank BOC current account. No demo sales.
+- **M7.9 follow-ups from the demo (user, 2026-10-18) — IN PROGRESS, continue next session:**
+  - DONE (`git log`): wallet tender → **Mobile money** + icon; bill account numbers suggested; buying float moved to
+    Counter → Suppliers (interim: a `slots.supplierActions` button opening `BuyFloatPanel`).
+  - **TODO — float dealers are normal suppliers** (user: "they also supply phones and stuff… not separate beings"; and
+    float is sometimes bought **on credit**). Design agreed in chat: a float purchase is a **core supplier bill** — a
+    received purchase with **no lines**, total = float bought (`purchases.CreateBillTx(ctx, tx, BillInput{SupplierID,
+    Amount, InvoiceNo, Notes}, userID)`: InsertPurchase + `suppliers.AddBalance` + `applySettlement`; NOTE
+    `purchases.received_by` has an FK — pass NULL for 0, the first try failed on that). It counts in "We owe", the
+    statement and the normal supplier Pay. **Paid now** = the same bill + `supplierpay.PayTx` allocating to it (method
+    cash for a till / cash locker, online for a bank; `RequirePlace`) + `cashflow.MoveTx` src → External
+    (`supplier_payment`), as `internal/api/counter_suppliers.go paySupplierTx`; **on credit** = bill only. Float row
+    `refill` links the purchase (migration recharge `00021`: `recharge_transactions.purchase_id`,
+    `recharge_carriers.supplier_id` = the carrier's usual dealer, set on Carriers). UI: replace
+    `slots.supplierActions` with **`slots.supplierJobs`** — a job in the supplier Workspace Seg (Pay · Receive stock ·
+    Order · **📲 Float**) whose Panel gets the supplier; device list puts that supplier's carriers first; Paid now /
+    On credit + source. Admin Float → Buy float picks the supplier too. Tests: purchases bill DB test, recharge refill
+    on credit / paid now (supplier owed, invoice paid), e2e. Old refills (no purchase) unchanged.
 - **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
 - **NEXT:** advance / special orders (parked "after M7.10" = after recharge) — rethink proposal first; then M8 Ship.
   (The roadmap below still shows the old numbers, each plugin moved up one.)
