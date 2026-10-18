@@ -59,7 +59,9 @@ func TestMoneyThroughTheSale(t *testing.T) {
 			}
 			return p.recordReturn(ctx, tx, out)
 		})
-	tag := func(v string) map[string]json.RawMessage { return map[string]json.RawMessage{"recharge": json.RawMessage(v)} }
+	tag := func(v string) map[string]json.RawMessage {
+		return map[string]json.RawMessage{"recharge": json.RawMessage(v)}
+	}
 	ds := strconv.FormatInt(dev, 10)
 	float := func(want string) {
 		t.Helper()

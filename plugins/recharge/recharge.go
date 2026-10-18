@@ -55,6 +55,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddActivityContributor(plugin.ActivityContributor{Source: "recharge", List: p.store.activityRows})
 	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "recharge", Record: p.recordSale})
 	reg.AddReturnLineHook(plugin.ReturnLineHook{Key: "recharge", Record: p.recordReturn})
+	p.routes(reg)
 	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Wallet (eZ Cash / mCash)", SettleTx: p.settleWallet})
 }
 
