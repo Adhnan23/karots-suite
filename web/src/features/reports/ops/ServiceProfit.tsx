@@ -29,7 +29,7 @@ export function ServiceProfitPage() {
       <KpiStrip label="Headline" cols={3}>
         <Kpi label="Takings" v={d ? money(sym, d.revenue) : '…'} />
         <Kpi label="↑ Expenses booked to services" amount={d?.expenses} tone="out" v={d ? money(sym, d.expenses) : '…'} />
-        <Kpi label="Net" amount={d?.net} tone="sign" v={d ? money(sym, d.net) : '…'} className="max-md:col-span-2" />
+        <Kpi label="Net" amount={d?.net} tone="sign" v={d ? money(sym, d.net) : '…'} className="phone:col-span-2" />
       </KpiStrip>
       <DataList label="Services" rows={d?.rows ?? []} rowKey={(x) => x.productId}
         empty={<EmptyState title={d ? 'No services sold in this period' : 'Loading…'} />}

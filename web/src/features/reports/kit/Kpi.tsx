@@ -34,7 +34,7 @@ export function Kpi({ amount, label, v, sub, tone, change, fallIsGood, className
 /** The strip of headline figures: a row of `cols` on desktop, two-up on phones. */
 export function KpiStrip({ label, cols, children }: { label: string; cols: 3 | 4 | 5; children: ReactNode }) {
   return (
-    <section aria-label={label} className={cn(SURFACE, 'grid grid-cols-2 divide-border md:divide-x [&>*]:border-border max-md:[&>*]:border-b',
+    <section aria-label={label} className={cn(SURFACE, 'grid grid-cols-2 divide-border md:divide-x [&>*]:border-border phone:[&>*]:border-b',
       { 3: 'md:grid-cols-3', 4: 'md:grid-cols-4', 5: 'md:grid-cols-5' }[cols])}>
       {children}
     </section>

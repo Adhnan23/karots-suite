@@ -26,7 +26,7 @@ export function VariancePage() {
       <KpiStrip label="Headline" cols={3}>
         <Kpi label="Ingredients tracked" v={d ? String(d.rows.length) : '…'} />
         <Kpi label="Drifting over 10%" amount={d ? String(d.drifting) : '0'} tone="out" v={d ? String(d.drifting) : '…'} />
-        <Kpi label="Within 10%" v={d ? String(d.rows.length - d.drifting) : '…'} className="max-md:col-span-2" />
+        <Kpi label="Within 10%" v={d ? String(d.rows.length - d.drifting) : '…'} className="phone:col-span-2" />
       </KpiStrip>
       <DataList label="Ingredients" rows={d?.rows ?? []} rowKey={(x) => x.ingredient + x.unit}
         empty={<EmptyState title={d ? 'No recipe sales in this period' : 'Loading…'} />}

@@ -50,12 +50,12 @@ function OverviewTab({ d, sym }: { d: AdminFinance; sym: string }) {
   const grainWord = { day: 'day', week: 'week', month: 'month' }[d.grain] ?? d.grain
   return (
     <div className="flex flex-col gap-4">
-      <section aria-label="Headline" className={cn(SURFACE, 'grid grid-cols-2 divide-border md:grid-cols-5 md:divide-x [&>*]:border-border max-md:[&>*]:border-b')}>
+      <section aria-label="Headline" className={cn(SURFACE, 'grid grid-cols-2 divide-border md:grid-cols-5 md:divide-x [&>*]:border-border phone:[&>*]:border-b')}>
         <Kpi amount={d.revenue} label="Revenue" v={money(sym, d.revenue)} sub={`${d.salesCount} sale${d.salesCount === 1 ? '' : 's'}`} />
         <Kpi amount={d.grossProfit} label="Gross profit" v={money(sym, d.grossProfit)} sub={`${d.grossMargin}% margin`} tone="sign" />
         <Kpi amount={d.netProfit} label="Net profit" v={money(sym, d.netProfit)} sub="after expenses and losses" tone="sign" />
         <Kpi amount={d.expenses} label="↑ Expenses" v={money(sym, d.expenses)} tone="out" />
-        <Kpi amount={d.received} label="↓ Received at sale" v={money(sym, d.received)} tone="in" className="max-md:col-span-2" />
+        <Kpi amount={d.received} label="↓ Received at sale" v={money(sym, d.received)} tone="in" className="phone:col-span-2" />
       </section>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <ChartCard title="Revenue and profit" sub={`By ${grainWord}`} option={trend} label={`Revenue and profit by ${grainWord}`} empty={!d.trend.length}

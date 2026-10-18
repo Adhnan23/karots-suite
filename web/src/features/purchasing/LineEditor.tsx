@@ -92,7 +92,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
               )}
               <PackIn l={l} onPick={(size) => set(i, packSwitch(l, size))} />
             </span>
-            <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'max-md:order-none')}><X size={15} /></button>
+            <button type="button" aria-label={`Remove ${l.name}`} onClick={() => onChange(lines.filter((_, j) => j !== i))} className={cn('order-last text-faint hover:text-danger', withPrices && 'phone:order-none')}><X size={15} /></button>
             <Cell caption="Qty" on={withPrices}><QtyStepper label={`Quantity of ${l.name}`} name={l.name} value={l.quantity} onChange={(v) => set(i, { quantity: v })} /></Cell>
             {withPrices && (
               <>

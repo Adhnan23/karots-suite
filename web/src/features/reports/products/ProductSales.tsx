@@ -50,7 +50,7 @@ export function ProductSalesPage() {
           <KpiStrip label="Headline" cols={3}>
             <Kpi label="Units sold" v={qtyText(d.qty)} change={delta(d.qty, d.lastYearQty)} sub={`${qtyText(d.lastYearQty)} this time last year`} />
             <Kpi label="Revenue" amount={d.revenue} v={money(sym, d.revenue)} />
-            <Kpi label="Per period" v={qtyText(String(d.rows.length ? Math.round((Number(d.qty) / d.rows.length) * 10) / 10 : 0))} sub={`units a ${d.grain}`} className="max-md:col-span-2" />
+            <Kpi label="Per period" v={qtyText(String(d.rows.length ? Math.round((Number(d.qty) / d.rows.length) * 10) / 10 : 0))} sub={`units a ${d.grain}`} className="phone:col-span-2" />
           </KpiStrip>
           {option && (
             <ChartCard title="Units sold" sub={`By ${d.grain}`} option={option} label={`${d.name} units by ${d.grain}, this period and last year`} empty={!d.rows.length}

@@ -32,7 +32,7 @@ export function ExpensesReportPage() {
       <KpiStrip label="Headline" cols={3}>
         <Kpi label="↑ Spent" amount={d?.total} tone="out" v={d ? money(sym, d.total) : '…'} />
         <Kpi label="Expenses" v={d ? String(d.count) : '…'} sub={d && `${d.rows.length} categor${d.rows.length === 1 ? 'y' : 'ies'}`} />
-        <Kpi label="Biggest" v={biggest ? biggest.category : '—'} sub={biggest && d && `${money(sym, biggest.total)} · ${pctText(share(biggest.total, d.total))}`} className="max-md:col-span-2" />
+        <Kpi label="Biggest" v={biggest ? biggest.category : '—'} sub={biggest && d && `${money(sym, biggest.total)} · ${pctText(share(biggest.total, d.total))}`} className="phone:col-span-2" />
       </KpiStrip>
       <DataList label="Categories" rows={d?.rows ?? []} rowKey={(x) => x.category}
         onRow={(x) => void go({ to: '/admin/expenses', search: { preset: s.preset, from: s.from, to: s.to, category: x.category } })}

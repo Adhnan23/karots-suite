@@ -15,6 +15,18 @@
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */
+/* Paper is ~720px wide, under md: — but a printed page wants the desktop layout
+   (tables, not phone cards), in every browser. Firefox lays print out at the page
+   width; Chromium kept the screen's. */
+@custom-variant md {
+  @media (width >= 48rem) { @slot; }
+  @media print { @slot; }
+}
+/* phone: is phone: off paper (a phone-only tweak never reaches a printout). */
+@custom-variant phone {
+  @media not print { @media (width < 48rem) { @slot; } }
+}
+
 @custom-variant dark {
   &:is([data-theme="dark"] *) { @slot; }
   @media (prefers-color-scheme: dark) { &:is(:root:not([data-theme="light"]) *) { @slot; } }

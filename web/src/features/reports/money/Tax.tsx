@@ -26,7 +26,7 @@ export function TaxPage() {
       <KpiStrip label="Headline" cols={3}>
         <Kpi label="Tax charged" v={d ? money(sym, d.tax) : '…'} />
         <Kpi label="Taxable sales" v={d ? money(sym, d.base) : '…'} />
-        <Kpi label="Sales" v={d ? String(d.count) : '…'} className="max-md:col-span-2" />
+        <Kpi label="Sales" v={d ? String(d.count) : '…'} className="phone:col-span-2" />
       </KpiStrip>
       <DataList label="Days" rows={d?.rows ?? []} rowKey={(x) => x.day}
         empty={<EmptyState title={d ? 'No sales in this period' : 'Loading…'} />}

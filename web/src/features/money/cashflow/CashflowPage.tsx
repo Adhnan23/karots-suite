@@ -101,7 +101,7 @@ export function CashflowPage() {
       </div>
       {d && (
         <div className="mb-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-          <section aria-label="In the range" className={cn(SURFACE, 'grid grid-cols-2 divide-border md:grid-cols-4 [&>*]:border-border max-md:[&>*:nth-child(-n+2)]:border-b md:divide-x')}>
+          <section aria-label="In the range" className={cn(SURFACE, 'grid grid-cols-2 divide-border md:grid-cols-4 [&>*]:border-border phone:[&>*:nth-child(-n+2)]:border-b md:divide-x')}>
             <Stat label="↓ Cash sales at the tills" v={d.tillSales} sym={sym} tone="in" hint="net of change" />
             <Stat label="↓ Other money in" v={d.in} sym={sym} tone="in" hint="credit, interest, takings…" />
             <Stat label="↑ Money out" v={d.out} sym={sym} tone="out" hint="expenses, suppliers, refunds" />

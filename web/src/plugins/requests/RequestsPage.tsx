@@ -54,7 +54,7 @@ function Asks({ r }: { r: RequestRow }) {
   return (
     // On a phone DataList puts action cells in a right-aligned row beside the ⋯ menu;
     // this list takes that row's width (card minus the menu) and reads left to right.
-    <span className="flex flex-col gap-1 text-[13px] max-md:w-[calc(100vw-108px)]">
+    <span className="flex flex-col gap-1 text-[13px] phone:w-[calc(100vw-108px)]">
       {r.asks.map((a) => (
         <span key={a.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="font-medium">{a.name || 'A customer'}</span>

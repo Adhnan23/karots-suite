@@ -65,7 +65,7 @@ export function SalesReportPage() {
         <Kpi label="Revenue" amount={sum?.revenue} v={sum ? money(sym, sum.revenue) : '…'} change={sum && d ? delta(sum.revenue, d.prev.revenue) : null} sub="after returns" />
         <Kpi label="Profit" amount={sum?.profit} tone="sign" v={sum ? money(sym, sum.profit) : '…'} change={sum && d ? delta(sum.profit, d.prev.profit) : null} />
         <Kpi label="Margin" v={sum ? `${sum.margin}%` : '…'} sub={sum && num(sum.discount) > 0 ? `${money(sym, sum.discount)} given off` : undefined} />
-        <Kpi label="Average sale" amount={sum?.avgBasket} v={sum ? money(sym, sum.avgBasket) : '…'} change={sum && d ? delta(sum.avgBasket, d.prev.avgBasket) : null} className="max-md:col-span-2" />
+        <Kpi label="Average sale" amount={sum?.avgBasket} v={sum ? money(sym, sum.avgBasket) : '…'} change={sum && d ? delta(sum.avgBasket, d.prev.avgBasket) : null} className="phone:col-span-2" />
       </KpiStrip>
       {d && trend && (
         <ChartCard title="Revenue and profit" sub={`By ${grainWord}`} option={trend} label={`Revenue and profit by ${grainWord}`} empty={!d.trend.length}
