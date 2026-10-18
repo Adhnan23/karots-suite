@@ -40,7 +40,11 @@ func printItems(b *bytes.Buffer, d sales.Detail, w int, opts Options) decimal.De
 
 // printItem is one plain line; it returns its discount.
 func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts Options) decimal.Decimal {
-	for _, ln := range wrap(ascii(it.ProductName), w) {
+	name := it.ProductName // a line's own label (a service job, a bill) wins, as on the screen receipt
+	if it.Description != nil && *it.Description != "" {
+		name = *it.Description
+	}
+	for _, ln := range wrap(ascii(name), w) {
 		line(b, ln)
 	}
 	if it.Subtotal.IsNegative() { // a payout: money handed to the customer

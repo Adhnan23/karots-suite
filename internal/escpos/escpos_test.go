@@ -370,11 +370,12 @@ func TestDocumentPrintsAPayoutAsGiven(t *testing.T) {
 	det := sampleDetail()
 	det.Sale.Subtotal, det.Sale.Discount, det.Sale.Total = d("-3500.00"), d("0"), d("-3500.00")
 	det.Sale.PaidAmount, det.Sale.ChangeGiven = d("0"), d("3500.00")
-	det.Items = append(det.Items, sales.SaleItem{ProductName: "Cash out", Quantity: d("1"), UnitAbbr: "pc",
+	label := "Cash out - Dialog"
+	det.Items = append(det.Items, sales.SaleItem{ProductName: "Cash out", Description: &label, Quantity: d("1"), UnitAbbr: "pc",
 		UnitPrice: d("-5000.00"), Subtotal: d("-5000.00")})
 	det.Payments = []sales.Payment{{Method: "cash", Amount: d("0")}}
 	s := string(Document(det, cfg("80"), Options{}))
-	for _, want := range []string{"Given", "-5,000.00", "Rs. 1,500.00", "Given to customer", "GIVEN", "Rs. 3,500.00"} {
+	for _, want := range []string{"Cash out - Dialog", "Given", "-5,000.00", "Rs. 1,500.00", "Given to customer", "GIVEN", "Rs. 3,500.00"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("receipt missing %q\n%s", want, s)
 		}
