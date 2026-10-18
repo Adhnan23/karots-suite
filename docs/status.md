@@ -194,7 +194,7 @@ day, wages already cover it; the lost weight is in the loose cost.
   with real Firefox print-to-PDF (script kept outside the repo): suite and karots-pos print every row.
   The demo stays on :3100. Old karots-pos RB-/RL- slips section dropped (everything is a sale; `4804a4e`).
 - **Future idea (user, 2026-10-18):** modems / SIMs with USSD or SIM Toolkit (`docs/ideas/recharge-modems.md`).
-- **NEXT:** advance / special orders (parked "after M7.10" = after recharge) — rethink proposal first; then M8 Ship.
+- **Special / advance orders: SKIPPED (user, 2026-10-18)** — proposal made (new `orders` plugin on the repairs pattern: agreed price holds, deposit = advance, "What to make" list), user: skip it, come back only if a shop needs it. **NEXT: M8 Ship.**
   (The roadmap below still shows the old numbers, each plugin moved up one.)
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
@@ -511,7 +511,7 @@ shop (`docs/acceptance.md` § "The demo shop both apps hold now").
   does), so no database install. A shop that grows moves to server mode by: backup in the suite →
   install PostgreSQL → set `DATABASE_URL` in `.env` → start (migrations run) → restore. Server
   mode stays as it is. Not built.
-- **Idea after M7.10 (user, 2026-10-11): special / advance orders** — bakery cakes ("1kg chocolate,
+- **Idea (user, 2026-10-11; SKIPPED 2026-10-18 until a shop needs it): special / advance orders** — bakery cakes ("1kg chocolate,
   name 'Amaya', Friday"), print jobs, party orders: a customer order with a due date, a deposit taken
   at the till (money must land somewhere real), ready → collected, the balance rung as a sale. karots-pos
   shops misused Customer Requests for this (Demo Room's bakery / comms seeds). Revisit once every plugin
