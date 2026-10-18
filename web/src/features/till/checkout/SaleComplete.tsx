@@ -34,12 +34,12 @@ export function SaleComplete() {
           <span className="grid h-16 w-16 place-items-center rounded-full bg-success text-background"><Check size={34} strokeWidth={3} /></span>
           <h3 id="sale-done-title" className="mt-1.5 text-[22px] font-bold">Sale {res.receiptNo} complete</h3>
           <p className="text-muted-foreground tabular-nums">
-            {money(sym, res.total)} · {methods}
+            {num(res.total) < 0 ? `${money(sym, -num(res.total))} given` : `${money(sym, res.total)} · ${methods}`}
             {num(res.roundingToAccount) > 0 && ` · ${money(sym, res.roundingToAccount)} to account`}
           </p>
           {change > 0 && (
             <>
-              <p className="mt-2 text-muted-foreground">Give change</p>
+              <p className="mt-2 text-muted-foreground">{num(res.total) < 0 ? 'Give the customer' : 'Give change'}</p>
               <p className="font-display text-[40px] font-extrabold leading-none text-success tabular-nums">{money(sym, change)}</p>
               <p className="text-[13px] text-muted-foreground tabular-nums">{notesFor(change, denoms).map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>
             </>

@@ -88,6 +88,7 @@ export function serviceLine(key: number, d: ServiceLineInput): CartLine {
     discount: '', discountType: 'fixed', trackSerial: false, warrantyMonths: 0, serials: [],
     priceOverride: String(unit), description: d.description ?? '', components: d.components ?? [], plugin: d.plugin,
     ...(d.fixedQty && { fixedQty: true }),
+    ...(d.noDiscount && { noDiscount: true }),
   }
 }
 

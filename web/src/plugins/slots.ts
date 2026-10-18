@@ -81,6 +81,8 @@ export type TillAction = {
  * aborts a close (an open is best-effort). */
 export type DrawerSection = {
   key: string
+  /** Which dialogs it shows in (default both). */
+  on?: ('open' | 'close')[]
   Section: ComponentType<{ which: 'open' | 'close'; register: (save: () => Promise<boolean>) => void }>
 }
 

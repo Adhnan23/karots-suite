@@ -58,7 +58,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
     <div role="dialog" aria-modal="true" aria-labelledby="open-till-title"
       className="absolute inset-0 z-20 grid place-items-center bg-[color-mix(in_srgb,var(--background)_72%,transparent)] p-6 backdrop-blur-sm">
       <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.22 }}
-        className={cn(PANEL, 'w-full max-w-[760px] p-6')}>
+        className={cn(PANEL, 'w-full p-6', sections.nodes.length > 0 ? 'max-w-[1040px]' : 'max-w-[760px]')}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 id="open-till-title" className="font-display text-2xl font-bold">Open the till</h2>
@@ -73,7 +73,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
             </div>
           )}
         </div>
-        <div className={cn('mt-5 grid gap-6', sections.nodes.length > 0 && 'grid-cols-2')}>
+        <div className={cn('mt-5 grid gap-6', sections.nodes.length > 0 && 'grid-cols-[3fr_2fr]')}>
           <div className="flex flex-col gap-4">
             <DenomCounter denoms={state.denominations} counts={counts} onChange={setCounts} sym={cfg.symbol} label="Opening float" />
             <LockerSelect label="Float taken from" lockers={lockers} value={lockerId} onChange={setLockerId}

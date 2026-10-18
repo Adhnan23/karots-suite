@@ -30,6 +30,7 @@ export type CartLine = {
   fixedQty?: boolean // a plugin job priced and costed for this qty: × removes it, nothing changes the qty
   packs?: LinePack[] // also sold by the pack: full packs ring at the pack price (cart/packs.ts)
   payout?: boolean // money handed to the customer: unitPrice < 0, priceOverride = the amount, never discounted
+  noDiscount?: boolean // a plugin line whose amount passes through (a bill): no line discount offered
 }
 
 /** A pack on a cart line; price is for the sale type it was added under (0 = size × unit). */
@@ -56,6 +57,7 @@ export type ServiceLineInput = {
   components?: Component[]
   plugin?: Record<string, unknown>
   fixedQty?: boolean
+  noDiscount?: boolean
 }
 
 /** Money the shop hands the customer (e.g. a cash out) on a pass-through service product. */

@@ -4,7 +4,7 @@ import { slots } from '@/plugins/slots'
 /** Plugin drawer sections for the Open/Close dialog. runAll() saves each; false aborts. */
 export function useDrawerSections(which: 'open' | 'close') {
   const saves = useRef(new Map<string, () => Promise<boolean>>())
-  const nodes = slots.drawerSections.map((s) => (
+  const nodes = slots.drawerSections.filter((s) => !s.on || s.on.includes(which)).map((s) => (
     <s.Section key={s.key} which={which} register={(fn) => saves.current.set(s.key, fn)} />
   ))
   async function runAll() {

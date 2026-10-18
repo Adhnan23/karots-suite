@@ -60,7 +60,7 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
   const diff = num(result?.difference)
   return (
     <Dialog open onOpenChange={(o) => !o && (result ? void done() : ui.close())}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className={sections.nodes.length > 0 ? 'sm:max-w-[920px]' : 'sm:max-w-[700px]'}>
         {!result ? (
           <>
             {logout && (
@@ -72,7 +72,7 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
               <DialogTitle>Close the till</DialogTitle>
               <DialogDescription>Count the drawer to close this session. Expected in the drawer: {money(cfg.symbol, d?.summary.expected)}.</DialogDescription>
             </DialogHeader>
-            <div className={cn('grid gap-6', sections.nodes.length > 0 && 'grid-cols-2')}>
+            <div className={cn('grid gap-6', sections.nodes.length > 0 && 'grid-cols-[3fr_2fr]')}>
               <div className="flex flex-col gap-4">
                 <DenomCounter denoms={denoms} counts={counts} onChange={setCounts} sym={cfg.symbol} />
                 <LockerSelect label="Bank cash into" lockers={lockers} value={lockerId} onChange={setLockerId}
