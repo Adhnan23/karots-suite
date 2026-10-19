@@ -23,6 +23,7 @@ func newShopsApp(t *testing.T, b func(buildOpts, io.Writer) (buildResult, error)
 	path := filepath.Join(dir, "shops.json")
 	all := []manifest{{Key: "alpha", Name: "Alpha"}}
 	t.Setenv("SUITE_RELEASE_KEY", "")
+	t.Setenv("UPDATE_BASE_URL", "http://127.0.0.1:1") // baked in only; these tests never publish
 	return shopsApp{appHandler(all, b, shopsCfg{Path: path, Out: filepath.Join(dir, "dist"), Setup: fakeSetup, Env: filepath.Join(dir, ".env")}), path}
 }
 

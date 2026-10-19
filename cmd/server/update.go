@@ -28,7 +28,9 @@ var (
 
 // selfUpdate: a shop build updates itself unless SELF_UPDATE=off — a Docker /
 // VPS container, which is updated by rebuilding its image (deploy/docker).
-func selfUpdate() bool { return updateChannel != "" && os.Getenv("SELF_UPDATE") != "off" }
+func selfUpdate() bool {
+	return updateChannel != "" && updateBaseURL != "" && os.Getenv("SELF_UPDATE") != "off"
+}
 
 // exePath is the running binary, symlinks resolved — what an update swaps.
 func exePath() string {

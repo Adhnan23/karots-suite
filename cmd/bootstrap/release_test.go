@@ -193,3 +193,19 @@ func TestVersionAt(t *testing.T) {
 		t.Fatalf("versionAt = %q", v)
 	}
 }
+
+// A build stamped with no update address could never update: refuse before building.
+func TestShopRunNeedsBaseURL(t *testing.T) {
+	t.Setenv("UPDATE_BASE_URL", "")
+	t.Setenv("SUITE_RELEASE_KEY", "")
+	s := mustShop(t, "al-raj", "linux", "server")
+	built := false
+	b := func(buildOpts, io.Writer) (buildResult, error) { built = true; return buildResult{}, nil }
+	cfg := shopsCfg{Out: t.TempDir(), Setup: fakeSetup, Env: filepath.Join(t.TempDir(), ".env")}
+	for _, kind := range []string{"test", "release"} {
+		_, err := shopRun(&s, nil, b, cfg, kind, "2026.10.19.1530", "", false, io.Discard)
+		if err == nil || !strings.Contains(err.Error(), "UPDATE_BASE_URL") || built {
+			t.Fatalf("%s: err %v, built %v", kind, err, built)
+		}
+	}
+}

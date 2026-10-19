@@ -48,6 +48,9 @@ const notPublishedWarn = "! This shop has no release yet — the first install a
 // "release": build, then publish). A release whose upload fails keeps its
 // build — the caller saves LastBuilt — and Publish sends it later.
 func shopRun(s *Shop, all []manifest, b buildFn, cfg shopsCfg, kind, version, notes string, installer bool, log io.Writer) (buildResult, error) {
+	if os.Getenv("UPDATE_BASE_URL") == "" { // it is baked in: a build without it could never update
+		return buildResult{}, errors.New("set UPDATE_BASE_URL in .env (the bucket's public URL) — every shop build carries it")
+	}
 	priv, pub, err := releaseKey(cfg.envPath(), log)
 	if err != nil {
 		return buildResult{}, err
