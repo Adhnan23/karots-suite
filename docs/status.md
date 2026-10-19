@@ -212,7 +212,7 @@ day, wages already cover it; the lost weight is in the loose cost.
   copy refused, kill -9 → restart with data, clean stop leaves no Postgres; builder made Linux (39 MB) and Windows
   all-plugins (50 MB) file-mode binaries. **Left for the user: a Windows check** (double-click → till; close the
   window → no `postgres.exe` left; start again → same data; Sinhala product search) and one file → server move.
-  **NEXT: M8b Shop Builder** (spec first).
+  **NEXT: M8b Shop Builder** (spec approved 2026-10-19; plan next).
 - **Windows check (user, 2026-10-19):** a fresh Windows 10 VM failed first start — zonky's PostgreSQL needs the VC++
   runtime (initdb `0xc0000135`). Fixed: Windows file-mode builds carry msvcp140 / vcruntime140 / vcruntime140_1
   (`internal/filedb/vcrt/`, written to `data\vcrt\`, first on PATH). **Works on Windows with the redist
@@ -224,6 +224,15 @@ day, wages already cover it; the lost weight is in the loose cost.
   Postgres around the swap) → **M8d Demo Room** + README → **M8e Pocket Cashier groundwork**. A shop's first
   hand-installed binary should come after M8c, so it already carries the updater.
   (The roadmap below still shows the old numbers, each plugin moved up one.)
+- **M8b spec APPROVED (user, 2026-10-19)** (`docs/specs/2026-10-19-m8b-shop-builder-design.md`): `shops.json`
+  committed (private repo), per-shop ports, a shop build = **three files** (`karots-setup` installer with a page,
+  `install.conf` holding the final `.env`, the binary; "Add installer" tick), modular install steps per mode, kiosk or
+  **background** (owner's own PC), `-import-pos`, shop builds refuse without `POS_SUPPORT_SECRET`.
+- **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
+  S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
+  sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore
+  from a copy on the Data page; set up in Setup → Data (Test), the Builder can preset each shop's S3 folder in the
+  vendor's bucket. See `docs/ideas/backup-copies.md`.
 **Demo for the review (2026-10-13):** all plugins on :3100 against `suite_accept` (binary `~/karots-accept/karots-suite-all`,
 started with `.env` + `DATABASE_URL=…/suite_accept` + `BACKUP_DIR=~/karots-accept/suite-backups`; printer emulator
 `pos_printer` on :8631). Backup before M7.6 migrations: `~/karots-accept/suite_accept-before-m76-2026-10-13.dump`; the
