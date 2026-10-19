@@ -140,7 +140,7 @@
       "name": "Test Windows Shop",
       "os": "windows",
       "arch": "amd64",
-      "mode": "file",
+      "mode": "server",
       "plugins": [
         "aicatalog",
         "alternatives",
@@ -154,15 +154,33 @@
       "installId": "84E2163F",
       "channel": "04a1a39cddf23556f2869f4e6dc0009b",
       "port": 3000,
-      "fileDbPort": 5434,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "7d060eee3e95ff15a3de65da61f10321",
+        "superPassword": "f8dca761bb3b8353e245a0a701de45de"
+      },
+      "jwtSecret": "d67b58305a0625333fdd49ecdd35c783b0b437019d9225b4",
       "install": {
         "dir": "C:\\karots-suite",
         "open": "kiosk"
       },
-      "backups": {},
+      "backups": {
+        "every": "6h",
+        "keep": 28
+      },
       "lastBuilt": {
-        "at": "2026-10-19T06:46:43Z",
-        "commit": "b9598d8"
+        "at": "2026-10-19T15:35:50Z",
+        "commit": "cb393a9",
+        "version": "2026.10.19.2105",
+        "kind": "release"
+      },
+      "published": {
+        "version": "2026.10.19.2105",
+        "commit": "cb393a9",
+        "at": "2026-10-19T15:35:57Z"
       }
     }
   ]
