@@ -38,3 +38,22 @@ func (j *Job) busy(fn func()) {
 	close(stop)
 	<-done // never write to the log alongside the caller
 }
+
+// Windows keeps a just-stopped .exe (and antivirus a just-written file) locked
+// for a moment: a write there is tried retryTries times, retryPause apart.
+const retryTries = 15
+
+var retryPause = time.Second
+
+func retryWrite(fn func() error) error {
+	var err error
+	for i := range retryTries {
+		if err = fn(); err == nil {
+			return nil
+		}
+		if i < retryTries-1 {
+			time.Sleep(retryPause)
+		}
+	}
+	return err
+}

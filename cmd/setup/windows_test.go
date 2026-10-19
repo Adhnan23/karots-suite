@@ -338,3 +338,43 @@ func TestWindowsLauncherOncePerRun(t *testing.T) {
 		t.Fatalf("stop-launcher ran %d times:\n%s", n, rc.all())
 	}
 }
+
+// An Update stops karots-start before Karots: killed Karots is a "crash" the
+// launcher would restart 5 s later, locking the exe Setup is replacing.
+func TestWindowsStopOrder(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	j.Updating = true
+	if err := windowsProgram(j); err != nil {
+		t.Fatal(err)
+	}
+	all := rc.all()
+	launcher, karots := strings.Index(all, `karots-start.exe`), strings.Index(all, `karots-suite.exe'`)
+	if launcher < 0 || karots < 0 || launcher > karots {
+		t.Fatalf("karots-start must be stopped before Karots:\n%s", all)
+	}
+	if !strings.Contains(all, "kiosk.cmd") {
+		t.Fatalf("the old kiosk loop must be stopped too:\n%s", all)
+	}
+}
+
+// Windows holds a just-stopped .exe (or antivirus a just-written one) for a
+// moment: writes are retried instead of failing the step.
+func TestRetryWrite(t *testing.T) {
+	defer func(d time.Duration) { retryPause = d }(retryPause)
+	retryPause = time.Millisecond
+	tries := 0
+	err := retryWrite(func() error {
+		tries++
+		if tries < 3 {
+			return errors.New("being used by another process")
+		}
+		return nil
+	})
+	if err != nil || tries != 3 {
+		t.Fatalf("err %v after %d tries", err, tries)
+	}
+	tries = 0
+	if err := retryWrite(func() error { tries++; return errors.New("locked") }); err == nil || tries != retryTries {
+		t.Fatalf("gives up after %d tries: %v (%d)", retryTries, err, tries)
+	}
+}

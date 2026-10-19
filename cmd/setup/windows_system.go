@@ -32,18 +32,20 @@ func windowsProgram(j *Job) error {
 	if j.Updating {
 		// Stop the running till so its exe can be replaced (a file-mode PostgreSQL
 		// left running is stopped by Karots itself on its next start).
+		// karots-start (and its kiosk loop) first: it starts a killed Karots again.
 		if _, err := ps(j, fmt.Sprintf(`# karots:stop-karots
 Stop-ScheduledTask -TaskName %s -ErrorAction SilentlyContinue
+%s
 $p = Get-Process | Where-Object { $_.Path -eq %s }
 $p | Stop-Process -Force -ErrorAction SilentlyContinue
-$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue`, windowsTask, psq(j.binPath()))); err != nil {
+$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue`, windowsTask, stopLauncherPS(j), psq(j.binPath()))); err != nil {
 			return err
 		}
 	}
 	if err := os.MkdirAll(at(j.Conf.InstallDir), 0o755); err != nil {
 		return err
 	}
-	if err := copyFile(filepath.Join(j.Dir, j.Conf.Binary), at(j.binPath()), 0o755); err != nil {
+	if err := retryWrite(func() error { return copyFile(filepath.Join(j.Dir, j.Conf.Binary), at(j.binPath()), 0o755) }); err != nil {
 		return fmt.Errorf("copy %s: %w (is Karots still running? close it and Try again)", j.Conf.Binary, err)
 	}
 	return nil
@@ -80,13 +82,10 @@ func ensureLauncher(j *Job) (string, error) {
 		return "", err
 	}
 	// An Update: the running copy (holding the kiosk loop) can't be replaced while it runs.
-	if _, err := ps(j, fmt.Sprintf(`# karots:stop-launcher
-$p = Get-Process | Where-Object { $_.Path -eq %s }
-$p | Stop-Process -Force -ErrorAction SilentlyContinue
-$p | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue`, psq(dst))); err != nil {
+	if _, err := ps(j, "# karots:stop-launcher\n"+stopLauncherPS(j)); err != nil {
 		return "", err
 	}
-	if err := copyFile(filepath.Join(j.Dir, "karots-setup.exe"), at(dst), 0o755); err != nil {
+	if err := retryWrite(func() error { return copyFile(filepath.Join(j.Dir, "karots-setup.exe"), at(dst), 0o755) }); err != nil {
 		return "", fmt.Errorf("copy karots-setup.exe in as %s: %w (is it next to install.conf?)", windowsLauncher, err)
 	}
 	j.launcherReady = true
@@ -121,4 +120,15 @@ if (-not (Get-NetFirewallRule -DisplayName 'Karots Suite' -ErrorAction SilentlyC
   Set-NetFirewallRule -DisplayName 'Karots Suite' -LocalPort %d
 }`, j.Conf.Port, j.Conf.Port))
 	return err
+}
+
+// stopLauncherPS stops karots-start.exe and the kiosk loop it ran (cmd.exe on
+// kiosk.cmd, which outlives its parent) — before Karots, or the launcher starts
+// it again, and before kiosk.cmd is rewritten.
+func stopLauncherPS(j *Job) string {
+	return fmt.Sprintf(`$p = Get-Process | Where-Object { $_.Path -eq %s }
+$p | Stop-Process -Force -ErrorAction SilentlyContinue
+$p | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" | Where-Object { $_.CommandLine -like %s } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }`,
+		psq(joinOS(j, j.Conf.InstallDir, windowsLauncher)), psq("*"+joinOS(j, j.Conf.InstallDir, "kiosk.cmd")+"*"))
 }

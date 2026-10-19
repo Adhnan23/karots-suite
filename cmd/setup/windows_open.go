@@ -71,7 +71,7 @@ goto launch
 :end
 exit /b 0
 `, j.tillURL(), browser, profile, kioskArgs(family, j.tillURL(), profile)), "\n", "\r\n")
-	if err := os.WriteFile(at(kiosk), []byte(script), 0o644); err != nil {
+	if err := retryWrite(func() error { return os.WriteFile(at(kiosk), []byte(script), 0o644) }); err != nil {
 		return err
 	}
 	// karots-start.exe runs the loop with no window: nothing pops up at sign-in.
