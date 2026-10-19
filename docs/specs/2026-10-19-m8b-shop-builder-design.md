@@ -191,7 +191,8 @@ not in install folders.
 - Publishing, the feed, self-update, "who's behind" — **M8c**.
 - Moving a karots-pos shop's data — already works (karots-pos backup → suite Restore).
 - A zip of the install folder (a folder copies to USB fine).
-- Setup for macOS / FreeBSD (builds still allowed; no shop runs them).
+- macOS / FreeBSD shops: **user, 2026-10-19 — shops and Setup are Linux and Windows only**; Quick build still makes
+  macOS / FreeBSD binaries.
 - karots-pos-style `install.sh` / `install.ps1` — replaced by Shop Setup.
 
 ## 4. Checks

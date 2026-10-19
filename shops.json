@@ -90,6 +90,30 @@
         "dir": "/opt/karots-suite",
         "open": "kiosk"
       }
+    },
+    {
+      "key": "test",
+      "name": "test",
+      "os": "linux",
+      "arch": "amd64",
+      "mode": "server",
+      "plugins": [],
+      "installId": "B974335A",
+      "channel": "508bf520ed23417e46e2e6833327c752",
+      "port": 3000,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "91ef20b912e4ab7ba4db9bea210ccabb",
+        "superPassword": "54e28fc69a2384dc7a651969d73f6ce2"
+      },
+      "jwtSecret": "57ccfde950184fa2a162ac679096d4aa044a8e88478f0148",
+      "install": {
+        "dir": "/opt/karots-suite",
+        "open": "kiosk"
+      }
     }
   ]
 }
