@@ -63,11 +63,11 @@ Tasks, UAC.
   func (c Conf) EnvFile() []byte                  // KEY=value\n, keys sorted, no quotes/comments
   ```
 
-- [ ] **Step 1: Write the failing tests** — `TestRoundTrip` (Write then Read equal, file mode 0600); `TestReadRefuses` table: version 2 → error containing "rebuild in the Shop Builder"; mode "x"; server with nil DB; binary `"../x"`; port 0; open "x". `TestEnvFile`: `{"B":"2","A":"x y"}` → `"A=x y\nB=2\n"`; a value containing `\n` is refused by Read.
-- [ ] **Step 2: Run** `go test ./internal/shopconf/` → FAIL (package missing).
-- [ ] **Step 3: Implement** in `shopconf.go`.
-- [ ] **Step 4: Run** `go test ./internal/shopconf/` → PASS.
-- [ ] **Step 5: Commit** `feat(shopconf): install.conf — the Shop Builder ⇄ installer contract`
+- [x] **Step 1: Write the failing tests** — `TestRoundTrip` (Write then Read equal, file mode 0600); `TestReadRefuses` table: version 2 → error containing "rebuild in the Shop Builder"; mode "x"; server with nil DB; binary `"../x"`; port 0; open "x". `TestEnvFile`: `{"B":"2","A":"x y"}` → `"A=x y\nB=2\n"`; a value containing `\n` is refused by Read.
+- [x] **Step 2: Run** `go test ./internal/shopconf/` → FAIL (package missing).
+- [x] **Step 3: Implement** in `shopconf.go`.
+- [x] **Step 4: Run** `go test ./internal/shopconf/` → PASS.
+- [x] **Step 5: Commit** `feat(shopconf): install.conf — the Shop Builder ⇄ installer contract`
 
 ### Task 2: Shop profiles (`shops.json`)
 
@@ -98,7 +98,7 @@ Tasks, UAC.
   ```
   `-shops <path>` flag (default `shops.json`, env `SHOPS_FILE`) is added in Task 3.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
   - `TestNewShopServer`: 8-char install id, 32-hex channel, 48-hex JWT, DB `localhost:5432 suite_db suite_user`, 32-hex passwords, port 3000, dir `/opt/karots-suite` (linux) / `C:\karots-suite` (windows), open `kiosk`.
   - `TestNewShopFile`: DB nil, JWT empty, FileDBPort 5434.
   - `TestConfEnvServer`: `Env` = `APP_ENV=production`, `SERVER_PORT=3000`, `DATABASE_URL=postgres://suite_user:<pw>@localhost:5432/suite_db?sslmode=disable`, `JWT_SECRET`, `BACKUP_DIR=/opt/karots-suite/backups` (windows `C:\karots-suite\backups`), plus extras; a password `p@ss:/w` comes out escaped (`p%40ss%3A%2Fw`).
@@ -106,10 +106,10 @@ Tasks, UAC.
   - `TestCheckRefuses`: env `POS_SUPPORT_SECRET`, env `DATABASE_URL`, unknown plugin `gamma`, key `Al Raj`, OS `darwin`; `TestCheckWarns`: port == FileDBPort → one warning.
   - `TestSetMode`, `TestRotate` (value changes, length kept), `TestMasked` (no secret survives; original untouched).
   - `TestSaveAtomic`: save over an existing file where the temp write fails (dir made read-only after creating the file) → old content intact; normal save sorted by key.
-- [ ] **Step 2: Run** `go test ./cmd/bootstrap/ -run 'Shop|Conf|Check|Save|Mode|Rotate|Masked'` → FAIL.
-- [ ] **Step 3: Implement** `profiles.go`.
-- [ ] **Step 4: Run** the same → PASS.
-- [ ] **Step 5: Commit** `feat(bootstrap): shop profiles in shops.json (secrets, ports, install settings)`
+- [x] **Step 2: Run** `go test ./cmd/bootstrap/ -run 'Shop|Conf|Check|Save|Mode|Rotate|Masked'` → FAIL.
+- [x] **Step 3: Implement** `profiles.go`.
+- [x] **Step 4: Run** the same → PASS.
+- [x] **Step 5: Commit** `feat(bootstrap): shop profiles in shops.json (secrets, ports, install settings)`
 
 ### Task 3: Shop build → three files, CLI
 
@@ -129,15 +129,15 @@ Tasks, UAC.
   ```
   `buildOpts` gains `RequireSecret bool`; `build` fails with "POS_SUPPORT_SECRET is not set — a shop build needs it (each shop gets its own support PIN)" when set and the env var is empty.
 
-- [ ] **Step 1: Write the failing tests** (fake `b` writes a dummy binary, fake `setup` writes a dummy file):
+- [x] **Step 1: Write the failing tests** (fake `b` writes a dummy binary, fake `setup` writes a dummy file):
   - `TestBuildShopThreeFiles`: windows shop → `dist/al-raj/` has exactly `karots-setup.exe`, `install.conf` (0600, `Read` OK, `Binary == "karots-suite.exe"`, `InstallID` = profile's), `karots-suite.exe`; a stale file placed there before is gone; `LastBuilt` set.
   - `TestBuildShopNoInstaller`: only the binary.
   - `TestBuildShopPassesProfile`: `b` receives Mode, Plugins (with requires), InstallID, `RequireSecret: true`.
   - `TestBuildRequiresSecret`: `build` with `RequireSecret` and empty `POS_SUPPORT_SECRET` → that error, nothing built.
-- [ ] **Step 2: Run** `go test ./cmd/bootstrap/ -run 'BuildShop|RequiresSecret'` → FAIL.
-- [ ] **Step 3: Implement** `shopbuild.go`, the `RequireSecret` check, and the flags in `main.go`: `-shop all` builds each shop in key order and stops at the first failure; `-list` prints `key  name  os/arch  mode  port  plugins  last built`; after a shop build `SaveShops` (LastBuilt).
-- [ ] **Step 4: Run** `go test ./cmd/bootstrap/` → PASS (old tests too).
-- [ ] **Step 5: Commit** `feat(bootstrap): a shop build is three files — karots-setup, install.conf, the binary`
+- [x] **Step 2: Run** `go test ./cmd/bootstrap/ -run 'BuildShop|RequiresSecret'` → FAIL.
+- [x] **Step 3: Implement** `shopbuild.go`, the `RequireSecret` check, and the flags in `main.go`: `-shop all` builds each shop in key order and stops at the first failure; `-list` prints `key  name  os/arch  mode  port  plugins  last built`; after a shop build `SaveShops` (LastBuilt).
+- [x] **Step 4: Run** `go test ./cmd/bootstrap/` → PASS (old tests too).
+- [x] **Step 5: Commit** `feat(bootstrap): a shop build is three files — karots-setup, install.conf, the binary`
 
 ### Task 4: `-import-pos`
 
@@ -148,9 +148,9 @@ Tasks, UAC.
 **Interfaces:**
 - Produces: `func importPOS(path string, all []manifest, into *Shops) (added []string, dropped map[string][]string, err error)`
 
-- [ ] **Step 1: Write the failing test** `TestImportPOS` with a karots-pos-shaped file (`key, name, os, arch, plugins, install_id, channel`): keeps key / name / os / arch / install id, mode server, port 3000, channel **differs** from the karots-pos one, secrets minted; plugin `oldthing` → `dropped["shop"] == ["oldthing"]`; a key already in `into` is skipped (not overwritten) and not in `added`.
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit** `feat(bootstrap): -import-pos brings karots-pos shops over (same install ids, new channels)`
+- [x] **Step 1: Write the failing test** `TestImportPOS` with a karots-pos-shaped file (`key, name, os, arch, plugins, install_id, channel`): keeps key / name / os / arch / install id, mode server, port 3000, channel **differs** from the karots-pos one, secrets minted; plugin `oldthing` → `dropped["shop"] == ["oldthing"]`; a key already in `into` is skipped (not overwritten) and not in `added`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit** `feat(bootstrap): -import-pos brings karots-pos shops over (same install ids, new channels)`
 
 ### Task 5: Builder page — shops first
 
@@ -170,11 +170,11 @@ Tasks, UAC.
   - `POST /api/shops/{key}/delete` `{"confirm":"<key>"}`
   - `POST /api/shops/{key}/build` `{"installer":true}` → the same streamed log + `@@RESULT` / `@@ERROR` lines as `/api/build`; shares its busy lock
 
-- [ ] **Step 1: Write the failing tests** (temp shops file): create → list masked (no secret string present in the body); duplicate 409; update with masked secrets keeps the real ones; rotate changes the stored JWT; env download has `DATABASE_URL=`; delete needs the matching confirm; build streams `@@RESULT` with a fake builder; a `text/plain` POST is 415.
-- [ ] **Step 2: Run** `go test ./cmd/bootstrap/ -run AppShops` → FAIL. **Step 3: Implement** handlers.
-- [ ] **Step 4: Page:** opens on the shop list (name, OS, mode, port, plugin count, last built; Build / Edit / Download .env / Delete); **+ New shop**; Edit groups **Shop · Database · Network · Install · More settings** (spec §B), secrets masked with Show + Rotate, install id / channel read-only, mode switch confirms; Build has **Add installer** (ticked) and streams the log; **Build without a shop** = today's form. Same look as the current page.
-- [ ] **Step 5: Run** `go test ./cmd/bootstrap/` → PASS; run `go run ./cmd/bootstrap -shops /tmp/…/shops.json`, create / edit / build a file-mode linux shop, screenshot list + edit at 1366 and 360, self-review.
-- [ ] **Step 6: Commit** `feat(bootstrap): Builder opens on the shop list — edit, rotate, download .env, build with installer`
+- [x] **Step 1: Write the failing tests** (temp shops file): create → list masked (no secret string present in the body); duplicate 409; update with masked secrets keeps the real ones; rotate changes the stored JWT; env download has `DATABASE_URL=`; delete needs the matching confirm; build streams `@@RESULT` with a fake builder; a `text/plain` POST is 415.
+- [x] **Step 2: Run** `go test ./cmd/bootstrap/ -run AppShops` → FAIL. **Step 3: Implement** handlers.
+- [x] **Step 4: Page:** opens on the shop list (name, OS, mode, port, plugin count, last built; Build / Edit / Download .env / Delete); **+ New shop**; Edit groups **Shop · Database · Network · Install · More settings** (spec §B), secrets masked with Show + Rotate, install id / channel read-only, mode switch confirms; Build has **Add installer** (ticked) and streams the log; **Build without a shop** = today's form. Same look as the current page.
+- [x] **Step 5: Run** `go test ./cmd/bootstrap/` → PASS; run `go run ./cmd/bootstrap -shops /tmp/…/shops.json`, create / edit / build a file-mode linux shop, screenshot list + edit at 1366 and 360, self-review.
+- [x] **Step 6: Commit** `feat(bootstrap): Builder opens on the shop list — edit, rotate, download .env, build with installer`
 
 ### Task 6: `cmd/setup` — steps, plan, headless run
 
@@ -202,13 +202,13 @@ Tasks, UAC.
   Step IDs: `checks`, `database`, `program`, `settings`, `backups`, `startup`, `network`, `printing`, `open`, `health`.
   `main.go` flags: `-yes` (headless), `-role server|cashier`, `-address`, `-addr`, `-token`, `-user` (the last three are passed by the launcher, Task 9). With `-yes` it runs `RunAll` printing `✓ Title` / `✗ Title: err` and exits 0/1.
 
-- [ ] **Step 1: Write the failing tests** — `TestStepsPerRole` table, IDs expected:
+- [x] **Step 1: Write the failing tests** — `TestStepsPerRole` table, IDs expected:
   - server + local DB: all ten; server + remote DB: all ten (`database` only checks); file: no `database`, no `backups`; cashier: `checks`, `open`, `health`.
   - `TestMissingConf`: no `install.conf` in Dir → error "build this shop in the Shop Builder".
   - `TestChecksPortTaken`: port held by a plain `net.Listen` (not ours) → error naming the port and "Shop Builder"; port answering our `/health` (test server returning the suite's body) → passes.
   - `TestRunAllStops`: a failing step → later steps not run, `mark` got the error.
-- [ ] **Step 2: Run** `go test ./cmd/setup/` → FAIL. **Step 3: Implement** (OS-specific `Do` bodies are stubs returning nil until Tasks 7–8; `checks` real: admin, systemd on Linux, binary beside, InstallDir not a karots-pos folder (`karots-pos` binary present), port free or ours).
-- [ ] **Step 4: Run** → PASS. **Step 5: Commit** `feat(setup): karots-setup — modular install steps per role and mode, headless -yes`
+- [x] **Step 2: Run** `go test ./cmd/setup/` → FAIL. **Step 3: Implement** (OS-specific `Do` bodies are stubs returning nil until Tasks 7–8; `checks` real: admin, systemd on Linux, binary beside, InstallDir not a karots-pos folder (`karots-pos` binary present), port free or ours).
+- [x] **Step 4: Run** → PASS. **Step 5: Commit** `feat(setup): karots-setup — modular install steps per role and mode, headless -yes`
 
 ### Task 7: Linux steps
 
@@ -224,9 +224,9 @@ Ported from karots-pos `install.sh` (read it while porting), with values from `C
 - `open`: kiosk = Chromium install (snap fallback), `kiosk.sh` relaunch loop + DevTools policy + autostart `.desktop` (as karots-pos), URL `http://localhost:Port` or `http://Address`; background = `~/Desktop/karots-suite.desktop` + `~/.local/share/applications/karots-suite.desktop` running `xdg-open http://localhost:Port`, owned by User.
 - `health`: GET `/health` up to 30 × 1 s.
 
-- [ ] **Step 1: Write the failing tests** with a recording `Runner` (and a temp root for written files via a package var `root = "/"`): server-local apt → commands include `apt-get install … postgresql`, `ALTER ROLE suite_user WITH LOGIN PASSWORD '<profile pw>'`; file mode → no postgres command at all, unit has no `postgresql`; updating → `systemctl stop karots-suite` comes before the copy; background → `.desktop` files, no `kiosk.sh`; kiosk cashier → URL `http://192.168.1.10:3000`; `.env` written 0600 equal to `EnvFile()`.
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit** `feat(setup): Linux steps — PostgreSQL, program, .env, backups, systemd, firewall, CUPS, kiosk / background`
+- [x] **Step 1: Write the failing tests** with a recording `Runner` (and a temp root for written files via a package var `root = "/"`): server-local apt → commands include `apt-get install … postgresql`, `ALTER ROLE suite_user WITH LOGIN PASSWORD '<profile pw>'`; file mode → no postgres command at all, unit has no `postgresql`; updating → `systemctl stop karots-suite` comes before the copy; background → `.desktop` files, no `kiosk.sh`; kiosk cashier → URL `http://192.168.1.10:3000`; `.env` written 0600 equal to `EnvFile()`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit** `feat(setup): Linux steps — PostgreSQL, program, .env, backups, systemd, firewall, CUPS, kiosk / background`
 
 ### Task 8: Windows steps
 
@@ -241,9 +241,9 @@ Ported from karots-pos `install.ps1`; each step is one PowerShell script via `Ru
 - `network`: `New-NetFirewallRule -DisplayName "Karots Suite"` for Port. `printing`: no step on Windows (Applies false).
 - `open`: kiosk = Chromium / Chrome via winget, `kiosk.cmd` relaunch loop + Startup shortcut (as karots-pos); background = `Karots Suite.url` (`URL=http://localhost:Port`) on the user's Desktop and Start Menu.
 
-- [ ] **Step 1: Write the failing tests** on the recorded scripts: winget line carries the profile's super password and port; `ErrNeedSuperPassword` when both logins fail (fake runner answers); a typed `Job.SuperPassword` is used on the retry; updating stops the task before `Copy-Item`; task action contains `-WindowStyle Hidden`; background writes `.url` files, no `kiosk.cmd`; no `printing` step on Windows.
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS (tests run on Linux; scripts are strings).
-- [ ] **Step 5: Commit** `feat(setup): Windows steps — PostgreSQL, program, .env, Scheduled Task, firewall, kiosk / background`
+- [x] **Step 1: Write the failing tests** on the recorded scripts: winget line carries the profile's super password and port; `ErrNeedSuperPassword` when both logins fail (fake runner answers); a typed `Job.SuperPassword` is used on the retry; updating stops the task before `Copy-Item`; task action contains `-WindowStyle Hidden`; background writes `.url` files, no `kiosk.cmd`; no `printing` step on Windows.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS (tests run on Linux; scripts are strings).
+- [x] **Step 5: Commit** `feat(setup): Windows steps — PostgreSQL, program, .env, Scheduled Task, firewall, kiosk / background`
 
 ### Task 9: Setup page + elevation
 
@@ -261,10 +261,10 @@ Worker routes (every request needs `?t=` / `X-Setup-Token` = token, else 403):
 
 Page (spec §E): shop name, **This PC is…** (main PC / cashier PC + address + Test), What will happen, **Install** / **Update**, ticks + hidden Details log, failure words + Try again (+ the postgres password field on `@@NEED`), Done → Open the till + install id line ("support reads the PIN from this"), Close.
 
-- [ ] **Step 1: Write the failing tests**: no / wrong token → 403 on `/` and `/api/plan`; plan for a file-mode conf has no `database`; run with a fake step list streams `@@STEP` lines then `@@DONE`; `ErrNeedSuperPassword` → `@@NEED superPassword`; text/plain POST → 415.
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5:** run the worker against a temp folder with a fake runner (`-dry` flag: records commands, runs nothing) and screenshot the page — main PC, cashier PC, a failure, Done — at 1366 and 360, Studio-like Builder look, self-review.
-- [ ] **Step 6: Commit** `feat(setup): the install page — role, what will happen, live steps, Try again; UAC / pkexec elevation`
+- [x] **Step 1: Write the failing tests**: no / wrong token → 403 on `/` and `/api/plan`; plan for a file-mode conf has no `database`; run with a fake step list streams `@@STEP` lines then `@@DONE`; `ErrNeedSuperPassword` → `@@NEED superPassword`; text/plain POST → 415.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5:** run the worker against a temp folder with a fake runner (`-dry` flag: records commands, runs nothing) and screenshot the page — main PC, cashier PC, a failure, Done — at 1366 and 360, Studio-like Builder look, self-review.
+- [x] **Step 6: Commit** `feat(setup): the install page — role, what will happen, live steps, Try again; UAC / pkexec elevation`
 
 ### Task 10: build.ps1, docs, shops.json, real installs
 
@@ -272,8 +272,8 @@ Page (spec §E): shop name, **This PC is…** (main PC / cashier PC + address + 
 - Create: `build.ps1`, `shops.json` (via `-import-pos ../karots-pos/shops.json`)
 - Modify: `Makefile` (`setup:` = `go build -o bin/karots-setup ./cmd/setup`), `AGENTS.md` (Layout: `cmd/setup/`, `internal/shopconf/`, `shops.json`; Dev workflow line), `docs/status.md`
 
-- [ ] **Step 1:** `build.ps1` targets `bootstrap [args]`, `build`, `test`, `test-web`, `types`, `web`, interactive menu with no args (karots-pos shape; needs Go + bun).
-- [ ] **Step 2:** `go run ./cmd/bootstrap -import-pos ../karots-pos/shops.json`; check install ids match karots-pos; commit `shops.json`.
-- [ ] **Step 3: Real install, Linux** — in a throwaway systemd container / VM: file-mode shop `-yes` install → service up, `/health` 200, re-run as Update after Rotate jwt → restarted, data kept; server-local shop → role password = profile's. Record results in status. Windows double-click + USB exec bit + pkexec dialog: listed in status for the user's VM check.
-- [ ] **Step 4: Verify** `go test ./cmd/... ./internal/shopconf/`, `make verify`, `make check-core`, `make verify-portable`.
-- [ ] **Step 5: Commit** `docs: M8b Shop Builder done — status, AGENTS layout; shops.json imported from karots-pos`
+- [x] **Step 1:** `build.ps1` targets `bootstrap [args]`, `build`, `test`, `test-web`, `types`, `web`, interactive menu with no args (karots-pos shape; needs Go + bun).
+- [x] **Step 2:** `go run ./cmd/bootstrap -import-pos ../karots-pos/shops.json`; check install ids match karots-pos; commit `shops.json`.
+- [x] **Step 3: Real install, Linux** — in a throwaway systemd container / VM: file-mode shop `-yes` install → service up, `/health` 200, re-run as Update after Rotate jwt → restarted, data kept; server-local shop → role password = profile's. Record results in status. Windows double-click + USB exec bit + pkexec dialog: listed in status for the user's VM check.
+- [x] **Step 4: Verify** `go test ./cmd/... ./internal/shopconf/`, `make verify`, `make check-core`, `make verify-portable`.
+- [x] **Step 5: Commit** `docs: M8b Shop Builder done — status, AGENTS layout; shops.json imported from karots-pos`
