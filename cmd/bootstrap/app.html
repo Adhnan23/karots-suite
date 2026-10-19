@@ -85,6 +85,11 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip { font: 600 12px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--card-2); color: var(--muted); }
 .chip.warn { color: var(--warn); background: rgb(251 191 36 / .12); }
+.chip.ok { color: var(--ok); background: rgb(52 211 153 / .12); }
+.chip.bad { color: var(--bad); background: rgb(251 113 133 / .12); }
+dialog.rel { width: min(560px, calc(100vw - 32px)); padding: 22px; border-radius: var(--radius); border: 1px solid var(--border); background: linear-gradient(var(--card-2), var(--card-2)), var(--bg); color: var(--fg); }
+dialog.rel::backdrop { background: rgb(0 0 0 / .55); }
+dialog.rel textarea { width: 100%; box-sizing: border-box; min-height: 180px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2); color: var(--fg); font: 13px/1.5 var(--mono); resize: vertical; }
 .check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); }
 .sec { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
@@ -109,7 +114,8 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
     <div class="panel">
       <div class="row"><h2>Shops</h2><span class="acts" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <label class="check"><input type="checkbox" id="installer" checked> Add installer</label>
-        <button class="btn" id="buildAll">Build all</button>
+        <button class="btn" id="buildAll">Test build all</button>
+        <button class="btn" id="releaseAll">Release all…</button>
         <button class="btn primary" id="newShop">+ New shop</button></span></div>
       <div class="hint" id="shopsPath"></div>
       <div class="note" id="secret2" hidden>POS_SUPPORT_SECRET isn't set — shop builds need it (each shop gets its own support PIN).</div>
@@ -129,6 +135,12 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
     <div class="bar"><button class="btn" data-back>Cancel</button><button class="btn primary" id="nCreate">Create</button></div>
   </section>
   <section id="vEdit" class="panel" hidden></section>
+  <dialog class="rel" id="rel">
+    <h2 id="relTitle">Release</h2>
+    <div class="hint">Builds from the last commit and publishes it. What's new — the shop owner reads this on the Data page before pressing Update. Empty is fine.</div>
+    <textarea id="relNotes" spellcheck="true"></textarea>
+    <div class="bar"><button class="btn" id="relCancel">Cancel</button><button class="btn primary" id="relGo">Release</button></div>
+  </dialog>
   <section id="vQuick" hidden>
   <div class="grid">
     <section class="panel">

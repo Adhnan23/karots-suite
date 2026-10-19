@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"karots-suite/internal/shopconf"
@@ -93,30 +94,45 @@ func gitCommit() string {
 	return strings.TrimSpace(string(out))
 }
 
-// buildShops is -shop: one shop, or "all" in key order — a failing shop doesn't
-// stop the rest; the failures are listed at the end. Each success is saved (LastBuilt).
-func buildShops(path, which string, all []manifest, installer bool) error {
+// buildShops is -shop: a Release of one shop, or "all" in key order (one
+// version for all), or with test a Test build (nothing uploaded). A failing
+// shop doesn't stop the rest; the failures are listed at the end.
+func buildShops(path, which string, all []manifest, installer, test bool) error {
 	shops, err := LoadShops(path)
 	if err != nil {
 		return err
 	}
+	cfg := shopsCfg{Path: path, Out: "dist", Setup: buildSetup}
+	kind := "release"
+	if test {
+		kind = "test"
+	} else if dirty, err := cfg.dirty(); err != nil {
+		return err
+	} else if dirty {
+		return fmt.Errorf(`uncommitted changes — commit first, so the shops' "what's new" matches what they get (or -test for a local build)`)
+	}
+	var mu sync.Mutex
+	version := versionAt(time.Now())
 	built, failed := 0, []string(nil)
 	for i := range shops.Shops {
-		s := &shops.Shops[i]
+		s := shops.Shops[i]
 		if which != "all" && s.Key != which {
 			continue
 		}
 		built++
-		res, err := buildShop(s, all, shopBuildOpts{Out: "dist", Installer: installer}, build, buildSetup, os.Stdout)
+		before := s.LastBuilt
+		res, err := shopRun(&s, all, build, cfg, kind, version, defaultNotes(s, all), installer, os.Stdout)
+		if s.LastBuilt != before {
+			if serr := saveShopState(cfg, &mu, s); serr != nil {
+				return serr
+			}
+		}
 		if err != nil {
 			fmt.Printf("\n✗ %s: %v\n", s.Key, err)
 			failed = append(failed, s.Key)
 			continue
 		}
-		if err := SaveShops(path, shops); err != nil {
-			return err
-		}
-		fmt.Printf("\n✓ %s → %s   (install id %s, support PIN now %s)\n", s.Name, filepath.Dir(res.Binary), res.InstallID, res.SupportPIN)
+		fmt.Printf("\n✓ %s %s %s → %s   (install id %s, support PIN now %s)\n", s.Name, kind, version, filepath.Dir(res.Binary), res.InstallID, res.SupportPIN)
 	}
 	if built == 0 {
 		return fmt.Errorf("no shop %q in %s (see -list)", which, path)
@@ -138,11 +154,14 @@ func listShops(path string) error {
 		return nil
 	}
 	for _, s := range shops.Shops {
-		last := "never"
+		last, pub := "never", "not published"
 		if s.LastBuilt != nil {
-			last = s.LastBuilt.At.Local().Format("2006-01-02 15:04") + " " + s.LastBuilt.Commit
+			last = s.LastBuilt.At.Local().Format("2006-01-02 15:04") + " " + s.LastBuilt.Commit + " " + s.LastBuilt.Kind
 		}
-		fmt.Printf("%-20s %-24s %s/%-5s %-6s :%-5d %-40s built %s\n", s.Key, s.Name, s.OS, s.Arch, s.Mode, s.Port, strings.Join(s.Plugins, ","), last)
+		if s.Published != nil {
+			pub = "published " + s.Published.Version
+		}
+		fmt.Printf("%-20s %-24s %s/%-5s %-6s :%-5d %-40s built %s · %s\n", s.Key, s.Name, s.OS, s.Arch, s.Mode, s.Port, strings.Join(s.Plugins, ","), last, pub)
 	}
 	return nil
 }

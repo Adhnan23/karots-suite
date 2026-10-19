@@ -72,7 +72,8 @@ type Built struct {
 	At      time.Time `json:"at"`
 	Commit  string    `json:"commit"`
 	Version string    `json:"version,omitempty"`
-	Kind    string    `json:"kind,omitempty"` // "test" (local only) | "release" (meant for the bucket)
+	Kind    string    `json:"kind,omitempty"`  // "test" (local only) | "release" (meant for the bucket)
+	Notes   string    `json:"notes,omitempty"` // a release's "what's new", kept for a Publish retry
 }
 
 type Shop struct {

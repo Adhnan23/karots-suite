@@ -77,7 +77,8 @@ func run() error {
 		writeOnly   = flag.Bool("write-only", false, "write the plugin lists and stop (dev)")
 		addr        = flag.String("addr", "127.0.0.1:3199", "where the bootstrap app listens")
 		shopsFlag   = flag.String("shops", envOr("SHOPS_FILE", "shops.json"), "the shop profiles file")
-		shopFlag    = flag.String("shop", "", `build this shop from the profiles ("all" = every shop)`)
+		shopFlag    = flag.String("shop", "", `release this shop from the profiles: build + publish ("all" = every shop)`)
+		testFlag    = flag.Bool("test", false, "with -shop: a Test build — local only, nothing uploaded")
 		listFlag    = flag.Bool("list", false, "print the shop profiles")
 		noInstaller = flag.Bool("no-installer", false, "with -shop: only the binary")
 		importFlag  = flag.String("import-pos", "", "add the shops from karots-pos's shops.json")
@@ -97,7 +98,7 @@ func run() error {
 		return listShops(*shopsFlag)
 	}
 	if *shopFlag != "" {
-		return buildShops(*shopsFlag, *shopFlag, all, !*noInstaller)
+		return buildShops(*shopsFlag, *shopFlag, all, !*noInstaller, *testFlag)
 	}
 	if !isSet("plugins") && !isSet("write-only") {
 		return serveApp(*addr, all, build, shopsCfg{Path: *shopsFlag, Out: "dist", Setup: buildSetup})

@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop support-pin
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -50,6 +50,9 @@ bootstrap:
 # A shop from shops.json → dist/<key>/ (karots-setup, install.conf, the binary): make shop S=al-raj (or S=all)
 shop:
 	go run ./cmd/bootstrap -shop $(S)
+# A local Test build of one shop (nothing uploaded): make shop-test S=al-raj
+shop-test:
+	go run ./cmd/bootstrap -shop $(S) -test
 # A shop's current support PIN (hourly): make support-pin ID=BB876E88
 support-pin:
 	go run ./cmd/server -support-pin $(ID)

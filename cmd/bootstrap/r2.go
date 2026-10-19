@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net"

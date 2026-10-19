@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 )
 
 // shopsCfg is where the app keeps shop profiles and puts shop builds.
@@ -16,6 +17,12 @@ type shopsCfg struct {
 	Path  string // shops.json
 	Out   string // dist
 	Setup func(osName, arch, out string, log io.Writer) error
+	// Releases (M8c): Env is the .env holding SUITE_RELEASE_KEY (default .env),
+	// Store opens the bucket (default R2 from .env), Dirty checks the git tree
+	// (default treeDirty(".")) — swapped in tests.
+	Env   string
+	Store func(log io.Writer) (store, error)
+	Dirty func() (bool, error)
 }
 
 // mountShops adds the shop-profile routes. Every POST is JSON-only (jsonOnly);
@@ -23,7 +30,6 @@ type shopsCfg struct {
 // Download .env are POSTs, so another site can't read them.
 func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer) (buildResult, error), cfg shopsCfg, busy *sync.Mutex) {
 	var mu sync.Mutex // load → change → save, one at a time
-	var saveBuilt func(Shop) error
 
 	// edit runs fn on the named shop under mu and saves when fn returns no error.
 	edit := func(w http.ResponseWriter, key string, fn func(shops *Shops, i int) (any, int, string)) {
@@ -189,12 +195,9 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 		})
 	})
 
-	mux.HandleFunc("POST /api/shops/{key}/build", func(w http.ResponseWriter, r *http.Request) {
-		var in struct{ Installer bool }
-		if !decode(w, r, &in) {
-			return
-		}
-		key := r.PathValue("key")
+	// runOne streams fn on the named shop under busy, then saves what it built
+	// (also when it failed after building — a release whose upload failed).
+	runOne := func(w http.ResponseWriter, key string, fn func(*Shop, io.Writer) (buildResult, error)) {
 		mu.Lock()
 		shops, err := LoadShops(cfg.Path)
 		mu.Unlock()
@@ -214,28 +217,29 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 		defer busy.Unlock()
 		s := shops.Shops[i]
 		streamBuild(w, func(log io.Writer) (buildResult, error) {
-			res, err := buildShop(&s, all, shopBuildOpts{Out: cfg.Out, Installer: in.Installer}, b, cfg.Setup, log)
-			if err != nil {
-				return res, err
+			before, beforePub := s.LastBuilt, s.Published
+			res, err := fn(&s, log)
+			if s.LastBuilt != before || s.Published != beforePub {
+				if serr := saveShopState(cfg, &mu, s); serr != nil && err == nil {
+					err = serr
+				}
 			}
-			return res, saveBuilt(s)
+			return res, err
+		})
+	}
+
+	// Test build: local only, nothing uploaded.
+	mux.HandleFunc("POST /api/shops/{key}/build", func(w http.ResponseWriter, r *http.Request) {
+		var in struct{ Installer bool }
+		if !decode(w, r, &in) {
+			return
+		}
+		version := versionAt(time.Now())
+		runOne(w, r.PathValue("key"), func(s *Shop, log io.Writer) (buildResult, error) {
+			return shopRun(s, all, b, cfg, "test", version, "", in.Installer, log)
 		})
 	})
-
-	// saveBuilt records a shop's LastBuilt, re-reading first: the profile may
-	// have been edited during the build.
-	saveBuilt = func(s Shop) error {
-		mu.Lock()
-		defer mu.Unlock()
-		cur, err := LoadShops(cfg.Path)
-		if err != nil {
-			return err
-		}
-		if j := slices.IndexFunc(cur.Shops, func(x Shop) bool { return x.Key == s.Key }); j >= 0 {
-			cur.Shops[j].LastBuilt = s.LastBuilt
-		}
-		return SaveShops(cfg.Path, cur)
-	}
+	mountRelease(mux, all, b, cfg, busy, &mu, decode, runOne)
 
 	// Build all: every shop in key order; one failing doesn't stop the rest.
 	mux.HandleFunc("POST /api/shops/build-all", func(w http.ResponseWriter, r *http.Request) {
@@ -255,16 +259,17 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 			return
 		}
 		defer busy.Unlock()
+		version := versionAt(time.Now())
 		streamBuild(w, func(log io.Writer) (buildResult, error) {
 			var failed []string
 			for _, s := range shops.Shops {
 				fmt.Fprintf(log, "\n=== %s (%s) ===\n", s.Name, s.Key)
-				if _, err := buildShop(&s, all, shopBuildOpts{Out: cfg.Out, Installer: in.Installer}, b, cfg.Setup, log); err != nil {
+				if _, err := shopRun(&s, all, b, cfg, "test", version, "", in.Installer, log); err != nil {
 					fmt.Fprintf(log, "✗ %s: %v\n", s.Key, err)
 					failed = append(failed, s.Key)
 					continue
 				}
-				if err := saveBuilt(s); err != nil {
+				if err := saveShopState(cfg, &mu, s); err != nil {
 					return buildResult{}, err
 				}
 				fmt.Fprintf(log, "✓ %s → %s\n", s.Key, filepath.Join(cfg.Out, s.Key))

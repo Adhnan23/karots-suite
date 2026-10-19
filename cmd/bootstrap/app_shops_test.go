@@ -22,7 +22,8 @@ func newShopsApp(t *testing.T, b func(buildOpts, io.Writer) (buildResult, error)
 	dir := t.TempDir()
 	path := filepath.Join(dir, "shops.json")
 	all := []manifest{{Key: "alpha", Name: "Alpha"}}
-	return shopsApp{appHandler(all, b, shopsCfg{Path: path, Out: filepath.Join(dir, "dist"), Setup: fakeSetup}), path}
+	t.Setenv("SUITE_RELEASE_KEY", "")
+	return shopsApp{appHandler(all, b, shopsCfg{Path: path, Out: filepath.Join(dir, "dist"), Setup: fakeSetup, Env: filepath.Join(dir, ".env")}), path}
 }
 
 func (a shopsApp) do(t *testing.T, path, body string) *httptest.ResponseRecorder {

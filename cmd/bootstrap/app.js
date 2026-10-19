@@ -101,7 +101,7 @@ async function stream(url, body, btn, after) {
 }
 function finish(r, err) {
   const d = $('done'); d.className = 'done on' + (err ? ' fail' : ''); d.innerHTML = ''
-  const h = document.createElement('b'); h.textContent = err ? 'Build failed' : '✓ Built'; d.append(h)
+  const h = document.createElement('b'); h.textContent = err ? (/^built .*not published/.test(err) ? 'Built — not published' : 'Failed') : '✓ Done'; d.append(h)
   const kv = document.createElement('div'); kv.className = 'kv'; d.append(kv)
   const add = (k, v, cls) => { const a = document.createElement('span'); a.textContent = k; const b = document.createElement('code'); b.textContent = v; if (cls) b.className = cls; kv.append(a, b) }
   if (err) { add('Why', err); return }
@@ -125,19 +125,39 @@ async function loadShops() {
   if (!st.shops.length) { el.innerHTML = '<div class="empty">No shops yet — + New shop, or bring karots-pos shops over with <code>go run ./cmd/bootstrap -import-pos ../karots-pos/shops.json</code>.</div>'; return }
   for (const sh of st.shops) {
     const row = document.createElement('div'); row.className = 'shop'
-    const last = sh.lastBuilt ? 'built ' + new Date(sh.lastBuilt.at).toLocaleString() + (sh.lastBuilt.commit ? ' · ' + sh.lastBuilt.commit : '') : 'never built'
+    const lb = sh.lastBuilt, pub = sh.published
+    const last = lb ? (lb.kind === 'test' ? 'test build ' : 'built ') + new Date(lb.at).toLocaleString() + (lb.commit ? ' · ' + lb.commit : '') : 'never built'
+    const unpublished = lb && lb.kind === 'release' && (!pub || pub.version !== lb.version)
+    const state = (pub ? `<span class="chip ok">Published ${esc(pub.version)} · ${esc(new Date(pub.at).toLocaleDateString())}</span>` : '<span class="chip bad">Not published</span>')
+      + (unpublished && pub ? `<span class="chip bad">${esc(lb.version)} not published</span>` : '')
+      + (lb && lb.kind === 'test' && (!pub || lb.version > pub.version) ? `<span class="chip warn">Test build ${esc(lb.version)}, not released</span>` : '')
     const warns = (st.warnings[sh.key] || []).map((w) => `<span class="chip warn">⚠ ${esc(w)}</span>`).join('')
     row.innerHTML = `<div><b>${esc(sh.name)}</b> <span class="hint">${esc(sh.key)}</span>
       <div class="chips"><span class="chip">${esc(sh.os)}/${esc(sh.arch)}</span><span class="chip">${sh.mode === 'file' ? 'one PC' : 'server'}</span>
       <span class="chip">:${sh.port}</span><span class="chip">${sh.plugins.length ? sh.plugins.length + ' plugins' : 'core only'}</span>
-      <span class="chip">${sh.install.open}</span>${warns}</div><div class="hint">${esc(last)}</div></div>
-      <div class="acts"><button class="btn primary" data-a="build">Build</button><button class="btn" data-a="edit">Edit</button>
+      <span class="chip">${sh.install.open}</span>${warns}</div><div class="chips">${state}</div><div class="hint">${esc(last)}</div></div>
+      <div class="acts"><button class="btn primary" data-a="release">Release…</button>${unpublished ? '<button class="btn" data-a="publish">Publish</button>' : ''}<button class="btn" data-a="build">Test build</button><button class="btn" data-a="edit">Edit</button>
       <button class="btn" data-a="env">.env</button><button class="btn danger" data-a="del">Delete</button></div>`
     row.querySelector('[data-a=build]').onclick = (e) => stream(`/api/shops/${sh.key}/build`, { installer: $('installer').checked }, e.target, loadShops)
+    row.querySelector('[data-a=release]').onclick = (e) => release(sh, e.target)
+    if (unpublished) row.querySelector('[data-a=publish]').onclick = (e) => stream(`/api/shops/${sh.key}/publish`, {}, e.target, loadShops)
     row.querySelector('[data-a=edit]').onclick = () => edit(sh)
     row.querySelector('[data-a=env]').onclick = () => downloadEnv(sh.key)
     row.querySelector('[data-a=del]').onclick = () => del(sh)
     el.append(row)
+  }
+}
+// release opens the notes dialog (pre-filled with the fixes since the shop's
+// last release); sh = null releases every shop with one note.
+async function release(sh, btn) {
+  $('relTitle').textContent = sh ? 'Release ' + sh.name : 'Release every shop'
+  $('relNotes').value = ''
+  if (sh) try { $('relNotes').value = (await api(`/api/shops/${sh.key}/notes`)).notes } catch {}
+  $('rel').showModal(); $('relNotes').focus()
+  $('relGo').onclick = () => {
+    $('rel').close()
+    const body = { installer: $('installer').checked, notes: $('relNotes').value }
+    stream(sh ? `/api/shops/${sh.key}/release` : '/api/shops/release-all', body, btn, loadShops)
   }
 }
 async function downloadEnv(key) {
@@ -325,8 +345,10 @@ $('none').onclick = () => { s.picked.clear(); plugins(); summary() }
 $('tShops').onclick = backToShops
 $('tQuick').onclick = () => view('vQuick')
 $('newShop').onclick = newShop
+$('releaseAll').onclick = (e) => release(null, e.target)
+$('relCancel').onclick = () => $('rel').close()
 $('buildAll').onclick = (e) => {
-  if (confirm('Build every shop now, one after another' + ($('installer').checked ? ' (with the installer)' : '') + '? A shop that fails is listed at the end; the rest still build.'))
+  if (confirm('Test build every shop now, one after another' + ($('installer').checked ? ' (with the installer)' : '') + '? Nothing is uploaded. A shop that fails is listed at the end; the rest still build.'))
     stream('/api/shops/build-all', { installer: $('installer').checked }, e.target, loadShops)
 }
 $('nCreate').onclick = createShop
