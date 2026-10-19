@@ -104,3 +104,18 @@ func TestNewInstallIDIsUniqueAndReadable(t *testing.T) {
 		}
 	}
 }
+
+// The suite has its own seed label, so the same master secret + install id give
+// a different PIN than karots-pos (530444 for this vector). Karots PIN Vault
+// needs the suite's label to compute suite PINs; changing it moves every shop's PIN.
+func TestCodeUsesSuiteLabel(t *testing.T) {
+	got := CodeForSecret("test-master-secret", "BB876E88", time.Date(2026, 10, 19, 10, 30, 0, 0, time.UTC))
+	if got == "530444" {
+		t.Fatal("same PIN as karots-pos — the suite must keep its own seed label")
+	}
+	if got != suiteVector {
+		t.Fatalf("got %s, want %s — the seed label or scheme changed", got, suiteVector)
+	}
+}
+
+const suiteVector = "441251" // the suite's own label, from CodeForSecret at the 2026-10-19 fix

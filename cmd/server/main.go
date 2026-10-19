@@ -32,16 +32,17 @@ func main() {
 	dataDir := flag.String("data", "", "file mode: the data folder (default: data/ next to the binary)")
 	flag.Parse()
 
+	// Pick up the .env shipped beside the binary before anything reads config, so
+	// a shop can just run the executable. Anything already exported wins.
+	config.LoadDotEnv()
+
 	// Needs no database: the shop reads their Install ID down the phone and this
-	// derives the PIN for it.
+	// derives the PIN for it. The secret is only in the developer's .env (a shop's
+	// .env never carries it — the Shop Builder refuses it).
 	if *supportFor != "" {
 		printSupportPIN(*supportFor)
 		return
 	}
-
-	// Pick up the .env shipped beside the binary before anything reads config, so
-	// a shop can just run the executable. Anything already exported wins.
-	config.LoadDotEnv()
 
 	// File mode: no DATABASE_URL and a build that carries its own PostgreSQL.
 	var fileDB *filedb.DB

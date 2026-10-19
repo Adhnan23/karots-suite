@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -50,6 +50,9 @@ bootstrap:
 # A shop from shops.json → dist/<key>/ (karots-setup, install.conf, the binary): make shop S=al-raj (or S=all)
 shop:
 	go run ./cmd/bootstrap -shop $(S)
+# A shop's current support PIN (hourly): make support-pin ID=BB876E88
+support-pin:
+	go run ./cmd/server -support-pin $(ID)
 # The installer for this PC (shop builds make their own per OS).
 setup:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/karots-setup ./cmd/setup
