@@ -253,6 +253,12 @@ day, wages already cover it; the lost weight is in the loose cost.
 - **For the M8c spec (user, 2026-10-19):** the Builder gets **Release** on each shop row (next to Build: build → sign →
   upload to that shop's channel → it self-updates) and **Release all** next to **Build all** (one note for the
   owners), plus a "running vs latest" column. Build stays for first installs (the three files).
+- **Database SSL per shop (2026-10-19):** Builder → Database → SSL: auto (off for localhost, `require` elsewhere) /
+  off / required / verify-full → `sslmode` in `DATABASE_URL`. For a VPS or hosted PostgreSQL (Neon: direct host, not
+  `-pooler`; free plans sleep after ~5 min idle). **Idea (user):** host a shop's Karots on the user's VPS so owners
+  watch the till from their phone — needs HTTPS in front (e.g. Caddy) and Setup's cashier address to allow `https://`
+  (today it always uses http://). Caution given: a shop whose only database is online stops selling when its
+  internet drops (never-stop-a-sale).
 - **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
   S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
   sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore
