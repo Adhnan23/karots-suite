@@ -30,6 +30,7 @@
 //	-shop        build this shop's profile ("all" = every shop)
 //	-list        print the shop profiles
 //	-no-installer  with -shop: only the binary, no karots-setup / install.conf
+//	-import-pos  add karots-pos's shops (same install ids, new channels, fresh secrets)
 package main
 
 import (
@@ -79,6 +80,7 @@ func run() error {
 		shopFlag    = flag.String("shop", "", `build this shop from the profiles ("all" = every shop)`)
 		listFlag    = flag.Bool("list", false, "print the shop profiles")
 		noInstaller = flag.Bool("no-installer", false, "with -shop: only the binary")
+		importFlag  = flag.String("import-pos", "", "add the shops from karots-pos's shops.json")
 	)
 	flag.Parse()
 	if _, err := os.Stat("go.mod"); err != nil {
@@ -87,6 +89,9 @@ func run() error {
 	all, err := discover()
 	if err != nil {
 		return err
+	}
+	if *importFlag != "" {
+		return importPOSFile(*shopsFlag, *importFlag, all)
 	}
 	if *listFlag {
 		return listShops(*shopsFlag)
