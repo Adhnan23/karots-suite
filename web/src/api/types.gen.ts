@@ -942,6 +942,23 @@ export interface SetupStep {
   to: string; // the SPA page that finishes it
   done: boolean;
 }
+/**
+ * UpdateStatusDTO is the Data page's Updates card (GET /admin/data/update).
+ * Enabled is false for a build without an update channel (dev, Docker): the
+ * card then shows the version only.
+ */
+export interface UpdateStatusDTO {
+  version: string;
+  kind: string; // "test" | "release" | ""
+  enabled: boolean;
+  state: string; // unchecked | up-to-date | available | not-published | offline | bad-signature | installing | failed
+  latest: string;
+  notes: string;
+  message: string;
+  progress: string;
+  rolledBackFrom: string;
+  checkedAt?: any /* time.Time */;
+}
 
 //////////
 // source: dto_drawer.go

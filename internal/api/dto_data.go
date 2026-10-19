@@ -85,3 +85,19 @@ type SetupStep struct {
 	To    string `json:"to"` // the SPA page that finishes it
 	Done  bool   `json:"done"`
 }
+
+// UpdateStatusDTO is the Data page's Updates card (GET /admin/data/update).
+// Enabled is false for a build without an update channel (dev, Docker): the
+// card then shows the version only.
+type UpdateStatusDTO struct {
+	Version        string     `json:"version"`
+	Kind           string     `json:"kind"` // "test" | "release" | ""
+	Enabled        bool       `json:"enabled"`
+	State          string     `json:"state"` // unchecked | up-to-date | available | not-published | offline | bad-signature | installing | failed
+	Latest         string     `json:"latest"`
+	Notes          string     `json:"notes"`
+	Message        string     `json:"message"`
+	Progress       string     `json:"progress"`
+	RolledBackFrom string     `json:"rolledBackFrom"`
+	CheckedAt      *time.Time `json:"checkedAt"`
+}
