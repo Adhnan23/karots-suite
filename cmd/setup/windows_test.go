@@ -19,7 +19,7 @@ func windowsJob(t *testing.T, mode string) (*Job, *rec) {
 	rc := &rec{answers: map[string]string{
 		"ps> # karots:find-psql":    `C:\Program Files\PostgreSQL\17\bin\psql.exe`,
 		"ps> # karots:psql super":   "up",
-		"ps> # karots:find-browser": `C:\Program Files\Google\Chrome\Application\chrome.exe`,
+		"ps> # karots:find-browser": `BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe`,
 	}}
 	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: `SHOP\owner`, Run: rc, Log: io.Discard}, rc
 }
@@ -126,5 +126,27 @@ func TestWindowsSettingsAndNoPrinting(t *testing.T) {
 		if s.ID == "printing" {
 			t.Fatal("a printing step on Windows")
 		}
+	}
+}
+
+// No Chrome and no winget: winget's error text is never taken for a browser;
+// Edge (on every Windows 10/11) runs the kiosk instead.
+func TestWindowsKioskBrowser(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	rc.answers["ps> # karots:find-browser"] = "winget : The term 'winget' is not recognized\n"
+	if err := windowsOpen(j); err == nil || !strings.Contains(err.Error(), "Chrome") {
+		t.Fatalf("no browser: %v", err)
+	}
+	j, rc = windowsJob(t, "file")
+	rc.answers["ps> # karots:find-browser"] = "noise\nBROWSER=C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\n"
+	if err := windowsOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, "kiosk.cmd")))
+	if !strings.Contains(string(k), `msedge.exe" --kiosk http://localhost:3000 --edge-kiosk-type=fullscreen`) || strings.Contains(string(k), "--app=") || strings.Contains(string(k), "noise") {
+		t.Fatalf("kiosk.cmd:\n%s", k)
+	}
+	if !strings.Contains(rc.all(), "Get-Command winget") || !strings.Contains(rc.all(), `Microsoft\Edge\Application\msedge.exe`) {
+		t.Fatalf("find-browser script:\n%s", rc.all())
 	}
 }

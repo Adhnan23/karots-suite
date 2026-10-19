@@ -114,6 +114,35 @@
         "dir": "/opt/karots-suite",
         "open": "kiosk"
       }
+    },
+    {
+      "key": "test-windows-shop",
+      "name": "Test Windows Shop",
+      "os": "windows",
+      "arch": "amd64",
+      "mode": "file",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "clearance",
+        "combos",
+        "documents",
+        "productplus",
+        "recharge",
+        "requests"
+      ],
+      "installId": "84E2163F",
+      "channel": "04a1a39cddf23556f2869f4e6dc0009b",
+      "port": 3000,
+      "fileDbPort": 5434,
+      "install": {
+        "dir": "C:\\karots-suite",
+        "open": "kiosk"
+      },
+      "lastBuilt": {
+        "at": "2026-10-19T05:29:40Z",
+        "commit": "bf3e65a"
+      }
     }
   ]
 }
