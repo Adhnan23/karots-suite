@@ -17,9 +17,9 @@ the bucket) — fix there with a normal `go run ./cmd/release publish al-raj mum
 Checks (2026-10-19): `go test -p 1` core-only + all plugins, 234 web unit tests, `make verify`, `verify-portable`,
 Playwright 175 passed / 24 skipped.
 **Pick up here:**
-1. **Acceptance (user):** Release a test shop → install the three files by hand → Data page **Up to date**; commit
-   anything → Release again → test PC: Check now → **Update** → back on the new version. The first Release writes
-   `SUITE_RELEASE_KEY` into `.env` — **save a copy**.
+1. **Acceptance PASSED (user, 2026-10-19, VM):** Release 2026.10.19.1929 installed by hand → Data page **Up to date**;
+   Release 2026.10.19.1936 ("test update") → Check now showed it with its notes → **Update** → came back on 1936, Up to
+   date. `SUITE_RELEASE_KEY` is in `.env` — keep a copy safe.
 2. Linux USB double-click and one real shop install still unverified (from M8b).
 3. **Windows check after the review fix:** karots-start now starts Karots again 5 s after a crash (non-zero exit), so
    BootGuard can roll a bad update back — confirm on the Windows box (kill Karots → it comes back).
