@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -32,7 +31,7 @@ func at(p string) string { return filepath.Join(root, p) }
 
 // run runs a tool, logs it, and wraps a failure with its output.
 func run(j *Job, name string, args ...string) (string, error) {
-	fmt.Fprintf(j.Log, "→ %s %s\n", name, redact(strings.Join(args, " ")))
+	fmt.Fprintf(j.Log, "→ %s %s\n", name, j.redact(strings.Join(args, " ")))
 	out, err := j.Run.Run(name, args...)
 	if strings.TrimSpace(out) != "" {
 		fmt.Fprintln(j.Log, strings.TrimSpace(out))
@@ -43,10 +42,19 @@ func run(j *Job, name string, args ...string) (string, error) {
 	return out, nil
 }
 
-var passwordSQL = regexp.MustCompile(`PASSWORD '(?:[^']|'')*'`)
-
-// redact keeps passwords out of the log (support gets a copy of it).
-func redact(s string) string { return passwordSQL.ReplaceAllString(s, "PASSWORD '••••'") }
+// redact keeps the job's passwords out of the log (support gets a copy of it).
+func (j *Job) redact(s string) string {
+	var secrets []string
+	if j.Conf.DB != nil {
+		secrets = append(secrets, j.Conf.DB.Password, j.Conf.DB.SuperPassword)
+	}
+	for _, v := range append(secrets, j.SuperPassword) {
+		if len(v) >= 3 {
+			s = strings.ReplaceAll(s, v, "••••")
+		}
+	}
+	return s
+}
 
 // writeAs writes a file and hands it to the shop user.
 func writeAs(j *Job, path string, data []byte, mode os.FileMode) error {
