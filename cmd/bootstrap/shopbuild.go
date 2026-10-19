@@ -19,6 +19,9 @@ const shopBinary = "karots-suite"
 type shopBuildOpts struct {
 	Out       string // the folder holding dist/<key>
 	Installer bool   // add karots-setup + install.conf beside the binary
+	// Version, Kind ("test" | "release") and PubKey (the release key's public
+	// half) stamp the binary and turn its updater on; empty Version = neither.
+	Version, Kind, PubKey string
 }
 
 // buildShop makes <out>/<key>: the shop's binary and, with Installer, the
@@ -43,7 +46,11 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return buildResult{}, err
 	}
-	res, err := b(buildOpts{Plugins: withRequired(all, sel), OS: s.OS, Arch: s.Arch, Name: shopBinary, Out: dir, InstallID: s.InstallID, Mode: s.Mode, RequireSecret: true}, log)
+	bo := buildOpts{Plugins: withRequired(all, sel), OS: s.OS, Arch: s.Arch, Name: shopBinary, Out: dir, InstallID: s.InstallID, Mode: s.Mode, RequireSecret: true}
+	if o.Version != "" {
+		bo.ExtraX = updateX(*s, o.Version, o.Kind, o.PubKey)
+	}
+	res, err := b(bo, log)
 	if err != nil {
 		return res, err
 	}
@@ -57,7 +64,7 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 		}
 	}
 	res.Folder = dir
-	s.LastBuilt = &Built{At: time.Now().UTC().Truncate(time.Second), Commit: gitCommit()}
+	s.LastBuilt = &Built{At: time.Now().UTC().Truncate(time.Second), Commit: gitCommit(), Version: o.Version, Kind: o.Kind}
 	return res, nil
 }
 

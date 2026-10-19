@@ -69,8 +69,10 @@ const (
 )
 
 type Built struct {
-	At     time.Time `json:"at"`
-	Commit string    `json:"commit"`
+	At      time.Time `json:"at"`
+	Commit  string    `json:"commit"`
+	Version string    `json:"version,omitempty"`
+	Kind    string    `json:"kind,omitempty"` // "test" (local only) | "release" (meant for the bucket)
 }
 
 type Shop struct {
@@ -90,6 +92,7 @@ type Shop struct {
 	Backups    ShopBackups       `json:"backups"`
 	Env        map[string]string `json:"env,omitempty"` // extra .env keys
 	LastBuilt  *Built            `json:"lastBuilt,omitempty"`
+	Published  *Published        `json:"published,omitempty"` // what its bucket folder holds (M8c)
 }
 
 type Shops struct {
