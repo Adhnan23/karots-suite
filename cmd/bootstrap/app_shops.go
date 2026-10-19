@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 )
 
@@ -20,6 +23,7 @@ type shopsCfg struct {
 // Download .env are POSTs, so another site can't read them.
 func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer) (buildResult, error), cfg shopsCfg, busy *sync.Mutex) {
 	var mu sync.Mutex // load → change → save, one at a time
+	var saveBuilt func(Shop) error
 
 	// edit runs fn on the named shop under mu and saves when fn returns no error.
 	edit := func(w http.ResponseWriter, key string, fn func(shops *Shops, i int) (any, int, string)) {
@@ -214,17 +218,61 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 			if err != nil {
 				return res, err
 			}
-			// Re-read before saving: the profile may have been edited during the build.
-			mu.Lock()
-			defer mu.Unlock()
-			cur, err := LoadShops(cfg.Path)
-			if err != nil {
-				return res, err
+			return res, saveBuilt(s)
+		})
+	})
+
+	// saveBuilt records a shop's LastBuilt, re-reading first: the profile may
+	// have been edited during the build.
+	saveBuilt = func(s Shop) error {
+		mu.Lock()
+		defer mu.Unlock()
+		cur, err := LoadShops(cfg.Path)
+		if err != nil {
+			return err
+		}
+		if j := slices.IndexFunc(cur.Shops, func(x Shop) bool { return x.Key == s.Key }); j >= 0 {
+			cur.Shops[j].LastBuilt = s.LastBuilt
+		}
+		return SaveShops(cfg.Path, cur)
+	}
+
+	// Build all: every shop in key order; one failing doesn't stop the rest.
+	mux.HandleFunc("POST /api/shops/build-all", func(w http.ResponseWriter, r *http.Request) {
+		var in struct{ Installer bool }
+		if !decode(w, r, &in) {
+			return
+		}
+		mu.Lock()
+		shops, err := LoadShops(cfg.Path)
+		mu.Unlock()
+		if err != nil {
+			writeErr(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		if !busy.TryLock() {
+			writeErr(w, http.StatusConflict, "a build is already running")
+			return
+		}
+		defer busy.Unlock()
+		streamBuild(w, func(log io.Writer) (buildResult, error) {
+			var failed []string
+			for _, s := range shops.Shops {
+				fmt.Fprintf(log, "\n=== %s (%s) ===\n", s.Name, s.Key)
+				if _, err := buildShop(&s, all, shopBuildOpts{Out: cfg.Out, Installer: in.Installer}, b, cfg.Setup, log); err != nil {
+					fmt.Fprintf(log, "✗ %s: %v\n", s.Key, err)
+					failed = append(failed, s.Key)
+					continue
+				}
+				if err := saveBuilt(s); err != nil {
+					return buildResult{}, err
+				}
+				fmt.Fprintf(log, "✓ %s → %s\n", s.Key, filepath.Join(cfg.Out, s.Key))
 			}
-			if j := slices.IndexFunc(cur.Shops, func(x Shop) bool { return x.Key == key }); j >= 0 {
-				cur.Shops[j].LastBuilt = s.LastBuilt
+			if len(failed) > 0 {
+				return buildResult{}, fmt.Errorf("%d of %d shops failed: %s", len(failed), len(shops.Shops), strings.Join(failed, ", "))
 			}
-			return res, SaveShops(cfg.Path, cur)
+			return buildResult{Folder: fmt.Sprintf("%s — %d shops, one folder each", cfg.Out, len(shops.Shops))}, nil
 		})
 	})
 }

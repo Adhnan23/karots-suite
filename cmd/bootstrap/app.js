@@ -324,6 +324,10 @@ $('none').onclick = () => { s.picked.clear(); plugins(); summary() }
 $('tShops').onclick = backToShops
 $('tQuick').onclick = () => view('vQuick')
 $('newShop').onclick = newShop
+$('buildAll').onclick = (e) => {
+  if (confirm('Build every shop now, one after another' + ($('installer').checked ? ' (with the installer)' : '') + '? A shop that fails is listed at the end; the rest still build.'))
+    stream('/api/shops/build-all', { installer: $('installer').checked }, e.target, loadShops)
+}
 $('nCreate').onclick = createShop
 $('nName').oninput = () => { if (!$('nKey').dataset.touched) $('nKey').value = keyOf($('nName').value) }
 $('nKey').oninput = () => { $('nKey').dataset.touched = '1' }

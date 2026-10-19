@@ -162,3 +162,31 @@ func TestAppShopsRefuseTextPlain(t *testing.T) {
 		t.Fatalf("%d", rec.Code)
 	}
 }
+
+// Build all: every shop in turn; one failing doesn't stop the rest, and the end
+// line names the failures.
+func TestAppShopsBuildAll(t *testing.T) {
+	var got buildOpts
+	ok := fakeBuild(&got)
+	a := newShopsApp(t, func(o buildOpts, log io.Writer) (buildResult, error) {
+		if strings.HasSuffix(o.Out, "broken") {
+			return buildResult{}, fmt.Errorf("boom")
+		}
+		return ok(o, log)
+	})
+	a.do(t, "/api/shops", newShopBody)
+	a.do(t, "/api/shops", `{"key":"broken","name":"Broken","os":"linux","arch":"amd64","mode":"file"}`)
+	a.do(t, "/api/shops", `{"key":"zed","name":"Zed","os":"windows","arch":"amd64","mode":"file"}`)
+	body := a.do(t, "/api/shops/build-all", `{"installer":true}`).Body.String()
+	for _, want := range []string{"=== Al Raj", "=== Broken", "=== Zed", "✗ broken: boom", errorMark + "1 of 3 shops failed: broken"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("missing %q in:\n%s", want, body)
+		}
+	}
+	shops, _ := LoadShops(a.path)
+	for _, s := range shops.Shops {
+		if (s.LastBuilt != nil) == (s.Key == "broken") {
+			t.Errorf("%s lastBuilt %v", s.Key, s.LastBuilt)
+		}
+	}
+}

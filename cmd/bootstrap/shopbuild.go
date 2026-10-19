@@ -86,31 +86,36 @@ func gitCommit() string {
 	return strings.TrimSpace(string(out))
 }
 
-// buildShops is -shop: one shop, or "all" in key order, stopping at the first
-// failure. Each success is saved (LastBuilt) before the next starts.
+// buildShops is -shop: one shop, or "all" in key order — a failing shop doesn't
+// stop the rest; the failures are listed at the end. Each success is saved (LastBuilt).
 func buildShops(path, which string, all []manifest, installer bool) error {
 	shops, err := LoadShops(path)
 	if err != nil {
 		return err
 	}
-	built := 0
+	built, failed := 0, []string(nil)
 	for i := range shops.Shops {
 		s := &shops.Shops[i]
 		if which != "all" && s.Key != which {
 			continue
 		}
+		built++
 		res, err := buildShop(s, all, shopBuildOpts{Out: "dist", Installer: installer}, build, buildSetup, os.Stdout)
 		if err != nil {
-			return fmt.Errorf("%s: %w", s.Key, err)
+			fmt.Printf("\n✗ %s: %v\n", s.Key, err)
+			failed = append(failed, s.Key)
+			continue
 		}
 		if err := SaveShops(path, shops); err != nil {
 			return err
 		}
 		fmt.Printf("\n✓ %s → %s   (install id %s, support PIN now %s)\n", s.Name, filepath.Dir(res.Binary), res.InstallID, res.SupportPIN)
-		built++
 	}
 	if built == 0 {
 		return fmt.Errorf("no shop %q in %s (see -list)", which, path)
+	}
+	if len(failed) > 0 {
+		return fmt.Errorf("%d of %d shops failed: %s", len(failed), built, strings.Join(failed, ", "))
 	}
 	return nil
 }
