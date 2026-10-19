@@ -29,7 +29,11 @@
         "dir": "C:\\karots-suite",
         "open": "kiosk"
       },
-      "backups": {}
+      "backups": {},
+      "lastBuilt": {
+        "at": "2026-10-19T06:45:37Z",
+        "commit": "b9598d8"
+      }
     },
     {
       "key": "mum-digital",
@@ -62,7 +66,11 @@
         "dir": "/opt/karots-suite",
         "open": "kiosk"
       },
-      "backups": {}
+      "backups": {},
+      "lastBuilt": {
+        "at": "2026-10-19T06:45:54Z",
+        "commit": "b9598d8"
+      }
     },
     {
       "key": "mum-motors",
@@ -92,7 +100,11 @@
         "dir": "/opt/karots-suite",
         "open": "kiosk"
       },
-      "backups": {}
+      "backups": {},
+      "lastBuilt": {
+        "at": "2026-10-19T06:46:10Z",
+        "commit": "b9598d8"
+      }
     },
     {
       "key": "test",
@@ -117,7 +129,11 @@
         "dir": "/opt/karots-suite",
         "open": "kiosk"
       },
-      "backups": {}
+      "backups": {},
+      "lastBuilt": {
+        "at": "2026-10-19T06:46:26Z",
+        "commit": "b9598d8"
+      }
     },
     {
       "key": "test-windows-shop",
@@ -145,8 +161,8 @@
       },
       "backups": {},
       "lastBuilt": {
-        "at": "2026-10-19T06:18:39Z",
-        "commit": "5a64931"
+        "at": "2026-10-19T06:46:43Z",
+        "commit": "b9598d8"
       }
     }
   ]
