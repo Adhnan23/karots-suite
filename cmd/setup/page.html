@@ -62,6 +62,20 @@ pre { margin: 10px 0 0; max-height: 300px; overflow: auto; padding: 14px; border
   font: 12.5px/1.5 var(--mono); color: #C9D2F0; white-space: pre-wrap; word-break: break-word; }
 .update { margin-top: 10px; font-size: 13.5px; color: var(--muted); text-align: center; }
 code { font: 600 14px var(--mono); }
+select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2); color: var(--fg); font: 15px var(--mono); }
+select option { background: var(--bg); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 64px); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;
+  background: #141a2e; color: var(--fg); }
+dialog::backdrop { background: rgb(0 0 0 / .6); }
+.pk-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pk-roots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.pk-roots button { padding: 6px 10px; font-size: 13px; }
+.pk-path { margin-top: 12px; font: 600 14px var(--mono); overflow-wrap: anywhere; }
+.pk-list { margin-top: 8px; max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 12px; }
+.pk-list button { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--fg); font: 15px Figtree, system-ui, sans-serif; cursor: pointer; }
+.pk-list button:hover { background: var(--card-2); }
+.pk-new { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -80,8 +94,12 @@ code { font: 600 14px var(--mono); }
         <button class="role" data-open="background" aria-pressed="false"><span class="ico">🪟</span><span><b>In the background</b><small>For the owner's own PC — open Karots from the desktop shortcut.</small></span></button>
       </div>
       <label class="f" for="backupDir">Backups go to</label>
-      <input id="backupDir" autocomplete="off" spellcheck="false">
+      <div class="addr"><input id="backupDir" autocomplete="off" spellcheck="false"><button class="btn" id="pick">Choose…</button></div>
       <div class="hint">A folder on a second drive is safest. Leave it as it is if unsure.</div>
+      <div class="two">
+        <div><label class="f" for="every">Back up every</label><select id="every"><option value="1h">1 hour</option><option value="3h">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option><option value="24h">24 hours</option></select></div>
+        <div><label class="f" for="keep">Keep the newest</label><input id="keep" inputmode="numeric"></div>
+      </div>
     </div>
     <div id="cashier" hidden>
       <label class="f" for="address">The main PC's address</label>
@@ -106,6 +124,15 @@ code { font: 600 14px var(--mono); }
   </div>
   <button class="go" id="go">Install</button>
   <div class="update" id="updateNote" hidden>Karots is already on this PC — Update puts in this version and its settings. The shop's data stays.</div>
+  <dialog id="picker">
+    <div class="pk-head"><b>Choose the backup folder</b><button class="btn" id="pkClose">✕</button></div>
+    <div class="pk-roots" id="pkRoots"></div>
+    <div class="pk-path" id="pkPath"></div>
+    <div class="pk-list" id="pkList"></div>
+    <div class="pk-new"><input id="pkName" placeholder="New folder name" autocomplete="off"><button class="btn" id="pkMake">New folder</button></div>
+    <div class="hint bad" id="pkErr"></div>
+    <div class="row"><button class="go" id="pkUse">Use this folder</button></div>
+  </dialog>
   <details id="details"><summary>Details</summary><pre id="log"></pre></details>
 </main>
 <script>
@@ -113,14 +140,22 @@ const $ = (id) => document.getElementById(id)
 const token = new URLSearchParams(location.search).get('t') || ''
 const H = { 'X-Setup-Token': token, 'Content-Type': 'application/json' }
 const st = { role: 'server', plan: null, running: false, open: '', backup: '' }
-const choice = () => ({ role: st.role, address: $('address').value.trim(), open: st.open, backupDir: st.role === 'server' && $('backupDir').value.trim() !== st.plan?.defaultBackup ? $('backupDir').value.trim() : '' })
+const choice = () => {
+  const main = st.role === 'server', d = st.plan?.defaults || {}
+  const dir = $('backupDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
+  return { role: st.role, address: $('address').value.trim(), open: st.open,
+    backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0 }
+}
 
 async function plan() {
   const q = new URLSearchParams(choice())
   const res = await fetch('/api/plan?' + q, { headers: H })
   const p = await res.json()
   if (!res.ok) { $('steps').innerHTML = ''; $('testMsg').textContent = p.error; $('testMsg').className = 'hint bad'; $('go').disabled = true; return }
-  if (!st.plan) { st.open = p.open; $('backupDir').value = p.backupDir; p.defaultBackup = p.backupDir } else p.defaultBackup = st.plan.defaultBackup
+  if (!st.plan) {
+    st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep
+    p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep }
+  } else p.defaults = st.plan.defaults
   st.plan = p
   for (const b of document.querySelectorAll('[data-open]')) b.setAttribute('aria-pressed', b.dataset.open === st.open)
   $('shop').textContent = p.shop; document.title = 'Karots Setup — ' + p.shop
@@ -200,6 +235,32 @@ async function install() {
 for (const b of document.querySelectorAll('[data-role]')) b.onclick = () => setRole(b.dataset.role)
 for (const b of document.querySelectorAll('[data-open]')) b.onclick = () => { st.open = b.dataset.open; plan() }
 $('backupDir').onchange = plan
+$('every').onchange = plan
+$('keep').onchange = plan
+// ---- folder browser ----
+let pkCur = ''
+async function browse(path) {
+  $('pkErr').textContent = ''
+  const res = await fetch('/api/folders?path=' + encodeURIComponent(path || ''), { headers: H })
+  const f = await res.json()
+  if (!res.ok) { if (path) return browse(''); $('pkErr').textContent = f.error; return }
+  pkCur = f.path; $('pkPath').textContent = f.path
+  $('pkRoots').innerHTML = ''
+  for (const r of f.roots) { const b = document.createElement('button'); b.className = 'btn'; b.textContent = r.name; b.onclick = () => browse(r.path); $('pkRoots').append(b) }
+  $('pkList').innerHTML = ''
+  if (f.parent) { const up = document.createElement('button'); up.textContent = '⬆ Up'; up.onclick = () => browse(f.parent); $('pkList').append(up) }
+  for (const n of f.folders) { const b = document.createElement('button'); b.textContent = '📁 ' + n; b.onclick = () => browse(f.path.replace(/[\\/]$/, '') + (f.path.includes('\\') ? '\\' : '/') + n); $('pkList').append(b) }
+  if (!f.folders.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '10px 12px'; e.textContent = 'No folders here — make one below, or use this one.'; $('pkList').append(e) }
+}
+$('pick').onclick = () => { $('picker').showModal(); browse($('backupDir').value.trim()) }
+$('pkClose').onclick = () => $('picker').close()
+$('pkUse').onclick = () => { $('backupDir').value = pkCur; $('picker').close(); plan() }
+$('pkMake').onclick = async () => {
+  const res = await fetch('/api/folders/new', { method: 'POST', headers: H, body: JSON.stringify({ path: pkCur, name: $('pkName').value }) })
+  const r = await res.json()
+  if (!res.ok) { $('pkErr').textContent = r.error; return }
+  $('pkName').value = ''; browse(r.path)
+}
 $('address').onchange = plan
 $('test').onclick = test
 $('go').onclick = install

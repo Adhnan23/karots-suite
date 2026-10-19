@@ -6,6 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -116,5 +119,55 @@ func TestPagePlanOpenChoice(t *testing.T) {
 		if s.ID == "open" && !strings.Contains(s.Detail, "background") {
 			t.Fatalf("open step: %q", s.Detail)
 		}
+	}
+}
+
+// The page's folder browser: list a folder's sub-folders, go up, make a new one.
+func TestPageFolders(t *testing.T) {
+	dir := t.TempDir()
+	for _, d := range []string{"b", "a", ".hidden"} {
+		os.Mkdir(filepath.Join(dir, d), 0o755)
+	}
+	os.WriteFile(filepath.Join(dir, "file.txt"), nil, 0o644)
+	h := testPage(Steps)
+	rec := call(h, "GET", "/api/folders?path="+url.QueryEscape(dir), "", true)
+	var f struct {
+		Path, Parent string
+		Folders      []string
+		Roots        []struct{ Name, Path string }
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &f); err != nil || f.Path != dir || f.Parent != filepath.Dir(dir) || strings.Join(f.Folders, ",") != "a,b" || len(f.Roots) == 0 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	// A folder that doesn't exist yet opens at its nearest existing parent.
+	rec = call(h, "GET", "/api/folders?path="+url.QueryEscape(filepath.Join(dir, "a", "not", "yet")), "", true)
+	json.Unmarshal(rec.Body.Bytes(), &f)
+	if f.Path != filepath.Join(dir, "a") {
+		t.Fatalf("missing folder opened at %q", f.Path)
+	}
+	if rec := call(h, "POST", "/api/folders/new", fmt.Sprintf(`{"path":%q,"name":"Karots backups"}`, dir), true); rec.Code != 200 {
+		t.Fatalf("new folder: %d %s", rec.Code, rec.Body)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "Karots backups")); err != nil {
+		t.Fatal("folder not made")
+	}
+	if rec := call(h, "POST", "/api/folders/new", fmt.Sprintf(`{"path":%q,"name":"../escape"}`, dir), true); rec.Code != http.StatusBadRequest {
+		t.Fatalf("../ name: %d", rec.Code)
+	}
+}
+
+// How often and how many to keep are picked on the page too.
+func TestPageBackupChoices(t *testing.T) {
+	rec := call(testPage(Steps), "GET", "/api/plan?role=server&backupEvery=3h&backupKeep=56", "", true)
+	var p struct {
+		BackupEvery string
+		BackupKeep  int
+	}
+	json.Unmarshal(rec.Body.Bytes(), &p)
+	if p.BackupEvery != "3h" || p.BackupKeep != 56 {
+		t.Fatalf("%s", rec.Body)
+	}
+	if rec := call(testPage(Steps), "GET", "/api/plan?role=server&backupEvery=5m", "", true); rec.Code != http.StatusBadRequest {
+		t.Fatalf("every 5m: %d", rec.Code)
 	}
 }

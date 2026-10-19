@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,6 +40,8 @@ func start() error {
 		address = flag.String("address", "", "with -role cashier: the main PC's host[:port]")
 		open    = flag.String("open", "", "with -yes: kiosk | background (default: the Shop Builder's)")
 		backups = flag.String("backups", "", "with -yes: the backup folder (default: the Shop Builder's)")
+		every   = flag.String("backup-every", "", "with -yes: back up every 1h, 6h, 24h… (default: the Shop Builder's)")
+		keep    = flag.Int("backup-keep", 0, "with -yes: newest backups kept (default: the Shop Builder's)")
 		addr    = flag.String("addr", "", "the page's loopback address (set by the launcher)")
 		token   = flag.String("token", "", "the page's token (set by the launcher)")
 		userArg = flag.String("user", "", "the shop user (set by the launcher)")
@@ -52,7 +55,7 @@ func start() error {
 		return err
 	}
 	if *yes {
-		j, err := newJob(Choice{Role(*role), *address, *open, *backups})
+		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep})
 		if err != nil {
 			return err
 		}
@@ -150,10 +153,12 @@ func randToken() string {
 // Choice is what the person at the PC picked on the page (or with -yes flags).
 // Empty Open / BackupDir keep the Shop Builder's defaults.
 type Choice struct {
-	Role      Role   `json:"role"`
-	Address   string `json:"address"`   // cashier PC: the main PC
-	Open      string `json:"open"`      // kiosk | background
-	BackupDir string `json:"backupDir"` // where automatic backups go
+	Role        Role   `json:"role"`
+	Address     string `json:"address"`     // cashier PC: the main PC
+	Open        string `json:"open"`        // kiosk | background
+	BackupDir   string `json:"backupDir"`   // where automatic backups go
+	BackupEvery string `json:"backupEvery"` // 1h, 6h, 24h…
+	BackupKeep  int    `json:"backupKeep"`  // newest backups kept
 }
 
 // newJob reads install.conf from beside the program and applies this PC's choices.
@@ -190,16 +195,28 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 	default:
 		return nil, fmt.Errorf("open %q (kiosk | background)", ch.Open)
 	}
+	env := make(map[string]string, len(c.Env)+3) // never change the shared install.conf's map
+	for k, v := range c.Env {
+		env[k] = v
+	}
+	c.Env = env
 	if b := strings.TrimSpace(ch.BackupDir); b != "" {
 		if !absFor(c.OS, b) {
 			return nil, fmt.Errorf("the backup folder must be a full path, like %s", map[bool]string{true: `D:\Karots backups`, false: "/home/backups/karots"}[c.OS == "windows"])
 		}
-		env := make(map[string]string, len(c.Env)+1)
-		for k, v := range c.Env {
-			env[k] = v
-		}
 		env["BACKUP_DIR"] = b
-		c.Env = env
+	}
+	if e := ch.BackupEvery; e != "" {
+		if d, err := time.ParseDuration(e); err != nil || d < 30*time.Minute {
+			return nil, fmt.Errorf("back up every %q — use 1h, 6h, 24h… (at least 30 minutes)", e)
+		}
+		env["BACKUP_INTERVAL"] = e
+	}
+	if k := ch.BackupKeep; k != 0 {
+		if k < 1 || k > 999 {
+			return nil, fmt.Errorf("keep %d backups — 1 to 999", k)
+		}
+		env["BACKUP_KEEP"] = strconv.Itoa(k)
 	}
 	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser()}
 	if ch.Role == RoleCashier {
