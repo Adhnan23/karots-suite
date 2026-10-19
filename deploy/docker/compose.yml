@@ -20,6 +20,9 @@ services:
       DATABASE_URL: postgres://${DB_USER:-suite_user}:${DB_PASSWORD:?set DB_PASSWORD in .env}@db:5432/${DB_NAME:-suite_db}?sslmode=disable
       BACKUP_DIR: /data/backups
       TZ: Asia/Colombo
+      # A container doesn't update itself (the swap would be lost): put the new
+      # binary here and run docker compose up -d --build again.
+      SELF_UPDATE: "off"
     volumes:
       - backups:/data/backups
     depends_on:

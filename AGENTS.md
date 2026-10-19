@@ -56,6 +56,8 @@ internal/api/         JSON /api/v1 — dto.go (all request/response types) + one
                       sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
+internal/update/      self-update (M8c): signed manifest in the shop's bucket folder (channel), check / download /
+                      swap / BootGuard rollback; restart = exit 75, the supervisor (systemd / karots-start) starts it
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
 migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge; next is 00005_
@@ -121,8 +123,12 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   `make core-only` puts the lists back — **never commit a plugin selection**. `make check-core` (in
   `make verify`) fails if core names a plugin or a list isn't core-only. Playwright builds with every
   plugin. A shop build: `make bootstrap` (Shop Builder in the browser).
-- **Shop builds:** `make bootstrap` → Shops → Build (or `make shop S=al-raj`); needs `POS_SUPPORT_SECRET` in `.env`.
-  Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
+- **Shop builds:** `make bootstrap` → Shops → **Release…** (build + publish to the shop's folder in the `karots-suite`
+  R2 bucket; `make shop S=al-raj`) or **Test build** (local only, marked "Test build" on the Data page; `make shop-test
+  S=al-raj`). A shop's **first install must be a Release**, or its Data page says "No update published". Release refuses
+  uncommitted changes (except `shops.json` and the plugin lists). `.env` needs `POS_SUPPORT_SECRET`, `R2_*`,
+  `UPDATE_BASE_URL`; `SUITE_RELEASE_KEY` is made on the first build — **keep a copy** (shops only take updates signed by
+  it). Shops update from Setup → Data → Updates → Update (never by themselves). Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
   ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update. Look at the
   installer page without installing: `karots-setup -dry` beside an install.conf. `build.ps1` = make on Windows.
 - **File mode** (one-PC shops): Shop Builder → Database "One PC", or `go run ./cmd/bootstrap -plugins none

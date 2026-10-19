@@ -26,6 +26,10 @@ var (
 	updatePubKey  = ""
 )
 
+// selfUpdate: a shop build updates itself unless SELF_UPDATE=off — a Docker /
+// VPS container, which is updated by rebuilding its image (deploy/docker).
+func selfUpdate() bool { return updateChannel != "" && os.Getenv("SELF_UPDATE") != "off" }
+
 // exePath is the running binary, symlinks resolved — what an update swaps.
 func exePath() string {
 	exe, err := os.Executable()
@@ -42,7 +46,7 @@ func exePath() string {
 // It reports true when it put the previous binary back: the caller exits with
 // update.RestartCode so the supervisor starts that one.
 func bootGuard() bool {
-	if updateChannel == "" {
+	if !selfUpdate() {
 		return false
 	}
 	rolledBack, err := update.BootGuard(exePath())
@@ -59,7 +63,7 @@ func bootGuard() bool {
 // 6 h, and marks the binary healthy once it has stayed up 2 minutes. Restart
 // sends on restart; main then shuts down and exits with update.RestartCode.
 func startUpdater(ctx context.Context, db *sqlx.DB, cfg *config.Config, restart chan<- struct{}) *update.Updater {
-	if updateChannel == "" {
+	if !selfUpdate() {
 		return nil
 	}
 	pub, err := base64.StdEncoding.DecodeString(updatePubKey)
