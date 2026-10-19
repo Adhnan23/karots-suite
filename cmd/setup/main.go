@@ -34,6 +34,10 @@ func main() {
 }
 
 func start() error {
+	if len(os.Args) > 1 && os.Args[1] == "-hidden" { // karots-start.exe: no install.conf needed
+		runHidden(os.Args[2:])
+		return nil
+	}
 	var (
 		yes     = flag.Bool("yes", false, "install without the page (a server with no screen)")
 		role    = flag.String("role", "server", "with -yes: server (the shop's main PC) | cashier")

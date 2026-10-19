@@ -62,23 +62,45 @@ func windowsBackups(j *Job) error {
 	return os.MkdirAll(at(j.backupDir()), 0o755)
 }
 
-// windowsStartup runs Karots at the shop user's sign-in with no window at all:
-// conhost --headless gives it a console nobody sees (a till runs signed in, and
-// in the user's session it sees their USB printers). Sign-out / shutdown still
-// reach it as SIGTERM through that console, so PostgreSQL stops cleanly.
+const windowsLauncher = "karots-start.exe"
+
+// ensureLauncher copies Setup (a no-window program) into the install folder as
+// karots-start.exe: it starts Karots and the kiosk loop hidden (-hidden).
+func ensureLauncher(j *Job) (string, error) {
+	dst := joinOS(j, j.Conf.InstallDir, windowsLauncher)
+	if err := os.MkdirAll(at(j.Conf.InstallDir), 0o755); err != nil {
+		return "", err
+	}
+	// An Update: the running copy (holding the kiosk loop) can't be replaced while it runs.
+	if _, err := ps(j, fmt.Sprintf(`# karots:stop-launcher
+$p = Get-Process | Where-Object { $_.Path -eq %s }
+$p | Stop-Process -Force -ErrorAction SilentlyContinue
+$p | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue`, psq(dst))); err != nil {
+		return "", err
+	}
+	if err := copyFile(filepath.Join(j.Dir, "karots-setup.exe"), at(dst), 0o755); err != nil {
+		return "", fmt.Errorf("copy karots-setup.exe in as %s: %w (is it next to install.conf?)", windowsLauncher, err)
+	}
+	return dst, nil
+}
+
+// windowsStartup runs Karots at the shop user's sign-in with no window
+// (karots-start.exe -hidden). A till runs signed in, and in the user's session
+// it sees their USB printers; sign-out / shutdown still reach Karots, so
+// PostgreSQL stops cleanly.
 func windowsStartup(j *Job) error {
-	logs := joinOS(j, j.Conf.InstallDir, "logs")
-	if err := os.MkdirAll(at(logs), 0o755); err != nil {
+	launcher, err := ensureLauncher(j)
+	if err != nil {
 		return err
 	}
-	cmd := fmt.Sprintf(`--headless cmd.exe /c ""%s" >> "%s" 2>&1"`, j.binPath(), joinOS(j, logs, "karots.log"))
-	_, err := ps(j, fmt.Sprintf(`# karots:startup-task
-$action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\conhost.exe" -Argument %s -WorkingDirectory %s
+	args := fmt.Sprintf(`-hidden -log "%s" "%s"`, joinOS(j, j.Conf.InstallDir, "logs", "karots.log"), j.binPath())
+	_, err = ps(j, fmt.Sprintf(`# karots:startup-task
+$action = New-ScheduledTaskAction -Execute %s -Argument %s -WorkingDirectory %s
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User %s
 $principal = New-ScheduledTaskPrincipal -UserId %s -LogonType Interactive -RunLevel Highest
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
 Register-ScheduledTask -TaskName %s -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
-Start-ScheduledTask -TaskName %s`, psq(cmd), psq(j.Conf.InstallDir), psq(j.User), psq(j.User), windowsTask, windowsTask))
+Start-ScheduledTask -TaskName %s`, psq(launcher), psq(args), psq(j.Conf.InstallDir), psq(j.User), psq(j.User), windowsTask, windowsTask))
 	return err
 }
 

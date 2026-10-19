@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"syscall"
 
 	"golang.org/x/sys/windows"
 )
@@ -36,4 +37,10 @@ func showError(msg string) {
 	title, _ := windows.UTF16PtrFromString("Karots Setup")
 	text, _ := windows.UTF16PtrFromString(msg)
 	windows.MessageBox(0, text, title, windows.MB_OK|windows.MB_ICONERROR) //nolint:errcheck
+}
+
+// hideWindow gives a console program a console nobody sees: no window, but
+// sign-out / shutdown still reach it (Karots stops PostgreSQL cleanly).
+func hideWindow(c *exec.Cmd) {
+	c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: windows.CREATE_NO_WINDOW}
 }

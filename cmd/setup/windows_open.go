@@ -72,14 +72,17 @@ goto launch
 	if err := os.WriteFile(at(kiosk), []byte(script), 0o644); err != nil {
 		return err
 	}
-	// conhost --headless gives the loop a console with no window: nothing pops up at sign-in.
-	_, err := ps(j, fmt.Sprintf(`# karots:kiosk-shortcut
+	// karots-start.exe runs the loop with no window: nothing pops up at sign-in.
+	launcher, err := ensureLauncher(j)
+	if err != nil {
+		return err
+	}
+	_, err = ps(j, fmt.Sprintf(`# karots:kiosk-shortcut
 $lnk = Join-Path ([Environment]::GetFolderPath('CommonStartup')) 'Karots Suite Kiosk.lnk'
 $sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$sc.TargetPath = "$env:SystemRoot\System32\conhost.exe"
+$sc.TargetPath = %s
 $sc.Arguments = %s
 $sc.WorkingDirectory = %s
-$sc.WindowStyle = 7
-$sc.Save()`, psq(`--headless cmd.exe /c "`+kiosk+`"`), psq(dir)))
+$sc.Save()`, psq(launcher), psq(`-hidden cmd.exe /c "`+kiosk+`"`), psq(dir)))
 	return err
 }

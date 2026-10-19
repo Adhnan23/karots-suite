@@ -45,3 +45,5 @@ func showError(msg string) {
 		}
 	}
 }
+
+func hideWindow(*exec.Cmd) {}

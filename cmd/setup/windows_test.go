@@ -16,6 +16,7 @@ func windowsJob(t *testing.T, mode string) (*Job, *rec) {
 	dir := t.TempDir()
 	c := conf("windows", mode, true)
 	os.WriteFile(filepath.Join(dir, c.Binary), []byte("BIN"), 0o755)
+	os.WriteFile(filepath.Join(dir, "karots-setup.exe"), []byte("SETUP"), 0o755)
 	rc := &rec{answers: map[string]string{
 		"ps> # karots:find-psql":    `C:\Program Files\PostgreSQL\17\bin\psql.exe`,
 		"ps> # karots:psql super":   "up",
@@ -85,7 +86,7 @@ func TestWindowsStartupHidden(t *testing.T) {
 		t.Fatal(err)
 	}
 	all := rc.all()
-	for _, want := range []string{"conhost.exe", "--headless cmd.exe /c", "Register-ScheduledTask -TaskName KarotsSuite", `-AtLogOn -User 'SHOP\owner'`, `C:\karots-suite\karots-suite.exe`} {
+	for _, want := range []string{`C:\karots-suite\karots-start.exe`, `-hidden -log "C:\karots-suite\logs\karots.log" "C:\karots-suite\karots-suite.exe"`, "Register-ScheduledTask -TaskName KarotsSuite", `-AtLogOn -User 'SHOP\owner'`, `C:\karots-suite\karots-suite.exe`} {
 		if !strings.Contains(all, want) {
 			t.Errorf("missing %q in:\n%s", want, all)
 		}
@@ -109,7 +110,7 @@ func TestWindowsOpen(t *testing.T) {
 	if err != nil || !strings.Contains(string(k), "--kiosk --app=http://localhost:3000") || !strings.Contains(string(k), `chrome.exe`) {
 		t.Fatalf("kiosk.cmd %q (%v)", k, err)
 	}
-	if !strings.Contains(rc.all(), "CommonStartup") || !strings.Contains(rc.all(), "conhost.exe") {
+	if !strings.Contains(rc.all(), "CommonStartup") || !strings.Contains(rc.all(), "karots-start.exe") || strings.Contains(rc.all(), "conhost") {
 		t.Fatalf("Startup shortcut must run the loop with no window:\n%s", rc.all())
 	}
 }
@@ -170,5 +171,28 @@ func TestWindowsKioskDefaultBrowser(t *testing.T) {
 		if name == "firefox" && strings.Contains(string(k), "--disable-infobars") {
 			t.Errorf("firefox got Chrome-only flags:\n%s", k)
 		}
+	}
+}
+
+// Setup copies itself (a no-window program) in as karots-start.exe, which starts
+// Karots and the kiosk loop hidden — main PC and cashier PC alike.
+func TestWindowsLauncherCopied(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	if err := windowsStartup(j); err != nil {
+		t.Fatal(err)
+	}
+	if i, k := strings.Index(rc.all(), "stop-launcher"), strings.Index(rc.all(), "startup-task"); i < 0 || i > k {
+		t.Fatalf("a running karots-start.exe must be stopped before it's replaced:\n%s", rc.all())
+	}
+	if b, _ := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, "karots-start.exe"))); string(b) != "SETUP" {
+		t.Fatal("karots-start.exe not copied for the start-up task")
+	}
+	j, _ = windowsJob(t, "file")
+	j.Role, j.Address = RoleCashier, "192.168.1.10:3000"
+	if err := windowsOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(at(joinOS(j, j.Conf.InstallDir, "karots-start.exe"))); err != nil {
+		t.Fatal("karots-start.exe not copied on a cashier PC")
 	}
 }
