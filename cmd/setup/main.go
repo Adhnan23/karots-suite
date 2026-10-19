@@ -175,12 +175,17 @@ func newJob(ch Choice) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = os.Stat(filepath.Join(c.InstallDir, c.Binary))
+	updating := err == nil
+	var kept []string
+	if updating && ch.Role != RoleCashier { // keep this PC's own choices (see installed.go)
+		c, kept = applyInstalled(c, readEnvFile(filepath.Join(c.InstallDir, ".env")), installedOpen(c.InstallDir))
+	}
 	j, err := applyChoice(c, dir, ch)
 	if err != nil {
 		return nil, err
 	}
-	_, err = os.Stat(filepath.Join(c.InstallDir, c.Binary))
-	j.Updating = err == nil
+	j.Updating, j.Kept = updating, kept
 	return j, nil
 }
 

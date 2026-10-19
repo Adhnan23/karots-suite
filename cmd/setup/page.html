@@ -62,6 +62,7 @@ pre { margin: 10px 0 0; max-height: 300px; overflow: auto; padding: 14px; border
   font: 12.5px/1.5 var(--mono); color: #C9D2F0; white-space: pre-wrap; word-break: break-word; }
 .update { margin-top: 10px; font-size: 13.5px; color: var(--muted); text-align: center; }
 code { font: 600 14px var(--mono); }
+.grow { flex: 1; min-width: 0; }
 select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2); color: var(--fg); font: 15px var(--mono); }
 select option { background: var(--bg); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -80,7 +81,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 </head>
 <body>
 <main>
-  <header><div class="mark">🏪</div><div><div class="kicker">Karots Setup</div><h1 id="shop">…</h1></div></header>
+  <header><div class="mark">🏪</div><div class="grow"><div class="kicker">Karots Setup</div><h1 id="shop">…</h1></div><button class="btn" id="exit">Exit</button></header>
   <section class="panel" id="rolePanel">
     <h2>This PC is…</h2>
     <div class="roles">
@@ -123,7 +124,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
     <div class="row"><button class="go" id="open">Open the till</button><button class="btn" id="close">Close Setup</button></div>
   </div>
   <button class="go" id="go">Install</button>
-  <div class="update" id="updateNote" hidden>Karots is already on this PC — Update puts in this version and its settings. The shop's data stays.</div>
+  <div class="update" id="updateNote" hidden>Karots is already on this PC — Update puts in this version and its settings. The shop's data stays.<br><span id="keptNote"></span></div>
   <dialog id="picker">
     <div class="pk-head"><b>Choose the backup folder</b><button class="btn" id="pkClose">✕</button></div>
     <div class="pk-roots" id="pkRoots"></div>
@@ -141,7 +142,8 @@ const token = new URLSearchParams(location.search).get('t') || ''
 const H = { 'X-Setup-Token': token, 'Content-Type': 'application/json' }
 const st = { role: 'server', plan: null, running: false, open: '', backup: '' }
 const choice = () => {
-  const main = st.role === 'server', d = st.plan?.defaults || {}
+  if (!st.plan) return { role: st.role, address: $('address').value.trim(), open: st.open } // first load: the shop's / this PC's values
+  const main = st.role === 'server', d = st.plan.defaults
   const dir = $('backupDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
   return { role: st.role, address: $('address').value.trim(), open: st.open,
     backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0 }
@@ -163,6 +165,9 @@ async function plan() {
   if (!$('address').value && p.lanAddress) $('address').value = p.lanAddress
   const upd = p.updating && st.role === 'server'
   $('go').textContent = upd ? 'Update' : 'Install'; $('updateNote').hidden = !upd
+  const words = { BACKUP_DIR: 'backup folder', BACKUP_INTERVAL: 'how often to back up', BACKUP_KEEP: 'how many backups to keep' }
+  const kept = (p.kept || []).map((k) => words[k] || (k.startsWith('start: ') ? (k.endsWith('kiosk') ? 'till full-screen' : 'runs in the background') : k + ' (added by hand)'))
+  $('keptNote').textContent = upd && kept.length ? 'Kept from this PC: ' + kept.join(', ') + '.' : ''
   $('go').disabled = st.running
   $('steps').innerHTML = ''
   for (const s of p.steps) {
@@ -267,7 +272,16 @@ $('go').onclick = install
 $('retry').onclick = install
 $('copy').onclick = () => navigator.clipboard.writeText($('log').textContent).then(() => { $('copy').textContent = 'Copied' })
 $('open').onclick = () => window.open(st.plan.tillUrl, '_blank')
-$('close').onclick = () => fetch('/api/close', { method: 'POST', headers: H, body: '{}' }).then(() => { document.body.innerHTML = '<main><h1>Setup is closed.</h1><p class="hint">You can close this tab.</p></main>' })
+// Exit stops Setup itself, then closes the tab (a browser may refuse: a page can
+// only close tabs it opened — then it says so).
+async function exitSetup() {
+  if (st.running && !confirm('Setup is still working. Stop it now? What is done so far stays; run Setup again to finish.')) return
+  try { await fetch('/api/close', { method: 'POST', headers: H, body: '{}' }) } catch {}
+  window.close()
+  document.body.innerHTML = '<main><header><div class="mark">🏪</div><div><div class="kicker">Karots Setup</div><h1>Setup is closed</h1></div></header><p class="hint">You can close this tab.</p></main>'
+}
+$('exit').onclick = exitSetup
+$('close').onclick = exitSetup
 plan()
 </script>
 </body>

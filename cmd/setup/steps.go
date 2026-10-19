@@ -30,7 +30,8 @@ type Job struct {
 	Run           Runner
 	Log           io.Writer
 
-	launcherReady bool // Windows: karots-start.exe was placed this run
+	Kept          []string // an Update: settings kept from this PC (shown on the page)
+	launcherReady bool     // Windows: karots-start.exe was placed this run
 }
 
 // Runner runs the OS tools; tests record the commands instead.

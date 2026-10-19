@@ -42,19 +42,20 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 			Detail string `json:"detail"`
 		}
 		out := struct {
-			Shop        string `json:"shop"`
-			InstallID   string `json:"installId"`
-			Mode        string `json:"mode"`
-			Open        string `json:"open"`
-			BackupDir   string `json:"backupDir"`
-			BackupEvery string `json:"backupEvery"`
-			BackupKeep  int    `json:"backupKeep"`
-			Updating    bool   `json:"updating"`
-			Address     string `json:"address"`
-			LanAddress  string `json:"lanAddress"`
-			TillURL     string `json:"tillUrl"`
-			Steps       []step `json:"steps"`
-		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), orDefault(j.Conf.Env["BACKUP_INTERVAL"], "6h"), atoiOr(j.Conf.Env["BACKUP_KEEP"], 28), j.Updating, j.Address, j.Conf.LanAddress, j.tillURL(), nil}
+			Shop        string   `json:"shop"`
+			InstallID   string   `json:"installId"`
+			Mode        string   `json:"mode"`
+			Open        string   `json:"open"`
+			BackupDir   string   `json:"backupDir"`
+			BackupEvery string   `json:"backupEvery"`
+			BackupKeep  int      `json:"backupKeep"`
+			Updating    bool     `json:"updating"`
+			Kept        []string `json:"kept"`
+			Address     string   `json:"address"`
+			LanAddress  string   `json:"lanAddress"`
+			TillURL     string   `json:"tillUrl"`
+			Steps       []step   `json:"steps"`
+		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), orDefault(j.Conf.Env["BACKUP_INTERVAL"], "6h"), atoiOr(j.Conf.Env["BACKUP_KEEP"], 28), j.Updating, j.Kept, j.Address, j.Conf.LanAddress, j.tillURL(), nil}
 		for _, s := range steps(j) {
 			d := s.Title
 			if s.Detail != nil {

@@ -140,7 +140,10 @@ func copyFile(src, dst string, mode os.FileMode) error {
 }
 
 func linuxSettings(j *Job) error {
-	return writeAs(j, joinOS(j, j.Conf.InstallDir, ".env"), j.Conf.EnvFile(), 0o600)
+	if err := writeAs(j, joinOS(j, j.Conf.InstallDir, ".env"), j.Conf.EnvFile(), 0o600); err != nil {
+		return err
+	}
+	return saveChoices(j)
 }
 
 func linuxBackups(j *Job) error {

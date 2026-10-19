@@ -52,6 +52,9 @@ func windowsSettings(j *Job) error {
 	if err := os.WriteFile(at(env), j.Conf.EnvFile(), 0o600); err != nil {
 		return err
 	}
+	if err := saveChoices(j); err != nil {
+		return err
+	}
 	// Owner-only: the shop user, SYSTEM and Administrators.
 	_, err := ps(j, fmt.Sprintf("# karots:lock-settings\nicacls %s /inheritance:r /grant:r %s %s %s | Out-Null",
 		psq(env), psq(j.User+":F"), psq("SYSTEM:F"), psq("Administrators:F")))

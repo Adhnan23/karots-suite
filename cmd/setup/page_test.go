@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 const tok = "0123456789abcdef0123456789abcdef"
@@ -169,5 +170,22 @@ func TestPageBackupChoices(t *testing.T) {
 	}
 	if rec := call(testPage(Steps), "GET", "/api/plan?role=server&backupEvery=5m", "", true); rec.Code != http.StatusBadRequest {
 		t.Fatalf("every 5m: %d", rec.Code)
+	}
+}
+
+func TestPageExitStopsSetup(t *testing.T) {
+	quit := make(chan struct{}, 1)
+	mk := func(ch Choice) (*Job, error) { return applyChoice(conf("linux", "file", false), "", ch) }
+	h := pageHandler(tok, mk, Steps, func() { quit <- struct{}{} })
+	if rec := call(h, "POST", "/api/close", `{}`, true); rec.Code != 200 {
+		t.Fatalf("%d", rec.Code)
+	}
+	select {
+	case <-quit:
+	case <-time.After(time.Second):
+		t.Fatal("Exit didn't stop Setup")
+	}
+	if rec := call(h, "POST", "/api/close", `{}`, false); rec.Code != http.StatusForbidden {
+		t.Fatalf("Exit without the token: %d", rec.Code)
 	}
 }
