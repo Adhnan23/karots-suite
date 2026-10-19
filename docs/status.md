@@ -14,7 +14,7 @@ starts; open pages reload on the new version (till only with an empty cart). Doc
 User decisions: no Worker / no running-version tracking ("their responsibility to update"); clock warning skipped
 (only seen in a VM). karots-pos 404 explained: `mum-motors` and `al-raj` were built with `-no-upload` (nothing in
 the bucket) — fix there with a normal `go run ./cmd/release publish al-raj mum-motors`.
-Checks (2026-10-19): `go test -p 1` core-only + all plugins, 237 web unit tests, `make verify`, `verify-portable`,
+Checks (2026-10-19): `go test -p 1` core-only + all plugins, 233 web unit tests, `make verify`, `verify-portable`,
 Playwright 175 passed / 24 skipped.
 **Pick up here:**
 1. **Acceptance (user):** Release a test shop → install the three files by hand → Data page **Up to date**; commit
