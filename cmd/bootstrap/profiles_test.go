@@ -231,3 +231,27 @@ func TestBackupsProfile(t *testing.T) {
 		t.Error("BACKUP_KEEP accepted in More settings")
 	}
 }
+
+// SSL to the database: off for this PC, required for anything else unless chosen.
+func TestDBSSL(t *testing.T) {
+	s := mustShop(t, "al-raj", "linux", "server")
+	if u := s.Conf("x").Env["DATABASE_URL"]; !strings.HasSuffix(u, "sslmode=disable") {
+		t.Fatalf("localhost: %s", u)
+	}
+	s.DB.Host = "ep-cool-name-123.ap-southeast-1.aws.neon.tech"
+	if u := s.Conf("x").Env["DATABASE_URL"]; !strings.HasSuffix(u, "sslmode=require") {
+		t.Fatalf("remote default: %s", u)
+	}
+	s.DB.SSL = "verify-full"
+	if u := s.Conf("x").Env["DATABASE_URL"]; !strings.HasSuffix(u, "sslmode=verify-full") {
+		t.Fatalf("chosen: %s", u)
+	}
+	s.DB.SSL = "disable"
+	if u := s.Conf("x").Env["DATABASE_URL"]; !strings.HasSuffix(u, "sslmode=disable") {
+		t.Fatalf("a LAN server without SSL: %s", u)
+	}
+	s.DB.SSL = "maybe"
+	if _, err := s.Check(nil); err == nil {
+		t.Fatal("sslmode maybe accepted")
+	}
+}

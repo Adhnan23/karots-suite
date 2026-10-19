@@ -31,7 +31,23 @@ type ShopDB struct {
 	User          string `json:"user"`
 	Password      string `json:"password"`
 	SuperPassword string `json:"superPassword"` // Windows: the postgres superuser Setup installs PostgreSQL with
+	// SSL is the connection's sslmode: disable | require | verify-full. Empty =
+	// off for this PC (localhost), required for anything else (a VPS, Neon…).
+	SSL string `json:"ssl,omitempty"`
 }
+
+// sslMode is the sslmode a DATABASE_URL gets.
+func (d ShopDB) sslMode() string {
+	if d.SSL != "" {
+		return d.SSL
+	}
+	if isLocalHost(d.Host) {
+		return "disable"
+	}
+	return "require"
+}
+
+func isLocalHost(h string) bool { return h == "localhost" || h == "127.0.0.1" || h == "::1" }
 
 type ShopInstall struct {
 	Dir        string `json:"dir"`
@@ -210,6 +226,8 @@ func (s Shop) Check(all []manifest) (warnings []string, err error) {
 		return nil, fmt.Errorf("%s: file mode has no PostgreSQL for %s/%s", s.Key, s.OS, s.Arch)
 	case s.Mode == "server" && (s.DB == nil || s.JWTSecret == ""):
 		return nil, fmt.Errorf("%s: a server-mode shop needs its database and JWT secret", s.Key)
+	case s.DB != nil && s.DB.SSL != "" && s.DB.SSL != "disable" && s.DB.SSL != "require" && s.DB.SSL != "verify-full":
+		return nil, fmt.Errorf("%s: database SSL %q (disable | require | verify-full)", s.Key, s.DB.SSL)
 	case s.Mode != "server" && s.Mode != "file":
 		return nil, fmt.Errorf("%s: unsupported mode %q", s.Key, s.Mode)
 	case s.Install.Open != "kiosk" && s.Install.Open != "background":
@@ -273,9 +291,9 @@ func (s Shop) Conf(binary string) shopconf.Conf {
 		Env: map[string]string{"APP_ENV": "production", "SERVER_PORT": strconv.Itoa(s.Port)},
 	}
 	if s.DB != nil {
-		local := s.DB.Host == "localhost" || s.DB.Host == "127.0.0.1" || s.DB.Host == "::1"
+		local := isLocalHost(s.DB.Host)
 		c.DB = &shopconf.DB{Host: s.DB.Host, Port: s.DB.Port, Name: s.DB.Name, User: s.DB.User, Password: s.DB.Password, SuperPassword: s.DB.SuperPassword, Local: local}
-		u := url.URL{Scheme: "postgres", User: url.UserPassword(s.DB.User, s.DB.Password), Host: hostPort(s.DB.Host, s.DB.Port), Path: "/" + s.DB.Name, RawQuery: "sslmode=disable"}
+		u := url.URL{Scheme: "postgres", User: url.UserPassword(s.DB.User, s.DB.Password), Host: hostPort(s.DB.Host, s.DB.Port), Path: "/" + s.DB.Name, RawQuery: "sslmode=" + s.DB.sslMode()}
 		c.Env["DATABASE_URL"] = u.String()
 		c.Env["JWT_SECRET"] = s.JWTSecret
 		sep := "/"

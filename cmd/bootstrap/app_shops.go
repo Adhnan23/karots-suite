@@ -294,7 +294,7 @@ func mergeShop(old, in Shop) (Shop, error) {
 	}
 	if m.Mode == "server" && in.DB != nil {
 		db := *m.DB
-		db.Host, db.Port, db.Name, db.User = in.DB.Host, in.DB.Port, in.DB.Name, in.DB.User
+		db.Host, db.Port, db.Name, db.User, db.SSL = in.DB.Host, in.DB.Port, in.DB.Name, in.DB.User, in.DB.SSL
 		if in.DB.Password != maskedValue && in.DB.Password != "" {
 			db.Password = in.DB.Password
 		}

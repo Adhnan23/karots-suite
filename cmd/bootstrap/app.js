@@ -204,10 +204,11 @@ function renderEdit() {
       ${server ? `<div class="fields">
         ${field('eDbHost', 'Database host', db.host)}${field('eDbPort', 'Database port', db.port, 'inputmode="numeric"')}
         ${field('eDbName', 'Database name', db.name)}${field('eDbUser', 'Database user', db.user)}
+        <div><label class="f" for="eDbSsl">SSL</label><select id="eDbSsl" class="sel">${[['', 'Auto — off on this PC, on elsewhere'], ['disable', 'Off'], ['require', 'Required'], ['verify-full', 'Required + check certificate']].map(([v, l]) => `<option value="${v}" ${(db.ssl || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
         ${secret('eDbPass', 'Database password', db.password || '(made when you save)', 'db')}
         ${secret('eDbSuper', 'PostgreSQL superuser password', db.superPassword || '(made when you save)', 'dbsuper', 'Windows: Setup installs PostgreSQL with it.')}
         ${secret('eJwt', 'JWT secret', c.jwtSecret || '(made when you save)', 'jwt', 'A new one signs everyone out.')}
-      </div><div class="hint">Host localhost = PostgreSQL on the shop PC (Setup installs it); any other host = a LAN server or VPS that already has it.</div>`
+      </div><div class="hint">Host localhost = PostgreSQL on the shop PC (Setup installs it); any other host = a LAN server, a VPS or a hosted database (Neon: use the direct host, not "-pooler") that already has it.</div>`
       : `<div class="fields">${field('eFilePort', 'File database port', c.fileDbPort || 5434, 'inputmode="numeric"')}</div>
          <div class="hint">The shop's data stays on its one PC (data/ beside the program); its JWT secret is made there.</div>`}
     </div>
@@ -271,7 +272,7 @@ function read() {
   c.plugins = s.plugins.map((p) => p.key).filter((k) => c.picked.has(k))
   if ($('eDbHost')) {
     const keep = (id) => (v(id).startsWith('(') ? '' : v(id))
-    c.db = { host: v('eDbHost'), port: num('eDbPort'), name: v('eDbName'), user: v('eDbUser'), password: keep('eDbPass'), superPassword: keep('eDbSuper') }
+    c.db = { host: v('eDbHost'), port: num('eDbPort'), name: v('eDbName'), user: v('eDbUser'), password: keep('eDbPass'), superPassword: keep('eDbSuper'), ssl: $('eDbSsl').value }
     c.jwtSecret = keep('eJwt')
   }
   if ($('eFilePort')) c.fileDbPort = num('eFilePort')
