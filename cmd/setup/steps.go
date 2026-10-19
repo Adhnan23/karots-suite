@@ -29,6 +29,8 @@ type Job struct {
 	SuperPassword string // typed on the page when an existing PostgreSQL's password is unknown
 	Run           Runner
 	Log           io.Writer
+
+	launcherReady bool // Windows: karots-start.exe was placed this run
 }
 
 // Runner runs the OS tools; tests record the commands instead.

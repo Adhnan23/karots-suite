@@ -68,6 +68,9 @@ const windowsLauncher = "karots-start.exe"
 // karots-start.exe: it starts Karots and the kiosk loop hidden (-hidden).
 func ensureLauncher(j *Job) (string, error) {
 	dst := joinOS(j, j.Conf.InstallDir, windowsLauncher)
+	if j.launcherReady { // already placed this run — and now hosting Karots: never stop it
+		return dst, nil
+	}
 	if err := os.MkdirAll(at(j.Conf.InstallDir), 0o755); err != nil {
 		return "", err
 	}
@@ -81,6 +84,7 @@ $p | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue`, psq(dst))); err !=
 	if err := copyFile(filepath.Join(j.Dir, "karots-setup.exe"), at(dst), 0o755); err != nil {
 		return "", fmt.Errorf("copy karots-setup.exe in as %s: %w (is it next to install.conf?)", windowsLauncher, err)
 	}
+	j.launcherReady = true
 	return dst, nil
 }
 

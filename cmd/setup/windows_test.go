@@ -196,3 +196,18 @@ func TestWindowsLauncherCopied(t *testing.T) {
 		t.Fatal("karots-start.exe not copied on a cashier PC")
 	}
 }
+
+// One Setup run stops / copies karots-start.exe once: the open step must not
+// kill the copy that the start-up step just used to start Karots.
+func TestWindowsLauncherOncePerRun(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	if err := windowsStartup(j); err != nil {
+		t.Fatal(err)
+	}
+	if err := windowsOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	if n := strings.Count(rc.all(), "# karots:stop-launcher"); n != 1 {
+		t.Fatalf("stop-launcher ran %d times:\n%s", n, rc.all())
+	}
+}
