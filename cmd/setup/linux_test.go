@@ -29,9 +29,10 @@ func linuxJob(t *testing.T, mode string, local bool) (*Job, *rec, string) {
 	os.MkdirAll(filepath.Dir(hba), 0o755)
 	os.WriteFile(hba, []byte("local all all peer\n"), 0o600)
 	rc := &rec{answers: map[string]string{
-		"runuser -u postgres -- psql -tAc SELECT 'up'":           "up\n",
-		"runuser -u postgres -- psql -tAc SHOW port":             "5432\n",
-		"runuser -u postgres -- psql -p 5432 -tAc SHOW hba_file": "/etc/pg_hba.conf\n",
+		"runuser -u postgres -- psql -tAc SELECT 'up'":             "up\n",
+		"runuser -u postgres -- psql -tAc SHOW port":               "5432\n",
+		"runuser -u postgres -- psql -tAc SHOW server_version_num": "170005\n",
+		"runuser -u postgres -- psql -p 5432 -tAc SHOW hba_file":   "/etc/pg_hba.conf\n",
 	}}
 	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: "shop", Run: rc, Log: io.Discard}, rc, r
 }
@@ -50,7 +51,8 @@ func TestLinuxServerLocal(t *testing.T) {
 	}
 	all := rc.all()
 	for _, want := range []string{
-		"apt-get install -y -qq postgresql",
+		"/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y",
+		"apt-get install -y -qq postgresql-17",
 		"CREATE ROLE \"suite_user\" WITH LOGIN PASSWORD 'pw123'",
 		"CREATE DATABASE \"suite_db\" OWNER \"suite_user\"",
 		"systemctl enable --now postgresql",
@@ -182,5 +184,14 @@ func TestLinuxRemoteDB(t *testing.T) {
 	}
 	if strings.Contains(rc.all(), "apt-get") {
 		t.Fatal("remote DB installed PostgreSQL here")
+	}
+}
+
+// The suite's schema needs PostgreSQL 17: an older server is refused in words.
+func TestLinuxOldPostgres(t *testing.T) {
+	j, rc, _ := linuxJob(t, "server", true)
+	rc.answers["runuser -u postgres -- psql -tAc SHOW server_version_num"] = "160004\n"
+	if err := linuxDatabase(j); err == nil || !strings.Contains(err.Error(), "PostgreSQL 16") || !strings.Contains(err.Error(), "17") {
+		t.Fatalf("err %v", err)
 	}
 }

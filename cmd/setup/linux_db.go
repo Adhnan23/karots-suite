@@ -9,7 +9,14 @@ import (
 	"time"
 )
 
-const hbaMarker = "# karots-suite install"
+const (
+	hbaMarker = "# karots-suite install"
+	// The schema uses PostgreSQL 17 settings (transaction_timeout); file mode runs 17 too.
+	pgMajor      = "17"
+	minPGVersion = 170000
+)
+
+func atoi(s string) int { n, _ := strconv.Atoi(strings.TrimSpace(s)); return n }
 
 // linuxDatabase makes the shop's PostgreSQL: on this PC it installs and starts
 // it, sets its port, and makes the role (with the profile's password — an
@@ -31,6 +38,14 @@ func linuxDatabase(j *Job) error {
 		return err
 	}
 	switch pm {
+	case "apt-get":
+		// Debian / Ubuntu ship older majors; the PostgreSQL project's own apt
+		// repo has 17 (its setup script comes with postgresql-common).
+		if err = install(j, "postgresql-common", "ca-certificates"); err == nil {
+			if _, err = run(j, "/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh", "-y"); err == nil {
+				err = install(j, "postgresql-"+pgMajor)
+			}
+		}
 	case "dnf", "zypper":
 		err = install(j, "postgresql-server", "postgresql")
 	default:
@@ -55,6 +70,9 @@ func linuxDatabase(j *Job) error {
 	}
 	if err := waitPG(j, ""); err != nil {
 		return err
+	}
+	if v, _ := psql(j, "", "SHOW server_version_num"); atoi(v) < minPGVersion {
+		return fmt.Errorf("this PC has PostgreSQL %d; Karots needs %s or newer — install PostgreSQL %s (postgresql.org/download), then Try again", atoi(v)/10000, pgMajor, pgMajor)
 	}
 	port := strconv.Itoa(db.Port)
 	if cur, _ := psql(j, "", "SHOW port"); cur != port {
