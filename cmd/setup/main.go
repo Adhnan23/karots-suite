@@ -18,13 +18,13 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
+	if err := start(); err != nil {
 		fmt.Fprintln(os.Stderr, "karots-setup: "+err.Error())
 		os.Exit(1)
 	}
 }
 
-func run() error {
+func start() error {
 	var (
 		yes     = flag.Bool("yes", false, "install without the page (a server with no screen)")
 		role    = flag.String("role", "server", "with -yes: server (the shop's main PC) | cashier")

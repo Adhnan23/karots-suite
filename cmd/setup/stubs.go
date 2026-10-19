@@ -4,6 +4,5 @@ package main
 func todo(*Job) error { return nil }
 
 var (
-	linuxDatabase, linuxProgram, linuxSettings, linuxBackups, linuxStartup, linuxNetwork, linuxPrinting, linuxOpen = todo, todo, todo, todo, todo, todo, todo, todo
-	windowsDatabase, windowsProgram, windowsSettings, windowsBackups, windowsStartup, windowsNetwork, windowsOpen  = todo, todo, todo, todo, todo, todo, todo
+	windowsDatabase, windowsProgram, windowsSettings, windowsBackups, windowsStartup, windowsNetwork, windowsOpen = todo, todo, todo, todo, todo, todo, todo
 )

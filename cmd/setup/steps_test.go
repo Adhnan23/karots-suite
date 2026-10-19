@@ -103,7 +103,7 @@ func checkJob(t *testing.T, port int) *Job {
 	c.Port = port
 	c.InstallDir = filepath.Join(t.TempDir(), "karots-suite")
 	os.WriteFile(filepath.Join(dir, c.Binary), []byte("bin"), 0o755)
-	return &Job{Conf: c, Role: RoleServer, Dir: dir, Run: &rec{}, Log: io.Discard}
+	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: "shop", Run: &rec{}, Log: io.Discard}
 }
 
 func TestChecksPortTaken(t *testing.T) {
