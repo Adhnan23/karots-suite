@@ -106,3 +106,30 @@ func TestNoBundleNoFileMode(t *testing.T) {
 		t.Fatal("a server-only build must refuse file mode")
 	}
 }
+
+// PostgreSQL is unpacked once: later starts reuse the program folder (unpacking
+// the .txz again — and Windows scanning every new .exe — took ~40 s a boot).
+func TestOpenUnpacksOnce(t *testing.T) {
+	bundle := testBundle(t)
+	dir := t.TempDir()
+	d := open(t, dir, bundle)
+	d.Stop()
+	planted := filepath.Join(binDir(dir), "bin", "planted")
+	if err := os.WriteFile(planted, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	d = open(t, dir, bundle)
+	defer d.Stop()
+	if _, err := os.Stat(planted); err != nil {
+		t.Fatal("the second start unpacked PostgreSQL again")
+	}
+
+	// A half-finished unpack (no ready mark) is thrown away and done again.
+	d.Stop()
+	os.Remove(filepath.Join(binDir(dir), readyMark))
+	d = open(t, dir, bundle)
+	defer d.Stop()
+	if _, err := os.Stat(planted); err == nil {
+		t.Fatal("an unpack without its ready mark must be redone")
+	}
+}

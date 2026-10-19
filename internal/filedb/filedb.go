@@ -15,6 +15,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,6 +72,10 @@ func Open(o Options) (*DB, error) {
 		return nil, fmt.Errorf("unpack the Visual C++ runtime: %w", err)
 	}
 	stopLeftover(dir, data)
+	bins := binDir(dir)
+	if _, err := os.Stat(filepath.Join(bins, readyMark)); err != nil {
+		os.RemoveAll(bins) // never unpacked, or cut off half way: unpack afresh
+	}
 	sec, err := secrets(filepath.Join(dir, "secret"))
 	if err != nil {
 		return nil, err
@@ -84,6 +89,7 @@ func Open(o Options) (*DB, error) {
 		Port(uint32(o.Port)).
 		Username("shop").Password(sec["FILE_DB_PASSWORD"]).Database("shop").
 		RuntimePath(filepath.Join(dir, "runtime")).
+		BinariesPath(bins).
 		DataPath(data).
 		CachePath(cache).
 		Encoding("UTF8").
@@ -105,12 +111,38 @@ func Open(o Options) (*DB, error) {
 		}
 		return nil, fmt.Errorf("start PostgreSQL (see %s): %w", filepath.Join(dir, "postgres.log"), err)
 	}
+	if err := markReady(bins); err != nil {
+		log.Printf("file mode: %v (PostgreSQL is unpacked again next start)", err)
+	}
 	return &DB{
 		Dir:       dir,
 		URL:       fmt.Sprintf("postgres://shop:%s@127.0.0.1:%d/shop?sslmode=disable", sec["FILE_DB_PASSWORD"], o.Port),
 		JWTSecret: sec["JWT_SECRET"],
 		pg:        pg,
 	}, nil
+}
+
+// readyMark says the PostgreSQL programs in binDir are completely unpacked.
+const readyMark = ".karots-ready"
+
+// binDir holds the PostgreSQL programs, unpacked once per version and reused:
+// embedded-postgres would otherwise unpack the .txz on every start (its
+// runtime folder is wiped each time), and Windows scans each new .exe — about
+// 40 s a boot on a till.
+func binDir(dir string) string { return filepath.Join(dir, "pg-"+PGVersion) }
+
+// markReady records a complete unpack. On Windows it also leaves an empty
+// bin/pg_ctl: embedded-postgres checks for that name (no .exe) to skip unpacking.
+func markReady(bins string) error {
+	if runtime.GOOS == "windows" {
+		stub := filepath.Join(bins, "bin", "pg_ctl")
+		if _, err := os.Stat(stub); err != nil {
+			if err := os.WriteFile(stub, nil, 0o644); err != nil {
+				return err
+			}
+		}
+	}
+	return os.WriteFile(filepath.Join(bins, readyMark), nil, 0o644)
 }
 
 // Stop shuts Postgres down cleanly.
@@ -202,14 +234,17 @@ func stopLeftover(dir, data string) {
 	if _, err := os.Stat(filepath.Join(data, "postmaster.pid")); err != nil {
 		return
 	}
-	pgctl := filepath.Join(dir, "runtime", "bin", "pg_ctl")
-	if runtime.GOOS == "windows" {
-		pgctl += ".exe"
+	// The programs live in binDir; a build from before that kept them in runtime/.
+	for _, bins := range []string{binDir(dir), filepath.Join(dir, "runtime")} {
+		pgctl := filepath.Join(bins, "bin", "pg_ctl")
+		if runtime.GOOS == "windows" {
+			pgctl += ".exe"
+		}
+		if _, err := os.Stat(pgctl); err == nil {
+			_ = exec.Command(pgctl, "stop", "-D", data, "-m", "fast", "-w").Run() // "no server running" is fine
+			return
+		}
 	}
-	if _, err := os.Stat(pgctl); err != nil {
-		return
-	}
-	_ = exec.Command(pgctl, "stop", "-D", data, "-m", "fast", "-w").Run() // "no server running" is fine
 }
 
 // secrets reads Dir/secret (KEY=value lines), creating it once with random values.
