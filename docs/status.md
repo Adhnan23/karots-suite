@@ -3,7 +3,20 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Next session (handoff 2026-10-19, M8c built)
+## Next session (handoff 2026-10-19 evening) — START HERE
+
+**Windows is fully checked** (VM, 2026-10-19): file mode + server mode install / Update, over-the-air update, crash
+restart, restart → till ~10 s, Konami exit, offline PostgreSQL installer (<2 min), no PowerShell windows, no flaky steps.
+**Next session: the same checks on Linux**, Mint first (Ubuntu base, apt — the likeliest shop distro), Fedora after
+(dnf, SELinux):
+1. **File mode:** Release a Linux file-mode shop (Add installer) → USB stick → double-click `karots-setup` (exec bit,
+   pkexec password box — the M8b item never verified) → Install → restart: kiosk till appears (time it) → Konami exit →
+   Release again → Data → Check now → Update → `sudo pkill karots-suite` comes back (systemd).
+2. **Server mode:** cleanup, then Setup installs PostgreSQL 17 via apt (progress notes, "still working") → till, a sale
+   survives a restart → Update.
+3. Fix what goes red, then **M8c2 Backup copies** (USB / network / S3).
+
+## M8c (2026-10-19)
 
 **M8c self-update + release is built** (spec `docs/specs/2026-10-19-m8c-self-update-design.md`, plan
 `docs/plans/2026-10-19-m8c-self-update.md`). Bucket `karots-suite` (public r2.dev URL in `.env` as `UPDATE_BASE_URL`;
