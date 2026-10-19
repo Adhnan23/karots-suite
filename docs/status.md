@@ -30,8 +30,9 @@ Playwright 175 passed / 24 skipped.
    installer beside the files (Builder **+ PostgreSQL**, cached once, SHA-256 pinned in shopconf) → winget → download;
    page notes per stage + "still working N min"; no PowerShell windows flashing (`89196e8`, `0557796`, `3a785c2`). No PowerShell windows
    flashing — verified on the VM. Update steps (Program, Open the till) failed now and then until `2bb51b9` (stop
-   karots-start + kiosk loop before Karots; retry locked writes 15 s) — repeated Updates now pass (user). Progress notes
-   not yet seen (PostgreSQL was already installed). Linux stays on apt (user).
+   karots-start + kiosk loop before Karots; retry locked writes 15 s) — repeated Updates now pass (user). Clean server
+   install from the copy beside Setup: progress notes shown; PostgreSQL install ~7 min → **under 2 min** after skipping
+   pgAdmin + StackBuilder (`cb393a9`) (user, VM). Linux stays on apt (user).
    **Next tests (user):** Linux Mint VM — file mode (USB double-click, kiosk, Konami, update, `pkill` comes back) and
    server mode (apt PostgreSQL). Then M8c2.
    Linux USB double-click and one real shop install still unverified (from M8b).
