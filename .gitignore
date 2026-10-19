@@ -11,3 +11,8 @@ internal/spa/dist/*
 backups/
 /dist/
 internal/filedb/bundle/
+
+# deploy/docker: per-shop files (secrets, binary)
+deploy/docker/.env
+deploy/docker/karots.env
+deploy/docker/karots-suite

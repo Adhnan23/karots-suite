@@ -1,0 +1,61 @@
+# Karots Suite on a VPS: the app + its PostgreSQL 17, no published ports.
+#
+# 1. Shop Builder: make the shop Linux / Server, database host "db", SSL "Off", then
+#    Build (installer off is fine) → copy dist/<key>/karots-suite here, and
+#    Download .env → save it here as karots.env.
+# 2. cp .env.example .env and fill it in (DB_PASSWORD = the shop's database password).
+# 3. docker compose up -d --build
+# 4. Nginx Proxy Manager → Proxy Host → Forward Hostname: karots-<SHOP>, Port: 3000
+#    (its SERVER_PORT), turn on SSL. Both must be on PROXY_NETWORK.
+name: karots-${SHOP:?set SHOP in .env}
+
+services:
+  karots:
+    build: .
+    image: karots-suite-${SHOP}
+    restart: unless-stopped
+    env_file: karots.env
+    environment:
+      # Wins over the Builder's DATABASE_URL / BACKUP_DIR: inside Docker the database is "db".
+      DATABASE_URL: postgres://${DB_USER:-suite_user}:${DB_PASSWORD:?set DB_PASSWORD in .env}@db:5432/${DB_NAME:-suite_db}?sslmode=disable
+      BACKUP_DIR: /data/backups
+      TZ: Asia/Colombo
+    volumes:
+      - backups:/data/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      internal:
+      proxy:
+        aliases: # what Nginx Proxy Manager forwards to
+          - karots-${SHOP}
+
+  db:
+    # Debian-based on purpose: glibc locales keep Sinhala / Tamil search working.
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-suite_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-suite_db}
+      TZ: Asia/Colombo
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-suite_user} -d ${DB_NAME:-suite_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+networks:
+  internal:
+    internal: true # the database is reachable only by Karots — and reaches nothing
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-npm_default}
+
+volumes:
+  pgdata:
+  backups:
