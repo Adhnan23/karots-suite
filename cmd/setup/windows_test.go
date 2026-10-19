@@ -107,7 +107,8 @@ func TestWindowsOpen(t *testing.T) {
 		t.Fatal(err)
 	}
 	k, err := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, "kiosk.cmd")))
-	if err != nil || !strings.Contains(string(k), "--kiosk --app=http://localhost:3000") || !strings.Contains(string(k), `chrome.exe`) {
+	if err != nil || !strings.Contains(string(k), "--kiosk --app=http://localhost:3000") || !strings.Contains(string(k), `chrome.exe`) ||
+		!strings.Contains(string(k), ":end\r\nexit /b 0") { // a non-zero exit would make karots-start start the loop again
 		t.Fatalf("kiosk.cmd %q (%v)", k, err)
 	}
 	if !strings.Contains(rc.all(), "CommonStartup") || !strings.Contains(rc.all(), "karots-start.exe") || strings.Contains(rc.all(), "conhost") {

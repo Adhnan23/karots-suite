@@ -68,6 +68,7 @@ if exist "%%SENTINEL%%" ( del "%%SENTINEL%%" & goto end )
 timeout /t 1 >NUL
 goto launch
 :end
+exit /b 0
 `, j.tillURL(), browser, profile, kioskArgs(family, j.tillURL(), profile)), "\n", "\r\n")
 	if err := os.WriteFile(at(kiosk), []byte(script), 0o644); err != nil {
 		return err

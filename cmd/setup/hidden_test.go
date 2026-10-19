@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"slices"
 	"testing"
+	"time"
 )
 
 func TestParseHidden(t *testing.T) {
@@ -19,14 +21,23 @@ func TestParseHidden(t *testing.T) {
 }
 
 func TestRunChildRestarts(t *testing.T) {
-	codes := []int{75, 75, 0}
-	calls := 0
-	got := runChild(func() (int, error) { c := codes[calls]; calls++; return c, nil })
-	if got != 0 || calls != 3 {
+	defer func(d time.Duration) { crashDelay = d }(crashDelay)
+	crashDelay = 0
+	run := func(codes ...int) (int, int) {
+		calls := 0
+		got := runChild(func() (int, error) { c := codes[calls]; calls++; return c, nil })
+		return got, calls
+	}
+	if got, calls := run(75, 75, 0); got != 0 || calls != 3 {
 		t.Fatalf("after an update: code %d, %d starts; want 0, 3", got, calls)
 	}
-	calls = 0
-	if got := runChild(func() (int, error) { calls++; return 1, nil }); got != 1 || calls != 1 {
-		t.Fatalf("a crash: code %d, %d starts; want 1, 1 (the task's restart-on-failure handles it)", got, calls)
+	// A crash is started again too (the scheduled task wouldn't), so BootGuard
+	// can count failed starts and roll a bad update back.
+	if got, calls := run(1, 2, 0); got != 0 || calls != 3 {
+		t.Fatalf("after crashes: code %d, %d starts; want 0, 3", got, calls)
+	}
+	calls := 0
+	if got := runChild(func() (int, error) { calls++; return 2, errors.New("can't start") }); got != 2 || calls != 1 {
+		t.Fatalf("a program that can't start: code %d, %d starts; want 2, 1", got, calls)
 	}
 }

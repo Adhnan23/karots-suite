@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"karots-suite/internal/update"
 )
@@ -68,18 +69,27 @@ func runHidden(args []string) {
 			return exit.ExitCode(), nil
 		default:
 			showError("can't start " + h.prog + ": " + err.Error())
-			return 2, nil
+			return 2, err
 		}
 	}))
 }
 
-// runChild starts the program again for as long as it asks to be restarted
-// (update.RestartCode), and returns any other exit code.
+// crashDelay is the pause before starting Karots again after a crash.
+var crashDelay = 5 * time.Second
+
+// runChild keeps the program running: started again at once when it asks
+// (update.RestartCode, after an update), after crashDelay when it crashed —
+// the scheduled task's restart-on-failure doesn't see an exit code, and
+// BootGuard needs the failed starts to roll a bad update back. A clean exit
+// (sign-out, shutdown) or a program that can't start at all ends it.
 func runChild(start func() (int, error)) int {
 	for {
 		code, err := start()
-		if err != nil || code != update.RestartCode {
+		switch {
+		case err != nil || code == 0:
 			return code
+		case code != update.RestartCode:
+			time.Sleep(crashDelay)
 		}
 	}
 }
