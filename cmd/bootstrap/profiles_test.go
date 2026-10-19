@@ -52,12 +52,14 @@ func TestConfEnvServer(t *testing.T) {
 	s.Env = map[string]string{"JWT_EXPIRES_IN": "10h"}
 	c := s.Conf("karots-suite")
 	want := map[string]string{
-		"APP_ENV":        "production",
-		"SERVER_PORT":    "3000",
-		"DATABASE_URL":   "postgres://suite_user:p%40ss%3A%2Fw@localhost:5432/suite_db?sslmode=disable",
-		"JWT_SECRET":     s.JWTSecret,
-		"BACKUP_DIR":     "/opt/karots-suite/backups",
-		"JWT_EXPIRES_IN": "10h",
+		"APP_ENV":         "production",
+		"SERVER_PORT":     "3000",
+		"DATABASE_URL":    "postgres://suite_user:p%40ss%3A%2Fw@localhost:5432/suite_db?sslmode=disable",
+		"JWT_SECRET":      s.JWTSecret,
+		"BACKUP_DIR":      "/opt/karots-suite/backups",
+		"BACKUP_INTERVAL": "6h",
+		"BACKUP_KEEP":     "28",
+		"JWT_EXPIRES_IN":  "10h",
 	}
 	if len(c.Env) != len(want) {
 		t.Fatalf("env %v", c.Env)
@@ -84,7 +86,7 @@ func TestConfEnvFile(t *testing.T) {
 	s := mustShop(t, "al-raj", "linux", "file")
 	s.Env = map[string]string{"X": "1"}
 	c := s.Conf("karots-suite")
-	if c.DB != nil || len(c.Env) != 4 || c.Env["FILE_DB_PORT"] != "5434" || c.Env["SERVER_PORT"] != "3000" || c.Env["APP_ENV"] != "production" {
+	if c.DB != nil || len(c.Env) != 6 || c.Env["BACKUP_DIR"] != "" || c.Env["BACKUP_KEEP"] != "28" || c.Env["FILE_DB_PORT"] != "5434" || c.Env["SERVER_PORT"] != "3000" || c.Env["APP_ENV"] != "production" {
 		t.Fatalf("env %v", c.Env)
 	}
 }
@@ -198,5 +200,34 @@ func TestSaveShopsAtomic(t *testing.T) {
 	}
 	if after, _ := os.ReadFile(p); string(after) != string(before) {
 		t.Fatal("old shops.json changed by a failed save")
+	}
+}
+
+func TestBackupsProfile(t *testing.T) {
+	s := mustShop(t, "al-raj", "windows", "file")
+	s.Backups = ShopBackups{Dir: `D:\Karots backups`, Every: "3h", Keep: 56}
+	c := s.Conf("karots-suite.exe")
+	if c.Env["BACKUP_DIR"] != `D:\Karots backups` || c.Env["BACKUP_INTERVAL"] != "3h" || c.Env["BACKUP_KEEP"] != "56" {
+		t.Fatalf("env %v", c.Env)
+	}
+	if _, err := s.Check(nil); err != nil {
+		t.Fatal(err)
+	}
+	for name, b := range map[string]ShopBackups{
+		"relative dir": {Dir: "backups"},
+		"too often":    {Every: "5m"},
+		"not a time":   {Every: "daily"},
+		"keep":         {Keep: -1},
+	} {
+		x := s
+		x.Backups = b
+		if _, err := x.Check(nil); err == nil {
+			t.Errorf("%s accepted", name)
+		}
+	}
+	x := s
+	x.Env = map[string]string{"BACKUP_KEEP": "3"}
+	if _, err := x.Check(nil); err == nil {
+		t.Error("BACKUP_KEEP accepted in More settings")
 	}
 }

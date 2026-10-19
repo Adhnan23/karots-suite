@@ -237,7 +237,7 @@ func mergeShop(old, in Shop) (Shop, error) {
 	if err := m.SetMode(in.Mode); err != nil {
 		return old, err
 	}
-	m.Name, m.OS, m.Arch, m.Plugins, m.Port, m.Install = in.Name, in.OS, in.Arch, in.Plugins, in.Port, in.Install
+	m.Name, m.OS, m.Arch, m.Plugins, m.Port, m.Install, m.Backups = in.Name, in.OS, in.Arch, in.Plugins, in.Port, in.Install, in.Backups
 	if m.Plugins == nil {
 		m.Plugins = []string{}
 	}

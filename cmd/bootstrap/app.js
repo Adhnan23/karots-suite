@@ -219,6 +219,14 @@ function renderEdit() {
       <div class="fields">${field('eDir', 'Install folder', c.install.dir)}</div>
       <label class="f">When the PC starts</label><div class="seg" id="eOpen"></div>
     </div>
+    <div class="sec"><h2>Backups</h2>
+      <div class="fields">
+        ${field('eBkDir', 'Backup folder', c.backups?.dir || '', `placeholder="${esc(server ? c.install.dir + (c.os === 'windows' ? '\\' : '/') + 'backups' : 'data/backups beside Karots')}"`)}
+        <div><label class="f" for="eBkEvery">Back up every</label><select id="eBkEvery" class="sel">${['1h', '3h', '6h', '12h', '24h'].map((v) => `<option value="${v}" ${(c.backups?.every || '6h') === v ? 'selected' : ''}>${v.replace('h', ' hours').replace(/^1 hours$/, '1 hour')}</option>`).join('')}</select></div>
+        ${field('eBkKeep', 'Keep the newest', c.backups?.keep || 28, 'inputmode="numeric"')}
+      </div>
+      <div class="hint">Empty folder = the default shown. The shop can change all three in Setup; extra copies to USB / S3 come later.</div>
+    </div>
     <div class="sec"><h2>More settings</h2>
       <div id="eEnv"></div><button class="btn" type="button" id="eEnvAdd" style="margin-top:8px">+ Add setting</button>
       <div class="hint">Extra .env lines (e.g. JWT_EXPIRES_IN=10h). Port, database, secret and backups come from the fields above.</div>
@@ -267,6 +275,7 @@ function read() {
     c.jwtSecret = keep('eJwt')
   }
   if ($('eFilePort')) c.fileDbPort = num('eFilePort')
+  c.backups = { dir: v('eBkDir'), every: $('eBkEvery').value, keep: num('eBkKeep') }
   c.envList = [...$('eEnv').querySelectorAll('.envrow')].map((r) => [...r.querySelectorAll('input')].map((i) => i.value.trim()))
   c.env = Object.fromEntries(c.envList.filter(([k]) => k))
 }

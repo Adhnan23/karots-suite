@@ -39,6 +39,19 @@ type ShopInstall struct {
 	LanAddress string `json:"lanAddress,omitempty"` // pre-fills a cashier PC's main-PC address
 }
 
+// ShopBackups is how the shop's automatic backups run. Empty = the defaults:
+// <install folder>/backups (one PC: data/backups), every 6 h, keep 28.
+type ShopBackups struct {
+	Dir   string `json:"dir,omitempty"`
+	Every string `json:"every,omitempty"` // a Go duration: 1h, 6h, 24h
+	Keep  int    `json:"keep,omitempty"`
+}
+
+const (
+	defaultBackupEvery = "6h"
+	defaultBackupKeep  = 28
+)
+
 type Built struct {
 	At     time.Time `json:"at"`
 	Commit string    `json:"commit"`
@@ -58,6 +71,7 @@ type Shop struct {
 	FileDBPort int               `json:"fileDbPort,omitempty"` // file mode
 	JWTSecret  string            `json:"jwtSecret,omitempty"`  // server mode (file mode keeps its own in data/)
 	Install    ShopInstall       `json:"install"`
+	Backups    ShopBackups       `json:"backups"`
 	Env        map[string]string `json:"env,omitempty"` // extra .env keys
 	LastBuilt  *Built            `json:"lastBuilt,omitempty"`
 }
@@ -78,7 +92,7 @@ var (
 	secretKey  = regexp.MustCompile(`SECRET|PASSWORD|KEY|TOKEN`)
 	// Keys a shop's env may not carry: the support secret is baked, never shipped;
 	// a fixed PIN defeats the rotation; the rest come from the profile's fields.
-	refusedEnv = []string{"POS_SUPPORT_SECRET", "POS_SYSTEM_PIN", "APP_ENV", "SERVER_PORT", "DATABASE_URL", "JWT_SECRET", "BACKUP_DIR", "FILE_DB_PORT"}
+	refusedEnv = []string{"POS_SUPPORT_SECRET", "POS_SYSTEM_PIN", "APP_ENV", "SERVER_PORT", "DATABASE_URL", "JWT_SECRET", "BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP", "FILE_DB_PORT"}
 )
 
 // LoadShops reads path; a missing file is an empty list.
@@ -203,6 +217,17 @@ func (s Shop) Check(all []manifest) (warnings []string, err error) {
 	case strings.TrimSpace(s.Install.Dir) == "":
 		return nil, fmt.Errorf("%s: the install folder is empty", s.Key)
 	}
+	if d := s.Backups.Dir; d != "" && !(s.OS == "windows" && len(d) >= 3 && d[1] == ':' && (d[2] == '\\' || d[2] == '/') || s.OS != "windows" && strings.HasPrefix(d, "/")) {
+		return nil, fmt.Errorf("%s: the backup folder must be a full path (e.g. %s)", s.Key, map[bool]string{true: `D:\Karots backups`, false: "/home/backups/karots"}[s.OS == "windows"])
+	}
+	if e := s.Backups.Every; e != "" {
+		if d, err := time.ParseDuration(e); err != nil || d < 30*time.Minute {
+			return nil, fmt.Errorf("%s: backups every %q — use 1h, 6h, 24h… (at least 30m)", s.Key, e)
+		}
+	}
+	if s.Backups.Keep < 0 || s.Backups.Keep > 999 {
+		return nil, fmt.Errorf("%s: keep %d backups — 1 to 999", s.Key, s.Backups.Keep)
+	}
 	ports := map[string]int{"till port": s.Port}
 	if s.DB != nil {
 		ports["database port"] = s.DB.Port
@@ -260,6 +285,16 @@ func (s Shop) Conf(binary string) shopconf.Conf {
 		c.Env["BACKUP_DIR"] = strings.TrimRight(s.Install.Dir, `/\`) + sep + "backups"
 	} else {
 		c.Env["FILE_DB_PORT"] = strconv.Itoa(s.FileDBPort)
+	}
+	if s.Backups.Dir != "" {
+		c.Env["BACKUP_DIR"] = s.Backups.Dir
+	}
+	c.Env["BACKUP_INTERVAL"], c.Env["BACKUP_KEEP"] = defaultBackupEvery, strconv.Itoa(defaultBackupKeep)
+	if s.Backups.Every != "" {
+		c.Env["BACKUP_INTERVAL"] = s.Backups.Every
+	}
+	if s.Backups.Keep > 0 {
+		c.Env["BACKUP_KEEP"] = strconv.Itoa(s.Backups.Keep)
 	}
 	for k, v := range s.Env {
 		c.Env[k] = v
