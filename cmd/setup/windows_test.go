@@ -41,7 +41,7 @@ func TestWindowsDatabase(t *testing.T) {
 	}
 	all := rc.all()
 	for _, want := range []string{
-		`--custom "--superpassword super123 --serverport 5432"`,
+		`--custom "--superpassword super123 --serverport 5432 --disable-components pgAdmin,stackbuilder"`,
 		"PostgreSQL.PostgreSQL.17",
 		`CREATE ROLE "suite_user" WITH LOGIN PASSWORD ''pw123''`,
 		`CREATE DATABASE "suite_db" OWNER "suite_user"`,
@@ -91,7 +91,7 @@ func TestWindowsDatabaseWithoutWinget(t *testing.T) {
 		"https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64.exe",
 		"612C7F5400A003AAFFA0372CB273EED52278F93C680AB911EB9CB2229E329072",
 		"Get-FileHash",
-		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432",
+		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432 --disable-components pgAdmin,stackbuilder",
 	} {
 		if !strings.Contains(all, want) {
 			t.Errorf("missing %q in:\n%s", want, all)
@@ -119,7 +119,7 @@ func TestWindowsDatabaseInstallerBeside(t *testing.T) {
 	}
 	all := rc.all()
 	for _, want := range []string{"# karots:local-postgresql", filepath.Join(j.Dir, shopconf.PGInstallerName), shopconf.PGInstallerSHA256,
-		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432"} {
+		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432 --disable-components pgAdmin,stackbuilder"} {
 		if !strings.Contains(all, want) {
 			t.Errorf("missing %q in:\n%s", want, all)
 		}

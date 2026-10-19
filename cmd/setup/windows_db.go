@@ -85,7 +85,9 @@ func installPostgres(j *Job) (string, error) {
 	if bin := find(); bin != "" {
 		return bin, nil
 	}
-	args := fmt.Sprintf("--superpassword %s --serverport %d", j.Conf.DB.SuperPassword, j.Conf.DB.Port)
+	// The server and psql only: pgAdmin (thousands of files) and StackBuilder
+	// took most of a ~7 min install on a till, and the shop never opens them.
+	args := fmt.Sprintf("--superpassword %s --serverport %d --disable-components pgAdmin,stackbuilder", j.Conf.DB.SuperPassword, j.Conf.DB.Port)
 	// The copy the Builder put beside the three files: no download at the shop.
 	if local := filepath.Join(j.Dir, shopconf.PGInstallerName); fileExists(local) {
 		j.note("Installing PostgreSQL 17 from the copy beside Setup — a few minutes, nothing to click")
