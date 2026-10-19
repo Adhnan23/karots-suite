@@ -243,6 +243,13 @@ day, wages already cover it; the lost weight is in the loose cost.
   10 double-click (UAC, Chrome kiosk, hidden task, `.url` shortcut, existing-PostgreSQL password), Linux desktop
   double-click from a USB stick (exec bit, pkexec box, browser opens as the user). Checks: `go test ./cmd/...
   ./internal/shopconf/`, `make verify`, `make verify-portable`.
+- **After the user's Windows test (2026-10-19):** Setup page now picks **kiosk / background** and **backups** (folder
+  via its own folder browser — drives / home / USB, New folder — how often, how many to keep); the Builder's values are
+  the defaults (new **Backups** section per shop → `BACKUP_DIR` / `_INTERVAL` / `_KEEP`). Kiosk browser = the PC's
+  **default** if Chrome-style or Firefox-style (Helium, Brave, LibreWolf, Zen…), else installed Chrome / Chromium /
+  Firefox, else **Edge** (Windows; winget never used) or Chromium installed (Linux); each family has its own kiosk flags
+  and its own profile. **No window at sign-in:** the start-up task and the kiosk loop run under `conhost --headless`.
+  Health waits 90 s (first start creates the database). Shops / Setup stay Linux + Windows only (user).
 - **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
   S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
   sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore
