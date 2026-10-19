@@ -250,6 +250,9 @@ day, wages already cover it; the lost weight is in the loose cost.
   Firefox, else **Edge** (Windows; winget never used) or Chromium installed (Linux); each family has its own kiosk flags
   and its own profile. **No window at sign-in:** the start-up task and the kiosk loop run under `conhost --headless`.
   Health waits 90 s (first start creates the database). Shops / Setup stay Linux + Windows only (user).
+- **For the M8c spec (user, 2026-10-19):** the Builder gets **Release** on each shop row (next to Build: build → sign →
+  upload to that shop's channel → it self-updates) and **Release all** next to **Build all** (one note for the
+  owners), plus a "running vs latest" column. Build stays for first installs (the three files).
 - **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
   S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
   sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore
