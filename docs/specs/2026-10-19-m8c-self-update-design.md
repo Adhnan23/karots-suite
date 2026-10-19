@@ -26,7 +26,7 @@ uploaded**, so the shop's channel folder in the bucket stayed empty and the Data
 
 ## Goals
 
-- Builder: every shop build stamps a version and **publishes** it; **Release** per shop and **Release all**; each row
+- Builder: **Test build** (local only, marked as such) and **Release** (build + publish); **Release** per shop and **Release all**; each row
   shows **published** version vs **running** version (via the feed Worker).
 - Shop: checks its own folder, shows current / latest / what's new on the **Data** page (admin + system), installs
   on **Update** (never by itself), comes back by itself, rolls back if the new binary can't stay up.
@@ -59,9 +59,14 @@ releases so a shop that skipped some sees every change (`NotesSince`); keep the 
 
 ## What's different (the "more modern" part)
 
-1. **No build-only release path.** Builder Build = build + publish. If publishing fails (offline, R2 error) the build
-   is still kept and the row shows **Not published** in red with **Publish** (uploads the already-built files; no
-   rebuild, same version). There is no flag to skip publishing.
+1. **Two buttons, and a local build can't pass for a release** (user, 2026-10-19: during testing and dev, small fixes
+   must not each go to the bucket). **Test build** = build only, into `dist/<key>/`, nothing uploaded; the binary is
+   stamped `main.buildKind=test` (updater still on, so the update flow itself can be tested) and the Data page shows
+   **Test build** beside the version. **Release** = build + publish. The Builder row shows the last test build in amber
+   ("test build, not released") apart from the published one; Test build on a shop with **nothing published yet** warns
+   "This shop has no release yet — the first install at a shop should be a Release". If publishing fails (offline, R2
+   error) the release build is kept and the row shows **Not published** in red with **Publish** (uploads the
+   already-built files; no rebuild, same version).
 2. **Release lives in the Builder page**, not a separate CLI: per-shop **Release…** (dialog: notes box pre-filled with
    the commits since that shop's last release, editable) and **Release all** (sequential; a failing shop doesn't stop
    the rest; failures listed). `-shop <key|all>` from the command line also publishes (technician path). karots-pos's
@@ -138,9 +143,9 @@ of the `karots-suite` bucket (R2 binding) and is the **only URL baked into shop 
 - Restart via a supervisor exit code instead of self-relaunch (different from karots-pos, fewer moving parts).
 - Release is in the Builder page; no separate `cmd/release`.
 - Check every 6 h + on opening the Data page.
-- **One path: Build = Release.** The row's button builds from HEAD (binary, `karots-setup`, `install.conf`) and
-  publishes it, after a notes dialog pre-filled with the commits since the shop's last release (empty is fine).
-  `dist/<key>/` always matches the bucket. Release all = the same for every shop, one shared notes box.
+- **Release** builds from HEAD (binary, `karots-setup`, `install.conf`) and publishes it, after a notes dialog
+  pre-filled with the commits since the shop's last release (empty is fine). Release all = the same for every shop, one
+  shared notes box. **Test build** skips the notes and the clean-tree check (user's dev / testing path).
 - **Dirty-tree check ignores the Builder's own writes**: `shops.json` and the generated plugin lists
   (`cmd/server/enabled_plugins.go`, `web/src/plugins/enabled-plugins.ts`). `published.commit` = HEAD at build.
   Commit `shops.json` yourself as today.
