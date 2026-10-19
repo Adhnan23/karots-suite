@@ -99,8 +99,9 @@ func TestWindowsOpen(t *testing.T) {
 	if err := windowsOpen(j); err != nil {
 		t.Fatal(err)
 	}
-	if all := rc.all(); !strings.Contains(all, "Karots Suite.url") || !strings.Contains(all, "URL=http://localhost:3000") || strings.Contains(all, "kiosk.cmd") {
-		t.Fatalf("background:\n%s", all)
+	if all := rc.all(); !strings.Contains(all, "Karots Suite.url") || !strings.Contains(all, "URL=http://localhost:3000") || strings.Contains(all, "kiosk.cmd") ||
+		!strings.Contains(all, "Unregister-ScheduledTask -TaskName 'KarotsSuiteKiosk'") || !strings.Contains(all, "Karots Suite Kiosk.lnk") {
+		t.Fatalf("background (a kiosk set up before must go):\n%s", all)
 	}
 	j, rc = windowsJob(t, "file")
 	if err := windowsOpen(j); err != nil {
@@ -111,8 +112,17 @@ func TestWindowsOpen(t *testing.T) {
 		!strings.Contains(string(k), ":end\r\nexit /b 0") { // a non-zero exit would make karots-start start the loop again
 		t.Fatalf("kiosk.cmd %q (%v)", k, err)
 	}
-	if !strings.Contains(rc.all(), "CommonStartup") || !strings.Contains(rc.all(), "karots-start.exe") || strings.Contains(rc.all(), "conhost") {
-		t.Fatalf("Startup shortcut must run the loop with no window:\n%s", rc.all())
+	// A sign-in task, not a Startup-folder shortcut: Windows holds Startup items
+	// back ~10 s after sign-in. Any user who signs in gets it, not elevated.
+	all := rc.all()
+	for _, want := range []string{"Register-ScheduledTask -TaskName 'KarotsSuiteKiosk'", "-AtLogOn", "-GroupId 'S-1-5-32-545'",
+		"-RunLevel Limited", "karots-start.exe", "-hidden cmd.exe /c", "Remove-Item", "Karots Suite Kiosk.lnk"} {
+		if !strings.Contains(all, want) {
+			t.Errorf("kiosk task: missing %q in:\n%s", want, all)
+		}
+	}
+	if strings.Contains(all, "CreateShortcut") || strings.Contains(all, "conhost") {
+		t.Fatalf("no Startup shortcut, no console window:\n%s", all)
 	}
 }
 

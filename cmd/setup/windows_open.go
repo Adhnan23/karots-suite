@@ -15,7 +15,8 @@ func windowsOpen(j *Job) error {
 $url = "[InternetShortcut]`+"`r`n"+`URL=%s`+"`r`n"+`"
 foreach ($d in @([Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'))) {
   Set-Content -Path (Join-Path $d 'Karots Suite.url') -Value $url -Encoding ASCII
-}`, j.tillURL()))
+}
+%s`, j.tillURL(), noKiosk))
 		return err
 	}
 	// The default browser, then the usual install places. Edge is on every
@@ -78,12 +79,23 @@ exit /b 0
 	if err != nil {
 		return err
 	}
-	_, err = ps(j, fmt.Sprintf(`# karots:kiosk-shortcut
-$lnk = Join-Path ([Environment]::GetFolderPath('CommonStartup')) 'Karots Suite Kiosk.lnk'
-$sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$sc.TargetPath = %s
-$sc.Arguments = %s
-$sc.WorkingDirectory = %s
-$sc.Save()`, psq(launcher), psq(`-hidden cmd.exe /c "`+kiosk+`"`), psq(dir)))
+	// A sign-in task, not a Startup-folder shortcut: Windows holds Startup items
+	// back ~10 s after sign-in. Every user who signs in gets the till (BUILTIN\Users,
+	// by SID so a non-English Windows matches), not elevated. The shortcut older
+	// installs made goes, or the till would open twice.
+	_, err = ps(j, fmt.Sprintf(`# karots:kiosk-task
+Remove-Item -Path (Join-Path ([Environment]::GetFolderPath('CommonStartup')) 'Karots Suite Kiosk.lnk') -ErrorAction SilentlyContinue
+$action = New-ScheduledTaskAction -Execute %s -Argument %s -WorkingDirectory %s
+$trigger = New-ScheduledTaskTrigger -AtLogOn
+$principal = New-ScheduledTaskPrincipal -GroupId 'S-1-5-32-545' -RunLevel Limited
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances Parallel
+Register-ScheduledTask -TaskName %s -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null`,
+		psq(launcher), psq(`-hidden cmd.exe /c "`+kiosk+`"`), psq(dir), psq(windowsKioskTask)))
 	return err
 }
+
+const windowsKioskTask = "KarotsSuiteKiosk"
+
+// noKiosk removes a kiosk set up before (a shop switched to background).
+var noKiosk = `Unregister-ScheduledTask -TaskName '` + windowsKioskTask + `' -Confirm:$false -ErrorAction SilentlyContinue
+Remove-Item -Path (Join-Path ([Environment]::GetFolderPath('CommonStartup')) 'Karots Suite Kiosk.lnk') -ErrorAction SilentlyContinue`
