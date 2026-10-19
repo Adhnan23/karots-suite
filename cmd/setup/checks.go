@@ -49,11 +49,12 @@ func checks(j *Job) error {
 	return nil
 }
 
-// health waits for the till to answer /health.
+// health waits for the till to answer /health — up to 90 s: a one-PC shop's
+// first start creates its database (slow on an old PC or a VM).
 func health(j *Job) error {
 	url := j.tillURL() + "/health"
 	c := http.Client{Timeout: 2 * time.Second}
-	for range 30 {
+	for range 90 {
 		if res, err := c.Get(url); err == nil {
 			res.Body.Close()
 			if res.StatusCode == http.StatusOK {
