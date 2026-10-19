@@ -119,7 +119,7 @@ func (u *Updater) Check(ctx context.Context) error {
 		u.status.State, u.status.Message = StateBadSignature, "The update server offered a file not signed by Karots — it was ignored. Tell support."
 	case err != nil:
 		u.status.State, u.status.Message = StateOffline, "Couldn't reach the update server — "+err.Error()
-	case Newer(m.Version, u.Current):
+	case Newer(m.Version, u.Current) && m.Version != skipped(u.Exe): // never offer the one that couldn't start
 		u.latest = m
 		u.status.State, u.status.Latest, u.status.Notes = StateAvailable, m.Version, m.NotesSince(u.Current)
 	default:

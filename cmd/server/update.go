@@ -90,7 +90,7 @@ func startUpdater(ctx context.Context, db *sqlx.DB, cfg *config.Config, restart 
 	}
 	update.Enable(u)
 	go u.Run(ctx, 6*time.Hour)
-	time.AfterFunc(2*time.Minute, func() { update.MarkHealthy(exe) })
+	time.AfterFunc(2*time.Minute, func() { update.MarkHealthy(exe, cfg.Version) })
 	log.Printf("update: on (%s build %s)", buildKind, cfg.Version)
 	return u
 }

@@ -1,6 +1,9 @@
 package update
 
 import (
+	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -51,7 +54,7 @@ func TestMarkHealthy(t *testing.T) {
 	os.WriteFile(exe+".old", []byte("old"), 0o755)
 	markPending(exe, "2026.10.19.1530")
 	BootGuard(exe)
-	MarkHealthy(exe)
+	MarkHealthy(exe, "2026.10.19.1530")
 	for range 3 {
 		if rb, _ := BootGuard(exe); rb {
 			t.Fatal("a healthy binary must never be rolled back")
@@ -59,5 +62,38 @@ func TestMarkHealthy(t *testing.T) {
 	}
 	if read(t, exe) != "new" {
 		t.Fatal("exe changed")
+	}
+}
+
+// The version BootGuard gave up on is never offered again.
+func TestRolledBackNotOffered(t *testing.T) {
+	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
+	bad := signed(t, priv, "2026.10.19.1530", "aa")
+	srv := feed(t, &bad)
+	exe := filepath.Join(t.TempDir(), "karots-suite")
+	os.WriteFile(exe+".rolledback", []byte("2026.10.19.1530"), 0o644)
+	u := &Updater{Current: "2026.10.18.0900", BaseURL: srv.URL, Channel: testChannel, PubKey: pub, Exe: exe}
+	u.Check(context.Background())
+	if s := u.Status(); s.State != StateUpToDate || s.Latest != "" {
+		t.Fatalf("status %+v", s)
+	}
+	u.Dismiss() // the notice goes; the bad version stays skipped
+	u.Check(context.Background())
+	if s := u.Status(); s.State != StateUpToDate || s.RolledBackFrom != "" {
+		t.Fatalf("after dismiss: %+v", s)
+	}
+}
+
+// The old binary's "stayed up" timer must not clear a fresh update's marker.
+func TestMarkHealthyOnlyItsOwnVersion(t *testing.T) {
+	exe := filepath.Join(t.TempDir(), "karots-suite")
+	markPending(exe, "2026.10.19.1530")
+	MarkHealthy(exe, "2026.10.18.0900") // the old binary, 2 minutes after it booted
+	if _, err := os.Stat(markerPath(exe)); err != nil {
+		t.Fatal("the new version's marker was removed")
+	}
+	MarkHealthy(exe, "2026.10.19.1530")
+	if _, err := os.Stat(markerPath(exe)); err == nil {
+		t.Fatal("the marker should be gone once the new version stayed up")
 	}
 }

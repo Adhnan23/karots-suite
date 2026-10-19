@@ -69,8 +69,18 @@ func BootGuard(exe string) (rolledBack bool, err error) {
 	return true, nil
 }
 
-// MarkHealthy clears the boot counter once the new binary has stayed up.
-func MarkHealthy(exe string) { os.Remove(markerPath(exe)) }
+// MarkHealthy clears the boot counter once the binary running as version has
+// stayed up. Only its own marker: the old binary's timer may fire after it has
+// just installed an update, whose boots must still be counted.
+func MarkHealthy(exe, version string) {
+	b, err := os.ReadFile(markerPath(exe))
+	if err != nil {
+		return
+	}
+	if v, _, _ := strings.Cut(strings.TrimSpace(string(b)), "\n"); v == version {
+		os.Remove(markerPath(exe))
+	}
+}
 
 // rolledBackFrom is the version BootGuard gave up on, "" when none.
 func rolledBackFrom(exe string) string {
@@ -81,9 +91,20 @@ func rolledBackFrom(exe string) string {
 	return strings.TrimSpace(string(b))
 }
 
-// Dismiss clears the "went back to the old version" notice.
+// skipped is the version that couldn't start, notice dismissed or not: it is
+// never offered again (a newer release is).
+func skipped(exe string) string {
+	if v := rolledBackFrom(exe); v != "" || exe == "" {
+		return v
+	}
+	b, _ := os.ReadFile(exe + ".skipped")
+	return strings.TrimSpace(string(b))
+}
+
+// Dismiss clears the "went back to the old version" notice; the version
+// stays skipped.
 func (u *Updater) Dismiss() {
 	if u.Exe != "" {
-		os.Remove(u.Exe + ".rolledback")
+		os.Rename(u.Exe+".rolledback", u.Exe+".skipped") //nolint:errcheck // nothing to dismiss
 	}
 }
