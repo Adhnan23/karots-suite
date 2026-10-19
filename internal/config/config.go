@@ -41,6 +41,9 @@ type Config struct {
 	// FileDataDir is the data folder of a file-mode shop (its own PostgreSQL);
 	// empty in server mode.
 	FileDataDir string
+	// Version is this binary's release version ("dev" for an unstamped build);
+	// every response carries it as X-Karots-Version.
+	Version string
 }
 
 func Load() *Config {

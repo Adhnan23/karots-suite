@@ -182,3 +182,12 @@ func (u *Updater) Run(ctx context.Context, every time.Duration) {
 		}
 	}
 }
+
+var active *Updater
+
+// Enable makes u the updater the Data page talks to. Only shop builds (with a
+// channel baked in) call it.
+func Enable(u *Updater) { active = u }
+
+// Active returns the enabled updater, or nil.
+func Active() *Updater { return active }

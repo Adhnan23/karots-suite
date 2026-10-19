@@ -62,6 +62,7 @@ func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string,
 	e.HTTPErrorHandler = appmw.ErrorHandler(cfg.IsProd())
 
 	e.Use(echomw.Recover())
+	e.Use(versionHeader(cfg.Version))
 	e.Use(echomw.Logger())
 	e.Use(echomw.CORSWithConfig(echomw.CORSConfig{AllowOrigins: cfg.CORSOrigins}))
 	for _, mw := range pre {
@@ -87,4 +88,18 @@ func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string,
 	e.GET("/*", spa.Handler(spa.Dist()))
 
 	return e
+}
+
+// versionHeader stamps every response with the binary's version, so an open
+// SPA notices an update and reloads itself (web/src/lib/version.ts).
+func versionHeader(version string) echo.MiddlewareFunc {
+	if version == "" {
+		version = "dev"
+	}
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("X-Karots-Version", version)
+			return next(c)
+		}
+	}
 }

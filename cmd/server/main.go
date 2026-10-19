@@ -19,9 +19,15 @@ import (
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	"karots-suite/internal/filedb"
+	"karots-suite/internal/update"
 )
 
-func main() {
+func main() { os.Exit(run()) }
+
+// run is the server; its result is the exit code (update.RestartCode after an
+// update, so the supervisor starts the new binary). Returning — not os.Exit —
+// lets file mode stop its PostgreSQL first.
+func run() int {
 	migrateOnly := flag.Bool("migrate", false, "run migrations and exit")
 	seedOnly := flag.Bool("seed", false, "seed development/demo data and exit")
 	demoOnly := flag.Bool("demo", false, "seed entities + sample transactions (purchases, sales, expenses…) and exit")
@@ -41,7 +47,12 @@ func main() {
 	// .env never carries it — the Shop Builder refuses it).
 	if *supportFor != "" {
 		printSupportPIN(*supportFor)
-		return
+		return 0
+	}
+
+	oneShot := *migrateOnly || *seedOnly || *demoOnly || *initOnly || *resetFlag
+	if !oneShot && bootGuard() {
+		return update.RestartCode
 	}
 
 	// File mode: no DATABASE_URL and a build that carries its own PostgreSQL.
@@ -58,6 +69,10 @@ func main() {
 	}
 
 	cfg := config.Load()
+	cfg.Version = version
+	if cfg.Version == "" {
+		cfg.Version = "dev"
+	}
 	if fileDB != nil {
 		cfg.FileDataDir = fileDB.Dir
 		log.Printf("file mode: data in %s", fileDB.Dir)
@@ -93,33 +108,33 @@ func main() {
 	}
 	if *migrateOnly {
 		log.Println("migrations applied")
-		return
+		return 0
 	}
 	// -reset on its own leaves a clean, empty migrated database; combined with
 	// -seed/-demo it falls through to those blocks to repopulate it.
 	if *resetFlag && !*seedOnly && !*demoOnly {
 		log.Println("reset complete: empty migrated database")
-		return
+		return 0
 	}
 	if *seedOnly {
 		if err := seed(sqlxDB); err != nil {
 			log.Fatal(err)
 		}
 		log.Println("seed complete")
-		return
+		return 0
 	}
 	if *demoOnly {
 		if err := demo(sqlxDB); err != nil {
 			log.Fatal(err)
 		}
 		log.Println("demo seed complete")
-		return
+		return 0
 	}
 	if *initOnly {
 		if err := initShop(sqlxDB); err != nil {
 			log.Fatal(err)
 		}
-		return
+		return 0
 	}
 
 	// Hidden developer-only recovery admin — re-ensured on every boot so the
@@ -162,11 +177,14 @@ func main() {
 		log.Printf("auto-backup: disabled (set BACKUP_DIR to enable)")
 	}
 
+	restart := make(chan struct{}, 1)
+	startUpdater(bgCtx, sqlxDB, cfg, restart)
+
 	// Start with graceful shutdown.
 	e.Listener = ln // file mode claimed the port already; nil = Echo listens itself
 	go func() {
 		addr := fmt.Sprintf(":%d", cfg.ServerPort)
-		log.Printf("POS server listening on %s (env=%s)", addr, cfg.Env)
+		log.Printf("Karots %s listening on %s (env=%s)", cfg.Version, addr, cfg.Env)
 		if err := e.Start(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("server error: %v", err)
 		}
@@ -174,12 +192,19 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("shutting down…")
+	code := 0
+	select {
+	case <-quit:
+		log.Println("shutting down…")
+	case <-restart:
+		log.Println("update installed — restarting into the new version…")
+		code = update.RestartCode
+	}
 	bgCancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
 		log.Printf("forced shutdown: %v", err)
 	}
+	return code
 }
