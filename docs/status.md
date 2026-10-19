@@ -26,6 +26,12 @@ Playwright 175 passed / 24 skipped.
    by karots-start PASSED on Windows (user ended Karots, it came back). Then the kiosk moved from the Startup folder to a
    sign-in task `KarotsSuiteKiosk` (`0cfbb3a`; Windows delays Startup items): restart → till in **~10 s**, kiosk Konami exit still works (user, VM).
    Reaches a shop only through karots-setup → Update (installer change, not the binary).
+   **Server mode on Windows (2026-10-19):** clean install worked once winget's absence was handled — Setup now: PostgreSQL
+   installer beside the files (Builder **+ PostgreSQL**, cached once, SHA-256 pinned in shopconf) → winget → download;
+   page notes per stage + "still working N min"; no PowerShell windows flashing (`89196e8`, `0557796`, `3a785c2`). Not yet
+   seen on the VM: the progress notes and the no-flash fix (next server-mode run). Linux stays on apt (user).
+   **Next tests (user):** Linux Mint VM — file mode (USB double-click, kiosk, Konami, update, `pkill` comes back) and
+   server mode (apt PostgreSQL). Then M8c2.
    Linux USB double-click and one real shop install still unverified (from M8b).
 3. **Windows check after the review fix:** karots-start now starts Karots again 5 s after a crash (non-zero exit), so
    BootGuard can roll a bad update back — confirm on the Windows box (kill Karots → it comes back).
