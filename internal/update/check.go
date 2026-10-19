@@ -90,7 +90,7 @@ func (u *Updater) Status() Status {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	s := u.status
-	s.Current, s.Kind = u.Current, u.Kind
+	s.Current, s.Kind, s.RolledBackFrom = u.Current, u.Kind, rolledBackFrom(u.Exe)
 	if s.State == "" {
 		s.State = StateUnchecked
 	}
