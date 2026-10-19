@@ -23,6 +23,9 @@ type buildOpts struct {
 	InstallID string // "" = mint a new one (only when POS_SUPPORT_SECRET is set)
 	Mode      string // "server" (DATABASE_URL, default) | "file" (its own PostgreSQL, one PC)
 	ExtraX    string
+	// RequireSecret refuses to build without POS_SUPPORT_SECRET: a shop build
+	// must never carry the support PIN every bare build shares.
+	RequireSecret bool
 }
 
 // buildResult is what the shop owner needs once the binary exists.
@@ -69,6 +72,9 @@ func (o *buildOpts) check() error {
 func build(o buildOpts, log io.Writer) (buildResult, error) {
 	if err := o.check(); err != nil {
 		return buildResult{}, err
+	}
+	if o.RequireSecret && os.Getenv("POS_SUPPORT_SECRET") == "" {
+		return buildResult{}, fmt.Errorf("POS_SUPPORT_SECRET is not set — a shop build needs it (each shop gets its own support PIN)")
 	}
 	ldflags, id, pin, err := supportFlags(o.InstallID, o.ExtraX, log)
 	if err != nil {

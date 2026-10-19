@@ -11,6 +11,9 @@
 //	go run ./cmd/bootstrap -plugins clearance,requests
 //	go run ./cmd/bootstrap -plugins all -write-only   # dev: make plugins P=all
 //	go run ./cmd/bootstrap -plugins none -write-only  # back to core-only: make core-only
+//	go run ./cmd/bootstrap -shop al-raj               # build a shop from shops.json (three files in dist/al-raj)
+//	go run ./cmd/bootstrap -shop all                  # every shop, one after another
+//	go run ./cmd/bootstrap -list                      # the shops in shops.json
 //
 // Flags:
 //
@@ -23,6 +26,10 @@
 //	-X           extra space-separated -X name=value pairs for -ldflags (M8 release tool)
 //	-write-only  write the two plugin lists and stop (no build, no restore)
 //	-addr        where the bootstrap app listens (default 127.0.0.1:3199)
+//	-shops       the shop profiles file (default shops.json, or $SHOPS_FILE)
+//	-shop        build this shop's profile ("all" = every shop)
+//	-list        print the shop profiles
+//	-no-installer  with -shop: only the binary, no karots-setup / install.conf
 package main
 
 import (
@@ -68,6 +75,10 @@ func run() error {
 		extraX      = flag.String("X", "", "extra space-separated -X name=value pairs for -ldflags")
 		writeOnly   = flag.Bool("write-only", false, "write the plugin lists and stop (dev)")
 		addr        = flag.String("addr", "127.0.0.1:3199", "where the bootstrap app listens")
+		shopsFlag   = flag.String("shops", envOr("SHOPS_FILE", "shops.json"), "the shop profiles file")
+		shopFlag    = flag.String("shop", "", `build this shop from the profiles ("all" = every shop)`)
+		listFlag    = flag.Bool("list", false, "print the shop profiles")
+		noInstaller = flag.Bool("no-installer", false, "with -shop: only the binary")
 	)
 	flag.Parse()
 	if _, err := os.Stat("go.mod"); err != nil {
@@ -77,7 +88,13 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if flag.NFlag() == 0 || (flag.NFlag() == 1 && isSet("addr")) {
+	if *listFlag {
+		return listShops(*shopsFlag)
+	}
+	if *shopFlag != "" {
+		return buildShops(*shopsFlag, *shopFlag, all, !*noInstaller)
+	}
+	if !isSet("plugins") && !isSet("write-only") {
 		return serveApp(*addr, all, build)
 	}
 	sel, err := selectPlugins(all, *pluginsFlag)
@@ -100,6 +117,13 @@ func run() error {
 		fmt.Printf("  support login   0000000001 / %s   (rotates hourly)\n  install id      %s\n", res.SupportPIN, res.InstallID)
 	}
 	return nil
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func isSet(name string) (set bool) {
