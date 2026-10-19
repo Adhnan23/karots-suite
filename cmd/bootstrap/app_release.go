@@ -47,7 +47,13 @@ const notPublishedWarn = "! This shop has no release yet — the first install a
 // shopRun is one shop's Test build (kind "test": local only) or Release (kind
 // "release": build, then publish). A release whose upload fails keeps its
 // build — the caller saves LastBuilt — and Publish sends it later.
-func shopRun(s *Shop, all []manifest, b buildFn, cfg shopsCfg, kind, version, notes string, installer bool, log io.Writer) (buildResult, error) {
+// extras is what a build adds beside the binary (the page's tick boxes).
+type extras struct {
+	Installer bool // karots-setup + install.conf
+	Postgres  bool // the PostgreSQL installer, for a Windows main PC (needsPG)
+}
+
+func shopRun(s *Shop, all []manifest, b buildFn, cfg shopsCfg, kind, version, notes string, add extras, log io.Writer) (buildResult, error) {
 	if os.Getenv("UPDATE_BASE_URL") == "" { // it is baked in: a build without it could never update
 		return buildResult{}, errors.New("set UPDATE_BASE_URL in .env (the bucket's public URL) — every shop build carries it")
 	}
@@ -58,7 +64,13 @@ func shopRun(s *Shop, all []manifest, b buildFn, cfg shopsCfg, kind, version, no
 	if kind == "test" && s.Published == nil {
 		fmt.Fprintln(log, notPublishedWarn)
 	}
-	res, err := buildShop(s, all, shopBuildOpts{Out: cfg.Out, Installer: installer, Version: version, Kind: kind, PubKey: pub}, b, cfg.Setup, log)
+	o := shopBuildOpts{Out: cfg.Out, Installer: add.Installer, Version: version, Kind: kind, PubKey: pub}
+	if add.Installer && add.Postgres && needsPG(*s) {
+		if o.PGInstaller, err = pgInstaller(log); err != nil {
+			return buildResult{}, err
+		}
+	}
+	res, err := buildShop(s, all, o, b, cfg.Setup, log)
 	if err == nil && kind == "test" {
 		s.LastBuilt.Dirty, _ = cfg.dirty() // unknown counts as committed
 	}
@@ -126,15 +138,15 @@ func mountRelease(mux *http.ServeMux, all []manifest, b buildFn, cfg shopsCfg, b
 
 	mux.HandleFunc("POST /api/shops/{key}/release", func(w http.ResponseWriter, r *http.Request) {
 		var in struct {
-			Installer bool
-			Notes     string
+			extras
+			Notes string
 		}
 		if !decode(w, r, &in) || !clean(w) {
 			return
 		}
 		version := versionAt(time.Now())
 		runOne(w, r.PathValue("key"), func(s *Shop, log io.Writer) (buildResult, error) {
-			return shopRun(s, all, b, cfg, "release", version, strings.TrimSpace(in.Notes), in.Installer, log)
+			return shopRun(s, all, b, cfg, "release", version, strings.TrimSpace(in.Notes), in.extras, log)
 		})
 	})
 
@@ -166,8 +178,8 @@ func mountRelease(mux *http.ServeMux, all []manifest, b buildFn, cfg shopsCfg, b
 
 	mux.HandleFunc("POST /api/shops/release-all", func(w http.ResponseWriter, r *http.Request) {
 		var in struct {
-			Installer bool
-			Notes     string
+			extras
+			Notes string
 		}
 		if !decode(w, r, &in) || !clean(w) {
 			return
@@ -187,7 +199,7 @@ func mountRelease(mux *http.ServeMux, all []manifest, b buildFn, cfg shopsCfg, b
 			for _, s := range shops.Shops {
 				fmt.Fprintf(log, "\n=== %s (%s) ===\n", s.Name, s.Key)
 				before := s.LastBuilt
-				_, err := shopRun(&s, all, b, cfg, "release", version, strings.TrimSpace(in.Notes), in.Installer, log)
+				_, err := shopRun(&s, all, b, cfg, "release", version, strings.TrimSpace(in.Notes), in.extras, log)
 				if s.LastBuilt != before {
 					if serr := saveShopState(cfg, mu, s); serr != nil {
 						return buildResult{}, serr

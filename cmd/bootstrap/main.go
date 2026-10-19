@@ -79,6 +79,7 @@ func run() error {
 		shopsFlag   = flag.String("shops", envOr("SHOPS_FILE", "shops.json"), "the shop profiles file")
 		shopFlag    = flag.String("shop", "", `release this shop from the profiles: build + publish ("all" = every shop)`)
 		testFlag    = flag.Bool("test", false, "with -shop: a Test build — local only, nothing uploaded")
+		pgFlag      = flag.Bool("postgres", false, "with -shop: put the PostgreSQL installer beside a Windows main PC's files (no download at the shop)")
 		listFlag    = flag.Bool("list", false, "print the shop profiles")
 		noInstaller = flag.Bool("no-installer", false, "with -shop: only the binary")
 		importFlag  = flag.String("import-pos", "", "add the shops from karots-pos's shops.json")
@@ -98,7 +99,7 @@ func run() error {
 		return listShops(*shopsFlag)
 	}
 	if *shopFlag != "" {
-		return buildShops(*shopsFlag, *shopFlag, all, !*noInstaller, *testFlag)
+		return buildShops(*shopsFlag, *shopFlag, all, extras{Installer: !*noInstaller, Postgres: *pgFlag}, *testFlag)
 	}
 	if !isSet("plugins") && !isSet("write-only") {
 		return serveApp(*addr, all, build, shopsCfg{Path: *shopsFlag, Out: "dist", Setup: buildSetup})

@@ -128,7 +128,9 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   S=al-raj`). A shop's **first install must be a Release**, or its Data page says "No update published". Release refuses
   uncommitted changes (except `shops.json` and the plugin lists). `.env` needs `POS_SUPPORT_SECRET`, `R2_*`,
   `UPDATE_BASE_URL`; `SUITE_RELEASE_KEY` is made on the first build — **keep a copy** (shops only take updates signed by
-  it). Shops update from Setup → Data → Updates → Update (never by themselves). Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
+  it). Shops update from Setup → Data → Updates → Update (never by themselves). A Windows
+  server-mode main PC: tick **+ PostgreSQL** (or `-postgres`) to put the PostgreSQL installer (cached once in the user
+  cache, SHA-256 pinned in `internal/shopconf`) beside the files — Setup uses it before winget / downloading. Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
   ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update. Look at the
   installer page without installing: `karots-setup -dry` beside an install.conf. `build.ps1` = make on Windows.
 - **File mode** (one-PC shops): Shop Builder → Database "One PC", or `go run ./cmd/bootstrap -plugins none

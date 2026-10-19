@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"karots-suite/internal/shopconf"
 )
 
 // releaseApp is the shops app with a fake bucket, a temp .env and a chosen
@@ -111,5 +113,16 @@ func TestAppTestBuildRecordsDirty(t *testing.T) {
 		if s := a.stored(t); s.LastBuilt == nil || s.LastBuilt.Dirty != dirty {
 			t.Fatalf("dirty=%v: lastBuilt %+v", dirty, s.LastBuilt)
 		}
+	}
+}
+
+func TestAppTestBuildWithPostgres(t *testing.T) {
+	fakePG(t, "EXE", upperSum("EXE"))
+	a, _, _ := releaseApp(t, false)
+	a.do(t, "/api/shops", `{"key":"win","name":"Win","os":"windows","arch":"amd64","mode":"server"}`)
+	body := a.do(t, "/api/shops/win/build", `{"installer":true,"postgres":true}`).Body.String()
+	dir := filepath.Join(filepath.Dir(a.path), "dist", "win")
+	if names := dirNames(t, dir); !strings.Contains(strings.Join(names, " "), shopconf.PGInstallerName) || len(names) != 4 {
+		t.Fatalf("files %v\n%s", names, body)
 	}
 }

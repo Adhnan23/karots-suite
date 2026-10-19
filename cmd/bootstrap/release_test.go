@@ -203,7 +203,7 @@ func TestShopRunNeedsBaseURL(t *testing.T) {
 	b := func(buildOpts, io.Writer) (buildResult, error) { built = true; return buildResult{}, nil }
 	cfg := shopsCfg{Out: t.TempDir(), Setup: fakeSetup, Env: filepath.Join(t.TempDir(), ".env")}
 	for _, kind := range []string{"test", "release"} {
-		_, err := shopRun(&s, nil, b, cfg, kind, "2026.10.19.1530", "", false, io.Discard)
+		_, err := shopRun(&s, nil, b, cfg, kind, "2026.10.19.1530", "", extras{}, io.Discard)
 		if err == nil || !strings.Contains(err.Error(), "UPDATE_BASE_URL") || built {
 			t.Fatalf("%s: err %v, built %v", kind, err, built)
 		}

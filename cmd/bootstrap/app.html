@@ -114,6 +114,7 @@ dialog.rel textarea { width: 100%; box-sizing: border-box; min-height: 180px; ma
     <div class="panel">
       <div class="row"><h2>Shops</h2><span class="acts" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <label class="check"><input type="checkbox" id="installer" checked> Add installer</label>
+        <label class="check" title="A Windows main PC in server mode installs PostgreSQL: put its installer (413 MB, downloaded once to this PC) beside the files, so the shop downloads nothing"><input type="checkbox" id="postgres"> + PostgreSQL (Windows main PC)</label>
         <button class="btn" id="buildAll">Test build all</button>
         <button class="btn" id="releaseAll">Release all…</button>
         <button class="btn primary" id="newShop">+ New shop</button></span></div>

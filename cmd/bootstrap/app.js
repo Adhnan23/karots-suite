@@ -143,7 +143,7 @@ async function loadShops() {
       <span class="chip">${sh.install.open}</span>${warns}</div><div class="chips">${state}</div><div class="hint">${esc(last)}</div></div>
       <div class="acts"><button class="btn primary" data-a="release">Release…</button>${unpublished ? '<button class="btn" data-a="publish">Publish</button>' : ''}<button class="btn" data-a="build">Test build</button><button class="btn" data-a="edit">Edit</button>
       <button class="btn" data-a="env">.env</button><button class="btn danger" data-a="del">Delete</button></div>`
-    row.querySelector('[data-a=build]').onclick = (e) => stream(`/api/shops/${sh.key}/build`, { installer: $('installer').checked }, e.target, loadShops)
+    row.querySelector('[data-a=build]').onclick = (e) => stream(`/api/shops/${sh.key}/build`, { installer: $('installer').checked, postgres: $('postgres').checked }, e.target, loadShops)
     row.querySelector('[data-a=release]').onclick = (e) => release(sh, e.target)
     if (unpublished) row.querySelector('[data-a=publish]').onclick = (e) => stream(`/api/shops/${sh.key}/publish`, {}, e.target, loadShops)
     row.querySelector('[data-a=edit]').onclick = () => edit(sh)
@@ -161,7 +161,7 @@ async function release(sh, btn) {
   $('rel').showModal(); $('relNotes').focus()
   $('relGo').onclick = () => {
     $('rel').close()
-    const body = { installer: $('installer').checked, notes: $('relNotes').value }
+    const body = { installer: $('installer').checked, postgres: $('postgres').checked, notes: $('relNotes').value }
     stream(sh ? `/api/shops/${sh.key}/release` : '/api/shops/release-all', body, btn, loadShops)
   }
 }
@@ -354,7 +354,7 @@ $('releaseAll').onclick = (e) => release(null, e.target)
 $('relCancel').onclick = () => $('rel').close()
 $('buildAll').onclick = (e) => {
   if (confirm('Test build every shop now, one after another' + ($('installer').checked ? ' (with the installer)' : '') + '? Nothing is uploaded. A shop that fails is listed at the end; the rest still build.'))
-    stream('/api/shops/build-all', { installer: $('installer').checked }, e.target, loadShops)
+    stream('/api/shops/build-all', { installer: $('installer').checked, postgres: $('postgres').checked }, e.target, loadShops)
 }
 $('nCreate').onclick = createShop
 $('nName').oninput = () => { if (!$('nKey').dataset.touched) $('nKey').value = keyOf($('nName').value) }

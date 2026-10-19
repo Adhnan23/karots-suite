@@ -230,20 +230,20 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 
 	// Test build: local only, nothing uploaded.
 	mux.HandleFunc("POST /api/shops/{key}/build", func(w http.ResponseWriter, r *http.Request) {
-		var in struct{ Installer bool }
+		var in extras
 		if !decode(w, r, &in) {
 			return
 		}
 		version := versionAt(time.Now())
 		runOne(w, r.PathValue("key"), func(s *Shop, log io.Writer) (buildResult, error) {
-			return shopRun(s, all, b, cfg, "test", version, "", in.Installer, log)
+			return shopRun(s, all, b, cfg, "test", version, "", in, log)
 		})
 	})
 	mountRelease(mux, all, b, cfg, busy, &mu, decode, runOne)
 
 	// Build all: every shop in key order; one failing doesn't stop the rest.
 	mux.HandleFunc("POST /api/shops/build-all", func(w http.ResponseWriter, r *http.Request) {
-		var in struct{ Installer bool }
+		var in extras
 		if !decode(w, r, &in) {
 			return
 		}
@@ -264,7 +264,7 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 			var failed []string
 			for _, s := range shops.Shops {
 				fmt.Fprintf(log, "\n=== %s (%s) ===\n", s.Name, s.Key)
-				if _, err := shopRun(&s, all, b, cfg, "test", version, "", in.Installer, log); err != nil {
+				if _, err := shopRun(&s, all, b, cfg, "test", version, "", in, log); err != nil {
 					fmt.Fprintf(log, "✗ %s: %v\n", s.Key, err)
 					failed = append(failed, s.Key)
 					continue

@@ -23,6 +23,9 @@ type shopBuildOpts struct {
 	// Version, Kind ("test" | "release") and PubKey (the release key's public
 	// half) stamp the binary and turn its updater on; empty Version = neither.
 	Version, Kind, PubKey string
+	// PGInstaller is the cached PostgreSQL installer to put beside the three
+	// files of a Windows main PC (needsPG); "" = none.
+	PGInstaller string
 }
 
 // buildShop makes <out>/<key>: the shop's binary and, with Installer, the
@@ -63,6 +66,12 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 		if err := shopconf.Write(filepath.Join(dir, shopconf.FileName), s.Conf(filepath.Base(res.Binary))); err != nil {
 			return res, err
 		}
+		if o.PGInstaller != "" && needsPG(*s) {
+			fmt.Fprintf(log, "→ %s beside the installer (no download at the shop)\n", shopconf.PGInstallerName)
+			if err := linkOrCopy(o.PGInstaller, filepath.Join(dir, shopconf.PGInstallerName)); err != nil {
+				return res, err
+			}
+		}
 	}
 	res.Folder = dir
 	s.LastBuilt = &Built{At: time.Now().UTC().Truncate(time.Second), Commit: gitCommit(), Version: o.Version, Kind: o.Kind}
@@ -97,7 +106,7 @@ func gitCommit() string {
 // buildShops is -shop: a Release of one shop, or "all" in key order (one
 // version for all), or with test a Test build (nothing uploaded). A failing
 // shop doesn't stop the rest; the failures are listed at the end.
-func buildShops(path, which string, all []manifest, installer, test bool) error {
+func buildShops(path, which string, all []manifest, add extras, test bool) error {
 	shops, err := LoadShops(path)
 	if err != nil {
 		return err
@@ -121,7 +130,7 @@ func buildShops(path, which string, all []manifest, installer, test bool) error 
 		}
 		built++
 		before := s.LastBuilt
-		res, err := shopRun(&s, all, build, cfg, kind, version, defaultNotes(s, all), installer, os.Stdout)
+		res, err := shopRun(&s, all, build, cfg, kind, version, defaultNotes(s, all), add, os.Stdout)
 		if s.LastBuilt != before {
 			if serr := saveShopState(cfg, &mu, s); serr != nil {
 				return serr
