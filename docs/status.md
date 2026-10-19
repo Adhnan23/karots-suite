@@ -20,7 +20,12 @@ Playwright 175 passed / 24 skipped.
 1. **Acceptance PASSED (user, 2026-10-19, VM):** Release 2026.10.19.1929 installed by hand → Data page **Up to date**;
    Release 2026.10.19.1936 ("test update") → Check now showed it with its notes → **Update** → came back on 1936, Up to
    date. `SUITE_RELEASE_KEY` is in `.env` — keep a copy safe.
-2. Linux USB double-click and one real shop install still unverified (from M8b).
+2. **File-mode boot fix (2026-10-19, `0a240df`):** PostgreSQL was unpacked from the .txz on every start
+   (embedded-postgres wipes its runtime folder; its "already unpacked" check misses `pg_ctl.exe` on Windows). Now
+   unpacked once into `data/pg-<version>`. User: restart → kiosk went from ~40 s to ~17 s on the Windows VM. Crash-restart
+   by karots-start PASSED on Windows (user ended Karots, it came back). Possible next step: start the kiosk loop from a
+   scheduled task instead of the Startup folder (Windows delays Startup items ~10 s) — not done, offered.
+   Linux USB double-click and one real shop install still unverified (from M8b).
 3. **Windows check after the review fix:** karots-start now starts Karots again 5 s after a crash (non-zero exit), so
    BootGuard can roll a bad update back — confirm on the Windows box (kill Karots → it comes back).
 4. Deferred review minors: Publish stuck after a lost upload reply (Release again works); a failed Test build after an
