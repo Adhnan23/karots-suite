@@ -27,7 +27,7 @@ uploaded**, so the shop's channel folder in the bucket stayed empty and the Data
 ## Goals
 
 - Builder: **Test build** (local only, marked as such) and **Release** (build + publish); **Release** per shop and **Release all**; each row
-  shows **published** version vs **running** version (via the feed Worker).
+  shows the **published** version and the last test build (no running version — see below).
 - Shop: checks its own folder, shows current / latest / what's new on the **Data** page (admin + system), installs
   on **Update** (never by itself), comes back by itself, rolls back if the new binary can't stay up.
 - Tills and admin browsers pick up the new SPA after an update without a stale page — but never mid-sale.
@@ -112,30 +112,25 @@ releases so a shop that skipped some sees every change (`NotesSince`); keep the 
 ## The Builder side
 
 - Env (dev `.env`): `SUITE_RELEASE_KEY`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
-  `R2_BUCKET=karots-suite`, `UPDATE_BASE_URL=<feed Worker URL>`, `R2_PUBLIC_URL=https://pub-e1fb05003fb841199f70633558a66fd2.r2.dev`. Missing R2 creds →
+  `R2_BUCKET=karots-suite`, `UPDATE_BASE_URL=https://pub-e1fb05003fb841199f70633558a66fd2.r2.dev`. Missing R2 creds →
   Build still builds, row says **Not published — R2 not set up** (the reason, not a stack trace). Fork karots-pos
   `cmd/release/r2.go` (S3 API PUT/DELETE, its tests) rather than adding the AWS SDK.
 - Upload order: binary `.gz` first, `manifest.json` last with `Cache-Control: no-store`, so a shop never sees a
   manifest whose file isn't there.
 - Refuse to release from a dirty tree (as karots-pos), so "what's new" matches what ships; the Build button says why.
-- `shops.json` per shop gains `published` (`{version, commit, at}`), next to `lastBuilt`. The row shows
-  **published** and **running** (below) and is red when not published or when running is older than published by
-  more than N days (builder's call on N; 14 is fine).
+- `shops.json` per shop gains `published` (`{version, commit, at}`), next to `lastBuilt` (which also records
+  `kind: "test" | "release"` and `version`). The row shows **published** and, in amber, a newer test build; red when
+  nothing is published.
 - What's new = the release dialog's text + `git log --oneline` since the shop's previous published commit, filtered to
   core + that shop's plugins (fork `changesSince` / `notes.go`).
 
-## Running version — the feed Worker (user chose A, 2026-10-19)
+## Running version — not tracked (user, 2026-10-19)
 
-The bucket is public read-only and r2.dev keeps no request log, so a small **Cloudflare Worker** ("feed") sits in front
-of the `karots-suite` bucket (R2 binding) and is the **only URL baked into shop binaries** (`main.updateBaseURL`):
-
-- `GET /<channel>/manifest.json` and `GET /<channel>/<file>` are served from R2 (404 passes through → "not published").
-- On a manifest fetch carrying `X-Karots-Version` (must match `^\d{4}\.\d{2}\.\d{2}\.\d{4}$|^dev$`, else ignored), it
-  writes `<channel>/seen.json` = `{version, seenAt}`. Nothing else is writable; no listing.
-- Source in `deploy/feed-worker/` (Worker + `wrangler.jsonc`), deployed with wrangler before the first M8c build; its
-  `workers.dev` URL goes into `.env` as `UPDATE_BASE_URL`. The r2.dev URL stays for the Builder's own reads only.
-- The Builder reads each shop's `seen.json` and shows **running** (and "seen 3 h ago") next to **published**. The row
-  is red when not published, or running is older than published by more than 14 days, or not seen for 14 days.
+The user first chose a Cloudflare Worker in front of the bucket to record each shop's running version, then dropped it:
+**no extra moving parts**. Shops read the bucket directly at `UPDATE_BASE_URL` (the r2.dev URL). The Builder shows only
+what it **published** (version, when) and the last **test build**; what a shop runs is seen on its Data page (in
+person or via Tailscale). The row is red only when the shop has **nothing published**. A running column can come
+later only by carrying a new binary to every shop (the feed URL is baked in) — accepted.
 
 ## Decisions I made (not the user's — check them)
 
