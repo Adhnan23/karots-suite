@@ -95,6 +95,10 @@ func Open(o Options) (*DB, error) {
 		if strings.Contains(err.Error(), "already listening") {
 			return nil, fmt.Errorf("port %d is taken by another program — set FILE_DB_PORT in .env to a free port", o.Port)
 		}
+		// 0xc0000135 = Windows "DLL not found": zonky's PostgreSQL needs the VC++ runtime.
+		if strings.Contains(err.Error(), "0xc0000135") {
+			return nil, fmt.Errorf("PostgreSQL needs the Microsoft Visual C++ runtime — install https://aka.ms/vs/17/release/vc_redist.x64.exe, delete %s, then start again", dir)
+		}
 		return nil, fmt.Errorf("start PostgreSQL (see %s): %w", filepath.Join(dir, "postgres.log"), err)
 	}
 	return &DB{
