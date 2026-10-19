@@ -34,28 +34,9 @@ func windowsDatabase(j *Job) error {
 		c.Close()
 		return nil
 	}
-	// winget says "already installed" with a non-zero code: not an error. No
-	// winget (some Windows 10 builds) or it failed: the same EDB installer winget
-	// uses, downloaded and checked against its pinned SHA-256.
-	args := fmt.Sprintf("--superpassword %s --serverport %d", db.SuperPassword, db.Port)
-	ps(j, fmt.Sprintf(`# karots:install-postgresql
-if (Get-Command winget -ErrorAction SilentlyContinue) {
-  winget install --id PostgreSQL.PostgreSQL.17 -e --silent --accept-package-agreements --accept-source-agreements --custom "%[1]s"
-}
-if (-not (Test-Path 'C:\Program Files\PostgreSQL\*\bin\psql.exe')) {
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  $ProgressPreference = 'SilentlyContinue'
-  $f = Join-Path $env:TEMP 'karots-postgresql-17.exe'
-  Write-Output 'downloading PostgreSQL 17 from get.enterprisedb.com…'
-  Invoke-WebRequest -UseBasicParsing -Uri '%[2]s' -OutFile $f
-  if ((Get-FileHash $f -Algorithm SHA256).Hash -ne '%[3]s') { Remove-Item $f; throw 'the PostgreSQL download is damaged (checksum differs)' }
-  Start-Process -FilePath $f -ArgumentList '--mode unattended --unattendedmodeui none %[1]s' -Wait
-  Remove-Item $f -ErrorAction SilentlyContinue
-}`, args, pgInstallerURL, pgInstallerSHA256)) //nolint:errcheck
-	bin, err := ps(j, `# karots:find-psql
-(Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName`)
-	if err != nil || bin == "" {
-		return fmt.Errorf("PostgreSQL didn't install (no psql.exe under C:\\Program Files\\PostgreSQL) — the log above says why; this PC must reach get.enterprisedb.com — then Try again")
+	bin, err := installPostgres(j)
+	if err != nil {
+		return err
 	}
 	super, tag := "", ""
 	for _, try := range []struct{ pw, tag string }{{db.SuperPassword, "super"}, {j.SuperPassword, "typed"}} {
@@ -93,4 +74,47 @@ $env:PGPASSWORD = %s
 $code = $LASTEXITCODE
 Remove-Item Env:\PGPASSWORD
 exit $code`, tag, psq(password), psq(bin), j.Conf.DB.Port, psq(sql)))
+}
+
+// installPostgres finds psql.exe, installing PostgreSQL 17 first when it isn't
+// on this PC: winget, else the same EDB installer winget uses, downloaded and
+// checked against its pinned SHA-256 (some Windows 10 builds have no winget).
+// Each stage says on the page what it is doing — it can take ten minutes.
+func installPostgres(j *Job) (string, error) {
+	find := func() string {
+		bin, _ := ps(j, `# karots:find-psql
+(Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName`)
+		return bin
+	}
+	if bin := find(); bin != "" {
+		return bin, nil
+	}
+	args := fmt.Sprintf("--superpassword %s --serverport %d", j.Conf.DB.SuperPassword, j.Conf.DB.Port)
+	j.note("Installing PostgreSQL 17 with winget (it downloads about 400 MB) — several minutes")
+	// winget says "already installed" with a non-zero code: not an error.
+	ps(j, fmt.Sprintf(`# karots:winget-postgresql
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { 'no-winget'; exit 0 }
+winget install --id PostgreSQL.PostgreSQL.17 -e --silent --accept-package-agreements --accept-source-agreements --custom "%s"`, args)) //nolint:errcheck
+	if bin := find(); bin != "" {
+		return bin, nil
+	}
+	j.note("Downloading PostgreSQL 17 (413 MB) from get.enterprisedb.com — several minutes on a slow line")
+	if _, err := ps(j, fmt.Sprintf(`# karots:download-postgresql
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$ProgressPreference = 'SilentlyContinue'
+$f = Join-Path $env:TEMP 'karots-postgresql-17.exe'
+Invoke-WebRequest -UseBasicParsing -Uri '%s' -OutFile $f
+if ((Get-FileHash $f -Algorithm SHA256).Hash -ne '%s') { Remove-Item $f; throw 'the PostgreSQL download is damaged (checksum differs)' }`, pgInstallerURL, pgInstallerSHA256)); err != nil {
+		return "", fmt.Errorf("couldn't download PostgreSQL — this PC must reach get.enterprisedb.com: %w", err)
+	}
+	j.note("Installing PostgreSQL 17 — a few minutes, nothing to click")
+	ps(j, fmt.Sprintf(`# karots:install-postgresql
+$f = Join-Path $env:TEMP 'karots-postgresql-17.exe'
+Start-Process -FilePath $f -ArgumentList '--mode unattended --unattendedmodeui none %s' -Wait
+Remove-Item $f -ErrorAction SilentlyContinue`, args)) //nolint:errcheck
+	if bin := find(); bin != "" {
+		j.note("PostgreSQL 17 installed")
+		return bin, nil
+	}
+	return "", fmt.Errorf("PostgreSQL didn't install (no psql.exe under C:\\Program Files\\PostgreSQL) — the log above says why; this PC must reach get.enterprisedb.com — then Try again")
 }

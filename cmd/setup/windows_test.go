@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func windowsJob(t *testing.T, mode string) (*Job, *rec) {
@@ -25,8 +27,11 @@ func windowsJob(t *testing.T, mode string) (*Job, *rec) {
 	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: `SHOP\owner`, Run: rc, Log: io.Discard}, rc
 }
 
+const psqlPath = `C:\Program Files\PostgreSQL\17\bin\psql.exe`
+
 func TestWindowsDatabase(t *testing.T) {
 	j, rc := windowsJob(t, "server")
+	rc.seq = map[string][]string{"ps> # karots:find-psql": {"", psqlPath}} // not there, then installed by winget
 	var log strings.Builder
 	j.Log = &log
 	if err := windowsDatabase(j); err != nil {
@@ -46,14 +51,37 @@ func TestWindowsDatabase(t *testing.T) {
 	if strings.Contains(log.String(), "pw123") || strings.Contains(log.String(), "super123") {
 		t.Fatal("the log shows a password")
 	}
+	if !strings.Contains(log.String(), "@@NOTE Installing PostgreSQL 17 with winget") {
+		t.Fatalf("no progress note on the page:\n%s", log.String())
+	}
+}
+
+// PostgreSQL already on the PC: nothing is installed or downloaded.
+func TestWindowsDatabaseAlreadyThere(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	if err := windowsDatabase(j); err != nil {
+		t.Fatal(err)
+	}
+	if all := rc.all(); strings.Contains(all, "winget install") || strings.Contains(all, "Invoke-WebRequest") {
+		t.Fatalf("installed again:\n%s", all)
+	}
 }
 
 // No winget (some Windows 10 builds): the official installer winget would run is
 // downloaded instead, checked against its pinned SHA-256, and run silently.
 func TestWindowsDatabaseWithoutWinget(t *testing.T) {
 	j, rc := windowsJob(t, "server")
+	rc.seq = map[string][]string{"ps> # karots:find-psql": {"", "", psqlPath}} // not there, winget missing, then installed
+	rc.answers["ps> # karots:winget-postgresql"] = "no-winget"
+	var log strings.Builder
+	j.Log = &log
 	if err := windowsDatabase(j); err != nil {
 		t.Fatal(err)
+	}
+	for _, want := range []string{"@@NOTE Downloading PostgreSQL 17 (413 MB)", "@@NOTE Installing PostgreSQL 17"} {
+		if !strings.Contains(log.String(), want) {
+			t.Errorf("no %q on the page:\n%s", want, log.String())
+		}
 	}
 	all := rc.all()
 	for _, want := range []string{
@@ -70,10 +98,43 @@ func TestWindowsDatabaseWithoutWinget(t *testing.T) {
 	// Not installed after all: say so without blaming the internet alone.
 	j, rc = windowsJob(t, "server")
 	rc.answers["ps> # karots:find-psql"] = ""
+	rc.answers["ps> # karots:winget-postgresql"] = "no-winget"
 	if err := windowsDatabase(j); err == nil || !strings.Contains(err.Error(), "get.enterprisedb.com") {
 		t.Fatalf("err %v", err)
 	}
 }
+
+// A step that runs long says it is still alive, under its spinner.
+func TestPSHeartbeat(t *testing.T) {
+	defer func(d time.Duration) { heartbeat = d }(heartbeat)
+	heartbeat = 20 * time.Millisecond
+	j, _ := windowsJob(t, "server")
+	j.Run = slowRunner{80 * time.Millisecond}
+	var log syncBuilder
+	j.Log = &log
+	j.note("Installing PostgreSQL 17")
+	ps(j, "# karots:install-postgresql\nStart-Process x -Wait")
+	if !strings.Contains(log.String(), "@@NOTE Installing PostgreSQL 17 · still working") {
+		t.Fatalf("no heartbeat:\n%s", log.String())
+	}
+}
+
+type slowRunner struct{ d time.Duration }
+
+func (s slowRunner) Run(string, ...string) (string, error) { time.Sleep(s.d); return "", nil }
+func (s slowRunner) Script(string) (string, error)         { time.Sleep(s.d); return "", nil }
+
+type syncBuilder struct {
+	mu sync.Mutex
+	b  strings.Builder
+}
+
+func (s *syncBuilder) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+func (s *syncBuilder) String() string { s.mu.Lock(); defer s.mu.Unlock(); return s.b.String() }
 
 // PostgreSQL already there with an unknown password → ask on the page, then use it.
 func TestWindowsNeedSuperPassword(t *testing.T) {

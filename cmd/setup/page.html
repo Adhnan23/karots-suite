@@ -47,6 +47,7 @@ li.run .st { border-color: var(--brand); border-right-color: transparent; animat
 li.ok .st { background: var(--ok); border-color: var(--ok); color: var(--brand-fg); }
 li.fail .st { background: var(--bad); border-color: var(--bad); color: var(--brand-fg); }
 li b { font-size: 15px; } li small { display: block; color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
+li .note { display: block; margin-top: 3px; font-size: 13.5px; font-weight: 600; color: var(--fg); overflow-wrap: anywhere; } li .note:empty { display: none; }
 @keyframes s { to { transform: rotate(1turn); } }
 .go { width: 100%; padding: 16px; border: 0; border-radius: 14px; cursor: pointer; font: 700 17px Figtree, system-ui, sans-serif;
   color: var(--brand-fg); background: linear-gradient(135deg, var(--brand), var(--cyan)); box-shadow: 0 12px 30px rgb(139 123 255 / .35); }
@@ -172,7 +173,7 @@ async function plan() {
   $('steps').innerHTML = ''
   for (const s of p.steps) {
     const li = document.createElement('li'); li.id = 'step-' + s.id
-    li.innerHTML = '<span class="st"></span><span><b></b><small></small></span>'
+    li.innerHTML = '<span class="st"></span><span><b></b><small></small><span class="note"></span></span>'
     li.querySelector('b').textContent = s.title; li.querySelector('small').textContent = s.detail
     $('steps').append(li)
   }
@@ -195,7 +196,7 @@ async function install() {
   $('fail').hidden = true; $('done').hidden = true; $('go').hidden = false; $('log').textContent = ''
   for (const b of document.querySelectorAll('.role')) b.disabled = true
   await plan()
-  let text = '', failed = null, need = false, done = false
+  let text = '', failed = null, need = false, done = false, current = null
   try {
     const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify({ ...choice(), superPassword: $('super').value }) })
     if (!res.ok) failed = { msg: (await res.json()).error }
@@ -210,7 +211,9 @@ async function install() {
         while ((i = buf.indexOf('\n')) >= 0) {
           const line = buf.slice(0, i); buf = buf.slice(i + 1)
           const m = line.match(/^@@STEP (\S+) (run|ok|fail) ?(.*)$/)
-          if (m) { mark(m[1], m[2]); if (m[2] === 'fail') failed = { id: m[1], msg: m[3] } }
+          const note = line.match(/^@@NOTE (.*)$/)
+          if (m) { mark(m[1], m[2]); current = m[2] === 'run' ? m[1] : null; if (m[2] === 'fail') failed = { id: m[1], msg: m[3] } }
+          else if (note) { const li = current && $('step-' + current); if (li) li.querySelector('.note').textContent = note[1] }
           else if (line === '@@NEED superPassword') need = true
           else if (line === '@@DONE') done = true
           else { text += line + '\n'; $('log').textContent = text; $('log').scrollTop = 1e9 }

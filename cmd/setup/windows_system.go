@@ -13,7 +13,9 @@ const windowsTask = "KarotsSuite"
 func ps(j *Job, script string) (string, error) {
 	name := strings.TrimPrefix(strings.SplitN(script, "\n", 2)[0], "# karots:")
 	fmt.Fprintf(j.Log, "→ PowerShell: %s\n", j.redact(name))
-	out, err := j.Run.Script(script)
+	var out string
+	var err error
+	j.busy(func() { out, err = j.Run.Script(script) })
 	if s := strings.TrimSpace(out); s != "" {
 		fmt.Fprintln(j.Log, j.redact(s))
 	}

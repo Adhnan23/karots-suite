@@ -16,12 +16,19 @@ import (
 // rec is a Runner that records commands and runs nothing.
 type rec struct {
 	cmds    []string
-	answers map[string]string // command prefix → output
-	fail    map[string]error  // command prefix → error
+	answers map[string]string   // command prefix → output
+	fail    map[string]error    // command prefix → error
+	seq     map[string][]string // command prefix → outputs in turn (then answers)
 }
 
 func (r *rec) answer(cmd string) (string, error) {
 	r.cmds = append(r.cmds, cmd)
+	for p, outs := range r.seq {
+		if strings.HasPrefix(cmd, p) && len(outs) > 0 {
+			r.seq[p] = outs[1:]
+			return outs[0], nil
+		}
+	}
 	for p, err := range r.fail {
 		if strings.HasPrefix(cmd, p) {
 			return "", err

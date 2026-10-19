@@ -32,7 +32,9 @@ func at(p string) string { return filepath.Join(root, p) }
 // run runs a tool, logs it, and wraps a failure with its output.
 func run(j *Job, name string, args ...string) (string, error) {
 	fmt.Fprintf(j.Log, "→ %s %s\n", name, j.redact(strings.Join(args, " ")))
-	out, err := j.Run.Run(name, args...)
+	var out string
+	var err error
+	j.busy(func() { out, err = j.Run.Run(name, args...) })
 	if strings.TrimSpace(out) != "" {
 		fmt.Fprintln(j.Log, strings.TrimSpace(out))
 	}

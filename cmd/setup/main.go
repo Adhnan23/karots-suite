@@ -306,7 +306,9 @@ func shopUser() string {
 type osRunner struct{}
 
 func (osRunner) Run(name string, args ...string) (string, error) {
-	out, err := exec.Command(name, args...).CombinedOutput()
+	c := exec.Command(name, args...)
+	hideWindow(c) // Setup has no console on Windows: each PowerShell would flash its own window
+	out, err := c.CombinedOutput()
 	return string(out), err
 }
 

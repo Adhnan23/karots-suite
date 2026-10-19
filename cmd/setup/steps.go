@@ -32,6 +32,7 @@ type Job struct {
 
 	Kept          []string // an Update: settings kept from this PC (shown on the page)
 	launcherReady bool     // Windows: karots-start.exe was placed this run
+	lastNote      string   // the page's line under the running step
 }
 
 // Runner runs the OS tools; tests record the commands instead.
@@ -153,6 +154,7 @@ func RunAll(j *Job, mark func(id string, err error)) error { return runSteps(j, 
 func runSteps(j *Job, steps []Step, mark func(id string, err error)) error {
 	for _, s := range steps {
 		fmt.Fprintf(j.Log, "\n== %s\n", s.Title)
+		j.lastNote = ""
 		err := s.Do(j)
 		mark(s.ID, err)
 		if err != nil {

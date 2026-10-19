@@ -111,6 +111,7 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 		var failed error
 		for _, s := range steps(j) {
 			fmt.Fprintf(log, "@@STEP %s run\n", s.ID)
+			j.lastNote = ""
 			if err := s.Do(j); err != nil {
 				failed = err
 				fmt.Fprintf(log, "\n@@STEP %s fail %s\n", s.ID, oneLine(err.Error()))
