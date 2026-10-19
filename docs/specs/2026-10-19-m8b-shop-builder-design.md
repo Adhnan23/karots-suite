@@ -46,7 +46,8 @@ never loses every shop. The Builder commits nothing itself — the user commits 
   "port": 3000,                     // the till's HTTP port
   "db": {                           // server mode only
     "host": "localhost", "port": 5432,
-    "name": "suite_db", "user": "suite_user", "password": "…32 hex…"
+    "name": "suite_db", "user": "suite_user", "password": "…32 hex…",
+    "superPassword": "…32 hex…"     // Windows: the postgres superuser set when Setup installs PostgreSQL
   },
   "fileDbPort": 5434,               // file mode only: its own PostgreSQL (loopback)
   "jwtSecret": "…48 hex…",          // server mode only (file mode keeps its own in data/)
@@ -97,7 +98,8 @@ dist/al-raj/
   hand-swap a binary later. A quick build (no shop) never has one — there's no profile to make `install.conf` from.
 - **`install.conf`** is JSON, written by the Builder, never typed, and holds **both** halves:
   - what to do: `shop`, `mode` (file | server), `binary`, `installDir`, `port`, `open` (kiosk | background),
-    `lanAddress`, and for server mode `db` {`host`, `port`, `name`, `user`, `password`, `local`} (`local` = host is this
+    `lanAddress`, `installId` (shown on Done for support), and for server mode `db` {`host`, `port`, `name`, `user`,
+    `password`, `superPassword`, `local`} (`local` = host is this
     PC);
   - **`env`**: the app's `.env`, already final — `APP_ENV=production`, `SERVER_PORT`, then server mode `DATABASE_URL`
     + `JWT_SECRET` + `BACKUP_DIR=backups`, file mode `FILE_DB_PORT`, then the profile's extras. The installer writes it
