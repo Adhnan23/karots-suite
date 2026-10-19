@@ -19,6 +19,12 @@ export function shouldReload(seenV: string | null, now: string | null, guard: ()
   return !!seenV && !!now && now !== seenV && guard()
 }
 
+/** The till may reload only when nobody is mid-task: on the Sell screen, with
+ * an empty cart and no dialog open (a counter tab or Close drawer keeps it). */
+export function tillQuiet(path: string, cartEmpty: boolean, dialogOpen: boolean): boolean {
+  return cartEmpty && !dialogOpen && path.replace(/\/+$/, '') === '/till'
+}
+
 const allow = () => [...guards].every((g) => g())
 
 function tryReload() {

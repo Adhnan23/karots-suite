@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { _reset, noteVersion, setReloadGuard, shouldReload } from './version'
+import { _reset, noteVersion, setReloadGuard, shouldReload, tillQuiet } from './version'
 
 describe('shouldReload', () => {
   it('only for a changed version the guard allows', () => {
@@ -47,5 +47,16 @@ describe('noteVersion', () => {
     vi.advanceTimersByTime(6_600) // the next 5 s retry, then the banner
     expect(reloads).toBe(1)
     off()
+  })
+})
+
+describe('tillQuiet', () => {
+  it('only on the Sell screen with an empty cart and nothing open', () => {
+    expect(tillQuiet('/till', true, false)).toBe(true)
+    expect(tillQuiet('/till/', true, false)).toBe(true)
+    expect(tillQuiet('/till', false, false)).toBe(false) // a sale on the counter
+    expect(tillQuiet('/till', true, true)).toBe(false) // Close drawer, Pay… open
+    expect(tillQuiet('/till/returns', true, false)).toBe(false) // a counter tab mid-task
+    expect(tillQuiet('/till/x/repairs', true, false)).toBe(false)
   })
 })
