@@ -23,8 +23,9 @@ Playwright 175 passed / 24 skipped.
 2. **File-mode boot fix (2026-10-19, `0a240df`):** PostgreSQL was unpacked from the .txz on every start
    (embedded-postgres wipes its runtime folder; its "already unpacked" check misses `pg_ctl.exe` on Windows). Now
    unpacked once into `data/pg-<version>`. User: restart → kiosk went from ~40 s to ~17 s on the Windows VM. Crash-restart
-   by karots-start PASSED on Windows (user ended Karots, it came back). Possible next step: start the kiosk loop from a
-   scheduled task instead of the Startup folder (Windows delays Startup items ~10 s) — not done, offered.
+   by karots-start PASSED on Windows (user ended Karots, it came back). Then the kiosk moved from the Startup folder to a
+   sign-in task `KarotsSuiteKiosk` (`0cfbb3a`; Windows delays Startup items): restart → till in **~10 s** (user, VM).
+   Reaches a shop only through karots-setup → Update (installer change, not the binary).
    Linux USB double-click and one real shop install still unverified (from M8b).
 3. **Windows check after the review fix:** karots-start now starts Karots again 5 s after a crash (non-zero exit), so
    BootGuard can roll a bad update back — confirm on the Windows box (kill Karots → it comes back).
