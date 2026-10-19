@@ -34,8 +34,14 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 ```
 cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin);
                       enabled_plugins.go is GENERATED (committed core-only)
-cmd/bootstrap/        Shop Builder: no flags = browser app (pick plugins / OS / database mode / install id,
-                      build); flags for scripts; writes both plugin lists, builds, restores them core-only
+cmd/bootstrap/        Shop Builder: no flags = browser app — the shop list (shops.json profiles: plugins, OS,
+                      database mode, ports, secrets, install id, channel) + Quick build; -shop <key|all>, -list,
+                      -import-pos; writes both plugin lists, builds, restores them core-only. A shop build =
+                      dist/<key>/ karots-setup + install.conf + the binary ("Add installer" off = binary only)
+cmd/setup/            karots-setup, the shop's installer: double-click → page (UAC / pkexec) → modular steps per
+                      role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless
+internal/shopconf/    install.conf — the Builder ⇄ installer contract (install settings + the final .env)
+shops.json            every shop's profile, committed (private repo — it holds each shop's secrets)
 internal/filedb/      file mode: the shop's own PostgreSQL 17 in data/ next to the binary (no DATABASE_URL +
                       a `-tags filemode` build, which embeds bundle/postgres.txz — placed by the builder)
 plugins/<key>/        a plugin's Go half: plugin.json, init() → plugin.Register, own migrations
@@ -115,6 +121,10 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   `make core-only` puts the lists back — **never commit a plugin selection**. `make check-core` (in
   `make verify`) fails if core names a plugin or a list isn't core-only. Playwright builds with every
   plugin. A shop build: `make bootstrap` (Shop Builder in the browser).
+- **Shop builds:** `make bootstrap` → Shops → Build (or `make shop S=al-raj`); needs `POS_SUPPORT_SECRET` in `.env`.
+  Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
+  ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update. Look at the
+  installer page without installing: `karots-setup -dry` beside an install.conf. `build.ps1` = make on Windows.
 - **File mode** (one-PC shops): Shop Builder → Database "One PC", or `go run ./cmd/bootstrap -plugins none
   -mode file`. Run the binary with no `DATABASE_URL` (and no `.env` setting it): data, auto-backups and the
   generated secret go to `data/` beside it (`-data` / `FILE_DB_PORT`, default 5434). `go test ./internal/filedb`

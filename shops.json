@@ -1,0 +1,95 @@
+{
+  "shops": [
+    {
+      "key": "al-raj",
+      "name": "Al Raj",
+      "os": "windows",
+      "arch": "amd64",
+      "mode": "server",
+      "plugins": [
+        "aicatalog",
+        "documents",
+        "recharge",
+        "repairs",
+        "requests"
+      ],
+      "installId": "CB1AC268",
+      "channel": "34e466af307d3a2a059fa46a8227fb0c",
+      "port": 3000,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "3f7f6ebb4cadec122873f4f2991dd68f",
+        "superPassword": "6e7f71ddf477a642083bf11211f840ea"
+      },
+      "jwtSecret": "3debb1cf57d812131c5a2e992d26f090c6d9521a67d4f2e7",
+      "install": {
+        "dir": "C:\\karots-suite",
+        "open": "kiosk"
+      }
+    },
+    {
+      "key": "mum-digital",
+      "name": "Mum Digital",
+      "os": "linux",
+      "arch": "amd64",
+      "mode": "server",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "clearance",
+        "combos",
+        "documents",
+        "productplus",
+        "recharge"
+      ],
+      "installId": "BB876E88",
+      "channel": "6a814675f5982cc3741e5bd961a46f97",
+      "port": 3000,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "d6618a07385084a57012965cd1a2f695",
+        "superPassword": "277d901b58e06bd831f3c0c1de6bdf84"
+      },
+      "jwtSecret": "7e12760415ef9b8d6c17bc97930fcdcfa55ecd6a042813d6",
+      "install": {
+        "dir": "/opt/karots-suite",
+        "open": "kiosk"
+      }
+    },
+    {
+      "key": "mum-motors",
+      "name": "MUM Motors",
+      "os": "linux",
+      "arch": "amd64",
+      "mode": "server",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "productplus",
+        "requests"
+      ],
+      "installId": "A3B07B1A",
+      "channel": "af5644c663371987bf05132421b16a17",
+      "port": 3000,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "fe46da18b46227ff9fe28d5bd6e6903d",
+        "superPassword": "84b4db1710e03935e2804595049d988c"
+      },
+      "jwtSecret": "2d669f3669fe8d7568fa9ac1d20927b4f49bb44be86d544c",
+      "install": {
+        "dir": "/opt/karots-suite",
+        "open": "kiosk"
+      }
+    }
+  ]
+}

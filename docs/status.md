@@ -212,7 +212,7 @@ day, wages already cover it; the lost weight is in the loose cost.
   copy refused, kill -9 → restart with data, clean stop leaves no Postgres; builder made Linux (39 MB) and Windows
   all-plugins (50 MB) file-mode binaries. **Left for the user: a Windows check** (double-click → till; close the
   window → no `postgres.exe` left; start again → same data; Sinhala product search) and one file → server move.
-  **NEXT: M8b Shop Builder** (spec approved 2026-10-19; plan next).
+  **NEXT: M8c self-update + release** (M8b done 2026-10-19).
 - **Windows check (user, 2026-10-19):** a fresh Windows 10 VM failed first start — zonky's PostgreSQL needs the VC++
   runtime (initdb `0xc0000135`). Fixed: Windows file-mode builds carry msvcp140 / vcruntime140 / vcruntime140_1
   (`internal/filedb/vcrt/`, written to `data\vcrt\`, first on PATH). **Works on Windows with the redist
@@ -228,6 +228,21 @@ day, wages already cover it; the lost weight is in the loose cost.
   committed (private repo), per-shop ports, a shop build = **three files** (`karots-setup` installer with a page,
   `install.conf` holding the final `.env`, the binary; "Add installer" tick), modular install steps per mode, kiosk or
   **background** (owner's own PC), `-import-pos`, shop builds refuse without `POS_SUPPORT_SECRET`.
+- **M8b Shop Builder DONE (2026-10-19)** (plan `docs/plans/2026-10-19-m8b-shop-builder.md`). Builder opens on the
+  **shop list** (`shops.json`, committed — 3 karots-pos shops imported with the same install ids, new channels, fresh
+  secrets): New / Edit (Shop · Database · Network · Install · More settings; secrets masked, Show, Rotate), Download
+  .env, Delete (type the key), Build with **Add installer**; Quick build kept. A shop build = `dist/<key>/`
+  **karots-setup + install.conf + binary**; refuses without `POS_SUPPORT_SECRET`. **karots-setup** (`cmd/setup`):
+  double-click → UAC / pkexec → page (This PC is main / cashier, What will happen, live ticks, Try again, the postgres
+  password field when Windows already has PostgreSQL, Done → Open the till), Update when installed, no Uninstall,
+  `-yes` headless, `-dry` preview. Steps: checks · database (PostgreSQL **17** — apt from apt.postgresql.org; older
+  refused) · program · settings (.env from install.conf) · backups · startup (systemd / hidden logon task) · network ·
+  printing (Linux) · open (kiosk loop | background + desktop shortcut) · health. **Real installs (Ubuntu 24.04 systemd
+  container, 2026-10-19):** file mode install + Update (data kept); server mode with local PostgreSQL 17; DB password
+  rotated → Update → new password logs in, old refused; a cashier PC against it. **Left for the user (VMs):** Windows
+  10 double-click (UAC, Chrome kiosk, hidden task, `.url` shortcut, existing-PostgreSQL password), Linux desktop
+  double-click from a USB stick (exec bit, pkexec box, browser opens as the user). Checks: `go test ./cmd/...
+  ./internal/shopconf/`, `make verify`, `make verify-portable`.
 - **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
   S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
   sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore

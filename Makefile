@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify
+.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -47,6 +47,12 @@ check-core:
 # install id). Scripts pass flags instead: go run ./cmd/bootstrap -plugins all -os windows
 bootstrap:
 	go run ./cmd/bootstrap
+# A shop from shops.json → dist/<key>/ (karots-setup, install.conf, the binary): make shop S=al-raj (or S=all)
+shop:
+	go run ./cmd/bootstrap -shop $(S)
+# The installer for this PC (shop builds make their own per OS).
+setup:
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/karots-setup ./cmd/setup
 # Dev: compile plugins into the working tree (P=all or P=clearance,requests).
 # Never commit the result — make core-only puts the lists back (check-core enforces it).
 plugins:
