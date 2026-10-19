@@ -71,7 +71,11 @@ func buildSetup(osName, arch, out string, log io.Writer) error {
 	if arch == "amd64" {
 		env = append(env, "GOAMD64=v1")
 	}
-	return sh(log, env, "go", "build", "-ldflags=-s -w", "-o", filepath.Join(out, name), "./cmd/setup")
+	ldflags := "-s -w"
+	if osName == "windows" {
+		ldflags += " -H windowsgui" // double-clicked: no console window; errors show in a message box
+	}
+	return sh(log, env, "go", "build", "-ldflags="+ldflags, "-o", filepath.Join(out, name), "./cmd/setup")
 }
 
 func gitCommit() string {

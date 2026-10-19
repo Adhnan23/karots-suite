@@ -6,20 +6,26 @@
 //	karots-setup                     the page (asks for admin rights first)
 //	sudo ./karots-setup -yes         headless: install as the shop's main PC, in the terminal
 //	sudo ./karots-setup -yes -role cashier -address 192.168.1.10:3000
+//	karots-setup -dry                pretend: the page, every step, nothing installed (for a look)
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func main() {
 	if err := start(); err != nil {
-		fmt.Fprintln(os.Stderr, "karots-setup: "+err.Error())
+		showError(err.Error())
 		os.Exit(1)
 	}
 }
@@ -29,16 +35,112 @@ func start() error {
 		yes     = flag.Bool("yes", false, "install without the page (a server with no screen)")
 		role    = flag.String("role", "server", "with -yes: server (the shop's main PC) | cashier")
 		address = flag.String("address", "", "with -role cashier: the main PC's host[:port]")
+		addr    = flag.String("addr", "", "the page's loopback address (set by the launcher)")
+		token   = flag.String("token", "", "the page's token (set by the launcher)")
+		userArg = flag.String("user", "", "the shop user (set by the launcher)")
+		dry     = flag.Bool("dry", false, "show the page and pretend: nothing is installed")
 	)
 	flag.Parse()
-	j, err := newJob(Role(*role), *address)
-	if err != nil {
+	if *userArg != "" {
+		os.Setenv("KAROTS_SETUP_USER", *userArg)
+	}
+	if _, err := newJob(RoleServer, ""); err != nil { // install.conf beside us, before anything else
 		return err
 	}
 	if *yes {
+		j, err := newJob(Role(*role), *address)
+		if err != nil {
+			return err
+		}
 		return headless(j)
 	}
-	return fmt.Errorf("the page arrives in a later step — use -yes for now")
+	if *token == "" && !*dry && !isAdmin() {
+		return launch()
+	}
+	return worker(*addr, *token, *dry)
+}
+
+// launch is the double-clicked, not-yet-admin Setup: it asks for admin rights
+// (UAC on Windows, the desktop's password box on Linux), starts the admin
+// worker on a random loopback port with a random token, opens the page in this
+// user's browser once the worker answers, and waits for it.
+func launch() error {
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	addr, err := freeAddr()
+	if err != nil {
+		return err
+	}
+	tok := randToken()
+	wait, err := elevate(exe, []string{"-addr", addr, "-token", tok, "-user", shopUser()})
+	if err != nil {
+		return err
+	}
+	url := "http://" + addr + "/?t=" + tok
+	c := http.Client{Timeout: time.Second}
+	for range 300 { // the password / UAC prompt may take a while
+		if res, err := c.Get("http://" + addr + "/api/ping?t=" + tok); err == nil {
+			res.Body.Close()
+			openBrowser(url)
+			return wait()
+		}
+		time.Sleep(time.Second)
+	}
+	return fmt.Errorf("Setup didn't start with admin rights — start it again and answer Yes")
+}
+
+// worker serves the page (as admin). Launched: the launcher opens the browser.
+// Started as admin directly (sudo, Run as administrator, -dry): it opens it itself.
+func worker(addr, tok string, dry bool) error {
+	launched := tok != ""
+	if !launched {
+		tok = randToken()
+	}
+	if addr == "" {
+		a, err := freeAddr()
+		if err != nil {
+			return err
+		}
+		addr = a
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+	mk, steps := newJob, Steps
+	if dry {
+		mk, steps = dryJob, drySteps
+	}
+	idle := time.AfterFunc(30*time.Minute, func() { os.Exit(0) })
+	h := pageHandler(tok, mk, steps, func() { time.Sleep(200 * time.Millisecond); os.Exit(0) })
+	url := "http://" + addr + "/?t=" + tok
+	fmt.Println("Karots Setup:", url)
+	if !launched {
+		openBrowser(url)
+	}
+	return http.Serve(ln, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idle.Reset(30 * time.Minute)
+		h.ServeHTTP(w, r)
+	}))
+}
+
+func freeAddr() (string, error) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", err
+	}
+	defer ln.Close()
+	return ln.Addr().String(), nil
+}
+
+func randToken() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(b)
 }
 
 // newJob reads install.conf from beside the program and fills in this PC.
@@ -78,6 +180,9 @@ func withPort(addr string, port int) string {
 }
 
 func headless(j *Job) error {
+	if !isAdmin() {
+		return fmt.Errorf("run it with sudo:  sudo ./karots-setup -yes")
+	}
 	fmt.Printf("Karots Suite — installing %s (%s)\n", j.Conf.Shop, j.Role)
 	err := RunAll(j, func(id string, err error) {
 		if err != nil {
