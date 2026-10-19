@@ -3,19 +3,25 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Next session (handoff 2026-10-19)
+## Next session (handoff 2026-10-19, M8c built)
 
-M8b Shop Builder is built (Builder shop list, three-file shop builds, karots-setup installer; details under "M8b
-Shop Builder DONE" and the follow-up notes below). Pick up here:
-1. **Windows test PASSED (user, 2026-10-19):** Setup → Update → restart: Karots starts by itself
-   (karots-start.exe -hidden, no popups), Helium opens the till full-screen, the kiosk Konami exit works. Still
-   unverified: Linux desktop double-click from a USB stick (exec bit, pkexec box); one real shop install.
-2. **Undecided:** Setup's "Check this PC" warning when the PC clock is off (a VM clock 12½ h out broke the support
-   login; would also stamp sales wrongly).
-3. **Then M8c** self-update + release (spec first): Release per shop + Release all + "running vs latest" in the
-   Builder; then M8c2 Backup copies.
-Later ideas recorded below: Tailscale remote access step (user's choice), Docker/NPM hosting (deploy/docker/),
-proxy-aware login limiter, FreeBSD skipped.
+**M8c self-update + release is built** (spec `docs/specs/2026-10-19-m8c-self-update-design.md`, plan
+`docs/plans/2026-10-19-m8c-self-update.md`). Bucket `karots-suite` (public r2.dev URL in `.env` as `UPDATE_BASE_URL`;
+R2 keys in `.env`, checked working 2026-10-19). Builder: **Release…** (build + publish) / **Test build** (local only)
+/ **Publish** (retry) / **Release all**. Shop: Setup → Data → **Updates** (check, what's new, Update — never by
+itself); restart = exit 75, systemd / karots-start start the new binary; BootGuard rolls back after two failed
+starts; open pages reload on the new version (till only with an empty cart). Docker/VPS: `SELF_UPDATE=off`.
+User decisions: no Worker / no running-version tracking ("their responsibility to update"); clock warning skipped
+(only seen in a VM). karots-pos 404 explained: `mum-motors` and `al-raj` were built with `-no-upload` (nothing in
+the bucket) — fix there with a normal `go run ./cmd/release publish al-raj mum-motors`.
+Checks (2026-10-19): `go test -p 1` core-only + all plugins, 237 web unit tests, `make verify`, `verify-portable`,
+Playwright 175 passed / 24 skipped.
+**Pick up here:**
+1. **Acceptance (user):** Release a test shop → install the three files by hand → Data page **Up to date**; commit
+   anything → Release again → test PC: Check now → **Update** → back on the new version. The first Release writes
+   `SUITE_RELEASE_KEY` into `.env` — **save a copy**.
+2. Linux USB double-click and one real shop install still unverified (from M8b).
+3. **Then M8c2** Backup copies (USB / network / S3).
 
 ## Status (2026-10-14, M7.8 repairs done)
 
