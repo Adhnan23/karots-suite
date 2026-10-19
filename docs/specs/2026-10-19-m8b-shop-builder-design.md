@@ -52,7 +52,7 @@ never loses every shop. The Builder commits nothing itself — the user commits 
   "jwtSecret": "…48 hex…",          // server mode only (file mode keeps its own in data/)
   "install": {
     "dir": "C:\\karots-suite",      // default /opt/karots-suite | C:\karots-suite
-    "kiosk": true,
+    "open": "kiosk",                // kiosk = till full-screen | background = owner's own PC
     "lanAddress": "192.168.1.10"    // optional: pre-fills a cashier PC's main-PC address
   },
   "env": { "JWT_EXPIRES_IN": "10h" }, // any extra .env keys
@@ -77,33 +77,34 @@ name / key and the fields above with their defaults. **Build without a shop** st
 saved, no install folder — today's flow).
 
 Edit groups the profile as **Shop** (name, plugins, OS / CPU), **Database** (mode, then DB host / port / name / user /
-password or the file-DB port), **Network** (till port, LAN address), **Install** (folder, kiosk), **More settings**
+password or the file-DB port), **Network** (till port, LAN address), **Install** (folder; open as kiosk or background), **More settings**
 (extra `.env` rows). Secrets are masked with Show (screen sharing). Install id and channel are read-only. Changing mode
 server → file asks first ("move the data first: Setup → Data has the steps").
 
-### C. A shop build is an install folder
+### C. A shop build is three files
 
-`dist/<key>/` holds everything to carry to the shop on a USB stick:
+**User, 2026-10-19:** each shop build gives the installer, its config and the binary — three files, nothing else.
+The installer gets everything it needs from those.
 
 ```
 dist/al-raj/
+  karots-setup.exe   the installer (§E), built for the shop's OS / CPU — generic, the same for every shop
+  install.conf       this shop's settings, generated from the profile (0600)
   karots-suite.exe   the binary (install id + support seed baked in)
-  .env               the app's settings, generated from the profile (0600)
-  install.conf       the installer's settings, generated from the profile
-  karots-setup.exe   the installer (§E), built for the shop's OS / CPU
-  INSTALL.txt        "double-click karots-setup (Linux: sudo ./karots-setup)", the support login
 ```
 
-- **`.env`** (generated, never typed): `APP_ENV=production`, `SERVER_PORT`, then server mode `DATABASE_URL` (from `db`)
-  + `JWT_SECRET` + `BACKUP_DIR=backups`; file mode `FILE_DB_PORT`; then the `env` extras. Written in the
-  systemd-`EnvironmentFile`-safe form (KEY=value, no spaces, no comments).
-- **`install.conf`** (same KEY=value form): `SHOP=<name>`, `MODE=file|server`, `BINARY=<name>`, `INSTALL_DIR`,
-  `PORT`, `KIOSK=yes|no`, `LAN_ADDRESS` (may be empty), and for server mode `DB_NAME`, `DB_USER`, `DB_PASSWORD`,
-  `DB_PORT`, `DB_LOCAL=yes|no` (host is not this PC → `no`).
+- **Add installer** (a tick on Build, **on** by default; `-no-installer` on the CLI). Off → only the binary, e.g. to
+  hand-swap a binary later. A quick build (no shop) never has one — there's no profile to make `install.conf` from.
+- **`install.conf`** is JSON, written by the Builder, never typed, and holds **both** halves:
+  - what to do: `shop`, `mode` (file | server), `binary`, `installDir`, `port`, `open` (kiosk | background),
+    `lanAddress`, and for server mode `db` {`host`, `port`, `name`, `user`, `password`, `local`} (`local` = host is this
+    PC);
+  - **`env`**: the app's `.env`, already final — `APP_ENV=production`, `SERVER_PORT`, then server mode `DATABASE_URL`
+    + `JWT_SECRET` + `BACKUP_DIR=backups`, file mode `FILE_DB_PORT`, then the profile's extras. The installer writes it
+    out as the `.env` verbatim (KEY=value, systemd-`EnvironmentFile`-safe). So there is no separate `.env` to lose or
+    mix up between shops.
 - A shop build **refuses without `POS_SUPPORT_SECRET`** (a quick build still only warns).
 - `dist/<key>/` is emptied first; the build records `lastBuilt` (time + commit) on the profile.
-- The installer is generic (one program, every shop): it reads `install.conf` and `.env` from beside itself, so the
-  Builder just cross-compiles `cmd/setup` for the shop's OS / CPU into the folder (static, like the server).
 
 ### D. CLI
 
@@ -118,7 +119,7 @@ stay as they are.
 **User, 2026-10-19:** the installer is its own binary with a web page — people don't like the command line. So the
 shop never types anything: **double-click `karots-setup`**, a page opens, press **Install**.
 
-`cmd/setup` → `karots-setup(.exe)`, one generic program for every shop (it reads `install.conf` + `.env` from beside
+`cmd/setup` → `karots-setup(.exe)`, one generic program for every shop (it reads `install.conf` and finds the binary beside
 itself), the same loopback page + live log pattern as the Builder (`app.html`, `go:embed`, no React).
 
 **Getting admin rights without a terminal:**
@@ -130,11 +131,11 @@ itself), the same loopback page + live log pattern as the Builder (`app.html`, `
 
 **The page** (the shop's name at the top, from `install.conf`):
 1. **This PC is…** **The shop's main PC** (the till server; the default) or **A cashier PC** — kiosk only, pointed at
-   the main PC (address pre-filled from `LAN_ADDRESS`, editable, with **Test** that calls its `/health`). This replaces
+   the main PC (address pre-filled from `lanAddress`, editable, with **Test** that calls its `/health`). This replaces
    a separate terminal folder.
 2. **What will happen** — plain lines from `install.conf`: "Install Chrome", "Keep the shop's data on this PC (one PC)"
    or "Install PostgreSQL" / "Use the database on 192.168.1.20", "Start Karots when this PC starts", "Open the till
-   full-screen", the folder and port. Nothing to fill in — the Builder decided it.
+   full-screen" or "Run in the background + a desktop shortcut", the folder and port. Nothing to fill in — the Builder decided it.
 3. **Install** → each step ticks ✓ with a live log under **Details** (hidden by default). A failed step says what to do
    in words and offers **Try again**; Copy log for support.
 4. **Done** → **Open the till** + the support login line; on a cashier PC, "the till opens full-screen at next login".
@@ -143,22 +144,34 @@ Already installed (folder exists) → the page opens on **Update** instead: same
 `.env`, `ALTER ROLE … PASSWORD`, service restarted), data untouched. **Uninstall** is not offered (a shop's data must
 not vanish with one click).
 
-**Apply, don't decide.** It never generates a secret, never edits the `.env`, and **refuses without `install.conf`**
-("build this shop in the Shop Builder"). The steps, ported from karots-pos's scripts into Go (one file per concern, all
-≤ 500 lines, `exec` of the OS tools — no new dependency; `golang.org/x/sys` is already in `go.mod`):
+**Apply, don't decide.** It never generates a secret or edits a setting, and **refuses without `install.conf`**
+("build this shop in the Shop Builder"). Ported from karots-pos's scripts into Go (`exec` of the OS tools — no new
+dependency; `golang.org/x/sys` is already in `go.mod`).
 
-1. **Checks:** admin, systemd (Linux), the shop binary beside it, not over a karots-pos folder, port free (or ours).
-2. **Programs:** Chromium / Chrome when the kiosk is on (apt / dnf / pacman / zypper, winget on Windows); CUPS (Linux);
-   PostgreSQL **only** for server mode with a local DB.
-3. **Database** (server + local): start PostgreSQL, role + database with the profile's password on its port, loopback
-   password login in `pg_hba`. Remote DB: check it answers, say so if not.
-4. **Files:** binary + `.env` (0600) into the install folder, owned by the shop user (file mode writes `data/` there).
-5. **Start with the PC:** systemd service (Linux) / logon Scheduled Task as the shop user (Windows — closing the window
-   stops Postgres cleanly, M8a); firewall opens the port for the LAN.
-6. **Wait** on `/health`.
-7. **Kiosk:** karots-pos's relaunch loop + DevTools policy, opening the till (or the main PC's address).
+**Modular steps (user, 2026-10-19).** Each step is its own small piece (one file per concern, ≤ 500 lines) that says
+whether it applies; the page lists only the ones that do:
 
-A cashier PC runs 1, 2 (browser only) and 7. **Headless Linux** (a VPS over SSH, no screen): `sudo ./karots-setup
+| Step | Server, DB on this PC | Server, DB elsewhere | File mode | Cashier PC |
+|---|---|---|---|---|
+| 1. **Checks** — admin, systemd (Linux), binary beside, not over karots-pos, port free (or ours) | ✓ | ✓ | ✓ | ✓ |
+| 2. **Database** — install PostgreSQL, role + database with the profile's password and port, loopback login in `pg_hba` | ✓ | check it answers | skipped | — |
+| 3. **Program** — the binary into the install folder, owned by the shop user | ✓ | ✓ | ✓ (it makes `data/` there) | — |
+| 4. **Settings** — `.env` (0600) from `install.conf`'s `env` | ✓ | ✓ | ✓ (port only) | — |
+| 5. **Backup folder** — `<folder>/backups` | ✓ | ✓ | skipped (the app keeps them in `data/backups`) | — |
+| 6. **Start with the PC** — systemd service / logon Scheduled Task as the shop user, no window | ✓ | ✓ | ✓ | — |
+| 7. **Network** — firewall opens the port for the LAN | ✓ | ✓ | ✓ | — |
+| 8. **Printing** — CUPS (Linux) | ✓ | ✓ | ✓ | — |
+| 9. **Open** — see below | ✓ | ✓ | ✓ | kiosk |
+| 10. **Check** — wait on `/health` (a cashier PC: the main PC's) | ✓ | ✓ | ✓ | ✓ |
+
+**Open** (`open` in the profile, shown on the page):
+- **Kiosk** — the till full-screen at login: Chromium / Chrome installed, karots-pos's relaunch loop + DevTools policy.
+  A cashier PC is always kiosk.
+- **Background** — **for an owner's own PC** in a small shop: Karots starts with the PC **in the background** (no
+  window, no kiosk) and a **Karots Suite** shortcut on the desktop and in the Start menu / app menu opens the till in
+  the PC's normal browser. Nothing is locked down; the owner keeps using the PC as usual.
+
+**Headless Linux** (a VPS over SSH, no screen): `sudo ./karots-setup
 -yes` runs the same steps in the terminal — the only command-line path, for the technician.
 
 `build.ps1`: the Windows stand-in for the Makefile, cut down to what the suite needs on Windows — `bootstrap [args]`
@@ -169,7 +182,7 @@ not in install folders.
 
 - The Builder stays on loopback with its JSON-only POST guard; the new endpoints follow it. A shop `GET` masks
   secrets; **Download .env** and Show are POSTs (a cross-site page can't read them).
-- `.env` and `install.conf` in `dist/` are 0600; `dist/` stays git-ignored.
+- `install.conf` in `dist/` is 0600 (it holds the secrets); `dist/` stays git-ignored.
 
 ## 3. Not in M8b
 
@@ -184,7 +197,7 @@ not in install folders.
 - Go tests: create mints install id / channel / secrets per mode; refused `env` keys; port clash warning; the
   generated `.env` and `install.conf` for server-local, server-remote and file; `-import-pos` keeps install
   ids, drops unknown plugins, mints a new channel; atomic save keeps the old file on a failed write; app endpoints (list
-  masks, JSON-only POSTs, build writes `dist/<key>/` with the binary, setup, `.env`, `install.conf`).
+  masks, JSON-only POSTs, build writes exactly the three files, or only the binary with Add installer off).
 - Setup tests: `install.conf` parsing (missing → refused), the step list per role / mode (server-local,
   server-remote, file, cashier PC), the page token, Update vs Install detection; the OS commands behind a small runner
   so tests see the commands without running them.
