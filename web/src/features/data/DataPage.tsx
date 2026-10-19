@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ChevronRight, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { ChevronRight, CloudDownload, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { apiUpload } from '@/api/client'
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { DataCheckList } from './DataCheck'
 import { dataCheckQuery, dataQuery, fileSize } from './queries'
 import { RestoreDialog, type RestoreSource } from './RestoreDialog'
+import { UpdateCard } from './UpdateCard'
 
 type Kind = 'full' | 'choose' | 'setup'
 
@@ -44,6 +45,9 @@ export function DataPage() {
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
+        <Card title="Updates" icon={<CloudDownload size={18} />} className="lg:col-span-2">
+          <UpdateCard />
+        </Card>
         <Card title="Backup" icon={<HardDrive size={18} />}>
           <BackupChooser groups={data?.groups ?? []} />
         </Card>

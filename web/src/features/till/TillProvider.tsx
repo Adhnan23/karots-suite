@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useReducer, useRef, type Dispatch, type ReactNode } from 'react'
 import { toast } from 'sonner'
+import { setReloadGuard } from '@/lib/version'
 import { loadCart, saveCart } from './cart/persist'
 import { initialState, tillReducer, type Action } from './cart/store'
 import type { SaleType, TillState } from './cart/types'
@@ -12,6 +13,10 @@ const TillCtx = createContext<Ctx | null>(null)
 export function TillProvider({ userId, saleType, children }: { userId: number; saleType: SaleType; children: ReactNode }) {
   const [state, dispatch] = useReducer(tillReducer, undefined, () => loadCart(userId) ?? initialState(saleType))
   useEffect(() => saveCart(userId, state), [userId, state])
+  // After an update the page reloads itself — never with a sale on the counter.
+  const cartEmpty = useRef(true)
+  useEffect(() => { cartEmpty.current = state.lines.length === 0 }, [state.lines.length])
+  useEffect(() => setReloadGuard(() => cartEmpty.current), [])
   useEffect(() => {
     if (!state.notice) return
     ;(state.notice.tone === 'error' ? toast.error : toast.success)(state.notice.text)

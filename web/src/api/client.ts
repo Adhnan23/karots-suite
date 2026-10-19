@@ -1,3 +1,5 @@
+import { noteVersion } from '@/lib/version'
+
 export class ApiError extends Error {
   status: number
   code: string
@@ -22,6 +24,7 @@ export async function api<T = void>(path: string, opts: Opts = {}): Promise<T> {
     body: hasBody ? JSON.stringify(opts.json) : undefined,
     signal: opts.signal,
   })
+  noteVersion(res.headers.get('X-Karots-Version'))
   if (res.status === 204) return undefined as T
   const body = await res.json().catch(() => null)
   if (!res.ok) throw new ApiError(res.status, body?.error?.code ?? 'HTTP_ERROR', body?.error?.message ?? res.statusText, path)
@@ -35,6 +38,7 @@ export async function apiUpload<T>(path: string, field: string, file: File, extr
   fd.append(field, file)
   for (const [k, v] of Object.entries(extra)) fd.append(k, v)
   const res = await fetch(`/api/v1${path}`, { method: 'POST', body: fd, credentials: 'same-origin' })
+  noteVersion(res.headers.get('X-Karots-Version'))
   const body = await res.json().catch(() => null)
   if (!res.ok) throw new ApiError(res.status, body?.error?.code ?? 'HTTP_ERROR', body?.error?.message ?? res.statusText, path)
   return body as T
