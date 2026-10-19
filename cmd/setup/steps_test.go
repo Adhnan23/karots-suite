@@ -52,6 +52,7 @@ func conf(osName, mode string, local bool) shopconf.Conf {
 		if !local {
 			host = "192.168.1.20"
 		}
+		c.Env["BACKUP_DIR"] = c.InstallDir + map[bool]string{true: `\backups`, false: "/backups"}[osName == "windows"]
 		c.DB = &shopconf.DB{Host: host, Port: 5432, Name: "suite_db", User: "suite_user", Password: "pw123", SuperPassword: "super123", Local: local}
 	}
 	return c
@@ -187,5 +188,30 @@ func TestChecksNeedShopUser(t *testing.T) {
 	j.User = ""
 	if err := checks(j); err == nil || !strings.Contains(err.Error(), "normal user") {
 		t.Fatalf("err %v", err)
+	}
+}
+
+// What the person picks on the page overrides the Builder's defaults.
+func TestApplyChoice(t *testing.T) {
+	j, err := applyChoice(conf("linux", "file", false), "", Choice{Open: "background", BackupDir: "/media/usb/karots"})
+	if err != nil || j.Conf.Open != "background" || j.Conf.Env["BACKUP_DIR"] != "/media/usb/karots" || j.Role != RoleServer {
+		t.Fatalf("%+v %v", j, err)
+	}
+	if !slices.Contains(ids(Steps(j)), "backups") {
+		t.Fatal("a chosen backup folder isn't made")
+	}
+	if _, err := applyChoice(conf("windows", "file", false), "", Choice{BackupDir: `backups`}); err == nil {
+		t.Fatal("a relative backup folder was accepted")
+	}
+	if j, err := applyChoice(conf("windows", "file", false), "", Choice{BackupDir: `D:\Karots backups`}); err != nil || j.backupDir() != `D:\Karots backups` {
+		t.Fatalf("windows folder: %v", err)
+	}
+	if _, err := applyChoice(conf("linux", "file", false), "", Choice{Open: "tv"}); err == nil {
+		t.Fatal("open tv accepted")
+	}
+	base := conf("linux", "file", false)
+	applyChoice(base, "", Choice{BackupDir: "/x"})
+	if base.Env["BACKUP_DIR"] != "" {
+		t.Fatal("applyChoice changed the shared install.conf env")
 	}
 }

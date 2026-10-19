@@ -46,11 +46,20 @@ type Step struct {
 	Do        func(*Job) error
 }
 
-func (j *Job) server() bool    { return j.Role == RoleServer }
-func (j *Job) serverDB() bool  { return j.server() && j.Conf.Mode == "server" }
-func (j *Job) windows() bool   { return j.Conf.OS == "windows" }
-func (j *Job) localDB() bool   { return j.serverDB() && j.Conf.DB.Local }
-func always(*Job) bool         { return true }
+func (j *Job) server() bool   { return j.Role == RoleServer }
+func (j *Job) serverDB() bool { return j.server() && j.Conf.Mode == "server" }
+func (j *Job) windows() bool  { return j.Conf.OS == "windows" }
+func (j *Job) localDB() bool  { return j.serverDB() && j.Conf.DB.Local }
+func always(*Job) bool        { return true }
+
+// backupDir is where automatic backups go: the chosen folder, else a one-PC
+// shop's own data\backups.
+func (j *Job) backupDir() string {
+	if d := j.Conf.Env["BACKUP_DIR"]; d != "" {
+		return d
+	}
+	return joinOS(j, j.Conf.InstallDir, "data", "backups")
+}
 func (j *Job) binPath() string { return joinOS(j, j.Conf.InstallDir, j.Conf.Binary) }
 func (j *Job) tillURL() string {
 	if j.Role == RoleCashier {
@@ -106,8 +115,8 @@ func Steps(j *Job) []Step {
 			}},
 		{ID: "settings", Title: "Settings", Applies: (*Job).server, Do: pick(linuxSettings, windowsSettings),
 			Detail: func(j *Job) string { return fmt.Sprintf("Write the shop's settings (port %d)", j.Conf.Port) }},
-		{ID: "backups", Title: "Backup folder", Applies: (*Job).serverDB, Do: pick(linuxBackups, windowsBackups),
-			Detail: func(j *Job) string { return "Keep automatic backups in " + joinOS(j, j.Conf.InstallDir, "backups") }},
+		{ID: "backups", Title: "Backup folder", Applies: func(j *Job) bool { return j.server() && j.Conf.Env["BACKUP_DIR"] != "" }, Do: pick(linuxBackups, windowsBackups),
+			Detail: func(j *Job) string { return "Keep automatic backups in " + j.backupDir() }},
 		{ID: "startup", Title: "Start with the PC", Applies: (*Job).server, Do: pick(linuxStartup, windowsStartup),
 			Detail: func(*Job) string { return "Start Karots when this PC starts" }},
 		{ID: "network", Title: "Network", Applies: (*Job).server, Do: pick(linuxNetwork, windowsNetwork),

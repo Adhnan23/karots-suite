@@ -59,20 +59,21 @@ func windowsSettings(j *Job) error {
 }
 
 func windowsBackups(j *Job) error {
-	return os.MkdirAll(at(joinOS(j, j.Conf.InstallDir, "backups")), 0o755)
+	return os.MkdirAll(at(j.backupDir()), 0o755)
 }
 
-// windowsStartup runs Karots at the shop user's sign-in, with no window (a
-// till runs signed in, and in the user's session it sees their USB printers).
-// Sign-out / shutdown still reach it as SIGTERM, so PostgreSQL stops cleanly.
+// windowsStartup runs Karots at the shop user's sign-in with no window at all:
+// conhost --headless gives it a console nobody sees (a till runs signed in, and
+// in the user's session it sees their USB printers). Sign-out / shutdown still
+// reach it as SIGTERM through that console, so PostgreSQL stops cleanly.
 func windowsStartup(j *Job) error {
 	logs := joinOS(j, j.Conf.InstallDir, "logs")
 	if err := os.MkdirAll(at(logs), 0o755); err != nil {
 		return err
 	}
-	cmd := fmt.Sprintf(`-WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command "& '%s' *>> '%s'"`, j.binPath(), joinOS(j, logs, "karots.log"))
+	cmd := fmt.Sprintf(`--headless cmd.exe /c ""%s" >> "%s" 2>&1"`, j.binPath(), joinOS(j, logs, "karots.log"))
 	_, err := ps(j, fmt.Sprintf(`# karots:startup-task
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument %s -WorkingDirectory %s
+$action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\conhost.exe" -Argument %s -WorkingDirectory %s
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User %s
 $principal = New-ScheduledTaskPrincipal -UserId %s -LogonType Interactive -RunLevel Highest
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew

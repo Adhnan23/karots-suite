@@ -144,7 +144,7 @@ func linuxSettings(j *Job) error {
 }
 
 func linuxBackups(j *Job) error {
-	dir := joinOS(j, j.Conf.InstallDir, "backups")
+	dir := j.backupDir()
 	if err := os.MkdirAll(at(dir), 0o755); err != nil {
 		return err
 	}

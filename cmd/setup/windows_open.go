@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-// windowsOpen: kiosk = Chromium / Chrome full-screen at sign-in (karots-pos's
-// relaunch loop); background = a Karots Suite shortcut on every desktop and in
-// the Start menu, nothing locked.
+// windowsOpen: kiosk = the till full-screen at sign-in (karots-pos's relaunch
+// loop, run with no window); background = a Karots Suite shortcut on every
+// desktop and in the Start menu, nothing locked.
 func windowsOpen(j *Job) error {
 	if j.Role == RoleServer && j.Conf.Open == "background" {
 		_, err := ps(j, fmt.Sprintf(`# karots:shortcuts
@@ -18,60 +18,68 @@ foreach ($d in @([Environment]::GetFolderPath('CommonDesktopDirectory'), [Enviro
 }`, j.tillURL()))
 		return err
 	}
-	// Chrome / Chromium first; winget only if this Windows has it; then Edge,
-	// which every Windows 10 / 11 has. The path comes back on a BROWSER= line so
-	// no error text is ever taken for it.
+	// The default browser, then the usual install places. Edge is on every
+	// Windows 10 / 11, so nothing is ever downloaded.
 	out, _ := ps(j, `# karots:find-browser
-function Find { @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe", "$env:LOCALAPPDATA\Chromium\Application\chrome.exe", "$env:ProgramFiles\Chromium\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1 }
-$b = Find
-if (-not $b -and (Get-Command winget -ErrorAction SilentlyContinue)) {
-  winget install --id Google.Chrome -e --silent --accept-package-agreements --accept-source-agreements | Out-Null; $b = Find
-}
-if (-not $b) { $b = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1 }
-if ($b) { "BROWSER=$b" }`)
-	browser := ""
+try {
+  $id = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice' -ErrorAction Stop).ProgId
+  $cmd = (Get-ItemProperty "Registry::HKEY_CLASSES_ROOT\$id\shell\open\command" -ErrorAction Stop).'(default)'
+  if ($cmd -match '^\s*"([^"]+)"') { "DEFAULT=" + $Matches[1] } elseif ($cmd -match '^\s*(\S+)') { "DEFAULT=" + $Matches[1] }
+} catch {}
+foreach ($p in @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+  "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe", "$env:LOCALAPPDATA\Chromium\Application\chrome.exe", "$env:ProgramFiles\Chromium\Application\chrome.exe",
+  "$env:ProgramFiles\Mozilla Firefox\firefox.exe", "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe", "$env:ProgramFiles\LibreWolf\librewolf.exe",
+  "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe")) {
+  if (Test-Path $p) { "FOUND=$p" }
+}`)
+	def, found := "", []string(nil)
 	for _, line := range strings.Split(out, "\n") {
-		if p, ok := strings.CutPrefix(strings.TrimSpace(line), "BROWSER="); ok {
-			browser = p
+		line = strings.TrimSpace(line)
+		if p, ok := strings.CutPrefix(line, "DEFAULT="); ok {
+			def = p
+		} else if p, ok := strings.CutPrefix(line, "FOUND="); ok {
+			found = append(found, p)
 		}
 	}
+	browser, family := pickBrowser(def, found)
 	if browser == "" {
-		return fmt.Errorf("no Chrome or Edge on this PC — install Chrome from google.com/chrome, then Try again")
+		return fmt.Errorf("no Chrome, Edge or Firefox on this PC — install one, then Try again")
 	}
-	launch := "--kiosk --app=" + j.tillURL() + " --incognito"
-	if strings.HasSuffix(strings.ToLower(browser), "msedge.exe") {
-		launch = "--kiosk " + j.tillURL() + " --edge-kiosk-type=fullscreen --inprivate --no-first-run" // Edge's kiosk form
-	}
+	fmt.Fprintf(j.Log, "kiosk browser: %s\n", browser)
 	dir := j.Conf.InstallDir
 	if err := os.MkdirAll(at(dir), 0o755); err != nil {
 		return err
 	}
+	profile := joinOS(j, dir, "kiosk-profile")
 	kiosk := joinOS(j, dir, "kiosk.cmd")
 	// Relaunch loop: Alt+F4 or a crash reopens the till; only the admin / support
 	// kiosk-exit hotkey (it writes %SENTINEL%) lets it stop on the desktop.
 	script := strings.ReplaceAll(fmt.Sprintf(`@echo off
 set SENTINEL=%%TEMP%%\karots-kiosk-exit
 if exist "%%SENTINEL%%" del "%%SENTINEL%%"
+if not exist "%[3]s" mkdir "%[3]s"
 :wait
 curl -s -o NUL %[1]s/health && goto launch
 timeout /t 2 >NUL
 goto wait
 :launch
-start "" /wait "%[2]s" %[4]s --user-data-dir="%[3]s\kiosk-profile" --noerrdialogs --disable-infobars --disable-session-crashed-bubble --disable-features=TranslateUI --check-for-update-interval=31536000
+start "" /wait "%[2]s" %[4]s
 if exist "%%SENTINEL%%" ( del "%%SENTINEL%%" & goto end )
 timeout /t 1 >NUL
 goto launch
 :end
-`, j.tillURL(), browser, dir, launch), "\n", "\r\n")
+`, j.tillURL(), browser, profile, kioskArgs(family, j.tillURL(), profile)), "\n", "\r\n")
 	if err := os.WriteFile(at(kiosk), []byte(script), 0o644); err != nil {
 		return err
 	}
+	// conhost --headless gives the loop a console with no window: nothing pops up at sign-in.
 	_, err := ps(j, fmt.Sprintf(`# karots:kiosk-shortcut
 $lnk = Join-Path ([Environment]::GetFolderPath('CommonStartup')) 'Karots Suite Kiosk.lnk'
 $sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$sc.TargetPath = %s
+$sc.TargetPath = "$env:SystemRoot\System32\conhost.exe"
+$sc.Arguments = %s
 $sc.WorkingDirectory = %s
 $sc.WindowStyle = 7
-$sc.Save()`, psq(kiosk), psq(dir)))
+$sc.Save()`, psq(`--headless cmd.exe /c "`+kiosk+`"`), psq(dir)))
 	return err
 }

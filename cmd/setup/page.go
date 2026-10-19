@@ -19,7 +19,7 @@ var pageHTML []byte
 // pageHandler serves the install page. Setup runs as admin, so every request
 // must carry the random token from the page's address (?t= or X-Setup-Token):
 // no other site or local user can drive it.
-func pageHandler(token string, mk func(Role, string) (*Job, error), steps func(*Job) []Step, quit func()) http.Handler {
+func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) []Step, quit func()) http.Handler {
 	var running sync.Mutex
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
@@ -28,7 +28,8 @@ func pageHandler(token string, mk func(Role, string) (*Job, error), steps func(*
 	})
 	mux.HandleFunc("GET /api/ping", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte("ok")) }) //nolint:errcheck
 	mux.HandleFunc("GET /api/plan", func(w http.ResponseWriter, r *http.Request) {
-		j, err := mk(Role(r.URL.Query().Get("role")), r.URL.Query().Get("address"))
+		q := r.URL.Query()
+		j, err := mk(Choice{Role(q.Get("role")), q.Get("address"), q.Get("open"), q.Get("backupDir")})
 		if err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
@@ -43,12 +44,13 @@ func pageHandler(token string, mk func(Role, string) (*Job, error), steps func(*
 			InstallID  string `json:"installId"`
 			Mode       string `json:"mode"`
 			Open       string `json:"open"`
+			BackupDir  string `json:"backupDir"`
 			Updating   bool   `json:"updating"`
 			Address    string `json:"address"`
 			LanAddress string `json:"lanAddress"`
 			TillURL    string `json:"tillUrl"`
 			Steps      []step `json:"steps"`
-		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.Updating, j.Address, j.Conf.LanAddress, j.tillURL(), nil}
+		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), j.Updating, j.Address, j.Conf.LanAddress, j.tillURL(), nil}
 		for _, s := range steps(j) {
 			d := s.Title
 			if s.Detail != nil {
@@ -64,7 +66,7 @@ func pageHandler(token string, mk func(Role, string) (*Job, error), steps func(*
 			return
 		}
 		addr := withPort(in.Address, 3000)
-		if j, err := mk(RoleCashier, in.Address); err == nil {
+		if j, err := mk(Choice{Role: RoleCashier, Address: in.Address}); err == nil {
 			addr = j.Address
 		}
 		c := http.Client{Timeout: 3 * time.Second}
@@ -80,11 +82,14 @@ func pageHandler(token string, mk func(Role, string) (*Job, error), steps func(*
 		writeJSON(w, map[string]any{"ok": ok, "message": msg})
 	})
 	mux.HandleFunc("POST /api/run", func(w http.ResponseWriter, r *http.Request) {
-		var in struct{ Role, Address, SuperPassword string }
+		var in struct {
+			Choice
+			SuperPassword string `json:"superPassword"`
+		}
 		if !decode(w, r, &in) {
 			return
 		}
-		j, err := mk(Role(in.Role), in.Address)
+		j, err := mk(in.Choice)
 		if err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return

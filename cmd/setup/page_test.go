@@ -13,8 +13,12 @@ import (
 const tok = "0123456789abcdef0123456789abcdef"
 
 func testPage(steps func(*Job) []Step) http.Handler {
-	mk := func(role Role, address string) (*Job, error) {
-		return &Job{Conf: conf("linux", "file", false), Role: role, Address: address, Run: &rec{}, Log: io.Discard}, nil
+	mk := func(ch Choice) (*Job, error) {
+		j, err := applyChoice(conf("linux", "file", false), "", ch)
+		if j != nil {
+			j.Run, j.Log = &rec{}, io.Discard
+		}
+		return j, err
 	}
 	return pageHandler(tok, mk, steps, func() {})
 }
@@ -94,5 +98,23 @@ func TestPageRefusesTextPlain(t *testing.T) {
 	testPage(Steps).ServeHTTP(rec, req)
 	if rec.Code != http.StatusUnsupportedMediaType {
 		t.Fatalf("%d", rec.Code)
+	}
+}
+
+// The person at the PC picks kiosk or background; the plan follows it.
+func TestPagePlanOpenChoice(t *testing.T) {
+	var p struct {
+		Open  string
+		Steps []struct{ ID, Detail string }
+	}
+	rec := call(testPage(Steps), "GET", "/api/plan?role=server&open=background", "", true)
+	json.Unmarshal(rec.Body.Bytes(), &p)
+	if p.Open != "background" {
+		t.Fatalf("open %q: %s", p.Open, rec.Body)
+	}
+	for _, s := range p.Steps {
+		if s.ID == "open" && !strings.Contains(s.Detail, "background") {
+			t.Fatalf("open step: %q", s.Detail)
+		}
 	}
 }

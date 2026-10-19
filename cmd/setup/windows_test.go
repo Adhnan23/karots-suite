@@ -19,7 +19,7 @@ func windowsJob(t *testing.T, mode string) (*Job, *rec) {
 	rc := &rec{answers: map[string]string{
 		"ps> # karots:find-psql":    `C:\Program Files\PostgreSQL\17\bin\psql.exe`,
 		"ps> # karots:psql super":   "up",
-		"ps> # karots:find-browser": `BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe`,
+		"ps> # karots:find-browser": `FOUND=C:\Program Files\Google\Chrome\Application\chrome.exe`,
 	}}
 	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: `SHOP\owner`, Run: rc, Log: io.Discard}, rc
 }
@@ -85,7 +85,7 @@ func TestWindowsStartupHidden(t *testing.T) {
 		t.Fatal(err)
 	}
 	all := rc.all()
-	for _, want := range []string{"-WindowStyle Hidden", "Register-ScheduledTask -TaskName KarotsSuite", `-AtLogOn -User 'SHOP\owner'`, `C:\karots-suite\karots-suite.exe`} {
+	for _, want := range []string{"conhost.exe", "--headless cmd.exe /c", "Register-ScheduledTask -TaskName KarotsSuite", `-AtLogOn -User 'SHOP\owner'`, `C:\karots-suite\karots-suite.exe`} {
 		if !strings.Contains(all, want) {
 			t.Errorf("missing %q in:\n%s", want, all)
 		}
@@ -109,8 +109,8 @@ func TestWindowsOpen(t *testing.T) {
 	if err != nil || !strings.Contains(string(k), "--kiosk --app=http://localhost:3000") || !strings.Contains(string(k), `chrome.exe`) {
 		t.Fatalf("kiosk.cmd %q (%v)", k, err)
 	}
-	if !strings.Contains(rc.all(), "CommonStartup") {
-		t.Fatal("no Startup shortcut")
+	if !strings.Contains(rc.all(), "CommonStartup") || !strings.Contains(rc.all(), "conhost.exe") {
+		t.Fatalf("Startup shortcut must run the loop with no window:\n%s", rc.all())
 	}
 }
 
@@ -138,7 +138,7 @@ func TestWindowsKioskBrowser(t *testing.T) {
 		t.Fatalf("no browser: %v", err)
 	}
 	j, rc = windowsJob(t, "file")
-	rc.answers["ps> # karots:find-browser"] = "noise\nBROWSER=C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\n"
+	rc.answers["ps> # karots:find-browser"] = "noise\nFOUND=C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\n"
 	if err := windowsOpen(j); err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,29 @@ func TestWindowsKioskBrowser(t *testing.T) {
 	if !strings.Contains(string(k), `msedge.exe" --kiosk http://localhost:3000 --edge-kiosk-type=fullscreen`) || strings.Contains(string(k), "--app=") || strings.Contains(string(k), "noise") {
 		t.Fatalf("kiosk.cmd:\n%s", k)
 	}
-	if !strings.Contains(rc.all(), "Get-Command winget") || !strings.Contains(rc.all(), `Microsoft\Edge\Application\msedge.exe`) {
+	if !strings.Contains(rc.all(), `UrlAssociations\http\UserChoice`) || strings.Contains(rc.all(), "winget") || !strings.Contains(rc.all(), `Microsoft\Edge\Application\msedge.exe`) {
 		t.Fatalf("find-browser script:\n%s", rc.all())
+	}
+}
+
+// The PC's default browser runs the kiosk when it's Chrome-style or Firefox-style.
+func TestWindowsKioskDefaultBrowser(t *testing.T) {
+	for name, tc := range map[string]struct{ out, want, wantArgs string }{
+		"helium":  {"DEFAULT=C:\\Users\\o\\AppData\\Local\\imput\\Helium\\Application\\helium.exe\nFOUND=C:\\Edge\\msedge.exe", `helium.exe" --kiosk --app=`, ""},
+		"firefox": {"DEFAULT=C:\\Program Files\\Mozilla Firefox\\firefox.exe\nFOUND=C:\\Edge\\msedge.exe", `firefox.exe" --kiosk -no-remote -profile "C:\karots-suite\kiosk-profile" http://localhost:3000`, ""},
+		"unknown": {"DEFAULT=C:\\Program Files\\Internet Explorer\\iexplore.exe\nFOUND=C:\\Edge\\msedge.exe", `msedge.exe" --kiosk http://localhost:3000`, ""},
+	} {
+		j, rc := windowsJob(t, "file")
+		rc.answers["ps> # karots:find-browser"] = tc.out
+		if err := windowsOpen(j); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		k, _ := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, "kiosk.cmd")))
+		if !strings.Contains(string(k), tc.want) {
+			t.Errorf("%s: kiosk.cmd lacks %q:\n%s", name, tc.want, k)
+		}
+		if name == "firefox" && strings.Contains(string(k), "--disable-infobars") {
+			t.Errorf("firefox got Chrome-only flags:\n%s", k)
+		}
 	}
 }

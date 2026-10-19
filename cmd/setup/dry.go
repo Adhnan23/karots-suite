@@ -11,8 +11,8 @@ import (
 // KAROTS_SETUP_DRY_FAIL=<step id> makes that step fail (for a look at the
 // failure screen; "database" asks for the postgres password).
 
-func dryJob(role Role, address string) (*Job, error) {
-	j, err := newJob(role, address)
+func dryJob(ch Choice) (*Job, error) {
+	j, err := newJob(ch)
 	if err == nil {
 		j.Run = nil // never used: drySteps don't run anything
 	}

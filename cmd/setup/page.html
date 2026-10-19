@@ -73,6 +73,16 @@ code { font: 600 14px var(--mono); }
       <button class="role" data-role="server" aria-pressed="true"><span class="ico">🏪</span><span><b>The shop's main PC</b><small id="serverSub">Runs the till for the shop.</small></span></button>
       <button class="role" data-role="cashier" aria-pressed="false"><span class="ico">🧾</span><span><b>A cashier PC</b><small>Opens the till from the main PC — nothing else is installed here.</small></span></button>
     </div>
+    <div id="mainOpts">
+      <label class="f">When this PC starts</label>
+      <div class="roles">
+        <button class="role" data-open="kiosk" aria-pressed="false"><span class="ico">🖥</span><span><b>Till full-screen</b><small>For a counter PC — the till opens by itself and staff can't leave it.</small></span></button>
+        <button class="role" data-open="background" aria-pressed="false"><span class="ico">🪟</span><span><b>In the background</b><small>For the owner's own PC — open Karots from the desktop shortcut.</small></span></button>
+      </div>
+      <label class="f" for="backupDir">Backups go to</label>
+      <input id="backupDir" autocomplete="off" spellcheck="false">
+      <div class="hint">A second drive (D:\…) is safest. Leave it as it is if unsure.</div>
+    </div>
     <div id="cashier" hidden>
       <label class="f" for="address">The main PC's address</label>
       <div class="addr"><input id="address" placeholder="192.168.1.10" autocomplete="off" spellcheck="false"><button class="btn" id="test">Test</button></div>
@@ -102,14 +112,17 @@ code { font: 600 14px var(--mono); }
 const $ = (id) => document.getElementById(id)
 const token = new URLSearchParams(location.search).get('t') || ''
 const H = { 'X-Setup-Token': token, 'Content-Type': 'application/json' }
-const st = { role: 'server', plan: null, running: false }
+const st = { role: 'server', plan: null, running: false, open: '', backup: '' }
+const choice = () => ({ role: st.role, address: $('address').value.trim(), open: st.open, backupDir: st.role === 'server' && $('backupDir').value.trim() !== st.plan?.defaultBackup ? $('backupDir').value.trim() : '' })
 
 async function plan() {
-  const q = new URLSearchParams({ role: st.role, address: $('address').value.trim() })
+  const q = new URLSearchParams(choice())
   const res = await fetch('/api/plan?' + q, { headers: H })
   const p = await res.json()
   if (!res.ok) { $('steps').innerHTML = ''; $('testMsg').textContent = p.error; $('testMsg').className = 'hint bad'; $('go').disabled = true; return }
+  if (!st.plan) { st.open = p.open; $('backupDir').value = p.backupDir; p.defaultBackup = p.backupDir } else p.defaultBackup = st.plan.defaultBackup
   st.plan = p
+  for (const b of document.querySelectorAll('[data-open]')) b.setAttribute('aria-pressed', b.dataset.open === st.open)
   $('shop').textContent = p.shop; document.title = 'Karots Setup — ' + p.shop
   $('serverSub').textContent = p.mode === 'file' ? 'Runs the till, and keeps the shop\'s data on this PC.' : 'Runs the till for the shop.'
   if (!$('address').value && p.lanAddress) $('address').value = p.lanAddress
@@ -126,8 +139,9 @@ async function plan() {
 }
 function setRole(r) {
   st.role = r
-  for (const b of document.querySelectorAll('.role')) b.setAttribute('aria-pressed', b.dataset.role === r)
+  for (const b of document.querySelectorAll('[data-role]')) b.setAttribute('aria-pressed', b.dataset.role === r)
   $('cashier').hidden = r !== 'cashier'
+  $('mainOpts').hidden = r !== 'server'
   plan()
 }
 async function test() {
@@ -143,7 +157,7 @@ async function install() {
   await plan()
   let text = '', failed = null, need = false, done = false
   try {
-    const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify({ role: st.role, address: $('address').value.trim(), superPassword: $('super').value }) })
+    const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify({ ...choice(), superPassword: $('super').value }) })
     if (!res.ok) failed = { msg: (await res.json()).error }
     else {
       const reader = res.body.getReader(), dec = new TextDecoder()
@@ -170,7 +184,7 @@ async function install() {
     $('rolePanel').hidden = true; $('go').hidden = true; $('updateNote').hidden = true
     $('done').hidden = false; $('iid').textContent = st.plan.installId
     $('doneMsg').textContent = st.role === 'cashier' ? 'The till opens full-screen the next time someone signs in to this PC.'
-      : st.plan.open === 'background' ? 'Karots starts with this PC. Open it any time from the Karots Suite shortcut on the desktop.'
+      : st.open === 'background' ? 'Karots starts with this PC. Open it any time from the Karots Suite shortcut on the desktop.'
       : 'Karots starts with this PC, and the till opens full-screen when someone signs in.'
     $('done').scrollIntoView({ behavior: 'smooth' })
   } else {
@@ -183,7 +197,9 @@ async function install() {
     $('fail').scrollIntoView({ behavior: 'smooth' })
   }
 }
-for (const b of document.querySelectorAll('.role')) b.onclick = () => setRole(b.dataset.role)
+for (const b of document.querySelectorAll('[data-role]')) b.onclick = () => setRole(b.dataset.role)
+for (const b of document.querySelectorAll('[data-open]')) b.onclick = () => { st.open = b.dataset.open; plan() }
+$('backupDir').onchange = plan
 $('address').onchange = plan
 $('test').onclick = test
 $('go').onclick = install

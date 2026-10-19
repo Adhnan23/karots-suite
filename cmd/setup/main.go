@@ -21,6 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"karots-suite/internal/shopconf"
 )
 
 func main() {
@@ -35,6 +37,8 @@ func start() error {
 		yes     = flag.Bool("yes", false, "install without the page (a server with no screen)")
 		role    = flag.String("role", "server", "with -yes: server (the shop's main PC) | cashier")
 		address = flag.String("address", "", "with -role cashier: the main PC's host[:port]")
+		open    = flag.String("open", "", "with -yes: kiosk | background (default: the Shop Builder's)")
+		backups = flag.String("backups", "", "with -yes: the backup folder (default: the Shop Builder's)")
 		addr    = flag.String("addr", "", "the page's loopback address (set by the launcher)")
 		token   = flag.String("token", "", "the page's token (set by the launcher)")
 		userArg = flag.String("user", "", "the shop user (set by the launcher)")
@@ -44,11 +48,11 @@ func start() error {
 	if *userArg != "" {
 		os.Setenv("KAROTS_SETUP_USER", *userArg)
 	}
-	if _, err := newJob(RoleServer, ""); err != nil { // install.conf beside us, before anything else
+	if _, err := newJob(Choice{}); err != nil { // install.conf beside us, before anything else
 		return err
 	}
 	if *yes {
-		j, err := newJob(Role(*role), *address)
+		j, err := newJob(Choice{Role(*role), *address, *open, *backups})
 		if err != nil {
 			return err
 		}
@@ -143,8 +147,17 @@ func randToken() string {
 	return hex.EncodeToString(b)
 }
 
-// newJob reads install.conf from beside the program and fills in this PC.
-func newJob(role Role, address string) (*Job, error) {
+// Choice is what the person at the PC picked on the page (or with -yes flags).
+// Empty Open / BackupDir keep the Shop Builder's defaults.
+type Choice struct {
+	Role      Role   `json:"role"`
+	Address   string `json:"address"`   // cashier PC: the main PC
+	Open      string `json:"open"`      // kiosk | background
+	BackupDir string `json:"backupDir"` // where automatic backups go
+}
+
+// newJob reads install.conf from beside the program and applies this PC's choices.
+func newJob(ch Choice) (*Job, error) {
 	dir, err := exeDir()
 	if err != nil {
 		return nil, err
@@ -153,20 +166,58 @@ func newJob(role Role, address string) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	if role != RoleServer && role != RoleCashier {
-		return nil, fmt.Errorf("role %q (server | cashier)", role)
+	j, err := applyChoice(c, dir, ch)
+	if err != nil {
+		return nil, err
 	}
-	j := &Job{Conf: c, Role: role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser()}
-	if role == RoleCashier {
-		if j.Address = withPort(address, c.Port); j.Address == "" {
+	_, err = os.Stat(filepath.Join(c.InstallDir, c.Binary))
+	j.Updating = err == nil
+	return j, nil
+}
+
+// applyChoice fills in the job from install.conf and what was picked here.
+func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
+	if ch.Role == "" {
+		ch.Role = RoleServer
+	}
+	if ch.Role != RoleServer && ch.Role != RoleCashier {
+		return nil, fmt.Errorf("role %q (server | cashier)", ch.Role)
+	}
+	switch ch.Open {
+	case "":
+	case "kiosk", "background":
+		c.Open = ch.Open
+	default:
+		return nil, fmt.Errorf("open %q (kiosk | background)", ch.Open)
+	}
+	if b := strings.TrimSpace(ch.BackupDir); b != "" {
+		if !absFor(c.OS, b) {
+			return nil, fmt.Errorf("the backup folder must be a full path, like %s", map[bool]string{true: `D:\Karots backups`, false: "/home/backups/karots"}[c.OS == "windows"])
+		}
+		env := make(map[string]string, len(c.Env)+1)
+		for k, v := range c.Env {
+			env[k] = v
+		}
+		env["BACKUP_DIR"] = b
+		c.Env = env
+	}
+	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser()}
+	if ch.Role == RoleCashier {
+		if j.Address = withPort(ch.Address, c.Port); j.Address == "" {
 			if j.Address = withPort(c.LanAddress, c.Port); j.Address == "" {
 				return nil, fmt.Errorf("a cashier PC needs the main PC's address (-address 192.168.1.10)")
 			}
 		}
 	}
-	_, err = os.Stat(filepath.Join(c.InstallDir, c.Binary))
-	j.Updating = err == nil
 	return j, nil
+}
+
+// absFor: a full path on the shop's OS (tests build Windows paths on Linux).
+func absFor(osName, p string) bool {
+	if osName == "windows" {
+		return len(p) >= 3 && p[1] == ':' && (p[2] == '\\' || p[2] == '/') || strings.HasPrefix(p, `\\`)
+	}
+	return strings.HasPrefix(p, "/")
 }
 
 // withPort adds the till port when the address has none.

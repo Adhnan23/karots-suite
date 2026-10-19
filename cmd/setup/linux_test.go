@@ -218,3 +218,32 @@ func TestLinuxUpdateOfflineNoInstalls(t *testing.T) {
 		t.Fatalf("installed packages again:\n%s", rc.all())
 	}
 }
+
+// The user's default browser (xdg-settings) runs the kiosk when its family is known.
+func TestLinuxKioskDefaultBrowser(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "firefox.desktop\n"
+	os.MkdirAll(filepath.Join(r, "usr/share/applications"), 0o755)
+	os.WriteFile(filepath.Join(r, "usr/share/applications/firefox.desktop"), []byte("[Desktop Entry]\nName=Firefox\nExec=firefox %u\n"), 0o644)
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `firefox --kiosk -no-remote -profile "$HOME/.karots-kiosk" $URL`) || strings.Contains(string(k), "%u") {
+		t.Fatalf("kiosk.sh:\n%s", k)
+	}
+	if _, err := os.Stat(filepath.Join(r, "etc/chromium/policies/managed/karots-kiosk.json")); err == nil {
+		t.Fatal("Chromium policy written for a Firefox kiosk")
+	}
+
+	// An unknown default → a browser already installed (chromium here).
+	j, rc, r = linuxJob(t, "file", false)
+	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "someweird.desktop\n"
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ = os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `"/usr/bin/chromium" --kiosk --app=$URL`) {
+		t.Fatalf("fallback kiosk.sh:\n%s", k)
+	}
+}
