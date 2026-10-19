@@ -7,10 +7,9 @@ every milestone.
 
 M8b Shop Builder is built (Builder shop list, three-file shop builds, karots-setup installer; details under "M8b
 Shop Builder DONE" and the follow-up notes below). Pick up here:
-1. **Finish the user's Windows test** with the latest build (rebuild the shop → copy 3 files → Setup → Update →
-   restart): no popups at sign-in, Karots starts (karots-start.exe -hidden), Helium opens the till full-screen;
-   Update keeps the PC's backup folder / kiosk choice. If the till doesn't come up: ask for
-   `C:\karots-suite\logs\karots.log`, Task Scheduler → KarotsSuite → Last Run Result, the task's Actions.
+1. **Windows test PASSED (user, 2026-10-19):** Setup → Update → restart: Karots starts by itself
+   (karots-start.exe -hidden, no popups), Helium opens the till full-screen, the kiosk Konami exit works. Still
+   unverified: Linux desktop double-click from a USB stick (exec bit, pkexec box); one real shop install.
 2. **Undecided:** Setup's "Check this PC" warning when the PC clock is off (a VM clock 12½ h out broke the support
    login; would also stamp sales wrongly).
 3. **Then M8c** self-update + release (spec first): Release per shop + Release all + "running vs latest" in the
