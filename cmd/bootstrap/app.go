@@ -17,6 +17,9 @@ import (
 //go:embed app.html
 var appPage []byte
 
+//go:embed app.js
+var appScript []byte
+
 // The build stream's last line starts with one of these, so the page can tell
 // the log from the outcome.
 const (
@@ -51,7 +54,7 @@ type appBuild struct {
 
 // serveApp runs the bootstrap app on addr (loopback only) and opens it in the
 // browser. It serves until the process is stopped (Ctrl+C).
-func serveApp(addr string, all []manifest, b func(buildOpts, io.Writer) (buildResult, error)) error {
+func serveApp(addr string, all []manifest, b func(buildOpts, io.Writer) (buildResult, error), cfg shopsCfg) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("listen %s: %w (another bootstrap running? pass -addr)", addr, err)
@@ -59,10 +62,10 @@ func serveApp(addr string, all []manifest, b func(buildOpts, io.Writer) (buildRe
 	url := "http://" + ln.Addr().String()
 	fmt.Printf("Karots Business Suite — bootstrap\n  open %s   (Ctrl+C to stop)\n", url)
 	openBrowser(url)
-	return http.Serve(ln, appHandler(all, b))
+	return http.Serve(ln, appHandler(all, b, cfg))
 }
 
-func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error)) http.Handler {
+func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error), cfg shopsCfg) http.Handler {
 	byKey := map[string]manifest{}
 	st := appState{Plugins: []appPlugin{}, OS: runtime.GOOS, Arch: "amd64", Name: "karots-suite", Out: "dist", HasSecret: os.Getenv("POS_SUPPORT_SECRET") != ""}
 	for _, m := range all {
@@ -71,16 +74,18 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 	}
 	var busy sync.Mutex // one build at a time: both write the same plugin lists
 	mux := http.NewServeMux()
+	mountShops(mux, all, b, cfg, &busy)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(appPage) //nolint:errcheck
 	})
+	mux.HandleFunc("GET /app.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		w.Write(appScript) //nolint:errcheck
+	})
 	mux.HandleFunc("GET /api/state", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, http.StatusOK, st) })
 	mux.HandleFunc("POST /api/build", func(w http.ResponseWriter, r *http.Request) {
-		// JSON only: a cross-site page can't send it without a CORS preflight,
-		// which this server never answers — so no other site can start a build.
-		if mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); mt != "application/json" {
-			writeErr(w, http.StatusUnsupportedMediaType, "send JSON")
+		if !jsonOnly(w, r) {
 			return
 		}
 		var in appBuild
@@ -107,18 +112,34 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 			return
 		}
 		defer busy.Unlock()
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		log := flushWriter{w}
-		res, err := b(o, log)
-		if err != nil {
-			fmt.Fprintf(log, "\n%s%s\n", errorMark, err)
-			return
-		}
-		j, _ := json.Marshal(res)
-		fmt.Fprintf(log, "\n%s%s\n", resultMark, j)
+		streamBuild(w, func(log io.Writer) (buildResult, error) { return b(o, log) })
 	})
 	return mux
+}
+
+// jsonOnly refuses anything but a JSON body: a cross-site page can't send one
+// without a CORS preflight, which this server never answers — so no other site
+// can start a build or read a shop's secrets.
+func jsonOnly(w http.ResponseWriter, r *http.Request) bool {
+	if mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); mt != "application/json" {
+		writeErr(w, http.StatusUnsupportedMediaType, "send JSON")
+		return false
+	}
+	return true
+}
+
+// streamBuild streams a build's log, ending with the result or error line.
+func streamBuild(w http.ResponseWriter, run func(io.Writer) (buildResult, error)) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	log := flushWriter{w}
+	res, err := run(log)
+	if err != nil {
+		fmt.Fprintf(log, "\n%s%s\n", errorMark, err)
+		return
+	}
+	j, _ := json.Marshal(res)
+	fmt.Fprintf(log, "\n%s%s\n", resultMark, j)
 }
 
 // flushWriter pushes each write to the browser so the log streams live.

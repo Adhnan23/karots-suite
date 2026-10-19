@@ -29,7 +29,7 @@ h1 { margin: 0; font: 600 24px/1.1 Sora, Figtree, system-ui, sans-serif; letter-
 .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .link { background: none; border: 0; color: var(--brand); font: inherit; font-size: 13px; cursor: pointer; padding: 4px; }
 .plugins { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-.plugin { position: relative; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 16px 16px 16px 52px;
+.plugin { position: relative; display: flex; flex-direction: column; justify-content: flex-start; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 16px 16px 16px 52px;
   border-radius: 14px; border: 1px solid var(--border); background: var(--card); transition: border-color .15s, background .15s, transform .15s; }
 .plugin:hover { transform: translateY(-1px); border-color: rgb(139 123 255 / .45); }
 .plugin[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
@@ -67,14 +67,66 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
 .pin { font-size: 20px !important; letter-spacing: .12em; color: var(--cyan); }
 .spin { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--brand-fg); border-right-color: transparent; animation: s .7s linear infinite; vertical-align: -1px; margin-right: 8px; }
 @keyframes s { to { transform: rotate(1turn); } }
+.tabs { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 4px; border-radius: 12px; background: var(--card-2); margin-bottom: 20px; }
+.tabs button { border: 0; border-radius: 9px; padding: 9px 16px; font: 600 14px Figtree, system-ui, sans-serif; color: var(--muted); background: none; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.btn { border: 1px solid var(--border); border-radius: 11px; padding: 8px 12px; font: 600 13px Figtree, system-ui, sans-serif; color: var(--fg); background: var(--card-2); cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: rgb(139 123 255 / .5); }
+.btn.primary { border: 0; color: var(--brand-fg); background: linear-gradient(135deg, var(--brand), var(--cyan)); }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: wait; }
+.shops { display: grid; gap: 12px; margin-top: 14px; }
+.shop { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); }
+.shop b { font-size: 16px; }
+.shop .acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+@media (max-width: 640px) { .shop { grid-template-columns: minmax(0, 1fr); } .shop .acts { justify-content: flex-start; } }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip { font: 600 12px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--card-2); color: var(--muted); }
+.chip.warn { color: var(--warn); background: rgb(251 191 36 / .12); }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); }
+.sec { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.sec:first-of-type { margin-top: 8px; padding-top: 0; border-top: 0; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 14px; }
+.secret { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; }
+.envrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 6px; margin-top: 6px; }
+.envrow input { margin-top: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 22px; }
+.ro { font: 600 14px var(--mono); margin-top: 6px; word-break: break-all; }
+.err { margin-top: 14px; color: var(--bad); font-size: 13px; }
 </style>
 </head>
 <body>
 <main>
   <header>
     <div class="mark">🛠</div>
-    <div><h1>Shop Builder</h1><div class="sub">Karots Business Suite — pick what this shop gets, then build its one binary.</div></div>
+    <div><h1>Shop Builder</h1><div class="sub">Karots Business Suite — every shop, its plugins and settings — build the three files to install it.</div></div>
   </header>
+  <nav class="tabs"><button id="tShops" aria-pressed="true">Shops</button><button id="tQuick" aria-pressed="false">Quick build</button></nav>
+  <section id="vShops">
+    <div class="panel">
+      <div class="row"><h2>Shops</h2><span class="acts" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label class="check"><input type="checkbox" id="installer" checked> Add installer</label>
+        <button class="btn primary" id="newShop">+ New shop</button></span></div>
+      <div class="hint" id="shopsPath"></div>
+      <div class="note" id="secret2" hidden>POS_SUPPORT_SECRET isn't set — shop builds need it (each shop gets its own support PIN).</div>
+      <div class="shops" id="shops"></div>
+    </div>
+  </section>
+  <section id="vNew" class="panel" hidden>
+    <h2>New shop</h2>
+    <div class="fields">
+      <div><label class="f" for="nName">Shop name</label><input id="nName" autocomplete="off"></div>
+      <div><label class="f" for="nKey">Key (folder name)</label><input id="nKey" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <label class="f">Runs on</label><div class="seg" id="nOS"></div>
+    <label class="f">Processor</label><div class="seg" id="nArch"></div>
+    <label class="f">Database</label><div class="seg" id="nMode"></div>
+    <div class="err" id="nErr"></div>
+    <div class="bar"><button class="btn" data-back>Cancel</button><button class="btn primary" id="nCreate">Create</button></div>
+  </section>
+  <section id="vEdit" class="panel" hidden></section>
+  <section id="vQuick" hidden>
   <div class="grid">
     <section class="panel">
       <div class="row"><h2>Plugins</h2><span><button class="link" id="all">Select all</button><button class="link" id="none">Core only</button></span></div>
@@ -100,102 +152,13 @@ pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 14px; border
       <div class="summary" id="summary"></div>
     </section>
   </div>
+  </section>
   <section class="panel log" id="log">
     <h2>Build log</h2>
     <pre id="out"></pre>
     <div class="done" id="done"></div>
   </section>
 </main>
-<script>
-const $ = (id) => document.getElementById(id)
-const OS = [['linux', 'Linux'], ['windows', 'Windows'], ['darwin', 'macOS'], ['freebsd', 'FreeBSD']]
-const ARCH = [['amd64', 'Intel / AMD'], ['arm64', 'ARM']]
-const MODE = [['file', 'One PC (file mode)'], ['server', 'Server (PostgreSQL)']]
-const s = { picked: new Set(), os: 'linux', arch: 'amd64', mode: 'server', plugins: [] }
-
-function seg(el, opts, key) {
-  el.innerHTML = ''
-  for (const [v, label] of opts) {
-    const b = document.createElement('button')
-    b.type = 'button'; b.textContent = label; b.setAttribute('aria-pressed', s[key] === v)
-    b.onclick = () => { s[key] = v; seg(el, opts, key); summary() }
-    el.append(b)
-  }
-}
-function plugins() {
-  const el = $('plugins'); el.innerHTML = ''
-  if (!s.plugins.length) { el.innerHTML = '<div class="empty">No plugins under plugins/*/plugin.json yet — this builds the core.</div>'; return }
-  for (const p of s.plugins) {
-    const b = document.createElement('button')
-    b.type = 'button'; b.className = 'plugin'; b.setAttribute('aria-pressed', s.picked.has(p.key))
-    b.innerHTML = '<span class="tick">✓</span><span class="ver"></span><b></b><small></small>'
-    b.querySelector('b').textContent = p.name
-    b.querySelector('small').textContent = p.description
-    b.querySelector('.ver').textContent = p.version ? 'v' + p.version : ''
-    b.onclick = () => { s.picked.has(p.key) ? s.picked.delete(p.key) : s.picked.add(p.key); plugins(); summary() }
-    el.append(b)
-  }
-}
-function valid() {
-  const name = $('name').value.trim(), iid = $('iid').value.trim().toUpperCase()
-  const nameOk = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(name)
-  const iidOk = iid === '' || /^[0-9A-Z]{4,32}$/.test(iid)
-  $('nameHint').textContent = nameOk ? '' : 'Letters, digits, dot, dash or underscore.'
-  $('nameHint').className = 'hint' + (nameOk ? '' : ' bad')
-  $('iidHint').className = 'hint' + (iidOk ? '' : ' bad')
-  $('iidHint').textContent = iidOk ? (iid ? 'Rebuilding for shop ' + iid + ' — its support PIN stays the same.' : 'Empty mints a new one. Paste a shop\'s id to keep its support PIN.') : '4–32 letters or digits, e.g. 3FA2C91B.'
-  return nameOk && iidOk
-}
-function fileOk() { return s.os === 'windows' ? s.arch === 'amd64' : s.os === 'linux' || s.os === 'darwin' }
-function summary() {
-  const n = s.picked.size, osName = OS.find((o) => o[0] === s.os)[1]
-  const file = $('name').value.trim() + (s.os === 'windows' ? '.exe' : '')
-  const modeOk = s.mode === 'server' || fileOk()
-  $('modeHint').className = 'hint' + (modeOk ? '' : ' bad')
-  $('modeHint').textContent = !modeOk ? 'File mode has no PostgreSQL for this system — pick Server, or Linux / macOS / Windows on Intel / AMD.'
-    : s.mode === 'file' ? 'Runs its own PostgreSQL from a data folder next to the program — nothing to install (+15 MB). Move to a server later by backup → restore.'
-    : 'Needs a PostgreSQL server and DATABASE_URL in the .env.'
-  $('summary').textContent = `dist/${file} · ${osName} · ${s.mode === 'file' ? 'one PC' : 'server'} · ${n ? n + ' plugin' + (n > 1 ? 's' : '') : 'core only'}`
-  $('go').disabled = !valid() || !modeOk || s.building
-}
-async function build() {
-  if (!valid()) return
-  s.building = true; summary()
-  $('go').innerHTML = '<span class="spin"></span>Building…'
-  $('log').classList.add('on'); $('out').textContent = ''; $('done').className = 'done'
-  const res = await fetch('/api/build', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plugins: s.plugins.filter((p) => s.picked.has(p.key)).map((p) => p.key), os: s.os, arch: s.arch, mode: s.mode, name: $('name').value.trim(), installId: $('iid').value.trim() }) })
-  let text = ''
-  if (!res.ok) { text = (await res.json()).error; finish(null, text); return }
-  const reader = res.body.getReader(), dec = new TextDecoder()
-  for (;;) {
-    const { value, done } = await reader.read()
-    if (done) break
-    text += dec.decode(value, { stream: true })
-    $('out').textContent = text.replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
-  }
-  const r = text.match(/@@RESULT (.*)/), e = text.match(/@@ERROR (.*)/)
-  finish(r ? JSON.parse(r[1]) : null, e ? e[1] : r ? null : 'The build stopped without a result — see the log.')
-}
-function finish(r, err) {
-  s.building = false; $('go').textContent = 'Build'; summary()
-  const d = $('done'); d.className = 'done on' + (err ? ' fail' : ''); d.innerHTML = ''
-  const h = document.createElement('b'); h.textContent = err ? 'Build failed' : '✓ Built'; d.append(h)
-  const kv = document.createElement('div'); kv.className = 'kv'; d.append(kv)
-  const add = (k, v, cls) => { const a = document.createElement('span'); a.textContent = k; const b = document.createElement('code'); b.textContent = v; if (cls) b.className = cls; kv.append(a, b) }
-  if (err) { add('Why', err); return }
-  add('Binary', r.binary)
-  if (r.installId) { add('Install id', r.installId); add('Support login', '0000000001'); add('Support PIN', r.supportPin, 'pin'); add('', 'The PIN rotates hourly — recompute it from the install id.') }
-  else add('Support', 'Shared support PIN (no POS_SUPPORT_SECRET)')
-}
-fetch('/api/state').then((r) => r.json()).then((st) => {
-  Object.assign(s, { plugins: st.plugins, os: st.os, arch: st.arch })
-  $('name').value = st.name; $('secret').hidden = st.hasSecret
-  seg($('os'), OS, 'os'); seg($('arch'), ARCH, 'arch'); seg($('mode'), MODE, 'mode'); plugins(); summary()
-})
-$('name').oninput = summary; $('iid').oninput = summary; $('go').onclick = build
-$('all').onclick = () => { s.plugins.forEach((p) => s.picked.add(p.key)); plugins(); summary() }
-$('none').onclick = () => { s.picked.clear(); plugins(); summary() }
-</script>
+<script src="/app.js"></script>
 </body>
 </html>

@@ -31,6 +31,7 @@ type buildOpts struct {
 // buildResult is what the shop owner needs once the binary exists.
 type buildResult struct {
 	Binary     string `json:"binary"`
+	Folder     string `json:"folder,omitempty"` // a shop build: the folder to carry to the shop
 	InstallID  string `json:"installId"`
 	SupportPIN string `json:"supportPin"`
 }

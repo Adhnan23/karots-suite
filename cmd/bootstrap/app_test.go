@@ -6,12 +6,14 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func testApp(build func(buildOpts, io.Writer) (buildResult, error)) http.Handler {
-	return appHandler([]manifest{{Key: "alpha", Name: "Alpha", Description: "Does alpha things."}, {Key: "beta", Name: "Beta"}}, build)
+	return appHandler([]manifest{{Key: "alpha", Name: "Alpha", Description: "Does alpha things."}, {Key: "beta", Name: "Beta"}}, build, shopsCfg{Path: filepath.Join(os.TempDir(), "bootstrap-test-no-shops.json")})
 }
 
 func TestAppState(t *testing.T) {

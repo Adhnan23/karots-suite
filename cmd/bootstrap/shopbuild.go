@@ -56,6 +56,7 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 			return res, err
 		}
 	}
+	res.Folder = dir
 	s.LastBuilt = &Built{At: time.Now().UTC().Truncate(time.Second), Commit: gitCommit()}
 	return res, nil
 }

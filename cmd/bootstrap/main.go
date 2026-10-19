@@ -100,7 +100,7 @@ func run() error {
 		return buildShops(*shopsFlag, *shopFlag, all, !*noInstaller)
 	}
 	if !isSet("plugins") && !isSet("write-only") {
-		return serveApp(*addr, all, build)
+		return serveApp(*addr, all, build, shopsCfg{Path: *shopsFlag, Out: "dist", Setup: buildSetup})
 	}
 	sel, err := selectPlugins(all, *pluginsFlag)
 	if err != nil {
