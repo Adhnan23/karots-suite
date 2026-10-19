@@ -17,6 +17,17 @@ const Version = 1
 // FileName sits next to karots-setup and the binary.
 const FileName = "install.conf"
 
+// The PostgreSQL 17 installer for a Windows server-mode main PC — the one
+// winget's PostgreSQL.PostgreSQL.17 (17.11-5) points at. The Builder can put it
+// beside the three files (no download at the shop); Setup uses it from there,
+// else winget, else downloads it. Bump all three together from the winget-pkgs
+// manifest.
+const (
+	PGInstallerName   = "postgresql-17.11-5-windows-x64.exe"
+	PGInstallerURL    = "https://get.enterprisedb.com/postgresql/" + PGInstallerName
+	PGInstallerSHA256 = "612C7F5400A003AAFFA0372CB273EED52278F93C680AB911EB9CB2229E329072"
+)
+
 // DB is a server-mode shop's PostgreSQL.
 type DB struct {
 	Host          string `json:"host"`

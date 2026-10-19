@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"karots-suite/internal/shopconf"
 )
 
 func windowsJob(t *testing.T, mode string) (*Job, *rec) {
@@ -101,6 +103,32 @@ func TestWindowsDatabaseWithoutWinget(t *testing.T) {
 	rc.answers["ps> # karots:winget-postgresql"] = "no-winget"
 	if err := windowsDatabase(j); err == nil || !strings.Contains(err.Error(), "get.enterprisedb.com") {
 		t.Fatalf("err %v", err)
+	}
+}
+
+// The installer the Builder put beside the three files (a USB stick, no
+// internet at the shop) is used first: checked, run, nothing downloaded.
+func TestWindowsDatabaseInstallerBeside(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	rc.seq = map[string][]string{"ps> # karots:find-psql": {"", psqlPath}}
+	os.WriteFile(filepath.Join(j.Dir, shopconf.PGInstallerName), []byte("EXE"), 0o755)
+	var log strings.Builder
+	j.Log = &log
+	if err := windowsDatabase(j); err != nil {
+		t.Fatal(err)
+	}
+	all := rc.all()
+	for _, want := range []string{"# karots:local-postgresql", filepath.Join(j.Dir, shopconf.PGInstallerName), shopconf.PGInstallerSHA256,
+		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432"} {
+		if !strings.Contains(all, want) {
+			t.Errorf("missing %q in:\n%s", want, all)
+		}
+	}
+	if strings.Contains(all, "winget install") || strings.Contains(all, "Invoke-WebRequest") {
+		t.Fatalf("downloaded although the installer was beside Setup:\n%s", all)
+	}
+	if !strings.Contains(log.String(), "@@NOTE Installing PostgreSQL 17 from the copy beside Setup") {
+		t.Fatalf("no note:\n%s", log.String())
 	}
 }
 
