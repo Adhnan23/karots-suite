@@ -259,6 +259,12 @@ day, wages already cover it; the lost weight is in the loose cost.
   watch the till from their phone — needs HTTPS in front (e.g. Caddy) and Setup's cashier address to allow `https://`
   (today it always uses http://). Caution given: a shop whose only database is online stops selling when its
   internet drops (never-stop-a-sale).
+- **Hosting ways (user, 2026-10-19):** (1) database on the user's VPS, Karots at the shop — works now (SSL), but sales
+  stop without internet and it is the slowest (every query crosses the internet); (2) everything on the VPS — needs
+  HTTPS in front (Caddy) + `https://` cashier addresses in Setup; (3) **Tailscale** — Karots stays at the shop, the
+  owner's phone joins the tailnet (recommended for "owner watches from the phone": sales never depend on the internet;
+  Tailscale gives the HTTPS name Pocket Cashier will need). Later: optional Setup steps "Remote access (Tailscale)"
+  (auth key in the shop profile) and "HTTPS (Caddy)" for a VPS install.
 - **M8c2 Backup copies (user, 2026-10-19), after M8c:** each automatic backup also copied to USB / network folders and
   S3 buckets (R2, B2, AWS; a VPS via MinIO / Garage, no SFTP); missing drive = skip + catch up + warn (never stops a
   sale); keep N per place; off-PC copies encrypted (key in the shop profile, stored as a `DataGroup.Secret`); restore
