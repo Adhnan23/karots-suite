@@ -74,6 +74,7 @@ type Built struct {
 	Version string    `json:"version,omitempty"`
 	Kind    string    `json:"kind,omitempty"`  // "test" (local only) | "release" (meant for the bucket)
 	Notes   string    `json:"notes,omitempty"` // a release's "what's new", kept for a Publish retry
+	Dirty   bool      `json:"dirty,omitempty"` // a test build with uncommitted changes: not the commit's code
 }
 
 type Shop struct {

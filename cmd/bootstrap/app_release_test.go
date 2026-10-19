@@ -101,3 +101,15 @@ func TestAppReleaseAll(t *testing.T) {
 		t.Fatalf("calls %v", st.calls)
 	}
 }
+
+// A Test build remembers whether the tree had uncommitted changes, so the row
+// can tell "same code as published" from "code not released yet".
+func TestAppTestBuildRecordsDirty(t *testing.T) {
+	for _, dirty := range []bool{false, true} {
+		a, _, _ := releaseApp(t, dirty)
+		a.do(t, "/api/shops/al-raj/build", `{"installer":false}`)
+		if s := a.stored(t); s.LastBuilt == nil || s.LastBuilt.Dirty != dirty {
+			t.Fatalf("dirty=%v: lastBuilt %+v", dirty, s.LastBuilt)
+		}
+	}
+}

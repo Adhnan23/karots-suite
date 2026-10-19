@@ -130,7 +130,12 @@ async function loadShops() {
     const unpublished = lb && lb.kind === 'release' && (!pub || pub.version !== lb.version)
     const state = (pub ? `<span class="chip ok">Published ${esc(pub.version)} · ${esc(new Date(pub.at).toLocaleDateString())}</span>` : '<span class="chip bad">Not published</span>')
       + (unpublished && pub ? `<span class="chip bad">${esc(lb.version)} not published</span>` : '')
-      + (lb && lb.kind === 'test' && (!pub || lb.version > pub.version) ? `<span class="chip warn">Test build ${esc(lb.version)}, not released</span>` : '')
+      + (lb && lb.kind === 'test' && (!pub || lb.version > pub.version)
+        // same commit, nothing uncommitted = the published code: not a difference
+        ? (pub && lb.commit === pub.commit && !lb.dirty
+          ? '<span class="chip">Test build of the published code</span>'
+          : `<span class="chip warn">Test build ${esc(lb.version)} — ${lb.dirty ? 'uncommitted changes' : 'newer code'}, not released</span>`)
+        : '')
     const warns = (st.warnings[sh.key] || []).map((w) => `<span class="chip warn">⚠ ${esc(w)}</span>`).join('')
     row.innerHTML = `<div><b>${esc(sh.name)}</b> <span class="hint">${esc(sh.key)}</span>
       <div class="chips"><span class="chip">${esc(sh.os)}/${esc(sh.arch)}</span><span class="chip">${sh.mode === 'file' ? 'one PC' : 'server'}</span>

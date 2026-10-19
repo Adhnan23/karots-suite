@@ -59,6 +59,9 @@ func shopRun(s *Shop, all []manifest, b buildFn, cfg shopsCfg, kind, version, no
 		fmt.Fprintln(log, notPublishedWarn)
 	}
 	res, err := buildShop(s, all, shopBuildOpts{Out: cfg.Out, Installer: installer, Version: version, Kind: kind, PubKey: pub}, b, cfg.Setup, log)
+	if err == nil && kind == "test" {
+		s.LastBuilt.Dirty, _ = cfg.dirty() // unknown counts as committed
+	}
 	if err != nil || kind != "release" {
 		return res, err
 	}
