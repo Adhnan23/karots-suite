@@ -213,6 +213,10 @@ day, wages already cover it; the lost weight is in the loose cost.
   all-plugins (50 MB) file-mode binaries. **Left for the user: a Windows check** (double-click → till; close the
   window → no `postgres.exe` left; start again → same data; Sinhala product search) and one file → server move.
   **NEXT: M8b Shop Builder** (spec first).
+- **Windows check (user, 2026-10-19):** a fresh Windows 10 VM failed first start — zonky's PostgreSQL needs the VC++
+  runtime (initdb `0xc0000135`). Fixed: Windows file-mode builds carry msvcp140 / vcruntime140 / vcruntime140_1
+  (`internal/filedb/vcrt/`, written to `data\vcrt\`, first on PATH). **Works on Windows with the redist
+  uninstalled.** The 2273 PIN there = built without `POS_SUPPORT_SECRET` (shop builds set it; never in a `.env`).
 - **M8 reordered (user, 2026-10-18):** **M8b Shop Builder** — shop profiles (plugins, database mode, install id,
   update channel, each shop's `.env`: JWT secret, DB URL) and the install scripts (`install.sh`, `build.ps1`,
   `install.ps1`, karots-pos style) that put the profile's `.env` beside the binary → **M8c self-update + release**
