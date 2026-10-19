@@ -53,7 +53,7 @@ never loses every shop. The Builder commits nothing itself — the user commits 
   "install": {
     "dir": "C:\\karots-suite",      // default /opt/karots-suite | C:\karots-suite
     "kiosk": true,
-    "lanAddress": "192.168.1.10"    // optional: makes a cashier-terminal folder too
+    "lanAddress": "192.168.1.10"    // optional: pre-fills a cashier PC's main-PC address
   },
   "env": { "JWT_EXPIRES_IN": "10h" }, // any extra .env keys
   "lastBuilt": { "at": "2026-10-19T10:00:00Z", "commit": "fbf53cd" }
@@ -89,24 +89,21 @@ server → file asks first ("move the data first: Setup → Data has the steps")
 dist/al-raj/
   karots-suite.exe   the binary (install id + support seed baked in)
   .env               the app's settings, generated from the profile (0600)
-  install.conf       the install script's settings, generated from the profile
-  install.ps1        (windows) — or install.sh (linux)
-  INSTALL.txt        what to run, the till URL, the support login
-  terminal/          only when the profile has a LAN address:
-    install.conf       kiosk-only settings → http://192.168.1.10:3000
-    install.ps1
+  install.conf       the installer's settings, generated from the profile
+  karots-setup.exe   the installer (§E), built for the shop's OS / CPU
+  INSTALL.txt        "double-click karots-setup (Linux: sudo ./karots-setup)", the support login
 ```
 
 - **`.env`** (generated, never typed): `APP_ENV=production`, `SERVER_PORT`, then server mode `DATABASE_URL` (from `db`)
   + `JWT_SECRET` + `BACKUP_DIR=backups`; file mode `FILE_DB_PORT`; then the `env` extras. Written in the
   systemd-`EnvironmentFile`-safe form (KEY=value, no spaces, no comments).
-- **`install.conf`** (same KEY=value form): `ROLE=server|terminal`, `MODE=file|server`, `APP=karots-suite`,
-  `BINARY=<name>`, `INSTALL_DIR`, `PORT`, `KIOSK=yes|no`, `KIOSK_URL`, and for a local server-mode DB `DB_NAME`,
-  `DB_USER`, `DB_PASSWORD`, `DB_PORT`, `DB_LOCAL=yes|no` (host is not this PC → `no`).
+- **`install.conf`** (same KEY=value form): `SHOP=<name>`, `MODE=file|server`, `BINARY=<name>`, `INSTALL_DIR`,
+  `PORT`, `KIOSK=yes|no`, `LAN_ADDRESS` (may be empty), and for server mode `DB_NAME`, `DB_USER`, `DB_PASSWORD`,
+  `DB_PORT`, `DB_LOCAL=yes|no` (host is not this PC → `no`).
 - A shop build **refuses without `POS_SUPPORT_SECRET`** (a quick build still only warns).
 - `dist/<key>/` is emptied first; the build records `lastBuilt` (time + commit) on the profile.
-- The scripts are **embedded in the Builder** (`cmd/bootstrap/install/`, `go:embed`) and copied in, so the folder works
-  without the repo.
+- The installer is generic (one program, every shop): it reads `install.conf` and `.env` from beside itself, so the
+  Builder just cross-compiles `cmd/setup` for the shop's OS / CPU into the folder (static, like the server).
 
 ### D. CLI
 
@@ -116,29 +113,53 @@ support PIN the shop knows stays), plugins mapped by key (unknown ones listed an
 **new channel** (the suite has its own feed — never a karots-pos binary over the suite), fresh secrets. The other flags
 stay as they are.
 
-### E. Install scripts, redone: apply, don't decide
+### E. Shop Setup: an installer program with a page, no command line
 
-The scripts **only apply** what the Builder wrote. They read `install.conf` beside them and copy the `.env` as it is.
-They never generate a secret, never parse a `.env`, take no role / port / folder from the shop PC's environment, and
-**refuse to run without `install.conf`** ("build this shop in the Shop Builder"). Re-running is safe and is how a
-changed profile reaches the shop: new `.env`, `ALTER ROLE … PASSWORD` to the profile's, service restarted.
+**User, 2026-10-19:** the installer is its own binary with a web page — people don't like the command line. So the
+shop never types anything: **double-click `karots-setup`**, a page opens, press **Install**.
 
-`install.sh` / `install.ps1`, each as numbered steps keyed on `install.conf`:
+`cmd/setup` → `karots-setup(.exe)`, one generic program for every shop (it reads `install.conf` + `.env` from beside
+itself), the same loopback page + live log pattern as the Builder (`app.html`, `go:embed`, no React).
 
-1. **Preflight:** admin / root, systemd (Linux) or PowerShell 5+ (Windows), the binary beside the script, static-binary
-   check (Linux), not a karots-pos folder.
-2. **Packages:** Chromium / Chrome if `KIOSK=yes`; CUPS (Linux) on a server; PostgreSQL **only** when `MODE=server` and
-   `DB_LOCAL=yes`.
-3. **Database** (server + local only): init + start PostgreSQL, role + database with `DB_PASSWORD` on `DB_PORT`, loopback
-   password login in `pg_hba` (as karots-pos). `DB_LOCAL=no`: check the DB host's port answers, say so if not.
-4. **Files:** binary + `.env` (0600) into `INSTALL_DIR`, owned by the shop user (file mode writes `data/` there).
-5. **Start on boot:** systemd service (Linux; `After=postgresql` only when the DB is local) / logon Scheduled Task as
-   the shop user (Windows — closing the window stops Postgres cleanly, M8a). Firewall opens `PORT` for the LAN.
-6. **Wait** on `http://localhost:PORT/health`.
-7. **Kiosk** (`KIOSK=yes`): the karots-pos relaunch loop + DevTools policy, opening `KIOSK_URL`.
+**Getting admin rights without a terminal:**
+- **Windows:** not elevated → it relaunches itself through the normal UAC prompt ("Yes"), then carries on.
+- **Linux:** not root → it relaunches itself with **`pkexec`** (the desktop's graphical password box). The page is
+  opened **as the logged-in user** (a browser refuses to run as root), so the shop user is also who the service and
+  kiosk run as. No `pkexec` (rare) → the page still opens and says the one line to run.
+- The page's address carries a random token (it runs as admin; no other site or local user can drive it).
 
-`ROLE=terminal` runs only 1, 2 (browser) and 7. The kiosk-exit sentinel stays the same file the server writes. Expected
-size: well under karots-pos's, since the generating, re-reading and role guessing go.
+**The page** (the shop's name at the top, from `install.conf`):
+1. **This PC is…** **The shop's main PC** (the till server; the default) or **A cashier PC** — kiosk only, pointed at
+   the main PC (address pre-filled from `LAN_ADDRESS`, editable, with **Test** that calls its `/health`). This replaces
+   a separate terminal folder.
+2. **What will happen** — plain lines from `install.conf`: "Install Chrome", "Keep the shop's data on this PC (one PC)"
+   or "Install PostgreSQL" / "Use the database on 192.168.1.20", "Start Karots when this PC starts", "Open the till
+   full-screen", the folder and port. Nothing to fill in — the Builder decided it.
+3. **Install** → each step ticks ✓ with a live log under **Details** (hidden by default). A failed step says what to do
+   in words and offers **Try again**; Copy log for support.
+4. **Done** → **Open the till** + the support login line; on a cashier PC, "the till opens full-screen at next login".
+
+Already installed (folder exists) → the page opens on **Update** instead: same steps, applies a changed profile (new
+`.env`, `ALTER ROLE … PASSWORD`, service restarted), data untouched. **Uninstall** is not offered (a shop's data must
+not vanish with one click).
+
+**Apply, don't decide.** It never generates a secret, never edits the `.env`, and **refuses without `install.conf`**
+("build this shop in the Shop Builder"). The steps, ported from karots-pos's scripts into Go (one file per concern, all
+≤ 500 lines, `exec` of the OS tools — no new dependency; `golang.org/x/sys` is already in `go.mod`):
+
+1. **Checks:** admin, systemd (Linux), the shop binary beside it, not over a karots-pos folder, port free (or ours).
+2. **Programs:** Chromium / Chrome when the kiosk is on (apt / dnf / pacman / zypper, winget on Windows); CUPS (Linux);
+   PostgreSQL **only** for server mode with a local DB.
+3. **Database** (server + local): start PostgreSQL, role + database with the profile's password on its port, loopback
+   password login in `pg_hba`. Remote DB: check it answers, say so if not.
+4. **Files:** binary + `.env` (0600) into the install folder, owned by the shop user (file mode writes `data/` there).
+5. **Start with the PC:** systemd service (Linux) / logon Scheduled Task as the shop user (Windows — closing the window
+   stops Postgres cleanly, M8a); firewall opens the port for the LAN.
+6. **Wait** on `/health`.
+7. **Kiosk:** karots-pos's relaunch loop + DevTools policy, opening the till (or the main PC's address).
+
+A cashier PC runs 1, 2 (browser only) and 7. **Headless Linux** (a VPS over SSH, no screen): `sudo ./karots-setup
+-yes` runs the same steps in the terminal — the only command-line path, for the technician.
 
 `build.ps1`: the Windows stand-in for the Makefile, cut down to what the suite needs on Windows — `bootstrap [args]`
 (the Builder), `build`, `test`, `test-web`, `types`, `web`. Needs Go + bun on PATH. Lives at the repo root (it builds),
@@ -155,15 +176,19 @@ not in install folders.
 - Publishing, the feed, self-update, "who's behind" — **M8c**.
 - Moving a karots-pos shop's data — already works (karots-pos backup → suite Restore).
 - A zip of the install folder (a folder copies to USB fine).
-- macOS / FreeBSD install scripts (builds still allowed; no shop runs them).
+- Setup for macOS / FreeBSD (builds still allowed; no shop runs them).
+- karots-pos-style `install.sh` / `install.ps1` — replaced by Shop Setup.
 
 ## 4. Checks
 
 - Go tests: create mints install id / channel / secrets per mode; refused `env` keys; port clash warning; the
-  generated `.env` and `install.conf` for server-local, server-remote, file and terminal; `-import-pos` keeps install
+  generated `.env` and `install.conf` for server-local, server-remote and file; `-import-pos` keeps install
   ids, drops unknown plugins, mints a new channel; atomic save keeps the old file on a failed write; app endpoints (list
-  masks, JSON-only POSTs, build writes `dist/<key>/` with the right script).
-- Script checks (by hand, recorded in status): `install.sh` on a Linux VM in **file mode**, **server mode** and a
-  re-run after **Rotate** (role password follows, service up, kiosk); a terminal folder against it; `install.ps1` file
-  mode on the M8a Windows 10 VM (fresh, no redist); `shellcheck install.sh`; a folder without `install.conf` is refused.
+  masks, JSON-only POSTs, build writes `dist/<key>/` with the binary, setup, `.env`, `install.conf`).
+- Setup tests: `install.conf` parsing (missing → refused), the step list per role / mode (server-local,
+  server-remote, file, cashier PC), the page token, Update vs Install detection; the OS commands behind a small runner
+  so tests see the commands without running them.
+- By hand on VMs (recorded in status): **double-click from a USB stick** on Linux (Xubuntu / Mint: the exec bit and
+  `pkexec` prompt) and Windows 10 (UAC), file mode and server mode, an Update after **Rotate** (role password follows,
+  service up, kiosk), a cashier PC against it; `-yes` over SSH.
 - `make verify`, `make check-core` (the Builder names plugins only via `plugin.json`, as today).
