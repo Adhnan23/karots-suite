@@ -21,6 +21,9 @@ func checks(j *Job) error {
 	if !isAdminFn() {
 		return fmt.Errorf("Setup needs admin rights — start it again and answer Yes")
 	}
+	if !j.windows() && j.User == "" {
+		return fmt.Errorf("start Setup from your normal user (sudo ./karots-setup), not as root — Karots runs as that user")
+	}
 	if j.Role == RoleCashier {
 		return nil
 	}

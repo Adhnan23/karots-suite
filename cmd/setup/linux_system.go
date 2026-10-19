@@ -212,8 +212,10 @@ func linuxNetwork(j *Job) error {
 }
 
 func linuxPrinting(j *Job) error {
-	if err := install(j, "cups"); err != nil {
-		return err
+	if _, err := lookPathFn("cupsd"); err != nil {
+		if err := install(j, "cups"); err != nil {
+			return err
+		}
 	}
 	_, err := run(j, "systemctl", "enable", "--now", "cups")
 	return err

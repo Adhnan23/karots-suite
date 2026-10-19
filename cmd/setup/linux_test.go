@@ -195,3 +195,26 @@ func TestLinuxOldPostgres(t *testing.T) {
 		t.Fatalf("err %v", err)
 	}
 }
+
+// An Update on an offline shop PC: PostgreSQL 17 and CUPS already there → no package installs.
+func TestLinuxUpdateOfflineNoInstalls(t *testing.T) {
+	j, rc, _ := linuxJob(t, "server", true)
+	lookPathFn = func(name string) (string, error) {
+		if name == "apt-get" || name == "cupsd" {
+			return "/usr/bin/" + name, nil
+		}
+		return "", os.ErrNotExist
+	}
+	rc.fail = map[string]error{"apt-get": os.ErrDeadlineExceeded, "/usr/share/postgresql-common": os.ErrDeadlineExceeded}
+	rc.answers["runuser -u postgres -- psql -p 5432 -tAc SELECT 'up'"] = "up\n"
+	rc.answers["runuser -u postgres -- psql -p 5432 -tAc SHOW server_version_num"] = "170005\n"
+	if err := linuxDatabase(j); err != nil {
+		t.Fatalf("database: %v", err)
+	}
+	if err := linuxPrinting(j); err != nil {
+		t.Fatalf("printing: %v", err)
+	}
+	if strings.Contains(rc.all(), "apt-get") || strings.Contains(rc.all(), "pgdg") {
+		t.Fatalf("installed packages again:\n%s", rc.all())
+	}
+}

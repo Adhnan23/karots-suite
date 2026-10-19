@@ -33,6 +33,15 @@ func linuxDatabase(j *Job) error {
 		fmt.Fprintln(j.Log, "the database at", addr, "answers")
 		return nil
 	}
+	port := strconv.Itoa(db.Port)
+	// Already running on the shop's port (an Update): install nothing, so an
+	// offline shop PC can still apply a changed profile.
+	if out, _ := psql(j, port, "SELECT 'up'"); out == "up" {
+		if v, _ := psql(j, port, "SHOW server_version_num"); atoi(v) >= minPGVersion {
+			fmt.Fprintln(j.Log, "PostgreSQL", pgMajor+"+ is already running on port", port)
+			return makeRole(j, port)
+		}
+	}
 	pm, err := packageManager()
 	if err != nil {
 		return err
@@ -74,7 +83,6 @@ func linuxDatabase(j *Job) error {
 	if v, _ := psql(j, "", "SHOW server_version_num"); atoi(v) < minPGVersion {
 		return fmt.Errorf("this PC has PostgreSQL %d; Karots needs %s or newer — install PostgreSQL %s (postgresql.org/download), then Try again", atoi(v)/10000, pgMajor, pgMajor)
 	}
-	port := strconv.Itoa(db.Port)
 	if cur, _ := psql(j, "", "SHOW port"); cur != port {
 		if _, err := psql(j, "", "ALTER SYSTEM SET port = "+port); err != nil {
 			return err
@@ -86,6 +94,12 @@ func linuxDatabase(j *Job) error {
 			return err
 		}
 	}
+	return makeRole(j, port)
+}
+
+// makeRole gives the role the profile's password (creating it if needed) and makes the database.
+func makeRole(j *Job, port string) error {
+	db := j.Conf.DB
 	role := "CREATE ROLE"
 	if out, _ := psql(j, port, "SELECT 1 FROM pg_roles WHERE rolname = "+lit(db.User)); out == "1" {
 		role = "ALTER ROLE"

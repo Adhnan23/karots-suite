@@ -178,3 +178,14 @@ func TestRunAllStops(t *testing.T) {
 		t.Fatalf("err %v ran %v marked %v", err, ran, marked)
 	}
 }
+
+func TestChecksNeedShopUser(t *testing.T) {
+	isAdminFn = func() bool { return true }
+	hasSystemdFn = func() bool { return true }
+	j := checkJob(t, 0)
+	j.Conf.Port = freePort(t)
+	j.User = ""
+	if err := checks(j); err == nil || !strings.Contains(err.Error(), "normal user") {
+		t.Fatalf("err %v", err)
+	}
+}
