@@ -12,6 +12,14 @@ import (
 // superuser password isn't its password. The page asks for it and tries again.
 var ErrNeedSuperPassword = errors.New("PostgreSQL is already on this PC — enter its 'postgres' password")
 
+// The PostgreSQL 17 installer winget's PostgreSQL.PostgreSQL.17 (17.11-5) points
+// at — used when this PC has no winget. Bump both together from the winget-pkgs
+// manifest.
+const (
+	pgInstallerURL    = "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64.exe"
+	pgInstallerSHA256 = "612C7F5400A003AAFFA0372CB273EED52278F93C680AB911EB9CB2229E329072"
+)
+
 // windowsDatabase installs PostgreSQL 17 with the profile's superuser password
 // and port (winget), then makes the role (the profile's password — an existing
 // role gets it too) and the database. A database elsewhere is only checked.
@@ -26,13 +34,28 @@ func windowsDatabase(j *Job) error {
 		c.Close()
 		return nil
 	}
-	// winget says "already installed" with a non-zero code: not an error.
+	// winget says "already installed" with a non-zero code: not an error. No
+	// winget (some Windows 10 builds) or it failed: the same EDB installer winget
+	// uses, downloaded and checked against its pinned SHA-256.
+	args := fmt.Sprintf("--superpassword %s --serverport %d", db.SuperPassword, db.Port)
 	ps(j, fmt.Sprintf(`# karots:install-postgresql
-winget install --id PostgreSQL.PostgreSQL.17 -e --silent --accept-package-agreements --accept-source-agreements --custom "--superpassword %s --serverport %d"`, db.SuperPassword, db.Port)) //nolint:errcheck
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+  winget install --id PostgreSQL.PostgreSQL.17 -e --silent --accept-package-agreements --accept-source-agreements --custom "%[1]s"
+}
+if (-not (Test-Path 'C:\Program Files\PostgreSQL\*\bin\psql.exe')) {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  $ProgressPreference = 'SilentlyContinue'
+  $f = Join-Path $env:TEMP 'karots-postgresql-17.exe'
+  Write-Output 'downloading PostgreSQL 17 from get.enterprisedb.com…'
+  Invoke-WebRequest -UseBasicParsing -Uri '%[2]s' -OutFile $f
+  if ((Get-FileHash $f -Algorithm SHA256).Hash -ne '%[3]s') { Remove-Item $f; throw 'the PostgreSQL download is damaged (checksum differs)' }
+  Start-Process -FilePath $f -ArgumentList '--mode unattended --unattendedmodeui none %[1]s' -Wait
+  Remove-Item $f -ErrorAction SilentlyContinue
+}`, args, pgInstallerURL, pgInstallerSHA256)) //nolint:errcheck
 	bin, err := ps(j, `# karots:find-psql
 (Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName`)
 	if err != nil || bin == "" {
-		return fmt.Errorf("PostgreSQL didn't install (no psql.exe under C:\\Program Files\\PostgreSQL) — check the internet connection and Try again")
+		return fmt.Errorf("PostgreSQL didn't install (no psql.exe under C:\\Program Files\\PostgreSQL) — the log above says why; this PC must reach get.enterprisedb.com — then Try again")
 	}
 	super, tag := "", ""
 	for _, try := range []struct{ pw, tag string }{{db.SuperPassword, "super"}, {j.SuperPassword, "typed"}} {

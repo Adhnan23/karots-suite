@@ -48,6 +48,33 @@ func TestWindowsDatabase(t *testing.T) {
 	}
 }
 
+// No winget (some Windows 10 builds): the official installer winget would run is
+// downloaded instead, checked against its pinned SHA-256, and run silently.
+func TestWindowsDatabaseWithoutWinget(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	if err := windowsDatabase(j); err != nil {
+		t.Fatal(err)
+	}
+	all := rc.all()
+	for _, want := range []string{
+		"Get-Command winget",
+		"https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64.exe",
+		"612C7F5400A003AAFFA0372CB273EED52278F93C680AB911EB9CB2229E329072",
+		"Get-FileHash",
+		"--mode unattended --unattendedmodeui none --superpassword super123 --serverport 5432",
+	} {
+		if !strings.Contains(all, want) {
+			t.Errorf("missing %q in:\n%s", want, all)
+		}
+	}
+	// Not installed after all: say so without blaming the internet alone.
+	j, rc = windowsJob(t, "server")
+	rc.answers["ps> # karots:find-psql"] = ""
+	if err := windowsDatabase(j); err == nil || !strings.Contains(err.Error(), "get.enterprisedb.com") {
+		t.Fatalf("err %v", err)
+	}
+}
+
 // PostgreSQL already there with an unknown password → ask on the page, then use it.
 func TestWindowsNeedSuperPassword(t *testing.T) {
 	j, rc := windowsJob(t, "server")
