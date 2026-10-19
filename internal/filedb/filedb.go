@@ -11,6 +11,7 @@ package filedb
 import (
 	"bufio"
 	"crypto/rand"
+	"embed"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -65,6 +66,9 @@ func Open(o Options) (*DB, error) {
 	cache := filepath.Join(dir, "cache")
 	if err := placeBundle(cache, o.Bundle); err != nil {
 		return nil, fmt.Errorf("unpack PostgreSQL: %w", err)
+	}
+	if err := placeVCRT(filepath.Join(dir, "vcrt")); err != nil {
+		return nil, fmt.Errorf("unpack the Visual C++ runtime: %w", err)
 	}
 	stopLeftover(dir, data)
 	sec, err := secrets(filepath.Join(dir, "secret"))
@@ -157,6 +161,38 @@ func placeBundle(cache string, bundle []byte) error {
 		return err
 	}
 	return os.Rename(path+".part", path)
+}
+
+// vcrt is the Visual C++ runtime a Windows file-mode build carries (embed_windows.go).
+var vcrt *embed.FS
+
+// placeVCRT writes the runtime DLLs to dir and puts dir first on PATH, which
+// initdb, pg_ctl and postgres inherit — Windows finds DLLs on PATH.
+func placeVCRT(dir string) error {
+	if vcrt == nil {
+		return nil
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	files, err := vcrt.ReadDir("vcrt")
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		b, err := vcrt.ReadFile("vcrt/" + f.Name())
+		if err != nil {
+			return err
+		}
+		path := filepath.Join(dir, f.Name())
+		if fi, err := os.Stat(path); err == nil && fi.Size() == int64(len(b)) {
+			continue
+		}
+		if err := os.WriteFile(path, b, 0o644); err != nil {
+			return err
+		}
+	}
+	return os.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
 }
 
 // stopLeftover stops a Postgres still running on this folder after the app was
