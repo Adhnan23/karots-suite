@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"karots-suite/internal/update"
 )
 
 // -hidden: karots-start.exe (Setup's own copy in the install folder; built
@@ -31,15 +33,15 @@ func parseHidden(args []string) (hidden, error) {
 }
 
 // runHidden runs the program (no window — hideWindow) and exits with its code,
-// so the start-up task restarts Karots if it stops.
+// so the start-up task restarts Karots if it stops. After an update Karots
+// exits with update.RestartCode: it is started again at once (the new binary).
 func runHidden(args []string) {
 	h, err := parseHidden(args)
 	if err != nil {
 		showError(err.Error())
 		os.Exit(2)
 	}
-	cmd := exec.Command(h.prog, h.args...)
-	cmd.Dir = filepath.Dir(h.prog)
+	var out *os.File
 	if h.log != "" {
 		os.MkdirAll(filepath.Dir(h.log), 0o755) //nolint:errcheck // OpenFile says why
 		f, err := os.OpenFile(h.log, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
@@ -48,15 +50,36 @@ func runHidden(args []string) {
 			os.Exit(2)
 		}
 		defer f.Close()
-		cmd.Stdout, cmd.Stderr = f, f
+		out = f
 	}
-	hideWindow(cmd)
-	if err := cmd.Run(); err != nil {
-		var exit *exec.ExitError
-		if errors.As(err, &exit) {
-			os.Exit(exit.ExitCode())
+	os.Exit(runChild(func() (int, error) {
+		cmd := exec.Command(h.prog, h.args...)
+		cmd.Dir = filepath.Dir(h.prog)
+		if out != nil {
+			cmd.Stdout, cmd.Stderr = out, out
 		}
-		showError("can't start " + h.prog + ": " + err.Error())
-		os.Exit(2)
+		hideWindow(cmd)
+		err := cmd.Run()
+		var exit *exec.ExitError
+		switch {
+		case err == nil:
+			return 0, nil
+		case errors.As(err, &exit):
+			return exit.ExitCode(), nil
+		default:
+			showError("can't start " + h.prog + ": " + err.Error())
+			return 2, nil
+		}
+	}))
+}
+
+// runChild starts the program again for as long as it asks to be restarted
+// (update.RestartCode), and returns any other exit code.
+func runChild(start func() (int, error)) int {
+	for {
+		code, err := start()
+		if err != nil || code != update.RestartCode {
+			return code
+		}
 	}
 }

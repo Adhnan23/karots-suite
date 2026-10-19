@@ -17,3 +17,16 @@ func TestParseHidden(t *testing.T) {
 		t.Fatal("nothing to run accepted")
 	}
 }
+
+func TestRunChildRestarts(t *testing.T) {
+	codes := []int{75, 75, 0}
+	calls := 0
+	got := runChild(func() (int, error) { c := codes[calls]; calls++; return c, nil })
+	if got != 0 || calls != 3 {
+		t.Fatalf("after an update: code %d, %d starts; want 0, 3", got, calls)
+	}
+	calls = 0
+	if got := runChild(func() (int, error) { calls++; return 1, nil }); got != 1 || calls != 1 {
+		t.Fatalf("a crash: code %d, %d starts; want 1, 1 (the task's restart-on-failure handles it)", got, calls)
+	}
+}
