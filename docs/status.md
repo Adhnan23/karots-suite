@@ -14,14 +14,19 @@ starts; open pages reload on the new version (till only with an empty cart). Doc
 User decisions: no Worker / no running-version tracking ("their responsibility to update"); clock warning skipped
 (only seen in a VM). karots-pos 404 explained: `mum-motors` and `al-raj` were built with `-no-upload` (nothing in
 the bucket) — fix there with a normal `go run ./cmd/release publish al-raj mum-motors`.
-Checks (2026-10-19): `go test -p 1` core-only + all plugins, 233 web unit tests, `make verify`, `verify-portable`,
+Checks (2026-10-19): `go test -p 1` core-only + all plugins, 234 web unit tests, `make verify`, `verify-portable`,
 Playwright 175 passed / 24 skipped.
 **Pick up here:**
 1. **Acceptance (user):** Release a test shop → install the three files by hand → Data page **Up to date**; commit
    anything → Release again → test PC: Check now → **Update** → back on the new version. The first Release writes
    `SUITE_RELEASE_KEY` into `.env` — **save a copy**.
 2. Linux USB double-click and one real shop install still unverified (from M8b).
-3. **Then M8c2** Backup copies (USB / network / S3).
+3. **Windows check after the review fix:** karots-start now starts Karots again 5 s after a crash (non-zero exit), so
+   BootGuard can roll a bad update back — confirm on the Windows box (kill Karots → it comes back).
+4. Deferred review minors: Publish stuck after a lost upload reply (Release again works); a failed Test build after an
+   unpublished Release removes its files; markPending failure says "nothing changed"; no timeout before the download's
+   response headers; signature doesn't cover the channel; old code-split chunks 404 while the till waits to reload.
+5. **Then M8c2** Backup copies (USB / network / S3).
 
 ## Status (2026-10-14, M7.8 repairs done)
 
