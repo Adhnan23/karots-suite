@@ -14,7 +14,10 @@ Mint), Google Chrome's `.deb` (Ubuntu), dnf / pacman chromium. Setup installs `c
 2 min without it). Setup has no Uninstall: a VM is cleaned by hand (service, `/opt/karots-suite`, autostart, policies).
 **Setup Uninstall / Move / Mode change is built** (2026-10-20, spec `docs/specs/2026-10-20-m8-setup-uninstall-move-design.md`,
 plan `docs/plans/2026-10-20-m8-setup-uninstall-move.md`; unit-tested + `-dry` page looked at, **not yet run on a VM**).
-**Next (user, VMs):** the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
+**Windows VM passed (user, 2026-10-20):** Uninstall (final backup made), fresh install (backups listed + a path box for
+a backup elsewhere), server → file and file → server. Fixed on the way: the before-move / final backup always failed the
+first try on Windows (port 3000 still held a moment after the stop) — Setup now waits for the port (`dddc7f4`).
+**Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
 server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
 "Also remove PostgreSQL"; Windows: uninstall + bring back + one mode change.
