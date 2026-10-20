@@ -3,16 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
+	"karots-suite/internal/s3"
 	"net"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -106,7 +103,7 @@ func (r *r2) do(method, key string, body []byte, h http.Header) error {
 	}
 	req.ContentLength = int64(len(body))
 	req.Header = h
-	signV4(req, host, "auto", r.keyID, r.secret, body, time.Now().UTC())
+	s3.SignV4(req, host, "auto", r.keyID, r.secret, body, time.Now().UTC())
 	// No overall timeout: on a slow uplink a binary takes minutes; the watchdog
 	// catches a transfer that has stopped moving.
 	res, err := r2Client.Do(req)
@@ -158,47 +155,4 @@ func (p *uploadProgress) idle() time.Duration {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return time.Since(p.last)
-}
-
-// signV4 adds AWS Signature V4 headers (service s3) to req. It signs host,
-// range and every x-amz-* header.
-func signV4(req *http.Request, host, region, keyID, secret string, body []byte, now time.Time) {
-	sum := sha256.Sum256(body)
-	payload := hex.EncodeToString(sum[:])
-	amzDate := now.Format("20060102T150405Z")
-	day := now.Format("20060102")
-	req.Header.Set("X-Amz-Date", amzDate)
-	req.Header.Set("X-Amz-Content-Sha256", payload)
-
-	headers := map[string]string{"host": host}
-	for k, v := range req.Header {
-		lk := strings.ToLower(k)
-		if strings.HasPrefix(lk, "x-amz-") || lk == "range" {
-			headers[lk] = strings.TrimSpace(strings.Join(v, ","))
-		}
-	}
-	names := make([]string, 0, len(headers))
-	for k := range headers {
-		names = append(names, k)
-	}
-	sort.Strings(names)
-	var canonHeaders strings.Builder
-	for _, k := range names {
-		canonHeaders.WriteString(k + ":" + headers[k] + "\n")
-	}
-	signed := strings.Join(names, ";")
-	canonical := strings.Join([]string{req.Method, req.URL.EscapedPath(), req.URL.RawQuery,
-		canonHeaders.String(), signed, payload}, "\n")
-
-	scope := day + "/" + region + "/s3/aws4_request"
-	ch := sha256.Sum256([]byte(canonical))
-	toSign := "AWS4-HMAC-SHA256\n" + amzDate + "\n" + scope + "\n" + hex.EncodeToString(ch[:])
-	mac := func(key []byte, s string) []byte {
-		m := hmac.New(sha256.New, key)
-		m.Write([]byte(s))
-		return m.Sum(nil)
-	}
-	k := mac(mac(mac(mac([]byte("AWS4"+secret), day), region), "s3"), "aws4_request")
-	req.Header.Set("Authorization", "AWS4-HMAC-SHA256 Credential="+keyID+"/"+scope+
-		", SignedHeaders="+signed+", Signature="+hex.EncodeToString(mac(k, toSign)))
 }
