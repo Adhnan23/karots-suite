@@ -40,6 +40,8 @@ type Job struct {
 	RemovePostgres bool   // uninstall: PostgreSQL goes too (off unless ticked)
 	NoBackup       bool   // uninstall: no final backup (technicians only, never on the page)
 	FinalBackup    string // uninstall: where the final backup went
+
+	pendingRestore bool   // an earlier run backed up / failed to restore: restore again, no new backup
 	launcherReady  bool   // Windows: karots-start.exe was placed this run
 	lastNote       string // the page's line under the running step
 }
@@ -115,7 +117,7 @@ func Steps(j *Job) []Step {
 	all := []Step{
 		{ID: "checks", Title: "Check this PC", Applies: always, Do: checks,
 			Detail: func(*Job) string { return "Make sure this PC can run Karots (admin rights, the port is free)" }},
-		{ID: "safety-backup", Title: "Back up the shop first", Applies: func(j *Job) bool { return j.server() && j.FromMode != "" }, Do: safetyBackup,
+		{ID: "safety-backup", Title: "Back up the shop first", Applies: func(j *Job) bool { return j.server() && j.FromMode != "" && !j.pendingRestore }, Do: safetyBackup,
 			Detail: func(j *Job) string { return "Back up the shop to " + j.keepDir() + " before changing how it is kept" }},
 		{ID: "database", Title: "Database", Applies: (*Job).serverDB, Do: pick(linuxDatabase, windowsDatabase),
 			Detail: func(j *Job) string {

@@ -205,6 +205,7 @@ func newJob(ch Choice) (*Job, error) {
 		if m := installedMode(c.InstallDir); m != "" && m != c.Mode {
 			j.FromMode = m
 		}
+		applyPending(j)
 	}
 	return j, nil
 }
@@ -269,7 +270,7 @@ var modeWords = map[string]string{"file": "One PC", "server": "Server"}
 // checkChoice refuses a run the person didn't ask for: a mode change nobody
 // confirmed, or a backup brought back over a shop already on this PC.
 func checkChoice(j *Job) error {
-	if j.Uninstall {
+	if j.Uninstall || j.pendingRestore {
 		return nil
 	}
 	if j.FromMode != "" && !j.ChangeMode {

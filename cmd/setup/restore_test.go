@@ -148,3 +148,44 @@ func TestRestoreBadFileStopsBeforeStartup(t *testing.T) {
 		t.Fatal("started with the PC after a failed restore")
 	}
 }
+
+// C1: a restore that failed must still run on Try again — the new .env already
+// says the new mode, so without the pending marker the till started empty.
+func TestRestoreRetryKeepsRestoring(t *testing.T) {
+	j, rc, r := linuxJob(t, "server", true)
+	j.Updating, j.FromMode, j.ChangeMode = true, "file", true
+	os.MkdirAll(filepath.Join(r, "opt/karots-suite"), 0o755)
+	rc.answers[beforeMoveCmd] = "backup: /home/shop/Karots backups/al-raj-before-move.json.gz\n"
+	rc.fail = map[string]error{restoreCmd: errors.New("exit status 1")}
+	var steps []Step
+	for _, s := range Steps(j) {
+		if s.ID != "checks" && s.ID != "health" {
+			steps = append(steps, s)
+		}
+	}
+	if err := runSteps(j, steps, func(string, error) {}); err == nil {
+		t.Fatal("restore should fail")
+	}
+
+	// Try again: a fresh job sees no mode change on disk any more.
+	j2, rc2, _ := linuxJob(t, "server", true)
+	root = r
+	j2.Updating = true
+	applyPending(j2)
+	if err := checkChoice(j2); err != nil {
+		t.Fatalf("retry refused: %v", err)
+	}
+	got := strings.Join(ids(Steps(j2)), " ")
+	if !strings.Contains(got, "restore startup") || strings.Contains(got, "safety-backup") || j2.Restore != "/home/shop/Karots backups/al-raj-before-move.json.gz" {
+		t.Fatalf("retry steps %s (restore %q)", got, j2.Restore)
+	}
+	rc2.answers[restoreCmd] = "restored: 5 rows\n"
+	if err := restoreStep(j2); err != nil {
+		t.Fatal(err)
+	}
+	j3, _, _ := linuxJob(t, "server", true)
+	root = r
+	if applyPending(j3); j3.Restore != "" {
+		t.Fatal("marker left after a good restore")
+	}
+}

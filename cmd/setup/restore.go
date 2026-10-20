@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -119,7 +120,7 @@ func safetyBackup(j *Job) error {
 	}
 	fmt.Fprintf(j.Log, "backup: %s\n", path)
 	j.Restore = path
-	return nil
+	return savePending(j)
 }
 
 // restoreStep brings the shop back into the new install (before it starts with
@@ -129,12 +130,16 @@ func restoreStep(j *Job) error {
 	if j.Restore == "" {
 		return fmt.Errorf("no backup to bring back")
 	}
+	if err := savePending(j); err != nil {
+		return err
+	}
 	j.note("Bringing the shop back from " + backupName(j.Restore))
 	summary, err := programRestore(j, j.Restore)
 	if err != nil {
 		return fmt.Errorf("couldn't bring the shop back from %s: %w", j.Restore, err)
 	}
 	j.note(summary)
+	os.Remove(at(joinOS(j, j.Conf.InstallDir, pendingFile)))
 	if j.FromMode != "file" {
 		return nil
 	}
@@ -151,4 +156,36 @@ func restoreStep(j *Job) error {
 	}
 	fmt.Fprintf(j.Log, "old data kept in %s\n", aside)
 	return os.Rename(at(old), at(aside))
+}
+
+// pendingFile marks a restore not done yet. Once the new settings are written
+// a retry can't see the mode change any more, so without it "Try again"
+// started the till on an empty database.
+const pendingFile = "restore-pending.json"
+
+type pendingRestore struct {
+	Restore  string `json:"restore"`
+	FromMode string `json:"fromMode"`
+}
+
+func savePending(j *Job) error {
+	raw, _ := json.Marshal(pendingRestore{j.Restore, j.FromMode})
+	if err := os.MkdirAll(at(j.Conf.InstallDir), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(at(joinOS(j, j.Conf.InstallDir, pendingFile)), raw, 0o644)
+}
+
+// applyPending picks up a restore an earlier run didn't finish: it runs again
+// (no second safety backup — that one would hold the new, empty database).
+func applyPending(j *Job) {
+	raw, err := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, pendingFile)))
+	var p pendingRestore
+	if err != nil || json.Unmarshal(raw, &p) != nil || p.Restore == "" {
+		return
+	}
+	j.Restore, j.pendingRestore, j.ChangeMode = p.Restore, true, true
+	if j.FromMode == "" {
+		j.FromMode = p.FromMode
+	}
 }
