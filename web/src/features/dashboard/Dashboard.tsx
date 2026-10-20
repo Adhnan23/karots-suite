@@ -1,9 +1,11 @@
-import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { api } from '@/api/client'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, Store, UserRoundX } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
-import type { Dashboard as D } from '@/api/types.gen'
+import type { Dashboard as D, PresenceRow } from '@/api/types.gen'
 import { EmptyState, SURFACE } from '@/components/admin/PageHead'
 import { ChartCard, ChartTable } from '@/components/charts/ChartCard'
 import { methodLabel } from '@/features/money/finance/charts'
@@ -12,7 +14,7 @@ import { delta, pctText } from '@/features/reports/kit/numbers'
 import { PresenceItem, presenceQuery } from '@/features/people/users/presence'
 import { SaleSheet } from '@/features/sales/SaleSheet'
 import { Seg } from '@/features/till/bits'
-import { configQuery } from '@/features/till/api'
+import { configQuery, errMsg } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { compareOption } from './charts'
@@ -78,6 +80,10 @@ export function Dashboard() {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const d = useQuery(dashboardQuery).data
   const who = useQuery({ ...presenceQuery, enabled: me.user.role === 'admin' }).data
+  const qc = useQueryClient()
+  const lockScreen = (r: PresenceRow) => api(`/admin/presence/${encodeURIComponent(r.device)}/lock`, { method: 'POST' })
+    .then(() => { toast.success(`${r.name}'s screen locks within 20 s`); void qc.invalidateQueries({ queryKey: presenceQuery.queryKey }) })
+    .catch((e) => toast.error(errMsg(e)))
   const ch = useQuery({ ...dashboardChartsQuery(days), placeholderData: keepPreviousData }).data
   const [open, setOpen] = useState<number | null>(null)
   const trend = useMemo(() => ch && compareOption(ch.cur, ch.prev, sym, ch.grain), [ch, sym])
@@ -167,7 +173,7 @@ export function Dashboard() {
 
       {me.user.role === 'admin' && card("Who's on now", who && who.length ? (
         <ul className="grid divide-y divide-border md:grid-cols-2 md:gap-x-6 md:divide-y-0">
-          {who.map((r) => <PresenceItem key={r.device} r={r} sym={sym} />)}
+          {who.map((r) => <PresenceItem key={r.device} r={r} sym={sym} onLock={lockScreen} />)}
         </ul>
       ) : <p className="py-6 text-center text-sm text-faint">{who ? 'Nobody is signed in right now.' : 'Loading…'}</p>,
       <Link to="/admin/users" className="text-[13px] font-semibold text-muted-foreground hover:text-foreground">Users →</Link>)}

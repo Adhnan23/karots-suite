@@ -12,7 +12,10 @@ Stock, Lock screen…), the cart ("Serving · 3 items · Rs 1,250" / "waiting in
 OS · browser · IP ("this PC (the server)" for localhost). Users cards get the dot + where. Every signed-in screen and
 the lock page beat `POST /presence` (20 s, route change, focus); every API call carries `X-Ks-Device` (random id in
 localStorage `ks-device`). In memory only (`internal/features/presence`; a restart refills in 20 s). Same user + IP +
-browser under a new id replaces the old row. **Later idea:** "Lock this PC" from the card.
+browser under a new id replaces the old row. **Lock from the card** (admins; not your own screen): the screen locks on
+its next beat (≤ 20 s), logged in Activity. **Serving = the cart changed in the last 5 min** → no lock (button and
+server); a cart left unchanged 10+ min is flagged "Cart untouched N min" (user: a lazy cashier parks an item to look
+busy) — the server compares carts between beats, so moving the mouse doesn't count.
 
 **Games stay in core (user, 2026-10-20):** "a pure easter egg" — no games plugin, no Builder plugin *parts* (dropped
 both ideas). What they wanted from it is built: a game opened on the **lock** screen shows on Who's on now as

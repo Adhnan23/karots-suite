@@ -1,6 +1,9 @@
 import { queryOptions } from '@tanstack/react-query'
+import { Lock } from 'lucide-react'
 import { api } from '@/api/client'
 import type { PresenceRow } from '@/api/types.gen'
+import { Button } from '@/components/ui/button'
+import { deviceId } from '@/lib/device'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { slots } from '@/plugins/slots'
@@ -56,10 +59,14 @@ export function stateText(r: PresenceRow): string {
 
 const items = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(2)} item${n === 1 ? '' : 's'}`
 
-/** One device: who, how they are, where — then the till, the cart and the machine. */
-export function PresenceItem({ r, sym }: { r: PresenceRow; sym: string }) {
+/** One device: who, how they are, where — then the till, the cart and the machine.
+ * onLock (admins) offers Lock on an open screen; off while it's serving a customer. */
+export function PresenceItem({ r, sym, onLock }: { r: PresenceRow; sym: string; onLock?: (r: PresenceRow) => void }) {
   const on = r.state !== 'away' && r.state !== 'signedOut'
-  const cart = r.cartItems > 0 && on && (r.state === 'locked' ? `${items(r.cartItems)} waiting in the cart` : `Serving · ${items(r.cartItems)} · ${money(sym, r.cartTotal || '0')}`)
+  const open = r.state === 'active' || r.state === 'idle'
+  const goods = `${items(r.cartItems)} · ${money(sym, r.cartTotal || '0')}`
+  const cart = r.cartItems > 0 && on && (r.state === 'locked' ? `${items(r.cartItems)} waiting in the cart`
+    : r.serving ? `Serving · ${goods}` : r.cartUntouchedMin ? `Cart untouched ${r.cartUntouchedMin} min · ${goods}` : `In the cart · ${goods}`)
   const where = r.ip === '127.0.0.1' || r.ip === '::1' ? 'this PC (the server)' : r.ip
   const facts = [
     r.tillOpened && `Till open since ${time(r.tillOpened)}`,
@@ -75,9 +82,16 @@ export function PresenceItem({ r, sym }: { r: PresenceRow; sym: string }) {
           <span className="text-[11px] font-bold text-faint uppercase">{r.role}</span>
         </span>
         <span className="flex items-center gap-2"><StateDot state={r.state} /><span>{stateText(r)}{on && <> · <b>{r.note || placeOf(r.path)}</b></>}</span></span>
-        {cart && <span className="block font-semibold">{cart}</span>}
+        {cart && <span className={cn('block font-semibold', r.cartUntouchedMin > 0 && r.state !== 'locked' && 'text-warning')}>{cart}</span>}
         <small className="block text-faint [overflow-wrap:anywhere]">{facts.join(' · ')}</small>
       </span>
+      {onLock && open && r.device !== deviceId() && (
+        <Button type="button" variant="outline" className="h-8 flex-none gap-1.5 px-2.5 sm:px-3" disabled={r.serving || r.lockPending}
+          title={r.serving ? 'Serving a customer — the cart changed in the last few minutes' : 'Lock this screen; they unlock with their PIN'}
+          onClick={() => onLock(r)}>
+          <Lock size={14} /><span className="max-sm:sr-only">{r.lockPending ? 'Locking…' : r.serving ? 'Serving' : 'Lock'}</span>
+        </Button>
+      )}
     </li>
   )
 }

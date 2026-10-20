@@ -129,6 +129,11 @@ type PresenceBeat struct {
 	Note      string  `json:"note"` // e.g. "Playing Blocks"
 }
 
+// PresenceReply answers a heartbeat: lock = an admin asked this screen to lock now.
+type PresenceReply struct {
+	Lock bool `json:"lock"`
+}
+
 // PresenceRow is one device on the admin's "Who's on now".
 type PresenceRow struct {
 	Device     string  `json:"device"`
@@ -146,4 +151,9 @@ type PresenceRow struct {
 	LastSeen   string  `json:"lastSeen"`
 	TillOpened *string `json:"tillOpened"` // their open till's opening time, null = none
 	SalesToday int     `json:"salesToday"`
+	// Serving: the cart changed in the last 5 min — no remote lock.
+	Serving bool `json:"serving"`
+	// CartUntouchedMin: minutes the cart has sat unchanged, once 10+ (else 0).
+	CartUntouchedMin int  `json:"cartUntouchedMin"`
+	LockPending      bool `json:"lockPending"`
 }

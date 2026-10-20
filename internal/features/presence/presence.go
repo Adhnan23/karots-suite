@@ -7,6 +7,7 @@
 package presence
 
 import (
+	"errors"
 	"sort"
 	"strings"
 	"sync"
@@ -20,6 +21,16 @@ const (
 	IdleAfter = 2 * time.Minute
 	// DropAfter: away / signed-out devices leave the list.
 	DropAfter = 12 * time.Hour
+	// ServingWithin: a cart that changed this recently is a sale going on — never locked from afar.
+	ServingWithin = 5 * time.Minute
+	// UntouchedAfter: a cart left as it is this long is flagged (an item parked to look busy).
+	UntouchedAfter = 10 * time.Minute
+)
+
+var (
+	ErrGone    = errors.New("that screen isn't on any more")
+	ErrServing = errors.New("they're serving a customer — the cart changed in the last few minutes")
+	ErrNotOpen = errors.New("that screen is already locked or away")
 )
 
 // Beat is one heartbeat from a device.
@@ -44,12 +55,20 @@ type Row struct {
 	State    string // active | idle | locked | away | signedOut
 	LastSeen time.Time
 	Label    string // "Windows · Chrome"
+	// Serving: active or idle with a cart that changed in the last 5 min (no remote lock).
+	Serving bool
+	// UntouchedMin: minutes the cart has sat unchanged, once it's 10 or more (else 0).
+	UntouchedMin int
+	// LockPending: an admin asked to lock it; it locks on its next heartbeat.
+	LockPending bool
 }
 
 type entry struct {
 	b         Beat
 	seen      time.Time
 	signedOut bool
+	cartAt    time.Time // when the cart last changed (items or total)
+	lockAsked bool
 }
 
 // Store holds the latest heartbeat per device.
@@ -62,10 +81,11 @@ func New() *Store { return &Store{m: map[string]*entry{}} }
 
 // Beat records a heartbeat (a new sign-in on the device replaces the old user). The
 // same user on the same IP and browser under a new id (a private window, cleared
-// storage) is the same machine: its old row goes.
-func (s *Store) Beat(b Beat, now time.Time) {
+// storage) is the same machine: its old row goes. lock = an admin asked this screen
+// to lock (asked again on every beat until a locked one arrives).
+func (s *Store) Beat(b Beat, now time.Time) (lock bool) {
 	if b.Device == "" {
-		return
+		return false
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -74,7 +94,47 @@ func (s *Store) Beat(b Beat, now time.Time) {
 			delete(s.m, k)
 		}
 	}
-	s.m[b.Device] = &entry{b: b, seen: now}
+	e := &entry{b: b, seen: now, cartAt: now}
+	if prev := s.m[b.Device]; prev != nil && prev.b.UserID == b.UserID && !prev.signedOut {
+		if prev.b.CartItems == b.CartItems && prev.b.CartTotal == b.CartTotal {
+			e.cartAt = prev.cartAt
+		}
+		e.lockAsked = prev.lockAsked && !b.Locked
+	}
+	s.m[b.Device] = e
+	return e.lockAsked
+}
+
+// Lock asks a device to lock itself on its next heartbeat. Refused while that screen is
+// serving (never stop a sale) or already locked / away. Returns who is on it.
+func (s *Store) Lock(device string, now time.Time) (Beat, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	e := s.m[device]
+	if e == nil {
+		return Beat{}, ErrGone
+	}
+	r := row(e, now)
+	switch {
+	case r.State != "active" && r.State != "idle":
+		return e.b, ErrNotOpen
+	case r.Serving:
+		return e.b, ErrServing
+	}
+	e.lockAsked = true
+	return e.b, nil
+}
+
+func row(e *entry, now time.Time) Row {
+	r := Row{Beat: e.b, State: state(e, now), LastSeen: e.seen, Label: label(e.b.UA), LockPending: e.lockAsked}
+	if e.b.CartItems > 0 {
+		still := now.Sub(e.cartAt)
+		r.Serving = (r.State == "active" || r.State == "idle") && still < ServingWithin
+		if still >= UntouchedAfter {
+			r.UntouchedMin = int(still / time.Minute)
+		}
+	}
+	return r
 }
 
 // SignOut marks a device signed out (Sign out pressed there).
@@ -97,7 +157,7 @@ func (s *Store) List(now time.Time) []Row {
 			delete(s.m, k)
 			continue
 		}
-		out = append(out, Row{Beat: e.b, State: state(e, now), LastSeen: e.seen, Label: label(e.b.UA)})
+		out = append(out, row(e, now))
 	}
 	on := func(r Row) bool { return r.State != "away" && r.State != "signedOut" }
 	sort.Slice(out, func(i, j int) bool {

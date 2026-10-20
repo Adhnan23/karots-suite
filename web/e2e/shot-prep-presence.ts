@@ -15,6 +15,8 @@ export const presencePrep: Record<string, (page: Page) => Promise<void>> = {
     await as('0770000003', 'shot-office', 'Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0', '/lock', { cartItems: 2, cartTotal: '400.00' }, true)
     await as('0770000001', 'shot-phone', 'Mozilla/5.0 (Linux; Android 14) Chrome/130.0 Mobile Safari/537.36', '/admin/stock', { idleSec: 400 })
     await page.reload()
+    await page.getByRole('heading', { level: 1 }).first().waitFor()
+    await page.waitForLoadState('networkidle')
     if (await page.getByText("Who's on now").count()) await page.getByText("Who's on now").scrollIntoViewIfNeeded()
   },
 }

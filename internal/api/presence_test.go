@@ -28,11 +28,27 @@ func TestPresenceLiveUsers(t *testing.T) {
 	cashier := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: "0770009102", Pin: "1234"}, nil))
 	manager := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: "0770009103", Pin: "1234"}, nil))
 
-	if rec := te.beat("pc-1", PresenceBeat{Path: "/till", CartItems: 3, CartTotal: "1250.00"}, cashier); rec.Code != 204 {
+	if rec := te.beat("pc-1", PresenceBeat{Path: "/till", CartItems: 3, CartTotal: "1250.00"}, cashier); rec.Code != 200 {
 		t.Fatalf("beat %d %s", rec.Code, rec.Body)
 	}
+	// Serving (the cart just changed): no remote lock. An empty-cart screen locks on its next beat.
+	if rec := te.do(http.MethodPost, "/api/v1/admin/presence/pc-1/lock", nil, admin); errCode(rec) != "NOT_LOCKABLE" {
+		t.Fatalf("lock while serving: %d %s", rec.Code, rec.Body)
+	}
+	te.beat("pc-1", PresenceBeat{Path: "/till"}, cashier)
+	if rec := te.do(http.MethodPost, "/api/v1/admin/presence/pc-1/lock", nil, manager); rec.Code != 403 {
+		t.Fatalf("manager lock %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/presence/pc-1/lock", nil, admin); rec.Code != 204 {
+		t.Fatalf("lock %d %s", rec.Code, rec.Body)
+	}
+	var reply PresenceReply
+	json.Unmarshal(te.beat("pc-1", PresenceBeat{Path: "/till"}, cashier).Body.Bytes(), &reply) //nolint:errcheck
+	if !reply.Lock {
+		t.Fatal("the next beat should say lock")
+	}
 	locked := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/lock", nil, cashier))
-	if rec := te.beat("pc-1", PresenceBeat{Path: "/lock", Note: "Playing Blocks"}, locked); rec.Code != 204 {
+	if rec := te.beat("pc-1", PresenceBeat{Path: "/lock", Note: "Playing Blocks"}, locked); rec.Code != 200 || rec.Body.String() != "{\"lock\":false}\n" {
 		t.Fatalf("locked beat %d", rec.Code)
 	}
 	list := func() []PresenceRow {

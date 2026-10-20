@@ -37,5 +37,6 @@ signed in, locked, and what they're doing — on the dashboard or somewhere. Ask
 
 - No history ("who was on at 3 pm") — Activity covers actions.
 - No keystroke / screen capture; only the area of the app and the cart summary.
-- No remote actions yet. **Later idea:** "Lock this PC" from the card.
+- Remote action: **Lock** only (added 2026-10-20) — refused while serving (cart changed < 5 min); a cart unchanged
+  10+ min is flagged. No remote sign-out.
 - No push (SSE / websockets): 5 s polling on one admin screen is cheap on a shop LAN.

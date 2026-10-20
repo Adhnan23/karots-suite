@@ -1641,6 +1641,12 @@ export interface PresenceBeat {
   note: string; // e.g. "Playing Blocks"
 }
 /**
+ * PresenceReply answers a heartbeat: lock = an admin asked this screen to lock now.
+ */
+export interface PresenceReply {
+  lock: boolean;
+}
+/**
  * PresenceRow is one device on the admin's "Who's on now".
  */
 export interface PresenceRow {
@@ -1659,6 +1665,15 @@ export interface PresenceRow {
   lastSeen: string;
   tillOpened?: string; // their open till's opening time, null = none
   salesToday: number /* int */;
+  /**
+   * Serving: the cart changed in the last 5 min — no remote lock.
+   */
+  serving: boolean;
+  /**
+   * CartUntouchedMin: minutes the cart has sat unchanged, once 10+ (else 0).
+   */
+  cartUntouchedMin: number /* int */;
+  lockPending: boolean;
 }
 
 //////////

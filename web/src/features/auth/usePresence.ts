@@ -1,7 +1,7 @@
 import { useRouterState } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { api } from '@/api/client'
-import type { PresenceBeat } from '@/api/types.gen'
+import type { PresenceBeat, PresenceReply } from '@/api/types.gen'
 import { loadCart } from '@/features/till/cart/persist'
 import { saleTotal } from '@/features/till/cart/totals'
 
@@ -33,7 +33,12 @@ export function usePresence(userId: number) {
         cartTotal: cart?.lines.length ? saleTotal(cart).toFixed(2) : '',
         note,
       }
-      api('/presence', { json: body }).catch(() => {})
+      api<PresenceReply>('/presence', { json: body })
+        .then((r) => {
+          // An admin locked this screen from Who's on now.
+          if (r.lock) void api('/auth/lock', { method: 'POST' }).catch(() => {}).finally(() => window.location.assign('/lock'))
+        })
+        .catch(() => {})
     }
     const input = () => { lastInput = Date.now() }
     const shown = () => { if (document.visibilityState === 'visible') beat() }

@@ -64,3 +64,45 @@ func TestLabel(t *testing.T) {
 		}
 	}
 }
+
+func TestRemoteLockAndCart(t *testing.T) {
+	s := New()
+	t0 := time.Date(2026, 10, 20, 10, 0, 0, 0, time.UTC)
+	cart := Beat{Device: "till", UserID: 2, Name: "Cashier", CartItems: 1, CartTotal: "50.00"}
+	s.Beat(cart, t0)
+	if _, err := s.Lock("till", t0.Add(time.Minute)); err != ErrServing {
+		t.Fatalf("a cart changed a minute ago is a sale: got %v", err)
+	}
+	// The same item parked for 12 min, the mouse still moving: not serving, flagged.
+	for m := 1; m <= 12; m++ {
+		s.Beat(cart, t0.Add(time.Duration(m)*time.Minute))
+	}
+	r := s.List(t0.Add(12 * time.Minute))[0]
+	if r.Serving || r.UntouchedMin != 12 || r.State != "active" {
+		t.Fatalf("parked cart: %+v", r)
+	}
+	if _, err := s.Lock("till", t0.Add(12*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	if !s.Beat(cart, t0.Add(12*time.Minute+20*time.Second)) {
+		t.Fatal("the next beat should say lock")
+	}
+	locked := cart
+	locked.Locked = true
+	if s.Beat(locked, t0.Add(13*time.Minute)) {
+		t.Fatal("a locked beat clears the ask")
+	}
+	if _, err := s.Lock("till", t0.Add(13*time.Minute)); err != ErrNotOpen {
+		t.Fatalf("already locked: %v", err)
+	}
+	if _, err := s.Lock("nope", t0); err != ErrGone {
+		t.Fatalf("unknown device: %v", err)
+	}
+	// Adding an item restarts the clock.
+	more := cart
+	more.CartItems, more.CartTotal = 2, "100.00"
+	s.Beat(more, t0.Add(14*time.Minute))
+	if r := s.List(t0.Add(15 * time.Minute))[0]; !r.Serving || r.UntouchedMin != 0 {
+		t.Fatalf("changed cart: %+v", r)
+	}
+}

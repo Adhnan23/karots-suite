@@ -8,7 +8,9 @@ async function signIn(page: Page, phone: string) {
   await page.waitForURL(/\/(admin|till)/)
 }
 
-test("admin sees who's on live: the cashier at the till, then locked", async ({ page, browser }) => {
+test.setTimeout(90_000)
+
+test("admin sees who's on live: the cashier at the till, locks it from the card, sees the game", async ({ page, browser }) => {
   const other = await browser.newContext() // its own localStorage = its own device
   const cashier = await other.newPage()
   await signIn(cashier, '0770000002')
@@ -20,9 +22,11 @@ test("admin sees who's on live: the cashier at the till, then locked", async ({ 
   await expect(row).toContainText('Till · Returns')
   await expect(row).toContainText('Active')
 
-  await cashier.request.post('/api/v1/auth/lock')
-  await cashier.goto('/lock')
+  // Lock it from the card: the cashier's screen locks on its next heartbeat (≤ 20 s).
+  await row.getByRole('button', { name: 'Lock' }).click()
+  await expect(cashier).toHaveURL(/\/lock$/, { timeout: 30_000 })
   await expect(row).toContainText('Locked', { timeout: 10_000 })
+  await expect(row.getByRole('button')).toHaveCount(0)
 
   // A game on the lock screen shows up too.
   const clock = cashier.getByText(/^\d{1,2}:\d{2}/).first()
