@@ -218,7 +218,17 @@ func run() int {
 	// Settings backup). Disabled unless BACKUP_DIR is set.
 	if cfg.BackupDir != "" {
 		log.Printf("auto-backup: enabled (dir=%s, every %s, keep %d)", cfg.BackupDir, cfg.BackupInterval, cfg.BackupKeep)
-		go backup.RunScheduler(bgCtx, sqlxDB, cfg.BackupDir, cfg.BackupInterval, cfg.BackupKeep)
+		if err := backup.SyncCopies(bgCtx, sqlxDB, cfg.BackupCopyDir, cfg.Cloud); err != nil {
+			log.Printf("backup copies: %v", err)
+		}
+		kick := make(chan struct{}, 1)
+		go backup.NewCopier(sqlxDB, cfg.BackupDir, cfg.BackupKeep, cfg.Cloud).Run(bgCtx, kick)
+		go backup.RunScheduler(bgCtx, sqlxDB, cfg.BackupDir, cfg.BackupInterval, cfg.BackupKeep, func() {
+			select {
+			case kick <- struct{}{}:
+			default: // a pass is already waiting
+			}
+		})
 	} else {
 		log.Printf("auto-backup: disabled (set BACKUP_DIR to enable)")
 	}

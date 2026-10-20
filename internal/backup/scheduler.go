@@ -87,13 +87,17 @@ func Rotate(dir string, keep int) (pruned int, err error) {
 // RunScheduler writes a backup immediately, then every `interval`, pruning to the
 // newest `keep` files each time. All outcomes are logged; errors never stop the
 // loop (a transient backup failure must not take down the POS). It returns when
-// ctx is cancelled. Intended to be launched with `go RunScheduler(...)`.
-func RunScheduler(ctx context.Context, db *sqlx.DB, dir string, interval time.Duration, keep int) {
+// ctx is cancelled. Intended to be launched with `go RunScheduler(...)`. after
+// (may be nil) runs after each backup written — it starts the copies.
+func RunScheduler(ctx context.Context, db *sqlx.DB, dir string, interval time.Duration, keep int, after func()) {
 	runOnce := func() {
 		path, err := WriteSnapshot(ctx, db, dir, time.Now(), "")
 		if err != nil {
 			log.Printf("auto-backup: snapshot failed: %v", err)
 			return
+		}
+		if after != nil {
+			after()
 		}
 		pruned, err := Rotate(dir, keep)
 		if err != nil {
