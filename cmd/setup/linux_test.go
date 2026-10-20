@@ -219,6 +219,25 @@ func TestLinuxUpdateOfflineNoInstalls(t *testing.T) {
 	}
 }
 
+// A snap browser can't use a hidden folder in $HOME: its profile goes in the snap's own folder.
+func TestLinuxKioskSnapProfile(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "firefox_firefox.desktop\n"
+	os.MkdirAll(filepath.Join(r, "var/lib/snapd/desktop/applications"), 0o755)
+	os.WriteFile(filepath.Join(r, "var/lib/snapd/desktop/applications/firefox_firefox.desktop"),
+		[]byte("[Desktop Entry]\nExec=env BAMF_DESKTOP_FILE_HINT=/x.desktop /snap/bin/firefox %u\n"), 0o644)
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `-profile "$HOME/snap/firefox/common/karots-kiosk"`) || strings.Contains(string(k), ".karots-kiosk") {
+		t.Fatalf("kiosk.sh:\n%s", k)
+	}
+	if p := kioskProfile(`"/snap/bin/chromium"`); p != "$HOME/snap/chromium/common/karots-kiosk" {
+		t.Fatalf("chromium snap profile %q", p)
+	}
+}
+
 // The user's default browser (xdg-settings) runs the kiosk when its family is known.
 func TestLinuxKioskDefaultBrowser(t *testing.T) {
 	j, rc, r := linuxJob(t, "file", false)

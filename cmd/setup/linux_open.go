@@ -30,7 +30,7 @@ func linuxOpen(j *Job) error {
 	}
 	fmt.Fprintf(j.Log, "kiosk browser: %s\n", browser)
 	kiosk := joinOS(j, j.Conf.InstallDir, "kiosk.sh")
-	profile := "$HOME/.karots-kiosk"
+	profile := kioskProfile(browser)
 	script := fmt.Sprintf(`#!/usr/bin/env bash
 # Opens the till full-screen once it answers. Written by karots-setup.
 URL=%q
@@ -60,6 +60,20 @@ done
 	}
 	entry := fmt.Sprintf("[Desktop Entry]\nType=Application\nName=Karots Suite Kiosk\nComment=Open the till full-screen at sign-in\nExec=%s\nTerminal=false\nX-GNOME-Autostart-enabled=true\n", kiosk)
 	return writeAs(j, filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop"), []byte(entry), 0o644)
+}
+
+// kioskProfile is the kiosk browser's own profile folder. A snap (Ubuntu's
+// Chromium and Firefox) may not touch hidden folders in $HOME — it would fail
+// to start forever — so it gets one in the snap's own ~/snap/<name>/common.
+func kioskProfile(browser string) string {
+	if _, after, ok := strings.Cut(browser, "/snap/bin/"); ok {
+		if f := strings.Fields(after); len(f) > 0 {
+			if name := strings.Trim(f[0], `"'`); name != "" {
+				return "$HOME/snap/" + name + "/common/karots-kiosk"
+			}
+		}
+	}
+	return "$HOME/.karots-kiosk"
 }
 
 // linuxBrowser is the kiosk browser: the user's default when it's Chrome-style
