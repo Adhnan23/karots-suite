@@ -60,6 +60,13 @@ func TestTillDrawerLifecycle(t *testing.T) {
 	if res := decode[CloseResult](t, rec); rec.Code != 200 || res.Counted != "0.00" || res.Difference != "-100.00" {
 		t.Fatalf("empty close %d %s", rec.Code, rec.Body)
 	}
+	// And an empty drawer opens at zero (karots-pos allowed it): no float today.
+	if rec := te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{}}, ck); rec.Code != 201 {
+		t.Fatalf("empty open %d %s", rec.Code, rec.Body)
+	}
+	if st := decode[DrawerState](t, te.do(http.MethodGet, "/api/v1/till/drawer", nil, ck)); st.Summary.Session == nil || st.Summary.Session.OpeningCash != "0.00" {
+		t.Fatalf("after empty open %+v", st.Summary)
+	}
 }
 
 func TestTillNoSaleNeedsDrawerEnabled(t *testing.T) {

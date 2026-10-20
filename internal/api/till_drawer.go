@@ -82,7 +82,8 @@ func (h *handlers) TillOpenDrawer(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	sess, err := h.d.CashRegister.Open(c.Request().Context(), middleware.CurrentUserID(c),
-		cashregister.OpenInput{Breakdown: breakdownJSON(req.Breakdown), SourceLockerID: req.SourceLockerID})
+		// OpeningCash "0" is only the fallback: an empty count (no float today) opens at zero, as at close.
+		cashregister.OpenInput{Breakdown: breakdownJSON(req.Breakdown), OpeningCash: "0", SourceLockerID: req.SourceLockerID})
 	if err != nil {
 		return err
 	}
