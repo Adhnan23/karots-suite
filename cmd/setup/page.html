@@ -77,12 +77,30 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 .pk-list { margin-top: 8px; max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 12px; }
 .pk-list button { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--fg); font: 15px Figtree, system-ui, sans-serif; cursor: pointer; }
 .pk-list button:hover { background: var(--card-2); }
+.banner { border: 1px solid rgb(251 191 36 / .45); background: rgb(251 191 36 / .1); }
+.banner b { font-size: 17px; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; cursor: pointer; font-size: 15px; }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--brand); }
+.go.danger { background: linear-gradient(135deg, var(--bad), #F97316); box-shadow: 0 12px 30px rgb(251 113 133 / .3); }
+.link { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--muted); font: 600 14px Figtree, system-ui, sans-serif; text-decoration: underline; cursor: pointer; }
 .pk-new { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }
 </style>
 </head>
 <body>
 <main>
   <header><div class="mark">🏪</div><div class="grow"><div class="kicker">Karots Setup</div><h1 id="shop">…</h1></div><button class="btn" id="exit">Exit</button></header>
+  <section class="panel banner" id="modePanel" hidden>
+    <b id="modeTitle"></b>
+    <p class="hint" id="modeHint"></p>
+    <label class="check"><input type="checkbox" id="changeMode"><span>Change it</span></label>
+  </section>
+  <section class="panel" id="uninstallPanel" hidden>
+    <h2>Uninstall Karots from this PC</h2>
+    <p class="hint">The shop is backed up first and every backup is kept — that file brings the shop back on any PC. Nothing is removed if the backup fails.</p>
+    <label class="f" for="keepDir">The shop's backup goes to</label>
+    <div class="addr"><input id="keepDir" autocomplete="off" spellcheck="false"><button class="btn" id="pickKeep">Choose…</button></div>
+    <label class="check" id="removePgRow" hidden><input type="checkbox" id="removePg"><span>Also remove PostgreSQL <small class="hint">(only if nothing else on this PC uses it)</small></span></label>
+  </section>
   <section class="panel" id="rolePanel">
     <h2>This PC is…</h2>
     <div class="roles">
@@ -102,6 +120,12 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
         <div><label class="f" for="every">Back up every</label><select id="every"><option value="1h">1 hour</option><option value="3h">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option><option value="24h">24 hours</option></select></div>
         <div><label class="f" for="keep">Keep the newest</label><input id="keep" inputmode="numeric"></div>
       </div>
+    </div>
+    <div id="restorePanel" hidden>
+      <label class="f" for="restore">Bring back a shop</label>
+      <select id="restore"></select>
+      <input id="restorePath" placeholder="Or a backup file's full path" autocomplete="off" spellcheck="false" style="margin-top:8px">
+      <div class="hint">Moving from another PC? Put its backup next to Setup, or pick it here. Leave it on "Start a new shop" otherwise.</div>
     </div>
     <div id="cashier" hidden>
       <label class="f" for="address">The main PC's address</label>
@@ -125,9 +149,10 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
     <div class="row"><button class="go" id="open">Open the till</button><button class="btn" id="close">Close Setup</button></div>
   </div>
   <button class="go" id="go">Install</button>
+  <button class="link" id="uninstall" hidden>Uninstall Karots from this PC…</button>
   <div class="update" id="updateNote" hidden>Karots is already on this PC — Update puts in this version and its settings. The shop's data stays.<br><span id="keptNote"></span></div>
   <dialog id="picker">
-    <div class="pk-head"><b>Choose the backup folder</b><button class="btn" id="pkClose">✕</button></div>
+    <div class="pk-head"><b id="pkTitle">Choose the backup folder</b><button class="btn" id="pkClose">✕</button></div>
     <div class="pk-roots" id="pkRoots"></div>
     <div class="pk-path" id="pkPath"></div>
     <div class="pk-list" id="pkList"></div>
@@ -141,13 +166,16 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 const $ = (id) => document.getElementById(id)
 const token = new URLSearchParams(location.search).get('t') || ''
 const H = { 'X-Setup-Token': token, 'Content-Type': 'application/json' }
-const st = { role: 'server', plan: null, running: false, open: '', backup: '' }
+const st = { role: 'server', plan: null, running: false, open: '', backup: '', uninstall: false, pickFor: 'backupDir' }
 const choice = () => {
   if (!st.plan) return { role: st.role, address: $('address').value.trim(), open: st.open } // first load: the shop's / this PC's values
   const main = st.role === 'server', d = st.plan.defaults
   const dir = $('backupDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
+  const keepDir = $('keepDir').value.trim(), restore = $('restorePath').value.trim() || $('restore').value
   return { role: st.role, address: $('address').value.trim(), open: st.open,
-    backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0 }
+    backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0,
+    uninstall: st.uninstall, removePostgres: st.uninstall && $('removePg').checked, changeMode: $('changeMode').checked,
+    restore: main && !st.uninstall && !st.plan.updating ? restore : '', keepDir: keepDir !== d.keepDir ? keepDir : '' }
 }
 
 async function plan() {
@@ -156,20 +184,39 @@ async function plan() {
   const p = await res.json()
   if (!res.ok) { $('steps').innerHTML = ''; $('testMsg').textContent = p.error; $('testMsg').className = 'hint bad'; $('go').disabled = true; return }
   if (!st.plan) {
-    st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep
-    p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep }
+    st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep; $('keepDir').value = p.keepDir
+    p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep, keepDir: p.keepDir }
+    // A backup put next to Setup means "bring this one back"; one only found in the backups folder is offered, not picked.
+    $('restore').innerHTML = '<option value="">Start a new shop</option>'
+    for (const b of p.backups || []) {
+      const o = document.createElement('option'); o.value = b.path
+      o.textContent = b.name + ' — ' + new Date(b.modified).toLocaleString() + (b.besideSetup ? ' (next to Setup)' : '')
+      $('restore').append(o)
+    }
+    const beside = (p.backups || []).find((b) => b.besideSetup)
+    if (beside) { $('restore').value = beside.path; st.plan = p; return plan() } // the steps then include bringing it back
   } else p.defaults = st.plan.defaults
   st.plan = p
   for (const b of document.querySelectorAll('[data-open]')) b.setAttribute('aria-pressed', b.dataset.open === st.open)
   $('shop').textContent = p.shop; document.title = 'Karots Setup — ' + p.shop
   $('serverSub').textContent = p.mode === 'file' ? 'Runs the till, and keeps the shop\'s data on this PC.' : 'Runs the till for the shop.'
   if (!$('address').value && p.lanAddress) $('address').value = p.lanAddress
-  const upd = p.updating && st.role === 'server'
-  $('go').textContent = upd ? 'Update' : 'Install'; $('updateNote').hidden = !upd
+  const upd = p.updating && st.role === 'server', main = st.role === 'server'
+  $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : upd ? 'Update' : 'Install'; $('updateNote').hidden = !upd || st.uninstall
+  $('go').classList.toggle('danger', st.uninstall)
+  $('uninstallPanel').hidden = !st.uninstall; $('removePgRow').hidden = !p.localDb
+  $('uninstall').hidden = !(upd || st.role === 'cashier')
+  $('uninstall').textContent = st.uninstall ? '← Back' : 'Uninstall Karots from this PC…'
+  $('mainOpts').hidden = !main || st.uninstall
+  $('restorePanel').hidden = !main || p.updating || st.uninstall
+  const words2 = { file: 'One PC', server: 'Server' }
+  $('modePanel').hidden = !p.fromMode || st.uninstall || !main
+  $('modeTitle').textContent = 'This changes how the shop is kept: ' + words2[p.fromMode] + ' → ' + words2[p.mode]
+  $('modeHint').textContent = 'Setup backs the shop up first (into ' + p.keepDir + '), sets up the new way, then brings everything back. The old data is left in place, not deleted.'
   const words = { BACKUP_DIR: 'backup folder', BACKUP_INTERVAL: 'how often to back up', BACKUP_KEEP: 'how many backups to keep' }
   const kept = (p.kept || []).map((k) => words[k] || (k.startsWith('start: ') ? (k.endsWith('kiosk') ? 'till full-screen' : 'runs in the background') : k + ' (added by hand)'))
   $('keptNote').textContent = upd && kept.length ? 'Kept from this PC: ' + kept.join(', ') + '.' : ''
-  $('go').disabled = st.running
+  $('go').disabled = st.running || (!$('modePanel').hidden && !$('changeMode').checked)
   $('steps').innerHTML = ''
   for (const s of p.steps) {
     const li = document.createElement('li'); li.id = 'step-' + s.id
@@ -192,11 +239,12 @@ async function test() {
 }
 function mark(id, state) { const li = $('step-' + id); if (li) { li.className = state; li.querySelector('.st').textContent = state === 'ok' ? '✓' : state === 'fail' ? '✕' : '' } }
 async function install() {
+  if (st.uninstall && !confirm('Uninstall Karots from this PC? The shop is backed up to ' + $('keepDir').value + ' first.')) return
   st.running = true; $('go').disabled = true; $('go').textContent = 'Working…'
   $('fail').hidden = true; $('done').hidden = true; $('go').hidden = false; $('log').textContent = ''
   for (const b of document.querySelectorAll('.role')) b.disabled = true
   await plan()
-  let text = '', failed = null, need = false, done = false, current = null
+  let text = '', failed = null, need = false, done = false, current = null, backup = ''
   try {
     const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify({ ...choice(), superPassword: $('super').value }) })
     if (!res.ok) failed = { msg: (await res.json()).error }
@@ -216,22 +264,27 @@ async function install() {
           else if (note) { const li = current && $('step-' + current); if (li) li.querySelector('.note').textContent = note[1] }
           else if (line === '@@NEED superPassword') need = true
           else if (line === '@@DONE') done = true
-          else { text += line + '\n'; $('log').textContent = text; $('log').scrollTop = 1e9 }
+          else { if (line.startsWith('backup: ')) backup = line.slice(8); text += line + '\n'; $('log').textContent = text; $('log').scrollTop = 1e9 }
         }
       }
     }
   } catch (e) { failed = { msg: 'Setup stopped answering — start it again. (' + e + ')' } }
   st.running = false
   for (const b of document.querySelectorAll('.role')) b.disabled = false
-  if (done) {
-    $('rolePanel').hidden = true; $('go').hidden = true; $('updateNote').hidden = true
+  if (done && st.uninstall) {
+    for (const id of ['rolePanel', 'uninstallPanel', 'go', 'uninstall']) $(id).hidden = true
+    $('done').hidden = false; $('done').querySelector('b').textContent = '✓ Karots is removed'
+    $('doneMsg').textContent = backup ? 'The shop\'s backup is in ' + backup + ' — keep it: it brings the shop back on any PC.' : 'Nothing of Karots is left on this PC.'
+    $('open').hidden = true
+  } else if (done) {
+    $('rolePanel').hidden = true; $('go').hidden = true; $('updateNote').hidden = true; $('uninstall').hidden = true; $('modePanel').hidden = true
     $('done').hidden = false; $('iid').textContent = st.plan.installId
     $('doneMsg').textContent = st.role === 'cashier' ? 'The till opens full-screen the next time someone signs in to this PC.'
       : st.open === 'background' ? 'Karots starts with this PC. Open it any time from the Karots Suite shortcut on the desktop.'
       : 'Karots starts with this PC, and the till opens full-screen when someone signs in.'
     $('done').scrollIntoView({ behavior: 'smooth' })
   } else {
-    $('go').disabled = false; $('go').textContent = st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
+    $('go').disabled = false; $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
     const li = failed && failed.id ? $('step-' + failed.id) : null
     $('failTitle').textContent = li ? li.querySelector('b').textContent + ' didn\'t work' : 'Something went wrong'
     $('failMsg').textContent = need ? 'PostgreSQL is already on this PC. Type its \'postgres\' password (whoever installed it set one), then Try again.' : (failed ? failed.msg : 'Setup stopped before the end — see Details.')
@@ -260,9 +313,11 @@ async function browse(path) {
   for (const n of f.folders) { const b = document.createElement('button'); b.textContent = '📁 ' + n; b.onclick = () => browse(f.path.replace(/[\\/]$/, '') + (f.path.includes('\\') ? '\\' : '/') + n); $('pkList').append(b) }
   if (!f.folders.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '10px 12px'; e.textContent = 'No folders here — make one below, or use this one.'; $('pkList').append(e) }
 }
-$('pick').onclick = () => { $('picker').showModal(); browse($('backupDir').value.trim()) }
+const pickInto = (field, title) => { st.pickFor = field; $('pkTitle').textContent = title; $('picker').showModal(); browse($(field).value.trim()) }
+$('pick').onclick = () => pickInto('backupDir', 'Choose the backup folder')
+$('pickKeep').onclick = () => pickInto('keepDir', 'Where the shop\'s backup goes')
 $('pkClose').onclick = () => $('picker').close()
-$('pkUse').onclick = () => { $('backupDir').value = pkCur; $('picker').close(); plan() }
+$('pkUse').onclick = () => { $(st.pickFor).value = pkCur; $('picker').close(); plan() }
 $('pkMake').onclick = async () => {
   const res = await fetch('/api/folders/new', { method: 'POST', headers: H, body: JSON.stringify({ path: pkCur, name: $('pkName').value }) })
   const r = await res.json()
@@ -270,6 +325,12 @@ $('pkMake').onclick = async () => {
   $('pkName').value = ''; browse(r.path)
 }
 $('address').onchange = plan
+$('keepDir').onchange = plan
+$('removePg').onchange = plan
+$('changeMode').onchange = plan
+$('restore').onchange = plan
+$('restorePath').onchange = plan
+$('uninstall').onclick = () => { st.uninstall = !st.uninstall; plan() }
 $('test').onclick = test
 $('go').onclick = install
 $('retry').onclick = install

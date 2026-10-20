@@ -189,3 +189,64 @@ func TestPageExitStopsSetup(t *testing.T) {
 		t.Fatalf("Exit without the token: %d", rec.Code)
 	}
 }
+
+// Review Focus 5: a mode change only runs when the person asked for it.
+func TestCheckChoiceModeChangeNeedsConfirm(t *testing.T) {
+	j, _ := applyChoice(conf("linux", "file", false), "", Choice{})
+	j.Updating, j.FromMode = true, "server"
+	if err := checkChoice(j); err == nil || !strings.Contains(err.Error(), "Server → One PC") || !strings.Contains(err.Error(), "-change-mode") {
+		t.Fatalf("err %v", err)
+	}
+	j.ChangeMode = true
+	if err := checkChoice(j); err != nil {
+		t.Fatal(err)
+	}
+	j.ChangeMode, j.Uninstall = false, true
+	if err := checkChoice(j); err != nil {
+		t.Fatalf("uninstall refused: %v", err)
+	}
+}
+
+func TestCheckChoiceRestoreOnUpdateRefused(t *testing.T) {
+	j, _ := applyChoice(conf("linux", "file", false), "", Choice{Restore: "/media/usb/x.json.gz"})
+	j.Updating = true
+	if err := checkChoice(j); err == nil || !strings.Contains(err.Error(), "Data page") {
+		t.Fatalf("err %v", err)
+	}
+	if _, err := applyChoice(conf("linux", "file", false), "", Choice{KeepDir: "backups"}); err == nil {
+		t.Fatal("relative backups folder accepted")
+	}
+}
+
+func TestPlanListsBackupsAndFromMode(t *testing.T) {
+	keep := t.TempDir()
+	os.WriteFile(filepath.Join(keep, "al-raj-final.json.gz"), []byte("x"), 0o644)
+	mk := func(ch Choice) (*Job, error) {
+		j, err := applyChoice(conf("linux", "server", true), t.TempDir(), ch)
+		if j != nil {
+			j.Run, j.Log, j.Updating, j.FromMode, j.KeepDir = &rec{}, io.Discard, true, "file", keep
+		}
+		return j, err
+	}
+	rec := call(pageHandler(tok, mk, Steps, func() {}), "GET", "/api/plan?role=server", "", true)
+	var p struct {
+		FromMode, KeepDir string
+		LocalDB           bool `json:"localDb"`
+		Backups           []struct{ Path, Name string }
+	}
+	json.Unmarshal(rec.Body.Bytes(), &p)
+	if p.FromMode != "file" || p.KeepDir != keep || !p.LocalDB || len(p.Backups) != 1 || p.Backups[0].Name != "al-raj-final.json.gz" {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	// Not confirmed: the run is refused before any step.
+	if r := call(pageHandler(tok, mk, Steps, func() {}), "POST", "/api/run", `{"role":"server"}`, true); r.Code != http.StatusBadRequest || !strings.Contains(r.Body.String(), "One PC → Server") {
+		t.Fatalf("unconfirmed run: %d %s", r.Code, r.Body)
+	}
+}
+
+func TestPlanUninstallSteps(t *testing.T) {
+	rec := call(testPage(Steps), "GET", "/api/plan?role=server&uninstall=true", "", true)
+	if !strings.Contains(rec.Body.String(), `"id":"final-backup"`) || strings.Contains(rec.Body.String(), `"id":"program"`) {
+		t.Fatalf("%s", rec.Body)
+	}
+}

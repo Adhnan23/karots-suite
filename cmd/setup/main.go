@@ -50,6 +50,13 @@ func start() error {
 		token   = flag.String("token", "", "the page's token (set by the launcher)")
 		userArg = flag.String("user", "", "the shop user (set by the launcher)")
 		dry     = flag.Bool("dry", false, "show the page and pretend: nothing is installed")
+
+		uninstall  = flag.Bool("uninstall", false, "with -yes: remove Karots from this PC (backs the shop up first, keeps every backup)")
+		removePG   = flag.Bool("remove-postgres", false, "with -uninstall: remove PostgreSQL too (server mode, on this PC)")
+		noBackup   = flag.Bool("no-backup", false, "with -uninstall: no final backup (technicians only — the shop's data is gone)")
+		restore    = flag.String("restore", "", "with -yes, a first install: bring the shop back from this backup file")
+		changeMode = flag.Bool("change-mode", false, "with -yes: allow an Update that changes how the shop is kept (backup → new mode → restore)")
+		keepDir    = flag.String("keep-dir", "", "the Karots backups folder (default: C:\\Karots backups / ~/Karots backups)")
 	)
 	flag.Parse()
 	if *userArg != "" {
@@ -59,10 +66,12 @@ func start() error {
 		return err
 	}
 	if *yes {
-		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep})
+		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep,
+			Uninstall: *uninstall, RemovePostgres: *removePG, ChangeMode: *changeMode, Restore: *restore, KeepDir: *keepDir})
 		if err != nil {
 			return err
 		}
+		j.NoBackup = *noBackup
 		return headless(j)
 	}
 	if *token == "" && !*dry && !isAdmin() {
@@ -163,6 +172,12 @@ type Choice struct {
 	BackupDir   string `json:"backupDir"`   // where automatic backups go
 	BackupEvery string `json:"backupEvery"` // 1h, 6h, 24h…
 	BackupKeep  int    `json:"backupKeep"`  // newest backups kept
+
+	Uninstall      bool   `json:"uninstall"`      // remove Karots from this PC
+	RemovePostgres bool   `json:"removePostgres"` // uninstall: PostgreSQL goes too
+	ChangeMode     bool   `json:"changeMode"`     // an Update that changes the mode: confirmed
+	Restore        string `json:"restore"`        // a first install: the backup to bring back
+	KeepDir        string `json:"keepDir"`        // the Karots backups folder ("" = the default)
 }
 
 // newJob reads install.conf from beside the program and applies this PC's choices.
@@ -232,7 +247,12 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 		}
 		env["BACKUP_KEEP"] = strconv.Itoa(k)
 	}
-	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser()}
+	if k := strings.TrimSpace(ch.KeepDir); k != "" && !absFor(c.OS, k) {
+		return nil, fmt.Errorf("the backups folder must be a full path, like %s", map[bool]string{true: `D:\Karots backups`, false: "/media/usb/Karots backups"}[c.OS == "windows"])
+	}
+	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser(),
+		Uninstall: ch.Uninstall, RemovePostgres: ch.RemovePostgres, ChangeMode: ch.ChangeMode,
+		Restore: strings.TrimSpace(ch.Restore), KeepDir: strings.TrimSpace(ch.KeepDir)}
 	if ch.Role == RoleCashier {
 		if j.Address = withPort(ch.Address, c.Port); j.Address == "" {
 			if j.Address = withPort(c.LanAddress, c.Port); j.Address == "" {
@@ -241,6 +261,25 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 		}
 	}
 	return j, nil
+}
+
+// modeWords names a mode the way the Shop Builder does.
+var modeWords = map[string]string{"file": "One PC", "server": "Server"}
+
+// checkChoice refuses a run the person didn't ask for: a mode change nobody
+// confirmed, or a backup brought back over a shop already on this PC.
+func checkChoice(j *Job) error {
+	if j.Uninstall {
+		return nil
+	}
+	if j.FromMode != "" && !j.ChangeMode {
+		return fmt.Errorf("this Update changes how the shop is kept (%s → %s) — tick 'Change it' on the page, or add -change-mode",
+			modeWords[j.FromMode], modeWords[j.Conf.Mode])
+	}
+	if j.Restore != "" && j.Updating && j.FromMode == "" {
+		return fmt.Errorf("bring a backup back on the Data page — this PC already has the shop")
+	}
+	return nil
 }
 
 // absFor: a full path on the shop's OS (tests build Windows paths on Linux).
@@ -265,7 +304,14 @@ func headless(j *Job) error {
 	if !isAdmin() {
 		return fmt.Errorf("run it with sudo:  sudo ./karots-setup -yes")
 	}
-	fmt.Printf("Karots Suite — installing %s (%s)\n", j.Conf.Shop, j.Role)
+	if err := checkChoice(j); err != nil {
+		return err
+	}
+	verb := "installing"
+	if j.Uninstall {
+		verb = "uninstalling"
+	}
+	fmt.Printf("Karots Suite — %s %s (%s)\n", verb, j.Conf.Shop, j.Role)
 	err := RunAll(j, func(id string, err error) {
 		if err != nil {
 			fmt.Printf("✗ %s: %v\n", id, err)
@@ -273,6 +319,10 @@ func headless(j *Job) error {
 			fmt.Printf("✓ %s\n", id)
 		}
 	})
+	if err == nil && j.Uninstall {
+		fmt.Printf("\nKarots is removed. The shop's backup: %s\n", orDefault(j.FinalBackup, "none (-no-backup)"))
+		return nil
+	}
 	if err == nil {
 		fmt.Printf("\nDone. The till: %s   (install id %s — support reads the PIN from it)\n", j.tillURL(), j.Conf.InstallID)
 	}

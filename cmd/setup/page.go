@@ -31,7 +31,9 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 	mux.HandleFunc("GET /api/plan", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		keep, _ := strconv.Atoi(q.Get("backupKeep"))
-		j, err := mk(Choice{Role: Role(q.Get("role")), Address: q.Get("address"), Open: q.Get("open"), BackupDir: q.Get("backupDir"), BackupEvery: q.Get("backupEvery"), BackupKeep: keep})
+		yes := func(k string) bool { return q.Get(k) == "true" }
+		j, err := mk(Choice{Role: Role(q.Get("role")), Address: q.Get("address"), Open: q.Get("open"), BackupDir: q.Get("backupDir"), BackupEvery: q.Get("backupEvery"), BackupKeep: keep,
+			Uninstall: yes("uninstall"), RemovePostgres: yes("removePostgres"), ChangeMode: yes("changeMode"), Restore: q.Get("restore"), KeepDir: q.Get("keepDir")})
 		if err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
@@ -55,7 +57,13 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 			LanAddress  string   `json:"lanAddress"`
 			TillURL     string   `json:"tillUrl"`
 			Steps       []step   `json:"steps"`
-		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), orDefault(j.Conf.Env["BACKUP_INTERVAL"], "6h"), atoiOr(j.Conf.Env["BACKUP_KEEP"], 28), j.Updating, j.Kept, j.Address, j.Conf.LanAddress, j.tillURL(), nil}
+
+			FromMode string        `json:"fromMode"` // an Update that changes the mode: the installed one
+			KeepDir  string        `json:"keepDir"`  // the Karots backups folder
+			Backups  []foundBackup `json:"backups"`  // newest first
+			LocalDB  bool          `json:"localDb"`  // server mode with PostgreSQL on this PC (uninstall can remove it)
+		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), orDefault(j.Conf.Env["BACKUP_INTERVAL"], "6h"), atoiOr(j.Conf.Env["BACKUP_KEEP"], 28), j.Updating, j.Kept, j.Address, j.Conf.LanAddress, j.tillURL(), nil,
+			j.FromMode, j.keepDir(), findBackups(j), j.localDB()}
 		for _, s := range steps(j) {
 			d := s.Title
 			if s.Detail != nil {
@@ -95,6 +103,9 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 			return
 		}
 		j, err := mk(in.Choice)
+		if err == nil {
+			err = checkChoice(j)
+		}
 		if err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
