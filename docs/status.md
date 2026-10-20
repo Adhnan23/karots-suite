@@ -5,6 +5,14 @@ every milestone.
 
 ## Next session (handoff 2026-10-20) — START HERE
 
+**M8c2 Backup copies — IN PROGRESS (paused 2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`,
+plan `docs/plans/2026-10-20-m8c2-backup-copies.md`. Done: Tasks 1–4 (`internal/s3` client, AES-GCM seal,
+`backup_copies` table + `.env` presets, copy pass wired into the scheduler). **Resume at Task 5** (Data API for copies +
+dashboard warning); ledger in `.superpowers/sdd/2026-10-20-m8c2-backup-copies/progress.md` (git-ignored). Task 5 needs
+the `Copier` reachable from the API: build it once (e.g. in `api.Deps` / `internal/app`) and have `cmd/server/main.go`
+reuse it instead of `backup.NewCopier` there. User: the vendor's bucket is on R2's free plan; bucket details go into
+the root `.env` (`CLOUD_BACKUP_URL/KEY_ID/SECRET`) before the VM test, not before.
+
 **Windows is fully checked** (VM, 2026-10-19): file mode + server mode install / Update, over-the-air update, crash
 restart, restart → till ~10 s, Konami exit, offline PostgreSQL installer (<2 min), no PowerShell windows, no flaky steps.
 **Xubuntu is checked** (VM, 2026-10-20, user): file mode and server mode (apt PostgreSQL 17) install / Update — worked.
