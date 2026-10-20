@@ -113,6 +113,8 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - Protected groups use `h.protected` (jwt → unlocked → PIN chosen). `/me` and `/auth/*` are jwt-only by design.
 - **Session codes the SPA routes on:** `UNAUTHORIZED` → `/login`, `SESSION_LOCKED` → `/lock`, `PIN_CHANGE_REQUIRED` → `/account/pin`.
 - **Session cookie:** `pos_token`, httpOnly, SameSite=Strict. No token is ever visible to JS.
+- **Device id:** every call carries `X-Ks-Device` (`web/src/lib/device.ts`); signed-in screens and the lock page beat
+  `POST /presence` for the admin's Who's on now (`internal/features/presence`, in memory).
 - **Porting an area:** add DTOs to `dto.go`, then `make types`, then write handlers in `internal/api/<area>.go`, then **delete that feature's legacy `api.go`/`RegisterAPI`**, and tick the rows in `docs/parity.md`.
 - **Thermal printing stays in Go** (`internal/escpos`). A4 and PDF documents are React print routes.
 

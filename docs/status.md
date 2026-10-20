@@ -5,6 +5,23 @@ every milestone.
 
 ## Next session (handoff 2026-10-20) — START HERE
 
+**Live users — BUILT (2026-10-20, user asked for it before games-as-plugins).** Spec
+`docs/specs/2026-10-20-live-users-design.md`, plan `docs/plans/2026-10-20-live-users.md`. Dashboard → **Who's on now**
+(admins only, 5 s refresh): per device — Active / Idle N min / Locked / Away since / Signed out, where (Till · Sell,
+Stock, Lock screen…), the cart ("Serving · 3 items · Rs 1,250" / "waiting in the cart"), till open since, sales today,
+OS · browser · IP ("this PC (the server)" for localhost). Users cards get the dot + where. Every signed-in screen and
+the lock page beat `POST /presence` (20 s, route change, focus); every API call carries `X-Ks-Device` (random id in
+localStorage `ks-device`). In memory only (`internal/features/presence`; a restart refills in 20 s). Same user + IP +
+browser under a new id replaces the old row. **Later idea:** "Lock this PC" from the card.
+
+**Next: games as ONE plugin with parts** (user, 2026-10-20 — replaces the "each game its own plugin" idea): the Shop
+Builder learns *plugin parts* — tick **Games** and child ticks appear (Coin catch, Blocks, Shop Rush); the chosen parts
+reach the plugin (generated lists pass them to its Go `init` / React `register`). Plugin manifests get `parts`
+(`[{key,name,description}]`), `shops.json` stores the chosen parts per plugin; a plugin with no parts behaves as today.
+Games is frontend-only (manifest `import` becomes optional). Core keeps the 7-tap gesture + a `loginGames` slot + the
+menu; no games compiled in = 7 taps does nothing; same spot on login and lock. Rethink proposal was given and accepted
+in chat (games unchanged, best-score keys kept). Write spec + plan, then build.
+
 **M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
 `docs/plans/2026-10-20-m8c2-backup-copies.md` (Tasks 1–9 done). Every automatic backup is also copied to the shop's
 **copy folder** (USB / network; catches up when plugged back in; keeps the newest `BACKUP_KEEP`) and, for paying shops,
