@@ -34,9 +34,11 @@ const FormatVersion = 1
 // (goose_db_version_<name>) — is owned by the embedded migrations that run at
 // startup. Restoring an older snapshot must NOT rewind that record, or the next
 // boot would try to re-run already-applied migrations. Matching the whole
-// goose_db_version* family keeps plugin bookkeeping safe too.
+// goose_db_version* family keeps plugin bookkeeping safe too. backup_copies
+// describes this PC (its copy folder, its cloud switch), not the shop's data,
+// and a backup must never carry where it is copied to.
 func skipTable(name string) bool {
-	return strings.HasPrefix(name, "goose_db_version")
+	return strings.HasPrefix(name, "goose_db_version") || name == "backup_copies"
 }
 
 // RestoreMode controls which tables a restore clears.

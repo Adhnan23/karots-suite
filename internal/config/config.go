@@ -38,6 +38,11 @@ type Config struct {
 	BackupInterval time.Duration
 	// BackupKeep is how many automatic backup files to retain (oldest pruned).
 	BackupKeep int
+	// BackupCopyDir is the copy folder preset (USB / share, M8c2): seeded once
+	// into backup_copies, after which the Data page owns it.
+	BackupCopyDir string
+	// Cloud is the vendor's Karots cloud backup — set only in paying shops' builds.
+	Cloud CloudBackup
 	// FileDataDir is the data folder of a file-mode shop (its own PostgreSQL);
 	// empty in server mode.
 	FileDataDir string
@@ -62,12 +67,29 @@ func Load() *Config {
 		BackupDir:      getEnv("BACKUP_DIR", ""),
 		BackupInterval: mustDuration("BACKUP_INTERVAL", 6*time.Hour),
 		BackupKeep:     mustInt("BACKUP_KEEP", 28),
+		BackupCopyDir:  getEnv("BACKUP_COPY_DIR", ""),
+		Cloud: CloudBackup{URL: getEnv("CLOUD_BACKUP_URL", ""), KeyID: getEnv("CLOUD_BACKUP_KEY_ID", ""),
+			Secret: getEnv("CLOUD_BACKUP_SECRET", ""), Folder: getEnv("CLOUD_BACKUP_FOLDER", ""),
+			Crypt: getEnv("CLOUD_BACKUP_CRYPT", ""), On: getEnv("CLOUD_BACKUP", "") == "on"},
 	}
 	c.CookieSecure = ParseCookieSecure(getEnv("COOKIE_SECURE", "auto"))
 	if len(c.JWTSecret) < 32 {
 		log.Fatal("JWT_SECRET must be at least 32 characters")
 	}
 	return c
+}
+
+// CloudBackup is Karots cloud: the vendor's bucket (URL = https://host/bucket),
+// this shop's folder in it and its encryption key (64 hex). On is the switch a
+// fresh install starts with; after that the Data page's switch counts.
+type CloudBackup struct {
+	URL, KeyID, Secret, Folder, Crypt string
+	On                                bool
+}
+
+// Set reports whether this build carries Karots cloud.
+func (c CloudBackup) Set() bool {
+	return c.URL != "" && c.KeyID != "" && c.Secret != "" && c.Folder != "" && c.Crypt != ""
 }
 
 func (c *Config) IsProd() bool { return c.Env == "production" }
