@@ -43,6 +43,7 @@ type Job struct {
 	pendingRestore bool   // an earlier run backed up / failed to restore: restore again, no new backup
 	launcherReady  bool   // Windows: karots-start.exe was placed this run
 	lastNote       string // the page's line under the running step
+	cloudNote      string // Karots cloud couldn't be listed (shown under Bring back a shop)
 }
 
 // Runner runs the OS tools; tests record the commands instead.

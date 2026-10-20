@@ -118,6 +118,7 @@ type foundBackup struct {
 	Name        string    `json:"name"`
 	Modified    time.Time `json:"modified"`
 	BesideSetup bool      `json:"besideSetup"` // put next to the three files: "bring this one back"
+	Place       string    `json:"place"`       // "" Karots backups / beside Setup, "copy" the copy folder, "cloud" Karots cloud
 }
 
 // findBackups lists the backups in keepDir and beside Setup, newest first.
@@ -130,12 +131,13 @@ func findBackups(j *Job) []foundBackup {
 				continue
 			}
 			if info, err := e.Info(); err == nil {
-				out = append(out, foundBackup{joinOS(j, dir, e.Name()), e.Name(), info.ModTime(), beside})
+				out = append(out, foundBackup{Path: joinOS(j, dir, e.Name()), Name: e.Name(), Modified: info.ModTime(), BesideSetup: beside})
 			}
 		}
 	}
 	add(j.keepDir(), at(j.keepDir()), false)
 	add(j.Dir, j.Dir, true)
+	out = copyBackups(j, out)
 	sort.SliceStable(out, func(a, b int) bool { return out[a].Modified.After(out[b].Modified) })
 	return out
 }
@@ -201,6 +203,9 @@ func safetyBackup(j *Job) error {
 func restoreStep(j *Job) error {
 	if j.Restore == "" {
 		return fmt.Errorf("no backup to bring back")
+	}
+	if err := fetchCloud(j); err != nil {
+		return err
 	}
 	if err := savePending(j); err != nil {
 		return err

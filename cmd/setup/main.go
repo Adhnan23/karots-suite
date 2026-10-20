@@ -56,6 +56,7 @@ func start() error {
 		noBackup   = flag.Bool("no-backup", false, "with -uninstall: no final backup (technicians only — the shop's data is gone)")
 		restore    = flag.String("restore", "", "with -yes, a first install: bring the shop back from this backup file")
 		changeMode = flag.Bool("change-mode", false, "with -yes: allow an Update that changes how the shop is kept (backup → new mode → restore)")
+		copyDir    = flag.String("copy-dir", "", "with -yes: also copy backups to this folder (USB / network)")
 		keepDir    = flag.String("keep-dir", "", "the Karots backups folder (default: C:\\Karots backups / ~/Karots backups)")
 	)
 	flag.Parse()
@@ -66,7 +67,7 @@ func start() error {
 		return err
 	}
 	if *yes {
-		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep,
+		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep, CopyDir: *copyDir,
 			Uninstall: *uninstall, RemovePostgres: *removePG, ChangeMode: *changeMode, Restore: *restore, KeepDir: *keepDir})
 		if err != nil {
 			return err
@@ -172,6 +173,7 @@ type Choice struct {
 	BackupDir   string `json:"backupDir"`   // where automatic backups go
 	BackupEvery string `json:"backupEvery"` // 1h, 6h, 24h…
 	BackupKeep  int    `json:"backupKeep"`  // newest backups kept
+	CopyDir     string `json:"copyDir"`     // also copy backups here (USB / network folder)
 
 	Uninstall      bool   `json:"uninstall"`      // remove Karots from this PC
 	RemovePostgres bool   `json:"removePostgres"` // uninstall: PostgreSQL goes too
@@ -248,6 +250,12 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 		}
 		env["BACKUP_KEEP"] = strconv.Itoa(k)
 	}
+	if d := strings.TrimSpace(ch.CopyDir); d != "" {
+		if !absFor(c.OS, d) {
+			return nil, fmt.Errorf("the copy folder must be a full path, like %s", map[bool]string{true: `E:\Karots copies`, false: "/media/usb/Karots copies"}[c.OS == "windows"])
+		}
+		env["BACKUP_COPY_DIR"] = d
+	}
 	if k := strings.TrimSpace(ch.KeepDir); k != "" && systemFolder(c.OS, k) {
 		return nil, fmt.Errorf("pick a folder of its own for the backups, not %s — e.g. a 'Karots backups' folder inside it", k)
 	}
@@ -257,6 +265,9 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser(),
 		Uninstall: ch.Uninstall, RemovePostgres: ch.RemovePostgres, ChangeMode: ch.ChangeMode,
 		Restore: strings.TrimSpace(ch.Restore), KeepDir: strings.TrimSpace(ch.KeepDir)}
+	if d := env["BACKUP_COPY_DIR"]; d != "" && sameDir(c.OS, d, j.backupDir()) {
+		return nil, fmt.Errorf("the copy folder is where the backups already are — pick another (a USB stick, a network folder)")
+	}
 	if ch.Role == RoleCashier {
 		if j.Address = withPort(ch.Address, c.Port); j.Address == "" {
 			if j.Address = withPort(c.LanAddress, c.Port); j.Address == "" {

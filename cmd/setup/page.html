@@ -117,6 +117,9 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
       <label class="f" for="backupDir">Backups go to</label>
       <div class="addr"><input id="backupDir" autocomplete="off" spellcheck="false"><button class="btn" id="pick">Choose…</button></div>
       <div class="hint">A folder on a second drive is safest. Leave it as it is if unsure.</div>
+      <label class="f" for="copyDir">Also copy backups to (optional)</label>
+      <div class="addr"><input id="copyDir" autocomplete="off" spellcheck="false" placeholder="A USB stick or network folder"><button class="btn" id="pickCopy">Choose…</button></div>
+      <div class="hint">Every backup is copied there too; when the USB stick is out, it catches up once it's plugged back in.</div>
       <div class="two">
         <div><label class="f" for="every">Back up every</label><select id="every"><option value="1h">1 hour</option><option value="3h">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option><option value="24h">24 hours</option></select></div>
         <div><label class="f" for="keep">Keep the newest</label><input id="keep" inputmode="numeric"></div>
@@ -127,6 +130,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
       <select id="restore"></select>
       <div class="addr"><input id="restorePath" placeholder="Or a backup somewhere else (a USB stick…)" autocomplete="off" spellcheck="false"><button class="btn" id="pickFile">Choose…</button></div>
       <div class="hint">Moving from another PC? Put its backup next to Setup, or pick it here. Leave it on "Start a new shop" otherwise.</div>
+      <div class="hint bad" id="cloudNote" hidden></div>
     </div>
     <div id="cashier" hidden>
       <label class="f" for="address">The main PC's address</label>
@@ -170,10 +174,10 @@ const st = { role: 'server', plan: null, running: false, open: '', backup: '', u
 const choice = () => {
   if (!st.plan) return { role: st.role, address: $('address').value.trim(), open: st.open } // first load: the shop's / this PC's values
   const main = st.role === 'server', d = st.plan.defaults
-  const dir = $('backupDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
+  const dir = $('backupDir').value.trim(), copyDir = $('copyDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
   const keepDir = $('keepDir').value.trim(), restore = $('restorePath').value.trim() || $('restore').value
   return { role: st.role, address: $('address').value.trim(), open: st.open,
-    backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0,
+    backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0, copyDir: main && copyDir !== d.copyDir ? copyDir : '',
     uninstall: st.uninstall, removePostgres: st.uninstall && $('removePg').checked, changeMode: $('changeMode').checked,
     restore: main && !st.uninstall && !st.plan.updating ? restore : '', keepDir: keepDir !== d.keepDir ? keepDir : '' }
 }
@@ -184,13 +188,13 @@ async function plan() {
   const p = await res.json()
   if (!res.ok) { $('steps').innerHTML = ''; $('testMsg').textContent = p.error; $('testMsg').className = 'hint bad'; $('go').disabled = true; return }
   if (!st.plan) {
-    st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep; $('keepDir').value = p.keepDir
-    p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep, keepDir: p.keepDir }
+    st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep; $('keepDir').value = p.keepDir; $('copyDir').value = p.copyDir
+    p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep, keepDir: p.keepDir, copyDir: p.copyDir }
     // A backup put next to Setup means "bring this one back"; one only found in the backups folder is offered, not picked.
     $('restore').innerHTML = '<option value="">Start a new shop</option>'
     for (const b of p.backups || []) {
       const o = document.createElement('option'); o.value = b.path
-      o.textContent = b.name + ' — ' + new Date(b.modified).toLocaleString() + (b.besideSetup ? ' (next to Setup)' : '')
+      o.textContent = b.name + ' — ' + new Date(b.modified).toLocaleString() + (b.besideSetup ? ' (next to Setup)' : b.place === 'copy' ? ' (copy folder)' : b.place === 'cloud' ? ' (Karots cloud)' : '')
       $('restore').append(o)
     }
     const beside = (p.backups || []).find((b) => b.besideSetup)
@@ -209,6 +213,7 @@ async function plan() {
   $('uninstall').textContent = st.uninstall ? '← Back' : 'Uninstall Karots from this PC…'
   $('mainOpts').hidden = !main || st.uninstall
   $('restorePanel').hidden = !main || p.updating || st.uninstall
+  $('cloudNote').hidden = !p.cloudNote; $('cloudNote').textContent = p.cloudNote || ''
   const words2 = { file: 'One PC', server: 'Server' }
   $('modePanel').hidden = !p.fromMode || st.uninstall || !main
   $('modeTitle').textContent = 'This changes how the shop is kept: ' + words2[p.fromMode] + ' → ' + words2[p.mode]
@@ -294,6 +299,7 @@ async function install() {
 for (const b of document.querySelectorAll('[data-role]')) b.onclick = () => setRole(b.dataset.role)
 for (const b of document.querySelectorAll('[data-open]')) b.onclick = () => { st.open = b.dataset.open; plan() }
 $('backupDir').onchange = plan
+$('copyDir').onchange = plan
 $('every').onchange = plan
 $('keep').onchange = plan
 // ---- folder browser ----
@@ -324,6 +330,7 @@ const pickInto = (field, title) => {
   $('picker').showModal(); browse(start)
 }
 $('pick').onclick = () => pickInto('backupDir', 'Choose the backup folder')
+$('pickCopy').onclick = () => pickInto('copyDir', 'Choose the copy folder')
 $('pickKeep').onclick = () => pickInto('keepDir', 'Where the shop\'s backup goes')
 $('pickFile').onclick = () => pickInto('restorePath', 'Choose the backup to bring back')
 $('pkClose').onclick = () => $('picker').close()
