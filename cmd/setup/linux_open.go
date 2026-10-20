@@ -62,10 +62,18 @@ done
 	return writeAs(j, filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop"), []byte(entry), 0o644)
 }
 
-// kioskProfile is the kiosk browser's own profile folder. A snap (Ubuntu's
-// Chromium and Firefox) may not touch hidden folders in $HOME — it would fail
-// to start forever — so it gets one in the snap's own ~/snap/<name>/common.
+// kioskProfile is the kiosk browser's own profile folder. A sandboxed browser
+// can't make ~/.karots-kiosk — it would fail to start forever — so a snap
+// (Ubuntu's Chromium and Firefox) gets ~/snap/<name>/common and a flatpak its
+// ~/.var/app/<app id>, the folders each sandbox may always write.
 func kioskProfile(browser string) string {
+	if _, after, ok := strings.Cut(browser, "flatpak run "); ok {
+		for _, f := range strings.Fields(after) {
+			if !strings.HasPrefix(f, "-") {
+				return "$HOME/.var/app/" + strings.Trim(f, `"'`) + "/karots-kiosk"
+			}
+		}
+	}
 	if _, after, ok := strings.Cut(browser, "/snap/bin/"); ok {
 		if f := strings.Fields(after); len(f) > 0 {
 			if name := strings.Trim(f[0], `"'`); name != "" {
@@ -120,7 +128,7 @@ func linuxBrowser(j *Job, home string) (cmd, family string) {
 }
 
 // desktopExec is the command in a browser's .desktop file, without its %u-style
-// field codes ("" when the file isn't found).
+// field codes or flatpak's file forwarding ("" when the file isn't found).
 func desktopExec(name, home string) string {
 	if !strings.HasSuffix(name, ".desktop") || strings.ContainsAny(name, "/\\") {
 		return ""
@@ -135,7 +143,7 @@ func desktopExec(name, home string) string {
 			if exec, ok := strings.CutPrefix(strings.TrimSpace(line), "Exec="); ok {
 				var keep []string
 				for _, f := range strings.Fields(exec) {
-					if !strings.HasPrefix(f, "%") {
+					if !strings.HasPrefix(f, "%") && !strings.HasPrefix(f, "@@") && f != "--file-forwarding" {
 						keep = append(keep, f)
 					}
 				}

@@ -238,6 +238,24 @@ func TestLinuxKioskSnapProfile(t *testing.T) {
 	}
 }
 
+// A flatpak browser: profile in its ~/.var/app folder, no file-forwarding markers left in the command.
+func TestLinuxKioskFlatpakProfile(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "org.chromium.Chromium.desktop\n"
+	d := filepath.Join(r, "var/lib/flatpak/exports/share/applications")
+	os.MkdirAll(d, 0o755)
+	os.WriteFile(filepath.Join(d, "org.chromium.Chromium.desktop"), []byte("[Desktop Entry]\n"+
+		"Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=/app/bin/chromium --file-forwarding org.chromium.Chromium @@u %U @@\n"), 0o644)
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `--command=/app/bin/chromium org.chromium.Chromium --kiosk`) ||
+		!strings.Contains(string(k), `--user-data-dir="$HOME/.var/app/org.chromium.Chromium/karots-kiosk"`) || strings.Contains(string(k), "@@") {
+		t.Fatalf("kiosk.sh:\n%s", k)
+	}
+}
+
 // The user's default browser (xdg-settings) runs the kiosk when its family is known.
 func TestLinuxKioskDefaultBrowser(t *testing.T) {
 	j, rc, r := linuxJob(t, "file", false)
