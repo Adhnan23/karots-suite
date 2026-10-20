@@ -25,7 +25,8 @@ Till sessions → the session): same count + banking as the cashier's own close,
 receipt) — banks into any active cash locker (not only cashier-reachable ones, e.g. the main safe), `cash_register.closed_by` (migration 00007) + Activity under the closer; never pops the drawer; refused while
 that cashier is serving. Close now **locks the session row** and only lands on a still-open one — two closes at once can
 never bank twice. Sales that took cash with **no till open** are never refused — flagged on the dashboard. Session tags:
-left open / closed late / closed by. Plugin drawer sections (e.g. recharge counts) don't show in Close for them —
+left open / closed late / closed by. Any till tab (Returns, Credit…) sends a left-open till's cashier to Sell, checked on
+moving to a tab only (never mid-task). Plugin drawer sections (e.g. recharge counts) don't show in Close for them —
 they're optional at close.
 
 **Start the day at zero (user, 2026-10-20):** most shops bank all the cash into a locker at close and open next
@@ -41,7 +42,9 @@ both ideas). What they wanted from it is built: a game opened on the **lock** sc
 attributed — nobody is signed in). Future (not now): an employee-management plugin (staff, salaries) — would need a
 generic sign-in / sign-out / beat hook for its own attendance rows.
 
-**Next:** Arch XFCE when the user is off the metered connection; then **M8d Demo Room**.
+**Next (2026-10-20):** the user tests today's changes (Who's on now + Lock, a till left open, Close for them, open at
+zero, "short in the drawer"); then Arch XFCE when off the metered connection; then **M8d Demo Room** (rethink proposal
+first).
 
 **M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
 `docs/plans/2026-10-20-m8c2-backup-copies.md` (Tasks 1–9 done). Every automatic backup is also copied to the shop's

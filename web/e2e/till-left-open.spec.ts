@@ -29,7 +29,8 @@ test('a till from yesterday must be closed and opened again; an admin closes one
     if (body.summary.session) body.summary.stale = true
     await route.fulfill({ response: r, json: body })
   })
-  await cashier.goto('/till')
+  await cashier.goto('/till/returns') // any till tab sends them to Sell, where it must be closed
+  await expect(cashier).toHaveURL(/\/till$/)
   const dlg = cashier.getByRole('dialog', { name: 'Close the till' })
   await expect(dlg).toContainText('was never closed')
   await expect(dlg.getByRole('button', { name: 'Cancel' })).toHaveCount(0)
