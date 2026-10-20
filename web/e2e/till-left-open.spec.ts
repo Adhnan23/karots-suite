@@ -63,3 +63,26 @@ test('a till from yesterday must be closed and opened again; an admin closes one
   await expect(page.getByRole('button', { name: 'Close for them' })).toHaveCount(0)
   await ctx.close()
 })
+
+test('a late customer on a till opened at zero: change the drawer lacks is flagged, with Deposit at hand', async ({ page, browser }) => {
+  await signIn(page, '0770000001')
+  const phone = `074${String(Date.now()).slice(-7)}`
+  await page.request.post('/api/v1/admin/users', { data: { name: `Late ${phone.slice(-4)}`, phone, role: 'cashier', pin: '1234', receiptPrinter: '', canHandleSuppliers: false, canManageCredit: false, canSeeCost: false } })
+  const ctx = await browser.newContext()
+  const cashier = await ctx.newPage()
+  await signIn(cashier, phone)
+  // Everything went to the safe at close: today's till opens empty.
+  expect((await cashier.request.post('/api/v1/till/drawer/open', { data: { breakdown: {}, sourceLockerId: 0 } })).status()).toBe(201)
+  await cashier.goto('/till')
+  const search = cashier.getByLabel('Scan a barcode or search products')
+  await search.fill('4790000000011') // E2E Milk, Rs 100
+  await search.press('Enter')
+  await cashier.keyboard.press('F10')
+  await cashier.keyboard.type('500')
+  await cashier.keyboard.press('Enter')
+  await expect(cashier.getByText('Change to give')).toBeVisible()
+  await expect(cashier.getByText('Rs. 400.00 short in the drawer')).toBeVisible()
+  await cashier.getByRole('button', { name: 'Deposit', exact: true }).click()
+  await expect(cashier.getByRole('dialog', { name: /Deposit cash/ })).toBeVisible()
+  await ctx.close()
+})

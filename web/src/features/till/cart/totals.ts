@@ -44,6 +44,9 @@ export const saleTotal = (s: TillState) => total(s.lines, s.billDiscount, s.bill
 export const paidTotal = (ps: Payment[]) => ps.filter((p) => p.method !== 'credit').reduce((s, p) => s + num(p.amount), 0)
 export const accountTotal = (ps: Payment[]) => ps.filter((p) => p.method === 'credit').reduce((s, p) => s + num(p.amount), 0)
 export const changeDue = (t: number, ps: Payment[]) => r2(Math.max(0, paidTotal(ps) + accountTotal(ps) - t))
+/** How much of the change the drawer can't cover from what it held before this sale
+ * (the customer's own notes can't be broken into it): 0 = enough. */
+export const shortForChange = (change: number, inDrawer: number) => r2(Math.min(change, Math.max(0, change - Math.max(0, inDrawer))))
 export const balanceDue = (t: number, ps: Payment[]) => r2(Math.max(0, t - paidTotal(ps) - accountTotal(ps)))
 
 /** Rounding only on a pure cash-change sale (the server zeroes change with an account line). */

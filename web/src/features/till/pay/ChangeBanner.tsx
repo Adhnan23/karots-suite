@@ -3,9 +3,10 @@ import { dec, money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, customersQuery, drawerQuery } from '../api'
 import {
-  accountTotal, actualChange, balanceDue, changeDue, coinKeep, keptAmount, notesFor, paidTotal, roundable, saleTotal,
+  accountTotal, actualChange, balanceDue, changeDue, coinKeep, keptAmount, notesFor, paidTotal, roundable, saleTotal, shortForChange,
 } from '../cart/totals'
 import { useTill } from '../TillProvider'
+import { useTillUi } from '../TillUi'
 import { FIELD } from '../ui'
 
 /** Still to pay / change to give (with Keep) / paid in full — plus account and limit cues. */
@@ -26,6 +27,10 @@ export function ChangeBanner() {
   const avail = cust ? num(cust.creditLimit) - num(cust.outstanding) : null
   const over = cust && avail !== null && onAcct > 0.005 && onAcct > avail + 0.005
   const coins = coinKeep(change)
+  // The drawer may be empty (all banked at close, opened at zero for a late customer):
+  // say so before change is handed out of nowhere — a warning, never a block.
+  const ui = useTillUi()
+  const short = drawer?.summary.session ? shortForChange(give, num(drawer.summary.expected)) : 0
   const notes = notesFor(give, (drawer?.denominations ?? []).map((d) => num(d.value)))
   const keepBtn = 'rounded-full border border-border bg-card px-2.5 py-1 text-[12px] font-bold aria-pressed:border-success aria-pressed:bg-success aria-pressed:text-background'
 
@@ -49,6 +54,12 @@ export function ChangeBanner() {
     body = (
       <>
         <p className="flex items-baseline justify-between font-bold">{t < 0 ? 'Give the customer' : 'Change to give'} <b className="font-display text-[22px] text-success tabular-nums">{money(sym, give)}</b></p>
+        {short > 0 && (
+          <p className="flex items-center justify-between gap-2 text-[12.5px] font-semibold text-warning">
+            <span>{money(sym, short)} short in the drawer</span>
+            <button type="button" onClick={() => ui.open({ kind: 'deposit' })} className="flex-none rounded-full border border-border bg-card px-2.5 py-0.5 text-[12px] font-bold text-foreground hover:border-selected">Deposit</button>
+          </p>
+        )}
         {notes.length > 0 && <p className="text-muted-foreground tabular-nums">{notes.map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>}
         {canKeep && (
           <div className="flex flex-wrap items-center gap-1.5">
