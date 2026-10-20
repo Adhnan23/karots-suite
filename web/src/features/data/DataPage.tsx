@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ChevronRight, CloudDownload, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { ChevronRight, CloudDownload, Copy, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { apiUpload } from '@/api/client'
@@ -11,6 +11,7 @@ import { stamp } from '@/features/money/format'
 import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
+import { CopiesCard } from './CopiesCard'
 import { DataCheckList } from './DataCheck'
 import { dataCheckQuery, dataQuery, fileSize } from './queries'
 import { RestoreDialog, type RestoreSource } from './RestoreDialog'
@@ -58,6 +59,9 @@ export function DataPage() {
           {data && data.backups.length === 0
             ? <EmptyState title="No backups in the folder">{data.autoBackups ? 'The first one is written soon after the server starts.' : 'A copy is still saved here before every restore.'}</EmptyState>
             : <BackupList rows={data?.backups ?? []} onRestore={(name) => setRestore({ name })} />}
+        </Card>
+        <Card title="Backup copies" icon={<Copy size={18} />} className="lg:col-span-2">
+          <CopiesCard onRestore={(name) => setRestore({ name })} />
         </Card>
         <Card title="Spreadsheets" icon={<FileUp size={18} />}>
           <Sheets />

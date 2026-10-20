@@ -16,14 +16,14 @@ export function Field({ label, hint, children, className }: { label: string; hin
 }
 
 /** A labelled on/off switch row. */
-export function Toggle({ label, hint, checked, onChange, className }: { label: string; hint?: ReactNode; checked: boolean; onChange: (v: boolean) => void; className?: string }) {
+export function Toggle({ label, hint, checked, onChange, className, disabled }: { label: string; hint?: ReactNode; checked: boolean; onChange: (v: boolean) => void; className?: string; disabled?: boolean }) {
   return (
-    <label className={cn('flex cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2.5', className)}>
+    <label className={cn('flex cursor-pointer items-center has-disabled:cursor-not-allowed has-disabled:opacity-60 justify-between gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2.5', className)}>
       <span className="flex flex-col text-sm font-semibold">
         {label}
         {hint && <small className="font-normal text-faint">{hint}</small>}
       </span>
-      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)}
+      <input type="checkbox" role="switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)}
         className="peer sr-only" />
       <span aria-hidden className="relative h-6 w-10 flex-none rounded-full bg-border transition-colors peer-checked:bg-selected peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-muted-foreground peer-checked:after:bg-selected-foreground after:shadow after:transition-transform peer-checked:after:translate-x-4" />
     </label>

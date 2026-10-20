@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, CalendarClock, ChevronRight, ClipboardPen, Store, UserRoundX } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, Store, UserRoundX } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import type { Dashboard as D } from '@/api/types.gen'
@@ -61,6 +61,7 @@ function attention(d: D, sym: string): Att[] {
   if (a.expiring) out.push({ tone: 'warn', icon: CalendarClock, tag: 'Expiring', text: `${n(a.expiring, 'lot expires', 'lots expire')} within 30 days`, to: '/admin/stock/batches', go: 'Sell first' })
   if (a.lowStock) out.push({ tone: 'warn', icon: Boxes, tag: 'Low stock', text: `${n(a.lowStock, 'product is', 'products are')} at or under the reorder level`, to: '/admin/reorder', go: 'Reorder' })
   if (a.review) out.push({ tone: 'info', icon: ClipboardPen, tag: 'Review', text: `${n(a.review, 'quick-added item needs', 'quick-added items need')} details`, to: '/admin/products/review', go: 'Review' })
+  if (a.backupCopies.length) out.push({ tone: 'warn', icon: HardDrive, tag: 'Backups', text: `${a.backupCopies.join(' and ')}: no backup copied in over a day`, to: '/admin/data', go: 'See copies' })
   if (!d.openTills) out.push({ tone: 'info', icon: Store, tag: 'Till', text: 'No till is open', to: '/till', go: 'Open the till' })
   return out
 }

@@ -8,9 +8,11 @@ import (
 
 	"karots-suite/internal/backup"
 	"karots-suite/internal/datetime"
+	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/features/sales"
+	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -102,6 +104,9 @@ func (h *handlers) AdminDashboard(c echo.Context) error {
 	out.TillCash, out.OpenTills = dec2(cash), len(tills)
 	if out.Attention, err = h.attention(ctx); err != nil {
 		return err
+	}
+	if middleware.CurrentRole(c) != auth.RoleAdmin {
+		out.Attention.BackupCopies = []string{} // the Data page is the admin's
 	}
 	_ = h.d.DB.GetContext(ctx, &out.Owing, `SELECT COUNT(*) FROM customers WHERE outstanding_balance > 0`)
 	recent, err := h.d.Sales.List(ctx, sales.ListFilter{From: &today, Limit: 8})

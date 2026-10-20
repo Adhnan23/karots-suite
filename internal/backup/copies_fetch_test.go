@@ -57,4 +57,8 @@ func TestFetchFromCopies(t *testing.T) {
 	if c.Waiting(cl) != 1 {
 		t.Fatal("never-copied cloud should be due")
 	}
+	writeBackups(t, local, 20, 3)
+	if n := c.Waiting(Copy{Kind: KindFolder, Path: filepath.Join(place, "gone")}); n != 2 {
+		t.Fatalf("waiting counts only the newest Keep: %d", n)
+	}
 }

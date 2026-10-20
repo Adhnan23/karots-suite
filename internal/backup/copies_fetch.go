@@ -13,10 +13,11 @@ import (
 // ErrNotListed: a name the copy place doesn't list (the client never names a path).
 var ErrNotListed = errors.New("that backup is not in this copy")
 
-// Waiting is how far a place is behind: local backups the copy folder lacks
-// (all of them while it isn't there), or 1 when the cloud is due a copy.
+// Waiting is how far a place is behind: of the newest Keep local backups, the
+// ones the copy folder lacks (all while it isn't there), or 1 when the cloud
+// is due a copy.
 func (c *Copier) Waiting(r Copy) int {
-	local, err := ListBackups(c.Dir)
+	local, err := c.newest()
 	if err != nil || len(local) == 0 {
 		return 0
 	}

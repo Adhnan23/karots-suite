@@ -28,6 +28,14 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
   ...aicatalogPrep,
+  /** Dashboard: the attention list in view. */
+  attention: async (page) => {
+    await page.getByText('Needs your attention').scrollIntoViewIfNeeded()
+  },
+  /** Data page: the Backup copies card in view. */
+  copies: async (page) => {
+    await page.getByRole('region', { name: 'Backup copies' }).scrollIntoViewIfNeeded()
+  },
   /** Reload & Bills carriers, one with its usual float dealer (a normal supplier). */
   'recharge-carriers': async (page) => {
     const post = async (url: string, data: object, method = 'post') => (await page.request.fetch(`/api/v1${url}`, { method, data })).json().catch(() => ({}))

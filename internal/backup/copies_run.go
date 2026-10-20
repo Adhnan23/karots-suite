@@ -132,7 +132,7 @@ func (c *Copier) copyFolder(path string) (string, error) {
 	if st, err := os.Stat(path); err != nil || !st.IsDir() {
 		return "", fmt.Errorf("not there right now: %s", path)
 	}
-	local, err := ListBackups(c.Dir)
+	local, err := c.newest()
 	if err != nil {
 		return "", err
 	}
@@ -159,6 +159,16 @@ func (c *Copier) copyFolder(path string) (string, error) {
 		return newest, err
 	}
 	return newest, nil
+}
+
+// newest is the local backups the copy folder should hold: the newest Keep
+// (older ones would only be pruned again).
+func (c *Copier) newest() ([]BackupFile, error) {
+	local, err := ListBackups(c.Dir)
+	if err == nil && c.Keep > 0 && len(local) > c.Keep {
+		local = local[:c.Keep]
+	}
+	return local, err
 }
 
 // copyInto writes dst through a .tmp (a pulled USB never leaves a file that
