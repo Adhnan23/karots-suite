@@ -248,6 +248,9 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 		}
 		env["BACKUP_KEEP"] = strconv.Itoa(k)
 	}
+	if k := strings.TrimSpace(ch.KeepDir); k != "" && systemFolder(c.OS, k) {
+		return nil, fmt.Errorf("pick a folder of its own for the backups, not %s — e.g. a 'Karots backups' folder inside it", k)
+	}
 	if k := strings.TrimSpace(ch.KeepDir); k != "" && !absFor(c.OS, k) {
 		return nil, fmt.Errorf("the backups folder must be a full path, like %s", map[bool]string{true: `D:\Karots backups`, false: "/media/usb/Karots backups"}[c.OS == "windows"])
 	}

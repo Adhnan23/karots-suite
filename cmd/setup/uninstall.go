@@ -78,8 +78,11 @@ func finalBackup(j *Job) error {
 			}
 		}
 	}
-	if !j.windows() {
-		run(j, "chown", "-R", j.User+":"+j.User, j.keepDir()) //nolint:errcheck // readable by root either way
+	if !j.windows() { // only what Setup wrote there: the folder may be the person's own
+		run(j, "chown", j.User+":"+j.User, path) //nolint:errcheck // readable by root either way
+		if _, err := os.Stat(at(auto)); err == nil {
+			run(j, "chown", "-R", j.User+":"+j.User, auto) //nolint:errcheck
+		}
 	}
 	return nil
 }
@@ -107,18 +110,11 @@ func uninstallDone(j *Job) error {
 // Karots backups folder.
 func safeToRemove(j *Job) error {
 	dir := j.Conf.InstallDir
-	clean := strings.TrimRight(strings.ReplaceAll(dir, `\`, "/"), "/")
-	low := strings.ToLower(clean)
-	home, _ := homeFn(j.User)
-	never := []string{"", "/", "/opt", "/usr", "/usr/local", "/home", "/root", "/var", "/etc", "/srv", "/tmp",
-		strings.TrimRight(home, "/"), "c:", "c:/program files", "c:/program files (x86)", "c:/users", "c:/windows", "c:/programdata"}
-	for _, n := range never {
-		if low == strings.ToLower(n) {
-			return fmt.Errorf("won't delete %s — it isn't Karots's own folder", dir)
-		}
-	}
 	if !absFor(j.Conf.OS, dir) {
 		return fmt.Errorf("won't delete %s — not a full path", dir)
+	}
+	if home, _ := homeFn(j.User); systemFolder(j.Conf.OS, dir) || (home != "" && inside(j, home, dir)) {
+		return fmt.Errorf("won't delete %s — it isn't Karots's own folder", dir)
 	}
 	if _, err := os.Stat(at(joinOS(j, dir, j.Conf.Binary))); err != nil {
 		return fmt.Errorf("won't delete %s — Karots (%s) isn't in it", dir, j.Conf.Binary)
@@ -127,6 +123,39 @@ func safeToRemove(j *Job) error {
 		return fmt.Errorf("the backups folder %s is inside %s — pick a backups folder outside it", j.keepDir(), dir)
 	}
 	return nil
+}
+
+// systemFolder is a folder Setup must never delete or hand to the shop user:
+// a drive root, a top-level folder (/opt, /usr…, C:\Windows…), a mount point
+// (/media/usb, /mnt/disk) or someone's home (/home/x, C:\Users\x).
+func systemFolder(osName, dir string) bool {
+	p := strings.ToLower(strings.ReplaceAll(dir, `\`, "/"))
+	if osName == "windows" && len(p) >= 2 && p[1] == ':' {
+		p = p[2:]
+	}
+	var parts []string
+	for _, s := range strings.Split(p, "/") {
+		if s != "" && s != "." {
+			parts = append(parts, s)
+		}
+	}
+	if len(parts) == 0 {
+		return true
+	}
+	if osName == "windows" {
+		switch parts[0] {
+		case "users", "documents and settings":
+			return len(parts) <= 2
+		case "windows", "program files", "program files (x86)", "programdata":
+			return len(parts) == 1
+		}
+		return false
+	}
+	switch parts[0] {
+	case "home", "media", "mnt", "run":
+		return len(parts) <= 2
+	}
+	return len(parts) == 1
 }
 
 // inside reports p is dir or under it (case-blind on Windows).

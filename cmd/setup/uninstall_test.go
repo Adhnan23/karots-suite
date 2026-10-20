@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -176,5 +177,52 @@ func TestSafeToRemove(t *testing.T) {
 		if err := safeToRemove(w); err == nil {
 			t.Errorf("%s allowed", dir)
 		}
+	}
+}
+
+// I2: a drive root, a mount point or someone's home is never removed, even with
+// the program in it.
+func TestSafeToRemoveSystemFolders(t *testing.T) {
+	j, _, r := linuxJob(t, "file", false)
+	for _, dir := range []string{"/srv", "/home/other", "/media/usb", "/mnt/disk"} {
+		os.MkdirAll(filepath.Join(r, dir), 0o755)
+		os.WriteFile(filepath.Join(r, dir, j.Conf.Binary), []byte("BIN"), 0o755)
+		j.Conf.InstallDir = dir
+		if err := safeToRemove(j); err == nil {
+			t.Errorf("%s allowed", dir)
+		}
+	}
+	w, _ := windowsJob(t, "file")
+	for _, dir := range []string{`D:\`, `D:`, `C:\Users\owner`, `C:\ProgramData`} {
+		os.WriteFile(filepath.Join(root, joinOS(w, dir, w.Conf.Binary)), []byte("BIN"), 0o755)
+		w.Conf.InstallDir = dir
+		if err := safeToRemove(w); err == nil {
+			t.Errorf("%s allowed", dir)
+		}
+	}
+}
+
+// I1: the backups folder is never a system folder (Setup chowns it to the shop
+// user), and an uninstall only chowns what it wrote there.
+func TestKeepDirRefusesSystemFolders(t *testing.T) {
+	for _, k := range []string{"/", "/home", "/etc", "/home/other", "/media/usb"} {
+		if _, err := applyChoice(conf("linux", "file", false), "", Choice{KeepDir: k}); err == nil {
+			t.Errorf("%s accepted", k)
+		}
+	}
+	if _, err := applyChoice(conf("windows", "file", false), "", Choice{KeepDir: `D:\`}); err == nil {
+		t.Error(`D:\ accepted`)
+	}
+	if _, err := applyChoice(conf("linux", "file", false), "", Choice{KeepDir: "/media/usb/Karots backups"}); err != nil {
+		t.Errorf("a USB folder refused: %v", err)
+	}
+	j, rc, r := linuxJob(t, "file", false)
+	linuxInstalled(t, r)
+	rc.answers[finalCmd] = "backup: /home/shop/Karots backups/al-raj-final.json.gz\n"
+	if err := runUninstall(t, j); err != nil {
+		t.Fatal(err)
+	}
+	if indexOf(rc.cmds, "chown -R shop:shop /home/shop/Karots backups/automatic") < 0 || slices.Contains(rc.cmds, "chown -R shop:shop /home/shop/Karots backups") {
+		t.Fatalf("chown:\n%s", rc.all())
 	}
 }
