@@ -2,7 +2,22 @@ package main
 
 import (
 	"fmt"
+	"net"
+	"strconv"
+	"time"
 )
+
+// pgListening reports PostgreSQL answers on this PC's port (swapped in tests).
+var pgListening = listening
+
+func listening(port int) bool {
+	c, err := net.DialTimeout("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)), 2*time.Second)
+	if err != nil {
+		return false
+	}
+	c.Close()
+	return true
+}
 
 func windowsRemoveStartup(j *Job) error {
 	_, err := ps(j, fmt.Sprintf(`# karots:remove-startup
@@ -43,6 +58,10 @@ func windowsRemoveDatabase(j *Job) error {
 		return nil
 	}
 	db := j.Conf.DB
+	if !pgListening(db.Port) { // stopped or broken: no password can help, and the final backup holds the shop
+		fmt.Fprintf(j.Log, "PostgreSQL doesn't answer on port %d — the shop's database was left as it is\n", db.Port)
+		return removeWindowsPostgres(j)
+	}
 	tag, super := "", ""
 	for _, try := range []struct{ pw, tag string }{{db.SuperPassword, "super"}, {j.SuperPassword, "typed"}} {
 		if try.pw == "" {
@@ -60,6 +79,11 @@ func windowsRemoveDatabase(j *Job) error {
 		return err
 	}
 	winPSQL(j, bin, tag, super, "DROP ROLE IF EXISTS "+ident(db.User)) //nolint:errcheck // the database is what matters
+	return removeWindowsPostgres(j)
+}
+
+// removeWindowsPostgres runs PostgreSQL's own uninstaller when that was ticked.
+func removeWindowsPostgres(j *Job) error {
 	if !j.RemovePostgres {
 		return nil
 	}

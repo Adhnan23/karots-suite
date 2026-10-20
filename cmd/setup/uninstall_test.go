@@ -126,6 +126,8 @@ func TestUninstallServerRemovePostgres(t *testing.T) {
 
 func TestUninstallWindows(t *testing.T) {
 	j, rc := windowsJob(t, "server")
+	pgListening = func(int) bool { return true }
+	t.Cleanup(func() { pgListening = listening })
 	// Tests build Windows paths on Linux: at() of C:\x\y is one file named so.
 	os.MkdirAll(filepath.Join(root, `C:\karots-suite`), 0o755)
 	os.WriteFile(filepath.Join(root, `C:\karots-suite\karots-suite.exe`), []byte("BIN"), 0o755)
@@ -224,5 +226,21 @@ func TestKeepDirRefusesSystemFolders(t *testing.T) {
 	}
 	if indexOf(rc.cmds, "chown -R shop:shop /home/shop/Karots backups/automatic") < 0 || slices.Contains(rc.cmds, "chown -R shop:shop /home/shop/Karots backups") {
 		t.Fatalf("chown:\n%s", rc.all())
+	}
+}
+
+// I3: PostgreSQL installed but stopped — log and go on (the final backup holds
+// the shop), never loop on asking for a password.
+func TestUninstallWindowsPostgresDown(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	pgListening = func(int) bool { return false }
+	t.Cleanup(func() { pgListening = listening })
+	delete(rc.answers, "ps> # karots:psql super")
+	j.RemovePostgres = true
+	if err := windowsRemoveDatabase(j); err != nil {
+		t.Fatalf("err %v", err)
+	}
+	if strings.Contains(rc.all(), "DROP DATABASE") || !strings.Contains(rc.all(), "uninstall-postgresql.exe") {
+		t.Fatalf("%s", rc.all())
 	}
 }
