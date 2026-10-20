@@ -70,8 +70,9 @@ func linuxDatabase(j *Job) error {
 		}
 	case "pacman":
 		if _, err := os.Stat(at("/var/lib/postgres/data/PG_VERSION")); err != nil {
-			run(j, "install", "-d", "-o", "postgres", "-g", "postgres", "/var/lib/postgres/data")                                 //nolint:errcheck
-			run(j, "runuser", "-u", "postgres", "--", "initdb", "--locale=C.UTF-8", "-E", "UTF8", "-D", "/var/lib/postgres/data") //nolint:errcheck
+			run(j, "install", "-d", "-o", "postgres", "-g", "postgres", "/var/lib/postgres/data") //nolint:errcheck
+			// Never initdb's default "trust": any user on the PC would be the superuser.
+			run(j, "runuser", "-u", "postgres", "--", "initdb", "--locale=C.UTF-8", "-E", "UTF8", "--auth-local=peer", "--auth-host=scram-sha-256", "-D", "/var/lib/postgres/data") //nolint:errcheck
 		}
 	}
 	if _, err := run(j, "systemctl", "enable", "--now", "postgresql"); err != nil {

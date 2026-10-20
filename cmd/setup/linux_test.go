@@ -342,3 +342,24 @@ func TestLinuxInstallsContribForTrgm(t *testing.T) {
 		t.Fatalf("err %v", err)
 	}
 }
+
+// Arch makes no cluster on install, so Setup runs initdb — never with its
+// default "trust" (any user on the PC would be the superuser, no password).
+func TestLinuxArchInitdbNotTrust(t *testing.T) {
+	j, rc, _ := linuxJob(t, "server", true)
+	lookPathFn = func(name string) (string, error) {
+		if name == "pacman" {
+			return "/usr/bin/pacman", nil
+		}
+		return "", os.ErrNotExist
+	}
+	delete(rc.answers, "runuser -u postgres -- psql -tAc SELECT 'up'") // not running yet: install
+	rc.seq = map[string][]string{"runuser -u postgres -- psql -tAc SELECT 'up'": {"", "up"}}
+	if err := linuxDatabase(j); err != nil {
+		t.Fatalf("%v\n%s", err, rc.all())
+	}
+	i := indexOf(rc.cmds, "runuser -u postgres -- initdb")
+	if i < 0 || !strings.Contains(rc.cmds[i], "--auth-local=peer") || !strings.Contains(rc.cmds[i], "--auth-host=scram-sha-256") {
+		t.Fatalf("initdb:\n%s", rc.all())
+	}
+}
