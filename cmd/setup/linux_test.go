@@ -14,8 +14,8 @@ func linuxJob(t *testing.T, mode string, local bool) (*Job, *rec, string) {
 	t.Helper()
 	r := t.TempDir()
 	root = r
-	tillPortFree, stopPause = func(int) bool { return true }, 0
-	t.Cleanup(func() { tillPortFree, stopPause = portFree, time.Second/2 })
+	tillPortFree, stopPause, retryPause = func(int) bool { return true }, 0, 0
+	t.Cleanup(func() { tillPortFree, stopPause, retryPause = portFree, time.Second/2, time.Second })
 	home := "/home/shop"
 	homeFn = func(string) (string, error) { return home, nil }
 	lookPathFn = func(name string) (string, error) {

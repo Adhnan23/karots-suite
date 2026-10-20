@@ -41,7 +41,8 @@ func programBackup(j *Job, tag string) (string, error) {
 		}
 	}
 	args := []string{"-backup", dir, "-tag", tag}
-	out, err := runProgram(j, j.binPath(), args...)
+	bin := j.binPath()
+	out, err := runProgram(j, bin, args...)
 	if strings.Contains(out, "flag provided but not defined: -backup") {
 		// Installed before -backup existed: the new program from beside Setup
 		// backs up from the install folder (same .env and data), then goes.
@@ -51,7 +52,15 @@ func programBackup(j *Job, tag string) (string, error) {
 			return "", err
 		}
 		defer os.Remove(at(tool))
-		out, err = runProgram(j, tool, args...)
+		bin = tool
+		out, err = runProgram(j, bin, args...)
+	}
+	// ponytail: a first backup failed and Try again worked (Xubuntu, an
+	// "unlinkat" while the shop's PostgreSQL settled — cause not pinned down):
+	// Setup tries twice more itself. Each attempt's words stay in the log.
+	for try := 1; try < 3 && !strings.Contains(out, "backup: "); try++ {
+		time.Sleep(retryPause * 3)
+		out, err = runProgram(j, bin, args...)
 	}
 	return answerLine(out, err, "backup: ")
 }

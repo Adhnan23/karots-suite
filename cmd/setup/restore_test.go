@@ -232,3 +232,29 @@ func TestProgramBackupOldProgram(t *testing.T) {
 		t.Fatal("backup tool left in the install folder")
 	}
 }
+
+// A first backup that fails and works on Try again (seen on Xubuntu: an
+// "unlinkat" while the shop's PostgreSQL settled) is retried by Setup itself.
+func TestProgramBackupRetries(t *testing.T) {
+	j, rc, _ := linuxJob(t, "file", false)
+	pause := retryPause
+	retryPause = 0
+	t.Cleanup(func() { retryPause = pause })
+	cmd := "runuser -u shop -- /opt/karots-suite/karots-suite -backup"
+	rc.seq = map[string][]string{cmd: {"unlinkat /opt/karots-suite/data/runtime: directory not empty\n", "backup: /home/shop/Karots backups/x-final.json.gz\n"}}
+	got, err := programBackup(j, "final")
+	if err != nil || got != "/home/shop/Karots backups/x-final.json.gz" {
+		t.Fatalf("%q %v", got, err)
+	}
+	if n := strings.Count(rc.all(), cmd); n != 2 {
+		t.Fatalf("ran %d times", n)
+	}
+
+	// Always failing: give up after 3 tries with the program's own words.
+	j, rc, _ = linuxJob(t, "file", false)
+	retryPause = 0
+	rc.answers[cmd] = "disk full\n"
+	if _, err := programBackup(j, "final"); err == nil || !strings.Contains(err.Error(), "disk full") || strings.Count(rc.all(), cmd) != 3 {
+		t.Fatalf("err %v, ran %d", err, strings.Count(rc.all(), cmd))
+	}
+}
