@@ -85,13 +85,6 @@ func TestPageRunStreams(t *testing.T) {
 			t.Errorf("missing %q in:\n%s", want, body)
 		}
 	}
-	need := func(*Job) []Step {
-		return []Step{{ID: "database", Title: "Database", Do: func(*Job) error { return ErrNeedSuperPassword }}}
-	}
-	body = call(testPage(need), "POST", "/api/run", `{"role":"server"}`, true).Body.String()
-	if !strings.Contains(body, "@@STEP database fail") || !strings.Contains(body, "@@NEED superPassword") || strings.Contains(body, "@@DONE") {
-		t.Fatalf("need:\n%s", body)
-	}
 }
 
 func TestPageRefusesTextPlain(t *testing.T) {

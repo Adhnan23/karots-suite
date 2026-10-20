@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	_ "embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -95,10 +94,7 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 		writeJSON(w, map[string]any{"ok": ok, "message": msg})
 	})
 	mux.HandleFunc("POST /api/run", func(w http.ResponseWriter, r *http.Request) {
-		var in struct {
-			Choice
-			SuperPassword string `json:"superPassword"`
-		}
+		var in struct{ Choice }
 		if !decode(w, r, &in) {
 			return
 		}
@@ -118,7 +114,7 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		log := flushWriter{w}
-		j.Log, j.SuperPassword = log, in.SuperPassword
+		j.Log = log
 		var failed error
 		for _, s := range steps(j) {
 			fmt.Fprintf(log, "@@STEP %s run\n", s.ID)
@@ -126,9 +122,6 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 			if err := s.Do(j); err != nil {
 				failed = err
 				fmt.Fprintf(log, "\n@@STEP %s fail %s\n", s.ID, oneLine(err.Error()))
-				if errors.Is(err, ErrNeedSuperPassword) {
-					fmt.Fprintln(log, "@@NEED superPassword")
-				}
 				break
 			}
 			fmt.Fprintf(log, "\n@@STEP %s ok\n", s.ID)

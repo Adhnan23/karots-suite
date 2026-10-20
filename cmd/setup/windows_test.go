@@ -165,21 +165,45 @@ func (s *syncBuilder) Write(p []byte) (int, error) {
 }
 func (s *syncBuilder) String() string { s.mu.Lock(); defer s.mu.Unlock(); return s.b.String() }
 
-// PostgreSQL already there with an unknown password → ask on the page, then use it.
-func TestWindowsNeedSuperPassword(t *testing.T) {
+// PostgreSQL already there with a postgres password the profile doesn't have:
+// Setup lets itself in from this PC for the step (pg_hba.conf, put back after)
+// — never a password box.
+func TestWindowsUnknownPasswordUsesTrust(t *testing.T) {
 	j, rc := windowsJob(t, "server")
 	delete(rc.answers, "ps> # karots:psql super")
-	if err := windowsDatabase(j); !errors.Is(err, ErrNeedSuperPassword) {
+	rc.answers["ps> # karots:psql trust"] = "up"
+	if err := windowsDatabase(j); err != nil {
+		t.Fatalf("%v\n%s", err, rc.all())
+	}
+	on, role, db, off := indexOf(rc.cmds, "ps> # karots:pg-trust on"), indexOf(rc.cmds, "ps> # karots:psql trust\n$env:PGPASSWORD = 'trust'\n"), indexOf(rc.cmds, "ps> # karots:pg-trust off"), -1
+	for i, c := range rc.cmds {
+		if strings.Contains(c, "CREATE DATABASE") {
+			db = i
+		}
+		if strings.HasPrefix(c, "ps> # karots:pg-trust off") {
+			off = i
+		}
+	}
+	if on < 0 || role < on || db < role || off < db {
+		t.Fatalf("order on %d psql %d create %d off %d:\n%s", on, role, db, off, rc.all())
+	}
+	// EDB's service line: -D "C:\Program Files\PostgreSQL\17\data" — a lazy
+	// match stopped at the space (checked against the real line).
+	if !strings.Contains(rc.cmds[on], `-D\s+(?:"([^"]+)"|(\S+))`) || !strings.Contains(rc.cmds[on], "host all postgres 127.0.0.1/32 trust") || !strings.Contains(rc.cmds[off], "Move-Item") {
+		t.Fatalf("trust scripts:\n%s\n%s", rc.cmds[on], rc.cmds[off])
+	}
+}
+
+// Nothing lets Setup in (PostgreSQL broken): say so in words, never ask.
+func TestWindowsPostgresNoAnswerSaysSo(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	delete(rc.answers, "ps> # karots:psql super")
+	err := windowsDatabase(j)
+	if err == nil || !strings.Contains(err.Error(), "doesn't answer") {
 		t.Fatalf("err %v", err)
 	}
-	j.SuperPassword = "typed-pw"
-	rc.answers["ps> # karots:psql typed"] = "up"
-	rc.cmds = nil
-	if err := windowsDatabase(j); err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(rc.all(), "typed-pw") {
-		t.Fatal("typed password not used")
+	if indexOf(rc.cmds, "ps> # karots:pg-trust off") < 0 {
+		t.Fatal("pg_hba.conf not put back")
 	}
 }
 

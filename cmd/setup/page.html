@@ -140,7 +140,6 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
   </section>
   <div class="box fail" id="fail" hidden>
     <b id="failTitle">Something went wrong</b><p id="failMsg"></p>
-    <div id="need" hidden><label class="f" for="super">PostgreSQL's 'postgres' password</label><input id="super" autocomplete="off" spellcheck="false"></div>
     <div class="row"><button class="go" id="retry">Try again</button><button class="btn" id="copy">Copy log for support</button></div>
   </div>
   <div class="box done" id="done" hidden>
@@ -245,9 +244,9 @@ async function install() {
   $('fail').hidden = true; $('done').hidden = true; $('go').hidden = false; $('log').textContent = ''
   for (const b of document.querySelectorAll('.role')) b.disabled = true
   await plan()
-  let text = '', failed = null, need = false, done = false, current = null, backup = ''
+  let text = '', failed = null, done = false, current = null, backup = ''
   try {
-    const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify({ ...choice(), superPassword: $('super').value }) })
+    const res = await fetch('/api/run', { method: 'POST', headers: H, body: JSON.stringify(choice()) })
     if (!res.ok) failed = { msg: (await res.json()).error }
     else {
       const reader = res.body.getReader(), dec = new TextDecoder()
@@ -263,7 +262,6 @@ async function install() {
           const note = line.match(/^@@NOTE (.*)$/)
           if (m) { mark(m[1], m[2]); current = m[2] === 'run' ? m[1] : null; if (m[2] === 'fail') failed = { id: m[1], msg: m[3] } }
           else if (note) { const li = current && $('step-' + current); if (li) li.querySelector('.note').textContent = note[1] }
-          else if (line === '@@NEED superPassword') need = true
           else if (line === '@@DONE') done = true
           else { if (line.startsWith('backup: ')) backup = line.slice(8); text += line + '\n'; $('log').textContent = text; $('log').scrollTop = 1e9 }
         }
@@ -288,9 +286,8 @@ async function install() {
     $('go').disabled = false; $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
     const li = failed && failed.id ? $('step-' + failed.id) : null
     $('failTitle').textContent = li ? li.querySelector('b').textContent + ' didn\'t work' : 'Something went wrong'
-    $('failMsg').textContent = need ? 'PostgreSQL is already on this PC and its \'postgres\' password isn\'t the one this shop was built with. Type PostgreSQL\'s own \'postgres\' password (set when PostgreSQL was installed — not the password in .env), then Try again. Or put it in the Shop Builder (this shop → PostgreSQL superuser password) and build again.' : (failed ? failed.msg : 'Setup stopped before the end — see Details.')
-    $('need').hidden = !need; $('fail').hidden = false; $('go').hidden = true
-    if (need) $('super').focus()
+    $('failMsg').textContent = failed ? failed.msg : 'Setup stopped before the end — see Details.'
+    $('fail').hidden = false; $('go').hidden = true
     $('fail').scrollIntoView({ behavior: 'smooth' })
   }
 }

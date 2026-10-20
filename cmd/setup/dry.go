@@ -9,7 +9,7 @@ import (
 
 // -dry: the real page and plan, but every step only says what it would do.
 // KAROTS_SETUP_DRY_FAIL=<step id> makes that step fail (for a look at the
-// failure screen; "database" asks for the postgres password).
+// failure screen).
 
 func dryJob(ch Choice) (*Job, error) {
 	j, err := newJob(ch)
@@ -27,12 +27,7 @@ func drySteps(j *Job) []Step {
 			fmt.Fprintf(j.Log, "(dry run) %s\n", s.Detail(j))
 			time.Sleep(600 * time.Millisecond)
 			if os.Getenv("KAROTS_SETUP_DRY_FAIL") == s.ID {
-				if s.ID == "database" && j.SuperPassword == "" {
-					return ErrNeedSuperPassword
-				}
-				if s.ID != "database" {
-					return errors.New("port 3000 is used by another program (karots-pos?) — stop it, or change the shop's till port in the Shop Builder")
-				}
+				return errors.New("port 3000 is used by another program (karots-pos?) — stop it, or change the shop's till port in the Shop Builder")
 			}
 			return nil
 		}

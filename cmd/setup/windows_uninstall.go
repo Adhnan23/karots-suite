@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -57,8 +55,8 @@ exit 0`)
 	return err
 }
 
-// windowsRemoveDatabase drops the shop's database and role as postgres (the
-// profile's superuser password, else the one typed on the page); with
+// windowsRemoveDatabase drops the shop's database and role as postgres (see
+// pgSuper — never a password box); with
 // RemovePostgres it runs PostgreSQL's own uninstaller.
 func windowsRemoveDatabase(j *Job) error {
 	bin := findPSQL(j)
@@ -71,46 +69,15 @@ func windowsRemoveDatabase(j *Job) error {
 		fmt.Fprintf(j.Log, "PostgreSQL doesn't answer on port %d — the shop's database was left as it is\n", db.Port)
 		return removeWindowsPostgres(j)
 	}
-	tag, super := "", ""
-	for _, try := range []struct{ pw, tag string }{{db.SuperPassword, "super"}, {j.SuperPassword, "typed"}} {
-		if try.pw == "" {
-			continue
-		}
-		if out, _ := winPSQL(j, bin, try.tag, try.pw, "SELECT 'up'"); out == "up" {
-			super, tag = try.pw, try.tag
-			break
-		}
-	}
-	if super == "" {
-		return dropAsOwner(j, bin)
+	tag, super, done, err := pgSuper(j, bin)
+	defer done()
+	if err != nil {
+		return err
 	}
 	if _, err := winPSQL(j, bin, tag, super, "DROP DATABASE IF EXISTS "+ident(db.Name)+" WITH (FORCE)"); err != nil {
 		return err
 	}
 	winPSQL(j, bin, tag, super, "DROP ROLE IF EXISTS "+ident(db.User)) //nolint:errcheck // the database is what matters
-	return removeWindowsPostgres(j)
-}
-
-// dropAsOwner deletes the shop's database as its own role, with the working
-// password from the installed .env, when install.conf's postgres password
-// isn't this PC's. The role itself stays (only postgres can drop it).
-func dropAsOwner(j *Job, bin string) error {
-	u, err := url.Parse(readEnvFile(at(joinOS(j, j.Conf.InstallDir, ".env")))["DATABASE_URL"])
-	if err != nil || u.User == nil {
-		return ErrNeedSuperPassword
-	}
-	pw, _ := u.User.Password()
-	if pw == "" {
-		return ErrNeedSuperPassword
-	}
-	name, user := strings.TrimPrefix(u.Path, "/"), u.User.Username()
-	if out, _ := winPSQLAs(j, bin, "owner", user, pw, "SELECT 'up'"); out != "up" {
-		return ErrNeedSuperPassword
-	}
-	if _, err := winPSQLAs(j, bin, "owner", user, pw, "DROP DATABASE IF EXISTS "+ident(name)+" WITH (FORCE)"); err != nil {
-		return err
-	}
-	fmt.Fprintf(j.Log, "deleted the shop's database as %s (PostgreSQL's own password isn't the profile's; the %s role stays)\n", user, user)
 	return removeWindowsPostgres(j)
 }
 

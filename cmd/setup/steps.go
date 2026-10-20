@@ -20,15 +20,14 @@ const (
 
 // Job is one install: the shop's install.conf plus what was chosen on this PC.
 type Job struct {
-	Conf          shopconf.Conf
-	Role          Role
-	Address       string // cashier PC: the main PC's host[:port]
-	User          string // the shop user: Linux login / Windows DOMAIN\user
-	Dir           string // the folder holding karots-setup, install.conf and the binary
-	Updating      bool   // InstallDir already holds the binary
-	SuperPassword string // typed on the page when an existing PostgreSQL's password is unknown
-	Run           Runner
-	Log           io.Writer
+	Conf     shopconf.Conf
+	Role     Role
+	Address  string // cashier PC: the main PC's host[:port]
+	User     string // the shop user: Linux login / Windows DOMAIN\user
+	Dir      string // the folder holding karots-setup, install.conf and the binary
+	Updating bool   // InstallDir already holds the binary
+	Run      Runner
+	Log      io.Writer
 
 	Kept       []string // an Update: settings kept from this PC (shown on the page)
 	FromMode   string   // an Update that changes the mode: the installed one ("file" | "server"), else ""

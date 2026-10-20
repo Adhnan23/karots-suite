@@ -50,7 +50,7 @@ func (j *Job) redact(s string) string {
 	if j.Conf.DB != nil {
 		secrets = append(secrets, j.Conf.DB.Password, j.Conf.DB.SuperPassword)
 	}
-	for _, v := range append(secrets, j.SuperPassword) {
+	for _, v := range secrets {
 		if len(v) >= 3 {
 			s = strings.ReplaceAll(s, v, "••••")
 		}

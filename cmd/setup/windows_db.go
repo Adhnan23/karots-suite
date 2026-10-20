@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -11,10 +10,6 @@ import (
 
 	"karots-suite/internal/shopconf"
 )
-
-// ErrNeedSuperPassword: PostgreSQL was already on this PC and the profile's
-// superuser password isn't its password. The page asks for it and tries again.
-var ErrNeedSuperPassword = errors.New("PostgreSQL is already on this PC — enter its 'postgres' password")
 
 // windowsDatabase installs PostgreSQL 17 with the profile's superuser password
 // and port (winget), then makes the role (the profile's password — an existing
@@ -34,18 +29,10 @@ func windowsDatabase(j *Job) error {
 	if err != nil {
 		return err
 	}
-	super, tag := "", ""
-	for _, try := range []struct{ pw, tag string }{{db.SuperPassword, "super"}, {j.SuperPassword, "typed"}} {
-		if try.pw == "" {
-			continue
-		}
-		if out, _ := winPSQL(j, bin, try.tag, try.pw, "SELECT 'up'"); out == "up" {
-			super, tag = try.pw, try.tag
-			break
-		}
-	}
-	if super == "" {
-		return ErrNeedSuperPassword
+	tag, super, done, err := pgSuper(j, bin)
+	defer done()
+	if err != nil {
+		return err
 	}
 	role := "CREATE ROLE"
 	if out, _ := winPSQL(j, bin, tag, super, "SELECT 1 FROM pg_roles WHERE rolname = "+lit(db.User)); out == "1" {
@@ -64,17 +51,48 @@ func windowsDatabase(j *Job) error {
 
 // winPSQL runs one statement as postgres over localhost on the profile's port.
 func winPSQL(j *Job, bin, tag, password, sql string) (string, error) {
-	return winPSQLAs(j, bin, tag, "postgres", password, sql)
-}
-
-// winPSQLAs runs one statement as user (e.g. the shop's own role) on the profile's port.
-func winPSQLAs(j *Job, bin, tag, user, password, sql string) (string, error) {
 	return ps(j, fmt.Sprintf(`# karots:psql %s
 $env:PGPASSWORD = %s
-& %s -U %s -h localhost -p %d -d postgres -tAc %s
+& %s -U postgres -h localhost -p %d -d postgres -tAc %s
 $code = $LASTEXITCODE
 Remove-Item Env:\PGPASSWORD
-exit $code`, tag, psq(password), psq(bin), psq(user), j.Conf.DB.Port, psq(sql)))
+exit $code`, tag, psq(password), psq(bin), j.Conf.DB.Port, psq(sql)))
+}
+
+// pgSuper logs in as postgres with the profile's password; when PostgreSQL was
+// already on this PC with another one, Setup (admin) lets postgres in from this
+// PC only, without a password, for the step: two lines on top of pg_hba.conf,
+// reloaded, and the file put back by done (call it, even after an error). Its
+// password is never changed (other programs may use it) and never asked for.
+func pgSuper(j *Job, bin string) (tag, password string, done func(), err error) {
+	done = func() {}
+	if out, _ := winPSQL(j, bin, "super", j.Conf.DB.SuperPassword, "SELECT 'up'"); out == "up" {
+		return "super", j.Conf.DB.SuperPassword, done, nil
+	}
+	fmt.Fprintln(j.Log, "PostgreSQL's own password isn't this shop's — letting Setup in from this PC for this step")
+	pgctl := psq(filepath.Join(filepath.Dir(bin), "pg_ctl.exe"))
+	find := `$svc = Get-CimInstance Win32_Service | Where-Object { $_.Name -like 'postgresql*' } | Select-Object -First 1
+if (-not $svc -or $svc.PathName -notmatch '-D\s+(?:"([^"]+)"|(\S+))') { 'no PostgreSQL service'; exit 1 }
+$data = if ($Matches[1]) { $Matches[1] } else { $Matches[2] }; $hba = Join-Path $data 'pg_hba.conf'; $keep = "$hba.karots"`
+	done = func() {
+		ps(j, `# karots:pg-trust off
+`+find+`
+if (Test-Path $keep) { Move-Item -Force $keep $hba; & `+pgctl+` reload -D $data | Out-Null; if ($LASTEXITCODE -ne 0) { Restart-Service $svc.Name } }
+exit 0`) //nolint:errcheck // nothing to put back = fine
+	}
+	ps(j, `# karots:pg-trust on
+`+find+`
+if ($svc.State -ne 'Running') { Start-Service $svc.Name; Start-Sleep 3 }
+if (-not (Test-Path $keep)) { Copy-Item $hba $keep }
+$lines = @('host all postgres 127.0.0.1/32 trust', 'host all postgres ::1/128 trust') + (Get-Content $keep)
+[IO.File]::WriteAllLines($hba, [string[]]$lines)
+& `+pgctl+` reload -D $data | Out-Null
+if ($LASTEXITCODE -ne 0) { Restart-Service $svc.Name }
+Start-Sleep 1`) //nolint:errcheck // the login below says whether it worked
+	if out, _ := winPSQL(j, bin, "trust", "trust", "SELECT 'up'"); out == "up" {
+		return "trust", "trust", done, nil
+	}
+	return "", "", done, fmt.Errorf("PostgreSQL on this PC doesn't answer — check its service (postgresql-x64-17) is running, then Try again")
 }
 
 // installPostgres finds psql.exe, installing PostgreSQL 17 first when it isn't
