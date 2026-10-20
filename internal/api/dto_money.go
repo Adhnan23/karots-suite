@@ -218,6 +218,11 @@ type TillSessionRow struct {
 	Expected   string `json:"expected"`
 	Counted    string `json:"counted"`
 	Difference string `json:"difference"`
+	// Stale: open since an earlier day. ClosedLate: closed on a later day than it opened.
+	Stale      bool `json:"stale"`
+	ClosedLate bool `json:"closedLate"`
+	// ClosedBy names who closed it for its cashier ("" = the cashier did).
+	ClosedBy string `json:"closedBy"`
 }
 
 // TillMove is one drawer movement in a session.

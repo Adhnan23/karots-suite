@@ -25,7 +25,7 @@ func (h *handlers) registerTillDrawer(g *echo.Group) {
 
 func drawerSummary(sum *cashregister.Summary) DrawerSummary {
 	out := DrawerSummary{CashSales: dec2(sum.CashSales), PayIns: dec2(sum.PayIns),
-		Withdrawals: dec2(sum.Withdrawals), Expected: dec2(sum.Expected)}
+		Withdrawals: dec2(sum.Withdrawals), Expected: dec2(sum.Expected), Stale: sum.Stale}
 	if s := sum.Session; s != nil {
 		out.Session = &DrawerSession{ID: s.ID, OpeningCash: dec2(s.OpeningCash), OpenedAt: s.OpenedAt.Format(time.RFC3339)}
 	}

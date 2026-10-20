@@ -1038,6 +1038,10 @@ export interface DrawerSummary {
   expected: string;
   lastClosing?: string;
   lastBreakdown?: { [key: string]: number /* float64 */};
+  /**
+   * Stale: the open session is from an earlier day — the till makes them close it first.
+   */
+  stale: boolean;
 }
 export interface Denomination {
   value: string; // decimal string as the breakdown key, e.g. "500"
@@ -1330,6 +1334,15 @@ export interface TillSessionRow {
   expected: string;
   counted: string;
   difference: string;
+  /**
+   * Stale: open since an earlier day. ClosedLate: closed on a later day than it opened.
+   */
+  stale: boolean;
+  closedLate: boolean;
+  /**
+   * ClosedBy names who closed it for its cashier ("" = the cashier did).
+   */
+  closedBy: string;
 }
 /**
  * TillMove is one drawer movement in a session.

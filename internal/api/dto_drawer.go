@@ -16,6 +16,8 @@ type DrawerSummary struct {
 	Expected      string             `json:"expected"`
 	LastClosing   *string            `json:"lastClosing,omitempty"`
 	LastBreakdown map[string]float64 `json:"lastBreakdown,omitempty"`
+	// Stale: the open session is from an earlier day — the till makes them close it first.
+	Stale bool `json:"stale"`
 }
 
 type Denomination struct {

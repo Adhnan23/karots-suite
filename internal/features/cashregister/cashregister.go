@@ -55,6 +55,8 @@ type Session struct {
 	ClosingBreakdown []byte           `db:"closing_breakdown" json:"closing_breakdown,omitempty"`
 	OpenedAt         time.Time        `db:"opened_at"         json:"opened_at"`
 	ClosedAt         *time.Time       `db:"closed_at"         json:"closed_at,omitempty"`
+	// ClosedBy is who closed it when that wasn't its cashier (Close for them); nil = its owner.
+	ClosedBy *int64 `db:"closed_by" json:"closed_by,omitempty"`
 	// ReceiptID is the CR- money receipt written for the opening float (transient;
 	// not a column). Non-nil lets the terminal print/prompt for the slip.
 	ReceiptID *int64 `db:"-" json:"receipt_id,omitempty"`
@@ -147,6 +149,8 @@ type Summary struct {
 	Movements     []Movement       `json:"movements"`
 	LastClosing   *decimal.Decimal `json:"last_closing,omitempty"`
 	LastBreakdown []byte           `json:"last_breakdown,omitempty"`
+	// Stale: the open session is from an earlier day (see Stale) — close it first.
+	Stale bool `json:"stale"`
 	// ReceiptID is the CR- money receipt written for the just-recorded pay-in or
 	// withdrawal (transient; only set on the Summary returned by that action).
 	ReceiptID *int64 `json:"receipt_id,omitempty"`
@@ -230,6 +234,7 @@ func (s *Service) Summary(ctx context.Context, userID int64) (*Summary, error) {
 		return out, nil
 	}
 	out.Session = sess
+	out.Stale = Stale(sess.OpenedAt, time.Now())
 	out.CashSales, err = s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
 	if err != nil {
 		return nil, err
@@ -307,7 +312,41 @@ func (s *Service) Open(ctx context.Context, userID int64, in OpenInput) (*Sessio
 	return sess, nil
 }
 
+// Close closes the cashier's own open session.
 func (s *Service) Close(ctx context.Context, userID int64, in CloseInput) (*CloseResult, error) {
+	return s.close(ctx, userID, 0, nil, in)
+}
+
+// CloseFor closes another cashier's open session for them (an admin or manager, when
+// the cashier went home without closing). The money is booked exactly as the
+// cashier's own close — same owner on the ledger rows and the receipt — and
+// closed_by + the audit (under byID) record who did it. It never pops the drawer:
+// the one closing may not be at the counter.
+func (s *Service) CloseFor(ctx context.Context, sessionID, byID int64, in CloseInput) (*CloseResult, error) {
+	sess, err := s.repo.FindByID(ctx, sessionID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperr.NotFound("register session")
+		}
+		return nil, apperr.Internal("failed to load session", err)
+	}
+	if sess.ClosedAt != nil {
+		return nil, apperr.Conflict("that till is already closed")
+	}
+	by := &closer{id: byID, owner: sess.UserName}
+	return s.close(ctx, sess.UserID, sessionID, by, in)
+}
+
+// closer is who closes a session that isn't theirs (nil = its own cashier).
+type closer struct {
+	id    int64
+	owner string // the cashier's name, for the audit line
+}
+
+// close closes userID's open session — only if it is sessionID, when that is set.
+// The session row is locked first and the close only lands on a still-open row, so
+// two closes at once (the cashier and an admin) can never both bank the cash.
+func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer, in CloseInput) (*CloseResult, error) {
 	closing, raw, ok := amountFrom(in.ClosingCash, in.Breakdown)
 	if !ok || closing.IsNegative() {
 		return nil, apperr.Validation("closing cash must be a non-negative amount")
@@ -315,27 +354,39 @@ func (s *Service) Close(ctx context.Context, userID int64, in CloseInput) (*Clos
 	if in.DestLockerID == 0 && closing.IsPositive() && !s.untrackedCashOutAllowed(ctx) {
 		return nil, apperr.Validation("banking to a locker is required — choose a locker to close the cash into")
 	}
-	sess, err := s.repo.FindOpen(ctx, userID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperr.Conflict("no open register session to close")
-		}
-		return nil, apperr.Internal("failed to load session", err)
+	var (
+		sess                      *Session
+		cashSales, expected, diff decimal.Decimal
+		receiptID                 int64
+	)
+	var closedBy *int64
+	if by != nil {
+		closedBy = &by.id
 	}
-	cashSales, err := s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
-	if err != nil {
-		return nil, err
-	}
-	adj, err := s.repo.AdjustmentTotal(ctx, sess.ID)
-	if err != nil {
-		return nil, apperr.Internal("failed to total cash movements", err)
-	}
-	expected := sess.OpeningCash.Add(cashSales).Add(adj)
-	diff := closing.Sub(expected)
-	var receiptID int64
-	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
-		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw); cerr != nil {
+		var ferr error
+		sess, ferr = repo.FindOpenForUpdate(ctx, userID)
+		if ferr != nil {
+			if errors.Is(ferr, sql.ErrNoRows) {
+				return apperr.Conflict("no open register session to close")
+			}
+			return apperr.Internal("failed to load session", ferr)
+		}
+		if sessionID != 0 && sess.ID != sessionID {
+			return apperr.Conflict("that till is already closed")
+		}
+		cashSales, ferr = s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
+		if ferr != nil {
+			return ferr
+		}
+		adj, ferr := repo.AdjustmentTotal(ctx, sess.ID)
+		if ferr != nil {
+			return apperr.Internal("failed to total cash movements", ferr)
+		}
+		expected = sess.OpeningCash.Add(cashSales).Add(adj)
+		diff = closing.Sub(expected)
+		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw, closedBy); cerr != nil {
 			return cerr
 		}
 		if cerr := repo.AddMovement(ctx, sess.ID, userID, MoveClosing, closing, "counted at close", raw); cerr != nil {
@@ -363,13 +414,20 @@ func (s *Service) Close(ctx context.Context, userID int64, in CloseInput) (*Clos
 	sess.ClosingCash = &closing
 	sess.ExpectedCash = &expected
 	sess.Difference = &diff
-	s.recordAudit(ctx, userID, audit.ActionClose,
-		"closed register: counted "+money.Display(closing)+", expected "+money.Display(expected)+", over/short "+money.Display(diff))
+	sess.ClosedBy = closedBy
+	counts := "counted " + money.Display(closing) + ", expected " + money.Display(expected) + ", over/short " + money.Display(diff)
+	if by == nil {
+		s.recordAudit(ctx, userID, audit.ActionClose, "closed register: "+counts)
+	} else {
+		s.recordAudit(ctx, by.id, audit.ActionClose, "closed "+by.owner+"'s till for them: "+counts)
+	}
 	res := &CloseResult{Session: *sess, CashSales: cashSales, ExpectedCash: expected, Difference: diff}
 	if receiptID > 0 {
 		res.ReceiptID = &receiptID
 	}
-	s.kick(ctx)
+	if by == nil {
+		s.kick(ctx)
+	}
 	return res, nil
 }
 

@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
 
 	"github.com/shopspring/decimal"
@@ -73,12 +74,20 @@ func (r *Repository) Open(ctx context.Context, userID int64, opening decimal.Dec
 	return &s, nil
 }
 
-func (r *Repository) Close(ctx context.Context, id int64, closing, expected, diff decimal.Decimal, breakdown []byte) error {
-	_, err := r.q.ExecContext(ctx, `
+// Close records the count on a still-open session; one already closed is a conflict
+// (never closed twice). closedBy is nil when its own cashier closes it.
+func (r *Repository) Close(ctx context.Context, id int64, closing, expected, diff decimal.Decimal, breakdown []byte, closedBy *int64) error {
+	res, err := r.q.ExecContext(ctx, `
 		UPDATE cash_register
-		SET closing_cash = $1, expected_cash = $2, difference = $3, closing_breakdown = $4, closed_at = NOW()
-		WHERE id = $5`, closing, expected, diff, nullJSON(breakdown), id)
-	return err
+		SET closing_cash = $1, expected_cash = $2, difference = $3, closing_breakdown = $4, closed_at = NOW(), closed_by = $6
+		WHERE id = $5 AND closed_at IS NULL`, closing, expected, diff, nullJSON(breakdown), id, closedBy)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n != 1 {
+		return apperr.Conflict("that till is already closed")
+	}
+	return nil
 }
 
 func (r *Repository) AddMovement(ctx context.Context, sessionID, userID int64, mtype string, amount decimal.Decimal, reason string, breakdown []byte) error {

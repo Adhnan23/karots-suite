@@ -125,6 +125,19 @@ func (s *Store) Lock(device string, now time.Time) (Beat, error) {
 	return e.b, nil
 }
 
+// Serving reports whether any screen of userID is serving a customer right now (cart
+// changed in the last 5 min) — a till closed for them must wait.
+func (s *Store) Serving(userID int64, now time.Time) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, e := range s.m {
+		if e.b.UserID == userID && row(e, now).Serving {
+			return true
+		}
+	}
+	return false
+}
+
 func row(e *entry, now time.Time) Row {
 	r := Row{Beat: e.b, State: state(e, now), LastSeen: e.seen, Label: label(e.b.UA), LockPending: e.lockAsked}
 	if e.b.CartItems > 0 {
