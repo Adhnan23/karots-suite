@@ -28,6 +28,13 @@ never bank twice. Sales that took cash with **no till open** are never refused �
 left open / closed late / closed by. Plugin drawer sections (e.g. recharge counts) don't show in Close for them —
 they're optional at close.
 
+**Start the day at zero (user, 2026-10-20):** most shops bank all the cash into a locker at close and open next
+morning at Rs 0 (no counting while customers wait), then Deposit from the locker when change is needed — before or
+after a customer. Built for it: an empty count opens at zero again (`7dd16d2`, the port had dropped karots-pos's
+fallback); no "Continue last count" after a close that banked the cash (`d41bccc`, locker-ledger note
+`cashregister.ReasonBanked`); Pay warns "Rs X short in the drawer" with a Deposit button when the change is more than
+the drawer held (`0289d9e`, warning only). Declined: a one-tap "Start at Rs 0" button on the Open dialog.
+
 **Games stay in core (user, 2026-10-20):** "a pure easter egg" — no games plugin, no Builder plugin *parts* (dropped
 both ideas). What they wanted from it is built: a game opened on the **lock** screen shows on Who's on now as
 "Playing Blocks" (`setPresenceNote()` in `usePresence.ts`, a generic note the heartbeat carries; login-page play can't be
