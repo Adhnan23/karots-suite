@@ -288,7 +288,7 @@ async function install() {
     $('go').disabled = false; $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
     const li = failed && failed.id ? $('step-' + failed.id) : null
     $('failTitle').textContent = li ? li.querySelector('b').textContent + ' didn\'t work' : 'Something went wrong'
-    $('failMsg').textContent = need ? 'PostgreSQL is already on this PC. Type its \'postgres\' password (whoever installed it set one), then Try again.' : (failed ? failed.msg : 'Setup stopped before the end — see Details.')
+    $('failMsg').textContent = need ? 'PostgreSQL is already on this PC and its \'postgres\' password isn\'t the one this shop was built with. Type PostgreSQL\'s own \'postgres\' password (set when PostgreSQL was installed — not the password in .env), then Try again. Or put it in the Shop Builder (this shop → PostgreSQL superuser password) and build again.' : (failed ? failed.msg : 'Setup stopped before the end — see Details.')
     $('need').hidden = !need; $('fail').hidden = false; $('go').hidden = true
     if (need) $('super').focus()
     $('fail').scrollIntoView({ behavior: 'smooth' })
