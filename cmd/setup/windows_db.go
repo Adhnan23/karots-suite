@@ -77,11 +77,7 @@ exit $code`, tag, psq(password), psq(bin), j.Conf.DB.Port, psq(sql)))
 // checked against its pinned SHA-256 (some Windows 10 builds have no winget).
 // Each stage says on the page what it is doing — it can take ten minutes.
 func installPostgres(j *Job) (string, error) {
-	find := func() string {
-		bin, _ := ps(j, `# karots:find-psql
-(Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName`)
-		return bin
-	}
+	find := func() string { return findPSQL(j) }
 	if bin := find(); bin != "" {
 		return bin, nil
 	}
@@ -127,6 +123,13 @@ Remove-Item $f -ErrorAction SilentlyContinue`, args)) //nolint:errcheck
 		return bin, nil
 	}
 	return "", fmt.Errorf("PostgreSQL didn't install (no psql.exe under C:\\Program Files\\PostgreSQL) — the log above says why; this PC must reach get.enterprisedb.com — then Try again")
+}
+
+// findPSQL is the newest psql.exe on this PC ("" when PostgreSQL isn't here).
+func findPSQL(j *Job) string {
+	bin, _ := ps(j, `# karots:find-psql
+(Get-ChildItem 'C:\Program Files\PostgreSQL\*\bin\psql.exe' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName`)
+	return bin
 }
 
 func fileExists(p string) bool {
