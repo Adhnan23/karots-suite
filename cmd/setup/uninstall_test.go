@@ -276,3 +276,34 @@ func TestWindowsBackgroundScriptToleratesNoKiosk(t *testing.T) {
 		t.Fatalf("shortcuts script doesn't end with exit 0:\n%s", rc.all())
 	}
 }
+
+// The postgres password in install.conf may not be this PC's (a profile whose
+// passwords changed): the shop's own role — its working password is in the
+// installed .env — still owns its database and can delete it, so uninstall
+// doesn't get stuck asking.
+func TestWindowsUninstallDropsAsOwner(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	pgListening = func(int) bool { return true }
+	t.Cleanup(func() { pgListening = listening })
+	delete(rc.answers, "ps> # karots:psql super") // the profile's postgres password is wrong here
+	rc.answers["ps> # karots:psql owner"] = "up"
+	os.WriteFile(filepath.Join(root, `C:\karots-suite\.env`), []byte("DATABASE_URL=postgres://suite_user:the-real-one@localhost:5432/suite_db?sslmode=disable\n"), 0o600)
+	if err := windowsRemoveDatabase(j); err != nil {
+		t.Fatalf("err %v\n%s", err, rc.all())
+	}
+	i := indexOf(rc.cmds, "ps> # karots:psql owner\n$env:PGPASSWORD = 'the-real-one'")
+	if i < 0 || !strings.Contains(rc.all(), `-U 'suite_user'`) || !strings.Contains(rc.all(), `DROP DATABASE IF EXISTS "suite_db" WITH (FORCE)`) {
+		t.Fatalf("not dropped as the owner:\n%s", rc.all())
+	}
+}
+
+// No usable .env either: ask for the password (never crash).
+func TestWindowsUninstallNoOwnerAsks(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	pgListening = func(int) bool { return true }
+	t.Cleanup(func() { pgListening = listening })
+	delete(rc.answers, "ps> # karots:psql super")
+	if err := windowsRemoveDatabase(j); !errors.Is(err, ErrNeedSuperPassword) {
+		t.Fatalf("err %v", err)
+	}
+}

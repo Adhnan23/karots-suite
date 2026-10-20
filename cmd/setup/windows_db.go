@@ -64,12 +64,17 @@ func windowsDatabase(j *Job) error {
 
 // winPSQL runs one statement as postgres over localhost on the profile's port.
 func winPSQL(j *Job, bin, tag, password, sql string) (string, error) {
+	return winPSQLAs(j, bin, tag, "postgres", password, sql)
+}
+
+// winPSQLAs runs one statement as user (e.g. the shop's own role) on the profile's port.
+func winPSQLAs(j *Job, bin, tag, user, password, sql string) (string, error) {
 	return ps(j, fmt.Sprintf(`# karots:psql %s
 $env:PGPASSWORD = %s
-& %s -U postgres -h localhost -p %d -d postgres -tAc %s
+& %s -U %s -h localhost -p %d -d postgres -tAc %s
 $code = $LASTEXITCODE
 Remove-Item Env:\PGPASSWORD
-exit $code`, tag, psq(password), psq(bin), j.Conf.DB.Port, psq(sql)))
+exit $code`, tag, psq(password), psq(bin), psq(user), j.Conf.DB.Port, psq(sql)))
 }
 
 // installPostgres finds psql.exe, installing PostgreSQL 17 first when it isn't
