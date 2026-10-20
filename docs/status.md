@@ -37,7 +37,11 @@ uninstall with "Also remove PostgreSQL" (no packages, no service, port closed, b
 File mode embeds its own 17, untouched by pacman — **advise Arch shops to use file mode** (a rolling major bump stops
 a server-mode cluster). Fixed: Arch `initdb` ran with default `trust` (any PC user = superuser) → peer /
 scram-sha-256 (`d90dd2a`).
-**Next: Arch XFCE**, then M8c2.
+**Decision (user, 2026-10-20): stay on PostgreSQL 17** (rule stays "17 or newer"; 18 accepted where a distro ships
+it). Revisit ~2027–28 as its own milestone (bundles + Windows installer + apt + a file-mode upgrade via backup → new
+cluster → restore).
+**Next: Arch XFCE — later** (user on a metered connection; the 8-step checklist + the Arch notes above: no browser →
+pacman chromium, PostgreSQL 18 + initdb at step 5, no firewall). Then M8c2.
 **Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
 server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
