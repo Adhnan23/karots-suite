@@ -19,6 +19,10 @@ func listening(port int) bool {
 	return true
 }
 
+// The removal scripts end with exit 0: "already gone" is fine, and PowerShell
+// exits 1 when its last command reported an error even with SilentlyContinue
+// (a PC with no firewall rule left failed the uninstall).
+
 func windowsRemoveStartup(j *Job) error {
 	_, err := ps(j, fmt.Sprintf(`# karots:remove-startup
 Stop-ScheduledTask -TaskName %s -ErrorAction SilentlyContinue
@@ -26,7 +30,8 @@ Unregister-ScheduledTask -TaskName %s -Confirm:$false -ErrorAction SilentlyConti
 %s
 $p = Get-Process | Where-Object { $_.Path -eq %s }
 $p | Stop-Process -Force -ErrorAction SilentlyContinue
-$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue`, windowsTask, windowsTask, stopLauncherPS(j), psq(j.binPath())))
+$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue
+exit 0`, windowsTask, windowsTask, stopLauncherPS(j), psq(j.binPath())))
 	return err
 }
 
@@ -38,13 +43,15 @@ func windowsRemoveOpen(j *Job) error {
 Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*--kiosk*' } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }
 foreach ($d in @([Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'))) {
   Remove-Item -Path (Join-Path $d 'Karots Suite.url') -ErrorAction SilentlyContinue
-}`)
+}
+exit 0`)
 	return err
 }
 
 func windowsRemoveNetwork(j *Job) error {
 	_, err := ps(j, `# karots:remove-firewall
-Remove-NetFirewallRule -DisplayName 'Karots Suite' -ErrorAction SilentlyContinue`)
+Remove-NetFirewallRule -DisplayName 'Karots Suite' -ErrorAction SilentlyContinue
+exit 0`)
 	return err
 }
 

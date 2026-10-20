@@ -16,7 +16,8 @@ $url = "[InternetShortcut]`+"`r`n"+`URL=%s`+"`r`n"+`"
 foreach ($d in @([Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'))) {
   Set-Content -Path (Join-Path $d 'Karots Suite.url') -Value $url -Encoding ASCII
 }
-%s`, j.tillURL(), noKiosk))
+%s
+exit 0`, j.tillURL(), noKiosk)) // no old kiosk to remove is fine (PowerShell would exit 1)
 		return err
 	}
 	// The default browser, then the usual install places. Edge is on every

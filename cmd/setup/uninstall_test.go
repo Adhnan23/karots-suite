@@ -244,3 +244,35 @@ func TestUninstallWindowsPostgresDown(t *testing.T) {
 		t.Fatalf("%s", rc.all())
 	}
 }
+
+// "Already gone" is fine: PowerShell exits 1 when its last command reported an
+// error even with -ErrorAction SilentlyContinue (Remove-NetFirewallRule with no
+// rule failed a real uninstall), so each removal script ends with exit 0.
+func TestWindowsRemovalScriptsTolerateMissing(t *testing.T) {
+	j, rc := windowsJob(t, "server")
+	for _, f := range []func(*Job) error{windowsRemoveStartup, windowsRemoveOpen, windowsRemoveNetwork} {
+		if err := f(j); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, name := range []string{"remove-startup", "remove-open", "remove-firewall"} {
+		i := indexOf(rc.cmds, "ps> # karots:"+name)
+		if i < 0 || !strings.HasSuffix(strings.TrimSpace(rc.cmds[i]), "exit 0") {
+			t.Errorf("%s doesn't end with exit 0", name)
+		}
+	}
+}
+
+// The same trap at install: background mode's shortcuts script ends by removing
+// an old kiosk shortcut that is usually not there.
+func TestWindowsBackgroundScriptToleratesNoKiosk(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	j.Conf.Open = "background"
+	if err := windowsOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	i := indexOf(rc.cmds, "ps> # karots:shortcuts")
+	if i < 0 || !strings.HasSuffix(strings.TrimSpace(rc.cmds[i]), "exit 0") {
+		t.Fatalf("shortcuts script doesn't end with exit 0:\n%s", rc.all())
+	}
+}
