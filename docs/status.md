@@ -5,13 +5,17 @@ every milestone.
 
 ## Next session (handoff 2026-10-20) — START HERE
 
-**M8c2 Backup copies — IN PROGRESS (paused 2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`,
-plan `docs/plans/2026-10-20-m8c2-backup-copies.md`. Done: Tasks 1–4 (`internal/s3` client, AES-GCM seal,
-`backup_copies` table + `.env` presets, copy pass wired into the scheduler). **Resume at Task 5** (Data API for copies +
-dashboard warning); ledger in `.superpowers/sdd/2026-10-20-m8c2-backup-copies/progress.md` (git-ignored). Task 5 needs
-the `Copier` reachable from the API: build it once (e.g. in `api.Deps` / `internal/app`) and have `cmd/server/main.go`
-reuse it instead of `backup.NewCopier` there. User: the vendor's bucket is on R2's free plan; bucket details go into
-the root `.env` (`CLOUD_BACKUP_URL/KEY_ID/SECRET`) before the VM test, not before.
+**M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
+`docs/plans/2026-10-20-m8c2-backup-copies.md` (Tasks 1–9 done). Every automatic backup is also copied to the shop's
+**copy folder** (USB / network; catches up when plugged back in; keeps the newest `BACKUP_KEEP`) and, for paying shops,
+**Karots cloud** (sealed per shop, ~1 a day, kept 30 days). Data page: Backup copies card (status, switch, Copy now,
+Backups here… → Restore); dashboard warns (admins) when a copy is over a day old. Shop Builder: "Also copy backups to" +
+"Karots cloud backup" tick per shop, **Cloud backups** row action (Download → `dist/<key>/`). Setup: "Also copy backups
+to" field; Bring back a shop lists the copy folder's and Karots cloud's backups. Bucket setup:
+`docs/cloud-backup-bucket.md` (user: R2 free plan; put `CLOUD_BACKUP_URL/KEY_ID/SECRET` in the root `.env` before the
+VM test). **Next (user, VMs):** copy folder on a USB → pull it (Data page: "Not there right now", dashboard warns next
+day) → plug it back (catches up within 30 min); cloud on a test shop (system user switches it on) → Copy now → Builder
+Cloud backups lists it → Bring back a shop on a fresh VM from Karots cloud.
 
 **Windows is fully checked** (VM, 2026-10-19): file mode + server mode install / Update, over-the-air update, crash
 restart, restart → till ~10 s, Konami exit, offline PostgreSQL installer (<2 min), no PowerShell windows, no flaky steps.
@@ -49,7 +53,7 @@ scram-sha-256 (`d90dd2a`).
 it). Revisit ~2027–28 as its own milestone (bundles + Windows installer + apt + a file-mode upgrade via backup → new
 cluster → restore).
 **Next: Arch XFCE — later** (user on a metered connection; the 8-step checklist + the Arch notes above: no browser →
-pacman chromium, PostgreSQL 18 + initdb at step 5, no firewall). Then **M8c2 Backup copies**, then **games as plugins**
+pacman chromium, PostgreSQL 18 + initdb at step 5, no firewall). Then (M8c2 now built) **games as plugins**
 (user, 2026-10-20): the login/lock games (Coin catch, Blocks, Shop Rush) leave core for Shop Builder plugins — each,
 all or none — via a games slot on the login/lock hero (core stays plugin-inert; `loginInfo.notes/coins/receipt` stays a
 generic core field; no games compiled in = 7 taps does nothing). Rethink proposal first, as for every plugin.

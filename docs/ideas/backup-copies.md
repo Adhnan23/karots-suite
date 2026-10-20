@@ -1,5 +1,9 @@
 # Idea: Backup copies (M8c2, after M8c)
 
+> **Built, narrowed** (2026-10-20): one copy folder + the vendor's Karots cloud, no shop-added S3 places. See
+> `docs/specs/2026-10-20-m8c2-backup-copies-design.md` and `docs/cloud-backup-bucket.md`. The notes below are the
+> original idea.
+
 Captured 2026-10-19 from the user: periodic backups should not only land in the backup folder — also on a USB flash
 drive, a network drive, an S3 bucket or a VPS. Spec it after M8c (it reuses M8c's S3 client and the shop profiles).
 
