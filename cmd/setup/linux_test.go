@@ -32,10 +32,11 @@ func linuxJob(t *testing.T, mode string, local bool) (*Job, *rec, string) {
 	os.MkdirAll(filepath.Dir(hba), 0o755)
 	os.WriteFile(hba, []byte("local all all peer\n"), 0o600)
 	rc := &rec{answers: map[string]string{
-		"runuser -u postgres -- psql -tAc SELECT 'up'":             "up\n",
-		"runuser -u postgres -- psql -tAc SHOW port":               "5432\n",
-		"runuser -u postgres -- psql -tAc SHOW server_version_num": "170005\n",
-		"runuser -u postgres -- psql -p 5432 -tAc SHOW hba_file":   "/etc/pg_hba.conf\n",
+		"runuser -u postgres -- psql -tAc SELECT 'up'":                                   "up\n",
+		"runuser -u postgres -- psql -tAc SHOW port":                                     "5432\n",
+		"runuser -u postgres -- psql -tAc SHOW server_version_num":                       "170005\n",
+		"runuser -u postgres -- psql -p 5432 -tAc SHOW hba_file":                         "/etc/pg_hba.conf\n",
+		"runuser -u postgres -- psql -p 5432 -tAc SELECT 1 FROM pg_available_extensions": "1\n",
 	}}
 	return &Job{Conf: c, Role: RoleServer, Dir: dir, User: "shop", Run: rc, Log: io.Discard}, rc, r
 }
@@ -105,6 +106,7 @@ func TestLinuxRoleUpdatedAndPort(t *testing.T) {
 	rc.answers["runuser -u postgres -- psql -p 5440 -tAc SELECT 'up'"] = "up\n"
 	rc.answers["runuser -u postgres -- psql -p 5440 -tAc SELECT 1 FROM pg_roles"] = "1\n"
 	rc.answers["runuser -u postgres -- psql -p 5440 -tAc SHOW hba_file"] = "/etc/pg_hba.conf\n"
+	rc.answers["runuser -u postgres -- psql -p 5440 -tAc SELECT 1 FROM pg_available_extensions"] = "1\n"
 	if err := linuxDatabase(j); err != nil {
 		t.Fatal(err)
 	}
@@ -312,5 +314,31 @@ func TestLinuxKioskToBackground(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(r, "home/shop/Desktop/karots-suite.desktop")); err != nil {
 		t.Error("no desktop shortcut")
+	}
+}
+
+// Fedora (and openSUSE) keep pg_trgm — the shop's product search — in
+// postgresql-contrib; without it the first migration failed on a real VM.
+func TestLinuxInstallsContribForTrgm(t *testing.T) {
+	j, rc, _ := linuxJob(t, "server", true)
+	lookPathFn = func(name string) (string, error) {
+		if name == "dnf" {
+			return "/usr/bin/dnf", nil
+		}
+		return "", os.ErrNotExist
+	}
+	rc.seq = map[string][]string{"runuser -u postgres -- psql -p 5432 -tAc SELECT 1 FROM pg_available_extensions": {"", "1"}}
+	if err := makeRole(j, "5432"); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rc.all(), "dnf install -y -q postgresql-contrib") {
+		t.Fatalf("contrib not installed:\n%s", rc.all())
+	}
+
+	// Still missing after that: say what to install.
+	j, rc, _ = linuxJob(t, "server", true)
+	rc.answers["runuser -u postgres -- psql -p 5432 -tAc SELECT 1 FROM pg_available_extensions"] = ""
+	if err := makeRole(j, "5432"); err == nil || !strings.Contains(err.Error(), "pg_trgm") {
+		t.Fatalf("err %v", err)
 	}
 }

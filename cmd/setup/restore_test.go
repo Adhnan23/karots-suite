@@ -258,3 +258,13 @@ func TestProgramBackupRetries(t *testing.T) {
 		t.Fatalf("err %v, ran %d", err, strings.Count(rc.all(), cmd))
 	}
 }
+
+// A failed migration prints its whole SQL on one line: the page shows the end,
+// where the reason is (the full text stays in the log).
+func TestAnswerLineKeepsTheEnd(t *testing.T) {
+	out := "goose up: ERROR 00001_baseline.sql: failed to execute SQL query \"" + strings.Repeat("CREATE TABLE x (id int);", 2000) + "\": pq: extension \"pg_trgm\" is not available (0A000)\n"
+	_, err := answerLine(out, errors.New("exit status 1"), "restored: ")
+	if err == nil || len(err.Error()) > 400 || !strings.HasSuffix(err.Error(), `pq: extension "pg_trgm" is not available (0A000)`) {
+		t.Fatalf("%d chars: %.200s…", len(err.Error()), err)
+	}
+}

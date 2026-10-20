@@ -102,10 +102,15 @@ func answerLine(out string, err error, prefix string) (string, error) {
 	return "", fmt.Errorf("%w: %s", err, oneLine(lastLines(out)))
 }
 
-// lastLines is the end of a program's output (its error is last).
+// lastLines is the end of a program's output (its error is last), cut to its
+// last 300 characters — a failed migration prints its whole SQL on one line.
 func lastLines(out string) string {
 	lines := strings.Split(strings.TrimSpace(out), "\n")
-	return strings.TrimSpace(lines[len(lines)-1])
+	last := strings.TrimSpace(lines[len(lines)-1])
+	if r := []rune(last); len(r) > 300 {
+		last = "…" + string(r[len(r)-300:])
+	}
+	return last
 }
 
 type foundBackup struct {

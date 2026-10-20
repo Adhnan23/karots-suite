@@ -99,6 +99,9 @@ func linuxDatabase(j *Job) error {
 
 // makeRole gives the role the profile's password (creating it if needed) and makes the database.
 func makeRole(j *Job, port string) error {
+	if err := ensureTrgm(j, port); err != nil {
+		return err
+	}
 	db := j.Conf.DB
 	role := "CREATE ROLE"
 	if out, _ := psql(j, port, "SELECT 1 FROM pg_roles WHERE rolname = "+lit(db.User)); out == "1" {
@@ -113,6 +116,21 @@ func makeRole(j *Job, port string) error {
 		}
 	}
 	return allowLoopback(j, port)
+}
+
+// ensureTrgm makes sure PostgreSQL has pg_trgm (the shop's product search):
+// Fedora / openSUSE keep it in postgresql-contrib, which their postgresql
+// packages don't pull in — the first migration then failed.
+func ensureTrgm(j *Job, port string) error {
+	const q = "SELECT 1 FROM pg_available_extensions WHERE name = 'pg_trgm'"
+	if out, _ := psql(j, port, q); out == "1" {
+		return nil
+	}
+	install(j, "postgresql-contrib") //nolint:errcheck // checked below
+	if out, _ := psql(j, port, q); out == "1" {
+		return nil
+	}
+	return fmt.Errorf("PostgreSQL on this PC has no pg_trgm extension (Karots's product search needs it) — install its contrib package (postgresql-contrib), then Try again")
 }
 
 // allowLoopback puts password login for the app first in pg_hba.conf (Fedora /
