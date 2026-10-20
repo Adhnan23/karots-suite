@@ -23,7 +23,11 @@ pg_hba.conf, put back after). Also fixed: PowerShell exit 1 on a silenced "not f
 passwords across One PC ⇄ Server (`cf62579`), backup file picker in Setup (`281e6eb`), Linux kiosk → background
 (`b7a1aa7`).
 **Windows fully checked (user, 2026-10-20):** also "Also remove PostgreSQL" (really removed), kiosk → background via
-Update (no kiosk after restart, till on :3000). **Next: Xubuntu** (same run), then Fedora / Arch, then M8c2.
+Update (no kiosk after restart, till on :3000).
+**Xubuntu fully checked (user, 2026-10-20):** uninstall, install with a backup, One PC ⇄ Server, kiosk → background,
+uninstall with "Also remove PostgreSQL" (server gone; client tools now removed too, `63bdb50`). Fixed on the way: an
+installed program older than `-backup` (new program backs up, `e6612c4`); first backup try failing (Setup retries,
+`136cd30`, cause not pinned). **Next: Fedora XFCE, then Arch XFCE**, then M8c2.
 **Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
 server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
