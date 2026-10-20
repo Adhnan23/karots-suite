@@ -7,6 +7,7 @@ import { queryClient } from '@/api/query-client'
 import { LoginHero } from '@/features/auth/LoginHero'
 import { PinField } from '@/features/auth/PinField'
 import { PinPad, type PinKey } from '@/features/auth/PinPad'
+import { usePresence } from '@/features/auth/usePresence'
 import { loadCart } from '@/features/till/cart/persist'
 import { qtyText } from '@/lib/money'
 import { ModeToggle } from '@/theme/ModeToggle'
@@ -59,6 +60,7 @@ function Lock() {
   const phoneRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
   const lockedFor = useLockedFor()
+  usePresence(me.user.id)
   // The locked user's sale in progress (items only — never amounts on this screen).
   const open = loadCart(me.user.id)?.lines.reduce((n, l) => n + l.qty, 0) ?? 0
 

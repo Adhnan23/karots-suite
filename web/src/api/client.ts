@@ -1,3 +1,4 @@
+import { deviceId } from '@/lib/device'
 import { noteVersion } from '@/lib/version'
 
 export class ApiError extends Error {
@@ -20,7 +21,7 @@ export async function api<T = void>(path: string, opts: Opts = {}): Promise<T> {
   const res = await fetch(`/api/v1${path}`, {
     method: opts.method ?? (hasBody ? 'POST' : 'GET'),
     credentials: 'same-origin',
-    headers: hasBody ? { 'Content-Type': 'application/json' } : {},
+    headers: hasBody ? { 'Content-Type': 'application/json', 'X-Ks-Device': deviceId() } : { 'X-Ks-Device': deviceId() },
     body: hasBody ? JSON.stringify(opts.json) : undefined,
     signal: opts.signal,
   })
@@ -37,7 +38,7 @@ export async function apiUpload<T>(path: string, field: string, file: File, extr
   const fd = new FormData()
   fd.append(field, file)
   for (const [k, v] of Object.entries(extra)) fd.append(k, v)
-  const res = await fetch(`/api/v1${path}`, { method: 'POST', body: fd, credentials: 'same-origin' })
+  const res = await fetch(`/api/v1${path}`, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Ks-Device': deviceId() } })
   noteVersion(res.headers.get('X-Karots-Version'))
   const body = await res.json().catch(() => null)
   if (!res.ok) throw new ApiError(res.status, body?.error?.code ?? 'HTTP_ERROR', body?.error?.message ?? res.statusText, path)

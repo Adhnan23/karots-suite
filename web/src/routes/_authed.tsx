@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { meQuery, redirectFor } from '@/api/session'
 import { applyAppearance } from '@/theme/appearance'
 import { AutoLock } from '@/features/auth/AutoLock'
+import { usePresence } from '@/features/auth/usePresence'
 import { KioskExit } from '@/features/kiosk/KioskExit'
 
 export const Route = createFileRoute('/_authed')({
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_authed')({
 function Authed() {
   const { me } = Route.useRouteContext()
   useEffect(() => applyAppearance(me.appearance), [me.appearance])
+  usePresence(me.user.id)
   return (
     <>
       <Outlet />
