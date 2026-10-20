@@ -36,6 +36,9 @@ func run() int {
 	forceFlag := flag.Bool("force", false, "allow -reset against a production database")
 	supportFor := flag.String("support-pin", "", "print the support PIN for an install id (read it off the shop's login screen) and exit")
 	dataDir := flag.String("data", "", "file mode: the data folder (default: data/ next to the binary)")
+	backupDir := flag.String("backup", "", "write one full backup into this folder, print \"backup: <path>\" and exit (Setup)")
+	backupTag := flag.String("tag", "", "with -backup: a tag in the file name (final, before-move)")
+	restoreFile := flag.String("restore", "", "migrate, bring this backup back (replaces all data), print \"restored: N rows\" and exit (Setup)")
 	flag.Parse()
 
 	// Pick up the .env shipped beside the binary before anything reads config, so
@@ -50,7 +53,7 @@ func run() int {
 		return 0
 	}
 
-	oneShot := *migrateOnly || *seedOnly || *demoOnly || *initOnly || *resetFlag
+	oneShot := *migrateOnly || *seedOnly || *demoOnly || *initOnly || *resetFlag || *backupDir != "" || *restoreFile != ""
 	if !oneShot && bootGuard() {
 		return update.RestartCode
 	}
@@ -66,6 +69,13 @@ func run() int {
 				log.Printf("stop PostgreSQL: %v", err)
 			}
 		}()
+	}
+
+	if fileDB == nil && (*backupDir != "" || *restoreFile != "") {
+		if err := tillStopped(); err != nil {
+			log.Print(err)
+			return 1
+		}
 	}
 
 	cfg := config.Load()
@@ -86,6 +96,20 @@ func run() int {
 	}
 	defer sqlxDB.Close()
 
+	// The installed program dumps its own schema: no migrations first.
+	if *backupDir != "" {
+		if ln != nil {
+			ln.Close()
+		}
+		path, err := backupTo(context.Background(), sqlxDB, *backupDir, *backupTag)
+		if err != nil {
+			log.Printf("backup: %v", err)
+			return 1
+		}
+		fmt.Printf("backup: %s\n", path)
+		return 0
+	}
+
 	// Destructive wipe: drop the schema BEFORE migrating so the migration runner
 	// rebuilds it (and its seeded reference data) from scratch.
 	if *resetFlag {
@@ -103,8 +127,17 @@ func run() int {
 	if err := app.Migrate(sqlxDB); err != nil {
 		log.Fatal(err)
 	}
-	if ln != nil && (*migrateOnly || *resetFlag || *seedOnly || *demoOnly || *initOnly) {
+	if ln != nil && (*migrateOnly || *resetFlag || *seedOnly || *demoOnly || *initOnly || *restoreFile != "") {
 		ln.Close() // a one-shot command doesn't serve
+	}
+	if *restoreFile != "" {
+		rep, err := restoreFrom(context.Background(), sqlxDB, *restoreFile)
+		if err != nil {
+			log.Printf("restore: %v", err)
+			return 1
+		}
+		printRestore(rep)
+		return 0
 	}
 	if *migrateOnly {
 		log.Println("migrations applied")
