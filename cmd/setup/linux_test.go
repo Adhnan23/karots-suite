@@ -219,43 +219,6 @@ func TestLinuxUpdateOfflineNoInstalls(t *testing.T) {
 	}
 }
 
-// A snap browser can't use a hidden folder in $HOME: its profile goes in the snap's own folder.
-func TestLinuxKioskSnapProfile(t *testing.T) {
-	j, rc, r := linuxJob(t, "file", false)
-	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "firefox_firefox.desktop\n"
-	os.MkdirAll(filepath.Join(r, "var/lib/snapd/desktop/applications"), 0o755)
-	os.WriteFile(filepath.Join(r, "var/lib/snapd/desktop/applications/firefox_firefox.desktop"),
-		[]byte("[Desktop Entry]\nExec=env BAMF_DESKTOP_FILE_HINT=/x.desktop /snap/bin/firefox %u\n"), 0o644)
-	if err := linuxOpen(j); err != nil {
-		t.Fatal(err)
-	}
-	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
-	if !strings.Contains(string(k), `-profile "$HOME/snap/firefox/common/karots-kiosk"`) || strings.Contains(string(k), ".karots-kiosk") {
-		t.Fatalf("kiosk.sh:\n%s", k)
-	}
-	if p := kioskProfile(`"/snap/bin/chromium"`); p != "$HOME/snap/chromium/common/karots-kiosk" {
-		t.Fatalf("chromium snap profile %q", p)
-	}
-}
-
-// A flatpak browser: profile in its ~/.var/app folder, no file-forwarding markers left in the command.
-func TestLinuxKioskFlatpakProfile(t *testing.T) {
-	j, rc, r := linuxJob(t, "file", false)
-	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "org.chromium.Chromium.desktop\n"
-	d := filepath.Join(r, "var/lib/flatpak/exports/share/applications")
-	os.MkdirAll(d, 0o755)
-	os.WriteFile(filepath.Join(d, "org.chromium.Chromium.desktop"), []byte("[Desktop Entry]\n"+
-		"Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=/app/bin/chromium --file-forwarding org.chromium.Chromium @@u %U @@\n"), 0o644)
-	if err := linuxOpen(j); err != nil {
-		t.Fatal(err)
-	}
-	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
-	if !strings.Contains(string(k), `--command=/app/bin/chromium org.chromium.Chromium --kiosk`) ||
-		!strings.Contains(string(k), `--user-data-dir="$HOME/.var/app/org.chromium.Chromium/karots-kiosk"`) || strings.Contains(string(k), "@@") {
-		t.Fatalf("kiosk.sh:\n%s", k)
-	}
-}
-
 // The user's default browser (xdg-settings) runs the kiosk when its family is known.
 func TestLinuxKioskDefaultBrowser(t *testing.T) {
 	j, rc, r := linuxJob(t, "file", false)
@@ -282,5 +245,45 @@ func TestLinuxKioskDefaultBrowser(t *testing.T) {
 	k, _ = os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
 	if !strings.Contains(string(k), `"/usr/bin/chromium" --kiosk --app=$URL`) {
 		t.Fatalf("fallback kiosk.sh:\n%s", k)
+	}
+}
+
+// Ubuntu: chromium is a snap launcher and apt's "chromium" is a snap too → Google Chrome's .deb.
+func TestLinuxKioskSkipsSnap(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	os.MkdirAll(filepath.Join(r, "usr/bin"), 0o755)
+	os.WriteFile(filepath.Join(r, "usr/bin/chromium"), []byte("#!/bin/sh\nexec /snap/bin/chromium \"$@\"\n"), 0o755)
+	rc.answers["apt-cache show --no-all-versions chromium"] = "Package: chromium-browser\nVersion: 2:1snap1-0ubuntu2\n"
+	lookPathFn = func(name string) (string, error) {
+		switch {
+		case name == "apt-get" || name == "chromium" || name == "curl",
+			name == "google-chrome-stable" && strings.Contains(rc.all(), "apt-get install -y -qq /tmp/karots-google-chrome.deb"):
+			return "/usr/bin/" + name, nil
+		}
+		return "", os.ErrNotExist
+	}
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ := os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `"/usr/bin/google-chrome-stable" --kiosk`) || !strings.Contains(rc.all(), "curl -fsSL -o /tmp/karots-google-chrome.deb") {
+		t.Fatalf("kiosk.sh:\n%s\n%s", k, rc.all())
+	}
+	if _, err := os.Stat(filepath.Join(r, "etc/opt/chrome/policies/managed/karots-kiosk.json")); err != nil {
+		t.Fatal("no DevTools policy for Chrome")
+	}
+
+	// A flatpak default browser is passed over for a system one.
+	j, rc, r = linuxJob(t, "file", false)
+	rc.answers["runuser -u shop -- xdg-settings get default-web-browser"] = "org.mozilla.firefox.desktop\n"
+	d := filepath.Join(r, "var/lib/flatpak/exports/share/applications")
+	os.MkdirAll(d, 0o755)
+	os.WriteFile(filepath.Join(d, "org.mozilla.firefox.desktop"), []byte("[Desktop Entry]\nExec=/usr/bin/flatpak run --branch=stable org.mozilla.firefox @@u %u @@\n"), 0o644)
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	k, _ = os.ReadFile(filepath.Join(r, "opt/karots-suite/kiosk.sh"))
+	if !strings.Contains(string(k), `"/usr/bin/chromium" --kiosk`) {
+		t.Fatalf("flatpak kiosk.sh:\n%s", k)
 	}
 }

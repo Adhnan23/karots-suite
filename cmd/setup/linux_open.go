@@ -24,19 +24,24 @@ func linuxOpen(j *Job) error {
 		}
 		return nil
 	}
+	// kiosk.sh waits for the till with curl; a fresh Ubuntu has none (without it the
+	// wait ran its full two minutes).
+	if _, err := lookPathFn("curl"); err != nil {
+		install(j, "curl") //nolint:errcheck // kiosk.sh then opens without waiting
+	}
 	browser, family := linuxBrowser(j, home)
 	if browser == "" {
 		return fmt.Errorf("couldn't install Chromium — install a browser (Chromium, Chrome or Firefox), then Try again")
 	}
 	fmt.Fprintf(j.Log, "kiosk browser: %s\n", browser)
 	kiosk := joinOS(j, j.Conf.InstallDir, "kiosk.sh")
-	profile := kioskProfile(browser)
+	profile := "$HOME/.karots-kiosk"
 	script := fmt.Sprintf(`#!/usr/bin/env bash
 # Opens the till full-screen once it answers. Written by karots-setup.
 URL=%q
 SENTINEL=/tmp/karots-kiosk-exit
 mkdir -p "%s"
-for _ in $(seq 1 60); do curl -fsS "$URL/health" >/dev/null 2>&1 && break; sleep 2; done
+command -v curl >/dev/null && for _ in $(seq 1 60); do curl -fsS "$URL/health" >/dev/null 2>&1 && break; sleep 2; done
 xset s off -dpms s noblank 2>/dev/null || true
 # Relaunch loop: Alt+F4 or a crash reopens the till. The only way out is the
 # admin / support kiosk-exit hotkey, which writes $SENTINEL and closes the browser.
@@ -53,7 +58,7 @@ done
 	// The page can't cancel browser-level F12, so a Chromium kiosk has DevTools
 	// off by policy (one of these folders is the one it reads).
 	policy := []byte(`{ "DeveloperToolsAvailability": 2 }` + "\n")
-	for _, d := range []string{"/etc/chromium/policies/managed", "/etc/chromium-browser/policies/managed", "/var/snap/chromium/common/policies/managed"} {
+	for _, d := range []string{"/etc/chromium/policies/managed", "/etc/chromium-browser/policies/managed", "/etc/opt/chrome/policies/managed"} {
 		if family == famChromium && os.MkdirAll(at(d), 0o755) == nil {
 			os.WriteFile(at(filepath.Join(d, "karots-kiosk.json")), policy, 0o644) //nolint:errcheck // best effort per folder
 		}
@@ -62,35 +67,16 @@ done
 	return writeAs(j, filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop"), []byte(entry), 0o644)
 }
 
-// kioskProfile is the kiosk browser's own profile folder. A sandboxed browser
-// can't make ~/.karots-kiosk — it would fail to start forever — so a snap
-// (Ubuntu's Chromium and Firefox) gets ~/snap/<name>/common and a flatpak its
-// ~/.var/app/<app id>, the folders each sandbox may always write.
-func kioskProfile(browser string) string {
-	if _, after, ok := strings.Cut(browser, "flatpak run "); ok {
-		for _, f := range strings.Fields(after) {
-			if !strings.HasPrefix(f, "-") {
-				return "$HOME/.var/app/" + strings.Trim(f, `"'`) + "/karots-kiosk"
-			}
-		}
-	}
-	if _, after, ok := strings.Cut(browser, "/snap/bin/"); ok {
-		if f := strings.Fields(after); len(f) > 0 {
-			if name := strings.Trim(f[0], `"'`); name != "" {
-				return "$HOME/snap/" + name + "/common/karots-kiosk"
-			}
-		}
-	}
-	return "$HOME/.karots-kiosk"
-}
-
 // linuxBrowser is the kiosk browser: the user's default when it's Chrome-style
-// or Firefox-style, else one already installed, else Chromium installed now.
-// It returns a shell command (quoted path, or the .desktop file's Exec).
+// or Firefox-style, else one already installed, else one installed now. Only a
+// browser installed in the system counts: a snap or flatpak one starts slowly
+// in its sandbox and can't use the kiosk's own profile folder (Ubuntu's apt
+// "chromium" / "firefox" are snaps). It returns a shell command (quoted path,
+// or the .desktop file's Exec).
 func linuxBrowser(j *Job, home string) (cmd, family string) {
 	if out, err := j.Run.Run("runuser", "-u", j.User, "--", "xdg-settings", "get", "default-web-browser"); err == nil {
 		if name := strings.TrimSpace(out); name != "" {
-			if exec := desktopExec(name, home); exec != "" {
+			if exec := desktopExec(name, home); exec != "" && !sandboxed(exec) {
 				if f := browserFamily(name + " " + exec); f != "" {
 					return exec, f
 				}
@@ -100,7 +86,7 @@ func linuxBrowser(j *Job, home string) (cmd, family string) {
 	names := []string{"chromium", "chromium-browser", "google-chrome", "google-chrome-stable", "brave-browser", "microsoft-edge", "firefox", "librewolf"}
 	find := func() (string, string) {
 		for _, n := range names {
-			if p, err := lookPathFn(n); err == nil {
+			if p, err := lookPathFn(n); err == nil && !sandboxed(p) {
 				return fmt.Sprintf("%q", p), browserFamily(n)
 			}
 		}
@@ -109,26 +95,57 @@ func linuxBrowser(j *Job, home string) (cmd, family string) {
 	if c, f := find(); c != "" {
 		return c, f
 	}
-	if pm, _ := packageManager(); pm == "apt-get" {
-		if install(j, "chromium") != nil {
-			install(j, "chromium-browser") //nolint:errcheck // tried below
-		}
-	} else {
+	j.note("Installing a browser for the till — a few minutes")
+	if pm, _ := packageManager(); pm != "apt-get" {
 		install(j, "chromium") //nolint:errcheck // tried below
-	}
-	if c, f := find(); c != "" {
-		return c, f
-	}
-	if _, err := lookPathFn("snap"); err == nil {
-		if _, err := run(j, "snap", "install", "chromium"); err == nil {
-			return `"/snap/bin/chromium"`, famChromium
+	} else if out, _ := run(j, "apt-cache", "show", "--no-all-versions", "chromium"); strings.Contains(out, "Version:") && !strings.Contains(out, "snap") {
+		install(j, "chromium") //nolint:errcheck // Debian, Mint: a real package
+	} else {
+		// Ubuntu: Google Chrome's own .deb (it adds Google's apt source for updates).
+		deb := "/tmp/karots-google-chrome.deb"
+		if _, err := run(j, "curl", "-fsSL", "-o", deb, "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"); err == nil {
+			run(j, "apt-get", "install", "-y", "-qq", deb) //nolint:errcheck // tried below
+			os.Remove(at(deb))                                 //nolint:errcheck
 		}
 	}
-	return "", ""
+	return find()
+}
+
+// sandboxed reports a snap / flatpak browser: its command, where the program
+// really lives, or a launcher script (Ubuntu's /usr/bin/firefox) that runs one.
+func sandboxed(cmd string) bool {
+	if strings.Contains(cmd, "/snap/") || strings.Contains(cmd, "flatpak") {
+		return true
+	}
+	for _, f := range strings.Fields(cmd) {
+		p := strings.Trim(f, `"'`)
+		if p == "env" || strings.Contains(p, "=") || strings.HasPrefix(p, "-") {
+			continue
+		}
+		if !strings.HasPrefix(p, "/") {
+			var err error
+			if p, err = lookPathFn(p); err != nil {
+				return false
+			}
+		}
+		if real, err := filepath.EvalSymlinks(at(p)); err == nil && strings.Contains(real, "/snap/") {
+			return true
+		}
+		head := make([]byte, 4096)
+		fh, err := os.Open(at(p))
+		if err != nil {
+			return false
+		}
+		n, _ := fh.Read(head)
+		fh.Close()
+		s := string(head[:n])
+		return strings.HasPrefix(s, "#!") && (strings.Contains(s, "/snap/") || strings.Contains(s, "snap run") || strings.Contains(s, "flatpak"))
+	}
+	return false
 }
 
 // desktopExec is the command in a browser's .desktop file, without its %u-style
-// field codes or flatpak's file forwarding ("" when the file isn't found).
+// field codes ("" when the file isn't found).
 func desktopExec(name, home string) string {
 	if !strings.HasSuffix(name, ".desktop") || strings.ContainsAny(name, "/\\") {
 		return ""
@@ -143,7 +160,7 @@ func desktopExec(name, home string) string {
 			if exec, ok := strings.CutPrefix(strings.TrimSpace(line), "Exec="); ok {
 				var keep []string
 				for _, f := range strings.Fields(exec) {
-					if !strings.HasPrefix(f, "%") && !strings.HasPrefix(f, "@@") && f != "--file-forwarding" {
+					if !strings.HasPrefix(f, "%") {
 						keep = append(keep, f)
 					}
 				}
