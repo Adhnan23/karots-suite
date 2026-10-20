@@ -42,9 +42,9 @@ both ideas). What they wanted from it is built: a game opened on the **lock** sc
 attributed — nobody is signed in). Future (not now): an employee-management plugin (staff, salaries) — would need a
 generic sign-in / sign-out / beat hook for its own attendance rows.
 
-**Next (2026-10-20):** the user tests today's changes (Who's on now + Lock, a till left open, Close for them, open at
-zero, "short in the drawer"); then Arch XFCE when off the metered connection; then **M8d Demo Room** (rethink proposal
-first).
+**Next (2026-10-20):** user tested today's changes — open at zero, the "short in the drawer" warning + Deposit, sale
+completes without depositing (warning only, the gap shows as over/short at close) — all fine. Next: **Arch XFCE** VM
+test (when off the metered connection), then **M8d Demo Room** (rethink proposal first).
 
 **M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
 `docs/plans/2026-10-20-m8c2-backup-copies.md` (Tasks 1–9 done). Every automatic backup is also copied to the shop's
