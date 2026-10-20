@@ -75,8 +75,11 @@ No owner S3 / cloud places (user, 2026-10-20: "only our bucket").
   has Karots cloud ticked. Stopping the service = untick → Release → the shop's next Update drops the keys. *(My
   note: one shared write key cannot be revoked for a single shop; if a key leaks, make a new bucket token, put it in
   the Builder's `.env` and Release all. Per-shop tokens are out of scope.)*
-- **Preset changes win:** the seeded marker stores the preset's value; when `.env` carries a different
-  `BACKUP_COPY_DIR` (the vendor changed it and the shop ran Update), the folder row takes the new path. *(My call.)*
+- **A new preset wins:** the seeded marker stores the preset's value; when `.env` carries a different
+  `BACKUP_COPY_DIR` (changed on the Setup page at an Update), the folder row takes the new path. Like `BACKUP_DIR`,
+  `BACKUP_COPY_DIR` is the PC's own choice: an Update keeps it unless changed on the Setup page. *(My call.)*
+- The cloud is never listed on a timer: the row's last-copied time decides the next upload (R2 free plan: 10 GB,
+  1 M Class A ops / month — ~30 uploads per shop per month).
 
 ### Copying
 
