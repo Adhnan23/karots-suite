@@ -12,10 +12,12 @@ every milestone.
 Backups here… → Restore); dashboard warns (admins) when a copy is over a day old. Shop Builder: "Also copy backups to" +
 "Karots cloud backup" tick per shop, **Cloud backups** row action (Download → `dist/<key>/`). Setup: "Also copy backups
 to" field; Bring back a shop lists the copy folder's and Karots cloud's backups. Bucket setup:
-`docs/cloud-backup-bucket.md` (user: R2 free plan; put `CLOUD_BACKUP_URL/KEY_ID/SECRET` in the root `.env` before the
-VM test). **Next (user, VMs):** copy folder on a USB → pull it (Data page: "Not there right now", dashboard warns next
-day) → plug it back (catches up within 30 min); cloud on a test shop (system user switches it on) → Copy now → Builder
-Cloud backups lists it → Bring back a shop on a fresh VM from Karots cloud.
+`docs/cloud-backup-bucket.md`. Bucket `karots-suite-backups` made 2026-10-20 (30-day delete + 30-day lock; its public
+r2.dev URL should stay **off**), keys in the root `.env`. **Checked (user, Xubuntu VM, 2026-10-20):** cloud on
+`test-linux` → Copy now → in the bucket → uninstall → reinstall brought the shop back from Karots cloud. Added on the way:
+Data page **Choose…** folder browser (`internal/folders`, shared with Setup); Setup's Bring back a shop is a card list
+(newest picked by default, place per card, Karots cloud styled apart). **A changed profile (e.g. the cloud tick) needs
+Setup → Update at the shop** — the Data page's Update swaps the program only.
 
 **Windows is fully checked** (VM, 2026-10-19): file mode + server mode install / Update, over-the-air update, crash
 restart, restart → till ~10 s, Konami exit, offline PostgreSQL installer (<2 min), no PowerShell windows, no flaky steps.
