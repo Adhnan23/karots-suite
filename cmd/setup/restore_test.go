@@ -216,3 +216,19 @@ func TestBackupWaitsForTheTillToLetGo(t *testing.T) {
 		t.Fatalf("stopped %d times, want 2", n)
 	}
 }
+
+// A shop installed before -backup existed: the new program from beside Setup
+// does the backup from the install folder (same .env and data), then goes.
+func TestProgramBackupOldProgram(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	os.MkdirAll(filepath.Join(r, "opt/karots-suite"), 0o755)
+	rc.answers["runuser -u shop -- /opt/karots-suite/karots-suite -backup"] = "flag provided but not defined: -backup\nUsage of /opt/karots-suite/karots-suite:\n"
+	rc.answers["runuser -u shop -- /opt/karots-suite/karots-suite-backup-tool -backup /home/shop/Karots backups -tag final"] = "backup: /home/shop/Karots backups/x-final.json.gz\n"
+	got, err := programBackup(j, "final")
+	if err != nil || got != "/home/shop/Karots backups/x-final.json.gz" {
+		t.Fatalf("%q %v\n%s", got, err, rc.all())
+	}
+	if _, err := os.Stat(filepath.Join(r, "opt/karots-suite/karots-suite-backup-tool")); err == nil {
+		t.Fatal("backup tool left in the install folder")
+	}
+}

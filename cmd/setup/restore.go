@@ -40,7 +40,20 @@ func programBackup(j *Job, tag string) (string, error) {
 			return "", err
 		}
 	}
-	return programLine(j, "backup: ", "-backup", dir, "-tag", tag)
+	args := []string{"-backup", dir, "-tag", tag}
+	out, err := runProgram(j, j.binPath(), args...)
+	if strings.Contains(out, "flag provided but not defined: -backup") {
+		// Installed before -backup existed: the new program from beside Setup
+		// backs up from the install folder (same .env and data), then goes.
+		ext := filepath.Ext(j.Conf.Binary)
+		tool := joinOS(j, j.Conf.InstallDir, strings.TrimSuffix(j.Conf.Binary, ext)+"-backup-tool"+ext)
+		if err := copyFile(filepath.Join(j.Dir, j.Conf.Binary), at(tool), 0o755); err != nil {
+			return "", err
+		}
+		defer os.Remove(at(tool))
+		out, err = runProgram(j, tool, args...)
+	}
+	return answerLine(out, err, "backup: ")
 }
 
 // programRestore has the installed program migrate and bring the backup back.
@@ -52,14 +65,23 @@ func programRestore(j *Job, file string) (string, error) {
 	return "restored: " + line, nil
 }
 
-// programLine runs the installed program (as the shop user on Linux: file mode
-// refuses root) and returns what follows prefix on its answer line.
+// programLine runs the installed program and returns what follows prefix on its answer line.
 func programLine(j *Job, prefix string, args ...string) (string, error) {
-	name, cmd := j.binPath(), args
+	out, err := runProgram(j, j.binPath(), args...)
+	return answerLine(out, err, prefix)
+}
+
+// runProgram runs bin (as the shop user on Linux: file mode refuses root).
+func runProgram(j *Job, bin string, args ...string) (string, error) {
+	name, cmd := bin, args
 	if !j.windows() {
-		name, cmd = "runuser", append([]string{"-u", j.User, "--", j.binPath()}, args...)
+		name, cmd = "runuser", append([]string{"-u", j.User, "--", bin}, args...)
 	}
-	out, err := run(j, name, cmd...)
+	return run(j, name, cmd...)
+}
+
+// answerLine is what follows prefix on the program's answer line, else its error.
+func answerLine(out string, err error, prefix string) (string, error) {
 	for _, line := range strings.Split(out, "\n") {
 		if v, ok := strings.CutPrefix(strings.TrimSpace(line), prefix); ok && err == nil {
 			return v, nil
