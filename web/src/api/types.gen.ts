@@ -1638,6 +1638,7 @@ export interface PresenceBeat {
   idleSec: number /* int */;
   cartItems: number /* float64 */;
   cartTotal: string;
+  note: string; // e.g. "Playing Blocks"
 }
 /**
  * PresenceRow is one device on the admin's "Who's on now".
@@ -1652,6 +1653,7 @@ export interface PresenceRow {
   idleSec: number /* int */;
   cartItems: number /* float64 */;
   cartTotal: string;
+  note: string;
   ip: string;
   label: string; // "Windows · Chrome"
   lastSeen: string;

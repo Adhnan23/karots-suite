@@ -44,7 +44,7 @@ func (h *handlers) PresenceBeat(c echo.Context) error {
 	if !middleware.IsSystemUserCtx(c.Request().Context()) {
 		h.presence.Beat(presence.Beat{
 			Device: device(c), UserID: claims.UserID, Name: claims.Name, Role: claims.Role, Locked: claims.Locked,
-			Path: clip(req.Path, 200), IdleSec: req.IdleSec, CartItems: req.CartItems, CartTotal: clip(req.CartTotal, 20),
+			Path: clip(req.Path, 200), IdleSec: req.IdleSec, CartItems: req.CartItems, CartTotal: clip(req.CartTotal, 20), Note: clip(req.Note, 80),
 			IP: c.RealIP(), UA: clip(c.Request().UserAgent(), 300),
 		}, time.Now())
 	}
@@ -81,7 +81,7 @@ func (h *handlers) AdminPresence(c echo.Context) error {
 	out := []PresenceRow{}
 	for _, r := range h.presence.List(time.Now()) {
 		row := PresenceRow{Device: r.Device, UserID: r.UserID, Name: r.Name, Role: r.Role, State: r.State, Path: r.Path,
-			IdleSec: r.IdleSec, CartItems: r.CartItems, CartTotal: r.CartTotal, IP: r.IP, Label: r.Label,
+			IdleSec: r.IdleSec, CartItems: r.CartItems, CartTotal: r.CartTotal, Note: r.Note, IP: r.IP, Label: r.Label,
 			LastSeen: r.LastSeen.UTC().Format(time.RFC3339), SalesToday: sales[r.UserID]}
 		if t, ok := tills[r.UserID]; ok {
 			s := t.UTC().Format(time.RFC3339)

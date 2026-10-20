@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { readBest } from './games'
+import { setPresenceNote } from './usePresence'
 
 const GAMES = [
   { name: 'Coin catch', emoji: '🪙', desc: 'Catch the falling coins in the drawer. ♥ gives a life back.', best: 'ks-coin-best', Game: lazy(() => import('./CoinGame')) },
@@ -13,6 +14,11 @@ const GAMES = [
 export function GameMenu({ onClose }: { onClose: () => void }) {
   const [open, setOpen] = useState<number | null>(null)
   const back = useCallback(() => setOpen(null), [])
+  // On the lock screen the admin's Who's on now shows it (nobody is signed in on login).
+  useEffect(() => {
+    setPresenceNote(open === null ? '' : `Playing ${GAMES[open].name}`)
+    return () => setPresenceNote('')
+  }, [open])
 
   useEffect(() => {
     if (open !== null) return

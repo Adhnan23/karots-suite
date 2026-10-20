@@ -126,6 +126,7 @@ type PresenceBeat struct {
 	IdleSec   int     `json:"idleSec"`
 	CartItems float64 `json:"cartItems"`
 	CartTotal string  `json:"cartTotal"`
+	Note      string  `json:"note"` // e.g. "Playing Blocks"
 }
 
 // PresenceRow is one device on the admin's "Who's on now".
@@ -139,6 +140,7 @@ type PresenceRow struct {
 	IdleSec    int     `json:"idleSec"`
 	CartItems  float64 `json:"cartItems"`
 	CartTotal  string  `json:"cartTotal"`
+	Note       string  `json:"note"`
 	IP         string  `json:"ip"`
 	Label      string  `json:"label"` // "Windows · Chrome"
 	LastSeen   string  `json:"lastSeen"`

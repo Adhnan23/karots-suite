@@ -33,6 +33,7 @@ type Beat struct {
 	IdleSec   int
 	CartItems float64
 	CartTotal string
+	Note      string
 	IP        string
 	UA        string
 }

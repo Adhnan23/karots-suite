@@ -74,7 +74,7 @@ export function UsersPage() {
 function Live({ r }: { r?: PresenceRow }) {
   if (!r) return null
   const on = r.state !== 'away' && r.state !== 'signedOut'
-  return <span className="mt-1 flex items-center gap-2 text-[13px]"><StateDot state={r.state} />{stateText(r)}{on && ` · ${placeOf(r.path)}`}</span>
+  return <span className="mt-1 flex items-center gap-2 text-[13px]"><StateDot state={r.state} />{stateText(r)}{on && ` · ${r.note || placeOf(r.path)}`}</span>
 }
 
 function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose: () => void }) {

@@ -32,7 +32,7 @@ func TestPresenceLiveUsers(t *testing.T) {
 		t.Fatalf("beat %d %s", rec.Code, rec.Body)
 	}
 	locked := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/lock", nil, cashier))
-	if rec := te.beat("pc-1", PresenceBeat{Path: "/lock"}, locked); rec.Code != 204 {
+	if rec := te.beat("pc-1", PresenceBeat{Path: "/lock", Note: "Playing Blocks"}, locked); rec.Code != 204 {
 		t.Fatalf("locked beat %d", rec.Code)
 	}
 	list := func() []PresenceRow {
@@ -45,7 +45,7 @@ func TestPresenceLiveUsers(t *testing.T) {
 		return rows
 	}
 	rows := list()
-	if len(rows) != 1 || rows[0].State != "locked" || rows[0].Path != "/lock" || rows[0].Role != "cashier" || rows[0].TillOpened != nil {
+	if len(rows) != 1 || rows[0].State != "locked" || rows[0].Path != "/lock" || rows[0].Note != "Playing Blocks" || rows[0].Role != "cashier" || rows[0].TillOpened != nil {
 		t.Fatalf("rows %+v", rows)
 	}
 	if rec := te.do(http.MethodGet, "/api/v1/admin/presence", nil, manager); rec.Code != 403 {

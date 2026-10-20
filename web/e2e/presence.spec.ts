@@ -24,6 +24,12 @@ test("admin sees who's on live: the cashier at the till, then locked", async ({ 
   await cashier.goto('/lock')
   await expect(row).toContainText('Locked', { timeout: 10_000 })
 
+  // A game on the lock screen shows up too.
+  const clock = cashier.getByText(/^\d{1,2}:\d{2}/).first()
+  for (let i = 0; i < 7; i++) await clock.click()
+  await cashier.getByRole('dialog', { name: 'Games' }).getByRole('button', { name: /Blocks/ }).click()
+  await expect(row).toContainText('Playing Blocks', { timeout: 10_000 })
+
   await page.goto('/admin/users')
   await expect(page.getByRole('listitem').filter({ hasText: 'E2E Cashier' })).toContainText('Locked')
   await other.close()

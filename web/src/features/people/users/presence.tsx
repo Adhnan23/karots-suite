@@ -74,7 +74,7 @@ export function PresenceItem({ r, sym }: { r: PresenceRow; sym: string }) {
           <b className="truncate">{r.name}</b>
           <span className="text-[11px] font-bold text-faint uppercase">{r.role}</span>
         </span>
-        <span className="flex items-center gap-2"><StateDot state={r.state} /><span>{stateText(r)}{on && <> · <b>{placeOf(r.path)}</b></>}</span></span>
+        <span className="flex items-center gap-2"><StateDot state={r.state} /><span>{stateText(r)}{on && <> · <b>{r.note || placeOf(r.path)}</b></>}</span></span>
         {cart && <span className="block font-semibold">{cart}</span>}
         <small className="block text-faint [overflow-wrap:anywhere]">{facts.join(' · ')}</small>
       </span>
