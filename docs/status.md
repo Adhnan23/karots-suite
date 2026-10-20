@@ -19,7 +19,11 @@ Builder learns *plugin parts* — tick **Games** and child ticks appear (Coin ca
 reach the plugin (generated lists pass them to its Go `init` / React `register`). Plugin manifests get `parts`
 (`[{key,name,description}]`), `shops.json` stores the chosen parts per plugin; a plugin with no parts behaves as today.
 Games is frontend-only (manifest `import` becomes optional). Core keeps the 7-tap gesture + a `loginGames` slot + the
-menu; no games compiled in = 7 taps does nothing; same spot on login and lock. Rethink proposal was given and accepted
+menu; no games compiled in = 7 taps does nothing; same spot on login and lock. **Why live users came first (user):** to see staff activity once games exist — so a game being played must show on
+Who's on now ("Playing Shop Rush") through a generic core seam: a presence *note* the heartbeat carries (e.g.
+`setPresenceNote()`), set by the plugin; only lock-screen play can be attributed (nobody is signed in on login).
+Future (not now): an employee-management plugin (staff, salaries) — would need a generic sign-in / sign-out / beat
+hook for its own attendance rows. Rethink proposal was given and accepted
 in chat (games unchanged, best-score keys kept). Write spec + plan, then build.
 
 **M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
