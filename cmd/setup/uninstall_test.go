@@ -107,7 +107,7 @@ func TestUninstallServerRemovePostgres(t *testing.T) {
 	if err := runUninstall(t, j); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(rc.all(), "apt-get remove -y postgresql-17") {
+	if !strings.Contains(rc.all(), "apt-get remove -y postgresql-17 postgresql-client-17 postgresql-common postgresql-client-common") {
 		t.Fatalf("PostgreSQL kept:\n%s", rc.all())
 	}
 

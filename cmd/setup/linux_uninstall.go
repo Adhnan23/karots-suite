@@ -72,7 +72,7 @@ func linuxRemoveDatabase(j *Job) error {
 	}
 	switch pm {
 	case "apt-get":
-		_, err = run(j, "apt-get", "remove", "-y", "postgresql-"+pgMajor, "postgresql-common")
+		_, err = run(j, "apt-get", "remove", "-y", "postgresql-"+pgMajor, "postgresql-client-"+pgMajor, "postgresql-common", "postgresql-client-common")
 	case "dnf":
 		_, err = run(j, "dnf", "remove", "-y", "postgresql-server", "postgresql")
 	case "zypper":
