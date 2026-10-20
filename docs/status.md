@@ -17,6 +17,11 @@ plan `docs/plans/2026-10-20-m8-setup-uninstall-move.md`; unit-tested + `-dry` pa
 **Windows VM passed (user, 2026-10-20):** Uninstall (final backup made), fresh install (backups listed + a path box for
 a backup elsewhere), server → file and file → server. Fixed on the way: the before-move / final backup always failed the
 first try on Windows (port 3000 still held a moment after the stop) — Setup now waits for the port (`dddc7f4`).
+Then (user, Windows VM): uninstall → install with a backup on a PC that keeps PostgreSQL **works with no password box**
+(`80c31d4`: Setup never asks for PostgreSQL's password — profile's password, else temporary localhost trust in
+pg_hba.conf, put back after). Also fixed: PowerShell exit 1 on a silenced "not found" (`0cb8089`), Builder kept DB
+passwords across One PC ⇄ Server (`cf62579`), backup file picker in Setup (`281e6eb`), Linux kiosk → background
+(`b7a1aa7`).
 **Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
 server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
