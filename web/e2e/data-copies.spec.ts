@@ -33,6 +33,15 @@ test('data: copy folder — refuse the backups folder, save, copy now, list it',
     await sheet.getByRole('button', { name: 'Save' }).click()
     await expect(sheet.getByRole('alert')).toHaveText(/that is where the backups already are/)
 
+    // Choose…: the server's folders — make one inside the temp folder and use it.
+    await input.fill(dir)
+    await sheet.getByRole('button', { name: 'Choose…' }).click()
+    const picker = page.getByRole('dialog', { name: 'Choose the copy folder' })
+    await picker.getByPlaceholder(/New folder/).fill('Karots copies')
+    await picker.getByRole('button', { name: 'Make' }).click()
+    await expect(picker.getByText(join(dir, 'Karots copies'), { exact: true })).toBeVisible()
+    await picker.getByRole('button', { name: 'Use this folder' }).click()
+    await expect(input).toHaveValue(join(dir, 'Karots copies'))
     await input.fill(dir)
     await sheet.getByRole('button', { name: 'Save' }).click()
     await expect(sheet).toBeHidden()

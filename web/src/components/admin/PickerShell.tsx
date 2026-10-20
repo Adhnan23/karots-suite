@@ -11,7 +11,7 @@ export function PickerShell({ open, onOpenChange, title, fit, children }: { open
   const head = <span className="font-display text-lg font-bold">{title}</span>
   return phone ? (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className={cn('gap-3 rounded-t-[22px] p-4', fit ? 'max-h-[85vh]' : 'h-[85vh]')}>
+      <SheetContent side="bottom" className={cn('gap-3 rounded-t-[22px] p-4', fit ? 'max-h-[85vh]' : 'data-[side=bottom]:h-[85vh]')}>
         <SheetTitle asChild>{head}</SheetTitle>
         {children}
       </SheetContent>

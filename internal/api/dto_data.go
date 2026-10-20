@@ -131,3 +131,24 @@ type CopyCloudRequest struct {
 type FetchedBackup struct {
 	Name string `json:"name"`
 }
+
+// FolderRoot is a place the folder browser starts from (a drive, Home, USB drives).
+type FolderRoot struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
+// FolderListing is GET /admin/data/folders: one folder on the shop's main PC
+// (the server's PC — a browser's own picker can't give a path).
+type FolderListing struct {
+	Path    string       `json:"path"`
+	Parent  string       `json:"parent"`
+	Folders []string     `json:"folders"`
+	Roots   []FolderRoot `json:"roots"`
+}
+
+// NewFolderRequest is POST /admin/data/folders: make Name inside Path.
+type NewFolderRequest struct {
+	Path string `json:"path"`
+	Name string `json:"name"`
+}

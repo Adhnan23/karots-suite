@@ -993,6 +993,30 @@ export interface CopyCloudRequest {
 export interface FetchedBackup {
   name: string;
 }
+/**
+ * FolderRoot is a place the folder browser starts from (a drive, Home, USB drives).
+ */
+export interface FolderRoot {
+  name: string;
+  path: string;
+}
+/**
+ * FolderListing is GET /admin/data/folders: one folder on the shop's main PC
+ * (the server's PC — a browser's own picker can't give a path).
+ */
+export interface FolderListing {
+  path: string;
+  parent: string;
+  folders: string[];
+  roots: FolderRoot[];
+}
+/**
+ * NewFolderRequest is POST /admin/data/folders: make Name inside Path.
+ */
+export interface NewFolderRequest {
+  path: string;
+  name: string;
+}
 
 //////////
 // source: dto_drawer.go

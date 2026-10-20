@@ -91,3 +91,27 @@ func TestStaleCopies(t *testing.T) {
 		t.Fatalf("fresh: %v", got)
 	}
 }
+
+// The copy folder's Choose…: folders on the server's PC, admin only; New
+// folder refuses a name with a path in it.
+func TestAdminFolders(t *testing.T) {
+	te := newTestEnv(t)
+	dir := t.TempDir()
+	os.Mkdir(filepath.Join(dir, "Karots copies"), 0o755)  //nolint:errcheck
+	os.WriteFile(filepath.Join(dir, "a.txt"), nil, 0o644) //nolint:errcheck
+	if rec := te.do(http.MethodGet, "/api/v1/admin/data/folders?path="+dir, nil, te.login(t, "0770009303", "manager")); rec.Code != http.StatusForbidden {
+		t.Fatalf("manager: %d", rec.Code)
+	}
+	ck := te.login(t, "0770009304", "admin")
+	l := decode[FolderListing](t, te.do(http.MethodGet, "/api/v1/admin/data/folders?path="+dir, nil, ck))
+	if l.Path != dir || len(l.Folders) != 1 || l.Folders[0] != "Karots copies" || len(l.Roots) == 0 {
+		t.Fatalf("%+v", l)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/data/folders", NewFolderRequest{Path: dir, Name: "../x"}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("bad name: %d", rec.Code)
+	}
+	rec := te.do(http.MethodPost, "/api/v1/admin/data/folders", NewFolderRequest{Path: dir, Name: "USB copies"}, ck)
+	if st, err := os.Stat(filepath.Join(dir, "USB copies")); rec.Code != 200 || err != nil || !st.IsDir() {
+		t.Fatalf("new folder: %d %s", rec.Code, rec.Body)
+	}
+}

@@ -32,6 +32,13 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
   attention: async (page) => {
     await page.getByText('Needs your attention').scrollIntoViewIfNeeded()
   },
+  /** Data page: the copy folder's Choose… picker open. */
+  'folder-picker': async (page) => {
+    const card = page.getByRole('region', { name: 'Backup copies' })
+    await card.getByRole('button', { name: /Set a folder|Change folder/ }).click()
+    await page.getByRole('button', { name: 'Choose…' }).click()
+    await page.getByRole('list', { name: 'Folders' }).waitFor()
+  },
   /** Data page: the Backup copies card in view. */
   copies: async (page) => {
     await page.getByRole('region', { name: 'Backup copies' }).scrollIntoViewIfNeeded()

@@ -15,6 +15,7 @@ import { stamp } from '@/features/money/format'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { copiesQuery, copyBackupsQuery, copyStatus } from './copies'
+import { FolderPicker } from './FolderPicker'
 import { fileSize } from './queries'
 
 /** Setup → Data: where the automatic backups are also copied — the owner's
@@ -173,6 +174,7 @@ function FolderSheet({ path, onClose }: { path: string; onClose: () => void }) {
   const [value, setValue] = useState(path)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [pick, setPick] = useState(false)
   const save = async () => {
     setBusy(true)
     setError('')
@@ -189,11 +191,16 @@ function FolderSheet({ path, onClose }: { path: string; onClose: () => void }) {
   }
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title="Copy folder" submit={busy ? 'Testing…' : 'Save'} busy={busy} onSubmit={() => void save()}>
-      <Field label="Folder" hint="The full path on this computer — a USB stick or a network folder. A new folder is made if its parent is there.">
-        <input className={cn(INPUT, 'font-mono')} value={value} autoFocus spellCheck={false} name="ks-copy-folder"
-          placeholder="E:\Karots copies" aria-invalid={!!error} onChange={(e) => setValue(e.target.value)} />
-      </Field>
+      <div className="flex items-end gap-1.5">
+        <Field label="Folder" className="min-w-0 flex-1">
+          <input className={cn(INPUT, 'font-mono')} value={value} autoFocus spellCheck={false} name="ks-copy-folder"
+            placeholder="E:\Karots copies" aria-invalid={!!error} onChange={(e) => setValue(e.target.value)} />
+        </Field>
+        <Button type="button" variant="outline" className="h-[var(--control-h)] shrink-0 gap-1.5 px-3" onClick={() => setPick(true)}><FolderOpen size={16} /> Choose…</Button>
+      </div>
+      <small className="-mt-1.5 text-[13px] text-faint">A folder on the shop&apos;s main PC — a USB stick, or type a network folder (\\server\share). A new folder is made if its parent is there.</small>
       {error && <p role="alert" className="text-sm font-semibold text-danger">{error}</p>}
+      {pick && <FolderPicker start={value} onClose={() => setPick(false)} onPick={(p) => { setValue(p); setPick(false) }} />}
     </FormSheet>
   )
 }

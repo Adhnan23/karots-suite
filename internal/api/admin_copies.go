@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	osuser "os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/backup"
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/folders"
 	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
@@ -26,6 +28,38 @@ func (h *handlers) registerAdminCopies(d *echo.Group) {
 	d.POST("/copies/:kind/run", h.AdminCopyRun)
 	d.GET("/copies/:kind/backups", h.AdminCopyBackups)
 	d.POST("/copies/:kind/backups/:name/fetch", h.AdminCopyFetch)
+	d.GET("/folders", h.AdminFolders)
+	d.POST("/folders", h.AdminFolderNew)
+}
+
+// AdminFolders is the copy folder's "Choose…": the folders on the server's PC
+// (names only, no files), for an admin.
+func (h *handlers) AdminFolders(c echo.Context) error {
+	user, home := "", ""
+	if u, err := osuser.Current(); err == nil {
+		user, home = u.Username, u.HomeDir
+	}
+	l, err := folders.List(c.QueryParam("path"), folders.Roots(user, home))
+	if err != nil {
+		return apperr.BadRequest(err.Error())
+	}
+	out := FolderListing{Path: l.Path, Parent: l.Parent, Folders: l.Folders, Roots: make([]FolderRoot, 0, len(l.Roots))}
+	for _, r := range l.Roots {
+		out.Roots = append(out.Roots, FolderRoot{Name: r.Name, Path: r.Path})
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h *handlers) AdminFolderNew(c echo.Context) error {
+	var req NewFolderRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request")
+	}
+	p, err := folders.Make(req.Path, req.Name)
+	if err != nil {
+		return apperr.Validation(err.Error())
+	}
+	return c.JSON(http.StatusOK, FolderListing{Path: p, Folders: []string{}, Roots: []FolderRoot{}})
 }
 
 // copier is the API's own copier; the backup package keeps it and the
