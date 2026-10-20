@@ -1,0 +1,30 @@
+import { expect, test, type Page } from './fixtures'
+
+async function signIn(page: Page, phone: string) {
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill(phone)
+  await page.getByLabel('PIN').fill('1234')
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.waitForURL(/\/(admin|till)/)
+}
+
+test("admin sees who's on live: the cashier at the till, then locked", async ({ page, browser }) => {
+  const other = await browser.newContext() // its own localStorage = its own device
+  const cashier = await other.newPage()
+  await signIn(cashier, '0770000002')
+  await cashier.goto('/till/returns')
+
+  await signIn(page, '0770000001')
+  const card = page.getByRole('region', { name: "Who's on now" })
+  const row = card.getByRole('listitem').filter({ hasText: 'E2E Cashier' })
+  await expect(row).toContainText('Till · Returns')
+  await expect(row).toContainText('Active')
+
+  await cashier.request.post('/api/v1/auth/lock')
+  await cashier.goto('/lock')
+  await expect(row).toContainText('Locked', { timeout: 10_000 })
+
+  await page.goto('/admin/users')
+  await expect(page.getByRole('listitem').filter({ hasText: 'E2E Cashier' })).toContainText('Locked')
+  await other.close()
+})

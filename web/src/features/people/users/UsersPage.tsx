@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { meQuery } from '@/api/session'
-import type { StaffRequest, StaffUser } from '@/api/types.gen'
+import type { PresenceRow, StaffRequest, StaffUser } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { Field, INPUT, Toggle } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
+import { placeOf, presenceQuery, StateDot, stateText } from './presence'
 
 export const usersQuery = queryOptions({ queryKey: ['admin', 'users'], queryFn: () => api<StaffUser[]>('/admin/users') })
 
@@ -32,6 +33,7 @@ const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost'; label
  * and what extra they may do. The hidden system user never appears here. */
 export function UsersPage() {
   const us = useQuery(usersQuery).data
+  const who = useQuery(presenceQuery).data
   const me = useSuspenseQuery(meQuery).data
   const [editing, setEditing] = useState<StaffUser | 'new' | null>(null)
   return (
@@ -52,6 +54,7 @@ export function UsersPage() {
                     {u.id === me.user.id && <Tag tone="muted">you</Tag>}
                   </span>
                   <small className="block text-faint tabular-nums">{u.phone}{u.mustChangePin && ' · must set a new PIN'}</small>
+                  <Live r={who?.find((r) => r.userId === u.id)} />
                   <span className="mt-2 flex flex-wrap gap-1">
                     {PERMS.filter((p) => u[p.k]).map((p) => <span key={p.k} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{p.label}</span>)}
                     {u.receiptPrinter && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">own printer</span>}
@@ -65,6 +68,13 @@ export function UsersPage() {
       {editing && <UserForm u={editing === 'new' ? undefined : editing} self={editing !== 'new' && editing.id === me.user.id} onClose={() => setEditing(null)} />}
     </>
   )
+}
+
+/** Where this user is right now (their freshest device), or nothing when never seen. */
+function Live({ r }: { r?: PresenceRow }) {
+  if (!r) return null
+  const on = r.state !== 'away' && r.state !== 'signedOut'
+  return <span className="mt-1 flex items-center gap-2 text-[13px]"><StateDot state={r.state} />{stateText(r)}{on && ` · ${placeOf(r.path)}`}</span>
 }
 
 function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose: () => void }) {

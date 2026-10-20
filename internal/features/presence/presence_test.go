@@ -8,12 +8,12 @@ import (
 func TestStates(t *testing.T) {
 	s := New()
 	t0 := time.Date(2026, 10, 20, 10, 0, 0, 0, time.UTC)
-	s.Beat(Beat{Device: "a", Name: "Zara"}, t0)
-	s.Beat(Beat{Device: "b", Name: "amal", IdleSec: 180}, t0)
-	s.Beat(Beat{Device: "c", Name: "Kamal", Locked: true, IdleSec: 900}, t0)
-	s.Beat(Beat{Device: "d", Name: "Old"}, t0.Add(-2*time.Minute))
-	s.Beat(Beat{Device: "e", Name: "Gone"}, t0.Add(-13*time.Hour))
-	s.Beat(Beat{Device: "f", Name: "Left"}, t0)
+	s.Beat(Beat{Device: "a", UserID: 1, Name: "Zara"}, t0)
+	s.Beat(Beat{Device: "b", UserID: 2, Name: "amal", IdleSec: 180}, t0)
+	s.Beat(Beat{Device: "c", UserID: 3, Name: "Kamal", Locked: true, IdleSec: 900}, t0)
+	s.Beat(Beat{Device: "d", UserID: 4, Name: "Old"}, t0.Add(-2*time.Minute))
+	s.Beat(Beat{Device: "e", UserID: 5, Name: "Gone"}, t0.Add(-13*time.Hour))
+	s.Beat(Beat{Device: "f", UserID: 6, Name: "Left"}, t0)
 	s.SignOut("f", t0.Add(-time.Second))
 	s.SignOut("nobody", t0)
 	s.Beat(Beat{Name: "no device"}, t0)
@@ -30,6 +30,23 @@ func TestStates(t *testing.T) {
 	}
 	if len(s.m) != 5 {
 		t.Errorf("the 13 h old device should be dropped, have %d", len(s.m))
+	}
+}
+
+func TestSameMachineNewID(t *testing.T) {
+	s := New()
+	t0 := time.Now()
+	s.Beat(Beat{Device: "old", UserID: 1, IP: "10.0.0.5", UA: "X"}, t0)
+	s.Beat(Beat{Device: "other-user", UserID: 2, Name: "B", IP: "10.0.0.5", UA: "X"}, t0)
+	s.Beat(Beat{Device: "phone", UserID: 1, IP: "10.0.0.9", UA: "X"}, t0)
+	s.Beat(Beat{Device: "new", UserID: 1, IP: "10.0.0.5", UA: "X"}, t0)
+	s.Beat(Beat{Device: "phone", UserID: 1, Name: "A", IP: "10.0.0.9", UA: "X", IdleSec: 300}, t0)
+	s.Beat(Beat{Device: "new", UserID: 1, Name: "A", IP: "10.0.0.5", UA: "X"}, t0)
+	if l := s.List(t0); l[0].Device != "new" {
+		t.Errorf("the active device should come first, got %s", l[0].Device)
+	}
+	if _, ok := s.m["old"]; ok || len(s.m) != 3 {
+		t.Fatalf("old id should be replaced by new, have %v", s.m)
 	}
 }
 

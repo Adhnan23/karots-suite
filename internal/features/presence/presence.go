@@ -59,13 +59,20 @@ type Store struct {
 
 func New() *Store { return &Store{m: map[string]*entry{}} }
 
-// Beat records a heartbeat (a new sign-in on the device replaces the old user).
+// Beat records a heartbeat (a new sign-in on the device replaces the old user). The
+// same user on the same IP and browser under a new id (a private window, cleared
+// storage) is the same machine: its old row goes.
 func (s *Store) Beat(b Beat, now time.Time) {
 	if b.Device == "" {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	for k, e := range s.m {
+		if k != b.Device && e.b.UserID == b.UserID && e.b.IP == b.IP && e.b.UA == b.UA {
+			delete(s.m, k)
+		}
+	}
 	s.m[b.Device] = &entry{b: b, seen: now}
 }
 
@@ -78,8 +85,8 @@ func (s *Store) SignOut(device string, now time.Time) {
 	}
 }
 
-// List is every device seen in the last 12 h: on-line ones first (by name), then the
-// rest, most recently seen first.
+// List is every device seen in the last 12 h: on-line ones first (by name, then active /
+// idle / locked), then the rest, most recently seen first.
 func (s *Store) List(now time.Time) []Row {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -98,12 +105,17 @@ func (s *Store) List(now time.Time) []Row {
 			return on(a)
 		}
 		if on(a) {
-			return strings.ToLower(a.Name) < strings.ToLower(b.Name)
+			if na, nb := strings.ToLower(a.Name), strings.ToLower(b.Name); na != nb {
+				return na < nb
+			}
+			return rank[a.State] < rank[b.State] // one person's busiest device first (the Users page shows it)
 		}
 		return a.LastSeen.After(b.LastSeen)
 	})
 	return out
 }
+
+var rank = map[string]int{"active": 0, "idle": 1, "locked": 2}
 
 func state(e *entry, now time.Time) string {
 	switch {

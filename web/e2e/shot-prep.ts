@@ -4,6 +4,7 @@ import { alternativesData } from './shot-prep-alternatives'
 import { barcodesPrep } from './shot-prep-barcodes'
 import { loosePrep } from './shot-prep-loose'
 import { ppPrep } from './shot-prep-productplus'
+import { presencePrep } from './shot-prep-presence'
 import { requestsWithHistory } from './shot-prep-requests'
 import { customerWithHistory, expensesWithHistory, lockersWithHistory, pick, salesWithHistory, supplierWithHistory, tillWithHistory } from './shot-data'
 
@@ -28,6 +29,7 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
   ...aicatalogPrep,
+  ...presencePrep,
   /** Dashboard: the attention list in view. */
   attention: async (page) => {
     await page.getByText('Needs your attention').scrollIntoViewIfNeeded()

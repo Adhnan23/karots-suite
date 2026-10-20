@@ -9,6 +9,7 @@ import { ChartCard, ChartTable } from '@/components/charts/ChartCard'
 import { methodLabel } from '@/features/money/finance/charts'
 import { stamp } from '@/features/money/format'
 import { delta, pctText } from '@/features/reports/kit/numbers'
+import { PresenceItem, presenceQuery } from '@/features/people/users/presence'
 import { SaleSheet } from '@/features/sales/SaleSheet'
 import { Seg } from '@/features/till/bits'
 import { configQuery } from '@/features/till/api'
@@ -76,6 +77,7 @@ export function Dashboard() {
   const navigate = route.useNavigate()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const d = useQuery(dashboardQuery).data
+  const who = useQuery({ ...presenceQuery, enabled: me.user.role === 'admin' }).data
   const ch = useQuery({ ...dashboardChartsQuery(days), placeholderData: keepPreviousData }).data
   const [open, setOpen] = useState<number | null>(null)
   const trend = useMemo(() => ch && compareOption(ch.cur, ch.prev, sym, ch.grain), [ch, sym])
@@ -162,6 +164,13 @@ export function Dashboard() {
           </ul>
         ) : <p className="py-8 text-center text-sm text-faint">{d ? 'All clear — nothing needs you right now.' : 'Loading…'}</p>)}
       </div>
+
+      {me.user.role === 'admin' && card("Who's on now", who && who.length ? (
+        <ul className="grid divide-y divide-border md:grid-cols-2 md:gap-x-6 md:divide-y-0">
+          {who.map((r) => <PresenceItem key={r.device} r={r} sym={sym} />)}
+        </ul>
+      ) : <p className="py-6 text-center text-sm text-faint">{who ? 'Nobody is signed in right now.' : 'Loading…'}</p>,
+      <Link to="/admin/users" className="text-[13px] font-semibold text-muted-foreground hover:text-foreground">Users →</Link>)}
 
       {card('Latest sales today', d && d.recent.length ? (
         <ul className="flex flex-col divide-y divide-border text-sm">
