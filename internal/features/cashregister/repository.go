@@ -74,6 +74,13 @@ func (r *Repository) Open(ctx context.Context, userID int64, opening decimal.Dec
 	return &s, nil
 }
 
+// BankedAtClose reports whether a session's close banked its cash into a locker.
+func (r *Repository) BankedAtClose(ctx context.Context, sessionID int64) (bool, error) {
+	var ok bool
+	err := r.q.GetContext(ctx, &ok, `SELECT EXISTS (SELECT 1 FROM locker_ledger WHERE counter_till_session = $1 AND note = $2)`, sessionID, ReasonBanked)
+	return ok, err
+}
+
 // Close records the count on a still-open session; one already closed is a conflict
 // (never closed twice). closedBy is nil when its own cashier closes it.
 func (r *Repository) Close(ctx context.Context, id int64, closing, expected, diff decimal.Decimal, breakdown []byte, closedBy *int64) error {

@@ -217,6 +217,10 @@ func (s *Service) Current(ctx context.Context, userID int64) (*Session, error) {
 	return sess, nil
 }
 
+// ReasonBanked is the locker-ledger note of a close that banked the counted cash
+// (karots-pos wrote the same, so restored data reads alike).
+const ReasonBanked = "banked at close"
+
 // Summary returns the live drawer state (or, when no session is open, the last
 // closing so the UI can offer "continue with last amount").
 func (s *Service) Summary(ctx context.Context, userID int64) (*Summary, error) {
@@ -226,10 +230,13 @@ func (s *Service) Summary(ctx context.Context, userID int64) (*Summary, error) {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.Internal("failed to load session", err)
 		}
-		// No open session — surface the last close for the reopen options.
+		// No open session — surface the last close for the reopen options, unless that
+		// close banked the cash into a locker: the drawer is empty then, not that count.
 		if last, lerr := s.repo.LastClosed(ctx, userID); lerr == nil {
-			out.LastClosing = last.ClosingCash
-			out.LastBreakdown = last.ClosingBreakdown
+			if banked, berr := s.repo.BankedAtClose(ctx, last.ID); berr == nil && !banked {
+				out.LastClosing = last.ClosingCash
+				out.LastBreakdown = last.ClosingBreakdown
+			}
 		}
 		return out, nil
 	}
@@ -397,7 +404,7 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		if s.lockerLeg != nil && closing.IsPositive() {
 			reason := "counted at close"
 			if in.DestLockerID > 0 {
-				reason = "banked at close"
+				reason = ReasonBanked
 			}
 			rid, lerr := s.lockerLeg(ctx, tx, TillCashEvent{
 				Kind: "close", UserID: userID, SessionID: sess.ID,

@@ -77,3 +77,21 @@ func TestTillNoSaleNeedsDrawerEnabled(t *testing.T) {
 		t.Fatalf("drawer disabled: %d", rec.Code)
 	}
 }
+
+// A close that banked the cash into a locker leaves the drawer empty: the next open
+// mustn't offer "continue last count" with money that went to the safe.
+func TestTillNoContinueAfterBankedClose(t *testing.T) {
+	te := newTestEnv(t)
+	phone := fmt.Sprintf("07%08d", (time.Now().UnixNano()+41)%100_000_000)
+	ck := te.login(t, phone, "cashier")
+	var safe int64
+	te.db.Get(&safe, `INSERT INTO lockers (name, kind) VALUES ($1, 'safe') RETURNING id`, "Night safe "+phone) //nolint:errcheck
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, ck)
+	if rec := te.do(http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{Breakdown: map[string]float64{"500": 2}, DestLockerID: safe}, ck); rec.Code != 200 {
+		t.Fatalf("banked close %d %s", rec.Code, rec.Body)
+	}
+	st := decode[DrawerState](t, te.do(http.MethodGet, "/api/v1/till/drawer", nil, ck))
+	if st.Summary.LastClosing != nil || st.Summary.LastBreakdown != nil {
+		t.Fatalf("banked close still offered as the next float: %+v", st.Summary)
+	}
+}
