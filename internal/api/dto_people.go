@@ -118,3 +118,30 @@ type StaffRequest struct {
 	CanManageCredit    bool   `json:"canManageCredit"`
 	CanSeeCost         bool   `json:"canSeeCost"`
 }
+
+// PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and
+// focus); the device comes from the X-Ks-Device header, locked from the token.
+type PresenceBeat struct {
+	Path      string  `json:"path"`
+	IdleSec   int     `json:"idleSec"`
+	CartItems float64 `json:"cartItems"`
+	CartTotal string  `json:"cartTotal"`
+}
+
+// PresenceRow is one device on the admin's "Who's on now".
+type PresenceRow struct {
+	Device     string  `json:"device"`
+	UserID     int64   `json:"userId"`
+	Name       string  `json:"name"`
+	Role       string  `json:"role"`
+	State      string  `json:"state"` // active | idle | locked | away | signedOut
+	Path       string  `json:"path"`
+	IdleSec    int     `json:"idleSec"`
+	CartItems  float64 `json:"cartItems"`
+	CartTotal  string  `json:"cartTotal"`
+	IP         string  `json:"ip"`
+	Label      string  `json:"label"` // "Windows · Chrome"
+	LastSeen   string  `json:"lastSeen"`
+	TillOpened *string `json:"tillOpened"` // their open till's opening time, null = none
+	SalesToday int     `json:"salesToday"`
+}

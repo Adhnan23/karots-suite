@@ -1629,6 +1629,35 @@ export interface StaffRequest {
   canManageCredit: boolean;
   canSeeCost: boolean;
 }
+/**
+ * PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and
+ * focus); the device comes from the X-Ks-Device header, locked from the token.
+ */
+export interface PresenceBeat {
+  path: string;
+  idleSec: number /* int */;
+  cartItems: number /* float64 */;
+  cartTotal: string;
+}
+/**
+ * PresenceRow is one device on the admin's "Who's on now".
+ */
+export interface PresenceRow {
+  device: string;
+  userId: number /* int64 */;
+  name: string;
+  role: string;
+  state: string; // active | idle | locked | away | signedOut
+  path: string;
+  idleSec: number /* int */;
+  cartItems: number /* float64 */;
+  cartTotal: string;
+  ip: string;
+  label: string; // "Windows · Chrome"
+  lastSeen: string;
+  tillOpened?: string; // their open till's opening time, null = none
+  salesToday: number /* int */;
+}
 
 //////////
 // source: dto_purchasing.go

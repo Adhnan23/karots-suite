@@ -72,6 +72,7 @@ func (h *handlers) Logout(c echo.Context) error {
 			return apperr.ConflictCode("TILL_OPEN", "Close and count your till before signing out")
 		}
 	}
+	h.presence.SignOut(device(c), time.Now())
 	h.clearCookie(c)
 	return c.NoContent(http.StatusNoContent)
 }

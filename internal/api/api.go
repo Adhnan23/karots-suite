@@ -5,6 +5,7 @@ package api
 
 import (
 	"context"
+	"karots-suite/internal/features/presence"
 	"slices"
 
 	"karots-suite/internal/apperr"
@@ -38,12 +39,13 @@ type handlers struct {
 	d         Deps
 	protected []echo.MiddlewareFunc // jwt → unlocked → PIN chosen
 	t         tillServices
+	presence  *presence.Store
 }
 
 func Register(e *echo.Echo, d Deps) {
 	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
 	limiter := auth.NewLoginLimiter()
-	h := &handlers{d: d, protected: []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen()}, t: newTillServices(d.DB)}
+	h := &handlers{d: d, protected: []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen()}, t: newTillServices(d.DB), presence: presence.New()}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)
@@ -55,7 +57,8 @@ func Register(e *echo.Echo, d Deps) {
 	v1.GET("/me", h.Me, jwt)
 
 	h.registerKiosk(v1, jwt) // Task 6
-	h.registerSystem(v1)     // Task 6
+	h.registerPresence(v1, jwt)
+	h.registerSystem(v1) // Task 6
 	h.registerTill(v1)
 	h.registerAdmin(v1)
 	h.registerLegacySync(e, limiter, jwt)
