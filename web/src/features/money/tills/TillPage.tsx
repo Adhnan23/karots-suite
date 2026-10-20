@@ -1,7 +1,7 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { ArrowLeft, FileText } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ArrowLeft, FileText, Lock } from 'lucide-react'
+import { type ReactNode, useState } from 'react'
 import { EmptyState, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
@@ -10,6 +10,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { stamp } from '../format'
 import { tillQuery } from '../queries'
+import { CloseForThem } from './CloseForThem'
 import { OverShort } from './TillsPage'
 
 const route = getRouteApi('/_authed/admin/tills/$id')
@@ -55,6 +56,7 @@ export function TillPage() {
   const id = Number(route.useParams().id)
   const sym = useSuspenseQuery(configQuery).data.symbol
   const v = useQuery(tillQuery(id)).data
+  const [closing, setClosing] = useState(false)
   if (!v) return <EmptyState title="Loading…" />
   const s = v.session
   const tile = (label: string, body: ReactNode) => (
@@ -66,13 +68,20 @@ export function TillPage() {
       <header className={cn(SURFACE, 'mb-4 flex flex-col gap-4 p-5 md:flex-row md:items-end md:justify-between')}>
         <div className="min-w-0">
           <h1 className="flex flex-wrap items-center gap-2 font-display text-[24px] font-bold tracking-tight md:text-[28px]">
-            {s.cashier}<span className="font-sans tracking-normal">{s.open && <Tag tone="brand">open now</Tag>}</span>
+            {s.cashier}<span className="flex flex-wrap gap-1.5 font-sans tracking-normal">
+              {s.open && (s.stale ? <Tag tone="danger">left open</Tag> : <Tag tone="brand">open now</Tag>)}
+              {s.closedLate && <Tag tone="warn">closed late</Tag>}
+              {s.closedBy && <Tag tone="muted">{`closed by ${s.closedBy}`}</Tag>}
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">{stamp(s.openedAt)} → {s.closedAt ? stamp(s.closedAt) : 'still open'}</p>
         </div>
-        <Button variant="outline" className="h-10 gap-1.5 px-4" asChild>
-          <a href={`/print/z/${id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Z report</a>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {s.open && <Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setClosing(true)}><Lock size={15} /> Close for them</Button>}
+          <Button variant="outline" className="h-10 gap-1.5 px-4" asChild>
+            <a href={`/print/z/${id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Z report</a>
+          </Button>
+        </div>
       </header>
       <section aria-label="Money" className={cn(SURFACE, 'mb-4 grid grid-cols-2 md:grid-cols-4 md:divide-x divide-border')}>
         {tile('Opening float', <b className="font-display text-xl tabular-nums">{money(sym, s.opening)}</b>)}
@@ -80,6 +89,7 @@ export function TillPage() {
         {tile('Counted', <b className="font-display text-xl tabular-nums">{s.counted ? money(sym, s.counted) : '—'}</b>)}
         {tile('Over / short', <OverShort sym={sym} v={s.difference} big />)}
       </section>
+      {closing && <CloseForThem s={s} onClose={() => setClosing(false)} />}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Section title="Drawer movements">
           {v.moves.length === 0 ? <p className="p-4 text-sm text-faint">No deposits, withdrawals or expenses.</p> : (

@@ -51,8 +51,11 @@ func newTestEnv(t *testing.T) *testEnv {
 	middleware.SetUserValidator(middleware.DBUserValidator(db))
 
 	a := auth.NewService(db, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
+	// As internal/app wires it: audit + the locker side of till cash events.
+	cf := cashflow.NewService(db, sales.NewService(db))
+	cr := cashregister.NewService(db, sales.NewService(db)).WithAudit(audit.NewService(db)).WithLockerLeg(cf.TillLockerLeg)
 	Register(e, Deps{DB: db, Cfg: cfg, Auth: a, Settings: settings.NewService(db),
-		CashRegister: cashregister.NewService(db, sales.NewService(db)).WithAudit(audit.NewService(db)), Sales: sales.NewService(db), Cashflow: cashflow.NewService(db, sales.NewService(db)), KickDrawer: func(context.Context) {}, MountPlugins: testPluginMux.Mount})
+		CashRegister: cr, Sales: sales.NewService(db), Cashflow: cf, KickDrawer: func(context.Context) {}, MountPlugins: testPluginMux.Mount})
 	return &testEnv{e: e, db: db, cfg: cfg}
 }
 

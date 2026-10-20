@@ -9,7 +9,7 @@ import { useCheckout } from './useCheckout'
 
 const cfg: TillConfig = { symbol: 'Rs.', defaultSaleType: 'retail', askToPrint: false, openCashDrawer: false, allowUntrackedCash: true,
   defaultLockerId: 0, allowContinueLast: true, canManageCredit: false, canHandleSuppliers: false, canSeeCost: false, canChangePin: true, isManager: false, tenderMethods: [], labelSize: '50x25', shop: { name: 'Shop', address: '', phone: '', footer: '' }, receiptWidth: '80' }
-const drawer: DrawerState = { summary: { cashSales: '0', payIns: '0', withdrawals: '0', expected: '0' }, denominations: [], lockers: [] }
+const drawer: DrawerState = { summary: { cashSales: '0', payIns: '0', withdrawals: '0', expected: '0', stale: false }, denominations: [], lockers: [] }
 const sale: SaleResult = { id: 42, receiptNo: 'S-1', total: '100.00', paidAmount: '150.00', changeGiven: '50.00', roundingToAccount: '0.00', customerName: '', methods: ['cash'] }
 
 function setup() {

@@ -13,7 +13,7 @@ export function DenomCounter({ denoms, counts, onChange, sym, label = 'Counted' 
 }) {
   return (
     <div>
-      <div className="grid grid-cols-2 gap-x-5 gap-y-1.5">
+      <div className="grid gap-x-5 gap-y-1.5 sm:grid-cols-2">
         {denoms.map((d) => (
           <label key={d.value} className="flex items-center gap-2 text-[13.5px]">
             <span className="w-24 text-right font-semibold tabular-nums">{money(sym, d.value)}</span>

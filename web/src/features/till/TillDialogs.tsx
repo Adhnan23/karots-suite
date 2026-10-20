@@ -43,7 +43,7 @@ export function TillDialogs() {
     case 'deposit':
       return <MoneyMove kind={d.kind} />
     case 'close':
-      return <CloseRegister logout={d.logout} />
+      return <CloseRegister logout={d.logout} stale={d.stale} />
     case 'info':
       return <ProductInfo product={d.product} />
     case 'quickItem':

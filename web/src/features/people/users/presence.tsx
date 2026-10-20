@@ -69,7 +69,7 @@ export function PresenceItem({ r, sym, onLock }: { r: PresenceRow; sym: string; 
     : r.serving ? `Serving · ${goods}` : r.cartUntouchedMin ? `Cart untouched ${r.cartUntouchedMin} min · ${goods}` : `In the cart · ${goods}`)
   const where = r.ip === '127.0.0.1' || r.ip === '::1' ? 'this PC (the server)' : r.ip
   const facts = [
-    r.tillOpened && `Till open since ${time(r.tillOpened)}`,
+    r.tillOpened && !r.tillStale && `Till open since ${time(r.tillOpened)}`,
     r.salesToday > 0 && `${r.salesToday} sale${r.salesToday === 1 ? '' : 's'} today`,
     [r.label, where].filter(Boolean).join(' · '),
   ].filter(Boolean)
@@ -83,10 +83,11 @@ export function PresenceItem({ r, sym, onLock }: { r: PresenceRow; sym: string; 
         </span>
         <span className="flex items-center gap-2"><StateDot state={r.state} /><span>{stateText(r)}{on && <> · <b>{r.note || placeOf(r.path)}</b></>}</span></span>
         {cart && <span className={cn('block font-semibold', r.cartUntouchedMin > 0 && r.state !== 'locked' && 'text-warning')}>{cart}</span>}
+        {r.tillStale && r.tillOpened && <span className="block font-semibold text-warning">Till left open since {new Date(r.tillOpened).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })}</span>}
         <small className="block text-faint [overflow-wrap:anywhere]">{facts.join(' · ')}</small>
       </span>
       {onLock && open && r.device !== deviceId() && (
-        <Button type="button" variant="outline" className="h-8 flex-none gap-1.5 px-2.5 sm:px-3" disabled={r.serving || r.lockPending}
+        <Button type="button" variant="outline" aria-label={r.serving ? `${r.name} is serving` : r.lockPending ? `Locking ${r.name}'s screen` : `Lock ${r.name}'s screen`} className="h-8 flex-none gap-1.5 px-2.5 sm:px-3" disabled={r.serving || r.lockPending}
           title={r.serving ? 'Serving a customer — the cart changed in the last few minutes' : 'Lock this screen; they unlock with their PIN'}
           onClick={() => onLock(r)}>
           <Lock size={14} /><span className="max-sm:sr-only">{r.lockPending ? 'Locking…' : r.serving ? 'Serving' : 'Lock'}</span>

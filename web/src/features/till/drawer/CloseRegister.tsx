@@ -15,7 +15,9 @@ import { DenomCounter } from './DenomCounter'
 import { LockerSelect } from './LockerSelect'
 import { useDrawerSections } from './sections'
 
-export function CloseRegister({ logout }: { logout?: boolean }) {
+/** stale: the opening time of a till left open from an earlier day — then it can't be
+ * put off: count it, close it, and open today's. */
+export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: string }) {
   const cfg = useSuspenseQuery(configQuery).data
   const d = useQuery(drawerQuery).data
   const ui = useTillUi()
@@ -59,10 +61,15 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
 
   const diff = num(result?.difference)
   return (
-    <Dialog open onOpenChange={(o) => !o && (result ? void done() : ui.close())}>
-      <DialogContent className={sections.nodes.length > 0 ? 'sm:max-w-[920px]' : 'sm:max-w-[700px]'}>
+    <Dialog open onOpenChange={(o) => !o && (result ? void done() : !stale && ui.close())}>
+      <DialogContent showCloseButton={!stale || !!result} className={sections.nodes.length > 0 ? 'sm:max-w-[920px]' : 'sm:max-w-[700px]'}>
         {!result ? (
           <>
+            {stale && (
+              <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-sm font-semibold text-warning">
+                Your till from {new Date(stale).toLocaleString([], { weekday: 'long', hour: '2-digit', minute: '2-digit' })} was never closed. Count the drawer to close it, then open today's.
+              </p>
+            )}
             {logout && (
               <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-sm font-semibold text-warning">
                 Close your till before signing out — count the drawer to finish.
@@ -82,7 +89,7 @@ export function CloseRegister({ logout }: { logout?: boolean }) {
               {sections.nodes.length > 0 && <div className="flex flex-col gap-4">{sections.nodes}</div>}
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={ui.close}>Cancel</Button>
+              {!stale && <Button variant="ghost" onClick={ui.close}>Cancel</Button>}
               <Button disabled={busy || (noLocker && counted > 0)} onClick={submit}>Close &amp; reconcile</Button>
             </DialogFooter>
           </>

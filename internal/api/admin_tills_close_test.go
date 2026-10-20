@@ -66,6 +66,19 @@ func TestTillCloseForThem(t *testing.T) {
 	if rec := te.do(http.MethodPost, url, CloseDrawerRequest{}, ck); rec.Code != 403 {
 		t.Fatalf("cashier close for them %d", rec.Code)
 	}
+	// Banked into a safe the cashier can't reach (the one closing is a manager): the
+	// safe gains exactly what was counted, once.
+	var safe int64
+	te.db.Get(&safe, `INSERT INTO lockers (name, kind, cashier_access) VALUES ($1, 'safe', false) RETURNING id`, "Back safe "+phone) //nolint:errcheck
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 1}}, ck)
+	id2 := decode[DrawerState](t, te.do(http.MethodGet, "/api/v1/till/drawer", nil, ck)).Summary.Session.ID
+	rec = te.do(http.MethodPost, fmt.Sprintf("/api/v1/admin/tills/%d/close", id2), CloseDrawerRequest{Breakdown: map[string]float64{"500": 1}, DestLockerID: safe}, mgr)
+	if rec.Code != 200 {
+		t.Fatalf("close into safe %d %s", rec.Code, rec.Body)
+	}
+	if v := decode[AdminLockerView](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/lockers/%d", safe), nil, mgr)); v.Locker.Balance != "500.00" {
+		t.Fatalf("safe after close for them: %+v", v.Locker)
+	}
 }
 
 // A till opened yesterday (and long enough ago) is stale; the till then makes the cashier close it.

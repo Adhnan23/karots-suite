@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@t
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, Store, UserRoundX } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Banknote, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, Store, UserRoundX } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import type { Dashboard as D, PresenceRow } from '@/api/types.gen'
@@ -59,6 +59,12 @@ function attention(d: D, sym: string): Att[] {
   const a = d.attention
   const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`
   const out: Att[] = []
+  const when = (iso: string) => new Date(iso).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })
+  for (const t of a.staleTills) out.push({ tone: 'crit', icon: Banknote, tag: 'Till left open', text: `${t.cashier}'s till open since ${when(t.openedAt)} — never closed`, to: `/admin/tills/${t.id}`, go: 'Close it' })
+  if (a.noTillSales.length) {
+    const s = a.noTillSales, cash = s.reduce((t, x) => t + num(x.cash), 0)
+    out.push({ tone: 'warn', icon: Banknote, tag: 'No till open', text: `${n(s.length, 'cash sale', 'cash sales')} today with no till open (${money(sym, cash)}) — ${s[0].cashier}, ${when(s[0].at)}${s.length > 1 ? ' …' : ''}`, to: '/admin/sales?preset=today', go: 'See sales' })
+  }
   if (a.overLimit) out.push({ tone: 'crit', icon: UserRoundX, tag: 'Over limit', text: `${n(a.overLimit, 'customer owes', 'customers owe')} past their credit limit (${money(sym, a.overLimitSum)})`, to: '/admin/reports/customer-dues', go: 'See dues' })
   if (a.expired) out.push({ tone: 'crit', icon: CalendarClock, tag: 'Expired', text: `${n(a.expired, 'lot is', 'lots are')} past its date and still on the shelf`, to: '/admin/stock/batches', go: 'Write off' })
   if (a.expiring) out.push({ tone: 'warn', icon: CalendarClock, tag: 'Expiring', text: `${n(a.expiring, 'lot expires', 'lots expire')} within 30 days`, to: '/admin/stock/batches', go: 'Sell first' })

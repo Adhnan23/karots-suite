@@ -14,6 +14,7 @@ import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
 import { PayPanel } from './pay/PayPanel'
 import { TillDialogs } from './TillDialogs'
+import { useTill } from './TillProvider'
 import { TillUiProvider, useTillUi } from './TillUi'
 import { PANEL } from './ui'
 
@@ -29,6 +30,20 @@ function LogoutClose({ logout }: { logout: boolean }) {
     if (d.summary.session) ui.open({ kind: 'close', logout: true })
     else void api('/auth/logout', { method: 'POST' }).finally(() => window.location.assign('/login'))
   }, [logout, d, ui])
+  return null
+}
+
+/** A till left open from an earlier day must be closed before selling on — asked
+ * between sales only (an empty cart), never in the middle of one. Checks every
+ * minute, so a kiosk left on overnight asks in the morning. */
+function StaleClose() {
+  const ui = useTillUi()
+  const d = useQuery({ ...drawerQuery, refetchInterval: 60_000 }).data
+  const { state } = useTill()
+  const empty = state.lines.length === 0
+  useEffect(() => {
+    if (d?.summary.stale && d.summary.session && empty && !ui.dialog) ui.open({ kind: 'close', stale: d.summary.session.openedAt })
+  }, [d, empty, ui])
   return null
 }
 
@@ -79,6 +94,7 @@ export function TillScreen({ logout = false, drawer }: { logout?: boolean; drawe
           <Hotkeys />
           <LogoutClose logout={logout} />
           <DrawerMoveFromBar drawer={drawer} />
+          <StaleClose />
         </CheckoutProvider>
       </TillUiProvider>
     </MotionConfig>

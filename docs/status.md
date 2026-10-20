@@ -17,6 +17,17 @@ its next beat (≤ 20 s), logged in Activity. **Serving = the cart changed in th
 server); a cart left unchanged 10+ min is flagged "Cart untouched N min" (user: a lazy cashier parks an item to look
 busy) — the server compares carts between beats, so moving the mouse doesn't count.
 
+**A till left open — BUILT (2026-10-20, user: "crucial section").** Spec `docs/specs/2026-10-20-forgotten-till-design.md`.
+A session opened on an earlier day and 6 h+ ago is **stale** (`cashregister.Stale`): the till makes its cashier close it
+(no Cancel, between sales only — empty cart) and then open today's; dashboard **Needs your attention** lists it ("Till
+left open" → the session page) and Who's on now says "Till left open since …". **Close for them** (admin + manager,
+Till sessions → the session): same count + banking as the cashier's own close, booked as the cashier's (ledger rows,
+receipt) — banks into any active cash locker (not only cashier-reachable ones, e.g. the main safe), `cash_register.closed_by` (migration 00007) + Activity under the closer; never pops the drawer; refused while
+that cashier is serving. Close now **locks the session row** and only lands on a still-open one — two closes at once can
+never bank twice. Sales that took cash with **no till open** are never refused — flagged on the dashboard. Session tags:
+left open / closed late / closed by. Plugin drawer sections (e.g. recharge counts) don't show in Close for them —
+they're optional at close.
+
 **Games stay in core (user, 2026-10-20):** "a pure easter egg" — no games plugin, no Builder plugin *parts* (dropped
 both ideas). What they wanted from it is built: a game opened on the **lock** screen shows on Who's on now as
 "Playing Blocks" (`setPresenceNote()` in `usePresence.ts`, a generic note the heartbeat carries; login-page play can't be

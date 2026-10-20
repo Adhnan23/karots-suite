@@ -53,7 +53,7 @@ test('seven taps on the clock open the games menu; a game opens, Esc comes back,
 test('admin lands on /admin; lock + reload stays locked; unlock resumes', async ({ page }) => {
   await login(page, '0770000001')
   await expect(page).toHaveURL(/\/admin/)
-  await page.getByRole('button', { name: /lock/i }).click()
+  await page.getByRole('button', { name: 'Lock', exact: true }).click() // the header's, not a Who's on now row's
   await expect(page).toHaveURL(/\/lock$/)
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/lock$/)

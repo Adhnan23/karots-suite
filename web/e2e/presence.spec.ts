@@ -23,7 +23,7 @@ test("admin sees who's on live: the cashier at the till, locks it from the card,
   await expect(row).toContainText('Active')
 
   // Lock it from the card: the cashier's screen locks on its next heartbeat (≤ 20 s).
-  await row.getByRole('button', { name: 'Lock' }).click()
+  await row.getByRole('button', { name: "Lock E2E Cashier's screen" }).click()
   await expect(cashier).toHaveURL(/\/lock$/, { timeout: 30_000 })
   await expect(row).toContainText('Locked', { timeout: 10_000 })
   await expect(row.getByRole('button')).toHaveCount(0)

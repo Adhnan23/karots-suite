@@ -13,7 +13,7 @@ import { useTill } from './TillProvider'
 export type Dialog =
   | { kind: 'withdraw' }
   | { kind: 'deposit' }
-  | { kind: 'close'; logout?: boolean }
+  | { kind: 'close'; logout?: boolean; stale?: string }
   | { kind: 'held' }
   | { kind: 'clearSale' }
   | { kind: 'quickItem'; barcode: string; name: string }
