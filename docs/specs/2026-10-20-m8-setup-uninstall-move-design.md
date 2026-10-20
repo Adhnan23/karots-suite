@@ -104,7 +104,8 @@ Cashier PC: steps 3 only (no data there), no backup.
 On a **first install** (not an Update) of a main PC, the page has a section **"Bring back a shop"**:
 
 - Setup looks for `*.json.gz` backups in the default backup folder (§2) and beside `karots-setup` (a USB stick), and
-  offers the **newest**, showing its shop name and date (read from the archive without touching any database).
+  offers the **newest**, showing its file name (which starts with the shop's name) and date — my call: the name
+  and the file's date, no need to open the archive.
   "Choose another…" opens the folder picker. Default: **don't restore** unless a backup was found *beside Setup* —
   my call: a file deliberately put next to the three files means "bring this one back"; one merely found in the home
   folder is offered but not ticked.
