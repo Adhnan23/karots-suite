@@ -1677,6 +1677,7 @@ export interface PresenceRow {
   label: string; // "Windows · Chrome"
   lastSeen: string;
   tillOpened?: string; // their open till's opening time, null = none
+  tillStale: boolean; // that till is from an earlier day
   salesToday: number /* int */;
   /**
    * Serving: the cart changed in the last 5 min — no remote lock.
@@ -2625,6 +2626,27 @@ export interface DashboardAttention {
    * BackupCopies names the switched-on backup copies with no copy in 24 h.
    */
   backupCopies: string[];
+  /**
+   * StaleTills are tills left open from an earlier day.
+   */
+  staleTills: StaleTill[];
+  /**
+   * NoTillSales are today's sales that took cash while their cashier had no till open.
+   */
+  noTillSales: NoTillSale[];
+}
+export interface StaleTill {
+  id: number /* int64 */;
+  userId: number /* int64 */;
+  cashier: string;
+  openedAt: string;
+}
+export interface NoTillSale {
+  id: number /* int64 */;
+  receiptNo: string;
+  cashier: string;
+  at: string;
+  cash: string; // cash kept: cash paid − change
 }
 /**
  * Dashboard is the admin home (karots-pos Dashboard): today against

@@ -277,6 +277,25 @@ type DashboardAttention struct {
 	OverLimitSum string `json:"overLimitSum"`
 	// BackupCopies names the switched-on backup copies with no copy in 24 h.
 	BackupCopies []string `json:"backupCopies"`
+	// StaleTills are tills left open from an earlier day.
+	StaleTills []StaleTill `json:"staleTills"`
+	// NoTillSales are today's sales that took cash while their cashier had no till open.
+	NoTillSales []NoTillSale `json:"noTillSales"`
+}
+
+type StaleTill struct {
+	ID       int64  `json:"id"`
+	UserID   int64  `json:"userId"`
+	Cashier  string `json:"cashier"`
+	OpenedAt string `json:"openedAt"`
+}
+
+type NoTillSale struct {
+	ID        int64  `json:"id"`
+	ReceiptNo string `json:"receiptNo"`
+	Cashier   string `json:"cashier"`
+	At        string `json:"at"`
+	Cash      string `json:"cash"` // cash kept: cash paid − change
 }
 
 // Dashboard is the admin home (karots-pos Dashboard): today against

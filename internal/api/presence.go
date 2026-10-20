@@ -9,6 +9,7 @@ import (
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/auth"
+	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/presence"
 	"karots-suite/internal/middleware"
 
@@ -102,6 +103,7 @@ func (h *handlers) AdminPresence(c echo.Context) error {
 		if t, ok := tills[r.UserID]; ok {
 			s := t.UTC().Format(time.RFC3339)
 			row.TillOpened = &s
+			row.TillStale = cashregister.Stale(t, time.Now())
 		}
 		out = append(out, row)
 	}

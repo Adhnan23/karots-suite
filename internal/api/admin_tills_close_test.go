@@ -80,3 +80,48 @@ func TestTillStale(t *testing.T) {
 		t.Fatalf("30 h old till should be stale: %+v", st.Summary)
 	}
 }
+
+// The dashboard flags a till left open from an earlier day, and cash taken by a
+// cashier with no till open (never refused — flagged).
+func TestDashboardTillWarnings(t *testing.T) {
+	te := newTestEnv(t)
+	admin := te.login(t, fmt.Sprintf("07%08d", (time.Now().UnixNano()+21)%100_000_000), "admin")
+	phone := fmt.Sprintf("07%08d", (time.Now().UnixNano()+29)%100_000_000)
+	ck := te.login(t, phone, "cashier")
+	var who int64
+	te.db.Get(&who, `SELECT id FROM users WHERE phone = $1`, phone)                          //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-NOTILL-%'`) }) //nolint:errcheck
+	sale := func(no string) {
+		var id int64
+		te.db.Get(&id, `INSERT INTO sales (receipt_no, subtotal, total, paid_amount, change_given, status, cashier_id) VALUES ($1, 450, 450, 500, 50, 'completed', $2) RETURNING id`, no, who) //nolint:errcheck
+		te.db.MustExec(`INSERT INTO payments (sale_id, method, amount) VALUES ($1, 'cash', 500)`, id)
+	}
+	sale("T-NOTILL-1") // no till open
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"100": 1}}, ck)
+	sale("T-NOTILL-2") // inside the session: fine
+	d := decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin))
+	var flagged []NoTillSale
+	for _, s := range d.Attention.NoTillSales {
+		if s.ReceiptNo == "T-NOTILL-1" || s.ReceiptNo == "T-NOTILL-2" {
+			flagged = append(flagged, s)
+		}
+	}
+	if len(flagged) != 1 || flagged[0].ReceiptNo != "T-NOTILL-1" || flagged[0].Cash != "450.00" {
+		t.Fatalf("no-till sales %+v", flagged)
+	}
+	stale := func() bool {
+		for _, s := range decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin)).Attention.StaleTills {
+			if s.UserID == who {
+				return true
+			}
+		}
+		return false
+	}
+	if stale() {
+		t.Fatal("a till opened now isn't stale")
+	}
+	te.db.MustExec(`UPDATE cash_register SET opened_at = now() - interval '30 hours' WHERE user_id = $1 AND closed_at IS NULL`, who)
+	if !stale() {
+		t.Fatal("30 h old till should be flagged")
+	}
+}

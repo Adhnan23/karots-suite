@@ -150,6 +150,7 @@ type PresenceRow struct {
 	Label      string  `json:"label"` // "Windows · Chrome"
 	LastSeen   string  `json:"lastSeen"`
 	TillOpened *string `json:"tillOpened"` // their open till's opening time, null = none
+	TillStale  bool    `json:"tillStale"`  // that till is from an earlier day
 	SalesToday int     `json:"salesToday"`
 	// Serving: the cart changed in the last 5 min — no remote lock.
 	Serving bool `json:"serving"`

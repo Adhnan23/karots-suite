@@ -9,6 +9,7 @@ import (
 	"karots-suite/internal/backup"
 	"karots-suite/internal/datetime"
 	"karots-suite/internal/features/auth"
+	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/features/sales"
@@ -155,6 +156,40 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 		return a, err
 	}
 	a.BackupCopies = staleCopies(copies, now)
+	a.StaleTills, a.NoTillSales = []StaleTill{}, []NoTillSale{}
+	open, err := h.d.CashRegister.OpenSessions(ctx)
+	if err != nil {
+		return a, err
+	}
+	for _, s := range open {
+		if cashregister.Stale(s.OpenedAt, now) {
+			a.StaleTills = append(a.StaleTills, StaleTill{ID: s.ID, UserID: s.UserID, Cashier: s.UserName, OpenedAt: s.OpenedAt.Format(time.RFC3339)})
+		}
+	}
+	// Cash a till never saw: no session of that cashier spans the sale (never refused — flagged).
+	var orphans []struct {
+		ID        int64           `db:"id"`
+		ReceiptNo string          `db:"receipt_no"`
+		Cashier   string          `db:"cashier"`
+		At        time.Time       `db:"created_at"`
+		Cash      decimal.Decimal `db:"cash"`
+	}
+	if err := h.d.DB.SelectContext(ctx, &orphans, `
+		SELECT s.id, s.receipt_no, u.name AS cashier, s.created_at,
+		       (SELECT SUM(p.amount) FROM payments p WHERE p.sale_id = s.id AND p.method = 'cash') - s.change_given AS cash
+		FROM sales s JOIN users u ON u.id = s.cashier_id
+		WHERE s.created_at >= $1 AND s.status <> 'void'
+		  AND EXISTS (SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = 'cash')
+		  AND NOT EXISTS (SELECT 1 FROM cash_register cr WHERE cr.user_id = s.cashier_id
+		                  AND cr.opened_at <= s.created_at AND (cr.closed_at IS NULL OR cr.closed_at >= s.created_at))
+		ORDER BY s.created_at DESC LIMIT 20`, shopDay(now)); err != nil {
+		return a, err
+	}
+	for _, o := range orphans {
+		if o.Cash.IsPositive() {
+			a.NoTillSales = append(a.NoTillSales, NoTillSale{ID: o.ID, ReceiptNo: o.ReceiptNo, Cashier: o.Cashier, At: o.At.Format(time.RFC3339), Cash: dec2(o.Cash)})
+		}
+	}
 	return a, nil
 }
 
