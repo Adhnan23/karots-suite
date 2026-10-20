@@ -23,10 +23,8 @@ func linuxRemoveOpen(j *Job) error {
 	if err != nil {
 		return fmt.Errorf("can't find %s's home folder: %w", j.User, err)
 	}
-	run(j, "pkill", "-f", joinOS(j, j.Conf.InstallDir, "kiosk.sh")) //nolint:errcheck // not running = fine
-	run(j, "pkill", "-f", "[-]-kiosk")                              //nolint:errcheck
+	linuxNoKiosk(j, home)
 	for _, p := range []string{
-		filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop"),
 		filepath.Join(home, "Desktop", "karots-suite.desktop"),
 		filepath.Join(home, ".local", "share", "applications", "karots-suite.desktop"),
 		"/etc/chromium/policies/managed/karots-kiosk.json",

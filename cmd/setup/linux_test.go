@@ -290,3 +290,27 @@ func TestLinuxKioskSkipsSnap(t *testing.T) {
 		t.Fatalf("flatpak kiosk.sh:\n%s", k)
 	}
 }
+
+// Kiosk → background on an Update: the kiosk no longer opens at sign-in.
+func TestLinuxKioskToBackground(t *testing.T) {
+	j, rc, r := linuxJob(t, "file", false)
+	for _, p := range []string{"home/shop/.config/autostart/karots-kiosk.desktop", "opt/karots-suite/kiosk.sh"} {
+		os.MkdirAll(filepath.Dir(filepath.Join(r, p)), 0o755)
+		os.WriteFile(filepath.Join(r, p), []byte("x"), 0o644)
+	}
+	j.Updating, j.Conf.Open = true, "background"
+	if err := linuxOpen(j); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []string{"home/shop/.config/autostart/karots-kiosk.desktop", "opt/karots-suite/kiosk.sh"} {
+		if _, err := os.Stat(filepath.Join(r, p)); err == nil {
+			t.Errorf("%s still there", p)
+		}
+	}
+	if !strings.Contains(rc.all(), "pkill -f /opt/karots-suite/kiosk.sh") {
+		t.Errorf("running kiosk not closed:\n%s", rc.all())
+	}
+	if _, err := os.Stat(filepath.Join(r, "home/shop/Desktop/karots-suite.desktop")); err != nil {
+		t.Error("no desktop shortcut")
+	}
+}

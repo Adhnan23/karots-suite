@@ -16,6 +16,7 @@ func linuxOpen(j *Job) error {
 		return fmt.Errorf("can't find %s's home folder: %w", j.User, err)
 	}
 	if j.Role == RoleServer && j.Conf.Open == "background" {
+		linuxNoKiosk(j, home) // a shop switched from kiosk
 		entry := fmt.Sprintf("[Desktop Entry]\nType=Application\nName=Karots Suite\nComment=Open the till\nExec=xdg-open %s\nIcon=applications-office\nTerminal=false\n", j.tillURL())
 		for _, p := range []string{filepath.Join(home, "Desktop", "karots-suite.desktop"), filepath.Join(home, ".local", "share", "applications", "karots-suite.desktop")} {
 			if err := writeAs(j, p, []byte(entry), 0o755); err != nil {
@@ -65,6 +66,15 @@ done
 	}
 	entry := fmt.Sprintf("[Desktop Entry]\nType=Application\nName=Karots Suite Kiosk\nComment=Open the till full-screen at sign-in\nExec=%s\nTerminal=false\nX-GNOME-Autostart-enabled=true\n", kiosk)
 	return writeAs(j, filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop"), []byte(entry), 0o644)
+}
+
+// linuxNoKiosk closes and removes a kiosk set up before: the relaunch loop and
+// its browser, the script and the sign-in autostart.
+func linuxNoKiosk(j *Job, home string) {
+	run(j, "pkill", "-f", joinOS(j, j.Conf.InstallDir, "kiosk.sh")) //nolint:errcheck // not running = fine
+	run(j, "pkill", "-f", "[-]-kiosk")                              //nolint:errcheck
+	os.Remove(at(filepath.Join(home, ".config", "autostart", "karots-kiosk.desktop")))
+	os.Remove(at(joinOS(j, j.Conf.InstallDir, "kiosk.sh")))
 }
 
 // linuxBrowser is the kiosk browser: the user's default when it's Chrome-style
