@@ -105,7 +105,7 @@ func linuxBrowser(j *Job, home string) (cmd, family string) {
 		deb := "/tmp/karots-google-chrome.deb"
 		if _, err := run(j, "curl", "-fsSL", "-o", deb, "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"); err == nil {
 			run(j, "apt-get", "install", "-y", "-qq", deb) //nolint:errcheck // tried below
-			os.Remove(at(deb))                                 //nolint:errcheck
+			os.Remove(at(deb))                             //nolint:errcheck
 		}
 	}
 	return find()

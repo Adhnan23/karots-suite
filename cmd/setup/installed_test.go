@@ -65,3 +65,28 @@ func TestUpdatePageChoiceWins(t *testing.T) {
 		t.Fatalf("page pick lost: %s", j.backupDir())
 	}
 }
+
+func TestInstalledMode(t *testing.T) {
+	server := t.TempDir()
+	os.WriteFile(filepath.Join(server, ".env"), []byte("DATABASE_URL=postgres://x\n"), 0o600)
+	file := t.TempDir()
+	os.WriteFile(filepath.Join(file, ".env"), []byte("SERVER_PORT=3000\n"), 0o600)
+	os.Mkdir(filepath.Join(file, "data"), 0o755)
+	for dir, want := range map[string]string{server: "server", file: "file", t.TempDir(): ""} {
+		if got := installedMode(dir); got != want {
+			t.Errorf("%s: %q, want %q", dir, got, want)
+		}
+	}
+}
+
+// Server → file: the installed DATABASE_URL must not survive the Update, or the
+// shop quietly stays on the server.
+func TestApplyInstalledDropsDatabaseURL(t *testing.T) {
+	got, kept := applyInstalled(conf("linux", "file", false), map[string]string{"DATABASE_URL": "postgres://old", "MY_LINE": "x"}, "")
+	if _, ok := got.Env["DATABASE_URL"]; ok || got.Env["MY_LINE"] != "x" {
+		t.Fatalf("env %v", got.Env)
+	}
+	if slices.Contains(kept, "DATABASE_URL") {
+		t.Fatalf("kept %v", kept)
+	}
+}

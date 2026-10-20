@@ -186,6 +186,11 @@ func newJob(ch Choice) (*Job, error) {
 		return nil, err
 	}
 	j.Updating, j.Kept = updating, kept
+	if updating && j.Role != RoleCashier {
+		if m := installedMode(c.InstallDir); m != "" && m != c.Mode {
+			j.FromMode = m
+		}
+	}
 	return j, nil
 }
 

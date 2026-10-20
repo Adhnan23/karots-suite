@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -15,6 +16,10 @@ import (
 // shop); the PC owns its backup choices, kiosk / background and any line added
 // to .env by hand.
 var pcOwned = []string{"BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP"}
+
+// builderOwned is never kept from this PC, even when install.conf leaves it
+// out: a server → file Update that kept DATABASE_URL stayed on the server.
+var builderOwned = []string{"DATABASE_URL"}
 
 // choicesFile remembers what was picked on this PC (kiosk / background).
 const choicesFile = "setup.json"
@@ -65,6 +70,9 @@ func applyInstalled(c shopconf.Conf, installed map[string]string, open string) (
 	}
 	var kept []string
 	for k, v := range installed {
+		if slices.Contains(builderOwned, k) {
+			continue
+		}
 		_, builder := c.Env[k]
 		pc := false
 		for _, o := range pcOwned {
@@ -90,4 +98,18 @@ func applyInstalled(c shopconf.Conf, installed map[string]string, open string) (
 func saveChoices(j *Job) error {
 	raw, _ := json.Marshal(map[string]string{"open": j.Conf.Open})
 	return os.WriteFile(at(joinOS(j, j.Conf.InstallDir, choicesFile)), raw, 0o644)
+}
+
+// installedMode is how the installed shop is kept: "server" (its .env has a
+// DATABASE_URL), "file" (no DATABASE_URL, a data folder beside the program) or
+// "" (not installed / can't tell).
+func installedMode(installDir string) string {
+	env := readEnvFile(filepath.Join(installDir, ".env"))
+	if env["DATABASE_URL"] != "" {
+		return "server"
+	}
+	if st, err := os.Stat(filepath.Join(installDir, "data")); env != nil && err == nil && st.IsDir() {
+		return "file"
+	}
+	return ""
 }
