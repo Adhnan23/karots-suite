@@ -14,7 +14,8 @@ Backups here… → Restore); dashboard warns (admins) when a copy is over a day
 to" field; Bring back a shop lists the copy folder's and Karots cloud's backups. Bucket setup:
 `docs/cloud-backup-bucket.md`. Bucket `karots-suite-backups` made 2026-10-20 (30-day delete + 30-day lock; its public
 r2.dev URL should stay **off**), keys in the root `.env`. **Checked (user, Xubuntu VM, 2026-10-20):** cloud on
-`test-linux` → Copy now → in the bucket → uninstall → reinstall brought the shop back from Karots cloud. Added on the way:
+`test-linux` → Copy now → in the bucket → uninstall → reinstall brought the shop back from Karots cloud. **No per-OS re-test (user, 2026-10-20):** one VM is enough —
+the copy / cloud code is OS-neutral; the OS-specific parts (paths, Setup) were already checked on each OS. Added on the way:
 Data page **Choose…** folder browser (`internal/folders`, shared with Setup); Setup's Bring back a shop is a card list
 (newest picked by default, place per card, Karots cloud styled apart). **A changed profile (e.g. the cloud tick) needs
 Setup → Update at the shop** — the Data page's Update swaps the program only.
