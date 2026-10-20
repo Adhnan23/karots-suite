@@ -5,7 +5,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
+	"karots-suite/internal/backup"
 	"karots-suite/internal/shopconf"
 )
 
@@ -141,6 +144,12 @@ func Steps(j *Job) []Step {
 			Detail: func(j *Job) string {
 				if j.Restore == "" {
 					return "Bring the shop back from that backup"
+				}
+				if name, ok := strings.CutPrefix(j.Restore, cloudPrefix); ok {
+					if t, err := time.ParseInLocation("20060102-150405", strings.TrimSuffix(name, backup.SealedSuffix), time.Local); err == nil {
+						name = t.Format("Mon 2 Jan, 15:04")
+					}
+					return "Download the Karots cloud backup of " + name + ", then bring the shop back from it"
 				}
 				return "Bring back the shop from " + backupName(j.Restore)
 			}},

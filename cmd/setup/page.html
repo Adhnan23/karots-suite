@@ -67,6 +67,21 @@ code { font: 600 14px var(--mono); }
 .grow { flex: 1; min-width: 0; }
 select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2); color: var(--fg); font: 15px var(--mono); }
 select option { background: var(--bg); }
+.backups { display: grid; gap: 8px; margin-top: 6px; }
+.backups .role { padding: 12px 14px; align-items: center; }
+.backups .role .ico { font-size: 22px; }
+.backups .role b { font-size: 15px; }
+.tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; vertical-align: 1px;
+  background: var(--card-2); color: var(--muted); }
+.tag.new { background: rgb(52 211 153 / .16); color: var(--ok); }
+.tag.cloud { background: linear-gradient(135deg, var(--brand), var(--cyan)); color: var(--brand-fg); }
+/* Karots cloud is the paid copy: a gradient edge and a soft glow (opaque inner layers keep the edge only). */
+.backups .role.cloud { border-color: transparent; box-shadow: 0 8px 26px rgb(47 213 230 / .13);
+  background: linear-gradient(var(--card-2), var(--card-2)) padding-box, linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(135deg, var(--brand), var(--cyan)) border-box; }
+.backups .role.cloud[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--brand-soft), 0 10px 30px rgb(139 123 255 / .28);
+  background: linear-gradient(var(--brand-soft), var(--brand-soft)) padding-box, linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(135deg, var(--brand), var(--cyan)) border-box; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 64px); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;
   background: #141a2e; color: var(--fg); }
@@ -126,10 +141,10 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
       </div>
     </div>
     <div id="restorePanel" hidden>
-      <label class="f" for="restore">Bring back a shop</label>
-      <select id="restore"></select>
+      <label class="f" id="restoreLabel">Bring back a shop</label>
+      <div class="backups" id="restoreList" role="radiogroup" aria-labelledby="restoreLabel"></div>
       <div class="addr"><input id="restorePath" placeholder="Or a backup somewhere else (a USB stick…)" autocomplete="off" spellcheck="false"><button class="btn" id="pickFile">Choose…</button></div>
-      <div class="hint">Moving from another PC? Put its backup next to Setup, or pick it here. Leave it on "Start a new shop" otherwise.</div>
+      <div class="hint">The newest backup is picked — the shop comes back as it was. Moving from another PC? Put its backup next to Setup, or pick it here. "Start a new shop" begins empty.</div>
       <div class="hint bad" id="cloudNote" hidden></div>
     </div>
     <div id="cashier" hidden>
@@ -170,16 +185,59 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 const $ = (id) => document.getElementById(id)
 const token = new URLSearchParams(location.search).get('t') || ''
 const H = { 'X-Setup-Token': token, 'Content-Type': 'application/json' }
-const st = { role: 'server', plan: null, running: false, open: '', backup: '', uninstall: false, pickFor: 'backupDir' }
+const st = { role: 'server', plan: null, running: false, open: '', backup: '', uninstall: false, pickFor: 'backupDir', restore: '', allBackups: false }
 const choice = () => {
   if (!st.plan) return { role: st.role, address: $('address').value.trim(), open: st.open } // first load: the shop's / this PC's values
   const main = st.role === 'server', d = st.plan.defaults
   const dir = $('backupDir').value.trim(), copyDir = $('copyDir').value.trim(), every = $('every').value, keep = parseInt($('keep').value, 10) || 0
-  const keepDir = $('keepDir').value.trim(), restore = $('restorePath').value.trim() || $('restore').value
+  const keepDir = $('keepDir').value.trim(), restore = $('restorePath').value.trim() || st.restore
   return { role: st.role, address: $('address').value.trim(), open: st.open,
     backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0, copyDir: main && copyDir !== d.copyDir ? copyDir : '',
     uninstall: st.uninstall, removePostgres: st.uninstall && $('removePg').checked, changeMode: $('changeMode').checked,
     restore: main && !st.uninstall && !st.plan.updating ? restore : '', keepDir: keepDir !== d.keepDir ? keepDir : '' }
+}
+
+// drawBackups lists the backups to bring back as cards: newest first (a local one before the
+// same backup in the cloud), where it is, how old, and "Start a new shop" last.
+const PLACES = { beside: ['📦', 'Next to Setup'], '': ['🖥', 'On this PC'], copy: ['💾', 'Copy folder'], cloud: ['☁️', 'Karots cloud'] }
+const SHOWN = 4
+function ago(d) {
+  const m = Math.round((Date.now() - new Date(d)) / 60000)
+  return m < 60 ? Math.max(m, 0) + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + (m < 2880 ? ' day ago' : ' days ago')
+}
+function drawBackups() {
+  const el = $('restoreList'), bs = (st.plan && st.plan.backups) || [], typed = $('restorePath').value.trim()
+  el.innerHTML = ''
+  const card = (value, ico, title, sub, tags, cls = '') => {
+    const b = document.createElement('button')
+    b.type = 'button'; b.className = 'role ' + cls; b.setAttribute('role', 'radio')
+    const on = !typed && st.restore === value
+    b.setAttribute('aria-pressed', on); b.setAttribute('aria-checked', on)
+    b.innerHTML = `<span class="ico"></span><span><b></b><small></small></span>`
+    b.querySelector('.ico').textContent = ico
+    b.querySelector('b').textContent = title
+    b.querySelector('b').insertAdjacentHTML('beforeend', tags)
+    b.querySelector('small').textContent = sub
+    b.onclick = () => { st.restore = value; $('restorePath').value = ''; drawBackups(); plan() }
+    el.append(b)
+  }
+  const shown = st.allBackups ? bs : bs.slice(0, SHOWN)
+  if (bs.length && !st.allBackups && !shown.some((b) => b.path === st.restore) && st.restore) shown.push(bs.find((b) => b.path === st.restore) || bs[0])
+  shown.forEach((b) => {
+    const [ico, where] = PLACES[b.besideSetup ? 'beside' : b.place || '']
+    const when = new Date(b.modified).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    const cloud = b.place === 'cloud'
+    const tags = (cloud ? '<span class="tag cloud">Karots cloud</span>' : '') + (b === bs[0] ? '<span class="tag new">Newest</span>' : '')
+    const sub = cloud ? 'Encrypted copy, kept 30 days — downloaded, then brought back' : where + ' — ' + b.name
+    card(b.path, ico, when + ' · ' + ago(b.modified), sub, tags, cloud ? 'cloud' : '')
+  })
+  if (bs.length > shown.length) {
+    const more = document.createElement('button')
+    more.type = 'button'; more.className = 'btn'; more.textContent = 'Show all ' + bs.length + ' backups'
+    more.onclick = () => { st.allBackups = true; drawBackups() }
+    el.append(more)
+  }
+  card('', '✨', 'Start a new shop', bs.length ? 'An empty shop — the backups above stay where they are.' : 'No backup found on this PC, a copy folder or Karots cloud.', '')
 }
 
 async function plan() {
@@ -190,15 +248,10 @@ async function plan() {
   if (!st.plan) {
     st.open = p.open; $('backupDir').value = p.backupDir; $('every').value = p.backupEvery; $('keep').value = p.backupKeep; $('keepDir').value = p.keepDir; $('copyDir').value = p.copyDir
     p.defaults = { dir: p.backupDir, every: p.backupEvery, keep: p.backupKeep, keepDir: p.keepDir, copyDir: p.copyDir }
-    // A backup put next to Setup means "bring this one back"; one only found in the backups folder is offered, not picked.
-    $('restore').innerHTML = '<option value="">Start a new shop</option>'
-    for (const b of p.backups || []) {
-      const o = document.createElement('option'); o.value = b.path
-      o.textContent = b.name + ' — ' + new Date(b.modified).toLocaleString() + (b.besideSetup ? ' (next to Setup)' : b.place === 'copy' ? ' (copy folder)' : b.place === 'cloud' ? ' (Karots cloud)' : '')
-      $('restore').append(o)
-    }
-    const beside = (p.backups || []).find((b) => b.besideSetup)
-    if (beside) { $('restore').value = beside.path; st.plan = p; return plan() } // the steps then include bringing it back
+    // A backup is there (next to Setup, on this PC, the copy folder, Karots cloud): bring it back —
+    // the one next to Setup, else the newest. "Start a new shop" is the last choice.
+    const bs = p.backups || [], beside = bs.find((b) => b.besideSetup)
+    if (!p.updating && bs.length) { st.restore = (beside || bs[0]).path; st.plan = p; drawBackups(); return plan() } // the steps then include bringing it back
   } else p.defaults = st.plan.defaults
   st.plan = p
   for (const b of document.querySelectorAll('[data-open]')) b.setAttribute('aria-pressed', b.dataset.open === st.open)
@@ -213,6 +266,7 @@ async function plan() {
   $('uninstall').textContent = st.uninstall ? '← Back' : 'Uninstall Karots from this PC…'
   $('mainOpts').hidden = !main || st.uninstall
   $('restorePanel').hidden = !main || p.updating || st.uninstall
+  drawBackups()
   $('cloudNote').hidden = !p.cloudNote; $('cloudNote').textContent = p.cloudNote || ''
   const words2 = { file: 'One PC', server: 'Server' }
   $('modePanel').hidden = !p.fromMode || st.uninstall || !main
@@ -318,7 +372,7 @@ async function browse(path) {
   for (const n of f.folders) { const b = document.createElement('button'); b.textContent = '📁 ' + n; b.onclick = () => browse(join(n)); $('pkList').append(b) }
   if (st.pickFor === 'restorePath') for (const n of f.files) {
     const b = document.createElement('button'); b.textContent = '🗄 ' + n
-    b.onclick = () => { $('restorePath').value = join(n); $('picker').close(); plan() }
+    b.onclick = () => { $('restorePath').value = join(n); $('picker').close(); drawBackups(); plan() }
     $('pkList').append(b)
   }
   if (!f.folders.length && !(st.pickFor === 'restorePath' && f.files.length)) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '10px 12px'; e.textContent = st.pickFor === 'restorePath' ? 'No backups here — open another folder.' : 'No folders here — make one below, or use this one.'; $('pkList').append(e) }
@@ -345,8 +399,7 @@ $('address').onchange = plan
 $('keepDir').onchange = plan
 $('removePg').onchange = plan
 $('changeMode').onchange = plan
-$('restore').onchange = plan
-$('restorePath').onchange = plan
+$('restorePath').onchange = () => { drawBackups(); plan() }
 $('uninstall').onclick = () => { st.uninstall = !st.uninstall; plan() }
 $('test').onclick = test
 $('go').onclick = install
