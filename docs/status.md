@@ -27,7 +27,12 @@ Update (no kiosk after restart, till on :3000).
 **Xubuntu fully checked (user, 2026-10-20):** uninstall, install with a backup, One PC ⇄ Server, kiosk → background,
 uninstall with "Also remove PostgreSQL" (server gone; client tools now removed too, `63bdb50`). Fixed on the way: an
 installed program older than `-backup` (new program backs up, `e6612c4`); first backup try failing (Setup retries,
-`136cd30`, cause not pinned). **Next: Fedora XFCE, then Arch XFCE**, then M8c2.
+`136cd30`, cause not pinned).
+**Fedora XFCE fully checked (user, 2026-10-20, fresh VM):** USB double-click + pkexec box, kiosk (Fedora's Firefox),
+F12 / Konami / `pkill` comes back, firewalld port, uninstall, install with a backup, One PC ⇄ Server, background,
+uninstall with "Also remove PostgreSQL" (no packages, no service, port closed, backups kept). Fixed on the way:
+`postgresql-contrib` for pg_trgm (`948129f` — Fedora's postgresql lacks it; the first migration failed).
+**Next: Arch XFCE**, then M8c2.
 **Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
 server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
