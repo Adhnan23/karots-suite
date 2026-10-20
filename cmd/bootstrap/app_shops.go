@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"karots-suite/internal/backup"
 )
 
 // shopsCfg is where the app keeps shop profiles and puts shop builds.
@@ -23,6 +25,7 @@ type shopsCfg struct {
 	Env   string
 	Store func(log io.Writer) (store, error)
 	Dirty func() (bool, error)
+	Cloud func() (backup.CloudStore, error) // Karots cloud (default from .env; a fake in tests)
 }
 
 // mountShops adds the shop-profile routes. Every POST is JSON-only (jsonOnly);
@@ -240,6 +243,7 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 		})
 	})
 	mountRelease(mux, all, b, cfg, busy, &mu, decode, runOne)
+	mountCloudBackups(mux, cfg, &mu, decode)
 
 	// Build all: every shop in key order; one failing doesn't stop the rest.
 	mux.HandleFunc("POST /api/shops/build-all", func(w http.ResponseWriter, r *http.Request) {
@@ -293,6 +297,9 @@ func mergeShop(old, in Shop) (Shop, error) {
 	m.Name, m.OS, m.Arch, m.Plugins, m.Port, m.Install, m.Backups = in.Name, in.OS, in.Arch, in.Plugins, in.Port, in.Install, in.Backups
 	if m.Plugins == nil {
 		m.Plugins = []string{}
+	}
+	if m.Backups.Cloud && m.CloudKey == "" {
+		m.CloudKey = randHex(32) // first tick; kept after, or old cloud copies won't open
 	}
 	if m.Mode == "file" && in.FileDBPort != 0 {
 		m.FileDBPort = in.FileDBPort

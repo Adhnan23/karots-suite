@@ -90,3 +90,14 @@ func TestApplyInstalledDropsDatabaseURL(t *testing.T) {
 		t.Fatalf("kept %v", kept)
 	}
 }
+
+// Karots cloud is the Builder's: an Update without it switches it off at the
+// shop; the copy folder chosen on this PC stays.
+func TestApplyInstalledCloudAndCopyDir(t *testing.T) {
+	c := conf("linux", "file", true)
+	installed := map[string]string{"CLOUD_BACKUP": "on", "CLOUD_BACKUP_SECRET": "s", "CLOUD_BACKUP_CRYPT": "k", "BACKUP_COPY_DIR": "/media/usb/k"}
+	got, _ := applyInstalled(c, installed, "")
+	if _, ok := got.Env["CLOUD_BACKUP"]; ok || got.Env["CLOUD_BACKUP_SECRET"] != "" || got.Env["BACKUP_COPY_DIR"] != "/media/usb/k" {
+		t.Fatalf("%v", got.Env)
+	}
+}

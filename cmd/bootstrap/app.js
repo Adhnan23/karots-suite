@@ -141,12 +141,13 @@ async function loadShops() {
       <div class="chips"><span class="chip">${esc(sh.os)}/${esc(sh.arch)}</span><span class="chip">${sh.mode === 'file' ? 'one PC' : 'server'}</span>
       <span class="chip">:${sh.port}</span><span class="chip">${sh.plugins.length ? sh.plugins.length + ' plugins' : 'core only'}</span>
       <span class="chip">${sh.install.open}</span>${warns}</div><div class="chips">${state}</div><div class="hint">${esc(last)}</div></div>
-      <div class="acts"><button class="btn primary" data-a="release">Release…</button>${unpublished ? '<button class="btn" data-a="publish">Publish</button>' : ''}<button class="btn" data-a="build">Test build</button><button class="btn" data-a="edit">Edit</button>
+      <div class="acts"><button class="btn primary" data-a="release">Release…</button>${unpublished ? '<button class="btn" data-a="publish">Publish</button>' : ''}<button class="btn" data-a="build">Test build</button><button class="btn" data-a="edit">Edit</button>${sh.cloudKey ? '<button class="btn" data-a="cloud">Cloud backups</button>' : ''}
       <button class="btn" data-a="env">.env</button><button class="btn danger" data-a="del">Delete</button></div>`
     row.querySelector('[data-a=build]').onclick = (e) => stream(`/api/shops/${sh.key}/build`, { installer: $('installer').checked, postgres: $('postgres').checked }, e.target, loadShops)
     row.querySelector('[data-a=release]').onclick = (e) => release(sh, e.target)
     if (unpublished) row.querySelector('[data-a=publish]').onclick = (e) => stream(`/api/shops/${sh.key}/publish`, {}, e.target, loadShops)
     row.querySelector('[data-a=edit]').onclick = () => edit(sh)
+    if (sh.cloudKey) row.querySelector('[data-a=cloud]').onclick = () => cloudBackups(sh)
     row.querySelector('[data-a=env]').onclick = () => downloadEnv(sh.key)
     row.querySelector('[data-a=del]').onclick = () => del(sh)
     el.append(row)
@@ -164,6 +165,28 @@ async function release(sh, btn) {
     const body = { installer: $('installer').checked, postgres: $('postgres').checked, notes: $('relNotes').value }
     stream(sh ? `/api/shops/${sh.key}/release` : '/api/shops/release-all', body, btn, loadShops)
   }
+}
+// cloudBackups lists a shop's Karots cloud copies; Download opens one into dist/<key>/.
+async function cloudBackups(sh) {
+  $('cbTitle').textContent = 'Karots cloud — ' + sh.name
+  const el = $('cbList'); el.textContent = 'Looking…'
+  $('cb').showModal()
+  try {
+    const list = await api(`/api/shops/${sh.key}/cloud-backups`, {})
+    el.innerHTML = list.length ? '' : '<div class="empty">No cloud backups yet — the shop sends one about once a day.</div>'
+    for (const b of list) {
+      const row = document.createElement('div'); row.className = 'envrow'
+      row.innerHTML = `<div><b>${esc(new Date(b.modifiedAt).toLocaleString())}</b> <span class="hint">${(b.size / 1048576).toFixed(1)} MB</span></div><span></span><button class="btn" type="button">Download</button>`
+      row.querySelector('button').onclick = async (e) => {
+        e.target.disabled = true
+        try {
+          const r = await api(`/api/shops/${sh.key}/cloud-backups/fetch`, { name: b.name })
+          e.target.textContent = 'Saved'; alert('Saved to ' + r.path)
+        } catch (err) { alert(err.message) } finally { e.target.disabled = false }
+      }
+      el.append(row)
+    }
+  } catch (e) { el.innerHTML = `<div class="err">${esc(e.message)}</div>` }
 }
 async function downloadEnv(key) {
   try {
@@ -251,7 +274,9 @@ function renderEdit() {
         <div><label class="f" for="eBkEvery">Back up every</label><select id="eBkEvery" class="sel">${['1h', '3h', '6h', '12h', '24h'].map((v) => `<option value="${v}" ${(c.backups?.every || '6h') === v ? 'selected' : ''}>${v.replace('h', ' hours').replace(/^1 hours$/, '1 hour')}</option>`).join('')}</select></div>
         ${field('eBkKeep', 'Keep the newest', c.backups?.keep || 28, 'inputmode="numeric"')}
       </div>
-      <div class="hint">Empty folder = the default shown. The shop can change all three in Setup; extra copies to USB / S3 come later.</div>
+      <div class="fields">${field('eBkCopy', 'Also copy backups to (optional)', c.backups?.copyDir || '', `placeholder="${c.os === 'windows' ? 'E:\\Karots copies' : '/media/usb/Karots copies'}"`)}</div>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="eBkCloud" ${c.backups?.cloud ? 'checked' : ''}> Karots cloud backup (paid) — a locked copy about once a day, kept 30 days</label>
+      <div class="hint">Empty folder = the default shown. The shop can change the folders in Setup and on its Data page; a USB stick or network folder catches up when it is plugged back in. Karots cloud needs CLOUD_BACKUP_* in this .env.</div>
     </div>
     <div class="sec"><h2>More settings</h2>
       <div id="eEnv"></div><button class="btn" type="button" id="eEnvAdd" style="margin-top:8px">+ Add setting</button>
@@ -301,7 +326,7 @@ function read() {
     c.jwtSecret = keep('eJwt')
   }
   if ($('eFilePort')) c.fileDbPort = num('eFilePort')
-  c.backups = { dir: v('eBkDir'), every: $('eBkEvery').value, keep: num('eBkKeep') }
+  c.backups = { dir: v('eBkDir'), every: $('eBkEvery').value, keep: num('eBkKeep'), copyDir: v('eBkCopy'), cloud: $('eBkCloud').checked }
   c.envList = [...$('eEnv').querySelectorAll('.envrow')].map((r) => [...r.querySelectorAll('input')].map((i) => i.value.trim()))
   c.env = Object.fromEntries(c.envList.filter(([k]) => k))
 }
@@ -352,6 +377,7 @@ $('tQuick').onclick = () => view('vQuick')
 $('newShop').onclick = newShop
 $('releaseAll').onclick = (e) => release(null, e.target)
 $('relCancel').onclick = () => $('rel').close()
+$('cbClose').onclick = () => $('cb').close()
 $('buildAll').onclick = (e) => {
   if (confirm('Test build every shop now, one after another' + ($('installer').checked ? ' (with the installer)' : '') + '? Nothing is uploaded. A shop that fails is listed at the end; the rest still build.'))
     stream('/api/shops/build-all', { installer: $('installer').checked, postgres: $('postgres').checked }, e.target, loadShops)

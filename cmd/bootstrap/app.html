@@ -142,6 +142,12 @@ dialog.rel textarea { width: 100%; box-sizing: border-box; min-height: 180px; ma
     <textarea id="relNotes" spellcheck="true"></textarea>
     <div class="bar"><button class="btn" id="relCancel">Cancel</button><button class="btn primary" id="relGo">Release</button></div>
   </dialog>
+  <dialog class="rel" id="cb">
+    <h2 id="cbTitle">Karots cloud backups</h2>
+    <div class="hint">Newest first, kept 30 days. Download saves one, opened, into the shop's dist folder — carry it to the PC with Setup (Bring back a shop).</div>
+    <div id="cbList"></div>
+    <div class="bar"><button class="btn" id="cbClose">Close</button></div>
+  </dialog>
   <section id="vQuick" hidden>
   <div class="grid">
     <section class="panel">

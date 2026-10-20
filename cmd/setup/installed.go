@@ -15,11 +15,13 @@ import (
 // ports and its More settings (install.conf has them — a Rotate must reach the
 // shop); the PC owns its backup choices, kiosk / background and any line added
 // to .env by hand.
-var pcOwned = []string{"BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP"}
+var pcOwned = []string{"BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP", "BACKUP_COPY_DIR"}
 
 // builderOwned is never kept from this PC, even when install.conf leaves it
 // out: a server → file Update that kept DATABASE_URL stayed on the server.
-var builderOwned = []string{"DATABASE_URL"}
+// Karots cloud likewise: unticked in the Builder means off at the shop.
+var builderOwned = []string{"DATABASE_URL", "CLOUD_BACKUP_URL", "CLOUD_BACKUP_KEY_ID", "CLOUD_BACKUP_SECRET",
+	"CLOUD_BACKUP_FOLDER", "CLOUD_BACKUP_CRYPT", "CLOUD_BACKUP"}
 
 // choicesFile remembers what was picked on this PC (kiosk / background).
 const choicesFile = "setup.json"

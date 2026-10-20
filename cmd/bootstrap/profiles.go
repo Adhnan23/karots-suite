@@ -61,7 +61,17 @@ type ShopBackups struct {
 	Dir   string `json:"dir,omitempty"`
 	Every string `json:"every,omitempty"` // a Go duration: 1h, 6h, 24h
 	Keep  int    `json:"keep,omitempty"`
+	// CopyDir is the copy folder preset (USB / share, M8c2); after the first
+	// start the shop's Data page owns it.
+	CopyDir string `json:"copyDir,omitempty"`
+	// Cloud: a paying shop's backups also go to Karots cloud (the Builder's
+	// CLOUD_BACKUP_* bucket, sealed with the shop's CloudKey).
+	Cloud bool `json:"cloud,omitempty"`
 }
+
+// cloudEnv is the Builder's own Karots cloud bucket (.env); a shop's build
+// carries it when Karots cloud is ticked.
+var cloudEnv = []string{"CLOUD_BACKUP_URL", "CLOUD_BACKUP_KEY_ID", "CLOUD_BACKUP_SECRET"}
 
 const (
 	defaultBackupEvery = "6h"
@@ -96,6 +106,9 @@ type Shop struct {
 	Env        map[string]string `json:"env,omitempty"` // extra .env keys
 	LastBuilt  *Built            `json:"lastBuilt,omitempty"`
 	Published  *Published        `json:"published,omitempty"` // what its bucket folder holds (M8c)
+	// CloudKey seals the shop's Karots cloud backups (64 hex): made on the first
+	// tick and never rotated — older cloud copies open only with it.
+	CloudKey string `json:"cloudKey,omitempty"`
 }
 
 type Shops struct {
@@ -114,7 +127,8 @@ var (
 	secretKey  = regexp.MustCompile(`SECRET|PASSWORD|KEY|TOKEN`)
 	// Keys a shop's env may not carry: the support secret is baked, never shipped;
 	// a fixed PIN defeats the rotation; the rest come from the profile's fields.
-	refusedEnv = []string{"POS_SUPPORT_SECRET", "POS_SYSTEM_PIN", "APP_ENV", "SERVER_PORT", "DATABASE_URL", "JWT_SECRET", "BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP", "FILE_DB_PORT"}
+	refusedEnv = []string{"POS_SUPPORT_SECRET", "POS_SYSTEM_PIN", "APP_ENV", "SERVER_PORT", "DATABASE_URL", "JWT_SECRET", "BACKUP_DIR", "BACKUP_INTERVAL", "BACKUP_KEEP", "FILE_DB_PORT",
+		"BACKUP_COPY_DIR", "CLOUD_BACKUP_URL", "CLOUD_BACKUP_KEY_ID", "CLOUD_BACKUP_SECRET", "CLOUD_BACKUP_FOLDER", "CLOUD_BACKUP_CRYPT", "CLOUD_BACKUP"}
 )
 
 // LoadShops reads path; a missing file is an empty list.
@@ -249,8 +263,21 @@ func (s Shop) Check(all []manifest) (warnings []string, err error) {
 	case strings.TrimSpace(s.Install.Dir) == "":
 		return nil, fmt.Errorf("%s: the install folder is empty", s.Key)
 	}
-	if d := s.Backups.Dir; d != "" && !(s.OS == "windows" && len(d) >= 3 && d[1] == ':' && (d[2] == '\\' || d[2] == '/') || s.OS != "windows" && strings.HasPrefix(d, "/")) {
+	if d := s.Backups.Dir; d != "" && !s.fullPath(d) {
 		return nil, fmt.Errorf("%s: the backup folder must be a full path (e.g. %s)", s.Key, map[bool]string{true: `D:\Karots backups`, false: "/home/backups/karots"}[s.OS == "windows"])
+	}
+	if d := s.Backups.CopyDir; d != "" && !s.fullPath(d) {
+		return nil, fmt.Errorf("%s: the copy folder must be a full path (e.g. %s)", s.Key, map[bool]string{true: `E:\Karots copies`, false: "/media/usb/Karots copies"}[s.OS == "windows"])
+	}
+	if d := s.Backups.CopyDir; d != "" && strings.EqualFold(strings.TrimRight(d, `/\`), strings.TrimRight(s.Conf("").Env["BACKUP_DIR"], `/\`)) {
+		return nil, fmt.Errorf("%s: the copy folder is where the backups already are — pick another (a USB stick, a network folder)", s.Key)
+	}
+	if s.Backups.Cloud {
+		for _, k := range cloudEnv {
+			if os.Getenv(k) == "" {
+				return nil, fmt.Errorf("%s: Karots cloud needs %s in the Builder's .env (see docs/cloud-backup-bucket.md)", s.Key, strings.Join(cloudEnv, ", "))
+			}
+		}
 	}
 	if e := s.Backups.Every; e != "" {
 		if d, err := time.ParseDuration(e); err != nil || d < 30*time.Minute {
@@ -328,10 +355,27 @@ func (s Shop) Conf(binary string) shopconf.Conf {
 	if s.Backups.Keep > 0 {
 		c.Env["BACKUP_KEEP"] = strconv.Itoa(s.Backups.Keep)
 	}
+	if s.Backups.CopyDir != "" {
+		c.Env["BACKUP_COPY_DIR"] = s.Backups.CopyDir
+	}
+	if s.Backups.Cloud {
+		for _, k := range cloudEnv {
+			c.Env[k] = os.Getenv(k)
+		}
+		c.Env["CLOUD_BACKUP_FOLDER"], c.Env["CLOUD_BACKUP_CRYPT"], c.Env["CLOUD_BACKUP"] = s.Key, s.CloudKey, "on"
+	}
 	for k, v := range s.Env {
 		c.Env[k] = v
 	}
 	return c
+}
+
+// fullPath is an absolute path on the shop's OS.
+func (s Shop) fullPath(d string) bool {
+	if s.OS == "windows" {
+		return len(d) >= 3 && d[1] == ':' && (d[2] == '\\' || d[2] == '/')
+	}
+	return strings.HasPrefix(d, "/")
 }
 
 func hostPort(host string, port int) string {
@@ -347,6 +391,9 @@ func (s Shop) Masked() Shop {
 	m.ParkedDB = nil // never on the page
 	if m.JWTSecret != "" {
 		m.JWTSecret = maskedValue
+	}
+	if m.CloudKey != "" {
+		m.CloudKey = maskedValue
 	}
 	if s.DB != nil {
 		db := *s.DB
