@@ -12,8 +12,15 @@ Fix found there (`ce240a2`): the Linux kiosk uses a **system browser only** — 
 (Ubuntu's apt chromium / firefox are snaps: slow start, can't use `~/.karots-kiosk`); none → apt chromium (Debian,
 Mint), Google Chrome's `.deb` (Ubuntu), dnf / pacman chromium. Setup installs `curl` (kiosk.sh's till wait ran its full
 2 min without it). Setup has no Uninstall: a VM is cleaned by hand (service, `/opt/karots-suite`, autostart, policies).
-**Next: Fedora XFCE, then Arch XFCE** (VMs ready) — the same checks (unchecked so far on Linux: USB double-click /
-pkexec box, `sudo pkill karots-suite` comes back, Konami exit, DevTools off in the Chrome kiosk):
+**Setup Uninstall / Move / Mode change is built** (2026-10-20, spec `docs/specs/2026-10-20-m8-setup-uninstall-move-design.md`,
+plan `docs/plans/2026-10-20-m8-setup-uninstall-move.md`; unit-tested + `-dry` page looked at, **not yet run on a VM**).
+**Next (user, VMs):** the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
+Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
+server via Release + Setup Update (same data; `DATABASE_URL` gone / `data-before-server-<date>` left) → Uninstall with
+"Also remove PostgreSQL"; Windows: uninstall + bring back + one mode change.
+**Then Fedora XFCE, then Arch XFCE** (VMs ready) — the same checks, now using Uninstall between runs (unchecked so far on
+Linux: USB double-click / pkexec box, `sudo pkill karots-suite` comes back, Konami exit, DevTools off in the Chrome
+kiosk). **Then M8c2 Backup copies.** The old numbered list below is the earlier Linux plan:
 1. **File mode:** Release a Linux file-mode shop (Add installer) → USB stick → double-click `karots-setup` (exec bit,
    pkexec password box — the M8b item never verified) → Install → restart: kiosk till appears (time it) → Konami exit →
    Release again → Data → Check now → Update → `sudo pkill karots-suite` comes back (systemd).

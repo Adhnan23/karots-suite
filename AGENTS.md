@@ -32,14 +32,17 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 ## Layout
 
 ```
-cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin);
+cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init -support-pin; -backup <dir> /
+                      -restore <file> for Setup — the till must be stopped);
                       enabled_plugins.go is GENERATED (committed core-only)
 cmd/bootstrap/        Shop Builder: no flags = browser app — the shop list (shops.json profiles: plugins, OS,
                       database mode, ports, secrets, install id, channel) + Quick build; -shop <key|all>, -list,
                       -import-pos; writes both plugin lists, builds, restores them core-only. A shop build =
                       dist/<key>/ karots-setup + install.conf + the binary ("Add installer" off = binary only)
 cmd/setup/            karots-setup, the shop's installer: double-click → page (UAC / pkexec) → modular steps per
-                      role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless
+                      role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless.
+                      Uninstall (backup first → kept in C:\Karots backups / ~/Karots backups; nothing removed if it
+                      fails), Bring back a shop at a first install, mode change on Update (backup → new mode → restore)
 internal/shopconf/    install.conf — the Builder ⇄ installer contract (install settings + the final .env)
 shops.json            every shop's profile, committed (private repo — it holds each shop's secrets)
 internal/filedb/      file mode: the shop's own PostgreSQL 17 in data/ next to the binary (no DATABASE_URL +
@@ -131,7 +134,11 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   it). Shops update from Setup → Data → Updates → Update (never by themselves). A Windows
   server-mode main PC: tick **+ PostgreSQL** (or `-postgres`) to put the PostgreSQL installer (cached once in the user
   cache, SHA-256 pinned in `internal/shopconf`) beside the files — Setup uses it before winget / downloading. Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
-  ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update. Look at the
+  ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update — a
+  **file ⇄ server change** is noticed there and carries the data across once "Change it" is ticked (`-change-mode`).
+  **Move a shop to another PC:** Setup → Uninstall on the old one (its final backup), then the three files + that backup
+  on the new PC → Setup offers it under "Bring back a shop" (`-restore <file>`). Headless: `-uninstall
+  [-remove-postgres] [-keep-dir …]`; `-no-backup` is for technicians only. Look at the
   installer page without installing: `karots-setup -dry` beside an install.conf. `build.ps1` = make on Windows.
 - **File mode** (one-PC shops): Shop Builder → Database "One PC", or `go run ./cmd/bootstrap -plugins none
   -mode file`. Run the binary with no `DATABASE_URL` (and no `.env` setting it): data, auto-backups and the
