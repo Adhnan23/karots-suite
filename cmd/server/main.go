@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 	_ "time/tzdata" // embed the timezone database so local-time formatting works on any host
@@ -131,6 +132,18 @@ func run() int {
 		ln.Close() // a one-shot command doesn't serve
 	}
 	if *restoreFile != "" {
+		// A database that already holds a shop is kept first: beside the
+		// automatic backups, else beside the file being brought back.
+		dir := os.Getenv("BACKUP_DIR")
+		if dir == "" {
+			dir = filepath.Dir(*restoreFile)
+		}
+		if p, err := safetyCopy(context.Background(), sqlxDB, dir); err != nil {
+			log.Printf("restore: couldn't keep a copy of the data already here, so nothing was changed: %v", err)
+			return 1
+		} else if p != "" {
+			fmt.Printf("safety copy: %s\n", p)
+		}
 		rep, err := restoreFrom(context.Background(), sqlxDB, *restoreFile)
 		if err != nil {
 			log.Printf("restore: %v", err)

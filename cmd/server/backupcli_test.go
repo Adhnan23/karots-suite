@@ -82,3 +82,23 @@ func TestRestoreRefusesBadFile(t *testing.T) {
 		t.Fatalf("data touched: %d rows", n)
 	}
 }
+
+// I4: a restore over a database that already holds a shop keeps a safety copy
+// first; an empty (new) one needs none.
+func TestSafetyCopyBeforeRestore(t *testing.T) {
+	db := scratchDB(t)
+	ctx := context.Background()
+	dir := t.TempDir()
+	db.MustExec(`CREATE TABLE products (id serial PRIMARY KEY, name text)`)
+	if p, err := safetyCopy(ctx, db, dir); err != nil || p != "" {
+		t.Fatalf("empty shop: %q %v", p, err)
+	}
+	db.MustExec(`INSERT INTO products (name) VALUES ('soap')`)
+	p, err := safetyCopy(ctx, db, dir)
+	if err != nil || !strings.HasSuffix(p, "-before-restore.json.gz") {
+		t.Fatalf("%q %v", p, err)
+	}
+	if _, err := os.Stat(p); err != nil {
+		t.Fatal(err)
+	}
+}

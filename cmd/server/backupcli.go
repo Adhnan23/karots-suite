@@ -60,3 +60,25 @@ func printRestore(rep backup.RestoreReport) {
 		fmt.Printf("dropped columns: %s\n", strings.Join(rep.DroppedColumns, ", "))
 	}
 }
+
+// safetyCopy backs up a database that already holds a shop (products or sales)
+// before a restore replaces it — a new PC whose server database isn't empty, a
+// reinstall over a data folder. "" when there is nothing to keep.
+func safetyCopy(ctx context.Context, db *sqlx.DB, dir string) (string, error) {
+	for _, table := range []string{"products", "sales"} {
+		var exists, rows bool
+		if err := db.GetContext(ctx, &exists, `SELECT to_regclass($1) IS NOT NULL`, table); err != nil {
+			return "", err
+		}
+		if !exists {
+			continue
+		}
+		if err := db.GetContext(ctx, &rows, `SELECT EXISTS (SELECT 1 FROM `+table+`)`); err != nil {
+			return "", err
+		}
+		if rows {
+			return backupTo(ctx, db, dir, backup.BeforeRestoreTag)
+		}
+	}
+	return "", nil
+}
