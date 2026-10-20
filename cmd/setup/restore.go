@@ -101,3 +101,54 @@ func findBackups(j *Job) []foundBackup {
 	sort.SliceStable(out, func(a, b int) bool { return out[a].Modified.After(out[b].Modified) })
 	return out
 }
+
+// backupName is a backup's file name, from a Linux or Windows path.
+func backupName(p string) string { return filepath.Base(strings.ReplaceAll(p, `\`, "/")) }
+
+// safetyBackup is a mode change's first step: stop the till and have the old
+// program back the shop up, before anything changes. The restore step brings
+// that backup back with the new program.
+func safetyBackup(j *Job) error {
+	if err := pick(linuxStop, windowsStop)(j); err != nil {
+		return err
+	}
+	j.note("Backing the shop up to " + j.keepDir())
+	path, err := programBackup(j, "before-move")
+	if err != nil {
+		return fmt.Errorf("couldn't back the shop up, so nothing was changed: %w", err)
+	}
+	fmt.Fprintf(j.Log, "backup: %s\n", path)
+	j.Restore = path
+	return nil
+}
+
+// restoreStep brings the shop back into the new install (before it starts with
+// the PC). After a file → server change the old data folder is set aside, not
+// deleted — the backup and that folder can go once the shop looks right.
+func restoreStep(j *Job) error {
+	if j.Restore == "" {
+		return fmt.Errorf("no backup to bring back")
+	}
+	j.note("Bringing the shop back from " + backupName(j.Restore))
+	summary, err := programRestore(j, j.Restore)
+	if err != nil {
+		return fmt.Errorf("couldn't bring the shop back from %s: %w", j.Restore, err)
+	}
+	j.note(summary)
+	if j.FromMode != "file" {
+		return nil
+	}
+	old := joinOS(j, j.Conf.InstallDir, "data")
+	if _, err := os.Stat(at(old)); err != nil {
+		return nil
+	}
+	aside := joinOS(j, j.Conf.InstallDir, "data-before-server-"+time.Now().Format("2006-01-02"))
+	for n := 2; ; n++ {
+		if _, err := os.Stat(at(aside)); err != nil {
+			break
+		}
+		aside = joinOS(j, j.Conf.InstallDir, fmt.Sprintf("data-before-server-%s-%d", time.Now().Format("2006-01-02"), n))
+	}
+	fmt.Fprintf(j.Log, "old data kept in %s\n", aside)
+	return os.Rename(at(old), at(aside))
+}

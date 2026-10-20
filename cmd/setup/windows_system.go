@@ -28,17 +28,23 @@ func ps(j *Job, script string) (string, error) {
 // psq is a PowerShell single-quoted string.
 func psq(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
 
-func windowsProgram(j *Job) error {
-	if j.Updating {
-		// Stop the running till so its exe can be replaced (a file-mode PostgreSQL
-		// left running is stopped by Karots itself on its next start).
-		// karots-start (and its kiosk loop) first: it starts a killed Karots again.
-		if _, err := ps(j, fmt.Sprintf(`# karots:stop-karots
+// windowsStop stops the running till so its exe can be replaced or its data
+// backed up (a file-mode PostgreSQL left running is stopped by Karots itself on
+// its next start). karots-start (and its kiosk loop) first: it starts a killed
+// Karots again.
+func windowsStop(j *Job) error {
+	_, err := ps(j, fmt.Sprintf(`# karots:stop-karots
 Stop-ScheduledTask -TaskName %s -ErrorAction SilentlyContinue
 %s
 $p = Get-Process | Where-Object { $_.Path -eq %s }
 $p | Stop-Process -Force -ErrorAction SilentlyContinue
-$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue`, windowsTask, stopLauncherPS(j), psq(j.binPath()))); err != nil {
+$p | Wait-Process -Timeout 30 -ErrorAction SilentlyContinue`, windowsTask, stopLauncherPS(j), psq(j.binPath())))
+	return err
+}
+
+func windowsProgram(j *Job) error {
+	if j.Updating {
+		if err := windowsStop(j); err != nil {
 			return err
 		}
 	}

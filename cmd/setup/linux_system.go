@@ -104,9 +104,15 @@ func install(j *Job, pkgs ...string) error {
 	return err
 }
 
+// linuxStop stops the running till (its service).
+func linuxStop(j *Job) error {
+	_, err := run(j, "systemctl", "stop", linuxService)
+	return err
+}
+
 func linuxProgram(j *Job) error {
 	if j.Updating {
-		if _, err := run(j, "systemctl", "stop", linuxService); err != nil {
+		if err := linuxStop(j); err != nil {
 			return err
 		}
 	}

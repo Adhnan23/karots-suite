@@ -107,6 +107,8 @@ func Steps(j *Job) []Step {
 	all := []Step{
 		{ID: "checks", Title: "Check this PC", Applies: always, Do: checks,
 			Detail: func(*Job) string { return "Make sure this PC can run Karots (admin rights, the port is free)" }},
+		{ID: "safety-backup", Title: "Back up the shop first", Applies: func(j *Job) bool { return j.server() && j.FromMode != "" }, Do: safetyBackup,
+			Detail: func(j *Job) string { return "Back up the shop to " + j.keepDir() + " before changing how it is kept" }},
 		{ID: "database", Title: "Database", Applies: (*Job).serverDB, Do: pick(linuxDatabase, windowsDatabase),
 			Detail: func(j *Job) string {
 				if j.Conf.DB.Local {
@@ -125,6 +127,13 @@ func Steps(j *Job) []Step {
 			Detail: func(j *Job) string { return fmt.Sprintf("Write the shop's settings (port %d)", j.Conf.Port) }},
 		{ID: "backups", Title: "Backup folder", Applies: func(j *Job) bool { return j.server() && j.Conf.Env["BACKUP_DIR"] != "" }, Do: pick(linuxBackups, windowsBackups),
 			Detail: func(j *Job) string { return "Keep automatic backups in " + j.backupDir() }},
+		{ID: "restore", Title: "Bring back the shop", Applies: func(j *Job) bool { return j.server() && (j.Restore != "" || j.FromMode != "") }, Do: restoreStep,
+			Detail: func(j *Job) string {
+				if j.Restore == "" {
+					return "Bring the shop back from that backup"
+				}
+				return "Bring back the shop from " + backupName(j.Restore)
+			}},
 		{ID: "startup", Title: "Start with the PC", Applies: (*Job).server, Do: pick(linuxStartup, windowsStartup),
 			Detail: func(*Job) string { return "Start Karots when this PC starts" }},
 		{ID: "network", Title: "Network", Applies: (*Job).server, Do: pick(linuxNetwork, windowsNetwork),
