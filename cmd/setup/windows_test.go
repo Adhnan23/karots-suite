@@ -16,7 +16,8 @@ import (
 func windowsJob(t *testing.T, mode string) (*Job, *rec) {
 	t.Helper()
 	root = t.TempDir()
-	t.Cleanup(func() { root = "" })
+	tillPortFree, stopPause = func(int) bool { return true }, 0
+	t.Cleanup(func() { root, tillPortFree, stopPause = "", portFree, time.Second/2 })
 	dir := t.TempDir()
 	c := conf("windows", mode, true)
 	os.WriteFile(filepath.Join(dir, c.Binary), []byte("BIN"), 0o755)

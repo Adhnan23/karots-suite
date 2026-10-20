@@ -51,8 +51,8 @@ func finalBackup(j *Job) error {
 	if err := safeToRemove(j); err != nil {
 		return err
 	}
-	if err := pick(linuxStop, windowsStop)(j); err != nil && j.windows() {
-		return err
+	if err := stopTill(j); err != nil {
+		return fmt.Errorf("%w — nothing was removed", err)
 	}
 	j.note("Backing the shop up to " + j.keepDir())
 	path, err := programBackup(j, "final")

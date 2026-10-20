@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"sort"
@@ -106,11 +107,46 @@ func findBackups(j *Job) []foundBackup {
 // backupName is a backup's file name, from a Linux or Windows path.
 func backupName(p string) string { return filepath.Base(strings.ReplaceAll(p, `\`, "/")) }
 
+// Swapped in tests: whether the till's port is free, and how long stopTill waits.
+var (
+	tillPortFree = portFree
+	stopPause    = time.Second / 2
+	stopWait     = 60 // × stopPause = 30 s
+)
+
+func portFree(port int) bool {
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return false
+	}
+	ln.Close()
+	return true
+}
+
+// stopTill stops Karots and waits until it has really let go of the till's
+// port: Windows frees it a moment after the process is killed, and a backup
+// started in between found "port in use" (the first try always failed). The
+// port is the check that counts — a failed stop (no service yet) is fine.
+func stopTill(j *Job) error {
+	stop := pick(linuxStop, windowsStop)
+	stop(j) //nolint:errcheck // the port below says whether Karots is gone
+	for i := 0; i < stopWait; i++ {
+		if tillPortFree(j.Conf.Port) {
+			return nil
+		}
+		if i == stopWait/3 {
+			stop(j) //nolint:errcheck // once more: the launcher may have started it again
+		}
+		time.Sleep(stopPause)
+	}
+	return fmt.Errorf("Karots is still running (port %d is in use) — close it, then Try again", j.Conf.Port)
+}
+
 // safetyBackup is a mode change's first step: stop the till and have the old
 // program back the shop up, before anything changes. The restore step brings
 // that backup back with the new program.
 func safetyBackup(j *Job) error {
-	if err := pick(linuxStop, windowsStop)(j); err != nil {
+	if err := stopTill(j); err != nil {
 		return err
 	}
 	j.note("Backing the shop up to " + j.keepDir())

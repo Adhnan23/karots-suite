@@ -189,3 +189,30 @@ func TestRestoreRetryKeepsRestoring(t *testing.T) {
 		t.Fatal("marker left after a good restore")
 	}
 }
+
+// Windows lets go of the till's port a moment after Karots is stopped: the
+// backup waits for it (stopping again once) instead of failing the first time.
+func TestBackupWaitsForTheTillToLetGo(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	busy := 3
+	tillPortFree = func(int) bool { busy--; return busy < 0 }
+	rc.answers[`C:\karots-suite\karots-suite.exe -backup C:\Karots backups -tag before-move`] = "backup: C:\\Karots backups\\x.json.gz\r\n"
+	if err := safetyBackup(j); err != nil {
+		t.Fatal(err)
+	}
+
+	// Never lets go: say so, and don't run the backup into a running till.
+	j, rc = windowsJob(t, "file")
+	tillPortFree = func(int) bool { return false }
+	stopWait = 5
+	t.Cleanup(func() { stopWait = 60 })
+	if err := safetyBackup(j); err == nil || !strings.Contains(err.Error(), "still running") {
+		t.Fatalf("err %v", err)
+	}
+	if strings.Contains(rc.all(), "-backup") {
+		t.Fatal("backed up while the till still held its port")
+	}
+	if n := strings.Count(rc.all(), "# karots:stop-karots"); n != 2 {
+		t.Fatalf("stopped %d times, want 2", n)
+	}
+}
