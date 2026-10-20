@@ -3,12 +3,17 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Next session (handoff 2026-10-19 evening) — START HERE
+## Next session (handoff 2026-10-20) — START HERE
 
 **Windows is fully checked** (VM, 2026-10-19): file mode + server mode install / Update, over-the-air update, crash
 restart, restart → till ~10 s, Konami exit, offline PostgreSQL installer (<2 min), no PowerShell windows, no flaky steps.
-**Next session: the same checks on Linux**, Mint first (Ubuntu base, apt — the likeliest shop distro), Fedora after
-(dnf, SELinux):
+**Xubuntu is checked** (VM, 2026-10-20, user): file mode and server mode (apt PostgreSQL 17) install / Update — worked.
+Fix found there (`ce240a2`): the Linux kiosk uses a **system browser only** — snap / flatpak ones are passed over
+(Ubuntu's apt chromium / firefox are snaps: slow start, can't use `~/.karots-kiosk`); none → apt chromium (Debian,
+Mint), Google Chrome's `.deb` (Ubuntu), dnf / pacman chromium. Setup installs `curl` (kiosk.sh's till wait ran its full
+2 min without it). Setup has no Uninstall: a VM is cleaned by hand (service, `/opt/karots-suite`, autostart, policies).
+**Next: Fedora XFCE, then Arch XFCE** (VMs ready) — the same checks (unchecked so far on Linux: USB double-click /
+pkexec box, `sudo pkill karots-suite` comes back, Konami exit, DevTools off in the Chrome kiosk):
 1. **File mode:** Release a Linux file-mode shop (Add installer) → USB stick → double-click `karots-setup` (exec bit,
    pkexec password box — the M8b item never verified) → Install → restart: kiosk till appears (time it) → Konami exit →
    Release again → Data → Check now → Update → `sudo pkill karots-suite` comes back (systemd).
