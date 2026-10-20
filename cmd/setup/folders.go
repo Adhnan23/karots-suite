@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-// mountFolders is the page's folder browser for "Backups go to": a browser's
+// mountFolders is the page's folder browser for "Backups go to" (and the backup
+// file for "Bring back a shop"): a browser's
 // own folder picker never tells a page the real path, but Setup runs on this
 // PC, so it lists folders itself (behind the page's token, like every route).
 func mountFolders(mux *http.ServeMux) {
@@ -22,8 +23,9 @@ func mountFolders(mux *http.ServeMux) {
 			Path    string   `json:"path"`
 			Parent  string   `json:"parent"`
 			Folders []string `json:"folders"`
+			Files   []string `json:"files"` // backups here (*.json.gz), for "Bring back a shop"
 			Roots   []root   `json:"roots"`
-		}{Folders: []string{}, Roots: []root{}}
+		}{Folders: []string{}, Files: []string{}, Roots: []root{}}
 		for _, rt := range folderRoots() {
 			out.Roots = append(out.Roots, root{rt[0], rt[1]})
 		}
@@ -55,9 +57,12 @@ func mountFolders(mux *http.ServeMux) {
 			n := e.Name()
 			if e.IsDir() && !strings.HasPrefix(n, ".") && !strings.HasPrefix(n, "$") && n != "System Volume Information" {
 				out.Folders = append(out.Folders, n)
+			} else if !e.IsDir() && strings.HasSuffix(n, ".json.gz") {
+				out.Files = append(out.Files, n)
 			}
 		}
 		sort.Slice(out.Folders, func(i, j int) bool { return strings.ToLower(out.Folders[i]) < strings.ToLower(out.Folders[j]) })
+		sort.Strings(out.Files)
 		writeJSON(w, out)
 	})
 	mux.HandleFunc("POST /api/folders/new", func(w http.ResponseWriter, r *http.Request) {

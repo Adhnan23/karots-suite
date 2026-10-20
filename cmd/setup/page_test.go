@@ -250,3 +250,18 @@ func TestPlanUninstallSteps(t *testing.T) {
 		t.Fatalf("%s", rec.Body)
 	}
 }
+
+// "Bring back a shop" picks a backup file with the same browser: it lists the
+// backups in a folder, nothing else.
+func TestFoldersListBackupFiles(t *testing.T) {
+	dir := t.TempDir()
+	for _, n := range []string{"b-final.json.gz", "a.json.gz", "notes.txt", "x.json.gz.tmp"} {
+		os.WriteFile(filepath.Join(dir, n), []byte("x"), 0o644)
+	}
+	rec := call(testPage(Steps), "GET", "/api/folders?path="+url.QueryEscape(dir), "", true)
+	var f struct{ Files []string }
+	json.Unmarshal(rec.Body.Bytes(), &f)
+	if strings.Join(f.Files, ",") != "a.json.gz,b-final.json.gz" {
+		t.Fatalf("%s", rec.Body)
+	}
+}

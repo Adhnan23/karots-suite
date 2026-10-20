@@ -14,6 +14,7 @@
   --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; min-height: 100vh; color: var(--fg); font: 16px/1.45 Figtree, "Segoe UI", system-ui, sans-serif;
   background-color: var(--bg); background-image: var(--art); background-attachment: fixed; }
 main { max-width: 760px; margin: 0 auto; padding: 32px 16px 80px; }
@@ -124,7 +125,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
     <div id="restorePanel" hidden>
       <label class="f" for="restore">Bring back a shop</label>
       <select id="restore"></select>
-      <input id="restorePath" placeholder="Or a backup file's full path" autocomplete="off" spellcheck="false" style="margin-top:8px">
+      <div class="addr"><input id="restorePath" placeholder="Or a backup somewhere else (a USB stick…)" autocomplete="off" spellcheck="false"><button class="btn" id="pickFile">Choose…</button></div>
       <div class="hint">Moving from another PC? Put its backup next to Setup, or pick it here. Leave it on "Start a new shop" otherwise.</div>
     </div>
     <div id="cashier" hidden>
@@ -156,9 +157,9 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
     <div class="pk-roots" id="pkRoots"></div>
     <div class="pk-path" id="pkPath"></div>
     <div class="pk-list" id="pkList"></div>
-    <div class="pk-new"><input id="pkName" placeholder="New folder name" autocomplete="off"><button class="btn" id="pkMake">New folder</button></div>
+    <div class="pk-new" id="pkNewRow"><input id="pkName" placeholder="New folder name" autocomplete="off"><button class="btn" id="pkMake">New folder</button></div>
     <div class="hint bad" id="pkErr"></div>
-    <div class="row"><button class="go" id="pkUse">Use this folder</button></div>
+    <div class="row" id="pkUseRow"><button class="go" id="pkUse">Use this folder</button></div>
   </dialog>
   <details id="details"><summary>Details</summary><pre id="log"></pre></details>
 </main>
@@ -310,12 +311,24 @@ async function browse(path) {
   for (const r of f.roots) { const b = document.createElement('button'); b.className = 'btn'; b.textContent = r.name; b.onclick = () => browse(r.path); $('pkRoots').append(b) }
   $('pkList').innerHTML = ''
   if (f.parent) { const up = document.createElement('button'); up.textContent = '⬆ Up'; up.onclick = () => browse(f.parent); $('pkList').append(up) }
-  for (const n of f.folders) { const b = document.createElement('button'); b.textContent = '📁 ' + n; b.onclick = () => browse(f.path.replace(/[\\/]$/, '') + (f.path.includes('\\') ? '\\' : '/') + n); $('pkList').append(b) }
-  if (!f.folders.length) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '10px 12px'; e.textContent = 'No folders here — make one below, or use this one.'; $('pkList').append(e) }
+  const join = (n) => f.path.replace(/[\\/]$/, '') + (f.path.includes('\\') ? '\\' : '/') + n
+  for (const n of f.folders) { const b = document.createElement('button'); b.textContent = '📁 ' + n; b.onclick = () => browse(join(n)); $('pkList').append(b) }
+  if (st.pickFor === 'restorePath') for (const n of f.files) {
+    const b = document.createElement('button'); b.textContent = '🗄 ' + n
+    b.onclick = () => { $('restorePath').value = join(n); $('picker').close(); plan() }
+    $('pkList').append(b)
+  }
+  if (!f.folders.length && !(st.pickFor === 'restorePath' && f.files.length)) { const e = document.createElement('div'); e.className = 'hint'; e.style.padding = '10px 12px'; e.textContent = st.pickFor === 'restorePath' ? 'No backups here — open another folder.' : 'No folders here — make one below, or use this one.'; $('pkList').append(e) }
 }
-const pickInto = (field, title) => { st.pickFor = field; $('pkTitle').textContent = title; $('picker').showModal(); browse($(field).value.trim()) }
+const pickInto = (field, title) => {
+  st.pickFor = field; $('pkTitle').textContent = title
+  $('pkNewRow').hidden = $('pkUseRow').hidden = field === 'restorePath' // a file is picked by clicking it
+  const start = field === 'restorePath' ? ($(field).value.trim().replace(/[\\/][^\\/]*$/, '') || st.plan.keepDir) : $(field).value.trim()
+  $('picker').showModal(); browse(start)
+}
 $('pick').onclick = () => pickInto('backupDir', 'Choose the backup folder')
 $('pickKeep').onclick = () => pickInto('keepDir', 'Where the shop\'s backup goes')
+$('pickFile').onclick = () => pickInto('restorePath', 'Choose the backup to bring back')
 $('pkClose').onclick = () => $('picker').close()
 $('pkUse').onclick = () => { $(st.pickFor).value = pkCur; $('picker').close(); plan() }
 $('pkMake').onclick = async () => {
