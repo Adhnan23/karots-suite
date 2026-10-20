@@ -32,6 +32,11 @@ installed program older than `-backup` (new program backs up, `e6612c4`); first 
 F12 / Konami / `pkill` comes back, firewalld port, uninstall, install with a backup, One PC ⇄ Server, background,
 uninstall with "Also remove PostgreSQL" (no packages, no service, port closed, backups kept). Fixed on the way:
 `postgresql-contrib` for pg_trgm (`948129f` — Fedora's postgresql lacks it; the first migration failed).
+**Before Arch (2026-10-20):** Arch ships PostgreSQL **18** with contrib built in (no split). Checked on a
+`postgres:18` container (image kept for later; remove containers only): full Go suite green, backups restore 17 ⇄ 18.
+File mode embeds its own 17, untouched by pacman — **advise Arch shops to use file mode** (a rolling major bump stops
+a server-mode cluster). Fixed: Arch `initdb` ran with default `trust` (any PC user = superuser) → peer /
+scram-sha-256 (`d90dd2a`).
 **Next: Arch XFCE**, then M8c2.
 **Next (user, VMs):** the rest of the spec's acceptance — Xubuntu: Uninstall file mode (backup in `~/Karots backups`, nothing of
 Karots left) → install server mode with that backup beside Setup (old shop comes back) → server → file and file →
