@@ -88,6 +88,7 @@ type Shop struct {
 	Channel    string            `json:"channel"`   // its update folder (M8c)
 	Port       int               `json:"port"`
 	DB         *ShopDB           `json:"db,omitempty"`         // server mode
+	ParkedDB   *ShopDB           `json:"parkedDb,omitempty"`   // a file-mode shop's server database, kept for a switch back
 	FileDBPort int               `json:"fileDbPort,omitempty"` // file mode
 	JWTSecret  string            `json:"jwtSecret,omitempty"`  // server mode (file mode keeps its own in data/)
 	Install    ShopInstall       `json:"install"`
@@ -182,12 +183,20 @@ func NewShop(key, name, osName, arch, mode string) (Shop, error) {
 func (s *Shop) SetMode(mode string) error {
 	switch mode {
 	case "file":
+		// Keep the server's database passwords: PostgreSQL on the shop's PC still
+		// has them, and new ones would lock Setup out after a switch back.
+		if s.DB != nil {
+			s.ParkedDB = s.DB
+		}
 		s.DB, s.JWTSecret = nil, ""
 		if s.FileDBPort == 0 {
 			s.FileDBPort = defaultFileDBPort
 		}
 	case "server":
 		s.FileDBPort = 0
+		if s.DB == nil && s.ParkedDB != nil {
+			s.DB, s.ParkedDB = s.ParkedDB, nil
+		}
 		if s.DB == nil {
 			s.DB = &ShopDB{Host: "localhost", Port: defaultDBPort, Name: "suite_db", User: "suite_user", Password: randHex(16), SuperPassword: randHex(16)}
 		}
@@ -335,6 +344,7 @@ func hostPort(host string, port int) string {
 // Masked hides every secret, for lists and the edit form (screen sharing).
 func (s Shop) Masked() Shop {
 	m := s
+	m.ParkedDB = nil // never on the page
 	if m.JWTSecret != "" {
 		m.JWTSecret = maskedValue
 	}

@@ -255,3 +255,22 @@ func TestDBSSL(t *testing.T) {
 		t.Fatal("sslmode maybe accepted")
 	}
 }
+
+// Server → One PC → Server keeps the database passwords: PostgreSQL on the
+// shop's PC still has the old postgres password, so a new one locked Setup out.
+func TestSetModeKeepsServerPasswords(t *testing.T) {
+	s := mustShop(t, "al-raj", "windows", "server")
+	want := *s.DB
+	if err := s.SetMode("file"); err != nil || s.DB != nil {
+		t.Fatalf("to file: %+v %v", s.DB, err)
+	}
+	if c := s.Conf("karots-suite.exe"); c.DB != nil || c.Env["DATABASE_URL"] != "" {
+		t.Fatalf("a file-mode install.conf carries the server database: %+v", c.DB)
+	}
+	if m := s.Masked(); strings.Contains(fmt.Sprint(m), want.SuperPassword) {
+		t.Fatal("parked password shown on the page")
+	}
+	if err := s.SetMode("server"); err != nil || s.DB == nil || *s.DB != want {
+		t.Fatalf("to server: %+v, want %+v", s.DB, want)
+	}
+}
