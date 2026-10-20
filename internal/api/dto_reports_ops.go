@@ -275,6 +275,8 @@ type DashboardAttention struct {
 	Review       int    `json:"review"`   // quick-added items needing details
 	OverLimit    int    `json:"overLimit"`
 	OverLimitSum string `json:"overLimitSum"`
+	// BackupCopies names the switched-on backup copies with no copy in 24 h.
+	BackupCopies []string `json:"backupCopies"`
 }
 
 // Dashboard is the admin home (karots-pos Dashboard): today against

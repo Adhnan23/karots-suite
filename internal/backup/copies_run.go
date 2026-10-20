@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"karots-suite/internal/config"
@@ -94,7 +95,13 @@ func (c *Copier) CopyNow(ctx context.Context, kind string) error {
 	return c.run(ctx, *r, true)
 }
 
+// passMu keeps one copy at a time: the server's pass and a Data page Copy now
+// (each with its own Copier) would otherwise write the same .tmp.
+var passMu sync.Mutex
+
 func (c *Copier) run(ctx context.Context, r Copy, force bool) error {
+	passMu.Lock()
+	defer passMu.Unlock()
 	var file string
 	var err error
 	switch r.Kind {
@@ -188,7 +195,7 @@ func CloudName(mod time.Time) string { return mod.Format("20060102-150405") + Se
 // The shop never deletes there: the bucket's own rules keep 30 days.
 func (c *Copier) copyCloud(ctx context.Context, r Copy, force bool) (string, error) {
 	now := c.Now()
-	if !force && r.LastCopiedAt != nil && !r.LastCopiedAt.After(now) && now.Sub(*r.LastCopiedAt) <= cloudEvery {
+	if !force && !cloudDue(r, now) {
 		return "", errNotDue
 	}
 	local, err := ListBackups(c.Dir)
@@ -234,6 +241,11 @@ func (c *Copier) TestFolder(path string) error {
 		return fmt.Errorf("can't write in %s: %w", path, err)
 	}
 	return os.Remove(p)
+}
+
+// cloudDue: never copied, last copy over 20 h old, or in the future (a wrong clock).
+func cloudDue(r Copy, now time.Time) bool {
+	return r.LastCopiedAt == nil || r.LastCopiedAt.After(now) || now.Sub(*r.LastCopiedAt) > cloudEvery
 }
 
 // hasCloudSuffix is a name in the cloud list (not the bucket's other files).

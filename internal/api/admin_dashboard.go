@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"karots-suite/internal/backup"
 	"karots-suite/internal/datetime"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/reports"
@@ -144,6 +145,11 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 	_ = h.d.DB.GetContext(ctx, &over, `SELECT COUNT(*) AS n, COALESCE(SUM(outstanding_balance),0) AS sum FROM customers
 		WHERE is_active AND credit_limit > 0 AND outstanding_balance > credit_limit`)
 	a.OverLimit, a.OverLimitSum = over.N, dec2(over.Sum)
+	copies, err := backup.Copies(ctx, h.d.DB)
+	if err != nil {
+		return a, err
+	}
+	a.BackupCopies = staleCopies(copies, now)
 	return a, nil
 }
 

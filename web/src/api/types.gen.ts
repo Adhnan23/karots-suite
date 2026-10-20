@@ -959,6 +959,40 @@ export interface UpdateStatusDTO {
   rolledBackFrom: string;
   checkedAt?: any /* time.Time */;
 }
+/**
+ * BackupCopyRow is one place the automatic backups are copied to (GET
+ * /admin/data/copies): the owner's copy folder or the vendor's Karots cloud.
+ */
+export interface BackupCopyRow {
+  kind: string; // "folder" | "cloud"
+  enabled: boolean;
+  path: string; // folder only
+  lastCopiedAt?: any /* time.Time */;
+  lastTriedAt?: any /* time.Time */;
+  lastFile: string;
+  lastError: string;
+  waiting: number /* int */; // folder: backups it lacks; cloud: 1 when a copy is due
+}
+/**
+ * CopyFolderRequest is PUT /admin/data/copies/folder.
+ */
+export interface CopyFolderRequest {
+  path: string;
+  enabled: boolean;
+}
+/**
+ * CopyCloudRequest is PUT /admin/data/copies/cloud (only the system user may switch it on).
+ */
+export interface CopyCloudRequest {
+  enabled: boolean;
+}
+/**
+ * FetchedBackup is a backup fetched from a copy into the backups folder, ready
+ * for POST /admin/data/backups/:name/restore.
+ */
+export interface FetchedBackup {
+  name: string;
+}
 
 //////////
 // source: dto_drawer.go
@@ -2504,6 +2538,10 @@ export interface DashboardAttention {
   review: number /* int */; // quick-added items needing details
   overLimit: number /* int */;
   overLimitSum: string;
+  /**
+   * BackupCopies names the switched-on backup copies with no copy in 24 h.
+   */
+  backupCopies: string[];
 }
 /**
  * Dashboard is the admin home (karots-pos Dashboard): today against

@@ -101,3 +101,33 @@ type UpdateStatusDTO struct {
 	RolledBackFrom string     `json:"rolledBackFrom"`
 	CheckedAt      *time.Time `json:"checkedAt"`
 }
+
+// BackupCopyRow is one place the automatic backups are copied to (GET
+// /admin/data/copies): the owner's copy folder or the vendor's Karots cloud.
+type BackupCopyRow struct {
+	Kind         string     `json:"kind"` // "folder" | "cloud"
+	Enabled      bool       `json:"enabled"`
+	Path         string     `json:"path"` // folder only
+	LastCopiedAt *time.Time `json:"lastCopiedAt"`
+	LastTriedAt  *time.Time `json:"lastTriedAt"`
+	LastFile     string     `json:"lastFile"`
+	LastError    string     `json:"lastError"`
+	Waiting      int        `json:"waiting"` // folder: backups it lacks; cloud: 1 when a copy is due
+}
+
+// CopyFolderRequest is PUT /admin/data/copies/folder.
+type CopyFolderRequest struct {
+	Path    string `json:"path"`
+	Enabled bool   `json:"enabled"`
+}
+
+// CopyCloudRequest is PUT /admin/data/copies/cloud (only the system user may switch it on).
+type CopyCloudRequest struct {
+	Enabled bool `json:"enabled"`
+}
+
+// FetchedBackup is a backup fetched from a copy into the backups folder, ready
+// for POST /admin/data/backups/:name/restore.
+type FetchedBackup struct {
+	Name string `json:"name"`
+}

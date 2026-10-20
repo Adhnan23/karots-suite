@@ -30,6 +30,7 @@ func (h *handlers) registerAdminData(g *echo.Group) {
 	d.GET("/backups/:name", h.AdminDataBackupFile)
 	d.POST("/backups/:name/restore", h.AdminDataRestoreFile)
 	h.registerAdminUpdate(d)
+	h.registerAdminCopies(d)
 }
 
 func (h *handlers) AdminData(c echo.Context) error {
