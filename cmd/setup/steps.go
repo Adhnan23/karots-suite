@@ -33,6 +33,8 @@ type Job struct {
 	Kept          []string // an Update: settings kept from this PC (shown on the page)
 	FromMode      string   // an Update that changes the mode: the installed one ("file" | "server"), else ""
 	ChangeMode    bool     // the person confirmed that mode change (page tick / -change-mode)
+	KeepDir       string   // the Karots backups folder picked on the page ("" = keepDir's default)
+	Restore       string   // a backup file to bring back (a first install, or the before-move one)
 	launcherReady bool     // Windows: karots-start.exe was placed this run
 	lastNote      string   // the page's line under the running step
 }
