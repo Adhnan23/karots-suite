@@ -19,8 +19,7 @@ func appearanceOf(s *settings.Settings) Appearance {
 		Palette:      settings.ValidSkin(s.Skin),
 		BrandColor:   s.SkinCustom,
 		Radius:       s.SkinRadius,
-		Density:      s.Density,
-		ReceiptStyle: s.ReceiptStyle,
+		ReceiptStyle: settings.ValidReceiptStyle(s.ReceiptStyle),
 	}
 }
 

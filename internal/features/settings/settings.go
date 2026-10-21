@@ -59,13 +59,14 @@ type Settings struct {
 	// developer, who derives the support PIN from it — it is an identifier, not a
 	// secret, so showing it is safe and is the whole point.
 	InstallID string `db:"install_id" json:"install_id"`
-	// Skin/Density/ReceiptStyle are the system-user-locked appearance (see
-	// migration 0068). Skin = vendor brand identity (colour/cards, light+dark);
-	// distinct from the per-user light/dark "theme" toggle. Only the system-user
-	// panel writes these; the admin Settings UPDATE never touches them.
+	// Skin/ReceiptStyle are the system-user-locked appearance (see migration
+	// 0068). Skin = the palette (light+dark); distinct from the per-device
+	// light/dark mode. ReceiptStyle names the Image-mode receipt style (Classic
+	// printing ignores it). Only the system-user panel writes these; the admin
+	// Settings UPDATE never touches them.
 	Skin         string `db:"skin"          json:"skin"`
-	Density      string `db:"density"       json:"density"`
 	ReceiptStyle string `db:"receipt_style" json:"receipt_style"`
+	Density      string `db:"density"       json:"-"` // unused since receipt styles; kept for SELECT *
 	// SkinCustom is a brand hex (e.g. "#7c3aed") used when Skin == "custom"; the
 	// full colour ramp is derived from it at render time. Blank otherwise.
 	SkinCustom string `db:"skin_custom" json:"skin_custom"`
@@ -83,8 +84,7 @@ type Settings struct {
 // bad or blank value never renders blank.
 var (
 	Skins         = []string{"studio", "night"}
-	Densities     = []string{"comfortable", "compact"}
-	ReceiptStyles = []string{"classic", "modern", "boxed", "compact"}
+	ReceiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections"}
 	Radii         = []string{"sharp", "rounded", "round"}
 )
 
@@ -114,9 +114,9 @@ func oneOf(v string, allowed []string, def string) string {
 	return def
 }
 
-// ValidSkin/ValidDensity/ValidReceiptStyle echo a known value or the default.
+// ValidSkin/ValidReceiptStyle echo a known value or the default (an old
+// modern / boxed / compact receipt style reads as classic).
 func ValidSkin(v string) string         { return oneOf(v, Skins, "studio") }
-func ValidDensity(v string) string      { return oneOf(v, Densities, "comfortable") }
 func ValidReceiptStyle(v string) string { return oneOf(v, ReceiptStyles, "classic") }
 
 type UpdateInput struct {
@@ -288,12 +288,12 @@ func (r *Repository) SetLogoData(ctx context.Context, dataURI string) error {
 	return err
 }
 
-// SetAppearance writes the three appearance columns. Callers pass already-
-// validated values (see ValidSkin/ValidDensity/ValidReceiptStyle).
-func (r *Repository) SetAppearance(ctx context.Context, skin, density, receiptStyle, skinCustom, skinRadius string) error {
+// SetAppearance writes the appearance columns. Callers pass already-
+// validated values (see ValidSkin/ValidReceiptStyle).
+func (r *Repository) SetAppearance(ctx context.Context, skin, receiptStyle, skinCustom, skinRadius string) error {
 	_, err := r.db.ExecContext(ctx,
-		`UPDATE settings SET skin=$1, density=$2, receipt_style=$3, skin_custom=$4, skin_radius=$5 WHERE id = 1`,
-		skin, density, receiptStyle, skinCustom, skinRadius)
+		`UPDATE settings SET skin=$1, receipt_style=$2, skin_custom=$3, skin_radius=$4 WHERE id = 1`,
+		skin, receiptStyle, skinCustom, skinRadius)
 	return err
 }
 
@@ -328,8 +328,8 @@ func (s *Service) Get(ctx context.Context) (*Settings, error) {
 // SetAppearance validates and stores the system-user-locked appearance. Unknown
 // values fall back to the safe defaults rather than erroring, so a stale form
 // can't brick the look.
-func (s *Service) SetAppearance(ctx context.Context, skin, density, receiptStyle, skinCustom, skinRadius string) (*Settings, error) {
-	if err := s.repo.SetAppearance(ctx, ValidSkin(skin), ValidDensity(density), ValidReceiptStyle(receiptStyle), ValidHexColor(skinCustom), ValidRadius(skinRadius)); err != nil {
+func (s *Service) SetAppearance(ctx context.Context, skin, receiptStyle, skinCustom, skinRadius string) (*Settings, error) {
+	if err := s.repo.SetAppearance(ctx, ValidSkin(skin), ValidReceiptStyle(receiptStyle), ValidHexColor(skinCustom), ValidRadius(skinRadius)); err != nil {
 		return nil, apperr.Internal("failed to update appearance", err)
 	}
 	return s.Get(ctx)

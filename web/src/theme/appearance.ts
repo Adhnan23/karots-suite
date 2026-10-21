@@ -11,7 +11,6 @@ export function applyAppearance(a: Appearance, root: HTMLElement = document.docu
     root.style.removeProperty('--brand-foreground')
   }
   root.dataset.radius = a.radius
-  root.dataset.density = a.density
   root.dataset.palette = a.palette || 'studio'
   try {
     localStorage.setItem('ks-palette', root.dataset.palette)

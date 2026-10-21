@@ -30,7 +30,8 @@ type TillConfig struct {
 	TenderMethods      []TenderMethod `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA
 	LabelSize          string         `json:"labelSize"`     // the shop's default sticker, "WxH" mm
 	Shop               ShopHeader     `json:"shop"`
-	ReceiptWidth       string         `json:"receiptWidth"` // "80" | "58" mm, the shop default          // receipt header/footer for on-screen receipts
+	ReceiptWidth       string         `json:"receiptWidth"` // "80" | "58" mm, the shop default
+	ReceiptStyle       string         `json:"receiptStyle"` // the saved Image-mode style (see Appearance)
 }
 
 type ShopHeader struct {

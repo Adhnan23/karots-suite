@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { applyAppearance } from './appearance'
 
-const base = { palette: 'studio', brandColor: '', radius: 'rounded', density: 'comfortable', receiptStyle: 'classic' } as const
+const base = { palette: 'studio', brandColor: '', radius: 'rounded', receiptStyle: 'classic' } as const
 
 describe('applyAppearance', () => {
   beforeEach(() => localStorage.clear())
 
-  it('sets brand, radius and density', () => {
+  it('sets brand and radius, no density', () => {
     const el = document.createElement('div')
-    applyAppearance({ ...base, brandColor: '#0f766e', radius: 'round', density: 'compact' }, el)
+    applyAppearance({ ...base, brandColor: '#0f766e', radius: 'round' }, el)
     expect(el.style.getPropertyValue('--brand')).toBe('#0f766e')
     expect(el.dataset.radius).toBe('round')
-    expect(el.dataset.density).toBe('compact')
+    expect(el.dataset.density).toBeUndefined()
   })
   it('picks readable text for a custom brand', () => {
     const el = document.createElement('div')

@@ -47,12 +47,11 @@ func TestPreviewDecodesStyleAndRaster(t *testing.T) {
 	}
 }
 
-// Every receipt style decodes to clean text: a control byte left in a line means
-// a printer command the preview doesn't know, and the screen would show garbage.
+// A real receipt decodes to clean text: a control byte left in a line means a
+// printer command the preview doesn't know, and the screen would show garbage.
 func TestPreviewOfRealReceiptsIsClean(t *testing.T) {
-	for _, style := range []string{"classic", "modern", "boxed", "compact"} {
+	for _, style := range []string{"classic"} {
 		c := cfg("58")
-		c.ReceiptStyle = style
 		lines := Preview(Document(sampleDetail(), c, Options{}))
 		var all []string
 		for _, l := range lines {

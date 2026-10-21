@@ -8,7 +8,6 @@ package escpos
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 
 	"karots-suite/internal/features/settings"
@@ -79,7 +78,6 @@ func Init(b *bytes.Buffer) {
 // (see center()); the printer is left in left-align mode for the body.
 func Header(b *bytes.Buffer, cfg settings.Settings, opts Options) {
 	w := columns(cfg.ReceiptWidth)
-	style := StyleFor(cfg)
 	// A raster (logo, secondary-language name) can only be centered by the hardware
 	// justify command. Text is centered by space-padding instead — see center().
 	if len(opts.Logo) > 0 {
@@ -89,25 +87,18 @@ func Header(b *bytes.Buffer, cfg settings.Settings, opts Options) {
 		line(b, "")
 	}
 	name := ascii(cfg.ShopName)
-	// Framed look: an ASCII +==+ / | … | box around the whole branding block. Its
-	// column maths only hold at normal glyph size, so a framed header never uses
-	// the double-size name — the frame itself is the emphasis.
-	if style.Framed {
-		framedHeader(b, w, name, cfg, opts)
-		return
-	}
 	// Shop name: a double-WIDTH glyph is 2 columns, so its budget is only w/2
 	// (16 on a 58mm roll) — center it over w/2. A name wider than that runs off the
 	// edge, so drop to double-height-only (full-width glyphs, still bold and tall)
 	// and wrap, keeping a long name readable on the narrow roll instead of clipping.
 	b.Write([]byte{esc, 'E', 1}) // bold on
-	if style.NameDouble && len(name) <= w/2 {
+	if len(name) <= w/2 {
 		b.Write([]byte{gs, '!', 0x11}) // double width + height
-		line(b, hpad(name, w, style, w/2))
+		line(b, center(name, w/2))
 	} else {
-		b.Write([]byte{gs, '!', 0x01}) // double height only (also the plain-name styles)
+		b.Write([]byte{gs, '!', 0x01}) // double height only
 		for _, ln := range wrap(name, w) {
-			line(b, hpad(ln, w, style, w))
+			line(b, center(ln, w))
 		}
 	}
 	b.Write([]byte{gs, '!', 0x00}) // normal size
@@ -119,89 +110,33 @@ func Header(b *bytes.Buffer, cfg settings.Settings, opts Options) {
 		b.Write(opts.SubName)
 		b.Write([]byte{esc, 'a', 0}) // back to left
 	}
-	if style.Breathing {
-		line(b, "") // breathing room between the name and the address block
-	}
+	line(b, "") // breathing room between the name and the address block
 	if s := deref(cfg.Address); s != "" {
 		for _, ln := range wrap(ascii(s), w) {
-			line(b, hpad(ln, w, style, w))
+			line(b, center(ln, w))
 		}
 	}
 	if s := deref(cfg.Phone); s != "" {
-		line(b, hpad("Tel: "+ascii(s), w, style, w))
+		line(b, center("Tel: "+ascii(s), w))
 	}
 	if cfg.TaxRegistered {
 		if s := deref(cfg.TaxRegNo); s != "" {
-			line(b, hpad("VAT: "+ascii(s), w, style, w))
+			line(b, center("VAT: "+ascii(s), w))
 		}
 	}
-	// A full-width rule under the header is part of the receipt style's identity.
-	if style.HeaderRule != "" {
-		line(b, strings.Repeat(style.HeaderRule, w))
-	}
+	line(b, strings.Repeat("-", w))
 }
 
-// hpad places a header string per the style: left-flush (modern) or centered
-// (everything else) over the given budget. Keeps every header line consistent.
-func hpad(s string, w int, style ReceiptStyle, budget int) string {
-	if style.HeaderLeft {
-		return s
-	}
-	return center(s, budget)
-}
-
-// framedHeader draws the branding block inside an ASCII box, normal glyph size
-// so the borders line up on the roll. Name in bold, address/phone/VAT stacked
-// inside the same frame.
-func framedHeader(b *bytes.Buffer, w int, name string, cfg settings.Settings, opts Options) {
-	inner := w - 2 // room between the "|" side borders
-	border := func() { line(b, "+"+strings.Repeat("=", inner)+"+") }
-	// center() only left-pads; a box needs the content padded to the FULL inner
-	// width so the closing "|" lands on the right edge, not against the text.
-	boxed := func(s string) { line(b, "|"+centerBox(s, inner)+"|") }
-	border()
-	b.Write([]byte{esc, 'E', 1}) // bold name
-	for _, ln := range wrap(name, inner) {
-		boxed(ln)
-	}
-	b.Write([]byte{esc, 'E', 0})
-	if s := deref(cfg.Address); s != "" {
-		for _, ln := range wrap(ascii(s), inner) {
-			boxed(ln)
-		}
-	}
-	if s := deref(cfg.Phone); s != "" {
-		boxed("Tel: " + ascii(s))
-	}
-	if cfg.TaxRegistered {
-		if s := deref(cfg.TaxRegNo); s != "" {
-			boxed("VAT: " + ascii(s))
-		}
-	}
-	border()
-	// Secondary-language raster can't live inside the ASCII box; center it under.
-	if len(opts.SubName) > 0 {
-		b.Write([]byte{esc, 'a', 1})
-		b.Write(opts.SubName)
-		b.Write([]byte{esc, 'a', 0})
-	}
-}
-
-// Title writes a bold, decorated receipt title (e.g. "*** REFUND ***" or
-// "[ REFUND ]" depending on the style) under the header, centered by
-// space-padding over w columns. An empty title prints nothing — a sale needs no
-// title line. cfg selects the decoration (ReceiptStyle.TitleDeco).
+// Title writes a bold, decorated receipt title ("*** REFUND ***") under the
+// header, centered by space-padding over w columns. An empty title prints
+// nothing — a sale needs no title line.
 func Title(b *bytes.Buffer, cfg settings.Settings, title string, w int) {
 	if strings.TrimSpace(title) == "" {
 		return
 	}
-	deco := StyleFor(cfg).TitleDeco
-	if !strings.Contains(deco, "%s") {
-		deco = "%s"
-	}
 	line(b, "")
 	b.Write([]byte{esc, 'E', 1})
-	line(b, center(fmt.Sprintf(deco, strings.ToUpper(ascii(title))), w))
+	line(b, center("*** "+strings.ToUpper(ascii(title))+" ***", w))
 	b.Write([]byte{esc, 'E', 0})
 }
 
@@ -211,7 +146,6 @@ func Title(b *bytes.Buffer, cfg settings.Settings, title string, w int) {
 // is what makes every receipt end the same way.
 func Footer(b *bytes.Buffer, cfg settings.Settings) {
 	w := columns(cfg.ReceiptWidth)
-	style := StyleFor(cfg)
 	// Reset to left-align first: the footer centers by space-padding (see
 	// center()), which only lines up when the printer is NOT already in ESC
 	// center mode — otherwise the padded text is centered a second time and drifts
@@ -219,10 +153,7 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 	// slips) would otherwise render this off-centre; the sale/repair slips were
 	// already left when they got here. Resetting here fixes every caller at once.
 	b.Write([]byte{esc, 'a', 0})
-	// A matching rule above the footer, per the receipt style's identity.
-	if style.HeaderRule != "" {
-		line(b, strings.Repeat(style.HeaderRule, w))
-	}
+	line(b, strings.Repeat("-", w)) // a matching rule above the footer
 	// Centered by space-padding (see center()) so it lines up over the body and
 	// renders centered on any printer, the emulator, and plain text alike.
 	if s := deref(cfg.ReceiptFooter); s != "" {
@@ -230,12 +161,8 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 			line(b, center(ln, w))
 		}
 	}
-	if style.ThankYou {
-		line(b, center("Thank you! Come again.", w))
-	}
-	if style.Breathing {
-		line(b, "")
-	}
+	line(b, center("Thank you! Come again.", w))
+	line(b, "")
 	b.Write([]byte{esc, 'M', 1}) // select Font B (smaller)
 	// Font B is narrower (~42 cols on a 58mm roll), so pad over the wider budget.
 	fw := w * 4 / 3

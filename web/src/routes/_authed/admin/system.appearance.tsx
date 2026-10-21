@@ -15,8 +15,6 @@ export const Route = createFileRoute('/_authed/admin/system/appearance')({
 })
 
 const RADII = ['sharp', 'rounded', 'round'] as const
-const DENSITIES = ['comfortable', 'compact'] as const
-const RECEIPT_STYLES = ['classic', 'modern', 'boxed', 'compact'] as const
 
 function appearanceQuery() {
   return { queryKey: ['system', 'appearance'], queryFn: () => api<Appearance>('/system/appearance') }
@@ -157,30 +155,9 @@ function SystemAppearance() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <section className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold text-muted-foreground">Radius</span>
-          <Segmented label="Radius" options={RADII} value={form.radius as (typeof RADII)[number]} onChange={(v) => update({ radius: v })} />
-        </section>
-        <section className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold text-muted-foreground">Density</span>
-          <Segmented
-            label="Density"
-            options={DENSITIES}
-            value={form.density as (typeof DENSITIES)[number]}
-            onChange={(v) => update({ density: v })}
-          />
-        </section>
-      </div>
-
-      <section className="flex flex-col gap-1.5">
-        <span className="text-xs font-bold text-muted-foreground">Receipt style</span>
-        <Segmented
-          label="Receipt style"
-          options={RECEIPT_STYLES}
-          value={form.receiptStyle as (typeof RECEIPT_STYLES)[number]}
-          onChange={(v) => update({ receiptStyle: v })}
-        />
+      <section className="flex flex-col gap-1.5 sm:max-w-sm">
+        <span className="text-xs font-bold text-muted-foreground">Radius</span>
+        <Segmented label="Radius" options={RADII} value={form.radius as (typeof RADII)[number]} onChange={(v) => update({ radius: v })} />
       </section>
 
       <button

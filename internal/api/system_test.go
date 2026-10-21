@@ -37,16 +37,21 @@ func TestAppearanceRoundTripAndSanitises(t *testing.T) {
 	t.Cleanup(func() { te.do(http.MethodPut, "/api/v1/system/appearance", before, ck) })
 
 	rec := te.do(http.MethodPut, "/api/v1/system/appearance",
-		Appearance{BrandColor: "#0f766e", Radius: "round", Density: "compact", ReceiptStyle: "boxed"}, ck)
+		Appearance{BrandColor: "#0f766e", Radius: "round", ReceiptStyle: "ticket"}, ck)
 	var got Appearance
 	json.Unmarshal(rec.Body.Bytes(), &got) //nolint:errcheck
-	if rec.Code != 200 || got.BrandColor != "#0f766e" || got.Radius != "round" || got.Density != "compact" || got.ReceiptStyle != "boxed" {
+	if rec.Code != 200 || got.BrandColor != "#0f766e" || got.Radius != "round" || got.ReceiptStyle != "ticket" {
 		t.Fatalf("%d %+v", rec.Code, got)
 	}
+	var cfg TillConfig
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/till/config", nil, ck).Body.Bytes(), &cfg) //nolint:errcheck
+	if cfg.ReceiptStyle != "ticket" {
+		t.Fatalf("till config receiptStyle = %q", cfg.ReceiptStyle)
+	}
 	rec = te.do(http.MethodPut, "/api/v1/system/appearance",
-		Appearance{BrandColor: "red;}", Radius: "blob", Density: "x", ReceiptStyle: "y"}, ck)
+		Appearance{BrandColor: "red;}", Radius: "blob", ReceiptStyle: "modern"}, ck)
 	json.Unmarshal(rec.Body.Bytes(), &got) //nolint:errcheck
-	if got.BrandColor != "" || got.Radius != "rounded" || got.Density != "comfortable" || got.ReceiptStyle != "classic" {
+	if got.BrandColor != "" || got.Radius != "rounded" || got.ReceiptStyle != "classic" {
 		t.Fatalf("junk not sanitised: %+v", got)
 	}
 }

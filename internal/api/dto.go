@@ -50,8 +50,7 @@ type Appearance struct {
 	Palette      string `json:"palette"`      // "studio" | "night"
 	BrandColor   string `json:"brandColor"`   // "#rrggbb" or "", overrides the palette's brand in both modes
 	Radius       string `json:"radius"`       // "sharp" | "rounded" | "round"
-	Density      string `json:"density"`      // "comfortable" | "compact"
-	ReceiptStyle string `json:"receiptStyle"` // "classic" | "modern" | "boxed" | "compact"
+	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
 }
 
 type Me struct {

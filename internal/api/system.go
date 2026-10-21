@@ -33,7 +33,7 @@ func (h *handlers) PutAppearance(c echo.Context) error {
 	if err := c.Bind(&in); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	st, err := h.d.Settings.SetAppearance(c.Request().Context(), settings.ValidSkin(in.Palette), in.Density, in.ReceiptStyle, in.BrandColor, in.Radius)
+	st, err := h.d.Settings.SetAppearance(c.Request().Context(), settings.ValidSkin(in.Palette), in.ReceiptStyle, in.BrandColor, in.Radius)
 	if err != nil {
 		return err
 	}

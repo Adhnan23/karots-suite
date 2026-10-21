@@ -57,8 +57,7 @@ export interface Appearance {
   palette: string; // "studio" | "night"
   brandColor: string; // "#rrggbb" or "", overrides the palette's brand in both modes
   radius: string; // "sharp" | "rounded" | "round"
-  density: string; // "comfortable" | "compact"
-  receiptStyle: string; // "classic" | "modern" | "boxed" | "compact"
+  receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
 }
 export interface Me {
   user: SessionUser;
@@ -3376,7 +3375,8 @@ export interface TillConfig {
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
   labelSize: string; // the shop's default sticker, "WxH" mm
   shop: ShopHeader;
-  receiptWidth: string; // "80" | "58" mm, the shop default          // receipt header/footer for on-screen receipts
+  receiptWidth: string; // "80" | "58" mm, the shop default
+  receiptStyle: string; // the saved Image-mode style (see Appearance)
 }
 export interface ShopHeader {
   name: string;

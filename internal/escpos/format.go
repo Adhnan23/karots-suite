@@ -63,46 +63,21 @@ func line(b *bytes.Buffer, s string) {
 	b.WriteByte('\n')
 }
 
-// divider draws the body separator between sections, per the receipt style —
-// the receipt's visual skeleton and its biggest differentiator (a solid dash
-// rule, a blank gap, a dotted line, or a short rule). Takes cfg so every core
-// and plugin slip that calls the exported Divider gets the shop's chosen look.
-func divider(b *bytes.Buffer, cfg settings.Settings, w int) {
-	switch StyleFor(cfg).Body {
-	case "blank": // modern: whitespace instead of a rule
-		line(b, "")
-	case "dots": // boxed: a dotted separator
-		line(b, strings.Repeat(".", w))
-	case "compact": // compact chit: a short centered rule
-		line(b, center(strings.Repeat("-", w/2), w))
-	default: // dash (classic)
-		line(b, strings.Repeat("-", w))
-	}
+// divider draws the dashed body separator between sections. Takes cfg so the
+// exported Divider keeps its signature for every core and plugin slip.
+func divider(b *bytes.Buffer, _ settings.Settings, w int) {
+	line(b, strings.Repeat("-", w))
 }
 
-// bigLine prints a label/amount line emphasised per the style's TotalMode:
-// "double" (double-height bold, the character count stays the same so
-// leftRight's padding still lines up), "reverse" (a white-on-black bar), or
-// "bold" (a plain bold single line). Used for TOTAL, CHANGE, DUE, TOTAL DUE.
-func bigLine(b *bytes.Buffer, cfg settings.Settings, l, r string, w int) {
-	switch StyleFor(cfg).TotalMode {
-	case "reverse": // white-on-black bar (GS B 1 … GS B 0)
-		b.Write([]byte{esc, 'E', 1})
-		b.Write([]byte{gs, 'B', 1})
-		line(b, leftRight(l, r, w))
-		b.Write([]byte{gs, 'B', 0})
-		b.Write([]byte{esc, 'E', 0})
-	case "bold": // plain bold single line
-		b.Write([]byte{esc, 'E', 1})
-		line(b, leftRight(l, r, w))
-		b.Write([]byte{esc, 'E', 0})
-	default: // "double": double-height bold
-		b.Write([]byte{esc, 'E', 1})   // bold on
-		b.Write([]byte{gs, '!', 0x01}) // double height
-		line(b, leftRight(l, r, w))
-		b.Write([]byte{gs, '!', 0x00}) // normal size
-		b.Write([]byte{esc, 'E', 0})   // bold off
-	}
+// bigLine prints a double-height bold label/amount line (the character count
+// stays the same so leftRight's padding still lines up). Used for TOTAL,
+// CHANGE, DUE, TOTAL DUE.
+func bigLine(b *bytes.Buffer, _ settings.Settings, l, r string, w int) {
+	b.Write([]byte{esc, 'E', 1})   // bold on
+	b.Write([]byte{gs, '!', 0x01}) // double height
+	line(b, leftRight(l, r, w))
+	b.Write([]byte{gs, '!', 0x00}) // normal size
+	b.Write([]byte{esc, 'E', 0})   // bold off
 }
 
 // center pads s with leading spaces so its text sits centered within a w-column
@@ -116,18 +91,6 @@ func center(s string, w int) string {
 		return s
 	}
 	return strings.Repeat(" ", (w-len(s))/2) + s
-}
-
-// centerBox centers s within EXACTLY w columns, padding both sides (unlike
-// center, which only left-pads). Used for framed-header lines so the right
-// border sits flush at the edge. Overlong strings are clipped to w.
-func centerBox(s string, w int) string {
-	if len(s) >= w {
-		return s[:w]
-	}
-	total := w - len(s)
-	left := total / 2
-	return strings.Repeat(" ", left) + s + strings.Repeat(" ", total-left)
 }
 
 // leftRight pads a left and right label out to w columns. The left side is

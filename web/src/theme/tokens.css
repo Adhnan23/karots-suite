@@ -16,17 +16,9 @@
   --radius-sm: 14px;
 }
 
-/* §5 Density (system-selectable, default "comfortable") */
-:root,
-[data-density="comfortable"] {
+/* §5 Control height (the till's inputs) */
+:root {
   --control-h: 46px;
-  --gap: 14px;
-  --pad: 16px;
-}
-[data-density="compact"] {
-  --control-h: 38px;
-  --gap: 10px;
-  --pad: 12px;
 }
 
 body {

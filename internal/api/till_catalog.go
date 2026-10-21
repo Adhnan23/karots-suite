@@ -10,6 +10,7 @@ import (
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
+	"karots-suite/internal/features/settings"
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
@@ -57,6 +58,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		TenderMethods:      []TenderMethod{},
 		LabelSize:          fmt.Sprintf("%dx%d", st.LabelWidthMM, st.LabelHeightMM),
 		ReceiptWidth:       st.ReceiptWidth,
+		ReceiptStyle:       settings.ValidReceiptStyle(st.ReceiptStyle),
 		Shop:               ShopHeader{Name: st.ShopName, Address: strOr(st.Address), Phone: strOr(st.Phone), Footer: strOr(st.ReceiptFooter)},
 	}
 	// A DB predating credit-as-a-payment may still hold 'credit' here; fall back
