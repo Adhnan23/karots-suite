@@ -51,6 +51,7 @@ test('system user duplicates, exports, imports, uses and deletes palettes', asyn
   await expect(studio.getByRole('button', { name: /export/i })).toHaveCount(0)
 
   await studio.getByRole('button', { name: 'Duplicate' }).click()
+  await page.getByRole('button', { name: 'Back to palettes' }).click() // Duplicate opens the editor
   const copy = page.getByRole('group', { name: 'Studio copy', exact: true })
   await expect(copy).toBeVisible()
   const download = page.waitForEvent('download')
@@ -77,6 +78,43 @@ test('system user duplicates, exports, imports, uses and deletes palettes', asyn
   await expect(copy.getByRole('button', { name: 'Delete' })).toHaveCount(0) // not the active one
 
   await studio.getByRole('button', { name: 'Use' }).click()
+  await copy.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete palette' }).click()
+  await expect(copy).toHaveCount(0)
+})
+
+test('palette editor previews live, asks before dropping changes, and saves', async ({ page }) => {
+  await systemLogin(page)
+  await page.addInitScript(() => localStorage.setItem('ks-mode', 'light'))
+  await page.goto('/admin/system/appearance')
+  await page.getByRole('group', { name: 'Night', exact: true }).getByRole('button', { name: 'Duplicate' }).click()
+  const brand = page.getByLabel('Brand', { exact: true })
+  const sale = page.getByRole('button', { name: 'Complete sale' })
+  await brand.fill('#ff0000')
+  await expect(sale).toHaveCSS('background-color', 'rgb(255, 0, 0)')
+
+  // Back with unsaved changes asks; leaving drops them.
+  await page.getByRole('button', { name: 'Back to palettes' }).click()
+  await page.getByRole('button', { name: 'Leave' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-palette', 'studio')
+  const copy = page.getByRole('group', { name: 'Night copy', exact: true })
+  await copy.getByRole('button', { name: 'Edit' }).click()
+  await expect(brand).toHaveValue('#6E5BFF')
+
+  // Dark mode edits the dark block; leaving puts this device's mode back.
+  await page.getByRole('group', { name: 'Edit mode' }).getByRole('button', { name: 'dark' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(brand).toHaveValue('#8B7BFF')
+  await page.getByRole('group', { name: 'Edit mode' }).getByRole('button', { name: 'light' }).click()
+  await brand.fill('#00aa00')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+  await page.reload()
+  await copy.getByRole('button', { name: 'Edit' }).click()
+  await expect(brand).toHaveValue('#00aa00')
+  await page.getByRole('button', { name: 'Back to palettes' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+
   await copy.getByRole('button', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Delete palette' }).click()
   await expect(copy).toHaveCount(0)

@@ -3,6 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
+import { PaletteEditor } from '@/features/appearance/PaletteEditor'
 import { PalettePicker } from '@/features/appearance/PalettePicker'
 import { appearanceQuery } from '@/features/appearance/queries'
 import { ReceiptStyles } from '@/features/appearance/ReceiptStyles'
@@ -22,6 +23,7 @@ function SystemAppearance() {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<Appearance | null>(null)
   const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState<number | null>(null)
 
   useEffect(() => {
     if (data && !form) setForm(data)
@@ -59,6 +61,7 @@ function SystemAppearance() {
   }
 
   if (!form) return null
+  if (editing !== null) return <PaletteEditor id={editing} onDone={() => setEditing(null)} />
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -67,7 +70,7 @@ function SystemAppearance() {
         <p className="text-muted-foreground">Locked for the whole shop.</p>
       </div>
 
-      <PalettePicker appearance={form} onSaved={setForm} onEdit={() => {}} />
+      <PalettePicker appearance={form} onSaved={setForm} onEdit={setEditing} />
 
       <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
 

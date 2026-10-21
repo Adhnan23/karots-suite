@@ -26,7 +26,6 @@ export const TOKENS: readonly TokenDef[] = [
   { name: '--radius', group: 'shape', kind: 'length' },
   { name: '--radius-sm', group: 'shape', kind: 'length' },
   { name: '--pill', group: 'shape', kind: 'length' },
-  { name: '--border-w', group: 'shape', kind: 'length' },
   { name: '--dur-fast', group: 'motion', kind: 'time' },
   { name: '--dur', group: 'motion', kind: 'time' },
   { name: '--dur-slow', group: 'motion', kind: 'time' },

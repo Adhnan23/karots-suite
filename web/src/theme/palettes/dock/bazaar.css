@@ -47,7 +47,6 @@
   --radius: 18px;
   --radius-sm: 12px;
   --pill: 9999px;
-  --border-w: 1px;
   --dur-fast: 150ms;
   --dur: 260ms;
   --dur-slow: 350ms;
@@ -109,7 +108,6 @@
   --radius: 18px;
   --radius-sm: 12px;
   --pill: 9999px;
-  --border-w: 1px;
   --dur-fast: 150ms;
   --dur: 260ms;
   --dur-slow: 350ms;
@@ -172,7 +170,6 @@
     --radius: 18px;
     --radius-sm: 12px;
     --pill: 9999px;
-    --border-w: 1px;
     --dur-fast: 150ms;
     --dur: 260ms;
     --dur-slow: 350ms;
