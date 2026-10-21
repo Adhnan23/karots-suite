@@ -69,7 +69,7 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
         <div className="flex flex-wrap gap-1.5">
           {quick.map((c) => (
             <button key={c} type="button" aria-pressed={f.category === c} onClick={() => up({ category: c })}
-              className="rounded-full border border-border bg-muted px-3 py-1.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{c}</button>
+              className="rounded-pill border border-border bg-muted px-3 py-1.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{c}</button>
           ))}
         </div>
         <input aria-label="Category" list="admin-expense-categories" placeholder="…or type one" value={f.category} onChange={(x) => up({ category: x.target.value })} className={INPUT} />

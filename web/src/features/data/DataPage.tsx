@@ -181,7 +181,7 @@ function BackupList({ rows, onRestore }: { rows: BackupFileRow[]; onRestore: (na
       {(all ? rows : rows.slice(0, SHOWN)).map((b) => (
         <li key={b.name} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2.5 first:pt-0 last:pb-0">
           <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
-            <b className="block truncate text-sm">{stamp(b.modifiedAt)}{b.beforeRestore && <span className="ml-2 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-bold text-warning">Before restore</span>}</b>
+            <b className="block truncate text-sm">{stamp(b.modifiedAt)}{b.beforeRestore && <span className="ml-2 rounded-pill bg-warning/15 px-2 py-0.5 text-[11px] font-bold text-warning">Before restore</span>}</b>
             <span className="block truncate text-xs text-faint">{b.name} · {fileSize(b.size)}</span>
           </div>
           <div className="flex gap-1.5">

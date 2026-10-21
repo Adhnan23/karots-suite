@@ -37,7 +37,7 @@ function Tile({ label, value, change, fallIsGood, sub, spark, to }: {
       <span className="flex items-center justify-between gap-2 text-[12.5px] font-semibold text-muted-foreground">
         {label}
         {change != null && (
-          <span className={cn('inline-flex items-center gap-0.5 rounded-full px-1.5 text-[11.5px] font-bold', good ? 'bg-[color-mix(in_srgb,var(--success)_14%,transparent)] text-success' : 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger')}>
+          <span className={cn('inline-flex items-center gap-0.5 rounded-pill px-1.5 text-[11.5px] font-bold', good ? 'bg-[color-mix(in_srgb,var(--success)_14%,transparent)] text-success' : 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger')}>
             {up ? <ArrowUpRight size={12} aria-hidden /> : <ArrowDownRight size={12} aria-hidden />}<span className="sr-only">{up ? 'up' : 'down'}</span>{pctText(Math.abs(change))}
           </span>
         )}
@@ -164,7 +164,7 @@ export function Dashboard() {
             {att.map((x) => (
               <li key={x.tag + x.text}>
                 <Link to={x.to} className="flex items-center gap-3 rounded-[var(--radius-sm)] bg-muted px-3 py-2.5 text-[13.5px] hover:bg-[color-mix(in_srgb,var(--muted)_70%,var(--foreground)_6%)]">
-                  <span className={cn('inline-flex flex-none items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold',
+                  <span className={cn('inline-flex flex-none items-center gap-1 rounded-pill px-2 py-0.5 text-[11.5px] font-extrabold',
                     x.tone === 'crit' ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : x.tone === 'warn' ? 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning' : 'bg-border text-muted-foreground')}>
                     {x.tone === 'crit' ? <AlertTriangle size={13} /> : <x.icon size={13} />}{x.tag}
                   </span>

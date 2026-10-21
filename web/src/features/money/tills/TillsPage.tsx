@@ -37,7 +37,7 @@ export function TillsPage() {
   const list = useInfiniteQuery(tillsQuery(f))
   const rows = list.data?.pages.flat() ?? []
   const t = useQuery(tillTotalsQuery(f)).data
-  const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+  const chip = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
     <>

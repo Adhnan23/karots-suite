@@ -19,14 +19,14 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
   const net = lines.reduce((s, l) => s + lineGross(l) - lineDiscount(l), 0)
   const setCount = (n: number) => dispatch({ type: 'groupCount', id, count: n })
   return (
-    <motion.div initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
+    <motion.div initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 /* not a UI transition: the new-line flash */ }}
       className="my-1 overflow-hidden rounded-[var(--radius-sm)] border-[1.5px] border-brand">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 bg-brand-soft px-2 py-2">
         <div className="min-w-0">
           <div className="text-[14px] font-bold leading-snug">{label}</div>
           {save > 0 && <div className="text-[12px] font-bold text-success tabular-nums">save {money(sym, save)}</div>}
         </div>
-        <div className="flex items-center gap-0.5 rounded-full border border-border bg-card p-0.5">
+        <div className="flex items-center gap-0.5 rounded-pill border border-border bg-card p-0.5">
           <button type="button" aria-label={`Fewer ${label}`} onClick={() => setCount(count - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
           <span aria-label={`Sets of ${label}`} className="w-8 text-center text-[14px] font-bold tabular-nums">{count}</span>
           <button type="button" aria-label={`More ${label}`} onClick={() => setCount(count + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>

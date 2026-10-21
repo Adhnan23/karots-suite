@@ -12,7 +12,7 @@ export function QtyStepper({ value, onChange, label, name, max, className }: {
     onChange(String(max === undefined ? n : Math.min(n, max)))
   }
   return (
-    <div className={cn('flex h-9 items-center rounded-full border border-border bg-card p-0.5', className)}>
+    <div className={cn('flex h-9 items-center rounded-pill border border-border bg-card p-0.5', className)}>
       <button type="button" aria-label={`Fewer ${name}`} onClick={() => step(-1)} className="grid h-8 w-8 flex-none place-items-center rounded-full text-muted-foreground hover:bg-muted"><Minus size={14} /></button>
       <input aria-label={label} inputMode="decimal" autoComplete="off" placeholder="0" value={value} onChange={(e) => onChange(e.target.value.replace(/[^\d.]/g, ''))}
         className="w-full min-w-0 bg-transparent text-center text-[14px] font-bold tabular-nums outline-none" />

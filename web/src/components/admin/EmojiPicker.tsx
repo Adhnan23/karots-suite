@@ -14,7 +14,7 @@ export function EmojiPicker({ value, onChange, label, className }: { value: stri
   const pick = (e: string) => { onChange(e); setOpen(false); setQ('') }
   const cell = (e: string) => (
     <button key={e} type="button" aria-label={e} aria-pressed={value === e} onClick={() => pick(e)}
-      className="grid h-9 w-9 place-items-center rounded-[10px] text-xl hover:bg-muted aria-pressed:bg-selected">{e}</button>
+      className="grid h-9 w-9 place-items-center rounded-[var(--radius-sm)] text-xl hover:bg-muted aria-pressed:bg-selected">{e}</button>
   )
   return (
     <Popover.Root open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQ('') }}>
@@ -43,7 +43,7 @@ export function EmojiPicker({ value, onChange, label, className }: { value: stri
               </section>
             ))}
           </div>
-          {value && <button type="button" onClick={() => pick('')} className="self-start rounded-full px-2 py-1 text-[12px] font-bold text-muted-foreground hover:text-foreground">Remove emoji</button>}
+          {value && <button type="button" onClick={() => pick('')} className="self-start rounded-pill px-2 py-1 text-[12px] font-bold text-muted-foreground hover:text-foreground">Remove emoji</button>}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

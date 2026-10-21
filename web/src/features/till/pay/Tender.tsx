@@ -1,6 +1,7 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Banknote, BookUser, CreditCard, Smartphone, Wallet, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { toast } from 'sonner'
 import { dec, money, num, r2, short } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -94,7 +95,7 @@ export function Tender() {
           {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined).slice(0, 7) : [r2(due)]).map((v, i) => (
             <button key={v} type="button"
               onClick={() => dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
-              className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 text-[13px] font-bold tabular-nums',
+              className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill border px-2 text-[13px] font-bold tabular-nums',
                 i === 0 ? 'col-span-2 border-[color-mix(in_srgb,var(--brand)_45%,transparent)] bg-brand-soft hover:bg-[color-mix(in_srgb,var(--brand)_22%,transparent)]' : 'border-border bg-card hover:bg-muted')}>
               {i === 0 && <span className="text-[11.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</span>}
               {short(v)}
@@ -107,8 +108,8 @@ export function Tender() {
       <div className="flex flex-col gap-1">
         <AnimatePresence initial={false}>
           {state.tenders.map((p, i) => (
-            <motion.div key={`${i}-${p.method}-${p.amount}`} initial={{ y: -4, opacity: 0.3 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-              className="flex items-center gap-2 rounded-[9px] bg-muted px-2.5 py-1.5 text-[13px]">
+            <motion.div key={`${i}-${p.method}-${p.amount}`} initial={{ y: -4, opacity: 0.3 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={tx()}
+              className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-[13px]">
               {label(p.method)}
               {p.accountId && <small className="text-muted-foreground">{[...card, ...bank].find((a) => String(a.id) === p.accountId)?.name}</small>}
               {p.reference && <small className="text-muted-foreground">#{p.reference}</small>}

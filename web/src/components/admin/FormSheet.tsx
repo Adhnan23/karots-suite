@@ -32,7 +32,7 @@ export function FormSheet({ open, onOpenChange, title, submit, busy, onSubmit, e
   const head = <span className="font-display text-lg font-bold">{title}</span>
   return phone ? (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[92vh] gap-3 rounded-t-[22px] p-4">
+      <SheetContent side="bottom" className="max-h-[92vh] gap-3 rounded-t-xl p-4">
         <SheetTitle asChild>{head}</SheetTitle>
         {body}
       </SheetContent>
@@ -54,7 +54,7 @@ export function InfoSheet({ open, onOpenChange, title, children }: { open: boole
   const head = <span className="font-display text-lg font-bold">{title}</span>
   return phone ? (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[92vh] gap-0 overflow-auto rounded-t-[22px] p-0 pt-4">
+      <SheetContent side="bottom" className="max-h-[92vh] gap-0 overflow-auto rounded-t-xl p-0 pt-4">
         <SheetTitle asChild><span className="px-5">{head}</span></SheetTitle>
         {children}
       </SheetContent>

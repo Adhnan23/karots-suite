@@ -13,7 +13,7 @@ export function ModeToggle() {
   const [mode, setLocalMode] = useState<Mode>(getMode)
 
   return (
-    <div role="group" aria-label="Colour mode" className="inline-flex items-center gap-1 rounded-full bg-muted p-1">
+    <div role="group" aria-label="Colour mode" className="inline-flex items-center gap-1 rounded-pill bg-muted p-1">
       {OPTIONS.map(({ mode: m, label, Icon }) => (
         <button
           key={m}

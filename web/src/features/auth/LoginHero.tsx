@@ -33,7 +33,7 @@ export function LoginHero({ shopName }: { shopName: string }) {
   return (
     <div className="relative flex flex-col gap-2 overflow-hidden bg-hero bg-[image:var(--hero-art)] p-5 text-hero-foreground md:h-full md:items-center md:justify-center md:gap-4 md:p-11 md:text-center">
       <div className="flex items-center gap-3 font-display text-base font-bold md:absolute md:top-11 md:left-11 md:text-lg">
-        <span className="grid h-[30px] w-[30px] flex-none place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground shadow-[var(--glow)]">
+        <span className="grid h-[30px] w-[30px] flex-none place-items-center rounded-[var(--radius-sm)] bg-brand font-display text-sm font-extrabold text-brand-foreground shadow-[var(--glow)]">
           K
         </span>
         {shopName}
@@ -44,7 +44,7 @@ export function LoginHero({ shopName }: { shopName: string }) {
       </div>
       <div className="font-display text-base font-semibold md:text-3xl">{date}</div>
       <div className="hidden flex-wrap gap-2.5 md:absolute md:bottom-11 md:left-11 md:flex">
-        <span className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-sm">
+        <span className="flex items-center gap-2 rounded-pill border border-hero-foreground/15 bg-hero-foreground/10 px-3.5 py-2 text-sm">
           <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_0_4px_color-mix(in_srgb,var(--success)_20%,transparent)]" />
           Server online
         </span>

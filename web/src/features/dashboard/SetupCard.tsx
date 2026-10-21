@@ -22,17 +22,17 @@ export function SetupCard() {
           <h2 className="font-display text-lg font-bold">Get the shop ready</h2>
           <p className="text-[13px] text-muted-foreground">{done} of {steps.length} done · next: {next.label.toLowerCase()} — {next.hint.toLowerCase()}</p>
         </div>
-        <Link to={next.to} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground">
+        <Link to={next.to} className="inline-flex h-10 items-center gap-1.5 rounded-pill bg-primary px-4 text-sm font-bold text-primary-foreground">
           {next.label} <ArrowRight size={16} />
         </Link>
       </div>
       <div aria-hidden className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-success" style={{ width: `${(done / steps.length) * 100}%` }} />
+        <div className="h-full rounded-pill bg-success" style={{ width: `${(done / steps.length) * 100}%` }} />
       </div>
       <ol className="flex flex-wrap gap-1.5">
         {steps.map((s) => (
           <li key={s.key}>
-            <Link to={s.to} className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold',
+            <Link to={s.to} className={cn('inline-flex items-center gap-1.5 rounded-pill border px-3 py-1.5 text-[13px] font-semibold',
               s.done ? 'border-transparent bg-success/12 text-success' : s === next ? 'border-selected bg-selected text-selected-foreground' : 'border-border bg-card text-muted-foreground')}>
               {s.done && <Check size={14} />}{s.label}
             </Link>

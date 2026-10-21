@@ -17,10 +17,10 @@ export function Seg<T extends string>({ label, value, options, onChange }: {
   onChange: (v: T) => void
 }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex rounded-full border border-border bg-muted p-0.5">
+    <div role="group" aria-label={label} className="inline-flex rounded-pill border border-border bg-muted p-0.5">
       {options.map(([v, text]) => (
         <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}
-          className="rounded-full px-2.5 py-1 text-[12px] font-bold text-muted-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+          className="rounded-pill px-2.5 py-1 text-[12px] font-bold text-muted-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground">
           {text}
         </button>
       ))}

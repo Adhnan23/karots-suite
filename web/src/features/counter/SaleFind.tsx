@@ -54,7 +54,7 @@ export function SaleFind({ title, sym, picked, onPick, initial, onEnter }: {
               className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-left hover:bg-muted aria-pressed:bg-selected aria-pressed:text-selected-foreground">
               <span className="min-w-0 flex-1">
                 <b className="text-[14px] tabular-nums">{s.receiptNo}</b>
-                {STATUS[s.status] && <small className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{STATUS[s.status]}</small>}
+                {STATUS[s.status] && <small className="ml-2 rounded-pill bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{STATUS[s.status]}</small>}
                 <small className="block truncate opacity-70">{when(s.createdAt)} · {s.customerName || 'Walk-in'} · {s.cashierName}</small>
               </span>
               <b className="tabular-nums">{money(sym, s.total)}</b>

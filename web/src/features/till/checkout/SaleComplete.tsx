@@ -1,6 +1,7 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Check, Printer } from 'lucide-react'
 import { motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { Button } from '@/components/ui/button'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -28,7 +29,7 @@ export function SaleComplete() {
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="sale-done-title"
       className="absolute inset-0 z-30 grid place-items-center bg-[color-mix(in_srgb,var(--background)_70%,transparent)] backdrop-blur-[6px]">
-      <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.35, ease: [0.2, 1.4, 0.4, 1] }}
+      <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={tx('slow', 'spring')}
         className={cn(PANEL, 'flex max-h-[calc(100%-32px)] items-stretch gap-5 p-5')}>
         <div className="flex flex-col items-center justify-center gap-2 px-6 py-3 text-center">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-success text-background"><Check size={34} strokeWidth={3} /></span>

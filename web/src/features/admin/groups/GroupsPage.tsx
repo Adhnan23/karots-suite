@@ -46,7 +46,7 @@ export function GroupsPage() {
                 return (
                   <li key={g.id} className={cn('group flex items-center gap-1 pr-2', picked === g.id ? 'bg-selected text-selected-foreground' : 'hover:bg-muted')} style={{ paddingLeft: 10 + g.depth * 22 }}>
                     <button type="button" aria-pressed={picked === g.id} onClick={() => setPicked(g.id)} className="flex min-w-0 flex-1 items-center gap-2.5 py-2.5 text-left">
-                      <span className="grid h-9 w-9 flex-none place-items-center rounded-[10px] bg-muted text-lg">{g.emoji || '📦'}</span>
+                      <span className="grid h-9 w-9 flex-none place-items-center rounded-[var(--radius-sm)] bg-muted text-lg">{g.emoji || '📦'}</span>
                       <span className="min-w-0">
                         <b className="block truncate">{g.name}</b>
                         <small className="opacity-70">{g.itemCount} {g.itemCount === 1 ? 'product' : 'products'}{g.childCount > 0 && ` · ${g.childCount} inside`}</small>
@@ -89,7 +89,7 @@ function Items({ g, onEdit, onChanged }: { g: GroupNode; onEdit: () => void; onC
   return (
     <section ref={ref} aria-label={`${g.name} products`} className={cn(SURFACE, 'flex scroll-mt-4 flex-col overflow-hidden')}>
       <header className="flex flex-wrap items-center gap-3 border-b border-border p-4">
-        <span className="grid h-12 w-12 place-items-center rounded-[14px] bg-brand-soft text-2xl">{g.emoji || '📦'}</span>
+        <span className="grid h-12 w-12 place-items-center rounded-[var(--radius-sm)] bg-brand-soft text-2xl">{g.emoji || '📦'}</span>
         <span className="min-w-0 flex-1">
           <b className="block truncate font-display text-lg">{g.name}</b>
           <small className="text-muted-foreground">{items ? `${items.length} ${items.length === 1 ? 'product' : 'products'} on this card` : '…'}</small>
@@ -150,7 +150,7 @@ function GroupForm({ node, parentId, groups, onClose, onDone }: Editing & { grou
       </div>
       <div className="flex flex-wrap gap-1.5" aria-label="Quick emoji">
         {['🥤', '🍞', '🍚', '🥛', '🍫', '🧃', '🧼', '🧴', '✏️', '📱', '💊', '🍪'].map((e) => (
-          <button key={e} type="button" aria-pressed={f.emoji === e} onClick={() => setF({ ...f, emoji: e })} className="grid h-9 w-9 place-items-center rounded-[10px] bg-muted text-lg aria-pressed:ring-2 aria-pressed:ring-selected">{e}</button>
+          <button key={e} type="button" aria-pressed={f.emoji === e} onClick={() => setF({ ...f, emoji: e })} className="grid h-9 w-9 place-items-center rounded-[var(--radius-sm)] bg-muted text-lg aria-pressed:ring-2 aria-pressed:ring-selected">{e}</button>
         ))}
       </div>
     </FormSheet>

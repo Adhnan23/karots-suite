@@ -10,7 +10,7 @@ import { GROUPS, LIVE, REPORTS } from './hub'
 function Card({ to, title, desc, icon: Icon }: { to: string; title: string; desc: string; icon: LucideIcon }) {
   return (
     <Link to={to} className="group flex items-start gap-3 rounded-[var(--radius)] border border-border bg-card p-4 shadow-[var(--shadow)] transition-colors hover:border-selected">
-      <span className="grid h-10 w-10 flex-none place-items-center rounded-[11px] bg-[color-mix(in_srgb,var(--brand)_14%,transparent)] text-brand"><Icon size={20} /></span>
+      <span className="grid h-10 w-10 flex-none place-items-center rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--brand)_14%,transparent)] text-brand"><Icon size={20} /></span>
       <span className="min-w-0 flex-1">
         <b className="block font-display text-[15px]">{title}</b>
         <span className="text-[13px] text-muted-foreground">{desc}</span>

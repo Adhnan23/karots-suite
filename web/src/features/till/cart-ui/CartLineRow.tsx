@@ -23,7 +23,7 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}
-        className={cn('flex h-7 items-center gap-1 rounded-full border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
+        className={cn('flex h-7 items-center gap-1 rounded-pill border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
         <Tag size={14} />
         {on ? (line.discountType === 'percent' ? `${line.discount}% off` : `${money(sym, line.discount)} off each`) : 'Discount'}
@@ -52,14 +52,14 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
   const disc = lineDiscount(line)
   const expired = line.batchLabel.startsWith('exp ') && line.batchLabel.slice(4) < new Date().toLocaleDateString('en-CA')
   return (
-    <motion.div initial={{ backgroundColor: 'var(--brand-soft)' }} animate={{ backgroundColor: 'rgba(0,0,0,0)' }} transition={{ duration: 0.7 }}
+    <motion.div initial={{ backgroundColor: 'var(--brand-soft)' }} animate={{ backgroundColor: 'rgba(0,0,0,0)' }} transition={{ duration: 0.7 /* not a UI transition: the new-line flash */ }}
       className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 rounded-[var(--radius-sm)] border-t border-dashed border-border px-2 py-2.5 first:border-t-0">
       <div className="min-w-0">
         <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
       </div>
       {line.fixedQty ? (
         <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
-      ) : <div className="flex items-center gap-0.5 rounded-full border border-border bg-muted p-0.5">
+      ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
         <input aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
           onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))} onBlur={() => setQty(num(text))}

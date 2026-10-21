@@ -74,7 +74,7 @@ export function CashflowPage() {
   const list = useInfiniteQuery(cashflowLedgerQuery(r, place, kind))
   const rows = list.data?.pages.flat() ?? []
   const reprint = (row: CashflowRow) => void reprintSlip(slipPath.money(row.receiptId), row.receiptNo)
-  const placeChip = 'flex min-w-0 flex-col items-start rounded-[var(--radius-sm)] border border-white/15 bg-white/5 px-3 py-2 text-left aria-pressed:border-hero-foreground aria-pressed:bg-white/15'
+  const placeChip = 'flex min-w-0 flex-col items-start rounded-[var(--radius-sm)] border border-hero-foreground/15 bg-hero-foreground/5 px-3 py-2 text-left aria-pressed:border-hero-foreground aria-pressed:bg-hero-foreground/15'
 
   return (
     <>

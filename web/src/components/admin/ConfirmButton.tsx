@@ -27,7 +27,7 @@ export function ConfirmButton({ label, title, body, confirm, onConfirm, classNam
           {body && <DialogDescription>{body}</DialogDescription>}
           <div className="mt-2 flex justify-end gap-2">
             <Button type="button" variant="ghost" className="h-10 px-4" onClick={() => setOpen(false)}>Keep it</Button>
-            <Button type="button" disabled={busy} className={plain ? 'h-10 px-4 font-bold' : 'h-10 bg-danger px-4 font-bold text-white hover:bg-danger/90'}
+            <Button type="button" disabled={busy} className={plain ? 'h-10 px-4 font-bold' : 'h-10 bg-danger px-4 font-bold text-danger-foreground hover:bg-danger/90'}
               onClick={async () => {
                 setBusy(true)
                 try { await onConfirm(); setOpen(false) } catch (e) { toast.error(errMsg(e)) } finally { setBusy(false) }

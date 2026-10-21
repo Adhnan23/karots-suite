@@ -87,7 +87,7 @@ export function Segmented<T extends string | number>({ label, value, options, on
       <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5">
         {options.map((o) => (
           <button key={String(o.value)} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-            className="h-10 rounded-full border border-border bg-muted px-4 text-sm font-semibold text-foreground aria-checked:border-selected aria-checked:bg-selected aria-checked:text-selected-foreground">
+            className="h-10 rounded-pill border border-border bg-muted px-4 text-sm font-semibold text-foreground aria-checked:border-selected aria-checked:bg-selected aria-checked:text-selected-foreground">
             {o.label}
           </button>
         ))}

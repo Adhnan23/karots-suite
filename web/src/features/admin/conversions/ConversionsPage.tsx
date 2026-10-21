@@ -25,7 +25,7 @@ import { yieldNote } from './yield'
 export const convQuery = (q: string, disabled: boolean) => queryOptions({ queryKey: ['admin', 'conversions', q, disabled], queryFn: () => api<AdminConversion[]>(`/admin/conversions?q=${encodeURIComponent(q)}&disabled=${disabled ? 1 : 0}`) })
 const runsQuery = (conv: number, r: Range, page: number) => queryOptions({ queryKey: ['admin', 'conversion-runs', conv, r, page], queryFn: () => api<ConversionRunList>(`/admin/conversions/runs?conversion=${conv}&page=${page}${rangeQS(r)}`) })
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
-const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
 /** Repack / break bulk into sellable units (karots-pos Product Conversions). */
 export function ConversionsPage() {

@@ -85,7 +85,7 @@ export function CategoryPicker({ value, onChange, label, noneLabel, exclude, all
           {rows.length === 0 && <li className="p-6 text-center text-sm text-faint">No category matches “{q}”.</li>}
         </ul>
         {allowCreate && (adding === 0 ? <ul>{createRow(0, 0)}</ul> : (
-          <button type="button" onClick={() => { setAdding(0); setName(q) }} className="flex items-center gap-1.5 self-start rounded-full px-2 py-1 text-[13px] font-bold text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() => { setAdding(0); setName(q) }} className="flex items-center gap-1.5 self-start rounded-pill px-2 py-1 text-[13px] font-bold text-muted-foreground hover:text-foreground">
             <Plus size={15} /> New top-level category
           </button>
         ))}

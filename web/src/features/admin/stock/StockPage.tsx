@@ -69,7 +69,7 @@ function Levels() {
         </div>
         <div className="md:w-64"><CategoryPicker label="Filter by category" noneLabel="All categories" value={f.category} onChange={(category) => set({ category })} /></div>
         <button type="button" aria-pressed={f.low} onClick={() => set({ low: !f.low })}
-          className="justify-self-start rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">Running low</button>
+          className="justify-self-start rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">Running low</button>
       </div>
       <DataList label="Stock levels" rows={data?.items ?? []} rowKey={(p) => p.id} onRow={(p) => setLots(p.id)}
         empty={<EmptyState title={data ? 'Nothing matches' : 'Loading…'} />}

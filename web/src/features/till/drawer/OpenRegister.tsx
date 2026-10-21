@@ -1,5 +1,6 @@
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -57,7 +58,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="open-till-title"
       className="absolute inset-0 z-20 grid place-items-center bg-[color-mix(in_srgb,var(--background)_72%,transparent)] p-6 backdrop-blur-sm">
-      <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.22 }}
+      <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={tx()}
         className={cn(PANEL, 'w-full p-6', sections.nodes.length > 0 ? 'max-w-[1040px]' : 'max-w-[760px]')}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

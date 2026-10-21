@@ -40,7 +40,7 @@ export function CategoriesPage() {
         </div>
         {!q && withKids.length > 0 && (
           <button type="button" onClick={() => setCollapsed(collapsed.size ? new Set() : new Set(withKids))}
-            className="rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground hover:text-foreground">
+            className="rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground hover:text-foreground">
             {collapsed.size ? 'Expand all' : 'Collapse all'}
           </button>
         )}
@@ -62,7 +62,7 @@ export function CategoriesPage() {
                   {n.depth === 0 && <FolderTree size={17} className="flex-none text-muted-foreground" />}
                   <span className={cn('truncate', n.depth === 0 ? 'font-bold' : 'font-medium')}>{n.name}</span>
                   {n.childCount > 0 && collapsed.has(n.id) && <small className="flex-none text-faint">+{n.childCount}</small>}
-                  <span className={cn('ml-auto flex-none rounded-full px-2 py-0.5 text-[12px] font-semibold tabular-nums', n.productCount ? 'bg-brand-soft text-foreground' : 'text-faint')}>
+                  <span className={cn('ml-auto flex-none rounded-pill px-2 py-0.5 text-[12px] font-semibold tabular-nums', n.productCount ? 'bg-brand-soft text-foreground' : 'text-faint')}>
                     {n.productCount} {n.productCount === 1 ? 'product' : 'products'}
                   </span>
                 </button>

@@ -215,7 +215,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   return (
     <form onSubmit={save} autoComplete="off" className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-11 w-11 flex-none place-items-center rounded-[12px] bg-brand-soft"><RotateCcw size={20} /></span>
+        <span className="grid h-11 w-11 flex-none place-items-center rounded-[var(--radius-sm)] bg-brand-soft"><RotateCcw size={20} /></span>
         <span className="min-w-0 flex-1">
           <small className="font-semibold text-muted-foreground">Restock</small>
           <b className="block truncate font-display text-xl">{p.name}</b>
@@ -296,7 +296,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
   return (
     <form onSubmit={save} autoComplete="off" className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 flex-none place-items-center rounded-[12px] bg-brand text-brand-foreground"><PackagePlus size={20} /></span>
+        <span className="grid h-11 w-11 flex-none place-items-center rounded-[var(--radius-sm)] bg-brand text-brand-foreground"><PackagePlus size={20} /></span>
         <b className="flex-1 font-display text-xl">New item</b>
         {like && (
           <Button type="button" variant="outline" className="h-9 gap-1.5 px-3" title="Refill from the last item — same name, prices and category; change what differs"

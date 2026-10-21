@@ -14,7 +14,7 @@ export function PhoneTabs({ areas }: { areas: NavArea[] }) {
     <>
       <nav
         aria-label="Primary"
-        className="fixed inset-x-2.5 bottom-2.5 z-20 grid grid-cols-3 rounded-[22px] border border-border bg-bar p-2 shadow-[var(--shadow-float)] [backdrop-filter:var(--glass)] md:hidden"
+        className="fixed inset-x-2.5 bottom-2.5 z-20 grid grid-cols-3 rounded-xl border border-border bg-bar p-2 shadow-[var(--shadow-float)] [backdrop-filter:var(--glass)] md:hidden"
       >
         <Link
           to="/admin"

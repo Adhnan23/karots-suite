@@ -1,6 +1,7 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { useEffect } from 'react'
 import { money, num, qtyText } from '@/lib/money'
 import { configQuery, drawerQuery } from '../api'
@@ -22,7 +23,7 @@ export function PostSaleChange() {
   return (
     <AnimatePresence>
       {amt > 0 && (
-        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}
+        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={tx()}
           role="status" className="mx-2.5 mb-2 flex items-center gap-3 overflow-hidden rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_16%,transparent)] px-3 py-2">
           <span className="flex-1">
             <span className="text-[13px] font-semibold">Give change</span>{' '}

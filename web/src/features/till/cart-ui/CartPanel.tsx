@@ -34,7 +34,7 @@ export function CartPanel() {
           <small className="font-medium text-muted-foreground">{qtyText(items)} items</small>
           {state.lines.length > 0 && (
             <button type="button" onClick={() => ui.open({ kind: 'clearSale' })}
-              className="flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-[12.5px] font-semibold text-muted-foreground hover:border-danger hover:text-danger">
+              className="flex h-8 items-center gap-1.5 rounded-pill border border-border px-3 text-[12.5px] font-semibold text-muted-foreground hover:border-danger hover:text-danger">
               <Trash2 size={14} /> Clear
             </button>
           )}

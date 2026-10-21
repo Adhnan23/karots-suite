@@ -38,7 +38,7 @@ export function FoldPacks({ product, from, onClose }: { product: AdminProduct; f
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Call the pack">
         {NAMES.map((n) => (
           <button key={n} type="button" aria-pressed={name === n} onClick={() => setName(n)}
-            className="rounded-full border border-border px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{n}</button>
+            className="rounded-pill border border-border px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{n}</button>
         ))}
       </div>
       <label className="grid gap-1 text-[13px] font-semibold">Name it

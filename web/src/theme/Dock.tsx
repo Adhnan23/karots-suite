@@ -27,7 +27,7 @@ function DockButton({
       className="group relative grid h-[54px] w-[54px] place-items-center rounded-2xl text-muted-foreground transition-[width,height,background] hover:h-[62px] hover:w-[62px] hover:bg-muted hover:text-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground"
     >
       <Icon size={22} />
-      {!!badge && <span className="absolute top-1 right-1 min-w-[18px] rounded-full bg-danger px-1 text-[11px] leading-[18px] font-extrabold text-white">{badge}</span>}
+      {!!badge && <span className="absolute top-1 right-1 min-w-[18px] rounded-pill bg-danger px-1 text-[11px] leading-[18px] font-extrabold text-danger-foreground">{badge}</span>}
       {here && <span aria-hidden className="absolute -bottom-1 h-1 w-1 rounded-full bg-foreground" />}
       <span className="pointer-events-none absolute bottom-full mb-2.5 rounded-lg bg-foreground px-2.5 py-1 text-xs font-bold whitespace-nowrap text-background opacity-0 transition-opacity group-hover:opacity-100">
         {label}

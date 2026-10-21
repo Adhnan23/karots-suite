@@ -57,8 +57,8 @@ export function UsersPage() {
                   <small className="block text-faint tabular-nums">{u.phone}{u.mustChangePin && ' · must set a new PIN'}</small>
                   <Live r={who?.find((r) => r.userId === u.id)} />
                   <span className="mt-2 flex flex-wrap gap-1">
-                    {PERMS.filter((p) => u[p.k]).map((p) => <span key={p.k} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{p.label}</span>)}
-                    {u.receiptPrinter && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">own printer</span>}
+                    {PERMS.filter((p) => u[p.k]).map((p) => <span key={p.k} className="rounded-pill bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{p.label}</span>)}
+                    {u.receiptPrinter && <span className="rounded-pill bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">own printer</span>}
                   </span>
                 </span>
               </button>

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { reorderQuery, type ReorderFilter } from '../queries'
 import { learning, reasonLine } from './reason'
 
-const CHIP = 'rounded-full border border-border bg-muted px-2 py-px text-[11px] font-bold text-foreground'
+const CHIP = 'rounded-pill border border-border bg-muted px-2 py-px text-[11px] font-bold text-foreground'
 
 /** The Auto / Fixed chip and why the level is what it is ("sells 10 a day · supplier every 7 days"). */
 export function ReasonLine({ r, onUse }: { r: ReorderRow; onUse?: (r: ReorderRow) => void }) {
@@ -21,7 +21,7 @@ export function ReasonLine({ r, onUse }: { r: ReorderRow; onUse?: (r: ReorderRow
       <span className={CHIP}>{r.auto ? `Auto${learnt ? ` · ${learnt}` : ''}` : 'Fixed'}</span>
       {r.looksOff ? <>sales suggest {r.calc.calcLevel} ({reasonLine(r.calc)})</> : reasonLine(r.calc)}
       {r.looksOff && onUse && (
-        <button type="button" onClick={() => onUse(r)} className="min-h-9 rounded-full border border-brand bg-brand-soft px-3 text-xs font-bold">Use {r.calc.calcLevel}</button>
+        <button type="button" onClick={() => onUse(r)} className="min-h-9 rounded-pill border border-brand bg-brand-soft px-3 text-xs font-bold">Use {r.calc.calcLevel}</button>
       )}
     </small>
   )

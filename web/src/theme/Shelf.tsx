@@ -35,7 +35,7 @@ export function Shelf(props: Props) {
       ref={ref}
       role="dialog"
       aria-label={label}
-      className="fixed bottom-[104px] left-1/2 z-20 w-[min(880px,calc(100vw-32px))] -translate-x-1/2 rounded-[22px] border border-border bg-popover p-3 shadow-[var(--shadow-float)]"
+      className="fixed bottom-[104px] left-1/2 z-20 w-[min(880px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-popover p-3 shadow-[var(--shadow-float)]"
     >
       {props.kind === 'apps' ? (
         apps.length === 0 ? (
@@ -44,7 +44,7 @@ export function Shelf(props: Props) {
           <div className="grid grid-cols-4 gap-2.5">
             {apps.map((a) => (
               <Link key={a.key} to={a.to} onClick={props.onClose} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left transition-colors hover:border-brand">
-                <span className="grid h-11 w-11 place-items-center rounded-[13px] text-brand-foreground" style={{ background: a.color }}>
+                <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-sm)] text-brand-foreground" style={{ background: a.color }}>
                   <a.icon size={20} />
                 </span>
                 <b className="text-sm">{a.label}</b>
@@ -70,9 +70,9 @@ function AreaShelf({ area, onClose }: { area: NavArea; onClose: () => void }) {
   const many = area.pages.length > 9
   return (
     <div className="grid grid-cols-[220px_1fr] gap-4">
-      <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-[16px] bg-hero bg-[image:var(--hero-art)] p-5 text-hero-foreground">
+      <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-[var(--radius)] bg-hero bg-[image:var(--hero-art)] p-5 text-hero-foreground">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-hero-foreground/10"><area.icon size={20} /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-[var(--radius-sm)] bg-hero-foreground/10"><area.icon size={20} /></span>
           <span>
             <b className="block font-display text-lg leading-tight">{area.label}</b>
             <small className="text-hero-muted">{area.pages.length} pages</small>
@@ -95,10 +95,10 @@ function AreaShelf({ area, onClose }: { area: NavArea; onClose: () => void }) {
             <Link key={p.to} to={p.to} onClick={onClose} aria-current={here ? 'page' : undefined}
               onMouseEnter={() => setHover(p)} onFocus={() => setHover(p)}
               className={cn('group flex min-w-0 items-center gap-3 rounded-xl outline-none', many ? 'px-2 py-1.5' : 'p-2')}>
-              <span className={cn('relative grid flex-none place-items-center rounded-[12px] transition-[transform,background-color,color,box-shadow] duration-150 group-hover:-translate-y-0.5 group-hover:bg-brand group-hover:text-brand-foreground group-hover:shadow-[var(--glow)] group-focus-visible:bg-brand group-focus-visible:text-brand-foreground group-focus-visible:ring-2 group-focus-visible:ring-ring',
-                many ? 'h-8 w-8 rounded-[10px]' : 'h-10 w-10', here ? 'bg-selected text-selected-foreground' : 'bg-muted text-muted-foreground')}>
+              <span className={cn('relative grid flex-none place-items-center rounded-[var(--radius-sm)] transition-[transform,background-color,color,box-shadow] duration-(--dur-fast) group-hover:-translate-y-0.5 group-hover:bg-brand group-hover:text-brand-foreground group-hover:shadow-[var(--glow)] group-focus-visible:bg-brand group-focus-visible:text-brand-foreground group-focus-visible:ring-2 group-focus-visible:ring-ring',
+                many ? 'h-8 w-8 rounded-[var(--radius-sm)]' : 'h-10 w-10', here ? 'bg-selected text-selected-foreground' : 'bg-muted text-muted-foreground')}>
                 <p.icon size={many ? 16 : 19} />
-                {p.badge ? <span className="absolute -top-1.5 -right-1.5 min-w-[18px] rounded-full bg-danger px-1 text-center text-[11px] font-extrabold leading-[18px] text-white">{p.badge}</span> : null}
+                {p.badge ? <span className="absolute -top-1.5 -right-1.5 min-w-[18px] rounded-pill bg-danger px-1 text-center text-[11px] font-extrabold leading-[18px] text-danger-foreground">{p.badge}</span> : null}
               </span>
               <span className={cn('line-clamp-2 text-sm leading-tight font-semibold transition-colors group-hover:text-foreground', here ? 'text-foreground' : 'text-muted-foreground')}>{p.label}</span>
             </Link>

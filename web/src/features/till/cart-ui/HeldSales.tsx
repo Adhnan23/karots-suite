@@ -21,7 +21,7 @@ export function HeldStrip() {
       <PauseCircle size={16} className="shrink-0" /> Held
       {held.slice(0, 3).map((h) => (
         <button key={h.id} type="button" onClick={() => void resume(h)}
-          className="truncate rounded-full border border-border bg-muted px-2.5 py-1 text-[12px] font-semibold text-foreground">
+          className="truncate rounded-pill border border-border bg-muted px-2.5 py-1 text-[12px] font-semibold text-foreground">
           {h.label || 'Sale'} · {money(cfg.symbol, h.total)}
         </button>
       ))}

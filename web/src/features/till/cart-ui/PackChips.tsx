@@ -12,7 +12,7 @@ import type { CartLine } from '../cart/types'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
-const CHIP = 'flex h-7 items-center gap-1 rounded-full px-2.5 text-[12.5px] font-semibold'
+const CHIP = 'flex h-7 items-center gap-1 rounded-pill px-2.5 text-[12.5px] font-semibold'
 const NAMES = ['Card', 'Box', 'Packet', 'Strip', 'Tray', 'Bottle']
 
 /** Under a cart line of something sold by the pack: the split as handed over
@@ -81,7 +81,7 @@ function PackSize({ line, onClose }: { line: CartLine; onClose: () => void }) {
         <div className="flex flex-wrap gap-1.5">
           {NAMES.map((n) => (
             <button key={n} type="button" aria-pressed={name === n} onClick={() => setName(n)}
-              className="rounded-full border border-border px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+              className="rounded-pill border border-border px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
               {n}
             </button>
           ))}

@@ -95,7 +95,7 @@ export function MergeConfirm({ from, into, onClose, onDone }: { from: { id: numb
         <div className="mt-1 flex justify-end gap-2">
           <Button type="button" variant="ghost" className="h-10 px-4" onClick={onClose}>{pv?.refusal ? 'Close' : 'Keep both'}</Button>
           {pv && !pv.refusal && (
-            <Button type="button" disabled={busy} className="h-10 gap-1.5 bg-danger px-4 font-bold text-white hover:bg-danger/90" onClick={() => void merge()}>
+            <Button type="button" disabled={busy} className="h-10 gap-1.5 bg-danger px-4 font-bold text-danger-foreground hover:bg-danger/90" onClick={() => void merge()}>
               <Merge size={15} /> Merge
             </Button>
           )}

@@ -83,7 +83,7 @@ export function UnitClaim({ serial, onSerial }: { serial: string; onSerial: (s: 
           <div className="flex flex-wrap gap-1.5">
             {REASONS.map((r) => (
               <button key={r} type="button" aria-pressed={reason === r} onClick={() => setReason(reason === r ? '' : r)}
-                className="rounded-full border border-border px-3 py-1 text-[12.5px] font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{r}</button>
+                className="rounded-pill border border-border px-3 py-1 text-[12.5px] font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{r}</button>
             ))}
           </div>
           <Button type="submit" size="lg" disabled={busy || !next.trim()} className="h-12 text-[15px]">Swap for the new unit</Button>

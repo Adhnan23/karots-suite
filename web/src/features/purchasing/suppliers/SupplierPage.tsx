@@ -28,7 +28,7 @@ function Section({ title, count, children }: { title: string; count?: number; ch
   return (
     <section className={cn(SURFACE, 'overflow-hidden')}>
       <h2 className="flex items-center gap-2 border-b border-border px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-faint">
-        {title}{count !== undefined && <span className="rounded-full bg-muted px-2 text-foreground">{count}</span>}
+        {title}{count !== undefined && <span className="rounded-pill bg-muted px-2 text-foreground">{count}</span>}
       </h2>
       {children}
     </section>

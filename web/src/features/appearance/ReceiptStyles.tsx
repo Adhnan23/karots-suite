@@ -24,14 +24,14 @@ const SALES = [
 
 function Seg<T extends string>({ label, options, value, onChange }: { label: string; options: readonly { label: string; key: T }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-0.5 rounded-full bg-muted p-1">
+    <div role="group" aria-label={label} className="flex flex-wrap gap-0.5 rounded-pill bg-muted p-1">
       {options.map((o) => (
         <button
           key={o.key}
           type="button"
           aria-pressed={value === o.key}
           onClick={() => onChange(o.key)}
-          className="rounded-full px-2.5 py-1 text-xs font-semibold text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[var(--shadow)]"
+          className="rounded-pill px-2.5 py-1 text-xs font-semibold text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[var(--shadow)]"
         >
           {o.label}
         </button>
@@ -66,7 +66,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
               onClick={() => onChange(s.key)}
               className="flex w-28 shrink-0 flex-col gap-1.5 rounded-[var(--radius)] border-2 border-transparent bg-card p-2 text-left shadow-[var(--shadow)] aria-pressed:border-brand sm:w-auto"
             >
-              <div className="h-32 overflow-hidden rounded-sm border border-border bg-white">
+              <div className="h-32 overflow-hidden rounded-sm border border-border bg-paper">
                 {thumbs[i].data && <img src={thumbs[i].data.url} alt={s.label} className="w-full" />}
               </div>
               <span className="text-sm font-semibold">{s.label}</span>
@@ -89,7 +89,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
         </div>
         <div className="flex min-h-40 justify-center overflow-hidden rounded-sm bg-muted p-3">
           {preview.data ? (
-            <img src={preview.data.url} alt="Receipt preview" className="h-auto max-w-full bg-white shadow-[var(--shadow)]" style={{ width: preview.data.dots * 0.7 }} />
+            <img src={preview.data.url} alt="Receipt preview" className="h-auto max-w-full bg-paper shadow-[var(--shadow)]" style={{ width: preview.data.dots * 0.7 }} />
           ) : (
             <span className="self-center text-sm text-muted-foreground">{preview.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}

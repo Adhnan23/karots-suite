@@ -129,7 +129,7 @@ export function ReorderPage() {
         <div className="mb-3 flex flex-wrap gap-2">
           {([[false, 'Running low'], [true, `Levels look off · ${offCount}`]] as const).map(([off, label]) => (
             <button key={label} type="button" aria-pressed={f.off === off} onClick={() => set({ off })}
-              className="h-10 rounded-full border border-border bg-card px-4 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+              className="h-10 rounded-pill border border-border bg-card px-4 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
               {label}
             </button>
           ))}

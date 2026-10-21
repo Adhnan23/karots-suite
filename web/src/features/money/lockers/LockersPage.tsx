@@ -59,7 +59,7 @@ export function LockersPage() {
       </div>
       <div className="mb-3 flex justify-end">
         <button type="button" aria-pressed={disabled} onClick={() => void navigate({ search: { disabled: !disabled } })}
-          className="rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+          className="rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
           Show archived
         </button>
       </div>

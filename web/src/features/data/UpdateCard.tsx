@@ -30,7 +30,7 @@ export function UpdateCard() {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-sm font-bold">Version {st.version}</span>
-        {st.kind === 'test' && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning">Test build</span>}
+        {st.kind === 'test' && <span className="rounded-pill bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning">Test build</span>}
       </div>
 
       {st.rolledBackFrom && (

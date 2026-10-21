@@ -34,14 +34,14 @@ function Segmented<T extends string>({
   label: string
 }) {
   return (
-    <div role="group" aria-label={label} className="flex rounded-full border border-border bg-muted p-1">
+    <div role="group" aria-label={label} className="flex rounded-pill border border-border bg-muted p-1">
       {options.map((opt) => (
         <button
           key={opt}
           type="button"
           aria-pressed={value === opt}
           onClick={() => onChange(opt)}
-          className="flex-1 rounded-full px-3 py-1.5 text-sm font-semibold capitalize text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[var(--shadow)]"
+          className="flex-1 rounded-pill px-3 py-1.5 text-sm font-semibold capitalize text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[var(--shadow)]"
         >
           {opt}
         </button>

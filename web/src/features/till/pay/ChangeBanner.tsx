@@ -32,7 +32,7 @@ export function ChangeBanner() {
   const ui = useTillUi()
   const short = drawer?.summary.session ? shortForChange(give, num(drawer.summary.expected)) : 0
   const notes = notesFor(give, (drawer?.denominations ?? []).map((d) => num(d.value)))
-  const keepBtn = 'rounded-full border border-border bg-card px-2.5 py-1 text-[12px] font-bold aria-pressed:border-success aria-pressed:bg-success aria-pressed:text-background'
+  const keepBtn = 'rounded-pill border border-border bg-card px-2.5 py-1 text-[12px] font-bold aria-pressed:border-success aria-pressed:bg-success aria-pressed:text-background'
 
   let tone = 'bg-muted'
   let body
@@ -57,7 +57,7 @@ export function ChangeBanner() {
         {short > 0 && (
           <p className="flex items-center justify-between gap-2 text-[12.5px] font-semibold text-warning">
             <span>{money(sym, short)} short in the drawer</span>
-            <button type="button" onClick={() => ui.open({ kind: 'deposit' })} className="flex-none rounded-full border border-border bg-card px-2.5 py-0.5 text-[12px] font-bold text-foreground hover:border-selected">Deposit</button>
+            <button type="button" onClick={() => ui.open({ kind: 'deposit' })} className="flex-none rounded-pill border border-border bg-card px-2.5 py-0.5 text-[12px] font-bold text-foreground hover:border-selected">Deposit</button>
           </p>
         )}
         {notes.length > 0 && <p className="text-muted-foreground tabular-nums">{notes.map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>}

@@ -7,7 +7,7 @@ import { num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 // A device body in the theme's colours (light or dark, either palette).
-const BODY = 'rounded-[22px] border border-border bg-muted p-3 shadow-[var(--shadow)] transition'
+const BODY = 'rounded-xl border border-border bg-muted p-3 shadow-[var(--shadow)] transition'
 const KEY = 'grid h-11 place-items-center rounded-lg text-lg font-bold shadow-[inset_0_-3px_0_color-mix(in_srgb,var(--ink)_35%,transparent)] active:translate-y-px active:shadow-none disabled:opacity-40'
 
 /** Drag something from the customer's side onto a machine; true when it's dropped on it. */
@@ -54,7 +54,7 @@ export function CashDrawer({ hand, given, notes, coins, onGive }: {
           {open && <span className="text-foreground normal-case tracking-normal">In: Rs {given}</span>}
         </div>
         {open ? (
-          <motion.div initial={{ height: 0, opacity: 0.4 }} animate={{ height: 'auto', opacity: 1 }} transition={{ duration: 0.35 }} className="overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0.4 }} animate={{ height: 'auto', opacity: 1 }} transition={{ duration: 0.35 /* not a UI transition: the game */ }} className="overflow-hidden">
             <div className="rounded-lg bg-card p-2.5 text-foreground shadow-[inset_0_3px_8px_color-mix(in_srgb,var(--ink)_30%,transparent)]">
               <NoteTray notes={notes} coins={coins} amount={change} onChange={setChange} switcher={null} />
             </div>

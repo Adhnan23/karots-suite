@@ -24,7 +24,7 @@ export function DrawerPill() {
   const s = d.summary.session
   const dot = <span className={cn('h-2 w-2 shrink-0 rounded-full', s ? 'bg-success shadow-[0_0_0_4px_color-mix(in_srgb,var(--success)_25%,transparent)]' : 'bg-faint')} />
   if (!s) {
-    return <span className="flex items-center gap-2 whitespace-nowrap rounded-full border border-border bg-muted px-3 py-1.5 text-[13px]">{dot} Till closed</span>
+    return <span className="flex items-center gap-2 whitespace-nowrap rounded-pill border border-border bg-muted px-3 py-1.5 text-[13px]">{dot} Till closed</span>
   }
   const cash = money(cfg.symbol, d.summary.expected)
   const toggleHidden = () => {
@@ -38,7 +38,7 @@ export function DrawerPill() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" aria-label={`Till open, ${hidden ? 'amount hidden' : `${cash} in the drawer`}`}
-          className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-muted px-3 py-1.5 text-[13px] hover:border-selected">
+          className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-pill border border-border bg-muted px-3 py-1.5 text-[13px] hover:border-selected">
           {dot}
           <b className="tabular-nums">{hidden ? `${cfg.symbol} ••••` : cash}</b>
           <ChevronDown size={14} className="text-faint" />

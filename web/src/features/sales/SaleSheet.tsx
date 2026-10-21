@@ -112,7 +112,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
       <div className="flex flex-wrap items-center gap-1.5">
         {REASONS.map((r) => (
           <button key={r} type="button" aria-pressed={reason === r} onClick={() => setReason(reason === r ? '' : r)}
-            className="rounded-full border border-border bg-muted px-3 py-1.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{r}</button>
+            className="rounded-pill border border-border bg-muted px-3 py-1.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{r}</button>
         ))}
         <input aria-label="Reason" placeholder="Other reason (optional)" value={REASONS.includes(reason) ? '' : reason} onChange={(e) => setReason(e.target.value)} className={cn(INPUT, 'h-9 min-w-[160px] flex-1 text-[13px]')} />
       </div>

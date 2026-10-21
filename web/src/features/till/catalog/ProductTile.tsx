@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react'
 import { motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import type { Lot, TillProduct } from '@/api/types.gen'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -32,7 +33,7 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
   ].filter(Boolean)
   return (
     <div className="relative">
-      <motion.button type="button" onClick={onAdd} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.12 }}
+      <motion.button type="button" onClick={onAdd} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
         className={cn(TILE, 'justify-start', out && 'opacity-60')}>
         {/* A faint mark in the card's own tint fills the middle: the emoji, or the first letter. */}
         <span aria-hidden className="pointer-events-none absolute -right-1 -bottom-4 select-none font-display text-[96px] font-extrabold leading-none"

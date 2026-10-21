@@ -43,7 +43,7 @@ export function SuppliersPage() {
   const data = useQuery({ ...suppliersQuery(f), placeholderData: keepPreviousData }).data
   const [adding, setAdding] = useState(false)
   const set = (patch: Partial<typeof f>) => void navigate({ search: (x) => ({ ...x, page: 1, ...patch }) })
-  const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+  const chip = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
   const open = (r: AdminSupplierRow) => void go({ to: '/admin/suppliers/$id', params: { id: String(r.id) } })
 
   return (

@@ -62,7 +62,7 @@ export function ReceiptsPage({ cashId }: { cashId?: number }) {
         : (claimsQ.data?.pages.flat() ?? []).map((x) => ({ key: x.id, title: x.productName, sub: `${stamp(x.at)} · ${x.oldSerial || 'by receipt'}${x.customerName ? ` · ${x.customerName}` : ''}`, who: x.handledBy, amount: null,
           tag: x.resolution, p: { kind: 'warranty', row: x } }))
   const PluginPage = tab.startsWith('x:') ? slots.tillReceiptKinds.find((k) => `x:${k.key}` === tab)?.Page : undefined
-  const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+  const chip = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
     <>

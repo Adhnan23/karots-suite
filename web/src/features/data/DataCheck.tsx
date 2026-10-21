@@ -19,7 +19,7 @@ export function DataCheckList({ findings }: { findings: CheckFinding[] }) {
             <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
               <TriangleAlert size={18} className="mt-0.5 shrink-0 text-warning" />
               <span className="min-w-0 flex-1 text-sm font-semibold">{f.title}</span>
-              <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-bold tabular-nums text-warning">{f.count}</span>
+              <span className="shrink-0 rounded-pill bg-warning/15 px-2 py-0.5 text-xs font-bold tabular-nums text-warning">{f.count}</span>
             </summary>
             <div className="border-t border-border px-3 pb-3 pt-2 text-sm">
               <p className="mb-2 text-muted-foreground">{f.explain}</p>

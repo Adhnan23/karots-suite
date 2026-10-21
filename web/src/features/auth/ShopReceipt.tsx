@@ -41,7 +41,7 @@ export function ReceiptOut({ shop, no, lines, total, card, given, target, onDrag
       <p className="text-sm text-muted-foreground">{printed ? 'Hand the receipt over — drag it to the customer' : 'Printing…'}</p>
       {/* The printer's mouth; the paper grows out of it. */}
       <div className="h-3 w-[240px] rounded-full bg-[color-mix(in_srgb,var(--ink)_55%,transparent)] shadow-[inset_0_2px_4px_color-mix(in_srgb,var(--ink)_60%,transparent)]" />
-      <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} transition={{ duration: 1.4, ease: 'linear' }}
+      <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} transition={{ duration: 1.4, ease: 'linear' /* not a UI transition: the game */ }}
         onAnimationComplete={() => setPrinted(true)}
         className={cn('-mt-2 w-[220px] touch-none', printed ? 'cursor-grab' : 'overflow-hidden', drag && 'relative z-10 cursor-grabbing')}
         style={{ transform: drag ? `translate(${drag.x}px, ${drag.y}px) rotate(-3deg)` : undefined }}

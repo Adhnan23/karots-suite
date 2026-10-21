@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils'
 import { tillTabList } from './tillTabList'
 
-const TAB = 'whitespace-nowrap rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted'
+const TAB = 'whitespace-nowrap rounded-pill px-3 py-1.5 text-muted-foreground hover:bg-muted'
 const ON = 'bg-selected text-selected-foreground hover:bg-selected'
 const GAP = 4 // gap-1
 

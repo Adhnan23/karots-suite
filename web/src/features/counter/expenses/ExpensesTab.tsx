@@ -83,7 +83,7 @@ export function ExpensesTab() {
           <div className="flex flex-wrap gap-1.5">
             {page.categories.slice(0, 10).map((c) => (
               <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)}
-                className="rounded-full border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
+                className="rounded-pill border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
                 {c}
               </button>
             ))}

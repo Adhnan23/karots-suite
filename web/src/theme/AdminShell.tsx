@@ -109,7 +109,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
   return (
     <div className="min-h-screen text-foreground">
       <header className="flex items-center gap-2.5 px-4 pt-4 md:gap-3 md:px-10 print:hidden">
-        <span className="hidden h-[30px] w-[30px] flex-none place-items-center rounded-[9px] bg-brand font-display text-sm font-extrabold text-brand-foreground md:grid">
+        <span className="hidden h-[30px] w-[30px] flex-none place-items-center rounded-[var(--radius-sm)] bg-brand font-display text-sm font-extrabold text-brand-foreground md:grid">
           K
         </span>
         <span className="min-w-0 flex-1 truncate font-display text-base font-bold md:flex-none md:text-lg">{me.shopName}</span>
@@ -125,7 +125,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="hidden min-w-[220px] items-center gap-2 rounded-full border border-border bg-muted px-3 py-2 text-sm text-muted-foreground md:flex"
+            className="hidden min-w-[220px] items-center gap-2 rounded-pill border border-border bg-muted px-3 py-2 text-sm text-muted-foreground md:flex"
           >
             <Search size={16} />
             <span className="flex-1 text-left">Search pages, products, bills</span>
@@ -138,7 +138,7 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
             type="button"
             onClick={handleLock}
             aria-label="Lock"
-            className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 text-sm font-semibold md:px-3"
+            className="flex h-9 items-center gap-1.5 rounded-pill border border-border bg-muted px-2.5 text-sm font-semibold md:px-3"
           >
             <UnlockIcon size={16} />
             <span className="hidden md:inline">Lock</span>
@@ -151,9 +151,9 @@ export function AdminShell({ me, children }: { me: Me; children: ReactNode }) {
         <nav aria-label={`${here.area.label} pages`} className="flex gap-1.5 overflow-x-auto px-4 pt-3 [scrollbar-width:none] md:px-10 print:hidden">
           {here.area.pages.map((p) => (
             <Link key={p.to} to={p.to} activeOptions={{ exact: true }} data-on={p === here.page || undefined}
-              className="whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground data-on:border-selected data-on:bg-selected data-on:text-selected-foreground">
+              className="whitespace-nowrap rounded-pill border border-border bg-card px-3.5 py-1.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground data-on:border-selected data-on:bg-selected data-on:text-selected-foreground">
               {p.label}
-              {p.badge ? <span className="ml-1.5 rounded-full bg-danger px-1.5 text-[11px] font-extrabold text-white">{p.badge}</span> : null}
+              {p.badge ? <span className="ml-1.5 rounded-pill bg-danger px-1.5 text-[11px] font-extrabold text-danger-foreground">{p.badge}</span> : null}
             </Link>
           ))}
         </nav>

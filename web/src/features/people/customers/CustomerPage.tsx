@@ -55,7 +55,7 @@ export function CustomerPage({ id }: { id: number }) {
           </div>
           {limit > 0 && (
             <div className="mt-3" aria-label="Credit used">
-              <div className="h-2 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', c.overLimit ? 'bg-danger' : used > 0.8 ? 'bg-warning' : 'bg-brand')} style={{ width: `${used * 100}%` }} /></div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-pill', c.overLimit ? 'bg-danger' : used > 0.8 ? 'bg-warning' : 'bg-brand')} style={{ width: `${used * 100}%` }} /></div>
               <small className="mt-1 block text-muted-foreground tabular-nums">{c.overLimit ? `${money(sym, owed - limit)} over` : `${money(sym, limit - Math.max(owed, 0))} left`} of a {money(sym, limit)} limit</small>
             </div>
           )}

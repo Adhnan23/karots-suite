@@ -79,7 +79,7 @@ export function RestoreDialog({ source, onClose }: { source: RestoreSource; onCl
             {error && <p role="alert" className="text-sm font-semibold text-danger">{error}</p>}
             <div className="mt-1 flex justify-end gap-2">
               <Button variant="ghost" className="h-10 px-4" disabled={busy} onClick={onClose}>Keep my data</Button>
-              <Button className="h-10 gap-1.5 bg-danger px-4 font-bold text-white hover:bg-danger/90" disabled={typed !== WORD || busy} onClick={() => void run()}>
+              <Button className="h-10 gap-1.5 bg-danger px-4 font-bold text-danger-foreground hover:bg-danger/90" disabled={typed !== WORD || busy} onClick={() => void run()}>
                 <RotateCcw size={16} /> {busy ? 'Restoring…' : 'Restore'}
               </Button>
             </div>

@@ -163,7 +163,7 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
   return (
     <p className="mt-1 flex flex-wrap items-center gap-2 rounded-md bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] px-2 py-1 text-[12px] font-semibold text-warning">
       Sells under its usual markup{cur && num(cur.sell) > 0 && ` (now ${money(sym, cur.sell)})`}
-      <button type="button" onClick={() => onUse(suggest.toFixed(2))} className="rounded-full bg-card px-2 py-0.5 text-foreground">Use {money(sym, suggest)}</button>
+      <button type="button" onClick={() => onUse(suggest.toFixed(2))} className="rounded-pill bg-card px-2 py-0.5 text-foreground">Use {money(sym, suggest)}</button>
     </p>
   )
 }

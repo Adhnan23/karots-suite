@@ -42,7 +42,6 @@
   --bar: rgb(255 255 255 / .66);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 10px 30px rgb(60 50 140 / .10);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .8), 0 18px 50px rgb(60 50 140 / .18);
-  --card-glass: none;
   --danger-foreground: #FFFFFF;
   --scrim: rgb(0 0 0 / .10);
   --radius: 16px;
@@ -105,7 +104,6 @@
   --bar: rgb(22 29 51 / .72);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
-  --card-glass: none;
   --danger-foreground: #FFFFFF;
   --scrim: rgb(0 0 0 / .10);
   --radius: 16px;
@@ -169,7 +167,6 @@
     --bar: rgb(22 29 51 / .72);
     --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
     --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
-    --card-glass: none;
     --danger-foreground: #FFFFFF;
     --scrim: rgb(0 0 0 / .10);
     --radius: 16px;

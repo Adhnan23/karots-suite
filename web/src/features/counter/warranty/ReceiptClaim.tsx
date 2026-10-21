@@ -65,7 +65,7 @@ function Line({ v, l }: { v: WarrantyReceiptView; l: WarrantyReceiptLine }) {
           <div className="flex flex-wrap gap-1.5">
             {REASONS.map((r) => (
               <button key={r} type="button" aria-pressed={reason === r} onClick={() => setReason(reason === r ? '' : r)}
-                className="rounded-full border border-border px-3 py-1 text-[12.5px] font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{r}</button>
+                className="rounded-pill border border-border px-3 py-1 text-[12.5px] font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{r}</button>
             ))}
           </div>
           <Button disabled={busy} onClick={() => void replace()} className="h-11">Replace one {l.name}</Button>

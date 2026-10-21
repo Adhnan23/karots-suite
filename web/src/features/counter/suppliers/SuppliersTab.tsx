@@ -125,10 +125,10 @@ function Workspace({ id, startJob }: { id: number; startJob?: Job }) {
         <div className="mx-5 mb-3 flex flex-wrap items-center gap-1.5 rounded-[var(--radius-sm)] bg-muted p-2 text-[13px]">
           <span className="px-1 font-semibold text-muted-foreground">Against an order:</span>
           <button type="button" aria-pressed={orderId === null} onClick={() => setOrderId(null)}
-            className="rounded-full border border-border bg-card px-2.5 py-1 font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">No order</button>
+            className="rounded-pill border border-border bg-card px-2.5 py-1 font-semibold aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">No order</button>
           {s.orders.map((o) => (
             <button key={o.id} type="button" aria-pressed={orderId === o.id} onClick={() => setOrderId(o.id)}
-              className="rounded-full border border-border bg-card px-2.5 py-1 font-semibold tabular-nums aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
+              className="rounded-pill border border-border bg-card px-2.5 py-1 font-semibold tabular-nums aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
               #{o.id} · {new Date(o.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
             </button>
           ))}

@@ -81,7 +81,7 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
       <div className="flex flex-wrap gap-1.5">
         {REASONS.map((r) => (
           <button key={r} type="button" aria-pressed={note === r} onClick={() => setNote(r)}
-            className="rounded-full border border-border px-3 py-1.5 text-[12px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{r}</button>
+            className="rounded-pill border border-border px-3 py-1.5 text-[12px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{r}</button>
         ))}
       </div>
     </FormSheet>

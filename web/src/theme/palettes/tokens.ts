@@ -18,7 +18,6 @@ export const TOKENS: readonly TokenDef[] = [
   ...c('Charts', '--chart-1', '--chart-2', '--chart-3', '--chart-4', '--chart-5', '--chart-6'),
   { name: '--bar', group: 'material', kind: 'color' },
   { name: '--glass', group: 'material', kind: 'filter' },
-  { name: '--card-glass', group: 'material', kind: 'filter' },
   { name: '--bg-art', group: 'background', kind: 'image' },
   { name: '--hero-art', group: 'background', kind: 'image' },
   { name: '--shadow', group: 'depth', kind: 'shadow' },

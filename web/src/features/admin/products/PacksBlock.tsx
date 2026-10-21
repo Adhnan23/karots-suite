@@ -79,7 +79,7 @@ export function PacksBlock({ productId, unit, unitPrice, stockQty, sym }: { prod
           <div className="flex flex-wrap gap-1.5">
             {NAMES.map((n) => (
               <button key={n} type="button" aria-pressed={edit.f.name === n} onClick={() => set({ name: n })}
-                className="rounded-full border border-border bg-card px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{n}</button>
+                className="rounded-pill border border-border bg-card px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{n}</button>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

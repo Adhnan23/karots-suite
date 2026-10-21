@@ -17,7 +17,7 @@ import { LABEL_SIZES as SIZES, labelCount, saveSlot, slotDefault, slotOptions, s
 const FORMATS = ['CODE128', 'EAN13', 'EAN8', 'UPC', 'CODE39']
 const COPIES = [1, 6, 12, 24]
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
-const CHIP = 'rounded-full border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground'
+const CHIP = 'rounded-pill border border-border px-3 py-1.5 text-[13px] font-semibold text-foreground aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground'
 
 
 /** Barcode stickers: pick a product (or type a code), check the preview, print. */

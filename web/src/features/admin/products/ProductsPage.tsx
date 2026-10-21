@@ -22,7 +22,7 @@ const route = getRouteApi('/_authed/admin/products/')
 
 export function Tag({ tone, children }: { tone: 'warn' | 'danger' | 'muted' | 'brand'; children: string }) {
   const c = { warn: 'text-warning bg-[color-mix(in_srgb,var(--warning)_14%,transparent)]', danger: 'text-danger bg-[color-mix(in_srgb,var(--danger)_14%,transparent)]', muted: 'text-muted-foreground bg-muted', brand: 'bg-brand-soft text-foreground' }[tone]
-  return <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', c)}>{children}</span>
+  return <span className={cn('inline-flex rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', c)}>{children}</span>
 }
 
 /** The catalog (karots-pos /admin/products): search, category (with its
@@ -39,7 +39,7 @@ export function ProductsPage() {
   const [editing, setEditing] = useState<Editing | null>(null)
   const [barcodeFor, setBarcodeFor] = useState<AdminProductRow | null>(null)
   const set = (patch: Partial<typeof f>) => void navigate({ search: (s) => ({ ...s, page: 1, ...patch }) })
-  const chip = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+  const chip = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
     <>

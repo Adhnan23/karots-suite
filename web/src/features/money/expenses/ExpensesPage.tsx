@@ -34,7 +34,7 @@ export function ExpensesPage() {
   const list = useInfiniteQuery(expensesQuery(f))
   const rows = list.data?.pages.flat() ?? []
   const [open, setOpen] = useState<{ kind: 'new' | 'edit' | 'void'; e?: AdminExpenseRow } | null>(null)
-  const chip = 'flex items-baseline gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+  const chip = 'flex items-baseline gap-1.5 whitespace-nowrap rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
     <>

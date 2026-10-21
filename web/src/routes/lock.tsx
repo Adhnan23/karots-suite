@@ -111,7 +111,7 @@ function Lock() {
             <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Locked by {me.user.name}</h2>
             <p className="text-muted-foreground">Locked {lockedFor} · enter the phone number and PIN to unlock.</p>
             {open > 0 && (
-              <p className="mt-2 self-start rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold">
+              <p className="mt-2 self-start rounded-pill bg-brand-soft px-3 py-1 text-sm font-semibold">
                 🛒 A sale with {qtyText(open)} {open === 1 ? 'item' : 'items'} is waiting
               </p>
             )}
