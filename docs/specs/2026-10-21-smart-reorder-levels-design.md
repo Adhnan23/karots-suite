@@ -52,7 +52,11 @@ import round trip never freezes learned levels.
 All quantities in the product's base unit (packs already sell in units).
 
 1. **Use per day.** Sales lines (`quantity − returned_qty`, sale not void), one figure per sale per product, plus
-   conversion runs out of this product (a bag opened into loose rice is use of the bag, not capped).
+   the sales of every **derived product** (the target of an active conversion: loose rice from a 25 kg bag) ÷ the
+   conversion ratio, in this product's units, never capped (user, 2026-10-21: "it will add those sales to the
+   original product"). Conversion runs themselves are not counted (that would count the loose sales twice).
+   **Derived products are left out of Reorder and the till's Low stock tab** — nobody orders loose rice from a
+   supplier; the bag is reordered.
 2. **One-off big bills.** Normal bill size = the 75th percentile of the product's per-sale quantity over 180 days
    (needs ≥ 5 sales, else no capping). A sale above **3 ×** that counts as the median for speed only. Revenue, stock
    and reports are untouched. A regular big buyer raises the percentile, so real demand still counts.
