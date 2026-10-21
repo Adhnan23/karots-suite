@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/datetime"
@@ -17,6 +18,7 @@ import (
 	"karots-suite/internal/receiptimg"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 // repairSlip is the job on the receipt printer: a claim ticket while it's open
@@ -248,4 +250,31 @@ func (h handlers) print(c echo.Context) error {
 		return apperr.ConflictCode("PRINT_FAILED", "Slip didn't print — check the printer is on and connected")
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// sampleSlip is the Appearance page's preview of the job slip: a made-up open
+// job with a part, a charge, an estimate and a deposit, as ?data=1 only — never
+// printed (?size=58|80 like print).
+func (h handlers) sampleSlip(c echo.Context) error {
+	if c.QueryParam("data") != "1" {
+		return &apperr.AppError{Code: "SAMPLE_ONLY", Message: "The sample slip is a preview only", Status: 422}
+	}
+	ctx := c.Request().Context()
+	cfg0, err := h.p.core.Settings.Get(ctx)
+	if err != nil {
+		return err
+	}
+	cfg := *cfg0
+	if sz := c.QueryParam("size"); sz == "58" || sz == "80" {
+		cfg.ReceiptWidth = sz
+	}
+	ready := time.Now().AddDate(0, 0, 2)
+	d := &Detail{
+		Job: Job{TicketNo: "R-0002", CustomerName: "Nimal Perera", RepairType: "Phone", DeviceModel: "Galaxy A12",
+			Fault: "Cracked screen", Status: "received", PromisedDate: &ready, CreatedAt: time.Now()},
+		Parts:    []Part{{ProductName: "A12 screen", Qty: decimal.NewFromInt(1), Price: decimal.NewFromInt(4000)}},
+		Charges:  []Charge{{Label: "Fitting", Amount: decimal.NewFromInt(1500)}},
+		Deposits: []Deposit{{Amount: decimal.NewFromInt(2000)}},
+	}
+	return c.JSON(http.StatusOK, jobSlipData(cfg, d, "", receiptimg.SlipOptions(ctx, &cfg, nil), "job"))
 }

@@ -25,3 +25,15 @@ func TestSlipData(t *testing.T) {
 		t.Fatalf("size=58: %+v", d58)
 	}
 }
+
+// The Appearance page's sample: a made-up open job, as ?data=1 only — it never prints.
+func TestSampleSlip(t *testing.T) {
+	f := newFixture(t)
+	d := decode[slipData](t, f.do("POST", "/sample-slip?data=1&size=58", ""))
+	if s := d.Job; d.Kind != "repairs.job" || d.Dots != 384 || s.TicketNo == "" || !s.Open || len(s.Parts) == 0 || s.Estimate == "" || s.Deposit == "" {
+		t.Fatalf("sample: %+v", d)
+	}
+	if rec := f.do("POST", "/sample-slip", ""); rec.Code < 400 || rec.Code >= 500 {
+		t.Fatalf("sample without data=1 must be refused, got %d", rec.Code)
+	}
+}

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
+import { slots, type SlipTemplate } from '@/plugins/slots'
 import type { SlipData } from '@/api/types.gen'
 import { slipElement } from '../templates'
 import { SAMPLE_NAMES, sample, type SampleName } from './sample'
@@ -82,4 +83,32 @@ it('an unknown style draws classic', () => {
 
 it('styles are the ten keys in order', () => {
   expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections'])
+})
+
+describe('a plugin slip follows every style', () => {
+  const fake: SlipTemplate = {
+    kind: 'x.test',
+    label: 'Test',
+    Template: ({ d, kit: K }) => {
+      const x = d as SlipData & { note: string }
+      return (
+        <K.Page d={x}>
+          <K.Header shop={x.shop} dots={x.dots} number="R-0007" />
+          <K.Title>Plugin slip</K.Title>
+          <K.Info l="Ticket:" r="R-0007" />
+          <K.Total label="DEPOSIT" amount="Rs. 2,000.00" />
+          <K.Text>{x.note}</K.Text>
+          <K.Footer shop={x.shop} number="R-0007" />
+        </K.Page>
+      )
+    },
+  }
+  slots.slipTemplates.push(fake)
+  afterAll(() => void slots.slipTemplates.splice(slots.slipTemplates.indexOf(fake), 1))
+  for (const s of STYLES)
+    it(s.key, () => {
+      const d = { ...sample('test'), kind: 'x.test', note: 'Bring this slip' } as SlipData
+      const got = text(draw(d, s.key))
+      for (const want of ['plugin slip', 'r-0007', '2,000.00', 'bring this slip', 'karots store']) expect(got).toContain(want)
+    })
 })

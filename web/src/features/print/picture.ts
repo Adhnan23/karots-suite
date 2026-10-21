@@ -7,7 +7,6 @@ import type { SlipData, SlipPreview } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
 import { DecodedSlip } from './DecodedSlip'
 import { rasterize } from './raster'
-import { slots } from '@/plugins/slots'
 import { slipElement } from './templates'
 import { styleOf } from './styles'
 import { PAPER_FONTS } from './paper'
@@ -43,8 +42,6 @@ async function page(path: string, size: string | undefined, style: string): Prom
   if ('kind' in res) {
     const el = slipElement(res, style)
     if (el) return { el, dots: res.dots, fonts: styleOf(style).kit.fonts }
-    const P = slots.slipTemplates.find((t) => t.kind === res.kind)?.Template
-    if (P) return { el: createElement(P, { d: res }), dots: res.dots, fonts: PAPER_FONTS }
   }
   const preview = 'lines' in res ? res : await api<SlipPreview>(withQuery(path, { preview: '1', size }), { method: 'POST' })
   return { el: createElement(DecodedSlip, { preview }), dots: preview.dots, fonts: PAPER_FONTS }

@@ -152,6 +152,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	t.POST("/repairs/jobs/:id/rework", h.rework)
 	t.POST("/repairs/jobs/:id/refund-held", h.refundHeld)
 	t.POST("/repairs/jobs/:id/print", h.print)
+	t.POST("/repairs/sample-slip", h.sampleSlip)
 	t.GET("/repairs/labour", h.labour)
 	a := reg.Admin() // admin + manager
 	a.PUT("/repairs/config", h.setConfig)

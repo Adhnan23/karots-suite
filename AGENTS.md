@@ -91,7 +91,8 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
                         tillCartHints, tillLineHints, drawerSections (on: open|close), tillTenders,
                         tillTabs, tillReceiptKinds, slipTemplates (a plugin slip's Image-mode
-                        template, by its ?data=1 kind), returnLineFields, reportCards, settingsSections,
+                        template, by its ?data=1 kind — drawn with the style kit it gets, so it
+                        follows every receipt style; label + sample for Appearance), returnLineFields, reportCards, settingsSections,
                         productFormSections, before/after-sale); TillApi.addGroup = cart line groups
                         (kept together, stored on sale_items.line_group*, printed as one block);
                         TillApi.addPayout = money given to the customer (a sale may total below zero)

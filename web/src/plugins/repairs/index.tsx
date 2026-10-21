@@ -12,7 +12,7 @@ export default function repairs(s: typeof Slots) {
   s.tillActions.push({ key: 'repairs', label: '🔧 Repairs', claimsText: isTicket, Panel: RepairsPanel })
   s.tillLineHints.push({ key: 'repairs', Hint: LineHint })
   s.tillAfterSale.push(afterSale)
-  s.slipTemplates.push({ kind: 'repairs.job', Template: JobSlip })
+  s.slipTemplates.push({ kind: 'repairs.job', label: 'Repair', sample: '/x/repairs/sample-slip', Template: JobSlip })
   s.apps.push({ key: 'repairs', label: 'Repairs', description: 'Repair jobs, repairer payouts and profit', icon: Wrench, color: 'var(--brand)', to: '/admin/x/repairs' })
   s.adminPages.push({ key: 'repairs', Page: RepairsPage })
   s.reportCards.push({ href: '/admin/x/repairs/report', title: 'Repairs — profit', desc: 'Each collected repair: what it took, parts cost, the repairer, profit' })

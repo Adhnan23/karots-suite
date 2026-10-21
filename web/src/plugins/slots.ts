@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { SaleLine, SupplierView, TillProduct } from '@/api/types.gen'
 import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
+import type { SlipKit, StyleKey } from '@/features/print/styles/kit'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
 export type GroupLineInput = { productId: number; per: number; discount: string }
@@ -102,9 +103,18 @@ export type TillTab = { key: string; label: string; Page: ComponentType }
 export type TillReceiptKind = { key: string; label: string; Page: ComponentType }
 
 /** A plugin slip's React template for Image mode, keyed by the `kind` its print path's
- * ?data=1 answers (e.g. "repairs.job"); `d` is that JSON. A kind with no template
- * prints its decoded Classic lines. */
-export type SlipTemplate = { kind: string; Template: ComponentType<{ d: unknown }> }
+ * ?data=1 answers (e.g. "repairs.job"); `d` is that JSON. Draw it with `kit`'s parts
+ * and it follows every receipt style (`style` = the style's key); `overrides` draw
+ * the whole slip for a style. `label` + `sample` (a path answering ?data=1 with a
+ * made-up slip, never printing) put it on Appearance's slip switcher. A kind with
+ * no template prints its decoded Classic lines. */
+export type SlipTemplate = {
+  kind: string
+  label: string
+  sample?: string
+  Template: ComponentType<{ d: unknown; kit: SlipKit; style: string }>
+  overrides?: Partial<Record<StyleKey, ComponentType<{ d: unknown; kit: SlipKit; style: string }>>>
+}
 
 /** A plugin's input on a line being returned at the counter (e.g. how much float came
  * back). Render nothing for lines the plugin doesn't own; value goes to the return
