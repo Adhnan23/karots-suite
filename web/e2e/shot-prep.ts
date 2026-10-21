@@ -30,6 +30,15 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
   ...aicatalogPrep,
   ...presencePrep,
+  /** Product form: the Reorder level field of the product named in SHOTS_ITEM. */
+  'product-reorder': async (page) => {
+    await page.getByText(process.env.SHOTS_ITEM ?? 'E2E Milk Crate', { exact: true }).locator('visible=true').first().click()
+    await page.getByRole('radiogroup', { name: 'Reorder level mode' }).scrollIntoViewIfNeeded()
+  },
+  /** Settings: the Auto reorder levels card in view. */
+  'reorder-settings': async (page) => {
+    await page.getByText('Auto reorder levels', { exact: true }).scrollIntoViewIfNeeded()
+  },
   /** Dashboard: the attention list in view. */
   attention: async (page) => {
     await page.getByText('Needs your attention').scrollIntoViewIfNeeded()

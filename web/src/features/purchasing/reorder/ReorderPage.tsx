@@ -20,6 +20,7 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { reorderQuery } from '../queries'
 import { type Cart, cartSummary, loadCart, saveCart } from './cart'
+import { LooksOffList, ReasonLine, useLooksOffCount, useSetLevels } from './ReorderBits'
 
 const route = getRouteApi('/_authed/admin/reorder')
 const CELL = cn(INPUT, 'h-10 px-2 text-sm')
@@ -38,7 +39,7 @@ function SupplierSelect({ value, onChange, sups, label }: { value: number; onCha
  * searches as you like, then make one purchase order per supplier. */
 export function ReorderPage() {
   const s = route.useSearch()
-  const f = { q: s.q ?? '', category: s.category ?? 0, supplier: s.supplier ?? 0, page: s.page ?? 1, hideCovered: s.hideCovered ?? false }
+  const f = { q: s.q ?? '', category: s.category ?? 0, supplier: s.supplier ?? 0, page: s.page ?? 1, hideCovered: s.hideCovered ?? false, off: s.off ?? false }
   const navigate = route.useNavigate()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const sups = useQuery(suppliersQuery('')).data ?? []
@@ -54,6 +55,8 @@ export function ReorderPage() {
   const setCart = (c: Cart) => { setCartState(c); saveCart(c) }
   const set = (patch: Partial<typeof f>) => void navigate({ search: (x) => ({ ...x, page: 1, ...patch }) })
   const sum = cartSummary(cart)
+  const offCount = useLooksOffCount()
+  const setLevels = useSetLevels()
 
   const lineOf = (r: ReorderRow) => cart[r.productId] ?? { productId: r.productId, name: r.name, unitAbbr: r.unitAbbr, costPrice: r.cost,
     quantity: edits[r.productId]?.qty ?? r.suggested, supplierId: edits[r.productId]?.supplierId ?? r.supplierId }
@@ -91,7 +94,7 @@ export function ReorderPage() {
 
   return (
     <>
-      <PageHead title="Reorder" sub="Everything at or under its reorder level, with how much to buy. Tick items, then make the orders."
+      <PageHead title="Reorder" sub="What will run out before the next delivery, with how much to buy. Tick items, then make the orders."
         actions={(
           <>
             <DropdownMenu>
@@ -122,7 +125,17 @@ export function ReorderPage() {
         )}
         {(f.q || f.category > 0 || f.supplier > 0) && <Button variant="ghost" className="h-10 px-3" onClick={() => { setQ(''); set({ q: '', category: 0, supplier: 0 }) }}>Clear filters</Button>}
       </div>
-      <section className={cn(SURFACE, 'mb-24 overflow-hidden')}>
+      {(offCount > 0 || f.off) && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {([[false, 'Running low'], [true, `Levels look off · ${offCount}`]] as const).map(([off, label]) => (
+            <button key={label} type="button" aria-pressed={f.off === off} onClick={() => set({ off })}
+              className="h-10 rounded-full border border-border bg-card px-4 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {f.off ? <LooksOffList f={f} /> : <section className={cn(SURFACE, 'mb-24 overflow-hidden')}>
         {!data || data.items.length === 0 ? (
           <EmptyState title={!data ? 'Loading…' : f.q || f.category || f.supplier ? 'Nothing matches' : 'Everything is above its reorder level 🎉'}>
             {data && !f.q && 'Set a reorder level on products to see them here when they run low.'}
@@ -136,12 +149,13 @@ export function ReorderPage() {
                 <li key={r.productId} className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 md:grid-cols-[28px_minmax(0,1fr)_110px_220px]', on && 'bg-brand-soft/40')}>
                   <input type="checkbox" aria-label={`Order ${r.name}`} checked={on} onChange={(e) => tick(r, e.target.checked)} className="size-5 accent-[var(--brand)]" />
                   <span className="min-w-0">
-                    <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}</b>
+                    <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
                     <small className="block text-faint tabular-nums">
                       <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel} · cost {money(sym, r.cost)}
                     </small>
+                    <ReasonLine r={r} onUse={(x) => void setLevels([x.productId], 'suggested')} />
                     <small className="block text-faint tabular-nums">
-                      {r.fromSales ? 'from sales' : 'no recent sales — 2× reorder level'}{r.soldWeek && ` · ${r.soldWeek} this week`}{r.soldMonth && ` · ${r.soldMonth} this month`}{r.soldLastYear && ` · ${r.soldLastYear} same time last year`}
+                      {!r.calc && (r.fromSales ? 'from sales · ' : 'no recent sales — 2× reorder level · ')}{[r.soldWeek && `${r.soldWeek} this week`, r.soldMonth && `${r.soldMonth} this month`, r.soldLastYear && `${r.soldLastYear} same time last year`].filter(Boolean).join(' · ')}
                     </small>
                     {r.note && <small className={cn('block font-semibold', r.covered ? 'text-success' : 'text-brand')}>{r.note}</small>}
                   </span>
@@ -156,7 +170,7 @@ export function ReorderPage() {
           </ul>
         )}
         {data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (x) => ({ ...x, page }) })} />}
-      </section>
+      </section>}
 
       {sum.items > 0 && (
         <div className={cn(SURFACE, 'fixed inset-x-3 bottom-24 z-30 mx-auto flex max-w-xl items-center gap-3 p-3 md:bottom-28')}>

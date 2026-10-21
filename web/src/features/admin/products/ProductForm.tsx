@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
 import { FoldPacks } from './FoldPacks'
 import { PacksBlock } from './PacksBlock'
+import { ReorderLevel } from './ReorderLevel'
 import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
@@ -28,13 +29,13 @@ export type Editing = { id: number; copyOf?: number }
 
 const blank: ProductRequest = {
   name: '', nameLocal: '', barcode: '', categoryId: 0, unitId: 0, costPrice: '', sellingPrice: '', wholesalePrice: '', taxRate: '',
-  reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '',
+  reorderLevel: 0, reorderAuto: true, reorderStart: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '',
 }
 
 const fromProduct = (p: AdminProduct, copy: boolean): ProductRequest => ({
   ...blank, name: p.name, nameLocal: p.nameLocal, barcode: copy ? '' : p.barcode, categoryId: p.categoryId, unitId: p.unitId,
   costPrice: p.costPrice, sellingPrice: p.sellingPrice, wholesalePrice: num(p.wholesalePrice) ? p.wholesalePrice : '', taxRate: num(p.taxRate) ? p.taxRate : '',
-  reorderLevel: p.reorderLevel, trackSerial: p.trackSerial, warrantyMonths: p.warrantyMonths, supplierId: p.supplierId, dupSourceName: copy ? p.name : '',
+  reorderLevel: p.reorderLevel, reorderAuto: p.reorderAuto, reorderStart: p.reorderStart, trackSerial: p.trackSerial, warrantyMonths: p.warrantyMonths, supplierId: p.supplierId, dupSourceName: copy ? p.name : '',
 })
 
 /** Loads what the form edits (the product, or the one being duplicated), then shows it. */
@@ -174,9 +175,8 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
             {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </Field>}
-        {!svc && <Field label="Reorder level" hint="Flag as running low at or below this.">
-          <input inputMode="numeric" aria-label="Reorder level" value={f.reorderLevel || ''} onChange={(e) => set({ reorderLevel: Number(e.target.value.replace(/\D/g, '')) || 0 })} className={INPUT} placeholder="0" />
-        </Field>}
+        {!svc && <ReorderLevel product={product} value={{ auto: f.reorderAuto ?? true, level: f.reorderLevel, start: f.reorderStart ?? 0 }}
+          onChange={(v) => set({ reorderAuto: v.auto, reorderLevel: v.level, reorderStart: v.start })} />}
         <Field label="Tax %" hint={me?.taxRegistered ? 'Leave empty for none.' : 'Not charged: the shop isn\'t registered for VAT (Settings → Tax).'}>
           <input inputMode="decimal" aria-label="Tax" value={f.taxRate} onChange={(e) => set({ taxRate: e.target.value.replace(/[^\d.]/g, '') })} className={INPUT} placeholder="0" />
         </Field>

@@ -13,6 +13,7 @@ import { errMsg } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
 import { cn } from '@/lib/utils'
 import { Section, Segmented, settingsQuery, useSettingsSaved } from './kit'
+import { ReorderSettings } from './ReorderSettings'
 
 const FONT = [{ value: '1', label: 'XS' }, { value: '2', label: 'S' }, { value: '3', label: 'M' }, { value: '4', label: 'L' }]
 const int = (s: string) => Math.max(0, Math.trunc(Number(s) || 0))
@@ -95,6 +96,7 @@ export function SettingsPage() {
               </>
             )}
           </Section>
+          <ReorderSettings saved={s} />
           <Section title="Staff sign-in" sub="PIN rules and the screen lock." saved={s} keys={['forcePinChange', 'allowCashierPinChange', 'lockTimeoutMinutes']}>
             {({ v, set }) => (
               <>
