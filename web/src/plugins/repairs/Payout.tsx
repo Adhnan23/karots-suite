@@ -40,7 +40,7 @@ export function Payout({ job }: { job: Job }) {
     <section aria-label="Repairer" className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-[var(--radius)] border border-border p-3">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-display text-[15px] font-bold">{job.repairedBy || 'Repairer'}</h3>
-        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold', paid > 0 ? 'bg-[color-mix(in_srgb,var(--success)_16%,transparent)] text-success' : 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning')}>
+        <span className={cn('rounded-pill px-2.5 py-0.5 text-[11px] font-bold', paid > 0 ? 'bg-[color-mix(in_srgb,var(--success)_16%,transparent)] text-success' : 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning')}>
           {paid > 0 ? `Paid ${money(sym, paid)}` : 'Not paid yet'}
         </span>
       </div>

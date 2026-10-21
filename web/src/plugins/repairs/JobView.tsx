@@ -61,11 +61,11 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
           <h3 className="truncate font-display text-xl font-bold">{device(job)}</h3>
           <p className="text-[13px] text-muted-foreground">
             In {when(job.createdAt)}{job.promisedDate && <> · ready by <b className={cn(job.dueUrgent && open && 'text-danger')}>{when(job.promisedDate)}</b></>}
-            {job.due && open && <span className={cn('ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold', job.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted')}>{job.due}</span>}
+            {job.due && open && <span className={cn('ml-1.5 rounded-pill px-2 py-0.5 text-[11px] font-bold', job.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted')}>{job.due}</span>}
             {job.collectedAt && <> · collected {when(job.collectedAt)}</>}
           </p>
         </div>
-        <span className={cn('rounded-full px-3 py-1 text-[12px] font-bold', statusTone[job.status])}>{STATUS[job.status]}</span>
+        <span className={cn('rounded-pill px-3 py-1 text-[12px] font-bold', statusTone[job.status])}>{STATUS[job.status]}</span>
       </div>
 
       <div className="grid gap-2 rounded-[var(--radius)] bg-muted p-3 text-sm sm:grid-cols-2">
@@ -73,10 +73,10 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
           <b className="block truncate">{job.customerName || '—'}</b>
           {job.customerPhone && (
             <span className="mt-1 flex flex-wrap gap-1.5">
-              <a href={`tel:${job.customerPhone}`} className="inline-flex h-7 items-center gap-1 rounded-full border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><Phone size={12} />{job.customerPhone}</a>
+              <a href={`tel:${job.customerPhone}`} className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><Phone size={12} />{job.customerPhone}</a>
               {job.status === 'ready' && (
                 <a href={`https://wa.me/${waNumber(job.customerPhone)}?text=${encodeURIComponent(readyMessage(job, cfg.shop.name))}`} target="_blank" rel="noreferrer"
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><MessageCircle size={12} />Tell them it's ready</a>
+                  className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><MessageCircle size={12} />Tell them it's ready</a>
               )}
             </span>
           )}

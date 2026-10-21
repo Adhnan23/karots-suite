@@ -3,7 +3,7 @@ import { PageHead } from '@/components/admin/PageHead'
 import { CleanupPage } from './CleanupPage'
 import { SettingsPage } from './SettingsPage'
 
-const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 const TABS = [{ path: '', label: 'Clean up' }, { path: 'settings', label: 'Settings' }]
 
 /** Apps → AI Assistant. The tab is the sub-path: /admin/x/aicatalog (clean up), …/settings.

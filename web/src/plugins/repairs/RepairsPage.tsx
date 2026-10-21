@@ -18,7 +18,7 @@ import { ReportTab, SettingsTab } from './ReportTab'
 import type { Row } from './types'
 import { device, STATUS, statusTone } from './words'
 
-const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
 function useGo() {
   const go = useNavigate()
@@ -84,8 +84,8 @@ function JobsTab({ onOpen }: { onOpen: (id: number) => void }) {
           { key: 'ticket', header: 'Ticket', cell: (r) => <b className="font-display tabular-nums">{r.ticketNo}</b> },
           { key: 'device', header: 'Device', cell: (r) => device(r) },
           { key: 'cust', header: 'Customer', cell: (r) => <span>{r.customerName}<small className="ml-1.5 text-faint tabular-nums">{r.customerPhone}</small></span> },
-          { key: 'due', header: 'Due', cell: (r) => (r.due || r.dueUrgent) && <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due || 'Urgent'}</span> },
-          { key: 'status', header: 'Status', cell: (r) => <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold whitespace-nowrap', statusTone[r.status])}>{STATUS[r.status]}</span> },
+          { key: 'due', header: 'Due', cell: (r) => (r.due || r.dueUrgent) && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due || 'Urgent'}</span> },
+          { key: 'status', header: 'Status', cell: (r) => <span className={cn('rounded-pill px-2.5 py-0.5 text-[11px] font-bold whitespace-nowrap', statusTone[r.status])}>{STATUS[r.status]}</span> },
         ]} />
     </div>
   )

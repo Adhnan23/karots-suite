@@ -56,7 +56,7 @@ export function Identify({ name, barcode, fill }: Props) {
     return (
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
         <Sparkles size={13} className="text-brand" /> Filled from the AI: <b className="text-foreground">{picked.name}</b>
-        {picked.category && <span className="rounded-full bg-muted px-2 py-0.5">{picked.category}</span>}
+        {picked.category && <span className="rounded-pill bg-muted px-2 py-0.5">{picked.category}</span>}
         <button type="button" className="font-semibold text-brand underline-offset-2 hover:underline" onClick={() => setPicked(null)}>Identify again</button>
       </p>
     )
@@ -66,7 +66,7 @@ export function Identify({ name, barcode, fill }: Props) {
     return (
       <div className="flex items-center gap-2">
         <Button type="button" variant="outline" disabled={!query || state.k === 'asking'} onClick={() => start()}
-          className="h-8 gap-1.5 rounded-full border-[color-mix(in_srgb,var(--brand)_40%,var(--border))] px-3 text-[13px] font-semibold">
+          className="h-8 gap-1.5 rounded-pill border-[color-mix(in_srgb,var(--brand)_40%,var(--border))] px-3 text-[13px] font-semibold">
           {state.k === 'asking' ? <LoaderCircle size={14} className="animate-spin" /> : <Sparkles size={14} className="text-brand" />}
           {state.k === 'asking' ? 'Asking the AI…' : 'Identify'}
         </Button>
@@ -146,13 +146,13 @@ function CategoryPath({ path }: { path: string }) {
   const from = nodes ? firstNew(path, existingPaths(nodes)) : -1
   return (
     <span className="flex flex-wrap items-center gap-1.5 self-start">
-      <span className="rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
+      <span className="rounded-pill bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
         {parts.map((p, i) => (
           <span key={i}>{i > 0 && ' > '}{from >= 0 && i >= from ? <b className="text-foreground">{p}</b> : p}</span>
         ))}
       </span>
       {from >= 0 && (
-        <span className="rounded-full border border-[color-mix(in_srgb,var(--brand)_45%,var(--border))] px-2 py-0.5 text-[11px] font-bold text-brand">
+        <span className="rounded-pill border border-[color-mix(in_srgb,var(--brand)_45%,var(--border))] px-2 py-0.5 text-[11px] font-bold text-brand">
           new {from === 0 ? 'category' : 'sub-category'}
         </span>
       )}

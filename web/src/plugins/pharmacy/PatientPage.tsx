@@ -97,7 +97,7 @@ function ScriptBlock({ s, onEdit }: { s: Script; onEdit: () => void }) {
                 {[it.dosage, Number(it.perDay) ? `${qtyText(it.perDay)} a day` : '', Number(it.quantity) ? `${qtyText(it.quantity)} prescribed` : '', `${qtyText(it.dispensed)} given`].filter(Boolean).join(' · ')}
               </span>
             </span>
-            {b && <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', TONE[b.tone])}>{b.text}</span>}
+            {b && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', TONE[b.tone])}>{b.text}</span>}
           </div>
         )
       })}

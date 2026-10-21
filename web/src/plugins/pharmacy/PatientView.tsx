@@ -105,7 +105,7 @@ function ScriptCard({ s, onAdd }: { s: Script; onAdd?: (it: ScriptItem, tablets:
       <div className="flex flex-wrap items-baseline gap-x-2 border-b border-border px-3 py-2 text-xs text-muted-foreground">
         <span className="font-semibold text-foreground">{s.prescriberName || 'Prescription'}</span>
         {s.prescribedOn && <span>{s.prescribedOn}</span>}
-        {s.isRepeat && <span className="rounded-full bg-brand-soft px-2 font-bold text-foreground">repeat</span>}
+        {s.isRepeat && <span className="rounded-pill bg-brand-soft px-2 font-bold text-foreground">repeat</span>}
         {!s.active && <span>stopped</span>}
       </div>
       {s.items.map((it) => {
@@ -120,7 +120,7 @@ function ScriptCard({ s, onAdd }: { s: Script; onAdd?: (it: ScriptItem, tablets:
                   Number(it.dispensed) ? `${qtyText(Number(it.dispensed))} given` : ''].filter(Boolean).join(' · ')}
               </div>
             </div>
-            {badge && <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', TONE[badge.tone])}>{badge.text}</span>}
+            {badge && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', TONE[badge.tone])}>{badge.text}</span>}
             {onAdd && (it.suggest ? (
               <AddFor it={it} onAdd={(n) => onAdd(it, n)} />
             ) : <span className="text-[11px] text-faint">{owed > 0 || !Number(it.quantity) ? 'not in the catalogue' : ''}</span>)}

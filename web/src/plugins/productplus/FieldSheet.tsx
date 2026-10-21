@@ -13,7 +13,7 @@ import { createField, impactQuery, updateField } from './api'
 import { FieldInput } from './FieldInput'
 import { type FieldDTO, type FieldRequest, type FieldType, TYPE_LABEL } from './types'
 
-export const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+export const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
 const WHERE = [
   { key: 'showAtTill', label: 'Till ⓘ' },
@@ -116,9 +116,9 @@ export function FieldSheet({ field, onClose }: { field: FieldDTO | null; onClose
       </Field>
       <Field label="For" hint="Pick categories to limit the field to them and their subcategories.">
         <div className="flex flex-wrap items-center gap-1.5">
-          {f.scope.length === 0 && <span className="rounded-full bg-muted px-3 py-1.5 text-[13px] font-semibold">All products</span>}
+          {f.scope.length === 0 && <span className="rounded-pill bg-muted px-3 py-1.5 text-[13px] font-semibold">All products</span>}
           {f.scope.map((id) => (
-            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-brand-soft py-1 pr-1 pl-3 text-[13px] font-semibold">
+            <span key={id} className="inline-flex items-center gap-1 rounded-pill bg-brand-soft py-1 pr-1 pl-3 text-[13px] font-semibold">
               {pathName(cats, id) || field?.scope.find((c) => c.id === id)?.name}
               <button type="button" aria-label={`Remove ${pathName(cats, id)}`} onClick={() => set({ scope: f.scope.filter((x) => x !== id) })} className="grid size-6 place-items-center rounded-full hover:bg-muted"><X size={13} /></button>
             </span>

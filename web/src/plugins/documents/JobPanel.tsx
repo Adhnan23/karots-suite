@@ -105,7 +105,7 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
           {bands.map((b, i) => {
             const on = b.minQty <= copies && (bands[i + 1]?.minQty ?? Infinity) > copies
             return (
-              <span key={b.minQty} className={cn('rounded-full border px-2.5 py-0.5 tabular-nums', on ? 'border-brand bg-brand-soft font-bold text-foreground' : 'border-border text-muted-foreground')}>
+              <span key={b.minQty} className={cn('rounded-pill border px-2.5 py-0.5 tabular-nums', on ? 'border-brand bg-brand-soft font-bold text-foreground' : 'border-border text-muted-foreground')}>
                 {b.minQty}+ · {money(sym, b.price)}
               </span>
             )

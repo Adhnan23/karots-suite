@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import type { SaleLine, SupplierView, TillProduct } from '@/api/types.gen'
 import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 import type { SlipKit, StyleKey } from '@/features/print/styles/kit'
+import type { TokenDef } from '@/theme/palettes/tokens'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
 export type GroupLineInput = { productId: number; per: number; discount: string }
@@ -108,6 +109,12 @@ export type TillReceiptKind = { key: string; label: string; Page: ComponentType 
  * the whole slip for a style. `label` + `sample` (a path answering ?data=1 with a
  * made-up slip, never printing) put it on Appearance's slip switcher. A kind with
  * no template prints its decoded Classic lines. */
+/** A plugin's own look tokens (e.g. `--repairs-due`). The plugin sets their defaults in
+ * its own CSS on `:root`, built from core tokens (`--repairs-due: var(--warning)`), so
+ * every palette covers them; the palette editor lists them under Plugins and a
+ * palette may override them like any token. */
+export type PaletteTokens = { plugin: string; label: string; tokens: TokenDef[] }
+
 export type SlipTemplate = {
   kind: string
   label: string
@@ -179,6 +186,7 @@ export const slots = {
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   slipTemplates: [] as SlipTemplate[],
+  paletteTokens: [] as PaletteTokens[],
   returnLineFields: [] as ReturnLineField[],
   supplierJobs: [] as SupplierJob[],
   reportCards: [] as ReportCard[],

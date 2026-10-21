@@ -64,7 +64,7 @@ export function ScriptSheet({ patientId, script, onClose }: { patientId: number;
           <ItemRow key={r.key} row={r} n={i + 1} onChange={(p) => set(r.key, p)} onRemove={rows.length > 1 ? () => setRows((rs) => rs.filter((x) => x.key !== r.key)) : undefined} />
         ))}
         <button type="button" onClick={() => setRows((rs) => [...rs, blank()])}
-          className="flex items-center gap-1.5 self-start rounded-full border border-dashed border-border px-3 py-1.5 text-[13px] font-semibold text-muted-foreground hover:border-brand hover:text-foreground">
+          className="flex items-center gap-1.5 self-start rounded-pill border border-dashed border-border px-3 py-1.5 text-[13px] font-semibold text-muted-foreground hover:border-brand hover:text-foreground">
           <Plus className="size-4" /> Another medicine
         </button>
       </div>

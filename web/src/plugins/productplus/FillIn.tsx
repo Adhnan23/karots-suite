@@ -129,7 +129,7 @@ export function FillIn() {
           <DialogDescription>{changes} {changes === 1 ? 'change' : 'changes'} on Fill in will be lost.</DialogDescription>
           <div className="mt-2 flex justify-end gap-2">
             <Button type="button" variant="ghost" className="h-10 px-4" onClick={() => blocker.reset?.()}>Stay</Button>
-            <Button type="button" className="h-10 bg-danger px-4 font-bold text-white hover:bg-danger/90" onClick={() => blocker.proceed?.()}>Leave</Button>
+            <Button type="button" className="h-10 bg-danger px-4 font-bold text-danger-foreground hover:bg-danger/90" onClick={() => blocker.proceed?.()}>Leave</Button>
           </div>
         </DialogContent>
       </Dialog>

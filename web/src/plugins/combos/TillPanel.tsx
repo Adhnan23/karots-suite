@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,7 @@ export function TillPanel({ till }: { till: TillApi; onDone: () => void }) {
         {list?.map((x) => {
           const { full, price } = setPrice(x, till.saleType)
           return (
-            <motion.button key={x.id} type="button" onClick={() => setPicked(x.id)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.12 }}
+            <motion.button key={x.id} type="button" onClick={() => setPicked(x.id)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
               aria-pressed={picked === x.id} className={cn(TILE, 'aria-pressed:border-selected aria-pressed:ring-1 aria-pressed:ring-selected', x.problem && 'opacity-60')}>
               <span className="text-[13.5px] font-semibold leading-tight">{x.name}</span>
               {x.problem && <span className="text-[11.5px] font-bold text-danger">{x.problem}</span>}

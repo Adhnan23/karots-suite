@@ -61,7 +61,7 @@ function Form({ init }: { init: Settings }) {
   const mode = (manual: boolean, icon: React.ReactNode, title: string, body: string) => (
     <button type="button" aria-pressed={s.manualMode === manual} onClick={() => set({ manualMode: manual })}
       className="flex flex-1 basis-56 items-start gap-3 rounded-[var(--radius)] border border-border bg-card p-4 text-left aria-pressed:border-selected aria-pressed:bg-[color-mix(in_srgb,var(--selected)_10%,var(--card))]">
-      <span className="grid h-10 w-10 flex-none place-items-center rounded-[12px] bg-muted text-brand">{icon}</span>
+      <span className="grid h-10 w-10 flex-none place-items-center rounded-[var(--radius-sm)] bg-muted text-brand">{icon}</span>
       <span className="flex flex-col gap-0.5"><b className="text-[15px]">{title}</b><span className="text-[13px] text-muted-foreground">{body}</span></span>
     </button>
   )

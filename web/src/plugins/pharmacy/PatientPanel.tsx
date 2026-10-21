@@ -70,7 +70,7 @@ function FindPatient({ onPick }: { onPick: (id: number) => void }) {
               <span className="block truncate font-semibold">{f.name}</span>
               <span className="block truncate text-xs text-muted-foreground">{[f.phone, f.nic].filter(Boolean).join(' · ') || '—'}</span>
             </span>
-            {f.allergies && <span className="max-w-[40%] truncate rounded-full bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">⚠ {f.allergies}</span>}
+            {f.allergies && <span className="max-w-[40%] truncate rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">⚠ {f.allergies}</span>}
             {!f.patientId && <span className="text-[11px] text-faint">customer</span>}
           </button>
         ))}

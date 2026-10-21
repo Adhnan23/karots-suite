@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 // Every look value goes through palette tokens (docs/design/theme.md §2). Printouts
-// (paper/ink), the login games (canvas art) and plugins (ported separately) are out of scope.
+// (paper/ink) and the login games (canvas art) are out of scope.
 const files = import.meta.glob<string>(
-  ['/src/**/*.tsx', '!/src/plugins/**', '!/src/features/print/**', '!/src/routes/_authed/print/**', '!/src/features/auth/*Game.tsx', '!/src/**/*.test.tsx'],
+  ['/src/**/*.tsx', '!/src/features/print/**', '!/src/routes/_authed/print/**', '!/src/features/auth/*Game.tsx', '!/src/**/*.test.tsx'],
   { query: '?raw', import: 'default', eager: true },
 )
 

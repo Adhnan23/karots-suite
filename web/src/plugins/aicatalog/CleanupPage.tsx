@@ -30,7 +30,7 @@ function rows(pv: CleanupPreview) {
       ...(p.moves ?? []).map((o, i): Row => ({ key: `moves:${i}`, what: <>Move <b>{prod(o.product_id)}</b> to <b>{cat(o.category_id)}</b></>, reason: o.reason })),
     ],
     uncategorized: (p.uncategorized ?? []).map((o, i): Row => ({ key: `uncategorized:${i}`, reason: o.reason,
-      what: <>{arrow(prod(o.product_id), o.category)}{!known.has(o.category) && <span className="ml-1.5 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">new</span>}</> })),
+      what: <>{arrow(prod(o.product_id), o.category)}{!known.has(o.category) && <span className="ml-1.5 rounded-pill bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">new</span>}</> })),
     names: (p.names ?? []).map((o, i): Row => ({ key: `names:${i}`, what: arrow(prod(o.product_id), o.to), reason: o.reason })),
   }
 }
@@ -94,7 +94,7 @@ export function CleanupPage() {
 
       {(state.k === 'idle' || state.k === 'asking') && (
         <section className="flex flex-col items-start gap-3 rounded-[var(--radius)] border border-border bg-card p-5">
-          <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-brand text-brand-foreground"><Sparkles size={20} /></span>
+          <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-sm)] bg-brand text-brand-foreground"><Sparkles size={20} /></span>
           <b className="font-display text-lg">Tidy the catalogue</b>
           <p className="max-w-xl text-[14px] text-muted-foreground">The AI looks over your categories and products and suggests: categories to merge, rename or move · a category for every uncategorized item · names that follow your naming style · products listed twice. You tick what to keep; nothing changes until you apply.</p>
           <Button className="h-11 gap-1.5 px-5 font-bold" disabled={state.k === 'asking'} onClick={() => start(0)}>
@@ -209,7 +209,7 @@ function EmptyCategories() {
   return (
     <section aria-label="Empty categories" className="flex flex-col gap-3 rounded-[var(--radius)] border border-border bg-card p-4">
       <b className="flex items-center gap-2 text-[14px]"><FolderX size={16} className="text-muted-foreground" /> {list.length} empty categor{list.length === 1 ? 'y' : 'ies'}</b>
-      <div className="flex flex-wrap gap-1.5">{list.map((c) => <span key={c.id} className="rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold text-muted-foreground">{c.name}</span>)}</div>
+      <div className="flex flex-wrap gap-1.5">{list.map((c) => <span key={c.id} className="rounded-pill bg-muted px-2.5 py-1 text-[12px] font-semibold text-muted-foreground">{c.name}</span>)}</div>
       <ConfirmButton label="Delete empty categories" title={`Delete ${list.length} empty categor${list.length === 1 ? 'y' : 'ies'}?`} confirm="Delete" className="h-9 self-start px-4"
         body="They hold no products and no sub-categories."
         onConfirm={async () => {

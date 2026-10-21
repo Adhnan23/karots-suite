@@ -19,7 +19,7 @@ import { askLabel, whenLabel } from './labels'
 import { DeclineSheet, EditSheet, MergePicker, ProductSheet } from './Sheets'
 import type { RequestRow, RequestTab } from './types'
 
-const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 const TABS: { tab: RequestTab; label: string; path: string }[] = [
   { tab: 'open', label: 'Open', path: '' },
   { tab: 'call', label: 'To call', path: 'call' },

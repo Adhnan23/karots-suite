@@ -55,7 +55,7 @@ export function ComboSheet({ combo, open, onClose, sym }: { combo: Combo | null;
             <li key={m.productId} className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-1.5 text-[14px] text-foreground">
               <span className="min-w-0 flex-1 truncate font-semibold">{m.name}</span>
               <span className="text-[12.5px] font-normal text-faint tabular-nums">{money(sym, m.sellingPrice)}</span>
-              <span className="flex items-center rounded-full border border-border bg-card">
+              <span className="flex items-center rounded-pill border border-border bg-card">
                 <button type="button" aria-label={`Fewer ${m.name}`} onClick={() => setQty(m.productId, Number(m.qty) - 1)} className="grid size-7 place-items-center"><Minus size={13} /></button>
                 <span className="w-6 text-center font-bold tabular-nums">{Number(m.qty)}</span>
                 <button type="button" aria-label={`More ${m.name}`} onClick={() => setQty(m.productId, Number(m.qty) + 1)} className="grid size-7 place-items-center"><Plus size={13} /></button>

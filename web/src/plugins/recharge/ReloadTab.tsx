@@ -1,4 +1,5 @@
 import { motion } from 'motion/react'
+import { tx } from '@/theme/motion'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -65,7 +66,7 @@ export function ReloadTab({ till, data, sym }: { till: TillApi; data: TillData; 
         <h3 className="text-[13px] font-bold text-muted-foreground">{carrier.name} packages</h3>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
           {packages.map((p) => (
-            <motion.button key={p.id} type="button" onClick={() => sell(p)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.12 }}
+            <motion.button key={p.id} type="button" onClick={() => sell(p)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
               className={cn(TILE, 'min-h-[78px]')}>
               <span className="text-[14px] font-semibold leading-tight">{p.name}</span>
               <b className="font-display text-[15px] tabular-nums">{money(sym, p.price)}</b>

@@ -72,7 +72,7 @@ export function GroupPicker({ groups, value, onPick }: { groups: Group[]; value:
               className="rounded-[var(--radius-sm)] bg-selected px-3 text-[13px] font-bold text-selected-foreground disabled:opacity-50">Add</button>
           </div>
         ) : (
-          <button type="button" onClick={() => { setAdding(true); setName(q) }} className="flex items-center gap-1.5 self-start rounded-full px-2 py-1 text-[13px] font-bold text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() => { setAdding(true); setName(q) }} className="flex items-center gap-1.5 self-start rounded-pill px-2 py-1 text-[13px] font-bold text-muted-foreground hover:text-foreground">
             <Plus size={15} /> New group
           </button>
         )}

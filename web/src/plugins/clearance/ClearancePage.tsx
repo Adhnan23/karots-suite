@@ -11,7 +11,7 @@ import { DeadList } from './DeadList'
 import { MarkdownList } from './MarkdownList'
 import { RulesSheet } from './RulesSheet'
 
-export const CHIP = 'rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+export const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground whitespace-nowrap aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
 /** Apps → Clearance: mark down slow and expiring stock, retire dead stock.
  * The tab is the sub-path: /admin/x/clearance (to mark down) and …/dead. */

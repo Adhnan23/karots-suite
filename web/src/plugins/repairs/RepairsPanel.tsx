@@ -92,9 +92,9 @@ export function JobRow({ r, onOpen }: { r: Row; onOpen: () => void }) {
           <span className="block truncate font-semibold">{device(r)}</span>
           <span className="block truncate text-xs text-muted-foreground">{[r.customerName, r.customerPhone].filter(Boolean).join(' · ') || '—'}</span>
         </span>
-        {r.due && <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-bold', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due}</span>}
-        {!r.due && r.dueUrgent && <span className="rounded-full bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">Urgent</span>}
-        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold', statusTone[r.status])}>{STATUS[r.status]}</span>
+        {r.due && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due}</span>}
+        {!r.due && r.dueUrgent && <span className="rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">Urgent</span>}
+        <span className={cn('rounded-pill px-2.5 py-0.5 text-[11px] font-bold', statusTone[r.status])}>{STATUS[r.status]}</span>
       </button>
     </li>
   )
@@ -123,7 +123,7 @@ function QuickFix({ till, onDone, onBack }: { till: TillApi; onDone: () => void;
       <div className="flex flex-wrap gap-1.5">
         {picks.map((p) => (
           <button key={p} type="button" aria-pressed={what === p} onClick={() => setWhat(p)}
-            className="rounded-full border border-border px-3 py-1 text-[13px] font-semibold hover:border-brand aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{p}</button>
+            className="rounded-pill border border-border px-3 py-1 text-[13px] font-semibold hover:border-brand aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{p}</button>
         ))}
       </div>
       <div className="grid gap-2 sm:grid-cols-[1fr_180px]">

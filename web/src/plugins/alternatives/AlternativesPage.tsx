@@ -16,7 +16,7 @@ import { GroupPage } from './GroupPage'
 import { groupsCsv, hasTiers } from './labels'
 import type { Group, Tier } from './types'
 
-const CHIP = 'h-9 rounded-full border border-border px-3.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-transparent aria-pressed:bg-selected aria-pressed:text-selected-foreground'
+const CHIP = 'h-9 rounded-pill border border-border px-3.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-transparent aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
 function Level({ t }: { t: Tier }) {
   return (

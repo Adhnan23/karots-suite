@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { slots } from '@/plugins/slots'
 import { TOKENS } from '@/theme/palettes/tokens'
 import type { PaletteDoc } from './paletteCss'
 import { applyMaterial, applyMotion, blurOf, materialOf, motionOf, withBlur, type Feel, type Material } from './presets'
@@ -93,6 +94,23 @@ export function EditorControls({ doc, mode, onChange }: { doc: PaletteDoc; mode:
         <Slider label="Length" unit="×" min={0.5} max={1.5} step={0.05} value={motion.speed}
           onChange={(s) => setBoth((t) => applyMotion(t, motion.feel, s))} />
       </Group>
+
+      {slots.paletteTokens.length > 0 && (
+        <Group title="Plugins" hint="Blank = the plugin's default">
+          {slots.paletteTokens.map((p) => (
+            <div key={p.plugin} className="flex flex-col gap-1.5">
+              <p className="text-[11px] font-bold tracking-wide text-faint uppercase">{p.label}</p>
+              {p.tokens.map((t) => (
+                <ColourRow key={t.name} name={t.name} value={cur[t.name] ?? ''} onChange={(v) => {
+                  const next = { ...cur, [t.name]: v }
+                  if (!v.trim()) delete next[t.name]
+                  setMode(next)
+                }} />
+              ))}
+            </div>
+          ))}
+        </Group>
+      )}
 
       <Group title="Custom CSS" hint={doc.extra.trim() ? 'In use' : 'Empty'}>
         <textarea aria-label="Custom CSS" spellCheck={false} value={doc.extra} onChange={(e) => onChange({ ...doc, extra: e.target.value })}

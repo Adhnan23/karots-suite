@@ -108,7 +108,7 @@ function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void })
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[12.5px] font-semibold text-muted-foreground">Add a size:</span>
             {[...SUGGEST.filter((z) => !used.has(z.toLowerCase())), ...(used.has('') ? [] : [''])].map((z) => (
-              <Button type="button" key={z || 'any'} variant="outline" className="h-8 gap-1 rounded-full px-3 text-[12.5px]" onClick={() => setRows([...rows, { size: z, tiers: [blankTier(1)], paper: [] }])}>
+              <Button type="button" key={z || 'any'} variant="outline" className="h-8 gap-1 rounded-pill px-3 text-[12.5px]" onClick={() => setRows([...rows, { size: z, tiers: [blankTier(1)], paper: [] }])}>
                 <Plus size={13} /> {z || 'Any size'}
               </Button>
             ))}
