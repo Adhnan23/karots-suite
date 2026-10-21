@@ -25,12 +25,36 @@ export function applyAppearance(a: Appearance, root: HTMLElement = document.docu
     root.style.removeProperty('--brand')
     root.style.removeProperty('--brand-foreground')
   }
-  root.dataset.palette = a.palette || 'studio'
+  applyPalette(a.palette, root)
+}
+
+/** Sets the palette on <html> and remembers it for the next pre-paint. A change of
+ *  palette reloads the custom palette stylesheet (the server serves the active one). */
+export function applyPalette(palette: string, root: HTMLElement = document.documentElement) {
+  const next = palette || 'studio'
+  const changed = root.dataset.palette !== next
+  root.dataset.palette = next
   try {
-    localStorage.setItem('ks-palette', root.dataset.palette)
+    if (localStorage.getItem('ks-palette') !== next) localStorage.setItem('ks-palette', next)
   } catch {
     /* private mode */
   }
+  if (changed) reloadPaletteCss()
+}
+
+/** Fetches the active custom palette again (after a save or a palette change). The
+ *  new sheet replaces the old one only once it has loaded, so nothing flashes. */
+export function reloadPaletteCss() {
+  const old = document.getElementById('ks-palette-css') as HTMLLinkElement | null
+  if (!old) return
+  const next = document.createElement('link')
+  next.rel = 'stylesheet'
+  next.href = `/api/v1/appearance/palette.css?t=${Date.now()}`
+  next.onload = next.onerror = () => {
+    old.remove()
+    next.id = 'ks-palette-css'
+  }
+  old.after(next)
 }
 
 function readableOn(hex: string) {

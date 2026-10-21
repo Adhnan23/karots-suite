@@ -24,6 +24,7 @@ type LoginInfo struct {
 	ShopName   string `json:"shopName"`
 	ServerTime string `json:"serverTime"` // RFC3339 UTC
 	FileMode   bool   `json:"fileMode"`   // the shop runs its own PostgreSQL (one PC)
+	Palette    string `json:"palette"`    // the shop's palette, so a device that never signed in shows it
 	// The shop's active notes and coins (face values only), for the login / lock
 	// easter-egg shop game's cash drawer.
 	Notes []string `json:"notes"`

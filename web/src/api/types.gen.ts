@@ -26,6 +26,7 @@ export interface LoginInfo {
   shopName: string;
   serverTime: string; // RFC3339 UTC
   fileMode: boolean; // the shop runs its own PostgreSQL (one PC)
+  palette: string; // the shop's palette, so a device that never signed in shows it
   /**
    * The shop's active notes and coins (face values only), for the login / lock
    * easter-egg shop game's cash drawer.

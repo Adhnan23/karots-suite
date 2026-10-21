@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/settings"
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
@@ -17,6 +18,7 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 	if cfg, err := h.d.Settings.Get(c.Request().Context()); err == nil && cfg != nil {
 		info.InstallID = cfg.InstallID
 		info.ShopName = cfg.ShopName
+		info.Palette = settings.ValidSkin(cfg.Skin)
 		info.Receipt = ShopHeader{Name: cfg.ShopName, Address: strOr(cfg.Address), Phone: strOr(cfg.Phone), Footer: strOr(cfg.ReceiptFooter)}
 	}
 	info.Notes, info.Coins = []string{}, []string{}

@@ -56,6 +56,11 @@ func TestPaletteCRUDAndActiveCSS(t *testing.T) {
 		t.Fatalf("custom palette not kept: %d %+v", rec.Code, got)
 	}
 
+	var info LoginInfo
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/auth/login-info", nil, nil).Body.Bytes(), &info) //nolint:errcheck
+	if info.Palette != skin {
+		t.Fatalf("login-info palette %q", info.Palette)
+	}
 	// Signed out, the login page loads the active palette.
 	css := te.do(http.MethodGet, "/api/v1/appearance/palette.css", nil, nil)
 	if css.Code != 200 || css.Header().Get("Content-Type") != "text/css; charset=utf-8" || css.Body.String() != ":root{--brand:#123456}" {

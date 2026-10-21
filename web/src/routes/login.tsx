@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, ApiError } from '@/api/client'
+import { applyPalette } from '@/theme/appearance'
 import { queryClient } from '@/api/query-client'
 import { LoginHero } from '@/features/auth/LoginHero'
 import { PinField } from '@/features/auth/PinField'
@@ -25,6 +26,10 @@ function Login() {
   const phoneRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
   const { data: info } = useQuery({ queryKey: ['auth', 'login-info'], queryFn: () => api<LoginInfo>('/auth/login-info') })
+  // A device that never signed in has no cached palette: take the shop's from login-info.
+  useEffect(() => {
+    if (info?.palette) applyPalette(info.palette)
+  }, [info?.palette])
   useKonami(() => setReveal(true))
 
   const handlePadKey = (k: PinKey) => {
