@@ -19,7 +19,7 @@ login-info carries the palette for never-signed-in devices). Export / Import `.c
 theme's file is refused). The Brand colour and Radius controls are gone; a shop's old brand / radius keeps showing
 until a palette is chosen. Plugins: all screens on tokens; `slots.paletteTokens` for their own tokens.
 Shots: `web/shots/pal-t3` (four palettes), `pal-t7` (picker), `pal-t8` (editor), `pal-t10` (plugins).
-**Next:** the user looks at Bazaar, Lagoon and the editor; then the Settings → Printing page.
+**Next:** a real-printer test (the Settings → Printing page is skipped — user, 2026-10-21: Settings already looks good).
 
 **Receipt styles (Image mode) — BUILT (2026-10-21), waiting on the user's look.** Spec
 `docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (all 10 tasks),
@@ -38,14 +38,8 @@ Final shots: `web/shots/rs10/` (`sheet-sale-80/58`, `sheet-refund-80`, `a4-firef
 (Appearance, both palettes × modes, desktop + 360). Found at the gate and fixed: every style but Classic printed
 "SN SN: …" (the serial comes labelled), and Grid headed every slip "INVOICE" (now RECEIPT).
 **Next:** the user looks at the styles; then a real-printer test (scanner reads the Code 128 off thermal paper).
-**After palettes: a Settings → Printing page** (user, 2026-10-21), before M8d. Printing is spread over Settings'
-"Shop & receipt", "Printers & labels" and "Till & cash" cards, Appearance and each user. One page with three
-sections: **Printers** (receipt + label printer, this computer's printer, test print, drawer kick), **Receipts** (paper
-width, Image / Classic, ask before printing, logo, footer, and the every-slip preview switcher from Appearance),
-**Labels** (default size now; label layouts + preview when labels print as pictures). The receipt **style stays a
-system-user choice on Appearance** (shown read-only on Printing); the Labels print tool stays an action page; per-user
-printers stay on Users with a pointer. Mockup first, then plan.
-**Order (user, 2026-10-21):** palettes part 2 → Settings → Printing page → real-printer test → **labels as pictures**
+**Settings → Printing page: SKIPPED** (user, 2026-10-21: Settings already looks good).
+**Order (user, 2026-10-21):** palettes part 2 → real-printer test → **labels as pictures**
 (every kind of label gets the same Image treatment as receipts: templates, preview = the exact picture, TSPL
 bitmap) → M8d Demo Room → M8e Pocket Cashier groundwork.
 
