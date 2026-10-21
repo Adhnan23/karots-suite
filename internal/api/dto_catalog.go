@@ -57,8 +57,8 @@ type AdminProductRow struct {
 	TrackSerial  bool     `json:"trackSerial"`
 	HasExpiry    bool     `json:"hasExpiry"`
 	SupplierName string   `json:"supplierName"`
-	CreatedBy    string   `json:"createdBy"` // who quick-added it (review queue)
-	TillPack     string   `json:"tillPack"`  // pack sizes set at the till, to check (review queue)
+	CreatedBy    string   `json:"createdBy"`  // who quick-added it (review queue)
+	TillPack     string   `json:"tillPack"`   // pack sizes set at the till, to check (review queue)
 	StockSplit   string   `json:"stockSplit"` // on hand as packs ("2 Cards + 10"), "" = no packs
 	CreatedAt    string   `json:"createdAt"`
 	Meta         string   `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
@@ -142,6 +142,28 @@ type AdminProduct struct {
 	// FoldFrom: the card this loose product is cut from (an active conversion
 	// into it), offered as "Fold <card> into packs". Nil when there is none.
 	FoldFrom *FoldSource `json:"foldFrom,omitempty"`
+	// Reorder level mode: Auto = learned nightly from ReorderStart; ReorderCalc
+	// is the last run's numbers (nil until it has run once).
+	ReorderAuto  bool             `json:"reorderAuto"`
+	ReorderStart int              `json:"reorderStart"`
+	ReorderCalc  *ReorderCalcView `json:"reorderCalc,omitempty"`
+}
+
+// ReorderCalcView is a product's learned reorder numbers (reorder.Calc), for the
+// reason lines: "sells 10 a day · supplier every 7 days".
+type ReorderCalcView struct {
+	Daily         float64 `json:"daily"`
+	RecentDaily   float64 `json:"recentDaily"`
+	LastYearDaily float64 `json:"lastYearDaily"`
+	RhythmDays    int     `json:"rhythmDays"`
+	RhythmFrom    string  `json:"rhythmFrom"` // product | supplier | default
+	Regular       bool    `json:"regular"`
+	SafetyDays    int     `json:"safetyDays"`
+	CalcLevel     int     `json:"calcLevel"`
+	LearnedPct    int     `json:"learnedPct"`
+	HistoryDays   int     `json:"historyDays"`
+	NotSelling    bool    `json:"notSelling"`
+	CappedBills   int     `json:"cappedBills"`
 }
 
 // FoldSource is the card side of a card + loose twin.
@@ -182,6 +204,8 @@ type ProductRequest struct {
 	WholesalePrice string                     `json:"wholesalePrice"`
 	TaxRate        string                     `json:"taxRate"`
 	ReorderLevel   int                        `json:"reorderLevel"`
+	ReorderAuto    *bool                      `json:"reorderAuto,omitempty"`  // nil: new = Auto, edit = keep
+	ReorderStart   *int                       `json:"reorderStart,omitempty"` // an Auto product's starting guess
 	TrackSerial    bool                       `json:"trackSerial"`
 	WarrantyMonths int                        `json:"warrantyMonths"`
 	SupplierID     int64                      `json:"supplierId"`

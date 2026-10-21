@@ -35,8 +35,10 @@ type ShopSettings struct {
 	LabelGapMM             int    `json:"labelGapMm"`
 	LabelNameLines         int    `json:"labelNameLines"`
 	LabelBottomLines       int    `json:"labelBottomLines"`
-	LabelNameFont          string `json:"labelNameFont"`   // "1".."4"
-	LabelBottomFont        string `json:"labelBottomFont"` // "1".."4"
+	LabelNameFont          string `json:"labelNameFont"`      // "1".."4"
+	LabelBottomFont        string `json:"labelBottomFont"`    // "1".."4"
+	ReorderDefaultDays     int    `json:"reorderDefaultDays"` // supplier rhythm when nothing is known
+	ReorderSafetyDays      int    `json:"reorderSafetyDays"`
 }
 
 // SettingsLocker is an active locker for the default-locker picker.

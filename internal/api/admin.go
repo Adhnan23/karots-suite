@@ -38,6 +38,7 @@ func (h *handlers) registerAdmin(v1 *echo.Group) {
 	h.registerAdminCustomers(g)
 	h.registerAdminPurchases(g)
 	h.registerAdminReorder(g)
+	h.registerAdminReorderLevels(g)
 	h.registerAdminPurchaseReturns(g)
 	h.registerAdminUsers(g)
 	h.registerAdminData(g)

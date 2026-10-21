@@ -156,6 +156,8 @@ type UpdateInput struct {
 	// DefaultLockerID: 0 (blank select) means "no default" and is stored as NULL.
 	DefaultLockerID        int64 `json:"default_locker_id"    form:"default_locker_id"`
 	AllowContinueLastCount bool  `json:"allow_continue_last_count" form:"allow_continue_last_count"`
+	ReorderDefaultDays     int   `json:"reorder_default_days" form:"reorder_default_days" validate:"min=1,max=90"`
+	ReorderSafetyDays      int   `json:"reorder_safety_days"  form:"reorder_safety_days"  validate:"min=0,max=60"`
 }
 
 // LogoSrc returns the logo to use: the uploaded, self-contained image (works
@@ -231,7 +233,8 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 			allow_untracked_cash=$26, default_locker_id=$27,
 			allow_continue_last_count=$28,
 			label_name_lines=$29, label_bottom_lines=$30,
-			label_name_font=$31, label_bottom_font=$32
+			label_name_font=$31, label_bottom_font=$32,
+			reorder_default_days=$33, reorder_safety_days=$34
 		WHERE id = 1`,
 		in.ShopName, in.ShopNameSi, in.Address, in.Phone,
 		in.CurrencyCode, in.CurrencySymbol, in.ReceiptFooter,
@@ -245,7 +248,8 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 		in.AllowUntrackedCash, nilIfZero(in.DefaultLockerID),
 		in.AllowContinueLastCount,
 		nameLines, bottomLines,
-		nameFont, bottomFont)
+		nameFont, bottomFont,
+		in.ReorderDefaultDays, in.ReorderSafetyDays)
 	return err
 }
 

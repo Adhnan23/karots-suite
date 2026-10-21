@@ -123,6 +123,12 @@ type ListQuery struct {
 	// AlsoIDs widens LowStock to "low, or one of these" (a plugin pulling whole
 	// groups into the reorder list). The other filters still apply.
 	AlsoIDs []int64 `query:"-" form:"-"`
+	// NotDerived leaves out products made from another (an active conversion's
+	// target: loose rice from a bag) — the original is what gets reordered.
+	NotDerived bool `query:"-" form:"-"`
+	// FixedLearned: only Fixed products the nightly run has numbers for (the
+	// "levels look off" list, which the caller narrows further).
+	FixedLearned bool `query:"-" form:"-"`
 }
 
 // MaxListLimit is the largest page List will serve. Callers that need the whole
@@ -210,10 +216,12 @@ func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
 		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[]))
 		  AND ($10::bigint IS NULL OR p.preferred_supplier_id = $10)
+		  AND ($13 = false OR NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = p.id AND pc.is_active))
+		  AND ($14 = false OR (NOT p.reorder_auto AND p.reorder_calc IS NOT NULL))
 		ORDER BY `+searchRank+` p.name, p.id
 		LIMIT $6 OFFSET $7`,
 		toks, raw, fuzzy, q.CategoryID, q.LowStock, q.Limit, q.offset(), q.IncludeServices, q.IncludeInactive, q.PreferredSupplierID,
-		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs))
+		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs), q.NotDerived, q.FixedLearned)
 	return rows, err
 }
 

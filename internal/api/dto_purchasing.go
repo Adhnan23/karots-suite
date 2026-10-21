@@ -197,6 +197,28 @@ type ReorderRow struct {
 	SoldLastYear string `json:"soldLastYear"` // the same 90 days a year ago
 	Note         string `json:"note"`         // a plugin's note (e.g. an equivalent in stock)
 	Covered      bool   `json:"covered"`      // a plugin says an equivalent covers it
+	// Smart reorder levels: the mode, the learned numbers (nil = not run yet) and
+	// whether a Fixed level is far from what sales suggest.
+	Auto     bool             `json:"auto"`
+	Calc     *ReorderCalcView `json:"calc,omitempty"`
+	LooksOff bool             `json:"looksOff"`
+}
+
+// ReorderLevelRequest: Use "suggested" sets each Fixed product to what sales
+// suggest (Use N / Use all); "auto" switches them to Auto instead.
+type ReorderLevelRequest struct {
+	IDs []int64 `json:"ids"`
+	Use string  `json:"use"`
+}
+
+// ReorderAutoRequest switches every Fixed product of a category (with its
+// sub-categories) to Auto; CategoryID 0 = all products.
+type ReorderAutoRequest struct {
+	CategoryID int64 `json:"categoryId"`
+}
+
+type ReorderAutoResult struct {
+	Switched int `json:"switched"`
 }
 
 // ReorderList: Annotated = some plugin notes rows, so the page offers Hide

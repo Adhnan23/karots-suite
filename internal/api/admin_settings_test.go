@@ -29,12 +29,14 @@ func TestAdminSettings(t *testing.T) {
 
 	in := orig
 	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", !orig.StockTakeEnabled, true, "123456789-7000"
+	in.ReorderDefaultDays, in.ReorderSafetyDays = 10, 2
 	rec := te.do(http.MethodPut, "/api/v1/admin/settings", in, ck)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("save: %d %s", rec.Code, rec.Body)
 	}
 	got := decode[SettingsPage](t, rec).Settings
-	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.StockTakeEnabled == orig.StockTakeEnabled {
+	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.StockTakeEnabled == orig.StockTakeEnabled ||
+		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 {
 		t.Fatalf("saved: %+v", got)
 	}
 	me := decode[Me](t, te.do(http.MethodGet, "/api/v1/me", nil, ck))
@@ -48,6 +50,8 @@ func TestAdminSettings(t *testing.T) {
 		"sale type":      func(s *ShopSettings) { s.DefaultSaleType = "bulk" },
 		"locker":         func(s *ShopSettings) { s.DefaultLockerID = 999999999 },
 		"vat, no number": func(s *ShopSettings) { s.TaxRegistered, s.TaxRegNo = true, " " },
+		"supplier days":  func(s *ShopSettings) { s.ReorderDefaultDays = 0 },
+		"safety days":    func(s *ShopSettings) { s.ReorderSafetyDays = -1 },
 	} {
 		b := orig
 		bad(&b)

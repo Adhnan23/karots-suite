@@ -226,6 +226,31 @@ export interface AdminProduct extends AdminProductRow {
    * into it), offered as "Fold <card> into packs". Nil when there is none.
    */
   foldFrom?: FoldSource;
+  /**
+   * Reorder level mode: Auto = learned nightly from ReorderStart; ReorderCalc
+   * is the last run's numbers (nil until it has run once).
+   */
+  reorderAuto: boolean;
+  reorderStart: number /* int */;
+  reorderCalc?: ReorderCalcView;
+}
+/**
+ * ReorderCalcView is a product's learned reorder numbers (reorder.Calc), for the
+ * reason lines: "sells 10 a day · supplier every 7 days".
+ */
+export interface ReorderCalcView {
+  daily: number /* float64 */;
+  recentDaily: number /* float64 */;
+  lastYearDaily: number /* float64 */;
+  rhythmDays: number /* int */;
+  rhythmFrom: string; // product | supplier | default
+  regular: boolean;
+  safetyDays: number /* int */;
+  calcLevel: number /* int */;
+  learnedPct: number /* int */;
+  historyDays: number /* int */;
+  notSelling: boolean;
+  cappedBills: number /* int */;
 }
 /**
  * FoldSource is the card side of a card + loose twin.
@@ -270,6 +295,8 @@ export interface ProductRequest {
   wholesalePrice: string;
   taxRate: string;
   reorderLevel: number /* int */;
+  reorderAuto?: boolean; // nil: new = Auto, edit = keep
+  reorderStart?: number /* int */; // an Auto product's starting guess
   trackSerial: boolean;
   warrantyMonths: number /* int */;
   supplierId: number /* int64 */;
@@ -1895,6 +1922,31 @@ export interface ReorderRow {
   soldLastYear: string; // the same 90 days a year ago
   note: string; // a plugin's note (e.g. an equivalent in stock)
   covered: boolean; // a plugin says an equivalent covers it
+  /**
+   * Smart reorder levels: the mode, the learned numbers (nil = not run yet) and
+   * whether a Fixed level is far from what sales suggest.
+   */
+  auto: boolean;
+  calc?: ReorderCalcView;
+  looksOff: boolean;
+}
+/**
+ * ReorderLevelRequest: Use "suggested" sets each Fixed product to what sales
+ * suggest (Use N / Use all); "auto" switches them to Auto instead.
+ */
+export interface ReorderLevelRequest {
+  ids: number /* int64 */[];
+  use: string;
+}
+/**
+ * ReorderAutoRequest switches every Fixed product of a category (with its
+ * sub-categories) to Auto; CategoryID 0 = all products.
+ */
+export interface ReorderAutoRequest {
+  categoryId: number /* int64 */;
+}
+export interface ReorderAutoResult {
+  switched: number /* int */;
 }
 /**
  * ReorderList: Annotated = some plugin notes rows, so the page offers Hide
@@ -2838,6 +2890,8 @@ export interface ShopSettings {
   labelBottomLines: number /* int */;
   labelNameFont: string; // "1".."4"
   labelBottomFont: string; // "1".."4"
+  reorderDefaultDays: number /* int */; // supplier rhythm when nothing is known
+  reorderSafetyDays: number /* int */;
 }
 /**
  * SettingsLocker is an active locker for the default-locker picker.

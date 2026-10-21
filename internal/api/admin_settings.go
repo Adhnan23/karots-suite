@@ -51,6 +51,7 @@ func toShopSettings(s *settings.Settings) ShopSettings {
 		LabelWidthMM: s.LabelWidthMM, LabelHeightMM: s.LabelHeightMM, LabelGapMM: s.LabelGapMM,
 		LabelNameLines: s.LabelNameLines, LabelBottomLines: s.LabelBottomLines,
 		LabelNameFont: s.LabelNameFont, LabelBottomFont: s.LabelBottomFont,
+		ReorderDefaultDays: s.ReorderDefaultDays, ReorderSafetyDays: s.ReorderSafetyDays,
 	}
 	if s.DefaultLockerID != nil {
 		out.DefaultLockerID = *s.DefaultLockerID
@@ -119,6 +120,7 @@ func (h *handlers) AdminSettingsSave(c echo.Context) error {
 		OpenCashDrawer: in.OpenCashDrawer, DrawerKickPin: in.DrawerKickPin,
 		AllowUntrackedCash: in.AllowUntrackedCash, DefaultLockerID: in.DefaultLockerID,
 		AllowContinueLastCount: in.AllowContinueLastCount,
+		ReorderDefaultDays:     in.ReorderDefaultDays, ReorderSafetyDays: in.ReorderSafetyDays,
 	}
 	if err := c.Validate(&up); err != nil {
 		return err

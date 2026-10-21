@@ -64,6 +64,8 @@ func seed(db *sqlx.DB) error {
 	footer := "Thank you! Please come again."
 	if _, err := setSvc.Update(ctx, settings.UpdateInput{
 		ShopName:              "Karots Super Mart",
+		ReorderDefaultDays:    7,
+		ReorderSafetyDays:     3,
 		ShopNameSi:            &shopNameSi, // prints on the thermal receipt as a raster image
 		Address:               &address,
 		Phone:                 &phone,

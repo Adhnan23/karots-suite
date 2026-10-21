@@ -98,7 +98,8 @@ func (h *handlers) AdminProduct(c echo.Context) error {
 	if p.PreferredSupplierID != nil {
 		sup = *p.PreferredSupplierID
 	}
-	out := AdminProduct{AdminProductRow: productRow(*p), UnitID: p.UnitID, TaxRate: p.TaxRate.String(), WarrantyMonths: p.WarrantyMonths, SupplierID: sup}
+	out := AdminProduct{AdminProductRow: productRow(*p), UnitID: p.UnitID, TaxRate: p.TaxRate.String(), WarrantyMonths: p.WarrantyMonths, SupplierID: sup,
+		ReorderAuto: p.ReorderAuto, ReorderStart: p.ReorderStart, ReorderCalc: calcView(calcOf(*p))}
 	out.FoldFrom = h.foldSource(c.Request().Context(), id)
 	return c.JSON(http.StatusOK, out)
 }
@@ -123,6 +124,7 @@ func bindProductReq(c echo.Context, req ProductRequest) (products.CreateInput, P
 		Name: strings.TrimSpace(req.Name), NameLocal: optStr(req.NameLocal), Barcode: optStr(req.Barcode), CategoryID: req.CategoryID, UnitID: req.UnitID,
 		CostPrice: orZero(req.CostPrice), SellingPrice: orZero(req.SellingPrice), WholesalePrice: orZero(req.WholesalePrice), TaxRate: orZero(req.TaxRate),
 		ReorderLevel: req.ReorderLevel, TrackSerial: req.TrackSerial, WarrantyMonths: req.WarrantyMonths, RepriceStock: req.RepriceStock,
+		ReorderAuto: req.ReorderAuto, ReorderStart: req.ReorderStart,
 	}
 	if req.SupplierID > 0 {
 		in.PreferredSupplierID = &req.SupplierID
@@ -158,6 +160,7 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 	if err := saveExtras(ctx, req, x); err != nil {
 		return err
 	}
+	h.relearn(c, p)
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "created "+in.Name)
 	return c.JSON(http.StatusCreated, ProductSaved{ID: p.ID, Message: "Product added"})
 }
@@ -182,6 +185,7 @@ func (h *handlers) AdminProductUpdate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	h.relearn(c, p)
 	if err := saveExtras(ctx, req, x); err != nil {
 		return err
 	}
