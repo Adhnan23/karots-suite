@@ -25,6 +25,12 @@ The Reorder page already shows sold week / month / last year and suggests a qty 
    speed and the **same coming weeks last year** (exercise books: supplier comes 20 Nov, last year 20 Nov–1 Dec sold
    15/day → order for 15/day, not today's 2). Restored karots-pos history counts. The Reorder page says why ("Last
    year this time: 15 a day · now 2 a day"). The suggested order qty uses the same look-ahead.
+4b. **Most products are added with no supplier (user, 2026-10-21)** — the first delivery stamps it
+   (`SetPreferredSupplierIfEmpty`, never overwrites), and products are often quick-added on the receive screen
+   (`LineEditor` "New product"). So the rhythm comes from **the product's own deliveries, from any supplier**
+   (the preferred-supplier stamp is just whoever came first and may be stale); not enough of those → that
+   supplier's rhythm across all its deliveries → the shop default. A quick-added product has no typed level:
+   Auto starts from the shop default rhythm × early sales instead of a typed number.
 6. **One-off big bills don't count** (user: "randomly someone might buy a large qty — this shouldn't affect"): each
    product learns its normal bill size; a bill far above it (guess > 3×) counts as a normal-sized bill for the speed
    only — revenue, stock, reports untouched. Regular big buyers raise the normal size, so real demand still counts.
