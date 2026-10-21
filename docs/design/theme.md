@@ -14,7 +14,7 @@ These are two separate controls:
 
 | Control | Who sets it | Values | Stored in |
 |---|---|---|---|
-| **Palette** | The system user only (hidden system menu → Appearance) | `studio`, `night` (later `bazaar` and others) | `settings.skin` (existing column) |
+| **Palette** | The system user only (hidden system menu → Appearance) | built-ins `studio`, `night`, `bazaar`, `lagoon`; custom palettes `custom-<id>` | `settings.skin` (existing column); custom palettes in the `palettes` table |
 | **Mode** | Each device, with the ModeToggle | System (default), Light, Dark | `localStorage` key `ks-mode` |
 
 Rules:
@@ -25,12 +25,17 @@ Rules:
 - **Every palette defines every token** in both modes (§2), and components use only
   those tokens. Components never check which palette is active: glass, glow and
   selected colours are tokens too.
-- **One file per palette:** `web/src/theme/palettes/<name>.css`.
-  - Selectors are `:root[data-palette="<name>"]` for light, `:root[data-palette="<name>"][data-theme="dark"]` for dark, and `@media (prefers-color-scheme: dark) { :root[data-palette="<name>"]:not([data-theme="light"]) }`.
-  - Adding a palette means adding one CSS file plus one entry in the palette list. Nothing else changes.
-- **Brand override:** as in karots-pos, the system user may set a brand hex
-  (`settings.skin_custom`). It replaces `--brand` and `--brand-foreground` in both modes of the chosen palette.
-- **Every screen works in all four combinations:** Studio light, Studio dark, Night light, Night dark.
+- **Themes and palettes (2026-10-21, `docs/specs/2026-10-21-palettes-design.md`):** a *theme* is a whole
+  layout / component set; there is one, **Dock** (`<html data-ui="dock">`). A *palette* restyles a theme's components
+  (colours, material, shape, depth, motion) and belongs to that theme. Built-ins: **Studio** (solid, calm), **Night**
+  (frosted, calm), **Bazaar** (solid, lively), **Lagoon** (liquid glass, calm).
+- **One file per built-in palette:** `web/src/theme/palettes/dock/<name>.css`, listed in `palettes/index.ts`.
+  - Selectors are `:root[data-ui="dock"][data-palette="<name>"]` for light, `…[data-theme="dark"]` for dark, and `@media (prefers-color-scheme: dark) { …:not([data-theme="light"]) }`.
+  - Adding a palette means adding one CSS file plus one entry in the palette list. Nothing else changes. `palettes/tokens.test.ts` checks every file defines every token in `palettes/tokens.ts`.
+- **Custom palettes:** the system user duplicates any palette on Appearance and edits it (colours per mode, material, background, depth, shape, motion, Custom CSS; the page previews live). It's saved as the same file shape (with a `/* karots-palette theme=… name=… base=… */` header) in the `palettes` table and served at the public `GET /api/v1/appearance/palette.css`, linked from `index.html` so it paints with the first frame (login included). Custom palettes export / import as `.css`; built-ins don't export. `features/appearance/paletteCss.ts` reads and writes the files.
+- **Plugins** declare their own look tokens through `slots.paletteTokens` (defaults built from core tokens in the plugin's CSS); the editor lists them under Plugins.
+- **Legacy brand / radius** (`settings.skin_custom` / `skin_radius`, the old Appearance controls): still applied as inline overrides while the palette is a built-in, cleared when another palette is chosen.
+- **Every screen works with every palette in both modes.** `theme/guard.test.ts` fails on raw colour classes, raw durations / easings, pixel corners and literal Motion timings.
 
 ## 2. Palette tokens
 
@@ -84,9 +89,9 @@ Rules:
 
 Sizes: 12 / 13.5 / 15 (body) / 17 / 24 / 32 / 40. The login clock is 132px on desktop and 64px on a phone.
 
-## 4. Radius and density (system-selectable, unchanged)
+## 4. Shape and density
 
-- **Radius:** sharp is 6/4px, rounded (the default) is 16/11px, round is 22/14px. Pills are always 999px.
+- **Shape is a palette value:** `--radius` / `--radius-sm` (Studio 16/11px; Tailwind's `rounded-md…4xl` scale from `--radius`), `--pill` (`rounded-pill`: chips, pill buttons, segmented controls; 9999px or the soft `var(--radius-sm)`). True circles (avatars, dots, spinners, round icon buttons) stay `rounded-full`.
 - **Density:** comfortable is `--control-h` 46px, `--gap` 14px and `--pad` 16px. Compact is 38px, 10px and 12px.
 
 ## 5. Login and lock
@@ -169,6 +174,11 @@ Use `motion/react` for:
 - KPI count-up
 
 Keep durations ≤350ms, and turn everything off under `prefers-reduced-motion`.
+
+**Motion is a palette value too:** `--dur-fast` (150ms, also Tailwind's default `transition`), `--dur`, `--dur-slow`,
+`--ease`, `--ease-spring` and `--lift` (hover rise; 0 = calm, 2px = lively). CSS uses `duration-(--dur-fast)` /
+`ease-(--ease)`; Motion uses `tx()` from `theme/motion.ts`. Only the cart-line flash and the login games keep literal
+timings (marked "not a UI transition").
 
 ## 9. Not now
 

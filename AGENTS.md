@@ -27,7 +27,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 - **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A karots-pos bug found here is fixed here (never carry a flaw over) and, as a bug-fix commit only, in karots-pos too.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
-- **Two palettes, each with light and dark, and it must not look like karots-pos.** Components use theme tokens only (CSS variables — `--brand`, `--hero`, `--bar`, `--selected`, etc.), never raw colour classes, and never branch on which palette is active. See `docs/design/theme.md`: **Studio** and **Night** are chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per palette in `web/src/theme/palettes/`. Every screen works in all four combinations.
+- **Palettes, each with light and dark, and it must not look like karots-pos.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has four built-ins (Studio, Night, Bazaar, Lagoon) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
 
 ## Layout
 
@@ -59,6 +59,7 @@ internal/api/         JSON /api/v1 — dto.go (all request/response types) + one
                       sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
+internal/features/palettes/ custom palettes (CSS kept as-is; settings.skin = custom-<id>; public palette.css)
 internal/features/reorder/ smart reorder levels: calc.go (pure arithmetic) + run.go (nightly 03:00 / boot when stale);
                       Auto products get reorder_level written, every product reorder_calc (the reason lines)
 internal/update/      self-update (M8c): signed manifest in the shop's bucket folder (channel), check / download /
@@ -72,8 +73,11 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/components/ui/  shadcn primitives (owned, themeable)
   src/components/admin/ admin kit: PageHead, DataList (table/cards), FormSheet, PickerShell, Pager,
                       fields, ConfirmButton, EmojiPicker — every admin screen is built from these
-  src/theme/          tokens.css (radius/density) + palettes/*.css, appearance.ts, mode.ts,
+  src/theme/          tokens.css + palettes/dock/*.css (palettes/tokens.ts = the token list), appearance.ts,
+                      mode.ts, motion.ts (tx() for Motion), guard.test.ts,
                       AdminShell (dock, no sidebar) + Dock/Shelf/PhoneTabs/CommandPalette, TillShell, nav
+  src/features/appearance/ Appearance (system user): PalettePicker, PaletteEditor (+ EditorControls, PreviewStrip,
+                      draft.ts live preview, presets.ts), paletteCss.ts (palette file read/write), ReceiptStyles
   src/features/auth/  LoginHero, PinField (no browser memory), PinPad, AutoLock
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/

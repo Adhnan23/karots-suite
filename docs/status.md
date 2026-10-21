@@ -5,6 +5,22 @@ every milestone.
 
 ## Next session (handoff 2026-10-21) — START HERE
 
+**Palettes part 2 — BUILT (2026-10-21), waiting on the user's look.** Spec `docs/specs/2026-10-21-palettes-design.md`,
+plan `docs/plans/2026-10-21-palettes.md` (10 tasks), theme.md §1/§4/§8. Theme 1 is now named **Dock** (`data-ui="dock"`);
+palettes belong to a theme. **Every look value is a token** (colours, corners, `rounded-pill`, shadows, glass, motion
+`--dur*`/`--ease*`/`--lift`, Motion via `tx()`); `theme/guard.test.ts` keeps raw values out of core and plugins.
+Studio and Night are pixel-identical to before (checked against a real pre-change build). **Four built-ins:** Studio,
+Night, **Bazaar** (terracotta / teal, solid, lively) and **Lagoon** (aqua / coral, liquid glass, calm). **Custom
+palettes** (system user, Appearance): Duplicate any palette → editor (colours per mode, material solid / frosted /
+liquid glass + blur, background art, depth, corners + pills, motion feel + length, plugin tokens, Custom CSS; the whole
+page previews live; Light | Dark switch; Reset to base; leaving unsaved asks), stored as CSS in `palettes` (migration
+00011), served at public `/api/v1/appearance/palette.css` (render-blocking link → login paints it first frame;
+login-info carries the palette for never-signed-in devices). Export / Import `.css` for custom palettes only (another
+theme's file is refused). The Brand colour and Radius controls are gone; a shop's old brand / radius keeps showing
+until a palette is chosen. Plugins: all screens on tokens; `slots.paletteTokens` for their own tokens.
+Shots: `web/shots/pal-t3` (four palettes), `pal-t7` (picker), `pal-t8` (editor), `pal-t10` (plugins).
+**Next:** the user looks at Bazaar, Lagoon and the editor; then the Settings → Printing page.
+
 **Receipt styles (Image mode) — BUILT (2026-10-21), waiting on the user's look.** Spec
 `docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (all 10 tasks),
 mockups `docs/design/mockups/receipt-styles.html` + `appearance-receipts.html`, theme.md §10. Ten styles (classic,
@@ -22,11 +38,6 @@ Final shots: `web/shots/rs10/` (`sheet-sale-80/58`, `sheet-refund-80`, `a4-firef
 (Appearance, both palettes × modes, desktop + 360). Found at the gate and fixed: every style but Classic printed
 "SN SN: …" (the serial comes labelled), and Grid headed every slip "INVOICE" (now RECEIPT).
 **Next:** the user looks at the styles; then a real-printer test (scanner reads the Code 128 off thermal paper).
-**After it: part 2, palettes** (user, 2026-10-21): palettes stay hand-written CSS files (no JSON) listed with their
-theme in `palettes/index.ts`; a palette editor on Appearance (every colour, light + dark, surface material solid /
-frosted / liquid glass, background, glow, shadow, radius, a Custom CSS box) saving custom palettes as CSS in the
-shop's DB, with Export / Import of the `.css`; the brand-colour and radius controls go then. Theme packs (sidebar /
-top-nav layouts, other tills) come later — `docs/specs/2026-09-27-karots-suite-design.md` §6.4.
 **After palettes: a Settings → Printing page** (user, 2026-10-21), before M8d. Printing is spread over Settings'
 "Shop & receipt", "Printers & labels" and "Till & cash" cards, Appearance and each user. One page with three
 sections: **Printers** (receipt + label printer, this computer's printer, test print, drawer kick), **Receipts** (paper
