@@ -7,7 +7,8 @@ const TOASTS: [string, () => void][] = [
   ['Error', () => toast.error('Something went wrong')],
   ['Warning', () => toast.warning('Stock is running low')],
   ['Info', () => toast.info('A new update is ready')],
-  ['Loading', () => toast.loading('Printing…', { duration: 2500 })],
+  // A loading toast stays until it's replaced (sonner ignores duration), as a real print does.
+  ['Loading', () => { const id = toast.loading('Printing…'); setTimeout(() => toast.success('Printed', { id }), 2500) }],
   ['With action', () => toast('Sale held', { description: 'Bring it back from Held sales.', action: { label: 'Undo', onClick: () => {} } })],
 ]
 
