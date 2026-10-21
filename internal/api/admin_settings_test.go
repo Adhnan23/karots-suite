@@ -30,13 +30,14 @@ func TestAdminSettings(t *testing.T) {
 	in := orig
 	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", !orig.StockTakeEnabled, true, "123456789-7000"
 	in.ReorderDefaultDays, in.ReorderSafetyDays = 10, 2
+	in.PrintAs = "image"
 	rec := te.do(http.MethodPut, "/api/v1/admin/settings", in, ck)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("save: %d %s", rec.Code, rec.Body)
 	}
 	got := decode[SettingsPage](t, rec).Settings
 	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.StockTakeEnabled == orig.StockTakeEnabled ||
-		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 {
+		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 || got.PrintAs != "image" {
 		t.Fatalf("saved: %+v", got)
 	}
 	me := decode[Me](t, te.do(http.MethodGet, "/api/v1/me", nil, ck))
@@ -52,6 +53,7 @@ func TestAdminSettings(t *testing.T) {
 		"vat, no number": func(s *ShopSettings) { s.TaxRegistered, s.TaxRegNo = true, " " },
 		"supplier days":  func(s *ShopSettings) { s.ReorderDefaultDays = 0 },
 		"safety days":    func(s *ShopSettings) { s.ReorderSafetyDays = -1 },
+		"print as":       func(s *ShopSettings) { s.PrintAs = "bogus" },
 	} {
 		b := orig
 		bad(&b)
@@ -80,5 +82,17 @@ func TestAdminSettings(t *testing.T) {
 	te.do(http.MethodPut, "/api/v1/admin/settings", b, ck)
 	if rec := te.do(http.MethodPost, "/api/v1/admin/settings/printer/test", nil, ck); rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("test print with no printer: %d", rec.Code)
+	}
+}
+
+// A shop prints Classic until someone switches it (old backups restore as Classic too).
+func TestPrintAsDefaultsClassic(t *testing.T) {
+	te := newTestEnv(t)
+	var def string
+	if err := te.db.Get(&def, `SELECT column_default FROM information_schema.columns WHERE table_name='settings' AND column_name='print_as'`); err != nil {
+		t.Fatal(err)
+	}
+	if def != "'classic'::text" {
+		t.Fatalf("print_as default = %q", def)
 	}
 }

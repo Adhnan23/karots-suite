@@ -44,6 +44,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		Symbol:             st.CurrencySymbol,
 		DefaultSaleType:    "retail",
 		AskToPrint:         st.AskToPrint,
+		PrintAs:            st.PrintAs,
 		OpenCashDrawer:     st.OpenCashDrawer,
 		AllowUntrackedCash: st.AllowUntrackedCash,
 		AllowContinueLast:  st.AllowContinueLastCount,

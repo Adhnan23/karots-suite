@@ -16,6 +16,7 @@ type TillConfig struct {
 	Symbol             string         `json:"symbol"`
 	DefaultSaleType    string         `json:"defaultSaleType"` // "retail" | "wholesale"
 	AskToPrint         bool           `json:"askToPrint"`
+	PrintAs            string         `json:"printAs"` // "classic" | "image"
 	OpenCashDrawer     bool           `json:"openCashDrawer"`
 	AllowUntrackedCash bool           `json:"allowUntrackedCash"`
 	DefaultLockerID    int64          `json:"defaultLockerId"` // 0 = none

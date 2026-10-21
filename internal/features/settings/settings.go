@@ -12,37 +12,39 @@ import (
 )
 
 type Settings struct {
-	ID                    int     `db:"id"                json:"id"`
-	ShopName              string  `db:"shop_name"         json:"shop_name"`
-	ShopNameSi            *string `db:"shop_name_si"      json:"shop_name_si,omitempty"`
-	Address               *string `db:"address"           json:"address,omitempty"`
-	Phone                 *string `db:"phone"             json:"phone,omitempty"`
-	CurrencyCode          string  `db:"currency_code"     json:"currency_code"`
-	CurrencySymbol        string  `db:"currency_symbol"   json:"currency_symbol"`
-	ReceiptFooter         *string `db:"receipt_footer"    json:"receipt_footer,omitempty"`
-	ReceiptWidth          string  `db:"receipt_width"     json:"receipt_width"`
-	LogoURL               *string `db:"logo_url"          json:"logo_url,omitempty"`
-	LogoData              string  `db:"logo_data"         json:"logo_data,omitempty"`
-	TaxRegistered         bool    `db:"tax_registered"    json:"tax_registered"`
-	TaxRegNo              *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
-	LowStockAlerts        bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
-	AskToPrint            bool    `db:"ask_to_print"      json:"ask_to_print"`
-	ForcePinChange        bool    `db:"force_pin_change"          json:"force_pin_change"`
-	AllowCashierPinChange bool    `db:"allow_cashier_pin_change"  json:"allow_cashier_pin_change"`
-	DefaultSaleType       string  `db:"default_sale_type" json:"default_sale_type"`
-	ReceiptPrinter        string  `db:"receipt_printer"   json:"receipt_printer"`
-	LabelPrinter          string  `db:"label_printer"     json:"label_printer"`
-	LabelWidthMM          int     `db:"label_width_mm"    json:"label_width_mm"`
-	LabelHeightMM         int     `db:"label_height_mm"   json:"label_height_mm"`
-	LabelGapMM            int     `db:"label_gap_mm"      json:"label_gap_mm"`
-	LabelNameLines        int     `db:"label_name_lines"   json:"label_name_lines"`
-	LabelBottomLines      int     `db:"label_bottom_lines" json:"label_bottom_lines"`
-	LabelNameFont         string  `db:"label_name_font"    json:"label_name_font"`
-	LabelBottomFont       string  `db:"label_bottom_font"  json:"label_bottom_font"`
-	LockTimeoutMinutes    int     `db:"lock_timeout_minutes" json:"lock_timeout_minutes"`
-	StockTakeEnabled      bool    `db:"stock_take_enabled"   json:"stock_take_enabled"`
-	OpenCashDrawer        bool    `db:"open_cash_drawer"  json:"open_cash_drawer"`
-	DrawerKickPin         int     `db:"drawer_kick_pin"   json:"drawer_kick_pin"`
+	ID             int     `db:"id"                json:"id"`
+	ShopName       string  `db:"shop_name"         json:"shop_name"`
+	ShopNameSi     *string `db:"shop_name_si"      json:"shop_name_si,omitempty"`
+	Address        *string `db:"address"           json:"address,omitempty"`
+	Phone          *string `db:"phone"             json:"phone,omitempty"`
+	CurrencyCode   string  `db:"currency_code"     json:"currency_code"`
+	CurrencySymbol string  `db:"currency_symbol"   json:"currency_symbol"`
+	ReceiptFooter  *string `db:"receipt_footer"    json:"receipt_footer,omitempty"`
+	ReceiptWidth   string  `db:"receipt_width"     json:"receipt_width"`
+	LogoURL        *string `db:"logo_url"          json:"logo_url,omitempty"`
+	LogoData       string  `db:"logo_data"         json:"logo_data,omitempty"`
+	TaxRegistered  bool    `db:"tax_registered"    json:"tax_registered"`
+	TaxRegNo       *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
+	LowStockAlerts bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
+	AskToPrint     bool    `db:"ask_to_print"      json:"ask_to_print"`
+	// PrintAs is "classic" (ESC/POS text) or "image" (a picture of the slip).
+	PrintAs               string `db:"print_as" json:"print_as"`
+	ForcePinChange        bool   `db:"force_pin_change"          json:"force_pin_change"`
+	AllowCashierPinChange bool   `db:"allow_cashier_pin_change"  json:"allow_cashier_pin_change"`
+	DefaultSaleType       string `db:"default_sale_type" json:"default_sale_type"`
+	ReceiptPrinter        string `db:"receipt_printer"   json:"receipt_printer"`
+	LabelPrinter          string `db:"label_printer"     json:"label_printer"`
+	LabelWidthMM          int    `db:"label_width_mm"    json:"label_width_mm"`
+	LabelHeightMM         int    `db:"label_height_mm"   json:"label_height_mm"`
+	LabelGapMM            int    `db:"label_gap_mm"      json:"label_gap_mm"`
+	LabelNameLines        int    `db:"label_name_lines"   json:"label_name_lines"`
+	LabelBottomLines      int    `db:"label_bottom_lines" json:"label_bottom_lines"`
+	LabelNameFont         string `db:"label_name_font"    json:"label_name_font"`
+	LabelBottomFont       string `db:"label_bottom_font"  json:"label_bottom_font"`
+	LockTimeoutMinutes    int    `db:"lock_timeout_minutes" json:"lock_timeout_minutes"`
+	StockTakeEnabled      bool   `db:"stock_take_enabled"   json:"stock_take_enabled"`
+	OpenCashDrawer        bool   `db:"open_cash_drawer"  json:"open_cash_drawer"`
+	DrawerKickPin         int    `db:"drawer_kick_pin"   json:"drawer_kick_pin"`
 	// AllowUntrackedCash lets a till move cash without naming a locker (the money
 	// leg then goes to External — untracked). When false, cash-OUT (withdraw /
 	// close) must pick a locker; cash-IN (open / deposit) is never blocked.
@@ -131,6 +133,7 @@ type UpdateInput struct {
 	TaxRegNo              *string `json:"tax_reg_no"        form:"tax_reg_no"`
 	LowStockAlerts        bool    `json:"low_stock_alerts"  form:"low_stock_alerts"`
 	AskToPrint            bool    `json:"ask_to_print"      form:"ask_to_print"`
+	PrintAs               string  `json:"print_as"          form:"print_as"          validate:"required,oneof=classic image"`
 	ForcePinChange        bool    `json:"force_pin_change"         form:"force_pin_change"`
 	AllowCashierPinChange bool    `json:"allow_cashier_pin_change" form:"allow_cashier_pin_change"`
 	DefaultSaleType       string  `json:"default_sale_type" form:"default_sale_type" validate:"required,oneof=retail wholesale"`
@@ -234,7 +237,8 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 			allow_continue_last_count=$28,
 			label_name_lines=$29, label_bottom_lines=$30,
 			label_name_font=$31, label_bottom_font=$32,
-			reorder_default_days=$33, reorder_safety_days=$34
+			reorder_default_days=$33, reorder_safety_days=$34,
+			print_as=$35
 		WHERE id = 1`,
 		in.ShopName, in.ShopNameSi, in.Address, in.Phone,
 		in.CurrencyCode, in.CurrencySymbol, in.ReceiptFooter,
@@ -249,7 +253,8 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 		in.AllowContinueLastCount,
 		nameLines, bottomLines,
 		nameFont, bottomFont,
-		in.ReorderDefaultDays, in.ReorderSafetyDays)
+		in.ReorderDefaultDays, in.ReorderSafetyDays,
+		in.PrintAs)
 	return err
 }
 

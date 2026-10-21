@@ -176,7 +176,7 @@ function Printers({ page }: { page: Page }) {
   }
   return (
     <Section title="Printers & labels" sub="Pick a printer this computer found, or type a network printer as tcp://192.168.1.50:9100. Label size is the default — change it per print." saved={s}
-      keys={['receiptPrinter', 'labelPrinter', 'labelWidthMm', 'labelHeightMm', 'labelGapMm', 'labelNameLines', 'labelBottomLines', 'labelNameFont', 'labelBottomFont']}>
+      keys={['receiptPrinter', 'printAs', 'labelPrinter', 'labelWidthMm', 'labelHeightMm', 'labelGapMm', 'labelNameLines', 'labelBottomLines', 'labelNameFont', 'labelBottomFont']}>
       {({ v, set }) => (
         <>
           <datalist id="ks-printers">{page.printers.map((p) => <option key={p} value={p} />)}</datalist>
@@ -187,6 +187,10 @@ function Printers({ page }: { page: Page }) {
             <Field label="Label printer">
               <input className={INPUT} list="ks-printers" value={v.labelPrinter} placeholder="System default" autoComplete="off" onChange={(e) => set('labelPrinter', e.target.value)} />
             </Field>
+          </div>
+          <div>
+            <Segmented label="Print receipts as" value={v.printAs} onChange={(x) => set('printAs', x)} options={[{ value: 'image', label: 'Image (new)' }, { value: 'classic', label: 'Classic' }]} />
+            <small className="mt-1 block text-[12px] text-faint">Image prints exactly what the preview shows. Classic is the old way. Shops on the modern, boxed or compact style see the classic layout in Image mode.</small>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={testing || !s.receiptPrinter} onClick={() => void test()}><Printer size={16} /> Print a test slip</Button>

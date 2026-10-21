@@ -66,16 +66,16 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 - Produces: `settings.Settings.PrintAs string` (`db:"print_as"`), `settings.PrintAsModes = []string{"classic","image"}`,
   `ShopSettings.PrintAs` / `TillConfig.PrintAs` → TS `printAs: string`.
 
-- [ ] **Step 1:** Failing DB test `TestPrintAsDefaultsClassicAndSaves`: a fresh DB reads `PrintAs == "classic"`;
+- [x] **Step 1:** Failing DB test `TestPrintAsDefaultsClassicAndSaves`: a fresh DB reads `PrintAs == "classic"`;
   saving `"image"` reads back `"image"`; saving `"bogus"` is refused by validation (`oneof=classic image`).
-- [ ] **Step 2:** Run `go test ./internal/features/settings -run PrintAs` → FAIL (no column).
-- [ ] **Step 3:** Migration: `ALTER TABLE settings ADD COLUMN print_as text NOT NULL DEFAULT 'classic' CHECK (print_as IN ('classic','image'));`
+- [x] **Step 2:** Run `go test ./internal/features/settings -run PrintAs` → FAIL (no column).
+- [x] **Step 3:** Migration: `ALTER TABLE settings ADD COLUMN print_as text NOT NULL DEFAULT 'classic' CHECK (print_as IN ('classic','image'));`
   Down drops it. Wire the field through the struct, input, UPDATE, both DTOs and `make types`. Settings page,
   printers card: a two-option segmented control **"Print receipts as: Image (new) / Classic"**, with the help text
   "Image prints exactly what the preview shows. Classic is the old way. Shops on the modern, boxed or compact style
   see the classic layout in Image mode."
-- [ ] **Step 4:** `make migrate && go test ./internal/features/settings` → PASS; `make test-web` passes.
-- [ ] **Step 5:** Commit `feat(settings): Print receipts as Image / Classic (default Classic)`.
+- [x] **Step 4:** `make migrate && go test ./internal/features/settings` → PASS; `make test-web` passes.
+- [x] **Step 5:** Commit `feat(settings): Print receipts as Image / Classic (default Classic)`.
 
 ### Task 2: `escpos.ImageJob`
 
