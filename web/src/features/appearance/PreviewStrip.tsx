@@ -1,5 +1,15 @@
 import { Check, Search, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
+
+const TOASTS: [string, () => void][] = [
+  ['Success', () => toast.success('Saved')],
+  ['Error', () => toast.error('Something went wrong')],
+  ['Warning', () => toast.warning('Stock is running low')],
+  ['Info', () => toast.info('A new update is ready')],
+  ['Loading', () => toast.loading('Printing…', { duration: 2500 })],
+  ['With action', () => toast('Sale held', { description: 'Bring it back from Held sales.', action: { label: 'Undo', onClick: () => {} } })],
+]
 
 /** A small sample of the shop's surfaces, drawn with the draft palette while it's
  *  edited (the whole page wears it too; this shows the parts the editor page lacks). */
@@ -44,6 +54,24 @@ export function PreviewStrip() {
           <span className="flex h-7 items-center gap-1 self-center rounded-pill bg-brand-soft px-2.5 text-xs font-bold"><Check className="size-3.5" /> Paid</span>
           <span className="flex h-7 items-center self-center rounded-pill bg-brand-2 px-2.5 text-xs font-bold text-brand-2-foreground">New</span>
         </div>
+      </div>
+
+      <div className="flex items-end gap-4 rounded-[var(--radius)] border border-border bg-card p-4 shadow-[var(--shadow)] [backdrop-filter:var(--glass)]" aria-label="Sample chart">
+        <div className="flex h-20 flex-1 items-end gap-1.5 border-b border-border">
+          {[55, 80, 40, 95, 65, 30].map((h, i) => (
+            <span key={i} className="flex-1 rounded-t-[var(--radius-sm)]" style={{ height: `${h}%`, background: `var(--chart-${i + 1})` }} />
+          ))}
+        </div>
+        <span className="size-20 shrink-0 rounded-full"
+          style={{ background: 'conic-gradient(var(--chart-1) 0 30%, var(--chart-2) 0 52%, var(--chart-3) 0 70%, var(--chart-4) 0 84%, var(--chart-5) 0 94%, var(--chart-6) 0)', mask: 'radial-gradient(circle, transparent 52%, black 53%)' }} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sample toasts">
+        <span className="mr-1 text-xs font-semibold text-muted-foreground">Toasts</span>
+        {TOASTS.map(([label, show]) => (
+          <button key={label} type="button" onClick={show}
+            className="h-8 rounded-pill border border-border bg-card px-3 text-xs font-semibold hover:bg-muted">{label}</button>
+        ))}
       </div>
 
       <div className="relative grid h-36 place-items-center overflow-hidden rounded-[var(--radius)] border border-border bg-background">
