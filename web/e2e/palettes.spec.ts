@@ -41,3 +41,43 @@ test('the active custom palette shows on the login page, before and after sign-i
     await page.request.delete(`/api/v1/system/palettes/${made.id}`)
   }
 })
+
+test('system user duplicates, exports, imports, uses and deletes palettes', async ({ page }) => {
+  await systemLogin(page)
+  await page.goto('/admin/system/appearance')
+  const studio = page.getByRole('group', { name: 'Studio', exact: true })
+  await expect(studio.getByText('In use')).toBeVisible()
+  await expect(studio.getByRole('button', { name: /delete/i })).toHaveCount(0) // built-ins never delete or export
+  await expect(studio.getByRole('button', { name: /export/i })).toHaveCount(0)
+
+  await studio.getByRole('button', { name: 'Duplicate' }).click()
+  const copy = page.getByRole('group', { name: 'Studio copy', exact: true })
+  await expect(copy).toBeVisible()
+  const download = page.waitForEvent('download')
+  await copy.getByRole('button', { name: 'Export' }).click()
+  const file = await (await download).path()
+  const fs = await import('node:fs')
+  const text = fs.readFileSync(file, 'utf8')
+  expect(text).toContain('name=Studio copy')
+
+  await copy.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete palette' }).click()
+  await expect(copy).toHaveCount(0)
+  await page.getByLabel('Import a palette').setInputFiles({ name: 'studio-copy.css', mimeType: 'text/css', buffer: Buffer.from(text) })
+  await expect(copy).toBeVisible()
+
+  // Another theme's file is refused.
+  await page.getByLabel('Import a palette').setInputFiles({ name: 'x.css', mimeType: 'text/css', buffer: Buffer.from(text.replace('theme=dock', 'theme=other').replace('name=Studio copy', 'name=Other')) })
+  await expect(page.getByText('This palette is for another theme')).toBeVisible()
+
+  await page.getByRole('group', { name: 'Bazaar', exact: true }).getByRole('button', { name: 'Use' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-palette', 'bazaar')
+  await copy.getByRole('button', { name: 'Use' }).click()
+  await expect(copy.getByText('In use')).toBeVisible()
+  await expect(copy.getByRole('button', { name: 'Delete' })).toHaveCount(0) // not the active one
+
+  await studio.getByRole('button', { name: 'Use' }).click()
+  await copy.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete palette' }).click()
+  await expect(copy).toHaveCount(0)
+})
