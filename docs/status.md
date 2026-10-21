@@ -5,6 +5,20 @@ every milestone.
 
 ## Next session (handoff 2026-10-21) — START HERE
 
+**NEXT: Receipt styles (Image mode) — designed + planned, not started (2026-10-21).** Spec
+`docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (10 tasks, start at
+Task 1), mockups `docs/design/mockups/receipt-styles.html` + `appearance-receipts.html` (user approved all ten styles
+and the Appearance layout; thumbnails there are rough — the real ones are live renders). User chose **native**
+execution (executing-plans), in a fresh session. Ten styles: classic, bold, minimal, ticket, poster, grid, stamp,
+elegant, cards, sections — every slip (sale, refund, CR-, DP-, warranty, test, Repairs' job slip via the plugin seam),
+every line kind, 80 + 58 mm; Code 128 of the slip number (QR too on Minimal); scan to find (exact number first, any
+date; a scan at Sell jumps to Receipts). Only the system user picks, on Appearance. Density goes in Task 1.
+**After it: part 2, palettes** (user, 2026-10-21): palettes stay hand-written CSS files (no JSON) listed with their
+theme in `palettes/index.ts`; a palette editor on Appearance (every colour, light + dark, surface material solid /
+frosted / liquid glass, background, glow, shadow, radius, a Custom CSS box) saving custom palettes as CSS in the
+shop's DB, with Export / Import of the `.css`; the brand-colour and radius controls go then. Theme packs (sidebar /
+top-nav layouts, other tills) come later — `docs/specs/2026-09-27-karots-suite-design.md` §6.4.
+
 **Print as image — BUILT (2026-10-21, Phases 1 + 2).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
 plan `docs/plans/2026-10-21-print-as-image.md` (all 12 tasks). Settings → Printers & labels → **Print receipts as:
 Image (new) / Classic** — **Classic is still the default** (migration 00010). In Image mode every slip (`printSlip`)
