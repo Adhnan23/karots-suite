@@ -3,7 +3,7 @@ import { prep } from './shot-prep'
 
 // UI-gate screenshots for admin pages (not a behaviour test). Needs `make e2e-seed`.
 //   SHOTS=m2-1 SHOTS_PATH=/admin/units bunx playwright test e2e/admin-shots.spec.ts
-// SHOTS_PREP (optional) names a prep step in shot-prep.ts, run after the page loads.
+// SHOTS_SYSTEM=1 shoots as the system user (Appearance). SHOTS_PREP (optional) names a prep step in shot-prep.ts, run after the page loads.
 // Output: web/shots/<gate>/<name>-<palette>-<mode>-<width>.png
 const gate = process.env.SHOTS
 const path = process.env.SHOTS_PATH ?? '/admin'
@@ -32,7 +32,8 @@ for (const palette of ['studio', 'night']) {
         await page.goto('about:blank')
         await page.context().clearCookies()
         await page.addInitScript((m) => localStorage.setItem('ks-mode', m), mode)
-        await login(page, '0770000001', '1234')
+        if (process.env.SHOTS_SYSTEM) await login(page, '0000000001', process.env.POS_SYSTEM_PIN ?? '2273')
+        else await login(page, '0770000001', '1234')
         await page.goto(path)
         await page.waitForLoadState('networkidle')
         await prep[prepKey]?.(page)

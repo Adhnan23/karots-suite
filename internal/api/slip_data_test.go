@@ -107,4 +107,34 @@ func TestSlipData(t *testing.T) {
 	if rec := te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip", nil, admin); rec.Code < 400 || rec.Code >= 500 {
 		t.Fatalf("the sample never prints: %d", rec.Code)
 	}
+
+	// Appearance's slip switcher: every kind and the sale samples.
+	sample := func(q string) SlipData {
+		t.Helper()
+		rec := te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip?data=1&"+q, nil, admin)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: %d %s", q, rec.Code, rec.Body)
+		}
+		return decode[SlipData](t, rec)
+	}
+	if d := sample("kind=refund&size=58"); d.Kind != "refund" || d.Refund == nil || len(d.Refund.Items) == 0 || d.Dots != 384 {
+		t.Fatalf("refund sample: %+v", d)
+	}
+	for k, ok := range map[string]func(SlipData) bool{
+		"money": func(d SlipData) bool { return d.Money != nil }, "debt": func(d SlipData) bool { return d.Debt != nil },
+		"warranty": func(d SlipData) bool { return d.Warranty != nil }, "test": func(d SlipData) bool { return d.Test != nil },
+	} {
+		if d := sample("kind=" + k); d.Kind != k || !ok(d) {
+			t.Fatalf("%s sample: %+v", k, d)
+		}
+	}
+	if d := sample("kind=sale&sample=credit"); d.Sale == nil || !d.Sale.Credit || d.Sale.Customer == "" {
+		t.Fatalf("credit sample: %+v", d.Sale)
+	}
+	if d := sample("kind=sale&sample=busy"); d.Sale == nil || len(d.Sale.Items) < 5 || d.Sale.Given == "0.00" {
+		t.Fatalf("busy sample: %+v", d.Sale)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip?data=1&kind=nope", nil, admin); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("unknown kind: %d", rec.Code)
+	}
 }

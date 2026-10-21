@@ -3,6 +3,8 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
+import { ReceiptStyles } from '@/features/appearance/ReceiptStyles'
+import { configQuery } from '@/features/till/api'
 import { applyAppearance } from '@/theme/appearance'
 import { PALETTES } from '@/theme/palettes'
 import type { Appearance } from '@/api/types.gen'
@@ -82,6 +84,8 @@ function SystemAppearance() {
       applyAppearance(saved)
       queryClient.setQueryData(['system', 'appearance'], saved)
       queryClient.removeQueries({ queryKey: ['me'] })
+      // The next print reads the saved style from the till config.
+      await queryClient.invalidateQueries({ queryKey: configQuery.queryKey })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Something went wrong')
@@ -93,13 +97,13 @@ function SystemAppearance() {
   if (!form) return null
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-bold tracking-tight">Appearance</h1>
         <p className="text-muted-foreground">Locked for the whole shop. Changes preview live as you make them.</p>
       </div>
 
-      <section className="flex flex-col gap-2">
+      <section className="flex max-w-2xl flex-col gap-2">
         <span className="text-xs font-bold text-muted-foreground">Palette</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {PALETTES.map((p) => (
@@ -124,7 +128,7 @@ function SystemAppearance() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-1.5">
+      <section className="flex max-w-2xl flex-col gap-1.5">
         <label htmlFor="brand-colour" className="text-xs font-bold text-muted-foreground">
           Brand colour
         </label>
@@ -143,7 +147,7 @@ function SystemAppearance() {
             placeholder="#rrggbb (theme default)"
             value={form.brandColor}
             onChange={(e) => update({ brandColor: e.target.value })}
-            className="h-9 flex-1 rounded-lg border border-border bg-card px-3 text-sm outline-none focus:border-brand"
+            className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-sm outline-none focus:border-brand"
           />
           <button
             type="button"
@@ -159,6 +163,8 @@ function SystemAppearance() {
         <span className="text-xs font-bold text-muted-foreground">Radius</span>
         <Segmented label="Radius" options={RADII} value={form.radius as (typeof RADII)[number]} onChange={(v) => update({ radius: v })} />
       </section>
+
+      <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
 
       <button
         type="button"

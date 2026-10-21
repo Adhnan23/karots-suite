@@ -1,5 +1,6 @@
 import type { Page } from './fixtures'
 import { aicatalogPrep } from './shot-prep-aicatalog'
+import { appearancePrep } from './shot-prep-appearance'
 import { alternativesData } from './shot-prep-alternatives'
 import { barcodesPrep } from './shot-prep-barcodes'
 import { loosePrep } from './shot-prep-loose'
@@ -30,6 +31,7 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
   ...barcodesPrep,
   ...aicatalogPrep,
   ...presencePrep,
+  ...appearancePrep,
   /** Product form: the Reorder level field of the product named in SHOTS_ITEM. */
   'product-reorder': async (page) => {
     await page.getByText(process.env.SHOTS_ITEM ?? 'E2E Milk Crate', { exact: true }).locator('visible=true').first().click()

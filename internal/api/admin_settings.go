@@ -11,14 +11,12 @@ import (
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/lockers"
-	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"
 	"karots-suite/internal/printing"
 	"karots-suite/internal/receiptimg"
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	"github.com/shopspring/decimal"
 )
 
 // registerAdminSettings mounts Setup → Settings (admin + manager, as karots-pos).
@@ -208,33 +206,30 @@ func (h *handlers) AdminSettingsPrinterTest(c echo.Context) error {
 
 // AdminSettingsSampleSlip is the Settings page's receipt preview: a made-up cash
 // sale on the SAVED settings (logo, names, footer), as ?preview=1 (Classic) or
-// ?data=1 (Image). It never prints.
+// ?data=1 (Image). It never prints. Appearance's switcher asks ?kind= and, for a
+// sale, ?sample=busy|simple|credit (Image only).
 func (h *handlers) AdminSettingsSampleSlip(c echo.Context) error {
 	ctx := c.Request().Context()
-	s, err := h.d.Settings.Get(ctx)
+	s, err := h.slipSettings(c)
 	if err != nil {
 		return err
 	}
 	d := sampleSale()
 	opts := receiptimg.SlipOptions(ctx, s, nil)
-	if ok, err := slipData(c, s, opts, func(x *SlipData) { x.Kind, x.Sale = "sale", slipSale(d, opts) }); ok {
+	kind, smp := c.QueryParam("kind"), c.QueryParam("sample")
+	fill := sampleSlip(kind, smp, d, opts)
+	if fill == nil {
+		return apperr.Validation("no such sample slip")
+	}
+	if ok, err := slipData(c, s, opts, fill); ok {
 		return err
+	}
+	// Classic previews only the simple sale (the Settings page's).
+	if kind != "" && kind != "sale" || smp != "" && smp != "simple" {
+		return apperr.Validation("that sample has an Image preview only")
 	}
 	if ok, err := previewSlip(c, s, escpos.Document(d, *s, opts)); ok {
 		return err
 	}
 	return apperr.Validation("the sample slip is a preview only")
-}
-
-func sampleSale() sales.Detail {
-	n := decimal.NewFromInt
-	return sales.Detail{
-		Sale: sales.Sale{ReceiptNo: "S-00000", CreatedAt: time.Now(), CashierName: "Cashier", Status: "completed",
-			Subtotal: n(3210), Total: n(3210), PaidAmount: n(3500), ChangeGiven: n(290)},
-		Items: []sales.SaleItem{
-			{ProductName: "Basmati 5kg", UnitAbbr: "pcs", Quantity: n(1), UnitPrice: n(2450), Subtotal: n(2450)},
-			{ProductName: "Milk 1L", UnitAbbr: "pcs", Quantity: n(2), UnitPrice: n(380), Subtotal: n(760)},
-		},
-		Payments: []sales.Payment{{Method: "cash", Amount: n(3500)}},
-	}
 }

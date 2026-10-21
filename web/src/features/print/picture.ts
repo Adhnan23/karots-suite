@@ -16,7 +16,7 @@ export type SlipPicture = { blob: Blob; url: string; dots: number }
 
 const withQuery = (path: string, q: Record<string, string | undefined>) => {
   const p = new URLSearchParams(Object.entries(q).filter((e): e is [string, string] => !!e[1]))
-  return `${path}?${p}`
+  return `${path}${path.includes('?') ? '&' : '?'}${p}`
 }
 
 /** Draws a node off screen, waits for it to settle and rasterises it. */

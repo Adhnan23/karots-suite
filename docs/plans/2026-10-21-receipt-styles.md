@@ -64,15 +64,15 @@ and receive the active kit. Search ranks an exact slip number first and ignores 
 - Produces: `settings.ReceiptStyles []string` (ten keys, in order); `TillConfig.ReceiptStyle` → TS
   `receiptStyle: string`; `Appearance` without `density`.
 
-- [ ] **Step 1:** Failing tests: `TestValidReceiptStyle` — each of the ten returns itself; `"modern"`, `"boxed"`,
+- [x] **Step 1:** Failing tests: `TestValidReceiptStyle` — each of the ten returns itself; `"modern"`, `"boxed"`,
   `"compact"`, `""`, `"x"` return `"classic"`. `TestStyleForIsClassic` — `StyleFor` with `ReceiptStyle: "bold"`
   equals `StyleFor` with `"classic"`. `system_test`: PUT appearance with `receiptStyle: "ticket"` reads back
   `"ticket"`; `/till/config` returns `receiptStyle: "ticket"`.
-- [ ] **Step 2:** `go test ./internal/features/settings ./internal/escpos ./internal/api -run 'ReceiptStyle|StyleFor|Appearance'` → FAIL.
-- [ ] **Step 3:** Implement; `make types`; remove density from the SPA (search `density` in `web/src` — only the
+- [x] **Step 2:** `go test ./internal/features/settings ./internal/escpos ./internal/api -run 'ReceiptStyle|StyleFor|Appearance'` → FAIL.
+- [x] **Step 3:** Implement; `make types`; remove density from the SPA (search `density` in `web/src` — only the
   Appearance page, `appearance.ts`, its test and `tokens.css` use it). The DB column stays (no migration).
-- [ ] **Step 4:** `make test` and `make test-web` → PASS; `cd web && bunx tsc --noEmit` clean.
-- [ ] **Step 5:** Commit `feat(settings): receipt_style names the Image style (ten); Classic printing is classic only; Density removed`.
+- [x] **Step 4:** `make test` and `make test-web` → PASS; `cd web && bunx tsc --noEmit` clean.
+- [x] **Step 5:** Commit `feat(settings): receipt_style names the Image style (ten); Classic printing is classic only; Density removed`.
 
 ### Task 2: The kit interface; Classic becomes a kit with identical output
 
@@ -112,19 +112,19 @@ and receive the active kit. Search ranks an exact slip number first and ignores 
   ```
 - Consumes: `SlipData` (types.gen), `PAPER_FAMILY` (`paper.ts`).
 
-- [ ] **Step 1:** Before moving anything, write `styles.test.tsx` › `classic is unchanged`: for each kind in the
+- [x] **Step 1:** Before moving anything, write `styles.test.tsx` › `classic is unchanged`: for each kind in the
   fixture (`sale` busy, `sale` with payout below zero, `sale` on credit, refund, money, debt, warranty, test) ×
   `dots 576 / 384`, `renderToStaticMarkup(<Template d={…}/>)` equals a stored snapshot
   (`toMatchSnapshot()`). Run it once on the current code to record the snapshots; commit them with the test.
-- [ ] **Step 2:** Add `styles.test.tsx` › `every style renders every line`: for each `STYLES` entry × width, the busy
+- [x] **Step 2:** Add `styles.test.tsx` › `every style renders every line`: for each `STYLES` entry × width, the busy
   fixture's markup contains: each item name, `-10%` or the discount amount `245.00`, `1 Card + 2`, the group label
   and both member names, `Given`/the payout amount, `12-month warranty` or `2027-10-21`, the serial `SC-88231`,
   `DUE` / the due amount, `TOTAL` or the total amount `6,265.00`, every tender amount, the change, the shop footer
   text, `Karots Business Suite`. Credit fixture: the TOTAL DUE amount. (Text present, case-insensitive.)
-- [ ] **Step 3:** Implement the interface and move Classic behind it. Run → `classic is unchanged` PASS (identical
+- [x] **Step 3:** Implement the interface and move Classic behind it. Run → `classic is unchanged` PASS (identical
   markup), `every style renders every line` PASS for classic.
-- [ ] **Step 4:** `make test-web`; `cd web && bunx playwright test print-image` (8/8) — the picture path is untouched.
-- [ ] **Step 5:** Commit `refactor(print): slips are drawn through a style kit (Classic, identical output)`.
+- [x] **Step 4:** `make test-web`; `cd web && bunx playwright test print-image` (8/8) — the picture path is untouched.
+- [x] **Step 5:** Commit `refactor(print): slips are drawn through a style kit (Classic, identical output)`.
 
 ### Task 3: Printing uses the shop's style; barcode + QR parts; style fonts
 
@@ -144,46 +144,46 @@ and receive the active kit. Search ranks an exact slip number first and ignores 
   where `style` defaults to the saved one; `rasterize(node, dots, fonts)`.
 - Consumes: `STYLES`, `styleOf`, `templates` (Task 2).
 
-- [ ] **Step 1:** Failing `barcode.test.ts`: `code128('S-00231')` starts with Start B (`2,1,1,2,1,4`) and ends with
+- [x] **Step 1:** Failing `barcode.test.ts`: `code128('S-00231')` starts with Start B (`2,1,1,2,1,4`) and ends with
   stop (`2,3,3,1,1,1,2`), sum of modules = 11 × (chars + 3) + 2; decoding the bar row rendered at module 2 with
   `@zxing/library` `Code128Reader` returns `'S-00231'`; same for `CR-000018`, `DP-000002`, `R-0002`.
-- [ ] **Step 2:** `make test-web` → FAIL. **Step 3:** Implement; picture.ts reads `cfg.receiptStyle`.
-- [ ] **Step 4:** `make test-web` PASS; `print-image.spec` 8/8 (still Classic).
-- [ ] **Step 5:** Commit `feat(print): slips print in the shop's style; Code 128 + QR parts; style fonts`.
+- [x] **Step 2:** `make test-web` → FAIL. **Step 3:** Implement; picture.ts reads `cfg.receiptStyle`.
+- [x] **Step 4:** `make test-web` PASS; `print-image.spec` 8/8 (still Classic).
+- [x] **Step 5:** Commit `feat(print): slips print in the shop's style; Code 128 + QR parts; style fonts`.
 
 ### Task 4: Bold, Minimal, Ticket
 
 **Files:** Create `web/src/features/print/styles/{bold,minimal,ticket}/kit.tsx` (+ `sale.tsx` only where the shared
 sale can't draw the mockup); register in `styles/index.ts`.
 
-- [ ] **Step 1:** Build each to match `docs/design/mockups/receipt-styles.html` (Bold: black header band, sans,
+- [x] **Step 1:** Build each to match `docs/design/mockups/receipt-styles.html` (Bold: black header band, sans,
   tags for savings, black TOTAL band, barcode + number at the foot; Minimal: light sans, dotted leaders, big quiet
   total, barcode + QR; Ticket: number big in a framed box with its barcode at the top, boxed totals, tear line).
   The credit block, payouts and rounding follow each style's money / total parts.
-- [ ] **Step 2:** `every style renders every line` passes for the three (it iterates `STYLES`).
-- [ ] **Step 3:** Shot review in the browser (decoded-free: just the pictures) of the busy sale, a credit sale and
+- [x] **Step 2:** `every style renders every line` passes for the three (it iterates `STYLES`).
+- [x] **Step 3:** Shot review in the browser (decoded-free: just the pictures) of the busy sale, a credit sale and
   a refund at 80 + 58 mm for each; nothing clipped, savings visible, barcode at whole dots. Fix until clean.
-- [ ] **Step 4:** Commit `feat(print): Bold, Minimal and Ticket receipt styles`.
+- [x] **Step 4:** Commit `feat(print): Bold, Minimal and Ticket receipt styles`.
 
 ### Task 5: Poster, Grid, Stamp
 
 **Files:** `web/src/features/print/styles/{poster,grid,stamp}/` (Poster and Grid need a `sale.tsx` override: headline
 total / table), register.
 
-- [ ] **Step 1:** Build to the mockup (Poster: "YOU PAID" headline total first, shop name sideways down the edge —
+- [x] **Step 1:** Build to the mockup (Poster: "YOU PAID" headline total first, shop name sideways down the edge —
   at 58 mm the sideways name may move to the top; Grid: QTY / ITEM / OFF / AMT table with ruled cells, totals block
   right; Stamp: outlined shop name, tilted round "PAID" stamp in the header corner — never over a number).
-- [ ] **Step 2–4:** as Task 4 (tests iterate `STYLES`; shot review; commit `feat(print): Poster, Grid and Stamp receipt styles`).
+- [x] **Step 2–4:** as Task 4 (tests iterate `STYLES`; shot review; commit `feat(print): Poster, Grid and Stamp receipt styles`).
 
 ### Task 6: Elegant, Cards, Sections
 
 **Files:** `web/src/features/print/styles/{elegant,cards,sections}/` (Sections needs a `sale.tsx`: ITEMS / YOU
 SAVED / PAYMENT blocks), register.
 
-- [ ] **Step 1:** Build to the mockup (Elegant: Noto Serif, centred, ◆ ornaments, italic item names, total between
+- [x] **Step 1:** Build to the mockup (Elegant: Noto Serif, centred, ◆ ornaments, italic item names, total between
   double rules; Cards: each item in a rounded box, black rounded total pill; Sections: black section bars, every
   saving collected under YOU SAVED).
-- [ ] **Step 2–4:** as Task 4; commit `feat(print): Elegant, Cards and Sections receipt styles`.
+- [x] **Step 2–4:** as Task 4; commit `feat(print): Elegant, Cards and Sections receipt styles`.
 
 ### Task 7: Plugin seam; Repairs on the kit
 
@@ -195,12 +195,12 @@ SAVED / PAYMENT blocks), register.
   anything else → 422, never prints), `AGENTS.md` slots line
 - Test: `plugins/repairs/print_db_test.go` (sample-slip), `web/src/features/print/styles/styles.test.tsx`
 
-- [ ] **Step 1:** Failing tests: Go — `sample-slip?data=1` returns kind `repairs.job` with a ticket and an estimate;
+- [x] **Step 1:** Failing tests: Go — `sample-slip?data=1` returns kind `repairs.job` with a ticket and an estimate;
   without `data=1` → 4xx. Vitest — `a plugin slip follows every style`: a fake registered `{ kind: 'x.test', Template }`
   built from kit parts renders for every `STYLES` key without throwing and contains its text.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** `make plugins P=all`, `go test ./plugins/repairs`,
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** `make plugins P=all`, `go test ./plugins/repairs`,
   `make test-web`, `bunx playwright test plugin-repairs`, then `make core-only && make check-core` → OK.
-- [ ] **Step 5:** Commit `feat(print): plugin slips get the style kit (slipTemplates); Repairs follows every style`.
+- [x] **Step 5:** Commit `feat(print): plugin slips get the style kit (slipTemplates); Repairs follows every style`.
 
 ### Task 8: Appearance → Receipt style (system user)
 
@@ -216,16 +216,16 @@ SAVED / PAYMENT blocks), register.
 - Consumes: `STYLES`, `slipPictureQuery(path, size, style)` (preview of an unsaved style), plugin `slipTemplates`
   (`label`, `sample`).
 
-- [ ] **Step 1:** Failing tests: Go — `sample-slip?kind=refund&data=1` → kind `refund`; `?kind=sale&sample=credit&data=1`
+- [x] **Step 1:** Failing tests: Go — `sample-slip?kind=refund&data=1` → kind `refund`; `?kind=sale&sample=credit&data=1`
   → `sale.credit == true`. e2e (system user, 2273 dev PIN): open Appearance; ten thumbnails (`img` named after
   each style); pick Ticket → the preview `img` src changes; switch slip Refund and 58 mm → preview natural width 384;
   Save → `/till/config` has `receiptStyle: ticket`; with Image mode on, a cash sale's print upload differs from the
   Classic one taken before (bytes). Reset style to classic and print_as in `afterAll`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement (the yellow "prints Classic" note when `printAs` is classic;
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement (the yellow "prints Classic" note when `printAs` is classic;
   thumbnails are `slipPicture` renders of the busy sample at 80 mm scaled to the card; at 360 px the grid becomes a
   horizontal scroller and the preview sits under it).
-- [ ] **Step 4:** Tests pass; shots: the page in Studio / Night × light / dark, desktop and 360 px (no side scroll).
-- [ ] **Step 5:** Commit `feat(appearance): pick the receipt style with a live preview of every slip`.
+- [x] **Step 4:** Tests pass; shots: the page in Studio / Night × light / dark, desktop and 360 px (no side scroll).
+- [x] **Step 5:** Commit `feat(appearance): pick the receipt style with a live preview of every slip`.
 
 ### Task 9: Scan a slip to find it
 
