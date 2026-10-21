@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -17,7 +19,7 @@ import (
 // Connect opens and verifies a pooled connection. It returns an error rather
 // than calling log.Fatal so the caller controls process lifecycle.
 func Connect(dsn string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("postgres", dsn)
+	db, err := sqlx.Connect("postgres", withJITOff(dsn))
 	if err != nil {
 		return nil, fmt.Errorf("db connect: %w", err)
 	}
@@ -76,4 +78,21 @@ func RunMigrationsTable(sqlDB *sql.DB, migrationsFS fs.FS, table string) error {
 		return fmt.Errorf("goose up (%s): %w", table, err)
 	}
 	return nil
+}
+
+// withJITOff turns PostgreSQL's JIT off for the app's sessions (lib/pq sends an
+// unknown DSN key as a run-time setting). Karots runs small queries; on a database
+// without statistics yet (every new shop) the planner overestimates and JIT spends
+// ~250 ms compiling each search. A DSN that already sets jit keeps its choice.
+func withJITOff(dsn string) string {
+	if strings.Contains(dsn, "jit=") {
+		return dsn
+	}
+	if u, err := url.Parse(dsn); err == nil && (u.Scheme == "postgres" || u.Scheme == "postgresql") {
+		q := u.Query()
+		q.Set("jit", "off")
+		u.RawQuery = q.Encode()
+		return u.String()
+	}
+	return dsn + " jit=off"
 }
