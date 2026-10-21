@@ -2,13 +2,13 @@ import { ChevronDown } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { slots } from '@/plugins/slots'
 import { TOKENS } from '@/theme/palettes/tokens'
+import { drawnColour, formatColour, parseCssColour } from './colourValue'
 import type { PaletteDoc } from './paletteCss'
 import { applyMaterial, applyMotion, blurOf, materialOf, motionOf, withBlur, type Feel, type Material } from './presets'
 
 type Mode = 'light' | 'dark'
 type Tokens = Record<string, string>
 
-const HEX = /^#[0-9a-fA-F]{6}$/
 const label = (name: string) => name.replace(/^--/, '').replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
 
 // Generated art follows the palette's own brand colours, so it suits any palette.
@@ -142,17 +142,33 @@ function Group({ title, hint, open, children }: { title: string; hint?: string; 
   )
 }
 
+/** A colour token: picker (any colour; a see-through one keeps its opacity, and a
+ *  reference like var(…) starts from what's drawn), the CSS text, and an opacity
+ *  slider for see-through values. */
 function ColourRow({ name, value, onChange }: { name: string; value: string; onChange: (v: string) => void }) {
+  const own = parseCssColour(value)
+  const picked = own ?? (value.trim() ? drawnColour(value) : null)
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="w-28 shrink-0 truncate text-muted-foreground sm:w-36">{label(name)}</span>
-      <span className="relative size-8 shrink-0 overflow-hidden rounded-[var(--radius-sm)] border border-border" style={{ background: value }}>
-        {HEX.test(value) && <input type="color" aria-label={`${label(name)} picker`} value={value} onChange={(e) => onChange(e.target.value.toUpperCase())}
-          className="absolute inset-0 size-full cursor-pointer opacity-0" />}
-      </span>
-      <input aria-label={label(name)} value={value} spellCheck={false} onChange={(e) => onChange(e.target.value)}
-        className="h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-input bg-background/60 px-2 font-mono text-xs outline-none focus:border-brand" />
-    </label>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="w-28 shrink-0 truncate text-muted-foreground sm:w-36">{label(name)}</span>
+        <span className="relative size-8 shrink-0 overflow-hidden rounded-[var(--radius-sm)] border border-border" style={{ background: value }}>
+          {picked && <input type="color" aria-label={`${label(name)} picker`} value={picked.hex.toLowerCase()}
+            onChange={(e) => onChange(formatColour(e.target.value, own ? own.alpha : picked.alpha))}
+            className="absolute inset-0 size-full cursor-pointer opacity-0" />}
+        </span>
+        <input aria-label={label(name)} value={value} spellCheck={false} onChange={(e) => onChange(e.target.value)}
+          className="h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-input bg-background/60 px-2 font-mono text-xs outline-none focus:border-brand" />
+      </div>
+      {own && own.alpha < 1 && (
+        <label className="flex items-center gap-2 pl-[calc(7rem+0.5rem)] text-xs text-muted-foreground sm:pl-[calc(9rem+0.5rem)]">
+          Opacity
+          <input type="range" min={0} max={100} value={Math.round(own.alpha * 100)} aria-label={`${label(name)} opacity`}
+            onChange={(e) => onChange(formatColour(own.hex, Math.min(0.99, Number(e.target.value) / 100)))} className="min-w-0 flex-1 accent-(--brand)" />
+          <span className="w-9 text-right font-mono tabular-nums">{Math.round(own.alpha * 100)}%</span>
+        </label>
+      )}
+    </div>
   )
 }
 

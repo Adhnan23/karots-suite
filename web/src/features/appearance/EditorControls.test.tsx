@@ -33,4 +33,14 @@ describe('EditorControls plugin tokens', () => {
     fireEvent.click(screen.getByLabelText(/Show all colours/))
     expect(screen.getAllByLabelText('Card foreground').length).toBeGreaterThan(0)
   })
+
+  it('picks a see-through colour keeping its opacity, and slides the opacity', () => {
+    const doc = builtinDoc('night')
+    const onChange = vi.fn()
+    render(<EditorControls doc={{ ...doc, dark: { ...doc.dark, '--card': 'rgb(255 255 255 / .06)' } }} mode="dark" onChange={onChange} />)
+    fireEvent.input(screen.getByLabelText('Card picker'), { target: { value: '#ff0000' } })
+    expect(onChange.mock.calls.at(-1)[0].dark['--card']).toBe('rgb(255 0 0 / .06)')
+    fireEvent.change(screen.getByLabelText('Card opacity'), { target: { value: '50' } })
+    expect(onChange.mock.calls.at(-1)[0].dark['--card']).toBe('rgb(255 255 255 / .5)')
+  })
 })
