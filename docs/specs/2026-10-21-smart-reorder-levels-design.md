@@ -98,6 +98,27 @@ today's rule (`2 × level − onHand`).
   category picker (with sub-categories) or "all products" → "Switch 124 Fixed products to Auto" with a confirm.
 - **Dashboard low-stock count** follows on its own (it reads `reorder_level`).
 
+## Low stock at the till (user, 2026-10-21)
+
+Small shops: the admin is away and one cashier orders and receives from the suppliers' reps. Today only admin /
+manager see Reorder.
+
+- **New user permission `users.can_see_low_stock`** (same migration), a tick on the user form beside Handle
+  suppliers / Manage credit / See cost; plumbed exactly like those (auth create/update, user validator,
+  `middleware.UserFlags`, `/me`). Admins and managers always have it.
+- **Counter tab "Low stock"** (`web/src/features/counter/lowstock/`), shown only with that permission. The same
+  rows as Reorder — what is left, the reason line, Not selling, suggested qty, usual supplier — grouped by supplier,
+  read-only, with search / category / supplier filters and **Print** (the existing low-stock paper). Cost only with
+  See cost. No Fixed/Auto switching and no "Levels look off" here (owner decisions).
+- **Ordering reuses the Suppliers tab:** with Handle suppliers too, each supplier group has **Order these** → the
+  Suppliers tab opens on that supplier's **Order** job with the group's lines and suggested qtys filled in (editable;
+  saved through the existing `CounterOrderCreate`). Lines with no usual supplier get a supplier picker first.
+  Receiving stays the Suppliers tab's Receive job, as today.
+- API: a cashier route `GET /api/v1/counter/low-stock` guarded by the permission, sharing the row builder with
+  `AdminReorder` (moved out of `admin_reorder.go`, no copy); cost blanked server-side without See cost.
+- Playwright: cashier without the tick has no tab and gets 403; with it sees the list; with Handle suppliers too,
+  Order these → Suppliers Order prefilled → order saved.
+
 ## Left to the builder
 
 File / package names (suggest `internal/features/reorder`), SQL shape (one pass per batch of products, not per
