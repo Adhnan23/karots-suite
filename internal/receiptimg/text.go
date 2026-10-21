@@ -7,6 +7,8 @@ import (
 	"math"
 	"strings"
 
+	"karots-suite/internal/escpos"
+
 	"github.com/go-text/typesetting/di"
 	"github.com/go-text/typesetting/font"
 	ot "github.com/go-text/typesetting/font/opentype"
@@ -61,7 +63,7 @@ func SubName(text string, canvasDots, pxHeight int) []byte {
 		return nil
 	}
 	h := img.Bounds().Dy()
-	return rasterFromInk(canvasDots, h, func(x, y int) bool {
+	return escpos.Raster(canvasDots, h, func(x, y int) bool {
 		return img.AlphaAt(x, y).A > 96
 	})
 }

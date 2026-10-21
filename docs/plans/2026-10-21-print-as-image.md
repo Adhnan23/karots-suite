@@ -89,7 +89,7 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 - Consumes: the GS v 0 encoder. Move `rasterFromInk` from `internal/receiptimg/raster.go` into escpos as
   `Raster(w, h int, ink func(x, y int) bool) []byte` (receiptimg calls it; receiptimg already imports escpos).
 
-- [ ] **Step 1:** Failing tests:
+- [x] **Step 1:** Failing tests:
   - `TestImageJobRoundTrip`: a 576 × 2,100 image with a known pattern (diagonal + text-like blocks) → `ImageJob` →
     `Preview(job)` returns ≥ 9 image lines, none taller than 256 rows. Decoding each line's PNG data URI and
     stacking them gives back the input **pixel for pixel**.
@@ -97,11 +97,11 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
     `1B 70` (kick).
   - `TestReadImageRejects`: width 575 on dots 576, height 0, height 32,001, and non-PNG bytes → `ErrBadImage`.
     A 384-wide PNG on dots 384 passes.
-- [ ] **Step 2:** `go test ./internal/escpos -run 'ImageJob|ReadImage'` → FAIL.
-- [ ] **Step 3:** Implement. Ink = any pixel whose luminance is < 160, so a grey PNG still works. Reuse the existing
+- [x] **Step 2:** `go test ./internal/escpos -run 'ImageJob|ReadImage'` → FAIL.
+- [x] **Step 3:** Implement. Ink = any pixel whose luminance is < 160, so a grey PNG still works. Reuse the existing
   feed/cut helpers (`feedBeforeCut`) so the frame matches Classic.
-- [ ] **Step 4:** `go test ./internal/escpos ./internal/receiptimg` → PASS.
-- [ ] **Step 5:** Commit `feat(escpos): ImageJob — a picture as GS v 0 bands, framed like a Classic slip`.
+- [x] **Step 4:** `go test ./internal/escpos ./internal/receiptimg` → PASS.
+- [x] **Step 5:** Commit `feat(escpos): ImageJob — a picture as GS v 0 bands, framed like a Classic slip`.
 
 ### Task 3: Every print endpoint takes a picture
 

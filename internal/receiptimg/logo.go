@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/escpos"
+
 	xdraw "golang.org/x/image/draw"
 )
 
@@ -127,7 +129,7 @@ func Logo(img image.Image, canvasDots int) []byte {
 		offX = 0
 	}
 	const threshold = 160 // grays darker than this become black dots
-	return rasterFromInk(canvasDots, newH, func(x, y int) bool {
+	return escpos.Raster(canvasDots, newH, func(x, y int) bool {
 		lx := x - offX
 		if lx < 0 || lx >= newW {
 			return false
