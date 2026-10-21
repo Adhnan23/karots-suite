@@ -11,6 +11,7 @@ import { reloadPaletteCss } from '@/theme/appearance'
 import { EditorControls } from './EditorControls'
 import { endDraft, previewMode, startDraft, updateDraft } from './draft'
 import { buildPalette, builtinDoc, isBuiltin, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
+import { AiBox } from './AiBox'
 import { PreviewStrip } from './PreviewStrip'
 import { Readability } from './Readability'
 import { appearanceQuery, paletteQuery, palettesQuery, savePalette } from './queries'
@@ -126,6 +127,7 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="order-2 flex flex-col gap-3 lg:order-1">
+          <AiBox doc={doc} onApply={change} />
           <Readability css={css} mode={mode} />
           <EditorControls doc={doc} mode={mode} onChange={change} />
         </div>
