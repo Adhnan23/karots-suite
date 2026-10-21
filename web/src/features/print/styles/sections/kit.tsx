@@ -66,7 +66,7 @@ export const sections: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => (kind === 'total' || kind === 'given' ? null : <LR l={pretty(l)} r={r} />),
   Member: ({ children }) => <Para>{`- ${pretty(children)}`}</Para>,
-  Note: ({ children, kind }) => <Para>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children }) => <Para>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={bold ? { fontWeight: 700 } : undefined} />,
   Total: ({ label, amount }) => <LR l={label} r={amount} style={{ fontWeight: 700, fontSize: 28, lineHeight: '36px', margin: '2px 0' }} />,
   Text: ({ children, center, bold }) => (

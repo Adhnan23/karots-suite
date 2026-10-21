@@ -71,7 +71,7 @@ const busyItems = [
     discountLabel: ' (10%)',
     subtotal: '2205',
     warranty: '12-month warranty until 2027-10-21',
-    serials: ['SC-88231'],
+    serials: ['SN: SC-88231'] // as ?data=1 sends it: the printed text, label included,
   }),
   item({
     name: 'Breakfast Deal',

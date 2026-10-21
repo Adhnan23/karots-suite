@@ -74,6 +74,8 @@ describe('every style renders every line', () => {
             const w = want === '80mm' ? `${width}mm` : want
             expect(got, `${s.key} ${name} ${width}: ${w}`).toContain(w.toLowerCase())
           }
+          // The serial comes labelled ("SN: …"); a style must not label it again.
+          expect(got, `${s.key} ${name} ${width}: serial label`).not.toMatch(/(sn|serial)\s*sn:/)
         })
 })
 

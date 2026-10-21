@@ -48,7 +48,7 @@ export const bold: SlipKit = {
     return <LR l={pretty(l)} r={kind === 'given' ? undefined : r} style={small} />
   },
   Member: ({ children }) => <Para style={{ ...small, paddingLeft: 16 }}>{`· ${pretty(children)}`}</Para>,
-  Note: ({ children, level, kind }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 16 }}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 16 }}>{children}</Para>,
   Money: ({ l, r, bold: b }) => <LR l={l} r={r} style={b ? { fontWeight: 700 } : undefined} />,
   Total: ({ label, amount }) =>
     /^(TOTAL|GIVEN)/.test(label) ? (

@@ -61,7 +61,7 @@ export const poster: SlipKit = {
     return <LR l={kind === 'saving' ? `${l.replace('You saved', 'off')} ${r}` : pretty(l)} r={kind === 'saving' ? undefined : r} style={small} />
   },
   Member: ({ children }) => <Para style={small}>{`· ${pretty(children)}`}</Para>,
-  Note: ({ children, level, kind }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 16 }}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 16 }}>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={{ ...small, fontWeight: bold ? 700 : 400 }} />,
   Total: ({ label, amount }) => <LR l={label} r={amount} style={{ fontWeight: 900, fontSize: 26, lineHeight: '34px' }} />,
   Text: ({ children, center, bold }) => (

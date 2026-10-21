@@ -51,7 +51,7 @@ export const minimal: SlipKit = {
     return <LR l={pretty(l)} r={r} style={small} />
   },
   Member: ({ children }) => <Para style={small}>{pretty(children)}</Para>,
-  Note: ({ children, level, kind }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 20 }}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 20 }}>{children}</Para>,
   Money: ({ l, r, bold: b }) => <LR l={<span style={caps}>{l}</span>} r={r} style={{ ...small, fontWeight: b ? 700 : 400 }} />,
   Total: ({ label, amount }) => (
     <LR l={<span style={caps}>{label}</span>} r={<span style={{ fontSize: 44, lineHeight: '54px' }}>{amount}</span>} style={{ margin: '6px 0' }} />

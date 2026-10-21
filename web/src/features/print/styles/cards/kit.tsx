@@ -47,7 +47,7 @@ export const cards: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => (kind === 'total' || kind === 'given' ? null : <LR l={pretty(l)} r={r} />),
   Member: ({ children }) => <Para>{`· ${pretty(children)}`}</Para>,
-  Note: ({ children, kind }) => <Para>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children }) => <Para>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={{ ...small, fontWeight: bold ? 700 : 400 }} />,
   Total: ({ label, amount }) => (
     <LR

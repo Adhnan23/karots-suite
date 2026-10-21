@@ -25,7 +25,7 @@ export const grid: SlipKit = {
         </div>
         {number && (
           <div style={{ ...small, textAlign: 'right', marginLeft: 'auto' }}>
-            <div style={{ letterSpacing: 2 }}>INVOICE</div>
+            <div style={{ letterSpacing: 2 }}>RECEIPT</div>
             <div style={{ fontWeight: 700, fontSize: 22 }}>{number}</div>
           </div>
         )}
@@ -63,7 +63,7 @@ export const grid: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => (kind === 'total' || kind === 'given' ? null : <LR l={pretty(l)} r={r} />),
   Member: ({ children }) => <Para style={small}>{`· ${pretty(children)}`}</Para>,
-  Note: ({ children, kind }) => <Para style={small}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children }) => <Para style={small}>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={{ ...cell, borderBottomWidth: 1, fontWeight: bold ? 700 : 400 }} />,
   Total: ({ label, amount }) => (
     <LR

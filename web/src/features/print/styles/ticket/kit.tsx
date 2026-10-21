@@ -54,7 +54,7 @@ export const ticket: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => (kind === 'total' || kind === 'given' ? null : <LR l={pretty(l)} r={r} style={small} />),
   Member: ({ children }) => <Para style={small}>{`+ ${pretty(children)}`}</Para>,
-  Note: ({ children, level, kind }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 24 }}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 24 }}>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={bold ? { fontWeight: 700 } : undefined} />,
   Total: ({ label, amount }) => <LR l={label} r={amount} style={{ ...frame, margin: '6px 0', fontWeight: 700, fontSize: 26, lineHeight: '32px' }} />,
   Text: ({ children, center, bold }) => (

@@ -107,7 +107,7 @@ export const stamp: SlipKit = {
   Sub: ({ l, r, kind }) =>
     kind === 'total' ? <LR l="" r={<b>{r}</b>} style={{ fontSize: 22 }} /> : <LR l={pretty(l)} r={kind === 'given' ? <b>{r}</b> : r} style={small} />,
   Member: ({ children }) => <Para style={small}>{`+ ${pretty(children)}`}</Para>,
-  Note: ({ children, level, kind }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 24 }}>{kind === 'serial' ? `SN ${children}` : children}</Para>,
+  Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 24 }}>{children}</Para>,
   Money: ({ l, r, bold }) => <LR l={l} r={r} style={{ ...small, fontWeight: bold ? 700 : 400 }} />,
   Total: ({ label, amount }) => <LR l={label} r={amount} style={{ fontWeight: 900, fontSize: 34, lineHeight: '42px', margin: '4px 0' }} />,
   Text: ({ children, center, bold }) => (

@@ -58,10 +58,10 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   for (const m of it.members ?? []) {
     subs.push(`· ${pretty(`${m.name} x${m.quantity}`)}`)
     if (m.warranty) subs.push(`  ${m.warranty}`)
-    for (const sn of m.serials ?? []) subs.push(`  SN ${sn}`)
+    for (const sn of m.serials ?? []) subs.push(`  ${sn}`)
   }
   if (it.warranty) subs.push(it.warranty)
-  for (const sn of it.serials ?? []) subs.push(`SN ${sn}`)
+  for (const sn of it.serials ?? []) subs.push(sn)
   return (
     <tr style={{ borderBottom: `${last ? 4 : 2}px solid #000` }}>
       <td style={td}>{qty}</td>
