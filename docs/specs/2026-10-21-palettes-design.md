@@ -52,7 +52,7 @@ All tokens live in the palette's two blocks (light, dark). The colour tokens sta
 | Group | Tokens | Notes |
 |---|---|---|
 | Shape | `--radius`, `--radius-sm`, `--radius-pill` (chips, pill buttons, the dock), `--border-w` | `--radius-pill` can be `9999px` (round) or a small value (square-ish pills). True circles (avatars, dots, spinners) stay `rounded-full`. |
-| Material | `--card`, `--bar`, `--glass` (already) + `--sheen` (an optional top highlight layer), `--edge` (the inner border / rim light) | **solid**: opaque `--card`, `--glass: none`, no sheen. **frosted**: translucent card + blur (Night today). **liquid glass**: more transparent, stronger blur + saturate, a curved `--sheen` gradient and a bright `--edge`. |
+| Material | `--card`, `--bar`, `--glass` (already) + `--card-glass` (the blur behind cards; `none` for solid / frosted) | **solid**: opaque `--card`, `--glass: none`. **frosted**: translucent card + blur on bars (Night today). **liquid glass**: more transparent cards, blur behind cards too (`--card-glass`), and a bright rim and top highlight drawn as inset layers of `--shadow` (no extra sheen token). |
 | Depth | `--shadow`, `--shadow-float`, `--glow` (already) | |
 | Background | `--background`, `--bg-art`, `--hero`, `--hero-art` (already) | |
 | Motion | `--dur-fast`, `--dur`, `--dur-slow`, `--ease`, `--ease-out`, `--spring` (a stiffness/damping pair Motion reads), `--lift` (hover rise in px, 0 = none) | **Calm**: short, soft ease, no overshoot, no lift. **Lively**: a springy ease with slight overshoot, hover lift. Keep everything ≤ 350 ms; `prefers-reduced-motion` still turns it all off. |
@@ -134,11 +134,11 @@ Appearance gets a **Palettes** section above Receipt styles:
 
 ## 5. What goes away and how old data maps
 
-- The **Brand colour** and **Radius** controls go from Appearance, `settings.skin_custom` / `skin_radius` stop being
-  read, and `Appearance.brandColor` / `radius` leave the DTO.
-- A shop (or a restored backup) with a brand colour set or a radius other than `rounded` gets a custom palette made
-  for it once (at migration and on restore): "<Palette> (shop)", the base palette with that brand / radius, and set
-  as active, so nothing looks different after the update.
+- The **Brand colour** and **Radius** controls go from Appearance.
+- A shop (or a restored backup) that has a brand colour or a non-default radius keeps them while its palette is a
+  built-in, applied as inline overrides like the brand is today, so nothing looks different after the update
+  (my call at planning: converting them to a custom palette would need the built-in CSS in Go). Choosing a palette
+  on Appearance clears them; duplicating the current built-in starts from what's on screen, overrides included.
 
 ## Left to the builder
 
@@ -153,5 +153,4 @@ read/write helper (keep it a small pure module with Vitest tests), and the route
   both motions.
 - "Animation" = motion **feel and speed** (calm vs lively, a speed slider), not new animations per palette.
 - Fonts stay out of the editor for now.
-- Brand colour and radius become palette values; existing shops with them set are converted to a custom palette so
-  they don't change.
+- Brand colour and radius become palette values; shops that have them set keep them until a palette is chosen.
