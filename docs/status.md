@@ -24,7 +24,9 @@ Counter operations too, **Order these** opens Suppliers → Order with the lines
 caught a bug: last year's school rush was capped as one-off bills — now judged per window). Follow-ups done: Products →
 Reorder at marks "auto"; products whose level was never set (0) became Auto (migration 00009, old backups too); DB
 connections run with JIT off (it cost ~250 ms per search on a new shop's database).
-**Next: M8d Demo Room** (rethink proposal first).
+**Next: Print as image** (user, 2026-10-21 — before Demo Room): `docs/ideas/print-as-image.md` — print a picture of
+the on-screen preview (what you see is what prints), behind a Settings switch with today's printing kept as Classic
+until proven; then rethink receipt customisation on top. Proposal + mockup first. **Then M8d Demo Room.**
 
 ## Earlier handoff (2026-10-20)
 
