@@ -24,7 +24,7 @@ func slipData(c echo.Context, cfg *settings.Settings, opts escpos.Options, fill 
 		return false, nil
 	}
 	d := SlipData{Width: "80", Dots: receiptimg.PrinterDots(cfg.ReceiptWidth), Columns: escpos.Columns(cfg.ReceiptWidth),
-		Currency: cfg.CurrencySymbol, Shop: slipShop(cfg, opts)}
+		Currency: cfg.CurrencySymbol, Shop: SlipShop(receiptimg.ShopFor(cfg, opts))}
 	if cfg.ReceiptWidth == "58" {
 		d.Width = "58"
 	}
@@ -33,24 +33,6 @@ func slipData(c echo.Context, cfg *settings.Settings, opts escpos.Options, fill 
 	}
 	fill(&d)
 	return true, c.JSON(http.StatusOK, d)
-}
-
-func slipShop(cfg *settings.Settings, opts escpos.Options) SlipShop {
-	s := SlipShop{Name: cfg.ShopName, NameLocal: strOr(cfg.ShopNameSi), Address: strOr(cfg.Address), Phone: strOr(cfg.Phone),
-		Footer: strOr(cfg.ReceiptFooter)}
-	if cfg.TaxRegistered {
-		s.VatNo = strOr(cfg.TaxRegNo)
-	}
-	// The logo exactly as Classic prints it: its raster, decoded to a PNG.
-	if len(opts.Logo) > 0 {
-		for _, l := range escpos.Preview(opts.Logo) {
-			if l.Image != "" {
-				s.Logo = l.Image
-				break
-			}
-		}
-	}
-	return s
 }
 
 func amt(d decimal.Decimal) string { return d.StringFixed(2) }

@@ -92,6 +92,76 @@ func repairSlip(cfg settings.Settings, d *Detail, saleNo string, opts escpos.Opt
 	return b.Bytes()
 }
 
+// slipData is ?data=1: the job slip's print data for its React template
+// (web/src/plugins/repairs/JobSlip.tsx), each value the one repairSlip prints.
+type slipData struct {
+	Kind     string          `json:"kind"` // "repairs.job"
+	Width    string          `json:"width"`
+	Dots     int             `json:"dots"`
+	Columns  int             `json:"columns"`
+	Currency string          `json:"currency"`
+	Shop     receiptimg.Shop `json:"shop"`
+	Job      slipJob         `json:"job"`
+}
+
+type slipJob struct {
+	TicketNo      string     `json:"ticketNo"`
+	Received      string     `json:"received"`
+	Customer      string     `json:"customer"`
+	Device        string     `json:"device"` // "type - model", "" = none
+	Fault         string     `json:"fault"`
+	Open          bool       `json:"open"`
+	ReadyBy       string     `json:"readyBy"`       // open jobs only
+	WarrantyUntil string     `json:"warrantyUntil"` // collected, job warranty mode only
+	Parts         []slipPart `json:"parts"`
+	Charges       []string   `json:"charges"`
+	Estimate      string     `json:"estimate"` // open jobs
+	Deposit       string     `json:"deposit"`  // open jobs
+	PaidOn        string     `json:"paidOn"`   // the sale's receipt no once collected
+}
+
+type slipPart struct {
+	Name string `json:"name"` // with "(30d warranty)" in parts warranty mode
+	Qty  string `json:"qty"`
+}
+
+func jobSlipData(cfg settings.Settings, d *Detail, saleNo string, opts escpos.Options, mode string) slipData {
+	out := slipData{Kind: "repairs.job", Width: "80", Dots: receiptimg.PrinterDots(cfg.ReceiptWidth), Columns: escpos.Columns(cfg.ReceiptWidth),
+		Currency: cfg.CurrencySymbol, Shop: receiptimg.ShopFor(&cfg, opts)}
+	if cfg.ReceiptWidth == "58" {
+		out.Width = "58"
+	}
+	if out.Currency == "" {
+		out.Currency = "Rs."
+	}
+	j := &out.Job
+	j.TicketNo, j.Received, j.Customer, j.Fault = d.Job.TicketNo, datetime.DateTime(d.Job.CreatedAt), d.Job.CustomerName, d.Job.Fault
+	j.Device = strings.Trim(strings.TrimSpace(d.Job.RepairType+" - "+d.Job.DeviceModel), " -")
+	j.Open = d.Job.Status != "collected" && d.Job.Status != "cancelled"
+	if j.Open && d.Job.PromisedDate != nil {
+		j.ReadyBy = datetime.Date(*d.Job.PromisedDate)
+	}
+	if !j.Open && mode != "parts" && d.Job.WarrantyUntil != nil {
+		j.WarrantyUntil = datetime.Date(*d.Job.WarrantyUntil)
+	}
+	for _, p := range d.Parts {
+		name := p.ProductName
+		if mode == "parts" && p.WarrantyDays > 0 {
+			name += " (" + strconv.Itoa(p.WarrantyDays) + "d warranty)"
+		}
+		j.Parts = append(j.Parts, slipPart{Name: name, Qty: p.Qty.String()})
+	}
+	for _, ch := range d.Charges {
+		j.Charges = append(j.Charges, ch.Label)
+	}
+	if j.Open {
+		j.Estimate, j.Deposit = estimate(d).StringFixed(2), deposits(d).Add(legacyHeld(d)).StringFixed(2)
+	} else {
+		j.PaidOn = saleNo
+	}
+	return out
+}
+
 type slipLine struct {
 	Text      string `json:"text"`
 	Align     string `json:"align"`
@@ -104,7 +174,8 @@ type slipLine struct {
 }
 
 // print sends the slip to this cashier's receipt printer (?size=58|80 for one
-// job, ?preview=1 answers the core slip preview shape instead).
+// job, ?preview=1 answers the core slip preview shape instead, ?data=1 the
+// template's data).
 func (h handlers) print(c echo.Context) error {
 	id, err := idParam(c, "id")
 	if err != nil {
@@ -133,7 +204,11 @@ func (h handlers) print(c echo.Context) error {
 			saleNo = s.Sale.ReceiptNo
 		}
 	}
-	slip := repairSlip(cfg, d, saleNo, receiptimg.SlipOptions(ctx, &cfg, nil), rc.WarrantyMode)
+	opts := receiptimg.SlipOptions(ctx, &cfg, nil)
+	if c.QueryParam("data") == "1" {
+		return c.JSON(http.StatusOK, jobSlipData(cfg, d, saleNo, opts, rc.WarrantyMode))
+	}
+	slip := repairSlip(cfg, d, saleNo, opts, rc.WarrantyMode)
 	if c.QueryParam("preview") == "1" {
 		out := struct {
 			Width   string     `json:"width"`

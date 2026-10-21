@@ -285,10 +285,11 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `{ kind: 'repairs.job', dots, … }`), `web/src/plugins/repairs/index.tsx` + `web/src/plugins/repairs/JobSlip.tsx`
 - Update the slots list in `AGENTS.md`.
 
-- [ ] **Step 1:** Repairs `?data=1` + `JobSlip`, copied from `repairSlip` (both warranty modes).
-- [ ] **Step 2:** `make check-core` passes (core never names repairs); `plugin-repairs.spec.ts` green with
+- [x] **Step 1:** Repairs `?data=1` + `JobSlip`, copied from `repairSlip` (both warranty modes).
+- [x] **Step 2:** `make check-core` passes (core never names repairs); `plugin-repairs.spec.ts` green with
   `make plugins P=all`; emulator shot review of the job slip; `make core-only` before committing.
-- [ ] **Step 3:** Commit `feat(repairs): the job slip as a template (slipTemplates slot)`.
+- *Done 2026-10-21: the shop header moved to `receiptimg.ShopFor` (core and repairs share it). Repairs `?data=1` precomputes the warranty-mode choices in Go (`jobSlipData`), so `JobSlip` only lays out. Browser shot review: open job and collected job at 80 mm, open at 58 mm — line for line. `plugin-repairs` + `print-image` 13/13 with every plugin; `check-core` OK after `make core-only`.*
+- [x] **Step 3:** Commit `feat(repairs): the job slip as a template (slipTemplates slot)`.
 
 ### Task 11: One true view everywhere — delete `Paper.tsx`
 

@@ -101,6 +101,11 @@ export type TillTab = { key: string; label: string; Page: ComponentType }
  * Page owns its list and preview; the hub keeps the kind switch above it. */
 export type TillReceiptKind = { key: string; label: string; Page: ComponentType }
 
+/** A plugin slip's React template for Image mode, keyed by the `kind` its print path's
+ * ?data=1 answers (e.g. "repairs.job"); `d` is that JSON. A kind with no template
+ * prints its decoded Classic lines. */
+export type SlipTemplate = { kind: string; Template: ComponentType<{ d: unknown }> }
+
 /** A plugin's input on a line being returned at the counter (e.g. how much float came
  * back). Render nothing for lines the plugin doesn't own; value goes to the return
  * request's line.plugin[key], read by the plugin's Go ReturnLineHook. */
@@ -163,6 +168,7 @@ export const slots = {
   tillTenders: [] as TillTender[],
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
+  slipTemplates: [] as SlipTemplate[],
   returnLineFields: [] as ReturnLineField[],
   supplierJobs: [] as SupplierJob[],
   reportCards: [] as ReportCard[],

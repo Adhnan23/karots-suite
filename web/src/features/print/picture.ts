@@ -7,6 +7,7 @@ import type { SlipData, SlipPreview } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
 import { DecodedSlip } from './DecodedSlip'
 import { rasterize } from './raster'
+import { slots } from '@/plugins/slots'
 import { templates } from './templates'
 
 export type SlipPicture = { blob: Blob; url: string; dots: number }
@@ -39,6 +40,8 @@ async function page(path: string, size?: string): Promise<{ el: ReactElement; do
   if ('kind' in res) {
     const T = templates[res.kind]
     if (T) return { el: createElement(T, { d: res }), dots: res.dots }
+    const P = slots.slipTemplates.find((t) => t.kind === res.kind)?.Template
+    if (P) return { el: createElement(P, { d: res }), dots: res.dots }
   }
   const preview = 'lines' in res ? res : await api<SlipPreview>(withQuery(path, { preview: '1', size }), { method: 'POST' })
   return { el: createElement(DecodedSlip, { preview }), dots: preview.dots }
