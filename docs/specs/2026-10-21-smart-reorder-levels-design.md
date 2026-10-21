@@ -114,7 +114,7 @@ manager see Reorder.
   Suppliers tab opens on that supplier's **Order** job with the group's lines and suggested qtys filled in (editable;
   saved through the existing `CounterOrderCreate`). Lines with no usual supplier get a supplier picker first.
   Receiving stays the Suppliers tab's Receive job, as today.
-- API: a cashier route `GET /api/v1/counter/low-stock` guarded by the permission, sharing the row builder with
+- API: a cashier route `GET /api/v1/till/low-stock` guarded by the permission, sharing the row builder with
   `AdminReorder` (moved out of `admin_reorder.go`, no copy); cost blanked server-side without See cost.
 - Playwright: cashier without the tick has no tab and gets 403; with it sees the list; with Handle suppliers too,
   Order these → Suppliers Order prefilled → order saved.
