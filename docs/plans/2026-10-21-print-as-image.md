@@ -200,14 +200,20 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 **Files:**
 - Modify: `docs/status.md` (handoff), `docs/acceptance.md` (an "Image mode" check)
 
-- [ ] **Step 1:** `docker start pos_printer`; receipt printer `tcp://localhost:9100`; Image mode. Print each
+- [x] **Step 1:** `docker start pos_printer`; receipt printer `tcp://localhost:9100`; Image mode. Print each
   kind (sale cash + credit with customer due, refund, CR- money: open / withdraw / expense, debt, warranty, test
   print, repairs job slip) at 80 and 58 mm. Screenshot the preview next to the emulator's page (:8631). Then do the
   same in Classic.
-- [ ] **Step 2:** Self-review the pairs. They must match line for line, with no blur, nothing clipped at the right
+- [x] **Step 2:** Self-review the pairs. They must match line for line, with no blur, nothing clipped at the right
   edge, and the logo and Sinhala name sharp. Fix anything before going on.
-- [ ] **Step 3:** Show the user the pairs (this is the UI gate); record the result in `docs/status.md`.
-- [ ] **Step 4:** Commit `docs: print as image — phase 1 checked on the emulator`.
+- [x] **Step 3:** Show the user the pairs (this is the UI gate); record the result in `docs/status.md`.
+- *Done 2026-10-21: sale (cash; part credit with DUE), CR- money, credit payment at 80 + 58 mm and the test slip
+  at 80 mm, Image vs Classic — line for line (user: "looks right"). Refund, warranty and repairs weren't in the demo
+  data: checked in Tasks 9–10. Found + fixed: the last line was cut (exact row heights, full content height); the
+  Settings test slip skipped printSlip. **The emulator's input scanner doesn't know `GS v 0`**: it reads picture
+  bytes as commands and drops or garbles some image jobs (all three 58 mm ones here) — the picture the SPA sends
+  is the reference; the Go round-trip test proves the bytes.*
+- [x] **Step 4:** Commit `docs: print as image — phase 1 checked on the emulator`.
 
 ## Phase 2 — React templates become the layout
 

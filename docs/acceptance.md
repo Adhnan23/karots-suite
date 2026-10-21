@@ -86,6 +86,9 @@ exactly the same records:
 - Where: karots-pos (core only, `dist/karots-pos-core`) on **:3000** with `pos_db`; the suite on
   **:3100** with `suite_accept`, automatic backups in `~/karots-accept/suite-backups`. Logs in
   `~/karots-accept/*.log`.
+- **Image mode** (Settings → Printers & labels → Print receipts as Image): the emulator's input scanner doesn't
+  know `GS v 0`, so it drops or garbles some picture jobs (often 58 mm). Judge an image print by the picture the
+  till sends (the Print / Skip preview); only a real printer is the final check.
 - **Receipt printer = the emulator** for both (`tcp://localhost:9100`): `docker start pos_printer`,
   then every printed slip shows at <http://localhost:8631/recus>. The drawer kick is off (no
   drawer to see); the 12 printer-only rows can be checked here except the drawer.

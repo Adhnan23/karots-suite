@@ -5,6 +5,17 @@ every milestone.
 
 ## Next session (handoff 2026-10-21) — START HERE
 
+**Print as image — Phase 1 BUILT + checked (2026-10-21).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
+plan `docs/plans/2026-10-21-print-as-image.md` (Tasks 1–6 done). Settings → Printers & labels → **Print receipts as:
+Image (new) / Classic** (default Classic, migration 00010). In Image mode every slip (`printSlip`) is drawn in the
+browser at printer dots (`web/src/features/print/`: `DecodedSlip` draws the Classic slip's decoded lines, bundled
+JetBrains Mono / Noto Sinhala / Tamil, 1-bit threshold), uploaded as a PNG to the slip's own print endpoint
+(`slipImage` → `escpos.ImageJob`, `GS v 0` bands of 256 rows); the Print / Skip preview is that same picture. Kick
+exactly like karots-pos (one job, kick first). A failed picture prints Classic once. User checked the side-by-side
+shots: "looks right". The emulator can't show every image job (it doesn't know `GS v 0`) — see `docs/acceptance.md`.
+**Next: Phase 2 (Task 7)** — `?data=1` + React templates per slip kind (refund / warranty / repairs get their shot
+check there), then delete `Paper.tsx`. Real-printer test when the user has printers.
+
 **Smart reorder levels + Low stock at the till — BUILT (2026-10-21).** Spec
 `docs/specs/2026-10-21-smart-reorder-levels-design.md` (mockup linked there), plan
 `docs/plans/2026-10-21-smart-reorder-levels.md`. Each product is **Auto** (new products; learned nightly at 03:00, or at
