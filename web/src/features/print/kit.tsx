@@ -9,11 +9,14 @@ const A = { size: 20, line: 24, col: 12 }
 const B = { size: 15, line: 17 }
 
 const Cols = createContext(48)
+// One Font A column of white at each side (user: Classic's edge-to-edge text
+// "feels like letters on the edge"), so a line holds 2 columns fewer than Classic.
+const MARGIN = 1
 
 export function ReceiptPage({ dots, columns, children }: { dots: number; columns: number; children: ReactNode }) {
   return (
-    <Cols.Provider value={columns}>
-      <div style={{ width: dots, background: '#fff', color: '#000', fontFamily: PAPER_FAMILY, fontVariantLigatures: 'none', fontSize: A.size, lineHeight: `${A.line}px` }}>
+    <Cols.Provider value={columns - 2 * MARGIN}>
+      <div style={{ width: dots, boxSizing: 'border-box', padding: `0 ${MARGIN * A.col}px`, background: '#fff', color: '#000', fontFamily: PAPER_FAMILY, fontVariantLigatures: 'none', fontSize: A.size, lineHeight: `${A.line}px` }}>
         {children}
       </div>
     </Cols.Provider>
@@ -120,7 +123,7 @@ export function Header({ shop, dots }: { shop: SlipShop; dots: number }) {
     <>
       {shop.logo && (
         <>
-          <img src={shop.logo} alt="" style={{ display: 'block', width: dots, imageRendering: 'pixelated' }} />
+          <img src={shop.logo} alt="" style={{ display: 'block', width: dots, margin: `0 -${MARGIN * A.col}px`, imageRendering: 'pixelated' }} />
           <Blank />
         </>
       )}
