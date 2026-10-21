@@ -44,6 +44,7 @@ import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/con
 import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
 import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
+import { Route as AuthedTillLowStockRouteImport } from './routes/_authed/till/low-stock'
 import { Route as AuthedTillReceiptsRouteImport } from './routes/_authed/till/receipts'
 import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/returns'
 import { Route as AuthedTillSuppliersRouteImport } from './routes/_authed/till/suppliers'
@@ -275,6 +276,11 @@ const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
 const AuthedTillLabelsRoute = AuthedTillLabelsRouteImport.update({
   id: '/labels',
   path: '/labels',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
+const AuthedTillLowStockRoute = AuthedTillLowStockRouteImport.update({
+  id: '/low-stock',
+  path: '/low-stock',
   getParentRoute: () => AuthedTillRoute,
 } as any)
 const AuthedTillReceiptsRoute = AuthedTillReceiptsRouteImport.update({
@@ -628,6 +634,7 @@ export interface FileRoutesByFullPath {
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
+  '/till/low-stock': typeof AuthedTillLowStockRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
   '/till/suppliers': typeof AuthedTillSuppliersRoute
@@ -719,6 +726,7 @@ export interface FileRoutesByTo {
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
   '/till/labels': typeof AuthedTillLabelsRoute
+  '/till/low-stock': typeof AuthedTillLowStockRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
   '/till/returns': typeof AuthedTillReturnsRoute
   '/till/suppliers': typeof AuthedTillSuppliersRoute
@@ -814,6 +822,7 @@ export interface FileRoutesById {
   '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
   '/_authed/till/labels': typeof AuthedTillLabelsRoute
+  '/_authed/till/low-stock': typeof AuthedTillLowStockRoute
   '/_authed/till/receipts': typeof AuthedTillReceiptsRoute
   '/_authed/till/returns': typeof AuthedTillReturnsRoute
   '/_authed/till/suppliers': typeof AuthedTillSuppliersRoute
@@ -909,6 +918,7 @@ export interface FileRouteTypes {
     | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
+    | '/till/low-stock'
     | '/till/receipts'
     | '/till/returns'
     | '/till/suppliers'
@@ -1000,6 +1010,7 @@ export interface FileRouteTypes {
     | '/till/credit'
     | '/till/expenses'
     | '/till/labels'
+    | '/till/low-stock'
     | '/till/receipts'
     | '/till/returns'
     | '/till/suppliers'
@@ -1094,6 +1105,7 @@ export interface FileRouteTypes {
     | '/_authed/till/credit'
     | '/_authed/till/expenses'
     | '/_authed/till/labels'
+    | '/_authed/till/low-stock'
     | '/_authed/till/receipts'
     | '/_authed/till/returns'
     | '/_authed/till/suppliers'
@@ -1408,6 +1420,13 @@ declare module '@tanstack/react-router' {
       path: '/labels'
       fullPath: '/till/labels'
       preLoaderRoute: typeof AuthedTillLabelsRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
+    '/_authed/till/low-stock': {
+      id: '/_authed/till/low-stock'
+      path: '/low-stock'
+      fullPath: '/till/low-stock'
+      preLoaderRoute: typeof AuthedTillLowStockRouteImport
       parentRoute: typeof AuthedTillRoute
     }
     '/_authed/till/receipts': {
@@ -1965,6 +1984,7 @@ interface AuthedTillRouteChildren {
   AuthedTillCreditRoute: typeof AuthedTillCreditRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
   AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
+  AuthedTillLowStockRoute: typeof AuthedTillLowStockRoute
   AuthedTillReceiptsRoute: typeof AuthedTillReceiptsRoute
   AuthedTillReturnsRoute: typeof AuthedTillReturnsRoute
   AuthedTillSuppliersRoute: typeof AuthedTillSuppliersRoute
@@ -1979,6 +1999,7 @@ const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillCreditRoute: AuthedTillCreditRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
   AuthedTillLabelsRoute: AuthedTillLabelsRoute,
+  AuthedTillLowStockRoute: AuthedTillLowStockRoute,
   AuthedTillReceiptsRoute: AuthedTillReceiptsRoute,
   AuthedTillReturnsRoute: AuthedTillReturnsRoute,
   AuthedTillSuppliersRoute: AuthedTillSuppliersRoute,

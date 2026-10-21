@@ -16,6 +16,7 @@ export const MORE: Tab[] = [
   { to: '/till/convert', label: 'Convert' },
   { to: '/till/labels', label: 'Labels' },
   { to: '/till/warranty', label: 'Warranty' },
+  { to: '/till/low-stock', label: 'Low stock', show: (c) => c.canSeeLowStock },
   { to: '/till/suppliers', label: 'Suppliers', show: (c) => c.canHandleSuppliers },
   { to: '/till/expenses', label: 'Expenses', show: (c) => c.canHandleSuppliers },
 ]

@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
 import { ExternalLink, Plus, Search } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { toast } from 'sonner'
@@ -21,9 +22,10 @@ type Job = 'pay' | 'receive' | 'order' | `x:${string}` // x: = a plugin's job (s
 
 /** Suppliers at the counter: pay what the shop owes, take in a delivery, place an order. */
 export function SuppliersTab() {
-  const [id, setId] = useState<number | null>(null)
+  const open = getRouteApi('/_authed/till/suppliers').useSearch() // from Low stock: a supplier's Order, lines filled in
+  const [id, setId] = useState<number | null>(open.supplier ?? null)
   return (
-    <CounterPage flush aside={id ? <Workspace key={id} id={id} /> : (
+    <CounterPage flush aside={id ? <Workspace key={id} id={id} startJob={id === open.supplier ? open.job : undefined} /> : (
       <p className="m-auto max-w-[280px] p-8 text-center text-faint">Pick a supplier — or add one if they're new.</p>
     )}>
       <SupplierList picked={id} onPick={setId} />
@@ -98,10 +100,10 @@ function SupplierList({ picked, onPick }: { picked: number | null; onPick: (id: 
   )
 }
 
-function Workspace({ id }: { id: number }) {
+function Workspace({ id, startJob }: { id: number; startJob?: Job }) {
   const cfg = useSuspenseQuery(configQuery).data
   const s = useQuery(supplierQuery(id)).data
-  const [job, setJob] = useState<Job>('pay')
+  const [job, setJob] = useState<Job>(startJob ?? 'pay')
   const [orderId, setOrderId] = useState<number | null>(null)
   if (!s) return null
   const owed = num(s.owed)

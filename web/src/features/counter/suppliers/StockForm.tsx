@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { ExternalLink } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { OrderRequest, ReceiveRequest, ReceiveResult, StockLine, SupplierOrder, SupplierView } from '@/api/types.gen'
@@ -14,13 +14,16 @@ import { orderQuery } from '../queries'
 import { afterSlip, moneySlip } from '../slip'
 import { LineEditor } from '@/features/purchasing/LineEditor'
 import { billTotals } from '@/features/purchasing/totals'
+import { clearPrefill, peekPrefill } from '../lowstock/prefill'
 
 /** Take in a delivery (walk-in or against an order) or place an order. */
 export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'order'; supplier: SupplierView; orderId: number | null }) {
   const cfg = useSuspenseQuery(configQuery).data
   const qc = useQueryClient()
   const order = useQuery({ ...orderQuery(orderId ?? 0), enabled: orderId !== null }).data
-  const [lines, setLines] = useState<StockLine[] | null>(null)
+  // An order opened from Low stock arrives with its lines (prefill.ts).
+  const [lines, setLines] = useState<StockLine[] | null>(() => (mode === 'order' ? peekPrefill(supplier.id) ?? null : null))
+  useEffect(() => { if (mode === 'order') clearPrefill() }, [mode])
   const shown = lines ?? (orderId && order ? order.lines : [])
   const [invoice, setInvoice] = useState('')
   const [notes, setNotes] = useState('')
