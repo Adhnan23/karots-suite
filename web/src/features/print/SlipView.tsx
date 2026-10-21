@@ -16,13 +16,14 @@ export function SlipView({ path, size, className }: { path: string; size?: strin
 function SlipPicture({ path, size, className }: { path: string; size?: string; className?: string }) {
   const q = useQuery(slipPictureQuery(path, size))
   if (!q.data) {
-    return <p className={cn('mx-auto w-[288px] bg-paper py-10 text-center text-[13px] text-ink opacity-60', className)}>{q.isError ? 'No preview' : 'Loading the receipt…'}</p>
+    return <p className={cn('mx-auto w-[403px] max-w-full bg-paper py-10 text-center text-[13px] text-ink opacity-60', className)}>{q.isError ? 'No preview' : 'Loading the receipt…'}</p>
   }
-  // Half size on screen (a 576-dot roll ≈ 288 px), smoothly scaled; the printer gets every dot.
+  // 0.7× on screen (a 576-dot roll ≈ 403 px), smoothly scaled: at half size the 1-dot strokes
+  // of a 1-bit picture go soft on a normal screen. The printer gets every dot.
   // The paper frame around it is screen-only breathing room — the print is the picture alone.
   return (
-    <div className={cn('mx-auto w-fit bg-paper px-3 py-4 shadow-[var(--shadow)]', className)}>
-      <img src={q.data.url} alt="Receipt preview" className="block" style={{ width: q.data.dots / 2 }} />
+    <div className={cn('mx-auto w-fit max-w-full bg-paper px-3 py-4 shadow-[var(--shadow)]', className)}>
+      <img src={q.data.url} alt="Receipt preview" className="block h-auto max-w-full" style={{ width: q.data.dots * 0.7 }} />
     </div>
   )
 }
