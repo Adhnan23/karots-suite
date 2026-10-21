@@ -17,6 +17,7 @@ import (
 
 	"karots-suite/internal/app"
 	"karots-suite/internal/backup"
+	"karots-suite/internal/features/reorder"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	"karots-suite/internal/filedb"
@@ -232,6 +233,9 @@ func run() int {
 	} else {
 		log.Printf("auto-backup: disabled (set BACKUP_DIR to enable)")
 	}
+
+	// Auto reorder levels: learned nightly from sales and deliveries.
+	go reorder.Loop(bgCtx, sqlxDB)
 
 	restart := make(chan struct{}, 1)
 	startUpdater(bgCtx, sqlxDB, cfg, restart)
