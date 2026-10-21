@@ -27,7 +27,7 @@ const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'can
   { k: 'canHandleSuppliers', label: 'Counter operations', hint: 'Pay suppliers, take in deliveries, place orders and record expenses at the till. They will see cost prices.' },
   { k: 'canManageCredit', label: 'Manage credit at the till', hint: "Approve a credit sale over a customer's limit and raise a limit." },
   { k: 'canSeeCost', label: 'See product cost at the till', hint: "The ⓘ on a till card shows cost and margin — handy for deciding a discount." },
-  { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. Add Counter operations to let them place the orders too.' },
+  { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. To place the orders as well they need the first permission above too.' },
 ]
 
 /** Users (karots-pos /admin/users, admin only): who can sign in, what they are

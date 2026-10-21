@@ -1,4 +1,4 @@
-# Smart reorder levels (planned 2026-10-20 — build next session, before Arch / Demo Room)
+# Smart reorder levels — BUILT 2026-10-21 (spec docs/specs/2026-10-21-smart-reorder-levels-design.md)
 
 Planning only so far (user + Claude, chat). Core feature, not a plugin: low stock, Reorder and `reorder_level` are
 core, and a plugin would have to change what core calls "low stock".

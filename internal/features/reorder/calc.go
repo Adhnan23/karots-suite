@@ -96,16 +96,23 @@ func Compute(in Input, now time.Time) Calc {
 		use[day(now, s.At)] += s.Qty
 	}
 
-	// Stock at the start of each day, rebuilt backwards from today's.
+	// Stock at the start of each day d days ago, rebuilt backwards from today's
+	// (one pass: start of day d = on hand − every move from that day on).
+	ly := day(now, now.AddDate(-1, 0, 0))
 	byDay := map[int]float64{}
 	for _, m := range in.Moves {
 		byDay[day(now, m.At)] += m.Qty
 	}
+	start := make([]float64, max(fallbackDays, ly+1)+1)
+	for d, s := 0, in.OnHand; d < len(start); d++ {
+		s -= byDay[d]
+		start[d] = s
+	}
 	inStock := func(d int) bool {
-		if d >= c.HistoryDays && d > 0 {
-			return false // before it existed
+		if d < 0 || d >= len(start) || (d >= c.HistoryDays && d > 0) {
+			return false // before it existed (or outside what was loaded)
 		}
-		return use[d] > 0 || startStock(in.OnHand, byDay, d) > 0
+		return use[d] > 0 || start[d] > 0
 	}
 	speed := func(from, to int) (float64, int) { // days [from, to) ago
 		var u float64
@@ -127,7 +134,6 @@ func Compute(in Input, now time.Time) Calc {
 	if c.RecentDaily, n = speed(0, recentDays); n < minInStockDays {
 		c.RecentDaily, _ = speed(0, fallbackDays)
 	}
-	ly := day(now, now.AddDate(-1, 0, 0))
 	span := c.RhythmDays + c.SafetyDays
 	c.LastYearDaily, _ = speed(ly-span+1, ly+1)
 	c.Daily = math.Max(c.RecentDaily, c.LastYearDaily)
@@ -141,17 +147,6 @@ func Compute(in Input, now time.Time) Calc {
 		c.CalcLevel = int(math.Ceil(round2(c.Daily * float64(span))))
 	}
 	return c
-}
-
-// startStock is the quantity on hand at the start of the day d days ago.
-func startStock(onHand float64, byDay map[int]float64, d int) float64 {
-	s := onHand
-	for k, q := range byDay {
-		if k <= d {
-			s -= q
-		}
-	}
-	return s
 }
 
 // billSizes is the usual (75th percentile) and median bill size, or 0, 0 with

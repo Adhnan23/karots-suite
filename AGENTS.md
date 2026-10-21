@@ -59,6 +59,8 @@ internal/api/         JSON /api/v1 — dto.go (all request/response types) + one
                       sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
 internal/features/*   forked domain services
+internal/features/reorder/ smart reorder levels: calc.go (pure arithmetic) + run.go (nightly 03:00 / boot when stale);
+                      Auto products get reorder_level written, every product reorder_calc (the reason lines)
 internal/update/      self-update (M8c): signed manifest in the shop's bucket folder (channel), check / download /
                       swap / BootGuard rollback; restart = exit 75, the supervisor (systemd / karots-start) starts it
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
@@ -76,7 +78,7 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
                       state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
-  src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels,
+  src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels, low stock,
                       warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
   src/features/admin/ admin screens by area (products, categories, units, groups, services, stock,
                       intake, conversions, labels); shared pickers: CategoryPicker, ProductPicker

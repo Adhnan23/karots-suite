@@ -3,7 +3,27 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Next session (handoff 2026-10-20) — START HERE
+## Next session (handoff 2026-10-21) — START HERE
+
+**Smart reorder levels + Low stock at the till — BUILT (2026-10-21).** Spec
+`docs/specs/2026-10-21-smart-reorder-levels-design.md` (mockup linked there), plan
+`docs/plans/2026-10-21-smart-reorder-levels.md`. Each product is **Auto** (new products; learned nightly at 03:00, or at
+boot when the last run is 20 h+ old) or **Fixed** (every product that existed before, and old backups). Auto level =
+use per in-stock day (30 d, 90 d fallback; the higher of that and the same coming weeks last year) × (supplier rhythm
+from the product's own deliveries → its supplier's → Settings default 7 d, + 3 safety days); one-off big bills (> 3× the
+usual) count as a usual one; it slides from the typed guess to the learned number over 8 weeks. **Loose versions /
+anything made by Convert** are never on Reorder or Low stock — their sales ÷ the ratio count for the original (user,
+2026-10-21). `reorder_level` stays the level every reader uses (low stock, dashboard, till flag, print) — the run
+writes it for Auto products. Reorder shows why ("sells 10 a day · supplier every 7 days"), Not selling, and **Levels
+look off** (Fixed ones far from sales: Use / Use all / Switch to Auto); the product form has Auto | Fixed;
+Settings → Auto reorder levels has the two day numbers + switch a category to Auto.
+**Low stock at the till** (user, 2026-10-21: small shops where the admin is away and one cashier deals with the reps):
+a per-user tick "See low stock at the till" → a Low stock tab grouped by supplier, cost only with See cost, Print; with
+Counter operations too, **Order these** opens Suppliers → Order with the lines filled in.
+**Next:** user tries it (an Auto product needs a few weeks of sales to learn; Settings → Switch to Auto for older
+ones). Then **M8d Demo Room** (rethink proposal first).
+
+## Earlier handoff (2026-10-20)
 
 **Live users — BUILT (2026-10-20, user asked for it before games-as-plugins).** Spec
 `docs/specs/2026-10-20-live-users-design.md`, plan `docs/plans/2026-10-20-live-users.md`. Dashboard → **Who's on now**

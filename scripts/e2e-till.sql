@@ -73,3 +73,9 @@ SELECT id, 3, 3, 20000, 0 FROM products WHERE name = 'E2E Phone';
 INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, created_at)
 SELECT v.name, c.id, 1, 30, 45, now() - interval '9 months'
 FROM (VALUES ('E2E Old Torch'), ('E2E Old Gloves')) AS v(name), categories c WHERE c.name = 'E2E Goods';
+
+-- Smart reorder levels (reorder-levels.spec): an old Fixed product at 20 that never sells — its level "looks off".
+INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, created_at, reorder_auto, reorder_level)
+SELECT 'E2E Shelf Fan', id, 1, 3000, 4200, now() - interval '9 months', false, 20 FROM categories WHERE name = 'E2E Goods';
+INSERT INTO stock (product_id, quantity) SELECT id, 25 FROM products WHERE name = 'E2E Shelf Fan'
+ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity;

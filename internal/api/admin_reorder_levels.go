@@ -83,9 +83,10 @@ func (h *handlers) switchAuto(c echo.Context, ids []int64) error {
 	return nil
 }
 
-// relearn recalculates a product saved as Auto, so the form shows its level now.
+// relearn recalculates a saved product, so the form shows its learned level (or,
+// for a Fixed one, what sales suggest) now rather than after tonight's run.
 func (h *handlers) relearn(c echo.Context, p *products.Product) {
-	if p != nil && p.ReorderAuto && !p.IsService {
+	if p != nil && !p.IsService {
 		_ = reorder.RunOne(c.Request().Context(), h.d.DB, p.ID) // best effort: tonight's run catches up
 	}
 }
