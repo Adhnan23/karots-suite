@@ -20,8 +20,11 @@ Settings → Auto reorder levels has the two day numbers + switch a category to 
 **Low stock at the till** (user, 2026-10-21: small shops where the admin is away and one cashier deals with the reps):
 a per-user tick "See low stock at the till" → a Low stock tab grouped by supplier, cost only with See cost, Print; with
 Counter operations too, **Order these** opens Suppliers → Order with the lines filled in.
-**Next:** user tries it (an Auto product needs a few weeks of sales to learn; Settings → Switch to Auto for older
-ones). Then **M8d Demo Room** (rethink proposal first).
+**User tested it — works and looks good (2026-10-21)** on `make demo-reorder` (a year of sales for 12 products; the demo
+caught a bug: last year's school rush was capped as one-off bills — now judged per window). Follow-ups done: Products →
+Reorder at marks "auto"; products whose level was never set (0) became Auto (migration 00009, old backups too); DB
+connections run with JIT off (it cost ~250 ms per search on a new shop's database).
+**Next: M8d Demo Room** (rethink proposal first).
 
 ## Earlier handoff (2026-10-20)
 
