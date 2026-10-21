@@ -43,7 +43,7 @@ func productRow(p products.Product) AdminProductRow {
 	return AdminProductRow{
 		ID: p.ID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode), Barcodes: barcodesOf(p), CategoryID: p.CategoryID, CategoryName: p.CategoryName,
 		UnitAbbr: p.UnitAbbr, CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice), Wholesale: dec2(p.WholesalePrice),
-		StockQty: p.StockQty.String(), ReorderLevel: p.ReorderLevel, Low: !p.IsService && p.IsLowStock(), IsActive: p.IsActive, IsService: p.IsService,
+		StockQty: p.StockQty.String(), ReorderLevel: p.ReorderLevel, ReorderAuto: p.ReorderAuto, Low: !p.IsService && p.IsLowStock(), IsActive: p.IsActive, IsService: p.IsService,
 		NeedsReview: p.NeedsReview, TrackSerial: p.TrackSerial, HasExpiry: p.HasExpiry, SupplierName: strOr(p.PreferredSupplierName),
 		CreatedBy: strOr(p.CreatedByName), TillPack: strOr(p.TillPack), CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}

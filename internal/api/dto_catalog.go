@@ -50,7 +50,8 @@ type AdminProductRow struct {
 	Wholesale    string   `json:"wholesalePrice"`
 	StockQty     string   `json:"stockQty"`
 	ReorderLevel int      `json:"reorderLevel"`
-	Low          bool     `json:"low"` // on hand at or below the reorder level
+	ReorderAuto  bool     `json:"reorderAuto"` // the level is learned (smart reorder levels)
+	Low          bool     `json:"low"`         // on hand at or below the reorder level
 	IsActive     bool     `json:"isActive"`
 	IsService    bool     `json:"isService"`
 	NeedsReview  bool     `json:"needsReview"`

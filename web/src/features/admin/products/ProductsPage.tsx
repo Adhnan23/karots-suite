@@ -71,7 +71,9 @@ export function ProductsPage() {
           { key: 'stock', header: 'On hand', num: true, cell: (p) => p.isService ? <span className="text-faint">service</span> : (
             <span className={cn(p.low && 'font-bold text-warning')}>{qtyText(p.stockQty)} <small className="font-normal text-faint">{p.unitAbbr}</small>{p.stockSplit && <small className="block font-normal text-faint">= {p.stockSplit}</small>}</span>
           ) },
-          { key: 'reorder', header: 'Reorder at', num: true, wide: true, cell: (p) => <span className="text-muted-foreground">{p.reorderLevel ? `${p.reorderLevel} ${p.unitAbbr}` : '—'}</span> },
+          { key: 'reorder', header: 'Reorder at', num: true, wide: true, cell: (p) => p.isService ? null : (
+            <span className="text-muted-foreground">{p.reorderLevel ? `${p.reorderLevel} ${p.unitAbbr}` : '—'}{p.reorderAuto && <small className="block text-faint">auto</small>}</span>
+          ) },
           { key: 'cost', header: 'Cost', num: true, cell: (p) => <span className="text-muted-foreground">{money(sym, p.costPrice)}</span> },
           { key: 'price', header: 'Price', num: true, cell: (p) => (
             <span className="flex flex-col items-end"><b>{money(sym, p.sellingPrice)}</b>{Number(p.wholesalePrice) > 0 && <small className="text-faint">wholesale {money(sym, p.wholesalePrice)}</small>}</span>

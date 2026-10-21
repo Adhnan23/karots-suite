@@ -126,6 +126,7 @@ export interface AdminProductRow {
   wholesalePrice: string;
   stockQty: string;
   reorderLevel: number /* int */;
+  reorderAuto: boolean; // the level is learned (smart reorder levels)
   low: boolean; // on hand at or below the reorder level
   isActive: boolean;
   isService: boolean;
