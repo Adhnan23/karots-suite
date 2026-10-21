@@ -119,8 +119,10 @@ of ≥ 10 modules, height ≥ 48 dots, so a normal till scanner reads it off the
 - the date range ("latest", "today") can hide an old sale — a scanned or typed **exact number ignores the range**.
 Same for CR- (cash list), DP- (credit list) on the Receipts tab: scanning a CR- number while on "Sales" switches to
 the right list (or the find is kind-agnostic). Where a scan lands: the till's Receipts tab, Returns, Warranty "by
-receipt", admin Sales. *(My call: the Sell screen is untouched — a receipt scanned there still searches products;
-add "scan a receipt at Sell opens it" only if the user asks.)*
+receipt", admin Sales. **At the Sell screen** (user, 2026-10-21): a scanned receipt number (it matches the
+slip-number pattern — `S-`, `CR-`, `DP-` + digits — and is never a product barcode) doesn't search products; the
+till simply switches to the Receipts tab with that slip open. On Returns (and the other till tabs that find a sale)
+a scan opens it in place. A quick way to search — no new screens.
 
 **Appearance section** (mockup): thumbnails are real renders of the shop's sample slip in each style (the same
 templates, scaled down — no hand-drawn previews); the big preview is `slipPicture`-equivalent output for the
