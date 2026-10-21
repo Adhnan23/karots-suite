@@ -34,6 +34,9 @@ width, Image / Classic, ask before printing, logo, footer, and the every-slip pr
 **Labels** (default size now; label layouts + preview when labels print as pictures). The receipt **style stays a
 system-user choice on Appearance** (shown read-only on Printing); the Labels print tool stays an action page; per-user
 printers stay on Users with a pointer. Mockup first, then plan.
+**Order (user, 2026-10-21):** palettes part 2 → Settings → Printing page → real-printer test → **labels as pictures**
+(every kind of label gets the same Image treatment as receipts: templates, preview = the exact picture, TSPL
+bitmap) → M8d Demo Room → M8e Pocket Cashier groundwork.
 
 **Print as image — BUILT (2026-10-21, Phases 1 + 2).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
 plan `docs/plans/2026-10-21-print-as-image.md` (all 12 tasks). Settings → Printers & labels → **Print receipts as:
