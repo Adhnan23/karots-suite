@@ -45,8 +45,8 @@ generic sign-in / sign-out / beat hook for its own attendance rows.
 **Next (2026-10-20):** user tested today's changes — open at zero, the "short in the drawer" warning + Deposit, sale
 completes without depositing (warning only, the gap shows as over/short at close) — all fine. Next: **Smart reorder levels FIRST** (user, 2026-10-20 — planned in chat, `docs/ideas/smart-reorder-levels.md`:
 Fixed / Auto reorder level learned from sales speed, supplier rhythm and last year; one-off big bills ignored) — spec +
-mockup, then build. Then **Arch XFCE** VM test (when off the metered connection), then **M8d Demo Room** (rethink
-proposal first).
+mockup, then build. Then **M8d Demo Room** (rethink proposal first).
+**Arch XFCE — PASSED (user, 2026-10-21):** "things work nicely". All three Linux VMs (Xubuntu, Fedora, Arch) done.
 
 **M8c2 Backup copies — BUILT (2026-10-20).** Spec `docs/specs/2026-10-20-m8c2-backup-copies-design.md`, plan
 `docs/plans/2026-10-20-m8c2-backup-copies.md` (Tasks 1–9 done). Every automatic backup is also copied to the shop's
