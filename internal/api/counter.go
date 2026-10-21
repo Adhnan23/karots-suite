@@ -38,6 +38,7 @@ func (h *handlers) registerCounter(g *echo.Group) {
 	g.POST("/products/:id/barcode", h.CounterAssignBarcode)
 	g.GET("/conversions", h.CounterConversions)
 	g.POST("/conversions/:id/run", h.CounterConversionRun)
+	g.GET("/low-stock", h.CounterLowStock, middleware.RequireLowStockAccess())
 	sup := g.Group("", middleware.RequireSupplierAccess())
 	sup.GET("/expenses", h.CounterExpenses)
 	sup.POST("/expenses", h.CounterExpenseCreate)
