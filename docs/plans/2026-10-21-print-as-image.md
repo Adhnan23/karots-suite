@@ -233,12 +233,13 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `RefundSlip` is whatever `ReturnDocument` reads from `sales.ReturnReceipt`, as camelCase. Reuse existing view DTOs
   where they already exist. Each value is the exact one the Classic builder for that path uses (same serials,
   same `customerDue`, same `?size=` copy).
-- [ ] **Step 1:** Failing DB test `TestSlipData`: for one row of each kind, `?data=1` returns the kind, `dots`
+- [x] **Step 1:** Failing DB test `TestSlipData`: for one row of each kind, `?data=1` returns the kind, `dots`
   (576, or 384 with `?size=58`), the shop header, and the record fields the Classic slip prints (assert the receipt
   number, the total / amount, and serial lines for a serial-tracked sale line).
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement (the `?data=1` branch sits beside `previewSlip`). **Step 4:**
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement (the `?data=1` branch sits beside `previewSlip`). **Step 4:**
   `make types && make test` → PASS.
-- [ ] **Step 5:** Commit `feat(api): ?data=1 — a slip's print data as JSON for its React template`.
+- *Done 2026-10-21: one slip-shaped DTO per kind (`dto_slip.go`) — the row DTOs lack fields Classic prints; values are the printed text (dates, labels) and decimal strings, names un-ASCII'd; the logo is the printed raster as a PNG. Repairs' `?data=1` moves to Task 10 with its template.*
+- [x] **Step 5:** Commit `feat(api): ?data=1 — a slip's print data as JSON for its React template`.
 
 ### Task 8: Template kit + the sale template
 

@@ -85,7 +85,11 @@ func (h *handlers) TillPrintMoneyReceipt(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	slip := moneySlip(cfg, *rec, receiptimg.SlipOptions(ctx, cfg, nil))
+	opts := receiptimg.SlipOptions(ctx, cfg, nil)
+	if ok, err := slipData(c, cfg, opts, func(d *SlipData) { d.Kind, d.Money = "money", slipMoney(*rec) }); ok {
+		return err
+	}
+	slip := moneySlip(cfg, *rec, opts)
 	if ok, err := previewSlip(c, cfg, slip); ok {
 		return err
 	}
@@ -204,6 +208,9 @@ func (h *handlers) TillPrintSale(c echo.Context) error {
 	opts := receiptimg.SlipOptions(ctx, cfg, nil)
 	opts.Serials = h.saleSerials(ctx, id)
 	opts.CustomerDue = h.customerDue(ctx, detail)
+	if ok, err := slipData(c, cfg, opts, func(d *SlipData) { d.Kind, d.Sale = "sale", slipSale(*detail, opts) }); ok {
+		return err
+	}
 	payload := escpos.Document(*detail, *cfg, opts)
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err

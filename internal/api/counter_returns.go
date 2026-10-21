@@ -187,7 +187,11 @@ func (h *handlers) CounterPrintRefund(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	payload := escpos.ReturnDocument(*rr, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))
+	opts := receiptimg.SlipOptions(ctx, cfg, nil)
+	if ok, err := slipData(c, cfg, opts, func(d *SlipData) { d.Kind, d.Refund = "refund", slipRefund(*rr) }); ok {
+		return err
+	}
+	payload := escpos.ReturnDocument(*rr, *cfg, opts)
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err
 	}

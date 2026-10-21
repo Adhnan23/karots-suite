@@ -255,10 +255,12 @@ func LeftRight(l, r string, w int) string                   { return leftRight(l
 func BigLine(b *bytes.Buffer, cfg settings.Settings, l, r string, w int) {
 	bigLine(b, cfg, l, r, w)
 }
-func Columns(width string) int      { return columns(width) }
-func Wrap(s string, w int) []string { return wrap(s, w) }
-func Left(b *bytes.Buffer)          { b.Write([]byte{esc, 'a', 0}) }
-func Center(b *bytes.Buffer)        { b.Write([]byte{esc, 'a', 1}) }
+func Columns(width string) int                              { return columns(width) }
+func Wrap(s string, w int) []string                         { return wrap(s, w) }
+func Capitalize(s string) string                            { return capitalize(s) }
+func DiscSuffix(dtype string, value decimal.Decimal) string { return discSuffix(dtype, value) }
+func Left(b *bytes.Buffer)                                  { b.Write([]byte{esc, 'a', 0}) }
+func Center(b *bytes.Buffer)                                { b.Write([]byte{esc, 'a', 1}) }
 
 // Emphasis toggles bold, for a builder that wants to stress one row (e.g. the
 // amount) exactly like the sale's TOTAL.

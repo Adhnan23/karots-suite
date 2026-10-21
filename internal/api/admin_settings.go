@@ -4,8 +4,10 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/datetime"
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/lockers"
@@ -174,6 +176,11 @@ func (h *handlers) AdminSettingsPrinterTest(c echo.Context) error {
 	ctx := c.Request().Context()
 	s, err := h.d.Settings.Get(ctx)
 	if err != nil {
+		return err
+	}
+	if ok, err := slipData(c, s, escpos.Options{}, func(d *SlipData) {
+		d.Kind, d.Test = "test", &SlipTest{Printed: datetime.DateTime(time.Now())}
+	}); ok {
 		return err
 	}
 	doc := escpos.TestDocument(*s)

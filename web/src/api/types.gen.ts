@@ -2917,6 +2917,142 @@ export interface SettingsPage {
 }
 
 //////////
+// source: dto_slip.go
+
+export interface SlipData {
+  kind: string; // sale | refund | money | debt | warranty | test
+  width: string; // "58" | "80"
+  dots: number /* int */;
+  columns: number /* int */; // Font A characters per line
+  currency: string; // "Rs." when the shop has none
+  shop: SlipShop;
+  sale?: SlipSale;
+  refund?: SlipRefund;
+  money?: SlipMoney;
+  debt?: SlipDebt;
+  warranty?: SlipWarranty;
+  test?: SlipTest;
+}
+/**
+ * SlipShop is the shared header and footer every slip carries.
+ */
+export interface SlipShop {
+  name: string;
+  nameLocal: string; // Sinhala / Tamil name, "" = none
+  address: string;
+  phone: string;
+  vatNo: string; // "" unless the shop is tax registered
+  footer: string;
+  logo: string; // PNG data URI of the printed logo raster (full dots wide), "" = none
+}
+export interface SlipSale {
+  receiptNo: string;
+  date: string;
+  cashier: string;
+  customer: string; // "" = walk-in
+  items: SlipItem[]; // in print order; a line group is one item
+  subtotal: string; // before payouts
+  itemSavings: string;
+  billSaving: string;
+  billSavingLabel: string; // " (10%)" for a percent discount, else ""
+  tax: string;
+  given: string; // payouts handed to the customer
+  total: string; // negative when payouts take the sale below zero
+  youSaved: string; // all discounts
+  payments: SlipPayment[]; // zero rows left out
+  credit: boolean; // the credit block replaces Change
+  fromAdvance: string;
+  due: string; // this sale's due after the advance
+  balance: string; // the customer's account after: < 0 = advance left
+  change: string;
+  onAccount: string; // rounding booked to the customer
+  changeKept: string; // rounding kept in the drawer
+}
+export interface SlipPayment {
+  method: string; // as printed ("Cash")
+  amount: string;
+}
+/**
+ * SlipItem is a plain line, a payout (Payout), or a line group (Group).
+ */
+export interface SlipItem {
+  name: string; // the line's own label wins over the product name
+  payout: boolean;
+  quantity: string;
+  unitAbbr: string;
+  unitPrice: string;
+  netUnitPrice: string;
+  packLabel: string; // "" = no pack
+  gross: string;
+  discount: string;
+  discountLabel: string; // " (10%)" or ""
+  subtotal: string;
+  warranty: string; // "12-month warranty until 2027-06-13", "" = none
+  serials: string[];
+  group: boolean;
+  sets: string; // group: how many sets
+  setGross: string; // group: one set's full price
+  setNet: string; // group: one set's price after discounts
+  members: SlipGroupMember[];
+}
+export interface SlipGroupMember {
+  name: string;
+  quantity: string;
+  warranty: string;
+  serials: string[];
+}
+export interface SlipRefund {
+  receiptNo: string; // the original sale's
+  date: string;
+  customer: string;
+  reason: string;
+  items: SlipRefundItem[];
+  refund: string;
+  creditReduction: string;
+  remainingBalance: string; // "" = no customer
+}
+export interface SlipRefundItem {
+  name: string;
+  quantity: string;
+  unitAbbr: string;
+  refund: string;
+}
+export interface SlipMoney {
+  title: string; // the kind's label ("Withdrawal")
+  receiptNo: string;
+  date: string;
+  from: string;
+  to: string;
+  party: string;
+  by: string;
+  amount: string;
+  note: string;
+}
+export interface SlipDebt {
+  receiptNo: string;
+  date: string;
+  customer: string;
+  phone: string;
+  amount: string;
+  method: string; // as printed ("Cash")
+  balanceBefore: string; // "" (with BalanceAfter) = not recorded
+  balanceAfter: string;
+  cashier: string;
+}
+export interface SlipWarranty {
+  date: string;
+  customer: string;
+  product: string;
+  oldSerial: string;
+  newSerial: string;
+  warrantyUntil: string;
+  warrantyLeft: string;
+}
+export interface SlipTest {
+  printed: string;
+}
+
+//////////
 // source: dto_stock.go
 
 /**

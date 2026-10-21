@@ -139,7 +139,11 @@ func (h *handlers) CounterPrintDebtSlip(c echo.Context) error {
 	slip := escpos.DebtSlip{ReceiptNo: r.ReceiptNo, Date: datetime.DateTime(r.CreatedAt), CustomerName: r.CustomerName,
 		CustomerPhone: strOr(r.CustomerPhone), Method: methodOr(r.Method), CashierName: strOr(r.CashierName),
 		Amount: r.Amount, BalanceBefore: r.BalanceBefore, BalanceAfter: r.BalanceAfter}
-	payload := escpos.DebtDocument(slip, *cfg, receiptimg.SlipOptions(ctx, cfg, nil))
+	opts := receiptimg.SlipOptions(ctx, cfg, nil)
+	if ok, err := slipData(c, cfg, opts, func(d *SlipData) { d.Kind, d.Debt = "debt", slipDebt(slip) }); ok {
+		return err
+	}
+	payload := escpos.DebtDocument(slip, *cfg, opts)
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err
 	}
