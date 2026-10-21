@@ -10,7 +10,7 @@ import { errMsg } from '@/features/till/api'
 import { reloadPaletteCss } from '@/theme/appearance'
 import { EditorControls } from './EditorControls'
 import { endDraft, previewMode, startDraft, updateDraft } from './draft'
-import { buildPalette, builtinDoc, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
+import { buildPalette, builtinDoc, isBuiltin, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
 import { PreviewStrip } from './PreviewStrip'
 import { appearanceQuery, paletteQuery, palettesQuery, savePalette } from './queries'
 
@@ -84,9 +84,9 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
           ))}
         </div>
         <div className="ml-auto flex gap-2">
-          <button type="button" onClick={reset} className="flex h-10 items-center gap-1.5 rounded-pill border border-border px-3 text-sm font-semibold hover:bg-muted">
+          {isBuiltin(doc.base) && <button type="button" onClick={reset} className="flex h-10 items-center gap-1.5 rounded-pill border border-border px-3 text-sm font-semibold hover:bg-muted">
             <RotateCcw className="size-4" /> Reset to base
-          </button>
+          </button>}
           <button type="button" onClick={save} disabled={busy || !dirty}
             className="h-10 rounded-pill bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[var(--glow)] disabled:opacity-50">Save</button>
         </div>

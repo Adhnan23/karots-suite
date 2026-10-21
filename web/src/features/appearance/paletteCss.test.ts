@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildPalette, builtinDoc, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
+import { buildPalette, builtinDoc, isBuiltin, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
 
 const doc: PaletteDoc = {
   theme: 'dock',
@@ -36,6 +36,17 @@ describe('palette CSS', () => {
     expect(night).toMatchObject({ theme: 'dock', name: 'Night', base: 'night' })
     // its reduced-transparency block is extra CSS, not a token block
     expect(night.extra).toContain('prefers-reduced-transparency')
+  })
+  it("points a copy's extra rules at the copy", () => {
+    const night = builtinDoc('night')
+    const css = buildPalette(night, 'custom-9')
+    expect(css).not.toContain('data-palette="night"')
+    expect(css).toMatch(/prefers-reduced-transparency[\s\S]*data-palette="custom-9"/)
+  })
+  it('only a built-in base can be reset to', () => {
+    expect(isBuiltin('lagoon')).toBe(true)
+    expect(isBuiltin('custom-3')).toBe(false)
+    expect(isBuiltin('')).toBe(false)
   })
   it('paletteId', () => expect(paletteId(7)).toBe('custom-7'))
 })

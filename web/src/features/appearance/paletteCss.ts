@@ -85,11 +85,14 @@ export function buildPalette(doc: PaletteDoc, id: string): string {
     `${sel}[data-theme="dark"] {\n  color-scheme: dark;\n\n${block(doc.dark, '  ')}\n}`,
     `@media (prefers-color-scheme: dark) {\n  ${sel}:not([data-theme="light"]) {\n    color-scheme: dark;\n\n${block(doc.dark, '    ')}\n  }\n}`,
   ]
-  if (doc.extra.trim()) parts.push(doc.extra.trim())
+  // Extra rules belong to this palette: a copy's rules point at the copy, not its source.
+  if (doc.extra.trim()) parts.push(doc.extra.trim().replace(/\[data-palette="[^"]*"\]/g, `[data-palette="${id}"]`))
   return parts.join('\n\n') + '\n'
 }
 
 const BUILTIN = import.meta.glob<string>('/src/theme/palettes/dock/*.css', { query: '?raw', import: 'default', eager: true })
+
+export const isBuiltin = (id: string) => `/src/theme/palettes/dock/${id}.css` in BUILTIN
 
 /** A built-in palette as a doc (built-ins have no header). */
 export function builtinDoc(id: string): PaletteDoc {
