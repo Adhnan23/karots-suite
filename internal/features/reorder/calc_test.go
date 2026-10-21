@@ -189,3 +189,16 @@ func TestLooksOff(t *testing.T) {
 		}
 	}
 }
+
+// A whole season of big bills (last year's school rush) is that season's normal,
+// not one-off bills — even when the rest of the year sells far less.
+func TestSeasonalRushIsNotCapped(t *testing.T) {
+	in := base()
+	in.Since = ago(420)
+	in.Sales = append(append(steady(0, 345, 2), steady(345, 368, 15)...), steady(368, 400, 2)...)
+	in.OwnDeliveries = deliveriesEvery(10, 10)
+	c := Compute(in, now)
+	if c.LastYearDaily < 14.9 || c.CalcLevel != 195 {
+		t.Fatalf("last year %v level %d, want 15 a day → 195", c.LastYearDaily, c.CalcLevel)
+	}
+}

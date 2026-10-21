@@ -19,7 +19,7 @@ const (
 	minDeliveries  = 3   // fewer → the next source (product → supplier → shop default)
 	gapsLooked     = 4   // an irregular supplier plans for the longest of the last 4 gaps
 	irregular      = 1.5 // longest gap over 1.5 × the median = irregular
-	bigBill        = 3.0 // a bill over 3 × the usual (75th percentile) counts as the median
+	bigBill        = 3.0 // a bill over 3 × the window's usual (75th percentile) counts as its median
 	minBills       = 5   // fewer bills → nothing is capped
 	learnDays      = 56  // an Auto level is fully learned after 8 weeks of history
 	offFactor      = 2   // a Fixed level is "off" at ≥ 2× or ≤ ½ what sales suggest…
@@ -68,7 +68,7 @@ type Calc struct {
 	LearnedPct    int     `json:"learnedPct"`
 	HistoryDays   int     `json:"historyDays"`
 	NotSelling    bool    `json:"notSelling"`
-	CappedBills   int     `json:"cappedBills"` // one-off big bills left out of the last 90 days' speed
+	CappedBills   int     `json:"cappedBills"` // one-off big bills left out of the recent speed
 }
 
 // day is how many whole days before now t falls (0 = the last 24 hours).
@@ -79,22 +79,17 @@ func Compute(in Input, now time.Time) Calc {
 	c := Calc{SafetyDays: in.SafetyDays, HistoryDays: max(0, day(now, in.Since))}
 	c.LearnedPct = min(100, c.HistoryDays*100/learnDays)
 
-	// Use per day ago: sales (one-off big bills capped) plus derived products' sales.
-	use := map[int]float64{}
-	usual, median := billSizes(in.Sales)
+	// Each day's bills, and derived products' sales (never capped), by days ago.
+	bills := map[int][]float64{}
 	for _, s := range in.Sales {
-		q, d := s.Qty, day(now, s.At)
-		if usual > 0 && q > bigBill*usual {
-			q = median
-			if d < fallbackDays {
-				c.CappedBills++
-			}
-		}
-		use[d] += q
+		d := day(now, s.At)
+		bills[d] = append(bills[d], s.Qty)
 	}
+	derived := map[int]float64{}
 	for _, s := range in.Derived {
-		use[day(now, s.At)] += s.Qty
+		derived[day(now, s.At)] += s.Qty
 	}
+	sold := func(d int) bool { return len(bills[d]) > 0 || derived[d] > 0 }
 
 	// Stock at the start of each day d days ago, rebuilt backwards from today's
 	// (one pass: start of day d = on hand − every move from that day on).
@@ -112,35 +107,48 @@ func Compute(in Input, now time.Time) Calc {
 		if d < 0 || d >= len(start) || (d >= c.HistoryDays && d > 0) {
 			return false // before it existed (or outside what was loaded)
 		}
-		return use[d] > 0 || start[d] > 0
+		return sold(d) || start[d] > 0
 	}
-	speed := func(from, to int) (float64, int) { // days [from, to) ago
+	// Use per in-stock day over days [from, to) ago. A bill far above the usual
+	// one *in the same window* counts as a usual-sized one: a single big buyer
+	// is left out, while a whole season of big bills (a school rush) is that
+	// season's normal.
+	speed := func(from, to int) (perDay float64, inStockDays, capped int) {
+		var qs []float64
 		var u float64
-		n := 0
 		for d := from; d < to; d++ {
 			if inStock(d) {
-				u += use[d]
-				n++
+				qs = append(qs, bills[d]...)
+				u += derived[d]
+				inStockDays++
 			}
 		}
-		if n == 0 {
-			return 0, 0
+		if inStockDays == 0 {
+			return 0, 0, 0
 		}
-		return u / float64(n), n
+		usual, median := billSizes(qs)
+		for _, q := range qs {
+			if usual > 0 && q > bigBill*usual {
+				q = median
+				capped++
+			}
+			u += q
+		}
+		return u / float64(inStockDays), inStockDays, capped
 	}
 
 	c.RhythmDays, c.RhythmFrom, c.Regular = rhythm(in, now)
 	var n int
-	if c.RecentDaily, n = speed(0, recentDays); n < minInStockDays {
-		c.RecentDaily, _ = speed(0, fallbackDays)
+	if c.RecentDaily, n, c.CappedBills = speed(0, recentDays); n < minInStockDays {
+		c.RecentDaily, _, c.CappedBills = speed(0, fallbackDays)
 	}
 	span := c.RhythmDays + c.SafetyDays
-	c.LastYearDaily, _ = speed(ly-span+1, ly+1)
+	c.LastYearDaily, _, _ = speed(ly-span+1, ly+1)
 	c.Daily = math.Max(c.RecentDaily, c.LastYearDaily)
 
 	sold90 := false
 	for d := range fallbackDays {
-		sold90 = sold90 || use[d] > 0
+		sold90 = sold90 || sold(d)
 	}
 	c.NotSelling = !sold90 && c.LastYearDaily == 0
 	if !c.NotSelling {
@@ -151,14 +159,11 @@ func Compute(in Input, now time.Time) Calc {
 
 // billSizes is the usual (75th percentile) and median bill size, or 0, 0 with
 // too few bills to tell.
-func billSizes(sales []Sale) (usual, median float64) {
-	if len(sales) < minBills {
+func billSizes(bills []float64) (usual, median float64) {
+	if len(bills) < minBills {
 		return 0, 0
 	}
-	q := make([]float64, len(sales))
-	for i, s := range sales {
-		q[i] = s.Qty
-	}
+	q := slices.Clone(bills)
 	slices.Sort(q)
 	return q[len(q)*3/4], q[len(q)/2]
 }

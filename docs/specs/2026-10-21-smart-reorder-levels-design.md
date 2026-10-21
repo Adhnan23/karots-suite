@@ -57,9 +57,11 @@ All quantities in the product's base unit (packs already sell in units).
    original product"). Conversion runs themselves are not counted (that would count the loose sales twice).
    **Derived products are left out of Reorder and the till's Low stock tab** — nobody orders loose rice from a
    supplier; the bag is reordered.
-2. **One-off big bills.** Normal bill size = the 75th percentile of the product's per-sale quantity over 180 days
-   (needs ≥ 5 sales, else no capping). A sale above **3 ×** that counts as the median for speed only. Revenue, stock
-   and reports are untouched. A regular big buyer raises the percentile, so real demand still counts.
+2. **One-off big bills.** Within each window the speed is taken over (recent, last year), the usual bill size is
+   the 75th percentile of that window's per-sale quantities (needs ≥ 5 sales, else no capping); a sale above **3 ×**
+   that counts as the window's median, for speed only. Judged per window so a whole season of big bills (last year's
+   school rush) is that season's normal, while one big buyer among small bills is left out. Revenue, stock and
+   reports are untouched.
 3. **Recent speed** = use in the last **30 days ÷ days it was in stock** in that window (stock rebuilt backwards from
    today's quantity through `stock_movements`). A fast seller that ran out must not look slow. Fewer than 10 in-stock
    days → use 90 days.

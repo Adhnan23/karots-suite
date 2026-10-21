@@ -1,4 +1,4 @@
-.PHONY: db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -38,6 +38,12 @@ e2e-seed: db-up
 	$(ENV) go run ./cmd/server -reset
 	docker compose exec -T postgres psql -U suite_user -d suite_db -v ON_ERROR_STOP=1 -f - < scripts/e2e-users.sql
 	docker compose exec -T postgres psql -U suite_user -d suite_db -v ON_ERROR_STOP=1 -f - < scripts/e2e-till.sql
+
+# Demo data for trying smart reorder levels: the demo shop plus a year of sales and
+# deliveries (wipes the dev DB). Start the server after; it learns the levels a minute later.
+demo-reorder: db-up
+	$(ENV) go run ./cmd/server -reset -demo
+	docker compose exec -T postgres psql -U suite_user -d suite_db -v ON_ERROR_STOP=1 -q -f - < scripts/demo-reorder.sql
 
 # Core never names a plugin (AGENTS.md hard rule); the generated plugin lists are core-only.
 check-core:
