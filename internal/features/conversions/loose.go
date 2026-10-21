@@ -68,7 +68,7 @@ func MakeLoose(ctx context.Context, db *sqlx.DB, in LooseInput) (productID, conv
 		productID, err = products.CreateTx(ctx, tx, products.CreateInput{
 			Name: name, NameLocal: src.NameLocal, Barcode: barcode, CategoryID: src.CategoryID, UnitID: in.UnitID,
 			CostPrice: src.CostPrice.Div(ratio).Round(2).String(), SellingPrice: orZero(in.SellingPrice),
-			WholesalePrice: "0", TaxRate: src.TaxRate.String(), ReorderLevel: src.ReorderLevel,
+			WholesalePrice: "0", TaxRate: src.TaxRate.String(), ReorderLevel: src.ReorderLevel, ReorderAuto: &src.ReorderAuto,
 			WarrantyMonths: src.WarrantyMonths, PreferredSupplierID: src.PreferredSupplierID,
 		})
 		if err != nil {

@@ -82,6 +82,9 @@ func keepMissing(w writeRow, p *Product, given map[string]bool) writeRow {
 	}
 	if keep("reorder_level") {
 		w.Reorder = p.ReorderLevel
+	} else {
+		r := w.Reorder // on an Auto product a sheet's number is its starting guess
+		w.ReorderStart = &r
 	}
 	if keep("track_serial") {
 		w.TrackSerial = p.TrackSerial

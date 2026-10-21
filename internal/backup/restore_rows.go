@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -42,6 +43,31 @@ func projectColumns(t Table, cols []string) (Table, []string) {
 		out.Rows[r] = rec
 	}
 	return out, dropped
+}
+
+// legacyColumns is the value a row from an older backup takes for a column that
+// backup predates, where that must differ from the column's default (which is
+// for rows made from now on): pre-smart-reorder products stay Fixed.
+var legacyColumns = map[string]map[string]string{
+	"products": {"reorder_auto": "false"},
+}
+
+// fillLegacyColumns adds each legacyColumns column the archive table lacks and
+// this schema (cols) has.
+func fillLegacyColumns(t Table, cols []string) Table {
+	for col, val := range legacyColumns[t.Name] {
+		if slices.Contains(t.Columns, col) || !slices.Contains(cols, col) {
+			continue
+		}
+		t.Columns = append(slices.Clone(t.Columns), col)
+		rows := make([][]*string, len(t.Rows))
+		for i, row := range t.Rows {
+			v := val
+			rows[i] = append(append(make([]*string, 0, len(row)+1), row...), &v)
+		}
+		t.Rows = rows
+	}
+	return t
 }
 
 func insertRows(ctx context.Context, tx *sqlx.Tx, t Table) error {

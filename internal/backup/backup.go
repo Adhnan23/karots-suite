@@ -259,7 +259,7 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 		if err != nil {
 			return rep, err
 		}
-		t, dropped := projectColumns(t, cols)
+		t, dropped := projectColumns(fillLegacyColumns(t, cols), cols)
 		rep.DroppedColumns = append(rep.DroppedColumns, dropped...)
 		rep.Tables++
 		rep.Rows += len(t.Rows)

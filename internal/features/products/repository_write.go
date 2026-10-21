@@ -87,6 +87,8 @@ type writeRow struct {
 	CategoryID, UnitID            int64
 	Cost, Selling, Wholesale, Tax decimal.Decimal
 	Reorder                       int
+	ReorderAuto                   *bool // nil: new = Auto (column default), update = keep
+	ReorderStart                  *int  // nil = keep (update) / the typed level (insert)
 	TrackSerial                   bool
 	WarrantyMonths                int
 	IsService                     bool   // non-stocked service line (plugin seam)
@@ -102,13 +104,13 @@ func (r *Repository) Insert(ctx context.Context, w writeRow) (int64, error) {
 			(name, name_local, barcode, category_id, unit_id,
 			 cost_price, selling_price, wholesale_price, tax_rate, reorder_level,
 			 track_serial, warranty_months, needs_review, created_by, preferred_supplier_id,
-			 is_service)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+			 is_service, reorder_start, reorder_auto)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,COALESCE($17::int, $10::int), COALESCE($18::boolean, true))
 		RETURNING id`,
 		w.Name, w.NameLocal, w.Barcode, w.CategoryID, w.UnitID,
 		w.Cost, w.Selling, w.Wholesale, w.Tax, w.Reorder,
 		w.TrackSerial, w.WarrantyMonths, w.NeedsReview, w.CreatedBy, w.PreferredSupplier,
-		w.IsService)
+		w.IsService, w.ReorderStart, w.ReorderAuto)
 	return id, err
 }
 
@@ -130,12 +132,19 @@ func (r *Repository) Update(ctx context.Context, id int64, w writeRow) error {
 	res, err := r.db.ExecContext(ctx, `
 		UPDATE products SET
 			name=$1, name_local=$2, barcode=$3, category_id=$4, unit_id=$5,
-			cost_price=$6, selling_price=$7, wholesale_price=$8, tax_rate=$9, reorder_level=$10,
-			track_serial=$11, warranty_months=$12, preferred_supplier_id=$13
+			cost_price=$6, selling_price=$7, wholesale_price=$8, tax_rate=$9, 
+			track_serial=$11, warranty_months=$12, preferred_supplier_id=$13,
+			-- Auto: the nightly run owns the level; the form moves the starting guess.
+			-- Switching to Auto starts from the typed number.
+			reorder_level = CASE WHEN COALESCE($15::boolean, reorder_auto) THEN reorder_level ELSE $10::int END,
+			reorder_start = CASE WHEN COALESCE($15::boolean, reorder_auto) AND NOT reorder_auto THEN COALESCE($16::int, $10::int)
+			                     WHEN COALESCE($15::boolean, reorder_auto) THEN COALESCE($16::int, reorder_start)
+			                     ELSE reorder_start END,
+			reorder_auto = COALESCE($15::boolean, reorder_auto)
 		WHERE id=$14 AND is_active = true`,
 		w.Name, w.NameLocal, w.Barcode, w.CategoryID, w.UnitID,
 		w.Cost, w.Selling, w.Wholesale, w.Tax, w.Reorder,
-		w.TrackSerial, w.WarrantyMonths, w.PreferredSupplier, id)
+		w.TrackSerial, w.WarrantyMonths, w.PreferredSupplier, id, w.ReorderAuto, w.ReorderStart)
 	if err != nil {
 		return err
 	}

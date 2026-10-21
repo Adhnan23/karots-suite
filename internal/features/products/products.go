@@ -14,27 +14,32 @@ import (
 )
 
 type Product struct {
-	ID                  int64           `db:"id"              json:"id"`
-	Name                string          `db:"name"            json:"name"`
-	NameLocal           *string         `db:"name_local"      json:"name_local,omitempty"`
-	Barcode             *string         `db:"barcode"         json:"barcode,omitempty"`
-	CategoryID          int64           `db:"category_id"     json:"category_id"`
-	UnitID              int64           `db:"unit_id"         json:"unit_id"`
-	CostPrice           decimal.Decimal `db:"cost_price"      json:"cost_price"`
-	SellingPrice        decimal.Decimal `db:"selling_price"   json:"selling_price"`
-	WholesalePrice      decimal.Decimal `db:"wholesale_price" json:"wholesale_price"`
-	TaxRate             decimal.Decimal `db:"tax_rate"        json:"tax_rate"`
-	ReorderLevel        int             `db:"reorder_level"   json:"reorder_level"`
-	HasExpiry           bool            `db:"has_expiry"      json:"has_expiry"`
-	TrackSerial         bool            `db:"track_serial"    json:"track_serial"`
-	WarrantyMonths      int             `db:"warranty_months"       json:"warranty_months"`
-	IsActive            bool            `db:"is_active"             json:"is_active"`
-	IsService           bool            `db:"is_service"            json:"is_service"`
-	PassThrough         bool            `db:"pass_through"          json:"pass_through"`
-	NeedsReview         bool            `db:"needs_review"          json:"needs_review"`
-	PreferredSupplierID *int64          `db:"preferred_supplier_id" json:"preferred_supplier_id,omitempty"`
-	CreatedBy           *int64          `db:"created_by"            json:"created_by,omitempty"`
-	CreatedAt           time.Time       `db:"created_at"            json:"created_at"`
+	ID             int64           `db:"id"              json:"id"`
+	Name           string          `db:"name"            json:"name"`
+	NameLocal      *string         `db:"name_local"      json:"name_local,omitempty"`
+	Barcode        *string         `db:"barcode"         json:"barcode,omitempty"`
+	CategoryID     int64           `db:"category_id"     json:"category_id"`
+	UnitID         int64           `db:"unit_id"         json:"unit_id"`
+	CostPrice      decimal.Decimal `db:"cost_price"      json:"cost_price"`
+	SellingPrice   decimal.Decimal `db:"selling_price"   json:"selling_price"`
+	WholesalePrice decimal.Decimal `db:"wholesale_price" json:"wholesale_price"`
+	TaxRate        decimal.Decimal `db:"tax_rate"        json:"tax_rate"`
+	ReorderLevel   int             `db:"reorder_level"   json:"reorder_level"`
+	// ReorderAuto: the nightly run (internal/features/reorder) sets ReorderLevel,
+	// learning from ReorderStart. ReorderCalc is its last result (JSON), both modes.
+	ReorderAuto         bool      `db:"reorder_auto"  json:"reorder_auto"`
+	ReorderStart        int       `db:"reorder_start" json:"reorder_start"`
+	ReorderCalc         []byte    `db:"reorder_calc"  json:"-"`
+	HasExpiry           bool      `db:"has_expiry"      json:"has_expiry"`
+	TrackSerial         bool      `db:"track_serial"    json:"track_serial"`
+	WarrantyMonths      int       `db:"warranty_months"       json:"warranty_months"`
+	IsActive            bool      `db:"is_active"             json:"is_active"`
+	IsService           bool      `db:"is_service"            json:"is_service"`
+	PassThrough         bool      `db:"pass_through"          json:"pass_through"`
+	NeedsReview         bool      `db:"needs_review"          json:"needs_review"`
+	PreferredSupplierID *int64    `db:"preferred_supplier_id" json:"preferred_supplier_id,omitempty"`
+	CreatedBy           *int64    `db:"created_by"            json:"created_by,omitempty"`
+	CreatedAt           time.Time `db:"created_at"            json:"created_at"`
 	// BarcodeScannedAt is when the main barcode was last scanned (nil = never since
 	// extra barcodes arrived). MergedIntoID is set on a duplicate a merge retired.
 	BarcodeScannedAt *time.Time `db:"barcode_scanned_at" json:"barcode_scanned_at,omitempty"`
@@ -73,8 +78,13 @@ type CreateInput struct {
 	WholesalePrice string  `json:"wholesale_price" form:"wholesale_price"`
 	TaxRate        string  `json:"tax_rate"        form:"tax_rate"`
 	ReorderLevel   int     `json:"reorder_level"   form:"reorder_level"   validate:"gte=0"`
-	TrackSerial    bool    `json:"track_serial"    form:"track_serial"`
-	WarrantyMonths int     `json:"warranty_months" form:"warranty_months" validate:"gte=0,lte=600"`
+	// ReorderAuto nil = a new product starts Auto, an update keeps the mode.
+	// ReorderStart moves an Auto product's starting guess (nil = keep); on an Auto
+	// product ReorderLevel is not written (the nightly run owns it).
+	ReorderAuto    *bool `json:"reorder_auto"  form:"-"`
+	ReorderStart   *int  `json:"reorder_start" form:"-" validate:"omitempty,gte=0"`
+	TrackSerial    bool  `json:"track_serial"    form:"track_serial"`
+	WarrantyMonths int   `json:"warranty_months" form:"warranty_months" validate:"gte=0,lte=600"`
 	// IsService marks a non-stocked service line. Not on the normal admin form
 	// (defaults false); set by plugins via the products service.
 	IsService bool `json:"is_service" form:"is_service"`

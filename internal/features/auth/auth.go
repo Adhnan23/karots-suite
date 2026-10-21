@@ -13,24 +13,26 @@ const (
 )
 
 type User struct {
-	ID        int64     `db:"id"        json:"id"`
-	Name      string    `db:"name"      json:"name"`
-	Phone     *string   `db:"phone"     json:"phone,omitempty"`
-	Role      string    `db:"role"      json:"role"`
-	PinHash       string    `db:"pin_hash"  json:"-"`
-	IsActive      bool      `db:"is_active" json:"is_active"`
-	MustChangePin bool      `db:"must_change_pin" json:"must_change_pin"`
-	IsSystem      bool      `db:"is_system" json:"is_system"`
-	ReceiptPrinter string   `db:"receipt_printer" json:"receipt_printer"`
+	ID             int64   `db:"id"        json:"id"`
+	Name           string  `db:"name"      json:"name"`
+	Phone          *string `db:"phone"     json:"phone,omitempty"`
+	Role           string  `db:"role"      json:"role"`
+	PinHash        string  `db:"pin_hash"  json:"-"`
+	IsActive       bool    `db:"is_active" json:"is_active"`
+	MustChangePin  bool    `db:"must_change_pin" json:"must_change_pin"`
+	IsSystem       bool    `db:"is_system" json:"is_system"`
+	ReceiptPrinter string  `db:"receipt_printer" json:"receipt_printer"`
 	// CanHandleSuppliers lets a cashier pay suppliers, take in deliveries and
 	// place orders from the till. Off by default; admins and managers may do so
 	// regardless of this flag.
-	CanHandleSuppliers bool  `db:"can_handle_suppliers" json:"can_handle_suppliers"`
+	CanHandleSuppliers bool `db:"can_handle_suppliers" json:"can_handle_suppliers"`
 	// CanManageCredit lets a cashier override/raise credit limits at the till.
-	CanManageCredit bool  `db:"can_manage_credit" json:"can_manage_credit"`
+	CanManageCredit bool `db:"can_manage_credit" json:"can_manage_credit"`
 	// CanSeeCost lets a cashier see product cost/margin in the till info popup.
-	CanSeeCost bool  `db:"can_see_cost" json:"can_see_cost"`
-	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	CanSeeCost bool `db:"can_see_cost" json:"can_see_cost"`
+	// CanSeeLowStock gives a cashier the till's Low stock tab (admins and managers always).
+	CanSeeLowStock bool      `db:"can_see_low_stock" json:"can_see_low_stock"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 }
 
 // UserPublic is the safe projection used on login screens (no pin hash).
@@ -58,10 +60,10 @@ type LoginInput struct {
 }
 
 type CreateUserInput struct {
-	Name  string `json:"name"  form:"name"  validate:"required,min=2,max=100"`
-	Phone string `json:"phone" form:"phone" validate:"required,min=4,max=15"`
-	Role  string `json:"role"  form:"role"  validate:"required,oneof=admin manager cashier"`
-	PIN   string `json:"pin"   form:"pin"   validate:"required,min=4,max=6,numeric"`
+	Name           string `json:"name"  form:"name"  validate:"required,min=2,max=100"`
+	Phone          string `json:"phone" form:"phone" validate:"required,min=4,max=15"`
+	Role           string `json:"role"  form:"role"  validate:"required,oneof=admin manager cashier"`
+	PIN            string `json:"pin"   form:"pin"   validate:"required,min=4,max=6,numeric"`
 	ReceiptPrinter string `json:"receipt_printer" form:"receipt_printer" validate:"omitempty,max=100"`
 	// CanHandleSuppliers arrives as an HTML checkbox: "on" when ticked, absent
 	// otherwise. Read as a string, not a bool, so an unticked box means false
@@ -76,10 +78,10 @@ type CreateUserInput struct {
 // UpdateUserInput edits a user's profile/role and optionally resets the PIN
 // (leave PIN blank to keep the current one).
 type UpdateUserInput struct {
-	Name  string `json:"name"  form:"name"  validate:"required,min=2,max=100"`
-	Phone string `json:"phone" form:"phone" validate:"required,min=4,max=15"`
-	Role  string `json:"role"  form:"role"  validate:"required,oneof=admin manager cashier"`
-	PIN   string `json:"pin"   form:"pin"   validate:"omitempty,min=4,max=6,numeric"`
+	Name           string `json:"name"  form:"name"  validate:"required,min=2,max=100"`
+	Phone          string `json:"phone" form:"phone" validate:"required,min=4,max=15"`
+	Role           string `json:"role"  form:"role"  validate:"required,oneof=admin manager cashier"`
+	PIN            string `json:"pin"   form:"pin"   validate:"omitempty,min=4,max=6,numeric"`
 	ReceiptPrinter string `json:"receipt_printer" form:"receipt_printer" validate:"omitempty,max=100"`
 	// CanHandleSuppliers arrives as an HTML checkbox — see CreateUserInput. An
 	// absent value revokes, which is what a browser sends for an unticked box.

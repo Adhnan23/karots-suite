@@ -304,6 +304,8 @@ func toWriteRow(in CreateInput) (writeRow, error) {
 		Wholesale:         whole,
 		Tax:               tax,
 		Reorder:           in.ReorderLevel,
+		ReorderAuto:       in.ReorderAuto,
+		ReorderStart:      in.ReorderStart,
 		TrackSerial:       in.TrackSerial,
 		WarrantyMonths:    in.WarrantyMonths,
 		IsService:         in.IsService,

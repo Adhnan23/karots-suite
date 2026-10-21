@@ -70,6 +70,11 @@ type Settings struct {
 	// SkinRadius is the custom skin's card shape (sharp|rounded|round).
 	SkinRadius string    `db:"skin_radius" json:"skin_radius"`
 	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
+	// Auto reorder levels: the supplier rhythm when nothing is known, the safety
+	// margin, and when the nightly run last finished (nil = never).
+	ReorderDefaultDays int        `db:"reorder_default_days" json:"reorder_default_days"`
+	ReorderSafetyDays  int        `db:"reorder_safety_days"  json:"reorder_safety_days"`
+	ReorderRanAt       *time.Time `db:"reorder_ran_at"       json:"-"`
 }
 
 // Known appearance values. Anything else falls back to the first (default) so a
