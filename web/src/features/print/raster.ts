@@ -26,7 +26,9 @@ async function fontsFor(node: HTMLElement) {
 export async function rasterize(node: HTMLElement, dots: number): Promise<Blob> {
   await fontsFor(node)
   await Promise.all(Array.from(node.querySelectorAll('img'), (i) => i.decode().catch(() => undefined)))
-  const canvas = await domToCanvas(node, { width: dots, scale: 1, backgroundColor: '#ffffff' })
+  // The full content height: a fractional or overflowing box must never cut off the last line.
+  const height = Math.ceil(Math.max(node.scrollHeight, node.getBoundingClientRect().height))
+  const canvas = await domToCanvas(node, { width: dots, height, scale: 1, backgroundColor: '#ffffff' })
   if (canvas.width !== dots) throw new Error(`receipt picture is ${canvas.width} wide, printer is ${dots}`)
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('no 2d canvas')

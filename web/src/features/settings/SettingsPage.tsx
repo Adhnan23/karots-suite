@@ -9,6 +9,7 @@ import { Field, INPUT, Toggle } from '@/components/admin/fields'
 import { PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { Paper } from '@/features/counter/receipts/Paper'
+import { printSlip } from '@/features/till/print'
 import { errMsg } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
 import { cn } from '@/lib/utils'
@@ -172,7 +173,7 @@ function Printers({ page }: { page: Page }) {
   const [testing, setTesting] = useState(false)
   const test = async () => {
     setTesting(true)
-    try { await api('/admin/settings/printer/test', { method: 'POST' }); toast.success(`Test slip sent to ${s.receiptPrinter}`) } catch (e) { toast.error(errMsg(e)) } finally { setTesting(false) }
+    try { await printSlip('/admin/settings/printer/test') } finally { setTesting(false) }
   }
   return (
     <Section title="Printers & labels" sub="Pick a printer this computer found, or type a network printer as tcp://192.168.1.50:9100. Label size is the default — change it per print." saved={s}

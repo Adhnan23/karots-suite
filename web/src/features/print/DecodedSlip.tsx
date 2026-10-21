@@ -25,15 +25,16 @@ function Line({ l }: { l: SlipLine }) {
     return <img src={l.image} alt="" style={{ display: 'block', width: l.imageDots, margin, imageRendering: 'pixelated' }} />
   }
   const f = l.small ? B : A
-  // Double width doubles the advance (a bigger font); double height alone
-  // stretches the glyphs over two rows.
-  const style: CSSProperties = { textAlign, whiteSpace: 'pre', fontWeight: l.bold ? 700 : 400, overflow: 'hidden' }
-  if (l.wide) Object.assign(style, { fontSize: f.size * 2, lineHeight: `${f.line * (l.tall ? 2 : 1)}px` })
-  else Object.assign(style, { fontSize: f.size, lineHeight: `${f.line * (l.tall ? 2 : 1)}px` })
+  // Every line is an exact number of dot rows (no inline-box rounding). Double
+  // width doubles the advance (a bigger font); double height alone stretches the
+  // glyphs over two rows.
+  const rows = f.line * (l.tall ? 2 : 1)
+  const style: CSSProperties = { textAlign, whiteSpace: 'pre', fontWeight: l.bold ? 700 : 400, height: rows, overflow: 'hidden',
+    fontSize: l.wide ? f.size * 2 : f.size, lineHeight: `${l.wide ? rows : f.line}px` }
   const text = l.text || ' '
   return (
     <div style={style}>
-      {l.tall && !l.wide ? <span style={{ display: 'inline-block', transform: 'scaleY(2)' }}>{text}</span> : text}
+      {l.tall && !l.wide ? <span style={{ display: 'block', transform: 'scaleY(2)', transformOrigin: 'top' }}>{text}</span> : text}
     </div>
   )
 }
