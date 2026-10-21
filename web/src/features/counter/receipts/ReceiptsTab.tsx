@@ -6,16 +6,17 @@ import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
 import { configQuery, drawerQuery } from '@/features/till/api'
 import { printDebtSlip, printMoneySlip, printSale, printWarrantySlip } from '@/features/till/print'
+import { pickPath } from '@/features/money/receipts/ReceiptSheet'
 import { FIELD } from '@/features/till/ui'
 import { slots } from '@/plugins/slots'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { countText, debtReceiptsQuery, moneyReceiptsQuery, saleQuery, warrantyClaimsQuery } from '../queries'
+import { countText, debtReceiptsQuery, moneyReceiptsQuery, warrantyClaimsQuery } from '../queries'
 import { LATEST, type Range } from '../range'
 import { RangePicker } from '../RangePicker'
 import { SaleFind } from '../SaleFind'
 import { CounterPage, MoreRows, PaneTitle } from '../ui'
-import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from './Paper'
+import { SlipView } from '@/features/print/SlipView'
 
 type Kind = 'sales' | 'cash' | 'credit' | 'warranty' | `x:${string}`
 type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyReceiptRow } | { kind: 'credit'; row: DebtReceiptRow } | { kind: 'warranty'; row: WarrantyClaimRow }
@@ -130,13 +131,9 @@ function RowList({ kind, head, sym, pick, onPick }: {
 function Preview({ pick }: { pick: Pick | null }) {
   const cfg = useSuspenseQuery(configQuery).data
   const [size, setSize] = useState<'80' | '58'>(cfg.receiptWidth === '58' ? '58' : '80')
-  const narrow = size === '58'
-  const sale = useQuery({ ...saleQuery(pick?.kind === 'sales' ? pick.id : 0), enabled: pick?.kind === 'sales' }).data
   if (!pick) return <p className="m-auto max-w-[260px] p-8 text-center text-faint">Pick a receipt to see it and print it again.</p>
-  const paper = pick.kind === 'sales'
-    ? sale && sale.id === pick.id && <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
-    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
-      : pick.kind === 'credit' ? <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} /> : <WarrantyPaper r={pick.row} shop={cfg.shop} narrow={narrow} />
+  const path = pickPath(pick)
+  const paper = path ? <SlipView path={path} size={size} /> : <p className="text-center text-faint">A receipt claim prints no slip.</p>
   const reprint = () => void (pick.kind === 'sales' ? printSale(pick.id, false, size) : pick.kind === 'cash' ? printMoneySlip(pick.row.id, false, size)
     : pick.kind === 'credit' ? printDebtSlip(pick.row.id, false, size) : printWarrantySlip(pick.row.id, size))
   const canReprint = pick.kind !== 'warranty' || pick.row.replacementSerial !== ''

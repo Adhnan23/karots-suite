@@ -106,7 +106,10 @@ test('receipts: a sale shows as paper', async ({ page }) => {
   const sale = await sell(page, [['4790000000011', '1']], [{ method: 'cash', amount: '100' }])
   await page.getByLabel('Find a sale').fill(sale.receiptNo)
   await page.getByLabel('Find a sale').press('Enter')
-  await expect(page.getByText('TOTAL', { exact: true })).toBeVisible()
+  // The slip as it prints (Classic: the decoded printer lines).
+  const slip = page.getByRole('article', { name: 'Receipt preview' })
+  await expect(slip).toContainText(sale.receiptNo)
+  await expect(slip).toContainText(/TOTAL\s+Rs\. 100\.00/)
   await expect(page.getByRole('link', { name: /Print A4/ })).toHaveAttribute('href', `/print/receipt/${sale.id}`)
 })
 
@@ -163,7 +166,7 @@ test('receipts: cash moves and credit payments are listed', async ({ page }) => 
   await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Cash' }).click()
   await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
   await page.getByRole('list', { name: 'Receipts' }).getByRole('button').first().click()
-  await expect(page.getByText('AMOUNT', { exact: true })).toBeVisible()
+  await expect(page.getByRole('article', { name: 'Receipt preview' })).toContainText(/Amount\s+Rs\./)
   await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Credit' }).click()
   await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
 })

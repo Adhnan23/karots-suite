@@ -9,9 +9,9 @@ import { Kbd } from '../bits'
 import { notesFor } from '../cart/totals'
 import { METHOD_LABEL } from '../pay/Tender'
 import { printSale, slipPath } from '../print'
-import { SlipPaper } from '../SlipPaper'
 import { PANEL } from '../ui'
 import { useCheckoutCtx } from './CheckoutProvider'
+import { SlipView } from '@/features/print/SlipView'
 
 /** "Ask before printing" mode: the change shows instantly beside the receipt as it
  * will print; Print (prints and starts the next sale) or just start the next sale. */
@@ -55,7 +55,7 @@ export function SaleComplete() {
           </div>
         </div>
         <div className="hidden min-h-0 overflow-auto rounded-[var(--radius-sm)] bg-muted p-3 md:block">
-          <SlipPaper path={slipPath.sale(res.id)} />
+          <SlipView path={slipPath.sale(res.id)} />
         </div>
       </motion.div>
     </div>

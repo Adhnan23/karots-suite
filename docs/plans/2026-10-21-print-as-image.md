@@ -302,12 +302,13 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `SaleSlip` template rendered as HTML from `?data=1`. `features/auth/ShopReceipt.tsx` (game) → move the
   `Paper` shell it needs into that file. It's a game prop, not a receipt view; the "real Paper look" stays as it is.
 - Delete: `web/src/features/counter/receipts/Paper.tsx`
-- [ ] **Step 1:** `grep -rn "receipts/Paper" web/src` → nothing; `tsc` clean; `make test-web`; full Playwright run
+- [x] **Step 1:** `grep -rn "receipts/Paper" web/src` → nothing; `tsc` clean; `make test-web`; full Playwright run
   green (update any spec that looked for Paper text, without weakening it: assert the preview image/`SlipPaper`
   instead).
-- [ ] **Step 2:** Shots at 360 px (mobile admin): Receipts sheet and Sale sheet, the preview fits, in both palettes ×
+- [x] **Step 2:** Shots at 360 px (mobile admin): Receipts sheet and Sale sheet, the preview fits, in both palettes ×
   modes.
-- [ ] **Step 3:** Commit `refactor(web): receipts show only true views (the picture or the decoded bytes); Paper.tsx removed`.
+- *Done 2026-10-21: Settings previews a made-up sale (`POST /admin/settings/sample-slip`, ?preview / ?data only, never prints) instead of the test slip, which has no header or footer (the spec checks the saved footer shows). SaleComplete uses SlipView too. `SlipPaper` draws in the bundled paper font and shrinks to its container (cqw), so a 48-column Classic roll fits a phone (it overflowed at 360 px). A receipt warranty claim (no new unit) shows "prints no slip". Specs that read Paper text now assert the printed lines. Full run 191 passed. Shots at 360 px: Sale + Receipt sheets, Studio / Night × light / dark, Classic and Image — no side scroll, all inside the paper.*
+- [x] **Step 3:** Commit `refactor(web): receipts show only true views (the picture or the decoded bytes); Paper.tsx removed`.
 
 ### Task 12: Close-out
 

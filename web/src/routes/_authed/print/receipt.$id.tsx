@@ -1,21 +1,24 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { saleQuery } from '@/features/counter/queries'
-import { SalePaper } from '@/features/counter/receipts/Paper'
+import { api } from '@/api/client'
+import type { SlipData } from '@/api/types.gen'
 import { PrintFrame } from '@/features/counter/receipts/PrintFrame'
-import { configQuery } from '@/features/till/api'
+import { SaleSlip } from '@/features/print/templates/SaleSlip'
+import { slipPath } from '@/features/till/print'
 
-/** Browser view of a sale receipt, for A4 / PDF (karots-pos /cashier/receipt/:id). */
+const slipData = (id: number) =>
+  queryOptions({ queryKey: ['slip-data', id], queryFn: () => api<SlipData>(`${slipPath.sale(id)}?data=1`, { method: 'POST' }) })
+
+/** Browser view of a sale receipt, for A4 / PDF (karots-pos /cashier/receipt/:id):
+ * the receipt's own template, the same page Image mode prints. */
 export const Route = createFileRoute('/_authed/print/receipt/$id')({
-  loader: ({ context, params }) =>
-    Promise.all([context.queryClient.ensureQueryData(configQuery), context.queryClient.ensureQueryData(saleQuery(Number(params.id)))]),
+  loader: ({ context, params }) => context.queryClient.ensureQueryData(slipData(Number(params.id))),
   component: function ReceiptPrint() {
     const { id } = Route.useParams()
-    const cfg = useSuspenseQuery(configQuery).data
-    const sale = useSuspenseQuery(saleQuery(Number(id))).data
+    const d = useSuspenseQuery(slipData(Number(id))).data
     return (
-      <PrintFrame title={`Receipt ${sale.receiptNo}`}>
-        <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} />
+      <PrintFrame title={`Receipt ${d.sale?.receiptNo ?? ''}`}>
+        <div className="mx-auto w-fit shadow-[var(--shadow)] print:shadow-none"><SaleSlip d={d} /></div>
       </PrintFrame>
     )
   },

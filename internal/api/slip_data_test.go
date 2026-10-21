@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -89,5 +90,21 @@ func TestSlipData(t *testing.T) {
 	rec := te.do(http.MethodPost, "/api/v1/admin/settings/printer/test?data=1", nil, admin)
 	if d := decode[SlipData](t, rec); rec.Code != http.StatusOK || d.Kind != "test" || d.Test == nil || d.Test.Printed == "" {
 		t.Fatalf("test: %d %s", rec.Code, rec.Body)
+	}
+
+	// The Settings preview: a made-up sale with the shop's real header and footer;
+	// it never prints.
+	te.db.Exec(`UPDATE settings SET receipt_footer = 'Sample footer'`)          //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_footer = NULL`) }) //nolint:errcheck
+	rec = te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip?data=1", nil, admin)
+	if d := decode[SlipData](t, rec); rec.Code != http.StatusOK || d.Kind != "sale" || d.Sale == nil || len(d.Sale.Items) != 2 || d.Shop.Footer != "Sample footer" {
+		t.Fatalf("sample data: %d %s", rec.Code, rec.Body)
+	}
+	rec = te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip?preview=1", nil, admin)
+	if p := decode[SlipPreview](t, rec); rec.Code != http.StatusOK || !strings.Contains(fmt.Sprint(p.Lines), "Sample footer") {
+		t.Fatalf("sample preview: %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip", nil, admin); rec.Code < 400 || rec.Code >= 500 {
+		t.Fatalf("the sample never prints: %d", rec.Code)
 	}
 }

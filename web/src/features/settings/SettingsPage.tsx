@@ -8,7 +8,7 @@ import type { SettingsPage as Page, ShopSettings } from '@/api/types.gen'
 import { Field, INPUT, Toggle } from '@/components/admin/fields'
 import { PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
-import { Paper } from '@/features/counter/receipts/Paper'
+import { SlipView } from '@/features/print/SlipView'
 import { printSlip } from '@/features/till/print'
 import { errMsg } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
@@ -18,6 +18,8 @@ import { ReorderSettings } from './ReorderSettings'
 
 const FONT = [{ value: '1', label: 'XS' }, { value: '2', label: 'S' }, { value: '3', label: 'M' }, { value: '4', label: 'L' }]
 const int = (s: string) => Math.max(0, Math.trunc(Number(s) || 0))
+
+const TEST_SLIP = '/admin/settings/printer/test'
 
 /** Setup → Settings (karots-pos /admin/settings): the shop's name and receipt,
  * tax, the till's cash rules, stock tools, staff sign-in and printers. */
@@ -114,26 +116,19 @@ export function SettingsPage() {
             <section key={key} aria-label={title} className={cn(SURFACE, 'p-4 md:p-5')}><h2 className="mb-3 font-display text-lg font-bold">{title}</h2><Plug /></section>
           ))}
         </div>
-        <Preview s={s} logo={page.logo} />
+        <Preview s={s} />
       </div>
     </>
   )
 }
 
-/** The receipt as it will look, from the saved settings. */
-function Preview({ s, logo }: { s: ShopSettings; logo: string }) {
-  const narrow = s.receiptWidth === '58'
+/** A sample sale exactly as it prints, from the saved settings (a save refreshes it). */
+function Preview({ s }: { s: ShopSettings }) {
   return (
     <aside aria-label="Receipt preview" className="min-w-0 lg:sticky lg:top-4">
       <div className={cn(SURFACE, 'p-4')}>
         <h2 className="mb-3 text-sm font-bold text-muted-foreground">Receipt preview · {s.receiptWidth} mm</h2>
-        <Paper shop={{ name: s.shopName, address: s.address, phone: s.phone, footer: s.receiptFooter }} logo={logo} narrow={narrow}>
-          <div className="flex justify-between"><span>Basmati 5kg</span><span>{s.currencySymbol} 2,450.00</span></div>
-          <div className="flex justify-between"><span>Milk 1L ×2</span><span>{s.currencySymbol} 760.00</span></div>
-          <hr className="my-2 border-dashed border-ink" />
-          <div className="flex justify-between font-bold"><span>Total</span><span>{s.currencySymbol} 3,210.00</span></div>
-          {s.taxRegistered && s.taxRegNo && <div className="mt-1 text-center">Tax reg. {s.taxRegNo}</div>}
-        </Paper>
+        <SlipView path="/admin/settings/sample-slip" />
       </div>
     </aside>
   )
@@ -173,7 +168,7 @@ function Printers({ page }: { page: Page }) {
   const [testing, setTesting] = useState(false)
   const test = async () => {
     setTesting(true)
-    try { await printSlip('/admin/settings/printer/test') } finally { setTesting(false) }
+    try { await printSlip(TEST_SLIP) } finally { setTesting(false) }
   }
   return (
     <Section title="Printers & labels" sub="Pick a printer this computer found, or type a network printer as tcp://192.168.1.50:9100. Label size is the default — change it per print." saved={s}

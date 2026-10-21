@@ -7,12 +7,16 @@ import type { DebtReceiptRow, MoneyReceiptRow, WarrantyClaimRow } from '@/api/ty
 import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
 import { saleQuery } from '@/features/counter/queries'
-import { DebtPaper, MoneyPaper, SalePaper, WarrantyPaper } from '@/features/counter/receipts/Paper'
+import { SlipView } from '@/features/print/SlipView'
 import { Seg } from '@/features/till/bits'
 import { configQuery, errMsg } from '@/features/till/api'
-import { printDebtSlip, printMoneySlip, printSale, printWarrantySlip } from '@/features/till/print'
+import { printDebtSlip, printMoneySlip, printSale, printWarrantySlip, slipPath } from '@/features/till/print'
 
 export type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyReceiptRow } | { kind: 'credit'; row: DebtReceiptRow } | { kind: 'warranty'; row: WarrantyClaimRow }
+
+/** The print path of a picked receipt; null for a warranty claim with no new unit (no slip). */
+export const pickPath = (p: Pick) => p.kind === 'sales' ? slipPath.sale(p.id) : p.kind === 'cash' ? slipPath.money(p.row.id)
+  : p.kind === 'credit' ? slipPath.debt(p.row.id) : p.row.replacementSerial !== '' ? slipPath.warranty(p.row.id) : null
 
 /** Where a cash receipt's record lives, following its ref (karots-pos linked
  * the money receipt to its expense / supplier / customer / sale). */
@@ -29,12 +33,9 @@ function Follow({ r }: { r: MoneyReceiptRow }) {
 export function ReceiptSheet({ pick, onClose }: { pick: Pick; onClose: () => void }) {
   const cfg = useSuspenseQuery(configQuery).data
   const [size, setSize] = useState<'80' | '58'>(cfg.receiptWidth === '58' ? '58' : '80')
-  const narrow = size === '58'
   const sale = useQuery({ ...saleQuery(pick.kind === 'sales' ? pick.id : 0), enabled: pick.kind === 'sales' }).data
-  const paper = pick.kind === 'sales'
-    ? sale && <SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
-    : pick.kind === 'cash' ? <MoneyPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} />
-      : pick.kind === 'credit' ? <DebtPaper r={pick.row} shop={cfg.shop} sym={cfg.symbol} narrow={narrow} /> : <WarrantyPaper r={pick.row} shop={cfg.shop} narrow={narrow} />
+  const path = pickPath(pick)
+  const paper = path ? <SlipView path={path} size={size} /> : <p className="text-center text-faint">A receipt claim prints no slip.</p>
   const canReprint = pick.kind !== 'warranty' || pick.row.replacementSerial !== ''
   const reprint = () => (pick.kind === 'sales' ? printSale(pick.id, false, size) : pick.kind === 'cash' ? printMoneySlip(pick.row.id, false, size)
     : pick.kind === 'credit' ? printDebtSlip(pick.row.id, false, size) : printWarrantySlip(pick.row.id, size))
@@ -49,7 +50,7 @@ export function ReceiptSheet({ pick, onClose }: { pick: Pick; onClose: () => voi
         {pick.kind === 'cash' ? <Follow r={pick.row} /> : <span />}
         <Seg label="Paper width" value={size} onChange={setSize} options={[['80', '80 mm'], ['58', '58 mm']]} />
       </div>
-      <div className="rounded-[var(--radius-sm)] bg-muted/60 p-4">{paper ?? <p className="text-center text-faint">Loading…</p>}</div>
+      <div className="rounded-[var(--radius-sm)] bg-muted/60 p-4">{paper}</div>
     </FormSheet>
   )
 }

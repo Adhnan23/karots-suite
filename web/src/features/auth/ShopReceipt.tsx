@@ -1,7 +1,6 @@
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useState } from 'react'
 import type { ShopHeader } from '@/api/types.gen'
-import { Paper } from '@/features/counter/receipts/Paper'
 import { cn } from '@/lib/utils'
 
 export type ReceiptLine = { name: string; qty: number; price: number }
@@ -10,6 +9,21 @@ const Row = ({ l, r, b }: { l: ReactNode; r: ReactNode; b?: boolean }) => (
   <div className={cn('flex justify-between gap-3', b && 'font-bold')}><span>{l}</span><span className="tabular-nums">{r}</span></div>
 )
 const Rule = () => <hr className="my-2 border-dashed border-ink" />
+
+/** The game's receipt prop: the shop's header on paper and ink (a toy, not a slip view). */
+function Paper({ shop, children, className }: { shop: ShopHeader; children: ReactNode; className?: string }) {
+  return (
+    <article className={cn('mx-auto w-[220px] bg-paper px-3 py-6 font-mono text-[11px] leading-relaxed text-ink shadow-[var(--shadow)]', className)}>
+      <header className="mb-3 text-center">
+        <b className="block text-[15px]">{shop.name}</b>
+        {shop.address && <span className="block">{shop.address}</span>}
+        {shop.phone && <span className="block">{shop.phone}</span>}
+      </header>
+      {children}
+      {shop.footer && <footer className="mt-4 border-t border-dashed border-ink pt-2 text-center">{shop.footer}</footer>}
+    </article>
+  )
+}
 
 /** Shop game: the receipt feeds out of the printer (the shop's real receipt look),
  * then it's dragged onto the customer to finish the sale. */
@@ -43,7 +57,7 @@ export function ReceiptOut({ shop, no, lines, total, card, given, target, onDrag
           setDrag(null); onDragging(false)
           if (r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) onDelivered()
         }}>
-        <Paper shop={shop} narrow className="pointer-events-none select-none">
+        <Paper shop={shop} className="pointer-events-none select-none">
           <Row l={`#${String(no).padStart(5, '0')}`} r={now} />
           <Rule />
           {lines.map((l) => (

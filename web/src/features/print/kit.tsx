@@ -101,13 +101,17 @@ function wrap(s: string, w: number): string[] {
   let cur = ''
   for (let word of s.split(/\s+/).filter(Boolean)) {
     while (word.length > w) {
-      if (cur) out.push(cur), (cur = '')
+      if (cur) out.push(cur)
+      cur = ''
       out.push(word.slice(0, w))
       word = word.slice(w)
     }
     if (!cur) cur = word
     else if (cur.length + 1 + word.length <= w) cur += ' ' + word
-    else out.push(cur), (cur = word)
+    else {
+      out.push(cur)
+      cur = word
+    }
   }
   if (cur) out.push(cur)
   return out.length ? out : ['']

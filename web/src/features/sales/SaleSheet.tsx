@@ -8,13 +8,13 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
 import { saleQuery } from '@/features/counter/queries'
-import { SalePaper } from '@/features/counter/receipts/Paper'
+import { SlipView } from '@/features/print/SlipView'
 import { left, REASONS, refundOf } from '@/features/counter/returns/refund'
 import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { Seg } from '@/features/till/bits'
 import { configQuery, errMsg } from '@/features/till/api'
-import { printSale } from '@/features/till/print'
+import { printSale, slipPath } from '@/features/till/print'
 import { money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
@@ -31,13 +31,12 @@ export function SaleSheet({ id, onClose }: { id: number; onClose: () => void }) 
 }
 
 function ReceiptView({ sale, head, onClose }: { sale: SaleView; head: ReactNode; onClose: () => void }) {
-  const cfg = useSuspenseQuery(configQuery).data
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={sale.receiptNo} submit="Print again"
       onSubmit={() => void printSale(sale.id).then(() => toast.success('Sent to the printer'), (e) => toast.error(errMsg(e)))}
       extra={<Button variant="ghost" asChild className="h-10 px-3"><a href={`/print/receipt/${sale.id}`} target="_blank" rel="noreferrer"><ExternalLink size={15} /> A4 / PDF</a></Button>}>
       {head}
-      <div className="rounded-[var(--radius-sm)] bg-muted/60 p-4"><SalePaper s={sale} shop={cfg.shop} sym={cfg.symbol} /></div>
+      <div className="rounded-[var(--radius-sm)] bg-muted/60 p-4"><SlipView path={slipPath.sale(sale.id)} /></div>
     </FormSheet>
   )
 }

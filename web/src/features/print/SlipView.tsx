@@ -5,11 +5,12 @@ import { cn } from '@/lib/utils'
 import { slipPictureQuery } from './picture'
 
 /** A slip exactly as it prints, in either mode: Image mode shows the very
- * picture the printer gets; Classic shows the decoded printer bytes. */
+ * picture the printer gets; Classic shows the decoded printer bytes. The only
+ * receipt viewer — every screen that shows a slip uses it. */
 export function SlipView({ path, size, className }: { path: string; size?: string; className?: string }) {
   const cfg = useQuery(configQuery).data
   if (!cfg) return null
-  return cfg.printAs === 'image' ? <SlipPicture path={path} size={size} className={className} /> : <SlipPaper path={path} className={className} />
+  return cfg.printAs === 'image' ? <SlipPicture path={path} size={size} className={className} /> : <SlipPaper path={path} size={size} className={className} />
 }
 
 function SlipPicture({ path, size, className }: { path: string; size?: string; className?: string }) {
