@@ -16,7 +16,7 @@ no Claude attribution; one commit per task; `make types` after `dto*.go`; never 
 
 - A product sold only in a week it was out for half → speed from in-stock days only (Task 2 test).
 - A brand-new product (created today, no sales) → level = start, no divide-by-zero, `historyDays` 0 (Task 2 test).
-- Product with sales but deliveries only via conversion (loose rice) → falls back to supplier → default (Task 2 test).
+- A loose version (derived) never shows on Reorder / Low stock; its sales ÷ ratio count for the bag (Tasks 2, 3, 4).
 - Restored old backup (no new columns) → products Fixed, `reorder_calc` NULL, Reorder still lists them (Task 1 test).
 - Cashier without the permission typing `/till/low-stock` → redirect to Sell; API 403 (Tasks 6, 8).
 
@@ -44,19 +44,21 @@ no Claude attribution; one commit per task; `make types` after `dto*.go`; never 
   0; blend day 0 / 28 / 56+; start 0 → pure calc; new product with nothing → start; LooksOff cases.
 - [ ] **3. Loader + nightly run** — `internal/features/reorder/run.go`: `func Run(ctx, db) (n int, err error)`
   loads inputs for all active non-service products in batches of 500 (one query per input kind per batch, base
-  units: sale_items qty − returned_qty; `stock_movements` type `conversion` < 0; type `purchase` days; supplier
+  units: sale_items qty − returned_qty; derived products' sales ÷ `product_conversions.ratio` (active, this product =
+  `from_product_id`) as `Input.Derived`; type `purchase` days; supplier
   days via `purchases.supplier_id`), writes `reorder_calc` for all and `reorder_level = Blend(...)` for Auto
   products, then `settings.reorder_ran_at = now()`. `func RunOne(ctx, db, productID) error` for a switch to Auto.
   `func Loop(ctx, db)`: after 1 min run if `reorder_ran_at` is older than 20 h, then daily at 03:00 local; started in
   `internal/app/services.go` beside the backup scheduler. DB test: an Auto product's level moves, a Fixed one's
-  doesn't; a bag's conversion use counts.
+  doesn't; a loose version's sales count for its bag.
 - [ ] **4. Admin API** — DTOs (`dto_catalog.go`: product `reorderAuto`, `reorderStart`, `reorderCalc`
   (`ReorderCalcView` camelCase mirror of Calc); `dto_purchasing.go`: `ReorderRow` + `auto bool`, `calc
   *ReorderCalcView`, `looksOff bool`; settings `reorderDefaultDays`, `reorderSafetyDays`); `make types`.
   Move the row building out of `AdminReorder` into `internal/api/reorder_rows.go`
   `func (h *handlers) buildReorderList(c echo.Context, q products.ListQuery, all, hideCovered, withCost bool) (ReorderList, error)`;
   suggested qty = `ceil(level + daily × rhythm − onHand)` when calc has use, else today's rules; plugin annotator
-  suggestion still wins when bigger. `?looksOff=1` lists Fixed products with `LooksOff` (low or not). New:
+  suggestion still wins when bigger. Derived products (`to_product_id` of an active conversion) never appear (`products.ListQuery.NotDerived`).
+  `?looksOff=1` lists Fixed products with `LooksOff` (low or not). New:
   `POST /admin/products/reorder-level` `{ids, use: "suggested"|"auto"}` (Use N / Use all / Switch these to Auto,
   audited) and `POST /admin/products/reorder-auto` `{categoryId (0 = all)}` → `{switched}` (sub-categories
   included, start = current level, then `RunOne` each, audited). Product update switching to Auto calls `RunOne`.
