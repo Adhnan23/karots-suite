@@ -191,6 +191,11 @@ func (h *handlers) CounterPrintRefund(c echo.Context) error {
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err
 	}
+	if job, ok, err := slipImage(c, cfg); err != nil {
+		return err
+	} else if ok {
+		payload = job
+	}
 	if c.QueryParam("kick") == "1" {
 		payload = append(escpos.DrawerKick(*cfg), payload...)
 	}

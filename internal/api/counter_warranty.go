@@ -162,6 +162,11 @@ func (h *handlers) CounterPrintWarrantySlip(c echo.Context) error {
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err
 	}
+	if job, ok, err := slipImage(c, cfg); err != nil {
+		return err
+	} else if ok {
+		payload = job
+	}
 	if err := escpos.Send(ctx, h.receiptQueue(c, cfg), payload); err != nil {
 		log.Printf("warranty slip %d: %v", id, err)
 		return apperr.ConflictCode("PRINT_FAILED", printFailed)

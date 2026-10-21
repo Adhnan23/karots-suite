@@ -149,6 +149,17 @@ func (h handlers) print(c echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, out)
 	}
+	// Image mode: the SPA sends the slip as a picture at the printer's dots.
+	if strings.HasPrefix(c.Request().Header.Get("Content-Type"), "image/png") {
+		dots := receiptimg.PrinterDots(cfg.ReceiptWidth)
+		img, err := escpos.ReadImage(c.Request().Body, dots)
+		if err != nil {
+			return &apperr.AppError{Code: "BAD_IMAGE", Message: "That slip picture can't be printed", Status: 422, Err: err}
+		}
+		if slip, err = escpos.ImageJob(img, dots); err != nil {
+			return err
+		}
+	}
 	target := cfg.ReceiptPrinter
 	var own string
 	if err := h.p.core.DB.GetContext(ctx, &own, `SELECT COALESCE(receipt_printer, '') FROM users WHERE id = $1`, middleware.CurrentUserID(c)); err == nil && strings.TrimSpace(own) != "" {

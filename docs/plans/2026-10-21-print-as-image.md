@@ -119,16 +119,17 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `if job, ok, err := slipImage(c, cfg); err != nil { return err } else if ok { payload = job }`. The kick and send
   lines below stay untouched. The repairs plugin does the same with `escpos.ReadImage` / `escpos.ImageJob` directly.
 
-- [ ] **Step 1:** Failing DB-gated test `TestPrintSaleImage`. Set the shop's receipt printer to
+- [x] **Step 1:** Failing DB-gated test `TestPrintSaleImage`. Set the shop's receipt printer to
   `tcp://127.0.0.1:<port>` of a `net.Listen` capture. Make a cash sale, POST a 576-wide PNG to
   `/api/v1/till/sales/:id/print?kick=1` and assert the captured bytes = `DrawerKick(cfg)` + `ImageJob(png)`. Same POST
   without `kick` → no `1B 70`. A card sale with `kick=1` → no kick (`paidCash`). `?size=58` with a 576 PNG → 422
   `BAD_IMAGE`; with a 384 PNG → prints. No PNG body → Classic bytes exactly as before (regression).
-- [ ] **Step 2:** Run with `DATABASE_URL` set → FAIL.
-- [ ] **Step 3:** Implement the helper and the one-line call in the seven handlers.
-- [ ] **Step 4:** `make test` → PASS (all handlers; add one table row per endpoint to the test: money, refund, debt,
+- [x] **Step 2:** Run with `DATABASE_URL` set → FAIL.
+- [x] **Step 3:** Implement the helper and the one-line call in the seven handlers.
+- [x] **Step 4:** `make test` → PASS (all handlers; add one table row per endpoint to the test: money, refund, debt,
   warranty, test print, repairs → image accepted).
-- [ ] **Step 5:** Commit `feat(api): every slip print endpoint accepts the receipt as a picture (image/png)`.
+- *Done 2026-10-21: the Go test covers sale (kick / no kick / card / size / Classic) and the test print; money, refund, debt, warranty and repairs share the same 5 lines and are checked end to end in Tasks 5–6.*
+- [x] **Step 5:** Commit `feat(api): every slip print endpoint accepts the receipt as a picture (image/png)`.
 
 ### Task 4: Render a slip to a picture in the browser
 

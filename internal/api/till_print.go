@@ -89,6 +89,11 @@ func (h *handlers) TillPrintMoneyReceipt(c echo.Context) error {
 	if ok, err := previewSlip(c, cfg, slip); ok {
 		return err
 	}
+	if job, ok, err := slipImage(c, cfg); err != nil {
+		return err
+	} else if ok {
+		slip = job
+	}
 	target := h.receiptQueue(c, cfg)
 	if strings.TrimSpace(target) == "" {
 		return apperr.ConflictCode("NO_PRINTER", "No receipt printer configured")
@@ -202,6 +207,11 @@ func (h *handlers) TillPrintSale(c echo.Context) error {
 	payload := escpos.Document(*detail, *cfg, opts)
 	if ok, err := previewSlip(c, cfg, payload); ok {
 		return err
+	}
+	if job, ok, err := slipImage(c, cfg); err != nil {
+		return err
+	} else if ok {
+		payload = job
 	}
 	if c.QueryParam("kick") == "1" && paidCash(detail) {
 		payload = append(escpos.DrawerKick(*cfg), payload...)

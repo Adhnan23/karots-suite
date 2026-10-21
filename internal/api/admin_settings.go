@@ -168,17 +168,27 @@ func (h *handlers) AdminSettingsLogoClear(c echo.Context) error {
 }
 
 // AdminSettingsPrinterTest prints a short slip on the SAVED receipt printer and
-// pops the drawer — a one-click hardware check during setup.
+// pops the drawer — a one-click hardware check during setup. ?preview=1 answers
+// the slip as the paper shows it; an image/png body prints that picture instead.
 func (h *handlers) AdminSettingsPrinterTest(c echo.Context) error {
 	ctx := c.Request().Context()
 	s, err := h.d.Settings.Get(ctx)
 	if err != nil {
 		return err
 	}
+	doc := escpos.TestDocument(*s)
+	if ok, err := previewSlip(c, s, doc); ok {
+		return err
+	}
+	if job, ok, err := slipImage(c, s); err != nil {
+		return err
+	} else if ok {
+		doc = job
+	}
 	if strings.TrimSpace(s.ReceiptPrinter) == "" {
 		return apperr.Validation("pick and save a receipt printer first")
 	}
-	if err := escpos.Send(ctx, s.ReceiptPrinter, escpos.TestDocument(*s)); err != nil {
+	if err := escpos.Send(ctx, s.ReceiptPrinter, doc); err != nil {
 		return apperr.Validation("the test slip didn't print: " + err.Error())
 	}
 	escpos.KickDrawer(ctx, *s)
