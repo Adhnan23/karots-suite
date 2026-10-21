@@ -2959,7 +2959,7 @@ export interface SlipSale {
   given: string; // payouts handed to the customer
   total: string; // negative when payouts take the sale below zero
   youSaved: string; // all discounts
-  payments: SlipPayment[]; // zero rows left out
+  payments: SlipPayment[]; // a zero row prints nothing (a payout sale's empty cash)
   credit: boolean; // the credit block replaces Change
   fromAdvance: string;
   due: string; // this sale's due after the advance

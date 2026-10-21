@@ -254,14 +254,15 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `escpos` pads/wraps (read `format.go`). `Rule` is the dashed line Classic prints (a row of `-`).
 - `templates: Record<SlipData['kind'], ComponentType<{ d: SlipData }>>`. `picture.ts` reads `kind` from `?data=1`
   and falls back to `DecodedSlip` when the map lacks it. **The kind comes from the server, not the path.**
-- [ ] **Step 1:** Write `SaleSlip` line for line from `escpos.Document` (`documents.go`: header, receipt no + date,
+- [x] **Step 1:** Write `SaleSlip` line for line from `escpos.Document` (`documents.go`: header, receipt no + date,
   cashier / customer, lines incl. packs, groups, payouts "Given", returned, serials, totals, payments, change, due,
   status, footer). Read the Go, don't guess it from `Paper.tsx`.
-- [ ] **Step 2:** Shot review on the emulator: Classic vs Image for 5 sales (plain cash, a pack + a group, a
+- [x] **Step 2:** Shot review on the emulator: Classic vs Image for 5 sales (plain cash, a pack + a group, a
   payout below zero, credit with due, a serial item) at 80 and 58 mm. Same lines, order, alignment and columns, with
   Sinhala item names now correct. Fix until they match.
-- [ ] **Step 3:** `print-image.spec.ts` still passes (it now runs through the template).
-- [ ] **Step 4:** Commit `feat(print): React template kit + the sale receipt as a template`.
+- [x] **Step 3:** `print-image.spec.ts` still passes (it now runs through the template).
+- *Done 2026-10-21: no side margin (Classic uses all 48 / 32 columns; Phase 1 approved that). Shot review in the browser — decoded Classic lines vs the template, same pixels pipeline — for plain cash, a group, credit with due, a serial item, a pack and a payout at 80 mm, four at 58 mm: line for line. Template wins: Sinhala item names print, and a long serial wraps where Classic cuts it at the edge. One call asks `?data=1&preview=1`, so a path without data (repairs) answers its preview, never a print.*
+- [x] **Step 4:** Commit `feat(print): React template kit + the sale receipt as a template`.
 
 ### Task 9: The other core templates
 

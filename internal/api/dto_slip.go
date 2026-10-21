@@ -47,7 +47,7 @@ type SlipSale struct {
 	Given           string        `json:"given"`    // payouts handed to the customer
 	Total           string        `json:"total"`    // negative when payouts take the sale below zero
 	YouSaved        string        `json:"youSaved"` // all discounts
-	Payments        []SlipPayment `json:"payments"` // zero rows left out
+	Payments        []SlipPayment `json:"payments"` // a zero row prints nothing (a payout sale's empty cash)
 	Credit          bool          `json:"credit"`   // the credit block replaces Change
 	FromAdvance     string        `json:"fromAdvance"`
 	Due             string        `json:"due"`     // this sale's due after the advance

@@ -3,10 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { SlipPreview } from '@/api/types.gen'
+import type { SlipData, SlipPreview } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
 import { DecodedSlip } from './DecodedSlip'
 import { rasterize } from './raster'
+import { templates } from './templates'
 
 export type SlipPicture = { blob: Blob; url: string; dots: number }
 
@@ -30,11 +31,24 @@ async function shoot(el: ReactElement, dots: number): Promise<Blob> {
   }
 }
 
+// The slip's page: its kind's template fed by ?data=1, else its decoded Classic
+// lines. One call asks for both: a path that has no ?data=1 answers its preview
+// (never a print), and the kind comes from the server, not the path.
+async function page(path: string, size?: string): Promise<{ el: ReactElement; dots: number }> {
+  const res = await api<SlipData | SlipPreview>(withQuery(path, { data: '1', preview: '1', size }), { method: 'POST' })
+  if ('kind' in res) {
+    const T = templates[res.kind]
+    if (T) return { el: createElement(T, { d: res }), dots: res.dots }
+  }
+  const preview = 'lines' in res ? res : await api<SlipPreview>(withQuery(path, { preview: '1', size }), { method: 'POST' })
+  return { el: createElement(DecodedSlip, { preview }), dots: preview.dots }
+}
+
 async function make(path: string, size?: string): Promise<SlipPicture> {
-  const preview = await api<SlipPreview>(withQuery(path, { preview: '1', size }), { method: 'POST' })
-  const blob = await shoot(createElement(DecodedSlip, { preview }), preview.dots)
+  const { el, dots } = await page(path, size)
+  const blob = await shoot(el, dots)
   // ponytail: object URLs live as long as the page; a till prints a few hundred a day.
-  return { blob, url: URL.createObjectURL(blob), dots: preview.dots }
+  return { blob, url: URL.createObjectURL(blob), dots }
 }
 
 /** The slip at `path` as the exact picture the printer gets. Cached briefly, so

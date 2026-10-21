@@ -98,9 +98,7 @@ func slipSale(d sales.Detail, opts escpos.Options) *SlipSale {
 	s.BillSavingLabel = escpos.DiscSuffix(d.Sale.DiscountType, d.Sale.DiscountValue)
 	s.Tax, s.Given, s.Total, s.YouSaved = amt(d.Sale.Tax), amt(given), amt(d.Sale.Total), amt(d.Sale.Discount)
 	for _, p := range d.Payments {
-		if !p.Amount.IsZero() {
-			s.Payments = append(s.Payments, SlipPayment{Method: escpos.Capitalize(p.Method), Amount: amt(p.Amount)})
-		}
+		s.Payments = append(s.Payments, SlipPayment{Method: escpos.Capitalize(p.Method), Amount: amt(p.Amount)})
 	}
 	if cs, ok := d.Sale.Credit(opts.CustomerDue); ok {
 		s.Credit = true
