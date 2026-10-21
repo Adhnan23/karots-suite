@@ -10,8 +10,8 @@
 @import "@fontsource/sora/700.css";
 @import "@fontsource/sora/800.css";
 @import "./theme/tokens.css";
-@import "./theme/palettes/studio.css";
-@import "./theme/palettes/night.css";
+@import "./theme/palettes/dock/studio.css";
+@import "./theme/palettes/dock/night.css";
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */
@@ -70,6 +70,15 @@
     --color-hero-foreground: var(--hero-foreground);
     --color-hero-muted: var(--hero-muted);
     --color-bar: var(--bar);
+    --color-danger-foreground: var(--danger-foreground);
+    --color-scrim: var(--scrim);
+    --radius-pill: var(--pill);
+    --shadow-sm: var(--shadow);
+    --shadow-md: var(--shadow);
+    --shadow-lg: var(--shadow-float);
+    --shadow-xl: var(--shadow-float);
+    --default-transition-duration: var(--dur-fast);
+    --default-transition-timing-function: var(--ease);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) * 1.4);

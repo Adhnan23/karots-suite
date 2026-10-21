@@ -1,16 +1,30 @@
 import type { Appearance } from '@/api/types.gen'
+import { THEME } from './palettes'
 
-/** Applies the system-locked look to <html>. Tokens in tokens.css read these.
- *  A custom brand overrides both modes, so its text colour is derived here. */
+/** Legacy radius (before palettes owned it): kept as an inline override while a
+ *  shop's palette is a built-in, so an update changes nothing on screen. */
+const LEGACY_RADIUS: Record<string, [string, string]> = { sharp: ['6px', '4px'], round: ['22px', '14px'] }
+
+/** Applies the system-locked look to <html>. Palette CSS reads data-ui + data-palette.
+ *  A legacy brand overrides both modes, so its text colour is derived here. */
 export function applyAppearance(a: Appearance, root: HTMLElement = document.documentElement) {
-  if (a.brandColor) {
+  root.dataset.ui = THEME
+  const builtin = !(a.palette || '').startsWith('custom-')
+  const r = builtin ? LEGACY_RADIUS[a.radius] : undefined
+  if (r) {
+    root.style.setProperty('--radius', r[0])
+    root.style.setProperty('--radius-sm', r[1])
+  } else {
+    root.style.removeProperty('--radius')
+    root.style.removeProperty('--radius-sm')
+  }
+  if (builtin && a.brandColor) {
     root.style.setProperty('--brand', a.brandColor)
     root.style.setProperty('--brand-foreground', readableOn(a.brandColor))
   } else {
     root.style.removeProperty('--brand')
     root.style.removeProperty('--brand-foreground')
   }
-  root.dataset.radius = a.radius
   root.dataset.palette = a.palette || 'studio'
   try {
     localStorage.setItem('ks-palette', root.dataset.palette)

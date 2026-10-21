@@ -1,6 +1,6 @@
 /* Night palette (docs/design/theme.md §2): violet/cyan glass, both modes. */
 
-:root[data-palette="night"] {
+:root[data-ui="dock"][data-palette="night"] {
   color-scheme: light;
 
   --background: #EEF0FA;
@@ -42,6 +42,19 @@
   --bar: rgb(255 255 255 / .66);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .7), 0 10px 30px rgb(60 50 140 / .10);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .8), 0 18px 50px rgb(60 50 140 / .18);
+  --card-glass: none;
+  --danger-foreground: #FFFFFF;
+  --scrim: rgb(0 0 0 / .10);
+  --radius: 16px;
+  --radius-sm: 11px;
+  --pill: 9999px;
+  --border-w: 1px;
+  --dur-fast: 150ms;
+  --dur: 220ms;
+  --dur-slow: 350ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+  --lift: 0px;
   --chart-1: #4A3AA7;
   --chart-2: #1BAF7A;
   --chart-3: #2A78D6;
@@ -50,7 +63,7 @@
   --chart-6: #C026D3;
 }
 
-:root[data-palette="night"][data-theme="dark"] {
+:root[data-ui="dock"][data-palette="night"][data-theme="dark"] {
   color-scheme: dark;
 
   --background: #0B1020;
@@ -92,6 +105,19 @@
   --bar: rgb(22 29 51 / .72);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
   --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
+  --card-glass: none;
+  --danger-foreground: #FFFFFF;
+  --scrim: rgb(0 0 0 / .10);
+  --radius: 16px;
+  --radius-sm: 11px;
+  --pill: 9999px;
+  --border-w: 1px;
+  --dur-fast: 150ms;
+  --dur: 220ms;
+  --dur-slow: 350ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+  --lift: 0px;
   --chart-1: #9085E9;
   --chart-2: #199E70;
   --chart-3: #3987E5;
@@ -101,7 +127,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-palette="night"]:not([data-theme="light"]) {
+  :root[data-ui="dock"][data-palette="night"]:not([data-theme="light"]) {
     color-scheme: dark;
 
     --background: #0B1020;
@@ -143,6 +169,19 @@
     --bar: rgb(22 29 51 / .72);
     --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .35);
     --shadow-float: inset 0 1px 0 rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .5);
+    --card-glass: none;
+    --danger-foreground: #FFFFFF;
+    --scrim: rgb(0 0 0 / .10);
+    --radius: 16px;
+    --radius-sm: 11px;
+    --pill: 9999px;
+    --border-w: 1px;
+    --dur-fast: 150ms;
+    --dur: 220ms;
+    --dur-slow: 350ms;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+    --lift: 0px;
     --chart-1: #9085E9;
     --chart-2: #199E70;
     --chart-3: #3987E5;
@@ -154,12 +193,12 @@
 
 /* Glass costs GPU time on weak counter PCs; drop it under reduced transparency. */
 @media (prefers-reduced-transparency: reduce) {
-  :root[data-palette="night"] {
+  :root[data-ui="dock"][data-palette="night"] {
     --glass: none;
     --card: #FFFFFF;
   }
-  :root[data-palette="night"][data-theme="dark"],
-  :root[data-palette="night"]:not([data-theme="light"]) {
+  :root[data-ui="dock"][data-palette="night"][data-theme="dark"],
+  :root[data-ui="dock"][data-palette="night"]:not([data-theme="light"]) {
     --glass: none;
     --card: #121932;
   }

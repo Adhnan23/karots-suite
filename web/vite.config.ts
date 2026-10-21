@@ -11,5 +11,7 @@ export default defineConfig({
   resolve: { alias: { '@': path.resolve(dirname, 'src') } },
   build: { outDir: '../internal/spa/dist', emptyOutDir: true },
   server: { port: 5173, proxy: { '/api': 'http://localhost:3100' } },
-  test: { environment: 'jsdom', setupFiles: ['./src/test-setup.ts'], include: ['src/**/*.test.{ts,tsx}'] },
+  test: { environment: 'jsdom', setupFiles: ['./src/test-setup.ts'], include: ['src/**/*.test.{ts,tsx}'],
+    // palette files are read as ?raw (tokens.test.ts, paletteCss.ts); vitest blanks CSS it doesn't process
+    css: { include: /theme\/palettes\// } },
 })

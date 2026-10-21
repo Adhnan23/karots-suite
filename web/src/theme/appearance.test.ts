@@ -10,7 +10,8 @@ describe('applyAppearance', () => {
     const el = document.createElement('div')
     applyAppearance({ ...base, brandColor: '#0f766e', radius: 'round' }, el)
     expect(el.style.getPropertyValue('--brand')).toBe('#0f766e')
-    expect(el.dataset.radius).toBe('round')
+    expect(el.style.getPropertyValue('--radius')).toBe('22px')
+    expect(el.dataset.ui).toBe('dock')
     expect(el.dataset.density).toBeUndefined()
   })
   it('picks readable text for a custom brand', () => {
@@ -38,5 +39,12 @@ describe('applyAppearance', () => {
     const el = document.createElement('div')
     applyAppearance({ ...base, palette: 'night' }, el)
     expect(localStorage.getItem('ks-palette')).toBe('night')
+  })
+  it('legacy radius applies to a built-in only', () => {
+    const el = document.createElement('div')
+    applyAppearance({ ...base, radius: 'sharp' }, el)
+    expect(el.style.getPropertyValue('--radius')).toBe('6px')
+    applyAppearance({ ...base, radius: 'sharp', palette: 'custom-3' }, el)
+    expect(el.style.getPropertyValue('--radius')).toBe('')
   })
 })

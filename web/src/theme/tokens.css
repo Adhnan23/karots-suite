@@ -1,20 +1,7 @@
 /* Non-colour tokens shared by every palette (docs/design/theme.md §4, §5). Colour
  * tokens live one file per palette in ./palettes/*.css — see docs/design/theme.md §1. */
 
-/* §4 Radius (system-selectable, default "rounded") */
-:root,
-[data-radius="rounded"] {
-  --radius: 16px;
-  --radius-sm: 11px;
-}
-[data-radius="sharp"] {
-  --radius: 6px;
-  --radius-sm: 4px;
-}
-[data-radius="round"] {
-  --radius: 22px;
-  --radius-sm: 14px;
-}
+/* §4 Radius is a palette value now (--radius, --radius-sm in palettes/dock/*.css). */
 
 /* §5 Control height (the till's inputs) */
 :root {
