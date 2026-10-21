@@ -11,6 +11,7 @@ export const PAIRS: Pair[] = [
   { text: '--muted-foreground', on: '--card', min: 4.5, what: 'Muted text on cards' },
   { text: '--faint', on: '--card', min: 3, what: 'Faint text on cards' },
   { text: '--popover-foreground', on: '--popover', min: 4.5, what: 'Text in menus and dialogs' },
+  { text: '--accent-foreground', on: '--accent', min: 4.5, what: 'Hovered menu items and plain buttons' },
   { text: '--brand-foreground', on: '--brand', min: 4.5, what: 'Text on brand buttons' },
   { text: '--brand-2-foreground', on: '--brand-2', min: 3, what: 'Bold text on the second brand' },
   { text: '--selected-foreground', on: '--selected', min: 4.5, what: 'Selected tabs and segments' },

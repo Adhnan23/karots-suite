@@ -11,6 +11,7 @@ describe('AI prompt', () => {
     expect(p).toContain('--brand')
     expect(p).toContain(studio.light['--brand'])
     expect(p).toMatch(/only the JSON/i)
+    expect(p).toMatch(/--accent: HOVER background/) // a highlight colour there makes every hover loud
   })
 })
 
