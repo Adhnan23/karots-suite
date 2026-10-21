@@ -1,0 +1,381 @@
+<h2>Receipt designs — 10 ideas</h2>
+<p class="subtitle">One busy sale (item discount, a pack, a deal, a warranty + serial, bill saving, two tenders) in each design, at half size of an 80 mm roll. Thermal paper is black on white only. Click the ones you like — more than one is fine.</p>
+
+<style>
+  .rcpts { display:flex; flex-wrap:wrap; gap:28px; align-items:flex-start; }
+  .rc { width:288px; background:#fff; color:#000; box-shadow:0 2px 14px rgba(0,0,0,.25); padding:14px 12px 18px; font-size:10px; line-height:13px; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; }
+  .sans { font-family:"Inter", "Helvetica Neue", Arial, sans-serif; }
+  .row { display:flex; justify-content:space-between; gap:8px; }
+  .row > span:last-child { white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .c { text-align:center; }
+  .b { font-weight:700; }
+  .dash { border-top:1px dashed #000; margin:5px 0; }
+  .rule { border-top:1px solid #000; margin:6px 0; }
+  .thick { border-top:3px solid #000; margin:7px 0; }
+  .ind { padding-left:12px; }
+  .small { font-size:8.5px; line-height:11px; }
+  .bc { display:block; margin:6px auto 2px; }
+  .lead { display:flex; align-items:baseline; gap:3px; }
+  .lead .dots { flex:1; border-bottom:1px dotted #000; transform:translateY(-3px); }
+  .tag { display:inline-block; border:1px solid #000; border-radius:2px; padding:0 3px; font-size:8px; line-height:11px; margin-left:4px; }
+  .inv { background:#000; color:#fff; }
+  .card-pick { cursor:pointer; display:flex; flex-direction:column; gap:8px; }
+  .card-pick h3 { margin:0; font-size:15px; }
+  .card-pick p { margin:0; font-size:12px; opacity:.8; max-width:288px; }
+  .card-pick.selected .rc { outline:3px solid #3b82f6; outline-offset:4px; }
+</style>
+
+<div class="rcpts">
+
+  <!-- A: Classic (today) -->
+  <div class="card-pick option" data-choice="classic" onclick="toggleSelect(this)">
+    <h3>Classic (today's)</h3>
+    <p>Today's Image design, for comparison. Stays the default.</p>
+    <div class="rc mono">
+      <div class="c b" style="font-size:19px;line-height:24px">Karots Mart</div>
+      <div class="c">123 Galle Road, Colombo 03<br>Tel: 0112345678</div>
+      <div class="dash"></div>
+      <div class="row"><span>Receipt:</span><span>S-00231</span></div>
+      <div class="row"><span>Date:</span><span>2026-10-21 14:05</span></div>
+      <div class="row"><span>Cashier:</span><span>Nimal</span></div>
+      <div class="dash"></div>
+      <div>Basmati Rice 5kg</div>
+      <div class="row"><span>&nbsp; 1.00 pcs x 2,450.00 -&gt; 2,205.00</span><span>2,450.00</span></div>
+      <div class="row"><span>&nbsp; You saved (10%)</span><span>-245.00</span></div>
+      <div class="row"><span>&nbsp; Line total</span><span>2,205.00</span></div>
+      <div>Panadol 500mg</div>
+      <div class="row"><span>&nbsp; 14.00 tab (1 Card + 2)</span><span>350.00</span></div>
+      <div>Tea &amp; biscuit deal</div>
+      <div class="row"><span>&nbsp; 2 x 300.00 -&gt; 270.00</span><span>600.00</span></div>
+      <div class="row"><span>&nbsp; You saved</span><span>-60.00</span></div>
+      <div>&nbsp;&nbsp; - Ceylon Tea 100g x2</div>
+      <div>&nbsp;&nbsp; - Marie Biscuit x2</div>
+      <div>Samsung 25W Charger</div>
+      <div class="row"><span>&nbsp; 1.00 pcs x 3,500.00</span><span>3,500.00</span></div>
+      <div>&nbsp; 12-month warranty until 2027-10-21</div>
+      <div>&nbsp; SN: SC-88231</div>
+      <div class="dash"></div>
+      <div class="row"><span>Subtotal</span><span>Rs. 6,900.00</span></div>
+      <div class="row"><span>Item savings</span><span>-Rs. 305.00</span></div>
+      <div class="row"><span>Bill saving (5%)</span><span>-Rs. 330.00</span></div>
+      <div class="row b" style="font-size:13px;line-height:20px"><span>TOTAL</span><span>Rs. 6,265.00</span></div>
+      <div class="row"><span>You saved</span><span>Rs. 635.00</span></div>
+      <div class="row"><span>Cash</span><span>Rs. 3,000.00</span></div>
+      <div class="row"><span>Card</span><span>Rs. 3,500.00</span></div>
+      <div class="row b" style="font-size:13px;line-height:20px"><span>CHANGE</span><span>Rs. 235.00</span></div>
+      <div class="dash"></div>
+      <div class="c">Thank you! Come again.</div>
+      <div class="c small">Karots Business Suite</div>
+    </div>
+  </div>
+
+  <!-- B: Bold -->
+  <div class="card-pick option" data-choice="bold" onclick="toggleSelect(this)">
+    <h3>Bold</h3>
+    <p>Black header band, clean sans type, savings as small tags, a solid black TOTAL band, and the receipt number as a barcode to scan back in.</p>
+    <div class="rc sans">
+      <div class="inv c" style="margin:-14px -12px 8px;padding:10px 0 8px">
+        <div class="b" style="font-size:20px;line-height:24px;letter-spacing:.5px">KAROTS MART</div>
+        <div class="small">123 Galle Road, Colombo 03 · 0112345678</div>
+      </div>
+      <div class="row small"><span>S-00231 · Nimal</span><span>21 Oct 2026, 14:05</span></div>
+      <div class="thick"></div>
+      <div class="row b"><span>Basmati Rice 5kg</span><span>2,205.00</span></div>
+      <div class="row small"><span>1 × 2,450.00 <span class="tag">-10% · 245.00</span></span><span></span></div>
+      <div class="row b" style="margin-top:4px"><span>Panadol 500mg</span><span>350.00</span></div>
+      <div class="small">14 tab · 1 Card + 2</div>
+      <div class="row b" style="margin-top:4px"><span>Tea &amp; biscuit deal ×2</span><span>540.00</span></div>
+      <div class="small">Ceylon Tea 100g ×2 · Marie Biscuit ×2 <span class="tag">saved 60.00</span></div>
+      <div class="row b" style="margin-top:4px"><span>Samsung 25W Charger</span><span>3,500.00</span></div>
+      <div class="small">SN SC-88231 · warranty to 21 Oct 2027</div>
+      <div class="rule"></div>
+      <div class="row"><span>Subtotal</span><span>6,900.00</span></div>
+      <div class="row"><span>Item savings</span><span>−305.00</span></div>
+      <div class="row"><span>Bill saving 5%</span><span>−330.00</span></div>
+      <div class="inv row b" style="margin:6px -12px;padding:7px 12px;font-size:16px;line-height:20px"><span>TOTAL</span><span>Rs. 6,265.00</span></div>
+      <div class="row"><span>Cash</span><span>3,000.00</span></div>
+      <div class="row"><span>Card</span><span>3,500.00</span></div>
+      <div class="row b" style="font-size:13px;line-height:18px"><span>Change</span><span>Rs. 235.00</span></div>
+      <div class="c b" style="margin-top:6px">You saved Rs. 635.00 today</div>
+      <svg class="bc" width="200" height="34" data-code="S-00231"></svg>
+      <div class="c small">S-00231</div>
+      <div class="c" style="margin-top:6px">Thank you! Come again.</div>
+      <div class="c small">Karots Business Suite</div>
+    </div>
+  </div>
+
+  <!-- C: Minimal -->
+  <div class="card-pick option" data-choice="minimal" onclick="toggleSelect(this)">
+    <h3>Minimal</h3>
+    <p>Lots of white, small-caps labels, thin rules, prices on dotted leaders, a big quiet total. Barcode and QR at the foot.</p>
+    <div class="rc sans">
+      <div class="c" style="font-size:17px;line-height:22px;font-weight:300;letter-spacing:3px">KAROTS MART</div>
+      <div class="c small" style="letter-spacing:1px">COLOMBO 03 · 0112345678</div>
+      <div style="height:10px"></div>
+      <div class="row small" style="letter-spacing:1px"><span>RECEIPT S-00231</span><span>21.10.2026 14:05</span></div>
+      <div class="rule"></div>
+      <div class="lead"><span>Basmati Rice 5kg</span><span class="dots"></span><span>2,205.00</span></div>
+      <div class="small ind">1 × 2,450.00 · less 10% (245.00)</div>
+      <div class="lead" style="margin-top:3px"><span>Panadol 500mg</span><span class="dots"></span><span>350.00</span></div>
+      <div class="small ind">14 tab · 1 Card + 2</div>
+      <div class="lead" style="margin-top:3px"><span>Tea &amp; biscuit deal ×2</span><span class="dots"></span><span>540.00</span></div>
+      <div class="small ind">Ceylon Tea ×2 · Marie Biscuit ×2 · less 60.00</div>
+      <div class="lead" style="margin-top:3px"><span>Samsung 25W Charger</span><span class="dots"></span><span>3,500.00</span></div>
+      <div class="small ind">SN SC-88231 · 12 mo. warranty → 21.10.2027</div>
+      <div class="rule"></div>
+      <div class="row small"><span>SUBTOTAL</span><span>6,900.00</span></div>
+      <div class="row small"><span>SAVINGS</span><span>−635.00</span></div>
+      <div style="height:6px"></div>
+      <div class="row" style="align-items:baseline"><span class="small" style="letter-spacing:1px">TOTAL</span><span style="font-size:22px;line-height:26px;font-weight:300">6,265.00</span></div>
+      <div class="rule"></div>
+      <div class="row small"><span>CASH</span><span>3,000.00</span></div>
+      <div class="row small"><span>CARD</span><span>3,500.00</span></div>
+      <div class="row small b"><span>CHANGE</span><span>235.00</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <svg width="160" height="30" data-code="S-00231"></svg>
+        <svg width="44" height="44" data-qr="1"></svg>
+      </div>
+      <div class="c small" style="margin-top:8px;letter-spacing:1px">THANK YOU</div>
+    </div>
+  </div>
+
+  <!-- D: Ticket -->
+  <div class="card-pick option" data-choice="ticket" onclick="toggleSelect(this)">
+    <h3>Ticket</h3>
+    <p>Feels like a ticket stub: the receipt number big at the top with its barcode right there (easy to scan for returns), framed boxes, a tear line before the footer.</p>
+    <div class="rc mono">
+      <div class="c b" style="font-size:15px;line-height:20px">KAROTS MART</div>
+      <div class="c small">123 Galle Road, Colombo 03 · 0112345678</div>
+      <div style="border:2px solid #000;border-radius:4px;margin:8px 0;padding:6px 6px 4px" class="c">
+        <div class="small">RECEIPT</div>
+        <div class="b" style="font-size:18px;line-height:22px">S-00231</div>
+        <svg class="bc" width="210" height="30" data-code="S-00231"></svg>
+        <div class="small">21 Oct 2026 14:05 · Nimal</div>
+      </div>
+      <div class="row b"><span>Basmati Rice 5kg</span><span>2,205.00</span></div>
+      <div class="row small ind"><span>1 x 2,450.00  -10%</span><span>-245.00</span></div>
+      <div class="row b"><span>Panadol 500mg</span><span>350.00</span></div>
+      <div class="small ind">14 tab (1 Card + 2)</div>
+      <div class="row b"><span>Tea &amp; biscuit deal</span><span>540.00</span></div>
+      <div class="row small ind"><span>2 sets, Ceylon Tea x2, Marie x2</span><span>-60.00</span></div>
+      <div class="row b"><span>Samsung 25W Charger</span><span>3,500.00</span></div>
+      <div class="small ind">SN SC-88231 · wty 2027-10-21</div>
+      <div style="border:2px solid #000;border-radius:4px;margin:8px 0;padding:5px 6px">
+        <div class="row"><span>Subtotal</span><span>6,900.00</span></div>
+        <div class="row"><span>Savings</span><span>-635.00</span></div>
+        <div class="row b" style="font-size:14px;line-height:19px"><span>TOTAL</span><span>Rs. 6,265.00</span></div>
+        <div class="dash"></div>
+        <div class="row"><span>Cash</span><span>3,000.00</span></div>
+        <div class="row"><span>Card</span><span>3,500.00</span></div>
+        <div class="row b"><span>Change</span><span>235.00</span></div>
+      </div>
+      <div class="c small" style="letter-spacing:2px">- - - - - - - ✂ - - - - - - -</div>
+      <div class="c" style="margin-top:4px">Thank you! Come again.</div>
+      <div class="c small">Keep this slip for returns &amp; warranty</div>
+    </div>
+  </div>
+
+  <!-- E: Poster -->
+  <div class="card-pick option" data-choice="poster" onclick="toggleSelect(this)">
+    <h3>Poster</h3>
+    <p>Upside down from normal: the total is the headline, huge, at the very top. The shop name runs sideways down the edge. Items come after as a quiet list.</p>
+    <div class="rc sans" style="display:flex;gap:8px;padding-left:6px">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-weight:900;font-size:22px;letter-spacing:4px;border-right:3px solid #000;padding-left:4px">KAROTS MART</div>
+      <div style="flex:1;min-width:0">
+        <div class="small b" style="letter-spacing:2px">YOU PAID</div>
+        <div style="font-size:38px;line-height:40px;font-weight:900;letter-spacing:-1px">6,265</div>
+        <div class="b">Rupees · saved 635.00</div>
+        <div class="thick"></div>
+        <div class="row b"><span>Basmati Rice 5kg</span><span>2,205</span></div>
+        <div class="small">1 × 2,450 · 10% off −245</div>
+        <div class="row b"><span>Panadol 500mg</span><span>350</span></div>
+        <div class="small">14 tab · 1 Card + 2</div>
+        <div class="row b"><span>Tea + biscuit ×2</span><span>540</span></div>
+        <div class="small">Ceylon Tea ×2, Marie ×2 · −60</div>
+        <div class="row b"><span>Samsung Charger</span><span>3,500</span></div>
+        <div class="small">SN SC-88231 · warranty → 10/2027</div>
+        <div class="rule"></div>
+        <div class="row small"><span>Subtotal 6,900 · bill −330</span><span></span></div>
+        <div class="row small"><span>Cash 3,000 · Card 3,500</span><span class="b">change 235</span></div>
+        <div class="rule"></div>
+        <div class="row small"><span>S-00231<br>21.10.26 14:05 · Nimal</span><svg width="70" height="26" data-code="S-00231"></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- F: Grid -->
+  <div class="card-pick option" data-choice="grid" onclick="toggleSelect(this)">
+    <h3>Grid</h3>
+    <p>A real table, like an invoice: black header row, QTY / ITEM / AMOUNT columns with lines between cells, discounts in their own column.</p>
+    <div class="rc sans">
+      <div class="row" style="align-items:flex-end"><span class="b" style="font-size:16px;line-height:18px">Karots<br>Mart</span><span class="small" style="text-align:right">INVOICE S-00231<br>21 Oct 2026 · 14:05<br>Cashier Nimal</span></div>
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:9px;line-height:12px">
+        <tr class="inv b"><td style="padding:2px 3px">QTY</td><td style="padding:2px 3px">ITEM</td><td style="padding:2px 3px;text-align:right">OFF</td><td style="padding:2px 3px;text-align:right">AMT</td></tr>
+        <tr style="border-bottom:1px solid #000"><td style="padding:2px 3px;vertical-align:top">1</td><td style="padding:2px 3px">Basmati Rice 5kg<div class="small">@ 2,450.00</div></td><td style="padding:2px 3px;text-align:right;vertical-align:top">10%</td><td style="padding:2px 3px;text-align:right;vertical-align:top">2,205.00</td></tr>
+        <tr style="border-bottom:1px solid #000"><td style="padding:2px 3px;vertical-align:top">14</td><td style="padding:2px 3px">Panadol 500mg<div class="small">1 Card + 2</div></td><td></td><td style="padding:2px 3px;text-align:right;vertical-align:top">350.00</td></tr>
+        <tr style="border-bottom:1px solid #000"><td style="padding:2px 3px;vertical-align:top">2</td><td style="padding:2px 3px">Tea &amp; biscuit deal<div class="small">Ceylon Tea ×2, Marie ×2</div></td><td style="padding:2px 3px;text-align:right;vertical-align:top">60.00</td><td style="padding:2px 3px;text-align:right;vertical-align:top">540.00</td></tr>
+        <tr style="border-bottom:2px solid #000"><td style="padding:2px 3px;vertical-align:top">1</td><td style="padding:2px 3px">Samsung 25W Charger<div class="small">SN SC-88231 · wty 21.10.2027</div></td><td></td><td style="padding:2px 3px;text-align:right;vertical-align:top">3,500.00</td></tr>
+      </table>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <div style="width:62%">
+          <div class="row"><span>Subtotal</span><span>6,900.00</span></div>
+          <div class="row"><span>Bill 5%</span><span>−330.00</span></div>
+          <div class="row b inv" style="padding:3px 4px;font-size:12px;line-height:16px;margin:3px 0"><span>TOTAL</span><span>6,265.00</span></div>
+          <div class="row"><span>Cash</span><span>3,000.00</span></div>
+          <div class="row"><span>Card</span><span>3,500.00</span></div>
+          <div class="row b"><span>Change</span><span>235.00</span></div>
+        </div>
+      </div>
+      <svg class="bc" width="220" height="24" data-code="S-00231"></svg>
+      <div class="c small">Thank you — Karots Business Suite</div>
+    </div>
+  </div>
+
+  <!-- G: Stamp -->
+  <div class="card-pick option" data-choice="stamp" onclick="toggleSelect(this)">
+    <h3>Stamp</h3>
+    <p>Playful: a round "PAID" stamp tilted over the total, big outlined shop name, items in two lines with the price set hard right. Good for a shop that wants personality.</p>
+    <div class="rc sans" style="position:relative">
+      <div class="c" style="font-size:24px;line-height:28px;font-weight:900;color:#fff;-webkit-text-stroke:1.2px #000;letter-spacing:1px">KAROTS</div>
+      <div class="c b" style="letter-spacing:6px;font-size:9px">— MART —</div>
+      <div class="c small">Colombo 03 · 0112345678</div>
+      <div class="dash" style="margin-top:8px"></div>
+      <div class="b">Basmati Rice 5kg</div>
+      <div class="row small"><span>1 × 2,450 · 10% off</span><span class="b" style="font-size:10px">2,205.00</span></div>
+      <div class="b">Panadol 500mg</div>
+      <div class="row small"><span>14 tab · 1 Card + 2</span><span class="b" style="font-size:10px">350.00</span></div>
+      <div class="b">Tea &amp; biscuit deal</div>
+      <div class="row small"><span>×2 · saved 60</span><span class="b" style="font-size:10px">540.00</span></div>
+      <div class="b">Samsung 25W Charger</div>
+      <div class="row small"><span>SN SC-88231 · wty 10/2027</span><span class="b" style="font-size:10px">3,500.00</span></div>
+      <div class="dash"></div>
+      <div class="row small"><span>Subtotal</span><span>6,900.00</span></div>
+      <div class="row small"><span>Savings</span><span>−635.00</span></div>
+      <div class="row b" style="font-size:18px;line-height:24px;margin-top:4px"><span>Total</span><span>6,265.00</span></div>
+      <div style="position:absolute;right:8px;top:10px;width:62px;height:62px;border:3px solid #000;border-radius:50%;transform:rotate(-16deg);display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div class="b" style="font-size:16px;letter-spacing:2px">PAID</div><div style="font-size:7px">21 OCT 2026</div>
+      </div>
+      <div class="row small" style="margin-top:6px"><span>Cash 3,000 · Card 3,500</span><span class="b">Change 235</span></div>
+      <svg class="bc" width="180" height="26" data-code="S-00231"></svg>
+      <div class="c small">S-00231 · Nimal · 14:05</div>
+      <div class="c b" style="margin-top:4px">Thanks for shopping with us!</div>
+    </div>
+  </div>
+
+  <!-- H: Elegant -->
+  <div class="card-pick option" data-choice="elegant" onclick="toggleSelect(this)">
+    <h3>Elegant</h3>
+    <p>Serif type, centred, ornament dividers, item names in italic, a centred total between double rules. For boutiques, pharmacies, gift shops.</p>
+    <div class="rc" style="font-family:Georgia,'Times New Roman',serif;text-align:center">
+      <div style="font-size:20px;line-height:24px;letter-spacing:2px">Karots Mart</div>
+      <div class="small" style="font-style:italic">est. 2019 · Colombo 03</div>
+      <div style="margin:6px 0;letter-spacing:4px">◆ ━━━━━ ◆ ━━━━━ ◆</div>
+      <div class="small">No. S-00231 &nbsp;·&nbsp; 21 October 2026, 2.05 pm</div>
+      <div style="height:8px"></div>
+      <div style="text-align:left">
+        <div class="row"><span style="font-style:italic">Basmati Rice 5kg</span><span>2,205.00</span></div>
+        <div class="small" style="opacity:.9">one at 2,450.00, ten per cent off</div>
+        <div class="row" style="margin-top:3px"><span style="font-style:italic">Panadol 500mg</span><span>350.00</span></div>
+        <div class="small">fourteen tablets · one card and two</div>
+        <div class="row" style="margin-top:3px"><span style="font-style:italic">Tea &amp; biscuit deal ×2</span><span>540.00</span></div>
+        <div class="small">Ceylon Tea, Marie Biscuit · saved 60.00</div>
+        <div class="row" style="margin-top:3px"><span style="font-style:italic">Samsung 25W Charger</span><span>3,500.00</span></div>
+        <div class="small">serial SC-88231 · guaranteed until Oct 2027</div>
+      </div>
+      <div style="border-top:3px double #000;margin:8px 0 4px"></div>
+      <div class="small" style="letter-spacing:3px">TOTAL</div>
+      <div style="font-size:22px;line-height:26px">Rs. 6,265.00</div>
+      <div class="small" style="font-style:italic">you saved Rs. 635.00</div>
+      <div style="border-top:3px double #000;margin:4px 0 6px"></div>
+      <div class="row small" style="text-align:left"><span>Cash 3,000.00 · Card 3,500.00</span><span>change 235.00</span></div>
+      <div style="margin:6px 0;letter-spacing:4px">◆</div>
+      <div style="font-style:italic">With thanks, until next time.</div>
+      <svg class="bc" width="170" height="22" data-code="S-00231"></svg>
+    </div>
+  </div>
+
+  <!-- I: Cards -->
+  <div class="card-pick option" data-choice="cards" onclick="toggleSelect(this)">
+    <h3>Cards</h3>
+    <p>Every item in its own rounded box, like an app screen; the total is a big rounded pill. Modern, friendly, easy to read.</p>
+    <div class="rc sans">
+      <div class="row" style="align-items:center"><span class="b" style="font-size:16px">Karots Mart</span><span style="border:1.5px solid #000;border-radius:10px;padding:1px 7px" class="small b">S-00231</span></div>
+      <div class="small">21 Oct 2026 · 14:05 · Nimal</div>
+      <div style="height:6px"></div>
+      <div style="border:1.5px solid #000;border-radius:8px;padding:4px 6px;margin-bottom:4px">
+        <div class="row b"><span>Basmati Rice 5kg</span><span>2,205.00</span></div>
+        <div class="row small"><span>1 × 2,450.00</span><span>−10% · −245.00</span></div>
+      </div>
+      <div style="border:1.5px solid #000;border-radius:8px;padding:4px 6px;margin-bottom:4px">
+        <div class="row b"><span>Panadol 500mg</span><span>350.00</span></div>
+        <div class="small">14 tab · 1 Card + 2</div>
+      </div>
+      <div style="border:1.5px solid #000;border-radius:8px;padding:4px 6px;margin-bottom:4px">
+        <div class="row b"><span>Tea &amp; biscuit deal ×2</span><span>540.00</span></div>
+        <div class="row small"><span>Ceylon Tea ×2 · Marie ×2</span><span>−60.00</span></div>
+      </div>
+      <div style="border:1.5px solid #000;border-radius:8px;padding:4px 6px;margin-bottom:6px">
+        <div class="row b"><span>Samsung 25W Charger</span><span>3,500.00</span></div>
+        <div class="small">SN SC-88231 · warranty to 21 Oct 2027</div>
+      </div>
+      <div class="row small"><span>Subtotal 6,900.00</span><span>Savings −635.00</span></div>
+      <div class="inv row b" style="border-radius:16px;padding:6px 12px;margin:6px 0;font-size:15px;line-height:19px"><span>Total</span><span>Rs. 6,265.00</span></div>
+      <div class="row small"><span>Cash 3,000.00 · Card 3,500.00</span><span class="b">Change 235.00</span></div>
+      <svg class="bc" width="200" height="26" data-code="S-00231"></svg>
+      <div class="c small">Scan at the counter for returns · Thank you!</div>
+    </div>
+  </div>
+
+  <!-- J: Sections -->
+  <div class="card-pick option" data-choice="sections" onclick="toggleSelect(this)">
+    <h3>Sections</h3>
+    <p>The slip is split into labelled parts with black section bars (ITEMS, YOU SAVED, PAYMENT). Each part is easy to find at a glance; savings get their own block.</p>
+    <div class="rc mono">
+      <div class="c b" style="font-size:16px;line-height:20px">KAROTS MART</div>
+      <div class="c small">0112345678 · S-00231 · 21/10/26 14:05</div>
+      <div class="inv b small" style="margin:8px -12px 4px;padding:2px 12px;letter-spacing:2px">■ ITEMS</div>
+      <div class="row"><span>Basmati Rice 5kg</span><span>2,450.00</span></div>
+      <div class="row"><span>Panadol 500mg (14 tab)</span><span>350.00</span></div>
+      <div class="row"><span>Tea &amp; biscuit deal x2</span><span>600.00</span></div>
+      <div class="row"><span>Samsung 25W Charger</span><span>3,500.00</span></div>
+      <div class="small ind">SN SC-88231 · wty 2027-10-21</div>
+      <div class="inv b small" style="margin:8px -12px 4px;padding:2px 12px;letter-spacing:2px">■ YOU SAVED</div>
+      <div class="row"><span>Rice 10%</span><span>-245.00</span></div>
+      <div class="row"><span>Tea deal</span><span>-60.00</span></div>
+      <div class="row"><span>Bill 5%</span><span>-330.00</span></div>
+      <div class="row b"><span>Saved</span><span>Rs. 635.00</span></div>
+      <div class="inv b small" style="margin:8px -12px 4px;padding:2px 12px;letter-spacing:2px">■ PAYMENT</div>
+      <div class="row b" style="font-size:14px;line-height:19px"><span>TOTAL</span><span>Rs. 6,265.00</span></div>
+      <div class="row"><span>Cash</span><span>3,000.00</span></div>
+      <div class="row"><span>Card</span><span>3,500.00</span></div>
+      <div class="row b"><span>Change</span><span>235.00</span></div>
+      <svg class="bc" width="210" height="26" data-code="S-00231"></svg>
+      <div class="c small">Thank you! Come again.</div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:22px">Not drawn here but every design will carry them: payouts ("Given"), the credit block (DUE / TOTAL DUE / advance left), rounding kept, returned lines, the logo, the Sinhala / Tamil shop name, and the refund / money / credit / warranty / repair slips in the same style.</p>
+
+<script>
+  // Fake Code 128-looking bars and a QR-looking square, for the mockup only.
+  function rnd(seed) { let s = seed; return () => (s = (s * 9301 + 49297) % 233280) / 233280 }
+  document.querySelectorAll('svg[data-code]').forEach((svg) => {
+    const w = +svg.getAttribute('width'), h = +svg.getAttribute('height'), r = rnd(svg.dataset.code.length * 77 + 3)
+    let x = 6, out = ''
+    while (x < w - 8) { const bw = 1 + Math.floor(r() * 3); if (r() > 0.45) out += `<rect x="${x}" y="0" width="${bw}" height="${h}" fill="#000"/>`; x += bw + 1 }
+    svg.innerHTML = out
+  })
+  document.querySelectorAll('svg[data-qr]').forEach((svg) => {
+    const n = 21, s = +svg.getAttribute('width') / n, r = rnd(11)
+    let out = ''
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const finder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13)
+      const on = finder ? (x % 6 === 0 || y % 6 === 0 || (x % 7 > 1 && x % 7 < 5 && y % 7 > 1 && y % 7 < 5) || (x > 13 && ((x - 14) % 6 === 0 || ((x - 14) > 1 && (x - 14) < 5 && y > 1 && y < 5)))) : r() > 0.5
+      if (on) out += `<rect x="${x * s}" y="${y * s}" width="${s}" height="${s}" fill="#000"/>`
+    }
+    svg.innerHTML = out
+  })
+</script>

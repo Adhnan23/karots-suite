@@ -1,0 +1,75 @@
+<h2>Appearance → Receipt style (system user only)</h2>
+<p class="subtitle">Ten styles as live thumbnails of this shop's own receipt; the big preview is the exact picture the printer gets. Pick a slip type, a roll width and a sample to check every case before saving.</p>
+
+<style>
+  .app { display:flex; gap:22px; align-items:flex-start; background:#f7f5f0; border-radius:18px; padding:20px; color:#1c1917; font-family:Inter, system-ui, sans-serif; }
+  .left { flex:1; min-width:0; }
+  .sec { font-size:12px; font-weight:700; color:#78716c; margin:0 0 8px; letter-spacing:.3px; }
+  .grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; }
+  .th { background:#fff; border:2px solid transparent; border-radius:14px; padding:8px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .th.on { border-color:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.25); }
+  .th .mini { height:118px; overflow:hidden; background:#fff; border:1px solid #e7e5e4; border-radius:4px; padding:5px; font-size:5px; line-height:6.5px; color:#000; }
+  .th > b { display:block; font-size:12px; margin-top:6px; }
+  .th > span { font-size:10.5px; color:#78716c; }
+  .mini b { font-size:inherit; }
+  .right { width:330px; flex-shrink:0; background:#fff; border-radius:18px; padding:14px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .seg { display:flex; background:#f5f5f4; border-radius:999px; padding:3px; gap:2px; margin-bottom:8px; flex-wrap:wrap; }
+  .seg button { border:0; background:transparent; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:600; color:#57534e; cursor:pointer; }
+  .seg button.on { background:#fff; color:#1c1917; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .paper { margin:10px auto 0; width:288px; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.18); padding:14px 12px; font-family:"JetBrains Mono", monospace; font-size:10px; line-height:13px; color:#000; }
+  .row { display:flex; justify-content:space-between; }
+  .c { text-align:center } .b { font-weight:700 }
+  .save { margin-top:14px; display:flex; justify-content:space-between; align-items:center; }
+  .save button { background:#f59e0b; color:#1c1917; border:0; border-radius:14px; padding:11px 22px; font-weight:700; box-shadow:0 4px 16px rgba(245,158,11,.4); }
+  .note { font-size:11px; color:#78716c; }
+  .warn { margin-top:12px; font-size:11.5px; background:#fef3c7; border-radius:10px; padding:8px 10px; color:#78350f; }
+</style>
+
+<div class="app">
+  <div class="left">
+    <div class="sec">RECEIPT STYLE · IMAGE MODE</div>
+    <div class="grid">
+      <div class="th"><div class="mini"><div class="c b" style="font-size:8px;line-height:9px">My Shop</div><div class="c">Colombo 03</div>- - - - - - - - - - - - -<br>Receipt S-00231<br>Basmati 5kg ..... 2,205<br>Panadol ......... 350<br>- - - - - - - - - - - - -<br><b>TOTAL ..... 6,265.00</b><br>CHANGE ...... 235.00</div><b>Classic</b><span>Default</span></div>
+      <div class="th on"><div class="mini" style="font-family:Inter"><div class="c b" style="background:#000;color:#fff;margin:-5px -5px 3px;padding:4px 0;font-size:8px">MY SHOP</div>S-00231 · Nimal<br><b>Basmati 5kg</b> 2,205<br><b>Panadol</b> 350<br><b>Charger</b> 3,500<br><div class="b" style="background:#000;color:#fff;margin:3px -5px;padding:3px 5px">TOTAL 6,265.00</div><div style="height:9px;background:repeating-linear-gradient(90deg,#000 0 1px,#fff 1px 3px)"></div></div><b>Bold</b><span>Selected</span></div>
+      <div class="th"><div class="mini" style="font-family:Inter"><div class="c" style="letter-spacing:2px;font-size:7px">MY SHOP</div><br>Basmati ........ 2,205<br>Panadol ........... 350<br><div style="text-align:right;font-size:10px;line-height:12px">6,265.00</div></div><b>Minimal</b><span></span></div>
+      <div class="th"><div class="mini"><div class="c b">MY SHOP</div><div style="border:1px solid #000;border-radius:2px;margin:2px 0;padding:2px" class="c"><b style="font-size:8px">S-00231</b><div style="height:6px;background:repeating-linear-gradient(90deg,#000 0 1px,#fff 1px 3px)"></div></div>Basmati 2,205<br>Panadol 350<div style="border:1px solid #000;margin-top:2px;padding:1px"><b>TOTAL 6,265</b></div></div><b>Ticket</b><span></span></div>
+      <div class="th"><div class="mini" style="font-family:Inter;display:flex;gap:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg);font-weight:900;font-size:8px">MY SHOP</div><div>YOU PAID<div style="font-size:14px;line-height:15px;font-weight:900">6,265</div>Basmati 2,205<br>Panadol 350</div></div><b>Poster</b><span></span></div>
+      <div class="th"><div class="mini" style="font-family:Inter"><b>My Shop</b><div style="background:#000;color:#fff;display:flex;justify-content:space-between;padding:1px">QTY ITEM <span style="color:#fff">AMT</span></div>1 Basmati 2,205<br>14 Panadol 350<br><div style="background:#000;color:#fff;margin-left:40%;padding:1px">TOTAL 6,265</div></div><b>Grid</b><span></span></div>
+      <div class="th"><div class="mini" style="font-family:Inter;position:relative"><div class="c" style="font-size:9px;font-weight:900;color:#fff;-webkit-text-stroke:.5px #000">MY SHOP</div>Basmati 2,205<br>Panadol 350<div style="position:absolute;right:4px;top:14px;width:22px;height:22px;border:1.5px solid #000;border-radius:50%;transform:rotate(-15deg);font-size:5px;display:flex;align-items:center;justify-content:center"><b>PAID</b></div><br><b style="font-size:8px">Total 6,265</b></div><b>Stamp</b><span></span></div>
+      <div class="th"><div class="mini" style="font-family:Georgia;text-align:center"><div style="font-size:8px">My Shop</div>◆ ━━ ◆ ━━ ◆<br><i>Basmati</i> 2,205<br><i>Panadol</i> 350<div style="border-top:2px double #000;margin-top:2px"></div>TOTAL<div style="font-size:9px">6,265.00</div></div><b>Elegant</b><span></span></div>
+      <div class="th"><div class="mini" style="font-family:Inter"><b>My Shop</b><div style="border:1px solid #000;border-radius:3px;padding:1px;margin:2px 0">Basmati 2,205</div><div style="border:1px solid #000;border-radius:3px;padding:1px;margin:2px 0">Panadol 350</div><div style="background:#000;color:#fff;border-radius:6px;padding:2px 4px" class="b">Total 6,265</div></div><b>Cards</b><span></span></div>
+      <div class="th"><div class="mini"><div class="c b">MY SHOP</div><div style="background:#000;color:#fff;margin:2px -5px;padding:0 5px">■ ITEMS</div>Basmati 2,450<br>Panadol 350<div style="background:#000;color:#fff;margin:2px -5px;padding:0 5px">■ YOU SAVED</div>-635<div style="background:#000;color:#fff;margin:2px -5px;padding:0 5px">■ PAYMENT</div><b>TOTAL 6,265</b></div><b>Sections</b><span></span></div>
+    </div>
+    <div class="warn">This shop prints <b>Classic</b> — receipt styles apply once Settings → Printers → Print receipts as is set to <b>Image</b>.</div>
+  </div>
+
+  <div class="right">
+    <div class="sec">PREVIEW · EXACTLY AS IT PRINTS</div>
+    <div class="seg"><button class="on">Sale</button><button>Refund</button><button>Cash in/out</button><button>Credit</button><button>Warranty</button><button>Repair</button></div>
+    <div style="display:flex;gap:8px">
+      <div class="seg"><button class="on">80 mm</button><button>58 mm</button></div>
+      <div class="seg"><button class="on">Busy sale</button><button>Simple</button><button>On credit</button></div>
+    </div>
+    <div class="paper" style="font-family:Inter, sans-serif">
+      <div style="background:#000;color:#fff;margin:-14px -12px 8px;padding:10px 0 8px" class="c"><div class="b" style="font-size:19px;line-height:23px">MY SHOP</div><div style="font-size:8.5px">123 Galle Road, Colombo 03 · 0112345678</div></div>
+      <div class="row" style="font-size:8.5px"><span>S-00231 · Nimal</span><span>21 Oct 2026, 14:05</span></div>
+      <div style="border-top:3px solid #000;margin:6px 0"></div>
+      <div class="row b"><span>Basmati Rice 5kg</span><span>2,205.00</span></div>
+      <div style="font-size:8.5px">1 × 2,450.00 · −10% (245.00)</div>
+      <div class="row b"><span>Panadol 500mg</span><span>350.00</span></div>
+      <div style="font-size:8.5px">14 tab · 1 Card + 2</div>
+      <div class="row b"><span>Samsung 25W Charger</span><span>3,500.00</span></div>
+      <div style="font-size:8.5px">SN SC-88231 · warranty to 21 Oct 2027</div>
+      <div style="border-top:1px solid #000;margin:6px 0"></div>
+      <div class="row"><span>Subtotal</span><span>6,900.00</span></div>
+      <div class="row"><span>Savings</span><span>−635.00</span></div>
+      <div class="row b" style="background:#000;color:#fff;margin:6px -12px;padding:6px 12px;font-size:15px;line-height:19px"><span>TOTAL</span><span>Rs. 6,265.00</span></div>
+      <div class="row"><span>Cash</span><span>3,000.00</span></div>
+      <div class="row"><span>Card</span><span>3,500.00</span></div>
+      <div class="row b"><span>Change</span><span>Rs. 235.00</span></div>
+      <div style="height:26px;margin:8px 30px 2px;background:repeating-linear-gradient(90deg,#000 0 2px,#fff 2px 3px,#000 3px 4px,#fff 4px 7px)"></div>
+      <div class="c" style="font-size:8.5px">S-00231</div>
+    </div>
+    <div class="save"><span class="note">Applies to every slip, shop-wide</span><button>Save</button></div>
+  </div>
+</div>
