@@ -27,6 +27,13 @@ theme in `palettes/index.ts`; a palette editor on Appearance (every colour, ligh
 frosted / liquid glass, background, glow, shadow, radius, a Custom CSS box) saving custom palettes as CSS in the
 shop's DB, with Export / Import of the `.css`; the brand-colour and radius controls go then. Theme packs (sidebar /
 top-nav layouts, other tills) come later — `docs/specs/2026-09-27-karots-suite-design.md` §6.4.
+**After palettes: a Settings → Printing page** (user, 2026-10-21), before M8d. Printing is spread over Settings'
+"Shop & receipt", "Printers & labels" and "Till & cash" cards, Appearance and each user. One page with three
+sections: **Printers** (receipt + label printer, this computer's printer, test print, drawer kick), **Receipts** (paper
+width, Image / Classic, ask before printing, logo, footer, and the every-slip preview switcher from Appearance),
+**Labels** (default size now; label layouts + preview when labels print as pictures). The receipt **style stays a
+system-user choice on Appearance** (shown read-only on Printing); the Labels print tool stays an action page; per-user
+printers stay on Users with a pointer. Mockup first, then plan.
 
 **Print as image — BUILT (2026-10-21, Phases 1 + 2).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
 plan `docs/plans/2026-10-21-print-as-image.md` (all 12 tasks). Settings → Printers & labels → **Print receipts as:
