@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { slots } from '@/plugins/slots'
 import { TOKENS } from '@/theme/palettes/tokens'
 import type { PaletteDoc } from './paletteCss'
@@ -46,15 +46,23 @@ export function EditorControls({ doc, mode, onChange }: { doc: PaletteDoc; mode:
   const material = materialOf(cur)
   const motion = motionOf(cur)
   const radius = parseFloat(cur['--radius'] ?? '16') || 0
+  const [allColours, setAllColours] = useState(false)
+  // Derived colours (card foreground, ring…) follow another token; shown on request or once changed.
+  const shown = (name: string) => allColours || !(cur[name] ?? '').startsWith('var(')
   const subs = [...new Set(TOKENS.filter((t) => t.kind === 'color' && t.group === 'colour').map((t) => t.sub!))]
 
   return (
     <div className="flex flex-col gap-3">
       <Group title="Colours" hint={`Editing ${mode} mode`} open>
-        {subs.map((sub) => (
+        <label className="flex items-center gap-2 self-start text-sm font-semibold">
+          <input type="checkbox" checked={allColours} onChange={(e) => setAllColours(e.target.checked)} className="size-4 accent-(--brand)" />
+          Show all colours
+          <span className="font-normal text-faint">(the ones that follow another colour)</span>
+        </label>
+        {subs.filter((sub) => TOKENS.some((t) => t.sub === sub && shown(t.name))).map((sub) => (
           <div key={sub} className="flex flex-col gap-1.5">
             <p className="text-[11px] font-bold tracking-wide text-faint uppercase">{sub}</p>
-            {TOKENS.filter((t) => t.sub === sub).map((t) => (
+            {TOKENS.filter((t) => t.sub === sub && shown(t.name)).map((t) => (
               <ColourRow key={t.name} name={t.name} value={cur[t.name] ?? ''} onChange={(v) => setMode({ ...cur, [t.name]: v })} />
             ))}
           </div>

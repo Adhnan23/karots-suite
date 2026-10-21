@@ -23,4 +23,14 @@ describe('EditorControls plugin tokens', () => {
     render(<EditorControls doc={builtinDoc('studio')} mode="light" onChange={() => {}} />)
     expect(screen.queryByText('Plugins')).toBeNull()
   })
+
+  it('hides derived colours until Show all colours is ticked', () => {
+    const doc = builtinDoc('studio')
+    render(<EditorControls doc={{ ...doc, light: { ...doc.light, '--ring': '#ff0000' } }} mode="light" onChange={() => {}} />)
+    expect(screen.getAllByLabelText('Foreground').length).toBeGreaterThan(0)
+    expect(screen.queryAllByLabelText('Card foreground')).toHaveLength(0)
+    expect(screen.getAllByLabelText('Ring').length).toBeGreaterThan(0) // changed by hand, so still shown
+    fireEvent.click(screen.getByLabelText(/Show all colours/))
+    expect(screen.getAllByLabelText('Card foreground').length).toBeGreaterThan(0)
+  })
 })
