@@ -34,6 +34,7 @@ func (h *handlers) Me(c echo.Context) error {
 			CanHandleSuppliers: middleware.CanHandleSuppliers(c),
 			CanManageCredit:    middleware.CanManageCredit(c),
 			CanSeeCost:         middleware.CanSeeCost(c),
+			CanSeeLowStock:     middleware.CanSeeLowStock(c),
 			CanExitKiosk:       middleware.CanExitKioskCtx(ctx),
 			IsSystem:           middleware.IsSystemUserCtx(ctx),
 		},

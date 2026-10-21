@@ -73,6 +73,8 @@ type CreateUserInput struct {
 	CanManageCredit string `json:"can_manage_credit" form:"can_manage_credit" validate:"omitempty"`
 	// CanSeeCost arrives as an HTML checkbox — see CanHandleSuppliers.
 	CanSeeCost string `json:"can_see_cost" form:"can_see_cost" validate:"omitempty"`
+	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
+	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
 }
 
 // UpdateUserInput edits a user's profile/role and optionally resets the PIN
@@ -92,6 +94,8 @@ type UpdateUserInput struct {
 	// CanSeeCost arrives as an HTML checkbox — see CreateUserInput. An absent value
 	// revokes, which is what a browser sends for an unticked box.
 	CanSeeCost string `json:"can_see_cost" form:"can_see_cost" validate:"omitempty"`
+	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
+	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
 }
 
 // checkboxOn reads an HTML checkbox value. Browsers omit unticked boxes and

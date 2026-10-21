@@ -21,13 +21,13 @@ func TestAdminUsers(t *testing.T) {
 		}
 	}
 	phone := ph(3)
-	rec := te.do(http.MethodPost, "/api/v1/admin/users", StaffRequest{Name: "T Nimali", Phone: phone, Role: "cashier", Pin: "4321", CanSeeCost: true}, ck)
+	rec := te.do(http.MethodPost, "/api/v1/admin/users", StaffRequest{Name: "T Nimali", Phone: phone, Role: "cashier", Pin: "4321", CanSeeCost: true, CanSeeLowStock: true}, ck)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("create: %d %s", rec.Code, rec.Body)
 	}
 	u := decode[StaffUser](t, rec)
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM users WHERE id=$1`, u.ID) }) //nolint:errcheck
-	if u.Role != "cashier" || !u.CanSeeCost || u.CanManageCredit {
+	if u.Role != "cashier" || !u.CanSeeCost || !u.CanSeeLowStock || u.CanManageCredit {
 		t.Fatalf("created: %+v", u)
 	}
 	login := func(pin string) int {

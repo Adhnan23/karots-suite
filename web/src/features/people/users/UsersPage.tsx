@@ -23,10 +23,11 @@ const ROLES: { v: Role; label: string; what: string }[] = [
   { v: 'manager', label: 'Manager', what: 'Till plus the back office — stock, purchasing, customers.' },
   { v: 'admin', label: 'Admin', what: 'Everything, including staff logins and settings.' },
 ]
-const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost'; label: string; hint: string }[] = [
+const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'canSeeLowStock'; label: string; hint: string }[] = [
   { k: 'canHandleSuppliers', label: 'Counter operations', hint: 'Pay suppliers, take in deliveries, place orders and record expenses at the till. They will see cost prices.' },
   { k: 'canManageCredit', label: 'Manage credit at the till', hint: "Approve a credit sale over a customer's limit and raise a limit." },
   { k: 'canSeeCost', label: 'See product cost at the till', hint: "The ⓘ on a till card shows cost and margin — handy for deciding a discount." },
+  { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. Add Counter operations to let them place the orders too.' },
 ]
 
 /** Users (karots-pos /admin/users, admin only): who can sign in, what they are
@@ -80,7 +81,7 @@ function Live({ r }: { r?: PresenceRow }) {
 function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose: () => void }) {
   const qc = useQueryClient()
   const [f, setF] = useState<StaffRequest>({ name: u?.name ?? '', phone: u?.phone ?? '', role: u?.role ?? 'cashier', pin: '', receiptPrinter: u?.receiptPrinter ?? '',
-    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false })
+    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false, canSeeLowStock: u?.canSeeLowStock ?? false })
   const [busy, setBusy] = useState(false)
   const up = (patch: Partial<StaffRequest>) => setF({ ...f, ...patch })
   const done = (msg: string) => { toast.success(msg); void qc.invalidateQueries({ queryKey: ['admin', 'users'] }); onClose() }

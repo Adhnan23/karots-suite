@@ -40,6 +40,7 @@ type Flags struct {
 	CanHandleSuppliers bool `json:"canHandleSuppliers"`
 	CanManageCredit    bool `json:"canManageCredit"`
 	CanSeeCost         bool `json:"canSeeCost"`
+	CanSeeLowStock     bool `json:"canSeeLowStock"` // the raw flag; MaySeeLowStock adds admin/manager
 	CanExitKiosk       bool `json:"canExitKiosk"`
 	IsSystem           bool `json:"isSystem"`
 }

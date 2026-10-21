@@ -118,3 +118,32 @@ func TestCanManageCreditCtx(t *testing.T) {
 		t.Fatal("the stashed flag was not read back")
 	}
 }
+
+// TestRequireLowStockAccess pins who may open the till's Low stock tab: admins
+// and managers always; a cashier only with the per-user flag.
+func TestRequireLowStockAccess(t *testing.T) {
+	cases := []struct {
+		role    string
+		flag    bool
+		allowed bool
+	}{
+		{"admin", false, true},
+		{"manager", false, true},
+		{"cashier", false, false},
+		{"cashier", true, true},
+	}
+	for _, tc := range cases {
+		e := echo.New()
+		c := e.NewContext(httptest.NewRequest(http.MethodGet, "/till/low-stock", nil), httptest.NewRecorder())
+		c.Set(ctxRole, tc.role)
+		c.Set(ctxCanSeeLowStock, tc.flag)
+		called := false
+		err := RequireLowStockAccess()(func(echo.Context) error { called = true; return nil })(c)
+		if tc.allowed != (err == nil && called) {
+			t.Errorf("%s flag=%v: err=%v called=%v, want allowed=%v", tc.role, tc.flag, err, called, tc.allowed)
+		}
+		if got := MaySeeLowStock(tc.role, tc.flag); got != tc.allowed {
+			t.Errorf("MaySeeLowStock(%q, %v) = %v", tc.role, tc.flag, got)
+		}
+	}
+}

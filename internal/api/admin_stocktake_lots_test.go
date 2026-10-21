@@ -32,7 +32,7 @@ func TestStockTakeByBatch(t *testing.T) {
 		t.Fatalf("row should carry its 2 batches: %+v", l.Items)
 	}
 	a, b := l.Items[0].Lots[0], l.Items[0].Lots[1]
-	if p := decode[StockTakeList](t, te.do(http.MethodGet, "/api/v1/admin/stock/take?q=T+plain", nil, ck)); len(p.Items) > 0 && p.Items[0].Lots != nil && len(p.Items[0].Lots) > 0 {
+	if p := decode[StockTakeList](t, te.do(http.MethodGet, "/api/v1/admin/stock/take?q="+f.plainBarcode, nil, ck)); len(p.Items) > 0 && p.Items[0].Lots != nil && len(p.Items[0].Lots) > 0 {
 		t.Fatalf("a one-batch product carries no batches: %+v", p.Items[0])
 	}
 

@@ -50,6 +50,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		CanManageCredit:    middleware.MayManageCredit(role, middleware.CanManageCredit(c)),
 		CanHandleSuppliers: middleware.MaySeeSuppliers(role, middleware.CanHandleSuppliers(c)),
 		CanSeeCost:         middleware.MaySeeCost(role, middleware.CanSeeCost(c)),
+		CanSeeLowStock:     middleware.MaySeeLowStock(role, middleware.CanSeeLowStock(c)),
 		CanChangePin:       role != auth.RoleCashier || h.d.Auth.AllowCashierPinChange(ctx),
 		IsManager:          role == auth.RoleAdmin || role == auth.RoleManager,
 		TenderMethods:      []TenderMethod{},

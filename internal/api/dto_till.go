@@ -23,6 +23,7 @@ type TillConfig struct {
 	CanManageCredit    bool           `json:"canManageCredit"`
 	CanHandleSuppliers bool           `json:"canHandleSuppliers"` // Suppliers + Expenses tabs
 	CanSeeCost         bool           `json:"canSeeCost"`
+	CanSeeLowStock     bool           `json:"canSeeLowStock"` // Low stock tab
 	CanChangePin       bool           `json:"canChangePin"`
 	IsManager          bool           `json:"isManager"`     // admin/manager: shows the Admin link
 	TenderMethods      []TenderMethod `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA

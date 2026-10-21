@@ -103,6 +103,7 @@ type StaffUser struct {
 	CanHandleSuppliers bool   `json:"canHandleSuppliers"`
 	CanManageCredit    bool   `json:"canManageCredit"`
 	CanSeeCost         bool   `json:"canSeeCost"`
+	CanSeeLowStock     bool   `json:"canSeeLowStock"`
 	Since              string `json:"since"`
 }
 
@@ -117,6 +118,7 @@ type StaffRequest struct {
 	CanHandleSuppliers bool   `json:"canHandleSuppliers"`
 	CanManageCredit    bool   `json:"canManageCredit"`
 	CanSeeCost         bool   `json:"canSeeCost"`
+	CanSeeLowStock     bool   `json:"canSeeLowStock"`
 }
 
 // PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and

@@ -46,6 +46,7 @@ export interface Flags {
   canHandleSuppliers: boolean;
   canManageCredit: boolean;
   canSeeCost: boolean;
+  canSeeLowStock: boolean; // the raw flag; MaySeeLowStock adds admin/manager
   canExitKiosk: boolean;
   isSystem: boolean;
 }
@@ -1653,6 +1654,7 @@ export interface StaffUser {
   canHandleSuppliers: boolean;
   canManageCredit: boolean;
   canSeeCost: boolean;
+  canSeeLowStock: boolean;
   since: string;
 }
 /**
@@ -1668,6 +1670,7 @@ export interface StaffRequest {
   canHandleSuppliers: boolean;
   canManageCredit: boolean;
   canSeeCost: boolean;
+  canSeeLowStock: boolean;
 }
 /**
  * PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and
@@ -3228,6 +3231,7 @@ export interface TillConfig {
   canManageCredit: boolean;
   canHandleSuppliers: boolean; // Suppliers + Expenses tabs
   canSeeCost: boolean;
+  canSeeLowStock: boolean; // Low stock tab
   canChangePin: boolean;
   isManager: boolean; // admin/manager: shows the Admin link
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA

@@ -31,6 +31,9 @@ type UserFlags struct {
 	// CanSeeCost lets a cashier see product cost/margin in the till info popup.
 	// Meaningless for admins and managers, who may always see it.
 	CanSeeCost bool
+	// CanSeeLowStock gives a cashier the till's Low stock tab (what to order and
+	// from whom). Meaningless for admins and managers, who always see it.
+	CanSeeLowStock bool
 	// IsSystem marks the hidden system/support account. It gates vendor-only
 	// maintenance surfaces (e.g. the locked appearance panel) that not even the
 	// shop admin may reach.
@@ -51,6 +54,8 @@ const ctxCanSuppliers = "can_handle_suppliers"
 const ctxCanManageCredit = "can_manage_credit"
 
 const ctxCanSeeCost = "can_see_cost"
+
+const ctxCanSeeLowStock = "can_see_low_stock"
 
 // CanHandleSuppliers reports the flag for the current request. Admins and
 // managers are NOT covered here — this is the raw per-user flag.
@@ -103,6 +108,31 @@ func CanSeeCost(c echo.Context) bool {
 // include cost/margin in the payload.
 func MaySeeCost(role string, flag bool) bool {
 	return role == "admin" || role == "manager" || flag
+}
+
+// CanSeeLowStock reports the raw per-user flag for the current request.
+func CanSeeLowStock(c echo.Context) bool {
+	b, _ := c.Get(ctxCanSeeLowStock).(bool)
+	return b
+}
+
+// MaySeeLowStock is the full rule: an admin or manager always may; a cashier
+// only with the flag. The till tab and its route gate both use it.
+func MaySeeLowStock(role string, flag bool) bool {
+	return role == "admin" || role == "manager" || flag
+}
+
+// RequireLowStockAccess gates the till's Low stock route. Must run after JWTAuth.
+func RequireLowStockAccess() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			role, _ := c.Get(ctxRole).(string)
+			if !MaySeeLowStock(role, CanSeeLowStock(c)) {
+				return apperr.Forbidden("you're not set up to see low stock — ask the owner")
+			}
+			return next(c)
+		}
+	}
 }
 
 // IsSystemUserCtx reports whether the current request is the hidden system/
