@@ -1,11 +1,15 @@
 import { bold } from './bold/kit'
 import { classic } from './classic/kit'
 import type { StyleDef } from './kit'
+import { cards } from './cards/kit'
+import { elegant } from './elegant/kit'
 import { grid } from './grid/kit'
 import { GridSale } from './grid/sale'
 import { minimal } from './minimal/kit'
 import { poster } from './poster/kit'
 import { PosterSale } from './poster/sale'
+import { sections } from './sections/kit'
+import { SectionsSale } from './sections/sale'
 import { stamp } from './stamp/kit'
 import { StampSale } from './stamp/sale'
 import { ticket } from './ticket/kit'
@@ -19,6 +23,9 @@ export const STYLES: StyleDef[] = [
   { key: 'poster', label: 'Poster', kit: poster, overrides: { sale: PosterSale } },
   { key: 'grid', label: 'Grid', kit: grid, overrides: { sale: GridSale } },
   { key: 'stamp', label: 'Stamp', kit: stamp, overrides: { sale: StampSale } },
+  { key: 'elegant', label: 'Elegant', kit: elegant },
+  { key: 'cards', label: 'Cards', kit: cards },
+  { key: 'sections', label: 'Sections', kit: sections, overrides: { sale: SectionsSale } },
 ]
 
 /** The style for a saved key; unknown or old keys draw Classic. */

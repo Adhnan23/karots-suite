@@ -28,6 +28,10 @@ const MUST: Record<SampleName, string[]> = {
     '1 Card + 2',
     'Samsung Charger 25W',
     '245.00',
+    '2,450.00',
+    '2,205.00',
+    '1,300.00',
+    '1,200.00',
     '2027-10-21',
     'SC-88231',
     'Breakfast Deal',
@@ -77,5 +81,5 @@ it('an unknown style draws classic', () => {
 })
 
 it('styles are the ten keys in order', () => {
-  expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections'].slice(0, STYLES.length))
+  expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections'])
 })

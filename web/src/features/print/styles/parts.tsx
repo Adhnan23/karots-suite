@@ -99,10 +99,10 @@ export function ShopLines({ shop, style }: { shop: SlipShop; style?: CSSProperti
   )
 }
 
-/** The Karots credit, small, every style. */
+/** The Karots credit, small, every style; room under it so a serif descender never sits on the edge. */
 export function Credit({ style }: { style?: CSSProperties }) {
   return (
-    <div style={{ textAlign: 'center', fontSize: 15, lineHeight: '19px', ...style }}>
+    <div style={{ textAlign: 'center', fontSize: 15, lineHeight: '19px', paddingBottom: 6, ...style }}>
       <div>Karots Business Suite</div>
       <div>adhnanmsa@gmail.com | 0769626396</div>
     </div>
