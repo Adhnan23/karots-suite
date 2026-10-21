@@ -1,6 +1,7 @@
 import { keepPreviousData, useInfiniteQuery, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { ExternalLink, Printer, Search } from 'lucide-react'
-import { type ReactNode, useDeferredValue, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { type ReactNode, useDeferredValue, useEffect, useRef, useState } from 'react'
 import type { DebtReceiptRow, MoneyReceiptRow, WarrantyClaimRow } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
@@ -15,6 +16,7 @@ import { countText, debtReceiptsQuery, moneyReceiptsQuery, warrantyClaimsQuery }
 import { LATEST, type Range } from '../range'
 import { RangePicker } from '../RangePicker'
 import { SaleFind } from '../SaleFind'
+import { slipListOf } from '../slip'
 import { CounterPage, MoreRows, PaneTitle } from '../ui'
 import { SlipView } from '@/features/print/SlipView'
 
@@ -27,11 +29,20 @@ const MOVE_KINDS: [string, string][] = [
 ]
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-/** Every slip the till has printed: find it, see it as paper, print it again. */
-export function ReceiptsTab() {
+/** Every slip the till has printed: find it, see it as paper, print it again. `no` (a scanned slip
+ * number) opens in its own list with that slip picked. */
+export function ReceiptsTab({ no }: { no?: string }) {
   const cfg = useSuspenseQuery(configQuery).data
   const session = useQuery(drawerQuery).data?.summary.session
-  const [kind, setKind] = useState<Kind>('sales')
+  const [kind, setKind] = useState<Kind>((no && slipListOf(no)) || 'sales')
+  const navigate = useNavigate()
+  // A slip number of another list, scanned into this list's find box, opens there.
+  const jump = (q: string) => {
+    const list = slipListOf(q)
+    if (!list || list === kind) return false
+    void navigate({ to: '/till/receipts', search: { no: q } })
+    return true
+  }
   const [pick, setPick] = useState<Pick | null>(null)
   const sym = cfg.symbol
   const kinds = <Seg label="Receipt kind" value={kind} onChange={(k) => { setKind(k); setPick(null) }} options={[['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit'], ['warranty', 'Warranty'],
@@ -50,11 +61,11 @@ export function ReceiptsTab() {
       {kind === 'sales' ? (
         <>
           <div className="flex items-center justify-between gap-2 px-4 pt-3.5">{kinds}{session && <ShiftLink id={session.id} />}</div>
-          <SaleFind title="Sales" sym={sym} picked={pick?.kind === 'sales' ? pick.id : null} onPick={(id) => setPick({ kind: 'sales', id })} />
+          <SaleFind title="Sales" sym={sym} picked={pick?.kind === 'sales' ? pick.id : null} onPick={(id) => setPick({ kind: 'sales', id })} initial={no} onEnter={jump} />
         </>
       ) : (
         <RowList kind={kind as 'cash' | 'credit' | 'warranty'} head={<div className="flex items-center justify-between gap-2 px-4 pt-3.5">{kinds}{session && <ShiftLink id={session.id} />}</div>}
-          sym={sym} pick={pick} onPick={setPick} />
+          sym={sym} pick={pick} onPick={setPick} initial={no} onEnter={jump} />
       )}
     </CounterPage>
   )
@@ -68,10 +79,11 @@ function ShiftLink({ id }: { id: number }) {
   )
 }
 
-function RowList({ kind, head, sym, pick, onPick }: {
+function RowList({ kind, head, sym, pick, onPick, initial, onEnter }: {
   kind: 'cash' | 'credit' | 'warranty'; head: ReactNode; sym: string; pick: Pick | null; onPick: (p: Pick) => void
+  initial?: string; onEnter: (q: string) => boolean
 }) {
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(initial ?? '')
   const [range, setRange] = useState<Range>(LATEST)
   const [moveKind, setMoveKind] = useState('')
   const dq = useDeferredValue(q.trim())
@@ -87,6 +99,13 @@ function RowList({ kind, head, sym, pick, onPick }: {
     : kind === 'credit'
       ? credit.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.customerName} · ${r.method}`, amount: r.amount, p: { kind: 'credit', row: r } }))
       : claims.map((r) => ({ key: r.id, no: r.productName, sub: `${when(r.at)} · ${r.oldSerial || 'by receipt'}${r.customerName ? ` · ${r.customerName}` : ''}`, amount: null, p: { kind: 'warranty', row: r } }))
+  // Opened with a scanned number: pick its slip once it's listed (exact numbers come first).
+  const opened = useRef(false)
+  useEffect(() => {
+    if (opened.current || !initial || rows[0]?.no.toLowerCase() !== initial.trim().toLowerCase()) return
+    opened.current = true
+    onPick(rows[0].p)
+  }, [initial, rows, onPick])
   const on = (p: Pick) => pick !== null && pick.kind === p.kind && 'row' in pick && 'row' in p && pick.row.id === p.row.id
   return (
     <>
@@ -105,7 +124,7 @@ function RowList({ kind, head, sym, pick, onPick }: {
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Find a receipt" placeholder={kind === 'cash' ? 'CR- number, party, locker' : kind === 'credit' ? 'Receipt no, customer' : 'Serial or customer'} autoComplete="off"
-          value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && rows[0] && onPick(rows[0].p)}
+          value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !onEnter(q.trim()) && rows[0] && onPick(rows[0].p)}
           className={cn(FIELD, 'w-full pl-9')} />
       </div>
       <ul aria-label="Receipts" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-2.5 pb-2.5">

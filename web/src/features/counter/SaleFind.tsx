@@ -1,6 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
-import { useDeferredValue, useState } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { FIELD } from '@/features/till/ui'
@@ -16,9 +16,13 @@ const when = (iso: string) => {
   return today ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString([], { day: 'numeric', month: 'short' })
 }
 
-/** Find a sale by receipt no, customer name, phone or product sold; latest first, 50 at a time. Enter picks the top hit. */
-export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: string; picked: number | null; onPick: (id: number) => void }) {
-  const [q, setQ] = useState('')
+/** Find a sale by receipt no, customer name, phone or product sold; latest first, 50 at a time. Enter picks the top hit
+ * (an exact receipt no comes first, from any date). `initial` opens with that search and picks its top hit; `onEnter`
+ * may take the Enter first (true = handled). */
+export function SaleFind({ title, sym, picked, onPick, initial, onEnter }: {
+  title: string; sym: string; picked: number | null; onPick: (id: number) => void; initial?: string; onEnter?: (q: string) => boolean
+}) {
+  const [q, setQ] = useState(initial ?? '')
   const [range, setRange] = useState<Range>(LATEST)
   const dq = useDeferredValue(q.trim())
   const list = useInfiniteQuery({ ...salesQuery(dq, range), placeholderData: keepPreviousData })
@@ -31,13 +35,15 @@ export function SaleFind({ title, sym, picked, onPick }: { title: string; sym: s
     const hits = (await qc.fetchInfiniteQuery(salesQuery(q.trim(), range))).pages[0] ?? []
     if (hits[0]) onPick(hits[0].id)
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- once, for the search it opened with
+  useEffect(() => { if (initial) void pickTop() }, [])
   return (
     <>
       <PaneTitle title={title} sub={dq || range.preset ? `${countText(rows.length, list.hasNextPage)} found` : 'latest sales'} right={<RangePicker value={range} onChange={setRange} />} />
       <div className="relative mx-3 mb-2">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Find a sale" placeholder="Receipt no, customer, phone or product" autoComplete="off" value={q}
-          onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void pickTop()}
+          onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !onEnter?.(q.trim()) && void pickTop()}
           className={cn(FIELD, 'w-full pl-9')} />
       </div>
       <ul aria-label="Sales" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-2.5 pb-2.5">

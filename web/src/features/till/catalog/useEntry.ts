@@ -1,8 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { TillProduct } from '@/api/types.gen'
+import { slipListOf } from '@/features/counter/slip'
 import { slots } from '@/plugins/slots'
 import { errMsg, searchQuery } from '../api'
 import { parseEntry } from '../cart/entry'
@@ -20,6 +22,7 @@ export function useEntry() {
   const { dispatch } = useTill()
   const add = useAddProduct()
   const qc = useQueryClient()
+  const navigate = useNavigate()
   return useCallback(async (raw: string) => {
     const e = parseEntry(raw)
     if (e.kind === 'empty') return
@@ -27,6 +30,8 @@ export function useEntry() {
     const text = raw.trim()
     const claim = slots.tillActions.find((a) => a.claimsText?.(text))
     if (claim) return ui.open({ kind: 'action', key: claim.key, text })
+    // A scanned slip (S- / CR- / DP-) is never a product: open it on the Receipts tab.
+    if (slipListOf(text)) return void navigate({ to: '/till/receipts', search: { no: text } })
     if (e.kind === 'quick') {
       // Phone rush handoff: SET the qty (idempotent on re-scan), no lot prompt.
       if (e.qty <= 0) return void toast.error('Quick-sale code has no quantity')
@@ -54,5 +59,5 @@ export function useEntry() {
       return ui.open({ kind: 'quickItem', barcode: digits ? q : '', name: digits ? '' : q })
     }
     ui.setSearch(q) // several matches: leave them on screen to tap
-  }, [ui, dispatch, add, qc])
+  }, [ui, dispatch, add, qc, navigate])
 }

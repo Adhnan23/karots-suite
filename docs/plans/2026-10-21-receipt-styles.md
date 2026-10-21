@@ -239,14 +239,14 @@ SAVED / PAYMENT blocks), register.
   (Enter on a slip number opens it — they share `SaleFind`, check Warranty's own box)
 - Test: `internal/api/counter_returns_test.go` (or a new `scan_find_test.go`), `web/e2e/scan-find.spec.ts`
 
-- [ ] **Step 1:** Failing tests: Go — two sales `S-…n` and a later one whose number contains it (insert
+- [x] **Step 1:** Failing tests: Go — two sales `S-…n` and a later one whose number contains it (insert
   `receipt_no` = `<n>0` directly), `GET /till/sales?q=<n>&preset=today` with the first sale's `created_at` moved
   to last year → first row is the exact sale; same for `/admin/sales`; CR- and DP- lists likewise. e2e — at Sell,
   type a sale's number + Enter in the scan box → URL is `/till/receipts?no=…` and that receipt is open; at Returns,
   type it + Enter → that sale is picked; a product whose barcode is `S-99999` (test data) still opens the receipt
   route (the slip pattern wins — spec).
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Go + e2e pass; full `bunx playwright test` green.
-- [ ] **Step 5:** Commit `feat(till): scan a slip's barcode to open it — exact number first, any date; Sell jumps to Receipts`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Go + e2e pass; full `bunx playwright test` green.
+- [x] **Step 5:** Commit `feat(till): scan a slip's barcode to open it — exact number first, any date; Sell jumps to Receipts`.
 
 ### Task 10: A4 page in the shop's style; close-out
 

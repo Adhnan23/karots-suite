@@ -26,8 +26,12 @@ func TestCounterReturn(t *testing.T) {
 	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?preset=today&q="+res.ReceiptNo, nil, ck)); len(got) != 1 {
 		t.Fatalf("today's filter misses the sale: %+v", got)
 	}
-	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?from=2001-01-01&to=2001-01-02&q="+res.ReceiptNo, nil, ck)); len(got) != 0 {
+	// Part of the number obeys the range; the exact number finds it from any date (a scanned slip).
+	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?from=2001-01-01&to=2001-01-02&q="+res.ReceiptNo[:len(res.ReceiptNo)-1], nil, ck)); len(got) != 0 {
 		t.Fatalf("another day's filter finds it: %+v", got)
+	}
+	if got := decode[[]SaleSummary](t, te.do(http.MethodGet, "/api/v1/till/sales?from=2001-01-01&to=2001-01-02&q="+res.ReceiptNo, nil, ck)); len(got) != 1 || got[0].ID != res.ID {
+		t.Fatalf("the exact number misses it outside the range: %+v", got)
 	}
 	v := decode[SaleView](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/sales/%d", res.ID), nil, ck))
 	if len(v.Lines) != 1 || v.Lines[0].RefundUnit != "100.00" || v.Lines[0].ReturnedQty != "0" {

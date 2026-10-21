@@ -75,19 +75,27 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
 		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
-		WHERE ($1::timestamptz IS NULL OR s.created_at >= $1)
-		  AND ($2::timestamptz IS NULL OR s.created_at <  $2)
+		WHERE `+inRange("$1", "$2", "$9")+`
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
 		  AND ($4::text IS NULL OR s.status = $4::sale_status)
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
 		  AND ($8::text IS NULL OR EXISTS (
 		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $8::payment_method))
 		  AND `+searchMatch("$9")+hourClause("s", "$10", "$11", "$12")+`
-		ORDER BY s.created_at DESC, s.id DESC
+		ORDER BY lower(s.receipt_no) = lower(COALESCE($9::text, '')) DESC, s.created_at DESC, s.id DESC
 		LIMIT $6 OFFSET $7`,
 		f.From, f.To, f.CashierID, status, receipt, f.Limit, f.Offset, method, query,
 		tzName(), f.FromHour, f.ToHour)
 	return rows, err
+}
+
+// inRange is the date range, except that a query equal to a sale's receipt
+// number (any case — a scanned slip) finds that sale from any date. fromP/toP/qP
+// are placeholders, e.g. "$1".
+func inRange(fromP, toP, qP string) string {
+	return `((( ` + fromP + `::timestamptz IS NULL OR s.created_at >= ` + fromP + `)
+	         AND (` + toP + `::timestamptz IS NULL OR s.created_at < ` + toP + `))
+	        OR lower(s.receipt_no) = lower(` + qP + `::text))`
 }
 
 // searchMatch is the sales search (receipt no / customer name / phone / what
@@ -199,8 +207,7 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
 		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
-		WHERE ($1::timestamptz IS NULL OR s.created_at >= $1)
-		  AND ($2::timestamptz IS NULL OR s.created_at <  $2)
+		WHERE `+inRange("$1", "$2", "$7")+`
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
 		  AND ($4::text IS NULL OR s.status = $4::sale_status)
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')

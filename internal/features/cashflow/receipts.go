@@ -109,15 +109,16 @@ func (r *ReceiptRepository) List(ctx context.Context, f ReceiptFilter) ([]Receip
 		SELECT mr.*, u.name AS created_by_name
 		FROM money_receipts mr
 		LEFT JOIN users u ON u.id = mr.created_by
-		WHERE ($1::timestamptz IS NULL OR mr.created_at >= $1)
-		  AND ($2::timestamptz IS NULL OR mr.created_at <  $2)
+		WHERE ((($1::timestamptz IS NULL OR mr.created_at >= $1)
+		    AND ($2::timestamptz IS NULL OR mr.created_at <  $2))
+		    OR lower(mr.receipt_no) = lower($4::text)) -- a scanned slip: any date
 		  AND ($3::text IS NULL OR mr.kind = $3)
 		  AND ($4::text IS NULL OR
 		       mr.receipt_no ILIKE '%' || $4 || '%' OR
 		       mr.party      ILIKE '%' || $4 || '%' OR
 		       mr.from_label ILIKE '%' || $4 || '%' OR
 		       mr.to_label   ILIKE '%' || $4 || '%')
-		ORDER BY mr.created_at DESC, mr.id DESC
+		ORDER BY lower(mr.receipt_no) = lower(COALESCE($4::text, '')) DESC, mr.created_at DESC, mr.id DESC
 		LIMIT $5 OFFSET $6`, f.From, f.To, kind, q, limit, max(f.Offset, 0))
 	return rows, err
 }

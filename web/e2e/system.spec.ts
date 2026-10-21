@@ -19,7 +19,7 @@ test('system user changes brand colour and it applies live', async ({ page }) =>
   await page.goto('/admin/system/appearance')
   await page.getByLabel(/brand colou?r/i).fill('#0f766e')
   await page.getByRole('button', { name: /save/i }).click()
-  await expect(page.getByText(/saved/i)).toBeVisible()
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--brand'))).toBe('#0f766e')
   await page.getByLabel(/brand colou?r/i).fill('')
   await page.getByRole('button', { name: /save/i }).click()

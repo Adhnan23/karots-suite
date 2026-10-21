@@ -201,24 +201,26 @@ const debtSelect = `
 // ListPayments returns credit-payment receipts newest-first for the Credit tab.
 func (s *Service) ListPayments(ctx context.Context, f DebtFilter) ([]DebtReceipt, error) {
 	q := debtSelect + ` WHERE cp.receipt_no IS NOT NULL`
-	args := []any{}
-	n := 1
-	if t := strings.TrimSpace(f.Query); t != "" {
-		q += fmt.Sprintf(` AND (cp.receipt_no ILIKE $%d OR c.name ILIKE $%d OR c.phone ILIKE $%d)`, n, n, n)
-		args = append(args, "%"+t+"%")
-		n++
+	t := strings.TrimSpace(f.Query)
+	args := []any{t}
+	n := 2
+	if t != "" {
+		q += ` AND (cp.receipt_no ILIKE '%' || $1 || '%' OR c.name ILIKE '%' || $1 || '%' OR c.phone ILIKE '%' || $1 || '%')`
 	}
+	// The date range, except a scanned slip number finds its receipt from any date.
+	when := `true`
 	if f.From != nil {
-		q += fmt.Sprintf(` AND cp.created_at >= $%d`, n)
+		when += fmt.Sprintf(` AND cp.created_at >= $%d`, n)
 		args = append(args, *f.From)
 		n++
 	}
 	if f.To != nil {
-		q += fmt.Sprintf(` AND cp.created_at < $%d`, n)
+		when += fmt.Sprintf(` AND cp.created_at < $%d`, n)
 		args = append(args, *f.To)
 		n++
 	}
-	q += ` ORDER BY cp.id DESC`
+	q += ` AND ((` + when + `) OR lower(cp.receipt_no) = lower($1))`
+	q += ` ORDER BY lower(cp.receipt_no) = lower($1) DESC, cp.id DESC`
 	if f.Limit > 0 {
 		q += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, n, n+1)
 		args = append(args, f.Limit, max(f.Offset, 0))
