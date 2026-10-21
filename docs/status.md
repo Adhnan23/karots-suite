@@ -5,14 +5,23 @@ every milestone.
 
 ## Next session (handoff 2026-10-21) — START HERE
 
-**NEXT: Receipt styles (Image mode) — designed + planned, not started (2026-10-21).** Spec
-`docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (10 tasks, start at
-Task 1), mockups `docs/design/mockups/receipt-styles.html` + `appearance-receipts.html` (user approved all ten styles
-and the Appearance layout; thumbnails there are rough — the real ones are live renders). User chose **native**
-execution (executing-plans), in a fresh session. Ten styles: classic, bold, minimal, ticket, poster, grid, stamp,
-elegant, cards, sections — every slip (sale, refund, CR-, DP-, warranty, test, Repairs' job slip via the plugin seam),
-every line kind, 80 + 58 mm; Code 128 of the slip number (QR too on Minimal); scan to find (exact number first, any
-date; a scan at Sell jumps to Receipts). Only the system user picks, on Appearance. Density goes in Task 1.
+**Receipt styles (Image mode) — BUILT (2026-10-21), waiting on the user's look.** Spec
+`docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (all 10 tasks),
+mockups `docs/design/mockups/receipt-styles.html` + `appearance-receipts.html`, theme.md §10. Ten styles (classic,
+bold, minimal, ticket, poster, grid, stamp, elegant, cards, sections) for every slip — sale, refund, CR-, DP-,
+warranty, test, Repairs' job slip (`slots.slipTemplates`) — at 80 + 58 mm; kits in `web/src/features/print/styles/`.
+Classic printing (ESC/POS) has one look; Density is gone. **Appearance** (system user): ten live thumbnails + the
+exact picture for any slip / width / sample (`POST /admin/settings/sample-slip?kind=&sample=busy|simple|credit`,
+`?data=1` only for all but the simple sale); a yellow note when the shop prints Classic; Save refreshes the till
+config, so the next print uses the new style. Code 128 of the slip number on all but Classic (QR too on Minimal).
+**Scan to find:** an exact S- / CR- / DP- number comes first and ignores the date range (sales list + totals, cash
+and credit lists); at Sell a scanned slip number is never a product — it opens `/till/receipts?no=…` with that slip
+picked; a number of another kind typed into a Receipts list jumps to its list; Returns picks it in place; R- repair
+tickets stay with the Repairs plugin's own claim. The A4 / PDF page draws in the shop's style (checked in Firefox).
+Final shots: `web/shots/rs10/` (`sheet-sale-80/58`, `sheet-refund-80`, `a4-firefox`) and `web/shots/rs8/`
+(Appearance, both palettes × modes, desktop + 360). Found at the gate and fixed: every style but Classic printed
+"SN SN: …" (the serial comes labelled), and Grid headed every slip "INVOICE" (now RECEIPT).
+**Next:** the user looks at the styles; then a real-printer test (scanner reads the Code 128 off thermal paper).
 **After it: part 2, palettes** (user, 2026-10-21): palettes stay hand-written CSS files (no JSON) listed with their
 theme in `palettes/index.ts`; a palette editor on Appearance (every colour, light + dark, surface material solid /
 frosted / liquid glass, background, glow, shadow, radius, a Custom CSS box) saving custom palettes as CSS in the

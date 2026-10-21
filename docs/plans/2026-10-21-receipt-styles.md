@@ -253,9 +253,9 @@ SAVED / PAYMENT blocks), register.
 **Files:** Modify `web/src/routes/_authed/print/receipt.$id.tsx` (the shop's style kit), `docs/status.md`,
 `docs/design/theme.md` (receipt styles section, link the mockups), `AGENTS.md` (Layout: `features/print/styles/`).
 
-- [ ] **Step 1:** The A4 page renders `templates.sale` (or the style's override) with the saved style; check it in
+- [x] **Step 1:** The A4 page renders `templates.sale` (or the style's override) with the saved style; check it in
   Firefox's print layout.
-- [ ] **Step 2:** `make verify`, `make build && make verify-portable`, full Playwright run green.
-- [ ] **Step 3:** Final shot set for the user (UI gate): every style × busy sale at 80 + 58 mm and one non-sale slip
+- [x] **Step 2:** `make verify`, `make build && make verify-portable`, full Playwright run green.
+- [x] **Step 3:** Final shot set for the user (UI gate): every style × busy sale at 80 + 58 mm and one non-sale slip
   each; the Appearance page. Record the result in `docs/status.md`; update memory.
-- [ ] **Step 4:** Commit `docs: status — receipt styles built`.
+- [x] **Step 4:** Commit `docs: status — receipt styles built`.

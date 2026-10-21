@@ -78,6 +78,8 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/features/*      screens by area; src/routes/ = TanStack Router file routes
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
                       state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
+  src/features/print/ Image printing: picture.ts (slip → PNG at printer dots), templates/ (one per slip kind),
+                      styles/<key>/ (the ten receipt styles' kits + whole-slip overrides; STYLES in styles/index.ts)
   src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels, low stock,
                       warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
   src/features/admin/ admin screens by area (products, categories, units, groups, services, stock,

@@ -175,3 +175,14 @@ Keep durations ≤350ms, and turn everything off under `prefers-reduced-motion`.
 - The Bazaar palette and other packs. They're added later as extra palette files.
 - Per-client component overrides.
 - A shop-wide default mode.
+
+## 10. Receipt styles (Image printing)
+
+Ten looks for every slip when Settings → Printers → Print receipts as is **Image**: Classic (default), Bold, Minimal,
+Ticket, Poster, Grid, Stamp, Elegant, Cards, Sections. Mockups: `docs/design/mockups/receipt-styles.html` (the
+styles) and `docs/design/mockups/appearance-receipts.html` (the picker). Only the system user picks, on Appearance,
+shop-wide — the preview there is the exact picture the printer gets. Paper is 1-bit: black or white only, no grey,
+bundled fonts only. A style changes the look, never what a slip says. Each style is a kit in
+`web/src/features/print/styles/<key>/` (header, rules, rows, total band, barcode, footer); a style may draw a whole
+slip itself (`overrides`). Every style but Classic prints a Code 128 of the slip number, which the till's scan box
+opens.
