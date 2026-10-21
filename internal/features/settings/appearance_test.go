@@ -10,6 +10,7 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 	}{
 		{"unknown skin → studio", ValidSkin("nope"), "studio"},
 		{"known skin passes", ValidSkin("night"), "night"},
+		{"new palettes pass", ValidSkin("lagoon") + ValidSkin("bazaar"), "lagoonbazaar"},
 		{"blank skin → studio", ValidSkin(""), "studio"},
 		{"old karots-pos skin restored → studio", ValidSkin("teal"), "studio"},
 	}

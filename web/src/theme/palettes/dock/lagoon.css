@@ -1,0 +1,204 @@
+/* Lagoon palette (docs/design/theme.md §1): sea-glass aqua and coral; liquid glass, calm motion. */
+
+:root[data-ui="dock"][data-palette="lagoon"] {
+  color-scheme: light;
+
+  --background: #E6F4F4;
+  --bg-art: radial-gradient(900px 600px at 8% -10%, rgb(14 159 168 / .30), transparent 60%), radial-gradient(800px 600px at 108% 108%, rgb(240 106 91 / .24), transparent 60%);
+  --foreground: #0E2A2E;
+  --card: rgb(255 255 255 / .42);
+  --card-foreground: var(--foreground);
+  --popover: #F7FCFC;
+  --popover-foreground: var(--foreground);
+  --muted: rgb(14 120 130 / .08);
+  --secondary: var(--muted);
+  --accent: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --muted-foreground: #3B5B5F;
+  --faint: #4F6E72;
+  --border: rgb(14 80 90 / .14);
+  --input: var(--border);
+  --scrim: rgb(10 40 45 / .18);
+  --brand: #087F88;
+  --brand-foreground: #FFFFFF;
+  --brand-soft: rgb(14 159 168 / .14);
+  --brand-2: #D9493A;
+  --brand-2-foreground: #FFFFFF;
+  --selected: #087F88;
+  --selected-foreground: #FFFFFF;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: var(--brand);
+  --success: #0B7A54;
+  --danger: #C23442;
+  --danger-foreground: #FFFFFF;
+  --destructive: var(--danger);
+  --warning: #945800;
+  --hero: #0B3A40;
+  --hero-foreground: #EAFBFB;
+  --hero-muted: #A9D4D6;
+  --hero-art: radial-gradient(600px 420px at 92% 110%, rgb(240 106 91 / .40), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(79 216 222 / .50), transparent 62%);
+  --glass: blur(22px) saturate(180%);
+  --glow: 0 0 16px rgb(14 159 168 / .45);
+  --bar: rgb(255 255 255 / .48);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .9), inset 0 0 0 1px rgb(255 255 255 / .35), 0 8px 30px rgb(10 60 70 / .10);
+  --shadow-float: inset 0 1px 0 rgb(255 255 255 / .95), inset 0 0 0 1px rgb(255 255 255 / .45), 0 18px 50px rgb(10 60 70 / .18);
+  --radius: 20px;
+  --radius-sm: 13px;
+  --pill: 9999px;
+  --border-w: 1px;
+  --dur-fast: 150ms;
+  --dur: 220ms;
+  --dur-slow: 350ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+  --lift: 0px;
+  --chart-1: #087F88;
+  --chart-2: #D9493A;
+  --chart-3: #2A78D6;
+  --chart-4: #C98A00;
+  --chart-5: #8A4FD6;
+  --chart-6: #1BAF7A;
+}
+
+:root[data-ui="dock"][data-palette="lagoon"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #071A1F;
+  --bg-art: radial-gradient(900px 600px at 8% -10%, rgb(14 159 168 / .32), transparent 60%), radial-gradient(800px 600px at 108% 108%, rgb(240 106 91 / .18), transparent 60%);
+  --foreground: #E6F7F7;
+  --card: rgb(255 255 255 / .06);
+  --card-foreground: var(--foreground);
+  --popover: #10292F;
+  --popover-foreground: var(--foreground);
+  --muted: rgb(255 255 255 / .08);
+  --secondary: var(--muted);
+  --accent: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --muted-foreground: #9FC3C6;
+  --faint: #7FA3A6;
+  --border: rgb(255 255 255 / .12);
+  --input: var(--border);
+  --scrim: rgb(0 0 0 / .35);
+  --brand: #4FD8DE;
+  --brand-foreground: #04262A;
+  --brand-soft: rgb(79 216 222 / .16);
+  --brand-2: #FF8A7A;
+  --brand-2-foreground: #2A0A06;
+  --selected: #4FD8DE;
+  --selected-foreground: #04262A;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: var(--brand);
+  --success: #3DDC97;
+  --danger: #FF7C7C;
+  --danger-foreground: #2A0A06;
+  --destructive: var(--danger);
+  --warning: #FFC857;
+  --hero: #04161A;
+  --hero-foreground: #E6F7F7;
+  --hero-muted: #9FC3C6;
+  --hero-art: radial-gradient(600px 420px at 92% 110%, rgb(240 106 91 / .40), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(79 216 222 / .50), transparent 62%);
+  --glass: blur(22px) saturate(160%);
+  --glow: 0 0 16px rgb(79 216 222 / .55);
+  --bar: rgb(16 41 47 / .62);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .12), inset 0 0 0 1px rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .4);
+  --shadow-float: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 0 0 1px rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .55);
+  --radius: 20px;
+  --radius-sm: 13px;
+  --pill: 9999px;
+  --border-w: 1px;
+  --dur-fast: 150ms;
+  --dur: 220ms;
+  --dur-slow: 350ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+  --lift: 0px;
+  --chart-1: #4FD8DE;
+  --chart-2: #FF8A7A;
+  --chart-3: #5EA3F0;
+  --chart-4: #FFC857;
+  --chart-5: #B78AE0;
+  --chart-6: #3DDC97;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ui="dock"][data-palette="lagoon"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #071A1F;
+    --bg-art: radial-gradient(900px 600px at 8% -10%, rgb(14 159 168 / .32), transparent 60%), radial-gradient(800px 600px at 108% 108%, rgb(240 106 91 / .18), transparent 60%);
+    --foreground: #E6F7F7;
+    --card: rgb(255 255 255 / .06);
+    --card-foreground: var(--foreground);
+    --popover: #10292F;
+    --popover-foreground: var(--foreground);
+    --muted: rgb(255 255 255 / .08);
+    --secondary: var(--muted);
+    --accent: var(--muted);
+    --secondary-foreground: var(--foreground);
+    --accent-foreground: var(--foreground);
+    --muted-foreground: #9FC3C6;
+    --faint: #7FA3A6;
+    --border: rgb(255 255 255 / .12);
+    --input: var(--border);
+    --scrim: rgb(0 0 0 / .35);
+    --brand: #4FD8DE;
+    --brand-foreground: #04262A;
+    --brand-soft: rgb(79 216 222 / .16);
+    --brand-2: #FF8A7A;
+    --brand-2-foreground: #2A0A06;
+    --selected: #4FD8DE;
+    --selected-foreground: #04262A;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: var(--brand);
+    --success: #3DDC97;
+    --danger: #FF7C7C;
+    --danger-foreground: #2A0A06;
+    --destructive: var(--danger);
+    --warning: #FFC857;
+    --hero: #04161A;
+    --hero-foreground: #E6F7F7;
+    --hero-muted: #9FC3C6;
+    --hero-art: radial-gradient(600px 420px at 92% 110%, rgb(240 106 91 / .40), transparent 62%), radial-gradient(640px 460px at 0% -10%, rgb(79 216 222 / .50), transparent 62%);
+    --glass: blur(22px) saturate(160%);
+    --glow: 0 0 16px rgb(79 216 222 / .55);
+    --bar: rgb(16 41 47 / .62);
+    --shadow: inset 0 1px 0 rgb(255 255 255 / .12), inset 0 0 0 1px rgb(255 255 255 / .06), 0 10px 30px rgb(0 0 0 / .4);
+    --shadow-float: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 0 0 1px rgb(255 255 255 / .08), 0 18px 50px rgb(0 0 0 / .55);
+    --radius: 20px;
+    --radius-sm: 13px;
+    --pill: 9999px;
+    --border-w: 1px;
+    --dur-fast: 150ms;
+    --dur: 220ms;
+    --dur-slow: 350ms;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --ease-spring: cubic-bezier(.2, 1.4, .4, 1);
+    --lift: 0px;
+    --chart-1: #4FD8DE;
+    --chart-2: #FF8A7A;
+    --chart-3: #5EA3F0;
+    --chart-4: #FFC857;
+    --chart-5: #B78AE0;
+    --chart-6: #3DDC97;
+  }
+}
+
+/* Glass costs GPU time on weak counter PCs; drop it under reduced transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-ui="dock"][data-palette="lagoon"] {
+    --glass: none;
+    --card: #F7FCFC;
+    --bar: #F7FCFC;
+  }
+  :root[data-ui="dock"][data-palette="lagoon"][data-theme="dark"],
+  :root[data-ui="dock"][data-palette="lagoon"]:not([data-theme="light"]) {
+    --glass: none;
+    --card: #0E242A;
+    --bar: #0E242A;
+  }
+}

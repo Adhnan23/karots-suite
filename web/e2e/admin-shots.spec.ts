@@ -3,6 +3,7 @@ import { prep } from './shot-prep'
 
 // UI-gate screenshots for admin pages (not a behaviour test). Needs `make e2e-seed`.
 //   SHOTS=m2-1 SHOTS_PATH=/admin/units bunx playwright test e2e/admin-shots.spec.ts
+// SHOTS_PALETTES=bazaar,lagoon picks the palettes (default studio,night).
 // SHOTS_SYSTEM=1 shoots as the system user (Appearance). SHOTS_PREP (optional) names a prep step in shot-prep.ts, run after the page loads.
 // Output: web/shots/<gate>/<name>-<palette>-<mode>-<width>.png
 const gate = process.env.SHOTS
@@ -21,7 +22,7 @@ async function login(page: Page, phone: string, pin: string) {
 }
 
 
-for (const palette of ['studio', 'night']) {
+for (const palette of (process.env.SHOTS_PALETTES ?? 'studio,night').split(',')) {
   for (const mode of ['light', 'dark']) {
     for (const width of [1366, 360]) {
       test(`${palette} ${mode} ${width}`, async ({ page }) => {

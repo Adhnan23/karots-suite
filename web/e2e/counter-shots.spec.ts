@@ -140,7 +140,7 @@ const prep: Record<string, (page: Page) => Promise<void>> = {
   },
 }
 
-for (const palette of ['studio', 'night']) {
+for (const palette of (process.env.SHOTS_PALETTES ?? 'studio,night').split(',')) {
   for (const mode of ['light', 'dark']) {
     for (const width of [1366, 1024]) {
       test(`${palette} ${mode} ${width}`, async ({ page }) => {
