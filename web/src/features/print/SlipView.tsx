@@ -19,5 +19,10 @@ function SlipPicture({ path, size, className }: { path: string; size?: string; c
     return <p className={cn('mx-auto w-[288px] bg-paper py-10 text-center text-[13px] text-ink opacity-60', className)}>{q.isError ? 'No preview' : 'Loading the receipt…'}</p>
   }
   // Half size on screen (a 576-dot roll ≈ 288 px), smoothly scaled; the printer gets every dot.
-  return <img src={q.data.url} alt="Receipt preview" className={cn('mx-auto block bg-white shadow-[var(--shadow)]', className)} style={{ width: q.data.dots / 2 }} />
+  // The paper frame around it is screen-only breathing room — the print is the picture alone.
+  return (
+    <div className={cn('mx-auto w-fit bg-paper px-3 py-4 shadow-[var(--shadow)]', className)}>
+      <img src={q.data.url} alt="Receipt preview" className="block" style={{ width: q.data.dots / 2 }} />
+    </div>
+  )
 }
