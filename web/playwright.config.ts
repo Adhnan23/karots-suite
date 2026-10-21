@@ -5,6 +5,11 @@ export default defineConfig({
   workers: 1,
   expect: { timeout: 15_000 }, // sign-ins may wait out the login limiter (e2e/fixtures.ts)
   use: { baseURL: 'http://localhost:3100' },
+  projects: [
+    { name: 'chromium', use: { browserName: 'chromium' } },
+    // Shops print from Firefox too: the receipt picture must come out the same there.
+    { name: 'firefox', use: { browserName: 'firefox' }, testMatch: /print-image/ },
+  ],
   webServer: {
     // Every ported plugin is built in; the tree goes back to core-only straight after.
     // A fresh e2e DB each run: stale rows from an earlier run fail unrelated flows.

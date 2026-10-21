@@ -178,7 +178,7 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   `<img src={url} style="width: dots/2 px; image-rendering: pixelated">` (half scale on screen; same pixels) and
   Print reuses the cached blob. Classic keeps `SlipPaper`.
 
-- [ ] **Step 1:** Failing e2e `print-image.spec.ts` (Chromium + Firefox). Set `printAs: 'image'` and
+- [x] **Step 1:** Failing e2e `print-image.spec.ts` (Chromium + Firefox). Set `printAs: 'image'` and
   `askToPrint: true` through the settings API, make a cash sale, and in the prompt:
   - the preview `<img>` natural width is 576;
   - `page.route('**/till/sales/*/print*')` captures the upload: content type `image/png`, its bytes equal the
@@ -188,11 +188,12 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
   - `page.addInitScript` making `HTMLCanvasElement.prototype.toBlob` throw → a Classic POST (no body), exactly one
     print request, and the sale is still saved.
   Reset `printAs: 'classic'` in `afterAll`.
-- [ ] **Step 2:** `cd web && bunx playwright test print-image` → FAIL.
-- [ ] **Step 3:** Implement. `bunx playwright install firefox` if missing.
-- [ ] **Step 4:** Spec passes on both projects; the full run `bunx playwright test` stays green (kill anything on
+- [x] **Step 2:** `cd web && bunx playwright test print-image` → FAIL.
+- [x] **Step 3:** Implement. `bunx playwright install firefox` if missing.
+- [x] **Step 4:** Spec passes on both projects; the full run `bunx playwright test` stays green (kill anything on
   3100 / 5173 first, AGENTS gotcha).
-- [ ] **Step 5:** Commit `feat(till): Image mode — the preview is the printed picture; Classic on a render failure`.
+- *Done 2026-10-21: full run 191 passed (24 shot specs skipped without SHOTS); `SlipView` (picture or SlipPaper) made here for the prompt, reused in Task 11; reprint test uses a Cash receipt (Sales use SaleFind).*
+- [x] **Step 5:** Commit `feat(till): Image mode — the preview is the printed picture; Classic on a render failure`.
 
 ### Task 6: Phase 1 gate — emulator shot review
 

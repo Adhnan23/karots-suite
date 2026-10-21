@@ -1,6 +1,7 @@
 import { createElement, type ReactElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
+import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import type { SlipPreview } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
@@ -38,5 +39,6 @@ async function make(path: string, size?: string): Promise<SlipPicture> {
 
 /** The slip at `path` as the exact picture the printer gets. Cached briefly, so
  * the Print / Skip preview and the print that follows send the same pixels. */
-export const slipPicture = (path: string, size?: string) =>
-  queryClient.fetchQuery({ queryKey: ['slip-picture', path, size ?? ''], queryFn: () => make(path, size), staleTime: 60_000 })
+export const slipPictureQuery = (path: string, size?: string) =>
+  queryOptions({ queryKey: ['slip-picture', path, size ?? ''], queryFn: () => make(path, size), staleTime: 60_000, retry: false })
+export const slipPicture = (path: string, size?: string) => queryClient.fetchQuery(slipPictureQuery(path, size))

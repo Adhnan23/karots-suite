@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { queryClient } from '@/api/query-client'
 import { configQuery, errMsg } from './api'
 import { printSlip } from './print'
-import { SlipPaper } from './SlipPaper'
+import { SlipView } from '@/features/print/SlipView'
 
 /** "Ask before printing" (Settings): every slip the till or a counter tab makes
  * asks here — Print or Skip — with the receipt as it will print. One prompt for
@@ -49,7 +49,7 @@ export function SlipAskHost() {
           <DialogDescription>{a.note}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[56vh] overflow-auto rounded-[var(--radius-sm)] bg-muted p-4">
-          <SlipPaper key={a.path} path={a.path} />
+          <SlipView key={a.path} path={a.path} />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={close}>Skip</Button>

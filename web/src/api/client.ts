@@ -13,16 +13,17 @@ export class ApiError extends Error {
   }
 }
 
-type Opts = { method?: string; json?: unknown; signal?: AbortSignal }
+type Opts = { method?: string; json?: unknown; blob?: Blob; signal?: AbortSignal }
 
 /** Typed JSON call to /api/v1. Cookie session rides along automatically. */
 export async function api<T = void>(path: string, opts: Opts = {}): Promise<T> {
-  const hasBody = opts.json !== undefined
+  const hasBody = opts.json !== undefined || opts.blob !== undefined
+  const type = opts.blob ? opts.blob.type : 'application/json'
   const res = await fetch(`/api/v1${path}`, {
     method: opts.method ?? (hasBody ? 'POST' : 'GET'),
     credentials: 'same-origin',
-    headers: hasBody ? { 'Content-Type': 'application/json', 'X-Ks-Device': deviceId() } : { 'X-Ks-Device': deviceId() },
-    body: hasBody ? JSON.stringify(opts.json) : undefined,
+    headers: hasBody ? { 'Content-Type': type, 'X-Ks-Device': deviceId() } : { 'X-Ks-Device': deviceId() },
+    body: opts.blob ?? (opts.json !== undefined ? JSON.stringify(opts.json) : undefined),
     signal: opts.signal,
   })
   noteVersion(res.headers.get('X-Karots-Version'))
