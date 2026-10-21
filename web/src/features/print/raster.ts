@@ -1,5 +1,4 @@
 import { domToCanvas } from 'modern-screenshot'
-import { PAPER_FONTS } from './paper'
 
 /** RGBA in place → pure ink (black) or paper (white). Threshold, never dither:
  * text must stay crisp at 203 dpi. Same rule as escpos.ImageJob (luminance < 160
@@ -13,18 +12,20 @@ export function toOneBit(px: Uint8ClampedArray) {
   }
 }
 
-/** The paper fonts this node's text needs, loaded — never a system fallback on paper. */
-async function fontsFor(node: HTMLElement) {
+const FACES = ['400', '700', '900', 'italic 400']
+
+/** The style's fonts this node's text needs, loaded — never a system fallback on paper. */
+async function fontsFor(node: HTMLElement, fonts: readonly string[]) {
   const text = node.textContent ?? ''
-  await Promise.all(PAPER_FONTS.flatMap((f) => [document.fonts.load(`400 20px "${f}"`, text), document.fonts.load(`700 20px "${f}"`, text)]))
+  await Promise.all(fonts.flatMap((f) => FACES.map((w) => document.fonts.load(`${w} 20px "${f}"`, text))))
   await document.fonts.ready
-  if (!document.fonts.check(`20px "${PAPER_FONTS[0]}"`, 'A')) throw new Error('receipt font not loaded')
+  if (!document.fonts.check(`20px "${fonts[0]}"`, 'A')) throw new Error('receipt font not loaded')
 }
 
 /** A slip node drawn at printer dots (1 CSS px = 1 dot) → a 1-bit PNG exactly
  * `dots` wide. Throws if it can't be made exactly; the caller prints Classic. */
-export async function rasterize(node: HTMLElement, dots: number): Promise<Blob> {
-  await fontsFor(node)
+export async function rasterize(node: HTMLElement, dots: number, fonts: readonly string[]): Promise<Blob> {
+  await fontsFor(node, fonts)
   await Promise.all(Array.from(node.querySelectorAll('img'), (i) => i.decode().catch(() => undefined)))
   // The full content height: a fractional or overflowing box must never cut off the last line.
   const height = Math.ceil(Math.max(node.scrollHeight, node.getBoundingClientRect().height))
