@@ -270,10 +270,11 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 - Create: `web/src/features/print/templates/{RefundSlip,MoneySlip,DebtSlip,WarrantySlip,TestSlip}.tsx`
 - Modify: `web/src/features/print/templates.ts`
 
-- [ ] **Step 1:** Each one is copied line for line from its Go builder (`ReturnDocument`, `moneySlip` in
+- [x] **Step 1:** Each one is copied line for line from its Go builder (`ReturnDocument`, `moneySlip` in
   `till_print.go`, `DebtDocument`, `WarrantyDocument`, `TestDocument`).
-- [ ] **Step 2:** Emulator shot review of each at 80 and 58 mm, Classic vs Image; fix until they match.
-- [ ] **Step 3:** Commit `feat(print): refund, money, credit, warranty and test slips as templates`.
+- [x] **Step 2:** Emulator shot review of each at 80 and 58 mm, Classic vs Image; fix until they match.
+- *Done 2026-10-21: the five in one file, `templates/CounterSlips.tsx`. Browser shot review (decoded Classic vs template) at 80 + 58 mm: line for line; at 58 mm an over-long word breaks at a hyphen instead of a hard cut, and a 33-character centred line wraps where Classic loses its last character.*
+- [x] **Step 3:** Commit `feat(print): refund, money, credit, warranty and test slips as templates`.
 
 ### Task 10: Plugin slip templates (repairs)
 
