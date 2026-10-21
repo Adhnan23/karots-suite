@@ -23,7 +23,7 @@ export function RefundSlip({ d, kit: K }: P) {
       {(r.items ?? []).map((it, i) => (
         <div key={i}>
           <K.Item name={it.name} amount={money(sym, it.refund)}>
-            <K.Sub l={`${display(it.quantity)} ${it.unitAbbr}`} r={money(sym, it.refund)} />
+            <K.Sub kind="qty" l={`${display(it.quantity)} ${it.unitAbbr}`} r={money(sym, it.refund)} />
           </K.Item>
         </div>
       ))}

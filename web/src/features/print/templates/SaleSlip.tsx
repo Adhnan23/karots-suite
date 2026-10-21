@@ -84,7 +84,7 @@ function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
   if (it.payout) {
     return (
       <K.Item name={it.name} amount={'-' + display(abs(it.subtotal))}>
-        <K.Sub l="Given" r={'-' + display(abs(it.subtotal))} />
+        <K.Sub kind="given" l="Given" r={'-' + display(abs(it.subtotal))} />
         <Extras warranty={it.warranty} serials={it.serials} level={1} K={K} />
       </K.Item>
     )
@@ -92,11 +92,11 @@ function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
   const disc = pos(it.discount)
   return (
     <K.Item name={it.name} amount={display(it.subtotal)}>
-      <K.Sub l={qtyText(it)} r={display(it.gross)} />
+      <K.Sub kind="qty" l={qtyText(it)} r={display(it.gross)} />
       {disc && (
         <>
-          <K.Sub saving l={'You saved' + it.discountLabel} r={'-' + display(it.discount)} />
-          <K.Sub l="Line total" r={display(it.subtotal)} />
+          <K.Sub kind="saving" l={'You saved' + it.discountLabel} r={'-' + display(it.discount)} />
+          <K.Sub kind="total" l="Line total" r={display(it.subtotal)} />
         </>
       )}
       <Extras warranty={it.warranty} serials={it.serials} level={1} K={K} />
@@ -109,11 +109,11 @@ function Group({ it, K }: { it: SlipItem; K: SlipKit }) {
   const disc = pos(it.discount)
   return (
     <K.Item name={it.name} amount={display(it.subtotal)}>
-      <K.Sub l={qtyText(it)} r={display(it.gross)} />
+      <K.Sub kind="qty" l={qtyText(it)} r={display(it.gross)} />
       {disc && (
         <>
-          <K.Sub saving l="You saved" r={'-' + display(it.discount)} />
-          <K.Sub l="Line total" r={display(it.subtotal)} />
+          <K.Sub kind="saving" l="You saved" r={'-' + display(it.discount)} />
+          <K.Sub kind="total" l="Line total" r={display(it.subtotal)} />
         </>
       )}
       {(it.members ?? []).map((m, i) => (

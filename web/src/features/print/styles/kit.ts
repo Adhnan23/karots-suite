@@ -17,8 +17,9 @@ export type SlipKit = {
   Info: FC<{ l: string; r: string }>
   /** A line and its sub-lines. `amount` = the line's total, for styles that put it on the name row. */
   Item: FC<{ name: string; amount?: string; children?: ReactNode }>
-  /** A sub-line under an item: qty × price, a saving, the line total, a payout's "Given". */
-  Sub: FC<{ l: string; r: string; saving?: boolean }>
+  /** A sub-line under an item: qty × price, a saving, the line total (also on
+   * the Item's `amount`, so a style may draw it there instead), a payout's "Given". */
+  Sub: FC<{ l: string; r: string; kind: 'qty' | 'saving' | 'total' | 'given' }>
   /** A line group's member ("Bread x2"). */
   Member: FC<{ children: string }>
   /** A warranty or serial line under an item (level 1) or a group member (level 2). */
