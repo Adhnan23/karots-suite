@@ -80,7 +80,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
         )}
       </div>
 
-      <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-card p-3 shadow-[var(--shadow)] lg:w-[340px] lg:shrink-0">
+      <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-card p-3 shadow-[var(--shadow)] lg:w-[460px] lg:shrink-0">
         <span className="text-xs font-bold text-muted-foreground">Preview · exactly as it prints</span>
         <Seg label="Slip" options={slips.map((s) => ({ label: s.label, key: s.path }))} value={slip} onChange={setSlip} />
         <div className="flex flex-wrap gap-2">
@@ -89,7 +89,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
         </div>
         <div className="flex min-h-40 justify-center overflow-hidden rounded-sm bg-muted p-3">
           {preview.data ? (
-            <img src={preview.data.url} alt="Receipt preview" className="w-full max-w-[288px] bg-white shadow-[var(--shadow)]" style={{ imageRendering: 'pixelated' }} />
+            <img src={preview.data.url} alt="Receipt preview" className="h-auto max-w-full bg-white shadow-[var(--shadow)]" style={{ width: preview.data.dots * 0.7 }} />
           ) : (
             <span className="self-center text-sm text-muted-foreground">{preview.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
