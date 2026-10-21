@@ -1,118 +1,127 @@
 import type { SlipData, SlipItem } from '@/api/types.gen'
-import { abs, Blank, display, Footer, Hang, Header, money, neg, pos, ReceiptPage, Row, Rule, Text } from '../kit'
+import type { SlipKit } from '../styles/kit'
+import { abs, display, money, neg, pos } from '../styles/money'
 
 /** The sale receipt, line for line from `escpos.Document` + `printItems`. */
-export function SaleSlip({ d }: { d: SlipData }) {
+export function SaleSlip({ d, kit: K }: { d: SlipData; kit: SlipKit }) {
   const s = d.sale!
   const sym = d.currency
   const payments = s.payments ?? []
   return (
-    <ReceiptPage dots={d.dots} columns={d.columns}>
-      <Header shop={d.shop} dots={d.dots} />
-      <Rule />
-      <Row l="Receipt:" r={s.receiptNo} />
-      <Row l="Date:" r={s.date} />
-      <Row l="Cashier:" r={s.cashier} />
-      {s.customer && <Row l="Customer:" r={s.customer} />}
-      <Rule />
-      {(s.items ?? []).map((it, i) => (it.group ? <Group key={i} it={it} /> : <Item key={i} it={it} />))}
-      <Rule />
-      <Row l="Subtotal" r={money(sym, s.subtotal)} />
-      {pos(s.itemSavings) && <Row l="Item savings" r={'-' + money(sym, s.itemSavings)} />}
-      {pos(s.billSaving) && <Row l={'Bill saving' + s.billSavingLabel} r={'-' + money(sym, s.billSaving)} />}
-      {pos(s.tax) && <Row l="Tax" r={money(sym, s.tax)} />}
-      {pos(s.given) && <Row l="Given to customer" r={'-' + money(sym, s.given)} />}
-      <Blank />
-      {!neg(s.total) && <Row big l="TOTAL" r={money(sym, s.total)} />}
-      {pos(s.youSaved) && <Row l="You saved" r={money(sym, s.youSaved)} />}
+    <K.Page d={d}>
+      <K.Header shop={d.shop} dots={d.dots} number={s.receiptNo} />
+      <K.Rule />
+      <K.Info l="Receipt:" r={s.receiptNo} />
+      <K.Info l="Date:" r={s.date} />
+      <K.Info l="Cashier:" r={s.cashier} />
+      {s.customer && <K.Info l="Customer:" r={s.customer} />}
+      <K.Rule />
+      {(s.items ?? []).map((it, i) => (it.group ? <Group key={i} it={it} K={K} /> : <Item key={i} it={it} K={K} />))}
+      <K.Rule />
+      <K.Money l="Subtotal" r={money(sym, s.subtotal)} />
+      {pos(s.itemSavings) && <K.Money saving l="Item savings" r={'-' + money(sym, s.itemSavings)} />}
+      {pos(s.billSaving) && <K.Money saving l={'Bill saving' + s.billSavingLabel} r={'-' + money(sym, s.billSaving)} />}
+      {pos(s.tax) && <K.Money l="Tax" r={money(sym, s.tax)} />}
+      {pos(s.given) && <K.Money l="Given to customer" r={'-' + money(sym, s.given)} />}
+      <K.Gap />
+      {!neg(s.total) && <K.Total label="TOTAL" amount={money(sym, s.total)} />}
+      {pos(s.youSaved) && <K.Money saving l="You saved" r={money(sym, s.youSaved)} />}
       {payments.length > 0 && (
         <>
-          <Blank />
-          {payments.filter((p) => Number(p.amount) !== 0).map((p, i) => <Row key={i} l={p.method} r={money(sym, p.amount)} />)}
+          <K.Gap />
+          {payments.filter((p) => Number(p.amount) !== 0).map((p, i) => <K.Money key={i} l={p.method} r={money(sym, p.amount)} />)}
         </>
       )}
       {s.credit ? (
         <>
-          <Blank />
-          {pos(s.fromAdvance) && <Row l="From advance" r={'-' + money(sym, s.fromAdvance)} />}
-          {pos(s.due) && <Row big l="DUE" r={money(sym, s.due)} />}
-          {neg(s.balance) ? <Row big l="ADVANCE LEFT" r={money(sym, abs(s.balance))} /> : <Row big l="TOTAL DUE" r={money(sym, s.balance)} />}
+          <K.Gap />
+          {pos(s.fromAdvance) && <K.Money l="From advance" r={'-' + money(sym, s.fromAdvance)} />}
+          {pos(s.due) && <K.Total label="DUE" amount={money(sym, s.due)} />}
+          {neg(s.balance) ? <K.Total label="ADVANCE LEFT" amount={money(sym, abs(s.balance))} /> : <K.Total label="TOTAL DUE" amount={money(sym, s.balance)} />}
         </>
       ) : (
         pos(s.change) && (
           <>
-            <Blank />
-            <Row big l={neg(s.total) ? 'GIVEN' : 'CHANGE'} r={money(sym, s.change)} />
+            <K.Gap />
+            <K.Total label={neg(s.total) ? 'GIVEN' : 'CHANGE'} amount={money(sym, s.change)} />
           </>
         )
       )}
-      {pos(s.onAccount) && <Row l="On account" r={money(sym, s.onAccount)} />}
-      {pos(s.changeKept) && <Row l="Change kept" r={money(sym, s.changeKept)} />}
-      <Rule />
-      <Footer shop={d.shop} />
-    </ReceiptPage>
+      {pos(s.onAccount) && <K.Money l="On account" r={money(sym, s.onAccount)} />}
+      {pos(s.changeKept) && <K.Money l="Change kept" r={money(sym, s.changeKept)} />}
+      <K.Rule />
+      <K.Footer shop={d.shop} number={s.receiptNo} />
+    </K.Page>
   )
 }
 
 /** A line's warranty and serial numbers (`escpos.extras`). */
-function Extras({ warranty, serials, indent }: { warranty: string; serials?: string[]; indent: string }) {
+export function Extras({ warranty, serials, level, K }: { warranty: string; serials?: string[]; level: 1 | 2; K: SlipKit }) {
   return (
     <>
-      {warranty && <Text>{indent + warranty}</Text>}
-      {(serials ?? []).map((sn, i) => <Text key={i} indent={indent.length}>{sn}</Text>)}
+      {warranty && (
+        <K.Note level={level} kind="warranty">
+          {warranty}
+        </K.Note>
+      )}
+      {(serials ?? []).map((sn, i) => (
+        <K.Note key={i} level={level} kind="serial">
+          {sn}
+        </K.Note>
+      ))}
     </>
   )
 }
 
-function Item({ it }: { it: SlipItem }) {
+/** A line's quantity text, as Classic prints it. */
+export function qtyText(it: SlipItem) {
+  if (it.group) return `${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')
+  if (it.packLabel) return `${display(it.quantity)} ${it.unitAbbr} (${it.packLabel})`
+  return `${display(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
+}
+
+function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
   if (it.payout) {
     return (
-      <>
-        <Text>{it.name}</Text>
-        <Row l="  Given" r={'-' + display(abs(it.subtotal))} />
-        <Extras warranty={it.warranty} serials={it.serials} indent="  " />
-      </>
+      <K.Item name={it.name} amount={'-' + display(abs(it.subtotal))}>
+        <K.Sub l="Given" r={'-' + display(abs(it.subtotal))} />
+        <Extras warranty={it.warranty} serials={it.serials} level={1} K={K} />
+      </K.Item>
     )
   }
   const disc = pos(it.discount)
-  let qty = `${display(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}`
-  if (it.packLabel) qty = `${display(it.quantity)} ${it.unitAbbr} (${it.packLabel})`
-  else if (disc) qty += ` -> ${display(it.netUnitPrice)}`
   return (
-    <>
-      <Text>{it.name}</Text>
-      <Row l={'  ' + qty} r={display(it.gross)} />
+    <K.Item name={it.name} amount={display(it.subtotal)}>
+      <K.Sub l={qtyText(it)} r={display(it.gross)} />
       {disc && (
         <>
-          <Row l={'  You saved' + it.discountLabel} r={'-' + display(it.discount)} />
-          <Row l="  Line total" r={display(it.subtotal)} />
+          <K.Sub saving l={'You saved' + it.discountLabel} r={'-' + display(it.discount)} />
+          <K.Sub l="Line total" r={display(it.subtotal)} />
         </>
       )}
-      <Extras warranty={it.warranty} serials={it.serials} indent="  " />
-    </>
+      <Extras warranty={it.warranty} serials={it.serials} level={1} K={K} />
+    </K.Item>
   )
 }
 
 /** A line group as one block (`escpos.printGroup`). */
-function Group({ it }: { it: SlipItem }) {
+function Group({ it, K }: { it: SlipItem; K: SlipKit }) {
   const disc = pos(it.discount)
-  const qty = `${it.sets} x ${display(it.setGross)}` + (disc ? ` -> ${display(it.setNet)}` : '')
   return (
-    <>
-      <Text>{it.name}</Text>
-      <Row l={'  ' + qty} r={display(it.gross)} />
+    <K.Item name={it.name} amount={display(it.subtotal)}>
+      <K.Sub l={qtyText(it)} r={display(it.gross)} />
       {disc && (
         <>
-          <Row l="  You saved" r={'-' + display(it.discount)} />
-          <Row l="  Line total" r={display(it.subtotal)} />
+          <K.Sub saving l="You saved" r={'-' + display(it.discount)} />
+          <K.Sub l="Line total" r={display(it.subtotal)} />
         </>
       )}
       {(it.members ?? []).map((m, i) => (
         <div key={i}>
-          <Hang lead="   - ">{`${m.name} x${m.quantity}`}</Hang>
-          <Extras warranty={m.warranty} serials={m.serials} indent="     " />
+          <K.Member>{`${m.name} x${m.quantity}`}</K.Member>
+          <Extras warranty={m.warranty} serials={m.serials} level={2} K={K} />
         </div>
       ))}
-    </>
+    </K.Item>
   )
 }

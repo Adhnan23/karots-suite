@@ -1,5 +1,6 @@
 import type { SlipShop } from '@/api/types.gen'
-import { display, Footer, Header, money, pos, ReceiptPage, Row, Rule, Text, Title } from '@/features/print/kit'
+import { Footer, Header, ReceiptPage, Row, Rule, Text, Title } from '@/features/print/styles/classic/kit'
+import { display, money, pos } from '@/features/print/styles/money'
 
 /** What the job print path's ?data=1 answers (Go: slipData in api_print.go). */
 type JobSlipData = {

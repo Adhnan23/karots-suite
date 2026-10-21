@@ -1,8 +1,9 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from 'react'
 import type { SlipShop } from '@/api/types.gen'
-import { PAPER_FAMILY } from './paper'
+import { PAPER_FAMILY, PAPER_FONTS } from '../../paper'
+import type { SlipKit } from '../kit'
 
-// The template kit: a slip laid out like Classic's `escpos` lines (classic style),
+// Classic's kit: a slip laid out like Classic's `escpos` lines (classic style),
 // at printer dots (1 CSS px = 1 dot). Font A is a 12 × 24 dot cell (JetBrains Mono
 // 20 px), Font B 9 × 17. Black on white: it's paper, not themed UI.
 const A = { size: 20, line: 24, col: 12 }
@@ -22,22 +23,6 @@ export function ReceiptPage({ dots, columns, children }: { dots: number; columns
     </Cols.Provider>
   )
 }
-
-// ---- money, as `money.Format` / `money.Display` print it ----
-
-const thousands = (s: string) => {
-  const neg = s.startsWith('-')
-  const [int, frac] = (neg ? s.slice(1) : s).split('.')
-  return (neg ? '-' : '') + int.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (frac !== undefined ? '.' + frac : '')
-}
-/** "1250.5" → "1,250.50" */
-export const display = (s: string) => thousands(Number(s).toFixed(2))
-/** "Rs." + "1250.00" → "Rs. 1,250.00" */
-export const money = (sym: string, s: string) => `${sym} ${display(s)}`
-export const pos = (s: string) => Number(s) > 0
-export const neg = (s: string) => Number(s) < 0
-/** "-12.00" → "12.00" */
-export const abs = (s: string) => s.replace(/^-/, '')
 
 /** Text that wraps at the line's columns like `escpos.wrap` (words, a too-long
  * word hard-split). Leading spaces indent the first line only, as Classic does. */
@@ -164,4 +149,35 @@ export function Footer({ shop }: { shop: SlipShop }) {
       <Small>adhnanmsa@gmail.com | 0769626396</Small>
     </>
   )
+}
+
+/** Classic as a kit: the parts above, arranged exactly as the Classic lines print. */
+export const classic: SlipKit = {
+  Page: ({ d, children }) => <ReceiptPage dots={d.dots} columns={d.columns}>{children}</ReceiptPage>,
+  Header: ({ shop, dots }) => <Header shop={shop} dots={dots} />,
+  Title,
+  Rule: () => <Rule />,
+  Gap: Blank,
+  Info: ({ l, r }) => <Row l={l} r={r} />,
+  Item: ({ name, children }) => (
+    <>
+      <Text>{name}</Text>
+      {children}
+    </>
+  ),
+  Sub: ({ l, r }) => <Row l={'  ' + l} r={r} />,
+  Member: ({ children }) => <Hang lead="   - ">{children}</Hang>,
+  Note: ({ children, level, kind }) => {
+    const indent = level === 1 ? '  ' : '     '
+    return kind === 'warranty' ? <Text>{indent + children}</Text> : <Text indent={indent.length}>{children}</Text>
+  },
+  Money: ({ l, r, bold }) => <Row l={l} r={r} bold={bold} />,
+  Total: ({ label, amount }) => <Row big l={label} r={amount} />,
+  Text: ({ children, center, bold }) => (
+    <Text center={center} bold={bold}>
+      {children}
+    </Text>
+  ),
+  Footer: ({ shop }) => <Footer shop={shop} />,
+  fonts: [...PAPER_FONTS],
 }

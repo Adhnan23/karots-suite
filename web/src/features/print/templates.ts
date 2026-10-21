@@ -1,14 +1,24 @@
-import type { ComponentType } from 'react'
+import { createElement, type ReactElement } from 'react'
 import type { SlipData } from '@/api/types.gen'
+import { styleOf } from './styles'
+import type { SlipTemplateFC } from './styles/kit'
 import { DebtSlip, MoneySlip, RefundSlip, TestSlip, WarrantySlip } from './templates/CounterSlips'
 import { SaleSlip } from './templates/SaleSlip'
 
-/** A slip kind's React template (Image mode); a kind not here prints its decoded Classic lines. */
-export const templates: Partial<Record<string, ComponentType<{ d: SlipData }>>> = {
+/** A slip kind's shared template (Image mode), drawn with a style's kit; a kind not
+ * here prints its decoded Classic lines. */
+export const templates: Partial<Record<string, SlipTemplateFC>> = {
   sale: SaleSlip,
   refund: RefundSlip,
   money: MoneySlip,
   debt: DebtSlip,
   warranty: WarrantySlip,
   test: TestSlip,
+}
+
+/** The slip drawn in a style (the style's own slip wins over the shared one); null = no template. */
+export function slipElement(d: SlipData, style: string): ReactElement | null {
+  const s = styleOf(style)
+  const T = s.overrides?.[d.kind] ?? templates[d.kind]
+  return T ? createElement(T, { d, kit: s.kit }) : null
 }

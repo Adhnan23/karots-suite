@@ -8,7 +8,7 @@ import { queryClient } from '@/api/query-client'
 import { DecodedSlip } from './DecodedSlip'
 import { rasterize } from './raster'
 import { slots } from '@/plugins/slots'
-import { templates } from './templates'
+import { slipElement } from './templates'
 
 export type SlipPicture = { blob: Blob; url: string; dots: number }
 
@@ -38,8 +38,8 @@ async function shoot(el: ReactElement, dots: number): Promise<Blob> {
 async function page(path: string, size?: string): Promise<{ el: ReactElement; dots: number }> {
   const res = await api<SlipData | SlipPreview>(withQuery(path, { data: '1', preview: '1', size }), { method: 'POST' })
   if ('kind' in res) {
-    const T = templates[res.kind]
-    if (T) return { el: createElement(T, { d: res }), dots: res.dots }
+    const el = slipElement(res, 'classic')
+    if (el) return { el, dots: res.dots }
     const P = slots.slipTemplates.find((t) => t.kind === res.kind)?.Template
     if (P) return { el: createElement(P, { d: res }), dots: res.dots }
   }
