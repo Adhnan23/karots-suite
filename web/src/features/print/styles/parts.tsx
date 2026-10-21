@@ -12,6 +12,9 @@ export function Paper({ dots, family, size = 20, line = 26, children }: { dots: 
   return (
     <div
       style={{
+        // flow-root: a child's top / bottom margin stays inside the page. Collapsed through it,
+        // the measured height would miss the margin and the picture would lose its last dots.
+        display: 'flow-root',
         width: dots,
         boxSizing: 'border-box',
         padding: `0 ${MARGIN}px`,
