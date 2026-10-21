@@ -51,13 +51,32 @@ export interface Flags {
   isSystem: boolean;
 }
 /**
- * Appearance is the system-user-locked look. BrandColor "" = theme default.
+ * Appearance is the system-user-locked look. BrandColor / Radius are the legacy
+ * look (before palettes owned brand and radius): read-only, applied while the
+ * palette is a built-in, cleared when another palette is chosen.
  */
 export interface Appearance {
-  palette: string; // "studio" | "night"
-  brandColor: string; // "#rrggbb" or "", overrides the palette's brand in both modes
-  radius: string; // "sharp" | "rounded" | "round"
+  palette: string; // "studio" | "night" | "bazaar" | "lagoon" | "custom-<id>"
+  brandColor: string; // legacy "#rrggbb" or ""
+  radius: string; // legacy "sharp" | "rounded" | "round"
   receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+}
+/**
+ * Palette is a custom palette (docs/specs/2026-10-21-palettes-design.md §3). CSS is
+ * the whole palette file; the list leaves it empty.
+ */
+export interface Palette {
+  id: number /* int64 */;
+  theme: string;
+  name: string;
+  base: string;
+  css: string;
+  updatedAt: any /* time.Time */;
+}
+export interface PaletteInput {
+  name: string;
+  base: string;
+  css: string;
 }
 export interface Me {
   user: SessionUser;

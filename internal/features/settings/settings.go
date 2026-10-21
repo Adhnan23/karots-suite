@@ -114,9 +114,18 @@ func oneOf(v string, allowed []string, def string) string {
 	return def
 }
 
+// customSkin is a custom palette (palettes table): "custom-<id>".
+var customSkin = regexp.MustCompile(`^custom-[1-9][0-9]{0,17}$`)
+
 // ValidSkin/ValidReceiptStyle echo a known value or the default (an old
-// modern / boxed / compact receipt style reads as classic).
-func ValidSkin(v string) string         { return oneOf(v, Skins, "studio") }
+// modern / boxed / compact receipt style reads as classic). A custom palette's
+// skin passes as-is; whether the row exists is the caller's check.
+func ValidSkin(v string) string {
+	if customSkin.MatchString(v) {
+		return v
+	}
+	return oneOf(v, Skins, "studio")
+}
 func ValidReceiptStyle(v string) string { return oneOf(v, ReceiptStyles, "classic") }
 
 type UpdateInput struct {
