@@ -17,9 +17,9 @@ import (
 
 	"karots-suite/internal/app"
 	"karots-suite/internal/backup"
-	"karots-suite/internal/features/reorder"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
+	"karots-suite/internal/features/reorder"
 	"karots-suite/internal/filedb"
 	"karots-suite/internal/update"
 )
