@@ -1,5 +1,8 @@
 # Print as image — what you see is what prints (idea, 2026-10-21 — next, before Demo Room)
 
+**Status: BUILT 2026-10-21** (receipts, both phases — see `docs/status.md`). Still open: real-printer test, the
+customisation step, labels.
+
 Planning only so far (user + Claude, chat). Core feature.
 
 ## The problem (user)

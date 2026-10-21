@@ -94,7 +94,7 @@ func TestSlipData(t *testing.T) {
 
 	// The Settings preview: a made-up sale with the shop's real header and footer;
 	// it never prints.
-	te.db.Exec(`UPDATE settings SET receipt_footer = 'Sample footer'`)          //nolint:errcheck
+	te.db.Exec(`UPDATE settings SET receipt_footer = 'Sample footer'`)            //nolint:errcheck
 	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_footer = NULL`) }) //nolint:errcheck
 	rec = te.do(http.MethodPost, "/api/v1/admin/settings/sample-slip?data=1", nil, admin)
 	if d := decode[SlipData](t, rec); rec.Code != http.StatusOK || d.Kind != "sale" || d.Sale == nil || len(d.Sale.Items) != 2 || d.Shop.Footer != "Sample footer" {

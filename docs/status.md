@@ -5,16 +5,23 @@ every milestone.
 
 ## Next session (handoff 2026-10-21) — START HERE
 
-**Print as image — Phase 1 BUILT + checked (2026-10-21).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
-plan `docs/plans/2026-10-21-print-as-image.md` (Tasks 1–6 done). Settings → Printers & labels → **Print receipts as:
-Image (new) / Classic** (default Classic, migration 00010). In Image mode every slip (`printSlip`) is drawn in the
-browser at printer dots (`web/src/features/print/`: `DecodedSlip` draws the Classic slip's decoded lines, bundled
-JetBrains Mono / Noto Sinhala / Tamil, 1-bit threshold), uploaded as a PNG to the slip's own print endpoint
-(`slipImage` → `escpos.ImageJob`, `GS v 0` bands of 256 rows); the Print / Skip preview is that same picture. Kick
-exactly like karots-pos (one job, kick first). A failed picture prints Classic once. User checked the side-by-side
-shots: "looks right". The emulator can't show every image job (it doesn't know `GS v 0`) — see `docs/acceptance.md`.
-**Next: Phase 2 (Task 7)** — `?data=1` + React templates per slip kind (refund / warranty / repairs get their shot
-check there), then delete `Paper.tsx`. Real-printer test when the user has printers.
+**Print as image — BUILT (2026-10-21, Phases 1 + 2).** Spec `docs/specs/2026-10-21-print-as-image-design.md`,
+plan `docs/plans/2026-10-21-print-as-image.md` (all 12 tasks). Settings → Printers & labels → **Print receipts as:
+Image (new) / Classic** — **Classic is still the default** (migration 00010). In Image mode every slip (`printSlip`)
+is a React template drawn in the browser at printer dots and uploaded as a PNG to the slip's own print endpoint
+(`slipImage` → `escpos.ImageJob`, `GS v 0` bands of 256 rows); every preview is that same picture. Each print path
+answers `?data=1` (`internal/api/slip_data.go`, `dto_slip.go`: the values the Classic builder prints) and the
+templates copy the Classic layout line for line (`web/src/features/print/kit.tsx` + `templates/`: sale, refund,
+money, credit, warranty, test); plugins add theirs through `slots.slipTemplates` (repairs `JobSlip`, kind
+`repairs.job`). A kind with no template prints its decoded Classic lines (`DecodedSlip`); a failed picture prints
+Classic once. Image slips keep one column of white at each side (user: "letters on the edge"), so a line holds 46 / 30
+columns, not 48 / 32. Sinhala / Tamil item and shop names print (Classic prints `?`). `Paper.tsx` is gone: every
+receipt view is `SlipView` (the picture, or the decoded Classic bytes in `SlipPaper` — now in the bundled paper font
+and fitting a 360 px phone); Settings previews a sample sale (`POST /admin/settings/sample-slip`, never prints); the
+A4 / PDF page is the sale template. Kick exactly like karots-pos (one job, kick first). The emulator can't show
+`GS v 0` jobs — the picture the SPA sends is the reference (`docs/acceptance.md`).
+**Next:** real-printer test when the user has printers (then decide when Classic can go), then the receipt
+customisation step on top of the templates (the suite's own look), then labels (TSPL) as pictures.
 
 **Smart reorder levels + Low stock at the till — BUILT (2026-10-21).** Spec
 `docs/specs/2026-10-21-smart-reorder-levels-design.md` (mockup linked there), plan
@@ -35,9 +42,7 @@ Counter operations too, **Order these** opens Suppliers → Order with the lines
 caught a bug: last year's school rush was capped as one-off bills — now judged per window). Follow-ups done: Products →
 Reorder at marks "auto"; products whose level was never set (0) became Auto (migration 00009, old backups too); DB
 connections run with JIT off (it cost ~250 ms per search on a new shop's database).
-**Next: Print as image** (user, 2026-10-21 — before Demo Room): `docs/ideas/print-as-image.md` — print a picture of
-the on-screen preview (what you see is what prints), behind a Settings switch with today's printing kept as Classic
-until proven; then rethink receipt customisation on top. Proposal + mockup first. **Then M8d Demo Room.**
+**Then M8d Demo Room** (after print as image, above).
 
 ## Earlier handoff (2026-10-20)
 
