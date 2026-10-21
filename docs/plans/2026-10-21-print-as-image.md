@@ -136,7 +136,7 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 **Files:**
 - Create: `web/src/features/print/raster.ts` (`toOneBit`, `rasterize`), `web/src/features/print/raster.test.ts`,
   `web/src/features/print/DecodedSlip.tsx` (the decoded lines drawn at dot scale), `web/src/features/print/picture.ts`
-  (`slipPicture`), `web/src/features/print/paper.css` (the `@fontsource` imports + `.ks-paper` rules)
+  (`slipPicture`), `web/src/features/print/paper.ts` (the `@fontsource` imports + `PAPER_FAMILY`)
 - Modify: `web/package.json` (`modern-screenshot`, `@fontsource/jetbrains-mono`, `@fontsource/noto-sans-sinhala`,
   `@fontsource/noto-sans-tamil`)
 
@@ -154,12 +154,12 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
     `queryClient.fetchQuery(['slip-picture', path, size ?? ''], …)` (staleTime 60 s). It fetches
     `${path}?preview=1[&size=]`, mounts `DecodedSlip` in an off-screen host (`position:fixed; left:-10000px`), and
     returns `rasterize(...)` plus an object URL. Phase 2 swaps `DecodedSlip` for the kind's template here.
-- [ ] **Step 1:** Failing Vitest `toOneBit`: `[200,200,200,255]` → white; `[150,150,150,255]` → black;
+- [x] **Step 1:** Failing Vitest `toOneBit`: `[200,200,200,255]` → white; `[150,150,150,255]` → black;
   `[0,0,0,0]` (transparent) → white. Stays at 4 bytes/px.
-- [ ] **Step 2:** `make test-web` → FAIL.
-- [ ] **Step 3:** Implement; `bun add` the four packages.
-- [ ] **Step 4:** `make test-web` → PASS; `cd web && bunx tsc --noEmit` clean.
-- [ ] **Step 5:** Commit `feat(web): render a slip to a 1-bit picture at printer dots (bundled paper fonts)`.
+- [x] **Step 2:** `make test-web` → FAIL.
+- [x] **Step 3:** Implement; `bun add` the four packages.
+- [x] **Step 4:** `make test-web` → PASS; `cd web && bunx tsc --noEmit` clean.
+- [x] **Step 5:** Commit `feat(web): render a slip to a 1-bit picture at printer dots (bundled paper fonts)`.
 
 ### Task 5: Image mode in `printSlip` / ask-to-print
 
