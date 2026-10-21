@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 // Every look value goes through palette tokens (docs/design/theme.md §2). Printouts
 // (paper/ink) and the login games (canvas art) are out of scope.
 const files = import.meta.glob<string>(
-  ['/src/**/*.tsx', '!/src/features/print/**', '!/src/routes/_authed/print/**', '!/src/features/auth/*Game.tsx', '!/src/**/*.test.tsx'],
+  ['/src/**/*.{ts,tsx}', '!/src/features/print/**', '!/src/routes/_authed/print/**', '!/src/features/auth/*Game.tsx', '!/src/**/*.test.{ts,tsx}', '!/src/**/*.gen.ts', '!/src/theme/guard.test.ts'],
   { query: '?raw', import: 'default', eager: true },
 )
 

@@ -1,6 +1,7 @@
 import { Check, Search, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { ButtonsSample, FormSample, ListSample, MenuSample, MotionSample, TillSample } from './PreviewSamples'
 
 const TOASTS: [string, () => void][] = [
   ['Success', () => toast.success('Saved')],
@@ -94,6 +95,12 @@ export function PreviewStrip() {
           ))}
         </div>
       </div>
+      <MotionSample />
+      <TillSample />
+      <ButtonsSample />
+      <FormSample />
+      <ListSample />
+      <MenuSample />
     </div>
   )
 }

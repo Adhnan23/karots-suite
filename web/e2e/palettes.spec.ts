@@ -106,6 +106,15 @@ test('palette editor previews live, asks before dropping changes, and saves', as
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect(brand).toHaveValue('#8B7BFF')
   await page.getByRole('group', { name: 'Edit mode' }).getByRole('button', { name: 'light' }).click()
+  // Undo steps back; the readability check flags text the same colour as the page.
+  const fg = page.getByLabel('Foreground', { exact: true })
+  const fgWas = await fg.inputValue()
+  await fg.fill('#E6F4F4')
+  await page.getByLabel('Background', { exact: true }).first().fill('#E6F4F4')
+  await expect(page.getByRole('status', { name: 'Readability' })).toContainText('Text on the page')
+  await page.getByRole('button', { name: 'Undo' }).click() // quick edits in a row are one step
+  await expect(fg).toHaveValue(fgWas)
+  await expect(page.getByRole('status', { name: 'Readability' })).not.toContainText('Text on the page')
   await brand.fill('#00aa00')
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByText('Saved', { exact: true })).toBeVisible()

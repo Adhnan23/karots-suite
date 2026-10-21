@@ -34,6 +34,19 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
+          // richColors tints follow the palette's money colours, not sonner's own.
+          "--success-bg": "color-mix(in srgb, var(--success) 12%, var(--popover))",
+          "--success-border": "color-mix(in srgb, var(--success) 35%, var(--popover))",
+          "--success-text": "var(--success)",
+          "--error-bg": "color-mix(in srgb, var(--danger) 12%, var(--popover))",
+          "--error-border": "color-mix(in srgb, var(--danger) 35%, var(--popover))",
+          "--error-text": "var(--danger)",
+          "--warning-bg": "color-mix(in srgb, var(--warning) 12%, var(--popover))",
+          "--warning-border": "color-mix(in srgb, var(--warning) 35%, var(--popover))",
+          "--warning-text": "var(--warning)",
+          "--info-bg": "color-mix(in srgb, var(--brand-2) 12%, var(--popover))",
+          "--info-border": "color-mix(in srgb, var(--brand-2) 35%, var(--popover))",
+          "--info-text": "var(--foreground)",
         } as React.CSSProperties
       }
       toastOptions={{

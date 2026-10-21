@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useBlocker } from '@tanstack/react-router'
-import { ArrowLeft, RotateCcw } from 'lucide-react'
+import { ArrowLeft, RotateCcw, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { Appearance } from '@/api/types.gen'
@@ -12,6 +12,7 @@ import { EditorControls } from './EditorControls'
 import { endDraft, previewMode, startDraft, updateDraft } from './draft'
 import { buildPalette, builtinDoc, isBuiltin, paletteId, parsePalette, type PaletteDoc } from './paletteCss'
 import { PreviewStrip } from './PreviewStrip'
+import { Readability } from './Readability'
 import { appearanceQuery, paletteQuery, palettesQuery, savePalette } from './queries'
 
 type Mode = 'light' | 'dark'
@@ -36,6 +37,22 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
   const [mode, setMode] = useState<Mode>(shownMode)
   const [leaving, setLeaving] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Undo: a quick run of changes (a slider drag, typing) is one step.
+  const history = useRef<PaletteDoc[]>([])
+  const lastStep = useRef(0)
+  const [canUndo, setCanUndo] = useState(false)
+  const change = (next: PaletteDoc) => {
+    if (Date.now() - lastStep.current > 600) history.current.push(doc)
+    lastStep.current = Date.now()
+    setCanUndo(true)
+    setDoc(next)
+  }
+  const undo = () => {
+    const prev = history.current.pop()
+    if (prev) setDoc(prev)
+    lastStep.current = 0
+    setCanUndo(history.current.length > 0)
+  }
   const css = useMemo(() => buildPalette(doc, pid), [doc, pid])
   const dirty = css !== savedCss
   const blocker = useBlocker({ shouldBlockFn: () => dirty, enableBeforeUnload: () => dirty, withResolver: true })
@@ -49,6 +66,19 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
   }, [pid])
   useEffect(() => updateDraft(css), [css])
   useEffect(() => previewMode(mode), [mode])
+  const undoRef = useRef(undo)
+  undoRef.current = undo
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey && !typing) {
+        e.preventDefault()
+        undoRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const save = async () => {
     setBusy(true)
@@ -67,7 +97,7 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
 
   const reset = () => {
     const base = builtinDoc(doc.base)
-    setDoc({ ...doc, light: base.light, dark: base.dark })
+    change({ ...doc, light: base.light, dark: base.dark })
   }
 
   return (
@@ -75,7 +105,7 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
       <div className="sticky top-0 z-10 -mx-2 flex flex-wrap items-center gap-2 rounded-[var(--radius)] border border-border bg-bar px-2 py-2 shadow-[var(--shadow)] [backdrop-filter:var(--glass)]">
         <button type="button" onClick={() => (dirty ? setLeaving(true) : onDone())} aria-label="Back to palettes"
           className="grid size-10 shrink-0 place-items-center rounded-pill hover:bg-muted"><ArrowLeft className="size-5" /></button>
-        <input aria-label="Palette name" value={doc.name} onChange={(e) => setDoc({ ...doc, name: e.target.value })}
+        <input aria-label="Palette name" value={doc.name} onChange={(e) => change({ ...doc, name: e.target.value })}
           className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] bg-transparent px-2 font-display text-lg font-bold outline-none focus:bg-muted sm:max-w-xs" />
         <div role="group" aria-label="Edit mode" className="flex rounded-pill bg-muted p-1 text-sm font-semibold">
           {(['light', 'dark'] as const).map((m) => (
@@ -84,6 +114,8 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
           ))}
         </div>
         <div className="ml-auto flex gap-2">
+          <button type="button" onClick={undo} disabled={!canUndo} aria-label="Undo" title="Undo (Ctrl+Z)"
+            className="grid size-10 place-items-center rounded-pill border border-border hover:bg-muted disabled:opacity-40"><Undo2 className="size-4" /></button>
           {isBuiltin(doc.base) && <button type="button" onClick={reset} className="flex h-10 items-center gap-1.5 rounded-pill border border-border px-3 text-sm font-semibold hover:bg-muted">
             <RotateCcw className="size-4" /> Reset to base
           </button>}
@@ -93,7 +125,10 @@ function Editor({ id, initial, onDone }: { id: number; initial: PaletteDoc; onDo
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="order-2 lg:order-1"><EditorControls doc={doc} mode={mode} onChange={setDoc} /></div>
+        <div className="order-2 flex flex-col gap-3 lg:order-1">
+          <Readability css={css} mode={mode} />
+          <EditorControls doc={doc} mode={mode} onChange={change} />
+        </div>
         <div className="order-1 lg:order-2"><div className="lg:sticky lg:top-20"><PreviewStrip /></div></div>
       </div>
 
