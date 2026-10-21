@@ -1,0 +1,193 @@
+/* Catppuccin palette (docs/design/theme.md §1): Latte in light, Mocha in dark — pastel, frosted bars, lively. */
+
+:root[data-ui="dock"][data-palette="catppuccin"] {
+  color-scheme: light;
+
+  --background: #eff1f5;
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #e6e9ef;
+  --popover-foreground: var(--foreground);
+  --muted: #e6e9ef;
+  --secondary: #e6e9ef;
+  --accent: #e6e9ef;
+  --secondary-foreground: #4c4f69;
+  --accent-foreground: var(--foreground);
+  --border: #ccd0da;
+  --input: #bcc0cc;
+  --scrim: rgb(76 79 105 / .4);
+  --foreground: #4c4f69;
+  --muted-foreground: #6c6f85;
+  --faint: #8c8fa1;
+  --brand: #8839ef;
+  --brand-foreground: #ffffff;
+  --brand-soft: #e8ddff;
+  --brand-2: #7287fd;
+  --brand-2-foreground: #ffffff;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #8839ef;
+  --selected: #ccd0da;
+  --selected-foreground: #4c4f69;
+  --success: #40a02b;
+  --danger: #d20f39;
+  --danger-foreground: #ffffff;
+  --destructive: var(--danger);
+  --warning: #c46f0f;
+  --hero: #4c4f69;
+  --hero-foreground: #eff1f5;
+  --hero-muted: #9ca0b0;
+  --chart-1: #8839ef;
+  --chart-2: #179299;
+  --chart-3: #fe640b;
+  --chart-4: #1e66f5;
+  --chart-5: #ea76cb;
+  --chart-6: #40a02b;
+  --bar: rgb(239 241 245 / .92);
+  --glass: blur(16px) saturate(140%);
+  --bg-art: radial-gradient(ellipse at 0% 0%, rgb(136 57 239 / .12), transparent 40%), radial-gradient(ellipse at 100% 100%, rgb(114 135 253 / .1), transparent 40%), linear-gradient(135deg, #eff1f5, #e6e9ef);
+  --hero-art: radial-gradient(400px 300px at 100% 0%, rgb(234 118 203 / .2), transparent 60%), linear-gradient(135deg, #4c4f69, #363a4f);
+  --shadow: 0 1px 3px rgb(76 79 105 / .05), 0 8px 24px rgb(76 79 105 / .08);
+  --shadow-float: 0 4px 12px rgb(76 79 105 / .1), 0 20px 40px rgb(76 79 105 / .15);
+  --glow: 0 0 0 1px rgb(136 57 239 / .15), 0 4px 16px rgb(136 57 239 / .25);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --pill: 9999px;
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 300ms;
+  --ease: cubic-bezier(.2, .8, .25, 1);
+  --ease-spring: cubic-bezier(.2, 1.2, .35, 1);
+  --lift: 2px;
+}
+
+:root[data-ui="dock"][data-palette="catppuccin"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #1e1e2e;
+  --card: #181825;
+  --card-foreground: var(--foreground);
+  --popover: #313244;
+  --popover-foreground: var(--foreground);
+  --muted: #313244;
+  --secondary: #313244;
+  --accent: #313244;
+  --secondary-foreground: #cdd6f4;
+  --accent-foreground: var(--foreground);
+  --border: #45475a;
+  --input: #585b70;
+  --scrim: rgb(17 17 27 / .75);
+  --foreground: #cdd6f4;
+  --muted-foreground: #a6adc8;
+  --faint: #7f849c;
+  --brand: #cba6f7;
+  --brand-foreground: #11111b;
+  --brand-soft: #312a42;
+  --brand-2: #b4befe;
+  --brand-2-foreground: #11111b;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #cba6f7;
+  --selected: #45475a;
+  --selected-foreground: #cdd6f4;
+  --success: #a6e3a1;
+  --danger: #f38ba8;
+  --danger-foreground: #11111b;
+  --destructive: var(--danger);
+  --warning: #f9e2af;
+  --hero: #11111b;
+  --hero-foreground: #cdd6f4;
+  --hero-muted: #9399b2;
+  --chart-1: #cba6f7;
+  --chart-2: #94e2d5;
+  --chart-3: #fab387;
+  --chart-4: #89b4fa;
+  --chart-5: #f5c2e7;
+  --chart-6: #a6e3a1;
+  --bar: rgb(30 30 46 / .92);
+  --glass: blur(16px) saturate(140%);
+  --bg-art: radial-gradient(ellipse at 0% 0%, rgb(203 166 247 / .15), transparent 40%), radial-gradient(ellipse at 100% 100%, rgb(180 190 254 / .1), transparent 40%), linear-gradient(135deg, #1e1e2e, #181825);
+  --hero-art: radial-gradient(400px 300px at 100% 0%, rgb(245 194 231 / .15), transparent 60%), linear-gradient(135deg, #11111b, #181825);
+  --shadow: 0 1px 3px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .4);
+  --shadow-float: 0 4px 12px rgb(0 0 0 / .4), 0 20px 40px rgb(0 0 0 / .6);
+  --glow: 0 0 0 1px rgb(203 166 247 / .2), 0 4px 20px rgb(203 166 247 / .3);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --pill: 9999px;
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 300ms;
+  --ease: cubic-bezier(.2, .8, .25, 1);
+  --ease-spring: cubic-bezier(.2, 1.2, .35, 1);
+  --lift: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ui="dock"][data-palette="catppuccin"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #1e1e2e;
+    --card: #181825;
+    --card-foreground: var(--foreground);
+    --popover: #313244;
+    --popover-foreground: var(--foreground);
+    --muted: #313244;
+    --secondary: #313244;
+    --accent: #313244;
+    --secondary-foreground: #cdd6f4;
+    --accent-foreground: var(--foreground);
+    --border: #45475a;
+    --input: #585b70;
+    --scrim: rgb(17 17 27 / .75);
+    --foreground: #cdd6f4;
+    --muted-foreground: #a6adc8;
+    --faint: #7f849c;
+    --brand: #cba6f7;
+    --brand-foreground: #11111b;
+    --brand-soft: #312a42;
+    --brand-2: #b4befe;
+    --brand-2-foreground: #11111b;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: #cba6f7;
+    --selected: #45475a;
+    --selected-foreground: #cdd6f4;
+    --success: #a6e3a1;
+    --danger: #f38ba8;
+    --danger-foreground: #11111b;
+    --destructive: var(--danger);
+    --warning: #f9e2af;
+    --hero: #11111b;
+    --hero-foreground: #cdd6f4;
+    --hero-muted: #9399b2;
+    --chart-1: #cba6f7;
+    --chart-2: #94e2d5;
+    --chart-3: #fab387;
+    --chart-4: #89b4fa;
+    --chart-5: #f5c2e7;
+    --chart-6: #a6e3a1;
+    --bar: rgb(30 30 46 / .92);
+    --glass: blur(16px) saturate(140%);
+    --bg-art: radial-gradient(ellipse at 0% 0%, rgb(203 166 247 / .15), transparent 40%), radial-gradient(ellipse at 100% 100%, rgb(180 190 254 / .1), transparent 40%), linear-gradient(135deg, #1e1e2e, #181825);
+    --hero-art: radial-gradient(400px 300px at 100% 0%, rgb(245 194 231 / .15), transparent 60%), linear-gradient(135deg, #11111b, #181825);
+    --shadow: 0 1px 3px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .4);
+    --shadow-float: 0 4px 12px rgb(0 0 0 / .4), 0 20px 40px rgb(0 0 0 / .6);
+    --glow: 0 0 0 1px rgb(203 166 247 / .2), 0 4px 20px rgb(203 166 247 / .3);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --pill: 9999px;
+    --dur-fast: 120ms;
+    --dur: 200ms;
+    --dur-slow: 300ms;
+    --ease: cubic-bezier(.2, .8, .25, 1);
+    --ease-spring: cubic-bezier(.2, 1.2, .35, 1);
+    --lift: 2px;
+  }
+}
+
+/* Glass costs GPU time on weak counter PCs; drop it under reduced transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-ui="dock"][data-palette="catppuccin"] {
+    --glass: none;
+  }
+}

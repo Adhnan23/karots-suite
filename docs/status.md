@@ -10,7 +10,8 @@ plan `docs/plans/2026-10-21-palettes.md` (10 tasks), theme.md §1/§4/§8. Theme
 palettes belong to a theme. **Every look value is a token** (colours, corners, `rounded-pill`, shadows, glass, motion
 `--dur*`/`--ease*`/`--lift`, Motion via `tx()`); `theme/guard.test.ts` keeps raw values out of core and plugins.
 Studio and Night are pixel-identical to before (checked against a real pre-change build). **Four built-ins:** Studio,
-Night, **Bazaar** (terracotta / teal, solid, lively) and **Lagoon** (aqua / coral, liquid glass, calm). **Custom
+Night, **Bazaar** (terracotta / teal, solid, lively), **Lagoon** (aqua / coral, liquid glass, calm) and
+**Catppuccin** (Latte / Mocha; the user made it in the editor, shipped as a built-in). **Custom
 palettes** (system user, Appearance): Duplicate any palette → editor (colours per mode, material solid / frosted /
 liquid glass + blur, background art, depth, corners + pills, motion feel + length, plugin tokens, Custom CSS; the whole
 page previews live; Light | Dark switch; Reset to base; leaving unsaved asks), stored as CSS in `palettes` (migration

@@ -52,7 +52,7 @@ type Flags struct {
 // look (before palettes owned brand and radius): read-only, applied while the
 // palette is a built-in, cleared when another palette is chosen.
 type Appearance struct {
-	Palette      string `json:"palette"`      // "studio" | "night" | "bazaar" | "lagoon" | "custom-<id>"
+	Palette      string `json:"palette"`      // "studio" | "night" | "bazaar" | "lagoon" | "catppuccin" | "custom-<id>"
 	BrandColor   string `json:"brandColor"`   // legacy "#rrggbb" or ""
 	Radius       string `json:"radius"`       // legacy "sharp" | "rounded" | "round"
 	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"

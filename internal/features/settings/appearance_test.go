@@ -12,7 +12,7 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 		{"known skin passes", ValidSkin("night"), "night"},
 		{"custom palette passes", ValidSkin("custom-12"), "custom-12"},
 		{"junk custom → studio", ValidSkin("custom-x"), "studio"},
-		{"new palettes pass", ValidSkin("lagoon") + ValidSkin("bazaar"), "lagoonbazaar"},
+		{"new palettes pass", ValidSkin("lagoon") + ValidSkin("bazaar") + ValidSkin("catppuccin"), "lagoonbazaarcatppuccin"},
 		{"blank skin → studio", ValidSkin(""), "studio"},
 		{"old karots-pos skin restored → studio", ValidSkin("teal"), "studio"},
 	}

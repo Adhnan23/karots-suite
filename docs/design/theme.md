@@ -14,7 +14,7 @@ These are two separate controls:
 
 | Control | Who sets it | Values | Stored in |
 |---|---|---|---|
-| **Palette** | The system user only (hidden system menu → Appearance) | built-ins `studio`, `night`, `bazaar`, `lagoon`; custom palettes `custom-<id>` | `settings.skin` (existing column); custom palettes in the `palettes` table |
+| **Palette** | The system user only (hidden system menu → Appearance) | built-ins `studio`, `night`, `bazaar`, `lagoon`, `catppuccin`; custom palettes `custom-<id>` | `settings.skin` (existing column); custom palettes in the `palettes` table |
 | **Mode** | Each device, with the ModeToggle | System (default), Light, Dark | `localStorage` key `ks-mode` |
 
 Rules:
@@ -28,7 +28,8 @@ Rules:
 - **Themes and palettes (2026-10-21, `docs/specs/2026-10-21-palettes-design.md`):** a *theme* is a whole
   layout / component set; there is one, **Dock** (`<html data-ui="dock">`). A *palette* restyles a theme's components
   (colours, material, shape, depth, motion) and belongs to that theme. Built-ins: **Studio** (solid, calm), **Night**
-  (frosted, calm), **Bazaar** (solid, lively), **Lagoon** (liquid glass, calm).
+  (frosted, calm), **Bazaar** (solid, lively), **Lagoon** (liquid glass, calm), **Catppuccin** (Latte light / Mocha
+  dark, pastel, frosted bars, lively; made by the user in the editor, 2026-10-21).
 - **One file per built-in palette:** `web/src/theme/palettes/dock/<name>.css`, listed in `palettes/index.ts`.
   - Selectors are `:root[data-ui="dock"][data-palette="<name>"]` for light, `…[data-theme="dark"]` for dark, and `@media (prefers-color-scheme: dark) { …:not([data-theme="light"]) }`.
   - Adding a palette means adding one CSS file plus one entry in the palette list. Nothing else changes. `palettes/tokens.test.ts` checks every file defines every token in `palettes/tokens.ts`.

@@ -14,6 +14,7 @@
 @import "./theme/palettes/dock/night.css";
 @import "./theme/palettes/dock/bazaar.css";
 @import "./theme/palettes/dock/lagoon.css";
+@import "./theme/palettes/dock/catppuccin.css";
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */
