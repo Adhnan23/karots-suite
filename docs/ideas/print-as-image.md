@@ -11,6 +11,12 @@ previews) and the printer bytes are built separately, so they drift; every layou
 weak. The receipt styles (classic / modern / boxed / compact — `internal/escpos/style.go`, system user's
 Appearance page) were "not implemented well" (user).
 
+**The real reason (user, 2026-10-21): the printed receipt still looks exactly like karots-pos.** `internal/escpos`
+is karots-pos's code almost unchanged (12 lines differ in escpos.go, 2 in style.go), styles included — the screens
+are the suite's own, the paper the customer takes home is not (AGENTS: "must not look like karots-pos"). Image
+printing is how the suite gets **its own receipt look** (theme-matched, logo, its fonts, Sinhala / Tamil anywhere);
+today's layout stays available as one option.
+
 ## Agreed in chat
 
 1. **Print a picture of the preview.** Draw the receipt / label / slip as a React page at the printer's dot width
@@ -26,8 +32,9 @@ Appearance page) were "not implemented well" (user).
 
 ## Constraints to keep
 
-- **Receipt layout is final** (memory: a redesign was rejected) — the image version must first reproduce today's
-  receipt; new looks come only as options.
+- A text-mode receipt redesign was rejected before (memory "Receipt layout: keep") — so the image version first
+  reproduces today's receipt exactly (proves the pipeline), then the suite's own designs come as choices the owner
+  picks; the user approves each look on a mockup before it ships.
 - Every slip still goes through `slipOut` / ask-to-print; labels exempt but previewed.
 - Text under ~9–10 px blurs at 203 dpi. Jobs are bigger (an 80 mm receipt ~50–100 KB vs ~2 KB): instant on USB /
   network, slower on old serial printers — the Classic switch covers those.
