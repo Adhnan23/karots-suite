@@ -45,11 +45,17 @@ func projectColumns(t Table, cols []string) (Table, []string) {
 	return out, dropped
 }
 
-// legacyColumns is the value a row from an older backup takes for a column that
+// legacyColumns gives a row from an older backup its value for a column that
 // backup predates, where that must differ from the column's default (which is
-// for rows made from now on): pre-smart-reorder products stay Fixed.
-var legacyColumns = map[string]map[string]string{
-	"products": {"reorder_auto": "false"},
+// for rows made from now on). get reads the row's other columns (nil = absent).
+// Pre-smart-reorder products: a typed reorder level stays Fixed, an unset 0 is Auto.
+var legacyColumns = map[string]map[string]func(get func(col string) *string) string{
+	"products": {"reorder_auto": func(get func(string) *string) string {
+		if l := get("reorder_level"); l == nil || *l == "0" {
+			return "true"
+		}
+		return "false"
+	}},
 }
 
 // fillLegacyColumns adds each legacyColumns column the archive table lacks and
@@ -59,13 +65,19 @@ func fillLegacyColumns(t Table, cols []string) Table {
 		if slices.Contains(t.Columns, col) || !slices.Contains(cols, col) {
 			continue
 		}
-		t.Columns = append(slices.Clone(t.Columns), col)
+		names := t.Columns
 		rows := make([][]*string, len(t.Rows))
 		for i, row := range t.Rows {
-			v := val
+			get := func(c string) *string {
+				if j := slices.Index(names, c); j >= 0 && j < len(row) {
+					return row[j]
+				}
+				return nil
+			}
+			v := val(get)
 			rows[i] = append(append(make([]*string, 0, len(row)+1), row...), &v)
 		}
-		t.Rows = rows
+		t.Columns, t.Rows = append(slices.Clone(names), col), rows
 	}
 	return t
 }

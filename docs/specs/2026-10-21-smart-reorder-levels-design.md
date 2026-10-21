@@ -40,6 +40,8 @@ Topup) keeps working unchanged — that is the point of this shape.
 regular, safetyDays, calcLevel, learnedPct, historyDays, notSelling, cappedBills}` — the UI builds every reason line
 from it. Old backups (suite or karots-pos) restore with the defaults → Fixed, no calc until the next run.
 
+**Existing products with a reorder level typed in stay Fixed; ones left at 0 (never set) become Auto** (user,
+2026-10-21; migration 00009, and an old backup restores the same way — `backup.legacyColumns`).
 **New products start Auto, existing ones stay Fixed:** the migration adds the column `DEFAULT false` (every
 existing row Fixed), then `SET DEFAULT true` — so every create path (product form, counter / purchase receive quick
 add, import, plugins) makes Auto rows with no code change. `reorder_start` = the number typed (usually 0) — the
