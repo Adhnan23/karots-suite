@@ -48,6 +48,13 @@ func TestCounterCredit(t *testing.T) {
 	if expected() != "1500.00" { // 1000 + 200 + 400 − 100
 		t.Fatalf("drawer after refund: %s", expected())
 	}
+	// The refund's own payment row has no receipt number: it prints no credit slip
+	// (its proof is the CR- money receipt), so asking for one is "not found".
+	var refundRow int64
+	te.db.Get(&refundRow, `SELECT id FROM customer_payments WHERE customer_id=$1 AND receipt_no IS NULL ORDER BY id DESC LIMIT 1`, cid) //nolint:errcheck
+	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/customer-payments/%d/print?preview=1", refundRow), nil, ck); refundRow == 0 || rec.Code != http.StatusNotFound {
+		t.Fatalf("slip for the refund row %d: %d %s", refundRow, rec.Code, rec.Body)
+	}
 	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/customers/%d/refund", cid), AdvanceRefundRequest{Amount: "1"}, ck); rec.Code < 400 || rec.Code >= 500 {
 		t.Fatalf("refund with no advance left: %d", rec.Code)
 	}

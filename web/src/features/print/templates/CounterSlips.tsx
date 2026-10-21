@@ -52,7 +52,8 @@ export function MoneySlip({ d }: { d: SlipData }) {
       <Row bold l="Amount" r={money(d.currency, m.amount)} />
       {m.note.trim() && <Text>{`Note: ${m.note}`}</Text>}
       <Rule />
-      <Text center>Signature: ____________________</Text>
+      {/* Classic's 20-underscore line, shortened to fit inside the margin on 58 mm (30 columns). */}
+      <Text center>{`Signature: ${'_'.repeat(Math.min(20, d.columns - 2 - 'Signature: '.length))}`}</Text>
       <Blank />
       <Blank />
       <Footer shop={d.shop} />

@@ -64,6 +64,7 @@ func TestAdminAddAndMergeBatches(t *testing.T) {
 // an undo after part of that batch sold still goes through.
 func TestAdminIntakeChoosesTheBatch(t *testing.T) {
 	te := newTestEnv(t)
+	te.stockTakeOn(t)
 	f := te.seedTill(t)
 	const phone = "0770009563"
 	clean := func() {

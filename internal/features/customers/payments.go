@@ -231,9 +231,12 @@ func (s *Service) ListPayments(ctx context.Context, f DebtFilter) ([]DebtReceipt
 }
 
 // GetPayment loads one credit-payment receipt for the View page / reprint.
+// GetPayment loads one credit-payment slip. A row with no receipt number (an
+// advance handed back: its proof is the CR- money receipt) has no slip, as in
+// ListPayments: not found.
 func (s *Service) GetPayment(ctx context.Context, id int64) (*DebtReceipt, error) {
 	var r DebtReceipt
-	if err := s.db.GetContext(ctx, &r, debtSelect+` WHERE cp.id = $1`, id); err != nil {
+	if err := s.db.GetContext(ctx, &r, debtSelect+` WHERE cp.id = $1 AND cp.receipt_no IS NOT NULL`, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("payment")
 		}

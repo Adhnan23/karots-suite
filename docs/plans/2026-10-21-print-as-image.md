@@ -316,5 +316,5 @@ the same font and preview guarantee. The per-job fallback to Classic bytes stays
 - [x] **Step 2:** Final emulator pass: every kind, Image mode, 80 + 58 mm, in Chromium and Firefox. Show the user.
 - [x] **Step 3:** `docs/status.md` handoff (built; Classic still the default; next: real-printer test when the
   user has printers, then the customisation step, then labels); tick the idea note; update memory.
-- *Done 2026-10-21: `make verify` + portable build OK. Final pass in Firefox through the real `slipPicture`: all 8 kinds (incl. the sample and repairs) at 80 + 58 mm, plus the A4 page. At 58 mm the 31-character "Signature: ___" line now wraps (the margin leaves 30 columns).*
+- *Done 2026-10-21: `make verify` + portable build OK. Final pass in Firefox through the real `slipPicture`: all 8 kinds (incl. the sample and repairs) at 80 + 58 mm, plus the A4 page. Follow-ups fixed the same day: the 58 mm signature line fits (underline shortened to the columns); the intake tests turn stock-take on themselves (they failed whenever the shared DB had it off); a handed-back advance's payment row is "not found" as a credit slip, not a server error (karots-pos fix too); the A4 page checked in Firefox's print layout.*
 - [x] **Step 4:** Commit `docs: status — print as image built`.

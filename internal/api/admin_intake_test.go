@@ -7,8 +7,20 @@ import (
 	"time"
 )
 
+// stockTakeOn turns stock-take & intake on for one test (the tests share one
+// database, and another test or an e2e run may have left it off), then puts the
+// shop's setting back.
+func (te *testEnv) stockTakeOn(t *testing.T) {
+	t.Helper()
+	var was bool
+	te.db.Get(&was, `SELECT stock_take_enabled FROM settings`) //nolint:errcheck
+	te.db.MustExec(`UPDATE settings SET stock_take_enabled = true`)
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET stock_take_enabled = $1`, was) }) //nolint:errcheck
+}
+
 func TestAdminIntake(t *testing.T) {
 	te := newTestEnv(t)
+	te.stockTakeOn(t)
 	f := te.seedTill(t)
 	const phone = "0770009581"
 	clean := func() {
@@ -64,6 +76,7 @@ func TestAdminIntake(t *testing.T) {
 // A restock opened by scanning a code stamps that code's last scan, like the till.
 func TestAdminIntakeRestockStampsScannedCode(t *testing.T) {
 	te := newTestEnv(t)
+	te.stockTakeOn(t)
 	f := te.seedTill(t)
 	ck := te.login(t, "0770009583", "manager")
 	te.db.MustExec(`INSERT INTO product_barcodes (product_id, barcode, source) VALUES ($1, 'TEST-INTAKE-X', 'form')`, f.plainID)
