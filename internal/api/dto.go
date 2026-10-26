@@ -56,6 +56,9 @@ type Appearance struct {
 	BrandColor   string `json:"brandColor"`   // legacy "#rrggbb" or ""
 	Radius       string `json:"radius"`       // legacy "sharp" | "rounded" | "round"
 	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+	// LabelStyles is the Image-mode style per label kind ("price", plugin kinds). On a
+	// save it is merged: a kind set to "" goes back to classic, an absent map changes nothing.
+	LabelStyles map[string]string `json:"labelStyles,omitempty" tstype:",optional"`
 }
 
 // Palette is a custom palette (docs/specs/2026-10-21-palettes-design.md §3). CSS is

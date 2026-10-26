@@ -61,6 +61,11 @@ export interface Appearance {
   brandColor: string; // legacy "#rrggbb" or ""
   radius: string; // legacy "sharp" | "rounded" | "round"
   receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+  /**
+   * LabelStyles is the Image-mode style per label kind ("price", plugin kinds). On a
+   * save it is merged: a kind set to "" goes back to classic, an absent map changes nothing.
+   */
+  labelStyles?: { [key: string]: string};
 }
 /**
  * Palette is a custom palette (docs/specs/2026-10-21-palettes-design.md §3). CSS is
@@ -2893,6 +2898,7 @@ export interface ShopSettings {
   defaultSaleType: string; // "retail" | "wholesale"
   askToPrint: boolean;
   printAs: string; // "classic" | "image"
+  labelPrintAs: string; // "classic" | "image"
   taxRegistered: boolean;
   taxRegNo: string;
   openCashDrawer: boolean;
@@ -3397,6 +3403,16 @@ export interface TillConfig {
   shop: ShopHeader;
   receiptWidth: string; // "80" | "58" mm, the shop default
   receiptStyle: string; // the saved Image-mode style (see Appearance)
+  labelPrintAs: string; // "classic" | "image"
+  labelStyles: { [key: string]: string}; // Image-mode style per label kind; missing = classic
+  /**
+   * The label text settings (Settings → Printers & labels): lines 1–4 and size "1"–"4" (XS–L)
+   * for the first and second text.
+   */
+  labelFirstLines: number /* int */;
+  labelSecondLines: number /* int */;
+  labelFirstSize: string;
+  labelSecondSize: string;
 }
 export interface ShopHeader {
   name: string;

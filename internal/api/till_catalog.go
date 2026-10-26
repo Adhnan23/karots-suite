@@ -1,6 +1,7 @@
 package api
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"karots-suite/internal/features/sales"
@@ -59,6 +60,12 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		LabelSize:          fmt.Sprintf("%dx%d", st.LabelWidthMM, st.LabelHeightMM),
 		ReceiptWidth:       st.ReceiptWidth,
 		ReceiptStyle:       settings.ValidReceiptStyle(st.ReceiptStyle),
+		LabelPrintAs:       st.LabelPrintAs,
+		LabelStyles:        labelStylesOf(st),
+		LabelFirstLines:    max(st.LabelNameLines, 1),
+		LabelSecondLines:   max(st.LabelBottomLines, 1),
+		LabelFirstSize:     cmp.Or(st.LabelNameFont, "2"),
+		LabelSecondSize:    cmp.Or(st.LabelBottomFont, "3"),
 		Shop:               ShopHeader{Name: st.ShopName, Address: strOr(st.Address), Phone: strOr(st.Phone), Footer: strOr(st.ReceiptFooter)},
 	}
 	// A DB predating credit-as-a-payment may still hold 'credit' here; fall back

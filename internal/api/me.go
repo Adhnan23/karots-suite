@@ -20,7 +20,16 @@ func appearanceOf(s *settings.Settings) Appearance {
 		BrandColor:   s.SkinCustom,
 		Radius:       s.SkinRadius,
 		ReceiptStyle: settings.ValidReceiptStyle(s.ReceiptStyle),
+		LabelStyles:  labelStylesOf(s),
 	}
+}
+
+// labelStylesOf is the saved label styles, never null in JSON.
+func labelStylesOf(s *settings.Settings) map[string]string {
+	if s.LabelStyles == nil {
+		return map[string]string{}
+	}
+	return s.LabelStyles
 }
 
 // Me is the SPA's boot call. JWT only — it must answer while locked or forced to

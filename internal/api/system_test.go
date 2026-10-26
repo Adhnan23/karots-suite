@@ -69,6 +69,42 @@ func TestAppearanceReceiptStyleAndLegacyLook(t *testing.T) {
 	}
 }
 
+func TestAppearanceMergesLabelStyles(t *testing.T) {
+	te := newTestEnv(t)
+	ck := systemLogin(t, te, "0770009015")
+	var before Appearance
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/system/appearance", nil, ck).Body.Bytes(), &before) //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET label_styles='{}'`) })                         //nolint:errcheck
+	te.db.Exec(`UPDATE settings SET label_styles='{}'`)                                               //nolint:errcheck
+
+	put := func(ls map[string]string) Appearance {
+		a := before
+		a.LabelStyles = ls
+		var got Appearance
+		json.Unmarshal(te.do(http.MethodPut, "/api/v1/system/appearance", a, ck).Body.Bytes(), &got) //nolint:errcheck
+		return got
+	}
+	put(map[string]string{"price": "qrtag"})
+	got := put(map[string]string{"pharmacy.dose": "clear"})
+	if got.LabelStyles["price"] != "qrtag" || got.LabelStyles["pharmacy.dose"] != "clear" {
+		t.Fatalf("not merged: %v", got.LabelStyles)
+	}
+	// A palette-only save (no labelStyles) keeps them; "" removes one kind.
+	got = put(nil)
+	if len(got.LabelStyles) != 2 {
+		t.Fatalf("palette save dropped label styles: %v", got.LabelStyles)
+	}
+	got = put(map[string]string{"price": ""})
+	if _, ok := got.LabelStyles["price"]; ok || got.LabelStyles["pharmacy.dose"] != "clear" {
+		t.Fatalf("remove: %v", got.LabelStyles)
+	}
+	var cfg TillConfig
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/till/config", nil, ck).Body.Bytes(), &cfg) //nolint:errcheck
+	if cfg.LabelStyles["pharmacy.dose"] != "clear" || cfg.LabelPrintAs != "classic" || cfg.LabelFirstLines < 1 || cfg.LabelFirstSize == "" {
+		t.Fatalf("till config: %+v", cfg)
+	}
+}
+
 func TestAppearancePaletteRoundTripAndFallback(t *testing.T) {
 	te := newTestEnv(t)
 	ck := systemLogin(t, te, "0770009014")

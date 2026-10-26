@@ -39,3 +39,17 @@ func TestValidReceiptStyle(t *testing.T) {
 		}
 	}
 }
+
+func TestValidLabelStyles(t *testing.T) {
+	got := ValidLabelStyles(map[string]string{" price ": " qrtag ", "": "x", "pharmacy.dose": "", "repairs.ticket": "job"})
+	if len(got) != 2 || got["price"] != "qrtag" || got["repairs.ticket"] != "job" {
+		t.Fatalf("got %v", got)
+	}
+	big := map[string]string{}
+	for i := range 40 {
+		big[string(rune('a'+i%26))+string(rune('a'+i/26))] = "classic"
+	}
+	if n := len(ValidLabelStyles(big)); n != 32 {
+		t.Fatalf("kept %d kinds, want 32", n)
+	}
+}

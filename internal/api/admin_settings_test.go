@@ -30,14 +30,14 @@ func TestAdminSettings(t *testing.T) {
 	in := orig
 	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", !orig.StockTakeEnabled, true, "123456789-7000"
 	in.ReorderDefaultDays, in.ReorderSafetyDays = 10, 2
-	in.PrintAs = "image"
+	in.PrintAs, in.LabelPrintAs = "image", "image"
 	rec := te.do(http.MethodPut, "/api/v1/admin/settings", in, ck)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("save: %d %s", rec.Code, rec.Body)
 	}
 	got := decode[SettingsPage](t, rec).Settings
 	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.StockTakeEnabled == orig.StockTakeEnabled ||
-		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 || got.PrintAs != "image" {
+		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 || got.PrintAs != "image" || got.LabelPrintAs != "image" {
 		t.Fatalf("saved: %+v", got)
 	}
 	me := decode[Me](t, te.do(http.MethodGet, "/api/v1/me", nil, ck))
@@ -54,6 +54,7 @@ func TestAdminSettings(t *testing.T) {
 		"supplier days":  func(s *ShopSettings) { s.ReorderDefaultDays = 0 },
 		"safety days":    func(s *ShopSettings) { s.ReorderSafetyDays = -1 },
 		"print as":       func(s *ShopSettings) { s.PrintAs = "bogus" },
+		"label print as": func(s *ShopSettings) { s.LabelPrintAs = "bitmap" },
 	} {
 		b := orig
 		bad(&b)
