@@ -150,8 +150,8 @@ web helper (`printLabel`) decides Image vs Classic, so call sites never branch.
 
 **Interfaces:**
 - Consumes: Task 3 `printLabel`, `LabelView`, `PriceLabel`.
-- Produces: `toPriceLabel(req: LabelRequest, cfg: TillConfig): PriceLabel` in `labels/price/index.ts` (fills lines /
-  sizes from config — add `labelFirstLines` etc. to `TillConfig` in Task 1 if not already there; free-text custom
+- Produces: `toPriceLabel(req: LabelRequest, cfg: TillConfig): PriceLabel` in `labels/price/index.ts` (lines /
+  sizes from Task 1's `TillConfig.labelFirst*` / `labelSecond*`; free-text custom
   labels use key `free`).
 - [ ] **Step 1: Failing test** — `toPriceLabel` maps `topKey:'price'` → `first.key === 'price'`, custom label →
   `free`, `none` → empty text.
