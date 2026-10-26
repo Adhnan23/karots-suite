@@ -1,6 +1,11 @@
 import type { LabelRequest, TillConfig } from '@/api/types.gen'
 import type { LabelKind, PriceLabel, Slot } from '../kit'
 import { ClassicPrice } from './classic'
+import { Inverse } from './inverse'
+import { Minimal } from './minimal'
+import { barsFit } from './parts'
+import { PriceTag } from './pricetag'
+import { Ticket } from './ticket'
 
 /** The made-up product Appearance and Settings draw. */
 export const PRICE_SAMPLE: PriceLabel = {
@@ -19,7 +24,13 @@ export const PRICE_KIND: LabelKind<PriceLabel> = {
   kind: 'price',
   label: 'Price label',
   sample: PRICE_SAMPLE,
-  styles: [{ key: 'classic', label: 'Classic', Template: ClassicPrice }],
+  styles: [
+    { key: 'classic', label: 'Classic', Template: ClassicPrice },
+    { key: 'pricetag', label: 'Price Tag', Template: PriceTag, fits: barsFit(14) },
+    { key: 'inverse', label: 'Inverse', Template: Inverse, fits: barsFit(16) },
+    { key: 'ticket', label: 'Ticket', Template: Ticket, fits: barsFit(36) },
+    { key: 'minimal', label: 'Minimal', Template: Minimal, fits: barsFit(20) },
+  ],
 }
 
 const slot = (key: string | undefined, text: string): Slot =>
