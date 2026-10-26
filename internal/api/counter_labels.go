@@ -1,11 +1,13 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/printing"
@@ -50,6 +52,9 @@ func (h *handlers) labelInput(c echo.Context) (tspl.Input, string, error) {
 // CounterLabels sends a barcode sticker run to the shop's label printer (TSPL;
 // blank = the OS default printer, as in karots-pos).
 func (h *handlers) CounterLabels(c echo.Context) error {
+	if done, err := h.labelImage(c, 200); done {
+		return err
+	}
 	in, printer, err := h.labelInput(c)
 	if err != nil {
 		return err
@@ -61,6 +66,39 @@ func (h *handlers) CounterLabels(c echo.Context) error {
 		return apperr.Internal("could not print labels", err)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// labelImage prints Image mode's label: when the request is the label as a
+// picture (Content-Type image/png, drawn by the SPA at 8 dots per mm), it is
+// printed as one TSPL bitmap, ?count times (1–maxCount) at ?size (blank = the
+// shop's label), on the same label printer. done=false: not a picture, the
+// caller prints Classic.
+func (h *handlers) labelImage(c echo.Context, maxCount int) (done bool, err error) {
+	if !strings.HasPrefix(c.Request().Header.Get("Content-Type"), "image/png") {
+		return false, nil
+	}
+	ctx := c.Request().Context()
+	cfg, err := h.d.Settings.Get(ctx)
+	if err != nil {
+		return true, err
+	}
+	w, hgt := labelSize(c.QueryParam("size"), cfg.LabelWidthMM, cfg.LabelHeightMM)
+	count, _ := strconv.Atoi(c.QueryParam("count"))
+	img, err := escpos.ReadImage(c.Request().Body, w*8)
+	var job []byte
+	if err == nil {
+		job, err = tspl.ImageDocument(img, w, hgt, min(max(cfg.LabelGapMM, 0), 20), min(max(count, 1), maxCount))
+	}
+	if errors.Is(err, escpos.ErrBadImage) || errors.Is(err, tspl.ErrBadImage) {
+		return true, &apperr.AppError{Code: "BAD_IMAGE", Message: "That label picture can't be printed", Status: http.StatusUnprocessableEntity}
+	}
+	if err != nil {
+		return true, err
+	}
+	if err := printing.Raw(ctx, cfg.LabelPrinter, job); err != nil {
+		return true, apperr.Internal("could not print labels", err)
+	}
+	return true, c.NoContent(http.StatusNoContent)
 }
 
 // textLabelInput reads a text-only label request at the shop's label size.
@@ -89,6 +127,9 @@ func (h *handlers) textLabelInput(c echo.Context) (tspl.Input, string, error) {
 // CounterTextLabel prints a text-only label (no barcode) at the shop's label
 // size — a plugin's dose sticker, a shelf note.
 func (h *handlers) CounterTextLabel(c echo.Context) error {
+	if done, err := h.labelImage(c, 50); done {
+		return err
+	}
 	in, printer, err := h.textLabelInput(c)
 	if err != nil {
 		return err

@@ -134,3 +134,66 @@ func TestCounterTextLabelPreview(t *testing.T) {
 		t.Fatalf("12 lines on 40x30 must say cut: %+v", l)
 	}
 }
+
+// Image mode: the SPA sends the label as a picture; the server prints it as one
+// TSPL bitmap, count times, on the same label printer — or refuses a wrong size.
+func TestLabelImagePrint(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, "0770009404", "cashier")
+	admin := te.login(t, "0770009405", "admin")
+	listen := func() chan []byte {
+		ln, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { ln.Close() })
+		got := make(chan []byte, 1)
+		go func() {
+			conn, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			b, _ := io.ReadAll(conn)
+			conn.Close()
+			got <- b
+		}()
+		te.db.Exec(`UPDATE settings SET label_printer=$1`, "tcp://"+ln.Addr().String()) //nolint:errcheck
+		return got
+	}
+	var was string
+	te.db.Get(&was, `SELECT label_printer FROM settings`)                         //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET label_printer=$1`, was) }) //nolint:errcheck
+
+	for _, c := range []struct {
+		path string
+		ck   *http.Cookie
+		w, h int
+		size string
+	}{
+		{"/api/v1/till/labels?count=2&size=50x25", ck, 400, 200, "SIZE 50 mm, 25 mm"},
+		{"/api/v1/admin/labels/send?count=2&size=38x25", admin, 304, 200, "SIZE 38 mm, 25 mm"},
+		{"/api/v1/till/labels/text?count=2&size=40x30", ck, 320, 240, "SIZE 40 mm, 30 mm"},
+	} {
+		got := listen()
+		if rec := te.postPNG(c.path, slipPNG(c.w, c.h), c.ck); rec.Code != http.StatusNoContent {
+			t.Fatalf("%s: %d %s", c.path, rec.Code, rec.Body)
+		}
+		doc := <-got
+		if !bytes.Contains(doc, []byte(c.size)) || !bytes.Contains(doc, []byte("BITMAP 0,0,")) || !bytes.Contains(doc, []byte("PRINT 2,1")) ||
+			bytes.Contains(doc, []byte("TEXT ")) {
+			t.Fatalf("%s: job %q…", c.path, doc[:min(len(doc), 120)])
+		}
+	}
+	// A picture of the wrong size (a receipt, or the wrong label) is refused, never printed.
+	rec := te.postPNG("/api/v1/till/labels?count=1&size=50x25", slipPNG(576, 200), ck)
+	if rec.Code != http.StatusUnprocessableEntity || !bytes.Contains(rec.Body.Bytes(), []byte("BAD_IMAGE")) {
+		t.Fatalf("wrong size: %d %s", rec.Code, rec.Body)
+	}
+	// An unreachable printer fails the picture the way it fails Classic.
+	te.db.Exec(`UPDATE settings SET label_printer='tcp://127.0.0.1:1'`) //nolint:errcheck
+	img := te.postPNG("/api/v1/till/labels?count=1&size=50x25", slipPNG(400, 200), ck)
+	txt := te.do(http.MethodPost, "/api/v1/till/labels", LabelRequest{Code: "12345", Count: 1, Size: "50x25"}, ck)
+	if img.Code != txt.Code || img.Code < 500 {
+		t.Fatalf("no printer: image %d, classic %d", img.Code, txt.Code)
+	}
+}
