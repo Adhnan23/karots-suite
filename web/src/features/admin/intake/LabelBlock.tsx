@@ -11,15 +11,15 @@ import { cn } from '@/lib/utils'
 export type LabelOpts = { on: boolean; top: string; bottom: string; count: string; size: string }
 export const initialLabels = (size: string): LabelOpts => ({ on: true, top: slotDefault('top', 'name'), bottom: slotDefault('bottom', 'price'), count: '', size })
 
-/** The sticker run for an item: its top/bottom lines resolved (name, price or a
+/** The sticker run for an item: its first / second text resolved (name, price or a
  * label field), the count following the quantity unless typed. */
 export function labelRequest(o: LabelOpts, it: { productId: number; name: string; price: string; barcode: string; qty: string }, sym: string, fields: DetailRow[] = []): LabelRequest {
   const opts = slotOptions(it.name, money(sym, it.price), fields)
-  return { productId: it.productId, code: it.barcode, format: 'CODE128', top: slotValue(opts, o.top), bottom: slotValue(opts, o.bottom),
+  return { productId: it.productId, code: it.barcode, format: 'CODE128', top: slotValue(opts, o.top), bottom: slotValue(opts, o.bottom), topKey: o.top, bottomKey: o.bottom,
     count: o.count ? labelCount(num(o.count)) : labelCount(num(it.qty)), size: o.size }
 }
 
-/** Print-on-save, count, size, the top/bottom line pickers and a true-to-paper preview (karots-pos intake labels). */
+/** Print-on-save, count, size, the first / second text pickers and a true-to-paper preview (karots-pos intake labels). */
 export function LabelBlock({ opts, set, name, price, barcode, qty, fields = [] }: {
   opts: LabelOpts
   set: (o: LabelOpts) => void
@@ -33,7 +33,7 @@ export function LabelBlock({ opts, set, name, price, barcode, qty, fields = [] }
   const options = slotOptions(name || 'Name', money(cfg.symbol, price), fields)
   const req = labelRequest(opts, { productId: 0, name: name || 'Name', price, barcode, qty }, cfg.symbol, fields)
   const slot = (which: 'top' | 'bottom') => (
-    <select aria-label={which === 'top' ? 'Top line' : 'Bottom line'} value={options.some((o) => o.key === opts[which]) ? opts[which] : 'none'}
+    <select aria-label={which === 'top' ? 'First text' : 'Second text'} value={options.some((o) => o.key === opts[which]) ? opts[which] : 'none'}
       onChange={(e) => { set({ ...opts, [which]: e.target.value }); saveSlot(which, e.target.value) }} className={cn(INPUT, 'h-10 appearance-auto')}>
       {options.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
     </select>
@@ -54,8 +54,8 @@ export function LabelBlock({ opts, set, name, price, barcode, qty, fields = [] }
                 {[...new Set([cfg.labelSize, ...LABEL_SIZES])].filter(Boolean).map((s) => <option key={s} value={s}>{s.replace('x', ' × ')} mm</option>)}
               </select>
             </label>
-            <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">Top line{slot('top')}</label>
-            <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">Bottom line{slot('bottom')}</label>
+            <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">First text{slot('top')}</label>
+            <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">Second text{slot('bottom')}</label>
           </div>
           {barcode ? <div className="rounded-[var(--radius-sm)] bg-muted py-4"><LabelPreview req={req} /></div>
             : <p className="text-[12px] text-warning">No barcode yet — scan or generate one so the label scans at the till.</p>}

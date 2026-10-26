@@ -11,7 +11,7 @@ const str = searchStr
  * on an ordinary printer. */
 export const Route = createFileRoute('/_authed/print/labels')({
   validateSearch: (s: Record<string, unknown>): LabelRequest => ({
-    productId: Number(s.productId) || 0, code: str(s.code), format: str(s.format), top: str(s.top), bottom: str(s.bottom),
+    productId: Number(s.productId) || 0, code: str(s.code), format: str(s.format), top: str(s.top), bottom: str(s.bottom), topKey: str(s.topKey), bottomKey: str(s.bottomKey),
     count: Math.min(200, Math.max(1, Number(s.count) || 1)), size: str(s.size),
   }),
   component: function LabelSheet() {

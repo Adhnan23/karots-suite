@@ -544,6 +544,12 @@ export interface LabelRequest {
   bottom: string;
   count: number /* int */;
   size: string; // "WxH" mm
+  /**
+   * Which field the first / second text is ("name" | "price" | "f:<label>" | "free" | "none"):
+   * only Image-mode styles read it (a price is drawn as a price wherever it lands).
+   */
+  topKey?: string;
+  bottomKey?: string;
 }
 /**
  * TextLabelRequest prints a text-only label (no barcode) on the label printer —

@@ -96,13 +96,13 @@ export const ppPrep: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Scan or search').press('Enter')
     await details(page, 'center') // the page scrolls: clear the phone tabs
   },
-  /** SHOTS_PATH=/admin/inventory/intake: restock E2E Phone, label top line = Model no (the Label chip). */
+  /** SHOTS_PATH=/admin/inventory/intake: restock E2E Phone, label first text = Model no (the Label chip). */
   'pp-label': async (page) => {
     await fresh(page)
     await page.getByLabel('Scan or search').fill(PHONE)
     await page.getByLabel('Scan or search').press('Enter')
-    await page.getByLabel('Top line').selectOption({ label: 'Model no' })
-    await page.getByLabel('Top line').evaluate((el) => el.scrollIntoView({ block: 'center' }))
+    await page.getByLabel('First text').selectOption({ label: 'Model no' })
+    await page.getByLabel('First text').evaluate((el) => el.scrollIntoView({ block: 'center' }))
   },
   /** SHOTS_PATH=/admin/x/productplus: Fill in on Weight g's missing products
    * (+ Model no at ≥ md) with an errored cell and unsaved ones. */

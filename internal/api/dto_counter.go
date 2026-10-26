@@ -76,6 +76,10 @@ type LabelRequest struct {
 	Bottom    string `json:"bottom"`
 	Count     int    `json:"count"`
 	Size      string `json:"size"` // "WxH" mm
+	// Which field the first / second text is ("name" | "price" | "f:<label>" | "free" | "none"):
+	// only Image-mode styles read it (a price is drawn as a price wherever it lands).
+	TopKey    string `json:"topKey,omitempty" tstype:",optional"`
+	BottomKey string `json:"bottomKey,omitempty" tstype:",optional"`
 }
 
 // TextLabelRequest prints a text-only label (no barcode) on the label printer —

@@ -2,6 +2,11 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import JsBarcode from 'jsbarcode'
 import { useDeferredValue, useMemo } from 'react'
 import { api } from '@/api/client'
+import { queryClient } from '@/api/query-client'
+import { LabelView } from '@/features/print/labels/LabelView'
+import { toPriceLabel } from '@/features/print/labels/price'
+import { printLabel } from '@/features/print/labels/print'
+import { configQuery } from '@/features/till/api'
 import type { LabelLayout, LabelRequest } from '@/api/types.gen'
 
 const JS_FORMAT: Record<string, string> = { '': 'CODE128', CODE128: 'CODE128', EAN13: 'EAN13', EAN8: 'EAN8', UPC: 'UPC', CODE39: 'CODE39' }
@@ -60,8 +65,15 @@ export function LabelSvg({ l, bars, className, style, label = 'Label preview' }:
   )
 }
 
-/** The label as the printer will lay it out. */
-export function LabelPreview({ req }: { req: LabelRequest }) {
+/** A price label as it prints: the picture in Image mode, the printer's own layout in Classic. */
+export function LabelPreview({ req, mode, style }: { req: LabelRequest; mode?: string; style?: string }) {
+  const cfg = useQuery(configQuery).data
+  if (!cfg) return <div className="h-32" />
+  return <LabelView kind="price" data={toPriceLabel(req, cfg)} size={req.size} mode={mode} style={style} classic={<ClassicLabelPreview req={req} />} />
+}
+
+/** The label as a Classic printer lays it out (server geometry). */
+function ClassicLabelPreview({ req }: { req: LabelRequest }) {
   const { l, bars } = useLabelLayout(req)
   if (!l) return <div className="h-32" />
   return (
@@ -70,4 +82,11 @@ export function LabelPreview({ req }: { req: LabelRequest }) {
       <figcaption className="text-[12px] text-muted-foreground">{l.widthMm} × {l.heightMm} mm · as it prints</figcaption>
     </figure>
   )
+}
+
+/** Prints a price-label run (Image or Classic, by the shop's switch) to `path`
+ * (the counter's /till/labels, or the admin's /admin/labels/send). */
+export async function printPriceLabels(req: LabelRequest, path = '/till/labels') {
+  const cfg = queryClient.getQueryData(configQuery.queryKey) ?? (await queryClient.fetchQuery(configQuery))
+  await printLabel({ kind: 'price', data: toPriceLabel(req, cfg), size: req.size, count: req.count, classic: { path, body: req } })
 }

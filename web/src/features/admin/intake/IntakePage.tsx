@@ -23,6 +23,7 @@ import { lotsQuery } from '@/features/admin/stock/queries'
 import { BatchChoice } from './BatchChoice'
 import { PackEntry } from './PackEntry'
 import { initialLabels, LabelBlock, labelRequest, type LabelOpts } from './LabelBlock'
+import { printPriceLabels } from '@/features/counter/labels/LabelPreview'
 
 type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 'new'; name: string; barcode: string } | null
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
@@ -60,7 +61,7 @@ export function IntakePage() {
   async function printLabels(item: IntakeItem, fields: DetailRow[] = []) {
     const body = labelRequest(labels, { productId: item.productId, name: item.name, price: item.sellingPrice, barcode: item.barcode, qty: item.qty }, cfg.symbol, fields)
     try {
-      await api('/admin/labels/send', { json: body })
+      await printPriceLabels(body, '/admin/labels/send')
       toast.success(`${body.count} ${body.count === 1 ? 'label' : 'labels'} sent to the printer`)
     } catch (e) {
       toast.error(errMsg(e))

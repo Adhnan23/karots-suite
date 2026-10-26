@@ -11,7 +11,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { ProductFind } from '../ProductFind'
 import { CounterPage } from '../ui'
-import { LabelPreview } from './LabelPreview'
+import { LabelPreview, printPriceLabels } from './LabelPreview'
 import { LABEL_SIZES as SIZES, labelCount, saveSlot, slotDefault, slotOptions, slotValue } from './slots'
 
 const FORMATS = ['CODE128', 'EAN13', 'EAN8', 'UPC', 'CODE39']
@@ -34,7 +34,7 @@ export function LabelsTab() {
 /** The fields the designer reads — a till product or an admin product row both fit. */
 export type LabelProduct = Pick<TillProduct, 'id' | 'name' | 'barcode' | 'sellingPrice' | 'stockQty'>
 
-/** Pick top/bottom lines, count and size for a product (or a typed custom
+/** Pick the first / second text, count and size for a product (or a typed custom
  * barcode), preview, then print to the label printer or open a printable sheet. */
 export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null; sym: string; defSize: string; onClear?: () => void }) {
   const qc = useQueryClient()
@@ -56,7 +56,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
   const [busy, setBusy] = useState(false)
   const val = (key: string) => slotValue(options, key)
   const req: LabelRequest = p
-    ? { productId: barcode ? p.id : 0, code: barcode, format: 'CODE128', top: val(topKey), bottom: val(bottomKey), count, size: size === 'custom' ? custom : size }
+    ? { productId: barcode ? p.id : 0, code: barcode, format: 'CODE128', top: val(topKey), bottom: val(bottomKey), topKey, bottomKey, count, size: size === 'custom' ? custom : size }
     : { productId: 0, code: code.trim(), format, top, bottom, count, size: size === 'custom' ? custom : size }
   const canPrint = !!req.code
 
@@ -79,7 +79,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
   async function print() {
     setBusy(true)
     try {
-      await api('/till/labels', { json: req })
+      await printPriceLabels(req)
       toast.success(`${count} label${count === 1 ? '' : 's'} sent to the printer`)
     } catch (err) {
       toast.error(errMsg(err))
@@ -89,7 +89,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
   }
 
   const slot = (which: 'top' | 'bottom', value: string, set: (v: string) => void) => (
-    <select aria-label={which === 'top' ? 'Top line' : 'Bottom line'} value={options.some((o) => o.key === value) ? value : 'none'}
+    <select aria-label={which === 'top' ? 'First text' : 'Second text'} value={options.some((o) => o.key === value) ? value : 'none'}
       onChange={(e) => { set(e.target.value); saveSlot(which, e.target.value) }} className={cn(FIELD, 'appearance-auto')}>
       {options.map((o) => <option key={o.key} value={o.key}>{o.label}{o.value && o.key !== 'none' ? ` — ${o.value}` : ''}</option>)}
     </select>
@@ -100,7 +100,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-bold">{p ? p.name : 'Custom label'}</h2>
-          <p className="text-[13px] text-muted-foreground">{p ? 'Choose what goes above and below the barcode.' : 'Pick a product on the left, or type any barcode.'}</p>
+          <p className="text-[13px] text-muted-foreground">{p ? 'Choose the two texts the label shows.' : 'Pick a product on the left, or type any barcode.'}</p>
         </div>
         {p && onClear && <button type="button" aria-label="Clear product" onClick={onClear} className="text-faint hover:text-foreground"><X size={18} /></button>}
       </div>
@@ -125,11 +125,11 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
         </label>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <label className={LABEL}>Top line
-          {p ? slot('top', topKey, setTopKey) : <input aria-label="Top line" placeholder="e.g. item or model" value={top} onChange={(e) => setTop(e.target.value)} className={FIELD} />}
+        <label className={LABEL}>First text
+          {p ? slot('top', topKey, setTopKey) : <input aria-label="First text" placeholder="e.g. item or model" value={top} onChange={(e) => setTop(e.target.value)} className={FIELD} />}
         </label>
-        <label className={LABEL}>Bottom line
-          {p ? slot('bottom', bottomKey, setBottomKey) : <input aria-label="Bottom line" placeholder="e.g. price" value={bottom} onChange={(e) => setBottom(e.target.value)} className={FIELD} />}
+        <label className={LABEL}>Second text
+          {p ? slot('bottom', bottomKey, setBottomKey) : <input aria-label="Second text" placeholder="e.g. price" value={bottom} onChange={(e) => setBottom(e.target.value)} className={FIELD} />}
         </label>
       </div>
       <div className={LABEL}>
@@ -162,7 +162,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
         </Button>
         {/* No label printer? The same labels as a page for any printer (karots-pos "Generate sheet"). */}
         <a aria-disabled={!canPrint} target="_blank" rel="noopener" title="Printable sheet for an ordinary printer"
-          href={`/print/labels?${new URLSearchParams({ productId: String(req.productId), code: req.code, format: req.format, top: req.top, bottom: req.bottom, count: String(count), size: req.size })}`}
+          href={`/print/labels?${new URLSearchParams({ productId: String(req.productId), code: req.code, format: req.format, top: req.top, bottom: req.bottom, topKey: req.topKey ?? '', bottomKey: req.bottomKey ?? '', count: String(count), size: req.size })}`}
           className="flex h-12 items-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold aria-disabled:pointer-events-none aria-disabled:opacity-40 hover:bg-muted">
           <FileText size={16} /> Sheet ↗
         </a>
