@@ -23,14 +23,15 @@ async function fontsFor(node: HTMLElement, fonts: readonly string[]) {
 }
 
 /** A slip node drawn at printer dots (1 CSS px = 1 dot) → a 1-bit PNG exactly
- * `dots` wide. Throws if it can't be made exactly; the caller prints Classic. */
-export async function rasterize(node: HTMLElement, dots: number, fonts: readonly string[]): Promise<Blob> {
+ * `dots` wide (and exactly `rows` tall when given — a label). Throws if it can't
+ * be made exactly; the caller prints Classic. */
+export async function rasterize(node: HTMLElement, dots: number, fonts: readonly string[], rows?: number): Promise<Blob> {
   await fontsFor(node, fonts)
   await Promise.all(Array.from(node.querySelectorAll('img'), (i) => i.decode().catch(() => undefined)))
   // The full content height: a fractional or overflowing box must never cut off the last line.
-  const height = Math.ceil(Math.max(node.scrollHeight, node.getBoundingClientRect().height))
+  const height = rows ?? Math.ceil(Math.max(node.scrollHeight, node.getBoundingClientRect().height))
   const canvas = await domToCanvas(node, { width: dots, height, scale: 1, backgroundColor: '#ffffff' })
-  if (canvas.width !== dots) throw new Error(`receipt picture is ${canvas.width} wide, printer is ${dots}`)
+  if (canvas.width !== dots || (rows && canvas.height !== rows)) throw new Error(`picture is ${canvas.width}×${canvas.height}, printer wants ${dots}×${rows ?? 'any'}`)
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('no 2d canvas')
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height)

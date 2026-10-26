@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import type { SaleLine, SupplierView, TillProduct } from '@/api/types.gen'
 import type { CartLine, PayoutInput, SaleType, ServiceLineInput } from '@/features/till/cart/types'
 import type { SlipKit, StyleKey } from '@/features/print/styles/kit'
+import type { LabelKind } from '@/features/print/labels/kit'
 import type { TokenDef } from '@/theme/palettes/tokens'
 
 /** One member of a line group: a product, its qty in ONE set and a fixed per-unit discount. */
@@ -186,6 +187,10 @@ export const slots = {
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   slipTemplates: [] as SlipTemplate[],
+  /** A plugin's own label kinds (e.g. "pharmacy.dose") for Image mode: its styles,
+   * the first being `classic`, drawn from the plugin's own data; print with
+   * `printLabel` from '@/features/print/labels/print'. Appearance lists each kind. */
+  labelTemplates: [] as LabelKind<any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
   paletteTokens: [] as PaletteTokens[],
   returnLineFields: [] as ReturnLineField[],
   supplierJobs: [] as SupplierJob[],

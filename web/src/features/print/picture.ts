@@ -19,15 +19,19 @@ const withQuery = (path: string, q: Record<string, string | undefined>) => {
   return `${path}${path.includes('?') ? '&' : '?'}${p}`
 }
 
-/** Draws a node off screen, waits for it to settle and rasterises it. */
-async function shoot(el: ReactElement, dots: number, fonts: readonly string[]): Promise<Blob> {
+/** Draws a node off screen, waits for it to settle and rasterises it (`rows`:
+ * exactly that tall; `inspect` looks at the drawn node before it goes). */
+export async function shoot(el: ReactElement, dots: number, fonts: readonly string[], rows?: number, inspect?: (node: HTMLElement) => void): Promise<Blob> {
   const host = document.createElement('div')
   host.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none'
   document.body.appendChild(host)
   const root = createRoot(host)
   try {
     flushSync(() => root.render(el))
-    return await rasterize(host.firstElementChild as HTMLElement, dots, fonts)
+    const node = host.firstElementChild as HTMLElement
+    const blob = await rasterize(node, dots, fonts, rows)
+    inspect?.(node)
+    return blob
   } finally {
     root.unmount()
     host.remove()
