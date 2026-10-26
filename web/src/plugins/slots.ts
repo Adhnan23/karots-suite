@@ -190,7 +190,7 @@ export const slots = {
   /** A plugin's own label kinds (e.g. "pharmacy.dose") for Image mode: its styles,
    * the first being `classic`, drawn from the plugin's own data; print with
    * `printLabel` from '@/features/print/labels/print'. Appearance lists each kind. */
-  labelTemplates: [] as LabelKind<any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  labelTemplates: [] as LabelKind[],
   paletteTokens: [] as PaletteTokens[],
   returnLineFields: [] as ReturnLineField[],
   supplierJobs: [] as SupplierJob[],

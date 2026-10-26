@@ -45,7 +45,8 @@ export type LabelStyle<D> = {
 }
 
 /** A kind of label (core `price`; plugins add theirs through slots.labelTemplates). */
-export type LabelKind<D = unknown> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- a kind's data is its own; the registry holds them all
+export type LabelKind<D = any> = {
   kind: string
   label: string
   /** A made-up label for Appearance's thumbnails and Settings' preview. */

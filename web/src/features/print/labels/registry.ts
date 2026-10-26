@@ -3,7 +3,7 @@ import type { LabelKind, LabelPaper, LabelStyle } from './kit'
 import { PRICE_KIND } from './price'
 
 /** Every label kind in this build: core's price label, then the plugins'. */
-export const labelKinds = (): LabelKind[] => [PRICE_KIND as LabelKind, ...slots.labelTemplates]
+export const labelKinds = (): LabelKind[] => [PRICE_KIND, ...slots.labelTemplates]
 
 export const kindOf = (kind: string): LabelKind | undefined => labelKinds().find((k) => k.kind === kind)
 
