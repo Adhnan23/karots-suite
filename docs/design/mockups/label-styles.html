@@ -1,0 +1,338 @@
+<style>
+  .lbl-row, .lbl-row.options { display:flex !important; flex-direction:row !important; flex-wrap:wrap; gap:28px; margin:12px 0 32px; }
+  .lbl-cell, .lbl-cell.option { width:auto !important; flex:none !important; display:flex; flex-direction:column; gap:8px; }
+  .lbl-cell h4 { margin:0; font-size:14px; }
+  .lbl-cell p { margin:0; font-size:12px; opacity:.7; max-width:400px; }
+  .lbl { background:#fff; color:#000; position:relative; overflow:hidden; border-radius:10px;
+         box-shadow:0 1px 3px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.08); font-family: Inter, Arial, sans-serif; box-sizing:border-box; }
+  .s50x25 { width:400px; height:200px; }  /* 1 px = 1 printer dot (8 dots per mm) */
+  .s50x30 { width:400px; height:240px; }
+  .s100x50 { width:800px; height:400px; }
+  .bc { display:flex; align-items:stretch; justify-content:center; }
+  .bc i { display:block; background:#000; }
+  .bc b { display:block; }
+  .num { font: 600 15px/1 "JetBrains Mono", monospace; letter-spacing:2px; text-align:center; }
+  .qr { display:grid; background:#fff; }
+  .qr i { background:#000; }
+  .c { text-align:center; }
+  .note { font-size:12px; opacity:.7; }
+  .tabs { display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap; }
+  .tab { padding:6px 14px; border-radius:999px; border:1px solid rgba(127,127,127,.4); font-size:13px; }
+  .tab.on { background:#2b2b2b; color:#fff; border-color:#2b2b2b; }
+  .tab small { opacity:.65; }
+  .thumbs { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+  .thumb { border:2px solid transparent; border-radius:12px; padding:8px; background:rgba(127,127,127,.08); font-size:12px; }
+  .thumb.on { border-color:#d2691e; }
+  .thumb .mini { transform:scale(.42); transform-origin:top left; width:400px; height:200px; margin-bottom:-116px; margin-right:-232px; }
+  .panel { border:1px solid rgba(127,127,127,.3); border-radius:14px; padding:16px; }
+  .fake-field { display:flex; flex-direction:column; gap:4px; font-size:12px; }
+  .fake-field span.v { border:1px solid rgba(127,127,127,.4); border-radius:8px; padding:6px 10px; font-size:13px; }
+  .seg { display:inline-flex; border:1px solid rgba(127,127,127,.4); border-radius:999px; overflow:hidden; font-size:12px; }
+  .seg span { padding:5px 12px; } .seg span.on { background:#2b2b2b; color:#fff; }
+</style>
+
+<h2>Label styles — Image mode</h2>
+<p class="subtitle">Shown at real printer dots (1 px = 1 dot, 203 dpi): a 50×25 mm sticker is 400×200. Black on white only — it's thermal paper. Click the ones you like (several is fine).</p>
+
+<h3>1 · Price labels (50 × 25 mm)</h3>
+<div class="lbl-row options" data-multiselect>
+
+  <div class="lbl-cell option" data-choice="classic" onclick="toggleSelect(this)">
+    <h4>Classic</h4><p>Today's layout as a picture — name top, barcode, price below.</p>
+    <div class="lbl s50x25" style="padding:12px 16px">
+      <div class="c" style="font:600 20px/24px Arial">Anchor Milk Powder 400g</div>
+      <div class="bc" data-code="4792024012345" style="height:96px;margin-top:8px"></div>
+      <div class="num" style="margin-top:4px">4792024012345</div>
+      <div class="c" style="font:700 24px/28px Arial;margin-top:4px">Rs 1,250.00</div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="pricetag" onclick="toggleSelect(this)">
+    <h4>Price Tag</h4><p>The price is the hero. Name small on top, short barcode underneath.</p>
+    <div class="lbl s50x25" style="padding:10px 16px">
+      <div style="font:600 16px/18px Arial;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Anchor Milk Powder 400g</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-top:2px">
+        <span style="font:700 22px Arial">Rs</span><span style="font:900 68px/72px Arial;letter-spacing:-2px">1,250</span><span style="font:700 22px Arial">.00</span>
+      </div>
+      <div style="display:flex;align-items:end;gap:10px;margin-top:4px">
+        <div class="bc" data-code="4792024012345" style="height:56px;width:250px"></div>
+        <div class="num" style="font-size:13px;letter-spacing:0;text-align:left">479202<br>4012345</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="inverse" onclick="toggleSelect(this)">
+    <h4>Inverse</h4><p>A black band with the price in white — pops on a shelf from across the shop.</p>
+    <div class="lbl s50x25">
+      <div class="c" style="font:700 18px/22px Arial;padding:8px 14px 0">Anchor Milk Powder 400g</div>
+      <div class="bc" data-code="4792024012345" style="height:70px;margin:6px 24px 2px"></div>
+      <div class="num" style="font-size:12px">4792024012345</div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:52px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font:900 34px Arial">Rs 1,250.00</div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="qrtag" onclick="toggleSelect(this)">
+    <h4>QR Tag</h4><p>QR on the left (same code as the barcode — scan it at Sell), name and price stacked. Needs a 2D scanner.</p>
+    <div class="lbl s50x25" style="padding:14px;display:flex;gap:16px;align-items:center">
+      <div class="qr" data-size="172" style="width:172px;height:172px;flex:none"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <div style="font:600 19px/22px Arial">Anchor Milk Powder 400g</div>
+        <div style="border-top:3px solid #000;padding-top:6px;font:900 38px/40px Arial">1,250<span style="font-size:20px">.00</span></div>
+        <div class="num" style="font-size:12px;text-align:left;letter-spacing:0">4792024012345</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="dual" onclick="toggleSelect(this)">
+    <h4>Dual</h4><p>Normal barcode + QR side by side — the GS1 change-over look. Every scanner reads it.</p>
+    <div class="lbl s50x25" style="padding:10px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div style="font:600 17px/20px Arial;max-width:230px">Anchor Milk Powder 400g</div>
+        <div style="font:900 30px Arial">1,250<span style="font-size:16px">.00</span></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:end;margin-top:8px">
+        <div style="flex:1">
+          <div class="bc" data-code="4792024012345" style="height:84px"></div>
+          <div class="num" style="font-size:12px;margin-top:3px">4792024012345</div>
+        </div>
+        <div class="qr" data-size="104" style="width:104px;height:104px;flex:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="ticket" onclick="toggleSelect(this)">
+    <h4>Ticket</h4><p>A tag: dashed border and notched corners, a little playful.</p>
+    <div class="lbl s50x25" style="padding:8px">
+      <div style="position:absolute;inset:8px;border:3px dashed #000;border-radius:4px"></div>
+      <div style="position:absolute;left:-14px;top:86px;width:28px;height:28px;border-radius:50%;background:#000"></div>
+      <div style="position:absolute;right:-14px;top:86px;width:28px;height:28px;border-radius:50%;background:#000"></div>
+      <div class="c" style="font:700 17px/20px Arial;margin-top:10px">Anchor Milk Powder 400g</div>
+      <div class="bc" data-code="4792024012345" style="height:70px;margin:6px 40px 0"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 30px 0">
+        <span class="num" style="font-size:12px;letter-spacing:0">4792024012345</span>
+        <span style="font:900 26px Arial">Rs 1,250</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="minimal" onclick="toggleSelect(this)">
+    <h4>Minimal</h4><p>One thin rule, lots of white, left-aligned. Quiet, boutique feel.</p>
+    <div class="lbl s50x25" style="padding:14px 20px">
+      <div style="font:400 18px/22px Arial">Anchor Milk Powder 400g</div>
+      <div style="font:700 26px/30px Arial;margin-top:2px">Rs 1,250.00</div>
+      <div style="height:2px;background:#000;margin:8px 0"></div>
+      <div style="display:flex;align-items:end;gap:12px">
+        <div class="bc" data-code="4792024012345" style="height:60px;width:230px"></div>
+        <div class="num" style="font-size:11px;letter-spacing:1px">4792024012345</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell option" data-choice="local" onclick="toggleSelect(this)">
+    <h4>Any style — Sinhala / Tamil names</h4><p>New with Image mode: local names print (Classic prints "?"). Shown in Price Tag.</p>
+    <div class="lbl s50x25" style="padding:10px 16px">
+      <div style="font:600 18px/20px 'Noto Sans Sinhala', 'Iskoola Pota', Arial">සීනි 1kg · சீனி</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-top:2px">
+        <span style="font:700 22px Arial">Rs</span><span style="font:900 68px/72px Arial;letter-spacing:-2px">310</span><span style="font:700 22px Arial">.00</span>
+      </div>
+      <div style="display:flex;align-items:end;gap:10px;margin-top:4px">
+        <div class="bc" data-code="2000000001234" style="height:56px;width:250px"></div>
+        <div class="num" style="font-size:13px;letter-spacing:0;text-align:left">200000<br>0001234</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>1b · Top / bottom stay swappable — the style only decides how each slot looks</h3>
+<p class="note" style="max-width:900px">Every style has the same two slots. The shop still picks what goes in each (Name, Price, any "print on label" field, or none), and the lines / font settings still apply. Price is drawn as a price wherever it lands; a slot set to none simply closes up.</p>
+<div class="lbl-row">
+
+  <div class="lbl-cell">
+    <h4>Price Tag — Top: Price · Bottom: Name</h4><p>The top slot is the big one in this style, so the price stays the hero.</p>
+    <div class="lbl s50x25" style="padding:8px 16px">
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <span style="font:700 22px Arial">Rs</span><span style="font:900 68px/70px Arial;letter-spacing:-2px">1,250</span><span style="font:700 22px Arial">.00</span>
+      </div>
+      <div style="display:flex;align-items:end;gap:10px;margin-top:2px">
+        <div class="bc" data-code="4792024012345" style="height:52px;width:250px"></div>
+        <div class="num" style="font-size:13px;letter-spacing:0;text-align:left">479202<br>4012345</div>
+      </div>
+      <div style="font:600 16px/18px Arial;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Anchor Milk Powder 400g</div>
+    </div>
+  </div>
+
+  <div class="lbl-cell">
+    <h4>Price Tag — Top: Name · Bottom: Model no (a field)</h4><p>No price at all (e.g. a phone shop's stock tag): the big slot shows the field.</p>
+    <div class="lbl s50x25" style="padding:10px 16px">
+      <div style="font:600 16px/18px Arial">Samsung Galaxy A15 128GB</div>
+      <div style="font:900 50px/60px Arial;letter-spacing:-1px">SM-A155F</div>
+      <div style="display:flex;align-items:end;gap:10px;margin-top:6px">
+        <div class="bc" data-code="8806095412345" style="height:60px;width:250px"></div>
+        <div class="num" style="font-size:13px;letter-spacing:0;text-align:left">880609<br>5412345</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl-cell">
+    <h4>Inverse — Top: Price · Bottom: none</h4><p>The band holds whichever slot is on the bottom; bottom = none → the band goes and the barcode grows.</p>
+    <div class="lbl s50x25">
+      <div class="c" style="font:900 40px/48px Arial;padding:8px 14px 0">Rs 1,250.00</div>
+      <div class="bc" data-code="4792024012345" style="height:108px;margin:8px 24px 2px"></div>
+      <div class="num" style="font-size:12px">4792024012345</div>
+    </div>
+  </div>
+
+  <div class="lbl-cell">
+    <h4>QR Tag — Top: Name (2 lines) · Bottom: Price</h4><p>"2 lines" on the top slot wraps the name instead of cutting it.</p>
+    <div class="lbl s50x25" style="padding:14px;display:flex;gap:16px;align-items:center">
+      <div class="qr" data-size="172" style="width:172px;height:172px;flex:none"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <div style="font:600 19px/22px Arial">Munchee Super Cream Cracker 490g</div>
+        <div style="border-top:3px solid #000;padding-top:6px;font:900 38px/40px Arial">545<span style="font-size:20px">.00</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>2 · Shelf (bigger labels — 100 × 50 mm)</h3>
+<div class="lbl-row options">
+  <div class="lbl-cell option" data-choice="shelf" onclick="toggleSelect(this)">
+    <h4>Shelf</h4><p>Name, a big price, price per unit, barcode + QR, and the date it was printed (so old tags are easy to spot). On 50×25 it falls back to Price Tag.</p>
+    <div class="lbl s100x50" style="padding:24px 32px;display:grid;grid-template-columns:1fr 210px;grid-template-rows:auto 1fr auto;column-gap:28px">
+      <div style="font:700 34px/40px Arial">Anchor Milk Powder</div>
+      <div style="font:600 22px Arial;text-align:right;align-self:center">400 g</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font:700 40px Arial">Rs</span><span style="font:900 150px/150px Arial;letter-spacing:-6px">1,250</span><span style="font:700 40px Arial">.00</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:end;justify-content:center;gap:8px">
+        <div class="qr" data-size="150" style="width:150px;height:150px"></div>
+      </div>
+      <div style="display:flex;align-items:end;gap:16px">
+        <div><div class="bc" data-code="4792024012345" style="height:70px;width:320px"></div><div class="num" style="font-size:14px;margin-top:3px">4792024012345</div></div>
+      </div>
+      <div style="text-align:right;font:600 20px/26px Arial;align-self:end">Rs 312.50 / 100 g<br><span style="font-weight:400;font-size:16px">26 Oct 2026</span></div>
+    </div>
+  </div>
+</div>
+
+<h3>3 · Pharmacy dose label (plugin — shows only when Pharmacy is built in)</h3>
+<div class="lbl-row options" data-multiselect>
+  <div class="lbl-cell option" data-choice="dose-classic" onclick="toggleSelect(this)">
+    <h4>Classic</h4><p>Today's text label, as a picture.</p>
+    <div class="lbl s50x30" style="padding:12px 16px;font:600 19px/24px 'JetBrains Mono',monospace">
+      NIMAL PERERA<br>AMOXICILLIN 500MG<br>QTY 15<br>1-0-1 3 TIMES A DAY<br>AFTER MEALS<br>26/10/2026
+    </div>
+  </div>
+  <div class="lbl-cell option" data-choice="dose-clear" onclick="toggleSelect(this)">
+    <h4>Clear</h4><p>Pharmacy guidance: sentence case, the dose big, patient + medicine together, high contrast.</p>
+    <div class="lbl s50x30" style="padding:10px 16px">
+      <div style="display:flex;justify-content:space-between;font:600 17px Arial"><span>Nimal Perera</span><span>26 Oct</span></div>
+      <div style="font:700 22px/26px Arial;margin-top:2px">Amoxicillin 500 mg <span style="font-weight:400;font-size:17px">× 15</span></div>
+      <div style="height:3px;background:#000;margin:8px 0"></div>
+      <div style="font:900 34px/38px Arial">1 – 0 – 1</div>
+      <div style="font:600 19px/23px Arial">1 tablet morning and night</div>
+      <div style="font:400 17px/21px Arial">After meals</div>
+    </div>
+  </div>
+  <div class="lbl-cell option" data-choice="dose-boxed" onclick="toggleSelect(this)">
+    <h4>Boxed</h4><p>Morning / noon / night boxes — readable without reading (good for older patients).</p>
+    <div class="lbl s50x30" style="padding:10px 14px">
+      <div style="font:700 18px/22px Arial">Amoxicillin 500 mg × 15</div>
+      <div style="font:400 15px/19px Arial">Nimal Perera · 26 Oct 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px">
+        <div style="border:3px solid #000;border-radius:6px;text-align:center;padding:4px 0"><div style="font:600 14px Arial">Morning</div><div style="font:900 34px/36px Arial">1</div></div>
+        <div style="border:3px dashed #000;border-radius:6px;text-align:center;padding:4px 0"><div style="font:600 14px Arial">Noon</div><div style="font:900 34px/36px Arial">–</div></div>
+        <div style="border:3px solid #000;border-radius:6px;text-align:center;padding:4px 0"><div style="font:600 14px Arial">Night</div><div style="font:900 34px/36px Arial">1</div></div>
+      </div>
+      <div style="font:600 16px Arial;margin-top:6px;text-align:center">After meals</div>
+    </div>
+  </div>
+</div>
+
+<h3>4 · Repair ticket (plugin — shows only when Repairs is built in)</h3>
+<div class="lbl-row options" data-multiselect>
+  <div class="lbl-cell option" data-choice="rep-classic" onclick="toggleSelect(this)">
+    <h4>Classic</h4><p>Today's ticket label (it uses the barcode label path).</p>
+    <div class="lbl s50x25" style="padding:12px 16px">
+      <div class="c" style="font:600 19px/23px Arial">Samsung A12 - Kamal</div>
+      <div class="bc" data-code="R-00142" style="height:96px;margin-top:8px"></div>
+      <div class="num" style="margin-top:4px">R-00142</div>
+      <div class="c" style="font:700 22px Arial;margin-top:4px">Ready by 28 Oct</div>
+    </div>
+  </div>
+  <div class="lbl-cell option" data-choice="rep-job" onclick="toggleSelect(this)">
+    <h4>Job</h4><p>Big job number for the shelf of phones, QR to open the job at the till, who and what below.</p>
+    <div class="lbl s50x25" style="padding:12px 14px;display:flex;gap:14px">
+      <div style="flex:1;min-width:0">
+        <div style="font:900 44px/46px Arial;letter-spacing:-1px">R-142</div>
+        <div style="height:3px;background:#000;margin:4px 0 6px"></div>
+        <div style="font:700 18px/21px Arial">Samsung A12</div>
+        <div style="font:400 16px/20px Arial">Kamal · 077 123 4567</div>
+        <div style="font:600 15px/20px Arial">In 26 Oct → 28 Oct</div>
+      </div>
+      <div class="qr" data-size="150" style="width:150px;height:150px;flex:none;align-self:center"></div>
+    </div>
+  </div>
+</div>
+
+<h3>5 · Where you pick them — Appearance → Labels (system user)</h3>
+<div class="panel">
+  <div class="tabs">
+    <span class="tab on">Price label</span><span class="tab">Dose label <small>· Pharmacy</small></span><span class="tab">Repair ticket <small>· Repairs</small></span>
+  </div>
+  <p class="note">Each kind keeps its own style. Plugin tabs appear only for plugins in this build. A yellow note shows if the shop prints labels as Classic.</p>
+  <div class="thumbs" style="margin-top:10px" id="thumbs"></div>
+</div>
+
+<h3 style="margin-top:28px">6 · Settings → Printers & labels — live label preview</h3>
+<div class="panel" style="display:grid;grid-template-columns:1fr 430px;gap:20px;align-items:start">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="fake-field">Print labels as <span><span class="seg"><span>Image (new)</span><span class="on">Classic</span></span></span></div>
+    <div class="fake-field">Label size <span class="v">50 × 25 mm · gap 2</span></div>
+    <div class="fake-field">Top line <span class="v">Name ▾</span></div>
+    <div class="fake-field">Bottom line <span class="v">Price ▾</span></div>
+    <div class="fake-field">Top: lines · font <span class="v">2 lines · S</span></div>
+    <div class="fake-field">Bottom: lines · font <span class="v">1 line · M</span></div>
+  </div>
+  <div>
+    <div class="note" style="margin-bottom:6px">Preview — what this printer will print (Classic: the printer's own fonts; Image: your Appearance style)</div>
+    <div class="lbl s50x25" style="padding:12px 16px">
+      <div class="c" style="font:600 20px/24px 'JetBrains Mono',monospace">ANCHOR MILK POWDER 400G</div>
+      <div class="bc" data-code="4792024012345" style="height:96px;margin-top:8px"></div>
+      <div class="num" style="margin-top:4px">4792024012345</div>
+      <div class="c" style="font:700 24px/28px 'JetBrains Mono',monospace;margin-top:4px">Rs 1,250.00</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // Fake-but-plausible barcodes and QR codes (deterministic per code), only for the mockup.
+  const rnd = (seed) => () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
+  const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) & 0x7fffffff
+  document.querySelectorAll('.bc').forEach((el) => {
+    const r = rnd(hash(el.dataset.code)); let html = '<i style="flex:1"></i><b style="flex:1"></b><i style="flex:1"></i>'
+    for (let k = 0; k < 46; k++) html += `<b style="flex:${1 + Math.floor(r() * 3)}"></b><i style="flex:${1 + Math.floor(r() * 3)}"></i>`
+    el.innerHTML = html + '<b style="flex:1"></b><i style="flex:1"></i>'
+  })
+  document.querySelectorAll('.qr').forEach((el, idx) => {
+    const n = 25, r = rnd(1000 + idx * 77); el.style.gridTemplateColumns = `repeat(${n},1fr)`
+    const finder = (x, y) => { for (const [fx, fy] of [[0,0],[n-7,0],[0,n-7]]) { const dx = x - fx, dy = y - fy
+      if (dx >= 0 && dx < 7 && dy >= 0 && dy < 7) return (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4)) ? 1 : 0 } return -1 }
+    let html = ''
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const f = finder(x, y); const on = f === -1 ? r() > .52 : f
+      html += on ? '<i></i>' : '<span></span>' }
+    el.innerHTML = html
+  })
+  // Appearance thumbnails: shrink copies of the price-label styles.
+  const host = document.getElementById('thumbs')
+  ;['classic','pricetag','inverse','qrtag','dual','ticket','minimal','shelf'].forEach((k, i) => {
+    const src = document.querySelector(`[data-choice="${k}"] .lbl`); if (!src) return
+    const t = document.createElement('div'); t.className = 'thumb' + (k === 'pricetag' ? ' on' : '')
+    const mini = src.cloneNode(true); mini.classList.add('mini')
+    if (k === 'shelf') { mini.style.transform = 'scale(.21)'; mini.style.marginBottom = '-316px'; mini.style.marginRight = '-632px' }
+    t.appendChild(mini); t.insertAdjacentHTML('beforeend', `<div style="margin-top:4px;font-weight:600">${src.closest('.lbl-cell').querySelector('h4').textContent}</div>`)
+    host.appendChild(t)
+  })
+})()
+</script>
