@@ -1,10 +1,13 @@
 import type { LabelRequest, TillConfig } from '@/api/types.gen'
 import type { LabelKind, PriceLabel, Slot } from '../kit'
 import { ClassicPrice } from './classic'
+import { Dual, dualFits } from './dual'
 import { Inverse } from './inverse'
 import { Minimal } from './minimal'
 import { barsFit } from './parts'
 import { PriceTag } from './pricetag'
+import { QrTag, qrTagFits } from './qrtag'
+import { Shelf, shelfFits } from './shelf'
 import { Ticket } from './ticket'
 
 /** The made-up product Appearance and Settings draw. */
@@ -28,8 +31,11 @@ export const PRICE_KIND: LabelKind<PriceLabel> = {
     { key: 'classic', label: 'Classic', Template: ClassicPrice },
     { key: 'pricetag', label: 'Price Tag', Template: PriceTag, fits: barsFit(14) },
     { key: 'inverse', label: 'Inverse', Template: Inverse, fits: barsFit(16) },
+    { key: 'qrtag', label: 'QR Tag', Template: QrTag, fits: qrTagFits },
+    { key: 'dual', label: 'Dual', Template: Dual, fits: dualFits },
     { key: 'ticket', label: 'Ticket', Template: Ticket, fits: barsFit(36) },
     { key: 'minimal', label: 'Minimal', Template: Minimal, fits: barsFit(20) },
+    { key: 'shelf', label: 'Shelf', Template: Shelf, minWidthMm: 70, fallback: 'pricetag', fits: shelfFits },
   ],
 }
 

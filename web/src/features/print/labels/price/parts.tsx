@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { BAR_QUIET, Bars, barModules, fitModule } from '../codes'
+import { BAR_QUIET, Bars, MIN_MODULE, QR_QUIET, barModules, fitModule, qrSize } from '../codes'
 import { Fit, sizeScale } from '../fit'
 import type { LabelPaper, PriceLabel, Slot } from '../kit'
 import { isBlank, splitPrice } from './hero'
@@ -79,4 +79,12 @@ export function BarRow({ d, width, height, digitsPx, gap }: { d: PriceLabel; wid
       <Digits d={d} px={digitsPx} />
     </div>
   )
+}
+
+/** The QR module (dots) that fits the code's QR, quiet zone included, in `side`
+ * dots square (capped at `max`); 0 when even 2 dots doesn't fit. */
+export const qrModuleFor = (d: PriceLabel, side: number, max = 8) => {
+  if (!d.code) return 0
+  const m = Math.min(max, Math.floor(side / (qrSize(d.code) + 2 * QR_QUIET)))
+  return m >= MIN_MODULE ? m : 0
 }
