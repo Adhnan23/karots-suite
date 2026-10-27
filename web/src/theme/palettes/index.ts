@@ -9,4 +9,8 @@ export const PALETTES = [
   { id: 'bazaar', theme: THEME, name: 'Bazaar', swatch: { light: '#F6EFE4', dark: '#17110D', brand: '#C2562F' } },
   { id: 'lagoon', theme: THEME, name: 'Lagoon', swatch: { light: '#E6F4F4', dark: '#071A1F', brand: '#087F88' } },
   { id: 'catppuccin', theme: THEME, name: 'Catppuccin', swatch: { light: '#EFF1F5', dark: '#1E1E2E', brand: '#8839EF' } },
+  { id: 'gruvbox', theme: THEME, name: 'Gruvbox', swatch: { light: '#FBF1C7', dark: '#282828', brand: '#FE8019' } },
 ] as const
+
+/** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */
+export const NEW_PALETTES: string[] = PALETTES.slice(5).map((p) => p.id)

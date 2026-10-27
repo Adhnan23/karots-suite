@@ -57,7 +57,7 @@ export interface Flags {
  * palette is a built-in, cleared when another palette is chosen.
  */
 export interface Appearance {
-  palette: string; // "studio" | "night" | "bazaar" | "lagoon" | "catppuccin" | "custom-<id>"
+  palette: string; // a built-in id (settings.Skins) | "custom-<id>"
   brandColor: string; // legacy "#rrggbb" or ""
   radius: string; // legacy "sharp" | "rounded" | "round"
   receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
