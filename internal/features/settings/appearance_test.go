@@ -12,6 +12,7 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 		{"known skin passes", ValidSkin("night"), "night"},
 		{"custom palette passes", ValidSkin("custom-12"), "custom-12"},
 		{"gruvbox is built in", ValidSkin("gruvbox"), "gruvbox"},
+		{"rosepine, solarized, everforest, kanagawa are built in", ValidSkin("rosepine") + ValidSkin("solarized") + ValidSkin("everforest") + ValidSkin("kanagawa"), "rosepinesolarizedeverforestkanagawa"},
 		{"nord, dracula, tokyonight are built in", ValidSkin("nord") + ValidSkin("dracula") + ValidSkin("tokyonight"), "norddraculatokyonight"},
 		{"junk custom → studio", ValidSkin("custom-x"), "studio"},
 		{"new palettes pass", ValidSkin("lagoon") + ValidSkin("bazaar") + ValidSkin("catppuccin"), "lagoonbazaarcatppuccin"},

@@ -13,6 +13,10 @@ export const PALETTES = [
   { id: 'nord', theme: THEME, name: 'Nord', swatch: { light: '#ECEFF4', dark: '#2E3440', brand: '#88C0D0' } },
   { id: 'dracula', theme: THEME, name: 'Dracula', swatch: { light: '#FFFBEB', dark: '#282A36', brand: '#BD93F9' } },
   { id: 'tokyonight', theme: THEME, name: 'Tokyo Night', swatch: { light: '#E1E2E7', dark: '#1A1B26', brand: '#7AA2F7' } },
+  { id: 'rosepine', theme: THEME, name: 'Rosé Pine', swatch: { light: '#FAF4ED', dark: '#191724', brand: '#C4A7E7' } },
+  { id: 'solarized', theme: THEME, name: 'Solarized', swatch: { light: '#FDF6E3', dark: '#002B36', brand: '#268BD2' } },
+  { id: 'everforest', theme: THEME, name: 'Everforest', swatch: { light: '#FDF6E3', dark: '#2D353B', brand: '#A7C080' } },
+  { id: 'kanagawa', theme: THEME, name: 'Kanagawa', swatch: { light: '#F2ECBC', dark: '#1F1F28', brand: '#7E9CD8' } },
 ] as const
 
 /** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */

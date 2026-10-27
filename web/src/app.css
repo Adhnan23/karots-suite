@@ -19,6 +19,10 @@
 @import "./theme/palettes/dock/nord.css";
 @import "./theme/palettes/dock/dracula.css";
 @import "./theme/palettes/dock/tokyonight.css";
+@import "./theme/palettes/dock/rosepine.css";
+@import "./theme/palettes/dock/solarized.css";
+@import "./theme/palettes/dock/everforest.css";
+@import "./theme/palettes/dock/kanagawa.css";
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */
