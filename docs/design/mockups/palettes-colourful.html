@@ -1,0 +1,92 @@
+<style>
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.pal{border-radius:14px;overflow:hidden;cursor:pointer;border:3px solid transparent}
+.pal.selected{border-color:#4f8cff}
+.halves{display:grid;grid-template-columns:1fr 1fr}
+.m{background:var(--bg);color:var(--fg);padding:12px;font:13px/1.35 system-ui;position:relative;min-height:150px}
+.m .card{background:var(--card);border-radius:var(--r,12px);padding:9px 10px;box-shadow:var(--sh,0 2px 6px rgb(0 0 0/.18));border:var(--bd,none)}
+.m .lbl{color:var(--mu);font-size:11px}
+.m .big{font-weight:800;font-size:18px;color:var(--big,inherit);text-shadow:var(--ts,none)}
+.m .btn{display:inline-block;margin-top:8px;background:var(--acc);color:var(--accf,#fff);border-radius:var(--r,12px);padding:5px 10px;font-weight:800;font-size:12px;box-shadow:var(--glow,none)}
+.m .chip{display:inline-block;margin-top:8px;margin-left:4px;background:var(--acc2);color:var(--chipf,#fff);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800}
+.m .dock{position:absolute;left:12px;right:12px;bottom:10px;height:18px;border-radius:999px;background:var(--dock,var(--card));display:flex;gap:6px;align-items:center;padding:0 8px;box-shadow:var(--glow,none)}
+.m .dock i{width:8px;height:8px;border-radius:50%;background:var(--acc2)}
+.m .dock i:first-child{background:var(--acc)}
+.m .dock i:last-child{background:var(--acc3,var(--mu))}
+.meta{background:#fff;color:#222;padding:10px 12px;font:13px/1.4 system-ui}
+.meta h3{margin:0 0 2px;font-size:15px}
+.meta p{margin:0;color:#555}
+.meta b{color:#222}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:999px;background:#eef;color:#446;margin-left:6px;vertical-align:2px}
+</style>
+
+<h2>The colourful set: which of these too?</h2>
+<p class="subtitle">These are bright on purpose: strong colours and some glow or gradient. Light is on the left, dark on the right. Five are famous themes; the three marked <b>own</b> are new ones made for shops, not copied from anywhere. Click every one you want.</p>
+
+<div class="pg" data-multiselect>
+
+<div class="pal option" data-choice="synthwave" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:linear-gradient(180deg,#fff0fb,#ffe3f1);--card:#fff;--fg:#2b1055;--mu:#7a4b9c;--acc:#ff2a6d;--acc2:#05a8d1;--acc3:#f9a12e;--r:10px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:linear-gradient(180deg,#241b2f,#2b1055 70%,#ff2a6d33);--card:#2a2139;--fg:#fdfdfd;--mu:#c3a6e8;--acc:#ff7edb;--accf:#241b2f;--acc2:#36f9f6;--chipf:#241b2f;--acc3:#fede5d;--r:10px;--glow:0 0 14px #ff7edbaa;--ts:0 0 8px #ff7edb"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Synthwave '84</h3><p>80s neon pink and cyan. <b>Signature:</b> glowing text and buttons, a sunset-grid sky.</p></div>
+</div>
+
+<div class="pal option" data-choice="monokai" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fdf9f3;--card:#fff;--fg:#2c292d;--mu:#72696a;--acc:#e14775;--acc2:#269d69;--acc3:#cc7a0a;--r:8px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#2d2a2e;--card:#403e41;--fg:#fcfcfa;--mu:#c1c0c0;--acc:#ff6188;--acc2:#a9dc76;--chipf:#2d2a2e;--acc3:#ffd866;--r:8px;--big:#ffd866"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Monokai Pro</h3><p>Hot pink, lime and yellow on charcoal. <b>Signature:</b> every role gets its own bright colour.</p></div>
+</div>
+
+<div class="pal option" data-choice="shadesofpurple" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#f5f2ff;--card:#fff;--fg:#2d2b55;--mu:#6b5fb5;--acc:#7b30d0;--acc2:#ff9d00;--acc3:#fb94ff;--r:12px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#2d2b55;--card:#1e1e3f;--fg:#ffffff;--mu:#a599e9;--acc:#fad000;--accf:#2d2b55;--acc2:#ff9d00;--chipf:#2d2b55;--acc3:#fb94ff;--r:12px;--big:#fad000"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Shades of Purple</h3><p>Deep purple with bold yellow. <b>Signature:</b> yellow totals and the main button really pop.</p></div>
+</div>
+
+<div class="pal option" data-choice="cobalt2" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#eef5ff;--card:#fff;--fg:#0d3a58;--mu:#3d6b8f;--acc:#0050a4;--acc2:#ff9d00;--acc3:#2aa198;--r:8px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#193549;--card:#15232d;--fg:#ffffff;--mu:#9effff;--acc:#ffc600;--accf:#193549;--acc2:#ff9d00;--chipf:#193549;--acc3:#3ad900;--r:8px;--bd:1px solid #0d3a58"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Cobalt2</h3><p>Electric blue and gold. <b>Signature:</b> crisp outlines, high contrast for a bright shop.</p></div>
+</div>
+
+<div class="pal option" data-choice="ayu" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fcfcfc;--card:#fff;--fg:#5c6166;--mu:#8a9199;--acc:#fa8d3e;--acc2:#399ee6;--acc3:#86b300;--r:10px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#1f2430;--card:#242936;--fg:#cccac2;--mu:#707a8c;--acc:#ffcc66;--accf:#1f2430;--acc2:#5ccfe6;--chipf:#1f2430;--acc3:#d5ff80;--r:10px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Ayu</h3><p>Sunny orange and sky blue (dark = "Mirage"). <b>Signature:</b> warm, cheerful, very clean.</p></div>
+</div>
+
+<div class="pal option" data-choice="mango" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:linear-gradient(135deg,#fff4d6,#ffe0e9);--card:#fff;--fg:#3a1d0a;--mu:#8a5a2b;--acc:#ff6b00;--acc2:#00a676;--acc3:#ff2e63;--r:16px;--sh:0 6px 16px rgb(255 107 0/.18)"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:linear-gradient(135deg,#2a1205,#3a0f22);--card:#3b1d0e;--fg:#fff3e0;--mu:#ffb37a;--acc:#ff8a00;--accf:#2a1205;--acc2:#00d39b;--chipf:#2a1205;--acc3:#ff4d7a;--r:16px;--glow:0 0 12px #ff8a0088"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Mango <span class="tag">own</span></h3><p>Mango orange, leaf green, hibiscus pink, like a fruit stall. <b>Signature:</b> a warm gradient wash, big round corners.</p></div>
+</div>
+
+<div class="pal option" data-choice="pop" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fffdf5;--card:#fff;--fg:#111;--mu:#444;--acc:#ff3b30;--acc2:#2f6bff;--acc3:#ffcc00;--r:6px;--sh:3px 3px 0 #111;--bd:2px solid #111"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn" style="border:2px solid #111;box-shadow:2px 2px 0 #111">Pay</span><span class="chip">Cash</span><div class="dock" style="border:2px solid #111"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#151515;--card:#222;--fg:#fff;--mu:#ccc;--acc:#ff453a;--acc2:#3d7bff;--acc3:#ffd60a;--r:6px;--sh:3px 3px 0 #ffd60a;--bd:2px solid #fff"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn" style="border:2px solid #fff;box-shadow:2px 2px 0 #ffd60a">Pay</span><span class="chip">Cash</span><div class="dock" style="border:2px solid #fff"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Pop <span class="tag">own</span></h3><p>Comic-book red, blue and yellow with thick black outlines. <b>Signature:</b> bold borders and hard shadows, playful and loud.</p></div>
+</div>
+
+<div class="pal option" data-choice="aurora" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:linear-gradient(135deg,#e0fff6,#e6e9ff 50%,#ffe6f7);--card:rgb(255 255 255/.7);--fg:#14213d;--mu:#4a5a8a;--acc:linear-gradient(90deg,#00c2a8,#6a5cff);--acc2:#ff4fa3;--acc3:#00c2a8;--r:14px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:linear-gradient(135deg,#031a1f,#120a35 50%,#2a0626);--card:rgb(255 255 255/.08);--fg:#eafcff;--mu:#9fb7ff;--acc:linear-gradient(90deg,#00e5c0,#7b6cff);--accf:#031a1f;--acc2:#ff5cb3;--acc3:#00e5c0;--r:14px;--glow:0 0 14px #7b6cff88;--bd:1px solid rgb(255 255 255/.15)"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Aurora <span class="tag">own</span></h3><p>Teal-to-violet gradients over a dark sky. <b>Signature:</b> gradient buttons, glass cards, a slowly drifting glow.</p></div>
+</div>
+
+</div>

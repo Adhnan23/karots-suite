@@ -1,0 +1,90 @@
+<style>
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.pal{border-radius:14px;overflow:hidden;cursor:pointer;border:3px solid transparent}
+.pal.selected{border-color:#4f8cff}
+.halves{display:grid;grid-template-columns:1fr 1fr}
+.m{background:var(--bg);color:var(--fg);padding:12px;font:13px/1.35 system-ui;position:relative;min-height:150px}
+.m .card{background:var(--card);border-radius:var(--r,10px);padding:9px 10px;box-shadow:var(--sh,0 1px 3px rgb(0 0 0/.15))}
+.m .lbl{color:var(--mu);font-size:11px}
+.m .big{font-weight:800;font-size:18px}
+.m .btn{display:inline-block;margin-top:8px;background:var(--acc);color:var(--accf,#fff);border-radius:var(--r,10px);padding:5px 10px;font-weight:700;font-size:12px;box-shadow:var(--glow,none)}
+.m .chip{display:inline-block;margin-top:8px;margin-left:4px;background:var(--acc2);color:var(--bg);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700}
+.m .dock{position:absolute;left:12px;right:12px;bottom:10px;height:18px;border-radius:999px;background:var(--card);opacity:.95;display:flex;gap:6px;align-items:center;padding:0 8px}
+.m .dock i{width:8px;height:8px;border-radius:50%;background:var(--mu)}
+.m .dock i:first-child{background:var(--acc)}
+.meta{background:#fff;color:#222;padding:10px 12px;font:13px/1.4 system-ui}
+.meta h3{margin:0 0 2px;font-size:15px}
+.meta p{margin:0;color:#555}
+.meta b{color:#222}
+</style>
+
+<h2>Which famous palettes should Dock get?</h2>
+<p class="subtitle">Each card: light on the left, dark on the right (a mini till card, button, chip and dock). "Signature" is the extra touch its Custom CSS would add. Click every one you want — pick as many as you like.</p>
+
+<div class="pg" data-multiselect>
+
+<div class="pal option" data-choice="gruvbox" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fbf1c7;--card:#f2e5bc;--fg:#3c3836;--mu:#7c6f64;--acc:#af3a03;--acc2:#79740e;--r:4px;--sh:2px 2px 0 #d5c4a1"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#282828;--card:#3c3836;--fg:#ebdbb2;--mu:#a89984;--acc:#fe8019;--accf:#282828;--acc2:#b8bb26;--r:4px;--sh:2px 2px 0 #1d2021"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Gruvbox</h3><p>Warm retro, earthy. <b>Signature:</b> square corners, hard offset shadows, faint paper grain.</p></div>
+</div>
+
+<div class="pal option" data-choice="nord" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:linear-gradient(160deg,#eceff4,#e5e9f0);--card:rgb(255 255 255/.75);--fg:#2e3440;--mu:#4c566a;--acc:#5e81ac;--acc2:#88c0d0;--r:12px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:linear-gradient(160deg,#2e3440,#3b4252 60%,#2e3440);--card:rgb(59 66 82/.8);--fg:#eceff4;--mu:#d8dee9;--acc:#88c0d0;--accf:#2e3440;--acc2:#a3be8c;--r:12px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Nord</h3><p>Cool arctic blues, calm. <b>Signature:</b> frosted glass, a faint aurora glow in the background.</p></div>
+</div>
+
+<div class="pal option" data-choice="dracula" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fffbeb;--card:#ffffff;--fg:#1f1f1f;--mu:#6c664b;--acc:#644ac9;--acc2:#a3144d;--r:10px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#282a36;--card:#44475a;--fg:#f8f8f2;--mu:#a7abbe;--acc:#bd93f9;--accf:#282a36;--acc2:#ff79c6;--r:10px;--glow:0 0 12px #bd93f9aa"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Dracula</h3><p>Purple and pink, punchy (light = "Alucard"). <b>Signature:</b> neon glow on the main buttons and focus.</p></div>
+</div>
+
+<div class="pal option" data-choice="tokyonight" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#e1e2e7;--card:#f6f6fa;--fg:#3760bf;--mu:#6172b0;--acc:#2e7de9;--acc2:#9854f1;--r:10px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:radial-gradient(circle at 80% 10%,#2a2f4a,#1a1b26 60%);--card:#24283b;--fg:#c0caf5;--mu:#9aa5ce;--acc:#7aa2f7;--accf:#1a1b26;--acc2:#bb9af7;--r:10px;--glow:0 0 10px #7aa2f766"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Tokyo Night</h3><p>City-at-night blues and violets (light = "Day"). <b>Signature:</b> a soft neon-sign glow, night-sky backdrop.</p></div>
+</div>
+
+<div class="pal option" data-choice="rosepine" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#faf4ed;--card:#fffaf3;--fg:#575279;--mu:#797593;--acc:#907aa9;--acc2:#d7827e;--r:16px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#191724;--card:#1f1d2e;--fg:#e0def4;--mu:#908caa;--acc:#c4a7e7;--accf:#191724;--acc2:#ebbcba;--r:16px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Rosé Pine</h3><p>Soft, muted, elegant (light = "Dawn"). <b>Signature:</b> extra-round corners, slow gentle motion.</p></div>
+</div>
+
+<div class="pal option" data-choice="solarized" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fdf6e3;--card:#eee8d5;--fg:#586e75;--mu:#93a1a1;--acc:#268bd2;--acc2:#b58900;--r:6px;--sh:none"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#002b36;--card:#073642;--fg:#93a1a1;--mu:#657b83;--acc:#268bd2;--acc2:#b58900;--r:6px;--sh:none"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Solarized</h3><p>The classic, easy on the eyes all day. <b>Signature:</b> flat — no shadows, crisp lines, quiet.</p></div>
+</div>
+
+<div class="pal option" data-choice="everforest" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#fdf6e3;--card:#f4f0d9;--fg:#5c6a72;--mu:#829181;--acc:#8da101;--acc2:#f57d26;--r:12px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:#2d353b;--card:#343f44;--fg:#d3c6aa;--mu:#9da9a0;--acc:#a7c080;--accf:#2d353b;--acc2:#e69875;--r:12px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Everforest</h3><p>Forest greens, natural, relaxed. <b>Signature:</b> soft leafy background art, gentle shadows.</p></div>
+</div>
+
+<div class="pal option" data-choice="kanagawa" onclick="toggleSelect(this)">
+ <div class="halves">
+  <div class="m" style="--bg:#f2ecbc;--card:#e5ddb0;--fg:#545464;--mu:#716e61;--acc:#4d699b;--acc2:#c84053;--r:8px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip" style="color:#fff">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+  <div class="m" style="--bg:repeating-radial-gradient(circle at 0 100%,#1f1f28 0 14px,#223249 15px 16px);--card:#2a2a37;--fg:#dcd7ba;--mu:#a6a69c;--acc:#7e9cd8;--accf:#1f1f28;--acc2:#e6c384;--r:8px"><div class="card"><div class="lbl">Total</div><div class="big">Rs 6,265.00</div></div><span class="btn">Pay</span><span class="chip">Cash</span><div class="dock"><i></i><i></i><i></i></div></div>
+ </div>
+ <div class="meta"><h3>Kanagawa</h3><p>Ink and indigo, from "The Great Wave" print (light = "Lotus"). <b>Signature:</b> a faint wave pattern behind the page.</p></div>
+</div>
+
+</div>
