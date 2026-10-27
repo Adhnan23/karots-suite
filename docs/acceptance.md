@@ -175,3 +175,21 @@ Work through each in both apps. Note anything missing, wrong, slower or confusin
 | Label printer | labels from the counter and admin, the default size from Settings; in **Image** mode (Settings → Print labels as) each price style at 50×25 and 38×25 scans (EAN-13 and the QR with a 2D scanner), a Sinhala name prints, Pharmacy's dose and Repairs' ticket labels print, and the A4 sheet matches | POST `/labels/send` (counter + admin), GET `/labels` (counter) |
 | Old-screen kiosk PC | till fits under 1080p, kiosk Konami exit (admin / system) | — |
 | A phone | every admin page and report at 360 px, Data and Settings | — |
+
+## 6. Demo Room (M8d)
+
+Build with `make demo`; carry `dist/demo/karots-demo` (Linux) or `karots-demo.exe` (Windows) to the PC. Offline is fine.
+
+- [ ] Double-click → a browser opens on the lock page showing the demo's install ID; a wrong code is refused, five
+      wrong codes make it wait a minute; the hourly code from the PIN app (install ID in `internal/demo/INSTALL_ID`) opens it.
+- [ ] Double-clicking again while it runs just opens the same page (no second demo).
+- [ ] Each of the five shops opens in its own palette within ~30 s: dashboard shows today's sales, a year of reports,
+      tills open (staff on Who's on now), low stock; only that shop's plugins appear (Grocery: none).
+- [ ] Make-your-own with two plugins opens (slower: its past is built live).
+- [ ] A sale at the till prints: the receipt slides out on the strip; a label prints as a sticker; the drawer kick shows.
+- [ ] Demo logins on the sign-in page sign in when tapped; the left-edge Demo tab shows the owner's name and number.
+- [ ] Ctrl+Shift+D (or five taps on the tab) opens the cheat menu; every move works; Pause stops the staff's sales.
+- [ ] Switch shop asks first, then the picker shows; the old shop is gone.
+- [ ] An invoice / statement printed or saved as PDF carries the diagonal DEMO mark.
+- [ ] Close the demo (window / Ctrl+C) → reopen → a fresh shop; nothing from before is there.
+- [ ] Windows: a fresh Windows (no VC++ runtime installed) runs it the same.

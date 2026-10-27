@@ -43,6 +43,14 @@ cmd/setup/            karots-setup, the shop's installer: double-click → page 
                       role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless.
                       Uninstall (backup first → kept in C:\Karots backups / ~/Karots backups; nothing removed if it
                       fails), Bring back a shop at a first install, mode change on Update (backup → new mode → restore)
+cmd/demo/             the Demo Room (one double-click binary, every plugin): launcher (lock on the demo's own install
+                      ID, shop picker, proxy that adds the chrome, receipt + label printer emulators) re-runs itself
+                      as -child per shop (plugin.Only, its own throwaway database, the real BuildServer); -templates
+                      builds each built-in shop's year (make demo). Nothing is kept: data wiped at start and exit
+internal/demo/        shops/ (the five built-in shops + make-your-own), gen/ (a shop's life through the real services
+                      and API: the time machine moves every date; Past / Today; plugin gens; Sim = the shop selling
+                      on its own + cheats), printer/ (decode ESC/POS + TSPL jobs), templates/ (embedded years),
+                      ui/ (built chrome), allplugins/; gentest/ = plugin shops (DEMO_SHOP=<key>). Core never imports it
 internal/shopconf/    install.conf — the Builder ⇄ installer contract (install settings + the final .env)
 shops.json            every shop's profile, committed (private repo — it holds each shop's secrets)
 internal/filedb/      file mode: the shop's own PostgreSQL 17 in data/ next to the binary (no DATABASE_URL +
@@ -95,6 +103,7 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                       shared LineEditor + totals (margin guard) used by the counter too, MoneySourcePicker
   src/features/people/ customers, users, OpeningSheet (old balance), StatementSheet (print)
   src/routes/_authed/print/  printable pages (receipt, X/Z report, order, PO, GRN, statement, label sheet) — paper/ink tokens
+  demo/               the Demo Room's pages + chrome (vanilla TS, own Vite build → internal/demo/ui/dist; make demo-web)
   src/plugins/        slots.ts + GENERATED enabled-plugins.ts (committed core-only) + <key>/index.tsx
                       (each plugin's React half: export default register(slots))
   src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
@@ -139,6 +148,10 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
+- **Demo Room:** `make demo` → `dist/demo/karots-demo` + `.exe` (every built-in shop's year built once, ~minutes; needs
+  `POS_SUPPORT_SECRET` for its rotating unlock code, install id in `internal/demo/INSTALL_ID`). `make demo-dev` = this
+  machine only, no years (shops build a 60-day past live); `KS_DEMO_UI_DIR=internal/demo/ui/dist` serves the chrome from
+  disk. Owner contact on the watermark: `internal/demo/brand.go`.
 - **Plugins:** `make plugins P=all` (or `P=clearance,…`) compiles plugins into the working tree for dev;
   `make core-only` puts the lists back — **never commit a plugin selection**. `make check-core` (in
   `make verify`) fails if core names a plugin or a list isn't core-only. Playwright builds with every
@@ -172,6 +185,8 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - **System user** `0000000001`: its PIN rotates hourly (install ID + HMAC); `POS_SYSTEM_PIN` overrides it, with `2273` as the dev fallback. It's invisible to the shop and excluded from Activity and audit. It reaches Appearance by tapping its own name 8 times in the avatar menu — no nav item, ever.
 - **Login-page Konami** (↑↑↓↓←→←→BA) reveals the install ID and server time. The install ID is also logged to the console.
 - **Clock easter egg:** 7 taps on the login / lock clock (within 3s) open a games menu (`GameMenu.tsx`; tap or 1 2 3; closing a game returns to it) — coin catch (`CoinGame.tsx`), falling blocks (`BlockGame.tsx`) or Shop Rush (`ShopGame.tsx`: ring up a customer, then drag the customer's money into the cash drawer and give change from the shop's own notes (`loginInfo.notes/coins`) (no change total shown — work it out) or drag the customer's card into the card machine and key the amount, then drag the printed receipt (`loginInfo.receipt`, the real `Paper` look) to the customer), in `features/auth/`, best score per device; Esc closes it. It only paints over the page. Core, not a plugin (user: a pure easter egg); a game on the lock screen shows as "Playing …" on Who's on now.
+- **Demo lock:** the Demo Room asks for the hourly code of its own install ID (support PIN app); Ctrl+Shift+D or five
+  taps on its left-edge Demo tab open the cheat menu.
 - **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
 - **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
 - **Kiosk lockdown** (`web/src/lib/lockdown.ts`, karots-pos `core.js`): F1–F12 never reach the browser; F1 on a counter tab goes back to Sell; on the till / account / lock pages browser Ctrl combos, Alt+←/→ and right-click (outside text boxes) are off. **The system user is exempt** (support needs DevTools) — suite-only.

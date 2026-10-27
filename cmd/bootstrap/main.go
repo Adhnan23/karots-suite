@@ -76,6 +76,7 @@ func run() error {
 		extraX      = flag.String("X", "", "extra space-separated -X name=value pairs for -ldflags")
 		writeOnly   = flag.Bool("write-only", false, "write the plugin lists and stop (dev)")
 		demoList    = flag.Bool("demo-list", false, "with -write-only: the Demo Room's React list — every plugin, on per shop (dev)")
+		demoFlag    = flag.Bool("demo", false, "build the Demo Room (dist/demo, Linux + Windows)")
 		addr        = flag.String("addr", "127.0.0.1:3199", "where the bootstrap app listens")
 		shopsFlag   = flag.String("shops", envOr("SHOPS_FILE", "shops.json"), "the shop profiles file")
 		shopFlag    = flag.String("shop", "", `release this shop from the profiles: build + publish ("all" = every shop)`)
@@ -93,6 +94,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if *demoFlag {
+		return buildDemo(all, os.Stdout)
+	}
 	if *importFlag != "" {
 		return importPOSFile(*shopsFlag, *importFlag, all)
 	}
@@ -102,7 +106,7 @@ func run() error {
 	if *shopFlag != "" {
 		return buildShops(*shopsFlag, *shopFlag, all, extras{Installer: !*noInstaller, Postgres: *pgFlag}, *testFlag)
 	}
-	if !isSet("plugins") && !isSet("write-only") && !*demoList {
+	if !isSet("plugins") && !isSet("write-only") && !*demoList && !*demoFlag {
 		return serveApp(*addr, all, build, shopsCfg{Path: *shopsFlag, Out: "dist", Setup: buildSetup})
 	}
 	if *writeOnly && *demoList {

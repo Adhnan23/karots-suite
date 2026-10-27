@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"karots-suite/internal/features/lockers"
 )
 
 // The back office, through the admin API as the owner: suppliers paid when
@@ -20,10 +22,36 @@ type due struct {
 func (g *gen) safeSrc() string { return "locker:" + strconv.FormatInt(g.s.safe, 10) }
 func (g *gen) bankSrc() string { return "locker:" + strconv.FormatInt(g.s.bank, 10) }
 
+// balance is what an account really holds now (the ledger, not a guess).
+func (g *gen) balance(id int64) decimal.Decimal {
+	l, err := lockers.NewService(g.d.DB).Get(g.ctx, id)
+	if err != nil {
+		return decimal.Zero
+	}
+	return l.Balance
+}
+
+// payFrom picks where money for amt comes from: the safe while it keeps a float,
+// else the bank; ok false when neither has it (the owner waits a week).
+func (g *gen) payFrom(amt decimal.Decimal) (method, src string, ok bool) {
+	if g.balance(g.s.safe).GreaterThanOrEqual(amt.Add(decimal.NewFromInt(20000))) {
+		return "cash", g.safeSrc(), true
+	}
+	if g.balance(g.s.bank).GreaterThanOrEqual(amt) {
+		return "online", g.bankSrc(), true
+	}
+	return "", "", false
+}
+
 // backOffice runs after a day's trade.
 func (g *gen) backOffice(day time.Time) error {
 	if day.Weekday() == time.Monday {
 		if err := g.paySuppliers(day); err != nil {
+			return err
+		}
+	}
+	if day.Weekday() == time.Tuesday {
+		if err := g.bankTheCash(day); err != nil {
 			return err
 		}
 	}
@@ -61,21 +89,36 @@ func (g *gen) paySuppliers(day time.Time) error {
 				keep = append(keep, d)
 			}
 		}
-		g.owed[sup] = keep
 		if total.IsZero() {
+			g.owed[sup] = keep
 			continue
 		}
-		method, src := "cash", g.safeSrc()
-		if g.safeCash.LessThan(total.Add(decimal.NewFromInt(20000))) {
-			method, src = "online", g.bankSrc()
-		} else {
-			g.safeCash = g.safeCash.Sub(total)
+		method, src, ok := g.payFrom(total)
+		if !ok {
+			continue // not this week: the deliveries stay owed
 		}
+		g.owed[sup] = keep
 		g.tm.at(at(day, 10+g.r.Float64()))
 		if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/suppliers/%d/payment", g.s.suppliers[sup]),
 			map[string]string{"amount": total.StringFixed(2), "method": method, "source": src, "note": "Monthly settlement"}, nil); err != nil {
 			return fmt.Errorf("pay supplier: %w", err)
 		}
+	}
+	return nil
+}
+
+// bankTheCash deposits what the safe holds beyond a float for the week, as a shop
+// does — the bank pays the rent, the salaries and the dealers.
+func (g *gen) bankTheCash(day time.Time) error {
+	keep := decimal.NewFromInt(50000)
+	amt := g.balance(g.s.safe).Sub(keep).Truncate(-3)
+	if !amt.IsPositive() {
+		return nil
+	}
+	g.tm.at(at(day, 10.5))
+	if err := g.admin.Do("POST", "/api/v1/admin/lockers/transfer", map[string]any{"fromId": g.s.safe, "toId": g.s.bank,
+		"amount": amt.StringFixed(2), "note": "Weekly bank deposit"}, nil); err != nil {
+		return fmt.Errorf("bank deposit: %w", err)
 	}
 	return nil
 }
@@ -99,7 +142,6 @@ func (g *gen) customersPay(day time.Time) error {
 			map[string]string{"amount": pay.StringFixed(2), "method": "cash", "source": g.safeSrc()}, nil); err != nil {
 			return fmt.Errorf("customer payment: %w", err)
 		}
-		g.safeCash = g.safeCash.Add(pay)
 	}
 	return nil
 }
@@ -129,10 +171,9 @@ func (g *gen) bills(day time.Time) error {
 	}
 	for _, b := range due {
 		amt := decimal.NewFromFloat(b.amount).Round(0)
-		src := g.bankSrc()
-		if b.cat == "Transport" && g.safeCash.GreaterThan(amt) {
-			src = g.safeSrc()
-			g.safeCash = g.safeCash.Sub(amt)
+		_, src, ok := g.payFrom(amt)
+		if !ok {
+			continue // a lean week: this bill waits
 		}
 		g.tm.at(at(day, 11+4*g.r.Float64()))
 		if err := g.admin.Do("POST", "/api/v1/admin/expenses",

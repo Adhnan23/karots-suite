@@ -72,9 +72,8 @@ type gen struct {
 	stock map[int64]float64 // what the generator thinks is on the shelf
 	days  int               // how far back this run's history starts
 
-	admin    *Client         // the owner, for the back office
-	owed     map[int][]due   // deliveries not yet paid, by supplier
-	safeCash decimal.Decimal // what the generator thinks is in the safe
+	admin *Client       // the owner, for the back office
+	owed  map[int][]due // deliveries not yet paid, by supplier
 
 	tills    map[int64]*Client // signed-in till clients, by cashier
 	open     []person          // who is on a till today
@@ -184,7 +183,6 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 		if _, err := g.d.Svc.CashRegister.Close(g.ctx, c.id, cashregister.CloseInput{ClosingCash: counted.String(), DestLockerID: g.s.safe}); err != nil {
 			return fmt.Errorf("close till for %s: %w", c.login.Name, err)
 		}
-		g.safeCash = g.safeCash.Add(counted)
 	}
 	return g.backOffice(day)
 }

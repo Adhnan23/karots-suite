@@ -5,17 +5,23 @@ every milestone.
 
 ## Next session (handoff 2026-10-26) — START HERE
 
-**NEXT SESSION: M8d Demo Room, reimagined (user, 2026-10-27).** Start with a rethink, not karots-pos's design:
-karots-pos's Demo Room (`cmd/demo`, `internal/demogen`, `internal/demodb`) "doesn't work properly" (user). It's a
-reference for what to avoid, not a fork source. What the user wants:
-- **Something to demonstrate to a customer:** it has to look and feel like an existing, busy shop, full of running
-  data (sales history, stock moving, customers on credit, open tills, Who's on now, reports with real shapes), not an
-  empty install.
-- **With and without plugins:** show the suite with various plugin sets (a pharmacy, a phone / repair shop, a plain
-  grocery, …) and without any, so the customer sees what their own build would be.
-- **Brainstorm first:** spec, then plan. Things to settle: how the data stays "alive" (dates kept current, maybe
-  sales trickling in while demoing), how to switch shop / plugin set during a demo, how it ships (one double-click
-  binary like a file-mode shop), the fake printer, and the showcase extras (palettes, receipt and label styles).
+**M8d Demo Room — BUILT (2026-10-27), waiting on the user's look.** Spec `docs/specs/2026-10-27-demo-room-design.md`,
+plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, `web/shots/demo-9`.
+- **What:** `make demo` → `dist/demo/karots-demo` (+ `.exe`). Double-click → browser → the hourly code for the demo's
+  own install ID (`internal/demo/INSTALL_ID`, PIN app) → five shops (Sunrise Mini Mart / CityCare Pharmacy / Galaxy
+  Mobile & Repairs / Lanka Build Hardware / Karots Super Store) or make-your-own → the shop's real login page.
+- **The real suite inside:** each shop is the demo binary re-run as `-child` with only its plugins (`plugin.Only`, the one
+  core seam, inert in shop builds), its own throwaway database, `app.BuildServer`. Plugins carry no demo code; the
+  chrome is added by the launcher's proxy (`<meta name="ks-plugins">` gates the SPA's plugins — `pluginOn`).
+- **A year ending now:** `make demo` builds each built-in shop's ~400 days once (through the services and every plugin's
+  own endpoints; a "time machine" moves every date in every table) and embeds it as a suite backup; at launch it's
+  restored, moved to end yesterday, today is traded (tills open, staff selling), reorder levels learned. Make-your-own
+  builds a 60-day past live.
+- **Alive + chrome:** staff sell on their own, beat Who's on now, take repairs / reloads / prescriptions; left-edge Demo
+  tab (owner contact — **`internal/demo/brand.go` still has placeholders: ask the user for name + number**), Pause,
+  Switch shop; demo logins tap-to-sign-in; receipts and labels slide out as the emulators decode the real jobs; cheat
+  menu (Ctrl+Shift+D / five taps). Nothing persists (data wiped at start and exit; PostgreSQL's programs cached).
+- **Next:** the user looks; acceptance on the Windows VM (`docs/acceptance.md` §Demo); then the real-printer test.
 - The real-printer test still waits for printers. M8e Pocket Cashier groundwork comes after the Demo Room.
 
 **More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Appearance sections now fold away

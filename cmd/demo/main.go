@@ -12,7 +12,11 @@ import (
 func main() {
 	child := flag.Bool("child", false, "internal: run one shop (started by the launcher)")
 	port := flag.Int("port", 3200, "launcher port on 127.0.0.1 (the next free one if taken)")
+	tpl := flag.String("templates", "", "build every built-in shop's year into this folder and exit (make demo)")
 	flag.Parse()
+	if *tpl != "" {
+		os.Exit(runTemplates(*tpl))
+	}
 	if *child {
 		os.Exit(runChild())
 	}

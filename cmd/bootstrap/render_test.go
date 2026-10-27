@@ -125,3 +125,24 @@ func TestRenderDemoTSGatesEveryPlugin(t *testing.T) {
 		}
 	}
 }
+
+func TestWithDemoListRestoresCoreOnlyEvenOnFailure(t *testing.T) {
+	dir := t.TempDir()
+	goF, tsF := filepath.Join(dir, "enabled_plugins.go"), filepath.Join(dir, "enabled-plugins.ts")
+	all := []manifest{{Key: "alpha", Import: "karots-suite/plugins/alpha"}}
+	var during string
+	err := withDemoList(goF, tsF, all, func() error {
+		b, _ := os.ReadFile(tsF)
+		during = string(b)
+		return errors.New("build broke")
+	})
+	if err == nil || !strings.Contains(during, "if (pluginOn('alpha')) alpha(slots)") {
+		t.Fatalf("err %v, list during the build:\n%s", err, during)
+	}
+	if s, _ := os.ReadFile(tsF); !bytes.Equal(s, renderTS(nil)) {
+		t.Fatalf("TS list not core-only after a failed build:\n%s", s)
+	}
+	if g, _ := os.ReadFile(goF); !bytes.Equal(g, renderGo(nil)) {
+		t.Fatalf("Go list not core-only after a failed build:\n%s", g)
+	}
+}

@@ -9,6 +9,8 @@ internal/spa/dist/*
 !internal/spa/dist/.gitkeep
 internal/demo/ui/dist/*
 !internal/demo/ui/dist/.gitkeep
+internal/demo/templates/files/*
+!internal/demo/templates/files/.gitkeep
 .superpowers/
 backups/
 /dist/

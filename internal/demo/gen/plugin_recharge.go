@@ -176,9 +176,13 @@ func (g *gen) refillFloats(day time.Time, d rechargeTill) error {
 		if need.LessThan(decimal.NewFromInt(2000)) {
 			continue
 		}
+		_, src, ok := g.payFrom(need)
+		if !ok {
+			continue // tops up next week
+		}
 		g.tm.at(at(day, 9.5+g.r.Float64()))
 		if err := g.admin.Do("POST", "/api/v1/x/recharge/refill", map[string]any{"deviceId": f.ID, "supplierId": dealer,
-			"amount": need.String(), "bonus": "0", "credit": false, "source": g.bankSrc(),
+			"amount": need.String(), "bonus": "0", "credit": false, "source": src,
 			"reference": "DLR-" + strconv.Itoa(day.YearDay())}, nil); err != nil {
 			return fmt.Errorf("refill %s: %w", f.Label, err)
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,11 +14,13 @@ import (
 	"time"
 
 	"karots-suite/internal/app"
+	"karots-suite/internal/backup"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	_ "karots-suite/internal/demo/allplugins"
 	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/shops"
+	"karots-suite/internal/demo/templates"
 	"karots-suite/internal/plugin"
 )
 
@@ -31,6 +34,9 @@ type childArgs struct {
 	LabelPrinter   string        `json:"labelPrinter"`
 	Shop           shops.Profile `json:"shop"`
 	Staff          []shops.Login `json:"staff"` // Profile.Staff isn't in its JSON
+	// Template, when set, builds the shop's past into this backup file and
+	// exits (make demo) instead of serving.
+	Template string `json:"template,omitempty"`
 }
 
 // say is the child → launcher protocol on stdout: "progress <pct> <step>",
@@ -47,7 +53,9 @@ func runChild() int {
 		return 2
 	}
 	a.Shop.Staff = a.Staff
-	go func() { _, _ = io.Copy(io.Discard, os.Stdin); os.Exit(0) }()
+	if a.Template == "" { // a serving shop ends with its launcher (stdin closes)
+		go func() { _, _ = io.Copy(io.Discard, os.Stdin); os.Exit(0) }()
+	}
 
 	keys := a.Shop.Plugins
 	if keys == nil {
@@ -65,24 +73,43 @@ func runChild() int {
 		return 1
 	}
 	seed, installID, _ := demoSeed()
-	if err := app.EnsureSystemAdmin(sqlxDB, installID); err != nil {
-		log.Printf("demo child: system user: %v", err)
-		return 1
-	}
 	cfg := &config.Config{
 		Env: "production", DatabaseURL: a.DB, ServerPort: a.Port, JWTSecret: a.JWTSecret,
 		JWTAccessTTL: 12 * time.Hour, JWTRefreshTTL: 7 * 24 * time.Hour, BackupInterval: 6 * time.Hour,
 		CookieSecure: config.ParseCookieSecure("auto"),
 	}
 	validator := app.SystemPINValidator(seed)
+	progress := func(pct int, step string) { say("progress %d %s", pct, step) }
+	ctx := context.Background()
+	past, hasPast := templates.Get(a.Shop.Key)
+	if hasPast && a.Template == "" { // a built-in shop: its year comes from the binary
+		progress(20, "Unpacking a year of trade")
+		if _, err := backup.Restore(ctx, sqlxDB, bytes.NewReader(past)); err != nil {
+			log.Printf("demo child: restoring the shop: %v", err)
+			return 1
+		}
+	}
+	if err := app.EnsureSystemAdmin(sqlxDB, installID); err != nil {
+		log.Printf("demo child: system user: %v", err)
+		return 1
+	}
 	e := app.BuildServer(sqlxDB, cfg, validator)
-
 	deps := gen.Deps{DB: sqlxDB, Svc: app.NewServices(sqlxDB, cfg, validator), API: e,
 		ReceiptPrinter: a.ReceiptPrinter, LabelPrinter: a.LabelPrinter}
-	if err := gen.Run(context.Background(), deps, a.Shop, time.Now(), 60, func(pct int, step string) {
-		say("progress %d %s", pct, step)
-	}); err != nil {
-		log.Printf("demo child: building the shop: %v", err)
+	var err2 error
+	switch {
+	case a.Template != "":
+		err2 = buildTemplate(ctx, deps, a, progress)
+		if err2 == nil {
+			return 0
+		}
+	case hasPast:
+		err2 = gen.Today(ctx, deps, a.Shop, time.Now(), progress)
+	default: // make-your-own: a shorter past, built live
+		err2 = gen.Run(ctx, deps, a.Shop, time.Now(), 60, progress)
+	}
+	if err2 != nil {
+		log.Printf("demo child: building the shop: %v", err2)
 		return 1
 	}
 
