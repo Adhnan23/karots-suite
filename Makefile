@@ -1,4 +1,4 @@
-.PHONY: demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: demo-dev demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -71,6 +71,14 @@ plugins:
 	go run ./cmd/bootstrap -write-only -plugins $(or $(P),all)
 core-only:
 	go run ./cmd/bootstrap -write-only -plugins none
+# The Demo Room for this machine (dev): every plugin in the SPA, gated per shop;
+# the file-mode PostgreSQL from the user cache (go test ./internal/filedb fetches it).
+demo-dev:
+	go run ./cmd/bootstrap -write-only -demo-list
+	$(MAKE) web; s=$$?; go run ./cmd/bootstrap -write-only -plugins none; exit $$s
+	mkdir -p internal/filedb/bundle && cp $$(ls $${XDG_CACHE_HOME:-$$HOME/.cache}/karots-suite-filedb/*linux-amd64*.txz | tail -1) internal/filedb/bundle/postgres.txz
+	go build -tags filemode -o bin/karots-demo ./cmd/demo; s=$$?; rm -rf internal/filedb/bundle; exit $$s
+	./bin/karots-demo
 # Core is plugin-inert and still builds with no plugin at all.
 verify: check-core
 	go vet ./... && go build ./... && cd web && bunx tsc -b

@@ -100,3 +100,5 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }
+
+func currentCode(seed []byte) string { return support.Code(seed, time.Now()) }
