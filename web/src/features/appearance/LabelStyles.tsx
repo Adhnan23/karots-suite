@@ -1,16 +1,18 @@
-import { useQueries, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { LABEL_SIZES } from '@/features/counter/labels/slots'
 import { paperOf } from '@/features/print/labels/kit'
 import { SCREEN } from '@/features/print/labels/LabelView'
-import { labelPictureQuery } from '@/features/print/labels/picture'
-import { labelKinds } from '@/features/print/labels/registry'
+import { LabelPage, labelPictureQuery } from '@/features/print/labels/picture'
+import { labelKinds, styleFor } from '@/features/print/labels/registry'
 import { configQuery } from '@/features/till/api'
 import { Seg } from './ReceiptStyles'
 
 /** Appearance → Labels: a style per label kind (core's price label, then each
  * built-in plugin's), with live thumbnails at a chosen size and the exact picture
- * of the chosen one. Only `value` is saved (by the page). */
+ * of the chosen one. Only `value` is saved (by the page). Thumbnails draw the
+ * label itself, scaled as vector (an SVG foreignObject): a shrunken 1-bit picture
+ * loses its thin strokes. */
 export function LabelStyles({ value, onChange }: { value: Record<string, string>; onChange: (v: Record<string, string>) => void }) {
   const kinds = labelKinds()
   const { data: cfg } = useQuery(configQuery)
@@ -20,7 +22,6 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
   const paper = paperOf(size)
   const chosen = value[kind.kind] ?? 'classic'
 
-  const thumbs = useQueries({ queries: kind.styles.map((s) => labelPictureQuery(kind.kind, kind.sample, paper, s.key)) })
   const pq = useQuery(labelPictureQuery(kind.kind, kind.sample, paper, chosen))
   const preview = pq.data
 
@@ -30,8 +31,8 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
         <span className="text-xs font-bold text-muted-foreground">Label style · Image mode</span>
         <Seg label="Label kind" options={kinds.map((k) => ({ label: k.label, key: k.kind }))} value={kind.kind} onChange={setKindKey} />
         <div role="group" aria-label="Label style" className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-4">
-          {kind.styles.map((s, i) => {
-            const pic = thumbs[i].data
+          {kind.styles.map((s) => {
+            const draws = styleFor(kind, s.key, paper, kind.sample).style.key
             return (
               <button
                 key={s.key}
@@ -40,11 +41,13 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
                 onClick={() => onChange({ ...value, [kind.kind]: s.key })}
                 className="flex w-36 shrink-0 flex-col gap-1.5 rounded-[var(--radius)] border-2 border-transparent bg-card p-2 text-left shadow-[var(--shadow)] aria-pressed:border-brand sm:w-auto"
               >
-                <div className="overflow-hidden rounded-sm border border-border bg-paper" style={{ aspectRatio: `${paper.w} / ${paper.h}` }}>
-                  {pic && <img src={pic.url} alt="" className="w-full" />}
-                </div>
+                <svg viewBox={`0 0 ${paper.w} ${paper.h}`} aria-hidden className="block w-full overflow-hidden rounded-sm border border-border bg-paper">
+                  <foreignObject width={paper.w} height={paper.h}>
+                    <LabelPage kind={kind.kind} data={kind.sample} paper={paper} style={s.key} />
+                  </foreignObject>
+                </svg>
                 <span className="text-sm font-semibold">{s.label}</span>
-                {pic && pic.style !== s.key && <span className="text-[11.5px] text-muted-foreground">Too small for this style — prints as {kind.styles.find((x) => x.key === pic.style)?.label}</span>}
+                {draws !== s.key && <span className="text-[11.5px] text-muted-foreground">Too small for this style — prints as {kind.styles.find((x) => x.key === draws)?.label}</span>}
               </button>
             )
           })}

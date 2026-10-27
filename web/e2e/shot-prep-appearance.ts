@@ -12,7 +12,7 @@ export const appearancePrep: Record<string, (page: Page) => Promise<void>> = {
     const labels = page.getByRole('region', { name: 'Label styles' })
     await labels.evaluate((el) => el.scrollIntoView({ block: 'start' }))
     await expect(labels.getByRole('img', { name: 'Label preview' })).toBeVisible({ timeout: 20_000 })
-    await expect(labels.getByRole('group', { name: 'Label style' }).locator('img')).toHaveCount(8, { timeout: 20_000 })
+    await expect(labels.getByRole('group', { name: 'Label style' }).locator('[data-label-style]')).toHaveCount(8, { timeout: 20_000 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
     await labels.evaluate((el) => el.scrollIntoView({ block: 'start' }))
   },
