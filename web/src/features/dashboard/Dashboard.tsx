@@ -162,7 +162,7 @@ export function Dashboard() {
         {card('Needs your attention', att.length ? (
           <ul className="flex flex-col gap-2">
             {att.map((x) => (
-              <li key={x.tag + x.text}>
+              <li key={x.tag + x.to + x.text}>
                 <Link to={x.to} className="flex items-center gap-3 rounded-[var(--radius-sm)] bg-muted px-3 py-2.5 text-[13.5px] hover:bg-[color-mix(in_srgb,var(--muted)_70%,var(--foreground)_6%)]">
                   <span className={cn('inline-flex flex-none items-center gap-1 rounded-pill px-2 py-0.5 text-[11.5px] font-extrabold',
                     x.tone === 'crit' ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : x.tone === 'warn' ? 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning' : 'bg-border text-muted-foreground')}>

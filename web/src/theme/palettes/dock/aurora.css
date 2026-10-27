@@ -82,7 +82,7 @@
   --scrim: rgb(2 4 12 / .75);
   --foreground: #eafcff;
   --muted-foreground: #b8c6ff;
-  --faint: #8090c8;
+  --faint: #8c9bd4;
   --brand: #8a7dff;
   --brand-foreground: #0a0820;
   --brand-soft: #2a2560;
@@ -147,7 +147,7 @@
     --scrim: rgb(2 4 12 / .75);
     --foreground: #eafcff;
     --muted-foreground: #b8c6ff;
-    --faint: #8090c8;
+    --faint: #8c9bd4;
     --brand: #8a7dff;
     --brand-foreground: #0a0820;
     --brand-soft: #2a2560;
@@ -225,6 +225,7 @@
 @media (prefers-reduced-motion: reduce) {
   :root[data-ui="dock"][data-palette="aurora"] body::before {
     animation: none;
+    will-change: auto;
   }
 }
 
@@ -238,5 +239,6 @@
   }
   :root[data-ui="dock"][data-palette="aurora"] body::before {
     animation: none;
+    will-change: auto;
   }
 }

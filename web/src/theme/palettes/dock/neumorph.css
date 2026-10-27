@@ -189,12 +189,12 @@
 }
 
 /* Pressed and chosen controls, and fields, sink into the surface. Skipped while
-   focused, so every component's own focus ring still shows. */
+   focused or invalid, so every component's own focus ring and error halo still show. */
 :root[data-ui="dock"][data-palette="neumorph"] [aria-pressed="true"]:not(:focus-visible),
 :root[data-ui="dock"][data-palette="neumorph"] [aria-checked="true"]:not(:focus-visible),
 :root[data-ui="dock"][data-palette="neumorph"] [aria-selected="true"]:not(:focus-visible),
-:root[data-ui="dock"][data-palette="neumorph"] input:not([type="checkbox"], [type="radio"], [type="range"]):not(:focus-visible),
-:root[data-ui="dock"][data-palette="neumorph"] select:not(:focus-visible),
-:root[data-ui="dock"][data-palette="neumorph"] textarea:not(:focus-visible) {
+:root[data-ui="dock"][data-palette="neumorph"] input:not([type="checkbox"], [type="radio"], [type="range"]):not(:focus-visible):not([aria-invalid="true"]),
+:root[data-ui="dock"][data-palette="neumorph"] select:not(:focus-visible):not([aria-invalid="true"]),
+:root[data-ui="dock"][data-palette="neumorph"] textarea:not(:focus-visible):not([aria-invalid="true"]) {
   box-shadow: var(--sig-inset);
 }

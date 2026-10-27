@@ -101,6 +101,33 @@ it('Aurora puts its gradient on the kit\'s main buttons too, not only hand-style
   expect(extra).toMatch(/\[data-slot="button"\]\[data-variant="default"\]/)
 })
 
+it('a reduced-transparency fallback never gives a system-light device the dark colours', () => {
+  for (const [file, css] of Object.entries(FILES)) {
+    // A `:not([data-theme="light"])` rule applies in system mode, so it must sit under prefers-color-scheme: dark.
+    for (const block of css.split(/(?=@media)/)) {
+      const prelude = block.slice(0, block.indexOf('{'))
+      if (/prefers-reduced-transparency/.test(prelude) && !/prefers-color-scheme:\s*dark/.test(prelude))
+        expect(block.slice(0, block.lastIndexOf('}')), file).not.toMatch(/:not\(\[data-theme="light"\]\)\s*[,{][^}]*--card:\s*#/)
+    }
+  }
+})
+
+it('Neumorph leaves an invalid field its own red halo', () => {
+  const extra = parsePalette(FILES['/src/theme/palettes/dock/neumorph.css']).extra
+  expect(extra).toMatch(/input[^{]*:not\(\[aria-invalid="true"\]\)/)
+})
+
+it('Aurora dark: faint text still reads where the glow sits behind a card', () => {
+  const d = parsePalette(FILES['/src/theme/palettes/dock/aurora.css'])
+  const dark = { ...d.light, ...d.dark }
+  // The brightest spot: the teal glow (rgb(0 229 192 / .2)) over the dark page, under the see-through card.
+  const bg = resolveToken(dark, '--background')!.match(/[\d.]+/g)!.map(Number)
+  const glow = [0, 229, 192].map((c, i) => Math.round(c * 0.2 + bg[i] * 0.8))
+  const page = `rgba(${glow.join(', ')}, 1)`
+  const onGlow = failing((k) => (k === '--background' ? page : resolveToken(dark, k)), [{ text: '--faint', on: '--card', min: 3 }])
+  expect(onGlow).toEqual([])
+})
+
 describe('resolveToken', () => {
   it('follows var() and reads hex / rgb', () => {
     const t = { '--a': '#fff', '--b': 'var(--a)', '--c': 'rgb(10 20 30 / .5)', '--d': 'linear-gradient(red, blue)' }

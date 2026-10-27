@@ -192,7 +192,14 @@
     --card: #F7FCFC;
     --bar: #F7FCFC;
   }
-  :root[data-ui="dock"][data-palette="lagoon"][data-theme="dark"],
+  :root[data-ui="dock"][data-palette="lagoon"][data-theme="dark"] {
+    --glass: none;
+    --card: #0E242A;
+    --bar: #0E242A;
+  }
+}
+/* System mode follows the OS: the dark fallback only when it's dark too. */
+@media (prefers-reduced-transparency: reduce) and (prefers-color-scheme: dark) {
   :root[data-ui="dock"][data-palette="lagoon"]:not([data-theme="light"]) {
     --glass: none;
     --card: #0E242A;

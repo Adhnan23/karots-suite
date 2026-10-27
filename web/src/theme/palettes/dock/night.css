@@ -191,7 +191,13 @@
     --glass: none;
     --card: #FFFFFF;
   }
-  :root[data-ui="dock"][data-palette="night"][data-theme="dark"],
+  :root[data-ui="dock"][data-palette="night"][data-theme="dark"] {
+    --glass: none;
+    --card: #121932;
+  }
+}
+/* System mode follows the OS: the dark fallback only when it's dark too. */
+@media (prefers-reduced-transparency: reduce) and (prefers-color-scheme: dark) {
   :root[data-ui="dock"][data-palette="night"]:not([data-theme="light"]) {
     --glass: none;
     --card: #121932;
