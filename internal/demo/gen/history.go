@@ -75,7 +75,11 @@ type gen struct {
 	admin    *Client         // the owner, for the back office
 	owed     map[int][]due   // deliveries not yet paid, by supplier
 	safeCash decimal.Decimal // what the generator thinks is in the safe
-	ctx      context.Context
+
+	tills map[int64]*Client // signed-in till clients, by cashier
+	open  []person          // who is on a till today
+	jobs  []*repairJob      // repairs still moving
+	ctx   context.Context
 }
 
 func at(day time.Time, hour float64) time.Time {
@@ -127,6 +131,7 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 	if early {
 		opens = 0
 	}
+	g.open = tills
 	for _, c := range tills {
 		g.tm.at(at(day, opens))
 		if _, err := g.d.Svc.CashRegister.Open(g.ctx, c.id, cashregister.OpenInput{OpeningCash: "5000"}); err != nil {
@@ -152,6 +157,9 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 		if err := g.sale(tills[g.r.IntN(len(tills))]); err != nil {
 			return err
 		}
+	}
+	if err := g.pluginsDaily(day, until); err != nil {
+		return err
 	}
 	if until < 20.5 {
 		return nil // today: the tills stay open

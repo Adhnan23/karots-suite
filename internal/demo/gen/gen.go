@@ -37,7 +37,7 @@ func newGen(ctx context.Context, d Deps, p shops.Profile, now time.Time) (*gen, 
 	if err != nil {
 		return nil, err
 	}
-	return &gen{d: d, r: rand.New(rand.NewPCG(seedOf(p.Key), uint64(now.YearDay()))), tm: tm, stock: map[int64]float64{}, owed: map[int][]due{}, ctx: ctx}, nil
+	return &gen{d: d, r: rand.New(rand.NewPCG(seedOf(p.Key), uint64(now.YearDay()))), tm: tm, stock: map[int64]float64{}, owed: map[int][]due{}, tills: map[int64]*Client{}, ctx: ctx}, nil
 }
 
 // Past builds shop p from its setup to the day before asOf: days of trade.
@@ -61,6 +61,9 @@ func Past(ctx context.Context, d Deps, p shops.Profile, asOf time.Time, days int
 		return err
 	}
 	if g.admin, err = NewClient(d.API, p.Logins[0].Phone, p.Logins[0].PIN, "demo-back-office"); err != nil {
+		return err
+	}
+	if err := g.pluginsSetup(); err != nil {
 		return err
 	}
 	if err := g.tm.shift(ctx); err != nil {
@@ -88,6 +91,9 @@ func Today(ctx context.Context, d Deps, p shops.Profile, now time.Time, progress
 		return err
 	}
 	if err := g.loadStock(); err != nil {
+		return err
+	}
+	if g.admin, err = NewClient(d.API, p.Logins[0].Phone, p.Logins[0].PIN, "demo-back-office"); err != nil {
 		return err
 	}
 	if err := g.today(now); err != nil {

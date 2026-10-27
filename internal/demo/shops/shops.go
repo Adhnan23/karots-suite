@@ -2,6 +2,8 @@
 // they run, how they look and what they sell.
 package shops
 
+import "slices"
+
 // Login is a person the shop knows. Shown logins appear in the demo chrome so the
 // owner never fumbles a PIN; staff logins belong to the alive simulator.
 type Login struct {
@@ -35,3 +37,6 @@ func ByKey(key string) (Profile, bool) {
 	}
 	return Profile{}, false
 }
+
+// Has reports whether the shop runs plugin key.
+func (p Profile) Has(key string) bool { return slices.Contains(p.Plugins, key) }
