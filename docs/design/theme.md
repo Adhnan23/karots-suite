@@ -14,7 +14,7 @@ These are two separate controls:
 
 | Control | Who sets it | Values | Stored in |
 |---|---|---|---|
-| **Palette** | The system user only (hidden system menu → Appearance) | built-ins `studio`, `night`, `bazaar`, `lagoon`, `catppuccin`; custom palettes `custom-<id>` | `settings.skin` (existing column); custom palettes in the `palettes` table |
+| **Palette** | The system user only (hidden system menu → Appearance) | built-ins (the 22 in `palettes/index.ts` / Go `settings.Skins`); custom palettes `custom-<id>` | `settings.skin` (existing column); custom palettes in the `palettes` table |
 | **Mode** | Each device, with the ModeToggle | System (default), Light, Dark | `localStorage` key `ks-mode` |
 
 Rules:
@@ -30,6 +30,31 @@ Rules:
   (colours, material, shape, depth, motion) and belongs to that theme. Built-ins: **Studio** (solid, calm), **Night**
   (frosted, calm), **Bazaar** (solid, lively), **Lagoon** (liquid glass, calm), **Catppuccin** (Latte light / Mocha
   dark, pastel, frosted bars, lively; made by the user in the editor, 2026-10-21).
+  **17 more (2026-10-27, `docs/specs/2026-10-27-more-palettes-design.md`)**, each with light + dark and a signature:
+  - **Calm, famous:**
+    - **Gruvbox:** paper grain, square corners, hard shadows.
+    - **Nord:** frosted glass, aurora glow.
+    - **Dracula / Alucard:** neon glow.
+    - **Tokyo Night / Day:** night sky, neon glow.
+    - **Rosé Pine / Dawn:** extra-round, slow.
+    - **Solarized:** flat.
+    - **Everforest:** leafy art.
+    - **Kanagawa / Lotus:** wave pattern.
+  - **Colourful, famous:**
+    - **Synthwave '84:** glowing headings, sunset-grid hero.
+    - **Monokai:** the free original.
+    - **Shades of Purple:** yellow brand.
+    - **Cobalt2:** crisp outlines.
+    - **Ayu / Mirage.**
+  - **Colourful, ours:**
+    - **Mango:** a fruit-stall wash.
+    - **Pop:** ink outlines, hard shadows.
+    - **Aurora:** gradient brand fills, glass, a slow drift that stops under reduced motion.
+    - **Neumorph:** neumorphism, where pressed controls sink in.
+  - `palettes/palettes.test.ts` holds every added built-in to the editor's contrast pairs in both modes and checks that
+    Duplicate keeps its extra CSS.
+  - A signature lives in the palette's own tokens where one can carry it, and in the file's extra CSS only when it
+    needs selectors. Per-mode values in extra CSS come from custom `--sig-*` vars set in the mode blocks.
 - **One file per built-in palette:** `web/src/theme/palettes/dock/<name>.css`, listed in `palettes/index.ts`.
   - Selectors are `:root[data-ui="dock"][data-palette="<name>"]` for light, `…[data-theme="dark"]` for dark, and `@media (prefers-color-scheme: dark) { …:not([data-theme="light"]) }`.
   - Adding a palette means adding one CSS file plus one entry in the palette list. Nothing else changes. `palettes/tokens.test.ts` checks every file defines every token in `palettes/tokens.ts`.

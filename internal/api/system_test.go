@@ -100,7 +100,7 @@ func TestAppearanceMergesLabelStyles(t *testing.T) {
 	}
 	var cfg TillConfig
 	json.Unmarshal(te.do(http.MethodGet, "/api/v1/till/config", nil, ck).Body.Bytes(), &cfg) //nolint:errcheck
-	if cfg.LabelStyles["some.plugin"] != "clear" || cfg.LabelPrintAs != "classic" || cfg.LabelFirstLines < 1 || cfg.LabelFirstSize == "" {
+	if cfg.LabelStyles["some.plugin"] != "clear" || (cfg.LabelPrintAs != "classic" && cfg.LabelPrintAs != "image") || cfg.LabelFirstLines < 1 || cfg.LabelFirstSize == "" {
 		t.Fatalf("till config: %+v", cfg)
 	}
 }

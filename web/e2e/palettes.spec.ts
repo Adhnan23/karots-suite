@@ -128,3 +128,27 @@ test('palette editor previews live, asks before dropping changes, and saves', as
   await page.getByRole('button', { name: 'Delete palette' }).click()
   await expect(copy).toHaveCount(0)
 })
+
+// The built-ins (docs/specs/2026-10-27-more-palettes-design.md): one grid, the first
+// five then the 17 added, and a new one saves and paints the login page.
+test('every built-in palette is in the picker; a new one saves and shows on the login page', async ({ page }) => {
+  await systemLogin(page)
+  try {
+    await page.goto('/admin/system/appearance')
+    const builtIns = page.getByRole('group').filter({ hasText: 'Built-in' })
+    await expect(builtIns).toHaveCount(22)
+    await expect(builtIns.first()).toHaveAttribute('aria-label', 'Studio')
+    await expect(builtIns.last()).toHaveAttribute('aria-label', 'Neumorph')
+
+    await page.getByRole('group', { name: 'Kanagawa', exact: true }).getByRole('button', { name: 'Use' }).click()
+    await expect(page.getByRole('group', { name: 'Kanagawa', exact: true })).toHaveAttribute('data-active', 'true')
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'kanagawa')
+    await page.request.post('/api/v1/auth/logout')
+    await page.goto('/login')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'kanagawa')
+  } finally {
+    await systemLogin(page)
+    await page.request.put('/api/v1/system/appearance', { data: { palette: 'studio', receiptStyle: 'classic' } })
+  }
+})

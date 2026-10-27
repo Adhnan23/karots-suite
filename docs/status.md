@@ -5,6 +5,23 @@ every milestone.
 
 ## Next session (handoff 2026-10-26) — START HERE
 
+**More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Spec
+`docs/specs/2026-10-27-more-palettes-design.md`, plan `docs/plans/2026-10-27-more-palettes.md` (6 tasks), mockups
+`docs/design/mockups/palettes-famous.html` + `palettes-colourful.html`, theme.md §1.
+- **What:** 17 new Dock built-ins, the first five untouched, so 22 in one grid. The system user shows them to the owner
+  at shop setup and saves one.
+- **Calm, famous:** Gruvbox, Nord, Dracula, Tokyo Night, Rosé Pine, Solarized, Everforest, Kanagawa.
+- **Colourful, famous:** Synthwave '84, Monokai (the free original, not Monokai Pro), Shades of Purple, Cobalt2, Ayu.
+- **Colourful, ours:** Mango, Pop, Aurora, Neumorph (neumorphism, added mid-design at the user's request).
+- **Feel:** each has light + dark and a signature, in its tokens where one can carry it, else in the file's extra CSS
+  (`--sig-*` vars per mode).
+- **Checks:** `palettes/palettes.test.ts` holds every new one to the editor's contrast pairs in both modes, checks that
+  Duplicate keeps it, and that its motion is safe. Aurora's drift stops under reduced motion.
+- **Shots:** `web/shots/pal2-1` … `pal2-6`, previewed on the dev server, light + dark, desktop + 360, plugin pages
+  included.
+- **Next:** the user looks. Lagoon's reduced-transparency fallback gives system-light devices a dark card (existing; the
+  new palettes don't copy it).
+
 **Labels as pictures + label styles — BUILT (2026-10-27), waiting on the user's look.** Spec
 `docs/specs/2026-10-26-labels-as-pictures-design.md`, plan `docs/plans/2026-10-26-labels-as-pictures.md` (all 10
 tasks), mockup `docs/design/mockups/label-styles.html`, theme.md §11. Settings → Printers & labels → **Print labels
