@@ -17,12 +17,13 @@ too few to show, and the user wants:
 
 ## Goals
 
-1. **Add 16 built-in Dock palettes.** Keep the existing five unchanged. That makes 21 built-ins.
+1. **Add 17 built-in Dock palettes.** Keep the existing five unchanged. That makes 22 built-ins.
    - **Calm / famous:** Gruvbox, Nord, Dracula, Tokyo Night, Rosé Pine, Solarized, Everforest, Kanagawa.
    - **Colourful:**
      - Famous: Synthwave '84, Monokai, Shades of Purple, Cobalt2, Ayu.
      - Our own originals: **Mango** (mango orange, leaf green, hibiscus pink), **Pop** (comic-book red, blue and
-       yellow with thick black outlines) and **Aurora** (teal-to-violet gradients, glass cards).
+       yellow with thick black outlines), **Aurora** (teal-to-violet gradients, glass cards) and **Neumorph**
+       (neumorphism, below). Added at the user's request, 2026-10-27.
 2. **Light and dark for each, both good.** Use the theme's official light variant where it has one: Dracula →
    Alucard, Tokyo Night → Day, Rosé Pine → Dawn, Kanagawa → Lotus, Ayu → Light, plus Gruvbox, Solarized and
    Everforest's own light versions. Where there's none (Nord light, Synthwave '84, Monokai, Shades of Purple,
@@ -52,8 +53,9 @@ too few to show, and the user wants:
    | Mango | Warm gradient wash, big round corners |
    | Pop | Thick borders, hard shadows |
    | Aurora | Gradient main buttons, glass cards, slowly drifting glow |
+| Neumorph | Neumorphism: cards the same colour as the page, raised by a soft light-and-dark double shadow; pressed tabs, segments and inputs look pushed in (inset shadow). Light is soft grey-blue; dark is charcoal. The brand colour stays solid and clearly visible on main buttons, so actions never get lost in the softness |
 
-6. **The picker shows them as one flat grid of all 21**, in this order: the existing five, the eight calm ones, then
+6. **The picker shows them as one flat grid of all 22**, in this order: the existing five, the eight calm ones, then
    the eight colourful ones. No groups, filters or search (user: "just spread all of these"). Clicking one previews it
    live on the whole page, as today.
 7. **Duplicate works on every new one.** The copy carries its colours, feel and signature CSS into a custom palette
@@ -92,7 +94,7 @@ too few to show, and the user wants:
   `paletteCss.ts` so the editor and Duplicate can read it. One `PALETTES` entry per palette (with swatch), one
   `@import` in `app.css`, and the id in Go's `settings.Skins`.
 - **Ids.** Lower-case ascii: `gruvbox`, `nord`, `dracula`, `tokyonight`, `rosepine`, `solarized`, `everforest`,
-  `kanagawa`, `synthwave`, `monokai`, `shadesofpurple`, `cobalt2`, `ayu`, `mango`, `pop`, `aurora`.
+  `kanagawa`, `synthwave`, `monokai`, `shadesofpurple`, `cobalt2`, `ayu`, `mango`, `pop`, `aurora`, `neumorph`.
 - **Tokens.** Every token in `palettes/tokens.ts` is set in both modes. Plugin tokens (`slots.paletteTokens`) follow
   each palette, just as they do for the five.
 - **Guard rules hold.** Components still use tokens only and never branch on the active palette
@@ -105,12 +107,12 @@ too few to show, and the user wants:
 - **Size and fonts.** Each file stays under 500 lines. The added CSS must not noticeably slow the first paint of the
   login (it's render-blocking). Bundled fonts only; no new font downloads.
 - **Names and licences.** Palette names are shown as the themes call themselves (Dracula, Nord, …). Mango, Pop and
-  Aurora are ours. Only use free / open palettes: the colourful slot is the original free **Monokai** (id `monokai`),
+  Aurora and Neumorph are ours. Only use free / open palettes: the colourful slot is the original free **Monokai** (id `monokai`),
   not the paid Monokai Pro.
 
 ## Decided with the user
 
-- All 16, added, nothing replaced (2026-10-27).
+- All 16, added, nothing replaced (2026-10-27). Then a 17th: a neumorphism palette (user, 2026-10-27).
 - One flat grid, no grouping. The system user walks the owner through them at shop setup.
 - "More advanced" means using the Custom CSS layer for each palette's signature, not new editor controls.
 
@@ -139,14 +141,14 @@ too few to show, and the user wants:
 - Vitest:
   - every new palette parses (`paletteCss`) with every token set in light and dark
   - `builtinDoc(id)` and Duplicate keep the extra CSS
-  - a contrast test for the **16 new palettes** only (the existing five are untouched; Night light's
+  - a contrast test for the **17 new palettes** only (the existing five are untouched; Night light's
     danger-foreground on danger is 4.47:1, a known existing gap), each in both modes:
     - foreground on background
     - foreground on card, with a see-through `--card` composited over `--background` first
     - brand-foreground on brand and danger-foreground on danger
     - fails below the bar
 - Go: the new ids are valid skins, and an unknown id still falls back.
-- Playwright: the picker lists 21. Choosing a new palette and saving shows it after a reload and on the login page.
+- Playwright: the picker lists 22. Choosing a new palette and saving shows it after a reload and on the login page.
 - Shot review (UI gate), for every new palette × light / dark:
   - the till with a cart, Pay open, a dialog, the dashboard, a list page, Settings and the login hero
   - desktop and 360 px (phone shots for the admin pages)
