@@ -7,10 +7,10 @@ import type { CartLine } from '@/features/till/cart/types'
 import { FIELD } from '@/features/till/ui'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '../slots'
-import { dosesQuery, printTextLabel, tillInfoQuery } from './api'
+import { dosesQuery, printDoseLabel, tillInfoQuery } from './api'
 import { perDayOf, supplyDays, tabletsFor } from './dosage'
 import { DoseInput, NoteInput } from './DoseInput'
-import { doseLabel } from './label'
+import type { DoseLabel } from './label'
 import { DoseLabelPreview } from './LabelPreview'
 import { salePatient } from './sale'
 
@@ -88,13 +88,13 @@ function DaysForm({ qty, usual, usualNote, onSet, onCancel }: { qty: number; usu
 /** The dose sticker as it will print (label printer, no barcode). */
 function LabelForm({ lines: l, onDone }: { lines: { patient?: string; drug: string; qty: number; dose: string; note: string }; onDone: () => void }) {
   const doses = useQuery(dosesQuery).data
-  const d = doses?.find((x) => x.dose.trim().toLowerCase() === l.dose.trim().toLowerCase())
-  const text = doseLabel({ ...l, words: d?.words ?? '', perDay: perDayOf(l.dose, doses) })
+  const named = doses?.find((x) => x.dose.trim().toLowerCase() === l.dose.trim().toLowerCase())
+  const label: DoseLabel = { ...l, words: named?.words ?? '', perDay: perDayOf(l.dose, doses) }
   const [busy, setBusy] = useState(false)
   async function print() {
     setBusy(true)
     try {
-      await printTextLabel(text)
+      await printDoseLabel(label)
       toast.success('Dose label printed')
       onDone()
     } catch (e) {
@@ -105,7 +105,7 @@ function LabelForm({ lines: l, onDone }: { lines: { patient?: string; drug: stri
   }
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <DoseLabelPreview lines={text} />
+      <DoseLabelPreview d={label} />
       <button type="button" disabled={busy} onClick={() => void print()} className="rounded-md bg-brand px-2.5 py-1 text-[12.5px] font-bold text-brand-foreground disabled:opacity-50">Print label</button>
       <button type="button" onClick={onDone} className="px-1 text-[12.5px] text-muted-foreground hover:text-foreground">Close</button>
     </div>

@@ -9,10 +9,11 @@ import { configQuery as tillConfigQuery, errMsg } from '@/features/till/api'
 import { slipOut } from '@/features/till/SlipAsk'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '../slots'
-import { cancelJob, jobQuery, printLabel, setStatus, setUrgent, slipPath, ticketLabel } from './api'
+import { cancelJob, jobQuery, printTicketLabel, setStatus, setUrgent, slipPath } from './api'
 import { JobLines } from './JobLines'
 import { JobMoney } from './JobMoney'
 import { LabelAsk } from './LabelAsk'
+import { ticketOf } from './labels'
 import { putOnBill } from './till'
 import type { Job } from './types'
 import { device, readyMessage, STATUS, statusTone, waNumber } from './words'
@@ -41,7 +42,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
   }
   async function label() {
     try {
-      await printLabel(ticketLabel(job!))
+      await printTicketLabel(ticketOf(job!))
       toast.success('Ticket label sent to the label printer')
     } catch (e) {
       toast.error(errMsg(e))
@@ -117,7 +118,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
           <Button type="button" className="ml-auto" onClick={() => void bill()}><ReceiptText className="size-4" /> Put on the bill</Button>
         )}
       </div>
-      {labelAsk && <LabelAsk req={ticketLabel(job)} onPrint={() => void label()} onClose={() => setLabelAsk(false)} />}
+      {labelAsk && <LabelAsk t={ticketOf(job)} onPrint={() => void label()} onClose={() => setLabelAsk(false)} />}
     </div>
   )
 }

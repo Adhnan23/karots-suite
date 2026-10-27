@@ -13,7 +13,6 @@ import { errMsg } from '@/features/till/api'
 import { qtyText } from '@/lib/money'
 import { createDose, deleteDose, dosesQuery, updateDose } from './api'
 import { dosesPerDay } from './dosage'
-import { doseLabel } from './label'
 import { DoseLabelPreview } from './LabelPreview'
 import type { Dose } from './types'
 
@@ -74,7 +73,7 @@ function DoseSheet({ dose, onClose }: { dose: Dose | null; onClose: () => void }
       </div>
       <div className="grid gap-1">
         <span className="text-[13px] font-semibold text-muted-foreground">On a label — example (with a patient on the sale)</span>
-        <DoseLabelPreview lines={doseLabel({ patient: 'Patient name', drug: 'Medicine 500mg', qty: (Number(f.perDay) || 1) * 5, dose: f.dose || '1-0-1', words: f.words, perDay: Number(f.perDay) || 0, note: 'After meals' })} />
+        <DoseLabelPreview d={{ patient: 'Patient name', drug: 'Medicine 500mg', qty: (Number(f.perDay) || 1) * 5, dose: f.dose || '1-0-1', words: f.words, perDay: Number(f.perDay) || 0, note: 'After meals' }} />
       </div>
     </FormSheet>
   )

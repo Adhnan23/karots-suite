@@ -1,17 +1,19 @@
 import { Wrench } from 'lucide-react'
 import type { slots as Slots } from '../slots'
 import { JobSlip } from './JobSlip'
+import { TICKET_KIND } from './labels'
 import { LineHint } from './LineHint'
 import { RepairsPage } from './RepairsPage'
 import { RepairsPanel } from './RepairsPanel'
 import { afterSale, isTicket } from './till'
 
 /** Repairs' React half: Apps → Repairs (jobs, profit, warranty), the till's 🔧 Repairs panel (a scanned ticket opens it),
- * job lines marked on the cart, jobs collected when their sale completes. */
+ * job lines marked on the cart, jobs collected when their sale completes, the ticket label's looks. */
 export default function repairs(s: typeof Slots) {
   s.tillActions.push({ key: 'repairs', label: '🔧 Repairs', claimsText: isTicket, Panel: RepairsPanel })
   s.tillLineHints.push({ key: 'repairs', Hint: LineHint })
   s.tillAfterSale.push(afterSale)
+  s.labelTemplates.push(TICKET_KIND)
   s.slipTemplates.push({ kind: 'repairs.job', label: 'Repair', sample: '/x/repairs/sample-slip', Template: JobSlip })
   s.apps.push({ key: 'repairs', label: 'Repairs', description: 'Repair jobs, repairer payouts and profit', icon: Wrench, color: 'var(--brand)', to: '/admin/x/repairs' })
   s.adminPages.push({ key: 'repairs', Page: RepairsPage })

@@ -85,8 +85,8 @@ func TestAppearanceMergesLabelStyles(t *testing.T) {
 		return got
 	}
 	put(map[string]string{"price": "qrtag"})
-	got := put(map[string]string{"pharmacy.dose": "clear"})
-	if got.LabelStyles["price"] != "qrtag" || got.LabelStyles["pharmacy.dose"] != "clear" {
+	got := put(map[string]string{"some.plugin": "clear"})
+	if got.LabelStyles["price"] != "qrtag" || got.LabelStyles["some.plugin"] != "clear" {
 		t.Fatalf("not merged: %v", got.LabelStyles)
 	}
 	// A palette-only save (no labelStyles) keeps them; "" removes one kind.
@@ -95,12 +95,12 @@ func TestAppearanceMergesLabelStyles(t *testing.T) {
 		t.Fatalf("palette save dropped label styles: %v", got.LabelStyles)
 	}
 	got = put(map[string]string{"price": ""})
-	if _, ok := got.LabelStyles["price"]; ok || got.LabelStyles["pharmacy.dose"] != "clear" {
+	if _, ok := got.LabelStyles["price"]; ok || got.LabelStyles["some.plugin"] != "clear" {
 		t.Fatalf("remove: %v", got.LabelStyles)
 	}
 	var cfg TillConfig
 	json.Unmarshal(te.do(http.MethodGet, "/api/v1/till/config", nil, ck).Body.Bytes(), &cfg) //nolint:errcheck
-	if cfg.LabelStyles["pharmacy.dose"] != "clear" || cfg.LabelPrintAs != "classic" || cfg.LabelFirstLines < 1 || cfg.LabelFirstSize == "" {
+	if cfg.LabelStyles["some.plugin"] != "clear" || cfg.LabelPrintAs != "classic" || cfg.LabelFirstLines < 1 || cfg.LabelFirstSize == "" {
 		t.Fatalf("till config: %+v", cfg)
 	}
 }

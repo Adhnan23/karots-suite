@@ -1,7 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { LabelRequest } from '@/api/types.gen'
 import { queryClient } from '@/api/query-client'
+import { printLabel } from '@/features/print/labels/print'
+import { ticketRequest, type TicketLabel } from './labels'
 import type { Bill, Config, Job, JobInput, Report, Row, Suggestions } from './types'
 
 const base = '/x/repairs'
@@ -43,9 +44,6 @@ export const refundHeld = (id: number) => write(api<{ receiptId: number; amount:
 export const getBill = (id: number) => api<Bill>(`${base}/jobs/${id}/bill`)
 export const saveConfig = (c: Config) => write(api(`${base}/config`, { method: 'PUT', json: c }))
 export const slipPath = (id: number) => `${base}/jobs/${id}/print`
-/** The ticket label: its scan code, ticket + device on top, the customer under. */
-export const ticketLabel = (j: Job): LabelRequest => ({
-  productId: 0, code: j.ticketCode, format: 'CODE128', top: `${j.ticketNo} · ${j.deviceModel || j.repairType}`,
-  bottom: `${j.customerName} ${j.customerPhone}`.trim(), count: 1, size: '',
-})
-export const printLabel = (req: LabelRequest) => api('/till/labels', { json: req })
+/** The ticket label: the picture in Image mode, else core's barcode label (/till/labels). */
+export const printTicketLabel = (t: TicketLabel) =>
+  printLabel({ kind: 'repairs.ticket', data: t, size: '', count: 1, classic: { path: '/till/labels', body: ticketRequest(t) } })

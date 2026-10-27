@@ -41,8 +41,8 @@ func TestValidReceiptStyle(t *testing.T) {
 }
 
 func TestValidLabelStyles(t *testing.T) {
-	got := ValidLabelStyles(map[string]string{" price ": " qrtag ", "": "x", "pharmacy.dose": "", "repairs.ticket": "job"})
-	if len(got) != 2 || got["price"] != "qrtag" || got["repairs.ticket"] != "job" {
+	got := ValidLabelStyles(map[string]string{" price ": " qrtag ", "": "x", "some.plugin": "", "other.plugin": "job"})
+	if len(got) != 2 || got["price"] != "qrtag" || got["other.plugin"] != "job" {
 		t.Fatalf("got %v", got)
 	}
 	big := map[string]string{}

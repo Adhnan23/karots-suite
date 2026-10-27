@@ -8,7 +8,7 @@ import (
 )
 
 // LabelStyles is the Image-mode label style per label kind ("price",
-// "pharmacy.dose", …), stored as JSONB. Kinds and styles are open strings:
+// "<plugin>.<kind>", …), stored as JSONB. Kinds and styles are open strings:
 // plugins add kinds, and the SPA reads an unknown style as classic.
 type LabelStyles map[string]string
 

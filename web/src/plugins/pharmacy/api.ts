@@ -2,6 +2,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { type Range, rangeQS } from '@/features/counter/range'
 import { queryClient } from '@/api/query-client'
+import { printLabel } from '@/features/print/labels/print'
+import { doseLabel, type DoseLabel } from './label'
 import type { Controlled, Dose, Flags, Found, LogRow, Medicine, Patient, RecentSale, Refill, Register, Script, ScriptInput, Unrecorded } from './types'
 
 const base = '/x/pharmacy'
@@ -54,5 +56,7 @@ export type DoseBody = { dose: string; words: string; perDay: string }
 export const createDose = (d: DoseBody) => write(api<{ id: number }>(`${base}/doses`, { json: d }))
 export const updateDose = (id: number, d: DoseBody) => write(api(`${base}/doses/${id}`, { method: 'PUT', json: d }))
 export const deleteDose = (id: number) => write(api(`${base}/doses/${id}`, { method: 'DELETE' }))
-/** A text-only sticker on the label printer (core POST /till/labels/text). */
-export const printTextLabel = (lines: string[], count = 1) => api('/till/labels/text', { json: { lines, count, size: '' } })
+/** A dose sticker on the label printer: the picture in Image mode, else the
+ * text-only label (core POST /till/labels/text). */
+export const printDoseLabel = (d: DoseLabel, count = 1) =>
+  printLabel({ kind: 'pharmacy.dose', data: d, size: '', count, classic: { path: '/till/labels/text', body: { lines: doseLabel(d), count, size: '' } } })

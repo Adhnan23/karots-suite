@@ -22,6 +22,9 @@ export type LabelPaper = { wMm: number; hMm: number; w: number; h: number }
 
 export const DOTS_PER_MM = 8
 
+/** Labels are paper: ink is black, whatever the palette (for plugin templates). */
+export const INK = '#000'
+
 /** "WxH" mm → the paper; blank / junk → `fallback`. Clamped to 10–200 mm like the server. */
 export function paperOf(size: string, fallback = '50x25'): LabelPaper {
   const m = /^\s*(\d+)\s*x\s*(\d+)\s*$/i.exec(size) ?? /^(\d+)x(\d+)$/.exec(fallback) ?? ['', '50', '25']
