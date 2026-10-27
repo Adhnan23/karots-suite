@@ -87,7 +87,7 @@ type Settings struct {
 // Known appearance values. Anything else falls back to the first (default) so a
 // bad or blank value never renders blank.
 var (
-	Skins         = []string{"studio", "night", "bazaar", "lagoon", "catppuccin", "gruvbox"}
+	Skins         = []string{"studio", "night", "bazaar", "lagoon", "catppuccin", "gruvbox", "nord", "dracula", "tokyonight"}
 	ReceiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections"}
 	Radii         = []string{"sharp", "rounded", "round"}
 )

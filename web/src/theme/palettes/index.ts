@@ -10,6 +10,9 @@ export const PALETTES = [
   { id: 'lagoon', theme: THEME, name: 'Lagoon', swatch: { light: '#E6F4F4', dark: '#071A1F', brand: '#087F88' } },
   { id: 'catppuccin', theme: THEME, name: 'Catppuccin', swatch: { light: '#EFF1F5', dark: '#1E1E2E', brand: '#8839EF' } },
   { id: 'gruvbox', theme: THEME, name: 'Gruvbox', swatch: { light: '#FBF1C7', dark: '#282828', brand: '#FE8019' } },
+  { id: 'nord', theme: THEME, name: 'Nord', swatch: { light: '#ECEFF4', dark: '#2E3440', brand: '#88C0D0' } },
+  { id: 'dracula', theme: THEME, name: 'Dracula', swatch: { light: '#FFFBEB', dark: '#282A36', brand: '#BD93F9' } },
+  { id: 'tokyonight', theme: THEME, name: 'Tokyo Night', swatch: { light: '#E1E2E7', dark: '#1A1B26', brand: '#7AA2F7' } },
 ] as const
 
 /** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */
