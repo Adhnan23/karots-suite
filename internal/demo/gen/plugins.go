@@ -18,8 +18,10 @@ type pluginGen struct {
 }
 
 var pluginGens = map[string]pluginGen{
-	"repairs":  {setup: repairsSetup, daily: repairsDaily},
-	"recharge": {setup: rechargeSetup, daily: rechargeDaily},
+	"repairs":   {setup: repairsSetup, daily: repairsDaily},
+	"recharge":  {setup: rechargeSetup, daily: rechargeDaily},
+	"documents": {setup: documentsSetup, daily: documentsDaily},
+	"combos":    {setup: combosSetup, daily: combosDaily},
 }
 
 func (g *gen) on(key string) bool { return slices.Contains(g.s.p.Plugins, key) }
@@ -70,6 +72,7 @@ func (g *gen) tillSale(c person, customerID int64, items []map[string]any, total
 	if g.r.IntN(4) == 0 {
 		pay = map[string]any{"method": "card", "amount": total.String(), "accountId": g.s.card}
 	}
+	g.lastTill = cl
 	in := map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed", "items": items, "payments": []any{pay}}
 	if customerID > 0 {
 		in["customerId"] = customerID

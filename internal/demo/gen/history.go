@@ -76,10 +76,13 @@ type gen struct {
 	owed     map[int][]due   // deliveries not yet paid, by supplier
 	safeCash decimal.Decimal // what the generator thinks is in the safe
 
-	tills map[int64]*Client // signed-in till clients, by cashier
-	open  []person          // who is on a till today
-	jobs  []*repairJob      // repairs still moving
-	ctx   context.Context
+	tills    map[int64]*Client // signed-in till clients, by cashier
+	open     []person          // who is on a till today
+	jobs     []*repairJob      // repairs still moving
+	docs     []docService      // Print & Copy services
+	lastTill *Client           // the till that rang the last plugin sale
+	combos   []combo           // bundles on offer
+	ctx      context.Context
 }
 
 func at(day time.Time, hour float64) time.Time {

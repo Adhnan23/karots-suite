@@ -154,8 +154,10 @@ func TestOnlyActivePluginsCalled(t *testing.T) {
 
 // pluginTables: each plugin's main table and the column that dates it.
 var pluginTables = map[string][2]string{
-	"repairs":  {"repair_jobs", "created_at"},
-	"recharge": {"recharge_transactions", "created_at"},
+	"repairs":   {"repair_jobs", "created_at"},
+	"recharge":  {"recharge_transactions", "created_at"},
+	"documents": {"doc_job", "created_at"},
+	"combos":    {"combo_sales", "created_at"},
 }
 
 func TestEachPluginHasAPast(t *testing.T) {
