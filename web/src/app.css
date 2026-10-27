@@ -23,6 +23,11 @@
 @import "./theme/palettes/dock/solarized.css";
 @import "./theme/palettes/dock/everforest.css";
 @import "./theme/palettes/dock/kanagawa.css";
+@import "./theme/palettes/dock/synthwave.css";
+@import "./theme/palettes/dock/monokai.css";
+@import "./theme/palettes/dock/shadesofpurple.css";
+@import "./theme/palettes/dock/cobalt2.css";
+@import "./theme/palettes/dock/ayu.css";
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */

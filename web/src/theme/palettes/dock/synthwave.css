@@ -1,0 +1,195 @@
+/* Synthwave '84 palette (docs/specs/2026-10-27-more-palettes-design.md): 80s neon pink and cyan (a sunrise light of our own, the neon night dark); glowing headings and total, a sunset-grid sky. */
+
+:root[data-ui="dock"][data-palette="synthwave"] {
+  color-scheme: light;
+
+  --background: #fff0fb;
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --muted: #fbe3f4;
+  --secondary: #fbe3f4;
+  --accent: #fbe3f4;
+  --secondary-foreground: #2b1055;
+  --accent-foreground: var(--foreground);
+  --border: #f1cde6;
+  --input: #dcaed0;
+  --scrim: rgb(43 16 85 / .4);
+  --foreground: #2b1055;
+  --muted-foreground: #5e3a86;
+  --faint: #8a6aa8;
+  --brand: #d61f69;
+  --brand-foreground: #ffffff;
+  --brand-soft: #ffd9ea;
+  --brand-2: #0590b4;
+  --brand-2-foreground: #ffffff;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #d61f69;
+  --selected: #2b1055;
+  --selected-foreground: #fff0fb;
+  --success: #0e8a5f;
+  --danger: #c4162e;
+  --danger-foreground: #ffffff;
+  --destructive: var(--danger);
+  --warning: #b35c00;
+  --hero: #241b2f;
+  --hero-foreground: #fdfdfd;
+  --hero-muted: #c3a6e8;
+  --chart-1: #ff2a6d;
+  --chart-2: #05a8d1;
+  --chart-3: #f9a12e;
+  --chart-4: #7b2cbf;
+  --chart-5: #0e8a5f;
+  --chart-6: #ff7edb;
+  --bar: rgb(255 255 255 / .94);
+  --glass: none;
+  --bg-art: radial-gradient(70% 55% at 50% 0%, rgb(255 42 109 / .12), transparent 70%), radial-gradient(60% 45% at 100% 100%, rgb(5 168 209 / .1), transparent 70%), linear-gradient(180deg, #fff0fb, #ffe9f6);
+  --hero-art: radial-gradient(260px 130px at 50% 105%, rgb(254 222 93 / .55), rgb(255 126 219 / .25) 55%, transparent 75%), linear-gradient(180deg, #241b2f 35%, transparent 85%), repeating-linear-gradient(0deg, rgb(255 126 219 / 0.28) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgb(255 126 219 / 0.28) 0 1px, transparent 1px 36px), linear-gradient(180deg, #241b2f, #2b1055 70%, #4b1550);
+  --shadow: 0 1px 2px rgb(43 16 85 / .06), 0 8px 24px rgb(214 31 105 / .08);
+  --shadow-float: 0 4px 12px rgb(43 16 85 / .1), 0 20px 40px rgb(214 31 105 / .14);
+  --glow: 0 0 0 1px rgb(214 31 105 / .3), 0 4px 20px rgb(214 31 105 / .4);
+  --radius: 10px;
+  --radius-sm: 8px;
+  --pill: 9999px;
+  --dur-fast: 110ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.45, .4, 1);
+  --lift: 2px;
+  --sig-text-glow: 0 0 14px rgb(255 42 109 / .25);
+}
+
+:root[data-ui="dock"][data-palette="synthwave"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #241b2f;
+  --card: #2a2139;
+  --card-foreground: var(--foreground);
+  --popover: #34294f;
+  --popover-foreground: var(--foreground);
+  --muted: #34294f;
+  --secondary: #34294f;
+  --accent: #34294f;
+  --secondary-foreground: #fdfdfd;
+  --accent-foreground: var(--foreground);
+  --border: #463465;
+  --input: #5a4580;
+  --scrim: rgb(12 6 20 / .75);
+  --foreground: #fdfdfd;
+  --muted-foreground: #d4c2ee;
+  --faint: #a58cc8;
+  --brand: #ff7edb;
+  --brand-foreground: #241b2f;
+  --brand-soft: #4a2754;
+  --brand-2: #36f9f6;
+  --brand-2-foreground: #241b2f;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #ff7edb;
+  --selected: #ff7edb;
+  --selected-foreground: #241b2f;
+  --success: #72f1b8;
+  --danger: #fe4450;
+  --danger-foreground: #1a1323;
+  --destructive: var(--danger);
+  --warning: #fede5d;
+  --hero: #1a1323;
+  --hero-foreground: #fdfdfd;
+  --hero-muted: #c3a6e8;
+  --chart-1: #ff7edb;
+  --chart-2: #36f9f6;
+  --chart-3: #fede5d;
+  --chart-4: #f97e72;
+  --chart-5: #72f1b8;
+  --chart-6: #b893ce;
+  --bar: rgb(42 33 57 / .94);
+  --glass: none;
+  --bg-art: radial-gradient(70% 50% at 50% 100%, rgb(255 42 109 / .16), transparent 70%), radial-gradient(60% 45% at 0% 0%, rgb(54 249 246 / .07), transparent 70%), linear-gradient(180deg, #241b2f, #2b1055 140%);
+  --hero-art: radial-gradient(260px 130px at 50% 105%, rgb(254 222 93 / .6), rgb(255 126 219 / .3) 55%, transparent 75%), linear-gradient(180deg, #1a1323 35%, transparent 85%), repeating-linear-gradient(0deg, rgb(255 126 219 / 0.32) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgb(255 126 219 / 0.32) 0 1px, transparent 1px 36px), linear-gradient(180deg, #1a1323, #2b1055 70%, #4b1550);
+  --shadow: 0 1px 3px rgb(0 0 0 / .35), 0 8px 24px rgb(0 0 0 / .4);
+  --shadow-float: 0 0 0 1px rgb(255 126 219 / .15), 0 4px 12px rgb(0 0 0 / .45), 0 20px 40px rgb(0 0 0 / .6);
+  --glow: 0 0 0 1px rgb(255 126 219 / .6), 0 0 24px rgb(255 126 219 / .55);
+  --radius: 10px;
+  --radius-sm: 8px;
+  --pill: 9999px;
+  --dur-fast: 110ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.45, .4, 1);
+  --lift: 2px;
+  --sig-text-glow: 0 0 10px rgb(255 126 219 / .55), 0 0 2px rgb(255 126 219 / .6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ui="dock"][data-palette="synthwave"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #241b2f;
+    --card: #2a2139;
+    --card-foreground: var(--foreground);
+    --popover: #34294f;
+    --popover-foreground: var(--foreground);
+    --muted: #34294f;
+    --secondary: #34294f;
+    --accent: #34294f;
+    --secondary-foreground: #fdfdfd;
+    --accent-foreground: var(--foreground);
+    --border: #463465;
+    --input: #5a4580;
+    --scrim: rgb(12 6 20 / .75);
+    --foreground: #fdfdfd;
+    --muted-foreground: #d4c2ee;
+    --faint: #a58cc8;
+    --brand: #ff7edb;
+    --brand-foreground: #241b2f;
+    --brand-soft: #4a2754;
+    --brand-2: #36f9f6;
+    --brand-2-foreground: #241b2f;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: #ff7edb;
+    --selected: #ff7edb;
+    --selected-foreground: #241b2f;
+    --success: #72f1b8;
+    --danger: #fe4450;
+    --danger-foreground: #1a1323;
+    --destructive: var(--danger);
+    --warning: #fede5d;
+    --hero: #1a1323;
+    --hero-foreground: #fdfdfd;
+    --hero-muted: #c3a6e8;
+    --chart-1: #ff7edb;
+    --chart-2: #36f9f6;
+    --chart-3: #fede5d;
+    --chart-4: #f97e72;
+    --chart-5: #72f1b8;
+    --chart-6: #b893ce;
+    --bar: rgb(42 33 57 / .94);
+    --glass: none;
+    --bg-art: radial-gradient(70% 50% at 50% 100%, rgb(255 42 109 / .16), transparent 70%), radial-gradient(60% 45% at 0% 0%, rgb(54 249 246 / .07), transparent 70%), linear-gradient(180deg, #241b2f, #2b1055 140%);
+    --hero-art: radial-gradient(260px 130px at 50% 105%, rgb(254 222 93 / .6), rgb(255 126 219 / .3) 55%, transparent 75%), linear-gradient(180deg, #1a1323 35%, transparent 85%), repeating-linear-gradient(0deg, rgb(255 126 219 / 0.32) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgb(255 126 219 / 0.32) 0 1px, transparent 1px 36px), linear-gradient(180deg, #1a1323, #2b1055 70%, #4b1550);
+    --shadow: 0 1px 3px rgb(0 0 0 / .35), 0 8px 24px rgb(0 0 0 / .4);
+    --shadow-float: 0 0 0 1px rgb(255 126 219 / .15), 0 4px 12px rgb(0 0 0 / .45), 0 20px 40px rgb(0 0 0 / .6);
+    --glow: 0 0 0 1px rgb(255 126 219 / .6), 0 0 24px rgb(255 126 219 / .55);
+    --radius: 10px;
+    --radius-sm: 8px;
+    --pill: 9999px;
+    --dur-fast: 110ms;
+    --dur: 180ms;
+    --dur-slow: 280ms;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --ease-spring: cubic-bezier(.2, 1.45, .4, 1);
+    --lift: 2px;
+    --sig-text-glow: 0 0 10px rgb(255 126 219 / .55), 0 0 2px rgb(255 126 219 / .6);
+  }
+}
+
+/* Neon signs: page headings glow (never body text, tables or the cart). */
+:root[data-ui="dock"][data-palette="synthwave"] main h1,
+:root[data-ui="dock"][data-palette="synthwave"] main h2 {
+  text-shadow: var(--sig-text-glow);
+}

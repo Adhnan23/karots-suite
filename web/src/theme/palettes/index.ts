@@ -17,6 +17,11 @@ export const PALETTES = [
   { id: 'solarized', theme: THEME, name: 'Solarized', swatch: { light: '#FDF6E3', dark: '#002B36', brand: '#268BD2' } },
   { id: 'everforest', theme: THEME, name: 'Everforest', swatch: { light: '#FDF6E3', dark: '#2D353B', brand: '#A7C080' } },
   { id: 'kanagawa', theme: THEME, name: 'Kanagawa', swatch: { light: '#F2ECBC', dark: '#1F1F28', brand: '#7E9CD8' } },
+  { id: 'synthwave', theme: THEME, name: "Synthwave '84", swatch: { light: '#FFF0FB', dark: '#241B2F', brand: '#FF7EDB' } },
+  { id: 'monokai', theme: THEME, name: 'Monokai', swatch: { light: '#FAFAF5', dark: '#272822', brand: '#F92672' } },
+  { id: 'shadesofpurple', theme: THEME, name: 'Shades of Purple', swatch: { light: '#F5F2FF', dark: '#2D2B55', brand: '#FAD000' } },
+  { id: 'cobalt2', theme: THEME, name: 'Cobalt2', swatch: { light: '#EEF5FF', dark: '#193549', brand: '#FFC600' } },
+  { id: 'ayu', theme: THEME, name: 'Ayu', swatch: { light: '#FCFCFC', dark: '#1F2430', brand: '#FFCC66' } },
 ] as const
 
 /** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */
