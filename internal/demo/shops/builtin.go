@@ -24,31 +24,31 @@ func BuiltIn() []Profile {
 	return []Profile{
 		mk(Profile{
 			Key: "grocery", Name: "Sunrise Mini Mart", Blurb: "Grocery / mini-mart — core only: packs, smart low stock, credit.",
-			Palette: "studio", ReceiptStyle: "classic", Catalogue: "grocery", Volume: 140,
+			Palette: "studio", ReceiptStyle: "classic", Catalogue: "grocery", Volume: 90,
 			LabelStyles: map[string]string{"price": "pricetag"},
 		}, "Nimal Perera", "Sanduni Silva", "Kasun Fernando", "Dilani", "Ruwan"),
 		mk(Profile{
 			Key: "pharmacy", Name: "CityCare Pharmacy", Blurb: "Prescriptions, dose labels, batches and expiry, alternatives.",
 			Plugins: []string{"pharmacy", "alternatives", "productplus", "requests"},
-			Palette: "lagoon", ReceiptStyle: "minimal", Catalogue: "pharmacy", Volume: 90,
+			Palette: "lagoon", ReceiptStyle: "minimal", Catalogue: "pharmacy", Volume: 70,
 			LabelStyles: map[string]string{"price": "minimal", "pharmacy.dose": "clear"},
 		}, "Dr. Fathima Rizvi", "Tharindu Jayasuriya", "Ishara Bandara", "Malsha", "Fazil"),
 		mk(Profile{
 			Key: "phone", Name: "Galaxy Mobile & Repairs", Blurb: "Repair jobs, reload float and commission, combos, invoices.",
 			Plugins: []string{"repairs", "recharge", "combos", "documents"},
-			Palette: "synthwave", ReceiptStyle: "ticket", Catalogue: "phone", Volume: 70,
+			Palette: "synthwave", ReceiptStyle: "ticket", Catalogue: "phone", Volume: 45,
 			LabelStyles: map[string]string{"price": "qrtag", "repairs.ticket": "job"},
 		}, "Ashan Wickramasinghe", "Rizwan Hameed", "Chamodi Herath", "Sahan", "Nadeesha"),
 		mk(Profile{
 			Key: "hardware", Name: "Lanka Build Hardware", Blurb: "Building supplies — quotes and invoices, clearance, customer requests.",
 			Plugins: []string{"clearance", "productplus", "documents", "requests"},
-			Palette: "bazaar", ReceiptStyle: "grid", Catalogue: "hardware", Volume: 60,
+			Palette: "bazaar", ReceiptStyle: "grid", Catalogue: "hardware", Volume: 40,
 			LabelStyles: map[string]string{"price": "shelf"},
 		}, "Sunil Rajapaksha", "Priyantha Kumara", "Hasini Dias", "Lahiru", "Kumari"),
 		mk(Profile{
 			Key: "everything", Name: "Karots Super Store", Blurb: "Every plugin at once, for the customer who wants to see it all.",
 			Plugins: []string{"aicatalog", "alternatives", "clearance", "combos", "documents", "pharmacy", "productplus", "recharge", "repairs", "requests"},
-			Palette: "aurora", ReceiptStyle: "cards", Catalogue: "mixed", Volume: 160,
+			Palette: "aurora", ReceiptStyle: "cards", Catalogue: "mixed", Volume: 110,
 			LabelStyles: map[string]string{"price": "dual", "pharmacy.dose": "boxed", "repairs.ticket": "job"},
 		}, "Mohamed Imran", "Gayani Ekanayake", "Pradeep Senanayake", "Shehan", "Amaya", "Kavindu"),
 	}
@@ -60,7 +60,7 @@ func Custom(plugins []string, palette, receiptStyle string) Profile {
 	p := Profile{
 		Key: "custom", Name: "My Shop", Blurb: "Your own mix.",
 		Plugins: append([]string{}, plugins...), Palette: palette, ReceiptStyle: receiptStyle,
-		Catalogue: "mixed", Volume: 100, LabelStyles: map[string]string{"price": "pricetag"},
+		Catalogue: "mixed", Volume: 40, LabelStyles: map[string]string{"price": "pricetag"},
 	}
 	if p.Palette == "" {
 		p.Palette = "studio"

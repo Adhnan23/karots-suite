@@ -79,7 +79,7 @@ func runChild() int {
 
 	deps := gen.Deps{DB: sqlxDB, Svc: app.NewServices(sqlxDB, cfg, validator), API: e,
 		ReceiptPrinter: a.ReceiptPrinter, LabelPrinter: a.LabelPrinter}
-	if err := gen.Run(context.Background(), deps, a.Shop, time.Now(), func(pct int, step string) {
+	if err := gen.Run(context.Background(), deps, a.Shop, time.Now(), 60, func(pct int, step string) {
 		say("progress %d %s", pct, step)
 	}); err != nil {
 		log.Printf("demo child: building the shop: %v", err)

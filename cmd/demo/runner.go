@@ -68,6 +68,7 @@ func (r *childRunner) Start(p shops.Profile, progress func(int, string)) error {
 		return fmt.Errorf("create the shop's database: %w", err)
 	}
 	r.dbName = name
+	_, _ = r.pg.Exec(`ALTER DATABASE ` + name + ` SET synchronous_commit = off`) // throwaway data
 	port, ctl := freePort(), freePort()
 	args, _ := json.Marshal(childArgs{DB: siblingURL(r.baseURL, name), Port: port, Control: ctl, JWTSecret: r.jwt,
 		ReceiptPrinter: r.receipt, LabelPrinter: r.label, Shop: p, Staff: p.Staff})
