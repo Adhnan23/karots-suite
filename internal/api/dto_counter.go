@@ -80,6 +80,16 @@ type LabelRequest struct {
 	// only Image-mode styles read it (a price is drawn as a price wherever it lands).
 	TopKey    string `json:"topKey,omitempty" tstype:",optional"`
 	BottomKey string `json:"bottomKey,omitempty" tstype:",optional"`
+	// Look overrides the saved lines / sizes — Settings previews its unsaved choices.
+	Look *LabelLook `json:"look,omitempty" tstype:",optional"`
+}
+
+// LabelLook is a label's first / second text lines (1–4) and size ("1"–"4" = XS–L).
+type LabelLook struct {
+	FirstLines  int    `json:"firstLines"`
+	SecondLines int    `json:"secondLines"`
+	FirstSize   string `json:"firstSize"`
+	SecondSize  string `json:"secondSize"`
 }
 
 // TextLabelRequest prints a text-only label (no barcode) on the label printer —

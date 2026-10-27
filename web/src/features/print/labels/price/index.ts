@@ -43,14 +43,14 @@ const slot = (key: string | undefined, text: string): Slot =>
   !text.trim() || key === 'none' ? { key: 'none', text: '' } : { key: key || 'free', text: text.trim() }
 
 /** A label request (what Classic prints) as the price label a style draws, with
- * the shop's lines and sizes. Text with no field key (typed, a plugin's) is `free`. */
+ * the shop's lines and sizes (or the request's unsaved `look`). Text with no field key (typed, a plugin's) is `free`. */
 export const toPriceLabel = (r: LabelRequest, cfg: Pick<TillConfig, 'labelFirstLines' | 'labelSecondLines' | 'labelFirstSize' | 'labelSecondSize'>): PriceLabel => ({
   first: slot(r.topKey, r.top),
   second: slot(r.bottomKey, r.bottom),
   code: r.code || (r.productId ? `SKU${r.productId}` : ''), // the server's own fallback for a product with no barcode
   format: r.format || 'CODE128',
-  firstLines: cfg.labelFirstLines || 1,
-  secondLines: cfg.labelSecondLines || 1,
-  firstSize: cfg.labelFirstSize || '2',
-  secondSize: cfg.labelSecondSize || '3',
+  firstLines: r.look?.firstLines || cfg.labelFirstLines || 1,
+  secondLines: r.look?.secondLines || cfg.labelSecondLines || 1,
+  firstSize: r.look?.firstSize || cfg.labelFirstSize || '2',
+  secondSize: r.look?.secondSize || cfg.labelSecondSize || '3',
 })

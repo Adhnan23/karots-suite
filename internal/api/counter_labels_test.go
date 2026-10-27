@@ -62,6 +62,14 @@ func TestCounterLabelPreviewMatchesPrint(t *testing.T) {
 	if l.Texts[0].Y >= l.Barcode.Y || l.Texts[1].Y <= l.Barcode.Y {
 		t.Fatalf("top above, bottom below the bars: %+v", l)
 	}
+	// Settings previews its unsaved lines / sizes: a look overrides the saved ones.
+	long := "A very long product name that needs more than one line on the label"
+	one := decode[LabelLayout](t, te.do(http.MethodPost, "/api/v1/till/labels/preview", LabelRequest{Code: "123", Top: long, Size: "40x30"}, ck))
+	three := decode[LabelLayout](t, te.do(http.MethodPost, "/api/v1/till/labels/preview", LabelRequest{Code: "123", Top: long, Size: "40x30",
+		Look: &LabelLook{FirstLines: 3, SecondLines: 1, FirstSize: "1", SecondSize: "4"}}, ck))
+	if len(three.Texts) <= len(one.Texts) || three.Texts[0].CharW >= one.Texts[0].CharW {
+		t.Fatalf("look ignored: %+v vs %+v", three.Texts, one.Texts)
+	}
 	// Nothing picked yet still previews (an empty label), but never prints.
 	if rec := te.do(http.MethodPost, "/api/v1/till/labels/preview", LabelRequest{}, ck); rec.Code != http.StatusOK {
 		t.Fatalf("empty preview: %d", rec.Code)

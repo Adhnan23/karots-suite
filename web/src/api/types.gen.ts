@@ -550,6 +550,19 @@ export interface LabelRequest {
    */
   topKey?: string;
   bottomKey?: string;
+  /**
+   * Look overrides the saved lines / sizes — Settings previews its unsaved choices.
+   */
+  look?: LabelLook;
+}
+/**
+ * LabelLook is a label's first / second text lines (1–4) and size ("1"–"4" = XS–L).
+ */
+export interface LabelLook {
+  firstLines: number /* int */;
+  secondLines: number /* int */;
+  firstSize: string;
+  secondSize: string;
 }
 /**
  * TextLabelRequest prints a text-only label (no barcode) on the label printer —

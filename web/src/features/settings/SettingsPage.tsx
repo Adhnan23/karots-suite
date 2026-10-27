@@ -14,9 +14,9 @@ import { errMsg } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
 import { cn } from '@/lib/utils'
 import { Section, Segmented, settingsQuery, useSettingsSaved } from './kit'
+import { LabelSettings } from './LabelSettings'
 import { ReorderSettings } from './ReorderSettings'
 
-const FONT = [{ value: '1', label: 'XS' }, { value: '2', label: 'S' }, { value: '3', label: 'M' }, { value: '4', label: 'L' }]
 const int = (s: string) => Math.max(0, Math.trunc(Number(s) || 0))
 
 const TEST_SLIP = '/admin/settings/printer/test'
@@ -172,7 +172,7 @@ function Printers({ page }: { page: Page }) {
   }
   return (
     <Section title="Printers & labels" sub="Pick a printer this computer found, or type a network printer as tcp://192.168.1.50:9100. Label size is the default — change it per print." saved={s}
-      keys={['receiptPrinter', 'printAs', 'labelPrinter', 'labelWidthMm', 'labelHeightMm', 'labelGapMm', 'labelNameLines', 'labelBottomLines', 'labelNameFont', 'labelBottomFont']}>
+      keys={['receiptPrinter', 'printAs', 'labelPrinter', 'labelWidthMm', 'labelHeightMm', 'labelGapMm', 'labelNameLines', 'labelBottomLines', 'labelNameFont', 'labelBottomFont', 'labelPrintAs']}>
       {({ v, set }) => (
         <>
           <datalist id="ks-printers">{page.printers.map((p) => <option key={p} value={p} />)}</datalist>
@@ -192,17 +192,7 @@ function Printers({ page }: { page: Page }) {
             <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={testing || !s.receiptPrinter} onClick={() => void test()}><Printer size={16} /> Print a test slip</Button>
             <small className="text-[12px] text-faint">Uses the saved receipt printer and opens the drawer.</small>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="Width mm"><input className={INPUT} inputMode="numeric" value={v.labelWidthMm} onChange={(e) => set('labelWidthMm', int(e.target.value))} /></Field>
-            <Field label="Height mm"><input className={INPUT} inputMode="numeric" value={v.labelHeightMm} onChange={(e) => set('labelHeightMm', int(e.target.value))} /></Field>
-            <Field label="Gap mm"><input className={INPUT} inputMode="numeric" value={v.labelGapMm} onChange={(e) => set('labelGapMm', int(e.target.value))} /></Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Segmented label="Top text lines" value={v.labelNameLines} onChange={(x) => set('labelNameLines', x)} options={[1, 2, 3, 4].map((n) => ({ value: n, label: String(n) }))} />
-            <Segmented label="Bottom text lines" value={v.labelBottomLines} onChange={(x) => set('labelBottomLines', x)} options={[1, 2, 3, 4].map((n) => ({ value: n, label: String(n) }))} />
-            <Segmented label="Top text size" value={v.labelNameFont} onChange={(x) => set('labelNameFont', x)} options={FONT} />
-            <Segmented label="Bottom text size" value={v.labelBottomFont} onChange={(x) => set('labelBottomFont', x)} options={FONT} />
-          </div>
+          <LabelSettings v={v} set={set} />
         </>
       )}
     </Section>

@@ -41,9 +41,13 @@ func (h *handlers) labelInput(c echo.Context) (tspl.Input, string, error) {
 		}
 	}
 	w, hgt := labelSize(req.Size, cfg.LabelWidthMM, cfg.LabelHeightMM)
+	nameLines, bottomLines, nameFont, bottomFont := cfg.LabelNameLines, cfg.LabelBottomLines, cfg.LabelNameFont, cfg.LabelBottomFont
+	if l := req.Look; l != nil { // tspl clamps lines and falls back on an unknown font
+		nameLines, bottomLines, nameFont, bottomFont = l.FirstLines, l.SecondLines, l.FirstSize, l.SecondSize
+	}
 	return tspl.Input{
 		Top: strings.TrimSpace(req.Top), Bottom: strings.TrimSpace(req.Bottom),
-		NameLines: cfg.LabelNameLines, BottomLines: cfg.LabelBottomLines, NameFont: cfg.LabelNameFont, BottomFont: cfg.LabelBottomFont,
+		NameLines: nameLines, BottomLines: bottomLines, NameFont: nameFont, BottomFont: bottomFont,
 		Code: code, Format: req.Format, Count: min(max(req.Count, 1), 200),
 		WidthMM: w, HeightMM: hgt, GapMM: min(max(cfg.LabelGapMM, 0), 20),
 	}, cfg.LabelPrinter, nil
