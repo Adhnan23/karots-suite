@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"karots-suite/internal/demo"
+	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/printer"
 	"karots-suite/internal/demo/shops"
 )
@@ -41,6 +42,7 @@ type State struct {
 	Paused    bool            `json:"paused"`
 	Owner     Owner           `json:"owner"`
 	Shops     []shops.Profile `json:"shops"`
+	Cheats    []gen.CheatInfo `json:"cheats"`
 }
 
 type launcher struct {
@@ -228,7 +230,7 @@ func (l *launcher) restart(p shops.Profile) {
 				s.Phase, s.Error = "failed", err.Error()
 				return
 			}
-			s.Phase, s.Progress = "ready", 100
+			s.Phase, s.Progress, s.Cheats = "ready", 100, gen.CheatNames(p)
 		})
 	}()
 }

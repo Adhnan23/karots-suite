@@ -128,6 +128,9 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 	if ago%3 == 0 && len(g.s.cashiers) > 2 {
 		tills = []person{g.s.cashiers[0], g.s.cashiers[2]}
 	}
+	if ago == 0 { // today the staff are on; the shown cashier is the owner's to demo
+		tills = g.s.cashiers[1:min(3, len(g.s.cashiers))]
+	}
 	// Before 09:00 today has barely begun: the tills opened at midnight and a
 	// handful of sales came in since — the dashboard never opens on an empty day.
 	early := until < 9

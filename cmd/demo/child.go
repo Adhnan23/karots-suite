@@ -86,9 +86,14 @@ func runChild() int {
 		return 1
 	}
 
-	ctl := newControl(deps, a.Shop)
+	sim, err := gen.NewSim(context.Background(), deps, a.Shop)
+	if err != nil {
+		log.Printf("demo child: the shop's own trade: %v", err)
+		return 1
+	}
+	go sim.Run(context.Background())
 	go func() {
-		if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", a.Control), ctl); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", a.Control), newControl(sim)); err != nil {
 			log.Printf("demo child: control: %v", err)
 		}
 	}()
@@ -109,10 +114,20 @@ func runChild() int {
 	return 0
 }
 
-// newControl is the child's private server for the launcher: pause and cheats
-// (filled in by the alive simulator, Task 8).
-func newControl(d gen.Deps, p shops.Profile) http.Handler {
+// newControl is the child's private server for the launcher: pause the shop's
+// own trade, and the cheat moves.
+func newControl(sim *gen.Sim) http.Handler {
 	m := http.NewServeMux()
-	m.HandleFunc("POST /pause", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]bool{"ok": true}) })
+	m.HandleFunc("POST /pause", func(w http.ResponseWriter, r *http.Request) {
+		sim.Pause(r.URL.Query().Get("on") == "true")
+		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	})
+	m.HandleFunc("POST /cheat/{name}", func(w http.ResponseWriter, r *http.Request) {
+		if err := sim.Cheat(r.PathValue("name")); err != nil {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	})
 	return m
 }
