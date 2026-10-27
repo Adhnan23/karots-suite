@@ -18,7 +18,8 @@ type pluginGen struct {
 }
 
 var pluginGens = map[string]pluginGen{
-	"repairs": {setup: repairsSetup, daily: repairsDaily},
+	"repairs":  {setup: repairsSetup, daily: repairsDaily},
+	"recharge": {setup: rechargeSetup, daily: rechargeDaily},
 }
 
 func (g *gen) on(key string) bool { return slices.Contains(g.s.p.Plugins, key) }
