@@ -18,10 +18,10 @@ import (
 // Paper is one decoded job. Image-mode jobs give a PNG; a Classic (text) job —
 // what the suite falls back to when a picture fails — gives its text lines.
 type Paper struct {
-	PNG    []byte
-	Text   []string
-	Kick   bool // ESC p: the cash drawer was told to open
-	Copies int
+	PNG    []byte   `json:"-"` // served on its own, not inside the list
+	Text   []string `json:"text,omitempty"`
+	Kick   bool     `json:"kick"` // ESC p: the cash drawer was told to open
+	Copies int      `json:"copies"`
 }
 
 // DecodeESCPOS turns a receipt job into the slip: every GS v 0 band stacked

@@ -106,4 +106,6 @@ func (p *Printer) last() int64 {
 	return p.nextID
 }
 
+func (p *Printer) Kind() Kind { return p.kind }
+
 func (p *Printer) Close() error { return p.ln.Close() }
