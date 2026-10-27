@@ -66,7 +66,7 @@ internal/update/      self-update (M8c): signed manifest in the shop's bucket fo
                       swap / BootGuard rollback; restart = exit 75, the supervisor (systemd / karots-start) starts it
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
-migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes; next is 00012_
+migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles); next is 00013_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts
@@ -83,7 +83,10 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/features/till/  sell screen: cart/ (pure logic + reducer, Vitest), drawer/, catalog/, cart-ui/, pay/, checkout/
                       state in TillProvider (per-user sessionStorage); dialogs via TillUi; data via api.ts queries
   src/features/print/ Image printing: picture.ts (slip → PNG at printer dots), templates/ (one per slip kind),
-                      styles/<key>/ (the ten receipt styles' kits + whole-slip overrides; STYLES in styles/index.ts)
+                      styles/<key>/ (the ten receipt styles' kits + whole-slip overrides; STYLES in styles/index.ts),
+                      labels/ (labels as pictures: kit (paper, kinds, INK), codes (bars / QR at whole dots + quiet
+                      zones), registry (kinds + fallbacks), picture (labelPictureQuery), print (printLabel: Image or
+                      Classic, a failed picture prints Classic), LabelView; price/ = core's eight price styles)
   src/features/counter/ till tabs other than Sell (returns, credit, receipts, write-off, convert, labels, low stock,
                       warranty, suppliers, expenses): CounterPage (find | act), ProductFind/SaleFind, queries.ts
   src/features/admin/ admin screens by area (products, categories, units, groups, services, stock,
@@ -98,7 +101,9 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                         tillCartHints, tillLineHints, drawerSections (on: open|close), tillTenders,
                         tillTabs, tillReceiptKinds, slipTemplates (a plugin slip's Image-mode
                         template, by its ?data=1 kind — drawn with the style kit it gets, so it
-                        follows every receipt style; label + sample for Appearance), returnLineFields, reportCards, settingsSections,
+                        follows every receipt style; label + sample for Appearance), labelTemplates (a plugin's
+                        label kind "<plugin>.<kind>": sample + styles, Classic first; print it with printLabel),
+                        returnLineFields, reportCards, settingsSections,
                         productFormSections, before/after-sale); TillApi.addGroup = cart line groups
                         (kept together, stored on sale_items.line_group*, printed as one block);
                         TillApi.addPayout = money given to the customer (a sale may total below zero)

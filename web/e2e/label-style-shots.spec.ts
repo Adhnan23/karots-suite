@@ -44,3 +44,37 @@ test('every label style', async ({ page }) => {
       }
   }
 })
+
+// A Sinhala name on the A4 sheet in every price style (Image mode, vector).
+test('a Sinhala name, every price style, on the A4 sheet', async ({ page }) => {
+  test.setTimeout(120_000)
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill('0000000001')
+  await page.getByLabel('PIN').fill(process.env.POS_SYSTEM_PIN ?? '2273')
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.waitForURL(/\/admin/)
+  const settings = async (labelPrintAs: string) => {
+    const s = (await (await page.request.get('/api/v1/admin/settings')).json()).settings
+    expect((await page.request.put('/api/v1/admin/settings', { data: { ...s, labelPrintAs } })).ok()).toBe(true)
+  }
+  const style = async (price: string) => {
+    const a = await (await page.request.get('/api/v1/system/appearance')).json()
+    expect((await page.request.put('/api/v1/system/appearance', { data: { ...a, labelStyles: { price } } })).ok()).toBe(true)
+  }
+  await settings('image')
+  try {
+    for (const s of ['classic', 'pricetag', 'inverse', 'qrtag', 'dual', 'ticket', 'minimal', 'shelf']) {
+      await style(s)
+      for (const size of ['50x25', '100x50']) {
+        await page.goto(`/print/labels?code=4792024012348&format=EAN13&top=${encodeURIComponent('ඇන්කර් කිරි පිටි 400g')}&bottom=${encodeURIComponent('Rs 1,250.00')}&topKey=name&bottomKey=price&count=1&size=${size}`)
+        const one = page.getByRole('img', { name: 'Label 1' })
+        await expect(one.locator('[data-label-style]')).toHaveCount(1)
+        await page.evaluate(() => document.fonts.ready)
+        await one.screenshot({ path: `shots/${gate}/sinhala-${s}-${size}.png` })
+      }
+    }
+  } finally {
+    await style('classic')
+    await settings('classic')
+  }
+})

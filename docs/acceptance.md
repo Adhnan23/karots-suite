@@ -172,6 +172,6 @@ Work through each in both apps. Note anything missing, wrong, slower or confusin
 |---|---|---|
 | POS80 receipt printer | sale receipt, reprint, money / credit / warranty slips, Z, test slip from Settings | POST `/settings/printer/test`, POST `/print/:id`, POST `/money-receipts/:id/print` (admin + cashier), POST `/receipts/credit/:id/print` (admin + cashier), POST `/receipts/warranty/:claimId/print`, POST `/warranty/:claimId/print`, GET `/receipt/:id`, GET `/orders/print` |
 | Cash drawer on the printer | opens on cash events and no-sale (pin 2, else pin 5), not on card-only | POST `/drawer/open` |
-| Label printer | labels from the counter and admin, the default size from Settings | POST `/labels/send` (counter + admin), GET `/labels` (counter) |
+| Label printer | labels from the counter and admin, the default size from Settings; in **Image** mode (Settings → Print labels as) each price style at 50×25 and 38×25 scans (EAN-13 and the QR with a 2D scanner), a Sinhala name prints, Pharmacy's dose and Repairs' ticket labels print, and the A4 sheet matches | POST `/labels/send` (counter + admin), GET `/labels` (counter) |
 | Old-screen kiosk PC | till fits under 1080p, kiosk Konami exit (admin / system) | — |
 | A phone | every admin page and report at 360 px, Data and Settings | — |

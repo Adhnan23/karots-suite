@@ -197,3 +197,15 @@ bundled fonts only. A style changes the look, never what a slip says. Each style
 `web/src/features/print/styles/<key>/` (header, rules, rows, total band, barcode, footer); a style may draw a whole
 slip itself (`overrides`). Every style but Classic prints a Code 128 of the slip number, which the till's scan box
 opens.
+
+## 11. Label styles (Image printing)
+
+When Settings → Printers & labels → Print labels as is **Image**, every label is a React template drawn at label dots
+(8 per mm), sent as one TSPL `BITMAP`, and previewed as that same picture. Mockup:
+`docs/design/mockups/label-styles.html`. A style per **label kind**, picked by the system user on Appearance → Labels:
+**Price label** (core) Classic, Price Tag, Inverse, QR Tag, Dual, Ticket, Minimal, Shelf (≥ 70 mm wide, else Price
+Tag); **Dose label** (Pharmacy) Classic, Clear, Boxed; **Repair ticket** (Repairs) Classic, Job. The shop's First /
+Second text choices hold in every style; the price is the big one wherever it sits. Codes keep 2-dot modules and their
+quiet zones, or the label draws Classic ("Too small for this style" on Appearance). Labels are paper: black and white
+only (`INK`), bundled fonts, Sinhala / Tamil included. Classic labels (the printer's own fonts) stay the default.
+

@@ -5,23 +5,22 @@ every milestone.
 
 ## Next session (handoff 2026-10-26) — START HERE
 
-**Labels as pictures + label styles — IN PROGRESS, paused after Task 6 of 10 (user, 2026-10-26).**
-Spec `docs/specs/2026-10-26-labels-as-pictures-design.md`, plan `docs/plans/2026-10-26-labels-as-pictures.md`,
-mockup `docs/design/mockups/label-styles.html`. Progress ledger (git-ignored, rulings included):
-`.superpowers/sdd/2026-10-26-labels-as-pictures/progress.md` — resume with superpowers:executing-plans on the plan;
-tasks with a `complete` line are done. Decided with the user: the receipt **and** label Image / Classic switches
-stay, Classic default, until a real-printer test (no printers yet); "Top / Bottom line" is now **First text / Second
-text** (a style places them; the price is the big one wherever it is, else the second text); label styles are per
-label kind, picked by the system user on Appearance; the existing lines / size controls stay for both modes; QR
-styles need a 2D scanner (user recommends them; shops without one pick a barcode style).
-Done (each committed, tests green): T1 settings `label_print_as` + `label_styles` (migration 00012) · T2 server prints
-a label PNG as TSPL `BITMAP` (`tspl.ImageDocument`, `/till/labels`, `/till/labels/text`, `/admin/labels/send` take
-`image/png` + `?count&size`) · T3 web pipeline (`web/src/features/print/labels/`: kit, codes, Fit, registry,
-`labelPictureQuery`, `printLabel`, `LabelView`; `slots.labelTemplates`) · T4 every price-label caller prints via
-`printPriceLabels` + First / Second text · T5 Price Tag, Inverse, Ticket, Minimal · T6 QR Tag, Dual, Shelf + decode tests.
-**Next:** a visual spot-check of the eight price styles at 50×25 / 38×25 / 100×50 (only unit-tested so far — jsdom has
-no layout), then T7 plugin kinds (Pharmacy dose: Classic / Clear / Boxed; Repairs ticket: Classic / Job), T8
-Appearance → Labels, T9 Settings switch + live preview + A4 sheet, T10 e2e + shots + docs, then the final review.
+**Labels as pictures + label styles — BUILT (2026-10-27), waiting on the user's look.** Spec
+`docs/specs/2026-10-26-labels-as-pictures-design.md`, plan `docs/plans/2026-10-26-labels-as-pictures.md` (all 10
+tasks), mockup `docs/design/mockups/label-styles.html`, theme.md §11. Settings → Printers & labels → **Print labels
+as: Image (new) / Classic** — **Classic is still the default** (migration 00012). In Image mode every label is a React
+template drawn at 8 dots/mm and sent as one TSPL `BITMAP` (`/till/labels`, `/till/labels/text`, `/admin/labels/send`
+take `image/png` + `?count&size`); every preview is that picture; a failed picture prints Classic. Styles per label
+kind, picked by the system user on **Appearance → Labels**: price (core) Classic, Price Tag, Inverse, QR Tag, Dual,
+Ticket, Minimal, Shelf (≥ 70 mm); `pharmacy.dose` Classic, Clear, Boxed; `repairs.ticket` Classic, Job — plugins add
+kinds through `slots.labelTemplates`. "Top / Bottom" is now **First text / Second text** everywhere. Settings shows a
+live preview of unsaved choices in both modes (`LabelRequest.look`); the A4 sheet draws the style as vector. Sinhala /
+Tamil names print in Image mode. e2e `label-print.spec.ts` reads the real TSPL job off a TCP "printer".
+Found at the gates and fixed: no label picture ever drew in a browser (`shoot` ran `flushSync` inside React's commit),
+Minimal 38×25 digits over the bars, Shelf 100×50 hero cut beside the QR.
+Shots: `web/shots/ls8` + `web/shots/lbl` (every style × size, Sinhala on the A4 sheet, Appearance + Settings in
+Studio / Night × light / dark, desktop + 360). **Next:** the user looks; then the real-printer test (receipts + labels;
+`docs/acceptance.md` §5) — the Image / Classic switches stay until then.
 
 **Order after this (user, 2026-10-21):** real-printer test (receipts + labels) → M8d Demo Room → M8e Pocket Cashier groundwork.
 
