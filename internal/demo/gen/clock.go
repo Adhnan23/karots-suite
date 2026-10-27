@@ -3,6 +3,7 @@ package gen
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -139,6 +140,14 @@ func (tm *timeMachine) shift(ctx context.Context) error {
 	return tx.Commit()
 }
 
+// daysToMove is how many whole days a past whose last trade was at last moves so
+// it ends the day before now — counted in local calendar days (Sri Lanka is
+// UTC+5:30: its midnight is the previous day in UTC).
+func daysToMove(now, last time.Time) int {
+	gap := localDay(now).Sub(localDay(last.In(now.Location())))
+	return int(math.Round(gap.Hours()/24)) - 1
+}
+
 func dayOf(t time.Time) time.Time {
 	y, m, d := t.UTC().Date()
 	return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
@@ -152,7 +161,7 @@ func (tm *timeMachine) moveAll(ctx context.Context, today time.Time) error {
 	if err := tm.db.GetContext(ctx, &last, `SELECT COALESCE(max(created_at), now()) FROM sales`); err != nil {
 		return err
 	}
-	days := int(dayOf(today).Sub(dayOf(last)).Hours()/24) - 1
+	days := daysToMove(today, last)
 	if days <= 0 {
 		return nil
 	}

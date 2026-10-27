@@ -84,7 +84,7 @@ func Today(ctx context.Context, d Deps, p shops.Profile, now time.Time, progress
 		return err
 	}
 	progress(85, "Bringing it up to today")
-	if err := g.tm.moveAll(ctx, localDay(now)); err != nil {
+	if err := g.tm.moveAll(ctx, now); err != nil {
 		return err
 	}
 	if err := shopSettings(ctx, d, p); err != nil { // this run's printers

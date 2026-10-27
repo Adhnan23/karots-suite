@@ -227,6 +227,10 @@ func placeVCRT(dir string) error {
 	return os.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
 }
 
+// StopLeftover stops a Postgres still running on dir's data folder (Open does it
+// itself; a caller that clears the folder first — the Demo Room — needs it before).
+func StopLeftover(dir string) { stopLeftover(dir, filepath.Join(dir, "pg")) }
+
 // stopLeftover stops a Postgres still running on this folder after the app was
 // killed (a crash, a closed window): otherwise its port is busy and start fails.
 // The caller has already claimed the app's own port, so this is never a live shop.

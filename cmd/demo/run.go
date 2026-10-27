@@ -32,6 +32,13 @@ func demoDir() string {
 	return filepath.Join(base, "karots-suite-demo") // karots-pos's demo has its own "karots-demo"
 }
 
+// prepareDir readies the demo's folder: a PostgreSQL a crashed run left running
+// is stopped first (it would live on, and on Windows hold files), then its data goes.
+func prepareDir(dir string) error {
+	filedb.StopLeftover(dir)
+	return wipeData(dir)
+}
+
 // wipeData removes everything a previous run left that isn't PostgreSQL's
 // programs: the data folder, its password file and logs.
 func wipeData(dir string) error {
@@ -60,7 +67,7 @@ func runLauncher(port int) int {
 	}
 	dir := demoDir()
 	_ = os.MkdirAll(dir, 0o700)
-	if err := wipeData(dir); err != nil {
+	if err := prepareDir(dir); err != nil {
 		log.Printf("demo: clearing the last run: %v", err)
 		return 1
 	}
@@ -83,9 +90,9 @@ func runLauncher(port int) int {
 		return 1
 	}
 	exe, _ := os.Executable()
-	r := &childRunner{exe: exe, pg: pg, baseURL: fdb.URL, jwt: fdb.JWTSecret,
+	r := &childRunner{exe: exe, pg: pg, baseURL: fdb.URL,
 		receipt: receipt.Addr, label: label.Addr, logOutput: os.Stderr}
-	defer r.Stop()
+	defer r.Kill() // on the way out: no DROP, the data is wiped anyway — PostgreSQL stops sooner
 	l := newLauncher(seed, installID, r, []*printer.Printer{receipt, label}, uiFS())
 	srv := &http.Server{Handler: l.handler(), ReadHeaderTimeout: 10 * time.Second}
 	go func() { _ = srv.Serve(addr) }()

@@ -50,6 +50,10 @@ func demoInstallID() (string, error) {
 }
 
 func buildDemo(all []manifest, log io.Writer) error {
+	// without it the binary falls back to the dev seed and prints its unlock code
+	if os.Getenv("POS_SUPPORT_SECRET") == "" {
+		return fmt.Errorf("POS_SUPPORT_SECRET is not set — the Demo Room's lock needs it (set it in .env)")
+	}
 	id, err := demoInstallID()
 	if err != nil {
 		return err

@@ -21,7 +21,19 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
   tab (owner contact — **`internal/demo/brand.go` still has placeholders: ask the user for name + number**), Pause,
   Switch shop; demo logins tap-to-sign-in; receipts and labels slide out as the emulators decode the real jobs; cheat
   menu (Ctrl+Shift+D / five taps). Nothing persists (data wiped at start and exit; PostgreSQL's programs cached).
-- **Next:** the user looks; acceptance on the Windows VM (`docs/acceptance.md` §Demo); then the real-printer test.
+- **Final review (2026-10-27)** fixed: leftover PostgreSQL after a crash, empty yesterday in UTC+5:30, Monday-morning
+  future rows (and a 3-week restock on every launch), open lock without `POS_SUPPORT_SECRET`, shared sign-in secret.
+- **RESUME HERE (next session):**
+  1. **I3** — double-click on a shop card builds it twice (`cmd/demo/launcher.go` restart/waitIdle WaitGroup race):
+     mutex + generation counter, ignore a start for the shop already building, disable the cards after one click
+     (`web/demo/picker.ts`). Test first.
+  2. Deferred minors (decide): child ports unauthenticated on 127.0.0.1; Custom palette/style unvalidated + unescaped
+     `ks-plugins` meta; API with no shop → 302 not 503; Pause waits behind a long cheat / control POST has no timeout;
+     check-core doesn't guard web/src → web/demo imports; coarse Windows clock walls in the time machine.
+  3. Ask the user for the **owner name + phone** (`internal/demo/brand.go`).
+  4. `make demo` again (dist/demo is stale: built before the review fixes and the cache-folder rename), then the user's
+     look and the Windows VM acceptance (`docs/acceptance.md` §6). Ledger: `.superpowers/sdd/2026-10-27-demo-room/progress.md`.
+- Then the real-printer test.
 - The real-printer test still waits for printers. M8e Pocket Cashier groundwork comes after the Demo Room.
 
 **More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Appearance sections now fold away

@@ -300,3 +300,26 @@ func TestCreditWithinLimitsAndSafeIsDefault(t *testing.T) {
 		t.Error("no default safe: the setup checklist would still nag a year-old shop")
 	}
 }
+
+// Opened on a Monday before the 07:30 delivery: nothing may be stamped after now.
+func TestNothingAfterNowOnMondayMorning(t *testing.T) {
+	now := localDay(time.Now())
+	for now.Weekday() != time.Monday || !now.Before(time.Now()) {
+		now = now.AddDate(0, 0, -1)
+	}
+	now = now.Add(6 * time.Hour)
+	d := freshShop(t, small("grocery"), now, 30)
+	tm, err := newTimeMachine(context.Background(), d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	trade := map[string]bool{"sales": true, "payments": true, "purchases": true, "stock_batches": true, "stock_movements": true, "cash_register": true, "expenses": true}
+	for _, c := range tm.tsCols {
+		if c.column != "created_at" || !trade[c.table] { // sign-ins are at the real clock; this "now" is in the past
+			continue
+		}
+		if n := count(t, d, fmt.Sprintf(`SELECT count(*) FROM %q WHERE created_at > $1`, c.table), now.Add(time.Minute)); n != 0 {
+			t.Errorf("%s: %d rows after now", c.table, n)
+		}
+	}
+}

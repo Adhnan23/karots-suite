@@ -26,7 +26,6 @@ type childRunner struct {
 	exe       string   // this binary (a test passes a built one)
 	pg        *sqlx.DB // the launcher's connection, for CREATE / DROP DATABASE
 	baseURL   string   // the launcher database's URL; the child gets a sibling
-	jwt       string
 	receipt   string
 	label     string
 	logOutput io.Writer
@@ -70,8 +69,7 @@ func (r *childRunner) Start(p shops.Profile, progress func(int, string)) error {
 	r.dbName = name
 	_, _ = r.pg.Exec(`ALTER DATABASE ` + name + ` SET synchronous_commit = off`) // throwaway data
 	port, ctl := freePort(), freePort()
-	args, _ := json.Marshal(childArgs{DB: siblingURL(r.baseURL, name), Port: port, Control: ctl, JWTSecret: r.jwt,
-		ReceiptPrinter: r.receipt, LabelPrinter: r.label, Shop: p, Staff: p.Staff})
+	args, _ := json.Marshal(r.argsFor(name, p, port, ctl))
 	cmd := exec.Command(r.exe, "-child", string(args))
 	cmd.Stderr = r.logOutput
 	out, err := cmd.StdoutPipe()
@@ -115,10 +113,25 @@ func (r *childRunner) Start(p shops.Profile, progress func(int, string)) error {
 	return nil
 }
 
+// argsFor is what a shop's child gets. Each shop signs its sessions with its own
+// secret, so a sign-in from one shop never opens the next.
+func (r *childRunner) argsFor(name string, p shops.Profile, port, ctl int) childArgs {
+	return childArgs{DB: siblingURL(r.baseURL, name), Port: port, Control: ctl, JWTSecret: newToken(),
+		ReceiptPrinter: r.receipt, LabelPrinter: r.label, Shop: p, Staff: p.Staff}
+}
+
 func (r *childRunner) Stop() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.stopLocked()
+}
+
+// Kill ends the child without dropping its database (the demo is closing).
+func (r *childRunner) Kill() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.dbName = ""
+	_ = r.stopLocked()
 }
 
 // stopLocked ends the child and drops its database.

@@ -101,7 +101,7 @@ func rechargeDaily(g *gen, day time.Time, until float64) error {
 	if err != nil {
 		return err
 	}
-	if day.Weekday() == time.Monday {
+	if day.Weekday() == time.Monday && until > 10.6 { // the dealer comes mid-morning
 		if err := g.refillFloats(day, d); err != nil {
 			return err
 		}

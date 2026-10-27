@@ -118,8 +118,10 @@ func localDay(t time.Time) time.Time {
 // day is one trading day: deliveries, two tills, the sales, closing up.
 // closeAt < 0 leaves the tills open (today).
 func (g *gen) day(day time.Time, ago int, until float64) error {
-	if day.Weekday() == time.Monday || ago == g.days {
-		if err := g.restock(day, ago == g.days); err != nil {
+	// Monday's delivery comes at 07:30 — today, only if that has happened yet
+	opening := ago > 0 && ago == g.days // the empty shop's first delivery
+	if (day.Weekday() == time.Monday && until > 7.6) || opening {
+		if err := g.restock(day, opening); err != nil {
 			return err
 		}
 	}

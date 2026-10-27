@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -144,5 +145,13 @@ func TestWithDemoListRestoresCoreOnlyEvenOnFailure(t *testing.T) {
 	}
 	if g, _ := os.ReadFile(goF); !bytes.Equal(g, renderGo(nil)) {
 		t.Fatalf("Go list not core-only after a failed build:\n%s", g)
+	}
+}
+
+func TestDemoBuildRefusesWithoutTheSecret(t *testing.T) {
+	t.Setenv("POS_SUPPORT_SECRET", "")
+	err := buildDemo(nil, io.Discard)
+	if err == nil || !strings.Contains(err.Error(), "POS_SUPPORT_SECRET") {
+		t.Fatalf("err = %v, want a refusal naming POS_SUPPORT_SECRET", err)
 	}
 }
