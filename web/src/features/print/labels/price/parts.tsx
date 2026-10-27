@@ -74,9 +74,9 @@ export function BarRow({ d, width, height, digitsPx, gap }: { d: PriceLabel; wid
     )
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: Math.max(2, digitsPx / 4) }}>
       <BarsAt d={d} width={width} height={height - digitsPx} />
-      <Digits d={d} px={digitsPx} />
+      <Digits d={d} px={digitsPx} style={{ lineHeight: 1.3 }} />
     </div>
   )
 }

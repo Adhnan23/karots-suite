@@ -28,7 +28,7 @@ export function LabelView({ kind, data, size, classic, mode, style, className = 
   return (
     <figure className="flex flex-col items-center gap-2">
       {pic
-        ? <img src={pic.url} alt="Label as it prints" className={`${className} rounded-md bg-paper shadow-[var(--shadow)] [image-rendering:pixelated]`} style={{ aspectRatio: `${paper.w} / ${paper.h}` }} />
+        ? <img src={pic.url} alt="Label as it prints" data-label-style={pic.style} className={`${className} rounded-md bg-paper shadow-[var(--shadow)] [image-rendering:pixelated]`} style={{ aspectRatio: `${paper.w} / ${paper.h}` }} />
         : <div className={`${className} rounded-md bg-paper`} style={{ aspectRatio: `${paper.w} / ${paper.h}` }} />}
       <figcaption className="text-[12px] text-muted-foreground">{paper.wMm} × {paper.hMm} mm · as it prints</figcaption>
     </figure>

@@ -21,7 +21,7 @@ export function Shelf({ d, paper }: LabelTemplateProps<PriceLabel>) {
   return (
     <div style={{ height: '100%', padding: `${12 * k}px ${16 * k}px`, boxSizing: 'border-box', fontFamily: SANS_FAMILY, display: 'grid', gridTemplateColumns: '1fr auto', gridTemplateRows: 'auto 1fr auto', columnGap: 14 * k }}>
       <Text d={d} slot={other} px={17 * k} weight={700} style={{ gridColumn: '1 / 3' }} />
-      <div style={{ alignSelf: 'center', minWidth: 0 }}><Hero d={d} slot={h} px={75 * k} /></div>
+      <div style={{ alignSelf: 'center', minWidth: 0 }}><Hero d={d} slot={h} px={62 * k} /></div>
       <div style={{ alignSelf: 'center' }}><Qr value={d.code} module={qrModuleFor(d, 75 * k)} /></div>
       <div style={{ alignSelf: 'end' }}>
         <BarsAt d={d} width={paper.w * 0.45} height={Math.round(34 * k)} />

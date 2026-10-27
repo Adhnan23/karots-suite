@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import { PaletteEditor } from '@/features/appearance/PaletteEditor'
 import { PalettePicker } from '@/features/appearance/PalettePicker'
+import { LabelStyles } from '@/features/appearance/LabelStyles'
 import { appearanceQuery } from '@/features/appearance/queries'
 import { ReceiptStyles } from '@/features/appearance/ReceiptStyles'
 import { configQuery } from '@/features/till/api'
@@ -73,6 +74,8 @@ function SystemAppearance() {
       <PalettePicker appearance={form} onSaved={setForm} onEdit={setEditing} />
 
       <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
+
+      <LabelStyles value={form.labelStyles ?? {}} onChange={(labelStyles) => update({ labelStyles })} />
 
       <button
         type="button"

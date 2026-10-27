@@ -22,6 +22,9 @@ const withQuery = (path: string, q: Record<string, string | undefined>) => {
 /** Draws a node off screen, waits for it to settle and rasterises it (`rows`:
  * exactly that tall; `inspect` looks at the drawn node before it goes). */
 export async function shoot(el: ReactElement, dots: number, fonts: readonly string[], rows?: number, inspect?: (node: HTMLElement) => void): Promise<Blob> {
+  // Out of React's own render first: a query started while React commits would
+  // make flushSync a no-op and leave nothing to draw.
+  await Promise.resolve()
   const host = document.createElement('div')
   host.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none'
   document.body.appendChild(host)

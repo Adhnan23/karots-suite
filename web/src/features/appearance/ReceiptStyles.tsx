@@ -22,7 +22,7 @@ const SALES = [
   { label: 'On credit', key: 'credit' },
 ] as const
 
-function Seg<T extends string>({ label, options, value, onChange }: { label: string; options: readonly { label: string; key: T }[]; value: T; onChange: (v: T) => void }) {
+export function Seg<T extends string>({ label, options, value, onChange }: { label: string; options: readonly { label: string; key: T }[]; value: T; onChange: (v: T) => void }) {
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-0.5 rounded-pill bg-muted p-1">
       {options.map((o) => (
