@@ -14,12 +14,17 @@ for f in plugins/*/plugin.json; do [ -f "$f" ] && keys="$keys|$(basename "$(dirn
 
 src() {
   grep -rnE "$@" internal cmd web/src migrations --include='*.go' --include='*.ts' --include='*.tsx' --include='*.sql' \
-    | grep -v '^web/src/plugins/' | grep -v '^cmd/bootstrap/' | grep -v 'types.gen.ts' || true
+    | grep -v '^web/src/plugins/' | grep -v '^cmd/bootstrap/' | grep -v '^cmd/demo/' | grep -v '^internal/demo/' | grep -v 'types.gen.ts' || true
 }
 # \bWallet\b with a capital W is the lucide-react icon, not the tender.
 hits=$( { src -iw "$names" | grep -vE '\bWallet\b' ; src "plugins/($keys)\b|[\"'\`]($keys)[\"'\`]"; } || true)
 if [ -n "$hits" ]; then
   echo "core names a plugin:"; echo "$hits"; exit 1
+fi
+# The Demo Room (cmd/demo, internal/demo) may name plugins; core never imports it.
+demo=$(grep -rln '"karots-suite/internal/demo' internal cmd --include='*.go' | grep -vE '^(cmd/demo|internal/demo)/' || true)
+if [ -n "$demo" ]; then
+  echo "core imports the Demo Room:"; echo "$demo"; exit 1
 fi
 for f in cmd/server/enabled_plugins.go web/src/plugins/enabled-plugins.ts; do
   if [ -f "$f" ] && grep -qE "plugins/|from '\./" "$f"; then

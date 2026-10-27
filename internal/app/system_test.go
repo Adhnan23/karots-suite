@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ func TestSystemPINValidatorResolutionOrder(t *testing.T) {
 
 	// Seed present, no override: the current rotating code wins, a stale one loses.
 	t.Setenv("POS_SYSTEM_PIN", "")
-	v := systemPINValidator(seed)
+	v := SystemPINValidator(seed)
 	if !v(support.Code(seed, now), now) {
 		t.Fatal("current rotating code should validate")
 	}
@@ -23,7 +23,7 @@ func TestSystemPINValidatorResolutionOrder(t *testing.T) {
 
 	// Override set: only the override validates; the rotating code stops working.
 	t.Setenv("POS_SYSTEM_PIN", "778899")
-	v = systemPINValidator(seed)
+	v = SystemPINValidator(seed)
 	if !v("778899", now) {
 		t.Fatal("POS_SYSTEM_PIN override should validate")
 	}
@@ -33,7 +33,7 @@ func TestSystemPINValidatorResolutionOrder(t *testing.T) {
 
 	// No seed, no override: the 2273 fallback validates.
 	t.Setenv("POS_SYSTEM_PIN", "")
-	v = systemPINValidator(nil)
+	v = SystemPINValidator(nil)
 	if !v("2273", now) {
 		t.Fatal("2273 fallback should validate when no seed and no override")
 	}

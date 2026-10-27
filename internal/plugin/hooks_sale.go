@@ -39,7 +39,7 @@ type SaleLine struct {
 
 var saleLineHooks hook[SaleLineHook]
 
-func (r *Registry) AddSaleLineHook(h SaleLineHook) { saleLineHooks.add(current, h) }
+func (r *Registry) AddSaleLineHook(h SaleLineHook) { saleLineHooks.add(h) }
 
 func SaleLineHooks() []SaleLineHook { return saleLineHooks.all() }
 
@@ -72,6 +72,6 @@ type ReturnLine struct {
 
 var returnLineHooks hook[ReturnLineHook]
 
-func (r *Registry) AddReturnLineHook(h ReturnLineHook) { returnLineHooks.add(current, h) }
+func (r *Registry) AddReturnLineHook(h ReturnLineHook) { returnLineHooks.add(h) }
 
 func ReturnLineHooks() []ReturnLineHook { return returnLineHooks.all() }

@@ -165,32 +165,32 @@ var (
 	productReorderAnnotators hook[ProductReorderAnnotator]
 )
 
-func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(current, x) }
-func (r *Registry) AddProductMerger(m ProductMerger)   { productMergers.add(current, m) }
-func (r *Registry) AddCategoryMerger(m CategoryMerger) { categoryMergers.add(current, m) }
+func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
+func (r *Registry) AddProductMerger(m ProductMerger)   { productMergers.add(m) }
+func (r *Registry) AddCategoryMerger(m CategoryMerger) { categoryMergers.add(m) }
 func (r *Registry) AddProductSheetColumns(x ProductSheetColumns) {
-	productSheetColumns.add(current, x)
+	productSheetColumns.add(x)
 }
 func (r *Registry) AddProductSearchContributor(s ProductSearchContributor) {
-	productSearchers.add(current, s)
+	productSearchers.add(s)
 }
 func (r *Registry) AddProductMetaProvider(p ProductMetaProvider) {
-	productMetaProviders.add(current, p)
+	productMetaProviders.add(p)
 }
 func (r *Registry) AddProductBadgeProvider(p ProductBadgeProvider) {
-	productBadgeProviders.add(current, p)
+	productBadgeProviders.add(p)
 }
 func (r *Registry) AddProductSaleSuggestionProvider(p ProductSaleSuggestionProvider) {
-	productSaleSuggesters.add(current, p)
+	productSaleSuggesters.add(p)
 }
 func (r *Registry) AddProductDetailContributor(p ProductDetailContributor) {
-	productDetailProviders.add(current, p)
+	productDetailProviders.add(p)
 }
 func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
-	productLabelProviders.add(current, p)
+	productLabelProviders.add(p)
 }
 func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
-	productReorderAnnotators.add(current, a)
+	productReorderAnnotators.add(a)
 }
 
 func ProductExtrasHooks() []ProductExtras                   { return productExtras.all() }

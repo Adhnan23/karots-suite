@@ -45,13 +45,11 @@ func Migrate(sqlxDB *sqlx.DB) error {
 }
 
 // BuildServer assembles the complete HTTP server: static assets, health probe,
-// every feature's JSON API with its core seams wired, and the HTMX/Templ UI.
-// systemPIN is the login check for the hidden System account — the real server
-// passes its hourly-rotating validator, the demo passes a fixed one.
+// every feature's JSON API with its core seams wired, and the embedded SPA.
+// systemPIN is the login check for the hidden System account (SystemPINValidator).
 //
 // pre are extra middlewares registered before any route, so they see every
-// request. cmd/server passes none; cmd/demo passes its DEMO-chrome injector. It
-// is the only demo-specific seam into the otherwise-identical server.
+// request. cmd/server passes none; the Demo Room adds its chrome in its own proxy.
 func BuildServer(sqlxDB *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now time.Time) bool, pre ...echo.MiddlewareFunc) *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true

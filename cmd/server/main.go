@@ -208,8 +208,8 @@ func run() int {
 		time.Now().UTC().Format(time.RFC3339))
 
 	// Assemble the fully-wired server (static, health, every feature API with its
-	// core seams, and the HTMX/Templ UI) — shared with cmd/demo via internal/app.
-	e := app.BuildServer(sqlxDB, cfg, systemPINValidator(supportSeed))
+	// core seams, and the embedded SPA) — the Demo Room child builds the same one.
+	e := app.BuildServer(sqlxDB, cfg, app.SystemPINValidator(supportSeed))
 
 	// Background context cancelled on shutdown so long-lived workers stop cleanly.
 	bgCtx, bgCancel := context.WithCancel(context.Background())

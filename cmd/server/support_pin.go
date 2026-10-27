@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/hmac"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -43,41 +42,11 @@ func resolveSupportSeed(db *sqlx.DB) (seed []byte, source string, err error) {
 	return nil, "", nil
 }
 
-// systemPINValidator returns the login check for the System account.
-// Resolution order: POS_SYSTEM_PIN override → hourly rotating code (±1 hour) →
-// fixed 2273 fallback when the build has no seed at all.
-func systemPINValidator(seed []byte) func(pin string, now time.Time) bool {
-	override := os.Getenv("POS_SYSTEM_PIN")
-	return func(pin string, now time.Time) bool {
-		if override != "" {
-			return hmac.Equal([]byte(pin), []byte(override))
-		}
-		if seed != nil {
-			return support.Valid(seed, pin, now, 1)
-		}
-		return hmac.Equal([]byte(pin), []byte("2273"))
-	}
-}
-
 // installID reads this shop's identifier (migration 0055 generates one).
 func installID(db *sqlx.DB) (string, error) {
 	var id string
 	err := db.Get(&id, `SELECT COALESCE(install_id,'') FROM settings ORDER BY id LIMIT 1`)
 	return id, err
-}
-
-// adoptBakedInstallID makes the database agree with the id the binary was built
-// for, so the id the shop reads out is the one -support-pin expects. Without this
-// a rebuilt binary and its database could disagree, and the derived PIN would
-// simply not work with no clue as to why.
-func adoptBakedInstallID(db *sqlx.DB) error {
-	if installIDBaked == "" {
-		return nil
-	}
-	_, err := db.Exec(
-		`UPDATE settings SET install_id = $1 WHERE COALESCE(install_id,'') <> $1`,
-		support.Normalise(installIDBaked))
-	return err
 }
 
 // printSupportPIN answers "the shop is on the phone reading me their install id,

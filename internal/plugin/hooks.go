@@ -164,20 +164,20 @@ type ReadinessRow struct {
 }
 
 // Hook registration — plugins call these from Setup.
-func (r *Registry) AddTenderMethod(t TenderMethod) { tenderMethods.add(current, t) }
-func (r *Registry) AddLogoutGuard(g LogoutGuard)   { logoutGuards.add(current, g) }
-func (r *Registry) AddPLIncome(s PLIncome)         { plIncomes.add(current, s) }
-func (r *Registry) AddExpenseOwner(o ExpenseOwner) { expenseOwners.add(current, o) }
+func (r *Registry) AddTenderMethod(t TenderMethod) { tenderMethods.add(t) }
+func (r *Registry) AddLogoutGuard(g LogoutGuard)   { logoutGuards.add(g) }
+func (r *Registry) AddPLIncome(s PLIncome)         { plIncomes.add(s) }
+func (r *Registry) AddExpenseOwner(o ExpenseOwner) { expenseOwners.add(o) }
 func (r *Registry) AddActivityContributor(a ActivityContributor) {
-	activityContribs.add(current, a)
+	activityContribs.add(a)
 }
 func (r *Registry) AddMoneyLocationProvider(p MoneyLocationProvider) {
-	moneyLocationProviders.add(current, p)
+	moneyLocationProviders.add(p)
 }
 func (r *Registry) AddReadinessProvider(p ReadinessProvider) {
-	readinessProviders.add(current, p)
+	readinessProviders.add(p)
 }
-func (r *Registry) AddDataGroup(g DataGroup) { dataGroups.add(current, g) }
+func (r *Registry) AddDataGroup(g DataGroup) { dataGroups.add(g) }
 
 // DataGroup lets a plugin declare the database tables it owns, so the backup
 // layer can offer per-plugin include/exclude in a selective export and compute

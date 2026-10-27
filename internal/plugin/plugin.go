@@ -37,6 +37,31 @@ var registered []Plugin
 // plugin package; the bootstrapper controls which plugin packages are imported.
 func Register(p Plugin) { registered = append(registered, p) }
 
+// Only narrows the compiled-in plugins to keys (registration order kept) for a
+// process that runs a subset — the Demo Room's per-shop child. nil keeps all;
+// nothing in a shop build calls it. Call before SetupAll and Migrate. An
+// unknown key panics: asking for a plugin that isn't compiled in is a build bug.
+func Only(keys []string) {
+	if keys == nil {
+		return
+	}
+	want := map[string]bool{}
+	for _, k := range keys {
+		want[k] = true
+	}
+	var kept []Plugin
+	for _, p := range registered {
+		if want[p.Key()] {
+			kept = append(kept, p)
+			delete(want, p.Key())
+		}
+	}
+	for k := range want {
+		panic("plugin.Only: " + k + " is not compiled in")
+	}
+	registered = kept
+}
+
 // All returns the registered plugins in registration order.
 func All() []Plugin { return registered }
 
@@ -44,11 +69,6 @@ func All() []Plugin { return registered }
 // once from internal/app (startPlugins) before the Mux is mounted.
 func SetupAll(r *Registry) {
 	for _, p := range registered {
-		// Tag every contribution p registers with its name, so per-profile
-		// visibility (demo) can filter by plugin. Reset after, so any non-plugin
-		// registration is unowned (always visible).
-		current = p.Name()
 		p.Setup(r)
-		current = ""
 	}
 }
