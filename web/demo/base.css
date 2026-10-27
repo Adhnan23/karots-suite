@@ -1,0 +1,27 @@
+/* The launcher's own pages wear Studio until a shop is picked. */
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/sora/600.css";
+@import "@fontsource/sora/700.css";
+@import "../src/theme/tokens.css";
+@import "../src/theme/palettes/dock/studio.css";
+
+:root {
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-display: "Sora", var(--font-sans);
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.btn {
+  border: 0; border-radius: var(--pill); padding: 12px 22px; cursor: pointer;
+  background: var(--primary); color: var(--primary-foreground); font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease);
+}
+.btn:active { transform: scale(0.98); }
+.btn.quiet { background: var(--secondary); color: var(--secondary-foreground); }
+.muted { color: var(--muted-foreground); }
+.err { color: var(--danger); min-height: 1.4em; margin: 0; }

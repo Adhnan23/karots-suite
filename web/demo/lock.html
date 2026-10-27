@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" data-ui="dock" data-palette="studio">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Karots Demo Room</title>
+    <script type="module" src="./lock.ts"></script>
+  </head>
+  <body>
+    <main class="lock">
+      <form class="lock-card" autocomplete="off">
+        <h1>Karots Demo Room</h1>
+        <p class="muted">Enter this hour's code for install <b id="install">…</b></p>
+        <input id="code" name="ks-demo-code" inputmode="numeric" maxlength="6" aria-label="Code" autofocus />
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn" type="submit">Unlock</button>
+      </form>
+    </main>
+  </body>
+</html>

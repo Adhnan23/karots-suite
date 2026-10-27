@@ -7,6 +7,8 @@ web/playwright-report/
 .playwright-mcp/
 internal/spa/dist/*
 !internal/spa/dist/.gitkeep
+internal/demo/ui/dist/*
+!internal/demo/ui/dist/.gitkeep
 .superpowers/
 backups/
 /dist/

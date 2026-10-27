@@ -1,6 +1,7 @@
 package shops
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"slices"
@@ -55,5 +56,18 @@ func TestBuiltInsAreReal(t *testing.T) {
 		if len(p.Logins) != 3 || len(p.Staff) < 2 || p.Volume <= 0 {
 			t.Errorf("%s: logins %d, staff %d, volume %d", p.Key, len(p.Logins), len(p.Staff), p.Volume)
 		}
+	}
+}
+
+// The launcher hands a shop to its child as JSON: nothing it trades on may be lost.
+func TestProfileSurvivesJSON(t *testing.T) {
+	p, _ := ByKey("phone")
+	b, _ := json.Marshal(p)
+	var back Profile
+	if err := json.Unmarshal(b, &back); err != nil {
+		t.Fatal(err)
+	}
+	if back.Volume != p.Volume || back.Catalogue != p.Catalogue || len(back.Plugins) != len(p.Plugins) || len(back.Logins) != 3 {
+		t.Fatalf("after JSON: %+v", back)
 	}
 }

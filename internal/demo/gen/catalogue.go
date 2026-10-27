@@ -13,6 +13,7 @@ import (
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/products"
+	"karots-suite/internal/features/settings"
 	"karots-suite/internal/features/suppliers"
 )
 
@@ -127,6 +128,10 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 		return nil, fmt.Errorf("safe: %w", err)
 	}
 	s.safe = safe.ID
+	// the safe is where tills bank their cash (the setup checklist's last step)
+	if err := settings.NewRepository(d.DB).SetTillCash(ctx, &safe.ID, false); err != nil {
+		return nil, fmt.Errorf("default safe: %w", err)
+	}
 	card, err := lockers.NewService(d.DB).Create(ctx, lockers.CreateInput{Name: "Card machine (BOC)", Kind: lockers.KindCard}, s.owner.id)
 	if err != nil {
 		return nil, fmt.Errorf("card account: %w", err)

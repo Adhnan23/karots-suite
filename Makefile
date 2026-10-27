@@ -1,4 +1,4 @@
-.PHONY: demo-dev demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: demo-web demo-dev demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -16,6 +16,10 @@ types:
 web: types
 	cd web && bun install --frozen-lockfile && bun run build
 	touch internal/spa/dist/.gitkeep
+# The Demo Room's pages and chrome (cmd/demo only; never in a shop's SPA).
+demo-web:
+	cd web && bunx vite build --config demo/vite.config.ts
+	touch internal/demo/ui/dist/.gitkeep
 build: web
 	CGO_ENABLED=0 GOAMD64=v1 go build -ldflags="-s -w" -o bin/karots-suite ./cmd/server
 verify-portable:
@@ -76,6 +80,7 @@ core-only:
 demo-dev:
 	go run ./cmd/bootstrap -write-only -demo-list
 	$(MAKE) web; s=$$?; go run ./cmd/bootstrap -write-only -plugins none; exit $$s
+	$(MAKE) demo-web
 	mkdir -p internal/filedb/bundle && cp $$(ls $${XDG_CACHE_HOME:-$$HOME/.cache}/karots-suite-filedb/*linux-amd64*.txz | tail -1) internal/filedb/bundle/postgres.txz
 	go build -tags filemode -o bin/karots-demo ./cmd/demo; s=$$?; rm -rf internal/filedb/bundle; exit $$s
 	./bin/karots-demo

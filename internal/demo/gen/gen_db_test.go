@@ -290,3 +290,13 @@ func TestBackOffice(t *testing.T) {
 		}
 	}
 }
+
+func TestCreditWithinLimitsAndSafeIsDefault(t *testing.T) {
+	d, _ := grocery(t)
+	if n := count(t, d, `SELECT count(*) FROM customers WHERE outstanding_balance > credit_limit`); n != 0 {
+		t.Errorf("%d customers over their credit limit (only the cheat puts one there)", n)
+	}
+	if n := count(t, d, `SELECT count(*) FROM settings WHERE default_locker_id IS NOT NULL`); n != 1 {
+		t.Error("no default safe: the setup checklist would still nag a year-old shop")
+	}
+}

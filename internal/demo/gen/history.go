@@ -168,8 +168,8 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 	if err := g.pluginsDaily(day, until); err != nil {
 		return err
 	}
-	if until < 20.5 {
-		return nil // today: the tills stay open
+	if ago == 0 {
+		return nil // today: the tills stay open, whatever the hour
 	}
 	for _, c := range tills {
 		sum, err := g.d.Svc.CashRegister.Summary(g.ctx, c.id)
@@ -258,10 +258,9 @@ func (g *gen) sale(c person) error {
 	}
 	in := sales.CreateInput{SaleType: "retail", Items: items}
 	switch x := g.r.IntN(100); {
-	case x < 4 && len(g.s.customers) > 0:
-		cid := g.s.customers[g.r.IntN(len(g.s.customers))]
+	case x < 4 && len(g.s.customers) > 0 && g.creditRoom(g.s.customers[x%len(g.s.customers)], total):
+		cid := g.s.customers[x%len(g.s.customers)]
 		in.CustomerID = &cid
-		in.AllowOverLimit = true
 		in.Payments = []sales.PaymentInput{{Method: sales.MethodOnAccount, Amount: total.String()}}
 	case x < 24:
 		in.Payments = []sales.PaymentInput{{Method: "card", Amount: total.String(), AccountID: g.s.card}}
@@ -272,6 +271,14 @@ func (g *gen) sale(c person) error {
 		return fmt.Errorf("sale: %w", err)
 	}
 	return nil
+}
+
+// creditRoom: a regular only buys on account within their limit (the till would
+// stop it otherwise; the cheat menu has a customer who went over).
+func (g *gen) creditRoom(id int64, total decimal.Decimal) bool {
+	var room decimal.Decimal
+	err := g.d.DB.GetContext(g.ctx, &room, `SELECT credit_limit - outstanding_balance FROM customers WHERE id = $1`, id)
+	return err == nil && room.GreaterThanOrEqual(total)
 }
 
 // tendered is what a customer hands over: exact, or rounded up to the next

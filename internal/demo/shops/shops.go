@@ -25,7 +25,7 @@ type Profile struct {
 	Catalogue    string            `json:"catalogue"`   // grocery | pharmacy | phone | hardware | mixed
 	Logins       []Login           `json:"logins"`
 	Staff        []Login           `json:"-"`
-	Volume       int               `json:"-"` // average sales per day
+	Volume       int               `json:"volume"` // average sales per day
 }
 
 // ByKey finds a built-in shop.

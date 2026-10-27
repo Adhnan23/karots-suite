@@ -17,6 +17,7 @@ import (
 
 	"karots-suite/internal/db"
 	"karots-suite/internal/demo/printer"
+	"karots-suite/internal/demo/ui"
 	"karots-suite/internal/filedb"
 )
 
@@ -118,8 +119,14 @@ func claimPort(port int) (net.Listener, string) {
 	return nil, ""
 }
 
-// uiFS is the chrome's built files (Task 9); nil until they exist.
-var uiFS = func() fs.FS { return nil }
+// uiFS is the chrome's built files; nil until web/demo is built. KS_DEMO_UI_DIR
+// serves them from disk instead (dev: rebuild the chrome without the binary).
+func uiFS() fs.FS {
+	if d := os.Getenv("KS_DEMO_UI_DIR"); d != "" {
+		return os.DirFS(d)
+	}
+	return ui.FS()
+}
 
 func openBrowser(url string) {
 	var c *exec.Cmd

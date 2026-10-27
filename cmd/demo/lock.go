@@ -48,7 +48,7 @@ func (l *launcher) unlocked(r *http.Request) bool {
 func (l *launcher) guard(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := r.URL.Path
-		if p == "/__demo/lock" || p == "/__demo/unlock" || strings.HasPrefix(p, "/__demo/ui/") || l.unlocked(r) {
+		if p == "/__demo/lock" || p == "/__demo/unlock" || p == "/__demo/install" || strings.HasPrefix(p, "/__demo/ui/") || l.unlocked(r) {
 			next.ServeHTTP(w, r)
 			return
 		}

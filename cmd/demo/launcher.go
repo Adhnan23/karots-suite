@@ -85,6 +85,9 @@ func (l *launcher) handler() http.Handler {
 	m := http.NewServeMux()
 	m.HandleFunc("GET /__demo/lock", l.page("lock.html"))
 	m.HandleFunc("POST /__demo/unlock", l.unlock)
+	m.HandleFunc("GET /__demo/install", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"installId": l.installID}) // public: the PIN app needs it
+	})
 	if l.ui != nil {
 		m.Handle("GET /__demo/ui/", http.StripPrefix("/__demo/ui/", http.FileServerFS(l.ui)))
 	}
