@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { LABEL_SIZES } from '@/features/counter/labels/slots'
 import { paperOf } from '@/features/print/labels/kit'
@@ -39,15 +40,25 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
                 type="button"
                 aria-pressed={chosen === s.key}
                 onClick={() => onChange({ ...value, [kind.kind]: s.key })}
-                className="flex w-36 shrink-0 flex-col gap-1.5 rounded-[var(--radius)] border-2 border-transparent bg-card p-2 text-left shadow-[var(--shadow)] aria-pressed:border-brand sm:w-auto"
+                className="group flex w-36 shrink-0 flex-col gap-1.5 rounded-[var(--radius)] border-2 border-transparent bg-card p-2 text-left shadow-[var(--shadow)] aria-pressed:border-brand sm:w-auto"
               >
-                <svg viewBox={`0 0 ${paper.w} ${paper.h}`} aria-hidden className="block w-full overflow-hidden rounded-sm border border-border bg-paper">
-                  <foreignObject width={paper.w} height={paper.h}>
-                    <LabelPage kind={kind.kind} data={kind.sample} paper={paper} style={s.key} />
-                  </foreignObject>
-                </svg>
+                <div className="relative">
+                  <svg viewBox={`0 0 ${paper.w} ${paper.h}`} aria-hidden className="block w-full overflow-hidden rounded-sm border border-border bg-paper">
+                    <foreignObject width={paper.w} height={paper.h}>
+                      <LabelPage kind={kind.kind} data={kind.sample} paper={paper} style={s.key} />
+                    </foreignObject>
+                  </svg>
+                  {draws !== s.key && (
+                    // A warning in the corner; what it means shows on hover, or once the card is picked on a touch screen.
+                    <span className="absolute top-1 right-1">
+                      <TriangleAlert size={18} aria-hidden className="rounded-pill bg-card p-0.5 text-warning shadow-[var(--shadow)]" />
+                      <span role="note" className="pointer-events-none absolute top-6 right-0 z-10 hidden w-44 rounded-[var(--radius-sm)] bg-card px-2.5 py-1.5 text-left text-[12px] font-medium text-foreground shadow-[var(--shadow)] group-hover:block pointer-coarse:group-aria-pressed:block">
+                        Too small for this label size — prints as {kind.styles.find((x) => x.key === draws)?.label}
+                      </span>
+                    </span>
+                  )}
+                </div>
                 <span className="text-sm font-semibold">{s.label}</span>
-                {draws !== s.key && <span className="text-[11.5px] text-muted-foreground">Too small for this style — prints as {kind.styles.find((x) => x.key === draws)?.label}</span>}
               </button>
             )
           })}
