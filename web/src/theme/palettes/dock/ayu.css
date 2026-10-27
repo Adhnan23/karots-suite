@@ -94,7 +94,7 @@
   --danger: #ff6666;
   --danger-foreground: #1f2430;
   --destructive: var(--danger);
-  --warning: #ffa659;
+  --warning: #ffb454;
   --hero: #171b24;
   --hero-foreground: #cccac2;
   --hero-muted: #8a919e;
@@ -156,7 +156,7 @@
     --danger: #ff6666;
     --danger-foreground: #1f2430;
     --destructive: var(--danger);
-    --warning: #ffa659;
+    --warning: #ffb454;
     --hero: #171b24;
     --hero-foreground: #cccac2;
     --hero-muted: #8a919e;

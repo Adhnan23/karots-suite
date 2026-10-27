@@ -1,4 +1,4 @@
-/* Aurora palette (docs/specs/2026-10-27-more-palettes-design.md): ours: teal-to-violet gradients over a night sky; gradient brand fills, liquid glass cards, a slowly drifting glow. */
+/* Aurora palette (docs/specs/2026-10-27-more-palettes-design.md): ours: teal-to-violet gradients over a night sky; gradient brand fills, see-through cards (no blur: the sky moves), a slowly drifting glow. */
 
 :root[data-ui="dock"][data-palette="aurora"] {
   color-scheme: light;
@@ -44,7 +44,7 @@
   --chart-5: #9b5cff;
   --chart-6: #00c2a8;
   --bar: rgb(255 255 255 / .6);
-  --glass: blur(22px) saturate(160%);
+  --glass: none;
   --bg-art: linear-gradient(135deg, #e0fff6, #e6e9ff 50%, #ffe6f7);
   --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .35), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .3), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .35), transparent 60%), linear-gradient(135deg, #120a35, #031a1f);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .8), inset 0 0 0 1px rgb(255 255 255 / .4), 0 8px 30px rgb(20 33 61 / .1);
@@ -108,7 +108,7 @@
   --chart-5: #c08cff;
   --chart-6: #3ee6a0;
   --bar: rgb(16 18 48 / .6);
-  --glass: blur(22px) saturate(170%);
+  --glass: none;
   --bg-art: linear-gradient(135deg, #031a1f, #120a35 50%, #2a0626);
   --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .3), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .25), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .3), transparent 60%), linear-gradient(135deg, #0a0820, #031a1f);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .08), 0 8px 30px rgb(0 0 0 / .4);
@@ -173,7 +173,7 @@
     --chart-5: #c08cff;
     --chart-6: #3ee6a0;
     --bar: rgb(16 18 48 / .6);
-    --glass: blur(22px) saturate(170%);
+    --glass: none;
     --bg-art: linear-gradient(135deg, #031a1f, #120a35 50%, #2a0626);
     --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .3), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .25), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .3), transparent 60%), linear-gradient(135deg, #0a0820, #031a1f);
     --shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .08), 0 8px 30px rgb(0 0 0 / .4);
@@ -194,9 +194,15 @@
   }
 }
 
-/* Brand fills (main buttons, the dock's active item, badges) are the aurora gradient. */
-:root[data-ui="dock"][data-palette="aurora"] .bg-brand {
+/* Brand fills and the kit's main buttons are the aurora gradient; hover brightens it
+   (the gradient hides the kit's own hover colour). */
+:root[data-ui="dock"][data-palette="aurora"] .bg-brand,
+:root[data-ui="dock"][data-palette="aurora"] [data-slot="button"][data-variant="default"] {
   background-image: var(--sig-fill);
+}
+:root[data-ui="dock"][data-palette="aurora"] .bg-brand:hover,
+:root[data-ui="dock"][data-palette="aurora"] [data-slot="button"][data-variant="default"]:hover {
+  filter: brightness(1.08);
 }
 
 /* The sky drifts: one fixed layer behind the page, transform only, 40 s a loop. */
@@ -222,12 +228,11 @@
   }
 }
 
-/* Glass costs GPU time on weak counter PCs; drop it (and the drift) under reduced transparency. */
+/* Reduced transparency: solid cards and bars, and no drift. */
 @media (prefers-reduced-transparency: reduce) {
   :root[data-ui="dock"][data-palette="aurora"],
   :root[data-ui="dock"][data-palette="aurora"][data-theme="dark"],
   :root[data-ui="dock"][data-palette="aurora"]:not([data-theme="light"]) {
-    --glass: none;
     --card: var(--sig-solid);
     --bar: var(--sig-solid);
   }

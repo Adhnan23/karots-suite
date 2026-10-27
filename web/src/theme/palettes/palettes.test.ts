@@ -63,6 +63,19 @@ for (const id of NEW_PALETTES)
       expect(copy.extra.trim()).toBe(doc.extra.trim().replace(/\[data-palette="[^"]*"\]/g, '[data-palette="custom-1"]'))
     })
 
+    it('keeps status colours in their families (green / red / amber)', () => {
+      for (const [mode, tokens] of Object.entries(modes)) {
+        const h = (t: string) => hue(resolveToken(tokens, t) ?? '')
+        expect(h('--success'), `${mode} success`).toSatisfy((x: number) => x >= 55 && x <= 170)
+        expect(h('--danger'), `${mode} danger`).toSatisfy((x: number) => x >= 335 || x <= 15)
+        expect(h('--warning'), `${mode} warning`).toSatisfy((x: number) => x >= 28 && x <= 55)
+      }
+    })
+
+    it('never animates the background under a backdrop blur (a till PC would re-blur every frame)', () => {
+      if (/@keyframes/.test(css)) for (const t of [doc.light, doc.dark]) expect(t['--glass']).toBe('none')
+    })
+
     it('keeps its signature CSS safe', () => {
       expect(doc.extra).not.toMatch(/prefers-color-scheme/)
       if (/@keyframes/.test(css)) expect(css).toMatch(/prefers-reduced-motion:\s*reduce/)
@@ -71,6 +84,22 @@ for (const id of NEW_PALETTES)
       expect(css.split('\n').length).toBeLessThanOrEqual(500)
     })
   })
+
+/** Hue in degrees of an rgba() colour. */
+function hue(c: string): number {
+  const [r, g, b] = (c.match(/[\d.]+/g) ?? []).slice(0, 3).map((x) => Number(x) / 255)
+  const max = Math.max(r, g, b)
+  const d = max - Math.min(r, g, b)
+  if (!d) return 0
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return (h * 60 + 360) % 360
+}
+
+it('Aurora puts its gradient on the kit\'s main buttons too, not only hand-styled brand fills', () => {
+  const extra = parsePalette(FILES['/src/theme/palettes/dock/aurora.css']).extra
+  expect(extra).toMatch(/\.bg-brand/)
+  expect(extra).toMatch(/\[data-slot="button"\]\[data-variant="default"\]/)
+})
 
 describe('resolveToken', () => {
   it('follows var() and reads hex / rgb', () => {
