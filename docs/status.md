@@ -5,7 +5,21 @@ every milestone.
 
 ## Next session (handoff 2026-10-26) — START HERE
 
-**More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Spec
+**NEXT SESSION: M8d Demo Room, reimagined (user, 2026-10-27).** Start with a rethink, not karots-pos's design:
+karots-pos's Demo Room (`cmd/demo`, `internal/demogen`, `internal/demodb`) "doesn't work properly" (user). It's a
+reference for what to avoid, not a fork source. What the user wants:
+- **Something to demonstrate to a customer:** it has to look and feel like an existing, busy shop, full of running
+  data (sales history, stock moving, customers on credit, open tills, Who's on now, reports with real shapes), not an
+  empty install.
+- **With and without plugins:** show the suite with various plugin sets (a pharmacy, a phone / repair shop, a plain
+  grocery, …) and without any, so the customer sees what their own build would be.
+- **Brainstorm first:** spec, then plan. Things to settle: how the data stays "alive" (dates kept current, maybe
+  sales trickling in while demoing), how to switch shop / plugin set during a demo, how it ships (one double-click
+  binary like a file-mode shop), the fake printer, and the showcase extras (palettes, receipt and label styles).
+- The real-printer test still waits for printers. M8e Pocket Cashier groundwork comes after the Demo Room.
+
+**More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Appearance sections now fold away
+(current pick in each header, open state per device); Night / Lagoon reduced-transparency fallback fixed. Spec
 `docs/specs/2026-10-27-more-palettes-design.md`, plan `docs/plans/2026-10-27-more-palettes.md` (6 tasks), mockups
 `docs/design/mockups/palettes-famous.html` + `palettes-colourful.html`, theme.md §1.
 - **What:** 17 new Dock built-ins, the first five untouched, so 22 in one grid. The system user shows them to the owner
