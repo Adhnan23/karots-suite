@@ -28,6 +28,10 @@
 @import "./theme/palettes/dock/shadesofpurple.css";
 @import "./theme/palettes/dock/cobalt2.css";
 @import "./theme/palettes/dock/ayu.css";
+@import "./theme/palettes/dock/mango.css";
+@import "./theme/palettes/dock/pop.css";
+@import "./theme/palettes/dock/aurora.css";
+@import "./theme/palettes/dock/neumorph.css";
 
 /* dark: utilities follow the same rule as the palette tokens: an explicit Dark
  * pick, or System while the OS is dark. */

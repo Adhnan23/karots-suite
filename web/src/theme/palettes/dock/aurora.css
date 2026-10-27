@@ -1,0 +1,237 @@
+/* Aurora palette (docs/specs/2026-10-27-more-palettes-design.md): ours: teal-to-violet gradients over a night sky; gradient brand fills, liquid glass cards, a slowly drifting glow. */
+
+:root[data-ui="dock"][data-palette="aurora"] {
+  color-scheme: light;
+
+  --background: #eef3ff;
+  --card: rgb(255 255 255 / .66);
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --muted: #e6ebfa;
+  --secondary: #e6ebfa;
+  --accent: #e6ebfa;
+  --secondary-foreground: #14213d;
+  --accent-foreground: var(--foreground);
+  --border: #d8def0;
+  --input: #b8c2e0;
+  --scrim: rgb(20 33 61 / .4);
+  --foreground: #14213d;
+  --muted-foreground: #3a4a7a;
+  --faint: #6a77a0;
+  --brand: #5b4cf0;
+  --brand-foreground: #ffffff;
+  --brand-soft: #e4e1ff;
+  --brand-2: #00a892;
+  --brand-2-foreground: #04211d;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #5b4cf0;
+  --selected: #14213d;
+  --selected-foreground: #eef3ff;
+  --success: #0f8a5f;
+  --danger: #d42a4a;
+  --danger-foreground: #ffffff;
+  --destructive: var(--danger);
+  --warning: #a35f00;
+  --hero: #120a35;
+  --hero-foreground: #eafcff;
+  --hero-muted: #9fb7ff;
+  --chart-1: #5b4cf0;
+  --chart-2: #00a892;
+  --chart-3: #ff4fa3;
+  --chart-4: #3d8bff;
+  --chart-5: #9b5cff;
+  --chart-6: #00c2a8;
+  --bar: rgb(255 255 255 / .6);
+  --glass: blur(22px) saturate(160%);
+  --bg-art: linear-gradient(135deg, #e0fff6, #e6e9ff 50%, #ffe6f7);
+  --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .35), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .3), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .35), transparent 60%), linear-gradient(135deg, #120a35, #031a1f);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .8), inset 0 0 0 1px rgb(255 255 255 / .4), 0 8px 30px rgb(20 33 61 / .1);
+  --shadow-float: inset 0 0 0 1px rgb(255 255 255 / .5), 0 12px 40px rgb(20 33 61 / .18);
+  --glow: 0 0 0 1px rgb(91 76 240 / .3), 0 6px 22px rgb(91 76 240 / .4);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pill: 9999px;
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.25, .35, 1);
+  --lift: 1px;
+  --sig-solid: #ffffff;
+  --sig-fill: linear-gradient(90deg, #007a6d, #5b4cf0);
+  --sig-aurora: radial-gradient(40% 35% at 20% 25%, rgb(0 194 168 / .28), transparent 70%), radial-gradient(35% 30% at 75% 20%, rgb(106 92 255 / .24), transparent 70%), radial-gradient(40% 35% at 60% 80%, rgb(255 79 163 / .18), transparent 70%);
+}
+
+:root[data-ui="dock"][data-palette="aurora"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #070b1f;
+  --card: rgb(255 255 255 / .07);
+  --card-foreground: var(--foreground);
+  --popover: #161a3a;
+  --popover-foreground: var(--foreground);
+  --muted: #1b2045;
+  --secondary: #1b2045;
+  --accent: #1b2045;
+  --secondary-foreground: #eafcff;
+  --accent-foreground: var(--foreground);
+  --border: #2a3060;
+  --input: #3d4580;
+  --scrim: rgb(2 4 12 / .75);
+  --foreground: #eafcff;
+  --muted-foreground: #b8c6ff;
+  --faint: #8090c8;
+  --brand: #8a7dff;
+  --brand-foreground: #0a0820;
+  --brand-soft: #2a2560;
+  --brand-2: #00e5c0;
+  --brand-2-foreground: #031a1f;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #8a7dff;
+  --selected: #8a7dff;
+  --selected-foreground: #0a0820;
+  --success: #3ee6a0;
+  --danger: #ff5c8a;
+  --danger-foreground: #0a0820;
+  --destructive: var(--danger);
+  --warning: #ffc857;
+  --hero: #0a0820;
+  --hero-foreground: #eafcff;
+  --hero-muted: #9fb7ff;
+  --chart-1: #8a7dff;
+  --chart-2: #00e5c0;
+  --chart-3: #ff5cb3;
+  --chart-4: #5ca8ff;
+  --chart-5: #c08cff;
+  --chart-6: #3ee6a0;
+  --bar: rgb(16 18 48 / .6);
+  --glass: blur(22px) saturate(170%);
+  --bg-art: linear-gradient(135deg, #031a1f, #120a35 50%, #2a0626);
+  --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .3), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .25), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .3), transparent 60%), linear-gradient(135deg, #0a0820, #031a1f);
+  --shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .08), 0 8px 30px rgb(0 0 0 / .4);
+  --shadow-float: inset 0 0 0 1px rgb(255 255 255 / .12), 0 12px 40px rgb(0 0 0 / .55);
+  --glow: 0 0 0 1px rgb(138 125 255 / .5), 0 0 26px rgb(123 108 255 / .5);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pill: 9999px;
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, 1.25, .35, 1);
+  --lift: 1px;
+  --sig-solid: #141838;
+  --sig-fill: linear-gradient(90deg, #00d4b0, #8a7dff);
+  --sig-aurora: radial-gradient(40% 35% at 20% 25%, rgb(0 229 192 / .2), transparent 70%), radial-gradient(35% 30% at 75% 20%, rgb(123 108 255 / .24), transparent 70%), radial-gradient(40% 35% at 60% 80%, rgb(255 92 179 / .14), transparent 70%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ui="dock"][data-palette="aurora"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #070b1f;
+    --card: rgb(255 255 255 / .07);
+    --card-foreground: var(--foreground);
+    --popover: #161a3a;
+    --popover-foreground: var(--foreground);
+    --muted: #1b2045;
+    --secondary: #1b2045;
+    --accent: #1b2045;
+    --secondary-foreground: #eafcff;
+    --accent-foreground: var(--foreground);
+    --border: #2a3060;
+    --input: #3d4580;
+    --scrim: rgb(2 4 12 / .75);
+    --foreground: #eafcff;
+    --muted-foreground: #b8c6ff;
+    --faint: #8090c8;
+    --brand: #8a7dff;
+    --brand-foreground: #0a0820;
+    --brand-soft: #2a2560;
+    --brand-2: #00e5c0;
+    --brand-2-foreground: #031a1f;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: #8a7dff;
+    --selected: #8a7dff;
+    --selected-foreground: #0a0820;
+    --success: #3ee6a0;
+    --danger: #ff5c8a;
+    --danger-foreground: #0a0820;
+    --destructive: var(--danger);
+    --warning: #ffc857;
+    --hero: #0a0820;
+    --hero-foreground: #eafcff;
+    --hero-muted: #9fb7ff;
+    --chart-1: #8a7dff;
+    --chart-2: #00e5c0;
+    --chart-3: #ff5cb3;
+    --chart-4: #5ca8ff;
+    --chart-5: #c08cff;
+    --chart-6: #3ee6a0;
+    --bar: rgb(16 18 48 / .6);
+    --glass: blur(22px) saturate(170%);
+    --bg-art: linear-gradient(135deg, #031a1f, #120a35 50%, #2a0626);
+    --hero-art: radial-gradient(420px 260px at 100% 0%, rgb(0 229 192 / .3), transparent 60%), radial-gradient(380px 260px at 0% 100%, rgb(255 92 179 / .25), transparent 60%), radial-gradient(300px 200px at 50% 50%, rgb(123 108 255 / .3), transparent 60%), linear-gradient(135deg, #0a0820, #031a1f);
+    --shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .08), 0 8px 30px rgb(0 0 0 / .4);
+    --shadow-float: inset 0 0 0 1px rgb(255 255 255 / .12), 0 12px 40px rgb(0 0 0 / .55);
+    --glow: 0 0 0 1px rgb(138 125 255 / .5), 0 0 26px rgb(123 108 255 / .5);
+    --radius: 16px;
+    --radius-sm: 12px;
+    --pill: 9999px;
+    --dur-fast: 140ms;
+    --dur: 220ms;
+    --dur-slow: 320ms;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --ease-spring: cubic-bezier(.2, 1.25, .35, 1);
+    --lift: 1px;
+    --sig-solid: #141838;
+    --sig-fill: linear-gradient(90deg, #00d4b0, #8a7dff);
+    --sig-aurora: radial-gradient(40% 35% at 20% 25%, rgb(0 229 192 / .2), transparent 70%), radial-gradient(35% 30% at 75% 20%, rgb(123 108 255 / .24), transparent 70%), radial-gradient(40% 35% at 60% 80%, rgb(255 92 179 / .14), transparent 70%);
+  }
+}
+
+/* Brand fills (main buttons, the dock's active item, badges) are the aurora gradient. */
+:root[data-ui="dock"][data-palette="aurora"] .bg-brand {
+  background-image: var(--sig-fill);
+}
+
+/* The sky drifts: one fixed layer behind the page, transform only, 40 s a loop. */
+:root[data-ui="dock"][data-palette="aurora"] body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--sig-aurora);
+  animation: ks-aurora-drift 40s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes ks-aurora-drift {
+  from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
+  to { transform: translate3d(4%, 3%, 0) rotate(8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ui="dock"][data-palette="aurora"] body::before {
+    animation: none;
+  }
+}
+
+/* Glass costs GPU time on weak counter PCs; drop it (and the drift) under reduced transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-ui="dock"][data-palette="aurora"],
+  :root[data-ui="dock"][data-palette="aurora"][data-theme="dark"],
+  :root[data-ui="dock"][data-palette="aurora"]:not([data-theme="light"]) {
+    --glass: none;
+    --card: var(--sig-solid);
+    --bar: var(--sig-solid);
+  }
+  :root[data-ui="dock"][data-palette="aurora"] body::before {
+    animation: none;
+  }
+}

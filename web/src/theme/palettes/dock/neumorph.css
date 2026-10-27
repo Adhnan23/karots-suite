@@ -1,0 +1,200 @@
+/* Neumorph palette (docs/specs/2026-10-27-more-palettes-design.md): ours: neumorphism. Cards the colour of the page, raised by a soft light-and-dark double shadow; pressed controls sink in. */
+
+:root[data-ui="dock"][data-palette="neumorph"] {
+  color-scheme: light;
+
+  --background: #e0e5ec;
+  --card: #e0e5ec;
+  --card-foreground: var(--foreground);
+  --popover: #e9edf3;
+  --popover-foreground: var(--foreground);
+  --muted: #d6dce5;
+  --secondary: #d6dce5;
+  --accent: #d6dce5;
+  --secondary-foreground: #2d3748;
+  --accent-foreground: var(--foreground);
+  --border: #d1d8e2;
+  --input: #c3ccd8;
+  --scrim: rgb(45 55 72 / .35);
+  --foreground: #2d3748;
+  --muted-foreground: #4a5568;
+  --faint: #687384;
+  --brand: #4c56c9;
+  --brand-foreground: #ffffff;
+  --brand-soft: #d5d9f5;
+  --brand-2: #2bb3a3;
+  --brand-2-foreground: #0f2a27;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #4c56c9;
+  --selected: #d3d9e3;
+  --selected-foreground: #3a43b0;
+  --success: #2f855a;
+  --danger: #c53030;
+  --danger-foreground: #ffffff;
+  --destructive: var(--danger);
+  --warning: #9c5b00;
+  --hero: #2d3748;
+  --hero-foreground: #edf2f7;
+  --hero-muted: #a0aec0;
+  --chart-1: #5a67d8;
+  --chart-2: #2bb3a3;
+  --chart-3: #ed8936;
+  --chart-4: #4299e1;
+  --chart-5: #d53f8c;
+  --chart-6: #48bb78;
+  --bar: #e0e5ec;
+  --glass: none;
+  --bg-art: none;
+  --hero-art: linear-gradient(135deg, #2d3748, #3c4a60);
+  --shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+  --shadow-float: 10px 10px 24px #b3b9c2, -10px -10px 24px #ffffff;
+  --glow: 4px 4px 10px #b8bec7, -4px -4px 10px #ffffff;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pill: 9999px;
+  --dur-fast: 150ms;
+  --dur: 230ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(.25, .8, .25, 1);
+  --ease-spring: cubic-bezier(.25, 1.15, .35, 1);
+  --lift: 0px;
+  --sig-inset: inset 4px 4px 8px #b8bec7, inset -4px -4px 8px #ffffff;
+}
+
+:root[data-ui="dock"][data-palette="neumorph"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #2a2d32;
+  --card: #2a2d32;
+  --card-foreground: var(--foreground);
+  --popover: #31353b;
+  --popover-foreground: var(--foreground);
+  --muted: #25282c;
+  --secondary: #25282c;
+  --accent: #25282c;
+  --secondary-foreground: #e6e8eb;
+  --accent-foreground: var(--foreground);
+  --border: #2f3338;
+  --input: #3c4148;
+  --scrim: rgb(10 11 13 / .7);
+  --foreground: #e6e8eb;
+  --muted-foreground: #b9bec6;
+  --faint: #8b929c;
+  --brand: #7c86ff;
+  --brand-foreground: #14161a;
+  --brand-soft: #363a5c;
+  --brand-2: #3cc9b8;
+  --brand-2-foreground: #0f2a27;
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: #7c86ff;
+  --selected: #23262a;
+  --selected-foreground: #a3abff;
+  --success: #48c78e;
+  --danger: #ff6b6b;
+  --danger-foreground: #14161a;
+  --destructive: var(--danger);
+  --warning: #f6c454;
+  --hero: #1f2226;
+  --hero-foreground: #e6e8eb;
+  --hero-muted: #8b929c;
+  --chart-1: #7c86ff;
+  --chart-2: #3cc9b8;
+  --chart-3: #f6ad55;
+  --chart-4: #63b3ed;
+  --chart-5: #f687b3;
+  --chart-6: #48c78e;
+  --bar: #2a2d32;
+  --glass: none;
+  --bg-art: none;
+  --hero-art: linear-gradient(135deg, #1f2226, #2a2d32);
+  --shadow: 6px 6px 12px #1d1f23, -6px -6px 12px #373b41;
+  --shadow-float: 10px 10px 24px #181a1d, -10px -10px 24px #3a3e45;
+  --glow: 4px 4px 10px #1d1f23, -4px -4px 10px #373b41;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pill: 9999px;
+  --dur-fast: 150ms;
+  --dur: 230ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(.25, .8, .25, 1);
+  --ease-spring: cubic-bezier(.25, 1.15, .35, 1);
+  --lift: 0px;
+  --sig-inset: inset 4px 4px 8px #1d1f23, inset -4px -4px 8px #373b41;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ui="dock"][data-palette="neumorph"]:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #2a2d32;
+    --card: #2a2d32;
+    --card-foreground: var(--foreground);
+    --popover: #31353b;
+    --popover-foreground: var(--foreground);
+    --muted: #25282c;
+    --secondary: #25282c;
+    --accent: #25282c;
+    --secondary-foreground: #e6e8eb;
+    --accent-foreground: var(--foreground);
+    --border: #2f3338;
+    --input: #3c4148;
+    --scrim: rgb(10 11 13 / .7);
+    --foreground: #e6e8eb;
+    --muted-foreground: #b9bec6;
+    --faint: #8b929c;
+    --brand: #7c86ff;
+    --brand-foreground: #14161a;
+    --brand-soft: #363a5c;
+    --brand-2: #3cc9b8;
+    --brand-2-foreground: #0f2a27;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --ring: #7c86ff;
+    --selected: #23262a;
+    --selected-foreground: #a3abff;
+    --success: #48c78e;
+    --danger: #ff6b6b;
+    --danger-foreground: #14161a;
+    --destructive: var(--danger);
+    --warning: #f6c454;
+    --hero: #1f2226;
+    --hero-foreground: #e6e8eb;
+    --hero-muted: #8b929c;
+    --chart-1: #7c86ff;
+    --chart-2: #3cc9b8;
+    --chart-3: #f6ad55;
+    --chart-4: #63b3ed;
+    --chart-5: #f687b3;
+    --chart-6: #48c78e;
+    --bar: #2a2d32;
+    --glass: none;
+    --bg-art: none;
+    --hero-art: linear-gradient(135deg, #1f2226, #2a2d32);
+    --shadow: 6px 6px 12px #1d1f23, -6px -6px 12px #373b41;
+    --shadow-float: 10px 10px 24px #181a1d, -10px -10px 24px #3a3e45;
+    --glow: 4px 4px 10px #1d1f23, -4px -4px 10px #373b41;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --pill: 9999px;
+    --dur-fast: 150ms;
+    --dur: 230ms;
+    --dur-slow: 320ms;
+    --ease: cubic-bezier(.25, .8, .25, 1);
+    --ease-spring: cubic-bezier(.25, 1.15, .35, 1);
+    --lift: 0px;
+    --sig-inset: inset 4px 4px 8px #1d1f23, inset -4px -4px 8px #373b41;
+  }
+}
+
+/* Pressed and chosen controls, and fields, sink into the surface. Skipped while
+   focused, so every component's own focus ring still shows. */
+:root[data-ui="dock"][data-palette="neumorph"] [aria-pressed="true"]:not(:focus-visible),
+:root[data-ui="dock"][data-palette="neumorph"] [aria-checked="true"]:not(:focus-visible),
+:root[data-ui="dock"][data-palette="neumorph"] [aria-selected="true"]:not(:focus-visible),
+:root[data-ui="dock"][data-palette="neumorph"] input:not([type="checkbox"], [type="radio"], [type="range"]):not(:focus-visible),
+:root[data-ui="dock"][data-palette="neumorph"] select:not(:focus-visible),
+:root[data-ui="dock"][data-palette="neumorph"] textarea:not(:focus-visible) {
+  box-shadow: var(--sig-inset);
+}

@@ -22,6 +22,10 @@ export const PALETTES = [
   { id: 'shadesofpurple', theme: THEME, name: 'Shades of Purple', swatch: { light: '#F5F2FF', dark: '#2D2B55', brand: '#FAD000' } },
   { id: 'cobalt2', theme: THEME, name: 'Cobalt2', swatch: { light: '#EEF5FF', dark: '#193549', brand: '#FFC600' } },
   { id: 'ayu', theme: THEME, name: 'Ayu', swatch: { light: '#FCFCFC', dark: '#1F2430', brand: '#FFCC66' } },
+  { id: 'mango', theme: THEME, name: 'Mango', swatch: { light: '#FFF7E8', dark: '#2A1408', brand: '#FF6B00' } },
+  { id: 'pop', theme: THEME, name: 'Pop', swatch: { light: '#FFFDF5', dark: '#151515', brand: '#E0261B' } },
+  { id: 'aurora', theme: THEME, name: 'Aurora', swatch: { light: '#EEF3FF', dark: '#070B1F', brand: '#8A7DFF' } },
+  { id: 'neumorph', theme: THEME, name: 'Neumorph', swatch: { light: '#E0E5EC', dark: '#2A2D32', brand: '#5A67D8' } },
 ] as const
 
 /** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */
