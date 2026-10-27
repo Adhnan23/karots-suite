@@ -82,6 +82,9 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	cats := map[string]int64{}
 	catSvc, prodSvc := categories.NewService(d.DB), products.NewService(d.DB)
 	for _, l := range strings.Split(strings.TrimSpace(lines), "\n") {
+		if strings.TrimSpace(l) == "" {
+			continue // the mixed catalogue joins several lists
+		}
 		f := strings.Split(l, ";")
 		if _, ok := cats[f[0]]; !ok {
 			c, err := catSvc.Create(ctx, categories.CreateInput{Name: f[0]})

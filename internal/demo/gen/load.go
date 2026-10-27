@@ -26,6 +26,9 @@ func loadShop(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	}
 	cats := map[string]int{}
 	for _, l := range strings.Split(strings.TrimSpace(lines), "\n") {
+		if strings.TrimSpace(l) == "" {
+			continue // the mixed catalogue joins several lists
+		}
 		f := strings.Split(l, ";")
 		if _, ok := cats[f[0]]; !ok {
 			cats[f[0]] = len(cats)

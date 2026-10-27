@@ -5,6 +5,7 @@
 package gentest
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand/v2"
@@ -17,6 +18,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"karots-suite/internal/app"
+	"karots-suite/internal/backup"
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	_ "karots-suite/internal/demo/allplugins"
@@ -70,6 +72,36 @@ func counting(h http.Handler) http.Handler {
 	})
 }
 
+// openDB is an empty migrated database on the test server, and its server.
+func openDB(base string, admin *sqlx.DB) (gen.Deps, string, error) {
+	name := fmt.Sprintf("demo_gentest_%d", rand.Uint32())
+	if _, err := admin.Exec(`CREATE DATABASE ` + name); err != nil {
+		return gen.Deps{}, "", err
+	}
+	admin.Exec(`ALTER DATABASE ` + name + ` SET synchronous_commit = off`)
+	i := strings.LastIndex(base, "/")
+	q := ""
+	if j := strings.Index(base[i:], "?"); j >= 0 {
+		q = base[i+j:]
+	}
+	sh, err := db.Connect(base[:i+1] + name + q)
+	if err != nil {
+		return gen.Deps{}, name, err
+	}
+	if err := app.Migrate(sh); err != nil {
+		return gen.Deps{}, name, err
+	}
+	if err := app.EnsureSystemAdmin(sh, ""); err != nil {
+		return gen.Deps{}, name, err
+	}
+	cfg := &config.Config{Env: "production", JWTSecret: strings.Repeat("x", 40), JWTAccessTTL: time.Hour, JWTRefreshTTL: time.Hour}
+	v := app.SystemPINValidator(nil)
+	return gen.Deps{DB: sh, Svc: app.NewServices(sh, cfg, v), API: counting(app.BuildServer(sh, cfg, v)),
+		ReceiptPrinter: "127.0.0.1:9101", LabelPrinter: "127.0.0.1:9102"}, name, nil
+}
+
+// build goes the launch way: the past as of three days ago, kept as a backup
+// (as make demo does), restored into a fresh database and brought to today.
 func build() (func(), error) {
 	base := os.Getenv("DATABASE_URL")
 	if base == "" {
@@ -79,37 +111,42 @@ func build() (func(), error) {
 	if err != nil {
 		return nil, err
 	}
-	name := fmt.Sprintf("demo_gentest_%d", rand.Uint32())
-	if _, err := admin.Exec(`CREATE DATABASE ` + name); err != nil {
-		return nil, err
-	}
-	admin.Exec(`ALTER DATABASE ` + name + ` SET synchronous_commit = off`)
+	var names []string
+	var dbs []*sqlx.DB
 	drop := func() {
-		if shopDB != nil {
-			shopDB.Close()
+		for _, d := range dbs {
+			d.Close()
 		}
-		admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`)
+		for _, n := range names {
+			admin.Exec(`DROP DATABASE IF EXISTS ` + n + ` WITH (FORCE)`)
+		}
 		admin.Close()
 	}
-	i := strings.LastIndex(base, "/")
-	q := ""
-	if j := strings.Index(base[i:], "?"); j >= 0 {
-		q = base[i+j:]
-	}
-	if shopDB, err = db.Connect(base[:i+1] + name + q); err != nil {
+	ctx := context.Background()
+	past, name, err := openDB(base, admin)
+	names = append(names, name)
+	if err != nil {
 		return drop, err
 	}
-	if err := app.Migrate(shopDB); err != nil {
+	dbs = append(dbs, past.DB)
+	if err := gen.Past(ctx, past, shop, now.AddDate(0, 0, -3), 60, func(int, string) {}); err != nil {
 		return drop, err
 	}
-	if err := app.EnsureSystemAdmin(shopDB, ""); err != nil {
+	var buf bytes.Buffer
+	if err := backup.Dump(ctx, past.DB, now.Format(time.RFC3339), &buf, backup.DumpOpts{}); err != nil {
 		return drop, err
 	}
-	cfg := &config.Config{Env: "production", JWTSecret: strings.Repeat("x", 40), JWTAccessTTL: time.Hour, JWTRefreshTTL: time.Hour}
-	v := app.SystemPINValidator(nil)
-	d := gen.Deps{DB: shopDB, Svc: app.NewServices(shopDB, cfg, v), API: counting(app.BuildServer(shopDB, cfg, v)),
-		ReceiptPrinter: "127.0.0.1:9101", LabelPrinter: "127.0.0.1:9102"}
-	return drop, gen.Run(context.Background(), d, shop, now, 60, func(int, string) {})
+	d, name, err := openDB(base, admin)
+	names = append(names, name)
+	if err != nil {
+		return drop, err
+	}
+	dbs = append(dbs, d.DB)
+	shopDB = d.DB
+	if _, err := backup.Restore(ctx, d.DB, &buf); err != nil {
+		return drop, err
+	}
+	return drop, gen.Today(ctx, d, shop, now, func(int, string) {})
 }
 
 func need(t *testing.T) *sqlx.DB {
@@ -130,6 +167,17 @@ func count(t *testing.T, q string, args ...any) int {
 		t.Fatalf("%s: %v", q, err)
 	}
 	return n
+}
+
+func TestTodayTraded(t *testing.T) {
+	need(t)
+	y, m, d := now.Date()
+	if n := count(t, `SELECT count(*) FROM sales WHERE created_at >= $1`, time.Date(y, m, d, 0, 0, 0, 0, now.Location())); n == 0 {
+		t.Error("no sales today after the restore")
+	}
+	if n := count(t, `SELECT count(*) FROM sales WHERE created_at > $1`, now); n != 0 {
+		t.Errorf("%d sales after now", n)
+	}
 }
 
 func TestIntegrity(t *testing.T) {
@@ -159,6 +207,19 @@ var pluginTables = map[string][2]string{
 	"documents": {"doc_job", "created_at"},
 	"combos":    {"combo_sales", "created_at"},
 	"pharmacy":  {"pharmacy_dispenses", "dispensed_at"},
+	"requests":  {"requests", "created_at"},
+}
+
+// setupTables: plugins set up once, with no daily life.
+var setupTables = map[string]string{"alternatives": "alt_members", "productplus": "pp_values", "clearance": "clearance_settings"}
+
+func TestEachPluginIsSetUp(t *testing.T) {
+	need(t)
+	for _, k := range shop.Plugins {
+		if tb, ok := setupTables[k]; ok && count(t, `SELECT count(*) FROM `+tb) == 0 {
+			t.Errorf("%s: nothing in %s", k, tb)
+		}
+	}
 }
 
 func TestEachPluginHasAPast(t *testing.T) {
