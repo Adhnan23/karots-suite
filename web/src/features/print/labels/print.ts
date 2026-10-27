@@ -13,13 +13,17 @@ export async function printLabel(o: { kind: string; data: unknown; size: string;
   const cfg = queryClient.getQueryData(configQuery.queryKey) ?? (await queryClient.fetchQuery(configQuery))
   if (cfg.labelPrintAs === 'image') {
     const paper = paperOf(o.size, cfg.labelSize)
-    try {
-      const pic = await queryClient.fetchQuery(labelPictureQuery(o.kind, o.data, paper))
+    const pic = await queryClient.fetchQuery(labelPictureQuery(o.kind, o.data, paper)).catch((e) => console.warn('label picture failed, printing Classic', e))
+    if (pic) {
       const q = new URLSearchParams({ count: String(o.count), size: `${paper.wMm}x${paper.hMm}` })
-      return await api(`${o.classic.path}?${q}`, { blob: pic.blob })
-    } catch (e) {
-      if (e instanceof ApiError && e.code !== 'BAD_IMAGE') throw e
-      console.warn('label picture failed, printing Classic', e)
+      try {
+        return await api(`${o.classic.path}?${q}`, { blob: pic.blob })
+      } catch (e) {
+        // Only a refused picture is safe to resend as Classic: any other error may
+        // come after the printer already got it (a lost connection), so no second run.
+        if (!(e instanceof ApiError && e.code === 'BAD_IMAGE')) throw e
+        console.warn('label picture refused, printing Classic', e)
+      }
     }
   }
   await api(o.classic.path, { json: o.classic.body })

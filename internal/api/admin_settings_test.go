@@ -97,3 +97,21 @@ func TestPrintAsDefaultsClassic(t *testing.T) {
 		t.Fatalf("print_as default = %q", def)
 	}
 }
+
+// A save without labelPrintAs (a tab on the SPA from before the switch, or the
+// -seed / -demo boot) keeps labels Classic instead of failing.
+func TestSettingsBlankLabelPrintAsIsClassic(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "manager")
+	orig := decode[SettingsPage](t, te.do(http.MethodGet, "/api/v1/admin/settings", nil, ck)).Settings
+	t.Cleanup(func() { te.do(http.MethodPut, "/api/v1/admin/settings", orig, ck) })
+	in := orig
+	in.LabelPrintAs = ""
+	rec := te.do(http.MethodPut, "/api/v1/admin/settings", in, ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("save: %d %s", rec.Code, rec.Body)
+	}
+	if got := decode[SettingsPage](t, rec).Settings.LabelPrintAs; got != "classic" {
+		t.Fatalf("label print as = %q", got)
+	}
+}

@@ -147,7 +147,7 @@ type UpdateInput struct {
 	LowStockAlerts        bool    `json:"low_stock_alerts"  form:"low_stock_alerts"`
 	AskToPrint            bool    `json:"ask_to_print"      form:"ask_to_print"`
 	PrintAs               string  `json:"print_as"          form:"print_as"          validate:"required,oneof=classic image"`
-	LabelPrintAs          string  `json:"label_print_as"    form:"label_print_as"    validate:"required,oneof=classic image"`
+	LabelPrintAs          string  `json:"label_print_as"    form:"label_print_as"    validate:"omitempty,oneof=classic image"` // blank = classic
 	ForcePinChange        bool    `json:"force_pin_change"         form:"force_pin_change"`
 	AllowCashierPinChange bool    `json:"allow_cashier_pin_change" form:"allow_cashier_pin_change"`
 	DefaultSaleType       string  `json:"default_sale_type" form:"default_sale_type" validate:"required,oneof=retail wholesale"`
@@ -365,6 +365,9 @@ func (s *Service) SetTillCash(ctx context.Context, defaultLockerID *int64, allow
 }
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (*Settings, error) {
+	if in.LabelPrintAs == "" { // callers older than the label switch (an old tab, -seed / -demo)
+		in.LabelPrintAs = "classic"
+	}
 	if err := s.repo.Update(ctx, in); err != nil {
 		return nil, apperr.Internal("failed to update settings", err)
 	}

@@ -77,6 +77,7 @@ func seed(db *sqlx.DB) error {
 		LowStockAlerts:        cur.LowStockAlerts,
 		AskToPrint:            cur.AskToPrint,
 		PrintAs:               cur.PrintAs,
+		LabelPrintAs:          cur.LabelPrintAs,
 		ForcePinChange:        cur.ForcePinChange,
 		AllowCashierPinChange: cur.AllowCashierPinChange,
 		DefaultSaleType:       cur.DefaultSaleType,

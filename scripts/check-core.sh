@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Core never names a plugin (AGENTS.md hard rule): no import, no literal, not even
 # an "e.g." in a comment. Core = everything outside plugins/ and web/src/plugins/.
-# Also fails when a generated plugin list was committed with a dev selection in it.
+# Migrations count as core too. Also fails when a generated plugin list was committed with a dev selection in it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,7 +13,7 @@ keys='requests|documents|alternatives|repairs|combos'
 for f in plugins/*/plugin.json; do [ -f "$f" ] && keys="$keys|$(basename "$(dirname "$f")")"; done
 
 src() {
-  grep -rnE "$@" internal cmd web/src --include='*.go' --include='*.ts' --include='*.tsx' \
+  grep -rnE "$@" internal cmd web/src migrations --include='*.go' --include='*.ts' --include='*.tsx' --include='*.sql' \
     | grep -v '^web/src/plugins/' | grep -v '^cmd/bootstrap/' | grep -v 'types.gen.ts' || true
 }
 # \bWallet\b with a capital W is the lucide-react icon, not the tender.
