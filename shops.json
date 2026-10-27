@@ -136,6 +136,57 @@
       }
     },
     {
+      "key": "test-linux",
+      "name": "Test Linux",
+      "os": "linux",
+      "arch": "amd64",
+      "mode": "server",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "clearance",
+        "combos",
+        "documents",
+        "productplus",
+        "recharge",
+        "requests"
+      ],
+      "installId": "5B1D0676",
+      "channel": "695341309c7d0d125c69428281236424",
+      "port": 3000,
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "suite_db",
+        "user": "suite_user",
+        "password": "1f1781537450ec0a77df94ff52a5ee5d",
+        "superPassword": "390087a8e26726c8c2044d0acd43ddaa"
+      },
+      "jwtSecret": "4767572b988b6e54c7c92bb5a83fb2909bc524b4b5e342c6",
+      "install": {
+        "dir": "/opt/karots-suite",
+        "open": "kiosk"
+      },
+      "backups": {
+        "every": "6h",
+        "keep": 28,
+        "cloud": true
+      },
+      "lastBuilt": {
+        "at": "2026-10-21T01:02:35Z",
+        "commit": "8163fec",
+        "version": "2026.10.21.0632",
+        "kind": "release",
+        "notes": "• Any till tab sends a left-open till's cashier to Sell to close it first\n• Warn when the change is more than the drawer holds (opened at zero after banking)\n• No \"continue last count\" after a close that banked the cash\n• An empty drawer opens at zero again (karots-pos allowed it\n• The till makes a cashier close a till left open\n• Flag tills left open from an earlier day and cash taken with no till open\n• Close a till for its cashier (admin / manager)\n• Admins lock a screen from Who's on now\n• A game on the lock screen shows as Playing … on Who's on now\n• Who's on now on the dashboard, live dot on Users\n• Every signed-in screen and the lock page send a heartbeat\n• Heartbeat + admin Who's on now API\n• Live users store"
+      },
+      "published": {
+        "version": "2026.10.21.0632",
+        "commit": "8163fec",
+        "at": "2026-10-21T01:02:40Z"
+      },
+      "cloudKey": "9b0bcbf6978326d74b367d7d074d106ee925664cce37d41dbee33764501d3d52"
+    },
+    {
       "key": "test-windows-shop",
       "name": "Test Windows Shop",
       "os": "windows",
@@ -159,10 +210,10 @@
         "port": 5432,
         "name": "suite_db",
         "user": "suite_user",
-        "password": "7d060eee3e95ff15a3de65da61f10321",
-        "superPassword": "f8dca761bb3b8353e245a0a701de45de"
+        "password": "f1efcf94a27e151b71c1e4570be5b31b",
+        "superPassword": "3500a993ef8e0f01b333a0a6d63a5a27"
       },
-      "jwtSecret": "d67b58305a0625333fdd49ecdd35c783b0b437019d9225b4",
+      "jwtSecret": "fb52be625f8e5aff1050f0d67200199226ae5fe5246aa6fd",
       "install": {
         "dir": "C:\\karots-suite",
         "open": "kiosk"
@@ -172,15 +223,16 @@
         "keep": 28
       },
       "lastBuilt": {
-        "at": "2026-10-19T15:35:50Z",
-        "commit": "cb393a9",
-        "version": "2026.10.19.2105",
-        "kind": "release"
+        "at": "2026-10-20T05:31:45Z",
+        "commit": "80c31d4",
+        "version": "2026.10.20.1101",
+        "kind": "release",
+        "notes": "• Never ask for PostgreSQL's password\n• The postgres password prompt says which password (PostgreSQL's own, not .env's)"
       },
       "published": {
-        "version": "2026.10.19.2105",
-        "commit": "cb393a9",
-        "at": "2026-10-19T15:35:57Z"
+        "version": "2026.10.20.1101",
+        "commit": "80c31d4",
+        "at": "2026-10-20T05:31:50Z"
       }
     }
   ]
