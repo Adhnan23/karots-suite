@@ -30,7 +30,7 @@ export function LabelSettings({ v, set }: { v: ShopSettings; set: <K extends key
     look: { firstLines: v.labelNameLines, secondLines: v.labelBottomLines, firstSize: v.labelNameFont, secondSize: v.labelBottomFont },
   }
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,300px)]">
+    <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,320px)]">
       <div className="grid min-w-0 gap-3">
         <div>
           <Segmented label="Print labels as" value={v.labelPrintAs} onChange={(x) => set('labelPrintAs', x)} options={[{ value: 'image', label: 'Image (new)' }, { value: 'classic', label: 'Classic' }]} />

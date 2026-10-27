@@ -15,7 +15,7 @@ export function DoseLabelPreview({ d, className }: { d: DoseLabel; className?: s
   const [cut, setCut] = useState(false)
   return (
     <div className={className ?? 'flex flex-col items-start gap-1.5'}>
-      <LabelView kind="pharmacy.dose" data={d} size="" className="w-[min(260px,100%)]" onCut={setCut} classic={<ClassicPreview lines={doseLabel(d)} />} />
+      <LabelView kind="pharmacy.dose" data={d} size="" onCut={setCut} classic={<ClassicPreview lines={doseLabel(d)} />} />
       {cut && <p className="text-[12px]">{CUT}</p>}
     </div>
   )

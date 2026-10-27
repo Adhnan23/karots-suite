@@ -2,6 +2,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { LABEL_SIZES } from '@/features/counter/labels/slots'
 import { paperOf } from '@/features/print/labels/kit'
+import { SCREEN } from '@/features/print/labels/LabelView'
 import { labelPictureQuery } from '@/features/print/labels/picture'
 import { labelKinds } from '@/features/print/labels/registry'
 import { configQuery } from '@/features/till/api'
@@ -40,7 +41,7 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
                 className="flex w-36 shrink-0 flex-col gap-1.5 rounded-[var(--radius)] border-2 border-transparent bg-card p-2 text-left shadow-[var(--shadow)] aria-pressed:border-brand sm:w-auto"
               >
                 <div className="overflow-hidden rounded-sm border border-border bg-paper" style={{ aspectRatio: `${paper.w} / ${paper.h}` }}>
-                  {pic && <img src={pic.url} alt="" className="w-full [image-rendering:pixelated]" />}
+                  {pic && <img src={pic.url} alt="" className="w-full" />}
                 </div>
                 <span className="text-sm font-semibold">{s.label}</span>
                 {pic && pic.style !== s.key && <span className="text-[11.5px] text-muted-foreground">Too small for this style — prints as {kind.styles.find((x) => x.key === pic.style)?.label}</span>}
@@ -60,7 +61,7 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
         <Seg label="Label size" options={LABEL_SIZES.map((s) => ({ label: s.replace('x', ' × '), key: s }))} value={size} onChange={setSize} />
         <div className="flex min-h-40 items-center justify-center rounded-sm bg-muted p-3">
           {preview ? (
-            <img src={preview.url} alt="Label preview" data-label-style={preview.style} className="max-w-full bg-paper shadow-[var(--shadow)] [image-rendering:pixelated]" style={{ width: Math.min(400, paper.w * 0.9) }} />
+            <img src={preview.url} alt="Label preview" data-label-style={preview.style} className="h-auto max-w-full bg-paper shadow-[var(--shadow)]" style={{ width: paper.w * SCREEN }} />
           ) : (
             <span className="text-sm text-muted-foreground" title={pq.error?.message}>{pq.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
