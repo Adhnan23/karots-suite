@@ -110,3 +110,18 @@ func TestPlaceBundleCleansUp(t *testing.T) {
 		t.Fatal("bundle left in the tree")
 	}
 }
+
+func TestRenderDemoTSGatesEveryPlugin(t *testing.T) {
+	sel := []manifest{{Key: "alpha"}, {Key: "beta"}}
+	ts := string(renderDemoTS(sel))
+	for _, want := range []string{
+		`import { pluginOn } from './active'`,
+		`import alpha from './alpha'`,
+		`if (pluginOn('alpha')) alpha(slots)`,
+		`if (pluginOn('beta')) beta(slots)`,
+	} {
+		if !strings.Contains(ts, want) {
+			t.Fatalf("demo TS list lacks %q:\n%s", want, ts)
+		}
+	}
+}
