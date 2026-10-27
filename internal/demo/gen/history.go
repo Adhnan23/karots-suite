@@ -82,6 +82,7 @@ type gen struct {
 	docs     []docService      // Print & Copy services
 	lastTill *Client           // the till that rang the last plugin sale
 	combos   []combo           // bundles on offer
+	patients []rxPatient       // pharmacy patients and their prescription items
 	ctx      context.Context
 }
 

@@ -158,6 +158,7 @@ var pluginTables = map[string][2]string{
 	"recharge":  {"recharge_transactions", "created_at"},
 	"documents": {"doc_job", "created_at"},
 	"combos":    {"combo_sales", "created_at"},
+	"pharmacy":  {"pharmacy_dispenses", "dispensed_at"},
 }
 
 func TestEachPluginHasAPast(t *testing.T) {
