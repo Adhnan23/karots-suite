@@ -3,12 +3,14 @@ import { expect, type Page } from './fixtures'
 // Appearance → Receipt style: wait until every thumbnail and the preview are drawn.
 export const appearancePrep: Record<string, (page: Page) => Promise<void>> = {
   'appearance-receipts': async (page) => {
+    await page.locator('summary', { hasText: 'Receipt style' }).click()
     await expect(page.getByRole('img', { name: 'Receipt preview' })).toBeVisible({ timeout: 20_000 })
     await expect(page.getByRole('group', { name: 'Receipt style' }).getByRole('img')).toHaveCount(10, { timeout: 20_000 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width)
   },
   // Appearance → Labels: every price-style thumbnail and the preview drawn, scrolled into view.
   'appearance-labels': async (page) => {
+    await page.locator('summary', { hasText: 'Label styles' }).click()
     const labels = page.getByRole('region', { name: 'Label styles' })
     await labels.evaluate((el) => el.scrollIntoView({ block: 'start' }))
     await expect(labels.getByRole('img', { name: 'Label preview' })).toBeVisible({ timeout: 20_000 })

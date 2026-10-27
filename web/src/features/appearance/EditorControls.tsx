@@ -1,7 +1,7 @@
-import { ChevronDown } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { slots } from '@/plugins/slots'
 import { TOKENS } from '@/theme/palettes/tokens'
+import { Fold } from './Fold'
 import { drawnColour, formatColour, parseCssColour } from './colourValue'
 import type { PaletteDoc } from './paletteCss'
 import { applyMaterial, applyMotion, blurOf, materialOf, motionOf, withBlur, type Feel, type Material } from './presets'
@@ -53,7 +53,7 @@ export function EditorControls({ doc, mode, onChange }: { doc: PaletteDoc; mode:
 
   return (
     <div className="flex flex-col gap-3">
-      <Group title="Colours" hint={`Editing ${mode} mode`} open>
+      <Fold title="Colours" hint={`Editing ${mode} mode`} open>
         <label className="flex items-center gap-2 self-start text-sm font-semibold">
           <input type="checkbox" checked={allColours} onChange={(e) => setAllColours(e.target.checked)} className="size-4 accent-(--brand)" />
           Show all colours
@@ -67,44 +67,44 @@ export function EditorControls({ doc, mode, onChange }: { doc: PaletteDoc; mode:
             ))}
           </div>
         ))}
-      </Group>
+      </Fold>
 
-      <Group title="Material" hint={material === 'liquid' ? 'Liquid glass' : material === 'frosted' ? 'Frosted' : 'Solid'}>
+      <Fold title="Material" hint={material === 'liquid' ? 'Liquid glass' : material === 'frosted' ? 'Frosted' : 'Solid'}>
         <Seg label="Material" value={material} options={[['solid', 'Solid'], ['frosted', 'Frosted'], ['liquid', 'Liquid glass']]}
           onChange={(m: Material) => setBoth((t, md) => applyMaterial(t, m, md))} />
         <Slider label="Blur" unit="px" min={0} max={32} value={blurOf(cur)} onChange={(px) => setBoth((t) => withBlur(t, px))} />
         <ColourRow name="--bar" value={cur['--bar'] ?? ''} onChange={(v) => setMode({ ...cur, '--bar': v })} />
-      </Group>
+      </Fold>
 
-      <Group title="Background">
+      <Fold title="Background">
         <Seg label="Background art" value={(cur['--bg-art'] ?? 'none') === 'none' ? 'plain' : 'art'} options={[['plain', 'Plain'], ['art', 'Glow art']]}
           onChange={(v) => setBoth((t) => ({ ...t, '--bg-art': v === 'art' ? ART : 'none' }))} />
         <ColourRow name="--background" value={cur['--background'] ?? ''} onChange={(v) => setMode({ ...cur, '--background': v })} />
-      </Group>
+      </Fold>
 
-      <Group title="Depth">
+      <Fold title="Depth">
         <Seg label="Shadows" value="" options={[['Flat', 'Flat'], ['Soft', 'Soft'], ['Deep', 'Deep']]}
           onChange={(d: keyof typeof DEPTH) => setBoth((t, md) => ({ ...t, '--shadow': withDrop(t['--shadow'] ?? '', DEPTH[d][md][0]), '--shadow-float': withDrop(t['--shadow-float'] ?? '', DEPTH[d][md][1]) }))} />
         <Seg label="Glow" value={(cur['--glow'] ?? 'none') === 'none' ? 'off' : 'on'} options={[['off', 'No glow'], ['on', 'Glow']]}
           onChange={(v) => setBoth((t) => ({ ...t, '--glow': v === 'on' ? GLOW : 'none' }))} />
-      </Group>
+      </Fold>
 
-      <Group title="Shape">
+      <Fold title="Shape">
         <Slider label="Corners" unit="px" min={0} max={28} value={radius}
           onChange={(r) => setBoth((t) => ({ ...t, '--radius': `${r}px`, '--radius-sm': `${Math.round(r * 0.7)}px` }))} />
         <Seg label="Pills" value={cur['--pill'] === '9999px' ? 'round' : 'soft'} options={[['round', 'Round'], ['soft', 'Soft']]}
           onChange={(v) => setBoth((t) => ({ ...t, '--pill': v === 'round' ? '9999px' : 'var(--radius-sm)' }))} />
-      </Group>
+      </Fold>
 
-      <Group title="Motion" hint={motion.feel === 'lively' ? 'Lively' : 'Calm'}>
+      <Fold title="Motion" hint={motion.feel === 'lively' ? 'Lively' : 'Calm'}>
         <Seg label="Feel" value={motion.feel} options={[['calm', 'Calm'], ['lively', 'Lively']]}
           onChange={(f: Feel) => setBoth((t) => applyMotion(t, f, motion.speed))} />
         <Slider label="Length" unit="×" min={0.5} max={1.5} step={0.05} value={motion.speed}
           onChange={(s) => setBoth((t) => applyMotion(t, motion.feel, s))} />
-      </Group>
+      </Fold>
 
       {slots.paletteTokens.length > 0 && (
-        <Group title="Plugins" hint="Blank = the plugin's default">
+        <Fold title="Plugins" hint="Blank = the plugin's default">
           {slots.paletteTokens.map((p) => (
             <div key={p.plugin} className="flex flex-col gap-1.5">
               <p className="text-[11px] font-bold tracking-wide text-faint uppercase">{p.label}</p>
@@ -117,30 +117,18 @@ export function EditorControls({ doc, mode, onChange }: { doc: PaletteDoc; mode:
               ))}
             </div>
           ))}
-        </Group>
+        </Fold>
       )}
 
-      <Group title="Custom CSS" hint={doc.extra.trim() ? 'In use' : 'Empty'}>
+      <Fold title="Custom CSS" hint={doc.extra.trim() ? 'In use' : 'Empty'}>
         <textarea aria-label="Custom CSS" spellCheck={false} value={doc.extra} onChange={(e) => onChange({ ...doc, extra: e.target.value })}
           placeholder={'.till-total { letter-spacing: .02em; }'}
           className="min-h-40 w-full rounded-[var(--radius-sm)] border border-input bg-background/60 p-3 font-mono text-xs outline-none focus:border-brand" />
-      </Group>
+      </Fold>
     </div>
   )
 }
 
-function Group({ title, hint, open, children }: { title: string; hint?: string; open?: boolean; children: ReactNode }) {
-  return (
-    <details open={open} className="group rounded-[var(--radius)] border border-border bg-card shadow-[var(--shadow)] [backdrop-filter:var(--glass)]">
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <span className="font-display font-bold">{title}</span>
-        {hint && <span className="text-xs font-semibold text-faint">{hint}</span>}
-        <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform duration-(--dur-fast) group-open:rotate-180" />
-      </summary>
-      <div className="flex flex-col gap-3 border-t border-border px-4 py-3">{children}</div>
-    </details>
-  )
-}
 
 /** A colour token: picker (any colour; a see-through one keeps its opacity, and a
  *  reference like var(…) starts from what's drawn), the CSS text, and an opacity

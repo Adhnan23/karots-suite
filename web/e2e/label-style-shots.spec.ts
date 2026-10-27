@@ -23,6 +23,7 @@ test('every label style', async ({ page }) => {
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL(/\/admin/)
   await page.goto('/admin/system/appearance')
+  await page.locator('summary', { hasText: 'Label styles' }).click() // starts closed
   const labels = page.getByRole('region', { name: 'Label styles' })
   const preview = labels.getByRole('img', { name: 'Label preview' })
   let prev = ''

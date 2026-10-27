@@ -135,7 +135,7 @@ test('every built-in palette is in the picker; a new one saves and shows on the 
   await systemLogin(page)
   try {
     await page.goto('/admin/system/appearance')
-    const builtIns = page.getByRole('group').filter({ hasText: 'Built-in' })
+    const builtIns = page.locator('div[role="group"]').filter({ hasText: 'Built-in' }) // the cards, not the Palette section (a <details> is a group too)
     await expect(builtIns).toHaveCount(22)
     await expect(builtIns.first()).toHaveAttribute('aria-label', 'Studio')
     await expect(builtIns.last()).toHaveAttribute('aria-label', 'Neumorph')

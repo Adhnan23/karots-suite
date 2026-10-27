@@ -92,10 +92,7 @@ export function PalettePicker({ appearance, onSaved, onEdit }: {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-lg font-bold">Palette</h2>
-          <p className="text-sm text-muted-foreground">Colours, material, shape and motion for the whole shop. Duplicate one to make your own.</p>
-        </div>
+        <p className="text-sm text-muted-foreground">Colours, material, shape and motion for the whole shop. Duplicate one to make your own.</p>
         <button type="button" onClick={() => fileRef.current?.click()}
           className="flex h-10 shrink-0 items-center gap-1.5 rounded-pill border border-border bg-card px-3.5 text-sm font-semibold hover:bg-muted">
           <Upload className="size-4" /> Import

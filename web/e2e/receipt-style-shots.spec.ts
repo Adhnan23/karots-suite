@@ -20,6 +20,7 @@ test('every style', async ({ page }) => {
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL(/\/admin/)
   await page.goto('/admin/system/appearance')
+  await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
   const preview = page.getByRole('img', { name: 'Receipt preview' })
   // Every combination draws a new picture: wait for the src to move on from the last one saved.
   let prev = ''

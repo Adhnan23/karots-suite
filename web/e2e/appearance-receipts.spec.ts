@@ -78,6 +78,7 @@ test('pick a style with a live preview; the next print uses it', async ({ page, 
   await asSystem(page)
   await setStyle(page, 'classic')
   await page.goto('/admin/system/appearance')
+  await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
   const styles = page.getByRole('group', { name: 'Receipt style' })
   for (const name of ['Classic', 'Bold', 'Minimal', 'Ticket', 'Poster', 'Grid', 'Stamp', 'Elegant', 'Cards', 'Sections'])
     await expect(styles.getByRole('img', { name })).toBeVisible()
@@ -108,5 +109,6 @@ test('a Classic shop is told styles need Image printing', async ({ page, browser
   await m.close()
   await asSystem(page)
   await page.goto('/admin/system/appearance')
+  await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
   await expect(page.getByText(/prints Classic/)).toBeVisible()
 })

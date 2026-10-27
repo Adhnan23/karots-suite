@@ -5,10 +5,14 @@ import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import { PaletteEditor } from '@/features/appearance/PaletteEditor'
 import { PalettePicker } from '@/features/appearance/PalettePicker'
+import { Fold } from '@/features/appearance/Fold'
 import { LabelStyles } from '@/features/appearance/LabelStyles'
 import { appearanceQuery } from '@/features/appearance/queries'
 import { ReceiptStyles } from '@/features/appearance/ReceiptStyles'
+import { labelKinds } from '@/features/print/labels/registry'
+import { STYLES } from '@/features/print/styles'
 import { configQuery } from '@/features/till/api'
+import { PALETTES } from '@/theme/palettes'
 import { applyAppearance } from '@/theme/appearance'
 import type { Appearance } from '@/api/types.gen'
 
@@ -18,6 +22,13 @@ export const Route = createFileRoute('/_authed/admin/system/appearance')({
   },
   component: SystemAppearance,
 })
+
+/** "Price Tag · Dose label: Clear": each kind's chosen style (Classic kinds left out unless all are). */
+function labelHint(styles: Record<string, string>) {
+  const picks = labelKinds().map((k) => ({ k, s: k.styles.find((x) => x.key === styles[k.kind]) })).filter((x) => x.s && x.s.key !== 'classic')
+  if (!picks.length) return 'Classic'
+  return picks.map(({ k, s }, i) => (i === 0 && k.kind === 'price' ? s!.label : `${k.label}: ${s!.label}`)).join(' · ')
+}
 
 function SystemAppearance() {
   const { data } = useQuery(appearanceQuery)
@@ -71,11 +82,17 @@ function SystemAppearance() {
         <p className="text-muted-foreground">Locked for the whole shop.</p>
       </div>
 
-      <PalettePicker appearance={form} onSaved={setForm} onEdit={setEditing} />
+      <Fold title="Palette" hint={PALETTES.find((p) => p.id === form.palette)?.name ?? 'Custom'} open remember="appearance.palette">
+        <PalettePicker appearance={form} onSaved={setForm} onEdit={setEditing} />
+      </Fold>
 
-      <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
+      <Fold title="Receipt style" hint={STYLES.find((s) => s.key === form.receiptStyle)?.label ?? 'Classic'} remember="appearance.receipt">
+        <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
+      </Fold>
 
-      <LabelStyles value={form.labelStyles ?? {}} onChange={(labelStyles) => update({ labelStyles })} />
+      <Fold title="Label styles" hint={labelHint(form.labelStyles ?? {})} remember="appearance.labels">
+        <LabelStyles value={form.labelStyles ?? {}} onChange={(labelStyles) => update({ labelStyles })} />
+      </Fold>
 
       <button
         type="button"

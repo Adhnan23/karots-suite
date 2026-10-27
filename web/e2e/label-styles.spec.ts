@@ -37,6 +37,9 @@ test('pick a label style per kind; the counter preview draws it', async ({ page,
 
   await asSystem(page)
   await page.goto('/admin/system/appearance')
+  const head = page.locator('summary', { hasText: 'Label styles' })
+  await expect(head).toContainText('Classic')
+  await head.click() // starts closed; the header shows the pick
   const labels = page.getByRole('region', { name: 'Label styles' })
   const kinds = labels.getByRole('group', { name: 'Label kind' })
   await expect(kinds.getByRole('button', { name: 'Price label' })).toBeVisible()
@@ -48,6 +51,7 @@ test('pick a label style per kind; the counter preview draws it', async ({ page,
   await expect(preview).toHaveAttribute('data-label-style', 'classic')
   await labels.getByRole('group', { name: 'Label style' }).getByRole('button', { name: 'Price Tag', exact: true }).click()
   await expect(preview).toHaveAttribute('data-label-style', 'pricetag')
+  await expect(head).toContainText('Price Tag')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByText('Saved', { exact: true })).toBeVisible()
 
