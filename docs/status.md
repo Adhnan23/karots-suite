@@ -58,8 +58,7 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
      `gentest/floor_db_test.go` holds every table to it per shop. Left empty on purpose: legacy tables nothing
      writes (doc_payout, pharmacy_cd_ledger, recharge sessions/top-ups), repair_payments (karots-pos deposits
      only), AI catalogue history (needs a live AI key).
-  4. Years now cached + reused; Shop Builder has a Demo Room tab (2026-10-28). Building screens show a **time machine** (`internal/demo/timemachine/timemachine.js`, shared: sky turning once a day, date + real till sales/takings rolling, a calendar lighting up) — Shop Builder per shop, make-your-own in the Demo Room. `make demo` again (dist/demo is stale: built before the review fixes and the cache-folder rename), then the user's
-     look and the Windows VM acceptance (`docs/acceptance.md` §6). Ledger: `.superpowers/sdd/2026-10-27-demo-room/progress.md`.
+  4. Ledger of the Demo Room build: `.superpowers/sdd/2026-10-27-demo-room/progress.md`.
 - Then the real-printer test.
 - The real-printer test still waits for printers. M8e Pocket Cashier groundwork comes after the Demo Room.
 
