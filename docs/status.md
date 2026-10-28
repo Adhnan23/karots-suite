@@ -6,17 +6,43 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
-## Next session — START HERE: promo videos (Remotion)
+## Next session — START HERE: promo videos, half done (handoff 2026-10-28 night)
 
-The user chose to make the promo videos now, while the business-name registration, the lawyer and the printers take
-their time. Brief (from the earlier handoff, step 4): Remotion's official Claude Code plugin / agent skills
-(`remotion.dev/docs/ai/claude-code-plugin`) make motion-graphics videos from React. Inputs: `docs/images/**` (from
-`make docs-shots`), the logo `docs/images/logo.jpg`, Playwright screen recordings (`recordVideo`) of the till and the
-Demo Room's Karots Super Store (the same unlock flow as `web/docs-shots/shots.spec.ts`), prices / plugin list from
-`docs/legal/agreement/shop-rules.html` §15 if a video shows them. Keep it in its own folder (e.g. `videos/`, own
-package.json), never in the shipped binary. Ask the user first: which videos (a 30–60 s promo, per-plugin shorts, a
-how-to for shops?), language (English / Sinhala / Tamil captions), voice-over or music, where they'll be posted
-(Facebook, WhatsApp status, YouTube → aspect ratios 16:9 / 9:16 / 1:1).
+Stopped early: the user's internet was slow. **Spec:** `docs/specs/2026-10-28-promo-videos-design.md` (approved).
+**Plan:** `docs/plans/2026-10-28-promo-videos.md`. **Ledger** (rulings so far): `.superpowers/sdd/2026-10-28-promo-videos/progress.md`
+(git-ignored). The design was settled with the user: practical everyday-problem messaging (no tech words), 1 main promo
+(60–90 s) + 8 shorts (15–20 s) × Sinhala / Tamil / English = 27 vertical 1080×1920 MP4s for Facebook, WhatsApp, TikTok,
+Reels; computer voice + music; end card = logo, "Coming soon: Pocket Cashier" phone mockup, "WhatsApp us for a free demo
+· 076 962 6396"; paid extras tagged "optional add-on"; no prices.
+
+**Done and committed:**
+- Tasks 1–2: product search matches the **local name** (`name_local`) — till / product lists (`searchClause`), warranty,
+  conversions, pharmacy / alternatives / productplus pickers; till product cards show the local name (user asked); 14
+  demo groceries got Tamil names (Demo Room rebuilt with them).
+- Task 4: all lines in `videos/src/lines/{en,si,ta}.ts` (Sinhala / Tamil are **drafts for a fluent check**), scene lists
+  in `videos/src/videos.ts`; `bun test` in `videos/` passes.
+- Task 5: every voice line made (`videos/public/voice/`, git-ignored; `src/durations.json` committed). Voice samples to
+  play for the user: `videos/out/samples/*.mp3` (defaults Thilini / Saranya / Neerja in `src/voices.ts`).
+- Task 6 code: `web/docs-shots/clips.spec.ts` + `make videos-clips` (Chrome screencast; phone clips are 540×960 — CDP frames
+  are CSS pixels; Playwright's recordVideo was wrong). Helpers shared in `web/docs-shots/demo.ts`.
+- Task 7 code: `videos/src/{Scene,EndCard,Video,Root}.tsx`, `scripts/render.ts`, `videos/README.md` — **never rendered yet**.
+
+**Next, in order:**
+1. Finish the install (it was stopped; only react + remotion are in package.json): `cd videos && bun add --exact
+   @remotion/cli@4.0.534 @remotion/media-utils@4.0.534 react-dom@19.3.0 @fontsource/figtree@5.3.0 @fontsource/sora@5.3.0
+   @fontsource/noto-sans-sinhala@5.3.0 @fontsource/noto-sans-tamil@5.3.0 && bun add -d --exact typescript@6.0.3
+   @types/react@19.2.14 @types/bun@1.3.2` (slow on a slow line — run in the background; @remotion/cli pulls webpack).
+   Then `bunx tsc` in `videos/` and `bunx remotion still Hello`-style checks (Task 3 verification).
+2. Re-record **all** clips: start `dist/demo/karots-suite-demo-room` (already built), `make videos-clips`. The last run
+   was stopped at 12/25, and `credit-list` now records `/admin/customers` (the dues report showed Rs 0.00 buckets).
+   Look at a frame of every clip (no spinners, empty lists, demo chrome, install id / PIN). Check a till clip shows the
+   local name on the cards.
+3. Task 7: stills (`bunx remotion still <video>-<lang>`) for caption fit (Sinhala / Tamil), add-on tag, internet note,
+   end card; then Task 8 `make videos` (27 files, table + range check).
+4. **Ask the user:** pick voices from the samples; **music** — FreePD is gone and Pixabay can't be scripted, so the user
+   drops a track at `videos/public/music.mp3` (licence noted in `videos/MUSIC.md`); renders run without it until then;
+   a fluent check of the Sinhala / Tamil lines before posting.
+5. Final whole-branch review (executing-plans), status update, delete the plan when done.
 
 ## Docs session DONE (2026-10-28)
 

@@ -52,7 +52,7 @@ Playwright (already in `web/`), ffmpeg/ffprobe.
 
 **Interfaces:** Produces: no API change; `ListQuery{Search}` now matches `name_local`.
 
-- [ ] **Step 1: Write the failing DB test** (gated on `DATABASE_URL` like `barcodes_db_test.go`; reuse its fixture style)
+- [x] **Step 1: Write the failing DB test** (gated on `DATABASE_URL` like `barcodes_db_test.go`; reuse its fixture style)
 
 `TestSearchFindsLocalName`: create product `Name: "TEST-L Samba Rice 1kg"`, `NameLocal: "සම්බා සහල්"`, and
 `"TEST-L Plain"` with no local name. Assert via `NewRepository(conn).List(ctx, ListQuery{Search: q, Limit: 10, Page: 1})`:
@@ -61,16 +61,16 @@ Playwright (already in `web/`), ffmpeg/ffprobe.
 - `"test-l plain"` → contains Plain (NULL local name doesn't drop it)
 - `"සම්බා plain"` → contains neither
 
-- [ ] **Step 2:** `go test ./internal/features/products -run TestSearchFindsLocalName` → FAIL (no rows for `සම්බා`).
+- [x] **Step 2:** `go test ./internal/features/products -run TestSearchFindsLocalName` → FAIL (no rows for `සම්බා`).
 
-- [ ] **Step 3:** In `searchClause`, each token's `NOT (...)` gets `OR lower(coalesce(p.name_local, '')) LIKE '%' || tok || '%'`.
+- [x] **Step 3:** In `searchClause`, each token's `NOT (...)` gets `OR lower(coalesce(p.name_local, '')) LIKE '%' || tok || '%'`.
   No fuzzy (`word_similarity`) on the local name. Add a comment line:
   `// ponytail: local name is an unindexed LIKE; add a trigram index if a big catalogue gets slow.`
   Warranty and conversions: add `OR p.name_local ILIKE '%' || $1 || '%'` (`fp.`/`tp.` in conversions).
 
-- [ ] **Step 4:** test passes; `make test` green.
+- [x] **Step 4:** test passes; `make test` green.
 
-- [ ] **Step 5:** guide line; commit `feat(search): products are found by their local name too`.
+- [x] **Step 5:** guide line; commit `feat(search): products are found by their local name too`.
 
 ### Task 2: Plugin product searches match the local name
 
@@ -78,11 +78,11 @@ Playwright (already in `web/`), ffmpeg/ffprobe.
 - Modify: `plugins/productplus/grid.go:35`, `plugins/alternatives/store_members.go:96`, `plugins/pharmacy/store_scripts.go:343`
 - Test: add one case to `plugins/pharmacy/store_db_test.go` (the script product picker finds a product by `name_local`)
 
-- [ ] **Step 1:** failing test `TestScriptPickerFindsLocalName` in pharmacy (a medicine with `name_local` "පැරසිටමෝල්", search "පැරසි" → found).
-- [ ] **Step 2:** run → FAIL.
-- [ ] **Step 3:** add `OR p.name_local ILIKE '%' || $N || '%'` beside each `p.name ILIKE` above.
-- [ ] **Step 4:** `make plugins P=all && go test ./plugins/... && make core-only` → PASS.
-- [ ] **Step 5:** commit `feat(plugins): product pickers find the local name too`.
+- [x] **Step 1:** failing test `TestScriptPickerFindsLocalName` in pharmacy (a medicine with `name_local` "පැරසිටමෝල්", search "පැරසි" → found).
+- [x] **Step 2:** run → FAIL.
+- [x] **Step 3:** add `OR p.name_local ILIKE '%' || $N || '%'` beside each `p.name ILIKE` above.
+- [x] **Step 4:** `make plugins P=all && go test ./plugins/... && make core-only` → PASS.
+- [x] **Step 5:** commit `feat(plugins): product pickers find the local name too`.
 
 ### Task 3: `videos/` project scaffold
 
@@ -133,13 +133,13 @@ Copy rules: everyday words, the owner's problem first ("Still writing credit in 
 written first; Sinhala and Tamil are natural shop-talk drafts (not word-for-word), flagged in `videos/README.md` as
 **"to be checked by a fluent speaker before posting"**.
 
-- [ ] **Step 1:** `content.test.ts` (bun test): for every lang × every scene id in `VIDEOS` plus `end`, `end-soon`,
+- [x] **Step 1:** `content.test.ts` (bun test): for every lang × every scene id in `VIDEOS` plus `end`, `end-soon`,
   `addon-tag`, `internet-note` — a non-empty caption and voice; caption ≤ 8 words in `en`; every `clip` / `shot` src
   listed in `CLIPS` (Task 6) or existing under `docs/images`.
-- [ ] **Step 2:** `bun test` → FAIL (files empty).
-- [ ] **Step 3:** write `videos.ts` + the three line files.
-- [ ] **Step 4:** `bun test` → PASS.
-- [ ] **Step 5:** commit `feat(videos): scenes and lines in Sinhala, Tamil and English`.
+- [x] **Step 2:** `bun test` → FAIL (files empty).
+- [x] **Step 3:** write `videos.ts` + the three line files.
+- [x] **Step 4:** `bun test` → PASS.
+- [x] **Step 5:** commit `feat(videos): scenes and lines in Sinhala, Tamil and English`.
 
 ### Task 5: Voices — one mp3 per line + durations
 
@@ -153,14 +153,14 @@ written first; Sinhala and Tamil are natural shop-talk drafts (not word-for-word
 `Record<Lang, Record<sceneId, seconds>>` (ffprobe). `bun run voice [--lang si]` regenerates only lines whose text
 changed (hash in `public/voice/<lang>/.hashes.json`).
 
-- [ ] **Step 1:** `voice.test.ts`: after `bun run voice`, every lang × line id has an mp3 > 1 KB and a duration > 0.3 s.
-- [ ] **Step 2:** run → FAIL.
-- [ ] **Step 3:** `voice.ts` shells `uvx edge-tts --voice <v> --text <voice> --write-media <file>` per line, then
+- [x] **Step 1:** `voice.test.ts`: after `bun run voice`, every lang × line id has an mp3 > 1 KB and a duration > 0.3 s.
+- [x] **Step 2:** run → FAIL.
+- [x] **Step 3:** `voice.ts` shells `uvx edge-tts --voice <v> --text <voice> --write-media <file>` per line, then
   `ffprobe -show_entries format=duration`. Exit non-zero on any failure.
-- [ ] **Step 4:** PASS. Also write `videos/out/samples/<voice>.mp3` — one sample line per language in both voices
+- [x] **Step 4:** PASS. Also write `videos/out/samples/<voice>.mp3` — one sample line per language in both voices
   (`si-LK-SameeraNeural/ThiliniNeural`, `ta-LK-KumarNeural/SaranyaNeural`, `en-IN-PrabhatNeural/NeerjaNeural`) and tell
   the user where they are; keep going with the defaults.
-- [ ] **Step 5:** commit `feat(videos): computer voice per line`.
+- [x] **Step 5:** commit `feat(videos): computer voice per line`.
 
 ### Task 6: Screen clips from the Demo Room
 
