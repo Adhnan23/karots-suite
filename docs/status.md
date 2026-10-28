@@ -5,7 +5,7 @@ every milestone.
 
 ## Next session (handoff 2026-10-26) — START HERE
 
-**M8d Demo Room — BUILT (2026-10-27), waiting on the user's look.** Spec `docs/specs/2026-10-27-demo-room-design.md`,
+**M8d Demo Room — BUILT (2026-10-27) — ACCEPTED by the user (2026-10-28).** Spec `docs/specs/2026-10-27-demo-room-design.md`,
 plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, `web/shots/demo-9`.
 - **What:** `make demo` → `dist/demo/karots-suite-demo-room` (+ `.exe`). Double-click → browser → the hourly code for the demo's
   own install ID (`internal/demo/INSTALL_ID`, PIN app) → five shops (Sunrise Mini Mart / CityCare Pharmacy / Galaxy
@@ -24,6 +24,9 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
 - **Final review (2026-10-27)** fixed: leftover PostgreSQL after a crash, empty yesterday in UTC+5:30, Monday-morning
   future rows (and a 3-week restock on every launch), open lock without `POS_SUPPORT_SECRET`, shared sign-in secret.
 - **RESUME HERE (next session, handoff 2026-10-28):**
+  - **Nothing waits on the user (2026-10-28):** they accepted the Demo Room, the Print & Copy rework, the palettes,
+    labels as pictures, receipt styles and Appearance. Next: M8e Pocket Cashier groundwork (or the small open items);
+    the real-printer test when the printers arrive.
   - **Where we are:** the user's fresh build was tested on Linux and the Windows VM (2026-10-28) and **passed** after
     two fixes: the dashboard stuck on Loading on Windows (cmd/demo lacked `time/tzdata`; now embedded in
     `internal/datetime`) and the Demo tab (opens on a tap only, drags to either edge, spot kept per browser).
@@ -31,8 +34,8 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
     photo paper — own price, own pouch / paper); laminate and bind priced by size and type only; extras per service
     (per job / per piece, may take stock); a job with extras rings as one block via core `TillApi.addServiceGroup`
     and prints itemised (migration 00013 `line_group_itemised`); receipt previews no longer collapse in the
-    sale-complete overlay (SlipView sets the roll's width). Demo Room Print & Copy shops sell all of it — the user
-    still needs a fresh `make demo` (years rebuild). Demo binary is now `karots-suite-demo-room`.
+    sale-complete overlay (SlipView sets the roll's width). Demo Room Print & Copy shops sell all of it. Demo binary
+    is now `karots-suite-demo-room`.
   - **Done this session (2026-10-28), all committed:**
     - Launcher: double-click builds once (generation counter + work mutex, picker disables on click); make-your-own
       picks validated, `ks-plugins` meta escaped; Exit (sidebar + picker) → same shutdown as Ctrl+C.
@@ -68,7 +71,7 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
 - Then the real-printer test.
 - The real-printer test still waits for printers. M8e Pocket Cashier groundwork comes after the Demo Room.
 
-**More built-in palettes — BUILT (2026-10-27), waiting on the user's look.** Appearance sections now fold away
+**More built-in palettes — BUILT (2026-10-27) — ACCEPTED by the user (2026-10-28).** Appearance sections now fold away
 (current pick in each header, open state per device); Night / Lagoon reduced-transparency fallback fixed. Spec
 `docs/specs/2026-10-27-more-palettes-design.md`, plan `docs/plans/2026-10-27-more-palettes.md` (6 tasks), mockups
 `docs/design/mockups/palettes-famous.html` + `palettes-colourful.html`, theme.md §1.
@@ -86,7 +89,7 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
 - **Next:** the user looks. Lagoon's reduced-transparency fallback gives system-light devices a dark card (existing; the
   new palettes don't copy it).
 
-**Labels as pictures + label styles — BUILT (2026-10-27), waiting on the user's look.** Spec
+**Labels as pictures + label styles — BUILT (2026-10-27) — ACCEPTED by the user (2026-10-28).** Spec
 `docs/specs/2026-10-26-labels-as-pictures-design.md`, plan `docs/plans/2026-10-26-labels-as-pictures.md` (all 10
 tasks), mockup `docs/design/mockups/label-styles.html`, theme.md §11. Settings → Printers & labels → **Print labels
 as: Image (new) / Classic** — **Classic is still the default** (migration 00012). In Image mode every label is a React
@@ -105,7 +108,7 @@ Studio / Night × light / dark, desktop + 360). **Next:** the user looks; then t
 
 **Order after this (user, 2026-10-21):** real-printer test (receipts + labels) → M8d Demo Room → M8e Pocket Cashier groundwork.
 
-**Palettes part 2 — BUILT (2026-10-21), waiting on the user's look.** Spec `docs/specs/2026-10-21-palettes-design.md`,
+**Palettes part 2 — BUILT (2026-10-21) — ACCEPTED by the user (2026-10-28).** Spec `docs/specs/2026-10-21-palettes-design.md`,
 plan `docs/plans/2026-10-21-palettes.md` (10 tasks), theme.md §1/§4/§8. Theme 1 is now named **Dock** (`data-ui="dock"`);
 palettes belong to a theme. **Every look value is a token** (colours, corners, `rounded-pill`, shadows, glass, motion
 `--dur*`/`--ease*`/`--lift`, Motion via `tx()`); `theme/guard.test.ts` keeps raw values out of core and plugins.
@@ -122,7 +125,7 @@ until a palette is chosen. Plugins: all screens on tokens; `slots.paletteTokens`
 Shots: `web/shots/pal-t3` (four palettes), `pal-t7` (picker), `pal-t8` (editor), `pal-t10` (plugins).
 **Next:** a real-printer test (the Settings → Printing page is skipped — user, 2026-10-21: Settings already looks good).
 
-**Receipt styles (Image mode) — BUILT (2026-10-21), waiting on the user's look.** Spec
+**Receipt styles (Image mode) — BUILT (2026-10-21) — ACCEPTED by the user (2026-10-28).** Spec
 `docs/specs/2026-10-21-receipt-styles-design.md`, plan `docs/plans/2026-10-21-receipt-styles.md` (all 10 tasks),
 mockups `docs/design/mockups/receipt-styles.html` + `appearance-receipts.html`, theme.md §10. Ten styles (classic,
 bold, minimal, ticket, poster, grid, stamp, elegant, cards, sections) for every slip — sale, refund, CR-, DP-,
