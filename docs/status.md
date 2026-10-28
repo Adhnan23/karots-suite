@@ -6,6 +6,18 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
+## Next session — START HERE: promo videos (Remotion)
+
+The user chose to make the promo videos now, while the business-name registration, the lawyer and the printers take
+their time. Brief (from the earlier handoff, step 4): Remotion's official Claude Code plugin / agent skills
+(`remotion.dev/docs/ai/claude-code-plugin`) make motion-graphics videos from React. Inputs: `docs/images/**` (from
+`make docs-shots`), the logo `docs/images/logo.jpg`, Playwright screen recordings (`recordVideo`) of the till and the
+Demo Room's Karots Super Store (the same unlock flow as `web/docs-shots/shots.spec.ts`), prices / plugin list from
+`docs/legal/agreement/shop-rules.html` §15 if a video shows them. Keep it in its own folder (e.g. `videos/`, own
+package.json), never in the shipped binary. Ask the user first: which videos (a 30–60 s promo, per-plugin shorts, a
+how-to for shops?), language (English / Sinhala / Tamil captions), voice-over or music, where they'll be posted
+(Facebook, WhatsApp status, YouTube → aspect ratios 16:9 / 9:16 / 1:1).
+
 ## Docs session DONE (2026-10-28)
 
 **Waiting on the user (outside the code):** business-name registration number (sole proprietorship applied 2026-10-28 —
