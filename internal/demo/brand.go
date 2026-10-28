@@ -4,6 +4,6 @@ package demo
 // The owner's details on the watermark: a copy left on a customer's PC still
 // points back to Karots.
 const (
-	OwnerName  = "Karots"
-	OwnerPhone = "07X XXX XXXX"
+	OwnerName  = "adhnanmsa@gmail.com" // as on the receipt credits
+	OwnerPhone = "0769626396"
 )

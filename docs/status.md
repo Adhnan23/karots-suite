@@ -29,7 +29,7 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
   2. ~~Deferred minors~~ DECIDED 2026-10-28 — fixed: a make-your-own pick is checked (compiled plugins, plain look
      keys → else 400) and the `ks-plugins` meta is escaped. Left: child ports (127.0.0.1, throwaway data); API with no
      shop already 503s; no control timeout (it would cut a long cheat); check-core web/demo guard; Windows clock walls.
-  3. Ask the user for the **owner name + phone** (`internal/demo/brand.go`).
+  3. ~~Owner name + phone~~ DONE 2026-10-28 — the receipt credits' email + phone (`internal/demo/brand.go`).
   4. `make demo` again (dist/demo is stale: built before the review fixes and the cache-folder rename), then the user's
      look and the Windows VM acceptance (`docs/acceptance.md` §6). Ledger: `.superpowers/sdd/2026-10-27-demo-room/progress.md`.
 - Then the real-printer test.
