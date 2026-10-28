@@ -3,7 +3,73 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
-## Next session (handoff 2026-10-26) — START HERE
+## Next session (handoff 2026-10-28) — START HERE: docs, license, screenshots
+
+**The suite is feature-complete for a shop's day.** Nothing waits on the user (they accepted everything 2026-10-28).
+Before M8e Pocket Cashier the user wants **proper documentation**: a beautiful, detailed README with badges and
+screenshots, a full guide set, a LICENSE and third-party notices. Promo videos (Remotion) come after, in their own
+session. Order: **1 screenshots → 2 README + guides → 3 LICENSE + notices** (→ later 4 videos).
+
+**Where it stands:** `README.md` is a 31-line dev quickstart. No `LICENSE`. `docs/` holds INTERNAL material (specs,
+plans, status, parity, acceptance, design/theme.md) — keep it; put user-facing docs in a new **`docs/guide/`** and
+images in **`docs/images/`** (committed). `web/shots/` is git-ignored (gate screenshots), never link docs to it.
+
+**Ask the user first (one prompt):** the legal owner for the LICENSE (person or business name, country — Sri Lanka?),
+contact for licensing (`internal/demo/brand.go` has the receipt-credit email + phone), product name to use everywhere
+("Karots Business Suite"?), whether a logo / wordmark exists beyond `web/public/favicon.svg` + icons, and who reads
+the docs (shop owners, resellers, developers — likely all three, so split guide pages by audience).
+
+**1. Screenshots — make them reproducible, not by hand.**
+- A dedicated Playwright spec (e.g. `web/e2e/docs-shots.spec.ts`, excluded from the normal run via `testIgnore`
+  or its own config) that walks every main screen and writes `docs/images/<area>/<name>.png`. Re-runnable whenever
+  the UI changes.
+- **Data must look real**, not e2e's "E2E Milk": use a Demo Room shop's year (`make demo-dev`, or the built
+  `dist/demo/karots-suite-demo-room`; unlock with the hourly code — `support.Code(support.DeriveSeed(POS_SUPPORT_SECRET,
+  <install id>), now)`; the launcher prints the install id). Karots Super Store shows every plugin.
+- Hide the demo chrome in shots: inject CSS `.ksd { display: none !important }` (watermark tab, paper strip, logins).
+- Sets: desktop 1440×900 for the till + admin; phone 390×844 for admin pages (the suite promises 360 px admin); light
+  and dark for a few hero screens; a palette gallery (Studio, Night, Bazaar, Lagoon, Catppuccin + a few colourful);
+  receipt styles (Appearance previews) and label styles; the login page; the Demo Room picker.
+- Keep files small (PNG ≤ ~250 KB — crop to the content, or WebP); name them stably so docs links don't break.
+- Never show real secrets (install ids / support PINs in the Konami overlay, `.env` values).
+
+**2. README + guides.**
+- README: logo + one-line pitch; shields.io static badges (Go 1.26, React 19, PostgreSQL 17, TypeScript, platforms
+  Windows · Linux, license Proprietary — no CI exists, so no build badges); hero screenshot; "what it does" feature
+  grid with thumbnails; the 10 plugins; how a shop gets it (Shop Builder → Release → `karots-setup`); dev quickstart
+  (keep today's); links into `docs/guide/`.
+- `docs/guide/` (a page each, screenshots inline, plain English — shop owners read these): Selling at the till
+  (hotkeys, holds, returns, credit, counter tabs), Stock (intake, stock-take, packs, batches, smart reorder, low
+  stock), Purchasing (suppliers, POs, GRN, returns), Money (cash flow, lockers, expenses, receipts, till close /
+  left open), Reports & dashboard, People & users (roles, PINs, lock, who's on now), Printing (Classic vs Image,
+  receipt styles, labels, ask before printing), Appearance (palettes, custom palettes, light / dark), the 10 plugins
+  (one page each — Print & Copy now has sizes × types, extras, itemised receipts), Install & Shop Builder (file vs
+  server mode, Windows / Linux, moving a shop), Updates & backups (Release, Data → Updates, copy folder, Karots
+  cloud), Demo Room, and for developers: Architecture (core vs plugins, hooks + slots, AGENTS.md rules) + Developer
+  guide (make targets, tests, migrations, tygo).
+- Sources to write from: `AGENTS.md`, `docs/specs/*`, `docs/design/theme.md`, `docs/acceptance.md`, this file,
+  `docs/differences.md` (suite vs karots-pos). Every claim must match the code — check before writing.
+- Mermaid diagrams render on GitHub: use them for the architecture (core / plugins / hooks) and the install flow.
+
+**3. LICENSE + THIRD_PARTY_NOTICES.md.**
+- A sellable product in a private repo → a **proprietary license** ("all rights reserved"; per-shop use; no
+  redistribution / resale / reverse engineering; no warranty; liability cap; Sri Lankan law if confirmed). Draft it
+  and tell the user plainly a lawyer must review it before selling under it.
+- Notices for what ships: Go modules (generate with `go-licenses` or from `go.mod`), npm deps (generate from
+  `web/package.json` / `bun pm ls`), PostgreSQL 17 (PostgreSQL License — bundled by file mode via
+  `fergusstrange/embedded-postgres` / zonky binaries, and the Windows installer Setup can carry), Microsoft VC++
+  runtime DLLs (`internal/filedb/vcrt/`, redistributable terms), fonts (Figtree, Sora, Inter, JetBrains Mono, Noto
+  Sans/Serif Sinhala & Tamil, Noto Serif — all OFL 1.1), React (MIT), ECharts (Apache-2.0), lucide (ISC), Motion
+  (MIT), TanStack (MIT), shadcn/ui (MIT). Generate lists, don't hand-type versions.
+
+**4. Videos (later session).** Remotion's official Claude Code plugin / agent skills
+(`remotion.dev/docs/ai/claude-code-plugin`) make motion-graphics videos from React; feed it the docs screenshots and
+Playwright screen recordings (`recordVideo`) of the till and the Demo Room.
+
+**Rules that still apply:** no Claude/AI attribution in commits or docs; core code never names a plugin (docs may);
+one commit per step on `main`; screenshots self-reviewed before they go in (check 360 px phone shots for overflow).
+
+## Earlier handoff (2026-10-26)
 
 **M8d Demo Room — BUILT (2026-10-27) — ACCEPTED by the user (2026-10-28).** Spec `docs/specs/2026-10-27-demo-room-design.md`,
 plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, `web/shots/demo-9`.
