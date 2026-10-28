@@ -85,7 +85,9 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 
 8.1 Updates are signed by Karots and installed by the Shop from inside the Software. Karots never
     updates a shop by itself.
-8.2 Support, Karots cloud backup and other services are as in Schedule A and the Order Form.
+8.2 What is free, what is charged, visits, refunds and the shop rules are in the Karots Suite
+    Shop Rules & Service Guide given with these terms (the version named on the Order Form). It
+    forms part of these terms. Schedule A summarises the services.
 
 
 9. WHAT KAROTS PROMISES
@@ -93,7 +95,9 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 9.1 Karots will supply the Software with reasonable skill and care, and it will work materially
     as its documentation describes on supported computers.
 9.2 If it does not, tell Karots in writing. Karots will fix it, work around it or, if it cannot
-    within a reasonable time, refund the licence fee for the part that does not work.
+    within a reasonable time, refund the licence fee for the part that does not work. Bugs
+    reported in the first year after installation are fixed free; after that, as the Shop Rules
+    & Service Guide says.
 9.3 Apart from clause 9 and anything the law does not allow to be excluded, the Software is
     supplied as it is. No other promise is made that it is free of all errors or fits a purpose
     Karots was not told about.
@@ -119,7 +123,7 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 11. ENDING THESE TERMS
 
 11.1 The Shop may end these terms at any time by stopping use of the Software. Fees already paid
-     are not refunded, except under clause 9.2.
+     are refunded only under clause 9.2 or the refund rules in the Shop Rules & Service Guide.
 11.2 Karots may end them by written notice if the Shop seriously breaks them (for example clause
      4) and, where the breach can be put right, does not do so within 30 days of being asked.
 11.3 When they end, the Shop must stop using the Software and delete it, after taking a final
@@ -146,12 +150,16 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 
 SCHEDULE A — SERVICES
 
-A1 Updates: published to the Shop's update channel for as long as the Order Form says.
-A2 Support: by phone or message at the times on the Order Form. A support visit or remote session
-   uses the Software's rotating support code, which works only for that Shop's install ID.
-A3 Karots cloud backup (if on the Order Form): one encrypted copy of the Shop's newest automatic
-   backup about once a day, kept for the period on the Order Form, in Karots' storage. The Shop
-   can switch it off at any time on the Data page. A copy can be brought back on request or
+A1 Updates and bug fixes: free for the first year after installation. After that the Shop keeps
+   using the version it has, and updates, fixes and help are paid work or a renewal.
+A2 Support: free remote help in the first year, personalised help free in the first 60 days, and
+   2 free visits in the first year, as the Shop Rules & Service Guide sets out. A support session
+   uses the Software's rotating support code, which works only for that Shop's install ID, and
+   remote access only when the Shop allows it.
+A3 Karots cloud backup (if on the Order Form): a paid service, monthly or yearly. One encrypted
+   copy of the Shop's newest automatic backup about once a day, kept in Karots' storage. If a
+   payment is more than 7 days late the service is frozen (no new copies) until it is paid. The
+   Shop can switch it off at any time on the Data page. A copy can be brought back on request or
    from the Data page.
 A4 The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
 

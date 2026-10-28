@@ -14,6 +14,7 @@ schedules:
 | Services (updates, support, cloud backup) | `LICENSE` Schedule A | So paid services sit under the same terms, with no second contract |
 | Personal data handling | `LICENSE` Schedule B | The PDPA requires a written contract between a controller (the shop) and a processor (Karots, for cloud backups and support) |
 | **Per-shop details: price, plugins, install ID, support period, liability amount** | **[Order Form](karots-suite-agreement.pdf), signed once per shop** | The only part that changes per shop. It pulls in the LICENSE by reference |
+| What's free, what's charged, visits, cloud backup, refunds, shop dos and don'ts, price list | **[Shop Rules & Service Guide](karots-suite-shop-rules.pdf)** (`agreement/shop-rules.html`) | Brought in by `LICENSE` §8.2 and the Order Form's acceptance line, so signing accepts it too. Change its version date on every edit |
 
 You need **one more agreement only if you take on resellers**. A reseller is a different party
 with different rights (to sell, install and support, with commission and territory), so that
@@ -107,6 +108,10 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
 8. Should the licence also cover the **Demo Room** (given to prospects, not shops)? Today its
    lock code and watermark protect it. A short evaluation notice may help.
 9. Draft a **Reseller Agreement** when the first reseller signs.
+10. Shop Rules §7 refund scale: after day 7, Karots keeps the set-up fee plus 25 / 50 / 75 % of the licence by week,
+    with nothing refunded after day 30. Is this reasonable under UCTA s.4 and s.10? Is it fair when the shop paid only an advance?
+11. Shop Rules §5: freezing cloud backup after 7 days unpaid, and §1: no free updates or fixes after year 1. Does that sit
+    with `LICENSE` §9 (fit for purpose)?
 
 ## Sources
 

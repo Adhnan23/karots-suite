@@ -1,6 +1,6 @@
-// Prints the agreement a shop signs: the Order Form (docs/legal/agreement/) with
-// blanks to fill in by hand, then the terms read from LICENSE, as one A4 PDF.
-//   make agreement   →   docs/legal/karots-suite-agreement.pdf
+// Prints what a shop signs, as A4 PDFs in docs/legal/: the agreement (the Order
+// Form with blanks to fill in by hand, then the terms read from LICENSE) and the
+// Shop Rules & Service Guide it brings in.   make agreement
 import { chromium } from '@playwright/test'
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -38,27 +38,30 @@ function terms(text: string) {
 
 const t = terms(readFileSync(join(root, 'LICENSE'), 'utf8'))
 const fonts = 'file://' + join(root, 'web/node_modules')
-const form = readFileSync(join(dir, 'order-form.html'), 'utf8')
+const css = readFileSync(join(dir, 'agreement.css'), 'utf8').replaceAll('{{FONTS}}', fonts)
+const fill = (file: string) => readFileSync(join(dir, file), 'utf8')
   .replace('{{LOGO}}', 'file://' + join(root, 'docs/images/logo.jpg'))
   .replace('{{DRAFT}}', t.draft ? `<div class="draft">${esc(t.draft)}</div>` : '')
-const page = `<!doctype html><html><head><meta charset="utf-8"><title>Karots Suite agreement</title>
-<style>${readFileSync(join(dir, 'agreement.css'), 'utf8').replaceAll('{{FONTS}}', fonts)}</style></head>
-<body>${form}<section class="terms">${t.html}</section></body></html>`
 
-const tmp = join(mkdtempSync(join(tmpdir(), 'ks-agreement-')), 'agreement.html')
-writeFileSync(tmp, page)
+const tmp = mkdtempSync(join(tmpdir(), 'ks-agreement-'))
 const browser = await chromium.launch()
-const p = await browser.newPage()
-await p.goto('file://' + tmp)
-await p.evaluate(() => document.fonts.ready)
-const out = join(root, 'docs/legal/karots-suite-agreement.pdf')
-await p.pdf({
-  path: out, format: 'A4', printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true,
-  headerTemplate: '<span></span>',
-  footerTemplate: `<div style="width:100%;margin:0 16mm;font:7.5pt sans-serif;color:#555;display:flex;justify-content:space-between">
-    <span>Karots Suite — Order Form, Licence and Service Terms</span>
-    <span>Initials: Karots ________ &nbsp; Shop ________</span>
-    <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
-})
+async function print(name: string, title: string, body: string) {
+  const html = join(tmp, name + '.html')
+  writeFileSync(html, `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>${body}</body></html>`)
+  const p = await browser.newPage()
+  await p.goto('file://' + html)
+  await p.evaluate(() => document.fonts.ready)
+  const out = join(root, 'docs/legal', name + '.pdf')
+  await p.pdf({
+    path: out, format: 'A4', printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true,
+    headerTemplate: '<span></span>',
+    footerTemplate: `<div style="width:100%;margin:0 16mm;font:7.5pt sans-serif;color:#555;display:flex;justify-content:space-between">
+      <span>Karots Suite — ${title}</span>
+      <span>Initials: Karots ________ &nbsp; Shop ________</span>
+      <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
+  })
+  console.log(out)
+}
+await print('karots-suite-agreement', 'Order Form, Licence and Service Terms', `${fill('order-form.html')}<section class="terms">${t.html}</section>`)
+await print('karots-suite-shop-rules', 'Shop Rules & Service Guide', fill('shop-rules.html'))
 await browser.close()
-console.log(out)
