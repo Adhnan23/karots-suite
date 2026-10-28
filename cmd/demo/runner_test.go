@@ -163,3 +163,10 @@ func TestCustomShopReportsItsDays(t *testing.T) {
 		t.Fatalf("%d days, last %+v", len(days), days[len(days)-1])
 	}
 }
+
+func TestViaSocket(t *testing.T) {
+	got := viaSocket("postgres://shop:pw@127.0.0.1:5434/tpl_grocery?sslmode=disable")
+	if got != "postgres://shop:pw@/tpl_grocery?host=%2Ftmp&port=5434&sslmode=disable" {
+		t.Fatal(got)
+	}
+}

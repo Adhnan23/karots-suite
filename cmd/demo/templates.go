@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -71,7 +73,7 @@ func runTemplates(dir string) int {
 			if _, err := pg.Exec(`CREATE DATABASE ` + name); err == nil {
 				_, _ = pg.Exec(`ALTER DATABASE ` + name + ` SET synchronous_commit = off`)
 			}
-			args, _ := json.Marshal(childArgs{DB: siblingURL(fdb.URL, name), JWTSecret: fdb.JWTSecret, Shop: p, Staff: p.Staff,
+			args, _ := json.Marshal(childArgs{DB: viaSocket(siblingURL(fdb.URL, name)), JWTSecret: fdb.JWTSecret, Shop: p, Staff: p.Staff,
 				ReceiptPrinter: "127.0.0.1:9", LabelPrinter: "127.0.0.1:9", Template: filepath.Join(dir, p.Key+".ksb")})
 			cmd := exec.Command(exe, "-child", string(args))
 			cmd.Stderr = os.Stderr
@@ -114,4 +116,19 @@ func runShowing(cmd *exec.Cmd, shop string) error {
 		}
 	}
 	return cmd.Wait()
+}
+
+// viaSocket points a builder's connection at PostgreSQL's local socket in
+// /tmp rather than TCP: a sale is ~85 small round trips, and each is cheaper.
+// The years are only built on Linux (make demo).
+func viaSocket(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || runtime.GOOS == "windows" {
+		return raw
+	}
+	q := u.Query()
+	q.Set("host", "/tmp")
+	q.Set("port", u.Port())
+	u.Host, u.RawQuery = "", q.Encode()
+	return u.String()
 }
