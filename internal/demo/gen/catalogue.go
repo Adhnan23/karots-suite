@@ -59,10 +59,26 @@ type shop struct {
 // pluginLines is stock a plugin's work uses, on the shelf only when it's on.
 func pluginLines(p shops.Profile) string {
 	if p.Has("documents") {
-		return "\nPrint & Copy;A4 Paper (sheet);;pcs;3.6;6;2\nPrint & Copy;Copier Toner Cartridge;;pcs;7800;9800;0.05\n"
+		return "\n" + docSupplyLines
 	}
 	return ""
 }
+
+// docSupplyLines: what Print & Copy uses (gen/plugin_documents.go docSupplies), on
+// the shelf too — paper, pouches, binders, lanyards (category;name;local;unit;cost;price;sold a week).
+const docSupplyLines = `Print & Copy;A4 Paper (sheet);;pcs;3.6;6;2
+Print & Copy;Copier Toner Cartridge;;pcs;7800;9800;0.05
+Print & Copy;A4 Photo Paper (sheet);;pcs;26;45;0.5
+Print & Copy;Laminating Pouch A4 Gloss;;pcs;20;40;0.3
+Print & Copy;Laminating Pouch A4 Matte;;pcs;28;55;0.1
+Print & Copy;Laminating Pouch ID Gloss;;pcs;6;15;0.3
+Print & Copy;Laminating Pouch ID Matte;;pcs;9;20;0.1
+Print & Copy;Binding Comb 10mm;;pcs;15;30;0.2
+Print & Copy;Binding Cover A4 Clear;;pcs;12;25;0.2
+Print & Copy;Binding Cover A4 Card;;pcs;10;20;0.2
+Print & Copy;ID Card Lanyard;;pcs;35;80;0.5
+Print & Copy;Staple Pins (box of 1000);;pcs;95;150;0.1
+`
 
 func linesFor(catalogue string) (lines string, sups []string) {
 	pick := map[string]string{"grocery": groceryLines, "pharmacy": pharmacyLines, "phone": phoneLines, "hardware": hardwareLines}

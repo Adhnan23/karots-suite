@@ -28,7 +28,7 @@ var floorTables = map[string][]string{
 var pluginLife = map[string][]string{
 	"pharmacy":    {"pharmacy_controlled_products"},
 	"productplus": {"pp_field_categories"},
-	"documents":   {"doc_consumable"},
+	"documents":   {"doc_consumable", "doc_extra"},
 	"recharge":    {"recharge_bill_tx", "recharge_counts"},
 	"repairs":     {"repair_deposits", "repair_payouts"},
 	"requests":    {"request_asks"},
@@ -43,6 +43,25 @@ func TestPluginLifeFilled(t *testing.T) {
 				t.Errorf("%s: nothing in %s", k, tb)
 			}
 		}
+	}
+}
+
+// Print & Copy sells by size and type, and a job with extras rings as one itemised block.
+func TestPrintAndCopyByTypeWithExtras(t *testing.T) {
+	need(t)
+	if !slices.Contains(shop.Plugins, "documents") {
+		t.Skip("no Print & Copy in this shop")
+	}
+	if count(t, `SELECT count(*) FROM doc_job WHERE material IN ('Gloss', 'Matte')`) == 0 {
+		t.Error("no Gloss / Matte lamination sold")
+	}
+	if count(t, `SELECT count(DISTINCT (sale_id, line_group)) FROM sale_items WHERE line_group_itemised`) == 0 {
+		t.Error("no job sold with its extras (an itemised group)")
+	}
+	if count(t, `SELECT count(*) FROM sale_items si JOIN products p ON p.id = si.product_id
+		WHERE si.line_group_itemised AND si.description NOT IN (SELECT name FROM doc_extra) AND si.description IS NOT NULL
+		  AND NOT EXISTS (SELECT 1 FROM doc_job j WHERE j.sale_item_id = si.id)`) > 0 {
+		t.Error("a grouped job line has no ledger job")
 	}
 }
 
