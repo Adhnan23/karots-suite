@@ -46,10 +46,13 @@ function own() {
 }
 
 async function start(body: unknown) {
+  const btns = [...app.querySelectorAll<HTMLButtonElement>('button')]
+  btns.forEach((b) => (b.disabled = true)) // one pick: a double-click mustn't build twice
   try {
     await call('/__demo/start', body)
     void poll()
   } catch (e) {
+    btns.forEach((b) => (b.disabled = false))
     alert((e as Error).message)
   }
 }

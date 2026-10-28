@@ -24,9 +24,8 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
 - **Final review (2026-10-27)** fixed: leftover PostgreSQL after a crash, empty yesterday in UTC+5:30, Monday-morning
   future rows (and a 3-week restock on every launch), open lock without `POS_SUPPORT_SECRET`, shared sign-in secret.
 - **RESUME HERE (next session):**
-  1. **I3** — double-click on a shop card builds it twice (`cmd/demo/launcher.go` restart/waitIdle WaitGroup race):
-     mutex + generation counter, ignore a start for the shop already building, disable the cards after one click
-     (`web/demo/picker.ts`). Test first.
+  1. ~~**I3**~~ DONE 2026-10-28 — a generation counter + one work mutex (newest pick wins, an overtaken job is
+     dropped), a second pick of the shop already building is ignored, and the picker disables its buttons on a click.
   2. Deferred minors (decide): child ports unauthenticated on 127.0.0.1; Custom palette/style unvalidated + unescaped
      `ks-plugins` meta; API with no shop → 302 not 503; Pause waits behind a long cheat / control POST has no timeout;
      check-core doesn't guard web/src → web/demo imports; coarse Windows clock walls in the time machine.

@@ -15,12 +15,18 @@ import (
 
 // fakeRunner is a "child" that is an httptest server.
 type fakeRunner struct {
-	srv   *httptest.Server
-	shop  *shops.Profile
-	stops int
+	srv    *httptest.Server
+	shop   *shops.Profile
+	stops  int
+	starts int
+	gate   chan struct{} // when set, Start waits on it
 }
 
 func (f *fakeRunner) Start(p shops.Profile, progress func(int, string)) error {
+	if f.gate != nil {
+		<-f.gate
+	}
+	f.starts++
 	f.shop = &p
 	progress(100, "ready")
 	return nil
@@ -184,5 +190,36 @@ func TestStateAndSwitch(t *testing.T) {
 	l.waitIdle()
 	if r.stops != before+1 || r.shop != nil || l.state().Phase != "picker" {
 		t.Fatalf("after switch: stops %d, phase %s", r.stops, l.state().Phase)
+	}
+}
+
+func TestDoubleClickBuildsOnce(t *testing.T) {
+	l, r, _ := newTestLauncher(t, nil)
+	r.gate = make(chan struct{})
+	p, _ := shops.ByKey("pharmacy")
+	l.restart(p)
+	l.restart(p) // the second click of a double-click
+	close(r.gate)
+	l.waitIdle()
+	if r.starts != 1 || l.state().Phase != "ready" {
+		t.Fatalf("starts %d, phase %s", r.starts, l.state().Phase)
+	}
+}
+
+func TestNewestPickWins(t *testing.T) {
+	l, r, _ := newTestLauncher(t, nil)
+	r.gate = make(chan struct{})
+	a, _ := shops.ByKey("pharmacy")
+	b := shops.BuiltIn()[0]
+	if b.Key == a.Key {
+		b = shops.BuiltIn()[1]
+	}
+	l.restart(a)
+	l.restart(b)
+	close(r.gate)
+	l.waitIdle()
+	st := l.state()
+	if st.Phase != "ready" || st.Shop.Key != b.Key || r.shop.Key != b.Key || st.Progress != 100 {
+		t.Fatalf("state %s/%s, child %s", st.Phase, st.Shop.Key, r.shop.Key)
 	}
 }

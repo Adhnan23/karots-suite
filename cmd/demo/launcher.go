@@ -57,7 +57,9 @@ type launcher struct {
 	mu     sync.Mutex
 	st     State
 	misses []time.Time
-	busy   sync.WaitGroup // a start or switch in flight
+	gen    int            // bumped by every start / switch; an overtaken job leaves the state alone
+	work   sync.Mutex     // held by the one job touching the child
+	busy   sync.WaitGroup // jobs queued or running
 }
 
 func newLauncher(seed []byte, installID string, r shopRunner, printers []*printer.Printer, ui fs.FS) *launcher {
@@ -80,6 +82,36 @@ func (l *launcher) set(f func(*State)) {
 }
 
 func (l *launcher) waitIdle() { l.busy.Wait() }
+
+// job moves the state on for a new start / switch, then runs do behind any job
+// in flight. Only the newest job runs: one overtaken while it waited is dropped,
+// so only one child ever lives and the state shows the last pick.
+func (l *launcher) job(mark func(*State), do func(set func(func(*State)))) {
+	l.mu.Lock()
+	l.gen++
+	gen := l.gen
+	mark(&l.st)
+	l.busy.Add(1)
+	l.mu.Unlock()
+	set := func(f func(*State)) {
+		l.mu.Lock()
+		if l.gen == gen {
+			f(&l.st)
+		}
+		l.mu.Unlock()
+	}
+	go func() {
+		defer l.busy.Done()
+		l.work.Lock()
+		defer l.work.Unlock()
+		l.mu.Lock()
+		stale := l.gen != gen
+		l.mu.Unlock()
+		if !stale {
+			do(set)
+		}
+	}()
+}
 
 func (l *launcher) handler() http.Handler {
 	m := http.NewServeMux()
@@ -163,13 +195,11 @@ func (l *launcher) start(w http.ResponseWriter, r *http.Request) {
 }
 
 func (l *launcher) switchShop(w http.ResponseWriter, r *http.Request) {
-	l.waitIdle()
-	l.busy.Add(1)
-	go func() {
-		defer l.busy.Done()
+	picker := func(s *State) { *s = State{InstallID: s.InstallID, Owner: s.Owner, Shops: s.Shops, Phase: "picker"} }
+	l.job(func(*State) {}, func(set func(func(*State))) {
 		_ = l.runner.Stop()
-		l.set(func(s *State) { *s = State{InstallID: s.InstallID, Owner: s.Owner, Shops: s.Shops, Phase: "picker"} })
-	}()
+		set(picker)
+	})
 	writeJSON(w, http.StatusAccepted, map[string]bool{"ok": true})
 }
 
@@ -216,26 +246,25 @@ func (l *launcher) cheat(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-// restart throws away whatever shop is running and builds p. One at a time: a
-// second pick waits for the first to settle, so only one child ever lives.
+// restart throws away whatever shop is running and builds p. A second pick of
+// the shop already building (a double-click) is ignored.
 func (l *launcher) restart(p shops.Profile) {
-	l.waitIdle()
-	l.busy.Add(1)
-	l.set(func(s *State) {
+	if st := l.state(); st.Phase == "building" && st.Shop != nil && st.Shop.Key == p.Key {
+		return
+	}
+	l.job(func(s *State) {
 		*s = State{InstallID: s.InstallID, Owner: s.Owner, Shops: s.Shops, Phase: "building", Shop: &p}
-	})
-	go func() {
-		defer l.busy.Done()
+	}, func(set func(func(*State))) {
 		_ = l.runner.Stop()
-		err := l.runner.Start(p, func(pct int, step string) { l.set(func(s *State) { s.Progress, s.Step = pct, step }) })
-		l.set(func(s *State) {
+		err := l.runner.Start(p, func(pct int, step string) { set(func(s *State) { s.Progress, s.Step = pct, step }) })
+		set(func(s *State) {
 			if err != nil {
 				s.Phase, s.Error = "failed", err.Error()
 				return
 			}
 			s.Phase, s.Progress, s.Cheats = "ready", 100, gen.CheatNames(p)
 		})
-	}()
+	})
 }
 
 // prints lists new prints per printer: ?receipt=<last id>&label=<last id>.
