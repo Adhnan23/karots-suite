@@ -24,9 +24,9 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
 - **Final review (2026-10-27)** fixed: leftover PostgreSQL after a crash, empty yesterday in UTC+5:30, Monday-morning
   future rows (and a 3-week restock on every launch), open lock without `POS_SUPPORT_SECRET`, shared sign-in secret.
 - **RESUME HERE (next session, handoff 2026-10-28):**
-  - **Where we are:** the user is building the Demo Room fresh (Shop Builder → Demo Room tab, or `make demo`) and
-    testing it on Linux, then the Windows VM (`docs/acceptance.md` §6). **Wait for their findings and fix what they
-    report.** Nothing is pending on our side; the tree is clean on `main` (last: `18974f4`).
+  - **Where we are:** the user's fresh build was tested on Linux and the Windows VM (2026-10-28) and **passed** after
+    two fixes: the dashboard stuck on Loading on Windows (cmd/demo lacked `time/tzdata`; now embedded in
+    `internal/datetime`) and the Demo tab (opens on a tap only, drags to either edge, spot kept per browser).
   - **Done this session (2026-10-28), all committed:**
     - Launcher: double-click builds once (generation counter + work mutex, picker disables on click); make-your-own
       picks validated, `ks-plugins` meta escaped; Exit (sidebar + picker) → same shutdown as Ctrl+C.
