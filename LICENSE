@@ -39,7 +39,8 @@ customers, staff, patients and the like.
     this clause.
 3.3 Moving the Shop to another computer at the Site is allowed. Moving to another site, or a
     change of owner, needs Karots' written consent, which will not be refused without good
-    reason.
+    reason. A change of owner carries the transfer fee in the Shop Rules & Service Guide, and the
+    new owner signs a new Order Form.
 
 
 4. RESTRICTIONS
@@ -76,9 +77,13 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 7. FEES
 
 7.1 Fees, what they cover and when they are due are on the Order Form.
-7.2 If a fee is more than 30 days late, Karots may, after giving written notice, pause updates,
-    support and Karots cloud backup until it is paid. Karots never locks the Shop out of its own
-    Shop Data, and the till keeps working.
+7.2 While a fee is late, Karots may pause updates, support, visits and Karots cloud backup until
+    it is paid. The till keeps working, and Karots never locks the Shop out of its own Shop Data.
+7.3 Any balance of the one-time price must be paid within 90 days of installation. If it is not,
+    Karots will give written notice of 14 days. If the balance is still unpaid at the end of
+    that notice, the licence ends under clause 11.2 and Karots may remove the Software, at the
+    Site or remotely with the Shop's permission, after giving the Shop a full backup of its
+    Shop Data. The Shop's rights in the Software are complete only when everything is paid.
 
 
 8. UPDATES AND SUPPORT
@@ -125,7 +130,8 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 11.1 The Shop may end these terms at any time by stopping use of the Software. Fees already paid
      are refunded only under clause 9.2 or the refund rules in the Shop Rules & Service Guide.
 11.2 Karots may end them by written notice if the Shop seriously breaks them (for example clause
-     4) and, where the breach can be put right, does not do so within 30 days of being asked.
+     4) and, where the breach can be put right, does not do so within 30 days of being asked, or
+     as clause 7.3 says for an unpaid balance.
 11.3 When they end, the Shop must stop using the Software and delete it, after taking a final
      backup of its Shop Data (the uninstaller does this first). Clauses 4, 5, 6, 10, 12 and
      Schedule B survive.

@@ -110,6 +110,10 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
 9. Draft a **Reseller Agreement** when the first reseller signs.
 10. Shop Rules §7 refund scale: after day 7, Karots keeps the set-up fee plus 25 / 50 / 75 % of the licence by week,
     with nothing refunded after day 30. Is this reasonable under UCTA s.4 and s.10? Is it fair when the shop paid only an advance?
+12. `LICENSE` §7.3 and Shop Rules §8: the licence ends if the balance is unpaid 90 days after installation plus 14 days'
+    notice, and Karots removes the software at the site, or remotely only with the shop's permission, giving the shop a
+    data backup first. Is this enforceable? Removing it remotely *without* permission could fall under the Computer
+    Crimes Act, No. 24 of 2007, which is why the rules never allow it and the software has no remote kill switch.
 11. Shop Rules §5: freezing cloud backup after 7 days unpaid, and §1: no free updates or fixes after year 1. Does that sit
     with `LICENSE` §9 (fit for purpose)?
 

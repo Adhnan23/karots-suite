@@ -69,3 +69,6 @@ h2.newpage { break-before: page; }
 table { break-inside: avoid; }
 .prices td, .prices th { height: auto; font-size: 9.5pt; }
 .prices .amt, .prices td:last-child { width: 26%; text-align: right; }
+.agree td, .agree th { height: auto; font-size: 9.5pt; vertical-align: middle; }
+.agree td:first-child { width: 7mm; text-align: center; font-size: 12pt; }
+.agree td:last-child, .agree th:last-child { width: 26mm; }
