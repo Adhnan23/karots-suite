@@ -109,17 +109,17 @@ func (s *Store) SetActive(ctx context.Context, id int64, on bool) error {
 
 func (s *Store) Prices(ctx context.Context, serviceID int64) ([]Price, error) {
 	out := []Price{}
-	err := s.db.SelectContext(ctx, &out, `SELECT id, service_id, size, color, double_side, min_qty, unit_price
-		FROM doc_price WHERE service_id = $1 ORDER BY size NULLS FIRST, min_qty, color, double_side`, serviceID)
+	err := s.db.SelectContext(ctx, &out, `SELECT id, service_id, size, material, color, double_side, min_qty, unit_price
+		FROM doc_price WHERE service_id = $1 ORDER BY size NULLS FIRST, material, min_qty, color, double_side`, serviceID)
 	return out, err
 }
 
 func (s *Store) Paper(ctx context.Context, serviceID int64) ([]Paper, error) {
 	out := []Paper{}
-	err := s.db.SelectContext(ctx, &out, `SELECT dc.id, dc.service_id, dc.size, dc.product_id, dc.qty_per_unit,
+	err := s.db.SelectContext(ctx, &out, `SELECT dc.id, dc.service_id, dc.size, dc.material, dc.product_id, dc.qty_per_unit,
 		       p.name AS product_name, p.cost_price
 		FROM doc_consumable dc JOIN products p ON p.id = dc.product_id
-		WHERE dc.service_id = $1 ORDER BY dc.size NULLS FIRST, dc.id`, serviceID)
+		WHERE dc.service_id = $1 ORDER BY dc.size NULLS FIRST, dc.material, dc.id`, serviceID)
 	return out, err
 }
 
@@ -136,14 +136,14 @@ func (s *Store) SaveGrid(ctx context.Context, serviceID int64, prices []Price, p
 		}
 	}
 	for _, p := range prices {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO doc_price (service_id, size, color, double_side, min_qty, unit_price)
-			VALUES ($1, $2, $3, $4, $5, $6)`, serviceID, p.Size, p.Color, p.DoubleSide, p.MinQty, p.UnitPrice); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO doc_price (service_id, size, material, color, double_side, min_qty, unit_price)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, serviceID, p.Size, p.Material, p.Color, p.DoubleSide, p.MinQty, p.UnitPrice); err != nil {
 			return err
 		}
 	}
 	for _, p := range paper {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO doc_consumable (service_id, size, product_id, qty_per_unit)
-			VALUES ($1, $2, $3, $4)`, serviceID, p.Size, p.ProductID, p.QtyPerUnit); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO doc_consumable (service_id, size, material, product_id, qty_per_unit)
+			VALUES ($1, $2, $3, $4, $5)`, serviceID, p.Size, p.Material, p.ProductID, p.QtyPerUnit); err != nil {
 			if strings.Contains(err.Error(), "foreign key") {
 				return apperr.Validation("pick the paper from your products")
 			}
@@ -177,7 +177,7 @@ func (s *Store) Quote(ctx context.Context, sv *Service, o JobOptions) (*Quote, e
 	}
 	pr, ok := PickPrice(prices, o)
 	if !ok {
-		return nil, apperr.Validation("no price is set for that size and option")
+		return nil, apperr.Validation("no price is set for that size, type and option")
 	}
 	paper, err := s.Paper(ctx, sv.ID)
 	if err != nil {
@@ -187,7 +187,7 @@ func (s *Store) Quote(ctx context.Context, sv *Service, o JobOptions) (*Quote, e
 	if err != nil {
 		return nil, err
 	}
-	cs, cost := Components(PaperFor(paper, o.Size), rc, o)
+	cs, cost := Components(PaperFor(paper, o.Size, o.Material), rc, o)
 	return &Quote{Price: pr, Sheets: Sheets(o), Components: cs, Cost: cost}, nil
 }
 

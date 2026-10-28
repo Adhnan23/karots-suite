@@ -17,7 +17,7 @@ import (
 )
 
 // TillService is a print service with what the job panel can offer: each
-// size × colour × side on sale and its price bands.
+// size × type × colour × side on sale and its price bands.
 type TillService struct {
 	ID        int64       `json:"id"`
 	ProductID int64       `json:"productId"`
@@ -28,10 +28,11 @@ type TillService struct {
 }
 
 type TillOffer struct {
-	Size   string     `json:"size"` // '' = any size
-	Color  bool       `json:"color"`
-	Double bool       `json:"double"`
-	Bands  []TillBand `json:"bands"` // ascending minQty
+	Size     string     `json:"size"`     // '' = any size
+	Material string     `json:"material"` // '' = no type
+	Color    bool       `json:"color"`
+	Double   bool       `json:"double"`
+	Bands    []TillBand `json:"bands"` // ascending minQty
 }
 
 type TillBand struct {
@@ -57,6 +58,7 @@ type ComponentDTO struct {
 type OwnUseRequest struct {
 	ServiceID int64  `json:"serviceId"`
 	Size      string `json:"size"`
+	Material  string `json:"material"`
 	Color     bool   `json:"color"`
 	Double    bool   `json:"double"`
 	Copies    int    `json:"copies"`
@@ -68,6 +70,7 @@ type JobsRequest struct {
 		ServiceID   int64   `json:"serviceId"`
 		Description string  `json:"description"`
 		Size        *string `json:"size"`
+		Material    string  `json:"material"`
 		Color       *bool   `json:"color"`
 		Double      *bool   `json:"double"`
 		Sheets      *int    `json:"sheets"`
@@ -87,14 +90,14 @@ func (h handlers) till(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		at := map[[3]string]int{}
-		for _, p := range prices { // ordered by size, min_qty
-			k := [3]string{sizeKey(p.Size), strconv.FormatBool(p.Color), strconv.FormatBool(p.DoubleSide)}
+		at := map[[4]string]int{}
+		for _, p := range prices { // ordered by size, type, min_qty
+			k := [4]string{sizeKey(p.Size), p.Material, strconv.FormatBool(p.Color), strconv.FormatBool(p.DoubleSide)}
 			i, ok := at[k]
 			if !ok {
 				i = len(ts.Offers)
 				at[k] = i
-				ts.Offers = append(ts.Offers, TillOffer{Size: k[0], Color: p.Color, Double: p.DoubleSide, Bands: []TillBand{}})
+				ts.Offers = append(ts.Offers, TillOffer{Size: k[0], Material: p.Material, Color: p.Color, Double: p.DoubleSide, Bands: []TillBand{}})
 			}
 			ts.Offers[i].Bands = append(ts.Offers[i].Bands, TillBand{MinQty: p.MinQty, Price: p.UnitPrice.StringFixed(2)})
 		}
@@ -103,13 +106,22 @@ func (h handlers) till(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// Description is the receipt line: "Photocopy A4 · B&W · 2-side".
-func Description(name string, o JobOptions) string {
-	parts := []string{name}
+// Plain jobs (laminate, bind) are priced by size and type only: no ink, no sides.
+func Plain(category string) bool { return category == "laminate" || category == "bind" }
+
+// Description is the receipt line: "Photocopy A4 · Photo paper · B&W · 2-side",
+// "Laminate A4 · Gloss".
+func Description(sv *Service, o JobOptions) string {
+	parts := []string{sv.Name}
 	if o.Size != "" {
 		parts[0] += " " + o.Size
 	}
-	parts = append(parts, map[bool]string{false: "B&W", true: "Colour"}[o.Color], map[bool]string{false: "1-side", true: "2-side"}[o.Double])
+	if o.Material != "" {
+		parts = append(parts, o.Material)
+	}
+	if !Plain(sv.Category) {
+		parts = append(parts, map[bool]string{false: "B&W", true: "Colour"}[o.Color], map[bool]string{false: "1-side", true: "2-side"}[o.Double])
+	}
 	return strings.Join(parts, " · ")
 }
 
@@ -131,12 +143,12 @@ func (h handlers) metered(c echo.Context, sid int64, o JobOptions) (*Service, *Q
 func (h handlers) quote(c echo.Context) error {
 	sid, _ := strconv.ParseInt(c.QueryParam("service"), 10, 64)
 	copies, _ := strconv.Atoi(c.QueryParam("copies"))
-	o := JobOptions{Size: c.QueryParam("size"), Color: c.QueryParam("color") == "1", Double: c.QueryParam("double") == "1", Copies: copies}
+	o := JobOptions{Size: c.QueryParam("size"), Material: c.QueryParam("material"), Color: c.QueryParam("color") == "1", Double: c.QueryParam("double") == "1", Copies: copies}
 	sv, q, err := h.metered(c, sid, o)
 	if err != nil {
 		return err
 	}
-	out := QuoteDTO{UnitPrice: q.Price.UnitPrice.StringFixed(2), MinQty: q.Price.MinQty, Description: Description(sv.Name, o),
+	out := QuoteDTO{UnitPrice: q.Price.UnitPrice.StringFixed(2), MinQty: q.Price.MinQty, Description: Description(sv, o),
 		Total: q.Price.UnitPrice.Mul(decimal.NewFromInt(int64(copies))).StringFixed(2), Sheets: q.Sheets, Cost: q.Cost.StringFixed(2),
 		Components: make([]ComponentDTO, 0, len(q.Components))}
 	for _, x := range q.Components {
@@ -152,7 +164,7 @@ func (h handlers) ownUse(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid body")
 	}
-	o := JobOptions{Size: req.Size, Color: req.Color, Double: req.Double, Copies: req.Copies}
+	o := JobOptions{Size: req.Size, Material: req.Material, Color: req.Color, Double: req.Double, Copies: req.Copies}
 	sv, q, err := h.metered(c, req.ServiceID, o)
 	if err != nil {
 		return err
@@ -162,7 +174,7 @@ func (h handlers) ownUse(c echo.Context) error {
 	}
 	ctx := c.Request().Context()
 	uid := middleware.CurrentUserID(c)
-	desc := Description(sv.Name, o) + " ×" + strconv.Itoa(o.Copies)
+	desc := Description(sv, o) + " ×" + strconv.Itoa(o.Copies)
 	err = appdb.WithTx(ctx, h.p.core.DB, func(tx *sqlx.Tx) error {
 		for _, x := range q.Components {
 			if err := h.p.core.Stock.ConsumeTx(ctx, tx, stock.ConsumeInput{ProductID: x.ProductID, Quantity: x.Qty.String(),
@@ -203,7 +215,7 @@ func (h handlers) jobs(c echo.Context) error {
 		if size != nil && *size == "" {
 			size = nil
 		}
-		jobs = append(jobs, SoldJob{ServiceID: j.ServiceID, Description: j.Description, Size: size, Color: j.Color, Double: j.Double, Sheets: sheets})
+		jobs = append(jobs, SoldJob{ServiceID: j.ServiceID, Description: j.Description, Size: size, Material: strings.TrimSpace(j.Material), Color: j.Color, Double: j.Double, Sheets: sheets})
 	}
 	if err := h.p.store.RecordSold(c.Request().Context(), req.SaleID, jobs); err != nil {
 		return err

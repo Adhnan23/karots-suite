@@ -220,15 +220,16 @@ func (h handlers) saveGrid(c echo.Context) error {
 // ReportRowDTO is one service × options; options are null for custom and
 // karots-pos jobs (earlier = sold before the suite, kept as it was).
 type ReportRowDTO struct {
-	Name    string  `json:"name"`
-	Size    *string `json:"size"`
-	Color   *bool   `json:"color"`
-	Double  *bool   `json:"double"`
-	Earlier bool    `json:"earlier"`
-	Jobs    int     `json:"jobs"`
-	Copies  string  `json:"copies"`
-	Sheets  string  `json:"sheets"`
-	Revenue string  `json:"revenue"`
+	Name     string  `json:"name"`
+	Size     *string `json:"size"`
+	Material string  `json:"material"`
+	Color    *bool   `json:"color"`
+	Double   *bool   `json:"double"`
+	Earlier  bool    `json:"earlier"`
+	Jobs     int     `json:"jobs"`
+	Copies   string  `json:"copies"`
+	Sheets   string  `json:"sheets"`
+	Revenue  string  `json:"revenue"`
 }
 
 type ReportDTO struct {
@@ -254,7 +255,7 @@ func (h handlers) report(c echo.Context) error {
 	out := ReportDTO{Rows: make([]ReportRowDTO, 0, len(r.Rows)), Jobs: r.Jobs, Copies: r.Copies.String(), Sheets: r.Sheets.String(),
 		Revenue: r.Revenue.StringFixed(2), OwnUseJobs: r.OwnUse.Jobs, OwnUseSheets: r.OwnUse.Sheets.String(), OwnUseCost: r.OwnUse.Cost.StringFixed(2)}
 	for _, x := range r.Rows {
-		out.Rows = append(out.Rows, ReportRowDTO{Name: x.Name, Size: x.Size, Color: x.Color, Double: x.Double, Earlier: !x.Linked,
+		out.Rows = append(out.Rows, ReportRowDTO{Name: x.Name, Size: x.Size, Material: x.Material, Color: x.Color, Double: x.Double, Earlier: !x.Linked,
 			Jobs: x.Jobs, Copies: x.Copies.String(), Sheets: x.Sheets.String(), Revenue: x.Revenue.StringFixed(2)})
 	}
 	return c.JSON(http.StatusOK, out)

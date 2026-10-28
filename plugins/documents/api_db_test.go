@@ -236,3 +236,50 @@ func TestPrintAndCopyFlow(t *testing.T) {
 		t.Errorf("badges %v", b)
 	}
 }
+
+// Laminate by size and type: each type its own price and pouch, no ink or sides.
+func TestLaminateTypes(t *testing.T) {
+	db := testDB(t)
+	do := testAPI(t, db)
+	tag := fmt.Sprintf("zl%d", time.Now().UnixNano())
+	var cat int64
+	if err := db.Get(&cat, `SELECT id FROM categories LIMIT 1`); err != nil {
+		t.Fatal(err)
+	}
+	pouch := map[string]int64{}
+	for _, m := range []string{"Gloss", "Matte"} {
+		var id int64
+		if err := db.Get(&id, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price)
+			VALUES ($1, $2, (SELECT id FROM units LIMIT 1), 20, 0) RETURNING id`, "A4 pouch "+m+" "+tag, cat); err != nil {
+			t.Fatal(err)
+		}
+		pouch[m] = id
+	}
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM doc_service WHERE name LIKE '%' || $1 || '%'`, tag) //nolint:errcheck
+		db.Exec(`DELETE FROM products WHERE name LIKE '%' || $1 || '%'`, tag)    //nolint:errcheck
+	})
+	made := decode[map[string]int64](t, do("POST", "/services", fmt.Sprintf(`{"name":"Laminate %s","categoryId":%d,"kind":"metered","category":"laminate"}`, tag, cat)))
+	sid := made["id"]
+	row := func(m, price string) string {
+		return fmt.Sprintf(`{"size":"A4","material":%q,"tiers":[{"minQty":1,"cells":[%q,"","",""]}],"paper":[{"productId":%d,"perSheet":"1"}]}`, m, price, pouch[m])
+	}
+	rec := do("PUT", fmt.Sprintf("/services/%d/grid", sid), `{"rows":[`+row("Gloss", "100")+`,`+row("Matte", "120")+`]}`)
+	if rec.Code != 200 {
+		t.Fatalf("grid = %d %s", rec.Code, rec.Body)
+	}
+	if g := decode[GridDTO](t, rec); len(g.Rows) != 2 || g.Rows[0].Material != "Gloss" || g.Rows[1].Paper[0].ProductID != pouch["Matte"] {
+		t.Fatalf("grid back: %+v", g)
+	}
+	if rec := do("PUT", fmt.Sprintf("/services/%d/grid", sid), `{"rows":[`+row("Gloss", "1")+`,`+row("Gloss", "2")+`]}`); rec.Code != 422 {
+		t.Errorf("A4 Gloss twice = %d, want 422", rec.Code)
+	}
+	q := decode[QuoteDTO](t, do("GET", fmt.Sprintf("/quote?service=%d&size=A4&material=Matte&copies=3", sid), ""))
+	if q.Total != "360.00" || q.Description != "Laminate "+tag+" A4 · Matte" || len(q.Components) != 1 ||
+		q.Components[0].ProductID != pouch["Matte"] || q.Components[0].Quantity != "3" {
+		t.Fatalf("matte quote: %+v", q)
+	}
+	if rec := do("GET", fmt.Sprintf("/quote?service=%d&size=A4&copies=1", sid), ""); rec.Code != 422 {
+		t.Errorf("A4 with no type = %d, want 422", rec.Code)
+	}
+}

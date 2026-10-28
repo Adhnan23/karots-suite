@@ -6,24 +6,26 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Price is one cell of a service's grid: a size (nil = any size), colour and
-// side, from MinQty copies up.
+// Price is one cell of a service's grid: a size (nil = any size) and type
+// (” = none), colour and side, from MinQty copies up.
 type Price struct {
 	ID         int64           `db:"id"`
 	ServiceID  int64           `db:"service_id"`
 	Size       *string         `db:"size"`
+	Material   string          `db:"material"`
 	Color      bool            `db:"color"`
 	DoubleSide bool            `db:"double_side"`
 	MinQty     int             `db:"min_qty"`
 	UnitPrice  decimal.Decimal `db:"unit_price"`
 }
 
-// Paper is what one SHEET of a size uses (nil = any size): whole units, so a
-// one-copy job still takes a whole sheet.
+// Paper is what one SHEET of a size and type uses (nil = any size): whole
+// units, so a one-copy job still takes a whole sheet (a pouch, a binder).
 type Paper struct {
 	ID         int64           `db:"id"`
 	ServiceID  int64           `db:"service_id"`
 	Size       *string         `db:"size"`
+	Material   string          `db:"material"`
 	ProductID  int64           `db:"product_id"`
 	QtyPerUnit decimal.Decimal `db:"qty_per_unit"`
 	Name       string          `db:"product_name"`
@@ -32,10 +34,11 @@ type Paper struct {
 
 // JobOptions is what the cashier picked for a metered job.
 type JobOptions struct {
-	Size   string
-	Color  bool
-	Double bool
-	Copies int
+	Size     string
+	Material string // the type ('' = none): matched exactly, never "any type"
+	Color    bool
+	Double   bool
+	Copies   int
 }
 
 func sizeIs(p *string, size string) bool { return p != nil && *p == size }
@@ -47,7 +50,7 @@ func PickPrice(rows []Price, o JobOptions) (Price, bool) {
 	var best Price
 	found := false
 	for _, r := range rows {
-		if r.Color != o.Color || r.DoubleSide != o.Double || r.MinQty > o.Copies {
+		if r.Material != o.Material || r.Color != o.Color || r.DoubleSide != o.Double || r.MinQty > o.Copies {
 			continue
 		}
 		if r.Size != nil && *r.Size != o.Size {
@@ -76,11 +79,13 @@ func Sheets(o JobOptions) int {
 	return o.Copies
 }
 
-// PaperFor is the paper of the size when it has its own, else the any-size paper.
-func PaperFor(all []Paper, size string) []Paper {
+// PaperFor is the paper of the size and type when the size has its own, else
+// the any-size paper of the type.
+func PaperFor(all []Paper, size, material string) []Paper {
 	var own, anySize []Paper
 	for _, p := range all {
 		switch {
+		case p.Material != material:
 		case sizeIs(p.Size, size):
 			own = append(own, p)
 		case p.Size == nil:

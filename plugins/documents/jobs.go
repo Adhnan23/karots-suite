@@ -21,6 +21,7 @@ type SoldJob struct {
 	ServiceID   int64
 	Description string
 	Size        *string
+	Material    string
 	Color       *bool
 	Double      *bool
 	Sheets      *decimal.Decimal
@@ -50,10 +51,10 @@ func (s *Store) RecordSold(ctx context.Context, saleID int64, jobs []SoldJob) er
 		}
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO doc_job (sale_id, sale_item_id, service_id, description, qty, unit_price, line_total,
-			                     consumable_cost, kind, size, color, double_side, sheets)
+			                     consumable_cost, kind, size, color, double_side, sheets, material)
 			SELECT si.sale_id, si.id, $2, $3, si.quantity, si.unit_price, si.subtotal,
-			       ROUND(si.cost_price * si.quantity, 2), 'sale', $4, $5, $6, $7
-			FROM sale_items si WHERE si.id = $1`, itemID, j.ServiceID, j.Description, j.Size, j.Color, j.Double, j.Sheets); err != nil {
+			       ROUND(si.cost_price * si.quantity, 2), 'sale', $4, $5, $6, $7, LEFT($8, 30)
+			FROM sale_items si WHERE si.id = $1`, itemID, j.ServiceID, j.Description, j.Size, j.Color, j.Double, j.Sheets, j.Material); err != nil {
 			return err
 		}
 	}
@@ -68,24 +69,25 @@ func (s *Store) RecordOwnUse(ctx context.Context, tx sqlx.ExecerContext, sv *Ser
 	}
 	_, err := tx.ExecContext(ctx, `
 		INSERT INTO doc_job (service_id, description, qty, unit_price, line_total, consumable_cost, kind,
-		                     size, color, double_side, sheets)
-		VALUES ($1, $2, $3, 0, 0, $4, 'own_use', $5, $6, $7, $8)`,
-		sv.ID, desc, o.Copies, cost, size, o.Color, o.Double, Sheets(o))
+		                     size, color, double_side, sheets, material)
+		VALUES ($1, $2, $3, 0, 0, $4, 'own_use', $5, $6, $7, $8, $9)`,
+		sv.ID, desc, o.Copies, cost, size, o.Color, o.Double, Sheets(o), o.Material)
 	return err
 }
 
 // ReportRow is one service × options over a period. Linked = a suite job (its
 // sale line's returns are taken off); an unlinked sale job is a karots-pos one.
 type ReportRow struct {
-	Name    string          `db:"name"`
-	Size    *string         `db:"size"`
-	Color   *bool           `db:"color"`
-	Double  *bool           `db:"double_side"`
-	Linked  bool            `db:"linked"`
-	Jobs    int             `db:"jobs"`
-	Copies  decimal.Decimal `db:"copies"`
-	Sheets  decimal.Decimal `db:"sheets"`
-	Revenue decimal.Decimal `db:"revenue"`
+	Name     string          `db:"name"`
+	Size     *string         `db:"size"`
+	Material string          `db:"material"`
+	Color    *bool           `db:"color"`
+	Double   *bool           `db:"double_side"`
+	Linked   bool            `db:"linked"`
+	Jobs     int             `db:"jobs"`
+	Copies   decimal.Decimal `db:"copies"`
+	Sheets   decimal.Decimal `db:"sheets"`
+	Revenue  decimal.Decimal `db:"revenue"`
 }
 
 type Report struct {
@@ -111,7 +113,7 @@ type OwnUse struct {
 func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) {
 	r := Report{Rows: []ReportRow{}}
 	err := s.db.SelectContext(ctx, &r.Rows, `
-		SELECT COALESCE(p.name, '(deleted service)') AS name, j.size, j.color, j.double_side,
+		SELECT COALESCE(p.name, '(deleted service)') AS name, j.size, j.material, j.color, j.double_side,
 		       j.sale_item_id IS NOT NULL AS linked, COUNT(*) AS jobs,
 		       COALESCE(SUM(CASE WHEN si.id IS NULL THEN j.qty ELSE si.quantity - si.returned_qty END), 0) AS copies,
 		       COALESCE(SUM(j.sheets), 0) AS sheets,
@@ -124,7 +126,7 @@ func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) 
 		LEFT JOIN sales s ON s.id = j.sale_id
 		WHERE j.kind = 'sale' AND j.reversed_at IS NULL AND (s.status IS NULL OR s.status <> 'void')
 		  AND j.created_at >= $1 AND j.created_at < $2
-		GROUP BY 1, 2, 3, 4, 5
+		GROUP BY 1, 2, 3, 4, 5, 6
 		ORDER BY revenue DESC, name`, from, to)
 	if err != nil {
 		return r, err
