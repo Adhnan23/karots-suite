@@ -77,6 +77,7 @@ func run() error {
 		writeOnly   = flag.Bool("write-only", false, "write the plugin lists and stop (dev)")
 		demoList    = flag.Bool("demo-list", false, "with -write-only: the Demo Room's React list — every plugin, on per shop (dev)")
 		demoFlag    = flag.Bool("demo", false, "build the Demo Room (dist/demo, Linux + Windows)")
+		freshFlag   = flag.Bool("fresh", false, "with -demo: build the shop years even if nothing that shapes them changed")
 		addr        = flag.String("addr", "127.0.0.1:3199", "where the bootstrap app listens")
 		shopsFlag   = flag.String("shops", envOr("SHOPS_FILE", "shops.json"), "the shop profiles file")
 		shopFlag    = flag.String("shop", "", `release this shop from the profiles: build + publish ("all" = every shop)`)
@@ -95,7 +96,7 @@ func run() error {
 		return err
 	}
 	if *demoFlag {
-		return buildDemo(all, os.Stdout)
+		return buildDemo(all, *freshFlag, os.Stdout)
 	}
 	if *importFlag != "" {
 		return importPOSFile(*shopsFlag, *importFlag, all)

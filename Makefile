@@ -1,4 +1,4 @@
-.PHONY: demo demo-web demo-dev demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: demo demo-fresh demo-web demo-dev demo-reorder db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -80,6 +80,9 @@ core-only:
 # its rotating unlock code (internal/demo/INSTALL_ID is its install id).
 demo:
 	$(ENV) go run ./cmd/bootstrap -demo
+# The same, building every shop's year again even when nothing that shapes them changed.
+demo-fresh:
+	$(ENV) go run ./cmd/bootstrap -demo -fresh
 # The Demo Room for this machine (dev): every plugin in the SPA, gated per shop;
 # the file-mode PostgreSQL from the user cache (go test ./internal/filedb fetches it).
 demo-dev:

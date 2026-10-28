@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"karots-suite/internal/demo/shops"
 	"karots-suite/internal/filedb"
 	"karots-suite/internal/support"
 )
@@ -49,7 +50,7 @@ func demoInstallID() (string, error) {
 	return id, os.WriteFile(demoIDPath, []byte(id+"\n"), 0o644)
 }
 
-func buildDemo(all []manifest, log io.Writer) error {
+func buildDemo(all []manifest, fresh bool, log io.Writer) error {
 	// without it the binary falls back to the dev seed and prints its unlock code
 	if os.Getenv("POS_SUPPORT_SECRET") == "" {
 		return fmt.Errorf("POS_SUPPORT_SECRET is not set — the Demo Room's lock needs it (set it in .env)")
@@ -82,7 +83,21 @@ func buildDemo(all []manifest, log io.Writer) error {
 			return fmt.Errorf("demo pages: %w", err)
 		}
 		_ = os.WriteFile(filepath.Join("internal", "demo", "ui", "dist", ".gitkeep"), nil, 0o644)
-		// 1. a builder for this machine makes each shop's year (minutes; all at once)
+		// 1. a builder for this machine makes each shop's year (minutes; all at once),
+		// unless nothing that shapes them changed since the last build
+		stamp, err := yearsStamp(".")
+		if err != nil {
+			return err
+		}
+		years := filepath.Join(cache, "karots-suite-demo-years")
+		var keys []string
+		for _, p := range shops.BuiltIn() {
+			keys = append(keys, p.Key)
+		}
+		if !fresh && takeYears(years, stamp, demoTplDir, keys) {
+			fmt.Fprintln(log, "✓ shop years unchanged — reusing the last build's (-fresh builds them again)")
+			return buildDemoBinaries(log, bundle, ldflags)
+		}
 		host := filepath.Join(os.TempDir(), "karots-demo-builder")
 		done, err := bundle(runtime.GOOS)
 		if err != nil {
@@ -98,25 +113,10 @@ func buildDemo(all []manifest, log io.Writer) error {
 		if err := sh(log, nil, host, "-templates", demoTplDir); err != nil {
 			return fmt.Errorf("shop years: %w", err)
 		}
-		// 2. the shipped binaries carry those years, the demo's install ID and its seed
-		for _, goos := range demoTargets {
-			out := filepath.Join("dist", "demo", "karots-demo")
-			if goos == "windows" {
-				out += ".exe"
-			}
-			done, err := bundle(goos)
-			if err != nil {
-				return err
-			}
-			err = sh(log, []string{"GOOS=" + goos, "GOARCH=amd64", "GOAMD64=v1", "CGO_ENABLED=0"},
-				"go", "build", "-tags", "filemode", "-ldflags="+ldflags, "-o", out, "./cmd/demo")
-			done()
-			if err != nil {
-				return err
-			}
-			fmt.Fprintf(log, "✓ %s\n", out)
+		if err := keepYears(years, stamp, demoTplDir, keys); err != nil {
+			fmt.Fprintf(log, "! couldn't keep the shop years for next time: %v\n", err)
 		}
-		return nil
+		return buildDemoBinaries(log, bundle, ldflags)
 	})
 	if err != nil {
 		return err
@@ -124,6 +124,29 @@ func buildDemo(all []manifest, log io.Writer) error {
 	fmt.Fprintf(log, "\n✓ Demo Room built in dist/demo\n  install id      %s\n", id)
 	if pin != "" {
 		fmt.Fprintf(log, "  unlock code     %s   (rotates hourly; your PIN app gives it for this install id)\n", pin)
+	}
+	return nil
+}
+
+// buildDemoBinaries: the shipped binaries carry the years, the demo's install
+// ID and its seed.
+func buildDemoBinaries(log io.Writer, bundle func(string) (func(), error), ldflags string) error {
+	for _, goos := range demoTargets {
+		out := filepath.Join("dist", "demo", "karots-demo")
+		if goos == "windows" {
+			out += ".exe"
+		}
+		done, err := bundle(goos)
+		if err != nil {
+			return err
+		}
+		err = sh(log, []string{"GOOS=" + goos, "GOARCH=amd64", "GOAMD64=v1", "CGO_ENABLED=0"},
+			"go", "build", "-tags", "filemode", "-ldflags="+ldflags, "-o", out, "./cmd/demo")
+		done()
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(log, "✓ %s\n", out)
 	}
 	return nil
 }
