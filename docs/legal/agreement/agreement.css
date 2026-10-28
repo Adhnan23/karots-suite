@@ -139,3 +139,20 @@ h2.c .sub { display: block; font-size: 10.5pt; font-weight: 600; color: #333; }
   padding: 0 6px 1px; vertical-align: baseline; display: inline-block; }
 .line.inline.wide.ink { min-width: 40mm; }
 .line.inline.full.ink { min-width: 70mm; }
+
+/* Annexure "A" (the Shop Rules) and the notice's mode of delivery / Re: line */
+.annex { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid #111; padding: 6px 10px; margin: 0 0 10px; font-size: 10pt; }
+.annex .mark { font: 800 11pt Head, sans-serif; white-space: nowrap; }
+.annex-sign { margin-top: 12mm; break-inside: avoid; }
+.via { display: flex; gap: 18px; font: 800 9.5pt Head, sans-serif; margin: 4px 0 6px; }
+.letter .re { margin: 6px 0 8px; }
+.annex { padding: 4px 8px; margin: 0 0 6px; font-size: 9.5pt; }
+.lead { font-size: 10.5pt; margin: 6px 0; }
+.prices td, .prices th { padding: 3px 8px; font-size: 9pt; }
+.annex-sign { margin-top: 6mm; }
+.annex-sign .sigline { margin-top: 30px; }
+.letter { font-size: 9.5pt; line-height: 1.32; }
+.letter .brand img { width: 52px; height: 52px; }
+.letter h1 { font-size: 22pt; }
+.letter .field { margin: 5px 0; }
+.letter p { margin: 5px 0; }

@@ -21,7 +21,7 @@
   for (const tr of [...document.querySelectorAll('table.agree tr')].slice(1)) {
     tick('*')
     ink(tr.cells[2], 'S.S.')
-    const v = tr.querySelector('.line'); if (v) ink(v, '1.2')
+    const v = tr.querySelector('.line'); if (v) ink(v, '1.3')
   }
   k('w-place', 'Kandy')
   const signs = [...document.querySelectorAll('.sign')]

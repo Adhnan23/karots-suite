@@ -23,4 +23,5 @@
   field('Name and signature', 'S. Sample', got)
   field('Date', '27 January 2027', got)
   tick('Handed over'); tick('WhatsApp')
+  const hand = document.querySelector('[data-k="via-hand"]'); hand.textContent = hand.textContent.replace('☐', '☑'); hand.classList.add('ticked')
 })()
