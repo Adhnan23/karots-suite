@@ -84,7 +84,7 @@ type gen struct {
 	patients []rxPatient       // pharmacy patients and their prescription items
 	ctx      context.Context
 
-	daySales   int             // today's till sales so far, for Deps.OnDay
+	daySales   int // today's till sales so far, for Deps.OnDay
 	dayTakings decimal.Decimal
 }
 
