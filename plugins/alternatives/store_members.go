@@ -93,7 +93,7 @@ func (s *Store) MatchProductIDs(ctx context.Context, q string) ([]int64, error) 
 	err := s.db.SelectContext(ctx, &ids, `
 		WITH hit AS (
 			SELECT DISTINCT g.id FROM `+liveMembers+`
-			WHERE g.name ILIKE '%' || $1 || '%' OR (t.name <> '' AND t.name ILIKE '%' || $1 || '%') OR p.name ILIKE '%' || $1 || '%')
+			WHERE g.name ILIKE '%' || $1 || '%' OR (t.name <> '' AND t.name ILIKE '%' || $1 || '%') OR p.name ILIKE '%' || $1 || '%' OR p.name_local ILIKE '%' || $1 || '%')
 		SELECT DISTINCT m.product_id FROM `+liveMembers+` JOIN hit h ON h.id = g.id`, q)
 	return ids, err
 }

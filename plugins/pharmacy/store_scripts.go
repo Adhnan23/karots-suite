@@ -340,6 +340,6 @@ func (s *Store) Medicines(ctx context.Context, q string) ([]Medicine, error) {
 		UNION ALL
 		(SELECT 'product', p.id, p.name, 0, COALESCE(md.dose, ''), COALESCE(md.note, '') FROM products p
 		 LEFT JOIN pharmacy_medicines md ON md.product_id = p.id
-		 WHERE p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL AND p.name ILIKE '%' || $1 || '%' ORDER BY p.name LIMIT 8)`, q)
+		 WHERE p.is_active AND NOT p.is_service AND p.merged_into_id IS NULL AND (p.name ILIKE '%' || $1 || '%' OR p.name_local ILIKE '%' || $1 || '%') ORDER BY p.name LIMIT 8)`, q)
 	return out, err
 }

@@ -107,3 +107,19 @@ func TestPatientsAndScripts(t *testing.T) {
 		t.Fatal("a foreign line id must be refused")
 	}
 }
+
+// The script's medicine picker finds a product by its local name too.
+func TestScriptPickerFindsLocalName(t *testing.T) {
+	f := newFixture(t)
+	f.db.MustExec(`UPDATE products SET name_local = 'පැරසිටමෝල්' WHERE id = $1`, f.pana)
+	got, err := f.st.Medicines(context.Background(), "පැරසි")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, m := range got {
+		if m.Kind == "product" && m.ID == f.pana {
+			return
+		}
+	}
+	t.Fatalf("local name not found: %+v", got)
+}

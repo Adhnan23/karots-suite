@@ -32,7 +32,7 @@ const gridFrom = `
 	FROM products p JOIN categories c ON c.id = p.category_id
 	WHERE p.is_active AND NOT p.is_service
 	  AND ($2 = 0 OR p.category_id IN (SELECT id FROM sub))
-	  AND ($3 = '' OR p.name ILIKE '%' || $3 || '%')
+	  AND ($3 = '' OR p.name ILIKE '%' || $3 || '%' OR p.name_local ILIKE '%' || $3 || '%')
 	  AND EXISTS (SELECT 1 FROM pp_fields f WHERE f.id = ANY($1) AND ` + "%s" + `
 	      AND (NOT $4 OR (f.required AND f.type <> 'bool' AND btrim(COALESCE(
 	          (SELECT value FROM pp_values v WHERE v.field_id = f.id AND v.product_id = p.id), f.default_value)) = '')))`
