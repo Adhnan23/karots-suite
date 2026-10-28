@@ -62,7 +62,7 @@ func serveApp(addr string, all []manifest, b func(buildOpts, io.Writer) (buildRe
 		return fmt.Errorf("listen %s: %w (another bootstrap running? pass -addr)", addr, err)
 	}
 	url := "http://" + ln.Addr().String()
-	fmt.Printf("Karots Business Suite — bootstrap\n  open %s   (Ctrl+C to stop)\n", url)
+	fmt.Printf("Karots Suite — bootstrap\n  open %s   (Ctrl+C to stop)\n", url)
 	openBrowser(url)
 	return http.Serve(ln, appHandler(all, b, cfg))
 }

@@ -145,7 +145,7 @@ export function Footer({ shop }: { shop: SlipShop }) {
       {shop.footer && <Text center>{shop.footer}</Text>}
       <Text center>Thank you! Come again.</Text>
       <Blank />
-      <Small>Karots Business Suite</Small>
+      <Small>Karots Suite</Small>
       <Small>adhnanmsa@gmail.com | 0769626396</Small>
     </>
   )

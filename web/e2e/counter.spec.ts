@@ -27,7 +27,7 @@ async function done(page: Page, text: RegExp) {
   const ask = page.getByRole('dialog', { name: 'Print the receipt?' }).filter({ hasText: text })
   await expect(ask.or(page.locator('[data-sonner-toast]').filter({ hasText: text })).first()).toBeVisible()
   if (await ask.isVisible()) {
-    await expect(ask.getByLabel('Receipt preview')).toContainText('Karots Business Suite')
+    await expect(ask.getByLabel('Receipt preview')).toContainText('Karots Suite')
     await ask.getByRole('button', { name: 'Skip' }).click()
     await expect(ask).toBeHidden()
   }

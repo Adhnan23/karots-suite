@@ -19,7 +19,7 @@ func TestPreviewDecodesStyleAndRaster(t *testing.T) {
 	Left(&b)
 	b.WriteString("Widget      500.00  \r\n")
 	b.Write([]byte{esc, 'M', 1})
-	b.WriteString("Karots Business Suite\n")
+	b.WriteString("Karots Suite\n")
 	b.Write([]byte{esc, 'M', 0})
 	// a 16x2 raster: first row all ink, second row blank
 	b.Write([]byte{gs, 'v', '0', 0, 2, 0, 2, 0, 0xFF, 0xFF, 0x00, 0x00})
@@ -39,7 +39,7 @@ func TestPreviewDecodesStyleAndRaster(t *testing.T) {
 	if l := got[2]; l.Text != "Widget      500.00  " || l.Bold || l.Align != "left" {
 		t.Errorf("item line: %+v", l)
 	}
-	if l := got[3]; !l.Small || l.Text != "Karots Business Suite" {
+	if l := got[3]; !l.Small || l.Text != "Karots Suite" {
 		t.Errorf("credit line: %+v", l)
 	}
 	if l := got[4]; l.ImageDots != 16 || !strings.HasPrefix(l.Image, "data:image/png;base64,") {
@@ -63,7 +63,7 @@ func TestPreviewOfRealReceiptsIsClean(t *testing.T) {
 			all = append(all, l.Text)
 		}
 		text := strings.Join(all, "\n")
-		for _, want := range []string{"Karots Store", "Onion", "TOTAL", "Karots Business Suite"} {
+		for _, want := range []string{"Karots Store", "Onion", "TOTAL", "Karots Suite"} {
 			if !strings.Contains(text, want) {
 				t.Errorf("%s: preview missing %q", style, want)
 			}

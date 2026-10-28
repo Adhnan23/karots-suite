@@ -48,7 +48,7 @@ const MUST: Record<SampleName, string[]> = {
     '234.50',
     '0.50',
     'Goods once sold are not returnable.',
-    'Karots Business Suite',
+    'Karots Suite',
     'Karots Store',
     '12 Main Street, Kandy',
     '081 222 3344',

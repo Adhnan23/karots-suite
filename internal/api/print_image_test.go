@@ -136,7 +136,7 @@ func TestPrintSaleImage(t *testing.T) {
 	// No picture: Classic text, as before.
 	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/sales/%d/print", cash), nil, ck); rec.Code != http.StatusNoContent {
 		t.Fatalf("classic: %d", rec.Code)
-	} else if got := next(); !bytes.Contains(got, []byte("Karots Business Suite")) {
+	} else if got := next(); !bytes.Contains(got, []byte("Karots Suite")) {
 		t.Fatal("classic print lost its text")
 	}
 

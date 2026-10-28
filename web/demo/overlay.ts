@@ -24,7 +24,7 @@ const roleName = (r: string) => ({ admin: 'Owner', manager: 'Manager', cashier: 
 function watermark(): HTMLElement {
   const owner = st?.owner
   const mark = el('button', { class: 'ksd-mark', type: 'button', title: 'Karots Demo Room' },
-    el('b', {}, 'Demo shop'), el('span', {}, `Karots Business Suite — ${owner?.name ?? 'Karots'}, ${owner?.phone ?? ''}`))
+    el('b', {}, 'Demo shop'), el('span', {}, `Karots Suite — ${owner?.name ?? 'Karots'}, ${owner?.phone ?? ''}`))
   let taps: number[] = []
   mark.addEventListener('click', () => {
     if (dragged) return (dragged = false) // the end of a drag isn't a tap

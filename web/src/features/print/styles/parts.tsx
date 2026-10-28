@@ -103,7 +103,7 @@ export function ShopLines({ shop, style }: { shop: SlipShop; style?: CSSProperti
 export function Credit({ style }: { style?: CSSProperties }) {
   return (
     <div style={{ textAlign: 'center', fontSize: 15, lineHeight: '19px', paddingBottom: 6, ...style }}>
-      <div>Karots Business Suite</div>
+      <div>Karots Suite</div>
       <div>adhnanmsa@gmail.com | 0769626396</div>
     </div>
   )

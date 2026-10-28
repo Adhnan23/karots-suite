@@ -1,4 +1,4 @@
-# AGENTS.md — karots-suite (Karots Business Suite)
+# AGENTS.md — karots-suite (Karots Suite)
 
 Business system for small Sri Lankan retail: till, stock, purchasing, money, reports, and
 compile-time plugins (recharge, pharmacy, repairs, documents, alternatives, clearance,

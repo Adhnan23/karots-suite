@@ -34,7 +34,7 @@ func TestTillCashSaleAndLotPrice(t *testing.T) {
 	for _, l := range slip.Lines {
 		text = append(text, l.Text)
 	}
-	if pv.Code != 200 || slip.Columns == 0 || !strings.Contains(strings.Join(text, "\n"), res.ReceiptNo) || !strings.Contains(strings.Join(text, "\n"), "Karots Business Suite") {
+	if pv.Code != 200 || slip.Columns == 0 || !strings.Contains(strings.Join(text, "\n"), res.ReceiptNo) || !strings.Contains(strings.Join(text, "\n"), "Karots Suite") {
 		t.Fatalf("sale preview %d %+v", pv.Code, slip)
 	}
 
