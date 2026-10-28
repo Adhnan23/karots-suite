@@ -24,7 +24,7 @@ type Print struct {
 	At time.Time `json:"at"`
 }
 
-const keep = 20
+const keep = 60 // the Prints shelf scrolls back through these
 
 // Printer is one emulated network printer on 127.0.0.1.
 type Printer struct {

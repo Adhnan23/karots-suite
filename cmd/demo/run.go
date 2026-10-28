@@ -94,14 +94,21 @@ func runLauncher(port int) int {
 		receipt: receipt.Addr, label: label.Addr, logOutput: os.Stderr}
 	defer r.Kill() // on the way out: no DROP, the data is wiped anyway — PostgreSQL stops sooner
 	l := newLauncher(seed, installID, r, []*printer.Printer{receipt, label}, uiFS())
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	l.exit = func() {
+		time.Sleep(300 * time.Millisecond) // let the page get its answer
+		select {
+		case quit <- os.Interrupt:
+		default:
+		}
+	}
 	srv := &http.Server{Handler: l.handler(), ReadHeaderTimeout: 10 * time.Second}
 	go func() { _ = srv.Serve(addr) }()
 	url := "http://" + addr.Addr().String() + "/"
 	log.Printf("Karots Demo Room: %s (install ID %s)", url, installID)
 	openBrowser(url)
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 	log.Println("demo: closing — nothing is kept")
 	return 0

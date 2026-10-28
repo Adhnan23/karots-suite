@@ -245,3 +245,20 @@ func TestCustomShopRejectsUnknownPicks(t *testing.T) {
 		t.Error("plugins not escaped")
 	}
 }
+
+func TestExitClosesTheDemo(t *testing.T) {
+	l, _, now := newTestLauncher(t, nil)
+	exited := make(chan struct{}, 1)
+	l.exit = func() { exited <- struct{}{} }
+	h := l.handler()
+	c := unlock(t, h, support.Code(support.DeriveSeed("test", "DEMO1234"), now))
+	req := httptest.NewRequest("POST", "/__demo/exit", nil)
+	req.AddCookie(c)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	select {
+	case <-exited:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("exit = %d, the demo didn't close", w.Code)
+	}
+}

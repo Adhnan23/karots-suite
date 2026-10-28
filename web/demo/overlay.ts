@@ -1,6 +1,7 @@
-// The Demo Room's chrome over the real app: the watermark, Switch shop and Pause,
-// the demo logins on the sign-in screens, the paper strip the printers feed, and
-// the cheat menu (Ctrl+Shift+D, or five quick taps on the watermark).
+// The Demo Room's chrome over the real app: the watermark and its buttons (Demo
+// moves, Prints, Pause, Switch shop, Exit), the demo logins on the sign-in
+// screens, the paper strip the printers feed, and the moves menu (also on
+// Ctrl+Shift+D, or five quick taps on the watermark).
 import './overlay.css'
 import { call, el, state, type Login, type Print, type State } from './api'
 
@@ -45,7 +46,13 @@ function watermark(): HTMLElement {
     await call('/__demo/switch', {}).catch(() => {})
     location.replace('/')
   })
-  const bar = el('div', { class: 'ksd-bar' }, mark, el('div', { class: 'ksd-fly' }, pause, sw))
+  const moves = el('button', { class: 'ksd-btn', type: 'button' }, 'Demo moves & logins')
+  moves.addEventListener('click', openCheats)
+  const prints = el('button', { class: 'ksd-btn', type: 'button' }, 'Prints')
+  prints.addEventListener('click', () => void openPrints())
+  const exit = el('button', { class: 'ksd-btn', type: 'button' }, 'Exit demo')
+  exit.addEventListener('click', () => void exitDemo())
+  const bar = el('div', { class: 'ksd-bar' }, mark, el('div', { class: 'ksd-fly' }, moves, prints, pause, sw, exit))
   mark.addEventListener('click', () => bar.classList.toggle('open')) // touch screens: a tap shows the buttons
   return bar
 }
@@ -71,7 +78,7 @@ export function paper(p: Print): HTMLElement {
     slip.classList.toggle('zoom', zoom)
     slip.classList.toggle('tucked', !zoom)
   })
-  setTimeout(() => slip.classList.contains('zoom') || slip.classList.add('tucked'), 12000)
+  setTimeout(() => slip.isConnected && !slip.closest('.ksd-shelf') && !slip.classList.contains('zoom') && slip.classList.add('tucked'), 12000)
   return slip
 }
 
@@ -102,6 +109,36 @@ async function poll() {
   }
   primed = true
   while (tray.children.length > 5) tray.lastElementChild!.remove()
+}
+
+// ---- every print so far, newest first ----
+export async function openPrints() {
+  if (document.querySelector('.ksd-cheats')) return
+  const r = await fetch('/__demo/prints?receipt=0&label=0').catch(() => null)
+  const got = (r?.ok ? await r.json() : {}) as Record<'receipt' | 'label', Print[] | null>
+  const all = [...(got.receipt ?? []), ...(got.label ?? [])].sort((a, b) => b.at.localeCompare(a.at))
+  const shelf = el('div', { class: 'ksd-shelf' })
+  for (const p of all) {
+    const s = paper(p)
+    s.classList.remove('tucked')
+    const time = new Date(p.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    s.prepend(el('figcaption', { class: 'ksd-when' }, `${p.kind === 'label' ? 'Label' : 'Receipt'} · ${time}`))
+    s.querySelector('.ksd-x')?.remove()
+    shelf.append(s)
+  }
+  const dialog = el('div', { class: 'ksd-cheats', role: 'dialog', 'aria-label': 'Prints' },
+    el('div', { class: 'ksd-card wide' }, el('h2', {}, 'Prints'),
+      all.length ? shelf : el('p', { class: 'ksd-note' }, 'Nothing printed yet — ring up a sale at the till.')))
+  dialog.addEventListener('click', (e) => e.target === dialog && dialog.remove())
+  dialog.addEventListener('keydown', (e) => e.key === 'Escape' && dialog.remove())
+  root.append(dialog)
+}
+
+async function exitDemo() {
+  if (!confirm('Close the Demo Room? Everything in it is thrown away.')) return
+  await call('/__demo/exit', {}).catch(() => {})
+  document.body.replaceChildren(el('main', { class: 'ksd-closed' }, el('h1', {}, 'The Demo Room is closed'),
+    el('p', {}, 'Nothing was kept. You can close this tab.')))
 }
 
 // ---- cheat menu ----

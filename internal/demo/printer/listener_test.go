@@ -48,21 +48,21 @@ func TestListenerJob(t *testing.T) {
 	}
 }
 
-func TestRingKeeps20(t *testing.T) {
+func TestRingKeepsTheLast(t *testing.T) {
 	p, err := Listen(Label)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer p.Close()
-	for i := 0; i < 25; i++ {
+	for i := 0; i < keep+5; i++ {
 		send(t, p.Addr, []byte("SIZE 50 mm, 30 mm\r\nTEXT 1,1,\"3\",0,1,1,\"x\"\r\nPRINT 1,1\r\n"))
 	}
 	deadline := time.Now().Add(3 * time.Second)
-	for time.Now().Before(deadline) && p.last() < 25 {
+	for time.Now().Before(deadline) && p.last() < keep+5 {
 		time.Sleep(10 * time.Millisecond)
 	}
 	got := p.Since(0)
-	if len(got) != 20 || got[0].ID != 6 || got[19].ID != 25 {
+	if len(got) != keep || got[0].ID != 6 || got[keep-1].ID != keep+5 {
 		t.Fatalf("kept %d prints, first %d", len(got), got[0].ID)
 	}
 }

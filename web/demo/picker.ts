@@ -58,10 +58,20 @@ async function start(body: unknown) {
   }
 }
 
+function exitButton() {
+  const b = el('button', { class: 'btn quiet exit', type: 'button' }, 'Exit the Demo Room')
+  b.addEventListener('click', async () => {
+    if (!confirm('Close the Demo Room?')) return
+    await call('/__demo/exit', {}).catch(() => {})
+    app.replaceChildren(el('section', { class: 'building closed' }, el('p', {}, 'The Demo Room is closed. Nothing was kept — you can close this tab.')))
+  })
+  return b
+}
+
 function picker(st: State) {
   app.replaceChildren(
     el('header', {}, el('h1', {}, 'Which shop shall we open?'),
-      el('p', { class: 'muted' }, 'Each one is a real Karots shop with a year behind it and staff at work. Nothing you do is kept.')),
+      el('p', { class: 'muted' }, 'Each one is a real Karots shop with a year behind it and staff at work. Nothing you do is kept.'), exitButton()),
     el('section', { class: 'grid' }, ...st.shops.map(card), own()),
   )
 }

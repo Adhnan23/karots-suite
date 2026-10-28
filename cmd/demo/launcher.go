@@ -56,6 +56,7 @@ type launcher struct {
 	printers  []*printer.Printer // receipt, label
 	ui        fs.FS              // the chrome's built files; nil in tests
 	now       func() time.Time
+	exit      func() // closes the whole demo (the Exit button)
 
 	mu     sync.Mutex
 	st     State
@@ -131,6 +132,12 @@ func (l *launcher) handler() http.Handler {
 	m.HandleFunc("POST /__demo/start", l.start)
 	m.HandleFunc("POST /__demo/switch", l.switchShop)
 	m.HandleFunc("POST /__demo/pause", l.pause)
+	m.HandleFunc("POST /__demo/exit", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusAccepted, map[string]bool{"ok": true})
+		if l.exit != nil {
+			go l.exit() // after the answer is on its way
+		}
+	})
 	m.HandleFunc("POST /__demo/cheat/{name}", l.cheat)
 	m.HandleFunc("GET /__demo/prints", l.prints)
 	m.HandleFunc("GET /__demo/print/{kind}/{id}", l.printPNG)

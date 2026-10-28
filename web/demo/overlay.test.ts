@@ -21,6 +21,23 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('the demo chrome', () => {
+  it('puts Demo moves, Prints and Exit beside Pause and Switch shop', async () => {
+    await mount()
+    const fly = [...document.querySelectorAll('.ksd-fly button')].map((b) => b.textContent)
+    expect(fly).toEqual(['Demo moves & logins', 'Prints', 'Pause', 'Switch shop', 'Exit demo'])
+  })
+
+  it('lists every print so far, newest first', async () => {
+    prints = { receipt: [{ id: 1, kind: 'receipt', text: ['first'], kick: false, copies: 1, at: '2026-10-28T10:00:00Z' },
+      { id: 2, kind: 'receipt', text: ['second'], kick: false, copies: 1, at: '2026-10-28T10:05:00Z' }], label: [] }
+    await mount()
+    const { openPrints } = await import('./overlay')
+    await openPrints()
+    const slips = [...document.querySelectorAll('.ksd-shelf pre')].map((p) => p.textContent)
+    expect(slips).toEqual(['second', 'first'])
+    prints = { receipt: [], label: [] }
+  })
+
   it('shows the owner on the watermark', async () => {
     await mount()
     expect(document.querySelector('.ksd-mark')?.textContent).toContain('0771234567')

@@ -12,6 +12,8 @@
 
 .picker { max-width: 1160px; margin: 0 auto; padding: 40px 16px 64px; }
 .picker header { margin-bottom: 28px; max-width: 60ch; }
+.picker header .exit { margin-top: 14px; }
+.building.closed p { margin: 24px; }
 .picker h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.1; margin-bottom: 8px; }
 .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); align-items: start; }
 
