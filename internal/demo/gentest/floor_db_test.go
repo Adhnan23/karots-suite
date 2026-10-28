@@ -18,6 +18,10 @@ var floorTables = map[string][]string{
 	"product_conversions":  {"grocery", "hardware", "mixed"},
 	"conversion_runs":      {"grocery", "hardware", "mixed"},
 	"warranty_units":       {"phone", "hardware", "mixed"}, // a pharmacy sells a BP monitor now and then
+	// the back room
+	"purchase_returns": nil,
+	"loss_recoveries":  nil,
+	"warranty_claims":  {"phone", "mixed"},
 }
 
 func TestShopFloorFilled(t *testing.T) {

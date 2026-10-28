@@ -68,12 +68,7 @@ func (g *gen) backOffice(day time.Time) error {
 			return err
 		}
 	}
-	if g.r.IntN(15) == 0 {
-		if err := g.breakage(day); err != nil {
-			return err
-		}
-	}
-	return nil
+	return g.backRoom(day)
 }
 
 // paySuppliers settles each supplier's deliveries older than 30 days: cash from
@@ -203,19 +198,5 @@ func (g *gen) aReturn(day time.Time) error {
 	return g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/sales/%d/return", line.Sale), map[string]any{
 		"reason": reasons[g.r.IntN(len(reasons))], "source": g.safeSrc(),
 		"lines": []map[string]any{{"saleItemId": line.Item, "quantity": decimal.Min(line.Qty, decimal.NewFromInt(1)).String(), "disposition": "restock"}},
-	}, nil)
-}
-
-// breakage writes off something dropped or spoiled.
-func (g *gen) breakage(day time.Time) error {
-	it := g.pick()
-	if g.stock[it.id] < 1 {
-		return nil
-	}
-	g.stock[it.id]--
-	g.tm.at(at(day, 15+3*g.r.Float64()))
-	notes := []string{"Dropped", "Packet torn", "Spoiled", "Rat damage"}
-	return g.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{
-		"productId": it.id, "quantity": "1", "reason": "damage", "note": notes[g.r.IntN(len(notes))],
 	}, nil)
 }

@@ -85,6 +85,9 @@ type gen struct {
 	patients []rxPatient       // pharmacy patients and their prescription items
 	ctx      context.Context
 
+	later      []later    // a rep's visit, an agent's replacement: done on a later day
+	deliveries []delivery // recent drops a return can go back from
+
 	daySales   int // today's till sales so far, for Deps.OnDay
 	dayTakings decimal.Decimal
 }
@@ -254,6 +257,10 @@ func (g *gen) restock(day time.Time, opening bool) error {
 			return fmt.Errorf("delivery: %w", err)
 		}
 		g.owed[sup] = append(g.owed[sup], due{day, pd.Purchase.Total})
+		g.deliveries = append(g.deliveries, delivery{pd.Purchase.ID, sup, day})
+		if len(g.deliveries) > 60 { // about two months of drops
+			g.deliveries = g.deliveries[1:]
+		}
 	}
 	return nil
 }

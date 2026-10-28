@@ -39,7 +39,7 @@ func loadShop(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 		}
 		pw, _ := strconv.ParseFloat(f[6], 64)
 		s.items = append(s.items, item{id: id, name: f[1], cost: decimal.RequireFromString(f[4]),
-			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: cats[f[0]] % len(s.suppliers), unit: f[3]})
+			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: cats[f[0]] % len(s.suppliers), unit: f[3], cat: f[0]})
 	}
 	for _, l := range strings.Split(customerLines, "\n") {
 		var id int64

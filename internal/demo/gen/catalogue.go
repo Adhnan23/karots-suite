@@ -26,6 +26,7 @@ type item struct {
 	perWeek     float64
 	supplier    int // index into shop.suppliers
 	unit        string
+	cat         string // its category
 
 	service  bool              // sold without stock (a cup of tea, a fitting)
 	parts    []partUse         // the stock a service uses
@@ -128,7 +129,7 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 		}
 		pw, _ := strconv.ParseFloat(f[6], 64)
 		s.items = append(s.items, item{id: pr.ID, name: f[1], cost: decimal.RequireFromString(f[4]),
-			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: (len(cats) - 1) % len(s.suppliers), unit: f[3]})
+			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: (len(cats) - 1) % len(s.suppliers), unit: f[3], cat: f[0]})
 	}
 	for _, l := range strings.Split(customerLines, "\n") {
 		f := strings.Split(l, ";")

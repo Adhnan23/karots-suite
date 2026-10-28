@@ -192,7 +192,7 @@ func (s *shop) loadFloor(ctx context.Context, d Deps) error {
 		if err := d.DB.GetContext(ctx, &id, `SELECT id FROM products WHERE name = $1 AND is_service`, sv.name); err != nil {
 			return fmt.Errorf("service %s: %w", sv.name, err)
 		}
-		it := item{id: id, name: sv.name, price: decimal.RequireFromString(sv.price), perWeek: sv.perWeek, service: true, unit: "pcs"}
+		it := item{id: id, name: sv.name, price: decimal.RequireFromString(sv.price), perWeek: sv.perWeek, service: true, unit: "pcs", cat: sv.category}
 		for _, pt := range sv.parts {
 			per, _ := strconv.ParseFloat(pt.amount, 64)
 			if pt.yield {
