@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/shops"
 	"karots-suite/internal/support"
 )
@@ -22,7 +23,7 @@ type fakeRunner struct {
 	gate   chan struct{} // when set, Start waits on it
 }
 
-func (f *fakeRunner) Start(p shops.Profile, progress func(int, string)) error {
+func (f *fakeRunner) Start(p shops.Profile, progress func(int, string), day func(gen.Day)) error {
 	if f.gate != nil {
 		<-f.gate
 	}

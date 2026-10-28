@@ -16,6 +16,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/shops"
 )
 
@@ -58,7 +59,7 @@ func siblingURL(base, name string) string {
 	return base[:i+1] + name + q
 }
 
-func (r *childRunner) Start(p shops.Profile, progress func(int, string)) error {
+func (r *childRunner) Start(p shops.Profile, progress func(int, string), day func(gen.Day)) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.n++
@@ -94,6 +95,11 @@ func (r *childRunner) Start(p shops.Profile, progress func(int, string)) error {
 			case f[0] == "progress" && len(f) == 3:
 				pct, _ := strconv.Atoi(f[1])
 				progress(pct, f[2])
+			case f[0] == "day":
+				var d gen.Day
+				if json.Unmarshal([]byte(strings.TrimPrefix(sc.Text(), "day ")), &d) == nil {
+					day(d)
+				}
 			}
 		}
 		ready <- false // the child ended

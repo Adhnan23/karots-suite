@@ -30,6 +30,19 @@ type Deps struct {
 	API http.Handler // the shop's real server, called in-process
 	// The emulators' host:port, so every print lands on the paper strip.
 	ReceiptPrinter, LabelPrinter string
+	// OnDay, when set, hears each day of the past as it's finished (the
+	// time machine on the building screens).
+	OnDay func(Day)
+}
+
+// Day is one finished day of a shop's past: its till sales and their total,
+// day N of the Of being built.
+type Day struct {
+	Date    string `json:"date"` // 2006-01-02
+	Sales   int    `json:"sales"`
+	Takings string `json:"takings"`
+	N       int    `json:"n"`
+	Of      int    `json:"of"`
 }
 
 func newGen(ctx context.Context, d Deps, p shops.Profile, now time.Time) (*gen, error) {

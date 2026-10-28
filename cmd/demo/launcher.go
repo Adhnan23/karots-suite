@@ -21,8 +21,8 @@ import (
 // shopRunner runs one shop at a time: the real server in a child process.
 type shopRunner interface {
 	// Start builds the shop and returns once it serves (or fails); progress is
-	// called as the history is generated.
-	Start(p shops.Profile, progress func(pct int, step string)) error
+	// called as the history is generated, day as each past day is finished.
+	Start(p shops.Profile, progress func(pct int, step string), day func(gen.Day)) error
 	Stop() error
 	URL() string     // the shop's own server, for the proxy
 	Control() string // the child's control server (pause, cheats)
@@ -45,6 +45,7 @@ type State struct {
 	Owner     Owner           `json:"owner"`
 	Shops     []shops.Profile `json:"shops"`
 	Cheats    []gen.CheatInfo `json:"cheats"`
+	Days      []gen.Day       `json:"days,omitempty"` // a make-your-own shop's past so far (the time machine)
 }
 
 type launcher struct {
@@ -278,13 +279,14 @@ func (l *launcher) restart(p shops.Profile) {
 		*s = State{InstallID: s.InstallID, Owner: s.Owner, Shops: s.Shops, Phase: "building", Shop: &p}
 	}, func(set func(func(*State))) {
 		_ = l.runner.Stop()
-		err := l.runner.Start(p, func(pct int, step string) { set(func(s *State) { s.Progress, s.Step = pct, step }) })
+		err := l.runner.Start(p, func(pct int, step string) { set(func(s *State) { s.Progress, s.Step = pct, step }) },
+			func(d gen.Day) { set(func(s *State) { s.Days = append(s.Days, d) }) })
 		set(func(s *State) {
 			if err != nil {
 				s.Phase, s.Error = "failed", err.Error()
 				return
 			}
-			s.Phase, s.Progress, s.Cheats = "ready", 100, gen.CheatNames(p)
+			s.Phase, s.Progress, s.Cheats, s.Days = "ready", 100, gen.CheatNames(p), nil
 		})
 	})
 }

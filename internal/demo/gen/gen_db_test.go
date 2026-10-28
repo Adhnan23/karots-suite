@@ -323,3 +323,32 @@ func TestNothingAfterNowOnMondayMorning(t *testing.T) {
 		}
 	}
 }
+
+// The building screens' time machine hears every past day, in order, with the
+// till sales it really rang.
+func TestOnDayReportsEachPastDay(t *testing.T) {
+	d := newShopDB(t)
+	var days []Day
+	d.OnDay = func(x Day) { days = append(days, x) }
+	now := time.Now()
+	if err := Run(context.Background(), d, small("grocery"), now, 10, nop); err != nil {
+		t.Fatal(err)
+	}
+	if len(days) != 10 || days[0].N != 1 || days[9].N != 10 || days[9].Of != 10 {
+		t.Fatalf("days = %+v", days)
+	}
+	if days[9].Date != localDay(now).AddDate(0, 0, -1).Format(time.DateOnly) {
+		t.Errorf("last day %s, want yesterday", days[9].Date)
+	}
+	sales := 0
+	for _, x := range days {
+		sales += x.Sales
+	}
+	var rung int
+	if err := d.DB.Get(&rung, `SELECT count(*) FROM sales WHERE created_at < $1`, localDay(now)); err != nil {
+		t.Fatal(err)
+	}
+	if sales == 0 || sales > rung {
+		t.Errorf("reported %d sales, the till rang %d before today", sales, rung)
+	}
+}

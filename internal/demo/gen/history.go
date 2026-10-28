@@ -83,6 +83,9 @@ type gen struct {
 	combos   []combo           // bundles on offer
 	patients []rxPatient       // pharmacy patients and their prescription items
 	ctx      context.Context
+
+	daySales   int             // today's till sales so far, for Deps.OnDay
+	dayTakings decimal.Decimal
 }
 
 func at(day time.Time, hour float64) time.Time {
@@ -125,6 +128,7 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 			return err
 		}
 	}
+	g.daySales, g.dayTakings = 0, decimal.Zero
 	tills := g.s.cashiers[:2]
 	if ago%3 == 0 && len(g.s.cashiers) > 2 {
 		tills = []person{g.s.cashiers[0], g.s.cashiers[2]}
@@ -186,7 +190,13 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 			return fmt.Errorf("close till for %s: %w", c.login.Name, err)
 		}
 	}
-	return g.backOffice(day)
+	if err := g.backOffice(day); err != nil {
+		return err
+	}
+	if g.d.OnDay != nil {
+		g.d.OnDay(Day{Date: day.Format(time.DateOnly), Sales: g.daySales, Takings: g.dayTakings.StringFixed(2), N: g.days - ago + 1, Of: g.days})
+	}
+	return nil
 }
 
 // restock orders about two weeks of each product that's running low, from its
@@ -267,9 +277,12 @@ func (g *gen) sale(c person) error {
 	default:
 		in.Payments = []sales.PaymentInput{{Method: "cash", Amount: tendered(g.r, total).String()}}
 	}
-	if _, err := g.d.Svc.Sales.Create(g.ctx, in, c.id); err != nil {
+	det, err := g.d.Svc.Sales.Create(g.ctx, in, c.id)
+	if err != nil {
 		return fmt.Errorf("sale: %w", err)
 	}
+	g.daySales++
+	g.dayTakings = g.dayTakings.Add(det.Sale.Total)
 	return nil
 }
 

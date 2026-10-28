@@ -95,7 +95,8 @@ func runChild() int {
 	}
 	e := app.BuildServer(sqlxDB, cfg, validator)
 	deps := gen.Deps{DB: sqlxDB, Svc: app.NewServices(sqlxDB, cfg, validator), API: e,
-		ReceiptPrinter: a.ReceiptPrinter, LabelPrinter: a.LabelPrinter}
+		ReceiptPrinter: a.ReceiptPrinter, LabelPrinter: a.LabelPrinter,
+		OnDay: func(d gen.Day) { b, _ := json.Marshal(d); say("day %s", b) }}
 	var err2 error
 	switch {
 	case a.Template != "":

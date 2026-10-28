@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"karots-suite/internal/db"
+	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/shops"
 	"karots-suite/internal/filedb"
 )
@@ -88,14 +89,14 @@ func TestSwitchLeavesOneChild(t *testing.T) {
 	grocery, _ := shops.ByKey("grocery")
 	pharmacy, _ := shops.ByKey("pharmacy")
 	nop := func(int, string) {}
-	if err := r.Start(grocery, nop); err != nil {
+	if err := r.Start(grocery, nop, func(gen.Day) {}); err != nil {
 		t.Fatal(err)
 	}
 	first := r.cmd
 	if err := r.Stop(); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.Start(pharmacy, nop); err != nil {
+	if err := r.Start(pharmacy, nop, func(gen.Day) {}); err != nil {
 		t.Fatal(err)
 	}
 	if first.ProcessState == nil {
@@ -148,5 +149,17 @@ func TestPrepareStopsALeftoverPostgres(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "pg")); !os.IsNotExist(err) {
 		t.Fatal("the old data survived")
+	}
+}
+
+// A make-your-own shop's past reaches the launcher a day at a time.
+func TestCustomShopReportsItsDays(t *testing.T) {
+	r := realRunner(t)
+	var days []gen.Day
+	if err := r.Start(shops.Custom([]string{"repairs"}, "", ""), func(int, string) {}, func(d gen.Day) { days = append(days, d) }); err != nil {
+		t.Fatal(err)
+	}
+	if len(days) != 60 || days[59].N != 60 || days[59].Of != 60 || days[59].Takings == "" {
+		t.Fatalf("%d days, last %+v", len(days), days[len(days)-1])
 	}
 }

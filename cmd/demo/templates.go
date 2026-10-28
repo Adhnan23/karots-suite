@@ -93,7 +93,8 @@ func runTemplates(dir string) int {
 }
 
 // runShowing runs a template child, printing its progress as it goes:
-// "◷ <shop> · <pct>% · <step>" — the Shop Builder draws a bar per shop from these.
+// "◷ <shop> · <pct>% · <step>" and "▦ <shop>\t<day JSON>" — the Shop Builder
+// draws each shop's time machine from these.
 func runShowing(cmd *exec.Cmd, shop string) error {
 	out, err := cmd.StdoutPipe()
 	if err != nil {
@@ -104,6 +105,10 @@ func runShowing(cmd *exec.Cmd, shop string) error {
 	}
 	sc := bufio.NewScanner(out)
 	for sc.Scan() {
+		if d, ok := strings.CutPrefix(sc.Text(), "day "); ok {
+			fmt.Printf("▦ %s\t%s\n", shop, d) // one finished day, as JSON
+			continue
+		}
 		if pct, step, ok := strings.Cut(strings.TrimPrefix(sc.Text(), "progress "), " "); ok && strings.HasPrefix(sc.Text(), "progress ") {
 			fmt.Printf("◷ %s · %s%% · %s\n", shop, pct, step)
 		}
