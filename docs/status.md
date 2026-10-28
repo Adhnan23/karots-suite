@@ -20,7 +20,7 @@ Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fi
   says it is good as it is.
 - Legal: `LICENSE` rewritten as licence + service terms (Schedule A services, Schedule B personal data) following the
   IP Act 2003 s.12(7)/s.178, Unfair Contract Terms Act 1997 ss.3/4/10/11, Electronic Transactions Act 2006/2017, PDPA
-  2022/2025 (substantive parts not yet in force — check the Gazette); per-shop `docs/legal/order-form.md`; research +
+  2022/2025 (substantive parts not yet in force — check the Gazette); per-shop `docs/legal/karots-suite-agreement.pdf`; research +
   lawyer checklist in `docs/legal/README.md`. Open idea: an "I agree" step in karots-setup. A Reseller Agreement only
   when the first reseller signs. Next: videos (Remotion) → M8e Pocket Cashier.
 

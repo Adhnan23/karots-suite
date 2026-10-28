@@ -1,4 +1,4 @@
-.PHONY: demo demo-fresh demo-web demo-dev demo-reorder docs-shots db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: demo demo-fresh demo-web demo-dev demo-reorder docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -96,6 +96,9 @@ demo-dev:
 # (dist/demo/karots-suite-demo-room); DOCS_ONLY=<substring> retakes some.
 docs-shots:
 	cd web && DOCS_CODE=$$(cd .. && $(ENV) go run ./cmd/server -support-pin $$(cat internal/demo/INSTALL_ID) | grep -o 'PIN [0-9]*' | cut -d' ' -f2) bunx playwright test -c playwright.docs.config.ts
+# The printable agreement a shop signs (Order Form with blanks + the terms from LICENSE).
+agreement:
+	cd web && bun docs-shots/agreement.ts
 # Core is plugin-inert and still builds with no plugin at all.
 verify: check-core
 	go vet ./... && go build ./... && cd web && bunx tsc -b

@@ -117,7 +117,7 @@ plugin, money moves only through `cashflow`) and the hidden behaviours that must
 ## Licence
 
 Karots Suite is proprietary software. © 2026 Karots Korp (Karots Dev). All rights reserved. See
-[LICENSE](LICENSE) (licence and service terms) and the per-shop [Order Form](docs/legal/order-form.md);
+[LICENSE](LICENSE) (licence and service terms) and the per-shop [Order Form](docs/legal/karots-suite-agreement.pdf);
 [docs/legal](docs/legal/README.md) explains how they follow Sri Lankan law. Open-source components and their licences
 are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 

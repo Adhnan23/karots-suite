@@ -13,12 +13,17 @@ schedules:
 | Licence (what the shop may and may not do) | `LICENSE` §1–12 | Copyright in the program; the Intellectual Property Act protects computer programs |
 | Services (updates, support, cloud backup) | `LICENSE` Schedule A | So paid services sit under the same terms, with no second contract |
 | Personal data handling | `LICENSE` Schedule B | The PDPA requires a written contract between a controller (the shop) and a processor (Karots, for cloud backups and support) |
-| **Per-shop details: price, plugins, install ID, support period, liability amount** | **[Order Form](order-form.md), signed once per shop** | The only part that changes per shop. It pulls in the LICENSE by reference |
+| **Per-shop details: price, plugins, install ID, support period, liability amount** | **[Order Form](karots-suite-agreement.pdf), signed once per shop** | The only part that changes per shop. It pulls in the LICENSE by reference |
 
 You need **one more agreement only if you take on resellers**. A reseller is a different party
 with different rights (to sell, install and support, with commission and territory), so that
 belongs in its own **Reseller Agreement**. Have the lawyer draft it when the first reseller
 signs up.
+
+**Print [`karots-suite-agreement.pdf`](karots-suite-agreement.pdf)** for each shop. It holds the Order Form with blanks
+(shop details, plugins, the agreed price, advance and balance, signatures, seals and two witnesses) and the full terms, with
+initials and page numbers on every page. Rebuild it with `make agreement` after any change to `LICENSE` or
+`agreement/` (the form's source).
 
 So for each shop: **the shop signs the Order Form** (paper, or a PDF signed electronically), and
 the LICENSE comes with it. Recommended: **karots-setup also shows the terms with an "I agree"

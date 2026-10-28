@@ -1,0 +1,54 @@
+@font-face { font-family: Serif; src: url('{{FONTS}}/@fontsource/noto-serif/files/noto-serif-latin-400-normal.woff2'); font-weight: 400; }
+@font-face { font-family: Serif; src: url('{{FONTS}}/@fontsource/noto-serif/files/noto-serif-latin-700-normal.woff2'); font-weight: 700; }
+@font-face { font-family: Head; src: url('{{FONTS}}/@fontsource/figtree/files/figtree-latin-600-normal.woff2'); font-weight: 600; }
+@font-face { font-family: Head; src: url('{{FONTS}}/@fontsource/figtree/files/figtree-latin-800-normal.woff2'); font-weight: 800; }
+
+@page { size: A4; margin: 16mm 16mm 20mm; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 10.5pt/1.5 Serif, serif; color: #111; }
+h1, h2, h3, .kicker, .sub, label, th, .who { font-family: Head, sans-serif; }
+
+.brand { display: flex; gap: 14px; align-items: center; border-bottom: 2.5px solid #111; padding-bottom: 10px; margin-bottom: 14px; }
+.brand img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; }
+.kicker { font-size: 8.5pt; letter-spacing: .12em; text-transform: uppercase; color: #555; font-weight: 600; }
+h1 { font-size: 26pt; font-weight: 800; margin: 0; line-height: 1.1; }
+.sub { font-size: 11pt; color: #333; font-weight: 600; }
+.draft { border: 1.5px dashed #b00; color: #b00; padding: 4px 10px; font: 600 8.5pt Head, sans-serif; margin: 0 0 12px; }
+
+h2 { font-size: 12.5pt; font-weight: 800; margin: 18px 0 8px; padding-bottom: 3px; border-bottom: 1px solid #999; break-after: avoid; }
+.page { break-before: page; }
+
+.field { display: flex; align-items: flex-end; gap: 8px; margin: 9px 0; }
+.field label { font-size: 9pt; font-weight: 600; color: #333; white-space: nowrap; }
+.line { flex: 1; border-bottom: 1px solid #111; height: 20px; }
+.line.short { flex: 0 0 60mm; }
+.line.inline { display: inline-block; width: 18mm; height: 14px; vertical-align: bottom; }
+.line.inline.wide { width: 40mm; }
+.row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10mm; }
+
+.boxes { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0; font-size: 10.5pt; align-items: baseline; }
+.boxes .lead { flex: 0 0 100%; font-size: 9pt; font-weight: 600; color: #333; }
+
+table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+th { text-align: left; font-size: 9pt; font-weight: 600; background: #eee; }
+th, td { border: 1px solid #111; padding: 5px 8px; height: 26px; vertical-align: top; }
+.parties td:first-child { width: 32%; font-size: 9.5pt; }
+.parties tr.tall td { height: 44px; }
+.fees td { height: 30px; }
+.fees .amt { width: 30%; }
+.fees tr.total td { font-weight: 700; border-top: 2px solid #111; }
+
+.accept { font-size: 10pt; }
+.signs { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin-top: 10px; break-inside: avoid; }
+.signs.witnesses { margin-top: 28px; padding-top: 14px; border-top: 1px solid #ccc; }
+.who { font-weight: 800; font-size: 10.5pt; }
+.sigline { margin-top: 44px; border-top: 1px solid #111; font: 600 8.5pt Head, sans-serif; color: #333; padding-top: 2px; }
+.seal { margin-top: 10px; height: 28mm; border: 1px dashed #888; font: 600 8pt Head, sans-serif; color: #888; padding: 4px; }
+
+.terms { break-before: page; }
+.terms h2 { margin-top: 14px; }
+.terms p { margin: 5px 0; text-align: justify; hyphens: auto; }
+.terms p.clause { padding-left: 9mm; text-indent: -9mm; }
+.terms p.item { padding-left: 15mm; text-indent: -6mm; }
+.terms .schedule { break-before: page; }
+.terms .copy { font: 600 9pt Head, sans-serif; color: #444; }
