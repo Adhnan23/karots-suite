@@ -3,6 +3,9 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of
 every milestone.
 
+Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
+2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
+
 ## Next session (handoff 2026-10-28) — START HERE: docs, license, screenshots
 
 **The suite is feature-complete for a shop's day.** Nothing waits on the user (they accepted everything 2026-10-28).
