@@ -133,3 +133,46 @@ test('if the picture fails, that slip prints Classic once', async ({ page }) => 
   expect(jobs).toHaveLength(1)
   expect(isPNG(jobs[0])).toBe(false)
 })
+
+// Every receipt preview is the roll's width, in both modes — also in a box sized to its
+// content (the sale-complete overlay), which once squeezed it to a sliver.
+for (const mode of ['image', 'classic'] as const) {
+  test(`every receipt preview shows at the roll's width (${mode})`, async ({ page }) => {
+    await signIn(page)
+    await setPrinting(page, mode, true)
+    await catchPrints(page)
+    const preview = (scope: ReturnType<Page['locator']>) => scope.locator('img[alt="Receipt preview"], article[aria-label="Receipt preview"]').first()
+    const wide = async (where: string, scope: ReturnType<Page['locator']>) => {
+      const el = preview(scope)
+      await expect(el, where).toBeVisible()
+      if (mode === 'image') await expect.poll(() => el.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth), { message: where }).toBeGreaterThan(0)
+      const w = (await el.boundingBox())!.width
+      expect(w, `${where}: ${w}px`).toBeGreaterThan(250) // the 80 mm roll (≈ 400 px) or the width its box allows (Settings' 340 px column) — never a sliver
+      await page.screenshot({ path: `shots/receipt-previews/${mode}-${where}.png` })
+    }
+
+    await cashSale(page)
+    await wide('sale-complete', page.getByRole('dialog', { name: /complete/ }))
+    await page.getByRole('button', { name: /Start next sale/ }).click()
+
+    await page.getByRole('button', { name: /Deposit/ }).first().click()
+    const dep = page.getByRole('dialog', { name: /Deposit cash/ })
+    await dep.getByLabel('Amount').fill('10')
+    await dep.getByRole('button', { name: 'Deposit' }).click()
+    const ask = page.getByRole('dialog', { name: /^Print/ })
+    await wide('print-prompt', ask)
+    await ask.getByRole('button', { name: 'Skip' }).click()
+
+    await page.goto('/till/receipts')
+    await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Cash' }).click() // the deposit above
+    await page.getByRole('list', { name: 'Receipts' }).getByRole('button').first().click()
+    await wide('counter-receipts', page.locator('body'))
+
+    await page.goto('/admin/sales')
+    await page.getByRole('button', { name: /^S-\d+/ }).first().click()
+    await wide('sale-sheet', page.getByRole('dialog'))
+
+    await page.goto('/admin/settings')
+    await wide('settings', page.locator('body'))
+  })
+}
