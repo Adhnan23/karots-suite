@@ -11,10 +11,10 @@ schedules:
 | Piece | Where | Why it's there |
 |---|---|---|
 | Licence (what the shop may and may not do) | `LICENSE` §1–12 | Copyright in the program; the Intellectual Property Act protects computer programs |
-| Services (updates, support, cloud backup) | `LICENSE` Schedule A | So paid services sit under the same terms, with no second contract |
-| Personal data handling | `LICENSE` Schedule B | The PDPA requires a written contract between a controller (the shop) and a processor (Karots, for cloud backups and support) |
-| **Per-shop details: price, plugins, install ID, support period, liability amount** | **[Order Form](karots-suite-agreement.pdf), signed once per shop** | The only part that changes per shop. It pulls in the LICENSE by reference |
-| What's free, what's charged, visits, cloud backup, refunds, shop dos and don'ts, price list | **[Shop Rules & Service Guide](karots-suite-shop-rules.pdf)** (`agreement/shop-rules.html`) | Brought in by `LICENSE` §8.2 and the Order Form's acceptance line, so signing accepts it too. Change its version date on every edit |
+| Services (updates, support, cloud backup) | `LICENSE` Second Schedule | So paid services sit under the same terms, with no second contract |
+| Personal data handling | `LICENSE` the Third Schedule | The PDPA requires a written contract between a controller (the shop) and a processor (Karots, for cloud backups and support) |
+| **Per-shop details: price, plugins, install ID, support period, liability amount** | **First Schedule, Order Details, in [the agreement](karots-suite-agreement.pdf)**, signed once per shop | The only part that changes per shop. It pulls in the LICENSE by reference |
+| What's free, what's charged, visits, cloud backup, refunds, shop dos and don'ts, price list | **[Shop Rules & Service Guide](karots-suite-shop-rules.pdf)** (`agreement/shop-rules.html`) | Brought in by `LICENSE` §8.2 and the Order Details's acceptance line, so signing accepts it too. Change its version date on every edit |
 
 You need **one more agreement only if you take on resellers**. A reseller is a different party
 with different rights (to sell, install and support, with commission and territory), so that
@@ -24,18 +24,18 @@ signs up.
 | PDF | Use |
 |---|---|
 | [`karots-suite-agreement.pdf`](karots-suite-agreement.pdf) | Print one per shop, fill in, sign, stamp and initial each page |
-| [`karots-suite-shop-rules.pdf`](karots-suite-shop-rules.pdf) | Give the shop a copy (its version goes on the Order Form) |
+| [`karots-suite-shop-rules.pdf`](karots-suite-shop-rules.pdf) | Give the shop a copy (its version goes in the Order Details) |
 | [`karots-suite-agreement-sample.pdf`](karots-suite-agreement-sample.pdf) | A filled-in example with made-up data, marked SAMPLE (initialled on every page): shows how to fill one in |
 | [`karots-suite-balance-notice.pdf`](karots-suite-balance-notice.pdf) | The 14-day notice when a balance is unpaid 90 days after installation |
 | [`karots-suite-balance-notice-sample.pdf`](karots-suite-balance-notice-sample.pdf) | The same notice filled in for the sample shop, marked SAMPLE |
 | [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) | Take to the lawyer: the 12 points, each with opinion, change and decision boxes |
 
-All are built by `make agreement` from `agreement/` and `LICENSE`. **Print `karots-suite-agreement.pdf`** for each shop. It holds the Order Form with blanks
+All are built by `make agreement` from `agreement/` and `LICENSE`. **Print `karots-suite-agreement.pdf`** for each shop. It's laid out in the usual Sri Lankan form: place and date, the parties (with NIC and business registration), WHEREAS recitals, the terms, IN WITNESS WHEREOF with signatures and two witnesses, then the Schedules (the First is the Order Details) with blanks
 (shop details, plugins, the agreed price, advance and balance, signatures, seals and two witnesses) and the full terms, with
 initials and page numbers on every page. Rebuild it with `make agreement` after any change to `LICENSE` or
 `agreement/` (the form's source).
 
-So for each shop: **the shop signs the Order Form** (paper, or a PDF signed electronically), and
+So for each shop: **both sides sign the agreement** in duplicate (paper, or a PDF signed electronically), and
 the LICENSE comes with it. Recommended: **karots-setup also shows the terms with an "I agree"
 tick** before Install, so every install has an electronic acceptance on record.
 
@@ -65,7 +65,7 @@ This Act matters most for the "no warranty / limit of liability" clauses:
   substantially different, unless the term is reasonable (s.4).
 - On reasonableness, **it's for Karots to prove** the term is reasonable (s.10(5)). For a cap at
   a fixed sum, the court looks at **Karots' resources and the insurance available** (s.10(4)).
-  That's why `LICENSE` §10.3 caps at fees paid (or the Order Form amount) and says it considered
+  That's why `LICENSE` §10.3 caps at fees paid (or the Order Details amount) and says it considered
   both. §9.2 also gives a real remedy (fix, work around or refund) rather than "as is" alone.
 - A written **arbitration** agreement doesn't count as excluding liability (s.11 proviso), so
   §12.2's arbitration clause is safe under this Act.
@@ -80,7 +80,7 @@ This Act matters most for the "no warranty / limit of liability" clauses:
 
 A contract isn't unenforceable just because it was made electronically. The 2017 amendment
 aligns the Act with the UN Electronic Communications Convention, which Sri Lanka ratified in
-2015. So "I agree" in karots-setup and an emailed or e-signed Order Form are both fine.
+2015. So "I agree" in karots-setup and an emailed or e-signed Order Details are both fine.
 `LICENSE` §2.1.
 
 ### Personal data: Personal Data Protection Act, No. 9 of 2022 (amended by No. 22 of 2025)
@@ -96,7 +96,7 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
   patients' allergies and prescriptions). There will also be **cross-border transfer rules**
   (Karots cloud backups can be stored outside Sri Lanka), breach notification, and penalties of
   up to Rs. 10 million.
-- `LICENSE` Schedule B is written to that shape now (instructions only, confidentiality,
+- `LICENSE` the Third Schedule is written to that shape now (instructions only, confidentiality,
   encryption, breach notice, help with requests, deletion at the end, transfers agreed), so
   little should need to change when the Act commences.
 
@@ -105,13 +105,15 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
 Print [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) for the meeting: one box per item for the
 lawyer's opinion, the suggested change and the decision.
 
-1. Read `LICENSE` and the Order Form. Is the liability cap (§10.3) reasonable under UCTA s.10?
+1. Read `LICENSE` and the Order Details. Is the liability cap (§10.3) reasonable under UCTA s.10?
    What insurance would make a higher figure reasonable?
 2. UCTA First Schedule: are IP licences excluded from ss.3–5?
-3. Is "Karots Korp (Karots Dev)" the right legal name for the contracting party? If it's a sole
-   proprietorship, use the owner's name "trading as Karots Korp", plus the business
-   registration number.
-4. Stamp duty or any other formality for signing the Order Form?
+3. Karots is a sole proprietorship (registration applied for, 2026-10-28). The agreement names the owner "carrying on
+   business as sole proprietor under the name and style of Karots Korp", registered under the Business Names Statute,
+   with the number to fill in. Is that wording right? **Don't sign with shops before the registration number arrives:**
+   under the Business Names Ordinance, a business trading under an unregistered name can't enforce its contracts
+   without the court's leave.
+4. Stamp duty or any other formality for signing the Order Details?
 5. Arbitration in Colombo, one arbitrator: suitable for small claims, or do the Magistrate /
    District Courts suit better?
 6. PDPA: has a commencement order been made yet? If so, are there extra processor terms, and is

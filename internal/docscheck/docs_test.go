@@ -52,7 +52,7 @@ func TestEveryPluginIsDocumentedAndPriced(t *testing.T) {
 			{strings.Contains(index, "("+key+".md)"), "a row in docs/guide/plugins/README.md"},
 			{strings.Contains(shots, "'"+key+"'"), "a place in web/docs-shots/shots.spec.ts's plugin list"},
 			{exists("docs/images/plugins/" + key + ".jpg"), "docs/images/plugins/" + key + ".jpg (make docs-shots)"},
-			{strings.Contains(form, "☐ "+name), "a tick box on the Order Form (docs/legal/agreement/order-form.html)"},
+			{strings.Contains(form, "☐ "+name), "a tick box in the First Schedule (docs/legal/agreement/order-form.html)"},
 			{strings.Contains(rules, "<tr><td>"+name), "a price in the Shop Rules (docs/legal/agreement/shop-rules.html §15)"},
 		}
 		for _, c := range checks {

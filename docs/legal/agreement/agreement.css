@@ -112,3 +112,24 @@ table { break-inside: avoid; }
 .letter .salute { margin-top: 8px; }
 .sig { height: 46px; margin-bottom: -40px; }
 .letter .sig { margin-bottom: -4px; }
+
+/* the agreement's Sri Lankan form */
+.brand .agno { margin-left: auto; align-self: flex-end; display: flex; gap: 6px; align-items: flex-end; width: 62mm; }
+.brand .agno label { font: 600 8.5pt Head, sans-serif; color: #333; white-space: nowrap; }
+.brand .agno .line { flex: 1; }
+.deed h2.title { text-align: center; border: 0; font-size: 15pt; letter-spacing: .06em; margin: 10px 0 6px; }
+.deed p { text-align: left; line-height: 1.95; margin: 6px 0; }
+.deed .c, h2.c { text-align: center; }
+.deed h3 { font: 800 11pt Head, sans-serif; margin: 10px 0 4px; }
+.deed .recitals { margin: 4px 0; padding-left: 8mm; }
+.deed .recitals li { text-align: justify; }
+.line.inline.full { width: 70mm; }
+.who-is { font-size: 9.5pt; }
+.tickopt { margin-right: 10px; }
+.terms { break-before: page; }
+.attest { break-before: page; }
+.attest .witness { margin-top: 10px; line-height: 1.8; }
+.inpres { margin: 12px 0 0; font-style: italic; }
+.schedule1 h3 { font: 800 11pt Head, sans-serif; margin: 14px 0 4px; }
+.schedules .schedule:first-child { break-before: page; }
+h2.c .sub { display: block; font-size: 10.5pt; font-weight: 600; color: #333; }

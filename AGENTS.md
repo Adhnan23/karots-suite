@@ -41,13 +41,13 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 | Guides for owners, resellers, developers | `docs/guide/` (one page per area, `plugins/<key>.md` per plugin) | hand |
 | Screenshots | `docs/images/<area>/<name>.jpg` | `make docs-shots` (a running Demo Room; `web/docs-shots/shots.spec.ts`) |
 | Licence and service terms | `LICENSE` (plain text; the PDFs read it) | hand |
-| Order Form, Shop Rules & Service Guide (prices, free vs paid, refunds, shop rules), filled samples (agreement + notice), balance notice, lawyer review | `docs/legal/agreement/*.html`, `sample-kit.js` + `sample.js` / `sample-notice.js`, `lawyer-items.json`, `agreement.css` → `docs/legal/*.pdf` | `make agreement` |
+| Order Details, Shop Rules & Service Guide (prices, free vs paid, refunds, shop rules), filled samples (agreement + notice), balance notice, lawyer review | `docs/legal/agreement/*.html`, `sample-kit.js` + `sample.js` / `sample-notice.js`, `lawyer-items.json`, `agreement.css` → `docs/legal/*.pdf` | `make agreement` |
 | Legal research + lawyer checklist | `docs/legal/README.md` | hand |
 | Third-party notices | `THIRD_PARTY_NOTICES.md` | `go run ./scripts/notices > THIRD_PARTY_NOTICES.md` |
 
 **When you add a plugin:** README plugin table + badge count, `docs/guide/plugins/<key>.md` + its row in
-`docs/guide/plugins/README.md`, the key in `shots.spec.ts`'s plugin list → `make docs-shots`, a tick box on the Order
-Form, a price row in the Shop Rules (§15) and the "all N plugins" Everything row (ask the user the price), then
+`docs/guide/plugins/README.md`, the key in `shots.spec.ts`'s plugin list → `make docs-shots`, a tick box in the First
+Schedule (`order-form.html`), a price row in the Shop Rules (§15) and the "all N plugins" Everything row (ask the user the price), then
 `make agreement`. `internal/docscheck` checks all of these.
 
 **When you add or change a feature or screen:** the guide page for its area (and README's grid if it's headline),
@@ -55,7 +55,7 @@ new / retaken screenshots (`make docs-shots`, add the shot to `shots.spec.ts` if
 first), and a Demo Room data change if the shot needs it.
 
 **When a service, price, refund or support rule changes (user's decision only):** `shop-rules.html` (bump its
-version on the cover), `LICENSE` Schedule A / clauses that mention it, the Order Form if a field changes, `sample.js`
+version on the cover), `LICENSE` Second Schedule / clauses that mention it, the Order Details if a field changes, `sample.js`
 if the sample no longer fits, `docs/legal/README.md` + `lawyer-items.json` if it raises a legal question, then
 `make agreement`. Prices live only in `shop-rules.html` §15.
 

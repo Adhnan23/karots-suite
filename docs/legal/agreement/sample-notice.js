@@ -16,7 +16,7 @@
   field('Pay to', 'Karots Korp (Karots Dev)')
   field('Bank and account no.', 'Sample Bank, Kandy · 0000 0000 0000 (sample)')
   const sign = document.querySelector('.signs .sign')
-  field('Name', 'K. Karots, Owner', sign)
+  field('Name', 'K. Karots, Sole proprietor', sign)
   sign.querySelector('.sigline').insertAdjacentHTML('beforebegin', signature('K. Karots'))
   document.querySelector('.signs .seal').insertAdjacentHTML('beforeend', stamp('karots', '27.01.2027'))
   const got = document.querySelector('.received')

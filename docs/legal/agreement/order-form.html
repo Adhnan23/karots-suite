@@ -1,33 +1,8 @@
-<!-- The Order Form pages of the printed agreement. build.ts puts this and the
-     terms from LICENSE into page.html and prints docs/legal/karots-suite-agreement.pdf. -->
-<section class="cover">
-  <header class="brand">
-    <img src="{{LOGO}}" alt="">
-    <div>
-      <div class="kicker">Karots Korp · Karots Dev</div>
-      <h1>Karots Suite</h1>
-      <div class="sub">Order Form, Licence and Service Terms</div>
-    </div>
-  </header>
-  {{DRAFT}}
-
-  <div class="row two">
-    <div class="field"><label>Order no.</label><span class="line"></span></div>
-    <div class="field"><label>Date</label><span class="line"></span></div>
-  </div>
-
-  <h2>1 · The parties</h2>
-  <table class="parties">
-    <tr><th></th><th>Karots</th><th>The Shop</th></tr>
-    <tr><td>Name</td><td>Karots Korp (Karots Dev)</td><td class="blank"></td></tr>
-    <tr><td>Business registration no.</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr class="tall"><td>Address</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>Email</td><td>adhnanmsa@gmail.com</td><td class="blank"></td></tr>
-    <tr><td>Phone</td><td>0769626396</td><td class="blank"></td></tr>
-    <tr><td>Represented by (name, title)</td><td class="blank"></td><td class="blank"></td></tr>
-  </table>
-
-  <h2>2 · What the Shop gets</h2>
+<!-- The First Schedule: the per-shop Order Details (what the Shop gets, contacts, the price).
+     internal/docscheck checks every plugin has a tick box here. -->
+<section class="page schedule1">
+  <h2 class="c">THE FIRST SCHEDULE<br><span class="sub">Order Details</span></h2>
+  <h3>1. What the Shop gets</h3>
   <div class="field"><label>Site (premises where it is used)</label><span class="line"></span></div>
   <div class="field"><label>Install ID</label><span class="line short"></span></div>
   <div class="boxes">
@@ -53,10 +28,16 @@
     <label class="lead">Karots cloud backup</label>
     <span>☐ Yes, copies kept for <span class="line inline"></span> days</span><span>☐ No</span>
   </div>
+
+  <h3>2. Contacts for notices (clause 12.3)</h3>
+  <div class="row two">
+    <div class="field"><label>Karots: email / phone</label><span class="line" data-k="k-contact">adhnanmsa@gmail.com · 0769626396</span></div>
+    <div class="field"><label>Shop: email / phone</label><span class="line" data-k="s-contact"></span></div>
+  </div>
 </section>
 
 <section class="page">
-  <h2>3 · The price we agreed</h2>
+  <h3>3. The price agreed</h3>
   <table class="fees">
     <tr><th>Item</th><th class="amt">Amount (Rs.)</th><th>When it is paid</th></tr>
     <tr><td>Licence</td><td></td><td></td></tr>
@@ -82,50 +63,4 @@
   <div class="field"><span class="line"></span></div>
   <div class="field"><span class="line"></span></div>
 
-</section>
-
-<section class="page">
-  <h2>4 · Acceptance</h2>
-  <p class="accept">Before signing, the Shop has read and agrees to each of these. Tick and initial each one:</p>
-  <table class="agree">
-    <tr><th></th><th>The Shop agrees to</th><th>Shop's initials</th></tr>
-    <tr><td>☐</td><td>The <b>Licence and Service Terms</b> that follow, including Schedule A (services) and Schedule B (personal data).</td><td></td></tr>
-    <tr><td>☐</td><td>The <b>Shop Rules &amp; Service Guide</b>, version <span class="line inline wide"></span>, of which it has a copy: what is free, what is charged and the shop rules.</td><td></td></tr>
-    <tr><td>☐</td><td>The <b>refund rules</b> (Guide section 7): in week 1 the licence is refunded and only the installation fee is kept; after that Karots keeps more each week, and nothing is refunded after day 30.</td><td></td></tr>
-    <tr><td>☐</td><td><b>Paying the balance within 90 days</b> (Guide section 8). If it is unpaid after a further 14 days' notice, the licence ends and Karots removes the software, giving the Shop a backup of its data first.</td><td></td></tr>
-    <tr><td>☐</td><td>The <b>first year</b> (Guide section 1): free updates, bug fixes and remote help for a year, personalised help for 60 days and 2 visits. After that, renewal or paid help.</td><td></td></tr>
-    <tr><td>☐</td><td>The Shop is buying <b>for its business</b>. If this form and the terms differ, this form wins.</td><td></td></tr>
-  </table>
-  <div class="signs">
-    <div class="sign">
-      <div class="who">For Karots</div>
-      <div class="sigline">Signature</div>
-      <div class="field"><label>Name</label><span class="line"></span></div>
-      <div class="field"><label>NIC no.</label><span class="line"></span></div>
-      <div class="field"><label>Date</label><span class="line"></span></div>
-      <div class="seal">Seal / stamp</div>
-    </div>
-    <div class="sign">
-      <div class="who">For the Shop</div>
-      <div class="sigline">Signature</div>
-      <div class="field"><label>Name</label><span class="line"></span></div>
-      <div class="field"><label>NIC no.</label><span class="line"></span></div>
-      <div class="field"><label>Date</label><span class="line"></span></div>
-      <div class="seal">Seal / stamp</div>
-    </div>
-  </div>
-  <div class="signs witnesses">
-    <div class="sign">
-      <div class="who">Witness 1</div>
-      <div class="sigline">Signature</div>
-      <div class="field"><label>Name</label><span class="line"></span></div>
-      <div class="field"><label>NIC no.</label><span class="line"></span></div>
-    </div>
-    <div class="sign">
-      <div class="who">Witness 2</div>
-      <div class="sigline">Signature</div>
-      <div class="field"><label>Name</label><span class="line"></span></div>
-      <div class="field"><label>NIC no.</label><span class="line"></span></div>
-    </div>
-  </div>
 </section>

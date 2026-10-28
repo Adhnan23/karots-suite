@@ -3,26 +3,27 @@ Copyright (c) 2026 Karots Korp (Karots Dev). All rights reserved.
 
 DRAFT for review by a Sri Lankan attorney-at-law before use. See docs/legal/README.md.
 
-These terms are between Karots Korp, trading as Karots Dev ("Karots", "we"), and the business
-named on the Order Form ("the Shop", "you"). Together with the Order Form and the Schedules
-below they are the whole agreement. If they conflict, the Order Form wins, then these terms,
-then the Schedules.
+These terms are the body of the Licence and Service Agreement between Karots Korp, trading as
+Karots Dev ("Karots", "we"), and the Shop named in it ("the Shop", "you"). With its Schedules
+and the Shop Rules & Service Guide they are the whole agreement. If they conflict, the First
+Schedule (Order Details) wins, then these terms, then the other Schedules, then the Guide.
 
 
 1. DEFINITIONS
 
 "Software" means Karots Suite as supplied to the Shop: the server program, the installer
-(karots-setup), the plugins named on the Order Form, updates, and their documentation.
-"Order Form" means the signed (or electronically accepted) form that names the Shop, its site,
+(karots-setup), the plugins named in the Order Details, updates, and their documentation.
+"Order Details" means the First Schedule to the agreement, signed (or electronically accepted),
+which names the Shop, its site,
 its install ID, the plugins, the fees and any services bought.
 "Shop Data" means the records the Shop keeps in the Software: products, sales, stock, money,
 customers, staff, patients and the like.
-"Site" means the Shop's premises named on the Order Form.
+"Site" means the Shop's premises named in the Order Details.
 
 
 2. ACCEPTANCE
 
-2.1 You accept these terms by signing the Order Form, or by ticking "I agree" or installing or
+2.1 You accept these terms by signing the agreement, or by ticking "I agree" or installing or
     using the Software. An electronic acceptance is as binding as a signed paper copy
     (Electronic Transactions Act, No. 19 of 2006, as amended by Act No. 25 of 2017).
 2.2 You confirm you are taking the Software for a business, not as a private consumer.
@@ -40,7 +41,7 @@ customers, staff, patients and the like.
 3.3 Moving the Shop to another computer at the Site is allowed. Moving to another site, or a
     change of owner, needs Karots' written consent, which will not be refused without good
     reason. A change of owner carries the transfer fee in the Shop Rules & Service Guide, and the
-    new owner signs a new Order Form.
+    new owner signs new Order Details.
 
 
 4. RESTRICTIONS
@@ -69,14 +70,14 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 
 6.1 Shop Data belongs to the Shop. Karots claims no right to it and will not sell it.
 6.2 The Shop decides what personal data it keeps (about customers, patients and staff) and why.
-    It is the controller of that data, and Karots processes it only as Schedule B allows.
+    It is the controller of that data, and Karots processes it only as the Third Schedule allows.
 6.3 You can take a full backup of your Shop Data from the Software at any time, including after
     these terms end.
 
 
 7. FEES
 
-7.1 Fees, what they cover and when they are due are on the Order Form.
+7.1 Fees, what they cover and when they are due are in the Order Details.
 7.2 While a fee is late, Karots may pause updates, support, visits and Karots cloud backup until
     it is paid. The till keeps working, and Karots never locks the Shop out of its own Shop Data.
 7.3 Any balance of the one-time price must be paid within 90 days of installation. If it is not,
@@ -91,8 +92,8 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 8.1 Updates are signed by Karots and installed by the Shop from inside the Software. Karots never
     updates a shop by itself.
 8.2 What is free, what is charged, visits, refunds and the shop rules are in the Karots Suite
-    Shop Rules & Service Guide given with these terms (the version named on the Order Form). It
-    forms part of these terms. Schedule A summarises the services.
+    Shop Rules & Service Guide given with these terms (the version named in the Order Details). It
+    forms part of these terms. The Second Schedule summarises the services.
 
 
 9. WHAT KAROTS PROMISES
@@ -119,7 +120,7 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
      indirect or consequential loss.
 10.3 Otherwise, Karots' total liability under these terms in any 12 months is limited to the
      greater of (a) the fees the Shop paid Karots in the 12 months before the claim and
-     (b) the amount on the Order Form. Karots sets this limit with regard to its resources and
+     (b) the amount in the Order Details. Karots sets this limit with regard to its resources and
      the insurance reasonably available to it (Unfair Contract Terms Act, section 10(4)).
 10.4 Karots is not liable for loss of Shop Data that a backup the Shop could have restored would
      have avoided.
@@ -134,7 +135,7 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
      as clause 7.3 says for an unpaid balance.
 11.3 When they end, the Shop must stop using the Software and delete it, after taking a final
      backup of its Shop Data (the uninstaller does this first). Clauses 4, 5, 6, 10, 12 and
-     Schedule B survive.
+     the Third Schedule survive.
 
 
 12. GENERAL
@@ -145,7 +146,7 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
      single arbitrator agreed by both sides (or, failing agreement, appointed under that Act).
      Either side may still ask a court for urgent relief, such as an injunction against
      copying the Software.
-12.3 Notices must be in writing, to the email or address on the Order Form. Karots: the
+12.3 Notices must be in writing, to the email or address in the Order Details. Karots: the
      contact in clause 12.7.
 12.4 Neither side is liable for delay caused by events beyond its reasonable control.
 12.5 If a court or arbitrator finds part of these terms unenforceable, the rest stands.
@@ -154,39 +155,39 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 12.7 Karots Korp (Karots Dev) — adhnanmsa@gmail.com — 0769626396.
 
 
-SCHEDULE A — SERVICES
+SECOND SCHEDULE — SERVICES
 
-A1 Updates and bug fixes: free for the first year after installation. After that the Shop keeps
+1. Updates and bug fixes: free for the first year after installation. After that the Shop keeps
    using the version it has, and updates, fixes and help are paid work or a renewal.
-A2 Support: free remote help in the first year, personalised help free in the first 60 days, and
+2. Support: free remote help in the first year, personalised help free in the first 60 days, and
    2 free visits in the first year, as the Shop Rules & Service Guide sets out. A support session
    uses the Software's rotating support code, which works only for that Shop's install ID, and
    remote access only when the Shop allows it.
-A3 Karots cloud backup (if on the Order Form): a paid service, monthly or yearly. One encrypted
+3. Karots cloud backup (if in the Order Details): a paid service, monthly or yearly. One encrypted
    copy of the Shop's newest automatic backup about once a day, kept in Karots' storage. If a
    payment is more than 7 days late the service is frozen (no new copies) until it is paid. The
    Shop can switch it off at any time on the Data page. A copy can be brought back on request or
    from the Data page.
-A4 The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
+4. The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
 
 
-SCHEDULE B — HOW KAROTS HANDLES PERSONAL DATA
+THIRD SCHEDULE — HOW KAROTS HANDLES PERSONAL DATA
 
-B1 Karots handles Shop Data only (a) to give support the Shop asks for, (b) to keep the Karots
+1. Karots handles Shop Data only (a) to give support the Shop asks for, (b) to keep the Karots
    cloud backups the Shop has chosen, and (c) as the law requires. It acts only on the Shop's
    instructions and for no purpose of its own.
-B2 Karots keeps Shop Data confidential and lets only people bound to confidentiality see it.
-B3 Cloud backups are encrypted with a key for that Shop before they leave the Shop's computer.
+2. Karots keeps Shop Data confidential and lets only people bound to confidentiality see it.
+3. Cloud backups are encrypted with a key for that Shop before they leave the Shop's computer.
    They may be stored with a cloud storage provider whose servers can be outside Sri Lanka. The
    Shop agrees to this, and Karots will meet any conditions the law sets for such transfers.
-B4 Karots will tell the Shop without undue delay if it learns that Shop Data in its care has been
+4. Karots will tell the Shop without undue delay if it learns that Shop Data in its care has been
    lost, disclosed or accessed without authority, and will help the Shop meet its own duties.
-B5 Karots will help the Shop answer requests from people about their own data, as far as the
+5. Karots will help the Shop answer requests from people about their own data, as far as the
    Software and Karots' copies allow.
-B6 When the services end, Karots deletes its copies of Shop Data, or returns them if the Shop
+6. When the services end, Karots deletes its copies of Shop Data, or returns them if the Shop
    asks first. Backup copies held under a deletion lock are deleted when the lock ends.
-B7 Health data (Pharmacy plugin), identity numbers and similar sensitive data get the same
+7. Health data (Pharmacy plugin), identity numbers and similar sensitive data get the same
    protection, and Karots looks at them only when support for that data is asked for.
-B8 This Schedule is meant to meet the Personal Data Protection Act, No. 9 of 2022 (as amended
+8. This Schedule is meant to meet the Personal Data Protection Act, No. 9 of 2022 (as amended
    by Act No. 22 of 2025). When that Act's duties for controllers and processors come into
    force, the parties will make any further terms it requires.

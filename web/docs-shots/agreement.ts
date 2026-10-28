@@ -11,9 +11,9 @@ const dir = join(root, 'docs/legal/agreement')
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 // LICENSE is plain text: a paragraph starts after a blank line or at a clause
-// mark at the margin (2.1, A1, (a), a "defined term"); indented and other lines
+// mark at the margin (2.1, 3., (a), a "defined term"); indented and other lines
 // continue it.
-const starts = /^(\d+\.\d*\s|[A-Z]\d\s|\([a-z]\)\s|"|Breaking |Copyright )/
+const starts = /^(\d+\.\d*\s|\([a-z]\)\s|"|Breaking |Copyright |[A-Z]+ SCHEDULE )/
 function terms(text: string) {
   const blocks: string[] = []
   for (const line of text.split('\n')) {
@@ -24,16 +24,19 @@ function terms(text: string) {
   }
   let draft = ''
   const html = blocks.filter(Boolean).map((b, i) => {
-    if (i === 0) return `<h2>${esc(b)}</h2>`
+    if (i === 0 || b.startsWith('These terms are the body')) return '' // the agreement's opening says both
     if (b.startsWith('Copyright')) return `<p class="copy">${esc(b)}</p>`
     if (b.startsWith('DRAFT')) { draft = b; return '' }
-    if (/^SCHEDULE /.test(b)) return `<h2 class="schedule">${esc(b)}</h2>`
+    if (/^[A-Z]+ SCHEDULE /.test(b)) return `<h2 class="schedule">${esc(b)}</h2>`
     if (/^\d+\. [A-Z ,]+$/.test(b)) return `<h2>${esc(b)}</h2>`
-    if (/^(\d+\.\d+|[A-Z]\d) /.test(b)) return `<p class="clause">${esc(b)}</p>`
+    if (/^\d+\.\d+ /.test(b)) return `<p class="clause">${esc(b)}</p>`
+    if (/^\d+\. /.test(b)) return `<p class="clause">${esc(b)}</p>` // a schedule's items
     if (/^\([a-z]\) /.test(b)) return `<p class="item">${esc(b)}</p>`
     return `<p>${esc(b)}</p>`
-  }).join('\n')
-  return { html, draft }
+  })
+  // The terms run up to the Second Schedule; the Schedules follow the attestation.
+  const cut = html.findIndex((h) => h.includes('class="schedule"'))
+  return { body: html.slice(0, cut).join('\n'), schedules: html.slice(cut).join('\n'), draft }
 }
 
 const t = terms(readFileSync(join(root, 'LICENSE'), 'utf8'))
@@ -68,7 +71,10 @@ async function print(name: string, title: string, body: string, initials: boolea
   })
   console.log(out)
 }
-await print('karots-suite-agreement', 'Order Form, Licence and Service Terms', `${fill('order-form.html')}<section class="terms">${t.html}</section>`)
+// The agreement in the usual Sri Lankan form: opening (parties, recitals), terms, attestation, Schedules.
+const agreement = () => `${fill('preamble.html')}<section class="terms">${t.body}</section>${fill('attestation.html')}` +
+  `${fill('order-form.html')}<section class="terms schedules">${t.schedules}</section>`
+await print('karots-suite-agreement', 'Licence and Service Agreement', agreement())
 await print('karots-suite-shop-rules', 'Shop Rules & Service Guide', fill('shop-rules.html'))
 await print('karots-suite-balance-notice', 'Notice to pay the balance', fill('balance-notice.html'), false)
 
@@ -89,8 +95,8 @@ const items = (JSON.parse(readFileSync(join(dir, 'lawyer-items.json'), 'utf8')) 
 await print('karots-suite-lawyer-review', 'Legal review', fill('lawyer-review.html').replace('{{ITEMS}}', `<section class="items">${items}</section>`), false)
 
 // A filled-in example of the agreement, marked SAMPLE on every page.
-await print('karots-suite-agreement-sample', 'Order Form, Licence and Service Terms (SAMPLE)',
-  `<div class="sample-mark">SAMPLE</div>${fill('order-form.html')}<section class="terms">${t.html}</section>${sample('sample.js')}`,
+await print('karots-suite-agreement-sample', 'Licence and Service Agreement (SAMPLE)',
+  `<div class="sample-mark">SAMPLE</div>${agreement()}${sample('sample.js')}`,
   ['K.K.', 'S.S.'])
 await print('karots-suite-balance-notice-sample', 'Notice to pay the balance (SAMPLE)',
   `<div class="sample-mark">SAMPLE</div>${fill('balance-notice.html')}${sample('sample-notice.js')}`, false)

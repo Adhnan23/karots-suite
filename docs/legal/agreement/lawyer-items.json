@@ -2,7 +2,7 @@
   {
     "title": "Limit of liability",
     "where": "Terms 10.3",
-    "now": "Karots' total liability in any 12 months is capped at the greater of the fees paid in the previous 12 months and the amount written on the Order Form (we suggest the licence price). Death and personal injury from negligence, and fraud, are never limited (10.1).",
+    "now": "Karots' total liability in any 12 months is capped at the greater of the fees paid in the previous 12 months and the amount written in the Order Details (we suggest the licence price). Death and personal injury from negligence, and fraud, are never limited (10.1).",
     "why": "UCTA s.3(2) and s.4 require reasonableness for written standard terms; s.10(4) looks at resources and insurance for a fixed-sum cap, and s.10(5) puts the burden on us.",
     "ask": "Is this cap reasonable for a small vendor? Would insurance be expected, and what figure would then be reasonable?"
   },
@@ -15,14 +15,14 @@
   },
   {
     "title": "The right contracting party",
-    "where": "Order Form, parties · Terms heading",
-    "now": "Karots Korp (Karots Dev), with blanks for a business registration number.",
-    "why": "If Karots Korp is a sole proprietorship it isn't a legal person; the contract may need the owner's name trading as Karots Korp.",
-    "ask": "How should Karots be named and identified on every document?"
+    "where": "Agreement opening (parties) · Terms heading",
+    "now": "Karots is described as its owner (name, NIC, address) carrying on business as sole proprietor under the name and style of Karots Korp (Karots Dev), registered under the Business Names Statute of the relevant Provincial Council (registration applied for; number to be filled in). The Shop is described as an individual / sole proprietor or as a company / partnership.",
+    "why": "Under the Business Names Ordinance a business trading under an unregistered name can't enforce its contracts without the court's leave. The owner is registering Karots Korp as a sole proprietorship now.",
+    "ask": "Is the party wording right for a sole proprietor? Can agreements be signed while registration is pending? Should shops' business-name registration be checked before signing?"
   },
   {
     "title": "Stamp duty and signing formalities",
-    "where": "Order Form, acceptance and witnesses",
+    "where": "Order Details, acceptance and witnesses",
     "now": "Signed and stamped by both sides, two witnesses with NIC numbers, each page initialled; electronic acceptance also allowed (Terms 2.1).",
     "why": "We don't know whether stamp duty or any other formality applies to this kind of agreement.",
     "ask": "Is stamp duty due? Are two witnesses needed or useful? Is the electronic acceptance enough on its own?"
@@ -36,14 +36,14 @@
   },
   {
     "title": "Personal Data Protection Act",
-    "where": "Terms 6 and Schedule B",
-    "now": "The shop is the controller; Karots is a processor for support and cloud backup; Schedule B gives processor-style terms. Pharmacy shops keep health data.",
+    "where": "Terms 6 and the Third Schedule",
+    "now": "The shop is the controller; Karots is a processor for support and cloud backup; the Third Schedule gives processor-style terms. Pharmacy shops keep health data.",
     "why": "PDPA Parts I to III and VII were not in force as of mid-2026; the 2025 amendment left the dates to Gazette order.",
-    "ask": "Has a commencement order been made? Is Schedule B enough? Does Karots need a Data Protection Officer or registration?"
+    "ask": "Has a commencement order been made? Is the Third Schedule enough? Does Karots need a Data Protection Officer or registration?"
   },
   {
     "title": "Cloud backups stored abroad",
-    "where": "Schedule B3 · Shop Rules 5",
+    "where": "Third Schedule, item 3 · Shop Rules 5",
     "now": "Encrypted backups (key per shop) may be stored with a foreign cloud provider (Cloudflare R2); the shop agrees to this.",
     "why": "PDPA s.26 (as amended) restricts cross-border transfers once in force.",
     "ask": "Is the shop's agreement enough, or are other conditions or wording needed?"
@@ -66,12 +66,12 @@
     "title": "Refund scale",
     "where": "Shop Rules 7",
     "now": "Before installation: full refund less costs spent. Days 1 to 7: licence refunded, installation fee kept. Then Karots keeps 25 / 50 / 75 % of the licence by week, and everything after day 30. Part payments settle to the same 'Karots keeps' figure (the shop may owe the difference).",
-    "why": "Shops sometimes try the software and change their mind; we need a fair, simple rule that works with advances. Shops tick and initial this rule on the Order Form.",
+    "why": "Shops sometimes try the software and change their mind; we need a fair, simple rule that works with advances. Shops tick and initial this rule in the Order Details.",
     "ask": "Is this reasonable under UCTA ss.4 and 10? Is it enforceable when the shop has paid only an advance?"
   },
   {
     "title": "No free updates after year 1; cloud backup freeze",
-    "where": "Shop Rules 1 and 5 · Terms 9 and Schedule A",
+    "where": "Shop Rules 1 and 5 · Terms 9 and the Second Schedule",
     "now": "Updates, bug fixes and remote help are free for a year, then paid (renewal 20% a year). Cloud backup is frozen when payment is 7 days late. The till always keeps working.",
     "why": "Terms 9 promises the software works as described; after year 1 a bug fix becomes paid work.",
     "ask": "Does this sit with clause 9 and UCTA? Should a bug found after year 1 in the version the shop has still be fixed free?"
