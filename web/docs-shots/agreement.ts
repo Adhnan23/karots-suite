@@ -45,7 +45,7 @@ const fill = (file: string) => readFileSync(join(dir, file), 'utf8')
 
 const tmp = mkdtempSync(join(tmpdir(), 'ks-agreement-'))
 const browser = await chromium.launch()
-async function print(name: string, title: string, body: string) {
+async function print(name: string, title: string, body: string, initials = true) {
   const html = join(tmp, name + '.html')
   writeFileSync(html, `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>${body}</body></html>`)
   const p = await browser.newPage()
@@ -57,11 +57,33 @@ async function print(name: string, title: string, body: string) {
     headerTemplate: '<span></span>',
     footerTemplate: `<div style="width:100%;margin:0 16mm;font:7.5pt sans-serif;color:#555;display:flex;justify-content:space-between">
       <span>Karots Suite — ${title}</span>
-      <span>Initials: Karots ________ &nbsp; Shop ________</span>
+      <span>${initials ? 'Initials: Karots ________ &nbsp; Shop ________' : ''}</span>
       <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
   })
   console.log(out)
 }
 await print('karots-suite-agreement', 'Order Form, Licence and Service Terms', `${fill('order-form.html')}<section class="terms">${t.html}</section>`)
 await print('karots-suite-shop-rules', 'Shop Rules & Service Guide', fill('shop-rules.html'))
+await print('karots-suite-balance-notice', 'Notice to pay the balance', fill('balance-notice.html'), false)
+
+// The lawyer review: one box per point in lawyer-items.json.
+type Item = { title: string; where: string; now: string; why: string; ask: string }
+const items = (JSON.parse(readFileSync(join(dir, 'lawyer-items.json'), 'utf8')) as Item[]).map((x, i) => `
+  <div class="item">
+    <h2>Point ${i + 1} · ${esc(x.title)} <span class="where">${esc(x.where)}</span></h2>
+    <p><b>What it says now:</b> ${esc(x.now)}</p>
+    <p><b>Why:</b> ${esc(x.why)}</p>
+    <p class="ask"><b>Question:</b> ${esc(x.ask)}</p>
+    <div class="grid2">
+      <div><label>Lawyer's opinion</label><div class="box"></div></div>
+      <div><label>Suggested change / new wording</label><div class="box"></div></div>
+    </div>
+    <div class="boxes"><label class="lead">Decision</label><span>☐ Keep as it is</span><span>☐ Change as suggested</span><span>☐ Remove</span><span>☐ Needs more advice</span><span>Initials <span class="line inline"></span></span></div>
+  </div>`).join('')
+await print('karots-suite-lawyer-review', 'Legal review', fill('lawyer-review.html').replace('{{ITEMS}}', `<section class="items">${items}</section>`), false)
+
+// A filled-in example of the agreement, marked SAMPLE on every page.
+await print('karots-suite-agreement-sample', 'Order Form, Licence and Service Terms (SAMPLE)',
+  `<div class="sample-mark">SAMPLE</div>${fill('order-form.html')}<section class="terms">${t.html}</section>` +
+  `<script>${readFileSync(join(dir, 'sample.js'), 'utf8')}</script>`)
 await browser.close()

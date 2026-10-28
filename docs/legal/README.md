@@ -21,7 +21,15 @@ with different rights (to sell, install and support, with commission and territo
 belongs in its own **Reseller Agreement**. Have the lawyer draft it when the first reseller
 signs up.
 
-**Print [`karots-suite-agreement.pdf`](karots-suite-agreement.pdf)** for each shop. It holds the Order Form with blanks
+| PDF | Use |
+|---|---|
+| [`karots-suite-agreement.pdf`](karots-suite-agreement.pdf) | Print one per shop, fill in, sign, stamp and initial each page |
+| [`karots-suite-shop-rules.pdf`](karots-suite-shop-rules.pdf) | Give the shop a copy (its version goes on the Order Form) |
+| [`karots-suite-agreement-sample.pdf`](karots-suite-agreement-sample.pdf) | A filled-in example with made-up data, marked SAMPLE: shows how to fill one in |
+| [`karots-suite-balance-notice.pdf`](karots-suite-balance-notice.pdf) | The 14-day notice when a balance is unpaid 90 days after installation |
+| [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) | Take to the lawyer: the 12 points, each with opinion, change and decision boxes |
+
+All are built by `make agreement` from `agreement/` and `LICENSE`. **Print `karots-suite-agreement.pdf`** for each shop. It holds the Order Form with blanks
 (shop details, plugins, the agreed price, advance and balance, signatures, seals and two witnesses) and the full terms, with
 initials and page numbers on every page. Rebuild it with `make agreement` after any change to `LICENSE` or
 `agreement/` (the form's source).
@@ -93,6 +101,9 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
 
 ## Checklist for the lawyer
 
+Print [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) for the meeting: one box per item for the
+lawyer's opinion, the suggested change and the decision.
+
 1. Read `LICENSE` and the Order Form. Is the liability cap (§10.3) reasonable under UCTA s.10?
    What insurance would make a higher figure reasonable?
 2. UCTA First Schedule: are IP licences excluded from ss.3–5?
@@ -110,12 +121,12 @@ aligns the Act with the UN Electronic Communications Convention, which Sri Lanka
 9. Draft a **Reseller Agreement** when the first reseller signs.
 10. Shop Rules §7 refund scale: after day 7, Karots keeps the set-up fee plus 25 / 50 / 75 % of the licence by week,
     with nothing refunded after day 30. Is this reasonable under UCTA s.4 and s.10? Is it fair when the shop paid only an advance?
+11. Shop Rules §5: freezing cloud backup after 7 days unpaid, and §1: no free updates or fixes after year 1. Does that sit
+    with `LICENSE` §9 (fit for purpose)?
 12. `LICENSE` §7.3 and Shop Rules §8: the licence ends if the balance is unpaid 90 days after installation plus 14 days'
     notice, and Karots removes the software at the site, or remotely only with the shop's permission, giving the shop a
     data backup first. Is this enforceable? Removing it remotely *without* permission could fall under the Computer
     Crimes Act, No. 24 of 2007, which is why the rules never allow it and the software has no remote kill switch.
-11. Shop Rules §5: freezing cloud backup after 7 days unpaid, and §1: no free updates or fixes after year 1. Does that sit
-    with `LICENSE` §9 (fit for purpose)?
 
 ## Sources
 

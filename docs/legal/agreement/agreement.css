@@ -72,3 +72,42 @@ table { break-inside: avoid; }
 .agree td, .agree th { height: auto; font-size: 9.5pt; vertical-align: middle; }
 .agree td:first-child { width: 7mm; text-align: center; font-size: 12pt; }
 .agree td:last-child, .agree th:last-child { width: 26mm; }
+
+/* balance notice */
+.from { font: 600 9pt Head, sans-serif; color: #444; margin-bottom: 8px; }
+.salute { margin-top: 14px; }
+.signs.one { grid-template-columns: 1fr 1fr; }
+.received { margin-top: 16px; border-top: 1.5px dashed #888; padding-top: 8px; break-inside: avoid; }
+.letter p { margin: 7px 0; }
+
+/* lawyer review */
+.docs td, .docs th { height: auto; font-size: 9.5pt; }
+.items { break-before: page; }
+.item { break-inside: avoid; margin-bottom: 8mm; padding-bottom: 4mm; border-bottom: 1px solid #ccc; }
+.item h2 { margin-top: 0; }
+.item .where { float: right; font: 600 8.5pt Head, sans-serif; color: #555; }
+.item p { margin: 3px 0; font-size: 9.5pt; }
+.item .ask { background: #f1f1f1; padding: 3px 6px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 6px; }
+.grid2 label, .item .lead { font: 600 9pt Head, sans-serif; color: #333; }
+.box { border: 1px solid #111; height: 34mm; margin-top: 2px; }
+.box.tallbox { height: 120mm; }
+
+/* sample */
+.sample-mark { position: fixed; top: 38%; left: 0; right: 0; text-align: center; transform: rotate(-30deg);
+  font: 800 120pt Head, sans-serif; color: rgba(200, 0, 0, .09); letter-spacing: .1em; z-index: 10; pointer-events: none; }
+.ink { color: #1a3c9e; font-family: Head, sans-serif; font-weight: 600; font-style: italic; padding-left: 4px; }
+.ticked { color: #1a3c9e; font-weight: 700; }
+.sig { display: block; height: 34px; margin-bottom: -30px; }
+.seal { position: relative; }
+.stamp { position: absolute; right: 8px; top: 2px; width: 26mm; height: 26mm; transform: rotate(-12deg); opacity: .8; }
+.letter { font-size: 9.8pt; line-height: 1.38; }
+.letter .brand { margin-bottom: 8px; }
+.letter .field { margin: 6px 0; }
+.letter ol { margin: 4px 0; }
+.letter .sigline { margin-top: 26px; }
+.letter .seal { height: 24mm; margin-top: 0; }
+.letter .signs { margin-top: 4px; }
+.letter .received { margin-top: 10px; }
+.letter .salute { margin-top: 8px; }
+.sig { height: 46px; margin-bottom: -40px; }
