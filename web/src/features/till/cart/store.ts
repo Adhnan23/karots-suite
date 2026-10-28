@@ -1,5 +1,5 @@
 import type { HeldSale, Lot, TillProduct } from '@/api/types.gen'
-import { addGroup, breakGroup, removeGroup, setGroupCount, type GroupInput } from './groups'
+import { addGroup, addServiceGroup, breakGroup, removeGroup, setGroupCount, type GroupInput } from './groups'
 import { fromHeld } from './held'
 import { addProduct, payoutLine, serviceLine, setQty, swapProduct, syncSerials } from './lines'
 import { balanceDue, saleTotal } from './totals'
@@ -21,6 +21,7 @@ export type Action =
   | { type: 'addService'; line: ServiceLineInput }
   | { type: 'addPayout'; line: PayoutInput }
   | { type: 'addGroup'; group: GroupInput }
+  | { type: 'addServiceGroup'; group: { label: string; lines: ServiceLineInput[] } }
   | { type: 'groupCount'; id: number; count: number }
   | { type: 'breakGroup'; id: number; key: number }
   | { type: 'removeGroup'; id: number }
@@ -92,6 +93,10 @@ export function tillReducer(s: TillState, a: Action): TillState {
     }
     case 'addGroup': {
       const r = addGroup(s.lines, s.seq, s.saleType, a.group)
+      return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.seq, postSaleChange: 0 }
+    }
+    case 'addServiceGroup': {
+      const r = addServiceGroup(s.lines, s.seq, a.group)
       return { ...s, lines: r.lines, seq: r.seq, lastAddedKey: r.seq, postSaleChange: 0 }
     }
     case 'groupCount':

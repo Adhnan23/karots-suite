@@ -37,7 +37,9 @@ export type CartLine = {
 export type LinePack = { id: number; name: string; size: number; price: number }
 
 /** id is unique in the cart; per is this line's qty in one set (qty = per × count). */
-export type LineGroup = { id: number; label: string; per: number; count: number }
+/** fixed: service lines added as one priced job (a job and its add-ons) — one set, no − / +,
+ *  removed as a whole, never broken back into plain lines. */
+export type LineGroup = { id: number; label: string; per: number; count: number; fixed?: boolean }
 
 export type Payment = {
   method: string // '' = not picked yet

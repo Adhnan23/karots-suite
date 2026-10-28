@@ -66,7 +66,7 @@ func slipSale(d sales.Detail, opts escpos.Options) *SlipSale {
 				continue
 			}
 			gross, disc, net = gross.Add(m.Gross()), disc.Add(m.Discount), net.Add(m.Subtotal)
-			g.Members = append(g.Members, SlipGroupMember{Name: m.ProductName, Quantity: m.Quantity.String(),
+			g.Members = append(g.Members, SlipGroupMember{Name: m.Label(), Quantity: m.Quantity.String(),
 				Warranty: warrantyText(m, d.Sale.CreatedAt), Serials: opts.Serials[m.ProductID]})
 		}
 		g.Gross, g.Discount, g.Subtotal = amt(gross), amt(disc), amt(net)

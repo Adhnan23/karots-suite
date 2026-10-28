@@ -103,6 +103,15 @@ func (i SaleItem) ReturnableQty() decimal.Decimal {
 // which the receipt shows struck-through beside the net.
 func (i SaleItem) Gross() decimal.Decimal { return i.Subtotal.Add(i.Discount) }
 
+// Label is what a receipt calls the line: its own description (a service job,
+// a bill) when it has one, else the product's name.
+func (i SaleItem) Label() string {
+	if i.Description != nil && *i.Description != "" {
+		return *i.Description
+	}
+	return i.ProductName
+}
+
 // NetUnitPrice is the per-unit price the customer actually paid after the line
 // discount (net line ÷ qty). The receipt shows it beside the struck-through
 // original unit price so the discount is visible on the item line itself.

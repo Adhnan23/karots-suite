@@ -11,13 +11,15 @@ import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
 /** Lines a plugin added together: one header (sets − / +, saving, remove), then the
- * members without their own qty or discount; removing one asks to break the group. */
+ * members without their own qty or discount; removing one asks to break the group.
+ * A fixed group (a priced job and its add-ons) has one set: no − / +, removed whole. */
 export function CartGroup({ id, label, count, lines, sym }: { id: number; label: string; count: number; lines: CartLine[]; sym: string }) {
   const { dispatch } = useTill()
   const [breaking, setBreaking] = useState<CartLine | null>(null)
   const save = lines.reduce((s, l) => s + lineDiscount(l), 0)
   const net = lines.reduce((s, l) => s + lineGross(l) - lineDiscount(l), 0)
   const setCount = (n: number) => dispatch({ type: 'groupCount', id, count: n })
+  const fixed = !!lines[0]?.group?.fixed
   return (
     <motion.div initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 /* not a UI transition: the new-line flash */ }}
       className="my-1 overflow-hidden rounded-[var(--radius-sm)] border-[1.5px] border-brand">
@@ -26,11 +28,11 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
           <div className="text-[14px] font-bold leading-snug">{label}</div>
           {save > 0 && <div className="text-[12px] font-bold text-success tabular-nums">save {money(sym, save)}</div>}
         </div>
-        <div className="flex items-center gap-0.5 rounded-pill border border-border bg-card p-0.5">
+        {fixed ? <span /> : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-card p-0.5">
           <button type="button" aria-label={`Fewer ${label}`} onClick={() => setCount(count - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
           <span aria-label={`Sets of ${label}`} className="w-8 text-center text-[14px] font-bold tabular-nums">{count}</span>
           <button type="button" aria-label={`More ${label}`} onClick={() => setCount(count + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
-        </div>
+        </div>}
         <div className="flex items-center gap-1">
           <span className="min-w-[72px] text-right text-[14.5px] font-bold tabular-nums">{money(sym, net)}</span>
           <button type="button" aria-label={`Remove ${label}`} onClick={() => dispatch({ type: 'removeGroup', id })} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
@@ -40,9 +42,9 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
         <div key={l.key} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 border-t border-border py-1.5 pl-5 pr-2">
           <div className="min-w-0 text-[13.5px] font-semibold">{l.name} <span className="font-semibold text-muted-foreground tabular-nums">× {qtyText(l.qty)}</span></div>
           <div className="text-right text-[13.5px] tabular-nums">
-            <s className="mr-1.5 text-[11.5px] text-faint">{money(sym, lineGross(l))}</s>{money(sym, lineGross(l) - lineDiscount(l))}
+            {lineDiscount(l) > 0 && <s className="mr-1.5 text-[11.5px] text-faint">{money(sym, lineGross(l))}</s>}{money(sym, lineGross(l) - lineDiscount(l))}
           </div>
-          <button type="button" aria-label={`Remove ${l.name} from ${label}`} onClick={() => setBreaking(l)} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
+          {fixed ? <span className="size-8" /> : <button type="button" aria-label={`Remove ${l.name} from ${label}`} onClick={() => setBreaking(l)} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>}
           {l.trackSerial && l.serials.length > 0 && (
             <div className="col-span-full grid grid-cols-2 gap-1.5">
               {l.serials.map((s, i) => (

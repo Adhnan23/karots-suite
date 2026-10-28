@@ -19,6 +19,9 @@ export type TillApi = {
    * group back to full price). take moves units off existing plain lines in the same step;
    * plugin lands on every line. Resolves to an error text, or null when added. */
   addGroup(group: { label: string; count: number; items: GroupLineInput[]; take?: { key: number; qty: number }[]; plugin?: Record<string, unknown> }): Promise<string | null>
+  /** Service lines that belong together (a job and its add-ons), each priced as given: one
+   * block in the cart and on the receipt under label, removed as a whole, no − / +. */
+  addServiceGroup(group: { label: string; lines: ServiceLineInput[] }): void
   /** Put another product on a plain line, keeping its qty — or taking qty when given
    * (another unit) — and merging into a plain line of that product. Resolves to an
    * error text, or null when swapped. */

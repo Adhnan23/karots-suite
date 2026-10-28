@@ -40,11 +40,7 @@ func printItems(b *bytes.Buffer, d sales.Detail, w int, opts Options) decimal.De
 
 // printItem is one plain line; it returns its discount.
 func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts Options) decimal.Decimal {
-	name := it.ProductName // a line's own label (a service job, a bill) wins, as on the screen receipt
-	if it.Description != nil && *it.Description != "" {
-		name = *it.Description
-	}
-	for _, ln := range wrap(ascii(name), w) {
+	for _, ln := range wrap(ascii(it.Label()), w) {
 		line(b, ln)
 	}
 	if it.Subtotal.IsNegative() { // a payout: money handed to the customer
@@ -93,7 +89,7 @@ func printGroup(b *bytes.Buffer, label string, sets decimal.Decimal, members []s
 		line(b, leftRight("  Line total", money.Display(net), w))
 	}
 	for _, m := range members {
-		for i, ln := range wrap(ascii(m.ProductName)+" x"+m.Quantity.String(), w-5) {
+		for i, ln := range wrap(ascii(m.Label())+" x"+m.Quantity.String(), w-5) {
 			line(b, map[bool]string{true: "   - ", false: "     "}[i == 0]+ln)
 		}
 		extras(b, m, soldAt, w, opts, "     ")

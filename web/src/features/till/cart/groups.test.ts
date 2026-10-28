@@ -82,3 +82,29 @@ describe('cart line groups', () => {
     expect(grouped(s.lines).map((x) => x.kind)).toEqual(['group', 'line'])
   })
 })
+
+describe('service line groups (a job and its add-ons)', () => {
+  const job = { productId: 70, name: 'Photocopy A4', price: 40, qty: 4, unitPrice: 10, description: 'Photocopy A4', fixedQty: true, plugin: { x: 1 } }
+  const urgent = { productId: 70, name: 'Urgent', price: 100, qty: 1, unitPrice: 100, description: 'Urgent', components: [{ productId: 9, quantity: '1' }] }
+  const add = () => tillReducer(initialState('retail'), { type: 'addServiceGroup', group: { label: 'Photocopy', lines: [job, urgent] } })
+
+  it('adds each line as priced, together, one fixed set', () => {
+    const s = add()
+    expect(s.lines.map((l) => [l.name, l.qty, l.unitPrice, l.group?.label, l.group?.count, l.group?.fixed])).toEqual([
+      ['Photocopy A4', 4, 10, 'Photocopy', 1, true], ['Urgent', 1, 100, 'Photocopy', 1, true]])
+    expect(s.lines[0].plugin).toEqual({ x: 1 })
+    expect(s.lines[1].components).toEqual(urgent.components)
+    expect(grouped(s.lines)).toHaveLength(1)
+  })
+  it('has no − / + and is never broken, only removed whole', () => {
+    const s = add()
+    const id = gid(s)
+    expect(tillReducer(s, { type: 'groupCount', id, count: 3 }).lines).toEqual(s.lines)
+    expect(tillReducer(s, { type: 'breakGroup', id, key: s.lines[1].key }).lines).toEqual(s.lines)
+    expect(tillReducer(s, { type: 'removeGroup', id }).lines).toEqual([])
+  })
+  it('survives hold and resume', () => {
+    const back = fromHeld({ cart: toHeldBlob(add()) } as never, 0)
+    expect(back.lines.every((l) => l.group?.fixed && l.group.label === 'Photocopy')).toBe(true)
+  })
+})

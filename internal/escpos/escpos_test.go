@@ -363,6 +363,25 @@ func TestDocumentPrintsALineGroupAsOneBlock(t *testing.T) {
 	}
 }
 
+// A group of service lines (a job and its add-ons): each member prints its own
+// label, not the service product's name three times.
+func TestDocumentPrintsGroupMembersByTheirOwnLabel(t *testing.T) {
+	d := decimal.RequireFromString
+	no, label, sets := 1, "Photocopy", d("1")
+	member := func(desc, qty, unit, net string) sales.SaleItem {
+		return sales.SaleItem{ProductName: "Photocopy", Description: &desc, Quantity: d(qty), UnitAbbr: "pc", UnitPrice: d(unit),
+			Discount: d("0"), Subtotal: d(net), LineGroup: &no, LineGroupLabel: &label, LineGroupSets: &sets}
+	}
+	det := sampleDetail()
+	det.Items = []sales.SaleItem{member("Photocopy A4 · B&W · 1-side", "4", "10.00", "40.00"), member("Urgent", "1", "100.00", "100.00")}
+	s := string(Document(det, cfg("80"), Options{}))
+	for _, want := range []string{"Photocopy", "1 x 140.00", " - Urgent x1", " - Photocopy A4"} {
+		if !strings.Contains(s, want) {
+			t.Errorf("receipt missing %q\n%s", want, s)
+		}
+	}
+}
+
 // A payout (a cash out) netted with goods: the item prints as Given, the
 // subtotal is the goods, and a sale below zero ends in GIVEN instead of TOTAL.
 func TestDocumentPrintsAPayoutAsGiven(t *testing.T) {

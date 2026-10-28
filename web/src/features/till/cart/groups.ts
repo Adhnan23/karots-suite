@@ -1,6 +1,6 @@
 import type { TillProduct } from '@/api/types.gen'
-import { newLine, syncSerials } from './lines'
-import type { CartLine, SaleType } from './types'
+import { newLine, serviceLine, syncSerials } from './lines'
+import type { CartLine, SaleType, ServiceLineInput } from './types'
 
 /** One member of a group: its product, its qty in ONE set and a fixed per-unit discount. */
 export type GroupItem = { product: TillProduct; per: number; discount: string }
@@ -31,6 +31,17 @@ export function addGroup(lines: CartLine[], seq: number, saleType: SaleType, g: 
   return { lines: [...next, ...added], seq }
 }
 
+/** Service lines that belong together (a job and its add-ons): one block in the cart and on the
+ *  receipt, its members as priced. A fixed group: one set, removed whole. */
+export function addServiceGroup(lines: CartLine[], seq: number, g: { label: string; lines: ServiceLineInput[] }): { lines: CartLine[]; seq: number } {
+  const id = ++seq
+  const added = g.lines.map((d) => {
+    const l = serviceLine(++seq, d)
+    return { ...l, group: { id, label: g.label, per: l.qty, count: 1, fixed: true } }
+  })
+  return { lines: [...lines, ...added], seq }
+}
+
 const memberKey = (productId: number, per: number, discount: string) => `${productId}:${per}:${Number(discount).toFixed(2)}`
 
 function sameGroup(lines: CartLine[], g: GroupInput) {
@@ -47,6 +58,7 @@ function sameGroup(lines: CartLine[], g: GroupInput) {
 export function setGroupCount(lines: CartLine[], id: number, count: number): CartLine[] {
   const n = Math.max(0, Math.round(count))
   if (n === 0) return removeGroup(lines, id)
+  if (lines.some((l) => l.group?.id === id && l.group.fixed)) return lines // a priced job: one set
   return lines.map((l) => (l.group?.id === id ? syncSerials({ ...l, qty: l.group.per * n, group: { ...l.group, count: n } }) : l))
 }
 
@@ -54,6 +66,7 @@ export const removeGroup = (lines: CartLine[], id: number) => lines.filter((l) =
 
 /** Remove one member; the rest go back to plain lines at full price. */
 export function breakGroup(lines: CartLine[], id: number, key: number): CartLine[] {
+  if (lines.some((l) => l.group?.id === id && l.group.fixed)) return lines // removed whole, never broken
   return lines
     .filter((l) => l.key !== key)
     .map((l) => {
