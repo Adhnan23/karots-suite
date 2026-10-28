@@ -1,5 +1,6 @@
 import type { TillProduct } from '@/api/types.gen'
 import type { CartLine, ServiceLineInput } from '@/features/till/cart/types'
+import type { TillApi } from '@/plugins/slots'
 import { recordJobs } from './api'
 import type { Extra, LineExtra, LineJob, Quote, TillOffer, TillService } from './types'
 
@@ -75,13 +76,19 @@ const extraCount = (x: Extra, pieces: number) => (x.perPiece ? Math.max(1, piece
 /** What the ticked extras add to a job of this many pieces. */
 export const extrasTotal = (xs: Extra[], pieces: number) => xs.reduce((t, x) => t + Number(x.price) * extraCount(x, pieces), 0)
 
-/** An extra's own cart line beside its job: "Laminate + Urgent", its stock taken with it. */
+/** An extra's line in its job's group ("Urgent" under "Photocopy"), its stock taken with it. */
 export function extraLine(s: TillService, x: Extra, pieces: number): ServiceLineInput {
   const n = extraCount(x, pieces)
-  const description = `${s.name} + ${x.name}`
+  const description = x.name
   const plugin: { documents: LineExtra } = { documents: { extraOf: s.id } }
   return { productId: s.productId, name: description, description, price: Number(x.price) * n, qty: n, unitPrice: Number(x.price),
     components: x.productId ? [{ productId: x.productId, quantity: String(Number(x.qty) * n) }] : [], plugin, fixedQty: x.perPiece }
+}
+
+/** Ring a job: alone, or with its extras as one block (cart and receipt) under the service's name. */
+export function addJob(till: { addServiceLine: TillApi['addServiceLine']; addServiceGroup: TillApi['addServiceGroup'] }, s: TillService, job: ServiceLineInput, extras: Extra[], pieces: number) {
+  if (!extras.length) till.addServiceLine(job)
+  else till.addServiceGroup({ label: s.name, lines: [job, ...extras.map((x) => extraLine(s, x, pieces))] })
 }
 
 const jobOf = (l: CartLine) => l.plugin?.documents as LineJob | undefined

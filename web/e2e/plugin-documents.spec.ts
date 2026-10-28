@@ -170,7 +170,7 @@ test('a spoilt job comes back through Returns: refunded, nothing restocked', asy
   }).toBe('119')
 })
 
-test('extras: set in the editor, ticked at the till, each its own line, the job counted alone', async ({ page }) => {
+test('extras: set in the editor, ticked at the till, one block with the job, the job counted alone', async ({ page }) => {
   await login(page, '/admin/x/documents')
   await page.getByRole('article').filter({ hasText: COPY }).getByRole('button', { name: /Prices/ }).click()
   const grid = page.getByRole('dialog', { name: `Prices & paper — ${COPY}` })
@@ -195,8 +195,13 @@ test('extras: set in the editor, ticked at the till, each its own line, the job 
   await page.screenshot({ path: 'shots/doc-types/extras-till.png' })
   await page.getByLabel('Number of copies').press('Enter')
   await toast(page, /\+ Urgent \+ Hole punch added/)
-  await expect(cart(page).getByText(`${COPY} + Urgent`)).toBeVisible()
-  await expect(cart(page).getByText(`${COPY} + Hole punch`)).toBeVisible()
+  // one block: the job and its extras under the service's name, removed whole
+  await expect(cart(page).getByText(/^Urgent × 1/)).toBeVisible()
+  await expect(cart(page).getByText(/^Hole punch × 4/)).toBeVisible()
+  await expect(cart(page).getByRole('button', { name: `Remove ${COPY}`, exact: true })).toBeVisible()
+  await expect(cart(page).getByRole('button', { name: `More ${COPY}`, exact: true })).toHaveCount(0)
+  await expect(cart(page).getByRole('button', { name: /^Remove Urgent from/ })).toHaveCount(0)
+  await page.screenshot({ path: 'shots/doc-types/extras-cart.png' })
   await expect(ex.getByRole('button', { name: /Urgent/ })).toHaveAttribute('aria-pressed', 'false') // cleared for the next job
   await page.getByRole('button', { name: /Complete sale/ }).click()
   await expect(page.getByRole('dialog', { name: /complete/ })).toContainText('Rs. 160.00')

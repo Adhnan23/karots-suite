@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import type { TillApi } from '@/plugins/slots'
 import { type JobAsk, ownUse, quote } from './api'
 import { COUNT } from './labels'
-import { customLine, extraLine, extrasTotal, materials, meteredLine, offerOf, offersFor, plain, settle, sizes, startPick, varies, type Pick } from './till'
+import { addJob, customLine, extrasTotal, materials, meteredLine, offerOf, offersFor, plain, settle, sizes, startPick, varies, type Pick } from './till'
 import type { TillService } from './types'
 
 const OPT = 'h-11 min-w-[64px] rounded-[var(--radius-sm)] border border-border bg-card px-4 text-[15px] font-bold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground disabled:opacity-35'
@@ -80,8 +80,7 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
     setBusy(true)
     try {
       const qd = fresh ? q.data! : await quote({ service: s.id, ...pick, copies })
-      till.addServiceLine(meteredLine(s, pick, copies, qd))
-      for (const x of ex.picked) till.addServiceLine(extraLine(s, x, copies))
+      addJob(till, s, meteredLine(s, pick, copies, qd), ex.picked, copies)
       toast.success(`${qd.description} ×${copies}${ex.picked.map((x) => ` + ${x.name}`).join('')} added`)
       ex.clear()
       setText('1')
@@ -187,8 +186,7 @@ function Custom({ s, till }: { s: TillService; till: TillApi }) {
   const ok = Number(price) > 0
   const add = () => {
     if (!ok) return
-    till.addServiceLine(customLine(s, Number(price), note))
-    for (const x of ex.picked) till.addServiceLine(extraLine(s, x, 1))
+    addJob(till, s, customLine(s, Number(price), note), ex.picked, 1)
     toast.success(`${s.name}${ex.picked.map((x) => ` + ${x.name}`).join('')} added`)
     ex.clear()
     setPrice('')

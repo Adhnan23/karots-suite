@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { serviceLine } from '@/features/till/cart/lines'
-import { customLine, extraLine, extrasTotal, materials, meteredLine, offersFor, settle, sizes, soldJobs, startPick, varies } from './till'
+import { addJob, customLine, extraLine, extrasTotal, materials, meteredLine, offersFor, settle, sizes, soldJobs, startPick, varies } from './till'
 import type { Extra } from './types'
 import type { TillService } from './types'
 
@@ -80,9 +80,26 @@ describe('extras', () => {
   })
   it('an extra is its own line with its stock, never a ledger job', () => {
     const u = serviceLine(4, extraLine(svc, urgent, 3))
-    expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Photocopy + Urgent', components: [] })
+    expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Urgent', components: [] })
     const l = serviceLine(5, extraLine(svc, lanyard, 3))
     expect(l).toMatchObject({ qty: 3, unitPrice: 80, fixedQty: true, components: [{ productId: 44, quantity: '3' }] })
     expect(soldJobs([u, l])).toEqual([])
+  })
+})
+
+describe('ringing a job', () => {
+  const urgent: Extra = { id: 1, name: 'Urgent', price: '100', perPiece: false, productId: null, productName: null, qty: '1' }
+  const job = customLine(svc, 750, '')
+  const fake = () => {
+    const calls: unknown[] = []
+    return { calls, till: { addServiceLine: (l: unknown) => calls.push(['line', l]), addServiceGroup: (g: unknown) => calls.push(['group', g]) } }
+  }
+  it('alone with no extras, as one block with them', () => {
+    const a = fake()
+    addJob(a.till, svc, job, [], 1)
+    expect(a.calls).toEqual([['line', job]])
+    const b = fake()
+    addJob(b.till, svc, job, [urgent], 1)
+    expect(b.calls).toEqual([['group', { label: 'Photocopy', lines: [job, extraLine(svc, urgent, 1)] }]])
   })
 })
