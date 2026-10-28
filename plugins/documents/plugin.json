@@ -3,5 +3,5 @@
   "name": "Print & Copy",
   "import": "karots-suite/plugins/documents",
   "version": "2.0.0",
-  "description": "Photocopy / print / laminate / bind on top of core services: a size × type × colour × side price grid with quantity tiers (bulk prices), paper by size and type (double-sided uses half; a Gloss / Matte pouch, photo paper), laminate and bind priced by size and type only, a till job panel that also opens from search and scans, custom-priced jobs, shop use, mistaken jobs returned through core Returns, and a copies report."
+  "description": "Photocopy / print / laminate / bind on top of core services: a size × type × colour × side price grid with quantity tiers (bulk prices), paper by size and type (double-sided uses half; a Gloss / Matte pouch, photo paper), laminate and bind priced by size and type only, extras (Urgent, Hole punch) per job or per piece that may take stock, a till job panel that also opens from search and scans, custom-priced jobs, shop use, mistaken jobs returned through core Returns, and a copies report."
 }

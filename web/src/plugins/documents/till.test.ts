@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { serviceLine } from '@/features/till/cart/lines'
-import { customLine, materials, meteredLine, offersFor, settle, sizes, soldJobs, startPick, varies } from './till'
+import { customLine, extraLine, extrasTotal, materials, meteredLine, offersFor, settle, sizes, soldJobs, startPick, varies } from './till'
+import type { Extra } from './types'
 import type { TillService } from './types'
 
 const band = (price: string) => [{ minQty: 1, price }]
 const svc: TillService = {
-  id: 7, productId: 70, name: 'Photocopy', kind: 'metered', category: 'copy',
+  id: 7, productId: 70, name: 'Photocopy', kind: 'metered', category: 'copy', extras: [],
   offers: [
     { size: '', material: '', color: false, double: false, bands: band('10') },
     { size: 'A4', material: '', color: false, double: false, bands: band('8') },
@@ -44,7 +45,7 @@ describe('job lines', () => {
 
 describe('types (same size, other material)', () => {
   const lam: TillService = {
-    id: 9, productId: 90, name: 'Laminate', kind: 'metered', category: 'laminate',
+    id: 9, productId: 90, name: 'Laminate', kind: 'metered', category: 'laminate', extras: [],
     offers: [
       { size: 'A4', material: 'Gloss', color: false, double: false, bands: band('100') },
       { size: 'A4', material: 'Matte', color: false, double: false, bands: band('120') },
@@ -67,5 +68,21 @@ describe('types (same size, other material)', () => {
     const q = { unitPrice: '120.00', total: '360.00', minQty: 1, description: 'Laminate A4 · Matte', sheets: 3, cost: '60', components: [{ productId: 31, quantity: '3' }] }
     const l = serviceLine(3, meteredLine(lam, { size: 'A4', material: 'Matte', color: false, double: false }, 3, q))
     expect(soldJobs([l])).toEqual([{ serviceId: 9, description: q.description, size: 'A4', material: 'Matte', color: null, double: null, sheets: 3 }])
+  })
+})
+
+describe('extras', () => {
+  const urgent: Extra = { id: 1, name: 'Urgent', price: '100', perPiece: false, productId: null, productName: null, qty: '1' }
+  const lanyard: Extra = { id: 2, name: 'Lanyard', price: '80', perPiece: true, productId: 44, productName: 'Lanyard', qty: '1' }
+  it('per job counts once, per piece once a piece', () => {
+    expect(extrasTotal([urgent, lanyard], 3)).toBe(100 + 240)
+    expect(extrasTotal([], 3)).toBe(0)
+  })
+  it('an extra is its own line with its stock, never a ledger job', () => {
+    const u = serviceLine(4, extraLine(svc, urgent, 3))
+    expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Photocopy + Urgent', components: [] })
+    const l = serviceLine(5, extraLine(svc, lanyard, 3))
+    expect(l).toMatchObject({ qty: 3, unitPrice: 80, fixedQty: true, components: [{ productId: 44, quantity: '3' }] })
+    expect(soldJobs([u, l])).toEqual([])
   })
 })

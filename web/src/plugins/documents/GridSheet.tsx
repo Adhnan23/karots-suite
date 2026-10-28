@@ -9,10 +9,11 @@ import { ProductPicker } from '@/features/admin/products/ProductPicker'
 import { errMsg } from '@/features/till/api'
 import { Seg } from '@/features/till/bits'
 import { cn } from '@/lib/utils'
-import { gridQuery, saveGrid, updateService } from './api'
+import { extrasQuery, gridQuery, saveExtras, saveGrid, updateService } from './api'
+import { ExtrasEditor } from './ExtrasEditor'
 import { CATEGORY, CELLS, KIND, USES } from './labels'
 import { plain } from './till'
-import type { Category, Grid, GridRow, GridTier, Kind, Service } from './types'
+import type { Category, Extra, Grid, GridRow, GridTier, Kind, Service } from './types'
 
 const SUGGEST = ['A4', 'A3', 'A5', 'Legal', 'Photo 4R']
 const blankTier = (minQty: number): GridTier => ({ minQty, cells: ['', '', '', ''] })
@@ -85,7 +86,8 @@ function SizeCard({ row, category, onChange, onRemove, onAnotherType }: {
   )
 }
 
-function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void }) {
+function Editor({ s, g, xs, onClose }: { s: Service; g: Grid; xs: Extra[]; onClose: () => void }) {
+  const [extras, setExtras] = useState<Extra[]>(xs)
   const [rows, setRows] = useState<GridRow[]>(g.rows.length ? g.rows : [{ size: 'A4', material: '', tiers: [blankTier(1)], paper: [] }])
   const [kind, setKind] = useState<Kind>(s.kind)
   const [category, setCategory] = useState<Category>(s.category)
@@ -96,6 +98,7 @@ function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void })
     try {
       if (kind !== s.kind || category !== s.category) await updateService(s.id, { kind, category })
       if (kind === 'metered') await saveGrid(s.id, { rows: rows.map((r) => ({ ...r, tiers: r.tiers.map((t, i) => (i === 0 ? { ...t, minQty: 1 } : t)) })) })
+      if (JSON.stringify(extras) !== JSON.stringify(xs)) await saveExtras(s.id, extras)
       toast.success(`${s.name} saved`)
       onClose()
     } catch (e) {
@@ -129,6 +132,7 @@ function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void })
           </div>
         </>
       )}
+      <ExtrasEditor extras={extras} onChange={setExtras} />
     </FormSheet>
   )
 }
@@ -136,6 +140,7 @@ function Editor({ s, g, onClose }: { s: Service; g: Grid; onClose: () => void })
 /** A print service's grid (size and type × B&W/colour × sides, with bulk bands) and paper by size and type. */
 export function GridSheet({ s, onClose }: { s: Service; onClose: () => void }) {
   const g = useQuery(gridQuery(s.id)).data
-  if (!g) return null
-  return <Editor s={s} g={g} onClose={onClose} />
+  const xs = useQuery(extrasQuery(s.id)).data
+  if (!g || !xs) return null
+  return <Editor s={s} g={g} xs={xs} onClose={onClose} />
 }

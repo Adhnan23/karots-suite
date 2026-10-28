@@ -26,7 +26,10 @@ export type Grid = { rows: GridRow[] }
 
 export type TillBand = { minQty: number; price: string }
 export type TillOffer = { size: string; material: string; color: boolean; double: boolean; bands: TillBand[] }
-export type TillService = { id: number; productId: number; name: string; kind: Kind; category: Category; offers: TillOffer[] }
+/** An extra on a service (Urgent, Hole punch): per job or per piece, optionally taking qty of a stocked product. */
+export type Extra = { id: number; name: string; price: string; perPiece: boolean; productId: number | null; productName: string | null; qty: string }
+
+export type TillService = { id: number; productId: number; name: string; kind: Kind; category: Category; offers: TillOffer[]; extras: Extra[] }
 
 export type Quote = {
   unitPrice: string
@@ -40,6 +43,9 @@ export type Quote = {
 
 /** What a Print & Copy cart line carries (CartLine.plugin.documents). */
 export type LineJob = { serviceId: number; size?: string; material?: string; color?: boolean; double?: boolean; sheets?: number }
+
+/** What an extra's cart line carries (CartLine.plugin.documents): never a ledger job. */
+export type LineExtra = { extraOf: number }
 
 export type ReportRow = {
   name: string

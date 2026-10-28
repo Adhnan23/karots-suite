@@ -1,7 +1,7 @@
 import type { TillProduct } from '@/api/types.gen'
 import type { CartLine, ServiceLineInput } from '@/features/till/cart/types'
 import { recordJobs } from './api'
-import type { LineJob, Quote, TillOffer, TillService } from './types'
+import type { Extra, LineExtra, LineJob, Quote, TillOffer, TillService } from './types'
 
 export const BADGE = '🖨' // plugins/documents/store.go Badge
 
@@ -67,6 +67,21 @@ export function meteredLine(s: TillService, p: Pick, copies: number, q: Quote): 
 export function customLine(s: TillService, price: number, note: string): ServiceLineInput {
   const description = note.trim() ? `${s.name} — ${note.trim()}` : s.name
   return { productId: s.productId, name: description, description, price, qty: 1, unitPrice: price, plugin: { documents: { serviceId: s.id } } }
+}
+
+/** How many of an extra a job takes: one per job, or one per piece. */
+const extraCount = (x: Extra, pieces: number) => (x.perPiece ? Math.max(1, pieces) : 1)
+
+/** What the ticked extras add to a job of this many pieces. */
+export const extrasTotal = (xs: Extra[], pieces: number) => xs.reduce((t, x) => t + Number(x.price) * extraCount(x, pieces), 0)
+
+/** An extra's own cart line beside its job: "Laminate + Urgent", its stock taken with it. */
+export function extraLine(s: TillService, x: Extra, pieces: number): ServiceLineInput {
+  const n = extraCount(x, pieces)
+  const description = `${s.name} + ${x.name}`
+  const plugin: { documents: LineExtra } = { documents: { extraOf: s.id } }
+  return { productId: s.productId, name: description, description, price: Number(x.price) * n, qty: n, unitPrice: Number(x.price),
+    components: x.productId ? [{ productId: x.productId, quantity: String(Number(x.qty) * n) }] : [], plugin, fixedQty: x.perPiece }
 }
 
 const jobOf = (l: CartLine) => l.plugin?.documents as LineJob | undefined

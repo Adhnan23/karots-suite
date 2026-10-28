@@ -170,6 +170,41 @@ test('a spoilt job comes back through Returns: refunded, nothing restocked', asy
   }).toBe('119')
 })
 
+test('extras: set in the editor, ticked at the till, each its own line, the job counted alone', async ({ page }) => {
+  await login(page, '/admin/x/documents')
+  await page.getByRole('article').filter({ hasText: COPY }).getByRole('button', { name: /Prices/ }).click()
+  const grid = page.getByRole('dialog', { name: `Prices & paper — ${COPY}` })
+  const extras = grid.getByRole('region', { name: 'Extras' })
+  await extras.getByRole('button', { name: 'Urgent' }).click()
+  await extras.getByLabel('Urgent price').fill('100')
+  await extras.getByRole('button', { name: 'Hole punch' }).click()
+  await extras.getByLabel('Hole punch price').fill('5')
+  await extras.getByRole('group', { name: 'Hole punch', exact: true }).getByRole('button', { name: 'Per piece' }).click()
+  await page.screenshot({ path: 'shots/doc-types/extras-editor.png' })
+  await grid.getByRole('button', { name: 'Save' }).click()
+  await toast(page, new RegExp(`${COPY} saved`))
+  const before = await json<{ rows: { name: string; copies: string }[] }>(page.request.get('/api/v1/x/documents/report?preset=today'))
+
+  await till(page)
+  await openService(page)
+  const ex = page.getByRole('group', { name: 'Extras' })
+  await ex.getByRole('button', { name: /Urgent/ }).click()
+  await ex.getByRole('button', { name: /Hole punch/ }).click()
+  await page.getByLabel('Number of copies').fill('4')
+  await expect(page.getByText('Rs. 160.00').first()).toBeVisible() // 4 × 10 + 100 + 4 × 5
+  await page.screenshot({ path: 'shots/doc-types/extras-till.png' })
+  await page.getByLabel('Number of copies').press('Enter')
+  await toast(page, /\+ Urgent \+ Hole punch added/)
+  await expect(cart(page).getByText(`${COPY} + Urgent`)).toBeVisible()
+  await expect(cart(page).getByText(`${COPY} + Hole punch`)).toBeVisible()
+  await expect(ex.getByRole('button', { name: /Urgent/ })).toHaveAttribute('aria-pressed', 'false') // cleared for the next job
+  await page.getByRole('button', { name: /Complete sale/ }).click()
+  await expect(page.getByRole('dialog', { name: /complete/ })).toContainText('Rs. 160.00')
+  await page.keyboard.press('Enter')
+  const copies = (r: { rows: { name: string; copies: string }[] }) => Number(r.rows.find((x) => x.name === COPY)?.copies ?? 0)
+  await expect.poll(async () => copies(await json(page.request.get('/api/v1/x/documents/report?preset=today')))).toBe(copies(before) + 4)
+})
+
 test('laminate by size and type: Matte takes its own price and its own pouch, no ink or sides', async ({ page }) => {
   await login(page, '/admin')
   const cats = await json<{ id: number; name: string }[]>(page.request.get('/api/v1/admin/categories'))

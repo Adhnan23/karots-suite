@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import type { TillApi } from '@/plugins/slots'
 import { type JobAsk, ownUse, quote } from './api'
 import { COUNT } from './labels'
-import { customLine, materials, meteredLine, offerOf, offersFor, plain, settle, sizes, startPick, varies, type Pick } from './till'
+import { customLine, extraLine, extrasTotal, materials, meteredLine, offerOf, offersFor, plain, settle, sizes, startPick, varies, type Pick } from './till'
 import type { TillService } from './types'
 
 const OPT = 'h-11 min-w-[64px] rounded-[var(--radius-sm)] border border-border bg-card px-4 text-[15px] font-bold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground disabled:opacity-35'
@@ -22,6 +22,27 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <span className="w-[68px] shrink-0 text-[12px] font-bold uppercase tracking-wide text-faint">{label}</span>
       <div role="group" aria-label={label} className="flex flex-wrap gap-1.5">{children}</div>
     </div>
+  )
+}
+
+/** The service's extras as toggles; ticked ones ride along with the next job added. */
+function useExtras(s: TillService) {
+  const [on, setOn] = useState<Set<number>>(new Set())
+  const picked = s.extras.filter((x) => on.has(x.id))
+  const toggle = (id: number) => setOn((o) => (o.has(id) ? new Set([...o].filter((x) => x !== id)) : new Set([...o, id])))
+  return { picked, on, toggle, clear: () => setOn(new Set()) }
+}
+
+function ExtrasRow({ s, ex, sym }: { s: TillService; ex: ReturnType<typeof useExtras>; sym: string }) {
+  if (!s.extras.length) return null
+  return (
+    <Row label="Extras">
+      {s.extras.map((x) => (
+        <button key={x.id} type="button" className={cn(OPT, 'flex items-center gap-1.5')} aria-pressed={ex.on.has(x.id)} onClick={() => ex.toggle(x.id)}>
+          {x.name}<span className="text-[12.5px] font-semibold opacity-75 tabular-nums">+{money(sym, x.price)}{x.perPiece ? ' each' : ''}</span>
+        </button>
+      ))}
+    </Row>
   )
 }
 
@@ -43,6 +64,8 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
   const offers = offersFor(s, pick.size).filter((o) => o.material === pick.material)
   const has = (color: boolean, double: boolean) => offers.some((o) => o.color === color && o.double === double)
   const types = materials(s, pick.size)
+  const ex = useExtras(s)
+  const extra = extrasTotal(ex.picked, copies)
   const bands = offerOf(s, pick)?.bands ?? []
   const next = bands.find((b) => b.minQty > copies)
   const choose = (p: Partial<Pick>) => {
@@ -58,7 +81,9 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
     try {
       const qd = fresh ? q.data! : await quote({ service: s.id, ...pick, copies })
       till.addServiceLine(meteredLine(s, pick, copies, qd))
-      toast.success(`${qd.description} ×${copies} added`)
+      for (const x of ex.picked) till.addServiceLine(extraLine(s, x, copies))
+      toast.success(`${qd.description} ×${copies}${ex.picked.map((x) => ` + ${x.name}`).join('')} added`)
+      ex.clear()
       setText('1')
       input.current?.focus()
       input.current?.select()
@@ -125,14 +150,15 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
           {next && copies > 0 && <span className="text-muted-foreground">{next.minQty - copies} more for {money(sym, next.price)} each</span>}
         </div>
       )}
+      <ExtrasRow s={s} ex={ex} sym={sym} />
       {!confirm && <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-4 py-3">
         <div className="min-w-0 flex-1">
           {q.error && copies > 0 ? <p className="text-[13px] font-semibold text-danger">{errMsg(q.error)}</p> : (
             <>
-              <b className="block font-display text-[24px] leading-tight tabular-nums">{q.data && copies > 0 ? money(sym, q.data.total) : '—'}</b>
+              <b className="block font-display text-[24px] leading-tight tabular-nums">{q.data && copies > 0 ? money(sym, Number(q.data.total) + extra) : '—'}</b>
               {q.data && copies > 0 && (
                 <small className="text-[12.5px] text-muted-foreground tabular-nums">
-                  {copies} × {money(sym, q.data.unitPrice)}{!plain(s) && ` · ${q.data.sheets} sheet${q.data.sheets === 1 ? '' : 's'}`}
+                  {copies} × {money(sym, q.data.unitPrice)}{!plain(s) && ` · ${q.data.sheets} sheet${q.data.sheets === 1 ? '' : 's'}`}{extra > 0 && ` · extras ${money(sym, extra)}`}
                 </small>
               )}
             </>
@@ -154,13 +180,17 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
 
 /** A custom job (CV, photo edit, poster): the typed price and a note. */
 function Custom({ s, till }: { s: TillService; till: TillApi }) {
+  const sym = useQuery(configQuery).data?.symbol ?? ''
   const [price, setPrice] = useState('')
   const [note, setNote] = useState('')
+  const ex = useExtras(s)
   const ok = Number(price) > 0
   const add = () => {
     if (!ok) return
     till.addServiceLine(customLine(s, Number(price), note))
-    toast.success(`${s.name} added`)
+    for (const x of ex.picked) till.addServiceLine(extraLine(s, x, 1))
+    toast.success(`${s.name}${ex.picked.map((x) => ` + ${x.name}`).join('')} added`)
+    ex.clear()
     setPrice('')
     setNote('')
   }
@@ -173,6 +203,7 @@ function Custom({ s, till }: { s: TillService; till: TillApi }) {
       <label className="flex flex-col gap-1 text-[12px] font-bold uppercase tracking-wide text-faint">Note on the receipt (optional)
         <input autoComplete="off" name="doc-note" maxLength={60} placeholder="e.g. Nimal — 2 pages" value={note} onChange={(e) => setNote(e.target.value)} className={cn(FIELD, 'normal-case tracking-normal')} />
       </label>
+      <ExtrasRow s={s} ex={ex} sym={sym} />
       <Button type="submit" className="h-12 self-start px-6 text-[15px] font-bold" disabled={!ok}>Add to sale ⏎</Button>
     </form>
   )
