@@ -57,7 +57,10 @@ func loadShop(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	if err := d.DB.GetContext(ctx, &s.bank, `SELECT id FROM lockers WHERE kind = 'bank' ORDER BY id LIMIT 1`); err != nil {
 		return nil, fmt.Errorf("bank account: %w", err)
 	}
-	return s, s.loadPeople(ctx, d)
+	if err := s.loadPeople(ctx, d); err != nil {
+		return nil, err
+	}
+	return s, s.loadFloor(ctx, d)
 }
 
 // loadStock reads what's on the shelf, so today's restock is right.

@@ -76,6 +76,9 @@ func Past(ctx context.Context, d Deps, p shops.Profile, asOf time.Time, days int
 	if g.admin, err = NewClient(d.API, p.Logins[0].Phone, p.Logins[0].PIN, "demo-back-office"); err != nil {
 		return err
 	}
+	if err := g.floorSetup(); err != nil {
+		return err
+	}
 	if err := g.pluginsSetup(); err != nil {
 		return err
 	}

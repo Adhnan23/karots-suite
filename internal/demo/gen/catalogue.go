@@ -13,8 +13,10 @@ import (
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/products"
+	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"
 	"karots-suite/internal/features/suppliers"
+	unitsvc "karots-suite/internal/features/units"
 )
 
 type item struct {
@@ -24,6 +26,13 @@ type item struct {
 	perWeek     float64
 	supplier    int // index into shop.suppliers
 	unit        string
+
+	service  bool              // sold without stock (a cup of tea, a fitting)
+	parts    []partUse         // the stock a service uses
+	packs    []sales.PackPrice // also sold by the pack
+	warranty int               // months; sold with a serial number when > 0
+	imei     bool              // a phone's serial is its IMEI
+	faults   []string          // what goes wrong, for warranty claims
 }
 
 type person struct {
@@ -42,6 +51,7 @@ type shop struct {
 	bank      int64 // the shop's current account
 	owner     person
 	cashiers  []person // the shown cashier first, then staff
+	convs     []conv   // the bags it opens to sell loose
 }
 
 func linesFor(catalogue string) (lines string, sups []string) {
@@ -80,6 +90,13 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	for _, u := range ur {
 		units[u.Abbr] = u.ID
 	}
+	if _, ok := units["m"]; !ok && strings.Contains(lines, ";m;") { // wire is sold by the metre
+		u, err := unitsvc.NewService(d.DB).Create(ctx, unitsvc.Input{Name: "Metre", Abbreviation: "m", AllowDecimal: true})
+		if err != nil {
+			return nil, fmt.Errorf("unit m: %w", err)
+		}
+		units["m"] = u.ID
+	}
 	cats := map[string]int64{}
 	catSvc, prodSvc := categories.NewService(d.DB), products.NewService(d.DB)
 	for _, l := range strings.Split(strings.TrimSpace(lines), "\n") {
@@ -95,6 +112,11 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 			cats[f[0]] = c.ID
 		}
 		in := products.CreateInput{Name: f[1], CategoryID: cats[f[0]], UnitID: units[f[3]], CostPrice: f[4], SellingPrice: f[5]}
+		for _, w := range floorFor(p.Catalogue).warranty {
+			if w.product == f[1] {
+				in.TrackSerial, in.WarrantyMonths = true, w.months
+			}
+		}
 		if f[2] != "" {
 			in.NameLocal = &f[2]
 		}
@@ -142,7 +164,7 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 		return nil, fmt.Errorf("bank account: %w", err)
 	}
 	s.bank = bank.ID
-	return s, nil
+	return s, nil // the floor (services, bags, packs) is set up once the owner can sign in
 }
 
 func (s *shop) loadPeople(ctx context.Context, d Deps) error {

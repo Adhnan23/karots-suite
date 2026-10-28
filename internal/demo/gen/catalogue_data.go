@@ -5,13 +5,17 @@ package gen
 
 var groceryLines = `
 Rice & Grains;Samba Rice 1kg;සම්බා සහල් 1kg;kg;235;265;60
+Rice & Grains;Samba Rice 25kg Bag;සම්බා සහල් 25kg;pcs;5700;6400;0.4
 Rice & Grains;Red Raw Rice 1kg;රතු කැකුළු 1kg;kg;210;240;45
+Rice & Grains;Red Raw Rice 25kg Bag;;pcs;5100;5800;0.3
 Rice & Grains;Keeri Samba 1kg;කීරි සම්බා 1kg;kg;290;330;30
 Rice & Grains;Basmati Rice 1kg;;pkt;650;740;8
 Rice & Grains;Mysore Dhal 1kg;පරිප්පු 1kg;kg;290;330;40
+Rice & Grains;Mysore Dhal 25kg Bag;;pcs;6950;7900;0.2
 Rice & Grains;Green Gram 500g;මුං ඇට;pkt;360;410;12
 Rice & Grains;Chickpeas 500g;කඩල;pkt;310;360;10
 Groceries;White Sugar 1kg;සීනි 1kg;kg;235;260;55
+Groceries;White Sugar 50kg Bag;සීනි 50kg;pcs;11250;12600;0.2
 Groceries;Brown Sugar 1kg;;kg;300;345;10
 Groceries;Wheat Flour 1kg;තිරිඟු පිටි;kg;200;230;35
 Groceries;Rice Flour 1kg;සහල් පිටි;pkt;260;300;12
@@ -56,6 +60,7 @@ Snacks;Potato Chips 100g;;pkt;290;350;22
 Snacks;Chocolate Bar 45g;;pcs;180;220;40
 Snacks;Peanuts 100g;රටකජු;pkt;140;180;25
 Vegetables;Onions 1kg;ලූනු;kg;290;340;30
+Vegetables;Onions 10kg Net Bag;;pcs;2700;3150;0.5
 Vegetables;Potatoes 1kg;අල;kg;320;370;28
 Vegetables;Garlic 250g;සුදුළූණු;pkt;210;260;14
 `
@@ -142,6 +147,7 @@ Cement & Sand;Tile Adhesive 25kg;;pcs;1900;2350;10
 Steel;Steel Rod 10mm (12m);;pcs;2900;3350;20
 Steel;Steel Rod 12mm (12m);;pcs;4100;4700;12
 Steel;Binding Wire 1kg;;kg;520;620;14
+Steel;Binding Wire 25kg Coil;;pcs;12000;14000;0.1
 Steel;GI Pipe 1/2in (6m);;pcs;3200;3700;6
 Plumbing;PVC Pipe 1/2in (6m);;pcs;690;820;25
 Plumbing;PVC Pipe 1in (6m);;pcs;1450;1700;12
@@ -150,8 +156,11 @@ Plumbing;PVC Tee 1/2in;;pcs;45;70;50
 Plumbing;Ball Valve 1/2in;;pcs;390;520;12
 Plumbing;Water Tap Chrome;;pcs;1450;1900;8
 Plumbing;PVC Solvent 100ml;;btl;290;380;15
-Electrical;Wire 1.5mm (100m);;pcs;11500;13500;3
-Electrical;Wire 2.5mm (100m);;pcs;17500;20500;2
+Plumbing;Water Pump 0.5HP;;pcs;14500;17900;0.5
+Electrical;Wire 1.5mm (100m);;pcs;11500;13500;0.8
+Electrical;Wire 1.5mm (per m);;m;115;150;40
+Electrical;Wire 2.5mm (100m);;pcs;17500;20500;0.5
+Electrical;Wire 2.5mm (per m);;m;175;240;25
 Electrical;Switch Single Gang;;pcs;220;320;30
 Electrical;Socket 13A;;pcs;390;520;20
 Electrical;LED Bulb 9W;;pcs;290;420;40
@@ -168,8 +177,12 @@ Tools;Screwdriver Set;;pcs;1250;1700;4
 Tools;Measuring Tape 5m;;pcs;490;690;6
 Tools;Hacksaw Frame;;pcs;850;1150;3
 Tools;Drill Bit Set;;pcs;1650;2200;3
+Tools;Electric Drill 13mm;;pcs;8900;11500;1
+Tools;Angle Grinder 4in;;pcs;7900;9900;0.8
 Fasteners;Wire Nails 2in (1kg);ඇණ;kg;440;540;20
+Fasteners;Wire Nails 2in 25kg Box;;pcs;10500;12500;0.2
 Fasteners;Wire Nails 3in (1kg);;kg;440;540;14
+Fasteners;Wire Nails 3in 25kg Box;;pcs;10500;12500;0.15
 Fasteners;Screws 1in (100s);;box;290;390;15
 Fasteners;Wall Plugs (100s);;box;190;280;12
 Fasteners;Padlock 40mm;;pcs;690;950;6

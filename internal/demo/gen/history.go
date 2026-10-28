@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -150,6 +151,11 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 			return fmt.Errorf("open till for %s: %w", c.login.Name, err)
 		}
 	}
+	if until > 8.05 {
+		if err := g.openBags(day, 8.0, tills[0]); err != nil {
+			return err
+		}
+	}
 	n := poisson(g.r, float64(g.s.p.Volume)*dayFactor(day, ago))
 	hours := make([]float64, 0, n)
 	for i := 0; i < n; i++ {
@@ -164,7 +170,14 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 		}
 	}
 	slices.Sort(hours)
+	lunch := false
 	for _, h := range hours {
+		if h > 13 && !lunch { // a busy morning empties a bin
+			lunch = true
+			if err := g.openBags(day, 13.0, tills[len(tills)-1]); err != nil {
+				return err
+			}
+		}
 		g.tm.at(at(day, h))
 		if err := g.sale(tills[g.r.IntN(len(tills))]); err != nil {
 			return err
@@ -203,13 +216,22 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 // supplier; the first delivery fills the empty shop.
 func (g *gen) restock(day time.Time, opening bool) error {
 	bySup := map[int][]purchases.ItemInput{}
-	for _, it := range g.s.items {
-		week := g.weekly(it)
+	for i, it := range g.s.items {
+		if _, loose := g.s.bagFor(i); loose || it.service {
+			continue // services hold no stock; loose rice comes out of the bags
+		}
+		week, have := g.weekly(it), g.stock[it.id]
+		for _, c := range g.s.convs {
+			if c.from == i { // a bag: enough for its loose bin too
+				to := g.s.items[c.to]
+				week += g.weekly(to) / c.ratio
+				have += g.stock[to.id] / c.ratio
+			}
+		}
 		want := week * 2.2
 		if opening {
 			want = week * 3
 		}
-		have := g.stock[it.id]
 		if !opening && have > week*1.2 {
 			continue
 		}
@@ -248,19 +270,63 @@ func (g *gen) sale(c person) error {
 	seen := map[int64]bool{}
 	for tries := 0; len(items) < lines && tries < 20; tries++ {
 		it := g.pick()
-		if seen[it.id] || g.stock[it.id] < 1 { // sold out until the next delivery
+		if seen[it.id] {
+			continue
+		}
+		if it.service {
+			seen[it.id] = true
+			q := 1.0
+			if strings.HasSuffix(it.name, "(cup)") || strings.HasSuffix(it.name, "(per joint)") {
+				q = float64(1 + g.r.IntN(3)) // tea for the two of them; three joints
+			}
+			if slices.ContainsFunc(it.parts, func(pt partUse) bool { return g.stock[pt.id] < pt.perUnit*q+1 }) {
+				continue // no glass left to fit
+			}
+			items = append(items, sales.ItemInput{ProductID: it.id, Quantity: fmt.Sprint(q)})
+			total = total.Add(it.price.Mul(decimal.NewFromFloat(q)))
+			for _, pt := range it.parts {
+				g.stock[pt.id] -= pt.perUnit * q
+			}
+			continue
+		}
+		if g.stock[it.id] < 1 { // sold out until the next delivery
 			continue
 		}
 		seen[it.id] = true
 		q := 1.0
-		if it.unit == "kg" && g.r.IntN(3) == 0 {
+		switch {
+		case it.warranty > 0: // one at a time, each with its own serial
+		case it.unit == "m":
+			q = float64(2 + g.r.IntN(24)) // metres of wire for a room
+		case it.unit == "kg" && g.r.IntN(3) == 0:
 			q = 0.5 * float64(1+g.r.IntN(4))
-		} else if g.r.IntN(6) == 0 {
+		case len(it.packs) > 0 && g.r.IntN(8) == 0:
+			q, _ = it.packs[0].Size.Float64() // a whole tray, a box of cards
+		case g.r.IntN(6) == 0:
 			q = float64(2 + g.r.IntN(3))
 		}
-		q = min(q, g.stock[it.id])
-		items = append(items, sales.ItemInput{ProductID: it.id, Quantity: fmt.Sprint(q)})
-		total = total.Add(it.price.Mul(decimal.NewFromFloat(q)))
+		if it.unit == "kg" || it.unit == "m" {
+			q = min(q, math.Floor(g.stock[it.id]*10)/10)
+		} else {
+			q = min(q, math.Floor(g.stock[it.id]))
+		}
+		if q <= 0 {
+			continue
+		}
+		in := sales.ItemInput{ProductID: it.id, Quantity: fmt.Sprint(q)}
+		if it.warranty > 0 {
+			sn, err := g.serial(it)
+			if err != nil {
+				return err
+			}
+			in.Serials = []string{sn}
+		}
+		items = append(items, in)
+		gross := it.price.Mul(decimal.NewFromFloat(q))
+		if len(it.packs) > 0 {
+			gross, _ = sales.PackGross(decimal.NewFromFloat(q), it.price, it.packs, false)
+		}
+		total = total.Add(gross)
 		g.stock[it.id] -= q
 	}
 	if len(items) == 0 {
@@ -335,4 +401,57 @@ func poisson(r *rand.Rand, mean float64) int {
 	// Normal approximation: means here are tens to hundreds.
 	n := int(math.Round(mean + r.NormFloat64()*math.Sqrt(mean)))
 	return max(n, 0)
+}
+
+// openBags is a cashier opening a bag at the counter's Convert tab when the
+// loose bin runs low: a 25 kg bag of rice weighs out a little short.
+func (g *gen) openBags(day time.Time, h float64, c person) error {
+	cl, err := g.tillOf(c)
+	if err != nil {
+		return err
+	}
+	for _, cv := range g.s.convs {
+		from, to := g.s.items[cv.from], g.s.items[cv.to]
+		if g.stock[to.id] >= g.weekly(to)*0.35 || g.stock[from.id] < 1 {
+			continue
+		}
+		bags := min(math.Ceil((g.weekly(to)*0.6-g.stock[to.id])/cv.ratio), math.Floor(g.stock[from.id]))
+		if bags < 1 {
+			continue
+		}
+		got := bags * cv.ratio
+		body := map[string]string{"quantity": fmt.Sprint(bags)}
+		if cv.loss > 0 {
+			got = math.Round(got*(1-g.r.Float64()*cv.loss)*10) / 10
+			body["toQty"] = fmt.Sprint(got)
+		}
+		g.tm.at(at(day, h+g.r.Float64()*0.2))
+		if err := cl.Do("POST", fmt.Sprintf("/api/v1/till/conversions/%d/run", cv.id), body, nil); err != nil {
+			return fmt.Errorf("open %s: %w", from.name, err)
+		}
+		g.stock[from.id] -= bags
+		g.stock[to.id] += got
+	}
+	return nil
+}
+
+// serial is a unit's serial number: a phone's IMEI, else the maker's code.
+// The count of units so far keeps every one unique across runs; × a prime
+// scatters them so they don't read 1, 2, 3.
+func (g *gen) serial(it item) (string, error) {
+	var n int
+	if err := g.d.DB.GetContext(g.ctx, &n, `SELECT count(*) FROM warranty_units`); err != nil {
+		return "", err
+	}
+	n++ // every unit sold or swapped adds one, so this is never used twice
+	if it.imei {
+		return fmt.Sprintf("35%06d%07d", 100000+it.id*37%900000, n*7919%10000000), nil
+	}
+	abbr := ""
+	for _, w := range strings.Fields(it.name) {
+		if r := w[0]; r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' {
+			abbr += string(r)
+		}
+	}
+	return fmt.Sprintf("%s%d%06d", abbr, 2+it.id%7, n*7919%1000000), nil
 }

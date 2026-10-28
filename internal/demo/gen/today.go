@@ -8,7 +8,11 @@ func (g *gen) today(now time.Time) error {
 		return err
 	}
 	day := localDay(now)
-	if err := g.day(day, 0, now.Sub(day).Hours()-0.02); err != nil {
+	until := now.Sub(day).Hours() - 0.02
+	if err := g.day(day, 0, until); err != nil {
+		return err
+	}
+	if err := g.heldCarts(day, until); err != nil {
 		return err
 	}
 	return g.tm.shift(g.ctx)
