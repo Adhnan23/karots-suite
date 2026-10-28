@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/printer"
 	"karots-suite/internal/demo/shops"
+	"karots-suite/internal/plugin"
 )
 
 // shopRunner runs one shop at a time: the real server in a child process.
@@ -183,6 +185,10 @@ func (l *launcher) start(w http.ResponseWriter, r *http.Request) {
 	}
 	var p shops.Profile
 	if in.Custom != nil {
+		if !knownPicks(in.Custom.Plugins, in.Custom.Palette, in.Custom.ReceiptStyle) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "no such plugin or look"})
+			return
+		}
 		p = shops.Custom(in.Custom.Plugins, in.Custom.Palette, in.Custom.ReceiptStyle)
 	} else if b, ok := shops.ByKey(in.Shop); ok {
 		p = b
@@ -192,6 +198,22 @@ func (l *launcher) start(w http.ResponseWriter, r *http.Request) {
 	}
 	l.restart(p)
 	writeJSON(w, http.StatusAccepted, l.state())
+}
+
+var lookName = regexp.MustCompile(`^[a-z0-9]*$`) // a palette or receipt style key; empty = the default
+
+// knownPicks: every plugin is compiled in and the looks are plain keys.
+func knownPicks(plugins []string, palette, style string) bool {
+	have := map[string]bool{}
+	for _, p := range plugin.All() {
+		have[p.Key()] = true
+	}
+	for _, k := range plugins {
+		if !have[k] {
+			return false
+		}
+	}
+	return lookName.MatchString(palette) && lookName.MatchString(style)
 }
 
 func (l *launcher) switchShop(w http.ResponseWriter, r *http.Request) {

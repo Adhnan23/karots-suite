@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -48,7 +49,7 @@ func (l *launcher) proxy(w http.ResponseWriter, r *http.Request) {
 // inject puts the shop's plugin list (read by the SPA's plugin gate) and the
 // chrome's script and styles just before </head>.
 func inject(page []byte, plugins string) []byte {
-	tags := `<meta name="ks-plugins" content="` + plugins + `">` +
+	tags := `<meta name="ks-plugins" content="` + html.EscapeString(plugins) + `">` +
 		`<link rel="stylesheet" href="/__demo/ui/overlay.css">` +
 		`<script type="module" src="/__demo/ui/overlay.js"></script>`
 	i := bytes.Index(page, []byte("</head>"))

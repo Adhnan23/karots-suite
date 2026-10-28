@@ -223,3 +223,24 @@ func TestNewestPickWins(t *testing.T) {
 		t.Fatalf("state %s/%s, child %s", st.Phase, st.Shop.Key, r.shop.Key)
 	}
 }
+
+func TestCustomShopRejectsUnknownPicks(t *testing.T) {
+	l, _, now := newTestLauncher(t, nil)
+	c := unlock(t, l.handler(), support.Code(support.DeriveSeed("test", "DEMO1234"), now))
+	for _, body := range []string{
+		`{"custom":{"plugins":["nope"]}}`,
+		`{"custom":{"plugins":[],"palette":"x\"><script>"}}`,
+		`{"custom":{"plugins":[],"receiptStyle":"../x"}}`,
+	} {
+		req := httptest.NewRequest("POST", "/__demo/start", strings.NewReader(body))
+		req.AddCookie(c)
+		w := httptest.NewRecorder()
+		l.handler().ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("%s: %d", body, w.Code)
+		}
+	}
+	if strings.Contains(string(inject([]byte("</head>"), `"><x`)), `"><x`) {
+		t.Error("plugins not escaped")
+	}
+}
