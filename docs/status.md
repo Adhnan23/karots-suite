@@ -18,18 +18,35 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
   restored, moved to end yesterday, today is traded (tills open, staff selling), reorder levels learned. Make-your-own
   builds a 60-day past live.
 - **Alive + chrome:** staff sell on their own, beat Who's on now, take repairs / reloads / prescriptions; left-edge Demo
-  tab (owner contact — **`internal/demo/brand.go` still has placeholders: ask the user for name + number**), Pause,
+  tab (owner contact = the receipt credits' email + phone, `internal/demo/brand.go`), Pause,
   Switch shop; demo logins tap-to-sign-in; receipts and labels slide out as the emulators decode the real jobs; cheat
   menu (Ctrl+Shift+D / five taps). Nothing persists (data wiped at start and exit; PostgreSQL's programs cached).
 - **Final review (2026-10-27)** fixed: leftover PostgreSQL after a crash, empty yesterday in UTC+5:30, Monday-morning
   future rows (and a 3-week restock on every launch), open lock without `POS_SUPPORT_SECRET`, shared sign-in secret.
-- **RESUME HERE (next session):**
-  1. ~~**I3**~~ DONE 2026-10-28 — a generation counter + one work mutex (newest pick wins, an overtaken job is
-     dropped), a second pick of the shop already building is ignored, and the picker disables its buttons on a click.
-  2. ~~Deferred minors~~ DECIDED 2026-10-28 — fixed: a make-your-own pick is checked (compiled plugins, plain look
-     keys → else 400) and the `ks-plugins` meta is escaped. Left: child ports (127.0.0.1, throwaway data); API with no
-     shop already 503s; no control timeout (it would cut a long cheat); check-core web/demo guard; Windows clock walls.
-  3. ~~Owner name + phone~~ DONE 2026-10-28 — the receipt credits' email + phone (`internal/demo/brand.go`).
+- **RESUME HERE (next session, handoff 2026-10-28):**
+  - **Where we are:** the user is building the Demo Room fresh (Shop Builder → Demo Room tab, or `make demo`) and
+    testing it on Linux, then the Windows VM (`docs/acceptance.md` §6). **Wait for their findings and fix what they
+    report.** Nothing is pending on our side; the tree is clean on `main` (last: `18974f4`).
+  - **Done this session (2026-10-28), all committed:**
+    - Launcher: double-click builds once (generation counter + work mutex, picker disables on click); make-your-own
+      picks validated, `ks-plugins` meta escaped; Exit (sidebar + picker) → same shutdown as Ctrl+C.
+    - Sidebar: Demo moves & logins (the cheat menu, no longer hidden), Prints shelf (every slip, newest first, the
+      printers keep 60), Pause, Switch shop, Exit; slips zoom at the printer's own dots.
+    - Build: years cached in the user cache under a stamp of what shapes the data (`cmd/bootstrap/demoyears.go`,
+      `make demo-fresh` forces); Shop Builder **Demo Room** tab with live log; **time machine** on both building
+      screens (`internal/demo/timemachine/timemachine.js`, fed by `gen.Deps.OnDay` → `day` lines → launcher
+      `State.Days` / builder `▦` lines); builder talks over PostgreSQL's local socket.
+    - **Real seeding** A (shop floor), B (back room), C (plugins) — see 3b below; checked on full-size years (all five
+      build, Super Store ≈ 5m16s; restored + brought to today passes `datacheck` across ~42k sales).
+  - **Speed (measured, user said stop here):** 92% of a year is ringing sales, ~86 DB round trips each; fsync /
+    synchronous_commit off made no difference; lib/pq `binary_parameters` breaks jsonb. Left: lower Super Store volume
+    (110 → ~80) or a pgx driver switch (core change) — not wanted now.
+  - **Deferred minors (decided, left):** child ports on 127.0.0.1, no control timeout, check-core doesn't guard
+    web/demo, coarse Windows clock walls.
+  - **Notes:** throwaway audit tests used while building (restore a `.ksb` into a gentest DB, run `datacheck` +
+    sample queries) are not committed — recreate in `internal/demo/gentest` if a seeding question comes up. Builder
+    binary for years without touching `dist/demo`: place the bundle as `make demo-dev` does, `go build -tags filemode
+    ./cmd/demo`, run `-templates <dir>`.
   3b. **User's first look (2026-10-28) → fixed:** sidebar now has Demo moves & logins, Prints (shelf of every slip,
      newest first), Exit (also on the picker); slips zoom at printer dots. **Seeding made real** (A/B/C, one commit
      each): shop floor (`gen/shopfloor*.go`: till menu cards, services + recipes, bags opened into loose stock with
