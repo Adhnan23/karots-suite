@@ -283,3 +283,56 @@ func TestLaminateTypes(t *testing.T) {
 		t.Errorf("A4 with no type = %d, want 422", rec.Code)
 	}
 }
+
+// Extras: per job or per piece, optional stock; the till gets them with the service.
+func TestExtras(t *testing.T) {
+	db := testDB(t)
+	do := testAPI(t, db)
+	tag := fmt.Sprintf("ze%d", time.Now().UnixNano())
+	var cat, lanyard int64
+	if err := db.Get(&cat, `SELECT id FROM categories LIMIT 1`); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Get(&lanyard, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price)
+		VALUES ($1, $2, (SELECT id FROM units LIMIT 1), 30, 0) RETURNING id`, "Lanyard "+tag, cat); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM doc_service WHERE name LIKE '%' || $1 || '%'`, tag) //nolint:errcheck
+		db.Exec(`DELETE FROM products WHERE name LIKE '%' || $1 || '%'`, tag)    //nolint:errcheck
+	})
+	made := decode[map[string]int64](t, do("POST", "/services", fmt.Sprintf(`{"name":"ID laminate %s","categoryId":%d,"kind":"custom","category":"laminate","sellingPrice":"50"}`, tag, cat)))
+	sid, pid := made["id"], made["productId"]
+	path := fmt.Sprintf("/services/%d/extras", sid)
+
+	rec := do("PUT", path, fmt.Sprintf(`[{"name":" Urgent ","price":"100"},{"name":"Corner rounding","price":"5","perPiece":true},
+		{"name":"Lanyard","price":"80","perPiece":true,"productId":%d,"qty":"1"}]`, lanyard))
+	if rec.Code != 200 {
+		t.Fatalf("save = %d %s", rec.Code, rec.Body)
+	}
+	xs := decode[[]ExtraDTO](t, rec)
+	if len(xs) != 3 || xs[0].Name != "Urgent" || xs[0].Price != "100.00" || xs[0].PerPiece || xs[0].ProductID != nil ||
+		!xs[1].PerPiece || xs[2].ProductID == nil || *xs[2].ProductID != lanyard || xs[2].Qty != "1" || xs[2].ProductName == nil {
+		t.Fatalf("extras back: %+v", xs)
+	}
+	for _, bad := range []string{
+		`[{"name":"Urgent","price":"1"},{"name":"urgent","price":"2"}]`,                   // twice
+		`[{"name":"","price":"1"}]`,                                                       // no name
+		`[{"name":"Urgent","price":"-1"}]`,                                                // negative
+		fmt.Sprintf(`[{"name":"Lanyard","price":"1","productId":%d,"qty":"0"}]`, lanyard), // no qty
+		fmt.Sprintf(`[{"name":"Itself","price":"1","productId":%d,"qty":"1"}]`, pid),      // a service as stock
+	} {
+		if rec := do("PUT", path, bad); rec.Code != 422 {
+			t.Errorf("%s = %d, want 422", bad, rec.Code)
+		}
+	}
+	if rec := do("PUT", path+"?cashier=1", `[]`); rec.Code != 403 {
+		t.Errorf("a cashier saving extras = %d, want 403", rec.Code)
+	}
+	ts := decode[[]TillService](t, do("GET", "/till", ""))
+	for _, s := range ts {
+		if s.ID == sid && (len(s.Extras) != 3 || s.Extras[2].Name != "Lanyard") {
+			t.Errorf("till extras: %+v", s.Extras)
+		}
+	}
+}

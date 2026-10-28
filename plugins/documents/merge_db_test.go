@@ -19,10 +19,12 @@ func TestMergeProduct(t *testing.T) {
 	tx.Get(&other, `INSERT INTO doc_service (name, product_id) VALUES ('other', $1) RETURNING id`, into)  //nolint:errcheck
 	tx.MustExec(`INSERT INTO doc_job (service_id, description) VALUES ($1, 'old job')`, svcFrom)
 	tx.MustExec(`INSERT INTO doc_consumable (service_id, size, product_id) VALUES ($1, 'A4', $2), ($1, 'A4', $3), ($1, 'A3', $2)`, other, from, into)
+	tx.MustExec(`INSERT INTO doc_extra (service_id, name, product_id) VALUES ($1, 'Lanyard', $2)`, other, from)
 	if err := mergeProduct(context.Background(), tx, from, into); err != nil {
 		t.Fatal(err)
 	}
-	if n := plugintest.Count(t, tx, `SELECT (SELECT COUNT(*) FROM doc_service WHERE product_id = $1) + (SELECT COUNT(*) FROM doc_consumable WHERE product_id = $1)`, from); n != 0 {
+	if n := plugintest.Count(t, tx, `SELECT (SELECT COUNT(*) FROM doc_service WHERE product_id = $1) + (SELECT COUNT(*) FROM doc_consumable WHERE product_id = $1)
+		+ (SELECT COUNT(*) FROM doc_extra WHERE product_id = $1)`, from); n != 0 {
 		t.Fatalf("%d rows left on the duplicate", n)
 	}
 	if n := plugintest.Count(t, tx, `SELECT COUNT(*) FROM doc_job WHERE service_id = $1`, svcInto); n != 1 {

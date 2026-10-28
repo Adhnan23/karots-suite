@@ -24,7 +24,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "documents", Name: "Print & Copy",
-		Tables: []string{"doc_service", "doc_price", "doc_consumable", "doc_job", "doc_payout"}})
+		Tables: []string{"doc_service", "doc_price", "doc_consumable", "doc_extra", "doc_job", "doc_payout"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "documents", Merge: mergeProduct})
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
@@ -39,6 +39,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.POST("/documents/services/:id/active", h.setActive)
 	a.GET("/documents/services/:id/grid", h.grid)
 	a.PUT("/documents/services/:id/grid", h.saveGrid)
+	a.GET("/documents/services/:id/extras", h.extras)
+	a.PUT("/documents/services/:id/extras", h.saveExtras)
 	a.GET("/documents/report", h.report)
 	// 🖨 on the till tile; the till's Print & Copy menu claims the product by it.
 	reg.AddProductBadgeProvider(plugin.ProductBadgeProvider{Batch: p.store.Badges})

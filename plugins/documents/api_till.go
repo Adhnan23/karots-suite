@@ -25,6 +25,7 @@ type TillService struct {
 	Kind      string      `json:"kind"`
 	Category  string      `json:"category"`
 	Offers    []TillOffer `json:"offers"`
+	Extras    []ExtraDTO  `json:"extras"`
 }
 
 type TillOffer struct {
@@ -85,7 +86,11 @@ func (h handlers) till(c echo.Context) error {
 	}
 	out := make([]TillService, 0, len(svcs))
 	for _, s := range svcs {
-		ts := TillService{ID: s.ID, ProductID: s.ProductID, Name: s.Name, Kind: s.Kind, Category: s.Category, Offers: []TillOffer{}}
+		xs, err := h.p.store.Extras(ctx, s.ID)
+		if err != nil {
+			return err
+		}
+		ts := TillService{ID: s.ID, ProductID: s.ProductID, Name: s.Name, Kind: s.Kind, Category: s.Category, Offers: []TillOffer{}, Extras: extraDTOs(xs)}
 		prices, err := h.p.store.Prices(ctx, s.ID)
 		if err != nil {
 			return err
