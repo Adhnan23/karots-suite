@@ -100,8 +100,9 @@ func (g *gen) mishapFor(it item) mishap {
 
 var anyMishap = []mishap{{"Damaged while unloading", false}, {"Pack damaged — can't sell", false}, {"Came damaged", true}}
 
-// backRoom runs the day's back-room business after closing.
-func (g *gen) backRoom(day time.Time) error {
+// visits does what was promised for today — reps and agents come while the
+// tills are open.
+func (g *gen) visits(day time.Time) error {
 	keep := g.later[:0]
 	var due []later
 	for _, l := range g.later {
@@ -117,6 +118,11 @@ func (g *gen) backRoom(day time.Time) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// backRoom runs the day's back-room business after closing.
+func (g *gen) backRoom(day time.Time) error {
 	if g.r.IntN(5) == 0 {
 		if err := g.breakage(day); err != nil {
 			return err
@@ -127,8 +133,8 @@ func (g *gen) backRoom(day time.Time) error {
 			return err
 		}
 	}
-	if g.r.IntN(16) == 0 {
-		return g.sendBack(day)
+	if g.r.IntN(10) == 0 {
+		return g.sendBack(day, -1)
 	}
 	return nil
 }
@@ -229,13 +235,25 @@ func (g *gen) warrantyClaim(day time.Time) error {
 var sendBackFresh = []string{"Damaged in delivery", "Wrong item sent", "Over-supplied — not ordered"}
 var sendBackOld = []string{"Short expiry — rep agreed to take back", "Slow mover — rep took it back"}
 
-// sendBack returns part of a recent delivery to its supplier. Unpaid, it comes
-// off the bill; already paid, the rep refunds it in cash on the next visit.
-func (g *gen) sendBack(day time.Time) error {
+// sendBack returns part of a delivery to its supplier (sup ≥ 0: the rep who's
+// at the counter now, from his latest drop). Unpaid, it comes off the bill;
+// if the shop has paid him everything, he refunds it in cash.
+func (g *gen) sendBack(day time.Time, sup int) error {
 	if len(g.deliveries) == 0 {
 		return nil
 	}
 	dv := g.deliveries[g.r.IntN(len(g.deliveries))]
+	if sup >= 0 {
+		found := false
+		for i := len(g.deliveries) - 1; i >= 0 && !found; i-- {
+			if g.deliveries[i].sup == sup {
+				dv, found = g.deliveries[i], true
+			}
+		}
+		if !found {
+			return nil
+		}
+	}
 	paid := g.paidAlready(dv)
 	reason := sendBackFresh[g.r.IntN(len(sendBackFresh))]
 	if paid {
@@ -276,23 +294,27 @@ func (g *gen) sendBack(day time.Time) error {
 		g.offTheBill(dv, total)
 		return nil
 	}
-	g.soon(day, 5, 12, func(d time.Time) error {
-		cl, err := g.tillOf(g.cashier())
-		if err != nil {
-			return err
-		}
+	refund := func(d time.Time) error {
 		var owed decimal.Decimal // < 0: the supplier owes the shop
 		if err := g.d.DB.GetContext(g.ctx, &owed, `SELECT outstanding_balance FROM suppliers WHERE id = $1`, g.s.suppliers[dv.sup]); err != nil {
 			return err
 		}
 		amt := decimal.Min(total, owed.Neg())
-		if !amt.IsPositive() {
-			return nil // other bills were open: it simply came off the next one
+		if amt.LessThan(decimal.NewFromInt(100)) {
+			return nil // other bills were open (or it's pennies): it comes off the next one
 		}
-		g.tm.at(at(d, 10+6*g.r.Float64()))
+		cl, err := g.tillOf(g.cashier()) // cash from the rep, into the till
+		if err != nil {
+			return err
+		}
+		g.tm.at(at(d, 11+5*g.r.Float64()))
 		return cl.Do("POST", fmt.Sprintf("/api/v1/till/suppliers/%d/refund", g.s.suppliers[dv.sup]), map[string]any{
 			"amount": amt.StringFixed(2), "method": "cash", "note": "Rep refunded the goods sent back"}, nil)
-	})
+	}
+	if sup >= 0 {
+		return refund(day) // he's here: on the spot
+	}
+	g.later = append(g.later, later{day.AddDate(0, 0, 1+g.r.IntN(4)), refund})
 	return nil
 }
 

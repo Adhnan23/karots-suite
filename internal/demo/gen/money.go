@@ -2,6 +2,8 @@ package gen
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"time"
 
@@ -71,14 +73,17 @@ func (g *gen) backOffice(day time.Time) error {
 	return g.backRoom(day)
 }
 
-// paySuppliers settles each supplier's deliveries older than 30 days: cash from
-// the safe while it holds enough, otherwise from the bank.
+// paySuppliers settles each supplier's deliveries older than 30 days — now and
+// then the whole statement when the rep calls — cash from the safe while it
+// holds enough, otherwise from the bank.
 func (g *gen) paySuppliers(day time.Time) error {
-	for sup, list := range g.owed {
+	for _, sup := range slices.Sorted(maps.Keys(g.owed)) { // a fixed order: the same seed builds the same shop
+		list := g.owed[sup]
+		whole := g.r.IntN(6) == 0 // the rep's here: the whole statement, this week's drops too
 		total := decimal.Zero
 		keep := list[:0]
 		for _, d := range list {
-			if day.Sub(d.day) >= 30*24*time.Hour {
+			if day.Sub(d.day) >= 30*24*time.Hour || whole {
 				total = total.Add(d.amount)
 			} else {
 				keep = append(keep, d)
@@ -97,6 +102,10 @@ func (g *gen) paySuppliers(day time.Time) error {
 		if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/suppliers/%d/payment", g.s.suppliers[sup]),
 			map[string]string{"amount": total.StringFixed(2), "method": method, "source": src, "note": "Monthly settlement"}, nil); err != nil {
 			return fmt.Errorf("pay supplier: %w", err)
+		}
+		if whole && g.r.IntN(2) == 0 { // paid up: on his next call he takes back what didn't sell
+			s := sup
+			g.later = append(g.later, later{day.AddDate(0, 0, 1+g.r.IntN(3)), func(d time.Time) error { return g.sendBack(d, s) }})
 		}
 	}
 	return nil
@@ -188,7 +197,9 @@ func (g *gen) aReturn(day time.Time) error {
 	}
 	err := g.d.DB.GetContext(g.ctx, &line, `
 		SELECT si.sale_id, si.id, si.quantity - si.returned_qty AS quantity FROM sale_items si JOIN sales s ON s.id = si.sale_id
+		JOIN products p ON p.id = si.product_id
 		WHERE s.created_at >= $1 AND s.status = 'completed' AND s.customer_id IS NULL AND si.quantity > si.returned_qty
+		  AND NOT p.is_service AND NOT p.track_serial AND si.unit_price > 0 -- goods come back; a reload, a cash out or a phone (warranty) don't
 		ORDER BY si.id DESC OFFSET $2 LIMIT 1`, g.tm.start, g.r.IntN(20))
 	if err != nil {
 		return nil // nothing sold yet this batch

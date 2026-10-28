@@ -3,6 +3,7 @@ package gen
 import (
 	"context"
 	"fmt"
+	"maps"
 	"math"
 	"math/rand/v2"
 	"slices"
@@ -159,6 +160,11 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 			return err
 		}
 	}
+	if ago > 0 || until > 16.5 { // today: only once the afternoon's visits have happened
+		if err := g.visits(day); err != nil {
+			return err
+		}
+	}
 	n := poisson(g.r, float64(g.s.p.Volume)*dayFactor(day, ago))
 	hours := make([]float64, 0, n)
 	for i := 0; i < n; i++ {
@@ -247,7 +253,8 @@ func (g *gen) restock(day time.Time, opening bool) error {
 		})
 		g.stock[it.id] += qty
 	}
-	for sup, items := range bySup {
+	for _, sup := range slices.Sorted(maps.Keys(bySup)) { // a fixed order: returns pick from these
+		items := bySup[sup]
 		inv := fmt.Sprintf("INV-%d%03d", day.YearDay(), sup)
 		g.tm.at(at(day, 7.5))
 		pd, err := purchases.NewService(g.d.DB).Create(g.ctx, purchases.CreateInput{
@@ -258,7 +265,7 @@ func (g *gen) restock(day time.Time, opening bool) error {
 		}
 		g.owed[sup] = append(g.owed[sup], due{day, pd.Purchase.Total})
 		g.deliveries = append(g.deliveries, delivery{pd.Purchase.ID, sup, day})
-		if len(g.deliveries) > 60 { // about two months of drops
+		for len(g.deliveries) > 0 && day.Sub(g.deliveries[0].day) > 75*24*time.Hour { // about two and a half months of drops
 			g.deliveries = g.deliveries[1:]
 		}
 	}
