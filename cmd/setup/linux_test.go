@@ -363,3 +363,25 @@ func TestLinuxArchInitdbNotTrust(t *testing.T) {
 		t.Fatalf("initdb:\n%s", rc.all())
 	}
 }
+
+func TestTermsStepKeepsARecord(t *testing.T) {
+	j, _, _ := linuxJob(t, "file", false)
+	for range 2 { // an Update adds a second record below the first
+		if err := termsStep(j); err != nil {
+			t.Fatal(err)
+		}
+	}
+	b, err := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, termsRecord)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := string(b)
+	for _, want := range []string{"Accepted:", "Shop: " + j.Conf.Shop, "Install ID: " + j.Conf.InstallID, "By: " + j.User, "Licence and Service Agreement sha256:", "Shop Rules & Service Guide sha256:"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("record lacks %q:\n%s", want, got)
+		}
+	}
+	if strings.Count(got, "Accepted:") != 2 {
+		t.Errorf("want 2 records:\n%s", got)
+	}
+}

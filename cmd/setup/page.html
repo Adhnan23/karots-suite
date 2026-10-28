@@ -96,6 +96,7 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
 .banner { border: 1px solid rgb(251 191 36 / .45); background: rgb(251 191 36 / .1); }
 .banner b { font-size: 17px; }
 .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; cursor: pointer; font-size: 15px; }
+.terms { margin: 16px 0 4px; } .terms a { color: var(--brand); } .terms small { display: block; margin-top: 2px; }
 .check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--brand); }
 .go.danger { background: linear-gradient(135deg, var(--bad), #F97316); box-shadow: 0 12px 30px rgb(251 113 133 / .3); }
 .link { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--muted); font: 600 14px Figtree, system-ui, sans-serif; text-decoration: underline; cursor: pointer; }
@@ -167,6 +168,10 @@ dialog::backdrop { background: rgb(0 0 0 / .6); }
     <p class="hint">Support may ask for this PC's install id: <code id="iid"></code></p>
     <div class="row"><button class="go" id="open">Open the till</button><button class="btn" id="close">Close Setup</button></div>
   </div>
+  <label class="check terms" id="termsRow"><input type="checkbox" id="agree"><span>I have read and agree to the
+    <a id="termsLink" target="_blank" rel="noopener">Karots Suite Licence and Service Agreement</a> and its
+    <a id="rulesLink" target="_blank" rel="noopener">Shop Rules &amp; Service Guide</a>.
+    <small class="hint">Ticking this is the shop's acceptance; Setup keeps a record of it on this PC.</small></span></label>
   <button class="go" id="go">Install</button>
   <button class="link" id="uninstall" hidden>Uninstall Karots from this PC…</button>
   <div class="update" id="updateNote" hidden>Karots is already on this PC — Update puts in this version and its settings. The shop's data stays.<br><span id="keptNote"></span></div>
@@ -194,7 +199,8 @@ const choice = () => {
   return { role: st.role, address: $('address').value.trim(), open: st.open,
     backupDir: main && dir !== d.dir ? dir : '', backupEvery: main && every !== d.every ? every : '', backupKeep: main && keep !== d.keep ? keep : 0, copyDir: main && copyDir !== d.copyDir ? copyDir : '',
     uninstall: st.uninstall, removePostgres: st.uninstall && $('removePg').checked, changeMode: $('changeMode').checked,
-    restore: main && !st.uninstall && !st.plan.updating ? restore : '', keepDir: keepDir !== d.keepDir ? keepDir : '' }
+    restore: main && !st.uninstall && !st.plan.updating ? restore : '', keepDir: keepDir !== d.keepDir ? keepDir : '',
+    acceptTerms: !st.uninstall && $('agree').checked }
 }
 
 // drawBackups lists the backups to bring back as cards: newest first (a local one before the
@@ -260,6 +266,7 @@ async function plan() {
   if (!$('address').value && p.lanAddress) $('address').value = p.lanAddress
   const upd = p.updating && st.role === 'server', main = st.role === 'server'
   $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : upd ? 'Update' : 'Install'; $('updateNote').hidden = !upd || st.uninstall
+  $('termsRow').hidden = st.uninstall
   $('go').classList.toggle('danger', st.uninstall)
   $('uninstallPanel').hidden = !st.uninstall; $('removePgRow').hidden = !p.localDb
   $('uninstall').hidden = !(upd || st.role === 'cashier')
@@ -275,7 +282,7 @@ async function plan() {
   const words = { BACKUP_DIR: 'backup folder', BACKUP_INTERVAL: 'how often to back up', BACKUP_KEEP: 'how many backups to keep' }
   const kept = (p.kept || []).map((k) => words[k] || (k.startsWith('start: ') ? (k.endsWith('kiosk') ? 'till full-screen' : 'runs in the background') : k + ' (added by hand)'))
   $('keptNote').textContent = upd && kept.length ? 'Kept from this PC: ' + kept.join(', ') + '.' : ''
-  $('go').disabled = st.running || (!$('modePanel').hidden && !$('changeMode').checked)
+  gate()
   $('steps').innerHTML = ''
   for (const s of p.steps) {
     const li = document.createElement('li'); li.id = 'step-' + s.id
@@ -302,6 +309,7 @@ async function install() {
   st.running = true; $('go').disabled = true; $('go').textContent = 'Working…'
   $('fail').hidden = true; $('done').hidden = true; $('go').hidden = false; $('log').textContent = ''
   for (const b of document.querySelectorAll('.role')) b.disabled = true
+  $('agree').disabled = true
   await plan()
   let text = '', failed = null, done = false, current = null, backup = ''
   try {
@@ -330,19 +338,19 @@ async function install() {
   st.running = false
   for (const b of document.querySelectorAll('.role')) b.disabled = false
   if (done && st.uninstall) {
-    for (const id of ['rolePanel', 'uninstallPanel', 'go', 'uninstall']) $(id).hidden = true
+    for (const id of ['rolePanel', 'uninstallPanel', 'go', 'uninstall', 'termsRow']) $(id).hidden = true
     $('done').hidden = false; $('done').querySelector('b').textContent = '✓ Karots is removed'
     $('doneMsg').textContent = backup ? 'The shop\'s backup is in ' + backup + ' — keep it: it brings the shop back on any PC.' : 'Nothing of Karots is left on this PC.'
     $('open').hidden = true
   } else if (done) {
-    $('rolePanel').hidden = true; $('go').hidden = true; $('updateNote').hidden = true; $('uninstall').hidden = true; $('modePanel').hidden = true
+    $('rolePanel').hidden = true; $('go').hidden = true; $('termsRow').hidden = true; $('updateNote').hidden = true; $('uninstall').hidden = true; $('modePanel').hidden = true
     $('done').hidden = false; $('iid').textContent = st.plan.installId
     $('doneMsg').textContent = st.role === 'cashier' ? 'The till opens full-screen the next time someone signs in to this PC.'
       : st.open === 'background' ? 'Karots starts with this PC. Open it any time from the Karots Suite shortcut on the desktop.'
       : 'Karots starts with this PC, and the till opens full-screen when someone signs in.'
     $('done').scrollIntoView({ behavior: 'smooth' })
   } else {
-    $('go').disabled = false; $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
+    $('agree').disabled = false; gate(); $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : st.plan && st.plan.updating && st.role === 'server' ? 'Update' : 'Install'
     const li = failed && failed.id ? $('step-' + failed.id) : null
     $('failTitle').textContent = li ? li.querySelector('b').textContent + ' didn\'t work' : 'Something went wrong'
     $('failMsg').textContent = failed ? failed.msg : 'Setup stopped before the end — see Details.'
@@ -401,6 +409,13 @@ $('removePg').onchange = plan
 $('changeMode').onchange = plan
 $('restorePath').onchange = () => { drawBackups(); plan() }
 $('uninstall').onclick = () => { st.uninstall = !st.uninstall; plan() }
+// Install / Update waits for "I agree"; Uninstall doesn't need it.
+function gate() {
+  $('go').disabled = st.running || (!st.uninstall && !$('agree').checked) || (!$('modePanel').hidden && !$('changeMode').checked)
+}
+$('agree').onchange = gate
+$('termsLink').href = '/terms?t=' + encodeURIComponent(token)
+$('rulesLink').href = '/terms/shop-rules.pdf?t=' + encodeURIComponent(token)
 $('test').onclick = test
 $('go').onclick = install
 $('retry').onclick = install

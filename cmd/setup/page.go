@@ -105,6 +105,9 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 		if err == nil {
 			err = checkChoice(j)
 		}
+		if err == nil && !in.Uninstall && !in.AcceptTerms {
+			err = errTerms
+		}
 		if err != nil {
 			writeErr(w, http.StatusBadRequest, err.Error())
 			return
@@ -134,6 +137,7 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 		}
 	})
 	mountFolders(mux)
+	mountTerms(mux)
 	mux.HandleFunc("POST /api/close", func(w http.ResponseWriter, r *http.Request) {
 		if decode(w, r, &struct{}{}) {
 			writeJSON(w, map[string]bool{"ok": true})

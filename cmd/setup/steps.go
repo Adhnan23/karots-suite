@@ -138,6 +138,8 @@ func Steps(j *Job) []Step {
 			}},
 		{ID: "settings", Title: "Settings", Applies: (*Job).server, Do: pick(linuxSettings, windowsSettings),
 			Detail: func(j *Job) string { return fmt.Sprintf("Write the shop's settings (port %d)", j.Conf.Port) }},
+		{ID: "terms", Title: "Agreed terms", Applies: (*Job).server, Do: termsStep,
+			Detail: func(j *Job) string { return "Keep a record that the shop accepted the Karots Suite terms (" + termsRecord + ")" }},
 		{ID: "backups", Title: "Backup folder", Applies: func(j *Job) bool { return j.server() && j.Conf.Env["BACKUP_DIR"] != "" }, Do: pick(linuxBackups, windowsBackups),
 			Detail: func(j *Job) string { return "Keep automatic backups in " + j.backupDir() }},
 		{ID: "restore", Title: "Bring back the shop", Applies: func(j *Job) bool { return j.server() && (j.Restore != "" || j.FromMode != "") }, Do: restoreStep,

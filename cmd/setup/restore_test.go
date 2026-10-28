@@ -86,7 +86,7 @@ func TestStepsOrderWithModeChange(t *testing.T) {
 	j, _, _ := linuxJob(t, "server", true)
 	j.Updating, j.FromMode = true, "file"
 	got := strings.Join(ids(Steps(j)), " ")
-	if got != "checks safety-backup database program settings backups restore startup network printing open health" {
+	if got != "checks safety-backup database program settings terms backups restore startup network printing open health" {
 		t.Fatalf("steps %s", got)
 	}
 }
@@ -95,7 +95,7 @@ func TestFirstInstallRestore(t *testing.T) {
 	j, _, _ := linuxJob(t, "file", false)
 	j.Restore = "/media/usb/x.json.gz"
 	got := strings.Join(ids(Steps(j)), " ")
-	if !strings.Contains(got, "settings restore startup") || strings.Contains(got, "safety-backup") {
+	if !strings.Contains(got, "settings terms restore startup") || strings.Contains(got, "safety-backup") {
 		t.Fatalf("steps %s", got)
 	}
 }

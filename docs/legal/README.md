@@ -36,8 +36,9 @@ initials and page numbers on every page. Rebuild it with `make agreement` after 
 `agreement/` (the form's source).
 
 So for each shop: **both sides sign the agreement** in duplicate (paper, or a PDF signed electronically), and
-the LICENSE comes with it. Recommended: **karots-setup also shows the terms with an "I agree"
-tick** before Install, so every install has an electronic acceptance on record.
+the LICENSE comes with it. **karots-setup also shows the terms with an "I agree" tick**: Install / Update stays off
+until it's ticked, and every main-PC install or Update appends who accepted which terms (SHA-256 of `LICENSE` and the
+Shop Rules PDF) to `terms-accepted.txt` in the install folder. Headless installs need `-accept-terms`.
 
 ## What the law says, and how the licence follows it
 

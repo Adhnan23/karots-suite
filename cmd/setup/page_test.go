@@ -79,7 +79,7 @@ func TestPageRunStreams(t *testing.T) {
 			{ID: "b", Title: "B", Do: func(*Job) error { return nil }},
 		}
 	}
-	body := call(testPage(steps), "POST", "/api/run", `{"role":"server"}`, true).Body.String()
+	body := call(testPage(steps), "POST", "/api/run", `{"role":"server","acceptTerms":true}`, true).Body.String()
 	for _, want := range []string{"@@STEP a run", "doing a", "@@STEP a ok", "@@STEP b ok", "@@DONE"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %q in:\n%s", want, body)
@@ -256,5 +256,30 @@ func TestFoldersListBackupFiles(t *testing.T) {
 	json.Unmarshal(rec.Body.Bytes(), &f)
 	if strings.Join(f.Files, ",") != "a.json.gz,b-final.json.gz" {
 		t.Fatalf("%s", rec.Body)
+	}
+}
+
+func TestPageRunNeedsTermsAccepted(t *testing.T) {
+	ran := false
+	steps := func(*Job) []Step { return []Step{{ID: "a", Title: "A", Do: func(*Job) error { ran = true; return nil }}} }
+	r := call(testPage(steps), "POST", "/api/run", `{"role":"server"}`, true)
+	if r.Code != http.StatusBadRequest || !strings.Contains(r.Body.String(), "I agree") || ran {
+		t.Fatalf("install without the tick: %d %s (ran %v)", r.Code, r.Body.String(), ran)
+	}
+	if r := call(testPage(steps), "POST", "/api/run", `{"role":"server","uninstall":true}`, true); r.Code != http.StatusOK {
+		t.Fatalf("uninstall needs no tick: %d %s", r.Code, r.Body.String())
+	}
+}
+
+func TestPageServesTerms(t *testing.T) {
+	h := testPage(Steps)
+	if r := call(h, "GET", "/terms", "", true); r.Code != http.StatusOK || !strings.Contains(r.Body.String(), "LICENCE AND SERVICE TERMS") {
+		t.Fatalf("terms: %d", r.Code)
+	}
+	if r := call(h, "GET", "/terms/shop-rules.pdf", "", true); r.Code != http.StatusOK || !strings.HasPrefix(r.Body.String(), "%PDF") {
+		t.Fatalf("shop rules: %d", r.Code)
+	}
+	if r := call(h, "GET", "/terms", "", false); r.Code == http.StatusOK {
+		t.Fatal("terms without the token")
 	}
 }

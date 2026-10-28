@@ -74,7 +74,7 @@ func ids(steps []Step) []string {
 }
 
 func TestStepsPerRole(t *testing.T) {
-	all := []string{"checks", "database", "program", "settings", "backups", "startup", "network", "printing", "open", "health"}
+	all := []string{"checks", "database", "program", "settings", "terms", "backups", "startup", "network", "printing", "open", "health"}
 	for name, tc := range map[string]struct {
 		c    shopconf.Conf
 		role Role
@@ -82,9 +82,9 @@ func TestStepsPerRole(t *testing.T) {
 	}{
 		"server local":  {conf("linux", "server", true), RoleServer, all},
 		"server remote": {conf("linux", "server", false), RoleServer, all},
-		"file":          {conf("linux", "file", false), RoleServer, []string{"checks", "program", "settings", "startup", "network", "printing", "open", "health"}},
+		"file":          {conf("linux", "file", false), RoleServer, []string{"checks", "program", "settings", "terms", "startup", "network", "printing", "open", "health"}},
 		"cashier":       {conf("linux", "server", true), RoleCashier, []string{"checks", "open", "health"}},
-		"windows file":  {conf("windows", "file", false), RoleServer, []string{"checks", "program", "settings", "startup", "network", "open", "health"}},
+		"windows file":  {conf("windows", "file", false), RoleServer, []string{"checks", "program", "settings", "terms", "startup", "network", "open", "health"}},
 	} {
 		j := &Job{Conf: tc.c, Role: tc.role}
 		if got := ids(Steps(j)); !slices.Equal(got, tc.want) {

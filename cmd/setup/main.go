@@ -4,8 +4,8 @@
 // it never makes a secret or changes a setting.
 //
 //	karots-setup                     the page (asks for admin rights first)
-//	sudo ./karots-setup -yes         headless: install as the shop's main PC, in the terminal
-//	sudo ./karots-setup -yes -role cashier -address 192.168.1.10:3000
+//	sudo ./karots-setup -yes -accept-terms   headless: install as the shop's main PC, in the terminal
+//	sudo ./karots-setup -yes -accept-terms -role cashier -address 192.168.1.10:3000
 //	karots-setup -dry                pretend: the page, every step, nothing installed (for a look)
 package main
 
@@ -57,6 +57,7 @@ func start() error {
 		restore    = flag.String("restore", "", "with -yes, a first install: bring the shop back from this backup file")
 		changeMode = flag.Bool("change-mode", false, "with -yes: allow an Update that changes how the shop is kept (backup → new mode → restore)")
 		copyDir    = flag.String("copy-dir", "", "with -yes: also copy backups to this folder (USB / network)")
+		accept     = flag.Bool("accept-terms", false, "with -yes: the shop accepts the Karots Suite terms (LICENSE + Shop Rules) — an install or Update needs it")
 		keepDir    = flag.String("keep-dir", "", "the Karots backups folder (default: C:\\Karots backups / ~/Karots backups)")
 	)
 	flag.Parse()
@@ -67,8 +68,11 @@ func start() error {
 		return err
 	}
 	if *yes {
+		if !*uninstall && !*accept {
+			return errTerms
+		}
 		j, err := newJob(Choice{Role: Role(*role), Address: *address, Open: *open, BackupDir: *backups, BackupEvery: *every, BackupKeep: *keep, CopyDir: *copyDir,
-			Uninstall: *uninstall, RemovePostgres: *removePG, ChangeMode: *changeMode, Restore: *restore, KeepDir: *keepDir})
+			Uninstall: *uninstall, RemovePostgres: *removePG, ChangeMode: *changeMode, Restore: *restore, KeepDir: *keepDir, AcceptTerms: *accept})
 		if err != nil {
 			return err
 		}
@@ -180,6 +184,7 @@ type Choice struct {
 	ChangeMode     bool   `json:"changeMode"`     // an Update that changes the mode: confirmed
 	Restore        string `json:"restore"`        // a first install: the backup to bring back
 	KeepDir        string `json:"keepDir"`        // the Karots backups folder ("" = the default)
+	AcceptTerms    bool   `json:"acceptTerms"`    // the "I agree" tick: an install or Update needs it
 }
 
 // newJob reads install.conf from beside the program and applies this PC's choices.
@@ -317,7 +322,7 @@ func withPort(addr string, port int) string {
 
 func headless(j *Job) error {
 	if !isAdmin() {
-		return fmt.Errorf("run it with sudo:  sudo ./karots-setup -yes")
+		return fmt.Errorf("run it with sudo:  sudo ./karots-setup -yes -accept-terms")
 	}
 	if err := checkChoice(j); err != nil {
 		return err

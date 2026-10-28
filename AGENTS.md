@@ -61,6 +61,10 @@ if the sample no longer fits, `docs/legal/README.md` + `lawyer-items.json` if it
 
 **When dependencies change:** regenerate `THIRD_PARTY_NOTICES.md`.
 
+**karots-setup embeds `LICENSE` and `docs/legal/karots-suite-shop-rules.pdf`** (its "I agree" tick and the
+recorded SHA-256s): after changing either, run `make agreement` and commit before a Release, so shops accept the
+version they were given.
+
 **Legal text** is a draft for a Sri Lankan attorney-at-law (`LICENSE` carries the DRAFT line the PDFs print). Never
 present it as reviewed; record the lawyer's changes from the review form, then drop the DRAFT line.
 
@@ -75,7 +79,9 @@ cmd/bootstrap/        Shop Builder: no flags = browser app — the shop list (sh
                       -import-pos; writes both plugin lists, builds, restores them core-only. A shop build =
                       dist/<key>/ karots-setup + install.conf + the binary ("Add installer" off = binary only)
 cmd/setup/            karots-setup, the shop's installer: double-click → page (UAC / pkexec) → modular steps per
-                      role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless.
+                      role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless (+ -accept-terms).
+                      "I agree" to the terms (root package `karots` embeds LICENSE + the Shop Rules PDF) gates Install /
+                      Update and is recorded in terms-accepted.txt.
                       Uninstall (backup first → kept in C:\Karots backups / ~/Karots backups; nothing removed if it
                       fails), Bring back a shop at a first install, mode change on Update (backup → new mode → restore)
 cmd/demo/             the Demo Room (one double-click binary, every plugin): launcher (lock on the demo's own install
@@ -206,7 +212,7 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   `.env` `CLOUD_BACKUP_URL/KEY_ID/SECRET`, tick per shop; `docs/cloud-backup-bucket.md`). A Windows
   server-mode main PC: tick **+ PostgreSQL** (or `-postgres`) to put the PostgreSQL installer (cached once in the user
   cache, SHA-256 pinned in `internal/shopconf`) beside the files — Setup uses it before winget / downloading. Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
-  ./karots-setup -yes`). A changed profile reaches a shop by building again and running Setup → Update — a
+  ./karots-setup -yes -accept-terms`). A changed profile reaches a shop by building again and running Setup → Update — a
   **file ⇄ server change** is noticed there and carries the data across once "Change it" is ticked (`-change-mode`).
   **Move a shop to another PC:** Setup → Uninstall on the old one (its final backup), then the three files + that backup
   on the new PC → Setup offers it under "Bring back a shop" (`-restore <file>`). Headless: `-uninstall

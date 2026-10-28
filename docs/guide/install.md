@@ -61,13 +61,16 @@ normal way (UAC on Windows, the password box on Linux) and opens a page:
 1. **This PC is…** the shop's **main PC**, or a **cashier PC** that opens the main PC's till
    full-screen (with a **Test** button for the address).
 2. **What will happen:** plain lines, all decided by the Builder.
-3. **Install:** each step ticks ✓. These are checks, the database, the program, the settings,
+3. **I agree:** the shop ticks that it has read and agrees to the Licence and Service Agreement and the Shop
+   Rules & Service Guide (both open from the links). Install stays off until it's ticked, and Setup keeps a record in
+   `terms-accepted.txt` in the install folder.
+4. **Install:** each step ticks ✓. These are checks, the database, the program, the settings,
    the backup folder, start with the PC, the firewall, printing (CUPS on Linux), opening the
    till, and a final health check. A failed step says what to do and offers **Try again**.
    **Copy log** is there for support.
 
 Windows file mode carries the Visual C++ runtime PostgreSQL needs, so a fresh Windows works.
-A Linux server with no screen runs `sudo ./karots-setup -yes`.
+A Linux server with no screen runs `sudo ./karots-setup -yes -accept-terms` (the flag is the shop accepting the terms).
 
 ## Changing a shop later
 
