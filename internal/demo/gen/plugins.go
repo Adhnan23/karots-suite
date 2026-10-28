@@ -26,7 +26,7 @@ var pluginGens = map[string]pluginGen{
 	"requests":     {daily: requestsDaily},
 	"alternatives": {setup: alternativesSetup},
 	"productplus":  {setup: productplusSetup},
-	"clearance":    {setup: clearanceSetup},
+	"clearance":    {setup: clearanceSetup, daily: clearanceDaily},
 }
 
 func (g *gen) on(key string) bool { return slices.Contains(g.s.p.Plugins, key) }
@@ -74,7 +74,9 @@ func (g *gen) tillSale(c person, customerID int64, items []map[string]any, total
 		return 0, err
 	}
 	pay := map[string]any{"method": "cash", "amount": tendered(g.r, total).String()}
-	if g.r.IntN(4) == 0 {
+	if total.IsNegative() {
+		pay = map[string]any{"method": "cash", "amount": "0"} // the shop hands money over
+	} else if g.r.IntN(4) == 0 {
 		pay = map[string]any{"method": "card", "amount": total.String(), "accountId": g.s.card}
 	}
 	g.lastTill = cl

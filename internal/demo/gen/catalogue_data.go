@@ -107,6 +107,9 @@ Mother & Baby;Baby Wipes 80s;;pkt;520;620;10
 Mother & Baby;Infant Formula 400g;;pkt;2900;3350;8
 Devices;Digital Thermometer;;pcs;690;890;3
 Devices;BP Monitor;;pcs;8500;10500;1
+Controlled;Tramadol 50mg (card of 10);;pcs;120;180;0
+Controlled;Diazepam 5mg (card of 10);;pcs;35;60;0
+Controlled;Codeine Linctus 100ml;;btl;520;650;0
 `
 
 var phoneLines = `

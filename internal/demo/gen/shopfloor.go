@@ -182,6 +182,11 @@ func (s *shop) loadFloor(ctx context.Context, d Deps) error {
 	for i, it := range s.items {
 		idx[it.name] = i
 	}
+	for name, u := range map[string]float64{"A4 Paper (sheet)": 450, "Copier Toner Cartridge": 0.2} {
+		if i, ok := idx[name]; ok {
+			s.items[i].use = u
+		}
+	}
 	for _, w := range fl.warranty {
 		if i, ok := idx[w.product]; ok {
 			s.items[i].warranty, s.items[i].imei, s.items[i].faults = w.months, w.imei, w.faults

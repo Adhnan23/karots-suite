@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 )
@@ -30,9 +31,45 @@ func requestsDaily(g *gen, day time.Time, until float64) error {
 		return nil
 	}
 	g.tm.at(at(day, h))
-	names := []string{"Nimal", "Shirani", "Faiz", "Kamal", "Dilrukshi", "Ravi", "Anoma"}
-	return g.admin.Do("POST", "/api/v1/x/requests", map[string]string{"note": notes[g.r.IntN(len(notes))],
-		"name": names[g.r.IntN(len(names))], "phone": fmt.Sprintf("07%d%07d", 1+g.r.IntN(8), g.r.IntN(10000000))}, nil)
+	names := []string{"Nimal", "Shirani", "Faiz", "Kamal", "Dilrukshi", "Ravi", "Anoma", "Tharindu", "Mrs. Fernando", "Uncle Siva"}
+	note := notes[g.r.IntN(len(notes))]
+	who := map[string]string{"name": names[g.r.IntN(len(names))], "phone": fmt.Sprintf("07%d%07d", 1+g.r.IntN(8), g.r.IntN(10000000))}
+	var open int64 // someone already asked: one more name on the same request
+	if err := g.d.DB.GetContext(g.ctx, &open, `SELECT id FROM requests WHERE note = $1 AND status = 'open' ORDER BY id LIMIT 1`, note); err == nil {
+		return g.admin.Do("POST", fmt.Sprintf("/api/v1/x/requests/%d/asks", open), who, nil)
+	}
+	who["note"] = note
+	return g.admin.Do("POST", "/api/v1/x/requests", who, nil)
+}
+
+// clearanceDaily: Monday mornings the owner looks down the clearance list and
+// marks down the oldest few at the safe suggested percent.
+func clearanceDaily(g *gen, day time.Time, until float64) error {
+	if day.Weekday() != time.Monday || until < 9.5 {
+		return nil
+	}
+	var page struct {
+		Rows []struct {
+			ProductID int64  `json:"productId"`
+			Status    string `json:"status"`
+			Percent   string `json:"percent"`
+		} `json:"rows"`
+	}
+	if err := g.admin.Do("GET", "/api/v1/x/clearance", nil, &page); err != nil {
+		return err
+	}
+	n := 1 + g.r.IntN(3)
+	for _, r := range page.Rows {
+		if n == 0 || r.Status != "" || r.Percent == "" || r.Percent == "0" {
+			continue
+		}
+		g.tm.at(at(day, 9+g.r.Float64()*0.5))
+		if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/x/clearance/%d/approve", r.ProductID), map[string]string{"percent": r.Percent}, nil); err != nil {
+			return fmt.Errorf("markdown: %w", err)
+		}
+		n--
+	}
+	return nil
 }
 
 // alternativesSetup groups medicines that can stand in for each other.
@@ -86,40 +123,106 @@ func alternativesSetup(g *gen) error {
 }
 
 // productplusSetup adds the fields this kind of shop keeps and fills them in.
-func productplusSetup(g *gen) error {
-	type field struct {
-		label, typ string
-		options    []string
-		value      func(it item) string
+// ppField is an extra product field the owner added, shown only on the
+// categories it belongs to, with each product's real value.
+type ppField struct {
+	label, typ string
+	options    []string
+	cats       []string
+	value      func(it item) string
+}
+
+// brandOf reads the brand off the product's own name, else the usual one for its kind.
+func brandOf(it item, known []string, byCat map[string]string) string {
+	for _, b := range known {
+		if strings.Contains(it.name, b) {
+			return b
+		}
 	}
-	var fields []field
-	switch {
-	case g.on("pharmacy"):
-		fields = []field{
-			{"Generic name", "text", nil, func(it item) string { return strings.Fields(it.name)[0] }},
-			{"Manufacturer", "select", []string{"SPC", "Hemas", "Cipla", "GSK"}, func(it item) string { return []string{"SPC", "Hemas", "Cipla", "GSK"}[len(it.name)%4] }},
-		}
-	default:
-		fields = []field{
-			{"Brand", "select", []string{"Tokyo", "S-Lon", "Orange", "Dulux", "Lanka Wall"}, func(it item) string {
-				return []string{"Tokyo", "S-Lon", "Orange", "Dulux", "Lanka Wall"}[len(it.name)%5]
+	return byCat[it.cat]
+}
+
+var ppFields = map[string][]ppField{
+	"pharmacy": {
+		{"Generic name", "text", nil, []string{"Pain & Fever", "Antibiotics", "Diabetes", "Heart & BP", "Stomach", "Cold & Allergy", "Controlled"},
+			func(it item) string { return strings.Fields(it.name)[0] }},
+		{"Manufacturer", "select", []string{"SPC", "Hemas", "Cipla", "Sun Pharma", "GSK"}, []string{"Pain & Fever", "Antibiotics", "Diabetes", "Heart & BP", "Stomach", "Cold & Allergy", "Vitamins", "Controlled"},
+			func(it item) string { return []string{"SPC", "Hemas", "Cipla", "Sun Pharma", "GSK"}[len(it.name)%5] }},
+	},
+	"hardware": {
+		{"Brand", "select", []string{"Tokyo", "INSEE", "S-Lon", "Anton", "Orange", "Kelani", "Dulux", "Multilac", "Lanwa"}, []string{"Cement & Sand", "Plumbing", "Electrical", "Paint", "Steel"},
+			func(it item) string {
+				return brandOf(it, []string{"Tokyo", "INSEE"}, map[string]string{"Cement & Sand": "Tokyo", "Plumbing": "S-Lon", "Electrical": "Orange", "Paint": "Dulux", "Steel": "Lanwa"})
 			}},
-			{"Guarantee", "text", nil, func(it item) string { return []string{"", "6 months", "1 year"}[len(it.name)%3] }},
-		}
+		{"Guarantee", "text", nil, []string{"Tools", "Plumbing"},
+			func(it item) string {
+				if it.warranty > 0 {
+					return fmt.Sprintf("%d months (agent)", it.warranty)
+				}
+				return ""
+			}},
+	},
+	"phone": {
+		{"Brand", "select", []string{"Samsung", "Redmi", "Infinix", "Nokia", "Anker", "Baseus", "Remax", "Joyroom"}, []string{"Phones", "Chargers", "Cables", "Audio", "Power"},
+			func(it item) string {
+				return brandOf(it, []string{"Samsung", "Redmi", "Infinix", "Nokia"}, map[string]string{"Chargers": "Baseus", "Cables": "Remax", "Audio": "Joyroom", "Power": "Anker"})
+			}},
+		{"Fits", "text", nil, []string{"Cases & Glass"}, func(it item) string { return "Most 6.5–6.7 inch phones" }},
+	},
+	"grocery": {
+		{"Brand", "select", []string{"Anchor", "Milo", "Nescafe", "Elephant House", "Coca-Cola", "Sunlight", "Lux", "Maliban", "Munchee", "Prima", "Keells"},
+			[]string{"Dairy", "Tea & Coffee", "Beverages", "Bakery", "Household", "Personal Care", "Snacks"},
+			func(it item) string {
+				return brandOf(it, []string{"Anchor", "Milo", "Nescafe", "Elephant House", "Coca-Cola", "Sunlight", "Lux", "Marie"},
+					map[string]string{"Dairy": "Keells", "Tea & Coffee": "Keells", "Bakery": "Munchee", "Beverages": "Elephant House", "Household": "Keells", "Personal Care": "Keells", "Snacks": "Maliban"})
+			}},
+	},
+}
+
+func productplusSetup(g *gen) error {
+	fields := ppFields[g.s.p.Catalogue]
+	if g.s.p.Catalogue == "mixed" {
+		fields = slices.Concat(ppFields["grocery"], ppFields["pharmacy"], ppFields["phone"], ppFields["hardware"])
+	}
+	cats, err := g.categories()
+	if err != nil {
+		return err
 	}
 	var cells []map[string]any
+	made := map[string]int64{} // the mixed store shares one Brand field
 	for _, f := range fields {
-		var out struct {
-			ID int64 `json:"id"`
+		scope := []int64{}
+		for _, c := range f.cats {
+			if id, ok := cats[c]; ok {
+				scope = append(scope, id)
+			}
 		}
-		if err := g.admin.Do("POST", "/api/v1/x/productplus/fields", map[string]any{"label": f.label, "type": f.typ, "defaultValue": "", "hint": "",
-			"required": false, "searchable": true, "showAtTill": true, "printOnLabel": false, "showInIntake": true,
-			"options": append([]string{}, f.options...), "scope": []int64{}}, &out); err != nil {
-			return err
+		id, ok := made[f.label]
+		if !ok {
+			var out struct {
+				ID int64 `json:"id"`
+			}
+			opts := append([]string{}, f.options...)
+			if f.label == "Brand" && g.s.p.Catalogue == "mixed" {
+				opts, scope = nil, []int64{} // one free-text brand across the whole store
+			}
+			typ := f.typ
+			if opts == nil {
+				typ = "text"
+			}
+			if err := g.admin.Do("POST", "/api/v1/x/productplus/fields", map[string]any{"label": f.label, "type": typ, "defaultValue": "", "hint": "",
+				"required": false, "searchable": true, "showAtTill": true, "printOnLabel": false, "showInIntake": true,
+				"options": opts, "scope": scope}, &out); err != nil {
+				return err
+			}
+			id, made[f.label] = out.ID, out.ID
 		}
 		for _, it := range g.s.items {
+			if !slices.Contains(f.cats, it.cat) {
+				continue
+			}
 			if v := f.value(it); v != "" {
-				cells = append(cells, map[string]any{"productId": it.id, "fieldId": out.ID, "value": v})
+				cells = append(cells, map[string]any{"productId": it.id, "fieldId": id, "value": v})
 			}
 		}
 	}

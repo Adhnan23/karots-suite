@@ -223,7 +223,7 @@ func (g *gen) restock(day time.Time, opening bool) error {
 		if _, loose := g.s.bagFor(i); loose || it.service {
 			continue // services hold no stock; loose rice comes out of the bags
 		}
-		week, have := g.weekly(it), g.stock[it.id]
+		week, have := g.weekly(it)+it.use, g.stock[it.id]
 		for _, c := range g.s.convs {
 			if c.from == i { // a bag: enough for its loose bin too
 				to := g.s.items[c.to]

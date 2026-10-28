@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -16,6 +17,7 @@ type repairJob struct {
 	ticket       string
 	next         time.Time // when its next step is due
 	step         string    // in_progress → ready → collect
+	advance      decimal.Decimal
 }
 
 var (
@@ -85,8 +87,33 @@ func (g *gen) repairIn(day time.Time, h float64) error {
 	if err != nil {
 		return fmt.Errorf("new job: %w", err)
 	}
-	g.jobs = append(g.jobs, &repairJob{id: out.ID, customer: cust, ticket: out.TicketNo,
-		next: at(day, h+2+g.r.Float64()*20), step: "in_progress"})
+	j := &repairJob{id: out.ID, customer: cust, ticket: out.TicketNo, next: at(day, h+2+g.r.Float64()*20), step: "in_progress"}
+	g.jobs = append(g.jobs, j)
+	if (typ == "Screen" || typ == "Water") && g.r.IntN(2) == 0 { // a part to order: they leave an advance
+		return g.repairAdvance(j)
+	}
+	return nil
+}
+
+// repairAdvance takes money towards the repair at the counter (a customer
+// payment, as the credit tab takes it) and ties it to the job.
+func (g *gen) repairAdvance(j *repairJob) error {
+	cl, err := g.tillOf(g.cashier())
+	if err != nil {
+		return err
+	}
+	amt := decimal.NewFromInt(int64(1000 * (1 + g.r.IntN(3))))
+	var pay struct {
+		PaymentID int64 `json:"paymentId"`
+	}
+	if err := cl.Do("POST", fmt.Sprintf("/api/v1/till/customers/%d/payment", j.customer), map[string]any{
+		"amount": amt.String(), "method": "cash", "note": "Advance for repair " + j.ticket}, &pay); err != nil {
+		return fmt.Errorf("repair advance: %w", err)
+	}
+	if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/x/repairs/jobs/%d/deposits", j.id), map[string]int64{"paymentId": pay.PaymentID}, nil); err != nil {
+		return fmt.Errorf("link advance: %w", err)
+	}
+	j.advance = amt
 	return nil
 }
 
@@ -107,6 +134,7 @@ func (g *gen) repairStep(day time.Time, j *repairJob) (bool, error) {
 	case "ready":
 		var job struct {
 			RepairType string `json:"repairType"`
+			RepairedBy string `json:"repairedBy"`
 		}
 		if err := g.admin.Do("GET", path, nil, &job); err != nil {
 			return false, err
@@ -118,6 +146,12 @@ func (g *gen) repairStep(day time.Time, j *repairJob) (bool, error) {
 		amt := (lo + g.r.IntN(hi-lo+1)) / 100 * 100
 		if err := g.admin.Do("POST", path+"/charges", map[string]string{"label": "Labour — " + job.RepairType, "amount": fmt.Sprint(amt)}, nil); err != nil {
 			return false, err
+		}
+		if !strings.Contains(job.RepairedBy, "in-house") { // the outside lab is paid its share from the safe
+			if err := g.admin.Do("POST", path+"/payouts", map[string]string{"amount": fmt.Sprint(amt * 55 / 100 / 50 * 50),
+				"source": g.safeSrc(), "note": "Paid " + job.RepairedBy}, nil); err != nil {
+				return false, fmt.Errorf("lab payout: %w", err)
+			}
 		}
 		if part, ok := g.repairPart(job.RepairType); ok && g.stock[part.id] >= 1 {
 			g.stock[part.id]--
@@ -179,8 +213,31 @@ func (g *gen) collect(path string, j *repairJob) error {
 	if bill.CustomerID != nil {
 		cust = *bill.CustomerID
 	}
-	_, err := g.tillSale(g.cashier(), cust, items, total)
-	return err
+	if j.advance.IsZero() || cust == 0 {
+		_, err := g.tillSale(g.cashier(), cust, items, total)
+		return err
+	}
+	// the advance they left comes off on their account; the rest in cash
+	cl, err := g.tillOf(g.cashier())
+	if err != nil {
+		return err
+	}
+	g.lastTill = cl
+	var room decimal.Decimal // an advance first pays off what they already owed
+	if err := g.d.DB.GetContext(g.ctx, &room, `SELECT credit_limit - outstanding_balance FROM customers WHERE id = $1`, cust); err != nil {
+		return err
+	}
+	adv := decimal.Min(j.advance, total, room)
+	if !adv.IsPositive() {
+		_, err := g.tillSale(g.cashier(), cust, items, total)
+		return err
+	}
+	pays := []any{map[string]any{"method": "credit", "amount": adv.String()}}
+	if rest := total.Sub(adv); rest.IsPositive() {
+		pays = append(pays, map[string]any{"method": "cash", "amount": rest.String()}) // exact: change can't come off an account
+	}
+	return cl.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+		"items": items, "payments": pays, "customerId": cust}, nil)
 }
 
 // dec reads an API money / quantity string; "" is def.

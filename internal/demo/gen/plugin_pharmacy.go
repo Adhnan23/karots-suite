@@ -26,6 +26,16 @@ var (
 		{"Master Kavindu Fernando", "0727778807", "", "2015-04-22", "M", ""},
 		{"Mrs. Fathima Nazeer", "0768889908", "198865432109", "1988-12-03", "F", ""},
 	}
+	// controlledDrugs: on the register, given only against a prescription — by
+	// patient index: what the doctor wrote for them.
+	controlledDrugs = []struct {
+		name, schedule, dosage, qty, perDay string
+		patient                             int
+	}{
+		{"Tramadol 50mg", "Restricted (NMRA)", "1 tablet twice a day for pain", "10", "2", 0},
+		{"Diazepam 5mg", "Psychotropic", "1 tablet at night", "10", "1", 5},
+		{"Codeine Linctus", "Dangerous Drug (DDO)", "5 ml three times a day", "1", "3", 2},
+	}
 	chronic = map[string]string{"Metformin": "1 tablet twice a day", "Losartan": "1 tablet in the morning", "Amlodipine": "1 tablet at night", "Atorvastatin": "1 tablet at night"}
 )
 
@@ -55,7 +65,7 @@ func (g *gen) medicines() (rx, otc []item) {
 
 func pharmacySetup(g *gen) error {
 	rx, otc := g.medicines()
-	mark := func(it item, rxOnly bool) error {
+	mark := func(it item, rxOnly bool, schedule string) error {
 		var p struct {
 			Name      string  `db:"name"`
 			NameLocal *string `db:"name_local"`
@@ -66,7 +76,7 @@ func pharmacySetup(g *gen) error {
 		if err := g.d.DB.GetContext(g.ctx, &p, `SELECT name, name_local, barcode, category_id, unit_id FROM products WHERE id = $1`, it.id); err != nil {
 			return err
 		}
-		flags, _ := json.Marshal(map[string]any{"medicine": true, "rxOnly": rxOnly, "controlled": false, "schedule": "",
+		flags, _ := json.Marshal(map[string]any{"medicine": true, "rxOnly": rxOnly, "controlled": schedule != "", "schedule": schedule,
 			"dose": "1 tablet three times a day", "note": "After meals"})
 		return g.admin.Do("PUT", fmt.Sprintf("/api/v1/admin/products/%d", it.id), map[string]any{
 			"name": p.Name, "nameLocal": deref(p.NameLocal), "barcode": deref(p.Barcode), "categoryId": p.Cat, "unitId": p.Unit,
@@ -74,13 +84,20 @@ func pharmacySetup(g *gen) error {
 			"extra": map[string]json.RawMessage{"pharmacy": flags},
 		}, nil)
 	}
+	for _, cd := range controlledDrugs {
+		if it, ok := g.itemNamed(cd.name); ok {
+			if err := mark(it, true, cd.schedule); err != nil {
+				return fmt.Errorf("mark %s: %w", it.name, err)
+			}
+		}
+	}
 	for _, it := range rx {
-		if err := mark(it, true); err != nil {
+		if err := mark(it, true, ""); err != nil {
 			return fmt.Errorf("mark %s: %w", it.name, err)
 		}
 	}
 	for _, it := range otc {
-		if err := mark(it, false); err != nil {
+		if err := mark(it, false, ""); err != nil {
 			return fmt.Errorf("mark %s: %w", it.name, err)
 		}
 	}
@@ -109,6 +126,12 @@ func pharmacySetup(g *gen) error {
 			}
 		}
 		repeat := len(items) > 0 // chronic medicines come back every month
+		for _, cd := range controlledDrugs {
+			if it, ok := g.itemNamed(cd.name); ok && cd.patient == i {
+				items = append(items, map[string]any{"productId": it.id, "drugText": it.name, "dosage": cd.dosage, "note": "Controlled — record in the register",
+					"quantity": cd.qty, "perDay": cd.perDay})
+			}
+		}
 		if len(items) == 0 && len(rx) > 0 {
 			it := rx[i%len(rx)]
 			items = append(items, map[string]any{"productId": it.id, "drugText": it.name, "dosage": "1 tablet twice a day", "note": "Finish the course", "quantity": "10", "perDay": "2"})

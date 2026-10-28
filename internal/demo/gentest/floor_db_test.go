@@ -24,6 +24,28 @@ var floorTables = map[string][]string{
 	"warranty_claims":  {"phone", "mixed"},
 }
 
+// pluginLife: what each plugin's daily work leaves behind beyond its main table.
+var pluginLife = map[string][]string{
+	"pharmacy":    {"pharmacy_controlled_products"},
+	"productplus": {"pp_field_categories"},
+	"documents":   {"doc_consumable"},
+	"recharge":    {"recharge_bill_tx", "recharge_counts"},
+	"repairs":     {"repair_deposits", "repair_payouts"},
+	"requests":    {"request_asks"},
+	"clearance":   {"clearance_markdowns"},
+}
+
+func TestPluginLifeFilled(t *testing.T) {
+	need(t)
+	for _, k := range shop.Plugins {
+		for _, tb := range pluginLife[k] {
+			if count(t, `SELECT count(*) FROM `+tb) == 0 {
+				t.Errorf("%s: nothing in %s", k, tb)
+			}
+		}
+	}
+}
+
 func TestShopFloorFilled(t *testing.T) {
 	need(t)
 	for tb, cats := range floorTables {

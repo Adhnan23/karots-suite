@@ -28,6 +28,7 @@ type item struct {
 	unit        string
 	cat         string // its category
 
+	use      float64           // used up each week by services (paper, toner), beyond sales
 	service  bool              // sold without stock (a cup of tea, a fitting)
 	parts    []partUse         // the stock a service uses
 	packs    []sales.PackPrice // also sold by the pack
@@ -55,6 +56,14 @@ type shop struct {
 	convs     []conv   // the bags it opens to sell loose
 }
 
+// pluginLines is stock a plugin's work uses, on the shelf only when it's on.
+func pluginLines(p shops.Profile) string {
+	if p.Has("documents") {
+		return "\nPrint & Copy;A4 Paper (sheet);;pcs;3.6;6;2\nPrint & Copy;Copier Toner Cartridge;;pcs;7800;9800;0.05\n"
+	}
+	return ""
+}
+
 func linesFor(catalogue string) (lines string, sups []string) {
 	pick := map[string]string{"grocery": groceryLines, "pharmacy": pharmacyLines, "phone": phoneLines, "hardware": hardwareLines}
 	if l, ok := pick[catalogue]; ok {
@@ -71,6 +80,7 @@ func linesFor(catalogue string) (lines string, sups []string) {
 func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	s := &shop{p: p}
 	lines, sups := linesFor(p.Catalogue)
+	lines += pluginLines(p)
 	for _, l := range sups {
 		f := strings.Split(l, ";")
 		days, _ := strconv.Atoi(f[3])

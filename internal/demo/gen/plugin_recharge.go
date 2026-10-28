@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"karots-suite/internal/features/lockers"
 )
 
 // Recharge: four carriers with a reload SIM each (Dialog also an eZ Cash wallet),
@@ -36,8 +38,13 @@ type rechargeTill struct {
 	} `json:"packages"`
 	Products struct {
 		Billpay int64 `json:"billpay"`
+		Cashout int64 `json:"cashout"`
 		Charge  int64 `json:"charge"`
 	} `json:"products"`
+	Banks []struct {
+		ID   int64  `json:"id"`
+		Name string `json:"name"`
+	} `json:"banks"`
 }
 
 var carriers = []struct {
@@ -57,6 +64,11 @@ func (g *gen) rechargeData() (rechargeTill, error) {
 }
 
 func rechargeSetup(g *gen) error {
+	// the shop's own banking app: bills paid from it, and cash outs into it
+	if _, err := lockers.NewService(g.d.DB).Create(g.ctx, lockers.CreateInput{Name: "Sampath Bank — shop app", Kind: lockers.KindBank,
+		OpeningBalance: "180000", CashierAccess: "on"}, g.s.owner.id); err != nil {
+		return fmt.Errorf("bank app: %w", err)
+	}
 	dealer := g.s.suppliers[len(g.s.suppliers)-1] // "SIM & Reload Agency" in the phone shop
 	for _, c := range carriers {
 		var out struct {
@@ -106,6 +118,11 @@ func rechargeDaily(g *gen, day time.Time, until float64) error {
 			return err
 		}
 	}
+	if day.Weekday() == time.Saturday && until > 19.8 { // the week's float check
+		if err := g.countFloats(day); err != nil {
+			return err
+		}
+	}
 	n := 5 + g.r.IntN(10)
 	if g.on("pharmacy") { // the Everything shop sells fewer
 		n /= 2
@@ -126,6 +143,7 @@ func rechargeDaily(g *gen, day time.Time, until float64) error {
 // rechargeSale is a reload, a data pack or a bill paid through the wallet.
 func (g *gen) rechargeSale(d rechargeTill) error {
 	tag := func(t map[string]any) map[string]any { return map[string]any{"recharge": t} }
+	c := g.cashier()
 	fl := d.Floats[g.r.IntN(len(d.Floats))]
 	var productID int64
 	for _, c := range d.Carriers {
@@ -138,6 +156,39 @@ func (g *gen) rechargeSale(d rechargeTill) error {
 	items := []map[string]any{line}
 	var total decimal.Decimal
 	switch {
+	case len(d.Banks) > 0 && g.r.IntN(12) == 0: // through the shop's banking app
+		bank := d.Banks[0]
+		tagBank := func(kind string, extra map[string]any) map[string]any {
+			t := map[string]any{"kind": kind, "bank": bank.ID, "label": bank.Name}
+			for k, v := range extra {
+				t[k] = v
+			}
+			return tag(t)
+		}
+		if g.r.IntN(2) == 0 { // a bill paid in the app, the customer pays in cash
+			amt := decimal.NewFromInt(int64(2000 + g.r.IntN(80)*100))
+			bill := []string{"Electricity (CEB)", "Water (NWSDB)", "SLT broadband", "Leasing instalment"}[g.r.IntN(4)]
+			ref := fmt.Sprintf("%08d", g.r.IntN(100000000))
+			line["productId"], line["priceOverride"], line["description"] = d.Products.Billpay, amt.String(), bill+" · "+ref
+			line["plugin"] = tagBank("billpay", map[string]any{"billType": bill, "ref": ref})
+			items = append(items, map[string]any{"productId": d.Products.Charge, "quantity": "1", "priceOverride": "50",
+				"description": "Service charge · " + bill, "discount": "0", "discountType": "fixed", "plugin": tag(map[string]any{"kind": "charge"})})
+			total = amt.Add(decimal.NewFromInt(50))
+			break
+		}
+		// cash out: the customer sends money to the shop's account and takes it in
+		// cash — only when this drawer can cover it
+		amt := decimal.NewFromInt(int64(2000 + g.r.IntN(37)*500))
+		sum, err := g.d.Svc.CashRegister.Summary(g.ctx, c.id)
+		if err != nil || sum.Expected.LessThan(amt.Add(decimal.NewFromInt(3000))) {
+			return nil
+		}
+		ref := fmt.Sprintf("TRF%07d", g.r.IntN(10000000))
+		line["productId"], line["payout"], line["priceOverride"], line["description"] = d.Products.Cashout, true, amt.String(), "Cash out · "+ref
+		line["plugin"] = tagBank("cashout", map[string]any{"ref": ref})
+		items = append(items, map[string]any{"productId": d.Products.Charge, "quantity": "1", "priceOverride": "100",
+			"description": "Service charge · Cash out", "discount": "0", "discountType": "fixed", "plugin": tag(map[string]any{"kind": "charge"})})
+		total = decimal.NewFromInt(100).Sub(amt)
 	case fl.Money: // a CEB / water bill paid from the wallet, plus the service charge
 		amt := decimal.NewFromInt(int64(1500 + g.r.IntN(60)*100))
 		bill := []string{"Electricity (CEB)", "Water (NWSDB)", "SLT broadband"}[g.r.IntN(3)]
@@ -164,7 +215,7 @@ func (g *gen) rechargeSale(d rechargeTill) error {
 		line["priceOverride"], line["description"] = total.String(), fl.Carrier+" reload · "+number
 		line["plugin"] = tag(map[string]any{"kind": "reload", "device": fl.ID, "label": fl.Carrier + " · " + fl.Label, "number": number})
 	}
-	_, err := g.tillSale(g.cashier(), 0, items, total)
+	_, err := g.tillSale(c, 0, items, total)
 	return err
 }
 
@@ -188,4 +239,32 @@ func (g *gen) refillFloats(day time.Time, d rechargeTill) error {
 		}
 	}
 	return nil
+}
+
+// countFloats is the owner checking each SIM's balance on the phone on
+// Saturday night: mostly right, now and then a reload that didn't go through.
+func (g *gen) countFloats(day time.Time) error {
+	d, err := g.rechargeData()
+	if err != nil {
+		return err
+	}
+	var counts []map[string]any
+	for _, f := range d.Floats {
+		bal := dec(f.Balance, "0")
+		if bal.LessThan(decimal.NewFromInt(500)) {
+			continue // all but empty: it gets topped up, not counted
+		}
+		switch g.r.IntN(6) {
+		case 0:
+			bal = bal.Sub(decimal.NewFromInt(int64(50 * (1 + g.r.IntN(4))))) // a reload sent twice
+		case 1:
+			bal = bal.Add(decimal.NewFromInt(int64(10 * (1 + g.r.IntN(5))))) // a bonus from the carrier
+		}
+		counts = append(counts, map[string]any{"deviceId": f.ID, "counted": bal.StringFixed(2)})
+	}
+	if len(counts) == 0 {
+		return nil
+	}
+	g.tm.at(at(day, 19.7))
+	return g.admin.Do("POST", "/api/v1/x/recharge/counts", map[string]any{"counts": counts}, nil)
 }

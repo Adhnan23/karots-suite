@@ -17,6 +17,7 @@ import (
 func loadShop(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	s := &shop{p: p}
 	lines, sups := linesFor(p.Catalogue)
+	lines += pluginLines(p)
 	for _, l := range sups {
 		var id int64
 		if err := d.DB.GetContext(ctx, &id, `SELECT id FROM suppliers WHERE name = $1`, strings.Split(l, ";")[0]); err != nil {

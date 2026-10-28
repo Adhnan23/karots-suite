@@ -281,9 +281,17 @@ func (g *gen) sendBack(day time.Time) error {
 		if err != nil {
 			return err
 		}
+		var owed decimal.Decimal // < 0: the supplier owes the shop
+		if err := g.d.DB.GetContext(g.ctx, &owed, `SELECT outstanding_balance FROM suppliers WHERE id = $1`, g.s.suppliers[dv.sup]); err != nil {
+			return err
+		}
+		amt := decimal.Min(total, owed.Neg())
+		if !amt.IsPositive() {
+			return nil // other bills were open: it simply came off the next one
+		}
 		g.tm.at(at(d, 10+6*g.r.Float64()))
 		return cl.Do("POST", fmt.Sprintf("/api/v1/till/suppliers/%d/refund", g.s.suppliers[dv.sup]), map[string]any{
-			"amount": total.StringFixed(2), "method": "cash", "note": "Rep refunded the goods sent back"}, nil)
+			"amount": amt.StringFixed(2), "method": "cash", "note": "Rep refunded the goods sent back"}, nil)
 	})
 	return nil
 }

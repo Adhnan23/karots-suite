@@ -21,8 +21,22 @@ type docService struct {
 }
 
 func documentsSetup(g *gen) error {
-	cat, err := categories.NewService(g.d.DB).Create(g.ctx, categories.CreateInput{Name: "Print & Copy"})
+	cats, err := g.categories()
 	if err != nil {
+		return err
+	}
+	catID, ok := cats["Print & Copy"]
+	if !ok {
+		c, err := categories.NewService(g.d.DB).Create(g.ctx, categories.CreateInput{Name: "Print & Copy"})
+		if err != nil {
+			return err
+		}
+		catID = c.ID
+	}
+	paper, _ := g.itemNamed("A4 Paper (sheet)")
+	toner, _ := g.itemNamed("Copier Toner Cartridge")
+	if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/packs", paper.id),
+		map[string]string{"name": "Ream (500)", "size": "500", "sellingPrice": "2300"}, nil); err != nil {
 		return err
 	}
 	for _, s := range []struct {
@@ -38,7 +52,7 @@ func documentsSetup(g *gen) error {
 			ID        int64 `json:"id"`
 			ProductID int64 `json:"productId"`
 		}
-		body := map[string]any{"name": s.name, "categoryId": cat.ID, "kind": s.kind, "category": s.category}
+		body := map[string]any{"name": s.name, "categoryId": catID, "kind": s.kind, "category": s.category}
 		if s.price != "" {
 			body["sellingPrice"] = s.price
 		}
@@ -46,8 +60,15 @@ func documentsSetup(g *gen) error {
 			return err
 		}
 		if s.grid != nil {
-			grid := map[string]any{"rows": []map[string]any{{"size": "A4", "tiers": s.grid, "paper": []any{}}}}
+			grid := map[string]any{"rows": []map[string]any{{"size": "A4", "tiers": s.grid,
+				"paper": []map[string]any{{"productId": paper.id, "perSheet": "1"}}}}}
 			if err := g.admin.Do("PUT", fmt.Sprintf("/api/v1/x/documents/services/%d/grid", out.ID), grid, nil); err != nil {
+				return err
+			}
+			// a cartridge does about 2,500 pages
+			if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/recipe", out.ProductID), map[string]any{
+				"components": []map[string]any{{"productId": toner.id, "amount": "2500", "mode": "yield"}},
+				"costs":      []map[string]string{{"label": "Copier upkeep", "amount": "1.5"}}}, nil); err != nil {
 				return err
 			}
 		}
@@ -106,6 +127,19 @@ func (g *gen) docSale(s docService) error {
 		job["size"], job["color"], job["double"], job["sheets"], job["description"] = "A4", color, double, q.Sheets, q.Description
 		line["quantity"], line["priceOverride"], line["description"] = fmt.Sprint(copies), q.UnitPrice, q.Description
 		if len(q.Components) > 0 && string(q.Components) != "null" {
+			var used []struct {
+				ProductID int64  `json:"productId"`
+				Quantity  string `json:"quantity"`
+			}
+			_ = json.Unmarshal(q.Components, &used)
+			for _, u := range used {
+				if g.stock[u.ProductID] < dec(u.Quantity, "0").InexactFloat64()+1 {
+					return nil // out of paper until the next delivery
+				}
+			}
+			for _, u := range used {
+				g.stock[u.ProductID] -= dec(u.Quantity, "0").InexactFloat64()
+			}
 			line["components"] = q.Components
 		}
 	} else {
