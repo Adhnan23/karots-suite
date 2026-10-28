@@ -82,3 +82,13 @@ describe('buildSaleRequest plugin data', () => {
     expect(req.items.map((i) => i.plugin)).toEqual([undefined, { repairs: { job: 7, ticket: 'R-0007' } }])
   })
 })
+
+describe('line groups on the sale request', () => {
+  it('a service group posts itemised (the receipt prices each line); a combo does not', () => {
+    const s = tillReducer(initialState('retail'), { type: 'addServiceGroup', group: { label: 'Photocopy', lines: [
+      { productId: 70, name: 'Photocopy A4', price: 40, qty: 4, unitPrice: 10 }, { productId: 70, name: 'Urgent', price: 100 }] } })
+    const req = buildSaleRequest(s, [], { deferDrawerKick: false })
+    expect(req.items.map((i) => i.group)).toEqual([
+      { no: 1, label: 'Photocopy', sets: '1', itemised: true }, { no: 1, label: 'Photocopy', sets: '1', itemised: true }])
+  })
+})

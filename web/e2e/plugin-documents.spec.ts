@@ -204,7 +204,13 @@ test('extras: set in the editor, ticked at the till, one block with the job, the
   await page.screenshot({ path: 'shots/doc-types/extras-cart.png' })
   await expect(ex.getByRole('button', { name: /Urgent/ })).toHaveAttribute('aria-pressed', 'false') // cleared for the next job
   await page.getByRole('button', { name: /Complete sale/ }).click()
-  await expect(page.getByRole('dialog', { name: /complete/ })).toContainText('Rs. 160.00')
+  const done = page.getByRole('dialog', { name: /complete/ })
+  await expect(done).toContainText('Rs. 160.00')
+  // the receipt: the job's block with its total, each line priced
+  const slip = done.getByRole('article', { name: 'Receipt preview' }) // Classic (the shop default): the decoded lines
+  await expect(slip).toContainText(new RegExp(`${COPY}\\s+160\\.00`))
+  await expect(slip).toContainText(/- Urgent x1\s+100\.00/)
+  await expect(slip).toContainText(/- Hole punch x4\s+20\.00/)
   await page.keyboard.press('Enter')
   const copies = (r: { rows: { name: string; copies: string }[] }) => Number(r.rows.find((x) => x.name === COPY)?.copies ?? 0)
   await expect.poll(async () => copies(await json(page.request.get('/api/v1/x/documents/report?preset=today')))).toBe(copies(before) + 4)

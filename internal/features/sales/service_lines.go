@@ -364,7 +364,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				return apperr.Validation("a line group needs a number, a label and its sets")
 			}
 			no, sets := g.No, g.Sets
-			item.LineGroup, item.LineGroupLabel, item.LineGroupSets = &no, &label, &sets
+			item.LineGroup, item.LineGroupLabel, item.LineGroupSets, item.LineGroupItemised = &no, &label, &sets, g.Itemised
 		}
 		lines = append(lines, item)
 		if len(lineComps) > 0 {

@@ -33,6 +33,10 @@ func printItems(b *bytes.Buffer, d sales.Detail, w int, opts Options) decimal.De
 				members = append(members, m)
 			}
 		}
+		if it.LineGroupItemised {
+			itemDisc = itemDisc.Add(printItemised(b, *it.LineGroupLabel, members, d.Sale.CreatedAt, w, opts))
+			continue
+		}
 		itemDisc = itemDisc.Add(printGroup(b, *it.LineGroupLabel, *it.LineGroupSets, members, d.Sale.CreatedAt, w, opts))
 	}
 	return itemDisc
@@ -95,6 +99,37 @@ func printGroup(b *bytes.Buffer, label string, sets decimal.Decimal, members []s
 		extras(b, m, soldAt, w, opts, "     ")
 	}
 	return disc
+}
+
+// printItemised is an itemised group (a job and its add-ons): the label with the
+// group's total, then each member with its own price (net of its discount, the
+// saving under it). It returns the group's discount.
+func printItemised(b *bytes.Buffer, label string, members []sales.SaleItem, soldAt time.Time, w int, opts Options) decimal.Decimal {
+	disc, net := decimal.Zero, decimal.Zero
+	for _, m := range members {
+		disc, net = disc.Add(m.Discount), net.Add(m.Subtotal)
+	}
+	wrapRight(b, "", "", ascii(label), money.Display(net), w)
+	for _, m := range members {
+		wrapRight(b, "   - ", "     ", ascii(m.Label())+" x"+m.Quantity.String(), money.Display(m.Subtotal), w)
+		if m.Discount.IsPositive() {
+			line(b, leftRight("     You saved", "-"+money.Display(m.Discount), w))
+		}
+		extras(b, m, soldAt, w, opts, "     ")
+	}
+	return disc
+}
+
+// wrapRight wraps text and puts amount on its last line, flush right.
+func wrapRight(b *bytes.Buffer, first, rest, text, amount string, w int) {
+	lines := wrap(text, w-len(first)-len(amount)-1)
+	for i, ln := range lines {
+		ln = map[bool]string{true: first, false: rest}[i == 0] + ln
+		if i == len(lines)-1 {
+			ln = leftRight(ln, amount, w)
+		}
+		line(b, ln)
+	}
 }
 
 // extras are a line's warranty and serial numbers.

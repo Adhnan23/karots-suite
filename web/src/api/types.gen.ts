@@ -2835,12 +2835,14 @@ export interface SaleItemRequest {
   payout?: boolean;
 }
 /**
- * SaleLineGroup: no numbers the groups within the sale, sets is how many sets.
+ * SaleLineGroup: no numbers the groups within the sale, sets is how many sets;
+ * itemised = the receipt prints it item by item, each priced (a job and its add-ons).
  */
 export interface SaleLineGroup {
   no: number /* int */;
   label: string;
   sets: string;
+  itemised: boolean;
 }
 export interface PaymentRequest {
   method: string; // cash | card | online | credit | <plugin tender>
@@ -3037,11 +3039,14 @@ export interface SlipItem {
   sets: string; // group: how many sets
   setGross: string; // group: one set's full price
   setNet: string; // group: one set's price after discounts
+  itemised: boolean; // group: printed item by item, each priced (subtotal = its total)
   members: SlipGroupMember[];
 }
 export interface SlipGroupMember {
   name: string;
   quantity: string;
+  subtotal: string; // its price after its discount (an itemised group prints it)
+  discount: string;
   warranty: string;
   serials: string[];
 }

@@ -31,6 +31,7 @@ const item = (o: Partial<SlipItem>): SlipItem => ({
   sets: '',
   setGross: '',
   setNet: '',
+  itemised: false,
   members: [],
   ...o,
 })
@@ -83,8 +84,8 @@ const busyItems = [
     discount: '100',
     subtotal: '1200',
     members: [
-      { name: 'Bread', quantity: '2', warranty: '', serials: [] },
-      { name: 'Milk 1L', quantity: '2', warranty: '', serials: [] },
+      { name: 'Bread', quantity: '2', subtotal: '', discount: '', warranty: '', serials: [] },
+      { name: 'Milk 1L', quantity: '2', subtotal: '', discount: '', warranty: '', serials: [] },
     ],
   }),
   item({ name: 'Reload cash out', payout: true, quantity: '1', gross: '-500', subtotal: '-500' }),

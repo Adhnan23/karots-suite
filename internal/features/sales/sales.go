@@ -72,6 +72,8 @@ type SaleItem struct {
 	LineGroup      *int             `db:"line_group"       json:"line_group,omitempty"`
 	LineGroupLabel *string          `db:"line_group_label" json:"line_group_label,omitempty"`
 	LineGroupSets  *decimal.Decimal `db:"line_group_sets"  json:"line_group_sets,omitempty"`
+	// LineGroupItemised: the receipt prints the group item by item, each priced.
+	LineGroupItemised bool `db:"line_group_itemised" json:"line_group_itemised,omitempty"`
 	// PackLabel is the split the line was sold as ("1 Card + 2"); nil = no pack fitted.
 	PackLabel *string `db:"pack_label" json:"pack_label,omitempty"`
 	// joined
@@ -204,10 +206,10 @@ func (r *Repository) InsertItem(ctx context.Context, saleID int64, it SaleItem) 
 	var id int64
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, cost_price, discount, discount_type, discount_value, subtotal, description, batch_id,
-			line_group, line_group_label, line_group_sets, pack_label)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+			line_group, line_group_label, line_group_sets, pack_label, line_group_itemised)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
 		saleID, it.ProductID, it.Quantity, it.UnitPrice, it.CostPrice, it.Discount, it.DiscountType, it.DiscountValue, it.Subtotal, it.Description, it.BatchID,
-		it.LineGroup, it.LineGroupLabel, it.LineGroupSets, it.PackLabel)
+		it.LineGroup, it.LineGroupLabel, it.LineGroupSets, it.PackLabel, it.LineGroupItemised)
 	return id, err
 }
 

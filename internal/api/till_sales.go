@@ -44,7 +44,7 @@ func saleInput(r SaleRequest) sales.CreateInput {
 		item.Plugin = pluginData(it.Plugin)
 		if g := it.Group; g != nil {
 			sets, _ := decimal.NewFromString(g.Sets) // a bad value stays 0 and is refused as a validation error
-			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets}
+			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets, Itemised: g.Itemised}
 		}
 		in.Items = append(in.Items, item)
 	}

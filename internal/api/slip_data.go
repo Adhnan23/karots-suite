@@ -59,14 +59,14 @@ func slipSale(d sales.Detail, opts escpos.Options) *SlipSale {
 			continue
 		}
 		done[*it.LineGroup] = true
-		g := SlipItem{Group: true, Name: *it.LineGroupLabel, Sets: it.LineGroupSets.String()}
+		g := SlipItem{Group: true, Name: *it.LineGroupLabel, Sets: it.LineGroupSets.String(), Itemised: it.LineGroupItemised}
 		gross, disc, net := decimal.Zero, decimal.Zero, decimal.Zero
 		for _, m := range d.Items {
 			if m.LineGroup == nil || *m.LineGroup != *it.LineGroup {
 				continue
 			}
 			gross, disc, net = gross.Add(m.Gross()), disc.Add(m.Discount), net.Add(m.Subtotal)
-			g.Members = append(g.Members, SlipGroupMember{Name: m.Label(), Quantity: m.Quantity.String(),
+			g.Members = append(g.Members, SlipGroupMember{Name: m.Label(), Quantity: m.Quantity.String(), Subtotal: amt(m.Subtotal), Discount: amt(m.Discount),
 				Warranty: warrantyText(m, d.Sale.CreatedAt), Serials: opts.Serials[m.ProductID]})
 		}
 		g.Gross, g.Discount, g.Subtotal = amt(gross), amt(disc), amt(net)

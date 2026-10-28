@@ -28,11 +28,13 @@ type SaleItemRequest struct {
 	Payout bool `json:"payout,omitempty"`
 }
 
-// SaleLineGroup: no numbers the groups within the sale, sets is how many sets.
+// SaleLineGroup: no numbers the groups within the sale, sets is how many sets;
+// itemised = the receipt prints it item by item, each priced (a job and its add-ons).
 type SaleLineGroup struct {
-	No    int    `json:"no"`
-	Label string `json:"label"`
-	Sets  string `json:"sets"`
+	No       int    `json:"no"`
+	Label    string `json:"label"`
+	Sets     string `json:"sets"`
+	Itemised bool   `json:"itemised"`
 }
 
 type PaymentRequest struct {

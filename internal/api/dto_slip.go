@@ -81,12 +81,15 @@ type SlipItem struct {
 	Sets          string            `json:"sets"`     // group: how many sets
 	SetGross      string            `json:"setGross"` // group: one set's full price
 	SetNet        string            `json:"setNet"`   // group: one set's price after discounts
+	Itemised      bool              `json:"itemised"` // group: printed item by item, each priced (subtotal = its total)
 	Members       []SlipGroupMember `json:"members"`
 }
 
 type SlipGroupMember struct {
 	Name     string   `json:"name"`
 	Quantity string   `json:"quantity"`
+	Subtotal string   `json:"subtotal"` // its price after its discount (an itemised group prints it)
+	Discount string   `json:"discount"`
 	Warranty string   `json:"warranty"`
 	Serials  []string `json:"serials"`
 }

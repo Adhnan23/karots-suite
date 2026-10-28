@@ -2,6 +2,7 @@ package escpos
 
 import (
 	"bytes"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -379,6 +380,28 @@ func TestDocumentPrintsGroupMembersByTheirOwnLabel(t *testing.T) {
 		if !strings.Contains(s, want) {
 			t.Errorf("receipt missing %q\n%s", want, s)
 		}
+	}
+}
+
+// An itemised group (a job and its add-ons): the label with the group's total,
+// each member with its own price — no "sets x price" line.
+func TestDocumentPrintsAnItemisedGroupWithPrices(t *testing.T) {
+	d := decimal.RequireFromString
+	no, label, sets := 1, "Photocopy", d("1")
+	member := func(desc, qty, unit, net string) sales.SaleItem {
+		return sales.SaleItem{ProductName: "Photocopy", Description: &desc, Quantity: d(qty), UnitAbbr: "pc", UnitPrice: d(unit),
+			Discount: d("0"), Subtotal: d(net), LineGroup: &no, LineGroupLabel: &label, LineGroupSets: &sets, LineGroupItemised: true}
+	}
+	det := sampleDetail()
+	det.Items = []sales.SaleItem{member("Photocopy A4", "4", "10.00", "40.00"), member("Urgent", "1", "100.00", "100.00"), member("Stapling", "1", "10.00", "10.00")}
+	s := string(Document(det, cfg("80"), Options{}))
+	for _, re := range []string{`Photocopy +150\.00`, `- Photocopy A4 x4 +40\.00`, `- Urgent x1 +100\.00`, `- Stapling x1 +10\.00`} {
+		if !regexp.MustCompile(re).MatchString(s) {
+			t.Errorf("receipt missing %s\n%s", re, s)
+		}
+	}
+	if strings.Contains(s, "1 x 150.00") {
+		t.Errorf("an itemised group prints no sets line\n%s", s)
 	}
 }
 

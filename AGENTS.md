@@ -74,7 +74,7 @@ internal/update/      self-update (M8c): signed manifest in the shop's bucket fo
                       swap / BootGuard rollback; restart = exit 75, the supervisor (systemd / karots-start) starts it
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
-migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles); next is 00013_
+migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; next is 00014_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts

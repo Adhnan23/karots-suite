@@ -126,8 +126,24 @@ function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
   )
 }
 
+/** An itemised group (`escpos.printItemised`): the label with its total, each member priced. */
+function Itemised({ it, K }: { it: SlipItem; K: SlipKit }) {
+  return (
+    <K.Item name={it.name} amount={display(it.subtotal)}>
+      {(it.members ?? []).map((m, i) => (
+        <div key={i}>
+          <K.Sub kind="qty" l={`${m.name} x${m.quantity}`} r={display(m.subtotal)} />
+          {pos(m.discount) && <K.Sub kind="saving" l="You saved" r={'-' + display(m.discount)} />}
+          <Extras warranty={m.warranty} serials={m.serials} level={2} K={K} />
+        </div>
+      ))}
+    </K.Item>
+  )
+}
+
 /** A line group as one block (`escpos.printGroup`). */
 function Group({ it, K }: { it: SlipItem; K: SlipKit }) {
+  if (it.itemised) return <Itemised it={it} K={K} />
   const disc = pos(it.discount)
   return (
     <K.Item name={it.name} amount={display(it.subtotal)}>

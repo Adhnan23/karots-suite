@@ -51,11 +51,13 @@ type ItemInput struct {
 	Payout bool `json:"payout"`
 }
 
-// LineGroup: No numbers the groups within one sale, Sets is how many sets.
+// LineGroup: No numbers the groups within one sale, Sets is how many sets;
+// Itemised prints it item by item, each priced (a job and its add-ons).
 type LineGroup struct {
-	No    int             `json:"no"`
-	Label string          `json:"label"`
-	Sets  decimal.Decimal `json:"sets"`
+	No       int             `json:"no"`
+	Label    string          `json:"label"`
+	Sets     decimal.Decimal `json:"sets"`
+	Itemised bool            `json:"itemised"`
 }
 
 // ServiceComponent is one consumable a service line draws down from stock.
