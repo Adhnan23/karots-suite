@@ -178,7 +178,7 @@ Work through each in both apps. Note anything missing, wrong, slower or confusin
 
 ## 6. Demo Room (M8d)
 
-Build with `make demo`; carry `dist/demo/karots-demo` (Linux) or `karots-demo.exe` (Windows) to the PC. Offline is fine.
+Build with `make demo`; carry `dist/demo/karots-suite-demo-room` (Linux) or `karots-suite-demo-room.exe` (Windows) to the PC. Offline is fine.
 
 - [ ] Double-click → a browser opens on the lock page showing the demo's install ID; a wrong code is refused, five
       wrong codes make it wait a minute; the hourly code from the PIN app (install ID in `internal/demo/INSTALL_ID`) opens it.

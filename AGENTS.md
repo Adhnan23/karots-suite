@@ -148,7 +148,7 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
-- **Demo Room:** `make demo` (or Shop Builder → Demo Room) → `dist/demo/karots-demo` + `.exe` (every built-in shop's
+- **Demo Room:** `make demo` (or Shop Builder → Demo Room) → `dist/demo/karots-suite-demo-room` + `.exe` (every built-in shop's
   year, ~6 min, kept in the user cache and reused while nothing that shapes the data changed — `cmd/bootstrap/demoyears.go`;
   `make demo-fresh` forces them; needs
   `POS_SUPPORT_SECRET` for its rotating unlock code, install id in `internal/demo/INSTALL_ID`). `make demo-dev` = this

@@ -134,8 +134,9 @@ func buildDemo(all []manifest, fresh bool, log io.Writer) (buildResult, error) {
 // buildDemoBinaries: the shipped binaries carry the years, the demo's install
 // ID and its seed.
 func buildDemoBinaries(log io.Writer, bundle func(string) (func(), error), ldflags string) error {
+	_ = os.RemoveAll(filepath.Join("dist", "demo")) // no older build (or older name) left beside the new one
 	for _, goos := range demoTargets {
-		out := filepath.Join("dist", "demo", "karots-demo")
+		out := filepath.Join("dist", "demo", "karots-suite-demo-room")
 		if goos == "windows" {
 			out += ".exe"
 		}

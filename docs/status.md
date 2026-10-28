@@ -7,7 +7,7 @@ every milestone.
 
 **M8d Demo Room — BUILT (2026-10-27), waiting on the user's look.** Spec `docs/specs/2026-10-27-demo-room-design.md`,
 plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, `web/shots/demo-9`.
-- **What:** `make demo` → `dist/demo/karots-demo` (+ `.exe`). Double-click → browser → the hourly code for the demo's
+- **What:** `make demo` → `dist/demo/karots-suite-demo-room` (+ `.exe`). Double-click → browser → the hourly code for the demo's
   own install ID (`internal/demo/INSTALL_ID`, PIN app) → five shops (Sunrise Mini Mart / CityCare Pharmacy / Galaxy
   Mobile & Repairs / Lanka Build Hardware / Karots Super Store) or make-your-own → the shop's real login page.
 - **The real suite inside:** each shop is the demo binary re-run as `-child` with only its plugins (`plugin.Only`, the one

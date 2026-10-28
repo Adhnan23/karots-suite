@@ -75,7 +75,7 @@ plugins:
 	go run ./cmd/bootstrap -write-only -plugins $(or $(P),all)
 core-only:
 	go run ./cmd/bootstrap -write-only -plugins none
-# The Demo Room: dist/demo/karots-demo (Linux) + karots-demo.exe (Windows), every
+# The Demo Room: dist/demo/karots-suite-demo-room (Linux) + .exe (Windows), every
 # built-in shop's year built once and carried inside. Needs POS_SUPPORT_SECRET for
 # its rotating unlock code (internal/demo/INSTALL_ID is its install id).
 demo:
