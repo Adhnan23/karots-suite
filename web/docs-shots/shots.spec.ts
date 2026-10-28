@@ -1,53 +1,13 @@
-import type { Browser } from '@playwright/test'
 import { test, type Page } from '../e2e/fixtures'
+import { cashier, code, desk, findProduct, only, out, owner, phone, pickFirst, scan, session, superStore, system } from './demo'
 
 // Screenshots for README + docs/guide, taken from a running Demo Room's
 // Karots Super Store (every plugin, a year of trade). `make docs-shots` builds
 // nothing: start the demo first (`make demo`, then dist/demo/karots-suite-demo-room).
-// DOCS_CODE = the hourly code (unlocks the demo and is the system user's PIN).
 // DOCS_ONLY=<substring> retakes only the matching shots.
 // Output: docs/images/<area>/<name>.jpg — stable names, the guides link to them.
-const code = process.env.DOCS_CODE ?? ''
-const only = process.env.DOCS_ONLY ?? ''
-const out = '../docs/images'
-const owner = { phone: '0771000001', pin: '1111' }
-const cashier = { phone: '0772000001', pin: '4444' } // a sim cashier: their till is open
-const system = { phone: '0000000001', pin: code }
-const desk = { width: 1440, height: 900 }
-const phone = { width: 390, height: 844 }
-
 test.skip(!code, 'set DOCS_CODE to the Demo Room hourly code')
 test.describe.configure({ mode: 'serial' })
-
-// Hide the demo's own chrome (watermark tab, paper strip, logins) in every shot.
-const hideChrome = () => {
-  const s = document.createElement('style')
-  s.textContent = '.ksd, [class^="ksd-"] { display: none !important }'
-  document.addEventListener('DOMContentLoaded', () => document.head.appendChild(s))
-}
-
-async function unlock(page: Page) {
-  const r = await page.request.post('/__demo/unlock', { data: { code } })
-  if (!r.ok()) throw new Error(`demo unlock: ${r.status()} ${await r.text()}`)
-}
-
-type Who = { phone: string; pin: string }
-async function session(browser: Browser, who: Who | null, viewport = desk, mode: 'light' | 'dark' = 'light') {
-  const ctx = await browser.newContext({ viewport, baseURL: test.info().project.use.baseURL })
-  await ctx.addInitScript((m) => localStorage.setItem('ks-mode', m), mode)
-  await ctx.addInitScript(hideChrome)
-  const page = await ctx.newPage()
-  await unlock(page)
-  if (who) {
-    let r = await page.request.post('/api/v1/auth/login', { data: who })
-    for (let i = 0; r.status() === 429 && i < 10; i++) { // the login limiter (burst 10, +1 per 2s)
-      await page.waitForTimeout(2100)
-      r = await page.request.post('/api/v1/auth/login', { data: who })
-    }
-    if (!r.ok()) throw new Error(`login ${who.phone}: ${r.status()} ${await r.text()}`)
-  }
-  return page
-}
 
 async function shot(page: Page, path: string, name: string, opts: { full?: boolean; prep?: (p: Page) => Promise<void> } = {}) {
   if (only && !name.includes(only)) return
@@ -60,24 +20,6 @@ async function shot(page: Page, path: string, name: string, opts: { full?: boole
   await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 82, fullPage: !!opts.full })
 }
 
-// Fill an empty screen so the shot shows the screen at work, not its blank state.
-const pickFirst = (list: string) => async (p: Page) => {
-  await p.locator(list.startsWith('ul') ? list : `ul[aria-label="${list}"]`).first().locator('li').first().click()
-  await p.waitForLoadState('networkidle')
-}
-const findProduct = (q: string, list = 'Products') => async (p: Page) => {
-  await p.getByLabel('Find a product').fill(q)
-  await p.waitForLoadState('networkidle')
-  await pickFirst(list)(p)
-}
-const scan = (codes: string[], field: string) => async (p: Page) => {
-  for (const c of codes) {
-    await p.getByLabel(field).fill(c)
-    await p.getByLabel(field).press('Enter')
-    await p.waitForLoadState('networkidle')
-    await p.waitForTimeout(400)
-  }
-}
 const preps: Record<string, (p: Page) => Promise<void>> = {
   'purchasing/purchases': (p) => p.getByRole('button', { name: 'Received', exact: true }).click(),
   'stock/intake': scan(['4790001002030'], 'Scan or search'),
@@ -103,12 +45,7 @@ test('demo picker, then the Super Store comes up', async ({ browser }) => {
   const page = await session(browser, null)
   const st = await (await page.request.get('/__demo/state')).json()
   if (st.phase === 'picker') await shot(page, '/', 'demo/picker')
-  if (st.phase !== 'ready' || st.shop?.key !== 'everything') {
-    await page.request.post('/__demo/start', { data: { shop: 'everything' } })
-    await test.expect
-      .poll(async () => (await (await page.request.get('/__demo/state')).json()).phase, { timeout: 240_000, intervals: [2000] })
-      .toBe('ready')
-  }
+  await superStore(page)
   await page.context().close()
 })
 
