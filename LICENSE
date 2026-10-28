@@ -1,0 +1,84 @@
+Karots Suite — Proprietary Software Licence
+Copyright (c) 2026 Karots Korp (Karots Dev). All rights reserved.
+
+DRAFT — this licence has not yet been reviewed by a lawyer. Do not rely on it
+until it has been.
+
+1. Definitions
+   "Software" means Karots Suite: the server program, the installer
+   (karots-setup), the Shop Builder, the Demo Room, their plugins, updates,
+   documentation and any copy of them, in source or binary form.
+   "Owner" means Karots Korp, trading as Karots Dev.
+   "Shop" means the one business, at the one site, named when the Software was
+   built and supplied to it.
+   "Licensee" means the person or business that has obtained the Software for a
+   Shop from the Owner or from a reseller the Owner has authorised.
+
+2. Grant
+   Subject to this licence and to payment of the agreed fees, the Owner grants
+   the Licensee a non-exclusive, non-transferable licence to install and use
+   the Software, in binary form only, for the internal business of the Shop, on
+   as many of the Shop's own computers as the Shop needs at that site.
+
+3. Restrictions
+   The Licensee must not, and must not allow anyone else to:
+   a) copy the Software, except for backups and the installs allowed in
+      section 2;
+   b) sell, resell, rent, lend, sublicense, share, publish or otherwise
+      distribute the Software, or use it to run any other business or site;
+   c) reverse engineer, decompile or disassemble the Software, or try to
+      obtain its source code, except to the extent the law allows this despite
+      this restriction;
+   d) modify, translate or create derivative works of the Software;
+   e) remove or alter any notice of copyright, licence, ownership or credit in
+      the Software, on its screens or on what it prints;
+   f) bypass any licence, lock, update-signature or support-code mechanism in
+      the Software.
+
+4. Ownership
+   The Software is licensed, not sold. The Owner keeps all rights, title and
+   interest in it, including all intellectual property rights. Rights not
+   expressly granted are reserved.
+
+5. The Shop's data
+   The data the Shop enters into the Software (products, sales, customers,
+   money records and the like) belongs to the Shop. The Owner does not claim
+   it. Backups sent to Karots cloud, where the Shop has chosen that service,
+   are kept only to give them back to the Shop.
+
+6. Third-party components
+   The Software includes open-source components under their own licences,
+   listed in THIRD_PARTY_NOTICES.md. Those licences apply to those components
+   and nothing in this licence limits the rights they give.
+
+7. Updates and support
+   Updates are supplied by the Owner, signed, and installed by the Shop from
+   inside the Software. Any support is given on terms agreed separately.
+
+8. No warranty
+   The Software is provided "as is". To the fullest extent the law allows, the
+   Owner gives no warranty of any kind, express or implied, including of
+   merchantability, fitness for a particular purpose, accuracy or freedom from
+   errors. The Shop is responsible for checking its own records, cash, stock
+   and tax returns, and for keeping backups.
+
+9. Limit of liability
+   To the fullest extent the law allows, the Owner is not liable for any
+   indirect, incidental, special or consequential loss, or for loss of profit,
+   revenue, data or business, however caused. The Owner's total liability
+   under or in connection with this licence is limited to the fees the
+   Licensee paid for the Software in the twelve months before the claim.
+
+10. Termination
+    This licence ends automatically if the Licensee breaks it. On termination
+    the Licensee must stop using the Software and delete every copy, after
+    taking a final export of the Shop's own data.
+
+11. Governing law
+    This licence is governed by the laws of the Democratic Socialist Republic
+    of Sri Lanka, and the courts of Sri Lanka have exclusive jurisdiction.
+
+12. Contact
+    Karots Korp (Karots Dev)
+    Email: adhnanmsa@gmail.com
+    Phone: 0769626396

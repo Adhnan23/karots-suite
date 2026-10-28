@@ -1,0 +1,179 @@
+// Command notices writes THIRD_PARTY_NOTICES.md from what actually ships: the
+// Go modules linked into the server, installer and Demo Room (every plugin),
+// and the npm packages the SPA bundles (dependencies, walked transitively).
+//
+//	go run ./scripts/notices > THIRD_PARTY_NOTICES.md
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
+)
+
+type dep struct{ name, version, license string }
+
+func main() {
+	goDeps, err := goModules()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	npm, err := npmPackages("web")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	fmt.Print(header)
+	table("Go modules", "linked into `karots-suite`, `karots-setup` and the Demo Room", goDeps)
+	table("JavaScript packages", "bundled into the web app (`web/package.json` dependencies and what they pull in)", npm)
+	fmt.Print(bundled)
+}
+
+func goModules() ([]dep, error) {
+	out, err := exec.Command("go", "list", "-deps", "-f", "{{with .Module}}{{if not .Main}}{{.Path}} {{.Version}} {{.Dir}}{{end}}{{end}}",
+		"./cmd/server", "./cmd/setup", "./cmd/demo").Output()
+	if err != nil {
+		return nil, fmt.Errorf("go list: %w", err)
+	}
+	seen := map[string]dep{}
+	for _, l := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		f := strings.Fields(l)
+		if len(f) < 3 {
+			continue
+		}
+		if _, ok := seen[f[0]]; !ok {
+			seen[f[0]] = dep{f[0], f[1], licenseIn(f[2])}
+		}
+	}
+	return sorted(seen), nil
+}
+
+// licenseIn names the licence of the first LICENSE / COPYING file in dir.
+func licenseIn(dir string) string {
+	files, _ := filepath.Glob(filepath.Join(dir, "*"))
+	for _, f := range files {
+		b := strings.ToUpper(filepath.Base(f))
+		if strings.HasPrefix(b, "LICENSE") || strings.HasPrefix(b, "LICENCE") || strings.HasPrefix(b, "COPYING") {
+			if t, err := os.ReadFile(f); err == nil {
+				return classify(string(t))
+			}
+		}
+	}
+	return "see source"
+}
+
+var kinds = []struct {
+	name string
+	re   *regexp.Regexp
+}{
+	{"Apache-2.0", regexp.MustCompile(`Apache License,?\s+Version 2\.0`)},
+	{"MPL-2.0", regexp.MustCompile(`Mozilla Public License,? (v\. |version )?2\.0`)},
+	{"ISC", regexp.MustCompile(`ISC License|Permission to use, copy, modify, and/or distribute`)},
+	{"BSD-3-Clause", regexp.MustCompile(`(?s)Redistributions of source code.*Neither the name`)},
+	{"BSD-2-Clause", regexp.MustCompile(`Redistributions of source code`)},
+	{"MIT", regexp.MustCompile(`Permission is hereby granted, free of charge`)},
+	{"PostgreSQL", regexp.MustCompile(`PostgreSQL`)},
+	{"Public domain", regexp.MustCompile(`(?i)public domain`)},
+}
+
+func classify(text string) string {
+	for _, k := range kinds {
+		if k.re.MatchString(text) {
+			return k.name
+		}
+	}
+	return "see source"
+}
+
+type pkgJSON struct {
+	Name         string            `json:"name"`
+	Version      string            `json:"version"`
+	License      any               `json:"license"`
+	Dependencies map[string]string `json:"dependencies"`
+}
+
+func npmPackages(web string) ([]dep, error) {
+	var root pkgJSON
+	if err := readJSON(filepath.Join(web, "package.json"), &root); err != nil {
+		return nil, err
+	}
+	seen := map[string]dep{}
+	var walk func(name string)
+	walk = func(name string) {
+		if _, ok := seen[name]; ok {
+			return
+		}
+		var p pkgJSON
+		if readJSON(filepath.Join(web, "node_modules", name, "package.json"), &p) != nil {
+			return // an optional dependency not installed on this platform
+		}
+		lic, _ := p.License.(string)
+		if m, ok := p.License.(map[string]any); ok {
+			lic, _ = m["type"].(string)
+		}
+		if lic == "" {
+			lic = licenseIn(filepath.Join(web, "node_modules", name))
+		}
+		seen[name] = dep{name, p.Version, lic}
+		for d := range p.Dependencies {
+			walk(d)
+		}
+	}
+	for d := range root.Dependencies {
+		walk(d)
+	}
+	return sorted(seen), nil
+}
+
+func readJSON(path string, v any) error {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, v)
+}
+
+func sorted(m map[string]dep) []dep {
+	out := make([]dep, 0, len(m))
+	for _, d := range m {
+		out = append(out, d)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].name < out[j].name })
+	return out
+}
+
+func table(title, what string, deps []dep) {
+	fmt.Printf("\n## %s\n\n%d packages %s.\n\n| Package | Version | Licence |\n|---|---|---|\n", title, len(deps), what)
+	for _, d := range deps {
+		fmt.Printf("| %s | %s | %s |\n", d.name, d.version, d.license)
+	}
+}
+
+const header = `# Third-party notices
+
+Karots Suite is proprietary software (see [LICENSE](LICENSE)). It is built on the
+open-source components below, each under its own licence; nothing in the Karots
+Suite licence limits the rights those licences give. Every licence text is kept
+with its component (Go module cache, ` + "`web/node_modules`" + `) and is available
+on request from Karots Korp (adhnanmsa@gmail.com).
+
+Generated by ` + "`go run ./scripts/notices > THIRD_PARTY_NOTICES.md`" + ` — regenerate it after
+changing ` + "`go.mod`" + ` or ` + "`web/package.json`" + `; do not edit the tables by hand.
+`
+
+const bundled = `
+## Shipped alongside the code
+
+| Component | Where | Licence |
+|---|---|---|
+| PostgreSQL 17 | file mode embeds the zonky / embedded-postgres binaries (` + "`internal/filedb`" + `); Setup can carry the Windows PostgreSQL installer | PostgreSQL Licence |
+| Microsoft Visual C++ runtime (msvcp140, vcruntime140, vcruntime140_1) | ` + "`internal/filedb/vcrt/`" + `, Windows file mode only | Microsoft Visual C++ Redistributable licence terms |
+| Figtree, Sora, Inter, JetBrains Mono, Noto Sans / Serif Sinhala, Noto Sans / Serif Tamil, Noto Serif | web fonts in the app and on printed slips | SIL Open Font License 1.1 |
+| shadcn/ui | component source copied into ` + "`web/src/components/ui`" + ` | MIT |
+`
