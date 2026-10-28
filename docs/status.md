@@ -8,6 +8,12 @@ Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fi
 
 ## Docs session DONE (2026-10-28)
 
+**Waiting on the user (outside the code):** business-name registration number (sole proprietorship applied 2026-10-28 —
+don't sign shops before it); the lawyer meeting with `karots-suite-lawyer-review.pdf`, then apply the answers and drop
+the DRAFT line; real-printer test when printers arrive. **Next code work:** promo videos (Remotion) → M8e Pocket
+Cashier. Agreement now in the Sri Lankan form (preamble, WHEREAS, IN WITNESS WHEREOF, First/Second/Third Schedules,
+Shop Rules = Annexure "A"); filled SAMPLE agreement + notice; `internal/docscheck` guards plugins vs docs/legal.
+
 - Screenshots: `make docs-shots` (`web/docs-shots/`, own Playwright config) against a running Demo Room's Super Store
   → `docs/images/<area>/<name>.jpg` (~90 shots, JPEG q82, ~8 MB). Empty screens are filled first (cart, picked
   sale / customer / product, label preview, open style sections).
@@ -23,7 +29,7 @@ Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fi
   2022/2025 (substantive parts not yet in force — check the Gazette); per-shop `docs/legal/karots-suite-agreement.pdf`; research +
   lawyer checklist in `docs/legal/README.md`. Shop Rules & Service Guide PDF (`make agreement` prints both): year 1 free updates / fixes / remote help, personalised
   help free 60 days, 2 free visits, cloud backup paid + frozen after 7 days late, refund scale (week 1 = all but set-up fee,
-  then 25/50/75 %, none after day 30), plugin add / remove, dos & don'ts, price list with blanks. Open idea: an "I agree" step in karots-setup. A Reseller Agreement only
+  then 25/50/75 %, none after day 30), plugin add / remove, dos & don'ts, price list with blanks. "I agree" tick in karots-setup DONE (terms-accepted.txt record, -accept-terms headless). A Reseller Agreement only
   when the first reseller signs. AGENTS.md "Docs and legal" = what to update per plugin / feature / price change;
   internal/docscheck guards plugins vs docs + legal. Next: videos (Remotion) → M8e Pocket Cashier.
 
