@@ -41,7 +41,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 | Guides for owners, resellers, developers | `docs/guide/` (one page per area, `plugins/<key>.md` per plugin) | hand |
 | Screenshots | `docs/images/<area>/<name>.jpg` | `make docs-shots` (a running Demo Room; `web/docs-shots/shots.spec.ts`) |
 | Licence and service terms | `LICENSE` (plain text; the PDFs read it) | hand |
-| Order Details, Shop Rules & Service Guide (prices, free vs paid, refunds, shop rules), filled samples (agreement + notice), balance notice, lawyer review | `docs/legal/agreement/*.html`, `sample-kit.js` + `sample.js` / `sample-notice.js`, `lawyer-items.json`, `agreement.css` → `docs/legal/*.pdf` | `make agreement` |
+| The agreement in the usual Sri Lankan form (`preamble.html` parties + recitals → terms from `LICENSE` → `attestation.html` IN WITNESS WHEREOF → `order-form.html` First Schedule, Order Details → Second / Third Schedules from `LICENSE`), Shop Rules & Service Guide (prices, free vs paid, refunds, shop rules), filled samples (agreement + notice), balance notice, lawyer review | `docs/legal/agreement/*.html`, `sample-kit.js` + `sample.js` / `sample-notice.js`, `lawyer-items.json`, `agreement.css` → `docs/legal/*.pdf` | `make agreement` |
 | Legal research + lawyer checklist | `docs/legal/README.md` | hand |
 | Third-party notices | `THIRD_PARTY_NOTICES.md` | `go run ./scripts/notices > THIRD_PARTY_NOTICES.md` |
 
