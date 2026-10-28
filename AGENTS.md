@@ -10,7 +10,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 - **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/` holds only the plan being worked on. Execute tasks in order and tick the checkboxes; delete it once the milestone is done (git history keeps every finished plan and idea note).
-- **User docs:** `README.md` + `docs/guide/` (owners, resellers, developers). Screenshots in `docs/images/` come from `make docs-shots` (a running Demo Room) — retake them after UI changes, never hand-edit. `LICENSE` (licence + service terms, draft for a lawyer; `docs/legal/`); `THIRD_PARTY_NOTICES.md` is generated (`go run ./scripts/notices`).
+- **User docs and legal pack:** see **Docs and legal** below — they change with the product.
 - **Parity:** `docs/parity.md` lists every karots-pos route. Tick a row only when it's ported *and* has a flow check.
 
 ## Hard rules
@@ -26,9 +26,43 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
   add a generic hook in `internal/plugin`, never a direct call.
 - **Never modify karots-pos from here** except bug-fix commits for domain bugs found while porting. Otherwise it's read-only reference and fork source.
 - **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A karots-pos bug found here is fixed here (never carry a flaw over) and, as a bug-fix commit only, in karots-pos too.
+- **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
+  screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`
+  when a plugin is missing from them.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
 - **Palettes, each with light and dark, and it must not look like karots-pos.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has 22 built-ins (Studio, Night, Bazaar, Lagoon, Catppuccin + 17 famous / colourful ones, theme.md §1) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
+
+## Docs and legal
+
+| What | Where | Rebuilt by |
+|---|---|---|
+| README (pitch, feature grid, plugin table, badges) | `README.md` | hand |
+| Guides for owners, resellers, developers | `docs/guide/` (one page per area, `plugins/<key>.md` per plugin) | hand |
+| Screenshots | `docs/images/<area>/<name>.jpg` | `make docs-shots` (a running Demo Room; `web/docs-shots/shots.spec.ts`) |
+| Licence and service terms | `LICENSE` (plain text; the PDFs read it) | hand |
+| Order Form, Shop Rules & Service Guide (prices, free vs paid, refunds, shop rules), filled sample, balance notice, lawyer review | `docs/legal/agreement/*.html`, `sample.js`, `lawyer-items.json`, `agreement.css` → `docs/legal/*.pdf` | `make agreement` |
+| Legal research + lawyer checklist | `docs/legal/README.md` | hand |
+| Third-party notices | `THIRD_PARTY_NOTICES.md` | `go run ./scripts/notices > THIRD_PARTY_NOTICES.md` |
+
+**When you add a plugin:** README plugin table + badge count, `docs/guide/plugins/<key>.md` + its row in
+`docs/guide/plugins/README.md`, the key in `shots.spec.ts`'s plugin list → `make docs-shots`, a tick box on the Order
+Form, a price row in the Shop Rules (§15) and the "all N plugins" Everything row (ask the user the price), then
+`make agreement`. `internal/docscheck` checks all of these.
+
+**When you add or change a feature or screen:** the guide page for its area (and README's grid if it's headline),
+new / retaken screenshots (`make docs-shots`, add the shot to `shots.spec.ts` if it's a new screen — fill empty states
+first), and a Demo Room data change if the shot needs it.
+
+**When a service, price, refund or support rule changes (user's decision only):** `shop-rules.html` (bump its
+version on the cover), `LICENSE` Schedule A / clauses that mention it, the Order Form if a field changes, `sample.js`
+if the sample no longer fits, `docs/legal/README.md` + `lawyer-items.json` if it raises a legal question, then
+`make agreement`. Prices live only in `shop-rules.html` §15.
+
+**When dependencies change:** regenerate `THIRD_PARTY_NOTICES.md`.
+
+**Legal text** is a draft for a Sri Lankan attorney-at-law (`LICENSE` carries the DRAFT line the PDFs print). Never
+present it as reviewed; record the lawyer's changes from the review form, then drop the DRAFT line.
 
 ## Layout
 
@@ -75,6 +109,8 @@ internal/update/      self-update (M8c): signed manifest in the shop's bucket fo
                       swap / BootGuard rollback; restart = exit 75, the supervisor (systemd / karots-start) starts it
 internal/plugin/      plugin registry + data/behaviour hooks (Go side); started by internal/app/plugins.go
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
+docs/guide/ docs/images/ user docs + screenshots; docs/legal/ licence PDFs (agreement/ = sources); internal/docscheck
+                      = plugins vs docs / legal guard; web/docs-shots/ = screenshot spec + agreement.ts (PDF printer)
 migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; next is 00014_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.

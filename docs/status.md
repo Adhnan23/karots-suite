@@ -24,7 +24,8 @@ Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fi
   lawyer checklist in `docs/legal/README.md`. Shop Rules & Service Guide PDF (`make agreement` prints both): year 1 free updates / fixes / remote help, personalised
   help free 60 days, 2 free visits, cloud backup paid + frozen after 7 days late, refund scale (week 1 = all but set-up fee,
   then 25/50/75 %, none after day 30), plugin add / remove, dos & don'ts, price list with blanks. Open idea: an "I agree" step in karots-setup. A Reseller Agreement only
-  when the first reseller signs. Next: videos (Remotion) → M8e Pocket Cashier.
+  when the first reseller signs. AGENTS.md "Docs and legal" = what to update per plugin / feature / price change;
+  internal/docscheck guards plugins vs docs + legal. Next: videos (Remotion) → M8e Pocket Cashier.
 
 ## Earlier handoff (2026-10-28) — docs, license, screenshots
 
