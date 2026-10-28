@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
-	_ "time/tzdata" // embed the timezone database so local-time formatting works on any host
 
 	"karots-suite/internal/app"
 	"karots-suite/internal/backup"

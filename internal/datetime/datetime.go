@@ -6,11 +6,13 @@ package datetime
 import (
 	"os"
 	"time"
+	_ "time/tzdata"
 )
 
 // Location is the display timezone. It honors the TZ env var when set, otherwise
-// defaults to Asia/Colombo (the shop locale). tzdata is embedded in the binary
-// (see cmd/server) so LoadLocation works even on a host without system zoneinfo.
+// defaults to Asia/Colombo (the shop locale). tzdata is embedded here, so every
+// binary that uses it (server, Demo Room…) loads it on Windows too; without it
+// Location falls back to "Local", which PostgreSQL refuses in AT TIME ZONE.
 var Location = load()
 
 func load() *time.Location {
