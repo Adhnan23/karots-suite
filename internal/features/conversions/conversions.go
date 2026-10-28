@@ -85,7 +85,9 @@ func (r *Repository) List(ctx context.Context, search string) ([]Conversion, err
 		WHERE cv.is_active = true
 		  AND ($1::text IS NULL
 		       OR fp.name ILIKE '%' || $1 || '%'
-		       OR tp.name ILIKE '%' || $1 || '%')
+		       OR fp.name_local ILIKE '%' || $1 || '%'
+		       OR tp.name ILIKE '%' || $1 || '%'
+		       OR tp.name_local ILIKE '%' || $1 || '%')
 		ORDER BY fp.name`, nullIfBlank(search))
 	return rows, err
 }
@@ -132,7 +134,9 @@ func (r *Repository) ListAll(ctx context.Context, search string) ([]Conversion, 
 	err := r.q.SelectContext(ctx, &rows, selectConversion+`
 		WHERE ($1::text IS NULL
 		       OR fp.name ILIKE '%' || $1 || '%'
-		       OR tp.name ILIKE '%' || $1 || '%')
+		       OR fp.name_local ILIKE '%' || $1 || '%'
+		       OR tp.name ILIKE '%' || $1 || '%'
+		       OR tp.name_local ILIKE '%' || $1 || '%')
 		ORDER BY cv.is_active DESC, fp.name`, nullIfBlank(search))
 	return rows, err
 }

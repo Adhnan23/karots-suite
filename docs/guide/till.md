@@ -15,7 +15,8 @@ can unlock it.
 - **Right:** Retail or Wholesale, the customer (walk-in or a credit customer), the tenders
   (cash, card, online and the rest), quick cash buttons, the bill discount and **Complete sale**.
 
-Scanning a barcode adds the product. If a search finds nothing, pressing Enter adds it as a
+Search finds a product by its name or its **local name** (Sinhala / Tamil, set on the product), and
+every word you type may match either. Scanning a barcode adds the product. If a search finds nothing, pressing Enter adds it as a
 **quick item** with a name and price, and the item goes to admin's review list. A sale is never
 blocked: anything odd (selling below stock, a missing price) is sold first and flagged for review.
 

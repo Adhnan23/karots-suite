@@ -86,6 +86,8 @@ var searchClause = `
 			lower(p.name) LIKE '%' || tok || '%'
 			OR translate(lower(p.name), ' -_/.', '') LIKE '%' || translate(tok, ' -_/.', '') || '%'
 			OR ($3 AND word_similarity(tok, lower(p.name)) > ` + fuzzyThresholdSQL + `)
+			-- ponytail: the local name is an unindexed LIKE; add a trigram index if a big catalogue gets slow
+			OR lower(coalesce(p.name_local, '')) LIKE '%' || tok || '%'
 		)
 	))`
 

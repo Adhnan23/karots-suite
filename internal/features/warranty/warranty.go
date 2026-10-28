@@ -174,7 +174,7 @@ func (r *Repository) ListUnits(ctx context.Context, status, search string, limit
 		LEFT JOIN stock_movements mv  ON mv.reference_type = 'warranty' AND mv.reference_id = wcl.id
 		LEFT JOIN loss_recoveries lr  ON lr.source_type = 'warranty' AND lr.source_id = wu.id
 		WHERE wu.serial_no IS NOT NULL
-		  AND ($1::text IS NULL OR wu.serial_no ILIKE '%' || $1 || '%' OR p.name ILIKE '%' || $1 || '%')
+		  AND ($1::text IS NULL OR wu.serial_no ILIKE '%' || $1 || '%' OR p.name ILIKE '%' || $1 || '%' OR p.name_local ILIKE '%' || $1 || '%')
 		  AND (
 		    $2 = 'all'
 		    OR ($2 = 'active'   AND wu.status = 'active'   AND wu.warranty_until >= CURRENT_DATE)
