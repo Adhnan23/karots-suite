@@ -27,6 +27,12 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
   - **Where we are:** the user's fresh build was tested on Linux and the Windows VM (2026-10-28) and **passed** after
     two fixes: the dashboard stuck on Loading on Windows (cmd/demo lacked `time/tzdata`; now embedded in
     `internal/datetime`) and the Demo tab (opens on a tap only, drags to either edge, spot kept per browser).
+  - **Print & Copy reworked (2026-10-28, after the user's Demo Room test):** a Type beside each size (Gloss / Matte,
+    photo paper — own price, own pouch / paper); laminate and bind priced by size and type only; extras per service
+    (per job / per piece, may take stock); a job with extras rings as one block via core `TillApi.addServiceGroup`
+    and prints itemised (migration 00013 `line_group_itemised`); receipt previews no longer collapse in the
+    sale-complete overlay (SlipView sets the roll's width). Demo Room Print & Copy shops sell all of it — the user
+    still needs a fresh `make demo` (years rebuild). Demo binary is now `karots-suite-demo-room`.
   - **Done this session (2026-10-28), all committed:**
     - Launcher: double-click builds once (generation counter + work mutex, picker disables on click); make-your-own
       picks validated, `ks-plugins` meta escaped; Exit (sidebar + picker) → same shutdown as Ctrl+C.
