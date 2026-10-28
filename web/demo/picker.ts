@@ -2,6 +2,7 @@ import './base.css'
 import './pages.css'
 import { call, el, state, type Shop, type State } from './api'
 import { swatch } from './swatch'
+import { timeMachine } from '../../internal/demo/timemachine/timemachine.js'
 
 const app = document.querySelector<HTMLElement>('#app')!
 const PLUGINS = ['pharmacy', 'repairs', 'recharge', 'documents', 'combos', 'alternatives', 'productplus', 'requests', 'clearance', 'aicatalog']
@@ -65,21 +66,48 @@ function picker(st: State) {
   )
 }
 
+// The time machine for a shop whose past is built live; fed across polls.
+let machine: ReturnType<typeof timeMachine> | null = null
+let fed = 0
+
 function building(st: State) {
+  const days = st.days ?? []
+  if (machine && st.phase === 'building') {
+    for (; fed < days.length; fed++) machine.add(days[fed])
+    return
+  }
+  machine?.stop()
+  machine = null
   const w = st.shop ? swatch(st.shop.palette) : null
   const bar = el('div', { class: 'bar' }, el('i', { style: `width:${st.progress}%` }))
   const head = el('div', { class: 'band' }, el('h2', {}, st.shop?.name ?? 'Your shop'))
   if (w) head.setAttribute('style', `background:${w.hero || w.brand};color:${w.background}`)
   const failed = st.phase === 'failed'
+  let body: HTMLElement = bar
+  if (!failed && days.length) { // watch its past go by
+    machine = timeMachine()
+    fed = 0
+    for (; fed < days.length; fed++) machine.add(days[fed])
+    body = machine.el
+    body.classList.add('big')
+    if (w) { body.style.setProperty('--tm-a', w.brand); body.style.setProperty('--tm-b', w.brand2 || w.hero) }
+  }
+  const say = machine ? 'Building its past — watch it trade' : `${st.step || 'Opening the doors'}…`
   app.replaceChildren(el('section', { class: 'building', 'aria-live': 'polite' }, head,
-    el('p', {}, failed ? `The shop didn't open: ${st.error}` : `${st.step || 'Opening the doors'}…`),
-    failed ? el('button', { class: 'btn quiet', type: 'button', id: 'back' }, 'Pick another shop') : bar))
+    el('p', {}, failed ? `The shop didn't open: ${st.error}` : say),
+    failed ? el('button', { class: 'btn quiet', type: 'button', id: 'back' }, 'Pick another shop') : body))
   app.querySelector('#back')?.addEventListener('click', () => call('/__demo/switch', {}).then(poll))
 }
 
 async function poll() {
   const st = await state()
-  if (st.phase === 'ready') return location.replace('/login')
+  if (st.phase === 'ready') {
+    if (!machine) return location.replace('/login')
+    for (const days = st.days ?? []; fed < days.length; fed++) machine.add(days[fed])
+    machine.done('✓ Open for business')
+    machine = null
+    return setTimeout(() => location.replace('/login'), 1800)
+  }
   if (st.phase === 'picker') return picker(st)
   building(st)
   if (st.phase === 'building') setTimeout(poll, 600)

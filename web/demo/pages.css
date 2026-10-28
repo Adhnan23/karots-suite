@@ -39,7 +39,9 @@
 .own select { padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--input); background: var(--background); }
 
 .building { max-width: 520px; margin: 12vh auto 0; background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-float); }
-.building > p, .building > .bar, .building > button { margin: 18px; }
+.building > p, .building > .bar, .building > button, .building > .tm { margin: 18px; }
+.tm.big { --tm-a: var(--primary); --tm-b: var(--ring); --tm-fg: var(--card-foreground); --tm-muted: var(--muted-foreground); --tm-cell: var(--muted);
+  --tm-sky: 72px; --tm-date: 28px; --tm-cell-size: 26px; }
 .bar { height: 10px; background: var(--muted); border-radius: var(--pill); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--primary); border-radius: var(--pill); transition: width var(--dur-slow) var(--ease); }
 @media (prefers-reduced-motion: reduce) { .shop, .bar i, .btn { transition: none; } }

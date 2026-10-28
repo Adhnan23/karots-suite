@@ -4,10 +4,12 @@ export type Shop = {
   key: string; name: string; blurb: string; plugins: string[] | null; palette: string; receiptStyle: string
   catalogue: string; logins: Login[]
 }
+export type Day = { date: string; sales: number; takings: string; n: number; of: number }
 export type Cheat = { name: string; label: string; group: string }
 export type State = {
   installId: string; phase: 'picker' | 'building' | 'ready' | 'failed'; progress: number; step: string; error?: string
   shop: Shop | null; paused: boolean; owner: { name: string; phone: string }; shops: Shop[]; cheats: Cheat[] | null
+  days?: Day[] // a make-your-own shop's past so far
 }
 export type Print = { id: number; kind: 'receipt' | 'label'; text?: string[]; kick: boolean; copies: number; at: string }
 

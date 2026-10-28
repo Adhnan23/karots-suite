@@ -286,7 +286,7 @@ func (l *launcher) restart(p shops.Profile) {
 				s.Phase, s.Error = "failed", err.Error()
 				return
 			}
-			s.Phase, s.Progress, s.Cheats, s.Days = "ready", 100, gen.CheatNames(p), nil
+			s.Phase, s.Progress, s.Cheats = "ready", 100, gen.CheatNames(p)
 		})
 	})
 }

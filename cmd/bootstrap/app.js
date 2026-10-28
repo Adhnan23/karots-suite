@@ -77,7 +77,7 @@ async function stream(url, body, btn, after) {
   s.building = true; summary()
   const label = btn.textContent
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Building…'
-  $('log').classList.add('on'); $('out').textContent = ''; $('years').replaceChildren(); $('done').className = 'done'
+  $('log').classList.add('on'); $('out').textContent = ''; yearsReset(); $('done').className = 'done'
   $('log').scrollIntoView({ behavior: 'smooth' })
   let text = '', r = null, err = null
   try {
@@ -90,7 +90,7 @@ async function stream(url, body, btn, after) {
         if (done) break
         text += dec.decode(value, { stream: true })
         years(text)
-        $('out').textContent = text.replace(/^◷ .*\n?/gm, '').replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
+        $('out').textContent = text.replace(/^[◷▦] .*\n?/gm, '').replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
       }
       const m = text.match(/@@RESULT (.*)/), e = text.match(/@@ERROR (.*)/)
       r = m ? JSON.parse(m[1]) : null
@@ -101,18 +101,38 @@ async function stream(url, body, btn, after) {
   finish(r, err)
   after && after()
 }
-// years draws a bar per demo shop from its latest "◷ <shop> · <pct>% · <step>" line.
+// Each demo shop's time machine, fed from the build log's lines as they stream:
+// "◷ <shop> · <pct>% · <step>", "▦ <shop>\t<day JSON>", "✓ <shop>: a year built in <t>".
+let timeMachine = null
+import('/timemachine.js').then((m) => { timeMachine = m.timeMachine })
+const tm = { seen: 0, shops: new Map() }
+function yearsReset() {
+  for (const r of tm.shops.values()) r.tm?.stop()
+  tm.seen = 0; tm.shops.clear(); $('years').replaceChildren()
+}
 function years(text) {
-  const last = new Map()
-  for (const m of text.matchAll(/^(?:◷ (.+?) · (\d+)% · (.*)|✓ (.+?): a year built in (.*))$/gm))
-    if (m[1]) last.set(m[1], [m[2], m[3]]); else last.set(m[4], ['100', 'Built in ' + m[5]])
-  $('years').replaceChildren(...[...last].map(([shop, [pct, step]]) => {
-    const row = document.createElement('div'); row.className = 'year'
-    const b = document.createElement('b'); b.textContent = shop
-    const sp = document.createElement('span'); sp.textContent = `${step} · ${pct}%`
-    const bar = document.createElement('i'); bar.style.setProperty('--pct', pct + '%')
-    row.append(b, sp, bar); return row
-  }))
+  const end = text.lastIndexOf('\n') + 1
+  for (const line of text.slice(tm.seen, end).split('\n')) {
+    let m
+    if ((m = line.match(/^◷ (.+?) · (\d+)% · (.*)$/))) yearRow(m[1]).step.textContent = `${m[3]} · ${m[2]}%`
+    else if ((m = line.match(/^▦ (.+?)\t(.*)$/))) yearRow(m[1]).tm?.add(JSON.parse(m[2]))
+    else if ((m = line.match(/^✓ (.+?): a year built in (.*)$/))) {
+      const r = yearRow(m[1]); r.step.textContent = 'Built in ' + m[2]; r.tm?.done('✓ a year in ' + m[2])
+    }
+  }
+  tm.seen = end
+}
+function yearRow(shop) {
+  let r = tm.shops.get(shop)
+  if (r) return r
+  const row = document.createElement('div'); row.className = 'year'
+  const b = document.createElement('b'); b.textContent = shop
+  const step = document.createElement('span')
+  row.append(b, step)
+  r = { step, tm: timeMachine ? timeMachine() : null }
+  if (r.tm) row.append(r.tm.el)
+  $('years').append(row); tm.shops.set(shop, r)
+  return r
 }
 function finish(r, err) {
   const d = $('done'); d.className = 'done on' + (err ? ' fail' : ''); d.innerHTML = ''

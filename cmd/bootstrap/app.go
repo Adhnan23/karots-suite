@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"runtime"
 	"sync"
+
+	"karots-suite/internal/demo/timemachine"
 )
 
 //go:embed app.html
@@ -82,6 +84,10 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 	mux.HandleFunc("GET /app.js", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		w.Write(appScript) //nolint:errcheck
+	})
+	mux.HandleFunc("GET /timemachine.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		w.Write(timemachine.JS) //nolint:errcheck
 	})
 	mux.HandleFunc("GET /api/state", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, http.StatusOK, st) })
 	mux.HandleFunc("POST /api/demo", func(w http.ResponseWriter, r *http.Request) {
