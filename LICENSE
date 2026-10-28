@@ -1,84 +1,178 @@
-Karots Suite — Proprietary Software Licence
+KAROTS SUITE — LICENCE AND SERVICE TERMS
 Copyright (c) 2026 Karots Korp (Karots Dev). All rights reserved.
 
-DRAFT — this licence has not yet been reviewed by a lawyer. Do not rely on it
-until it has been.
+DRAFT for review by a Sri Lankan attorney-at-law before use. See docs/legal/README.md.
 
-1. Definitions
-   "Software" means Karots Suite: the server program, the installer
-   (karots-setup), the Shop Builder, the Demo Room, their plugins, updates,
-   documentation and any copy of them, in source or binary form.
-   "Owner" means Karots Korp, trading as Karots Dev.
-   "Shop" means the one business, at the one site, named when the Software was
-   built and supplied to it.
-   "Licensee" means the person or business that has obtained the Software for a
-   Shop from the Owner or from a reseller the Owner has authorised.
+These terms are between Karots Korp, trading as Karots Dev ("Karots", "we"), and the business
+named on the Order Form ("the Shop", "you"). Together with the Order Form and the Schedules
+below they are the whole agreement. If they conflict, the Order Form wins, then these terms,
+then the Schedules.
 
-2. Grant
-   Subject to this licence and to payment of the agreed fees, the Owner grants
-   the Licensee a non-exclusive, non-transferable licence to install and use
-   the Software, in binary form only, for the internal business of the Shop, on
-   as many of the Shop's own computers as the Shop needs at that site.
 
-3. Restrictions
-   The Licensee must not, and must not allow anyone else to:
-   a) copy the Software, except for backups and the installs allowed in
-      section 2;
-   b) sell, resell, rent, lend, sublicense, share, publish or otherwise
-      distribute the Software, or use it to run any other business or site;
-   c) reverse engineer, decompile or disassemble the Software, or try to
-      obtain its source code, except to the extent the law allows this despite
-      this restriction;
-   d) modify, translate or create derivative works of the Software;
-   e) remove or alter any notice of copyright, licence, ownership or credit in
-      the Software, on its screens or on what it prints;
-   f) bypass any licence, lock, update-signature or support-code mechanism in
-      the Software.
+1. DEFINITIONS
 
-4. Ownership
-   The Software is licensed, not sold. The Owner keeps all rights, title and
-   interest in it, including all intellectual property rights. Rights not
-   expressly granted are reserved.
+"Software" means Karots Suite as supplied to the Shop: the server program, the installer
+(karots-setup), the plugins named on the Order Form, updates, and their documentation.
+"Order Form" means the signed (or electronically accepted) form that names the Shop, its site,
+its install ID, the plugins, the fees and any services bought.
+"Shop Data" means the records the Shop keeps in the Software: products, sales, stock, money,
+customers, staff, patients and the like.
+"Site" means the Shop's premises named on the Order Form.
 
-5. The Shop's data
-   The data the Shop enters into the Software (products, sales, customers,
-   money records and the like) belongs to the Shop. The Owner does not claim
-   it. Backups sent to Karots cloud, where the Shop has chosen that service,
-   are kept only to give them back to the Shop.
 
-6. Third-party components
-   The Software includes open-source components under their own licences,
-   listed in THIRD_PARTY_NOTICES.md. Those licences apply to those components
-   and nothing in this licence limits the rights they give.
+2. ACCEPTANCE
 
-7. Updates and support
-   Updates are supplied by the Owner, signed, and installed by the Shop from
-   inside the Software. Any support is given on terms agreed separately.
+2.1 You accept these terms by signing the Order Form, or by ticking "I agree" or installing or
+    using the Software. An electronic acceptance is as binding as a signed paper copy
+    (Electronic Transactions Act, No. 19 of 2006, as amended by Act No. 25 of 2017).
+2.2 You confirm you are taking the Software for a business, not as a private consumer.
 
-8. No warranty
-   The Software is provided "as is". To the fullest extent the law allows, the
-   Owner gives no warranty of any kind, express or implied, including of
-   merchantability, fitness for a particular purpose, accuracy or freedom from
-   errors. The Shop is responsible for checking its own records, cash, stock
-   and tax returns, and for keeping backups.
 
-9. Limit of liability
-   To the fullest extent the law allows, the Owner is not liable for any
-   indirect, incidental, special or consequential loss, or for loss of profit,
-   revenue, data or business, however caused. The Owner's total liability
-   under or in connection with this licence is limited to the fees the
-   Licensee paid for the Software in the twelve months before the claim.
+3. LICENCE
 
-10. Termination
-    This licence ends automatically if the Licensee breaks it. On termination
-    the Licensee must stop using the Software and delete every copy, after
-    taking a final export of the Shop's own data.
+3.1 Once the fees are paid, Karots gives you a non-exclusive, non-transferable licence to install
+    and use the Software in machine-readable form, for the Shop's own business at the Site, on as
+    many of the Shop's own computers there as it needs.
+3.2 You may make the copies the law allows the lawful owner of a computer program: those needed
+    to use it, and backup copies to replace a lost or damaged copy (Intellectual Property Act,
+    No. 36 of 2003, section 12(7)). The Software's own backups of Shop Data are not limited by
+    this clause.
+3.3 Moving the Shop to another computer at the Site is allowed. Moving to another site, or a
+    change of owner, needs Karots' written consent, which will not be refused without good
+    reason.
 
-11. Governing law
-    This licence is governed by the laws of the Democratic Socialist Republic
-    of Sri Lanka, and the courts of Sri Lanka have exclusive jurisdiction.
 
-12. Contact
-    Karots Korp (Karots Dev)
-    Email: adhnanmsa@gmail.com
-    Phone: 0769626396
+4. RESTRICTIONS
+
+Except as the law expressly allows, you must not, and must not let anyone else:
+(a) sell, resell, rent, lend, sublicense, share or distribute the Software, or use it for any
+    other business or site;
+(b) copy it beyond clause 3;
+(c) reverse engineer, decompile or disassemble it, or try to obtain its source code;
+(d) modify it, translate it or make works based on it;
+(e) remove or change any copyright, licence or credit notice in it, on its screens or on what it
+    prints;
+(f) get around any licence check, install ID, support code, update signature or lock in it.
+Breaking clause 4 may also be an offence under section 178 of the Intellectual Property Act.
+
+
+5. OWNERSHIP
+
+5.1 The Software is licensed, not sold. Karots owns all rights in it, including copyright in the
+    programs, their design and documentation.
+5.2 Open-source parts are under their own licences, listed in THIRD_PARTY_NOTICES.md. Nothing in
+    these terms limits the rights those licences give you.
+
+
+6. SHOP DATA
+
+6.1 Shop Data belongs to the Shop. Karots claims no right to it and will not sell it.
+6.2 The Shop decides what personal data it keeps (about customers, patients and staff) and why.
+    It is the controller of that data, and Karots processes it only as Schedule B allows.
+6.3 You can take a full backup of your Shop Data from the Software at any time, including after
+    these terms end.
+
+
+7. FEES
+
+7.1 Fees, what they cover and when they are due are on the Order Form.
+7.2 If a fee is more than 30 days late, Karots may, after giving written notice, pause updates,
+    support and Karots cloud backup until it is paid. Karots never locks the Shop out of its own
+    Shop Data, and the till keeps working.
+
+
+8. UPDATES AND SUPPORT
+
+8.1 Updates are signed by Karots and installed by the Shop from inside the Software. Karots never
+    updates a shop by itself.
+8.2 Support, Karots cloud backup and other services are as in Schedule A and the Order Form.
+
+
+9. WHAT KAROTS PROMISES
+
+9.1 Karots will supply the Software with reasonable skill and care, and it will work materially
+    as its documentation describes on supported computers.
+9.2 If it does not, tell Karots in writing. Karots will fix it, work around it or, if it cannot
+    within a reasonable time, refund the licence fee for the part that does not work.
+9.3 Apart from clause 9 and anything the law does not allow to be excluded, the Software is
+    supplied as it is. No other promise is made that it is free of all errors or fits a purpose
+    Karots was not told about.
+9.4 The Shop remains responsible for checking its own cash, stock, prices, tax returns and
+    records, for keeping its computers and backups safe, and for following the laws that apply
+    to its trade (for example pharmacy, consumer and tax law).
+
+
+10. LIABILITY
+
+10.1 Nothing in these terms limits liability for death or personal injury caused by negligence,
+     or for fraud (Unfair Contract Terms Act, No. 26 of 1997, section 3(1)).
+10.2 Otherwise, neither side is liable for loss of profit, revenue, business or goodwill, or for
+     indirect or consequential loss.
+10.3 Otherwise, Karots' total liability under these terms in any 12 months is limited to the
+     greater of (a) the fees the Shop paid Karots in the 12 months before the claim and
+     (b) the amount on the Order Form. Karots sets this limit with regard to its resources and
+     the insurance reasonably available to it (Unfair Contract Terms Act, section 10(4)).
+10.4 Karots is not liable for loss of Shop Data that a backup the Shop could have restored would
+     have avoided.
+
+
+11. ENDING THESE TERMS
+
+11.1 The Shop may end these terms at any time by stopping use of the Software. Fees already paid
+     are not refunded, except under clause 9.2.
+11.2 Karots may end them by written notice if the Shop seriously breaks them (for example clause
+     4) and, where the breach can be put right, does not do so within 30 days of being asked.
+11.3 When they end, the Shop must stop using the Software and delete it, after taking a final
+     backup of its Shop Data (the uninstaller does this first). Clauses 4, 5, 6, 10, 12 and
+     Schedule B survive.
+
+
+12. GENERAL
+
+12.1 Governing law: the laws of the Democratic Socialist Republic of Sri Lanka.
+12.2 Disputes: the parties will first try to settle a dispute by talking for 30 days. If that
+     fails, it goes to arbitration in Colombo under the Arbitration Act, No. 11 of 1995, by a
+     single arbitrator agreed by both sides (or, failing agreement, appointed under that Act).
+     Either side may still ask a court for urgent relief, such as an injunction against
+     copying the Software.
+12.3 Notices must be in writing, to the email or address on the Order Form. Karots: the
+     contact in clause 12.7.
+12.4 Neither side is liable for delay caused by events beyond its reasonable control.
+12.5 If a court or arbitrator finds part of these terms unenforceable, the rest stands.
+12.6 Karots may change these terms for future updates by giving 30 days' notice. Terms already
+     agreed for a version the Shop has do not change without its agreement.
+12.7 Karots Korp (Karots Dev) — adhnanmsa@gmail.com — 0769626396.
+
+
+SCHEDULE A — SERVICES
+
+A1 Updates: published to the Shop's update channel for as long as the Order Form says.
+A2 Support: by phone or message at the times on the Order Form. A support visit or remote session
+   uses the Software's rotating support code, which works only for that Shop's install ID.
+A3 Karots cloud backup (if on the Order Form): one encrypted copy of the Shop's newest automatic
+   backup about once a day, kept for the period on the Order Form, in Karots' storage. The Shop
+   can switch it off at any time on the Data page. A copy can be brought back on request or
+   from the Data page.
+A4 The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
+
+
+SCHEDULE B — HOW KAROTS HANDLES PERSONAL DATA
+
+B1 Karots handles Shop Data only (a) to give support the Shop asks for, (b) to keep the Karots
+   cloud backups the Shop has chosen, and (c) as the law requires. It acts only on the Shop's
+   instructions and for no purpose of its own.
+B2 Karots keeps Shop Data confidential and lets only people bound to confidentiality see it.
+B3 Cloud backups are encrypted with a key for that Shop before they leave the Shop's computer.
+   They may be stored with a cloud storage provider whose servers can be outside Sri Lanka. The
+   Shop agrees to this, and Karots will meet any conditions the law sets for such transfers.
+B4 Karots will tell the Shop without undue delay if it learns that Shop Data in its care has been
+   lost, disclosed or accessed without authority, and will help the Shop meet its own duties.
+B5 Karots will help the Shop answer requests from people about their own data, as far as the
+   Software and Karots' copies allow.
+B6 When the services end, Karots deletes its copies of Shop Data, or returns them if the Shop
+   asks first. Backup copies held under a deletion lock are deleted when the lock ends.
+B7 Health data (Pharmacy plugin), identity numbers and similar sensitive data get the same
+   protection, and Karots looks at them only when support for that data is asked for.
+B8 This Schedule is meant to meet the Personal Data Protection Act, No. 9 of 2022 (as amended
+   by Act No. 22 of 2025). When that Act's duties for controllers and processors come into
+   force, the parties will make any further terms it requires.

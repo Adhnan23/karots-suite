@@ -10,7 +10,7 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
 - **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/` holds only the plan being worked on. Execute tasks in order and tick the checkboxes; delete it once the milestone is done (git history keeps every finished plan and idea note).
-- **User docs:** `README.md` + `docs/guide/` (owners, resellers, developers). Screenshots in `docs/images/` come from `make docs-shots` (a running Demo Room) — retake them after UI changes, never hand-edit. `LICENSE` is a draft for legal review; `THIRD_PARTY_NOTICES.md` is generated (`go run ./scripts/notices`).
+- **User docs:** `README.md` + `docs/guide/` (owners, resellers, developers). Screenshots in `docs/images/` come from `make docs-shots` (a running Demo Room) — retake them after UI changes, never hand-edit. `LICENSE` (licence + service terms, draft for a lawyer; `docs/legal/`); `THIRD_PARTY_NOTICES.md` is generated (`go run ./scripts/notices`).
 - **Parity:** `docs/parity.md` lists every karots-pos route. Tick a row only when it's ported *and* has a flow check.
 
 ## Hard rules
