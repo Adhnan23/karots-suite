@@ -67,3 +67,5 @@ ul.crosses li::before { content: '✕'; }
 .refund td:first-child { width: 28%; font-weight: 700; }
 h2.newpage { break-before: page; }
 table { break-inside: avoid; }
+.prices td, .prices th { height: auto; font-size: 9.5pt; }
+.prices .amt, .prices td:last-child { width: 26%; text-align: right; }
