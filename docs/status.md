@@ -30,6 +30,17 @@ plan `docs/plans/2026-10-27-demo-room.md` (10 tasks), shots `web/shots/demo-5`, 
      keys → else 400) and the `ks-plugins` meta is escaped. Left: child ports (127.0.0.1, throwaway data); API with no
      shop already 503s; no control timeout (it would cut a long cheat); check-core web/demo guard; Windows clock walls.
   3. ~~Owner name + phone~~ DONE 2026-10-28 — the receipt credits' email + phone (`internal/demo/brand.go`).
+  3b. **User's first look (2026-10-28) → fixed:** sidebar now has Demo moves & logins, Prints (shelf of every slip,
+     newest first), Exit (also on the picker); slips zoom at printer dots. **Seeding made real** (A/B/C, one commit
+     each): shop floor (`gen/shopfloor*.go`: till menu cards, services + recipes, bags opened into loose stock with
+     weigh-out loss, packs bought whole, second barcodes, warranty serials/IMEIs, held carts on the shown cashier);
+     back room (`gen/backoffice.go`: breakage with real causes, supplier credits, warranty claims + agent
+     replacements, goods sent back — off the bill or refunded only when the supplier owes); plugins (controlled
+     drugs on prescriptions, scoped product fields, paper + toner behind Print & Copy, bank-app bills and cash outs,
+     Saturday float counts, repair advances + outside-lab payouts, Monday markdowns, repeat asks).
+     `gentest/floor_db_test.go` holds every table to it per shop. Left empty on purpose: legacy tables nothing
+     writes (doc_payout, pharmacy_cd_ledger, recharge sessions/top-ups), repair_payments (karots-pos deposits
+     only), AI catalogue history (needs a live AI key).
   4. Years now cached + reused; Shop Builder has a Demo Room tab (2026-10-28). Building screens show a **time machine** (`internal/demo/timemachine/timemachine.js`, shared: sky turning once a day, date + real till sales/takings rolling, a calendar lighting up) — Shop Builder per shop, make-your-own in the Demo Room. `make demo` again (dist/demo is stale: built before the review fixes and the cache-folder rename), then the user's
      look and the Windows VM acceptance (`docs/acceptance.md` §6). Ledger: `.superpowers/sdd/2026-10-27-demo-room/progress.md`.
 - Then the real-printer test.
