@@ -22,7 +22,8 @@ if [ -n "$hits" ]; then
   echo "core names a plugin:"; echo "$hits"; exit 1
 fi
 # The Demo Room (cmd/demo, internal/demo) may name plugins; core never imports it.
-demo=$(grep -rln '"karots-suite/internal/demo' internal cmd --include='*.go' | grep -vE '^(cmd/demo|internal/demo)/' || true)
+# The Shop Builder (cmd/bootstrap) builds the Demo Room, so it may — it never ships to a shop.
+demo=$(grep -rln '"karots-suite/internal/demo' internal cmd --include='*.go' | grep -vE '^(cmd/demo|internal/demo|cmd/bootstrap)/' || true)
 if [ -n "$demo" ]; then
   echo "core imports the Demo Room:"; echo "$demo"; exit 1
 fi
