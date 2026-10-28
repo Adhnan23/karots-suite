@@ -3,7 +3,7 @@ import type { Lot, TillProduct } from '@/api/types.gen'
 import { addProduct, lotExpired, lotsFor, serviceLine, setQty, swapProduct, unitPriceFor } from './lines'
 
 const prod = (p: Partial<TillProduct> = {}): TillProduct => ({
-  id: 7, name: 'Soap', barcode: '', sellingPrice: '100.00', wholesalePrice: '90.00', taxRate: '0',
+  id: 7, name: 'Soap', nameLocal: '', barcode: '', sellingPrice: '100.00', wholesalePrice: '90.00', taxRate: '0',
   stockQty: '10', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false,
   warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [], ...p,
 })
