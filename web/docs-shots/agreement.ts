@@ -43,9 +43,15 @@ const fill = (file: string) => readFileSync(join(dir, file), 'utf8')
   .replace('{{LOGO}}', 'file://' + join(root, 'docs/images/logo.jpg'))
   .replace('{{DRAFT}}', t.draft ? `<div class="draft">${esc(t.draft)}</div>` : '')
 
+const inked = (s: string) => `<span style="color:#1a3c9e;font-style:italic;font-weight:600">&nbsp;${s}&nbsp;</span>`
+const initialsText = (i: boolean | [string, string]) =>
+  Array.isArray(i) ? `Initials: Karots ${inked(i[0])} &nbsp; Shop ${inked(i[1])}` : i ? 'Initials: Karots ________ &nbsp; Shop ________' : ''
+const sample = (script: string) => `<script>${readFileSync(join(dir, 'sample-kit.js'), 'utf8')}</script><script>${readFileSync(join(dir, script), 'utf8')}</script>`
+
 const tmp = mkdtempSync(join(tmpdir(), 'ks-agreement-'))
 const browser = await chromium.launch()
-async function print(name: string, title: string, body: string, initials = true) {
+// initials: blanks to fill in by hand, the sample's own (in ink), or none (letters, forms).
+async function print(name: string, title: string, body: string, initials: boolean | [string, string] = true) {
   const html = join(tmp, name + '.html')
   writeFileSync(html, `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>${body}</body></html>`)
   const p = await browser.newPage()
@@ -57,7 +63,7 @@ async function print(name: string, title: string, body: string, initials = true)
     headerTemplate: '<span></span>',
     footerTemplate: `<div style="width:100%;margin:0 16mm;font:7.5pt sans-serif;color:#555;display:flex;justify-content:space-between">
       <span>Karots Suite — ${title}</span>
-      <span>${initials ? 'Initials: Karots ________ &nbsp; Shop ________' : ''}</span>
+      <span>${initialsText(initials)}</span>
       <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
   })
   console.log(out)
@@ -84,6 +90,8 @@ await print('karots-suite-lawyer-review', 'Legal review', fill('lawyer-review.ht
 
 // A filled-in example of the agreement, marked SAMPLE on every page.
 await print('karots-suite-agreement-sample', 'Order Form, Licence and Service Terms (SAMPLE)',
-  `<div class="sample-mark">SAMPLE</div>${fill('order-form.html')}<section class="terms">${t.html}</section>` +
-  `<script>${readFileSync(join(dir, 'sample.js'), 'utf8')}</script>`)
+  `<div class="sample-mark">SAMPLE</div>${fill('order-form.html')}<section class="terms">${t.html}</section>${sample('sample.js')}`,
+  ['K.K.', 'S.S.'])
+await print('karots-suite-balance-notice-sample', 'Notice to pay the balance (SAMPLE)',
+  `<div class="sample-mark">SAMPLE</div>${fill('balance-notice.html')}${sample('sample-notice.js')}`, false)
 await browser.close()

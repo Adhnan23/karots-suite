@@ -25,8 +25,9 @@ signs up.
 |---|---|
 | [`karots-suite-agreement.pdf`](karots-suite-agreement.pdf) | Print one per shop, fill in, sign, stamp and initial each page |
 | [`karots-suite-shop-rules.pdf`](karots-suite-shop-rules.pdf) | Give the shop a copy (its version goes on the Order Form) |
-| [`karots-suite-agreement-sample.pdf`](karots-suite-agreement-sample.pdf) | A filled-in example with made-up data, marked SAMPLE: shows how to fill one in |
+| [`karots-suite-agreement-sample.pdf`](karots-suite-agreement-sample.pdf) | A filled-in example with made-up data, marked SAMPLE (initialled on every page): shows how to fill one in |
 | [`karots-suite-balance-notice.pdf`](karots-suite-balance-notice.pdf) | The 14-day notice when a balance is unpaid 90 days after installation |
+| [`karots-suite-balance-notice-sample.pdf`](karots-suite-balance-notice-sample.pdf) | The same notice filled in for the sample shop, marked SAMPLE |
 | [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) | Take to the lawyer: the 12 points, each with opinion, change and decision boxes |
 
 All are built by `make agreement` from `agreement/` and `LICENSE`. **Print `karots-suite-agreement.pdf`** for each shop. It holds the Order Form with blanks

@@ -105,9 +105,10 @@ table { break-inside: avoid; }
 .letter .brand { margin-bottom: 8px; }
 .letter .field { margin: 6px 0; }
 .letter ol { margin: 4px 0; }
-.letter .sigline { margin-top: 26px; }
+.letter .sigline { margin-top: 8px; }
 .letter .seal { height: 24mm; margin-top: 0; }
 .letter .signs { margin-top: 4px; }
 .letter .received { margin-top: 10px; }
 .letter .salute { margin-top: 8px; }
 .sig { height: 46px; margin-bottom: -40px; }
+.letter .sig { margin-bottom: -4px; }
