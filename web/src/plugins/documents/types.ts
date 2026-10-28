@@ -21,11 +21,11 @@ export type ServiceRequest = { productId?: number; name?: string; categoryId?: n
 /** Cells: B&W 1-side, B&W 2-side, Colour 1-side, Colour 2-side ('' = not offered). */
 export type GridTier = { minQty: number; cells: [string, string, string, string] }
 export type PaperLine = { productId: number; name: string; perSheet: string }
-export type GridRow = { size: string; tiers: GridTier[]; paper: PaperLine[] }
+export type GridRow = { size: string; material: string; tiers: GridTier[]; paper: PaperLine[] }
 export type Grid = { rows: GridRow[] }
 
 export type TillBand = { minQty: number; price: string }
-export type TillOffer = { size: string; color: boolean; double: boolean; bands: TillBand[] }
+export type TillOffer = { size: string; material: string; color: boolean; double: boolean; bands: TillBand[] }
 export type TillService = { id: number; productId: number; name: string; kind: Kind; category: Category; offers: TillOffer[] }
 
 export type Quote = {
@@ -39,11 +39,12 @@ export type Quote = {
 }
 
 /** What a Print & Copy cart line carries (CartLine.plugin.documents). */
-export type LineJob = { serviceId: number; size?: string; color?: boolean; double?: boolean; sheets?: number }
+export type LineJob = { serviceId: number; size?: string; material?: string; color?: boolean; double?: boolean; sheets?: number }
 
 export type ReportRow = {
   name: string
   size: string | null
+  material: string
   color: boolean | null
   double: boolean | null
   earlier: boolean

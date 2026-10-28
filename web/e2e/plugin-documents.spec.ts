@@ -170,6 +170,57 @@ test('a spoilt job comes back through Returns: refunded, nothing restocked', asy
   }).toBe('119')
 })
 
+test('laminate by size and type: Matte takes its own price and its own pouch, no ink or sides', async ({ page }) => {
+  await login(page, '/admin')
+  const cats = await json<{ id: number; name: string }[]>(page.request.get('/api/v1/admin/categories'))
+  const cat = cats.find((c) => c.name === 'E2E Goods')!.id
+  const pouch: Record<string, number> = {}
+  for (const m of ['Gloss', 'Matte']) {
+    const r = await page.request.post('/api/v1/admin/products', { data: {
+      name: `PC Pouch ${m} ${tag}`, nameLocal: '', barcode: `PCL${m[0]}${tag}`, categoryId: cat, unitId: 1, costPrice: '20', sellingPrice: '0',
+      wholesalePrice: '', taxRate: '', reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '',
+    } })
+    expect(r.ok()).toBe(true)
+    pouch[m] = (await r.json()).id as number
+    expect((await page.request.post('/api/v1/admin/stock/adjust', { data: { productId: pouch[m], newQuantity: '50', note: 'print e2e', batchId: 0 } })).ok()).toBe(true)
+  }
+  const LAM = `PC Laminate ${tag}`
+  const svc = await json<{ id: number }>(page.request.post('/api/v1/x/documents/services', { data: { name: LAM, categoryId: cat, kind: 'metered', category: 'laminate' } }))
+  const row = (m: string, price: string) => ({ size: 'A4', material: m, tiers: [{ minQty: 1, cells: [price, '', '', ''] }], paper: [{ productId: pouch[m], name: '', perSheet: '1' }] })
+  expect((await page.request.put(`/api/v1/x/documents/services/${svc.id}/grid`, { data: { rows: [row('Gloss', '100'), row('Matte', '120')] } })).ok()).toBe(true)
+
+  // The editor: one price box per size and type, a pouch per piece.
+  await page.goto('/admin/x/documents')
+  await page.getByRole('article').filter({ hasText: LAM }).getByRole('button', { name: /Prices/ }).click()
+  const grid = page.getByRole('dialog', { name: `Prices & paper — ${LAM}` })
+  await expect(grid.getByRole('region', { name: 'A4 Matte' }).getByLabel('A4 Matte price from 1')).toHaveValue('120.00')
+  await expect(grid.getByRole('region', { name: 'A4 Matte' }).getByText('Pouch (per piece)')).toBeVisible()
+  await expect(grid.getByLabel(/B&W 1-side/)).toHaveCount(0)
+  await page.screenshot({ path: 'shots/doc-types/editor.png' })
+  await page.keyboard.press('Escape')
+
+  await till(page)
+  await page.getByRole('toolbar', { name: 'Groups' }).getByRole('button', { name: /Print & Copy/ }).click()
+  await page.getByRole('button', { name: new RegExp(LAM) }).first().click()
+  const panel = page.getByRole('region', { name: LAM })
+  await expect(panel.getByRole('group', { name: 'Ink' })).toHaveCount(0)
+  await expect(panel.getByRole('group', { name: 'Sides' })).toHaveCount(0)
+  await panel.getByRole('group', { name: 'Type' }).getByRole('button', { name: 'Matte' }).click()
+  await page.getByLabel('Number of pieces').fill('3')
+  await expect(page.getByText('Rs. 360.00').first()).toBeVisible()
+  await page.screenshot({ path: 'shots/doc-types/till.png' })
+  await page.getByLabel('Number of pieces').press('Enter')
+  await expect(cart(page).getByText(`${LAM} A4 · Matte`)).toBeVisible()
+  await page.getByRole('button', { name: /Complete sale/ }).click()
+  await page.keyboard.press('Enter')
+  const left = async (id: number) => {
+    const p = await json<{ items: { id: number; stockQty: string }[] }>(page.request.get(`/api/v1/admin/products?q=${encodeURIComponent(`PC Pouch`)}`))
+    return Number(p.items.find((x) => x.id === id)!.stockQty)
+  }
+  await expect.poll(() => left(pouch.Matte)).toBe(47)
+  expect(await left(pouch.Gloss)).toBe(50)
+})
+
 test('Print & Copy admin and report fit a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 760 })
   for (const path of ['/admin/x/documents', '/admin/x/documents/report']) {

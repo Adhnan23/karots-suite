@@ -16,7 +16,7 @@ import { optionsText } from './labels'
 import type { ReportRow } from './types'
 
 const TOP = 10
-const label = (r: ReportRow) => [r.name, r.earlier ? 'earlier jobs' : optionsText(r.size, r.color, r.double)].filter(Boolean).join(' — ')
+const label = (r: ReportRow) => [r.name, r.earlier ? 'earlier jobs' : optionsText(r.size, r.material, r.color, r.double)].filter(Boolean).join(' — ')
 
 function chart(rows: ReportRow[]) {
   const top = rows.slice(0, TOP).reverse() // horizontal bars read top-down
@@ -33,7 +33,7 @@ function chart(rows: ReportRow[]) {
 function downloadCsv(rows: ReportRow[], range: Range) {
   const q = (s: string) => `"${s.replace(/"/g, '""')}"`
   const body = [['Service', 'Options', 'Jobs', 'Copies', 'Sheets', 'Sales'],
-    ...rows.map((r) => [q(r.name), q(r.earlier ? 'earlier jobs' : optionsText(r.size, r.color, r.double)), String(r.jobs), r.copies, r.sheets, r.revenue])]
+    ...rows.map((r) => [q(r.name), q(r.earlier ? 'earlier jobs' : optionsText(r.size, r.material, r.color, r.double)), String(r.jobs), r.copies, r.sheets, r.revenue])]
     .map((r) => r.join(',')).join('\n')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([body], { type: 'text/csv' }))

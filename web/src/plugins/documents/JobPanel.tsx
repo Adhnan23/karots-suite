@@ -10,7 +10,8 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import type { TillApi } from '@/plugins/slots'
 import { type JobAsk, ownUse, quote } from './api'
-import { customLine, meteredLine, offerOf, offersFor, settle, sizes, startPick, type Pick } from './till'
+import { COUNT } from './labels'
+import { customLine, materials, meteredLine, offerOf, offersFor, plain, settle, sizes, startPick, varies, type Pick } from './till'
 import type { TillService } from './types'
 
 const OPT = 'h-11 min-w-[64px] rounded-[var(--radius-sm)] border border-border bg-card px-4 text-[15px] font-bold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground disabled:opacity-35'
@@ -24,7 +25,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
-/** One metered service: size, colour, side and copies, priced live; Enter adds. */
+/** One metered service: size, type, colour, side and copies, priced live; Enter adds.
+ *  A row with nothing to choose (one type, B&W only, laminate's sides) stays hidden. */
 function Metered({ s, till }: { s: TillService; till: TillApi }) {
   const sym = useQuery(configQuery).data?.symbol ?? ''
   const [pick, setPick] = useState<Pick>(() => startPick(s))
@@ -38,8 +40,9 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
   const ask = JSON.parse(settled) as JobAsk
   const q = useQuery({ queryKey: ['x', 'documents', 'quote', ask], queryFn: () => quote(ask), enabled: ask.copies > 0, placeholderData: keepPreviousData, retry: false })
   const fresh = !!q.data && !q.isPlaceholderData && settled === key
-  const offers = offersFor(s, pick.size)
+  const offers = offersFor(s, pick.size).filter((o) => o.material === pick.material)
   const has = (color: boolean, double: boolean) => offers.some((o) => o.color === color && o.double === double)
+  const types = materials(s, pick.size)
   const bands = offerOf(s, pick)?.bands ?? []
   const next = bands.find((b) => b.minQty > copies)
   const choose = (p: Partial<Pick>) => {
@@ -83,16 +86,25 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
           {sizes(s).map((z) => <button key={z} type="button" className={OPT} aria-pressed={pick.size === z} onClick={() => choose({ size: z })}>{z}</button>)}
         </Row>
       ) : null}
-      <Row label="Ink">
-        <button type="button" className={OPT} aria-pressed={!pick.color} disabled={!has(false, pick.double) && !has(false, !pick.double)} onClick={() => choose({ color: false })}>B&amp;W</button>
-        <button type="button" className={OPT} aria-pressed={pick.color} disabled={!has(true, pick.double) && !has(true, !pick.double)} onClick={() => choose({ color: true })}>Colour</button>
-      </Row>
-      <Row label="Sides">
-        <button type="button" className={OPT} aria-pressed={!pick.double} disabled={!has(pick.color, false)} onClick={() => choose({ double: false })}>1-side</button>
-        <button type="button" className={OPT} aria-pressed={pick.double} disabled={!has(pick.color, true)} onClick={() => choose({ double: true })}>2-side</button>
-      </Row>
-      <Row label="Copies">
-        <input ref={input} aria-label="Number of copies" inputMode="numeric" autoComplete="off" value={text} name="doc-copies"
+      {(types.length > 1 || types[0]) && (
+        <Row label="Type">
+          {types.map((m) => <button key={m || 'none'} type="button" className={OPT} aria-pressed={pick.material === m} onClick={() => choose({ material: m })}>{m || 'Standard'}</button>)}
+        </Row>
+      )}
+      {varies(s, 'color') && (
+        <Row label="Ink">
+          <button type="button" className={OPT} aria-pressed={!pick.color} disabled={!has(false, pick.double) && !has(false, !pick.double)} onClick={() => choose({ color: false })}>B&amp;W</button>
+          <button type="button" className={OPT} aria-pressed={pick.color} disabled={!has(true, pick.double) && !has(true, !pick.double)} onClick={() => choose({ color: true })}>Colour</button>
+        </Row>
+      )}
+      {varies(s, 'double') && (
+        <Row label="Sides">
+          <button type="button" className={OPT} aria-pressed={!pick.double} disabled={!has(pick.color, false)} onClick={() => choose({ double: false })}>1-side</button>
+          <button type="button" className={OPT} aria-pressed={pick.double} disabled={!has(pick.color, true)} onClick={() => choose({ double: true })}>2-side</button>
+        </Row>
+      )}
+      <Row label={COUNT[s.category]}>
+        <input ref={input} aria-label={`Number of ${COUNT[s.category].toLowerCase()}`} inputMode="numeric" autoComplete="off" value={text} name="doc-copies"
           onChange={(e) => setText(e.target.value.replace(/\D/g, '').slice(0, 6))}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void add() } }}
           className={cn(FIELD, 'h-11 w-28 text-center font-display text-[20px] font-bold tabular-nums')} />
@@ -120,7 +132,7 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
               <b className="block font-display text-[24px] leading-tight tabular-nums">{q.data && copies > 0 ? money(sym, q.data.total) : '—'}</b>
               {q.data && copies > 0 && (
                 <small className="text-[12.5px] text-muted-foreground tabular-nums">
-                  {copies} × {money(sym, q.data.unitPrice)} · {q.data.sheets} sheet{q.data.sheets === 1 ? '' : 's'}
+                  {copies} × {money(sym, q.data.unitPrice)}{!plain(s) && ` · ${q.data.sheets} sheet${q.data.sheets === 1 ? '' : 's'}`}
                 </small>
               )}
             </>

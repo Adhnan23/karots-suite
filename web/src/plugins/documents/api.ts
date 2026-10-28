@@ -12,9 +12,9 @@ export const tillServicesQuery = queryOptions({ queryKey: ['x', 'documents', 'ti
 export const reportQuery = (range: Range) =>
   queryOptions({ queryKey: ['x', 'documents', 'report', range], queryFn: () => api<Report>(`${base}/report?${rangeQS(range).slice(1)}`) })
 
-export type JobAsk = { service: number; size: string; color: boolean; double: boolean; copies: number }
+export type JobAsk = { service: number; size: string; material: string; color: boolean; double: boolean; copies: number }
 export const quote = (j: JobAsk) =>
-  api<Quote>(`${base}/quote?service=${j.service}&size=${encodeURIComponent(j.size)}&color=${j.color ? 1 : 0}&double=${j.double ? 1 : 0}&copies=${j.copies}`)
+  api<Quote>(`${base}/quote?service=${j.service}&size=${encodeURIComponent(j.size)}&material=${encodeURIComponent(j.material)}&color=${j.color ? 1 : 0}&double=${j.double ? 1 : 0}&copies=${j.copies}`)
 
 async function write<T>(p: Promise<T>): Promise<T> {
   try {
@@ -30,5 +30,5 @@ export const updateService = (id: number, body: ServiceRequest) => write(api(`${
 export const setActive = (id: number, active: boolean) => write(api(`${base}/services/${id}/active`, { json: { active } }))
 export const saveGrid = (id: number, g: Grid) => write(api<Grid>(`${base}/services/${id}/grid`, { method: 'PUT', json: g }))
 export const ownUse = (j: JobAsk) =>
-  api(`${base}/own-use`, { json: { serviceId: j.service, size: j.size, color: j.color, double: j.double, copies: j.copies } })
+  api(`${base}/own-use`, { json: { serviceId: j.service, size: j.size, material: j.material, color: j.color, double: j.double, copies: j.copies } })
 export const recordJobs = (saleId: number, jobs: unknown[]) => api(`${base}/jobs`, { json: { saleId, jobs } })
