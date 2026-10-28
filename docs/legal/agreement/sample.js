@@ -59,7 +59,7 @@
   row(fees, 'Total', ['86,500', ''])
   field('Total in words', 'Eighty-six thousand five hundred rupees only')
   field('Advance paid (Rs.)', '50,000')
-  field('Balance due (Rs.) and date', '36,500 by 26 January 2027')
+  field('Balance due (Rs.) and date', '36,500 by 26 Jan 2027')
   field('Liability amount for clause 10.3(b) of the terms (Rs.)', '72,000')
   field('Anything else agreed', 'Karots types in the first 300 products at no charge.')
 })()

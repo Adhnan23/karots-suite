@@ -133,3 +133,9 @@ table { break-inside: avoid; }
 .schedule1 h3 { font: 800 11pt Head, sans-serif; margin: 14px 0 4px; }
 .schedules .schedule:first-child { break-before: page; }
 h2.c .sub { display: block; font-size: 10.5pt; font-weight: 600; color: #333; }
+
+/* sample ink in an inline blank: the blank grows to fit, the writing sits on the line */
+.line.inline.ink { height: auto; width: auto; min-width: 18mm; white-space: nowrap; line-height: 1.25;
+  padding: 0 6px 1px; vertical-align: baseline; display: inline-block; }
+.line.inline.wide.ink { min-width: 40mm; }
+.line.inline.full.ink { min-width: 70mm; }
