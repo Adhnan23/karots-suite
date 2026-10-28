@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount, openCheats, pollPrints } from './overlay'
+import { mount, openCheats, pollPrints, spotAt } from './overlay'
 import css from './overlay.css?raw'
 
 const state = {
@@ -67,6 +67,19 @@ describe('the demo chrome', () => {
     expect(slips[0].querySelector('img')?.getAttribute('src')).toBe('/__demo/print/receipt/3')
     expect(slips[0].textContent).toContain('Cash drawer opened')
     openCheats()
+  })
+
+  it('opens its buttons on a tap, never on hover, and snaps to the edge it is dragged to', async () => {
+    await mount()
+    expect(css).not.toMatch(/\.ksd-bar:hover/)
+    const bar = document.querySelector('.ksd-bar')!
+    document.querySelector<HTMLButtonElement>('.ksd-mark')!.click()
+    expect(bar.classList.contains('open')).toBe(true)
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(bar.classList.contains('open')).toBe(false)
+    expect(spotAt(innerWidth - 5, innerHeight * 0.3)).toEqual({ right: true, top: 30 })
+    expect(spotAt(5, 0)).toEqual({ right: false, top: 10 })
+    document.querySelector('.ksd-cheats')?.remove()
   })
 
   it('marks printed pages DEMO', () => {

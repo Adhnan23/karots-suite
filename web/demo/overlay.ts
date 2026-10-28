@@ -1,5 +1,5 @@
 // The Demo Room's chrome over the real app: the watermark and its buttons (Demo
-// moves, Prints, Pause, Switch shop, Exit), the demo logins on the sign-in
+// moves, Prints, Pause, Switch shop, Exit; drag it to either edge), the demo logins on the sign-in
 // screens, the paper strip the printers feed, and the moves menu (also on
 // Ctrl+Shift+D, or five quick taps on the watermark).
 import './overlay.css'
@@ -27,6 +27,8 @@ function watermark(): HTMLElement {
     el('b', {}, 'Demo shop'), el('span', {}, `Karots Business Suite — ${owner?.name ?? 'Karots'}, ${owner?.phone ?? ''}`))
   let taps: number[] = []
   mark.addEventListener('click', () => {
+    if (dragged) return (dragged = false) // the end of a drag isn't a tap
+    bar.classList.toggle('open') // the buttons open on a tap, never on hover: passing by mustn't cover the app
     const now = Date.now()
     taps = [...taps.filter((t) => now - t < 3000), now]
     if (taps.length >= 5) {
@@ -53,8 +55,44 @@ function watermark(): HTMLElement {
   const exit = el('button', { class: 'ksd-btn', type: 'button' }, 'Exit demo')
   exit.addEventListener('click', () => void exitDemo())
   const bar = el('div', { class: 'ksd-bar' }, mark, el('div', { class: 'ksd-fly' }, moves, prints, pause, sw, exit))
-  mark.addEventListener('click', () => bar.classList.toggle('open')) // touch screens: a tap shows the buttons
+  let dragged = false
+  place(bar, savedSpot())
+  mark.addEventListener('pointerdown', (d) => {
+    const move = (e: PointerEvent) => {
+      if (!dragged && Math.hypot(e.clientX - d.clientX, e.clientY - d.clientY) < 6) return
+      dragged = true
+      place(bar, spotAt(e.clientX, e.clientY))
+    }
+    const up = (e: PointerEvent) => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      if (!dragged) return
+      try { localStorage.setItem('ksd-tab', JSON.stringify(spotAt(e.clientX, e.clientY))) } catch { /* not kept: fine */ }
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  })
   return bar
+}
+
+// ---- where the tab sits: dragged along either edge, kept per browser ----
+type Spot = { right: boolean; top: number } // top in % of the window height
+
+export function spotAt(x: number, y: number): Spot {
+  return { right: x > innerWidth / 2, top: Math.min(90, Math.max(10, (y / innerHeight) * 100)) }
+}
+
+function savedSpot(): Spot {
+  try {
+    const s = JSON.parse(localStorage.getItem('ksd-tab') ?? 'null') as Spot | null
+    if (s && typeof s.top === 'number') return { right: !!s.right, top: s.top }
+  } catch { /* nothing kept */ }
+  return { right: false, top: 50 }
+}
+
+function place(bar: HTMLElement, s: Spot) {
+  bar.classList.toggle('right', s.right)
+  bar.style.top = `${s.top}%`
 }
 
 // ---- paper strip ----
@@ -209,6 +247,10 @@ export async function mount() {
     }
     void pollPrints()
   }, 1000)
+  document.addEventListener('pointerdown', (e) => { // a tap anywhere else puts the buttons away
+    const bar = root.querySelector('.ksd-bar')
+    if (bar && !bar.contains(e.target as Node)) bar.classList.remove('open')
+  })
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
       e.preventDefault()

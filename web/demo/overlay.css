@@ -2,8 +2,8 @@
  * the shop is in. Paper and ink are paper and ink in every palette. */
 .ksd { font-family: var(--font-sans); }
 
-/* The watermark is a tab on the left edge: no screen in the suite uses that strip,
- * so it never covers the till's tabs, the admin's header or the login. */
+/* The watermark is a tab on an edge (left by default): drag it up, down or to the right
+ * edge when it sits over something; its buttons open on a tap only. */
 .ksd-bar {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 2147483000;
   display: flex; align-items: center;
@@ -12,14 +12,18 @@
   writing-mode: vertical-rl; transform: rotate(180deg); border: 0; cursor: pointer; padding: 14px 7px;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm); background: var(--brand); color: var(--brand-foreground);
   box-shadow: var(--shadow-float); display: flex; gap: 8px; align-items: center; max-height: 92vh;
+  touch-action: none; user-select: none;
 }
+.ksd-bar.right { left: auto; right: 0; flex-direction: row-reverse; }
+.ksd-bar.right .ksd-mark { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.ksd-bar.right .ksd-fly { margin-left: 0; margin-right: 6px; transform: translateX(8px); }
 .ksd-mark b { font-family: var(--font-display); font-size: 13px; }
 .ksd-mark span { font-size: 11px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ksd-fly {
   display: flex; flex-direction: column; gap: 6px; margin-left: 6px; opacity: 0; pointer-events: none;
   transform: translateX(-8px); transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
-.ksd-bar:hover .ksd-fly, .ksd-bar:focus-within .ksd-fly, .ksd-bar.open .ksd-fly { opacity: 1; pointer-events: auto; transform: none; }
+.ksd-bar.open .ksd-fly { opacity: 1; pointer-events: auto; transform: none; }
 .ksd-btn {
   border: 0; cursor: pointer; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
   background: var(--popover); color: var(--popover-foreground); box-shadow: var(--shadow-float); white-space: nowrap;
