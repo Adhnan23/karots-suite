@@ -3456,6 +3456,7 @@ export interface SaleSuggestion {
 export interface TillProduct {
   id: number /* int64 */;
   name: string;
+  nameLocal: string; // Sinhala / Tamil name, "" = none
   barcode: string;
   sellingPrice: string;
   wholesalePrice: string;

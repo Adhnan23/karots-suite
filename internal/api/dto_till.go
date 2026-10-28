@@ -62,6 +62,7 @@ type SaleSuggestion struct {
 type TillProduct struct {
 	ID               int64  `json:"id"`
 	Name             string `json:"name"`
+	NameLocal        string `json:"nameLocal"` // Sinhala / Tamil name, "" = none
 	Barcode          string `json:"barcode"`
 	SellingPrice     string `json:"sellingPrice"`
 	WholesalePrice   string `json:"wholesalePrice"`

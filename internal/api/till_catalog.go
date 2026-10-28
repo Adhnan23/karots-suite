@@ -84,7 +84,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 
 func tillProduct(p products.Product) TillProduct {
 	out := TillProduct{
-		ID: p.ID, Name: p.Name, Barcode: strOr(p.Barcode),
+		ID: p.ID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode),
 		SellingPrice: dec2(p.SellingPrice), WholesalePrice: dec2(p.WholesalePrice),
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
@@ -140,7 +140,7 @@ func (h *handlers) withPacks(ctx context.Context, ps []TillProduct) []TillProduc
 
 func groupProduct(p productgroups.GroupProduct) TillProduct {
 	return TillProduct{
-		ID: p.ProductID, Name: p.Name, Barcode: strOr(p.Barcode),
+		ID: p.ProductID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode),
 		SellingPrice: dec2(p.SellingPrice), WholesalePrice: dec2(p.WholesalePrice),
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,

@@ -7,16 +7,16 @@ var groceryLines = `
 Rice & Grains;Samba Rice 1kg;සම්බා සහල් 1kg;kg;235;265;60
 Rice & Grains;Samba Rice 25kg Bag;සම්බා සහල් 25kg;pcs;5700;6400;0.4
 Rice & Grains;Red Raw Rice 1kg;රතු කැකුළු 1kg;kg;210;240;45
-Rice & Grains;Red Raw Rice 25kg Bag;;pcs;5100;5800;0.3
+Rice & Grains;Red Raw Rice 25kg Bag;சிவப்பு பச்சை அரிசி 25kg;pcs;5100;5800;0.3
 Rice & Grains;Keeri Samba 1kg;කීරි සම්බා 1kg;kg;290;330;30
-Rice & Grains;Basmati Rice 1kg;;pkt;650;740;8
+Rice & Grains;Basmati Rice 1kg;பாஸ்மதி அரிசி 1kg;pkt;650;740;8
 Rice & Grains;Mysore Dhal 1kg;පරිප්පු 1kg;kg;290;330;40
-Rice & Grains;Mysore Dhal 25kg Bag;;pcs;6950;7900;0.2
+Rice & Grains;Mysore Dhal 25kg Bag;மைசூர் பருப்பு 25kg;pcs;6950;7900;0.2
 Rice & Grains;Green Gram 500g;මුං ඇට;pkt;360;410;12
 Rice & Grains;Chickpeas 500g;කඩල;pkt;310;360;10
 Groceries;White Sugar 1kg;සීනි 1kg;kg;235;260;55
 Groceries;White Sugar 50kg Bag;සීනි 50kg;pcs;11250;12600;0.2
-Groceries;Brown Sugar 1kg;;kg;300;345;10
+Groceries;Brown Sugar 1kg;சிவப்பு சீனி 1kg;kg;300;345;10
 Groceries;Wheat Flour 1kg;තිරිඟු පිටි;kg;200;230;35
 Groceries;Rice Flour 1kg;සහල් පිටි;pkt;260;300;12
 Groceries;Salt 400g;ලුණු;pkt;70;90;20
@@ -30,7 +30,7 @@ Spices;Curry Powder 100g;තුනපහ;pkt;170;210;22
 Spices;Turmeric 50g;කහ කුඩු;pkt;95;120;15
 Spices;Cinnamon Sticks 50g;කුරුඳු;pkt;240;290;6
 Tea & Coffee;Ceylon Tea 200g;තේ කොළ 200g;pkt;390;450;28
-Tea & Coffee;Tea Bags 50s;;box;520;600;10
+Tea & Coffee;Tea Bags 50s;தேயிலை பைகள் 50;box;520;600;10
 Tea & Coffee;Nescafe Classic 50g;;pcs;780;890;6
 Tea & Coffee;Milo 400g;;pkt;980;1120;12
 Dairy;Anchor Milk Powder 400g;කිරිපිටි 400g;pkt;1090;1250;30
@@ -41,26 +41,26 @@ Dairy;Butter 200g;බටර්;pcs;820;940;6
 Dairy;Eggs (each);බිත්තර;pcs;46;55;180
 Bakery;Sandwich Bread 450g;පාන්;pcs;170;200;45
 Bakery;Marie Biscuits 360g;මාරි බිස්කට්;pkt;300;350;25
-Bakery;Cream Crackers 500g;;pkt;420;490;20
+Bakery;Cream Crackers 500g;கிறீம் கிறாக்கர் 500g;pkt;420;490;20
 Bakery;Chocolate Puff 200g;;pkt;290;340;14
 Beverages;Coca-Cola 1.5L;;btl;330;390;24
 Beverages;Elephant House Ginger Beer 1L;;btl;290;340;18
 Beverages;Mineral Water 1.5L;ජලය;btl;110;150;40
 Beverages;Faluda 400ml;;btl;230;270;10
-Beverages;Orange Juice 1L;;pcs;560;640;8
+Beverages;Orange Juice 1L;தோடம்பழச் சாறு 1L;pcs;560;640;8
 Household;Sunlight Soap 110g;සන්ලයිට්;pcs;125;150;30
-Household;Washing Powder 1kg;;pkt;690;790;14
-Household;Dishwash Liquid 500ml;;btl;390;450;10
-Household;Toilet Paper 4 rolls;;pkt;520;600;12
+Household;Washing Powder 1kg;சலவைத் தூள் 1kg;pkt;690;790;14
+Household;Dishwash Liquid 500ml;பாத்திரம் கழுவும் திரவம் 500ml;btl;390;450;10
+Household;Toilet Paper 4 rolls;கழிவறை காகிதம் 4;pkt;520;600;12
 Household;Matches (10 boxes);ගිනිපෙට්ටි;pkt;95;120;20
 Personal Care;Toothpaste 120g;දත් බෙහෙත්;pcs;290;340;16
-Personal Care;Shampoo 180ml;;btl;560;650;8
+Personal Care;Shampoo 180ml;ஷாம்பு 180ml;btl;560;650;8
 Personal Care;Lux Soap 100g;;pcs;160;190;20
-Snacks;Potato Chips 100g;;pkt;290;350;22
-Snacks;Chocolate Bar 45g;;pcs;180;220;40
+Snacks;Potato Chips 100g;உருளைக்கிழங்கு சிப்ஸ் 100g;pkt;290;350;22
+Snacks;Chocolate Bar 45g;சொக்லேட் 45g;pcs;180;220;40
 Snacks;Peanuts 100g;රටකජු;pkt;140;180;25
 Vegetables;Onions 1kg;ලූනු;kg;290;340;30
-Vegetables;Onions 10kg Net Bag;;pcs;2700;3150;0.5
+Vegetables;Onions 10kg Net Bag;வெங்காயம் 10kg;pcs;2700;3150;0.5
 Vegetables;Potatoes 1kg;අල;kg;320;370;28
 Vegetables;Garlic 250g;සුදුළූණු;pkt;210;260;14
 `

@@ -29,6 +29,7 @@ type Group struct {
 type GroupProduct struct {
 	ProductID        int64           `db:"product_id"         json:"id"`
 	Name             string          `db:"name"               json:"name"`
+	NameLocal        *string         `db:"name_local"         json:"name_local,omitempty"`
 	Barcode          *string         `db:"barcode"            json:"barcode,omitempty"`
 	SellingPrice     decimal.Decimal `db:"selling_price"      json:"selling_price"`
 	WholesalePrice   decimal.Decimal `db:"wholesale_price"    json:"wholesale_price"`
@@ -107,7 +108,7 @@ func (r *Repository) Get(ctx context.Context, id int64) (*Group, error) {
 func (r *Repository) Products(ctx context.Context, groupID int64) ([]GroupProduct, error) {
 	var rows []GroupProduct
 	err := r.db.SelectContext(ctx, &rows, `
-		SELECT p.id AS product_id, p.name, p.barcode, p.selling_price, p.wholesale_price,
+		SELECT p.id AS product_id, p.name, p.name_local, p.barcode, p.selling_price, p.wholesale_price,
 		       p.tax_rate, p.track_serial, p.warranty_months,
 		       u.abbreviation AS unit_abbr, u.allow_decimal AS unit_allow_decimal,
 		       COALESCE(s.quantity, 0) AS stock_qty, p.is_service, p.reorder_level,
