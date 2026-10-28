@@ -54,6 +54,8 @@ async function shot(page: Page, path: string, name: string, opts: { full?: boole
   await page.goto(path)
   await page.waitForLoadState('networkidle')
   await opts.prep?.(page)
+  // A full-page shot stitches the page, so the fixed dock would land mid-page.
+  if (opts.full) await page.addStyleTag({ content: 'nav[aria-label="Main"] { display: none !important }' })
   await page.waitForTimeout(700) // charts and Motion settle
   await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 82, fullPage: !!opts.full })
 }
@@ -189,6 +191,20 @@ test('appearance and palettes', async ({ browser }) => {
   const light = await session(browser, system)
   const dark = await session(browser, system, desk, 'dark')
   await shot(light, '/admin/system/appearance', 'appearance/appearance', { full: true })
+  // Shoot one Appearance section, opened on its own (the page remembers open sections).
+  const section = async (name: string, file: string) => {
+    if (only && !file.includes(only)) return
+    await light.goto('/admin/system/appearance')
+    await light.waitForLoadState('networkidle')
+    await light.evaluate((n) => document.querySelectorAll('details').forEach((d) => {
+      d.open = !!d.querySelector('summary')?.textContent?.startsWith(n)
+    }), name)
+    await light.addStyleTag({ content: 'nav[aria-label="Main"] { display: none !important }' })
+    await light.waitForTimeout(1000)
+    await light.locator('details[open]').screenshot({ path: `${out}/${file}.jpg`, type: 'jpeg', quality: 82 })
+  }
+  await section('Receipt style', 'printing/receipt-styles')
+  await section('Label styles', 'printing/label-styles')
   const cur = await (await light.request.get('/api/v1/system/appearance')).json()
   try {
     for (const palette of palettes) {
