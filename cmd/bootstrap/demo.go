@@ -50,22 +50,25 @@ func demoInstallID() (string, error) {
 	return id, os.WriteFile(demoIDPath, []byte(id+"\n"), 0o644)
 }
 
-func buildDemo(all []manifest, fresh bool, log io.Writer) error {
+// demoBuild is buildDemo; tests swap it.
+var demoBuild = buildDemo
+
+func buildDemo(all []manifest, fresh bool, log io.Writer) (buildResult, error) {
 	// without it the binary falls back to the dev seed and prints its unlock code
 	if os.Getenv("POS_SUPPORT_SECRET") == "" {
-		return fmt.Errorf("POS_SUPPORT_SECRET is not set — the Demo Room's lock needs it (set it in .env)")
+		return buildResult{}, fmt.Errorf("POS_SUPPORT_SECRET is not set — the Demo Room's lock needs it (set it in .env)")
 	}
 	id, err := demoInstallID()
 	if err != nil {
-		return err
+		return buildResult{}, err
 	}
 	ldflags, _, pin, err := supportFlags(id, "", log)
 	if err != nil {
-		return err
+		return buildResult{}, err
 	}
 	cache, err := os.UserCacheDir()
 	if err != nil {
-		return err
+		return buildResult{}, err
 	}
 	bundle := func(goos string) (func(), error) {
 		src, err := filedb.FetchBundle(filepath.Join(cache, "karots-suite-filedb"), goos, "amd64")
@@ -119,13 +122,13 @@ func buildDemo(all []manifest, fresh bool, log io.Writer) error {
 		return buildDemoBinaries(log, bundle, ldflags)
 	})
 	if err != nil {
-		return err
+		return buildResult{}, err
 	}
 	fmt.Fprintf(log, "\n✓ Demo Room built in dist/demo\n  install id      %s\n", id)
 	if pin != "" {
 		fmt.Fprintf(log, "  unlock code     %s   (rotates hourly; your PIN app gives it for this install id)\n", pin)
 	}
-	return nil
+	return buildResult{Folder: filepath.Join("dist", "demo"), InstallID: id, Unlock: pin}, nil
 }
 
 // buildDemoBinaries: the shipped binaries carry the years, the demo's install

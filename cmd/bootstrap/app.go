@@ -84,6 +84,21 @@ func appHandler(all []manifest, b func(buildOpts, io.Writer) (buildResult, error
 		w.Write(appScript) //nolint:errcheck
 	})
 	mux.HandleFunc("GET /api/state", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, http.StatusOK, st) })
+	mux.HandleFunc("POST /api/demo", func(w http.ResponseWriter, r *http.Request) {
+		if !jsonOnly(w, r) {
+			return
+		}
+		var in struct {
+			Fresh bool `json:"fresh"`
+		}
+		_ = json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&in)
+		if !busy.TryLock() {
+			writeErr(w, http.StatusConflict, "a build is already running")
+			return
+		}
+		defer busy.Unlock()
+		streamBuild(w, func(log io.Writer) (buildResult, error) { return demoBuild(all, in.Fresh, log) })
+	})
 	mux.HandleFunc("POST /api/build", func(w http.ResponseWriter, r *http.Request) {
 		if !jsonOnly(w, r) {
 			return

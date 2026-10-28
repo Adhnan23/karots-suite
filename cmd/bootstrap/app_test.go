@@ -99,3 +99,20 @@ func TestAppBuildRefusesCrossSitePosts(t *testing.T) {
 		t.Fatalf("text/plain POST: %d, ran=%v", rec.Code, ran)
 	}
 }
+
+func TestAppDemoBuildStreamsAndPassesFresh(t *testing.T) {
+	var fresh bool
+	demoBuild = func(_ []manifest, f bool, log io.Writer) (buildResult, error) {
+		fresh = f
+		fmt.Fprintln(log, "building")
+		return buildResult{Folder: "dist/demo", InstallID: "DEMO1234", Unlock: "123456"}, nil
+	}
+	t.Cleanup(func() { demoBuild = buildDemo })
+	req := httptest.NewRequest("POST", "/api/demo", strings.NewReader(`{"fresh":true}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	testApp(nil).ServeHTTP(rec, req)
+	if !fresh || !strings.Contains(rec.Body.String(), "building") || !strings.Contains(rec.Body.String(), `@@RESULT {"binary":"","folder":"dist/demo","installId":"DEMO1234","supportPin":"","unlock":"123456"}`) {
+		t.Fatalf("fresh %v, body %s", fresh, rec.Body)
+	}
+}

@@ -150,7 +150,7 @@ func TestWithDemoListRestoresCoreOnlyEvenOnFailure(t *testing.T) {
 
 func TestDemoBuildRefusesWithoutTheSecret(t *testing.T) {
 	t.Setenv("POS_SUPPORT_SECRET", "")
-	err := buildDemo(nil, false, io.Discard)
+	_, err := buildDemo(nil, false, io.Discard)
 	if err == nil || !strings.Contains(err.Error(), "POS_SUPPORT_SECRET") {
 		t.Fatalf("err = %v, want a refusal naming POS_SUPPORT_SECRET", err)
 	}

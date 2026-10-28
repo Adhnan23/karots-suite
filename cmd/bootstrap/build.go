@@ -34,6 +34,7 @@ type buildResult struct {
 	Folder     string `json:"folder,omitempty"` // a shop build: the folder to carry to the shop
 	InstallID  string `json:"installId"`
 	SupportPIN string `json:"supportPin"`
+	Unlock     string `json:"unlock,omitempty"` // the Demo Room: its hourly unlock code
 }
 
 var (

@@ -96,7 +96,8 @@ func run() error {
 		return err
 	}
 	if *demoFlag {
-		return buildDemo(all, *freshFlag, os.Stdout)
+		_, err := buildDemo(all, *freshFlag, os.Stdout)
+		return err
 	}
 	if *importFlag != "" {
 		return importPOSFile(*shopsFlag, *importFlag, all)

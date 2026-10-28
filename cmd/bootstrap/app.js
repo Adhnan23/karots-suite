@@ -37,9 +37,10 @@ function pluginGrid(el, picked, onChange) {
 const plugins = () => pluginGrid($('plugins'), s.picked, summary)
 
 function view(name) {
-  for (const v of ['vShops', 'vNew', 'vEdit', 'vQuick']) $(v).hidden = v !== name
-  $('tShops').setAttribute('aria-pressed', name !== 'vQuick')
+  for (const v of ['vShops', 'vNew', 'vEdit', 'vQuick', 'vDemo']) $(v).hidden = v !== name
+  $('tShops').setAttribute('aria-pressed', name !== 'vQuick' && name !== 'vDemo')
   $('tQuick').setAttribute('aria-pressed', name === 'vQuick')
+  $('tDemo').setAttribute('aria-pressed', name === 'vDemo')
   $('log').classList.remove('on')
 }
 
@@ -106,6 +107,7 @@ function finish(r, err) {
   const add = (k, v, cls) => { const a = document.createElement('span'); a.textContent = k; const b = document.createElement('code'); b.textContent = v; if (cls) b.className = cls; kv.append(a, b) }
   if (err) { add('Why', err); return }
   add(r.folder ? 'Folder' : 'Binary', r.folder || r.binary)
+  if (r.unlock) { add('Install id', r.installId); add('Unlock code', r.unlock, 'pin'); add('', 'It rotates hourly — your PIN app gives it for this install id.'); return }
   if (r.installId) { add('Install id', r.installId); add('Support login', '0000000001'); add('Support PIN', r.supportPin, 'pin'); add('', 'The PIN rotates hourly — recompute it from the install id.') }
   else add('Support', 'Shared support PIN (no POS_SUPPORT_SECRET)')
 }
@@ -365,7 +367,7 @@ function backToShops() { view('vShops'); loadShops() }
 // ---- Start ----
 fetch('/api/state').then((r) => r.json()).then((st) => {
   Object.assign(s, { plugins: st.plugins, os: st.os, arch: st.arch })
-  $('name').value = st.name; $('secret').hidden = st.hasSecret; $('secret2').hidden = st.hasSecret
+  $('name').value = st.name; $('secret').hidden = st.hasSecret; $('secret2').hidden = st.hasSecret; $('secret3').hidden = st.hasSecret
   seg($('os'), OS, s, 'os'); seg($('arch'), ARCH, s, 'arch'); seg($('mode'), MODE, s, 'mode'); plugins(); summary()
   loadShops()
 })
@@ -374,6 +376,8 @@ $('all').onclick = () => { s.plugins.forEach((p) => s.picked.add(p.key)); plugin
 $('none').onclick = () => { s.picked.clear(); plugins(); summary() }
 $('tShops').onclick = backToShops
 $('tQuick').onclick = () => view('vQuick')
+$('tDemo').onclick = () => view('vDemo')
+$('demoGo').onclick = (e) => stream('/api/demo', { fresh: $('demoFresh').checked }, e.target)
 $('newShop').onclick = newShop
 $('releaseAll').onclick = (e) => release(null, e.target)
 $('relCancel').onclick = () => $('rel').close()
