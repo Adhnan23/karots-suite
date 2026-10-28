@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -73,7 +75,7 @@ func runTemplates(dir string) int {
 				ReceiptPrinter: "127.0.0.1:9", LabelPrinter: "127.0.0.1:9", Template: filepath.Join(dir, p.Key+".ksb")})
 			cmd := exec.Command(exe, "-child", string(args))
 			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
+			if err := runShowing(cmd, p.Name); err != nil {
 				mu.Lock()
 				failed = true
 				mu.Unlock()
@@ -88,4 +90,23 @@ func runTemplates(dir string) int {
 		return 1
 	}
 	return 0
+}
+
+// runShowing runs a template child, printing its progress as it goes:
+// "◷ <shop> · <pct>% · <step>" — the Shop Builder draws a bar per shop from these.
+func runShowing(cmd *exec.Cmd, shop string) error {
+	out, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	sc := bufio.NewScanner(out)
+	for sc.Scan() {
+		if pct, step, ok := strings.Cut(strings.TrimPrefix(sc.Text(), "progress "), " "); ok && strings.HasPrefix(sc.Text(), "progress ") {
+			fmt.Printf("◷ %s · %s%% · %s\n", shop, pct, step)
+		}
+	}
+	return cmd.Wait()
 }

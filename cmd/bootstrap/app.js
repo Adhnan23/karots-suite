@@ -77,7 +77,7 @@ async function stream(url, body, btn, after) {
   s.building = true; summary()
   const label = btn.textContent
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Building…'
-  $('log').classList.add('on'); $('out').textContent = ''; $('done').className = 'done'
+  $('log').classList.add('on'); $('out').textContent = ''; $('years').replaceChildren(); $('done').className = 'done'
   $('log').scrollIntoView({ behavior: 'smooth' })
   let text = '', r = null, err = null
   try {
@@ -89,7 +89,8 @@ async function stream(url, body, btn, after) {
         const { value, done } = await reader.read()
         if (done) break
         text += dec.decode(value, { stream: true })
-        $('out').textContent = text.replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
+        years(text)
+        $('out').textContent = text.replace(/^◷ .*\n?/gm, '').replace(/\n@@(RESULT|ERROR) .*\n?$/, ''); $('out').scrollTop = 1e9
       }
       const m = text.match(/@@RESULT (.*)/), e = text.match(/@@ERROR (.*)/)
       r = m ? JSON.parse(m[1]) : null
@@ -99,6 +100,19 @@ async function stream(url, body, btn, after) {
   s.building = false; btn.disabled = false; btn.textContent = label; summary()
   finish(r, err)
   after && after()
+}
+// years draws a bar per demo shop from its latest "◷ <shop> · <pct>% · <step>" line.
+function years(text) {
+  const last = new Map()
+  for (const m of text.matchAll(/^(?:◷ (.+?) · (\d+)% · (.*)|✓ (.+?): a year built in (.*))$/gm))
+    if (m[1]) last.set(m[1], [m[2], m[3]]); else last.set(m[4], ['100', 'Built in ' + m[5]])
+  $('years').replaceChildren(...[...last].map(([shop, [pct, step]]) => {
+    const row = document.createElement('div'); row.className = 'year'
+    const b = document.createElement('b'); b.textContent = shop
+    const sp = document.createElement('span'); sp.textContent = `${step} · ${pct}%`
+    const bar = document.createElement('i'); bar.style.setProperty('--pct', pct + '%')
+    row.append(b, sp, bar); return row
+  }))
 }
 function finish(r, err) {
   const d = $('done'); d.className = 'done on' + (err ? ' fail' : ''); d.innerHTML = ''

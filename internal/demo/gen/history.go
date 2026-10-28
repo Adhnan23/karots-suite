@@ -105,7 +105,7 @@ func (g *gen) history(now time.Time, days int, progress func(int, string)) error
 		if err := g.tm.shift(g.ctx); err != nil {
 			return err
 		}
-		progress(10+70*(days-start)/days, "A year of trade")
+		progress(10+70*(days-start)/days, "Trading "+today.AddDate(0, 0, -max(start-6, 1)).Format("Mon 2 Jan 2006"))
 	}
 	return nil
 }
