@@ -120,6 +120,7 @@ type TopupReport struct {
 	Physical      []PlaceBalance   `json:"physical"`
 	PhysicalTotal string           `json:"physicalTotal"`
 	Bank          []PlaceBalance   `json:"bank"`
+	Cheques       []PlaceBalance   `json:"cheques"` // received, not yet cleared: neither cash nor bank
 	BankTotal     string           `json:"bankTotal"`
 	Available     string           `json:"available"`
 	Gap           string           `json:"gap"` // available − need; negative = short

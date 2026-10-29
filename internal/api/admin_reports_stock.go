@@ -120,7 +120,7 @@ func (h *handlers) ReportCountSheet(c echo.Context) error {
 // sub-categories), against every active locker and open till.
 func (h *handlers) ReportTopup(c echo.Context) error {
 	ctx := c.Request().Context()
-	out := TopupReport{Plugins: []ReadinessGroup{}, Stock: []TopupStockRow{}, Physical: []PlaceBalance{}, Bank: []PlaceBalance{}}
+	out := TopupReport{Plugins: []ReadinessGroup{}, Stock: []TopupStockRow{}, Physical: []PlaceBalance{}, Bank: []PlaceBalance{}, Cheques: []PlaceBalance{}}
 	var pluginNeed, stockNeed, physical, bank decimal.Decimal
 	for _, s := range plugin.CollectReadiness(ctx) {
 		g := ReadinessGroup{Title: s.Title, Need: dec2(s.NeedTotal), Rows: make([]ReadinessLine, 0, len(s.Rows))}
@@ -145,7 +145,9 @@ func (h *handlers) ReportTopup(c echo.Context) error {
 	}
 	for _, l := range lks {
 		p := PlaceBalance{Name: l.Name, Balance: dec2(l.Balance)}
-		if l.Kind == lockers.KindBank || l.Kind == lockers.KindCard {
+		if l.Kind == lockers.KindCheque {
+			out.Cheques = append(out.Cheques, p)
+		} else if l.Kind == lockers.KindBank || l.Kind == lockers.KindCard {
 			out.Bank, bank = append(out.Bank, p), bank.Add(l.Balance)
 		} else {
 			out.Physical, physical = append(out.Physical, p), physical.Add(l.Balance)

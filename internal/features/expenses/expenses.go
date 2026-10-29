@@ -24,7 +24,9 @@ type Expense struct {
 	PaidBy      *int64          `db:"paid_by"      json:"paid_by,omitempty"`
 	ExpenseDate time.Time       `db:"expense_date" json:"expense_date"`
 	CreatedAt   time.Time       `db:"created_at"   json:"created_at"`
-	PaidByName  *string         `db:"paid_by_name" json:"paid_by_name,omitempty"`
+	// Unpaid is the part of Amount a bounced / cancelled cheque left unpaid.
+	Unpaid     decimal.Decimal `db:"unpaid"       json:"unpaid"`
+	PaidByName *string         `db:"paid_by_name" json:"paid_by_name,omitempty"`
 	// ServiceProductID attributes an operating cost (a toner change, a machine
 	// repair) to the service it belongs to. It is NOT per-unit consumption and
 	// never enters COGS: the core P&L still counts it once, as an expense.

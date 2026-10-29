@@ -2550,6 +2550,7 @@ export interface TopupReport {
   physical: PlaceBalance[];
   physicalTotal: string;
   bank: PlaceBalance[];
+  cheques: PlaceBalance[]; // received, not yet cleared: neither cash nor bank
   bankTotal: string;
   available: string;
   gap: string; // available − need; negative = short

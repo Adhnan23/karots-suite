@@ -17,6 +17,9 @@ func TestAdminMoneySources(t *testing.T) {
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM lockers WHERE id=$1`, lid) }) //nolint:errcheck
 	found := false
 	for _, s := range decode[[]MoneySource](t, te.do(http.MethodGet, "/api/v1/admin/money-sources", nil, ck)) {
+		if s.Kind == "cheque" {
+			t.Fatal("cheque place listed as a money source")
+		}
 		found = found || (s.Label == "T safe money-src" && s.Group == "Lockers" && s.Kind == "safe" && s.Balance == "0.00")
 	}
 	if !found {

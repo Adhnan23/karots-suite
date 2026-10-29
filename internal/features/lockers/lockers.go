@@ -33,11 +33,14 @@ const (
 	// KindCard is a card-machine clearing account: card takings land here until
 	// the acquirer settles the batch into a bank account (net of a service fee).
 	KindCard = "card"
+	// KindCheque is the single "Cheques in hand" place: cheques received and not
+	// yet cleared sit here (never cash, never selectable as a money source).
+	KindCheque = "cheque"
 )
 
 // HoldsCash reports whether a locker kind holds notes and coins — anything but
 // a bank or card-machine account, which cash can't be put into or taken from.
-func HoldsCash(kind string) bool { return kind != KindBank && kind != KindCard }
+func HoldsCash(kind string) bool { return kind != KindBank && kind != KindCard && kind != KindCheque }
 
 // Accepts reports whether money paid by method can come out of, or go into, a
 // locker of this kind: cash ↔ a cash-holding locker, card / online ↔ a bank
@@ -46,7 +49,7 @@ func HoldsCash(kind string) bool { return kind != KindBank && kind != KindCard }
 // the card company and leaves only through Settle card.
 func Accepts(kind, method string) bool {
 	switch {
-	case kind == KindCard:
+	case kind == KindCard, kind == KindCheque:
 		return false
 	case method == "":
 		return true
@@ -150,7 +153,7 @@ func (r *Repository) ListForCashier(ctx context.Context) ([]Locker, error) {
 			SELECT locker_id, SUM(balance_delta) AS bal
 			FROM locker_ledger GROUP BY locker_id
 		) le ON le.locker_id = l.id
-		WHERE l.is_active = true AND l.cashier_access = true
+		WHERE l.is_active = true AND l.cashier_access = true AND l.kind <> 'cheque'
 		ORDER BY l.name`)
 	return rows, err
 }
@@ -419,6 +422,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*Lo
 }
 
 func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
+	if err := s.refuseCheque(ctx, id); err != nil {
+		return err
+	}
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
 		return apperr.Validation("locker name is required")
@@ -442,6 +448,9 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
 
 // SetActive archives or restores a locker.
 func (s *Service) SetActive(ctx context.Context, id int64, active bool) error {
+	if err := s.refuseCheque(ctx, id); err != nil {
+		return err
+	}
 	err := s.repo.SetActive(ctx, id, active)
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperr.NotFound("locker")
@@ -466,4 +475,25 @@ func (s *Service) Ledger(ctx context.Context, lockerID int64, f LedgerFilter) ([
 		return nil, apperr.Internal("failed to load locker ledger", err)
 	}
 	return rows, nil
+}
+
+// refuseCheque stops an edit or archive of the Cheques in hand place.
+func (s *Service) refuseCheque(ctx context.Context, id int64) error {
+	var kind string
+	if err := s.db.GetContext(ctx, &kind, `SELECT kind FROM lockers WHERE id = $1`, id); err == nil && kind == KindCheque {
+		return apperr.Validation("Cheques in hand is kept by the suite")
+	}
+	return nil
+}
+
+// ChequesInHandTx returns the id of the Cheques in hand place, making it first if
+// it is missing (a restored old archive has none).
+func ChequesInHandTx(ctx context.Context, q db.Queryer) (int64, error) {
+	if _, err := q.ExecContext(ctx, `INSERT INTO lockers (name, kind, allow_negative, is_active, cashier_access)
+		VALUES ('Cheques in hand', 'cheque', false, true, false) ON CONFLICT DO NOTHING`); err != nil {
+		return 0, err
+	}
+	var id int64
+	err := q.GetContext(ctx, &id, `SELECT id FROM lockers WHERE kind = 'cheque'`)
+	return id, err
 }

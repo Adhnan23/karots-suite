@@ -80,7 +80,7 @@ func (h *handlers) settingsPage(c echo.Context, withPrinters bool) error {
 			page.Printers = []string{}
 		}
 	}
-	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active AND kind NOT IN ('bank', 'card') ORDER BY name`); err != nil {
+	if err := h.d.DB.SelectContext(ctx, &page.Lockers, `SELECT id, name FROM lockers WHERE is_active AND kind NOT IN ('bank', 'card', 'cheque') ORDER BY name`); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, page)

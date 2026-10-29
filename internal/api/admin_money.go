@@ -35,6 +35,9 @@ func (h *handlers) AdminMoneySources(c echo.Context) error {
 	}
 	out := make([]MoneySource, 0, len(ls)+len(tills))
 	for _, l := range ls {
+		if l.Kind == lockers.KindCheque {
+			continue
+		}
 		out = append(out, MoneySource{Value: "locker:" + strconv.FormatInt(l.ID, 10), Label: l.Name, Group: "Lockers", Kind: l.Kind, Balance: dec2(l.Balance)})
 	}
 	for _, t := range tills {
