@@ -21,10 +21,3 @@ deploy/docker/.env
 deploy/docker/karots.env
 deploy/docker/karots-suite
 
-# promo videos (videos/README.md): renders, recordings and voices are rebuilt
-videos/node_modules/
-videos/out/
-videos/public/clips/
-videos/public/voice/
-videos/public/shots/
-videos/public/logo.jpg

@@ -6,50 +6,22 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
-## Next session — START HERE: promo videos, half done (handoff 2026-10-28 night)
+## Next session — START HERE: M8e Pocket Cashier (handoff 2026-10-29)
 
-Stopped early: the user's internet was slow. **Spec:** `docs/specs/2026-10-28-promo-videos-design.md` (approved).
-**Plan:** `docs/plans/2026-10-28-promo-videos.md`. **Ledger** (rulings so far): `.superpowers/sdd/2026-10-28-promo-videos/progress.md`
-(git-ignored). The design was settled with the user: practical everyday-problem messaging (no tech words), 1 main promo
-(60–90 s) + 8 shorts (15–20 s) × Sinhala / Tamil / English = 27 vertical 1080×1920 MP4s for Facebook, WhatsApp, TikTok,
-Reels; computer voice + music; end card = logo, "Coming soon: Pocket Cashier" phone mockup, "WhatsApp us for a free demo
-· 076 962 6396"; paid extras tagged "optional add-on"; no prices.
+**Promo videos DROPPED 2026-10-29** (user: not the kind of video they want; AI-generated ads tried, also dropped).
+The `videos/` project, its spec / plan and `make videos-clips` were deleted — git history has them (`git log --
+videos`). Kept from that work: product search matches the **local name** (`name_local`) across the till, product
+lists and plugin pickers; till product cards show the local name; 14 demo groceries have Tamil names.
 
-**Done and committed:**
-- Tasks 1–2: product search matches the **local name** (`name_local`) — till / product lists (`searchClause`), warranty,
-  conversions, pharmacy / alternatives / productplus pickers; till product cards show the local name (user asked); 14
-  demo groceries got Tamil names (Demo Room rebuilt with them).
-- Task 4: all lines in `videos/src/lines/{en,si,ta}.ts` (Sinhala / Tamil are **drafts for a fluent check**), scene lists
-  in `videos/src/videos.ts`; `bun test` in `videos/` passes.
-- Task 5: every voice line made (`videos/public/voice/`, git-ignored; `src/durations.json` committed). Voice samples to
-  play for the user: `videos/out/samples/*.mp3` (defaults Thilini / Saranya / Neerja in `src/voices.ts`).
-- Task 6 code: `web/docs-shots/clips.spec.ts` + `make videos-clips` (Chrome screencast; phone clips are 540×960 — CDP frames
-  are CSS pixels; Playwright's recordVideo was wrong). Helpers shared in `web/docs-shots/demo.ts`.
-- Task 7 code: `videos/src/{Scene,EndCard,Video,Root}.tsx`, `scripts/render.ts`, `videos/README.md` — **never rendered yet**.
-
-**Next, in order:**
-1. Finish the install (it was stopped; only react + remotion are in package.json): `cd videos && bun add --exact
-   @remotion/cli@4.0.534 @remotion/media-utils@4.0.534 react-dom@19.3.0 @fontsource/figtree@5.3.0 @fontsource/sora@5.3.0
-   @fontsource/noto-sans-sinhala@5.3.0 @fontsource/noto-sans-tamil@5.3.0 && bun add -d --exact typescript@6.0.3
-   @types/react@19.2.14 @types/bun@1.3.2` (slow on a slow line — run in the background; @remotion/cli pulls webpack).
-   Then `bunx tsc` in `videos/` and `bunx remotion still Hello`-style checks (Task 3 verification).
-2. Re-record **all** clips: start `dist/demo/karots-suite-demo-room` (already built), `make videos-clips`. The last run
-   was stopped at 12/25, and `credit-list` now records `/admin/customers` (the dues report showed Rs 0.00 buckets).
-   Look at a frame of every clip (no spinners, empty lists, demo chrome, install id / PIN). Check a till clip shows the
-   local name on the cards.
-3. Task 7: stills (`bunx remotion still <video>-<lang>`) for caption fit (Sinhala / Tamil), add-on tag, internet note,
-   end card; then Task 8 `make videos` (27 files, table + range check).
-4. **Ask the user:** pick voices from the samples; **music** — FreePD is gone and Pixabay can't be scripted, so the user
-   drops a track at `videos/public/music.mp3` (licence noted in `videos/MUSIC.md`); renders run without it until then;
-   a fluent check of the Sinhala / Tamil lines before posting.
-5. Final whole-branch review (executing-plans), status update, delete the plan when done.
+**Next code work:** M8e Pocket Cashier (see the memory note / `docs/specs` when planned). Waiting on the user outside
+the code: business registration number, lawyer review, real-printer test.
 
 ## Docs session DONE (2026-10-28)
 
 **Waiting on the user (outside the code):** business-name registration number (sole proprietorship applied 2026-10-28 —
 don't sign shops before it); the lawyer meeting with `karots-suite-lawyer-review.pdf`, then apply the answers and drop
-the DRAFT line; real-printer test when printers arrive. **Next code work:** promo videos (Remotion) → M8e Pocket
-Cashier. Agreement now in the Sri Lankan form (preamble, WHEREAS, IN WITNESS WHEREOF, First/Second/Third Schedules,
+the DRAFT line; real-printer test when printers arrive. **Next code work:** M8e Pocket
+Cashier (videos dropped 2026-10-29). Agreement now in the Sri Lankan form (preamble, WHEREAS, IN WITNESS WHEREOF, First/Second/Third Schedules,
 Shop Rules = Annexure "A"); filled SAMPLE agreement + notice; `internal/docscheck` guards plugins vs docs/legal.
 
 - Screenshots: `make docs-shots` (`web/docs-shots/`, own Playwright config) against a running Demo Room's Super Store
@@ -69,7 +41,7 @@ Shop Rules = Annexure "A"); filled SAMPLE agreement + notice; `internal/docschec
   help free 60 days, 2 free visits, cloud backup paid + frozen after 7 days late, refund scale (week 1 = all but set-up fee,
   then 25/50/75 %, none after day 30), plugin add / remove, dos & don'ts, price list with blanks. "I agree" tick in karots-setup DONE (terms-accepted.txt record, -accept-terms headless). A Reseller Agreement only
   when the first reseller signs. AGENTS.md "Docs and legal" = what to update per plugin / feature / price change;
-  internal/docscheck guards plugins vs docs + legal. Next: videos (Remotion) → M8e Pocket Cashier.
+  internal/docscheck guards plugins vs docs + legal. Next: M8e Pocket Cashier.
 
 ## Earlier handoff (2026-10-28) — docs, license, screenshots
 
@@ -130,9 +102,7 @@ the docs (shop owners, resellers, developers — likely all three, so split guid
   Sans/Serif Sinhala & Tamil, Noto Serif — all OFL 1.1), React (MIT), ECharts (Apache-2.0), lucide (ISC), Motion
   (MIT), TanStack (MIT), shadcn/ui (MIT). Generate lists, don't hand-type versions.
 
-**4. Videos (later session).** Remotion's official Claude Code plugin / agent skills
-(`remotion.dev/docs/ai/claude-code-plugin`) make motion-graphics videos from React; feed it the docs screenshots and
-Playwright screen recordings (`recordVideo`) of the till and the Demo Room.
+**4. Videos** — dropped 2026-10-29.
 
 **Rules that still apply:** no Claude/AI attribution in commits or docs; core code never names a plugin (docs may);
 one commit per step on `main`; screenshots self-reviewed before they go in (check 360 px phone shots for overflow).

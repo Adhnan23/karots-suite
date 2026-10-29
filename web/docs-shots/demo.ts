@@ -1,7 +1,7 @@
 import type { Browser } from '@playwright/test'
 import { test, type Page } from '../e2e/fixtures'
 
-// What the docs screenshots and the promo-video clips share: signing in to a
+// Shared by the docs screenshots: signing in to a
 // running Demo Room's Karots Super Store with the demo chrome hidden.
 // DOCS_CODE = the hourly code (unlocks the demo and is the system user's PIN).
 export const code = process.env.DOCS_CODE ?? ''
