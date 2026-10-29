@@ -149,6 +149,9 @@ func (h *handlers) CounterPrintDebtSlip(c echo.Context) error {
 	slip := escpos.DebtSlip{ReceiptNo: r.ReceiptNo, Date: datetime.DateTime(r.CreatedAt), CustomerName: r.CustomerName,
 		CustomerPhone: strOr(r.CustomerPhone), Method: methodOr(r.Method), CashierName: strOr(r.CashierName),
 		Amount: r.Amount, BalanceBefore: r.BalanceBefore, BalanceAfter: r.BalanceAfter}
+	for _, ch := range r.Cheques {
+		slip.Cheques = append(slip.Cheques, escpos.SlipCheque{Number: ch.Number, Bank: ch.Bank, Date: ch.Date, Amount: ch.Amount})
+	}
 	opts := receiptimg.SlipOptions(ctx, cfg, nil)
 	if ok, err := slipData(c, cfg, opts, func(d *SlipData) { d.Kind, d.Debt = "debt", slipDebt(slip) }); ok {
 		return err

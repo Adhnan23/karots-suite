@@ -134,6 +134,8 @@ type SlipDebt struct {
 	BalanceBefore string `json:"balanceBefore"` // "" (with BalanceAfter) = not recorded
 	BalanceAfter  string `json:"balanceAfter"`
 	Cashier       string `json:"cashier"`
+	// Cheques a cheque payment was made with (Method = the cheque text).
+	Cheques []SlipPayment `json:"cheques"`
 }
 
 type SlipWarranty struct {

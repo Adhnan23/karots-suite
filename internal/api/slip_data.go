@@ -80,7 +80,7 @@ func slipSale(d sales.Detail, opts escpos.Options) *SlipSale {
 	s.BillSavingLabel = escpos.DiscSuffix(d.Sale.DiscountType, d.Sale.DiscountValue)
 	s.Tax, s.Given, s.Total, s.YouSaved = amt(d.Sale.Tax), amt(given), amt(d.Sale.Total), amt(d.Sale.Discount)
 	for _, p := range d.Payments {
-		s.Payments = append(s.Payments, SlipPayment{Method: escpos.Capitalize(p.Method), Amount: amt(p.Amount)})
+		s.Payments = append(s.Payments, SlipPayment{Method: escpos.PaymentLabel(p), Amount: amt(p.Amount)})
 	}
 	if cs, ok := d.Sale.Credit(opts.CustomerDue); ok {
 		s.Credit = true
@@ -132,7 +132,10 @@ func slipMoney(r cashflow.Receipt) *SlipMoney {
 
 func slipDebt(s escpos.DebtSlip) *SlipDebt {
 	d := &SlipDebt{ReceiptNo: s.ReceiptNo, Date: s.Date, Customer: s.CustomerName, Phone: s.CustomerPhone, Amount: amt(s.Amount),
-		Method: s.Method, Cashier: s.CashierName}
+		Method: s.Method, Cashier: s.CashierName, Cheques: []SlipPayment{}}
+	for _, c := range s.Cheques {
+		d.Cheques = append(d.Cheques, SlipPayment{Method: escpos.ChequeText(c.Number, c.Bank, c.Date), Amount: amt(c.Amount)})
+	}
 	if s.BalanceBefore != nil && s.BalanceAfter != nil {
 		d.BalanceBefore, d.BalanceAfter = amt(*s.BalanceBefore), amt(*s.BalanceAfter)
 	}

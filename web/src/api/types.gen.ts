@@ -3133,6 +3133,10 @@ export interface SlipDebt {
   balanceBefore: string; // "" (with BalanceAfter) = not recorded
   balanceAfter: string;
   cashier: string;
+  /**
+   * Cheques a cheque payment was made with (Method = the cheque text).
+   */
+  cheques: SlipPayment[];
 }
 export interface SlipWarranty {
   date: string;

@@ -175,7 +175,7 @@ export function sample(name: SampleName, width: '80' | '58' = '80'): SlipData {
       return {
         ...base,
         kind: 'debt',
-        debt: { receiptNo: 'DP-000002', date: '2026-10-21 11:05', customer: 'Nimal Perera', phone: '0771234567', amount: '2000', method: 'Cash', balanceBefore: '6380', balanceAfter: '4380', cashier: 'Kamal' },
+        debt: { receiptNo: 'DP-000002', date: '2026-10-21 11:05', customer: 'Nimal Perera', phone: '0771234567', amount: '2000', method: 'Cash', balanceBefore: '6380', balanceAfter: '4380', cashier: 'Kamal', cheques: [] },
       }
     case 'warranty':
       return {

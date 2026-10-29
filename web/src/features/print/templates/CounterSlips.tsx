@@ -81,6 +81,7 @@ export function DebtSlip({ d, kit: K }: P) {
       <K.Rule />
       <K.Money bold l="Amount paid" r={money(sym, s.amount)} />
       <K.Info l="Method:" r={s.method} />
+      {(s.cheques ?? []).map((c, i) => <K.Money key={i} l={c.method} r={money(sym, c.amount)} />)}
       {s.balanceAfter && (
         <>
           <K.Rule />

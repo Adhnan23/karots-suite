@@ -87,7 +87,7 @@ func Document(d sales.Detail, cfg settings.Settings, opts Options) []byte {
 			if p.Amount.IsZero() {
 				continue // a payout sale's empty cash row
 			}
-			line(&b, leftRight(capitalize(ascii(p.Method)), money.Format(sym, p.Amount), w))
+			moneyLine(&b, PaymentLabel(p), money.Format(sym, p.Amount), w)
 		}
 	}
 
@@ -296,6 +296,7 @@ type DebtSlip struct {
 	ReceiptNo, Date, CustomerName, CustomerPhone, Method, CashierName string
 	Amount                                                            decimal.Decimal
 	BalanceBefore, BalanceAfter                                       *decimal.Decimal
+	Cheques                                                           []SlipCheque // a cheque payment's cheques
 }
 
 // DebtDocument builds the ESC/POS byte stream for a credit payment slip.
@@ -326,6 +327,7 @@ func DebtDocument(s DebtSlip, cfg settings.Settings, opts Options) []byte {
 	line(&b, leftRight("Amount paid", money.Format(sym, s.Amount), w))
 	b.Write([]byte{esc, 'E', 0})
 	line(&b, leftRight("Method:", s.Method, w))
+	chequeLines(&b, s.Cheques, sym, w)
 	// balances (omitted for backfilled rows)
 	if s.BalanceBefore != nil && s.BalanceAfter != nil {
 		divider(&b, cfg, w)
