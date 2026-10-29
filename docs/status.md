@@ -6,7 +6,20 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
-## Next session — START HERE: Cheques (handoff 2026-10-29)
+## Next session — START HERE: Cheques, Tasks 12–14 left (handoff 2026-10-29)
+
+**Building `docs/plans/2026-10-29-cheques.md` (spec `docs/specs/2026-10-29-cheques-design.md`).** Tasks 1–11 are done
+and committed (368ddf5 … b502da0): DB + Cheques in hand, the cheque life cycle (`internal/features/cheques`), till
+tender, customer payments, the shared pay-out helper (`internal/features/payout`) for suppliers + expenses, Cheques
+API + statements + dashboard + After cheques, printing (Classic + Image), the `--cheque` colour in all 22 palettes +
+`MethodBadge`, the till Cheque button, cheques in every money form, the Cheques page. **Left:** Task 12 plugins
+(recharge refill + repairs payout through `payout`, repairs `repairerPaid` minus `expenses.unpaid`), Task 13 Demo Room
+cheques, Task 14 e2e + guides + `make docs-shots` + final ripple grep, then one whole-branch review (most capable
+model). Resume with superpowers:executing-plans; the ledger with every ruling is
+`.superpowers/sdd/2026-10-29-cheques/progress.md` (git-ignored — read it first). Web typecheck is `bunx tsc -b`
+(root `tsc --noEmit` checks nothing).
+
+## Earlier: cheques design handoff (2026-10-29)
 
 **Design written with the user, waiting for their read:** `docs/specs/2026-10-29-cheques-design.md`. Cheque = a
 payment method everywhere money moves (till for named customers, credit / advance payments, suppliers, expenses,
