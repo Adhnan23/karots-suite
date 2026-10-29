@@ -126,11 +126,3 @@ type TokenPair struct {
 	ExpiresAt    time.Time  `json:"expires_at"`
 	User         UserPublic `json:"user"`
 }
-
-// HomePath returns the landing route for a role after login.
-func HomePath(role string) string {
-	if role == RoleCashier {
-		return "/cashier"
-	}
-	return "/admin"
-}

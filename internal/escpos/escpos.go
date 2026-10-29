@@ -179,12 +179,8 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 func Line(b *bytes.Buffer, s string)                        { line(b, s) }
 func Divider(b *bytes.Buffer, cfg settings.Settings, w int) { divider(b, cfg, w) }
 func LeftRight(l, r string, w int) string                   { return leftRight(l, r, w) }
-func BigLine(b *bytes.Buffer, cfg settings.Settings, l, r string, w int) {
-	bigLine(b, cfg, l, r, w)
-}
 func Columns(width string) int                              { return columns(width) }
 func Wrap(s string, w int) []string                         { return wrap(s, w) }
-func Capitalize(s string) string                            { return capitalize(s) }
 func DiscSuffix(dtype string, value decimal.Decimal) string { return discSuffix(dtype, value) }
 func Left(b *bytes.Buffer)                                  { b.Write([]byte{esc, 'a', 0}) }
 func Center(b *bytes.Buffer)                                { b.Write([]byte{esc, 'a', 1}) }

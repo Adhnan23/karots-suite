@@ -5,16 +5,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/config"
 	"karots-suite/internal/db"
-	"karots-suite/internal/middleware"
-	"karots-suite/internal/response"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v4"
 )
 
 type Unit struct {
@@ -62,15 +55,6 @@ func (r *Repository) Update(ctx context.Context, id int64, name, abbr string, al
 	return nil
 }
 
-func (r *Repository) FindByID(ctx context.Context, id int64) (*Unit, error) {
-	var u Unit
-	err := r.db.GetContext(ctx, &u, `SELECT * FROM units WHERE id = $1`, id)
-	if err != nil {
-		return nil, err
-	}
-	return &u, nil
-}
-
 func (r *Repository) Delete(ctx context.Context, id int64) error {
 	_, err := r.db.ExecContext(ctx, `DELETE FROM units WHERE id = $1`, id)
 	return err
@@ -86,17 +70,6 @@ func (s *Service) List(ctx context.Context) ([]Unit, error) {
 		return nil, apperr.Internal("failed to list units", err)
 	}
 	return rows, nil
-}
-
-func (s *Service) Get(ctx context.Context, id int64) (*Unit, error) {
-	u, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperr.NotFound("unit")
-		}
-		return nil, apperr.Internal("failed to load unit", err)
-	}
-	return u, nil
 }
 
 func (s *Service) Create(ctx context.Context, in Input) (*Unit, error) {
@@ -123,69 +96,4 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 		return apperr.Conflict("unit is in use and cannot be deleted")
 	}
 	return nil
-}
-
-type APIHandler struct{ svc *Service }
-
-func NewAPIHandler(svc *Service) *APIHandler { return &APIHandler{svc: svc} }
-
-func (h *APIHandler) List(c echo.Context) error {
-	rows, err := h.svc.List(c.Request().Context())
-	if err != nil {
-		return err
-	}
-	return response.OK(c, rows)
-}
-
-func (h *APIHandler) Create(c echo.Context) error {
-	var in Input
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	u, err := h.svc.Create(c.Request().Context(), in)
-	if err != nil {
-		return err
-	}
-	return response.Created(c, u)
-}
-
-func (h *APIHandler) Update(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	var in Input
-	if err := c.Bind(&in); err != nil {
-		return apperr.BadRequest("invalid request body")
-	}
-	if err := c.Validate(&in); err != nil {
-		return err
-	}
-	if err := h.svc.Update(c.Request().Context(), id, in); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func (h *APIHandler) Delete(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		return apperr.BadRequest("invalid id")
-	}
-	if err := h.svc.Delete(c.Request().Context(), id); err != nil {
-		return err
-	}
-	return response.NoContent(c)
-}
-
-func RegisterAPI(e *echo.Echo, sqlxDB *sqlx.DB, cfg *config.Config) {
-	api := NewAPIHandler(NewService(sqlxDB))
-	g := e.Group("/api/units", middleware.JWTAuth(cfg.JWTSecret))
-	g.GET("", api.List)
-	g.POST("", api.Create, middleware.RequireRole("admin", "manager"))
-	g.PUT("/:id", api.Update, middleware.RequireRole("admin", "manager"))
-	g.DELETE("/:id", api.Delete, middleware.RequireRole("admin", "manager"))
 }

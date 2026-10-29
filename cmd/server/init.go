@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -23,11 +22,4 @@ func initShop(db *sqlx.DB) error {
 	fmt.Println("init complete: empty shop ready.")
 	fmt.Println("Sign in with your system recovery account, then create the shop's users in Admin → Users.")
 	return nil
-}
-
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
 }

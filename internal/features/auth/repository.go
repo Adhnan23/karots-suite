@@ -33,15 +33,6 @@ func (r *Repository) FindByPhone(ctx context.Context, phone string) (*User, erro
 	return &u, nil
 }
 
-// ListActivePublic returns active users for the login picker. The hidden system
-// admin is excluded so it never shows on any screen.
-func (r *Repository) ListActivePublic(ctx context.Context) ([]UserPublic, error) {
-	var users []UserPublic
-	err := r.db.SelectContext(ctx, &users,
-		`SELECT id, name, role FROM users WHERE is_active = true AND is_system = false ORDER BY name`)
-	return users, err
-}
-
 // ListAll returns every (non-system) user for the admin user panel.
 func (r *Repository) ListAll(ctx context.Context) ([]User, error) {
 	var users []User
@@ -118,27 +109,7 @@ func (r *Repository) StoreRefresh(ctx context.Context, userID int64, hash string
 	return err
 }
 
-func (r *Repository) FindRefresh(ctx context.Context, hash string) (*RefreshToken, error) {
-	var t RefreshToken
-	err := r.db.GetContext(ctx, &t,
-		`SELECT * FROM refresh_tokens WHERE token_hash = $1`, hash)
-	if err != nil {
-		return nil, err
-	}
-	return &t, nil
-}
-
-func (r *Repository) DeleteRefresh(ctx context.Context, hash string) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM refresh_tokens WHERE token_hash = $1`, hash)
-	return err
-}
-
 func (r *Repository) DeleteAllRefreshForUser(ctx context.Context, userID int64) error {
 	_, err := r.db.ExecContext(ctx, `DELETE FROM refresh_tokens WHERE user_id = $1`, userID)
-	return err
-}
-
-func (r *Repository) PurgeExpiredRefresh(ctx context.Context) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM refresh_tokens WHERE expires_at < NOW()`)
 	return err
 }

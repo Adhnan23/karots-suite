@@ -247,20 +247,6 @@ func (r *Repository) ApplyCredit(ctx context.Context, purchaseID int64, amount d
 	return applied, err
 }
 
-func (r *Repository) List(ctx context.Context, limit int) ([]Purchase, error) {
-	if limit <= 0 || limit > 500 {
-		limit = 100
-	}
-	var rows []Purchase
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT pu.*, s.name AS supplier_name, u.name AS received_by_name
-		FROM purchases pu
-		JOIN suppliers s ON s.id = pu.supplier_id
-		LEFT JOIN users u ON u.id = pu.received_by
-		ORDER BY pu.created_at DESC LIMIT $1`, limit)
-	return rows, err
-}
-
 // ListBetween lists the purchases actually received in a date window, oldest
 // last. Drafts are excluded: an order that has not arrived is not a purchase,
 // and counting one inflates both what was bought and what is owed.

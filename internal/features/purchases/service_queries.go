@@ -32,15 +32,6 @@ func (s *Service) ListDrafts(ctx context.Context) ([]Purchase, error) {
 	return rows, nil
 }
 
-// ListReceived returns received purchase history, newest first.
-func (s *Service) ListReceived(ctx context.Context) ([]Purchase, error) {
-	rows, err := s.repo.ListByStatus(ctx, false, 200)
-	if err != nil {
-		return nil, apperr.Internal("failed to list purchases", err)
-	}
-	return rows, nil
-}
-
 // GetMany loads several purchase details (for the multi-supplier PO print).
 func (s *Service) GetMany(ctx context.Context, ids []int64) ([]Detail, error) {
 	out := make([]Detail, 0, len(ids))
@@ -77,17 +68,6 @@ func loadDetailTx(ctx context.Context, repo *Repository, id int64) (*Detail, err
 		return nil, apperr.Internal("failed to load purchase items", err)
 	}
 	return &Detail{Purchase: *p, Items: items}, nil
-}
-
-// List returns recent purchases of any status for the JSON API's activity
-// listing. It is capped, so it is NOT a reporting source: filtering its result
-// by date would silently miss anything past the cap. Reports use ListBetween.
-func (s *Service) List(ctx context.Context) ([]Purchase, error) {
-	rows, err := s.repo.List(ctx, 100)
-	if err != nil {
-		return nil, apperr.Internal("failed to list purchases", err)
-	}
-	return rows, nil
 }
 
 // ListBetween returns the purchases received in a date window (drafts excluded,

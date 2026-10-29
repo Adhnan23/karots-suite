@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"karots-suite/internal/apperr"
-	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/money"
@@ -241,23 +240,6 @@ func ReceiveTx(ctx context.Context, tx *sqlx.Tx, id int64, in ReceiveInput, user
 		detail = d
 		return nil
 	}(tx)
-	if err != nil {
-		return nil, err
-	}
-	return detail, nil
-}
-
-// Receive is ReceiveTx in its own transaction.
-func (s *Service) Receive(ctx context.Context, id int64, in ReceiveInput, userID int64) (*Detail, error) {
-	var detail *Detail
-	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		d, err := ReceiveTx(ctx, tx, id, in, userID)
-		if err != nil {
-			return err
-		}
-		detail = d
-		return nil
-	})
 	if err != nil {
 		return nil, err
 	}

@@ -91,11 +91,6 @@ func (r *Repository) Tree(ctx context.Context, includeInactive bool) ([]Group, e
 	return rows, err
 }
 
-func (r *Repository) Reactivate(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `UPDATE product_groups SET is_active = true WHERE id = $1`, id)
-	return err
-}
-
 func (r *Repository) Get(ctx context.Context, id int64) (*Group, error) {
 	var g Group
 	if err := r.db.GetContext(ctx, &g, groupSelect+` WHERE g.id = $1`, id); err != nil {

@@ -29,38 +29,6 @@ type SourceInfo struct {
 	LossValue   decimal.Decimal
 }
 
-// SourceInfo resolves the product name + worth of a loss for the recovery form.
-func (s *Service) SourceInfo(ctx context.Context, sourceType string, sourceID int64) (*SourceInfo, error) {
-	var (
-		src *source
-		err error
-	)
-	switch sourceType {
-	case SourceWarranty:
-		src, err = s.repo.warrantySource(ctx, sourceID)
-	case SourceDamage:
-		src, err = s.repo.damageSource(ctx, sourceID)
-	default:
-		return nil, apperr.BadRequest("invalid loss source")
-	}
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperr.NotFound("loss")
-		}
-		return nil, apperr.Internal("failed to load loss", err)
-	}
-	return &SourceInfo{ProductName: src.ProductName, LossValue: src.LossValue}, nil
-}
-
-// DamageLosses backs the admin Damage report.
-func (s *Service) DamageLosses(ctx context.Context) ([]DamageLoss, error) {
-	rows, err := s.repo.DamageLosses(ctx, 200)
-	if err != nil {
-		return nil, apperr.Internal("failed to load damage losses", err)
-	}
-	return rows, nil
-}
-
 // Record books one recovery against a loss, in a single transaction:
 //   - replacement: the supplier handed back a unit → restock it (a recovery
 //     movement) and count its worth as recovered.

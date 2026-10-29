@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/suppliers"
 
 	"github.com/jmoiron/sqlx"
@@ -135,19 +134,4 @@ func (s *Service) RefundTx(ctx context.Context, tx *sqlx.Tx, supplierID int64, i
 		return nil, apperr.Internal("failed to update supplier balance", err)
 	}
 	return &RefundResult{RefundID: refundID, Amount: in.Amount, Method: method}, nil
-}
-
-// Refund is RefundTx in its own transaction (no cash leg — callers that move cash
-// use RefundTx inside their own tx).
-func (s *Service) Refund(ctx context.Context, supplierID int64, in RefundInput, userID int64) (*RefundResult, error) {
-	var res *RefundResult
-	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		r, txErr := s.RefundTx(ctx, tx, supplierID, in, userID)
-		res = r
-		return txErr
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
 }

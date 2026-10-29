@@ -272,14 +272,6 @@ func (r *Repository) MarkUnitReplaced(ctx context.Context, unitID, replacementUn
 	return err
 }
 
-// ProductWarrantyMonths is the product's current default warranty length, used
-// to stamp a fresh window onto a replacement unit.
-func (r *Repository) ProductWarrantyMonths(ctx context.Context, productID int64) (int, error) {
-	var months int
-	err := r.q.GetContext(ctx, &months, `SELECT warranty_months FROM products WHERE id = $1`, productID)
-	return months, err
-}
-
 func (r *Repository) MarkUnitReplacedNoUnit(ctx context.Context, unitID int64) error {
 	_, err := r.q.ExecContext(ctx,
 		`UPDATE warranty_units SET status = 'replaced', replaced_by_unit_id = NULL WHERE id = $1`, unitID)

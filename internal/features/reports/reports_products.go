@@ -111,15 +111,6 @@ func (s *Service) ProfitByCategory(ctx context.Context, from, to time.Time, cats
 	return rows, nil
 }
 
-// CategoryNames lists all category names (for the report's category filter).
-func (s *Service) CategoryNames(ctx context.Context) ([]string, error) {
-	var names []string
-	if err := s.db.SelectContext(ctx, &names, `SELECT name FROM categories ORDER BY name`); err != nil {
-		return nil, apperr.Internal("failed to load categories", err)
-	}
-	return names, nil
-}
-
 // CatRef is a category with its parent link, for building the hierarchical
 // category filter (a parent selects its children).
 type CatRef struct {

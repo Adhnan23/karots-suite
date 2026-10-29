@@ -28,20 +28,3 @@ func AppearanceCtx(ctx context.Context) (skin, density string) {
 	}
 	return a.skin, a.density
 }
-
-// CustomBrandCtx returns the custom brand hex for the request (blank unless the
-// active skin is "custom" with a colour chosen).
-func CustomBrandCtx(ctx context.Context) string {
-	a, _ := ctx.Value(ctxAppearanceKey).(appearance)
-	return a.customBrand
-}
-
-// CustomRadiusCtx returns the custom skin's card-shape keyword (sharp|rounded|
-// round), defaulting to "rounded".
-func CustomRadiusCtx(ctx context.Context) string {
-	a, _ := ctx.Value(ctxAppearanceKey).(appearance)
-	if a.customRadius == "" {
-		return "rounded"
-	}
-	return a.customRadius
-}

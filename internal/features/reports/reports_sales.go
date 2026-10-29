@@ -128,11 +128,6 @@ type DayRow struct {
 	Profit  decimal.Decimal `db:"profit"  json:"profit"`
 }
 
-// DailySales is per-day net revenue and profit for the period.
-func (s *Service) DailySales(ctx context.Context, from, to time.Time) ([]DayRow, error) {
-	return s.SalesByPeriod(ctx, from, to, "day")
-}
-
 // SalesByPeriod is net revenue/profit grouped by day, week or month. `gran` must
 // be one of day/week/month; anything else falls back to day. Each row's Day is
 // the period start in shop time. Revenue is counted exactly as Compute counts it

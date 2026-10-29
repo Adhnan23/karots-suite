@@ -148,24 +148,3 @@ func (r *Repository) Insert(ctx context.Context, rec Recovery) (int64, error) {
 		rec.Quantity, rec.LossValue, rec.RecoveredValue, rec.Note, rec.HandledBy, rec.ExtraCharge)
 	return id, err
 }
-
-// DamageLosses lists damage write-offs (newest first) with any recovery.
-func (r *Repository) DamageLosses(ctx context.Context, limit int) ([]DamageLoss, error) {
-	if limit <= 0 || limit > 500 {
-		limit = 200
-	}
-	var rows []DamageLoss
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT m.id AS movement_id, m.product_id, p.name AS product_name,
-		       ABS(m.quantity) AS quantity, m.cost AS loss_value, m.note,
-		       u.name AS user_name, m.created_at,
-		       lr.outcome AS recovery_status, COALESCE(lr.recovered_value,0) AS recovered_value
-		FROM stock_movements m
-		JOIN products p ON p.id = m.product_id
-		JOIN users u    ON u.id = m.user_id
-		LEFT JOIN loss_recoveries lr ON lr.source_type = 'damage' AND lr.source_id = m.id
-		WHERE m.type = 'damage'
-		ORDER BY m.created_at DESC
-		LIMIT $1`, limit)
-	return rows, err
-}

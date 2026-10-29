@@ -56,14 +56,6 @@ func (s *Service) checkPIN(u *User, pin string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.PinHash), []byte(pin)) == nil
 }
 
-func (s *Service) LoginUsers(ctx context.Context) ([]UserPublic, error) {
-	users, err := s.repo.ListActivePublic(ctx)
-	if err != nil {
-		return nil, apperr.Internal("failed to load users", err)
-	}
-	return users, nil
-}
-
 func (s *Service) ListUsers(ctx context.Context) ([]User, error) {
 	users, err := s.repo.ListAll(ctx)
 	if err != nil {
@@ -105,52 +97,6 @@ func (s *Service) VerifyCredentials(ctx context.Context, in LoginInput) (*UserPu
 		return nil, apperr.Unauthorized("invalid credentials")
 	}
 	return &UserPublic{ID: u.ID, Name: u.Name, Role: u.Role}, nil
-}
-
-// Refresh rotates a refresh token: the presented token is consumed and a new
-// pair is issued. A reused or unknown token is rejected.
-func (s *Service) Refresh(ctx context.Context, raw string) (*TokenPair, error) {
-	hash := hashToken(raw)
-	rt, err := s.repo.FindRefresh(ctx, hash)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperr.Unauthorized("invalid refresh token")
-		}
-		return nil, apperr.Internal("refresh failed", err)
-	}
-	if s.now().After(rt.ExpiresAt) {
-		_ = s.repo.DeleteRefresh(ctx, hash)
-		return nil, apperr.Unauthorized("refresh token expired")
-	}
-	u, err := s.repo.FindByID(ctx, rt.UserID)
-	if err != nil {
-		return nil, apperr.Unauthorized("account is no longer active")
-	}
-
-	var pair *TokenPair
-	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		txRepo := NewRepository(tx)
-		if err := txRepo.DeleteRefresh(ctx, hash); err != nil {
-			return err
-		}
-		var ierr error
-		pair, ierr = s.issuePairTx(ctx, txRepo, u)
-		return ierr
-	})
-	if err != nil {
-		return nil, apperr.Internal("refresh failed", err)
-	}
-	return pair, nil
-}
-
-func (s *Service) Logout(ctx context.Context, raw string) error {
-	if raw == "" {
-		return nil
-	}
-	if err := s.repo.DeleteRefresh(ctx, hashToken(raw)); err != nil {
-		return apperr.Internal("logout failed", err)
-	}
-	return nil
 }
 
 func (s *Service) CreateUser(ctx context.Context, in CreateUserInput) (*User, error) {

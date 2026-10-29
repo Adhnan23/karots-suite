@@ -32,6 +32,3 @@ func DateTime(t time.Time) string { return t.In(Location).Format("2006-01-02 15:
 
 // Date renders just the date as "2006-01-02" in the shop timezone.
 func Date(t time.Time) string { return t.In(Location).Format("2006-01-02") }
-
-// Clock renders just the time as "15:04" in the shop timezone.
-func Clock(t time.Time) string { return t.In(Location).Format("15:04") }

@@ -90,15 +90,6 @@ func estimate(d *Detail) decimal.Decimal {
 	return t.Round(2)
 }
 
-// partsCost is what the job's parts cost the shop (today's cost price).
-func partsCost(d *Detail) decimal.Decimal {
-	c := decimal.Zero
-	for _, p := range d.Parts {
-		c = c.Add(p.Qty.Mul(p.UnitCost))
-	}
-	return c.Round(2)
-}
-
 // deposits is the core customer payments taken for the job.
 func deposits(d *Detail) decimal.Decimal {
 	t := decimal.Zero

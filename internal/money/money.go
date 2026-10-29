@@ -27,9 +27,6 @@ func Parse(s string) (decimal.Decimal, error) {
 	return d, nil
 }
 
-// FromFloat is a convenience for tests/seeds; avoid in request paths.
-func FromFloat(f float64) decimal.Decimal { return decimal.NewFromFloat(f) }
-
 // Format renders an amount with a currency symbol and two decimals, e.g.
 // "Rs. 1,250.00".
 func Format(symbol string, d decimal.Decimal) string {
