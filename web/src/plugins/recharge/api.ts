@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { queryClient } from '@/api/query-client'
+import type { ChequeLine } from '@/api/types.gen'
 import type { CountResult, FloatPage, LedgerRow, Package, Rate, Report, SaleLine, Setup, Source, TillData } from './types'
 
 const base = '/x/recharge'
@@ -29,7 +30,8 @@ export const quickPackage = (carrierId: number, name: string, price: string, com
 export const drawerCounts = (counts: { deviceId: number; counted: string }[]) =>
   write(api<CountResult[]>(`${base}/counts/drawer`, { json: { counts } }))
 export const adminCounts = (counts: { deviceId: number; counted: string }[]) => write(api<CountResult[]>(`${base}/counts`, { json: { counts } }))
-export type RefillIn = { deviceId: number; supplierId: number; amount: string; bonus: string; credit: boolean; source: string; reference: string }
+export type RefillIn = { deviceId: number; supplierId: number; amount: string; bonus: string; credit: boolean; source: string; reference: string
+  method?: 'cheque'; cheques?: ChequeLine[] }
 export const counterRefill = (r: RefillIn) => write(api<{ receiptId: number }>(`${base}/refill/counter`, { json: r }))
 export const adminRefill = (r: RefillIn) => write(api<{ receiptId: number }>(`${base}/refill`, { json: r }))
 export const createCarrier = (name: string) => write(api<{ id: number }>(`${base}/carriers`, { json: { name } }))

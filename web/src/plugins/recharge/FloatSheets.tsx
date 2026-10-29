@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { queryClient } from '@/api/query-client'
@@ -53,14 +54,18 @@ export function CountSheet({ floats, sym, onClose }: { floats: Float[]; sym: str
 }
 
 /** Buy float from a dealer (a normal supplier): a supplier bill, paid now from a cash
- * place or a bank (never a card account) or on credit. On the device at once — cash
+ * place or a bank (never a card account), by cheque or on credit. On the device at once — cash
  * turned into float, not an expense. */
 export function BuySheet({ floats, sym, onClose }: { floats: Float[]; sym: string; onClose: () => void }) {
   const sources = (useQuery(moneySourcesQuery).data ?? []).filter((s) => s.kind !== 'card')
   const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const [device, setDevice] = useState(String(floats[0]?.id ?? ''))
   const [supplier, setSupplier] = useState(0)
-  const [credit, setCredit] = useState(false)
+  const banks = sources.filter((s) => s.kind === 'bank').map((s) => ({ id: Number(s.value.split(':')[1]), name: s.label }))
+  const [pay, setPay] = useState<'now' | 'cheque' | 'credit'>('now')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
+  const credit = pay === 'credit'
+  const byCheque = pay === 'cheque'
   const [amount, setAmount] = useState('')
   const [bonus, setBonus] = useState('')
   const [source, setSource] = useState('')
@@ -71,11 +76,14 @@ export function BuySheet({ floats, sym, onClose }: { floats: Float[]; sym: strin
   async function save() {
     if (!(num(amount) > 0)) return void toast.error('Enter how much float you bought')
     if (!sup) return void toast.error('Pick who sold the float')
+    if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (byCheque && chequesTotal(cheques) !== num(amount)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, amount)}`)
     setBusy(true)
     try {
-      const r = await adminRefill({ deviceId: Number(device), supplierId: sup, amount, bonus: bonus || '0', credit, source: src, reference })
+      const r = await adminRefill({ deviceId: Number(device), supplierId: sup, amount, bonus: bonus || '0', credit, source: src, reference,
+        ...(byCheque ? { method: 'cheque', cheques: toChequeLines(cheques) } : {}) })
       if (r.receiptId) void slipOut(slipPath.money(r.receiptId), `Float bought · ${money(sym, amount)}`)
-      else toast.success(credit ? 'Float bought on credit' : 'Float bought — their advance covered it')
+      else toast.success(credit ? 'Float bought on credit' : byCheque ? 'Float bought — paid by cheque' : 'Float bought — their advance covered it')
       void queryClient.invalidateQueries({ queryKey: ['admin'] })
       onClose()
     } catch (e) {
@@ -85,7 +93,7 @@ export function BuySheet({ floats, sym, onClose }: { floats: Float[]; sym: strin
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title="Buy float" submit={`${credit ? 'Buy on credit' : 'Buy'} ${num(amount) > 0 ? money(sym, num(amount) + num(bonus)) : 'float'}`} busy={busy || (!credit && !src)} onSubmit={() => void save()}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title="Buy float" submit={`${credit ? 'Buy on credit' : 'Buy'} ${num(amount) > 0 ? money(sym, num(amount) + num(bonus)) : 'float'}`} busy={busy || (pay === 'now' && !src)} onSubmit={() => void save()}>
       <Field label="Device">
         <select aria-label="Device" value={device} onChange={(e) => { setDevice(e.target.value); setSupplier(0) }} className={cn(INPUT, 'appearance-auto')}>
           {floats.map((f) => <option key={f.id} value={f.id}>{f.carrier} · {f.label} ({money(sym, f.balance)})</option>)}
@@ -98,12 +106,15 @@ export function BuySheet({ floats, sym, onClose }: { floats: Float[]; sym: strin
         </select>
       </Field>
       <Field label="Paying">
-        <select aria-label="Paying" value={credit ? 'credit' : 'now'} onChange={(e) => setCredit(e.target.value === 'credit')} className={cn(INPUT, 'appearance-auto')}>
+        <select aria-label="Paying" value={pay} className={cn(INPUT, 'appearance-auto')}
+          onChange={(e) => { const v = e.target.value as typeof pay; setPay(v); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(amount, String(banks[0]?.id ?? ''))]) }}>
           <option value="now">Paid now</option>
+          {banks.length > 0 && <option value="cheque">By cheque</option>}
           <option value="credit">On credit — added to what we owe them</option>
         </select>
       </Field>
-      {!credit && (
+      {byCheque && <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(amount)} />}
+      {pay === 'now' && (
         <Field label="Paid from">
           <select aria-label="Paid from" value={src} onChange={(e) => setSource(e.target.value)} className={cn(INPUT, 'appearance-auto')}>
             {sources.map((s) => <option key={s.value} value={s.value}>{s.label}{s.kind !== 'till' ? ` (${money(sym, s.balance)})` : ''}</option>)}

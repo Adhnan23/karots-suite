@@ -2,9 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { SupplierView } from '@/api/types.gen'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
-import { configQuery, errMsg } from '@/features/till/api'
+import { configQuery, drawerQuery, errMsg, lockersOf } from '@/features/till/api'
 import { slipPath } from '@/features/till/print'
 import { slipOut } from '@/features/till/SlipAsk'
 import { FIELD } from '@/features/till/ui'
@@ -15,7 +16,7 @@ import { Amount, Pick } from './bits'
 import { LABEL } from './words'
 
 /** Counter → Suppliers → a dealer → 📲 Float: float bought from this supplier is a normal
- * supplier bill — paid now from this drawer or a cashier locker, or on credit (settled
+ * supplier bill — paid now from this drawer or a cashier locker, by cheque, or on credit (settled
  * later with Pay). On the device at once; cash turned into float, not an expense. */
 export function FloatJob({ supplier }: { supplier: SupplierView }) {
   const sym = useQuery(configQuery).data?.symbol ?? ''
@@ -24,7 +25,9 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
   const floats = [...(useQuery(tillDataQuery).data?.floats ?? [])].sort((a, b) => Number(b.supplierId === supplier.id) - Number(a.supplierId === supplier.id))
   const sources = useQuery(sourcesQuery).data ?? []
   const [device, setDevice] = useState('')
-  const [pay, setPay] = useState<'now' | 'credit'>('now')
+  const banks = lockersOf(useQuery(drawerQuery).data, 'bank')
+  const [pay, setPay] = useState<'now' | 'cheque' | 'credit'>('now')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const [amount, setAmount] = useState('')
   const [bonus, setBonus] = useState('')
   const [source, setSource] = useState('')
@@ -35,16 +38,21 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
   const advance = Math.max(0, -num(supplier.owed))
   async function buy() {
     if (!(num(amount) > 0)) return void toast.error('Enter how much float you bought')
+    const byCheque = pay === 'cheque'
+    if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (byCheque && chequesTotal(cheques) !== num(amount)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, amount)}`)
     setBusy(true)
     try {
-      const r = await counterRefill({ deviceId: Number(dev), supplierId: supplier.id, amount, bonus: bonus || '0', credit: pay === 'credit', source: src, reference })
+      const r = await counterRefill({ deviceId: Number(dev), supplierId: supplier.id, amount, bonus: bonus || '0', credit: pay === 'credit', source: src, reference,
+        ...(byCheque ? { method: 'cheque', cheques: toChequeLines(cheques) } : {}) })
       if (r.receiptId) void slipOut(slipPath.money(r.receiptId), `Float bought · ${money(sym, amount)}`) // the server already popped the drawer
-      else toast.success(pay === 'credit' ? `Float on credit — we owe ${supplier.name} ${money(sym, amount)}` : 'Float bought — their advance covered it')
+      else toast.success(pay === 'credit' ? `Float on credit — we owe ${supplier.name} ${money(sym, amount)}` : byCheque ? 'Float bought — paid by cheque' : 'Float bought — their advance covered it')
       void qc.invalidateQueries({ queryKey: ['till', 'supplier', supplier.id] })
       void qc.invalidateQueries({ queryKey: ['till', 'suppliers'] })
       setAmount('')
       setBonus('')
       setReference('')
+      setCheques([])
     } catch (e) {
       toast.error(errMsg(e))
     } finally {
@@ -64,7 +72,8 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
         <Amount label="Bonus they added (optional)" value={bonus} onChange={setBonus} placeholder={money(sym, 0)} />
         <div className={LABEL}>
           Paying
-          <div><Seg label="Paying" value={pay} onChange={setPay} options={[['now', 'Paid now'], ['credit', 'On credit']]} /></div>
+          <div><Seg label="Paying" value={pay} options={banks.length > 0 ? [['now', 'Paid now'], ['cheque', 'Cheque'], ['credit', 'On credit']] : [['now', 'Paid now'], ['credit', 'On credit']]}
+            onChange={(v) => { setPay(v); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(amount, String(banks[0].id))]) }} /></div>
         </div>
         {pay === 'now' ? (
           <label className={LABEL}>
@@ -73,6 +82,8 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
               {sources.map((s) => <option key={s.value} value={s.value}>{s.label}{s.value.startsWith('locker:') ? ` (${money(sym, s.balance)})` : ''}</option>)}
             </select>
           </label>
+        ) : pay === 'cheque' ? (
+          <div className="sm:col-span-2"><ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(amount)} /></div>
         ) : <p className="self-end text-[13px] text-muted-foreground">Added to what we owe {supplier.name} — pay it later with Pay.</p>}
         <label className={cn(LABEL, 'sm:col-span-2')}>
           Their bill no. (optional)

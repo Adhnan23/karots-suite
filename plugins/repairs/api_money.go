@@ -10,8 +10,10 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cheques"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/middleware"
 
 	"github.com/jmoiron/sqlx"
@@ -233,16 +235,19 @@ func (h handlers) refundHeld(c echo.Context) error {
 }
 
 // payout pays the outside repairer: a core expense (category Repairs, the
-// labour service) out of a cash place, linked to the job — all in one tx.
+// labour service) out of a cash place or by cheques on the shop's bank places
+// (core's payout), linked to the job — all in one tx.
 func (h handlers) payout(c echo.Context) error {
 	id, err := idParam(c, "id")
 	if err != nil {
 		return err
 	}
 	var req struct {
-		Amount string `json:"amount"`
-		Source string `json:"source"` // locker:<id> | till:<userId>
-		Note   string `json:"note"`
+		Amount  string              `json:"amount"`
+		Source  string              `json:"source"` // locker:<id> | till:<userId>
+		Method  string              `json:"method"` // "cheque" = paid by Cheques
+		Cheques []cheques.LineInput `json:"cheques"`
+		Note    string              `json:"note"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
@@ -251,7 +256,12 @@ func (h handlers) payout(c echo.Context) error {
 	if err != nil || !amt.IsPositive() {
 		return apperr.Validation("enter the amount paid")
 	}
-	src, err := parseSource(req.Source)
+	src := payout.Source{Method: req.Method}
+	if src.IsCheque() {
+		src.Cheques, _, err = cheques.ParseLines(req.Cheques, "out")
+	} else {
+		src.Loc, err = parseSource(req.Source)
+	}
 	if err != nil {
 		return err
 	}
@@ -262,9 +272,6 @@ func (h handlers) payout(c echo.Context) error {
 	}
 	if d.Job.Status == "cancelled" {
 		return apperr.Validation("this repair was cancelled")
-	}
-	if err := h.p.core.Cashflow.RequirePlace(ctx, src, ""); err != nil {
-		return err
 	}
 	labour, err := h.p.store.LabourID(ctx)
 	if err != nil {
@@ -280,16 +287,12 @@ func (h handlers) payout(c echo.Context) error {
 	}
 	uid := middleware.CurrentUserID(c)
 	err = appdb.WithTx(ctx, h.p.core.DB, func(tx *sqlx.Tx) error {
-		e, err := expenses.NewService(h.p.core.DB).CreateInTx(ctx, tx, expenses.CreateInput{Category: "Repairs",
-			Amount: dec2(amt), Description: &note, ExpenseDate: time.Now().Format("2006-01-02"), ServiceProductID: labour}, uid)
+		eid, _, err := payout.NewService(h.p.core.DB, h.p.core.Cashflow).ExpenseTx(ctx, tx, expenses.CreateInput{Category: "Repairs",
+			Amount: dec2(amt), Description: &note, ExpenseDate: time.Now().Format("2006-01-02"), ServiceProductID: labour}, src, uid)
 		if err != nil {
 			return err
 		}
-		if _, err := h.p.core.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: e.Amount,
-			Reason: "Repairs - " + note, ReceiptKind: "expense", Ref: &cashflow.Ref{Kind: "expense", ID: e.ID}, ActorID: uid}); err != nil {
-			return err
-		}
-		return linkPayout(ctx, tx, id, e.ID)
+		return linkPayout(ctx, tx, id, eid)
 	})
 	if err != nil {
 		return err

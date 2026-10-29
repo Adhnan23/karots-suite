@@ -2,9 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Banknote } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 import { INPUT } from '@/components/admin/fields'
 import { Button } from '@/components/ui/button'
-import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
+import { MoneySourcePicker, moneySourcesQuery } from '@/features/purchasing/MoneySource'
 import { configQuery as tillConfigQuery, errMsg } from '@/features/till/api'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -12,24 +13,29 @@ import { payRepairer } from './api'
 import type { Job } from './types'
 
 /** Admin: paying the outside repairer — a core expense (Repairs) out of a cash
- * place, linked to the job. Paid / Not paid yet answers "you never paid me". */
+ * place or by cheque, linked to the job. Paid / Not paid yet answers "you never paid me". */
 export function Payout({ job }: { job: Job }) {
   const sym = useQuery(tillConfigQuery).data?.symbol ?? 'Rs.'
   const [amount, setAmount] = useState('')
   const [source, setSource] = useState('')
+  const banks = (useQuery(moneySourcesQuery).data ?? []).filter((s) => s.kind === 'bank').map((s) => ({ id: Number(s.value.split(':')[1]), name: s.label }))
+  const [cheques, setCheques] = useState<ChequeDraftLine[] | null>(null) // null = paid in cash
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const paid = num(job.repairerPaid)
   if (!job.repairedBy && paid === 0) return null
   async function pay() {
     if (!(num(amount) > 0)) return void toast.error('Enter the amount paid')
-    if (!source) return void toast.error('Pick where the money comes from')
+    if (cheques && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (cheques && chequesTotal(cheques) !== num(amount)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, num(amount))}`)
+    if (!cheques && !source) return void toast.error('Pick where the money comes from')
     setBusy(true)
     try {
-      await payRepairer(job.id, amount, source, note)
+      await payRepairer(job.id, amount, source, note, cheques ? toChequeLines(cheques) : undefined)
       toast.success(`Paid ${job.repairedBy || 'the repairer'} ${money(sym, num(amount))} — in Expenses`)
       setAmount('')
       setNote('')
+      setCheques(null)
     } catch (e) {
       toast.error(errMsg(e))
     } finally {
@@ -46,11 +52,19 @@ export function Payout({ job }: { job: Job }) {
       </div>
       {job.payouts.map((p) => <p key={p.expenseId} className="text-[12px] text-muted-foreground">{p.date} · {money(sym, num(p.amount))} · {p.note}</p>)}
       {job.status !== 'cancelled' && (
-        <form className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[130px_1fr_1fr_auto]" onSubmit={(e) => { e.preventDefault(); void pay() }}>
+        <form className={cn('grid grid-cols-[minmax(0,1fr)] gap-2', !banks.length ? 'sm:grid-cols-[130px_1fr_1fr_auto]' : cheques ? 'sm:grid-cols-[130px_auto_1fr_auto]' : 'sm:grid-cols-[130px_auto_1fr_1fr_auto]')} onSubmit={(e) => { e.preventDefault(); void pay() }}>
           <input aria-label="Amount paid" placeholder={money(sym, 0)} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={cn(INPUT, 'tabular-nums')} />
-          <MoneySourcePicker method="cash" value={source} onChange={setSource} sym={sym} label="Paid from" required />
+          {banks.length > 0 && (
+            <select aria-label="Paid by" value={cheques ? 'cheque' : 'cash'} className={cn(INPUT, 'appearance-auto')}
+              onChange={(e) => setCheques(e.target.value === 'cheque' ? [blankCheque(amount, String(banks[0].id))] : null)}>
+              <option value="cash">Cash</option>
+              <option value="cheque">Cheque</option>
+            </select>
+          )}
+          {!cheques && <MoneySourcePicker method="cash" value={source} onChange={setSource} sym={sym} label="Paid from" required />}
           <input aria-label="Note" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={INPUT} />
           <Button type="submit" disabled={busy}><Banknote className="size-4" /> Pay</Button>
+          {cheques && <div className="sm:col-span-full"><ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(amount)} /></div>}
         </form>
       )}
     </section>

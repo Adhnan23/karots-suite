@@ -109,7 +109,7 @@ func (s *Store) Report(ctx context.Context, from, to time.Time, labour int64) ([
 	err := s.db.SelectContext(ctx, &rows, `
 		SELECT j.id, j.ticket_no, j.device_model, j.customer_name, j.collected_at, j.rework_of,
 		       COALESCE(r.revenue, 0)::numeric(14,2) AS revenue, COALESCE(r.cost, 0)::numeric(14,2) AS cost,
-		       j.repairer_paid + COALESCE((SELECT SUM(e.amount) FROM repair_payouts rp JOIN expenses e ON e.id = rp.expense_id
+		       j.repairer_paid + COALESCE((SELECT SUM(e.amount - e.unpaid) FROM repair_payouts rp JOIN expenses e ON e.id = rp.expense_id
 		                                    WHERE rp.job_id = j.id), 0) AS repairer
 		FROM repair_jobs j
 		LEFT JOIN LATERAL (

@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { queryClient } from '@/api/query-client'
+import type { ChequeLine } from '@/api/types.gen'
 import { printLabel } from '@/features/print/labels/print'
 import { ticketRequest, type TicketLabel } from './labels'
 import type { Bill, Config, Job, JobInput, Report, Row, Suggestions } from './types'
@@ -39,7 +40,8 @@ export const addCharge = (id: number, label: string, amount: string) => job(id, 
 export const removeCharge = (id: number, cid: number) => job(id, `/charges/${cid}`, { method: 'DELETE' })
 export const linkDeposit = (id: number, paymentId: number) => job(id, '/deposits', { json: { paymentId } })
 export const startRework = (id: number) => job(id, '/rework', { method: 'POST' })
-export const payRepairer = (id: number, amount: string, source: string, note: string) => job(id, '/payouts', { json: { amount, source, note } })
+export const payRepairer = (id: number, amount: string, source: string, note: string, cheques?: ChequeLine[]) =>
+  job(id, '/payouts', { json: { amount, source, note, ...(cheques ? { method: 'cheque', cheques } : {}) } })
 export const refundHeld = (id: number) => write(api<{ receiptId: number; amount: string }>(`${base}/jobs/${id}/refund-held`, { method: 'POST' }))
 export const getBill = (id: number) => api<Bill>(`${base}/jobs/${id}/bill`)
 export const saveConfig = (c: Config) => write(api(`${base}/config`, { method: 'PUT', json: c }))

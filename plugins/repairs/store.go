@@ -262,7 +262,7 @@ func (s *Store) GetJob(ctx context.Context, id int64) (*Detail, error) {
 		return nil, err
 	}
 	err := s.db.SelectContext(ctx, &d.Payouts, `
-		SELECT e.id AS expense_id, e.amount, COALESCE(e.description, '') AS note, e.expense_date
+		SELECT e.id AS expense_id, e.amount - e.unpaid AS amount, COALESCE(e.description, '') AS note, e.expense_date
 		FROM repair_payouts rp JOIN expenses e ON e.id = rp.expense_id
 		WHERE rp.job_id = $1 ORDER BY e.id`, id)
 	return d, err

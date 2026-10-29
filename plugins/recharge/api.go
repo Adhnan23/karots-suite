@@ -12,6 +12,8 @@ import (
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cheques"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/supplierpay"
 	"karots-suite/internal/features/suppliers"
@@ -246,17 +248,30 @@ func (h handlers) counterSources(c echo.Context) error {
 }
 
 // RefillInput buys float from a dealer (a core supplier): a supplier bill for
-// Amount, on Credit or paid now from Source (cash place or bank); the device's
+// Amount, on Credit or paid now from Source (cash place or bank) or — Method
+// "cheque" — by the Cheques written on the shop's bank places; the device's
 // float up by Amount, plus any bonus the dealer gave on it. Reference is the
 // dealer's invoice number.
 type RefillInput struct {
-	DeviceID   int64           `json:"deviceId"`
-	SupplierID int64           `json:"supplierId"`
-	Amount     decimal.Decimal `json:"amount"`
-	Bonus      decimal.Decimal `json:"bonus"`
-	Credit     bool            `json:"credit"`
-	Source     string          `json:"source"`
-	Reference  string          `json:"reference"`
+	DeviceID   int64               `json:"deviceId"`
+	SupplierID int64               `json:"supplierId"`
+	Amount     decimal.Decimal     `json:"amount"`
+	Bonus      decimal.Decimal     `json:"bonus"`
+	Credit     bool                `json:"credit"`
+	Source     string              `json:"source"`
+	Method     string              `json:"method"`
+	Cheques    []cheques.LineInput `json:"cheques"`
+	Reference  string              `json:"reference"`
+}
+
+// chequeLines is the cheques a refill paid by cheque was given with (none for
+// a refill on credit or paid from a place).
+func chequeLines(in RefillInput) ([]cheques.Line, error) {
+	if in.Credit || in.Method != payout.MethodCheque {
+		return nil, nil
+	}
+	ls, _, err := cheques.ParseLines(in.Cheques, "out")
+	return ls, err
 }
 
 func parseSource(v string) (cashflow.Location, error) {
@@ -282,9 +297,30 @@ func (h handlers) counterRefill(c echo.Context) error {
 		return err
 	}
 	if in.Credit {
-		return h.refill(c, in, cashflow.External())
+		return h.refill(c, in, cashflow.External(), nil)
 	}
 	ctx := c.Request().Context()
+	lines, err := chequeLines(in)
+	if err != nil {
+		return err
+	}
+	if lines != nil {
+		// Only cheques on bank places the cashier may use.
+		ls, err := h.p.core.Lockers.ListForCashier(ctx)
+		if err != nil {
+			return err
+		}
+		for _, cl := range lines {
+			ok := false
+			for _, l := range ls {
+				ok = ok || (l.ID == cl.LockerID && l.Kind == "bank")
+			}
+			if !ok {
+				return apperr.Forbidden("you can't write a cheque on that account")
+			}
+		}
+		return h.refill(c, in, cashflow.External(), lines)
+	}
 	uid := middleware.CurrentUserID(c)
 	src, err := parseSource(in.Source)
 	if err != nil {
@@ -303,7 +339,7 @@ func (h handlers) counterRefill(c echo.Context) error {
 	if !ok {
 		return apperr.Forbidden("you can't take cash from there")
 	}
-	return h.refill(c, in, src)
+	return h.refill(c, in, src, nil)
 }
 
 func (h handlers) adminRefill(c echo.Context) error {
@@ -312,21 +348,29 @@ func (h handlers) adminRefill(c echo.Context) error {
 		return err
 	}
 	if in.Credit {
-		return h.refill(c, in, cashflow.External())
+		return h.refill(c, in, cashflow.External(), nil)
+	}
+	lines, err := chequeLines(in)
+	if err != nil {
+		return err
+	}
+	if lines != nil {
+		return h.refill(c, in, cashflow.External(), lines)
 	}
 	src, err := parseSource(in.Source)
 	if err != nil {
 		return err
 	}
-	return h.refill(c, in, src)
+	return h.refill(c, in, src, nil)
 }
 
 // refill books the float as a core supplier bill and puts it on the device in
 // one tx. Paid now = core's supplier payment on that bill and the money leaving
-// src (as the counter's Pay); on credit = the bill alone, owed like any delivery.
+// src (as the counter's Pay) or the cheques written for it (lines; the bank pays
+// when they clear); on credit = the bill alone, owed like any delivery.
 // Buying float is cash turned into float — no expense (karots-pos booked one,
 // which the P&L counted as a loss).
-func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location) error {
+func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location, lines []cheques.Line) error {
 	if !in.Amount.IsPositive() || in.Bonus.IsNegative() {
 		return apperr.Validation("enter the amount of float bought")
 	}
@@ -345,7 +389,7 @@ func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location) 
 			method = "online"
 		}
 	}
-	if !in.Credit {
+	if !in.Credit && lines == nil {
 		if err := h.p.core.Cashflow.RequirePlace(ctx, src, method); err != nil {
 			return err
 		}
@@ -370,18 +414,18 @@ func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location) 
 		note := "on credit · bill #" + strconv.FormatInt(pid, 10)
 		// An advance the dealer holds may already have settled it; pay the rest.
 		if owe := bill.Purchase.Balance(); !in.Credit && owe.IsPositive() {
-			res, err := supplierpay.NewService(h.p.core.DB).PayTx(ctx, tx, sup.ID, supplierpay.PayInput{Method: method, Reference: ref,
-				Note: "reload float", Allocations: []supplierpay.Alloc{{PurchaseID: pid, Amount: owe}}}, uid)
-			if err != nil {
+			ps := payout.Source{Loc: src, Method: method, Cheques: lines}
+			if lines != nil {
+				ps.Method = payout.MethodCheque
+			}
+			if rec, err = payout.NewService(h.p.core.DB, h.p.core.Cashflow).SupplierTx(ctx, tx, sup.ID, sup.Name, supplierpay.PayInput{Method: method,
+				Reference: ref, Note: "reload float", Allocations: []supplierpay.Alloc{{PurchaseID: pid, Amount: owe}}}, ps, uid); err != nil {
 				return err
 			}
 			note = "paid · bill #" + strconv.FormatInt(pid, 10)
-			if src.Kind != cashflow.KindExternal {
-				if rec, err = h.p.core.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: res.Total,
-					Reason: "supplier payment: " + sup.Name, ReceiptKind: "supplier_payment", Party: sup.Name,
-					Ref: &cashflow.Ref{Kind: "supplier_payment", ID: res.PaymentID}, ActorID: uid}); err != nil {
-					return err
-				}
+			if lines != nil {
+				note += " · by cheque"
+			} else if rec != nil {
 				note += " · money receipt " + rec.ReceiptNo
 			}
 		}

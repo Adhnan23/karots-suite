@@ -40,7 +40,7 @@ func TestChequesInHandRecreated(t *testing.T) {
 	defer tx.Rollback() //nolint:errcheck
 	for _, q := range []string{
 		`UPDATE settings SET default_locker_id = NULL WHERE default_locker_id IN (SELECT id FROM lockers WHERE kind='cheque')`,
-		`DELETE FROM locker_ledger WHERE locker_id IN (SELECT id FROM lockers WHERE kind='cheque')`,
+		`DELETE FROM locker_ledger WHERE locker_id IN (SELECT id FROM lockers WHERE kind='cheque') OR counter_locker_id IN (SELECT id FROM lockers WHERE kind='cheque')`,
 		`DELETE FROM lockers WHERE kind='cheque'`,
 	} {
 		if _, err := tx.ExecContext(ctx, q); err != nil {
