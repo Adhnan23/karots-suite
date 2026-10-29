@@ -480,7 +480,14 @@ func (s *Service) Ledger(ctx context.Context, lockerID int64, f LedgerFilter) ([
 // refuseCheque stops an edit or archive of the Cheques in hand place.
 func (s *Service) refuseCheque(ctx context.Context, id int64) error {
 	var kind string
-	if err := s.db.GetContext(ctx, &kind, `SELECT kind FROM lockers WHERE id = $1`, id); err == nil && kind == KindCheque {
+	err := s.db.GetContext(ctx, &kind, `SELECT kind FROM lockers WHERE id = $1`, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil // the update itself reports "not found"
+	}
+	if err != nil {
+		return apperr.Internal("failed to load locker", err)
+	}
+	if kind == KindCheque {
 		return apperr.Validation("Cheques in hand is kept by the suite")
 	}
 	return nil

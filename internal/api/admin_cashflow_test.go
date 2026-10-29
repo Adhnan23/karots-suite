@@ -49,3 +49,30 @@ func TestAdminCashflow(t *testing.T) {
 		t.Fatalf("net position %+v", after.NetLines)
 	}
 }
+
+// Uncleared cheques sit in their own place and never count as cash on hand.
+func TestAdminCashflowChequesNotCash(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, "0770009615", "admin")
+	var cid int64
+	if err := te.db.Get(&cid, `SELECT id FROM lockers WHERE kind='cheque'`); err != nil {
+		t.Fatal(err)
+	}
+	get := func() AdminCashflow { return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck)) }
+	before := get()
+	if _, err := te.db.Exec(`INSERT INTO locker_ledger (locker_id, balance_delta, kind, note) VALUES ($1, 777, 'adjust', 'T cf cheque')`, cid); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM locker_ledger WHERE note = 'T cf cheque'`) }) //nolint:errcheck
+	after := get()
+	if after.CashOnHand != before.CashOnHand {
+		t.Fatalf("cheques counted as cash: %s -> %s", before.CashOnHand, after.CashOnHand)
+	}
+	shown := false
+	for _, p := range after.Places {
+		shown = shown || (p.Kind == "cheque" && p.Balance == "777.00")
+	}
+	if !shown {
+		t.Fatal("cheque place not listed")
+	}
+}

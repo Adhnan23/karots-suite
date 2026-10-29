@@ -8,6 +8,7 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/plugin"
 
@@ -49,7 +50,9 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 	}
 	for _, l := range ls {
 		out.Places = append(out.Places, CashPlace{Value: "locker:" + strconv.FormatInt(l.ID, 10), Name: l.Name, Kind: l.Kind, Balance: dec2(l.Balance)})
-		cash = cash.Add(l.Balance)
+		if l.Kind != lockers.KindCheque { // uncleared cheques are shown, but are not cash
+			cash = cash.Add(l.Balance)
+		}
 	}
 	tills, err := h.d.CashRegister.OpenSessions(ctx)
 	if err != nil {
