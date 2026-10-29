@@ -67,6 +67,7 @@ func (r *Repository) Insert(ctx context.Context, userID int64, action, entity, e
 type ListFilter struct {
 	From, To *time.Time
 	Entity   string
+	EntityID string
 	Limit    int
 }
 
@@ -78,16 +79,21 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Entry, error) {
 	if f.Entity != "" {
 		entity = &f.Entity
 	}
+	var entityID *string
+	if f.EntityID != "" {
+		entityID = &f.EntityID
+	}
 	var rows []Entry
 	err := r.q.SelectContext(ctx, &rows, `
 		SELECT * FROM audit_log
 		WHERE ($1::timestamptz IS NULL OR created_at >= $1)
 		  AND ($2::timestamptz IS NULL OR created_at <  $2)
 		  AND ($3::text IS NULL OR entity = $3)
+		  AND ($5::text IS NULL OR entity_id = $5)
 		  -- Hide the hidden system/developer account's actions from the owner's trail.
 		  AND (user_id IS NULL OR user_id NOT IN (SELECT id FROM users WHERE is_system))
 		ORDER BY created_at DESC
-		LIMIT $4`, f.From, f.To, entity, f.Limit)
+		LIMIT $4`, f.From, f.To, entity, f.Limit, entityID)
 	return rows, err
 }
 

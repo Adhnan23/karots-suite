@@ -213,6 +213,19 @@ func (r *Repository) ApplyPayment(ctx context.Context, purchaseID int64, amount 
 	return n > 0, nil
 }
 
+// UnapplyPayment takes amount back off a purchase's paid_amount (a bounced /
+// cancelled supplier cheque), never below zero: the bill goes back to received
+// when nothing is paid, else partial.
+func (r *Repository) UnapplyPayment(ctx context.Context, purchaseID int64, amount decimal.Decimal) error {
+	_, err := r.q.ExecContext(ctx, `
+		UPDATE purchases
+		SET paid_amount = GREATEST(paid_amount - $1, 0),
+		    status = CASE WHEN paid_amount - $1 <= 0 THEN 'received'::purchase_status
+		                  ELSE 'partial'::purchase_status END
+		WHERE id = $2 AND status <> 'draft'`, amount, purchaseID)
+	return err
+}
+
 // ApplyCredit books returned value against one invoice and returns how much it
 // could actually absorb. It is capped at what that invoice still owes, so a
 // credit can never drive an invoice negative — the caller carries any excess as a
