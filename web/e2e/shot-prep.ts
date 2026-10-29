@@ -3,7 +3,7 @@ import { aicatalogPrep } from './shot-prep-aicatalog'
 import { appearancePrep } from './shot-prep-appearance'
 import { alternativesData } from './shot-prep-alternatives'
 import { barcodesPrep } from './shot-prep-barcodes'
-import { chequesWithHistory } from './shot-prep-cheques'
+import { chequePreps } from './shot-prep-cheques'
 import { loosePrep } from './shot-prep-loose'
 import { ppPrep } from './shot-prep-productplus'
 import { presencePrep } from './shot-prep-presence'
@@ -29,6 +29,7 @@ async function purchasesWithHistory(page: Page): Promise<{ order: number; receiv
 }
 
 export const prep: Record<string, (page: Page) => Promise<void>> = {
+  ...chequePreps(path),
   ...barcodesPrep,
   ...aicatalogPrep,
   ...presencePrep,
@@ -83,18 +84,6 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.waitForLoadState('networkidle')
   },
   /** Money reports: sales, expenses and a closed till. */
-  'with-cheques': async (page) => {
-    await chequesWithHistory(page)
-    await page.goto(path)
-    await page.waitForLoadState('networkidle')
-  },
-  'cheque-sheet': async (page) => {
-    await chequesWithHistory(page)
-    await page.goto(path)
-    await page.waitForLoadState('networkidle')
-    await page.getByText(/^Kamala Perera/).first().click({ force: true })
-    await page.waitForTimeout(400)
-  },
   'with-money': async (page) => {
     await salesWithHistory(page)
     await expensesWithHistory(page)

@@ -853,64 +853,6 @@ export interface ZReport {
   moves: ZMove[];
   floats: ZFloatGroup[]; // plugin money locations (M7)
 }
-export interface WarrantyClaimRow {
-  id: number /* int64 */;
-  at: string;
-  reason: string;
-  resolution: string; // replaced | …
-  productName: string;
-  oldSerial: string;
-  replacementSerial: string; // "" = no new unit (receipt claim)
-  customerName: string;
-  handledBy: string;
-}
-export interface WarrantyUnitRow {
-  id: number /* int64 */;
-  serial: string;
-  productName: string;
-  customerName: string;
-  receiptNo: string;
-  soldAt: string;
-  months: number /* int */;
-  until: string; // YYYY-MM-DD
-  left: string; // "11 mo left" | "<1 mo left" | "expired"
-  status: string; // active | replaced
-  underWarranty: boolean;
-}
-export interface WarrantyUnitView extends WarrantyUnitRow {
-  claims: WarrantyClaimRow[];
-}
-export interface WarrantyReceiptLine {
-  productId: number /* int64 */;
-  name: string;
-  unitAbbr: string;
-  qty: string;
-  replaced: number /* int */;
-  remaining: string; // units still claimable
-  months: number /* int */;
-  until: string;
-  underWarranty: boolean;
-}
-export interface WarrantyReceiptView {
-  saleId: number /* int64 */;
-  receiptNo: string;
-  soldAt: string;
-  customerName: string;
-  lines: WarrantyReceiptLine[];
-}
-export interface WarrantyReplaceRequest {
-  unitId: number /* int64 */;
-  newSerial: string;
-  reason: string;
-}
-export interface WarrantyReceiptReplaceRequest {
-  saleId: number /* int64 */;
-  productId: number /* int64 */;
-  reason: string;
-}
-export interface WarrantyClaimRef {
-  claimId: number /* int64 */;
-}
 export interface SupplierRow {
   id: number /* int64 */;
   name: string;
@@ -3762,4 +3704,66 @@ export interface SlipLine {
   small: boolean; // Font B
   image?: string;
   imageDots?: number /* int */;
+}
+
+//////////
+// source: dto_warranty.go
+
+export interface WarrantyClaimRow {
+  id: number /* int64 */;
+  at: string;
+  reason: string;
+  resolution: string; // replaced | …
+  productName: string;
+  oldSerial: string;
+  replacementSerial: string; // "" = no new unit (receipt claim)
+  customerName: string;
+  handledBy: string;
+}
+export interface WarrantyUnitRow {
+  id: number /* int64 */;
+  serial: string;
+  productName: string;
+  customerName: string;
+  receiptNo: string;
+  soldAt: string;
+  months: number /* int */;
+  until: string; // YYYY-MM-DD
+  left: string; // "11 mo left" | "<1 mo left" | "expired"
+  status: string; // active | replaced
+  underWarranty: boolean;
+}
+export interface WarrantyUnitView extends WarrantyUnitRow {
+  claims: WarrantyClaimRow[];
+}
+export interface WarrantyReceiptLine {
+  productId: number /* int64 */;
+  name: string;
+  unitAbbr: string;
+  qty: string;
+  replaced: number /* int */;
+  remaining: string; // units still claimable
+  months: number /* int */;
+  until: string;
+  underWarranty: boolean;
+}
+export interface WarrantyReceiptView {
+  saleId: number /* int64 */;
+  receiptNo: string;
+  soldAt: string;
+  customerName: string;
+  lines: WarrantyReceiptLine[];
+}
+export interface WarrantyReplaceRequest {
+  unitId: number /* int64 */;
+  newSerial: string;
+  reason: string;
+}
+export interface WarrantyReceiptReplaceRequest {
+  saleId: number /* int64 */;
+  productId: number /* int64 */;
+  reason: string;
+}
+export interface WarrantyClaimRef {
+  claimId: number /* int64 */;
 }

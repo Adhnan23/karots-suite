@@ -297,6 +297,9 @@ func (s *Service) Update(ctx context.Context, id int64, in CreateInput) error {
 		return err
 	}
 	if !amt.Equal(cur.Amount) {
+		if cur.Unpaid.IsPositive() { // Pay again settles the old unpaid amount
+			return apperr.Validation("its cheque came back — pay it first, then change the amount")
+		}
 		if n, err := PendingCheques(ctx, s.repo.q, id); err != nil {
 			return err
 		} else if n > 0 {

@@ -37,3 +37,20 @@ export async function chequesWithHistory(page: Page) {
   const given = (await get('/api/v1/admin/cheques?status=&dir=out')) as { id: number; number: string }[]
   await post(`/api/v1/admin/cheques/${given.find((r) => r.number === `72${n}`)!.id}/clear`, { date: day(0), lockerId: 0 })
 }
+
+/** SHOTS_PREP=with-cheques (the Cheques page / dashboard with every state) and
+ * cheque-sheet (one cheque's sheet open) at SHOTS_PATH. */
+export const chequePreps = (path: string): Record<string, (page: Page) => Promise<void>> => ({
+  'with-cheques': async (page) => {
+    await chequesWithHistory(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  },
+  'cheque-sheet': async (page) => {
+    await chequesWithHistory(page)
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+    await page.getByText(/^Kamala Perera/).first().click({ force: true })
+    await page.waitForTimeout(400)
+  },
+})

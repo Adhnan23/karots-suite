@@ -333,6 +333,7 @@ func (h *handlers) voidExpenseTx(ctx context.Context, tx *sqlx.Tx, id int64, des
 	if e.Description != nil && *e.Description != "" {
 		reason += " - " + *e.Description
 	}
-	return h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.External(), To: dest, Amount: e.Amount,
+	// Only what really left comes back: a bounced cheque's part never did.
+	return h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.External(), To: dest, Amount: e.Amount.Sub(e.Unpaid),
 		Reason: reason, ReceiptKind: "expense_void", Ref: &cashflow.Ref{Kind: "expense", ID: id}, ActorID: actorID})
 }
