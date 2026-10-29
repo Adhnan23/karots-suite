@@ -60,6 +60,7 @@ export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
   if (cheques.length) {
     if (s.customerId === null) return { error: 'Pick the customer who gave the cheque' }
     if (cheques.some((p) => !p.cheque?.number.trim() || !p.cheque?.date)) return { error: 'Enter the cheque number and date' }
+    if (cheques.some((p) => !p.cheque?.bank.trim())) return { error: "Enter the cheque's bank" }
     const nonCash = payments.filter((p) => p.method !== 'cash' && p.method !== 'credit').reduce((a, p) => a + num(p.amount), 0)
     if (nonCash > t + 0.005) return { error: "A cheque can't be more than what's due — only cash gets change" }
   }

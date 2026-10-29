@@ -130,6 +130,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 	if err != nil {
 		return nil, err
 	}
+	if hasCheque && s.chequeLeg == nil {
+		return nil, apperr.Validation("this till can't take cheques")
+	}
 
 	var detail *Detail
 	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {

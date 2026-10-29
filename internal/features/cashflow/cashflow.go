@@ -17,6 +17,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
@@ -125,6 +126,10 @@ type MoveInput struct {
 	// bank's app before it was rung up): written as it happened, with no overdraw
 	// guard — refusing would only stop the counter. The place rule still applies.
 	Recorded bool
+	// At back-dates a move to when it really happened (a cheque marked cleared
+	// days later): its locker rows and receipt carry that time. Locker legs only
+	// — a till leg is always now. nil = now.
+	At *time.Time
 }
 
 // Service performs atomic money moves.
@@ -245,6 +250,7 @@ func (s *Service) writeReceipt(ctx context.Context, q appdb.Queryer, lrepo *lock
 		Party:     in.Party,
 		Amount:    in.Amount,
 		Note:      in.Reason,
+		At:        in.At,
 	}
 	if in.Ref != nil {
 		ri.RefKind = &in.Ref.Kind
@@ -378,6 +384,7 @@ func (s *Service) writeLeg(ctx context.Context, crepo *cashregister.Repository, 
 			Kind:         kind,
 			Counterparty: counterpartyTag(other.Kind),
 			Note:         in.Reason,
+			At:           in.At,
 		}
 		if other.Kind == KindLocker {
 			id := other.ID

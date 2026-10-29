@@ -24,7 +24,7 @@ type ChequeTaken struct {
 // ChequeLeg records a cheque taken at the till and books its money into
 // Cheques in hand, on the sale's own tx. Injected from the composition root
 // (sales never imports the cheques package — it imports cashflow, which
-// imports sales). nil = a cheque line is recorded as a payment only.
+// imports sales). nil = cheque tenders are refused.
 type ChequeLeg func(ctx context.Context, tx *sqlx.Tx, ev ChequeTaken) error
 
 // WithChequeLeg injects the cheque seam. Returns the service.
@@ -50,6 +50,9 @@ func chequeCheck(in CreateInput) (bool, error) {
 		}
 		if p.Cheque == nil || strings.TrimSpace(p.Cheque.Number) == "" || strings.TrimSpace(p.Cheque.Date) == "" {
 			return false, apperr.Validation("enter the cheque number and date")
+		}
+		if strings.TrimSpace(p.Cheque.Bank) == "" {
+			return false, apperr.Validation("enter the cheque's bank")
 		}
 	}
 	return hasCheque, nil

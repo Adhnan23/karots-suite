@@ -29,13 +29,13 @@ plugins/recharge/hooks.go picks only `kind = 'bank'` lockers (never Cheques in h
 change). Other `kind =` hits are label / document / backup kinds, not money places.
 
 **Whole-branch review (2026-10-29):** 0 critical; fixed: voiding a part-bounced expense returned the whole amount,
-an amount edit after a bounce, files over 500 lines. **Small things left (not fixed, decide later):** a back-dated
-Clear puts the bank money on the day it was marked in cash flow (only the cheque's status date is back-dated — needs a
-date on `cashflow.MoveInput`); a float refill by cheque when the dealer holds an advance must be for what is still owed;
-a sales service built without the cheque leg (demo seeding) would take a cheque as a bare payment; `ChequesInHandTx`
-inserts on every call; a bounced cheque that paid old debt moves the linked balance, not the old-debt part; Receipts
-has no "Cheque returned" filter; the till asks for the bank only at checkout; a partial supplier bounce reopens bills
-before the advance part; a bank place with pending cheques can be archived.
+an amount edit after a bounce, files over 500 lines. **Follow-ups DONE 2026-10-29 (user said yes):** a late Clear books the bank money on the clearing day
+(`cashflow.MoveInput.At`); a bank place with cheques waiting on it can't be archived / re-kinded; the till asks for the
+cheque's bank before Pay; float by cheque with a dealer advance pays only what's still owed (clear message; the counter
+Float tab sizes the cheque); Receipts "Cheques returned" filter; a sales service with no cheque leg refuses cheques;
+`ChequesInHandTx` reads first. **Left on purpose (only if a shop sees it):** a bounced cheque that paid old debt moves
+the linked balance, not the old-debt part (total right); a partial supplier bounce reopens bills before the advance
+part (balance right, ageing may differ).
 
 Next code work after the user's look: M8e Pocket Cashier.
 

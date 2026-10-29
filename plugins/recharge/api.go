@@ -18,6 +18,7 @@ import (
 	"karots-suite/internal/features/supplierpay"
 	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/middleware"
+	"karots-suite/internal/money"
 	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
@@ -264,6 +265,25 @@ type RefillInput struct {
 	Reference  string              `json:"reference"`
 }
 
+// chequesFit: cheques for a refill pay only what the dealer's advance left
+// owed on its bill — none when the advance covers it all.
+func chequesFit(lines []cheques.Line, owe decimal.Decimal) error {
+	if lines == nil {
+		return nil
+	}
+	if !owe.IsPositive() {
+		return apperr.Validation("the money they hold of yours covers this bill — choose Paid now, no cheque needed")
+	}
+	sum := decimal.Zero
+	for _, l := range lines {
+		sum = sum.Add(l.Amount)
+	}
+	if !sum.Equal(owe) {
+		return apperr.Validation("they hold some of your money, so only " + money.Display(owe) + " is still owed — write the cheque for that")
+	}
+	return nil
+}
+
 // chequeLines is the cheques a refill paid by cheque was given with (none for
 // a refill on credit or paid from a place).
 func chequeLines(in RefillInput) ([]cheques.Line, error) {
@@ -413,7 +433,11 @@ func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location, 
 		pid := bill.Purchase.ID
 		note := "on credit · bill #" + strconv.FormatInt(pid, 10)
 		// An advance the dealer holds may already have settled it; pay the rest.
-		if owe := bill.Purchase.Balance(); !in.Credit && owe.IsPositive() {
+		owe := bill.Purchase.Balance()
+		if err := chequesFit(lines, owe); err != nil {
+			return err
+		}
+		if !in.Credit && owe.IsPositive() {
 			ps := payout.Source{Loc: src, Method: method, Cheques: lines}
 			if lines != nil {
 				ps.Method = payout.MethodCheque

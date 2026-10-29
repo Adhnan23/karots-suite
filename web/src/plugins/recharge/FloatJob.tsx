@@ -9,7 +9,7 @@ import { configQuery, drawerQuery, errMsg, lockersOf } from '@/features/till/api
 import { slipPath } from '@/features/till/print'
 import { slipOut } from '@/features/till/SlipAsk'
 import { FIELD } from '@/features/till/ui'
-import { money, num } from '@/lib/money'
+import { money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { counterRefill, sourcesQuery, tillDataQuery } from './api'
 import { Amount, Pick } from './bits'
@@ -36,11 +36,12 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
   const dev = device || String(floats[0]?.id ?? '')
   const src = source || sources[0]?.value || ''
   const advance = Math.max(0, -num(supplier.owed))
+  const owed = Math.max(0, r2(num(amount) - advance)) // their advance is used first; cheques pay the rest
   async function buy() {
     if (!(num(amount) > 0)) return void toast.error('Enter how much float you bought')
     const byCheque = pay === 'cheque'
     if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
-    if (byCheque && chequesTotal(cheques) !== num(amount)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, amount)}`)
+    if (byCheque && chequesTotal(cheques) !== owed) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, owed)}`)
     setBusy(true)
     try {
       const r = await counterRefill({ deviceId: Number(dev), supplierId: supplier.id, amount, bonus: bonus || '0', credit: pay === 'credit', source: src, reference,
@@ -73,7 +74,7 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
         <div className={LABEL}>
           Paying
           <div><Seg label="Paying" value={pay} options={banks.length > 0 ? [['now', 'Paid now'], ['cheque', 'Cheque'], ['credit', 'On credit']] : [['now', 'Paid now'], ['credit', 'On credit']]}
-            onChange={(v) => { setPay(v); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(amount, String(banks[0].id))]) }} /></div>
+            onChange={(v) => { setPay(v); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(owed > 0 ? String(owed) : '', String(banks[0].id))]) }} /></div>
         </div>
         {pay === 'now' ? (
           <label className={LABEL}>
@@ -83,13 +84,13 @@ export function FloatJob({ supplier }: { supplier: SupplierView }) {
             </select>
           </label>
         ) : pay === 'cheque' ? (
-          <div className="sm:col-span-2"><ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(amount)} /></div>
+          <div className="sm:col-span-2"><ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={owed} /></div>
         ) : <p className="self-end text-[13px] text-muted-foreground">Added to what we owe {supplier.name} — pay it later with Pay.</p>}
         <label className={cn(LABEL, 'sm:col-span-2')}>
           Their bill no. (optional)
           <input aria-label="Bill number" autoComplete="off" value={reference} onChange={(e) => setReference(e.target.value)} className={FIELD} />
         </label>
-        {pay === 'now' && advance > 0 && <p className="text-[13px] text-muted-foreground sm:col-span-2">They hold {money(sym, advance)} of ours — that's used first.</p>}
+        {pay !== 'credit' && advance > 0 && <p className="text-[13px] text-muted-foreground sm:col-span-2">They hold {money(sym, advance)} of ours — that's used first.</p>}
         <div className="flex justify-end sm:col-span-2">
           <Button size="lg" disabled={busy || (pay === 'now' && !src)} onClick={() => void buy()}>
             {pay === 'credit' ? 'Buy on credit' : 'Buy'} {num(amount) > 0 ? money(sym, num(amount) + num(bonus)) : 'float'}

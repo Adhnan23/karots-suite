@@ -115,6 +115,7 @@ type LedgerInput struct {
 	RefID              *int64
 	Note               string
 	CreatedBy          *int64
+	At                 *time.Time // when it happened; nil = now
 }
 
 // ------------------------------------------------------------------ Repository
@@ -243,10 +244,10 @@ func (r *Repository) AddEntry(ctx context.Context, in LedgerInput) (int64, error
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO locker_ledger
 			(locker_id, balance_delta, kind, counterparty,
-			 counter_till_session, counter_locker_id, ref_kind, ref_id, note, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+			 counter_till_session, counter_locker_id, ref_kind, ref_id, note, created_by, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, COALESCE($11, now())) RETURNING id`,
 		in.LockerID, in.BalanceDelta, in.Kind, in.Counterparty,
-		in.CounterTillSession, in.CounterLockerID, in.RefKind, in.RefID, in.Note, in.CreatedBy)
+		in.CounterTillSession, in.CounterLockerID, in.RefKind, in.RefID, in.Note, in.CreatedBy, in.At)
 	return id, err
 }
 
@@ -433,6 +434,11 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
 	if kind == "" {
 		kind = KindOther
 	}
+	if !truthy(in.IsActive) || kind != KindBank {
+		if err := s.refuseWaitingCheques(ctx, id); err != nil {
+			return err
+		}
+	}
 	if !validKind(kind) {
 		return apperr.Validation("invalid locker kind")
 	}
@@ -450,6 +456,11 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
 func (s *Service) SetActive(ctx context.Context, id int64, active bool) error {
 	if err := s.refuseCheque(ctx, id); err != nil {
 		return err
+	}
+	if !active {
+		if err := s.refuseWaitingCheques(ctx, id); err != nil {
+			return err
+		}
 	}
 	err := s.repo.SetActive(ctx, id, active)
 	if errors.Is(err, sql.ErrNoRows) {

@@ -42,6 +42,7 @@ type ReceiptInput struct {
 	RefKind   *string
 	RefID     *int64
 	CreatedBy *int64
+	At        *time.Time // when it happened; nil = now
 }
 
 // ReceiptFilter narrows the receipts list (To is exclusive — the web layer
@@ -66,11 +67,11 @@ func (r *ReceiptRepository) Insert(ctx context.Context, in ReceiptInput) (*Recei
 	var rec Receipt
 	err := r.q.GetContext(ctx, &rec, `
 		INSERT INTO money_receipts
-			(receipt_no, kind, from_label, to_label, party, amount, note, ref_kind, ref_id, created_by)
+			(receipt_no, kind, from_label, to_label, party, amount, note, ref_kind, ref_id, created_by, created_at)
 		VALUES ('CR-' || lpad(nextval('money_receipt_seq')::text, 6, '0'),
-			$1, $2, $3, $4, $5, $6, $7, $8, $9)
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, now()))
 		RETURNING *, (SELECT name FROM users WHERE id = created_by) AS created_by_name`,
-		in.Kind, in.FromLabel, in.ToLabel, in.Party, in.Amount, in.Note, in.RefKind, in.RefID, in.CreatedBy)
+		in.Kind, in.FromLabel, in.ToLabel, in.Party, in.Amount, in.Note, in.RefKind, in.RefID, in.CreatedBy, in.At)
 	if err != nil {
 		return nil, err
 	}

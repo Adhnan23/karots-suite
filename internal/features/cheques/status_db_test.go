@@ -160,3 +160,30 @@ func TestParseLines(t *testing.T) {
 		t.Fatal("out without a bank place accepted")
 	}
 }
+
+// A cheque marked cleared days later books its money on the clearing day, so
+// cash flow and the bank's ledger match the bank statement.
+func TestClearBackDatedBooksThatDay(t *testing.T) {
+	f := setup(t)
+	l := line("300001", 5000)
+	l.Date = today().AddDate(0, 0, -5)
+	c, err := ReceiveTx(f.ctx, f.tx, f.svc.cf, l, Link{CustomerID: f.customer, Party: "TEST chq customer"}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	on := today().AddDate(0, 0, -3)
+	if err := f.svc.clearTx(f.ctx, f.tx, c.ID, on, f.bank, 0); err != nil {
+		t.Fatal(err)
+	}
+	want := on.Format("2006-01-02")
+	var ledger, receipt string
+	if err := f.tx.GetContext(f.ctx, &ledger, `SELECT created_at::date::text FROM locker_ledger WHERE locker_id = $1 AND ref_kind = 'cheque' AND ref_id = $2`, f.bank, c.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.tx.GetContext(f.ctx, &receipt, `SELECT created_at::date::text FROM money_receipts WHERE ref_kind = 'cheque' AND ref_id = $1`, c.ID); err != nil {
+		t.Fatal(err)
+	}
+	if ledger != want || receipt != want {
+		t.Fatalf("bank row on %s, receipt on %s; want both on %s", ledger, receipt, want)
+	}
+}

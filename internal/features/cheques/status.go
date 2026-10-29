@@ -36,6 +36,13 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 		return apperr.Validation("a cheque can't clear in the future")
 	}
 	ref := &cashflow.Ref{Kind: "cheque", ID: c.ID}
+	// Marked later than it cleared: the money moves on that day (noon), so cash
+	// flow and the bank's ledger match the statement.
+	var at *time.Time
+	if day < time.Now().Format(ymd) {
+		t := time.Date(on.Year(), on.Month(), on.Day(), 12, 0, 0, 0, time.Local)
+		at = &t
+	}
 	reason := "cheque " + c.Number
 	var detail string
 	if c.Direction == "in" {
@@ -48,7 +55,7 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 			return apperr.Internal("failed to find Cheques in hand", err)
 		}
 		if _, err := s.cf.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.Locker(inHand), To: cashflow.Locker(into),
-			Amount: c.Amount, Reason: reason, ReceiptKind: "transfer", Ref: ref, ActorID: actor}); err != nil {
+			Amount: c.Amount, Reason: reason, ReceiptKind: "transfer", Ref: ref, ActorID: actor, At: at}); err != nil {
 			return err
 		}
 		if _, err := tx.ExecContext(ctx, `UPDATE cheques SET locker_id = $1 WHERE id = $2`, into, c.ID); err != nil {
@@ -68,7 +75,7 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 		}
 		// Recorded: the bank has already paid it — never refuse an overdraw here.
 		if _, err := s.cf.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.Locker(*c.LockerID), To: cashflow.External(),
-			Amount: c.Amount, Reason: reason, ReceiptKind: kind, Ref: ref, Party: party, ActorID: actor, Recorded: true}); err != nil {
+			Amount: c.Amount, Reason: reason, ReceiptKind: kind, Ref: ref, Party: party, ActorID: actor, Recorded: true, At: at}); err != nil {
 			return err
 		}
 		detail = "Cleared from " + deref(c.LockerName)

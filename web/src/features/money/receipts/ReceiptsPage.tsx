@@ -22,7 +22,7 @@ const route = getRouteApi('/_authed/admin/receipts')
 
 const MOVE_KINDS: [string, string][] = [
   ['', 'Every kind'], ['expense', 'Expenses'], ['expense_void', 'Expenses voided'], ['supplier_payment', 'Supplier payments'], ['supplier_refund', 'Supplier refunds'],
-  ['customer_payment', 'Credit collected'], ['refund', 'Refunds'], ['transfer', 'Transfers'], ['bank_charge', 'Bank charges'], ['interest', 'Interest'], ['adjust', 'Adjustments'],
+  ['customer_payment', 'Credit collected'], ['cheque_returned', 'Cheques returned'], ['refund', 'Refunds'], ['transfer', 'Transfers'], ['bank_charge', 'Bank charges'], ['interest', 'Interest'], ['adjust', 'Adjustments'],
 ]
 const TABS: [string, string][] = [['sales', 'Sales'], ['cash', 'Cash'], ['credit', 'Credit'], ['warranty', 'Warranty'], ...slots.tillReceiptKinds.map((k): [string, string] => [`x:${k.key}`, k.label])]
 

@@ -106,7 +106,7 @@ func TestChequeTenderBooks(t *testing.T) {
 func TestChequeNotPluginTender(t *testing.T) {
 	conn, productID, customerID, cashierID := chequeFixture(t)
 	asked := false
-	svc := NewService(conn).WithPluginTenders(func(m string) bool {
+	svc := NewService(conn).WithChequeLeg(func(context.Context, *sqlx.Tx, ChequeTaken) error { return nil }).WithPluginTenders(func(m string) bool {
 		if m == MethodCheque {
 			asked = true
 		}
@@ -120,6 +120,14 @@ func TestChequeNotPluginTender(t *testing.T) {
 	if asked {
 		t.Fatal("plugin tender known-func was asked about cheque")
 	}
+}
+
+// A service with no cheque leg wired can't take one: the cheque would be a
+// bare payment row with nothing in Cheques in hand to clear or bounce.
+func TestChequeTenderNeedsTheLeg(t *testing.T) {
+	conn, productID, customerID, cashierID := chequeFixture(t)
+	_, err := NewService(conn).Create(context.Background(), chequeSale(productID, &customerID, cheque("500")), cashierID)
+	wantValidation(t, err, "no cheque leg")
 }
 
 func TestChequeIsCoreTender(t *testing.T) {

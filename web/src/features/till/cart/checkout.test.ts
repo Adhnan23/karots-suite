@@ -108,6 +108,10 @@ describe('cheque tender', () => {
     const s = tillReducer(named(), { type: 'addTender', payment: chq('100', { number: ' ' }) })
     expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: 'Enter the cheque number and date' })
   })
+  it('needs its bank', () => {
+    const s = tillReducer(named(), { type: 'addTender', payment: chq('100', { bank: ' ' }) })
+    expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: "Enter the cheque's bank" })
+  })
   it("can't pay more than what's due (no change on a cheque)", () => {
     const s = tillReducer(named(), { type: 'draft', patch: chq('150') })
     expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: "A cheque can't be more than what's due — only cash gets change" })
