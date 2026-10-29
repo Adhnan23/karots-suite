@@ -1,7 +1,11 @@
 import type { SaleRequest, TillCustomer } from '@/api/types.gen'
 import { dec, num, r2 } from '@/lib/money'
 import { accountTotal, actualChange, changeDue, keptAmount, paidTotal, roundable, saleTotal, tenderIssue } from './totals'
-import type { Payment, TillState } from './types'
+import type { ChequeDraft, Payment, TillState } from './types'
+
+/** What a till cheque still lacks, as the message to show ('' = ready). */
+export const chequeMissing = (c?: ChequeDraft) =>
+  !c?.bank.trim() ? "Enter the cheque's bank" : !c.number.trim() ? 'Enter the cheque number' : !c.date ? 'Enter the cheque date' : ''
 
 export type Prompt =
   | { kind: 'oversell'; key: number; name: string; stock: number; qty: number }
@@ -59,8 +63,8 @@ export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
   const cheques = payments.filter((p) => p.method === 'cheque' && num(p.amount) > 0)
   if (cheques.length) {
     if (s.customerId === null) return { error: 'Pick the customer who gave the cheque' }
-    if (cheques.some((p) => !p.cheque?.number.trim() || !p.cheque?.date)) return { error: 'Enter the cheque number and date' }
-    if (cheques.some((p) => !p.cheque?.bank.trim())) return { error: "Enter the cheque's bank" }
+    const missing = cheques.map((p) => chequeMissing(p.cheque)).find(Boolean)
+    if (missing) return { error: missing }
     const nonCash = payments.filter((p) => p.method !== 'cash' && p.method !== 'credit').reduce((a, p) => a + num(p.amount), 0)
     if (nonCash > t + 0.005) return { error: "A cheque can't be more than what's due — only cash gets change" }
   }

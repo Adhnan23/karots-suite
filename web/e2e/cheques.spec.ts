@@ -78,6 +78,10 @@ test('till: cheque + cash for a named customer, then cleared into a bank', async
   await page.getByRole('group', { name: 'Payment method' }).getByRole('button', { name: 'Cheque' }).click()
   await page.getByLabel('Bank', { exact: true }).fill('Bank of Ceylon')
   await page.getByLabel('Cheque number').fill(no)
+  // Exact won't add a cheque with no date (a date is never filled in for you).
+  await page.getByRole('group', { name: 'Pay the exact amount' }).getByRole('button').first().click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Enter the cheque date' })).toBeVisible()
+  await page.getByLabel('Cheque date').fill(today())
   const amount = page.getByLabel('Amount tendered')
   await amount.fill('60')
   await amount.press('Enter')

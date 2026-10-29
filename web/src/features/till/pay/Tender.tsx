@@ -9,13 +9,13 @@ import { TouchKeys } from './TouchKeys'
 import { slots } from '@/plugins/slots'
 import { Button } from '@/components/ui/button'
 import { configQuery, drawerQuery, lockersOf } from '../api'
-import { blankDraft } from '../cart/store'
+import { chequeMissing } from '../cart/checkout'
+import { blankDraft, newChequeDraft } from '../cart/store'
 import { balanceDue, LKR_NOTES, quickCash, saleTotal } from '../cart/totals'
 import { useCheckoutCtx } from '../checkout/CheckoutProvider'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 import { MethodBadge } from '@/components/admin/MethodBadge'
-import { today } from '@/features/money/cheques/queries'
 import { METHOD_LABEL } from '@/lib/payMethods'
 import { ChequeFields } from './ChequeFields'
 
@@ -48,11 +48,17 @@ export function Tender() {
 
   function choose(m: string) {
     const first = m === 'card' ? card[0] : m === 'online' ? bank[0] : undefined
-    const cheque = m === 'cheque' ? (d.cheque ?? { bank: '', number: '', date: today(), note: '' }) : undefined
+    const cheque = m === 'cheque' ? (d.cheque ?? newChequeDraft()) : undefined
     dispatch({ type: 'draft', patch: { method: m, accountId: first ? String(first.id) : '', meta: {}, cheque } })
     requestAnimationFrame(() => document.getElementById('till-amount')?.focus())
   }
-  const commit = () => (d.method ? dispatch({ type: 'commitDraft' }) : void toast.error('Choose a payment method'))
+  // A cheque is added only with its bank, number and date filled in.
+  const chequeReady = () => {
+    const miss = d.method === 'cheque' ? chequeMissing(d.cheque) : ''
+    if (miss) toast.error(miss)
+    return !miss
+  }
+  const commit = () => (!d.method ? void toast.error('Choose a payment method') : chequeReady() && dispatch({ type: 'commitDraft' }))
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -101,7 +107,7 @@ export function Tender() {
         <div className="grid grid-cols-4 gap-1.5" role="group" aria-label={d.method === 'cash' ? 'Cash handed over' : 'Pay the exact amount'}>
           {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined).slice(0, 7) : [r2(due)]).map((v, i) => (
             <button key={v} type="button"
-              onClick={() => dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
+              onClick={() => chequeReady() && dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
               className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill border px-2 text-[13px] font-bold tabular-nums',
                 i === 0 ? 'col-span-2 border-[color-mix(in_srgb,var(--brand)_45%,transparent)] bg-brand-soft hover:bg-[color-mix(in_srgb,var(--brand)_22%,transparent)]' : 'border-border bg-card hover:bg-muted')}>
               {i === 0 && <span className="text-[11.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</span>}

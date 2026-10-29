@@ -3,7 +3,11 @@ import { addGroup, addServiceGroup, breakGroup, removeGroup, setGroupCount, type
 import { fromHeld } from './held'
 import { addProduct, payoutLine, serviceLine, setQty, swapProduct, syncSerials } from './lines'
 import { balanceDue, saleTotal } from './totals'
-import type { DiscountType, LinePack, Payment, PayoutInput, SaleType, ServiceLineInput, TillState } from './types'
+import type { ChequeDraft, DiscountType, LinePack, Payment, PayoutInput, SaleType, ServiceLineInput, TillState } from './types'
+
+/** A cheque as the till starts it: nothing filled in, the date too (a date put
+ *  in for the cashier gets left as it is). */
+export const newChequeDraft = (): ChequeDraft => ({ bank: '', number: '', date: '', note: '' })
 
 export const blankDraft = (method: string): Payment => ({ method, amount: '', reference: '', accountId: '', meta: {} })
 
@@ -151,9 +155,10 @@ export function tillReducer(s: TillState, a: Action): TillState {
       const due = balanceDue(saleTotal(s), s.tenders)
       const pay = s.draft.method !== 'cash' && s.draft.method !== 'credit' && Number(s.draft.amount) > due ? { ...s.draft, amount: due.toFixed(2) } : s.draft
       if (!(Number(pay.amount) > 0)) return s
-      // A next cheque starts from the same bank and date (often a post-dated set).
+      // A next cheque keeps the bank (often a post-dated set); its date is typed
+      // again — a set's dates differ, and a filled-in date is easy to miss.
       const next = { ...blankDraft(s.draft.method), accountId: s.draft.accountId }
-      if (pay.cheque) next.cheque = { ...pay.cheque, number: '', note: '' }
+      if (pay.cheque) next.cheque = { ...pay.cheque, number: '', date: '', note: '' }
       return { ...s, tenders: [...s.tenders, pay], draft: next }
     }
     case 'addTender':

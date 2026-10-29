@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { TillCustomer } from '@/api/types.gen'
-import { buildSaleRequest, checkoutGate, effectivePayments, type GateCtx } from './checkout'
-import { initialState, tillReducer } from './store'
+import { buildSaleRequest, checkoutGate, chequeMissing, effectivePayments, type GateCtx } from './checkout'
+import { initialState, newChequeDraft, tillReducer } from './store'
 import type { TillState } from './types'
 
 const withLine = (s: TillState, over: Partial<TillState['lines'][number]> = {}) => {
@@ -104,13 +104,20 @@ describe('cheque tender', () => {
     const s = tillReducer(withLine(initialState('retail')), { type: 'addTender', payment: chq('100') })
     expect(checkoutGate(s, ctx({ confirmed: true }))).toEqual({ error: 'Pick the customer who gave the cheque' })
   })
-  it('needs its number and date', () => {
+  it('needs its number', () => {
     const s = tillReducer(named(), { type: 'addTender', payment: chq('100', { number: ' ' }) })
-    expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: 'Enter the cheque number and date' })
+    expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: 'Enter the cheque number' })
   })
   it('needs its bank', () => {
     const s = tillReducer(named(), { type: 'addTender', payment: chq('100', { bank: ' ' }) })
     expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: "Enter the cheque's bank" })
+  })
+  it('names the first missing detail; a new cheque starts with no date', () => {
+    expect(chequeMissing(newChequeDraft())).toBe("Enter the cheque's bank")
+    expect(newChequeDraft().date).toBe('')
+    expect(chequeMissing({ bank: 'BOC', number: ' ', date: '2026-10-29', note: '' })).toBe('Enter the cheque number')
+    expect(chequeMissing({ bank: 'BOC', number: '1', date: '', note: '' })).toBe('Enter the cheque date')
+    expect(chequeMissing({ bank: 'BOC', number: '1', date: '2026-10-29', note: '' })).toBe('')
   })
   it("can't pay more than what's due (no change on a cheque)", () => {
     const s = tillReducer(named(), { type: 'draft', patch: chq('150') })
