@@ -26,7 +26,7 @@ func (s *Service) undo(ctx context.Context, tx *sqlx.Tx, c *Cheque, status strin
 		}
 		if _, err := s.cf.MoveTx(ctx, tx, cashflow.MoveInput{From: cashflow.Locker(inHand), To: cashflow.External(),
 			Amount: c.Amount, Reason: "cheque " + c.Number + " " + status, ReceiptKind: "cheque_returned",
-			Ref: &cashflow.Ref{Kind: "cheque", ID: c.ID}, Party: deref(c.CustomerName), ActorID: actor}); err != nil {
+			Ref: &cashflow.Ref{Kind: "cheque", ID: c.ID}, Party: deref(c.CustomerName), ActorID: actor, Recorded: true}); err != nil { // never refused
 			return err
 		}
 		if err := customers.NewRepository(tx).AddBalance(ctx, *c.CustomerID, c.Amount); err != nil {

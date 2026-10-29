@@ -221,6 +221,7 @@ func (r *Repository) UnapplyPayment(ctx context.Context, purchaseID int64, amoun
 		UPDATE purchases
 		SET paid_amount = GREATEST(paid_amount - $1, 0),
 		    status = CASE WHEN paid_amount - $1 <= 0 THEN 'received'::purchase_status
+		                  WHEN paid_amount - $1 >= total - credited_amount THEN 'paid'::purchase_status
 		                  ELSE 'partial'::purchase_status END
 		WHERE id = $2 AND status <> 'draft'`, amount, purchaseID)
 	return err
