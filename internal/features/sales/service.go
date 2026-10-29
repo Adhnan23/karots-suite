@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"karots-suite/internal/apperr"
@@ -27,6 +28,29 @@ type Service struct {
 	pluginTender    func(method string) bool  // optional; is this a method a plugin registered?
 	lineHook        LineHook                  // optional; plugins record their tagged lines in-tx
 	returnHook      ReturnHook                // optional; plugins follow returned lines in-tx
+	chequeLeg       ChequeLeg                 // optional; records a cheque tender in-tx
+}
+
+// ChequeTaken is one cheque tender line of a completed sale, handed to the
+// cheque leg inside the sale's tx.
+type ChequeTaken struct {
+	SaleID, PaymentID, CustomerID int64
+	Party                         string // the customer's name
+	Amount                        decimal.Decimal
+	Cheque                        ChequeInput
+	ActorID                       int64
+}
+
+// ChequeLeg records a cheque taken at the till and books its money into
+// Cheques in hand, on the sale's own tx. Injected from the composition root
+// (sales never imports the cheques package — it imports cashflow, which
+// imports sales). nil = a cheque line is recorded as a payment only.
+type ChequeLeg func(ctx context.Context, tx *sqlx.Tx, ev ChequeTaken) error
+
+// WithChequeLeg injects the cheque seam. Returns the service.
+func (s *Service) WithChequeLeg(fn ChequeLeg) *Service {
+	s.chequeLeg = fn
+	return s
 }
 
 // TaggedLine is a sale line that carries plugin data (ItemInput.Plugin).
@@ -148,7 +172,7 @@ func (s *Service) WithPluginTenders(known func(method string) bool, leg PluginTe
 // is NOT dispatched to the plugin tender hook).
 func coreTender(method string) bool {
 	switch method {
-	case "cash", "card", "online", MethodOnAccount:
+	case "cash", "card", "online", MethodCheque, MethodOnAccount:
 		return true
 	}
 	return false
@@ -241,6 +265,24 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		}
 	}
 
+	// A cheque needs its details and someone to chase if it bounces.
+	hasCheque := false
+	for _, p := range in.Payments {
+		if p.Method != MethodCheque {
+			continue
+		}
+		if amt, perr := money.Parse(p.Amount); perr != nil || !amt.IsPositive() {
+			continue
+		}
+		hasCheque = true
+		if in.CustomerID == nil {
+			return nil, apperr.Validation("pick the customer who gave the cheque")
+		}
+		if p.Cheque == nil || strings.TrimSpace(p.Cheque.Number) == "" || strings.TrimSpace(p.Cheque.Date) == "" {
+			return nil, apperr.Validation("enter the cheque number and date")
+		}
+	}
+
 	var detail *Detail
 	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		saleRepo := NewRepository(tx)
@@ -297,7 +339,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		// so an ordinary cash sale still costs no extra query.
 		available := decimal.Zero
 		var cust *customers.Customer
-		if tender.OnAccount.IsPositive() && in.CustomerID != nil {
+		if (tender.OnAccount.IsPositive() || hasCheque) && in.CustomerID != nil {
 			c, err := custRepo.FindByID(ctx, *in.CustomerID)
 			if err != nil {
 				return apperr.Validation("selected customer not found")
@@ -457,8 +499,15 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			if !amt.IsPositive() && !(total.IsNegative() && p.Method == "cash") {
 				continue
 			}
-			if err := saleRepo.InsertPayment(ctx, saleID, p.Method, amt, p.Reference); err != nil {
+			paymentID, err := saleRepo.InsertPayment(ctx, saleID, p.Method, amt, p.Reference)
+			if err != nil {
 				return apperr.Internal("failed to save payment", err)
+			}
+			if s.chequeLeg != nil && p.Method == MethodCheque {
+				if err := s.chequeLeg(ctx, tx, ChequeTaken{SaleID: saleID, PaymentID: paymentID, CustomerID: *in.CustomerID,
+					Party: saleParty, Amount: amt, Cheque: *p.Cheque, ActorID: cashierID}); err != nil {
+					return err
+				}
 			}
 			// Card/online money lands in a chosen account (card- or bank-kind locker)
 			// so non-cash takings are tracked and reconcilable. Cash stays in the

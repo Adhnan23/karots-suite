@@ -10,6 +10,7 @@ import (
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cheques"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/sales"
@@ -97,7 +98,7 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 		}
 		return nil
 	}
-	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithPluginTenders(known, pluginTenderLeg).WithLineHook(lineHook).WithReturnHook(returnHook)
+	salesSvc := sales.NewService(db).WithDrawerKick(kick).WithNonCashLeg(cf.SaleNonCashLeg).WithChequeLeg(cheques.SaleLeg(cf)).WithPluginTenders(known, pluginTenderLeg).WithLineHook(lineHook).WithReturnHook(returnHook)
 	cr := cashregister.NewService(db, salesSvc).WithAudit(audit.NewService(db))
 	// Wire the locker side of till cash events (opening float from a locker,
 	// banking at close, mid-shift moves to/from a locker) through cashflow, which

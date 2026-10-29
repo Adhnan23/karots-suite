@@ -634,6 +634,13 @@ export interface SaleLine {
 export interface SalePayment {
   method: string;
   amount: string;
+  /**
+   * A cheque line's cheque ("" for other methods).
+   */
+  chequeBank?: string;
+  chequeNumber?: string;
+  chequeDate?: string;
+  chequeStatus?: string; // pending | cleared | bounced | cancelled
 }
 export interface SaleView extends SaleSummary {
   customerId: number /* int64 */; // 0 = walk-in
@@ -2851,6 +2858,16 @@ export interface PaymentRequest {
   reference: string;
   accountId: number /* int64 */; // card/bank locker for card/online; 0 = none
   meta?: { [key: string]: string}; // opaque plugin-tender data
+  cheque?: SaleCheque; // required for a cheque line
+}
+/**
+ * SaleCheque is the cheque a till cheque line is paid with.
+ */
+export interface SaleCheque {
+  bank: string;
+  number: string;
+  date: string; // YYYY-MM-DD
+  note: string;
 }
 export interface SaleRequest {
   saleType: string; // retail | wholesale

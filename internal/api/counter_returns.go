@@ -58,7 +58,7 @@ func saleView(d *sales.Detail) SaleView {
 		v.Lines = append(v.Lines, line)
 	}
 	for _, p := range d.Payments {
-		v.Payments = append(v.Payments, SalePayment{Method: p.Method, Amount: dec2(p.Amount)})
+		v.Payments = append(v.Payments, salePayment(p))
 	}
 	return v
 }
@@ -208,4 +208,14 @@ func (h *handlers) CounterPrintRefund(c echo.Context) error {
 		return apperr.ConflictCode("PRINT_FAILED", printFailed)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+// salePayment is one tender line of a sale, with its cheque when it was one.
+func salePayment(p sales.Payment) SalePayment {
+	out := SalePayment{Method: p.Method, Amount: dec2(p.Amount), ChequeBank: strOr(p.ChequeBank),
+		ChequeNumber: strOr(p.ChequeNumber), ChequeStatus: strOr(p.ChequeStatus)}
+	if p.ChequeDate != nil {
+		out.ChequeDate = p.ChequeDate.Format("2006-01-02")
+	}
+	return out
 }

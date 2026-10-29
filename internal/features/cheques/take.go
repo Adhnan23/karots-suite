@@ -10,6 +10,7 @@ import (
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/lockers"
+	"karots-suite/internal/features/sales"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -110,4 +111,19 @@ func nz(id int64) *int64 {
 		return nil
 	}
 	return &id
+}
+
+// SaleLeg is the till's cheque seam (sales.WithChequeLeg): each cheque tender
+// line becomes a received cheque, linked to its sale and payment line, with its
+// money in Cheques in hand — all on the sale's own tx.
+func SaleLeg(cf *cashflow.Service) sales.ChequeLeg {
+	return func(ctx context.Context, tx *sqlx.Tx, ev sales.ChequeTaken) error {
+		ls, _, err := ParseLines([]LineInput{{Bank: ev.Cheque.Bank, Number: ev.Cheque.Number, Amount: ev.Amount.String(),
+			Date: ev.Cheque.Date, Note: ev.Cheque.Note}}, "in")
+		if err != nil {
+			return err
+		}
+		_, err = ReceiveTx(ctx, tx, cf, ls[0], Link{CustomerID: ev.CustomerID, SaleID: &ev.SaleID, PaymentID: &ev.PaymentID, Party: ev.Party}, ev.ActorID)
+		return err
+	}
 }

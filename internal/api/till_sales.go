@@ -50,6 +50,10 @@ func saleInput(r SaleRequest) sales.CreateInput {
 	}
 	for _, p := range r.Payments {
 		pi := sales.PaymentInput{Method: p.Method, Amount: p.Amount, AccountID: p.AccountID, Meta: p.Meta}
+		if p.Cheque != nil {
+			pi.Cheque = &sales.ChequeInput{Bank: strings.TrimSpace(p.Cheque.Bank), Number: strings.TrimSpace(p.Cheque.Number),
+				Date: strings.TrimSpace(p.Cheque.Date), Note: strings.TrimSpace(p.Cheque.Note)}
+		}
 		if ref := strings.TrimSpace(p.Reference); ref != "" {
 			pi.Reference = &ref
 		}

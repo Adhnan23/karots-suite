@@ -167,6 +167,11 @@ type SaleLine struct {
 type SalePayment struct {
 	Method string `json:"method"`
 	Amount string `json:"amount"`
+	// A cheque line's cheque ("" for other methods).
+	ChequeBank   string `json:"chequeBank,omitempty"`
+	ChequeNumber string `json:"chequeNumber,omitempty"`
+	ChequeDate   string `json:"chequeDate,omitempty"`
+	ChequeStatus string `json:"chequeStatus,omitempty"` // pending | cleared | bounced | cancelled
 }
 
 type SaleView struct {

@@ -141,6 +141,11 @@ type Payment struct {
 	Amount    decimal.Decimal `db:"amount"    json:"amount"`
 	Reference *string         `db:"reference" json:"reference,omitempty"`
 	CreatedAt time.Time       `db:"created_at" json:"created_at"`
+	// The cheque a cheque line was paid with (nil for other methods).
+	ChequeBank   *string    `db:"cheque_bank"   json:"cheque_bank,omitempty"`
+	ChequeNumber *string    `db:"cheque_number" json:"cheque_number,omitempty"`
+	ChequeDate   *time.Time `db:"cheque_date"   json:"cheque_date,omitempty"`
+	ChequeStatus *string    `db:"cheque_status" json:"cheque_status,omitempty"`
 }
 
 // Detail bundles a sale with its lines and payments (for receipts and views).
@@ -213,11 +218,13 @@ func (r *Repository) InsertItem(ctx context.Context, saleID int64, it SaleItem) 
 	return id, err
 }
 
-func (r *Repository) InsertPayment(ctx context.Context, saleID int64, method string, amount decimal.Decimal, ref *string) error {
-	_, err := r.q.ExecContext(ctx, `
+// InsertPayment writes one tender line and returns its id.
+func (r *Repository) InsertPayment(ctx context.Context, saleID int64, method string, amount decimal.Decimal, ref *string) (int64, error) {
+	var id int64
+	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO payments (sale_id, method, amount, reference)
-		VALUES ($1,$2,$3,$4)`, saleID, method, amount, ref)
-	return err
+		VALUES ($1,$2,$3,$4) RETURNING id`, saleID, method, amount, ref)
+	return id, err
 }
 
 func (r *Repository) UpdateStatus(ctx context.Context, id int64, status string) error {
@@ -255,6 +262,8 @@ func (r *Repository) Items(ctx context.Context, saleID int64) ([]SaleItem, error
 func (r *Repository) Payments(ctx context.Context, saleID int64) ([]Payment, error) {
 	var rows []Payment
 	err := r.q.SelectContext(ctx, &rows,
-		`SELECT * FROM payments WHERE sale_id = $1 ORDER BY id`, saleID)
+		`SELECT p.*, c.bank AS cheque_bank, c.number AS cheque_number, c.cheque_date, c.status AS cheque_status
+		 FROM payments p LEFT JOIN cheques c ON c.payment_id = p.id
+		 WHERE p.sale_id = $1 ORDER BY p.id`, saleID)
 	return rows, err
 }

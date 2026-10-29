@@ -43,6 +43,15 @@ type PaymentRequest struct {
 	Reference string            `json:"reference"`
 	AccountID int64             `json:"accountId"`      // card/bank locker for card/online; 0 = none
 	Meta      map[string]string `json:"meta,omitempty"` // opaque plugin-tender data
+	Cheque    *SaleCheque       `json:"cheque,omitempty"` // required for a cheque line
+}
+
+// SaleCheque is the cheque a till cheque line is paid with.
+type SaleCheque struct {
+	Bank   string `json:"bank"`
+	Number string `json:"number"`
+	Date   string `json:"date"` // YYYY-MM-DD
+	Note   string `json:"note"`
 }
 
 type SaleRequest struct {

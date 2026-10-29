@@ -11,6 +11,10 @@ import (
 // changing hands. It is shown to cashiers as "On account".
 const MethodOnAccount = "credit"
 
+// MethodCheque is a customer's cheque: money taken now, held in Cheques in
+// hand until it clears (or bounces back onto their account).
+const MethodCheque = "cheque"
+
 // Tender is a sale's payment split into what was actually received and what the
 // customer now owes. They are kept apart because an on-account line is a debt,
 // not money: counting it as paid would report a debt as a completed cash sale,
@@ -59,7 +63,7 @@ func CheckTender(t Tender, total decimal.Decimal, hasCustomer bool, availableCre
 	// difference into cash out of the till.
 	// A payout (total below zero) is change too: what the customer is given.
 	if change := covered.Sub(total); change.GreaterThan(t.Cash.Add(decimal.Max(total.Neg(), decimal.Zero))) && !t.OnAccount.IsPositive() {
-		return apperr.Validation("card and online can't be more than what's due — only cash gets change")
+		return apperr.Validation("card, online and cheque can't be more than what's due — only cash gets change")
 	}
 	if !t.OnAccount.IsPositive() {
 		return nil

@@ -92,6 +92,16 @@ type PaymentInput struct {
 	// Meta is opaque per-line data for a plugin tender method (core never reads
 	// it). Handed to the plugin hook.
 	Meta map[string]string `json:"meta"`
+	// Cheque is the cheque a "cheque" line is paid with (required for one).
+	Cheque *ChequeInput `json:"cheque"`
+}
+
+// ChequeInput is one cheque taken at the till, as the till sends it.
+type ChequeInput struct {
+	Bank   string `json:"bank"`
+	Number string `json:"number"`
+	Date   string `json:"date"` // YYYY-MM-DD
+	Note   string `json:"note"`
 }
 
 type CreateInput struct {

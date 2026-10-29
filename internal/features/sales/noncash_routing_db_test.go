@@ -115,7 +115,7 @@ func TestPluginTenderLegFiresForNonCoreMethodOnly(t *testing.T) {
 	var method string
 	mustSales(t, conn.GetContext(ctx, &method, `SELECT COALESCE(MIN(e.enumlabel::text), '') FROM pg_enum e
 		JOIN pg_type ty ON ty.oid = e.enumtypid WHERE ty.typname = 'payment_method'
-		AND e.enumlabel NOT IN ('cash','card','online','credit')`))
+		AND e.enumlabel NOT IN ('cash','card','online','cheque','credit')`))
 	if method == "" {
 		t.Skip("no plugin tender in payment_method")
 	}
