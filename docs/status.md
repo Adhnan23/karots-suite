@@ -6,18 +6,38 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
-## Next session — START HERE: Cheques, Tasks 12–14 left (handoff 2026-10-29)
+## Next session — START HERE: Cheques DONE, waiting for the user's look (handoff 2026-10-29)
 
-**Building `docs/plans/2026-10-29-cheques.md` (spec `docs/specs/2026-10-29-cheques-design.md`).** Tasks 1–11 are done
-and committed (368ddf5 … b502da0): DB + Cheques in hand, the cheque life cycle (`internal/features/cheques`), till
-tender, customer payments, the shared pay-out helper (`internal/features/payout`) for suppliers + expenses, Cheques
-API + statements + dashboard + After cheques, printing (Classic + Image), the `--cheque` colour in all 22 palettes +
-`MethodBadge`, the till Cheque button, cheques in every money form, the Cheques page. **Left:** Task 12 plugins
-(recharge refill + repairs payout through `payout`, repairs `repairerPaid` minus `expenses.unpaid`), Task 13 Demo Room
-cheques, Task 14 e2e + guides + `make docs-shots` + final ripple grep, then one whole-branch review (most capable
-model). Resume with superpowers:executing-plans; the ledger with every ruling is
-`.superpowers/sdd/2026-10-29-cheques/progress.md` (git-ignored — read it first). Web typecheck is `bunx tsc -b`
-(root `tsc --noEmit` checks nothing).
+**Cheques are built** (spec `docs/specs/2026-10-29-cheques-design.md`; plan done and deleted — `git log` has it,
+commits 368ddf5 … HEAD). A cheque is a payment method everywhere money moves: the till (named customer), credit /
+advance payments (counter + admin), suppliers, expenses (admin + counter), the recharge float refill (admin Buy float
+and the dealer's Float tab at the counter) and the repairs repairer payout. Received cheques wait in **Cheques in
+hand**, given ones at their bank; Money → **Cheques** marks them Cleared / Bounced / Cancelled (bounce = cancel = owed
+again, no charge); dashboard reminders; "after cheques" on cash flow; statements show "Cheque bounced"; Classic +
+Image prints; `--cheque` colour in all 22 palettes; Demo Room shops open with cheques in every state and the Sim takes
+one now and then; e2e `web/e2e/cheques.spec.ts`; guides money / till / people / recharge / repairs + README.
+
+**For the user to look at:** Money → Cheques (Demo Room Super Store has every state), the till's Cheque button
+with a customer, Credit tab "Cheque" with two cheques, an expense paid by cheque then cancelled → "Not paid" → Pay,
+recharge Buy float → Paying "By cheque", a repair job's Repairer → Paid by Cheque, and a printed receipt with a cheque.
+
+**Ripple check (spec "Ripple effects", final grep 2026-10-29):** every hit is handled or not money —
+plugins/recharge/hooks.go picks only `kind = 'bank'` lockers (never Cheques in hand: no change); the recharge
+`walletMethod` enum value is untouched by 00014 (adds `cheque` at the end); no plugin report splits money by method
+(no change); repairs deposit / pickup are core customer payment / till Pay (cheque works with no plugin change —
+`TestPickupByCheque`); a bounced advance cheque reaches a job through the customer's live balance (`calc.go`, no
+change). Other `kind =` hits are label / document / backup kinds, not money places.
+
+**Whole-branch review (2026-10-29):** 0 critical; fixed: voiding a part-bounced expense returned the whole amount,
+an amount edit after a bounce, files over 500 lines. **Small things left (not fixed, decide later):** a back-dated
+Clear puts the bank money on the day it was marked in cash flow (only the cheque's status date is back-dated — needs a
+date on `cashflow.MoveInput`); a float refill by cheque when the dealer holds an advance must be for what is still owed;
+a sales service built without the cheque leg (demo seeding) would take a cheque as a bare payment; `ChequesInHandTx`
+inserts on every call; a bounced cheque that paid old debt moves the linked balance, not the old-debt part; Receipts
+has no "Cheque returned" filter; the till asks for the bank only at checkout; a partial supplier bounce reopens bills
+before the advance part; a bank place with pending cheques can be archived.
+
+Next code work after the user's look: M8e Pocket Cashier.
 
 ## Earlier: cheques design handoff (2026-10-29)
 
