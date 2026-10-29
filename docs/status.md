@@ -13,6 +13,9 @@ The `videos/` project, its spec / plan and `make videos-clips` were deleted — 
 videos`). Kept from that work: product search matches the **local name** (`name_local`) across the till, product
 lists and plugin pickers; till product cards show the local name; 14 demo groceries have Tamil names.
 
+**User tested on their VM, 2026-10-29: PASSED** — Setup → Uninstall / move to another PC / Bring back a shop, the
+Linux USB double-click and a whole shop install (the "unverified" notes below are history).
+
 **Next code work:** M8e Pocket Cashier (see the memory note / `docs/specs` when planned). Waiting on the user outside
 the code: business registration number, lawyer review, real-printer test.
 
