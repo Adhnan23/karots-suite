@@ -10,8 +10,10 @@ people, printing (Classic + Image, receipt and label styles), 22 palettes, ten p
 Builder + karots-setup installer, self-update, backups + copies + cloud, the Demo Room, docs and the draft legal pack.
 Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-29).
 
-**Next code work: M8e Pocket Cashier** — the phone backup till (`docs/ideas/pocket-cashier.md`). Brainstorm the spec
-with the user first.
+**Next code work: M8e Pocket Cashier** — the phone cashier, an installed web app sold as the "Pocket Cashier app"
+(plugin `pocket`, 5,000 LKR). Spec approved 2026-10-29: `docs/specs/2026-10-29-m8e-pocket-cashier-design.md`.
+Android spike passed (shop-made CA, offline sell, replay); **iPhone 13 test first** (throwaway server in
+`~/Projects/go/karots-pwaspike`, `./pwaspike`), then the plan.
 
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
