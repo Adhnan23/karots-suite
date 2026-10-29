@@ -10,7 +10,7 @@ export const tierStatus = (t: Tier) => (t.reorderLevel <= 0 ? 'Not tracked' : t.
 /** A plain cart line holding more than is in stock — the swap chip's cue. */
 export const isShort = (l: CartLine) => !l.group && !l.isService && l.qty > l.stock
 
-/** The group list as CSV: one row per tier (karots-pos reorder-alternatives.csv). */
+/** The group list as CSV: one row per tier. */
 export function groupsCsv(gs: Group[]) {
   const q = (s: string) => `"${s.replace(/"/g, '""')}"`
   const rows = gs.flatMap((g) => g.tiers.map((t) => [q(g.name), q(t.name), qtyText(t.total), String(t.reorderLevel), tierStatus(t)]))

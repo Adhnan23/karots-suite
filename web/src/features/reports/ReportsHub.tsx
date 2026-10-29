@@ -29,7 +29,7 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-/** Reports hub (karots-pos /admin/reports): the reports by group, plugin
+/** Reports hub: the reports by group, plugin
  * reports under More, and the live pages people look for here. */
 export function ReportsHub({ me }: { me: Me }) {
   return (

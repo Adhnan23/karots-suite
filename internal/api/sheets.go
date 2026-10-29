@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// maxImportRows caps one upload (karots-pos import limit).
+// maxImportRows caps one upload.
 const maxImportRows = 5000
 
 // writeSheet streams header + rows as a download in ?format=csv|xlsx|ods (CSV default).

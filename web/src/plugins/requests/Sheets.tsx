@@ -32,7 +32,7 @@ async function run(setBusy: (b: boolean) => void, p: () => Promise<unknown>, don
 
 const money = (s: string) => s.replace(/[^\d.]/g, '')
 
-/** Make a product from the request (karots-pos's convert, plus cost and supplier). */
+/** Make a product from the request. */
 export function ProductSheet({ r, onClose }: SheetProps) {
   const units = useQuery(unitsQuery).data ?? []
   const suppliers = useQuery(supplierOptionsQuery).data ?? []

@@ -17,7 +17,7 @@ func (h *handlers) registerReportsMoney(g *echo.Group) {
 	g.GET("/reports/tax", h.ReportTax)
 }
 
-// ReportCategoryProfit is Profit by category (karots-pos): each category's
+// ReportCategoryProfit is Profit by category: each category's
 // own sales plus its descendants', as a tree; ?category= shows one branch.
 // The totals add each category's own lines once, so a parent never doubles.
 func (h *handlers) ReportCategoryProfit(c echo.Context) error {
@@ -106,7 +106,7 @@ func (h *handlers) ReportCategoryProfit(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportExpenses is Expenses by category (karots-pos), biggest first — the
+// ReportExpenses is Expenses by category, biggest first — the
 // detail behind the P&L's one expenses line.
 func (h *handlers) ReportExpenses(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)
@@ -135,7 +135,7 @@ func (h *handlers) ReportExpenses(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportTax is tax charged at sale per shop day (karots-pos Tax Summary).
+// ReportTax is tax charged at sale per shop day.
 func (h *handlers) ReportTax(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)
 	if err != nil {

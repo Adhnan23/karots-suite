@@ -24,7 +24,6 @@ import (
 	_ "karots-suite/internal/demo/allplugins"
 	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/demo/shops"
-	"karots-suite/internal/features/datacheck"
 	"karots-suite/internal/plugin"
 )
 
@@ -177,17 +176,6 @@ func TestTodayTraded(t *testing.T) {
 	}
 	if n := count(t, `SELECT count(*) FROM sales WHERE created_at > $1`, now); n != 0 {
 		t.Errorf("%d sales after now", n)
-	}
-}
-
-func TestIntegrity(t *testing.T) {
-	d := need(t)
-	f, err := datacheck.Run(context.Background(), d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(f) != 0 {
-		t.Fatalf("data check findings: %+v", f)
 	}
 }
 

@@ -22,7 +22,7 @@ func salesReportSum(s *sales.ListSummary) SalesReportSum {
 		Profit: dec2(s.Profit), Margin: s.Margin().StringFixed(1), AvgBasket: dec2(s.AvgBasket())}
 }
 
-// ReportSales is the Sales report's head (karots-pos SalesReport): the totals
+// ReportSales is the Sales report's head: the totals
 // over the whole range, the same filters over the period before, and the trend.
 // Its receipts, drill-in and export are the admin sales list's
 // (/admin/sales, /admin/sales/:id, /admin/sales/export) with the same filters.
@@ -59,7 +59,7 @@ func (h *handlers) ReportSales(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportPeakHours is sales by shop-time weekday × hour (karots-pos Peak Hours),
+// ReportPeakHours is sales by shop-time weekday × hour,
 // the staffing view.
 func (h *handlers) ReportPeakHours(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)

@@ -35,7 +35,7 @@ func cashflowRange(c echo.Context) (time.Time, time.Time, string, string, error)
 }
 
 // AdminCashflow: where the money is now, how it moved over the range, and what
-// the business is worth (karots-pos buildCashflow).
+// the business is worth.
 func (h *handlers) AdminCashflow(c echo.Context) error {
 	ctx := c.Request().Context()
 	from, to, fs, ts, err := cashflowRange(c)

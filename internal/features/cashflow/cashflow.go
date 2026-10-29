@@ -61,7 +61,7 @@ func (l Location) tracked() bool { return l.Kind != KindExternal }
 // online a bank account, and a card-machine account is never one — its money
 // leaves only through Settle card. method "" takes a till or any non-card
 // locker. External (the untracked far side) always passes. Pickers only offer
-// fitting places; this stops a forged or stale value (karots-pos RequirePlace).
+// fitting places; this stops a forged or stale value.
 func (s *Service) RequirePlace(ctx context.Context, loc Location, method string) error {
 	return RequirePlaceTx(ctx, s.db, loc, method)
 }

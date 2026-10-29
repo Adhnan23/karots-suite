@@ -7,7 +7,7 @@ export const markupOf = (cost: string, selling: string) => (num(cost) > 0 && num
 
 /** Two-way cost ⇄ markup ⇄ selling: type any one, the others follow. Cost or
  * markup set the selling price; selling sets the markup. whole = round a derived
- * price to the rupee (karots-pos intake), else to the cent. */
+ * price to the rupee, else to the cent. */
 export function editPrice(p: Prices, field: keyof Prices, value: string, whole = false): Prices {
   const next = { ...p, [field]: value }
   if (field === 'selling') return { ...next, markup: markupOf(next.cost, value) }

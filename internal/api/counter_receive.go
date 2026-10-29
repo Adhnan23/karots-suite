@@ -51,7 +51,7 @@ func optStr(s string) *string {
 }
 
 // payOnDelivery settles up to what's still owed on the new purchase, in the same
-// tx as the stock landing (karots-pos ReceiveWalkIn / ReceiveAgainstOrder).
+// tx as the stock landing.
 func (h *handlers) payOnDelivery(ctx context.Context, tx *sqlx.Tx, c echo.Context, pur *purchases.Detail, pay PayNow, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
 	src := cashflow.External()
 	amt := decimal.Zero

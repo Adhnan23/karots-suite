@@ -12,7 +12,7 @@ import { taxQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/tax')
 
-/** Tax summary (karots-pos /admin/reports/tax, tax-registered shops): tax
+/** Tax summary: tax
  * charged at sale per day, with the taxable amount. */
 export function TaxPage() {
   const r = rangeOf(route.useSearch())

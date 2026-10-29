@@ -85,8 +85,8 @@ type Me struct {
 	MustChangePin      bool        `json:"mustChangePin"`
 	ShopName           string      `json:"shopName"`
 	LockTimeoutMinutes int         `json:"lockTimeoutMinutes"`
-	StockTakeEnabled   bool        `json:"stockTakeEnabled"` // gates Stock-take + Intake (karots-pos toggle)
-	TaxRegistered      bool        `json:"taxRegistered"`    // shows the Tax report (karots-pos hides it otherwise)
+	StockTakeEnabled   bool        `json:"stockTakeEnabled"` // gates Stock-take + Intake
+	TaxRegistered      bool        `json:"taxRegistered"`    // shows the Tax report
 	Appearance         Appearance  `json:"appearance"`
 	Plugins            []string    `json:"plugins"`
 }

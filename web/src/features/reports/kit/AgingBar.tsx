@@ -6,7 +6,7 @@ import { pctText } from './numbers'
 const LABELS = ['0–30 days', '31–60 days', '61–90 days', 'Over 90 days']
 const TONES = ['var(--chart-2)', 'var(--chart-1)', 'var(--warning)', 'var(--danger)']
 
-/** How old the money owed is (karots-pos agingBar): one bar split by age, with
+/** How old the money owed is: one bar split by age, with
  * each part's amount and share named underneath (never by colour alone). */
 export function AgingBar({ buckets, total, sym }: { buckets: string[]; total: string; sym: string }) {
   const t = num(total)

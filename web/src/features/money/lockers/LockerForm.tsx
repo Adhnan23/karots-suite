@@ -9,7 +9,7 @@ import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { KINDS } from './kinds'
 
-/** New or edit locker (karots-pos LockerForm). The opening balance is asked once,
+/** New or edit locker. The opening balance is asked once,
  * on create; after that the balance only moves through money moves. */
 export function LockerForm({ l, onClose }: { l?: AdminLocker; onClose: () => void }) {
   const qc = useQueryClient()

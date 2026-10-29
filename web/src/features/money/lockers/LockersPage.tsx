@@ -26,7 +26,7 @@ export function Balance({ sym, v, className }: { sym: string; v: string; classNa
   return <b className={cn('tabular-nums', num(v) < 0 && 'text-danger', className)}>{money(sym, v)}</b>
 }
 
-/** Lockers (karots-pos /admin/lockers): money kept outside the tills, each with
+/** Lockers: money kept outside the tills, each with
  * its live balance, plus how the till's cash dialogs use them. */
 export function LockersPage() {
   const disabled = !!route.useSearch().disabled
@@ -138,7 +138,7 @@ function LockerTile({ l, sym, onEdit, onArchive, onReactivate, onMove, onAdjust 
 }
 
 /** How the till's open / deposit / withdraw / close dialogs use lockers
- * (karots-pos Settings → "Cashier cash movements"). Saves as it changes. */
+ *. Saves as it changes. */
 function TillCash({ sym, lockers, value }: { sym: string; lockers: AdminLocker[]; value: TillCashRequest }) {
   const qc = useQueryClient()
   const [busy, setBusy] = useState(false)

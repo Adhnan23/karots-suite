@@ -109,7 +109,7 @@ func (h *handlers) TillQuickItem(c echo.Context) error {
 	return c.JSON(http.StatusOK, tillProduct(*p))
 }
 
-// writeOffMsg is the audit line per reason (karots-pos consumeMsg).
+// writeOffMsg is the audit line per reason.
 var writeOffMsg = map[string]string{"damage": "wrote off at till", "own_use": "shop own use at till", "staff": "staff welfare at till"}
 
 // TillWriteOff removes stock for a non-sale reason (damage by default; the

@@ -14,7 +14,7 @@ import { topupQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/topup')
 
-/** Top-up & reorder (karots-pos /admin/reports/topup-reorder): what needs
+/** Top-up & reorder: what needs
  * topping up — stock under its reorder level, and any plugin floats — against
  * the money you have to pay for it. A live view, no period. */
 export function TopupPage() {

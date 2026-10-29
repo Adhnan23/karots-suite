@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 
-/** Give a barcode-less item one — typed, scanned or generated (karots-pos "Add barcode"). */
+/** Give a barcode-less item one — typed, scanned or generated. */
 export function BarcodeForm({ p, onClose }: { p: AdminProductRow; onClose: () => void }) {
   const qc = useQueryClient()
   const [code, setCode] = useState('')

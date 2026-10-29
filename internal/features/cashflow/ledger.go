@@ -29,7 +29,7 @@ type LedgerRow struct {
 	ReceiptNo *string         `db:"receipt_no"`
 }
 
-// ledgerUnion is every tracked money event in [$1, $2) (karots-pos 9f17be1). A
+// ledgerUnion is every tracked money event in [$1, $2). A
 // till movement is internal when a locker leg of the same transaction (same
 // now(), same session, opposite amount) names its till session as the
 // counterparty. ref_kind / ref_id / src let the page query find each row's receipt.

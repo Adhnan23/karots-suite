@@ -21,7 +21,7 @@ const int = (s: string) => Math.max(0, Math.trunc(Number(s) || 0))
 
 const TEST_SLIP = '/admin/settings/printer/test'
 
-/** Setup → Settings (karots-pos /admin/settings): the shop's name and receipt,
+/** Setup → Settings: the shop's name and receipt,
  * tax, the till's cash rules, stock tools, staff sign-in and printers. */
 export function SettingsPage() {
   const page = useQuery(settingsQuery).data

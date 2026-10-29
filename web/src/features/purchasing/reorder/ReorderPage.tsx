@@ -34,7 +34,7 @@ function SupplierSelect({ value, onChange, sups, label }: { value: number; onCha
   )
 }
 
-/** Reorder (karots-pos low-stock PO builder): everything at or under its
+/** Reorder: everything at or under its
  * reorder level with a demand-based quantity. Tick what to buy across as many
  * searches as you like, then make one purchase order per supplier. */
 export function ReorderPage() {

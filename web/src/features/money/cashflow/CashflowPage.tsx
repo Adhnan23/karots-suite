@@ -59,7 +59,7 @@ export function NetPosition({ d, sym }: { d: AdminCashflow; sym: string }) {
   )
 }
 
-/** Cash flow (karots-pos /admin/cashflow, 9f17be1): where the money is now, how
+/** Cash flow: where the money is now, how
  * it moved over the range — moves between your own places counted once, apart
  * from in and out — and every movement, 50 at a time. */
 export function CashflowPage() {

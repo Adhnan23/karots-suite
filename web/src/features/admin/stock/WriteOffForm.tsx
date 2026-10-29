@@ -20,7 +20,7 @@ const WHY: Record<Reason, string> = {
   staff: 'Staff took it — food, drinks.',
 }
 
-/** Take stock out without a sale (karots-pos Record Damage): damage, shop use or
+/** Take stock out without a sale: damage, shop use or
  * staff, from the lot it really came out of when there are several. */
 export function WriteOffForm({ onClose, onDamaged }: {
   onClose: () => void

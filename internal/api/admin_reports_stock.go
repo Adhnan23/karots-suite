@@ -115,7 +115,7 @@ func (h *handlers) ReportCountSheet(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportTopup is Top-up & reorder (karots-pos): plugin readiness (empty in a
+// ReportTopup is Top-up & reorder: plugin readiness (empty in a
 // core build) and stock under its reorder level (?category=, with its
 // sub-categories), against every active locker and open till.
 func (h *handlers) ReportTopup(c echo.Context) error {

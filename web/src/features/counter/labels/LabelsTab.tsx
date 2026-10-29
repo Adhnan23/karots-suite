@@ -160,7 +160,7 @@ export function Designer({ p, sym, defSize, onClear }: { p: LabelProduct | null;
         <Button size="lg" onClick={() => void print()} disabled={busy || !canPrint} className="h-12 flex-1 text-[15px]">
           <Printer size={18} /> {canPrint ? `Print ${count} label${count === 1 ? '' : 's'}` : p ? 'Needs a barcode first' : 'Type a barcode to print'}
         </Button>
-        {/* No label printer? The same labels as a page for any printer (karots-pos "Generate sheet"). */}
+        {/* No label printer? The same labels as a page for any printer. */}
         <a aria-disabled={!canPrint} target="_blank" rel="noopener" title="Printable sheet for an ordinary printer"
           href={`/print/labels?${new URLSearchParams({ productId: String(req.productId), code: req.code, format: req.format, top: req.top, bottom: req.bottom, topKey: req.topKey ?? '', bottomKey: req.bottomKey ?? '', count: String(count), size: req.size })}`}
           className="flex h-12 items-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold aria-disabled:pointer-events-none aria-disabled:opacity-40 hover:bg-muted">

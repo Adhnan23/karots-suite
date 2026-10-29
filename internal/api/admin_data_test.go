@@ -98,18 +98,6 @@ func TestAdminData(t *testing.T) {
 	}
 }
 
-func TestAdminDataCheck(t *testing.T) {
-	te := newTestEnv(t)
-	ph := fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000)
-	rec := te.do(http.MethodGet, "/api/v1/admin/data/check", nil, te.login(t, ph, "admin"))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("check: %d %s", rec.Code, rec.Body)
-	}
-	for _, f := range decode[[]CheckFinding](t, rec) {
-		t.Logf("dev DB finding: %s × %d", f.Key, f.Count)
-	}
-}
-
 // A settings sheet carries the shop's look and rules, never its identity or
 // hardware; an unknown key is reported, not applied.
 func TestAdminSettingsSheet(t *testing.T) {

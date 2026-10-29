@@ -15,7 +15,7 @@ import { reviewQuery } from './queries'
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 /** Items quick-added at the till that still need their real details
- * (karots-pos "Items to review"). Finish = open the form; Looks fine = clear the flag. */
+ *. Finish = open the form; Looks fine = clear the flag. */
 export function ReviewPage() {
   const rows = useQuery(reviewQuery).data
   const sym = useSuspenseQuery(configQuery).data.symbol

@@ -5,7 +5,7 @@ import { axis, tip } from '@/features/money/finance/charts'
 import { num } from '@/lib/money'
 
 /** One product's units per period, with the same period last year beside it
- * (karots-pos Product Sales overlay) — paired bars, this year in series 1. */
+ * — paired bars, this year in series 1. */
 export function productPeriodOption(rows: ProductPeriod[], grain: string) {
   return (t: ChartTheme): EChartsCoreOption => {
     const fmt = (d: string) => new Date(`${d}T00:00`).toLocaleDateString([], grain === 'month' ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' })

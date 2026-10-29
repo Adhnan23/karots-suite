@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 const setupQuery = { queryKey: ['admin', 'setup'], queryFn: () => api<SetupStep[]>('/admin/setup') }
 
-/** "Get the shop ready" (karots-pos Setup checklist): the go-live steps from
+/** "Get the shop ready": the go-live steps from
  * live data, the next one first. Admins only; gone once every step is done. */
 export function SetupCard() {
   const steps = useQuery(setupQuery).data

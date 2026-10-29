@@ -47,7 +47,7 @@ func (h *handlers) AdminMoneySources(c echo.Context) error {
 }
 
 // parseLocation turns a MoneySource value into a cashflow location; "" is
-// outside the shop (karots-pos parseLocation + parsePaymentSource).
+// outside the shop.
 func parseLocation(v string) (cashflow.Location, error) {
 	v = strings.TrimSpace(v)
 	if v == "" {
@@ -70,7 +70,7 @@ func parseLocation(v string) (cashflow.Location, error) {
 // cashPlace resolves a picked place where notes and coins change hands with a
 // customer (collect, advance refund, sale-return refund): a cash locker or a
 // till, never a bank or card account. The picker only offers those; this stops
-// a forged value (karots-pos requireCash).
+// a forged value.
 func (h *handlers) cashPlace(ctx context.Context, v, what string) (cashflow.Location, error) {
 	if strings.TrimSpace(v) == "" {
 		return cashflow.Location{}, apperr.Validation("pick where the cash " + what)

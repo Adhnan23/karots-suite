@@ -1,7 +1,7 @@
 import type { CountSheet, ShopHeader } from '@/api/types.gen'
 import { qtyText } from '@/lib/money'
 
-/** The count sheet on A4 (karots-pos CountSheetPrintPage): grouped by
+/** The count sheet on A4: grouped by
  * category, with blank Counted / Order columns to fill in at the shelf. */
 export function CountSheetPaper({ d, shop }: { d: CountSheet; shop: ShopHeader }) {
   const groups = d.rows.reduce<[string, CountSheet['rows']][]>((acc, r) => {

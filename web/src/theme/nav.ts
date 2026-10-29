@@ -6,7 +6,7 @@ import { slots, type AppEntry } from '@/plugins/slots'
 
 export type { AppEntry }
 
-/** gate 'stockTake': shown only while Settings → stock-take & intake is on (karots-pos toggle). */
+/** gate 'stockTake': shown only while Settings → stock-take & intake is on. */
 /** gate 'admin': admins only (Users). gate 'tax': only for a tax-registered shop (Tax report). */
 export type NavPage = { to: string; icon: LucideIcon; label: string; description: string; badge?: number; gate?: 'stockTake' | 'admin' | 'tax' }
 /** noTabs: too many pages for the tab row (Reports) — the shelf and Ctrl K list them. */

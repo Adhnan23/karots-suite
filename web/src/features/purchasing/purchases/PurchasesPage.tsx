@@ -28,7 +28,7 @@ export function StatusTag({ p }: { p: PurchaseRow }) {
   return p.dueDate && p.dueDate < new Date().toISOString().slice(0, 10) ? <Tag tone="danger">overdue</Tag> : <Tag tone="warn">{num(p.paid) + num(p.credited) > 0 ? 'part paid' : 'unpaid'}</Tag>
 }
 
-/** Purchases (karots-pos /admin/purchases): orders waiting to come in, and
+/** Purchases: orders waiting to come in, and
  * every delivery received (GRN) with what's still owed on it. */
 export function PurchasesPage() {
   const s = route.useSearch()

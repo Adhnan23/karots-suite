@@ -25,7 +25,7 @@ export function Tag({ tone, children }: { tone: 'warn' | 'danger' | 'muted' | 'b
   return <span className={cn('inline-flex rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', c)}>{children}</span>
 }
 
-/** The catalog (karots-pos /admin/products): search, category (with its
+/** The catalog: search, category (with its
  * sub-categories), low stock, disabled; click a row to edit. */
 export function ProductsPage() {
   const search = route.useSearch()

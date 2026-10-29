@@ -2,7 +2,7 @@ import { ArrowLeftRight, History, ChefHat, HeartCrack, Scale, Boxes, CalendarClo
 import type { LucideIcon } from 'lucide-react'
 
 export type ReportGroup = 'sales' | 'money' | 'stock'
-/** gate 'tax': only for a tax-registered shop (karots-pos hides the Tax report otherwise). */
+/** gate 'tax': only for a tax-registered shop. */
 export type ReportEntry = { to: string; title: string; desc: string; group: ReportGroup; icon: LucideIcon; gate?: 'tax' }
 
 /** karots-pos reportHubGroups: three groups, curated order (common first). Each
@@ -35,7 +35,7 @@ export const REPORTS: ReportEntry[] = [
   { to: '/admin/reorder', title: 'Low stock', desc: 'Items at or below their reorder level — order or print them', group: 'stock', icon: PackageSearch },
 ]
 
-/** Not date-ranged reports — live pages people look for here (karots-pos "Live views"). */
+/** Not date-ranged reports — live pages people look for here. */
 export const LIVE: { to: string; title: string; desc: string; icon: LucideIcon }[] = [
   { to: '/admin/cashflow', title: 'Cash flow', desc: 'Live balances and money in / out', icon: ArrowLeftRight },
   { to: '/admin/receipts', title: 'Receipts', desc: 'Find and print any slip again', icon: ReceiptText },

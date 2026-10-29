@@ -1,4 +1,4 @@
-/** Kiosk lockdown (karots-pos core.js). F1–F12 never reach the browser anywhere
+/** Kiosk lockdown. F1–F12 never reach the browser anywhere
  * (Help, Find, Reload, fullscreen, DevTools all pull a cashier out of the app);
  * the app's own F-key handlers still run. On a counter tab F1 goes back to Sell.
  * On the till and account pages the Ctrl combos that open browser chrome,

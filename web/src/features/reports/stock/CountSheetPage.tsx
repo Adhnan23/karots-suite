@@ -15,7 +15,7 @@ import { countSheetQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/count-sheet')
 
-/** Stock count sheet (karots-pos /admin/reports/count-sheet): the products to
+/** Stock count sheet: the products to
  * count on a shelf, by category and / or supplier — print it, count, then key
  * the counts into Stock-take. */
 export function CountSheetPage() {

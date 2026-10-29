@@ -34,7 +34,7 @@ export function PlacePicker({ label, value, onChange, sym, outside }: { label: s
   )
 }
 
-/** Record or edit an expense (karots-pos ExpenseForm). Once money has left a
+/** Record or edit an expense. Once money has left a
  * place of ours for it, the amount and where it came from are fixed: void it
  * and record it again. */
 export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpenseRow; meta?: AdminExpenseSummary; sym: string; onClose: () => void; onVoid?: () => void }) {
@@ -115,7 +115,7 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
   )
 }
 
-/** Void an expense (karots-pos d66ac18): money that left a place of ours goes
+/** Void an expense: money that left a place of ours goes
  * back into one — pre-picked: the locker it came out of. */
 export function VoidSheet({ e, sym, onClose }: { e: AdminExpenseRow; sym: string; onClose: () => void }) {
   const qc = useQueryClient()

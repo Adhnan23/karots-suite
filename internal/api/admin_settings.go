@@ -19,7 +19,7 @@ import (
 	echomw "github.com/labstack/echo/v4/middleware"
 )
 
-// registerAdminSettings mounts Setup → Settings (admin + manager, as karots-pos).
+// registerAdminSettings mounts Setup → Settings.
 func (h *handlers) registerAdminSettings(g *echo.Group) {
 	g.GET("/settings", h.AdminSettings)
 	g.PUT("/settings", h.AdminSettingsSave)

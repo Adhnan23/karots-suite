@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// registerAdminReports mounts /admin/reports/* (karots-pos /admin/reports/*).
+// registerAdminReports mounts /admin/reports/*.
 // Each report is one GET answering JSON, or a sheet when ?format= is set
 // (writeSheet over every row in range, never one page).
 func (h *handlers) registerAdminReports(g *echo.Group) {

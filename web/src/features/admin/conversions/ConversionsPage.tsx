@@ -27,7 +27,7 @@ const runsQuery = (conv: number, r: Range, page: number) => queryOptions({ query
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
 const CHIP = 'rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
-/** Repack / break bulk into sellable units (karots-pos Product Conversions). */
+/** Repack / break bulk into sellable units. */
 export function ConversionsPage() {
   const [view, setView] = useState<'recipes' | 'runs'>('recipes')
   return (

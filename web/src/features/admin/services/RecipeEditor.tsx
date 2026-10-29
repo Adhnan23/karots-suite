@@ -20,7 +20,7 @@ export function RecipeEditor({ id, onClose }: { id: number; onClose: () => void 
   return r ? <Editor r={r} onClose={onClose} /> : null
 }
 
-/** What one unit of a service uses (karots-pos recipe editor): stock ingredients
+/** What one unit of a service uses: stock ingredients
  * per unit sold or by yield, whole units, and non-stock cost lines. */
 function Editor({ r, onClose }: { r: Recipe; onClose: () => void }) {
   const sym = useSuspenseQuery(configQuery).data.symbol

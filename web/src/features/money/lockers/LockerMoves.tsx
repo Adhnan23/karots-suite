@@ -59,7 +59,7 @@ function After({ sym, l, delta }: { sym: string; l?: AdminLocker; delta: number 
   )
 }
 
-/** Move money between two of your lockers (karots-pos LockerTransferForm). */
+/** Move money between two of your lockers. */
 export function TransferSheet({ lockers: all, from, sym, onClose }: { lockers: AdminLocker[]; from?: number; sym: string; onClose: () => void }) {
   // Never a card-machine account: card takings reach the bank only through Settle card.
   const lockers = all.filter((l) => l.kind !== 'card')
@@ -92,7 +92,7 @@ const ADJUST: { type: LockerAdjustRequest['type']; label: string; sub: string; d
   { type: 'adjust_down', label: '↑ Count is lower', sub: 'Correct the balance down', dir: -1 },
 ]
 
-/** Bank charge, interest, or a count correction on one locker (karots-pos LockerAdjustForm). */
+/** Bank charge, interest, or a count correction on one locker. */
 export function AdjustSheet({ l, sym, onClose }: { l: AdminLocker; sym: string; onClose: () => void }) {
   const [f, setF] = useState<LockerAdjustRequest>({ type: l.kind === 'bank' ? 'bank_charge' : 'adjust_up', amount: '', note: '' })
   const { busy, run } = useMove(onClose)
@@ -119,7 +119,7 @@ export function AdjustSheet({ l, sym, onClose }: { l: AdminLocker; sym: string; 
   )
 }
 
-/** Bank a card-machine batch: the bank gets it minus the fee (karots-pos SettleCardForm). */
+/** Bank a card-machine batch: the bank gets it minus the fee. */
 export function SettleSheet({ lockers, sym, onClose }: { lockers: AdminLocker[]; sym: string; onClose: () => void }) {
   const cards = lockers.filter((l) => l.kind === 'card')
   const banks = lockers.filter((l) => l.kind === 'bank')

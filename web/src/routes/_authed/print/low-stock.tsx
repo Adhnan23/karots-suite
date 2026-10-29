@@ -8,7 +8,7 @@ import { searchStr } from '@/lib/search'
 
 type Search = { q: string; category: number; supplier: number; page: number; hideCovered: boolean; all: boolean; till: boolean }
 
-/** Low stock on A4 (karots-pos /admin/reports/low-stock/print): the Reorder
+/** Low stock on A4: the Reorder
  * list's filters, this page or everything (?all=1). */
 export const Route = createFileRoute('/_authed/print/low-stock')({
   validateSearch: (s: Record<string, unknown>): Search => ({

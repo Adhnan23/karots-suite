@@ -55,7 +55,7 @@ func (h *handlers) AdminStockMovements(c echo.Context) error {
 		return err
 	}
 	f.From, f.To = from, to
-	if c.QueryParam("format") != "" { // download every match (karots-pos "Download CSV"), not a page
+	if c.QueryParam("format") != "" { // download every match, not a page
 		rows, _, err := h.t.stock.FindMovements(c.Request().Context(), f)
 		if err != nil {
 			return err

@@ -13,7 +13,7 @@ export const movementsQuery = (f: MoveFilter) =>
 export const lotsQuery = (id: number) => queryOptions({ queryKey: ['admin', 'lots', id], queryFn: () => api<ProductLots>(`/admin/stock/lots/${id}`) })
 export const staffQuery = queryOptions({ queryKey: ['admin', 'staff'], queryFn: () => api<Option[]>('/admin/staff-options'), staleTime: 60_000 })
 
-/** Movement types as the shop says them (karots-pos moveTypeLabel). */
+/** Movement types as the shop says them. */
 export const MOVE_TYPES: [string, string][] = [
   ['sale', 'Sale'], ['purchase', 'Delivery'], ['adjust', 'Adjustment'], ['return', 'Customer return'], ['damage', 'Damage / expired'],
   ['conversion', 'Conversion'], ['purchase_return', 'Returned to supplier'], ['warranty_replacement', 'Warranty swap'],

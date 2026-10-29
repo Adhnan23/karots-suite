@@ -16,7 +16,7 @@ type SalesReportSum struct {
 	AvgBasket string `json:"avgBasket"`
 }
 
-// SalesReport is the Sales report's head (karots-pos SalesReport): this range,
+// SalesReport is the Sales report's head: this range,
 // the equal-length range before it (same filters) for the ▲▼ deltas, and the
 // trend by Grain. The receipts are the admin sales list's pages.
 type SalesReport struct {
@@ -36,7 +36,7 @@ type PeakCell struct {
 	Revenue string `json:"revenue"`
 }
 
-// PeakHoursReport is sales by weekday and hour (karots-pos Peak Hours). Only
+// PeakHoursReport is sales by weekday and hour. Only
 // cells with sales are sent.
 type PeakHoursReport struct {
 	From    string     `json:"from"`
@@ -81,7 +81,7 @@ type ProductPeriod struct {
 	LastYearRevenue string `json:"lastYearRevenue"`
 }
 
-// ProductSalesReport is one product over time (karots-pos Product Sales).
+// ProductSalesReport is one product over time.
 // ProductID 0 = none picked yet (empty rows).
 type ProductSalesReport struct {
 	From        string          `json:"from"`
@@ -167,7 +167,7 @@ type DueRow struct {
 	Disabled bool   `json:"disabled"`
 }
 
-// DuesReport is Customer dues or Supplier dues (karots-pos): who owes, aged by
+// DuesReport is Customer dues or Supplier dues: who owes, aged by
 // the oldest unpaid credit sale / bill into 0–30 / 31–60 / 61–90 / 90+ days.
 type DuesReport struct {
 	Count      int       `json:"count"`
@@ -190,7 +190,7 @@ type SpendRow struct {
 	Due        string `json:"due"`
 }
 
-// SupplierSpendReport ranks suppliers by spend (karots-pos Spend by Supplier).
+// SupplierSpendReport ranks suppliers by spend.
 type SupplierSpendReport struct {
 	From   string     `json:"from"`
 	To     string     `json:"to"`
@@ -214,7 +214,7 @@ type PurchaseReportRow struct {
 	Due      string `json:"due"`
 }
 
-// PurchasesReport is the deliveries received in range (karots-pos Purchases).
+// PurchasesReport is the deliveries received in range.
 type PurchasesReport struct {
 	From     string              `json:"from"`
 	To       string              `json:"to"`
@@ -239,7 +239,7 @@ type CategoryProfitNode struct {
 	Margin   string `json:"margin"`
 }
 
-// CategoryProfitReport is Profit by category (karots-pos): the tree in
+// CategoryProfitReport is Profit by category: the tree in
 // display order (siblings by profit), the totals counting each line once.
 type CategoryProfitReport struct {
 	From    string               `json:"from"`
@@ -258,7 +258,7 @@ type ExpenseCatTotal struct {
 	Total    string `json:"total"`
 }
 
-// ExpensesReport is Expenses by category (karots-pos), biggest first.
+// ExpensesReport is Expenses by category, biggest first.
 type ExpensesReport struct {
 	From  string            `json:"from"`
 	To    string            `json:"to"`
@@ -275,7 +275,7 @@ type TaxDay struct {
 	Tax   string `json:"tax"`
 }
 
-// TaxReport is the Tax summary (karots-pos, tax-registered shops only).
+// TaxReport is the Tax summary.
 type TaxReport struct {
 	From  string   `json:"from"`
 	To    string   `json:"to"`

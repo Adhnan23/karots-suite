@@ -47,7 +47,7 @@ func activityFilter(c echo.Context) (activity.Filter, error) {
 
 // activityRows is the core trails plus every plugin contributor for f, in the
 // view's order, f.Limit of them (0 = all). A contributor that errors is
-// skipped, never failing the page (karots-pos activityRows).
+// skipped, never failing the page.
 func (h *handlers) activityRows(c echo.Context, f activity.Filter) ([]activity.Row, error) {
 	ctx := c.Request().Context()
 	rows, err := activity.NewService(h.d.DB).List(ctx, f)
@@ -82,7 +82,7 @@ func activityAmount(r activity.Row) string {
 	return dec2(r.Amount)
 }
 
-// AdminActivity is the unified who-did-what view (karots-pos /admin/activity):
+// AdminActivity is the unified who-did-what view:
 // audit, stock, cash drawer and lockers, plus plugin trails; never the system
 // user. Pages 100 by cursor; ?format= downloads every match. Admins only.
 func (h *handlers) AdminActivity(c echo.Context) error {

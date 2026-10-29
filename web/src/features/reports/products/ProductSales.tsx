@@ -18,7 +18,7 @@ import { productSalesQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/product-sales')
 
-/** Product sales (karots-pos /admin/reports/product-sales): one product's units
+/** Product sales: one product's units
  * and takings over time, beside the same time last year — the feel for how much
  * to reorder. */
 export function ProductSalesPage() {

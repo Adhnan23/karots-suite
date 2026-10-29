@@ -12,7 +12,7 @@ import { lotsQuery } from './queries'
 
 const REASONS = ['Count correction', 'Found extra', 'Missing', 'Opening stock']
 
-/** Set a product's on-hand to what's really there (karots-pos Stock → Adjust).
+/** Set a product's on-hand to what's really there.
  * A reduction on a product with several lots asks which lot the units left. */
 export function AdjustForm({ productId, onClose }: { productId: number; onClose: () => void }) {
   const p = useQuery(lotsQuery(productId)).data

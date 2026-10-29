@@ -22,7 +22,7 @@ func decOpt(d *decimal.Decimal) string {
 
 // CounterZReport is the day-end (Z) read for one drawer session: sales, tender
 // split, cash reconciliation and movements. Cashiers see only their own
-// sessions; admin/manager any (karots-pos cashier ZReport).
+// sessions; admin/manager any.
 func (h *handlers) CounterZReport(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {

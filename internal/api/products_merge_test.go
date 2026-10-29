@@ -282,8 +282,6 @@ func TestMergeHeldBillCheckIsPrecise(t *testing.T) {
 	}{
 		{"a line", fmt.Sprintf(`{"lines":[{"productId":%d}]}`, dup), true},
 		{"a recipe component", fmt.Sprintf(`{"lines":[{"productId":%d,"components":[{"productId":%d,"quantity":"1"}]}]}`, other, dup), true},
-		{"a karots-pos line", fmt.Sprintf(`[{"id":%d,"qty":1}]`, dup), true},
-		{"a karots-pos component", fmt.Sprintf(`[{"id":%d,"components":[{"product_id":%d}]}]`, other, dup), true},
 		{"another number that happens to match", fmt.Sprintf(`{"lines":[{"productId":%d,"key":%d,"batchId":%d}],"customer":{"id":%d}}`, other, dup, dup, dup), false},
 	}
 	for _, c := range cases {

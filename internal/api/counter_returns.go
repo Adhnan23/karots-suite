@@ -65,7 +65,7 @@ func saleView(d *sales.Detail) SaleView {
 
 // listRange reads a list's period: ?preset=today|this-week|last-week|this-month|
 // last-month|this-year, or ?from=&to= (YYYY-MM-DD, inclusive), via the forked
-// reports.ResolveRange (karots-pos resolveReceiptRange). Nothing = unbounded
+// reports.ResolveRange. Nothing = unbounded
 // (the latest rows).
 func listRange(c echo.Context) (*time.Time, *time.Time, error) {
 	preset, from, to := c.QueryParam("preset"), c.QueryParam("from"), c.QueryParam("to")
@@ -110,7 +110,7 @@ func (h *handlers) CounterSale(c echo.Context) error {
 
 // CounterReturn takes goods back: restock (or damage) + customer-credit
 // reduction in sales.PartialReturnTx, and the cash part leaves the drawer through
-// cashflow in the SAME tx (karots-pos cashier ReturnSubmit).
+// cashflow in the SAME tx.
 func (h *handlers) CounterReturn(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *handlers) CounterReturn(c echo.Context) error {
 
 // returnSale takes goods back (sales.PartialReturnTx: restock or damage, a
 // credit sale's debt cleared first) and pays the cash part out of from() in
-// the SAME tx (karots-pos refundCashTx). from is asked only when there is cash
+// the SAME tx. from is asked only when there is cash
 // to refund. Returns the cash refunded and its CR- receipt (nil when none).
 func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialReturnInput, from func() (cashflow.Location, error), userID int64) (decimal.Decimal, *cashflow.Receipt, error) {
 	cash := decimal.Zero

@@ -22,7 +22,7 @@ const TEXT = {
   },
 }
 
-/** Customer / Supplier dues (karots-pos): the money owed either way, aged by
+/** Customer / Supplier dues: the money owed either way, aged by
  * the oldest unpaid credit sale or bill. A live report — no period. */
 export function DuesPage({ kind }: { kind: 'customer' | 'supplier' }) {
   const t = TEXT[kind]

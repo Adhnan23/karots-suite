@@ -56,8 +56,7 @@ func (h *handlers) ReportRecipeVariance(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportServiceProfit is per-service takings less ingredients and expenses
-// (karots-pos Service Profit).
+// ReportServiceProfit is per-service takings less ingredients and expenses.
 func (h *handlers) ReportServiceProfit(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)
 	if err != nil {
@@ -85,7 +84,7 @@ func (h *handlers) ReportServiceProfit(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportLosses is Losses & Recovery's head (karots-pos /admin/reports/losses):
+// ReportLosses is Losses & Recovery's head:
 // damage and warranty losses in range against supplier recoveries. ?format=
 // downloads every loss in range.
 func (h *handlers) ReportLosses(c echo.Context) error {

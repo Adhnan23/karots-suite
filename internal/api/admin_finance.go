@@ -85,7 +85,7 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// financeSheet is the P&L as a download (karots-pos Finance report's CSV):
+// financeSheet is the P&L as a download:
 // the statement, plugin income, then the balances either way.
 func financeSheet(c echo.Context, f AdminFinance) error {
 	rows := [][]string{

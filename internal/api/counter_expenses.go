@@ -49,7 +49,7 @@ func (h *handlers) CounterExpenses(c echo.Context) error {
 }
 
 // CounterExpenseCreate records an expense paid from the drawer or a cashier
-// locker: the expense row and its cash move commit together (karots-pos parity).
+// locker: the expense row and its cash move commit together.
 func (h *handlers) CounterExpenseCreate(c echo.Context) error {
 	ctx := c.Request().Context()
 	var req ExpenseRequest

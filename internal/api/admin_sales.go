@@ -23,7 +23,7 @@ func (h *handlers) registerAdminSales(g *echo.Group) {
 	g.POST("/sales/:id/return", h.AdminSaleReturn)
 }
 
-// salesFilter reads the list's filters (karots-pos salesFilterFromQuery):
+// salesFilter reads the list's filters:
 // range, ?status=, ?method=, ?q= (receipt / customer / product, the till's
 // word rules), ?fromHour= / ?toHour= (shop-time hours, inclusive — the Sales
 // report's window). No range = all time.
@@ -76,7 +76,7 @@ func (h *handlers) AdminSalesSummary(c echo.Context) error {
 }
 
 // AdminSalesExport downloads every match (csv / xlsx / ods), paging past one
-// List call (karots-pos SalesExport).
+// List call.
 func (h *handlers) AdminSalesExport(c echo.Context) error {
 	f, err := salesFilter(c)
 	if err != nil {
@@ -103,7 +103,7 @@ func (h *handlers) AdminSalesExport(c echo.Context) error {
 	return writeSheet(c, "sales_"+time.Now().Format("2006-01-02"), header, out)
 }
 
-// AdminSaleReturn takes goods back from the admin (karots-pos SaleReturnSubmit):
+// AdminSaleReturn takes goods back from the admin:
 // the counter's return, with the cash refund leaving from a picked locker or
 // open till instead of the admin's own drawer.
 func (h *handlers) AdminSaleReturn(c echo.Context) error {

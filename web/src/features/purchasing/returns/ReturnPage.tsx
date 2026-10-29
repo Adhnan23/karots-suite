@@ -9,7 +9,7 @@ import { day } from '../purchases/PurchasesPage'
 import { purchaseReturnQuery } from '../queries'
 
 /** A posted debit note — read-only: it already moved the stock and the payable,
- * so a mistake is corrected with an opposing entry (karots-pos rule). */
+ * so a mistake is corrected with an opposing entry. */
 export function ReturnPage({ id }: { id: number }) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const r = useQuery(purchaseReturnQuery(id)).data

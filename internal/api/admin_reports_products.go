@@ -26,7 +26,7 @@ func pct1(part, whole decimal.Decimal) string {
 	return part.Div(whole).Mul(decimal.NewFromInt(100)).StringFixed(1)
 }
 
-// ReportTopProducts ranks the best sellers (karots-pos Top Products) by
+// ReportTopProducts ranks the best sellers by
 // ?order=revenue|qty|profit, ?limit= rows (default 50, at most 200), with the
 // totals of every product sold for the shares and the Pareto line.
 func (h *handlers) ReportTopProducts(c echo.Context) error {
@@ -79,7 +79,7 @@ func periodStart(t time.Time, grain string) time.Time {
 
 // ReportProductSales is one product's units and revenue by ?grain= (day |
 // week | month; default by range length), beside the same periods a year
-// earlier (karots-pos Product Sales).
+// earlier.
 func (h *handlers) ReportProductSales(c echo.Context) error {
 	ctx := c.Request().Context()
 	from, to, fs, ts, err := reportRange(c)
@@ -141,7 +141,7 @@ func (h *handlers) ReportProductSales(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportCashiers is takings per cashier (karots-pos Sales by Cashier), biggest
+// ReportCashiers is takings per cashier, biggest
 // first.
 func (h *handlers) ReportCashiers(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)

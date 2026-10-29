@@ -122,7 +122,7 @@ func (h *handlers) AdminWriteOffExpired(c echo.Context) error {
 }
 
 // AdminStockConsume takes stock out without a sale — damage, shop use or staff —
-// from a named lot or oldest first (karots-pos POST /admin/stock/damage).
+// from a named lot or oldest first.
 func (h *handlers) AdminStockConsume(c echo.Context) error {
 	var req ConsumeRequest
 	if err := c.Bind(&req); err != nil {

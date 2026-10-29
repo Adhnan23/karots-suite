@@ -1,7 +1,7 @@
 import type { ReorderList, ShopHeader } from '@/api/types.gen'
 import { money, qtyText } from '@/lib/money'
 
-/** The low-stock list on A4 (karots-pos LowStockPrint): what's at or under its
+/** The low-stock list on A4: what's at or under its
  * reorder level, the suggested quantity, and a blank Order column. */
 export function LowStockPaper({ d, shop, sym, all }: { d: ReorderList; shop: ShopHeader; sym: string; all: boolean }) {
   const cost = d.items.some((r) => r.cost) // blank from the till without See cost

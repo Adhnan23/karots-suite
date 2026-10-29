@@ -8,7 +8,7 @@ import { Designer, type LabelProduct } from '@/features/counter/labels/LabelsTab
 import { configQuery } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 
-/** Barcode labels (karots-pos /admin/labels): a product's label, or any custom
+/** Barcode labels: a product's label, or any custom
  * barcode, previewed as it prints — to the label printer or as a printable sheet. */
 export function LabelsPage() {
   const cfg = useSuspenseQuery(configQuery).data

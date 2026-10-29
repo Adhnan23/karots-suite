@@ -30,7 +30,7 @@ const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'can
   { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. To place the orders as well they need the first permission above too.' },
 ]
 
-/** Users (karots-pos /admin/users, admin only): who can sign in, what they are
+/** Users: who can sign in, what they are
  * and what extra they may do. The hidden system user never appears here. */
 export function UsersPage() {
   const us = useQuery(usersQuery).data

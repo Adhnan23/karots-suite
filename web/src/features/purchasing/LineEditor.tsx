@@ -169,8 +169,7 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
 }
 
 function NewProduct({ name, wanted, canLink, onDone }: { name: string; wanted: boolean; canLink: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
-  // A scanned code that found nothing is the new product's barcode, not its name
-  // (karots-pos carries it over so the next delivery finds it by scan).
+  // A scanned code that found nothing is the new product's barcode, not its name.
   const scanned = /^\d{6,}$/.test(name)
   const [f, setF] = useState({ name: scanned ? '' : name, barcode: scanned ? name : '', cost: '', sell: '' })
   const [busy, setBusy] = useState(false)

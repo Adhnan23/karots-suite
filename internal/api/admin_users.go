@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// registerAdminUsers mounts staff logins (karots-pos /admin/users) — admin only,
+// registerAdminUsers mounts staff logins — admin only,
 // on top of the admin group's admin-or-manager check.
 func (h *handlers) registerAdminUsers(g *echo.Group) {
 	u := g.Group("/users", middleware.RequireRole(auth.RoleAdmin))
@@ -68,7 +68,7 @@ func (h *handlers) AdminUserCreate(c echo.Context) error {
 }
 
 // otherActiveAdmins counts active admins other than id — the shop must always
-// keep one (an upgrade on karots-pos, which let the last admin lock everyone out).
+// keep one.
 func (h *handlers) otherActiveAdmins(c echo.Context, id int64) (int, error) {
 	us, err := h.d.Auth.ListUsers(c.Request().Context())
 	if err != nil {

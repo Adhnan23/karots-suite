@@ -47,7 +47,7 @@ function MethodSource({ method, setMethod, source, setSource, sym, into, cheques
   )
 }
 
-/** Pay a supplier (karots-pos Pay Supplier): one amount settles oldest bills
+/** Pay a supplier: one amount settles oldest bills
  * first (or old debt first), or split it exactly across bills, old debt and an
  * advance. Anything over what's owed stays with them as credit. */
 export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: string; onClose: () => void }) {

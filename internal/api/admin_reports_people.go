@@ -24,7 +24,7 @@ func (h *handlers) registerReportsPeople(g *echo.Group) {
 	g.GET("/reports/purchases", h.ReportPurchases)
 }
 
-// ReportReturns is the Returns report's head (karots-pos Returns / Refunds),
+// ReportReturns is the Returns report's head,
 // by the date the money went back. ?format= downloads every line.
 func (h *handlers) ReportReturns(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -78,7 +78,7 @@ func (h *handlers) ReportReturnLines(c echo.Context) error {
 }
 
 // dues ages each row by its oldest unpaid date and totals the buckets.
-// ponytail: whole-balance aging by the oldest date (karots-pos), not per bill —
+// ponytail: whole-balance aging by the oldest date, not per bill —
 // per-bill buckets if a shop mixes very old and fresh debt on one account.
 func dues(rows []DueRow, balances []decimal.Decimal) DuesReport {
 	out := DuesReport{Count: len(rows), Rows: rows}
@@ -125,7 +125,7 @@ func duesSheet(c echo.Context, name, terms string, d DuesReport) error {
 	return writeSheet(c, name, []string{"Name", "Phone", terms, "Outstanding", "Oldest unpaid", "Age (days)"}, out)
 }
 
-// ReportCustomerDues is who owes us (karots-pos Customer Dues). Advances are
+// ReportCustomerDues is who owes us. Advances are
 // not dues; a deactivated debtor still is.
 func (h *handlers) ReportCustomerDues(c echo.Context) error {
 	rows, err := customers.NewService(h.d.DB).Owing(c.Request().Context())
@@ -147,7 +147,7 @@ func (h *handlers) ReportCustomerDues(c echo.Context) error {
 	return c.JSON(http.StatusOK, d)
 }
 
-// ReportSupplierDues is who we owe (karots-pos Supplier Dues); overdue = the
+// ReportSupplierDues is who we owe; overdue = the
 // oldest unpaid bill is past the supplier's credit days.
 func (h *handlers) ReportSupplierDues(c echo.Context) error {
 	rows, err := suppliers.NewService(h.d.DB).Owing(c.Request().Context())

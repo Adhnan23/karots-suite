@@ -24,7 +24,7 @@ export function OverShort({ sym, v, big }: { sym: string; v: string; big?: boole
   return <b className={cn('tabular-nums', n < 0 ? 'text-danger' : 'text-success', big && 'font-display text-2xl')}>{n < 0 ? 'short ' : 'over '}{money(sym, Math.abs(n))}</b>
 }
 
-/** Till sessions (karots-pos /admin/cash-register): every open and close, what
+/** Till sessions: every open and close, what
  * the drawer should have held and what was counted. Paged, newest first. */
 export function TillsPage() {
   const s = route.useSearch()

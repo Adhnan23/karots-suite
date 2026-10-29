@@ -18,7 +18,7 @@ import { categoryOption, methodLabel, paymentOption, trendOption } from './chart
 
 const route = getRouteApi('/_authed/admin/finance')
 
-/** Finance (karots-pos /admin/finance): how the business did over a range —
+/** Finance: how the business did over a range —
  * Overview, the profit statement, and the money owed either way. */
 export function FinancePage() {
   const s = route.useSearch()

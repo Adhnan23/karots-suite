@@ -13,7 +13,7 @@ import { cashiersQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/sales-by-cashier')
 
-/** Sales by cashier (karots-pos /admin/reports/sales-by-cashier): who took
+/** Sales by cashier: who took
  * what, the discounts they gave, and their share of the takings. */
 export function CashiersPage() {
   const r = rangeOf(route.useSearch())

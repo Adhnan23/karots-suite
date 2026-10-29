@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ChevronRight, CloudDownload, Copy, Database, Download, FileUp, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { ChevronRight, CloudDownload, Copy, Database, Download, FileUp, HardDrive, RotateCcw, Upload } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { apiUpload } from '@/api/client'
@@ -12,18 +12,16 @@ import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { CopiesCard } from './CopiesCard'
-import { DataCheckList } from './DataCheck'
-import { dataCheckQuery, dataQuery, fileSize } from './queries'
+import { dataQuery, fileSize } from './queries'
 import { RestoreDialog, type RestoreSource } from './RestoreDialog'
 import { UpdateCard } from './UpdateCard'
 
 type Kind = 'full' | 'choose' | 'setup'
 
-/** Setup → Data (karots-pos /admin/data): backups out and back in, the
- * automatic copies, spreadsheets, and the data check. Admin only. */
+/** Setup → Data: backups out and back in, the
+ * automatic copies and spreadsheets. Admin only. */
 export function DataPage() {
   const data = useQuery(dataQuery).data
-  const check = useQuery(dataCheckQuery).data
   const [restore, setRestore] = useState<RestoreSource | null>(null)
   const latest = data?.backups.find((b) => !b.beforeRestore)
 
@@ -65,10 +63,6 @@ export function DataPage() {
         </Card>
         <Card title="Spreadsheets" icon={<FileUp size={18} />}>
           <Sheets />
-        </Card>
-        <Card title="Data check" icon={<ShieldCheck size={18} />}>
-          <p className="mb-2.5 text-sm text-muted-foreground">Looks for figures older versions of the software saved wrongly. It changes nothing.</p>
-          {check ? <DataCheckList findings={check} /> : <p className="text-sm text-faint">Checking…</p>}
         </Card>
         {data && <Card title="Where the shop is kept" icon={<Database size={18} />} className="lg:col-span-2"><Where dir={data.fileDataDir} /></Card>}
       </div>

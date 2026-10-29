@@ -30,7 +30,7 @@ type Loss struct {
 }
 
 // LossesIn pages the damage and warranty losses booked in [from,to), newest
-// first. (karots-pos listed damage only, all-time, the newest 200.)
+// first.
 func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offset int) ([]Loss, error) {
 	var rows []Loss
 	if err := s.db.SelectContext(ctx, &rows, `

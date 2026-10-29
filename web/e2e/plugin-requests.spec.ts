@@ -104,7 +104,7 @@ test("won't stock is kept and the till says why; merge folds asks together", asy
   await expect(row(page, `${torch} rechargeable`)).toHaveCount(0)
   await expect(row(page, torch)).toContainText('Asked 2×')
 
-  // Edit: the note and each customer's name / phone (karots-pos edited them inline).
+  // Edit: the note and each customer's name / phone.
   await menu(page, torch, 'Edit')
   await page.getByLabel('Name of customer 1').fill('Ruwan')
   await page.getByLabel('Phone of customer 1').fill('0711112222')

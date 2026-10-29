@@ -15,7 +15,7 @@ import (
 
 const runPageSize = 30
 
-// Product conversions (karots-pos /admin/conversions): repack / break bulk.
+// Product conversions: repack / break bulk.
 func (h *handlers) registerAdminConversions(g *echo.Group) {
 	g.GET("/conversions", h.AdminConversions)
 	g.GET("/conversions/runs", h.AdminConversionRuns)

@@ -153,7 +153,7 @@ func (h *handlers) AdminCategoryUpdate(c echo.Context) error {
 }
 
 // AdminCategoryDelete refuses while products are filed here; sub-categories
-// move up to the top level (the FK is ON DELETE SET NULL, as in karots-pos).
+// move up to the top level.
 func (h *handlers) AdminCategoryDelete(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {

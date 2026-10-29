@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { servicesQuery } from './queries'
 import { RecipeEditor } from './RecipeEditor'
 
-/** Non-stocked lines and what each one consumes (karots-pos Services & Recipes). */
+/** Non-stocked lines and what each one consumes. */
 export function ServicesPage() {
   const rows = useQuery(servicesQuery).data
   const sym = useSuspenseQuery(configQuery).data.symbol

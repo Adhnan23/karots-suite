@@ -28,7 +28,7 @@ func moveResult(c echo.Context, r *cashflow.Receipt) error {
 	return c.JSON(http.StatusCreated, ReceiptRef{ReceiptID: &r.ID})
 }
 
-// AdminLockerTransfer moves money between two lockers (karots-pos LockerTransfer).
+// AdminLockerTransfer moves money between two lockers.
 // The source can't go below zero unless it allows it (cashflow's guard → 409).
 func (h *handlers) AdminLockerTransfer(c echo.Context) error {
 	var in LockerTransferRequest
@@ -60,7 +60,7 @@ func (h *handlers) AdminLockerTransfer(c echo.Context) error {
 
 // AdminLockerAdjust is a bank charge (out, booked as Expense "Bank charges" in
 // the same tx), interest earned (in), or a count correction up / down — which
-// needs a note saying why (karots-pos LockerAdjust).
+// needs a note saying why.
 func (h *handlers) AdminLockerAdjust(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -117,7 +117,7 @@ func (h *handlers) AdminLockerAdjust(c echo.Context) error {
 	return moveResult(c, rec)
 }
 
-// AdminSettleCard banks a card-machine batch (karots-pos SettleCard): the fee
+// AdminSettleCard banks a card-machine batch: the fee
 // leaves the card account as a bank charge booked as Expense "Card settlement
 // fee", and the net moves card → bank — so the card drains by the gross. The
 // receipt returned is the card → bank one.

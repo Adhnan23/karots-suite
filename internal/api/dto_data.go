@@ -37,27 +37,11 @@ type RestoreReport struct {
 	DroppedColumns []string `json:"droppedColumns"`
 }
 
-// CheckFindingRow is one example row of a data-check finding.
-type CheckFindingRow struct {
-	Ref    string `json:"ref"`
-	Detail string `json:"detail"`
-}
-
-// CheckFinding is one kind of suspicious stored data (read-only report).
-type CheckFinding struct {
-	Key     string            `json:"key"`
-	Title   string            `json:"title"`
-	Explain string            `json:"explain"`
-	Count   int               `json:"count"`
-	Sample  []CheckFindingRow `json:"sample"`
-}
-
 // RestoreResult is POST /admin/data/restore and /admin/data/backups/:name/restore.
 // The session is ended — the SPA sends the user to sign in again.
 type RestoreResult struct {
 	Report     RestoreReport  `json:"report"`
-	SafetyCopy string         `json:"safetyCopy"` // file name of the copy taken first
-	Check      []CheckFinding `json:"check"`
+	SafetyCopy string `json:"safetyCopy"` // file name of the copy taken first
 }
 
 // SettingsImportResult is POST /admin/data/settings/import.

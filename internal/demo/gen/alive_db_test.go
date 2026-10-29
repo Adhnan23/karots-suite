@@ -8,7 +8,6 @@ import (
 	"github.com/lib/pq"
 
 	"karots-suite/internal/features/cashregister"
-	"karots-suite/internal/features/datacheck"
 )
 
 func newSim(t *testing.T) (*Sim, Deps) {
@@ -113,13 +112,6 @@ func TestCheats(t *testing.T) {
 	}
 	if err := s.Cheat("plugin:repairs"); err == nil {
 		t.Error("a grocery took a repair")
-	}
-	f, err := datacheck.Run(ctx, d.DB)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(f) != 0 {
-		t.Fatalf("data check findings after the cheats: %+v", f)
 	}
 }
 

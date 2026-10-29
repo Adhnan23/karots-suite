@@ -14,7 +14,7 @@ import { serviceProfitQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/service-profit')
 
-/** Service profit (karots-pos /admin/reports/service-profit): did each service
+/** Service profit: did each service
  * pay for itself — takings, what its recipe used, its own expenses. */
 export function ServiceProfitPage() {
   const r = rangeOf(route.useSearch())

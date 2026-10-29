@@ -17,7 +17,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Stock intake (karots-pos /admin/inventory/intake): add or restock one item at a
+// Stock intake: add or restock one item at a
 // time, set the count and print its labels. Behind the stock-take toggle.
 func (h *handlers) registerAdminIntake(g *echo.Group) {
 	in := g.Group("/inventory/intake", h.requireStockTake)

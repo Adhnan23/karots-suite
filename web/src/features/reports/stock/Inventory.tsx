@@ -15,7 +15,7 @@ import { inventoryProductsQuery, inventoryQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/inventory')
 
-/** Inventory valuation (karots-pos /admin/reports/inventory): what the stock on
+/** Inventory valuation: what the stock on
  * hand is worth at cost (by the lots it was bought in) and at retail, broken
  * down by category — tap one to go inside it. */
 export function InventoryPage() {

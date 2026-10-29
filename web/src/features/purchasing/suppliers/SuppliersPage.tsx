@@ -30,7 +30,7 @@ export function Owed({ sym, owed, big }: { sym: string; owed: string; big?: bool
   )
 }
 
-/** Suppliers (karots-pos /admin/suppliers): who we buy from and what's owed either way. */
+/** Suppliers: who we buy from and what's owed either way. */
 export function SuppliersPage() {
   const s = route.useSearch()
   const f = { q: s.q ?? '', show: s.show ?? '', disabled: !!s.disabled, page: s.page ?? 1 }

@@ -20,7 +20,7 @@ const itemsQuery = (id: number) => queryOptions({ queryKey: ['admin', 'groups', 
 
 type Editing = { node: GroupNode | null; parentId: number }
 
-/** The till's menu cards (karots-pos "Cashier Menu"): nested groups, their
+/** The till's menu cards: nested groups, their
  * order, and the products on each card with an emoji. */
 export function GroupsPage() {
   const groups = useQuery(groupsQuery).data

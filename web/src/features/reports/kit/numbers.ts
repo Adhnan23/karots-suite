@@ -1,7 +1,7 @@
 import { num } from '@/lib/money'
 
 /** % change from `prev` to `cur`, or null when there's nothing to compare with
- * (karots-pos statDelta: a change against zero means nothing). Measured against
+ *. Measured against
  * |prev| so a deeper loss reads as a fall. */
 export function delta(cur: string, prev: string): number | null {
   const p = num(prev)

@@ -18,7 +18,7 @@ import { returnLinesQuery, returnsQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/returns')
 
-/** Returns (karots-pos /admin/reports/returns): what went back and what was
+/** Returns: what went back and what was
  * refunded, by the day it went back — and which products come back most. */
 export function ReturnsPage() {
   const r = rangeOf(route.useSearch())

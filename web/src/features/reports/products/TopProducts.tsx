@@ -18,7 +18,7 @@ const route = getRouteApi('/_authed/admin/reports/top-products')
 type Order = 'revenue' | 'qty' | 'profit'
 const WORD: Record<Order, string> = { revenue: 'revenue', qty: 'units sold', profit: 'profit' }
 
-/** Top products (karots-pos /admin/reports/top-products): the best sellers by
+/** Top products: the best sellers by
  * revenue, units or profit, each as a share of everything sold, and how few
  * products make 80% of it. Tap one for its sales over time. */
 export function TopProductsPage() {

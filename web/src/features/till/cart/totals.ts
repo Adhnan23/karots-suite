@@ -80,7 +80,7 @@ export function notesFor(amount: number, denoms: number[]) {
 
 export type TenderIssue = { kind: 'shortfall' | 'overcovered'; amount: number; hasCustomer: boolean } | null
 
-/** The whole tender rule in one place (karots-pos pos-payment.js tenderIssue). */
+/** The whole tender rule in one place. */
 export function tenderIssue(t: number, paid: number, onAccount: number, hasCustomer: boolean): TenderIssue {
   const covered = paid + onAccount
   if (covered < t - 0.005) return { kind: 'shortfall', amount: r2(t - covered), hasCustomer }

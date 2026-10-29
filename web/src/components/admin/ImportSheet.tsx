@@ -46,7 +46,7 @@ function optsQS(o: Opts, offered: SheetExtra[]) {
 }
 
 /** Spreadsheets ▾ on a list page: export in three formats, a blank template,
- * and import from a sheet (karots-pos's import modal + export links). Products
+ * and import from a sheet. Products
  * also get Skip disabled and one toggle per plugin column group. */
 export function SpreadsheetMenu({ entity }: { entity: Entity }) {
   const [open, setOpen] = useState(false)

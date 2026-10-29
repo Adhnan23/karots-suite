@@ -72,7 +72,7 @@ var (
 // at (an expense_id column). Expenses refuses to void a claimed expense —
 // deleting it there would leave the plugin's record pointing at nothing and its
 // own state (a float, a payout) un-reversed. Return the label of the owning
-// record (e.g. "a reload float top-up"), or "" when not claimed (karots-pos d66ac18).
+// record (e.g. "a reload float top-up"), or "" when not claimed.
 type ExpenseOwner func(ctx context.Context, expenseID int64) (string, error)
 
 // ExpenseClaim returns the first plugin claim on an expense, or "" if none.

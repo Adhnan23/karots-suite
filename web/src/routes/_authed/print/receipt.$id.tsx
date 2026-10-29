@@ -10,7 +10,7 @@ import { slipPath } from '@/features/till/print'
 const slipData = (id: number) =>
   queryOptions({ queryKey: ['slip-data', id], queryFn: () => api<SlipData>(`${slipPath.sale(id)}?data=1`, { method: 'POST' }) })
 
-/** Browser view of a sale receipt, for A4 / PDF (karots-pos /cashier/receipt/:id):
+/** Browser view of a sale receipt, for A4 / PDF:
  * the receipt's own template in the shop's style, the same page Image mode prints. */
 export const Route = createFileRoute('/_authed/print/receipt/$id')({
   loader: ({ context, params }) =>

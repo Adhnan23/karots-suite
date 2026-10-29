@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// registerAdmin mounts the back-office API (karots-pos /admin): live, unlocked,
+// registerAdmin mounts the back-office API: live, unlocked,
 // PIN-chosen session, admin or manager only.
 func (h *handlers) registerAdmin(v1 *echo.Group) {
 	g := v1.Group("/admin", slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})...)

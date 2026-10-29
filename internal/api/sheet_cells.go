@@ -15,7 +15,7 @@ var errCell = errors.New("not a number")
 
 // amountCell reads a money / quantity cell as people type it in a sheet:
 // "1,250.00", "Rs. 1250", " 99 ". Blank is zero. Anything else is an error —
-// never a silent 0 (karots-pos stored every "1,250.00" price as 0).
+// never a silent 0.
 func amountCell(s string) (decimal.Decimal, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {

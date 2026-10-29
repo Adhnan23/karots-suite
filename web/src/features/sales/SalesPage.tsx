@@ -21,7 +21,7 @@ import { SaleSheet } from './SaleSheet'
 
 const route = getRouteApi('/_authed/admin/sales')
 
-/** Sales (karots-pos /admin/sales): every sale by range, status, payment and
+/** Sales: every sale by range, status, payment and
  * search — the totals over every match, export, and a sheet per sale with
  * reprint and return. */
 export function SalesPage() {

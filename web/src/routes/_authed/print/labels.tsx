@@ -13,7 +13,7 @@ const str = searchStr
 /** CSS px per printer dot: 96 px to the inch, 25.4 mm to the inch, 8 dots to the mm. */
 const PX_PER_DOT = 96 / 25.4 / DOTS_PER_MM
 
-/** A browser-printable label sheet (karots-pos /admin/labels/print): the same
+/** A browser-printable label sheet: the same
  * true-to-print label, `count` times, at real size — for shops printing labels
  * on an ordinary printer. Image mode draws the shop's label style as vector. */
 export const Route = createFileRoute('/_authed/print/labels')({

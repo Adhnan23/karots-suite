@@ -10,7 +10,7 @@ export type Method = 'cash' | 'card' | 'online'
 export const moneySourcesQuery = queryOptions({ queryKey: ['admin', 'money-sources'], queryFn: () => api<MoneySource[]>('/admin/money-sources') })
 
 /** Where a method's money can sit: cash in a safe / pocket / till, card in a
- * card account, online in a bank account (karots-pos LocationPicker). */
+ * card account, online in a bank account. */
 export const sourcesFor = (all: MoneySource[], m: Method) =>
   all.filter((s) => (m === 'cash' ? s.kind !== 'card' && s.kind !== 'bank' : s.kind === (m === 'card' ? 'card' : 'bank')))
 

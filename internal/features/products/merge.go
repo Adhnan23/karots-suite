@@ -64,8 +64,7 @@ func loadSide(ctx context.Context, q sqlx.QueryerContext, id int64, lock bool) (
 }
 
 // heldIn names who holds a bill with the product in it ("" when none). Held carts
-// are JSON: a karots-pos list of lines ({"id"}, components {"product_id"}) or the
-// suite's {"lines":[{"productId"}]} (components {"productId"}). Only those spots are
+// are JSON {"lines":[{"productId"}]} (components {"productId"}). Only those spots are
 // read — a batch, a line key or a customer with the same number is not the product.
 func heldIn(ctx context.Context, q sqlx.QueryerContext, id int64) (string, error) {
 	var who string
@@ -73,10 +72,7 @@ func heldIn(ctx context.Context, q sqlx.QueryerContext, id int64) (string, error
 		SELECT COALESCE(u.name, 'a cashier') || ' at ' || to_char(h.created_at, 'HH24:MI')
 		FROM held_sales h LEFT JOIN users u ON u.id = h.cashier_id,
 		     (SELECT jsonb_build_object('id', $1::bigint) AS vars) v
-		WHERE CASE jsonb_typeof(h.cart)
-			WHEN 'array' THEN jsonb_path_exists(h.cart, 'strict $[*] ? (@.id == $id || exists(@.components[*] ? (@.product_id == $id)))', v.vars)
-			ELSE jsonb_path_exists(h.cart, 'lax $.lines[*] ? (@.productId == $id || @.components[*].productId == $id)', v.vars)
-		END
+		WHERE jsonb_path_exists(h.cart, 'lax $.lines[*] ? (@.productId == $id || @.components[*].productId == $id)', v.vars)
 		ORDER BY h.created_at LIMIT 1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", nil

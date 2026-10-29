@@ -13,7 +13,7 @@ import { expensesReportQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/expenses')
 
-/** Expenses by category (karots-pos /admin/reports/expenses): where the running
+/** Expenses by category: where the running
  * costs went — the detail behind the P&L's expenses line. Tap one for its
  * expenses. */
 export function ExpensesReportPage() {

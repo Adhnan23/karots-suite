@@ -18,7 +18,7 @@ import { slots } from '@/plugins/slots'
 
 const tenderMethodsQuery = { queryKey: ['admin', 'tender-methods'], queryFn: () => api<TenderMethod[]>('/admin/tender-methods') }
 
-/** Collect a credit repayment (karots-pos Collect Payment): cash into a locker
+/** Collect a credit repayment: cash into a locker
  * or open till, card / online into its account — Card / Online only show when
  * the shop has that kind of account. Over what's owed = an advance. */
 export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: string; onClose: () => void }) {

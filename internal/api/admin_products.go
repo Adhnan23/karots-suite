@@ -143,7 +143,7 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	// Duplicate guard (karots-pos): a copy must be renamed, or it becomes a same-named twin.
+	// Duplicate guard: a copy must be renamed, or it becomes a same-named twin.
 	if src := strings.TrimSpace(req.DupSourceName); src != "" && strings.EqualFold(src, in.Name) {
 		return apperr.Validation("change the name before saving the copy")
 	}
@@ -236,7 +236,7 @@ func (h *handlers) AdminProductReactivate(c echo.Context) error {
 }
 
 // AdminProductReview lists items quick-added at the till that still need their
-// real category, unit, cost and count (karots-pos "Items to review").
+// real category, unit, cost and count.
 func (h *handlers) AdminProductReview(c echo.Context) error {
 	rows, err := h.t.products.NeedsReview(c.Request().Context())
 	if err != nil {

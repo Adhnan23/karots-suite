@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// The till's menu cards (karots-pos "Cashier Menu", /admin/groups).
+// The till's menu cards.
 func (h *handlers) registerAdminGroups(g *echo.Group) {
 	g.GET("/groups", h.AdminGroups)
 	g.POST("/groups", h.AdminGroupCreate)

@@ -6,7 +6,6 @@ import { INPUT } from '@/components/admin/fields'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { errMsg } from '@/features/till/api'
-import { DataCheckList } from './DataCheck'
 
 /** What to restore: an uploaded file or one already in the backup folder. */
 export type RestoreSource = { file: File } | { name: string }
@@ -58,10 +57,6 @@ export function RestoreDialog({ source, onClose }: { source: RestoreSource; onCl
             {done.report.droppedColumns.length > 0 && (
               <Note title="Fields this version doesn't keep">{done.report.droppedColumns.join(', ')}</Note>
             )}
-            <section>
-              <h3 className="mb-1.5 text-sm font-bold">Data check</h3>
-              <DataCheckList findings={done.check} />
-            </section>
             <Button className="mt-1 h-11 gap-2 font-bold" onClick={signIn}><LogIn size={17} /> Sign in again</Button>
           </>
         ) : (

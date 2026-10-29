@@ -1,6 +1,6 @@
 package api
 
-// AdminLocker is one locker on the Money → Lockers page (karots-pos LockersPage):
+// AdminLocker is one locker on the Money → Lockers page:
 // its live balance, whether it may go below zero, whether cashiers may use it
 // from the till, and whether the till's dialogs pre-select it.
 type AdminLocker struct {
@@ -36,7 +36,7 @@ type LockerRequest struct {
 
 // TillCashRequest is the till's cash-move settings: the locker its open /
 // deposit / withdraw / close dialogs pre-select (0 = none), and whether cash
-// may leave the drawer without a locker (karots-pos cashier-default-locker).
+// may leave the drawer without a locker.
 type TillCashRequest struct {
 	DefaultLockerID int64 `json:"defaultLockerId"`
 	AllowUntracked  bool  `json:"allowUntracked"`
@@ -220,7 +220,7 @@ type CashflowRow struct {
 	ReceiptNo string `json:"receiptNo"`
 }
 
-// TillSessionRow is one till session (karots-pos /admin/cash-register).
+// TillSessionRow is one till session.
 // Expected is live for an open till; Counted / Difference are "" until it
 // closes. Difference < 0 = short, > 0 = over.
 type TillSessionRow struct {

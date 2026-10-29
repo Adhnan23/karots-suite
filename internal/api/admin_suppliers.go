@@ -39,7 +39,7 @@ func adminSupplierRow(s suppliers.Supplier) AdminSupplierRow {
 		CreditDays: s.CreditDays, Owed: dec2(s.OutstandingBalance), OldDebt: dec2(s.OpeningUnlinked), Active: s.IsActive}
 }
 
-// AdminSuppliers lists suppliers (karots-pos /admin/suppliers): search on name,
+// AdminSuppliers lists suppliers: search on name,
 // contact or phone; show=owing (we owe them) | credit (they owe us); disabled=1
 // adds the disabled ones. Totals cover every match, not just the page.
 func (h *handlers) AdminSuppliers(c echo.Context) error {
@@ -156,7 +156,7 @@ func bindSupplier(c echo.Context) (suppliers.CreateInput, error) {
 }
 
 // AdminSupplierCreate adds a supplier; an active one with the same name is a 409
-// (karots-pos duplicate guard). The opening is what was already owed.
+//. The opening is what was already owed.
 func (h *handlers) AdminSupplierCreate(c echo.Context) error {
 	in, err := bindSupplier(c)
 	if err != nil {

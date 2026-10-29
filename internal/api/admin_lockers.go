@@ -44,7 +44,7 @@ func (h *handlers) tillCash(c echo.Context) (TillCashRequest, error) {
 	return out, nil
 }
 
-// AdminLockers lists lockers with live balances (karots-pos /admin/lockers);
+// AdminLockers lists lockers with live balances;
 // disabled=1 adds the archived ones. Total covers the active lockers only.
 func (h *handlers) AdminLockers(c echo.Context) error {
 	ls, err := h.t.lockers.List(c.Request().Context(), c.QueryParam("disabled") != "1")

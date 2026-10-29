@@ -232,7 +232,7 @@ type Count struct {
 	Count int `json:"count"`
 }
 
-// ServiceRow is one service product with its recipe cost (karots-pos Services).
+// ServiceRow is one service product with its recipe cost.
 // Costs are "" when it has no recipe yet.
 type ServiceRow struct {
 	ID           int64  `json:"id"`
@@ -302,8 +302,7 @@ type GroupNode struct {
 	ChildCount int    `json:"childCount"`
 }
 
-// GroupRequest creates or edits a group. ParentID is only read on create
-// (karots-pos never moves a group to another parent).
+// GroupRequest creates or edits a group. ParentID is only read on create.
 type GroupRequest struct {
 	Name     string `json:"name"`
 	Emoji    string `json:"emoji"`

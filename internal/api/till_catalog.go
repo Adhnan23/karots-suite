@@ -69,7 +69,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		Shop:               ShopHeader{Name: st.ShopName, Address: strOr(st.Address), Phone: strOr(st.Phone), Footer: strOr(st.ReceiptFooter)},
 	}
 	// A DB predating credit-as-a-payment may still hold 'credit' here; fall back
-	// to retail so the till stays usable (karots-pos cashier.POS did the same).
+	// to retail so the till stays usable.
 	if st.DefaultSaleType == "wholesale" {
 		out.DefaultSaleType = "wholesale"
 	}

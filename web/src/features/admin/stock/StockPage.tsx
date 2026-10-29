@@ -27,7 +27,7 @@ import { MOVE_TYPES, moveLabel, movementsQuery, staffQuery } from './queries'
 const route = getRouteApi('/_authed/admin/stock/')
 const SELECT = cn(INPUT, 'appearance-auto')
 
-/** On-hand levels and the movement history (karots-pos "Stock Movement"). */
+/** On-hand levels and the movement history. */
 export function StockPage() {
   const s = route.useSearch()
   const navigate = route.useNavigate()

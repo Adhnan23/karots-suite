@@ -110,7 +110,7 @@ type PurchaseRow struct {
 	SupplierID   int64  `json:"supplierId"`
 	SupplierName string `json:"supplierName"`
 	InvoiceNo    string `json:"invoiceNo"`
-	Status       string `json:"status"` // draft | received | partial | paid (karots-pos purchase_status)
+	Status       string `json:"status"` // draft | received | partial | paid
 	Date         string `json:"date"`
 	ExpectedDate string `json:"expectedDate"` // "" = none
 	DueDate      string `json:"dueDate"`

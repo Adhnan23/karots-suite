@@ -40,7 +40,7 @@ func adminCustomerRow(c customers.Customer) AdminCustomerRow {
 		OverLimit: c.CreditLimit.IsPositive() && c.OutstandingBalance.GreaterThan(c.CreditLimit), Active: c.IsActive}
 }
 
-// AdminCustomers lists customers (karots-pos /admin/customers): search on name
+// AdminCustomers lists customers: search on name
 // or phone; show=owing | advance | over (over their limit); disabled=1 adds the
 // disabled ones. Totals cover every match.
 func (h *handlers) AdminCustomers(c echo.Context) error {
@@ -203,7 +203,7 @@ func (h *handlers) AdminCustomerOpening(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// AdminCustomerPay collects a credit repayment (karots-pos CustomerPay): cash
+// AdminCustomerPay collects a credit repayment: cash
 // into a locker or open till; card / online into the named card / bank account.
 // The payment and the money move commit together.
 func (h *handlers) AdminCustomerPay(c echo.Context) error {

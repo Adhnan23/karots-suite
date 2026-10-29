@@ -14,7 +14,7 @@ import { spendQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/supplier-spend')
 
-/** Spend by supplier (karots-pos /admin/reports/supplier-spend): who you buy
+/** Spend by supplier: who you buy
  * the most from, net of goods sent back, and what's still to pay them. */
 export function SpendPage() {
   const r = rangeOf(route.useSearch())

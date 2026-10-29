@@ -103,7 +103,7 @@ func expenseFilter(c echo.Context) (expenses.Filter, error) {
 	return expenses.Filter{From: from, To: to, Category: strings.TrimSpace(c.QueryParam("category")), Query: strings.TrimSpace(c.QueryParam("q"))}, err
 }
 
-// AdminExpenses pages the expenses (karots-pos /admin/expenses), newest first.
+// AdminExpenses pages the expenses, newest first.
 func (h *handlers) AdminExpenses(c echo.Context) error {
 	f, err := expenseFilter(c)
 	if err != nil {
@@ -233,7 +233,7 @@ func (h *handlers) AdminExpenseUpdate(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// AdminExpenseVoidInfo prepares the void sheet (karots-pos ExpenseVoidForm).
+// AdminExpenseVoidInfo prepares the void sheet.
 func (h *handlers) AdminExpenseVoidInfo(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -256,7 +256,7 @@ func (h *handlers) AdminExpenseVoidInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// AdminExpenseVoid voids an expense (karots-pos d66ac18): when money left a
+// AdminExpenseVoid voids an expense: when money left a
 // till or locker for it, the same amount goes back into the picked place in the
 // same tx (CR- expense_void), then the row is deleted. Deleting used to leave
 // the money out while the expense vanished from the books.

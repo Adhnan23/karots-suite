@@ -30,7 +30,7 @@ export function Due({ sym, owed, big }: { sym: string; owed: string; big?: boole
   )
 }
 
-/** Customers (karots-pos /admin/customers): credit accounts, limits and what's due. */
+/** Customers: credit accounts, limits and what's due. */
 export function CustomersPage() {
   const s = route.useSearch()
   const f = { q: s.q ?? '', show: s.show ?? '', disabled: !!s.disabled, page: s.page ?? 1 }

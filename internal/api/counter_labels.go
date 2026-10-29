@@ -192,7 +192,7 @@ func (h *handlers) CounterLabelFields(c echo.Context) error {
 }
 
 // CounterAssignBarcode saves a (generated) barcode on a product that had none,
-// so its label can print (karots-pos labels "Generate barcode").
+// so its label can print.
 func (h *handlers) CounterAssignBarcode(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -210,7 +210,7 @@ func (h *handlers) CounterAssignBarcode(c echo.Context) error {
 }
 
 // labelSize parses a "WxH" preset (mm), falling back to the shop default and
-// clamping to what a label printer can take (karots-pos resolveLabelSize).
+// clamping to what a label printer can take.
 func labelSize(size string, defW, defH int) (int, int) {
 	w, h := defW, defH
 	if a, b, ok := strings.Cut(strings.ToLower(strings.TrimSpace(size)), "x"); ok {

@@ -20,7 +20,7 @@ import { money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 /** One sale from the admin: the receipt as printed (reprint, A4) or a return
- * (karots-pos admin SaleReturnForm) with the cash refund paid from a picked
+ * with the cash refund paid from a picked
  * locker or open till. */
 export function SaleSheet({ id, onClose }: { id: number; onClose: () => void }) {
   const sale = useQuery(saleQuery(id)).data

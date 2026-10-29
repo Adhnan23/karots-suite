@@ -19,7 +19,7 @@ import (
 
 const returnPageSize = 30
 
-// registerAdminPurchaseReturns mounts debit notes (karots-pos /admin/purchase-returns).
+// registerAdminPurchaseReturns mounts debit notes.
 // A posted return is read-only: it already moved stock and the payable, so a
 // mistake is corrected with an opposing entry.
 func (h *handlers) registerAdminPurchaseReturns(g *echo.Group) {

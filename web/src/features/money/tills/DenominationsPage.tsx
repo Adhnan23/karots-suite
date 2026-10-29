@@ -42,7 +42,7 @@ function DenominationForm({ d, onClose }: { d?: AdminDenomination; onClose: () =
   )
 }
 
-/** Denominations (karots-pos /admin/denominations): the notes and coins the
+/** Denominations: the notes and coins the
  * drawer count offers. "In circulation" stays an inline switch on purpose — on
  * a short fixed list that's what people change. */
 export function DenominationsPage() {

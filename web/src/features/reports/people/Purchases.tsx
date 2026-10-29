@@ -15,7 +15,7 @@ import { purchasesReportQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/purchases')
 
-/** Purchases (karots-pos /admin/reports/purchases): the deliveries received in
+/** Purchases: the deliveries received in
  * a period, what they came to, and what's still to pay. Tap one for its GRN. */
 export function PurchasesReportPage() {
   const r = rangeOf(route.useSearch())

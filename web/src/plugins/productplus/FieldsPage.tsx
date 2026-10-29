@@ -38,7 +38,7 @@ function Flags({ f }: { f: FieldDTO }) {
 
 const TABS = [{ path: '', label: 'Fields' }, { path: 'fill', label: 'Fill in' }]
 
-/** Apps → Product Plus: the custom fields (karots-pos field manager) with where
+/** Apps → Product Plus: the custom fields with where
  * each applies, where it shows, and how many products are missing a required one;
  * Fill in (sub-path /fill) sets them across many products. */
 export function FieldsPage({ path }: { path: string }) {

@@ -65,7 +65,7 @@ func periods(rows []reports.DayRow, from, to time.Time, grain string) []FinanceP
 	return out
 }
 
-// AdminDashboard is the admin home's data (karots-pos Dashboard). Today and
+// AdminDashboard is the admin home's data. Today and
 // yesterday are shop days; every figure counts as the P&L does.
 func (h *handlers) AdminDashboard(c echo.Context) error {
 	ctx := c.Request().Context()

@@ -2,7 +2,7 @@ import type { AdminCashflow, CashflowRow, ShopHeader } from '@/api/types.gen'
 import { money, num } from '@/lib/money'
 import { FLOW_KINDS } from '../lockers/kinds'
 
-/** Cash flow on A4 (karots-pos CashflowPrintPage): the same totals and net
+/** Cash flow on A4: the same totals and net
  * position as the screen, and every movement in the range. */
 export function CashflowSheet({ d, rows, shop, sym }: { d: AdminCashflow; rows: CashflowRow[]; shop: ShopHeader; sym: string }) {
   const sum = (label: string, v: string) => (

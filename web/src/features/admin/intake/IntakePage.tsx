@@ -29,7 +29,7 @@ type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
 const looksScanned = (s: string) => /^\d{6,}$/.test(s.trim())
 
-/** Stock intake (karots-pos): one box — scan or type — then restock what exists
+/** Stock intake: one box — scan or type — then restock what exists
  * or create what doesn't, set the count and print its labels in the same go. */
 export function IntakePage() {
   const cfg = useSuspenseQuery(configQuery).data
@@ -181,7 +181,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   const [picked, setPicked] = useState<number | null>(null)
   const auto = matchBatch(lots, { cost: prices.cost, selling: prices.selling, expiry }, p.sellingPrice)
   const batchId = picked ?? auto
-  // A barcode-less item gets one minted and saved, so its label scans at the till (karots-pos genBarcode).
+  // A barcode-less item gets one minted and saved, so its label scans at the till.
   async function generate() {
     setBusy(true)
     try {
@@ -248,7 +248,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
 }
 
 type Draft = { name: string; barcode: string; cost: string; markup: string; selling: string; wholesale: string; qty: string; expiry: string }
-// Kept between new items (karots-pos rapid loop): category, unit, supplier and markup.
+// Kept between new items: category, unit, supplier and markup.
 let sticky = { categoryId: 0, unitId: 0, supplierId: 0, markup: '1.4' }
 let lastNew: Draft | null = null
 

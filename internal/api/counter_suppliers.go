@@ -107,7 +107,7 @@ func (h *handlers) CounterSupplier(c echo.Context) error {
 }
 
 // CounterSupplierPay pays a supplier at the counter; the payment ledger and the
-// money leaving the drawer/locker commit together (karots-pos paySupplierTx).
+// money leaving the drawer/locker commit together.
 func (h *handlers) CounterSupplierPay(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {

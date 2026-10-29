@@ -9,7 +9,7 @@ import { printMoneySlip, slipPath } from './print'
 import { askToPrint } from './SlipAsk'
 import { useTill } from './TillProvider'
 
-/** One till dialog at a time (karots-pos anyModalOpen). */
+/** One till dialog at a time. */
 export type Dialog =
   | { kind: 'withdraw' }
   | { kind: 'deposit' }

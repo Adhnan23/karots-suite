@@ -15,7 +15,7 @@ import { categoryProfitQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/profit-by-category')
 
-/** Profit by category (karots-pos /admin/reports/profit-by-category): revenue,
+/** Profit by category: revenue,
  * cost and profit per category, each parent holding its sub-categories. */
 export function CategoryProfitPage() {
   const s = route.useSearch()

@@ -22,7 +22,7 @@ import (
 )
 
 // adminMoneyLoc resolves an admin form's source/destination. Cash has to name
-// one; card and online may be outside the shop (karots-pos parsePaymentSource).
+// one; card and online may be outside the shop.
 // The place must fit the method: cash a till or cash locker, card / online a
 // bank account, never a card-machine account (cashflow.RequirePlace).
 func (h *handlers) adminMoneyLoc(ctx context.Context, method, source string) (cashflow.Location, error) {
@@ -92,7 +92,7 @@ func supplierPayInput(req AdminSupplierPayRequest, invoices []purchases.Purchase
 
 // AdminSupplierPay pays a supplier from any locker or open till (or from
 // outside the shop by card / online); the payment and the money leaving commit
-// together (karots-pos paySupplierTx).
+// together.
 func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {

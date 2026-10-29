@@ -12,7 +12,7 @@ import { varianceQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/recipe-variance')
 
-/** Recipe variance (karots-pos /admin/reports/recipe-variance): what the
+/** Recipe variance: what the
  * recipes say was used against what the stock actually moved. A yield is an
  * estimate, so some drift is normal; over 10% is worth a look. */
 export function VariancePage() {

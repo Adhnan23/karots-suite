@@ -25,7 +25,7 @@ var methodLabel = map[string]string{"cash": "Cash", "card": "Card", "online": "O
 
 // CounterCreditPayment collects money a customer owes (or takes an advance).
 // The ledger row and the money move commit together: cash into this drawer,
-// card/online into the picked account (karots-pos cashier CreditPay).
+// card/online into the picked account.
 func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {

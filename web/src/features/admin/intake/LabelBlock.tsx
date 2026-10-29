@@ -19,7 +19,7 @@ export function labelRequest(o: LabelOpts, it: { productId: number; name: string
     count: o.count ? labelCount(num(o.count)) : labelCount(num(it.qty)), size: o.size }
 }
 
-/** Print-on-save, count, size, the first / second text pickers and a true-to-paper preview (karots-pos intake labels). */
+/** Print-on-save, count, size, the first / second text pickers and a true-to-paper preview. */
 export function LabelBlock({ opts, set, name, price, barcode, qty, fields = [] }: {
   opts: LabelOpts
   set: (o: LabelOpts) => void

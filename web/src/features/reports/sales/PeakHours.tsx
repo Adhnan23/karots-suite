@@ -18,7 +18,7 @@ const DAYS: [number, string][] = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu']
 const LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const hh = (h: number) => `${String(h).padStart(2, '0')}:00`
 
-/** Peak hours (karots-pos /admin/reports/peak-hours): when the shop is busy,
+/** Peak hours: when the shop is busy,
  * by weekday and hour in shop time — for staffing and breaks. */
 export function PeakHoursPage() {
   const s = route.useSearch()

@@ -25,7 +25,7 @@ const route = getRouteApi('/_authed/admin/reports/sales')
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h))
 const hh = (h: string) => `${h.padStart(2, '0')}:00`
 
-/** Sales report (karots-pos /admin/reports/sales): totals over the whole range
+/** Sales report: totals over the whole range
  * with ▲▼ against the period before, an hour-of-day window, the trend, and
  * every receipt with its cost and profit — tap one for its lines. */
 export function SalesReportPage() {

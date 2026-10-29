@@ -64,7 +64,7 @@ func tillFilter(c echo.Context) (cashregister.SessionFilter, error) {
 }
 
 // AdminTills pages till sessions, newest first; ?format= downloads every
-// match (karots-pos Cash Register report).
+// match.
 func (h *handlers) AdminTills(c echo.Context) error {
 	f, err := tillFilter(c)
 	if err != nil {
@@ -178,7 +178,7 @@ func (h *handlers) AdminTillCloseFor(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ---- Denominations (karots-pos /admin/denominations) ----
+// ---- Denominations ----
 
 func (h *handlers) AdminDenominations(c echo.Context) error {
 	rows, err := h.t.denoms.List(c.Request().Context(), false)

@@ -50,7 +50,7 @@ function Count({ sym, count }: { sym: string; count: Record<string, number> }) {
   )
 }
 
-/** One till session (karots-pos CashSessionDetail): its money, every drawer
+/** One till session: its money, every drawer
  * movement, the counts at open and close, and its Z report. */
 export function TillPage() {
   const id = Number(route.useParams().id)

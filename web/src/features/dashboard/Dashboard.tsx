@@ -79,7 +79,7 @@ function attention(d: D, sym: string): Att[] {
   return out
 }
 
-/** The admin home (karots-pos Dashboard, in the approved mockup's shape):
+/** The admin home:
  * today against yesterday, the trend against the period before, how people
  * paid, the top sellers and what needs attention. */
 export function Dashboard() {

@@ -20,7 +20,7 @@ import { ExpenseForm, PayAgainSheet, VoidSheet } from './ExpenseForm'
 const route = getRouteApi('/_authed/admin/expenses/')
 const day = (d: string) => new Date(`${d}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })
 
-/** Expenses (karots-pos /admin/expenses): what the shop spent in a range, by
+/** Expenses: what the shop spent in a range, by
  * category, paged 50 at a time; record, edit, or void one. */
 export function ExpensesPage() {
   const s = route.useSearch()

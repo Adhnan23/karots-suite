@@ -9,7 +9,7 @@ import { ExportMenu } from './ExportMenu'
 /** A paged row list (a useInfiniteQuery result): Print loads the rest first. */
 export type Loadable = { hasNextPage: boolean; fetchNextPage: () => Promise<Loadable> }
 
-/** Every report's frame (karots-pos: "set the range, then Print / Save as PDF"):
+/** Every report's frame:
  * title, Export (csv / xlsx / ods of every row for the live filters) and Print
  * in the head; the period and the report's own filters underneath. `range`
  * omitted = a live (not date-ranged) report. `exportUrl` is the report's API

@@ -142,7 +142,7 @@ export type SupplierJob = { key: string; label: string; Panel: ComponentType<{ s
 /** A card in the Reports hub's "More" group, linking to a plugin's own report page. */
 export type ReportCard = { href: string; title: string; desc: string }
 
-/** A section on Setup → Settings owned by a plugin (karots-pos plugin.SettingsSections). */
+/** A section on Setup → Settings owned by a plugin. */
 export type SettingsSection = { key: string; title: string; Section: ComponentType }
 
 /** A tile on the dock's Apps shelf (also in Ctrl K and the phone's More). color is a

@@ -24,7 +24,7 @@ func (h *handlers) registerAdminReorder(g *echo.Group) {
 }
 
 // AdminReorder is the low-stock worklist with a demand hint per product
-// (karots-pos low-stock PO builder + reorderDemand): search, category (with its
+//: search, category (with its
 // sub-categories), preferred supplier; ?all=1 every match on one page;
 // ?looksOff=1 the Fixed levels far from what sales suggest, low or not.
 func (h *handlers) AdminReorder(c echo.Context) error {
@@ -115,7 +115,7 @@ func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, h
 }
 
 // AdminReorderBuild turns the picked lines into one draft purchase order per
-// supplier (karots-pos PurchaseDraftCreate); the SPA then opens their print.
+// supplier; the SPA then opens their print.
 func (h *handlers) AdminReorderBuild(c echo.Context) error {
 	var req ReorderRequest
 	if err := c.Bind(&req); err != nil {

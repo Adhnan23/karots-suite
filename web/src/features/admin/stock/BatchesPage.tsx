@@ -22,7 +22,7 @@ import { daysLeft, ExpiryTag, LotsSheet } from './LotsSheet'
 const batchesQuery = queryOptions({ queryKey: ['admin', 'batches'], queryFn: () => api<BatchesView>('/admin/stock/batches') })
 type Show = 'all' | 'attention' | 'expired'
 
-/** Live lots with expiry alerts and write-offs (karots-pos Batches). */
+/** Live lots with expiry alerts and write-offs. */
 export function BatchesPage() {
   const v = useQuery(batchesQuery).data
   const sym = useSuspenseQuery(configQuery).data.symbol

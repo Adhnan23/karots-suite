@@ -30,7 +30,7 @@ type Edit = Omit<CountLine, 'productId'>
 const EMPTY: Edit = { counted: '', cost: '', selling: '', wholesale: '', batches: [], newBatches: [] }
 const touched = (e: Edit) => !!(e.counted || e.cost || e.selling || e.wholesale || e.batches.length || e.newBatches.length)
 
-/** Count and reconcile on-hand (karots-pos Stock-take): type what's on the
+/** Count and reconcile on-hand: type what's on the
  * shelf, optionally correct cost and prices, save. Or do it in a spreadsheet. */
 export function StockTakePage() {
   const s = route.useSearch()

@@ -7,7 +7,7 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { errMsg } from '@/features/till/api'
 
-/** New or edit supplier (karots-pos SupplierForm). The opening — what was already
+/** New or edit supplier. The opening — what was already
  * owed before the shop started using this — is asked once, on create. */
 export function SupplierForm({ s, onClose, onSaved }: { s?: AdminSupplierRow; onClose: () => void; onSaved?: (r: AdminSupplierRow) => void }) {
   const qc = useQueryClient()

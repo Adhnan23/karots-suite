@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CounterMoneyReceipts lists CR- money receipts shop-wide (karots-pos ReceiptsCash).
+// CounterMoneyReceipts lists CR- money receipts shop-wide.
 func (h *handlers) CounterMoneyReceipts(c echo.Context) error {
 	from, to, err := listRange(c)
 	if err != nil {
@@ -39,8 +39,7 @@ func moneyReceiptRow(r cashflow.Receipt) MoneyReceiptRow {
 	return row
 }
 
-// AdminMoneyReceipt is one CR- receipt, for the receipts hub's deep link
-// (karots-pos /admin/money-receipts/:id).
+// AdminMoneyReceipt is one CR- receipt, for the receipts hub's deep link.
 func (h *handlers) AdminMoneyReceipt(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -53,7 +52,7 @@ func (h *handlers) AdminMoneyReceipt(c echo.Context) error {
 	return c.JSON(http.StatusOK, moneyReceiptRow(*r))
 }
 
-// CounterDebtReceipts lists credit repayments (karots-pos ReceiptsCredit).
+// CounterDebtReceipts lists credit repayments.
 func (h *handlers) CounterDebtReceipts(c echo.Context) error {
 	from, to, err := listRange(c)
 	if err != nil {

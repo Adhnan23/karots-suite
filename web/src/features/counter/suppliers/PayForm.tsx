@@ -34,7 +34,7 @@ export function PayForm({ s }: { s: SupplierView }) {
   const [busy, setBusy] = useState(false)
   const cashLockers = (drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
   // A card machine only takes money in: paying a supplier by card is the owner's
-  // card (outside the shop). Online may leave a shop bank account (karots-pos).
+  // card (outside the shop). Online may leave a shop bank account.
   const accounts = method === 'online' ? lockersOf(drawer, 'bank') : []
   const a = num(amount)
   const byCheque = !refund && method === 'cheque'

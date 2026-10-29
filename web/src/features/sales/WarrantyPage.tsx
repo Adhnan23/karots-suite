@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 const route = getRouteApi('/_authed/admin/warranty')
 type Status = 'active' | 'expired' | 'replaced' | 'all'
 
-/** Warranty (karots-pos /admin/warranty): every serial sold with cover — find
+/** Warranty: every serial sold with cover — find
  * one, see its history, swap a faulty unit; or claim an un-serialled item by
  * its receipt. The counter's claim panels, in the admin. */
 export function WarrantyPage() {

@@ -91,8 +91,8 @@ export interface Me {
   mustChangePin: boolean;
   shopName: string;
   lockTimeoutMinutes: number /* int */;
-  stockTakeEnabled: boolean; // gates Stock-take + Intake (karots-pos toggle)
-  taxRegistered: boolean; // shows the Tax report (karots-pos hides it otherwise)
+  stockTakeEnabled: boolean; // gates Stock-take + Intake
+  taxRegistered: boolean; // shows the Tax report
   appearance: Appearance;
   plugins: string[];
 }
@@ -349,7 +349,7 @@ export interface Count {
   count: number /* int */;
 }
 /**
- * ServiceRow is one service product with its recipe cost (karots-pos Services).
+ * ServiceRow is one service product with its recipe cost.
  * Costs are "" when it has no recipe yet.
  */
 export interface ServiceRow {
@@ -422,8 +422,7 @@ export interface GroupNode {
   childCount: number /* int */;
 }
 /**
- * GroupRequest creates or edits a group. ParentID is only read on create
- * (karots-pos never moves a group to another parent).
+ * GroupRequest creates or edits a group. ParentID is only read on create.
  */
 export interface GroupRequest {
   name: string;
@@ -1011,30 +1010,12 @@ export interface RestoreReport {
   droppedColumns: string[];
 }
 /**
- * CheckFindingRow is one example row of a data-check finding.
- */
-export interface CheckFindingRow {
-  ref: string;
-  detail: string;
-}
-/**
- * CheckFinding is one kind of suspicious stored data (read-only report).
- */
-export interface CheckFinding {
-  key: string;
-  title: string;
-  explain: string;
-  count: number /* int */;
-  sample: CheckFindingRow[];
-}
-/**
  * RestoreResult is POST /admin/data/restore and /admin/data/backups/:name/restore.
  * The session is ended — the SPA sends the user to sign in again.
  */
 export interface RestoreResult {
   report: RestoreReport;
   safetyCopy: string; // file name of the copy taken first
-  check: CheckFinding[];
 }
 /**
  * SettingsImportResult is POST /admin/data/settings/import.
@@ -1218,7 +1199,7 @@ export interface ReceiptRef {
 // source: dto_money.go
 
 /**
- * AdminLocker is one locker on the Money → Lockers page (karots-pos LockersPage):
+ * AdminLocker is one locker on the Money → Lockers page:
  * its live balance, whether it may go below zero, whether cashiers may use it
  * from the till, and whether the till's dialogs pre-select it.
  */
@@ -1259,7 +1240,7 @@ export interface LockerRequest {
 /**
  * TillCashRequest is the till's cash-move settings: the locker its open /
  * deposit / withdraw / close dialogs pre-select (0 = none), and whether cash
- * may leave the drawer without a locker (karots-pos cashier-default-locker).
+ * may leave the drawer without a locker.
  */
 export interface TillCashRequest {
   defaultLockerId: number /* int64 */;
@@ -1463,7 +1444,7 @@ export interface CashflowRow {
   receiptNo: string;
 }
 /**
- * TillSessionRow is one till session (karots-pos /admin/cash-register).
+ * TillSessionRow is one till session.
  * Expected is live for an open till; Counted / Difference are "" until it
  * closes. Difference < 0 = short, > 0 = over.
  */
@@ -1957,7 +1938,7 @@ export interface PurchaseRow {
   supplierId: number /* int64 */;
   supplierName: string;
   invoiceNo: string;
-  status: string; // draft | received | partial | paid (karots-pos purchase_status)
+  status: string; // draft | received | partial | paid
   date: string;
   expectedDate: string; // "" = none
   dueDate: string;
@@ -2188,7 +2169,7 @@ export interface SalesReportSum {
   avgBasket: string;
 }
 /**
- * SalesReport is the Sales report's head (karots-pos SalesReport): this range,
+ * SalesReport is the Sales report's head: this range,
  * the equal-length range before it (same filters) for the ▲▼ deltas, and the
  * trend by Grain. The receipts are the admin sales list's pages.
  */
@@ -2210,7 +2191,7 @@ export interface PeakCell {
   revenue: string;
 }
 /**
- * PeakHoursReport is sales by weekday and hour (karots-pos Peak Hours). Only
+ * PeakHoursReport is sales by weekday and hour. Only
  * cells with sales are sent.
  */
 export interface PeakHoursReport {
@@ -2259,7 +2240,7 @@ export interface ProductPeriod {
   lastYearRevenue: string;
 }
 /**
- * ProductSalesReport is one product over time (karots-pos Product Sales).
+ * ProductSalesReport is one product over time.
  * ProductID 0 = none picked yet (empty rows).
  */
 export interface ProductSalesReport {
@@ -2352,7 +2333,7 @@ export interface DueRow {
   disabled: boolean;
 }
 /**
- * DuesReport is Customer dues or Supplier dues (karots-pos): who owes, aged by
+ * DuesReport is Customer dues or Supplier dues: who owes, aged by
  * the oldest unpaid credit sale / bill into 0–30 / 31–60 / 61–90 / 90+ days.
  */
 export interface DuesReport {
@@ -2377,7 +2358,7 @@ export interface SpendRow {
   due: string;
 }
 /**
- * SupplierSpendReport ranks suppliers by spend (karots-pos Spend by Supplier).
+ * SupplierSpendReport ranks suppliers by spend.
  */
 export interface SupplierSpendReport {
   from: string;
@@ -2403,7 +2384,7 @@ export interface PurchaseReportRow {
   due: string;
 }
 /**
- * PurchasesReport is the deliveries received in range (karots-pos Purchases).
+ * PurchasesReport is the deliveries received in range.
  */
 export interface PurchasesReport {
   from: string;
@@ -2430,7 +2411,7 @@ export interface CategoryProfitNode {
   margin: string;
 }
 /**
- * CategoryProfitReport is Profit by category (karots-pos): the tree in
+ * CategoryProfitReport is Profit by category: the tree in
  * display order (siblings by profit), the totals counting each line once.
  */
 export interface CategoryProfitReport {
@@ -2451,7 +2432,7 @@ export interface ExpenseCatTotal {
   total: string;
 }
 /**
- * ExpensesReport is Expenses by category (karots-pos), biggest first.
+ * ExpensesReport is Expenses by category, biggest first.
  */
 export interface ExpensesReport {
   from: string;
@@ -2470,7 +2451,7 @@ export interface TaxDay {
   tax: string;
 }
 /**
- * TaxReport is the Tax summary (karots-pos, tax-registered shops only).
+ * TaxReport is the Tax summary.
  */
 export interface TaxReport {
   from: string;
@@ -2527,7 +2508,7 @@ export interface Crumb {
 }
 /**
  * InventoryReport is the stock on hand valued at cost (by its lots) and at
- * retail for one branch of the catalogue (karots-pos Inventory Valuation).
+ * retail for one branch of the catalogue.
  * Its products page from /reports/inventory/products.
  */
 export interface InventoryReport {
@@ -2568,7 +2549,7 @@ export interface CountSheetLine {
   onHand: string;
 }
 /**
- * CountSheet is the physical-count worklist (karots-pos Stock Count Sheet):
+ * CountSheet is the physical-count worklist:
  * active stocked products in a category (any depth) and / or from a supplier,
  * grouped by category path. Category / Supplier name the filters.
  */
@@ -2616,7 +2597,7 @@ export interface PlaceBalance {
   balance: string;
 }
 /**
- * TopupReport is Top-up & reorder (karots-pos): what must be topped up (plugin
+ * TopupReport is Top-up & reorder: what must be topped up (plugin
  * floats, stock under its level) against the money on hand to pay for it.
  */
 export interface TopupReport {
@@ -2646,7 +2627,7 @@ export interface VarianceLine {
   drift: string;
 }
 /**
- * RecipeVarianceReport (karots-pos Recipe Variance). Drifting counts the
+ * RecipeVarianceReport. Drifting counts the
  * ingredients more than 10% off, over every row.
  */
 export interface RecipeVarianceReport {
@@ -2671,7 +2652,7 @@ export interface ServiceLine {
   margin: string;
 }
 /**
- * ServiceProfitReport (karots-pos Service Profit): did each counter pay for itself.
+ * ServiceProfitReport: did each counter pay for itself.
  */
 export interface ServiceProfitReport {
   from: string;
@@ -2691,7 +2672,7 @@ export interface RecoveryOutcome {
   recovered: string;
 }
 /**
- * LossesReport is Losses & Recovery's head (karots-pos): stock lost to damage
+ * LossesReport is Losses & Recovery's head: stock lost to damage
  * and warranty replacements in range, against what suppliers made good.
  */
 export interface LossesReport {
@@ -2827,7 +2808,7 @@ export interface NoTillSale {
   cash: string; // cash kept: cash paid − change
 }
 /**
- * Dashboard is the admin home (karots-pos Dashboard): today against
+ * Dashboard is the admin home: today against
  * yesterday, the last 14 days for the sparklines, money in the open tills
  * and owed to the shop, today's payment mix, what needs attention, and the
  * latest sales.

@@ -19,7 +19,6 @@ import (
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	"karots-suite/internal/demo/shops"
-	"karots-suite/internal/features/datacheck"
 )
 
 // openShopDB makes an empty, migrated database of its own on the test server
@@ -190,17 +189,6 @@ func TestTodayHasOpenTill(t *testing.T) {
 	d, _ := grocery(t)
 	if n := count(t, d, `SELECT count(*) FROM cash_register WHERE closed_at IS NULL`); n < 1 {
 		t.Error("no till open today")
-	}
-}
-
-func TestIntegrity(t *testing.T) {
-	d, _ := grocery(t)
-	f, err := datacheck.Run(context.Background(), d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(f) != 0 {
-		t.Fatalf("data check findings: %+v", f)
 	}
 }
 

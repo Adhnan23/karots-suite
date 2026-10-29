@@ -25,7 +25,7 @@ import (
 const printFailed = "Receipt didn't print — check the printer is on and connected"
 
 // slipSettings loads settings for a slip print, honouring ?size=58|80 for this
-// one job (karots-pos receiptSizeOverride). It overrides a COPY, never the
+// one job. It overrides a COPY, never the
 // settings the rest of the request shares.
 func (h *handlers) slipSettings(c echo.Context) (*settings.Settings, error) {
 	cfg, err := h.d.Settings.Get(c.Request().Context())

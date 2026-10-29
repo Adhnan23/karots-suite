@@ -15,7 +15,7 @@ import { purchaseReturnsQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/purchase-returns/')
 
-/** Purchase returns (karots-pos /admin/purchase-returns): stock sent back to
+/** Purchase returns: stock sent back to
  * suppliers, each a debit note that credits what we owe them. */
 export function ReturnsPage() {
   const s = route.useSearch()

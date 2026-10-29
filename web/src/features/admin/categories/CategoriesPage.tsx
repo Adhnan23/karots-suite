@@ -17,7 +17,7 @@ import { subtree, visibleTree } from './tree'
 
 type Editing = { node: CategoryNode | null; parentId: number }
 
-/** The nested category tree (karots-pos /admin/categories): collapse, search,
+/** The nested category tree: collapse, search,
  * add a sub-category in place, rename or move a branch, delete an empty one. */
 export function CategoriesPage() {
   const nodes = useQuery(categoriesQuery).data

@@ -22,7 +22,7 @@ import { Balance } from './LockersPage'
 const route = getRouteApi('/_authed/admin/lockers/$id')
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-/** One locker's ledger (karots-pos LockerLedgerPage): every movement in a range,
+/** One locker's ledger: every movement in a range,
  * 50 at a time, with the range's net change summed by the server. */
 export function LockerPage() {
   const id = Number(route.useParams().id)

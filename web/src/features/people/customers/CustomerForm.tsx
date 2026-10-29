@@ -10,7 +10,7 @@ import { num } from '@/lib/money'
 
 const amt = (v: string) => v.replace(/[^\d.]/g, '')
 
-/** New or edit customer (karots-pos CustomerForm). A phone already on file is
+/** New or edit customer. A phone already on file is
  * refused here (the till reuses it instead). What they owed before the system
  * is asked once, on create. */
 export function CustomerForm({ c, onClose, onSaved }: { c?: AdminCustomerRow; onClose: () => void; onSaved?: (r: AdminCustomerRow) => void }) {

@@ -217,8 +217,7 @@ func (s *Service) Current(ctx context.Context, userID int64) (*Session, error) {
 	return sess, nil
 }
 
-// ReasonBanked is the locker-ledger note of a close that banked the counted cash
-// (karots-pos wrote the same, so restored data reads alike).
+// ReasonBanked is the locker-ledger note of a close that banked the counted cash.
 const ReasonBanked = "banked at close"
 
 // Summary returns the live drawer state (or, when no session is open, the last
@@ -448,7 +447,7 @@ func (s *Service) SessionTotals(ctx context.Context, f SessionFilter) (*SessionT
 	return t, nil
 }
 
-// ListSessions pages the admin's till sessions (karots-pos showed the newest 100).
+// ListSessions pages the admin's till sessions.
 func (s *Service) ListSessions(ctx context.Context, f SessionFilter) ([]SessionRow, error) {
 	rows, err := s.repo.ListSessions(ctx, f)
 	if err != nil {

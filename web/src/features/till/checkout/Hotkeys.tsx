@@ -10,7 +10,7 @@ const focus = (id: string) => {
   el?.select?.()
 }
 
-/** Till keyboard (karots-pos parity) + the number-input scroll-wheel guard. */
+/** Till keyboard + the number-input scroll-wheel guard. */
 export function Hotkeys() {
   const ui = useTillUi()
   const co = useCheckoutCtx()

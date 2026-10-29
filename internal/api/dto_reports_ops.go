@@ -28,7 +28,7 @@ type Crumb struct {
 }
 
 // InventoryReport is the stock on hand valued at cost (by its lots) and at
-// retail for one branch of the catalogue (karots-pos Inventory Valuation).
+// retail for one branch of the catalogue.
 // Its products page from /reports/inventory/products.
 type InventoryReport struct {
 	SKUs        int             `json:"skus"`
@@ -66,7 +66,7 @@ type CountSheetLine struct {
 	OnHand   string `json:"onHand"`
 }
 
-// CountSheet is the physical-count worklist (karots-pos Stock Count Sheet):
+// CountSheet is the physical-count worklist:
 // active stocked products in a category (any depth) and / or from a supplier,
 // grouped by category path. Category / Supplier name the filters.
 type CountSheet struct {
@@ -109,7 +109,7 @@ type PlaceBalance struct {
 	Balance string `json:"balance"`
 }
 
-// TopupReport is Top-up & reorder (karots-pos): what must be topped up (plugin
+// TopupReport is Top-up & reorder: what must be topped up (plugin
 // floats, stock under its level) against the money on hand to pay for it.
 type TopupReport struct {
 	Plugins       []ReadinessGroup `json:"plugins"`
@@ -137,7 +137,7 @@ type VarianceLine struct {
 	Drift      string `json:"drift"`
 }
 
-// RecipeVarianceReport (karots-pos Recipe Variance). Drifting counts the
+// RecipeVarianceReport. Drifting counts the
 // ingredients more than 10% off, over every row.
 type RecipeVarianceReport struct {
 	From     string         `json:"from"`
@@ -160,7 +160,7 @@ type ServiceLine struct {
 	Margin    string `json:"margin"`
 }
 
-// ServiceProfitReport (karots-pos Service Profit): did each counter pay for itself.
+// ServiceProfitReport: did each counter pay for itself.
 type ServiceProfitReport struct {
 	From     string        `json:"from"`
 	To       string        `json:"to"`
@@ -178,7 +178,7 @@ type RecoveryOutcome struct {
 	Recovered string `json:"recovered"`
 }
 
-// LossesReport is Losses & Recovery's head (karots-pos): stock lost to damage
+// LossesReport is Losses & Recovery's head: stock lost to damage
 // and warranty replacements in range, against what suppliers made good.
 type LossesReport struct {
 	From          string            `json:"from"`
@@ -299,7 +299,7 @@ type NoTillSale struct {
 	Cash      string `json:"cash"` // cash kept: cash paid − change
 }
 
-// Dashboard is the admin home (karots-pos Dashboard): today against
+// Dashboard is the admin home: today against
 // yesterday, the last 14 days for the sparklines, money in the open tills
 // and owed to the shop, today's payment mix, what needs attention, and the
 // latest sales.

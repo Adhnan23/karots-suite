@@ -3,7 +3,7 @@ import { money, num, qtyText } from '@/lib/money'
 
 const date = (iso: string) => new Date(iso).toLocaleDateString([], { dateStyle: 'medium' })
 
-/** Shop ↔ supplier header block shared by the PO and the GRN (karots-pos fromTo). */
+/** Shop ↔ supplier header block shared by the PO and the GRN. */
 function FromTo({ p, shop, kind }: { p: PurchaseDetail; shop: ShopHeader; kind: string }) {
   const s = p.supplier
   return (
@@ -51,7 +51,7 @@ export function PoSheet({ p, shop, sym }: { p: PurchaseDetail; shop: ShopHeader;
   )
 }
 
-/** Goods received note (karots-pos GRN slip): ordered vs received, invoice, paid, balance. */
+/** Goods received note: ordered vs received, invoice, paid, balance. */
 export function GrnSheet({ p, shop, sym }: { p: PurchaseDetail; shop: ShopHeader; sym: string }) {
   const ordered = p.lines.some((l) => l.ordered)
   return (

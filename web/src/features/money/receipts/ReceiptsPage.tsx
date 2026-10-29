@@ -28,7 +28,7 @@ const TABS: [string, string][] = [['sales', 'Sales'], ['cash', 'Cash'], ['credit
 
 type Row = { key: number; title: string; sub: string; who: string; amount: string | null; tag?: string; p: Pick }
 
-/** Receipts (karots-pos /admin/receipts): every slip the shop has given — sales
+/** Receipts: every slip the shop has given — sales
  * (S-), cash moves (CR-), credit payments (DP-) and warranty claims — found,
  * seen as paper and printed again. `cashId` opens one CR- receipt (deep link). */
 export function ReceiptsPage({ cashId }: { cashId?: number }) {
