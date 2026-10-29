@@ -679,6 +679,7 @@ export interface CreditPaymentRequest {
   reference: string;
   deferDrawerKick: boolean;
   meta?: { [key: string]: string}; // a plugin tender's detail (slots.tillTenders)
+  cheques?: ChequeLine[]; // Method cheque: the amount is their total
 }
 export interface CreditPaymentResult {
   paymentId: number /* int64 */; // for the debt slip
@@ -1682,6 +1683,10 @@ export interface CustomerPayRequest {
    * Meta is a plugin tender's detail (Method = a plugin tender; Source unused).
    */
   meta?: { [key: string]: string};
+  /**
+   * Cheques are the cheques of a Method "cheque" payment; Amount is their total.
+   */
+  cheques?: ChequeLine[];
 }
 /**
  * CustomerRefundRequest hands a customer's advance back in cash from Source (a

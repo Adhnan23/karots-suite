@@ -68,11 +68,18 @@ func TestAdminCashflowChequesNotCash(t *testing.T) {
 	if after.CashOnHand != before.CashOnHand {
 		t.Fatalf("cheques counted as cash: %s -> %s", before.CashOnHand, after.CashOnHand)
 	}
-	shown := false
-	for _, p := range after.Places {
-		shown = shown || (p.Kind == "cheque" && p.Balance == "777.00")
+	place := func(cf AdminCashflow) (decimal.Decimal, bool) {
+		for _, p := range cf.Places {
+			if p.Kind == "cheque" {
+				v, _ := decimal.NewFromString(p.Balance)
+				return v, true
+			}
+		}
+		return decimal.Zero, false
 	}
-	if !shown {
-		t.Fatal("cheque place not listed")
+	was, _ := place(before)
+	now, shown := place(after)
+	if !shown || !now.Sub(was).Equal(decimal.NewFromInt(777)) {
+		t.Fatalf("cheque place listed %v, moved %s, want +777", shown, now.Sub(was))
 	}
 }

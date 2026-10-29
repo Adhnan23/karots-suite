@@ -82,6 +82,8 @@ type CustomerPayRequest struct {
 	OldDebtFirst bool   `json:"oldDebtFirst"`
 	// Meta is a plugin tender's detail (Method = a plugin tender; Source unused).
 	Meta map[string]string `json:"meta,omitempty"`
+	// Cheques are the cheques of a Method "cheque" payment; Amount is their total.
+	Cheques []ChequeLine `json:"cheques,omitempty"`
 }
 
 // CustomerRefundRequest hands a customer's advance back in cash from Source (a

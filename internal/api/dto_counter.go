@@ -218,6 +218,7 @@ type CreditPaymentRequest struct {
 	Reference       string            `json:"reference"`
 	DeferDrawerKick bool              `json:"deferDrawerKick"`
 	Meta            map[string]string `json:"meta,omitempty"` // a plugin tender's detail (slots.tillTenders)
+	Cheques         []ChequeLine      `json:"cheques,omitempty"` // Method cheque: the amount is their total
 }
 
 type CreditPaymentResult struct {

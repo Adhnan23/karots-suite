@@ -219,6 +219,19 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if tender, ok := paymentTender(req.Method); ok {
 		return h.adminPluginPay(c, id, req, tender)
 	}
+	if req.Method == "cheque" {
+		cu, err := h.t.customers.Get(ctx, id)
+		if err != nil {
+			return err
+		}
+		in := customers.PaymentInput{Reference: optStr(req.Reference), Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst}
+		res, err := h.customerChequePay(ctx, id, cu.Name, req.Cheques, in, middleware.CurrentUserID(c))
+		if err != nil {
+			return err
+		}
+		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques)))
+		return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
+	}
 	method, ok := normSupplierMethod(req.Method)
 	if !ok {
 		return apperr.Validation("invalid payment method")

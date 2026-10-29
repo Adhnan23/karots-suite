@@ -54,14 +54,14 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 	// in the picked card/bank account. Without one the debt would shrink with no
 	// money anywhere, so refuse it.
 	switch method {
-	case "cash":
+	case "cash", "cheque": // a cheque's money is booked by its own record (cheques.ReceiveTx)
 	case "card", "online":
 		if in.AccountID <= 0 {
 			return nil, apperr.Validation("choose the card or bank account this payment goes into")
 		}
 	default:
 		if !in.Plugin {
-			return nil, apperr.Validation("payment method must be cash, card or online")
+			return nil, apperr.Validation("payment method must be cash, card, online or cheque")
 		}
 	}
 	r := NewRepository(tx)
@@ -177,6 +177,16 @@ type DebtReceipt struct {
 	BalanceAfter  *decimal.Decimal `db:"balance_after"`
 	CreditLimit   decimal.Decimal  `db:"credit_limit"`
 	CashierName   *string          `db:"cashier_name"`
+	// Cheques are what a cheque payment was made with (GetPayment only).
+	Cheques []DebtCheque `db:"-"`
+}
+
+// DebtCheque is one cheque on a credit-payment slip.
+type DebtCheque struct {
+	Bank   string          `db:"bank"`
+	Number string          `db:"number"`
+	Date   time.Time       `db:"cheque_date"`
+	Amount decimal.Decimal `db:"amount"`
 }
 
 // DebtFilter narrows the credit-payment list: Query matches the receipt number
@@ -243,6 +253,10 @@ func (s *Service) GetPayment(ctx context.Context, id int64) (*DebtReceipt, error
 			return nil, apperr.NotFound("payment")
 		}
 		return nil, apperr.Internal("failed to load credit payment", err)
+	}
+	if err := s.db.SelectContext(ctx, &r.Cheques, `SELECT bank, number, cheque_date, amount FROM cheques
+		WHERE customer_payment_id = $1 ORDER BY id`, id); err != nil {
+		return nil, apperr.Internal("failed to load the payment's cheques", err)
 	}
 	return &r, nil
 }

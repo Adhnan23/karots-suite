@@ -21,7 +21,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var methodLabel = map[string]string{"cash": "Cash", "card": "Card", "online": "Online"}
+var methodLabel = map[string]string{"cash": "Cash", "card": "Card", "online": "Online", "cheque": "Cheque"}
 
 // CounterCreditPayment collects money a customer owes (or takes an advance).
 // The ledger row and the money move commit together: cash into this drawer,
@@ -44,8 +44,10 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	if n := strings.TrimSpace(req.Note); n != "" {
 		in.Note = &n
 	}
-	if err := c.Validate(&in); err != nil {
-		return err
+	if req.Method != "cheque" { // a cheque payment's amount is its cheques' total
+		if err := c.Validate(&in); err != nil {
+			return err
+		}
 	}
 	ctx := c.Request().Context()
 	cust, err := h.t.customers.Get(ctx, id)
@@ -53,6 +55,14 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 		return err
 	}
 	userID := middleware.CurrentUserID(c)
+	if req.Method == "cheque" {
+		res, err := h.customerChequePay(ctx, id, cust.Name, req.Cheques, in, userID)
+		if err != nil {
+			return err
+		}
+		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit collected "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques))+" from "+cust.Name)
+		return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
+	}
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
