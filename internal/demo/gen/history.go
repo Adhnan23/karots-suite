@@ -89,7 +89,8 @@ type gen struct {
 	later      []later    // a rep's visit, an agent's replacement: done on a later day
 	deliveries []delivery // recent drops a return can go back from
 
-	daySales   int // today's till sales so far, for Deps.OnDay
+	live       bool // the Sim selling now (not building a past)
+	daySales   int  // today's till sales so far, for Deps.OnDay
 	dayTakings decimal.Decimal
 }
 
@@ -348,6 +349,11 @@ func (g *gen) sale(c person) error {
 	}
 	in := sales.CreateInput{SaleType: "retail", Items: items}
 	switch x := g.r.IntN(100); {
+	case g.live && len(g.s.customers) > 0 && g.r.IntN(60) == 0: // a regular pays by cheque
+		cid := g.s.customers[g.r.IntN(len(g.s.customers))]
+		in.CustomerID = &cid
+		in.Payments = []sales.PaymentInput{{Method: sales.MethodCheque, Amount: total.String(), Cheque: &sales.ChequeInput{
+			Bank: chequeBanks[g.r.IntN(len(chequeBanks))], Number: fmt.Sprintf("%06d", 100000+g.r.IntN(900000)), Date: time.Now().Format(time.DateOnly)}}}
 	case x < 4 && len(g.s.customers) > 0 && g.creditRoom(g.s.customers[x%len(g.s.customers)], total):
 		cid := g.s.customers[x%len(g.s.customers)]
 		in.CustomerID = &cid

@@ -352,3 +352,29 @@ func TestOnDayReportsEachPastDay(t *testing.T) {
 		t.Errorf("reported %d sales, the till rang %d before today", sales, rung)
 	}
 }
+
+// Every built-in shop opens with cheques in each state: some in hand (one
+// dated today, one past, one post-dated), cleared, bounced, cancelled, and the
+// shop's own given cheques waiting at the bank (one due within 3 days).
+func TestChequesInEveryState(t *testing.T) {
+	d, now := grocery(t)
+	want := map[string]int{"in pending": 3, "in cleared": 2, "in bounced": 1, "out cancelled": 1, "out pending": 2, "out cleared": 1}
+	for k, n := range want {
+		dir, status, _ := strings.Cut(k, " ")
+		if got := count(t, d, `SELECT count(*) FROM cheques WHERE direction = $1 AND status = $2`, dir, status); got < n {
+			t.Errorf("%s cheques: %d, want ≥ %d", k, got, n)
+		}
+	}
+	today := localDay(now).Format(time.DateOnly)
+	for what, q := range map[string]string{
+		"received dated today":   `direction = 'in' AND status = 'pending' AND cheque_date = $1::date`,
+		"received dated before":  `direction = 'in' AND status = 'pending' AND cheque_date < $1::date`,
+		"received post-dated":    `direction = 'in' AND status = 'pending' AND cheque_date > $1::date`,
+		"given due in 3 days":    `direction = 'out' AND status = 'pending' AND cheque_date BETWEEN $1::date AND $1::date + 3`,
+		"cleared on a past date": `status = 'cleared' AND status_date < $1::date`,
+	} {
+		if count(t, d, `SELECT count(*) FROM cheques WHERE `+q, today) == 0 {
+			t.Errorf("no cheque %s", what)
+		}
+	}
+}

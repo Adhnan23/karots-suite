@@ -32,6 +32,7 @@ func NewSim(ctx context.Context, d Deps, p shops.Profile) (*Sim, error) {
 		return nil, err
 	}
 	g.r = rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), 7)) // live: no need to repeat
+	g.live = true
 	if g.s, err = loadShop(ctx, d, p); err != nil {
 		return nil, err
 	}

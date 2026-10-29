@@ -12,6 +12,9 @@ func (g *gen) today(now time.Time) error {
 	if err := g.day(day, 0, until); err != nil {
 		return err
 	}
+	if err := g.cheques(day, until/2); err != nil {
+		return err
+	}
 	if err := g.heldCarts(day, until); err != nil {
 		return err
 	}
