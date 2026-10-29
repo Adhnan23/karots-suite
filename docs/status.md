@@ -6,7 +6,18 @@ every milestone.
 Finished plans (`docs/plans/`), done idea notes and the 2026-10-04 karots-pos fix list were removed on
 2026-10-28; links to them below are history — `git log --diff-filter=D --name-only -- docs` finds them.
 
-## Next session — START HERE: M8e Pocket Cashier (handoff 2026-10-29)
+## Next session — START HERE: Cheques (handoff 2026-10-29)
+
+**Design written with the user, waiting for their read:** `docs/specs/2026-10-29-cheques-design.md`. Cheque = a
+payment method everywhere money moves (till for named customers, credit / advance payments, suppliers, expenses,
+recharge float refill, repairman payouts), several cheques per payment, held in "Cheques in hand" (received) or kept
+in the bank (given) until an admin / manager marks Cleared / Bounced / Cancelled; bounce = cancel = owed again, no
+charge; Money → Cheques page + dashboard reminders. **Core change with ripple effects** (user warned): the spec's
+"Ripple effects" section lists every touchpoint (payment-method lists, locker kinds, prints in both modes, recharge +
+repairs, datacheck, backups / restore, Demo Room gen + year cache) — the plan needs a task or a "no change because…"
+for each. Next: the user approves the spec → superpowers:writing-plans → execute. After cheques: M8e Pocket Cashier.
+
+## Earlier: M8e Pocket Cashier was next (handoff 2026-10-29)
 
 **Promo videos DROPPED 2026-10-29** (user: not the kind of video they want; AI-generated ads tried, also dropped).
 The `videos/` project, its spec / plan and `make videos-clips` were deleted — git history has them (`git log --
