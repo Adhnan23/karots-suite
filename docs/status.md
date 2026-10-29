@@ -33,7 +33,10 @@ an amount edit after a bounce, files over 500 lines. **Follow-ups DONE 2026-10-2
 (`cashflow.MoveInput.At`); a bank place with cheques waiting on it can't be archived / re-kinded; the till asks for the
 cheque's bank before Pay; float by cheque with a dealer advance pays only what's still owed (clear message; the counter
 Float tab sizes the cheque); Receipts "Cheques returned" filter; a sales service with no cheque leg refuses cheques;
-`ChequesInHandTx` reads first. **Left on purpose (only if a shop sees it):** a bounced cheque that paid old debt moves
+`ChequesInHandTx` reads first. **After the user's look (2026-10-29):** a cheque's date always starts empty (till and every cheque form) and the
+till's Add / Exact refuse a cheque missing its bank, number or date; a cashed-over-the-counter cheque stays two steps
+(Clear into the bank, then Move money bank → safe — user: it goes through the bank); the till / Credit tab keep
+offering Cheque even with no bank place (user: don't hide it). **Left on purpose (only if a shop sees it):** a bounced cheque that paid old debt moves
 the linked balance, not the old-debt part (total right); a partial supplier bounce reopens bills before the advance
 part (balance right, ageing may differ).
 
