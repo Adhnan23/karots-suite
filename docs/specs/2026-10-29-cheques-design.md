@@ -112,6 +112,22 @@ counter Credit tab) and **write** one wherever they can already pay a supplier o
   buttons (Cleared… / Bounced / Cancelled / Fix details) for admin and manager.
 - Works at 360 px (cards on phones, like every admin list).
 
+### Its own colour (owner: "paid by cheques needs to be another colour so we know the difference")
+
+- Anything paid by cheque shows in a **cheque colour** on screen, so it stands out from cash / card / online at a
+  glance: the method badge / label and amount wherever payments are listed — sales list and sale details, till
+  receipts list and reprints screen, customer and supplier money / statements, expenses list, cash-flow ledger,
+  repairs job money panel and recharge refill history (through the shared badge, not plugin code), the till tender
+  split, and the Cheques page.
+- **Pending** cheques are clearly marked as waiting (the cheque colour, plus a "pending" mark); bounced / cancelled
+  show in the existing warning / muted style.
+- Done with **theme tokens only** (AGENTS rule): a new token pair (e.g. `--cheque` / `--cheque-foreground`) in
+  `theme/palettes/tokens.ts` with a sensible default every palette inherits, readable in **all 22 palettes × light /
+  dark**; palettes may override it; the custom palette editor offers it. `theme/guard.test.ts` stays green. One
+  shared `MethodBadge` (or the existing method label component) used everywhere, so the colour is in one place.
+- Paper slips are black-and-white: there the cheque line is marked by text (**CHEQUE**, bank, number, date), not
+  colour.
+
 ### Dashboard reminders
 
 - **Cheques to deposit** — received cheques that are Pending and whose date is today or earlier: count + total.
@@ -134,7 +150,7 @@ counter Credit tab) and **write** one wherever they can already pay a supplier o
 - New migration `00014_…`; adding `cheque` to the `payment_method` enum and `cheque` to `lockers_kind_check`
   (`ALTER TYPE … ADD VALUE` can't be used in the same transaction that adds it — split or order accordingly).
   `customer_payments.method` is text already.
-- Old backups and karots-pos imports have no cheques and must still restore.
+- Suite backups from before cheques must still restore (karots-pos data: out of scope).
 - DTOs in `dto.go` → `make types`; files ≤ 500 lines; theme tokens only; 360 px.
 
 ## Ripple effects — check every one (owner: "this is a core change, be careful")
@@ -198,11 +214,10 @@ nothing in core names a plugin.
 - Run the full test suite **with every plugin compiled in** (`make plugins P=all`) and core-only; `make check-core`.
 
 **Data and safety:**
-- `internal/features/datacheck` compares stored money rows: a given cheque's deferred bank move and a supplier
-  payment with no money move yet must not be reported as damage.
-- Backups / restore (`-backup` / `-restore`, Setup's bring back, cloud copies): an old backup without the cheque
-  tables and the new enum values must restore and migrate; a new backup with cheques must restore.
-- karots-pos import (`-import-pos`): its data has no cheques; must still import.
+- **karots-pos compatibility is out of scope** (owner, 2026-10-29: "this is fully different from karots-pos from
+  now"): no work for `internal/features/datacheck` or `-import-pos`; don't design around karots-pos data.
+- Backups / restore (`-backup` / `-restore`, Setup's bring back, cloud copies): a suite backup from before cheques
+  must restore and migrate; a new backup with cheques must restore.
 - Audit / Activity: status changes logged; the system user stays excluded as today.
 - Self-update: the migration runs on boot after an update (BootGuard) — it must be safe to run on a shop's real data.
 
