@@ -13,7 +13,7 @@ export const TOKENS: readonly TokenDef[] = [
   ...c('Text', '--foreground', '--muted-foreground', '--faint'),
   ...c('Brand', '--brand', '--brand-foreground', '--brand-soft', '--brand-2', '--brand-2-foreground', '--primary', '--primary-foreground', '--ring'),
   ...c('Selected', '--selected', '--selected-foreground'),
-  ...c('Money', '--success', '--danger', '--danger-foreground', '--destructive', '--warning'),
+  ...c('Money', '--success', '--danger', '--danger-foreground', '--destructive', '--warning', '--cheque', '--cheque-foreground'),
   ...c('Hero', '--hero', '--hero-foreground', '--hero-muted'),
   ...c('Charts', '--chart-1', '--chart-2', '--chart-3', '--chart-4', '--chart-5', '--chart-6'),
   { name: '--bar', group: 'material', kind: 'color' },

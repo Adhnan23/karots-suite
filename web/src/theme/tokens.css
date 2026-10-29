@@ -20,6 +20,13 @@ body {
   font-family: var(--font-sans);
 }
 
+/* The cheque colour for a custom palette made before it existed; every built-in
+ * palette sets its own (palettes/dock/*.css). */
+:root {
+  --cheque: #7a30cf;
+  --cheque-foreground: #ffffff;
+}
+
 /* Physical media (label/receipt previews): paper is white and ink is black in every
  * palette and mode, because that's what comes out of the printer. */
 :root {

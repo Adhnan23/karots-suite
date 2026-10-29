@@ -136,3 +136,22 @@ describe('resolveToken', () => {
     expect(resolveToken(t, '--d')).toBeNull()
   })
 })
+
+// The cheque colour is in every built-in, the first five too: readable on
+// cards, its text readable on it, and a hue of its own (not brand / status).
+describe('cheque colour', () => {
+  const pairs = PAIRS.filter((p) => p.text.startsWith('--cheque'))
+  for (const p of PALETTES) {
+    const doc = parsePalette(FILES[`/src/theme/palettes/dock/${p.id}.css`] ?? '')
+    for (const [mode, tokens] of Object.entries({ light: doc.light, dark: { ...doc.light, ...doc.dark } }))
+      it(`${p.id} ${mode}`, () => {
+        expect(pairs).toHaveLength(2)
+        expect(failing((t) => resolveToken(tokens, t), pairs)).toEqual([])
+        const h = hue(resolveToken(tokens, '--cheque') ?? '')
+        for (const other of ['--success', '--danger', '--warning']) {
+          const d = Math.abs(h - hue(resolveToken(tokens, other) ?? ''))
+          expect(Math.min(d, 360 - d), `${mode} cheque vs ${other}`).toBeGreaterThanOrEqual(30)
+        }
+      })
+  }
+})

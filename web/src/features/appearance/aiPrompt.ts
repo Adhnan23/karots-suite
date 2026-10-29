@@ -27,6 +27,8 @@ const WHAT: Record<string, string> = {
   '--danger': 'money out, delete, errors (red family)',
   '--danger-foreground': 'text on --danger buttons',
   '--warning': 'warnings, low stock (amber family)',
+  '--cheque': 'anything paid by cheque (its own hue, not brand / green / red / amber)',
+  '--cheque-foreground': 'text on --cheque',
   '--hero': 'dark showcase panel (sale total, login hero)',
   '--hero-foreground': 'text on --hero',
   '--hero-muted': 'secondary text on --hero',

@@ -19,6 +19,8 @@ export const PAIRS: Pair[] = [
   { text: '--success', on: '--card', min: 3, what: 'Money in on cards' },
   { text: '--danger', on: '--card', min: 3, what: 'Money out on cards' },
   { text: '--warning', on: '--card', min: 3, what: 'Warnings on cards' },
+  { text: '--cheque', on: '--card', min: 4.5, what: 'Cheque payments on cards' },
+  { text: '--cheque-foreground', on: '--cheque', min: 4.5, what: 'Text on cheque badges' },
   { text: '--hero-foreground', on: '--hero', min: 4.5, what: 'Text on the hero' },
   { text: '--hero-muted', on: '--hero', min: 3, what: 'Muted text on the hero' },
 ]

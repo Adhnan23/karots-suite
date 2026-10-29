@@ -9,7 +9,7 @@ export const axis = (t: ChartTheme) => ({
 })
 export const tip = (t: ChartTheme) => ({ backgroundColor: t.card, borderColor: t.border, textStyle: { color: t.fg, fontSize: 12 }, confine: true })
 export const short = (sym: string) => (v: number) => (Math.abs(v) >= 1000 ? `${sym} ${(v / 1000).toFixed(v % 1000 ? 1 : 0)}k` : `${sym} ${v}`)
-export const methodLabel = (m: string) => ({ cash: 'Cash', card: 'Card', online: 'Online', credit: 'Credit' })[m] ?? m
+export const methodLabel = (m: string) => ({ cash: 'Cash', card: 'Card', online: 'Online', cheque: 'Cheque', credit: 'Credit' })[m] ?? m
 
 /** Revenue and profit over the range — one money axis, two 2px lines, a
  * crosshair tooltip; the legend names both and the last points are labelled. */

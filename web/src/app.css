@@ -85,6 +85,8 @@
     --color-ink: var(--ink);
     --color-danger: var(--danger);
     --color-warning: var(--warning);
+    --color-cheque: var(--cheque);
+    --color-cheque-foreground: var(--cheque-foreground);
     --color-faint: var(--faint);
     --color-hero: var(--hero);
     --color-hero-foreground: var(--hero-foreground);
