@@ -22,8 +22,7 @@ type store interface {
 }
 
 // r2 uploads to and deletes from an R2 bucket over its S3-compatible API,
-// signed with AWS Signature V4 — standard library only (forked from karots-pos
-// cmd/release). Progress and retries go to log.
+// signed with AWS Signature V4 — standard library only. Progress and retries go to log.
 type r2 struct {
 	account, keyID, secret, bucket string
 	log                            io.Writer

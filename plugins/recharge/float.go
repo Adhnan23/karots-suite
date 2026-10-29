@@ -68,9 +68,9 @@ func recordWithCommission(ctx context.Context, q appdb.Queryer, in TxInput, comm
 	return id, err
 }
 
-// balanceSQL is a device's float, correlated on d: its last karots-pos close
+// balanceSQL is a device's float, correlated on d: its last old close
 // (old recharge_device_sessions; the suite never writes them) plus every float
-// row since — karots-pos's own "float now", so restored data reads as it did.
+// row since — the old "float now", so older data reads as it did.
 // Suite counts are float rows too ('count'), so they simply add on.
 const balanceSQL = `(COALESCE(lc.closing, 0) + COALESCE((SELECT SUM(t.float_delta) FROM recharge_transactions t
 	WHERE t.device_id = d.id AND (lc.closed_at IS NULL OR t.created_at > lc.closed_at)), 0))`

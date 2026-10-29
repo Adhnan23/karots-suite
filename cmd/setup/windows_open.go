@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// windowsOpen: kiosk = the till full-screen at sign-in (karots-pos's relaunch
+// windowsOpen: kiosk = the till full-screen at sign-in (a relaunch
 // loop, run with no window); background = a Karots Suite shortcut on every
 // desktop and in the Start menu, nothing locked.
 func windowsOpen(j *Job) error {

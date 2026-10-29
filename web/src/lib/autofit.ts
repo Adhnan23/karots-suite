@@ -1,4 +1,4 @@
-/** Zoom that makes `needed` px fit `avail` px (never above 1). Ported from karots-pos kioskAutoFit. */
+/** Zoom that makes `needed` px fit `avail` px (never above 1). For the kiosk. */
 export function autofitZoom(needed: number, avail: number, pad = 16) {
   return needed + pad > avail ? Number((avail / (needed + pad)).toFixed(4)) : 1
 }

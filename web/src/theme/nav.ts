@@ -13,8 +13,8 @@ export type NavPage = { to: string; icon: LucideIcon; label: string; description
 /** blurb: the shelf's lead card line while no page is pointed at. */
 export type NavArea = { key: string; label: string; icon: LucideIcon; blurb?: string; pages: NavPage[]; noTabs?: boolean }
 
-/** karots-pos's admin areas and link descriptions (templates/layouts/admin.templ).
- * Each area's `pages` fills in as its milestone ports it; an area with none stays
+/** The admin areas and their link descriptions.
+ * An area with no pages stays
  * off the dock. */
 export const adminNav: NavArea[] = [
   {

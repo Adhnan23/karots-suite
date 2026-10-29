@@ -25,7 +25,7 @@ func financeGrain(days int) string {
 	return "month"
 }
 
-// AdminFinance is the Finance hub's one read (karots-pos Finance / Profit /
+// AdminFinance is the Finance hub's one read (Overview / Profit /
 // Cash). Nothing chosen = this month.
 func (h *handlers) AdminFinance(c echo.Context) error {
 	ctx := c.Request().Context()

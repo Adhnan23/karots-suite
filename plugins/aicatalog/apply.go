@@ -22,8 +22,8 @@ type Run struct {
 var errNothingToUndo = errors.New("nothing to undo")
 
 // ApplyPlan validates the ticked plan against real ids and applies it in one
-// transaction, recording the exact undo ops (forked from karots-pos, plus
-// uncategorized placements and product renames). Invalid or unsafe ops (unknown
+// transaction, recording the exact undo ops (category moves, uncategorized
+// placements and product renames). Invalid or unsafe ops (unknown
 // ids, cycles, self-merge, a name another product has) are skipped, not fatal.
 // Duplicates are never applied here — they are core merges, one by one.
 //

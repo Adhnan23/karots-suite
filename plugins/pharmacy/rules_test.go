@@ -21,7 +21,7 @@ func TestDosesPerDay(t *testing.T) {
 
 func day(y int, m time.Month, d int) time.Time { return time.Date(y, m, d, 0, 0, 0, 0, time.UTC) }
 
-// karots-pos rules: last hand-over + days covered; a repeat shows from 5 days
+// Refill rules: last hand-over + days covered; a repeat shows from 5 days
 // before run-out and stays, a one-off until 30 days past it.
 func TestNextRefillDue(t *testing.T) {
 	at := day(2026, 9, 1)

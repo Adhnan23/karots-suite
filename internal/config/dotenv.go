@@ -17,7 +17,7 @@ import (
 // developer runs from).
 //
 // A variable already present in the real environment always wins, so a service
-// manager, a Docker `-e`, or a one-off `POS_SYSTEM_PIN=… ./karots-pos` still
+// manager, a Docker `-e`, or a one-off `POS_SYSTEM_PIN=… ./karots-suite` still
 // overrides the file rather than being silently replaced by it.
 //
 // Best-effort by design: a missing or unreadable file is not an error, because

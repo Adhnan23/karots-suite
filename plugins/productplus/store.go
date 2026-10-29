@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Field is one admin-defined custom product field (karots-pos pp_fields).
+// Field is one admin-defined custom product field.
 type Field struct {
 	ID           int64  `db:"id"`
 	Key          string `db:"key"`
@@ -254,7 +254,7 @@ func (s *Store) SetFieldActive(ctx context.Context, id int64, active bool) error
 }
 
 // MoveField shifts a field one place up or down, renumbering every field so
-// ties resolve deterministically (karots-pos). No-op at the edges.
+// ties resolve deterministically. No-op at the edges.
 //
 // ponytail: rewrites every row per move — fine for a short admin field list.
 func (s *Store) MoveField(ctx context.Context, id int64, up bool) error {

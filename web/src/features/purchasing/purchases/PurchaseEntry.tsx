@@ -29,8 +29,7 @@ export type EntryMode = 'order' | 'edit' | 'receive-now' | 'receive'
 const TITLE: Record<EntryMode, string> = { order: 'New purchase order', edit: 'Edit order', 'receive-now': 'Receive a delivery', receive: 'Receive order' }
 const plusDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10)
 
-/** One screen for every way goods are bought (karots-pos purchase entry +
- * receive): place or edit an order (no stock yet), receive a delivery that came
+/** One screen for every way goods are bought: place or edit an order (no stock yet), receive a delivery that came
  * without one, or receive an order — over or short, with forgotten items, the
  * rest kept on order, and pay on the spot. */
 export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMode; id?: number; supplierId?: number }) {

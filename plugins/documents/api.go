@@ -218,7 +218,7 @@ func (h handlers) saveGrid(c echo.Context) error {
 }
 
 // ReportRowDTO is one service × options; options are null for custom and
-// karots-pos jobs (earlier = sold before the suite, kept as it was).
+// older jobs (sold before jobs were linked to sales, kept as they were).
 type ReportRowDTO struct {
 	Name     string  `json:"name"`
 	Size     *string `json:"size"`

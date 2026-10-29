@@ -1,6 +1,6 @@
 package aicatalog
 
-// The AI client, forked from karots-pos: an OpenAI-compatible chat call for most
+// The AI client: an OpenAI-compatible chat call for most
 // providers, Gemini's native endpoint (with Google Search grounding) for Gemini.
 
 import (

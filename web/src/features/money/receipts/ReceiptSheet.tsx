@@ -18,8 +18,8 @@ export type Pick = { kind: 'sales'; id: number } | { kind: 'cash'; row: MoneyRec
 export const pickPath = (p: Pick) => p.kind === 'sales' ? slipPath.sale(p.id) : p.kind === 'cash' ? slipPath.money(p.row.id)
   : p.kind === 'credit' ? slipPath.debt(p.row.id) : p.row.replacementSerial !== '' ? slipPath.warranty(p.row.id) : null
 
-/** Where a cash receipt's record lives, following its ref (karots-pos linked
- * the money receipt to its expense / supplier / customer / sale). */
+/** Where a cash receipt's record lives, following its ref (its expense /
+ * supplier / customer / sale). */
 function Follow({ r }: { r: MoneyReceiptRow }) {
   const cls = 'inline-flex items-center gap-1 text-[13px] font-semibold text-muted-foreground hover:text-foreground'
   if (r.refKind === 'expense') return <Link to="/admin/expenses" search={{ q: r.note.split(' - ').pop() ?? '', preset: '' }} className={cls}>Open the expense <ExternalLink size={13} /></Link>

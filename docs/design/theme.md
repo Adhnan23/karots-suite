@@ -5,8 +5,7 @@
 - Till look and feature density: https://claude.ai/artifact/GkJjnypEes4GmHiHMDzFT5. Use its "Night Counter" and "Studio" directions only.
 
 **Both mockups are look demos, not feature specs.** The real screens implement every
-karots-pos feature (`docs/parity.md`) in this style. Before building a screen, check
-karots-pos for what it has; don't copy the mockups' fake data or missing features.
+feature in this style; don't copy the mockups' fake data or missing features.
 
 ## 1. Palettes and modes
 
@@ -138,7 +137,7 @@ The reference is the mockup's login frame.
   - The keypad writes into whichever field was last focused. Use `mousedown` `preventDefault` so focus doesn't leave the field.
   - On touch devices (`pointer: coarse`), set the PIN input's `inputMode="none"` so the keypad replaces the OS keyboard.
   - A wrong PIN shakes the box and shows a plain error, then clears the PIN.
-- **No browser memory (shared counter), same as karots-pos:**
+- **No browser memory (shared counter):**
   - Set `autocomplete="off"` on the form and on both inputs, and give them non-standard `name`s.
   - The PIN is `type="text"` with `-webkit-text-security: disc`, **not** `type="password"`, so password managers never offer to save it.
   - Don't add `autocorrect` or `spellcheck`.
@@ -153,15 +152,15 @@ The reference is the mockup's desktop and phone frames.
 - **Top bar** (not sticky chrome, just the page head):
   - brand mark and shop name
   - breadcrumb (Area / Page)
-  - search pill "Search pages, products, bills" with **Ctrl K**, which opens the command palette (karots-pos has one; it lists every page, plugin pages and "Open the till")
+  - search pill "Search pages, products, bills" with **Ctrl K**, which opens the command palette
   - ModeToggle and the avatar menu (Change PIN, Lock, Sign out)
 - **Page tabs:** inside an area, that area's pages show as pill tabs under the top bar.
 - **Dock:** a floating `--bar` pill fixed at bottom centre, with `--glass` and `--shadow-float`.
-  - **Items in order:** Home, then the areas Sell, Inventory, Purchasing, Money, Reports and Setup (karots-pos's sections, `templates/layouts/admin.templ`), a divider, **Apps**, and **Open the till** (brand fill, glow) at the end.
+  - **Items in order:** Home, then the areas Sell, Inventory, Purchasing, Money, Reports and Setup, a divider, **Apps**, and **Open the till** (brand fill, glow) at the end.
   - **Behaviour:** icons grow on hover and show a name tip. The current area has a dot under it. Badges (such as "Items to review: 3") come from the badge hook.
 - **Shelf:** clicking an area raises a panel above the dock.
   - **Left:** a `--hero` "lead" card with the area's key figure (such as "Stock value Rs 1.84M, 12 running low").
-  - **Right:** a 3-column grid of the area's pages, each with an icon, name and one-line description (karots-pos's link descriptions), plus counts.
+  - **Right:** a 3-column grid of the area's pages, each with an icon, name and one-line description, plus counts.
   - **As built (M6.5, user: "bland, full of text"):** the grid is icon chip + name only, in fixed-height rows; the description of the page pointed at / focused shows in the lead card (fixed height, so the shelf never resizes), else the area's one-line blurb. Hover fills the chip with `--brand` and lifts it — no grey hover block; the current page's chip is `--selected`. The lead card's key figure is not built yet.
   - It closes on Escape or a click outside.
 - **Apps:** a dock tile shaped as a 2×2 grid of plugin colours. It opens a shelf with every enabled plugin as an app card (colour, icon, name, description).
@@ -176,7 +175,7 @@ The reference is the mockup's desktop and phone frames.
 - **Home:** a hero sales card, 2×2 area tiles each with a live figure, then "Needs your attention".
 - **Tables:** become card lists.
 
-**Hidden system menu:** it's reached as in karots-pos, by tapping the user's name 8 times in the avatar menu. It's system user only and never visible to the shop.
+**Hidden system menu:** it's reached by tapping the user's name 8 times in the avatar menu. It's system user only and never visible to the shop.
 
 ## 7. Till
 

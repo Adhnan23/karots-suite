@@ -26,8 +26,7 @@ const activityQuery = (f: F) => infiniteQueryOptions({
   getNextPageParam: (last: Page) => last.next || undefined,
 })
 
-/** Activity (karots-pos /admin/activity, with the Audit log as its Changes
- * source): who did what — changes, stock moves, the cash drawer and lockers —
+/** Activity (the Audit log is its Changes source): who did what — changes, stock moves, the cash drawer and lockers —
  * by person, kind, period and words. Admins only. */
 export function ActivityPage() {
   const s = route.useSearch()

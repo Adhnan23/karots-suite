@@ -40,7 +40,7 @@ func (h *handlers) registerAdminStockTake(g *echo.Group) {
 }
 
 // requireStockTake 403s while Settings → stock-take & intake is off (it can
-// rewrite counts and prices). Fails open on a settings read error, as in karots-pos.
+// rewrite counts and prices). Fails open on a settings read error.
 func (h *handlers) requireStockTake(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if st, err := h.d.Settings.Get(c.Request().Context()); err == nil && st != nil && !st.StockTakeEnabled {

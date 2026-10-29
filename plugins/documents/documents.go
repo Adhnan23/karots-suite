@@ -17,7 +17,7 @@ type Plugin struct {
 func (p *Plugin) Name() string { return "Print & Copy" }
 func (p *Plugin) Key() string  { return "documents" }
 
-// Migrations run under goose_db_version_documents (karots-pos's, so its backups restore).
+// Migrations run under goose_db_version_documents.
 func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "documents" }
 
 func (p *Plugin) Setup(reg *plugin.Registry) {

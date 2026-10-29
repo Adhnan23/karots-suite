@@ -29,7 +29,7 @@ func demoDir() string {
 	if err != nil {
 		base = os.TempDir()
 	}
-	return filepath.Join(base, "karots-suite-demo") // karots-pos's demo has its own "karots-demo"
+	return filepath.Join(base, "karots-suite-demo")
 }
 
 // prepareDir readies the demo's folder: a PostgreSQL a crashed run left running

@@ -10,9 +10,9 @@ import (
 
 // ValuedProduct is one product's stock valued the way the valuation totals
 // value it — by the lots it is made of, the product price only for stock no lot
-// accounts for — so the rows add up to the headline. (karots-pos listed
-// quantity × the current cost price, which disagreed with its own total
-// whenever a lot was bought at another price.)
+// accounts for — so the rows add up to the headline. (Quantity
+// × the current cost price would disagree with the total whenever a lot
+// was bought at another price.)
 type ValuedProduct struct {
 	ID          int64           `db:"id"`
 	Name        string          `db:"name"`

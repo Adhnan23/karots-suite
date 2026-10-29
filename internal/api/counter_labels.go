@@ -54,7 +54,7 @@ func (h *handlers) labelInput(c echo.Context) (tspl.Input, string, error) {
 }
 
 // CounterLabels sends a barcode sticker run to the shop's label printer (TSPL;
-// blank = the OS default printer, as in karots-pos).
+// blank = the OS default printer).
 func (h *handlers) CounterLabels(c echo.Context) error {
 	if done, err := h.labelImage(c, 200); done {
 		return err

@@ -10,7 +10,7 @@ import { money, num, qtyText } from '@/lib/money'
 
 const NAMES = ['Card', 'Strip', 'Box', 'Packet', 'Bag', 'Tray']
 
-/** "Fold <card> into packs…" on the loose twin of a card (karots-pos card + "(loose)"
+/** "Fold <card> into packs…" on the loose twin of a card (card + "(loose)"
  * pairs): one product left, sold by the card or by the piece. */
 export function FoldPacks({ product, from, onClose }: { product: AdminProduct; from: FoldSource; onClose: () => void }) {
   const qc = useQueryClient()

@@ -23,8 +23,8 @@ func (h *handlers) registerAdminReorder(g *echo.Group) {
 	g.GET("/reorder", h.AdminReorder) // builds with POST /purchases/draft (admin_purchases.go)
 }
 
-// AdminReorder is the low-stock worklist with a demand hint per product
-//: search, category (with its
+// AdminReorder is the low-stock worklist with a demand hint per product:
+// search, category (with its
 // sub-categories), preferred supplier; ?all=1 every match on one page;
 // ?looksOff=1 the Fixed levels far from what sales suggest, low or not.
 func (h *handlers) AdminReorder(c echo.Context) error {

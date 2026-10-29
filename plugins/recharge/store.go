@@ -296,8 +296,8 @@ func (s *Store) SetRates(ctx context.Context, carrierID int64, rs []Rate) error 
 	})
 }
 
-// newProduct makes one of the plugin's service products in the Recharge category
-// (karots-pos's), pass-through when it is money passing through.
+// newProduct makes one of the plugin's service products in the Recharge category,
+// pass-through when it is money passing through.
 func newProduct(ctx context.Context, tx *sqlx.Tx, name string, passThrough bool) (int64, error) {
 	var cat, unit int64
 	err := tx.GetContext(ctx, &cat, `SELECT id FROM categories WHERE name = 'Recharge' AND parent_id IS NULL ORDER BY id LIMIT 1`)

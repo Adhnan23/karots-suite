@@ -10,8 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Store is clearance's data. Its tables are karots-pos's, unchanged, so a
-// karots-pos backup restores as is: "ended" and "snoozed" are worked out from
+// Store is clearance's data. "Ended" and "snoozed" are worked out from
 // clearance_markdowns.updated_at, which only Approve and Snooze write.
 type Store struct{ db *sqlx.DB }
 
@@ -193,7 +192,7 @@ func (s *Store) Approve(ctx context.Context, productID int64, pct decimal.Decima
 	return err
 }
 
-// Snooze hides a product for one stale period (karots-pos "dismiss" hid it forever).
+// Snooze hides a product for one stale period.
 func (s *Store) Snooze(ctx context.Context, productID, userID int64) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO clearance_markdowns (product_id, discount_type, discount_value, status, approved_by, updated_at)

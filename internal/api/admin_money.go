@@ -21,8 +21,7 @@ func (h *handlers) registerAdminMoney(g *echo.Group) {
 	g.GET("/money-receipts/:id", h.AdminMoneyReceipt)
 }
 
-// AdminMoneySources lists active lockers and open tills (karots-pos
-// cashLocationChoices) for the admin's pay / collect forms.
+// AdminMoneySources lists active lockers and open tills for the admin's pay / collect forms.
 func (h *handlers) AdminMoneySources(c echo.Context) error {
 	ctx := c.Request().Context()
 	ls, err := h.t.lockers.List(ctx, true)

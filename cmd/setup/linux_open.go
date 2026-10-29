@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// linuxOpen makes the till open at sign-in: full-screen kiosk (karots-pos's
+// linuxOpen makes the till open at sign-in: full-screen kiosk (a
 // relaunch loop + DevTools policy), or — on an owner's own PC — nothing locked:
 // a Karots Suite shortcut on the desktop and in the app menu.
 func linuxOpen(j *Job) error {

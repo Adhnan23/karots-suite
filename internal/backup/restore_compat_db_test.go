@@ -74,7 +74,7 @@ func count(t *testing.T, db *sqlx.DB, table string) int {
 	return n
 }
 
-// A backup from another schema version (a newer karots-pos with an extra
+// A backup from another schema version (a newer one with an extra
 // column, a plugin shop with tables this build lacks, an older one missing a
 // column that has a default) still restores, and the report says what it left out.
 func TestRestoreAcrossSchemaDifferences(t *testing.T) {

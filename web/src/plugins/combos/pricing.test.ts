@@ -34,7 +34,7 @@ describe('combo pricing', () => {
     const { full, off } = setPrice(c, 'retail')
     expect(charged(c)).toBe(full - off)
   })
-  it('wholesale works from the wholesale price (karots-pos used retail)', () => {
+  it('wholesale works from the wholesale price (not retail)', () => {
     const c = combo('fixed', '50', [m(1, '300.00', '1', '250.00'), m(2, '200.00', '1', '150.00')])
     expect(setPrice(c, 'wholesale')).toEqual({ full: 40000, off: 5000, price: 35000 })
     expect(charged(c, 'wholesale')).toBe(35000)

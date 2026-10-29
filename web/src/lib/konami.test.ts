@@ -20,7 +20,7 @@ describe('konami', () => {
     ;['ArrowUp', 'ArrowUp', 'x', ...KONAMI].forEach(feed)
     expect(hit).toHaveBeenCalledTimes(1)
   })
-  it('tolerates an extra ArrowUp before the sequence (karots-pos matcher failed this)', () => {
+  it('tolerates an extra ArrowUp before the sequence', () => {
     const hit = vi.fn()
     const feed = konamiMatcher(hit)
     ;['ArrowUp', ...KONAMI].forEach(feed)

@@ -43,7 +43,7 @@ type JobOptions struct {
 
 func sizeIs(p *string, size string) bool { return p != nil && *p == size }
 
-// PickPrice is karots-pos ResolveUnitPrice: among the cells for this colour and
+// PickPrice picks the unit price: among the cells for this colour and
 // side whose MinQty ≤ copies, a row for the size beats an any-size row, then the
 // greatest MinQty (the best tier reached) wins.
 func PickPrice(rows []Price, o JobOptions) (Price, bool) {

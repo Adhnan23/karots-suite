@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-/** F4 add a line · F10 save — karots-pos's purchase and return screens. Off while
+/** F4 add a line · F10 save on the purchase and return screens. Off while
  * a dialog is open (it owns the keyboard). */
 export function useFormKeys(onF4: (() => void) | null, onF10: () => void) {
   const ref = useRef({ onF4, onF10 })

@@ -23,8 +23,7 @@ func (h *handlers) registerAdminBatches(g *echo.Group) {
 }
 
 // AdminBatches is every live lot, grouped by product: expired first, then
-// expiring within 30 days, then the rest by name (karots-pos Batches page and
-// Batches / Expiry report); ?format= downloads every lot.
+// expiring within 30 days, then the rest by name; ?format= downloads every lot.
 func (h *handlers) AdminBatches(c echo.Context) error {
 	rows, err := h.t.stock.AllBatches(c.Request().Context())
 	if err != nil {
@@ -144,8 +143,7 @@ func (h *handlers) AdminStockConsume(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// batchesSheet is every live lot as a download (karots-pos Batches report
-// CSV). "Own price" says whether the lot carries its own price (and so can be
+// batchesSheet is every live lot as a download. "Own price" says whether the lot carries its own price (and so can be
 // picked at the till) or follows the product.
 func batchesSheet(c echo.Context, rows []stock.Batch) error {
 	out := make([][]string, 0, len(rows))

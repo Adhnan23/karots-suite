@@ -155,8 +155,8 @@ func bindSupplier(c echo.Context) (suppliers.CreateInput, error) {
 	return in, c.Validate(&in)
 }
 
-// AdminSupplierCreate adds a supplier; an active one with the same name is a 409
-//. The opening is what was already owed.
+// AdminSupplierCreate adds a supplier; an active one with the same name is a 409.
+// The opening is what was already owed.
 func (h *handlers) AdminSupplierCreate(c echo.Context) error {
 	in, err := bindSupplier(c)
 	if err != nil {
@@ -229,7 +229,7 @@ func (h *handlers) AdminSupplierOpening(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// openingAuditDetail is karots-pos's audit line for an opening correction.
+// openingAuditDetail is the audit line for an opening correction.
 func openingAuditDetail(before, after decimal.Decimal, note string) string {
 	d := "opening balance " + money.Display(before) + " → " + money.Display(after)
 	if note = strings.TrimSpace(note); note != "" {

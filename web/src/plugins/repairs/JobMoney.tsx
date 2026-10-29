@@ -13,7 +13,7 @@ import type { Job } from './types'
 
 /** The job's money at the till — always core's: a deposit is the customer's
  * advance (the core credit form), a cancelled job's deposit goes back the same
- * way, a karots-pos held deposit comes back from the drawer, and a faulty part
+ * way, an old held deposit comes back from the drawer, and a faulty part
  * goes back through core Returns. */
 export function JobMoney({ job, sym, onOpen }: { job: Job; sym: string; onOpen: (id: number) => void }) {
   const cfg = useQuery(tillConfigQuery).data

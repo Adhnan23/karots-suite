@@ -22,7 +22,7 @@ import (
 
 // childRunner runs each shop as `<this binary> -child` on its own fresh
 // database in the launcher's PostgreSQL. A fresh process every time means every
-// plugin registers exactly as in a shop build — the karots-pos demo's failure.
+// plugin registers exactly as in a shop build.
 type childRunner struct {
 	exe       string   // this binary (a test passes a built one)
 	pg        *sqlx.DB // the launcher's connection, for CREATE / DROP DATABASE

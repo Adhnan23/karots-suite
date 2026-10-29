@@ -77,7 +77,7 @@ export function ReportTab() {
       {rep && (
         <>
           <div className="rounded-[var(--radius)] border border-border bg-card px-3 py-2.5">
-            <small className="text-muted-foreground">Earned (commission, count differences{' '}and old karots-pos charges)</small>
+            <small className="text-muted-foreground">Earned (commission, count differences{' '}and older service charges)</small>
             <b className={cn('block font-display text-2xl tabular-nums', num(rep.earnings) < 0 ? 'text-danger' : 'text-success')}>{money(sym, rep.earnings)}</b>
             <small className="text-muted-foreground">Service charges are in Sales like any item.</small>
           </div>

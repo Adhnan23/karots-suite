@@ -63,7 +63,7 @@ export function ProductsPage() {
         footer={data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (s) => ({ ...s, page }) })} />}
         columns={[
           { key: 'name', header: 'Product', cell: (p) => <Name p={p} /> },
-          // karots-pos "+ Add barcode": give a barcode-less item one without opening the whole form.
+          // "+ Add barcode": give a barcode-less item one without opening the whole form.
           { key: 'code', header: '', wide: true, interactive: true, className: 'w-[1%] whitespace-nowrap', cell: (p) => !p.barcode && p.isActive && (
             <Button variant="ghost" className="h-8 gap-1 px-2 text-[12px]" onClick={() => setBarcodeFor(p)}><Plus size={13} /> Add barcode</Button>
           ) },

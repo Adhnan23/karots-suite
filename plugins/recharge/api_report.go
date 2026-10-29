@@ -89,7 +89,7 @@ type ReportLine struct {
 	Commission decimal.Decimal `db:"commission" json:"commission"`
 }
 
-// CountRow is a float count (the suite's, or a karots-pos closed session).
+// CountRow is a float count.
 type CountRow struct {
 	At       time.Time       `db:"at"       json:"at"`
 	Device   string          `db:"device"   json:"device"`

@@ -30,7 +30,7 @@ func tillCustomer(c customers.Customer) TillCustomer {
 }
 
 // TillCustomers returns every active customer; the till filters client-side
-// (name/phone, top 50), as karots-pos did. Every one: List stops at 100 by
+// (name/phone, top 50). Every one: List stops at 100 by
 // name, so customer 101 could not be picked at the till.
 func (h *handlers) TillCustomers(c echo.Context) error {
 	rows, err := h.t.customers.AllActive(c.Request().Context())
@@ -114,7 +114,7 @@ var writeOffMsg = map[string]string{"damage": "wrote off at till", "own_use": "s
 
 // TillWriteOff removes stock for a non-sale reason (damage by default; the
 // Write-off tab also books own use / staff welfare), batch-specific so the till
-// stops offering that lot. Same permission as karots-pos's cashier damage route.
+// stops offering that lot. Same permission as the cashier's damage write-off.
 func (h *handlers) TillWriteOff(c echo.Context) error {
 	var req WriteOffRequest
 	if err := c.Bind(&req); err != nil {

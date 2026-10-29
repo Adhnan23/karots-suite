@@ -24,11 +24,11 @@ func TestVerify(t *testing.T) {
 	if bad.Verify(pub) == nil {
 		t.Fatal("a changed hash must not verify")
 	}
-	// A karots-pos release can never pass for a suite one.
+	// Another product's release can never pass for a suite one.
 	pos := m
-	pos.Sig = base64.StdEncoding.EncodeToString(ed25519.Sign(priv, []byte("karots-pos update\n2026.10.19.1530\nabc123")))
+	pos.Sig = base64.StdEncoding.EncodeToString(ed25519.Sign(priv, []byte("other update\n2026.10.19.1530\nabc123")))
 	if pos.Verify(pub) == nil {
-		t.Fatal("a karots-pos signature must not verify")
+		t.Fatal("another product's signature must not verify")
 	}
 }
 

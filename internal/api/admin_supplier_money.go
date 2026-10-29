@@ -48,7 +48,7 @@ func optAmount(s, what string) (decimal.Decimal, error) {
 	return v, nil
 }
 
-// supplierPayInput is karots-pos's admin split: exact allocations / advance /
+// supplierPayInput is the admin split: exact allocations / advance /
 // old debt when any is given, else one amount waterfalled across what's owed.
 func supplierPayInput(req AdminSupplierPayRequest, invoices []purchases.Purchase, opening decimal.Decimal) (supplierpay.PayInput, error) {
 	explicit := strings.TrimSpace(req.Advance) != "" || strings.TrimSpace(req.OldDebt) != ""
@@ -185,8 +185,7 @@ func (h *handlers) AdminSupplierRefund(c echo.Context) error {
 	return h.adminMoneyDone(ctx, c, dest, rec)
 }
 
-// adminMoneyDone pops the drawer when cash went through a till (karots-pos
-// kickIfTill) and answers with the receipt, if one was made.
+// adminMoneyDone pops the drawer when cash went through a till and answers with the receipt, if one was made.
 func (h *handlers) adminMoneyDone(ctx context.Context, c echo.Context, loc cashflow.Location, rec *cashflow.Receipt) error {
 	if loc.Kind == cashflow.KindTill {
 		h.d.KickDrawer(ctx)

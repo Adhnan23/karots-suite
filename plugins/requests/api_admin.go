@@ -94,8 +94,8 @@ func (h handlers) remove(c echo.Context) error {
 	return h.done(c, "removed", func(id int64) error { return h.p.store.Delete(c.Request().Context(), id) })
 }
 
-// makeProduct creates a product with no stock from the request (karots-pos's
-// convert, plus cost and supplier) and closes the request onto it.
+// makeProduct creates a product with no stock from the request (with cost
+// and supplier) and closes the request onto it.
 func (h handlers) makeProduct(c echo.Context) error {
 	var in struct {
 		Name         string `json:"name"`

@@ -9,8 +9,7 @@ import { errMsg } from '@/features/till/api'
 import { money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
-/** Correct the old (pre-system) balance of a customer or supplier (karots-pos
- * OpeningAdjustForm). The part backed by bills, payments and returns is locked;
+/** Correct the old (pre-system) balance of a customer or supplier. The part backed by bills, payments and returns is locked;
  * only the old part moves. Negative = they were in credit before go-live. */
 export function OpeningSheet({ kind, id, name, owed, oldDebt, sym, onClose }: {
   kind: 'supplier' | 'customer'; id: number; name: string; owed: string; oldDebt: string; sym: string; onClose: () => void

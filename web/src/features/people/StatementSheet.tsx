@@ -1,8 +1,7 @@
 import type { ShopHeader, Statement } from '@/api/types.gen'
 import { money, num } from '@/lib/money'
 
-/** A customer's or supplier's ledger on A4 (karots-pos customer / supplier
- * statement): every bill, payment and return with a running balance. */
+/** A customer's or supplier's ledger on A4: every bill, payment and return with a running balance. */
 export function StatementSheet({ st, shop, sym, kind }: { st: Statement; shop: ShopHeader; sym: string; kind: 'supplier' | 'customer' }) {
   const bal = num(st.balance)
   const owes = kind === 'supplier' ? (bal < 0 ? 'They owe us' : 'We owe') : bal < 0 ? 'In credit' : 'Balance due'

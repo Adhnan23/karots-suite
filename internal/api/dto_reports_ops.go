@@ -209,8 +209,7 @@ type LossRow struct {
 	Recovered string `json:"recovered"`
 }
 
-// RecoveryRequest books what a supplier made good on one loss (karots-pos
-// RecoveryRecord): replacement (restocked) | paid (credited against what we
+// RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we
 // owe them — cash handed over is a supplier refund instead) | written_off.
 type RecoveryRequest struct {
 	SourceType string `json:"sourceType"`
@@ -317,7 +316,7 @@ type Dashboard struct {
 	Cheques   ChequeSummary      `json:"cheques"` // Cheques to deposit / Your cheques due
 }
 
-// DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /
+// DashboardCharts is the chart range (7 / 14 /
 // 30 / 90 days): revenue per period with the period before laid beside it
 // (same length, Prev[i] is the matching earlier period), and the top sellers.
 type DashboardCharts struct {

@@ -76,7 +76,7 @@ func (s *Store) RecordOwnUse(ctx context.Context, tx sqlx.ExecerContext, sv *Ser
 }
 
 // ReportRow is one service × options over a period. Linked = a suite job (its
-// sale line's returns are taken off); an unlinked sale job is a karots-pos one.
+// sale line's returns are taken off); an unlinked sale job is an older one.
 type ReportRow struct {
 	Name     string          `db:"name"`
 	Size     *string         `db:"size"`
@@ -108,7 +108,7 @@ type OwnUse struct {
 
 // Report sums jobs made in [from, to). Copies and revenue are what was kept
 // (returned copies off, a bill discount shared out as core counts a line; a
-// karots-pos reversal leaves its job out); sheets are
+// older reversal leaves its job out); sheets are
 // what was printed, kept or not — that paper is gone either way.
 func (s *Store) Report(ctx context.Context, from, to time.Time) (Report, error) {
 	r := Report{Rows: []ReportRow{}}

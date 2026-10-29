@@ -24,7 +24,7 @@ func (h *handlers) registerAdminReports(g *echo.Group) {
 }
 
 // reportRange is a report's period: a preset or from / to (to inclusive of its
-// whole day, reports.ResolveRange). Nothing chosen = this month, as karots-pos.
+// whole day, reports.ResolveRange). Nothing chosen = this month.
 // fs / ts are the resolved dates for the page's caption and the sheet's name.
 func reportRange(c echo.Context) (from, to time.Time, fs, ts string, err error) {
 	preset := c.QueryParam("preset")

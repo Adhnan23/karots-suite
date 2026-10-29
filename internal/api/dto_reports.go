@@ -286,7 +286,7 @@ type TaxReport struct {
 }
 
 // TillTotals is every till session the Till sessions filters match (SQL, not
-// the page): the karots-pos Cash Register report's totals. Expected / counted
+// the page): the Cash Register report's totals. Expected / counted
 // / over-short cover closed sessions.
 type TillTotals struct {
 	Sessions  int    `json:"sessions"`

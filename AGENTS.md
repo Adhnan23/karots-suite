@@ -6,7 +6,7 @@ aicatalog, productplus, combos, requests). A **JSON-only Go backend** plus a **c
 shipped as **one static binary**.
 
 - **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans, executes and reviews; UI gates with self-reviewed screenshots) and the inputs for the next milestone.
-- **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
+- **Architecture:** `docs/guide/architecture.md` (stack, core and plugins, the rules the code keeps). Read it before designing anything; a new milestone's spec goes in `docs/specs/` and is deleted with its plan when done.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/` holds only the plan being worked on. Execute tasks in order and tick the checkboxes; delete it once the milestone is done (git history keeps every finished plan and idea note).
 - **User docs and legal pack:** see **Docs and legal** below — they change with the product.

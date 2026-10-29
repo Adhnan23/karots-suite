@@ -33,7 +33,7 @@ func checkExtras(ctx context.Context, req ProductRequest, x plugin.ExtraCtx) err
 
 // saveExtras hands each sent extra to its plugin after the product is written
 // (checkExtras already refused unknown keys). The product stays saved if one
-// fails, as karots-pos did; the error names the plugin's data.
+// fails; the error names the plugin's data.
 func saveExtras(ctx context.Context, req ProductRequest, x plugin.ExtraCtx) error {
 	for _, h := range plugin.ProductExtrasHooks() {
 		raw, ok := req.Extra[h.Key]

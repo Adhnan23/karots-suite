@@ -18,7 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// monthsLeft is karots-pos monthsLeftLabel: "11 mo left", "<1 mo left", "expired".
+// monthsLeft is the warranty's time left: "11 mo left", "<1 mo left", "expired".
 func monthsLeft(until time.Time) string {
 	now := time.Now()
 	if !until.After(now) {

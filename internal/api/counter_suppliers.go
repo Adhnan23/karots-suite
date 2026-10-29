@@ -27,7 +27,7 @@ func supplierRow(s suppliers.Supplier) SupplierRow {
 		Owed: dec2(s.OutstandingBalance), OldDebt: dec2(s.OpeningUnlinked), CreditDays: s.CreditDays}
 }
 
-// normSupplierMethod is karots-pos's: blank means cash.
+// normSupplierMethod: blank means cash.
 func normSupplierMethod(m string) (string, bool) {
 	switch m {
 	case "cash", "card", "online":

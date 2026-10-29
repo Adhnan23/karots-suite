@@ -34,8 +34,8 @@ export function useHold() {
   }, [state, customers, cfg.defaultSaleType, dispatch, qc])
 }
 
-/** Resume a held sale. Refuses while another sale is in the cart (karots-pos silently
- * replaced it — that lost a live sale; deviation flagged in the commit). */
+/** Resume a held sale. Refuses while another sale is in the cart (replacing it
+ * would lose a live sale). */
 export function useResume() {
   const { state, dispatch } = useTill()
   const ui = useTillUi()

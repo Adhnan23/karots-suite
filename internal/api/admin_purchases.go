@@ -23,8 +23,7 @@ import (
 
 const purchasePageSize = 30
 
-// registerAdminPurchases mounts purchase orders → receive (karots-pos
-// /admin/purchases). Static paths come before /:id.
+// registerAdminPurchases mounts purchase orders → receive. Static paths come before /:id.
 func (h *handlers) registerAdminPurchases(g *echo.Group) {
 	g.GET("/purchases", h.AdminPurchases)
 	g.POST("/purchases", h.AdminPurchaseOrder)

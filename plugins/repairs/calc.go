@@ -60,7 +60,7 @@ func dueLabel(j Job, now time.Time) (string, bool) {
 
 var hundred = decimal.NewFromInt(100)
 
-// partDiscount is a karots-pos row's frozen discount (fixed is per unit), off
+// partDiscount is an old row's frozen discount (fixed is per unit), off
 // gross and clamped to it. New rows have none.
 func partDiscount(p Part, gross decimal.Decimal) decimal.Decimal {
 	var amt decimal.Decimal
@@ -108,7 +108,7 @@ func deposits(d *Detail) decimal.Decimal {
 	return t
 }
 
-// legacyHeld is a karots-pos deposit not yet refunded or applied to a sale.
+// legacyHeld is an old deposit not yet refunded or applied to a sale.
 func legacyHeld(d *Detail) decimal.Decimal {
 	t := decimal.Zero
 	for _, p := range d.Payments {
@@ -121,7 +121,7 @@ func legacyHeld(d *Detail) decimal.Decimal {
 	return decimal.Max(t, decimal.Zero)
 }
 
-// repairerPaid is karots-pos's running total plus the job's live expenses.
+// repairerPaid is the old running total plus the job's live expenses.
 func repairerPaid(d *Detail) decimal.Decimal {
 	t := d.Job.RepairerPaid
 	for _, p := range d.Payouts {

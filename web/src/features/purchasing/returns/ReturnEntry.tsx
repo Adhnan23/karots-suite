@@ -23,8 +23,8 @@ import { useFormKeys } from '../useFormKeys'
 type Loose = { productId: number; name: string; unitAbbr: string; lots: LotRow[]; batchId: number }
 const OLD = -1
 
-/** Send goods back from one received delivery (an upgrade on karots-pos, where
- * any product could go to any supplier at any typed cost). Only that delivery's
+/** Send goods back from one received delivery (not any product to any
+ * supplier at any typed cost). Only that delivery's
  * lines can go back, at most what's left of them, at what they really cost —
  * after the line and bill discounts and free units — and the credit lands on
  * that delivery's bill first. Stock from before the system (no delivery) goes

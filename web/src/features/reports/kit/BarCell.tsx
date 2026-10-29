@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
-/** A figure with a bar behind it sized against the biggest row (karots-pos
- * barWidth: rows come biggest first, so row 0 sets the scale). */
+/** A figure with a bar behind it sized against the biggest row (rows
+ * come biggest first, so row 0 sets the scale). */
 export function BarCell({ pct, children, tone = 'brand' }: { pct: number | null; children: ReactNode; tone?: 'brand' | 'success' | 'danger' | 'warning' }) {
   const w = pct && Number.isFinite(pct) && pct > 0 ? Math.min(100, pct) : 0
   return (

@@ -30,7 +30,6 @@
 //	-shop        build this shop's profile ("all" = every shop)
 //	-list        print the shop profiles
 //	-no-installer  with -shop: only the binary, no karots-setup / install.conf
-//	-import-pos  add karots-pos's shops (same install ids, new channels, fresh secrets)
 package main
 
 import (

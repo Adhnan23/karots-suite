@@ -22,7 +22,7 @@ type Store struct{ db *sqlx.DB }
 
 func NewStore(db *sqlx.DB) *Store { return &Store{db: db} }
 
-// Job is a repair_jobs row (karots-pos 0001 + 0002).
+// Job is a repair_jobs row.
 type Job struct {
 	ID            int64           `db:"id"`
 	TicketNo      string          `db:"ticket_no"`
@@ -33,7 +33,7 @@ type Job struct {
 	RepairType    string          `db:"repair_type"`
 	DeviceModel   string          `db:"device_model"`
 	RepairedBy    string          `db:"repaired_by"`
-	RepairerPaid  decimal.Decimal `db:"repairer_paid"` // karots-pos payouts (no expense link)
+	RepairerPaid  decimal.Decimal `db:"repairer_paid"` // old payouts (no expense link)
 	Fault         string          `db:"fault"`
 	Status        string          `db:"status"`
 	PromisedDate  *time.Time      `db:"promised_date"`
@@ -50,7 +50,7 @@ type Job struct {
 	CancelledAt   *time.Time      `db:"cancelled_at"`
 }
 
-// Part is a product used on a job. UnitCharge / Discount* are karots-pos's
+// Part is a product used on a job. UnitCharge / Discount* are old rows'
 // frozen prices: the suite prices a part in the cart at pickup and only keeps
 // an old row's discount to apply it there.
 type Part struct {
@@ -75,7 +75,7 @@ type Charge struct {
 	Amount decimal.Decimal `db:"amount"`
 }
 
-// Payment is a karots-pos deposit ledger row: deposit | refund | applied.
+// Payment is an old deposit ledger row: deposit | refund | applied.
 type Payment struct {
 	ID        int64           `db:"id"`
 	JobID     int64           `db:"job_id"`
@@ -134,8 +134,7 @@ type Config struct {
 	WarrantyMode        string `db:"warranty_mode"`
 }
 
-// ensureRow puts the config singleton back if a partial restore dropped it
-// (karots-pos EnsureConfig self-heal).
+// ensureRow puts the config singleton back if a partial restore dropped it.
 func ensureRow(ctx context.Context, q appdb.Queryer) error {
 	_, err := q.ExecContext(ctx, `INSERT INTO repair_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING`)
 	return err
@@ -163,8 +162,8 @@ func (s *Store) SetConfig(ctx context.Context, mode string, days int) error {
 
 // LabourID is the service product labour lines ring on: the one config names,
 // else a new "Repair labour" in a top-level "Repairs" category (made once, under
-// the config row's lock). Never adopted by name — karots-pos picked up any
-// "Repair Service" product, whatever its category.
+// the config row's lock). Never adopted by name: any "Repair
+// Service" product, whatever its category, is not it.
 func (s *Store) LabourID(ctx context.Context) (int64, error) {
 	var id int64
 	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
@@ -341,7 +340,7 @@ func addPayment(ctx context.Context, q appdb.Queryer, jobID int64, amount decima
 	return err
 }
 
-// legacyHeldTx is a karots-pos deposit still held for a job (deposits − refunds
+// legacyHeldTx is an old deposit still held for a job (deposits − refunds
 // − applied), the job row locked so two settles can't both spend it.
 func legacyHeldTx(ctx context.Context, tx *sqlx.Tx, jobID int64) (decimal.Decimal, error) {
 	var held decimal.Decimal

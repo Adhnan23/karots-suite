@@ -1407,8 +1407,7 @@ export interface NetLine {
   sign: number /* int */;
 }
 /**
- * AdminCashflow is the Cash flow page (karots-pos /admin/cashflow, with its
- * 9f17be1 fix): live balances, the range's totals from SQL over the whole range
+ * AdminCashflow is the Cash flow page: live balances, the range's totals from SQL over the whole range
  * (moves between the shop's own places counted once, apart from in / out), and
  * the net position line by line.
  */
@@ -1592,7 +1591,7 @@ export interface FinanceProduct {
   profit: string;
 }
 /**
- * AdminFinance is the Finance hub (karots-pos /admin/finance, its Overview,
+ * AdminFinance is the Finance hub (its Overview,
  * Profit and Cash tabs in one read): the P&L for the range (plugin income lines
  * folded into net profit), the trend at a grain fitting the range, the payment
  * mix, profit by category, top products, and the money owed either way.
@@ -2463,7 +2462,7 @@ export interface TaxReport {
 }
 /**
  * TillTotals is every till session the Till sessions filters match (SQL, not
- * the page): the karots-pos Cash Register report's totals. Expected / counted
+ * the page): the Cash Register report's totals. Expected / counted
  * / over-short cover closed sessions.
  */
 export interface TillTotals {
@@ -2705,8 +2704,7 @@ export interface LossRow {
   recovered: string;
 }
 /**
- * RecoveryRequest books what a supplier made good on one loss (karots-pos
- * RecoveryRecord): replacement (restocked) | paid (credited against what we
+ * RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we
  * owe them — cash handed over is a supplier refund instead) | written_off.
  */
 export interface RecoveryRequest {
@@ -2827,7 +2825,7 @@ export interface Dashboard {
   cheques: ChequeSummary; // Cheques to deposit / Your cheques due
 }
 /**
- * DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /
+ * DashboardCharts is the chart range (7 / 14 /
  * 30 / 90 days): revenue per period with the period before laid beside it
  * (same length, Prev[i] is the matching earlier period), and the top sellers.
  */

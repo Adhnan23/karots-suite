@@ -25,7 +25,7 @@ type PartDTO struct {
 	Name         string `json:"name"`
 	Qty          string `json:"qty"`
 	Price        string `json:"price"`       // today's selling price, each
-	OldDiscount  string `json:"oldDiscount"` // a karots-pos row's discount ("10%" / "80.00 each"), "" for new rows
+	OldDiscount  string `json:"oldDiscount"` // an old row's discount ("10%" / "80.00 each"), "" for new rows
 	WarrantyDays int    `json:"warrantyDays"`
 }
 
@@ -86,7 +86,7 @@ type JobDTO struct {
 	Estimate      string       `json:"estimate"`
 	Deposits      []DepositDTO `json:"deposits"`
 	DepositTotal  string       `json:"depositTotal"`
-	LegacyHeld    string       `json:"legacyHeld"`  // a karots-pos deposit still held (cash)
+	LegacyHeld    string       `json:"legacyHeld"`  // an old deposit still held (cash)
 	Outstanding   string       `json:"outstanding"` // the customer's balance now (negative = advance)
 	RepairerPaid  string       `json:"repairerPaid"`
 	Payouts       []PayoutDTO  `json:"payouts"`
@@ -307,7 +307,7 @@ func (h handlers) update(c echo.Context) error {
 }
 
 // auditDeadline puts a pickup-date change in the audit log — for "you promised
-// it sooner" (karots-pos auditDeadline).
+// it sooner".
 func (h handlers) auditDeadline(c echo.Context, j Job, next *time.Time) {
 	if next == nil || (j.PromisedDate != nil && ymd(j.PromisedDate) == ymd(next)) {
 		return
@@ -370,7 +370,7 @@ func (h handlers) urgent(c echo.Context) error {
 }
 
 // cancel closes an open job. Its deposit isn't touched here: the till then
-// offers it back (the customer's advance, or a karots-pos held deposit).
+// offers it back.
 func (h handlers) cancel(c echo.Context) error {
 	d, err := h.open(c)
 	if err != nil {

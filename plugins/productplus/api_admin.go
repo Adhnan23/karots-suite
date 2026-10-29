@@ -93,7 +93,7 @@ func (h handlers) create(c echo.Context) error {
 
 // labelFree refuses a label that would clash as a products sheet column: one
 // core already reads (name, price, sku, …) or another field's. A field keeping
-// its own label (e.g. an old one restored from karots-pos) is left alone.
+// its own label is left alone.
 func (h handlers) labelFree(c echo.Context, label string, id int64) error {
 	all, err := h.p.store.Fields(c.Request().Context(), true)
 	if err != nil {

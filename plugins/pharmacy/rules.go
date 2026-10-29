@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// karots-pos refill rules: a repeat script shows from leadDays before a drug runs
+// Refill rules: a repeat script shows from leadDays before a drug runs
 // out and stays listed; a one-off until graceDays past run-out. A drug the shop
 // phoned about drops off the call list for calledDays.
 const (

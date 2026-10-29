@@ -12,8 +12,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Cash-flow totals are summed over the whole range (karots-pos summed the newest
-// 500 rows), and a move between two of the shop's own places is counted once as
+// Cash-flow totals are summed over the whole range (not just the newest
+// rows), and a move between two of the shop's own places is counted once as
 // "moved" — not once as money in and again as money out. Runs in a rolled-back
 // tx on a far-future range so no real data is in it.
 func TestRangeTotalsWholeRangeAndInternalMoves(t *testing.T) {

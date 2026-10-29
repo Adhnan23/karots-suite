@@ -1,5 +1,5 @@
 // Package update lets an installed shop binary update itself from the release
-// bucket (R2, read publicly) — forked from karots-pos internal/update.
+// bucket (R2, read publicly).
 //
 // Each shop build has its own channel: a random folder name baked in at build
 // time (the Shop Builder). The folder holds manifest.json plus the binaries.
@@ -64,7 +64,7 @@ func (m *Manifest) NotesSince(current string) string {
 
 // SignedMessage is what the release key signs: the version and the file's
 // hash, so neither can be swapped without breaking the signature. The prefix
-// differs from karots-pos's, so neither product's release installs on the other.
+// is the suite's own, so another product's release never installs here.
 func SignedMessage(version, sha string) []byte {
 	return []byte("karots-suite update\n" + version + "\n" + sha)
 }

@@ -29,10 +29,10 @@ type Plugin struct {
 func (p *Plugin) Name() string { return "Reload & Bills" }
 func (p *Plugin) Key() string  { return "recharge" }
 
-// Migrations run under goose_db_version_recharge (karots-pos's, so its backups restore).
+// Migrations run under goose_db_version_recharge.
 func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "recharge" }
 
-// dataTables is every recharge_* table, parents first (karots-pos's retired bank
+// dataTables is every recharge_* table, parents first (the retired bank
 // card tables stay listed so an old backup carrying them restores).
 var dataTables = []string{"recharge_carriers", "recharge_devices", "recharge_topups", "recharge_carrier_sessions",
 	"recharge_device_sessions", "recharge_transactions", "recharge_bill_tx", "recharge_bank_cards", "recharge_card_tx",
@@ -59,7 +59,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Mobile money", SettleTx: p.settleWallet})
 }
 
-// walletMethod is karots-pos's payment_method value (its migration 00003 added it).
+// walletMethod is the wallet payment_method value.
 const walletMethod = "wallet"
 
 // mergeProduct follows a carrier's or the plugin's own product into the kept one.

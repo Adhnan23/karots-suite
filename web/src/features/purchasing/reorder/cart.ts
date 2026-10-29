@@ -6,8 +6,7 @@ export type Cart = Record<number, CartItem>
 
 const KEY = 'ks-reorder-cart'
 
-/** The reorder cart outlives filter changes and reloads (karots-pos
- * reorder_cart_v1): a per-browser convenience, so storage failures are ignored. */
+/** The reorder cart outlives filter changes and reloads: a per-browser convenience, so storage failures are ignored. */
 export function loadCart(): Cart {
   try {
     return JSON.parse(localStorage.getItem(KEY) ?? '{}') ?? {}

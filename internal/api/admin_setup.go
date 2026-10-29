@@ -15,8 +15,7 @@ func (h *handlers) registerAdminSetup(g *echo.Group) {
 	g.GET("/setup", h.AdminSetup, middleware.RequireRole(auth.RoleAdmin))
 }
 
-// setupSteps computes the go-live checklist from live data (karots-pos
-// setupStatus). Best-effort: a failed count leaves its step not done.
+// setupSteps computes the go-live checklist from live data. Best-effort: a failed count leaves its step not done.
 func setupSteps(ctx context.Context, q sqlx.QueryerContext) []SetupStep {
 	yes := func(query string) bool {
 		var ok bool

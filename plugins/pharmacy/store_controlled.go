@@ -78,7 +78,7 @@ type ControlledRow struct {
 	Schedule   string          `db:"schedule"`
 	Stock      decimal.Decimal `db:"stock"`
 	Unrecorded int             `db:"unrecorded"` // sales still needing a record
-	OldRows    int             `db:"old_rows"`   // the karots-pos hand-kept register
+	OldRows    int             `db:"old_rows"`   // the old hand-kept register
 }
 
 // unrecordedSales: sales of a controlled drug (since it was marked, net of
@@ -138,7 +138,7 @@ type RegisterRow struct {
 	Balance    decimal.Decimal `db:"-"`
 }
 
-// OldEntry is a row of the karots-pos hand-kept register (read-only history).
+// OldEntry is a row of the old hand-kept register (read-only history).
 type OldEntry struct {
 	At         time.Time       `db:"entry_at"`
 	Direction  string          `db:"direction"`

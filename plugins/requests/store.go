@@ -22,8 +22,7 @@ type Store struct{ db *sqlx.DB }
 
 func NewStore(db *sqlx.DB) *Store { return &Store{db: db} }
 
-// Request is one wanted item. Its row is also its first ask (karots-pos's whole
-// record), so an old backup reads as one ask with no mapping.
+// Request is one wanted item. Its row is also its first ask.
 type Request struct {
 	ID          int64     `db:"id"`
 	Note        string    `db:"note"`

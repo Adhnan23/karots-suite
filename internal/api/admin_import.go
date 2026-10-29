@@ -19,8 +19,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Spreadsheet import / export for products, customers and suppliers (karots-pos
-// import_*.go). The export uses the import's columns, so a sheet round-trips:
+// Spreadsheet import / export for products, customers and suppliers. The export uses the import's columns, so a sheet round-trips:
 // export, edit, import. Each import is best-effort — good rows land, bad rows
 // come back as "line N: reason".
 

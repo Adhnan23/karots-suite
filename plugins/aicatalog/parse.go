@@ -19,7 +19,7 @@ type IdentifyResult struct {
 	Options   []Candidate `json:"options"`
 }
 
-// CleanupPlan is one clean-up answer: karots-pos's category plan plus
+// CleanupPlan is one clean-up answer: the category plan plus
 // uncategorized placements, product renames and look-alike pairs.
 type CleanupPlan struct {
 	Renames []struct {

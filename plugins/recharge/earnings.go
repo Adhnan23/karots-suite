@@ -14,7 +14,7 @@ import (
 
 // Earnings is the shop's real Reload & Bills earning for [from, to): commission
 // booked with each move, count differences (a promo, a rate that changed, money
-// missing), and — from karots-pos days — its service charges and the bonus its
+// missing), and — from older data — its service charges and the bonus its
 // closed float sessions showed. Service charges the suite sells are ordinary
 // revenue already; face value is pass-through and never counted.
 func Earnings(ctx context.Context, q appdb.Queryer, from, to time.Time) (decimal.Decimal, error) {
@@ -34,7 +34,7 @@ func Earnings(ctx context.Context, q appdb.Queryer, from, to time.Time) (decimal
 	return v, err
 }
 
-// OldFloatBought is the float karots-pos bought as an expense ("Float top-up")
+// OldFloatBought is the float older data booked as an expense ("Float top-up")
 // in [from, to). Buying float is cash turned into float, not a cost: the P&L
 // adds it back on its dates. The suite books no such expense.
 func OldFloatBought(ctx context.Context, q appdb.Queryer, from, to time.Time) (decimal.Decimal, error) {

@@ -197,8 +197,8 @@ func (h *handlers) ReportSupplierSpend(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ReportPurchases is the deliveries received in range (karots-pos Purchases;
-// drafts — orders not yet received — are not purchases). A delivery's due is
+// ReportPurchases is the deliveries received in range
+// (drafts — orders not yet received — are not purchases). A delivery's due is
 // after payments and goods credited back.
 func (h *handlers) ReportPurchases(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)

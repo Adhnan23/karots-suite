@@ -137,8 +137,8 @@ function LockerTile({ l, sym, onEdit, onArchive, onReactivate, onMove, onAdjust 
   )
 }
 
-/** How the till's open / deposit / withdraw / close dialogs use lockers
- *. Saves as it changes. */
+/** How the till's open / deposit / withdraw / close dialogs use lockers.
+ * Saves as it changes. */
 function TillCash({ sym, lockers, value }: { sym: string; lockers: AdminLocker[]; value: TillCashRequest }) {
   const qc = useQueryClient()
   const [busy, setBusy] = useState(false)

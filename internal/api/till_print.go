@@ -113,7 +113,7 @@ func (h *handlers) TillPrintMoneyReceipt(c echo.Context) error {
 }
 
 // moneySlip renders a money receipt as ESC/POS with the shared receipt header and
-// footer. Ported from karots-pos web/admin_money_receipts.go buildReceiptSlip.
+// footer.
 func moneySlip(cfg *settings.Settings, r cashflow.Receipt, opts escpos.Options) []byte {
 	w := escpos.Columns(cfg.ReceiptWidth)
 	var b bytes.Buffer

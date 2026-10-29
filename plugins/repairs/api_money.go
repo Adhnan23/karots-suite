@@ -87,7 +87,7 @@ type BillLine struct {
 	Name      string `json:"name"`  // labour: the line's name
 	Qty       string `json:"qty"`   // part
 	Price     string `json:"price"` // labour
-	// Discount is a karots-pos row's frozen discount, or 100% on a free re-repair.
+	// Discount is an old row's frozen discount, or 100% on a free re-repair.
 	Discount     string `json:"discount"`
 	DiscountType string `json:"discountType"`
 }
@@ -195,7 +195,7 @@ func (h handlers) rework(c echo.Context) error {
 	return h.respond(c, nid)
 }
 
-// refundHeld hands a karots-pos held deposit back from this drawer — a cancelled
+// refundHeld hands an old held deposit back from this drawer — a cancelled
 // job's, or what was left after pickup. One tx with the ledger row.
 func (h handlers) refundHeld(c echo.Context) error {
 	id, err := idParam(c, "id")

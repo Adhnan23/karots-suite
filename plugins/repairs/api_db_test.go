@@ -185,7 +185,7 @@ func TestPickupNeverStopsTheSale(t *testing.T) {
 	}
 }
 
-// A karots-pos held deposit is spent by its tender, never past what's held.
+// An old held deposit is spent by its tender, never past what's held.
 func TestLegacyDepositTender(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()

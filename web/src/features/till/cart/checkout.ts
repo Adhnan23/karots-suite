@@ -30,7 +30,7 @@ export function effectivePayments(s: TillState, due: number): Payment[] {
   return ps
 }
 
-/** Everything that must be true before posting, in karots-pos's order. */
+/** Everything that must be true before posting, in order. */
 export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
   if (!s.lines.length) return { error: 'Cart is empty' }
   const t = saleTotal(s)

@@ -20,8 +20,8 @@ import { RecoverSheet } from './RecoverSheet'
 const route = getRouteApi('/_authed/admin/reports/losses')
 const OUTCOME: Record<string, string> = { replacement: 'replaced by supplier', paid: 'credited by supplier', written_off: 'written off' }
 
-/** Losses & Recovery (karots-pos /admin/reports/losses — Damage and Warranty
- * merged): stock lost to damage and warranty swaps, and what suppliers made
+/** Losses & Recovery (Damage and Warranty
+ * together): stock lost to damage and warranty swaps, and what suppliers made
  * good. Record a recovery against any loss. */
 export function LossesPage() {
   const r = rangeOf(route.useSearch())

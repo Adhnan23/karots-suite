@@ -104,8 +104,8 @@ func orEmptyCats(s []Cat) []Cat {
 
 var fieldTypes = []string{"text", "textarea", "number", "bool", "select", "date"}
 
-// toField checks a field request (the karots-pos rules, minus "a required field
-// needs a default": missing values are listed instead) and returns the field.
+// toField checks a field request (a required field
+// needs no default: missing values are listed instead) and returns the field.
 func (r FieldRequest) toField() (Field, error) {
 	f := Field{Label: strings.TrimSpace(r.Label), Type: r.Type, DefaultValue: strings.TrimSpace(r.DefaultValue),
 		Hint: strings.TrimSpace(r.Hint), Required: r.Required, Searchable: r.Searchable, ShowAtTill: r.ShowAtTill,

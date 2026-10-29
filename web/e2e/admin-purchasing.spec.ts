@@ -183,7 +183,7 @@ test('purchases: receive a walk-in delivery on credit; it shows under Received â
   await page.getByRole('button', { name: 'All', exact: true }).click()
   await expect(page.getByLabel('Pay now')).toHaveValue('210.00')
   await page.getByLabel('Pay now').fill('')
-  await page.keyboard.press('F10') // karots-pos: F10 saves
+  await page.keyboard.press('F10') // F10 saves
   await toast(page, /on credit/)
   await expect(page.getByText('unpaid')).toBeVisible()
   await page.goto('/admin/purchases?tab=received&unpaid=true')

@@ -388,8 +388,8 @@ func (h handlers) adminRefill(c echo.Context) error {
 // one tx. Paid now = core's supplier payment on that bill and the money leaving
 // src (as the counter's Pay) or the cheques written for it (lines; the bank pays
 // when they clear); on credit = the bill alone, owed like any delivery.
-// Buying float is cash turned into float — no expense (karots-pos booked one,
-// which the P&L counted as a loss).
+// Buying float is cash turned into float — no expense (one would count as a
+// loss on the P&L).
 func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location, lines []cheques.Line) error {
 	if !in.Amount.IsPositive() || in.Bonus.IsNegative() {
 		return apperr.Validation("enter the amount of float bought")

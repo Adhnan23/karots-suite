@@ -26,8 +26,7 @@ func (h *handlers) registerReportsOps(g *echo.Group) {
 	g.POST("/recovery", h.AdminRecovery)
 }
 
-// ReportRecipeVariance is expected vs actual ingredient use (karots-pos Recipe
-// Variance): a yield is an estimate, this shows the drift.
+// ReportRecipeVariance is expected vs actual ingredient use: a yield is an estimate, this shows the drift.
 func (h *handlers) ReportRecipeVariance(c echo.Context) error {
 	from, to, fs, ts, err := reportRange(c)
 	if err != nil {
@@ -139,8 +138,7 @@ func (h *handlers) ReportLossLines(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// AdminRecovery books what a supplier made good on a loss (karots-pos
-// RecoveryRecord), audited. Recovering the same loss twice is a 409.
+// AdminRecovery books what a supplier made good on a loss, audited. Recovering the same loss twice is a 409.
 func (h *handlers) AdminRecovery(c echo.Context) error {
 	var req RecoveryRequest
 	if err := c.Bind(&req); err != nil {

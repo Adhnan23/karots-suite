@@ -3,7 +3,7 @@ import { hotkeyFor } from './hotkeys'
 
 describe('till hotkeys', () => {
   const idle = { dialogOpen: false, saleDone: false }
-  it('maps the karots-pos keys', () => {
+  it('maps the till keys', () => {
     expect(hotkeyFor('F1', idle)).toBe('reset')
     expect(hotkeyFor('F2', idle)).toBe('search')
     expect(hotkeyFor('F3', idle)).toBe('search')

@@ -19,7 +19,7 @@ describe('supplier delivery totals (match purchases on the server)', () => {
   })
 })
 
-describe('receive margin guard (karots-pos suggestSell / marginWarn)', () => {
+describe('receive margin guard (suggested sell / margin warning)', () => {
   const cur = { cost: '50', sell: '75' } // 1.5× markup
   it('keeps the old markup on a dearer cost', () => {
     expect(marginHint(line({ costPrice: '60' }), cur)).toBe(90) // blank sell = 75 < 90

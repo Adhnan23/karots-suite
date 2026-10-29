@@ -230,7 +230,7 @@ func (h *handlers) TillGroup(c echo.Context) error {
 }
 
 // TillProducts is the typed search behind the scan/search box (name, barcode,
-// fuzzy rescue — all in products.List). Same 100-row cap as karots-pos.
+// fuzzy rescue — all in products.List). Capped at 100 rows.
 // ?services=1 (the Sell screen) also finds services; stock screens leave it off.
 func (h *handlers) TillProducts(c echo.Context) error {
 	ctx := c.Request().Context()

@@ -5,7 +5,7 @@ export type ReportGroup = 'sales' | 'money' | 'stock'
 /** gate 'tax': only for a tax-registered shop. */
 export type ReportEntry = { to: string; title: string; desc: string; group: ReportGroup; icon: LucideIcon; gate?: 'tax' }
 
-/** karots-pos reportHubGroups: three groups, curated order (common first). Each
+/** The report hub: three groups, curated order (common first). Each
  * report adds itself here as it lands. */
 export const GROUPS: [ReportGroup, string][] = [['sales', 'Sales and customers'], ['money', 'Money and profit'], ['stock', 'Inventory and suppliers']]
 

@@ -19,7 +19,7 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 		{"junk custom → studio", ValidSkin("custom-x"), "studio"},
 		{"new palettes pass", ValidSkin("lagoon") + ValidSkin("bazaar") + ValidSkin("catppuccin"), "lagoonbazaarcatppuccin"},
 		{"blank skin → studio", ValidSkin(""), "studio"},
-		{"old karots-pos skin restored → studio", ValidSkin("teal"), "studio"},
+		{"an unknown skin → studio", ValidSkin("teal"), "studio"},
 	}
 	for _, c := range cases {
 		if c.got != c.want {

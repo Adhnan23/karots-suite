@@ -28,14 +28,14 @@ type Plugin struct {
 func (p *Plugin) Name() string { return "Repairs" }
 func (p *Plugin) Key() string  { return "repairs" }
 
-// Migrations run under goose_db_version_repairs (karots-pos's, so its backups restore).
+// Migrations run under goose_db_version_repairs.
 func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "repairs" }
 
 // dataTables is every repair_* table, parents first.
 var dataTables = []string{"repair_config", "repair_jobs", "repair_parts", "repair_charges", "repair_payments",
 	"repair_deposits", "repair_payouts"}
 
-// legacyDeposit is karots-pos's deposit tender: cash a job took before the suite,
+// legacyDeposit is the old deposit tender: cash a job took before deposits were advances,
 // still in the books as held for it. Only Put on the bill pre-fills it.
 const legacyDeposit = "deposit"
 
@@ -49,7 +49,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.routes(reg)
 }
 
-// settleLegacyDeposit spends a job's held karots-pos deposit on its pickup sale,
+// settleLegacyDeposit spends a job's held old deposit on its pickup sale,
 // never more than is held (the job row is locked for the check).
 func settleLegacyDeposit(ctx context.Context, tx *sqlx.Tx, ev plugin.TenderSettle) error {
 	jobID, _ := strconv.ParseInt(ev.Meta["job"], 10, 64)
