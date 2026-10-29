@@ -92,3 +92,40 @@ describe('line groups on the sale request', () => {
       { no: 1, label: 'Photocopy', sets: '1', itemised: true }, { no: 1, label: 'Photocopy', sets: '1', itemised: true }])
   })
 })
+
+describe('cheque tender', () => {
+  const chq = (amount: string, over: Partial<{ bank: string; number: string; date: string; note: string }> = {}) => ({
+    method: 'cheque', amount, reference: '', accountId: '', meta: {},
+    cheque: { bank: 'Bank of Ceylon', number: '123456', date: '2026-10-29', note: '', ...over },
+  })
+  const named = () => withLine(tillReducer(initialState('retail'), { type: 'customer', id: 5 }))
+
+  it('needs a named customer', () => {
+    const s = tillReducer(withLine(initialState('retail')), { type: 'addTender', payment: chq('100') })
+    expect(checkoutGate(s, ctx({ confirmed: true }))).toEqual({ error: 'Pick the customer who gave the cheque' })
+  })
+  it('needs its number and date', () => {
+    const s = tillReducer(named(), { type: 'addTender', payment: chq('100', { number: ' ' }) })
+    expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: 'Enter the cheque number and date' })
+  })
+  it("can't pay more than what's due (no change on a cheque)", () => {
+    const s = tillReducer(named(), { type: 'draft', patch: chq('150') })
+    expect(checkoutGate(s, ctx({ customer: cust, confirmed: true }))).toEqual({ error: "A cheque can't be more than what's due — only cash gets change" })
+  })
+  it('is capped at the balance when added, like card', () => {
+    let s = tillReducer(named(), { type: 'addTender', payment: { method: 'cash', amount: '40', reference: '', accountId: '', meta: {} } })
+    s = tillReducer(s, { type: 'draft', patch: chq('100') })
+    s = tillReducer(s, { type: 'commitDraft' })
+    expect(s.tenders[1]).toMatchObject({ method: 'cheque', amount: '60.00' })
+  })
+  it('sends the cheque with its line, and nothing extra for cash', () => {
+    let s = tillReducer(named(), { type: 'addTender', payment: chq('60') })
+    s = tillReducer(s, { type: 'addTender', payment: { method: 'cash', amount: '40', reference: '', accountId: '', meta: {} } })
+    const g = checkoutGate(s, ctx({ customer: cust }))
+    if (!('ok' in g)) throw new Error(JSON.stringify(g))
+    const req = buildSaleRequest(s, g.payments, { deferDrawerKick: false })
+    expect(req.payments[0]).toMatchObject({ method: 'cheque', amount: '60', cheque: { bank: 'Bank of Ceylon', number: '123456', date: '2026-10-29' } })
+    expect(req.payments[1].cheque).toBeUndefined()
+    expect(req.changeGiven).toBe('')
+  })
+})

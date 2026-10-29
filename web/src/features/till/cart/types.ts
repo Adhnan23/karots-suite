@@ -47,7 +47,11 @@ export type Payment = {
   reference: string
   accountId: string // card/bank locker id for card/online
   meta: Record<string, string> // plugin tender data
+  cheque?: ChequeDraft // a cheque line's cheque
 }
+
+/** The cheque a customer hands over: their bank, its number and date. */
+export type ChequeDraft = { bank: string; number: string; date: string; note: string }
 
 export type ServiceLineInput = {
   productId: number

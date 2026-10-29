@@ -151,7 +151,10 @@ export function tillReducer(s: TillState, a: Action): TillState {
       const due = balanceDue(saleTotal(s), s.tenders)
       const pay = s.draft.method !== 'cash' && s.draft.method !== 'credit' && Number(s.draft.amount) > due ? { ...s.draft, amount: due.toFixed(2) } : s.draft
       if (!(Number(pay.amount) > 0)) return s
-      return { ...s, tenders: [...s.tenders, pay], draft: { ...blankDraft(s.draft.method), accountId: s.draft.accountId } }
+      // A next cheque starts from the same bank and date (often a post-dated set).
+      const next = { ...blankDraft(s.draft.method), accountId: s.draft.accountId }
+      if (pay.cheque) next.cheque = { ...pay.cheque, number: '', note: '' }
+      return { ...s, tenders: [...s.tenders, pay], draft: next }
     }
     case 'addTender':
       return { ...s, tenders: [...s.tenders, a.payment] }

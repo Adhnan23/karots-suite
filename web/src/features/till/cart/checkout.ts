@@ -56,6 +56,13 @@ export function checkoutGate(s: TillState, ctx: GateCtx): Gate {
       return { error: `Choose the account for the ${p.method} payment` }
     }
   }
+  const cheques = payments.filter((p) => p.method === 'cheque' && num(p.amount) > 0)
+  if (cheques.length) {
+    if (s.customerId === null) return { error: 'Pick the customer who gave the cheque' }
+    if (cheques.some((p) => !p.cheque?.number.trim() || !p.cheque?.date)) return { error: 'Enter the cheque number and date' }
+    const nonCash = payments.filter((p) => p.method !== 'cash' && p.method !== 'credit').reduce((a, p) => a + num(p.amount), 0)
+    if (nonCash > t + 0.005) return { error: "A cheque can't be more than what's due — only cash gets change" }
+  }
   return { ok: true, payments }
 }
 
@@ -85,6 +92,7 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
     payments: payments.filter((p) => num(p.amount) > 0).map((p) => ({
       method: p.method, amount: String(num(p.amount)), reference: p.reference, accountId: num(p.accountId),
       meta: Object.keys(p.meta).length ? p.meta : undefined,
+      cheque: p.method === 'cheque' && p.cheque ? { ...p.cheque, bank: p.cheque.bank.trim(), number: p.cheque.number.trim() } : undefined,
     })),
   }
 }
