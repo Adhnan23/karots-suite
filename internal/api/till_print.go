@@ -170,6 +170,8 @@ func receiptKindLabel(k string) string {
 		return "Expense"
 	case "expense_void":
 		return "Expense voided"
+	case "cheque_returned":
+		return "Cheque returned"
 	case "refund":
 		return "Refund"
 	case "capital":

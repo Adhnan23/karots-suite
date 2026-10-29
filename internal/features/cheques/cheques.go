@@ -73,14 +73,16 @@ type Cheque struct {
 	CustomerName      *string         `db:"customer_name"       json:"customer_name,omitempty"`
 	SupplierName      *string         `db:"supplier_name"       json:"supplier_name,omitempty"`
 	LockerName        *string         `db:"locker_name"         json:"locker_name,omitempty"`
+	ExpenseCategory   *string         `db:"expense_category"    json:"expense_category,omitempty"`
 }
 
 const selectCheque = `
-	SELECT c.*, cu.name AS customer_name, s.name AS supplier_name, l.name AS locker_name
+	SELECT c.*, cu.name AS customer_name, s.name AS supplier_name, l.name AS locker_name, e.category AS expense_category
 	FROM cheques c
 	LEFT JOIN customers cu ON cu.id = c.customer_id
 	LEFT JOIN suppliers s ON s.id = c.supplier_id
-	LEFT JOIN lockers l ON l.id = c.locker_id`
+	LEFT JOIN lockers l ON l.id = c.locker_id
+	LEFT JOIN expenses e ON e.id = c.expense_id`
 
 // ParseLines reads the wire lines of one cheque payment (dir "in" | "out") and
 // returns them with their sum. At least one line; a received cheque needs its
@@ -177,7 +179,7 @@ func (s *Service) List(ctx context.Context, f Filter) ([]Cheque, error) {
 		  AND ($6 = 0 OR c.supplier_id = $6)
 		  AND ($7 = 0 OR c.locker_id = $7)
 		  AND ($8 = '' OR c.number ILIKE '%' || $8 || '%' OR c.bank ILIKE '%' || $8 || '%'
-		       OR cu.name ILIKE '%' || $8 || '%' OR s.name ILIKE '%' || $8 || '%')
+		       OR cu.name ILIKE '%' || $8 || '%' OR s.name ILIKE '%' || $8 || '%' OR e.category ILIKE '%' || $8 || '%')
 		ORDER BY (c.status = 'pending') DESC, c.cheque_date, c.id
 		LIMIT $9 OFFSET $10`,
 		f.Direction, f.Status, f.From, f.To, f.CustomerID, f.SupplierID, f.LockerID, strings.TrimSpace(f.Query), f.Limit, f.Offset)

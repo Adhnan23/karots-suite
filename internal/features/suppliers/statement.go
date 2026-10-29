@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/customers"
 
 	"github.com/shopspring/decimal"
 )
@@ -72,9 +73,16 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	}
 	var pays []payRow
 	if err := s.db.SelectContext(ctx, &pays, `
-		SELECT created_at, method, reference, amount
-		FROM supplier_payments WHERE supplier_id = $1 ORDER BY created_at`, id); err != nil {
+		SELECT sp.created_at, sp.method, sp.amount,
+		       COALESCE((SELECT string_agg(c.number || ' (' || l.name || ')', ', ' ORDER BY c.id)
+		                 FROM cheques c JOIN lockers l ON l.id = c.locker_id WHERE c.supplier_payment_id = sp.id), sp.reference) AS reference
+		FROM supplier_payments sp WHERE sp.supplier_id = $1 ORDER BY sp.created_at`, id); err != nil {
 		return nil, apperr.Internal("failed to load supplier payments", err)
+	}
+	// A bounced / cancelled cheque we wrote leaves the supplier owed again.
+	var returned []customers.ChequeReturn
+	if err := s.db.SelectContext(ctx, &returned, customers.ChequeReturnsSQL+` WHERE direction = 'out' AND supplier_id = $1`, id); err != nil {
+		return nil, apperr.Internal("failed to load returned cheques", err)
 	}
 
 	// Money a supplier handed back (supplierpay refunds) raises the payable back
@@ -140,6 +148,10 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	}
 	for _, r := range charges {
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Replacement charge", Ref: r.Ref, Debit: r.Amount})
+	}
+	for _, r := range returned {
+		e := r.Entry()
+		entries = append(entries, LedgerEntry{Date: e.Date, Kind: e.Kind, Ref: e.Ref, Debit: e.Debit})
 	}
 	sort.SliceStable(entries, func(i, j int) bool { return entries[i].Date.Before(entries[j].Date) })
 

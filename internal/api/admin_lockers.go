@@ -55,13 +55,21 @@ func (h *handlers) AdminLockers(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	given, err := h.cheques().AfterCheques(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	out := AdminLockerList{Items: make([]AdminLocker, 0, len(ls)), TillCash: tc}
 	total := decimal.Zero
 	for _, l := range ls {
-		if l.IsActive {
+		if l.IsActive && l.Kind != lockers.KindCheque { // uncleared cheques aren't money yet
 			total = total.Add(l.Balance)
 		}
-		out.Items = append(out.Items, adminLocker(l, tc.DefaultLockerID))
+		row := adminLocker(l, tc.DefaultLockerID)
+		if l.Kind == lockers.KindBank {
+			row.AfterCheques = dec2(l.Balance.Sub(given[l.ID]))
+		}
+		out.Items = append(out.Items, row)
 	}
 	out.Total = dec2(total)
 	return c.JSON(http.StatusOK, out)

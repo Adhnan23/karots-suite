@@ -314,6 +314,7 @@ type Dashboard struct {
 	Paid      []FinanceSlice     `json:"paid"`
 	Attention DashboardAttention `json:"attention"`
 	Recent    []AdminSaleRow     `json:"recent"`
+	Cheques   ChequeSummary      `json:"cheques"` // Cheques to deposit / Your cheques due
 }
 
 // DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /

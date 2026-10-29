@@ -61,6 +61,7 @@ func Register(e *echo.Echo, d Deps) {
 	h.registerSystem(v1) // Task 6
 	h.registerTill(v1)
 	h.registerAdmin(v1)
+	h.registerCheques(v1.Group("/cheques", h.protected...))
 	h.registerLegacySync(e, limiter, jwt)
 	if d.MountPlugins != nil {
 		admin := slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})

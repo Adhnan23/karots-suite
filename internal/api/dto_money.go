@@ -12,6 +12,8 @@ type AdminLocker struct {
 	CashierAccess bool   `json:"cashierAccess"`
 	Active        bool   `json:"active"`
 	TillDefault   bool   `json:"tillDefault"`
+	// AfterCheques (bank places only): Balance minus its pending given cheques.
+	AfterCheques string `json:"afterCheques,omitempty"`
 }
 
 // AdminLockerList is the lockers page: every locker, the total across the

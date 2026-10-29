@@ -1192,6 +1192,10 @@ export interface AdminLocker {
   cashierAccess: boolean;
   active: boolean;
   tillDefault: boolean;
+  /**
+   * AfterCheques (bank places only): Balance minus its pending given cheques.
+   */
+  afterCheques?: string;
 }
 /**
  * AdminLockerList is the lockers page: every locker, the total across the
@@ -2795,6 +2799,7 @@ export interface Dashboard {
   paid: FinanceSlice[];
   attention: DashboardAttention;
   recent: AdminSaleRow[];
+  cheques: ChequeSummary; // Cheques to deposit / Your cheques due
 }
 /**
  * DashboardCharts is the chart range (karots-pos dashboard carousel, 7 / 14 /

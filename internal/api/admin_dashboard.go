@@ -110,6 +110,11 @@ func (h *handlers) AdminDashboard(c echo.Context) error {
 		out.Attention.BackupCopies = []string{} // the Data page is the admin's
 	}
 	_ = h.d.DB.GetContext(ctx, &out.Owing, `SELECT COUNT(*) FROM customers WHERE outstanding_balance > 0`)
+	sm, err := h.cheques().Summary(ctx, time.Now())
+	if err != nil {
+		return err
+	}
+	out.Cheques = chequeSummary(sm)
 	recent, err := h.d.Sales.List(ctx, sales.ListFilter{From: &today, Limit: 8})
 	if err != nil {
 		return err

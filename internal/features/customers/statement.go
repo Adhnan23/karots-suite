@@ -68,8 +68,15 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	}
 	var pays []payRow
 	if err := s.db.SelectContext(ctx, &pays, `
-		SELECT created_at, method, reference, amount
-		FROM customer_payments WHERE customer_id = $1 ORDER BY created_at`, id); err != nil {
+		SELECT cp.created_at, cp.method, cp.amount,
+		       COALESCE((SELECT string_agg(c.number || ' (' || c.bank || ')', ', ' ORDER BY c.id)
+		                 FROM cheques c WHERE c.customer_payment_id = cp.id), cp.reference) AS reference
+		FROM customer_payments cp WHERE cp.customer_id = $1 ORDER BY cp.created_at`, id); err != nil {
+		return nil, err
+	}
+	// A bounced / cancelled cheque puts its amount back on what they owe.
+	var returned []ChequeReturn
+	if err := s.db.SelectContext(ctx, &returned, ChequeReturnsSQL+` WHERE direction = 'in' AND customer_id = $1`, id); err != nil {
 		return nil, err
 	}
 
@@ -99,6 +106,9 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		}
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Payment", Ref: ref, Credit: r.Amount})
 	}
+	for _, r := range returned {
+		entries = append(entries, r.Entry())
+	}
 	sort.SliceStable(entries, func(i, j int) bool { return entries[i].Date.Before(entries[j].Date) })
 
 	bal, totalDebit, totalCredit := decimal.Zero, decimal.Zero, decimal.Zero
@@ -109,4 +119,28 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		totalCredit = totalCredit.Add(entries[i].Credit)
 	}
 	return &Statement{Customer: *cust, Entries: entries, TotalDebit: totalDebit, TotalCredit: totalCredit}, nil
+}
+
+// ChequeReturn is a bounced or cancelled cheque: a statement debit (the money
+// is owed again). Shared with the supplier statement.
+type ChequeReturn struct {
+	Day    time.Time       `db:"status_date"`
+	Status string          `db:"status"`
+	Number string          `db:"number"`
+	Bank   string          `db:"bank"`
+	Amount decimal.Decimal `db:"amount"`
+}
+
+// ChequeReturnsSQL selects ChequeReturn rows; callers add the WHERE (direction + party).
+const ChequeReturnsSQL = `SELECT COALESCE(status_date, created_at::date) AS status_date, status, number,
+	COALESCE(NULLIF(bank, ''), (SELECT name FROM lockers WHERE id = locker_id), '') AS bank, amount
+	FROM (SELECT * FROM cheques WHERE status IN ('bounced', 'cancelled')) c`
+
+// Entry is the statement line: "Cheque bounced" / "Cheque cancelled", 123456 (BOC).
+func (r ChequeReturn) Entry() LedgerEntry {
+	ref := r.Number
+	if r.Bank != "" {
+		ref += " (" + r.Bank + ")"
+	}
+	return LedgerEntry{Date: r.Day, Kind: "Cheque " + r.Status, Ref: ref, Debit: r.Amount}
 }

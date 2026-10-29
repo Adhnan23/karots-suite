@@ -43,14 +43,16 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 		return err
 	}
 	out := AdminCashflow{From: fs, To: ts, Places: []CashPlace{}, Plugins: []CashPlaceGroup{}}
-	cash := decimal.Zero
+	cash, inHand := decimal.Zero, decimal.Zero
 	ls, err := h.t.lockers.List(ctx, true)
 	if err != nil {
 		return err
 	}
 	for _, l := range ls {
 		out.Places = append(out.Places, CashPlace{Value: "locker:" + strconv.FormatInt(l.ID, 10), Name: l.Name, Kind: l.Kind, Balance: dec2(l.Balance)})
-		if l.Kind != lockers.KindCheque { // uncleared cheques are shown, but are not cash
+		if l.Kind == lockers.KindCheque { // uncleared cheques are shown, but are not cash
+			inHand = inHand.Add(l.Balance)
+		} else {
 			cash = cash.Add(l.Balance)
 		}
 	}
@@ -86,7 +88,7 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 
 	// Net position: what the shop has and is owed, less what it owes. Customers
 	// and suppliers sit on both sides, so dues and advances are summed apart.
-	var stock, recv, adv, pay, credit decimal.Decimal
+	var stock, recv, adv, pay, credit, written decimal.Decimal
 	for _, q := range []struct {
 		dst *decimal.Decimal
 		sql string
@@ -96,18 +98,27 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 		{&adv, `SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM customers`},
 		{&pay, `SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM suppliers`},
 		{&credit, `SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM suppliers`},
+		// Cheques the shop wrote that the bank hasn't paid yet: still in the bank balance.
+		{&written, `SELECT COALESCE(SUM(amount),0) FROM cheques WHERE direction = 'out' AND status = 'pending'`},
 	} {
 		if err := h.d.DB.GetContext(ctx, q.dst, q.sql); err != nil {
 			return apperr.Internal("failed to compute net position", err)
 		}
 	}
 	line := func(label string, v decimal.Decimal, sign int) NetLine { return NetLine{Label: label, Amount: dec2(v), Sign: sign} }
-	out.NetLines = []NetLine{line("Cash on hand", cash, 1), line("Stock at cost", stock, 1), line("Customers owe you", recv, 1), line("Suppliers hold for you", credit, 1)}
+	out.NetLines = []NetLine{line("Cash on hand", cash, 1)}
+	if inHand.IsPositive() || written.IsPositive() {
+		out.NetLines = append(out.NetLines, line("Cheques in hand", inHand, 1))
+	}
+	out.NetLines = append(out.NetLines, line("Stock at cost", stock, 1), line("Customers owe you", recv, 1), line("Suppliers hold for you", credit, 1))
 	if len(out.Plugins) > 0 {
 		out.NetLines = append(out.NetLines, line("Plugin money", pluginTotal, 1))
 	}
 	out.NetLines = append(out.NetLines, line("You owe suppliers", pay, -1), line("Customers paid ahead", adv, -1))
-	out.NetPosition = dec2(cash.Add(stock).Add(recv).Add(credit).Add(pluginTotal).Sub(pay).Sub(adv))
+	if written.IsPositive() {
+		out.NetLines = append(out.NetLines, line("Your cheques not cashed yet", written, -1))
+	}
+	out.NetPosition = dec2(cash.Add(inHand).Add(stock).Add(recv).Add(credit).Add(pluginTotal).Sub(pay).Sub(adv).Sub(written))
 	return c.JSON(http.StatusOK, out)
 }
 
