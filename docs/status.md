@@ -15,6 +15,19 @@ Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-2
 Android spike passed (shop-made CA, offline sell, replay); **iPhone 13 test first** (throwaway server in
 `~/Projects/go/karots-pwaspike`, `./pwaspike`), then the plan.
 
+**Resume here (handoff 2026-10-29):**
+1. The user runs the spike (`! cd ~/Projects/go/karots-pwaspike && ./pwaspike`; ufw already allows 8080 and 8443).
+   Keep its `state/` folder: the OnePlus trusts that CA.
+2. iPhone in **Safari** → `http://<PC IP>:8080` → "iPhone: download profile (.mobileconfig)" → Settings → Profile
+   Downloaded → Install ("Not Verified" is normal) → General → About → **Certificate Trust Settings** → turn on
+   "Karots Shop CA (spike)" → `https://<PC IP>:8443` → Share → Add to Home Screen → open from the icon. All four
+   checks must be green.
+3. Offline test: stop the server → close and reopen the app from the icon → sell → "Waiting to send" goes up →
+   start the server → Send to PC. Sales show as `REPLAYED` in the server output, in order.
+4. **Pass:** run superpowers:writing-plans on the spec (release 1 only; core seams first, then the plugin, then the
+   docs and legal for the app at 5,000 LKR). **Fail** (no trust switch, no service worker, or no offline open):
+   rework the spec's HTTPS section with the user before planning.
+
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
 apply the answers and drop the DRAFT line; the real-printer test when printers arrive.
