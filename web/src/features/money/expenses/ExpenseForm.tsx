@@ -6,7 +6,9 @@ import type { AdminExpenseRequest, AdminExpenseRow, AdminExpenseSummary, Receipt
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
-import { moneySourcesQuery } from '@/features/purchasing/MoneySource'
+import { bankPlaces, moneySourcesQuery } from '@/features/purchasing/MoneySource'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
+import { Seg } from '@/features/till/bits'
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { errMsg } from '@/features/till/api'
 import { money, num } from '@/lib/money'
@@ -42,8 +44,12 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
   })
   const [busy, setBusy] = useState(false)
   const up = (p: Partial<AdminExpenseRequest>) => setF({ ...f, ...p })
-  const locked = !!e?.paidFrom
+  const locked = !!e?.paidFrom || !!e?.chequePending
   const a = num(f.amount.replace(/,/g, ''))
+  const banks = bankPlaces(useQuery(moneySourcesQuery).data)
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
+  const byCheque = !e && f.method === 'cheque'
+  const chequesOk = !byCheque || (chequesReady(cheques, 'out') && chequesTotal(cheques) === a)
   async function save() {
     if (busy) return
     setBusy(true)
@@ -51,7 +57,7 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
       if (e) {
         await api(`/admin/expenses/${e.id}`, { method: 'PUT', json: f })
         toast.success('Expense updated')
-      } else moneyDone(`${f.category} · ${money(sym, a)} recorded`, await api<ReceiptRef>('/admin/expenses', { json: f }))
+      } else moneyDone(`${f.category} · ${money(sym, a)} recorded`, await api<ReceiptRef>('/admin/expenses', { json: byCheque ? { ...f, source: '', cheques: toChequeLines(cheques) } : { ...f, method: '' } }))
       void qc.invalidateQueries({ queryKey: ['admin'] })
       onClose()
     } catch (err) {
@@ -63,7 +69,7 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
   const quick = (meta?.categories ?? []).slice(0, 8)
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={e ? 'Edit expense' : 'Record an expense'} submit={e ? 'Save' : '↑ Record it'}
-      busy={busy || !f.category.trim() || a <= 0} onSubmit={save}
+      busy={busy || !f.category.trim() || a <= 0 || !chequesOk} onSubmit={save}
       extra={e && onVoid && <Button type="button" variant="ghost" className="h-10 px-3 text-danger" onClick={onVoid}>Void…</Button>}>
       <Field label="Category">
         <div className="flex flex-wrap gap-1.5">
@@ -76,17 +82,25 @@ export function ExpenseForm({ e, meta, sym, onClose, onVoid }: { e?: AdminExpens
         <datalist id="admin-expense-categories">{meta?.categories.map((c) => <option key={c} value={c} />)}</datalist>
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Amount" hint={locked ? `Paid from ${e?.paidFrom} — to change it, void and record again` : undefined}>
+        <Field label="Amount" hint={e?.chequePending ? 'Its cheque is still pending — cancel the cheque to change it' : locked ? `Paid from ${e?.paidFrom} — to change it, void and record again` : undefined}>
           <input aria-label="Amount" inputMode="decimal" readOnly={locked} value={f.amount} placeholder="0.00" onChange={(x) => up({ amount: amt(x.target.value) })} className={cn(INPUT, locked && 'opacity-70')} />
         </Field>
         <Field label="Date"><input type="date" aria-label="Date" value={f.date} max={today()} onChange={(x) => up({ date: x.target.value })} className={INPUT} /></Field>
       </div>
-      {!e ? (
+      {!e && banks.length > 0 && (
+        <Seg label="Paid by" value={f.method === 'cheque' ? 'cheque' : 'place'} options={[['place', 'Money from a place'], ['cheque', 'Cheque']]}
+          onChange={(v) => { up({ method: v === 'cheque' ? 'cheque' : '' }); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(f.amount, String(banks[0].id))]) }} />
+      )}
+      {byCheque ? (
+        <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={a} />
+      ) : !e ? (
         <Field label="↑ Paid from" hint={f.source ? 'The money leaves here — a receipt is recorded.' : 'Outside the shop: nothing leaves a locker or till here.'}>
           <PlacePicker label="Paid from" value={f.source} onChange={(source) => up({ source })} sym={sym} outside="Outside the shop (owner paid, bank card…)" />
         </Field>
       ) : (
-        <p className="rounded-[var(--radius-sm)] bg-muted px-3 py-2 text-[13px] text-muted-foreground">Paid from <b className="text-foreground">{e.paidFrom || 'outside the shop'}</b></p>
+        <p className="rounded-[var(--radius-sm)] bg-muted px-3 py-2 text-[13px] text-muted-foreground">
+          {e.chequePending ? <>Paid by cheque — <b className="text-cheque">pending</b></> : <>Paid from <b className="text-foreground">{e.paidFrom || 'outside the shop'}</b></>}
+        </p>
       )}
       <Field label="Note (optional)"><input aria-label="Note" value={f.description} placeholder="What it was for" onChange={(x) => up({ description: x.target.value })} className={INPUT} /></Field>
       {!!meta?.services.length && (
@@ -139,6 +153,42 @@ export function VoidSheet({ e, sym, onClose }: { e: AdminExpenseRow; sym: string
       ) : (
         <p className="text-sm text-muted-foreground">It was paid from outside the shop, so no money moves — the expense is just removed.</p>
       )}
+    </FormSheet>
+  )
+}
+
+/** Pay what is still unpaid on an expense whose cheque bounced or was
+ * cancelled — from a place, or by a new cheque. It stays one expense. */
+export function PayAgainSheet({ e, sym, onClose }: { e: AdminExpenseRow; sym: string; onClose: () => void }) {
+  const qc = useQueryClient()
+  const banks = bankPlaces(useQuery(moneySourcesQuery).data)
+  const owed = num(e.unpaid)
+  const [how, setHow] = useState<'place' | 'cheque'>('place')
+  const [source, setSource] = useState('')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
+  const [busy, setBusy] = useState(false)
+  const ok = how === 'place' || (chequesReady(cheques, 'out') && chequesTotal(cheques) === owed)
+  async function go() {
+    if (busy) return
+    setBusy(true)
+    try {
+      const body = how === 'cheque' ? { method: 'cheque', source: '', cheques: toChequeLines(cheques) } : { method: '', source }
+      moneyDone(`${e.category} · ${money(sym, owed)} paid`, await api<ReceiptRef>(`/admin/expenses/${e.id}/pay`, { json: body }))
+      void qc.invalidateQueries({ queryKey: ['admin'] })
+      onClose()
+    } catch (err) {
+      toast.error(errMsg(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Pay ${e.category} · ${money(sym, owed)}`} submit={`↑ Pay ${money(sym, owed)}`} busy={busy || !ok} onSubmit={go}>
+      <p className="text-sm text-muted-foreground">Not paid — its cheque {e.unpaidWhy || 'came back'}. Paying it now keeps it one expense.</p>
+      {banks.length > 0 && <Seg label="Pay by" value={how} options={[['place', 'Money from a place'], ['cheque', 'A new cheque']]}
+        onChange={(v) => { setHow(v); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(String(owed), String(banks[0].id))]) }} />}
+      {how === 'cheque' ? <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={owed} />
+        : <Field label="↑ Paid from"><PlacePicker label="Paid from" value={source} onChange={setSource} sym={sym} outside="Outside the shop (owner paid, bank card…)" /></Field>}
     </FormSheet>
   )
 }

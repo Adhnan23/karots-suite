@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -11,7 +11,9 @@ import { slipPath } from '@/features/till/print'
 import { slipOut } from '@/features/till/SlipAsk'
 import { dec, money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { type Method, MoneySourcePicker } from '../MoneySource'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
+import { PAY_METHODS, type PayMethod } from '@/lib/payMethods'
+import { bankPlaces, type Method, MoneySourcePicker, moneySourcesQuery } from '../MoneySource'
 
 const amt = (v: string) => v.replace(/[^\d.]/g, '')
 
@@ -21,14 +23,20 @@ export function moneyDone(msg: string, r: ReceiptRef) {
   void slipOut(slipPath.money(r.receiptId), msg)
 }
 
-function MethodSource({ method, setMethod, source, setSource, sym, into }: {
-  method: Method; setMethod: (m: Method) => void; source: string; setSource: (s: string) => void; sym: string; into?: boolean
+function MethodSource({ method, setMethod, source, setSource, sym, into, cheques }: {
+  method: PayMethod; setMethod: (m: PayMethod) => void; source: string; setSource: (s: string) => void; sym: string; into?: boolean
+  cheques?: { lines: ChequeDraftLine[]; setLines: (ls: ChequeDraftLine[]) => void; want: number } // offers Cheque (money given)
 }) {
+  const all = useQuery(moneySourcesQuery).data
+  const banks = bankPlaces(all)
   const where = method === 'cash' ? (into ? 'Put the cash into' : 'Pay the cash from') : into ? 'Received into (optional)' : 'Paid from (optional)'
+  const options = PAY_METHODS.filter(([m]) => m !== 'cheque' || (cheques && banks.length > 0))
   return (
     <>
-      <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-      {method === 'card' ? (
+      <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource(''); if (m === 'cheque' && cheques && !cheques.lines.length) cheques.setLines([blankCheque(cheques.want > 0 ? String(cheques.want) : '', banks[0] ? String(banks[0].id) : '')]) }} options={options} />
+      {method === 'cheque' && cheques ? (
+        <ChequeLines dir="out" lines={cheques.lines} onChange={cheques.setLines} places={banks} sym={sym} want={cheques.want} />
+      ) : method === 'card' ? (
         <p className="text-[13px] text-muted-foreground">{into ? "A card refund from a supplier goes back to the owner's card — nothing lands in a shop account." : "A card payment to a supplier is the owner's card — nothing leaves a shop account."}</p>
       ) : (
         <Field label={where} hint={method === 'online' ? 'Pick the bank account so its balance stays right.' : undefined}>
@@ -52,8 +60,9 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
   const [alloc, setAlloc] = useState<Record<number, string>>({})
   const [oldDebt, setOldDebt] = useState('')
   const [advance, setAdvance] = useState('')
-  const [method, setMethod] = useState<Method>('cash')
+  const [method, setMethod] = useState<PayMethod>('cash')
   const [source, setSource] = useState('')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const [reference, setReference] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -64,6 +73,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
       const body: AdminSupplierPayRequest = exact
         ? { amount: '', mode, allocations: Object.entries(alloc).map(([id, a]) => ({ purchaseId: Number(id), amount: a })), advance, oldDebt, method, reference, note, source }
         : { amount, mode, allocations: [], advance: '', oldDebt: '', method, reference, note, source }
+      if (method === 'cheque') body.cheques = toChequeLines(cheques)
       moneyDone(`Paid ${money(sym, total)} to ${s.name}`, await api<ReceiptRef>(`/admin/suppliers/${s.id}/payment`, { json: body }))
       void qc.invalidateQueries({ queryKey: ['admin'] })
       onClose()
@@ -74,7 +84,8 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Pay ${s.name}`} submit={`↑ Pay ${total > 0 ? money(sym, total) : ''}`} busy={busy || !(total > 0)} onSubmit={save} wide>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Pay ${s.name}`} submit={`↑ Pay ${total > 0 ? money(sym, total) : ''}`}
+      busy={busy || !(total > 0) || (method === 'cheque' && (!chequesReady(cheques, 'out') || chequesTotal(cheques) !== r2(total)))} onSubmit={save} wide>
       <p className="text-sm text-muted-foreground">Owed <b className="text-foreground tabular-nums">{money(sym, owed)}</b>{old > 0 && <> · old debt {money(sym, old)}</>}</p>
       {s.invoices.length > 0 && (
         <Seg label="How to split" value={exact ? 'exact' : 'one'} onChange={(v) => setExact(v === 'exact')} options={[['one', 'One amount'], ['exact', 'Split exactly']]} />
@@ -108,7 +119,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
             <input aria-label="Advance" inputMode="decimal" placeholder="0.00" value={advance} onChange={(e) => setAdvance(amt(e.target.value))} className={cn(INPUT, 'h-10 w-28 text-right tabular-nums')} /></label>
         </div>
       )}
-      <MethodSource method={method} setMethod={setMethod} source={source} setSource={setSource} sym={sym} />
+      <MethodSource method={method} setMethod={setMethod} source={source} setSource={setSource} sym={sym} cheques={{ lines: cheques, setLines: setCheques, want: r2(total) }} />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Cheque / txn no" /></Field>
         <Field label="Note"><input aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
@@ -122,7 +133,7 @@ export function RefundSheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: 
   const qc = useQueryClient()
   const credit = Math.max(-num(s.owed), 0)
   const [amount, setAmount] = useState(dec(credit))
-  const [method, setMethod] = useState<Method>('cash')
+  const [method, setMethod] = useState<PayMethod>('cash')
   const [source, setSource] = useState('')
   const [reference, setReference] = useState('')
   const [busy, setBusy] = useState(false)

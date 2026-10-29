@@ -16,7 +16,9 @@ import { slipOut } from '@/features/till/SlipAsk'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { LineEditor } from '../LineEditor'
-import { type Method, MoneySourcePicker } from '../MoneySource'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
+import { PAY_METHODS, type PayMethod } from '@/lib/payMethods'
+import { bankPlaces, MoneySourcePicker, moneySourcesQuery } from '../MoneySource'
 import { purchaseQuery } from '../queries'
 import { useFormKeys } from '../useFormKeys'
 import { SupplierClaimsPanel } from '../SupplierClaims'
@@ -49,8 +51,10 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
   const [discType, setDiscType] = useState<'fixed' | 'percent'>('fixed')
   const [keepRest, setKeepRest] = useState(true)
   const [pay, setPay] = useState('')
-  const [method, setMethod] = useState<Method>('cash')
+  const [method, setMethod] = useState<PayMethod>('cash')
   const [source, setSource] = useState('')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
+  const banks = bankPlaces(useQuery(moneySourcesQuery).data)
   const [adding, setAdding] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -87,10 +91,13 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
     if (!sup) return void toast.error('Pick the supplier')
     if (!sent.length) return void toast.error(receiving ? 'Enter what came in' : 'Add what you want to order')
     if (receiving && sent.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line that came in needs its cost price')
+    const byCheque = receiving && num(pay) > 0 && method === 'cheque'
+    if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (byCheque && chequesTotal(cheques) !== num(pay)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, pay)}`)
     setBusy(true)
     try {
       const body: PurchaseRequest = { supplierId: sup, invoiceNo: invoice, notes, expectedDate: expected, dueDate: receiving ? dueDate : '', discount: disc, discountType: discType,
-        lines: sent, keepRemainder: keepRest && short, pay: { amount: receiving ? pay : '', method, source } }
+        lines: sent, keepRemainder: keepRest && short, pay: { amount: receiving ? pay : '', method, source, cheques: byCheque ? toChequeLines(cheques) : undefined } }
       let to = id
       if (mode === 'order') to = (await api<PurchaseRow>('/admin/purchases', { json: body })).id
       else if (mode === 'edit') await api(`/admin/purchases/${id}`, { method: 'PUT', json: body })
@@ -166,8 +173,10 @@ export function PurchaseEntry({ mode, id = 0, supplierId = 0 }: { mode: EntryMod
               </Field>
               {num(pay) > 0 && (
                 <>
-                  <Seg label="Pay by method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-                  {method !== 'card' && <MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} label={method === 'cash' ? 'Pay the cash from' : 'Paid from (optional)'} />}
+                  <Seg label="Pay by method" value={method} options={PAY_METHODS.filter(([m]) => m !== 'cheque' || banks.length > 0)}
+                    onChange={(m) => { setMethod(m); setSource(''); if (m === 'cheque' && !cheques.length) setCheques([blankCheque(pay, String(banks[0]?.id ?? ''))]) }} />
+                  {method === 'cheque' && <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(pay)} />}
+                  {method !== 'card' && method !== 'cheque' && <MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} label={method === 'cash' ? 'Pay the cash from' : 'Paid from (optional)'} />}
                 </>
               )}
             </div>

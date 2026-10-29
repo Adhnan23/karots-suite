@@ -14,7 +14,8 @@ import { money } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { expenseSummaryQuery, expensesQuery } from '../queries'
-import { ExpenseForm, VoidSheet } from './ExpenseForm'
+import { MethodBadge } from '@/components/admin/MethodBadge'
+import { ExpenseForm, PayAgainSheet, VoidSheet } from './ExpenseForm'
 
 const route = getRouteApi('/_authed/admin/expenses/')
 const day = (d: string) => new Date(`${d}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })
@@ -33,7 +34,7 @@ export function ExpensesPage() {
   const sum = useQuery(expenseSummaryQuery(f)).data
   const list = useInfiniteQuery(expensesQuery(f))
   const rows = list.data?.pages.flat() ?? []
-  const [open, setOpen] = useState<{ kind: 'new' | 'edit' | 'void'; e?: AdminExpenseRow } | null>(null)
+  const [open, setOpen] = useState<{ kind: 'new' | 'edit' | 'void' | 'pay'; e?: AdminExpenseRow } | null>(null)
   const chip = 'flex items-baseline gap-1.5 whitespace-nowrap rounded-pill border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground'
 
   return (
@@ -80,7 +81,7 @@ export function ExpensesPage() {
               <small className="font-normal text-faint">{day(e.date)}{e.description && ` · ${e.description}`}</small>
             </span>
           ) },
-          { key: 'from', header: 'Paid from', cell: (e) => e.paidFrom ? <span>{e.paidFrom}</span> : <span className="text-faint">Outside the shop</span> },
+          { key: 'from', header: 'Paid from', cell: (e) => <PaidFrom e={e} onPay={() => setOpen({ kind: 'pay', e })} /> },
           { key: 'by', header: 'By', wide: true, cell: (e) => <span className="text-muted-foreground">{e.paidBy || '—'}</span> },
           { key: 'svc', header: 'Service', wide: true, cell: (e) => <span className="text-muted-foreground">{e.serviceName || '—'}</span> },
           { key: 'amount', header: 'Amount', num: true, cell: (e) => <b className="tabular-nums text-danger">↑ {money(sym, e.amount)}</b> },
@@ -88,6 +89,21 @@ export function ExpensesPage() {
       {open?.kind === 'new' && <ExpenseForm meta={sum} sym={sym} onClose={() => setOpen(null)} />}
       {open?.kind === 'edit' && open.e && <ExpenseForm e={open.e} meta={sum} sym={sym} onClose={() => setOpen(null)} onVoid={() => setOpen({ kind: 'void', e: open.e })} />}
       {open?.kind === 'void' && open.e && <VoidSheet e={open.e} sym={sym} onClose={() => setOpen(null)} />}
+      {open?.kind === 'pay' && open.e && <PayAgainSheet e={open.e} sym={sym} onClose={() => setOpen(null)} />}
     </>
   )
+}
+
+/** Where an expense's money came from — or that its cheque is still out, or
+ *  came back and it needs paying again. */
+function PaidFrom({ e, onPay }: { e: AdminExpenseRow; onPay: () => void }) {
+  if (Number(e.unpaid) > 0)
+    return (
+      <span className="flex flex-wrap items-center gap-1.5">
+        <span className="font-semibold text-warning">Not paid — cheque {e.unpaidWhy || 'returned'}</span>
+        <button type="button" onClick={(x) => { x.stopPropagation(); onPay() }} className="rounded-pill border border-border px-2.5 py-0.5 text-[12px] font-bold hover:bg-muted">Pay</button>
+      </span>
+    )
+  if (e.chequePending) return <MethodBadge method="cheque" status="pending" />
+  return e.paidFrom ? <span>{e.paidFrom}</span> : <span className="text-faint">Outside the shop</span>
 }

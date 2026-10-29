@@ -100,6 +100,9 @@ type AdminExpenseRow struct {
 	ServiceName string `json:"serviceName"`
 	PaidFrom    string `json:"paidFrom"`
 	Unpaid      string `json:"unpaid"` // > 0: its cheque bounced / was cancelled — pay it again
+	UnpaidWhy   string `json:"unpaidWhy"` // bounced | cancelled (the latest returned cheque), "" when paid
+	// ChequePending: a cheque written for it hasn't cleared yet (amount and void are locked).
+	ChequePending bool `json:"chequePending"`
 }
 
 // ExpenseCategoryTotal is one category chip: its share of the range.

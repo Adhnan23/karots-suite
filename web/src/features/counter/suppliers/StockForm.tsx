@@ -15,6 +15,8 @@ import { afterSlip, moneySlip } from '../slip'
 import { LineEditor } from '@/features/purchasing/LineEditor'
 import { billTotals } from '@/features/purchasing/totals'
 import { clearPrefill, peekPrefill } from '../lowstock/prefill'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
+import { PAY_METHODS, type PayMethod } from '@/lib/payMethods'
 
 /** Take in a delivery (walk-in or against an order) or place an order. */
 export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'order'; supplier: SupplierView; orderId: number | null }) {
@@ -29,12 +31,14 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
   const [notes, setNotes] = useState('')
   const [keepRest, setKeepRest] = useState(true)
   const [pay, setPay] = useState('')
-  const [payMethod, setPayMethod] = useState<'cash' | 'card' | 'online'>('cash')
+  const [payMethod, setPayMethod] = useState<PayMethod>('cash')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const [payFrom, setPayFrom] = useState('') // '' = my drawer (cash) / not from a shop account (card, online)
   const [disc, setDisc] = useState('')
   const [discType, setDiscType] = useState<'fixed' | 'percent'>('fixed')
   const [wantedBy, setWantedBy] = useState('')
   const drawer = useQuery(drawerQuery).data
+  const banks = lockersOf(drawer, 'bank')
   const [busy, setBusy] = useState(false)
   const [placed, setPlaced] = useState<SupplierOrder | null>(null)
   const sym = cfg.symbol
@@ -49,6 +53,9 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
     const sent = mode === 'receive' ? shown.filter((l) => num(l.quantity) > 0) : shown
     if (!sent.length) return void toast.error(mode === 'order' ? 'Add what you want to order' : 'Enter what came in')
     if (mode === 'receive' && sent.some((l) => !(num(l.costPrice) > 0))) return void toast.error('Every line that came in needs its cost price')
+    const byCheque = mode === 'receive' && num(pay) > 0 && payMethod === 'cheque'
+    if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (byCheque && chequesTotal(cheques) !== num(pay)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, pay)}`)
     setBusy(true)
     try {
       if (mode === 'order') {
@@ -58,7 +65,7 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
       } else {
         const body: ReceiveRequest = {
           invoiceNo: invoice, notes, lines: sent, keepRemainder: keepRest && short, deferDrawerKick: !cfg.askToPrint,
-          discount: disc, discountType: discType, pay: { amount: pay, method: payMethod, lockerId: num(payFrom) },
+          discount: disc, discountType: discType, pay: { amount: pay, method: payMethod, lockerId: num(payFrom), cheques: byCheque ? toChequeLines(cheques) : undefined },
         }
         const url = orderId ? `/till/orders/${orderId}/receive` : `/till/suppliers/${supplier.id}/receive`
         const r = await api<ReceiveResult>(url, { json: body })
@@ -104,13 +111,15 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <input aria-label="Pay now" inputMode="decimal" placeholder="Pay now (blank = on credit)" value={pay} onChange={(e) => setPay(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'min-w-[150px] flex-1 tabular-nums')} />
-              <Seg label="Pay by" value={payMethod} onChange={(m) => { setPayMethod(m); setPayFrom('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-              {froms.length > 1 && (
+              <Seg label="Pay by" value={payMethod} options={PAY_METHODS.filter(([m]) => m !== 'cheque' || banks.length > 0)}
+                onChange={(m) => { setPayMethod(m); setPayFrom(''); if (m === 'cheque' && !cheques.length) setCheques([blankCheque(pay, String(banks[0]?.id ?? ''))]) }} />
+              {payMethod !== 'cheque' && froms.length > 1 && (
                 <select aria-label="Pay from" value={payFrom} onChange={(e) => setPayFrom(e.target.value)} className={cn(FIELD, 'appearance-auto max-w-[200px]')}>
                   {froms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               )}
             </div>
+            {payMethod === 'cheque' && num(pay) > 0 && <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(pay)} />}
             {bill > 0 && <p className="flex justify-between text-[13px] text-muted-foreground tabular-nums">Lines {money(sym, net)} · bill discount −{money(sym, bill)}<b className="text-foreground">{money(sym, total)}</b></p>}
             {short && (
               <label className="flex items-center gap-2 text-[13px] text-muted-foreground">

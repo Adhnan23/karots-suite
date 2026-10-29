@@ -6,7 +6,9 @@ import type { ExpenseRequest, ReceiptRef } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { configQuery, drawerQuery, errMsg } from '@/features/till/api'
+import { configQuery, drawerQuery, errMsg, lockersOf } from '@/features/till/api'
+import { Seg } from '@/features/till/bits'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 import { FIELD } from '@/features/till/ui'
 import { afterSlip, moneySlip } from '../slip'
 import { expensesQuery } from '../queries'
@@ -20,7 +22,11 @@ const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-di
 export function ExpensesTab() {
   const cfg = useSuspenseQuery(configQuery).data
   const page = useSuspenseQuery(expensesQuery).data
-  const lockers = (useQuery(drawerQuery).data?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
+  const drawer = useQuery(drawerQuery).data
+  const lockers = (drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
+  const banks = lockersOf(drawer, 'bank')
+  const [byCheque, setByCheque] = useState(false)
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const qc = useQueryClient()
   const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
@@ -35,15 +41,19 @@ export function ExpensesTab() {
     e.preventDefault()
     if (!category.trim()) return void toast.error('Pick or type a category')
     if (!(num(amount) > 0)) return void toast.error('Enter the amount paid')
+    if (byCheque && !chequesReady(cheques, 'out')) return void toast.error('Fill in each cheque: number, amount, date and the bank account')
+    if (byCheque && chequesTotal(cheques) !== num(amount)) return void toast.error(`The cheques add up to ${money(sym, chequesTotal(cheques))}, not ${money(sym, amount)}`)
     setBusy(true)
     try {
       const body: ExpenseRequest = {
         category: category.trim(), amount, description: note, serviceProductId: num(service),
-        lockerId: num(source), deferDrawerKick: !cfg.askToPrint,
+        lockerId: byCheque ? 0 : num(source), deferDrawerKick: !cfg.askToPrint,
+        ...(byCheque ? { method: 'cheque', cheques: toChequeLines(cheques) } : {}),
       }
       const res = await api<ReceiptRef>('/till/expenses', { json: body })
-      afterSlip(cfg, `Expense recorded — ${money(sym, amount)}`, moneySlip(res.receiptId), source === '')
+      afterSlip(cfg, `Expense recorded — ${money(sym, amount)}`, moneySlip(res.receiptId), !byCheque && source === '')
       setAmount('')
+      setCheques([])
       setNote('')
       setService('0')
       void qc.invalidateQueries({ queryKey: ['till'] })
@@ -102,10 +112,18 @@ export function ExpensesTab() {
           Note <span className="sr-only">(optional)</span>
           <input aria-label="Note" placeholder="Optional — who, what" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />
         </label>
-        <div className={LABEL}>
-          Paid from
-          <SourcePicker value={source} onChange={setSource} lockers={lockers} sym={sym} />
-        </div>
+        {banks.length > 0 && (
+          <Seg label="Paid by" value={byCheque ? 'cheque' : 'cash'} options={[['cash', 'Cash'], ['cheque', 'Cheque']]}
+            onChange={(v) => { setByCheque(v === 'cheque'); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(amount, String(banks[0].id))]) }} />
+        )}
+        {byCheque ? (
+          <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={num(amount)} />
+        ) : (
+          <div className={LABEL}>
+            Paid from
+            <SourcePicker value={source} onChange={setSource} lockers={lockers} sym={sym} />
+          </div>
+        )}
         {page.services.length > 0 && (
           <label className={LABEL}>
             For a service

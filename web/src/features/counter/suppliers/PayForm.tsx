@@ -11,8 +11,8 @@ import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { afterSlip, moneySlip } from '../slip'
 import { SourcePicker } from '../ui'
-
-type Method = 'cash' | 'card' | 'online'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
+import { PAY_METHODS, type PayMethod } from '@/lib/payMethods'
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
 
 /** Money to or from a supplier: where it comes from (drawer / locker / outside the shop) matters. */
@@ -25,8 +25,10 @@ export function PayForm({ s }: { s: SupplierView }) {
   const [refund, setRefund] = useState(false)
   const [amount, setAmount] = useState(owed > 0 ? dec(owed) : '')
   const [mode, setMode] = useState<'pay' | 'old'>('pay')
-  const [method, setMethod] = useState<Method>('cash')
+  const [method, setMethod] = useState<PayMethod>('cash')
   const [source, setSource] = useState('')
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
+  const banks = lockersOf(drawer, 'bank')
   const [ref, setRef] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -35,13 +37,15 @@ export function PayForm({ s }: { s: SupplierView }) {
   // card (outside the shop). Online may leave a shop bank account (karots-pos).
   const accounts = method === 'online' ? lockersOf(drawer, 'bank') : []
   const a = num(amount)
+  const byCheque = !refund && method === 'cheque'
+  const chequesOk = !byCheque || (chequesReady(cheques, 'out') && chequesTotal(cheques) === a)
 
   async function submit(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!(a > 0)) return void toast.error('Enter the amount')
     setBusy(true)
     try {
-      const base = { amount, method, reference: ref, note, lockerId: num(source), deferDrawerKick: !cfg.askToPrint }
+      const base = { amount, method, reference: ref, note, lockerId: num(source), deferDrawerKick: !cfg.askToPrint, cheques: byCheque ? toChequeLines(cheques) : undefined }
       const r = refund
         ? await api<ReceiptRef>(`/till/suppliers/${s.id}/refund`, { json: base satisfies SupplierRefundRequest })
         : await api<ReceiptRef>(`/till/suppliers/${s.id}/pay`, { json: { ...base, mode } satisfies SupplierPayRequest })
@@ -92,8 +96,11 @@ export function PayForm({ s }: { s: SupplierView }) {
         </div>
         {!refund && a > owed && owed >= 0 && a > 0 && <small className="font-normal">{money(sym, a - Math.max(owed, 0))} beyond what's owed stays with them as an advance.</small>}
       </label>
-      <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource('') }} options={[['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']]} />
-      {method === 'cash' ? (
+      <Seg label="Method" value={method} options={PAY_METHODS.filter(([m]) => m !== 'cheque' || (!refund && banks.length > 0))}
+        onChange={(m) => { setMethod(m); setSource(''); if (m === 'cheque' && !cheques.length) setCheques([blankCheque(amount, String(banks[0]?.id ?? ''))]) }} />
+      {byCheque ? (
+        <ChequeLines dir="out" lines={cheques} onChange={setCheques} places={banks} sym={sym} want={a} />
+      ) : method === 'cash' ? (
         <div className={LABEL}>{refund ? 'Into' : 'From'}<SourcePicker value={source} onChange={setSource} lockers={cashLockers} sym={sym} /></div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
@@ -105,7 +112,7 @@ export function PayForm({ s }: { s: SupplierView }) {
         </div>
       )}
       <input aria-label="Note" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />
-      <Button type="submit" size="lg" disabled={busy || !(a > 0)} className="mt-auto h-12 text-[15px]">
+      <Button type="submit" size="lg" disabled={busy || !(a > 0) || !chequesOk} className="mt-auto h-12 text-[15px]">
         {refund ? `Take ${a > 0 ? money(sym, a) : ''} back` : `Pay ${a > 0 ? money(sym, a) : ''}`}
       </Button>
     </form>

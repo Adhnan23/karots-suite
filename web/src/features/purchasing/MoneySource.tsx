@@ -14,6 +14,10 @@ export const moneySourcesQuery = queryOptions({ queryKey: ['admin', 'money-sourc
 export const sourcesFor = (all: MoneySource[], m: Method) =>
   all.filter((s) => (m === 'cash' ? s.kind !== 'card' && s.kind !== 'bank' : s.kind === (m === 'card' ? 'card' : 'bank')))
 
+/** The shop's bank places a given cheque can be drawn on. */
+export const bankPlaces = (all: MoneySource[] | undefined) =>
+  sourcesFor(all ?? [], 'online').map((s) => ({ id: Number(s.value.split(':')[1]), name: s.label }))
+
 /** Admin money source/destination. Cash must name one; card and online may be
  * outside the shop ("") unless `required` (money from a customer must land in
  * a shop account). */

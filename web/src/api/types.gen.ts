@@ -1291,6 +1291,11 @@ export interface AdminExpenseRow {
   serviceName: string;
   paidFrom: string;
   unpaid: string; // > 0: its cheque bounced / was cancelled — pay it again
+  unpaidWhy: string; // bounced | cancelled (the latest returned cheque), "" when paid
+  /**
+   * ChequePending: a cheque written for it hasn't cleared yet (amount and void are locked).
+   */
+  chequePending: boolean;
 }
 /**
  * ExpenseCategoryTotal is one category chip: its share of the range.

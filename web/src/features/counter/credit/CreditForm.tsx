@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Banknote, CreditCard, Smartphone, Wallet } from 'lucide-react'
+import { Banknote, CreditCard, ScrollText, Smartphone, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -13,6 +13,7 @@ import { dec, money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { slots } from '@/plugins/slots'
 import { afterSlip, moneySlip } from '../slip'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 
 type Mode = 'pay' | 'refund'
 const LABEL = 'flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground'
@@ -35,6 +36,7 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
   const [note, setNote] = useState(opts?.note ?? '')
   const [busy, setBusy] = useState(false)
   const [meta, setMeta] = useState<Record<string, string>>({}) // a plugin tender's detail
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const PluginDetail = slots.tillTenders.find((t) => t.value === method)?.Detail
   const accounts = method === 'card' ? lockersOf(drawer, 'card') : method === 'online' ? lockersOf(drawer, 'bank') : []
   const [account, setAccount] = useState('')
@@ -42,10 +44,13 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
     { v: 'cash', label: 'Cash', Icon: Banknote },
     ...(lockersOf(drawer, 'card').length ? [{ v: 'card', label: 'Card', Icon: CreditCard }] : []),
     ...(lockersOf(drawer, 'bank').length ? [{ v: 'online', label: 'Online', Icon: Smartphone }] : []),
+    { v: 'cheque', label: 'Cheque', Icon: ScrollText },
     ...cfg.tenderMethods.filter((t) => t.onPayments).map((t) => ({ v: t.value, label: t.label, Icon: slots.tillTenders.find((x) => x.value === t.value)?.Icon ?? Wallet })),
   ]
   const a = num(amount)
   const after = mode === 'pay' ? bal - a : bal + a
+  const byCheque = mode === 'pay' && method === 'cheque'
+  const chequesOk = !byCheque || (chequesReady(cheques, 'in') && chequesTotal(cheques) === a)
 
   async function submit(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -54,7 +59,7 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
     try {
       if (mode === 'pay') {
         const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint,
-          meta: Object.keys(meta).length ? meta : undefined }
+          meta: Object.keys(meta).length ? meta : undefined, cheques: byCheque ? toChequeLines(cheques) : undefined }
         const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
         afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, slipPath.debt(r.paymentId), method === 'cash')
         opts?.onDone?.({ mode, paymentId: r.paymentId, amount })
@@ -102,24 +107,25 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
       {mode === 'pay' && methods.length > 1 && (
         <div role="radiogroup" aria-label="Paid by" className="grid grid-cols-3 gap-1.5">
           {methods.map(({ v, label, Icon }) => (
-            <button key={v} type="button" role="radio" aria-checked={method === v} onClick={() => { setMethod(v); setAccount(''); setMeta({}) }}
+            <button key={v} type="button" role="radio" aria-checked={method === v} onClick={() => { setMethod(v); setAccount(''); setMeta({}); if (v === 'cheque' && !cheques.length) setCheques([blankCheque(amount)]) }}
               className="flex flex-col items-center gap-1 rounded-[var(--radius-sm)] border border-border bg-muted py-2 text-[12px] font-bold aria-checked:border-brand aria-checked:bg-brand aria-checked:text-brand-foreground">
               <Icon size={18} />{label}
             </button>
           ))}
         </div>
       )}
+      {byCheque && <ChequeLines dir="in" lines={cheques} onChange={setCheques} sym={sym} want={a} />}
       {mode === 'pay' && PluginDetail && <PluginDetail meta={meta} setMeta={setMeta} />}
       {accounts.length > 1 && (
         <select aria-label="Account" value={account || String(accounts[0].id)} onChange={(e) => setAccount(e.target.value)} className={cn(FIELD, 'appearance-auto')}>
           {accounts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
         </select>
       )}
-      {mode === 'pay' && method !== 'cash' && (
+      {mode === 'pay' && method !== 'cash' && method !== 'cheque' && (
         <input aria-label="Reference" placeholder="Reference (optional)" value={ref} onChange={(e) => setRef(e.target.value)} className={FIELD} />
       )}
       {mode === 'pay' && <input aria-label="Note" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />}
-      <Button type="submit" size="lg" disabled={busy || !(a > 0)} className="h-12 text-[15px]">
+      <Button type="submit" size="lg" disabled={busy || !(a > 0) || !chequesOk} className="h-12 text-[15px]">
         {mode === 'pay' ? `Collect ${a > 0 ? money(sym, a) : ''}` : `Refund ${a > 0 ? money(sym, a) : ''} from the drawer`}
       </Button>
     </form>

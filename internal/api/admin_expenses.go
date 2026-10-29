@@ -110,7 +110,8 @@ func (h *handlers) AdminExpenses(c echo.Context) error {
 		return err
 	}
 	f.Limit, f.Offset = counterPage, listOffset(c)
-	rows, err := expenses.NewService(h.d.DB).List(c.Request().Context(), f)
+	ctx := c.Request().Context()
+	rows, err := expenses.NewService(h.d.DB).List(ctx, f)
 	if err != nil {
 		return err
 	}
@@ -119,6 +120,11 @@ func (h *handlers) AdminExpenses(c echo.Context) error {
 		r := AdminExpenseRow{ID: e.ID, Date: e.ExpenseDate.Format("2006-01-02"), Category: e.Category, Amount: dec2(e.Amount),
 			Description: strOr(e.Description), PaidBy: strOr(e.PaidByName), ServiceName: strOr(e.ServiceName), PaidFrom: strOr(e.PaidFrom),
 			Unpaid: dec2(e.Unpaid)}
+		h.d.DB.GetContext(ctx, &r.ChequePending, `SELECT EXISTS (SELECT 1 FROM cheques WHERE expense_id = $1 AND status = 'pending')`, e.ID) //nolint:errcheck // a hint only
+		if e.Unpaid.IsPositive() {
+			h.d.DB.GetContext(ctx, &r.UnpaidWhy, `SELECT COALESCE((SELECT status FROM cheques WHERE expense_id = $1 AND status IN ('bounced','cancelled')
+				ORDER BY status_date DESC, id DESC LIMIT 1), '')`, e.ID) //nolint:errcheck // a label only
+		}
 		if e.ServiceProductID != nil {
 			r.ServiceID = *e.ServiceProductID
 		}

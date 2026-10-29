@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest, CustomerRefundRequest, ReceiptRef, TenderMethod } from '@/api/types.gen'
+import { blankCheque, ChequeLines, chequesReady, chequesTotal, toChequeLines, type ChequeDraftLine } from '@/components/admin/ChequeLines'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@/features/purchasing/MoneySource'
@@ -26,6 +27,7 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
   const plugins = useQuery(tenderMethodsQuery).data ?? []
   const methods: [string, string][] = [
     ...([['cash', 'Cash'], ['card', 'Card'], ['online', 'Online']] as [Method, string][]).filter(([m]) => m === 'cash' || sourcesFor(sources, m).length > 0),
+    ['cheque', 'Cheque'],
     ...plugins.map((t): [string, string] => [t.value, t.label]),
   ]
   const owed = Math.max(num(c.owed), 0)
@@ -34,17 +36,21 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
   const [method, setMethod] = useState('cash')
   const [meta, setMeta] = useState<Record<string, string>>({}) // a plugin tender's detail
   const core = method === 'cash' || method === 'card' || method === 'online'
+  const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const PluginDetail = slots.tillTenders.find((t) => t.value === method)?.Detail
   const [source, setSource] = useState('')
   const [oldFirst, setOldFirst] = useState(false)
   const [reference, setReference] = useState('')
   const [busy, setBusy] = useState(false)
   const a = num(amount)
+  const byCheque = method === 'cheque'
+  const chequesOk = !byCheque || (chequesReady(cheques, 'in') && chequesTotal(cheques) === a)
   const where = method === 'cash' ? 'Cash into' : method === 'card' ? 'Card account' : 'Bank account'
   async function save() {
     setBusy(true)
     try {
-      const body: CustomerPayRequest = { amount, method, reference, note: '', source: core ? source : '', oldDebtFirst: oldFirst, meta: core ? undefined : meta }
+      const body: CustomerPayRequest = { amount, method, reference, note: '', source: core ? source : '', oldDebtFirst: oldFirst, meta: core || byCheque ? undefined : meta,
+        cheques: byCheque ? toChequeLines(cheques) : undefined }
       const r = await api<CreditPaymentResult>(`/admin/customers/${c.id}/payment`, { json: body })
       void slipOut(slipPath.debt(r.paymentId), `Collected ${money(sym, a)} · ${r.receiptNo}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -57,7 +63,7 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Collect from ${c.name}`} submit={`↓ Collect ${a > 0 ? money(sym, a) : ''}`} busy={busy || !(a > 0)} onSubmit={save}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Collect from ${c.name}`} submit={`↓ Collect ${a > 0 ? money(sym, a) : ''}`} busy={busy || !(a > 0) || !chequesOk} onSubmit={save}>
       <p className="text-sm text-muted-foreground">Owes <b className="text-foreground tabular-nums">{money(sym, owed)}</b>{old > 0 && <> · old debt {money(sym, old)}</>}</p>
       <Field label="Amount received" hint={a > owed && a > 0 ? `${money(sym, a - owed)} over what's owed stays as their advance.` : undefined}>
         <div className="flex gap-1.5">
@@ -67,8 +73,9 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
         </div>
       </Field>
       {old > 0 && <Seg label="Clear first" value={oldFirst ? 'old' : 'new'} onChange={(v) => setOldFirst(v === 'old')} options={[['new', 'Recent bills first'], ['old', 'Old debt first']]} />}
-      {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setMeta({}); setSource(m === 'cash' || !['card', 'online'].includes(m) ? '' : sourcesFor(sources, m as Method)[0]?.value ?? '') }} options={methods} />}
-      {core ? <Field label={where}><MoneySourcePicker method={method as Method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
+      {methods.length > 1 && <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setMeta({}); if (m === 'cheque' && !cheques.length) setCheques([blankCheque(amount)]); setSource(m === 'cash' || !['card', 'online'].includes(m) ? '' : sourcesFor(sources, m as Method)[0]?.value ?? '') }} options={methods} />}
+      {byCheque ? <ChequeLines dir="in" lines={cheques} onChange={setCheques} sym={sym} want={a} />
+        : core ? <Field label={where}><MoneySourcePicker method={method as Method} value={source} onChange={setSource} sym={sym} into label={where} required /></Field>
         : PluginDetail && <PluginDetail meta={meta} setMeta={setMeta} />}
       <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Optional" /></Field>
     </FormSheet>
