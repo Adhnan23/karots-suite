@@ -101,7 +101,7 @@ function PaidFrom({ e, onPay }: { e: AdminExpenseRow; onPay: () => void }) {
     return (
       <span className="flex flex-wrap items-center gap-1.5">
         <span className="font-semibold text-warning">Not paid — cheque {e.unpaidWhy || 'returned'}</span>
-        <button type="button" onClick={(x) => { x.stopPropagation(); onPay() }} className="rounded-pill border border-border px-2.5 py-0.5 text-[12px] font-bold hover:bg-muted">Pay</button>
+        <button type="button" onClick={(x) => { x.stopPropagation(); onPay() }} className="relative z-10 rounded-pill border border-border px-2.5 py-0.5 text-[12px] font-bold hover:bg-muted">Pay</button>
       </span>
     )
   if (e.chequePending) return <MethodBadge method="cheque" status="pending" />
