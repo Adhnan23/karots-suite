@@ -7,6 +7,7 @@ import (
 
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
@@ -62,7 +63,13 @@ func (h *handlers) CounterExpenseCreate(c echo.Context) error {
 	if err := c.Validate(&in); err != nil { // no ExpenseDate: cashiers can't backdate
 		return err
 	}
-	src, err := h.counterSource(c, req.LockerID)
+	var src payout.Source
+	var err error
+	if req.Method == payout.MethodCheque {
+		src, err = h.counterGiven(c, req.Method, 0, req.Cheques)
+	} else {
+		src.Loc, err = h.counterSource(c, req.LockerID)
+	}
 	if err != nil {
 		return err
 	}
@@ -70,6 +77,6 @@ func (h *handlers) CounterExpenseCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionCreate, "expense", strconv.FormatInt(id, 10), "recorded expense paid from "+rec.FromLabel+" at the counter")
-	return h.afterCounterMove(ctx, c, src, req.CounterMoneyRequest, rec)
+	h.audit(c, audit.ActionCreate, "expense", strconv.FormatInt(id, 10), "recorded expense paid "+expensePaid(src, rec)+" at the counter")
+	return h.counterSlip(c, src.Loc, req.CounterMoneyRequest, rec)
 }

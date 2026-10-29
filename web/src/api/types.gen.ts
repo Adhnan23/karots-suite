@@ -509,6 +509,8 @@ export interface ExpenseRequest extends CounterMoneyRequest {
   amount: string;
   description: string;
   serviceProductId: number /* int64 */;
+  method?: string; // "" = cash from the drawer / LockerID; cheque = Cheques
+  cheques?: ChequeLine[]; // Method cheque: adding up to Amount
 }
 /**
  * ConversionRow is one "break a pack" recipe: 1 From = Ratio × To.
@@ -846,9 +848,10 @@ export interface SupplierView extends SupplierRow {
 export interface SupplierPayRequest extends CounterMoneyRequest {
   amount: string;
   mode: string;
-  method: string; // cash | card | online
+  method: string; // cash | card | online | cheque
   reference: string;
   note: string;
+  cheques?: ChequeLine[]; // Method cheque: drawn on bank places, adding up to Amount
 }
 /**
  * SupplierRefundRequest takes money back from a supplier (into the drawer or a locker).
@@ -888,6 +891,7 @@ export interface PayNow {
   amount: string; // "" / 0 = all on credit
   method: string;
   lockerId: number /* int64 */;
+  cheques?: ChequeLine[]; // Method cheque
 }
 export interface ReceiveRequest {
   invoiceNo: string;
@@ -1282,6 +1286,7 @@ export interface AdminExpenseRow {
   serviceId: number /* int64 */;
   serviceName: string;
   paidFrom: string;
+  unpaid: string; // > 0: its cheque bounced / was cancelled — pay it again
 }
 /**
  * ExpenseCategoryTotal is one category chip: its share of the range.
@@ -1315,6 +1320,17 @@ export interface AdminExpenseRequest {
   date: string; // YYYY-MM-DD; "" = today
   serviceId: number /* int64 */;
   source: string;
+  method?: string; // "" = from Source; cheque = Cheques
+  cheques?: ChequeLine[]; // Method cheque: adding up to Amount
+}
+/**
+ * AdminExpensePayRequest pays what is still unpaid on an expense whose cheque
+ * bounced or was cancelled.
+ */
+export interface AdminExpensePayRequest {
+  method: string; // cash | card | online | cheque
+  source: string;
+  cheques?: ChequeLine[];
 }
 /**
  * ExpenseVoidInfo prepares the void sheet: whether money moved for it and from
@@ -1867,6 +1883,7 @@ export interface AdminSupplierPayRequest {
   reference: string;
   note: string;
   source: string; // MoneySource value; "" = outside the shop (not for cash)
+  cheques?: ChequeLine[]; // Method cheque: drawn on bank places, adding up to the payment
 }
 /**
  * AdminMoneyRequest is money a party hands back (supplier refund).
@@ -1943,6 +1960,7 @@ export interface AdminPayNow {
   amount: string; // "" / 0 = all on credit
   method: string;
   source: string;
+  cheques?: ChequeLine[]; // Method cheque
 }
 /**
  * PurchaseRequest is an order (draft), an edit of one, a walk-in delivery or

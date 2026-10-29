@@ -97,6 +97,7 @@ type AdminExpenseRow struct {
 	ServiceID   int64  `json:"serviceId"`
 	ServiceName string `json:"serviceName"`
 	PaidFrom    string `json:"paidFrom"`
+	Unpaid      string `json:"unpaid"` // > 0: its cheque bounced / was cancelled — pay it again
 }
 
 // ExpenseCategoryTotal is one category chip: its share of the range.
@@ -125,8 +126,18 @@ type AdminExpenseRequest struct {
 	Amount      string `json:"amount"`
 	Description string `json:"description"`
 	Date        string `json:"date"` // YYYY-MM-DD; "" = today
-	ServiceID   int64  `json:"serviceId"`
-	Source      string `json:"source"`
+	ServiceID   int64        `json:"serviceId"`
+	Source      string       `json:"source"`
+	Method      string       `json:"method,omitempty"`  // "" = from Source; cheque = Cheques
+	Cheques     []ChequeLine `json:"cheques,omitempty"` // Method cheque: adding up to Amount
+}
+
+// AdminExpensePayRequest pays what is still unpaid on an expense whose cheque
+// bounced or was cancelled.
+type AdminExpensePayRequest struct {
+	Method  string       `json:"method"` // cash | card | online | cheque
+	Source  string       `json:"source"`
+	Cheques []ChequeLine `json:"cheques,omitempty"`
 }
 
 // ExpenseVoidInfo prepares the void sheet: whether money moved for it and from

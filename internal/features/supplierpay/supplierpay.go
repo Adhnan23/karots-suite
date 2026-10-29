@@ -123,7 +123,7 @@ func (s *Service) History(ctx context.Context, supplierID int64) ([]Payment, err
 
 func normMethod(m string) (string, bool) {
 	switch m {
-	case "cash", "card", "online":
+	case "cash", "card", "online", "cheque":
 		return m, true
 	case "":
 		return "cash", true
@@ -145,7 +145,7 @@ func strOrNil(s string) *string {
 func validatePay(in PayInput) (method string, total decimal.Decimal, err error) {
 	m, ok := normMethod(in.Method)
 	if !ok {
-		return "", decimal.Zero, apperr.Validation("payment method must be cash, card or online")
+		return "", decimal.Zero, apperr.Validation("payment method must be cash, card, online or cheque")
 	}
 	total = in.Unallocated
 	for _, a := range in.Allocations {

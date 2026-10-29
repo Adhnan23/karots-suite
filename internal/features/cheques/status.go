@@ -79,10 +79,11 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 // Return marks a pending cheque bounced or cancelled (the same for the money):
 // see undo for what it puts back.
 func (s *Service) Return(ctx context.Context, id int64, status string, actor int64) error {
-	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return s.returnTx(ctx, tx, id, status, actor) })
+	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return s.ReturnTx(ctx, tx, id, status, actor) })
 }
 
-func (s *Service) returnTx(ctx context.Context, tx *sqlx.Tx, id int64, status string, actor int64) error {
+// ReturnTx is Return in the caller's tx.
+func (s *Service) ReturnTx(ctx context.Context, tx *sqlx.Tx, id int64, status string, actor int64) error {
 	if status != "bounced" && status != "cancelled" {
 		return apperr.Validation("status must be bounced or cancelled")
 	}

@@ -227,15 +227,11 @@ func (h *handlers) adminPayOnDelivery(ctx context.Context, tx *sqlx.Tx, d *purch
 	if err != nil || !amt.IsPositive() {
 		return decimal.Zero, nil, cashflow.External(), err
 	}
-	method, ok := normSupplierMethod(pay.Method)
-	if !ok {
-		return amt, nil, cashflow.External(), apperr.Validation("invalid payment method")
-	}
-	src, err := h.adminMoneyLoc(ctx, method, pay.Source)
+	src, err := h.adminGiven(ctx, pay.Method, pay.Source, pay.Cheques)
 	if err != nil {
-		return amt, nil, src, err
+		return amt, nil, src.Loc, err
 	}
-	return h.settleDelivery(ctx, tx, d, amt, method, src, userID)
+	return h.settleDelivery(ctx, tx, d, amt, src, userID)
 }
 
 // receiveDone answers a receive: the purchase, what was paid, the slip.

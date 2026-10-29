@@ -14,6 +14,7 @@ import (
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
@@ -29,37 +30,71 @@ func (h *handlers) registerAdminExpenses(g *echo.Group) {
 	g.PUT("/expenses/:id", h.AdminExpenseUpdate)
 	g.GET("/expenses/:id/void", h.AdminExpenseVoidInfo)
 	g.POST("/expenses/:id/void", h.AdminExpenseVoid)
+	g.POST("/expenses/:id/pay", h.AdminExpensePay)
 }
 
 // recordExpense books an expense and pays it from src in one tx — the expense
-// row, the debit and its CR- receipt commit together or not at all. src
-// External = paid from outside the shop: no money leg, no receipt. The admin
-// form and the counter both come through here.
-func (h *handlers) recordExpense(ctx context.Context, in expenses.CreateInput, src cashflow.Location, userID int64) (int64, *cashflow.Receipt, error) {
-	reason := strings.TrimSpace(in.Category)
-	if in.Description != nil && *in.Description != "" {
-		reason += " - " + *in.Description
-	}
-	// Never out of a card-machine account: that money leaves only through Settle card.
-	if err := h.d.Cashflow.RequirePlace(ctx, src, ""); err != nil {
-		return 0, nil, err
-	}
+// row, the debit and its CR- receipt (or its cheques) commit together or not at
+// all (payout.ExpenseTx). src External = paid from outside the shop: no money
+// leg, no receipt. The admin form and the counter both come through here.
+func (h *handlers) recordExpense(ctx context.Context, in expenses.CreateInput, src payout.Source, userID int64) (int64, *cashflow.Receipt, error) {
 	var id int64
 	var rec *cashflow.Receipt
 	err := db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
-		e, err := expenses.NewService(h.d.DB).CreateInTx(ctx, tx, in, userID)
-		if err != nil || src.Kind == cashflow.KindExternal {
-			if e != nil {
-				id = e.ID
-			}
-			return err
-		}
-		id = e.ID
-		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: e.Amount,
-			Reason: reason, ReceiptKind: "expense", Ref: &cashflow.Ref{Kind: "expense", ID: e.ID}, ActorID: userID})
+		var err error
+		id, rec, err = h.payout().ExpenseTx(ctx, tx, in, src, userID)
 		return err
 	})
 	return id, rec, err
+}
+
+// expensePaid is the audit wording for how an expense was paid.
+func expensePaid(src payout.Source, rec *cashflow.Receipt) string {
+	switch {
+	case src.IsCheque():
+		return "by " + chequeCount(len(src.Cheques))
+	case rec != nil:
+		return "from " + rec.FromLabel
+	}
+	return "from outside the shop"
+}
+
+// AdminExpensePay pays what is still unpaid on an expense (its cheque bounced
+// or was cancelled), from a place or by new cheques; it stays one expense.
+func (h *handlers) AdminExpensePay(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req AdminExpensePayRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid payment")
+	}
+	ctx := c.Request().Context()
+	src, err := h.expenseSource(ctx, req.Method, req.Source, req.Cheques)
+	if err != nil {
+		return err
+	}
+	var rec *cashflow.Receipt
+	err = db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		rec, err = h.payout().PayAgainTx(ctx, tx, id, src, middleware.CurrentUserID(c))
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionPayment, "expense", strconv.FormatInt(id, 10), "paid the unpaid expense "+expensePaid(src, rec))
+	return h.adminMoneyDone(ctx, c, src.Loc, rec)
+}
+
+// expenseSource is an admin expense's source: cheques, or any place / outside
+// the shop (no method — an expense names none).
+func (h *handlers) expenseSource(ctx context.Context, method, source string, lines []ChequeLine) (payout.Source, error) {
+	if method == payout.MethodCheque {
+		return h.adminGiven(ctx, method, source, lines)
+	}
+	loc, err := parseLocation(source)
+	return payout.Source{Loc: loc}, err
 }
 
 // expenseFilter reads the list's range (default: unbounded), ?category= and ?q=.
@@ -82,7 +117,8 @@ func (h *handlers) AdminExpenses(c echo.Context) error {
 	out := make([]AdminExpenseRow, 0, len(rows))
 	for _, e := range rows {
 		r := AdminExpenseRow{ID: e.ID, Date: e.ExpenseDate.Format("2006-01-02"), Category: e.Category, Amount: dec2(e.Amount),
-			Description: strOr(e.Description), PaidBy: strOr(e.PaidByName), ServiceName: strOr(e.ServiceName), PaidFrom: strOr(e.PaidFrom)}
+			Description: strOr(e.Description), PaidBy: strOr(e.PaidByName), ServiceName: strOr(e.ServiceName), PaidFrom: strOr(e.PaidFrom),
+			Unpaid: dec2(e.Unpaid)}
 		if e.ServiceProductID != nil {
 			r.ServiceID = *e.ServiceProductID
 		}
@@ -152,22 +188,21 @@ func (h *handlers) AdminExpenseCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	src, err := parseLocation(req.Source)
+	ctx := c.Request().Context()
+	src, err := h.expenseSource(ctx, req.Method, req.Source, req.Cheques)
 	if err != nil {
 		return err
 	}
-	ctx := c.Request().Context()
 	id, rec, err := h.recordExpense(ctx, in, src, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}
 	out := ReceiptRef{}
-	detail := "recorded expense paid from outside the shop"
 	if rec != nil {
-		out.ReceiptID, detail = &rec.ID, "recorded expense paid from "+rec.FromLabel
+		out.ReceiptID = &rec.ID
 	}
-	h.audit(c, audit.ActionCreate, "expense", strconv.FormatInt(id, 10), detail)
-	if src.Kind == cashflow.KindTill {
+	h.audit(c, audit.ActionCreate, "expense", strconv.FormatInt(id, 10), "recorded expense paid "+expensePaid(src, rec))
+	if src.Loc.Kind == cashflow.KindTill {
 		h.d.KickDrawer(ctx)
 	}
 	return c.JSON(http.StatusCreated, out)
@@ -258,6 +293,11 @@ func (h *handlers) AdminExpenseVoid(c echo.Context) error {
 // moves the same amount from outside back into dest — a place of ours, never
 // an archived locker. Returns the CR- receipt, or nil when no money had moved.
 func (h *handlers) voidExpenseTx(ctx context.Context, tx *sqlx.Tx, id int64, dest cashflow.Location, actorID int64) (*cashflow.Receipt, error) {
+	if n, err := expenses.PendingCheques(ctx, tx, id); err != nil {
+		return nil, err
+	} else if n > 0 {
+		return nil, expenses.ErrChequePending
+	}
 	pay, err := expenses.PaidFrom(ctx, tx, id)
 	if err != nil {
 		return nil, err
@@ -268,6 +308,10 @@ func (h *handlers) voidExpenseTx(ctx context.Context, tx *sqlx.Tx, id int64, des
 	}
 	if err := cashflow.RequirePlaceTx(ctx, tx, dest, ""); err != nil {
 		return nil, err
+	}
+	// A finished cheque keeps its own record; it just stops pointing here.
+	if _, err := tx.ExecContext(ctx, `UPDATE cheques SET expense_id = NULL WHERE expense_id = $1`, id); err != nil {
+		return nil, apperr.Internal("failed to void expense", err)
 	}
 	e, err := expenses.NewRepository(tx).DeleteReturning(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {

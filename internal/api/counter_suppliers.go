@@ -11,6 +11,7 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/supplierpay"
 	"karots-suite/internal/features/suppliers"
@@ -52,17 +53,11 @@ func (h *handlers) supplierMoneyLoc(c echo.Context, method string, lockerID int6
 	return loc, h.d.Cashflow.RequirePlace(c.Request().Context(), loc, method)
 }
 
-// paySupplierTx books a supplier payment and, unless it was paid from outside
-// the shop, the money leaving the drawer/locker — in the caller's tx
-// (karots-pos paySupplierTx). No slip when nothing left the counter.
-func (h *handlers) paySupplierTx(ctx context.Context, tx *sqlx.Tx, supID int64, name string, in supplierpay.PayInput, src cashflow.Location, userID int64) (*cashflow.Receipt, error) {
-	res, err := supplierpay.NewService(h.d.DB).PayTx(ctx, tx, supID, in, userID)
-	if err != nil || src.Kind == cashflow.KindExternal {
-		return nil, err
-	}
-	return h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: res.Total,
-		Reason: "supplier payment: " + name, ReceiptKind: "supplier_payment", Party: name,
-		Ref: &cashflow.Ref{Kind: "supplier_payment", ID: res.PaymentID}, ActorID: userID})
+// paySupplierTx books a supplier payment and pays it from src — the money
+// leaving the drawer/locker now, or the cheques written for it — in the
+// caller's tx (payout.SupplierTx). No slip when nothing left the counter.
+func (h *handlers) paySupplierTx(ctx context.Context, tx *sqlx.Tx, supID int64, name string, in supplierpay.PayInput, src payout.Source, userID int64) (*cashflow.Receipt, error) {
+	return h.payout().SupplierTx(ctx, tx, supID, name, in, src, userID)
 }
 
 func (h *handlers) CounterSuppliers(c echo.Context) error {
@@ -126,11 +121,7 @@ func (h *handlers) CounterSupplierPay(c echo.Context) error {
 	if err != nil || !amt.IsPositive() {
 		return apperr.Validation("enter the amount paid")
 	}
-	method, ok := normSupplierMethod(req.Method)
-	if !ok {
-		return apperr.Validation("invalid payment method")
-	}
-	src, err := h.supplierMoneyLoc(c, method, req.LockerID)
+	src, err := h.counterGiven(c, req.Method, req.LockerID, req.Cheques)
 	if err != nil {
 		return err
 	}
@@ -145,7 +136,7 @@ func (h *handlers) CounterSupplierPay(c echo.Context) error {
 		return err
 	}
 	in := supplierpay.Distribute(inv, sup.OpeningUnlinked, amt, req.Mode)
-	in.Method, in.Reference, in.Note = method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
+	in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
@@ -155,8 +146,8 @@ func (h *handlers) CounterSupplierPay(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "paid "+money.Display(amt)+" ("+method+") at the counter")
-	return h.counterSlip(c, src, req.CounterMoneyRequest, rec)
+	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "paid "+money.Display(amt)+" ("+paidHow(src)+") at the counter")
+	return h.counterSlip(c, src.Loc, req.CounterMoneyRequest, rec)
 }
 
 // CounterSupplierRefund records money a supplier hands back.

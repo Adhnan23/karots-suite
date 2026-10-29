@@ -11,6 +11,7 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/supplierpay"
@@ -64,33 +65,30 @@ func (h *handlers) payOnDelivery(ctx context.Context, tx *sqlx.Tx, c echo.Contex
 	if !amt.IsPositive() {
 		return decimal.Zero, nil, src, nil
 	}
-	method, ok := normSupplierMethod(pay.Method)
-	if !ok {
-		return amt, nil, src, apperr.Validation("invalid payment method")
-	}
-	src, err := h.supplierMoneyLoc(c, method, pay.LockerID)
+	given, err := h.counterGiven(c, pay.Method, pay.LockerID, pay.Cheques)
 	if err != nil {
-		return amt, nil, src, err
+		return amt, nil, given.Loc, err
 	}
-	return h.settleDelivery(ctx, tx, pur, amt, method, src, userID)
+	return h.settleDelivery(ctx, tx, pur, amt, given, userID)
 }
 
 // settleDelivery pays up to what's still owed on a just-booked purchase (credit
-// settlement may already have covered some of it) from src.
-func (h *handlers) settleDelivery(ctx context.Context, tx *sqlx.Tx, pur *purchases.Detail, amt decimal.Decimal, method string, src cashflow.Location, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
+// settlement may already have covered some of it) from src. Cheques must add
+// up to what is actually paid (payout refuses a mismatch).
+func (h *handlers) settleDelivery(ctx context.Context, tx *sqlx.Tx, pur *purchases.Detail, amt decimal.Decimal, src payout.Source, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
 	fresh, err := purchases.NewRepository(tx).FindByID(ctx, pur.Purchase.ID)
 	if err != nil {
-		return amt, nil, src, apperr.Internal("failed to re-read the invoice", err)
+		return amt, nil, src.Loc, apperr.Internal("failed to re-read the invoice", err)
 	}
 	if bal := fresh.Balance(); amt.GreaterThan(bal) {
 		amt = decimal.Max(bal, decimal.Zero)
 	}
 	if !amt.IsPositive() {
-		return decimal.Zero, nil, src, nil
+		return decimal.Zero, nil, src.Loc, nil
 	}
 	rec, err := h.paySupplierTx(ctx, tx, pur.Purchase.SupplierID, pur.Purchase.SupplierName,
-		supplierpay.PayInput{Method: method, Allocations: []supplierpay.Alloc{{PurchaseID: pur.Purchase.ID, Amount: amt}}}, src, userID)
-	return amt, rec, src, err
+		supplierpay.PayInput{Method: src.Method, Allocations: []supplierpay.Alloc{{PurchaseID: pur.Purchase.ID, Amount: amt}}}, src, userID)
+	return amt, rec, src.Loc, err
 }
 
 func (h *handlers) receiveResult(c echo.Context, status int, d *purchases.Detail, paid decimal.Decimal, rec *cashflow.Receipt, src cashflow.Location, deferKick bool) error {

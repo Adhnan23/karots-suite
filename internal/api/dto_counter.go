@@ -38,8 +38,10 @@ type ExpenseRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
 	Category            string `json:"category"`
 	Amount              string `json:"amount"`
-	Description         string `json:"description"`
-	ServiceProductID    int64  `json:"serviceProductId"`
+	Description         string       `json:"description"`
+	ServiceProductID    int64        `json:"serviceProductId"`
+	Method              string       `json:"method,omitempty"`  // "" = cash from the drawer / LockerID; cheque = Cheques
+	Cheques             []ChequeLine `json:"cheques,omitempty"` // Method cheque: adding up to Amount
 }
 
 // ---- Convert ----
@@ -416,9 +418,10 @@ type SupplierPayRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
 	Amount              string `json:"amount"`
 	Mode                string `json:"mode"`
-	Method              string `json:"method"` // cash | card | online
-	Reference           string `json:"reference"`
-	Note                string `json:"note"`
+	Method              string       `json:"method"` // cash | card | online | cheque
+	Reference           string       `json:"reference"`
+	Note                string       `json:"note"`
+	Cheques             []ChequeLine `json:"cheques,omitempty"` // Method cheque: drawn on bank places, adding up to Amount
 }
 
 // SupplierRefundRequest takes money back from a supplier (into the drawer or a locker).
@@ -458,9 +461,10 @@ type OrderView struct {
 
 // PayNow settles part of a delivery on the spot (clamped to what's owed on it).
 type PayNow struct {
-	Amount   string `json:"amount"` // "" / 0 = all on credit
-	Method   string `json:"method"`
-	LockerID int64  `json:"lockerId"`
+	Amount   string       `json:"amount"` // "" / 0 = all on credit
+	Method   string       `json:"method"`
+	LockerID int64        `json:"lockerId"`
+	Cheques  []ChequeLine `json:"cheques,omitempty"` // Method cheque
 }
 
 type ReceiveRequest struct {

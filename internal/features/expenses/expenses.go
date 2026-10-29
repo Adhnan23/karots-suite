@@ -158,6 +158,19 @@ type Payment struct {
 	From     string
 }
 
+// PendingCheques counts the cheques written for an expense that have not
+// cleared, bounced or been cancelled yet, over q.
+func PendingCheques(ctx context.Context, q db.Queryer, id int64) (int, error) {
+	var n int
+	if err := q.GetContext(ctx, &n, `SELECT count(*) FROM cheques WHERE expense_id = $1 AND status = 'pending'`, id); err != nil {
+		return 0, apperr.Internal("failed to check the expense's cheques", err)
+	}
+	return n, nil
+}
+
+// ErrChequePending is the answer to changing an expense whose cheque is still out.
+var ErrChequePending = apperr.Validation("a cheque for this expense is still pending — cancel the cheque first")
+
 // PaidFrom looks up the money move booked for an expense, over q (a tx or the db).
 func PaidFrom(ctx context.Context, q db.Queryer, id int64) (Payment, error) {
 	var p Payment
@@ -284,6 +297,11 @@ func (s *Service) Update(ctx context.Context, id int64, in CreateInput) error {
 		return err
 	}
 	if !amt.Equal(cur.Amount) {
+		if n, err := PendingCheques(ctx, s.repo.q, id); err != nil {
+			return err
+		} else if n > 0 {
+			return ErrChequePending
+		}
 		pay, err := PaidFrom(ctx, s.repo.q, id)
 		if err != nil {
 			return err

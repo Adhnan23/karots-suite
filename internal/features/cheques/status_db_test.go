@@ -27,7 +27,7 @@ func TestSupplierBounceCapsReopen(t *testing.T) {
 	f.exec(`UPDATE purchases SET paid_amount = 300, status = 'partial' WHERE id = $1`, b)
 	owes := f.num(`SELECT outstanding_balance FROM suppliers WHERE id = $1`, f.supplier)
 	c := f.give("300001", 3000, Link{SupplierID: f.supplier, SupplierPaymentID: &pay})
-	if err := f.svc.returnTx(f.ctx, f.tx, c.ID, "bounced", 0); err != nil {
+	if err := f.svc.ReturnTx(f.ctx, f.tx, c.ID, "bounced", 0); err != nil {
 		t.Fatal(err)
 	}
 	eq(t, "B paid", f.num(`SELECT paid_amount FROM purchases WHERE id = $1`, b), 0)
@@ -42,7 +42,7 @@ func TestSupplierBounceCapsReopen(t *testing.T) {
 		t.Fatalf("over-reopened %d, %v", over, err)
 	}
 	eq(t, "bank", f.balance(f.bank), 0)
-	if err := f.svc.returnTx(f.ctx, f.tx, c.ID, "bounced", 0); !isCode(err, "CONFLICT") {
+	if err := f.svc.ReturnTx(f.ctx, f.tx, c.ID, "bounced", 0); !isCode(err, "CONFLICT") {
 		t.Fatalf("second return: %v", err)
 	}
 }
@@ -51,7 +51,7 @@ func TestExpenseBounceUnpaid(t *testing.T) {
 	f := setup(t)
 	exp := f.id(`INSERT INTO expenses (category, amount) VALUES ('TEST chq', 1200) RETURNING id`)
 	c := f.give("300002", 1200, Link{ExpenseID: &exp})
-	if err := f.svc.returnTx(f.ctx, f.tx, c.ID, "cancelled", 0); err != nil {
+	if err := f.svc.ReturnTx(f.ctx, f.tx, c.ID, "cancelled", 0); err != nil {
 		t.Fatal(err)
 	}
 	eq(t, "unpaid", f.num(`SELECT unpaid FROM expenses WHERE id = $1`, exp), 1200)
@@ -70,7 +70,7 @@ func TestStatusChangeIsFinal(t *testing.T) {
 	if err := f.svc.clearTx(f.ctx, f.tx, c.ID, today(), f.bank, 0); !isCode(err, "CONFLICT") {
 		t.Fatalf("clear twice: %v", err)
 	}
-	if err := f.svc.returnTx(f.ctx, f.tx, c.ID, "bounced", 0); !isCode(err, "CONFLICT") {
+	if err := f.svc.ReturnTx(f.ctx, f.tx, c.ID, "bounced", 0); !isCode(err, "CONFLICT") {
 		t.Fatalf("return after clear: %v", err)
 	}
 	if err := fixTx(f.ctx, f.tx, c.ID, FixInput{Bank: "HSBC", Number: "9", Date: "2026-01-01"}, 0); !isCode(err, "CONFLICT") {

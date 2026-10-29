@@ -102,11 +102,7 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	method, ok := normSupplierMethod(req.Method)
-	if !ok {
-		return apperr.Validation("invalid payment method")
-	}
-	src, err := h.adminMoneyLoc(c.Request().Context(), method, req.Source)
+	src, err := h.adminGiven(c.Request().Context(), req.Method, req.Source, req.Cheques)
 	if err != nil {
 		return err
 	}
@@ -123,7 +119,7 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in.Method, in.Reference, in.Note = method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
+	in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
@@ -137,8 +133,8 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	for _, a := range in.Allocations {
 		total = total.Add(a.Amount)
 	}
-	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "paid "+money.Display(total)+" ("+method+")")
-	return h.adminMoneyDone(ctx, c, src, rec)
+	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "paid "+money.Display(total)+" ("+paidHow(src)+")")
+	return h.adminMoneyDone(ctx, c, src.Loc, rec)
 }
 
 // AdminSupplierRefund records money a supplier hands back (capped at the credit

@@ -156,7 +156,7 @@ func testReturnReceived(t *testing.T, status string) {
 	f := setup(t)
 	before, owed := f.balance(f.inHand), f.owed()
 	c := f.receive("100004")
-	if err := f.svc.returnTx(f.ctx, f.tx, c.ID, status, 0); err != nil {
+	if err := f.svc.ReturnTx(f.ctx, f.tx, c.ID, status, 0); err != nil {
 		t.Fatal(err)
 	}
 	eq(t, "in hand", f.balance(f.inHand).Sub(before), 0)

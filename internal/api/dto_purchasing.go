@@ -83,7 +83,8 @@ type AdminSupplierPayRequest struct {
 	Method      string     `json:"method"`
 	Reference   string     `json:"reference"`
 	Note        string     `json:"note"`
-	Source      string     `json:"source"` // MoneySource value; "" = outside the shop (not for cash)
+	Source      string       `json:"source"` // MoneySource value; "" = outside the shop (not for cash)
+	Cheques     []ChequeLine `json:"cheques,omitempty"` // Method cheque: drawn on bank places, adding up to the payment
 }
 
 // AdminMoneyRequest is money a party hands back (supplier refund).
@@ -158,9 +159,10 @@ type PurchaseDetail struct {
 
 // AdminPayNow is paying on delivery from the back office (MoneySource value).
 type AdminPayNow struct {
-	Amount string `json:"amount"` // "" / 0 = all on credit
-	Method string `json:"method"`
-	Source string `json:"source"`
+	Amount  string       `json:"amount"` // "" / 0 = all on credit
+	Method  string       `json:"method"`
+	Source  string       `json:"source"`
+	Cheques []ChequeLine `json:"cheques,omitempty"` // Method cheque
 }
 
 // PurchaseRequest is an order (draft), an edit of one, a walk-in delivery or
