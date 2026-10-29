@@ -74,6 +74,7 @@ const admin: [string, string][] = [
   ['/admin/finance', 'money/finance'],
   ['/admin/lockers', 'money/lockers'],
   ['/admin/expenses', 'money/expenses'],
+  ['/admin/cheques', 'money/cheques'],
   ['/admin/tills', 'money/tills'],
   ['/admin/receipts', 'money/receipts'],
   ['/admin/reports', 'reports/index'],

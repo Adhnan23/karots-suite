@@ -24,6 +24,28 @@ the owner's pocket.
 - Choose which locker a till's deposits and withdrawals go to by default, and whether the
   cashier may pick another.
 - A locker can be **owner only**.
+- **Cheques in hand** is a place the suite keeps for you: customers' cheques sit there until they
+  clear. It isn't counted as cash, and you can't move money in or out of it by hand.
+
+## Cheques
+
+![Cheques](../images/money/cheques.jpg)
+
+A cheque is a way to pay wherever money moves: at the till (for a named customer), on credit and
+advance payments, to suppliers, for expenses, for reload float and for an outside repairer. One
+payment can carry several cheques, post-dated ones too, and each must add up to the payment.
+
+- **Received** cheques wait in Cheques in hand. **Given** cheques wait at the bank account they
+  are drawn on. Nothing moves until you mark one.
+- Open a cheque and mark it **Cleared** (pick the bank it went into, and the day), **Bounced**
+  or **Cancelled**. A bounced or cancelled cheque is owed again: the customer owes it back, the
+  supplier is owed it again, an expense shows **Not paid** with a **Pay** button. There is no
+  charge added.
+- The dashboard reminds you of cheques to deposit today and your own cheques due within three
+  days, and warns when a bank would go below zero once they are paid. Cash flow shows the money
+  **after cheques**.
+- A cheque number seen before gets a warning, never a block. Only admins and managers mark
+  cheques.
 
 ## Till sessions
 
@@ -37,8 +59,8 @@ and an admin or manager can close it for the cashier.
 
 ![Expenses](../images/money/expenses.jpg)
 
-Rent, electricity, wages, transport. Record one from a locker or let a cashier pay it from the
-drawer at the till. An expense can be tagged to a service (such as the photocopier's
+Rent, electricity, wages, transport. Record one from a locker or by cheque, or let a cashier pay
+it from the drawer at the till. An expense can be tagged to a service (such as the photocopier's
 maintenance) so that service's profit is right. A wrong one can be voided.
 
 ## Finance

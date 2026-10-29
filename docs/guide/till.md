@@ -41,6 +41,9 @@ reload and no right-click outside text boxes.
   as the customer's advance (**Keep** / **Keep all**).
 - **On account** sells on credit to a customer with a limit. A cashier can't go over the limit,
   but an admin can approve it.
+- **Cheque** takes a cheque from a named customer (bank, number, date). It goes into Cheques in
+  hand and prints on the receipt; an admin marks it cleared or bounced later (see
+  [Money → Cheques](money.md#cheques)).
 - When change is short in the drawer, the till warns you. It doesn't stop the sale.
 
 ### Holds
@@ -70,7 +73,8 @@ Find the sale by receipt number, customer, phone or product. Pick what's coming 
 
 ### Credit
 
-Customers who owe the shop. Take a payment or an advance, or refund one.
+Customers who owe the shop. Take a payment or an advance (by cash, card, online or one or more
+cheques), or refund one.
 
 ![Credit](../images/till/credit.jpg)
 
@@ -112,13 +116,14 @@ Find a unit by serial or receipt and swap it under warranty.
 
 ### Suppliers
 
-Pay a supplier, receive stock or place an order at the counter (if the cashier may handle suppliers).
+Pay a supplier (cash, or a cheque on a bank account the cashier may use), receive stock or place
+an order at the counter (if the cashier may handle suppliers).
 
 ![Suppliers](../images/till/suppliers.jpg)
 
 ### Expenses
 
-Pay a shop expense from the drawer.
+Pay a shop expense from the drawer, or by cheque.
 
 ![Expenses](../images/till/expenses.jpg)
 

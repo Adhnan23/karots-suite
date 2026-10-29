@@ -11,7 +11,8 @@ running balance:
 - Take payments and advances at the till's [Credit tab](till.md#credit) or here. Change a
   customer leaves can be kept as an advance for next time.
 - Enter an **old balance** from before the suite as an opening balance.
-- Print a **statement** for any period.
+- Print a **statement** for any period. A bounced or cancelled cheque shows on it as a debit
+  (**Cheque bounced**), so the balance is what they really owe.
 - Import or export customers with **Sheets**.
 
 The top of the page shows what customers owe you in total and the advances you hold.
