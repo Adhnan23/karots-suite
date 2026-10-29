@@ -24,8 +24,12 @@ describe('ChequeLines', () => {
     expect(chequesReady(last, 'in')).toBe(false)
     expect(toChequeLines(last)[0]).toEqual({ bank: 'Bank of Ceylon', lockerId: 0, number: '100001', amount: '1000', date: last[0].date, note: '' })
   })
+  it('starts with no date, and needs one', () => {
+    expect(blankCheque('100').date).toBe('')
+    expect(chequeIssue({ ...blankCheque('100'), bank: 'BOC', number: '1' }, 'in')).toBe('date')
+  })
   it('needs a bank place for a given cheque', () => {
-    expect(chequeIssue({ ...blankCheque('100'), number: '1' }, 'out')).toBe('bank account')
-    expect(chequeIssue({ ...blankCheque('100', '7'), number: '1' }, 'out')).toBe('')
+    expect(chequeIssue({ ...blankCheque('100'), number: '1', date: '2026-10-29' }, 'out')).toBe('bank account')
+    expect(chequeIssue({ ...blankCheque('100', '7'), number: '1', date: '2026-10-29' }, 'out')).toBe('')
   })
 })

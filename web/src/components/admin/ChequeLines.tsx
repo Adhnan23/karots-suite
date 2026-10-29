@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import type { ChequeLine } from '@/api/types.gen'
-import { chequeBanksQuery, chequeSeen, today } from '@/features/money/cheques/queries'
+import { chequeBanksQuery, chequeSeen } from '@/features/money/cheques/queries'
 import { money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { INPUT } from './fields'
@@ -11,7 +11,9 @@ import { INPUT } from './fields'
  *  LockerID is the shop's bank place it's drawn on. */
 export type ChequeDraftLine = { bank: string; lockerId: string; number: string; amount: string; date: string; note: string }
 
-export const blankCheque = (amount = '', lockerId = ''): ChequeDraftLine => ({ bank: '', lockerId, number: '', amount, date: today(), note: '' })
+/** A new cheque line: its date is left for the person to type (a date filled
+ *  in for them gets left as it is). */
+export const blankCheque = (amount = '', lockerId = ''): ChequeDraftLine => ({ bank: '', lockerId, number: '', amount, date: '', note: '' })
 export const chequesTotal = (ls: ChequeDraftLine[]) => r2(ls.reduce((t, l) => t + num(l.amount), 0))
 /** What a line still lacks ('' = ready). */
 export const chequeIssue = (l: ChequeDraftLine, dir: 'in' | 'out') =>
