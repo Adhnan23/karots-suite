@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './fixtures'
 
-// Smart reorder levels on the admin side (docs/specs/2026-10-21-smart-reorder-levels-design.md).
+// Smart reorder levels on the admin side.
 test.setTimeout(90_000)
 
 async function signIn(page: Page) {

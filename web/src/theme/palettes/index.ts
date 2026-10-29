@@ -28,5 +28,5 @@ export const PALETTES = [
   { id: 'neumorph', theme: THEME, name: 'Neumorph', swatch: { light: '#E0E5EC', dark: '#2A2D32', brand: '#5A67D8' } },
 ] as const
 
-/** The built-ins added after the first five (docs/specs/2026-10-27-more-palettes-design.md), in picker order. */
+/** The built-ins added after the first five, in picker order. */
 export const NEW_PALETTES: string[] = PALETTES.slice(5).map((p) => p.id)

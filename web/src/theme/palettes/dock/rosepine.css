@@ -1,4 +1,4 @@
-/* Rosé Pine palette (docs/specs/2026-10-27-more-palettes-design.md): soft, muted, elegant (Dawn light, Main dark); extra-round corners, slow gentle motion. */
+/* Rosé Pine palette: soft, muted, elegant (Dawn light, Main dark); extra-round corners, slow gentle motion. */
 
 :root[data-ui="dock"][data-palette="rosepine"] {
   color-scheme: light;

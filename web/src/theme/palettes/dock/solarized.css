@@ -1,4 +1,4 @@
-/* Solarized palette (docs/specs/2026-10-27-more-palettes-design.md): the classic, easy on the eyes all day (light / dark); flat: no shadows, crisp lines, quiet. */
+/* Solarized palette: the classic, easy on the eyes all day (light / dark); flat: no shadows, crisp lines, quiet. */
 
 :root[data-ui="dock"][data-palette="solarized"] {
   color-scheme: light;

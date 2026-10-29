@@ -1,5 +1,5 @@
 // Package palettes stores the custom palettes the system user makes on Appearance
-// (docs/specs/2026-10-21-palettes-design.md §3). The SPA builds and parses the CSS;
+//. The SPA builds and parses the CSS;
 // the server only keeps it and serves the active one.
 package palettes
 

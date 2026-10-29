@@ -1,4 +1,4 @@
-/* Shades of Purple palette (docs/specs/2026-10-27-more-palettes-design.md): deep purple with bold yellow (a lavender light of our own); yellow main buttons and totals pop. */
+/* Shades of Purple palette: deep purple with bold yellow (a lavender light of our own); yellow main buttons and totals pop. */
 
 :root[data-ui="dock"][data-palette="shadesofpurple"] {
   color-scheme: light;

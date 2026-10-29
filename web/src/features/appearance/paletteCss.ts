@@ -1,4 +1,4 @@
-/** Reads and writes palette files (docs/specs/2026-10-21-palettes-design.md §3).
+/** Reads and writes palette files.
  *  A file is a header comment, a light token block, a dark token block, the same
  *  dark block under prefers-color-scheme, then any extra CSS ("Custom CSS"). */
 import { PALETTES, THEME } from '@/theme/palettes'

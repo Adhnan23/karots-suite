@@ -68,7 +68,7 @@ export interface Appearance {
   labelStyles?: { [key: string]: string};
 }
 /**
- * Palette is a custom palette (docs/specs/2026-10-21-palettes-design.md §3). CSS is
+ * Palette is a custom palette. CSS is
  * the whole palette file; the list leaves it empty.
  */
 export interface Palette {

@@ -1,4 +1,4 @@
-/* Dracula palette (docs/specs/2026-10-27-more-palettes-design.md): purple and pink (Alucard light, Dracula dark); solid, lively, a neon glow on main buttons. */
+/* Dracula palette: purple and pink (Alucard light, Dracula dark); solid, lively, a neon glow on main buttons. */
 
 :root[data-ui="dock"][data-palette="dracula"] {
   color-scheme: light;

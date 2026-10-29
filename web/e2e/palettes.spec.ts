@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './fixtures'
 
-// Custom palettes (docs/specs/2026-10-21-palettes-design.md). Every test puts Studio back.
+// Custom palettes. Every test puts Studio back.
 const SYSTEM_PIN = process.env.POS_SYSTEM_PIN ?? '2273'
 
 async function systemLogin(page: Page) {
@@ -129,7 +129,7 @@ test('palette editor previews live, asks before dropping changes, and saves', as
   await expect(copy).toHaveCount(0)
 })
 
-// The built-ins (docs/specs/2026-10-27-more-palettes-design.md): one grid, the first
+// The built-ins: one grid, the first
 // five then the 17 added, and a new one saves and paints the login page.
 test('every built-in palette is in the picker; a new one saves and shows on the login page', async ({ page }) => {
   await systemLogin(page)

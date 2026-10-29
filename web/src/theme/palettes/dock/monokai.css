@@ -1,4 +1,4 @@
-/* Monokai palette (docs/specs/2026-10-27-more-palettes-design.md): the original Monokai: hot pink, lime and yellow on charcoal (a paper light of our own); every role its own bright colour. */
+/* Monokai palette: the original Monokai: hot pink, lime and yellow on charcoal (a paper light of our own); every role its own bright colour. */
 
 :root[data-ui="dock"][data-palette="monokai"] {
   color-scheme: light;

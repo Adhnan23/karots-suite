@@ -1,7 +1,7 @@
 # Karots cloud backup — bucket setup (M8c2)
 
 Paying shops' automatic backups also go, sealed (AES-256-GCM with the shop's own `cloudKey` from `shops.json`), to
-the vendor's R2 bucket — about one a day per shop, kept 30 days. Spec: `docs/specs/2026-10-20-m8c2-backup-copies-design.md`.
+the vendor's R2 bucket — about one a day per shop, kept 30 days.
 
 ## Once
 

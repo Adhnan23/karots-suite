@@ -1,4 +1,4 @@
-/* Pop palette (docs/specs/2026-10-27-more-palettes-design.md): ours: comic-book red, blue and yellow with thick ink outlines and hard shadows; playful and loud. */
+/* Pop palette: ours: comic-book red, blue and yellow with thick ink outlines and hard shadows; playful and loud. */
 
 :root[data-ui="dock"][data-palette="pop"] {
   color-scheme: light;

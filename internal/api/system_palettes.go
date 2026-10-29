@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Custom palettes (docs/specs/2026-10-21-palettes-design.md §3): CRUD for the system
+// Custom palettes: CRUD for the system
 // user, plus the public stylesheet of the active one (the login page needs it too).
 func (h *handlers) registerPalettes(sys, v1 *echo.Group) {
 	sys.GET("/palettes", h.ListPalettes)

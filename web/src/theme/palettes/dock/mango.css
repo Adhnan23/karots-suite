@@ -1,4 +1,4 @@
-/* Mango palette (docs/specs/2026-10-27-more-palettes-design.md): ours: mango orange, leaf green and hibiscus pink, like a fruit stall; a warm gradient wash, big round corners. */
+/* Mango palette: ours: mango orange, leaf green and hibiscus pink, like a fruit stall; a warm gradient wash, big round corners. */
 
 :root[data-ui="dock"][data-palette="mango"] {
   color-scheme: light;

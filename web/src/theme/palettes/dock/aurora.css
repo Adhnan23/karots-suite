@@ -1,4 +1,4 @@
-/* Aurora palette (docs/specs/2026-10-27-more-palettes-design.md): ours: teal-to-violet gradients over a night sky; gradient brand fills, see-through cards (no blur: the sky moves), a slowly drifting glow. */
+/* Aurora palette: ours: teal-to-violet gradients over a night sky; gradient brand fills, see-through cards (no blur: the sky moves), a slowly drifting glow. */
 
 :root[data-ui="dock"][data-palette="aurora"] {
   color-scheme: light;

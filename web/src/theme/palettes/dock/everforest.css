@@ -1,4 +1,4 @@
-/* Everforest palette (docs/specs/2026-10-27-more-palettes-design.md): forest greens, natural and relaxed (light / dark medium); soft leafy background art, gentle shadows. */
+/* Everforest palette: forest greens, natural and relaxed (light / dark medium); soft leafy background art, gentle shadows. */
 
 :root[data-ui="dock"][data-palette="everforest"] {
   color-scheme: light;

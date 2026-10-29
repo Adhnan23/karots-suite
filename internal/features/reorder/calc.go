@@ -1,5 +1,5 @@
 // Package reorder learns each product's reorder level from how it sells and how
-// often it is delivered (docs/specs/2026-10-21-smart-reorder-levels-design.md).
+// often it is delivered.
 // calc.go is the arithmetic, on plain inputs; run.go loads them and writes the
 // results nightly. Core only: low stock and reorder_level are core.
 package reorder

@@ -2,16 +2,14 @@
 
 Business system for small Sri Lankan retail: till, stock, purchasing, money, reports, and
 compile-time plugins (recharge, pharmacy, repairs, documents, alternatives, clearance,
-aicatalog, productplus, combos, requests). It's a **separate product** from `~/Projects/go/karots-pos`,
-which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
-**JSON-only Go backend** plus a **component-based React SPA**, and still ships as **one static binary**.
+aicatalog, productplus, combos, requests). A **JSON-only Go backend** plus a **component-based React SPA**,
+shipped as **one static binary**.
 
 - **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans, executes and reviews; UI gates with self-reviewed screenshots) and the inputs for the next milestone.
 - **Spec:** `docs/specs/2026-09-27-karots-suite-design.md`. Read it before designing anything.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
 - **Plans:** `docs/plans/` holds only the plan being worked on. Execute tasks in order and tick the checkboxes; delete it once the milestone is done (git history keeps every finished plan and idea note).
 - **User docs and legal pack:** see **Docs and legal** below — they change with the product.
-- **Parity:** `docs/parity.md` lists every karots-pos route. Tick a row only when it's ported *and* has a flow check.
 
 ## Hard rules
 
@@ -24,14 +22,13 @@ which is frozen (bug fixes only). karots-suite has every karots-pos feature on a
   plugin simply isn't on the list. Change hooks run inside the caller's transaction (an error rolls everything back);
   if the change is undoable, the hook returns a note the caller stores and hands back on undo. New shared event →
   add a generic hook in `internal/plugin`, never a direct call.
-- **Never modify karots-pos from here** except bug-fix commits for domain bugs found while porting. Otherwise it's read-only reference and fork source.
-- **Domain logic is forked, not rewritten.** `internal/features/*` is karots-pos's battle-tested logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue. A karots-pos bug found here is fixed here (never carry a flaw over) and, as a bug-fix commit only, in karots-pos too.
+- **Money and sales.** `internal/features/*` holds the domain logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`
   when a plugin is missing from them.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
-- **Palettes, each with light and dark, and it must not look like karots-pos.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has 22 built-ins (Studio, Night, Bazaar, Lagoon, Catppuccin + 17 famous / colourful ones, theme.md §1) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
+- **Palettes, each with light and dark.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has 22 built-ins (Studio, Night, Bazaar, Lagoon, Catppuccin + 17 famous / colourful ones, theme.md §1) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
 
 ## Docs and legal
 
@@ -75,8 +72,8 @@ cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init
                       -restore <file> for Setup — the till must be stopped);
                       enabled_plugins.go is GENERATED (committed core-only)
 cmd/bootstrap/        Shop Builder: no flags = browser app — the shop list (shops.json profiles: plugins, OS,
-                      database mode, ports, secrets, install id, channel) + Quick build; -shop <key|all>, -list,
-                      -import-pos; writes both plugin lists, builds, restores them core-only. A shop build =
+                      database mode, ports, secrets, install id, channel) + Quick build; -shop <key|all>, -list;
+                      writes both plugin lists, builds, restores them core-only. A shop build =
                       dist/<key>/ karots-setup + install.conf + the binary ("Add installer" off = binary only)
 cmd/setup/            karots-setup, the shop's installer: double-click → page (UAC / pkexec) → modular steps per
                       role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless (+ -accept-terms).
@@ -107,7 +104,7 @@ internal/api/         JSON /api/v1 — dto.go (all request/response types) + one
                       (dto_purchasing.go) — and people — customers, users (admin only) (dto_people.go);
                       sheets.go = CSV/XLSX/ODS download + import helpers
 internal/spa/         go:embed of the built SPA (dist/) + index.html fallback
-internal/features/*   forked domain services
+internal/features/*   domain services
 internal/features/palettes/ custom palettes (CSS kept as-is; settings.skin = custom-<id>; public palette.css)
 internal/features/reorder/ smart reorder levels: calc.go (pure arithmetic) + run.go (nightly 03:00 / boot when stale);
                       Auto products get reorder_level written, every product reorder_calc (the reason lines)
@@ -117,7 +114,7 @@ internal/plugin/      plugin registry + data/behaviour hooks (Go side); started 
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
 docs/guide/ docs/images/ user docs + screenshots; docs/legal/ licence PDFs (agreement/ = sources); internal/docscheck
                       = plugins vs docs / legal guard; web/docs-shots/ = screenshot spec + agreement.ts (PDF printer)
-migrations/           00001_baseline.sql (squashed karots-pos 0001–0075), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; 00014 cheque payment method, 00015 cheques; next is 00016_
+migrations/           00001_baseline.sql (the first schema), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; 00014 cheque payment method, 00015 cheques; next is 00016_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts
@@ -159,7 +156,7 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                         productFormSections, before/after-sale); TillApi.addGroup = cart line groups
                         (kept together, stored on sale_items.line_group*, printed as one block);
                         TillApi.addPayout = money given to the customer (a sale may total below zero)
-scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones)
+scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones) + e2e-till.sql, notices/
 ```
 
 ## Stack
@@ -182,12 +179,12 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
 - **Session cookie:** `pos_token`, httpOnly, SameSite=Strict. No token is ever visible to JS.
 - **Device id:** every call carries `X-Ks-Device` (`web/src/lib/device.ts`); signed-in screens and the lock page beat
   `POST /presence` for the admin's Who's on now (`internal/features/presence`, in memory).
-- **Porting an area:** add DTOs to `dto.go`, then `make types`, then write handlers in `internal/api/<area>.go`, then **delete that feature's legacy `api.go`/`RegisterAPI`**, and tick the rows in `docs/parity.md`.
+- **A new API area:** add DTOs to `dto.go` (or its `dto_<area>.go`), then `make types`, then write handlers in `internal/api/<area>.go`.
 - **Thermal printing stays in Go** (`internal/escpos`). A4 and PDF documents are React print routes.
 
 ## Dev workflow
 
-- **Ports:** Postgres `suite_db` on **5433**, Go server on **3100**, Vite on **5173** (proxies `/api`). karots-pos keeps 5432 and 3000, so both can run side by side.
+- **Ports:** Postgres `suite_db` on **5433**, Go server on **3100**, Vite on **5173** (proxies `/api`).
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
@@ -234,7 +231,7 @@ scripts/              squash-migrations.sh, parity.sh, e2e-users.sql (fixed e2e 
   taps on its left-edge Demo tab open the cheat menu.
 - **Kiosk Konami** → `POST /api/v1/kiosk/exit`, for admin and system only. The server writes the relaunch loop's sentinel and kills the `--kiosk` browser.
 - **Auto-lock** after `lockTimeoutMinutes` of idle time. Unlock works for the same user or any admin.
-- **Kiosk lockdown** (`web/src/lib/lockdown.ts`, karots-pos `core.js`): F1–F12 never reach the browser; F1 on a counter tab goes back to Sell; on the till / account / lock pages browser Ctrl combos, Alt+←/→ and right-click (outside text boxes) are off. **The system user is exempt** (support needs DevTools) — suite-only.
+- **Kiosk lockdown** (`web/src/lib/lockdown.ts`): F1–F12 never reach the browser; F1 on a counter tab goes back to Sell; on the till / account / lock pages browser Ctrl combos, Alt+←/→ and right-click (outside text boxes) are off. **The system user is exempt** (support needs DevTools) — suite-only.
 - **Till semantics:** F1 / "⟲ Menu" clears the **search only**. Only New Sale clears the cart.
 - **No browser memory on PIN entry** (shared counter): `autocomplete="off"`, non-standard field names, and PIN inputs are `type="text"` with `-webkit-text-security: disc` — never `type="password"`, or a password manager will offer to save it.
 

@@ -1,4 +1,4 @@
-/* Kanagawa palette (docs/specs/2026-10-27-more-palettes-design.md): ink and indigo from "The Great Wave" (Lotus light, Wave dark); a faint wave pattern behind the page. */
+/* Kanagawa palette: ink and indigo from "The Great Wave" (Lotus light, Wave dark); a faint wave pattern behind the page. */
 
 :root[data-ui="dock"][data-palette="kanagawa"] {
   color-scheme: light;

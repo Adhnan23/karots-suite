@@ -1,4 +1,4 @@
-/* Ayu palette (docs/specs/2026-10-27-more-palettes-design.md): sunny orange and sky blue (Light, Mirage dark); warm, cheerful, very clean. */
+/* Ayu palette: sunny orange and sky blue (Light, Mirage dark); warm, cheerful, very clean. */
 
 :root[data-ui="dock"][data-palette="ayu"] {
   color-scheme: light;

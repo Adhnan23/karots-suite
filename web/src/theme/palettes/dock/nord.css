@@ -1,4 +1,4 @@
-/* Nord palette (docs/specs/2026-10-27-more-palettes-design.md): cool arctic blues (Polar Night dark, a Snow Storm light of our own); frosted glass, a faint aurora glow. */
+/* Nord palette: cool arctic blues (Polar Night dark, a Snow Storm light of our own); frosted glass, a faint aurora glow. */
 
 :root[data-ui="dock"][data-palette="nord"] {
   color-scheme: light;

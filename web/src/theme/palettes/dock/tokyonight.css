@@ -1,4 +1,4 @@
-/* Tokyo Night palette (docs/specs/2026-10-27-more-palettes-design.md): city-at-night blues and violets (Day light, Night dark); a night-sky backdrop, a soft neon-sign glow. */
+/* Tokyo Night palette: city-at-night blues and violets (Day light, Night dark); a night-sky backdrop, a soft neon-sign glow. */
 
 :root[data-ui="dock"][data-palette="tokyonight"] {
   color-scheme: light;

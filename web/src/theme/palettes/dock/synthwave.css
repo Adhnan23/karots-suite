@@ -1,4 +1,4 @@
-/* Synthwave '84 palette (docs/specs/2026-10-27-more-palettes-design.md): 80s neon pink and cyan (a sunrise light of our own, the neon night dark); glowing headings and total, a sunset-grid sky. */
+/* Synthwave '84 palette: 80s neon pink and cyan (a sunrise light of our own, the neon night dark); glowing headings and total, a sunset-grid sky. */
 
 :root[data-ui="dock"][data-palette="synthwave"] {
   color-scheme: light;

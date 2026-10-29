@@ -1,4 +1,4 @@
-/* Cobalt2 palette (docs/specs/2026-10-27-more-palettes-design.md): electric blue and gold (an ice light of our own); crisp outlines, high contrast for a bright shop. */
+/* Cobalt2 palette: electric blue and gold (an ice light of our own); crisp outlines, high contrast for a bright shop. */
 
 :root[data-ui="dock"][data-palette="cobalt2"] {
   color-scheme: light;

@@ -1,4 +1,4 @@
-/* Gruvbox palette (docs/specs/2026-10-27-more-palettes-design.md): warm retro earth tones (light / dark); square corners, hard offset shadows, faint paper grain. */
+/* Gruvbox palette: warm retro earth tones (light / dark); square corners, hard offset shadows, faint paper grain. */
 
 :root[data-ui="dock"][data-palette="gruvbox"] {
   color-scheme: light;

@@ -1,4 +1,4 @@
-/* Neumorph palette (docs/specs/2026-10-27-more-palettes-design.md): ours: neumorphism. Cards the colour of the page, raised by a soft light-and-dark double shadow; pressed controls sink in. */
+/* Neumorph palette: ours: neumorphism. Cards the colour of the page, raised by a soft light-and-dark double shadow; pressed controls sink in. */
 
 :root[data-ui="dock"][data-palette="neumorph"] {
   color-scheme: light;

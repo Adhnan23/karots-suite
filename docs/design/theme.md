@@ -25,12 +25,12 @@ Rules:
 - **Every palette defines every token** in both modes (§2), and components use only
   those tokens. Components never check which palette is active: glass, glow and
   selected colours are tokens too.
-- **Themes and palettes (2026-10-21, `docs/specs/2026-10-21-palettes-design.md`):** a *theme* is a whole
+- **Themes and palettes (2026-10-21):** a *theme* is a whole
   layout / component set; there is one, **Dock** (`<html data-ui="dock">`). A *palette* restyles a theme's components
   (colours, material, shape, depth, motion) and belongs to that theme. Built-ins: **Studio** (solid, calm), **Night**
   (frosted, calm), **Bazaar** (solid, lively), **Lagoon** (liquid glass, calm), **Catppuccin** (Latte light / Mocha
   dark, pastel, frosted bars, lively; made by the user in the editor, 2026-10-21).
-  **17 more (2026-10-27, `docs/specs/2026-10-27-more-palettes-design.md`)**, each with light + dark and a signature:
+  **17 more (2026-10-27)**, each with light + dark and a signature:
   - **Calm, famous:**
     - **Gruvbox:** paper grain, square corners, hard shadows.
     - **Nord:** frosted glass, aurora glow.

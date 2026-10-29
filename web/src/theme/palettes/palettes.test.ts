@@ -4,7 +4,7 @@ import { buildPalette, builtinDoc, isBuiltin, parsePalette } from '@/features/ap
 import { NEW_PALETTES, PALETTES } from '.'
 import { TOKENS } from './tokens'
 
-// Every built-in added after the first five (docs/specs/2026-10-27-more-palettes-design.md):
+// Every built-in added after the first five:
 // it parses, sets every token in both modes, reads well, survives Duplicate, and its
 // signature CSS stays safe. The first five are never edited.
 const FILES = import.meta.glob<string>('/src/theme/palettes/dock/*.css', { query: '?raw', import: 'default', eager: true })
