@@ -33,16 +33,11 @@ func checks(j *Job) error {
 	if _, err := os.Stat(filepath.Join(j.Dir, j.Conf.Binary)); err != nil {
 		return fmt.Errorf("%s isn't next to karots-setup — copy all three files from the Shop Builder", j.Conf.Binary)
 	}
-	for _, old := range []string{"karots-pos", "karots-pos.exe"} {
-		if _, err := os.Stat(filepath.Join(j.Conf.InstallDir, old)); err == nil {
-			return fmt.Errorf("%s holds karots-pos — pick another install folder in the Shop Builder", j.Conf.InstallDir)
-		}
-	}
 	// Our own install holds the port during an Update; the program step stops it.
 	if !j.Updating {
 		ln, err := net.Listen("tcp", ":"+strconv.Itoa(j.Conf.Port))
 		if err != nil {
-			return fmt.Errorf("port %d is used by another program (karots-pos?) — stop it, or change the shop's till port in the Shop Builder", j.Conf.Port)
+			return fmt.Errorf("port %d is used by another program — stop it, or change the shop's till port in the Shop Builder", j.Conf.Port)
 		}
 		ln.Close()
 	}

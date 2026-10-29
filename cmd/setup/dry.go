@@ -27,7 +27,7 @@ func drySteps(j *Job) []Step {
 			fmt.Fprintf(j.Log, "(dry run) %s\n", s.Detail(j))
 			time.Sleep(600 * time.Millisecond)
 			if os.Getenv("KAROTS_SETUP_DRY_FAIL") == s.ID {
-				return errors.New("port 3000 is used by another program (karots-pos?) — stop it, or change the shop's till port in the Shop Builder")
+				return errors.New("port 3000 is used by another program — stop it, or change the shop's till port in the Shop Builder")
 			}
 			return nil
 		}

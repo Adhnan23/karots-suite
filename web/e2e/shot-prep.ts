@@ -508,7 +508,7 @@ export const prep: Record<string, (page: Page) => Promise<void>> = {
     await page.request.post('/api/v1/admin/data/restore', { multipart: { backup: { name: 'x.json.gz', mimeType: 'application/gzip', buffer: Buffer.from('x') } } })
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await page.locator('input[type=file][accept^=".gz"]').setInputFiles({ name: 'karots-pos-20261008-090000.json.gz', mimeType: 'application/gzip', buffer: Buffer.from('x') })
+    await page.locator('input[type=file][accept^=".gz"]').setInputFiles({ name: 'my-shop-20261008-090000.json.gz', mimeType: 'application/gzip', buffer: Buffer.from('x') })
     await page.getByRole('dialog').waitFor()
     await page.getByLabel(/Type RESTORE/).fill('RESTORE')
   },

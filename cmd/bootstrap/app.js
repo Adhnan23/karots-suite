@@ -158,7 +158,7 @@ async function loadShops() {
   const st = await api('/api/shops')
   $('shopsPath').textContent = `Saved in ${st.path} — commit it to the private repo (it holds every shop's secrets).`
   const el = $('shops'); el.innerHTML = ''
-  if (!st.shops.length) { el.innerHTML = '<div class="empty">No shops yet — + New shop, or bring karots-pos shops over with <code>go run ./cmd/bootstrap -import-pos ../karots-pos/shops.json</code>.</div>'; return }
+  if (!st.shops.length) { el.innerHTML = '<div class="empty">No shops yet — + New shop.</div>'; return }
   for (const sh of st.shops) {
     const row = document.createElement('div'); row.className = 'shop'
     const lb = sh.lastBuilt, pub = sh.published
@@ -298,7 +298,7 @@ function renderEdit() {
     </div>
     <div class="sec"><h2>Network</h2>
       <div class="fields">${field('ePort', 'Till port', c.port, 'inputmode="numeric"')}${field('eLan', 'Main PC address on the LAN (optional)', c.install.lanAddress || '', 'placeholder="192.168.1.10"')}</div>
-      <div class="hint">The address fills in cashier PCs' Setup. Port 3000 is karots-pos's too — the suite replaces it on a PC, not beside it.</div>
+      <div class="hint">The address fills in cashier PCs' Setup.</div>
     </div>
     <div class="sec"><h2>Install</h2>
       <div class="fields">${field('eDir', 'Install folder', c.install.dir)}</div>

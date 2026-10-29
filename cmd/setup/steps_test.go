@@ -151,13 +151,6 @@ func TestChecksRefuses(t *testing.T) {
 	if err := checks(j); err == nil || !strings.Contains(err.Error(), j.Conf.Binary) {
 		t.Fatalf("no binary: %v", err)
 	}
-	j = checkJob(t, 0)
-	j.Conf.Port = freePort(t)
-	os.MkdirAll(j.Conf.InstallDir, 0o755)
-	os.WriteFile(filepath.Join(j.Conf.InstallDir, "karots-pos"), nil, 0o755)
-	if err := checks(j); err == nil || !strings.Contains(err.Error(), "karots-pos") {
-		t.Fatalf("over karots-pos: %v", err)
-	}
 }
 
 func freePort(t *testing.T) int {

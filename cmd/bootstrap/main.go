@@ -85,7 +85,6 @@ func run() error {
 		pgFlag      = flag.Bool("postgres", false, "with -shop: put the PostgreSQL installer beside a Windows main PC's files (no download at the shop)")
 		listFlag    = flag.Bool("list", false, "print the shop profiles")
 		noInstaller = flag.Bool("no-installer", false, "with -shop: only the binary")
-		importFlag  = flag.String("import-pos", "", "add the shops from karots-pos's shops.json")
 	)
 	flag.Parse()
 	if _, err := os.Stat("go.mod"); err != nil {
@@ -98,9 +97,6 @@ func run() error {
 	if *demoFlag {
 		_, err := buildDemo(all, *freshFlag, os.Stdout)
 		return err
-	}
-	if *importFlag != "" {
-		return importPOSFile(*shopsFlag, *importFlag, all)
 	}
 	if *listFlag {
 		return listShops(*shopsFlag)
