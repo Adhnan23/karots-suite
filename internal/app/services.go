@@ -22,9 +22,7 @@ import (
 )
 
 // Services are the domain services the JSON API calls, with every core seam wired
-// exactly once. Built once in BuildServer. Areas add a field
-// here as they are ported (M1+); the legacy per-feature RegisterAPI routes are
-// NOT mounted — each area's port deletes its legacy api.go.
+// exactly once. Built once in BuildServer.
 type Services struct {
 	Auth         *auth.Service
 	Settings     *settings.Service
@@ -34,8 +32,7 @@ type Services struct {
 	KickDrawer   func(context.Context)
 }
 
-// NewServices builds every domain service with the core seams, via NewService rather than RegisterAPI, so no legacy
-// route gets mounted. systemPIN is the login check for the hidden System account.
+// NewServices builds every domain service with the core seams. systemPIN is the login check for the hidden System account.
 func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now time.Time) bool) *Services {
 	st := settings.NewService(db)
 	kick := newDrawerKicker(st)
