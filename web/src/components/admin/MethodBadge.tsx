@@ -21,7 +21,21 @@ export function MethodBadge({ method, label, status, className }: { method: stri
         className,
       )}>
       {text}
-      {cheque && status && status !== 'cleared' && <span className="font-semibold opacity-80">· {status}</span>}
+      {cheque && status && status !== 'cleared' && text.toLowerCase() !== status && <span className="font-semibold opacity-80">· {status}</span>}
     </span>
   )
 }
+
+/** A sale's payment lines as badges (a cheque shows its number and status). */
+export function PaymentBadges({ payments, className }: { payments: { method: string; chequeNumber?: string; chequeStatus?: string }[]; className?: string }) {
+  return (
+    <span className={cn('inline-flex flex-wrap items-center gap-1', className)}>
+      {payments.map((p, i) => (
+        <MethodBadge key={i} method={p.method} status={p.chequeStatus} label={p.method === 'cheque' && p.chequeNumber ? `Cheque #${p.chequeNumber}` : undefined} />
+      ))}
+    </span>
+  )
+}
+
+/** Statement / activity lines that came from a cheque get the cheque colour. */
+export const isChequeLine = (kind: string, ref: string) => kind.startsWith('Cheque ') || /^cheque\b/i.test(ref)

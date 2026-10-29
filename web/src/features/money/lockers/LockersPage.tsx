@@ -42,7 +42,8 @@ export function LockersPage() {
     toast.success(on ? `${l.name} is back in use` : `${l.name} archived`)
     void qc.invalidateQueries({ queryKey: ['admin'] })
   }
-  const active = data?.items.filter((l) => l.active) ?? []
+  // Cheques in hand is shown, but money never moves into or out of it by hand.
+  const active = data?.items.filter((l) => l.active && l.kind !== 'cheque') ?? []
   const canSettle = active.some((l) => l.kind === 'card') && active.some((l) => l.kind === 'bank')
 
   return (
@@ -68,7 +69,7 @@ export function LockersPage() {
       ) : (
         <ul aria-label="Lockers" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {data?.items.map((l) => <LockerTile key={l.id} l={l} sym={sym} onEdit={() => setEditing(l)} onArchive={() => setArchiving(l)}
-            onMove={active.length >= 2 && l.kind !== 'card' ? () => setMove({ kind: 'transfer', l }) : undefined} onAdjust={() => setMove({ kind: 'adjust', l })}
+            onMove={active.length >= 2 && l.kind !== 'card' && l.kind !== 'cheque' ? () => setMove({ kind: 'transfer', l }) : undefined} onAdjust={() => setMove({ kind: 'adjust', l })}
             onReactivate={() => void setActive(l, true).catch((e) => toast.error(errMsg(e)))} />)}
         </ul>
       )}
@@ -103,7 +104,7 @@ function LockerTile({ l, sym, onEdit, onArchive, onReactivate, onMove, onAdjust 
           <Link to="/admin/lockers/$id" params={{ id: String(l.id) }} className="block truncate font-bold outline-none after:absolute after:inset-0 focus-visible:underline">{l.name}</Link>
           <small className="text-[12px] text-muted-foreground">{label}</small>
         </div>
-        <DropdownMenu>
+        {l.kind !== 'cheque' && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" aria-label={`${l.name} actions`} className="relative z-10 size-9"><MoreHorizontal size={16} /></Button>
           </DropdownMenuTrigger>
@@ -115,9 +116,15 @@ function LockerTile({ l, sym, onEdit, onArchive, onReactivate, onMove, onAdjust 
               ? <DropdownMenuItem onSelect={onArchive}><Archive size={15} /> Archive</DropdownMenuItem>
               : <DropdownMenuItem onSelect={onReactivate}><RotateCcw size={15} /> Bring back</DropdownMenuItem>}
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
-      <Balance sym={sym} v={l.balance} className="font-display text-2xl" />
+      <Balance sym={sym} v={l.balance} className={cn('font-display text-2xl', l.kind === 'cheque' && 'text-cheque')} />
+      {l.afterCheques && l.afterCheques !== l.balance && (
+        <p className={cn('-mt-2 text-[13px] tabular-nums', num(l.afterCheques) < 0 ? 'font-semibold text-warning' : 'text-muted-foreground')}>
+          After cheques {money(sym, l.afterCheques)}{num(l.afterCheques) < 0 && ' — below zero once your cheques are cashed'}
+        </p>
+      )}
+      {l.kind === 'cheque' && <Link to="/admin/cheques" className="relative z-10 -mt-1 text-[13px] font-semibold text-cheque">Review cheques →</Link>}
       {(l.tillDefault || l.overdraft || !l.cashierAccess || !l.active) && (
         <div className="flex flex-wrap gap-1.5">
           {l.tillDefault && <Tag tone="brand">Till default</Tag>}

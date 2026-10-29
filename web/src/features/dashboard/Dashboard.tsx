@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@t
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Banknote, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, Store, UserRoundX } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Banknote, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, ScrollText, Store, UserRoundX } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import type { Dashboard as D, PresenceRow } from '@/api/types.gen'
@@ -53,7 +53,7 @@ function Tile({ label, value, change, fallIsGood, sub, spark, to }: {
   return to ? <Link to={to} className={cn(cls, 'transition-colors hover:border-selected')}>{body}</Link> : <div className={cls}>{body}</div>
 }
 
-type Att = { tone: 'crit' | 'warn' | 'info'; icon: LucideIcon; tag: string; text: string; to: string; go: string }
+type Att = { tone: 'crit' | 'warn' | 'info' | 'cheque'; icon: LucideIcon; tag: string; text: string; to: string; go: string }
 
 function attention(d: D, sym: string): Att[] {
   const a = d.attention
@@ -65,6 +65,10 @@ function attention(d: D, sym: string): Att[] {
     const s = a.noTillSales, cash = s.reduce((t, x) => t + num(x.cash), 0)
     out.push({ tone: 'warn', icon: Banknote, tag: 'No till open', text: `${n(s.length, 'cash sale', 'cash sales')} today with no till open (${money(sym, cash)}) — ${s[0].cashier}, ${when(s[0].at)}${s.length > 1 ? ' …' : ''}`, to: '/admin/sales?preset=today', go: 'See sales' })
   }
+  const c = d.cheques
+  if (c.toDeposit.count) out.push({ tone: 'cheque', icon: ScrollText, tag: 'Cheques to deposit', text: `${n(c.toDeposit.count, 'cheque is', 'cheques are')} due — ${money(sym, c.toDeposit.total)} to take to the bank`, to: '/admin/cheques?dir=in&due=1', go: 'See cheques' })
+  if (c.givenDue.count) out.push({ tone: 'cheque', icon: ScrollText, tag: 'Your cheques due', text: `${n(c.givenDue.count, 'cheque you wrote is', 'cheques you wrote are')} due within 3 days (${money(sym, c.givenDue.total)})`, to: '/admin/cheques?dir=out&due=1', go: 'See cheques' })
+  for (const b of c.short) out.push({ tone: 'warn', icon: ScrollText, tag: 'After cheques', text: `${b.name} goes to ${money(sym, b.after)} once your pending cheques are cashed`, to: '/admin/lockers', go: 'See accounts' })
   if (a.overLimit) out.push({ tone: 'crit', icon: UserRoundX, tag: 'Over limit', text: `${n(a.overLimit, 'customer owes', 'customers owe')} past their credit limit (${money(sym, a.overLimitSum)})`, to: '/admin/reports/customer-dues', go: 'See dues' })
   if (a.expired) out.push({ tone: 'crit', icon: CalendarClock, tag: 'Expired', text: `${n(a.expired, 'lot is', 'lots are')} past its date and still on the shelf`, to: '/admin/stock/batches', go: 'Write off' })
   if (a.expiring) out.push({ tone: 'warn', icon: CalendarClock, tag: 'Expiring', text: `${n(a.expiring, 'lot expires', 'lots expire')} within 30 days`, to: '/admin/stock/batches', go: 'Sell first' })
@@ -165,7 +169,7 @@ export function Dashboard() {
               <li key={x.tag + x.to + x.text}>
                 <Link to={x.to} className="flex items-center gap-3 rounded-[var(--radius-sm)] bg-muted px-3 py-2.5 text-[13.5px] hover:bg-[color-mix(in_srgb,var(--muted)_70%,var(--foreground)_6%)]">
                   <span className={cn('inline-flex flex-none items-center gap-1 rounded-pill px-2 py-0.5 text-[11.5px] font-extrabold',
-                    x.tone === 'crit' ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : x.tone === 'warn' ? 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning' : 'bg-border text-muted-foreground')}>
+                    x.tone === 'crit' ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : x.tone === 'cheque' ? 'bg-[color-mix(in_srgb,var(--cheque)_14%,transparent)] text-cheque' : x.tone === 'warn' ? 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-warning' : 'bg-border text-muted-foreground')}>
                     {x.tone === 'crit' ? <AlertTriangle size={13} /> : <x.icon size={13} />}{x.tag}
                   </span>
                   <span className="min-w-0 flex-1">{x.text}</span>

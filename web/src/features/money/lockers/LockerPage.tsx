@@ -34,7 +34,7 @@ export function LockerPage() {
   const list = useInfiniteQuery(lockerLedgerQuery(id, r))
   const rows = list.data?.pages.flat() ?? []
   const l = v?.locker
-  const others = useQuery(lockersQuery(false)).data?.items ?? []
+  const others = (useQuery(lockersQuery(false)).data?.items ?? []).filter((x) => x.kind !== 'cheque') // never a place to move money by hand
   const [move, setMove] = useState<'transfer' | 'adjust' | null>(null)
   const net = num(v?.net)
   const reprint = (row: LockerLedgerRow) => void reprintSlip(slipPath.money(row.receiptId), row.receiptNo)
@@ -53,7 +53,7 @@ export function LockerPage() {
           {l && <Balance sym={sym} v={l.balance} className="font-display text-3xl font-extrabold" />}
         </div>
         <div className="flex flex-col gap-3 md:items-end md:text-right">
-          {l?.active && (
+          {l?.active && l.kind !== 'cheque' && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="h-10 gap-1.5 px-3.5" onClick={() => setMove('adjust')}><SlidersHorizontal size={15} /> Adjust</Button>
               {others.length >= 2 && l.kind !== 'card' && <Button variant="outline" className="h-10 gap-1.5 px-3.5" onClick={() => setMove('transfer')}><ArrowLeftRight size={15} /> Move money</Button>}

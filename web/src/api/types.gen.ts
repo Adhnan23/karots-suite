@@ -472,6 +472,103 @@ export interface LooseVersionResult {
 }
 
 //////////
+// source: dto_cheques.go
+
+/**
+ * ChequeLine is one cheque in a payment form. Received: Bank is the payer's
+ * bank. Given: LockerID is the shop's bank place it is drawn on.
+ */
+export interface ChequeLine {
+  bank: string;
+  lockerId: number /* int64 */;
+  number: string;
+  amount: string;
+  date: string; // YYYY-MM-DD
+  note: string;
+}
+/**
+ * ChequeRow is one cheque on the Cheques page.
+ */
+export interface ChequeRow {
+  id: number /* int64 */;
+  direction: string; // in = received, out = given
+  chequeDate: string;
+  who: string; // customer, supplier, or the expense
+  bank: string;
+  lockerId: number /* int64 */; // given: drawn on; received: where it cleared (0 = not yet)
+  lockerName: string;
+  number: string;
+  amount: string;
+  status: string; // pending | cleared | bounced | cancelled
+  statusDate: string;
+  days: number /* int */; // until (+) / since (−) the cheque date
+}
+export interface CountTotal {
+  count: number /* int */;
+  total: string;
+}
+/**
+ * BankAfter is a bank place whose pending given cheques take it below zero.
+ */
+export interface BankAfter {
+  lockerId: number /* int64 */;
+  name: string;
+  after: string;
+}
+/**
+ * ChequeSummary heads the Cheques page and feeds the dashboard reminders.
+ */
+export interface ChequeSummary {
+  inHand: string; // pending received (Cheques in hand)
+  given: string; // pending given (to be cashed)
+  dueWeek: string; // pending given dated within 7 days or past
+  toDeposit: CountTotal; // received, pending, dated today or earlier
+  givenDue: CountTotal; // given, pending, dated within 3 days or past
+  short: BankAfter[];
+}
+/**
+ * ChequeSource is the record a cheque paid.
+ */
+export interface ChequeSource {
+  kind: string; // sale | customer_payment | supplier_payment | expense | ""
+  id: number /* int64 */;
+  label: string;
+}
+export interface ChequeEvent {
+  at: string;
+  user: string;
+  detail: string;
+}
+export interface ChequeDetail extends ChequeRow {
+  note: string;
+  customerId: number /* int64 */;
+  supplierId: number /* int64 */;
+  source: ChequeSource;
+  history: ChequeEvent[];
+  /**
+   * LastBankID is the bank place the last received cheque cleared into (pre-fills Cleared…).
+   */
+  lastBankId: number /* int64 */;
+}
+export interface ChequeClearRequest {
+  date: string; // YYYY-MM-DD; "" = today
+  lockerId: number /* int64 */;
+}
+export interface ChequeReturnRequest {
+  status: string; // bounced | cancelled
+}
+export interface ChequeFixRequest {
+  bank: string;
+  lockerId: number /* int64 */;
+  number: string;
+  date: string;
+  note: string;
+}
+export interface ChequeDuplicate {
+  duplicate: boolean;
+}
+
+//////////
 // source: dto_counter.go
 
 /**

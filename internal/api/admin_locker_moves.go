@@ -75,6 +75,9 @@ func (h *handlers) AdminLockerAdjust(c echo.Context) error {
 		return err
 	}
 	note := strings.TrimSpace(in.Note)
+	if l, err := h.t.lockers.Get(c.Request().Context(), id); err == nil && l.Kind == lockers.KindCheque {
+		return apperr.Validation("Cheques in hand only changes as cheques are taken, cleared or returned — use the Cheques page")
+	}
 	var mv cashflow.MoveInput
 	switch in.Type {
 	case "bank_charge":

@@ -121,6 +121,15 @@ func TestAdminChequesReview(t *testing.T) {
 		t.Fatalf("net position lines %+v", cf.NetLines)
 	}
 
+	var inHand int64
+	must(te.db.Get(&inHand, `SELECT id FROM lockers WHERE kind = 'cheque'`))
+	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/admin/lockers/%d/adjust", inHand), LockerAdjustRequest{Type: "adjust_up", Amount: "10", Note: "T"}, manager); rec.Code < 400 || rec.Code >= 500 {
+		t.Fatalf("adjusting Cheques in hand: %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/lockers/transfer", LockerTransferRequest{FromID: bank, ToID: inHand, Amount: "1"}, manager); rec.Code < 400 || rec.Code >= 500 {
+		t.Fatalf("moving money into Cheques in hand: %d %s", rec.Code, rec.Body)
+	}
+
 	if banks := decode[[]string](t, te.do(http.MethodGet, "/api/v1/cheques/banks", nil, cashier)); len(banks) < 18 {
 		t.Fatalf("banks for a cashier: %v", banks)
 	}

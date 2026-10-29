@@ -97,7 +97,7 @@ function RowList({ kind, head, sym, pick, onPick, initial, onEnter }: {
   const rows: { key: number; no: string; sub: string; amount: string | null; p: Pick }[] = kind === 'cash'
     ? cash.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.kindLabel}${r.party ? ` · ${r.party}` : ''}`, amount: r.amount, p: { kind: 'cash', row: r } }))
     : kind === 'credit'
-      ? credit.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.customerName} · ${r.method}`, amount: r.amount, p: { kind: 'credit', row: r } }))
+      ? credit.map((r) => ({ key: r.id, no: r.receiptNo, sub: `${when(r.createdAt)} · ${r.customerName} · ${r.method === 'cheque' ? 'Cheque' : r.method}`, amount: r.amount, p: { kind: 'credit', row: r } }))
       : claims.map((r) => ({ key: r.id, no: r.productName, sub: `${when(r.at)} · ${r.oldSerial || 'by receipt'}${r.customerName ? ` · ${r.customerName}` : ''}`, amount: null, p: { kind: 'warranty', row: r } }))
   // Opened with a scanned number: pick its slip once it's listed (exact numbers come first).
   const opened = useRef(false)

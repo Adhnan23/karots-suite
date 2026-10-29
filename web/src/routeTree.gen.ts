@@ -50,6 +50,7 @@ import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/ret
 import { Route as AuthedTillSuppliersRouteImport } from './routes/_authed/till/suppliers'
 import { Route as AuthedTillWarrantyRouteImport } from './routes/_authed/till/warranty'
 import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
+import { Route as AuthedAdminChequesIndexRouteImport } from './routes/_authed/admin/cheques/index'
 import { Route as AuthedAdminCustomersIndexRouteImport } from './routes/_authed/admin/customers/index'
 import { Route as AuthedAdminCustomersIdRouteImport } from './routes/_authed/admin/customers/$id'
 import { Route as AuthedAdminExpensesIndexRouteImport } from './routes/_authed/admin/expenses/index'
@@ -307,6 +308,11 @@ const AuthedTillWriteOffRoute = AuthedTillWriteOffRouteImport.update({
   id: '/write-off',
   path: '/write-off',
   getParentRoute: () => AuthedTillRoute,
+} as any)
+const AuthedAdminChequesIndexRoute = AuthedAdminChequesIndexRouteImport.update({
+  id: '/cheques/',
+  path: '/cheques/',
+  getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedAdminCustomersIndexRoute =
   AuthedAdminCustomersIndexRouteImport.update({
@@ -678,6 +684,7 @@ export interface FileRoutesByFullPath {
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
+  '/admin/cheques/': typeof AuthedAdminChequesIndexRoute
   '/admin/customers/': typeof AuthedAdminCustomersIndexRoute
   '/admin/expenses/': typeof AuthedAdminExpensesIndexRoute
   '/admin/lockers/': typeof AuthedAdminLockersIndexRoute
@@ -770,6 +777,7 @@ export interface FileRoutesByTo {
   '/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/print/z/$id': typeof AuthedPrintZIdRoute
   '/till/x/$key': typeof AuthedTillXKeyRoute
+  '/admin/cheques': typeof AuthedAdminChequesIndexRoute
   '/admin/customers': typeof AuthedAdminCustomersIndexRoute
   '/admin/expenses': typeof AuthedAdminExpensesIndexRoute
   '/admin/lockers': typeof AuthedAdminLockersIndexRoute
@@ -866,6 +874,7 @@ export interface FileRoutesById {
   '/_authed/print/receipt/$id': typeof AuthedPrintReceiptIdRoute
   '/_authed/print/z/$id': typeof AuthedPrintZIdRoute
   '/_authed/till/x/$key': typeof AuthedTillXKeyRoute
+  '/_authed/admin/cheques/': typeof AuthedAdminChequesIndexRoute
   '/_authed/admin/customers/': typeof AuthedAdminCustomersIndexRoute
   '/_authed/admin/expenses/': typeof AuthedAdminExpensesIndexRoute
   '/_authed/admin/lockers/': typeof AuthedAdminLockersIndexRoute
@@ -962,6 +971,7 @@ export interface FileRouteTypes {
     | '/print/receipt/$id'
     | '/print/z/$id'
     | '/till/x/$key'
+    | '/admin/cheques/'
     | '/admin/customers/'
     | '/admin/expenses/'
     | '/admin/lockers/'
@@ -1054,6 +1064,7 @@ export interface FileRouteTypes {
     | '/print/receipt/$id'
     | '/print/z/$id'
     | '/till/x/$key'
+    | '/admin/cheques'
     | '/admin/customers'
     | '/admin/expenses'
     | '/admin/lockers'
@@ -1149,6 +1160,7 @@ export interface FileRouteTypes {
     | '/_authed/print/receipt/$id'
     | '/_authed/print/z/$id'
     | '/_authed/till/x/$key'
+    | '/_authed/admin/cheques/'
     | '/_authed/admin/customers/'
     | '/_authed/admin/expenses/'
     | '/_authed/admin/lockers/'
@@ -1463,6 +1475,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/till/write-off'
       preLoaderRoute: typeof AuthedTillWriteOffRouteImport
       parentRoute: typeof AuthedTillRoute
+    }
+    '/_authed/admin/cheques/': {
+      id: '/_authed/admin/cheques/'
+      path: '/cheques'
+      fullPath: '/admin/cheques/'
+      preLoaderRoute: typeof AuthedAdminChequesIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/admin/customers/': {
       id: '/_authed/admin/customers/'
@@ -1892,6 +1911,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminSuppliersIdRoute: typeof AuthedAdminSuppliersIdRoute
   AuthedAdminSystemAppearanceRoute: typeof AuthedAdminSystemAppearanceRoute
   AuthedAdminTillsIdRoute: typeof AuthedAdminTillsIdRoute
+  AuthedAdminChequesIndexRoute: typeof AuthedAdminChequesIndexRoute
   AuthedAdminCustomersIndexRoute: typeof AuthedAdminCustomersIndexRoute
   AuthedAdminExpensesIndexRoute: typeof AuthedAdminExpensesIndexRoute
   AuthedAdminLockersIndexRoute: typeof AuthedAdminLockersIndexRoute
@@ -1959,6 +1979,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminSuppliersIdRoute: AuthedAdminSuppliersIdRoute,
   AuthedAdminSystemAppearanceRoute: AuthedAdminSystemAppearanceRoute,
   AuthedAdminTillsIdRoute: AuthedAdminTillsIdRoute,
+  AuthedAdminChequesIndexRoute: AuthedAdminChequesIndexRoute,
   AuthedAdminCustomersIndexRoute: AuthedAdminCustomersIndexRoute,
   AuthedAdminExpensesIndexRoute: AuthedAdminExpensesIndexRoute,
   AuthedAdminLockersIndexRoute: AuthedAdminLockersIndexRoute,

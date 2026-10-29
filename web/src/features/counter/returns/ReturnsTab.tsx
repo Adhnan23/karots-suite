@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { PaymentBadges } from '@/components/admin/MethodBadge'
 import { Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -77,7 +78,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
         </div>
         <div className="text-right">
           <b className="font-display text-lg tabular-nums">{money(sym, sale.total)}</b>
-          <small className="block text-muted-foreground">{sale.payments.map((p) => p.method).join(' + ')}</small>
+          <PaymentBadges payments={sale.payments} className="mt-1 justify-end" />
         </div>
       </header>
       <ul aria-label="Items on the receipt" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto px-3 py-1">

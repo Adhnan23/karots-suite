@@ -68,17 +68,14 @@ func qInt(c echo.Context, name string) int64 {
 func (h *handlers) AdminCheques(c echo.Context) error {
 	f := cheques.Filter{Direction: c.QueryParam("dir"), Status: c.QueryParam("status"), CustomerID: qInt(c, "customer"),
 		SupplierID: qInt(c, "supplier"), LockerID: qInt(c, "locker"), Query: c.QueryParam("q"), Limit: counterPage, Offset: listOffset(c)}
-	for _, p := range []struct {
-		name string
-		to   **time.Time
-	}{{"from", &f.From}, {"to", &f.To}} {
-		if v := strings.TrimSpace(c.QueryParam(p.name)); v != "" {
-			d, err := time.ParseInLocation("2006-01-02", v, time.Local)
-			if err != nil {
-				return apperr.Validation(p.name + " must be YYYY-MM-DD")
-			}
-			*p.to = &d
-		}
+	// The cheque date in the list's range (presets or from/to; the end is exclusive).
+	from, to, err := listRange(c)
+	if err != nil {
+		return err
+	}
+	if from != nil {
+		last := to.AddDate(0, 0, -1)
+		f.From, f.To = from, &last
 	}
 	today := localDay(time.Now())
 	if c.QueryParam("due") == "1" { // the dashboard reminders' lists
@@ -181,7 +178,6 @@ func (h *handlers) AdminChequeClear(c echo.Context) error {
 	if err := h.cheques().Clear(c.Request().Context(), id, on, req.LockerID, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionUpdate, "cheque", strconv.FormatInt(id, 10), "marked cleared")
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -198,7 +194,6 @@ func (h *handlers) AdminChequeReturn(c echo.Context) error {
 	if err := h.cheques().Return(c.Request().Context(), id, req.Status, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionUpdate, "cheque", strconv.FormatInt(id, 10), "marked "+req.Status)
 	return c.NoContent(http.StatusNoContent)
 }
 

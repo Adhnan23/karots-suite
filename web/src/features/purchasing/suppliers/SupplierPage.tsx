@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { MethodBadge } from '@/components/admin/MethodBadge'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Ban, FileText, MoreHorizontal, MoveRight, Pencil, Scale, Undo2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
@@ -129,7 +130,7 @@ export function SupplierPage({ id }: { id: number }) {
                   <li key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                     <span className="min-w-0">
                       <b>{m.kind === 'refund' ? '↓ Refund from them' : '↑ Paid to them'}</b>
-                      <small className="block truncate text-faint">{day(m.date)} · {m.method}{m.reference && ` · ${m.reference}`}{m.by && ` · ${m.by}`}{m.note && ` · ${m.note}`}</small>
+                      <small className="block truncate text-faint">{day(m.date)} · {m.method === 'cheque' ? <MethodBadge method="cheque" /> : m.method}{m.reference && ` · ${m.reference}`}{m.by && ` · ${m.by}`}{m.note && ` · ${m.note}`}</small>
                     </span>
                     <b className={cn('tabular-nums', m.kind === 'refund' ? 'text-success' : 'text-danger')}>{money(sym, m.amount)}</b>
                   </li>

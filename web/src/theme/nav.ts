@@ -1,4 +1,4 @@
-import { Home as HomeIcon, Store, ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, LayoutDashboard, LayoutGrid, Puzzle, ListChecks, Package, PackageCheck, ReceiptText, RefreshCw, Ruler, ScanBarcode, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
+import { ArrowLeftRight, Banknote, BarChart3, Barcode, CalendarClock, ChefHat, ClipboardCheck, Coins, Database, FolderTree, HandCoins, History, Home as HomeIcon, LayoutDashboard, LayoutGrid, ListChecks, Package, PackageCheck, Puzzle, ReceiptText, RefreshCw, Ruler, ScanBarcode, ScrollText, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Shuffle, Store, TrendingUp, Truck, Undo2, UserCog, Users, Vault, Wallet, Warehouse, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Me } from '@/api/types.gen'
 import { REPORTS } from '@/features/reports/hub'
@@ -52,6 +52,7 @@ export const adminNav: NavArea[] = [
       { to: '/admin/tills', icon: Banknote, label: 'Till sessions', description: 'Every open and close — expected, counted, over or short' },
       { to: '/admin/receipts', icon: ReceiptText, label: 'Receipts', description: 'Sale, cash, credit and warranty slips — find and reprint' },
       { to: '/admin/expenses', icon: HandCoins, label: 'Expenses', description: 'Rent, bills and other costs — and where the money came from' },
+      { to: '/admin/cheques', icon: ScrollText, label: 'Cheques', description: 'Cheques taken and written — and which are due' },
     ],
   },
   {

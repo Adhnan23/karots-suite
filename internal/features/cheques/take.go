@@ -11,6 +11,7 @@ import (
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/sales"
+	"karots-suite/internal/money"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -84,7 +85,7 @@ func insert(ctx context.Context, tx *sqlx.Tx, dir string, l Line, locker *int64,
 		return nil, apperr.Internal("failed to record cheque", err)
 	}
 	if err := audit.NewRepository(tx).Insert(ctx, actor, audit.ActionCreate, "cheque", idStr(id),
-		dir+" cheque "+l.Number+" "+l.Amount.StringFixed(2)); err != nil {
+		map[string]string{"in": "Received", "out": "Written"}[dir]+" · "+money.Display(l.Amount)); err != nil {
 		return nil, apperr.Internal("failed to record cheque history", err)
 	}
 	return get(ctx, tx, id)

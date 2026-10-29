@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { isChequeLine } from '@/components/admin/MethodBadge'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Ban, FileText, MoreHorizontal, Pencil, Scale } from 'lucide-react'
 import { useState } from 'react'
@@ -86,7 +87,7 @@ export function CustomerPage({ id }: { id: number }) {
               return (
                 <li key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                   <span className="min-w-0">
-                    <b>{l.kind}</b>
+                    <b className={cn(isChequeLine(l.kind, l.ref) && 'text-cheque')}>{l.kind}</b>
                     <small className="block truncate text-faint">{new Date(l.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: '2-digit' })}{l.ref && ` · ${l.ref}`} · balance {money(sym, l.balance)}</small>
                   </span>
                   <b className={cn('tabular-nums', inflow ? 'text-success' : 'text-foreground')}>{inflow ? '−' : '+'}{money(sym, inflow ? l.credit : l.debit)}</b>

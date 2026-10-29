@@ -40,7 +40,7 @@ function MethodSource({ method, setMethod, source, setSource, sym, into, cheques
         <p className="text-[13px] text-muted-foreground">{into ? "A card refund from a supplier goes back to the owner's card — nothing lands in a shop account." : "A card payment to a supplier is the owner's card — nothing leaves a shop account."}</p>
       ) : (
         <Field label={where} hint={method === 'online' ? 'Pick the bank account so its balance stays right.' : undefined}>
-          <MoneySourcePicker method={method} value={source} onChange={setSource} sym={sym} into={into} label={where} />
+          <MoneySourcePicker method={method as Method} value={source} onChange={setSource} sym={sym} into={into} label={where} />
         </Field>
       )}
     </>

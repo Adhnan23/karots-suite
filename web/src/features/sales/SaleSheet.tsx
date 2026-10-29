@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { PaymentBadges } from '@/components/admin/MethodBadge'
 import { ExternalLink, Minus, Plus } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
@@ -79,7 +80,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
       busy={busy || !picked.length || (cash > 0 && !source)} onSubmit={() => void submit()}
       extra={<Button type="button" variant="ghost" className="h-10 px-3" onClick={() => setQty(Object.fromEntries(lines.map((l) => [l.id, left(l)])))}>Return everything</Button>}>
       {head}
-      <p className="text-[13px] text-muted-foreground">{sale.customerName || 'Walk-in'} · {money(sym, sale.total)} · {sale.payments.map((p) => p.method).join(' + ')}</p>
+      <p className="text-[13px] text-muted-foreground">{sale.customerName || 'Walk-in'} · {money(sym, sale.total)} <PaymentBadges payments={sale.payments} className="ml-1 align-middle" /></p>
       <ul aria-label="Items on the receipt" className="flex flex-col gap-1">
         {lines.map((l) => {
           const n = qty[l.id] ?? 0

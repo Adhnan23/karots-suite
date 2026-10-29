@@ -54,7 +54,7 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 		if _, err := tx.ExecContext(ctx, `UPDATE cheques SET locker_id = $1 WHERE id = $2`, into, c.ID); err != nil {
 			return apperr.Internal("failed to update cheque", err)
 		}
-		detail = "cleared into " + name
+		detail = "Cleared into " + name
 	} else {
 		kind, party := "expense", ""
 		if c.SupplierID != nil {
@@ -71,7 +71,7 @@ func (s *Service) clearTx(ctx context.Context, tx *sqlx.Tx, id int64, on time.Ti
 			Amount: c.Amount, Reason: reason, ReceiptKind: kind, Ref: ref, Party: party, ActorID: actor, Recorded: true}); err != nil {
 			return err
 		}
-		detail = "cleared from " + deref(c.LockerName)
+		detail = "Cleared from " + deref(c.LockerName)
 	}
 	return setStatus(ctx, tx, c.ID, "cleared", day, actor, detail)
 }
@@ -94,7 +94,7 @@ func (s *Service) ReturnTx(ctx context.Context, tx *sqlx.Tx, id int64, status st
 	if err := s.undo(ctx, tx, c, status, actor); err != nil {
 		return err
 	}
-	return setStatus(ctx, tx, c.ID, status, time.Now().Format(ymd), actor, status)
+	return setStatus(ctx, tx, c.ID, status, time.Now().Format(ymd), actor, "Marked "+status)
 }
 
 // FixInput corrects a pending cheque's details (never its amount or person).
@@ -138,7 +138,7 @@ func fixTx(ctx context.Context, tx *sqlx.Tx, id int64, in FixInput, actor int64)
 		bank, locker, number, d.Format(ymd), note, c.ID); err != nil {
 		return apperr.Internal("failed to update cheque", err)
 	}
-	return auditTx(ctx, tx, actor, c.ID, "details fixed: "+strings.TrimSpace(bank+" "+number+" "+d.Format(ymd)))
+	return auditTx(ctx, tx, actor, c.ID, "Details fixed: "+strings.TrimSpace(bank+" "+number+" "+d.Format(ymd)))
 }
 
 func setStatus(ctx context.Context, tx *sqlx.Tx, id int64, status, day string, actor int64, detail string) error {

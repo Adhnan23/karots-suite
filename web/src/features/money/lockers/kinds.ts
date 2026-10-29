@@ -1,4 +1,4 @@
-import { Box, CreditCard, Landmark, type LucideIcon, Vault, Wallet } from 'lucide-react'
+import { Box, CreditCard, Landmark, type LucideIcon, ScrollText, Vault, Wallet } from 'lucide-react'
 
 /** Locker kinds (internal/features/lockers), in the order the form offers them. */
 export const KINDS: { kind: string; label: string; Icon: LucideIcon }[] = [
@@ -8,7 +8,9 @@ export const KINDS: { kind: string; label: string; Icon: LucideIcon }[] = [
   { kind: 'card', label: 'Card machine', Icon: CreditCard },
   { kind: 'other', label: 'Other', Icon: Box },
 ]
-export const kindOf = (k: string) => KINDS.find((x) => x.kind === k) ?? KINDS[KINDS.length - 1]
+/** Cheques in hand: kept by the suite (one per shop), never offered in the form. */
+const CHEQUE = { kind: 'cheque', label: 'Cheques received, not cleared yet', Icon: ScrollText }
+export const kindOf = (k: string) => (k === 'cheque' ? CHEQUE : KINDS.find((x) => x.kind === k) ?? KINDS[KINDS.length - 1])
 
 /** What a ledger row was (locker_ledger.kind). */
 export const LEDGER_KINDS: Record<string, string> = {
