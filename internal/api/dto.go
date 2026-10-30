@@ -12,6 +12,9 @@ type SessionUser struct {
 type LoginRequest struct {
 	Phone string `json:"phone"`
 	Pin   string `json:"pin"`
+	// DeviceLabel names this device for one person one device ("Phone 2");
+	// "" = named from its browser.
+	DeviceLabel string `json:"deviceLabel,omitempty"`
 }
 
 type LoginResponse struct {
@@ -79,14 +82,16 @@ type PaletteInput struct {
 }
 
 type Me struct {
-	User               SessionUser `json:"user"`
-	Flags              Flags       `json:"flags"`
-	Locked             bool        `json:"locked"`
-	MustChangePin      bool        `json:"mustChangePin"`
-	ShopName           string      `json:"shopName"`
-	LockTimeoutMinutes int         `json:"lockTimeoutMinutes"`
-	StockTakeEnabled   bool        `json:"stockTakeEnabled"` // gates Stock-take + Intake
-	TaxRegistered      bool        `json:"taxRegistered"`    // shows the Tax report
-	Appearance         Appearance  `json:"appearance"`
-	Plugins            []string    `json:"plugins"`
+	User SessionUser `json:"user"`
+	// MovedTo is the device the person moved to ("" = they are on this one).
+	MovedTo            string     `json:"movedTo"`
+	Flags              Flags      `json:"flags"`
+	Locked             bool       `json:"locked"`
+	MustChangePin      bool       `json:"mustChangePin"`
+	ShopName           string     `json:"shopName"`
+	LockTimeoutMinutes int        `json:"lockTimeoutMinutes"`
+	StockTakeEnabled   bool       `json:"stockTakeEnabled"` // gates Stock-take + Intake
+	TaxRegistered      bool       `json:"taxRegistered"`    // shows the Tax report
+	Appearance         Appearance `json:"appearance"`
+	Plugins            []string   `json:"plugins"`
 }

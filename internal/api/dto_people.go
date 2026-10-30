@@ -136,6 +136,8 @@ type PresenceBeat struct {
 // PresenceReply answers a heartbeat: lock = an admin asked this screen to lock now.
 type PresenceReply struct {
 	Lock bool `json:"lock"`
+	// Moved: the person signed in on another device; hold the cart and lock.
+	Moved bool `json:"moved"`
 }
 
 // PresenceRow is one device on the admin's "Who's on now".

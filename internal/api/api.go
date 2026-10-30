@@ -37,7 +37,7 @@ type Deps struct {
 
 type handlers struct {
 	d         Deps
-	protected []echo.MiddlewareFunc // jwt → unlocked → PIN chosen
+	protected []echo.MiddlewareFunc // jwt → unlocked → PIN chosen → on this device
 	t         tillServices
 	presence  *presence.Store
 }
@@ -45,7 +45,8 @@ type handlers struct {
 func Register(e *echo.Echo, d Deps) {
 	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
 	limiter := auth.NewLoginLimiter()
-	h := &handlers{d: d, protected: []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen()}, t: newTillServices(d.DB), presence: presence.New()}
+	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
+	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)

@@ -33,6 +33,10 @@ type User struct {
 	// CanSeeLowStock gives a cashier the till's Low stock tab (admins and managers always).
 	CanSeeLowStock bool      `db:"can_see_low_stock" json:"can_see_low_stock"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
+	// The device they are signed in on now, when one person one device is on.
+	ActiveDevice      *string    `db:"active_device"       json:"-"`
+	ActiveDeviceLabel *string    `db:"active_device_label" json:"-"`
+	ActiveDeviceAt    *time.Time `db:"active_device_at"    json:"-"`
 }
 
 // UserPublic is the safe projection used on login screens (no pin hash).

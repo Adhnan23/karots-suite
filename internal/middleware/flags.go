@@ -38,6 +38,15 @@ type UserFlags struct {
 	// maintenance surfaces (e.g. the locked appearance panel) that not even the
 	// shop admin may reach.
 	IsSystem bool
+	// ActiveDevice is the device the user is signed in on now ("" = none
+	// recorded), and ActiveLabel its name, for one person one device.
+	ActiveDevice, ActiveLabel string
+}
+
+// ActiveDeviceCtx is the user's active device and its label for the request.
+func ActiveDeviceCtx(ctx context.Context) (device, label string) {
+	f, _ := ctx.Value(ctxFlagsKey).(UserFlags)
+	return f.ActiveDevice, f.ActiveLabel
 }
 
 // ctxKey is unexported so nothing outside this package can collide with it.

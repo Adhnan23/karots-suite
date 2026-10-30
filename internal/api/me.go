@@ -47,6 +47,7 @@ func (h *handlers) Me(c echo.Context) error {
 			IsSystem:           middleware.IsSystemUserCtx(ctx),
 		},
 		Locked:        middleware.IsLocked(c),
+		MovedTo:       movedTo(c),
 		MustChangePin: middleware.MustChangePin(c),
 		Plugins:       []string{},
 	}

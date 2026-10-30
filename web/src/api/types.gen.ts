@@ -14,6 +14,11 @@ export interface SessionUser {
 export interface LoginRequest {
   phone: string;
   pin: string;
+  /**
+   * DeviceLabel names this device for one person one device ("Phone 2");
+   * "" = named from its browser.
+   */
+  deviceLabel?: string;
 }
 export interface LoginResponse {
   user: SessionUser;
@@ -86,6 +91,10 @@ export interface PaletteInput {
 }
 export interface Me {
   user: SessionUser;
+  /**
+   * MovedTo is the device the person moved to ("" = they are on this one).
+   */
+  movedTo: string;
   flags: Flags;
   locked: boolean;
   mustChangePin: boolean;
@@ -1807,6 +1816,10 @@ export interface PresenceBeat {
  */
 export interface PresenceReply {
   lock: boolean;
+  /**
+   * Moved: the person signed in on another device; hold the cart and lock.
+   */
+  moved: boolean;
 }
 /**
  * PresenceRow is one device on the admin's "Who's on now".

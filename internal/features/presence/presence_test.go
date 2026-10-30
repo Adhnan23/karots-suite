@@ -59,8 +59,8 @@ func TestLabel(t *testing.T) {
 		"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/130.0 Safari/537.36 Edg/130.0":                                 "Windows · Edge",
 		"curl/8": "",
 	} {
-		if got := label(ua); got != want {
-			t.Errorf("label(%q) = %q, want %q", ua, got, want)
+		if got := Label(ua); got != want {
+			t.Errorf("Label(%q) = %q, want %q", ua, got, want)
 		}
 	}
 }

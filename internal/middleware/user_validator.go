@@ -21,9 +21,12 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			IsSystem           bool   `db:"is_system"`
 			Role               string `db:"role"`
 			Name               string `db:"name"`
+			ActiveDevice       string `db:"active_device"`
+			ActiveLabel        string `db:"active_device_label"`
 		}
 		if err := db.GetContext(ctx, &row,
-			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, can_see_low_stock, is_system, role, name FROM users WHERE id = $1`, userID); err != nil {
+			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, can_see_low_stock, is_system, role, name,
+			 COALESCE(active_device, '') AS active_device, COALESCE(active_device_label, '') AS active_device_label FROM users WHERE id = $1`, userID); err != nil {
 			return UserFlags{}, false
 		}
 		return UserFlags{
@@ -36,6 +39,8 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			IsSystem:     row.IsSystem,
 			Name:         row.Name,
 			Role:         row.Role,
+			ActiveDevice: row.ActiveDevice,
+			ActiveLabel:  row.ActiveLabel,
 		}, row.Active
 	}
 }

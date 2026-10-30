@@ -48,8 +48,9 @@ func TestPresenceLiveUsers(t *testing.T) {
 		t.Fatal("the next beat should say lock")
 	}
 	locked := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/lock", nil, cashier))
-	if rec := te.beat("pc-1", PresenceBeat{Path: "/lock", Note: "Playing Blocks"}, locked); rec.Code != 200 || rec.Body.String() != "{\"lock\":false}\n" {
-		t.Fatalf("locked beat %d", rec.Code)
+	rec := te.beat("pc-1", PresenceBeat{Path: "/lock", Note: "Playing Blocks"}, locked)
+	if r := decode[PresenceReply](t, rec); rec.Code != 200 || r.Lock || r.Moved {
+		t.Fatalf("locked beat %d %s", rec.Code, rec.Body)
 	}
 	list := func() []PresenceRow {
 		rec := te.do(http.MethodGet, "/api/v1/admin/presence", nil, admin)

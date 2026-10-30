@@ -139,7 +139,7 @@ func (s *Store) Serving(userID int64, now time.Time) bool {
 }
 
 func row(e *entry, now time.Time) Row {
-	r := Row{Beat: e.b, State: state(e, now), LastSeen: e.seen, Label: label(e.b.UA), LockPending: e.lockAsked}
+	r := Row{Beat: e.b, State: state(e, now), LastSeen: e.seen, Label: Label(e.b.UA), LockPending: e.lockAsked}
 	if e.b.CartItems > 0 {
 		still := now.Sub(e.cartAt)
 		r.Serving = (r.State == "active" || r.State == "idle") && still < ServingWithin
@@ -205,8 +205,8 @@ func state(e *entry, now time.Time) string {
 	return "active"
 }
 
-// label is a short "OS · browser" from a User-Agent ("" when it says nothing useful).
-func label(ua string) string {
+// Label is a short "OS · browser" from a User-Agent ("" when it says nothing useful).
+func Label(ua string) string {
 	pick := func(pairs ...string) string {
 		for i := 0; i < len(pairs); i += 2 {
 			if strings.Contains(ua, pairs[i]) {

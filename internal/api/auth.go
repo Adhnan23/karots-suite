@@ -34,25 +34,28 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
-func (h *handlers) bindLogin(c echo.Context) (auth.LoginInput, error) {
+func (h *handlers) bindLogin(c echo.Context) (auth.LoginInput, string, error) {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return auth.LoginInput{}, apperr.BadRequest("invalid request body")
+		return auth.LoginInput{}, "", apperr.BadRequest("invalid request body")
 	}
 	in := auth.LoginInput{Phone: req.Phone, PIN: req.Pin}
 	if err := c.Validate(&in); err != nil {
-		return in, apperr.Validation("Enter a valid phone number and 4–6 digit PIN")
+		return in, "", apperr.Validation("Enter a valid phone number and 4–6 digit PIN")
 	}
-	return in, nil
+	return in, req.DeviceLabel, nil
 }
 
 func (h *handlers) Login(c echo.Context) error {
-	in, err := h.bindLogin(c)
+	in, label, err := h.bindLogin(c)
 	if err != nil {
 		return err
 	}
 	pair, err := h.d.Auth.Login(c.Request().Context(), in)
 	if err != nil {
+		return err
+	}
+	if err := h.takeDevice(c, pair.User.ID, label); err != nil {
 		return err
 	}
 	h.setCookie(c, pair.AccessToken)
@@ -98,7 +101,7 @@ func (h *handlers) Unlock(c echo.Context) error {
 	if !ok || claims.UserID == 0 {
 		return apperr.Unauthorized("")
 	}
-	in, err := h.bindLogin(c)
+	in, label, err := h.bindLogin(c)
 	if err != nil {
 		return err
 	}
@@ -108,6 +111,9 @@ func (h *handlers) Unlock(c echo.Context) error {
 	}
 	if u.ID != claims.UserID && u.Role != auth.RoleAdmin {
 		return apperr.Forbidden("Only " + claims.Name + " or an admin can unlock this terminal")
+	}
+	if err := h.takeDevice(c, claims.UserID, label); err != nil {
+		return err
 	}
 	token, err := h.d.Auth.ReissueLocked(claims, false)
 	if err != nil {

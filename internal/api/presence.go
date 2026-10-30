@@ -53,7 +53,7 @@ func (h *handlers) PresenceBeat(c echo.Context) error {
 			IP: c.RealIP(), UA: clip(c.Request().UserAgent(), 300),
 		}, time.Now())
 	}
-	return c.JSON(http.StatusOK, PresenceReply{Lock: lock})
+	return c.JSON(http.StatusOK, PresenceReply{Lock: lock, Moved: movedTo(c) != ""})
 }
 
 // AdminPresenceLock asks a screen to lock on its next heartbeat (≤ 20 s). Refused while
