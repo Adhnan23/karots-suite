@@ -15,7 +15,7 @@ Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-2
 Spike passed on Android (OnePlus 13, 2026-10-29) and **iPhone 13 (iOS 27, 2026-10-30)**: shop-made CA trusted via
 `.mobileconfig` + Certificate Trust Settings, Home Screen app with service worker, offline sell, replay in order.
 
-**Resume here:** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` (27 tasks: core seams → plugin Go → phone app → install → e2e, docs and legal).
+**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` (27 tasks: core seams → plugin Go → phone app → install → e2e, docs and legal).
 The spike (`~/Projects/go/karots-pwaspike`) can go once Task 10 (certificates) is committed; its `state/` CA is
 trusted by both test phones (remove that profile from them then).
 
