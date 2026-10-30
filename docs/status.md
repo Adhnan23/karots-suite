@@ -16,8 +16,8 @@ Spike passed on Android (OnePlus 13, 2026-10-29) and **iPhone 13 (iOS 27, 2026-1
 `.mobileconfig` + Certificate Trust Settings, Home Screen app with service worker, offline sell, replay in order.
 
 **Resume here:** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` (27 tasks: core seams → plugin Go → phone app → install → e2e, docs and legal).
-docs and legal for the app at 5,000 LKR). The spike (`~/Projects/go/karots-pwaspike`) can go once the plan no longer
-needs it; its `state/` CA is trusted by both test phones.
+The spike (`~/Projects/go/karots-pwaspike`) can go once Task 10 (certificates) is committed; its `state/` CA is
+trusted by both test phones (remove that profile from them then).
 
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
