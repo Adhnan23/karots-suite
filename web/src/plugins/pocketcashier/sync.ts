@@ -1,0 +1,118 @@
+import type { TillCopy } from '@/api/types.gen'
+import { BASE, phoneFetch } from './api'
+import { loadCopy, saveCopy } from './store/copy'
+import { ack, addAction, pending, type Action } from './store/outbox'
+import { loadPhone } from './store/phone'
+
+/** What the screens show: is the PC reachable, how fresh is the copy, how many
+ * actions wait to be sent. */
+export type SyncState = { live: boolean; copyAt: string | null; waiting: number; lastError?: string }
+
+/** The server's answer for one action (see the plugin's replay). */
+export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; receiptNo?: string; heldId?: number; note?: string }
+
+const REFRESH_EVERY = 60_000
+const LIVE_FOR = 15_000
+const BATCH = 50
+
+let lastOk = 0
+let s: SyncState = { live: false, copyAt: null, waiting: 0 }
+let notify: (s: SyncState) => void = () => {}
+let flushing: Promise<void> | null = null
+const answered = new Map<string, ActionResult>()
+
+export const state = () => s
+
+function set(p: Partial<SyncState>) {
+  s = { ...s, ...p, live: Date.now() - lastOk < LIVE_FOR }
+  notify(s)
+}
+
+const ok = () => { lastOk = Date.now() }
+const down = (e: unknown) => { lastOk = 0; set({ lastError: e instanceof Error ? e.message : String(e) }) }
+
+/** Fetches the copy when it changed (ETag = its version); a 304 means ours is current. */
+export async function refresh() {
+  try {
+    const have = await loadCopy()
+    const res = await phoneFetch('/copy', { headers: have ? { 'If-None-Match': `"${have.version}"` } : {} })
+    if (res.status === 304) {
+      ok()
+      return set({ copyAt: new Date().toISOString(), lastError: undefined })
+    }
+    if (!res.ok) throw new Error(`copy: ${res.status}`)
+    const c = (await res.json()) as TillCopy
+    await saveCopy(c)
+    ok()
+    set({ copyAt: new Date().toISOString(), lastError: undefined })
+  } catch (e) {
+    down(e)
+  }
+}
+
+/** Sends what waits, oldest first, 50 at a time; every answered ref (applied,
+ * skipped or failed) is acknowledged and never sent again. */
+export function flush(signedIn: () => number | null): Promise<void> {
+  flushing ??= (async () => {
+    try {
+      for (;;) {
+        const all = await pending()
+        set({ waiting: all.length })
+        if (!all.length) return
+        const batch = all.slice(0, BATCH)
+        const res = await phoneFetch('/actions', { method: 'POST', body: JSON.stringify({ signedIn: signedIn(), actions: batch }) })
+        if (!res.ok) throw new Error(`send: ${res.status}`)
+        const { results } = (await res.json()) as { results: ActionResult[] }
+        ok()
+        for (const r of results) answered.set(r.ref, r)
+        await ack(results.map((r) => r.ref))
+      }
+    } catch (e) {
+      down(e)
+    } finally {
+      set({ waiting: (await pending()).length })
+      flushing = null
+    }
+  })()
+  return flushing
+}
+
+/** Keeps the copy fresh and the outbox empty while the app is open: refresh on
+ * start, every minute and when the server says something changed; send what
+ * waits whenever the PC answers. Returns stop. */
+export function startSync(onState: (s: SyncState) => void, signedIn: () => number | null): () => void {
+  notify = onState
+  let es: EventSource | null = null
+  let stopped = false
+  const tick = () => { void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined)) }
+  void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
+  tick()
+  void loadPhone().then((p) => {
+    if (!p || stopped) return
+    es = new EventSource(`${BASE}/feed?t=${encodeURIComponent(p.secret)}`)
+    es.addEventListener('version', () => tick())
+  })
+  const every = setInterval(tick, REFRESH_EVERY)
+  // A quick look while something waits, so a sale goes the moment the PC is back.
+  const retry = setInterval(() => { if (s.waiting > 0) void flush(signedIn) }, 5_000)
+  return () => {
+    stopped = true
+    clearInterval(every)
+    clearInterval(retry)
+    es?.close()
+    notify = () => {}
+  }
+}
+
+/** Saves an action and, when the PC answers, sends it at once: its result, or
+ * null when it waits in the outbox (offline). */
+export async function sendNow(a: Omit<Action, 'ref' | 'at'>, signedIn: () => number | null = () => a.userId): Promise<ActionResult | null> {
+  const saved = await addAction(a)
+  set({ waiting: s.waiting + 1 })
+  await flush(signedIn)
+  // A flush already under way may have taken the outbox before this was added.
+  if (!answered.has(saved.ref) && s.live) await flush(signedIn)
+  const r = answered.get(saved.ref) ?? null
+  answered.delete(saved.ref)
+  return r
+}
