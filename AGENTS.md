@@ -147,7 +147,7 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
   src/plugins/        slots.ts + GENERATED enabled-plugins.ts (committed core-only) + <key>/index.tsx
                       (each plugin's React half: export default register(slots))
   src/plugins/slots.ts  typed plugin slots (apps, adminPages → /admin/x/<key>/*, tillMenu, tillActions,
-                        tillCartHints, tillLineHints, drawerSections (on: open|close), tillTenders,
+                        tillCartHints, tillLineHints, drawerSections (on: open|close), tillTenders (offline?), surfaces (/x/<key>, own sign-in),
                         tillTabs, tillReceiptKinds, slipTemplates (a plugin slip's Image-mode
                         template, by its ?data=1 kind — drawn with the style kit it gets, so it
                         follows every receipt style; label + sample for Appearance), labelTemplates (a plugin's

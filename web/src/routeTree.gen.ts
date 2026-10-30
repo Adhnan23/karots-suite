@@ -50,6 +50,7 @@ import { Route as AuthedTillReturnsRouteImport } from './routes/_authed/till/ret
 import { Route as AuthedTillSuppliersRouteImport } from './routes/_authed/till/suppliers'
 import { Route as AuthedTillWarrantyRouteImport } from './routes/_authed/till/warranty'
 import { Route as AuthedTillWriteOffRouteImport } from './routes/_authed/till/write-off'
+import { Route as XKeySplatRouteImport } from './routes/x.$key.$'
 import { Route as AuthedAdminChequesIndexRouteImport } from './routes/_authed/admin/cheques/index'
 import { Route as AuthedAdminCustomersIndexRouteImport } from './routes/_authed/admin/customers/index'
 import { Route as AuthedAdminCustomersIdRouteImport } from './routes/_authed/admin/customers/$id'
@@ -308,6 +309,11 @@ const AuthedTillWriteOffRoute = AuthedTillWriteOffRouteImport.update({
   id: '/write-off',
   path: '/write-off',
   getParentRoute: () => AuthedTillRoute,
+} as any)
+const XKeySplatRoute = XKeySplatRouteImport.update({
+  id: '/x/$key/$',
+  path: '/x/$key/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedAdminChequesIndexRoute = AuthedAdminChequesIndexRouteImport.update({
   id: '/cheques/',
@@ -646,6 +652,7 @@ export interface FileRoutesByFullPath {
   '/till/suppliers': typeof AuthedTillSuppliersRoute
   '/till/warranty': typeof AuthedTillWarrantyRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
+  '/x/$key/$': typeof XKeySplatRoute
   '/admin/': typeof AuthedAdminIndexRoute
   '/till/': typeof AuthedTillIndexRoute
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
@@ -739,6 +746,7 @@ export interface FileRoutesByTo {
   '/till/suppliers': typeof AuthedTillSuppliersRoute
   '/till/warranty': typeof AuthedTillWarrantyRoute
   '/till/write-off': typeof AuthedTillWriteOffRoute
+  '/x/$key/$': typeof XKeySplatRoute
   '/admin': typeof AuthedAdminIndexRoute
   '/till': typeof AuthedTillIndexRoute
   '/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
@@ -836,6 +844,7 @@ export interface FileRoutesById {
   '/_authed/till/suppliers': typeof AuthedTillSuppliersRoute
   '/_authed/till/warranty': typeof AuthedTillWarrantyRoute
   '/_authed/till/write-off': typeof AuthedTillWriteOffRoute
+  '/x/$key/$': typeof XKeySplatRoute
   '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/till/': typeof AuthedTillIndexRoute
   '/_authed/admin/customers/$id': typeof AuthedAdminCustomersIdRoute
@@ -933,6 +942,7 @@ export interface FileRouteTypes {
     | '/till/suppliers'
     | '/till/warranty'
     | '/till/write-off'
+    | '/x/$key/$'
     | '/admin/'
     | '/till/'
     | '/admin/customers/$id'
@@ -1026,6 +1036,7 @@ export interface FileRouteTypes {
     | '/till/suppliers'
     | '/till/warranty'
     | '/till/write-off'
+    | '/x/$key/$'
     | '/admin'
     | '/till'
     | '/admin/customers/$id'
@@ -1122,6 +1133,7 @@ export interface FileRouteTypes {
     | '/_authed/till/suppliers'
     | '/_authed/till/warranty'
     | '/_authed/till/write-off'
+    | '/x/$key/$'
     | '/_authed/admin/'
     | '/_authed/till/'
     | '/_authed/admin/customers/$id'
@@ -1185,6 +1197,7 @@ export interface RootRouteChildren {
   LockRoute: typeof LockRoute
   LoginRoute: typeof LoginRoute
   AccountPinRoute: typeof AccountPinRoute
+  XKeySplatRoute: typeof XKeySplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1475,6 +1488,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/till/write-off'
       preLoaderRoute: typeof AuthedTillWriteOffRouteImport
       parentRoute: typeof AuthedTillRoute
+    }
+    '/x/$key/$': {
+      id: '/x/$key/$'
+      path: '/x/$key/$'
+      fullPath: '/x/$key/$'
+      preLoaderRoute: typeof XKeySplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/admin/cheques/': {
       id: '/_authed/admin/cheques/'
@@ -2073,6 +2093,7 @@ const rootRouteChildren: RootRouteChildren = {
   LockRoute: LockRoute,
   LoginRoute: LoginRoute,
   AccountPinRoute: AccountPinRoute,
+  XKeySplatRoute: XKeySplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

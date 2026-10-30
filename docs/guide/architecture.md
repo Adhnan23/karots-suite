@@ -58,7 +58,7 @@ Registered with `reg.Add…`: `TenderMethod`, `SaleLineHook`, `ReturnLineHook`, 
 ### React slots (`slots.ts`)
 
 `apps`, `adminPages` (→ `/admin/x/<key>/*`), `tillMenu`, `tillActions`, `tillCartHints`,
-`tillLineHints`, `drawerSections`, `tillTenders`, `tillTabs`, `tillReceiptKinds`,
+`tillLineHints`, `drawerSections`, `tillTenders`, `surfaces`, `tillTabs`, `tillReceiptKinds`,
 `slipTemplates`, `labelTemplates`, `returnLineFields`, `reportCards`, `settingsSections`,
 `productFormSections`, before / after sale. The till exposes `TillApi.addGroup` (line groups
 kept together and printed as one block) and `TillApi.addPayout` (money given to the customer).

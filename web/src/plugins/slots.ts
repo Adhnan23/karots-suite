@@ -98,7 +98,13 @@ export type TillTender = {
   /** The tender's button icon (a wallet when none). */
   Icon?: LucideIcon
   Detail: ComponentType<{ meta: Record<string, string>; setMeta: (m: Record<string, string>) => void }>
+  /** Works from a till copy with no server (absent = needs the server live). */
+  offline?: boolean
 }
+
+/** A plugin's full-screen page at /x/<key>/*, outside the signed-in shells (no
+ * dock, no sign-in guard): it signs people in itself. path = the rest of the URL. */
+export type Surface = { key: string; Surface: ComponentType<{ path: string }> }
 
 /** A till tab (in the More menu) owned by a plugin, served at /till/x/<key>. */
 export type TillTab = { key: string; label: string; Page: ComponentType }
@@ -187,6 +193,7 @@ export const slots = {
   tillShortHints: [] as TillShortHint[],
   drawerSections: [] as DrawerSection[],
   tillTenders: [] as TillTender[],
+  surfaces: [] as Surface[],
   tillTabs: [] as TillTab[],
   tillReceiptKinds: [] as TillReceiptKind[],
   slipTemplates: [] as SlipTemplate[],
