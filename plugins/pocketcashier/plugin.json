@@ -1,0 +1,9 @@
+{
+  "key": "pocketcashier",
+  "name": "Pocket Cashier app",
+  "import": "karots-suite/plugins/pocketcashier",
+  "version": "1.0.0",
+  "kind": "app",
+  "ports": [8443],
+  "description": "A phone cashier on the shop's wifi: sell anywhere in the shop while the PC runs, and keep selling from a copy on the phone when the PC or power is down — the server rings those sales up in order when it's back, flagging anything odd instead of refusing it."
+}
