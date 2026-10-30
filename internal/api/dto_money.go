@@ -238,6 +238,8 @@ type TillSessionRow struct {
 	ClosedLate bool `json:"closedLate"`
 	// ClosedBy names who closed it for its cashier ("" = the cashier did).
 	ClosedBy string `json:"closedBy"`
+	// ReviewNote: why an admin should look at it ("" = nothing).
+	ReviewNote string `json:"reviewNote"`
 }
 
 // TillMove is one drawer movement in a session.

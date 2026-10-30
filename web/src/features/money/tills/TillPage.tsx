@@ -72,6 +72,7 @@ export function TillPage() {
               {s.open && (s.stale ? <Tag tone="danger">left open</Tag> : <Tag tone="brand">open now</Tag>)}
               {s.closedLate && <Tag tone="warn">closed late</Tag>}
               {s.closedBy && <Tag tone="muted">{`closed by ${s.closedBy}`}</Tag>}
+              {s.reviewNote && <Tag tone="warn">{s.reviewNote}</Tag>}
             </span>
           </h1>
           <p className="text-sm text-muted-foreground">{stamp(s.openedAt)} → {s.closedAt ? stamp(s.closedAt) : 'still open'}</p>

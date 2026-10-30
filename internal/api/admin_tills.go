@@ -30,6 +30,9 @@ func (h *handlers) registerAdminTills(g *echo.Group) {
 
 func (h *handlers) tillRow(c echo.Context, s cashregister.SessionRow) TillSessionRow {
 	r := TillSessionRow{ID: s.ID, UserID: s.UserID, Cashier: s.UserName, OpenedAt: s.OpenedAt.Format(time.RFC3339), Opening: dec2(s.OpeningCash)}
+	if s.ReviewNote != nil {
+		r.ReviewNote = *s.ReviewNote
+	}
 	if s.ClosedAt == nil {
 		r.Open = true
 		r.Stale = cashregister.Stale(s.OpenedAt, time.Now())

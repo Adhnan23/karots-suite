@@ -1482,6 +1482,10 @@ export interface TillSessionRow {
    * ClosedBy names who closed it for its cashier ("" = the cashier did).
    */
   closedBy: string;
+  /**
+   * ReviewNote: why an admin should look at it ("" = nothing).
+   */
+  reviewNote: string;
 }
 /**
  * TillMove is one drawer movement in a session.

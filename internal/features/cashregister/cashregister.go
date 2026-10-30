@@ -57,6 +57,8 @@ type Session struct {
 	ClosedAt         *time.Time       `db:"closed_at"         json:"closed_at,omitempty"`
 	// ClosedBy is who closed it when that wasn't its cashier (Close for them); nil = its owner.
 	ClosedBy *int64 `db:"closed_by" json:"closed_by,omitempty"`
+	// ReviewNote says why an admin should look at it (nil = nothing to see).
+	ReviewNote *string `db:"review_note" json:"review_note,omitempty"`
 	// ReceiptID is the CR- money receipt written for the opening float (transient;
 	// not a column). Non-nil lets the terminal print/prompt for the slip.
 	ReceiptID *int64 `db:"-" json:"receipt_id,omitempty"`
@@ -85,6 +87,12 @@ type OpenInput struct {
 	// SourceLockerID, when > 0, takes the opening float FROM that locker (debits
 	// it + writes a receipt) instead of treating the float as untracked capital.
 	SourceLockerID int64 `json:"source_locker_id" form:"source_locker_id"`
+	// At is when it opened (nil = now): a client that opened it away from the
+	// server. Never in the future, never before the cashier's last close.
+	At *time.Time `json:"-"`
+	// Remote: not opened at the counter, so the drawer doesn't pop.
+	Remote     bool   `json:"-"`
+	ReviewNote string `json:"-"`
 }
 
 type CloseInput struct {
@@ -93,7 +101,14 @@ type CloseInput struct {
 	// DestLockerID, when > 0, banks the counted closing cash INTO that locker
 	// (credits it + writes a receipt).
 	DestLockerID int64 `json:"dest_locker_id" form:"dest_locker_id"`
+	// At is when it closed (nil = now), never before it opened or in the future.
+	At *time.Time `json:"-"`
+	// Remote: not closed at the counter, so the drawer doesn't pop.
+	Remote bool `json:"-"`
 }
+
+// clockSlack is how far ahead of the server a client's clock may be.
+const clockSlack = 5 * time.Minute
 
 // MovementInput is a mid-shift withdrawal or pay-in.
 type MovementInput struct {
@@ -280,12 +295,22 @@ func (s *Service) Open(ctx context.Context, userID int64, in OpenInput) (*Sessio
 	if !ok || opening.IsNegative() {
 		return nil, apperr.Validation("opening cash must be a non-negative amount")
 	}
+	if in.At != nil && in.At.After(time.Now().Add(clockSlack)) {
+		return nil, apperr.Validation("a till can't open in the future")
+	}
 	var sess *Session
 	var receiptID int64
 	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
+		if in.At != nil {
+			if last, lerr := repo.LastClosed(ctx, userID); lerr == nil && !in.At.After(*last.ClosedAt) {
+				return apperr.Validation("a till can't open before its last close")
+			} else if lerr != nil && !errors.Is(lerr, sql.ErrNoRows) {
+				return lerr
+			}
+		}
 		var ierr error
-		sess, ierr = repo.Open(ctx, userID, opening, raw)
+		sess, ierr = repo.Open(ctx, userID, opening, raw, in.At, in.ReviewNote)
 		if ierr != nil {
 			return ierr
 		}
@@ -314,7 +339,9 @@ func (s *Service) Open(ctx context.Context, userID int64, in OpenInput) (*Sessio
 	if receiptID > 0 {
 		sess.ReceiptID = &receiptID
 	}
-	s.kick(ctx)
+	if !in.Remote {
+		s.kick(ctx)
+	}
 	return sess, nil
 }
 
@@ -382,6 +409,9 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		if sessionID != 0 && sess.ID != sessionID {
 			return apperr.Conflict("that till is already closed")
 		}
+		if in.At != nil && (in.At.Before(sess.OpenedAt) || in.At.After(time.Now().Add(clockSlack))) {
+			return apperr.Validation("a till closes after it opened, and not in the future")
+		}
 		cashSales, ferr = s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
 		if ferr != nil {
 			return ferr
@@ -392,7 +422,7 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		}
 		expected = sess.OpeningCash.Add(cashSales).Add(adj)
 		diff = closing.Sub(expected)
-		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw, closedBy); cerr != nil {
+		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw, closedBy, in.At); cerr != nil {
 			return cerr
 		}
 		if cerr := repo.AddMovement(ctx, sess.ID, userID, MoveClosing, closing, "counted at close", raw); cerr != nil {
@@ -421,6 +451,11 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 	sess.ExpectedCash = &expected
 	sess.Difference = &diff
 	sess.ClosedBy = closedBy
+	closedAt := time.Now()
+	if in.At != nil {
+		closedAt = *in.At
+	}
+	sess.ClosedAt = &closedAt
 	counts := "counted " + money.Display(closing) + ", expected " + money.Display(expected) + ", over/short " + money.Display(diff)
 	if by == nil {
 		s.recordAudit(ctx, userID, audit.ActionClose, "closed register: "+counts)
@@ -431,75 +466,8 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 	if receiptID > 0 {
 		res.ReceiptID = &receiptID
 	}
-	if by == nil {
+	if by == nil && !in.Remote {
 		s.kick(ctx)
 	}
 	return res, nil
-}
-
-// SessionTotals totals every session the filter matches (the Cash Register
-// report's figures).
-func (s *Service) SessionTotals(ctx context.Context, f SessionFilter) (*SessionTotals, error) {
-	t, err := s.repo.SessionTotals(ctx, f)
-	if err != nil {
-		return nil, apperr.Internal("failed to total till sessions", err)
-	}
-	return t, nil
-}
-
-// ListSessions pages the admin's till sessions.
-func (s *Service) ListSessions(ctx context.Context, f SessionFilter) ([]SessionRow, error) {
-	rows, err := s.repo.ListSessions(ctx, f)
-	if err != nil {
-		return nil, apperr.Internal("failed to list register sessions", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) Cashiers(ctx context.Context) ([]SessionRow, error) {
-	rows, err := s.repo.Cashiers(ctx)
-	if err != nil {
-		return nil, apperr.Internal("failed to list cashiers", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) RecentSessions(ctx context.Context, limit int) ([]SessionRow, error) {
-	rows, err := s.repo.RecentSessions(ctx, limit)
-	if err != nil {
-		return nil, apperr.Internal("failed to list register sessions", err)
-	}
-	return rows, nil
-}
-
-// OpenSessions lists currently-open tills (for moving cash to/from a drawer).
-func (s *Service) OpenSessions(ctx context.Context) ([]SessionRow, error) {
-	rows, err := s.repo.OpenSessions(ctx)
-	if err != nil {
-		return nil, apperr.Internal("failed to list open tills", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) SessionsInRange(ctx context.Context, from, to time.Time) ([]SessionRow, error) {
-	rows, err := s.repo.SessionsInRange(ctx, from, to)
-	if err != nil {
-		return nil, apperr.Internal("failed to list register sessions", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) SessionDetail(ctx context.Context, id int64) (*SessionRow, []Movement, error) {
-	sess, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil, apperr.NotFound("register session")
-		}
-		return nil, nil, apperr.Internal("failed to load session", err)
-	}
-	moves, err := s.repo.ListMovements(ctx, id)
-	if err != nil {
-		return nil, nil, apperr.Internal("failed to load cash movements", err)
-	}
-	return sess, moves, nil
 }

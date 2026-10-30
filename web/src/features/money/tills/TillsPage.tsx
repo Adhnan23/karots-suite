@@ -71,7 +71,7 @@ export function TillsPage() {
         columns={[
           { key: 'who', header: 'Cashier', cell: (r) => (
             <span className="flex flex-col">
-              <span className="flex items-center gap-1.5"><b>{r.cashier}</b>{r.open && (r.stale ? <Tag tone="danger">left open</Tag> : <Tag tone="brand">open now</Tag>)}{r.closedBy && <Tag tone="muted">{`by ${r.closedBy}`}</Tag>}</span>
+              <span className="flex items-center gap-1.5"><b>{r.cashier}</b>{r.open && (r.stale ? <Tag tone="danger">left open</Tag> : <Tag tone="brand">open now</Tag>)}{r.closedBy && <Tag tone="muted">{`by ${r.closedBy}`}</Tag>}{r.reviewNote && <span title={r.reviewNote}><Tag tone="warn">review</Tag></span>}</span>
               <small className="font-normal text-faint">{stamp(r.openedAt)}{r.closedAt && ` → ${stamp(r.closedAt)}`}</small>
             </span>
           ) },
