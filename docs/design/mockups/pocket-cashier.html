@@ -1,0 +1,197 @@
+<!doctype html>
+<html data-pal="studio" data-mode="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pocket Cashier screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--background:#EFF0F3;--bg-art:none;--foreground:#15161A;--card:#FFFFFF;--muted:#F6F7F9;--muted-foreground:#5A5E69;--faint:#6E727D;--border:#E4E6EB;--brand:#F2A900;--brand-foreground:#15161A;--brand-soft:#FFF4D6;--selected:#15161A;--selected-foreground:#FFFFFF;--success:#12955A;--danger:#D23F3F;--warning:#B66A00;--hero:#15161A;--hero-foreground:#FFFFFF;--hero-muted:#B9BCC6;--glass:none;--bar:rgb(255 255 255/.9);--shadow:0 1px 2px rgb(21 22 26/.06),0 10px 28px rgb(21 22 26/.07);--radius:16px;--radius-sm:11px;--hero-art:radial-gradient(520px 380px at 85% 110%,rgb(242 169 0/.55),transparent 65%)}
+[data-pal=studio][data-mode=dark]{--background:#111215;--foreground:#EDEEF1;--card:#1B1C21;--muted:#24262C;--muted-foreground:#A6A9B3;--faint:#8A8E99;--border:#2E3038;--brand:#F5B820;--brand-soft:rgb(245 184 32/.16);--selected:#EDEEF1;--selected-foreground:#111215;--success:#3CCB84;--danger:#F27272;--warning:#F0A23B;--hero:#08090B;--hero-foreground:#EDEEF1;--hero-muted:#A6A9B3;--bar:rgb(27 28 33/.92);--shadow:0 1px 0 rgb(255 255 255/.04) inset,0 10px 28px rgb(0 0 0/.35)}
+[data-pal=night]{--background:#EEF0FA;--bg-art:radial-gradient(500px 400px at 12% -10%,rgb(124 92 255/.22),transparent 60%),radial-gradient(400px 400px at 110% 110%,rgb(34 211 238/.20),transparent 60%);--foreground:#161A33;--card:rgb(255 255 255/.62);--muted:rgb(110 91 255/.07);--muted-foreground:#50577A;--faint:#62698B;--border:rgb(60 50 140/.12);--brand:#6E5BFF;--brand-foreground:#FFFFFF;--brand-soft:rgb(110 91 255/.13);--selected:#6E5BFF;--selected-foreground:#FFFFFF;--success:#0F9160;--danger:#D6404E;--warning:#A86500;--hero:#151A3A;--hero-foreground:#EEF0FF;--hero-muted:#B5BCDA;--glass:blur(18px) saturate(160%);--bar:rgb(255 255 255/.66);--shadow:inset 0 1px 0 rgb(255 255 255/.7),0 10px 30px rgb(60 50 140/.10);--hero-art:radial-gradient(420px 300px at 85% 110%,rgb(124 92 255/.6),transparent 65%),radial-gradient(300px 200px at 0% 0%,rgb(34 211 238/.35),transparent 60%)}
+[data-pal=night][data-mode=dark]{--background:#0B1020;--bg-art:radial-gradient(500px 400px at 12% -10%,rgb(124 92 255/.35),transparent 60%),radial-gradient(400px 400px at 110% 110%,rgb(34 211 238/.22),transparent 60%);--foreground:#EAF0FF;--card:rgb(255 255 255/.055);--muted:rgb(255 255 255/.085);--muted-foreground:#A3AECB;--faint:#7A84A6;--border:rgb(255 255 255/.10);--brand:#8B7BFF;--brand-foreground:#0B1020;--brand-soft:rgb(139 123 255/.18);--selected:#8B7BFF;--selected-foreground:#0B1020;--success:#3DDC97;--danger:#FF7C7C;--warning:#FFC857;--hero:#070B18;--hero-foreground:#EAF0FF;--hero-muted:#A3AECB;--glass:blur(18px) saturate(140%);--bar:rgb(22 29 51/.72);--shadow:inset 0 1px 0 rgb(255 255 255/.06),0 10px 30px rgb(0 0 0/.35)}
+[data-pal=bazaar]{--background:#F6EFE4;--foreground:#2A1A12;--card:#FFFBF5;--muted:#F1E6D6;--muted-foreground:#6B5546;--faint:#7E6857;--border:#E6D7C3;--brand:#C2562F;--brand-foreground:#FFFFFF;--brand-soft:#F8E2D6;--selected:#0F6E6A;--selected-foreground:#FFFFFF;--success:#1A7C44;--danger:#C0392B;--warning:#A35F00;--hero:#3B1F14;--hero-foreground:#FFF4E6;--hero-muted:#E3C9B0;--bar:#FFFBF5;--shadow:0 1px 0 rgb(80 40 20/.05),0 8px 24px rgb(80 40 20/.08);--radius:18px;--radius-sm:12px;--hero-art:radial-gradient(420px 300px at 85% 110%,rgb(194 86 47/.6),transparent 65%)}
+[data-pal=bazaar][data-mode=dark]{--background:#17110D;--foreground:#F5EBDD;--card:#221913;--muted:#2E231B;--muted-foreground:#C4B19E;--faint:#9A8774;--border:#3A2D23;--brand:#E8784C;--brand-foreground:#1A0F0A;--brand-soft:rgb(232 120 76/.16);--selected:#E0A100;--selected-foreground:#17110D;--success:#4CC98A;--danger:#F27863;--warning:#F0B23B;--hero:#0F0A07;--hero-foreground:#F5EBDD;--hero-muted:#C4B19E;--bar:#221913;--shadow:inset 0 1px 0 rgb(255 240 220/.04),0 10px 30px rgb(0 0 0/.4)}
+
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 Figtree,system-ui;background:#d9dbe0;color:#15161A;padding:20px 16px 40px}
+.top{max-width:1240px;margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.top h2{margin:0;font:700 22px Sora}
+.top p{margin:4px 0 0;color:#4a4d57}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font:600 13.5px Figtree;border:1px solid #c5c8cf;background:#fff;border-radius:9999px;padding:7px 14px;cursor:pointer}
+.seg button.on{background:#15161A;color:#fff;border-color:#15161A}
+.row{max-width:1240px;margin:0 auto;display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
+.col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cap{font:700 14px Figtree;color:#30333b;text-align:center;max-width:290px}
+.cap span{display:block;font-weight:500;color:#5a5e69;font-size:13px}
+
+.phone{width:290px;height:610px;border-radius:38px;padding:9px;background:#0d0e10;box-shadow:0 20px 50px rgb(0 0 0/.25)}
+.scr{position:relative;height:100%;border-radius:30px;overflow:hidden;background-color:var(--background);background-image:var(--bg-art);color:var(--foreground);display:flex;flex-direction:column;font-size:14px}
+.status{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font:600 11px Figtree;opacity:.8}
+.bar{display:flex;align-items:center;gap:8px;padding:6px 12px 8px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 10px;font:600 11.5px Figtree;white-space:nowrap}
+.live{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)}
+.off{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--warning)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.av{width:30px;height:30px;border-radius:50%;background:var(--brand);color:var(--brand-foreground);display:grid;place-items:center;font:700 12px Figtree;margin-left:auto}
+.ib{width:32px;height:32px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:15px;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.search{margin:0 12px;height:42px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--faint);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.search b{margin-left:auto;font-size:16px;color:var(--foreground)}
+.chips{display:flex;gap:6px;padding:10px 12px 4px;overflow:hidden}
+.chip{border-radius:9999px;padding:6px 12px;font:600 12px Figtree;background:var(--muted);color:var(--muted-foreground);white-space:nowrap}
+.chip.on{background:var(--selected);color:var(--selected-foreground)}
+.list{flex:1;overflow:hidden;padding:6px 12px;display:flex;flex-direction:column;gap:7px}
+.item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;box-shadow:var(--shadow);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.thumb{width:34px;height:34px;border-radius:9px;background:var(--brand-soft);display:grid;place-items:center;font-size:17px}
+.item .n{font-weight:700;font-size:13.5px}
+.item .s{font-size:11.5px;color:var(--muted-foreground)}
+.item .p{margin-left:auto;text-align:right;font:700 13.5px Figtree;font-variant-numeric:tabular-nums}
+.qty{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:9999px;background:var(--brand);color:var(--brand-foreground);font:800 11.5px Figtree;margin-left:6px}
+.warn{color:var(--warning);font-weight:600}
+.dock{margin:6px 10px 10px;border-radius:var(--radius);background:var(--hero);background-image:var(--hero-art);color:var(--hero-foreground);padding:11px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
+.dock .k{font-size:11.5px;color:var(--hero-muted)}
+.dock .t{font:800 20px Sora;font-variant-numeric:tabular-nums}
+.btn{border:0;border-radius:9999px;background:var(--brand);color:var(--brand-foreground);font:800 14px Figtree;padding:11px 18px;margin-left:auto}
+.tabs{display:flex;justify-content:space-around;padding:6px 8px 12px;background:var(--bar);border-top:1px solid var(--border);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);font:600 10.5px Figtree;color:var(--faint)}
+.tabs div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs .on{color:var(--foreground)}
+.tabs i{font-style:normal;font-size:17px}
+
+/* sign in */
+.hero{margin:6px 12px;border-radius:var(--radius);background:var(--hero);background-image:var(--hero-art);color:var(--hero-foreground);padding:16px}
+.hero .clock{font:800 46px/1 Sora;letter-spacing:-1px}
+.hero .sub{color:var(--hero-muted);font-size:12.5px;margin-top:4px}
+.who{display:flex;gap:8px;padding:10px 12px;overflow:hidden}
+.who div{display:flex;flex-direction:column;align-items:center;gap:4px;font:600 11.5px Figtree;color:var(--muted-foreground);min-width:52px}
+.who .a{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 14px Figtree;background:var(--muted);color:var(--foreground);border:2px solid transparent}
+.who .on .a{border-color:var(--brand);background:var(--brand-soft)}
+.who .on{color:var(--foreground)}
+.pins{display:flex;justify-content:center;gap:12px;margin:4px 0 8px}
+.pins span{width:12px;height:12px;border-radius:50%;border:2px solid var(--faint)}
+.pins span.f{background:var(--foreground);border-color:var(--foreground)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 22px}
+.pad div{height:46px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font:700 19px Sora;box-shadow:var(--shadow);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.pad .g{background:transparent;border:0;box-shadow:none;font:600 12px Figtree;color:var(--muted-foreground)}
+.foot{margin-top:auto;padding:10px 14px 14px;font-size:11.5px;color:var(--muted-foreground);text-align:center}
+
+/* pay */
+.back{display:flex;align-items:center;gap:8px;padding:4px 12px 8px;font-weight:700}
+.back .ib{font-size:16px}
+.cart{margin:0 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.cl{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.cl:last-child{border-bottom:0}
+.cl .q{display:flex;align-items:center;gap:6px;color:var(--muted-foreground);font-weight:700}
+.cl .q span{width:22px;height:22px;border-radius:50%;background:var(--muted);display:grid;place-items:center;color:var(--foreground)}
+.cl .v{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.total{margin:10px 12px 6px;display:flex;justify-content:space-between;align-items:baseline}
+.total .t{font:800 30px Sora;font-variant-numeric:tabular-nums}
+.tend{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 12px}
+.tend div{border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border);padding:8px 2px;text-align:center;font:700 11.5px Figtree;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass)}
+.tend div.on{background:var(--selected);color:var(--selected-foreground);border-color:transparent}
+.tend i{display:block;font-style:normal;font-size:17px}
+.given{margin:8px 12px 0;display:flex;gap:6px;flex-wrap:wrap}
+.given span{border-radius:9999px;background:var(--muted);padding:6px 10px;font:700 12px Figtree;font-variant-numeric:tabular-nums}
+.given span.on{background:var(--brand-soft);outline:2px solid var(--brand)}
+.change{margin:8px 12px 0;border-radius:var(--radius-sm);padding:9px 12px;background:color-mix(in srgb,var(--success) 14%,transparent);color:var(--success);display:flex;justify-content:space-between;font-weight:800}
+.wide{margin:auto 12px 12px;border:0;border-radius:var(--radius);background:var(--brand);color:var(--brand-foreground);font:800 16px Figtree;padding:14px;text-align:center}
+.note{margin:6px 12px 0;font-size:11.5px;color:var(--muted-foreground);display:flex;gap:6px;align-items:center}
+
+/* offline banner */
+.banner{margin:0 12px 8px;border-radius:var(--radius-sm);padding:9px 11px;background:color-mix(in srgb,var(--warning) 14%,transparent);border:1px solid color-mix(in srgb,var(--warning) 35%,transparent);font-size:12px;line-height:1.35}
+.banner b{color:var(--warning)}
+.badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:var(--warning);color:#fff;font:800 10.5px Figtree}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h2>Pocket Cashier — phone screens</h2>
+  <p>Same tokens as the suite, so it follows the shop's palette (built-in or custom) and the phone's light/dark mode.</p></div>
+  <div class="seg" id="pal">
+    <button data-v="studio" class="on">Studio</button><button data-v="night">Night</button><button data-v="bazaar">Bazaar</button>
+  </div>
+  <div class="seg" id="mode"><button data-v="light" class="on">Light</button><button data-v="dark">Dark</button></div>
+</div>
+
+<div class="row">
+  <!-- 1 sign in -->
+  <div class="col">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span>●●● ᯤ ▮</span></div>
+      <div class="bar"><span class="pill live"><span class="dot"></span>Connected to shop</span></div>
+      <div class="hero"><div class="clock">9:41</div><div class="sub">Thursday 29 October · Al-Raj Stores</div></div>
+      <div class="who">
+        <div class="on"><span class="a">NP</span>Nimal</div><div><span class="a">SK</span>Sajith</div><div><span class="a">FR</span>Fathima</div><div><span class="a">AD</span>Admin</div>
+      </div>
+      <div class="pins"><span class="f"></span><span class="f"></span><span></span><span></span></div>
+      <div class="pad"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div class="g">Clear</div><div>0</div><div class="g">⌫</div></div>
+      <div class="foot">Copy updated <b>a few seconds ago</b> · Phone “Back store 1”</div>
+    </div></div>
+    <div class="cap">1 · Sign in<span>Tap your name, PIN. Admin PIN opens the admin panel instead.</span></div>
+  </div>
+
+  <!-- 2 sell -->
+  <div class="col">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:43</span><span>●●● ᯤ ▮</span></div>
+      <div class="bar"><span class="pill live"><span class="dot"></span>Live</span><span class="pill" style="background:var(--muted);color:var(--muted-foreground)">Drawer open</span><span class="av">NP</span></div>
+      <div class="search">⌕ Search or scan…<b>▥</b></div>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Rice &amp; flour</span><span class="chip">Oil</span><span class="chip">Soap</span></div>
+      <div class="list">
+        <div class="item"><span class="thumb">🌾</span><div><div class="n">Samba rice 25kg</div><div class="s">Stock 14 · bag</div></div><div class="p">Rs 6,250<span class="qty">2</span></div></div>
+        <div class="item"><span class="thumb">🫙</span><div><div class="n">Coconut oil 1L</div><div class="s">Stock 41</div></div><div class="p">Rs 890</div></div>
+        <div class="item"><span class="thumb">🧂</span><div><div class="n">Sugar 50kg</div><div class="s warn">Stock 1 · low</div></div><div class="p">Rs 13,400<span class="qty">1</span></div></div>
+        <div class="item"><span class="thumb">🧼</span><div><div class="n">Sunlight soap ×24</div><div class="s">Stock 9 · box</div></div><div class="p">Rs 2,760</div></div>
+      </div>
+      <div class="dock"><div><div class="k">3 items · Ravi Traders</div><div class="t">Rs 25,900</div></div><button class="btn">Pay ›</button></div>
+      <div class="tabs"><div class="on"><i>🛒</i>Sell</div><div><i>⏸</i>Held</div><div><i>🧾</i>Counter</div><div><i>☰</i>Menu</div></div>
+    </div></div>
+    <div class="cap">2 · Sell<span>Search or scan, tap to add. The bar shows the cart; tap it to see lines.</span></div>
+  </div>
+
+  <!-- 3 pay -->
+  <div class="col">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:44</span><span>●●● ᯤ ▮</span></div>
+      <div class="back"><span class="ib">‹</span>Back to items<span class="pill live" style="margin-left:auto"><span class="dot"></span>Live</span></div>
+      <div class="cart">
+        <div class="cl"><span class="q"><span>−</span>2<span>+</span></span>Samba rice 25kg<span class="v">12,500</span></div>
+        <div class="cl"><span class="q"><span>−</span>1<span>+</span></span>Sugar 50kg<span class="v">13,400</span></div>
+      </div>
+      <div class="total"><span style="color:var(--muted-foreground);font-weight:600">Total</span><span class="t">Rs 25,900</span></div>
+      <div class="tend"><div class="on"><i>💵</i>Cash</div><div><i>💳</i>Card</div><div><i>🧾</i>Cheque</div><div><i>📒</i>Credit</div></div>
+      <div class="given"><span>Exact</span><span class="on">26,000</span><span>30,000</span><span>Other…</span></div>
+      <div class="change"><span>Give change</span><span>Rs 100</span></div>
+      <div class="note">🖨 Receipt prints at <b>Counter 1</b> printer</div>
+      <div class="wide">Finish sale</div>
+    </div></div>
+    <div class="cap">3 · Pay<span>Its own page; “Back to items” keeps the cart. Cash goes into Nimal’s own drawer.</span></div>
+  </div>
+
+  <!-- 4 offline -->
+  <div class="col">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>10:12</span><span>●●● ᯤ ▮</span></div>
+      <div class="bar"><span class="pill off"><span class="dot"></span>PC not reachable</span><span class="pill" style="background:var(--muted);color:var(--muted-foreground)">Waiting <span class="badge">4</span></span><span class="av">NP</span></div>
+      <div class="banner"><b>Selling from the copy of 10:03.</b> Sales are kept on this phone and sent when the PC is back. No printing until then.</div>
+      <div class="search">⌕ Search or scan…<b>▥</b></div>
+      <div class="list">
+        <div class="item"><span class="thumb">🌾</span><div><div class="n">Samba rice 25kg</div><div class="s">Stock ~12 (copy)</div></div><div class="p">Rs 6,250</div></div>
+        <div class="item"><span class="thumb">🫙</span><div><div class="n">Coconut oil 1L</div><div class="s">Stock ~39 (copy)</div></div><div class="p">Rs 890<span class="qty">3</span></div></div>
+        <div class="item"><span class="thumb">🧼</span><div><div class="n">Sunlight soap ×24</div><div class="s">Stock ~9 (copy)</div></div><div class="p">Rs 2,760</div></div>
+      </div>
+      <div class="dock"><div><div class="k">3 items · walk-in</div><div class="t">Rs 2,670</div></div><button class="btn">Pay ›</button></div>
+      <div class="tabs"><div class="on"><i>🛒</i>Sell</div><div><i>⏸</i>Held</div><div style="opacity:.45"><i>🧾</i>Counter</div><div><i>☰</i>Menu</div></div>
+    </div></div>
+    <div class="cap">4 · PC down<span>Same page, amber state. Counter pages greyed (online only, first version).</span></div>
+  </div>
+</div>
+
+<script>
+for (const id of ['pal','mode']) document.getElementById(id).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#'+id+' button').forEach(x => x.classList.toggle('on', x === b));
+  document.documentElement.dataset[id === 'pal' ? 'pal' : 'mode'] = b.dataset.v;
+});
+</script>
+</body></html>
