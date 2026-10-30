@@ -8,6 +8,7 @@ import (
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/heldsales"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/stock"
@@ -36,6 +37,10 @@ func startPlugins(e *echo.Echo, db *sqlx.DB, cfg *config.Config, svc *Services) 
 		Lockers:      lockers.NewService(db),
 
 		ProductSheetNameTaken: api.ProductSheetNameTaken,
+		Auth:                  svc.Auth,
+		Held:                  heldsales.NewService(db),
+		TillCopy:              func(ctx context.Context) (any, error) { return api.BuildTillCopy(ctx, db) },
+		TillCopyVersion:       func(ctx context.Context) (string, error) { return api.TillCopyVersion(ctx, db) },
 	}, mux, e)
 	plugin.SetupAll(reg)
 	bridgeProductHooks()

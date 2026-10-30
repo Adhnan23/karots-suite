@@ -16,6 +16,7 @@ import (
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
@@ -113,8 +114,12 @@ func tillProducts(rows []products.Product) []TillProduct {
 // tax rates when the shop isn't registered for tax — the sale won't charge them
 // (sales.TaxOnSQL), so the till's total must not show them either.
 func (h *handlers) withPacks(ctx context.Context, ps []TillProduct) []TillProduct {
+	return fillPacks(ctx, h.d.DB, ps)
+}
+
+func fillPacks(ctx context.Context, db *sqlx.DB, ps []TillProduct) []TillProduct {
 	var taxOn bool
-	_ = h.d.DB.GetContext(ctx, &taxOn, sales.TaxOnSQL) // no settings row = off
+	_ = db.GetContext(ctx, &taxOn, sales.TaxOnSQL) // no settings row = off
 	for i := range ps {
 		if !taxOn {
 			ps[i].TaxRate = "0"
@@ -125,7 +130,7 @@ func (h *handlers) withPacks(ctx context.Context, ps []TillProduct) []TillProduc
 		ids[i] = p.ID
 		ps[i].Packs = []TillPack{}
 	}
-	m, err := products.PacksFor(ctx, h.d.DB, ids)
+	m, err := products.PacksFor(ctx, db, ids)
 	if err != nil {
 		return ps // the till still sells by the unit
 	}

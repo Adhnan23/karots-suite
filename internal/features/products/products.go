@@ -225,6 +225,15 @@ func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 	return rows, err
 }
 
+// Sellable is every active product (services too), by name — a till's whole
+// catalogue for a client that sells from a copy.
+func (r *Repository) Sellable(ctx context.Context) ([]Product, error) {
+	var rows []Product
+	err := r.db.SelectContext(ctx, &rows, selectProduct+`
+		WHERE p.is_active AND p.merged_into_id IS NULL ORDER BY p.name, p.id`)
+	return rows, err
+}
+
 // FrequentProducts backs the till's dynamic "Frequently sold" shortcut grid on
 // the top menu: full product cards ranked by net quantity sold (after returns)
 // since `since`. It excludes services, pass-through products (reload face value

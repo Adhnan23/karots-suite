@@ -1,11 +1,15 @@
 package plugin
 
 import (
+	"context"
+
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/audit"
+	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/expenses"
+	"karots-suite/internal/features/heldsales"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/sales"
@@ -41,4 +45,11 @@ type Core struct {
 	// ProductSheetNameTaken says a column name the products sheet already reads
 	// as one of its own (so a plugin's sheet column must not use it).
 	ProductSheetNameTaken func(name string) bool
+	// Auth claims or releases a person's one device; Held parks carts.
+	Auth *auth.Service
+	Held *heldsales.Service
+	// TillCopy is everything a till sells from (the API's TillCopy as JSON-ready
+	// data, no admin or system PIN hashes); TillCopyVersion changes whenever it does.
+	TillCopy        func(ctx context.Context) (any, error)
+	TillCopyVersion func(ctx context.Context) (string, error)
 }
