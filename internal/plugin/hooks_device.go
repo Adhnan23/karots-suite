@@ -15,7 +15,7 @@ type TakeoverGuard func(ctx context.Context, userID int64, activeDevice string) 
 
 var takeoverGuards hook[TakeoverGuard]
 
-func (r *Registry) OneDevicePerPerson()               { oneDevice = true }
+func (r *Registry) OneDevicePerPerson()              { oneDevice = true }
 func (r *Registry) AddTakeoverGuard(g TakeoverGuard) { takeoverGuards.add(g) }
 
 func OneDevice() bool                 { return oneDevice }
