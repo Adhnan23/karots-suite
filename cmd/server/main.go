@@ -20,6 +20,7 @@ import (
 	"karots-suite/internal/db"
 	"karots-suite/internal/features/reorder"
 	"karots-suite/internal/filedb"
+	"karots-suite/internal/plugin"
 	"karots-suite/internal/update"
 )
 
@@ -248,6 +249,7 @@ func run() int {
 			log.Fatalf("server error: %v", err)
 		}
 	}()
+	stopListeners := app.ServeListeners(e, plugin.Listeners()) // plugins' extra HTTPS addresses
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -262,6 +264,9 @@ func run() int {
 	bgCancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if err := stopListeners(ctx); err != nil {
+		log.Printf("forced shutdown of plugin listeners: %v", err)
+	}
 	if err := e.Shutdown(ctx); err != nil {
 		log.Printf("forced shutdown: %v", err)
 	}
