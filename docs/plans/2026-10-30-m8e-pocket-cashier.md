@@ -8,6 +8,12 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
+> **Progress (2026-10-30):** Tasks 1–19 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 20**.
+> **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
+> read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
+> `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
+> `.superpowers/sdd/2026-10-30-m8e-pocket-cashier/progress.md` (git-ignored; also summarised in `docs/status.md`).
+
 **Spec:** `docs/specs/2026-10-29-m8e-pocket-cashier-design.md`. **Look:** `docs/design/mockups/pocket-cashier.html` (approved phone mockups: sign in, sell, pay, PC down; Studio / Night / Bazaar, light and dark).
 
 ## Global Constraints
@@ -51,20 +57,20 @@
   - `Detail.Duplicate bool`: true when `ClientRef` matched an existing sale.
   - In `flags.go`: kind constants `FlagPrice = "price"`, `FlagOversold = "oversold"`, `FlagOverLimit = "over_limit"`, `FlagLookalike = "lookalike"`, `FlagLate = "late"`, `FlagClock = "clock"`, `FlagInactiveUser = "inactive_user"`; `type Flag struct{ ID, SaleID int64; Kind, Note string; CreatedAt time.Time }` (db + json tags); `func AddFlag(ctx context.Context, q sqlx.ExtContext, saleID int64, kind, note string) error`; `func (s *Service) Flags(ctx context.Context, saleID int64) ([]Flag, error)`.
 
-- [ ] **Step 1: Write the failing DB tests** in `replay_db_test.go` (reuse the fixtures other `*_db_test.go` in the package use):
+- [x] **Step 1: Write the failing DB tests** in `replay_db_test.go` (reuse the fixtures other `*_db_test.go` in the package use):
   - `TestCreateClientRefOnce`: two `Create` calls with `ClientRef: "r1"` → the same sale id, `second.Duplicate == true`, one row in `sales`, stock taken once.
   - `TestCreateAtAndRungAt`: `At` and `RungAt` two hours ago → `created_at` and `rung_at` equal that time.
   - `TestReviewKeepsExpectedPrice`: product at 120, `ExpectPrice: "100"`, `Review: true` → line `unit_price` 100, one `price` flag whose note contains `100` and `120`. Without `Review`, `ExpectPrice` is ignored.
   - `TestReviewOversellFlagged`: stock 1, qty 3, `Review: true`, `AllowOversell: false` → the sale is saved, on-hand is 0 and there is an `oversold` flag.
   - `TestReviewOverLimitFlagged`: customer limit 100, 300 on account, `Review: true` → status `credit` and an `over_limit` flag.
-- [ ] **Step 2: Run them to see them fail.** `DATABASE_URL=… go test ./internal/features/sales -run 'TestCreateClientRef|TestCreateAt|TestReview' -v`. Expected: FAIL (unknown fields).
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them to see them fail.** `DATABASE_URL=… go test ./internal/features/sales -run 'TestCreateClientRef|TestCreateAt|TestReview' -v`. Expected: FAIL (unknown fields).
+- [x] **Step 3: Implement.**
   - At the top of `Create`, if `ClientRef != ""` and a sale has it, return `loadDetail` with `Duplicate = true`. A unique violation on insert (a concurrent twin) rolls back and returns the existing sale the same way.
   - `Review` forces `AllowOversell` per line and `AllowOverLimit`, and records which of them actually mattered so the flags are written after `InsertSale`.
   - `ExpectPrice` replaces `unitPrice` before packs and discounts when `Review` is set and it differs.
   - `InsertSale` writes `client_ref`, `rung_at` and `created_at` (`COALESCE($n, now())`).
-- [ ] **Step 4: Run them to see them pass.** Run the same command, then `go test ./internal/features/sales/...`. Expected: PASS, with the existing sale tests unchanged.
-- [ ] **Step 5: Commit.** `feat(sales): replayable sales — one-time ref, rung time, review flags`
+- [x] **Step 4: Run them to see them pass.** Run the same command, then `go test ./internal/features/sales/...`. Expected: PASS, with the existing sale tests unchanged.
+- [x] **Step 5: Commit.** `feat(sales): replayable sales — one-time ref, rung time, review flags`
 
 ### Task 2: Sale flags in the admin
 
@@ -76,13 +82,13 @@
 - Consumes: `sales.Service.Flags`, `sales.Flag` (Task 1).
 - Produces: the admin sale detail DTO gains `flags: SaleFlag[]` (`{kind, note, createdAt}`), `rungAt?: string` and `tillSource: string`. `tillSource` is the money-source value of the open till session that took the sale, or `""` when that session is closed. The admin sales page opens a sale's sheet from `?sale=<id>`. The sheet's return form preselects `tillSource` as the refund source.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - Go `TestAdminSaleDetailFlags`: a sale with an `oversold` flag and an open till → detail JSON has `flags[0].kind == "oversold"` and a non-empty `tillSource`. After closing the till → `tillSource == ""`.
   - Vitest `SaleSheet shows flags`: render with two flags → the text "Needs review" plus both notes. The return form's source select starts at `tillSource`.
-- [ ] **Step 2: Run them to see them fail.** `go test ./internal/api -run TestAdminSaleDetailFlags` and `cd web && bunx vitest run src/features/sales/SaleSheet.test.tsx`
-- [ ] **Step 3: Implement.** Add the DTO fields, then `make types`. The sheet shows an amber "Needs review" block (the `--warning` token family, as the till's stale-session warning uses it), one line per flag with its time, plus "Rung at HH:MM" when `rungAt` differs from the sale time by more than a minute.
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(sales): admin sale sheet shows review flags, rung time, return from the till that took it`
+- [x] **Step 2: Run them to see them fail.** `go test ./internal/api -run TestAdminSaleDetailFlags` and `cd web && bunx vitest run src/features/sales/SaleSheet.test.tsx`
+- [x] **Step 3: Implement.** Add the DTO fields, then `make types`. The sheet shows an amber "Needs review" block (the `--warning` token family, as the till's stale-session warning uses it), one line per flag with its time, plus "Rung at HH:MM" when `rungAt` differs from the sale time by more than a minute.
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(sales): admin sale sheet shows review flags, rung time, return from the till that took it`
 
 ### Task 3: Till sessions at a given time
 
@@ -97,16 +103,16 @@
   - `Session.ReviewNote *string`.
   - Rules: an open `At` after now + 5 min, or not after the user's last `closed_at`, is a validation error. A close `At` before `opened_at`, or after now + 5 min, is a validation error.
 
-- [ ] **Step 1: Write the failing DB tests.**
+- [x] **Step 1: Write the failing DB tests.**
   - `TestOpenAtPast`: open with `At` = 1 h ago → `opened_at` is that time, and a cash sale created with `sales.CreateInput.At` 30 min ago counts in `Summary.CashSales`.
   - `TestOpenAtBeforeLastClose`: refused.
   - `TestCloseAt`: open, sale, close with `At` = 5 min ago → `closed_at` is that time and `expected_cash` includes the sale.
   - `TestRemoteNoKick`: with `WithDrawerKick` counting calls, `Remote: true` open and close → 0 kicks.
   - `TestReviewNoteStored`.
-- [ ] **Step 2: Run them to see them fail.** `go test ./internal/features/cashregister -run 'TestOpenAt|TestCloseAt|TestRemote|TestReviewNote' -v`
-- [ ] **Step 3: Implement.** `repo.Open` and `repo.Close` take the times (`COALESCE`). The checks run inside the tx, against `LastClosed` and `FindOpenForUpdate`. `Remote` skips `s.kick`.
-- [ ] **Step 4: Run them to see them pass,** plus `go test ./internal/features/cashregister/... ./internal/api -run Till`.
-- [ ] **Step 5: Commit.** `feat(tills): open and close at a given time, remote (no drawer), review note`
+- [x] **Step 2: Run them to see them fail.** `go test ./internal/features/cashregister -run 'TestOpenAt|TestCloseAt|TestRemote|TestReviewNote' -v`
+- [x] **Step 3: Implement.** `repo.Open` and `repo.Close` take the times (`COALESCE`). The checks run inside the tx, against `LastClosed` and `FindOpenForUpdate`. `Remote` skips `s.kick`.
+- [x] **Step 4: Run them to see them pass,** plus `go test ./internal/features/cashregister/... ./internal/api -run Till`.
+- [x] **Step 5: Commit.** `feat(tills): open and close at a given time, remote (no drawer), review note`
 
 ### Task 4: One person, one device (server)
 
@@ -124,16 +130,16 @@
   - `Me.movedTo string` ("" unless locked out by another device). `PresenceReply.moved bool`.
   - `POST /api/v1/till/held` runs without `h.onDevice`, so a moved PC can still park its cart.
 
-- [ ] **Step 1: Write the failing API tests** in `device_test.go`, with a test-only toggle `plugin.SetOneDeviceForTest(bool)` (`plugin/only_test.go` shows the pattern):
+- [x] **Step 1: Write the failing API tests** in `device_test.go`, with a test-only toggle `plugin.SetOneDeviceForTest(bool)` (`plugin/only_test.go` shows the pattern):
   - `TestOneDeviceOffByDefault`: the same user signs in on devices A and B, and both can call `/till/config`.
   - `TestTakeover`: on. A signs in, then B signs in → A's `/till/config` gets 403 `SESSION_LOCKED` whose message contains B's label. A's `/me` has `movedTo`. A's presence beat replies `moved: true`. A's `POST /till/held` still works.
   - `TestUnlockTakesBack`: A unlocks with the PIN → B is now locked.
   - `TestSystemExempt`: the system user is never locked.
   - `TestTakeoverGuardBlocks`: a guard returning `(true, "on Phone 2")` → B's login gets 409 `DEVICE_HELD` with that reason, and A keeps working.
-- [ ] **Step 2: Run them to see them fail.** `go test ./internal/api -run 'TestOneDevice|TestTakeover|TestUnlockTakesBack|TestSystemExempt' -v`
-- [ ] **Step 3: Implement** as in the Interfaces above. Only plugins call `ReleaseDevice` in release 1; there is no core button for it.
-- [ ] **Step 4: Run them to see them pass,** plus `go test ./internal/...`.
-- [ ] **Step 5: Commit.** `feat(auth): one person, one device — server-side active device, takeover guard seam`
+- [x] **Step 2: Run them to see them fail.** `go test ./internal/api -run 'TestOneDevice|TestTakeover|TestUnlockTakesBack|TestSystemExempt' -v`
+- [x] **Step 3: Implement** as in the Interfaces above. Only plugins call `ReleaseDevice` in release 1; there is no core button for it.
+- [x] **Step 4: Run them to see them pass,** plus `go test ./internal/...`.
+- [x] **Step 5: Commit.** `feat(auth): one person, one device — server-side active device, takeover guard seam`
 
 ### Task 5: One person, one device (SPA)
 
@@ -145,11 +151,11 @@
 - Consumes: `Me.movedTo`, `PresenceReply.moved`, the `DEVICE_HELD` code (Task 4).
 - Produces: `holdOnMove(cart): Promise<void>` in `web/src/features/till/cart/held.ts` (pure apart from the API call). When the cart has lines it holds it with the label "Moved to another device", then the app goes to `/lock`.
 
-- [ ] **Step 1: Write the failing vitest.** `moved.test.ts`: with the API mocked, `holdOnMove` on a 2-line cart → posts `/till/held` once with the label and the cart JSON. On an empty cart it posts nothing.
-- [ ] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/features/till/moved.test.ts`
-- [ ] **Step 3: Implement.** The presence sender reads `moved` → TillProvider's `holdOnMove` → clear the cart → navigate to `/lock`. The lock page shows `me.movedTo` ("Nimal is now on Phone 2. Sign in here to take it back.") above the PIN pad. The login form shows a `DEVICE_HELD` message in place, not as a toast.
-- [ ] **Step 4: Run it to see it pass,** plus `make test-web`.
-- [ ] **Step 5: Commit.** `feat(till): a moved PC holds its cart and says where the person went`
+- [x] **Step 1: Write the failing vitest.** `moved.test.ts`: with the API mocked, `holdOnMove` on a 2-line cart → posts `/till/held` once with the label and the cart JSON. On an empty cart it posts nothing.
+- [x] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/features/till/moved.test.ts`
+- [x] **Step 3: Implement.** The presence sender reads `moved` → TillProvider's `holdOnMove` → clear the cart → navigate to `/lock`. The lock page shows `me.movedTo` ("Nimal is now on Phone 2. Sign in here to take it back.") above the PIN pad. The login form shows a `DEVICE_HELD` message in place, not as a toast.
+- [x] **Step 4: Run it to see it pass,** plus `make test-web`.
+- [x] **Step 5: Commit.** `feat(till): a moved PC holds its cart and says where the person went`
 
 ### Task 6: Plugin listeners
 
@@ -160,11 +166,11 @@
 **Interfaces:**
 - Produces: `type Listener struct{ Key string; Addr string; TLS *tls.Config }`; `func (r *Registry) AddListener(l Listener)`; `func Listeners() []Listener`; `func ServeListeners(e *echo.Echo, ls []plugin.Listener) (shutdown func(context.Context) error)` in `internal/app`. Each listener is an `http.Server{Addr, Handler: e, TLSConfig}` running `ServeTLS("", "")`, with a bind error logged, never fatal: the till must still start.
 
-- [ ] **Step 1: Write the failing test.** `TestServeListenersTLS`: a self-signed `tls.Config` on `127.0.0.1:0` (pick a free port first), with an echo that has `/health` → an HTTPS GET with that root trusted returns 200. After `shutdown` the port is closed.
-- [ ] **Step 2: Run it to see it fail.** `go test ./internal/app -run TestServeListenersTLS -v`
-- [ ] **Step 3: Implement,** and call it from `cmd/server/main.go`.
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(plugin): plugins may serve the app on an extra HTTPS listener`
+- [x] **Step 1: Write the failing test.** `TestServeListenersTLS`: a self-signed `tls.Config` on `127.0.0.1:0` (pick a free port first), with an echo that has `/health` → an HTTPS GET with that root trusted returns 200. After `shutdown` the port is closed.
+- [x] **Step 2: Run it to see it fail.** `go test ./internal/app -run TestServeListenersTLS -v`
+- [x] **Step 3: Implement,** and call it from `cmd/server/main.go`.
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(plugin): plugins may serve the app on an extra HTTPS listener`
 
 ### Task 7: The till copy
 
@@ -186,11 +192,11 @@
   - `func BuildTillCopy(ctx context.Context, db *sqlx.DB) (*TillCopy, error)` and `func TillCopyVersion(ctx context.Context, db *sqlx.DB) (string, error)`. The version is a cheap fingerprint: max ids or updated times of products, stock_movements, customers, cash_register, held_sales and users, joined.
   - `plugin.Core` gains `TillCopy func(ctx context.Context) (any, error)`, `TillCopyVersion func(ctx context.Context) (string, error)`, `Auth *auth.Service` and `Held *heldsales.Service`.
 
-- [ ] **Step 1: Write the failing test.** `TestTillCopy` with a cashier, a manager, an admin, the system user, a product with a pack and stock 5, a customer with balance 50 and limit 500, an open session and one held sale → `people` holds exactly the cashier and the manager, each with a non-empty `pinHash`. The product has `packs` and `stockQty "5.000"` (match the existing format), and the session's `expected` equals its opening cash. `TestTillCopyVersionChanges`: the version changes after a sale and after a customer edit.
-- [ ] **Step 2: Run them to see them fail.** `go test ./internal/api -run TestTillCopy -v`
-- [ ] **Step 3: Implement.** Reuse the till catalog's product query and `withPacks`, so the copy prices exactly as the till does. Then `make types` and wire `Core` in `startPlugins`.
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(till): the till copy — a till's whole selling world in one read, for offline clients`
+- [x] **Step 1: Write the failing test.** `TestTillCopy` with a cashier, a manager, an admin, the system user, a product with a pack and stock 5, a customer with balance 50 and limit 500, an open session and one held sale → `people` holds exactly the cashier and the manager, each with a non-empty `pinHash`. The product has `packs` and `stockQty "5.000"` (match the existing format), and the session's `expected` equals its opening cash. `TestTillCopyVersionChanges`: the version changes after a sale and after a customer edit.
+- [x] **Step 2: Run them to see them fail.** `go test ./internal/api -run TestTillCopy -v`
+- [x] **Step 3: Implement.** Reuse the till catalog's product query and `withPacks`, so the copy prices exactly as the till does. Then `make types` and wire `Core` in `startPlugins`.
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(till): the till copy — a till's whole selling world in one read, for offline clients`
 
 ### Task 8: Plugin surfaces and the offline flag
 
@@ -203,11 +209,11 @@
   - `export type Surface = { key: string; Surface: ComponentType<{ path: string }> }` and `slots.surfaces: [] as Surface[]`: a full-screen plugin page at `/x/<key>/*`, outside the signed-in shells, that handles its own sign-in (no `_authed` guard, no dock).
   - `TillTender` gains `offline?: boolean`: works from a copy (absent = needs the server).
 
-- [ ] **Step 1: Write the failing test.** Render the router at `/x/demo/a/b` with `slots.surfaces = [{ key: 'demo', Surface: ({path}) => <p>{path}</p> }]` → it shows `a/b`, and no `/me` request is made. An unknown key → not found.
-- [ ] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/routes/x.surface.test.tsx`
-- [ ] **Step 3: Implement.** The route uses `notFound()` like `admin/x.$key.$.tsx`. Then update the slot list in `AGENTS.md` and `docs/guide/architecture.md` (one word each).
-- [ ] **Step 4: Run it to see it pass,** plus `make test-web` and `make check-core`.
-- [ ] **Step 5: Commit.** `feat(plugins): full-screen plugin surfaces at /x/<key>, tenders may say they work offline`
+- [x] **Step 1: Write the failing test.** Render the router at `/x/demo/a/b` with `slots.surfaces = [{ key: 'demo', Surface: ({path}) => <p>{path}</p> }]` → it shows `a/b`, and no `/me` request is made. An unknown key → not found.
+- [x] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/routes/x.surface.test.tsx`
+- [x] **Step 3: Implement.** The route uses `notFound()` like `admin/x.$key.$.tsx`. Then update the slot list in `AGENTS.md` and `docs/guide/architecture.md` (one word each).
+- [x] **Step 4: Run it to see it pass,** plus `make test-web` and `make check-core`.
+- [x] **Step 5: Commit.** `feat(plugins): full-screen plugin surfaces at /x/<key>, tenders may say they work offline`
 
 ## Phase B — the plugin, Go half
 
@@ -226,11 +232,11 @@
     - `pocket_actions(ref text pk, phone_id fk, send_id fk, kind text, user_id bigint, at timestamptz, body jsonb, status text check in ('applied','skipped','failed'), sale_id bigint null, note text, applied_at)`
   - `Store` with `NewStore(db *sqlx.DB) *Store`. `Setup` registers the DataGroup (`pocket_phones`, `pocket_sends`, `pocket_actions`, `pocket_ca`) and calls `reg.OneDevicePerPerson()`. `const Port = 8443`.
 
-- [ ] **Step 1: Write the failing test.** `TestMigrationsApply`: migrate core and pocket on the test DB, then insert and read one phone row.
-- [ ] **Step 2: Run it to see it fail.** `make plugins P=pocket && DATABASE_URL=… go test ./plugins/pocket -run TestMigrationsApply -v`
-- [ ] **Step 3: Implement.** The React half `export default function pocket(s)` registers nothing yet. Leave `make core-only` to put the lists back before the commit.
-- [ ] **Step 4: Run it to see it pass,** plus `make core-only && make check-core`.
-- [ ] **Step 5: Commit.** `feat(pocket): plugin skeleton and tables`
+- [x] **Step 1: Write the failing test.** `TestMigrationsApply`: migrate core and pocket on the test DB, then insert and read one phone row.
+- [x] **Step 2: Run it to see it fail.** `make plugins P=pocket && DATABASE_URL=… go test ./plugins/pocket -run TestMigrationsApply -v`
+- [x] **Step 3: Implement.** The React half `export default function pocket(s)` registers nothing yet. Leave `make core-only` to put the lists back before the commit.
+- [x] **Step 4: Run it to see it pass,** plus `make core-only && make check-core`.
+- [x] **Step 5: Commit.** `feat(pocket): plugin skeleton and tables`
 
 ### Task 10: Certificates and the phone listener
 
@@ -247,16 +253,16 @@
   - VPS or Tailscale shops: when `.env` sets `POCKET_CERT_FILE` and `POCKET_KEY_FILE` (a public certificate), the listener serves that pair instead (`tls.LoadX509KeyPair`, re-read when the files change, for renewals). The setup page then skips the CA steps.
   - Copy `loadOrMakeCA`, `makeLeaf`, `mobileconfig`, `serial` and `lanIPs` from `~/Projects/go/karots-pwaspike/main.go`, swapping the files for the table. **The spike folder can be deleted once this task is committed.**
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `TestCAStoredOnce`: two `CA` calls → the same serial, and one row.
   - `TestLeafVerifies`: a leaf for 192.168.1.20 verifies against the CA pool with the IP SAN.
   - `TestLeafFollowsNewIP`: a cache with a stubbed `lanIPs` returning A, then B (after the check interval) → the second handshake's cert contains B, from the same CA.
   - `TestMobileconfig`: it contains `com.apple.security.root`, the base64 DER and the shop name.
   - `TestPublicCertWins`: with the two env files set to a test pair → the handshake serves that cert, not a CA leaf.
-- [ ] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestCA|TestLeaf|TestMobileconfig' -v`
-- [ ] **Step 3: Implement** (with `lanIPs` as a package var so the test can stub it).
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): the shop's own CA and a phone certificate that follows the PC's IP`
+- [x] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestCA|TestLeaf|TestMobileconfig' -v`
+- [x] **Step 3: Implement** (with `lanIPs` as a package var so the test can stub it).
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(pocket): the shop's own CA and a phone certificate that follows the PC's IP`
 
 ### Task 11: Pairing and the phones API
 
@@ -279,15 +285,15 @@
     - `GET /pocket/addresses` → `{setup: ["http://<ip>:<port>/x/pocket/setup", …], app: ["https://<ip>:8443/x/pocket/", …]}`
   - Every admin action is audited (`Core.Audit`).
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `TestPairApproveUse`: pair → pending, so the status call says `pending` and `phoneAuth` rejects it. Approve by code → `active`, and `phoneAuth` accepts.
   - `TestBlockStopsAtOnce`: block → the next `phoneAuth` call gets 403.
   - `TestReleaseClearsDevice`: a user with `active_device` = the phone's device → release clears it.
   - `TestCashierCannotApprove`: a manager or cashier gets 403.
-- [ ] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestPair|TestBlock|TestRelease|TestCashierCannot' -v`
-- [ ] **Step 3: Implement.** Compare secrets in constant time by hash lookup, and never store the raw secret.
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): pair phones with admin approval, block and release`
+- [x] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestPair|TestBlock|TestRelease|TestCashierCannot' -v`
+- [x] **Step 3: Implement.** Compare secrets in constant time by hash lookup, and never store the raw secret.
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(pocket): pair phones with admin approval, block and release`
 
 ### Task 12: Copy and live feed
 
@@ -300,14 +306,14 @@
   - `GET /api/v1/x/pocket/copy` (`phoneAuth`) → the copy, gzipped, with `ETag: <version>`; `If-None-Match` → 304. It sets `copy_at`.
   - `GET /api/v1/x/pocket/feed?t=<secret>` (EventSource can't send headers, and the query is safe on the TLS listener): an SSE stream with `event: version` whenever the version changes (one shared 2 s poller for all subscribers, started on the first subscriber), plus a `: ping` every 25 s.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `TestCopyNeedsActivePhone`: 401 without a phone. 200 with an active phone, and the body has `people` and no admin.
   - `TestCopyETag`: a second call with `If-None-Match` → 304, and after a sale → 200.
   - `TestFeedSendsVersion`: open the feed (httptest), make a sale → a `version` event arrives within 5 s.
-- [ ] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestCopy|TestFeed' -v`
-- [ ] **Step 3: Implement.** Mark the shared poller `// ponytail: polls a fingerprint every 2 s; a core change bus if many phones or big shops need it`.
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): phone copy with ETag and a live change feed`
+- [x] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestCopy|TestFeed' -v`
+- [x] **Step 3: Implement.** Mark the shared poller `// ponytail: polls a fingerprint every 2 s; a core change bus if many phones or big shops need it`.
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(pocket): phone copy with ETag and a live change feed`
 
 ### Task 13: Replay
 
@@ -336,7 +342,7 @@
   - `signedIn` → `ClaimDevice(signedIn, phone.device, phone.name)` and `pocket_phones.user_id`. Admin and system user ids in actions → `failed` ("admins sell from a cashier account on phones").
   - `pocket_sends` gets one row per batch with the counts.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `replay_db_test.go`:
     - `TestReplayRefOnce`: the same batch twice → one sale and an identical second response.
     - `TestReplayConcurrentSendsApplyOnce`: two goroutines sending the same 3-sale batch → 3 sales.
@@ -351,10 +357,10 @@
     - `TestReplayAdminRefused`.
     - `TestReplaySignedInClaimsDevice`.
     - `TestReplayNoDrawerKick` (with a counting kick).
-- [ ] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run TestReplay -v`
-- [ ] **Step 3: Implement.** Keep `replay.go` and `replay_sale.go` each under 500 lines; split the look-alike out into `lookalike.go` if needed.
-- [ ] **Step 4: Run them to see them pass,** plus `go test ./plugins/pocket/...`.
-- [ ] **Step 5: Commit.** `feat(pocket): replay phone actions in order — once each, flagged never refused`
+- [x] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run TestReplay -v`
+- [x] **Step 3: Implement.** Keep `replay.go` and `replay_sale.go` each under 500 lines; split the look-alike out into `lookalike.go` if needed.
+- [x] **Step 4: Run them to see them pass,** plus `go test ./plugins/pocket/...`.
+- [x] **Step 5: Commit.** `feat(pocket): replay phone actions in order — once each, flagged never refused`
 
 ### Task 14: Review API and the takeover guard
 
@@ -368,14 +374,14 @@
   - `GET /pocket/sends/:id` → `{actions: [{ref, kind, userName, at, status, note, saleId, receiptNo, flags: [{kind, note}]}]}`, where flags come from `sale_flags`.
   - Takeover guard: block when the user's `active_device` is a pocket phone whose `last_seen` is more than 60 s ago, with the reason "<Name> is signed in on <phone>, which isn't reachable. An admin can release it in Phones."
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `TestSendsList`: two batches → listed newest first with their counts.
   - `TestSendDetailFlags`: a look-alike sale → `flags[0].kind == "lookalike"`.
   - `TestGuardBlocksUnreachablePhone`: `last_seen` 2 min ago → PC login gets 409 `DEVICE_HELD`. 10 s ago → allowed (takes it back).
-- [ ] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestSends|TestSendDetail|TestGuard' -v`
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): what came in from each phone, and keep a person off the PC while their phone is out of reach`
+- [x] **Step 2: Run them to see them fail.** `go test ./plugins/pocket -run 'TestSends|TestSendDetail|TestGuard' -v`
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(pocket): what came in from each phone, and keep a person off the PC while their phone is out of reach`
 
 ### Task 15: Service worker and manifest
 
@@ -393,11 +399,11 @@
     - activate deletes old version caches
   - Public `GET /api/v1/x/pocket/manifest.webmanifest`: name "Karots Pocket Cashier", `start_url: "/x/pocket/"`, `scope: "/"`, `display: "standalone"`, and the icons from `web/public` (`/icon-192.png`, `/icon-512.png`, `/icon-maskable-512.png`).
 
-- [ ] **Step 1: Write the failing test.** `TestSWListsAssets`: the body contains `"/index.html"`, at least one `"/assets/` entry and the version string, and the response has the `Service-Worker-Allowed` header. `TestManifest`: `start_url` is `/x/pocket/`.
-- [ ] **Step 2: Run it to see it fail.** `go test ./plugins/pocket -run 'TestSW|TestManifest' -v` (after `make web` so `dist` has assets)
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): service worker and manifest for the installed phone app`
+- [x] **Step 1: Write the failing test.** `TestSWListsAssets`: the body contains `"/index.html"`, at least one `"/assets/` entry and the version string, and the response has the `Service-Worker-Allowed` header. `TestManifest`: `start_url` is `/x/pocket/`.
+- [x] **Step 2: Run it to see it fail.** `go test ./plugins/pocket -run 'TestSW|TestManifest' -v` (after `make web` so `dist` has assets)
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): service worker and manifest for the installed phone app`
 
 ## Phase C — the plugin, React half (`web/src/plugins/pocket/`)
 
@@ -420,15 +426,15 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - `pending(): Promise<Action[]>` (oldest first), `ack(refs: string[])`.
   - `savePhone({secret, name, device})`, `loadPhone()`, where the secret is sealed too.
 
-- [ ] **Step 1: Write the failing vitest** (`import 'fake-indexeddb/auto'`):
+- [x] **Step 1: Write the failing vitest** (`import 'fake-indexeddb/auto'`):
   - The copy round-trips.
   - The raw `copy` store value is not readable JSON, meaning it's sealed.
   - `addAction` × 3 → `pending` in order. `ack` of the first two → one left.
   - The key is non-extractable (`exportKey` rejects).
-- [ ] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/plugins/pocket/store`
-- [ ] **Step 3: Implement** with plain IndexedDB (no library).
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): the phone's encrypted copy and outbox`
+- [x] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/plugins/pocket/store`
+- [x] **Step 3: Implement** with plain IndexedDB (no library).
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): the phone's encrypted copy and outbox`
 
 ### Task 17: Sync engine
 
@@ -444,16 +450,16 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - `sendNow(a: Action): Promise<ActionResult | null>` adds the action to the outbox and, when live, flushes and returns its result (null when offline).
   - Flush sends at most 50 actions per POST and acks every ref in the response (applied, skipped and failed alike).
 
-- [ ] **Step 1: Write the failing vitest** (fetch and EventSource mocked):
+- [x] **Step 1: Write the failing vitest** (fetch and EventSource mocked):
   - Offline → `live false`, and the actions stay pending.
   - Back online → one POST with the actions oldest first, then acked, so `waiting 0`.
   - A `failed` result is acked too.
   - A 304 keeps the copy.
   - A `version` event triggers a copy fetch.
-- [ ] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/plugins/pocket/sync.test.ts`
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): sync — copy refresh, live feed, outbox flush`
+- [x] **Step 2: Run it to see it fail.** `cd web && bunx vitest run src/plugins/pocket/sync.test.ts`
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): sync — copy refresh, live feed, outbox flush`
 
 ### Task 18: Surface, PWA hook-up, pairing and sign-in
 
@@ -470,11 +476,11 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - The pairing screen: no phone saved → enter a phone name → `pair` → show the 6-digit code large, with a QR of it → poll the status every 3 s → active → save → sign-in.
   - The sign-in screen: name tiles from `copy.people`, plus "Admin" online only, then the PIN pad.
 
-- [ ] **Step 1: Write the failing vitest.** `pin.test.ts`: a bcrypt hash of `1234` made with Go's cost (a fixture string from `bcrypt.GenerateFromPassword` at `DefaultCost`) → `checkPin` true for 1234 and false for 4321.
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement** the screens per the mockup ("sign in" frame).
-- [ ] **Step 4: Run it to see it pass,** plus `make test-web`.
-- [ ] **Step 5: Commit.** `feat(pocket): the phone app — install, pair, sign in online and offline`
+- [x] **Step 1: Write the failing vitest.** `pin.test.ts`: a bcrypt hash of `1234` made with Go's cost (a fixture string from `bcrypt.GenerateFromPassword` at `DefaultCost`) → `checkPin` true for 1234 and false for 4321.
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement** the screens per the mockup ("sign in" frame).
+- [x] **Step 4: Run it to see it pass,** plus `make test-web`.
+- [x] **Step 5: Commit.** `feat(pocket): the phone app — install, pair, sign in online and offline`
 
 ### Task 19: Sell screen
 
@@ -490,11 +496,11 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - Offline state: amber, "Selling from the copy of HH:MM", "Waiting N", stock shown as "about N", and the copy age always visible, with a warning past 30 min.
   - `Scanner`: `@zxing/library` `BrowserMultiFormatReader` on the back camera, which closes on the first code. A Bluetooth scanner works as typing in the search box with Enter.
 
-- [ ] **Step 1: Write the failing vitest.** `catalog.test.ts`: name search is case-insensitive and finds the local name. A pack barcode returns `packId`. An unknown code → null.
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement** per the mockup ("sell" frame and "PC down" frame).
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): phone Sell — search, chips, camera scan, cart bar, offline state`
+- [x] **Step 1: Write the failing vitest.** `catalog.test.ts`: name search is case-insensitive and finds the local name. A pack barcode returns `packId`. An unknown code → null.
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement** per the mockup ("sell" frame and "PC down" frame).
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): phone Sell — search, chips, camera scan, cart bar, offline state`
 
 ### Task 20: Pay
 
