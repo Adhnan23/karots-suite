@@ -7,6 +7,7 @@
 package pocketcashier
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io/fs"
@@ -23,6 +24,7 @@ func init() { plugin.Register(&Plugin{}) }
 type Plugin struct {
 	core  plugin.Core
 	store *Store
+	feed  *feedHub
 }
 
 func (p *Plugin) Name() string                { return "Pocket Cashier app" }
@@ -32,6 +34,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "pocketcas
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	p.feed = &feedHub{version: func(ctx context.Context) (string, error) { return p.core.TillCopyVersion(ctx) }}
 	reg.AddDataGroup(plugin.DataGroup{Key: "pocketcashier", Name: "Pocket Cashier phones",
 		Tables: []string{"pocket_ca", "pocket_phones", "pocket_sends", "pocket_actions"}})
 	reg.OneDevicePerPerson()
@@ -47,6 +50,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	}
 	pub.GET("/pocketcashier/ping", h.ping)
 	pub.GET("/pocketcashier/whoami", h.whoami, h.phoneAuth)
+	pub.GET("/pocketcashier/copy", h.copyFor, h.phoneAuth)
+	pub.GET("/pocketcashier/feed", h.feed, h.phoneAuth)
 
 	a := reg.Admin() // admin + manager; Phones is admin only
 	a.GET("/pocketcashier/phones", h.phones, adminOnly)
