@@ -2,6 +2,8 @@ package sales
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -49,6 +51,10 @@ type ItemInput struct {
 	// payouts can take a sale below zero; the difference leaves the drawer as
 	// change.
 	Payout bool `json:"payout"`
+	// ExpectPrice is the unit price the client showed when it rang the line
+	// (offline, from its copy). Read only on a Review sale: a different
+	// catalogue price is then overruled by it and flagged.
+	ExpectPrice string `json:"expect_price"`
 }
 
 // LineGroup: No numbers the groups within one sale, Sets is how many sets;
@@ -135,4 +141,14 @@ type CreateInput struct {
 	// device open/close + inter-job wait — that gap is what made the paper come
 	// out seconds after "Complete Sale". One combined job removes it.
 	DeferDrawerKick bool `json:"defer_drawer_kick"`
+	// ClientRef is a one-time id from a client that may send the same sale
+	// again (a retry after a dropped reply): a repeat returns the first sale.
+	ClientRef string `json:"client_ref"`
+	// RungAt is when the client rang it; At is when it counts (nil = now).
+	RungAt *time.Time `json:"rung_at"`
+	At     *time.Time `json:"at"`
+	// Review never refuses what was already sold elsewhere: an oversell is
+	// taken as found at the till, credit may pass the limit, and ExpectPrice
+	// is kept — each one flagged for an admin.
+	Review bool `json:"review"`
 }

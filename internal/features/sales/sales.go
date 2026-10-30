@@ -39,6 +39,8 @@ type Sale struct {
 	CashierID            int64            `db:"cashier_id"   json:"cashier_id"`
 	Notes                *string          `db:"notes"        json:"notes,omitempty"`
 	CreatedAt            time.Time        `db:"created_at"   json:"created_at"`
+	ClientRef            *string          `db:"client_ref"   json:"client_ref,omitempty"`
+	RungAt               *time.Time       `db:"rung_at"      json:"rung_at,omitempty"`
 	// joined
 	CashierName  string  `db:"cashier_name"  json:"cashier_name"`
 	CustomerName *string `db:"customer_name" json:"customer_name,omitempty"`
@@ -157,6 +159,8 @@ type Detail struct {
 	PaidFactor decimal.Decimal `json:"paid_factor"`
 	// CreditReduced is what returns already took off the customer's account.
 	CreditReduced decimal.Decimal `json:"credit_reduced"`
+	// Duplicate: Create found this sale by its ClientRef and made nothing new.
+	Duplicate bool `json:"duplicate,omitempty"`
 }
 
 // --- repository ---
@@ -190,6 +194,8 @@ type saleRow struct {
 	Status               string
 	CashierID            int64
 	Notes                *string
+	ClientRef            *string
+	RungAt, At           *time.Time
 }
 
 func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
@@ -198,12 +204,12 @@ func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
 		INSERT INTO sales
 			(receipt_no, customer_id, sale_type, subtotal, discount, discount_type, discount_value,
 			 tax, total, paid_amount, change_given, rounding_to_account, status, cashier_id, notes,
-			 customer_balance_after)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+			 customer_balance_after, client_ref, rung_at, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,COALESCE($19, now()))
 		RETURNING id`,
 		s.ReceiptNo, s.CustomerID, s.SaleType, s.Subtotal, s.Discount, s.DiscountType, s.DiscountValue,
 		s.Tax, s.Total, s.PaidAmount, s.ChangeGiven, s.RoundingToAccount, s.Status, s.CashierID, s.Notes,
-		s.CustomerBalanceAfter)
+		s.CustomerBalanceAfter, s.ClientRef, s.RungAt, s.At)
 	return id, err
 }
 

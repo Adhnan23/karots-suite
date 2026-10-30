@@ -31,6 +31,7 @@ type saleLines struct {
 	serviceProducts map[int64]bool
 	componentMoves  map[int][]ServiceComponentParsed
 	serialBatches   []serialBatch
+	flags           []pendingFlag // Review notes, written once the sale exists
 }
 
 // buildSaleLines prices each item, applies per-line discount + tax, takes the
@@ -57,6 +58,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 	componentMoves := map[int][]ServiceComponentParsed{}
 	serialSeen := map[string]bool{}
 	var serialBatches []serialBatch
+	var flags []pendingFlag
 
 	// Tax is charged only by a shop registered for it (registered AND a
 	// registration number): an unregistered shop may not add tax to a bill, so
@@ -179,6 +181,19 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			// with no price of its own keeps following the product.
 			unitPrice = pickedBatch.SellingPrice
 		}
+		// A Review sale keeps the price the client showed (it was already
+		// charged), and flags the difference.
+		if in.Review && strings.TrimSpace(it.ExpectPrice) != "" {
+			ep, err := money.Parse(it.ExpectPrice)
+			if err != nil || ep.IsNegative() {
+				return apperr.Validation(fmt.Sprintf("expected price for %s is invalid", p.Name))
+			}
+			if !ep.Equal(unitPrice) {
+				flags = append(flags, pendingFlag{FlagPrice, fmt.Sprintf("%s sold at %s, price here %s",
+					p.Name, money.Display(ep), money.Display(unitPrice))})
+				unitPrice = ep
+			}
+		}
 		lineGross := qty.Mul(unitPrice).Round(2)
 		// Sold by the pack too: full packs ring at the pack price (never dearer
 		// than their units). A combo's lines keep their own per-unit deal.
@@ -292,7 +307,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				return apperr.Internal("failed to update stock", err)
 			}
 			if !ok {
-				if !it.AllowOversell {
+				if !it.AllowOversell && !in.Review {
 					return apperr.Conflict(fmt.Sprintf("insufficient stock for %s", p.Name))
 				}
 				// The goods exist; the count was short. Correct up to cover the
@@ -303,6 +318,10 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 					return apperr.Internal("failed to read stock", err)
 				}
 				short := qty.Sub(onHand)
+				if in.Review && !it.AllowOversell {
+					flags = append(flags, pendingFlag{FlagOversold, fmt.Sprintf("%s: sold %s, the count showed %s",
+						p.Name, qty.String(), onHand.String())})
+				}
 				batchID := int64(0)
 				if pickedBatch != nil {
 					batchID = pickedBatch.ID
@@ -381,6 +400,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		serviceProducts: serviceProducts,
 		componentMoves:  componentMoves,
 		serialBatches:   serialBatches,
+		flags:           flags,
 	}
 	return nil
 }

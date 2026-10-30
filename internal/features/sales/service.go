@@ -101,6 +101,10 @@ func clampDiscount(amt, base decimal.Decimal) decimal.Decimal {
 // guard, audit, customer credit — happens inside one transaction so a failure
 // at any step rolls everything back.
 func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (*Detail, error) {
+	// A one-time ref seen before: hand back that sale, book nothing.
+	if d, err := s.byClientRef(ctx, in.ClientRef); d != nil || err != nil {
+		return d, err
+	}
 	// Bill-level discount: the cashier enters a value that is either a fixed
 	// amount or a percentage (resolved against the pre-tax net, after item
 	// discounts, once the lines are totalled below).
@@ -198,8 +202,12 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			cust = c
 			available = c.AvailableCredit()
 		}
-		if err := CheckTender(tender, total, in.CustomerID != nil, available, in.AllowOverLimit); err != nil {
+		if err := CheckTender(tender, total, in.CustomerID != nil, available, in.AllowOverLimit || in.Review); err != nil {
 			return err
+		}
+		if in.Review && !in.AllowOverLimit && tender.OnAccount.GreaterThan(available) {
+			sl.flags = append(sl.flags, pendingFlag{FlagOverLimit, "on account " + money.Display(tender.OnAccount) +
+				", available " + money.Display(available)})
 		}
 
 		// Status follows the on-account line alone. It used to follow
@@ -269,9 +277,17 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			Status:               status,
 			CashierID:            cashierID,
 			Notes:                in.Notes,
+			ClientRef:            nilIfEmpty(in.ClientRef),
+			RungAt:               in.RungAt,
+			At:                   in.At,
 		})
 		if err != nil {
 			return apperr.Internal("failed to save sale", err)
+		}
+		for _, f := range sl.flags {
+			if err := AddFlag(ctx, tx, saleID, f.kind, f.note); err != nil {
+				return apperr.Internal("failed to flag sale", err)
+			}
 		}
 
 		for i := range lines {
@@ -415,6 +431,10 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		return nil
 	})
 	if err != nil {
+		// A concurrent twin with the same ref won the insert: return it.
+		if in.ClientRef != "" && appdb.IsUniqueViolation(err) {
+			return s.byClientRef(ctx, in.ClientRef)
+		}
 		return nil, err
 	}
 	// Post-commit: pop the physical drawer when the sale actually took cash.
