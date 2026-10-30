@@ -37,4 +37,24 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.OneDevicePerPerson()
 	reg.AddListener(plugin.Listener{Key: "pocketcashier", Addr: fmt.Sprintf(":%d", Port),
 		TLS: &tls.Config{GetCertificate: certSource(p.store), MinVersion: tls.VersionTLS12}})
+
+	h := handlers{p}
+	pub := reg.Public() // /api/v1/x — no sign-in; phone routes carry their own key
+	pub.POST("/pocketcashier/pair", h.pair)
+	pub.GET("/pocketcashier/pair/status", h.pairStatus)
+	for _, f := range []string{"ca.crt", "ca.pem", "ca.mobileconfig"} {
+		pub.GET("/pocketcashier/"+f, h.caFile(f))
+	}
+	pub.GET("/pocketcashier/ping", h.ping)
+	pub.GET("/pocketcashier/whoami", h.whoami, h.phoneAuth)
+
+	a := reg.Admin() // admin + manager; Phones is admin only
+	a.GET("/pocketcashier/phones", h.phones, adminOnly)
+	a.POST("/pocketcashier/phones/approve", h.approve, adminOnly)
+	a.POST("/pocketcashier/phones/:id/approve", h.approve, adminOnly)
+	a.POST("/pocketcashier/phones/:id/block", h.block, adminOnly)
+	a.POST("/pocketcashier/phones/:id/release", h.release, adminOnly)
+	a.PUT("/pocketcashier/phones/:id", h.rename, adminOnly)
+	a.DELETE("/pocketcashier/phones/:id", h.remove, adminOnly)
+	a.GET("/pocketcashier/addresses", h.addresses, adminOnly)
 }

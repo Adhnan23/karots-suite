@@ -210,3 +210,5 @@ func mobileconfig(der []byte, shop string) string {
  <key>PayloadDescription</key><string>Lets this phone open the shop's Karots Suite securely on the shop wifi.</string>
 </dict></plist>`
 }
+
+func pemOf(der []byte) []byte { return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}) }
