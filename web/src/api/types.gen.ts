@@ -750,6 +750,21 @@ export interface SaleView extends SaleSummary {
   owedOnSale: string; // total − paid − earlier returns' credit when a customer is on it; a return clears this first
   lines: SaleLine[];
   payments: SalePayment[];
+  /**
+   * Flags are what an admin should look at (a sale taken, not refused).
+   */
+  flags: SaleFlag[];
+  rungAt?: string; // when it was rung, if not when it counts
+  /**
+   * TillSource is the money source of the open till that took it ("" once
+   * that till is closed): where a refund comes from by default.
+   */
+  tillSource: string;
+}
+export interface SaleFlag {
+  kind: string; // price | oversold | over_limit | lookalike | late | clock | inactive_user | …
+  note: string;
+  createdAt: string;
 }
 export interface ReturnLine {
   saleItemId: number /* int64 */;

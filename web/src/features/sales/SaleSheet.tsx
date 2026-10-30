@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { saleQuery } from '@/features/counter/queries'
 import { SlipView } from '@/features/print/SlipView'
 import { left, REASONS, refundOf } from '@/features/counter/returns/refund'
+import { ReviewBlock, returnSource } from './SaleReview'
 import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { Seg } from '@/features/till/bits'
@@ -37,6 +38,7 @@ function ReceiptView({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
       onSubmit={() => void printSale(sale.id).then(() => toast.success('Sent to the printer'), (e) => toast.error(errMsg(e)))}
       extra={<Button variant="ghost" asChild className="h-10 px-3"><a href={`/print/receipt/${sale.id}`} target="_blank" rel="noreferrer"><ExternalLink size={15} /> A4 / PDF</a></Button>}>
       {head}
+      <ReviewBlock sale={sale} />
       <div className="rounded-[var(--radius-sm)] bg-muted/60 p-4"><SlipView path={slipPath.sale(sale.id)} /></div>
     </FormSheet>
   )
@@ -49,7 +51,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
   const [qty, setQty] = useState<Record<number, number>>({})
   const [faulty, setFaulty] = useState<Record<number, boolean>>({})
   const [reason, setReason] = useState('')
-  const [source, setSource] = useState('')
+  const [source, setSource] = useState(() => returnSource(sale))
   const [busy, setBusy] = useState(false)
   const lines = sale.lines.filter((l) => left(l) > 0)
   const value = r2(lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))

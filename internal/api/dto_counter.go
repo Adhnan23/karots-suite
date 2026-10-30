@@ -187,6 +187,18 @@ type SaleView struct {
 	OwedOnSale  string        `json:"owedOnSale"` // total − paid − earlier returns' credit when a customer is on it; a return clears this first
 	Lines       []SaleLine    `json:"lines"`
 	Payments    []SalePayment `json:"payments"`
+	// Flags are what an admin should look at (a sale taken, not refused).
+	Flags  []SaleFlag `json:"flags"`
+	RungAt string     `json:"rungAt,omitempty"` // when it was rung, if not when it counts
+	// TillSource is the money source of the open till that took it ("" once
+	// that till is closed): where a refund comes from by default.
+	TillSource string `json:"tillSource"`
+}
+
+type SaleFlag struct {
+	Kind      string `json:"kind"` // price | oversold | over_limit | lookalike | late | clock | inactive_user | …
+	Note      string `json:"note"`
+	CreatedAt string `json:"createdAt"`
 }
 
 // ---- Returns ----

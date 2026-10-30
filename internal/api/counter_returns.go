@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -101,11 +103,33 @@ func (h *handlers) CounterSale(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	d, err := h.d.Sales.Get(c.Request().Context(), id)
+	ctx := c.Request().Context()
+	d, err := h.d.Sales.Get(ctx, id)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, saleView(d))
+	v := saleView(d)
+	if v.Flags, err = h.saleFlags(ctx, id); err != nil {
+		return err
+	}
+	if d.Sale.RungAt != nil {
+		v.RungAt = d.Sale.RungAt.Format(time.RFC3339)
+	}
+	// The cashier's till still open since before the sale took its cash.
+	if err := h.d.DB.GetContext(ctx, &v.TillSource, `SELECT 'till:' || user_id FROM cash_register
+		WHERE user_id = $1 AND closed_at IS NULL AND opened_at <= $2`, d.Sale.CashierID, d.Sale.CreatedAt); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return apperr.Internal("failed to find the till", err)
+	}
+	return c.JSON(http.StatusOK, v)
+}
+
+func (h *handlers) saleFlags(ctx context.Context, id int64) ([]SaleFlag, error) {
+	fs, err := h.d.Sales.Flags(ctx, id)
+	out := make([]SaleFlag, 0, len(fs))
+	for _, f := range fs {
+		out = append(out, SaleFlag{Kind: f.Kind, Note: f.Note, CreatedAt: f.CreatedAt.Format(time.RFC3339)})
+	}
+	return out, err
 }
 
 // CounterReturn takes goods back: restock (or damage) + customer-credit

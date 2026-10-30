@@ -36,7 +36,9 @@ export function SalesPage() {
   const sum = useQuery({ ...adminSalesSummaryQuery(f), placeholderData: keepPreviousData }).data
   const list = useInfiniteQuery({ ...adminSalesQuery(f), placeholderData: keepPreviousData })
   const rows = list.data?.pages.flat() ?? []
-  const [open, setOpen] = useState<number | null>(null)
+  // ?sale=<id> opens a sale's sheet (a link from a review screen).
+  const open = s.sale ?? null
+  const setOpen = (id: number | null) => void navigate({ search: (x) => ({ ...x, sale: id ?? undefined }), replace: true })
   const sel = cn(INPUT, 'appearance-auto md:w-44')
   const stat = (label: string, v: string, cls?: string) => (
     <div className="flex flex-col gap-0.5 px-4 py-3"><small className="text-[12px] font-semibold text-muted-foreground">{label}</small><b className={cn('font-display text-xl tabular-nums', cls)}>{v}</b></div>

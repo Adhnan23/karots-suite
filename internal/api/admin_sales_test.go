@@ -70,3 +70,24 @@ func TestAdminSalesAndReturn(t *testing.T) {
 		t.Fatalf("credit return: %d %+v", c, r)
 	}
 }
+
+func TestAdminSaleDetailFlags(t *testing.T) {
+	te := newTestEnv(t)
+	te.db.Exec(`UPDATE settings SET allow_untracked_cash = true`) //nolint:errcheck
+	f := te.seedTill(t)
+	phone := func() string { return fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000) }
+	cashier := te.login(t, phone(), "cashier")
+	admin := te.login(t, phone(), "admin")
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, cashier)
+	s := decode[SaleResult](t, te.do(http.MethodPost, "/api/v1/till/sales", sale(f.plainID, "1", PaymentRequest{Method: "cash", Amount: "100"}), cashier))
+	te.db.Exec(`INSERT INTO sale_flags (sale_id, kind, note) VALUES ($1, 'oversold', 'sold 1, the count showed 0')`, s.ID) //nolint:errcheck
+	v := decode[SaleView](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/sales/%d", s.ID), nil, admin))
+	if len(v.Flags) != 1 || v.Flags[0].Kind != "oversold" || !strings.HasPrefix(v.TillSource, "till:") {
+		t.Fatalf("flags %+v till %q", v.Flags, v.TillSource)
+	}
+	te.do(http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{}, cashier)
+	v = decode[SaleView](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/till/sales/%d", s.ID), nil, admin))
+	if v.TillSource != "" {
+		t.Fatalf("closed till still the source: %q", v.TillSource)
+	}
+}
