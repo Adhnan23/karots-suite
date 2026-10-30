@@ -50,6 +50,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 		pub.GET("/pocketcashier/"+f, h.caFile(f))
 	}
 	pub.GET("/pocketcashier/ping", h.ping)
+	pub.GET("/pocketcashier/sw.js", h.sw)
+	pub.GET("/pocketcashier/manifest.webmanifest", h.manifest)
 	pub.GET("/pocketcashier/whoami", h.whoami, h.phoneAuth)
 	pub.GET("/pocketcashier/copy", h.copyFor, h.phoneAuth)
 	pub.GET("/pocketcashier/feed", h.feed, h.phoneAuth)
