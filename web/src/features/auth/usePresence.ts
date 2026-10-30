@@ -2,7 +2,8 @@ import { useRouterState } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { api } from '@/api/client'
 import type { PresenceBeat, PresenceReply } from '@/api/types.gen'
-import { loadCart } from '@/features/till/cart/persist'
+import { holdOnMove } from '@/features/till/cart/held'
+import { cartKey, loadCart } from '@/features/till/cart/persist'
 import { saleTotal } from '@/features/till/cart/totals'
 
 const EVERY = 20_000
@@ -37,6 +38,13 @@ export function usePresence(userId: number) {
         .then((r) => {
           // An admin locked this screen from Who's on now.
           if (r.lock) void api('/auth/lock', { method: 'POST' }).catch(() => {}).finally(() => window.location.assign('/lock'))
+          // The person signed in on another device: hold this cart, then lock here.
+          else if (r.moved && !window.location.pathname.startsWith('/lock')) {
+            void holdOnMove(loadCart(userId))
+              .then(() => { try { sessionStorage.removeItem(cartKey(userId)) } catch { /* ignore */ } }, () => {})
+              .then(() => api('/auth/lock', { method: 'POST' }).catch(() => {}))
+              .finally(() => window.location.assign('/lock'))
+          }
         })
         .catch(() => {})
     }
