@@ -127,6 +127,6 @@ func (en *env) sale() {
 	}
 	en.t.Cleanup(func() {
 		en.db.Exec(`DELETE FROM sales WHERE cashier_id = $1`, uid) //nolint:errcheck
-		en.db.Exec(`DELETE FROM products WHERE id = $1`, pid)     //nolint:errcheck
+		en.db.Exec(`DELETE FROM products WHERE id = $1`, pid)      //nolint:errcheck
 	})
 }

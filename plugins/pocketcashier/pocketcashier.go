@@ -52,6 +52,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	pub.GET("/pocketcashier/whoami", h.whoami, h.phoneAuth)
 	pub.GET("/pocketcashier/copy", h.copyFor, h.phoneAuth)
 	pub.GET("/pocketcashier/feed", h.feed, h.phoneAuth)
+	pub.POST("/pocketcashier/actions", h.actions, h.phoneAuth)
 
 	a := reg.Admin() // admin + manager; Phones is admin only
 	a.GET("/pocketcashier/phones", h.phones, adminOnly)

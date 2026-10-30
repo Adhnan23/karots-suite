@@ -57,7 +57,7 @@ func TestReleaseClearsDevice(t *testing.T) {
 	_, device := en.activePhone()
 	uid, _ := en.user("cashier")
 	var id int64
-	en.db.Get(&id, `SELECT id FROM pocket_phones WHERE device = $1`, device)      //nolint:errcheck
+	en.db.Get(&id, `SELECT id FROM pocket_phones WHERE device = $1`, device) //nolint:errcheck
 	en.db.MustExec(`UPDATE pocket_phones SET user_id = $1 WHERE id = $2`, uid, id)
 	en.db.MustExec(`UPDATE users SET active_device = $1, active_device_label = 'Phone T' WHERE id = $2`, device, uid)
 	_, admin := en.user("admin")
@@ -66,7 +66,7 @@ func TestReleaseClearsDevice(t *testing.T) {
 	}
 	var active *string
 	var onPhone *int64
-	en.db.Get(&active, `SELECT active_device FROM users WHERE id = $1`, uid)  //nolint:errcheck
+	en.db.Get(&active, `SELECT active_device FROM users WHERE id = $1`, uid)   //nolint:errcheck
 	en.db.Get(&onPhone, `SELECT user_id FROM pocket_phones WHERE id = $1`, id) //nolint:errcheck
 	if active != nil || onPhone != nil {
 		t.Fatalf("still held: %v %v", active, onPhone)

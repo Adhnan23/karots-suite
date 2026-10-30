@@ -20,7 +20,9 @@ func certSource(s *Store) func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 }
 
 // publicCert reports whether the phones get a public certificate (no CA steps).
-func publicCert() bool { return os.Getenv("POCKET_CERT_FILE") != "" && os.Getenv("POCKET_KEY_FILE") != "" }
+func publicCert() bool {
+	return os.Getenv("POCKET_CERT_FILE") != "" && os.Getenv("POCKET_KEY_FILE") != ""
+}
 
 // fileCert serves a certificate pair from files, read again when the
 // certificate file changes (a renewal).

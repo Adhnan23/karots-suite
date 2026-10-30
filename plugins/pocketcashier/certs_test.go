@@ -110,7 +110,7 @@ func TestPublicCertWins(t *testing.T) {
 	kb, _ := x509.MarshalECPrivateKey(key)
 	dir := t.TempDir()
 	cf, kf := filepath.Join(dir, "c.pem"), filepath.Join(dir, "k.pem")
-	os.WriteFile(cf, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o600)  //nolint:errcheck
+	os.WriteFile(cf, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o600)   //nolint:errcheck
 	os.WriteFile(kf, pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: kb}), 0o600) //nolint:errcheck
 	t.Setenv("POCKET_CERT_FILE", cf)
 	t.Setenv("POCKET_KEY_FILE", kf)
