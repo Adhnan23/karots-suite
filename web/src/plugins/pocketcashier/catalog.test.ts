@@ -1,0 +1,32 @@
+import { describe, expect, it } from 'vitest'
+import type { CopyProduct, TillCopy } from '@/api/types.gen'
+import { byBarcode, search } from './catalog'
+
+const prod = (p: Partial<CopyProduct>) => ({
+  id: 1, name: 'x', nameLocal: '', barcode: '', sellingPrice: '10.00', wholesalePrice: '0.00', taxRate: '0', stockQty: '5',
+  unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false, warrantyMonths: 0, lowStock: false, emoji: '',
+  badges: [], packs: [], categoryId: 1, barcodes: [], packCodes: [], ...p,
+}) as CopyProduct
+
+const copy = {
+  products: [
+    prod({ id: 1, name: 'Samba Rice 25kg', nameLocal: 'සම්බා සහල්', barcode: '4790001' }),
+    prod({ id: 2, name: 'Sunlight soap', barcode: '4790002', barcodes: ['111'], packs: [{ id: 9, name: 'Box', size: '24', sellingPrice: '0.00', wholesalePrice: '0.00' }], packCodes: [{ packId: 9, barcode: '4790099' }] }),
+  ],
+} as unknown as TillCopy
+
+describe('the phone catalogue', () => {
+  it('finds by name, any case, and by local name', () => {
+    expect(search(copy, 'samba').map((p) => p.id)).toEqual([1])
+    expect(search(copy, 'SUNLIGHT').map((p) => p.id)).toEqual([2])
+    expect(search(copy, 'සම්බා').map((p) => p.id)).toEqual([1])
+  })
+  it('finds by barcode, extra code and pack code', () => {
+    expect(byBarcode(copy, '4790001')?.product.id).toBe(1)
+    expect(byBarcode(copy, '111')?.product.id).toBe(2)
+    const pack = byBarcode(copy, '4790099')
+    expect(pack?.product.id).toBe(2)
+    expect(pack?.packId).toBe(9)
+    expect(byBarcode(copy, '000')).toBeNull()
+  })
+})
