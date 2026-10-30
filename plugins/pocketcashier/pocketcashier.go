@@ -7,6 +7,8 @@
 package pocketcashier
 
 import (
+	"crypto/tls"
+	"fmt"
 	"io/fs"
 
 	"karots-suite/internal/plugin"
@@ -33,4 +35,6 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddDataGroup(plugin.DataGroup{Key: "pocketcashier", Name: "Pocket Cashier phones",
 		Tables: []string{"pocket_ca", "pocket_phones", "pocket_sends", "pocket_actions"}})
 	reg.OneDevicePerPerson()
+	reg.AddListener(plugin.Listener{Key: "pocketcashier", Addr: fmt.Sprintf(":%d", Port),
+		TLS: &tls.Config{GetCertificate: certSource(p.store), MinVersion: tls.VersionTLS12}})
 }
