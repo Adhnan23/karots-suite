@@ -38,6 +38,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddDataGroup(plugin.DataGroup{Key: "pocketcashier", Name: "Pocket Cashier phones",
 		Tables: []string{"pocket_ca", "pocket_phones", "pocket_sends", "pocket_actions"}})
 	reg.OneDevicePerPerson()
+	reg.AddTakeoverGuard(p.store.takeoverGuard)
 	reg.AddListener(plugin.Listener{Key: "pocketcashier", Addr: fmt.Sprintf(":%d", Port),
 		TLS: &tls.Config{GetCertificate: certSource(p.store), MinVersion: tls.VersionTLS12}})
 
@@ -63,4 +64,6 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.PUT("/pocketcashier/phones/:id", h.rename, adminOnly)
 	a.DELETE("/pocketcashier/phones/:id", h.remove, adminOnly)
 	a.GET("/pocketcashier/addresses", h.addresses, adminOnly)
+	a.GET("/pocketcashier/sends", h.sends, adminOnly)
+	a.GET("/pocketcashier/sends/:id", h.sendDetail, adminOnly)
 }
