@@ -117,7 +117,7 @@ func copyRows(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
 			OpeningCash: dec2(s.OpeningCash), Expected: dec2(sum.Expected)})
 	}
 	if err := db.SelectContext(ctx, &c.Held, `SELECT id, cashier_id AS userid, COALESCE(label, '') AS label, sale_type AS saletype,
-		COALESCE(customer_id, 0) AS customerid, cart::text AS cart, item_count AS itemcount, total::text AS total,
+		COALESCE(customer_id, 0) AS customerid, discount::text AS discount, cart::text AS cart, item_count AS itemcount, total::text AS total,
 		to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS createdat
 		FROM held_sales ORDER BY id`); err != nil {
 		return apperr.Internal("failed to load held sales", err)

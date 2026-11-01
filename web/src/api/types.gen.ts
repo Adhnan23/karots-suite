@@ -661,6 +661,7 @@ export interface CopyHeld {
   label: string;
   saleType: string;
   customerId: number /* int64 */; // 0 = walk-in
+  discount: string; // the bill discount
   cart: string;
   itemCount: number /* int */;
   total: string;

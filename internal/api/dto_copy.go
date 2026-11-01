@@ -83,6 +83,7 @@ type CopyHeld struct {
 	Label      string `json:"label"`
 	SaleType   string `json:"saleType"`
 	CustomerID int64  `json:"customerId"` // 0 = walk-in
+	Discount   string `json:"discount"`   // the bill discount
 	Cart       string `json:"cart"`
 	ItemCount  int    `json:"itemCount"`
 	Total      string `json:"total"`

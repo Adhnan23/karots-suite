@@ -26,7 +26,7 @@ func TestTillCopy(t *testing.T) {
 	ck := te.signIn(t, "dev-copy", "", te.phoneOf(t, cashierID))
 	te.on("dev-copy", http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, ck)
 	t.Cleanup(func() { te.on("dev-copy", http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{}, ck) })
-	te.on("dev-copy", http.MethodPost, "/api/v1/till/held", HoldRequest{Label: "T copy held", SaleType: "retail", Cart: `{"lines":[]}`, ItemCount: 1, Total: "100"}, ck)
+	te.on("dev-copy", http.MethodPost, "/api/v1/till/held", HoldRequest{Label: "T copy held", SaleType: "retail", Discount: "15", Cart: `{"lines":[]}`, ItemCount: 1, Total: "100"}, ck)
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM held_sales WHERE label = 'T copy held'`) }) //nolint:errcheck
 
 	c, err := BuildTillCopy(ctx, te.db)
@@ -78,7 +78,7 @@ func TestTillCopy(t *testing.T) {
 	}
 	held := false
 	for _, h := range c.Held {
-		held = held || (h.UserID == cashierID && h.Label == "T copy held")
+		held = held || (h.UserID == cashierID && h.Label == "T copy held" && h.Discount == "15.00")
 	}
 	if !held || c.Version == "" || c.Symbol == "" {
 		t.Fatalf("held %v version %q symbol %q", held, c.Version, c.Symbol)
