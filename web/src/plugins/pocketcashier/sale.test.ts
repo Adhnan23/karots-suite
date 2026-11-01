@@ -24,6 +24,7 @@ describe('the phone sale', () => {
     expect(b.items).toHaveLength(1)
     expect(b.items[0]).toMatchObject({ productId: 1, quantity: '5', expectPrice: '120' })
     expect(b.deferDrawerKick).toBe(true)
+    expect(b.total).toBe('550.00') // five units ring as one Bag 5kg
     expect(b.payments[0]).toMatchObject({ method: 'cash' })
   })
 

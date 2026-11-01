@@ -1,5 +1,5 @@
 import { Menu as MenuIcon, PauseCircle, ShoppingCart } from 'lucide-react'
-import { useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import { api } from '@/api/client'
 import type { TillCopy } from '@/api/types.gen'
 import { loadCart, saveCart } from '@/features/till/cart/persist'
@@ -8,8 +8,12 @@ import { cn } from '@/lib/utils'
 import { GLASS, Screen } from '../bits'
 import type { Who } from '../session'
 import type { PhoneId } from '../store/phone'
-import type { SyncState } from '../sync'
+import { drawerOpen as isOpen } from '../drawer'
+import { pending, type Action } from '../store/outbox'
+import { refresh, type SyncState } from '../sync'
 import { CartBar } from './CartBar'
+import { Held } from './Held'
+import { Menu } from './Menu'
 import { Pay } from './Pay'
 import { Sell } from './Sell'
 import { OfflineBanner, TopBar } from './TopBar'
@@ -24,7 +28,12 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
   const [paying, setPaying] = useState(false)
   const [cart, dispatch] = useReducer(tillReducer, who.id, (id) => loadCart(id) ?? initialState(copy?.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'))
   useEffect(() => saveCart(who.id, cart), [who.id, cart])
-  const drawerOpen = !!copy?.sessions.some((s) => s.userId === who.id)
+  // What waits to be sent: the drawer and Held count it until the copy does.
+  const [out, setOut] = useState<Action[]>([])
+  const [bump, setBump] = useState(0)
+  useEffect(() => { void pending().then(setOut, () => {}) }, [sync.waiting, sync.copyAt, bump])
+  const sent = useCallback(() => { setBump((n) => n + 1); void refresh() }, [])
+  const drawerOpen = !!copy && isOpen(copy, who.id, out)
   const switchPerson = () => { if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {}); onSignOut() }
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 
@@ -33,13 +42,15 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
       <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
       <main className="flex min-h-0 flex-1 flex-col">
-        {tab === 'sell' && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => setPaying(false)} />}
+        {tab === 'sell' && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => { setPaying(false); sent() }} />}
         {tab === 'sell' && !paying && (
           <>
             <Sell copy={copy} cart={cart} dispatch={dispatch} live={sync.live} />
             <CartBar cart={cart} dispatch={dispatch} copy={copy} onPay={() => setPaying(true)} />
           </>
         )}
+        {tab === 'held' && <Held who={who} copy={copy} out={out} cart={cart} dispatch={dispatch} onSent={sent} onResumed={() => { setPaying(false); setTab('sell') }} />}
+        {tab === 'menu' && <Menu who={who} copy={copy} out={out} live={sync.live} onSent={sent} onSwitch={switchPerson} />}
       </main>
       <nav aria-label="Phone tabs" className={cn('flex justify-around border-t border-border bg-bar px-2 pt-1.5 pb-3 text-[10.5px] font-semibold text-faint', GLASS)}>
         {TABS.map(([k, label, Icon]) => (
