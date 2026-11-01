@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–25 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 26** (docs and legal).
+> **Progress (2026-10-30):** Tasks 1–26 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 27** (final review).
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -642,10 +642,10 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - `docs/status.md` (M8e release 1 done, release 2 next)
 - Test: `internal/docscheck`
 
-- [ ] **Step 1: Teach docscheck first** and run `go test ./internal/docscheck`. Expected: FAIL, listing exactly the missing pocket items.
-- [ ] **Step 2: Write the docs and legal changes,** then `make docs-shots` and `make agreement`.
-- [ ] **Step 3: Run `make test` and `make verify`.** Expected: PASS.
-- [ ] **Step 4: Commit.** `docs(pocket): Pocket Cashier app — guide, README, screenshots, order form, price, notices`
+- [x] **Step 1: Teach docscheck first** and run `go test ./internal/docscheck`. Expected: FAIL, listing exactly the missing pocket items.
+- [x] **Step 2: Write the docs and legal changes,** then `make docs-shots` and `make agreement`.
+- [x] **Step 3: Run `make test` and `make verify`.** Expected: PASS.
+- [x] **Step 4: Commit.** `docs(pocket): Pocket Cashier app — guide, README, screenshots, order form, price, notices`
 
 ### Task 27: Whole-milestone review and clean-up
 
