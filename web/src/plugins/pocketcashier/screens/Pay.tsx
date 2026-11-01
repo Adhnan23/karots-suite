@@ -76,7 +76,7 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         <span className="font-semibold text-muted-foreground">Total</span>
         <span className="font-display text-[30px] font-extrabold tabular-nums">{money(copy.symbol, total)}</span>
       </div>
-      <CustomerRow copy={copy} id={cart.customerId} live={live} set={(id) => dispatch({ type: 'customer', id })} />
+      <CustomerRow copy={copy} id={cart.customerId} live={live} canManageCredit={!!copy.people.find((p) => p.id === who.id)?.canManageCredit} set={(id) => dispatch({ type: 'customer', id })} />
       <PayTenders copy={copy} cart={cart} dispatch={dispatch} live={live} setError={setError} />
       <ChangeBox copy={copy} cart={cart} dispatch={dispatch} />
       <p className="mx-3 mt-1.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">

@@ -7,7 +7,7 @@ import { FIELD } from '@/features/till/ui'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD } from '../bits'
-import { createCustomer } from '../quickItem'
+import { createCustomer, liveCall } from '../quickItem'
 import { refresh } from '../sync'
 
 /** The copy's customer as the till's (balanceText reads outstanding). */
@@ -16,7 +16,7 @@ const line = (sym: string, c: TillCustomer) => `${c.phone} · ${balanceText(sym,
 
 /** Who's buying, on Pay: walk-in, or a customer with their balance and limit (the
  * PC's picker). A customer added here (live only) is picked at once. */
-export function CustomerRow({ copy, id, live, set }: { copy: TillCopy; id: number | null; live: boolean; set: (id: number | null) => void }) {
+export function CustomerRow({ copy, id, live, canManageCredit, set }: { copy: TillCopy; id: number | null; live: boolean; canManageCredit: boolean; set: (id: number | null) => void }) {
   const [open, setOpen] = useState(false)
   const [added, setAdded] = useState<TillCustomer | null>(null)
   const found = copy.customers.find((c) => c.id === id)
@@ -34,8 +34,37 @@ export function CustomerRow({ copy, id, live, set }: { copy: TillCopy; id: numbe
         </button>
         {cur && <button type="button" aria-label="Back to walk-in" onClick={() => set(null)} className="grid size-7 shrink-0 place-items-center rounded-full bg-muted"><X size={14} /></button>}
       </div>
+      {cur && canManageCredit && live && <LimitEdit key={cur.id} customer={cur} sym={copy.symbol} onSaved={(limit) => { if (added?.id === cur.id) setAdded({ ...added, creditLimit: limit }); void refresh() }} />}
       {open && <CustomerSheet copy={copy} live={live} onClose={() => setOpen(false)} onPick={(c) => { setAdded(c); set(c.id); setOpen(false); void refresh() }} />}
     </>
+  )
+}
+
+/** The PC's "Adjust credit limit" (people who manage credit; the PC keeps it). */
+function LimitEdit({ customer, sym, onSaved }: { customer: TillCustomer; sym: string; onSaved: (limit: string) => void }) {
+  const [limit, setLimit] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+  async function save() {
+    if (limit === null || limit.trim() === '') return setMsg('Enter a valid credit limit')
+    const r = await liveCall(`/till/customers/${customer.id}/credit-limit`, { creditLimit: limit.trim() }, undefined, 'PATCH')
+    if ('error' in r) return setMsg(r.error)
+    setLimit(null)
+    setMsg(`Credit limit now ${money(sym, limit)}`)
+    onSaved(limit.trim())
+  }
+  return (
+    <div className="mx-3 -mt-1 mb-2 flex flex-wrap items-center gap-2 text-[12.5px]">
+      {limit === null ? (
+        <button type="button" onClick={() => { setMsg(''); setLimit(String(Number(customer.creditLimit) || '')) }} className="font-semibold text-muted-foreground underline-offset-2">Adjust credit limit</button>
+      ) : (
+        <>
+          <input aria-label="New credit limit" inputMode="decimal" autoComplete="off" value={limit} onChange={(e) => setLimit(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'h-8 w-28 tabular-nums')} />
+          <button type="button" onClick={() => void save()} className="rounded-pill bg-brand px-3 py-1 font-bold text-brand-foreground">Save</button>
+          <button type="button" onClick={() => setLimit(null)} className="font-semibold text-muted-foreground">Cancel</button>
+        </>
+      )}
+      {msg && <span role="status" className="font-semibold text-muted-foreground">{msg}</span>}
+    </div>
   )
 }
 

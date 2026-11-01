@@ -6,9 +6,9 @@ export const SIGN_IN_AGAIN = 'Switch person and sign in again while the PC is up
 
 /** A live-only till call from the phone, its failures said in place: the PC
  * down, or a person who signed in offline (no session cookie on the PC → 401). */
-export async function liveCall<T>(path: string, json: unknown, down = PC_DOWN): Promise<{ ok: T } | { error: string }> {
+export async function liveCall<T>(path: string, json: unknown, down = PC_DOWN, method?: string): Promise<{ ok: T } | { error: string }> {
   try {
-    return { ok: await api<T>(path, { json }) }
+    return { ok: await api<T>(path, { json, method }) }
   } catch (e) {
     if (e instanceof ApiError) return { error: e.status === 401 ? SIGN_IN_AGAIN : e.message }
     return { error: down }

@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useReducer } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CopyProduct, TillCopy } from '@/api/types.gen'
 import { initialState, tillReducer } from '@/features/till/cart/store'
 import { Pay } from './Pay'
@@ -12,16 +12,17 @@ const tv = {
 } as unknown as CopyProduct
 const copy = {
   symbol: 'Rs.', priceOptions: {}, products: [tv], places: [], tenderMethods: [], denominations: [], defaultSaleType: 'retail',
+  people: [{ id: 7, name: 'Cashier', canManageCredit: true }, { id: 8, name: 'Other', canManageCredit: false }],
   customers: [{ id: 4, name: 'Nimal Perera', phone: '0771234567', balance: '300.00', creditLimit: '500.00' }],
 } as unknown as TillCopy
 
-function Harness() {
+function Harness({ who = 7, live = false }: { who?: number; live?: boolean }) {
   const [cart, dispatch] = useReducer(tillReducer, tillReducer(initialState('retail'), { type: 'add', product: tv, lots: [] }))
-  return <Pay who={{ id: 7, name: 'Cashier' } as never} copy={copy} cart={cart} dispatch={dispatch} live={false} onBack={() => undefined} />
+  return <Pay who={{ id: who, name: 'Cashier' } as never} copy={copy} cart={cart} dispatch={dispatch} live={live} onBack={() => undefined} />
 }
 
 describe('customers on Pay', () => {
-  afterEach(cleanup)
+  afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
   it('finds a customer by phone and shows their balance and limit', () => {
     render(<Harness />)
@@ -59,5 +60,26 @@ describe('customers on Pay', () => {
     fireEvent.click(screen.getByRole('button', { name: /Walk-in/ }))
     fireEvent.click(screen.getByRole('button', { name: '+ New customer' }))
     expect(screen.getByRole('alert').textContent).toMatch(/add the customer at the counter/)
+  })
+
+  it('lets a person who manages credit adjust the limit (on the PC)', async () => {
+    const fetch = vi.fn(async () => new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetch)
+    render(<Harness live />)
+    fireEvent.click(screen.getByRole('button', { name: /Walk-in/ }))
+    fireEvent.change(screen.getByLabelText('Find a customer'), { target: { value: 'nimal' } })
+    fireEvent.click(screen.getByRole('button', { name: /Nimal Perera/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Adjust credit limit' }))
+    fireEvent.change(screen.getByLabelText('New credit limit'), { target: { value: '2000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/v1/till/customers/4/credit-limit', expect.objectContaining({ method: 'PATCH', body: '{"creditLimit":"2000"}' })))
+  })
+
+  it('never offers it to someone who does not manage credit', () => {
+    render(<Harness who={8} live />)
+    fireEvent.click(screen.getByRole('button', { name: /Walk-in/ }))
+    fireEvent.change(screen.getByLabelText('Find a customer'), { target: { value: 'nimal' } })
+    fireEvent.click(screen.getByRole('button', { name: /Nimal Perera/ }))
+    expect(screen.queryByRole('button', { name: 'Adjust credit limit' })).toBeNull()
   })
 })
