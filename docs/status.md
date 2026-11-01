@@ -23,6 +23,10 @@ retested (no phone at hand). Full Playwright 222 passed.
 - Expiry warnings are a fixed 30 days in core (dashboard `admin_dashboard.go:138`, Stock → Batches
   `admin_batches.go:36`); only the Clearance plugin has its own window (default 14 days, for markdowns). Wanted: a
   shop-wide "warn N days before expiry" setting, maybe per category / product (milk 3 days, medicines 90).
+- Expired / damaged stock: written off (damage), then made good only through a supplier (Losses & Recovery:
+  replacement, paid / credited, or written off) or sent back first (Purchasing → Returns). Check: a supplier return
+  takes stock FEFO and can't pick the expired or damaged lot; and whether "supplier only" fits (a rep's free goods,
+  a branch swap…).
 
 **Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
