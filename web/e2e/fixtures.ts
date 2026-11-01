@@ -1,12 +1,12 @@
 import { test as base, expect as pwExpect } from '@playwright/test'
 
-import type { Page } from '@playwright/test'
+import type { BrowserContext, Page } from '@playwright/test'
 
 export { expect, type Page } from '@playwright/test'
 
 // Every spec signs in from one IP, so the suite outruns the login limiter
 // (burst 10, +1 per 2s; unlock shares it). Wait out a 429 instead of failing.
-async function waitOut429(page: Page) {
+async function waitOut429(page: Page | BrowserContext) {
   await page.route(/\/api\/v1\/auth\/(login|unlock)$/, async (route) => {
     try {
       for (let i = 0; ; i++) {
@@ -25,13 +25,20 @@ export const test = base.extend<object, object>({
     await waitOut429(page)
     await provide(page)
   },
-  // Pages a spec opens itself (beforeAll data setup) wait out a 429 too.
+  // Pages and contexts a spec opens itself (beforeAll data setup, other devices) wait out a 429 too.
   browser: [async ({ browser }, provide) => {
     const open = browser.newPage.bind(browser)
     browser.newPage = async (...args) => {
       const page = await open(...args)
       await waitOut429(page)
       return page
+    }
+    // …and every page of a context a spec opens (a second device: a PC beside a phone).
+    const openCtx = browser.newContext.bind(browser)
+    browser.newContext = async (...args) => {
+      const ctx = await openCtx(...args)
+      await waitOut429(ctx)
+      return ctx
     }
     await provide(browser)
   }, { scope: 'worker' }],
