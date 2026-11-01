@@ -28,9 +28,14 @@ export function LineSheet({ line, cart, dispatch, copy, onClose }: {
   const disc = lineDiscount(unit)
   const discount = (value: string, type = unit.discountType) => dispatch({ type: 'lineDiscount', key: unit.key, discount: value, discountType: type })
   const apply = () => dispatch({ type: 'setQty', key: unit.key, qty: num(qty), lots: lotsFor(copy.priceOptions, unit.productId) })
+  // Closing keeps a quantity typed but not set yet (a cashier taps Done, not Set).
+  const close = () => {
+    if (qty.trim() !== '' && qty !== qtyText(unit.qty) && !unit.fixedQty && !unit.payout) apply()
+    onClose()
+  }
 
   return (
-    <Sheet open onOpenChange={(o) => !o && onClose()}>
+    <Sheet open onOpenChange={(o) => !o && close()}>
       <SheetContent side="bottom" className="max-h-[92dvh] gap-3 overflow-y-auto p-4">
         <SheetHeader className="p-0">
           <SheetTitle>{unit.description || unit.name}</SheetTitle>
@@ -72,7 +77,7 @@ export function LineSheet({ line, cart, dispatch, copy, onClose }: {
         <div className="flex gap-2">
           <button type="button" onClick={() => { dispatch({ type: 'remove', key: unit.key }); onClose() }}
             className="flex-1 rounded-[var(--radius)] border border-border p-3 text-sm font-bold text-destructive">Remove</button>
-          <button type="button" onClick={onClose} className="flex-1 rounded-[var(--radius)] bg-muted p-3 text-sm font-bold">Done</button>
+          <button type="button" onClick={close} className="flex-1 rounded-[var(--radius)] bg-muted p-3 text-sm font-bold">Done</button>
         </div>
       </SheetContent>
     </Sheet>

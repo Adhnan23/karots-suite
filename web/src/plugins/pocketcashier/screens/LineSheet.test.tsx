@@ -57,6 +57,14 @@ describe('the line sheet', () => {
     expect(lineNet(state().lines[0])).toBeCloseTo(90)
   })
 
+  it('keeps a typed quantity when the sheet is closed with Done', () => {
+    const state = open(product({}))
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    for (const k of '3') fireEvent.click(screen.getByRole('button', { name: k }))
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+    expect(state().lines[0].qty).toBe(3)
+  })
+
   it('asks one serial per unit on a serial-tracked product', () => {
     const state = open(product({ trackSerial: true, unitAllowDecimal: false }))
     keys('2')
