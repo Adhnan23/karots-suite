@@ -99,6 +99,14 @@ describe('sync', () => {
     await vi.waitFor(() => expect(calls.some((c) => c.url.includes('/copy'))).toBe(true))
     stop()
   })
+  it('a feed that opens again checks the copy (a change made while it was down has no event)', async () => {
+    const stop = startSync(() => {}, () => null)
+    await vi.waitFor(() => expect(FakeES.last).not.toBeNull())
+    calls = []
+    FakeES.last!.listeners.open(new MessageEvent('open'))
+    await vi.waitFor(() => expect(calls.some((c) => c.url.includes('/copy'))).toBe(true))
+    stop()
+  })
 })
 
 describe('moved', () => {

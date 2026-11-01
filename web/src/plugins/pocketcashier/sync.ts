@@ -98,6 +98,8 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
       if (stopped) return
       es = new EventSource(`${BASE}/feed?ticket=${encodeURIComponent(ticket)}`)
       es.addEventListener('version', () => tick())
+      // Opened (again): what changed while it was down sent no event.
+      es.addEventListener('open', () => tick())
       es.addEventListener('error', () => { es?.close(); es = null; setTimeout(() => void openFeed(), 5_000) })
     } catch {
       setTimeout(() => void openFeed(), 15_000)
