@@ -38,8 +38,8 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 
   return (
-    <Screen>
-      <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />
+    <Screen fixed>
+      {!(tab === 'sell' && paying) && <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />}
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
       <main className="flex min-h-0 flex-1 flex-col">
         {tab === 'sell' && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => { setPaying(false); sent() }} />}

@@ -33,10 +33,12 @@ export function ago(iso: string | null, now = Date.now()) {
 
 export const hhmm = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—')
 
-/** The phone frame: full height, the palette's background art, safe areas. */
-export function Screen({ children }: { children: ReactNode }) {
+/** The phone frame: full height, the palette's background art, safe areas.
+ * fixed = exactly the screen's height (the signed-in app: bars stay, lists scroll). */
+export function Screen({ children, fixed }: { children: ReactNode; fixed?: boolean }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-background bg-[image:var(--bg-art)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-foreground">
+    <div className={cn('flex flex-col bg-background bg-[image:var(--bg-art)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-foreground',
+      fixed ? 'h-dvh overflow-hidden' : 'min-h-dvh')}>
       {children}
     </div>
   )
