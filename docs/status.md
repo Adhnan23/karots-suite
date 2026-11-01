@@ -36,13 +36,11 @@ A. **Expiry — do first** (all core; the pharmacy plugin may only add extras th
       difference between the product's lots, and waits on the supplier with no time limit until settled with the
       existing Recover form. It replaced "Write off & settle". Goods that **arrived damaged** still go through a
       supplier return from that delivery's lot (`BatchID`).
-   4. **Supplier recall of a lot** (the pharmacist: the stock looks fine, but the supplier says the batch is bad and
-      takes the whole batch back): returning the lot is already possible (Purchasing → Returns, that lot, all of it).
-      Add: one "supplier recalled lot X" step that returns everything left of it; **hold the lot** so the till stops
-      selling it until the rep comes; and **who bought it** (sales record each line's lot — customers on account,
-      receipts for walk-ins) for medicines that need a call-back. They then **replace or give the money back** —
-      already in core: the return credits their bills (or they refund cash), and a replacement is a normal delivery
-      the credit pays for.
+   4. **Supplier recall of a lot: DONE 2026-11-01.** **Recall** on a lot: keep selling (just listed on the supplier's
+      panel), or stop selling (the till and phone warn as for an expired lot, Sell anyway still works; dashboard line).
+      It stays in stock until **Give back**, which claims only what's left; **Undo recall** reverses it. The user:
+      what was sold before is not chased, so there is no "who bought it" list; add one only if a dangerous medicine
+      ever needs customers called (sales record each line's lot).
    **How it really works (the pharmacist, 2026-11-01)** — design to this, not to a strict rule:
    - The supplier gives the notice days (e.g. 60): tell them before that date. Told late, they *sometimes* refuse —
      so it's a warning and a reminder, never a block; they may change their mind and take it anyway.

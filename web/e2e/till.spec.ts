@@ -173,6 +173,31 @@ test('which price? pick the dearer lot', async ({ page }) => {
   await expect(cart(page).getByText(/120\.00 each/)).toBeVisible()
 })
 
+test('recalled and stopped: the till warns, and sell anyway still works', async ({ page }) => {
+  await login(page, '0770000003')
+  const tag = Date.now().toString(36).slice(-6)
+  const code = `RECALL${tag}`
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json()).find((c: { name: string }) => c.name === 'E2E Goods')
+  const product = await (await page.request.post('/api/v1/admin/products', { data: { name: `E2E Recalled ${tag}`, nameLocal: '', barcode: code, categoryId: cat.id, unitId: 1, costPrice: '40', sellingPrice: '60', wholesalePrice: '', taxRate: '', reorderLevel: 0, trackSerial: false, warrantyMonths: 0, supplierId: 0, repriceStock: false, dupSourceName: '' } })).json()
+  const sup = await (await page.request.post('/api/v1/admin/suppliers', { data: { name: `E2E Recall Till ${tag}`, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })).json()
+  const res = await page.request.post(`/api/v1/till/suppliers/${sup.id}/receive`, { data: { invoiceNo: '', discount: '', discountType: 'fixed', notes: '', keepRemainder: false, deferDrawerKick: true, pay: { amount: '', method: 'cash', lockerId: 0 },
+    lines: [{ productId: product.id, name: '', ordered: '', quantity: '3', freeQty: '', costPrice: '40', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed' }] } })
+  expect(res.ok()).toBeTruthy()
+  const lots = await (await page.request.get(`/api/v1/admin/stock/lots/${product.id}`)).json()
+  const recall = await page.request.post(`/api/v1/admin/suppliers/${sup.id}/claims/lots/${lots.lots[0].id}/recall`, { data: { stopSelling: true } })
+  expect(recall.ok()).toBeTruthy()
+  await page.context().clearCookies()
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  await scan(page, code)
+  await page.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /Recalled/ }).first().click()
+  const warn = page.getByRole('dialog', { name: 'Recalled by the supplier' })
+  await expect(warn).toBeVisible()
+  await expect(warn.getByRole('button', { name: 'Write it off' })).toHaveCount(0)
+  await warn.getByRole('button', { name: 'Sell anyway' }).click()
+  await expect(cart(page).getByText(`E2E Recalled ${tag}`)).toBeVisible()
+})
+
 test('expired lot first: sell anyway', async ({ page }) => {
   // Its own expired lot (another flow may have written the seeded one off).
   await login(page, '0770000003')

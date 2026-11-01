@@ -8,7 +8,7 @@ const prod = (p: Partial<TillProduct> = {}): TillProduct => ({
   warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [], ...p,
 })
 const lot = (batchId: number, price: string, qty: string, expiryDate = ''): Lot => ({
-  batchId, batchNo: '', expiryDate, qtyRemaining: qty, price, receivedAt: '2026-09-01',
+  batchId, batchNo: '', expiryDate, qtyRemaining: qty, price, receivedAt: '2026-09-01', recalled: false,
 })
 
 describe('lots', () => {
@@ -20,6 +20,8 @@ describe('lots', () => {
   it('prompts on price disagreement or an expired FEFO-first lot only', () => {
     const today = '2026-09-28'
     expect(lotsFor({ 7: [lot(1, '100', '5'), lot(2, '120', '5')] }, 7, today)).toHaveLength(2)
+    expect(lotsFor({ 7: [{ ...lot(1, '100', '5'), recalled: true }, lot(2, '100', '5')] }, 7, today)).toHaveLength(2) // recalled and stopped, sold first
+    expect(lotsFor({ 7: [lot(1, '100', '5'), { ...lot(2, '100', '5'), recalled: true }] }, 7, today)).toEqual([]) // a good lot sells first
     expect(lotsFor({ 7: [lot(1, '100', '5', '2026-09-01'), lot(2, '100', '5')] }, 7, today)).toHaveLength(2)
     expect(lotsFor({ 7: [lot(1, '100', '5'), lot(2, '100', '5')] }, 7, today)).toEqual([])
     expect(lotsFor(undefined, 7, today)).toEqual([])

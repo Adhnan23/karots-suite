@@ -141,6 +141,9 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 	}
 	now := time.Now()
 	for _, b := range lots {
+		if b.RecallStops {
+			a.Recalled++
+		}
 		if b.Expired(now) {
 			a.Expired++
 		} else if b.ExpiringSoon(now) {

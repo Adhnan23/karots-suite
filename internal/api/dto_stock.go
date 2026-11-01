@@ -48,6 +48,8 @@ type LotRow struct {
 	SupplierID   int64  `json:"supplierId"`   // who the lot belongs to; 0 = nobody
 	Supplier     string `json:"supplier"`     // their name
 	ToldOn       string `json:"toldOn"`       // YYYY-MM-DD they were told; "" = not yet
+	RecalledOn   string `json:"recalledOn"`   // YYYY-MM-DD; "" = not recalled
+	RecallStops  bool   `json:"recallStops"`  // the shop stopped selling it
 	WarnDays     int    `json:"warnDays"`     // warns this many days before expiry
 }
 
@@ -94,6 +96,7 @@ type BatchGroup struct {
 	Value        string   `json:"value"`
 	Expired      int      `json:"expired"`
 	ExpiringSoon int      `json:"expiringSoon"` // inside their warning days
+	Recalled     int      `json:"recalled"`
 	Lots         []LotRow `json:"lots"`
 }
 

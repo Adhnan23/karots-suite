@@ -273,6 +273,7 @@ type DashboardAttention struct {
 	LowStock     int    `json:"lowStock"`
 	Expired      int    `json:"expired"`
 	Expiring     int    `json:"expiring"` // inside their warning days
+	Recalled     int    `json:"recalled"` // recalled lots the shop stopped selling
 	Review       int    `json:"review"`   // quick-added items needing details
 	OverLimit    int    `json:"overLimit"`
 	OverLimitSum string `json:"overLimitSum"`
@@ -351,6 +352,13 @@ type ClaimLot struct {
 	Supplier  string `json:"supplier"`
 	WarnDays  int    `json:"warnDays"`
 	ToldOn    string `json:"toldOn"` // YYYY-MM-DD the supplier was told; "" = not yet
+	RecalledOn  string `json:"recalledOn"`  // YYYY-MM-DD; "" = not recalled
+	RecallStops bool   `json:"recallStops"` // the shop stopped selling it
+}
+
+// RecallRequest marks a lot recalled by its supplier.
+type RecallRequest struct {
+	StopSelling bool `json:"stopSelling"`
 }
 
 // GiveBackRequest is what was counted on the shelf; all of it goes back.
@@ -362,6 +370,7 @@ type GiveBackRequest struct {
 // expired batches on the shelf (write off, then settle) and write-offs still
 // waiting on them.
 type SupplierClaims struct {
+	Recalled []ClaimLot `json:"recalled"`
 	Expired  []ClaimLot `json:"expired"`
 	Expiring []ClaimLot `json:"expiring"` // inside their warning days
 	Waiting  []LossRow  `json:"waiting"`

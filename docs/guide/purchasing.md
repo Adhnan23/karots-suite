@@ -60,4 +60,16 @@ there's no other batch to take it does the stock total change, as an adjustment 
 Any other mix-up shows at the next stock-take. Units that move between batches of different cost
 blend into that batch's cost, so the value of your stock stays right.
 
-A batch with no supplier can't be given back until its product has a preferred supplier.
+A batch with no supplier can't be given back or recalled until its product has a preferred supplier.
+
+## When a supplier recalls a batch
+
+Press **Recall** on the batch, on **Inventory → Batches** or on the supplier's panel, and choose:
+
+- **Keep selling** if it isn't really bad. Nothing changes at the counter.
+- **Stop selling** if it is. The till and the phone warn the cashier when it's next to sell or picked,
+  as for an expired batch, and they can go back or sell anyway. The dashboard shows it until it's gone.
+
+The batch stays in stock and on the supplier's panel, however long the rep takes. Collect it off the
+shelf, then **Give back** what's left when they come. What was sold before that isn't part of the
+claim. **Undo recall** puts it back to normal if the supplier changes their mind.

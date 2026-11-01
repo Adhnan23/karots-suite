@@ -11,7 +11,7 @@ import { TILE } from '../ui'
 export function lotNote(opts: Record<string, Lot[]> | undefined, id: number) {
   const lots = lotsFor(opts, id)
   if (!lots.length) return null
-  return lotExpired(lots[0]) ? 'Expired lot first' : `${new Set(lots.map((l) => l.price)).size} prices`
+  return lots[0].recalled ? 'Recalled lot first' : lotExpired(lots[0]) ? 'Expired lot first' : `${new Set(lots.map((l) => l.price)).size} prices`
 }
 
 export function ProductTile({ p, sym, note, onAdd, onInfo }: {

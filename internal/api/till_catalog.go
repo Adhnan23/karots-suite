@@ -168,7 +168,7 @@ func tillGroups(rows []productgroups.Group) []TillGroup {
 }
 
 func lotOf(o stock.PriceOption) Lot {
-	l := Lot{BatchID: o.BatchID, BatchNo: strOr(o.BatchNo), QtyRemaining: o.QtyRemaining.String(),
+	l := Lot{Recalled: o.Recalled, BatchID: o.BatchID, BatchNo: strOr(o.BatchNo), QtyRemaining: o.QtyRemaining.String(),
 		Price: dec2(o.Price), ReceivedAt: o.ReceivedAt.Format("2006-01-02")}
 	if o.ExpiryDate != nil {
 		l.ExpiryDate = o.ExpiryDate.Format("2006-01-02")

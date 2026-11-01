@@ -66,3 +66,32 @@ test('close to expiry: told them, counted more than the system, waits, settled w
   await expect.poll(owed).toBe(before - 120)
   await expect(panel).toHaveCount(0)
 })
+
+test('recall from Batches: stop selling, listed on the supplier, undo', async ({ page }) => {
+  await signIn(page)
+  const rtag = Date.now().toString(36).slice(-5)
+  const rname = `E2E Recalled ${rtag}`
+  const sup = await (await page.request.post('/api/v1/admin/suppliers', { data: { name: `E2E Recaller ${rtag}`, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })).json()
+  const pid = await freshProduct(page, rname)
+  const res = await page.request.post(`/api/v1/till/suppliers/${sup.id}/receive`, { data: {
+    invoiceNo: '', discount: '', discountType: 'fixed', notes: '', keepRemainder: false, deferDrawerKick: true,
+    pay: { amount: '', method: 'cash', lockerId: 0 },
+    lines: [{ productId: pid, name: '', ordered: '', quantity: '4', freeQty: '', costPrice: '40', sellingPrice: '', expiryDate: day(400), discount: '', discountType: 'fixed' }],
+  } })
+  expect(res.ok()).toBeTruthy()
+
+  await page.goto('/admin/stock/batches')
+  const group = page.getByRole('list', { name: 'Products with lots' }).getByRole('listitem').filter({ hasText: rname }).first()
+  await group.getByRole('button', { expanded: false }).click() // nowhere near expiry, so it starts closed
+  await group.getByRole('button', { name: 'Recall', exact: true }).click()
+  await page.getByRole('button', { name: 'Stop selling' }).click()
+  await expect(group).toContainText('recalled, not selling')
+
+  await page.goto(`/admin/suppliers/${sup.id}`)
+  await page.getByRole('button', { name: /to settle with them/ }).click()
+  const panel = page.getByRole('region', { name: 'From this supplier' })
+  const row = panel.getByRole('listitem').filter({ hasText: rname })
+  await expect(row).toContainText('not selling')
+  await row.getByRole('button', { name: 'Undo recall' }).click()
+  await expect(panel).toHaveCount(0)
+})

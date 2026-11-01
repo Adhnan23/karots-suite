@@ -24,13 +24,21 @@ func registerSupplierClaims(g *echo.Group, h *handlers) {
 	g.GET("/suppliers/:id/claims", h.SupplierClaims)
 	g.POST("/suppliers/:id/claims/lots/:lot/give-back", h.SupplierGiveBack)
 	g.POST("/suppliers/:id/claims/lots/:lot/told", h.SupplierTold)
+	g.POST("/suppliers/:id/claims/lots/:lot/recall", h.SupplierRecall)
+	g.DELETE("/suppliers/:id/claims/lots/:lot/recall", h.SupplierUndoRecall)
 }
 
 func claimLots(rows []stock.Batch) []ClaimLot {
 	out := make([]ClaimLot, 0, len(rows))
 	for _, b := range rows {
 		l := ClaimLot{LotID: b.ID, ProductID: b.ProductID, Product: b.ProductName, Unit: b.UnitAbbr, Qty: b.QtyRemaining.String(),
-			Expiry: b.ExpiryDate.Format(time.DateOnly), Cost: dec2(b.CostPrice), Supplier: b.SupplierName, WarnDays: b.WarnDays}
+			Cost: dec2(b.CostPrice), Supplier: b.SupplierName, WarnDays: b.WarnDays, RecallStops: b.RecallStops}
+		if b.ExpiryDate != nil {
+			l.Expiry = b.ExpiryDate.Format(time.DateOnly)
+		}
+		if b.RecalledOn != nil {
+			l.RecalledOn = b.RecalledOn.Format(time.DateOnly)
+		}
 		if b.SupplierToldOn != nil {
 			l.ToldOn = b.SupplierToldOn.Format(time.DateOnly)
 		}
@@ -44,11 +52,11 @@ func (h *handlers) SupplierClaims(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	expired, expiring, waiting, err := recovery.NewService(h.d.DB).Claims(c.Request().Context(), id)
+	recalled, expired, expiring, waiting, err := recovery.NewService(h.d.DB).Claims(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
-	out := SupplierClaims{Expired: claimLots(expired), Expiring: claimLots(expiring), Waiting: make([]LossRow, 0, len(waiting))}
+	out := SupplierClaims{Recalled: claimLots(recalled), Expired: claimLots(expired), Expiring: claimLots(expiring), Waiting: make([]LossRow, 0, len(waiting))}
 	for _, l := range waiting {
 		out.Waiting = append(out.Waiting, LossRow{Kind: l.Kind, SourceID: l.MovementID, ID: l.MovementID, ProductID: l.ProductID, Product: l.Product,
 			Qty: l.Quantity.String(), Loss: dec2(l.LossValue), Note: strOr(l.Note), By: l.By, At: l.At.Format(time.RFC3339), GivenBack: l.GivenBack})
@@ -111,6 +119,36 @@ func (h *handlers) SupplierGiveBack(c echo.Context) error {
 	}
 	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(b.ProductID, 10), "gave back "+strings.TrimSpace(req.Counted)+" to "+b.SupplierName)
 	return c.JSON(http.StatusOK, out)
+}
+
+// SupplierRecall marks a lot recalled by its supplier, selling on or stopped.
+func (h *handlers) SupplierRecall(c echo.Context) error {
+	var req RecallRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	b, err := h.supplierLot(c)
+	if err != nil {
+		return err
+	}
+	if err := h.t.stock.RecallLot(c.Request().Context(), b.ID, req.StopSelling); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(b.ProductID, 10), "batch recalled by "+b.SupplierName)
+	return c.NoContent(http.StatusNoContent)
+}
+
+// SupplierUndoRecall puts a recalled lot back to normal.
+func (h *handlers) SupplierUndoRecall(c echo.Context) error {
+	b, err := h.supplierLot(c)
+	if err != nil {
+		return err
+	}
+	if err := h.t.stock.UndoRecall(c.Request().Context(), b.ID); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(b.ProductID, 10), "batch recall undone")
+	return c.NoContent(http.StatusNoContent)
 }
 
 // SupplierTold records that the supplier was told about the lot, today.

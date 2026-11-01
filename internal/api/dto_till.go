@@ -121,6 +121,7 @@ type Lot struct {
 	QtyRemaining string `json:"qtyRemaining"`
 	Price        string `json:"price"`
 	ReceivedAt   string `json:"receivedAt"`
+	Recalled     bool   `json:"recalled"` // the supplier recalled it and the shop stopped selling it
 }
 
 type DetailRow struct {

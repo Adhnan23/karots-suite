@@ -9,7 +9,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, errMsg, priceOptionsQuery } from '../api'
 import { Kbd } from '../bits'
-import { lotExpired, lotLabel } from '../cart/lines'
+import { lotLabel, lotWarned } from '../cart/lines'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 
@@ -30,7 +30,7 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
     dispatch({ type: 'add', product, lot, lots: all, units })
     if (product.suggestion) ui.open({ kind: 'suggestion', product })
   }
-  const pick = (lot: Lot) => (lotExpired(lot) ? setExpired(lot) : commit(lot))
+  const pick = (lot: Lot) => (lotWarned(lot) ? setExpired(lot) : commit(lot))
 
   // Show the cached lots at once (a rush can't wait), then correct from the server
   // so nobody picks a lot another lane just emptied.
@@ -39,7 +39,7 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
     api<Lot[]>(`/till/products/${product.id}/lots`).then((fresh) => {
       const f = fresh.filter((l) => num(l.qtyRemaining) > 0)
       if (!live || !f.length) return
-      if (new Set(f.map((l) => l.price)).size === 1 && !lotExpired(f[0])) commit(f[0], f)
+      if (new Set(f.map((l) => l.price)).size === 1 && !lotWarned(f[0])) commit(f[0], f)
       else setLots(f)
     }).catch(() => undefined)
     return () => { live = false }
@@ -76,10 +76,12 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
     <Dialog open onOpenChange={(o) => !o && (expired ? setExpired(null) : ui.close())}>
       <DialogContent onKeyDown={onKey} className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>{expired ? 'This lot is expired' : 'Which price?'}</DialogTitle>
+          <DialogTitle>{expired ? (expired.recalled ? 'Recalled by the supplier' : 'This lot is expired') : 'Which price?'}</DialogTitle>
           <DialogDescription>
             {expired
-              ? `${product.name} — ${lotLabel(expired)}. Sell it anyway, or write it off instead?`
+              ? expired.recalled
+                ? `${product.name} — ${lotLabel(expired)}. The shop stopped selling this batch. Go back, or sell it anyway?`
+                : `${product.name} — ${lotLabel(expired)}. Sell it anyway, or write it off instead?`
               : `${product.name} has lots at different prices or an expired lot. Read the sticker on the package.`}
           </DialogDescription>
         </DialogHeader>
@@ -88,13 +90,13 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
             {lots.map((l, i) => (
               <li key={l.batchId}>
                 <button type="button" onClick={() => pick(l)}
-                  className={cn('flex w-full items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand', lotExpired(l) && 'border-danger')}>
+                  className={cn('flex w-full items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand', lotWarned(l) && 'border-danger')}>
                   <Kbd>{i + 1}</Kbd>
                   <span className="flex-1">
                     <span className="font-display text-lg font-bold tabular-nums">{money(cfg.symbol, l.price)}</span>
                     <span className="ml-2 text-[13px] text-muted-foreground">{lotLabel(l)} · {qtyText(l.qtyRemaining)} left</span>
                   </span>
-                  {lotExpired(l) && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-1.5 text-[11px] font-bold text-danger">Expired</span>}
+                  {lotWarned(l) && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-1.5 text-[11px] font-bold text-danger">{l.recalled ? 'Recalled' : 'Expired'}</span>}
                 </button>
               </li>
             ))}
@@ -102,7 +104,7 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
         ) : (
           <DialogFooter>
             <Button variant="ghost" onClick={() => setExpired(null)}>Back</Button>
-            <Button variant="destructive" onClick={writeOff}>Write it off</Button>
+            {!expired.recalled && <Button variant="destructive" onClick={writeOff}>Write it off</Button>}
             <Button autoFocus onClick={() => commit(expired)}>Sell anyway</Button>
           </DialogFooter>
         )}

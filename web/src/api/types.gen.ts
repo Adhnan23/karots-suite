@@ -2918,6 +2918,7 @@ export interface DashboardAttention {
   lowStock: number /* int */;
   expired: number /* int */;
   expiring: number /* int */; // inside their warning days
+  recalled: number /* int */; // recalled lots the shop stopped selling
   review: number /* int */; // quick-added items needing details
   overLimit: number /* int */;
   overLimitSum: string;
@@ -3006,6 +3007,14 @@ export interface ClaimLot {
   supplier: string;
   warnDays: number /* int */;
   toldOn: string; // YYYY-MM-DD the supplier was told; "" = not yet
+  recalledOn: string; // YYYY-MM-DD; "" = not recalled
+  recallStops: boolean; // the shop stopped selling it
+}
+/**
+ * RecallRequest marks a lot recalled by its supplier.
+ */
+export interface RecallRequest {
+  stopSelling: boolean;
 }
 /**
  * GiveBackRequest is what was counted on the shelf; all of it goes back.
@@ -3019,6 +3028,7 @@ export interface GiveBackRequest {
  * waiting on them.
  */
 export interface SupplierClaims {
+  recalled: ClaimLot[];
   expired: ClaimLot[];
   expiring: ClaimLot[]; // inside their warning days
   waiting: LossRow[];
@@ -3393,6 +3403,8 @@ export interface LotRow {
   supplierId: number /* int64 */; // who the lot belongs to; 0 = nobody
   supplier: string; // their name
   toldOn: string; // YYYY-MM-DD they were told; "" = not yet
+  recalledOn: string; // YYYY-MM-DD; "" = not recalled
+  recallStops: boolean; // the shop stopped selling it
   warnDays: number /* int */; // warns this many days before expiry
 }
 export interface ProductLots {
@@ -3442,6 +3454,7 @@ export interface BatchGroup {
   value: string;
   expired: number /* int */;
   expiringSoon: number /* int */; // inside their warning days
+  recalled: number /* int */;
   lots: LotRow[];
 }
 /**
@@ -3763,6 +3776,7 @@ export interface Lot {
   qtyRemaining: string;
   price: string;
   receivedAt: string;
+  recalled: boolean; // the supplier recalled it and the shop stopped selling it
 }
 export interface DetailRow {
   label: string;

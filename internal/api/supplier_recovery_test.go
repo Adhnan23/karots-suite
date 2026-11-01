@@ -185,3 +185,94 @@ func TestSupplierClaimsGiveBack(t *testing.T) {
 		t.Fatalf("it moved: %+v", otherClaims.Waiting)
 	}
 }
+
+func TestSupplierRecall(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	sfx := time.Now().UnixNano()
+	sup := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Recall A %d", sfx)}, ck))
+	other := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Recall B %d", sfx)}, ck))
+	te.db.MustExec(`UPDATE products SET preferred_supplier_id=$1 WHERE id=$2`, sup.ID, f.scarceID)
+	var lot int64 // nowhere near expiry: no date at all
+	if err := te.db.Get(&lot, `SELECT id FROM stock_batches WHERE product_id=$1 AND qty_remaining > 0 AND expiry_date IS NULL LIMIT 1`, f.scarceID); err != nil {
+		t.Fatal(err)
+	}
+	base := fmt.Sprintf("/api/v1/admin/suppliers/%d/claims", sup.ID)
+	path := fmt.Sprintf("%s/lots/%d/recall", base, lot)
+	claims := func() SupplierClaims { return decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck)) }
+	optsFor := func() []Lot {
+		o := decode[map[string][]Lot](t, te.do(http.MethodGet, "/api/v1/till/price-options", nil, ck))
+		return o[fmt.Sprint(f.scarceID)]
+	}
+	attention := func() int {
+		return decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, ck)).Attention.Recalled
+	}
+	before := attention()
+
+	// Keep selling: on the panel, nothing at the counter.
+	if rec := te.do(http.MethodPost, path, RecallRequest{StopSelling: false}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("recall: %d %s", rec.Code, rec.Body)
+	}
+	if c := claims(); len(c.Recalled) != 1 || c.Recalled[0].LotID != lot || c.Recalled[0].RecallStops || c.Recalled[0].Expiry != "" {
+		t.Fatalf("recalled: %+v", c)
+	}
+	if opts := optsFor(); len(opts) != 0 {
+		t.Fatalf("keep selling shouldn't prompt: %+v", opts)
+	}
+	if got := attention(); got != before {
+		t.Fatalf("keep selling on the dashboard: %d", got)
+	}
+
+	// Stop selling: the till is told, the dashboard counts it, the lot says so.
+	te.do(http.MethodPost, path, RecallRequest{StopSelling: true}, ck)
+	if opts := optsFor(); len(opts) != 1 || !opts[0].Recalled {
+		t.Fatalf("till options: %+v", opts)
+	}
+	if got := attention(); got != before+1 {
+		t.Fatalf("dashboard %d, want %d", got, before+1)
+	}
+	pl := decode[ProductLots](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/stock/lots/%d", f.scarceID), nil, ck))
+	if i := slices.IndexFunc(pl.Lots, func(l LotRow) bool { return l.ID == lot }); i < 0 || pl.Lots[i].RecalledOn == "" || !pl.Lots[i].RecallStops {
+		t.Fatalf("lot row: %+v", pl.Lots)
+	}
+
+	// It still counts as stock, and a sale that insists still goes through (never stop a sale).
+	var left float64
+	te.db.Get(&left, `SELECT quantity FROM stock WHERE product_id=$1`, f.scarceID) //nolint:errcheck
+	if left != 1 {
+		t.Fatalf("stock %v, want 1", left)
+	}
+
+	// Another supplier can't touch it.
+	wrong := fmt.Sprintf("/api/v1/admin/suppliers/%d/claims/lots/%d/recall", other.ID, lot)
+	if rec := te.do(http.MethodPost, wrong, RecallRequest{StopSelling: true}, ck); rec.Code != http.StatusNotFound {
+		t.Errorf("wrong supplier: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodDelete, wrong, nil, ck); rec.Code != http.StatusNotFound {
+		t.Errorf("wrong supplier, undo: %d", rec.Code)
+	}
+
+	// Undo: back to normal everywhere.
+	if rec := te.do(http.MethodDelete, path, nil, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("undo: %d %s", rec.Code, rec.Body)
+	}
+	if c := claims(); len(c.Recalled) != 0 {
+		t.Fatalf("after undo: %+v", c.Recalled)
+	}
+	if opts := optsFor(); len(opts) != 0 {
+		t.Fatalf("after undo, till: %+v", opts)
+	}
+
+	// Given back: it leaves the recalled list and waits on them.
+	te.do(http.MethodPost, path, RecallRequest{StopSelling: true}, ck)
+	if rec := te.do(http.MethodPost, fmt.Sprintf("%s/lots/%d/give-back", base, lot), GiveBackRequest{Counted: "1"}, ck); rec.Code != http.StatusOK {
+		t.Fatalf("give back: %d %s", rec.Code, rec.Body)
+	}
+	if c := claims(); len(c.Recalled) != 0 || len(c.Waiting) != 1 {
+		t.Fatalf("after give back: %+v", c)
+	}
+	if got := attention(); got != before {
+		t.Fatalf("dashboard after give back: %d", got)
+	}
+}

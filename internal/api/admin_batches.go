@@ -61,6 +61,9 @@ func (h *handlers) AdminBatches(c echo.Context) error {
 		g.Lots = append(g.Lots, lotRow(b))
 		onHand[b.ProductID] = onHand[b.ProductID].Add(b.QtyRemaining)
 		value[b.ProductID] = value[b.ProductID].Add(val)
+		if b.RecalledOn != nil {
+			g.Recalled++
+		}
 		if expired {
 			g.Expired++
 		}
@@ -74,7 +77,7 @@ func (h *handlers) AdminBatches(c echo.Context) error {
 	}
 	rank := func(g BatchGroup) int {
 		switch {
-		case g.Expired > 0:
+		case g.Expired > 0 || g.Recalled > 0:
 			return 0
 		case g.ExpiringSoon > 0:
 			return 1

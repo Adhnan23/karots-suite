@@ -13,18 +13,20 @@ import (
 // ponytail: fixed 180 days, make it a setting if a shop claims older stock.
 const claimWindow = 180 * 24 * time.Hour
 
-// Claims is what to settle with a supplier when they call: their lots past or
-// inside their warning days and still on the shelf, and damage write-offs of
+// Claims is what to settle with a supplier when they call: their recalled lots,
+// their lots past or inside their warning days and still on the shelf, and damage write-offs of
 // their stock that no recovery has been recorded against yet. A write-off given
 // back to them waits until settled; any other drops off after claimWindow.
-func (s *Service) Claims(ctx context.Context, supplierID int64) (expired, expiring []stock.Batch, waiting []Loss, err error) {
+func (s *Service) Claims(ctx context.Context, supplierID int64) (recalled, expired, expiring []stock.Batch, waiting []Loss, err error) {
 	lots, err := stock.NewService(s.db).SupplierLots(ctx, supplierID)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	now := time.Now()
 	for _, b := range lots {
-		if b.Expired(now) {
+		if b.RecalledOn != nil {
+			recalled = append(recalled, b)
+		} else if b.Expired(now) {
 			expired = append(expired, b)
 		} else if b.ExpiringSoon(now) {
 			expiring = append(expiring, b)
@@ -43,7 +45,7 @@ func (s *Service) Claims(ctx context.Context, supplierID int64) (expired, expiri
 		  AND (m.given_back_to = $1 OR (m.given_back_to IS NULL AND m.created_at >= $2 AND `+stock.LotSupplierSQL+` = $1))
 		ORDER BY m.created_at DESC, m.id DESC
 		LIMIT 200`, supplierID, time.Now().Add(-claimWindow)); err != nil {
-		return nil, nil, nil, apperr.Internal("failed to load write-offs", err)
+		return nil, nil, nil, nil, apperr.Internal("failed to load write-offs", err)
 	}
-	return expired, expiring, waiting, nil
+	return recalled, expired, expiring, waiting, nil
 }

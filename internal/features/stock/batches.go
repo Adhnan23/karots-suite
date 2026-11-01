@@ -36,6 +36,10 @@ type Batch struct {
 	ProductPrice decimal.Decimal `db:"product_price" json:"product_price"`
 	// SupplierToldOn is when the lot's supplier was told about it.
 	SupplierToldOn *time.Time `db:"supplier_told_on" json:"supplier_told_on,omitempty"`
+	// RecalledOn is when the supplier recalled this lot; RecallStops says the shop
+	// stopped selling it, so the till warns as it does for an expired lot.
+	RecalledOn  *time.Time `db:"recalled_on"  json:"recalled_on,omitempty"`
+	RecallStops bool       `db:"recall_stops" json:"recall_stops"`
 	// SupplierID and SupplierName are who the lot belongs to (LotSupplierSQL); nil / "" = nobody.
 	SupplierID   *int64 `db:"supplier_id"   json:"supplier_id,omitempty"`
 	SupplierName string `db:"supplier_name" json:"supplier_name"`
@@ -168,6 +172,8 @@ type PriceOption struct {
 	// inheriting the product's price, so the admin batch list can say so.
 	OwnPrice   bool      `db:"own_price"  json:"own_price"`
 	ReceivedAt time.Time `db:"created_at" json:"received_at"`
+	// Recalled: the supplier recalled this lot and the shop stopped selling it.
+	Recalled bool `db:"recalled" json:"recalled"`
 }
 
 // PriceOptions lists a product's live lots with the price each would ring up at,
@@ -178,7 +184,7 @@ func (r *Repository) PriceOptions(ctx context.Context, productID int64) ([]Price
 	err := r.q.SelectContext(ctx, &rows, `
 		SELECT b.id, b.product_id, b.batch_no, b.expiry_date, b.qty_remaining, b.created_at,
 		       `+effectivePriceSQL+` AS price,
-		       (b.selling_price > 0) AS own_price
+		       (b.selling_price > 0) AS own_price, b.recall_stops AS recalled
 		FROM stock_batches b
 		JOIN products p ON p.id = b.product_id
 		WHERE b.product_id = $1 AND b.qty_remaining > 0
@@ -234,7 +240,7 @@ func (r *Repository) LotPromptProducts(ctx context.Context) (map[int64][]PriceOp
 		WITH live AS (
 			SELECT b.id, b.product_id, b.batch_no, b.expiry_date, b.qty_remaining, b.created_at,
 			       `+effectivePriceSQL+` AS price,
-			       (b.selling_price > 0) AS own_price
+			       (b.selling_price > 0) AS own_price, b.recall_stops AS recalled
 			FROM stock_batches b
 			JOIN products p ON p.id = b.product_id
 			WHERE b.qty_remaining > 0 AND p.is_active AND NOT p.is_service
@@ -242,6 +248,7 @@ func (r *Repository) LotPromptProducts(ctx context.Context) (map[int64][]PriceOp
 			SELECT product_id FROM live GROUP BY product_id
 			HAVING COUNT(DISTINCT price) > 1
 			    OR bool_or(expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE)
+			    OR bool_or(recalled)
 		)
 		SELECT l.* FROM live l
 		JOIN flagged f ON f.product_id = l.product_id

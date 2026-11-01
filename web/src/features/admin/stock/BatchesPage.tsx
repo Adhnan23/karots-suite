@@ -18,6 +18,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { ClaimPrompt, useSupplierClaim } from './claim'
 import { useGiveBack, type GiveLot } from '@/features/purchasing/GiveBackSheet'
+import { useRecall } from '@/features/purchasing/RecallPrompt'
 import { daysLeft, ExpiryTag, LotsSheet } from './LotsSheet'
 
 const batchesQuery = queryOptions({ queryKey: ['admin', 'batches'], queryFn: () => api<BatchesView>('/admin/stock/batches') })
@@ -33,12 +34,13 @@ export function BatchesPage() {
   const [lots, setLots] = useState(0)
   const claim = useSupplierClaim(sym)
   const back = useGiveBack(sym)
+  const recall = useRecall()
   const navigate = useNavigate()
   const [allDone, setAllDone] = useState(0)
   const refresh = () => { void qc.invalidateQueries({ queryKey: ['admin'] }); void qc.invalidateQueries({ queryKey: ['till'] }) }
   const needle = q.trim().toLowerCase()
   const groups = (v?.groups ?? []).filter((g) => (!needle || g.name.toLowerCase().includes(needle))
-    && (show === 'all' || g.expired > 0 || (show === 'attention' && g.expiringSoon > 0)))
+    && (show === 'all' || g.expired > 0 || (show === 'attention' && (g.expiringSoon > 0 || g.recalled > 0))))
 
   async function writeOffAll() {
     const r = await api<WriteOffResult>('/admin/stock/expired/write-off-all', { method: 'POST' })
@@ -69,13 +71,14 @@ export function BatchesPage() {
       <div className={cn(SURFACE, 'overflow-hidden')}>
         {groups.length === 0 ? <EmptyState title={v ? 'Nothing here' : 'Loading…'}>{v && show !== 'all' && 'No lots need attention right now.'}</EmptyState> : (
           <ul aria-label="Products with lots" className="divide-y divide-border">
-            {groups.map((g) => <Group key={g.productId} g={g} sym={sym} onLots={() => setLots(g.productId)} onDone={refresh} onClaim={claim.ask} onGiveBack={back.give} />)}
+            {groups.map((g) => <Group key={g.productId} g={g} sym={sym} onLots={() => setLots(g.productId)} onDone={refresh} onClaim={claim.ask} onGiveBack={back.give} recall={recall} />)}
           </ul>
         )}
       </div>
       {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
       {claim.sheet}
       {back.sheet}
+      {recall.sheet}
       {allDone > 0 && (
         <PickerShell fit open onOpenChange={(o) => !o && setAllDone(0)} title="Written off">
           <ClaimPrompt title={`${allDone} expired ${allDone === 1 ? 'lot' : 'lots'} written off.`} goLabel="Open Losses & Recovery"
@@ -98,10 +101,10 @@ function Stat({ label, value, sub, tone, action }: { label: string; value: strin
   )
 }
 
-function Group({ g, sym, onLots, onDone, onClaim, onGiveBack }: {
-  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, productId: number, product: string, qty: string, value: number) => void; onGiveBack: (l: GiveLot) => void
+function Group({ g, sym, onLots, onDone, onClaim, onGiveBack, recall }: {
+  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, productId: number, product: string, qty: string, value: number) => void; onGiveBack: (l: GiveLot) => void; recall: ReturnType<typeof useRecall>
 }) {
-  const [open, setOpen] = useState(g.expired > 0 || g.expiringSoon > 0)
+  const [open, setOpen] = useState(g.expired > 0 || g.expiringSoon > 0 || g.recalled > 0)
   return (
     <li>
       <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted">
@@ -109,6 +112,7 @@ function Group({ g, sym, onLots, onDone, onClaim, onGiveBack }: {
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-1.5">
             <b className="truncate">{g.name}</b>
+            {g.recalled > 0 && <Tag tone="danger">{`${g.recalled} recalled`}</Tag>}
             {g.expired > 0 && <Tag tone="danger">{`${g.expired} expired`}</Tag>}
             {g.expiringSoon > 0 && <Tag tone="warn">{`${g.expiringSoon} expiring`}</Tag>}
           </span>
@@ -129,9 +133,13 @@ function Group({ g, sym, onLots, onDone, onClaim, onGiveBack }: {
                   <b className="tabular-nums">{qtyText(l.qtyRemaining)} {g.unitAbbr}</b>
                   {i === 0 && <Tag tone="brand">next to sell</Tag>}
                   <ExpiryTag ymd={l.expiryDate} warnDays={l.warnDays} />
+                  {l.recalledOn && <Tag tone="danger">{l.recallStops ? 'recalled, not selling' : 'recalled, still selling'}</Tag>}
                   <span className="text-faint">{l.expiryDate ? `exp ${l.expiryDate}` : 'no expiry'} · cost {money(sym, l.costPrice)} · sells {money(sym, l.sellingPrice || g.productPrice)}{l.supplier && ` · ${l.supplier}, warns ${l.warnDays} days before`}{l.toldOn && ` · told ${new Date(l.toldOn).toLocaleDateString([], { day: 'numeric', month: 'short' })}`}</span>
+                  {l.supplierId > 0 && (l.recalledOn
+                    ? <Button type="button" variant="ghost" className="ml-auto h-8 px-3 text-[12px]" onClick={() => void recall.undo({ lotId: l.id, product: g.name, supplierId: l.supplierId })}>Undo recall</Button>
+                    : <Button type="button" variant="ghost" className="ml-auto h-8 px-3 text-[12px]" onClick={() => recall.ask({ lotId: l.id, product: g.name, supplierId: l.supplierId })}>Recall</Button>)}
                   {l.supplierId > 0 && (
-                    <Button type="button" variant="outline" className="ml-auto h-8 px-3 text-[12px]"
+                    <Button type="button" variant="outline" className="h-8 px-3 text-[12px]"
                       onClick={() => onGiveBack({ lotId: l.id, productId: g.productId, product: g.name, unit: g.unitAbbr, qty: l.qtyRemaining, expiry: l.expiryDate, supplierId: l.supplierId, supplier: l.supplier })}>Give back</Button>
                   )}
                   {expired && (

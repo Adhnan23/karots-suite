@@ -11,12 +11,15 @@ const localToday = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, l
 /** A lot is expired the day AFTER its printed date; no expiry never expires. */
 export const lotExpired = (lot: Lot, today = localToday()) => lot.expiryDate !== '' && lot.expiryDate < today
 
-/** Lots worth asking about: prices disagree, or the lot FEFO sells first is expired. */
+/** The till warns before selling this lot: it's expired, or recalled and stopped. */
+export const lotWarned = (lot: Lot, today = localToday()) => lot.recalled || lotExpired(lot, today)
+
+/** Lots worth asking about: prices disagree, or the lot FEFO sells first is warned about. */
 export function lotsFor(options: Record<string, Lot[]> | undefined, productId: number, today = localToday()): Lot[] {
   const lots = options?.[String(productId)] ?? []
   if (!lots.length) return []
   if (new Set(lots.map((l) => l.price)).size > 1) return lots
-  if (lotExpired(lots[0], today)) return lots
+  if (lotWarned(lots[0], today)) return lots
   return []
 }
 

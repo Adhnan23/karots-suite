@@ -133,6 +133,9 @@ func lotRow(b stock.Batch) LotRow {
 	if b.SupplierID != nil {
 		r.SupplierID = *b.SupplierID
 	}
+	if b.RecalledOn != nil {
+		r.RecalledOn, r.RecallStops = b.RecalledOn.Format(time.DateOnly), b.RecallStops
+	}
 	if b.SupplierToldOn != nil {
 		r.ToldOn = b.SupplierToldOn.Format(time.DateOnly)
 	}

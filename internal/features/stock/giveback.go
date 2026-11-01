@@ -171,12 +171,38 @@ func (s *Service) MarkSupplierTold(ctx context.Context, batchID int64) error {
 	return nil
 }
 
-// SupplierLots lists a supplier's live lots that have an expiry date, soonest first.
+// RecallLot marks a lot recalled by its supplier, today. stopSelling makes the
+// till warn before selling it; either way it stays in stock until given back.
+func (s *Service) RecallLot(ctx context.Context, batchID int64, stopSelling bool) error {
+	res, err := s.db.ExecContext(ctx, `UPDATE stock_batches SET recalled_on = CURRENT_DATE, recall_stops = $1 WHERE id = $2`, stopSelling, batchID)
+	if err != nil {
+		return apperr.Internal("failed to recall the batch", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return apperr.NotFound("batch")
+	}
+	return nil
+}
+
+// UndoRecall puts a recalled lot back to normal.
+func (s *Service) UndoRecall(ctx context.Context, batchID int64) error {
+	res, err := s.db.ExecContext(ctx, `UPDATE stock_batches SET recalled_on = NULL, recall_stops = false WHERE id = $1`, batchID)
+	if err != nil {
+		return apperr.Internal("failed to undo the recall", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return apperr.NotFound("batch")
+	}
+	return nil
+}
+
+// SupplierLots lists a supplier's live lots that have an expiry date or are
+// recalled, soonest first.
 func (s *Service) SupplierLots(ctx context.Context, supplierID int64) ([]Batch, error) {
 	var rows []Batch
 	if err := s.db.SelectContext(ctx, &rows, lotSelect+`
-		WHERE b.qty_remaining > 0 AND b.expiry_date IS NOT NULL AND `+LotSupplierSQL+` = $1
-		ORDER BY b.expiry_date, b.id`, supplierID); err != nil {
+		WHERE b.qty_remaining > 0 AND (b.expiry_date IS NOT NULL OR b.recalled_on IS NOT NULL) AND `+LotSupplierSQL+` = $1
+		ORDER BY b.expiry_date NULLS LAST, b.id`, supplierID); err != nil {
 		return nil, apperr.Internal("failed to load batches", err)
 	}
 	return rows, nil
