@@ -1,3 +1,4 @@
+import { noteUpdate } from '@/lib/version'
 import { BASE } from './api'
 
 /** Makes the phone address an installable app that opens with no server: the
@@ -19,5 +20,13 @@ export function registerPwa() {
     m.content = content
     document.head.append(m)
   }
-  if ('serviceWorker' in navigator) void navigator.serviceWorker.register(`${BASE}/sw.js`, { scope: '/' }).catch(() => {})
+  if (!('serviceWorker' in navigator)) return
+  // A new build lists new files, so its worker is new: look for one every minute
+  // (an open app never navigates); when it takes over, reload once the phone is
+  // quiet (lib/version's guards: no sale going).
+  const updating = !!navigator.serviceWorker.controller
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (updating) noteUpdate() })
+  void navigator.serviceWorker.register(`${BASE}/sw.js`, { scope: '/' })
+    .then((reg) => setInterval(() => void reg.update().catch(() => {}), 60_000))
+    .catch(() => {})
 }

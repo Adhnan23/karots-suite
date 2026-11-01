@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { _reset, noteVersion, setReloadGuard, shouldReload, tillQuiet } from './version'
+import { _reset, noteUpdate, noteVersion, setReloadGuard, shouldReload, tillQuiet } from './version'
 
 describe('shouldReload', () => {
   it('only for a changed version the guard allows', () => {
@@ -45,6 +45,18 @@ describe('noteVersion', () => {
     expect(reloads).toBe(0)
     cartEmpty = true
     vi.advanceTimersByTime(6_600) // the next 5 s retry, then the banner
+    expect(reloads).toBe(1)
+    off()
+  })
+
+  it("reloads for a new build seen another way (a phone app's new service worker), under the same guards", () => {
+    let quiet = false
+    const off = setReloadGuard(() => quiet)
+    noteUpdate()
+    vi.advanceTimersByTime(30_000)
+    expect(reloads).toBe(0)
+    quiet = true
+    vi.advanceTimersByTime(6_600)
     expect(reloads).toBe(1)
     off()
   })

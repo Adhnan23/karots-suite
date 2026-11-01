@@ -47,6 +47,13 @@ export function noteVersion(v: string | null): void {
   tryReload()
 }
 
+/** A new build noticed another way (an installed app's new service worker took
+ * over): reload under the same guards. */
+export function noteUpdate(): void {
+  pending = true
+  tryReload()
+}
+
 /** A screen that must not reload right now registers a guard; returns its
  * unregister. */
 export function setReloadGuard(fn: () => boolean): () => void {

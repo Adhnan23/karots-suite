@@ -8,6 +8,7 @@ import { initialState, tillReducer } from '@/features/till/cart/store'
 import { saleTotal } from '@/features/till/cart/totals'
 import { dec, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { setReloadGuard } from '@/lib/version'
 import { GLASS, Screen } from '../bits'
 import type { Who } from '../session'
 import type { PhoneId } from '../store/phone'
@@ -18,6 +19,7 @@ import { movedTo, refresh, sendNow, type SyncState } from '../sync'
 import { CartBar } from './CartBar'
 import { Held } from './Held'
 import { Menu } from './Menu'
+import { OpenFirst } from './OpenFirst'
 import { Pay } from './Pay'
 import { Sell } from './Sell'
 import { OfflineBanner, TopBar } from './TopBar'
@@ -41,6 +43,8 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
   // One person, one device: signed in on the PC since, they moved there. Park the
   // cart in Held (as the PC does when they come to the phone) and lock.
   const latest = useRef({ cart, onSignOut })
+  const payingRef = useRef(paying)
+  useEffect(() => { payingRef.current = paying })
   useEffect(() => { latest.current = { cart, onSignOut } })
   useEffect(() => {
     if (!sync.live) return
@@ -57,6 +61,8 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
     return () => clearInterval(id)
   }, [sync.live, who])
   const switchPerson = () => { if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {}); onSignOut() }
+  // A new version reloads the app only with no sale going (as the PC till).
+  useEffect(() => setReloadGuard(() => !latest.current.cart.lines.length && !payingRef.current), [])
   useIdle(copy?.lockTimeoutMinutes ?? 0, () => {
     if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {})
     onSignOut(`Locked after ${copy?.lockTimeoutMinutes} min with no use. Sign in to carry on.`)
@@ -68,8 +74,9 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
       {!(tab === 'sell' && paying) && <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />}
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
       <main className="flex min-h-0 flex-1 flex-col">
-        {tab === 'sell' && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => { setPaying(false); sent() }} />}
-        {tab === 'sell' && !paying && (
+        {tab === 'sell' && !drawerOpen && <OpenFirst who={who} copy={copy} onSent={sent} />}
+        {tab === 'sell' && drawerOpen && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => { setPaying(false); sent() }} />}
+        {tab === 'sell' && drawerOpen && !paying && (
           <>
             <Sell copy={copy} cart={cart} dispatch={dispatch} live={sync.live} />
             <CartBar cart={cart} dispatch={dispatch} copy={copy} onPay={() => setPaying(true)} />
