@@ -53,7 +53,7 @@ test.beforeAll(async ({ browser }) => {
   // A float in the drawer and one held sale, so Menu and Held aren't empty.
   await phone.getByRole('button', { name: 'Menu', exact: true }).click()
   await phone.getByRole('button', { name: 'Open the drawer' }).click()
-  await phone.getByLabel('Float in the drawer').fill('5000')
+  await phone.getByLabel('Count of Rs. 1,000.00').fill('5')
   await phone.getByRole('button', { name: 'Open', exact: true }).click()
   await phone.getByRole('button', { name: 'Sell', exact: true }).click()
   await phone.getByRole('list', { name: 'Products' }).getByRole('button', { name: /E2E Yoghurt/ }).first().click()

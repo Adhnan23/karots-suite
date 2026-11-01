@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { countTotal, toBreakdown, type Counts } from '@/features/till/drawer/count'
+import { DenomCounter } from '@/features/till/drawer/DenomCounter'
 import { FIELD } from '@/features/till/ui'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -31,7 +33,14 @@ export function DrawerSheet({ kind, copy, expected, onSend, onClose }: {
   const out = kind === 'withdraw' || kind === 'close'
   const untrackedOk = !out || copy.allowUntrackedCash
   const first = places.find((p) => p.id === copy.defaultLockerId) ?? (untrackedOk ? undefined : places[0])
-  const [amount, setAmount] = useState(kind === 'close' ? expected : '')
+  // Open and close count the drawer note by note (the shop's notes and coins), as
+  // the PC till does; without a list, one amount.
+  const counting = (kind === 'open' || kind === 'close') && (copy.denominations ?? []).length > 0
+  const denoms = copy.denominations ?? []
+  const [counts, setCounts] = useState<Counts>({})
+  const [typed, setTyped] = useState(kind === 'close' ? expected : '')
+  const amount = counting ? String(countTotal(denoms, counts)) : typed
+  const setAmount = setTyped
   const [reason, setReason] = useState('')
   const [locker, setLocker] = useState(first ? String(first.id) : '')
   const [error, setError] = useState('')
@@ -43,8 +52,9 @@ export function DrawerSheet({ kind, copy, expected, onSend, onClose }: {
     if (!untrackedOk && !num(locker) && a > 0) return setError(places.length ? 'Choose where the cash goes' : 'The shop has no cash locker for this — ask the owner')
     setBusy(true)
     const id = num(locker)
-    const body = kind === 'open' ? { openingCash: String(a), sourceLockerId: id }
-      : kind === 'close' ? { closingCash: String(a), destLockerId: id }
+    const breakdown = counting ? { breakdown: toBreakdown(denoms, counts) } : {}
+    const body = kind === 'open' ? { openingCash: String(a), ...breakdown, sourceLockerId: id }
+      : kind === 'close' ? { closingCash: String(a), ...breakdown, destLockerId: id }
         : { amount: String(a), reason: reason.trim(), lockerId: id }
     const err = await onSend(body).finally(() => setBusy(false))
     if (err) setError(err)
@@ -53,15 +63,21 @@ export function DrawerSheet({ kind, copy, expected, onSend, onClose }: {
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="gap-3 p-4">
+      <SheetContent side="bottom" className="max-h-[92dvh] gap-3 overflow-y-auto p-4">
         <SheetHeader className="p-0">
           <SheetTitle>{t.title}</SheetTitle>
           {kind !== 'open' && <SheetDescription>The drawer should hold about {money(copy.symbol, expected)}.</SheetDescription>}
         </SheetHeader>
-        <label className="flex flex-col gap-1 text-[13px] font-semibold text-muted-foreground">
-          {t.amount}
-          <input inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => { setAmount(e.target.value.replace(/[^\d.]/g, '')); setError('') }} className={cn(FIELD, 'text-lg tabular-nums')} />
-        </label>
+        {counting ? (
+          <div className="min-h-0 overflow-y-auto">
+            <DenomCounter denoms={denoms} counts={counts} onChange={(c) => { setCounts(c); setError('') }} sym={copy.symbol} label={t.amount} />
+          </div>
+        ) : (
+          <label className="flex flex-col gap-1 text-[13px] font-semibold text-muted-foreground">
+            {t.amount}
+            <input inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => { setAmount(e.target.value.replace(/[^\d.]/g, '')); setError('') }} className={cn(FIELD, 'text-lg tabular-nums')} />
+          </label>
+        )}
         {(kind === 'withdraw' || kind === 'deposit') && (
           <input aria-label="Reason" placeholder="Reason (optional)" autoComplete="off" value={reason} onChange={(e) => setReason(e.target.value)} className={FIELD} />
         )}
