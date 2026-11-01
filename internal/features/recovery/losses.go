@@ -38,7 +38,7 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 		SELECT * FROM (
 			SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.id AS product_id, p.name AS product, ABS(m.quantity) AS quantity,
 			       m.cost AS loss_value, m.note, COALESCE(u.name, '') AS by, m.created_at,
-			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered, m.given_back
+			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered, m.given_back_to IS NOT NULL AS given_back
 			FROM stock_movements m
 			JOIN products p ON p.id = m.product_id
 			LEFT JOIN users u ON u.id = m.user_id

@@ -71,7 +71,8 @@ the PC while the phone still shows them is claimed back by the phone's next send
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
 apply the answers and drop the DRAFT line; the real-printer test when printers arrive.
 
-**Left on purpose (only if a shop runs into it):** a bounced cheque that paid old debt moves the customer's linked
+**Left on purpose (only if a shop runs into it):** a supplier's replacement lot doesn't remember that supplier, so with
+no preferred supplier on the product it warns at the shop's number and has no Give back (set a preferred supplier); a bounced cheque that paid old debt moves the customer's linked
 balance, not the old-debt part (the total owed is right); a partial supplier-cheque bounce reopens bills before the
 payment's advance part (balance right, bill ageing may differ).
 

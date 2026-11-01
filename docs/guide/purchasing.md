@@ -57,6 +57,7 @@ When a supplier takes a batch back, or you want to give it to them, and you'll s
 Batches get mixed on the shelf, so the count wins. If it's more than the system says, the extra
 comes from the product's other batches. If it's less, the rest moves onto its next batch. Only when
 there's no other batch to take it does the stock total change, as an adjustment in **Movements**.
-Any other mix-up shows at the next stock-take.
+Any other mix-up shows at the next stock-take. Units that move between batches of different cost
+blend into that batch's cost, so the value of your stock stays right.
 
 A batch with no supplier can't be given back until its product has a preferred supplier.

@@ -33,14 +33,14 @@ func (s *Service) Claims(ctx context.Context, supplierID int64) (expired, expiri
 	if err := s.db.SelectContext(ctx, &waiting, `
 		SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.id AS product_id, p.name AS product,
 		       ABS(m.quantity) AS quantity, m.cost AS loss_value, m.note, COALESCE(u.name, '') AS by, m.created_at,
-		       NULL::text AS outcome, 0::numeric AS recovered, m.given_back
+		       NULL::text AS outcome, 0::numeric AS recovered, m.given_back_to IS NOT NULL AS given_back
 		FROM stock_movements m
 		JOIN products p ON p.id = m.product_id
 		LEFT JOIN users u ON u.id = m.user_id
 		LEFT JOIN stock_batches b ON m.reference_type = 'batch' AND b.id = m.reference_id
-		WHERE m.type = 'damage' AND (m.given_back OR m.created_at >= $2)
+		WHERE m.type = 'damage'
 		  AND NOT EXISTS (SELECT 1 FROM loss_recoveries lr WHERE lr.source_type = 'damage' AND lr.source_id = m.id)
-		  AND `+stock.LotSupplierSQL+` = $1
+		  AND (m.given_back_to = $1 OR (m.given_back_to IS NULL AND m.created_at >= $2 AND `+stock.LotSupplierSQL+` = $1))
 		ORDER BY m.created_at DESC, m.id DESC
 		LIMIT 200`, supplierID, time.Now().Add(-claimWindow)); err != nil {
 		return nil, nil, nil, apperr.Internal("failed to load write-offs", err)

@@ -21,6 +21,7 @@ type giveBackFix struct {
 	lot     int64
 	other   int64 // 0 = none
 	user    int64
+	sup     int64
 }
 
 // giveBackFixture is a product with a lot (expiring first) and maybe another.
@@ -31,6 +32,7 @@ func giveBackFixture(t *testing.T, lot, other, stockQty string) giveBackFix {
 	ctx := context.Background()
 	f := giveBackFix{conn: conn, svc: NewService(conn)}
 	must(t, conn.GetContext(ctx, &f.user, `SELECT id FROM users ORDER BY id LIMIT 1`))
+	must(t, conn.GetContext(ctx, &f.sup, `INSERT INTO suppliers (name) VALUES ($1) RETURNING id`, fmt.Sprintf("T give back %d", time.Now().UnixNano())))
 	var cat int64
 	must(t, conn.GetContext(ctx, &cat, `INSERT INTO categories (name) VALUES ($1) RETURNING id`, fmt.Sprintf("T give back %d", time.Now().UnixNano())))
 	must(t, conn.GetContext(ctx, &f.product, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price) VALUES ($1, $2, 1, 40, 60) RETURNING id`,
@@ -80,8 +82,8 @@ func TestGiveBackSettlesTheCount(t *testing.T) {
 		wantLossValue     string
 		wantDamage        string
 	}{
-		{"more, the other lot covers it", "10", "5", "15", "12", "3", "3", "0", "600", "-12"},
-		{"more, the other lot covers part", "10", "1", "11", "12", "0", "0", "1", "600", "-12"},
+		{"more, the other lot covers it", "10", "5", "15", "12", "3", "3", "0", "560.04", "-12"},
+		{"more, the other lot covers part", "10", "1", "11", "12", "0", "0", "1", "578.16", "-12"},
 		{"more, no other lot", "10", "", "10", "12", "", "0", "2", "600", "-12"},
 		{"less, onto the other lot", "10", "5", "15", "7", "8", "8", "0", "350", "-7"},
 		{"less, no other lot", "10", "", "10", "7", "", "0", "-3", "350", "-7"},
@@ -92,7 +94,7 @@ func TestGiveBackSettlesTheCount(t *testing.T) {
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			f := giveBackFixture(t, c.lot, c.other, c.stock)
-			loss, err := f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: c.counted, SupplierName: "Hemas"}, f.user)
+			loss, err := f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: c.counted, SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
 			must(t, err)
 			if !f.lotQty(t, f.lot).IsZero() {
 				t.Errorf("the lot holds %s, want 0", f.lotQty(t, f.lot))
@@ -118,23 +120,47 @@ func TestGiveBackSettlesTheCount(t *testing.T) {
 				return
 			}
 			var m struct {
-				Cost      decimal.Decimal `db:"cost"`
-				Note      string          `db:"note"`
-				GivenBack bool            `db:"given_back"`
-				RefID     int64           `db:"reference_id"`
+				Cost  decimal.Decimal `db:"cost"`
+				Note  string          `db:"note"`
+				To    int64           `db:"given_back_to"`
+				RefID int64           `db:"reference_id"`
 			}
-			must(t, f.conn.Get(&m, `SELECT cost, note, given_back, reference_id FROM stock_movements WHERE id = $1`, loss))
-			if !m.Cost.Equal(decimal.RequireFromString(c.wantLossValue)) || !m.GivenBack || m.Note != "given back to Hemas" || m.RefID != f.lot {
+			must(t, f.conn.Get(&m, `SELECT cost, note, given_back_to, reference_id FROM stock_movements WHERE id = $1`, loss))
+			if !m.Cost.Equal(decimal.RequireFromString(c.wantLossValue)) || m.To != f.sup || m.Note != "given back to Hemas" || m.RefID != f.lot {
 				t.Errorf("loss movement: %+v, want value %s", m, c.wantLossValue)
 			}
 		})
 	}
 }
 
+// Moving units between lots of different cost neither makes nor loses value.
+func TestGiveBackKeepsTheValue(t *testing.T) {
+	f := giveBackFixture(t, "10", "5", "15") // 10 at 50 and 5 at 30: worth 650
+	loss, err := f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: "7", SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
+	must(t, err)
+	left := f.qty(t, `SELECT SUM(qty_remaining * cost_price) FROM stock_batches WHERE product_id = $1`, f.product)
+	lost := f.qty(t, `SELECT cost FROM stock_movements WHERE id = $1`, loss)
+	if got := left.Add(lost); !got.Equal(decimal.NewFromInt(650)) {
+		t.Errorf("left %s + lost %s, want 650", left, lost)
+	}
+}
+
+// A lot with a blank cost is worth the product's cost.
+func TestGiveBackBlankCost(t *testing.T) {
+	f := giveBackFixture(t, "10", "", "10")
+	_, err := f.conn.Exec(`UPDATE stock_batches SET cost_price = 0 WHERE id = $1`, f.lot)
+	must(t, err)
+	_, err = f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: "7", SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
+	must(t, err)
+	if got := f.qty(t, `SELECT cost FROM stock_movements WHERE product_id = $1 AND type = $2`, f.product, MoveAdjust); !got.Equal(decimal.NewFromInt(120)) {
+		t.Errorf("3 short at the product's 40: %s", got)
+	}
+}
+
 // A move between lots leaves a trace in Movements though the total doesn't change.
 func TestGiveBackShowsTheMoveInMovements(t *testing.T) {
 	f := giveBackFixture(t, "10", "5", "15")
-	_, err := f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: "7", SupplierName: "Hemas"}, f.user)
+	_, err := f.svc.GiveBack(context.Background(), GiveBackInput{BatchID: f.lot, Counted: "7", SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
 	must(t, err)
 	var n int
 	must(t, f.conn.Get(&n, `SELECT COUNT(*) FROM stock_movements WHERE product_id = $1 AND type = $2 AND quantity = 0 AND note LIKE '3 moved%'`, f.product, MoveAdjust))
@@ -147,7 +173,7 @@ func TestGiveBackRefuses(t *testing.T) {
 	ctx := context.Background()
 	f := giveBackFixture(t, "10", "5", "15")
 	for _, bad := range []string{"-1", "abc", ""} {
-		_, err := f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: bad, SupplierName: "Hemas"}, f.user)
+		_, err := f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: bad, SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
 		var ae *apperr.AppError
 		if !errors.As(err, &ae) || ae.Status != http.StatusUnprocessableEntity {
 			t.Errorf("count %q: %v", bad, err)
@@ -156,10 +182,10 @@ func TestGiveBackRefuses(t *testing.T) {
 	if !f.lotQty(t, f.lot).Equal(decimal.NewFromInt(10)) {
 		t.Fatalf("a refused count moved stock")
 	}
-	_, err := f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: "10", SupplierName: "Hemas"}, f.user)
+	_, err := f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: "10", SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
 	must(t, err)
 	before := f.total(t)
-	_, err = f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: "10", SupplierName: "Hemas"}, f.user)
+	_, err = f.svc.GiveBack(ctx, GiveBackInput{BatchID: f.lot, Counted: "10", SupplierID: f.sup, SupplierName: "Hemas"}, f.user)
 	var ae *apperr.AppError
 	if !errors.As(err, &ae) || ae.Status != http.StatusConflict {
 		t.Errorf("twice: %v", err)

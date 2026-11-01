@@ -40,7 +40,7 @@ type Movement struct {
 	Note          *string         `db:"note"           json:"note,omitempty"`
 	Cost          decimal.Decimal `db:"cost"           json:"cost"`
 	CreatedAt     time.Time       `db:"created_at"     json:"created_at"`
-	GivenBack     bool            `db:"given_back"     json:"given_back"` // a write-off handed to the supplier
+	GivenBackTo   *int64          `db:"given_back_to"  json:"given_back_to,omitempty"` // the supplier a write-off was handed to
 	// joined
 	ProductName string `db:"product_name" json:"product_name"`
 	UserName    string `db:"user_name"    json:"user_name"`

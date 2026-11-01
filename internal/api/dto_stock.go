@@ -122,7 +122,8 @@ type ConsumeRequest struct {
 // ConsumeResult answers a removal: LossID is the damage it booked (0 for shop
 // use / staff), which a supplier recovery can then be recorded against.
 type ConsumeResult struct {
-	LossID int64 `json:"lossId"`
+	LossID    int64  `json:"lossId"`
+	LossValue string `json:"lossValue,omitempty"` // what a give back booked
 }
 
 type WriteOffResult struct {

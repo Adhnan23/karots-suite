@@ -9,9 +9,9 @@ import { PickerShell } from '@/components/admin/PickerShell'
 import { ClaimPrompt } from '@/features/admin/stock/claim'
 import { RecoverSheet } from '@/features/reports/ops/RecoverSheet'
 import { errMsg } from '@/features/till/api'
-import { dec, num, qtyText } from '@/lib/money'
+import { num, qtyText } from '@/lib/money'
 
-export type GiveLot = { lotId: number; productId: number; product: string; unit: string; qty: string; expiry: string; cost: string; supplierId: number; supplier: string }
+export type GiveLot = { lotId: number; productId: number; product: string; unit: string; qty: string; expiry: string; supplierId: number; supplier: string }
 
 /** What the count will do, said before saving. */
 export function countLine(counted: string, system: string) {
@@ -25,7 +25,7 @@ export function countLine(counted: string, system: string) {
 }
 
 /** Count a lot on the shelf; everything counted goes back to its supplier. */
-function GiveBackSheet({ lot, base, onClose, onDone }: { lot: GiveLot; base: '/admin' | '/till'; onClose: () => void; onDone: (lossId: number, counted: string) => void }) {
+function GiveBackSheet({ lot, base, onClose, onDone }: { lot: GiveLot; base: '/admin' | '/till'; onClose: () => void; onDone: (r: ConsumeResult, counted: string) => void }) {
   const [counted, setCounted] = useState('')
   const [busy, setBusy] = useState(false)
   async function save() {
@@ -33,7 +33,7 @@ function GiveBackSheet({ lot, base, onClose, onDone }: { lot: GiveLot; base: '/a
     try {
       const body: GiveBackRequest = { counted }
       const r = await api<ConsumeResult>(`${base}/suppliers/${lot.supplierId}/claims/lots/${lot.lotId}/give-back`, { json: body })
-      onDone(r.lossId, counted)
+      onDone(r, counted)
     } catch (e) {
       toast.error(errMsg(e))
       setBusy(false)
@@ -56,20 +56,20 @@ export function useGiveBack(sym: string, base: '/admin' | '/till' = '/admin') {
   const [lot, setLot] = useState<GiveLot | null>(null)
   const [asked, setAsked] = useState<{ row: LossRow; supplierId: number } | null>(null)
   const [settling, setSettling] = useState<{ row: LossRow; supplierId: number } | null>(null)
-  function done(g: GiveLot, lossId: number, counted: string) {
+  function done(g: GiveLot, r: ConsumeResult, counted: string) {
     setLot(null)
     void qc.invalidateQueries({ queryKey: ['admin'] })
     void qc.invalidateQueries({ queryKey: ['till'] })
-    if (lossId === 0) {
+    if (r.lossId === 0) {
       toast.success(`Nothing went back. ${g.product} is updated.`)
       return
     }
-    setAsked({ supplierId: g.supplierId, row: { kind: 'damage', sourceId: lossId, id: lossId, productId: g.productId, product: g.product, qty: counted,
-      loss: dec(num(counted) * num(g.cost)), note: '', by: '', at: '', outcome: '', recovered: '', givenBack: true } })
+    setAsked({ supplierId: g.supplierId, row: { kind: 'damage', sourceId: r.lossId, id: r.lossId, productId: g.productId, product: g.product, qty: counted,
+      loss: r.lossValue ?? '0.00', note: '', by: '', at: '', outcome: '', recovered: '', givenBack: true } })
   }
   const sheet: ReactNode = (
     <>
-      {lot && <GiveBackSheet lot={lot} base={base} onClose={() => setLot(null)} onDone={(id, counted) => done(lot, id, counted)} />}
+      {lot && <GiveBackSheet lot={lot} base={base} onClose={() => setLot(null)} onDone={(r, counted) => done(lot, r, counted)} />}
       {asked && (
         <PickerShell fit open onOpenChange={(o) => !o && setAsked(null)} title="Given back">
           <ClaimPrompt title={`${asked.row.product}: ${qtyText(asked.row.qty)} given back.`} goLabel="Settle now" later={() => setAsked(null)}

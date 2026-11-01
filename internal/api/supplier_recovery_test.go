@@ -170,4 +170,18 @@ func TestSupplierClaimsGiveBack(t *testing.T) {
 	if c = claims(); len(c.Waiting) != 1 || c.Waiting[0].SourceID != given || !c.Waiting[0].GivenBack {
 		t.Fatalf("after 200 days: %+v", c.Waiting)
 	}
+
+	// It stays with who took it, whatever the product's preferred supplier becomes.
+	te.db.MustExec(`UPDATE products SET preferred_supplier_id=$1 WHERE id=$2`, other.ID, f.plainID)
+	if c = claims(); len(c.Waiting) != 1 || c.Waiting[0].SourceID != given {
+		t.Fatalf("after the preferred supplier changed: %+v", c.Waiting)
+	}
+	te.db.MustExec(`UPDATE products SET preferred_supplier_id=NULL WHERE id=$1`, f.plainID)
+	if c = claims(); len(c.Waiting) != 1 {
+		t.Fatalf("after it was cleared: %+v", c.Waiting)
+	}
+	otherClaims := decode[SupplierClaims](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/suppliers/%d/claims", other.ID), nil, ck))
+	if len(otherClaims.Waiting) != 0 {
+		t.Fatalf("it moved: %+v", otherClaims.Waiting)
+	}
 }

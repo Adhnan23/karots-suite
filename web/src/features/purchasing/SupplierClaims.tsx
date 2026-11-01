@@ -45,7 +45,7 @@ export function SupplierClaimsPanel({ supplierId, sym, base = '/admin', classNam
       <span className="min-w-0 flex-1 basis-full sm:basis-0"><b>{l.product}</b> <small className="text-faint">· {qtyText(l.qty)} {l.unit} {status} {l.expiry} · {money(sym, num(l.qty) * num(l.cost))}{l.toldOn && ` · told ${shortDay(l.toldOn)}`}</small></span>
       <Button type="button" size="sm" variant="ghost" disabled={busy === l.lotId} onClick={() => void told(l.lotId)}>Told them</Button>
       <Button type="button" size="sm" variant="outline"
-        onClick={() => back.give({ lotId: l.lotId, productId: l.productId, product: l.product, unit: l.unit, qty: l.qty, expiry: l.expiry, cost: l.cost, supplierId, supplier: l.supplier })}>Give back</Button>
+        onClick={() => back.give({ lotId: l.lotId, productId: l.productId, product: l.product, unit: l.unit, qty: l.qty, expiry: l.expiry, supplierId, supplier: l.supplier })}>Give back</Button>
     </li>
   )
   return (

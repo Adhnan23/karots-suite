@@ -165,13 +165,18 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		var pickedBatch *stock.Batch
 		if it.BatchID > 0 && !p.IsService {
 			pickedBatch, err = stkRepo.LockBatch(ctx, it.BatchID, p.ID)
-			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return apperr.Validation(fmt.Sprintf("that price is no longer available for %s — scan it again", p.Name))
-				}
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return apperr.Internal("failed to load batch", err)
 			}
-			if pickedBatch.QtyRemaining.LessThan(qty) {
+			short := err != nil || pickedBatch.QtyRemaining.LessThan(qty)
+			switch {
+			case short && in.Review:
+				// Already sold elsewhere, and the lot has since gone (given back
+				// to its supplier, say): it comes out of what's left instead.
+				pickedBatch, it.BatchID = nil, 0
+			case err != nil:
+				return apperr.Validation(fmt.Sprintf("that price is no longer available for %s — scan it again", p.Name))
+			case short:
 				return apperr.Conflict(fmt.Sprintf(
 					"only %s of %s left at that price", pickedBatch.QtyRemaining.String(), p.Name))
 			}

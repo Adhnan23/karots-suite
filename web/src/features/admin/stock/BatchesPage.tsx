@@ -132,7 +132,7 @@ function Group({ g, sym, onLots, onDone, onClaim, onGiveBack }: {
                   <span className="text-faint">{l.expiryDate ? `exp ${l.expiryDate}` : 'no expiry'} · cost {money(sym, l.costPrice)} · sells {money(sym, l.sellingPrice || g.productPrice)}{l.supplier && ` · ${l.supplier}, warns ${l.warnDays} days before`}{l.toldOn && ` · told ${new Date(l.toldOn).toLocaleDateString([], { day: 'numeric', month: 'short' })}`}</span>
                   {l.supplierId > 0 && (
                     <Button type="button" variant="outline" className="ml-auto h-8 px-3 text-[12px]"
-                      onClick={() => onGiveBack({ lotId: l.id, productId: g.productId, product: g.name, unit: g.unitAbbr, qty: l.qtyRemaining, expiry: l.expiryDate, cost: l.costPrice, supplierId: l.supplierId, supplier: l.supplier })}>Give back</Button>
+                      onClick={() => onGiveBack({ lotId: l.id, productId: g.productId, product: g.name, unit: g.unitAbbr, qty: l.qtyRemaining, expiry: l.expiryDate, supplierId: l.supplierId, supplier: l.supplier })}>Give back</Button>
                   )}
                   {expired && (
                     <span className={l.supplierId > 0 ? '' : 'ml-auto'}>

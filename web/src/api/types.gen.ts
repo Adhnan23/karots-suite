@@ -3474,6 +3474,7 @@ export interface ConsumeRequest {
  */
 export interface ConsumeResult {
   lossId: number /* int64 */;
+  lossValue?: string; // what a give back booked
 }
 export interface WriteOffResult {
   lots: number /* int */;

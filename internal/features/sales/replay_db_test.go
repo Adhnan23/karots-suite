@@ -226,3 +226,29 @@ func TestSerialStillRefusedWithoutReview(t *testing.T) {
 		t.Fatalf("want the serial count refused, got %v", err)
 	}
 }
+
+// A sale made offline from a lot that has since gone (given back to its supplier)
+// still lands, out of what's left. At the till the same pick is refused.
+func TestReviewSaleFromALotThatHasGone(t *testing.T) {
+	conn := salesTestDB(t)
+	defer conn.Close()
+	ctx := context.Background()
+	pid, uid := replayFixture(t, conn, "10")
+	var gone int64
+	mustSales(t, conn.GetContext(ctx, &gone, `INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, source)
+		VALUES ($1, 5, 0, 50, 'adjust') RETURNING id`, pid))
+	in := CreateInput{SaleType: "retail", Review: true,
+		Items:    []ItemInput{{ProductID: pid, Quantity: "1", BatchID: gone}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "120"}}}
+	_, err := NewService(conn).Create(ctx, in, uid)
+	mustSales(t, err)
+	var onHand decimal.Decimal
+	mustSales(t, conn.GetContext(ctx, &onHand, `SELECT quantity FROM stock WHERE product_id = $1`, pid))
+	if !onHand.Equal(decimal.NewFromInt(9)) {
+		t.Fatalf("on hand %s, want 9", onHand)
+	}
+	in.Review = false
+	if _, err := NewService(conn).Create(ctx, in, uid); err == nil {
+		t.Fatal("the till's pick of an empty lot should be refused")
+	}
+}

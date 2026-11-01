@@ -13,6 +13,7 @@ import (
 	"karots-suite/internal/middleware"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 // Settling with a supplier where their delivery is received (admin purchases
@@ -96,12 +97,20 @@ func (h *handlers) SupplierGiveBack(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	loss, err := h.t.stock.GiveBack(c.Request().Context(), stock.GiveBackInput{BatchID: b.ID, Counted: req.Counted, SupplierName: b.SupplierName}, middleware.CurrentUserID(c))
+	loss, err := h.t.stock.GiveBack(c.Request().Context(), stock.GiveBackInput{BatchID: b.ID, Counted: req.Counted, SupplierID: *b.SupplierID, SupplierName: b.SupplierName}, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}
+	out := ConsumeResult{LossID: loss, LossValue: "0.00"}
+	if loss > 0 {
+		var value decimal.Decimal
+		if err := h.d.DB.GetContext(c.Request().Context(), &value, `SELECT cost FROM stock_movements WHERE id = $1`, loss); err != nil {
+			return apperr.Internal("failed to read the loss", err)
+		}
+		out.LossValue = dec2(value)
+	}
 	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(b.ProductID, 10), "gave back "+strings.TrimSpace(req.Counted)+" to "+b.SupplierName)
-	return c.JSON(http.StatusOK, ConsumeResult{LossID: loss})
+	return c.JSON(http.StatusOK, out)
 }
 
 // SupplierTold records that the supplier was told about the lot, today.
