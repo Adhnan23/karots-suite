@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -121,11 +120,7 @@ Start-ScheduledTask -TaskName %s`, psq(launcher), psq(args), psq(j.Conf.InstallD
 
 // windowsNetwork keeps one rule for the till port and the plugins' ports.
 func windowsNetwork(j *Job) error {
-	ports := []string{strconv.Itoa(j.Conf.Port)}
-	for _, p := range j.Conf.ExtraPorts {
-		ports = append(ports, strconv.Itoa(p))
-	}
-	list := strings.Join(ports, ",")
+	list := strings.Join(tcpPortsPlain(j), ",")
 	_, err := ps(j, fmt.Sprintf(`# karots:firewall
 if (-not (Get-NetFirewallRule -DisplayName 'Karots Suite' -ErrorAction SilentlyContinue)) {
   New-NetFirewallRule -DisplayName 'Karots Suite' -Direction Inbound -Protocol TCP -LocalPort %s -Action Allow | Out-Null

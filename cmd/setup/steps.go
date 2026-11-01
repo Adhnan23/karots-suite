@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -139,7 +140,9 @@ func Steps(j *Job) []Step {
 		{ID: "settings", Title: "Settings", Applies: (*Job).server, Do: pick(linuxSettings, windowsSettings),
 			Detail: func(j *Job) string { return fmt.Sprintf("Write the shop's settings (port %d)", j.Conf.Port) }},
 		{ID: "terms", Title: "Agreed terms", Applies: (*Job).server, Do: termsStep,
-			Detail: func(j *Job) string { return "Keep a record that the shop accepted the Karots Suite terms (" + termsRecord + ")" }},
+			Detail: func(j *Job) string {
+				return "Keep a record that the shop accepted the Karots Suite terms (" + termsRecord + ")"
+			}},
 		{ID: "backups", Title: "Backup folder", Applies: func(j *Job) bool { return j.server() && j.Conf.Env["BACKUP_DIR"] != "" }, Do: pick(linuxBackups, windowsBackups),
 			Detail: func(j *Job) string { return "Keep automatic backups in " + j.backupDir() }},
 		{ID: "restore", Title: "Bring back the shop", Applies: func(j *Job) bool { return j.server() && (j.Restore != "" || j.FromMode != "") }, Do: restoreStep,
@@ -159,7 +162,10 @@ func Steps(j *Job) []Step {
 			Detail: func(*Job) string { return "Start Karots when this PC starts" }},
 		{ID: "network", Title: "Network", Applies: (*Job).server, Do: pick(linuxNetwork, windowsNetwork),
 			Detail: func(j *Job) string {
-				return fmt.Sprintf("Let cashier PCs on the shop's network reach port %d", j.Conf.Port)
+				if len(j.Conf.ExtraPorts) == 0 {
+					return fmt.Sprintf("Let cashier PCs on the shop's network reach port %d", j.Conf.Port)
+				}
+				return "Let cashier PCs and phones on the shop's network reach ports " + strings.Join(tcpPortsPlain(j), ", ")
 			}},
 		{ID: "printing", Title: "Printing", Applies: func(j *Job) bool { return j.server() && !j.windows() }, Do: linuxPrinting,
 			Detail: func(*Job) string { return "Install printing (CUPS)" }},
@@ -205,4 +211,13 @@ func loadConf(dir string) (shopconf.Conf, error) {
 		return shopconf.Conf{}, fmt.Errorf("%s isn't next to karots-setup — build this shop in the Shop Builder and copy all three files", shopconf.FileName)
 	}
 	return shopconf.Read(p)
+}
+
+// tcpPortsPlain is the till port then the plugins' ports, as numbers.
+func tcpPortsPlain(j *Job) []string {
+	out := []string{strconv.Itoa(j.Conf.Port)}
+	for _, p := range j.Conf.ExtraPorts {
+		out = append(out, strconv.Itoa(p))
+	}
+	return out
 }

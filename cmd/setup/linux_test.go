@@ -421,3 +421,13 @@ func TestLinuxFirewalldExtraPorts(t *testing.T) {
 		t.Fatalf("commands:\n%s", all)
 	}
 }
+
+func TestNetworkStepNamesEveryPort(t *testing.T) {
+	j, _, _ := linuxJob(t, "file", false)
+	j.Conf.ExtraPorts = []int{8443}
+	for _, s := range Steps(j) {
+		if s.ID == "network" && !strings.Contains(s.Detail(j), "ports 3000, 8443") {
+			t.Fatalf("network step says %q", s.Detail(j))
+		}
+	}
+}
