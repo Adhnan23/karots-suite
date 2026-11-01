@@ -15,10 +15,12 @@ Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-2
 Spike passed on Android (OnePlus 13, 2026-10-29) and **iPhone 13 (iOS 27, 2026-10-30)**: shop-made CA trusted via
 `.mobileconfig` + Certificate Trust Settings, Home Screen app with service worker, offline sell, replay in order.
 
-**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` from **Task 20 (Pay)**.
-Tasks 1–19 are done (2026-10-30): core seams (replayable sales + flags, tills at a given time, one person one device,
+**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` from **Task 26 (docs and legal)**.
+Tasks 1–25 are done (1–19 on 2026-10-30, 20–25 on 2026-11-01): core seams (replayable sales + flags, tills at a given time, one person one device,
 plugin listeners, the till copy, surfaces), the plugin's Go half (CA + phone certificate, pairing, copy + feed, replay,
-review, guard, service worker) and the phone app so far (encrypted store, sync, pair + sign-in, Sell). Plugin key is
+review, guard, service worker) and the phone app (encrypted store, sync, pair + sign-in, Sell, Pay, Held, Menu, setup page), admin Phones, the
+plugin ports in Builder + Setup, and `e2e/pocket.spec.ts` (pair, takeover, sell live, sell offline + replay) +
+`e2e/pocket-shots.spec.ts` (UI gate, `SHOTS=pocket`). Plugin key is
 **`pocketcashier`** (core has a `'pocket'` locker kind). The executor's ledger with every ruling is
 `.superpowers/sdd/2026-10-30-m8e-pocket-cashier/progress.md` (git-ignored; keep it — the final review reads it).
 Main rulings: a sale rung before its till's close counts now as `late` (`clock` = rung >5 min in the future only);
