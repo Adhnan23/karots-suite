@@ -15,7 +15,7 @@ Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-2
 Spike passed on Android (OnePlus 13, 2026-10-29) and **iPhone 13 (iOS 27, 2026-10-30)**: shop-made CA trusted via
 `.mobileconfig` + Certificate Trust Settings, Home Screen app with service worker, offline sell, replay in order.
 
-**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** execute `docs/plans/2026-10-30-m8e-pocket-cashier.md` from **Task 27 (whole-milestone review)**.
+**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** execute **`docs/plans/2026-11-01-m8e-phone-till-parity.md` from Task 1** (the phone sells like the PC till; spec `docs/specs/2026-11-01-m8e-phone-till-parity-design.md`, user chose: part of release 1). Then finish `docs/plans/2026-10-30-m8e-pocket-cashier.md` **Task 27** (review done 2026-11-01; left: the user's phone test, clean-up, merge).
 Tasks 1–26 are done (1–19 on 2026-10-30, 20–26 on 2026-11-01): core seams (replayable sales + flags, tills at a given time, one person one device,
 plugin listeners, the till copy, surfaces), the plugin's Go half (CA + phone certificate, pairing, copy + feed, replay,
 review, guard, service worker) and the phone app (encrypted store, sync, pair + sign-in, Sell, Pay, Held, Menu, setup page), admin Phones, the
