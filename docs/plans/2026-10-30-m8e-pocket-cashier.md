@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–20 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 21**.
+> **Progress (2026-10-30):** Tasks 1–21 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 22**.
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -539,11 +539,11 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - Menu: Open session (float + source locker from `places`), Withdraw, Deposit, Close (counted cash + destination locker, with `allowUntrackedCash` respected), and Switch person.
   - `expectedCash(copy, userId, outbox): string`: the copy's `expected` plus unsent cash sales minus change, plus deposits minus withdrawals. Shown as "about" offline.
 
-- [ ] **Step 1: Write the failing vitest.** `drawer.test.ts`: copy expected 1000, plus an unsent cash sale of 250 paid with 500 (change 250), a withdraw of 100 and a deposit of 50 → `1200.00`.
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): phone Held and Menu — open, withdraw, deposit, close, online or offline`
+- [x] **Step 1: Write the failing vitest.** `drawer.test.ts`: copy expected 1000, plus an unsent cash sale of 250 paid with 500 (change 250), a withdraw of 100 and a deposit of 50 → `1200.00`.
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): phone Held and Menu — open, withdraw, deposit, close, online or offline`
 
 ### Task 22: Admin Phones page
 
