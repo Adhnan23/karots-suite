@@ -24,7 +24,9 @@ func movedTo(c echo.Context) string {
 		return ""
 	}
 	dev, label := middleware.ActiveDeviceCtx(ctx)
-	if dev == "" || dev == device(c) {
+	// A call naming no device (a script, a test's API request) can't be told
+	// apart; only one naming a different device has moved away.
+	if here := device(c); dev == "" || here == "" || dev == here {
 		return ""
 	}
 	if label == "" {

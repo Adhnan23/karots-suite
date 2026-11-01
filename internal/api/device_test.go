@@ -130,3 +130,19 @@ func TestTakeoverGuardBlocks(t *testing.T) {
 		t.Fatalf("A should keep working: %d", r.Code)
 	}
 }
+
+// A call that names no device (a script, a test's API request) isn't "another
+// device": only a call naming a different one is refused.
+func TestOneDeviceNoHeaderIsNotAnotherDevice(t *testing.T) {
+	te := newTestEnv(t)
+	oneDevice(t)
+	ph := devPhone()
+	te.seedUser(t, ph, "cashier")
+	a := te.signIn(t, "dev-A", "Counter PC", ph)
+	if r := te.on("", http.MethodGet, "/api/v1/till/config", nil, a); r.Code != http.StatusOK {
+		t.Fatalf("no header: %d %s", r.Code, r.Body)
+	}
+	if r := te.on("dev-B", http.MethodGet, "/api/v1/till/config", nil, a); r.Code != http.StatusForbidden {
+		t.Fatalf("another device: %d", r.Code)
+	}
+}
