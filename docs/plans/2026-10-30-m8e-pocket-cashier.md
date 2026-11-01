@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–19 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 20**.
+> **Progress (2026-10-30):** Tasks 1–20 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 21**.
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -518,14 +518,14 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
     - Complete → `sendNow(sale)`
   - Online result → "Receipt prints at the counter" and the print call. With ask-to-print on, a dialog asks first. Offline → "Saved, will send when the PC is back". New sale.
 
-- [ ] **Step 1: Write the failing vitest.**
+- [x] **Step 1: Write the failing vitest.**
   - `saleBody` for a retail cart with a pack line → items keep the product ids and qty, `expectPrice` = the copy's selling price, and `deferDrawerKick: true`.
   - A wholesale cart → the wholesale price.
   - Credit without a customer → the Pay page's own validation message (the core rule, mirrored).
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement** per the mockup ("pay" frame).
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): phone Pay — tenders, change, send once, print at the counter`
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement** per the mockup ("pay" frame).
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): phone Pay — tenders, change, send once, print at the counter`
 
 ### Task 21: Held and Menu (the drawer)
 
