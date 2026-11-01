@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUpFromLine, Lock, LockOpen, UserRound } from 'lucide-react'
+import { ArrowDownToLine, ArrowUpFromLine, KeyRound, Lock, LockOpen, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { money } from '@/lib/money'
@@ -7,8 +7,9 @@ import { CARD } from '../bits'
 import { closeNote, drawerOpen, expectedCash } from '../drawer'
 import type { Who } from '../session'
 import type { Action } from '../store/outbox'
-import { sendNow } from '../sync'
+import { refresh, sendNow } from '../sync'
 import { DrawerSheet, type DrawerKind } from './DrawerSheet'
+import { PinSheet } from './PinSheet'
 
 const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cash taken out', deposit: 'Cash put in', close: 'Drawer closed' }
 
@@ -17,6 +18,7 @@ const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cas
 export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; copy: TillCopy; out: Action[]; live: boolean; onSent: () => void; onSwitch: () => void }) {
   const [sheet, setSheet] = useState<DrawerKind | null>(null)
   const [notice, setNotice] = useState('')
+  const [pin, setPin] = useState(false)
   const open = drawerOpen(copy, who.id, out)
   const expected = expectedCash(copy, who.id, out)
 
@@ -49,9 +51,13 @@ export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; cop
           {item('close', 'Close the drawer', Lock)}
         </>
       ) : item('open', 'Open the drawer', LockOpen)}
-      <button type="button" onClick={onSwitch} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
+      <button type="button" onClick={() => { setNotice(''); setPin(true) }} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
+        <KeyRound size={19} className="text-muted-foreground" />Change my PIN
+      </button>
+      <button type="button" onClick={onSwitch} className={cn(CARD, 'flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
         <UserRound size={19} className="text-muted-foreground" />Switch person
       </button>
+      {pin && <PinSheet live={live} onClose={() => setPin(false)} onDone={() => { setNotice('PIN changed'); void refresh() }} />}
       {sheet && <DrawerSheet kind={sheet} copy={copy} expected={expected} lastCount={copy.people.find((p) => p.id === who.id)?.lastCount} onSend={(b) => send(sheet, b)} onClose={() => setSheet(null)} />}
     </div>
   )
