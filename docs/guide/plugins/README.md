@@ -15,4 +15,10 @@ A shop gets only the plugins it needs. Each one is compiled into that shop's pro
 | [Combos](combos.md) | Product deals: a group of products, or one product in bulk such as buy 3 get 1 free. |
 | [Customer requests](requests.md) | Remember what customers ask for that the shop doesn't carry. |
 
+## Apps
+
+| App | |
+|---|---|
+| [Pocket Cashier app](pocketcashier.md) | Phones as tills on the shop wifi, still selling when the PC is down. |
+
 A plugin's records are part of the shop's backup and come back with it.

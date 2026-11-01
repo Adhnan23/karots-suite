@@ -1,7 +1,8 @@
 // Package docscheck keeps the user docs and the legal pack in step with the
 // plugins: adding a plugin without its guide page, screenshot, price and Order
 // Form tick box fails `make test`. It reads plugins/*/plugin.json, so it names
-// no plugin itself.
+// no plugin itself. A plugin with "kind": "app" (sold as its own app) is listed
+// under Apps instead of with the plugins, and is part of Everything by name.
 package docscheck
 
 import (
@@ -35,25 +36,34 @@ func TestEveryPluginIsDocumentedAndPriced(t *testing.T) {
 	shots := read(t, "web/docs-shots/shots.spec.ts")
 	form := read(t, "docs/legal/agreement/order-form.html")
 	rules := read(t, "docs/legal/agreement/shop-rules.html")
+	plugins := 0
 	for _, f := range dirs {
-		var p struct{ Name string }
+		var p struct{ Name, Kind string }
 		b, _ := os.ReadFile(f)
 		if err := json.Unmarshal(b, &p); err != nil || p.Name == "" {
 			t.Fatalf("%s: no name", f)
 		}
 		key := filepath.Base(filepath.Dir(f))
 		name := html.EscapeString(p.Name)
+		app := p.Kind == "app"
+		where, list, box := readme, index, form
+		if app {
+			where, list, box = section(readme, "\n## Apps"), section(index, "\n## Apps"), section(form, ">Apps</label>")
+		} else {
+			plugins++
+		}
 		checks := []struct {
 			ok   bool
 			what string
 		}{
-			{strings.Contains(readme, "docs/guide/plugins/"+key+".md"), "a row in README.md's plugin table"},
+			{strings.Contains(where, "docs/guide/plugins/"+key+".md"), "a row in README.md's plugin table (Apps section for an app)"},
 			{exists("docs/guide/plugins/" + key + ".md"), "docs/guide/plugins/" + key + ".md"},
-			{strings.Contains(index, "("+key+".md)"), "a row in docs/guide/plugins/README.md"},
+			{strings.Contains(list, "("+key+".md)"), "a row in docs/guide/plugins/README.md (under Apps for an app)"},
 			{strings.Contains(shots, "'"+key+"'"), "a place in web/docs-shots/shots.spec.ts's plugin list"},
 			{exists("docs/images/plugins/" + key + ".jpg"), "docs/images/plugins/" + key + ".jpg (make docs-shots)"},
-			{strings.Contains(form, "☐ "+name), "a tick box in the First Schedule (docs/legal/agreement/order-form.html)"},
+			{strings.Contains(box, "☐ "+name), "a tick box in the First Schedule (docs/legal/agreement/order-form.html; its Apps block for an app)"},
 			{strings.Contains(rules, "<tr><td>"+name), "a price in the Shop Rules (docs/legal/agreement/shop-rules.html §15)"},
+			{!app || strings.Contains(everything(rules), name), `its name in the Shop Rules "Everything" row`},
 		}
 		for _, c := range checks {
 			if !c.ok {
@@ -61,7 +71,7 @@ func TestEveryPluginIsDocumentedAndPriced(t *testing.T) {
 			}
 		}
 	}
-	n := len(dirs)
+	n := plugins
 	if !strings.Contains(readme, fmt.Sprintf("plugins-%d-", n)) {
 		t.Errorf("README.md's plugins badge should say %d", n)
 	}
@@ -71,6 +81,36 @@ func TestEveryPluginIsDocumentedAndPriced(t *testing.T) {
 }
 
 var words = map[int]string{10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen"}
+
+// section is s from the marker to the next heading of the same kind ("" without the marker).
+func section(s, marker string) string {
+	i := strings.Index(s, marker)
+	if i < 0 {
+		return ""
+	}
+	rest := s[i+len(marker):]
+	end := "\n## "
+	if !strings.HasPrefix(marker, "\n## ") {
+		end = "<label class=\"lead\">"
+	}
+	if j := strings.Index(rest, end); j >= 0 {
+		rest = rest[:j]
+	}
+	return rest
+}
+
+// everything is the Shop Rules' Everything row.
+func everything(rules string) string {
+	i := strings.Index(rules, "<b>Everything</b>")
+	if i < 0 {
+		return ""
+	}
+	row := rules[i:]
+	if j := strings.Index(row, "</tr>"); j >= 0 {
+		row = row[:j]
+	}
+	return row
+}
 
 func exists(path string) bool {
 	_, err := os.Stat(filepath.Join(root, path))

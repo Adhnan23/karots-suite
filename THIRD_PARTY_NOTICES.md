@@ -53,7 +53,7 @@ changing `go.mod` or `web/package.json`; do not edit the tables by hand.
 
 ## JavaScript packages
 
-406 packages bundled into the web app (`web/package.json` dependencies and what they pull in).
+409 packages bundled into the web app (`web/package.json` dependencies and what they pull in).
 
 | Package | Version | Licence |
 |---|---|---|
@@ -181,6 +181,7 @@ changing `go.mod` or `web/package.json`; do not edit the tables by hand.
 | @tanstack/store | 0.11.1 | MIT |
 | @ts-morph/common | 0.27.0 | MIT |
 | @types/validate-npm-package-name | 4.0.2 | MIT |
+| @zxing/library | 0.23.0 | Apache-2.0 |
 | accepts | 2.0.0 | MIT |
 | ajv | 8.20.0 | MIT |
 | ajv-formats | 3.0.1 | MIT |
@@ -193,6 +194,7 @@ changing `go.mod` or `web/package.json`; do not edit the tables by hand.
 | atomically | 1.7.0 | MIT |
 | balanced-match | 4.0.4 | MIT |
 | baseline-browser-mapping | 2.11.26 | Apache-2.0 |
+| bcryptjs | 3.0.3 | BSD-3-Clause |
 | body-parser | 2.3.0 | MIT |
 | brace-expansion | 5.0.12 | MIT |
 | braces | 3.0.3 | MIT |
@@ -434,6 +436,7 @@ changing `go.mod` or `web/package.json`; do not edit the tables by hand.
 | tiny-invariant | 1.3.3 | MIT |
 | to-regex-range | 5.0.1 | MIT |
 | toidentifier | 1.0.1 | MIT |
+| ts-custom-error | 3.3.1 | MIT |
 | ts-morph | 26.0.0 | MIT |
 | tsconfig-paths | 4.2.0 | MIT |
 | tslib | 2.3.0 | 0BSD |

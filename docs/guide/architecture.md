@@ -53,7 +53,10 @@ Registered with `reg.Add…`: `TenderMethod`, `SaleLineHook`, `ReturnLineHook`, 
 `ProductBadgeProvider`, `ProductMetaProvider`, `ProductLabelFieldProvider`,
 `ProductSheetColumns`, `ProductReorderAnnotator`, `ProductSaleSuggestionProvider`,
 `MoneyLocationProvider`, `ExpenseOwner`, `PLIncome`, `ActivityContributor`, `DataGroup`,
-`ReadinessProvider`, `LogoutGuard`.
+`ReadinessProvider`, `LogoutGuard`, `TakeoverGuard`. Also `reg.OneDevicePerPerson()` (one person, one device:
+signing in elsewhere moves them and parks the old device's cart in Held) and `reg.AddListener` (a plugin's own
+HTTPS address, e.g. the Pocket Cashier phones' port; Setup opens a plugin.json's `ports`). The till copy
+(`Core.TillCopy`) is everything a client needs to sell with no server.
 
 ### React slots (`slots.ts`)
 

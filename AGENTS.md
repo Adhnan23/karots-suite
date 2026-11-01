@@ -2,7 +2,8 @@
 
 Business system for small Sri Lankan retail: till, stock, purchasing, money, reports, and
 compile-time plugins (recharge, pharmacy, repairs, documents, alternatives, clearance,
-aicatalog, productplus, combos, requests). A **JSON-only Go backend** plus a **component-based React SPA**,
+aicatalog, productplus, combos, requests) plus the Pocket Cashier app (`pocketcashier`, plugin.json `"kind": "app"`:
+phones as tills, own HTTPS port 8443, selling offline from an encrypted copy). A **JSON-only Go backend** plus a **component-based React SPA**,
 shipped as **one static binary**.
 
 - **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans, executes and reviews; UI gates with self-reviewed screenshots) and the inputs for the next milestone.
@@ -22,6 +23,12 @@ shipped as **one static binary**.
   plugin simply isn't on the list. Change hooks run inside the caller's transaction (an error rolls everything back);
   if the change is undoable, the hook returns a note the caller stores and hands back on undo. New shared event →
   add a generic hook in `internal/plugin`, never a direct call.
+- **Pocket Cashier adapts to the other plugins, from its own side.** The phone app (`plugins/pocketcashier`,
+  `web/src/plugins/pocketcashier`) picks up whatever cashier-side features the compiled-in plugins register, through
+  the same generic slots and hooks the desktop till uses. When a new plugin (or a new till feature) should work on the
+  phone, the change goes **in Pocket Cashier**: never in that plugin, and never a core change made for the phone. Today
+  it uses plugin payment methods (`slots.tillTenders`; `offline: true` = also from the copy); plugin till menus, tabs
+  and cart hints on the phone are release 2.
 - **Money and sales.** `internal/features/*` holds the domain logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`
@@ -114,7 +121,7 @@ internal/plugin/      plugin registry + data/behaviour hooks (Go side); started 
 internal/middleware/  JWT cookie auth + guards (lock, PIN, role, system, kiosk, supplier)
 docs/guide/ docs/images/ user docs + screenshots; docs/legal/ licence PDFs (agreement/ = sources); internal/docscheck
                       = plugins vs docs / legal guard; web/docs-shots/ = screenshot spec + agreement.ts (PDF printer)
-migrations/           00001_baseline.sql (the first schema), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; 00014 cheque payment method, 00015 cheques; next is 00016_
+migrations/           00001_baseline.sql (the first schema), 00002 sale line groups, 00003 product barcodes, 00004 recovery extra charge, 00005 product packs, 00006 backup copies, 00007 till closed_by; 00008 reorder auto + low-stock permission, 00009 unset (0) levels → Auto, 00010 print as (classic | image), 00011 custom palettes, 00012 label pictures (label_print_as + label_styles), 00013 itemised line groups; 00014 cheque payment method, 00015 cheques; 00016 sale replay (client_ref, rung_at, sale_flags), 00017 till review note, 00018 active device (one person, one device); next is 00019_
 web/                  Vite + React + TS app → builds into internal/spa/dist
   go.mod              EMPTY module fence — stops `go ./...` walking node_modules. Do not delete.
   src/api/            client.ts (api<T>, ApiError), session.ts (meQuery, redirectFor), types.gen.ts

@@ -62,6 +62,16 @@ core never depends on any of them.
 | [Combos](docs/guide/plugins/combos.md) | Bundles and buy-3-get-1 deals the till spots by itself |
 | [Customer requests](docs/guide/plugins/requests.md) | Items customers asked for, and whom to call once they're in |
 
+## Apps
+
+<img align="right" width="200" alt="Pocket Cashier on a phone" src="docs/images/plugins/pocketcashier.jpg">
+
+| App | For |
+|---|---|
+| [Pocket Cashier app](docs/guide/plugins/pocketcashier.md) | A phone is a till on the shop wifi; when the PC or power is down it keeps selling from its own copy, and the PC rings those sales up later, flagging anything odd |
+
+<br clear="right">
+
 ## How a shop gets it
 
 ```mermaid
