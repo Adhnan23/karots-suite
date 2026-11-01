@@ -34,7 +34,10 @@ type Batch struct {
 	// ProductPrice is the product's current price, so a report listing lots can
 	// resolve EffectivePrice without a second lookup per row.
 	ProductPrice decimal.Decimal `db:"product_price" json:"product_price"`
-	// SupplierName is who the lot belongs to (LotSupplierSQL), "" = nobody.
+	// SupplierToldOn is when the lot's supplier was told about it.
+	SupplierToldOn *time.Time `db:"supplier_told_on" json:"supplier_told_on,omitempty"`
+	// SupplierID and SupplierName are who the lot belongs to (LotSupplierSQL); nil / "" = nobody.
+	SupplierID   *int64 `db:"supplier_id"   json:"supplier_id,omitempty"`
 	SupplierName string `db:"supplier_name" json:"supplier_name"`
 	// WarnDays is how long before expiry this lot warns: its supplier's days,
 	// else the shop's.
@@ -50,7 +53,7 @@ const LotSupplierSQL = `COALESCE((SELECT pu.supplier_id FROM purchase_items pi J
 // lotSelect is a batch with its product, unit, supplier and warning days.
 const lotSelect = `
 		SELECT b.*, p.name AS product_name, p.selling_price AS product_price, u.abbreviation AS unit_abbr,
-			COALESCE(s.name, '') AS supplier_name,
+			s.id AS supplier_id, COALESCE(s.name, '') AS supplier_name,
 			COALESCE(s.expiry_warn_days, (SELECT expiry_warn_days FROM settings WHERE id = 1), 30) AS warn_days
 		FROM stock_batches b
 		JOIN products p ON p.id = b.product_id
