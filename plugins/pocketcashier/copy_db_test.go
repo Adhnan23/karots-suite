@@ -103,14 +103,24 @@ func TestFeedSendsVersion(t *testing.T) {
 		t.Fatalf("feed: %v %v", res, err)
 	}
 	defer res.Body.Close()
-	go func() { time.Sleep(200 * time.Millisecond); en.sale() }()
-	sc := bufio.NewScanner(res.Body)
-	for sc.Scan() {
-		if sc.Text() == "event: version" {
-			return
+	// Read the stream in the background; the sale (which may t.Fatal) stays on
+	// the test's own goroutine, so nothing fails after the test has ended.
+	got := make(chan bool, 1)
+	go func() {
+		sc := bufio.NewScanner(res.Body)
+		for sc.Scan() {
+			if sc.Text() == "event: version" {
+				got <- true
+				return
+			}
 		}
+		got <- false
+	}()
+	time.Sleep(200 * time.Millisecond)
+	en.sale()
+	if !<-got {
+		t.Fatal("no version event within 5 s")
 	}
-	t.Fatal("no version event within 5 s")
 }
 
 // sale makes one cash sale of a throwaway service product (bumps the version).
