@@ -4,14 +4,15 @@ import type { TillCopy } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Action } from '@/features/till/cart/store'
-import { saleTotal } from '@/features/till/cart/totals'
+import { effectivePayments } from '@/features/till/cart/checkout'
+import { balanceDue, changeDue, saleTotal } from '@/features/till/cart/totals'
 import type { TillState } from '@/features/till/cart/types'
 import { printSale } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
-import { money, num, r2 } from '@/lib/money'
+import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, LivePill } from '../bits'
-import { payIssue, payments, saleBody, type Tender } from '../sale'
+import { payIssue, saleBody } from '../sale'
 import type { Who } from '../session'
 import { sendNow } from '../sync'
 import { CartLines } from './CartBar'
@@ -22,20 +23,19 @@ type Done = { text: string; change: number; print?: number }
 /** Pay on its own page: "Back to items" keeps the cart. The sale goes once (one
  * ref, online or offline); online its receipt prints at the counter, never here. */
 export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; copy: TillCopy; cart: TillState; dispatch: (a: Action) => void; live: boolean; onBack: () => void }) {
-  const [t, setT] = useState<Tender>({ method: 'cash', given: '', accountId: '', meta: {} })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState<Done | null>(null)
   const total = saleTotal(cart)
 
   async function finish() {
-    const issue = payIssue(cart, t, copy)
+    const issue = payIssue(cart, copy)
     if (issue) return setError(issue)
     setBusy(true)
     setError('')
     try {
-      const ps = payments(cart, t)
-      const change = t.method === 'cash' ? r2(Math.max(0, num(ps[0].amount) - total)) : 0
+      const ps = effectivePayments(cart, total)
+      const change = changeDue(total, ps)
       const r = await sendNow({ kind: 'sale', userId: who.id, body: saleBody(cart, ps) })
       if (r && r.status !== 'applied') return setError(r.note || 'The PC could not take this sale')
       dispatch({ type: 'newSale', saleType: copy.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
@@ -74,7 +74,8 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         <span className="font-display text-[30px] font-extrabold tabular-nums">{money(copy.symbol, total)}</span>
       </div>
       <CustomerPick copy={copy} id={cart.customerId} set={(id) => dispatch({ type: 'customer', id })} />
-      <PayTenders copy={copy} total={total} live={live} t={t} set={(n) => { setT(n); setError('') }} />
+      <PayTenders copy={copy} cart={cart} dispatch={dispatch} live={live} setError={setError} />
+      <Owing copy={copy} cart={cart} />
       <p className="mx-3 mt-1.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
         <Printer size={13} />{live ? 'Receipt prints at the counter' : 'PC not reachable — no receipt; the sale sends when it is back'}
       </p>
@@ -83,6 +84,27 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         className="mx-3 mt-3 rounded-[var(--radius)] bg-brand p-3.5 text-base font-extrabold text-brand-foreground disabled:opacity-60">
         {busy ? 'Sending…' : 'Finish sale'}
       </button>
+    </div>
+  )
+}
+
+/** Still to pay, or the change to give, from the payments so far (the till's own sums). */
+function Owing({ copy, cart }: { copy: TillCopy; cart: TillState }) {
+  const total = saleTotal(cart)
+  const ps = effectivePayments(cart, total)
+  const left = balanceDue(total, ps)
+  const change = changeDue(total, ps)
+  if (left > 0.005) {
+    return (
+      <div role="status" className="mx-3 mt-2 flex justify-between rounded-[var(--radius-sm)] bg-muted px-3 py-2 font-extrabold">
+        <span>Still to pay</span><span className="tabular-nums">{money(copy.symbol, left)}</span>
+      </div>
+    )
+  }
+  if (change < 0.005) return null
+  return (
+    <div role="status" className="mx-3 mt-2 flex justify-between rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_14%,transparent)] px-3 py-2 font-extrabold text-success">
+      <span>Give change</span><span className="tabular-nums">{money(copy.symbol, change)}</span>
     </div>
   )
 }

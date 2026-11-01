@@ -82,7 +82,7 @@ for (const palette of (process.env.SHOTS_PALETTES ?? 'studio,night,bazaar').spli
       await phone.waitForTimeout(300)
       await shot(phone, 'sell', palette, mode)
       await phone.getByRole('button', { name: 'Pay ›' }).click()
-      await phone.getByRole('group', { name: 'Cash given' }).getByRole('button').nth(1).click()
+      await phone.getByRole('group', { name: 'Cash handed over' }).getByRole('button').nth(1).click()
       await shot(phone, 'pay', palette, mode)
       await phone.getByRole('button', { name: 'Back to items' }).click()
       await phone.getByRole('button', { name: 'Held', exact: true }).click()
