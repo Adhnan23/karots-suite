@@ -1,6 +1,6 @@
 import type { TillCopy } from '@/api/types.gen'
 import { effectivePayments } from '@/features/till/cart/checkout'
-import type { Action } from '@/features/till/cart/store'
+import { blankDraft, type Action } from '@/features/till/cart/store'
 import { accountTotal, actualChange, balanceDue, changeDue, coinKeep, keptAmount, roundable, saleTotal } from '@/features/till/cart/totals'
 import type { TillState } from '@/features/till/cart/types'
 import { FIELD } from '@/features/till/ui'
@@ -44,7 +44,13 @@ export function ChangeBox({ copy, cart, dispatch }: { copy: TillCopy; cart: Till
     <div aria-live="polite" className={cn('mx-3 mt-2 flex flex-col gap-1.5 rounded-[var(--radius-sm)] px-3 py-2.5 text-[13px]',
       due > 0.005 ? 'bg-[color-mix(in_srgb,var(--warning)_16%,transparent)]' : change > 0.005 ? 'bg-[color-mix(in_srgb,var(--success)_16%,transparent)]' : 'bg-muted')}>
       {due > 0.005 ? (
-        <p role="status" className="flex items-baseline justify-between font-bold">Still to pay <b className="font-display text-[22px] text-warning tabular-nums">{money(sym, due)}</b></p>
+        <>
+          <p role="status" className="flex items-baseline justify-between font-bold">Still to pay <b className="font-display text-[22px] text-warning tabular-nums">{money(sym, due)}</b></p>
+          {cust && t > 0 && (
+            <button type="button" onClick={() => dispatch({ type: 'addTender', payment: { ...blankDraft('credit'), amount: dec(due) } })}
+              className="self-start rounded-pill border border-border bg-card px-3 py-1.5 text-[12.5px] font-bold">Put {money(sym, due)} on account</button>
+          )}
+        </>
       ) : change > 0.005 ? (
         <>
           <p role="status" className="flex items-baseline justify-between font-bold">{t < 0 ? 'Give the customer' : 'Give change'} <b className="font-display text-[22px] text-success tabular-nums">{money(sym, give)}</b></p>

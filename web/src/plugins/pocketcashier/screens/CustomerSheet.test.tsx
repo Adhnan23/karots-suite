@@ -42,6 +42,18 @@ describe('customers on Pay', () => {
     expect((screen.getByRole('button', { name: 'Finish sale' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
+  it("puts what is still to pay on the customer's account in one tap (the PC's shortfall prompt)", () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: /Walk-in/ }))
+    fireEvent.change(screen.getByLabelText('Find a customer'), { target: { value: 'nimal' } })
+    fireEvent.click(screen.getByRole('button', { name: /Nimal Perera/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cash' }))
+    fireEvent.change(screen.getByLabelText('Amount tendered'), { target: { value: '400' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Put Rs. 600.00 on account' }))
+    expect(screen.getByText('On account: Rs. 600.00')).toBeTruthy()
+    expect(screen.queryByText('Still to pay')).toBeNull()
+  })
+
   it('says a new customer needs the PC when it is not reachable', () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('button', { name: /Walk-in/ }))
