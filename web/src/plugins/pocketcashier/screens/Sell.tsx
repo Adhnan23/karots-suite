@@ -7,10 +7,12 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, GLASS } from '../bits'
 import { byBarcode, search, sellable } from '../catalog'
+import { refresh } from '../sync'
 import { addFlow } from '../addFlow'
 import { InfoSheet } from './InfoSheet'
 import { PackSheet } from './PackSheet'
 import { PriceSheet } from './PriceSheet'
+import { QuickItemSheet } from './QuickItemSheet'
 import { Scanner } from './Scanner'
 
 type Pick = { kind: 'price' | 'pack'; product: CopyProduct; lots: Lot[]; units?: number; lot?: Lot }
@@ -35,15 +37,25 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
     setPick(null)
     dispatch({ type: 'add', product: pk.product, lot, lots: pk.lots, units: pk.units })
   }
+  const [quick, setQuick] = useState<{ name: string; barcode: string } | null>(null)
+  // Nothing found: offer it as a quick item, prefilled as the PC does (digits → barcode, else name).
+  const [offer, setOffer] = useState<{ name: string; barcode: string } | null>(null)
   const code = useCallback((c: string) => {
     setScan(false)
     const hit = byBarcode(copy, c)
+    const found = hit ? [] : search(copy, c)
+    setOffer(null)
     if (hit && !sellable(hit.product)) setMiss(`${hit.product.name}: sell this one at the counter`)
-    else if (hit) {
-      add(hit.product, hit.packId)
+    else if (hit || found.length === 1) {
+      if (hit) add(hit.product, hit.packId)
+      else add(found[0])
       setText('')
       setMiss('')
-    } else setMiss(`No product with code ${c}`)
+    } else if (!found.length) {
+      const digits = /^\d+$/.test(c.trim())
+      setMiss(digits ? `No product with code ${c}` : `Nothing matches “${c}”`)
+      setOffer({ name: digits ? '' : c.trim(), barcode: digits ? c.trim() : '' })
+    }
   }, [copy, add])
   const inCart = (id: number) => cart.lines.filter((l) => l.productId === id).reduce((n, l) => n + l.qty, 0)
   const rows = search(copy, text, cat)
@@ -52,11 +64,18 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
     <>
       <form className={cn(CARD, 'mx-3 flex h-[42px] items-center gap-2 px-3')} onSubmit={(e) => { e.preventDefault(); if (text.trim()) code(text) }}>
         <Search size={16} className="text-faint" />
-        <input aria-label="Search or scan" placeholder="Search or scan…" value={text} onChange={(e) => { setText(e.target.value); setMiss('') }} enterKeyHint="search"
+        <input aria-label="Search or scan" placeholder="Search or scan…" value={text} onChange={(e) => { setText(e.target.value); setMiss(''); setOffer(null) }} enterKeyHint="search"
           className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint" />
         <button type="button" aria-label="Scan with the camera" onClick={() => setScan(true)} className="text-foreground"><ScanBarcode size={20} /></button>
       </form>
-      {miss && <p role="alert" className="mx-3 mt-1 text-sm font-semibold text-destructive">{miss}</p>}
+      <div className="mx-3 mt-1.5 flex items-center gap-2">
+        {miss && <p role="alert" className="min-w-0 flex-1 text-sm font-semibold text-destructive">{miss}</p>}
+        <button type="button" onClick={() => { setQuick(offer ?? { name: '', barcode: '' }); setOffer(null); setMiss('') }}
+          title="Sell an item that isn't in the catalogue yet"
+          className={cn('ml-auto shrink-0 rounded-pill px-3 py-1.5 text-xs font-bold', offer ? 'bg-brand text-brand-foreground' : 'bg-muted text-muted-foreground')}>
+          + Quick item
+        </button>
+      </div>
       <div className="flex gap-1.5 overflow-x-auto px-3 pt-2.5 pb-1">
         {[{ id: 0, name: 'All' }, ...copy.categories].map((c) => (
           <button key={c.id} type="button" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}
@@ -93,6 +112,10 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
         {!rows.length && <li className="py-8 text-center text-sm text-muted-foreground">Nothing matches “{text}”</li>}
       </ul>
       {scan && <Scanner onCode={code} onClose={() => setScan(false)} />}
+      {quick && (
+        <QuickItemSheet {...quick} live={live} onClose={() => setQuick(null)}
+          onAdded={(p, qty) => { dispatch({ type: 'quickSet', product: p, qty }); setText(''); void refresh() }} />
+      )}
       {info && <InfoSheet product={info} copy={copy} live={live} onAdd={() => add(info)} onClose={() => setInfo(null)} />}
       {pick?.kind === 'price' && <PriceSheet product={pick.product} lots={pick.lots} sym={copy.symbol} onPick={(l) => lotPicked(pick, l)} onClose={() => setPick(null)} />}
       {pick?.kind === 'pack' && (
