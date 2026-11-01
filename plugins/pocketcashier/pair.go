@@ -108,8 +108,8 @@ func (h handlers) pairStatus(c echo.Context) error {
 
 const ctxPhone = "pocketcashier.phone"
 
-// phoneAuth lets an approved phone in by its key (the header, or ?t= for an
-// EventSource, which can't send headers).
+// phoneAuth lets an approved phone in by its key (the X-Ks-Phone header; the
+// feed, an EventSource, trades it for a one-time ticket first: feedAuth).
 func (h handlers) phoneAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		secret := c.Request().Header.Get(phoneHeader)
