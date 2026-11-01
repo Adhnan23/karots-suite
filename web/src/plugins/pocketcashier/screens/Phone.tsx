@@ -12,6 +12,7 @@ import { GLASS, Screen } from '../bits'
 import type { Who } from '../session'
 import type { PhoneId } from '../store/phone'
 import { drawerOpen as isOpen } from '../drawer'
+import { useIdle } from '../idle'
 import { pending, type Action } from '../store/outbox'
 import { movedTo, refresh, sendNow, type SyncState } from '../sync'
 import { CartBar } from './CartBar'
@@ -56,6 +57,10 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
     return () => clearInterval(id)
   }, [sync.live, who])
   const switchPerson = () => { if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {}); onSignOut() }
+  useIdle(copy?.lockTimeoutMinutes ?? 0, () => {
+    if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {})
+    onSignOut(`Locked after ${copy?.lockTimeoutMinutes} min with no use. Sign in to carry on.`)
+  })
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 
   return (
