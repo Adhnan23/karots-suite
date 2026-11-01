@@ -3,32 +3,25 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (2026-10-29)
+## Now (2026-11-01)
 
 **The suite is feature-complete for a shop's day** — till, stock, purchasing, money (cheques included), reports,
 people, printing (Classic + Image, receipt and label styles), 22 palettes, ten plugins, file / server mode, Shop
 Builder + karots-setup installer, self-update, backups + copies + cloud, the Demo Room, docs and the draft legal pack.
 Karots Suite is its own product: it has no link to karots-pos (removed 2026-10-29).
 
-**Next code work: M8e Pocket Cashier** — the phone cashier, an installed web app sold as the "Pocket Cashier app"
-(plugin `pocket`, 5,000 LKR). Spec approved 2026-10-29: `docs/specs/2026-10-29-m8e-pocket-cashier-design.md`.
-Spike passed on Android (OnePlus 13, 2026-10-29) and **iPhone 13 (iOS 27, 2026-10-30)**: shop-made CA trusted via
-`.mobileconfig` + Certificate Trust Settings, Home Screen app with service worker, offline sell, replay in order.
+**M8e Pocket Cashier, release 1: DONE 2026-11-01** (branch `m8e-pocket-cashier`, merged into main after the user's
+go-ahead). Phones are tills on the shop's wifi (plugin `pocketcashier`, own HTTPS port 8443, shop-made CA, pairing
+approved in admin → Phones, which also shows on the dashboard's Needs your attention). The phone sells as the PC till
+does (lots, packs, weights, line and bill discounts, serials, split payments incl. Online, note tray, keep change,
+customers with balance / limit, quick item, a scanned unknown code → existing item or new item), live or offline
+from an encrypted copy; offline actions replay in order and are flagged, never refused. Drawer counted note by note;
+no selling before it is open. User tested on the OnePlus 13 (pair, live, offline + replay, flags); iPhone 13 not
+retested (no phone at hand). Full Playwright 222 passed.
 
-**Resume here (on branch `m8e-pocket-cashier`, merged into main when done):** the phone-till parity plan (`docs/plans/2026-11-01-m8e-phone-till-parity.md`) is DONE 2026-11-01 (all 11 tasks; full Playwright 220 passed). Next: finish `docs/plans/2026-10-30-m8e-pocket-cashier.md` **Task 27** — the user's phone test (now including discounts, weights, Which price, split payments, note tray, quick item), clean-up (delete both plans and both specs), merge.
-Tasks 1–26 are done (1–19 on 2026-10-30, 20–26 on 2026-11-01): core seams (replayable sales + flags, tills at a given time, one person one device,
-plugin listeners, the till copy, surfaces), the plugin's Go half (CA + phone certificate, pairing, copy + feed, replay,
-review, guard, service worker) and the phone app (encrypted store, sync, pair + sign-in, Sell, Pay, Held, Menu, setup page), admin Phones, the
-plugin ports in Builder + Setup, and `e2e/pocket.spec.ts` (pair, takeover, sell live, sell offline + replay) +
-`e2e/pocket-shots.spec.ts` (UI gate, `SHOTS=pocket`). Plugin key is
-**`pocketcashier`** (core has a `'pocket'` locker kind). The executor's ledger with every ruling is
-`.superpowers/sdd/2026-10-30-m8e-pocket-cashier/progress.md` (git-ignored; keep it — the final review reads it).
-Main rulings: a sale rung before its till's close counts now as `late` (`clock` = rung >5 min in the future only);
-replay serialises per phone with an in-process lock (`sales.client_ref` UNIQUE is the backstop); the phone sells at
-FEFO / shelf price (no lot or pack picker; a pack's barcode adds the pack). `internal/docscheck` fails `go test ./...`
-until Task 26 adds the app to the docs — expected. UI gates for the phone screens are taken in Task 25.
-The spike (`~/Projects/go/karots-pwaspike`) can go once Task 10 (certificates) is committed; its `state/` CA is
-trusted by both test phones (remove that profile from them then).
+**Next: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
+returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
+the PC while the phone still shows them is claimed back by the phone's next send.
 
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
