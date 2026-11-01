@@ -26,17 +26,17 @@ then). He wants to stop overstocking (smart reorder — built), stop missing exp
 (spec → plan), then build test-first. Work in this order:
 
 A. **Expiry — do first** (all core; the pharmacy plugin may only add extras through hooks):
-   1. **Expiry warning window:** today a fixed 30 days (dashboard `admin_dashboard.go:138`, Stock → Batches
-      `admin_batches.go:36`; only Clearance has its own, 14 days, for markdowns). Wanted: a shop-wide "warn N days
-      before" setting, maybe per category / product.
-   2. **Per-supplier expiry return policy** (from the pharmacist): each supplier must be told N days before expiry
-      (60, 30…) or takes it after expiry; warn per lot from the supplier it came from.
+   1. **Expiry warning window + 2. per-supplier days: DONE 2026-11-01** (one job; user chose per supplier, not per
+      product). Settings → Stock has the shop's number (30 by default); a supplier's form can have its own (blank =
+      the shop's). A lot follows the supplier of its delivery, else its product's preferred supplier, else the shop.
+      Batches, the dashboard and the export use it; each lot shows its supplier. A warning only, at exactly the number
+      (an owner who wants time to call types 70 for 60).
    3. **Claims before they're settled:** "reported to the supplier on …", "taken by the rep, replacement / credit
       pending". **Already in core** (checked 2026-11-01): a supplier return names the exact lot (`BatchID`, tied to its
       delivery — so goods that **arrived damaged** are returned from that delivery's lot), and the "From this
       supplier" panel (`SupplierClaims.tsx`) lists that supplier's expired lots on the shelf and write-offs waiting on
       them, settled when their next delivery is received (replace / credit / nothing). Missing: the "reported on"
-      and "rep took it, pending" steps in between, and the per-supplier days (2).
+      and "rep took it, pending" steps in between.
    4. **Supplier recall of a lot** (the pharmacist: the stock looks fine, but the supplier says the batch is bad and
       takes the whole batch back): returning the lot is already possible (Purchasing → Returns, that lot, all of it).
       Add: one "supplier recalled lot X" step that returns everything left of it; **hold the lot** so the till stops
