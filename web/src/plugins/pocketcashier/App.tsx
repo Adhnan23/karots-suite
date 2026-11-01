@@ -5,16 +5,21 @@ import { applyPalette } from '@/theme/appearance'
 import { registerPwa } from './pwa'
 import { Pair } from './screens/Pair'
 import { Phone } from './screens/Phone'
+import { Setup } from './screens/Setup'
 import { SignIn } from './screens/SignIn'
 import { loadWho, saveWho, type Who } from './session'
 import { loadCopy } from './store/copy'
 import { loadPhone, type PhoneId } from './store/phone'
 import { startSync, type SyncState } from './sync'
 
-/** The phone app (the surface at /x/pocketcashier): pair once, then sign in and
- * sell — live, or from the copy when the PC is down. */
+/** The surface at /x/pocketcashier: `setup` is the plain-HTTP page that gets a
+ * phone to trust the shop; anything else is the phone app. */
 export default function App({ path }: { path: string }) {
-  void path
+  return path.replace(/\/$/, '') === 'setup' ? <Setup /> : <PhoneApp />
+}
+
+/** Pair once, then sign in and sell — live, or from the copy when the PC is down. */
+function PhoneApp() {
   const [phone, setPhone] = useState<PhoneId | null | undefined>(undefined)
   const [who, setWho] = useState<Who | null>(loadWho)
   const [sync, setSync] = useState<SyncState>({ live: false, copyAt: null, waiting: 0 })
