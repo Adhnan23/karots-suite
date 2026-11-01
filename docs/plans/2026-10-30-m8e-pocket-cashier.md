@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–23 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 24**.
+> **Progress (2026-10-30):** Tasks 1–24 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 25** (e2e + UI gate).
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -596,15 +596,15 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
   - Windows: one rule `Karots Suite` with `-LocalPort` as a list (`3100,8443`).
   - No plugin name anywhere in setup or shopconf.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `TestExtraPortsChecked`: port 0 → error.
   - Linux with ufw active and `ExtraPorts [8443]` → the recorded commands include `ufw allow 8443/tcp`, and the uninstall removes it.
   - The Windows script contains `-LocalPort 3100,8443`.
   - The bootstrap conf for a shop with `pocket` has `extraPorts [8443]`.
-- [ ] **Step 2: Run them to see them fail.** `go test ./internal/shopconf ./cmd/setup ./cmd/bootstrap -run 'ExtraPorts|Firewall|Network' -v`
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run them to see them pass.**
-- [ ] **Step 5: Commit.** `feat(setup): open the ports a shop's plugins listen on`
+- [x] **Step 2: Run them to see them fail.** `go test ./internal/shopconf ./cmd/setup ./cmd/bootstrap -run 'ExtraPorts|Firewall|Network' -v`
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run them to see them pass.**
+- [x] **Step 5: Commit.** `feat(setup): open the ports a shop's plugins listen on`
 
 ## Phase E — proof, docs, close
 
