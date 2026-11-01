@@ -32,8 +32,10 @@ port 8443; Setup opens it in the PC's firewall.
   - Tap a cart line for its **quantity** on a keypad (a weight like 1.25 kg where the unit allows it), its
     **discount** (an amount off each, or %), its **serial numbers**, or Remove.
   - The open cart has the **bill discount** and **Retail / Wholesale**. ⓘ on a product shows what the till knows.
-  - **+ Quick item** (beside the search, and offered when nothing matches) sells something not in the catalogue
-    yet; the camera can read its barcode. It needs the PC: an admin finishes it later.
+  - **+ Quick item** (beside the search, and when a search finds nothing) sells something not in the catalogue
+    yet; the camera can read its barcode. A scanned barcode no product has asks, as the till does: **Existing
+    item** (give the code to the item it belongs to) or **New item**. Both need the PC: an admin finishes a quick
+    item later.
 
   Products a plugin opens its own form for (reloads, print & copy jobs) are sold at the counter for now.
 - **Pay**: cash, card, **online** (into a bank account), cheque, on account, and plugin payments — **several on one

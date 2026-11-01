@@ -16,8 +16,11 @@ can unlock it.
   (cash, card, online and the rest), quick cash buttons, the bill discount and **Complete sale**.
 
 Search finds a product by its name or its **local name** (Sinhala / Tamil, set on the product), and
-every word you type may match either. Scanning a barcode adds the product. If a search finds nothing, pressing Enter adds it as a
-**quick item** with a name and price, and the item goes to admin's review list. A sale is never
+every word you type may match either. Scanning a barcode adds the product (any of its barcodes, or a pack's own). If a
+search finds nothing, pressing Enter (or **+ Quick item** beside the search box) adds it as a **quick item** with a name
+and price, and the item goes to admin's review list. A scanned barcode no product has asks first: **Existing item**
+(the same item with a different barcode: find it, and the code becomes one of its barcodes) or **New item** (a quick
+item with the code filled in). A sale is never
 blocked: anything odd (selling below stock, a missing price) is sold first and flagged for review.
 
 ### Keys

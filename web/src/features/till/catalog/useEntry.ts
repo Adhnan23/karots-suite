@@ -55,8 +55,9 @@ export function useEntry() {
     const page = await qc.fetchQuery(searchQuery(q, true))
     if (page.items.length === 1) return add(page.items[0])
     if (page.items.length === 0) {
-      const digits = /^\d+$/.test(q)
-      return ui.open({ kind: 'quickItem', barcode: digits ? q : '', name: digits ? '' : q })
+      // A code: an item's other barcode, or a new item. A name: a new item.
+      if (/^\d+$/.test(q)) return ui.open({ kind: 'unknownCode', code: q })
+      return ui.open({ kind: 'quickItem', barcode: '', name: q })
     }
     ui.setSearch(q) // several matches: leave them on screen to tap
   }, [ui, dispatch, add, qc, navigate])

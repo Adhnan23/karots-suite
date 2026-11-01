@@ -230,6 +230,31 @@ test('the till opens Quick item from its own button', async ({ page }) => {
   await expect(dlg.getByLabel('Barcode')).toHaveValue('')
 })
 
+test('a code no product has: give it to an existing item, then it scans as that item', async ({ page }) => {
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  const code = `77${Date.now() % 100_000_000_000}`
+  await scan(page, code)
+  const ask = page.getByRole('dialog', { name: 'No product has this barcode' })
+  await ask.getByRole('button', { name: /Existing item/ }).click()
+  await ask.getByLabel('Find the item').fill('E2E Milk')
+  await ask.getByRole('button', { name: /^E2E Milk/ }).first().click()
+  await expect(ask).toBeHidden()
+  await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1')
+  await scan(page, code) // now one of E2E Milk's barcodes
+  await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('2')
+})
+
+test('a code no product has: or make a new item with it', async ({ page }) => {
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  const code = `78${Date.now() % 100_000_000_000}`
+  await scan(page, code)
+  await page.getByRole('dialog', { name: 'No product has this barcode' }).getByRole('button', { name: /New item/ }).click()
+  const quick = page.getByRole('dialog', { name: 'Quick item' })
+  await expect(quick.getByLabel('Barcode')).toHaveValue(code)
+})
+
 test('deposit, withdraw, then close and reconcile',async ({ page }) => {
   await login(page, '0770000002')
   await ensureOpen(page)

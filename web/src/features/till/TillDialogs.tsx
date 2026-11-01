@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { slots } from '@/plugins/slots'
 import { ProductInfo } from './catalog/ProductInfo'
 import { QuickItem } from './catalog/QuickItem'
+import { UnknownCode } from './catalog/UnknownCode'
 import { HeldSales } from './cart-ui/HeldSales'
 import { PackPick } from './cart-ui/PackPick'
 import { PricePick } from './cart-ui/PricePick'
@@ -48,6 +49,8 @@ export function TillDialogs() {
       return <ProductInfo product={d.product} />
     case 'quickItem':
       return <QuickItem barcode={d.barcode} name={d.name} />
+    case 'unknownCode':
+      return <UnknownCode code={d.code} />
     case 'pricePick':
       return <PricePick product={d.product} lots={d.lots} units={d.units} />
     case 'packPick':

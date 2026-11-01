@@ -17,6 +17,7 @@ export type Dialog =
   | { kind: 'held' }
   | { kind: 'clearSale' }
   | { kind: 'quickItem'; barcode: string; name: string }
+  | { kind: 'unknownCode'; code: string }
   | { kind: 'addCustomer' }
   | { kind: 'info'; product: TillProduct }
   | { kind: 'pricePick'; product: TillProduct; lots: Lot[]; units?: number }
