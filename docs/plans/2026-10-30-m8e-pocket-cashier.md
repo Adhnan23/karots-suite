@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–22 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 23**.
+> **Progress (2026-10-30):** Tasks 1–23 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 24**.
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -575,11 +575,11 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
     - other: `.pem`
   - Trust test: `fetch(ping)` every 3 s. The "Open the app" link appears **only after** a ping succeeds, so the phone never reaches a certificate warning.
 
-- [ ] **Step 1: Write the failing vitest.** iPhone and Android UA strings → the right kind, and the iPhone steps mention "Certificate Trust Settings". A failed ping keeps the link hidden, and a successful one shows it (fetch mocked).
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement.** The page works on plain HTTP at `http://<ip>:<port>/x/pocket/setup`.
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): phone setup page — exact steps per phone, trust test before the app link`
+- [x] **Step 1: Write the failing vitest.** iPhone and Android UA strings → the right kind, and the iPhone steps mention "Certificate Trust Settings". A failed ping keeps the link hidden, and a successful one shows it (fetch mocked).
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement.** The page works on plain HTTP at `http://<ip>:<port>/x/pocket/setup`.
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): phone setup page — exact steps per phone, trust test before the app link`
 
 ## Phase D — install
 
