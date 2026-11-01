@@ -601,6 +601,12 @@ export interface TillCopy {
   places: CopyPlace[];
   sessions: CopySession[];
   held: CopyHeld[];
+  /**
+   * PriceOptions is what /till/price-options answers (product id → lots), so
+   * Which price? works offline.
+   */
+  priceOptions: { [key: string]: Lot[]};
+  denominations: Denomination[]; // the shop's active notes and coins
 }
 /**
  * CopyProduct is a till card plus what an offline search needs: its category

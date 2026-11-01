@@ -20,6 +20,10 @@ type TillCopy struct {
 	Places             []CopyPlace    `json:"places"`
 	Sessions           []CopySession  `json:"sessions"`
 	Held               []CopyHeld     `json:"held"`
+	// PriceOptions is what /till/price-options answers (product id → lots), so
+	// Which price? works offline.
+	PriceOptions  map[string][]Lot `json:"priceOptions"`
+	Denominations []Denomination   `json:"denominations"` // the shop's active notes and coins
 }
 
 // CopyProduct is a till card plus what an offline search needs: its category

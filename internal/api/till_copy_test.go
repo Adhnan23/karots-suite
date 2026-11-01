@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"testing"
 )
 
@@ -85,6 +86,29 @@ func TestTillCopy(t *testing.T) {
 	}
 }
 
+func TestTillCopyLotsAndNotes(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	c, err := BuildTillCopy(context.Background(), te.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lots := c.PriceOptions[strconv.FormatInt(f.lotID, 10)]
+	if len(lots) != 2 || lots[0].Price == lots[1].Price {
+		t.Fatalf("lot product options %+v", lots)
+	}
+	if _, ok := c.PriceOptions[strconv.FormatInt(f.plainID, 10)]; ok {
+		t.Fatal("a single-price product must not prompt")
+	}
+	note := false
+	for _, d := range c.Denominations {
+		note = note || d.IsNote
+	}
+	if !note {
+		t.Fatalf("denominations %+v", c.Denominations)
+	}
+}
+
 func TestTillCopyVersionChanges(t *testing.T) {
 	te := newTestEnv(t)
 	te.db.Exec(`UPDATE settings SET allow_untracked_cash = true`) //nolint:errcheck
@@ -113,8 +137,13 @@ func TestTillCopyVersionChanges(t *testing.T) {
 	te.db.Get(&custID, `SELECT id FROM customers ORDER BY id LIMIT 1`) //nolint:errcheck
 	te.db.MustExec(`UPDATE customers SET name = name || '' , credit_limit = credit_limit + 1 WHERE id = $1`, custID)
 	t.Cleanup(func() { te.db.Exec(`UPDATE customers SET credit_limit = credit_limit - 1 WHERE id = $1`, custID) }) //nolint:errcheck
-	if v3, _ := TillCopyVersion(ctx, te.db); v3 == v2 {
+	v3, _ := TillCopyVersion(ctx, te.db)
+	if v3 == v2 {
 		t.Fatal("version unchanged after a customer edit")
+	}
+	te.db.MustExec(`UPDATE stock_batches SET selling_price = 130 WHERE product_id = $1 AND selling_price = 120`, f.lotID)
+	if v4, _ := TillCopyVersion(ctx, te.db); v4 == v3 {
+		t.Fatal("version unchanged after a lot's price changed")
 	}
 }
 

@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"strconv"
 	"time"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashregister"
+	"karots-suite/internal/features/denominations"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"
@@ -47,7 +49,32 @@ func BuildTillCopy(ctx context.Context, db *sqlx.DB) (*TillCopy, error) {
 	if err := copyRows(ctx, db, c); err != nil {
 		return nil, err
 	}
+	if err := copyMoney(ctx, db, c); err != nil {
+		return nil, err
+	}
 	return c, nil
+}
+
+// copyMoney adds the lots a till asks Which price? about and the shop's notes
+// and coins, both as the live till endpoints answer them.
+func copyMoney(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
+	m, err := products.NewService(db).PriceOptions(ctx)
+	if err != nil {
+		return err
+	}
+	c.PriceOptions = make(map[string][]Lot, len(m))
+	for pid, rows := range m {
+		c.PriceOptions[strconv.FormatInt(pid, 10)] = lotsOf(rows)
+	}
+	dens, err := denominations.NewService(db).List(ctx, true)
+	if err != nil {
+		return err
+	}
+	c.Denominations = make([]Denomination, 0, len(dens))
+	for _, d := range dens {
+		c.Denominations = append(c.Denominations, Denomination{Value: d.Value.String(), IsNote: d.IsNote})
+	}
+	return nil
 }
 
 func copyProducts(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
@@ -137,6 +164,9 @@ func TillCopyVersion(ctx context.Context, db *sqlx.DB) (string, error) {
 		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM product_packs t),
 		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM product_barcodes t),
 		(SELECT md5(COALESCE(string_agg(t.product_id || ':' || t.quantity, ',' ORDER BY t.product_id), '')) FROM stock t),
+		(SELECT md5(COALESCE(string_agg(concat_ws(':', t.id, t.selling_price, t.qty_remaining, t.expiry_date), ',' ORDER BY t.id), ''))
+			FROM stock_batches t WHERE t.qty_remaining > 0),
+		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM denominations t),
 		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM customers t),
 		(SELECT md5(COALESCE(string_agg(concat_ws(':', t.id, t.name, t.phone, t.role, t.pin_hash, t.is_active,
 			t.can_manage_credit, t.can_see_cost), ',' ORDER BY t.id), '')) FROM users t),
