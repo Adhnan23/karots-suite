@@ -2843,6 +2843,7 @@ export interface LossRow {
   at: string;
   outcome: string;
   recovered: string;
+  givenBack: boolean; // handed to the supplier, waiting until settled
 }
 /**
  * RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we
@@ -3002,6 +3003,14 @@ export interface ClaimLot {
   qty: string;
   expiry: string;
   cost: string;
+  warnDays: number /* int */;
+  toldOn: string; // YYYY-MM-DD the supplier was told; "" = not yet
+}
+/**
+ * GiveBackRequest is what was counted on the shelf; all of it goes back.
+ */
+export interface GiveBackRequest {
+  counted: string;
 }
 /**
  * SupplierClaims is what to settle with a supplier when their delivery comes:
@@ -3010,6 +3019,7 @@ export interface ClaimLot {
  */
 export interface SupplierClaims {
   expired: ClaimLot[];
+  expiring: ClaimLot[]; // inside their warning days
   waiting: LossRow[];
 }
 
@@ -3379,7 +3389,9 @@ export interface LotRow {
   source: string;
   createdAt: string;
   fromDelivery: boolean; // came on a purchase (returned against it); false = old / opening / adjusted stock
-  supplier: string; // who the lot belongs to; "" = nobody
+  supplierId: number /* int64 */; // who the lot belongs to; 0 = nobody
+  supplier: string; // their name
+  toldOn: string; // YYYY-MM-DD they were told; "" = not yet
   warnDays: number /* int */; // warns this many days before expiry
 }
 export interface ProductLots {

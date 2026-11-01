@@ -45,7 +45,9 @@ type LotRow struct {
 	Source       string `json:"source"`
 	CreatedAt    string `json:"createdAt"`
 	FromDelivery bool   `json:"fromDelivery"` // came on a purchase (returned against it); false = old / opening / adjusted stock
-	Supplier     string `json:"supplier"`     // who the lot belongs to; "" = nobody
+	SupplierID   int64  `json:"supplierId"`   // who the lot belongs to; 0 = nobody
+	Supplier     string `json:"supplier"`     // their name
+	ToldOn       string `json:"toldOn"`       // YYYY-MM-DD they were told; "" = not yet
 	WarnDays     int    `json:"warnDays"`     // warns this many days before expiry
 }
 

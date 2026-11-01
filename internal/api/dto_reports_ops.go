@@ -207,6 +207,7 @@ type LossRow struct {
 	At        string `json:"at"`
 	Outcome   string `json:"outcome"`
 	Recovered string `json:"recovered"`
+	GivenBack bool   `json:"givenBack"` // handed to the supplier, waiting until settled
 }
 
 // RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we
@@ -347,12 +348,20 @@ type ClaimLot struct {
 	Qty       string `json:"qty"`
 	Expiry    string `json:"expiry"`
 	Cost      string `json:"cost"`
+	WarnDays  int    `json:"warnDays"`
+	ToldOn    string `json:"toldOn"` // YYYY-MM-DD the supplier was told; "" = not yet
+}
+
+// GiveBackRequest is what was counted on the shelf; all of it goes back.
+type GiveBackRequest struct {
+	Counted string `json:"counted"`
 }
 
 // SupplierClaims is what to settle with a supplier when their delivery comes:
 // expired batches on the shelf (write off, then settle) and write-offs still
 // waiting on them.
 type SupplierClaims struct {
-	Expired []ClaimLot `json:"expired"`
-	Waiting []LossRow  `json:"waiting"`
+	Expired  []ClaimLot `json:"expired"`
+	Expiring []ClaimLot `json:"expiring"` // inside their warning days
+	Waiting  []LossRow  `json:"waiting"`
 }

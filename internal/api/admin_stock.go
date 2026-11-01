@@ -130,6 +130,12 @@ func lotRow(b stock.Batch) LotRow {
 	if b.SellingPrice.IsPositive() {
 		r.SellingPrice = dec2(b.SellingPrice)
 	}
+	if b.SupplierID != nil {
+		r.SupplierID = *b.SupplierID
+	}
+	if b.SupplierToldOn != nil {
+		r.ToldOn = b.SupplierToldOn.Format(time.DateOnly)
+	}
 	return r
 }
 

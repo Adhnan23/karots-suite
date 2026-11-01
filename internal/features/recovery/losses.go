@@ -27,6 +27,7 @@ type Loss struct {
 	At         time.Time       `db:"created_at"`
 	Outcome    *string         `db:"outcome"`
 	Recovered  decimal.Decimal `db:"recovered"`
+	GivenBack  bool            `db:"given_back"`
 }
 
 // LossesIn pages the damage and warranty losses booked in [from,to), newest
@@ -37,7 +38,7 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 		SELECT * FROM (
 			SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.id AS product_id, p.name AS product, ABS(m.quantity) AS quantity,
 			       m.cost AS loss_value, m.note, COALESCE(u.name, '') AS by, m.created_at,
-			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered
+			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered, m.given_back
 			FROM stock_movements m
 			JOIN products p ON p.id = m.product_id
 			LEFT JOIN users u ON u.id = m.user_id
@@ -46,7 +47,7 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 		  UNION ALL
 			SELECT 'warranty', wcl.unit_id, m.id, p.id, p.name, ABS(m.quantity),
 			       m.cost, m.note, COALESCE(u.name, ''), m.created_at,
-			       lr.outcome, COALESCE(lr.recovered_value, 0)
+			       lr.outcome, COALESCE(lr.recovered_value, 0), false
 			FROM stock_movements m
 			JOIN products p ON p.id = m.product_id
 			LEFT JOIN users u ON u.id = m.user_id

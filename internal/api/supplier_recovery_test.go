@@ -3,8 +3,11 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"testing"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 // A supplier's credit for a damaged item (Losses & Recovery → Credited us)
@@ -78,9 +81,9 @@ func TestSupplierClaims(t *testing.T) {
 	if len(c.Expired) != 1 || c.Expired[0].LotID != lot || c.Expired[0].Qty != "2" {
 		t.Fatalf("expired on the shelf: %+v", c)
 	}
-	loss := decode[ConsumeResult](t, te.do(http.MethodPost, fmt.Sprintf("%s/expired/%d", base, lot), nil, ck)).LossID
+	loss := decode[ConsumeResult](t, te.do(http.MethodPost, fmt.Sprintf("%s/lots/%d/give-back", base, lot), GiveBackRequest{Counted: "2"}, ck)).LossID
 	c = decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck))
-	if len(c.Expired) != 0 || len(c.Waiting) != 1 || c.Waiting[0].SourceID != loss || c.Waiting[0].ProductID != f.plainID {
+	if len(c.Expired) != 0 || len(c.Waiting) != 1 || c.Waiting[0].SourceID != loss || c.Waiting[0].ProductID != f.plainID || !c.Waiting[0].GivenBack {
 		t.Fatalf("after the write-off: %+v", c)
 	}
 
@@ -94,5 +97,77 @@ func TestSupplierClaims(t *testing.T) {
 	}
 	if c = decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck)); len(c.Waiting) != 0 {
 		t.Fatalf("settled stays listed: %+v", c)
+	}
+}
+
+func TestSupplierClaimsGiveBack(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	sfx := time.Now().UnixNano()
+	days := 60
+	sup := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Give A %d", sfx), ExpiryWarnDays: &days}, ck))
+	other := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Give B %d", sfx)}, ck))
+	te.db.MustExec(`UPDATE products SET preferred_supplier_id=$1 WHERE id IN ($2, $3)`, sup.ID, f.plainID, f.lotID)
+	lot := func(product int64, days int) int64 {
+		var id int64
+		if err := te.db.Get(&id, `INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, expiry_date, source)
+			VALUES ($1, 2, 2, 50, CURRENT_DATE + $2::int, 'adjust') RETURNING id`, product, days); err != nil {
+			t.Fatal(err)
+		}
+		te.db.MustExec(`UPDATE stock SET quantity = quantity + 2 WHERE product_id=$1`, product)
+		return id
+	}
+	inside, outside := lot(f.plainID, 45), lot(f.plainID, 90)
+	base := fmt.Sprintf("/api/v1/admin/suppliers/%d/claims", sup.ID)
+	claims := func() SupplierClaims { return decode[SupplierClaims](t, te.do(http.MethodGet, base, nil, ck)) }
+	has := func(lots []ClaimLot, id int64) bool {
+		return slices.ContainsFunc(lots, func(l ClaimLot) bool { return l.LotID == id })
+	}
+
+	c := claims()
+	if !has(c.Expiring, inside) || has(c.Expired, inside) || has(c.Expiring, outside) || has(c.Expired, outside) {
+		t.Fatalf("close to expiry: %+v", c)
+	}
+
+	// Told: on the claims answer and on the product's lots.
+	if rec := te.do(http.MethodPost, fmt.Sprintf("%s/lots/%d/told", base, inside), nil, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("told: %d %s", rec.Code, rec.Body)
+	}
+	today := time.Now().Format(time.DateOnly)
+	c = claims()
+	if i := slices.IndexFunc(c.Expiring, func(l ClaimLot) bool { return l.LotID == inside }); i < 0 || c.Expiring[i].ToldOn != today {
+		t.Fatalf("told date: %+v", c.Expiring)
+	}
+	pl := decode[ProductLots](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/stock/lots/%d", f.plainID), nil, ck))
+	if i := slices.IndexFunc(pl.Lots, func(l LotRow) bool { return l.ID == inside }); i < 0 || pl.Lots[i].ToldOn != today || pl.Lots[i].SupplierID != sup.ID {
+		t.Fatalf("lot row: %+v", pl.Lots)
+	}
+
+	// Another supplier's lot isn't reachable through this supplier.
+	wrong := fmt.Sprintf("/api/v1/admin/suppliers/%d/claims/lots/%d", other.ID, outside)
+	if rec := te.do(http.MethodPost, wrong+"/told", nil, ck); rec.Code != http.StatusNotFound {
+		t.Errorf("told, wrong supplier: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPost, wrong+"/give-back", GiveBackRequest{Counted: "2"}, ck); rec.Code != http.StatusNotFound {
+		t.Errorf("give back, wrong supplier: %d", rec.Code)
+	}
+
+	// Nothing counted: no loss, nothing waits, the lot is empty.
+	zero := decode[ConsumeResult](t, te.do(http.MethodPost, fmt.Sprintf("%s/lots/%d/give-back", base, outside), GiveBackRequest{Counted: "0"}, ck))
+	if c = claims(); zero.LossID != 0 || len(c.Waiting) != 0 {
+		t.Fatalf("zero count: %+v %+v", zero, c)
+	}
+
+	// A hand-over keeps waiting past the window; an ordinary write-off doesn't.
+	given := decode[ConsumeResult](t, te.do(http.MethodPost, fmt.Sprintf("%s/lots/%d/give-back", base, inside), GiveBackRequest{Counted: "2"}, ck)).LossID
+	old := lot(f.lotID, 45)
+	plain := decode[ConsumeResult](t, te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.lotID, Quantity: "2", Reason: "damage", BatchID: old}, ck)).LossID
+	if c = claims(); len(c.Waiting) != 2 {
+		t.Fatalf("waiting: %+v", c.Waiting)
+	}
+	te.db.MustExec(`UPDATE stock_movements SET created_at = now() - interval '200 days' WHERE id = ANY($1)`, pq.Array([]int64{given, plain}))
+	if c = claims(); len(c.Waiting) != 1 || c.Waiting[0].SourceID != given || !c.Waiting[0].GivenBack {
+		t.Fatalf("after 200 days: %+v", c.Waiting)
 	}
 }
