@@ -21,7 +21,7 @@ func TestSWListsAssets(t *testing.T) {
 	}
 	// /index.html answers a redirect, and a cached redirect can't answer a page
 	// load: offline, the app page itself is the fallback.
-	if strings.Contains(b, `"/index.html"`) || !strings.Contains(b, `caches.match(APP`) {
+	if strings.Contains(b, `"/index.html"`) || !strings.Contains(b, `caches.match(APP`) || strings.Count(b, "ignoreVary: true") != 2 {
 		t.Fatal("sw.js must fall back to the cached app page, not /index.html")
 	}
 }

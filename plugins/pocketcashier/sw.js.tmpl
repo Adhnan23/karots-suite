@@ -25,9 +25,10 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
   if (req.mode === 'navigate') {
     // Network first (a new version shows at once); the cached app when the PC is down.
-    e.respondWith(fetch(req).catch(() => caches.match(APP, { cacheName: CACHE })))
+    e.respondWith(fetch(req).catch(() => caches.match(APP, { cacheName: CACHE, ignoreVary: true })))
     return
   }
-  // Hashed assets and icons: the cache first.
-  e.respondWith(caches.match(req, { cacheName: CACHE }).then((hit) => hit || fetch(req)))
+  // Hashed assets and icons: the cache first. ignoreVary: the server sends
+  // Vary: Origin, and module scripts ask with an Origin the cached copy lacked.
+  e.respondWith(caches.match(req, { cacheName: CACHE, ignoreVary: true }).then((hit) => hit || fetch(req)))
 })
