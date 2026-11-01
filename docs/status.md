@@ -19,7 +19,12 @@ from an encrypted copy; offline actions replay in order and are flagged, never r
 no selling before it is open. User tested on the OnePlus 13 (pair, live, offline + replay, flags); iPhone 13 not
 retested (no phone at hand). Full Playwright 222 passed.
 
-**Next: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
+**Before release 2: a checking session** (user, 2026-11-01) — go through things the user wants looked at first:
+- Expiry warnings are a fixed 30 days in core (dashboard `admin_dashboard.go:138`, Stock → Batches
+  `admin_batches.go:36`); only the Clearance plugin has its own window (default 14 days, for markdowns). Wanted: a
+  shop-wide "warn N days before expiry" setting, maybe per category / product (milk 3 days, medicines 90).
+
+**Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
 the PC while the phone still shows them is claimed back by the phone's next send.
 
