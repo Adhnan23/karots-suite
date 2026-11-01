@@ -22,6 +22,14 @@ describe('the phone drawer sheet', () => {
     expect(onSend).toHaveBeenCalledWith({ openingCash: '1050', breakdown: { '500': 2, '10': 5 }, sourceLockerId: 0 })
   })
 
+  it('starts from the last close\'s count when the shop allows it', async () => {
+    const onSend = vi.fn(async () => '')
+    render(<DrawerSheet kind="open" copy={{ ...copy, allowContinueLast: true }} lastCount={{ '1000': 1, '10': 3 }} expected="0" onSend={onSend} onClose={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: /Continue last count · Rs\. 1,030\.00/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    await waitFor(() => expect(onSend).toHaveBeenCalledWith({ openingCash: '1030', breakdown: { '1000': 1, '10': 3 }, sourceLockerId: 0 }))
+  })
+
   it('closes with the cash counted note by note', async () => {
     const onSend = vi.fn(async () => '')
     render(<DrawerSheet kind="close" copy={copy} expected="2000" onSend={onSend} onClose={() => {}} />)

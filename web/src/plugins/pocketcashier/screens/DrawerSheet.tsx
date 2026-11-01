@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { countTotal, toBreakdown, type Counts } from '@/features/till/drawer/count'
+import { countTotal, fromBreakdown, toBreakdown, type Counts } from '@/features/till/drawer/count'
 import { DenomCounter } from '@/features/till/drawer/DenomCounter'
 import { FIELD } from '@/features/till/ui'
 import { money, num } from '@/lib/money'
@@ -20,10 +20,11 @@ const TEXT: Record<DrawerKind, { title: string; amount: string; place: string; u
 
 /** One form for the four drawer moves: an amount, a reason (moves), and the
  * locker the cash comes from or goes to. The phone never pops a drawer. */
-export function DrawerSheet({ kind, copy, expected, onSend, onClose }: {
+export function DrawerSheet({ kind, copy, expected, lastCount, onSend, onClose }: {
   kind: DrawerKind
   copy: TillCopy
   expected: string
+  lastCount?: Record<string, number> // this person's last close, for "Continue last count"
   onSend: (body: Record<string, unknown>) => Promise<string>
   onClose: () => void
 }) {
@@ -68,6 +69,12 @@ export function DrawerSheet({ kind, copy, expected, onSend, onClose }: {
           <SheetTitle>{t.title}</SheetTitle>
           {kind !== 'open' && <SheetDescription>The drawer should hold about {money(copy.symbol, expected)}.</SheetDescription>}
         </SheetHeader>
+        {counting && kind === 'open' && copy.allowContinueLast && countTotal(denoms, fromBreakdown(lastCount)) > 0 && (
+          <button type="button" onClick={() => setCounts(fromBreakdown(lastCount))}
+            className="self-start rounded-pill border border-border bg-card px-3 py-1.5 text-[12.5px] font-bold">
+            Continue last count · {money(copy.symbol, countTotal(denoms, fromBreakdown(lastCount)))}
+          </button>
+        )}
         {counting ? (
           <div className="min-h-0 overflow-y-auto">
             <DenomCounter denoms={denoms} counts={counts} onChange={(c) => { setCounts(c); setError('') }} sym={copy.symbol} label={t.amount} />

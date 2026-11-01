@@ -52,7 +52,7 @@ export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; cop
       <button type="button" onClick={onSwitch} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
         <UserRound size={19} className="text-muted-foreground" />Switch person
       </button>
-      {sheet && <DrawerSheet kind={sheet} copy={copy} expected={expected} onSend={(b) => send(sheet, b)} onClose={() => setSheet(null)} />}
+      {sheet && <DrawerSheet kind={sheet} copy={copy} expected={expected} lastCount={copy.people.find((p) => p.id === who.id)?.lastCount} onSend={(b) => send(sheet, b)} onClose={() => setSheet(null)} />}
     </div>
   )
 }
