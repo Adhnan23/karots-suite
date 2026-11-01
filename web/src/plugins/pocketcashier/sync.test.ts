@@ -86,6 +86,17 @@ describe('sync', () => {
     const { loadCopy } = await import('./store/copy')
     expect((await loadCopy())?.people).toEqual([{ id: 9 }])
   })
+  it('a reopened app counts what still waits, even with the PC down', async () => {
+    online = false
+    await addAction({ kind: 'sale', userId: 1, body: {} })
+    const seen: SyncState[] = []
+    const stop = startSync((st) => seen.push(st), () => null)
+    await vi.waitFor(() => expect(seen.at(-1)?.waiting).toBe(1))
+    stop()
+    online = true
+    await flush(() => null)
+  })
+
   it('a version event fetches the copy', async () => {
     const seen: SyncState[] = []
     const stop = startSync((s) => seen.push(s), () => null)

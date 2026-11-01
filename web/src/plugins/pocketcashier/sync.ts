@@ -86,6 +86,8 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   let stopped = false
   const tick = () => { void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined)) }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
+  // A reopened app: what still waits from before (the count, and the 5 s retry, need it).
+  void pending().then((a) => set({ waiting: a.length })).catch(() => {})
   tick()
   // The feed opens with a one-time ticket (an EventSource can't send the key as a
   // header, and URLs land in logs); a dropped feed opens again with a new one.
