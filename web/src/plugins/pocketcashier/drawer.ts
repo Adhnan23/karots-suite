@@ -1,5 +1,5 @@
 import type { CopyHeld, TillCopy } from '@/api/types.gen'
-import { dec, num } from '@/lib/money'
+import { dec, money, num, r2 } from '@/lib/money'
 import type { Action } from './store/outbox'
 
 type Pay = { method: string; amount: string }
@@ -38,6 +38,13 @@ export function expectedCash(copy: TillCopy, userId: number, out: Action[]): str
     }
   }
   return dec(cash)
+}
+
+/** A close against what the drawer should hold (the PC's "Till closed" figures). */
+export function closeNote(counted: string, expected: string, sym: string): string {
+  const d = r2(num(counted) - num(expected))
+  const diff = Math.abs(d) < 0.005 ? 'exact' : `${money(sym, Math.abs(d))} ${d < 0 ? 'short' : 'over'}`
+  return `Counted ${money(sym, counted)} · expected ${money(sym, expected)} · ${diff}`
 }
 
 /** A hold that waits in the outbox; `ref` lets it be taken back before it goes. */

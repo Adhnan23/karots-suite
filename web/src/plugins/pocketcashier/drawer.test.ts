@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TillCopy } from '@/api/types.gen'
-import { drawerOpen, expectedCash, heldList } from './drawer'
+import { closeNote, drawerOpen, expectedCash, heldList } from './drawer'
 import type { Action } from './store/outbox'
 
 const copy = {
@@ -41,5 +41,11 @@ describe('the phone drawer', () => {
   it('lists my holds, without ones resumed, plus holds not sent yet', () => {
     const out = [act('unhold', { heldId: 31 }), act('hold', { label: 'Saman', total: '40.00', itemCount: 2, cart: '{}' })]
     expect(heldList(copy, 7, out).map((h) => h.label)).toEqual(['Ravi', 'Saman'])
+  })
+
+  it('says how a close counted against what the drawer should hold, as the PC does', () => {
+    expect(closeNote('1950', '2000.00', 'Rs.')).toBe('Counted Rs. 1,950.00 · expected Rs. 2,000.00 · Rs. 50.00 short')
+    expect(closeNote('2010', '2000.00', 'Rs.')).toBe('Counted Rs. 2,010.00 · expected Rs. 2,000.00 · Rs. 10.00 over')
+    expect(closeNote('2000', '2000.00', 'Rs.')).toBe('Counted Rs. 2,000.00 · expected Rs. 2,000.00 · exact')
   })
 })

@@ -4,7 +4,7 @@ import type { TillCopy } from '@/api/types.gen'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD } from '../bits'
-import { drawerOpen, expectedCash } from '../drawer'
+import { closeNote, drawerOpen, expectedCash } from '../drawer'
 import type { Who } from '../session'
 import type { Action } from '../store/outbox'
 import { sendNow } from '../sync'
@@ -23,7 +23,8 @@ export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; cop
   async function send(kind: DrawerKind, body: Record<string, unknown>): Promise<string> {
     const r = await sendNow({ kind, userId: who.id, body })
     if (r && r.status !== 'applied') return r.note || 'The PC could not do this'
-    setNotice(r ? DONE[kind] : `${DONE[kind]} on this phone — it sends when the PC is back`)
+    const done = r ? DONE[kind] : `${DONE[kind]} on this phone — it sends when the PC is back`
+    setNotice(kind === 'close' ? `${done}. ${closeNote(String(body.closingCash), expected, copy.symbol)}` : done)
     onSent()
     return ''
   }
