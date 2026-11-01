@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@t
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Banknote, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, ScrollText, Store, UserRoundX } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Banknote, BellDot, Boxes, CalendarClock, ChevronRight, ClipboardPen, HardDrive, ScrollText, Store, UserRoundX } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import type { Dashboard as D, PresenceRow } from '@/api/types.gen'
@@ -75,6 +75,8 @@ function attention(d: D, sym: string): Att[] {
   if (a.lowStock) out.push({ tone: 'warn', icon: Boxes, tag: 'Low stock', text: `${n(a.lowStock, 'product is', 'products are')} at or under the reorder level`, to: '/admin/reorder', go: 'Reorder' })
   if (a.review) out.push({ tone: 'info', icon: ClipboardPen, tag: 'Review', text: `${n(a.review, 'quick-added item needs', 'quick-added items need')} details`, to: '/admin/products/review', go: 'Review' })
   if (a.backupCopies.length) out.push({ tone: 'warn', icon: HardDrive, tag: 'Backups', text: `${a.backupCopies.join(' and ')}: no backup copied in over a day`, to: '/admin/data', go: 'See copies' })
+  // What compiled-in plugins say needs someone (a phone waiting for approval…).
+  for (const p of a.plugin ?? []) out.push({ tone: p.tone === 'crit' || p.tone === 'warn' ? p.tone : 'info', icon: BellDot, tag: p.tag, text: p.text, to: p.to, go: p.go })
   if (!d.openTills) out.push({ tone: 'info', icon: Store, tag: 'Till', text: 'No till is open', to: '/till', go: 'Open the till' })
   return out
 }

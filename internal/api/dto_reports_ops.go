@@ -281,6 +281,17 @@ type DashboardAttention struct {
 	StaleTills []StaleTill `json:"staleTills"`
 	// NoTillSales are today's sales that took cash while their cashier had no till open.
 	NoTillSales []NoTillSale `json:"noTillSales"`
+	// Plugin is what compiled-in plugins say needs someone (plugin.Attention).
+	Plugin []AttentionItem `json:"plugin"`
+}
+
+// AttentionItem is a plugin's line on "Needs your attention".
+type AttentionItem struct {
+	Tag  string `json:"tag"`
+	Text string `json:"text"`
+	To   string `json:"to"`   // the admin page that deals with it
+	Go   string `json:"go"`   // its button
+	Tone string `json:"tone"` // info | warn | crit
 }
 
 type StaleTill struct {

@@ -27,6 +27,13 @@ describe('PhoneList', () => {
     expect(within(card).queryByRole('button', { name: 'Block' })).toBeNull()
   })
 
+  it('can remove a phone in use too (a lost or replaced phone), beside Block', () => {
+    list([row({ userName: 'Nimal' })])
+    const card = screen.getByRole('listitem')
+    expect(within(card).getByRole('button', { name: 'Remove' })).toBeTruthy()
+    expect(within(card).getByRole('button', { name: 'Block' })).toBeTruthy()
+  })
+
   it('offers Approve on a waiting phone, with its code', () => {
     list([row({ status: 'pending', pairCode: '482913' })])
     const card = screen.getByRole('listitem')

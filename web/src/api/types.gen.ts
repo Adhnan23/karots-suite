@@ -2930,6 +2930,20 @@ export interface DashboardAttention {
    * NoTillSales are today's sales that took cash while their cashier had no till open.
    */
   noTillSales: NoTillSale[];
+  /**
+   * Plugin is what compiled-in plugins say needs someone (plugin.Attention).
+   */
+  plugin: AttentionItem[];
+}
+/**
+ * AttentionItem is a plugin's line on "Needs your attention".
+ */
+export interface AttentionItem {
+  tag: string;
+  text: string;
+  to: string; // the admin page that deals with it
+  go: string; // its button
+  tone: string; // info | warn | crit
 }
 export interface StaleTill {
   id: number /* int64 */;

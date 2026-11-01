@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
 	"karots-suite/internal/datetime"
+	"karots-suite/internal/plugin"
 )
 
 // The dashboard's today is the shop's today (a 00:30 sale counts), the chart
@@ -36,4 +38,20 @@ func TestDashboard(t *testing.T) {
 	if c := te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, cashier).Code; c != http.StatusForbidden {
 		t.Fatalf("cashier: %d", c)
 	}
+}
+
+// Plugins' attention lines reach the dashboard (registered by a plugin's Setup).
+func TestDashboardPluginAttention(t *testing.T) {
+	te := newTestEnv(t)
+	admin := te.login(t, devPhone(), "admin")
+	(&plugin.Registry{}).AddAttention(func(context.Context) ([]plugin.AttentionItem, error) {
+		return []plugin.AttentionItem{{Tag: "T plugin", Text: "1 thing waits", To: "/admin/x/t", Go: "Look", Tone: "warn"}}, nil
+	})
+	d := decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin))
+	for _, a := range d.Attention.Plugin {
+		if a.Tag == "T plugin" && a.Text == "1 thing waits" && a.To == "/admin/x/t" && a.Go == "Look" && a.Tone == "warn" {
+			return
+		}
+	}
+	t.Fatalf("plugin attention %+v", d.Attention.Plugin)
 }

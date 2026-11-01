@@ -55,9 +55,10 @@ export function PhoneList({ rows, now, onApprove, onBlock, onRelease, onRemove }
                 <ConfirmButton label="Block" title={`Block ${p.name}?`} confirm="Block"
                   body="It stops working at once. To use it again, remove it and pair it again." onConfirm={() => onBlock(p)} />
               )}
-              {p.status !== 'active' && (
-                <ConfirmButton label="Remove" title={`Remove ${p.name}?`} confirm="Remove" body="It disappears from this list. Pairing it again starts over." onConfirm={() => onRemove(p)} />
-              )}
+              <ConfirmButton label="Remove" title={`Remove ${p.name}?`} confirm="Remove" onConfirm={() => onRemove(p)}
+                body={p.status === 'active'
+                  ? `It stops working at once. Its batches leave What came in (its sales stay in Sales), and sales still waiting on it never arrive — block it instead if it may come back. To use it again, pair it again.`
+                  : 'It disappears from this list. Pairing it again starts over.'} />
             </div>
           </li>
         )

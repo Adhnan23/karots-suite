@@ -14,6 +14,7 @@ import (
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/middleware"
+	"karots-suite/internal/plugin"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -194,6 +195,10 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 		if o.Cash.IsPositive() {
 			a.NoTillSales = append(a.NoTillSales, NoTillSale{ID: o.ID, ReceiptNo: o.ReceiptNo, Cashier: o.Cashier, At: o.At.Format(time.RFC3339), Cash: dec2(o.Cash)})
 		}
+	}
+	a.Plugin = []AttentionItem{}
+	for _, it := range plugin.Attention(ctx) {
+		a.Plugin = append(a.Plugin, AttentionItem{Tag: it.Tag, Text: it.Text, To: it.To, Go: it.Go, Tone: it.Tone})
 	}
 	return a, nil
 }
