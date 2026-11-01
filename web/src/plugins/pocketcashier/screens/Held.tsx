@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import type { HeldSale, TillCopy } from '@/api/types.gen'
 import { toHeldBlob } from '@/features/till/cart/held'
@@ -27,6 +28,7 @@ export function Held({ who, copy, out, cart, dispatch, onSent, onResumed }: {
   const [label, setLabel] = useState('')
   const [msg, setMsg] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
+  const [asking, setAsking] = useState<string | null>(null) // 'clear' | a held row's key
   const rows = heldList(copy, who.id, out)
   const newSale = () => dispatch({ type: 'newSale', saleType: copy.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
 
@@ -69,6 +71,29 @@ export function Held({ who, copy, out, cart, dispatch, onSent, onResumed }: {
     }
   }
 
+  async function remove(h: HeldRow) {
+    setAsking(null)
+    setBusy(true)
+    try {
+      if (h.ref) await ack([h.ref])
+      else {
+        const r = await sendNow({ kind: 'unhold', userId: who.id, body: { heldId: h.id } })
+        if (r && r.status !== 'applied' && r.status !== 'skipped') return setMsg({ tone: 'bad', text: r.note || 'The PC could not remove this held sale' })
+      }
+      setMsg({ tone: 'ok', text: 'Held sale removed' })
+      onSent()
+    } finally {
+      setBusy(false)
+    }
+  }
+  const key = (h: HeldRow) => h.ref ?? String(h.id)
+  const confirm = (yes: string, onYes: () => void) => (
+    <span className="flex shrink-0 gap-1.5">
+      <button type="button" onClick={() => setAsking(null)} className="rounded-pill bg-muted px-3 py-1.5 text-xs font-bold">Keep</button>
+      <button type="button" onClick={onYes} className="rounded-pill bg-destructive px-3 py-1.5 text-xs font-bold text-background">{yes}</button>
+    </span>
+  )
+
   return (
     <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-3 pb-3">
       {cart.lines.length > 0 && (
@@ -78,19 +103,31 @@ export function Held({ who, copy, out, cart, dispatch, onSent, onResumed }: {
             <input aria-label="Name for the held sale" placeholder="Name (optional)" autoComplete="off" value={label} onChange={(e) => setLabel(e.target.value)} className={cn(FIELD, 'min-w-0 flex-1')} />
             <button type="button" disabled={busy} onClick={() => void hold()} className="rounded-pill bg-brand px-4 text-sm font-extrabold text-brand-foreground disabled:opacity-60">Hold</button>
           </div>
+          {asking === 'clear' ? (
+            <div className="flex items-center gap-2 text-[13px] font-semibold">Every line and payment goes. {confirm('Yes, clear it', () => { setAsking(null); newSale() })}</div>
+          ) : (
+            <button type="button" onClick={() => setAsking('clear')} className="self-start text-[12.5px] font-semibold text-destructive">Clear sale</button>
+          )}
         </div>
       )}
       {msg && <p role={msg.tone === 'bad' ? 'alert' : 'status'} className={cn('px-1 text-sm font-semibold', msg.tone === 'bad' ? 'text-destructive' : 'text-success')}>{msg.text}</p>}
       <ul aria-label="Held sales" className="flex flex-col gap-[7px]">
         {rows.map((h) => (
-          <li key={h.ref ?? h.id}>
-            <button type="button" disabled={busy} onClick={() => void resume(h)} className={cn(CARD, 'flex w-full items-center gap-2.5 px-3 py-2.5 text-left')}>
+          <li key={key(h)} className="relative">
+            {asking === key(h) && (
+              <div className={cn(CARD, 'absolute inset-0 z-10 flex items-center justify-between gap-2 px-3 text-[13px] font-semibold')}>
+                Remove “{h.label || 'Held sale'}”? {confirm('Yes, remove', () => void remove(h))}
+              </div>
+            )}
+            <button type="button" disabled={busy} onClick={() => void resume(h)} className={cn(CARD, 'flex w-full items-center gap-2.5 py-2.5 pr-11 pl-3 text-left')}>
               <span className="min-w-0">
                 <span className="block truncate text-[13.5px] font-bold">{h.label || 'Held sale'}</span>
                 <span className="block text-[11.5px] text-muted-foreground">{h.itemCount} {h.itemCount === 1 ? 'line' : 'lines'} · {hhmm(h.createdAt)}{h.ref ? ' · not sent yet' : ''}</span>
               </span>
               <b className="ml-auto shrink-0 text-[13.5px] tabular-nums">{money(copy.symbol, h.total)}</b>
             </button>
+            <button type="button" aria-label={`Remove held sale ${h.label || 'Held sale'}`} onClick={() => setAsking(key(h))}
+              className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-faint"><X size={16} /></button>
           </li>
         ))}
         {!rows.length && <li className="py-8 text-center text-sm text-muted-foreground">No held sales</li>}
