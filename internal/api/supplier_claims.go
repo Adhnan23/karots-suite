@@ -29,7 +29,7 @@ func claimLots(rows []stock.Batch) []ClaimLot {
 	out := make([]ClaimLot, 0, len(rows))
 	for _, b := range rows {
 		l := ClaimLot{LotID: b.ID, ProductID: b.ProductID, Product: b.ProductName, Unit: b.UnitAbbr, Qty: b.QtyRemaining.String(),
-			Expiry: b.ExpiryDate.Format(time.DateOnly), Cost: dec2(b.CostPrice), WarnDays: b.WarnDays}
+			Expiry: b.ExpiryDate.Format(time.DateOnly), Cost: dec2(b.CostPrice), Supplier: b.SupplierName, WarnDays: b.WarnDays}
 		if b.SupplierToldOn != nil {
 			l.ToldOn = b.SupplierToldOn.Format(time.DateOnly)
 		}

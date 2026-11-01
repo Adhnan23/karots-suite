@@ -348,6 +348,7 @@ type ClaimLot struct {
 	Qty       string `json:"qty"`
 	Expiry    string `json:"expiry"`
 	Cost      string `json:"cost"`
+	Supplier  string `json:"supplier"`
 	WarnDays  int    `json:"warnDays"`
 	ToldOn    string `json:"toldOn"` // YYYY-MM-DD the supplier was told; "" = not yet
 }

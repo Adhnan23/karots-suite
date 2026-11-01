@@ -3003,6 +3003,7 @@ export interface ClaimLot {
   qty: string;
   expiry: string;
   cost: string;
+  supplier: string;
   warnDays: number /* int */;
   toldOn: string; // YYYY-MM-DD the supplier was told; "" = not yet
 }

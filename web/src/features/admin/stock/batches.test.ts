@@ -4,7 +4,7 @@ import { matchBatch, mergeDefaults } from './batches'
 
 const lot = (id: number, qty: string, cost: string, extra: Partial<LotRow> = {}): LotRow => ({
   id, batchNo: '', expiryDate: '', qtyReceived: qty, qtyRemaining: qty, costPrice: cost, sellingPrice: '', source: 'adjust',
-  createdAt: `2026-10-0${id}T10:00:00Z`, fromDelivery: false, supplier: '', warnDays: 30, ...extra,
+  createdAt: `2026-10-0${id}T10:00:00Z`, fromDelivery: false, supplierId: 0, supplier: '', toldOn: '', warnDays: 30, ...extra,
 })
 
 describe('mergeDefaults', () => {

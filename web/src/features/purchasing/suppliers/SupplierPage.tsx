@@ -18,6 +18,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { suppliersQuery as allSuppliersQuery } from '@/features/counter/queries'
 import { supplierQuery } from '../queries'
+import { SupplierClaimsPanel } from '../SupplierClaims'
 import { SupplierForm } from './SupplierForm'
 import { PaySheet, RefundSheet } from './SupplierMoney'
 import { Owed } from './SuppliersPage'
@@ -93,6 +94,7 @@ export function SupplierPage({ id }: { id: number }) {
           )}
         </div>
       </header>
+      <SupplierClaimsPanel supplierId={id} sym={sym} className="mb-4" />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title="Open bills" count={s.invoices.length}>

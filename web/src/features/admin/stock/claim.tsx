@@ -28,7 +28,7 @@ export function useSupplierClaim(sym: string, inline = false) {
   const [pending, setPending] = useState<LossRow | null>(null)
   const [loss, setLoss] = useState<LossRow | null>(null)
   const ask = (lossId: number, productId: number, product: string, qty: string, value: number) =>
-    setPending({ kind: 'damage', sourceId: lossId, id: lossId, productId, product, qty, loss: dec(value), note: '', by: '', at: '', outcome: '', recovered: '' })
+    setPending({ kind: 'damage', sourceId: lossId, id: lossId, productId, product, qty, loss: dec(value), note: '', by: '', at: '', outcome: '', recovered: '', givenBack: false })
   const prompt = pending && (
     <ClaimPrompt title={`${pending.product}: ${qtyText(pending.qty)} written off.`} body={ASK} goLabel="Record it"
       later={() => setPending(null)} go={() => { setLoss(pending); setPending(null) }} />
