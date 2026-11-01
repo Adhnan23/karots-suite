@@ -63,7 +63,10 @@ export function SignIn({ copy, sync, phone, onSignedIn }: { copy: TillCopy | nul
   }
 
   const key = (k: PinKey) => setPin((v) => (k === 'clear' ? '' : k === 'back' ? v.slice(0, -1) : (v + k).slice(0, 6)))
-  const tiles = [...people.map((p) => ({ id: p.id, name: p.name.split(' ')[0] })), ...(sync.live ? [{ id: ADMIN, name: 'Admin' }] : [])]
+  // First names, unless two people share one (then their full names).
+  const first = (n: string) => n.split(' ')[0]
+  const tiles = [...people.map((p) => ({ id: p.id, name: people.filter((q) => first(q.name) === first(p.name)).length > 1 ? p.name : first(p.name) })),
+    ...(sync.live ? [{ id: ADMIN, name: 'Admin' }] : [])]
 
   return (
     <Screen>
