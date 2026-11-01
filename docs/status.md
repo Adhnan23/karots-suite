@@ -39,8 +39,11 @@ retested (no phone at hand). Full Playwright 222 passed.
     screen (goes with the supplier-expiry work: both are about lots and suppliers).
   - **Prices per customer / customer group:** only retail and wholesale; no "this hotel always pays Rs x", no third list.
   - Drop the unused `customers.loyalty_points` column (loyalty is a future plugin with its own tables).
-- Not decided yet (only if a shop asks): supplier early-payment discount ("2% if paid within 7 days"), staff
-  commission (the staff-plugin idea), delivery orders.
+  - **Discount received when paying a supplier** (user: no payment terms needed, record what was actually given):
+    today a received bill can't be edited and a payment only pays, so paying 9,800 on a 10,000 bill leaves 200 owed.
+    Add a "discount received" beside the amount paid: it closes the rest of the bill, lowers the payable and shows
+    in the money reports.
+- Not decided yet (only if a shop asks): staff commission (the staff-plugin idea), delivery orders.
 - **Future plugins, not now** (user, 2026-11-01 — only when a shop needs them): loyalty points, gift vouchers /
   credit notes, several shops (branches, stock transfers).
 
