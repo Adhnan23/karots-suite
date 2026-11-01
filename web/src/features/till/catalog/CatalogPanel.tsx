@@ -61,6 +61,10 @@ export function CatalogPanel() {
           }}
           className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint" />
         <Kbd>F2</Kbd>
+        <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: '', name: '' })}
+          title="Sell an item that isn't in the catalogue yet" className={CHIP}>
+          + Quick item
+        </button>
         <button type="button" onClick={ui.reset} title="Back to the menu — the cart stays" className={CHIP}>
           <RotateCcw size={14} /> Menu <Kbd>F1</Kbd>
         </button>

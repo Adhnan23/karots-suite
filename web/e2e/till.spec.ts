@@ -220,7 +220,17 @@ test('quick item for something not in the catalogue', async ({ page }) => {
   await expect(cart(page).getByLabel('Quantity of Brand new thing')).toHaveValue('1')
 })
 
-test('deposit, withdraw, then close and reconcile', async ({ page }) => {
+test('the till opens Quick item from its own button', async ({ page }) => {
+  await login(page, '0770000002')
+  await ensureOpen(page)
+  await page.getByRole('button', { name: '+ Quick item' }).click()
+  const dlg = page.getByRole('dialog', { name: /Quick item/ })
+  await expect(dlg).toBeVisible()
+  await expect(dlg.getByLabel('Item name')).toHaveValue('')
+  await expect(dlg.getByLabel('Barcode')).toHaveValue('')
+})
+
+test('deposit, withdraw, then close and reconcile',async ({ page }) => {
   await login(page, '0770000002')
   await ensureOpen(page)
   await page.getByRole('button', { name: /Deposit/ }).first().click()
