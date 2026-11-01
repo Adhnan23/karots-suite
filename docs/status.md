@@ -67,6 +67,10 @@ damage as an amount; build only if Quick item is too much work for a shop); staf
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
 the PC while the phone still shows them is claimed back by the phone's next send.
 
+**Unreliable e2e tests (seen 2026-11-01, not looked into):** `presence.spec.ts:13` fails now and then, also when run
+alone (it allows 10 s for "Playing Blocks"); `palettes.spec.ts:45` and `plugin-repairs.spec.ts:145` each failed once in a
+full run and passed alone.
+
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
 apply the answers and drop the DRAFT line; the real-printer test when printers arrive.
