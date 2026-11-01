@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–21 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 22**.
+> **Progress (2026-10-30):** Tasks 1–22 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 23**.
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -555,11 +555,11 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
 - Consumes: the Task 11 and Task 14 endpoints, admin kit (`PageHead`, `DataList`, `FormSheet`, `ConfirmButton`).
 - Produces: `/admin/x/pocket` (phones; the pending ones on top with Approve), `/admin/x/pocket/sends` and `/admin/x/pocket/sends/<id>`. Each flagged sale links to `/admin/sales?sale=<id>` (Task 2), which is where a look-alike is removed with the admin return.
 
-- [ ] **Step 1: Write the failing vitest.** `PhoneList`: a row with `lastSeen` 3 min ago and a user shows "Nimal · not reachable" and a Release button. A blocked row shows "Blocked" and Remove, with no Unblock (pairing again makes a new row).
-- [ ] **Step 2: Run it to see it fail.**
-- [ ] **Step 3: Implement.** It works at 360 px.
-- [ ] **Step 4: Run it to see it pass.**
-- [ ] **Step 5: Commit.** `feat(pocket): admin Phones — approve, block, release, setup QR, what came in`
+- [x] **Step 1: Write the failing vitest.** `PhoneList`: a row with `lastSeen` 3 min ago and a user shows "Nimal · not reachable" and a Release button. A blocked row shows "Blocked" and Remove, with no Unblock (pairing again makes a new row).
+- [x] **Step 2: Run it to see it fail.**
+- [x] **Step 3: Implement.** It works at 360 px.
+- [x] **Step 4: Run it to see it pass.**
+- [x] **Step 5: Commit.** `feat(pocket): admin Phones — approve, block, release, setup QR, what came in`
 
 ### Task 23: Setup page (per-phone steps and the trust test)
 
