@@ -14,10 +14,15 @@ func TestSWListsAssets(t *testing.T) {
 	if rec.Code != http.StatusOK || rec.Header().Get("Service-Worker-Allowed") != "/" || !strings.Contains(rec.Header().Get("Content-Type"), "javascript") {
 		t.Fatalf("%d %v", rec.Code, rec.Header())
 	}
-	for _, want := range []string{`"/index.html"`, `"/assets/`, `"test"`, `"/x/pocketcashier/"`} {
+	for _, want := range []string{`"/assets/`, `"test"`, `/x/pocketcashier/`} {
 		if !strings.Contains(b, want) {
 			t.Fatalf("sw.js lacks %s", want)
 		}
+	}
+	// /index.html answers a redirect, and a cached redirect can't answer a page
+	// load: offline, the app page itself is the fallback.
+	if strings.Contains(b, `"/index.html"`) || !strings.Contains(b, `caches.match(APP`) {
+		t.Fatal("sw.js must fall back to the cached app page, not /index.html")
 	}
 }
 

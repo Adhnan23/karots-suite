@@ -3,9 +3,12 @@
 const VERSION = {{.Version}}
 const FILES = {{.Files}}
 const CACHE = 'ks-pocket-' + VERSION
+// The app's own page (the SPA): /index.html answers a redirect, and a cached
+// redirect can't answer a page load.
+const APP = '/x/pocketcashier/'
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([...FILES, "/x/pocketcashier/"])).then(() => self.skipWaiting()))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([...FILES, APP])).then(() => self.skipWaiting()))
 })
 
 self.addEventListener('activate', (e) => {
@@ -22,7 +25,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
   if (req.mode === 'navigate') {
     // Network first (a new version shows at once); the cached app when the PC is down.
-    e.respondWith(fetch(req).catch(() => caches.match('/index.html', { cacheName: CACHE })))
+    e.respondWith(fetch(req).catch(() => caches.match(APP, { cacheName: CACHE })))
     return
   }
   // Hashed assets and icons: the cache first.

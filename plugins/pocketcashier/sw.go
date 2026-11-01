@@ -25,7 +25,7 @@ var swTmpl = template.Must(template.New("sw").Parse(swSource))
 func (h handlers) sw(c echo.Context) error {
 	files := []string{}
 	_ = fs.WalkDir(spa.Dist(), ".", func(p string, d fs.DirEntry, err error) error {
-		if err == nil && !d.IsDir() && !strings.HasPrefix(d.Name(), ".") {
+		if err == nil && !d.IsDir() && !strings.HasPrefix(d.Name(), ".") && p != "index.html" {
 			files = append(files, "/"+p)
 		}
 		return nil
