@@ -66,6 +66,7 @@ func seed(db *sqlx.DB) error {
 		ShopName:              "Karots Super Mart",
 		ReorderDefaultDays:    7,
 		ReorderSafetyDays:     3,
+		ExpiryWarnDays:        30,
 		ShopNameSi:            &shopNameSi, // prints on the thermal receipt as a raster image
 		Address:               &address,
 		Phone:                 &phone,

@@ -91,11 +91,14 @@ export function SettingsPage() {
               </>
             )}
           </Section>
-          <Section title="Stock" sub="Alerts, and the tools that rewrite quantities and prices." saved={s} keys={['lowStockAlerts', 'stockTakeEnabled']}>
+          <Section title="Stock" sub="Alerts, and the tools that rewrite quantities and prices." saved={s} keys={['lowStockAlerts', 'stockTakeEnabled', 'expiryWarnDays']}>
             {({ v, set }) => (
               <>
                 <Toggle label="Low-stock alerts" hint="Flag products at or under their reorder level on the dashboard." checked={v.lowStockAlerts} onChange={(x) => set('lowStockAlerts', x)} />
                 <Toggle label="Stock-take & intake" hint="Off hides the Stock-take and Intake pages." checked={v.stockTakeEnabled} onChange={(x) => set('stockTakeEnabled', x)} />
+                <Field label="Warn before expiry (days)" hint="A supplier with its own number uses that instead. 0 = only once expired." className="max-w-xs">
+                  <input className={INPUT} inputMode="numeric" aria-label="Warn before expiry" value={v.expiryWarnDays} onChange={(e) => set('expiryWarnDays', Math.min(730, int(e.target.value)))} />
+                </Field>
               </>
             )}
           </Section>

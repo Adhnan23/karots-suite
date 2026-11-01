@@ -12,6 +12,9 @@ credit days, a running balance and a statement you can print. **Pay** a supplier
 bills, against an old debt, or split across them, from a locker or the till. An old balance from
 before the suite can be entered as an opening balance.
 
+A supplier who must be told about expiring stock in good time gets their own **Warn before expiry**
+number on their form; see [Batches and expiry](stock.md#batches-and-expiry).
+
 ## Reorder
 
 ![Reorder](../images/purchasing/reorder.jpg)

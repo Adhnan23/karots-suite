@@ -71,7 +71,7 @@ function attention(d: D, sym: string): Att[] {
   for (const b of c.short) out.push({ tone: 'warn', icon: ScrollText, tag: 'After cheques', text: `${b.name} goes to ${money(sym, b.after)} once your pending cheques are cashed`, to: '/admin/lockers', go: 'See accounts' })
   if (a.overLimit) out.push({ tone: 'crit', icon: UserRoundX, tag: 'Over limit', text: `${n(a.overLimit, 'customer owes', 'customers owe')} past their credit limit (${money(sym, a.overLimitSum)})`, to: '/admin/reports/customer-dues', go: 'See dues' })
   if (a.expired) out.push({ tone: 'crit', icon: CalendarClock, tag: 'Expired', text: `${n(a.expired, 'lot is', 'lots are')} past its date and still on the shelf`, to: '/admin/stock/batches', go: 'Write off' })
-  if (a.expiring) out.push({ tone: 'warn', icon: CalendarClock, tag: 'Expiring', text: `${n(a.expiring, 'lot expires', 'lots expire')} within 30 days`, to: '/admin/stock/batches', go: 'Sell first' })
+  if (a.expiring) out.push({ tone: 'warn', icon: CalendarClock, tag: 'Expiring', text: `${n(a.expiring, 'lot is', 'lots are')} close to expiry`, to: '/admin/stock/batches', go: 'See lots' })
   if (a.lowStock) out.push({ tone: 'warn', icon: Boxes, tag: 'Low stock', text: `${n(a.lowStock, 'product is', 'products are')} at or under the reorder level`, to: '/admin/reorder', go: 'Reorder' })
   if (a.review) out.push({ tone: 'info', icon: ClipboardPen, tag: 'Review', text: `${n(a.review, 'quick-added item needs', 'quick-added items need')} details`, to: '/admin/products/review', go: 'Review' })
   if (a.backupCopies.length) out.push({ tone: 'warn', icon: HardDrive, tag: 'Backups', text: `${a.backupCopies.join(' and ')}: no backup copied in over a day`, to: '/admin/data', go: 'See copies' })

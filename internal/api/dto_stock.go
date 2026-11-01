@@ -45,6 +45,8 @@ type LotRow struct {
 	Source       string `json:"source"`
 	CreatedAt    string `json:"createdAt"`
 	FromDelivery bool   `json:"fromDelivery"` // came on a purchase (returned against it); false = old / opening / adjusted stock
+	Supplier     string `json:"supplier"`     // who the lot belongs to; "" = nobody
+	WarnDays     int    `json:"warnDays"`     // warns this many days before expiry
 }
 
 type ProductLots struct {
@@ -89,7 +91,7 @@ type BatchGroup struct {
 	OnHand       string   `json:"onHand"`
 	Value        string   `json:"value"`
 	Expired      int      `json:"expired"`
-	ExpiringSoon int      `json:"expiringSoon"` // within 30 days
+	ExpiringSoon int      `json:"expiringSoon"` // inside their warning days
 	Lots         []LotRow `json:"lots"`
 }
 

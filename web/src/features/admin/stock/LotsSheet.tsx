@@ -19,10 +19,10 @@ const DAY = 86_400_000
 /** Days until a YYYY-MM-DD expiry (negative = expired). */
 export const daysLeft = (ymd: string) => Math.ceil((new Date(`${ymd}T00:00:00`).getTime() - new Date().setHours(0, 0, 0, 0)) / DAY)
 
-export function ExpiryTag({ ymd }: { ymd: string }) {
+export function ExpiryTag({ ymd, warnDays }: { ymd: string; warnDays: number }) {
   if (!ymd) return null
   const d = daysLeft(ymd)
-  return d < 0 ? <Tag tone="danger">expired</Tag> : d <= 30 ? <Tag tone="warn">{`${d}d left`}</Tag> : null
+  return d < 0 ? <Tag tone="danger">expired</Tag> : d <= warnDays ? <Tag tone="warn">{`${d}d left`}</Tag> : null
 }
 
 type Edit = { id: number; mode: 'count' | 'remove' } | null
@@ -122,7 +122,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
                     <span className="flex flex-wrap items-center gap-1.5">
                       <b className="tabular-nums">{qtyText(l.qtyRemaining)} <small className="font-normal text-faint">of {qtyText(l.qtyReceived)}</small></b>
                       {i === 0 && <Tag tone="brand">next to sell</Tag>}
-                      <ExpiryTag ymd={l.expiryDate} />
+                      <ExpiryTag ymd={l.expiryDate} warnDays={l.warnDays} />
                     </span>
                     <small className="block text-faint">
                       {l.source.replace(/_/g, ' ')} · {new Date(l.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short', year: '2-digit' })}

@@ -62,7 +62,7 @@ export function SupplierPage({ id }: { id: number }) {
           <h1 className="flex flex-wrap items-center gap-2 font-display text-[24px] font-bold tracking-tight md:text-[28px]">
             {s.name}{!s.active && <Tag tone="muted">disabled</Tag>}
           </h1>
-          <p className="text-sm text-muted-foreground">{[s.contact, s.phone, s.address].filter(Boolean).join(' · ') || 'No contact details'} · {s.creditDays ? `${s.creditDays} days credit` : 'pays on delivery'}</p>
+          <p className="text-sm text-muted-foreground">{[s.contact, s.phone, s.address].filter(Boolean).join(' · ') || 'No contact details'} · {s.creditDays ? `${s.creditDays} days credit` : 'pays on delivery'}{s.expiryWarnDays != null && ` · warns ${s.expiryWarnDays} days before expiry`}</p>
           <div className="mt-3">
             <small className="block text-[12px] font-semibold text-muted-foreground">{owed < 0 ? '↓ They owe us' : owed > 0 ? '↑ We owe them' : 'Balance'}</small>
             <Owed sym={sym} owed={s.owed} big />

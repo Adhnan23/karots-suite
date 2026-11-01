@@ -271,7 +271,7 @@ type DashboardDay struct {
 type DashboardAttention struct {
 	LowStock     int    `json:"lowStock"`
 	Expired      int    `json:"expired"`
-	Expiring     int    `json:"expiring"` // within 30 days
+	Expiring     int    `json:"expiring"` // inside their warning days
 	Review       int    `json:"review"`   // quick-added items needing details
 	OverLimit    int    `json:"overLimit"`
 	OverLimitSum string `json:"overLimitSum"`

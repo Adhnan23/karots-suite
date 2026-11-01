@@ -36,7 +36,12 @@ batches or **Adjust** a count. **Movements** lists every change with who made it
 
 Stock received with an expiry date is kept as a batch. The till sells the oldest batch first, and
 asks before selling an expired one: sell anyway, write it off, or go back. The page shows what has
-expired, what expires within 30 days and the value of live stock.
+expired, what is close to expiry and the value of live stock.
+
+**How early a batch warns** is up to you. Set a number of days in **Settings → Stock**, and give a
+supplier its own number on their form when they need telling sooner. A batch uses the number of the
+supplier who delivered it, or its product's preferred supplier if it didn't come on a delivery;
+anything else uses the shop's number. Each batch shows its supplier, so you can see who to call.
 
 ## Stock intake
 

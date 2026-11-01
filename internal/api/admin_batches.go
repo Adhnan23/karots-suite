@@ -23,7 +23,7 @@ func (h *handlers) registerAdminBatches(g *echo.Group) {
 }
 
 // AdminBatches is every live lot, grouped by product: expired first, then
-// expiring within 30 days, then the rest by name; ?format= downloads every lot.
+// inside their warning days (stock.Batch.ExpiringSoon), then the rest by name; ?format= downloads every lot.
 func (h *handlers) AdminBatches(c echo.Context) error {
 	rows, err := h.t.stock.AllBatches(c.Request().Context())
 	if err != nil {
@@ -33,7 +33,6 @@ func (h *handlers) AdminBatches(c echo.Context) error {
 		return batchesSheet(c, rows)
 	}
 	now := time.Now()
-	soon := now.AddDate(0, 0, 30)
 	var total, expVal, soonVal decimal.Decimal
 	out := BatchesView{Groups: []BatchGroup{}}
 	idx := map[int64]int{}
@@ -41,8 +40,7 @@ func (h *handlers) AdminBatches(c echo.Context) error {
 	for _, b := range rows {
 		val := b.QtyRemaining.Mul(b.CostPrice)
 		total = total.Add(val)
-		expired := b.ExpiryDate != nil && b.ExpiryDate.Before(now)
-		expiring := !expired && b.ExpiryDate != nil && b.ExpiryDate.Before(soon)
+		expired, expiring := b.Expired(now), b.ExpiringSoon(now)
 		switch {
 		case b.ExpiryDate == nil:
 			out.NoExpiry++
@@ -156,7 +154,7 @@ func batchesSheet(c echo.Context, rows []stock.Batch) error {
 			own = "yes"
 		}
 		out = append(out, []string{b.ProductName, strOr(b.BatchNo), expiry, b.QtyRemaining.String(), b.UnitAbbr, dec2(b.CostPrice),
-			dec2(b.EffectivePrice(b.ProductPrice)), own, dec2(b.QtyRemaining.Mul(b.CostPrice))})
+			dec2(b.EffectivePrice(b.ProductPrice)), own, dec2(b.QtyRemaining.Mul(b.CostPrice)), b.SupplierName, strconv.Itoa(b.WarnDays)})
 	}
-	return writeSheet(c, "batches_"+time.Now().Format("2006-01-02"), []string{"Product", "Batch", "Expiry", "Remaining", "Unit", "Cost", "Sells at", "Own price", "Value"}, out)
+	return writeSheet(c, "batches_"+time.Now().Format("2006-01-02"), []string{"Product", "Batch", "Expiry", "Remaining", "Unit", "Cost", "Sells at", "Own price", "Value", "Supplier", "Warn days"}, out)
 }

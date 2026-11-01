@@ -52,7 +52,7 @@ export function BatchesPage() {
           <Stat tone="danger" label="Expired" value={`${v.expired} ${v.expired === 1 ? 'lot' : 'lots'}`} sub={money(sym, v.expiredValue)}
             action={v.expired > 0 && <ConfirmButton label="Write off all" title={`Write off ${v.expired} expired lots?`} confirm="Write off"
               body={`${money(sym, v.expiredValue)} of stock leaves the shelf as damage. It shows under Losses.`} onConfirm={writeOffAll} className="mt-2 h-8 px-3 text-[12px]" />} />
-          <Stat tone="warn" label="Expiring in 30 days" value={`${v.expiringSoon} ${v.expiringSoon === 1 ? 'lot' : 'lots'}`} sub={money(sym, v.expiringValue)} />
+          <Stat tone="warn" label="Expiring soon" value={`${v.expiringSoon} ${v.expiringSoon === 1 ? 'lot' : 'lots'}`} sub={money(sym, v.expiringValue)} />
           <Stat label="Live stock at cost" value={money(sym, v.totalValue)} sub={`${v.groups.length} products`} />
           <Stat label="No expiry date" value={`${v.noExpiry} ${v.noExpiry === 1 ? 'lot' : 'lots'}`} sub="don’t go off" />
         </div>
@@ -125,8 +125,8 @@ function Group({ g, sym, onLots, onDone, onClaim }: {
                 <li key={l.id} className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-sm)] border border-border px-3 py-2 text-sm', expired && 'border-danger bg-[color-mix(in_srgb,var(--danger)_6%,transparent)]')}>
                   <b className="tabular-nums">{qtyText(l.qtyRemaining)} {g.unitAbbr}</b>
                   {i === 0 && <Tag tone="brand">next to sell</Tag>}
-                  <ExpiryTag ymd={l.expiryDate} />
-                  <span className="text-faint">{l.expiryDate ? `exp ${l.expiryDate}` : 'no expiry'} · cost {money(sym, l.costPrice)} · sells {money(sym, l.sellingPrice || g.productPrice)}</span>
+                  <ExpiryTag ymd={l.expiryDate} warnDays={l.warnDays} />
+                  <span className="text-faint">{l.expiryDate ? `exp ${l.expiryDate}` : 'no expiry'} · cost {money(sym, l.costPrice)} · sells {money(sym, l.sellingPrice || g.productPrice)}{l.supplier && ` · ${l.supplier}, warns ${l.warnDays} days before`}</span>
                   {expired && (
                     <span className="ml-auto">
                       <ConfirmButton label="Write off" title={`Write off ${qtyText(l.qtyRemaining)} ${g.unitAbbr} of ${g.name}?`} confirm="Write off" className="h-8 px-3 text-[12px]"

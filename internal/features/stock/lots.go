@@ -13,11 +13,7 @@ import (
 // page), FEFO order per product.
 func (s *Service) LiveLotsFor(ctx context.Context, productIDs []int64) (map[int64][]Batch, error) {
 	var rows []Batch
-	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT b.*, p.name AS product_name, p.selling_price AS product_price, u.abbreviation AS unit_abbr
-		FROM stock_batches b
-		JOIN products p ON p.id = b.product_id
-		JOIN units u    ON u.id = p.unit_id
+	if err := s.db.SelectContext(ctx, &rows, lotSelect+`
 		WHERE b.product_id = ANY($1) AND b.qty_remaining > 0
 		ORDER BY b.product_id, b.expiry_date NULLS LAST, b.id`, pq.Array(productIDs)); err != nil {
 		return nil, apperr.Internal("failed to load batches", err)

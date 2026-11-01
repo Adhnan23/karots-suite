@@ -77,9 +77,9 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*Supplier, er
 func (r *Repository) Create(ctx context.Context, in CreateInput, opening decimal.Decimal) (*Supplier, error) {
 	var s Supplier
 	err := r.q.GetContext(ctx, &s, `
-		INSERT INTO suppliers (name, contact_person, phone, address, credit_days, opening_balance, outstanding_balance, opening_unlinked)
-		VALUES ($1,$2,$3,$4,$5,$6,$6,$6) RETURNING *`,
-		in.Name, in.ContactPerson, in.Phone, in.Address, in.CreditDays, opening)
+		INSERT INTO suppliers (name, contact_person, phone, address, credit_days, opening_balance, outstanding_balance, opening_unlinked, expiry_warn_days)
+		VALUES ($1,$2,$3,$4,$5,$6,$6,$6,$7) RETURNING *`,
+		in.Name, in.ContactPerson, in.Phone, in.Address, in.CreditDays, opening, in.ExpiryWarnDays)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +88,8 @@ func (r *Repository) Create(ctx context.Context, in CreateInput, opening decimal
 
 func (r *Repository) Update(ctx context.Context, id int64, in UpdateInput) error {
 	res, err := r.q.ExecContext(ctx, `
-		UPDATE suppliers SET name=$1, contact_person=$2, phone=$3, address=$4, credit_days=$5
-		WHERE id=$6`, in.Name, in.ContactPerson, in.Phone, in.Address, in.CreditDays, id)
+		UPDATE suppliers SET name=$1, contact_person=$2, phone=$3, address=$4, credit_days=$5, expiry_warn_days=$6
+		WHERE id=$7`, in.Name, in.ContactPerson, in.Phone, in.Address, in.CreditDays, in.ExpiryWarnDays, id)
 	if err != nil {
 		return err
 	}

@@ -30,7 +30,7 @@ export function StockTakeLots({ name, unit, productPrice, wholesale, lots, batch
         return (
           <div key={l.id} className="grid grid-cols-[minmax(0,1fr)_110px] items-center gap-2 md:grid-cols-[minmax(0,2fr)_90px_110px_110px_110px_110px]">
             <span className="min-w-0 text-sm md:col-span-2">
-              <b className="tabular-nums">{qtyText(l.qtyRemaining)}</b> <small className="text-faint">{unit}</small> <ExpiryTag ymd={l.expiryDate} />
+              <b className="tabular-nums">{qtyText(l.qtyRemaining)}</b> <small className="text-faint">{unit}</small> <ExpiryTag ymd={l.expiryDate} warnDays={l.warnDays} />
               <small className="block text-faint">Batch {i + 1}{l.expiryDate && ` · exp ${l.expiryDate}`}{!l.sellingPrice && ' · follows the product price'}</small>
             </span>
             <label className="relative">

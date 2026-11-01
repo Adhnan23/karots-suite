@@ -34,6 +34,37 @@ type Batch struct {
 	// ProductPrice is the product's current price, so a report listing lots can
 	// resolve EffectivePrice without a second lookup per row.
 	ProductPrice decimal.Decimal `db:"product_price" json:"product_price"`
+	// SupplierName is who the lot belongs to (LotSupplierSQL), "" = nobody.
+	SupplierName string `db:"supplier_name" json:"supplier_name"`
+	// WarnDays is how long before expiry this lot warns: its supplier's days,
+	// else the shop's.
+	WarnDays int `db:"warn_days" json:"warn_days"`
+}
+
+// LotSupplierSQL is the supplier a batch (alias b) belongs to: the one whose
+// delivery it came on, else its product's (alias p) preferred supplier (also
+// when b is NULL — a write-off that named no batch).
+const LotSupplierSQL = `COALESCE((SELECT pu.supplier_id FROM purchase_items pi JOIN purchases pu ON pu.id = pi.purchase_id
+	WHERE pi.id = b.purchase_item_id), p.preferred_supplier_id)`
+
+// lotSelect is a batch with its product, unit, supplier and warning days.
+const lotSelect = `
+		SELECT b.*, p.name AS product_name, p.selling_price AS product_price, u.abbreviation AS unit_abbr,
+			COALESCE(s.name, '') AS supplier_name,
+			COALESCE(s.expiry_warn_days, (SELECT expiry_warn_days FROM settings WHERE id = 1), 30) AS warn_days
+		FROM stock_batches b
+		JOIN products p ON p.id = b.product_id
+		JOIN units u    ON u.id = p.unit_id
+		LEFT JOIN suppliers s ON s.id = ` + LotSupplierSQL
+
+// Expired says the lot's date has passed.
+func (b Batch) Expired(now time.Time) bool {
+	return b.ExpiryDate != nil && b.ExpiryDate.Before(now)
+}
+
+// ExpiringSoon says the lot is inside its warning days and not yet expired.
+func (b Batch) ExpiringSoon(now time.Time) bool {
+	return b.ExpiryDate != nil && !b.Expired(now) && b.ExpiryDate.Before(now.AddDate(0, 0, b.WarnDays))
 }
 
 // NewBatch is the data needed to add a lot to inventory.
@@ -367,11 +398,7 @@ func (r *Repository) ProductCost(ctx context.Context, productID int64) (decimal.
 // ListBatches returns the live (qty_remaining>0) lots for a product, FEFO order.
 func (r *Repository) ListBatches(ctx context.Context, productID int64) ([]Batch, error) {
 	var rows []Batch
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT b.*, p.name AS product_name, p.selling_price AS product_price, u.abbreviation AS unit_abbr
-		FROM stock_batches b
-		JOIN products p ON p.id = b.product_id
-		JOIN units u    ON u.id = p.unit_id
+	err := r.q.SelectContext(ctx, &rows, lotSelect+`
 		WHERE b.product_id = $1 AND b.qty_remaining > 0
 		ORDER BY b.expiry_date NULLS LAST, b.id`, productID)
 	return rows, err
@@ -381,11 +408,7 @@ func (r *Repository) ListBatches(ctx context.Context, productID int64) ([]Batch,
 // earliest-expiry first then product name.
 func (r *Repository) AllLiveBatches(ctx context.Context) ([]Batch, error) {
 	var rows []Batch
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT b.*, p.name AS product_name, p.selling_price AS product_price, u.abbreviation AS unit_abbr
-		FROM stock_batches b
-		JOIN products p ON p.id = b.product_id
-		JOIN units u    ON u.id = p.unit_id
+	err := r.q.SelectContext(ctx, &rows, lotSelect+`
 		WHERE b.qty_remaining > 0
 		ORDER BY b.expiry_date NULLS LAST, p.name, b.id`)
 	return rows, err

@@ -1986,6 +1986,7 @@ export interface AdminSupplierRow {
   phone: string;
   address: string;
   creditDays: number /* int */;
+  expiryWarnDays?: number /* int */; // null = the shop's number
   owed: string;
   oldDebt: string;
   active: boolean;
@@ -2029,6 +2030,7 @@ export interface SupplierRequest {
   phone: string;
   address: string;
   creditDays: number /* int */;
+  expiryWarnDays?: number /* int */; // null = the shop's number
   openingBalance: string;
 }
 export interface PayAlloc {
@@ -2914,7 +2916,7 @@ export interface DashboardDay {
 export interface DashboardAttention {
   lowStock: number /* int */;
   expired: number /* int */;
-  expiring: number /* int */; // within 30 days
+  expiring: number /* int */; // inside their warning days
   review: number /* int */; // quick-added items needing details
   overLimit: number /* int */;
   overLimitSum: string;
@@ -3165,6 +3167,7 @@ export interface ShopSettings {
   labelBottomFont: string; // "1".."4"
   reorderDefaultDays: number /* int */; // supplier rhythm when nothing is known
   reorderSafetyDays: number /* int */;
+  expiryWarnDays: number /* int */; // lots warn this long before expiry, unless their supplier has its own
 }
 /**
  * SettingsLocker is an active locker for the default-locker picker.
@@ -3376,6 +3379,8 @@ export interface LotRow {
   source: string;
   createdAt: string;
   fromDelivery: boolean; // came on a purchase (returned against it); false = old / opening / adjusted stock
+  supplier: string; // who the lot belongs to; "" = nobody
+  warnDays: number /* int */; // warns this many days before expiry
 }
 export interface ProductLots {
   productId: number /* int64 */;
@@ -3423,7 +3428,7 @@ export interface BatchGroup {
   onHand: string;
   value: string;
   expired: number /* int */;
-  expiringSoon: number /* int */; // within 30 days
+  expiringSoon: number /* int */; // inside their warning days
   lots: LotRow[];
 }
 /**

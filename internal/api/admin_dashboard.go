@@ -126,8 +126,8 @@ func (h *handlers) AdminDashboard(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// attention counts what needs someone: low stock, lots expired or expiring
-// within 30 days, quick-added items to review, customers over their limit.
+// attention counts what needs someone: low stock, lots expired or inside
+// their warning days, quick-added items to review, customers over their limit.
 func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 	var a DashboardAttention
 	_, low, err := h.t.products.List(ctx, products.ListQuery{LowStock: true, Limit: 1})
@@ -135,15 +135,15 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 		return a, err
 	}
 	a.LowStock = low
-	lots, err := h.t.stock.Expiring(ctx, 30)
+	lots, err := h.t.stock.AllBatches(ctx)
 	if err != nil {
 		return a, err
 	}
 	now := time.Now()
 	for _, b := range lots {
-		if b.ExpiryDate != nil && b.ExpiryDate.Before(now) {
+		if b.Expired(now) {
 			a.Expired++
-		} else {
+		} else if b.ExpiringSoon(now) {
 			a.Expiring++
 		}
 	}

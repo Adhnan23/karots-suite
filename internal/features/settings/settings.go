@@ -82,6 +82,8 @@ type Settings struct {
 	ReorderDefaultDays int        `db:"reorder_default_days" json:"reorder_default_days"`
 	ReorderSafetyDays  int        `db:"reorder_safety_days"  json:"reorder_safety_days"`
 	ReorderRanAt       *time.Time `db:"reorder_ran_at"       json:"-"`
+	// ExpiryWarnDays: lots warn this many days before expiry, unless their supplier has its own.
+	ExpiryWarnDays int `db:"expiry_warn_days" json:"expiry_warn_days"`
 }
 
 // Known appearance values. Anything else falls back to the first (default) so a
@@ -175,6 +177,7 @@ type UpdateInput struct {
 	AllowContinueLastCount bool  `json:"allow_continue_last_count" form:"allow_continue_last_count"`
 	ReorderDefaultDays     int   `json:"reorder_default_days" form:"reorder_default_days" validate:"min=1,max=90"`
 	ReorderSafetyDays      int   `json:"reorder_safety_days"  form:"reorder_safety_days"  validate:"min=0,max=60"`
+	ExpiryWarnDays         int   `json:"expiry_warn_days" form:"expiry_warn_days" validate:"min=0,max=730"`
 }
 
 // LogoSrc returns the logo to use: the uploaded, self-contained image (works
@@ -252,7 +255,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 			label_name_lines=$29, label_bottom_lines=$30,
 			label_name_font=$31, label_bottom_font=$32,
 			reorder_default_days=$33, reorder_safety_days=$34,
-			print_as=$35, label_print_as=$36
+			print_as=$35, label_print_as=$36, expiry_warn_days=$37
 		WHERE id = 1`,
 		in.ShopName, in.ShopNameSi, in.Address, in.Phone,
 		in.CurrencyCode, in.CurrencySymbol, in.ReceiptFooter,
@@ -268,7 +271,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 		nameLines, bottomLines,
 		nameFont, bottomFont,
 		in.ReorderDefaultDays, in.ReorderSafetyDays,
-		in.PrintAs, in.LabelPrintAs)
+		in.PrintAs, in.LabelPrintAs, in.ExpiryWarnDays)
 	return err
 }
 

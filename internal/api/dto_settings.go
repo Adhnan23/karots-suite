@@ -41,6 +41,7 @@ type ShopSettings struct {
 	LabelBottomFont        string `json:"labelBottomFont"`    // "1".."4"
 	ReorderDefaultDays     int    `json:"reorderDefaultDays"` // supplier rhythm when nothing is known
 	ReorderSafetyDays      int    `json:"reorderSafetyDays"`
+	ExpiryWarnDays         int    `json:"expiryWarnDays"` // lots warn this long before expiry, unless their supplier has its own
 }
 
 // SettingsLocker is an active locker for the default-locker picker.

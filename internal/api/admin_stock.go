@@ -123,7 +123,7 @@ func (h *handlers) AdminProductLots(c echo.Context) error {
 
 func lotRow(b stock.Batch) LotRow {
 	r := LotRow{ID: b.ID, BatchNo: strOr(b.BatchNo), QtyReceived: b.QtyReceived.String(), QtyRemaining: b.QtyRemaining.String(),
-		CostPrice: dec2(b.CostPrice), Source: b.Source, CreatedAt: b.CreatedAt.Format(time.RFC3339), FromDelivery: b.PurchaseItemID != nil}
+		CostPrice: dec2(b.CostPrice), Source: b.Source, CreatedAt: b.CreatedAt.Format(time.RFC3339), FromDelivery: b.PurchaseItemID != nil, Supplier: b.SupplierName, WarnDays: b.WarnDays}
 	if b.ExpiryDate != nil {
 		r.ExpiryDate = b.ExpiryDate.Format("2006-01-02")
 	}

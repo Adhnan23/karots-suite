@@ -15,15 +15,16 @@ type MoneySource struct {
 // (returns worth more than was owed, or an advance). OldDebt is the still-unpaid
 // pre-system opening, the only part of Owed an admin may correct.
 type AdminSupplierRow struct {
-	ID         int64  `json:"id"`
-	Name       string `json:"name"`
-	Contact    string `json:"contact"`
-	Phone      string `json:"phone"`
-	Address    string `json:"address"`
-	CreditDays int    `json:"creditDays"`
-	Owed       string `json:"owed"`
-	OldDebt    string `json:"oldDebt"`
-	Active     bool   `json:"active"`
+	ID             int64  `json:"id"`
+	Name           string `json:"name"`
+	Contact        string `json:"contact"`
+	Phone          string `json:"phone"`
+	Address        string `json:"address"`
+	CreditDays     int    `json:"creditDays"`
+	ExpiryWarnDays *int   `json:"expiryWarnDays"` // null = the shop's number
+	Owed           string `json:"owed"`
+	OldDebt        string `json:"oldDebt"`
+	Active         bool   `json:"active"`
 }
 
 type AdminSupplierList struct {
@@ -63,6 +64,7 @@ type SupplierRequest struct {
 	Phone          string `json:"phone"`
 	Address        string `json:"address"`
 	CreditDays     int    `json:"creditDays"`
+	ExpiryWarnDays *int   `json:"expiryWarnDays"` // null = the shop's number
 	OpeningBalance string `json:"openingBalance"`
 }
 

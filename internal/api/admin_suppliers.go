@@ -36,7 +36,7 @@ func (h *handlers) registerAdminSuppliers(g *echo.Group) {
 
 func adminSupplierRow(s suppliers.Supplier) AdminSupplierRow {
 	return AdminSupplierRow{ID: s.ID, Name: s.Name, Contact: strOr(s.ContactPerson), Phone: strOr(s.Phone), Address: strOr(s.Address),
-		CreditDays: s.CreditDays, Owed: dec2(s.OutstandingBalance), OldDebt: dec2(s.OpeningUnlinked), Active: s.IsActive}
+		CreditDays: s.CreditDays, ExpiryWarnDays: s.ExpiryWarnDays, Owed: dec2(s.OutstandingBalance), OldDebt: dec2(s.OpeningUnlinked), Active: s.IsActive}
 }
 
 // AdminSuppliers lists suppliers: search on name,
@@ -151,7 +151,7 @@ func bindSupplier(c echo.Context) (suppliers.CreateInput, error) {
 		return suppliers.CreateInput{}, apperr.BadRequest("invalid request body")
 	}
 	in := suppliers.CreateInput{Name: strings.TrimSpace(req.Name), ContactPerson: optStr(req.Contact), Phone: optStr(req.Phone),
-		Address: optStr(req.Address), CreditDays: req.CreditDays, OpeningBalance: strings.TrimSpace(req.OpeningBalance)}
+		Address: optStr(req.Address), CreditDays: req.CreditDays, ExpiryWarnDays: req.ExpiryWarnDays, OpeningBalance: strings.TrimSpace(req.OpeningBalance)}
 	return in, c.Validate(&in)
 }
 

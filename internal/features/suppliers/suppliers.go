@@ -23,6 +23,7 @@ type Supplier struct {
 	Phone              *string         `db:"phone"               json:"phone,omitempty"`
 	Address            *string         `db:"address"             json:"address,omitempty"`
 	CreditDays         int             `db:"credit_days"         json:"credit_days"`
+	ExpiryWarnDays     *int            `db:"expiry_warn_days"    json:"expiry_warn_days,omitempty"` // nil = the shop's
 	OutstandingBalance decimal.Decimal `db:"outstanding_balance" json:"outstanding_balance"`
 	OpeningBalance     decimal.Decimal `db:"opening_balance"     json:"opening_balance"`
 	OpeningUnlinked    decimal.Decimal `db:"opening_unlinked"    json:"opening_unlinked"`
@@ -43,6 +44,8 @@ type CreateInput struct {
 	Phone         *string `json:"phone"          form:"phone"          validate:"omitempty,max=15"`
 	Address       *string `json:"address"        form:"address"`
 	CreditDays    int     `json:"credit_days"    form:"credit_days"    validate:"gte=0"`
+	// ExpiryWarnDays: nil follows the shop's number.
+	ExpiryWarnDays *int `json:"expiry_warn_days" form:"expiry_warn_days" validate:"omitempty,min=0,max=730"`
 	// OpeningBalance is the amount we already owed this supplier at onboarding.
 	// Applied once, at creation; Update never touches it.
 	OpeningBalance string `json:"opening_balance" form:"opening_balance"`

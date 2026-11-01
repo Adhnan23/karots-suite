@@ -12,7 +12,7 @@ import { errMsg } from '@/features/till/api'
 export function SupplierForm({ s, onClose, onSaved }: { s?: AdminSupplierRow; onClose: () => void; onSaved?: (r: AdminSupplierRow) => void }) {
   const qc = useQueryClient()
   const [f, setF] = useState<SupplierRequest>({
-    name: s?.name ?? '', contact: s?.contact ?? '', phone: s?.phone ?? '', address: s?.address ?? '', creditDays: s?.creditDays ?? 0, openingBalance: '',
+    name: s?.name ?? '', contact: s?.contact ?? '', phone: s?.phone ?? '', address: s?.address ?? '', creditDays: s?.creditDays ?? 0, expiryWarnDays: s?.expiryWarnDays, openingBalance: '',
   })
   const [busy, setBusy] = useState(false)
   const up = (patch: Partial<SupplierRequest>) => setF({ ...f, ...patch })
@@ -43,6 +43,9 @@ export function SupplierForm({ s, onClose, onSaved }: { s?: AdminSupplierRow; on
       <div className="grid grid-cols-2 gap-3">
         <Field label="Credit days" hint="0 = pay on delivery">
           <input aria-label="Credit days" inputMode="numeric" value={f.creditDays || ''} placeholder="0" onChange={(e) => up({ creditDays: Number(e.target.value.replace(/\D/g, '')) || 0 })} className={INPUT} />
+        </Field>
+        <Field label="Warn before expiry (days)" hint="Blank = the shop's number in Settings">
+          <input aria-label="Warn before expiry" inputMode="numeric" value={f.expiryWarnDays ?? ''} onChange={(e) => { const d = e.target.value.replace(/\D/g, ''); up({ expiryWarnDays: d === '' ? undefined : Math.min(730, Number(d)) }) }} className={INPUT} />
         </Field>
         {!s && (
           <Field label="Already owed" hint="Before you started with this">
