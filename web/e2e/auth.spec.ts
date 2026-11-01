@@ -9,7 +9,7 @@ const login = async (page: Page, phone: string) => {
 }
 
 test('bad cookie on load lands on login, not a blank page or loop', async ({ page, context }) => {
-  await context.addCookies([{ name: 'pos_token', value: 'garbage', url: 'http://localhost:3100' }])
+  await context.addCookies([{ name: 'pos_token', value: 'garbage', url: 'http://localhost:3000' }])
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()

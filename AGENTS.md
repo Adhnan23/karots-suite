@@ -192,7 +192,7 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
 
 ## Dev workflow
 
-- **Ports:** Postgres `suite_db` on **5433**, Go server on **3100**, Vite on **5173** (proxies `/api`).
+- **Ports:** Postgres `suite_db` on **5433**, Go server on **3000**, Vite on **5173** (proxies `/api`).
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
@@ -249,7 +249,7 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
 - `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
 - `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
 - The login limiter (burst 10, +1 per 2s) is keyed on the socket IP. The e2e specs import `test` from `e2e/fixtures.ts`, which waits out a 429. Import from there, not `@playwright/test`, or a full run fails on sign-in.
-- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3100/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
+- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3000/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
 - Go DB tests and Playwright share `suite_db`: never run `go test` while a Playwright run is going — it fails unrelated flows (a restore, the drawer, duplicate names).
 - A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.
 - **File mode never uses a plain `C` locale:** pg_trgm then treats every Sinhala / Tamil letter as punctuation and search finds nothing. Never let embedded-postgres see a data folder it can't use either — it **wipes and re-inits** one whose `PG_VERSION` doesn't match (`filedb.checkDataDir` refuses first).

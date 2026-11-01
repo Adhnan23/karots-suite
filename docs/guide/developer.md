@@ -11,11 +11,11 @@ for the Makefile.
 cp .env.example .env
 make db-up          # PostgreSQL suite_db on :5433
 make migrate
-make dev            # Go (air) on :3100 + Vite on :5173, proxying /api
+make dev            # Go (air) on :3000 + Vite on :5173, proxying /api
 ```
 
 Seed a starter shop with `go run ./cmd/server -seed`. The dev database is disposable, so drop and
-re-migrate freely. Karots POS can run alongside on 5432 / 3000.
+re-migrate freely.
 
 ## Everyday commands
 
@@ -62,7 +62,7 @@ in `plugins/<key>/` with its own version table. Never hard-code an install ID in
 - Playwright runs one worker against one server. Import `test` from `e2e/fixtures.ts`, which waits
   out the login limiter.
 - Don't run `go test` while Playwright is running, because they share `suite_db`.
-- Kill anything on 3100 / 5173 before Playwright, which reuses whatever is listening there.
+- Kill anything on 3000 / 5173 before Playwright, which reuses whatever is listening there.
 
 ## Screenshots for the docs
 

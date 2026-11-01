@@ -107,7 +107,7 @@ All guides: [docs/guide](docs/guide/README.md).
 cp .env.example .env
 make db-up          # PostgreSQL on :5433
 make migrate
-make dev            # Go (air) on :3100 + Vite on :5173, proxying /api
+make dev            # Go (air) on :3000 + Vite on :5173, proxying /api
 ```
 
 Open <http://localhost:5173>. Seed a starter shop with `go run ./cmd/server -seed`

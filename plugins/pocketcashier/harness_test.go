@@ -52,7 +52,7 @@ func newEnv(t *testing.T) *env {
 		WithDrawerKick(func(context.Context) { en.kicks++ })
 	mux := plugin.NewMux()
 	en.p = &Plugin{}
-	en.p.Setup(plugin.NewRegistry(plugin.Core{DB: db, Cfg: &config.Config{ServerPort: 3100, Version: "test"}, Audit: audit.NewService(db),
+	en.p.Setup(plugin.NewRegistry(plugin.Core{DB: db, Cfg: &config.Config{ServerPort: 3000, Version: "test"}, Audit: audit.NewService(db),
 		Settings: settings.NewService(db), CashRegister: cr, Sales: ss, Cashflow: cf, Auth: en.auth, Held: heldsales.NewService(db)}, mux, en.e))
 	jwt := middleware.JWTAuth(testSecret)
 	v1 := en.e.Group("/api/v1")
