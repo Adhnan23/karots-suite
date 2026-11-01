@@ -156,3 +156,28 @@ func (te *testEnv) phoneOf(t *testing.T, id int64) string {
 	}
 	return p
 }
+
+// The phone locks after the shop's idle time and offers "Continue last count"
+// from the person's last close, as the PC till does.
+func TestTillCopyLockAndLastCount(t *testing.T) {
+	te := newTestEnv(t)
+	te.db.Exec(`UPDATE settings SET allow_untracked_cash = true, lock_timeout_minutes = 7, allow_continue_last_count = true`) //nolint:errcheck
+	ph := devPhone()
+	id := te.seedUser(t, ph, "cashier")
+	ck := te.signIn(t, "dev-last", "", ph)
+	te.on("dev-last", http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, ck)
+	te.on("dev-last", http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{Breakdown: map[string]float64{"500": 3}}, ck)
+	c, err := BuildTillCopy(context.Background(), te.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.LockTimeoutMinutes != 7 || !c.AllowContinueLast {
+		t.Fatalf("lock %d continue %v", c.LockTimeoutMinutes, c.AllowContinueLast)
+	}
+	for _, p := range c.People {
+		if p.ID == id && p.LastCount["500"] == 3 {
+			return
+		}
+	}
+	t.Fatalf("no last count for the cashier: %+v", c.People)
+}

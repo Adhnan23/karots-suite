@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -37,6 +38,7 @@ func BuildTillCopy(ctx context.Context, db *sqlx.DB) (*TillCopy, error) {
 	if st.DefaultSaleType == "wholesale" {
 		c.DefaultSaleType = "wholesale"
 	}
+	c.LockTimeoutMinutes, c.AllowContinueLast = st.LockTimeoutMinutes, st.AllowContinueLastCount
 	if st.DefaultLockerID != nil {
 		c.DefaultLockerID = *st.DefaultLockerID
 	}
@@ -126,6 +128,9 @@ func copyRows(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
 		FROM users WHERE is_active AND NOT is_system AND role IN ('cashier', 'manager') ORDER BY name`); err != nil {
 		return apperr.Internal("failed to load people", err)
 	}
+	if err := lastCounts(ctx, db, c.People); err != nil {
+		return err
+	}
 	if err := db.SelectContext(ctx, &c.Places, `SELECT id, name, kind, cashier_access AS cashieraccess
 		FROM lockers WHERE is_active ORDER BY name`); err != nil {
 		return apperr.Internal("failed to load lockers", err)
@@ -148,6 +153,29 @@ func copyRows(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
 		to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS createdat
 		FROM held_sales ORDER BY id`); err != nil {
 		return apperr.Internal("failed to load held sales", err)
+	}
+	return nil
+}
+
+// lastCounts gives each person their last close's count, note by note.
+func lastCounts(ctx context.Context, db *sqlx.DB, people []CopyPerson) error {
+	var rows []struct {
+		UserID int64  `db:"user_id"`
+		Counts []byte `db:"closing_breakdown"`
+	}
+	if err := db.SelectContext(ctx, &rows, `SELECT DISTINCT ON (user_id) user_id, closing_breakdown FROM cash_register
+		WHERE closed_at IS NOT NULL AND closing_breakdown IS NOT NULL ORDER BY user_id, closed_at DESC`); err != nil {
+		return apperr.Internal("failed to load last counts", err)
+	}
+	last := map[int64][]byte{}
+	for _, r := range rows {
+		last[r.UserID] = r.Counts
+	}
+	for i := range people {
+		people[i].LastCount = map[string]float64{}
+		if b := last[people[i].ID]; b != nil {
+			_ = json.Unmarshal(b, &people[i].LastCount) // an unreadable count just isn't offered
+		}
 	}
 	return nil
 }

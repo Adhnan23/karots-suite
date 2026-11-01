@@ -24,6 +24,9 @@ type TillCopy struct {
 	// Which price? works offline.
 	PriceOptions  map[string][]Lot `json:"priceOptions"`
 	Denominations []Denomination   `json:"denominations"` // the shop's active notes and coins
+	// LockTimeoutMinutes: idle minutes before the phone locks (0 = never), as the PC.
+	LockTimeoutMinutes int  `json:"lockTimeoutMinutes"`
+	AllowContinueLast  bool `json:"allowContinueLast"` // the drawer may start from the last close's count
 }
 
 // CopyProduct is a till card plus what an offline search needs: its category
@@ -62,6 +65,8 @@ type CopyPerson struct {
 	PinHash         string `json:"pinHash"`
 	CanManageCredit bool   `json:"canManageCredit"`
 	CanSeeCost      bool   `json:"canSeeCost"`
+	// LastCount: their last close, note by note ({value: count}), for "Continue last count".
+	LastCount map[string]float64 `json:"lastCount" db:"-"`
 }
 
 // CopyPlace is a locker or account a till may take a float from, bank into,

@@ -607,6 +607,11 @@ export interface TillCopy {
    */
   priceOptions: { [key: string]: Lot[]};
   denominations: Denomination[]; // the shop's active notes and coins
+  /**
+   * LockTimeoutMinutes: idle minutes before the phone locks (0 = never), as the PC.
+   */
+  lockTimeoutMinutes: number /* int */;
+  allowContinueLast: boolean; // the drawer may start from the last close's count
 }
 /**
  * CopyProduct is a till card plus what an offline search needs: its category
@@ -643,6 +648,10 @@ export interface CopyPerson {
   pinHash: string;
   canManageCredit: boolean;
   canSeeCost: boolean;
+  /**
+   * LastCount: their last close, note by note ({value: count}), for "Continue last count".
+   */
+  lastCount: { [key: string]: number /* float64 */};
 }
 /**
  * CopyPlace is a locker or account a till may take a float from, bank into,
