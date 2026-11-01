@@ -16,7 +16,7 @@ is back.
      **Certificate Trust Settings** → turn on "Karots Shop CA — your shop".
 3. Once the phone trusts the shop, **Open the app** appears. Open it and add it to the home screen.
 4. Give the phone a name. It shows a 6-digit code: in **Phones**, tap **Approve** on that phone, or **Approve by code**
-   and type or scan it.
+   and type or scan it. A phone waiting for approval also shows on the dashboard under **Needs your attention**.
 
 The shop's certificate is kept in the database, so a backup and restore keeps every phone working. The phones use
 port 8443; Setup opens it in the PC's firewall.
@@ -75,5 +75,7 @@ The PC never refuses that work afterwards. It takes each sale in order and **fla
 
 - **Release** frees the person on it, so they can sign in elsewhere. Sales still on the phone are sent if it comes back.
 - **Block** stops the phone at once. To use it again, **Remove** it and pair it again.
+- **Remove** takes any phone off the list, one in use too (a replaced phone). Sales still waiting on it never arrive,
+  so block a phone that may come back instead.
 
 A shop has this app only if it was built with it ([Install & Shop Builder](../install.md)).
