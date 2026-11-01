@@ -34,6 +34,18 @@ retested (no phone at hand). Full Playwright 222 passed.
   chosen lot whose credit or replacement is pending, not booked at once. **Core** (user, 2026-11-01): lots,
   suppliers, returns and recovery are core, and grocery / FMCG suppliers work the same way; the pharmacy plugin may
   add extras through hooks only.
+- More core gaps found 2026-11-01 (user wants them all looked at):
+  - **Lot recall / tracing:** sales record each line's lot, but no "lot X recalled — who bought it, what's left"
+    screen (goes with the supplier-expiry work: both are about lots and suppliers).
+  - **Prices per customer / customer group:** only retail and wholesale; no "this hotel always pays Rs x", no third list.
+  - **Loyalty points:** `customers.loyalty_points` exists but nothing earns or spends it — build it or drop the column.
+  - **Gift vouchers / credit notes for walk-ins:** a named customer can hold an advance; a walk-in's return gets cash
+    or nothing.
+  - **Supplier early-payment discount** ("2% if paid within 7 days"); bills have a discount, not terms.
+  - **Staff commission** per cashier / rep (the staff-plugin idea in memory).
+  - **Delivery orders** (a phone order to deliver later, with its status).
+  - **Several shops:** one install = one shop, no stock transfers — a choice (owners watch via Tailscale); confirm with
+    a two-outlet shop before keeping it.
 
 **Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
