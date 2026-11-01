@@ -27,8 +27,9 @@ shipped as **one static binary**.
   `web/src/plugins/pocketcashier`) picks up whatever cashier-side features the compiled-in plugins register, through
   the same generic slots and hooks the desktop till uses. When a new plugin (or a new till feature) should work on the
   phone, the change goes **in Pocket Cashier**: never in that plugin, and never a core change made for the phone. Today
-  it uses plugin payment methods (`slots.tillTenders`; `offline: true` = also from the copy); plugin till menus, tabs
-  and cart hints on the phone are release 2.
+  it uses plugin payment methods (`slots.tillTenders`; `offline: true` = also from the copy) and leaves out products a
+  plugin menu claims (`tillMenu.claims`) or unpriced services (`catalog.ts` `sellable`); plugin till menus, tabs and
+  cart hints on the phone are release 2.
 - **Money and sales.** `internal/features/*` holds the domain logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`

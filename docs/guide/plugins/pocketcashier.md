@@ -26,7 +26,7 @@ port 8443; Setup opens it in the PC's firewall.
 - **Sign in** with your name and PIN. Cashiers and managers can sign in even when the PC is down. An admin signs in
   only while the PC answers, and gets the normal admin pages.
 - **Sell**: search, scan with the camera (or a Bluetooth scanner), or tap a category. Prices and packs work as at the
-  till.
+  till. Products a plugin opens its own form for (reloads, print & copy jobs) are sold at the counter for now.
 - **Pay**: cash (with the change to give), card, cheque or credit. While the PC answers, the receipt prints at the
   counter printer. If the shop asks before printing, the phone asks first. A phone never opens the cash drawer.
 - **Held** keeps sales for later, the same held sales as the till.

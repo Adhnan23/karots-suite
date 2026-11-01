@@ -30,3 +30,16 @@ describe('the phone catalogue', () => {
     expect(byBarcode(copy, '000')).toBeNull()
   })
 })
+
+describe('what the phone sells', () => {
+  it('leaves out a plugin-claimed product and an unpriced service, until plugin menus reach the phone', async () => {
+    const { slots } = await import('@/plugins/slots')
+    const { sellable } = await import('./catalog')
+    slots.tillMenu.push({ key: 'x', label: 'X', claims: (p) => p.badges.includes('🖨'), Panel: () => null })
+    expect(sellable(prod({ id: 1 }))).toBe(true)
+    expect(sellable(prod({ id: 2, badges: ['🖨'] }))).toBe(false)
+    expect(sellable(prod({ id: 3, isService: true, sellingPrice: '0.00' }))).toBe(false)
+    expect(sellable(prod({ id: 4, isService: true, sellingPrice: '500.00' }))).toBe(true)
+    slots.tillMenu.pop()
+  })
+})

@@ -6,7 +6,7 @@ import type { TillState } from '@/features/till/cart/types'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, GLASS } from '../bits'
-import { byBarcode, search } from '../catalog'
+import { byBarcode, search, sellable } from '../catalog'
 import { Scanner } from './Scanner'
 
 /** Search, scan or tap a category, tap to add. Stock is the copy's ("about")
@@ -23,7 +23,8 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
   const code = useCallback((c: string) => {
     setScan(false)
     const hit = byBarcode(copy, c)
-    if (hit) {
+    if (hit && !sellable(hit.product)) setMiss(`${hit.product.name}: sell this one at the counter`)
+    else if (hit) {
       add(hit.product, hit.packId)
       setText('')
       setMiss('')
