@@ -19,11 +19,23 @@ from an encrypted copy; offline actions replay in order and are flagged, never r
 no selling before it is open. User tested on the OnePlus 13 (pair, live, offline + replay, flags); iPhone 13 not
 retested (no phone at hand). Full Playwright 222 passed.
 
-**Next session: core work for the first shop, a pharmacy** (decided with the user 2026-11-01). He catalogues and
-bills medicines; other goods go in as **Quick items** (one "Other goods" category; the admin clears Review now and
-then). He wants to stop overstocking (smart reorder — built), stop missing expiries (A below) and see what he lacks
-(Low stock + requests plugin — built). No Pocket Cashier for him yet (agreed). Design each item with the user first
-(spec → plan), then build test-first. Work in this order:
+**Next session, in this order (agreed with the user 2026-11-01):**
+1. **A fresh review of the 2026-11-01 money changes** (`git log` from `8144be2`): give back and the count moving between
+   lots, Credited us on bills, loss credits paying the next delivery, the Discount method. Add a test for a bounced
+   cheque on a bill that also has a discount, and check the Purchases report and Received tab with one.
+2. **Fix the unreliable `presence.spec.ts:13`** (below). Never weaken it.
+3. **Retake the docs screenshots** (`make docs-shots`): Batches and suppliers at least; rebuild the Demo Room first.
+4. **Bring these notes up to date** with whatever the user reports from hand testing. Not yet confirmed by hand: recall,
+   a credit paying a delivery, the discount (Give back: "worked well").
+
+Also done 2026-11-01: dev server moved to port 3000 (Karots POS no longer runs beside it); no Apps icon on the dock when no
+plugin registers an app. **Testing tip:** run Go tests in a temporary database so hand-test data stays clean, and remember
+Playwright resets `suite_db`.
+
+**Core work for the first shop, a pharmacy: BUILT 2026-11-01** (decided with the user that day). He catalogues and bills
+medicines; other goods go in as **Quick items** (one "Other goods" category; the admin clears Review now and then). He
+wants to stop overstocking (smart reorder), stop missing expiries (A below) and see what he lacks (Low stock + requests
+plugin). No Pocket Cashier for him yet (agreed). A trial with the pharmacist is the natural next step after the list above.
 
 A. **Expiry — do first** (all core; the pharmacy plugin may only add extras through hooks):
    1. **Expiry warning window + 2. per-supplier days: DONE 2026-11-01** (one job; user chose per supplier, not per
