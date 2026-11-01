@@ -8,7 +8,7 @@
 
 **Tech Stack:** Go (Echo, sqlx, goose, crypto/x509), PostgreSQL 17, React + TanStack Router/Query, IndexedDB + WebCrypto (AES-GCM), `bcryptjs` (offline PIN check), `@zxing/library` (camera barcodes; already installed), Playwright.
 
-> **Progress (2026-10-30):** Tasks 1–24 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 25** (e2e + UI gate).
+> **Progress (2026-10-30):** Tasks 1–25 done on branch `m8e-pocket-cashier` (ticked below). Resume at **Task 26** (docs and legal).
 > **The plugin key is `pocketcashier`, not `pocket`** (core already has a `'pocket'` locker kind, which `check-core` would flag):
 > read `plugins/pocket` as `plugins/pocketcashier`, `/x/pocket` as `/x/pocketcashier`, `/api/v1/x/pocket/...` as
 > `/api/v1/x/pocketcashier/...` everywhere below. Every ruling made so far is in the ledger
@@ -617,13 +617,13 @@ Every screen follows `docs/design/mockups/pocket-cashier.html` and uses theme to
 **Interfaces:**
 - Consumes: everything above. The Playwright build has every plugin compiled in, so 8443 is up.
 
-- [ ] **Step 1: Write the spec.**
+- [x] **Step 1: Write the spec.**
   - `pair → approve → sell online → print called`: a phone context at 390×844 with `ignoreHTTPSErrors` on `https://localhost:8443/x/pocket/`, paired via the UI. The admin approves via the API, the cashier signs in, adds 2 items and pays cash → the sale shows in the admin sales list.
   - `offline sale replays and flags`: `context.setOffline(true)`, reload from the cached app, sign in offline, sell → "Waiting 1". `setOffline(false)` → "Waiting 0", and the admin Phones → Sends shows the action applied.
   - `takeover`: the same cashier on a PC context with a cart → after the phone signs in, the PC goes to `/lock` with "now on", and Held lists the cart.
-- [ ] **Step 2: Run it.** Kill anything on 3100/5173 first, then `make e2e-seed && cd web && bunx playwright test e2e/pocket.spec.ts`. Expected: PASS, and the full suite stays green (`bunx playwright test`).
-- [ ] **Step 3: UI gate.** Screenshot sign-in, Sell, Pay, PC down, Held, Menu, the admin Phones page (360 px) and the setup page in Studio, Night and Bazaar × light and dark. Compare them with `docs/design/mockups/pocket-cashier.html` yourself and fix anything off: card edges at 360 px, figures overflowing, raw colours.
-- [ ] **Step 4: Commit.** `test(pocket): end-to-end — pair, sell live, sell offline and replay, takeover`
+- [x] **Step 2: Run it.** Kill anything on 3100/5173 first, then `make e2e-seed && cd web && bunx playwright test e2e/pocket.spec.ts`. Expected: PASS, and the full suite stays green (`bunx playwright test`).
+- [x] **Step 3: UI gate.** Screenshot sign-in, Sell, Pay, PC down, Held, Menu, the admin Phones page (360 px) and the setup page in Studio, Night and Bazaar × light and dark. Compare them with `docs/design/mockups/pocket-cashier.html` yourself and fix anything off: card edges at 360 px, figures overflowing, raw colours.
+- [x] **Step 4: Commit.** `test(pocket): end-to-end — pair, sell live, sell offline and replay, takeover`
 
 ### Task 26: Docs and legal (an app, not a plugin row)
 
