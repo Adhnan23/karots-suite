@@ -385,3 +385,39 @@ func TestTermsStepKeepsARecord(t *testing.T) {
 		t.Errorf("want 2 records:\n%s", got)
 	}
 }
+
+func TestLinuxFirewallExtraPorts(t *testing.T) {
+	j, rc, _ := linuxJob(t, "file", false)
+	j.Conf.ExtraPorts = []int{8443}
+	lookPathFn = func(name string) (string, error) { return "/usr/sbin/" + name, nil }
+	rc.answers["ufw status"] = "Status: active\n"
+	if err := linuxNetwork(j); err != nil {
+		t.Fatal(err)
+	}
+	if err := linuxRemoveNetwork(j); err != nil {
+		t.Fatal(err)
+	}
+	all := rc.all()
+	for _, want := range []string{"ufw allow 3000/tcp", "ufw allow 8443/tcp", "ufw delete allow 3000/tcp", "ufw delete allow 8443/tcp"} {
+		if !strings.Contains(all, want) {
+			t.Errorf("missing %q in:\n%s", want, all)
+		}
+	}
+}
+
+func TestLinuxFirewalldExtraPorts(t *testing.T) {
+	j, rc, _ := linuxJob(t, "file", false)
+	j.Conf.ExtraPorts = []int{8443}
+	lookPathFn = func(name string) (string, error) {
+		if name == "firewall-cmd" {
+			return "/usr/bin/firewall-cmd", nil
+		}
+		return "", os.ErrNotExist
+	}
+	if err := linuxNetwork(j); err != nil {
+		t.Fatal(err)
+	}
+	if all := rc.all(); !strings.Contains(all, "firewall-cmd --add-port=3000/tcp --permanent") || !strings.Contains(all, "firewall-cmd --add-port=8443/tcp --permanent") {
+		t.Fatalf("commands:\n%s", all)
+	}
+}

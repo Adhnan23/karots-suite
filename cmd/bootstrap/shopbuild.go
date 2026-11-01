@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -63,7 +64,9 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 		if err := setup(s.OS, s.Arch, dir, log); err != nil {
 			return res, fmt.Errorf("build karots-setup: %w", err)
 		}
-		if err := shopconf.Write(filepath.Join(dir, shopconf.FileName), s.Conf(filepath.Base(res.Binary))); err != nil {
+		c := s.Conf(filepath.Base(res.Binary))
+		c.ExtraPorts = pluginPorts(bo.Plugins)
+		if err := shopconf.Write(filepath.Join(dir, shopconf.FileName), c); err != nil {
 			return res, err
 		}
 		if o.PGInstaller != "" && needsPG(*s) {
@@ -173,4 +176,14 @@ func listShops(path string) error {
 		fmt.Printf("%-20s %-24s %s/%-5s %-6s :%-5d %-40s built %s · %s\n", s.Key, s.Name, s.OS, s.Arch, s.Mode, s.Port, strings.Join(s.Plugins, ","), last, pub)
 	}
 	return nil
+}
+
+// pluginPorts is every port the built plugins listen on, once each, in order.
+func pluginPorts(ms []manifest) []int {
+	var out []int
+	for _, m := range ms {
+		out = append(out, m.Ports...)
+	}
+	slices.Sort(out)
+	return slices.Compact(out)
 }

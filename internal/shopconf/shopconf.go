@@ -50,7 +50,8 @@ type Conf struct {
 	Binary     string            `json:"binary"` // file name beside the installer
 	InstallDir string            `json:"installDir"`
 	Port       int               `json:"port"`
-	Open       string            `json:"open"` // kiosk | background
+	ExtraPorts []int             `json:"extraPorts,omitempty"` // more TCP ports to open (the plugins' own listeners)
+	Open       string            `json:"open"`                 // kiosk | background
 	LanAddress string            `json:"lanAddress,omitempty"`
 	DB         *DB               `json:"db,omitempty"` // nil in file mode
 	Env        map[string]string `json:"env"`          // the final .env
@@ -85,6 +86,11 @@ func (c Conf) check() error {
 		return fmt.Errorf("install.conf: open %q (kiosk | background)", c.Open)
 	case c.InstallDir == "":
 		return fmt.Errorf("install.conf: installDir is empty")
+	}
+	for _, p := range c.ExtraPorts {
+		if p < 1 || p > 65535 {
+			return fmt.Errorf("install.conf: extraPorts %d", p)
+		}
 	}
 	for k, v := range c.Env {
 		if k == "" || strings.ContainsAny(k, "= \t\r\n#") || strings.ContainsAny(v, "\r\n") {

@@ -200,19 +200,26 @@ WantedBy=multi-user.target
 	return nil
 }
 
-// linuxNetwork opens the till port when ufw or firewalld is on; neither on = nothing to open.
+// linuxNetwork opens the till port (and the plugins' ports) when ufw or
+// firewalld is on; neither on = nothing to open.
 func linuxNetwork(j *Job) error {
-	port := fmt.Sprintf("%d/tcp", j.Conf.Port)
+	ports := tcpPorts(j)
 	if _, err := lookPathFn("ufw"); err == nil {
 		if out, _ := j.Run.Run("ufw", "status"); strings.Contains(out, "Status: active") {
-			_, err := run(j, "ufw", "allow", port)
-			return err
+			for _, p := range ports {
+				if _, err := run(j, "ufw", "allow", p); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 	}
 	if _, err := lookPathFn("firewall-cmd"); err == nil {
 		if _, err := j.Run.Run("systemctl", "is-active", "--quiet", "firewalld"); err == nil {
-			if _, err := run(j, "firewall-cmd", "--add-port="+port, "--permanent"); err != nil {
-				return err
+			for _, p := range ports {
+				if _, err := run(j, "firewall-cmd", "--add-port="+p, "--permanent"); err != nil {
+					return err
+				}
 			}
 			_, err := run(j, "firewall-cmd", "--reload")
 			return err
@@ -220,6 +227,15 @@ func linuxNetwork(j *Job) error {
 	}
 	fmt.Fprintln(j.Log, "no firewall is on — nothing to open")
 	return nil
+}
+
+// tcpPorts is the till port then the extra ones, as "3000/tcp".
+func tcpPorts(j *Job) []string {
+	out := []string{fmt.Sprintf("%d/tcp", j.Conf.Port)}
+	for _, p := range j.Conf.ExtraPorts {
+		out = append(out, fmt.Sprintf("%d/tcp", p))
+	}
+	return out
 }
 
 func linuxPrinting(j *Job) error {

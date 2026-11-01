@@ -403,3 +403,14 @@ func TestRetryWrite(t *testing.T) {
 		t.Fatalf("gives up after %d tries: %v (%d)", retryTries, err, tries)
 	}
 }
+
+func TestWindowsFirewallExtraPorts(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	j.Conf.ExtraPorts = []int{8443}
+	if err := windowsNetwork(j); err != nil {
+		t.Fatal(err)
+	}
+	if all := rc.all(); strings.Count(all, "-LocalPort 3000,8443") != 2 {
+		t.Fatalf("script:\n%s", all)
+	}
+}

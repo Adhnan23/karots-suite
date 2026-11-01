@@ -36,18 +36,22 @@ func linuxRemoveOpen(j *Job) error {
 	return os.RemoveAll(at(filepath.Join(home, ".karots-kiosk")))
 }
 
-// linuxRemoveNetwork closes the till port in whichever firewall is on.
+// linuxRemoveNetwork closes the till port (and the plugins' ports) in whichever firewall is on.
 func linuxRemoveNetwork(j *Job) error {
-	port := fmt.Sprintf("%d/tcp", j.Conf.Port)
+	ports := tcpPorts(j)
 	if _, err := lookPathFn("ufw"); err == nil {
 		if out, _ := j.Run.Run("ufw", "status"); strings.Contains(out, "Status: active") {
-			run(j, "ufw", "delete", "allow", port) //nolint:errcheck // no rule = fine
+			for _, p := range ports {
+				run(j, "ufw", "delete", "allow", p) //nolint:errcheck // no rule = fine
+			}
 		}
 	}
 	if _, err := lookPathFn("firewall-cmd"); err == nil {
 		if _, err := j.Run.Run("systemctl", "is-active", "--quiet", "firewalld"); err == nil {
-			run(j, "firewall-cmd", "--remove-port="+port, "--permanent") //nolint:errcheck
-			run(j, "firewall-cmd", "--reload")                           //nolint:errcheck
+			for _, p := range ports {
+				run(j, "firewall-cmd", "--remove-port="+p, "--permanent") //nolint:errcheck
+			}
+			run(j, "firewall-cmd", "--reload") //nolint:errcheck
 		}
 	}
 	return nil

@@ -111,3 +111,18 @@ func TestBuildRequiresSecret(t *testing.T) {
 		t.Fatalf("err %v", err)
 	}
 }
+
+func TestBuildShopExtraPorts(t *testing.T) {
+	out := t.TempDir()
+	s := mustShop(t, "al-raj", "linux", "file")
+	s.Plugins = []string{"phone"}
+	all := []manifest{{Key: "phone", Import: "x/phone", Ports: []int{8443}}, {Key: "other", Import: "x/other", Ports: []int{9000}}}
+	var got buildOpts
+	if _, err := buildShop(&s, all, shopBuildOpts{Out: out, Installer: true}, fakeBuild(&got), fakeSetup, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	c, err := shopconf.Read(filepath.Join(out, "al-raj", "install.conf"))
+	if err != nil || !slices.Equal(c.ExtraPorts, []int{8443}) {
+		t.Fatalf("extraPorts %v (%v)", c.ExtraPorts, err)
+	}
+}

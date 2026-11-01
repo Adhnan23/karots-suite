@@ -42,6 +42,7 @@ func TestReadRefuses(t *testing.T) {
 		"server no db":  {func(c *Conf) { c.DB = nil }, "db"},
 		"binary path":   {func(c *Conf) { c.Binary = "../x" }, "binary"},
 		"port":          {func(c *Conf) { c.Port = 0 }, "port"},
+		"extra port":    {func(c *Conf) { c.ExtraPorts = []int{8443, 0} }, "extraPorts"},
 		"open":          {func(c *Conf) { c.Open = "x" }, "open"},
 		"env newline":   {func(c *Conf) { c.Env["A"] = "x\ny" }, "env"},
 	} {
@@ -60,5 +61,17 @@ func TestEnvFile(t *testing.T) {
 	c := Conf{Env: map[string]string{"B": "2", "A": "x y"}}
 	if got := string(c.EnvFile()); got != "A=x y\nB=2\n" {
 		t.Fatalf("got %q", got)
+	}
+}
+
+func TestExtraPortsChecked(t *testing.T) {
+	c := sample()
+	c.ExtraPorts = []int{8443}
+	if err := c.check(); err != nil {
+		t.Fatal(err)
+	}
+	c.ExtraPorts = []int{70000}
+	if err := c.check(); err == nil {
+		t.Fatal("port 70000 accepted")
 	}
 }

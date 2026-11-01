@@ -53,6 +53,7 @@ type manifest struct {
 	Version     string   `json:"version"`
 	Description string   `json:"description"`
 	Requires    []string `json:"requires"` // plugins always built alongside this one
+	Ports       []int    `json:"ports"`    // TCP ports the plugin listens on (Setup opens them)
 }
 
 func main() {
