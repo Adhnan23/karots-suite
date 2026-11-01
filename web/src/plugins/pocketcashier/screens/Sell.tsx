@@ -1,4 +1,4 @@
-import { ScanBarcode, Search } from 'lucide-react'
+import { Info, ScanBarcode, Search } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import type { CopyProduct, Lot, TillCopy } from '@/api/types.gen'
 import type { Action } from '@/features/till/cart/store'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { CARD, GLASS } from '../bits'
 import { byBarcode, search, sellable } from '../catalog'
 import { addFlow } from '../addFlow'
+import { InfoSheet } from './InfoSheet'
 import { PackSheet } from './PackSheet'
 import { PriceSheet } from './PriceSheet'
 import { Scanner } from './Scanner'
@@ -22,6 +23,7 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
   const [scan, setScan] = useState(false)
   const [miss, setMiss] = useState('')
   const [pick, setPick] = useState<Pick | null>(null)
+  const [info, setInfo] = useState<CopyProduct | null>(null)
   const add = useCallback((p: CopyProduct, packId?: number) => {
     const step = addFlow(copy, p, packId)
     if (step.kind === 'add') dispatch({ type: 'add', product: p, lots: step.lots, units: step.units })
@@ -66,7 +68,7 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
           const n = inCart(p.id)
           const stock = num(p.stockQty)
           return (
-            <li key={p.id}>
+            <li key={p.id} className="relative">
               <button type="button" onClick={() => add(p)} className={cn('flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] border border-border bg-card px-2.5 py-2 text-left shadow-sm', GLASS)}>
                 <span className="grid size-[34px] shrink-0 place-items-center rounded-[var(--radius-sm)] bg-brand-soft text-[17px]">{p.emoji || p.name.slice(0, 1)}</span>
                 <span className="min-w-0">
@@ -81,13 +83,17 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
                   {money(copy.symbol, cart.saleType === 'wholesale' && num(p.wholesalePrice) > 0 ? p.wholesalePrice : p.sellingPrice)}
                   {n > 0 && <span className="ml-1.5 inline-grid h-[22px] min-w-[22px] place-items-center rounded-pill bg-brand px-1 text-[11.5px] font-extrabold text-brand-foreground">{qtyText(n)}</span>}
                 </span>
+                <span className="w-7 shrink-0" />
               </button>
+              <button type="button" aria-label={`About ${p.name}`} onClick={() => setInfo(p)}
+                className="absolute top-1/2 right-1.5 grid size-7 -translate-y-1/2 place-items-center rounded-full text-faint"><Info size={16} /></button>
             </li>
           )
         })}
         {!rows.length && <li className="py-8 text-center text-sm text-muted-foreground">Nothing matches “{text}”</li>}
       </ul>
       {scan && <Scanner onCode={code} onClose={() => setScan(false)} />}
+      {info && <InfoSheet product={info} copy={copy} live={live} onAdd={() => add(info)} onClose={() => setInfo(null)} />}
       {pick?.kind === 'price' && <PriceSheet product={pick.product} lots={pick.lots} sym={copy.symbol} onPick={(l) => lotPicked(pick, l)} onClose={() => setPick(null)} />}
       {pick?.kind === 'pack' && (
         <PackSheet product={pick.product} lot={pick.lot} saleType={cart.saleType} sym={copy.symbol} onClose={() => setPick(null)}

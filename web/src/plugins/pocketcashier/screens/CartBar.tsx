@@ -7,6 +7,7 @@ import { lotsFor } from '@/features/till/cart/lines'
 import type { CartLine, TillState } from '@/features/till/cart/types'
 import { money, num, qtyText } from '@/lib/money'
 import { CARD } from '../bits'
+import { CartSummary } from './CartSummary'
 import { LineSheet } from './LineSheet'
 
 /** The cart at the foot of Sell: items, customer, total and Pay; tap to see the lines. */
@@ -36,7 +37,9 @@ export function CartLines({ cart, dispatch, copy }: { cart: TillState; dispatch:
   return (
     <>
     {editing && <LineSheet key={editing.key} line={editing} cart={cart} dispatch={dispatch} copy={copy} onClose={() => setEdit(null)} />}
-    <ul aria-label="Cart" className={`${CARD} mx-3 mb-2 max-h-[40dvh] overflow-y-auto rounded-[var(--radius)] p-0`}>
+    <div className={`${CARD} mx-3 mb-2 max-h-[50dvh] overflow-y-auto rounded-[var(--radius)] p-0`}>
+    <CartSummary cart={cart} dispatch={dispatch} copy={copy} />
+    <ul aria-label="Cart">
       {cart.lines.map((l) => (
         <li key={l.key} className="flex items-center gap-2 border-b border-border px-3 py-2 text-[13px] last:border-b-0">
           <span className="flex items-center gap-1.5 font-bold text-muted-foreground">
@@ -61,6 +64,7 @@ export function CartLines({ cart, dispatch, copy }: { cart: TillState; dispatch:
         </li>
       ))}
     </ul>
+    </div>
     </>
   )
 }
