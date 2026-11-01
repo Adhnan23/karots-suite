@@ -113,9 +113,6 @@ const ctxPhone = "pocketcashier.phone"
 func (h handlers) phoneAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		secret := c.Request().Header.Get(phoneHeader)
-		if secret == "" {
-			secret = c.QueryParam("t")
-		}
 		ctx := c.Request().Context()
 		p, err := h.p.store.phoneBySecret(ctx, secret)
 		if err != nil {

@@ -2,6 +2,8 @@ package pocketcashier
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"sync"
@@ -16,7 +18,64 @@ import (
 
 var feedEvery = 2 * time.Second
 
-const feedPing = 25 * time.Second
+// feedPing keeps the stream open and the phone "seen" (well inside unreachableAfter).
+var feedPing = 20 * time.Second
+
+// An EventSource can't send headers, and URLs end up in logs: the phone trades
+// its key for a one-time ticket that opens the feed once, within a minute.
+type feedTickets struct {
+	mu sync.Mutex
+	m  map[string]feedTicket
+}
+
+type feedTicket struct {
+	secret string
+	until  time.Time
+}
+
+func (f *feedTickets) issue(secret string) string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	tk := hex.EncodeToString(b)
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.m == nil {
+		f.m = map[string]feedTicket{}
+	}
+	now := time.Now()
+	for k, v := range f.m { // drop the stale ones as we go
+		if now.After(v.until) {
+			delete(f.m, k)
+		}
+	}
+	f.m[tk] = feedTicket{secret: secret, until: now.Add(time.Minute)}
+	return tk
+}
+
+// take spends a ticket: the phone's key, or "" when unknown, used or late.
+func (f *feedTickets) take(tk string) string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	t, ok := f.m[tk]
+	delete(f.m, tk)
+	if !ok || time.Now().After(t.until) {
+		return ""
+	}
+	return t.secret
+}
+
+func (h handlers) feedTicket(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{"ticket": h.p.tickets.issue(c.Request().Header.Get(phoneHeader))})
+}
+
+// feedAuth turns ?ticket= into the phone's key, then phoneAuth checks it as usual.
+func (h handlers) feedAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	auth := h.phoneAuth(next)
+	return func(c echo.Context) error {
+		c.Request().Header.Set(phoneHeader, h.p.tickets.take(c.QueryParam("ticket")))
+		return auth(c)
+	}
+}
 
 // feedHub is one shared poller for every open feed, running while anyone listens.
 type feedHub struct {
@@ -98,6 +157,9 @@ func (h handlers) feed(c echo.Context) error {
 			fmt.Fprintf(w, "event: version\ndata: %s\n\n", v)
 		case <-ping.C:
 			fmt.Fprint(w, ": ping\n\n")
+			if p := phoneFrom(c); p != nil {
+				_, _ = h.p.core.DB.ExecContext(c.Request().Context(), `UPDATE pocket_phones SET last_seen = now() WHERE id = $1`, p.ID)
+			}
 		}
 		w.Flush()
 	}

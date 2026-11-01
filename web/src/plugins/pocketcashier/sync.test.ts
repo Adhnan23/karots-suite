@@ -19,6 +19,7 @@ function fakeFetch(url: string, init?: RequestInit) {
     if ((init?.headers as Record<string, string>)?.['If-None-Match'] === tag) return Promise.resolve(new Response(null, { status: 304 }))
     return Promise.resolve(new Response(JSON.stringify({ version: copyVersion, takenAt: new Date().toISOString(), people: [] }), { status: 200, headers: { ETag: tag } }))
   }
+  if (url.includes('/feed-ticket')) return Promise.resolve(new Response(JSON.stringify({ ticket: 'tk1' }), { status: 200 }))
   if (url.includes('/actions')) {
     const body = JSON.parse(String(init?.body)) as { actions: { ref: string }[] }
     return Promise.resolve(new Response(JSON.stringify({ results: results(body.actions.map((a) => a.ref)) }), { status: 200 }))
@@ -89,6 +90,9 @@ describe('sync', () => {
     const seen: SyncState[] = []
     const stop = startSync((s) => seen.push(s), () => null)
     await vi.waitFor(() => expect(FakeES.last).not.toBeNull())
+    // The feed opens with a one-time ticket, never the phone's key (URLs land in logs).
+    expect(FakeES.last!.url).toContain('ticket=tk1')
+    expect(FakeES.last!.url).not.toContain('k'.repeat(40))
     copyVersion = 'v2'
     calls = []
     FakeES.last!.listeners.version(new MessageEvent('version', { data: 'v2' }))

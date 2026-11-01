@@ -87,11 +87,23 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   const tick = () => { void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined)) }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
   tick()
-  void loadPhone().then((p) => {
-    if (!p || stopped) return
-    es = new EventSource(`${BASE}/feed?t=${encodeURIComponent(p.secret)}`)
-    es.addEventListener('version', () => tick())
-  })
+  // The feed opens with a one-time ticket (an EventSource can't send the key as a
+  // header, and URLs land in logs); a dropped feed opens again with a new one.
+  const openFeed = async () => {
+    if (stopped || !(await loadPhone())) return
+    try {
+      const res = await phoneFetch('/feed-ticket', { method: 'POST' })
+      if (!res.ok) throw new Error(`feed ticket: ${res.status}`)
+      const { ticket } = (await res.json()) as { ticket: string }
+      if (stopped) return
+      es = new EventSource(`${BASE}/feed?ticket=${encodeURIComponent(ticket)}`)
+      es.addEventListener('version', () => tick())
+      es.addEventListener('error', () => { es?.close(); es = null; setTimeout(() => void openFeed(), 5_000) })
+    } catch {
+      setTimeout(() => void openFeed(), 15_000)
+    }
+  }
+  void openFeed()
   const every = setInterval(tick, REFRESH_EVERY)
   // A quick look while something waits, so a sale goes the moment the PC is back.
   const retry = setInterval(() => { if (s.waiting > 0) void flush(signedIn) }, 5_000)

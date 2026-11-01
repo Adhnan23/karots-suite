@@ -97,7 +97,7 @@ func TestFeedSendsVersion(t *testing.T) {
 	defer srv.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/api/v1/x/pocketcashier/feed?t="+secret, nil)
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/api/v1/x/pocketcashier/feed?ticket="+en.ticket(secret), nil)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil || res.StatusCode != http.StatusOK || !strings.HasPrefix(res.Header.Get("Content-Type"), "text/event-stream") {
 		t.Fatalf("feed: %v %v", res, err)
@@ -129,4 +129,72 @@ func (en *env) sale() {
 		en.db.Exec(`DELETE FROM sales WHERE cashier_id = $1`, uid) //nolint:errcheck
 		en.db.Exec(`DELETE FROM products WHERE id = $1`, pid)      //nolint:errcheck
 	})
+}
+
+// ticket asks for a one-time feed ticket as the phone.
+func (en *env) ticket(secret string) string {
+	en.t.Helper()
+	rec := en.do(http.MethodPost, "/feed-ticket", nil, nil, secret)
+	var out struct{ Ticket string }
+	if rec.Code != http.StatusOK || json.Unmarshal(rec.Body.Bytes(), &out) != nil || out.Ticket == "" {
+		en.t.Fatalf("feed ticket: %d %s", rec.Code, rec.Body)
+	}
+	return out.Ticket
+}
+
+// The phone's key never goes in a URL (logs keep URLs): the feed takes a
+// one-time ticket, and the key in ?t= is refused.
+func TestFeedTicketOnce(t *testing.T) {
+	en := newEnv(t)
+	en.withCopy()
+	secret, _ := en.activePhone()
+	srv := httptest.NewServer(en.e)
+	defer srv.Close()
+	open := func(q string) int {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/api/v1/x/pocketcashier/feed?"+q, nil)
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		return res.StatusCode
+	}
+	if c := open("t=" + secret); c != http.StatusUnauthorized {
+		t.Fatalf("key in the URL: %d", c)
+	}
+	tk := en.ticket(secret)
+	if c := open("ticket=" + tk); c != http.StatusOK {
+		t.Fatalf("ticket: %d", c)
+	}
+	if c := open("ticket=" + tk); c != http.StatusUnauthorized {
+		t.Fatalf("ticket used twice: %d", c)
+	}
+}
+
+// An open feed keeps the phone "seen", so a live phone never looks unreachable.
+func TestFeedKeepsPhoneSeen(t *testing.T) {
+	en := newEnv(t)
+	en.withCopy()
+	secret, device := en.activePhone()
+	saved := feedPing
+	feedPing = 50 * time.Millisecond
+	t.Cleanup(func() { feedPing = saved })
+	srv := httptest.NewServer(en.e)
+	defer srv.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL+"/api/v1/x/pocketcashier/feed?ticket="+en.ticket(secret), nil)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	en.db.Exec(`UPDATE pocket_phones SET last_seen = now() - interval '5 minutes' WHERE device = $1`, device) //nolint:errcheck
+	time.Sleep(300 * time.Millisecond)
+	var fresh bool
+	if err := en.db.Get(&fresh, `SELECT last_seen > now() - interval '5 seconds' FROM pocket_phones WHERE device = $1`, device); err != nil || !fresh {
+		t.Fatalf("last_seen not kept fresh (%v)", err)
+	}
 }
