@@ -19,33 +19,50 @@ from an encrypted copy; offline actions replay in order and are flagged, never r
 no selling before it is open. User tested on the OnePlus 13 (pair, live, offline + replay, flags); iPhone 13 not
 retested (no phone at hand). Full Playwright 222 passed.
 
-**Before release 2: a checking session** (user, 2026-11-01) — go through things the user wants looked at first:
-- Expiry warnings are a fixed 30 days in core (dashboard `admin_dashboard.go:138`, Stock → Batches
-  `admin_batches.go:36`); only the Clearance plugin has its own window (default 14 days, for markdowns). Wanted: a
-  shop-wide "warn N days before expiry" setting, maybe per category / product (milk 3 days, medicines 90).
-- Expired / damaged stock: written off (damage), then made good only through a supplier (Losses & Recovery:
-  replacement, paid / credited, or written off) or sent back first (Purchasing → Returns). Check: a supplier return
-  takes stock FEFO and can't pick the expired or damaged lot; and whether "supplier only" fits (a rep's free goods,
-  a branch swap…).
-- From a pharmacy visit (2026-11-01): each supplier has its own expiry return policy — some must be told 60 days
-  before expiry or they won't replace, some 30 days, some take it after expiry; a rep comes at any time and may take
-  near-expiry stock away, the replacement / credit coming later. Needed: a per-supplier notice window (warn per lot
-  from its supplier), "reported on …" / "taken by the rep, replacement pending" tracking, and a supplier return of a
-  chosen lot whose credit or replacement is pending, not booked at once. **Core** (user, 2026-11-01): lots,
-  suppliers, returns and recovery are core, and grocery / FMCG suppliers work the same way; the pharmacy plugin may
-  add extras through hooks only.
-- More core gaps found 2026-11-01, **in core (user agreed)**:
-  - **Lot recall / tracing:** sales record each line's lot, but no "lot X recalled — who bought it, what's left"
-    screen (goes with the supplier-expiry work: both are about lots and suppliers).
-  - **Prices per customer / customer group:** only retail and wholesale; no "this hotel always pays Rs x", no third list.
-  - Drop the unused `customers.loyalty_points` column (loyalty is a future plugin with its own tables).
-  - **Discount received when paying a supplier** (user: no payment terms needed, record what was actually given):
-    today a received bill can't be edited and a payment only pays, so paying 9,800 on a 10,000 bill leaves 200 owed.
-    Add a "discount received" beside the amount paid: it closes the rest of the bill, lowers the payable and shows
-    in the money reports.
-- Not decided yet (only if a shop asks): staff commission (the staff-plugin idea), delivery orders.
-- **Future plugins, not now** (user, 2026-11-01 — only when a shop needs them): loyalty points, gift vouchers /
-  credit notes, several shops (branches, stock transfers).
+**Next session: core work for the first shop, a pharmacy** (decided with the user 2026-11-01). He catalogues and
+bills medicines; other goods go in as **Quick items** (one "Other goods" category; the admin clears Review now and
+then). He wants to stop overstocking (smart reorder — built), stop missing expiries (A below) and see what he lacks
+(Low stock + requests plugin — built). No Pocket Cashier for him yet (agreed). Design each item with the user first
+(spec → plan), then build test-first. Work in this order:
+
+A. **Expiry — do first** (all core; the pharmacy plugin may only add extras through hooks):
+   1. **Expiry warning window:** today a fixed 30 days (dashboard `admin_dashboard.go:138`, Stock → Batches
+      `admin_batches.go:36`; only Clearance has its own, 14 days, for markdowns). Wanted: a shop-wide "warn N days
+      before" setting, maybe per category / product.
+   2. **Per-supplier expiry return policy** (from the pharmacist): each supplier must be told N days before expiry
+      (60, 30…) or takes it after expiry; warn per lot from the supplier it came from.
+   3. **Claims before they're settled:** "reported to the supplier on …", "taken by the rep, replacement / credit
+      pending". **Already in core** (checked 2026-11-01): a supplier return names the exact lot (`BatchID`, tied to its
+      delivery — so goods that **arrived damaged** are returned from that delivery's lot), and the "From this
+      supplier" panel (`SupplierClaims.tsx`) lists that supplier's expired lots on the shelf and write-offs waiting on
+      them, settled when their next delivery is received (replace / credit / nothing). Missing: the "reported on"
+      and "rep took it, pending" steps in between, and the per-supplier days (2).
+   4. **Supplier recall of a lot** (the pharmacist: the stock looks fine, but the supplier says the batch is bad and
+      takes the whole batch back): returning the lot is already possible (Purchasing → Returns, that lot, all of it).
+      Add: one "supplier recalled lot X" step that returns everything left of it; **hold the lot** so the till stops
+      selling it until the rep comes; and **who bought it** (sales record each line's lot — customers on account,
+      receipts for walk-ins) for medicines that need a call-back. They then **replace or give the money back** —
+      already in core: the return credits their bills (or they refund cash), and a replacement is a normal delivery
+      the credit pays for.
+   **How it really works (the pharmacist, 2026-11-01)** — design to this, not to a strict rule:
+   - The supplier gives the notice days (e.g. 60): tell them before that date. Told late, they *sometimes* refuse —
+     so it's a warning and a reminder, never a block; they may change their mind and take it anyway.
+   - Days passing ≠ the whole lot is claimed: some units sell meanwhile, so the claim is what's left when they take it.
+   - The rep may come any time — a few days after being told, before expiry, or after it — and may still replace
+     expired stock.
+   - Made good as: the same product (often a **new lot at a different price** — same price or the shop pays the
+     extra: **already in core**, Losses & Recovery restocks a new lot with expiry / price / extra), **money / credit**,
+     nothing (written off) — or **a different product** as the replacement (an alternative medicine or biscuit):
+     **missing**, a replacement always restocks the loss's own product.
+   - **Goods that arrived damaged:** already in core — return them from that delivery's lot (Purchasing → Returns).
+B. **Customers:** 5. **prices per customer / customer group** (only retail and wholesale today).
+C. **Small ones:** 6. **discount received when paying a supplier** (a received bill can't be edited and a payment
+   only pays, so 9,800 on a 10,000 bill leaves 200 owed — add "discount received" that closes the rest, lowers the
+   payable and shows in money reports); 7. **drop `customers.loyalty_points`** (unused; loyalty will be a plugin).
+
+**Parked:** the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
+damage as an amount; build only if Quick item is too much work for a shop); staff commission and delivery orders
+(only if a shop asks). **Future plugins, not now:** loyalty points, gift vouchers / credit notes, several shops.
 
 **Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
