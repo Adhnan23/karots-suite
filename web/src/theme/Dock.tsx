@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { Home, LayoutGrid, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { NavArea } from './nav'
+import { apps, type NavArea } from './nav'
 
 function DockButton({
   icon: Icon,
@@ -62,7 +62,7 @@ export function Dock({ areas, here, current, onToggle }: { areas: NavArea[]; her
         />
       ))}
       <span className="mx-1 w-px self-stretch bg-border" />
-      <DockButton icon={LayoutGrid} label="Apps" active={current === 'apps'} onClick={() => onToggle(current === 'apps' ? null : 'apps')} />
+      {apps.length > 0 && <DockButton icon={LayoutGrid} label="Apps" active={current === 'apps'} onClick={() => onToggle(current === 'apps' ? null : 'apps')} />}
       <Link
         to="/till"
         aria-label="Open the till"

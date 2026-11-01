@@ -9,7 +9,7 @@ type Props =
   | { kind: 'apps'; onClose: () => void }
 
 /** The panel a dock click raises above it (theme.md §6). Closes on Escape or a
- * click outside. Apps is the plugin slot — empty until M7. */
+ * click outside. Apps is the plugin slot; the dock hides it when there are none. */
 export function Shelf(props: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -38,21 +38,17 @@ export function Shelf(props: Props) {
       className="fixed bottom-[104px] left-1/2 z-20 w-[min(880px,calc(100vw-32px))] -translate-x-1/2 rounded-xl border border-border bg-popover p-3 shadow-[var(--shadow-float)]"
     >
       {props.kind === 'apps' ? (
-        apps.length === 0 ? (
-          <p className="p-8 text-center text-sm text-muted-foreground">No apps installed on this shop yet.</p>
-        ) : (
-          <div className="grid grid-cols-4 gap-2.5">
-            {apps.map((a) => (
-              <Link key={a.key} to={a.to} onClick={props.onClose} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left transition-colors hover:border-brand">
-                <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-sm)] text-brand-foreground" style={{ background: a.color }}>
-                  <a.icon size={20} />
-                </span>
-                <b className="text-sm">{a.label}</b>
-                <span className="text-xs text-muted-foreground">{a.description}</span>
-              </Link>
-            ))}
-          </div>
-        )
+        <div className="grid grid-cols-4 gap-2.5">
+          {apps.map((a) => (
+            <Link key={a.key} to={a.to} onClick={props.onClose} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 text-left transition-colors hover:border-brand">
+              <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-sm)] text-brand-foreground" style={{ background: a.color }}>
+                <a.icon size={20} />
+              </span>
+              <b className="text-sm">{a.label}</b>
+              <span className="text-xs text-muted-foreground">{a.description}</span>
+            </Link>
+          ))}
+        </div>
       ) : (
         <AreaShelf area={props.area} onClose={props.onClose} />
       )}
