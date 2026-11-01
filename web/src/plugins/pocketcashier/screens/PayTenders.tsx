@@ -1,16 +1,20 @@
 import { Banknote, BookUser, CreditCard, ScrollText, Smartphone, Wallet, X } from 'lucide-react'
+import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
+import { Seg } from '@/features/till/bits'
 import { chequeMissing } from '@/features/till/cart/checkout'
 import { blankDraft, newChequeDraft, type Action } from '@/features/till/cart/store'
-import { balanceDue, quickCash, saleTotal } from '@/features/till/cart/totals'
+import { balanceDue, LKR_NOTES, quickCash, saleTotal } from '@/features/till/cart/totals'
 import type { TillState } from '@/features/till/cart/types'
 import { ChequeFields } from '@/features/till/pay/ChequeFields'
+import { NoteTray } from '@/features/till/pay/NoteTray'
 import { FIELD } from '@/features/till/ui'
 import { METHOD_LABEL } from '@/lib/payMethods'
 import { dec, money, num, r2, short } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { slots } from '@/plugins/slots'
 import { GLASS } from '../bits'
+import { Keypad } from './Keypad'
 
 /** The PC till's tender on the phone: pick a method, key or tap the amount, Add —
  * as many payments as the sale needs (cash + card, part on account…), each
@@ -53,6 +57,9 @@ export function PayTenders({ copy, cart, dispatch, live, setError }: {
   }
   const commit = () => (!d.method ? setError('Choose a payment method') : chequeReady() && dispatch({ type: 'commitDraft' }))
   const notes = (copy.denominations ?? []).filter((x) => x.isNote).map((x) => num(x.value))
+  const coins = (copy.denominations ?? []).filter((x) => !x.isNote).map((x) => num(x.value))
+  const [pane, setPane] = useState<'notes' | 'keys'>('notes')
+  const switcher = <Seg label="Touch input" value={pane} options={[['notes', 'Notes'], ['keys', 'Keypad']]} onChange={setPane} />
   const chips = d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined) : [r2(due)]
 
   return (
@@ -97,6 +104,11 @@ export function PayTenders({ copy, cart, dispatch, live, setError }: {
             </button>
           ))}
         </div>
+      )}
+      {d.method !== '' && due > 0 && (
+        pane === 'notes' && d.method === 'cash'
+          ? <NoteTray notes={notes.length ? notes : LKR_NOTES} coins={coins} amount={d.amount} onChange={(amount) => draft({ amount })} switcher={switcher} />
+          : <>{d.method === 'cash' && <div className="flex justify-end">{switcher}</div>}<Keypad value={d.amount} onChange={(amount) => draft({ amount })} /></>
       )}
       {cart.tenders.length > 0 && (
         <ul aria-label="Payments" className="flex flex-col gap-1">

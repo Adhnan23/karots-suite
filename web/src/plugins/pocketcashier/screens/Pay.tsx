@@ -5,17 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Action } from '@/features/till/cart/store'
 import { effectivePayments } from '@/features/till/cart/checkout'
-import { balanceDue, changeDue, saleTotal } from '@/features/till/cart/totals'
+import { changeDue, saleTotal } from '@/features/till/cart/totals'
 import type { TillState } from '@/features/till/cart/types'
 import { printSale } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
-import { money } from '@/lib/money'
+import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, LivePill } from '../bits'
 import { payIssue, saleBody } from '../sale'
 import type { Who } from '../session'
 import { sendNow } from '../sync'
 import { CartLines } from './CartBar'
+import { ChangeBox, ChangeNotes } from './ChangeBox'
 import { PayTenders } from './PayTenders'
 
 type Done = { text: string; change: number; print?: number }
@@ -35,8 +36,9 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
     setError('')
     try {
       const ps = effectivePayments(cart, total)
-      const change = changeDue(total, ps)
-      const r = await sendNow({ kind: 'sale', userId: who.id, body: saleBody(cart, ps) })
+      const body = saleBody(cart, ps)
+      const change = body.changeGiven ? num(body.changeGiven) : changeDue(total, ps)
+      const r = await sendNow({ kind: 'sale', userId: who.id, body })
       if (r && r.status !== 'applied') return setError(r.note || 'The PC could not take this sale')
       dispatch({ type: 'newSale', saleType: copy.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
       if (!r) return setDone({ text: 'Saved — it will send when the PC is back. No receipt this time.', change })
@@ -52,8 +54,9 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div role="status" className={cn(CARD, 'rounded-[var(--radius)] p-4 text-[15px] font-semibold')}>{done.text}</div>
         {done.change > 0.005 && (
-          <div className="flex justify-between rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_14%,transparent)] px-3 py-3 text-lg font-extrabold text-success">
-            <span>Give change</span><span className="tabular-nums">{money(copy.symbol, done.change)}</span>
+          <div className="flex flex-col gap-2 rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_14%,transparent)] px-3 py-3">
+            <div className="flex justify-between text-lg font-extrabold text-success"><span>Give change</span><span className="tabular-nums">{money(copy.symbol, done.change)}</span></div>
+            <ChangeNotes change={done.change} copy={copy} />
           </div>
         )}
         <button type="button" onClick={onBack} className="mt-auto rounded-[var(--radius)] bg-brand p-3.5 text-base font-extrabold text-brand-foreground">New sale</button>
@@ -75,7 +78,7 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
       </div>
       <CustomerPick copy={copy} id={cart.customerId} set={(id) => dispatch({ type: 'customer', id })} />
       <PayTenders copy={copy} cart={cart} dispatch={dispatch} live={live} setError={setError} />
-      <Owing copy={copy} cart={cart} />
+      <ChangeBox copy={copy} cart={cart} dispatch={dispatch} />
       <p className="mx-3 mt-1.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
         <Printer size={13} />{live ? 'Receipt prints at the counter' : 'PC not reachable — no receipt; the sale sends when it is back'}
       </p>
@@ -84,27 +87,6 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         className="mx-3 mt-3 rounded-[var(--radius)] bg-brand p-3.5 text-base font-extrabold text-brand-foreground disabled:opacity-60">
         {busy ? 'Sending…' : 'Finish sale'}
       </button>
-    </div>
-  )
-}
-
-/** Still to pay, or the change to give, from the payments so far (the till's own sums). */
-function Owing({ copy, cart }: { copy: TillCopy; cart: TillState }) {
-  const total = saleTotal(cart)
-  const ps = effectivePayments(cart, total)
-  const left = balanceDue(total, ps)
-  const change = changeDue(total, ps)
-  if (left > 0.005) {
-    return (
-      <div role="status" className="mx-3 mt-2 flex justify-between rounded-[var(--radius-sm)] bg-muted px-3 py-2 font-extrabold">
-        <span>Still to pay</span><span className="tabular-nums">{money(copy.symbol, left)}</span>
-      </div>
-    )
-  }
-  if (change < 0.005) return null
-  return (
-    <div role="status" className="mx-3 mt-2 flex justify-between rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_14%,transparent)] px-3 py-2 font-extrabold text-success">
-      <span>Give change</span><span className="tabular-nums">{money(copy.symbol, change)}</span>
     </div>
   )
 }

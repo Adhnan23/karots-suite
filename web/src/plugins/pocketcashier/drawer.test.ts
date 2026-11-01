@@ -25,6 +25,12 @@ describe('the phone drawer', () => {
     expect(expectedCash(copy, 7, out)).toBe('1200.00')
   })
 
+  it('counts kept change as cash that stayed in the drawer', () => {
+    // 640 paid with 1000 cash; the customer let the shop keep 5 → 355 handed back.
+    const out = [act('sale', { total: '640', changeGiven: '355', payments: [{ method: 'cash', amount: '1000' }] })]
+    expect(expectedCash(copy, 7, out)).toBe('1645.00')
+  })
+
   it('counts a card sale as no cash, and starts again from an unsent open', () => {
     const out = [act('open', { openingCash: '300' }), act('sale', { total: '80', payments: [{ method: 'card', amount: '80' }] })]
     expect(expectedCash(copy, 7, out)).toBe('300.00')

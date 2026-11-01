@@ -20,11 +20,11 @@ export function drawerOpen(copy: TillCopy, userId: number, out: Action[]): boole
 }
 
 /** The cash the drawer should hold: the copy's figure plus what the PC hasn't
- * heard of yet — cash sales less their change, deposits, withdrawals. */
+ * heard of yet — cash sales less the change handed back, deposits, withdrawals. */
 export function expectedCash(copy: TillCopy, userId: number, out: Action[]): string {
   let cash = num(copy.sessions.find((s) => s.userId === userId)?.expected ?? 0)
   for (const a of mine(out, userId)) {
-    const b = a.body as { openingCash?: string; amount?: string; total?: string; payments?: Pay[] }
+    const b = a.body as { openingCash?: string; amount?: string; total?: string; changeGiven?: string; payments?: Pay[] }
     if (a.kind === 'open') cash = num(b.openingCash)
     if (a.kind === 'close') cash = 0
     if (a.kind === 'deposit') cash += num(b.amount)
@@ -32,7 +32,8 @@ export function expectedCash(copy: TillCopy, userId: number, out: Action[]): str
     if (a.kind === 'sale') {
       const ps = b.payments ?? []
       const paid = ps.reduce((n, p) => n + num(p.amount), 0)
-      const change = Math.max(0, paid - num(b.total))
+      // Change kept by the shop (no coins) stays in the drawer: only changeGiven went out.
+      const change = b.changeGiven ? num(b.changeGiven) : Math.max(0, paid - num(b.total))
       cash += ps.filter((p) => p.method === 'cash').reduce((n, p) => n + num(p.amount), 0) - change
     }
   }
