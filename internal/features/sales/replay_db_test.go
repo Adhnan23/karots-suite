@@ -150,3 +150,79 @@ func TestReviewOverLimitFlagged(t *testing.T) {
 		t.Fatalf("status %s flags %+v", d.Sale.Status, fs)
 	}
 }
+
+// serialFixture is replayFixture's product made serial-tracked.
+func serialFixture(t *testing.T, conn *sqlx.DB) (productID, cashierID int64) {
+	t.Helper()
+	pid, uid := replayFixture(t, conn, "10")
+	_, err := conn.Exec(`UPDATE products SET track_serial = true WHERE id = $1`, pid)
+	mustSales(t, err)
+	t.Cleanup(func() { conn.Exec(`DELETE FROM warranty_units WHERE product_id = $1`, pid) }) //nolint:errcheck
+	return pid, uid
+}
+
+func TestReviewSerialOnRecordFlagged(t *testing.T) {
+	conn := salesTestDB(t)
+	t.Cleanup(func() { conn.Close() }) // after the fixture cleanups (LIFO)
+	ctx := context.Background()
+	pid, uid := serialFixture(t, conn)
+	_, err := conn.Exec(`INSERT INTO warranty_units (product_id, serial_no, sold_at, warranty_months, warranty_until, source)
+		VALUES ($1, 'TESTSN-1', now(), 0, now(), 'sale')`, pid)
+	mustSales(t, err)
+	svc := NewService(conn)
+	d, err := svc.Create(ctx, CreateInput{SaleType: "retail", Review: true,
+		Items:    []ItemInput{{ProductID: pid, Quantity: "2", Serials: []string{"TESTSN-1", "TESTSN-2"}}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "240"}}}, uid)
+	mustSales(t, err)
+	fs := flagKinds(t, svc, d.Sale.ID)
+	if len(fs) != 1 || fs[0].Kind != FlagSerial || !strings.Contains(fs[0].Note, "TESTSN-1") {
+		t.Fatalf("flags %+v", fs)
+	}
+	var n int
+	mustSales(t, conn.Get(&n, `SELECT count(*) FROM warranty_units WHERE sale_id = $1`, d.Sale.ID))
+	if n != 1 {
+		t.Fatalf("warranty units for the sale = %d, want 1 (TESTSN-2 only)", n)
+	}
+}
+
+func TestReviewSerialRepeatedFlagged(t *testing.T) {
+	conn := salesTestDB(t)
+	t.Cleanup(func() { conn.Close() }) // after the fixture cleanups (LIFO)
+	pid, uid := serialFixture(t, conn)
+	svc := NewService(conn)
+	d, err := svc.Create(context.Background(), CreateInput{SaleType: "retail", Review: true,
+		Items:    []ItemInput{{ProductID: pid, Quantity: "2", Serials: []string{"TESTSN-3", "TESTSN-3"}}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "240"}}}, uid)
+	mustSales(t, err)
+	fs := flagKinds(t, svc, d.Sale.ID)
+	if len(fs) != 1 || fs[0].Kind != FlagSerial || !strings.Contains(fs[0].Note, "TESTSN-3") {
+		t.Fatalf("flags %+v", fs)
+	}
+}
+
+func TestReviewSerialCountFlagged(t *testing.T) {
+	conn := salesTestDB(t)
+	t.Cleanup(func() { conn.Close() }) // after the fixture cleanups (LIFO)
+	pid, uid := serialFixture(t, conn)
+	svc := NewService(conn)
+	d, err := svc.Create(context.Background(), CreateInput{SaleType: "retail", Review: true,
+		Items:    []ItemInput{{ProductID: pid, Quantity: "2", Serials: []string{"TESTSN-4"}}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "240"}}}, uid)
+	mustSales(t, err)
+	fs := flagKinds(t, svc, d.Sale.ID)
+	if len(fs) != 1 || fs[0].Kind != FlagSerial || !strings.Contains(fs[0].Note, "1 of 2") {
+		t.Fatalf("flags %+v", fs)
+	}
+}
+
+func TestSerialStillRefusedWithoutReview(t *testing.T) {
+	conn := salesTestDB(t)
+	t.Cleanup(func() { conn.Close() }) // after the fixture cleanups (LIFO)
+	pid, uid := serialFixture(t, conn)
+	_, err := NewService(conn).Create(context.Background(), CreateInput{SaleType: "retail",
+		Items:    []ItemInput{{ProductID: pid, Quantity: "2", Serials: []string{"TESTSN-5"}}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "240"}}}, uid)
+	if err == nil || !strings.Contains(err.Error(), "serial") {
+		t.Fatalf("want the serial count refused, got %v", err)
+	}
+}

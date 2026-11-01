@@ -107,12 +107,22 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 					serials = append(serials, sn)
 				}
 			}
+			// A Review sale (rung offline) is never refused over serials: it keeps
+			// what it can record and flags the rest for the admin.
 			if len(serials) != want {
-				return apperr.Validation(fmt.Sprintf("enter %d serial number(s) for %s", want, p.Name))
+				if !in.Review {
+					return apperr.Validation(fmt.Sprintf("enter %d serial number(s) for %s", want, p.Name))
+				}
+				flags = append(flags, pendingFlag{FlagSerial, fmt.Sprintf("%s: %d of %d serial number(s) given", p.Name, len(serials), want)})
 			}
+			kept := serials[:0:0]
 			for _, sn := range serials {
 				if serialSeen[sn] {
-					return apperr.Validation(fmt.Sprintf("duplicate serial number %q", sn))
+					if !in.Review {
+						return apperr.Validation(fmt.Sprintf("duplicate serial number %q", sn))
+					}
+					flags = append(flags, pendingFlag{FlagSerial, fmt.Sprintf("%s: serial %q given twice", p.Name, sn)})
+					continue
 				}
 				serialSeen[sn] = true
 				exists, err := warrRepo.SerialExists(ctx, sn)
@@ -120,9 +130,15 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 					return apperr.Internal("failed to check serial", err)
 				}
 				if exists {
-					return apperr.Validation(fmt.Sprintf("serial number %q is already on record", sn))
+					if !in.Review {
+						return apperr.Validation(fmt.Sprintf("serial number %q is already on record", sn))
+					}
+					flags = append(flags, pendingFlag{FlagSerial, fmt.Sprintf("%s: serial %q is already on record", p.Name, sn)})
+					continue
 				}
+				kept = append(kept, sn)
 			}
+			serials = kept
 			serialBatches = append(serialBatches, serialBatch{productID: p.ID, months: p.WarrantyMonths, serials: serials})
 		}
 		if it.Payout {

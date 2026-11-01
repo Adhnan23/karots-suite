@@ -21,6 +21,7 @@ const (
 	FlagLate         = "late"          // its session was closed; counted when it arrived
 	FlagClock        = "clock"         // the client's clock was off; counted when it arrived
 	FlagInactiveUser = "inactive_user" // the cashier was deactivated meanwhile
+	FlagSerial       = "serial"        // a serial already on record, repeated, or not one per unit
 )
 
 // Flag is one review note on a sale.
