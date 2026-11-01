@@ -1,13 +1,18 @@
 import { ScanBarcode, Search } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import type { CopyProduct, TillCopy } from '@/api/types.gen'
+import type { CopyProduct, Lot, TillCopy } from '@/api/types.gen'
 import type { Action } from '@/features/till/cart/store'
 import type { TillState } from '@/features/till/cart/types'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, GLASS } from '../bits'
 import { byBarcode, search, sellable } from '../catalog'
+import { addFlow } from '../addFlow'
+import { PackSheet } from './PackSheet'
+import { PriceSheet } from './PriceSheet'
 import { Scanner } from './Scanner'
+
+type Pick = { kind: 'price' | 'pack'; product: CopyProduct; lots: Lot[]; units?: number; lot?: Lot }
 
 /** Search, scan or tap a category, tap to add. Stock is the copy's ("about")
  * when the PC is down. */
@@ -16,10 +21,18 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
   const [cat, setCat] = useState(0)
   const [scan, setScan] = useState(false)
   const [miss, setMiss] = useState('')
+  const [pick, setPick] = useState<Pick | null>(null)
   const add = useCallback((p: CopyProduct, packId?: number) => {
-    const pack = packId ? p.packs.find((k) => k.id === packId) : undefined
-    dispatch({ type: 'add', product: p, lots: [], units: pack ? num(pack.size) : undefined })
-  }, [dispatch])
+    const step = addFlow(copy, p, packId)
+    if (step.kind === 'add') dispatch({ type: 'add', product: p, lots: step.lots, units: step.units })
+    else setPick({ ...step, product: p })
+  }, [copy, dispatch])
+  // After Which price?, a product sold by the pack still asks how (as the PC).
+  const lotPicked = (pk: Pick, lot: Lot) => {
+    if (!pk.units && pk.product.packs.length && !pk.product.isService) return setPick({ kind: 'pack', product: pk.product, lots: pk.lots, lot })
+    setPick(null)
+    dispatch({ type: 'add', product: pk.product, lot, lots: pk.lots, units: pk.units })
+  }
   const code = useCallback((c: string) => {
     setScan(false)
     const hit = byBarcode(copy, c)
@@ -75,6 +88,11 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
         {!rows.length && <li className="py-8 text-center text-sm text-muted-foreground">Nothing matches “{text}”</li>}
       </ul>
       {scan && <Scanner onCode={code} onClose={() => setScan(false)} />}
+      {pick?.kind === 'price' && <PriceSheet product={pick.product} lots={pick.lots} sym={copy.symbol} onPick={(l) => lotPicked(pick, l)} onClose={() => setPick(null)} />}
+      {pick?.kind === 'pack' && (
+        <PackSheet product={pick.product} lot={pick.lot} saleType={cart.saleType} sym={copy.symbol} onClose={() => setPick(null)}
+          onUnits={(units) => { setPick(null); dispatch({ type: 'add', product: pick.product, lot: pick.lot, lots: pick.lots, units }) }} />
+      )}
     </>
   )
 }
