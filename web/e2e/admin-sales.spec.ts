@@ -35,8 +35,9 @@ test('sales: find a cash sale, return it with the refund paid from a locker', as
   await page.getByRole('button', { name: 'More E2E Milk' }).click()
   await expect(page.getByText('↑ Cash back')).toBeVisible()
   const pay = page.getByRole('button', { name: `↑ Refund Rs. ${refund}` })
-  await expect(pay).toBeDisabled() // no source picked yet
   const src = page.getByLabel('Refund cash from')
+  await expect(src).toHaveValue(/^till:/) // the till that took the sale, by default
+  await expect(pay).toBeEnabled()
   await src.selectOption((await src.locator('option', { hasText: safe }).getAttribute('value'))!)
   await pay.click()
   await slipAsked(page, new RegExp(`Returned — Rs\\. ${refund} refunded`))
