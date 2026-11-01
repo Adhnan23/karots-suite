@@ -14,12 +14,12 @@ const ADMIN = -1
 /** Tap your name, PIN. Online it signs in on the server (an admin goes to the
  * admin panel); offline it checks the PIN against the copy — cashiers and
  * managers only, admins never have a hash on the phone. */
-export function SignIn({ copy, sync, phone, onSignedIn }: { copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignedIn: (w: Who) => void }) {
+export function SignIn({ copy, sync, phone, notice = '', onSignedIn }: { copy: TillCopy | null; sync: SyncState; phone: PhoneId; notice?: string; onSignedIn: (w: Who) => void }) {
   const people = copy?.people ?? []
   const [pick, setPick] = useState<number | null>(people.length === 1 ? people[0].id : null)
   const [adminPhone, setAdminPhone] = useState('')
   const [pin, setPin] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(notice) // e.g. "Nimal is now on Counter PC"
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {

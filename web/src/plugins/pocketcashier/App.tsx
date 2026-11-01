@@ -24,6 +24,7 @@ function PhoneApp() {
   const [who, setWho] = useState<Who | null>(loadWho)
   const [sync, setSync] = useState<SyncState>({ live: false, copyAt: null, waiting: 0 })
   const [copy, setCopy] = useState<TillCopy | null>(null)
+  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     registerPwa()
@@ -37,9 +38,9 @@ function PhoneApp() {
   }, [phone])
   useEffect(() => { void loadCopy().then(setCopy) }, [sync.copyAt])
 
-  const signIn = useCallback((w: Who | null) => { saveWho(w); setWho(w) }, [])
+  const signIn = useCallback((w: Who | null) => { saveWho(w); setWho(w); if (w) setNotice('') }, [])
   if (phone === undefined) return null
   if (!phone) return <Pair onPaired={setPhone} />
-  if (!who) return <SignIn copy={copy} sync={sync} phone={phone} onSignedIn={signIn} />
-  return <Phone who={who} copy={copy} sync={sync} phone={phone} onSignOut={() => signIn(null)} />
+  if (!who) return <SignIn copy={copy} sync={sync} phone={phone} notice={notice} onSignedIn={signIn} />
+  return <Phone who={who} copy={copy} sync={sync} phone={phone} onSignOut={(why) => { setNotice(why ?? ''); signIn(null) }} />
 }

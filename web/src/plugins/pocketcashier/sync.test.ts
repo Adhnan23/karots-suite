@@ -100,3 +100,17 @@ describe('sync', () => {
     stop()
   })
 })
+
+describe('moved', () => {
+  it('says where the person went, and nothing when the PC is down', async () => {
+    const { movedTo } = await import('./sync')
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      calls.push({ url })
+      return new Response(JSON.stringify({ movedTo: 'Counter PC' }), { status: 200 })
+    }))
+    expect(await movedTo(7)).toBe('Counter PC')
+    expect(calls.at(-1)!.url).toContain('/moved?user=7')
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
+    expect(await movedTo(7)).toBe('')
+  })
+})

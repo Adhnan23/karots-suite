@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -147,4 +148,29 @@ type WhoAmI struct {
 func (h handlers) whoami(c echo.Context) error {
 	p := phoneFrom(c)
 	return c.JSON(http.StatusOK, WhoAmI{ID: p.ID, Name: p.Name})
+}
+
+// Moved answers the phone's check: the label of the device its person moved to
+// ("" = still here, or on no device).
+type Moved struct {
+	MovedTo string `json:"movedTo"`
+}
+
+// moved: the person signed in elsewhere (the PC) since signing in on this phone,
+// so the phone locks the way the PC does when they come to the phone.
+func (h handlers) moved(c echo.Context) error {
+	uid, _ := strconv.ParseInt(c.QueryParam("user"), 10, 64)
+	var row struct {
+		Device string `db:"device"`
+		Label  string `db:"label"`
+	}
+	err := h.p.core.DB.GetContext(c.Request().Context(), &row,
+		`SELECT COALESCE(active_device, '') AS device, COALESCE(active_device_label, '') AS label FROM users WHERE id = $1`, uid)
+	if err != nil || row.Device == "" || row.Device == phoneFrom(c).Device {
+		return c.JSON(http.StatusOK, Moved{})
+	}
+	if row.Label == "" {
+		row.Label = "another device"
+	}
+	return c.JSON(http.StatusOK, Moved{MovedTo: row.Label})
 }

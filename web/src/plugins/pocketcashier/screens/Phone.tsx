@@ -1,16 +1,19 @@
 import { Menu as MenuIcon, PauseCircle, ShoppingCart } from 'lucide-react'
-import { useCallback, useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { api } from '@/api/client'
 import type { TillCopy } from '@/api/types.gen'
+import { MOVED_LABEL, toHeldBlob } from '@/features/till/cart/held'
 import { loadCart, saveCart } from '@/features/till/cart/persist'
 import { initialState, tillReducer } from '@/features/till/cart/store'
+import { saleTotal } from '@/features/till/cart/totals'
+import { dec, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { GLASS, Screen } from '../bits'
 import type { Who } from '../session'
 import type { PhoneId } from '../store/phone'
 import { drawerOpen as isOpen } from '../drawer'
 import { pending, type Action } from '../store/outbox'
-import { refresh, type SyncState } from '../sync'
+import { movedTo, refresh, sendNow, type SyncState } from '../sync'
 import { CartBar } from './CartBar'
 import { Held } from './Held'
 import { Menu } from './Menu'
@@ -23,7 +26,7 @@ const TABS: [Tab, string, typeof ShoppingCart][] = [['sell', 'Sell', ShoppingCar
 
 /** The signed-in phone: top bar, Sell / Held / Menu, and the amber state while
  * the PC is down. The cart is the desktop till's own (same reducer, same pricing). */
-export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignOut: () => void }) {
+export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignOut: (why?: string) => void }) {
   const [tab, setTab] = useState<Tab>('sell')
   const [paying, setPaying] = useState(false)
   const [cart, dispatch] = useReducer(tillReducer, who.id, (id) => loadCart(id) ?? initialState(copy?.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'))
@@ -34,6 +37,24 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
   useEffect(() => { void pending().then(setOut, () => {}) }, [sync.waiting, sync.copyAt, bump])
   const sent = useCallback(() => { setBump((n) => n + 1); void refresh() }, [])
   const drawerOpen = !!copy && isOpen(copy, who.id, out)
+  // One person, one device: signed in on the PC since, they moved there. Park the
+  // cart in Held (as the PC does when they come to the phone) and lock.
+  const latest = useRef({ cart, onSignOut })
+  useEffect(() => { latest.current = { cart, onSignOut } })
+  useEffect(() => {
+    if (!sync.live) return
+    const id = setInterval(() => void movedTo(who.id).then(async (to) => {
+      const { cart, onSignOut } = latest.current
+      if (!to) return
+      if (cart.lines.length) {
+        await sendNow({ kind: 'hold', userId: who.id, body: { label: MOVED_LABEL, saleType: cart.saleType, customerId: cart.customerId ?? undefined,
+          discount: String(num(cart.billDiscount)), cart: toHeldBlob(cart), itemCount: cart.lines.length, total: dec(saleTotal(cart)) } }, () => null)
+        dispatch({ type: 'newSale', saleType: cart.saleType })
+      }
+      onSignOut(`${who.name} is now on ${to}. Sign in here to take it back.`)
+    }), 15_000)
+    return () => clearInterval(id)
+  }, [sync.live, who])
   const switchPerson = () => { if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {}); onSignOut() }
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 

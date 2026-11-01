@@ -96,3 +96,25 @@ func TestCAFiles(t *testing.T) {
 		t.Fatalf("ping %d", rec.Code)
 	}
 }
+
+// The phone asks whether its person moved to another device (they signed in on
+// the PC), so it locks the way the PC does.
+func TestMovedSaysWhere(t *testing.T) {
+	en := newEnv(t)
+	secret, device := en.activePhone()
+	uid, _ := en.user("cashier")
+	ask := func() Moved {
+		return decodeAs[Moved](t, en.do(http.MethodGet, "/moved?user="+strconv.FormatInt(uid, 10), nil, nil, secret))
+	}
+	if m := ask(); m.MovedTo != "" {
+		t.Fatalf("nobody's device yet: %+v", m)
+	}
+	en.db.Exec(`UPDATE users SET active_device = $2, active_device_label = 'Counter PC' WHERE id = $1`, uid, device) //nolint:errcheck
+	if m := ask(); m.MovedTo != "" {
+		t.Fatalf("still on this phone: %+v", m)
+	}
+	en.db.Exec(`UPDATE users SET active_device = 'pc-1', active_device_label = 'Counter PC' WHERE id = $1`, uid) //nolint:errcheck
+	if m := ask(); m.MovedTo != "Counter PC" {
+		t.Fatalf("moved: %+v", m)
+	}
+}

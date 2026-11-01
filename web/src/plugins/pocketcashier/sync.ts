@@ -128,3 +128,15 @@ export async function sendNow(a: Omit<Action, 'ref' | 'at'>, signedIn: () => num
   answered.delete(saved.ref)
   return r
 }
+
+/** Where the signed-in person went, when they signed in on another device (the
+ * PC) since: its label, or '' (still here, or the PC isn't reachable). */
+export async function movedTo(userId: number): Promise<string> {
+  try {
+    const res = await phoneFetch(`/moved?user=${userId}`)
+    if (!res.ok) return ''
+    return ((await res.json()) as { movedTo?: string }).movedTo ?? ''
+  } catch {
+    return ''
+  }
+}
