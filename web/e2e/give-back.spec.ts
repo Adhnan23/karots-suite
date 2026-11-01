@@ -120,6 +120,7 @@ test('a discount at payment closes the bill, moves no money and shows as a gain'
   await expect(page.getByText('Discount received').first()).toBeVisible()
   await expect(page.getByText('no money moved').first()).toBeVisible()
 
-  await page.goto('/admin/finance')
-  await expect(page.getByText('Discounts from suppliers')).toBeVisible()
+  await page.goto('/admin/finance?tab=profit')
+  const pl = page.getByRole('region', { name: 'Profit and loss' })
+  await expect(pl.getByRole('listitem').filter({ hasText: 'Discounts from suppliers' })).toContainText('200.00')
 })
