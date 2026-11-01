@@ -39,7 +39,9 @@ func NewSim(ctx context.Context, d Deps, p shops.Profile) (*Sim, error) {
 	if err := g.loadStock(); err != nil {
 		return nil, err
 	}
-	if g.admin, err = NewClient(d.API, p.Logins[0].Phone, p.Logins[0].PIN, "demo-back-office"); err != nil {
+	// The back office names no device: with one person, one device on (the Pocket
+	// Cashier app), a visitor signed in as the owner never locks it out, nor it them.
+	if g.admin, err = NewClient(d.API, p.Logins[0].Phone, p.Logins[0].PIN, ""); err != nil {
 		return nil, err
 	}
 	s := &Sim{g: g, staff: g.s.cashiers[1:], tick: time.Duration(float64(12*time.Hour) / math.Max(float64(p.Volume), 1))}

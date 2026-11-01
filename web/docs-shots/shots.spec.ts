@@ -156,3 +156,30 @@ test('appearance and palettes', async ({ browser }) => {
   await light.context().close()
   await dark.context().close()
 })
+
+// The Pocket Cashier app on a phone: paired, approved by the owner, a cashier selling.
+const app = 'pocketcashier' // an app (plugin.json kind "app"): its own phone shot, not the plugins loop
+
+test('pocket cashier, phone', async ({ browser }) => {
+  if (only && !`plugins/${app}`.includes(only)) return
+  const admin = await session(browser, owner)
+  const users: { phone: string; name: string }[] = await (await admin.request.get('/api/v1/admin/users')).json()
+  const name = users.find((u) => u.phone === cashier.phone)!.name
+  const page = await session(browser, null, phone, 'light', { isMobile: true, hasTouch: true })
+  await page.goto(`/x/${app}/`)
+  await page.getByLabel('This phone’s name').fill('Counter phone')
+  await page.getByRole('button', { name: 'Pair this phone' }).click()
+  const pairCode = (await page.getByLabel('Pairing code').textContent())!.trim()
+  await admin.request.post(`/api/v1/x/${app}/phones/approve`, { data: { code: pairCode } })
+  await page.getByRole('radiogroup', { name: 'Who are you?' }).getByRole('radio', { name: name.split(' ')[0] }).click()
+  for (const k of cashier.pin) await page.getByRole('button', { name: k, exact: true }).click()
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  const products = page.getByRole('list', { name: 'Products' })
+  await products.getByRole('button').nth(0).click()
+  await products.getByRole('button').nth(2).click()
+  await products.getByRole('button').nth(2).click()
+  await page.waitForTimeout(700)
+  await page.screenshot({ path: `${out}/plugins/${app}.jpg`, type: 'jpeg', quality: 82 })
+  await page.context().close()
+  await admin.context().close()
+})

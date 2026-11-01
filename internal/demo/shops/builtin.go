@@ -47,7 +47,7 @@ func BuiltIn() []Profile {
 		}, "Sunil Rajapaksha", "Priyantha Kumara", "Hasini Dias", "Lahiru", "Kumari"),
 		mk(Profile{
 			Key: "everything", Name: "Karots Super Store", Blurb: "Every plugin at once, for the customer who wants to see it all.",
-			Plugins: []string{"aicatalog", "alternatives", "clearance", "combos", "documents", "pharmacy", "productplus", "recharge", "repairs", "requests"},
+			Plugins: []string{"aicatalog", "alternatives", "clearance", "combos", "documents", "pharmacy", "pocketcashier", "productplus", "recharge", "repairs", "requests"},
 			Palette: "aurora", ReceiptStyle: "cards", Catalogue: "mixed", Volume: 110,
 			LabelStyles: map[string]string{"price": "dual", "pharmacy.dose": "boxed", "repairs.ticket": "job"},
 		}, "Mohamed Imran", "Gayani Ekanayake", "Pradeep Senanayake", "Shehan", "Amaya", "Kavindu"),

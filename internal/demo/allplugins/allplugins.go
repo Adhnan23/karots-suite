@@ -9,6 +9,7 @@ import (
 	_ "karots-suite/plugins/combos"
 	_ "karots-suite/plugins/documents"
 	_ "karots-suite/plugins/pharmacy"
+	_ "karots-suite/plugins/pocketcashier"
 	_ "karots-suite/plugins/productplus"
 	_ "karots-suite/plugins/recharge"
 	_ "karots-suite/plugins/repairs"
