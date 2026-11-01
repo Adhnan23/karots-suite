@@ -68,7 +68,7 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         <button type="button" onClick={onBack} className="flex items-center gap-1"><ChevronLeft size={18} />Back to items</button>
         <span className="ml-auto"><LivePill live={live} /></span>
       </div>
-      <CartLines cart={cart} dispatch={dispatch} sym={copy.symbol} />
+      <CartLines cart={cart} dispatch={dispatch} copy={copy} />
       <div className="mx-3 mt-1 mb-1.5 flex items-baseline justify-between">
         <span className="font-semibold text-muted-foreground">Total</span>
         <span className="font-display text-[30px] font-extrabold tabular-nums">{money(copy.symbol, total)}</span>
