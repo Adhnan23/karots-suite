@@ -27,6 +27,6 @@ export async function seal(v: unknown): Promise<Sealed> {
 }
 
 export async function open<T>(s: Sealed): Promise<T> {
-  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: s.iv }, await getKey(), s.data)
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: s.iv as Uint8Array<ArrayBuffer> }, await getKey(), s.data)
   return JSON.parse(new TextDecoder().decode(plain)) as T
 }

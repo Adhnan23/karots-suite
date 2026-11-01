@@ -29,7 +29,8 @@ function fakeFetch(url: string, init?: RequestInit) {
 class FakeES {
   static last: FakeES | null = null
   listeners: Record<string, (e: MessageEvent) => void> = {}
-  constructor(public url: string) { FakeES.last = this }
+  url: string
+  constructor(url: string) { this.url = url; FakeES.last = this }
   addEventListener(k: string, fn: (e: MessageEvent) => void) { this.listeners[k] = fn }
   close() {}
 }

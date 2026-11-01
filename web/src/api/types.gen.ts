@@ -577,6 +577,97 @@ export interface ChequeDuplicate {
 }
 
 //////////
+// source: dto_copy.go
+
+/**
+ * TillCopy is everything a till needs to sell with no server: read in one go
+ * by a client that keeps it (offline), refreshed when Version changes. Only
+ * cashier and manager PIN hashes are in it — never an admin's or the system user's.
+ */
+export interface TillCopy {
+  takenAt: string;
+  version: string;
+  shop: ShopHeader;
+  symbol: string;
+  defaultSaleType: string;
+  askToPrint: boolean;
+  allowUntrackedCash: boolean;
+  defaultLockerId: number /* int64 */;
+  tenderMethods: TenderMethod[];
+  products: CopyProduct[];
+  categories: CopyCategory[];
+  customers: CopyCustomer[];
+  people: CopyPerson[];
+  places: CopyPlace[];
+  sessions: CopySession[];
+  held: CopyHeld[];
+}
+/**
+ * CopyProduct is a till card plus what an offline search needs: its category
+ * and every code it scans by (packs carry their own).
+ */
+export interface CopyProduct extends TillProduct {
+  categoryId: number /* int64 */;
+  barcodes: string[]; // extra codes; Barcode is the main one
+  packCodes: PackCode[];
+}
+export interface PackCode {
+  packId: number /* int64 */;
+  barcode: string;
+}
+export interface CopyCategory {
+  id: number /* int64 */;
+  name: string;
+}
+export interface CopyCustomer {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  balance: string; // > 0 owed, < 0 advance
+  creditLimit: string;
+}
+/**
+ * CopyPerson is a cashier or manager who may sign in from the copy.
+ */
+export interface CopyPerson {
+  id: number /* int64 */;
+  name: string;
+  phone: string;
+  role: string; // cashier | manager
+  pinHash: string;
+  canManageCredit: boolean;
+  canSeeCost: boolean;
+}
+/**
+ * CopyPlace is a locker or account a till may take a float from, bank into,
+ * or land a card payment in.
+ */
+export interface CopyPlace {
+  id: number /* int64 */;
+  name: string;
+  kind: string;
+  cashierAccess: boolean;
+}
+export interface CopySession {
+  id: number /* int64 */;
+  userId: number /* int64 */;
+  openedAt: string;
+  openingCash: string;
+  expected: string; // cash the drawer should hold now
+}
+export interface CopyHeld {
+  id: number /* int64 */;
+  userId: number /* int64 */;
+  label: string;
+  saleType: string;
+  customerId: number /* int64 */; // 0 = walk-in
+  cart: string;
+  itemCount: number /* int */;
+  total: string;
+  createdAt: string;
+}
+
+//////////
 // source: dto_counter.go
 
 /**
