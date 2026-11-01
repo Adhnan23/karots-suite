@@ -77,12 +77,14 @@ func (h *handlers) AdminBatches(c echo.Context) error {
 	}
 	rank := func(g BatchGroup) int {
 		switch {
-		case g.Expired > 0 || g.Recalled > 0:
+		case g.Expired > 0:
 			return 0
-		case g.ExpiringSoon > 0:
+		case g.Recalled > 0:
 			return 1
+		case g.ExpiringSoon > 0:
+			return 2
 		}
-		return 2
+		return 3
 	}
 	slices.SortStableFunc(out.Groups, func(x, y BatchGroup) int {
 		if rx, ry := rank(x), rank(y); rx != ry {

@@ -237,7 +237,21 @@ func TestSupplierRecall(t *testing.T) {
 		t.Fatalf("lot row: %+v", pl.Lots)
 	}
 
-	// It still counts as stock, and a sale that insists still goes through (never stop a sale).
+	// Expired stays first on Batches, then recalled, whatever the names.
+	te.db.MustExec(`UPDATE products SET name = '0 ' || name WHERE id=$1`, f.scarceID)
+	v := decode[BatchesView](t, te.do(http.MethodGet, "/api/v1/admin/stock/batches", nil, ck))
+	firstRecalled := slices.IndexFunc(v.Groups, func(g BatchGroup) bool { return g.Recalled > 0 && g.Expired == 0 })
+	lastExpired := -1
+	for i, g := range v.Groups {
+		if g.Expired > 0 {
+			lastExpired = i
+		}
+	}
+	if firstRecalled < 0 || lastExpired < 0 || firstRecalled < lastExpired {
+		t.Fatalf("order: recalled at %d, expired up to %d", firstRecalled, lastExpired)
+	}
+
+	// It still counts as stock until it's given back.
 	var left float64
 	te.db.Get(&left, `SELECT quantity FROM stock WHERE product_id=$1`, f.scarceID) //nolint:errcheck
 	if left != 1 {
