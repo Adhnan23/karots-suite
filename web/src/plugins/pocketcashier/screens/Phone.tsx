@@ -61,8 +61,9 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
     return () => clearInterval(id)
   }, [sync.live, who])
   const switchPerson = () => { if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {}); onSignOut() }
-  // A new version reloads the app only with no sale going (as the PC till).
-  useEffect(() => setReloadGuard(() => !latest.current.cart.lines.length && !payingRef.current), [])
+  // A new version reloads the app only with no sale going and no sheet open (a
+  // float half counted, a quick item half typed) — as the PC till.
+  useEffect(() => setReloadGuard(() => !latest.current.cart.lines.length && !payingRef.current && !document.querySelector('[role="dialog"]')), [])
   useIdle(copy?.lockTimeoutMinutes ?? 0, () => {
     if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {})
     onSignOut(`Locked after ${copy?.lockTimeoutMinutes} min with no use. Sign in to carry on.`)
