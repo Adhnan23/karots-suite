@@ -22,6 +22,13 @@ async function signInPC(page: Page, phoneNo: string) {
   await page.waitForURL(/\/(admin|till)/)
 }
 
+/** Sign a PC out as its own device, so Who's on now drops its row (a closed
+ * context keeps beating no more, but its row stays listed for hours). */
+async function signOutPC(page: Page) {
+  const device = await page.evaluate(() => localStorage.getItem('ks-device') ?? '')
+  await page.request.post('/api/v1/auth/logout', { headers: { 'X-Ks-Device': device } })
+}
+
 async function phoneSignIn(p: Page, name: string) {
   await p.getByRole('radiogroup', { name: 'Who are you?' }).getByRole('radio', { name }).click()
   for (const k of '1234') await p.getByRole('button', { name: k, exact: true }).click()
@@ -69,7 +76,7 @@ test.describe.serial('Pocket Cashier', () => {
     await expect(pc.getByText(/now on/i)).toBeVisible()
     await phone.getByRole('button', { name: 'Held' }).click()
     await expect(phone.getByRole('list', { name: 'Held sales' })).toContainText('Moved to another device')
-    await pc.request.post('/api/v1/auth/logout') // its lock screen off Who's on now
+    await signOutPC(pc) // its lock screen off Who's on now
     await pcCtx.close()
   })
 
@@ -175,7 +182,7 @@ test.describe.serial('Pocket Cashier', () => {
     await signInPC(pc, '0770000002')
     await expect(phone.getByText(/is now on/)).toBeVisible({ timeout: 30_000 })
     await expect.poll(async () => JSON.stringify(await (await pc.request.get('/api/v1/till/held')).json()), { timeout: 30_000 }).toContain('Moved to another device')
-    await pc.request.post('/api/v1/auth/logout') // off Who's on now for the specs after this one
+    await signOutPC(pc) // off Who's on now for the specs after this one
     await pcCtx.close()
   })
 })
