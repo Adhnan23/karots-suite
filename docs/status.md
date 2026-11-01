@@ -56,7 +56,7 @@ A. **Expiry — do first** (all core; the pharmacy plugin may only add extras th
 B. **Customers:** 5. **prices per customer / customer group** (only retail and wholesale today).
 C. **Small ones:** 6. **discount received when paying a supplier** (a received bill can't be edited and a payment
    only pays, so 9,800 on a 10,000 bill leaves 200 owed — add "discount received" that closes the rest, lowers the
-   payable and shows in money reports); 7. **drop `customers.loyalty_points`** (unused; loyalty will be a plugin).
+   payable and shows in money reports). (7, the unused `customers.loyalty_points`, dropped 2026-11-01.)
 
 **Parked:** the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
 damage as an amount; build only if Quick item is too much work for a shop); staff commission and delivery orders

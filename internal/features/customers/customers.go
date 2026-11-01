@@ -26,7 +26,6 @@ type Customer struct {
 	OutstandingBalance decimal.Decimal `db:"outstanding_balance" json:"outstanding_balance"`
 	OpeningBalance     decimal.Decimal `db:"opening_balance"     json:"opening_balance"`
 	OpeningUnlinked    decimal.Decimal `db:"opening_unlinked"    json:"opening_unlinked"`
-	LoyaltyPoints      int             `db:"loyalty_points"      json:"loyalty_points"`
 	IsActive           bool            `db:"is_active"           json:"is_active"`
 	CreatedAt          time.Time       `db:"created_at"          json:"created_at"`
 }
