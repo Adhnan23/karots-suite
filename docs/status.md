@@ -53,12 +53,11 @@ A. **Expiry — do first** (all core; the pharmacy plugin may only add extras th
      what they bring as a normal delivery, and the credit pays that bill. Credited us goes on open bills oldest first;
      what's left pays their next delivery (`loss_recoveries.credit_unapplied`).
    - **Goods that arrived damaged:** already in core — return them from that delivery's lot (Purchasing → Returns).
-B. **Customers:** 5. **prices per customer / customer group** (only retail and wholesale today).
-C. **Small ones:** 6. **discount received when paying a supplier** (a received bill can't be edited and a payment
-   only pays, so 9,800 on a 10,000 bill leaves 200 owed — add "discount received" that closes the rest, lowers the
-   payable and shows in money reports). (7, the unused `customers.loyalty_points`, dropped 2026-11-01.)
+(`customers.loyalty_points`, unused, dropped 2026-11-01.)
 
-**Parked:** the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
+**Dropped 2026-11-01 (user):** prices per customer / customer group; retail and wholesale stay the only price types.
+
+**Parked:** **discount received when paying a supplier** (only if a shop asks: a discount at delivery already works; for one offered later, the leftover stays owed, or can be cleared as a payment from outside the shop, noted as a discount, which the profit report won't show as a gain); the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
 damage as an amount; build only if Quick item is too much work for a shop); staff commission and delivery orders
 (only if a shop asks). **Future plugins, not now:** loyalty points, gift vouchers / credit notes, several shops.
 
