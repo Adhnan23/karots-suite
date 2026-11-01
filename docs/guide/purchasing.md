@@ -54,6 +54,10 @@ When a supplier takes a batch back, or you want to give it to them, and you'll s
 3. It then waits on that supplier as "given back". Press **Settle** when they replace it or pay for
    it, in full or part. Until then it counts as a loss in reports, like any write-off.
 
+**If they replace it with a different product,** settle it as **Credited us** with what it was worth,
+then enter what they bring as a normal delivery. A credit goes on their open bills, oldest first, and
+what's left pays their next delivery. If they brought less, the difference stays as what they owe you.
+
 Batches get mixed on the shelf, so the count wins. If it's more than the system says, the extra
 comes from the product's other batches. If it's less, the rest moves onto its next batch. Only when
 there's no other batch to take it does the stock total change, as an adjustment in **Movements**.

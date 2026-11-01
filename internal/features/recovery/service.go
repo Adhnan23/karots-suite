@@ -8,6 +8,7 @@ import (
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
+	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/stock"
 	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/money"
@@ -146,6 +147,9 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 				return apperr.Internal("failed to credit supplier", err)
 			}
 			rec.RecoveredValue = paidAmount
+			if rec.CreditUnapplied, err = creditBills(ctx, tx, *in.SupplierID, paidAmount); err != nil {
+				return err
+			}
 
 		case OutcomeWrittenOff:
 			rec.RecoveredValue = decimal.Zero
@@ -156,6 +160,33 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 		}
 		return nil
 	})
+}
+
+// creditBills puts a supplier's credit on their open bills, oldest first, and
+// answers what's left for their next delivery: only what they really owe us now,
+// since any more than the bills went on old debt.
+func creditBills(ctx context.Context, tx *sqlx.Tx, supplierID int64, amount decimal.Decimal) (decimal.Decimal, error) {
+	bills := purchases.NewRepository(tx)
+	open, err := bills.OpenBySupplier(ctx, supplierID)
+	if err != nil {
+		return decimal.Zero, apperr.Internal("failed to load open bills", err)
+	}
+	left := amount
+	for _, pu := range open {
+		if !left.IsPositive() {
+			break
+		}
+		applied, err := bills.ApplyCredit(ctx, pu.ID, left)
+		if err != nil {
+			return decimal.Zero, apperr.Internal("failed to credit a bill", err)
+		}
+		left = left.Sub(applied)
+	}
+	sup, err := suppliers.NewRepository(tx).FindByID(ctx, supplierID)
+	if err != nil {
+		return decimal.Zero, apperr.Internal("failed to load the supplier", err)
+	}
+	return decimal.Max(decimal.Min(left, sup.OutstandingBalance.Neg()), decimal.Zero), nil
 }
 
 // LossProduct is the product a loss is of.

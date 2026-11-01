@@ -48,9 +48,10 @@ A. **Expiry — do first** (all core; the pharmacy plugin may only add extras th
    - The rep may come any time — a few days after being told, before expiry, or after it — and may still replace
      expired stock.
    - Made good as: the same product (often a **new lot at a different price** — same price or the shop pays the
-     extra: **already in core**, Losses & Recovery restocks a new lot with expiry / price / extra), **money / credit**,
-     nothing (written off) — or **a different product** as the replacement (an alternative medicine or biscuit):
-     **missing**, a replacement always restocks the loss's own product.
+     extra: Losses & Recovery restocks a new lot with expiry / price / extra), **money / credit**, nothing (written
+     off). **A different product** is deliberately not a feature (user, 2026-11-01): settle as **Credited us**, enter
+     what they bring as a normal delivery, and the credit pays that bill. Credited us goes on open bills oldest first;
+     what's left pays their next delivery (`loss_recoveries.credit_unapplied`).
    - **Goods that arrived damaged:** already in core — return them from that delivery's lot (Purchasing → Returns).
 B. **Customers:** 5. **prices per customer / customer group** (only retail and wholesale today).
 C. **Small ones:** 6. **discount received when paying a supplier** (a received bill can't be edited and a payment
@@ -73,8 +74,8 @@ full run and passed alone.
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then
 apply the answers and drop the DRAFT line; the real-printer test when printers arrive.
 
-**Left on purpose (only if a shop runs into it):** a supplier's replacement lot doesn't remember that supplier, so with
-no preferred supplier on the product it warns at the shop's number and has no Give back (set a preferred supplier); a bounced cheque that paid old debt moves the customer's linked
+**Left on purpose (only if a shop runs into it):** a same-product **Replaced it** lot doesn't remember that supplier, so
+with no preferred supplier on the product it warns at the shop's number and has no Give back (set a preferred supplier); a bounced cheque that paid old debt moves the customer's linked
 balance, not the old-debt part (the total owed is right); a partial supplier-cheque bounce reopens bills before the
 payment's advance part (balance right, bill ageing may differ).
 

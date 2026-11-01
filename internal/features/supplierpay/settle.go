@@ -14,7 +14,8 @@ import (
 
 // pool is one unspent source of supplier credit: a payment whose money has not
 // all been assigned to invoices yet (an advance), or a debit note whose value has
-// not all been credited yet (goods returned against nothing).
+// not all been credited yet (goods returned against nothing), or a supplier's
+// credit for a loss that no bill has taken yet.
 type pool struct {
 	ID        int64           `db:"id"`
 	Remaining decimal.Decimal `db:"remaining"`
@@ -53,9 +54,19 @@ func unappliedReturnCredits(ctx context.Context, tx *sqlx.Tx, supplierID int64) 
 	return rows, err
 }
 
+// unappliedLossCredits lists a supplier's credits for losses still waiting for a bill.
+func unappliedLossCredits(ctx context.Context, tx *sqlx.Tx, supplierID int64) ([]pool, error) {
+	var rows []pool
+	err := tx.SelectContext(ctx, &rows, `
+		SELECT id, credit_unapplied AS remaining FROM loss_recoveries
+		WHERE supplier_id = $1 AND credit_unapplied > 0
+		ORDER BY created_at, id`, supplierID)
+	return rows, err
+}
+
 // ApplySupplierCreditTx settles a freshly booked invoice out of whatever the
 // supplier is already holding for us — advances paid before the goods arrived,
-// and value from returned goods.
+// value from returned goods, and credits for losses.
 //
 // Without this an advance would re-open the very hole that crediting returns
 // closed: the supplier's aggregate balance would net the advance while the new
@@ -150,6 +161,27 @@ func (s *Service) ApplySupplierCreditTx(ctx context.Context, tx *sqlx.Tx, suppli
 		}
 		if aerr := retRepo.InsertAllocation(ctx, p.ID, purchaseID, got); aerr != nil {
 			return apperr.Internal("failed to record the credit allocation", aerr)
+		}
+		left = left.Sub(got)
+	}
+
+	lossCredits, err := unappliedLossCredits(ctx, tx, supplierID)
+	if err != nil {
+		return apperr.Internal("failed to read supplier credits", err)
+	}
+	for _, p := range lossCredits {
+		if !left.IsPositive() {
+			break
+		}
+		got, aerr := puRepo.ApplyCredit(ctx, purchaseID, decimal.Min(p.Remaining, left))
+		if aerr != nil {
+			return apperr.Internal("failed to apply a loss credit", aerr)
+		}
+		if !got.IsPositive() {
+			break
+		}
+		if _, aerr := tx.ExecContext(ctx, `UPDATE loss_recoveries SET credit_unapplied = credit_unapplied - $1 WHERE id = $2`, got, p.ID); aerr != nil {
+			return apperr.Internal("failed to record the credit", aerr)
 		}
 		left = left.Sub(got)
 	}

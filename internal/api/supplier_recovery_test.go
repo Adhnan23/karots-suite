@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"karots-suite/internal/features/purchases"
+	"karots-suite/internal/features/supplierpay"
+
 	"github.com/lib/pq"
 )
 
@@ -289,4 +292,74 @@ func TestSupplierRecall(t *testing.T) {
 	if got := attention(); got != before {
 		t.Fatalf("dashboard after give back: %d", got)
 	}
+}
+
+// "Credited us" lands on the bills, not just the total, so nobody pays a bill
+// the credit has already covered; what's left pays the next delivery.
+func TestCreditedUsSettlesBills(t *testing.T) {
+	te := newTestEnv(t)
+	purchases.WithSettleCredit(supplierpay.NewService(te.db).ApplySupplierCreditTx) // as the real app wires it
+	t.Cleanup(func() { purchases.WithSettleCredit(nil) })
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	te.db.MustExec(`UPDATE stock SET quantity = quantity + 50 WHERE product_id=$1`, f.plainID)
+	var n int
+	newSup := func(opening string) AdminSupplierRow {
+		n++
+		return decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Credit %d %d", time.Now().UnixNano(), n), OpeningBalance: opening}, ck))
+	}
+	deliver := func(sup int64, cost string) {
+		t.Helper()
+		if rec := te.do(http.MethodPost, "/api/v1/admin/purchases/receive", PurchaseRequest{SupplierID: sup, Lines: []StockLine{{ProductID: f.plainID, Quantity: "1", CostPrice: cost, DiscountType: "fixed"}}}, ck); rec.Code >= 300 {
+			t.Fatalf("deliver: %d %s", rec.Code, rec.Body)
+		}
+	}
+	credit := func(sup int64, amount string) {
+		t.Helper()
+		loss := decode[ConsumeResult](t, te.do(http.MethodPost, "/api/v1/admin/stock/damage", ConsumeRequest{ProductID: f.plainID, Quantity: "1", Reason: "damage"}, ck)).LossID
+		if rec := te.do(http.MethodPost, "/api/v1/admin/recovery", RecoveryRequest{SourceType: "damage", SourceID: loss, Outcome: "paid", SupplierID: sup, Amount: amount}, ck); rec.Code >= 300 {
+			t.Fatalf("credit: %d %s", rec.Code, rec.Body)
+		}
+	}
+	check := func(what string, sup int64, owed string, open ...string) {
+		t.Helper()
+		d := decode[AdminSupplierDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/suppliers/%d", sup), nil, ck))
+		got := make([]string, 0, len(d.Invoices))
+		for _, i := range d.Invoices {
+			got = append(got, i.Balance)
+		}
+		if d.Owed != owed || !slices.Equal(got, open) {
+			t.Errorf("%s: owed %s, open bills %v; want %s, %v", what, d.Owed, got, owed, open)
+		}
+	}
+
+	s := newSup("")
+	deliver(s.ID, "1000")
+	deliver(s.ID, "400")
+	credit(s.ID, "1100")
+	check("oldest bill first", s.ID, "300.00", "300.00")
+
+	s = newSup("")
+	credit(s.ID, "400")
+	check("no bills: they owe us", s.ID, "-400.00")
+	deliver(s.ID, "300")
+	check("the replacement is covered", s.ID, "-100.00")
+	deliver(s.ID, "200")
+	check("the rest of the credit runs out", s.ID, "100.00", "100.00")
+
+	// A credit that only eats old debt leaves nothing to pay a later bill with.
+	s = newSup("100")
+	credit(s.ID, "30")
+	check("old debt", s.ID, "70.00")
+	deliver(s.ID, "50")
+	check("old debt, then a delivery", s.ID, "120.00", "50.00")
+
+	// Handed over as cash instead: the credit is gone, so the next bill stands.
+	s = newSup("")
+	credit(s.ID, "400")
+	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/admin/suppliers/%d/refund", s.ID), AdminMoneyRequest{Amount: "400", Method: "online"}, ck); rec.Code >= 300 {
+		t.Fatalf("refund: %d %s", rec.Code, rec.Body)
+	}
+	deliver(s.ID, "300")
+	check("refunded credit", s.ID, "300.00", "300.00")
 }

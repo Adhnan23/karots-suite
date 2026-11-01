@@ -40,9 +40,11 @@ type Recovery struct {
 	LossValue      decimal.Decimal `db:"loss_value"      json:"loss_value"`
 	RecoveredValue decimal.Decimal `db:"recovered_value" json:"recovered_value"`
 	ExtraCharge    decimal.Decimal `db:"extra_charge"    json:"extra_charge"`
-	Note           *string         `db:"note"            json:"note,omitempty"`
-	HandledBy      int64           `db:"handled_by"      json:"handled_by"`
-	CreatedAt      time.Time       `db:"created_at"       json:"created_at"`
+	// CreditUnapplied is what a "paid" credit has left for the supplier's next bills.
+	CreditUnapplied decimal.Decimal `db:"credit_unapplied" json:"credit_unapplied"`
+	Note            *string         `db:"note"            json:"note,omitempty"`
+	HandledBy       int64           `db:"handled_by"      json:"handled_by"`
+	CreatedAt       time.Time       `db:"created_at"       json:"created_at"`
 }
 
 // CreateInput is the form payload for recording a recovery.
@@ -141,10 +143,10 @@ func (r *Repository) Insert(ctx context.Context, rec Recovery) (int64, error) {
 	var id int64
 	err := r.q.GetContext(ctx, &id, `
 		INSERT INTO loss_recoveries
-			(source_type, source_id, product_id, supplier_id, outcome, quantity, loss_value, recovered_value, note, handled_by, extra_charge)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+			(source_type, source_id, product_id, supplier_id, outcome, quantity, loss_value, recovered_value, note, handled_by, extra_charge, credit_unapplied)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
 		RETURNING id`,
 		rec.SourceType, rec.SourceID, rec.ProductID, rec.SupplierID, rec.Outcome,
-		rec.Quantity, rec.LossValue, rec.RecoveredValue, rec.Note, rec.HandledBy, rec.ExtraCharge)
+		rec.Quantity, rec.LossValue, rec.RecoveredValue, rec.Note, rec.HandledBy, rec.ExtraCharge, rec.CreditUnapplied)
 	return id, err
 }
