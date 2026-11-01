@@ -32,6 +32,8 @@ type PL struct {
 	StaffWelfare decimal.Decimal `json:"staff_welfare"` // stock taken by staff
 	Recoveries   decimal.Decimal `json:"recoveries"`    // value reclaimed from suppliers
 	OtherIncome  decimal.Decimal `json:"other_income"`  // bank interest credited to lockers in range
+	// DiscountsReceived is what suppliers took off at payment (no money moved).
+	DiscountsReceived decimal.Decimal `json:"discounts_received"`
 	// StockCorrections is the net value of stock adjustments: positive when a
 	// count wrote stock OFF, negative when it found more than the books showed.
 	// Shops that correct stock this way (rather than by stock-take) book all of
@@ -184,6 +186,13 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 		return nil, apperr.Internal("failed to compute recoveries", err)
 	}
 
+	if err := s.db.GetContext(ctx, &pl.DiscountsReceived, `
+		SELECT COALESCE(SUM(amount),0) FROM supplier_payments
+		WHERE method = 'discount' AND created_at >= $1 AND created_at < $2`,
+		from, to); err != nil {
+		return nil, apperr.Internal("failed to compute discounts received", err)
+	}
+
 	// Other income: bank interest credited to a locker in the period (recorded via
 	// the locker "Adjust → Interest" path as a locker_ledger row). Bank charges
 	// already hit the P&L through expenses; interest is the symmetric income side,
@@ -228,7 +237,7 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	// short, so adding it subtracts the shortage and credits an overage.
 	pl.NetProfit = pl.GrossProfit.Sub(pl.Expenses).Sub(pl.Losses).
 		Sub(pl.OwnUse).Sub(pl.StaffWelfare).Sub(pl.StockCorrections).
-		Add(pl.Recoveries).Add(pl.OtherIncome).Add(pl.RegisterDiff)
+		Add(pl.Recoveries).Add(pl.OtherIncome).Add(pl.DiscountsReceived).Add(pl.RegisterDiff)
 
 	// Only customers who OWE count as receivables. One holding an advance has a
 	// negative balance; summing raw netted it against everyone else's dues and

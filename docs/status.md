@@ -55,9 +55,12 @@ A. **Expiry — do first** (all core; the pharmacy plugin may only add extras th
    - **Goods that arrived damaged:** already in core — return them from that delivery's lot (Purchasing → Returns).
 (`customers.loyalty_points`, unused, dropped 2026-11-01.)
 
+**Discount received when paying a supplier: DONE 2026-11-01.** A **Discount** method on the Pay form (supplier page, not the
+counter): settles bills like a payment, no money moves, can't pass what's owed; its own statement line and profit line.
+
 **Dropped 2026-11-01 (user):** prices per customer / customer group; retail and wholesale stay the only price types.
 
-**Parked:** **discount received when paying a supplier** (only if a shop asks: a discount at delivery already works; for one offered later, the leftover stays owed, or can be cleared as a payment from outside the shop, noted as a discount, which the profit report won't show as a gain); the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
+**Parked:** the **open-price plugin** (goods tracked by value, never count — typed price, supplier bills at cost,
 damage as an amount; build only if Quick item is too much work for a shop); staff commission and delivery orders
 (only if a shop asks). **Future plugins, not now:** loyalty points, gift vouchers / credit notes, several shops.
 

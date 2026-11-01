@@ -23,18 +23,23 @@ export function moneyDone(msg: string, r: ReceiptRef) {
   void slipOut(slipPath.money(r.receiptId), msg)
 }
 
+type SupplierMethod = PayMethod | 'discount'
+
 function MethodSource({ method, setMethod, source, setSource, sym, into, cheques }: {
-  method: PayMethod; setMethod: (m: PayMethod) => void; source: string; setSource: (s: string) => void; sym: string; into?: boolean
+  method: SupplierMethod; setMethod: (m: SupplierMethod) => void; source: string; setSource: (s: string) => void; sym: string; into?: boolean
   cheques?: { lines: ChequeDraftLine[]; setLines: (ls: ChequeDraftLine[]) => void; want: number } // offers Cheque (money given)
 }) {
   const all = useQuery(moneySourcesQuery).data
   const banks = bankPlaces(all)
   const where = method === 'cash' ? (into ? 'Put the cash into' : 'Pay the cash from') : into ? 'Received into (optional)' : 'Paid from (optional)'
-  const options = PAY_METHODS.filter(([m]) => m !== 'cheque' || (cheques && banks.length > 0))
+  const options: [SupplierMethod, string][] = PAY_METHODS.filter(([m]) => m !== 'cheque' || (cheques && banks.length > 0))
+  if (!into) options.push(['discount', 'Discount'])
   return (
     <>
       <Seg label="Method" value={method} onChange={(m) => { setMethod(m); setSource(''); if (m === 'cheque' && cheques && !cheques.lines.length) cheques.setLines([blankCheque(cheques.want > 0 ? String(cheques.want) : '', banks[0] ? String(banks[0].id) : '')]) }} options={options} />
-      {method === 'cheque' && cheques ? (
+      {method === 'discount' ? (
+        <p className="text-[13px] text-muted-foreground">The supplier took this off the bill. It settles what you owe and no money moves.</p>
+      ) : method === 'cheque' && cheques ? (
         <ChequeLines dir="out" lines={cheques.lines} onChange={cheques.setLines} places={banks} sym={sym} want={cheques.want} />
       ) : method === 'card' ? (
         <p className="text-[13px] text-muted-foreground">{into ? "A card refund from a supplier goes back to the owner's card — nothing lands in a shop account." : "A card payment to a supplier is the owner's card — nothing leaves a shop account."}</p>
@@ -60,7 +65,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
   const [alloc, setAlloc] = useState<Record<number, string>>({})
   const [oldDebt, setOldDebt] = useState('')
   const [advance, setAdvance] = useState('')
-  const [method, setMethod] = useState<PayMethod>('cash')
+  const [method, setMethod] = useState<SupplierMethod>('cash')
   const [source, setSource] = useState('')
   const [cheques, setCheques] = useState<ChequeDraftLine[]>([])
   const [reference, setReference] = useState('')
@@ -74,7 +79,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
         ? { amount: '', mode, allocations: Object.entries(alloc).map(([id, a]) => ({ purchaseId: Number(id), amount: a })), advance, oldDebt, method, reference, note, source }
         : { amount, mode, allocations: [], advance: '', oldDebt: '', method, reference, note, source }
       if (method === 'cheque') body.cheques = toChequeLines(cheques)
-      moneyDone(`Paid ${money(sym, total)} to ${s.name}`, await api<ReceiptRef>(`/admin/suppliers/${s.id}/payment`, { json: body }))
+      moneyDone(method === 'discount' ? `Discount of ${money(sym, total)} from ${s.name}` : `Paid ${money(sym, total)} to ${s.name}`, await api<ReceiptRef>(`/admin/suppliers/${s.id}/payment`, { json: body }))
       void qc.invalidateQueries({ queryKey: ['admin'] })
       onClose()
     } catch (e) {
@@ -84,7 +89,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Pay ${s.name}`} submit={`↑ Pay ${total > 0 ? money(sym, total) : ''}`}
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Pay ${s.name}`} submit={method === 'discount' ? `Record discount ${total > 0 ? money(sym, total) : ''}` : `↑ Pay ${total > 0 ? money(sym, total) : ''}`}
       busy={busy || !(total > 0) || (method === 'cheque' && (!chequesReady(cheques, 'out') || chequesTotal(cheques) !== r2(total)))} onSubmit={save} wide>
       <p className="text-sm text-muted-foreground">Owed <b className="text-foreground tabular-nums">{money(sym, owed)}</b>{old > 0 && <> · old debt {money(sym, old)}</>}</p>
       {s.invoices.length > 0 && (
@@ -92,7 +97,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
       )}
       {!exact ? (
         <>
-          <Field label="Amount paid" hint={total > owed && owed >= 0 && total > 0 ? `${money(sym, total - owed)} beyond what's owed stays with them as an advance.` : undefined}>
+          <Field label={method === 'discount' ? 'Discount' : 'Amount paid'} hint={method !== 'discount' && total > owed && owed >= 0 && total > 0 ? `${money(sym, total - owed)} beyond what's owed stays with them as an advance.` : undefined}>
             <div className="flex gap-1.5">
               <input autoFocus aria-label="Amount paid" inputMode="decimal" value={amount} onChange={(e) => setAmount(amt(e.target.value))} placeholder="0.00"
                 className={cn(INPUT, 'h-[52px] min-w-0 flex-1 font-display text-2xl font-bold tabular-nums')} />
@@ -156,7 +161,7 @@ export function RefundSheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: 
       <Field label="Amount received">
         <input autoFocus aria-label="Amount received" inputMode="decimal" value={amount} onChange={(e) => setAmount(amt(e.target.value))} className={cn(INPUT, 'h-[52px] font-display text-2xl font-bold tabular-nums')} />
       </Field>
-      <MethodSource method={method} setMethod={setMethod} source={source} setSource={setSource} sym={sym} into />
+      <MethodSource method={method} setMethod={(m) => setMethod(m as PayMethod)} source={source} setSource={setSource} sym={sym} into />
       <Field label="Reference"><input aria-label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} className={INPUT} placeholder="Cheque / txn no" /></Field>
     </FormSheet>
   )

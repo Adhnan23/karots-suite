@@ -103,6 +103,10 @@ type Service struct {
 
 func NewService(db *sqlx.DB) *Service { return &Service{db: db, repo: NewRepository(db)} }
 
+// MethodDiscount is a discount the supplier gave at payment: it settles bills
+// like any payment, but no money moves.
+const MethodDiscount = "discount"
+
 // OpenInvoices lists a supplier's purchases that still owe money (oldest first).
 func (s *Service) OpenInvoices(ctx context.Context, supplierID int64) ([]purchases.Purchase, error) {
 	rows, err := purchases.NewRepository(s.db).OpenBySupplier(ctx, supplierID)
@@ -123,7 +127,7 @@ func (s *Service) History(ctx context.Context, supplierID int64) ([]Payment, err
 
 func normMethod(m string) (string, bool) {
 	switch m {
-	case "cash", "card", "online", "cheque":
+	case "cash", "card", "online", "cheque", MethodDiscount:
 		return m, true
 	case "":
 		return "cash", true
@@ -230,8 +234,15 @@ func (s *Service) PayTx(ctx context.Context, tx *sqlx.Tx, supplierID int64, in P
 		if pu.SupplierID != supplierID {
 			return nil, apperr.Validation("invoice does not belong to this supplier")
 		}
-		advanced, err := puRepo.ApplyPayment(ctx, a.PurchaseID, a.Amount)
-		if err != nil {
+		var advanced bool
+		if method == MethodDiscount {
+			// It lowers the bill rather than paying it, so paid_amount stays real money.
+			applied, err := puRepo.ApplyCredit(ctx, a.PurchaseID, a.Amount)
+			if err != nil {
+				return nil, apperr.Internal("failed to apply the discount to invoice", err)
+			}
+			advanced = applied.Equal(a.Amount)
+		} else if advanced, err = puRepo.ApplyPayment(ctx, a.PurchaseID, a.Amount); err != nil {
 			return nil, apperr.Internal("failed to apply payment to invoice", err)
 		}
 		if !advanced {

@@ -373,6 +373,7 @@ type AdminFinance struct {
 	StockCorrection string            `json:"stockCorrections"`
 	Recoveries      string            `json:"recoveries"`
 	OtherIncome     string            `json:"otherIncome"`
+	DiscountsReceived string          `json:"discountsReceived"`
 	PluginIncome    []FinanceLine     `json:"pluginIncome"`
 	NetProfit       string            `json:"netProfit"`
 	ZeroCostLines   int               `json:"zeroCostLines"`

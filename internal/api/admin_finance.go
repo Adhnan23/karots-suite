@@ -54,7 +54,7 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 		GrossRevenue: dec2(pl.GrossRevenue), Returns: dec2(pl.Returns), Revenue: dec2(pl.Revenue), COGS: dec2(pl.COGS),
 		GrossProfit: dec2(pl.GrossProfit), GrossMargin: pl.GrossMargin.StringFixed(1), Expenses: dec2(pl.Expenses), Losses: dec2(pl.Losses),
 		OwnUse: dec2(pl.OwnUse), StaffWelfare: dec2(pl.StaffWelfare), StockCorrection: dec2(pl.StockCorrections), Recoveries: dec2(pl.Recoveries),
-		OtherIncome: dec2(pl.OtherIncome), ZeroCostLines: pl.ZeroCostLines, ZeroCostRevenue: dec2(pl.ZeroCostRevenue),
+		OtherIncome: dec2(pl.OtherIncome), DiscountsReceived: dec2(pl.DiscountsReceived), ZeroCostLines: pl.ZeroCostLines, ZeroCostRevenue: dec2(pl.ZeroCostRevenue),
 		Received: dec2(pl.Received), Tax: dec2(pl.Tax), CashWithdrawn: dec2(pl.CashWithdrawn), RegisterDiff: dec2(pl.RegisterDiff),
 		Receivables: dec2(pl.Receivables), Advances: dec2(pl.CustomerAdvances), Payables: dec2(pl.Payables), SupplierCredit: dec2(pl.SupplierCredit),
 		Trend: []FinancePoint{}, ByPayment: []FinanceSlice{}, Categories: []FinanceCategory{}, TopProducts: []FinanceProduct{}}
@@ -92,7 +92,7 @@ func financeSheet(c echo.Context, f AdminFinance) error {
 		{"Gross revenue (before tax)", f.GrossRevenue}, {"Returns", f.Returns}, {"Net revenue", f.Revenue}, {"Cost of goods sold", f.COGS},
 		{"Gross profit", f.GrossProfit}, {"Expenses", f.Expenses}, {"Losses (damage, warranty)", f.Losses}, {"Own use", f.OwnUse},
 		{"Staff welfare", f.StaffWelfare}, {"Stock corrections", f.StockCorrection}, {"Till over / short", f.RegisterDiff},
-		{"Revenue sold at no recorded cost", f.ZeroCostRevenue}, {"Recovered from suppliers", f.Recoveries}, {"Other income (interest)", f.OtherIncome},
+		{"Revenue sold at no recorded cost", f.ZeroCostRevenue}, {"Recovered from suppliers", f.Recoveries}, {"Discounts from suppliers", f.DiscountsReceived}, {"Other income (interest)", f.OtherIncome},
 	}
 	for _, l := range f.PluginIncome {
 		rows = append(rows, []string{l.Label, l.Amount})

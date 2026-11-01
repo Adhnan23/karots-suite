@@ -95,3 +95,31 @@ test('recall from Batches: stop selling, listed on the supplier, undo', async ({
   await row.getByRole('button', { name: 'Undo recall' }).click()
   await expect(panel).toHaveCount(0)
 })
+
+test('a discount at payment closes the bill, moves no money and shows as a gain', async ({ page }) => {
+  await signIn(page)
+  const dtag = Date.now().toString(36).slice(-5)
+  const sup = await (await page.request.post('/api/v1/admin/suppliers', { data: { name: `E2E Discounter ${dtag}`, contact: '', phone: '', address: '', creditDays: 0, openingBalance: '' } })).json()
+  const pid = await freshProduct(page, `E2E Discounted ${dtag}`)
+  const res = await page.request.post(`/api/v1/till/suppliers/${sup.id}/receive`, { data: {
+    invoiceNo: '', discount: '', discountType: 'fixed', notes: '', keepRemainder: false, deferDrawerKick: true,
+    pay: { amount: '', method: 'cash', lockerId: 0 },
+    lines: [{ productId: pid, name: '', ordered: '', quantity: '1', freeQty: '', costPrice: '1000', sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed' }],
+  } })
+  expect(res.ok()).toBeTruthy()
+  const owed = async () => Number((await (await page.request.get(`/api/v1/admin/suppliers/${sup.id}`)).json()).owed)
+
+  await page.goto(`/admin/suppliers/${sup.id}`)
+  await page.getByRole('button', { name: '↑ Pay' }).click()
+  const sheet = page.getByRole('dialog', { name: `Pay E2E Discounter ${dtag}` })
+  await sheet.getByRole('radio', { name: 'Discount' }).or(sheet.getByRole('button', { name: 'Discount', exact: true })).first().click()
+  await expect(sheet).toContainText('no money moves')
+  await sheet.getByLabel('Amount paid').fill('200')
+  await sheet.getByRole('button', { name: /Record discount/ }).click()
+  await expect.poll(owed).toBe(800)
+  await expect(page.getByText('Discount received').first()).toBeVisible()
+  await expect(page.getByText('no money moved').first()).toBeVisible()
+
+  await page.goto('/admin/finance')
+  await expect(page.getByText('Discounts from suppliers')).toBeVisible()
+})

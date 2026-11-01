@@ -102,6 +102,9 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
+	if req.Method == supplierpay.MethodDiscount {
+		return h.adminSupplierDiscount(c, id, req)
+	}
 	src, err := h.adminGiven(c.Request().Context(), req.Method, req.Source, req.Cheques)
 	if err != nil {
 		return err
@@ -135,6 +138,35 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 	}
 	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "paid "+money.Display(total)+" ("+paidHow(src)+")")
 	return h.adminMoneyDone(ctx, c, src.Loc, rec)
+}
+
+// adminSupplierDiscount records a discount the supplier gave: it settles what's
+// owed like a payment, with no money moving, so it can't go past what's owed.
+func (h *handlers) adminSupplierDiscount(c echo.Context, id int64, req AdminSupplierPayRequest) error {
+	ctx := c.Request().Context()
+	sup, err := suppliers.NewService(h.d.DB).Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	svc := supplierpay.NewService(h.d.DB)
+	inv, err := svc.OpenInvoices(ctx, id)
+	if err != nil {
+		return err
+	}
+	in, err := supplierPayInput(req, inv, sup.OpeningUnlinked)
+	if err != nil {
+		return err
+	}
+	if in.Unallocated.IsPositive() {
+		return apperr.Validation("a discount can't be more than what you owe them")
+	}
+	in.Method, in.Reference, in.Note = supplierpay.MethodDiscount, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
+	res, err := svc.Pay(ctx, id, in, middleware.CurrentUserID(c))
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionPayment, "supplier", strconv.FormatInt(id, 10), "discount received "+money.Display(res.Total))
+	return c.JSON(http.StatusCreated, ReceiptRef{})
 }
 
 // AdminSupplierRefund records money a supplier hands back (capped at the credit

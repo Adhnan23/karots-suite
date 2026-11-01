@@ -1749,6 +1749,7 @@ export interface AdminFinance {
   stockCorrections: string;
   recoveries: string;
   otherIncome: string;
+  discountsReceived: string;
   pluginIncome: FinanceLine[];
   netProfit: string;
   zeroCostLines: number /* int */;

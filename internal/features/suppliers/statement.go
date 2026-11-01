@@ -134,7 +134,11 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		if r.Reference != nil && strings.TrimSpace(*r.Reference) != "" {
 			ref += " · " + *r.Reference
 		}
-		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Payment", Ref: ref, Credit: r.Amount})
+		kind := "Payment"
+		if r.Method == "discount" {
+			kind = "Discount received"
+		}
+		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: kind, Ref: ref, Credit: r.Amount})
 	}
 	for _, r := range refunds {
 		ref := r.Method

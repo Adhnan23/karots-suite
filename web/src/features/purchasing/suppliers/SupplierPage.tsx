@@ -131,10 +131,10 @@ export function SupplierPage({ id }: { id: number }) {
                 {s.money.map((m, i) => (
                   <li key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                     <span className="min-w-0">
-                      <b>{m.kind === 'refund' ? '↓ Refund from them' : '↑ Paid to them'}</b>
-                      <small className="block truncate text-faint">{day(m.date)} · {m.method === 'cheque' ? <MethodBadge method="cheque" /> : m.method}{m.reference && ` · ${m.reference}`}{m.by && ` · ${m.by}`}{m.note && ` · ${m.note}`}</small>
+                      <b>{m.kind === 'refund' ? '↓ Refund from them' : m.method === 'discount' ? 'Discount received' : '↑ Paid to them'}</b>
+                      <small className="block truncate text-faint">{day(m.date)} · {m.method === 'cheque' ? <MethodBadge method="cheque" /> : m.method === 'discount' ? 'no money moved' : m.method}{m.reference && ` · ${m.reference}`}{m.by && ` · ${m.by}`}{m.note && ` · ${m.note}`}</small>
                     </span>
-                    <b className={cn('tabular-nums', m.kind === 'refund' ? 'text-success' : 'text-danger')}>{money(sym, m.amount)}</b>
+                    <b className={cn('tabular-nums', m.kind === 'refund' || m.method === 'discount' ? 'text-success' : 'text-danger')}>{money(sym, m.amount)}</b>
                   </li>
                 ))}
               </ul>

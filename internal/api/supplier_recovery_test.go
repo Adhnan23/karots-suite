@@ -11,6 +11,7 @@ import (
 	"karots-suite/internal/features/supplierpay"
 
 	"github.com/lib/pq"
+	"github.com/shopspring/decimal"
 )
 
 // A supplier's credit for a damaged item (Losses & Recovery → Credited us)
@@ -338,6 +339,11 @@ func TestCreditedUsSettlesBills(t *testing.T) {
 	deliver(s.ID, "400")
 	credit(s.ID, "1100")
 	check("oldest bill first", s.ID, "300.00", "300.00")
+	var closed int
+	te.db.Get(&closed, `SELECT COUNT(*) FROM purchases WHERE supplier_id=$1 AND status='paid'`, s.ID) //nolint:errcheck
+	if closed != 1 {
+		t.Errorf("the bill the credit closed reads paid: %d", closed)
+	}
 
 	s = newSup("")
 	credit(s.ID, "400")
@@ -362,4 +368,87 @@ func TestCreditedUsSettlesBills(t *testing.T) {
 	}
 	deliver(s.ID, "300")
 	check("refunded credit", s.ID, "300.00", "300.00")
+}
+
+// A discount a supplier gives at payment: a payment that moves no money. It
+// closes the bill, shows on the statement and counts as a gain.
+func TestSupplierDiscountReceived(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	sup := decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Discount %d", time.Now().UnixNano())}, ck))
+	te.db.MustExec(`UPDATE stock SET quantity = quantity + 5 WHERE product_id=$1`, f.plainID)
+	if rec := te.do(http.MethodPost, "/api/v1/admin/purchases/receive", PurchaseRequest{SupplierID: sup.ID, Lines: []StockLine{{ProductID: f.plainID, Quantity: "1", CostPrice: "1000", DiscountType: "fixed"}}}, ck); rec.Code >= 300 {
+		t.Fatalf("deliver: %d %s", rec.Code, rec.Body)
+	}
+	pay := func(amount, method string) int {
+		return te.do(http.MethodPost, fmt.Sprintf("/api/v1/admin/suppliers/%d/payment", sup.ID), AdminSupplierPayRequest{Amount: amount, Method: method}, ck).Code
+	}
+	detail := func() AdminSupplierDetail {
+		return decode[AdminSupplierDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/suppliers/%d", sup.ID), nil, ck))
+	}
+	today := time.Now().Format(time.DateOnly)
+	financeURL := "/api/v1/admin/finance?from=" + today + "&to=" + today
+	net := func() string { return decode[AdminFinance](t, te.do(http.MethodGet, financeURL, nil, ck)).NetProfit }
+	moved := func() int {
+		var n int
+		te.db.Get(&n, `SELECT COUNT(*) FROM cash_movements`) //nolint:errcheck
+		return n
+	}
+	netBefore, movesBefore := net(), moved()
+
+	if code := pay("1200", "discount"); code != http.StatusUnprocessableEntity {
+		t.Fatalf("a discount past what's owed: %d", code)
+	}
+	if code := pay("200", "discount"); code != http.StatusCreated {
+		t.Fatalf("discount: %d", code)
+	}
+	d := detail()
+	if d.Owed != "800.00" || len(d.Invoices) != 1 || d.Invoices[0].Balance != "800.00" {
+		t.Fatalf("after the discount: owed %s, bills %+v", d.Owed, d.Invoices)
+	}
+	if moved() != movesBefore {
+		t.Errorf("a discount moved money")
+	}
+	if len(d.Money) != 1 || d.Money[0].Method != "discount" {
+		t.Errorf("money rows: %+v", d.Money)
+	}
+	after := decode[AdminFinance](t, te.do(http.MethodGet, financeURL, nil, ck))
+	if after.DiscountsReceived == "" || decimal.RequireFromString(after.DiscountsReceived).LessThan(decimal.NewFromInt(200)) {
+		t.Errorf("discounts in the profit report: %q", after.DiscountsReceived)
+	}
+	if got := decimal.RequireFromString(after.NetProfit).Sub(decimal.RequireFromString(netBefore)); !got.Equal(decimal.NewFromInt(200)) {
+		t.Errorf("net profit moved by %s, want 200", got)
+	}
+	st := decode[Statement](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/suppliers/%d/statement", sup.ID), nil, ck))
+	if last := st.Lines[len(st.Lines)-1]; last.Kind != "Discount received" || st.Balance != "800.00" {
+		t.Errorf("statement: %+v, balance %s", last, st.Balance)
+	}
+
+	// The rest settles it as usual, and nothing is left open.
+	if code := pay("800", "online"); code != http.StatusCreated {
+		t.Fatalf("the rest: %d", code)
+	}
+	if d = detail(); d.Owed != "0.00" || len(d.Invoices) != 0 {
+		t.Errorf("settled: owed %s, bills %+v", d.Owed, d.Invoices)
+	}
+
+	// The reports: 800 was really paid for 800 worth, nothing is due, the bill reads paid.
+	spend := decode[SupplierSpendReport](t, te.do(http.MethodGet, "/api/v1/admin/reports/supplier-spend?from="+today+"&to="+today, nil, ck))
+	i := slices.IndexFunc(spend.Rows, func(r SpendRow) bool { return r.SupplierID == sup.ID })
+	if i < 0 || spend.Rows[i].Spend != "800.00" || spend.Rows[i].Paid != "800.00" || spend.Rows[i].Due != "0.00" {
+		t.Errorf("supplier spend: %+v", spend.Rows)
+	}
+	var status string
+	te.db.Get(&status, `SELECT status FROM purchases WHERE supplier_id=$1`, sup.ID) //nolint:errcheck
+	if status != "paid" {
+		t.Errorf("bill status %q, want paid", status)
+	}
+	if got := decimal.RequireFromString(decode[AdminFinance](t, te.do(http.MethodGet, financeURL, nil, ck)).NetProfit).Sub(decimal.RequireFromString(netBefore)); !got.Equal(decimal.NewFromInt(200)) {
+		t.Errorf("paying the rest changed net profit: %s", got)
+	}
+	dues := decode[DuesReport](t, te.do(http.MethodGet, "/api/v1/admin/reports/supplier-dues", nil, ck))
+	if slices.ContainsFunc(dues.Rows, func(r DueRow) bool { return r.ID == sup.ID }) {
+		t.Errorf("a settled supplier is on the dues report")
+	}
 }

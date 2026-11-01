@@ -240,7 +240,8 @@ func (r *Repository) ApplyCredit(ctx context.Context, purchaseID int64, amount d
 			FROM purchases WHERE id = $2 FOR UPDATE
 		)
 		UPDATE purchases p
-		SET credited_amount = p.credited_amount + target.apply
+		SET credited_amount = p.credited_amount + target.apply,
+		    status = CASE WHEN p.paid_amount >= p.total - p.credited_amount - target.apply THEN 'paid'::purchase_status ELSE p.status END
 		FROM target
 		WHERE p.id = target.id
 		RETURNING target.apply`, amount, purchaseID)

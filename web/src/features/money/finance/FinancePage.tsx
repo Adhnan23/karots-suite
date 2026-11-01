@@ -92,6 +92,7 @@ function ProfitTab({ d, sym }: { d: AdminFinance; sym: string }) {
           {line('Staff welfare', d.staffWelfare, { sign: '−', skipZero: true })}
           {line('Stock corrections', d.stockCorrections, { sign: '−', skipZero: true })}
           {line('Recovered from suppliers', d.recoveries, { sign: '+', skipZero: true })}
+          {line('Discounts from suppliers', d.discountsReceived, { sign: '+', skipZero: true })}
           {line('Other income (interest)', d.otherIncome, { sign: '+', skipZero: true })}
           {d.pluginIncome.map((p) => line(p.label, p.amount, { sign: '+' }))}
           {line('Net profit', d.netProfit, { strong: true })}
