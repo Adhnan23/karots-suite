@@ -69,6 +69,7 @@ test.describe.serial('Pocket Cashier', () => {
     await expect(pc.getByText(/now on/i)).toBeVisible()
     await phone.getByRole('button', { name: 'Held' }).click()
     await expect(phone.getByRole('list', { name: 'Held sales' })).toContainText('Moved to another device')
+    await pc.request.post('/api/v1/auth/logout') // its lock screen off Who's on now
     await pcCtx.close()
   })
 
@@ -115,5 +116,66 @@ test.describe.serial('Pocket Cashier', () => {
     const sends = await (await admin.request.get(`${API}/sends`)).json()
     const detail = await (await admin.request.get(`${API}/sends/${sends[0].id}`)).json()
     expect(detail.actions.map((a: { kind: string; status: string }) => `${a.kind}:${a.status}`)).toContain('sale:applied')
+  })
+
+  test('parity: a weight, Which price?, line and bill discounts, cash + card — the PC charges what the phone showed', async () => {
+    // A product sold by the kg (e2e-till.sql has none).
+    const cats = await (await admin.request.get('/api/v1/admin/categories')).json() as { id: number; name: string }[]
+    const cat = cats.find((c) => c.name === 'E2E Goods')!.id
+    const made = await admin.request.post('/api/v1/admin/products', { data: { name: 'E2E Rice Loose', categoryId: cat, unitId: 2, costPrice: '100', sellingPrice: '200', wholesalePrice: '', taxRate: '0' } })
+    expect(made.ok()).toBe(true)
+
+    await phone.getByRole('button', { name: 'Sell', exact: true }).click()
+    const search = phone.getByLabel('Search or scan')
+    const products = phone.getByRole('list', { name: 'Products' })
+    await search.fill('E2E Rice Loose')
+    await expect(products.getByRole('button', { name: /E2E Rice Loose/ }).first()).toBeVisible({ timeout: 30_000 }) // the copy refreshes
+    await products.getByRole('button', { name: /E2E Rice Loose/ }).first().click()
+    await search.fill('E2E Lot Soap')
+    await products.getByRole('button', { name: /E2E Lot Soap/ }).first().click()
+    await phone.getByRole('dialog', { name: 'Which price?' }).getByRole('button', { name: /120\.00/ }).click()
+
+    // 1.25 kg of rice, Rs 10 off each kg; then 10% off the bill.
+    await phone.getByRole('button', { name: /items? ·/ }).click()
+    await phone.getByRole('button', { name: /Edit E2E Rice Loose/ }).click()
+    const line = phone.getByRole('dialog', { name: 'E2E Rice Loose' })
+    await line.getByRole('button', { name: 'Clear' }).click()
+    for (const k of '1.25') await line.getByRole('button', { name: k, exact: true }).click()
+    await line.getByRole('button', { name: 'Set quantity' }).click()
+    await line.getByLabel('Discount', { exact: true }).fill('10')
+    await line.getByRole('button', { name: 'Done' }).click()
+    await phone.getByLabel('Bill discount', { exact: true }).fill('10')
+    await phone.getByRole('group', { name: 'Bill discount type' }).getByRole('button', { name: '%' }).click()
+
+    // (1.25 × 200 − 1.25 × 10) + 120 = 357.50, less 10% = 321.75
+    await phone.getByRole('button', { name: 'Pay ›' }).click()
+    await expect(phone.getByText('321.75').first()).toBeVisible()
+    await phone.getByLabel('Amount tendered').fill('200')
+    await phone.getByRole('button', { name: 'Add payment' }).click()
+    await phone.getByRole('group', { name: 'Payment method' }).getByRole('button', { name: 'Card' }).click()
+    await phone.getByRole('group', { name: 'Pay the exact amount' }).getByRole('button').click()
+    await phone.getByRole('button', { name: 'Finish sale' }).click()
+    await phone.getByRole('dialog', { name: 'Print the receipt?' }).getByRole('button', { name: 'Skip' }).click()
+    const done = phone.getByRole('status').filter({ hasText: /Sale .* done/ })
+    const receipt = (await done.textContent())!.match(/Sale (\S+) done/)![1]
+
+    for (const method of ['cash', 'card']) {
+      const rows = await (await admin.request.get(`/api/v1/admin/sales?q=${receipt}&method=${method}`)).json() as { receiptNo: string; total: string }[]
+      expect(rows.find((r) => r.receiptNo === receipt)?.total).toBe('321.75')
+    }
+    await phone.getByRole('button', { name: 'New sale' }).click()
+  })
+
+  test('the cashier moves from the phone to a PC: the phone signs out, its cart waits in Held', async ({ browser }) => {
+    await phone.getByRole('button', { name: 'Sell', exact: true }).click()
+    await phone.getByLabel('Search or scan').fill('E2E Milk')
+    await phone.getByRole('list', { name: 'Products' }).getByRole('button', { name: /E2E Milk/ }).first().click()
+    const pcCtx = await browser.newContext()
+    const pc = await pcCtx.newPage()
+    await signInPC(pc, '0770000002')
+    await expect(phone.getByText(/is now on/)).toBeVisible({ timeout: 30_000 })
+    await expect.poll(async () => JSON.stringify(await (await pc.request.get('/api/v1/till/held')).json()), { timeout: 30_000 }).toContain('Moved to another device')
+    await pc.request.post('/api/v1/auth/logout') // off Who's on now for the specs after this one
+    await pcCtx.close()
   })
 })
