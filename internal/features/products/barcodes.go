@@ -24,7 +24,7 @@ type BarcodeRow struct {
 }
 
 // barcodeSources are where an extra barcode can come from.
-var barcodeSources = map[string]bool{"intake": true, "receive": true, "form": true, "merge": true, "import": true}
+var barcodeSources = map[string]bool{"intake": true, "receive": true, "form": true, "merge": true, "import": true, "till": true}
 
 // Barcodes lists a product's codes, the main one first, then extras oldest first.
 func (s *Service) Barcodes(ctx context.Context, productID int64) ([]BarcodeRow, error) {

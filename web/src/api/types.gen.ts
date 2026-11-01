@@ -3779,6 +3779,13 @@ export interface QuickItemRequest {
   barcode: string;
   unitId: number /* int64 */;
 }
+/**
+ * TillBarcodeRequest gives an existing product the code just scanned at the
+ * till (one item, several barcodes).
+ */
+export interface TillBarcodeRequest {
+  barcode: string;
+}
 export interface GeneratedBarcode {
   barcode: string;
 }

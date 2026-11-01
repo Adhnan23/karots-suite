@@ -188,6 +188,12 @@ type QuickItemRequest struct {
 	UnitID  int64  `json:"unitId"`
 }
 
+// TillBarcodeRequest gives an existing product the code just scanned at the
+// till (one item, several barcodes).
+type TillBarcodeRequest struct {
+	Barcode string `json:"barcode"`
+}
+
 type GeneratedBarcode struct {
 	Barcode string `json:"barcode"`
 }

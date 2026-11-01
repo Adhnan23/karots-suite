@@ -7,7 +7,10 @@ import (
 	"karots-suite/internal/features/sales"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
@@ -27,6 +30,7 @@ func (h *handlers) registerTillCatalog(g *echo.Group) {
 	g.GET("/groups/:id", h.TillGroup)
 	g.GET("/products", h.TillProducts)
 	g.GET("/products/barcode/:code", h.TillProductByBarcode)
+	g.POST("/products/:id/barcodes", h.TillBarcodeAdd)
 	g.GET("/products/:id", h.TillProduct)
 	g.GET("/products/:id/detail", h.TillProductDetail)
 	g.GET("/products/:id/lots", h.TillLots)
@@ -247,6 +251,27 @@ func (h *handlers) TillProducts(c echo.Context) error {
 	}
 	products.Decorate(ctx, rows)
 	return c.JSON(http.StatusOK, ProductPage{Items: h.withPacks(ctx, tillProducts(rows)), Total: total})
+}
+
+// TillBarcodeAdd: a scanned code no product has is this product's too (one item,
+// several barcodes). Answers the product as a scan would, to go in the cart.
+func (h *handlers) TillBarcodeAdd(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req TillBarcodeRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	ctx := c.Request().Context()
+	if err := h.t.products.AddBarcode(ctx, id, req.Barcode, "till"); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "added barcode "+strings.TrimSpace(req.Barcode)+" at the till")
+	c.SetParamNames("code")
+	c.SetParamValues(strings.TrimSpace(req.Barcode))
+	return h.TillProductByBarcode(c)
 }
 
 func (h *handlers) TillProductByBarcode(c echo.Context) error {

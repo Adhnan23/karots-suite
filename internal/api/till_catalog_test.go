@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestTillNeedsSession(t *testing.T) {
@@ -95,5 +96,28 @@ func TestTillScanOfExtraBarcodeStampsIt(t *testing.T) {
 	var stamped bool
 	if err := te.db.Get(&stamped, `SELECT last_scanned_at IS NOT NULL FROM product_barcodes WHERE barcode = 'TEST-TILL-EXTRA'`); err != nil || !stamped {
 		t.Fatalf("last scan not stamped: %v", err)
+	}
+}
+
+// A scanned code no product has can join an existing product as an extra
+// barcode from the till; a code another product carries is refused.
+func TestTillBarcodeAdd(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, devPhone(), "cashier")
+	code := fmt.Sprintf("77%011d", time.Now().UnixNano()%100_000_000_000)
+	rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/products/%d/barcodes", f.lotID), TillBarcodeRequest{Barcode: code}, ck)
+	if p := decode[TillProduct](t, rec); rec.Code != http.StatusOK || p.ID != f.lotID {
+		t.Fatalf("add %d %s", rec.Code, rec.Body)
+	}
+	if p := decode[TillProduct](t, te.do(http.MethodGet, "/api/v1/till/products/barcode/"+code, nil, ck)); p.ID != f.lotID {
+		t.Fatalf("lookup by the new code: %+v", p)
+	}
+	var source string
+	if err := te.db.Get(&source, `SELECT source FROM product_barcodes WHERE barcode = $1`, code); err != nil || source != "till" {
+		t.Fatalf("source %q %v", source, err)
+	}
+	if rec := te.do(http.MethodPost, fmt.Sprintf("/api/v1/till/products/%d/barcodes", f.plainID), TillBarcodeRequest{Barcode: code}, ck); rec.Code != http.StatusConflict {
+		t.Fatalf("a code another product has: %d %s", rec.Code, rec.Body)
 	}
 }
