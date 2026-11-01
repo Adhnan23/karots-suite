@@ -10,6 +10,7 @@ import type { Who } from '../session'
 import type { PhoneId } from '../store/phone'
 import type { SyncState } from '../sync'
 import { CartBar } from './CartBar'
+import { Pay } from './Pay'
 import { Sell } from './Sell'
 import { OfflineBanner, TopBar } from './TopBar'
 
@@ -20,6 +21,7 @@ const TABS: [Tab, string, typeof ShoppingCart][] = [['sell', 'Sell', ShoppingCar
  * the PC is down. The cart is the desktop till's own (same reducer, same pricing). */
 export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>('sell')
+  const [paying, setPaying] = useState(false)
   const [cart, dispatch] = useReducer(tillReducer, who.id, (id) => loadCart(id) ?? initialState(copy?.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'))
   useEffect(() => saveCart(who.id, cart), [who.id, cart])
   const drawerOpen = !!copy?.sessions.some((s) => s.userId === who.id)
@@ -31,10 +33,11 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
       <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
       <main className="flex min-h-0 flex-1 flex-col">
-        {tab === 'sell' && (
+        {tab === 'sell' && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => setPaying(false)} />}
+        {tab === 'sell' && !paying && (
           <>
             <Sell copy={copy} cart={cart} dispatch={dispatch} live={sync.live} />
-            <CartBar cart={cart} dispatch={dispatch} copy={copy} onPay={() => setTab('sell')} />
+            <CartBar cart={cart} dispatch={dispatch} copy={copy} onPay={() => setPaying(true)} />
           </>
         )}
       </main>
