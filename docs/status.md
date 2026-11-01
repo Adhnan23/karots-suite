@@ -27,6 +27,11 @@ retested (no phone at hand). Full Playwright 222 passed.
   replacement, paid / credited, or written off) or sent back first (Purchasing → Returns). Check: a supplier return
   takes stock FEFO and can't pick the expired or damaged lot; and whether "supplier only" fits (a rep's free goods,
   a branch swap…).
+- From a pharmacy visit (2026-11-01): each supplier has its own expiry return policy — some must be told 60 days
+  before expiry or they won't replace, some 30 days, some take it after expiry; a rep comes at any time and may take
+  near-expiry stock away, the replacement / credit coming later. Needed: a per-supplier notice window (warn per lot
+  from its supplier), "reported on …" / "taken by the rep, replacement pending" tracking, and a supplier return of a
+  chosen lot whose credit or replacement is pending, not booked at once.
 
 **Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit,
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
