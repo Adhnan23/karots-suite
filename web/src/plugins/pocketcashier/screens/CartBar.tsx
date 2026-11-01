@@ -58,6 +58,10 @@ export function CartLines({ cart, dispatch, copy }: { cart: TillState; dispatch:
                     l.batchLabel, l.serials.some((x) => !x) && 'serials to enter'].filter(Boolean).join(' · ')}
                 </span>
               )}
+              {/* The PC asks here; the phone sells, and the PC flags it for a look. */}
+              {!l.isService && l.qty > l.stock + 1e-9 && (
+                <span className="block truncate text-[11px] font-semibold text-warning">More than the count shows {qtyText(Math.max(0, l.stock))} — it sells, and is flagged</span>
+              )}
             </span>
             <b className="tabular-nums">{money(copy.symbol, lineNet(l))}</b>
           </button>
