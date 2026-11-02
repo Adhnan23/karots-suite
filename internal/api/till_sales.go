@@ -21,13 +21,15 @@ func (h *handlers) registerTillSales(g *echo.Group) {
 	g.GET("/held", h.TillHeld)
 	g.POST("/held", h.TillHold)
 	g.DELETE("/held/:id", h.TillDeleteHeld)
+	g.GET("/tickets", h.TillTickets)
+	g.POST("/tickets/:id/open", h.TillOpenTicket)
 }
 
 func saleInput(r SaleRequest) sales.CreateInput {
 	in := sales.CreateInput{
 		CustomerID: r.CustomerID, SaleType: r.SaleType, Discount: r.Discount, DiscountType: r.DiscountType,
 		AllowOverLimit: r.AllowOverLimit, ChangeGiven: r.ChangeGiven, OnAccountRounding: r.OnAccountRounding,
-		DeferDrawerKick: r.DeferDrawerKick,
+		DeferDrawerKick: r.DeferDrawerKick, PreparedBy: r.PreparedBy,
 		Items:           make([]sales.ItemInput, 0, len(r.Items)),
 		Payments:        make([]sales.PaymentInput, 0, len(r.Payments)),
 	}
@@ -108,6 +110,46 @@ func heldDTO(x heldsales.HeldSale) HeldSale {
 		CreatedAt: x.CreatedAt.Format(time.RFC3339)}
 }
 
+func ticketDTO(x heldsales.HeldSale) HeldSale {
+	d := heldDTO(x)
+	d.PreparedByID, d.PreparedByName = x.CashierID, x.SenderName
+	return d
+}
+
+// ticketOwner is who a user's tickets are limited to: a sales person sees and
+// takes back only their own, a cashier any.
+func ticketOwner(c echo.Context) int64 {
+	if middleware.SendsToCashier(c) {
+		return middleware.CurrentUserID(c)
+	}
+	return 0
+}
+
+func (h *handlers) TillTickets(c echo.Context) error {
+	rows, err := h.t.held.Tickets(c.Request().Context(), ticketOwner(c))
+	if err != nil {
+		return err
+	}
+	out := make([]HeldSale, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, ticketDTO(r))
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+// TillOpenTicket hands the ticket to this till and removes it from the list.
+func (h *handlers) TillOpenTicket(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	t, err := h.t.held.TakeTicket(c.Request().Context(), id, ticketOwner(c))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, ticketDTO(*t))
+}
+
 func (h *handlers) TillHeld(c echo.Context) error {
 	rows, err := h.t.held.List(c.Request().Context(), middleware.CurrentUserID(c))
 	if err != nil {
@@ -129,7 +171,7 @@ func (h *handlers) TillHold(c echo.Context) error {
 		return apperr.BadRequest("cart must be JSON")
 	}
 	in := heldsales.Input{Label: req.Label, SaleType: req.SaleType, CustomerID: req.CustomerID,
-		Discount: req.Discount, Cart: json.RawMessage(req.Cart), ItemCount: req.ItemCount, Total: req.Total}
+		Discount: req.Discount, Cart: json.RawMessage(req.Cart), ItemCount: req.ItemCount, Total: req.Total, ToCashier: req.ToCashier}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}

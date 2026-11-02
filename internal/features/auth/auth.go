@@ -32,6 +32,8 @@ type User struct {
 	CanSeeCost bool `db:"can_see_cost" json:"can_see_cost"`
 	// CanSeeLowStock gives a cashier the till's Low stock tab (admins and managers always).
 	CanSeeLowStock bool      `db:"can_see_low_stock" json:"can_see_low_stock"`
+	// SendsToCashier makes a cashier a sales person: no money, carts go to the cashier.
+	SendsToCashier bool `db:"sends_to_cashier" json:"sends_to_cashier"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 	// The device they are signed in on now, when one person one device is on.
 	ActiveDevice      *string    `db:"active_device"       json:"-"`
@@ -44,6 +46,8 @@ type UserPublic struct {
 	ID   int64  `db:"id"   json:"id"`
 	Name string `db:"name" json:"name"`
 	Role string `db:"role" json:"role"`
+	// SendsToCashier: a sales person.
+	SendsToCashier bool `db:"sends_to_cashier" json:"sends_to_cashier"`
 }
 
 type RefreshToken struct {
@@ -79,6 +83,7 @@ type CreateUserInput struct {
 	CanSeeCost string `json:"can_see_cost" form:"can_see_cost" validate:"omitempty"`
 	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
 	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
+	SendsToCashier string `json:"sends_to_cashier" form:"sends_to_cashier" validate:"omitempty"`
 }
 
 // UpdateUserInput edits a user's profile/role and optionally resets the PIN
@@ -100,6 +105,7 @@ type UpdateUserInput struct {
 	CanSeeCost string `json:"can_see_cost" form:"can_see_cost" validate:"omitempty"`
 	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
 	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
+	SendsToCashier string `json:"sends_to_cashier" form:"sends_to_cashier" validate:"omitempty"`
 }
 
 // checkboxOn reads an HTML checkbox value. Browsers omit unticked boxes and

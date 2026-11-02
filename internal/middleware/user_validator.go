@@ -18,6 +18,7 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			CanManageCredit    bool   `db:"can_manage_credit"`
 			CanSeeCost         bool   `db:"can_see_cost"`
 			CanSeeLowStock     bool   `db:"can_see_low_stock"`
+			SendsToCashier     bool   `db:"sends_to_cashier"`
 			IsSystem           bool   `db:"is_system"`
 			Role               string `db:"role"`
 			Name               string `db:"name"`
@@ -25,7 +26,7 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			ActiveLabel        string `db:"active_device_label"`
 		}
 		if err := db.GetContext(ctx, &row,
-			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, can_see_low_stock, is_system, role, name,
+			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, can_see_low_stock, sends_to_cashier, is_system, role, name,
 			 COALESCE(active_device, '') AS active_device, COALESCE(active_device_label, '') AS active_device_label FROM users WHERE id = $1`, userID); err != nil {
 			return UserFlags{}, false
 		}
@@ -34,6 +35,7 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			CanManageCredit:    row.CanManageCredit,
 			CanSeeCost:         row.CanSeeCost,
 			CanSeeLowStock:     row.CanSeeLowStock,
+			SendsToCashier:     row.SendsToCashier,
 			// Admin or the hidden support account may escape the kiosk; a cashier never can.
 			CanExitKiosk: row.IsSystem || row.Role == "admin",
 			IsSystem:     row.IsSystem,

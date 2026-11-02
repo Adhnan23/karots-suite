@@ -41,9 +41,11 @@ type Sale struct {
 	CreatedAt            time.Time        `db:"created_at"   json:"created_at"`
 	ClientRef            *string          `db:"client_ref"   json:"client_ref,omitempty"`
 	RungAt               *time.Time       `db:"rung_at"      json:"rung_at,omitempty"`
+	PreparedBy           *int64           `db:"prepared_by"  json:"prepared_by,omitempty"`
 	// joined
-	CashierName  string  `db:"cashier_name"  json:"cashier_name"`
-	CustomerName *string `db:"customer_name" json:"customer_name,omitempty"`
+	PreparedByName *string `db:"prepared_by_name" json:"prepared_by_name,omitempty"`
+	CashierName    string  `db:"cashier_name"  json:"cashier_name"`
+	CustomerName   *string `db:"customer_name" json:"customer_name,omitempty"`
 	// Profit fields are populated only by the reports List query (a lateral join
 	// over sale_items); other queries leave them zero. COGS/Profit mirror the
 	// Finance P&L definition (net of pass-through + returns).
@@ -193,6 +195,7 @@ type saleRow struct {
 	CustomerBalanceAfter *decimal.Decimal
 	Status               string
 	CashierID            int64
+	PreparedBy           *int64
 	Notes                *string
 	ClientRef            *string
 	RungAt, At           *time.Time
@@ -204,12 +207,12 @@ func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
 		INSERT INTO sales
 			(receipt_no, customer_id, sale_type, subtotal, discount, discount_type, discount_value,
 			 tax, total, paid_amount, change_given, rounding_to_account, status, cashier_id, notes,
-			 customer_balance_after, client_ref, rung_at, created_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,COALESCE($19, now()))
+			 customer_balance_after, client_ref, rung_at, prepared_by, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$20,COALESCE($19, now()))
 		RETURNING id`,
 		s.ReceiptNo, s.CustomerID, s.SaleType, s.Subtotal, s.Discount, s.DiscountType, s.DiscountValue,
 		s.Tax, s.Total, s.PaidAmount, s.ChangeGiven, s.RoundingToAccount, s.Status, s.CashierID, s.Notes,
-		s.CustomerBalanceAfter, s.ClientRef, s.RungAt, s.At)
+		s.CustomerBalanceAfter, s.ClientRef, s.RungAt, s.At, s.PreparedBy)
 	return id, err
 }
 
@@ -241,7 +244,8 @@ func (r *Repository) UpdateStatus(ctx context.Context, id int64, status string) 
 func (r *Repository) FindByID(ctx context.Context, id int64) (*Sale, error) {
 	var s Sale
 	err := r.q.GetContext(ctx, &s, `
-		SELECT s.*, u.name AS cashier_name, c.name AS customer_name
+		SELECT s.*, u.name AS cashier_name, c.name AS customer_name,
+			(SELECT p.name FROM users p WHERE p.id = s.prepared_by) AS prepared_by_name
 		FROM sales s
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id

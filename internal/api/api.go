@@ -46,7 +46,7 @@ func Register(e *echo.Echo, d Deps) {
 	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
 	limiter := auth.NewLoginLimiter()
 	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
-	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice}
+	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)

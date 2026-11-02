@@ -59,7 +59,7 @@ func (h *handlers) Login(c echo.Context) error {
 		return err
 	}
 	h.setCookie(c, pair.AccessToken)
-	return c.JSON(http.StatusOK, LoginResponse{User: SessionUser{ID: pair.User.ID, Name: pair.User.Name, Role: pair.User.Role}})
+	return c.JSON(http.StatusOK, LoginResponse{User: SessionUser{ID: pair.User.ID, Name: pair.User.Name, Role: pair.User.Role, SendsToCashier: pair.User.SendsToCashier}})
 }
 
 // Logout refuses while the caller has an open till (or a plugin guard blocks),

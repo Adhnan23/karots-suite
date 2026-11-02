@@ -125,7 +125,7 @@ func copyRows(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
 	// Never an admin or the system user: a PIN hash on a phone can be cracked.
 	if err := db.SelectContext(ctx, &c.People, `SELECT id, name, phone, role::text AS role, pin_hash AS pinhash,
 		can_manage_credit AS canmanagecredit, can_see_cost AS canseecost
-		FROM users WHERE is_active AND NOT is_system AND role IN ('cashier', 'manager') ORDER BY name`); err != nil {
+		FROM users WHERE is_active AND NOT is_system AND NOT sends_to_cashier AND role IN ('cashier', 'manager') ORDER BY name`); err != nil {
 		return apperr.Internal("failed to load people", err)
 	}
 	if err := lastCounts(ctx, db, c.People); err != nil {
@@ -151,7 +151,7 @@ func copyRows(ctx context.Context, db *sqlx.DB, c *TillCopy) error {
 	if err := db.SelectContext(ctx, &c.Held, `SELECT id, cashier_id AS userid, COALESCE(label, '') AS label, sale_type AS saletype,
 		COALESCE(customer_id, 0) AS customerid, discount::text AS discount, cart::text AS cart, item_count AS itemcount, total::text AS total,
 		to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS createdat
-		FROM held_sales ORDER BY id`); err != nil {
+		FROM held_sales WHERE NOT to_cashier ORDER BY id`); err != nil {
 		return apperr.Internal("failed to load held sales", err)
 	}
 	return nil

@@ -118,6 +118,7 @@ type CreateInput struct {
 	Discount     string         `json:"discount"`
 	DiscountType string         `json:"discount_type" validate:"omitempty,oneof=fixed percent"`
 	Notes        *string        `json:"notes"`
+	PreparedBy   *int64         `json:"prepared_by"` // the sales person whose ticket this was
 	Items        []ItemInput    `json:"items"    validate:"required,min=1,dive"`
 	Payments     []PaymentInput `json:"payments" validate:"dive"`
 	// AllowOverLimit permits an account line past the customer's credit limit.

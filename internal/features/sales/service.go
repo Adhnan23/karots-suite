@@ -276,6 +276,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			CustomerBalanceAfter: balanceAfter,
 			Status:               status,
 			CashierID:            cashierID,
+			PreparedBy:           in.PreparedBy,
 			Notes:                in.Notes,
 			ClientRef:            nilIfEmpty(in.ClientRef),
 			RungAt:               in.RungAt,

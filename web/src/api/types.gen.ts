@@ -10,6 +10,10 @@ export interface SessionUser {
   id: number /* int64 */;
   name: string;
   role: string; // "admin" | "manager" | "cashier"
+  /**
+   * SendsToCashier: a sales person (a cashier who prepares carts, no money).
+   */
+  sendsToCashier: boolean;
 }
 export interface LoginRequest {
   phone: string;
@@ -1657,6 +1661,7 @@ export interface AdminSaleRow extends SaleSummary {
   cogs: string;
   profit: string;
   margin: string; // percent of net revenue, 1 dp
+  preparedBy?: string; // the sales person whose ticket this was
 }
 /**
  * AdminSalesSummary covers every sale the filters match (SQL, not the page).
@@ -1891,6 +1896,7 @@ export interface StaffUser {
   canManageCredit: boolean;
   canSeeCost: boolean;
   canSeeLowStock: boolean;
+  sendsToCashier: boolean;
   since: string;
 }
 /**
@@ -1907,6 +1913,7 @@ export interface StaffRequest {
   canManageCredit: boolean;
   canSeeCost: boolean;
   canSeeLowStock: boolean;
+  sendsToCashier: boolean;
 }
 /**
  * PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and
@@ -3107,6 +3114,7 @@ export interface SaleRequest {
   deferDrawerKick: boolean;
   changeGiven: string; // "" = full computed change
   onAccountRounding: boolean;
+  preparedBy?: number /* int64 */; // the sales person whose ticket this was
   items: SaleItemRequest[];
   payments: PaymentRequest[];
 }
@@ -3135,6 +3143,11 @@ export interface HeldSale {
   itemCount: number /* int */;
   total: string;
   createdAt: string;
+  /**
+   * A ticket: who sent it.
+   */
+  preparedById?: number /* int64 */;
+  preparedByName?: string;
 }
 export interface HoldRequest {
   label: string;
@@ -3144,6 +3157,7 @@ export interface HoldRequest {
   cart: string;
   itemCount: number /* int */;
   total: string;
+  toCashier: boolean; // send to the cashier instead of keeping it here
 }
 
 //////////
@@ -3682,6 +3696,7 @@ export interface TillConfig {
   canSeeCost: boolean;
   canSeeLowStock: boolean; // Low stock tab
   canChangePin: boolean;
+  sendsToCashier: boolean; // a sales person: Send to cashier instead of Pay
   isManager: boolean; // admin/manager: shows the Admin link
   tenderMethods: TenderMethod[]; // plugin tenders; core ones are fixed in the SPA
   labelSize: string; // the shop's default sticker, "WxH" mm

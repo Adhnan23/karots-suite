@@ -26,6 +26,7 @@ type TillConfig struct {
 	CanSeeCost         bool              `json:"canSeeCost"`
 	CanSeeLowStock     bool              `json:"canSeeLowStock"` // Low stock tab
 	CanChangePin       bool              `json:"canChangePin"`
+	SendsToCashier     bool              `json:"sendsToCashier"` // a sales person: Send to cashier instead of Pay
 	IsManager          bool              `json:"isManager"`     // admin/manager: shows the Admin link
 	TenderMethods      []TenderMethod    `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA
 	LabelSize          string            `json:"labelSize"`     // the shop's default sticker, "WxH" mm

@@ -64,6 +64,7 @@ type SaleRequest struct {
 	DeferDrawerKick   bool              `json:"deferDrawerKick"`
 	ChangeGiven       string            `json:"changeGiven"` // "" = full computed change
 	OnAccountRounding bool              `json:"onAccountRounding"`
+	PreparedBy        *int64            `json:"preparedBy,omitempty"` // the sales person whose ticket this was
 	Items             []SaleItemRequest `json:"items"`
 	Payments          []PaymentRequest  `json:"payments"`
 }
@@ -92,6 +93,9 @@ type HeldSale struct {
 	ItemCount  int    `json:"itemCount"`
 	Total      string `json:"total"`
 	CreatedAt  string `json:"createdAt"`
+	// A ticket: who sent it.
+	PreparedByID   int64  `json:"preparedById,omitempty"`
+	PreparedByName string `json:"preparedByName,omitempty"`
 }
 
 type HoldRequest struct {
@@ -102,4 +106,5 @@ type HoldRequest struct {
 	Cart       string `json:"cart"`
 	ItemCount  int    `json:"itemCount"`
 	Total      string `json:"total"`
+	ToCashier  bool   `json:"toCashier"` // send to the cashier instead of keeping it here
 }

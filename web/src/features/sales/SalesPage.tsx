@@ -90,7 +90,7 @@ export function SalesPage() {
               <small className="font-normal text-faint">{stamp(r.createdAt)}{r.customerName && ` · ${r.customerName}`}</small>
             </span>
           ) },
-          { key: 'cashier', header: 'Cashier', wide: true, cell: (r) => <span className="text-muted-foreground">{r.cashierName}</span> },
+          { key: 'cashier', header: 'Cashier', wide: true, cell: (r) => <span className="text-muted-foreground">{r.cashierName}{r.preparedBy && <small className="block text-faint">Prepared by {r.preparedBy}</small>}</span> },
           { key: 'total', header: 'Total', num: true, cell: (r) => <b>{money(sym, r.total)}</b> },
           { key: 'paid', header: 'Paid', num: true, wide: true, cell: (r) => money(sym, r.paid) },
           { key: 'profit', header: 'Profit', num: true, cell: (r) => <span className={cn(num(r.profit) < 0 && 'text-danger')}>{money(sym, r.profit)}</span> },

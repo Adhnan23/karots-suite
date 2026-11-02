@@ -34,6 +34,9 @@ type UserFlags struct {
 	// CanSeeLowStock gives a cashier the till's Low stock tab (what to order and
 	// from whom). Meaningless for admins and managers, who always see it.
 	CanSeeLowStock bool
+	// SendsToCashier marks a sales person: a cashier who prepares carts and sends
+	// them to the cashier, and never handles money (api/sales_person.go).
+	SendsToCashier bool
 	// IsSystem marks the hidden system/support account. It gates vendor-only
 	// maintenance surfaces (e.g. the locked appearance panel) that not even the
 	// shop admin may reach.
@@ -65,6 +68,7 @@ const ctxCanManageCredit = "can_manage_credit"
 const ctxCanSeeCost = "can_see_cost"
 
 const ctxCanSeeLowStock = "can_see_low_stock"
+const ctxSendsToCashier = "sends_to_cashier"
 
 // CanHandleSuppliers reports the flag for the current request. Admins and
 // managers are NOT covered here — this is the raw per-user flag.
@@ -119,6 +123,12 @@ func MaySeeCost(role string, flag bool) bool {
 	return role == "admin" || role == "manager" || flag
 }
 
+// SendsToCashier reports whether the current user is a sales person.
+func SendsToCashier(c echo.Context) bool {
+	b, _ := c.Get(ctxSendsToCashier).(bool)
+	return b
+}
+
 // CanSeeLowStock reports the raw per-user flag for the current request.
 func CanSeeLowStock(c echo.Context) bool {
 	b, _ := c.Get(ctxCanSeeLowStock).(bool)
@@ -138,6 +148,18 @@ func RequireLowStockAccess() echo.MiddlewareFunc {
 			role, _ := c.Get(ctxRole).(string)
 			if !MaySeeLowStock(role, CanSeeLowStock(c)) {
 				return apperr.Forbidden("you're not set up to see low stock — ask the owner")
+			}
+			return next(c)
+		}
+	}
+}
+
+// RequireHandlesMoney refuses a sales person: for a route that moves money.
+func RequireHandlesMoney() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if SendsToCashier(c) {
+				return apperr.Forbidden("a sales person doesn't handle money — send it to the cashier")
 			}
 			return next(c)
 		}

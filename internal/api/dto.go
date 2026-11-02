@@ -7,6 +7,8 @@ type SessionUser struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 	Role string `json:"role"` // "admin" | "manager" | "cashier"
+	// SendsToCashier: a sales person (a cashier who prepares carts, no money).
+	SendsToCashier bool `json:"sendsToCashier"`
 }
 
 type LoginRequest struct {

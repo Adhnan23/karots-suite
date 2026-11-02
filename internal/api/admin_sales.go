@@ -56,7 +56,7 @@ func (h *handlers) AdminSales(c echo.Context) error {
 	}
 	out := make([]AdminSaleRow, 0, len(rows))
 	for _, s := range rows {
-		out = append(out, AdminSaleRow{SaleSummary: saleSummary(s), Paid: dec2(s.PaidAmount.Sub(s.ChangeGiven)), COGS: dec2(s.COGS), Profit: dec2(s.Profit), Margin: s.Margin.StringFixed(1)})
+		out = append(out, AdminSaleRow{SaleSummary: saleSummary(s), PreparedBy: strOr(s.PreparedByName), Paid: dec2(s.PaidAmount.Sub(s.ChangeGiven)), COGS: dec2(s.COGS), Profit: dec2(s.Profit), Margin: s.Margin.StringFixed(1)})
 	}
 	return c.JSON(http.StatusOK, out)
 }

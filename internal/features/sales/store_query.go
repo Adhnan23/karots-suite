@@ -65,6 +65,7 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 	var rows []Sale
 	err := r.q.SelectContext(ctx, &rows, `
 		SELECT s.*, u.name AS cashier_name, c.name AS customer_name,
+		       (SELECT p.name FROM users p WHERE p.id = s.prepared_by) AS prepared_by_name,
 		       agg.cogs AS cogs,
 		       (s.total - agg.pt_face - agg.ret_val - agg.cogs) AS profit,
 		       CASE WHEN (s.total - agg.pt_face - agg.ret_val) > 0

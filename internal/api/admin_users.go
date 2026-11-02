@@ -26,7 +26,7 @@ func (h *handlers) registerAdminUsers(g *echo.Group) {
 
 func staffUser(u auth.User) StaffUser {
 	return StaffUser{ID: u.ID, Name: u.Name, Phone: strOr(u.Phone), Role: u.Role, Active: u.IsActive, MustChangePin: u.MustChangePin,
-		ReceiptPrinter: u.ReceiptPrinter, CanHandleSuppliers: u.CanHandleSuppliers, CanManageCredit: u.CanManageCredit, CanSeeCost: u.CanSeeCost, CanSeeLowStock: u.CanSeeLowStock,
+		ReceiptPrinter: u.ReceiptPrinter, CanHandleSuppliers: u.CanHandleSuppliers, CanManageCredit: u.CanManageCredit, CanSeeCost: u.CanSeeCost, CanSeeLowStock: u.CanSeeLowStock, SendsToCashier: u.SendsToCashier,
 		Since: u.CreatedAt.Format("2006-01-02")}
 }
 
@@ -42,6 +42,14 @@ func (h *handlers) AdminUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
+// salesPerson keeps a sales person a cashier with no rights that touch money.
+func salesPerson(r *StaffRequest) {
+	r.SendsToCashier = r.SendsToCashier && r.Role == auth.RoleCashier
+	if r.SendsToCashier {
+		r.CanHandleSuppliers, r.CanManageCredit = false, false
+	}
+}
+
 func onOff(b bool) string {
 	if b {
 		return "on"
@@ -54,8 +62,9 @@ func (h *handlers) AdminUserCreate(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
+	salesPerson(&req)
 	in := auth.CreateUserInput{Name: strings.TrimSpace(req.Name), Phone: strings.TrimSpace(req.Phone), Role: req.Role, PIN: strings.TrimSpace(req.Pin),
-		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock)}
+		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -92,8 +101,9 @@ func (h *handlers) AdminUserUpdate(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
+	salesPerson(&req)
 	in := auth.UpdateUserInput{Name: strings.TrimSpace(req.Name), Phone: strings.TrimSpace(req.Phone), Role: req.Role, PIN: strings.TrimSpace(req.Pin),
-		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock)}
+		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}

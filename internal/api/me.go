@@ -37,7 +37,7 @@ func labelStylesOf(s *settings.Settings) map[string]string {
 func (h *handlers) Me(c echo.Context) error {
 	ctx := c.Request().Context()
 	me := Me{
-		User: SessionUser{ID: middleware.CurrentUserID(c), Name: middleware.CurrentUserName(c), Role: middleware.CurrentRole(c)},
+		User: SessionUser{ID: middleware.CurrentUserID(c), Name: middleware.CurrentUserName(c), Role: middleware.CurrentRole(c), SendsToCashier: middleware.SendsToCashier(c)},
 		Flags: Flags{
 			CanHandleSuppliers: middleware.CanHandleSuppliers(c),
 			CanManageCredit:    middleware.CanManageCredit(c),
