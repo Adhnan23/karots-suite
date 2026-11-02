@@ -80,16 +80,49 @@ Print & Copy;ID Card Lanyard;;pcs;35;80;0.5
 Print & Copy;Staple Pins (box of 1000);;pcs;95;150;0.1
 `
 
-func linesFor(catalogue string) (lines string, sups []string) {
-	pick := map[string]string{"grocery": groceryLines, "pharmacy": pharmacyLines, "phone": phoneLines, "hardware": hardwareLines}
-	if l, ok := pick[catalogue]; ok {
-		return l, strings.Split(supplierLines[catalogue], "\n")
+var catalogueLines = map[string]string{"grocery": groceryLines, "pharmacy": pharmacyLines, "phone": phoneLines, "hardware": hardwareLines}
+
+// catalogueKeys is the lists a catalogue is made of; mixed is everything.
+func catalogueKeys(catalogue string) []string {
+	if _, ok := catalogueLines[catalogue]; ok {
+		return []string{catalogue}
 	}
-	for _, k := range []string{"grocery", "pharmacy", "phone", "hardware"} { // mixed: everything
-		lines += pick[k]
+	return []string{"grocery", "pharmacy", "phone", "hardware"}
+}
+
+func linesFor(catalogue string) (lines string, sups []string) {
+	for _, k := range catalogueKeys(catalogue) {
+		lines += catalogueLines[k]
 		sups = append(sups, strings.Split(supplierLines[k], "\n")...)
 	}
 	return lines, sups
+}
+
+// categorySuppliers gives each category a supplier (an index into linesFor's) from
+// its own list, so a mixed shop's medicines don't come from its phone wholesaler. A
+// category on no list (a plugin's supplies) isn't in it: see supplierOf.
+func categorySuppliers(catalogue string) map[string]int {
+	out, offset := map[string]int{}, 0
+	for _, k := range catalogueKeys(catalogue) {
+		count, n := len(strings.Split(supplierLines[k], "\n")), 0
+		for _, l := range strings.Split(strings.TrimSpace(catalogueLines[k]), "\n") {
+			cat, _, _ := strings.Cut(l, ";")
+			if _, seen := out[cat]; !seen {
+				out[cat] = offset + n%count
+				n++
+			}
+		}
+		offset += count
+	}
+	return out
+}
+
+// supplierOf is a category's supplier; nth is its place among the shop's categories.
+func supplierOf(bySupplier map[string]int, cat string, nth, suppliers int) int {
+	if i, ok := bySupplier[cat]; ok {
+		return i
+	}
+	return nth % suppliers
 }
 
 // catalogue creates categories, products, suppliers, customers and the safe.
@@ -97,6 +130,7 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 	s := &shop{p: p}
 	lines, sups := linesFor(p.Catalogue)
 	lines += pluginLines(p)
+	bySup := categorySuppliers(p.Catalogue)
 	for _, l := range sups {
 		f := strings.Split(l, ";")
 		days, _ := strconv.Atoi(f[3])
@@ -155,7 +189,7 @@ func catalogue(ctx context.Context, d Deps, p shops.Profile) (*shop, error) {
 		}
 		pw, _ := strconv.ParseFloat(f[6], 64)
 		s.items = append(s.items, item{id: pr.ID, name: f[1], cost: decimal.RequireFromString(f[4]),
-			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: (len(cats) - 1) % len(s.suppliers), unit: f[3], cat: f[0]})
+			price: decimal.RequireFromString(f[5]), perWeek: pw, supplier: supplierOf(bySup, f[0], len(cats)-1, len(s.suppliers)), unit: f[3], cat: f[0]})
 	}
 	for _, l := range strings.Split(customerLines, "\n") {
 		f := strings.Split(l, ";")

@@ -134,6 +134,11 @@ func (g *gen) day(day time.Time, ago int, until float64) error {
 			return err
 		}
 	}
+	if ago == shortDatedAgo {
+		if err := g.shortDated(day); err != nil {
+			return err
+		}
+	}
 	g.daySales, g.dayTakings = 0, decimal.Zero
 	tills := g.s.cashiers[:2]
 	if ago%3 == 0 && len(g.s.cashiers) > 2 {
@@ -251,12 +256,18 @@ func (g *gen) restock(day time.Time, opening bool) error {
 		}
 		bySup[it.supplier] = append(bySup[it.supplier], purchases.ItemInput{
 			ProductID: it.id, Quantity: fmt.Sprint(qty), CostPrice: it.cost.String(), SellingPrice: it.price.String(),
+			ExpiryDate: g.shelfLife(it),
 		})
 		g.stock[it.id] += qty
 	}
+	return g.deliver(day, "INV", bySup)
+}
+
+// deliver receives each supplier's lines as one bill, at 07:30.
+func (g *gen) deliver(day time.Time, prefix string, bySup map[int][]purchases.ItemInput) error {
 	for _, sup := range slices.Sorted(maps.Keys(bySup)) { // a fixed order: returns pick from these
 		items := bySup[sup]
-		inv := fmt.Sprintf("INV-%d%03d", day.YearDay(), sup)
+		inv := fmt.Sprintf("%s-%d%03d", prefix, day.YearDay(), sup)
 		g.tm.at(at(day, 7.5))
 		pd, err := purchases.NewService(g.d.DB).Create(g.ctx, purchases.CreateInput{
 			SupplierID: g.s.suppliers[sup], InvoiceNo: &inv, Items: items,

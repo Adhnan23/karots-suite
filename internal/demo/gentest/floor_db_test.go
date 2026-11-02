@@ -83,3 +83,27 @@ func TestShopFloorFilled(t *testing.T) {
 		t.Error("nobody ever bought a whole pack")
 	}
 }
+
+// A shop selling food or medicine has dated stock, and a few lots that really need
+// looking at: some past their date, some close to it. The others have no dates.
+func TestShopHasExpiryDates(t *testing.T) {
+	need(t)
+	lots := func(where string) int {
+		return count(t, `SELECT count(*) FROM stock_batches WHERE qty_remaining > 0 AND `+where)
+	}
+	if !slices.Contains([]string{"grocery", "pharmacy", "mixed"}, shop.Catalogue) {
+		if n := lots(`expiry_date IS NOT NULL`); n != 0 {
+			t.Errorf("%s: %d dated lots", shop.Key, n)
+		}
+		return
+	}
+	if n := lots(`expiry_date >= CURRENT_DATE + 60`); n < 20 {
+		t.Errorf("%s: only %d lots dated well ahead", shop.Key, n)
+	}
+	if n := lots(`expiry_date < CURRENT_DATE`); n < 1 || n > 8 {
+		t.Errorf("%s: %d expired lots, want a few", shop.Key, n)
+	}
+	if n := lots(`expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 30`); n < 2 || n > 15 {
+		t.Errorf("%s: %d lots close to expiry, want a few", shop.Key, n)
+	}
+}

@@ -32,6 +32,9 @@ useless without the code, and the left-edge **Demo** tab always shows the owner'
 
 - **Printers:** a sale's receipt slides out on the paper strip, a label prints as a sticker, and
   the drawer kick shows. **Prints** keeps every slip.
+- **A real printer:** to try one, change that shop's addresses in **Settings → Printers & labels**. Real prints come out
+  on paper and don't show on the strip or in **Prints**. The shop goes back to the emulators the next time it starts.
+- **Expiry:** shops that sell food or medicine open with a few lots expired or close to it, ready for **Batches**.
 - **Cheat menu** (Ctrl+Shift+D, or five taps on the Demo tab):
   - Open tills, make it busy (20 sales now), jump to closing time.
   - Push products to low stock, put a credit customer over their limit, bring in a supplier
