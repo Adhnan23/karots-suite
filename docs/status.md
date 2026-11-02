@@ -3,7 +3,7 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (2026-11-01)
+## Now (2026-11-02)
 
 **The suite is feature-complete for a shop's day** — till, stock, purchasing, money (cheques included), reports,
 people, printing (Classic + Image, receipt and label styles), 22 palettes, ten plugins, file / server mode, Shop
@@ -19,14 +19,25 @@ from an encrypted copy; offline actions replay in order and are flagged, never r
 no selling before it is open. User tested on the OnePlus 13 (pair, live, offline + replay, flags); iPhone 13 not
 retested (no phone at hand). Full Playwright 222 passed.
 
-**Next session, in this order (agreed with the user 2026-11-01):**
-1. **A fresh review of the 2026-11-01 money changes** (`git log` from `8144be2`): give back and the count moving between
-   lots, Credited us on bills, loss credits paying the next delivery, the Discount method. Add a test for a bounced
-   cheque on a bill that also has a discount, and check the Purchases report and Received tab with one.
-2. **Fix the unreliable `presence.spec.ts:13`** (below). Never weaken it.
-3. **Retake the docs screenshots** (`make docs-shots`): Batches and suppliers at least; rebuild the Demo Room first.
-4. **Bring these notes up to date** with whatever the user reports from hand testing. Not yet confirmed by hand: recall,
-   a credit paying a delivery, the discount (Give back: "worked well").
+**Done 2026-11-02 (the list agreed 2026-11-01):** the fresh review of the 2026-11-01 money changes, the unreliable
+`presence.spec.ts:13`, and the docs screenshots (Demo Room rebuilt). The review fixed: a discount on old debt reading as
+money paid on a later bill; one loss being settled several times on a double tap; Give back booking found stock when units
+outside any lot covered the count; a lot dated today reading as expired on admin pages while the till sold it normally;
+bills saying "Returned" for any credit (now "Credited"). A bounced cheque on a discounted bill was already right and now has
+a test. Presence: beats go one at a time (it failed 6 of 12 runs before, passes 12 of 12). Full Playwright: 227 passed,
+33 skipped.
+
+**Next:**
+1. **Hand testing, still not confirmed by the user:** recall, a credit paying a delivery, the discount (Give back: "worked well").
+2. **A trial with the pharmacist.**
+3. **For the user to decide:** the Demo Room's stock has no expiry dates, so Batches shows 0 expired / 0 expiring and its
+   docs shot sells nothing (give the medicine and food lines dates?); an extra with no stock of its own (Urgent on a
+   Photocopy) draws the service's toner recipe and its cost, about 1/2500 of a cartridge each. Core reads an empty component
+   list as "use the recipe" and every plain cart line sends one, so stopping it needs a new flag.
+4. **Failing tests, not looked into:** `TestChequesInEveryState` (internal/demo/gen) and `TestShopFloorFilled`
+   (internal/demo/gentest) failed 2026-11-02 at about 09:00, the same on the code before that day's work. The demo's seed
+   follows the day of the year, so it may depend on the date or the hour. **Run Go tests with `-p 1`:** in parallel the
+   demo tests and others collide in one database and fail at random.
 
 Also done 2026-11-01: dev server moved to port 3000 (Karots POS no longer runs beside it); no Apps icon on the dock when no
 plugin registers an app. **Testing tip:** run Go tests in a temporary database so hand-test data stays clean, and remember
@@ -80,9 +91,8 @@ damage as an amount; build only if Quick item is too much work for a shop); staf
 returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to
 the PC while the phone still shows them is claimed back by the phone's next send.
 
-**Unreliable e2e tests (seen 2026-11-01, not looked into):** `presence.spec.ts:13` fails now and then, also when run
-alone (it allows 10 s for "Playing Blocks"); `palettes.spec.ts:45` and `plugin-repairs.spec.ts:145` each failed once in a
-full run and passed alone.
+**Unreliable e2e tests (seen 2026-11-01, not looked into):** `palettes.spec.ts:45` and `plugin-repairs.spec.ts:145` each
+failed once in a full run and passed alone.
 
 **Waiting on the user (outside the code):** the business-name registration number (sole proprietorship applied
 2026-10-28 — don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`, then

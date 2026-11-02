@@ -175,9 +175,19 @@ test('pocket cashier, phone', async ({ browser }) => {
   for (const k of cashier.pin) await page.getByRole('button', { name: k, exact: true }).click()
   await page.getByRole('button', { name: 'Sign in' }).click()
   const products = page.getByRole('list', { name: 'Products' })
-  await products.getByRole('button').nth(0).click()
-  await products.getByRole('button').nth(2).click()
-  await products.getByRole('button').nth(2).click()
+  // Whether a product asks which price or pack depends on the year's stock: take the first.
+  const tap = async (n: number) => {
+    await products.getByRole('button').nth(n).click()
+    await page.waitForTimeout(400)
+    const sheet = page.getByRole('dialog')
+    if (await sheet.isVisible()) {
+      await sheet.getByRole('button').first().click()
+      await sheet.waitFor({ state: 'hidden' })
+    }
+  }
+  await tap(0)
+  await tap(2)
+  await tap(2)
   await page.waitForTimeout(700)
   await page.screenshot({ path: `${out}/plugins/${app}.jpg`, type: 'jpeg', quality: 82 })
   await page.context().close()
