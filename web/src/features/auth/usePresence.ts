@@ -11,6 +11,8 @@ const INPUT = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as c
 let lastInput = Date.now()
 let note = ''
 let kick: (() => void) | null = null
+let sending = false
+let again = false
 
 /** A short word on what this screen is doing (e.g. "Playing Blocks"), sent at once and
  * with every heartbeat until cleared with ''. */
@@ -25,7 +27,10 @@ export function setPresenceNote(n: string) {
 export function usePresence(userId: number) {
   const path = useRouterState({ select: (s) => s.location.pathname })
   useEffect(() => {
+    // One at a time, or two close together can arrive swapped and the older note wins.
     const beat = () => {
+      if (sending) { again = true; return }
+      sending = true
       const cart = loadCart(userId)
       const body: PresenceBeat = {
         path: window.location.pathname,
@@ -47,6 +52,10 @@ export function usePresence(userId: number) {
           }
         })
         .catch(() => {})
+        .finally(() => {
+          sending = false
+          if (again) { again = false; (kick ?? beat)() }
+        })
     }
     const input = () => { lastInput = Date.now() }
     const shown = () => { if (document.visibilityState === 'visible') beat() }
