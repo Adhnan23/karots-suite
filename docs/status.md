@@ -30,14 +30,16 @@ a test. Presence: beats go one at a time (it failed 6 of 12 runs before, passes 
 **Next:**
 1. **Hand testing, still not confirmed by the user:** recall, a credit paying a delivery, the discount (Give back: "worked well").
 2. **A trial with the pharmacist.**
-3. **For the user to decide:** the Demo Room's stock has no expiry dates, so Batches shows 0 expired / 0 expiring and its
-   docs shot sells nothing (give the medicine and food lines dates?); an extra with no stock of its own (Urgent on a
-   Photocopy) draws the service's toner recipe and its cost, about 1/2500 of a cartridge each. Core reads an empty component
-   list as "use the recipe" and every plain cart line sends one, so stopping it needs a new flag.
-4. **Failing tests, not looked into:** `TestChequesInEveryState` (internal/demo/gen) and `TestShopFloorFilled`
-   (internal/demo/gentest) failed 2026-11-02 at about 09:00, the same on the code before that day's work. The demo's seed
-   follows the day of the year, so it may depend on the date or the hour. **Run Go tests with `-p 1`:** in parallel the
-   demo tests and others collide in one database and fail at random.
+3. **Time-of-day tests:** `TestChequesInEveryState` (internal/demo/gen) and `TestShopFloorFilled` (internal/demo/gentest)
+   failed at about 09:00 on 2026-11-02, also on the code before that day's work, and passed from 12:35. Not looked into
+   further. **Run Go tests with `-p 1`:** in parallel the demo tests and others collide in one database and fail at random.
+4. **Real printers:** the user is shopping for them with the Demo Room on a laptop (see `printer-buying-plan` in memory).
+   Add the models that pass to `docs/guide/printing.md` as known-good.
+
+**Also 2026-11-02:** Print & Copy extras (Urgent, Stapling, Hole punch) no longer draw the service's recipe: Urgent is a
+priority charge, not more copying (user). Demo Room: food and medicine lots have expiry dates, and each such shop opens with
+a few lots expired or close to it, from a short-dated delivery 14 days back; the mixed shop buys each category from a
+supplier of its own kind.
 
 Also done 2026-11-01: dev server moved to port 3000 (Karots POS no longer runs beside it); no Apps icon on the dock when no
 plugin registers an app. **Testing tip:** run Go tests in a temporary database so hand-test data stays clean, and remember
