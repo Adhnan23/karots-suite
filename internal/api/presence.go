@@ -47,8 +47,12 @@ func (h *handlers) PresenceBeat(c echo.Context) error {
 	}
 	var lock bool
 	if !middleware.IsSystemUserCtx(c.Request().Context()) {
+		role := claims.Role
+		if middleware.SendsToCashier(c) {
+			role = "sales person" // what Who's on now shows; their role underneath stays cashier
+		}
 		lock = h.presence.Beat(presence.Beat{
-			Device: device(c), UserID: claims.UserID, Name: claims.Name, Role: claims.Role, Locked: claims.Locked,
+			Device: device(c), UserID: claims.UserID, Name: claims.Name, Role: role, Locked: claims.Locked,
 			Path: clip(req.Path, 200), IdleSec: req.IdleSec, CartItems: req.CartItems, CartTotal: clip(req.CartTotal, 20), Note: clip(req.Note, 80),
 			IP: c.RealIP(), UA: clip(c.Request().UserAgent(), 300),
 		}, time.Now())

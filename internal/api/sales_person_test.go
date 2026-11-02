@@ -168,3 +168,25 @@ func TestPreparedByOnSaleInput(t *testing.T) {
 		t.Fatal("no preparedBy by default")
 	}
 }
+
+func TestWhosOnNowNamesASalesPerson(t *testing.T) {
+	te := newTestEnv(t)
+	phone, boss := devPhone(), devPhone()
+	id := te.seedUser(t, phone, "cashier")
+	te.seedUser(t, boss, "admin")
+	te.db.MustExec(`UPDATE users SET sends_to_cashier = true WHERE id = $1`, id)
+	s := te.signIn(t, "dev-sp", "Laptop", phone)
+	a := te.signIn(t, "dev-boss", "Office", boss)
+	if rec := te.beat("dev-sp", PresenceBeat{Path: "/till"}, s); rec.Code != http.StatusOK {
+		t.Fatalf("beat %d %s", rec.Code, rec.Body)
+	}
+	for _, r := range decode[[]PresenceRow](t, te.do(http.MethodGet, "/api/v1/admin/presence", nil, a)) {
+		if r.UserID == id {
+			if r.Role != "sales person" {
+				t.Fatalf("role %q", r.Role)
+			}
+			return
+		}
+	}
+	t.Fatal("not on the list")
+}
