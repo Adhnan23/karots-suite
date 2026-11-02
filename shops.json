@@ -1,3 +1,32 @@
 {
-  "shops": []
+  "shops": [
+    {
+      "key": "aiman-pharmacy-kalpitiya",
+      "name": "Aiman Pharmacy Kalpitiya",
+      "os": "linux",
+      "arch": "amd64",
+      "mode": "file",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "combos",
+        "pharmacy",
+        "productplus"
+      ],
+      "installId": "FC1A79F7",
+      "channel": "fd768b05c43ace9ad348572a5f7bc0a3",
+      "port": 3000,
+      "fileDbPort": 5434,
+      "install": {
+        "dir": "/opt/karots-suite",
+        "open": "kiosk"
+      },
+      "backups": {
+        "every": "6h",
+        "keep": 28,
+        "cloud": true
+      },
+      "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
+    }
+  ]
 }

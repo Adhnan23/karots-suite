@@ -36,6 +36,10 @@ a test. Presence: beats go one at a time (it failed 6 of 12 runs before, passes 
 4. **Real printers:** the user is shopping for them with the Demo Room on a laptop (see `printer-buying-plan` in memory).
    Add the models that pass to `docs/guide/printing.md` as known-good.
 
+**First shop: Aiman Pharmacy Kalpitiya** (`shops.json`): one PC, Xubuntu, file mode, cloud backup on; plugins aicatalog,
+alternatives, combos, pharmacy, productplus. Combos is the user's gift to this first shop, not charged. The old profiles (Al
+Raj, Mum Digital, MUM Motors) were removed on purpose: those shops stay on Karots POS.
+
 **Idea, parked 2026-11-02 (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over
 a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
 
