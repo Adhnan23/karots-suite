@@ -18,8 +18,9 @@ import { placeOf, presenceQuery, StateDot, stateText } from './presence'
 export const usersQuery = queryOptions({ queryKey: ['admin', 'users'], queryFn: () => api<StaffUser[]>('/admin/users') })
 
 type Role = 'admin' | 'manager' | 'cashier'
-const ROLES: { v: Role; label: string; what: string }[] = [
+const ROLES: { v: Role | 'sales'; label: string; what: string }[] = [
   { v: 'cashier', label: 'Cashier', what: 'Sells at the till. Everything else only with the switches below.' },
+  { v: 'sales', label: 'Sales person', what: 'Prepares the bill and sends it to the cashier. Never handles money.' },
   { v: 'manager', label: 'Manager', what: 'Till plus the back office — stock, purchasing, customers.' },
   { v: 'admin', label: 'Admin', what: 'Everything, including staff logins and settings.' },
 ]
@@ -29,6 +30,9 @@ const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'can
   { k: 'canSeeCost', label: 'See product cost at the till', hint: "The ⓘ on a till card shows cost and margin — handy for deciding a discount." },
   { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. To place the orders as well they need the first permission above too.' },
 ]
+
+/** The Role choice: a sales person is a cashier who sends to the cashier. */
+const roleOf = (u: { role: string; sendsToCashier: boolean }) => (u.sendsToCashier ? 'sales' : u.role)
 
 /** Users: who can sign in, what they are
  * and what extra they may do. The hidden system user never appears here. */
@@ -50,7 +54,7 @@ export function UsersPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5">
                     <b className="truncate">{u.name}</b>
-                    <Tag tone={u.role === 'admin' ? 'brand' : 'muted'}>{u.role}</Tag>
+                    <Tag tone={u.role === 'admin' ? 'brand' : 'muted'}>{u.sendsToCashier ? 'sales person' : u.role}</Tag>
                     {!u.active && <Tag tone="danger">deactivated</Tag>}
                     {u.id === me.user.id && <Tag tone="muted">you</Tag>}
                   </span>
@@ -81,7 +85,7 @@ function Live({ r }: { r?: PresenceRow }) {
 function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose: () => void }) {
   const qc = useQueryClient()
   const [f, setF] = useState<StaffRequest>({ name: u?.name ?? '', phone: u?.phone ?? '', role: u?.role ?? 'cashier', pin: '', receiptPrinter: u?.receiptPrinter ?? '',
-    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false, canSeeLowStock: u?.canSeeLowStock ?? false })
+    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false, canSeeLowStock: u?.canSeeLowStock ?? false, sendsToCashier: u?.sendsToCashier ?? false })
   const [busy, setBusy] = useState(false)
   const up = (patch: Partial<StaffRequest>) => setF({ ...f, ...patch })
   const done = (msg: string) => { toast.success(msg); void qc.invalidateQueries({ queryKey: ['admin', 'users'] }); onClose() }
@@ -116,7 +120,7 @@ function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose:
         <legend className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Role</legend>
         {ROLES.map((r) => (
           <label key={r.v} className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] border border-border px-3 py-2 has-checked:border-selected has-checked:bg-muted">
-            <input type="radio" name="ks-role" checked={f.role === r.v} disabled={self && r.v !== 'admin'} onChange={() => up({ role: r.v })} />
+            <input type="radio" name="ks-role" checked={roleOf(f) === r.v} disabled={self && r.v !== 'admin'} onChange={() => up({ role: r.v === 'sales' ? 'cashier' : r.v, sendsToCashier: r.v === 'sales' })} />
             <span className="text-sm"><b>{r.label}</b><small className="block text-faint">{r.what}</small></span>
           </label>
         ))}
@@ -126,7 +130,7 @@ function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose:
         <input aria-label="PIN" name="ks-npn" type="text" inputMode="numeric" autoComplete="off" maxLength={6} value={f.pin} onChange={(e) => up({ pin: e.target.value.replace(/\D/g, '') })}
           style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties} className={cn(INPUT, 'tracking-[0.3em]')} placeholder={u ? 'unchanged' : '••••'} />
       </Field>
-      {f.role === 'cashier' && PERMS.map((p) => <Toggle key={p.k} label={p.label} hint={p.hint} checked={f[p.k]} onChange={(v) => up({ [p.k]: v })} />)}
+      {f.role === 'cashier' && PERMS.filter((p) => !f.sendsToCashier || p.k === 'canSeeCost' || p.k === 'canSeeLowStock').map((p) => <Toggle key={p.k} label={p.label} hint={p.hint} checked={f[p.k]} onChange={(v) => up({ [p.k]: v })} />)}
       <Field label="Receipt printer (this person's counter)" hint="Blank = the shop's printer. For a second counter, e.g. tcp://192.168.1.50:9100.">
         <input aria-label="Receipt printer" value={f.receiptPrinter} onChange={(e) => up({ receiptPrinter: e.target.value })} className={INPUT} placeholder="Shop default" />
       </Field>

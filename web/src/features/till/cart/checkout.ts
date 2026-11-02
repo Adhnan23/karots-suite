@@ -83,6 +83,7 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
     discount: String(num(s.billDiscount)),
     discountType: s.billDiscountType,
     allowOverLimit: s.overLimitApproved,
+    preparedBy: s.preparedBy,
     deferDrawerKick: opts.deferDrawerKick,
     changeGiven: kept > 0.005 ? dec(actualChange(change, kept)) : '',
     onAccountRounding: kept > 0.005 && s.customerId !== null && s.roundToAccount,

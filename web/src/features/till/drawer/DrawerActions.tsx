@@ -21,6 +21,7 @@ export function DrawerActions() {
     <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Till actions">
       <button type="button" className={CHIP} onClick={() => void hold()}>Hold <Kbd>F4</Kbd></button>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length})</button>
+      {!cfg.sendsToCashier && <>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'deposit' })}>
         <span className="text-lg leading-none text-success">↓</span> Deposit
       </button>
@@ -32,12 +33,15 @@ export function DrawerActions() {
           <Archive size={14} /> Open drawer
         </button>
       )}
+      </>}
       {slots.tillActions.map((a) => (
         <button key={a.key} type="button" className={CHIP} onClick={() => ui.open({ kind: 'action', key: a.key })}>{a.label}</button>
       ))}
-      <button type="button" className={`${CHIP} ml-auto`} onClick={() => ui.open({ kind: 'close' })}>
-        <LockIcon size={14} /> Close till
-      </button>
+      {!cfg.sendsToCashier && (
+        <button type="button" className={`${CHIP} ml-auto`} onClick={() => ui.open({ kind: 'close' })}>
+          <LockIcon size={14} /> Close till
+        </button>
+      )}
     </div>
   )
 }

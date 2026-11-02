@@ -56,6 +56,14 @@ as cashier PCs with its address. To settle: the printers (a USB printer on a cas
 the main PC only, so network printers, `tcp://host:9100`, set per user), and what is charged (Shop Rules: extra cashier PC 3,000 each, Pocket Cashier 5,000). Before
 the real install, rehearse the whole set: a second VM as a cashier PC, plus the tablet (only phones tested so far).
 
+**Send to cashier, built 2026-11-02 for this shop (their way of working):** one or two people hand out medicine, a cashier takes the
+money. New Users choice **Sales person** (`users.sends_to_cashier`, role stays cashier): same Sell screen, no money; the server
+keeps an allow-list (`internal/api/sales_person.go`) and plugin routes that move money carry `middleware.RequireHandlesMoney`.
+A ticket is a held sale with `to_cashier`; the cashier gets a popup and a strip under the cart, one till opens it,
+`sales.prepared_by` records who prepared it. No shop toggle for one-person-one-device: each person has their own login.
+Hardware decided: all Xubuntu; the receipt printer and drawer at the counter PC. Tablet type to be checked at the shop; price
+agreed separately.
+
 **Idea, parked 2026-11-02 (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over
 a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
 

@@ -1,10 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { api } from '@/api/client'
 import { cn } from '@/lib/utils'
-import { drawerQuery } from './api'
+import { configQuery, drawerQuery } from './api'
 import { CatalogPanel } from './catalog/CatalogPanel'
 import { CartPanel } from './cart-ui/CartPanel'
 import { CheckoutProvider } from './checkout/CheckoutProvider'
@@ -13,6 +13,7 @@ import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
 import { PayPanel } from './pay/PayPanel'
+import { SendPanel } from './pay/SendPanel'
 import { TillDialogs } from './TillDialogs'
 import { useTill } from './TillProvider'
 import { TillUiProvider, useTillUi } from './TillUi'
@@ -65,6 +66,7 @@ function DrawerMoveFromBar({ drawer }: { drawer?: 'deposit' | 'withdraw' | 'clos
 
 function Body() {
   const drawer = useQuery(drawerQuery).data
+  const cfg = useSuspenseQuery(configQuery).data
   return (
     <div className="relative grid h-full min-h-0 grid-cols-[1fr_clamp(360px,40vw,460px)] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[1fr_clamp(392px,25vw,480px)_clamp(356px,23vw,440px)] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
@@ -74,9 +76,9 @@ function Body() {
         <CartPanel />
       </section>
       <section aria-label="Payment" className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden [grid-area:pay]')}>
-        <PayPanel />
+        {cfg.sendsToCashier ? <SendPanel /> : <PayPanel />}
       </section>
-      {drawer && !drawer.summary.session && <OpenRegister state={drawer} />}
+      {drawer && !drawer.summary.session && !cfg.sendsToCashier && <OpenRegister state={drawer} />}
       <SaleComplete />
     </div>
   )

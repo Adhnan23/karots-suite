@@ -74,6 +74,8 @@ export type PayoutInput = { productId: number; name: string; amount: number; des
 export type Notice = { tone: 'success' | 'error'; text: string } | null
 
 export type TillState = {
+  /** The sales person whose ticket this cart came from. */
+  preparedBy?: number
   lines: CartLine[]
   seq: number
   lastAddedKey: number

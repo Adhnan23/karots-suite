@@ -34,6 +34,10 @@ export function SignIn({ copy, sync, phone, notice = '', onSignedIn }: { copy: T
         window.location.assign('/admin')
         return 'ok'
       }
+      if (r.user.sendsToCashier) { // the phone sells: a sales person prepares carts at a PC
+        await api('/auth/logout', { method: 'POST' }).catch(() => undefined)
+        return 'A sales person can’t sell on a phone.'
+      }
       onSignedIn({ id: r.user.id, name: r.user.name, role: r.user.role })
       return 'ok'
     } catch (e) {

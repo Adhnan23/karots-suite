@@ -170,6 +170,9 @@ func (h *handlers) TillHold(c echo.Context) error {
 	if !json.Valid([]byte(req.Cart)) {
 		return apperr.BadRequest("cart must be JSON")
 	}
+	if middleware.SendsToCashier(c) { // a bill discount is the cashier's; line discounts stay in the cart
+		req.Discount = "0"
+	}
 	in := heldsales.Input{Label: req.Label, SaleType: req.SaleType, CustomerID: req.CustomerID,
 		Discount: req.Discount, Cart: json.RawMessage(req.Cart), ItemCount: req.ItemCount, Total: req.Total, ToCashier: req.ToCashier}
 	if err := c.Validate(&in); err != nil {

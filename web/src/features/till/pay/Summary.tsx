@@ -21,7 +21,7 @@ export function Summary() {
     <div className="flex flex-col gap-1.5 text-[13.5px]">
       <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span className="tabular-nums">{money(sym, goodsSubtotal(ls))}</span></div>
       {idisc > 0 && <div className="flex justify-between text-success"><span>Item discounts</span><span className="tabular-nums">−{money(sym, idisc)}</span></div>}
-      <div className="flex items-center justify-between gap-2 text-muted-foreground">
+      {!cfg.sendsToCashier && <div className="flex items-center justify-between gap-2 text-muted-foreground">
         <span className="flex items-center gap-1.5">
           Bill discount
           <input id="till-bill-discount" aria-label="Bill discount" inputMode="decimal" placeholder="0" autoComplete="off" value={state.billDiscount}
@@ -32,7 +32,7 @@ export function Summary() {
           <Kbd>F9</Kbd>
         </span>
         <span className="tabular-nums">{bdisc > 0 ? `−${money(sym, bdisc)}` : '—'}</span>
-      </div>
+      </div>}
       {tax > 0 && <div className="flex justify-between text-muted-foreground"><span>Tax</span><span className="tabular-nums">{money(sym, tax)}</span></div>}
       {given > 0 && <div className="flex justify-between text-warning"><span>Given to the customer</span><span className="tabular-nums">−{money(sym, given)}</span></div>}
       <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2">

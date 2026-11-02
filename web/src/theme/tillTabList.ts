@@ -21,8 +21,11 @@ export const MORE: Tab[] = [
   { to: '/till/expenses', label: 'Expenses', show: (c) => c.canHandleSuppliers },
 ]
 
+/** A sales person's till has no tab that touches money (plugin tabs included). */
+const SALES_PERSON = [...PRIMARY, ...MORE].filter((t) => ['/till', '/till/labels', '/till/low-stock'].includes(t.to))
+
 /** Every till tab this user may open, for the Ctrl K palette. */
-export const tillTabList = (config: TillConfig): Tab[] => [
+export const tillTabList = (config: TillConfig): Tab[] => config.sendsToCashier ? SALES_PERSON.filter((t) => !t.show || t.show(config)) : [
   ...[...PRIMARY, ...MORE].filter((t) => !t.show || t.show(config)),
   ...slots.tillTabs.map((t) => ({ to: `/till/x/${t.key}`, label: t.label })),
 ]

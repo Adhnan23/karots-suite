@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { HeldSale } from '@/api/types.gen'
 import { dec, num } from '@/lib/money'
-import { configQuery, customersQuery, errMsg, heldQuery } from '../api'
+import { configQuery, customersQuery, errMsg, heldQuery, ticketsQuery } from '../api'
 import { toHeldBlob } from '../cart/held'
 import { saleTotal } from '../cart/totals'
 import { useTill } from '../TillProvider'
@@ -15,19 +15,19 @@ export function useHold() {
   const cfg = useSuspenseQuery(configQuery).data
   const customers = useQuery(customersQuery).data ?? []
   const qc = useQueryClient()
-  return useCallback(async () => {
+  return useCallback(async (toCashier = false) => {
     if (!state.lines.length) return void toast.error('Cart is empty')
     const label = customers.find((c) => c.id === state.customerId)?.name ?? state.lines[0].name
     try {
-      await api('/till/held', {
+      const held = await api<HeldSale>('/till/held', {
         json: {
-          label, saleType: state.saleType, customerId: state.customerId ?? undefined,
+          toCashier, label, saleType: state.saleType, customerId: state.customerId ?? undefined,
           discount: String(num(state.billDiscount)), cart: toHeldBlob(state), itemCount: state.lines.length, total: dec(saleTotal(state)),
         },
       })
       dispatch({ type: 'newSale', saleType: cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
-      toast.success('Sale held')
-      void qc.invalidateQueries({ queryKey: heldQuery.queryKey })
+      toast.success(toCashier ? `Sent to the cashier · ticket #${held.id}` : 'Sale held')
+      void qc.invalidateQueries({ queryKey: (toCashier ? ticketsQuery : heldQuery).queryKey })
     } catch (e) {
       toast.error(errMsg(e))
     }

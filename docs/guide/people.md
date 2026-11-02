@@ -28,6 +28,7 @@ Admins add staff logins here. Each login is a phone number and a PIN.
 | **Admin** | Everything, including users, settings and data |
 | **Manager** | The admin pages (stock, purchasing, money, reports, settings) except users, data and Activity |
 | **Cashier** | The till and the counter tabs their rights allow |
+| **Sales person** | The same Sell screen, cart and plugin menus, but no money: they **Send to cashier** ([how it works](till.md#send-to-cashier)) |
 
 Each cashier has rights you switch on: **counter operations** (pay suppliers, take in deliveries, place orders and record expenses at
 the till; they will see cost prices),

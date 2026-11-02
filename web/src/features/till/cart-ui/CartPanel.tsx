@@ -10,6 +10,7 @@ import { useTill } from '../TillProvider'
 import { CartGroup } from './CartGroup'
 import { CartLineRow } from './CartLineRow'
 import { HeldStrip } from './HeldSales'
+import { TicketStrip } from './Tickets'
 import { PostSaleChange } from './PostSaleChange'
 
 export function CartPanel() {
@@ -54,6 +55,7 @@ export function CartPanel() {
           {slots.tillCartHints.map(({ key, Hint }) => <Hint key={key} till={till} lines={state.lines} />)}
         </div>
       )}
+      <TicketStrip />
       <HeldStrip />
     </>
   )

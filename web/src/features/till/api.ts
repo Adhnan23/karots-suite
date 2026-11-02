@@ -26,6 +26,8 @@ export const priceOptionsQuery = queryOptions({
 export const quickPicksQuery = queryOptions({ queryKey: ['till', 'quick-picks'], queryFn: () => api<TillProduct[]>('/till/quick-picks') })
 export const unitsQuery = queryOptions({ queryKey: ['till', 'units'], queryFn: () => api<Unit[]>('/till/units'), staleTime: Infinity })
 export const customersQuery = queryOptions({ queryKey: ['till', 'customers'], queryFn: () => api<TillCustomer[]>('/till/customers') })
+/** Tickets waiting: refetched so one sent from another machine shows by itself. */
+export const ticketsQuery = queryOptions({ queryKey: ['till', 'tickets'], queryFn: () => api<HeldSale[]>('/till/tickets'), refetchInterval: 5000 })
 export const heldQuery = queryOptions({ queryKey: ['till', 'held'], queryFn: () => api<HeldSale[]>('/till/held') })
 
 /** Card tenders land in 'card' lockers, online ones in 'bank' lockers. */

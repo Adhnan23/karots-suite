@@ -3157,7 +3157,7 @@ export interface HoldRequest {
   cart: string;
   itemCount: number /* int */;
   total: string;
-  toCashier: boolean; // send to the cashier instead of keeping it here
+  toCashier?: boolean; // send to the cashier instead of keeping it here
 }
 
 //////////

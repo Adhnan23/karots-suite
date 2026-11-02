@@ -6,6 +6,7 @@ import { startAutofit } from '@/lib/autofit'
 import { configQuery, drawerQuery } from '@/features/till/api'
 import { DrawerPill } from '@/features/till/drawer/DrawerPill'
 import { SlipAskHost } from '@/features/till/SlipAsk'
+import { TicketPopups } from '@/features/till/cart-ui/Tickets'
 import { TillProvider } from '@/features/till/TillProvider'
 import { TillShell } from '@/theme/TillShell'
 
@@ -38,9 +39,10 @@ function TillLayout() {
   useEffect(() => startAutofit(), [])
   return (
     <TillProvider userId={me.user.id} saleType={cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'}>
-      <TillShell me={me} config={cfg} status={<DrawerPill />}>
+      <TillShell me={me} config={cfg} status={cfg.sendsToCashier ? undefined : <DrawerPill />}>
         <Outlet />
         <StaleToSell />
+        <TicketPopups />
         <SlipAskHost />
       </TillShell>
     </TillProvider>

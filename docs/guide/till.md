@@ -56,6 +56,24 @@ won't resume one over a cart that already has items in it.
 
 ![The till in dark mode](../images/till/sell-dark.jpg)
 
+## Send to cashier
+
+For a shop where one person hands out the goods and another takes the money. Make the first a **Sales person** on the
+Users page, with their own login.
+
+- **The sales person** builds the cart as usual: products, quantities, line discounts, the customer, plugin items. They
+  have no drawer, no payment, no bill discount and no money tabs. **Send to cashier** turns the cart into a numbered
+  ticket and frees the screen for the next customer. A ticket they still want to change is under **Sent**; tap it to
+  take it back.
+- **The cashier** hears a beep and gets a popup with the ticket number, the person, the items and the total, on any till
+  tab, without stopping the sale in progress. Tickets also wait under the cart. **Open** puts the whole cart on their
+  till; finish or hold the current sale first. Only one till can open a ticket.
+- **The cashier takes the money** the normal way. The receipt prints, the drawer opens and stock moves only then, so a
+  customer who walks away is just **Clear**, with nothing to return. **Sales** shows who prepared the sale.
+
+A customer buying something small from the cashier is an ordinary sale; tickets keep waiting meanwhile. A sales person
+can't sign in to Pocket Cashier, which sells.
+
 ## Opening and closing the till
 
 Each cashier opens their till by counting the float note by note. Deposits and withdrawals move

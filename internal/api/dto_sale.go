@@ -106,5 +106,5 @@ type HoldRequest struct {
 	Cart       string `json:"cart"`
 	ItemCount  int    `json:"itemCount"`
 	Total      string `json:"total"`
-	ToCashier  bool   `json:"toCashier"` // send to the cashier instead of keeping it here
+	ToCashier  bool   `json:"toCashier,omitempty"` // send to the cashier instead of keeping it here
 }

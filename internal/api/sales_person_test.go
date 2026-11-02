@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/shopspring/decimal"
+
 	"karots-suite/internal/features/sales"
 )
 
@@ -46,12 +48,15 @@ func TestSalesPersonSendsTicket(t *testing.T) {
 		t.Fatalf("a cashier was refused: %s", rec.Body)
 	}
 
-	send := HoldRequest{Label: "Kamal", SaleType: "retail", Cart: `{"v":2,"lines":[],"meta":{"plugin":1}}`, ItemCount: 1, Total: "100", ToCashier: true}
+	send := HoldRequest{Label: "Kamal", SaleType: "retail", Cart: `{"v":2,"lines":[],"meta":{"plugin":1}}`, ItemCount: 1, Total: "100", Discount: "50", ToCashier: true}
 	rec := te.on("dev-s", http.MethodPost, "/api/v1/till/held", send, s)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("send %d %s", rec.Code, rec.Body)
 	}
 	ticket := decode[HeldSale](t, rec)
+	if d, _ := decimal.NewFromString(ticket.Discount); !d.IsZero() {
+		t.Fatalf("a sales person's bill discount was kept: %s", ticket.Discount)
+	}
 
 	// It's a ticket, not a held sale: the sender's Held and the phones' copy leave it out.
 	if held := decode[[]HeldSale](t, te.on("dev-s", http.MethodGet, "/api/v1/till/held", nil, s)); len(held) != 0 {
