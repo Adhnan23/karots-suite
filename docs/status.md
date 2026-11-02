@@ -36,7 +36,8 @@ running as Test Linux and uploading (13:55 that day): stop it. Not done: an auto
 packages in parallel; the Builder's "One PC" name misleads (file mode does serve other devices on the network).
 
 **Next session, in this order (agreed 2026-11-02; Send to cashier is committed, not yet in a Release):**
-1. The user's two-browser hand test of Send to cashier: fix what it turns up. Then a fresh review of that work (How we work, 3).
+1. The user's two-browser hand test of Send to cashier **passed 2026-11-02 ("works flawlessly")**. Still: a fresh review of that work
+   (How we work, 3), and Who's on now should say SALES PERSON, not CASHIER, for one (it uses the role).
 2. **Demo Room:** add a Sales person login, with a second cashier in a shop, so tickets can be shown. Its years rebuild anyway (a new
    migration changes their stamp). The Demo Room already on the user's laptop is fine for printer shopping.
 3. `make docs-shots` with the new screens (Send panel, tickets, the close screen, Users).
