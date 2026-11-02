@@ -95,7 +95,7 @@ export function PurchasePage({ id }: { id: number }) {
           {!draft && (
             <>
               {num(p.paid) > 0 && row('Paid', `−${money(sym, p.paid)}`)}
-              {num(p.credited) > 0 && row('Returned (credited)', `−${money(sym, p.credited)}`)}
+              {num(p.credited) > 0 && row('Credited', `−${money(sym, p.credited)}`)}
               {row('Still owed', money(sym, Math.max(num(p.balance), 0)), true)}
             </>
           )}

@@ -64,14 +64,19 @@ const lotSelect = `
 		JOIN units u    ON u.id = p.unit_id
 		LEFT JOIN suppliers s ON s.id = ` + LotSupplierSQL
 
-// Expired says the lot's date has passed.
+// expiryDay is now's date in the form a stored expiry date comes back in.
+func expiryDay(now time.Time) time.Time {
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+// Expired says the lot's date has passed; it's good through that date, as at the till.
 func (b Batch) Expired(now time.Time) bool {
-	return b.ExpiryDate != nil && b.ExpiryDate.Before(now)
+	return b.ExpiryDate != nil && b.ExpiryDate.Before(expiryDay(now))
 }
 
 // ExpiringSoon says the lot is inside its warning days and not yet expired.
 func (b Batch) ExpiringSoon(now time.Time) bool {
-	return b.ExpiryDate != nil && !b.Expired(now) && b.ExpiryDate.Before(now.AddDate(0, 0, b.WarnDays))
+	return b.ExpiryDate != nil && !b.Expired(now) && !b.ExpiryDate.After(expiryDay(now).AddDate(0, 0, b.WarnDays))
 }
 
 // NewBatch is the data needed to add a lot to inventory.

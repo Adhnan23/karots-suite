@@ -23,8 +23,8 @@ type Purchase struct {
 	DiscountValue decimal.Decimal `db:"discount_value" json:"discount_value"` // as entered
 	Total         decimal.Decimal `db:"total"       json:"total"`
 	PaidAmount    decimal.Decimal `db:"paid_amount" json:"paid_amount"`
-	// CreditedAmount is value returned to the supplier against this invoice. It
-	// reduces what is owed without claiming any money changed hands.
+	// CreditedAmount is what came off this invoice with no money moving: goods
+	// returned, a supplier's credit for a loss, a discount.
 	CreditedAmount decimal.Decimal `db:"credited_amount" json:"credited_amount"`
 	DueDate        *time.Time      `db:"due_date"    json:"due_date,omitempty"`
 	ExpectedDate   *time.Time      `db:"expected_date" json:"expected_date,omitempty"`

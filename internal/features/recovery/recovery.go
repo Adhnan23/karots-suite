@@ -94,6 +94,7 @@ func NewRepository(q db.Queryer) *Repository { return &Repository{q: q} }
 
 // warrantySource resolves a replaced warranty unit: its product, qty (1) and the
 // worth of the replacement handed out (the cost on its 'replaced' claim move).
+// In a transaction it holds the unit, so one loss is only settled once.
 func (r *Repository) warrantySource(ctx context.Context, unitID int64) (*source, error) {
 	var s source
 	err := r.q.GetContext(ctx, &s, `
@@ -105,7 +106,8 @@ func (r *Repository) warrantySource(ctx context.Context, unitID int64) (*source,
 		JOIN products p ON p.id = wu.product_id
 		LEFT JOIN warranty_claims wcl ON wcl.unit_id = wu.id AND wcl.resolution = 'replaced'
 		LEFT JOIN stock_movements mv  ON mv.reference_type = 'warranty' AND mv.reference_id = wcl.id
-		WHERE wu.id = $1`, unitID)
+		WHERE wu.id = $1
+		FOR UPDATE OF wu`, unitID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +115,8 @@ func (r *Repository) warrantySource(ctx context.Context, unitID int64) (*source,
 }
 
 // damageSource resolves a damage write-off movement: its product, quantity and
-// the worth recorded on the movement.
+// the worth recorded on the movement. In a transaction it holds the movement, so
+// one loss is only settled once.
 func (r *Repository) damageSource(ctx context.Context, movementID int64) (*source, error) {
 	var s source
 	err := r.q.GetContext(ctx, &s, `
@@ -123,7 +126,8 @@ func (r *Repository) damageSource(ctx context.Context, movementID int64) (*sourc
 		       'damage' AS status
 		FROM stock_movements m
 		JOIN products p ON p.id = m.product_id
-		WHERE m.id = $1 AND m.type = 'damage'`, movementID)
+		WHERE m.id = $1 AND m.type = 'damage'
+		FOR UPDATE OF m`, movementID)
 	if err != nil {
 		return nil, err
 	}

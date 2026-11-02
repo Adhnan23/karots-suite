@@ -221,7 +221,7 @@ func (h *handlers) ReportPurchases(c echo.Context) error {
 		for _, p := range rows {
 			sheet = append(sheet, []string{datetime.Date(p.CreatedAt), p.SupplierName, strOr(p.InvoiceNo), dec2(p.Total), dec2(p.PaidAmount), dec2(p.CreditedAmount), dec2(p.Balance())})
 		}
-		return writeSheet(c, "purchases_"+fs+"_"+ts, []string{"Date", "Supplier", "Invoice", "Total", "Paid", "Returned", "Due"}, sheet)
+		return writeSheet(c, "purchases_"+fs+"_"+ts, []string{"Date", "Supplier", "Invoice", "Total", "Paid", "Credited", "Due"}, sheet)
 	}
 	out.Total, out.Paid, out.Credited, out.Due = dec2(total), dec2(paid), dec2(cred), dec2(due)
 	return c.JSON(http.StatusOK, out)

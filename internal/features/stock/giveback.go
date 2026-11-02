@@ -106,7 +106,7 @@ func (r *Repository) settleCount(ctx context.Context, tx *sqlx.Tx, lot Batch, co
 		return r.logMovement(ctx, lot.ProductID, decimal.Zero, decimal.Zero, note, userID)
 	}
 	lotCost := costOf(lot)
-	adjust := decimal.Zero // what the lots couldn't take, up or down
+	adjust := decimal.Zero // units missing with no other lot to take them
 	switch diff := counted.Sub(lot.QtyRemaining); {
 	case diff.IsPositive():
 		need, held, value := diff, lot.QtyRemaining, lot.QtyRemaining.Mul(lotCost)
@@ -123,7 +123,7 @@ func (r *Repository) settleCount(ctx context.Context, tx *sqlx.Tx, lot Batch, co
 			}
 			need, held, value = need.Sub(take), held.Add(take), value.Add(take.Mul(costOf(o)))
 		}
-		lotCost, adjust = value.Div(held).Round(2), need
+		lotCost = value.Div(held).Round(2)
 	case diff.IsNegative() && len(others) > 0:
 		o, out := others[0], diff.Abs()
 		blended := o.QtyRemaining.Mul(costOf(o)).Add(out.Mul(lotCost)).Div(o.QtyRemaining.Add(out)).Round(2)
@@ -139,7 +139,8 @@ func (r *Repository) settleCount(ctx context.Context, tx *sqlx.Tx, lot Batch, co
 	if err := setLot(lot.ID, counted, lotCost); err != nil {
 		return err
 	}
-	// The total can drift from the lots; a hand-over never stops for that.
+	// More than the lots held comes from what the total holds outside them; only
+	// past that is it found stock. A hand-over never stops for the difference.
 	if short := counted.Sub(total.Add(adjust)); short.IsPositive() {
 		adjust = adjust.Add(short)
 	}

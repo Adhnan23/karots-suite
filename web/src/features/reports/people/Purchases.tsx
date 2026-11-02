@@ -28,7 +28,7 @@ export function PurchasesReportPage() {
       exportUrl={`/api/v1/admin/reports/purchases?${reportQS(r)}`}>
       <KpiStrip label="Headline" cols={4}>
         <Kpi label="Deliveries" v={d ? String(d.count) : '…'} />
-        <Kpi label="Came to" amount={d?.total} v={d ? money(sym, d.total) : '…'} sub={d && num(d.credited) > 0 ? `${money(sym, d.credited)} sent back` : undefined} />
+        <Kpi label="Came to" amount={d?.total} v={d ? money(sym, d.total) : '…'} sub={d && num(d.credited) > 0 ? `${money(sym, d.credited)} credited` : undefined} />
         <Kpi label="↑ Paid" v={d ? money(sym, d.paid) : '…'} />
         <Kpi label="Still to pay" amount={d?.due} tone="out" v={d ? money(sym, d.due) : '…'} />
       </KpiStrip>
@@ -43,7 +43,7 @@ export function PurchasesReportPage() {
           ) },
           { key: 'total', header: 'Total', num: true, cell: (x) => <b>{money(sym, x.total)}</b> },
           { key: 'paid', header: 'Paid', num: true, wide: true, cell: (x) => money(sym, x.paid) },
-          { key: 'back', header: 'Sent back', num: true, wide: true, cell: (x) => (num(x.credited) > 0 ? money(sym, x.credited) : <span className="text-faint">—</span>) },
+          { key: 'back', header: 'Credited', num: true, wide: true, cell: (x) => (num(x.credited) > 0 ? money(sym, x.credited) : <span className="text-faint">—</span>) },
           { key: 'due', header: 'To pay', num: true, cell: (x) => <span className={cn(num(x.due) > 0 && 'text-danger')}>{money(sym, x.due)}</span> },
         ]} />
     </ReportPage>

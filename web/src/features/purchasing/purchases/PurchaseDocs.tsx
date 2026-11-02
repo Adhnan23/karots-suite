@@ -78,7 +78,7 @@ export function GrnSheet({ p, shop, sym }: { p: PurchaseDetail; shop: ShopHeader
         {num(p.discount) > 0 && <><dt>Discount</dt><dd className="text-right">−{money(sym, p.discount)}</dd></>}
         <dt className="font-bold">Total</dt><dd className="text-right font-bold">{money(sym, p.total)}</dd>
         <dt>Paid</dt><dd className="text-right">{money(sym, p.paid)}</dd>
-        {num(p.credited) > 0 && <><dt>Returned</dt><dd className="text-right">{money(sym, p.credited)}</dd></>}
+        {num(p.credited) > 0 && <><dt>Credited</dt><dd className="text-right">{money(sym, p.credited)}</dd></>}
         <dt className="font-bold">Balance</dt><dd className="text-right font-bold">{money(sym, Math.max(num(p.balance), 0))}</dd>
       </dl>
       <div className="mt-10 grid grid-cols-2 gap-10 text-[12px]"><span className="border-t border-ink pt-1">Received by</span><span className="border-t border-ink pt-1">Supplier's signature</span></div>

@@ -91,6 +91,7 @@ func TestGiveBackSettlesTheCount(t *testing.T) {
 		{"zero moves it all", "10", "5", "15", "0", "15", "15", "0", "0", "0"},
 		{"zero, no other lot", "10", "", "10", "0", "", "0", "-10", "0", "0"},
 		{"the total had drifted below the count", "10", "", "3", "10", "", "0", "7", "500", "-10"},
+		{"more, units outside any lot cover it", "10", "", "15", "12", "", "3", "0", "600", "-12"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			f := giveBackFixture(t, c.lot, c.other, c.stock)
@@ -208,5 +209,28 @@ func TestMarkSupplierTold(t *testing.T) {
 	}
 	if err := f.svc.MarkSupplierTold(context.Background(), 999999999); err == nil {
 		t.Errorf("an unknown lot was accepted")
+	}
+}
+
+// A lot is good through its printed date, as the till reads it.
+func TestLotExpiresAfterItsDate(t *testing.T) {
+	now := time.Date(2026, 11, 2, 15, 0, 0, 0, time.FixedZone("Colombo", 5*3600+1800))
+	on := func(day int) Batch {
+		d := time.Date(2026, 11, day, 0, 0, 0, 0, time.UTC)
+		return Batch{ExpiryDate: &d, WarnDays: 30}
+	}
+	if on(2).Expired(now) || !on(2).ExpiringSoon(now) {
+		t.Errorf("a lot dated today has expired, or isn't close")
+	}
+	if !on(32).ExpiringSoon(now) || on(33).ExpiringSoon(now) {
+		t.Errorf("the warning should start at exactly its days")
+	}
+	if !on(1).Expired(now) || on(1).ExpiringSoon(now) {
+		t.Errorf("a lot dated yesterday hasn't expired")
+	}
+	// Late at night in Colombo the UTC date is still yesterday's: the shop's date counts.
+	early := time.Date(2026, 11, 3, 1, 0, 0, 0, now.Location())
+	if !on(2).Expired(early) {
+		t.Errorf("past the printed date in the shop's own time, not expired")
 	}
 }

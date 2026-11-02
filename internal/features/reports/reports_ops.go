@@ -97,8 +97,8 @@ type SupplierSpendRow struct {
 // SupplierSpend ranks suppliers by what you bought from them over a period
 // (received GRNs, drafts excluded) — the supplier twin of Top Products, and the
 // "who do we buy most from" cut neither Purchases (per-GRN) nor Supplier Dues
-// (current payables) gives. Goods sent back (credited to the bill) are not
-// spend, and not due.
+// (current payables) gives. What's credited to the bill (goods sent back, a
+// supplier's credit or discount) is not spend, and not due.
 func (s *Service) SupplierSpend(ctx context.Context, from, to time.Time) ([]SupplierSpendRow, error) {
 	var rows []SupplierSpendRow
 	if err := s.db.SelectContext(ctx, &rows, `

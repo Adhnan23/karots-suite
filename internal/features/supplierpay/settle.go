@@ -23,7 +23,8 @@ type pool struct {
 
 // unappliedAdvances lists payments carrying money not yet assigned to any
 // invoice, oldest first. That is exactly what an advance is: cash handed over
-// before there was an invoice to put it against.
+// before there was an invoice to put it against. A discount moved no money, so
+// the part of one that went on old debt is never an advance.
 func unappliedAdvances(ctx context.Context, tx *sqlx.Tx, supplierID int64) ([]pool, error) {
 	var rows []pool
 	err := tx.SelectContext(ctx, &rows, `
@@ -31,7 +32,7 @@ func unappliedAdvances(ctx context.Context, tx *sqlx.Tx, supplierID int64) ([]po
 		       sp.amount - COALESCE((SELECT SUM(a.amount) FROM supplier_payment_allocations a
 		                             WHERE a.payment_id = sp.id), 0) AS remaining
 		FROM supplier_payments sp
-		WHERE sp.supplier_id = $1
+		WHERE sp.supplier_id = $1 AND sp.method <> 'discount'
 		  AND sp.amount > COALESCE((SELECT SUM(a.amount) FROM supplier_payment_allocations a
 		                            WHERE a.payment_id = sp.id), 0)
 		ORDER BY sp.created_at, sp.id`, supplierID)
