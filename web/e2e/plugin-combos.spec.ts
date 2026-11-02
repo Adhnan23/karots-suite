@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { viaTicket } from './ticket'
 
 // Combos (plugin, built in for Playwright). Needs `make e2e-seed`. Every combo and
 // product is this run's own (tagged), so other specs never see a hint.
@@ -205,4 +206,20 @@ test('the Combos report counts the sale; Apps → Combos fits 360px', async ({ p
   await page.goto('/admin/x/combos')
   await expect(page.getByRole('article').filter({ hasText: PAIR })).toContainText(/Sold 2×/)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+test('a combo sent on a ticket sells as a combo and is counted', async ({ page, browser }) => {
+  await till(page)
+  await viaTicket(browser, page, 'E2E Admin', async (seller) => {
+    await seller.getByRole('button', { name: /Combos/ }).first().click()
+    await seller.getByRole('button', { name: new RegExp(PAIR) }).click()
+    await seller.getByRole('button', { name: /Add combo/ }).click()
+    await expect(cart(seller).getByText(`${PAIR} (combo)`)).toBeVisible()
+  })
+  await expect(cart(page).getByText(`${PAIR} (combo)`)).toBeVisible()
+  await page.getByRole('button', { name: /Complete sale/ }).click()
+  await expect(page.getByRole('dialog', { name: /complete/ })).toContainText('Rs. 360.00')
+  await page.keyboard.press('Enter')
+  await page.goto('/admin/x/combos')
+  await expect(page.getByRole('article').filter({ hasText: PAIR })).toContainText(/Sold 3×/)
 })

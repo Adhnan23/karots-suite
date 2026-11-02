@@ -24,7 +24,7 @@ export function useHold() {
       const held = await api<HeldSale>('/till/held', {
         json: {
           toCashier: !!send, forCashier: send?.forCashier, label, saleType: state.saleType, customerId: state.customerId ?? undefined,
-          discount: String(num(state.billDiscount)), cart: toHeldBlob(state), itemCount: state.lines.length, total: dec(saleTotal(state)),
+          discount: String(num(state.billDiscount)), cart: toHeldBlob(state, !!send), itemCount: state.lines.length, total: dec(saleTotal(state)),
         },
       })
       dispatch({ type: 'newSale', saleType: cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })

@@ -177,7 +177,7 @@ export function tillReducer(s: TillState, a: Action): TillState {
       const r = fromHeld(a.held, s.seq)
       const saleType = a.held.saleType === 'wholesale' ? 'wholesale' : 'retail'
       return syncDefaultTender({
-        ...initialState(saleType), preparedBy: r.preparedBy, seq: r.seq, lines: r.lines, customerId: a.held.customerId ?? null, meta: r.meta,
+        ...initialState(saleType), preparedBy: r.preparedBy, tenders: r.tenders, seq: r.seq, lines: r.lines, customerId: a.held.customerId ?? null, meta: r.meta,
         billDiscount: Number(a.held.discount) ? String(Number(a.held.discount)) : '', billDiscountType: r.billDiscountType,
       })
     }

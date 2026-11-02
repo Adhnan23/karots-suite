@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { viaTicket } from './ticket'
 
 // Print & Copy (plugin, built in for Playwright). Needs `make e2e-seed`. The service,
 // its paper and group are this run's own (tagged).
@@ -274,4 +275,19 @@ test('Print & Copy admin and report fit a phone', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Print & Copy' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
   }
+})
+
+test('a print job sent on a ticket takes its paper and counts when the cashier sells it', async ({ page, browser }) => {
+  await till(page)
+  const before = await paperLeft(page)
+  await viaTicket(browser, page, 'E2E Admin', async (seller) => {
+    await openService(seller)
+    await seller.getByLabel('Number of copies').fill('11')
+    await seller.getByLabel('Number of copies').press('Enter')
+    await expect(cart(seller).getByText(/×11|11 /).first()).toBeVisible()
+  })
+  await page.getByRole('button', { name: /Complete sale/ }).click()
+  await expect(page.getByRole('dialog', { name: /complete/ })).toBeVisible()
+  await page.keyboard.press('Enter')
+  expect(await paperLeft(page)).toBe(before - 11)
 })

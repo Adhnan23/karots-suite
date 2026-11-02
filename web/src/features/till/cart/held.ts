@@ -4,11 +4,12 @@ import { dec, num } from '@/lib/money'
 import { saleTotal } from './totals'
 import type { CartLine, DiscountType, TillState } from './types'
 
-type HeldBlob = { v: 2; lines: CartLine[]; billDiscountType: DiscountType; meta?: Record<string, unknown>; preparedBy?: number }
+type HeldBlob = { v: 2; lines: CartLine[]; billDiscountType: DiscountType; meta?: Record<string, unknown>; preparedBy?: number; tenders?: TillState['tenders'] }
 
 /** What goes into held_sales.cart: an SPA-owned document (the server stores it opaquely). */
-export const toHeldBlob = (s: TillState) =>
-  JSON.stringify({ v: 2, lines: s.lines, billDiscountType: s.billDiscountType, meta: s.meta ?? {}, preparedBy: s.preparedBy } satisfies HeldBlob)
+/** withTenders: a ticket keeps what a plugin already put on Pay (a repair job's deposit); a sales person enters no other. */
+export const toHeldBlob = (s: TillState, withTenders = false) =>
+  JSON.stringify({ v: 2, lines: s.lines, billDiscountType: s.billDiscountType, meta: s.meta ?? {}, preparedBy: s.preparedBy, tenders: withTenders ? s.tenders : undefined } satisfies HeldBlob)
 
 /** Re-key every line on the way back in (keys must stay unique in this cart). */
 export function fromHeld(h: HeldSale, seq: number) {
@@ -21,7 +22,7 @@ export function fromHeld(h: HeldSale, seq: number) {
   const blob = !Array.isArray(parsed) && parsed && typeof parsed === 'object' ? (parsed as Partial<HeldBlob>) : null
   const raw: CartLine[] = blob?.lines ?? []
   const lines = raw.map((l) => ({ ...l, key: ++seq }))
-  return { preparedBy: h.preparedById ?? blob?.preparedBy, lines, seq, billDiscountType: (blob?.billDiscountType === 'percent' ? 'percent' : 'fixed') as DiscountType, meta: blob?.meta ?? {} }
+  return { preparedBy: h.preparedById ?? blob?.preparedBy, tenders: blob?.tenders ?? [], lines, seq, billDiscountType: (blob?.billDiscountType === 'percent' ? 'percent' : 'fixed') as DiscountType, meta: blob?.meta ?? {} }
 }
 
 /** A ticket's lines in words, so a cashier can match them to what the customer carries. */

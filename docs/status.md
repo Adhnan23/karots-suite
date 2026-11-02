@@ -61,8 +61,10 @@ money. New Users choice **Sales person** (`users.sends_to_cashier`, role stays c
 keeps an allow-list (`internal/api/sales_person.go`) and plugin routes that move money carry `middleware.RequireHandlesMoney`.
 A ticket is a held sale with `to_cashier` (on screen only, random number unique among those waiting); the chosen open till gets a
 popup, every open till sees the list, one opens it, unopened after 2 minutes it moves on, closing a till deals with its tickets
-first; `sales.prepared_by` records who prepared it. For any shop, not just pharmacies. **Pocket Cashier release 2 must open
-tickets** (on the PC's side today). No shop toggle for one-person-one-device: each person has their own login.
+first; `sales.prepared_by` records who prepared it. For any shop, not just pharmacies. **Pocket Cashier release 2 must let a cashier open
+tickets; sales people stay off Pocket Cashier for good** (user: in a power cut there is no network, one cashier sells on the tablet).
+A ticket keeps plugin lines, their data and a plugin's pre-filled payment (a repair deposit); `e2e/ticket.ts` runs combos, pharmacy,
+documents, recharge and repairs through one. Still to do: this shop's new Release, the new screens in `make docs-shots`. No shop toggle for one-person-one-device: each person has their own login.
 Hardware decided: all Xubuntu; the receipt printer and drawer at the counter PC. Tablet type to be checked at the shop; price
 agreed separately.
 

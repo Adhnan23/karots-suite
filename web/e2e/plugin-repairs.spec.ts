@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { viaTicket } from './ticket'
 
 // Repairs (plugin, built in for Playwright). Needs `make e2e-seed`. Serial: one
 // drawer, and later flows use earlier data.
@@ -206,4 +207,32 @@ test('cancelling a job with a deposit offers it back through the core refund', a
   await expect(d.getByRole('button', { name: /Give back the deposit/ })).toBeHidden()
   const c = await json<{ id: number; outstanding: string }[]>(page.request.get('/api/v1/till/customers'))
   expect(c.find((x) => x.id === ids.customer)!.outstanding).toBe('0.00')
+})
+
+test('a job picked up on a ticket keeps its deposit, and the sale collects it', async ({ page, browser }) => {
+  await till(page)
+  await newJob(page, `Ticket Nokia ${tag}`)
+  const d = panel(page)
+  await d.getByLabel('Labour', { exact: true }).fill('Fitting')
+  await d.getByLabel('Labour amount').fill('1500')
+  await d.getByRole('button', { name: 'Add labour' }).click()
+  await deposit(page, '500')
+  const ticket = (await d.locator('.font-display.text-lg').first().innerText()).trim()
+  await page.keyboard.press('Escape')
+  const job = await json<{ id: number; ticketCode: string }[]>(page.request.get(`/api/v1/x/repairs/jobs?show=all&q=${ticket}`))
+  await viaTicket(browser, page, 'E2E Cashier', async (seller) => {
+    await search(seller).fill(job[0].ticketCode)
+    await search(seller).press('Enter')
+    await panel(seller).getByRole('button', { name: 'Put on the bill' }).click()
+    await expect(cart(seller).getByText(`Fitting — ${ticket}`)).toBeVisible()
+    await seller.keyboard.press('Escape')
+  })
+  await expect(cart(page).getByText(`Fitting — ${ticket}`)).toBeVisible()
+  await expect(page.getByText(/On account\s*Rs\. 500\.00/)).toBeVisible() // the deposit came with the ticket
+  await page.getByRole('button', { name: 'Cash', exact: true }).click()
+  await page.getByRole('button', { name: 'Fill' }).click()
+  await complete(page)
+  await toast(page, new RegExp(`${ticket} collected`))
+  const full = await json<{ outstanding: string }>(page.request.get(`/api/v1/x/repairs/jobs/${job[0].id}`))
+  expect(full.outstanding).toBe('0.00')
 })

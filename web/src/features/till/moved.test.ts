@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '@/api/client'
-import { holdOnMove, MOVED_LABEL } from './cart/held'
+import { holdOnMove, MOVED_LABEL, toHeldBlob } from './cart/held'
 import { initialState, tillReducer } from './cart/store'
 
 vi.mock('@/api/client', () => ({ api: vi.fn(() => Promise.resolve({})) }))
@@ -23,5 +23,15 @@ describe('holdOnMove', () => {
     await holdOnMove(initialState('retail'))
     await holdOnMove(null)
     expect(api).not.toHaveBeenCalled()
+  })
+})
+
+describe('a ticket', () => {
+  it('keeps the payment rows a plugin put on Pay; a hold does not', () => {
+    let s = initialState('retail')
+    s = { ...s, tenders: [{ method: 'credit', amount: '500', reference: '', accountId: '', meta: {} }] }
+    const held = (cart: string) => ({ id: 1, label: '', saleType: 'retail', discount: '0', cart, itemCount: 0, total: '0', createdAt: '' })
+    expect(tillReducer(initialState('retail'), { type: 'resume', held: held(toHeldBlob(s, true)) }).tenders).toHaveLength(1)
+    expect(tillReducer(initialState('retail'), { type: 'resume', held: held(toHeldBlob(s)) }).tenders).toHaveLength(0)
   })
 })

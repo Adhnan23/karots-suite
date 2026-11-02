@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { viaTicket } from './ticket'
 
 // Reload & Bills (plugin, built in for Playwright). Needs `make e2e-seed`. Serial: one
 // drawer, and later flows use earlier data (the carrier, its float).
@@ -183,4 +184,22 @@ test('float comes from a dealer like any supplier: on credit, then paid now from
   await expect(page.getByText(/We owe Rs\. 1,000\.00/)).toBeVisible() // the paid one is settled; the credit one is still owed
   const v = await json<{ invoices: { invoiceNo: string; balance: string }[] }>(page.request.get(`/api/v1/till/suppliers/${sup.id}`))
   expect(v.invoices.map((i) => [i.invoiceNo, i.balance])).toEqual([[`F${tag}`, '1000.00']])
+})
+
+test('a reload sent on a ticket takes its float only when the cashier sells it', async ({ page, browser }) => {
+  await till(page)
+  const before = await float(page)
+  await viaTicket(browser, page, 'E2E Cashier', async (seller) => {
+    await seller.getByRole('button', { name: /Reload & Bills/ }).first().click()
+    await seller.getByLabel("Customer's number").fill('0771112299')
+    await seller.getByLabel('Reload amount').fill('100')
+    await seller.getByRole('button', { name: /Add reload/ }).click()
+    await expect(cart(seller).getByText(`${CARRIER} reload · 0771112299`)).toBeVisible()
+    expect(await float(seller)).toBe(before) // sent or not, nothing is booked yet
+  })
+  await expect(cart(page).getByText(`${CARRIER} reload · 0771112299`)).toBeVisible()
+  expect(await float(page)).toBe(before)
+  await page.getByRole('button', { name: /Complete sale/ }).click()
+  await skipPrint(page)
+  await expect.poll(() => float(page)).toBe(before - 97) // 100 less its 3%
 })

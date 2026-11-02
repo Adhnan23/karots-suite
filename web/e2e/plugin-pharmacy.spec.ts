@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { viaTicket } from './ticket'
 
 // Pharmacy (plugin, built in for Playwright with Product Plus + Alternatives).
 // Needs `make e2e-seed`. Serial: one drawer, and later flows use earlier data.
@@ -222,4 +223,33 @@ test('the pharmacy pages fit a phone', async ({ page }) => {
   }
   await page.goto(`/admin/x/pharmacy/patients/${ids.patient}`)
   await expect(page.getByText(`${METFOR} × 8 (4 d)`)).toBeVisible()
+})
+
+test('a prescription sent on a ticket records the dispense when the cashier sells it', async ({ page, browser }) => {
+  const who = `Ticket Sena ${tag}`, phone = `07${tag}88`
+  await till(page)
+  await viaTicket(browser, page, 'E2E Cashier', async (seller) => {
+    await seller.getByRole('button', { name: '💊 Patient' }).click()
+    await seller.getByRole('button', { name: 'Register a new patient' }).click()
+    await seller.getByLabel('Patient name').fill(who)
+    await seller.getByLabel('Patient phone').fill(phone)
+    await seller.getByRole('button', { name: 'Register', exact: true }).click()
+    await seller.getByRole('button', { name: 'Prescription' }).click()
+    await seller.getByLabel('Doctor', { exact: true }).fill('Dr Silva')
+    await seller.getByLabel('Medicine 1').fill(GROUP)
+    await seller.getByRole('button', { name: new RegExp(`${GROUP}.*group`) }).click()
+    await seller.getByLabel('Dosage 1').fill('1-0-1')
+    await seller.getByLabel('Days 1').fill('2')
+    await seller.getByRole('button', { name: 'Save prescription' }).click()
+    await seller.getByRole('button', { name: new RegExp(`Add · ${METFOR}`) }).click()
+    await seller.getByRole('button', { name: 'Done' }).click()
+    await expect(cart(seller).getByText(`For ${who}’s ${GROUP}`)).toBeVisible()
+  })
+  await expect(cart(page).getByText(`For ${who}’s ${GROUP}`)).toBeVisible()
+  await complete(page)
+  const id = (await json<{ patientId: number }[]>(page.request.get(`/api/v1/x/pharmacy/patients?q=${phone}`)))[0].patientId
+  await expect.poll(async () => {
+    const s = await json<{ items: { dispensed: string }[] }[]>(page.request.get(`/api/v1/x/pharmacy/patients/${id}/scripts`))
+    return s[0].items[0].dispensed
+  }).toBe('4')
 })
