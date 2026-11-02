@@ -212,6 +212,9 @@ func mountRelease(mux *http.ServeMux, all []manifest, b buildFn, cfg shopsCfg, b
 				}
 				fmt.Fprintf(log, "✓ %s → %s\n", s.Key, filepath.Join(cfg.Out, s.Key))
 			}
+			if len(failed) < len(shops.Shops) {
+				commitShops(cfg.Path, "chore(shops): released "+version, log)
+			}
 			if len(failed) > 0 {
 				return buildResult{}, fmt.Errorf("%d of %d shops failed: %s", len(failed), len(shops.Shops), strings.Join(failed, ", "))
 			}

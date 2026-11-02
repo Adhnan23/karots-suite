@@ -101,6 +101,16 @@ func treeDirty(dir string) (bool, error) {
 	return false, nil
 }
 
+// commitShops commits shops.json alone after a publish, so its record never sits
+// uncommitted. The release is already out, so a failure is only a note.
+func commitShops(path, msg string, log io.Writer) {
+	c := exec.Command("git", "commit", "-q", "-m", msg, "--", filepath.Base(path))
+	c.Dir = filepath.Dir(path)
+	if out, err := c.CombinedOutput(); err != nil {
+		fmt.Fprintf(log, "! shops.json not committed: %v\n%s", err, out)
+	}
+}
+
 // updateX is the -X flags that give a shop build its version and updater.
 func updateX(s Shop, version, kind, pub string) string {
 	return "main.version=" + version + " main.buildKind=" + kind +

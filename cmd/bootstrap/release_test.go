@@ -209,3 +209,45 @@ func TestShopRunNeedsBaseURL(t *testing.T) {
 		}
 	}
 }
+
+// A publish commits shops.json and nothing else: other changes stay as they were.
+func TestCommitShops(t *testing.T) {
+	dir := t.TempDir()
+	git := func(args ...string) string {
+		t.Helper()
+		c := exec.Command("git", append([]string{"-c", "user.email=t@t", "-c", "user.name=t"}, args...)...)
+		c.Dir = dir
+		out, err := c.CombinedOutput()
+		if err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+		return strings.TrimSpace(string(out))
+	}
+	path := filepath.Join(dir, "shops.json")
+	other := filepath.Join(dir, "main.go")
+	os.WriteFile(path, []byte("a"), 0o644)
+	os.WriteFile(other, []byte("a"), 0o644)
+	git("init", "-q")
+	git("add", ".")
+	git("commit", "-qm", "x")
+	git("config", "user.email", "t@t")
+	git("config", "user.name", "t")
+	os.WriteFile(path, []byte("b"), 0o644)
+	os.WriteFile(other, []byte("b"), 0o644)
+
+	var log strings.Builder
+	commitShops(path, "chore(shops): alpha released 1", &log)
+	if log.Len() != 0 {
+		t.Fatalf("log: %s", log.String())
+	}
+	if got := git("log", "-1", "--format=%s"); got != "chore(shops): alpha released 1" {
+		t.Fatalf("subject %q", got)
+	}
+	if got := git("status", "--porcelain"); got != "M main.go" {
+		t.Fatalf("status %q", got)
+	}
+	commitShops(path, "nothing changed", &log) // only a note: the release is already out
+	if !strings.Contains(log.String(), "not committed") {
+		t.Fatalf("log: %q", log.String())
+	}
+}

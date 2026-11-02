@@ -223,8 +223,12 @@ func mountShops(mux *http.ServeMux, all []manifest, b func(buildOpts, io.Writer)
 			before, beforePub := s.LastBuilt, s.Published
 			res, err := fn(&s, log)
 			if s.LastBuilt != before || s.Published != beforePub {
-				if serr := saveShopState(cfg, &mu, s); serr != nil && err == nil {
+				serr := saveShopState(cfg, &mu, s)
+				if serr != nil && err == nil {
 					err = serr
+				}
+				if serr == nil && s.Published != beforePub {
+					commitShops(cfg.Path, fmt.Sprintf("chore(shops): %s released %s", s.Key, s.Published.Version), log)
 				}
 			}
 			return res, err

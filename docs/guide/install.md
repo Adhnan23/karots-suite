@@ -44,7 +44,7 @@ shop (kept in `shops.json`), with:
 
 - **Release…** builds the shop and publishes the update to the shop's folder in the Karots
   bucket. **A shop's first install must be a Release**, or its Data page will say "No update
-  published". Release refuses to build from uncommitted code.
+  published". Release refuses to build from uncommitted code, and commits `shops.json` by itself once published.
 - **Test build** builds on your PC only. The Data page shows it as a test build.
 - Untick **Add installer** to get the program alone.
 - On Windows server mode, tick **+ PostgreSQL** to put the PostgreSQL installer beside the files,
