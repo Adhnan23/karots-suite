@@ -3058,6 +3058,7 @@ export interface SaleItemRequest {
   serials: string[];
   description: string;
   components: ServiceComponent[];
+  noRecipe?: boolean; // a fee on a service: it uses none of the service's recipe
   group?: SaleLineGroup; // lines added together; receipts print them as one block
   /**
    * Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);

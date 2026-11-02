@@ -80,7 +80,7 @@ describe('extras', () => {
   })
   it('an extra is its own line with its stock, never a ledger job', () => {
     const u = serviceLine(4, extraLine(svc, urgent, 3))
-    expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Urgent', components: [] })
+    expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Urgent', components: [], noRecipe: true })
     const l = serviceLine(5, extraLine(svc, lanyard, 3))
     expect(l).toMatchObject({ qty: 3, unitPrice: 80, fixedQty: true, components: [{ productId: 44, quantity: '3' }] })
     expect(soldJobs([u, l])).toEqual([])

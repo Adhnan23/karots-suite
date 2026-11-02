@@ -89,7 +89,7 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
     items: s.lines.map((l) => ({
       productId: l.productId, quantity: String(l.qty), discount: String(num(l.discount)), discountType: l.discountType,
       priceOverride: l.priceOverride, batchId: l.batchId, allowOversell: l.allowOversell,
-      serials: l.trackSerial ? l.serials.map((x) => x.trim()) : [], description: l.description, components: l.components,
+      serials: l.trackSerial ? l.serials.map((x) => x.trim()) : [], description: l.description, components: l.components, noRecipe: l.noRecipe,
       group: l.group ? { no: groupNo.get(l.group.id)!, label: l.group.label, sets: String(l.group.count), itemised: !!l.group.fixed } : undefined,
       plugin: l.plugin && Object.keys(l.plugin).length ? l.plugin : undefined,
       payout: l.payout || undefined,

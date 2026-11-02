@@ -76,13 +76,14 @@ const extraCount = (x: Extra, pieces: number) => (x.perPiece ? Math.max(1, piece
 /** What the ticked extras add to a job of this many pieces. */
 export const extrasTotal = (xs: Extra[], pieces: number) => xs.reduce((t, x) => t + Number(x.price) * extraCount(x, pieces), 0)
 
-/** An extra's line in its job's group ("Urgent" under "Photocopy"), its stock taken with it. */
+/** An extra's line in its job's group ("Urgent" under "Photocopy"), its own stock taken
+ * with it and none of the service's: Urgent is a charge, not more copying. */
 export function extraLine(s: TillService, x: Extra, pieces: number): ServiceLineInput {
   const n = extraCount(x, pieces)
   const description = x.name
   const plugin: { documents: LineExtra } = { documents: { extraOf: s.id } }
   return { productId: s.productId, name: description, description, price: Number(x.price) * n, qty: n, unitPrice: Number(x.price),
-    components: x.productId ? [{ productId: x.productId, quantity: String(Number(x.qty) * n) }] : [], plugin, fixedQty: x.perPiece }
+    components: x.productId ? [{ productId: x.productId, quantity: String(Number(x.qty) * n) }] : [], noRecipe: true, plugin, fixedQty: x.perPiece }
 }
 
 /** Ring a job: alone, or with its extras as one block (cart and receipt) under the service's name. */

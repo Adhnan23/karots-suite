@@ -251,7 +251,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			// depends on the size picked at the till), so an explicit list always
 			// wins; everything else — coffee, any service with a recipe — is
 			// expanded here so no plugin is needed to sell it.
-			if len(it.Components) == 0 {
+			if len(it.Components) == 0 && !it.NoRecipe {
 				rcs, rerr := recipes.NewRepository(tx).For(ctx, p.ID)
 				if rerr != nil {
 					return apperr.Internal("failed to load recipe", rerr)

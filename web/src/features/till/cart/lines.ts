@@ -90,6 +90,7 @@ export function serviceLine(key: number, d: ServiceLineInput): CartLine {
     isService: true, allowDecimal: false, batchId: 0, batchRemaining: 0, batchLabel: '', allowOversell: false,
     discount: '', discountType: 'fixed', trackSerial: false, warrantyMonths: 0, serials: [],
     priceOverride: String(unit), description: d.description ?? '', components: d.components ?? [], plugin: d.plugin,
+    ...(d.noRecipe && { noRecipe: true }),
     ...(d.fixedQty && { fixedQty: true }),
     ...(d.noDiscount && { noDiscount: true }),
   }

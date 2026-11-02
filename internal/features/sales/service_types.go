@@ -38,6 +38,8 @@ type ItemInput struct {
 	// consuming paper). Honoured only for is_service products; the line's
 	// cost_price becomes the summed FEFO cost of the consumed components.
 	Components []ServiceComponent `json:"components"`
+	// NoRecipe: a fee on a service (a rush charge) uses none of the service's recipe.
+	NoRecipe bool `json:"no_recipe"`
 	// Group marks lines the till added together (a plugin's group): receipts
 	// print them as one block. nil = a plain line.
 	Group *LineGroup `json:"group"`

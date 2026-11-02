@@ -19,6 +19,7 @@ type SaleItemRequest struct {
 	Serials       []string           `json:"serials"`
 	Description   string             `json:"description"`
 	Components    []ServiceComponent `json:"components"`
+	NoRecipe      bool               `json:"noRecipe,omitempty"` // a fee on a service: it uses none of the service's recipe
 	Group         *SaleLineGroup     `json:"group,omitempty"` // lines added together; receipts print them as one block
 	// Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);
 	// each plugin's sale-line hook reads its own key inside the sale's tx.

@@ -127,9 +127,9 @@ func documentsSetup(g *gen) error {
 				return err
 			}
 		}
-		if s.toner {
+		if s.toner { // a cartridge does about 2,500 pages
 			if err := g.admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/recipe", out.ProductID), map[string]any{
-				"components": []map[string]any{{"productId": toner, "amount": fmt.Sprint(tonerYield), "mode": "yield"}},
+				"components": []map[string]any{{"productId": toner, "amount": "2500", "mode": "yield"}},
 				"costs":      []map[string]string{{"label": "Copier upkeep", "amount": "1.5"}}}, nil); err != nil {
 				return err
 			}
@@ -140,9 +140,6 @@ func documentsSetup(g *gen) error {
 	}
 	return nil
 }
-
-// tonerYield is the pages a cartridge does.
-const tonerYield = 2500
 
 // docWeight: how often each kind of job walks in.
 var docWeight = map[string]int{"copy": 6, "print": 3, "laminate": 3, "bind": 1, "other": 2}
@@ -251,17 +248,13 @@ func (g *gen) docSale(s docService) error {
 			n = pieces
 		}
 		ex := map[string]any{"productId": s.ProductID, "quantity": fmt.Sprint(n), "priceOverride": x.Price, "description": x.Name,
-			"discount": "0", "discountType": "fixed", "plugin": map[string]any{"documents": map[string]any{"extraOf": s.ID}}}
+			"discount": "0", "discountType": "fixed", "noRecipe": true, "plugin": map[string]any{"documents": map[string]any{"extraOf": s.ID}}}
 		if x.ProductID != nil {
 			used := []docUse{{*x.ProductID, dec(x.Qty, "1").Mul(decimal.NewFromInt(int64(n))).String()}}
 			if !g.takes(used) {
 				continue
 			}
 			ex["components"] = used
-		} else if s.Category == "copy" || s.Category == "print" {
-			// With no stock of its own, the line draws the service's recipe at the sale.
-			toner, _ := g.itemNamed("Copier Toner Cartridge")
-			g.stock[toner.id] -= float64(n) / tonerYield
 		}
 		items = append(items, ex)
 		total = total.Add(dec(x.Price, "0").Mul(decimal.NewFromInt(int64(n))))

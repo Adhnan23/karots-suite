@@ -49,3 +49,41 @@ func TestAdminServicesAndRecipes(t *testing.T) {
 		t.Fatalf("self-consuming: %d", rec.Code)
 	}
 }
+
+// A line that says so doesn't draw its service's recipe: a fee on a job (Urgent)
+// uses no toner. Any other service line still does.
+func TestServiceLineWithoutItsRecipe(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	var cat int64
+	te.db.Get(&cat, `SELECT category_id FROM products WHERE id=$1`, f.plainID) //nolint:errcheck
+	id := decode[ProductSaved](t, te.do(http.MethodPost, "/api/v1/admin/services", ServiceRequest{Name: fmt.Sprintf("T copy %d", time.Now().UnixNano()), CategoryID: cat, UnitID: 1, SellingPrice: "100"}, ck)).ID
+	if rec := te.do(http.MethodPost, "/api/v1/admin/products/"+strconv.FormatInt(id, 10)+"/recipe",
+		RecipeRequest{Components: []RecipeComponent{{ProductID: f.plainID, Amount: "1", Mode: "per_unit"}}}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("recipe: %d %s", rec.Code, rec.Body)
+	}
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, ck)
+	defer te.do(http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{}, ck)
+	stock := func() (n string) {
+		te.db.Get(&n, `SELECT quantity::numeric(14,0)::text FROM stock WHERE product_id=$1`, f.plainID) //nolint:errcheck
+		return n
+	}
+	ring := func(noRecipe bool) {
+		t.Helper()
+		req := sale(id, "1", PaymentRequest{Method: "cash", Amount: "100"})
+		req.Items[0].Components, req.Items[0].NoRecipe = []ServiceComponent{}, noRecipe
+		if rec := te.do(http.MethodPost, "/api/v1/till/sales", req, ck); rec.Code != http.StatusCreated {
+			t.Fatalf("sale: %d %s", rec.Code, rec.Body)
+		}
+	}
+	before := stock()
+	ring(true)
+	if got := stock(); got != before {
+		t.Errorf("a line with no recipe drew stock: %s to %s", before, got)
+	}
+	ring(false)
+	if got := stock(); got == before {
+		t.Errorf("a plain service line didn't draw its recipe: still %s", got)
+	}
+}

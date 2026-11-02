@@ -25,6 +25,7 @@ export type CartLine = {
   priceOverride: string // service lines only
   description: string
   components: Component[]
+  noRecipe?: boolean // a fee on a service: it uses none of the service's recipe
   plugin?: Record<string, unknown> // opaque data a plugin slot attached (M7)
   group?: LineGroup // lines a plugin added together (a combo): scaled, removed and broken together
   fixedQty?: boolean // a plugin job priced and costed for this qty: × removes it, nothing changes the qty
@@ -61,6 +62,7 @@ export type ServiceLineInput = {
   unitPrice?: number
   description?: string
   components?: Component[]
+  noRecipe?: boolean
   plugin?: Record<string, unknown>
   fixedQty?: boolean
   noDiscount?: boolean
