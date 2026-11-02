@@ -26,6 +26,18 @@
         "keep": 28,
         "cloud": true
       },
+      "lastBuilt": {
+        "at": "2026-11-02T08:25:58Z",
+        "commit": "813041e",
+        "version": "2026.11.02.1355",
+        "kind": "release",
+        "notes": "• Add a supplier on the spot, and give a product one as you restock"
+      },
+      "published": {
+        "version": "2026.11.02.1355",
+        "commit": "813041e",
+        "at": "2026-11-02T08:28:48Z"
+      },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     }
   ]

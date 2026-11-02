@@ -27,6 +27,14 @@ bills saying "Returned" for any credit (now "Credited"). A bounced cheque on a d
 a test. Presence: beats go one at a time (it failed 6 of 12 runs before, passes 12 of 12). Full Playwright: 227 passed,
 33 skipped.
 
+**Where the user is (end of 2026-11-02):** Aiman Pharmacy is Released (13:55 build has New supplier on intake) and being
+rehearsed by hand in a Xubuntu VM: system user -> admin -> users, products and suppliers on the spot, batches, cloud backup (one
+backup reached the cloud at 14:03). Fix whatever that rehearsal turns up before the real install. Old release files are deleted.
+`karots-suite-backups` has a 30-day bucket lock on purpose, so `test-linux`, `_check` and the VM's Aiman backups age out by
+themselves (by about Dec 2): pick by date on his Bring back list, and never restore a VM backup to his shop. Something is still
+running as Test Linux and uploading (13:55 that day): stop it. Not done: an automated first-day test; `make test` still runs Go
+packages in parallel; the Builder's "One PC" name misleads (file mode does serve other devices on the network).
+
 **Next:**
 1. **Hand testing, still not confirmed by the user:** recall, a credit paying a delivery, the discount (Give back: "worked well").
 2. **A trial with the pharmacist.**
