@@ -102,6 +102,11 @@ func (h *handlers) AdminIntakeRestock(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if req.SupplierID > 0 {
+		if err := h.t.products.SetSupplierIfNone(ctx, p.ID, req.SupplierID); err != nil {
+			return err
+		}
+	}
 	// Prices first (cost values the lot this opens), through the stock-take path.
 	if _, err := h.applyCount(ctx, p, CountLine{ProductID: p.ID, Cost: req.CostPrice, Selling: req.SellingPrice, Wholesale: req.WholesalePrice}, "", 0); err != nil {
 		return err

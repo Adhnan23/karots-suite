@@ -50,7 +50,8 @@ and [Give back](purchasing.md#giving-a-batch-back) hands it to them.
 
 Scan or type to receive stock without a purchase order. An existing product is restocked (how
 many came, cost, selling price, expiry, which batch). An unknown barcode opens a new product. You
-can print the labels as you save.
+can print the labels as you save. A supplier who isn't listed yet can be added on the spot with **New**, and a
+product with no supplier can be given one as you restock it.
 
 ## Stock-take
 

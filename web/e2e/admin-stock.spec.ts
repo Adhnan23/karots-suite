@@ -71,6 +71,12 @@ test('intake: create with an opening count, restock by scan, undo the create', a
   await page.getByLabel('Cost').fill('500')
   await expect(page.getByLabel('Selling')).toHaveValue('700') // 1.4 default markup, whole rupees
   await page.getByLabel('Opening quantity').fill('6')
+  // A supplier made on the spot is picked, and the form behind it keeps what's typed.
+  await page.getByRole('button', { name: 'New', exact: true }).click()
+  await page.getByRole('dialog').getByLabel('Name').fill(`Spot Supplier ${tag}`)
+  await page.getByRole('button', { name: 'Add supplier' }).click()
+  await expect(page.getByLabel('Supplier', { exact: true }).locator('option:checked')).toHaveText(`Spot Supplier ${tag}`)
+  await expect(page.getByLabel('Opening quantity')).toHaveValue('6')
   await page.getByLabel('Print labels on save').uncheck()
   await page.getByRole('button', { name: 'Create & stock' }).click()
   await toast(page, new RegExp(`Treacle ${tag} added with 6`))

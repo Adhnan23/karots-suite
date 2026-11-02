@@ -21,7 +21,8 @@ import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
 import { extraBody, type Extras, ProductAssists, ProductExtras } from './ProductExtras'
-import { productQuery, supplierOptionsQuery } from './queries'
+import { SupplierPick } from '@/features/purchasing/SupplierPick'
+import { productQuery } from './queries'
 import { meQuery } from '@/api/session'
 
 /** id 0 = new; copyOf = duplicate that product (saved as a new one, must be renamed). */
@@ -51,7 +52,6 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const qc = useQueryClient()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const units = useQuery(unitsQuery).data ?? []
-  const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const [f, setF] = useState<ProductRequest>(() => ({ ...init, unitId: init.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || 0 }))
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
@@ -169,12 +169,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
             <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={generate} disabled={!!f.barcode}><Wand2 size={15} /> Generate</Button>
           </div>
         </Field>
-        {!svc && <Field label="Preferred supplier">
-          <select aria-label="Preferred supplier" value={f.supplierId} onChange={(e) => set({ supplierId: Number(e.target.value) })} className={cn(INPUT, 'appearance-auto')}>
-            <option value={0}>None</option>
-            {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </Field>}
+        {!svc && <Field label="Preferred supplier"><SupplierPick label="Preferred supplier" value={f.supplierId} onChange={(supplierId) => set({ supplierId })} /></Field>}
         {!svc && <ReorderLevel product={product} value={{ auto: f.reorderAuto ?? true, level: f.reorderLevel, start: f.reorderStart ?? 0 }}
           onChange={(v) => set({ reorderAuto: v.auto, reorderLevel: v.level, reorderStart: v.start })} />}
         <Field label="Tax %" hint={me?.taxRegistered ? 'Leave empty for none.' : 'Not charged: the shop isn\'t registered for VAT (Settings → Tax).'}>

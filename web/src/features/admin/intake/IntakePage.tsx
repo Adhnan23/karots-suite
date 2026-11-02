@@ -9,7 +9,8 @@ import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { CategoryPicker } from '@/features/admin/categories/CategoryPicker'
 import { editPrice, markupOf, type Prices } from '@/features/admin/products/price'
-import { packsQuery, productsQuery, supplierOptionsQuery } from '@/features/admin/products/queries'
+import { packsQuery, productsQuery } from '@/features/admin/products/queries'
+import { SupplierPick } from '@/features/purchasing/SupplierPick'
 import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
 import { extraBody, type Extras, ProductAssists, ProductExtras } from '@/features/admin/products/ProductExtras'
@@ -177,6 +178,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
   const [busy, setBusy] = useState(false)
   const lots = useQuery(lotsQuery(p.id)).data?.lots ?? []
   const [expiry, setExpiry] = useState('')
+  const [supplier, setSupplier] = useState(0) // only asked while the product has none
   // The batch it goes into: the matching one until the person picks by hand.
   const [picked, setPicked] = useState<number | null>(null)
   const auto = matchBatch(lots, { cost: prices.cost, selling: prices.selling, expiry }, p.sellingPrice)
@@ -203,7 +205,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
       const changed = (a: string, b: string) => (num(a) !== num(b) ? a : '')
       const item = await api<IntakeItem>('/admin/inventory/intake/restock', { json: {
         productId: p.id, quantity: units, costPrice: changed(prices.cost, p.costPrice), sellingPrice: changed(prices.selling, p.sellingPrice), wholesalePrice: changed(wholesale, p.wholesalePrice), scanned: scanned ?? '',
-        batchId, expiry: batchId ? '' : expiry,
+        batchId, expiry: batchId ? '' : expiry, supplierId: supplier,
       } })
       toast.success(`${p.name}: +${qtyText(units)} ${p.unitAbbr}`)
       onSaved(item, fields)
@@ -236,6 +238,7 @@ function Restock({ p, scanned, labels, setLabels, onSaved, onCancel }: { p: Admi
         onPick={(id) => setPackId(id)} onPackCost={(v) => setPrices((x) => editPrice(x, 'cost', v, true))} />}
       <PriceRow prices={prices} set={(f, v) => setPrices((x) => editPrice(x, f, v, true))} wholesale={wholesale} setWholesale={setWholesale} />
       {num(prices.selling) !== num(p.sellingPrice) && <p className="text-[12px] text-muted-foreground">The new price goes on the product and sticks to the stock you’re adding now; stock already on the shelf keeps its price.</p>}
+      {!p.supplierName && <Field label="Supplier" hint="Optional. Who this product comes from, for expiry claims"><SupplierPick label="Supplier" value={supplier} onChange={setSupplier} /></Field>}
       <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className={cn(INPUT, 'md:w-56')} /></Field>
       {lots.length > 0 && <BatchChoice lots={lots} value={batchId} auto={auto} unit={p.unitAbbr} sym={sym} productPrice={p.sellingPrice} onPick={setPicked} />}
       <LabelBlock opts={labels} set={setLabels} name={p.name} price={prices.selling} barcode={barcode} qty={qty} fields={fields} />
@@ -254,7 +257,6 @@ let lastNew: Draft | null = null
 
 function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { init: { name: string; barcode: string }; labels: LabelOpts; setLabels: (l: LabelOpts) => void; onSaved: (x: IntakeItem) => void; onCancel: () => void; onLinked: (p: AdminProductRow, code: string) => void }) {
   const units = useQuery(unitsQuery).data ?? []
-  const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const blank = (name: string, barcode: string): Draft => ({ name, barcode, cost: '', markup: sticky.markup, selling: '', wholesale: '', qty: '', expiry: '' })
   const [d, setD] = useState<Draft>(() => blank(init.name, init.barcode))
   const [cat, setCat] = useState(sticky.categoryId)
@@ -318,12 +320,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
           </select>
         </Field>
       </div>
-      <Field label="Supplier" hint="Optional">
-        <select aria-label="Supplier" value={supplier} onChange={(e) => setSupplier(Number(e.target.value))} className={cn(INPUT, 'appearance-auto')}>
-          <option value={0}>None</option>
-          {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-      </Field>
+      <Field label="Supplier" hint="Optional"><SupplierPick label="Supplier" value={supplier} onChange={setSupplier} /></Field>
       <PriceRow prices={prices} set={setPrice} wholesale={d.wholesale} setWholesale={(wholesale) => setD({ ...d, wholesale })} />
       <Field label="Barcode">
         <div className="flex gap-1.5">

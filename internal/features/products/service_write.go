@@ -167,6 +167,15 @@ func (s *Service) ReassignPreferredSupplier(ctx context.Context, fromID, toID in
 	return n, nil
 }
 
+// SetSupplierIfNone gives a product with no preferred supplier this one; one it
+// already has stays.
+func (s *Service) SetSupplierIfNone(ctx context.Context, productID, supplierID int64) error {
+	if _, err := s.db.ExecContext(ctx, `UPDATE products SET preferred_supplier_id = $1 WHERE id = $2 AND preferred_supplier_id IS NULL`, supplierID, productID); err != nil {
+		return apperr.Internal("failed to set the supplier", err)
+	}
+	return nil
+}
+
 // SetCost updates a product's cost price (stock-take opening-stock valuation).
 func (s *Service) SetCost(ctx context.Context, id int64, cost decimal.Decimal) error {
 	if cost.IsNegative() {

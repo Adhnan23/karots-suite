@@ -93,3 +93,29 @@ func TestAdminIntakeRestockStampsScannedCode(t *testing.T) {
 		t.Fatalf("intake scan not stamped: %v", err)
 	}
 }
+
+// Restocking a product with no supplier can name one; one it has stays.
+func TestAdminIntakeRestockSetsAMissingSupplier(t *testing.T) {
+	te := newTestEnv(t)
+	te.stockTakeOn(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009584", "manager")
+	newSup := func(n string) int64 {
+		return decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Intake %s %d", n, time.Now().UnixNano())}, ck)).ID
+	}
+	first, second := newSup("first"), newSup("second")
+	restock := func(sup int64) (got int64) {
+		t.Helper()
+		if rec := te.do(http.MethodPost, "/api/v1/admin/inventory/intake/restock", IntakeRestockRequest{ProductID: f.plainID, Quantity: "1", SupplierID: sup}, ck); rec.Code != http.StatusOK {
+			t.Fatalf("restock: %d %s", rec.Code, rec.Body)
+		}
+		te.db.Get(&got, `SELECT COALESCE(preferred_supplier_id, 0) FROM products WHERE id = $1`, f.plainID) //nolint:errcheck
+		return got
+	}
+	if got := restock(first); got != first {
+		t.Errorf("supplier %d, want %d", got, first)
+	}
+	if got := restock(second); got != first {
+		t.Errorf("a supplier it already had changed to %d", got)
+	}
+}

@@ -218,6 +218,7 @@ type IntakeRestockRequest struct {
 	Scanned        string `json:"scanned"` // the code scanned to open it, if any (stamps its last scan)
 	BatchID        int64  `json:"batchId"` // the batch to top up; 0 = a new batch
 	Expiry         string `json:"expiry"`  // a new batch's expiry, YYYY-MM-DD or ""
+	SupplierID     int64  `json:"supplierId"` // who it comes from, for a product with no supplier yet; 0 = none
 }
 
 // IntakeUndoRequest backs out one session row; Kind "create" also disables the product.

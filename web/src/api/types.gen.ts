@@ -3582,6 +3582,7 @@ export interface IntakeRestockRequest {
   scanned: string; // the code scanned to open it, if any (stamps its last scan)
   batchId: number /* int64 */; // the batch to top up; 0 = a new batch
   expiry: string; // a new batch's expiry, YYYY-MM-DD or ""
+  supplierId: number /* int64 */; // who it comes from, for a product with no supplier yet; 0 = none
 }
 /**
  * IntakeUndoRequest backs out one session row; Kind "create" also disables the product.
