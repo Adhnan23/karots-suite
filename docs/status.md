@@ -35,6 +35,16 @@ themselves (by about Dec 2): pick by date on his Bring back list, and never rest
 running as Test Linux and uploading (13:55 that day): stop it. Not done: an automated first-day test; `make test` still runs Go
 packages in parallel; the Builder's "One PC" name misleads (file mode does serve other devices on the network).
 
+**Next session, in this order (agreed 2026-11-02; Send to cashier is committed, not yet in a Release):**
+1. The user's two-browser hand test of Send to cashier: fix what it turns up. Then a fresh review of that work (How we work, 3).
+2. **Demo Room:** add a Sales person login, with a second cashier in a shop, so tickets can be shown. Its years rebuild anyway (a new
+   migration changes their stamp). The Demo Room already on the user's laptop is fine for printer shopping.
+3. `make docs-shots` with the new screens (Send panel, tickets, the close screen, Users).
+4. Builder's "One PC" name, the guide's "Server for several PCs" and the order form's choices: file mode with cashier PCs is real.
+5. Hide or clear up Repairs' **Take a deposit** for a sales person (the server refuses it; the button still shows).
+6. Stop whatever still uploads as Test Linux. New Release for Aiman, then rehearse the whole set: main VM + cashier VM + the tablet.
+7. Then the list below.
+
 **Next:**
 1. **Hand testing, still not confirmed by the user:** recall, a credit paying a delivery, the discount (Give back: "worked well").
 2. **A trial with the pharmacist.**
@@ -44,8 +54,8 @@ packages in parallel; the Builder's "One PC" name misleads (file mode does serve
 4. **Real printers:** the user is shopping for them with the Demo Room on a laptop (see `printer-buying-plan` in memory).
    Add the models that pass to `docs/guide/printing.md` as known-good.
 
-**First shop: Aiman Pharmacy Kalpitiya** (`shops.json`): one PC, Xubuntu, file mode, cloud backup on; plugins aicatalog,
-alternatives, combos, pharmacy, productplus. Combos is the user's gift to this first shop, not charged. The old profiles (Al
+**First shop: Aiman Pharmacy Kalpitiya** (`shops.json`): three machines + a tablet (below), Xubuntu, file mode, cloud backup on; plugins
+aicatalog, alternatives, combos, pharmacy, pocketcashier, productplus. Combos is the user's gift to this first shop, not charged. The old profiles (Al
 Raj, Mum Digital, MUM Motors) were removed on purpose: those shops stay on Karots POS.
 
 **Shop visit, 2026-11-02: the shop wants more than the Released profile.** Admin PC in the back office (admin only, no
@@ -64,7 +74,7 @@ popup, every open till sees the list, one opens it, unopened after 2 minutes it 
 first; `sales.prepared_by` records who prepared it. For any shop, not just pharmacies. **Pocket Cashier release 2 must let a cashier open
 tickets; sales people stay off Pocket Cashier for good** (user: in a power cut there is no network, one cashier sells on the tablet).
 A ticket keeps plugin lines, their data and a plugin's pre-filled payment (a repair deposit); `e2e/ticket.ts` runs combos, pharmacy,
-documents, recharge and repairs through one. Still to do: this shop's new Release, the new screens in `make docs-shots`. No shop toggle for one-person-one-device: each person has their own login.
+documents, recharge and repairs through one. Tests at the end of the day: Playwright 234 passed, 33 skipped. No shop toggle for one-person-one-device: each person has their own login.
 Hardware decided: all Xubuntu; the receipt printer and drawer at the counter PC. Tablet type to be checked at the shop; price
 agreed separately.
 
