@@ -44,7 +44,16 @@ packages in parallel; the Builder's "One PC" name misleads (file mode does serve
 4. Builder's "One PC" name, the guide's "Server for several PCs" and the order form's choices: file mode with cashier PCs is real.
 5. Hide or clear up Repairs' **Take a deposit** for a sales person (the server refuses it; the button still shows).
 6. Stop whatever still uploads as Test Linux. New Release for Aiman, then rehearse the whole set: main VM + cashier VM + the tablet.
-7. Then the list below.
+7. **Printers per machine, and USB on a cashier PC (user asked, design it first):** today the main PC does all printing, so a USB printer
+   only works on the main PC, and a cashier's own printer is set per user (Users page, `tcp://…`), not per machine. Wanted: a counter's
+   printer belongs to that counter, USB or network. Not needed for Aiman if its receipt printer has a LAN port.
+   User chose the recommended way: a small helper Setup puts on a cashier PC reports its USB printers to the main PC and passes jobs
+   to them; the admin picks machine → printer; a job follows the machine the cashier is on.
+   **Image vs Classic:** the user tests Image receipts and labels on the printers bought 2026-11-03. If they work, drop Classic.
+   Decide after that test: a failed label picture falls back to Classic today, so that fallback needs an answer first.
+   When the printers arrive (not before; user): build a printer test together (languages + logo, long slip, speed, drawer once, label
+   drift, labels scanned back with the 2D scanner).
+8. Then the list below.
 
 **Next:**
 1. **Hand testing, still not confirmed by the user:** recall, a credit paying a delivery, the discount (Give back: "worked well").
