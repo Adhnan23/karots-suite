@@ -48,6 +48,14 @@ packages in parallel; the Builder's "One PC" name misleads (file mode does serve
 alternatives, combos, pharmacy, productplus. Combos is the user's gift to this first shop, not charged. The old profiles (Al
 Raj, Mum Digital, MUM Motors) were removed on purpose: those shops stay on Karots POS.
 
+**Shop visit, 2026-11-02: the shop wants more than the Released profile.** Admin PC in the back office (admin only, no
+selling), a cashier PC at the counter, a cashier laptop, and their tablet with Pocket Cashier as a backup (this replaces "No
+Pocket Cashier for him yet"). Not shipped; the profile still lacks `pocketcashier`. Install plan (user): the same three files on
+all three; admin PC first as main, "In the background" (must stay on while the shop trades), then the laptop and the counter PC
+as cashier PCs with its address. To settle: the printers (a USB printer on a cashier PC can't be reached: Setup installs CUPS on
+the main PC only, so network printers, `tcp://host:9100`, set per user), and what is charged (Shop Rules: extra cashier PC 3,000 each, Pocket Cashier 5,000). Before
+the real install, rehearse the whole set: a second VM as a cashier PC, plus the tablet (only phones tested so far).
+
 **Idea, parked 2026-11-02 (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over
 a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
 
