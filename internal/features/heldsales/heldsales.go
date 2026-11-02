@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"slices"
 	"time"
 
 	"karots-suite/internal/apperr"
@@ -31,9 +32,13 @@ type HeldSale struct {
 	Total      decimal.Decimal `db:"total"       json:"total"`
 	CreatedAt  time.Time       `db:"created_at"  json:"created_at"`
 	// ToCashier: a ticket, waiting for any cashier (CashierID is who sent it).
-	ToCashier bool `db:"to_cashier" json:"to_cashier"`
+	ToCashier  bool       `db:"to_cashier"  json:"to_cashier"`
+	TicketNo   *int       `db:"ticket_no"   json:"ticket_no,omitempty"`
+	ForCashier *int64     `db:"for_cashier" json:"for_cashier,omitempty"`
+	AssignedAt *time.Time `db:"assigned_at" json:"assigned_at,omitempty"`
 	// joined for a ticket
-	SenderName string `db:"sender_name" json:"sender_name,omitempty"`
+	SenderName string  `db:"sender_name" json:"sender_name,omitempty"`
+	ForName    *string `db:"for_name"    json:"for_name,omitempty"`
 }
 
 type Input struct {
@@ -45,7 +50,20 @@ type Input struct {
 	ItemCount  int             `json:"item_count"`
 	Total      string          `json:"total"`
 	ToCashier  bool            `json:"to_cashier"`
+	ForCashier *int64          `json:"for_cashier"` // nil = the one cashier open
 }
+
+// Cashier is someone with a till open: who a ticket can go to.
+type Cashier struct {
+	ID   int64  `db:"id"   json:"id"`
+	Name string `db:"name" json:"name"`
+}
+
+// moveAfter is how long a ticket waits on one till before it goes to the next.
+const moveAfter = "2 minutes"
+
+const ticketSelect = `SELECT h.*, u.name AS sender_name, f.name AS for_name FROM held_sales h
+	JOIN users u ON u.id = h.cashier_id LEFT JOIN users f ON f.id = h.for_cashier`
 
 type Repository struct{ q appdb.Queryer }
 
@@ -61,9 +79,15 @@ func (r *Repository) List(ctx context.Context, cashierID int64) ([]HeldSale, err
 func (r *Repository) Create(ctx context.Context, h HeldSale) (*HeldSale, error) {
 	var out HeldSale
 	err := r.q.GetContext(ctx, &out, `
-		INSERT INTO held_sales (cashier_id, label, sale_type, customer_id, discount, cart, item_count, total, to_cashier)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *, '' AS sender_name`,
-		h.CashierID, h.Label, h.SaleType, h.CustomerID, h.Discount, h.Cart, h.ItemCount, h.Total, h.ToCashier)
+		INSERT INTO held_sales (cashier_id, label, sale_type, customer_id, discount, cart, item_count, total, to_cashier, for_cashier,
+			ticket_no, assigned_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::bigint,
+			CASE WHEN $9 THEN COALESCE(
+				(SELECT n FROM generate_series(10, 99) n WHERE n NOT IN (SELECT ticket_no FROM held_sales WHERE to_cashier) ORDER BY random() LIMIT 1),
+				(SELECT max(ticket_no) + 1 FROM held_sales WHERE to_cashier)) END,
+			CASE WHEN $9 THEN now() END)
+		RETURNING *`,
+		h.CashierID, h.Label, h.SaleType, h.CustomerID, h.Discount, h.Cart, h.ItemCount, h.Total, h.ToCashier, h.ForCashier)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +98,53 @@ func (r *Repository) Create(ctx context.Context, h HeldSale) (*HeldSale, error) 
 // sales person's own), else everyone's (a cashier's).
 func (r *Repository) Tickets(ctx context.Context, sentBy int64) ([]HeldSale, error) {
 	var rows []HeldSale
-	err := r.q.SelectContext(ctx, &rows, `SELECT h.*, u.name AS sender_name FROM held_sales h JOIN users u ON u.id = h.cashier_id
+	err := r.q.SelectContext(ctx, &rows, ticketSelect+`
 		WHERE h.to_cashier AND ($1 = 0 OR h.cashier_id = $1) ORDER BY h.id`, sentBy)
 	return rows, err
+}
+
+// Cashiers lists who has a till open.
+func (r *Repository) Cashiers(ctx context.Context) ([]Cashier, error) {
+	rows := []Cashier{}
+	err := r.q.SelectContext(ctx, &rows, `SELECT DISTINCT u.id, u.name FROM cash_register cr JOIN users u ON u.id = cr.user_id
+		WHERE cr.closed_at IS NULL ORDER BY u.name`)
+	return rows, err
+}
+
+// MoveUnanswered sends a ticket on to the next open till when its own has left it
+// waiting too long or has closed. With no other till open it stays where it is.
+func (r *Repository) MoveUnanswered(ctx context.Context) error {
+	_, err := r.q.ExecContext(ctx, `WITH open AS (SELECT DISTINCT user_id AS id FROM cash_register WHERE closed_at IS NULL)
+		UPDATE held_sales h SET assigned_at = now(), for_cashier = COALESCE(
+			(SELECT min(id) FROM open WHERE id > h.for_cashier), (SELECT min(id) FROM open))
+		WHERE h.to_cashier AND EXISTS (SELECT 1 FROM open WHERE id <> COALESCE(h.for_cashier, 0))
+			AND (h.assigned_at < now() - interval '`+moveAfter+`' OR h.for_cashier IS NULL OR h.for_cashier NOT IN (SELECT id FROM open))`)
+	return err
+}
+
+// Pass gives a ticket to another cashier, its two minutes starting again.
+func (r *Repository) Pass(ctx context.Context, id, to int64) error {
+	res, err := r.q.ExecContext(ctx, `UPDATE held_sales SET for_cashier = $2, assigned_at = now() WHERE id = $1 AND to_cashier`, id, to)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return apperr.NotFound("ticket")
+	}
+	return nil
+}
+
+// BackToSender makes a ticket a held sale of the person who sent it.
+func (r *Repository) BackToSender(ctx context.Context, id int64) error {
+	res, err := r.q.ExecContext(ctx, `UPDATE held_sales SET to_cashier = false, ticket_no = NULL, for_cashier = NULL, assigned_at = NULL
+		WHERE id = $1 AND to_cashier`, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return apperr.NotFound("ticket")
+	}
+	return nil
 }
 
 // TakeTicket removes a ticket and returns it, so only one till ever gets it.
@@ -131,6 +199,11 @@ func (s *Service) Hold(ctx context.Context, cashierID int64, in Input) (*HeldSal
 	if err != nil {
 		total = decimal.Zero
 	}
+	if in.ToCashier {
+		if in.ForCashier, err = s.target(ctx, in.ForCashier); err != nil {
+			return nil, err
+		}
+	}
 	saleType := in.SaleType
 	if saleType == "" {
 		saleType = "retail"
@@ -141,7 +214,7 @@ func (s *Service) Hold(ctx context.Context, cashierID int64, in Input) (*HeldSal
 	}
 	h := HeldSale{
 		CashierID: cashierID, Label: label, SaleType: saleType, CustomerID: in.CustomerID,
-		Discount: discount, Cart: in.Cart, ItemCount: in.ItemCount, Total: total, ToCashier: in.ToCashier,
+		Discount: discount, Cart: in.Cart, ItemCount: in.ItemCount, Total: total, ToCashier: in.ToCashier, ForCashier: in.ForCashier,
 	}
 	out, err := s.repo.Create(ctx, h)
 	if err != nil {
@@ -150,8 +223,45 @@ func (s *Service) Hold(ctx context.Context, cashierID int64, in Input) (*HeldSal
 	return out, nil
 }
 
+// target checks a ticket's cashier has a till open; with none named, the only one open.
+func (s *Service) target(ctx context.Context, to *int64) (*int64, error) {
+	open, err := s.repo.Cashiers(ctx)
+	if err != nil {
+		return nil, apperr.Internal("failed to list open tills", err)
+	}
+	if len(open) == 0 {
+		return nil, apperr.Conflict("no cashier has opened a till — hold this sale for now")
+	}
+	if to == nil {
+		if len(open) > 1 {
+			return nil, apperr.Validation("choose a cashier")
+		}
+		return &open[0].ID, nil
+	}
+	if !slices.ContainsFunc(open, func(c Cashier) bool { return c.ID == *to }) {
+		return nil, apperr.Conflict("that cashier's till isn't open")
+	}
+	return to, nil
+}
+
+func (s *Service) Cashiers(ctx context.Context) ([]Cashier, error) { return s.repo.Cashiers(ctx) }
+
 func (s *Service) Tickets(ctx context.Context, sentBy int64) ([]HeldSale, error) {
+	if err := s.repo.MoveUnanswered(ctx); err != nil {
+		return nil, apperr.Internal("failed to move tickets", err)
+	}
 	return s.repo.Tickets(ctx, sentBy)
+}
+
+func (s *Service) PassTicket(ctx context.Context, id, to int64) error {
+	if _, err := s.target(ctx, &to); err != nil {
+		return err
+	}
+	return s.repo.Pass(ctx, id, to)
+}
+
+func (s *Service) TicketBackToSender(ctx context.Context, id int64) error {
+	return s.repo.BackToSender(ctx, id)
 }
 
 func (s *Service) TakeTicket(ctx context.Context, id, sentBy int64) (*HeldSale, error) {

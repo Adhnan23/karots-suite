@@ -3146,8 +3146,24 @@ export interface HeldSale {
   /**
    * A ticket: who sent it.
    */
+  ticketNo?: number /* int */;
   preparedById?: number /* int64 */;
   preparedByName?: string;
+  forCashierName?: string;
+  forMe?: boolean; // this ticket waits on the asker's till
+}
+/**
+ * TicketCashier is someone with a till open, who a ticket can go to.
+ */
+export interface TicketCashier {
+  id: number /* int64 */;
+  name: string;
+}
+/**
+ * PassTicketRequest gives a ticket to another open till.
+ */
+export interface PassTicketRequest {
+  cashierId: number /* int64 */;
 }
 export interface HoldRequest {
   label: string;
@@ -3158,6 +3174,7 @@ export interface HoldRequest {
   itemCount: number /* int */;
   total: string;
   toCashier?: boolean; // send to the cashier instead of keeping it here
+  forCashier?: number /* int64 */;
 }
 
 //////////

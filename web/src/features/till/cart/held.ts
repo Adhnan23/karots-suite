@@ -24,6 +24,11 @@ export function fromHeld(h: HeldSale, seq: number) {
   return { preparedBy: h.preparedById ?? blob?.preparedBy, lines, seq, billDiscountType: (blob?.billDiscountType === 'percent' ? 'percent' : 'fixed') as DiscountType, meta: blob?.meta ?? {} }
 }
 
+/** A ticket's lines in words, so a cashier can match them to what the customer carries. */
+export function ticketItems(h: HeldSale) {
+  return fromHeld(h, 0).lines.map((l) => `${l.name} ×${l.qty}`).join(', ')
+}
+
 export const MOVED_LABEL = 'Moved to another device'
 
 /** The person signed in on another device: park what was on this till in Held,

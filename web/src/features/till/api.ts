@@ -1,7 +1,7 @@
 import { queryOptions, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/api/client'
 import type {
-  DrawerState, GroupView, HeldSale, Lot, ProductPage, TillConfig, TillCustomer, TillGroup, TillProduct, Unit,
+  DrawerState, GroupView, HeldSale, Lot, ProductPage, TicketCashier, TillConfig, TillCustomer, TillGroup, TillProduct, Unit,
 } from '@/api/types.gen'
 
 export const configQuery = queryOptions({ queryKey: ['till', 'config'], queryFn: () => api<TillConfig>('/till/config'), staleTime: Infinity })
@@ -28,6 +28,8 @@ export const unitsQuery = queryOptions({ queryKey: ['till', 'units'], queryFn: (
 export const customersQuery = queryOptions({ queryKey: ['till', 'customers'], queryFn: () => api<TillCustomer[]>('/till/customers') })
 /** Tickets waiting: refetched so one sent from another machine shows by itself. */
 export const ticketsQuery = queryOptions({ queryKey: ['till', 'tickets'], queryFn: () => api<HeldSale[]>('/till/tickets'), refetchInterval: 5000 })
+/** Who has a till open, for a sales person to send to and a closing cashier to pass to. */
+export const cashiersQuery = queryOptions({ queryKey: ['till', 'cashiers'], queryFn: () => api<TicketCashier[]>('/till/cashiers'), refetchInterval: 5000 })
 export const heldQuery = queryOptions({ queryKey: ['till', 'held'], queryFn: () => api<HeldSale[]>('/till/held') })
 
 /** Card tenders land in 'card' lockers, online ones in 'bank' lockers. */

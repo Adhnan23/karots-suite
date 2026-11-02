@@ -61,18 +61,25 @@ won't resume one over a cart that already has items in it.
 For a shop where one person hands out the goods and another takes the money. Make the first a **Sales person** on the
 Users page, with their own login.
 
-- **The sales person** builds the cart as usual: products, quantities, line discounts, the customer, plugin items. They
-  have no drawer, no payment, no bill discount and no money tabs. **Send to cashier** turns the cart into a numbered
-  ticket and frees the screen for the next customer. A ticket they still want to change is under **Sent**; tap it to
-  take it back.
-- **The cashier** hears a beep and gets a popup with the ticket number, the person, the items and the total, on any till
-  tab, without stopping the sale in progress. Tickets also wait under the cart. **Open** puts the whole cart on their
-  till; finish or hold the current sale first. Only one till can open a ticket.
+- **The sales person** builds the cart as usual: products, quantities, line discounts, the customer (walk-ins too),
+  plugin items. They have no till to open, no payment, no bill discount and no money tabs. They can **Hold** a cart for
+  themselves. **Send to [cashier]** shows one button per cashier with a till open; with none open they hold it for now.
+- **A ticket is on screen only; nothing prints.** It gets a two-digit number, random but unique among those waiting, shown
+  big for the sales person to tell the customer. An optional name or note ("blue shirt") and the item list help the
+  cashier match it to the person and the goods in front of them. **Undo** on the "sent" message, or tapping it under
+  **Sent**, takes it back.
+- **The chosen cashier** hears a beep and gets a popup with **Open**, on any till tab, without stopping the sale in
+  progress. Every cashier with a till open can see every ticket under the cart, and open it if the customer comes to
+  them. Finish or hold the current sale first. Only one till can open a ticket.
+- **Not opened in 2 minutes:** it goes to the next open till, with a new popup. With only one till open, it stays.
 - **The cashier takes the money** the normal way. The receipt prints, the drawer opens and stock moves only then, so a
   customer who walks away is just **Clear**, with nothing to return. **Sales** shows who prepared the sale.
+- **Closing a till with tickets on it:** each one must first be opened and sold, passed to another open till, or sent
+  back to the sales person's Held. A till an admin closes for someone passes its tickets on by itself.
 
-A customer buying something small from the cashier is an ordinary sale; tickets keep waiting meanwhile. A sales person
-can't sign in to Pocket Cashier, which sells.
+A customer buying something small from the cashier is an ordinary sale; tickets keep waiting meanwhile. Tickets need the
+main PC, and a sales person can't sign in to Pocket Cashier: in a power cut, one cashier sells from the phone or tablet.
+Pocket Cashier can't open tickets yet.
 
 ## Opening and closing the till
 

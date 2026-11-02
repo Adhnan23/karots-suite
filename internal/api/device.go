@@ -36,11 +36,12 @@ func movedTo(c echo.Context) string {
 }
 
 // onDevice refuses a request from a device the person has left. Parking the
-// cart (POST /till/held) still works, so a moved till can hold what was on it.
+// cart (POST /till/held) still works, so a moved till can hold what was on it, and
+// the ticket poll isn't what sends it to the lock screen before it has.
 func (h *handlers) onDevice(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		to := movedTo(c)
-		if to == "" || (c.Request().Method == http.MethodPost && c.Path() == "/api/v1/till/held") {
+		if to == "" || (c.Request().Method == http.MethodPost && c.Path() == "/api/v1/till/held") || c.Path() == "/api/v1/till/tickets" {
 			return next(c)
 		}
 		return &apperr.AppError{Status: http.StatusForbidden, Code: "SESSION_LOCKED", Message: middleware.CurrentUserName(c) + " is now on " + to}

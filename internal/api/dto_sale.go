@@ -94,8 +94,22 @@ type HeldSale struct {
 	Total      string `json:"total"`
 	CreatedAt  string `json:"createdAt"`
 	// A ticket: who sent it.
+	TicketNo       int    `json:"ticketNo,omitempty"`
 	PreparedByID   int64  `json:"preparedById,omitempty"`
 	PreparedByName string `json:"preparedByName,omitempty"`
+	ForCashierName string `json:"forCashierName,omitempty"`
+	ForMe          bool   `json:"forMe,omitempty"` // this ticket waits on the asker's till
+}
+
+// TicketCashier is someone with a till open, who a ticket can go to.
+type TicketCashier struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// PassTicketRequest gives a ticket to another open till.
+type PassTicketRequest struct {
+	CashierID int64 `json:"cashierId"`
 }
 
 type HoldRequest struct {
@@ -107,4 +121,5 @@ type HoldRequest struct {
 	ItemCount  int    `json:"itemCount"`
 	Total      string `json:"total"`
 	ToCashier  bool   `json:"toCashier,omitempty"` // send to the cashier instead of keeping it here
+	ForCashier *int64 `json:"forCashier,omitempty"`
 }

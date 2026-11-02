@@ -29,7 +29,7 @@
 
 | | |
 |---|---|
-| **Sell fast at the counter.** Scan, search or tap a product; discounts, split payments, credit, holds, returns. Every key has an F-key, and the till never blocks a sale. <br><br> [Selling at the till →](docs/guide/till.md) | <img src="docs/images/till/sell-dark.jpg" width="420" alt="Till in dark mode"> |
+| **Sell fast at the counter.** A sales person can prepare the bill and send it to the cashier. Scan, search or tap a product; discounts, split payments, credit, holds, returns. Every key has an F-key, and the till never blocks a sale. <br><br> [Selling at the till →](docs/guide/till.md) | <img src="docs/images/till/sell-dark.jpg" width="420" alt="Till in dark mode"> |
 | **Know your stock.** Batches and expiry, packs (a card of 10 sold whole or loose), stock-take, intake by scan, and reorder levels the suite learns on its own. <br><br> [Stock →](docs/guide/stock.md) | <img src="docs/images/purchasing/reorder.jpg" width="420" alt="Reorder list"> |
 | **Buy from suppliers.** Purchase orders, receiving with a GRN, supplier credit and returns, and a reorder list that turns into orders. <br><br> [Purchasing →](docs/guide/purchasing.md) | <img src="docs/images/purchasing/suppliers.jpg" width="420" alt="Suppliers"> |
 | **Follow every rupee.** Till sessions with counted cash, lockers (safe, bank, card machine), cheques (taken, written, cleared or bounced), expenses and a cash flow page that adds it all up. <br><br> [Money →](docs/guide/money.md) | <img src="docs/images/money/cashflow.jpg" width="420" alt="Cash flow"> |

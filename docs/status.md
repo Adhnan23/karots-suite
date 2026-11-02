@@ -59,8 +59,10 @@ the real install, rehearse the whole set: a second VM as a cashier PC, plus the 
 **Send to cashier, built 2026-11-02 for this shop (their way of working):** one or two people hand out medicine, a cashier takes the
 money. New Users choice **Sales person** (`users.sends_to_cashier`, role stays cashier): same Sell screen, no money; the server
 keeps an allow-list (`internal/api/sales_person.go`) and plugin routes that move money carry `middleware.RequireHandlesMoney`.
-A ticket is a held sale with `to_cashier`; the cashier gets a popup and a strip under the cart, one till opens it,
-`sales.prepared_by` records who prepared it. No shop toggle for one-person-one-device: each person has their own login.
+A ticket is a held sale with `to_cashier` (on screen only, random number unique among those waiting); the chosen open till gets a
+popup, every open till sees the list, one opens it, unopened after 2 minutes it moves on, closing a till deals with its tickets
+first; `sales.prepared_by` records who prepared it. For any shop, not just pharmacies. **Pocket Cashier release 2 must open
+tickets** (on the PC's side today). No shop toggle for one-person-one-device: each person has their own login.
 Hardware decided: all Xubuntu; the receipt printer and drawer at the counter PC. Tablet type to be checked at the shop; price
 agreed separately.
 

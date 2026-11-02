@@ -22,7 +22,10 @@ func (h *handlers) registerTillSales(g *echo.Group) {
 	g.POST("/held", h.TillHold)
 	g.DELETE("/held/:id", h.TillDeleteHeld)
 	g.GET("/tickets", h.TillTickets)
+	g.GET("/cashiers", h.TillCashiers)
 	g.POST("/tickets/:id/open", h.TillOpenTicket)
+	g.POST("/tickets/:id/pass", h.TillPassTicket)
+	g.POST("/tickets/:id/back", h.TillTicketBack)
 }
 
 func saleInput(r SaleRequest) sales.CreateInput {
@@ -110,10 +113,53 @@ func heldDTO(x heldsales.HeldSale) HeldSale {
 		CreatedAt: x.CreatedAt.Format(time.RFC3339)}
 }
 
-func ticketDTO(x heldsales.HeldSale) HeldSale {
+func ticketDTO(c echo.Context, x heldsales.HeldSale) HeldSale {
 	d := heldDTO(x)
-	d.PreparedByID, d.PreparedByName = x.CashierID, x.SenderName
+	d.PreparedByID, d.PreparedByName, d.ForCashierName = x.CashierID, x.SenderName, strOr(x.ForName)
+	d.ForMe = x.ForCashier != nil && *x.ForCashier == middleware.CurrentUserID(c)
+	if x.TicketNo != nil {
+		d.TicketNo = *x.TicketNo
+	}
 	return d
+}
+
+func (h *handlers) TillCashiers(c echo.Context) error {
+	rows, err := h.t.held.Cashiers(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	out := make([]TicketCashier, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, TicketCashier{ID: r.ID, Name: r.Name})
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h *handlers) TillPassTicket(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req PassTicketRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	if err := h.t.held.PassTicket(c.Request().Context(), id, req.CashierID); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// TillTicketBack turns a ticket into the sender's held sale (the customer has gone).
+func (h *handlers) TillTicketBack(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	if err := h.t.held.TicketBackToSender(c.Request().Context(), id); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 // ticketOwner is who a user's tickets are limited to: a sales person sees and
@@ -132,7 +178,7 @@ func (h *handlers) TillTickets(c echo.Context) error {
 	}
 	out := make([]HeldSale, 0, len(rows))
 	for _, r := range rows {
-		out = append(out, ticketDTO(r))
+		out = append(out, ticketDTO(c, r))
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -147,7 +193,7 @@ func (h *handlers) TillOpenTicket(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, ticketDTO(*t))
+	return c.JSON(http.StatusOK, ticketDTO(c, *t))
 }
 
 func (h *handlers) TillHeld(c echo.Context) error {
@@ -174,13 +220,24 @@ func (h *handlers) TillHold(c echo.Context) error {
 		req.Discount = "0"
 	}
 	in := heldsales.Input{Label: req.Label, SaleType: req.SaleType, CustomerID: req.CustomerID,
-		Discount: req.Discount, Cart: json.RawMessage(req.Cart), ItemCount: req.ItemCount, Total: req.Total, ToCashier: req.ToCashier}
+		Discount: req.Discount, Cart: json.RawMessage(req.Cart), ItemCount: req.ItemCount, Total: req.Total, ToCashier: req.ToCashier, ForCashier: req.ForCashier}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
 	held, err := h.t.held.Hold(c.Request().Context(), middleware.CurrentUserID(c), in)
 	if err != nil {
 		return err
+	}
+	if req.ToCashier {
+		held.SenderName = middleware.CurrentUserName(c)
+		if rows, err := h.t.held.Cashiers(c.Request().Context()); err == nil {
+			for _, r := range rows {
+				if held.ForCashier != nil && r.ID == *held.ForCashier {
+					held.ForName = &r.Name
+				}
+			}
+		}
+		return c.JSON(http.StatusCreated, ticketDTO(c, *held))
 	}
 	return c.JSON(http.StatusCreated, heldDTO(*held))
 }

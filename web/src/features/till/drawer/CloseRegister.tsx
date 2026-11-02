@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { configQuery, drawerQuery, errMsg, holdsCash } from '../api'
+import { configQuery, drawerQuery, errMsg, holdsCash, ticketsQuery } from '../api'
+import { TicketsBeforeClose } from '../cart-ui/Tickets'
 import { printMoneySlip } from '../print'
 import { useTillUi } from '../TillUi'
 import { countTotal, lockerDefault, toBreakdown, type Counts } from './count'
@@ -22,6 +23,7 @@ export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: str
   const d = useQuery(drawerQuery).data
   const ui = useTillUi()
   const qc = useQueryClient()
+  const mine = (useQuery(ticketsQuery).data ?? []).filter((t) => t.forMe)
   const lockers = (d?.lockers ?? []).filter(holdsCash)
   const denoms = d?.denominations ?? []
   const [counts, setCounts] = useState<Counts>({})
@@ -63,7 +65,7 @@ export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: str
   return (
     <Dialog open onOpenChange={(o) => !o && (result ? void done() : !stale && ui.close())}>
       <DialogContent showCloseButton={!stale || !!result} className={sections.nodes.length > 0 ? 'sm:max-w-[920px]' : 'sm:max-w-[700px]'}>
-        {!result ? (
+        {!result && mine.length ? <TicketsBeforeClose tickets={mine} /> : !result ? (
           <>
             {stale && (
               <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-sm font-semibold text-warning">

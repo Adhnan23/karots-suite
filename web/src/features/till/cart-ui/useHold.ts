@@ -15,19 +15,22 @@ export function useHold() {
   const cfg = useSuspenseQuery(configQuery).data
   const customers = useQuery(customersQuery).data ?? []
   const qc = useQueryClient()
-  return useCallback(async (toCashier = false) => {
+  return useCallback(async (send?: { forCashier: number; note: string }): Promise<HeldSale | undefined> => {
     if (!state.lines.length) return void toast.error('Cart is empty')
-    const label = customers.find((c) => c.id === state.customerId)?.name ?? state.lines[0].name
+    const customer = customers.find((c) => c.id === state.customerId)?.name
+    // A ticket with no name shows as a walk-in, with its items beside it.
+    const label = send ? send.note.trim() || customer || '' : customer ?? state.lines[0].name
     try {
       const held = await api<HeldSale>('/till/held', {
         json: {
-          toCashier, label, saleType: state.saleType, customerId: state.customerId ?? undefined,
+          toCashier: !!send, forCashier: send?.forCashier, label, saleType: state.saleType, customerId: state.customerId ?? undefined,
           discount: String(num(state.billDiscount)), cart: toHeldBlob(state), itemCount: state.lines.length, total: dec(saleTotal(state)),
         },
       })
       dispatch({ type: 'newSale', saleType: cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
-      toast.success(toCashier ? `Sent to the cashier · ticket #${held.id}` : 'Sale held')
-      void qc.invalidateQueries({ queryKey: (toCashier ? ticketsQuery : heldQuery).queryKey })
+      if (!send) toast.success('Sale held')
+      void qc.invalidateQueries({ queryKey: (send ? ticketsQuery : heldQuery).queryKey })
+      return held
     } catch (e) {
       toast.error(errMsg(e))
     }

@@ -36,13 +36,27 @@ test('a sales person sends a ticket and the cashier sells it', async ({ browser 
   const cart = seller.getByRole('region', { name: 'Cart' })
   await expect(cart.getByText('E2E Milk')).toBeVisible()
   await seller.screenshot({ path: 'shots/sales-person/sell.png' })
-  await seller.getByRole('button', { name: 'Send to cashier' }).click()
-  await expect(seller.locator('[data-sonner-toast]').filter({ hasText: /Sent to the cashier · ticket #\d+/ }).first()).toBeVisible()
-  await expect(seller.getByRole('button', { name: 'Send to cashier' })).toBeDisabled() // the cart is free for the next customer
-  await expect(seller.getByRole('group', { name: 'Tickets' })).toContainText('E2E Milk')
+  await seller.getByLabel('Name or note').fill('Blue shirt')
+  const send = seller.getByRole('button', { name: 'Send to E2E Manager' })
+  await send.click()
+  const sent = seller.locator('[data-sonner-toast]').filter({ hasText: /Ticket \d+ sent to E2E Manager/ }).first()
+  await expect(sent).toBeVisible()
+  await expect(send).toBeDisabled() // the cart is free for the next customer
+  await expect(seller.getByRole('group', { name: 'Tickets' })).toContainText('E2E Milk ×1')
+  await expect(seller.getByLabel('Last ticket')).toContainText(/\d\d/)
+  await seller.waitForTimeout(800)
+  await seller.screenshot({ path: 'shots/sales-person/sent.png' })
+
+  // Wrong cashier: Undo brings the cart back, and it goes again.
+  await sent.getByRole('button', { name: 'Undo' }).click()
+  await expect(send).toBeEnabled()
+  await expect(seller.getByRole('group', { name: 'Tickets' })).toHaveCount(0)
+  await seller.getByLabel('Name or note').fill('Blue shirt')
+  await send.click()
+  await expect(send).toBeDisabled()
 
   // The popup, without a reload; the ticket also waits under the cart.
-  const popup = cashier.locator('[data-sonner-toast]').filter({ hasText: 'from E2E Sales' }).first()
+  const popup = cashier.locator('[data-sonner-toast]').filter({ hasText: /Ticket \d+ · Blue shirt · from E2E Sales/ }).first()
   await expect(popup).toBeVisible({ timeout: 10_000 })
   await cashier.waitForTimeout(800) // the popup has finished sliding in
   await cashier.screenshot({ path: 'shots/sales-person/popup.png' })
@@ -61,4 +75,34 @@ test('a sales person sends a ticket and the cashier sells it', async ({ browser 
     const rows = await (await cashier.request.get('/api/v1/admin/sales')).json()
     return (rows.items ?? rows)[0]?.preparedBy
   }, { timeout: 10_000 }).toBe('E2E Sales')
+})
+
+test('a till closes only once its tickets are dealt with', async ({ browser }) => {
+  const seller = await (await browser.newContext({ viewport: { width: 1366, height: 768 } })).newPage()
+  const cashier = await (await browser.newContext({ viewport: { width: 1366, height: 768 } })).newPage()
+  await login(cashier, '0770000003')
+  const st = await (await cashier.request.get('/api/v1/till/drawer')).json()
+  if (!st.summary.session) {
+    await cashier.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 2 }, sourceLockerId: 0 } })
+    await cashier.reload()
+  }
+  await login(seller, '0770000004')
+  await seller.locator('#till-search').fill('4790000000011')
+  await seller.keyboard.press('Enter')
+  await seller.getByRole('button', { name: 'Send to E2E Manager' }).click()
+  await expect(seller.getByRole('group', { name: 'Tickets' })).toBeVisible()
+
+  await expect(cashier.getByRole('group', { name: 'Tickets' })).toBeVisible({ timeout: 10_000 })
+  await cashier.getByRole('button', { name: 'Close till' }).click()
+  const dlg = cashier.getByRole('dialog', { name: 'Tickets waiting on your till' })
+  await expect(dlg).toBeVisible()
+  await cashier.waitForTimeout(400)
+  await cashier.screenshot({ path: 'shots/sales-person/close.png' })
+  await dlg.getByRole('button', { name: 'Back to E2E Sales' }).click()
+  await expect(dlg).toHaveCount(0)
+  await expect(cashier.getByRole('dialog')).toContainText(/count|drawer/i) // on to the count
+  await cashier.keyboard.press('Escape')
+
+  await seller.reload() // Held only refreshes on this machine's own actions
+  await expect(seller.getByRole('button', { name: 'Held (1)' })).toBeVisible()
 })

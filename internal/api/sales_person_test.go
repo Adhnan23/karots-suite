@@ -32,6 +32,8 @@ func TestSalesPersonSendsTicket(t *testing.T) {
 		{http.MethodPost, "/api/v1/till/customers/1/payment"},
 		{http.MethodPost, "/api/v1/till/conversions/1/run"},
 		{http.MethodPost, "/api/v1/cheques/1/cleared"},
+		{http.MethodPost, "/api/v1/till/tickets/1/pass"},
+		{http.MethodPost, "/api/v1/till/tickets/1/back"},
 	} {
 		if rec := te.on("dev-s", r.method, r.path, map[string]any{}, s); rec.Code != http.StatusForbidden {
 			t.Errorf("%s %s = %d, want 403", r.method, r.path, rec.Code)
@@ -46,6 +48,20 @@ func TestSalesPersonSendsTicket(t *testing.T) {
 	}
 	if rec := te.on("dev-k", http.MethodPost, "/api/v1/till/sales", map[string]any{}, k); rec.Code == http.StatusForbidden {
 		t.Fatalf("a cashier was refused: %s", rec.Body)
+	}
+
+	// No till open: nothing to send to (other tests' tills are out of this one's reach).
+	te.db.MustExec(`UPDATE cash_register SET closed_at = now() WHERE closed_at IS NULL`)
+	early := HoldRequest{SaleType: "retail", Cart: `{"v":2,"lines":[]}`, ItemCount: 1, Total: "1", ToCashier: true}
+	if rec := te.on("dev-s", http.MethodPost, "/api/v1/till/held", early, s); rec.Code != http.StatusConflict {
+		t.Fatalf("sent with no till open: %d %s", rec.Code, rec.Body)
+	}
+	t.Cleanup(func() { te.db.MustExec(`DELETE FROM cash_register WHERE user_id = $1`, cashierID) })
+	if rec := te.on("dev-k", http.MethodPost, "/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"500": 1}}, k); rec.Code >= 300 {
+		t.Fatalf("open %d %s", rec.Code, rec.Body)
+	}
+	if rec := te.on("dev-s", http.MethodPost, "/api/v1/till/drawer/open", map[string]any{}, s); rec.Code != http.StatusForbidden {
+		t.Fatalf("a sales person opened a till: %d", rec.Code)
 	}
 
 	send := HoldRequest{Label: "Kamal", SaleType: "retail", Cart: `{"v":2,"lines":[],"meta":{"plugin":1}}`, ItemCount: 1, Total: "100", Discount: "50", ToCashier: true}
@@ -77,7 +93,7 @@ func TestSalesPersonSendsTicket(t *testing.T) {
 		return nil
 	}
 	seen := has(decode[[]HeldSale](t, te.on("dev-k", http.MethodGet, "/api/v1/till/tickets", nil, k)))
-	if seen == nil || seen.PreparedByID != sellerID || seen.PreparedByName == "" {
+	if seen == nil || seen.PreparedByID != sellerID || seen.PreparedByName == "" || !seen.ForMe || seen.TicketNo < 10 || seen.TicketNo > 99 {
 		t.Fatalf("cashier sees %+v", seen)
 	}
 
@@ -92,6 +108,40 @@ func TestSalesPersonSendsTicket(t *testing.T) {
 	open := fmt.Sprintf("/api/v1/till/tickets/%d/open", ticket.ID)
 	if rec := te.on("dev-o", http.MethodPost, open, nil, o); rec.Code != http.StatusNotFound {
 		t.Fatalf("another sales person opened it: %d", rec.Code)
+	}
+
+	// Unanswered for 2 minutes with another till open: it moves on, and back here.
+	second := devPhone()
+	secondID := te.seedUser(t, second, "cashier")
+	t.Cleanup(func() { te.db.MustExec(`DELETE FROM cash_register WHERE user_id = $1`, secondID) })
+	k2 := te.signIn(t, "dev-2", "Laptop 2", second)
+	if rec := te.on("dev-2", http.MethodPost, "/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"500": 1}}, k2); rec.Code >= 300 {
+		t.Fatalf("open %d %s", rec.Code, rec.Body)
+	}
+	if s := has(decode[[]HeldSale](t, te.on("dev-2", http.MethodGet, "/api/v1/till/tickets", nil, k2))); s == nil || s.ForMe {
+		t.Fatalf("too soon to move: %+v", s)
+	}
+	te.db.MustExec(`UPDATE held_sales SET assigned_at = now() - interval '3 minutes' WHERE id = $1`, ticket.ID)
+	if s := has(decode[[]HeldSale](t, te.on("dev-2", http.MethodGet, "/api/v1/till/tickets", nil, k2))); s == nil || !s.ForMe {
+		t.Fatalf("should have moved here: %+v", s)
+	}
+	// Passed back, and back to the sender's Held on the way: that's a held sale again, then a ticket again.
+	if rec := te.on("dev-2", http.MethodPost, fmt.Sprintf("/api/v1/till/tickets/%d/pass", ticket.ID), PassTicketRequest{CashierID: cashierID}, k2); rec.Code != http.StatusNoContent {
+		t.Fatalf("pass %d %s", rec.Code, rec.Body)
+	}
+	if s := has(decode[[]HeldSale](t, te.on("dev-k", http.MethodGet, "/api/v1/till/tickets", nil, k))); s == nil || !s.ForMe {
+		t.Fatalf("should be back: %+v", s)
+	}
+	back := HoldRequest{Label: "B", SaleType: "retail", Cart: `{"v":2,"lines":[]}`, ItemCount: 1, Total: "1", ToCashier: true, ForCashier: &cashierID}
+	b := decode[HeldSale](t, te.on("dev-s", http.MethodPost, "/api/v1/till/held", back, s))
+	if b.TicketNo == ticket.TicketNo {
+		t.Fatalf("two waiting tickets share number %d", b.TicketNo)
+	}
+	if rec := te.on("dev-k", http.MethodPost, fmt.Sprintf("/api/v1/till/tickets/%d/back", b.ID), nil, k); rec.Code != http.StatusNoContent {
+		t.Fatalf("back %d %s", rec.Code, rec.Body)
+	}
+	if held := decode[[]HeldSale](t, te.on("dev-s", http.MethodGet, "/api/v1/till/held", nil, s)); len(held) != 1 || held[0].ID != b.ID {
+		t.Fatalf("should be the sender's held sale: %+v", held)
 	}
 
 	// The cashier gets the whole cart, once.
