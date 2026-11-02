@@ -36,6 +36,9 @@ a test. Presence: beats go one at a time (it failed 6 of 12 runs before, passes 
 4. **Real printers:** the user is shopping for them with the Demo Room on a laptop (see `printer-buying-plan` in memory).
    Add the models that pass to `docs/guide/printing.md` as known-good.
 
+**Idea, parked 2026-11-02 (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over
+a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
+
 **Also 2026-11-02:** Print & Copy extras (Urgent, Stapling, Hole punch) no longer draw the service's recipe: Urgent is a
 priority charge, not more copying (user). Demo Room: food and medicine lots have expiry dates, and each such shop opens with
 a few lots expired or close to it, from a short-dated delivery 14 days back; the mixed shop buys each category from a
