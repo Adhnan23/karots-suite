@@ -56,7 +56,7 @@ type ShopInstall struct {
 }
 
 // ShopBackups is how the shop's automatic backups run. Empty = the defaults:
-// <install folder>/backups (one PC: data/backups), every 6 h, keep 28.
+// <install folder>/backups (file mode: data/backups), every 6 h, keep 28.
 type ShopBackups struct {
 	Dir   string `json:"dir,omitempty"`
 	Every string `json:"every,omitempty"` // a Go duration: 1h, 6h, 24h

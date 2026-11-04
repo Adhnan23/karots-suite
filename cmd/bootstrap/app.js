@@ -4,7 +4,7 @@ const MASK = '••••'
 const OS = [['linux', 'Linux'], ['windows', 'Windows'], ['darwin', 'macOS'], ['freebsd', 'FreeBSD']]
 const SHOP_OS = OS.slice(0, 2)
 const ARCH = [['amd64', 'Intel / AMD'], ['arm64', 'ARM']]
-const MODE = [['file', 'One PC (file mode)'], ['server', 'Server (PostgreSQL)']]
+const MODE = [['file', 'Built in (file mode)'], ['server', 'Server (PostgreSQL)']]
 const OPEN = [['kiosk', 'Kiosk — till full-screen'], ['background', 'Background — owner\'s PC']]
 const s = { picked: new Set(), os: 'linux', arch: 'amd64', mode: 'server', plugins: [] }
 const n = { os: 'linux', arch: 'amd64', mode: 'file' }
@@ -64,7 +64,7 @@ function summary() {
   $('modeHint').textContent = !modeOk ? 'File mode has no PostgreSQL for this system — pick Server, or Linux / macOS / Windows on Intel / AMD.'
     : s.mode === 'file' ? 'Runs its own PostgreSQL from a data folder next to the program — nothing to install (+15 MB). Move to a server later by backup → restore.'
     : 'Needs a PostgreSQL server and DATABASE_URL in the .env.'
-  $('summary').textContent = `dist/${file} · ${osName} · ${s.mode === 'file' ? 'one PC' : 'server'} · ${k ? k + ' plugin' + (k > 1 ? 's' : '') : 'core only'}`
+  $('summary').textContent = `dist/${file} · ${osName} · ${s.mode === 'file' ? 'built in' : 'server'} · ${k ? k + ' plugin' + (k > 1 ? 's' : '') : 'core only'}`
   $('go').disabled = !valid() || !modeOk || s.building
 }
 function quickBuild() {
@@ -174,7 +174,7 @@ async function loadShops() {
         : '')
     const warns = (st.warnings[sh.key] || []).map((w) => `<span class="chip warn">⚠ ${esc(w)}</span>`).join('')
     row.innerHTML = `<div><b>${esc(sh.name)}</b> <span class="hint">${esc(sh.key)}</span>
-      <div class="chips"><span class="chip">${esc(sh.os)}/${esc(sh.arch)}</span><span class="chip">${sh.mode === 'file' ? 'one PC' : 'server'}</span>
+      <div class="chips"><span class="chip">${esc(sh.os)}/${esc(sh.arch)}</span><span class="chip">${sh.mode === 'file' ? 'built in' : 'server'}</span>
       <span class="chip">:${sh.port}</span><span class="chip">${sh.plugins.length ? sh.plugins.length + ' plugins' : 'core only'}</span>
       <span class="chip">${sh.install.open}</span>${warns}</div><div class="chips">${state}</div><div class="hint">${esc(last)}</div></div>
       <div class="acts"><button class="btn primary" data-a="release">Release…</button>${unpublished ? '<button class="btn" data-a="publish">Publish</button>' : ''}<button class="btn" data-a="build">Test build</button><button class="btn" data-a="edit">Edit</button>${sh.cloudKey ? '<button class="btn" data-a="cloud">Cloud backups</button>' : ''}
@@ -294,7 +294,7 @@ function renderEdit() {
         ${secret('eJwt', 'JWT secret', c.jwtSecret || '(made when you save)', 'jwt', 'A new one signs everyone out.')}
       </div><div class="hint">Host localhost = PostgreSQL on the shop PC (Setup installs it); any other host = a LAN server, a VPS or a hosted database (Neon: use the direct host, not "-pooler") that already has it.</div>`
       : `<div class="fields">${field('eFilePort', 'File database port', c.fileDbPort || 5434, 'inputmode="numeric"')}</div>
-         <div class="hint">The shop's data stays on its one PC (data/ beside the program); its JWT secret is made there.</div>`}
+         <div class="hint">The shop's data stays on its main PC (data/ beside the program), which cashier PCs and phones reach over the shop's network; its JWT secret is made there.</div>`}
     </div>
     <div class="sec"><h2>Network</h2>
       <div class="fields">${field('ePort', 'Till port', c.port, 'inputmode="numeric"')}${field('eLan', 'Main PC address on the LAN (optional)', c.install.lanAddress || '', 'placeholder="192.168.1.10"')}</div>
@@ -329,7 +329,7 @@ function renderEdit() {
   seg($('eArch'), ARCH, c, 'arch')
   seg($('eMode'), MODE, c, 'mode', (v) => {
     if (v === c.mode) return
-    if (v === 'file' && !confirm('Switch this shop to one PC (file mode)?\n\nIf it already runs on a server, move the data first: Setup → Data → "Where the shop is kept" has the steps.')) return false
+    if (v === 'file' && !confirm('Switch this shop to the built-in database (file mode)?\n\nIf it already runs on a server, move the data first: Setup → Data → "Where the shop is kept" has the steps.')) return false
     read(); c.mode = v; renderEdit(); return false
   })
   seg($('eOpen'), OPEN, c.install, 'open')

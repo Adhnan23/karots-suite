@@ -81,9 +81,9 @@ flowchart LR
   C --> D[Running till<br/>backups · updates from Data page]
 ```
 
-One shop, one build: the program is a single file with the web app inside. A one-PC shop keeps
-its database in a folder next to the program ("file mode"), and a shop with several PCs uses a
-PostgreSQL server. Updates are signed and installed from **Setup → Data → Updates**.
+One shop, one build: the program is a single file with the web app inside. A shop keeps its
+database in a folder next to the program on its main PC ("file mode"), with cashier PCs and phones
+connecting over the shop's network, or uses a PostgreSQL server. Updates are signed and installed from **Setup → Data → Updates**.
 [Install & Shop Builder →](docs/guide/install.md)
 
 Want to see it first? The **Demo Room** is one double-click program with five ready-made shops,

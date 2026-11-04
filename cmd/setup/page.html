@@ -275,7 +275,7 @@ async function plan() {
   $('restorePanel').hidden = !main || p.updating || st.uninstall
   drawBackups()
   $('cloudNote').hidden = !p.cloudNote; $('cloudNote').textContent = p.cloudNote || ''
-  const words2 = { file: 'One PC', server: 'Server' }
+  const words2 = { file: 'Built in', server: 'Server' }
   $('modePanel').hidden = !p.fromMode || st.uninstall || !main
   $('modeTitle').textContent = 'This changes how the shop is kept: ' + words2[p.fromMode] + ' → ' + words2[p.mode]
   $('modeHint').textContent = 'Setup backs the shop up first (into ' + p.keepDir + '), sets up the new way, then brings everything back. The old data is left in place, not deleted.'

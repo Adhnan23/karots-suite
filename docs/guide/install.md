@@ -28,9 +28,10 @@ shop (kept in `shops.json`), with:
   Plus and Alternatives).
 - **OS:** Windows or Linux.
 - **Database:**
-  - **One PC (file mode):** the shop's own PostgreSQL 17 lives in a `data/` folder next to the
-    program. Nothing else to install.
-  - **Server:** a PostgreSQL server on this PC or another, for shops with several PCs.
+  - **Built in (file mode):** the shop's own PostgreSQL 17 lives in a `data/` folder next to the
+    program on the main PC. Nothing else to install. Cashier PCs and phones work with it over the
+    shop's network, as long as the main PC is on.
+  - **Server:** a PostgreSQL server you look after, on this PC or another (a VPS, say).
 - **Ports**, generated **secrets**, the shop's **install ID** (its support PIN comes from it),
   and the update **channel**.
 - **Open:** **kiosk** (the till full-screen at login) or **background** (an owner's own PC:

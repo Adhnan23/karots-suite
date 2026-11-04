@@ -187,7 +187,7 @@ func TestPageExitStopsSetup(t *testing.T) {
 func TestCheckChoiceModeChangeNeedsConfirm(t *testing.T) {
 	j, _ := applyChoice(conf("linux", "file", false), "", Choice{})
 	j.Updating, j.FromMode = true, "server"
-	if err := checkChoice(j); err == nil || !strings.Contains(err.Error(), "Server → One PC") || !strings.Contains(err.Error(), "-change-mode") {
+	if err := checkChoice(j); err == nil || !strings.Contains(err.Error(), "Server → Built in") || !strings.Contains(err.Error(), "-change-mode") {
 		t.Fatalf("err %v", err)
 	}
 	j.ChangeMode = true
@@ -232,7 +232,7 @@ func TestPlanListsBackupsAndFromMode(t *testing.T) {
 		t.Fatalf("%d %s", rec.Code, rec.Body)
 	}
 	// Not confirmed: the run is refused before any step.
-	if r := call(pageHandler(tok, mk, Steps, func() {}), "POST", "/api/run", `{"role":"server"}`, true); r.Code != http.StatusBadRequest || !strings.Contains(r.Body.String(), "One PC → Server") {
+	if r := call(pageHandler(tok, mk, Steps, func() {}), "POST", "/api/run", `{"role":"server"}`, true); r.Code != http.StatusBadRequest || !strings.Contains(r.Body.String(), "Built in → Server") {
 		t.Fatalf("unconfirmed run: %d %s", r.Code, r.Body)
 	}
 }

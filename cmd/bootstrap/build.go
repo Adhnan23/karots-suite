@@ -21,7 +21,7 @@ type buildOpts struct {
 	OS, Arch  string
 	Name, Out string
 	InstallID string // "" = mint a new one (only when POS_SUPPORT_SECRET is set)
-	Mode      string // "server" (DATABASE_URL, default) | "file" (its own PostgreSQL, one PC)
+	Mode      string // "server" (DATABASE_URL, default) | "file" (its own PostgreSQL, built in)
 	ExtraX    string
 	// RequireSecret refuses to build without POS_SUPPORT_SECRET: a shop build
 	// must never carry the support PIN every bare build shares.

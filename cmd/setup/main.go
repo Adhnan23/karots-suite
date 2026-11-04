@@ -284,7 +284,7 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 }
 
 // modeWords names a mode the way the Shop Builder does.
-var modeWords = map[string]string{"file": "One PC", "server": "Server"}
+var modeWords = map[string]string{"file": "Built in", "server": "Server"}
 
 // checkChoice refuses a run the person didn't ask for: a mode change nobody
 // confirmed, or a backup brought back over a shop already on this PC.

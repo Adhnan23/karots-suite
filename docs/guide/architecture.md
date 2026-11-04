@@ -93,7 +93,7 @@ kept together and printed as one block) and `TillApi.addPayout` (money given to 
 | | File mode | Server mode |
 |---|---|---|
 | Database | Embedded PostgreSQL 17 in `data/` beside the binary (`-tags filemode`) | A PostgreSQL 17 server via `DATABASE_URL` |
-| For | One-PC shops | Several PCs, or a VPS |
+| For | Most shops: the main PC holds it, cashier PCs and phones connect | A PostgreSQL server you look after, or a VPS |
 | Backups | `data/backups` | `BACKUP_DIR` |
 
 Updates are signed manifests in the shop's bucket folder (`internal/update`). A restart is exit

@@ -44,7 +44,7 @@
   // The First Schedule: what the Shop gets, contacts, the price.
   field('Site (premises where it is used)', '12 Main Street, Kandy: shop floor and back office')
   field('Install ID', 'SAMPLE01')
-  ;['Repairs', 'Reload', 'Combos', 'One PC', 'Phone', 'WhatsApp', 'Yes, copies', 'Cash', 'Bank transfer'].forEach(tick)
+  ;['Repairs', 'Reload', 'Combos', 'Built in', 'Phone', 'WhatsApp', 'Yes, copies', 'Cash', 'Bank transfer'].forEach(tick)
   inline('☑ Yes, copies kept for', '30')
   for (const s of document.querySelectorAll('.boxes span')) if (s.textContent.trim().startsWith('Hours')) ink(s.querySelector('.line'), 'Mon–Sat 9–6')
   field('Updates included until', '28 October 2027')

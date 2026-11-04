@@ -256,7 +256,7 @@ func TestDBSSL(t *testing.T) {
 	}
 }
 
-// Server → One PC → Server keeps the database passwords: PostgreSQL on the
+// Server → Built in → Server keeps the database passwords: PostgreSQL on the
 // shop's PC still has the old postgres password, so a new one locked Setup out.
 func TestSetModeKeepsServerPasswords(t *testing.T) {
 	s := mustShop(t, "al-raj", "windows", "server")
