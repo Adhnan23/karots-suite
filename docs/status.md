@@ -21,7 +21,7 @@ open till for tickets, though the phone has no ticket screen until release 2.
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
 one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
 bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
-only when needed. Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
+only when needed. **Released 2026.11.04.0843** (Send to cashier, the review fixes, the print helper); not installed, the rehearsal is next: main VM + a cashier VM + the tablet, then the real printers. Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
 all VMs here are off, so nothing is running to stop; don't boot a VM with that test install on it without removing it first. Both printers show on the dev PC in CUPS (`POS80`, `XP365`). `POS80` has old jobs queued since 2026-10-18 that will print if
 that printer connects: clear them first.
 

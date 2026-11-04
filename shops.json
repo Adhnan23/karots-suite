@@ -20,7 +20,7 @@
       "fileDbPort": 5434,
       "install": {
         "dir": "/opt/karots-suite",
-        "open": "kiosk"
+        "open": "background"
       },
       "backups": {
         "every": "6h",
@@ -28,15 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-02T14:28:43Z",
-        "commit": "f74b21f",
-        "version": "2026.11.02.1958",
-        "kind": "release"
+        "at": "2026-11-04T03:13:39Z",
+        "commit": "0a744bc",
+        "version": "2026.11.04.0843",
+        "kind": "release",
+        "notes": "• A cashier PC's USB printers: a print helper from Setup, approved in Settings, and a job follows the machine\n• Review of Send to cashier: plugin money routes guarded, server-side close rule, tickets never stranded, unique numbers, sales person on a phone flagged\n• A second cashier and a sales person in every shop, so tickets can be shown\n• Who's on now says sales person\n• A ticket keeps a plugin's payment rows\n• Tickets go to a chosen cashier, with a number, undo, moving on after 2 minutes, and dealt with before a till closes\n• Send to cashier screens, the cashier's popup, Sales person on Users\n• Sales person and tickets on the server, no money, one till opens a ticket\n• A publish commits shops.json by itself"
       },
       "published": {
-        "version": "2026.11.02.1958",
-        "commit": "f74b21f",
-        "at": "2026-11-02T14:33:44Z"
+        "version": "2026.11.04.0843",
+        "commit": "0a744bc",
+        "at": "2026-11-04T03:16:25Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     }
