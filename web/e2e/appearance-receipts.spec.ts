@@ -129,6 +129,12 @@ test('a style can be printed from its preview, on a printer picked there', async
     await expect(button).toBeEnabled({ timeout: 15_000 })
     await button.click()
     await expect.poll(() => sent.some((s) => s.url.includes(path) && s.type === 'image/png')).toBe(true)
+    // A network printer can't be listed: it's typed, and only then can it print.
+    await page.getByLabel(`Printer for this ${what}`).selectOption('network')
+    await expect(button).toBeDisabled()
+    await page.getByLabel(`Network address for this ${what}`).fill('192.168.1.50:9100')
+    await button.click()
+    await expect.poll(() => sent.some((s) => s.url.includes(path) && s.url.includes(encodeURIComponent('tcp://192.168.1.50:9100')))).toBe(true)
   }
   await page.screenshot({ path: 'shots/appearance-try-print/both.png', fullPage: true })
 })

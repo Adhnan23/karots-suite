@@ -48,9 +48,10 @@ In Image mode a receipt uses one of ten styles: **Classic, Bold, Minimal, Ticket
 Stamp, Elegant, Cards** and **Sections**. The preview shows each kind of slip (sale, refund, cash
 in / out, credit, warranty, test, and plugin slips such as repairs) at 80 and 58 mm, exactly as it
 prints. The style is set for the whole shop when the suite is set up; ask your Karots technician
-to change it. Under the preview, the technician can pick any printer, this PC's or a cashier PC's, and
-press **Print this** to see that slip on paper before saving a style. It prints the sample only:
-no sale, no drawer, and it works even while the shop prints Classic.
+to change it. Under the preview, the technician can pick any printer (this PC's, a cashier PC's, or a network
+printer by its address) and press **Print this** to see that slip on paper before saving a style. It
+only tries that printer, so Settings stays as it is. It prints the sample only: no sale, no drawer,
+and it works even while the shop prints Classic.
 
 ## Labels
 
