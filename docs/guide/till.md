@@ -75,11 +75,18 @@ Users page, with their own login.
 - **The cashier takes the money** the normal way. The receipt prints, the drawer opens and stock moves only then, so a
   customer who walks away is just **Clear**, with nothing to return. **Sales** shows who prepared the sale.
 - **Closing a till with tickets on it:** each one must first be opened and sold, passed to another open till, or sent
-  back to the sales person's Held. A till an admin closes for someone passes its tickets on by itself.
+  back to the sales person's Held. A till an admin closes for someone passes its tickets on by itself; with no till left open, they go back to the sales person's Held.
 
 A customer buying something small from the cashier is an ordinary sale; tickets keep waiting meanwhile. Tickets need the
 main PC, and a sales person can't sign in to Pocket Cashier: in a power cut, one cashier sells from the phone or tablet.
 Pocket Cashier can't open tickets yet.
+
+
+![A sales person's cart, ready to send](../images/till/send-to-cashier.jpg)
+
+![A ticket waiting on a cashier's till](../images/till/tickets.jpg)
+
+![Closing a till with a ticket waiting](../images/till/close-tickets.jpg)
 
 ## Opening and closing the till
 

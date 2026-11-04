@@ -34,6 +34,8 @@ also makes a queue for each USB printer plugged in at the time; plug one in late
 1. In **Settings → Cashier PCs' printers**, the PC shows as **Waiting for your OK**.
 2. Pick its receipt and label printers, then press **Approve**. **Test slip** checks it.
 
+![A cashier PC waiting for approval](../images/printing/cashier-pc-printers.jpg)
+
 From then on, slips, labels and the drawer from that PC use its printers, ahead of a person's own
 printer on the Users page. A printer left on **The shop's** uses the main one. If the PC is off,
 printing there fails the way any printer that is off does; the sale itself still stands.

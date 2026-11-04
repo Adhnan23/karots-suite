@@ -123,6 +123,43 @@ test('till', async ({ browser }) => {
   }
 })
 
+// Send to cashier: a sales person's cart, the ticket on a cashier's till, and the close that waits for it.
+test('send to cashier', async ({ browser }) => {
+  if (only && !'till/send-to-cashier till/tickets till/close-tickets'.includes(only)) return
+  const taker = await session(browser, { phone: '0771000003', pin: '3333' })
+  await taker.request.post('/__demo/cheat/open-till', { data: {} })
+  await taker.goto('/till')
+  await taker.waitForLoadState('networkidle')
+  const seller = await session(browser, { phone: '0771000005', pin: '5555' })
+  await shot(seller, '/till', 'till/send-to-cashier', { prep: cart })
+  await seller.getByRole('button', { name: /^Send to Pradeep/ }).click()
+  const tickets = taker.getByRole('group', { name: 'Tickets' })
+  await tickets.waitFor({ timeout: 15_000 })
+  await taker.waitForTimeout(700)
+  await taker.screenshot({ path: `${out}/till/tickets.jpg`, type: 'jpeg', quality: 82 })
+  await taker.getByRole('button', { name: 'Close till' }).click()
+  await taker.waitForTimeout(700)
+  await taker.screenshot({ path: `${out}/till/close-tickets.jpg`, type: 'jpeg', quality: 82 })
+  await seller.context().close()
+  await taker.context().close()
+})
+
+// A cashier PC's print helper has called in, waiting for the admin's OK.
+test('cashier PC printers', async ({ browser }) => {
+  if (only && !'printing/cashier-pc-printers'.includes(only)) return
+  const page = await session(browser, owner)
+  const r = await page.request.post('/api/v1/print-agent/poll', { headers: { 'X-Ks-Print-Agent': 'docs-shots-print-helper-token-000000000' }, data: { name: 'Counter laptop', printers: ['XP-80T', 'XP-365B'] } })
+  if (!r.ok()) throw new Error(`helper: ${r.status()}`)
+  await page.goto('/admin/settings')
+  const card = page.getByRole('region', { name: "Cashier PCs' printers" })
+  await card.getByLabel('Counter laptop Receipt printer').selectOption('XP-80T')
+  await card.getByLabel('Counter laptop Label printer').selectOption('XP-365B')
+  await card.screenshot({ path: `${out}/printing/cashier-pc-printers.jpg`, type: 'jpeg', quality: 82 })
+  const rows: { id: number }[] = await (await page.request.get('/api/v1/admin/print-machines')).json()
+  for (const m of rows) await page.request.delete(`/api/v1/admin/print-machines/${m.id}`)
+  await page.context().close()
+})
+
 const palettes = ['studio', 'night', 'bazaar', 'lagoon', 'catppuccin', 'nord', 'dracula', 'mango', 'synthwave', 'gruvbox']
 
 test('appearance and palettes', async ({ browser }) => {
