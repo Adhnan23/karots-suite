@@ -40,6 +40,44 @@
         "at": "2026-11-04T03:16:25Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
+    },
+    {
+      "key": "windows-test",
+      "name": "Windows Test",
+      "os": "windows",
+      "arch": "amd64",
+      "mode": "file",
+      "plugins": [
+        "aicatalog",
+        "alternatives",
+        "clearance",
+        "combos",
+        "documents",
+        "pharmacy",
+        "pocketcashier",
+        "productplus",
+        "recharge",
+        "repairs",
+        "requests"
+      ],
+      "installId": "A74ED518",
+      "channel": "4a6126826b313faaa23658c928787339",
+      "port": 3000,
+      "fileDbPort": 5434,
+      "install": {
+        "dir": "C:\\karots-suite",
+        "open": "kiosk"
+      },
+      "backups": {
+        "every": "6h",
+        "keep": 28
+      },
+      "lastBuilt": {
+        "at": "2026-11-04T05:04:35Z",
+        "commit": "37e1a82",
+        "version": "2026.11.04.1034",
+        "kind": "test"
+      }
     }
   ]
 }
