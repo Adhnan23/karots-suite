@@ -8,6 +8,7 @@ import { LabelPage, labelPictureQuery } from '@/features/print/labels/picture'
 import { labelKinds, styleFor } from '@/features/print/labels/registry'
 import { configQuery } from '@/features/till/api'
 import { Seg } from './ReceiptStyles'
+import { TryPrint } from './TryPrint'
 
 /** Appearance → Labels: a style per label kind (core's price label, then each
  * built-in plugin's), with live thumbnails at a chosen size and the exact picture
@@ -80,6 +81,7 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
             <span className="text-sm text-muted-foreground" title={pq.error?.message}>{pq.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
         </div>
+        <TryPrint what="label" path={`/system/print/label?size=${paper.wMm}x${paper.hMm}`} blob={preview?.blob} />
       </div>
     </section>
   )

@@ -16,6 +16,7 @@ func (h *handlers) registerSystem(v1 *echo.Group) {
 	g.GET("/appearance", h.GetAppearance)
 	g.PUT("/appearance", h.PutAppearance)
 	h.registerPalettes(g, v1)
+	h.registerSystemPrint(g)
 }
 
 func (h *handlers) GetAppearance(c echo.Context) error {

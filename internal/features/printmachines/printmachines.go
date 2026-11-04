@@ -47,6 +47,13 @@ type Machine struct {
 	LastSeen       time.Time       `db:"last_seen"`
 }
 
+// PrinterNames is what its helper last reported.
+func (m Machine) PrinterNames() []string {
+	names := []string{}
+	json.Unmarshal(m.Printers, &names) //nolint:errcheck // written by Poll
+	return names
+}
+
 // Online reports whether its helper has called lately.
 func (m Machine) Online(now time.Time) bool { return now.Sub(m.LastSeen) < onlineWithin }
 

@@ -3287,6 +3287,21 @@ export interface PrintMachineRequest {
   receiptPrinter: string;
   labelPrinter: string;
 }
+/**
+ * SystemPrinter is a printer Appearance can try a style on.
+ */
+export interface SystemPrinter {
+  label: string;
+  target: string;
+}
+/**
+ * SystemPrinterList: the shop's own printers, and every printer to choose from.
+ */
+export interface SystemPrinterList {
+  receiptPrinter: string;
+  labelPrinter: string;
+  printers: SystemPrinter[];
+}
 
 //////////
 // source: dto_slip.go

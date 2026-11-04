@@ -101,3 +101,16 @@ type PrintMachineRequest struct {
 	ReceiptPrinter string `json:"receiptPrinter"`
 	LabelPrinter   string `json:"labelPrinter"`
 }
+
+// SystemPrinter is a printer Appearance can try a style on.
+type SystemPrinter struct {
+	Label  string `json:"label"`
+	Target string `json:"target"`
+}
+
+// SystemPrinterList: the shop's own printers, and every printer to choose from.
+type SystemPrinterList struct {
+	ReceiptPrinter string          `json:"receiptPrinter"`
+	LabelPrinter   string          `json:"labelPrinter"`
+	Printers       []SystemPrinter `json:"printers"`
+}

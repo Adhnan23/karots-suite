@@ -78,6 +78,11 @@ func (h *handlers) CounterLabels(c echo.Context) error {
 // shop's label), on the same label printer. done=false: not a picture, the
 // caller prints Classic.
 func (h *handlers) labelImage(c echo.Context, maxCount int) (done bool, err error) {
+	return h.labelImageOn(c, maxCount, "")
+}
+
+// labelImageOn is labelImage on a named printer ("" = the shop's label printer).
+func (h *handlers) labelImageOn(c echo.Context, maxCount int, printer string) (done bool, err error) {
 	if !strings.HasPrefix(c.Request().Header.Get("Content-Type"), "image/png") {
 		return false, nil
 	}
@@ -99,7 +104,10 @@ func (h *handlers) labelImage(c echo.Context, maxCount int) (done bool, err erro
 	if err != nil {
 		return true, err
 	}
-	if err := printing.Raw(ctx, cfg.LabelPrinter, job); err != nil {
+	if printer == "" {
+		printer = cfg.LabelPrinter
+	}
+	if err := printing.Raw(ctx, printer, job); err != nil {
 		return true, apperr.Internal("could not print labels", err)
 	}
 	return true, c.NoContent(http.StatusNoContent)

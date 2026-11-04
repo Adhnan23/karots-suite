@@ -4,6 +4,7 @@ import { slipPictureQuery } from '@/features/print/picture'
 import { STYLES } from '@/features/print/styles'
 import { configQuery } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
+import { TryPrint } from './TryPrint'
 
 const SAMPLE = '/admin/settings/sample-slip'
 
@@ -94,6 +95,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
             <span className="self-center text-sm text-muted-foreground">{preview.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
         </div>
+        <TryPrint what="receipt" path={`/system/print/slip?size=${size}`} blob={preview.data?.blob} />
       </div>
     </section>
   )

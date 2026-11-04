@@ -112,3 +112,23 @@ test('a Classic shop is told styles need Image printing', async ({ page, browser
   await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
   await expect(page.getByText(/prints Classic/)).toBeVisible()
 })
+
+test('a style can be printed from its preview, on a printer picked there', async ({ page }) => {
+  await asSystem(page)
+  await page.goto('/admin/system/appearance')
+  await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
+  await page.locator('summary', { hasText: 'Label styles' }).click()
+  const sent: { url: string; type: string }[] = []
+  await page.route(/\/api\/v1\/system\/print\//, async (route) => {
+    sent.push({ url: route.request().url(), type: route.request().headers()['content-type'] })
+    await route.fulfill({ status: 204 })
+  })
+  for (const [what, path] of [['receipt', 'print/slip'], ['label', 'print/label']] as const) {
+    await expect(page.getByLabel(`Printer for this ${what}`)).toBeVisible()
+    const button = page.locator('section', { has: page.getByLabel(`Printer for this ${what}`) }).getByRole('button', { name: 'Print this' })
+    await expect(button).toBeEnabled({ timeout: 15_000 })
+    await button.click()
+    await expect.poll(() => sent.some((s) => s.url.includes(path) && s.type === 'image/png')).toBe(true)
+  }
+  await page.screenshot({ path: 'shots/appearance-try-print/both.png', fullPage: true })
+})

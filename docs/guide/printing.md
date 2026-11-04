@@ -48,7 +48,9 @@ In Image mode a receipt uses one of ten styles: **Classic, Bold, Minimal, Ticket
 Stamp, Elegant, Cards** and **Sections**. The preview shows each kind of slip (sale, refund, cash
 in / out, credit, warranty, test, and plugin slips such as repairs) at 80 and 58 mm, exactly as it
 prints. The style is set for the whole shop when the suite is set up; ask your Karots technician
-to change it.
+to change it. Under the preview, the technician can pick any printer, this PC's or a cashier PC's, and
+press **Print this** to see that slip on paper before saving a style. It prints the sample only:
+no sale, no drawer, and it works even while the shop prints Classic.
 
 ## Labels
 
@@ -68,7 +70,8 @@ Intake can print labels as it saves new stock.
 
 Labels have styles too. Price labels come in **Classic, Price Tag, Inverse, QR Tag, Dual,
 Ticket, Minimal** and **Shelf**, and plugins add their own label kinds (Pharmacy's dose label,
-Repairs' ticket). **Print labels as Image / Classic** works like the receipt setting.
+Repairs' ticket). **Print labels as Image / Classic** works like the receipt setting, and the preview has the same
+printer choice and **Print this**, which prints one label.
 
 ## Drawer
 

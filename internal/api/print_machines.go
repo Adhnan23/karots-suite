@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
@@ -91,9 +90,7 @@ func (h *handlers) AdminPrintMachines(c echo.Context) error {
 	now := time.Now()
 	out := make([]PrintMachine, 0, len(rows))
 	for _, m := range rows {
-		printers := []string{}
-		json.Unmarshal(m.Printers, &printers) //nolint:errcheck // written by Poll
-		out = append(out, PrintMachine{ID: m.ID, Name: m.Name, Address: m.IP, Printers: printers, Approved: m.Approved,
+		out = append(out, PrintMachine{ID: m.ID, Name: m.Name, Address: m.IP, Printers: m.PrinterNames(), Approved: m.Approved,
 			Online: m.Online(now), ReceiptPrinter: m.ReceiptPrinter, LabelPrinter: m.LabelPrinter, LastSeen: m.LastSeen.Format(time.RFC3339)})
 	}
 	return c.JSON(http.StatusOK, out)
