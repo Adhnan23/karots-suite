@@ -5,7 +5,7 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (2026-11-04)
 
-**Done 2026-11-04 (items 1 to 5 and 7 of the list below; Playwright 235 passed, 33 skipped; screenshots retaken):** the fresh review of Send to cashier and its fixes (plugin routes that move
+**Done 2026-11-04 (items 1 to 7 of the list below; screenshots retaken):** the fresh review of Send to cashier and its fixes (plugin routes that move
 money or stock now refuse a sales person; a till's own close is refused on the server while tickets wait, and with no till left at all
 tickets go back to the sender's Held; ticket numbers have a unique index (duplicates did reproduce); only working non-sales people get
 tickets; a hold keeps a plugin's payment rows, only typed cash is dropped; a sales person on an old phone copy: sales stand, flagged, drawer
@@ -28,7 +28,7 @@ open till for tickets, though the phone has no ticket screen until release 2.
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
 one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
 bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
-only when needed. The laptop runs Linux (the Release fits). **Printers:** XP-80T + drawer on the laptop through the print helper (receipt printer of that machine), XP-365B on the main PC (the shop's label printer). **Released 2026.11.04.0843** (Send to cashier, the review fixes, the print helper); not installed, the rehearsal is next: main VM + a cashier VM + the tablet, then the real printers. Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
+only when needed. The laptop runs Linux (the Release fits). **Printers:** XP-80T + drawer on the laptop through the print helper (receipt printer of that machine), XP-365B on the main PC (the shop's label printer). **Released 2026.11.04.1356** (adds to 0843: Image-only receipts, unit costs at 4 decimals, Appearance printing, the unknown-scan question and cashier barcode links on review); not installed. Tests at release: Playwright 234 passed, 33 skipped; Go all passed. **Next, on this Release (user's hand tests):** the barcode flow, a real long sale in Image with Sinhala / Tamil, a box purchase (5 boxes at 3,000: +500 tablets, owed 15,000), the drawer, the skipped VM checks, labels once there's a roll, the tablet; then the pharmacist's trial and the real install. **After that:** mixed systems in one shop (every build carries both Setups; a cashier PC uses the system it runs on; a main PC on the wrong one is refused). Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
 all VMs here are off, so nothing is running to stop; don't boot a VM with that test install on it without removing it first. Both printers show on the dev PC in CUPS (`POS80`, `XP365`). Go tests and Playwright print to the system default printer (`POS80` here) when a test has none set, and CUPS sent the waiting jobs on
 2026-11-04: leave a real printer off the default while tests run, or give the tests a way not to print.
 

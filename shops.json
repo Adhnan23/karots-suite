@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-04T03:13:39Z",
-        "commit": "0a744bc",
-        "version": "2026.11.04.0843",
+        "at": "2026-11-04T08:27:07Z",
+        "commit": "d60695f",
+        "version": "2026.11.04.1356",
         "kind": "release",
-        "notes": "• A cashier PC's USB printers: a print helper from Setup, approved in Settings, and a job follows the machine\n• Review of Send to cashier: plugin money routes guarded, server-side close rule, tickets never stranded, unique numbers, sales person on a phone flagged\n• A second cashier and a sales person in every shop, so tickets can be shown\n• Who's on now says sales person\n• A ticket keeps a plugin's payment rows\n• Tickets go to a chosen cashier, with a number, undo, moving on after 2 minutes, and dealt with before a till closes\n• Send to cashier screens, the cashier's popup, Sales person on Users\n• Sales person and tickets on the server, no money, one till opens a ticket\n• A publish commits shops.json by itself"
+        "notes": "• A unit cost keeps 4 decimals, so a big box adds back up to its bill\n• An unknown scan asks first on every purchase screen\n• Receipts always print as pictures\n• On Windows, a USB port with no printer gets one, on install and Update\n• The printer choice sits under the styles, not below a long preview\n• Try a style on a network printer by its address\n• Print a receipt or label style from its preview, on a printer picked there\n• A cashier PC's test slip follows Image mode and opens the drawer, as the shop's does"
       },
       "published": {
-        "version": "2026.11.04.0843",
-        "commit": "0a744bc",
-        "at": "2026-11-04T03:16:25Z"
+        "version": "2026.11.04.1356",
+        "commit": "d60695f",
+        "at": "2026-11-04T08:28:05Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
