@@ -83,7 +83,7 @@ func TestStepsPerRole(t *testing.T) {
 		"server local":  {conf("linux", "server", true), RoleServer, all},
 		"server remote": {conf("linux", "server", false), RoleServer, all},
 		"file":          {conf("linux", "file", false), RoleServer, []string{"checks", "program", "settings", "terms", "startup", "network", "printing", "open", "health"}},
-		"cashier":       {conf("linux", "server", true), RoleCashier, []string{"checks", "open", "health"}},
+		"cashier":       {conf("linux", "server", true), RoleCashier, []string{"checks", "printing", "print-helper", "open", "health"}},
 		"windows file":  {conf("windows", "file", false), RoleServer, []string{"checks", "program", "settings", "terms", "startup", "network", "open", "health"}},
 	} {
 		j := &Job{Conf: tc.c, Role: tc.role}

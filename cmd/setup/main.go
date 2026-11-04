@@ -38,6 +38,9 @@ func start() error {
 		runHidden(os.Args[2:])
 		return nil
 	}
+	if len(os.Args) > 2 && os.Args[1] == printAgentFlag { // the print helper on a cashier PC
+		return runPrintAgent(os.Args[2])
+	}
 	var (
 		yes     = flag.Bool("yes", false, "install without the page (a server with no screen)")
 		role    = flag.String("role", "server", "with -yes: server (the shop's main PC) | cashier")

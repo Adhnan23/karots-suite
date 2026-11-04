@@ -167,8 +167,10 @@ func Steps(j *Job) []Step {
 				}
 				return "Let cashier PCs and phones on the shop's network reach ports " + strings.Join(tcpPortsPlain(j), ", ")
 			}},
-		{ID: "printing", Title: "Printing", Applies: func(j *Job) bool { return j.server() && !j.windows() }, Do: linuxPrinting,
-			Detail: func(*Job) string { return "Install printing (CUPS)" }},
+		{ID: "printing", Title: "Printing", Applies: func(j *Job) bool { return !j.windows() }, Do: linuxPrinting,
+			Detail: func(*Job) string { return "Install printing (CUPS) and set up the USB printers plugged in" }},
+		{ID: "print-helper", Title: "Printers on this PC", Applies: func(j *Job) bool { return j.Role == RoleCashier }, Do: pick(linuxPrintHelper, windowsPrintHelper),
+			Detail: func(*Job) string { return "Let the main PC print on this PC's printers (approve it in Settings → Printers)" }},
 		{ID: "open", Title: "Open the till", Applies: always, Do: pick(linuxOpen, windowsOpen),
 			Detail: func(j *Job) string {
 				if j.Role == RoleCashier || j.Conf.Open == "kiosk" {

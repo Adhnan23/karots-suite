@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { api, apiUpload } from '@/api/client'
 import type { SettingsPage as Page, ShopSettings } from '@/api/types.gen'
 import { Field, INPUT, Toggle } from '@/components/admin/fields'
+import { PrintMachines } from './PrintMachines'
 import { PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { SlipView } from '@/features/print/SlipView'
@@ -115,6 +116,7 @@ export function SettingsPage() {
             )}
           </Section>
           <Printers page={page} />
+          <PrintMachines />
           {slots.settingsSections.map(({ key, title, Section: Plug }) => (
             <section key={key} aria-label={title} className={cn(SURFACE, 'p-4 md:p-5')}><h2 className="mb-3 font-display text-lg font-bold">{title}</h2><Plug /></section>
           ))}

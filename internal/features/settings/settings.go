@@ -339,7 +339,31 @@ func (s *Service) Get(ctx context.Context) (*Settings, error) {
 	if err != nil {
 		return nil, apperr.Internal("failed to load settings", err)
 	}
+	if p, ok := ctx.Value(machinePrintersKey{}).(machinePrinters); ok {
+		if p.receipt != "" {
+			cfg.ReceiptPrinter = p.receipt
+		}
+		if p.label != "" {
+			cfg.LabelPrinter = p.label
+		}
+	}
 	return cfg, nil
+}
+
+type machinePrintersKey struct{}
+type machinePrinters struct{ receipt, label string }
+
+// WithMachinePrinters makes Get answer with this machine's printers for the rest
+// of the request, so every slip, label and drawer kick from it follows them.
+func WithMachinePrinters(ctx context.Context, receipt, label string) context.Context {
+	return context.WithValue(ctx, machinePrintersKey{}, machinePrinters{receipt, label})
+}
+
+// HasMachineReceiptPrinter reports whether the machine's receipt printer applies;
+// it comes before a person's own.
+func HasMachineReceiptPrinter(ctx context.Context) bool {
+	p, ok := ctx.Value(machinePrintersKey{}).(machinePrinters)
+	return ok && p.receipt != ""
 }
 
 // SetAppearance validates and stores the system-user-locked appearance. Unknown

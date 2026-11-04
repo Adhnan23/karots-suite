@@ -58,3 +58,46 @@ type SettingsPage struct {
 	Printers     []string         `json:"printers"`     // queues detected on this computer; null in a save's answer (keep the list you have)
 	Lockers      []SettingsLocker `json:"lockers"`
 }
+
+// PrintAgentPollRequest: a cashier PC's helper says who it is and what it has.
+type PrintAgentPollRequest struct {
+	Name     string   `json:"name"`
+	Printers []string `json:"printers"`
+}
+
+// PrintAgentJob is one job for the helper; Data is the raw printer bytes, base64.
+type PrintAgentJob struct {
+	ID    string `json:"id"`
+	Queue string `json:"queue"`
+	Data  []byte `json:"data"`
+}
+
+type PrintAgentPollReply struct {
+	Approved bool            `json:"approved"`
+	Jobs     []PrintAgentJob `json:"jobs"`
+}
+
+// PrintAgentDoneRequest: Error is empty when the job printed.
+type PrintAgentDoneRequest struct {
+	ID    string `json:"id"`
+	Error string `json:"error"`
+}
+
+// PrintMachine is a cashier PC with the print helper, for Settings.
+type PrintMachine struct {
+	ID             int64    `json:"id"`
+	Name           string   `json:"name"`
+	Address        string   `json:"address"`
+	Printers       []string `json:"printers"`
+	Approved       bool     `json:"approved"`
+	Online         bool     `json:"online"`
+	ReceiptPrinter string   `json:"receiptPrinter"`
+	LabelPrinter   string   `json:"labelPrinter"`
+	LastSeen       string   `json:"lastSeen"`
+}
+
+// PrintMachineRequest approves a machine and picks its printers.
+type PrintMachineRequest struct {
+	ReceiptPrinter string `json:"receiptPrinter"`
+	LabelPrinter   string `json:"labelPrinter"`
+}

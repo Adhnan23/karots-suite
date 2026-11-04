@@ -6,6 +6,8 @@ package api
 import (
 	"context"
 	"karots-suite/internal/features/presence"
+	"karots-suite/internal/features/printmachines"
+	"karots-suite/internal/printing"
 	"slices"
 
 	"karots-suite/internal/apperr"
@@ -40,13 +42,16 @@ type handlers struct {
 	protected []echo.MiddlewareFunc // jwt → unlocked → PIN chosen → on this device
 	t         tillServices
 	presence  *presence.Store
+	machines  *printmachines.Service
 }
 
 func Register(e *echo.Echo, d Deps) {
 	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
 	limiter := auth.NewLoginLimiter()
 	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
-	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney}
+	h.machines = printmachines.NewService(d.DB)
+	printing.SetMachineSender(h.machines.Send)
+	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney, h.machinePrinters}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)
@@ -59,6 +64,7 @@ func Register(e *echo.Echo, d Deps) {
 
 	h.registerKiosk(v1, jwt) // Task 6
 	h.registerPresence(v1, jwt)
+	h.registerPrintMachines(v1)
 	h.registerSystem(v1) // Task 6
 	h.registerTill(v1)
 	h.registerAdmin(v1)

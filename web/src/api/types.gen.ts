@@ -3240,6 +3240,53 @@ export interface SettingsPage {
   printers: string[]; // queues detected on this computer; null in a save's answer (keep the list you have)
   lockers: SettingsLocker[];
 }
+/**
+ * PrintAgentPollRequest: a cashier PC's helper says who it is and what it has.
+ */
+export interface PrintAgentPollRequest {
+  name: string;
+  printers: string[];
+}
+/**
+ * PrintAgentJob is one job for the helper; Data is the raw printer bytes, base64.
+ */
+export interface PrintAgentJob {
+  id: string;
+  queue: string;
+  data: string /* []byte */;
+}
+export interface PrintAgentPollReply {
+  approved: boolean;
+  jobs: PrintAgentJob[];
+}
+/**
+ * PrintAgentDoneRequest: Error is empty when the job printed.
+ */
+export interface PrintAgentDoneRequest {
+  id: string;
+  error: string;
+}
+/**
+ * PrintMachine is a cashier PC with the print helper, for Settings.
+ */
+export interface PrintMachine {
+  id: number /* int64 */;
+  name: string;
+  address: string;
+  printers: string[];
+  approved: boolean;
+  online: boolean;
+  receiptPrinter: string;
+  labelPrinter: string;
+  lastSeen: string;
+}
+/**
+ * PrintMachineRequest approves a machine and picks its printers.
+ */
+export interface PrintMachineRequest {
+  receiptPrinter: string;
+  labelPrinter: string;
+}
 
 //////////
 // source: dto_slip.go

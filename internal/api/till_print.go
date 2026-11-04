@@ -39,10 +39,13 @@ func (h *handlers) slipSettings(c echo.Context) (*settings.Settings, error) {
 	return &eff, nil
 }
 
-// receiptQueue is the print target for the signed-in cashier: their own counter
-// printer when set on their user record, else the shop-wide receipt printer
+// receiptQueue is the print target for the signed-in cashier: the printer of the
+// machine they're on, else their own counter printer when set on their user record, else the shop-wide receipt printer
 // ("" = OS default; "tcp://host:9100" = network).
 func (h *handlers) receiptQueue(c echo.Context, cfg *settings.Settings) string {
+	if settings.HasMachineReceiptPrinter(c.Request().Context()) {
+		return cfg.ReceiptPrinter
+	}
 	if uid := middleware.CurrentUserID(c); uid != 0 {
 		if u, err := h.d.Auth.GetUser(c.Request().Context(), uid); err == nil && strings.TrimSpace(u.ReceiptPrinter) != "" {
 			return u.ReceiptPrinter

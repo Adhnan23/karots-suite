@@ -7,6 +7,7 @@
 //   - "" (empty)            — the operating system's default printer.
 //   - a printer/queue name  — an OS-installed printer (CUPS queue on Linux,
 //     a Windows spooler printer on Windows). Discovered via Queues().
+//   - "machine://3/XP80"    — a queue on a cashier PC, through its print helper
 //   - "tcp://host:9100"     — a network printer addressed directly over a raw
 //     socket, bypassing the OS spooler entirely (works the same on every OS).
 //
@@ -17,9 +18,11 @@ package printing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -28,10 +31,25 @@ import (
 // rendering), so for OS-installed printers the queue must be a raw/passthrough
 // one — otherwise the ESC/POS or TSPL stream is rasterized and prints garbage.
 func Raw(ctx context.Context, target string, data []byte) error {
+	if strings.HasPrefix(target, "machine://") {
+		send := machineSender.Load()
+		if send == nil {
+			return errors.New("printing through other machines isn't available")
+		}
+		return (*send)(ctx, target, data)
+	}
 	if host, ok := tcpTarget(target); ok {
 		return rawTCP(ctx, host, data)
 	}
 	return rawSpool(ctx, target, data)
+}
+
+// machineSender delivers "machine://…" targets: a printer on a cashier PC.
+var machineSender atomic.Pointer[func(context.Context, string, []byte) error]
+
+// SetMachineSender wires in that delivery (printing stays free of the database).
+func SetMachineSender(send func(context.Context, string, []byte) error) {
+	machineSender.Store(&send)
 }
 
 // Queues returns the printers installed on this host, used to populate the

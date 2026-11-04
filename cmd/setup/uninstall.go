@@ -20,6 +20,8 @@ func uninstallSteps(j *Job) []Step {
 			}},
 		{ID: "remove-startup", Title: "Stop Karots", Applies: main, Do: pick(linuxRemoveStartup, windowsRemoveStartup),
 			Detail: func(*Job) string { return "Stop Karots and no longer start it with the PC" }},
+		{ID: "remove-print-helper", Title: "Printers on this PC", Applies: func(j *Job) bool { return j.Role == RoleCashier }, Do: pick(linuxRemovePrintHelper, windowsRemovePrintHelper),
+			Detail: func(*Job) string { return "Stop lending this PC's printers to the main PC" }},
 		{ID: "remove-open", Title: "Remove the till opening", Applies: always, Do: pick(linuxRemoveOpen, windowsRemoveOpen),
 			Detail: func(*Job) string { return "Remove the full-screen till and the Karots Suite shortcuts" }},
 		{ID: "remove-network", Title: "Network", Applies: main, Do: pick(linuxRemoveNetwork, windowsRemoveNetwork),

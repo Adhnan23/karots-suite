@@ -244,6 +244,21 @@ func linuxPrinting(j *Job) error {
 			return err
 		}
 	}
-	_, err := run(j, "systemctl", "enable", "--now", "cups")
-	return err
+	if _, err := run(j, "systemctl", "enable", "--now", "cups"); err != nil {
+		return err
+	}
+	// A shop's USB printer needs a raw queue. Can't list them = not fatal: the till works,
+	// and one added by hand or at the next Update does too.
+	devices, err := j.Run.Run("lpinfo", "-v")
+	if err != nil {
+		fmt.Fprintln(j.Log, "couldn't list printers:", err)
+		return nil
+	}
+	have, _ := j.Run.Run("lpstat", "-v")
+	for _, q := range rawQueues(devices, have) {
+		if _, err := run(j, "lpadmin", "-p", q.name, "-E", "-v", q.uri, "-m", "raw"); err != nil {
+			fmt.Fprintln(j.Log, "couldn't add printer", q.name+":", err)
+		}
+	}
+	return nil
 }

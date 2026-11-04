@@ -22,6 +22,21 @@ In **Setup → Settings**:
     print exactly as they look on screen.
   - **Classic:** the printer's own text font.
 - Each user can have their own receipt printer (Users page).
+- **A printer plugged into a cashier PC:** see below.
+
+## Printers on a cashier PC
+
+Setup puts a small print helper on every cashier PC. It tells the main PC which printers that PC
+has and prints what it is sent, so a USB receipt printer can sit at the counter. On Linux, Setup
+also makes a queue for each USB printer plugged in at the time; plug one in later and run
+**Setup → Update** on that PC. On Windows, install the printer so it shows in Windows first.
+
+1. In **Settings → Cashier PCs' printers**, the PC shows as **Waiting for your OK**.
+2. Pick its receipt and label printers, then press **Approve**. **Test slip** checks it.
+
+From then on, slips, labels and the drawer from that PC use its printers, ahead of a person's own
+printer on the Users page. A printer left on **The shop's** uses the main one. If the PC is off,
+printing there fails the way any printer that is off does; the sale itself still stands.
 
 ## Receipt styles
 

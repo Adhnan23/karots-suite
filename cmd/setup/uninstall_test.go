@@ -150,7 +150,7 @@ func TestUninstallWindows(t *testing.T) {
 func TestUninstallCashier(t *testing.T) {
 	j, _, _ := linuxJob(t, "server", true)
 	j.Role, j.Uninstall = RoleCashier, true
-	if got := strings.Join(ids(Steps(j)), " "); got != "remove-open done" {
+	if got := strings.Join(ids(Steps(j)), " "); got != "remove-print-helper remove-open done" {
 		t.Fatalf("steps %s", got)
 	}
 }
