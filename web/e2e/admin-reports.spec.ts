@@ -159,7 +159,8 @@ test('receipts: credit and warranty slips open in the admin and at the counter',
       const rows = page.getByLabel('Receipts').locator('visible=true').getByRole('button')
       await expect(rows.first(), `${base} ${kind}`).toBeVisible()
       await rows.first().click()
-      await expect(page.getByText(new RegExp(kind === 'Credit' ? 'AMOUNT|PAID|Print again' : 'WARRANTY|Replaced|Print again', 'i')).first(), `${base} ${kind} slip`).toBeVisible()
+      // What opened, not any text: "Warranty" alone also matches the tabs. The claim here is by receipt: no slip.
+      await expect(kind === 'Credit' ? page.getByRole('img', { name: 'Receipt preview' }) : page.getByText('A receipt claim prints no slip.'), `${base} ${kind}`).toBeVisible()
       await page.keyboard.press('Escape')
     }
   }

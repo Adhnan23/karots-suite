@@ -58,6 +58,6 @@ test('purchase entry: an unknown scan joins an existing product as a line', asyn
   await page.getByLabel('Find the product').fill('E2E Lot Soap')
   await page.getByRole('button', { name: 'E2E Lot Soap' }).click()
   await expect(page.getByLabel('Quantity of E2E Lot Soap').or(page.getByText('E2E Lot Soap')).first()).toBeVisible()
-  const res = await page.request.get(`/api/v1/till/products/barcode/${RECV_CODE}`)
-  expect((await res.json()).name).toBe('E2E Lot Soap')
+  // The link is saved a moment after the click: wait for it.
+  await expect.poll(async () => (await (await page.request.get(`/api/v1/till/products/barcode/${RECV_CODE}`)).json()).name).toBe('E2E Lot Soap')
 })
