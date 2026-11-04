@@ -61,7 +61,7 @@ test('close to expiry: told them, counted more than the system, waits, settled w
   await waiting.getByRole('button', { name: 'Settle' }).click()
   const sheet = page.getByRole('dialog', { name: `Recover: ${name}` })
   await sheet.getByRole('radio', { name: 'Credited us' }).or(sheet.getByRole('button', { name: 'Credited us' })).first().click()
-  await sheet.getByLabel('Amount credited').fill('120')
+  await expect(sheet.getByLabel('Amount credited')).toHaveValue('120.00') // the whole loss, until changed
   await sheet.getByRole('button', { name: 'Record' }).click()
   await expect.poll(owed).toBe(before - 120)
   await expect(panel).toHaveCount(0)

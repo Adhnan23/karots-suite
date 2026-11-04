@@ -75,11 +75,16 @@ export function RecoverSheet({ loss, sym, supplierId = 0, base = '/admin', onClo
     }
   }
   const clean = (v: string) => v.replace(/[^\d.]/g, '')
+  // Most credits are for the whole loss: it starts filled in, and a part credit just changes it.
+  const pickOutcome = (o: typeof outcome) => {
+    setOutcome(o)
+    if (o === 'paid' && !amount) setAmount(dec(loss.loss))
+  }
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record"
       busy={busy || (needSupplier && !supplier) || (payNow && base === '/admin' && num(extra) > 0 && !source)} onSubmit={save}>
       <p className="text-sm text-muted-foreground">Lost {qtyText(loss.qty)} worth {money(sym, loss.loss)} at cost ({money(sym, lostUnit)} each).</p>
-      <Seg label="What the supplier did" value={outcome} onChange={setOutcome}
+      <Seg label="What the supplier did" value={outcome} onChange={pickOutcome}
         options={[['replacement', 'Replaced it'], ['paid', 'Credited us'], ['written_off', 'Nothing']]} />
       {outcome === 'replacement' && (
         <>
