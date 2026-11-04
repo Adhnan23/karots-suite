@@ -5,7 +5,18 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, end of 2026-11-04)
 
-**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Iman Pharmacy Kalpitiya**, is not installed yet. The user deleted all his Releases and test backups on 2026-11-04 and cleared his build history from `shops.json`, so **he needs a new Release before the real install** (a first install must be a Release). **Don't publish before the user says.** His install id, channel and cloud key stay in `shops.json`.
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). It is not installed yet.
+Latest Release, and the only one in the bucket: **2026.11.04.2021**, with the power-cut fix. **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
+
+**Next step (install day, user's call):**
+1. **The USB stick is ready except for the system.** Kingston 57.8 GB: Ventoy installed, `iman-pharmacy-kalpitiya/` copied and compared byte for byte, unmounted. **No ISO on it.**
+2. **Get `xubuntu-26.04.1-desktop-amd64.iso`** onto the stick's Ventoy partition, from `cdimage.ubuntu.com/xubuntu/releases/26.04/release/` (SHA-256 `0cd5160f72ae6b7a26be7a29248b60cbd579b9e6aa8fbd274e95264da0ade43d`). The user's internet here can't take the ~4 GB; the download was cancelled, so get it on another connection. No Xubuntu ISO on this PC's fast drives or under `/mnt/hdd_4TB/Software/OS/Linux/`. Not decided: Mint 22.2 Cinnamon from that folder works as a fallback in theory, but the suite has never run on it (full install, a sale, both printers and the plug-pull first). Not ZorinOS "by techrechard" (unofficial copy), not Alpine (no systemd or apk in Setup).
+3. **On his PC:** copy the folder off the stick first (exFAT drops the run permission; `chmod +x karots-setup karots-suite`; double-click from a Linux USB was never confirmed), Setup as main PC in the background, then the laptop as cashier PC. Shop name "Iman Pharmacy" goes in the shop's settings. The shop needs internet on the day: Setup may fetch programs.
+4. **Pull the plug once** on the real PC before real data: the VM can't show what his SSD does.
+
+**Test backups:** Cloudflare refused deleting them (the 30-day lock), and they sit in the old `aiman-pharmacy-kalpitiya` folder. The new key means a new cloud folder, so they shouldn't reach his Bring back list; they age out by about Dec 4. **Keep `karots-main` / `karots-cashier` off or expect uploads there** (they run old builds). Keep `SUITE_RELEASE_KEY`. His install id, channel and cloud key stayed in `shops.json`. His support PIN: `make support-pin ID=FC1A79F7`.
+
+**Screen:** the user looked at the till on a 20" 1600x900 monitor, like his: fine, roomy, no zoom. The dev DB was reset with `-seed` for that (Admin 0771234567 / 1234, Cashier 0771111111 / 1111).
 
 **Waiting on the user, in no hurry:**
 - A label roll, then the XP-365B on the real main PC: size, gap, drift, Image with Sinhala / Tamil, scanning a label back. Nothing has printed on it yet.
@@ -19,6 +30,9 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 - **No cash drawer at Iman for now** (opened with its key), so the drawer is untested on real hardware.
 
 **Small things for later, when the user asks:**
+- `make docs-shots`: the zoom fix moves the till's Warranty tab under More at 1280 wide, so some shots may differ slightly.
+- Recovering a shop already down from an update cut through Setup -> Update: untested, needs the user at the VM.
+- VM commands prompt for a password each connection until the user is in the `libvirt` group; keep one `virsh` connection open for a batch.
 - **Test backups in Iman's cloud folder:** the user deletes them in Cloudflare after testing. The bucket's 30-day lock may refuse recent ones.
 - Bigger: Pocket Cashier release 2 (counter pages, plugin menus, tickets on the phone; a ticket on a phone-only till waits unseen today); the whole-system check (a simulated year, the books balance).
 
@@ -41,7 +55,7 @@ An unknown scan asks "a product you already have?" first on purchase screens and
 **Power-cut test on `karots-main` (2026-11-04, file mode):** a generator doesn't remove the cut, it comes after it, and Iman has no UPS (he has generators). Sales: confirmed sales all survive, in-flight ones vanish whole, stock and cash agree, up in 7-9 s; receipt numbers jump about 30 after a cut (PostgreSQL, nothing lost). Found and fixed (`559cab3`, `internal/durable`): backups and a downloaded update weren't forced to disk. A cut left 0-byte backups, and on 1524 a cut 6-20 s after an update's swap left the shop not starting (3 of 3; the same update with no cut was fine). On the fixed code (1912 updating to 1928): 8 cuts 0-28 s after the swap all came up on the new version, cuts during download and backup stayed on the old one, 8 cuts just after startup left no empty backup. The VM has no shell, so "empty program" is the likely cause of the old failure, not seen. Not tested: the tiny gap between Swap's two renames (left as it is; Setup -> Update would recover it), a shop down that way, the real SSD (one plug-pull on the real PC before real data). The VM is back on its `before-powercut` snapshot (1524, hand-test data).
 
 **Working here:**
-- **Tests:** `make test` runs one package at a time. Nothing reaches a real printer now (`testing.Testing()`, `KAROTS_NO_SPOOL` for Playwright's server). Playwright resets `suite_db`; never run it with `go test` on `suite_db`, or two builds at once (they share the plugin lists). `appearance-receipts.spec` resets the receipt style when it ends. Full Playwright 2026-11-04 on Release 1928's code: 235 passed, 33 skipped, none failed.
+- **Tests:** `make test` runs one package at a time. Nothing reaches a real printer now (`testing.Testing()`, `KAROTS_NO_SPOOL` for Playwright's server). Playwright resets `suite_db`; never run it with `go test` on `suite_db`, or two builds at once (they share the plugin lists). `appearance-receipts.spec` resets the receipt style when it ends. Full Playwright 2026-11-04: 235 passed, 33 skipped, none failed; `make test` passed. Only the test for a scan before Enter and notes changed after.
 - **Power cuts happen here.** After one, check before anything else: `git fsck`, `make check-core` (a cut during a build leaves the plugin lists on: `make core-only`, then `git checkout -- internal/spa/dist/.gitkeep`). One cut emptied the newest commit's objects: back up `.git`, remove the empty files, point `main` at the last good commit, recommit. Backup from that repair: `../karots-suite-git-backup-20261104-1611` (delete when happy).
 - **The user tests with real sales and scans of real paper** (phone scans land in `/mnt/nvme_512GB/Downloads/`, screenshots in `~/Pictures/Screenshots/`). Don't print on the real printer yourself until a picture looks right.
 - A Windows or cashier install takes the shop's whole `dist/<key>/` folder.
