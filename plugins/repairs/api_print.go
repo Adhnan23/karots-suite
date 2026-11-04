@@ -239,7 +239,7 @@ func (h handlers) print(c echo.Context) error {
 	}
 	target := cfg.ReceiptPrinter
 	var own string
-	if err := h.p.core.DB.GetContext(ctx, &own, `SELECT COALESCE(receipt_printer, '') FROM users WHERE id = $1`, middleware.CurrentUserID(c)); err == nil && strings.TrimSpace(own) != "" {
+	if err := h.p.core.DB.GetContext(ctx, &own, `SELECT COALESCE(receipt_printer, '') FROM users WHERE id = $1`, middleware.CurrentUserID(c)); err == nil && strings.TrimSpace(own) != "" && !settings.HasMachineReceiptPrinter(ctx) {
 		target = own
 	}
 	if strings.TrimSpace(target) == "" {
