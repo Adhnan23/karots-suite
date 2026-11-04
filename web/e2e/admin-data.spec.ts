@@ -76,7 +76,9 @@ test('settings: save one card, the receipt preview follows; stock-take off hides
   await footer.fill(`Thank you ${tag}`)
   await shop.getByRole('button', { name: 'Save' }).click()
   await toast(page, /Shop & receipt saved/)
-  await expect(page.getByLabel('Receipt preview').getByText(`Thank you ${tag}`)).toBeVisible()
+  await expect(page.getByRole('complementary', { name: 'Receipt preview' }).getByRole('img', { name: 'Receipt preview' })).toBeVisible()
+  const sample = await (await page.request.post('/api/v1/admin/settings/sample-slip?preview=1')).text()
+  expect(sample).toContain(`Thank you ${tag}`)
 
   const stock = page.getByRole('region', { name: 'Stock' })
   await stock.getByText('Stock-take & intake').click()

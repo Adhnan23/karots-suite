@@ -27,8 +27,6 @@ type Settings struct {
 	TaxRegNo       *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
 	LowStockAlerts bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
 	AskToPrint     bool    `db:"ask_to_print"      json:"ask_to_print"`
-	// PrintAs is "classic" (ESC/POS text) or "image" (a picture of the slip).
-	PrintAs string `db:"print_as" json:"print_as"`
 	// LabelPrintAs is the same switch for the label printer; LabelStyles the
 	// Image-mode style per label kind (system user, Appearance).
 	LabelPrintAs          string      `db:"label_print_as" json:"label_print_as"`
@@ -148,7 +146,6 @@ type UpdateInput struct {
 	TaxRegNo              *string `json:"tax_reg_no"        form:"tax_reg_no"`
 	LowStockAlerts        bool    `json:"low_stock_alerts"  form:"low_stock_alerts"`
 	AskToPrint            bool    `json:"ask_to_print"      form:"ask_to_print"`
-	PrintAs               string  `json:"print_as"          form:"print_as"          validate:"required,oneof=classic image"`
 	LabelPrintAs          string  `json:"label_print_as"    form:"label_print_as"    validate:"omitempty,oneof=classic image"` // blank = classic
 	ForcePinChange        bool    `json:"force_pin_change"         form:"force_pin_change"`
 	AllowCashierPinChange bool    `json:"allow_cashier_pin_change" form:"allow_cashier_pin_change"`
@@ -255,7 +252,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 			label_name_lines=$29, label_bottom_lines=$30,
 			label_name_font=$31, label_bottom_font=$32,
 			reorder_default_days=$33, reorder_safety_days=$34,
-			print_as=$35, label_print_as=$36, expiry_warn_days=$37
+			label_print_as=$35, expiry_warn_days=$36
 		WHERE id = 1`,
 		in.ShopName, in.ShopNameSi, in.Address, in.Phone,
 		in.CurrencyCode, in.CurrencySymbol, in.ReceiptFooter,
@@ -271,7 +268,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 		nameLines, bottomLines,
 		nameFont, bottomFont,
 		in.ReorderDefaultDays, in.ReorderSafetyDays,
-		in.PrintAs, in.LabelPrintAs, in.ExpiryWarnDays)
+		in.LabelPrintAs, in.ExpiryWarnDays)
 	return err
 }
 

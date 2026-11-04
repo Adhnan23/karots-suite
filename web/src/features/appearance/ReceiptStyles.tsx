@@ -2,7 +2,6 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { slipPictureQuery } from '@/features/print/picture'
 import { STYLES } from '@/features/print/styles'
-import { configQuery } from '@/features/till/api'
 import { slots } from '@/plugins/slots'
 import { TryPrint } from './TryPrint'
 
@@ -52,12 +51,11 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
 
   const thumbs = useQueries({ queries: STYLES.map((s) => slipPictureQuery(`${SAMPLE}?kind=sale&sample=busy`, '80', s.key)) })
   const preview = useQuery(slipPictureQuery(path, size, value))
-  const { data: cfg } = useQuery(configQuery)
 
   return (
     <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <span className="text-xs font-bold text-muted-foreground">Receipt style · Image mode</span>
+        <span className="text-xs font-bold text-muted-foreground">Receipt style</span>
         <div role="group" aria-label="Receipt style" className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 xl:grid-cols-5">
           {STYLES.map((s, i) => (
             <button
@@ -75,11 +73,6 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
           ))}
         </div>
         <TryPrint what="receipt" path={`/system/print/slip?size=${size}`} blob={preview.data?.blob} />
-        {cfg?.printAs === 'classic' && (
-          <p className="rounded-[var(--radius-sm)] bg-warning/15 px-3 py-2 text-sm">
-            This shop prints Classic — receipt styles apply once Settings → Printers → Print receipts as is set to <b>Image</b>.
-          </p>
-        )}
       </div>
 
       <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-card p-3 shadow-[var(--shadow)] lg:w-[460px] lg:shrink-0">

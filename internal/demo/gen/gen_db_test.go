@@ -202,16 +202,15 @@ func TestLowStockAndAutoLevels(t *testing.T) {
 func TestSettingsPrintImageToEmulators(t *testing.T) {
 	d, _ := grocery(t)
 	var s struct {
-		PrintAs string `db:"print_as"`
 		Label   string `db:"label_print_as"`
 		RP      string `db:"receipt_printer"`
 		LP      string `db:"label_printer"`
 		Skin    string `db:"skin"`
 	}
-	if err := d.Get(&s, `SELECT print_as, label_print_as, receipt_printer, label_printer, skin FROM settings WHERE id = 1`); err != nil {
+	if err := d.Get(&s, `SELECT label_print_as, receipt_printer, label_printer, skin FROM settings WHERE id = 1`); err != nil {
 		t.Fatal(err)
 	}
-	if s.PrintAs != "image" || s.Label != "image" || s.RP != "tcp://127.0.0.1:9101" || s.LP != "tcp://127.0.0.1:9102" || s.Skin != "studio" {
+	if s.Label != "image" || s.RP != "tcp://127.0.0.1:9101" || s.LP != "tcp://127.0.0.1:9102" || s.Skin != "studio" {
 		t.Fatalf("settings = %+v", s)
 	}
 }

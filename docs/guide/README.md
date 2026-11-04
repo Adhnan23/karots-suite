@@ -14,7 +14,7 @@ whenever the screens change.
 | [Money](money.md) | Opening and closing the till, lockers, expenses, cash flow, finance, receipts |
 | [Reports & dashboard](reports.md) | The dashboard, the 19 reports, exports and printing |
 | [People & users](people.md) | Customers and credit, staff logins, roles and rights, PINs, auto-lock, who's on now |
-| [Printing](printing.md) | Receipts (Classic or Image), the ten receipt styles, labels, ask before printing |
+| [Printing](printing.md) | Receipts as pictures, the ten receipt styles, labels, ask before printing |
 | [Appearance](appearance.md) | Palettes, your own palettes, light and dark |
 | [Plugins](plugins/README.md) | One page for each of the ten plugins |
 

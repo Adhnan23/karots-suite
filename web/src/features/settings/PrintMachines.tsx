@@ -9,7 +9,7 @@ import { Field, INPUT } from '@/components/admin/fields'
 import { SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { slipPicture } from '@/features/print/picture'
-import { configQuery, errMsg } from '@/features/till/api'
+import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 
 const BASE = '/admin/print-machines'
@@ -48,10 +48,9 @@ function Machine({ m }: { m: PrintMachine }) {
       setBusy(false)
     }
   }
-  // Image mode: the same picture the shop's own test slip prints.
+  // The same picture the shop's own test slip prints.
   const testSlip = async () => {
-    const cfg = await qc.ensureQueryData(configQuery).catch(() => null)
-    const pic = cfg?.printAs === 'image' ? await slipPicture('/admin/settings/printer/test').catch(() => undefined) : undefined
+    const pic = await slipPicture('/admin/settings/printer/test').catch(() => undefined)
     await api(`${BASE}/${m.id}/test`, { method: 'POST', blob: pic?.blob })
   }
   const save = () => act(() => api(`${BASE}/${m.id}`, { method: 'PUT', json: { receiptPrinter: receipt, labelPrinter: label } }), m.approved ? 'Saved' : `${m.name} can print now`)

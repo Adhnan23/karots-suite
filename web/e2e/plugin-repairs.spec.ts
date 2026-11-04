@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { receiptPicture } from './slip'
 import { viaTicket } from './ticket'
 
 // Repairs (plugin, built in for Playwright). Needs `make e2e-seed`. Serial: one
@@ -110,7 +111,7 @@ test('a job with a deposit is picked up on the normal Pay: the deposit pre-fille
   // The slip follows Settings' "ask before printing" (on in the e2e shop); the label shows its preview.
   await d.getByRole('button', { name: 'Slip' }).click()
   const ask = page.getByRole('dialog', { name: 'Print the repair slip?' })
-  await expect(ask.getByLabel('Receipt preview')).toBeVisible()
+  await expect(receiptPicture(ask)).toBeVisible()
   await ask.getByRole('button', { name: 'Skip' }).click()
   await d.getByRole('button', { name: 'Label' }).click()
   const lab = page.getByRole('dialog', { name: 'Print the ticket label?' })

@@ -77,7 +77,6 @@ func seed(db *sqlx.DB) error {
 		TaxRegistered:         cur.TaxRegistered,
 		LowStockAlerts:        cur.LowStockAlerts,
 		AskToPrint:            cur.AskToPrint,
-		PrintAs:               cur.PrintAs,
 		LabelPrintAs:          cur.LabelPrintAs,
 		ForcePinChange:        cur.ForcePinChange,
 		AllowCashierPinChange: cur.AllowCashierPinChange,

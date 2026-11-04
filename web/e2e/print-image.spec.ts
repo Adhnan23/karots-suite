@@ -19,9 +19,9 @@ async function signIn(page: Page) {
   if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 4 }, sourceLockerId: 0 } })
 }
 
-async function setPrinting(page: Page, printAs: string, askToPrint: boolean) {
+async function setPrinting(page: Page, askToPrint: boolean) {
   const s = (await (await page.request.get('/api/v1/admin/settings')).json()).settings
-  const res = await page.request.put('/api/v1/admin/settings', { data: { ...s, printAs, askToPrint } })
+  const res = await page.request.put('/api/v1/admin/settings', { data: { ...s, askToPrint } })
   expect(res.ok(), await res.text()).toBe(true)
 }
 
@@ -57,13 +57,13 @@ async function cashSale(page: Page, ask = true) {
 test.afterAll(async ({ browser }) => {
   const page = await browser.newPage()
   await signIn(page)
-  await setPrinting(page, 'classic', true)
+  await setPrinting(page, true)
   await page.close()
 })
 
 test('ask-to-print: the preview is the picture that prints', async ({ page }) => {
   await signIn(page)
-  await setPrinting(page, 'image', true)
+  await setPrinting(page, true)
   const jobs = await catchPrints(page)
   await page.goto('/till')
   await page.getByRole('button', { name: /Deposit/ }).first().click()
@@ -86,7 +86,7 @@ test('ask-to-print: the preview is the picture that prints', async ({ page }) =>
 
 test('a sale prints as a picture; auto-print carries the kick', async ({ page }) => {
   await signIn(page)
-  await setPrinting(page, 'image', true)
+  await setPrinting(page, true)
   let jobs = await catchPrints(page)
   await cashSale(page)
   await page.getByRole('button', { name: 'Print receipt' }).click()
@@ -94,7 +94,7 @@ test('a sale prints as a picture; auto-print carries the kick', async ({ page })
   expect(isPNG(jobs[0]) && pngWidth(jobs[0].body!)).toBe(576)
   expect(jobs[0].url).not.toContain('kick=1')
 
-  await setPrinting(page, 'image', false)
+  await setPrinting(page, false)
   await page.reload() // the till reads its config once
   jobs = await catchPrints(page)
   await cashSale(page, false)
@@ -105,7 +105,7 @@ test('a sale prints as a picture; auto-print carries the kick', async ({ page })
 
 test('a reprint at 58 mm is a 384-dot picture', async ({ page }) => {
   await signIn(page)
-  await setPrinting(page, 'image', true)
+  await setPrinting(page, true)
   const jobs = await catchPrints(page)
   await page.goto('/till/receipts')
   await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Cash' }).click() // the deposit above
@@ -119,12 +119,12 @@ test('a reprint at 58 mm is a 384-dot picture', async ({ page }) => {
   expect(jobs[0].url).toContain('size=58')
 })
 
-test('if the picture fails, that slip prints Classic once', async ({ page }) => {
+test('if the picture fails, that slip prints as text, once', async ({ page }) => {
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.toBlob = () => { throw new Error('no canvas here') }
   })
   await signIn(page)
-  await setPrinting(page, 'image', true)
+  await setPrinting(page, true)
   const jobs = await catchPrints(page)
   await cashSale(page)
   await page.getByRole('button', { name: 'Print receipt' }).click()
@@ -134,21 +134,21 @@ test('if the picture fails, that slip prints Classic once', async ({ page }) => 
   expect(isPNG(jobs[0])).toBe(false)
 })
 
-// Every receipt preview is the roll's width, in both modes — also in a box sized to its
+// Every receipt preview is the roll's width — also in a box sized to its
 // content (the sale-complete overlay), which once squeezed it to a sliver.
-for (const mode of ['image', 'classic'] as const) {
-  test(`every receipt preview shows at the roll's width (${mode})`, async ({ page }) => {
+{
+  test(`every receipt preview shows at the roll's width`, async ({ page }) => {
     await signIn(page)
-    await setPrinting(page, mode, true)
+    await setPrinting(page, true)
     await catchPrints(page)
-    const preview = (scope: ReturnType<Page['locator']>) => scope.locator('img[alt="Receipt preview"], article[aria-label="Receipt preview"]').first()
+    const preview = (scope: ReturnType<Page['locator']>) => scope.locator('img[alt="Receipt preview"]').first()
     const wide = async (where: string, scope: ReturnType<Page['locator']>) => {
       const el = preview(scope)
       await expect(el, where).toBeVisible()
-      if (mode === 'image') await expect.poll(() => el.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth), { message: where }).toBeGreaterThan(0)
+      await expect.poll(() => el.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth), { message: where }).toBeGreaterThan(0)
       const w = (await el.boundingBox())!.width
       expect(w, `${where}: ${w}px`).toBeGreaterThan(250) // the 80 mm roll (≈ 400 px) or the width its box allows (Settings' 340 px column) — never a sliver
-      await page.screenshot({ path: `shots/receipt-previews/${mode}-${where}.png` })
+      await page.screenshot({ path: `shots/receipt-previews/${where}.png` })
     }
 
     await cashSale(page)

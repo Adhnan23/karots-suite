@@ -7,7 +7,7 @@ import { configQuery, customersQuery, drawerQuery } from '../api'
 import { TillProvider, useTill } from '../TillProvider'
 import { useCheckout } from './useCheckout'
 
-const cfg: TillConfig = { symbol: 'Rs.', defaultSaleType: 'retail', askToPrint: false, printAs: 'classic', receiptStyle: 'classic', labelPrintAs: 'classic', labelStyles: {}, labelFirstLines: 1, labelSecondLines: 1, labelFirstSize: '2', labelSecondSize: '3', openCashDrawer: false, allowUntrackedCash: true,
+const cfg: TillConfig = { symbol: 'Rs.', defaultSaleType: 'retail', askToPrint: false, receiptStyle: 'classic', labelPrintAs: 'classic', labelStyles: {}, labelFirstLines: 1, labelSecondLines: 1, labelFirstSize: '2', labelSecondSize: '3', openCashDrawer: false, allowUntrackedCash: true,
   defaultLockerId: 0, allowContinueLast: true, canManageCredit: false, canHandleSuppliers: false, canSeeCost: false, sendsToCashier: false, canSeeLowStock: false, canChangePin: true, isManager: false, tenderMethods: [], labelSize: '50x25', shop: { name: 'Shop', address: '', phone: '', footer: '' }, receiptWidth: '80' }
 const drawer: DrawerState = { summary: { cashSales: '0', payIns: '0', withdrawals: '0', expected: '0', stale: false }, denominations: [], lockers: [] }
 const sale: SaleResult = { id: 42, receiptNo: 'S-1', total: '100.00', paidAmount: '150.00', changeGiven: '50.00', roundingToAccount: '0.00', customerName: '', methods: ['cash'] }
@@ -49,7 +49,7 @@ describe('useCheckout', () => {
     const { result } = setup()
     act(() => result.current.till.dispatch({ type: 'addService', line: { productId: 1, name: 'x', price: 100 } }))
     await act(async () => { await result.current.co.run() })
-    expect(calls.some((u) => u.endsWith('/till/sales/42/print?kick=1'))).toBe(true)
+    await vi.waitFor(() => expect(calls.some((u) => u.endsWith('/till/sales/42/print?kick=1'))).toBe(true)) // once its picture is tried
     expect(result.current.till.state.lines).toEqual([])
     expect(result.current.till.state.postSaleChange).toBe(50)
   })

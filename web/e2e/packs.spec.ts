@@ -1,4 +1,5 @@
 import type { APIResponse } from '@playwright/test'
+import { receiptPicture, slipText } from './slip'
 import { expect, freshProduct, test, type Page } from './fixtures'
 
 // Packs (M7.7a): one product counted in tablets, sold by the card or loose — full
@@ -83,10 +84,12 @@ test('a product sold by the card: chooser, 14 = 1 card + 2, the card code adds a
   await search(page, CODE) // the card's own barcode: no chooser, a whole card
   await expect(line(page, PANADOL)).toHaveValue('26')
   await expect(page.getByText('= 2 Cards + 2')).toBeVisible()
+  const words = slipText(page)
   await page.getByRole('button', { name: /Complete sale/ }).click()
   const done = page.getByRole('dialog', { name: /complete/ })
   await expect(done).toContainText('Rs. 552.00')
-  await expect(done).toContainText('(2 Cards + 2)')
+  await expect(receiptPicture(done)).toBeVisible()
+  await expect.poll(words).toContain('(2 Cards + 2)')
   await page.keyboard.press('Enter')
 })
 

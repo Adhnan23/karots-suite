@@ -18,7 +18,7 @@ func shopSettings(ctx context.Context, d Deps, p shops.Profile) error {
 	}
 	_, err := d.DB.ExecContext(ctx, `UPDATE settings SET
 		shop_name=$1, address=$2, phone=$3, receipt_width='80', ask_to_print=false,
-		print_as='image', label_print_as='image',
+		label_print_as='image',
 		receipt_printer=$4, label_printer=$5, label_width_mm=$6, label_height_mm=$7
 		WHERE id = 1`,
 		p.Name, address(p), "011 "+p.Logins[0].Phone[3:6]+" "+p.Logins[0].Phone[6:],

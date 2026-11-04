@@ -17,18 +17,17 @@ In **Setup → Settings**:
 - **Ask before printing:** shows **Print / New sale** after each sale. With it off, the receipt
   prints straight away. Every slip follows this setting: sales, refunds, cash in / out, credit,
   warranty, reprints and plugin slips.
-- **Printers & labels → Print receipts as:**
-  - **Image:** the slip is drawn as a picture in the shop's receipt style, so Sinhala and Tamil
-    print exactly as they look on screen.
-  - **Classic:** the printer's own text font.
+- **How a receipt prints:** as a picture in the shop's receipt style, so Sinhala and Tamil print exactly
+  as they look on screen. If a picture ever can't be drawn, that one slip prints as plain text, so a
+  customer still gets a receipt.
 - Each user can have their own receipt printer (Users page).
 - **A printer plugged into a cashier PC:** see below.
 
 ## Printers we've tested
 
-- **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): Classic, and Image in all ten receipt
+- **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): all ten receipt
   styles, on the PC itself and from a cashier PC, on Linux; Windows 10 with the built-in **Generic / Text
-  Only** driver prints its test slips in both modes.
+  Only** driver prints its test slips.
 
 ## Printers on a cashier PC
 
@@ -50,14 +49,13 @@ printing there fails the way any printer that is off does; the sale itself still
 
 ![Receipt styles](../images/printing/receipt-styles.jpg)
 
-In Image mode a receipt uses one of ten styles: **Classic, Bold, Minimal, Ticket, Poster, Grid,
+A receipt uses one of ten styles: **Classic, Bold, Minimal, Ticket, Poster, Grid,
 Stamp, Elegant, Cards** and **Sections**. The preview shows each kind of slip (sale, refund, cash
 in / out, credit, warranty, test, and plugin slips such as repairs) at 80 and 58 mm, exactly as it
 prints. The style is set for the whole shop when the suite is set up; ask your Karots technician
 to change it. Under the preview, the technician can pick any printer (this PC's, a cashier PC's, or a network
 printer by its address) and press **Print this** to see that slip on paper before saving a style. It
-only tries that printer, so Settings stays as it is. It prints the sample only: no sale, no drawer,
-and it works even while the shop prints Classic.
+only tries that printer, so Settings stays as it is. It prints the sample only: no sale and no drawer.
 
 ## Labels
 
@@ -77,7 +75,7 @@ Intake can print labels as it saves new stock.
 
 Labels have styles too. Price labels come in **Classic, Price Tag, Inverse, QR Tag, Dual,
 Ticket, Minimal** and **Shelf**, and plugins add their own label kinds (Pharmacy's dose label,
-Repairs' ticket). **Print labels as Image / Classic** works like the receipt setting, and the preview has the same
+Repairs' ticket). **Print labels as Image / Classic** sets how labels print, and the preview has the same
 printer choice and **Print this**, which prints one label.
 
 ## Drawer

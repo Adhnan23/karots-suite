@@ -213,7 +213,7 @@ timings (marked "not a UI transition").
 
 ## 10. Receipt styles (Image printing)
 
-Ten looks for every slip when Settings → Printers → Print receipts as is **Image**: Classic (default), Bold, Minimal,
+Ten looks for every slip: Classic (default), Bold, Minimal,
 Ticket, Poster, Grid, Stamp, Elegant, Cards, Sections. Mockups: `docs/design/mockups/receipt-styles.html` (the
 styles) and `docs/design/mockups/appearance-receipts.html` (the picker). Only the system user picks, on Appearance,
 shop-wide — the preview there is the exact picture the printer gets. Paper is 1-bit: black or white only, no grey,

@@ -82,7 +82,11 @@ test.describe.serial('Pocket Cashier', () => {
 
   test('sells live: two items, cash, the receipt prints at the counter', async () => {
     const prints: string[] = []
-    await phone.route(/\/api\/v1\/till\/sales\/\d+\/print/, async (r) => { prints.push(r.request().url()); await r.fulfill({ status: 204 }) })
+    await phone.route(/\/api\/v1\/till\/sales\/\d+\/print/, async (r) => {
+      if (r.request().url().includes('preview=1')) return r.continue() // drawing the picture isn't a print
+      prints.push(r.request().url())
+      await r.fulfill({ status: 204 })
+    })
     await phone.getByRole('button', { name: 'Sell' }).click()
     await phone.getByLabel('Search or scan').fill('E2E Milk')
     const products = phone.getByRole('list', { name: 'Products' })

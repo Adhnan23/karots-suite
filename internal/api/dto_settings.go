@@ -16,7 +16,6 @@ type ShopSettings struct {
 	ReceiptWidth           string `json:"receiptWidth"`    // "80" | "58"
 	DefaultSaleType        string `json:"defaultSaleType"` // "retail" | "wholesale"
 	AskToPrint             bool   `json:"askToPrint"`
-	PrintAs                string `json:"printAs"`      // "classic" | "image"
 	LabelPrintAs           string `json:"labelPrintAs"` // "classic" | "image"
 	TaxRegistered          bool   `json:"taxRegistered"`
 	TaxRegNo               string `json:"taxRegNo"`

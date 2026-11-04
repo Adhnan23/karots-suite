@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { receiptPicture, slipText } from './slip'
 
 // Golden counter flows (M1b). Needs `make e2e-seed`. Serial: one admin drawer.
 test.describe.configure({ mode: 'serial' })
@@ -27,7 +28,7 @@ async function done(page: Page, text: RegExp) {
   const ask = page.getByRole('dialog', { name: 'Print the receipt?' }).filter({ hasText: text })
   await expect(ask.or(page.locator('[data-sonner-toast]').filter({ hasText: text })).first()).toBeVisible()
   if (await ask.isVisible()) {
-    await expect(ask.getByLabel('Receipt preview')).toContainText('Karots Suite')
+    await expect(receiptPicture(ask)).toBeVisible()
     await ask.getByRole('button', { name: 'Skip' }).click()
     await expect(ask).toBeHidden()
   }
@@ -104,12 +105,12 @@ test('credit: collect what a customer owes', async ({ page }) => {
 test('receipts: a sale shows as paper', async ({ page }) => {
   await open(page, 'receipts')
   const sale = await sell(page, [['4790000000011', '1']], [{ method: 'cash', amount: '100' }])
+  const words = slipText(page)
   await page.getByLabel('Find a sale').fill(sale.receiptNo)
   await page.getByLabel('Find a sale').press('Enter')
-  // The slip as it prints (Classic: the decoded printer lines).
-  const slip = page.getByRole('article', { name: 'Receipt preview' })
-  await expect(slip).toContainText(sale.receiptNo)
-  await expect(slip).toContainText(/TOTAL\s+Rs\. 100\.00/)
+  await expect(receiptPicture(page)).toBeVisible()
+  await expect.poll(words).toContain(sale.receiptNo)
+  expect(await words()).toMatch(/TOTAL\s+Rs\. 100\.00/)
   await expect(page.getByRole('link', { name: /Print A4/ })).toHaveAttribute('href', `/print/receipt/${sale.id}`)
 })
 
@@ -165,8 +166,10 @@ test('receipts: cash moves and credit payments are listed', async ({ page }) => 
   await open(page, 'receipts')
   await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Cash' }).click()
   await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
+  const words = slipText(page)
   await page.getByRole('list', { name: 'Receipts' }).getByRole('button').first().click()
-  await expect(page.getByRole('article', { name: 'Receipt preview' })).toContainText(/Amount\s+Rs\./)
+  await expect(receiptPicture(page)).toBeVisible()
+  await expect.poll(words).toMatch(/Amount\s+Rs\./)
   await page.getByRole('group', { name: 'Receipt kind' }).getByRole('button', { name: 'Credit' }).click()
   await expect(page.getByRole('list', { name: 'Receipts' }).getByRole('button').first()).toBeVisible()
 })

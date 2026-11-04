@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { receiptPicture, slipText } from './slip'
 
 // Cheques end to end: taken at the till and cleared into a bank; two taken at
 // the counter's Credit tab, one bounced; an expense paid by cheque, cancelled,
@@ -96,9 +97,11 @@ test('till: cheque + cash for a named customer, then cleared into a bank', async
   const sales = (await json(page, '/api/v1/admin/sales?q=' + encodeURIComponent(cust.name))) as { items?: { receiptNo: string }[] }
   const receiptNo = (sales.items ?? (sales as unknown as { receiptNo: string }[]))[0].receiptNo
   await page.goto('/till/receipts')
+  const words = slipText(page)
   await page.getByLabel('Find a sale').fill(receiptNo)
   await page.getByLabel('Find a sale').press('Enter')
-  await expect(page.getByRole('article', { name: 'Receipt preview' })).toContainText(/CHEQUE/i)
+  await expect(receiptPicture(page)).toBeVisible()
+  await expect.poll(words).toMatch(/CHEQUE/i)
 
   // Pending on the Cheques page; Mark cleared into the bank.
   expect((await chequeNo(page, no)).status).toBe('pending')

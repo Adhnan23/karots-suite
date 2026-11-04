@@ -24,9 +24,9 @@ async function asManager(page: Page) {
   if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 4 }, sourceLockerId: 0 } })
 }
 
-async function setPrintAs(page: Page, printAs: string) {
+async function autoPrint(page: Page) {
   const s = (await (await page.request.get('/api/v1/admin/settings')).json()).settings
-  expect((await page.request.put('/api/v1/admin/settings', { data: { ...s, printAs, askToPrint: false } })).ok()).toBe(true)
+  expect((await page.request.put('/api/v1/admin/settings', { data: { ...s, askToPrint: false } })).ok()).toBe(true)
 }
 
 async function setStyle(page: Page, receiptStyle: string) {
@@ -65,14 +65,14 @@ test.afterAll(async ({ browser }) => {
   const m = await browser.newPage()
   await asManager(m)
   const s = (await (await m.request.get('/api/v1/admin/settings')).json()).settings
-  await m.request.put('/api/v1/admin/settings', { data: { ...s, printAs: 'classic', askToPrint: true } })
+  await m.request.put('/api/v1/admin/settings', { data: { ...s, askToPrint: true } })
   await m.close()
 })
 
 test('pick a style with a live preview; the next print uses it', async ({ page, browser }) => {
   const m = await browser.newPage()
   await asManager(m)
-  await setPrintAs(m, 'image')
+  await autoPrint(m)
   const before = await printedSale(m)
 
   await asSystem(page)
@@ -100,17 +100,6 @@ test('pick a style with a live preview; the next print uses it', async ({ page, 
   const after = await printedSale(m)
   expect(after).not.toEqual(before)
   await m.close()
-})
-
-test('a Classic shop is told styles need Image printing', async ({ page, browser }) => {
-  const m = await browser.newPage()
-  await asManager(m)
-  await setPrintAs(m, 'classic')
-  await m.close()
-  await asSystem(page)
-  await page.goto('/admin/system/appearance')
-  await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
-  await expect(page.getByText(/prints Classic/)).toBeVisible()
 })
 
 test('a style can be printed from its preview, on a printer picked there', async ({ page }) => {

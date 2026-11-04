@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { receiptPicture, slipText } from './slip'
 import { viaTicket } from './ticket'
 
 // Combos (plugin, built in for Playwright). Needs `make e2e-seed`. Every combo and
@@ -116,12 +117,14 @@ test('the till menu adds a combo as one group; + scales it; the receipt prints o
   await cart(page).getByRole('button', { name: `More ${label}` }).click()
   await expect(cart(page).getByLabel(`Sets of ${label}`)).toHaveText('2')
   await expect(page.getByText(/Item discounts/)).toBeVisible()
+  const words = slipText(page)
   await page.getByRole('button', { name: /Complete sale/ }).click()
   const done = page.getByRole('dialog', { name: /complete/ })
   await expect(done).toContainText('Rs. 720.00')
-  await expect(done).toContainText(label)
-  await expect(done).toContainText(/2 x 400\.00 -> 360\.00/)
-  await expect(done).toContainText(`- ${TEA} x2`)
+  await expect(receiptPicture(done)).toBeVisible()
+  await expect.poll(words).toContain(label)
+  expect(await words()).toMatch(/2 x 400\.00 -> 360\.00/)
+  expect(await words()).toContain(`- ${TEA} x2`)
   await page.keyboard.press('Enter')
 })
 

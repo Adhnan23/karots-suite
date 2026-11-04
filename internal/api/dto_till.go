@@ -16,7 +16,6 @@ type TillConfig struct {
 	Symbol             string            `json:"symbol"`
 	DefaultSaleType    string            `json:"defaultSaleType"` // "retail" | "wholesale"
 	AskToPrint         bool              `json:"askToPrint"`
-	PrintAs            string            `json:"printAs"` // "classic" | "image"
 	OpenCashDrawer     bool              `json:"openCashDrawer"`
 	AllowUntrackedCash bool              `json:"allowUntrackedCash"`
 	DefaultLockerID    int64             `json:"defaultLockerId"` // 0 = none
@@ -27,9 +26,9 @@ type TillConfig struct {
 	CanSeeLowStock     bool              `json:"canSeeLowStock"` // Low stock tab
 	CanChangePin       bool              `json:"canChangePin"`
 	SendsToCashier     bool              `json:"sendsToCashier"` // a sales person: Send to cashier instead of Pay
-	IsManager          bool              `json:"isManager"`     // admin/manager: shows the Admin link
-	TenderMethods      []TenderMethod    `json:"tenderMethods"` // plugin tenders; core ones are fixed in the SPA
-	LabelSize          string            `json:"labelSize"`     // the shop's default sticker, "WxH" mm
+	IsManager          bool              `json:"isManager"`      // admin/manager: shows the Admin link
+	TenderMethods      []TenderMethod    `json:"tenderMethods"`  // plugin tenders; core ones are fixed in the SPA
+	LabelSize          string            `json:"labelSize"`      // the shop's default sticker, "WxH" mm
 	Shop               ShopHeader        `json:"shop"`
 	ReceiptWidth       string            `json:"receiptWidth"` // "80" | "58" mm, the shop default
 	ReceiptStyle       string            `json:"receiptStyle"` // the saved Image-mode style (see Appearance)

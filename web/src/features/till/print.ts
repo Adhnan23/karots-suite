@@ -24,7 +24,7 @@ const q = (kick: boolean, size?: string) => {
 }
 
 /** Each slip's print endpoint. POST prints it; POST …?preview=1 answers with the
- * slip as the paper shows it (SlipPaper). */
+ * slip's lines (a slip with no template of its own draws from them). */
 export const slipPath = {
   sale: (id: number) => `/till/sales/${id}/print`,
   money: (id: number) => `/till/money-receipts/${id}/print`,
@@ -36,12 +36,10 @@ export const slipPath = {
 /** Fire-and-forget: the sale is saved; only the paper is at stake. kick folds the
  * drawer pulse into this ONE printer job (fresh cash sale in auto-print mode). */
 export async function printSlip(path: string, kick = false, size?: string) {
-  const cfg = await queryClient.ensureQueryData(configQuery).catch(() => null)
-  // Image mode: the printer gets the same picture the preview showed. If it
-  // can't be drawn, this one slip prints Classic (the kick still rides once).
-  const pic = cfg?.printAs === 'image'
-    ? await slipPicture(path, size).catch((e: unknown) => void console.warn('receipt picture failed — printing Classic', e))
-    : undefined
+  // The printer gets the same picture the preview showed. If it can't be drawn,
+  // this one slip goes as the printer's own text (the kick still rides once).
+  await queryClient.ensureQueryData(configQuery).catch(() => null) // the shop's style
+  const pic = await slipPicture(path, size).catch((e: unknown) => void console.warn('receipt picture failed — printing Classic', e))
   return send(`${path}${q(kick, size)}`, pic?.blob)
 }
 export const printSale = (id: number, kick = false, size?: string) => printSlip(slipPath.sale(id), kick, size)

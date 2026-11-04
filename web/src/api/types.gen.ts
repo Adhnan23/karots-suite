@@ -3196,7 +3196,6 @@ export interface ShopSettings {
   receiptWidth: string; // "80" | "58"
   defaultSaleType: string; // "retail" | "wholesale"
   askToPrint: boolean;
-  printAs: string; // "classic" | "image"
   labelPrintAs: string; // "classic" | "image"
   taxRegistered: boolean;
   taxRegNo: string;
@@ -3765,7 +3764,6 @@ export interface TillConfig {
   symbol: string;
   defaultSaleType: string; // "retail" | "wholesale"
   askToPrint: boolean;
-  printAs: string; // "classic" | "image"
   openCashDrawer: boolean;
   allowUntrackedCash: boolean;
   defaultLockerId: number /* int64 */; // 0 = none

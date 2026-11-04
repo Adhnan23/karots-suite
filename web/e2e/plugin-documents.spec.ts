@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { receiptPicture, slipText } from './slip'
 import { viaTicket } from './ticket'
 
 // Print & Copy (plugin, built in for Playwright). Needs `make e2e-seed`. The service,
@@ -162,8 +163,10 @@ test('a spoilt job comes back through Returns: refunded, nothing restocked', asy
   await page.getByText(/^S-\d+/).first().click()
   await expect(page.getByText(/nothing goes back on a shelf/)).toBeVisible()
   await page.getByRole('button', { name: `More ${LINE}` }).click()
+  const refund = slipText(page)
   await page.getByRole('button', { name: /Refund Rs\. 6\.00 cash/ }).click()
-  await expect(page.getByRole('dialog', { name: 'Print the receipt?' })).toContainText(/CASH REFUND\s+Rs\. 6\.00/)
+  await expect(receiptPicture(page.getByRole('dialog', { name: 'Print the receipt?' }))).toBeVisible()
+  await expect.poll(refund).toMatch(/CASH REFUND\s+Rs\. 6\.00/)
   expect(await paperLeft(page)).toBe(before)
   await expect.poll(async () => {
     const r = await json<{ rows: { name: string; copies: string }[] }>(page.request.get('/api/v1/x/documents/report?preset=today'))
@@ -204,14 +207,15 @@ test('extras: set in the editor, ticked at the till, one block with the job, the
   await expect(cart(page).getByRole('button', { name: /^Remove Urgent from/ })).toHaveCount(0)
   await page.screenshot({ path: 'shots/doc-types/extras-cart.png' })
   await expect(ex.getByRole('button', { name: /Urgent/ })).toHaveAttribute('aria-pressed', 'false') // cleared for the next job
+  const words = slipText(page)
   await page.getByRole('button', { name: /Complete sale/ }).click()
   const done = page.getByRole('dialog', { name: /complete/ })
   await expect(done).toContainText('Rs. 160.00')
   // the receipt: the job's block with its total, each line priced
-  const slip = done.getByRole('article', { name: 'Receipt preview' }) // Classic (the shop default): the decoded lines
-  await expect(slip).toContainText(new RegExp(`${COPY}\\s+160\\.00`))
-  await expect(slip).toContainText(/- Urgent x1\s+100\.00/)
-  await expect(slip).toContainText(/- Hole punch x4\s+20\.00/)
+  await expect(receiptPicture(done)).toBeVisible()
+  await expect.poll(words).toMatch(new RegExp(`${COPY}\\s+160\\.00`))
+  expect(await words()).toMatch(/- Urgent x1\s+100\.00/)
+  expect(await words()).toMatch(/- Hole punch x4\s+20\.00/)
   await page.keyboard.press('Enter')
   const copies = (r: { rows: { name: string; copies: string }[] }) => Number(r.rows.find((x) => x.name === COPY)?.copies ?? 0)
   await expect.poll(async () => copies(await json(page.request.get('/api/v1/x/documents/report?preset=today')))).toBe(copies(before) + 4)
