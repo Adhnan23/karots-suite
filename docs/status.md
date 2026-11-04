@@ -5,9 +5,8 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, end of 2026-11-04)
 
-**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Aiman Pharmacy Kalpitiya**, is not installed yet. Latest
-Release in the bucket: **2026.11.04.1524**. Commits after it are not in any Release: Credited us prefilled, both Setups in every shop folder, the
-test fixes. **The user will say when to publish the next Release; don't publish before that.** `dist/aiman-pharmacy-kalpitiya/` holds a local test build (1553), not a Release.
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Aiman Pharmacy Kalpitiya**, is not installed yet. Newer Releases are in
+the bucket (see `published` in `shops.json`), published with the user's go-ahead for the update power-cut test. **Don't publish more before the user says.**
 
 **Waiting on the user, in no hurry:**
 - A label roll, then the XP-365B on the real main PC: size, gap, drift, Image with Sinhala / Tamil, scanning a label back. Nothing has printed on it yet.
@@ -21,9 +20,7 @@ test fixes. **The user will say when to publish the next Release; don't publish 
 - **No cash drawer at Aiman for now** (opened with its key), so the drawer is untested on real hardware.
 
 **Small things for later, when the user asks:**
-- Builder: rename **Runs on** to say it means the main PC ("Main PC runs on"). Agreed, not now. It needs no multi-system chooser: every folder carries both Setups.
-- The till zooms ~1% at every width (`lib/autofit`: `needed + pad > avail` is true even when it fits). Harmless to slips now; looks unintended.
-- A power-cut test on `karots-main` (force it off mid-sale, check the data); offered, not answered. A UPS for Aiman's main PC is suggested; the order has none.
+- **Test backups in Aiman's cloud folder:** the user deletes them in Cloudflare after testing. The bucket's 30-day lock may refuse recent ones.
 - Bigger: Pocket Cashier release 2 (counter pages, plugin menus, tickets on the phone; a ticket on a phone-only till waits unseen today); the whole-system check (a simulated year, the books balance).
 
 **Aiman's setup (replaces the shop-visit list below):** new PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20") = **admin + main PC**, in the background; the **owner's own Linux
@@ -41,6 +38,8 @@ box purchase (5 boxes, +500, owed 15,000); barcode flow and removing a link; lon
 An unknown scan asks "a product you already have?" first on purchase screens and intake; + New product; a cashier's linked barcode waits on Items to review. Unit costs keep 4 decimals (`stock_movements.cost` stays 2: it's a total). Demo Room has a second cashier and a Sales person.
 
 **The receipt bug worth remembering:** the till is zoomed, so a slip was measured small and drawn full size: "TOTA / L", in Chromium, 8 of 10 styles. `shoot()` cancels the page zoom; `appearance-receipts.spec` covers all ten. Appearance's samples hid it because admin pages don't zoom. **Check slips on the till, not only in Appearance, and with the shop's real data.**
+
+**Power-cut test on `karots-main` (2026-11-04, file mode):** a generator doesn't remove the cut, it comes after it, and Aiman has no UPS (he has generators). Sales: confirmed sales all survive, in-flight ones vanish whole, stock and cash agree, up in 7-9 s; receipt numbers jump about 30 after a cut (PostgreSQL, nothing lost). Found and fixed (`559cab3`, `internal/durable`): backups and a downloaded update weren't forced to disk. A cut left 0-byte backups, and on 1524 a cut 6-20 s after an update's swap left the shop not starting (3 of 3; the same update with no cut was fine). Disk file contents couldn't be read from outside (no shell on the VM), so "empty program" is the likely cause, not seen. The tiny gap between Swap's two renames is left as it is. Still to do on the real PC: one plug-pull before real data.
 
 **Working here:**
 - **Tests:** `make test` runs one package at a time. Nothing reaches a real printer now (`testing.Testing()`, `KAROTS_NO_SPOOL` for Playwright's server). Playwright resets `suite_db`; never run it with `go test` on `suite_db`, or two builds at once (they share the plugin lists). `appearance-receipts.spec` resets the receipt style when it ends. **First job next session: run the full Playwright once.** It last passed (235) before the last changes: the prefill, both Setups, the test fixes. Its final run was stopped on purpose.

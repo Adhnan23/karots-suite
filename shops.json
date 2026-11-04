@@ -28,15 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-04T10:23:59Z",
-        "commit": "b823f3a",
-        "version": "2026.11.04.1553",
-        "kind": "test"
+        "at": "2026-11-04T13:42:36Z",
+        "commit": "559cab3",
+        "version": "2026.11.04.1912",
+        "kind": "release",
+        "notes": "• A power cut no longer leaves an empty backup or program\n• Zoom only when the till doesn't fit, not 1% at every width\n• \"Runs on\" says it means the main PC\n• The prefilled credit is the loss as the server sends it\n• Nothing reaches a real printer, packages run one at a time, tests don't depend on the time of day\n• A cashier PC may run another system than the main PC\n• Credited us starts filled with the whole loss"
       },
       "published": {
-        "version": "2026.11.04.1524",
-        "commit": "d690c25",
-        "at": "2026-11-04T09:55:46Z"
+        "version": "2026.11.04.1912",
+        "commit": "559cab3",
+        "at": "2026-11-04T13:43:38Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
