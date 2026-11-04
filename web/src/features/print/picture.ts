@@ -27,6 +27,9 @@ export async function shoot(el: ReactElement, dots: number, fonts: readonly stri
   await Promise.resolve()
   const host = document.createElement('div')
   host.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none'
+  // The till zooms itself to fit its screen (lib/autofit): undo that here, or the slip is
+  // measured at one size and drawn at another, and "TOTAL" no longer fits its box.
+  host.style.setProperty('zoom', String(1 / (parseFloat(getComputedStyle(document.documentElement).zoom) || 1)))
   document.body.appendChild(host)
   const root = createRoot(host)
   try {

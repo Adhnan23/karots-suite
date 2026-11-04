@@ -25,6 +25,8 @@ open till for tickets, though the phone has no ticket screen until release 2.
 **To design after this round (user, 2026-11-04):** a shop with mixed systems, like a Linux main PC and a Windows cashier PC, since a build is for one OS today.
 **Unit costs keep 4 decimals (2026-11-04, migration 00030):** products, purchase and return lines, sale lines and lots; a box of 120 at 1,000 is 8.3333 a unit and adds back up to 1,000. Screens still show 2 decimals. `stock_movements.cost` stays at 2: it's a total, not a unit cost.
 
+**Receipts on the till, fixed 2026-11-04 (found on the real XP-80T):** the till zooms itself a little at every width (`lib/autofit`: `needed + pad > avail`, e.g. 0.9884 at 1366), so a slip was measured zoomed and drawn at full size, and text wrapped ("TOTA / L"), in Chromium, on every style but Classic. `shoot()` now cancels the page's zoom. Admin pages don't zoom, which is why Appearance looked right. Release 2026.11.04.1356 has this bug: don't install it.
+
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
 one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
 bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC

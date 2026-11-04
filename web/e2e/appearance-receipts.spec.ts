@@ -128,21 +128,23 @@ test('a style can be printed from its preview, on a printer picked there', async
   await page.screenshot({ path: 'shots/appearance-try-print/both.png', fullPage: true })
 })
 
-// A browser whose text measures a little differently (a real Linux desktop's Chromium) must
-// not break the slip: "TOTA / L", lines on top of each other. The picture lays itself out
-// instead of keeping the boxes' measured sizes. The test makes every text box report short.
-test('a receipt picture keeps its layout when text measures differently', async ({ page }) => {
+// The till zooms itself to fit a smaller screen (lib/autofit). A slip must be measured at the
+// size it's drawn, or "TOTAL" wraps inside its box and lines stack ("TOTA / L", on a real PC).
+test('every receipt style draws the same picture on a zoomed till', async ({ page, browser }) => {
+  test.setTimeout(240_000)
   await asSystem(page)
-  const draw = async () => {
-    await page.goto('/admin/system/appearance')
-    await page.waitForLoadState('networkidle')
-    const styles = page.getByRole('group', { name: 'Receipt style' })
-    if (!(await styles.isVisible())) await page.locator('summary', { hasText: 'Receipt style' }).click() // it remembers being open
-    await styles.getByRole('button', { name: /Cards/ }).click()
-    const img = page.getByRole('img', { name: 'Receipt preview' })
+  const m = await browser.newPage()
+  await asManager(m)
+  await autoPrint(m)
+  await printedSale(m)
+  const draw = async (noZoom: boolean) => {
+    await m.goto('/till/receipts')
+    if (noZoom) await m.addStyleTag({ content: 'html { zoom: 1 !important }' })
+    await m.getByRole('button', { name: /^S-\d+/ }).first().click()
+    const img = m.getByRole('img', { name: 'Receipt preview' })
     await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBe(576)
-    await page.waitForTimeout(1000)
-    // The ink on each row of the picture.
+    await m.waitForTimeout(300)
+    // The ink on each row of the picture, and the zoom it was drawn under.
     return img.evaluate((i: HTMLImageElement) => {
       const c = document.createElement('canvas')
       c.width = i.naturalWidth
@@ -152,32 +154,18 @@ test('a receipt picture keeps its layout when text measures differently', async 
       const px = x.getImageData(0, 0, c.width, c.height).data
       const rows = new Array<number>(c.height).fill(0)
       for (let n = 0; n < px.length; n += 4) if (px[n] < 128) rows[Math.floor(n / 4 / c.width)]++
-      return rows
+      return { rows, zoom: parseFloat(getComputedStyle(document.documentElement).zoom) }
     })
   }
-  const normal = await draw()
-  await page.addInitScript(() => {
-    const real = window.getComputedStyle
-    window.getComputedStyle = (el, pseudo) => {
-      const style = real.call(window, el, pseudo)
-      if (!el.closest?.('[style*="-10000px"]') || el.querySelector('*') || !el.textContent) return style
-      return new Proxy(style, {
-        get(t, k) {
-          if (k === 'getPropertyValue') {
-            return (name: string) => {
-              const v = t.getPropertyValue(name)
-              return (name === 'width' || name === 'inline-size') && v.endsWith('px') ? `${Math.max(0, parseFloat(v) - 6)}px` : v
-            }
-          }
-          const v = Reflect.get(t, k)
-          return typeof v === 'function' ? v.bind(t) : v
-        },
-      })
-    }
-  })
-  const short = await draw()
-  await page.getByRole('img', { name: 'Receipt preview' }).screenshot({ path: 'shots/receipt-previews/text-measured-short.png' })
-  const ink = normal.reduce((a, b) => a + b, 0)
-  const moved = normal.reduce((a, n, y) => a + Math.abs(n - (short[y] ?? 0)), 0)
-  expect(moved / ink).toBeLessThan(0.02) // only the sample's clock may tick
+  for (const style of ['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections']) {
+    await setStyle(page, style)
+    const plain = await draw(true)
+    const zoomed = await draw(false)
+    expect(plain.zoom, 'forced off').toBe(1)
+    expect(zoomed.zoom, 'the till zooms itself').toBeLessThan(1)
+    const ink = plain.rows.reduce((a, b) => a + b, 0)
+    const moved = plain.rows.reduce((a, n, y) => a + Math.abs(n - (zoomed.rows[y] ?? 0)), 0)
+    expect.soft(moved / ink, `${style} on a zoomed till`).toBeLessThan(0.01)
+  }
+  await m.close()
 })
