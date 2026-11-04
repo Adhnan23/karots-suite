@@ -27,7 +27,8 @@ In **Setup → Settings**:
 ## Printers we've tested
 
 - **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): Classic, and Image in all ten receipt
-  styles, on the PC itself and from a cashier PC.
+  styles, on the PC itself and from a cashier PC, on Linux; Windows 10 with the built-in **Generic / Text
+  Only** driver prints its test slips in both modes.
 
 ## Printers on a cashier PC
 
