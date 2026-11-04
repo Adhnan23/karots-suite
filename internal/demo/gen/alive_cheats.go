@@ -16,6 +16,9 @@ import (
 func (s *Sim) openTills() error {
 	g := s.g
 	for _, l := range g.s.p.Logins {
+		if l.SendsToCashier {
+			continue // no till: they send carts to the others
+		}
 		var id int64
 		if err := g.d.DB.GetContext(g.ctx, &id, `SELECT id FROM users WHERE phone = $1`, l.Phone); err != nil {
 			return err

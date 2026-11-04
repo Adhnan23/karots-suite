@@ -11,6 +11,8 @@ type Login struct {
 	Name  string `json:"name"`
 	Phone string `json:"phone"` // the login form signs in by phone + PIN
 	PIN   string `json:"pin"`
+	// SendsToCashier: a sales person, who sends carts to a cashier and has no till.
+	SendsToCashier bool `json:"sendsToCashier,omitempty"`
 }
 
 // Profile is one demo shop.

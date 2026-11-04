@@ -53,7 +53,7 @@ func TestBuiltInsAreReal(t *testing.T) {
 				t.Errorf("%s: plugin %q isn't compiled", p.Key, k)
 			}
 		}
-		if len(p.Logins) != 3 || len(p.Staff) < 2 || p.Volume <= 0 {
+		if len(p.Logins) != 5 || len(p.Staff) < 2 || p.Volume <= 0 {
 			t.Errorf("%s: logins %d, staff %d, volume %d", p.Key, len(p.Logins), len(p.Staff), p.Volume)
 		}
 	}
@@ -67,7 +67,7 @@ func TestProfileSurvivesJSON(t *testing.T) {
 	if err := json.Unmarshal(b, &back); err != nil {
 		t.Fatal(err)
 	}
-	if back.Volume != p.Volume || back.Catalogue != p.Catalogue || len(back.Plugins) != len(p.Plugins) || len(back.Logins) != 3 {
+	if back.Volume != p.Volume || back.Catalogue != p.Catalogue || len(back.Plugins) != len(p.Plugins) || len(back.Logins) != 5 || !back.Logins[4].SendsToCashier {
 		t.Fatalf("after JSON: %+v", back)
 	}
 }

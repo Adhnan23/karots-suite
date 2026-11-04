@@ -46,10 +46,14 @@ func address(p shops.Profile) string {
 // (no forced PIN change in a demo).
 func people(ctx context.Context, d Deps, p shops.Profile) error {
 	for _, l := range append(append([]shops.Login{}, p.Logins...), p.Staff...) {
-		if _, err := d.Svc.Auth.CreateUser(ctx, auth.CreateUserInput{
+		in := auth.CreateUserInput{
 			Name: l.Name, Phone: l.Phone, Role: l.Role, PIN: l.PIN,
 			CanHandleSuppliers: "on", CanManageCredit: "on", CanSeeCost: "on", CanSeeLowStock: "on",
-		}); err != nil {
+		}
+		if l.SendsToCashier {
+			in.SendsToCashier = "on"
+		}
+		if _, err := d.Svc.Auth.CreateUser(ctx, in); err != nil {
 			return fmt.Errorf("user %s: %w", l.Name, err)
 		}
 	}

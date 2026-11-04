@@ -1,5 +1,5 @@
 // The launcher's JSON (cmd/demo/launcher.go).
-export type Login = { role: string; name: string; phone: string; pin: string }
+export type Login = { role: string; name: string; phone: string; pin: string; sendsToCashier?: boolean }
 export type Shop = {
   key: string; name: string; blurb: string; plugins: string[] | null; palette: string; receiptStyle: string
   catalogue: string; logins: Login[]

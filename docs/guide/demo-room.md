@@ -20,7 +20,7 @@ demo closes.
 | **Make your own** | Pick plugins, a palette and a receipt style. Slower, because its past is built while you wait |
 
 Each shop opens in its own palette within about half a minute. The sign-in page lists the shop's
-demo logins (owner, manager, cashiers); tap one to sign in.
+demo logins (owner, manager, two cashiers, a sales person); tap one to sign in.
 
 ## Unlocking
 

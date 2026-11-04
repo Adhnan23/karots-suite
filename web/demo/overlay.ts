@@ -11,14 +11,14 @@ let st: State | null = null
 function sideOfLogins(): HTMLElement | null {
   if (!st?.shop || !/^\/(login|lock)/.test(location.pathname)) return null
   const rows = st.shop.logins.map((l) => {
-    const b = el('button', { type: 'button', title: `Sign in as ${l.name}` }, el('b', {}, l.name), el('span', {}, `${roleName(l.role)}, ${l.phone}, PIN ${l.pin}`))
+    const b = el('button', { type: 'button', title: `Sign in as ${l.name}` }, el('b', {}, l.name), el('span', {}, `${roleName(l)}, ${l.phone}, PIN ${l.pin}`))
     b.addEventListener('click', () => void signIn(l))
     return el('li', {}, b)
   })
   return el('aside', { class: 'ksd-logins', 'aria-label': 'Demo logins' }, el('h2', {}, 'Demo logins — tap to sign in'), el('ul', {}, ...rows))
 }
 
-const roleName = (r: string) => ({ admin: 'Owner', manager: 'Manager', cashier: 'Cashier' })[r] ?? r
+const roleName = (l: Login) => l.sendsToCashier ? 'Sales person' : ({ admin: 'Owner', manager: 'Manager', cashier: 'Cashier' })[l.role] ?? l.role
 
 /** The mark that can't be dismissed: a copy left on a customer's PC still points home. */
 function watermark(): HTMLElement {
@@ -199,7 +199,7 @@ export function openCheats() {
   dialog.addEventListener('click', (e) => e.target === dialog && shut())
   dialog.addEventListener('keydown', (e) => e.key === 'Escape' && shut())
   for (const l of st.shop?.logins ?? []) {
-    const b = el('button', { type: 'button' }, `Sign in as ${l.name} (${roleName(l.role)})`)
+    const b = el('button', { type: 'button' }, `Sign in as ${l.name} (${roleName(l)})`)
     b.addEventListener('click', () => void signIn(l))
     group('Sign in').append(b)
   }
