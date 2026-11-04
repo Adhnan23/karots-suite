@@ -1,8 +1,8 @@
 {
   "shops": [
     {
-      "key": "aiman-pharmacy-kalpitiya",
-      "name": "Aiman Pharmacy Kalpitiya",
+      "key": "iman-pharmacy-kalpitiya",
+      "name": "Iman Pharmacy Kalpitiya",
       "os": "linux",
       "arch": "amd64",
       "mode": "file",
