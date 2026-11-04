@@ -133,7 +133,8 @@ test('a style can be printed from its preview, on a printer picked there', async
 test('every receipt style draws the same picture on a zoomed till', async ({ page, browser }) => {
   test.setTimeout(240_000)
   await asSystem(page)
-  const m = await browser.newPage()
+  // Narrow on purpose: the till only zooms on a screen too small for it.
+  const m = await browser.newPage({ viewport: { width: 900, height: 720 } })
   await asManager(m)
   await autoPrint(m)
   await printedSale(m)

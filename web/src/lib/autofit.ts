@@ -1,6 +1,6 @@
 /** Zoom that makes `needed` px fit `avail` px (never above 1). For the kiosk. */
 export function autofitZoom(needed: number, avail: number, pad = 16) {
-  return needed + pad > avail ? Number((avail / (needed + pad)).toFixed(4)) : 1
+  return needed > avail ? Number((avail / (needed + pad)).toFixed(4)) : 1
 }
 
 /** Keeps the till frame fitted on sub-1080p counter screens. Returns a cleanup fn. */
