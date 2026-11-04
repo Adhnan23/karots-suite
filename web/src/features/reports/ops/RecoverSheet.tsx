@@ -78,7 +78,7 @@ export function RecoverSheet({ loss, sym, supplierId = 0, base = '/admin', onClo
   // Most credits are for the whole loss: it starts filled in, and a part credit just changes it.
   const pickOutcome = (o: typeof outcome) => {
     setOutcome(o)
-    if (o === 'paid' && !amount) setAmount(dec(loss.loss))
+    if (o === 'paid' && !amount) setAmount(loss.loss)
   }
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Recover: ${loss.product}`} submit="Record"
