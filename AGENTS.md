@@ -196,7 +196,7 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
 
 - **Ports:** Postgres `suite_db` on **5433**, Go server on **3000**, Vite on **5173** (proxies `/api`).
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
-- `make test` (Go, DB tests gated on `DATABASE_URL`) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
+- `make test` (Go, one package at a time, DB tests gated on `DATABASE_URL`; nothing reaches a real printer: `KAROTS_NO_SPOOL`, set for Playwright's server) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
 - **Demo Room:** `make demo` (or Shop Builder → Demo Room) → `dist/demo/karots-suite-demo-room` + `.exe` (every built-in shop's
   year, ~6 min, kept in the user cache and reused while nothing that shapes the data changed — `cmd/bootstrap/demoyears.go`;

@@ -28,6 +28,7 @@ import (
 func twoPricedLots(t *testing.T, ctx context.Context, tx *sqlx.Tx) (repo *Repository, productID, lotA, lotB int64) {
 	t.Helper()
 	repo = NewRepository(tx)
+	testUserOne(t, ctx, tx)
 
 	var categoryID, unitID int64
 	must(t, tx.GetContext(ctx, &categoryID, `SELECT id FROM categories LIMIT 1`))
@@ -361,4 +362,11 @@ func TestDepleteChosenRefusesMoreThanTheLotHolds(t *testing.T) {
 	if _, err := repo.depleteChosen(ctx, productID, lotA, decimal.NewFromInt(99)); err == nil {
 		t.Error("removing more than the lot holds was allowed")
 	}
+}
+
+// testUserOne: these tests record movements as user 1; a fresh database has none (rolled back with tx).
+func testUserOne(t *testing.T, ctx context.Context, tx *sqlx.Tx) {
+	t.Helper()
+	_, err := tx.ExecContext(ctx, `INSERT INTO users (id, name, phone, role, pin_hash) VALUES (1, 'TEST user', '0700000991', 'admin', 'x') ON CONFLICT DO NOTHING`)
+	must(t, err)
 }

@@ -101,7 +101,12 @@ func (tm *timeMachine) shift(ctx context.Context) error {
 	}
 	lastWall := time.Now().Add(time.Second)
 	startDay := tm.start.Format("2006-01-02")
-	firstDays := int(dayOf(tm.anchors[0].target).Sub(dayOf(tm.start)).Hours() / 24)
+	firstDays := int(math.Round(localDay(tm.anchors[0].target).Sub(localDay(tm.start)).Hours() / 24))
+	// Dates move by local calendar days: before 05:30 in Sri Lanka it's still yesterday in UTC.
+	_, offset := tm.start.Zone()
+	local := func(ts string) string {
+		return fmt.Sprintf(`((%s AT TIME ZONE 'UTC') + make_interval(secs => %d))::date`, ts, offset)
+	}
 	hasCreated := map[string]bool{}
 	for _, c := range tm.tsCols {
 		if c.column == "created_at" {
@@ -111,8 +116,8 @@ func (tm *timeMachine) shift(ctx context.Context) error {
 	for _, c := range tm.dateCols {
 		by := fmt.Sprintf("%d", firstDays)
 		if hasCreated[c.table] {
-			by = fmt.Sprintf(`COALESCE((SELECT (a.target AT TIME ZONE 'UTC')::date - (a.wall AT TIME ZONE 'UTC')::date
-				FROM demo_anchors a WHERE a.wall <= t.created_at ORDER BY a.wall DESC LIMIT 1), %d)`, firstDays)
+			by = fmt.Sprintf(`COALESCE((SELECT %s - %s
+				FROM demo_anchors a WHERE a.wall <= t.created_at ORDER BY a.wall DESC LIMIT 1), %d)`, local("a.target"), local("a.wall"), firstDays)
 		}
 		q := fmt.Sprintf(`UPDATE %q AS t SET %q = t.%q + %s
 			WHERE t.xmin::text::bigint >= $1 AND t.%q IS NOT NULL AND t.%q >= $2::date - 1`,
@@ -146,11 +151,6 @@ func (tm *timeMachine) shift(ctx context.Context) error {
 func daysToMove(now, last time.Time) int {
 	gap := localDay(now).Sub(localDay(last.In(now.Location())))
 	return int(math.Round(gap.Hours()/24)) - 1
-}
-
-func dayOf(t time.Time) time.Time {
-	y, m, d := t.UTC().Date()
-	return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 }
 
 // moveAll moves a whole past forward by whole days so its last day of trade is

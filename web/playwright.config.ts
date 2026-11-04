@@ -13,7 +13,7 @@ export default defineConfig({
   webServer: {
     // Every ported plugin is built in; the tree goes back to core-only straight after.
     // A fresh e2e DB each run: stale rows from an earlier run fail unrelated flows.
-    command: 'cd .. && make e2e-seed && make plugins P=all && make build && make core-only && set -a && . ./.env && set +a && ./bin/karots-suite',
+    command: 'cd .. && make e2e-seed && make plugins P=all && make build && make core-only && set -a && . ./.env && set +a && KAROTS_NO_SPOOL=1 ./bin/karots-suite',
     url: 'http://localhost:3000/api/v1/auth/login-info',
     reuseExistingServer: true,
     timeout: 300_000,

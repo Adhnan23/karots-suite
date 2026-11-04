@@ -21,8 +21,10 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"sync/atomic"
+	"testing"
 	"time"
 )
 
@@ -43,6 +45,10 @@ func Raw(ctx context.Context, target string, data []byte) error {
 	}
 	return rawSpool(ctx, target, data)
 }
+
+// noSpool keeps tests off this PC's real printers: Go tests by themselves, the e2e server
+// through its environment. A print with no printer set would go to the system default.
+func noSpool() bool { return testing.Testing() || os.Getenv("KAROTS_NO_SPOOL") != "" }
 
 // machineSender delivers "machine://…" targets: a printer on a cashier PC.
 var machineSender atomic.Pointer[func(context.Context, string, []byte) error]

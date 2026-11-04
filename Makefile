@@ -10,7 +10,7 @@ migrate: db-up
 run: db-up
 	$(ENV) go run ./cmd/server
 test:
-	$(ENV) go test ./...
+	$(ENV) go test -p 1 ./...
 types:
 	tygo generate
 web: types

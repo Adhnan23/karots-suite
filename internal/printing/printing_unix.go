@@ -14,6 +14,9 @@ import (
 // name uses the system default destination. The queue MUST be a raw queue (no
 // PPD/driver) so CUPS passes the bytes through unmodified.
 func rawSpool(ctx context.Context, queue string, data []byte) error {
+	if noSpool() {
+		return nil
+	}
 	args := []string{"-o", "raw"}
 	if queue != "" {
 		args = append([]string{"-d", queue}, args...)

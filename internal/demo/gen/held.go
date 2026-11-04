@@ -15,7 +15,7 @@ var heldLabels = []string{"Lady in red saree — gone to ATM", "Three-wheeler dr
 // heldCarts leaves a sale or two on hold at the shown cashier's till this
 // morning, the way the till's Hold button keeps them (its own cart document).
 func (g *gen) heldCarts(day time.Time, until float64) error {
-	if until < 9.5 {
+	if until < 0.2 { // just past midnight
 		return nil
 	}
 	cl, err := g.tillOf(g.s.cashiers[0])
@@ -39,7 +39,8 @@ func (g *gen) heldCarts(day time.Time, until float64) error {
 			total = total.Add(it.price.Mul(decimal.NewFromFloat(q)))
 		}
 		blob, _ := json.Marshal(map[string]any{"v": 2, "lines": lines, "billDiscountType": "fixed", "meta": map[string]any{}})
-		g.tm.at(at(day, 8.6+float64(n)*0.7+g.r.Float64()*0.3))
+		// This morning, or if it's still early, some time before now.
+		g.tm.at(at(day, min(8.6+float64(n)*0.7+g.r.Float64()*0.3, until*(0.5+float64(n)*0.2))))
 		if err := cl.Do("POST", "/api/v1/till/held", map[string]any{"label": heldLabels[g.r.IntN(len(heldLabels))],
 			"saleType": "retail", "discount": "0", "cart": string(blob), "itemCount": len(lines), "total": total.StringFixed(2)}, nil); err != nil {
 			return fmt.Errorf("held sale: %w", err)

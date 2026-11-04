@@ -28,6 +28,9 @@ type settleFixture struct {
 
 func newSettleFixture(t *testing.T, ctx context.Context, tx *sqlx.Tx, db *sqlx.DB) settleFixture {
 	t.Helper()
+	// These tests record the money as user 1; a fresh database has none (rolled back with tx).
+	_, err := tx.ExecContext(ctx, `INSERT INTO users (id, name, phone, role, pin_hash) VALUES (1, 'TEST user', '0700000991', 'admin', 'x') ON CONFLICT DO NOTHING`)
+	mustS(t, err)
 	var supplierID int64
 	mustS(t, tx.GetContext(ctx, &supplierID,
 		`INSERT INTO suppliers (name) VALUES ('TEST settle supplier') RETURNING id`))

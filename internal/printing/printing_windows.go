@@ -49,6 +49,9 @@ const (
 // rawSpool sends data to a Windows printer using the RAW datatype. An empty
 // queue uses the OS default printer.
 func rawSpool(ctx context.Context, queue string, data []byte) error {
+	if noSpool() {
+		return nil
+	}
 	if queue == "" {
 		def, err := defaultPrinter()
 		if err != nil {

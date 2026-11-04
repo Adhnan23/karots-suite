@@ -114,7 +114,9 @@ func grocery(t *testing.T) (*sqlx.DB, time.Time) {
 }
 
 func buildGrocery() error {
-	groceryNow = time.Now()
+	// A fixed 10:00, whenever the test runs: today's cheques fall at 05:00, before midnight in
+	// UTC, which once moved them a day early, and the shop is well into its morning by then.
+	groceryNow = localDay(time.Now()).Add(10 * time.Hour)
 	p, _ := shops.ByKey("grocery")
 	p.Volume = 25 // a test-sized year; the real one is built by make demo
 	ctx := context.Background()
@@ -202,10 +204,10 @@ func TestLowStockAndAutoLevels(t *testing.T) {
 func TestSettingsPrintImageToEmulators(t *testing.T) {
 	d, _ := grocery(t)
 	var s struct {
-		Label   string `db:"label_print_as"`
-		RP      string `db:"receipt_printer"`
-		LP      string `db:"label_printer"`
-		Skin    string `db:"skin"`
+		Label string `db:"label_print_as"`
+		RP    string `db:"receipt_printer"`
+		LP    string `db:"label_printer"`
+		Skin  string `db:"skin"`
 	}
 	if err := d.Get(&s, `SELECT label_print_as, receipt_printer, label_printer, skin FROM settings WHERE id = 1`); err != nil {
 		t.Fatal(err)
