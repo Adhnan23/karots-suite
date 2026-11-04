@@ -74,6 +74,7 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
             </button>
           ))}
         </div>
+        <TryPrint what="receipt" path={`/system/print/slip?size=${size}`} blob={preview.data?.blob} />
         {cfg?.printAs === 'classic' && (
           <p className="rounded-[var(--radius-sm)] bg-warning/15 px-3 py-2 text-sm">
             This shop prints Classic — receipt styles apply once Settings → Printers → Print receipts as is set to <b>Image</b>.
@@ -95,7 +96,6 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
             <span className="self-center text-sm text-muted-foreground">{preview.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
         </div>
-        <TryPrint what="receipt" path={`/system/print/slip?size=${size}`} blob={preview.data?.blob} />
       </div>
     </section>
   )

@@ -52,19 +52,22 @@ export function TryPrint({ what, path, blob }: { what: 'receipt' | 'label'; path
     }
   }
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <select aria-label={`Printer for this ${what}`} className={`${INPUT} min-w-0 flex-1 basis-48`} value={printer}
-        onChange={(e) => { setPrinter(e.target.value); remember.set(key, e.target.value) }}>
-        <option value="">The shop's {what} printer{shop ? ` (${shop})` : ''}</option>
-        {printer && list && !known && <option value={printer}>{printer} (not found now)</option>}
-        {list?.printers.map((p) => <option key={p.target} value={p.target}>{p.label}</option>)}
-        <option value={NETWORK}>A network printer…</option>
-      </select>
-      {printer === NETWORK && (
-        <input aria-label={`Network address for this ${what}`} className={`${INPUT} min-w-0 flex-1 basis-48`} placeholder="192.168.1.50:9100" autoComplete="off" value={address}
-          onChange={(e) => { setAddress(e.target.value); remember.set(`${key}-address`, e.target.value) }} />
-      )}
-      <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={busy || !blob || (printer === NETWORK && !target)} onClick={() => void print()}><Printer size={16} /> Print this</Button>
+    <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-card p-3 shadow-[var(--shadow)]">
+      <span className="text-xs font-bold text-muted-foreground">Try it on paper · prints the preview</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <select aria-label={`Printer for this ${what}`} className={`${INPUT} min-w-0 flex-1 basis-48`} value={printer}
+          onChange={(e) => { setPrinter(e.target.value); remember.set(key, e.target.value) }}>
+          <option value="">The shop's {what} printer{shop ? ` (${shop})` : ''}</option>
+          {printer && list && !known && <option value={printer}>{printer} (not found now)</option>}
+          {list?.printers.map((p) => <option key={p.target} value={p.target}>{p.label}</option>)}
+          <option value={NETWORK}>A network printer…</option>
+        </select>
+        {printer === NETWORK && (
+          <input aria-label={`Network address for this ${what}`} className={`${INPUT} min-w-0 flex-1 basis-48`} placeholder="192.168.1.50:9100" autoComplete="off" value={address}
+            onChange={(e) => { setAddress(e.target.value); remember.set(`${key}-address`, e.target.value) }} />
+        )}
+        <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={busy || !blob || (printer === NETWORK && !target)} onClick={() => void print()}><Printer size={16} /> Print this</Button>
+      </div>
     </div>
   )
 }

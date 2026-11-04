@@ -64,6 +64,7 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
             )
           })}
         </div>
+        <TryPrint what="label" path={`/system/print/label?size=${paper.wMm}x${paper.hMm}`} blob={preview?.blob} />
         {cfg?.labelPrintAs !== 'image' && (
           <p className="rounded-[var(--radius-sm)] bg-warning/15 px-3 py-2 text-sm">
             This shop prints labels as Classic — label styles apply once Settings → Printers → Print labels as is set to <b>Image</b>.
@@ -81,7 +82,6 @@ export function LabelStyles({ value, onChange }: { value: Record<string, string>
             <span className="text-sm text-muted-foreground" title={pq.error?.message}>{pq.isError ? 'The preview failed to draw' : 'Drawing…'}</span>
           )}
         </div>
-        <TryPrint what="label" path={`/system/print/label?size=${paper.wMm}x${paper.hMm}`} blob={preview?.blob} />
       </div>
     </section>
   )
