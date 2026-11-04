@@ -19,6 +19,17 @@ func TestSafePath(t *testing.T) {
 	}
 }
 
+// A power cut can leave a backup with a name and no contents: it isn't a backup.
+func TestListBackupsSkipsEmpty(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "good.json.gz"), []byte("x"), 0o644)
+	os.WriteFile(filepath.Join(dir, "cut.json.gz"), nil, 0o644)
+	l, err := ListBackups(dir)
+	if err != nil || len(l) != 1 || l[0].Name != "good.json.gz" {
+		t.Fatalf("got %v %v", l, err)
+	}
+}
+
 func TestListBackups(t *testing.T) {
 	if l, err := ListBackups(filepath.Join(t.TempDir(), "missing")); err != nil || len(l) != 0 {
 		t.Fatalf("missing dir: %v %v", l, err)

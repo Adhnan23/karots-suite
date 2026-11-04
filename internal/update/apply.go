@@ -10,9 +10,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"karots-suite/internal/durable"
 )
 
 // A download that receives nothing for stallLimit is abandoned; the watchdog
@@ -76,7 +79,9 @@ func (u *Updater) apply(ctx context.Context, m *Manifest) error {
 		os.Remove(newPath)
 		return err
 	}
-	return markPending(u.Exe, m.Version)
+	err := markPending(u.Exe, m.Version)
+	durable.SyncDir(filepath.Dir(u.Exe)) // the swap sticks, or the shop may wake on the old program: both start
+	return err
 }
 
 func (u *Updater) download(ctx context.Context, m *Manifest, dst string) error {
@@ -125,8 +130,10 @@ func (u *Updater) download(ctx context.Context, m *Manifest, dst string) error {
 			return err
 		}
 		defer gz.Close()
-		_, err = io.Copy(io.MultiWriter(f, h), gz)
-		return err
+		if _, err = io.Copy(io.MultiWriter(f, h), gz); err != nil {
+			return err
+		}
+		return f.Sync() // on disk before Swap: a power cut must not leave an empty program
 	}()
 	if cerr := f.Close(); err == nil {
 		err = cerr

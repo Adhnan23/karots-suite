@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/durable"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -41,11 +43,16 @@ func WriteSnapshot(ctx context.Context, db *sqlx.DB, dir string, now time.Time, 
 		os.Remove(tmp)
 		return "", err
 	}
+	if err := f.Sync(); err != nil { // or a power cut leaves the name with nothing in it
+		f.Close()
+		os.Remove(tmp)
+		return "", err
+	}
 	if err := f.Close(); err != nil {
 		os.Remove(tmp)
 		return "", err
 	}
-	if err := os.Rename(tmp, final); err != nil {
+	if err := durable.Rename(tmp, final); err != nil {
 		os.Remove(tmp)
 		return "", fmt.Errorf("finalize backup file: %w", err)
 	}
@@ -60,12 +67,23 @@ func Rotate(dir string, keep int) (pruned int, err error) {
 	if keep <= 0 {
 		return 0, nil
 	}
-	matches, err := filepath.Glob(filepath.Join(dir, "*"+fileSuffix))
+	found, err := filepath.Glob(filepath.Join(dir, "*"+fileSuffix))
 	if err != nil {
 		return 0, err
 	}
+	// Empty ones (a power cut in an older build) aren't backups: never count them.
+	matches := found[:0]
+	for _, m := range found {
+		if fi, err := os.Stat(m); err == nil && fi.Size() == 0 {
+			if os.Remove(m) == nil {
+				pruned++
+			}
+			continue
+		}
+		matches = append(matches, m)
+	}
 	if len(matches) <= keep {
-		return 0, nil
+		return pruned, nil
 	}
 	// Oldest first by modification time (filenames vary by shop slug, so a name
 	// sort no longer tracks age across a shop rename).

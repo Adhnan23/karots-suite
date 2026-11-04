@@ -59,6 +59,25 @@ func TestRotateKeepsNewest(t *testing.T) {
 	}
 }
 
+// Empty files left by power cuts go, and never push a real backup out.
+func TestRotateDropsEmptyWithoutCountingThem(t *testing.T) {
+	dir := t.TempDir()
+	good := filepath.Join(dir, "good.json.gz")
+	os.WriteFile(good, []byte("x"), 0o644)
+	older := time.Now().Add(-time.Hour) // the empty ones are newer: by age alone the good one would go
+	os.Chtimes(good, older, older)
+	for _, n := range []string{"a.json.gz", "b.json.gz", "c.json.gz"} {
+		os.WriteFile(filepath.Join(dir, n), nil, 0o644)
+	}
+	if _, err := Rotate(dir, 1); err != nil {
+		t.Fatal(err)
+	}
+	left, _ := filepath.Glob(filepath.Join(dir, "*.json.gz"))
+	if len(left) != 1 || left[0] != good {
+		t.Fatalf("left %v", left)
+	}
+}
+
 func TestRotateNoopWhenUnderLimit(t *testing.T) {
 	dir := t.TempDir()
 	for i := range 5 {

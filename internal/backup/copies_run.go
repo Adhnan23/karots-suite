@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"karots-suite/internal/durable"
+
 	"karots-suite/internal/config"
 	"karots-suite/internal/s3"
 
@@ -189,12 +191,17 @@ func copyInto(src, dst string, mod time.Time) error {
 		os.Remove(tmp)
 		return err
 	}
+	if err := out.Sync(); err != nil {
+		out.Close()
+		os.Remove(tmp)
+		return err
+	}
 	if err := out.Close(); err != nil {
 		os.Remove(tmp)
 		return err
 	}
 	os.Chtimes(tmp, mod, mod) //nolint:errcheck // the time only orders the copies
-	return os.Rename(tmp, dst)
+	return durable.Rename(tmp, dst)
 }
 
 // CloudName is a backup's name in Karots cloud: its time only, no shop name.

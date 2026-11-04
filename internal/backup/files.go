@@ -35,7 +35,7 @@ func ListBackups(dir string) ([]BackupFile, error) {
 			continue
 		}
 		info, err := e.Info()
-		if err != nil {
+		if err != nil || info.Size() == 0 { // empty: a power cut in an older build, not a backup
 			continue
 		}
 		out = append(out, BackupFile{Name: e.Name(), Size: info.Size(), ModifiedAt: info.ModTime()})
