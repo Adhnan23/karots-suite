@@ -22,6 +22,8 @@ open till for tickets, though the phone has no ticket screen until release 2.
 
 **Windows printing test under way (2026-11-04):** shop `windows-test` (every plugin, file mode, no cloud), Test build on the `win10` VM with the XP-80T attached. **After the test (user asked, not before):** Setup on Windows should add the printer itself, as it makes raw queues on Linux: USB ports with no printer get one on the Generic / Text Only driver. Today it's added by hand in Windows. **Test slips PASSED in Image and Classic on Windows 10 (user, 2026-11-04):** Generic / Text Only on USB001, file mode, as the main PC; Appearance's Print this and printing after a restart work there too; a real sale still to check; the helper on a Windows cashier PC not tested. Then, if Windows prints fine, Image-only receipts (keep the hidden Classic fallback); labels wait for a roll.
 
+**Small improvement, after the tests (user, 2026-11-04):** on Recover → **Credited us**, fill the amount with the loss's value (the text above it already says it); it's blank today.
+
 **To design after this round (user, 2026-11-04):** a shop with mixed systems, like a Linux main PC and a Windows cashier PC, since a build is for one OS today.
 **Unit costs keep 4 decimals (2026-11-04, migration 00030):** products, purchase and return lines, sale lines and lots; a box of 120 at 1,000 is 8.3333 a unit and adds back up to 1,000. Screens still show 2 decimals. `stock_movements.cost` stays at 2: it's a total, not a unit cost.
 
