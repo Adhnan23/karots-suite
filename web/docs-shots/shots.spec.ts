@@ -144,6 +144,30 @@ test('send to cashier', async ({ browser }) => {
   await taker.context().close()
 })
 
+// A new batch with a new barcode: the question on a delivery, then the link waiting on Items to review.
+test('unknown scan and barcode review', async ({ browser }) => {
+  const names = 'purchasing/unknown-scan stock/review-barcode'
+  if (only && !names.includes(only)) return
+  const page = await session(browser, owner)
+  await page.goto('/admin/purchases/new')
+  await page.getByLabel('Add a product').fill('4790999000017')
+  await page.getByLabel('Add a product').press('Enter')
+  await page.getByRole('button', { name: "It's a new product" }).waitFor()
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${out}/purchasing/unknown-scan.jpg`, type: 'jpeg', quality: 82 })
+
+  const till = await session(browser, { phone: '0771000003', pin: '3333' })
+  const p = await (await till.request.get('/api/v1/till/products/barcode/4790001002030')).json()
+  const r = await till.request.post(`/api/v1/till/products/${p.id}/barcodes`, { data: { barcode: '4790999000017', source: 'receive' } })
+  if (!r.ok()) throw new Error(`link: ${r.status()}`)
+  await page.goto('/admin/products/review')
+  await page.getByText('Barcode 4790999000017 linked here by').locator('visible=true').waitFor()
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${out}/stock/review-barcode.jpg`, type: 'jpeg', quality: 82 })
+  await till.context().close()
+  await page.context().close()
+})
+
 // A cashier PC's print helper has called in, waiting for the admin's OK.
 test('cashier PC printers', async ({ browser }) => {
   if (only && !'printing/cashier-pc-printers'.includes(only)) return

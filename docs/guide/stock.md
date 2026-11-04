@@ -16,6 +16,9 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   **Remove** makes the code unknown again. Removing doesn't move stock already received against it, so
   check the count on both products if the screen warns you. A cashier's new product that turns out to
   exist already can be merged with **Same as an existing one**.
+
+  ![A barcode a cashier linked, on Items to review](../images/stock/review-barcode.jpg)
+
 - **Sheets:** export the product list to Excel / CSV / ODS, change it and import it back. A
   price-only sheet changes prices only.
 - **Merge:** two products that are really one become one, and their sales, stock and plugin

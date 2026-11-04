@@ -41,7 +41,7 @@ export function ReviewPage() {
   }
   return (
     <>
-      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, or given a pack size or barcode there. Give each its real details, or check the size." />
+      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, or given a pack size or barcode there. Give each its real details, or check what was set." />
       <DataList label="Items to review" rows={rows ?? []} rowKey={(p) => p.id} onRow={(p) => setEditing({ id: p.id })}
         empty={<EmptyState title={rows ? 'All caught up' : 'Loading…'}>{rows && 'Nothing quick-added is waiting for details.'}</EmptyState>}
         columns={[
@@ -52,7 +52,7 @@ export function ReviewPage() {
           { key: 'price', header: 'Sold at', num: true, cell: (p) => money(sym, p.sellingPrice) },
           { key: 'stock', header: 'On hand', num: true, cell: (p) => `${qtyText(p.stockQty)} ${p.unitAbbr}` },
           { key: 'act', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => (
-            <span className="flex flex-wrap justify-end gap-1.5">
+            <span className="flex flex-wrap justify-end gap-1.5 lg:flex-nowrap">
               {p.tillBarcodes?.map((b) => (
                 <ConfirmButton key={b.barcode} plain label={`Remove ${b.barcode}`} className="h-9 px-3" title={`Remove barcode ${b.barcode} from ${p.name}?`} confirm="Remove barcode"
                   body={b.stockSince

@@ -40,6 +40,16 @@ paper list to take round.
 - Pay now or leave it on credit. The **Received** tab shows each delivery and what's still owed
   on it.
 
+### A product that isn't in the catalogue
+
+**+ New product** beside the search box adds one by name, with its cost and selling price, and it joins the
+delivery straight away. It waits on **Items to review** for its real category and details.
+
+A scanned barcode no product has asks first, since a new batch often carries a new barcode: **Same as an
+existing one** adds the code to that product, or choose **It's a new product**.
+
+![The question an unknown barcode asks](../images/purchasing/unknown-scan.jpg)
+
 ## Returns to suppliers
 
 ![Purchase returns](../images/purchasing/returns.jpg)
