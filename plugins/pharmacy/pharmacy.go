@@ -10,6 +10,7 @@ package pharmacy
 import (
 	"io/fs"
 
+	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 	_ "karots-suite/plugins/alternatives" // always shipped together (plugin.json requires)
 	"karots-suite/plugins/pharmacy/migrations"
@@ -46,7 +47,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.POST("/pharmacy/prescriptions", h.createScript)
 	t.PUT("/pharmacy/prescriptions/:id", h.updateScript)
 	t.POST("/pharmacy/prescriptions/:id/active", h.scriptActive)
-	t.POST("/pharmacy/dispenses", h.dispense)
+	t.POST("/pharmacy/dispenses", h.dispense, middleware.RequireHandlesMoney())
 	t.GET("/pharmacy/sales/recent", h.recentSales)
 	t.GET("/pharmacy/till-info", h.tillInfo)
 	t.GET("/pharmacy/medicines", h.medicines)

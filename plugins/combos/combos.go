@@ -8,6 +8,7 @@ package combos
 import (
 	"io/fs"
 
+	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 	"karots-suite/plugins/combos/migrations"
 )
@@ -32,7 +33,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
 	t.GET("/combos/till", h.till)
-	t.POST("/combos/sold", h.sold)
+	t.POST("/combos/sold", h.sold, middleware.RequireHandlesMoney())
 	t.GET("/combos/settings", h.settings)
 	a := reg.Admin() // admin + manager
 	a.GET("/combos", h.list)

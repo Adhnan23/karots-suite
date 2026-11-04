@@ -49,7 +49,8 @@ function ExtrasRow({ s, ex, sym }: { s: TillService; ex: ReturnType<typeof useEx
 /** One metered service: size, type, colour, side and copies, priced live; Enter adds.
  *  A row with nothing to choose (one type, B&W only, laminate's sides) stays hidden. */
 function Metered({ s, till }: { s: TillService; till: TillApi }) {
-  const sym = useQuery(configQuery).data?.symbol ?? ''
+  const cfg = useQuery(configQuery).data
+  const sym = cfg?.symbol ?? ''
   const [pick, setPick] = useState<Pick>(() => startPick(s))
   const [text, setText] = useState('1')
   const [confirm, setConfirm] = useState(false)
@@ -163,7 +164,7 @@ function Metered({ s, till }: { s: TillService; till: TillApi }) {
             </>
           )}
         </div>
-        <Button variant="ghost" className="h-12 gap-1.5 px-3" disabled={!fresh || copies <= 0} onClick={() => setConfirm(true)}><Home size={16} /> Shop use</Button>
+        {!cfg?.sendsToCashier && <Button variant="ghost" className="h-12 gap-1.5 px-3" disabled={!fresh || copies <= 0} onClick={() => setConfirm(true)}><Home size={16} /> Shop use</Button>}
         <Button className="h-12 px-6 text-[15px] font-bold" disabled={busy || copies <= 0 || (!!q.error && settled === key)} onClick={() => void add()}>Add to sale ⏎</Button>
       </div>}
       {confirm && (

@@ -27,11 +27,10 @@ describe('holdOnMove', () => {
 })
 
 describe('a ticket', () => {
-  it('keeps the payment rows a plugin put on Pay; a hold does not', () => {
+  it('a hold or a ticket keeps the payment rows a plugin put on Pay, not typed cash', () => {
     let s = initialState('retail')
-    s = { ...s, tenders: [{ method: 'credit', amount: '500', reference: '', accountId: '', meta: {} }] }
+    s = { ...s, tenders: [{ method: 'credit', amount: '500', reference: '', accountId: '', meta: {} }, { method: 'cash', amount: '100', reference: '', accountId: '', meta: {} }] }
     const held = (cart: string) => ({ id: 1, label: '', saleType: 'retail', discount: '0', cart, itemCount: 0, total: '0', createdAt: '' })
-    expect(tillReducer(initialState('retail'), { type: 'resume', held: held(toHeldBlob(s, true)) }).tenders).toHaveLength(1)
-    expect(tillReducer(initialState('retail'), { type: 'resume', held: held(toHeldBlob(s)) }).tenders).toHaveLength(0)
+    expect(tillReducer(initialState('retail'), { type: 'resume', held: held(toHeldBlob(s)) }).tenders.map((t) => t.method)).toEqual(['credit'])
   })
 })

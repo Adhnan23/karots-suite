@@ -3,6 +3,7 @@ package documents
 import (
 	"io/fs"
 
+	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 	"karots-suite/plugins/documents/migrations"
 )
@@ -30,8 +31,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
 	t.GET("/documents/till", h.till)
 	t.GET("/documents/quote", h.quote)
-	t.POST("/documents/own-use", h.ownUse)
-	t.POST("/documents/jobs", h.jobs)
+	t.POST("/documents/own-use", h.ownUse, middleware.RequireHandlesMoney())
+	t.POST("/documents/jobs", h.jobs, middleware.RequireHandlesMoney())
 	a := reg.Admin() // admin + manager
 	a.GET("/documents/services", h.services)
 	a.POST("/documents/services", h.create)

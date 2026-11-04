@@ -102,6 +102,13 @@ func (h *handlers) AdminUserUpdate(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	salesPerson(&req)
+	if req.SendsToCashier { // a sales person can't close a till, so it would be stuck open
+		if open, err := h.d.CashRegister.Current(c.Request().Context(), id); err != nil {
+			return err
+		} else if open != nil {
+			return apperr.Conflict("their till is open — close it first, then make them a sales person")
+		}
+	}
 	in := auth.UpdateUserInput{Name: strings.TrimSpace(req.Name), Phone: strings.TrimSpace(req.Phone), Role: req.Role, PIN: strings.TrimSpace(req.Pin),
 		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier)}
 	if err := c.Validate(&in); err != nil {

@@ -7,9 +7,9 @@ import type { CartLine, DiscountType, TillState } from './types'
 type HeldBlob = { v: 2; lines: CartLine[]; billDiscountType: DiscountType; meta?: Record<string, unknown>; preparedBy?: number; tenders?: TillState['tenders'] }
 
 /** What goes into held_sales.cart: an SPA-owned document (the server stores it opaquely). */
-/** withTenders: a ticket keeps what a plugin already put on Pay (a repair job's deposit); a sales person enters no other. */
-export const toHeldBlob = (s: TillState, withTenders = false) =>
-  JSON.stringify({ v: 2, lines: s.lines, billDiscountType: s.billDiscountType, meta: s.meta ?? {}, preparedBy: s.preparedBy, tenders: withTenders ? s.tenders : undefined } satisfies HeldBlob)
+/** It keeps what's on Pay except typed cash, so a plugin's pre-filled row survives a hold or a ticket. */
+export const toHeldBlob = (s: TillState) =>
+  JSON.stringify({ v: 2, lines: s.lines, billDiscountType: s.billDiscountType, meta: s.meta ?? {}, preparedBy: s.preparedBy, tenders: s.tenders.filter((t) => t.method !== 'cash') } satisfies HeldBlob)
 
 /** Re-key every line on the way back in (keys must stay unique in this cart). */
 export function fromHeld(h: HeldSale, seq: number) {

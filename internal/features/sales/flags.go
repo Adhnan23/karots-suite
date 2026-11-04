@@ -20,7 +20,7 @@ const (
 	FlagLookalike    = "lookalike"     // looks like another sale (rung twice?)
 	FlagLate         = "late"          // its session was closed; counted when it arrived
 	FlagClock        = "clock"         // the client's clock was off; counted when it arrived
-	FlagInactiveUser = "inactive_user" // the cashier was deactivated meanwhile
+	FlagInactiveUser = "inactive_user" // the person may not sell now: deactivated, or made a sales person
 	FlagSerial       = "serial"        // a serial already on record, repeated, or not one per unit
 )
 

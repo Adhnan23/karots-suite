@@ -56,6 +56,9 @@ export function TicketStrip() {
   const cfg = useSuspenseQuery(configQuery).data
   const tickets = useQuery(ticketsQuery).data ?? []
   const open = useOpenTicket()
+  const qc = useQueryClient()
+  // A ticket that came back from the last till closing shows in the sender's Held at once.
+  useEffect(() => { void qc.invalidateQueries({ queryKey: heldQuery.queryKey }) }, [tickets.length, qc])
   if (!tickets.length) return null
   const sorted = [...tickets].sort((a, b) => Number(b.forMe ?? false) - Number(a.forMe ?? false))
   return (

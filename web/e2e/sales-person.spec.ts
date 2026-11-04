@@ -30,6 +30,10 @@ test('a sales person sends a ticket and the cashier sells it', async ({ browser 
   await expect(seller.getByLabel('Bill discount', { exact: true })).toHaveCount(0)
   expect((await seller.request.post('/api/v1/till/sales', { data: {} })).status()).toBe(403)
   expect((await seller.request.post('/api/v1/till/drawer/open', { data: {} })).status()).toBe(403)
+  // Plugins' routes that change money or stock, or record against a sale (Playwright builds every plugin).
+  for (const path of ['documents/own-use', 'documents/jobs', 'combos/sold', 'pharmacy/dispenses', 'recharge/counts/drawer', 'repairs/jobs/1/deposits', 'repairs/jobs/1/refund-held']) {
+    expect((await seller.request.post(`/api/v1/x/${path}`, { data: {} })).status(), path).toBe(403)
+  }
 
   await seller.locator('#till-search').fill('4790000000011')
   await seller.keyboard.press('Enter')

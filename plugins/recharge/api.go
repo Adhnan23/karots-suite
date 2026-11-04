@@ -33,7 +33,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till's 📲 menu, drawer counts, Returns
 	t.GET("/recharge/till", h.till)
 	t.POST("/recharge/packages/quick", h.quickPackage)
-	t.POST("/recharge/counts/drawer", h.drawerCounts)
+	t.POST("/recharge/counts/drawer", h.drawerCounts, middleware.RequireHandlesMoney())
 	t.GET("/recharge/sale-lines", h.saleLines)
 	t.GET("/recharge/refill/sources", h.counterSources, middleware.RequireSupplierAccess())
 	t.POST("/recharge/refill/counter", h.counterRefill, middleware.RequireSupplierAccess())

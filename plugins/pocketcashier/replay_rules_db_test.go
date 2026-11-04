@@ -190,3 +190,19 @@ func TestReplayNoDrawerKick(t *testing.T) {
 		t.Fatalf("%d drawer kicks", f.en.kicks)
 	}
 }
+
+func TestReplaySalesPersonSaleFlaggedButDrawerRefused(t *testing.T) {
+	f := newRfix(t, "10")
+	f.openAt(ago(time.Hour))
+	f.en.db.MustExec(`UPDATE users SET sends_to_cashier = true WHERE id = $1`, f.cashier)
+	t.Cleanup(func() { f.en.db.MustExec(`UPDATE users SET sends_to_cashier = false WHERE id = $1`, f.cashier) })
+	r := f.send(nil,
+		f.saleAct(f.ref("sp-sale"), ago(20*time.Minute), "1", "120"),
+		act(f.ref("sp-wd"), "withdraw", f.cashier, ago(10*time.Minute), MoveBody{Amount: "50"}))
+	if r.Results[0].Status != "applied" || !hasFlag(f.flags(r.Results[0].SaleID), sales.FlagInactiveUser) {
+		t.Fatalf("the sale must stand, flagged: %+v", r.Results[0])
+	}
+	if r.Results[1].Status != "failed" {
+		t.Fatalf("a sales person moved drawer money: %+v", r.Results[1])
+	}
+}

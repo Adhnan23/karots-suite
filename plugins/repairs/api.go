@@ -148,7 +148,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	t.POST("/repairs/jobs/:id/charges", h.addCharge)
 	t.DELETE("/repairs/jobs/:id/charges/:cid", h.removeCharge)
 	t.GET("/repairs/jobs/:id/bill", h.bill)
-	t.POST("/repairs/jobs/:id/deposits", h.linkDeposit)
+	t.POST("/repairs/jobs/:id/deposits", h.linkDeposit, middleware.RequireHandlesMoney())
 	t.POST("/repairs/jobs/:id/rework", h.rework)
 	t.POST("/repairs/jobs/:id/refund-held", h.refundHeld, middleware.RequireHandlesMoney())
 	t.POST("/repairs/jobs/:id/print", h.print)

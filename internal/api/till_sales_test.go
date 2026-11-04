@@ -123,3 +123,19 @@ func TestTillPrintUnknownSale(t *testing.T) {
 		t.Fatalf("unknown sale print %d", rec.Code)
 	}
 }
+
+// A ticket's preparedBy is a note: one that names nobody never costs the sale.
+func TestUnknownPreparedByKeepsTheSale(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, devPhone(), "cashier")
+	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"500": 2}}, ck)
+	defer te.do(http.MethodPost, "/api/v1/till/drawer/close", CloseDrawerRequest{}, ck)
+	req := sale(f.plainID, "1", PaymentRequest{Method: "cash", Amount: "500"})
+	nobody := int64(987654321)
+	req.PreparedBy = &nobody
+	rec := te.do(http.MethodPost, "/api/v1/till/sales", req, ck)
+	if rec.Code != http.StatusCreated && rec.Code != http.StatusOK {
+		t.Fatalf("the sale was lost: %d %s", rec.Code, rec.Body)
+	}
+}

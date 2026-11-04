@@ -105,6 +105,12 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 	if d, err := s.byClientRef(ctx, in.ClientRef); d != nil || err != nil {
 		return d, err
 	}
+	if in.PreparedBy != nil { // only a note: naming nobody must never cost the sale
+		var known bool
+		if err := s.db.GetContext(ctx, &known, `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`, *in.PreparedBy); err != nil || !known {
+			in.PreparedBy = nil
+		}
+	}
 	// Bill-level discount: the cashier enters a value that is either a fixed
 	// amount or a percentage (resolved against the pre-tax net, after item
 	// discounts, once the lines are totalled below).

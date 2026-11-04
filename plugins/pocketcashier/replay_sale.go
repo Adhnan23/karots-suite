@@ -97,16 +97,30 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 		Role   string `db:"role"`
 		System bool   `db:"is_system"`
 		Active bool   `db:"is_active"`
+		Sales  bool   `db:"sends_to_cashier"`
 	}
-	if err := h.p.core.DB.GetContext(ctx, &who, `SELECT role::text AS role, is_system, is_active FROM users WHERE id = $1`, a.UserID); err != nil {
+	if err := h.p.core.DB.GetContext(ctx, &who, `SELECT role::text AS role, is_system, is_active, sends_to_cashier FROM users WHERE id = $1`, a.UserID); err != nil {
 		return ActionResult{Status: "failed", Note: "no such person"}
 	}
 	if who.System || who.Role == "admin" {
 		return ActionResult{Status: "failed", Note: "admins sell from a cashier account on phones"}
 	}
+	// Someone made a sales person after this phone's copy was taken: what they sold
+	// stands, flagged (never stop a sale); the drawer isn't theirs. A close still
+	// counts, or the till a late sale opened would be stuck.
+	if who.Sales && (a.Kind == "open" || a.Kind == "withdraw" || a.Kind == "deposit") {
+		return ActionResult{Status: "failed", Note: "a sales person doesn't handle money"}
+	}
+	var flag string
+	switch {
+	case !who.Active:
+		flag = "sold by a person who was turned off meanwhile"
+	case who.Sales:
+		flag = "sold on a phone by a sales person, who doesn't handle money"
+	}
 	switch a.Kind {
 	case "sale":
-		return h.runSale(ctx, p, a, who.Active)
+		return h.runSale(ctx, p, a, flag)
 	case "open":
 		return h.runOpen(ctx, p, a)
 	case "close":
@@ -128,7 +142,7 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	return ActionResult{Status: "failed", Note: "unknown action " + a.Kind}
 }
 
-func (h handlers) runSale(ctx context.Context, p *Phone, a Action, active bool) ActionResult {
+func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag string) ActionResult {
 	var b SaleBody
 	if err := json.Unmarshal(a.Body, &b); err != nil {
 		return failed(err)
@@ -163,8 +177,8 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, active bool) 
 		}
 		flags = append(flags, [2]string{sales.FlagLate, "rung at " + hhmm(rungAt) + " on " + p.Name + " after its till was closed; counted when it arrived"})
 	}
-	if !active {
-		flags = append(flags, [2]string{sales.FlagInactiveUser, "sold by a person who was turned off meanwhile"})
+	if personFlag != "" {
+		flags = append(flags, [2]string{sales.FlagInactiveUser, personFlag})
 	}
 	d, err := h.p.core.Sales.Create(ctx, in, a.UserID)
 	if err != nil {

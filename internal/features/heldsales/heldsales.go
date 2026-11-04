@@ -103,23 +103,39 @@ func (r *Repository) Tickets(ctx context.Context, sentBy int64) ([]HeldSale, err
 	return rows, err
 }
 
-// Cashiers lists who has a till open.
+// Cashiers lists who can take a ticket: working people with a till open, not a
+// sales person (one can hold a till a phone opened for a late sale).
 func (r *Repository) Cashiers(ctx context.Context) ([]Cashier, error) {
 	rows := []Cashier{}
 	err := r.q.SelectContext(ctx, &rows, `SELECT DISTINCT u.id, u.name FROM cash_register cr JOIN users u ON u.id = cr.user_id
-		WHERE cr.closed_at IS NULL ORDER BY u.name`)
+		WHERE cr.closed_at IS NULL AND u.is_active AND NOT u.sends_to_cashier ORDER BY u.name`)
 	return rows, err
 }
 
 // MoveUnanswered sends a ticket on to the next open till when its own has left it
-// waiting too long or has closed. With no other till open it stays where it is.
+// waiting too long or has closed. With no till left at all it goes back to the
+// sender's Held, so nothing waits unseen until the next opening.
 func (r *Repository) MoveUnanswered(ctx context.Context) error {
-	_, err := r.q.ExecContext(ctx, `WITH open AS (SELECT DISTINCT user_id AS id FROM cash_register WHERE closed_at IS NULL)
+	if _, err := r.q.ExecContext(ctx, `WITH open AS (SELECT DISTINCT cr.user_id AS id FROM cash_register cr JOIN users u ON u.id = cr.user_id
+		WHERE cr.closed_at IS NULL AND u.is_active AND NOT u.sends_to_cashier)
+		UPDATE held_sales SET to_cashier = false, ticket_no = NULL, for_cashier = NULL, assigned_at = NULL
+		WHERE to_cashier AND NOT EXISTS (SELECT 1 FROM open)`); err != nil {
+		return err
+	}
+	_, err := r.q.ExecContext(ctx, `WITH open AS (SELECT DISTINCT cr.user_id AS id FROM cash_register cr JOIN users u ON u.id = cr.user_id
+		WHERE cr.closed_at IS NULL AND u.is_active AND NOT u.sends_to_cashier)
 		UPDATE held_sales h SET assigned_at = now(), for_cashier = COALESCE(
 			(SELECT min(id) FROM open WHERE id > h.for_cashier), (SELECT min(id) FROM open))
 		WHERE h.to_cashier AND EXISTS (SELECT 1 FROM open WHERE id <> COALESCE(h.for_cashier, 0))
 			AND (h.assigned_at < now() - interval '`+moveAfter+`' OR h.for_cashier IS NULL OR h.for_cashier NOT IN (SELECT id FROM open))`)
 	return err
+}
+
+// WaitingFor counts the tickets on a cashier's till.
+func (r *Repository) WaitingFor(ctx context.Context, cashierID int64) (int, error) {
+	var n int
+	err := r.q.GetContext(ctx, &n, `SELECT count(*) FROM held_sales WHERE to_cashier AND for_cashier = $1`, cashierID)
+	return n, err
 }
 
 // Pass gives a ticket to another cashier, its two minutes starting again.
@@ -216,11 +232,15 @@ func (s *Service) Hold(ctx context.Context, cashierID int64, in Input) (*HeldSal
 		CashierID: cashierID, Label: label, SaleType: saleType, CustomerID: in.CustomerID,
 		Discount: discount, Cart: in.Cart, ItemCount: in.ItemCount, Total: total, ToCashier: in.ToCashier, ForCashier: in.ForCashier,
 	}
-	out, err := s.repo.Create(ctx, h)
-	if err != nil {
-		return nil, apperr.Internal("failed to hold sale", err)
+	for try := 0; ; try++ {
+		out, err := s.repo.Create(ctx, h)
+		if err == nil {
+			return out, nil
+		}
+		if try == 4 || !appdb.IsUniqueViolation(err) { // two sends drew one number: draw again
+			return nil, apperr.Internal("failed to hold sale", err)
+		}
 	}
-	return out, nil
 }
 
 // target checks a ticket's cashier has a till open; with none named, the only one open.
@@ -251,6 +271,19 @@ func (s *Service) Tickets(ctx context.Context, sentBy int64) ([]HeldSale, error)
 		return nil, apperr.Internal("failed to move tickets", err)
 	}
 	return s.repo.Tickets(ctx, sentBy)
+}
+
+// CheckNoTickets refuses a till's own close while tickets wait on it (the screen
+// lists them; one can arrive just after it last looked).
+func (s *Service) CheckNoTickets(ctx context.Context, cashierID int64) error {
+	n, err := s.repo.WaitingFor(ctx, cashierID)
+	if err != nil {
+		return apperr.Internal("failed to check tickets", err)
+	}
+	if n > 0 {
+		return apperr.ConflictCode("TICKETS_WAITING", "a ticket has just arrived on this till — deal with it before closing")
+	}
+	return nil
 }
 
 func (s *Service) PassTicket(ctx context.Context, id, to int64) error {
