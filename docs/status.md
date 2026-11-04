@@ -5,8 +5,7 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, end of 2026-11-04)
 
-**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Aiman Pharmacy Kalpitiya**, is not installed yet. Newer Releases are in
-the bucket (see `published` in `shops.json`), published with the user's go-ahead for the update power-cut test. **Don't publish more before the user says.**
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Aiman Pharmacy Kalpitiya**, is not installed yet. The user deleted all his Releases and test backups on 2026-11-04 and cleared his build history from `shops.json`, so **he needs a new Release before the real install** (a first install must be a Release). **Don't publish before the user says.** His install id, channel and cloud key stay in `shops.json`.
 
 **Waiting on the user, in no hurry:**
 - A label roll, then the XP-365B on the real main PC: size, gap, drift, Image with Sinhala / Tamil, scanning a label back. Nothing has printed on it yet.
