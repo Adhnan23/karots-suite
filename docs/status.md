@@ -3,42 +3,52 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (2026-11-04)
+## Now (handoff, end of 2026-11-04)
 
-**Done 2026-11-04 (items 1 to 7 of the list below; screenshots retaken):** the fresh review of Send to cashier and its fixes (plugin routes that move
-money or stock now refuse a sales person; a till's own close is refused on the server while tickets wait, and with no till left at all
-tickets go back to the sender's Held; ticket numbers have a unique index (duplicates did reproduce); only working non-sales people get
-tickets; a hold keeps a plugin's payment rows, only typed cash is dropped; a sales person on an old phone copy: sales stand, flagged, drawer
-moves refused). Demo Room: a second cashier and a Sales person in every shop. "One PC" is now **Built in (file mode)** in the Builder, Setup,
-guides and order form. Repairs hides its money buttons from a sales person.
-**Print helper (item 7):** Setup puts it on a cashier PC (`karots-setup -print-agent <main>`, runs as a service / sign-in task). It calls out
-to the main PC, so nothing listens on the cashier PC and a changing address is fine. The admin approves the machine and picks its printers in
-Settings → Cashier PCs' printers. A request's printers follow its socket address (`settings.WithMachinePrinters`), ahead of a person's own
-printer. Setup now also makes raw CUPS queues for USB printers on Linux, on both roles. Checked: Go tests + the real helper binary against a
-real server with a stand-in `lp`. **Real printer through the helper PASSED 2026-11-04** (user: VMs `karots-main` + `karots-cashier`, the XP-80T passed through to the cashier VM, approved in Settings, Test slip printed). A sale receipt from the cashier VM also came out of the XP-80T (2026-11-04). **Image vs Classic (user, 2026-11-04, test slips on the XP-80T):** the layout matches; Image is crisper and evens out letters Classic prints too tall, so Image looks the better one. Set Aiman to Image at install; Classic stays until labels are tested. **Not yet confirmed:** a real sale in Image with Sinhala / Tamil, reprint, the drawer, helper off during a sale, a print from the main PC; signed in so far as the system user + a cashier, so also make a real admin in the rehearsal. **Still to do: the tablet; XP-365B labels wait for a label roll (the user has none yet): buy one before the install, then test size, gap, drift, Image with Sinhala / Tamil and scanning on the real main PC. Not checked on Windows.** Still open from the review: a phone till counts as an
-open till for tickets, though the phone has no ticket screen until release 2.
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop, **Aiman Pharmacy Kalpitiya**, is not installed yet. Latest
+Release in the bucket: **2026.11.04.1524**. Commits after it are not in any Release: Credited us prefilled, both Setups in every shop folder, the
+test fixes. **The user will say when to publish the next Release; don't publish before that.** `dist/aiman-pharmacy-kalpitiya/` holds a local test build (1553), not a Release.
 
-**Appearance can print (2026-11-04, after 2026.11.04.0843):** Receipt style and Label styles each have a printer picker and **Print this** (system user only; prints the sample, no drawer). A cashier PC's Test slip also follows Image mode and opens the drawer. All ten receipt styles printed fine on the real XP-80T through **Print this** (user, 2026-11-04: "flawless"). Both go out with the next Release; `printing/receipt-styles` + `label-styles` screenshots to retake with the next Demo Room.
+**Waiting on the user, in no hurry:**
+- A label roll, then the XP-365B on the real main PC: size, gap, drift, Image with Sinhala / Tamil, scanning a label back. Nothing has printed on it yet.
+- The pharmacist's trial, then the real install.
+- Aiman's charges; the business registration number (don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`.
 
-**Windows printing test under way (2026-11-04):** shop `windows-test` (every plugin, file mode, no cloud), Test build on the `win10` VM with the XP-80T attached. **After the test (user asked, not before):** Setup on Windows should add the printer itself, as it makes raw queues on Linux: USB ports with no printer get one on the Generic / Text Only driver. Today it's added by hand in Windows. **Test slips PASSED in Image and Classic on Windows 10 (user, 2026-11-04):** Generic / Text Only on USB001, file mode, as the main PC; Appearance's Print this and printing after a restart work there too; a real sale still to check; the helper on a Windows cashier PC not tested. Then, if Windows prints fine, Image-only receipts (keep the hidden Classic fallback); labels wait for a roll.
+**Decisions made (user, 2026-11-04):**
+- **Pocket Cashier ships only after its release 2.** The tablet test waits for it. It **stays on Aiman's profile**, but the user won't mention it to him (it still shows as Phones in admin).
+- **Classic receipts are gone** (no switch; `print_as` dropped), with the hidden plain text kept for a picture that fails and for slips with no template. **Classic labels stay** until the roll test passes; then remove that switch and keep the same hidden backup. The user said to do nothing more on this for now.
+- **Product local names don't print on receipts** and don't need to; only the shop's own local name does.
+- **No cash drawer at Aiman for now** (opened with its key), so the drawer is untested on real hardware.
 
-**Small improvement, after the tests (user, 2026-11-04):** on Recover → **Credited us**, fill the amount with the loss's value (the text above it already says it); it's blank today.
+**Small things for later, when the user asks:**
+- Builder: rename **Runs on** to say it means the main PC ("Main PC runs on"). Agreed, not now. It needs no multi-system chooser: every folder carries both Setups.
+- The till zooms ~1% at every width (`lib/autofit`: `needed + pad > avail` is true even when it fits). Harmless to slips now; looks unintended.
+- A power-cut test on `karots-main` (force it off mid-sale, check the data); offered, not answered. A UPS for Aiman's main PC is suggested; the order has none.
+- Bigger: Pocket Cashier release 2 (counter pages, plugin menus, tickets on the phone; a ticket on a phone-only till waits unseen today); the whole-system check (a simulated year, the books balance).
 
-**To design after this round (user, 2026-11-04):** a shop with mixed systems, like a Linux main PC and a Windows cashier PC, since a build is for one OS today.
-**Unit costs keep 4 decimals (2026-11-04, migration 00030):** products, purchase and return lines, sale lines and lots; a box of 120 at 1,000 is 8.3333 a unit and adds back up to 1,000. Screens still show 2 decimals. `stock_movements.cost` stays at 2: it's a total, not a unit cost.
+**Aiman's setup (replaces the shop-visit list below):** new PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20") = **admin + main PC**, in the background; the **owner's own Linux
+laptop = cashier PC**, with the XP-80T (receipts) through the print helper; XP-365B (labels) on the main PC as the shop's label printer; one wired 2D scanner. Another PC only when needed. File mode, cloud backup on.
+Printer queues on this dev PC: `XP80T` (the new printer), `POS80` / `XP365` (older units; `POS80` is the default and holds stale test jobs: `cancel -a POS80` before plugging an old one in).
 
-**Receipts on the till, fixed 2026-11-04 (found on the real XP-80T):** the till zooms itself a little at every width (`lib/autofit`: `needed + pad > avail`, e.g. 0.9884 at 1366), so a slip was measured zoomed and drawn at full size, and text wrapped ("TOTA / L"), in Chromium, on 8 of the 10 styles (Classic and Sections escaped). `shoot()` now cancels the page's zoom. Admin pages don't zoom, which is why Appearance looked right. 1356 had this bug; 2026.11.04.1524 replaces it.
+**VMs here (`virsh -c qemu:///system`):** `karots-main` (Xubuntu, on test build 1553 or 1524, hand-test data), `karots-cashier` (its clone, hostname `cashier-laptop`), `win10` (cashier PC of `karots-main`,
+tested on Aiman's folder). Only one VM can hold the XP-80T at a time. Shop `windows-test` in `shops.json` is for Windows tests (every plugin, file mode, no cloud, never Released). Cloud folders `test-linux`, `_check` and the VMs' Aiman backups age out by Dec 2; never restore a VM backup to his shop.
 
-**Hand tests on the VMs passed (user, 2026-11-04, on the test build):** box purchase, barcode flow + removing a link, long sale, stock after it, + New product, reprint, sale with the helper stopped, main PC not printing on the cashier's printer, recall. **No cash drawer at Aiman for now** (they open it with its key): the drawer stays untested. Then on Release 1524: the supplier discount, a return's credit paying a delivery, and Give back → Credited us clearing a bill with the rest paying the next one (user: "perfectly worked"). **Still to try:** the tablet, labels once there's a roll, the pharmacist's trial.
+**Passed by hand on real hardware (user, 2026-11-04):** the print helper on the real XP-80T, Linux and Windows cashier; a Windows cashier with a Linux main PC, approved from Linux; all ten receipt styles on paper; Windows printing, also after a restart; Setup adding the printer on Windows;
+box purchase (5 boxes, +500, owed 15,000); barcode flow and removing a link; long sale (1 Box + 1 Card + 3); + New product; reprint; sale with the helper stopped; the main PC not printing on the cashier's printer; recall; supplier discount; a return's credit paying a delivery; Give back → Credited us clearing a bill with the rest paying the next.
+**Not tried by hand:** a sales person's flow on this build, Credited us with the new prefill.
 
-**Windows Setup PASSED (user, 2026-11-04, build 1553 on Windows 10):** with the hand-added printer removed, Update added `USB printer USB001` by itself, and a test slip printed. **Mixed systems PASSED (user, same day):** Windows 10 as a cashier PC with the Linux main VM: the main PC choice greyed out, approved from Linux, test slip and a sale printed through the helper (its first real run on Windows).
+**Built today (details in git log):** Send to cashier reviewed and fixed. Print helper + Settings → Cashier PCs' printers (`internal/features/printmachines`, `cmd/setup/print_agent.go`; a request's printers follow its socket address). Setup makes the print queues (Linux: raw CUPS; Windows: Generic / Text Only on any free USB port), on install and Update. Appearance prints a style on any printer (`features/appearance/TryPrint.tsx`).
+An unknown scan asks "a product you already have?" first on purchase screens and intake; + New product; a cashier's linked barcode waits on Items to review. Unit costs keep 4 decimals (`stock_movements.cost` stays 2: it's a total). Demo Room has a second cashier and a Sales person.
 
-**Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
-one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
-bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
-only when needed. The laptop runs Linux (the Release fits). **Printers:** XP-80T + drawer on the laptop through the print helper (receipt printer of that machine), XP-365B on the main PC (the shop's label printer). **Released 2026.11.04.1524** (adds to 0843: the fix for receipts on the zoomed till, Image-only receipts, unit costs at 4 decimals, Appearance printing, the unknown-scan question and cashier barcode links on review); not installed. Tests at release: Playwright 235 passed, 33 skipped. **Next, on this Release (user's hand tests):** the barcode flow, a real long sale in Image with Sinhala / Tamil, a box purchase (5 boxes at 3,000: +500 tablets, owed 15,000), the drawer, the skipped VM checks, labels once there's a roll, the tablet; then the pharmacist's trial and the real install. **After that:** mixed systems in one shop (every build carries both Setups; a cashier PC uses the system it runs on; a main PC on the wrong one is refused). Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
-all VMs here are off, so nothing is running to stop; don't boot a VM with that test install on it without removing it first. Both printers show on the dev PC in CUPS (`POS80`, `XP365`). Go tests and Playwright print to the system default printer (`POS80` here) when a test has none set, and CUPS sent the waiting jobs on
-2026-11-04: leave a real printer off the default while tests run, or give the tests a way not to print.
+**The receipt bug worth remembering:** the till is zoomed, so a slip was measured small and drawn full size: "TOTA / L", in Chromium, 8 of 10 styles. `shoot()` cancels the page zoom; `appearance-receipts.spec` covers all ten. Appearance's samples hid it because admin pages don't zoom. **Check slips on the till, not only in Appearance, and with the shop's real data.**
+
+**Working here:**
+- **Tests:** `make test` runs one package at a time. Nothing reaches a real printer now (`testing.Testing()`, `KAROTS_NO_SPOOL` for Playwright's server). Playwright resets `suite_db`; never run it with `go test` on `suite_db`, or two builds at once (they share the plugin lists). `appearance-receipts.spec` resets the receipt style when it ends. Last full Playwright: see git log / rerun; it passed 235 on the code before today's last test fixes.
+- **Power cuts happen here.** After one, check before anything else: `git fsck`, `make check-core` (a cut during a build leaves the plugin lists on: `make core-only`, then `git checkout -- internal/spa/dist/.gitkeep`). One cut emptied the newest commit's objects: back up `.git`, remove the empty files, point `main` at the last good commit, recommit. Backup from that repair: `../karots-suite-git-backup-20261104-1611` (delete when happy).
+- **The user tests with real sales and scans of real paper** (phone scans land in `/mnt/nvme_512GB/Downloads/`, screenshots in `~/Pictures/Screenshots/`). Don't print on the real printer yourself until a picture looks right.
+- A Windows or cashier install takes the shop's whole `dist/<key>/` folder.
+
+The list under "Before that" is finished, except where noted above.
 
 ## Before that (2026-11-02)
 
