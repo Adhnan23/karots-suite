@@ -55,7 +55,7 @@ func TestBuildShopThreeFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	dir := filepath.Join(out, "al-raj")
-	if names := dirNames(t, dir); !slices.Equal(names, []string{"install.conf", "karots-setup.exe", "karots-suite.exe"}) {
+	if names := dirNames(t, dir); !slices.Equal(names, []string{"install.conf", "karots-setup", "karots-setup.exe", "karots-suite.exe"}) {
 		t.Fatalf("files %v", names)
 	}
 	c, err := shopconf.Read(filepath.Join(dir, "install.conf"))

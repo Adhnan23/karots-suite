@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -261,7 +262,9 @@ func TestFoldersListBackupFiles(t *testing.T) {
 
 func TestPageRunNeedsTermsAccepted(t *testing.T) {
 	ran := false
-	steps := func(*Job) []Step { return []Step{{ID: "a", Title: "A", Do: func(*Job) error { ran = true; return nil }}} }
+	steps := func(*Job) []Step {
+		return []Step{{ID: "a", Title: "A", Do: func(*Job) error { ran = true; return nil }}}
+	}
 	r := call(testPage(steps), "POST", "/api/run", `{"role":"server"}`, true)
 	if r.Code != http.StatusBadRequest || !strings.Contains(r.Body.String(), "I agree") || ran {
 		t.Fatalf("install without the tick: %d %s (ran %v)", r.Code, r.Body.String(), ran)
@@ -281,5 +284,42 @@ func TestPageServesTerms(t *testing.T) {
 	}
 	if r := call(h, "GET", "/terms", "", false); r.Code == http.StatusOK {
 		t.Fatal("terms without the token")
+	}
+}
+
+// A cashier PC may run another system than the main PC; a main PC may not.
+func TestCashierFollowsThisPCsSystem(t *testing.T) {
+	was := runningOS
+	runningOS = "windows"
+	t.Cleanup(func() { runningOS = was })
+	c := conf("linux", "file", false)
+
+	j, err := applyChoice(c, t.TempDir(), Choice{Role: RoleCashier, Address: "192.168.1.10:3000"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !j.windows() || j.Conf.InstallDir != `C:\karots-suite` || j.MainOS != "linux" {
+		t.Fatalf("cashier: os %s dir %s main %s", j.Conf.OS, j.Conf.InstallDir, j.MainOS)
+	}
+	if err := checkChoice(j); err != nil {
+		t.Fatalf("a cashier on another system was refused: %v", err)
+	}
+	if !slices.Contains(ids(Steps(j)), "print-helper") {
+		t.Fatalf("steps %v", ids(Steps(j)))
+	}
+
+	j, err = applyChoice(c, t.TempDir(), Choice{Role: RoleServer})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := checkChoice(j); err == nil || !strings.Contains(err.Error(), "runs Linux") {
+		t.Fatalf("a main PC on the wrong system: %v", err)
+	}
+
+	// The same system: nothing changes.
+	runningOS = "linux"
+	j, err = applyChoice(c, t.TempDir(), Choice{Role: RoleServer})
+	if err != nil || j.MainOS != "" || checkChoice(j) != nil {
+		t.Fatalf("same system: %v main %q", err, j.MainOS)
 	}
 }

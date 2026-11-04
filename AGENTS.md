@@ -82,7 +82,7 @@ cmd/server/           boot, migrations, flags (-migrate -seed -demo -reset -init
 cmd/bootstrap/        Shop Builder: no flags = browser app — the shop list (shops.json profiles: plugins, OS,
                       database mode, ports, secrets, install id, channel) + Quick build; -shop <key|all>, -list;
                       writes both plugin lists, builds, restores them core-only. A shop build =
-                      dist/<key>/ karots-setup + install.conf + the binary ("Add installer" off = binary only)
+                      dist/<key>/ karots-setup + karots-setup.exe (a cashier PC may run the other system) + install.conf + the binary ("Add installer" off = binary only)
 cmd/setup/            karots-setup, the shop's installer: double-click → page (UAC / pkexec) → modular steps per
                       role (main PC | cashier PC) and mode (file | server); only applies install.conf; -yes headless (+ -accept-terms).
                       "I agree" to the terms (root package `karots` embeds LICENSE + the Shop Rules PDF) gates Install /
@@ -218,10 +218,10 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
   Data page owns it — `backup_copies` table, never backed up) and, for paying shops, sealed to Karots cloud (Builder
   `.env` `CLOUD_BACKUP_URL/KEY_ID/SECRET`, tick per shop; `docs/cloud-backup-bucket.md`). A Windows
   server-mode main PC: tick **+ PostgreSQL** (or `-postgres`) to put the PostgreSQL installer (cached once in the user
-  cache, SHA-256 pinned in `internal/shopconf`) beside the files — Setup uses it before winget / downloading. Carry `dist/<key>/` (three files) to the shop; double-click `karots-setup` there (Linux headless: `sudo
+  cache, SHA-256 pinned in `internal/shopconf`) beside the files — Setup uses it before winget / downloading. Carry `dist/<key>/` to the shop; double-click `karots-setup` there (Linux headless: `sudo
   ./karots-setup -yes -accept-terms`). A changed profile reaches a shop by building again and running Setup → Update — a
   **file ⇄ server change** is noticed there and carries the data across once "Change it" is ticked (`-change-mode`).
-  **Move a shop to another PC:** Setup → Uninstall on the old one (its final backup), then the three files + that backup
+  **Move a shop to another PC:** Setup → Uninstall on the old one (its final backup), then the shop's folder + that backup
   on the new PC → Setup offers it under "Bring back a shop" (`-restore <file>`). Headless: `-uninstall
   [-remove-postgres] [-keep-dir …]`; `-no-backup` is for technicians only. Look at the
   installer page without installing: `karots-setup -dry` beside an install.conf. `build.ps1` = make on Windows.

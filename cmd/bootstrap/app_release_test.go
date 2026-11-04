@@ -122,7 +122,7 @@ func TestAppTestBuildWithPostgres(t *testing.T) {
 	a.do(t, "/api/shops", `{"key":"win","name":"Win","os":"windows","arch":"amd64","mode":"server"}`)
 	body := a.do(t, "/api/shops/win/build", `{"installer":true,"postgres":true}`).Body.String()
 	dir := filepath.Join(filepath.Dir(a.path), "dist", "win")
-	if names := dirNames(t, dir); !strings.Contains(strings.Join(names, " "), shopconf.PGInstallerName) || len(names) != 4 {
+	if names := dirNames(t, dir); !strings.Contains(strings.Join(names, " "), shopconf.PGInstallerName) || len(names) != 5 {
 		t.Fatalf("files %v\n%s", names, body)
 	}
 }

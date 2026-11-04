@@ -61,10 +61,11 @@ func pageHandler(token string, mk func(Choice) (*Job, error), steps func(*Job) [
 			FromMode  string        `json:"fromMode"`  // an Update that changes the mode: the installed one
 			KeepDir   string        `json:"keepDir"`   // the Karots backups folder
 			Backups   []foundBackup `json:"backups"`   // newest first
+			MainOS    string        `json:"mainOs"`    // the main PC's system, when this PC runs another
 			LocalDB   bool          `json:"localDb"`   // server mode with PostgreSQL on this PC (uninstall can remove it)
 			CloudNote string        `json:"cloudNote"` // Karots cloud couldn't be listed
 		}{j.Conf.Shop, j.Conf.InstallID, j.Conf.Mode, j.Conf.Open, j.backupDir(), orDefault(j.Conf.Env["BACKUP_INTERVAL"], "6h"), atoiOr(j.Conf.Env["BACKUP_KEEP"], 28), j.Conf.Env["BACKUP_COPY_DIR"], j.Updating, j.Kept, j.Address, j.Conf.LanAddress, j.tillURL(), nil,
-			j.FromMode, j.keepDir(), findBackups(j), j.localDB(), ""}
+			j.FromMode, j.keepDir(), findBackups(j), osName(j.MainOS), j.localDB(), ""}
 		out.CloudNote = j.cloudNote
 		for _, s := range steps(j) {
 			d := s.Title

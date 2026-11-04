@@ -60,9 +60,12 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 		return res, err
 	}
 	if o.Installer {
-		fmt.Fprintf(log, "→ karots-setup for %s/%s\n", s.OS, s.Arch)
-		if err := setup(s.OS, s.Arch, dir, log); err != nil {
-			return res, fmt.Errorf("build karots-setup: %w", err)
+		// Both systems' Setup: a cashier PC may run another system than the main PC.
+		for _, osName := range setupSystems(s.OS) {
+			fmt.Fprintf(log, "→ karots-setup for %s/%s\n", osName, s.Arch)
+			if err := setup(osName, s.Arch, dir, log); err != nil {
+				return res, fmt.Errorf("build karots-setup: %w", err)
+			}
 		}
 		c := s.Conf(filepath.Base(res.Binary))
 		c.ExtraPorts = pluginPorts(bo.Plugins)
@@ -79,6 +82,17 @@ func buildShop(s *Shop, all []manifest, o shopBuildOpts, b func(buildOpts, io.Wr
 	res.Folder = dir
 	s.LastBuilt = &Built{At: time.Now().UTC().Truncate(time.Second), Commit: gitCommit(), Version: o.Version, Kind: o.Kind}
 	return res, nil
+}
+
+// setupSystems is every Setup a shop build carries: the main PC's, then the other's.
+func setupSystems(mainOS string) []string {
+	switch mainOS {
+	case "linux":
+		return []string{"linux", "windows"}
+	case "windows":
+		return []string{"windows", "linux"}
+	}
+	return []string{mainOS}
 }
 
 // buildSetup cross-builds the installer, static like the server.

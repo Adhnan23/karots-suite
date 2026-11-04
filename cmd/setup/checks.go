@@ -31,7 +31,7 @@ func checks(j *Job) error {
 		return fmt.Errorf("this Linux has no systemd, so Karots can't start with the PC")
 	}
 	if _, err := os.Stat(filepath.Join(j.Dir, j.Conf.Binary)); err != nil {
-		return fmt.Errorf("%s isn't next to karots-setup — copy all three files from the Shop Builder", j.Conf.Binary)
+		return fmt.Errorf("%s isn't next to karots-setup — copy the whole folder from the Shop Builder", j.Conf.Binary)
 	}
 	// Our own install holds the port during an Update; the program step stops it.
 	if !j.Updating {

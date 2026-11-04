@@ -47,5 +47,5 @@ its files, and **Restore** brings one back through the normal restore.
 
 ## Bringing a shop back
 
-On a new PC, run **karots-setup** with the shop's three files and a backup. Setup offers it
+On a new PC, run **karots-setup** with the shop's folder and a backup. Setup offers it
 under **Bring back a shop**. See [Moving a shop](install.md#moving-a-shop-to-another-pc).

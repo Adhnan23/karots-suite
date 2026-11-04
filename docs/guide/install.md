@@ -1,7 +1,7 @@
 # Install & Shop Builder
 
 *For resellers and technicians.* A shop never types a command. You build the shop on your own
-PC with the **Shop Builder**, carry three files to the shop, and double-click **karots-setup**
+PC with the **Shop Builder**, carry its folder to the shop, and double-click **karots-setup**
 there.
 
 ```mermaid
@@ -51,8 +51,10 @@ shop (kept in `shops.json`), with:
 - On Windows server mode, tick **+ PostgreSQL** to put the PostgreSQL installer beside the files,
   so Setup doesn't need the internet.
 
-The result is `dist/<shop>/`, three files: `karots-setup`, `install.conf` (the settings and
-secrets; keep it private) and the program.
+The result is `dist/<shop>/`: `karots-setup` and `karots-setup.exe`, `install.conf` (the settings and
+secrets; keep it private) and the program. Copy the whole folder. A cashier PC can run another system
+than the main PC, such as a Windows cashier with a Linux main PC: use that system's Setup and choose
+**A cashier PC**. The main PC must run the system the shop was built for; Setup refuses otherwise.
 
 ## 3. Install at the shop
 
@@ -83,7 +85,7 @@ backs up, switches modes and restores.
 
 1. On the old PC: **karots-setup → Uninstall**. It takes a final backup first, kept in
    `C:\Karots backups` or `~/Karots backups`. If the backup fails, nothing is removed.
-2. On the new PC: the three files plus that backup. Setup offers it under **Bring back a shop**.
+2. On the new PC: the shop's folder plus that backup. Setup offers it under **Bring back a shop**.
 
 ## Remote access
 

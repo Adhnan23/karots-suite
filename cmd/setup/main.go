@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -228,6 +229,15 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 	if ch.Role != RoleServer && ch.Role != RoleCashier {
 		return nil, fmt.Errorf("role %q (server | cashier)", ch.Role)
 	}
+	// A cashier PC needs nothing built for the shop's main PC, so it may run the other
+	// system: it follows this PC. A main PC on the wrong system is refused in checkChoice.
+	mainOS := ""
+	if c.OS != runningOS {
+		mainOS = c.OS
+		if ch.Role == RoleCashier {
+			c.OS, c.InstallDir = runningOS, defaultInstallDir(runningOS)
+		}
+	}
 	switch ch.Open {
 	case "":
 	case "kiosk", "background":
@@ -270,7 +280,7 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 	if k := strings.TrimSpace(ch.KeepDir); k != "" && !absFor(c.OS, k) {
 		return nil, fmt.Errorf("the backups folder must be a full path, like %s", map[bool]string{true: `D:\Karots backups`, false: "/media/usb/Karots backups"}[c.OS == "windows"])
 	}
-	j := &Job{Conf: c, Role: ch.Role, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser(),
+	j := &Job{Conf: c, Role: ch.Role, MainOS: mainOS, Dir: dir, Run: osRunner{}, Log: os.Stdout, User: shopUser(),
 		Uninstall: ch.Uninstall, RemovePostgres: ch.RemovePostgres, ChangeMode: ch.ChangeMode,
 		Restore: strings.TrimSpace(ch.Restore), KeepDir: strings.TrimSpace(ch.KeepDir)}
 	if d := env["BACKUP_COPY_DIR"]; d != "" && sameDir(c.OS, d, j.backupDir()) {
@@ -286,6 +296,31 @@ func applyChoice(c shopconf.Conf, dir string, ch Choice) (*Job, error) {
 	return j, nil
 }
 
+// runningOS is this PC's system (tests set it).
+var runningOS = runtime.GOOS
+
+func defaultInstallDir(osName string) string {
+	if osName == "windows" {
+		return `C:\karots-suite`
+	}
+	return "/opt/karots-suite"
+}
+
+func osWords(name string) string {
+	if name == "windows" {
+		return "Windows"
+	}
+	return "Linux"
+}
+
+// osName is osWords for the page: "" stays "".
+func osName(name string) string {
+	if name == "" {
+		return ""
+	}
+	return osWords(name)
+}
+
 // modeWords names a mode the way the Shop Builder does.
 var modeWords = map[string]string{"file": "Built in", "server": "Server"}
 
@@ -294,6 +329,9 @@ var modeWords = map[string]string{"file": "Built in", "server": "Server"}
 func checkChoice(j *Job) error {
 	if j.Uninstall || j.pendingRestore {
 		return nil
+	}
+	if j.Role == RoleServer && j.MainOS != "" {
+		return fmt.Errorf("this shop's main PC runs %s, so this PC can only be a cashier PC", osWords(j.MainOS))
 	}
 	if j.FromMode != "" && !j.ChangeMode {
 		return fmt.Errorf("this Update changes how the shop is kept (%s → %s) — tick 'Change it' on the page, or add -change-mode",

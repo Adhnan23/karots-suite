@@ -26,6 +26,7 @@ const (
 type Job struct {
 	Conf     shopconf.Conf
 	Role     Role
+	MainOS   string // the shop's main PC runs another system than this PC ("" = the same)
 	Address  string // cashier PC: the main PC's host[:port]
 	User     string // the shop user: Linux login / Windows DOMAIN\user
 	Dir      string // the folder holding karots-setup, install.conf and the binary

@@ -262,7 +262,10 @@ async function plan() {
   st.plan = p
   for (const b of document.querySelectorAll('[data-open]')) b.setAttribute('aria-pressed', b.dataset.open === st.open)
   $('shop').textContent = p.shop; document.title = 'Karots Setup — ' + p.shop
-  $('serverSub').textContent = p.mode === 'file' ? 'Runs the till, and keeps the shop\'s data on this PC.' : 'Runs the till for the shop.'
+  $('serverSub').textContent = p.mainOs ? 'This shop\'s main PC runs ' + p.mainOs + ', so this PC can only be a cashier PC.'
+    : p.mode === 'file' ? 'Runs the till, and keeps the shop\'s data on this PC.' : 'Runs the till for the shop.'
+  document.querySelector('[data-role=server]').disabled = !!p.mainOs
+  if (p.mainOs && st.role === 'server') setRole('cashier')
   if (!$('address').value && p.lanAddress) $('address').value = p.lanAddress
   const upd = p.updating && st.role === 'server', main = st.role === 'server'
   $('go').textContent = st.uninstall ? 'Uninstall Karots from this PC' : upd ? 'Update' : 'Install'; $('updateNote').hidden = !upd || st.uninstall
