@@ -28,11 +28,10 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-04T09:54:56Z",
-        "commit": "d690c25",
-        "version": "2026.11.04.1524",
-        "kind": "release",
-        "notes": "• A slip cancels the till's zoom, so it's measured at the size it's drawn\n• A receipt picture lays out its own text, so a browser that measures text differently can't break a slip"
+        "at": "2026-11-04T10:23:59Z",
+        "commit": "b823f3a",
+        "version": "2026.11.04.1553",
+        "kind": "test"
       },
       "published": {
         "version": "2026.11.04.1524",
@@ -73,9 +72,9 @@
         "keep": 28
       },
       "lastBuilt": {
-        "at": "2026-11-04T05:04:35Z",
-        "commit": "37e1a82",
-        "version": "2026.11.04.1034",
+        "at": "2026-11-04T10:23:37Z",
+        "commit": "b823f3a",
+        "version": "2026.11.04.1553",
         "kind": "test"
       }
     }

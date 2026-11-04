@@ -31,6 +31,8 @@ open till for tickets, though the phone has no ticket screen until release 2.
 
 **Hand tests on the VMs passed (user, 2026-11-04, on the test build):** box purchase, barcode flow + removing a link, long sale, stock after it, + New product, reprint, sale with the helper stopped, main PC not printing on the cashier's printer, recall. **No cash drawer at Aiman for now** (they open it with its key): the drawer stays untested. Then on Release 1524: the supplier discount, a return's credit paying a delivery, and Give back → Credited us clearing a bill with the rest paying the next one (user: "perfectly worked"). **Still to try:** the tablet, labels once there's a roll, the pharmacist's trial.
 
+**Windows Setup PASSED (user, 2026-11-04, build 1553 on Windows 10):** with the hand-added printer removed, Update added `USB printer USB001` by itself, and a test slip printed. **Mixed systems PASSED (user, same day):** Windows 10 as a cashier PC with the Linux main VM: the main PC choice greyed out, approved from Linux, test slip and a sale printed through the helper (its first real run on Windows).
+
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
 one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
 bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
