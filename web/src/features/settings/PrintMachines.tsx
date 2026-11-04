@@ -8,7 +8,8 @@ import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { Field, INPUT } from '@/components/admin/fields'
 import { SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
-import { errMsg } from '@/features/till/api'
+import { slipPicture } from '@/features/print/picture'
+import { configQuery, errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 
 const BASE = '/admin/print-machines'
@@ -47,6 +48,12 @@ function Machine({ m }: { m: PrintMachine }) {
       setBusy(false)
     }
   }
+  // Image mode: the same picture the shop's own test slip prints.
+  const testSlip = async () => {
+    const cfg = await qc.ensureQueryData(configQuery).catch(() => null)
+    const pic = cfg?.printAs === 'image' ? await slipPicture('/admin/settings/printer/test').catch(() => undefined) : undefined
+    await api(`${BASE}/${m.id}/test`, { method: 'POST', blob: pic?.blob })
+  }
   const save = () => act(() => api(`${BASE}/${m.id}`, { method: 'PUT', json: { receiptPrinter: receipt, labelPrinter: label } }), m.approved ? 'Saved' : `${m.name} can print now`)
   const pick = (name: string, value: string, set: (v: string) => void) => (
     <Field label={name}>
@@ -73,7 +80,7 @@ function Machine({ m }: { m: PrintMachine }) {
       <div className="flex flex-wrap items-center gap-2">
         <Button className="h-10 px-4 font-bold" disabled={busy || !dirty} onClick={() => void save()}>{m.approved ? 'Save' : 'Approve'}</Button>
         {m.approved && m.receiptPrinter && (
-          <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={busy || !m.online} onClick={() => void act(() => api(`${BASE}/${m.id}/test`, { method: 'POST' }), 'Test slip sent')}><Printer size={16} /> Test slip</Button>
+          <Button variant="outline" className="h-10 gap-1.5 px-4" disabled={busy || !m.online} onClick={() => void act(testSlip, 'Test slip sent')}><Printer size={16} /> Test slip</Button>
         )}
         <ConfirmButton plain className="ml-auto h-10 px-4" label="Remove" title={`Remove ${m.name}?`} body="Its printing stops. If its helper is still running, it asks for your OK again." confirm="Remove"
           onConfirm={() => api(`${BASE}/${m.id}`, { method: 'DELETE' }).then(refresh)} />

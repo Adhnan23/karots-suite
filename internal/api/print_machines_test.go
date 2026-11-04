@@ -94,6 +94,16 @@ func TestPrintMachineFollowsTheMachine(t *testing.T) {
 		t.Fatalf("job %+v", j)
 	}
 
+	// The test slip takes the picture Image mode draws, as the shop's own does.
+	bad := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/admin/print-machines/%d/test", rows[0].ID), strings.NewReader("not a png"))
+	bad.Header.Set("Content-Type", "image/png")
+	bad.AddCookie(boss)
+	badRec := httptest.NewRecorder()
+	te.e.ServeHTTP(badRec, bad)
+	if !strings.Contains(badRec.Body.String(), "BAD_IMAGE") {
+		t.Fatalf("test slip ignored the picture: %d %s", badRec.Code, badRec.Body)
+	}
+
 	// Off: it fails at once, the way a printer that is off does.
 	te.db.MustExec(`UPDATE print_machines SET last_seen = now() - interval '5 minutes'`)
 	if err := printing.Raw(t.Context(), fmt.Sprintf("machine://%d/XP80", rows[0].ID), []byte("slip")); err == nil || !strings.Contains(err.Error(), "isn't connected") {

@@ -127,7 +127,8 @@ func (h *handlers) AdminPrintMachineRemove(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// AdminPrintMachineTest prints a test slip on a machine's receipt printer.
+// AdminPrintMachineTest prints a test slip on a machine's receipt printer, as the
+// shop's own test does: in Image mode the page sends the picture, and the drawer opens.
 func (h *handlers) AdminPrintMachineTest(c echo.Context) error {
 	id, err := pathID(c)
 	if err != nil {
@@ -149,9 +150,17 @@ func (h *handlers) AdminPrintMachineTest(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := escpos.Send(ctx, printmachines.Target(m.ID, m.ReceiptPrinter), escpos.TestDocument(*s)); err != nil {
+		doc := escpos.TestDocument(*s)
+		if job, ok, err := slipImage(c, s); err != nil {
+			return err
+		} else if ok {
+			doc = job
+		}
+		s.ReceiptPrinter = printmachines.Target(m.ID, m.ReceiptPrinter)
+		if err := escpos.Send(ctx, s.ReceiptPrinter, doc); err != nil {
 			return apperr.Validation("the test slip didn't print: " + err.Error())
 		}
+		escpos.KickDrawer(ctx, *s)
 		return c.NoContent(http.StatusNoContent)
 	}
 	return apperr.NotFound("machine")
