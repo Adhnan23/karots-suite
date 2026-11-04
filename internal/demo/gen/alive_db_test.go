@@ -86,8 +86,8 @@ func TestCheats(t *testing.T) {
 		t.Fatal(err)
 	}
 	if n := count(t, d.DB, `SELECT count(*) FROM cash_register r JOIN users u ON u.id = r.user_id WHERE r.closed_at IS NULL AND u.phone = ANY($1)`,
-		phones(s)); n != 3 {
-		t.Errorf("%d shown logins have a till open, want 3", n)
+		phones(s)); n != 4 { // not the sales person: they have no till
+		t.Errorf("%d shown logins have a till open, want 4", n)
 	}
 	if err := s.Cheat("low-stock"); err != nil {
 		t.Fatal(err)
