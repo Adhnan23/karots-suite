@@ -118,6 +118,26 @@ Start-ScheduledTask -TaskName %s`, psq(launcher), psq(args), psq(j.Conf.InstallD
 	return err
 }
 
+// windowsPrinting gives every USB port with no printer one on Windows' own
+// Generic / Text Only driver, which passes the print data through untouched, so it
+// suits any receipt or label printer. Can't = not fatal: the till works, and one
+// added by hand or at the next Update does too.
+func windowsPrinting(j *Job) error {
+	if _, err := ps(j, `# karots:printers
+$used = @(Get-Printer -ErrorAction SilentlyContinue | ForEach-Object { $_.PortName })
+foreach ($port in Get-PrinterPort -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'USB*' -and $used -notcontains $_.Name }) {
+  try {
+    Add-PrinterDriver -Name 'Generic / Text Only' -ErrorAction SilentlyContinue
+    Add-Printer -Name ('USB printer ' + $port.Name) -DriverName 'Generic / Text Only' -PortName $port.Name -ErrorAction Stop
+    Write-Output ('Added a printer on ' + $port.Name)
+  } catch { Write-Output ('Could not add a printer on ' + $port.Name + ': ' + $_) }
+}
+exit 0`); err != nil {
+		fmt.Fprintln(j.Log, "couldn't set up printers:", err)
+	}
+	return nil
+}
+
 // windowsNetwork keeps one rule for the till port and the plugins' ports.
 func windowsNetwork(j *Job) error {
 	list := strings.Join(tcpPortsPlain(j), ",")

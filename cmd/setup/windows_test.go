@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -275,10 +276,8 @@ func TestWindowsSettingsAndNoPrinting(t *testing.T) {
 	if b, _ := os.ReadFile(at(joinOS(j, j.Conf.InstallDir, ".env"))); string(b) != string(j.Conf.EnvFile()) {
 		t.Fatalf(".env %q", b)
 	}
-	for _, s := range Steps(j) {
-		if s.ID == "printing" {
-			t.Fatal("a printing step on Windows")
-		}
+	if !slices.Contains(ids(Steps(j)), "printing") {
+		t.Fatal("no printing step on Windows")
 	}
 }
 
@@ -412,5 +411,22 @@ func TestWindowsFirewallExtraPorts(t *testing.T) {
 	}
 	if all := rc.all(); strings.Count(all, "-LocalPort 3000,8443") != 2 {
 		t.Fatalf("script:\n%s", all)
+	}
+}
+
+// Any USB port without a printer gets one; no port name or model is assumed.
+func TestWindowsPrintingAddsAnyFreeUSBPort(t *testing.T) {
+	j, rc := windowsJob(t, "file")
+	if err := windowsPrinting(j); err != nil {
+		t.Fatal(err)
+	}
+	all := rc.all()
+	for _, want := range []string{"Get-PrinterPort", "-like 'USB*'", "-notcontains", "Generic / Text Only", "Add-Printer"} {
+		if !strings.Contains(all, want) {
+			t.Errorf("missing %q in:\n%s", want, all)
+		}
+	}
+	if strings.Contains(all, "USB001") || strings.Contains(all, "XP-") {
+		t.Errorf("a port or model is hard-coded:\n%s", all)
 	}
 }
