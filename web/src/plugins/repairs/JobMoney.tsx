@@ -27,6 +27,7 @@ export function JobMoney({ job, sym, onOpen }: { job: Job; sym: string; onOpen: 
   const deposits = num(job.depositTotal)
   // What a cancelled job hands back: its deposits, as far as the advance still has them.
   const giveBack = job.status === 'cancelled' ? Math.min(deposits, advance) : 0
+  const handlesMoney = !cfg?.sendsToCashier // a sales person's server refuses all of these
 
   async function backHeld() {
     try {
@@ -68,20 +69,20 @@ export function JobMoney({ job, sym, onOpen }: { job: Job; sym: string; onOpen: 
         {cust && <span className="ml-auto text-[12px] text-muted-foreground">{advance > 0 ? `Advance on account ${money(sym, advance)}` : num(job.outstanding) > 0 ? `Owes ${money(sym, num(job.outstanding))}` : 'Nothing on account'}</span>}
       </div>
       <div className="flex flex-wrap gap-2">
-        {open && !job.reworkOf && cust && (
+        {handlesMoney && open && !job.reworkOf && cust && (
           <Button type="button" variant="secondary" onClick={() => setForm({ mode: 'pay', amount: '', note: `Deposit — ${job.ticketNo}` })}><HandCoins className="size-4" /> Take a deposit</Button>
         )}
-        {giveBack > 0 && cust && (
+        {handlesMoney && giveBack > 0 && cust && (
           <Button type="button" onClick={() => setForm({ mode: 'refund', amount: giveBack.toFixed(2) })}><Undo2 className="size-4" /> Give back the deposit {money(sym, giveBack)}</Button>
         )}
-        {held > 0 && !open && <Button type="button" onClick={() => void backHeld()}><Undo2 className="size-4" /> Give back {money(sym, held)} held</Button>}
-        {job.status === 'collected' && advance > 0 && cust && (
+        {handlesMoney && held > 0 && !open && <Button type="button" onClick={() => void backHeld()}><Undo2 className="size-4" /> Give back {money(sym, held)} held</Button>}
+        {handlesMoney && job.status === 'collected' && advance > 0 && cust && (
           <Button type="button" variant="secondary" onClick={() => setForm({ mode: 'refund', amount: advance.toFixed(2) })}><Undo2 className="size-4" /> Refund the advance left {money(sym, advance)}</Button>
         )}
         {job.status === 'collected' && job.inWarranty && (
           <>
             <Button type="button" variant="secondary" onClick={() => void rework()}><RotateCcw className="size-4" /> Free re-repair</Button>
-            {job.saleId && <Button type="button" variant="secondary" onClick={() => void navigate({ to: '/till/returns', search: { sale: job.saleId! } })}>Return a faulty part</Button>}
+            {handlesMoney && job.saleId && <Button type="button" variant="secondary" onClick={() => void navigate({ to: '/till/returns', search: { sale: job.saleId! } })}>Return a faulty part</Button>}
           </>
         )}
       </div>

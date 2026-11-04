@@ -223,6 +223,8 @@ test('a job picked up on a ticket keeps its deposit, and the sale collects it', 
   await viaTicket(browser, page, 'E2E Cashier', async (seller) => {
     await search(seller).fill(job[0].ticketCode)
     await search(seller).press('Enter')
+    await expect(panel(seller).getByRole('button', { name: 'Put on the bill' })).toBeVisible()
+    await expect(panel(seller).getByRole('button', { name: 'Take a deposit' })).toHaveCount(0) // no money for a sales person
     await panel(seller).getByRole('button', { name: 'Put on the bill' }).click()
     await expect(cart(seller).getByText(`Fitting — ${ticket}`)).toBeVisible()
     await seller.keyboard.press('Escape')
