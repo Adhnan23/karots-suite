@@ -3,7 +3,29 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (2026-11-02)
+## Now (2026-11-04)
+
+**Done 2026-11-04 (items 1 to 5 and 7 of the list below; Playwright 235 passed, 33 skipped; screenshots retaken):** the fresh review of Send to cashier and its fixes (plugin routes that move
+money or stock now refuse a sales person; a till's own close is refused on the server while tickets wait, and with no till left at all
+tickets go back to the sender's Held; ticket numbers have a unique index (duplicates did reproduce); only working non-sales people get
+tickets; a hold keeps a plugin's payment rows, only typed cash is dropped; a sales person on an old phone copy: sales stand, flagged, drawer
+moves refused). Demo Room: a second cashier and a Sales person in every shop. "One PC" is now **Built in (file mode)** in the Builder, Setup,
+guides and order form. Repairs hides its money buttons from a sales person.
+**Print helper (item 7):** Setup puts it on a cashier PC (`karots-setup -print-agent <main>`, runs as a service / sign-in task). It calls out
+to the main PC, so nothing listens on the cashier PC and a changing address is fine. The admin approves the machine and picks its printers in
+Settings → Cashier PCs' printers. A request's printers follow its socket address (`settings.WithMachinePrinters`), ahead of a person's own
+printer. Setup now also makes raw CUPS queues for USB printers on Linux, on both roles. Checked: Go tests + the real helper binary against a
+real server with a stand-in `lp`. **Not yet checked on a real printer, or on Windows.** Still open from the review: a phone till counts as an
+open till for tickets, though the phone has no ticket screen until release 2.
+
+**Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
+one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
+bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
+only when needed. Main PC's profile is now "In the background" (the owner works on it; the laptop is the till). **Test Linux:** nothing uploaded after 2026-11-02 13:55 and
+all VMs here are off, so nothing is running to stop; don't boot a VM with that test install on it without removing it first. Both printers show on the dev PC in CUPS (`POS80`, `XP365`). `POS80` has old jobs queued since 2026-10-18 that will print if
+that printer connects: clear them first.
+
+## Before that (2026-11-02)
 
 **The suite is feature-complete for a shop's day** — till, stock, purchasing, money (cheques included), reports,
 people, printing (Classic + Image, receipt and label styles), 22 palettes, ten plugins, file / server mode, Shop
