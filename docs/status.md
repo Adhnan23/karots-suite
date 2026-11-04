@@ -15,7 +15,7 @@ guides and order form. Repairs hides its money buttons from a sales person.
 to the main PC, so nothing listens on the cashier PC and a changing address is fine. The admin approves the machine and picks its printers in
 Settings → Cashier PCs' printers. A request's printers follow its socket address (`settings.WithMachinePrinters`), ahead of a person's own
 printer. Setup now also makes raw CUPS queues for USB printers on Linux, on both roles. Checked: Go tests + the real helper binary against a
-real server with a stand-in `lp`. **Not yet checked on a real printer, or on Windows.** Still open from the review: a phone till counts as an
+real server with a stand-in `lp`. **Real printer through the helper PASSED 2026-11-04** (user: VMs `karots-main` + `karots-cashier`, the XP-80T passed through to the cashier VM, approved in Settings, Test slip printed). **A real sale from the cashier VM still to check; not checked on Windows.** Still open from the review: a phone till counts as an
 open till for tickets, though the phone has no ticket screen until release 2.
 
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
