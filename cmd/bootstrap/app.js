@@ -279,7 +279,7 @@ function renderEdit() {
     </div>
     <div class="sec"><h2>Shop</h2>
       <div class="fields">${field('eName', 'Shop name', c.name)}</div>
-      <label class="f">Runs on</label><div class="seg" id="eOS"></div>
+      <label class="f">Main PC runs on</label><div class="seg" id="eOS"></div>
       <label class="f">Processor</label><div class="seg" id="eArch"></div>
       <label class="f">Plugins</label><div class="plugins" id="ePlugins" style="margin-top:6px"></div>
     </div>
