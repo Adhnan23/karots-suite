@@ -127,3 +127,57 @@ test('a style can be printed from its preview, on a printer picked there', async
   }
   await page.screenshot({ path: 'shots/appearance-try-print/both.png', fullPage: true })
 })
+
+// A browser whose text measures a little differently (a real Linux desktop's Chromium) must
+// not break the slip: "TOTA / L", lines on top of each other. The picture lays itself out
+// instead of keeping the boxes' measured sizes. The test makes every text box report short.
+test('a receipt picture keeps its layout when text measures differently', async ({ page }) => {
+  await asSystem(page)
+  const draw = async () => {
+    await page.goto('/admin/system/appearance')
+    await page.waitForLoadState('networkidle')
+    const styles = page.getByRole('group', { name: 'Receipt style' })
+    if (!(await styles.isVisible())) await page.locator('summary', { hasText: 'Receipt style' }).click() // it remembers being open
+    await styles.getByRole('button', { name: /Cards/ }).click()
+    const img = page.getByRole('img', { name: 'Receipt preview' })
+    await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBe(576)
+    await page.waitForTimeout(1000)
+    // The ink on each row of the picture.
+    return img.evaluate((i: HTMLImageElement) => {
+      const c = document.createElement('canvas')
+      c.width = i.naturalWidth
+      c.height = i.naturalHeight
+      const x = c.getContext('2d')!
+      x.drawImage(i, 0, 0)
+      const px = x.getImageData(0, 0, c.width, c.height).data
+      const rows = new Array<number>(c.height).fill(0)
+      for (let n = 0; n < px.length; n += 4) if (px[n] < 128) rows[Math.floor(n / 4 / c.width)]++
+      return rows
+    })
+  }
+  const normal = await draw()
+  await page.addInitScript(() => {
+    const real = window.getComputedStyle
+    window.getComputedStyle = (el, pseudo) => {
+      const style = real.call(window, el, pseudo)
+      if (!el.closest?.('[style*="-10000px"]') || el.querySelector('*') || !el.textContent) return style
+      return new Proxy(style, {
+        get(t, k) {
+          if (k === 'getPropertyValue') {
+            return (name: string) => {
+              const v = t.getPropertyValue(name)
+              return (name === 'width' || name === 'inline-size') && v.endsWith('px') ? `${Math.max(0, parseFloat(v) - 6)}px` : v
+            }
+          }
+          const v = Reflect.get(t, k)
+          return typeof v === 'function' ? v.bind(t) : v
+        },
+      })
+    }
+  })
+  const short = await draw()
+  await page.getByRole('img', { name: 'Receipt preview' }).screenshot({ path: 'shots/receipt-previews/text-measured-short.png' })
+  const ink = normal.reduce((a, b) => a + b, 0)
+  const moved = normal.reduce((a, n, y) => a + Math.abs(n - (short[y] ?? 0)), 0)
+  expect(moved / ink).toBeLessThan(0.02) // only the sample's clock may tick
+})

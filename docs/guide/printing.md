@@ -17,8 +17,8 @@ In **Setup → Settings**:
 - **Ask before printing:** shows **Print / New sale** after each sale. With it off, the receipt
   prints straight away. Every slip follows this setting: sales, refunds, cash in / out, credit,
   warranty, reprints and plugin slips.
-- **How a receipt prints:** as a picture in the shop's receipt style, so Sinhala and Tamil print exactly
-  as they look on screen. If a picture ever can't be drawn, that one slip prints as plain text, so a
+- **How a receipt prints:** as a picture in the shop's receipt style, so the shop's name in Sinhala or Tamil
+  prints exactly as it looks on screen. Product lines use the product's main name. If a picture ever can't be drawn, that one slip prints as plain text, so a
   customer still gets a receipt.
 - Each user can have their own receipt printer (Users page).
 - **A printer plugged into a cashier PC:** see below.
