@@ -24,6 +24,11 @@ In **Setup → Settings**:
 - Each user can have their own receipt printer (Users page).
 - **A printer plugged into a cashier PC:** see below.
 
+## Printers we've tested
+
+- **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): Classic, and Image in all ten receipt
+  styles, on the PC itself and from a cashier PC.
+
 ## Printers on a cashier PC
 
 Setup puts a small print helper on every cashier PC. It tells the main PC which printers that PC
