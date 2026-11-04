@@ -28,11 +28,11 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-04T08:27:07Z",
-        "commit": "d60695f",
-        "version": "2026.11.04.1356",
-        "kind": "release",
-        "notes": "• A unit cost keeps 4 decimals, so a big box adds back up to its bill\n• An unknown scan asks first on every purchase screen\n• Receipts always print as pictures\n• On Windows, a USB port with no printer gets one, on install and Update\n• The printer choice sits under the styles, not below a long preview\n• Try a style on a network printer by its address\n• Print a receipt or label style from its preview, on a printer picked there\n• A cashier PC's test slip follows Image mode and opens the drawer, as the shop's does"
+        "at": "2026-11-04T09:40:16Z",
+        "commit": "98fe4b1",
+        "version": "2026.11.04.1509",
+        "kind": "test",
+        "dirty": true
       },
       "published": {
         "version": "2026.11.04.1356",
