@@ -20,6 +20,8 @@ open till for tickets, though the phone has no ticket screen until release 2.
 
 **Appearance can print (2026-11-04, after 2026.11.04.0843):** Receipt style and Label styles each have a printer picker and **Print this** (system user only; prints the sample, no drawer). A cashier PC's Test slip also follows Image mode and opens the drawer. All ten receipt styles printed fine on the real XP-80T through **Print this** (user, 2026-11-04: "flawless"). Both go out with the next Release; `printing/receipt-styles` + `label-styles` screenshots to retake with the next Demo Room.
 
+**Windows printing test under way (2026-11-04):** shop `windows-test` (every plugin, file mode, no cloud), Test build on the `win10` VM with the XP-80T attached. **After the test (user asked, not before):** Setup on Windows should add the printer itself, as it makes raw queues on Linux: USB ports with no printer get one on the Generic / Text Only driver. Today it's added by hand in Windows. Then, if Windows prints fine, Image-only receipts (keep the hidden Classic fallback); labels wait for a roll.
+
 **Aiman's hardware changed 2026-11-03/04 (replaces the shop-visit list below):** bought one PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20" monitor),
 one wired 2D scanner, Xprinter XP-80T (receipts), Xprinter XP-365B (labels), both USB. The owner didn't want a second desktop or a laptop
 bought: the new PC is the **admin + main PC**, **his own laptop is the cashier**, and a **tablet or phone is Pocket Cashier** backup. Another PC
