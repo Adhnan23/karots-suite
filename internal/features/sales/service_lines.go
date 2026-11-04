@@ -318,7 +318,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				lineComps = append(lineComps, ServiceComponentParsed{ProductID: comp.ProductID, Qty: cq})
 			}
 			if qty.IsPositive() {
-				cost = cost.Div(qty).Round(2)
+				cost = cost.Div(qty).Round(4)
 			}
 		}
 		if !p.IsService {

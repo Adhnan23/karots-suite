@@ -41,7 +41,7 @@ func costOfConsumed(lots []ConsumedLot, qty, productCost decimal.Decimal) decima
 		}
 		total = total.Add(l.Qty.Mul(cost))
 	}
-	return total.Div(qty).Round(2)
+	return total.Div(qty).Round(4)
 }
 
 // DepleteFEFO consumes qty from a product's batches, earliest-expiry-first, and

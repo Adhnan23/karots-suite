@@ -20,10 +20,8 @@ import (
 // net after its own discount AND its share of the bill discount) spread across
 // every unit that arrived (gotQty = paid + free), so a discount or freebie
 // surfaces as real margin when the units sell.
-// ponytail: rounds to 2dp (the column's scale), so blended×gotQty can drift a
-// few cents from paid (1000 over 12 = 83.33, ×12 = 999.96) — returning a whole
-// odd-split lot leaves those cents owed on the bill. Accepted; widen the column
-// to 4dp only if that ever matters.
+// Kept to 4dp (the column's scale), so blended×gotQty rounds back to what was paid
+// (1000 over 120 = 8.3333, ×120 = 1000.00).
 func lotCost(costBasis, gotQty, freeQty, listCost decimal.Decimal) decimal.Decimal {
 	if !gotQty.IsPositive() {
 		return decimal.Zero
@@ -35,7 +33,7 @@ func lotCost(costBasis, gotQty, freeQty, listCost decimal.Decimal) decimal.Decim
 	if freeQty.IsZero() && costBasis.Equal(gotQty.Mul(listCost).Round(2)) {
 		return listCost
 	}
-	return costBasis.DivRound(gotQty, 2)
+	return costBasis.DivRound(gotQty, 4)
 }
 
 // applyReceivedLines inserts purchase item rows and posts their inventory effects

@@ -70,15 +70,15 @@ func TestAdminPurchaseReturns(t *testing.T) {
 		t.Fatalf("more than came in: %d", code)
 	}
 
-	// Return 4 at the discounted cost (a typed price is ignored) → 272.72, credited to THIS bill.
+	// Return 4 at the discounted cost (a typed price is ignored) → 272.73, credited to THIS bill.
 	code, r := post(PurchaseReturnRequest{SupplierID: sup.ID, PurchaseID: got.PurchaseID, Reference: "DN-1", Reason: "damaged",
 		Lines: []PurchaseReturnItem{{ProductID: f.plainID, Quantity: "4", CostPrice: "100", BatchID: plain.BatchID}}})
-	if code != http.StatusCreated || r.Total != "272.72" || r.PurchaseID != got.PurchaseID || r.SupplierName != sup.Name {
+	if code != http.StatusCreated || r.Total != "272.73" || r.PurchaseID != got.PurchaseID || r.SupplierName != sup.Name {
 		t.Fatalf("return: %d %+v", code, r)
 	}
 	gp := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", got.PurchaseID), nil, ck))
 	op := decode[PurchaseDetail](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d", older.PurchaseID), nil, ck))
-	if gp.Credited != "272.72" || op.Credited != "50.00" {
+	if gp.Credited != "272.73" || op.Credited != "50.00" {
 		t.Fatalf("credited: returned bill %s, older bill %s", gp.Credited, op.Credited)
 	}
 	if left := decode[ReturnableList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/purchases/%d/returnable", got.PurchaseID), nil, ck)).Lines[0].Left; left != "8" {

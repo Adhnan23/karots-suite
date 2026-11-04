@@ -120,7 +120,7 @@ func splitYield(lots []stock.ConsumedLot, fromQty, toQty decimal.Decimal) []stoc
 		carry = decimal.Zero
 		left = left.Sub(share)
 		out = append(out, stock.NewBatch{
-			Quantity: share, CostPrice: value.Div(share).Round(2),
+			Quantity: share, CostPrice: value.Div(share).Round(4),
 			ExpiryDate: l.Expiry, BatchNo: l.BatchNo, Source: "conversion",
 		})
 	}

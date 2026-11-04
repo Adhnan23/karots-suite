@@ -51,9 +51,9 @@ func TestDepleteFEFOLotsReportsEachBatchTaken(t *testing.T) {
 		second.Expiry == nil || !second.Expiry.Equal(later) || *second.BatchNo != noB {
 		t.Errorf("second lot = %+v, want the late batch, 1 @ 70, B-2", second)
 	}
-	// (2×50 + 1×70) / 3 = 56.67
-	if !avg.Equal(d("56.67")) {
-		t.Errorf("avg cost = %s, want 56.67", avg)
+	// (2×50 + 1×70) / 3 = 56.6667
+	if !avg.Equal(d("56.6667")) {
+		t.Errorf("avg cost = %s, want 56.6667", avg)
 	}
 
 	// DepleteFEFO is the same walk, returning only the cost.

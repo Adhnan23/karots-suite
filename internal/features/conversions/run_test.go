@@ -155,8 +155,8 @@ func TestRunActualYieldRaisesUnitCost(t *testing.T) {
 	if len(lots) != 1 || !lots[0].Qty.Equal(d("24.6")) || !mirror.Equal(d("24.6")) {
 		t.Fatalf("lots %+v mirror %s, want 24.6", lots, mirror)
 	}
-	if !lots[0].Cost.Equal(d("101.63")) { // 2500 / 24.6
-		t.Errorf("unit cost = %s, want 101.63", lots[0].Cost)
+	if !lots[0].Cost.Equal(d("101.626")) { // 2500 / 24.6
+		t.Errorf("unit cost = %s, want 101.626", lots[0].Cost)
 	}
 	var toQty decimal.Decimal
 	must(t, f.tx.GetContext(ctx, &toQty, `SELECT to_qty FROM conversion_runs WHERE conversion_id = $1`, f.convID))

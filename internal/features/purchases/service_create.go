@@ -154,7 +154,7 @@ func parseLines(items []ItemInput) ([]PurchaseItem, decimal.Decimal, error) {
 			if err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) {
 				return nil, decimal.Zero, apperr.Validation("pack size must be more than 1")
 			}
-			qty, free, cost = qty.Mul(size), free.Mul(size), cost.Div(size).Round(2)
+			qty, free, cost = qty.Mul(size), free.Mul(size), cost.Div(size).Round(4)
 			if discType == "fixed" {
 				discVal = discVal.Div(size).Round(2)
 			}

@@ -48,7 +48,7 @@ func MergeDefaults(lots []Batch) (keptID int64, cost decimal.Decimal, expiry *ti
 		}
 	}
 	if qty.IsPositive() {
-		cost = value.Div(qty).Round(2)
+		cost = value.Div(qty).Round(4)
 	}
 	return sorted[0].ID, cost, expiry, sorted[0].SellingPrice
 }

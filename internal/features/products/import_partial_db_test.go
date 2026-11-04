@@ -51,7 +51,7 @@ func TestImportOnePartialSheetKeepsOtherColumns(t *testing.T) {
 		Reorder int    `db:"reorder_level"`
 	}
 	must(t, conn.GetContext(ctx, &p, `SELECT cost_price::text, selling_price::text, category_id, preferred_supplier_id, reorder_level FROM products WHERE name = 'TEST partial rice'`))
-	if res.Action != "updated" || p.Sell != "1300.00" || p.Cost != "900.00" || p.Cat != catID || p.Sup == nil || *p.Sup != supID || p.Reorder != 7 {
+	if res.Action != "updated" || p.Sell != "1300.00" || p.Cost != "900.0000" || p.Cat != catID || p.Sup == nil || *p.Sup != supID || p.Reorder != 7 {
 		t.Fatalf("after a price-only sheet: %+v (%s)", p, res.Action)
 	}
 }

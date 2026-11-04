@@ -123,10 +123,10 @@ func (r *Repository) settleCount(ctx context.Context, tx *sqlx.Tx, lot Batch, co
 			}
 			need, held, value = need.Sub(take), held.Add(take), value.Add(take.Mul(costOf(o)))
 		}
-		lotCost = value.Div(held).Round(2)
+		lotCost = value.Div(held).Round(4)
 	case diff.IsNegative() && len(others) > 0:
 		o, out := others[0], diff.Abs()
-		blended := o.QtyRemaining.Mul(costOf(o)).Add(out.Mul(lotCost)).Div(o.QtyRemaining.Add(out)).Round(2)
+		blended := o.QtyRemaining.Mul(costOf(o)).Add(out.Mul(lotCost)).Div(o.QtyRemaining.Add(out)).Round(4)
 		if err := setLot(o.ID, o.QtyRemaining.Add(out), blended); err != nil {
 			return err
 		}

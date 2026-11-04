@@ -123,7 +123,7 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 			// of what this stock cost.
 			cost := decimal.Zero
 			if src.Quantity.IsPositive() {
-				cost = src.LossValue.Div(src.Quantity).Round(2)
+				cost = src.LossValue.Div(src.Quantity).Round(4)
 			}
 			cost = cost.Add(extra)
 			refType := "recovery"

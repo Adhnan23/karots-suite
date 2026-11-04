@@ -32,8 +32,8 @@ func TestMergeDefaults(t *testing.T) {
 	if kept != 1 {
 		t.Errorf("kept = %d, want the oldest (1)", kept)
 	}
-	if !cost.Equal(decimal.RequireFromString("57.33")) { // (200+600+60)/15
-		t.Errorf("cost = %s, want 57.33", cost)
+	if !cost.Equal(decimal.RequireFromString("57.3333")) { // (200+600+60)/15
+		t.Errorf("cost = %s, want 57.3333", cost)
 	}
 	if exp == nil || exp.Format(time.DateOnly) != "2027-03-12" {
 		t.Errorf("expiry = %v, want the earliest 2027-03-12", exp)
@@ -68,8 +68,8 @@ func TestMergeBatchesFoldsIntoTheOldest(t *testing.T) {
 	if !a.QtyReceived.Equal(decimal.NewFromInt(14)) {
 		t.Errorf("kept received = %s, want 14 (4 + the 10 folded in)", a.QtyReceived)
 	}
-	if !a.CostPrice.Equal(decimal.RequireFromString("57.14")) { // blank cost = weighted (200+600)/14
-		t.Errorf("cost = %s, want 57.14", a.CostPrice)
+	if !a.CostPrice.Equal(decimal.RequireFromString("57.1429")) { // blank cost = weighted (200+600)/14
+		t.Errorf("cost = %s, want 57.1429", a.CostPrice)
 	}
 	if a.ExpiryDate == nil || a.ExpiryDate.Format(time.DateOnly) != "2027-05-01" || !a.SellingPrice.Equal(decimal.NewFromInt(100)) {
 		t.Errorf("kept = exp %v price %s, want 2027-05-01 / 100", a.ExpiryDate, a.SellingPrice)

@@ -82,8 +82,8 @@ func TestGiveBackSettlesTheCount(t *testing.T) {
 		wantLossValue     string
 		wantDamage        string
 	}{
-		{"more, the other lot covers it", "10", "5", "15", "12", "3", "3", "0", "560.04", "-12"},
-		{"more, the other lot covers part", "10", "1", "11", "12", "0", "0", "1", "578.16", "-12"},
+		{"more, the other lot covers it", "10", "5", "15", "12", "3", "3", "0", "560", "-12"},
+		{"more, the other lot covers part", "10", "1", "11", "12", "0", "0", "1", "578.18", "-12"},
 		{"more, no other lot", "10", "", "10", "12", "", "0", "2", "600", "-12"},
 		{"less, onto the other lot", "10", "5", "15", "7", "8", "8", "0", "350", "-7"},
 		{"less, no other lot", "10", "", "10", "7", "", "0", "-3", "350", "-7"},
