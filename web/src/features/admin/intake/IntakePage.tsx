@@ -259,6 +259,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
   const units = useQuery(unitsQuery).data ?? []
   const blank = (name: string, barcode: string): Draft => ({ name, barcode, cost: '', markup: sticky.markup, selling: '', wholesale: '', qty: '', expiry: '' })
   const [d, setD] = useState<Draft>(() => blank(init.name, init.barcode))
+  const [asking, setAsking] = useState(!!init.barcode)
   const [cat, setCat] = useState(sticky.categoryId)
   const [unit, setUnit] = useState(sticky.unitId)
   const [supplier, setSupplier] = useState(sticky.supplierId)
@@ -296,6 +297,18 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
       setBusy(false)
     }
   }
+  // A new batch often carries a new barcode: ask before making a second product.
+  if (asking) {
+    return (
+      <div className="flex flex-col gap-3">
+        <SameAsExisting code={init.barcode} source="intake" onLinked={(p) => onLinked(p, init.barcode)} />
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" className="h-10 px-4" onClick={() => setAsking(false)}>It's a new product</Button>
+          <Button type="button" variant="ghost" className="h-10 px-4" onClick={onCancel}>Cancel</Button>
+        </div>
+      </div>
+    )
+  }
   return (
     <form onSubmit={save} autoComplete="off" className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -306,7 +319,6 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
             onClick={() => { setD({ ...like, barcode: '', qty: '' }); nameRef.current?.focus() }}><RotateCcw size={14} /> Another like last</Button>
         )}
       </div>
-      {init.barcode && d.barcode === init.barcode && <SameAsExisting code={init.barcode} source="intake" onLinked={(p) => onLinked(p, init.barcode)} />}
       <div className="flex flex-col gap-2">
         <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
         <ProductAssists key={round} name={d.name} barcode={d.barcode} where="intake" setExtras={setExtras}

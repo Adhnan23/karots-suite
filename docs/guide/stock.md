@@ -11,7 +11,11 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   category, unit, cost, price, wholesale price and reorder level.
 - **Packs:** a product can sell whole or loose, such as a card of 10 tablets, a ream of 500
   sheets or a 25 kg sack. The till asks "loose or pack?" and stock is kept in the smallest unit.
-- **Items to review:** quick items sold at the till and anything else that needs a look.
+- **Items to review:** quick items sold at the till, barcodes and pack sizes a cashier set, and anything
+  else that needs a look. A barcode a cashier linked works straight away; **Looks fine** keeps it, and
+  **Remove** makes the code unknown again. Removing doesn't move stock already received against it, so
+  check the count on both products if the screen warns you. A cashier's new product that turns out to
+  exist already can be merged with **Same as an existing one**.
 - **Sheets:** export the product list to Excel / CSV / ODS, change it and import it back. A
   price-only sheet changes prices only.
 - **Merge:** two products that are really one become one, and their sales, stock and plugin
@@ -49,7 +53,8 @@ and [Give back](purchasing.md#giving-a-batch-back) hands it to them.
 ![Stock intake](../images/stock/intake.jpg)
 
 Scan or type to receive stock without a purchase order. An existing product is restocked (how
-many came, cost, selling price, expiry, which batch). An unknown barcode opens a new product. You
+many came, cost, selling price, expiry, which batch). An unknown barcode asks first whether it's a product you already have, since a new batch often carries a
+new barcode: **Same as an existing one** adds the code to that product, or choose **It's a new product**. You
 can print the labels as you save. A supplier who isn't listed yet can be added on the spot with **New**, and a
 product with no supplier can be given one as you restock it.
 

@@ -193,6 +193,7 @@ type QuickItemRequest struct {
 // till (one item, several barcodes).
 type TillBarcodeRequest struct {
 	Barcode string `json:"barcode"`
+	Source  string `json:"source,omitempty"` // "receive" from a delivery, else the till
 }
 
 type GeneratedBarcode struct {

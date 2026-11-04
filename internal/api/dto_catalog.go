@@ -36,33 +36,42 @@ type CategoryQuickResult struct {
 }
 
 // AdminProductRow is one line of the admin product list.
+// TillBarcodeRow is a barcode a cashier linked to a product, to check.
+type TillBarcodeRow struct {
+	Barcode    string `json:"barcode"`
+	By         string `json:"by"`
+	AddedAt    string `json:"addedAt"`
+	StockSince bool   `json:"stockSince"` // a delivery came in after the link
+}
+
 type AdminProductRow struct {
-	ID           int64    `json:"id"`
-	Name         string   `json:"name"`
-	NameLocal    string   `json:"nameLocal"`
-	Barcode      string   `json:"barcode"`  // the main barcode (labels print it)
-	Barcodes     []string `json:"barcodes"` // extra barcodes, oldest first
-	CategoryID   int64    `json:"categoryId"`
-	CategoryName string   `json:"categoryName"`
-	UnitAbbr     string   `json:"unitAbbr"`
-	CostPrice    string   `json:"costPrice"`
-	SellingPrice string   `json:"sellingPrice"`
-	Wholesale    string   `json:"wholesalePrice"`
-	StockQty     string   `json:"stockQty"`
-	ReorderLevel int      `json:"reorderLevel"`
-	ReorderAuto  bool     `json:"reorderAuto"` // the level is learned (smart reorder levels)
-	Low          bool     `json:"low"`         // on hand at or below the reorder level
-	IsActive     bool     `json:"isActive"`
-	IsService    bool     `json:"isService"`
-	NeedsReview  bool     `json:"needsReview"`
-	TrackSerial  bool     `json:"trackSerial"`
-	HasExpiry    bool     `json:"hasExpiry"`
-	SupplierName string   `json:"supplierName"`
-	CreatedBy    string   `json:"createdBy"`  // who quick-added it (review queue)
-	TillPack     string   `json:"tillPack"`   // pack sizes set at the till, to check (review queue)
-	StockSplit   string   `json:"stockSplit"` // on hand as packs ("2 Cards + 10"), "" = no packs
-	CreatedAt    string   `json:"createdAt"`
-	Meta         string   `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
+	ID           int64            `json:"id"`
+	Name         string           `json:"name"`
+	NameLocal    string           `json:"nameLocal"`
+	Barcode      string           `json:"barcode"`  // the main barcode (labels print it)
+	Barcodes     []string         `json:"barcodes"` // extra barcodes, oldest first
+	CategoryID   int64            `json:"categoryId"`
+	CategoryName string           `json:"categoryName"`
+	UnitAbbr     string           `json:"unitAbbr"`
+	CostPrice    string           `json:"costPrice"`
+	SellingPrice string           `json:"sellingPrice"`
+	Wholesale    string           `json:"wholesalePrice"`
+	StockQty     string           `json:"stockQty"`
+	ReorderLevel int              `json:"reorderLevel"`
+	ReorderAuto  bool             `json:"reorderAuto"` // the level is learned (smart reorder levels)
+	Low          bool             `json:"low"`         // on hand at or below the reorder level
+	IsActive     bool             `json:"isActive"`
+	IsService    bool             `json:"isService"`
+	NeedsReview  bool             `json:"needsReview"`
+	TrackSerial  bool             `json:"trackSerial"`
+	HasExpiry    bool             `json:"hasExpiry"`
+	SupplierName string           `json:"supplierName"`
+	CreatedBy    string           `json:"createdBy"`              // who quick-added it (review queue)
+	TillBarcodes []TillBarcodeRow `json:"tillBarcodes,omitempty"` // review queue
+	TillPack     string           `json:"tillPack"`               // pack sizes set at the till, to check (review queue)
+	StockSplit   string           `json:"stockSplit"`             // on hand as packs ("2 Cards + 10"), "" = no packs
+	CreatedAt    string           `json:"createdAt"`
+	Meta         string           `json:"meta"` // a plugin's short line under the name ("Grade: B · Waterproof")
 }
 
 // ProductBarcode is one of a product's codes for the form's Barcodes block: the

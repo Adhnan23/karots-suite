@@ -265,7 +265,17 @@ func (h *handlers) TillBarcodeAdd(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	ctx := c.Request().Context()
-	if err := h.t.products.AddBarcode(ctx, id, req.Barcode, "till"); err != nil {
+	source := "till"
+	if req.Source == "receive" {
+		source = req.Source
+	}
+	// A cashier's choice stays the admin's to check; an admin's or manager's is theirs.
+	if middleware.CurrentRole(c) == auth.RoleCashier {
+		err = h.t.products.LinkBarcodeAtCounter(ctx, id, req.Barcode, source, middleware.CurrentUserID(c))
+	} else {
+		err = h.t.products.AddBarcode(ctx, id, req.Barcode, source)
+	}
+	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, "product", strconv.FormatInt(id, 10), "added barcode "+strings.TrimSpace(req.Barcode)+" at the till")

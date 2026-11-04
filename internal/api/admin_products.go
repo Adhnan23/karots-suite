@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/audit"
@@ -242,9 +243,17 @@ func (h *handlers) AdminProductReview(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	linked, err := h.t.products.TillBarcodes(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	out := make([]AdminProductRow, 0, len(rows))
 	for _, p := range rows {
-		out = append(out, productRow(p))
+		row := productRow(p)
+		for _, b := range linked[p.ID] {
+			row.TillBarcodes = append(row.TillBarcodes, TillBarcodeRow{Barcode: b.Barcode, By: b.By, AddedAt: b.AddedAt.Format(time.RFC3339), StockSince: b.StockSince})
+		}
+		out = append(out, row)
 	}
 	return c.JSON(http.StatusOK, out)
 }

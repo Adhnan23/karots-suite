@@ -249,13 +249,16 @@ func (r *Repository) ListNeedsReview(ctx context.Context) ([]Product, error) {
 	return rows, err
 }
 
-// reviewWhere: quick-added at the till, or a pack size a cashier set there.
-const reviewWhere = `(p.needs_review = true OR EXISTS (SELECT 1 FROM product_packs k WHERE k.product_id = p.id AND k.set_at_till))`
+// reviewWhere: quick-added at the till, or a pack size or barcode a cashier set there.
+const reviewWhere = `(p.needs_review = true OR EXISTS (SELECT 1 FROM product_barcodes b WHERE b.product_id = p.id AND b.set_at_till) OR EXISTS (SELECT 1 FROM product_packs k WHERE k.product_id = p.id AND k.set_at_till))`
 
 // ClearReview marks a product as reviewed (admin has finished its setup),
 // till-set pack sizes included.
 func (r *Repository) ClearReview(ctx context.Context, id int64) error {
 	if _, err := r.db.ExecContext(ctx, `UPDATE products SET needs_review = false WHERE id = $1`, id); err != nil {
+		return err
+	}
+	if _, err := r.db.ExecContext(ctx, `UPDATE product_barcodes SET set_at_till = false WHERE product_id = $1 AND set_at_till`, id); err != nil {
 		return err
 	}
 	_, err := r.db.ExecContext(ctx, `UPDATE product_packs SET set_at_till = false WHERE product_id = $1 AND set_at_till`, id)

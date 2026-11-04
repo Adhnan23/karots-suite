@@ -176,6 +176,7 @@ test('purchases: receive a walk-in delivery on credit; it shows under Received â
   const code = `99${Date.now()}`.slice(0, 13)
   await page.getByLabel('Add a product').fill(code)
   await page.getByLabel('Add a product').press('Enter')
+  await page.getByRole('button', { name: "It's a new product" }).click()
   await expect(page.getByLabel('New product barcode')).toHaveValue(code)
   await expect(page.getByLabel('New product name')).toHaveValue('')
   await page.getByRole('button', { name: 'Cancel' }).click()

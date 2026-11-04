@@ -148,7 +148,14 @@ export interface CategoryQuickResult {
 }
 /**
  * AdminProductRow is one line of the admin product list.
+ * TillBarcodeRow is a barcode a cashier linked to a product, to check.
  */
+export interface TillBarcodeRow {
+  barcode: string;
+  by: string;
+  addedAt: string;
+  stockSince: boolean; // a delivery came in after the link
+}
 export interface AdminProductRow {
   id: number /* int64 */;
   name: string;
@@ -172,6 +179,7 @@ export interface AdminProductRow {
   hasExpiry: boolean;
   supplierName: string;
   createdBy: string; // who quick-added it (review queue)
+  tillBarcodes?: TillBarcodeRow[]; // review queue
   tillPack: string; // pack sizes set at the till, to check (review queue)
   stockSplit: string; // on hand as packs ("2 Cards + 10"), "" = no packs
   createdAt: string;
@@ -3936,6 +3944,7 @@ export interface QuickItemRequest {
  */
 export interface TillBarcodeRequest {
   barcode: string;
+  source?: string; // "receive" from a delivery, else the till
 }
 export interface GeneratedBarcode {
   barcode: string;

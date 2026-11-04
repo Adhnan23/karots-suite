@@ -14,8 +14,8 @@ import { reviewQuery } from './queries'
 
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-/** Items quick-added at the till that still need their real details.
- * Finish = open the form; Looks fine = clear the flag. */
+/** Items quick-added at the till that still need their real details, and barcodes
+ * a cashier linked. Finish = open the form; Looks fine = clear the flag. */
 export function ReviewPage() {
   const rows = useQuery(reviewQuery).data
   const sym = useSuspenseQuery(configQuery).data.symbol
@@ -30,21 +30,38 @@ export function ReviewPage() {
       toast.error(errMsg(e))
     }
   }
+  async function removeCode(id: number, code: string) {
+    try {
+      await api(`/admin/products/${id}/barcodes/${encodeURIComponent(code)}`, { method: 'DELETE' })
+      toast.success(`${code} removed`)
+      void qc.invalidateQueries({ queryKey: ['admin'] })
+    } catch (e) {
+      toast.error(errMsg(e))
+    }
+  }
   return (
     <>
-      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, or given a pack size there. Give each its real details, or check the size." />
+      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, or given a pack size or barcode there. Give each its real details, or check the size." />
       <DataList label="Items to review" rows={rows ?? []} rowKey={(p) => p.id} onRow={(p) => setEditing({ id: p.id })}
         empty={<EmptyState title={rows ? 'All caught up' : 'Loading…'}>{rows && 'Nothing quick-added is waiting for details.'}</EmptyState>}
         columns={[
           { key: 'name', header: 'Item', cell: (p) => <span className="flex flex-col"><b>{p.name}</b><small className="text-faint">{p.barcode || 'no barcode'}</small>
-            {p.tillPack && <small className="font-semibold text-warning">{p.tillPack} set at the till — check the size</small>}</span> },
+            {p.tillPack && <small className="font-semibold text-warning">{p.tillPack} set at the till — check the size</small>}
+            {p.tillBarcodes?.map((b) => <small key={b.barcode} className="font-semibold text-warning">Barcode {b.barcode} linked here by {b.by || 'a cashier'} — is it this product?</small>)}</span> },
           { key: 'by', header: 'Added', cell: (p) => <span className="text-muted-foreground">{p.createdBy || '—'} · {when(p.createdAt)}</span> },
           { key: 'price', header: 'Sold at', num: true, cell: (p) => money(sym, p.sellingPrice) },
           { key: 'stock', header: 'On hand', num: true, cell: (p) => `${qtyText(p.stockQty)} ${p.unitAbbr}` },
           { key: 'act', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => (
-            <span className="flex justify-end gap-1.5">
+            <span className="flex flex-wrap justify-end gap-1.5">
+              {p.tillBarcodes?.map((b) => (
+                <ConfirmButton key={b.barcode} plain label={`Remove ${b.barcode}`} className="h-9 px-3" title={`Remove barcode ${b.barcode} from ${p.name}?`} confirm="Remove barcode"
+                  body={b.stockSince
+                    ? 'The code becomes unknown again, so its next scan asks what it is. A delivery came in after this link: removing the code does not move stock, so check the count on both products.'
+                    : 'The code becomes unknown again, so its next scan asks what it is.'}
+                  onConfirm={() => removeCode(p.id, b.barcode)} />
+              ))}
               <ConfirmButton plain label="Looks fine" className="h-9 px-3" title={`Mark ${p.name} as reviewed?`} confirm="Mark reviewed"
-                body={p.needsReview ? 'It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost.' : 'The pack size the cashier typed is right.'} onConfirm={() => fine(p.id)} />
+                body={p.tillBarcodes?.length && !p.needsReview ? 'Its linked barcode stays on it.' : p.needsReview ? 'It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost.' : 'The pack size the cashier typed is right.'} onConfirm={() => fine(p.id)} />
               <MergeInto from={p} onDone={() => undefined} trigger={(open) => (
                 <Button variant="outline" className="h-9 px-3" onClick={open}>Same as an existing one</Button>
               )} />

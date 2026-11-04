@@ -20,7 +20,8 @@ every word you type may match either. Scanning a barcode adds the product (any o
 search finds nothing, pressing Enter (or **+ Quick item** beside the search box) adds it as a **quick item** with a name
 and price, and the item goes to admin's review list. A scanned barcode no product has asks first: **Existing item**
 (the same item with a different barcode: find it, and the code becomes one of its barcodes) or **New item** (a quick
-item with the code filled in). A sale is never
+item with the code filled in). A cashier's choice works straight away and goes to admin's review list. Receiving
+stock on the **Suppliers** tab asks the same question, and **+ New product** there adds something by name. A sale is never
 blocked: anything odd (selling below stock, a missing price) is sold first and flagged for review.
 
 ### Keys

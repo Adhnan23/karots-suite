@@ -3,14 +3,14 @@ import { Plus, Search, X } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdminProductRow, IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
+import type { IntakeProductRequest, StockLine, TillProduct } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
-import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { Seg } from '@/features/till/bits'
 import { errMsg, searchQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { UnknownScan } from './UnknownScan'
 import { QtyStepper } from './QtyStepper'
 import { type Current, lineDiscount, lineGross, lineNet, lineSize, marginHint } from './totals'
 
@@ -48,7 +48,8 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
 
   return (
     <div className="flex min-h-0 flex-1 flex-col px-5">
-      <div className="relative mb-2">
+      <div className="mb-2 flex items-center gap-2">
+      <div className="relative min-w-0 flex-1">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
         <input autoFocus aria-label="Add a product" placeholder="Scan or type to add a product" autoComplete="off" value={q}
           onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && q.trim() && void addTop()} className={cn(FIELD, 'w-full pl-9')} />
@@ -69,7 +70,9 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
           </ul>
         )}
       </div>
-      {newName !== null && <NewProduct name={newName} wanted={!withPrices} canLink={!!onAdd} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
+      <Button type="button" variant="outline" className="h-10 shrink-0 gap-1.5 px-3" onClick={() => { setNewName(q.trim()); setQ('') }}><Plus size={15} /> New product</Button>
+      </div>
+      {newName !== null && <NewProduct key={newName} name={newName} wanted={!withPrices} onDone={(p, cost) => { setNewName(null); setQ(''); if (p) void add(p, cost) }} />}
       <div className={cn('items-center gap-1.5 px-1 pb-1 text-[11.5px] font-semibold text-muted-foreground',
         withPrices ? 'hidden md:grid md:grid-cols-[minmax(0,1fr)_112px_52px_76px_76px_24px]' : 'grid grid-cols-[minmax(0,1fr)_112px_24px]')}>
         <span>Item</span><span className="text-right">Qty</span>
@@ -77,7 +80,7 @@ export function LineEditor({ lines, onChange, withPrices, sym, fromOrder, onAdd,
         <span />
       </div>
       <ul aria-label="Lines" className="flex min-h-0 flex-1 flex-col gap-1 overflow-auto pb-2">
-        {lines.length === 0 && <li className="m-auto p-6 text-center text-faint">{fromOrder ? 'Loading the order…' : 'Nothing added yet.'}</li>}
+        {lines.length === 0 && <li className="m-auto p-6 text-center text-faint">{fromOrder ? 'Loading the order…' : 'Nothing added yet. Not in the catalogue? Add it with New product, and tidy it up later under Items to review.'}</li>}
         {lines.map((l, i) => (
           <li key={l.productId} className="rounded-[var(--radius-sm)] bg-muted px-2 py-1.5">
            {/* Phone (admin at 360px): name + remove on top, the four numbers under it with captions. */}
@@ -168,11 +171,12 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
   )
 }
 
-function NewProduct({ name, wanted, canLink, onDone }: { name: string; wanted: boolean; canLink: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
+function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
   // A scanned code that found nothing is the new product's barcode, not its name.
   const scanned = /^\d{6,}$/.test(name)
   const [f, setF] = useState({ name: scanned ? '' : name, barcode: scanned ? name : '', cost: '', sell: '' })
   const [busy, setBusy] = useState(false)
+  const [asking, setAsking] = useState(scanned)
   async function save() {
     setBusy(true)
     try {
@@ -186,11 +190,9 @@ function NewProduct({ name, wanted, canLink, onDone }: { name: string; wanted: b
       setBusy(false)
     }
   }
-  // Admin only: the counter's cashier never links barcodes (an unknown scan there stays a new item).
-  const linked = async (p: AdminProductRow) => onDone(await api<TillProduct>(`/till/products/${p.id}`))
+  if (asking) return <UnknownScan code={name} onLinked={(p) => onDone(p)} onNew={() => setAsking(false)} onCancel={() => onDone(null)} />
   return (
     <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-[var(--radius-sm)] border border-brand p-2">
-      {scanned && canLink && <div className="basis-full"><SameAsExisting code={name} source="receive" onLinked={(p) => void linked(p)} /></div>}
       <input autoFocus aria-label="New product name" placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={cn(FIELD, 'h-9 min-w-[160px] flex-1')} />
       <input aria-label="New product barcode" placeholder="Barcode" value={f.barcode} onChange={(e) => setF({ ...f, barcode: e.target.value })} className={cn(FIELD, 'h-9 w-32')} />
       {!wanted && (

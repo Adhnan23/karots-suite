@@ -55,6 +55,16 @@ func barcodeOwner(ctx context.Context, q sqlx.QueryerContext, code string) (int6
 // AddBarcode gives a product an extra code. A code another product carries is
 // refused naming that product; one this product already has is a no-op.
 func (s *Service) AddBarcode(ctx context.Context, productID int64, code, source string) error {
+	return s.addBarcode(ctx, productID, code, source, nil)
+}
+
+// LinkBarcodeAtCounter is a cashier's "same as an existing item": the code works at
+// once and waits on Items to review, in case it belongs to something else.
+func (s *Service) LinkBarcodeAtCounter(ctx context.Context, productID int64, code, source string, by int64) error {
+	return s.addBarcode(ctx, productID, code, source, &by)
+}
+
+func (s *Service) addBarcode(ctx context.Context, productID int64, code, source string, cashier *int64) error {
 	code = strings.TrimSpace(code)
 	if code == "" || len(code) > 50 {
 		return apperr.Validation("enter a barcode (up to 50 characters)")
@@ -73,12 +83,38 @@ func (s *Service) AddBarcode(ctx context.Context, productID int64, code, source 
 		if id != 0 {
 			return apperr.Conflict("that barcode is already used by " + name)
 		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO product_barcodes (product_id, barcode, source) VALUES ($1, $2, $3)`,
-			productID, code, source); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO product_barcodes (product_id, barcode, source, set_at_till, added_by) VALUES ($1, $2, $3, $4, $5)`,
+			productID, code, source, cashier != nil, cashier); err != nil {
 			return apperr.Internal("failed to add barcode", err)
 		}
 		return nil
 	})
+}
+
+// TillBarcode is a code a cashier linked, waiting on Items to review.
+type TillBarcode struct {
+	ProductID  int64     `db:"product_id"`
+	Barcode    string    `db:"barcode"`
+	By         string    `db:"by_name"`
+	AddedAt    time.Time `db:"added_at"`
+	StockSince bool      `db:"stock_since"` // received after the link: removing the code won't move it
+}
+
+// TillBarcodes lists the linked codes waiting for review, per product.
+func (s *Service) TillBarcodes(ctx context.Context) (map[int64][]TillBarcode, error) {
+	var rows []TillBarcode
+	if err := s.db.SelectContext(ctx, &rows, `
+		SELECT b.product_id, b.barcode, COALESCE(u.name, '') AS by_name, b.added_at,
+		       EXISTS (SELECT 1 FROM stock_movements m WHERE m.product_id = b.product_id AND m.type = 'purchase' AND m.created_at > b.added_at) AS stock_since
+		FROM product_barcodes b LEFT JOIN users u ON u.id = b.added_by
+		WHERE b.set_at_till ORDER BY b.added_at`); err != nil {
+		return nil, apperr.Internal("failed to list barcodes to review", err)
+	}
+	out := map[int64][]TillBarcode{}
+	for _, r := range rows {
+		out[r.ProductID] = append(out[r.ProductID], r)
+	}
+	return out, nil
 }
 
 // RemoveBarcode drops one of a product's extra codes. The main barcode is
