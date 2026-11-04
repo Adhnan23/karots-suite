@@ -128,6 +128,7 @@ test('customer with a blank tender goes on account (never silent cash)', async (
   await login(page, '0770000002')
   await ensureOpen(page)
   await scan(page, MILK)
+  await expect(cart(page).getByLabel('Quantity of E2E Milk')).toBeVisible() // or Enter finds an empty cart
   await page.getByRole('button', { name: /Walk-in customer/ }).click()
   await page.getByLabel('Search customers').fill('E2E Credit')
   await page.getByLabel('Search customers').press('Enter')
