@@ -7,7 +7,7 @@ const KEEP_DAYS = 30
 /** One sale, sealed; `at` stays readable only to drop it when it ages out. */
 type Row = { id: number; at: number; sealed: Sealed }
 
-export type RecentCursor = { after: number; since: string; ready: boolean; started?: string }
+export type RecentCursor = { after: number; since: string; ready: boolean; started?: string; lastAt?: string }
 
 const EMPTY: RecentCursor = { after: 0, since: '', ready: false }
 
@@ -26,9 +26,10 @@ export async function saveRecent(page: RecentSales, now: Date): Promise<void> {
   const prev = page.reset ? EMPTY : await recentCursor()
   const rows = await Promise.all([...page.sales, ...page.changed].map(toRow))
   const started = prev.started ?? page.nextSince
+  const lastAt = page.sales.at(-1)?.createdAt ?? prev.lastAt // tells a restored shop from this one
   const next: RecentCursor = page.more
-    ? { after: page.nextAfter, since: prev.since, ready: prev.ready && !page.reset, started }
-    : { after: page.nextAfter, since: started, ready: true }
+    ? { after: page.nextAfter, since: prev.since, ready: prev.ready && !page.reset, started, lastAt }
+    : { after: page.nextAfter, since: started, ready: true, lastAt }
   const tx = (await openDb()).transaction(['recent', 'meta'], 'readwrite')
   const store = tx.objectStore('recent')
   if (page.reset) store.clear()

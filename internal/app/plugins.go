@@ -42,8 +42,8 @@ func startPlugins(e *echo.Echo, db *sqlx.DB, cfg *config.Config, svc *Services) 
 		Held:                  heldsales.NewService(db),
 		TillCopy:              func(ctx context.Context) (any, error) { return api.BuildTillCopy(ctx, db) },
 		TillCopyVersion:       func(ctx context.Context) (string, error) { return api.TillCopyVersion(ctx, db) },
-		RecentSales: func(ctx context.Context, after int64, since time.Time, limit int) (any, error) {
-			return api.BuildRecentSales(ctx, db, svc.Sales, after, since, limit)
+		RecentSales: func(ctx context.Context, after int64, since time.Time, lastAt string, limit int) (any, error) {
+			return api.BuildRecentSales(ctx, db, svc.Sales, after, since, lastAt, limit)
 		},
 	}, mux, e)
 	plugin.SetupAll(reg)

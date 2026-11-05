@@ -1,10 +1,13 @@
 package pocketcashier
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -41,6 +44,8 @@ func newCallFix(t *testing.T) *callFix {
 		f.who = append(f.who, middleware.CurrentUserID(c))
 		return c.JSON(http.StatusCreated, map[string]any{"id": 1000 + len(f.seen)})
 	}
+	extraCallRoutes = []string{"POST /api/v1/till/t-pay", "POST /api/v1/till/t-pay/:id", "POST /api/v1/till/t-boss", "POST /api/v1/till/t-device", "POST /api/v1/till/t-both", "POST /api/v1/till/t-cust", "POST /api/v1/till/t-cancel", "POST /api/v1/till/t-boom", "POST /api/v1/till/t-nested"}
+	t.Cleanup(func() { extraCallRoutes = nil })
 	f.en.e.POST("/api/v1/till/t-pay", pay, jwt)
 	f.en.e.POST("/api/v1/till/t-pay/:id", pay, jwt)
 	f.en.e.POST("/api/v1/till/t-boss", pay, jwt, middleware.RequireRole(auth.RoleAdmin))
@@ -53,7 +58,7 @@ func (f *callFix) call(ref string, at time.Time, b CallBody) Action {
 	if err != nil {
 		f.en.t.Fatal(err)
 	}
-	return Action{Ref: f.ref(ref), Kind: "call", UserID: f.cashier, At: at, Body: raw}
+	return Action{Ref: f.ref(ref), Kind: "call", UserID: f.cashier, At: at, Body: raw, Handed: true}
 }
 
 func (f *callFix) expected() decimal.Decimal {
@@ -126,6 +131,9 @@ func TestCallOutsideAPIRefused(t *testing.T) {
 		{Method: "POST", Path: "/api/v1/auth/pin"},
 		{Method: "POST", Path: "/api/v1/x/pocketcashier/phones/approve"},
 		{Method: "POST", Path: "/api/v1/till/../admin/t-pay"},
+		{Method: "PUT", Path: "/api/v1/x/repairs/config"},
+		{Method: "POST", Path: "/api/v1/x/repairs/jobs/1/payouts"},
+		{Method: "POST", Path: "/api/v1/till/suppliers/1/payment"},
 		{Method: "GET", Path: "/api/v1/till/t-pay"},
 	} {
 		r := f.send(f.call(string(rune('a'+i)), time.Now(), b))
@@ -209,11 +217,15 @@ func TestCallRefusedKeepsCash(t *testing.T) {
 	}
 }
 
-func TestCallRefusedDrawerClosedSaysSo(t *testing.T) {
+// A till closed meanwhile: as with a late sale, a till is opened for it, flagged.
+func TestCallRefusedDrawerClosedOpensALateTill(t *testing.T) {
 	f := newCallFix(t)
-	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return R-7"}))
-	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "couldn't be booked") {
-		t.Fatalf("the owner must be told the cash isn't on the books: %+v", r[0])
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashIn: "100", Label: "Credit"}))
+	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "booked") {
+		t.Fatalf("%+v", r[0])
+	}
+	if got := f.expected(); !got.Equal(decimal.NewFromInt(100)) {
+		t.Fatalf("the 100 isn't on the books: %s", got)
 	}
 }
 
@@ -335,7 +347,10 @@ func TestSaleOnACustomerMadeOffline(t *testing.T) {
 	if err := f.en.db.Get(&cust, `INSERT INTO customers (name, credit_limit) VALUES ($1, 0) RETURNING id`, "T off "+f.refStamp); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { f.en.db.Exec(`UPDATE sales SET customer_id = NULL WHERE customer_id = $1`, cust); f.en.db.Exec(`DELETE FROM customers WHERE id = $1`, cust) }) //nolint:errcheck
+	t.Cleanup(func() {
+		f.en.db.Exec(`UPDATE sales SET customer_id = NULL WHERE customer_id = $1`, cust)
+		f.en.db.Exec(`DELETE FROM customers WHERE id = $1`, cust)
+	}) //nolint:errcheck
 	f.en.e.POST("/api/v1/till/t-cust", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{"id": 502, "customerId": cust})
 	}, middleware.JWTAuth(testSecret))
@@ -354,6 +369,181 @@ func TestSaleOnACustomerMadeOffline(t *testing.T) {
 	}
 	var got int64
 	if err := f.en.db.Get(&got, `SELECT customer_id FROM sales WHERE id = $1`, r[1].SaleID); err != nil || got != cust {
+		t.Fatalf("customer %d, %v", got, err)
+	}
+}
+
+// C1: with the cashier watching the screen, a refusal means no money moved.
+func TestCallRefusedWhileWatchedBooksNothing(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	f.send(f.saleAct("s", ago(time.Minute), "1", "120"))
+	before := f.expected()
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return"})
+	a.Handed = false
+	r := f.send(a)
+	if r[0].Status != "failed" || strings.Contains(r[0].Note, "booked") {
+		t.Fatalf("%+v", r[0])
+	}
+	if after := f.expected(); !after.Equal(before) {
+		t.Fatalf("cash moved on paper with none in hand: %s, was %s", after, before)
+	}
+}
+
+// C1: the reply was lost, so the screen said "saved" and the cash was handed over.
+// The retry says so, and the cash is booked, once.
+func TestCallRefusedLostReplyBooksOnRetry(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	f.send(f.saleAct("s", ago(time.Minute), "1", "120"))
+	before := f.expected()
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return"})
+	a.Handed = false
+	f.send(a)
+	a.Handed = true
+	r := f.send(a)
+	want := before.Sub(decimal.NewFromInt(100))
+	if got := f.expected(); !got.Equal(want) {
+		t.Fatalf("after the retry: %s, want %s", got, want)
+	}
+	if !strings.Contains(r[0].Note, "booked") {
+		t.Fatalf("%+v", r[0])
+	}
+	f.send(a)
+	if got := f.expected(); !got.Equal(want) {
+		t.Fatalf("booked twice: %s", got)
+	}
+}
+
+// C1: Pay keeps the cart after a refusal, and each try is a new ref.
+func TestSaleRefusedWhileWatchedBooksNothing(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	before := f.expected()
+	for _, ref := range []string{"x", "y"} {
+		a := f.saleAct(ref, ago(time.Second), "1", "120")
+		a.Body, _ = json.Marshal(SaleBody{SaleType: "retail", Items: []SaleItem{{ProductID: 999999999, Quantity: "1"}}, Payments: []SalePayment{{Method: "cash", Amount: "120"}}})
+		if r := f.send(a); r[0].Status != "failed" {
+			t.Fatalf("%+v", r[0])
+		}
+	}
+	if after := f.expected(); !after.Equal(before) {
+		t.Fatalf("%s, was %s", after, before)
+	}
+}
+
+// C3: the phone goes away mid-batch: the work is still recorded, so a retry can't repeat it.
+func TestCallSurvivesADroppedConnection(t *testing.T) {
+	f := newCallFix(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	booked := 0
+	f.en.e.POST("/api/v1/till/t-cancel", func(c echo.Context) error {
+		booked++
+		cancel()
+		return c.JSON(http.StatusOK, map[string]any{"id": 900})
+	}, middleware.JWTAuth(testSecret))
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cancel", Body: json.RawMessage(`{}`)})
+	raw, _ := json.Marshal(ActionsRequest{Actions: []Action{a}})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/x/pocketcashier/actions", bytes.NewReader(raw)).WithContext(ctx)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(phoneHeader, f.secret)
+	f.en.e.ServeHTTP(httptest.NewRecorder(), req)
+	r := f.send(a)
+	if booked != 1 || r[0].ResultID != 900 {
+		t.Fatalf("booked %d times; %+v", booked, r[0])
+	}
+}
+
+// I1: what a call made may sit inside its reply.
+func TestCallResultInsideTheReply(t *testing.T) {
+	f := newCallFix(t)
+	f.en.e.POST("/api/v1/till/t-nested", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"package": map[string]any{"id": 321}, "created": true})
+	}, middleware.JWTAuth(testSecret))
+	const temp = int64(9000000000044444)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-nested", Body: json.RawMessage(`{}`), TempID: temp, ResultAt: "package.id"})
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(fmt.Sprintf(`{"pkg":%d}`, temp))})
+	r := f.send(parent, child)
+	if r[1].Status != "applied" || f.seen[0]["pkg"] != float64(321) {
+		t.Fatalf("%+v, saw %v", r, f.seen)
+	}
+}
+
+// C2: the screen gets the route's own reply, on the send and on a repeat of it.
+func TestCallGivesBackTheRoutesReply(t *testing.T) {
+	f := newCallFix(t)
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)})
+	for i := 0; i < 2; i++ {
+		var got map[string]any
+		if err := json.Unmarshal(f.send(a)[0].Reply, &got); err != nil || got["id"] != float64(1001) {
+			t.Fatalf("try %d: %v %v", i, got, err)
+		}
+	}
+}
+
+// I3: the PC's own trouble isn't a refusal: the action stays with the phone and goes again.
+func TestCallServerErrorIsTriedAgain(t *testing.T) {
+	f := newCallFix(t)
+	fail := true
+	booked := 0
+	f.en.e.POST("/api/v1/till/t-boom", func(c echo.Context) error {
+		if fail {
+			return apperr.Internal("database hiccup", errors.New("boom"))
+		}
+		booked++
+		return c.JSON(http.StatusOK, map[string]any{"id": 1})
+	}, middleware.JWTAuth(testSecret))
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-boom", Body: json.RawMessage(`{}`), CashIn: "50"})
+	after := f.call("b", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)})
+	if r := f.send(a, after); len(r) != 0 || len(f.seen) != 0 {
+		t.Fatalf("nothing may be answered, and the later action must wait its turn: %+v, %v", r, f.seen)
+	}
+	fail = false
+	if r := f.send(a, after); len(r) != 2 || r[0].Status != "applied" || booked != 1 {
+		t.Fatalf("%+v, booked %d", r, booked)
+	}
+}
+
+// I3: something the PC can never do mustn't block the phone for good.
+func TestCallServerErrorGivesUpInTheEnd(t *testing.T) {
+	f := newCallFix(t)
+	was := maxServerRetries
+	maxServerRetries = 2
+	t.Cleanup(func() { maxServerRetries = was })
+	f.en.e.POST("/api/v1/till/t-boom", func(c echo.Context) error {
+		return apperr.Internal("always", errors.New("boom"))
+	}, middleware.JWTAuth(testSecret))
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-boom", Body: json.RawMessage(`{}`)})
+	f.send(a)
+	f.send(a)
+	if r := f.send(a); len(r) != 1 || r[0].Status != "failed" {
+		t.Fatalf("%+v", r)
+	}
+}
+
+func TestHoldOnACustomerMadeOffline(t *testing.T) {
+	f := newCallFix(t)
+	const temp, tempCust = int64(9000000000055555), int64(9000000000055556)
+	var cust int64
+	if err := f.en.db.Get(&cust, `INSERT INTO customers (name, credit_limit) VALUES ($1, 0) RETURNING id`, "T hold "+f.refStamp); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		f.en.db.Exec(`DELETE FROM held_sales WHERE cashier_id = $1`, f.cashier)
+		f.en.db.Exec(`DELETE FROM customers WHERE id = $1`, cust)
+	}) //nolint:errcheck
+	f.en.e.POST("/api/v1/till/t-cust", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": 502, "customerId": cust})
+	}, middleware.JWTAuth(testSecret))
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cust", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(tempCust): "customerId"}})
+	hold := act(f.ref("h"), "hold", f.cashier, time.Now(), map[string]any{"label": "x", "saleType": "retail", "customerId": tempCust, "discount": "0", "cart": `{"v":2,"lines":[],"customerId":` + fmt.Sprint(tempCust) + `}`, "itemCount": 0, "total": "0"})
+	r := f.send(parent, hold)
+	if r[1].Status != "applied" {
+		t.Fatalf("%+v", r[1])
+	}
+	var got int64
+	if err := f.en.db.Get(&got, `SELECT customer_id FROM held_sales WHERE id = $1`, r[1].HeldID); err != nil || got != cust {
 		t.Fatalf("customer %d, %v", got, err)
 	}
 }

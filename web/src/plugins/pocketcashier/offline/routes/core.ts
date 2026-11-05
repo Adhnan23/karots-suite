@@ -51,7 +51,7 @@ export const coreRoutes: OfflineRoute[] = [
     call: (c) => {
       const b = c.body as { amount?: string; method?: string }
       const had = c.copy?.customers.find((x) => String(x.id) === c.params.id)?.balance
-      return { cashIn: b.method === 'cash' ? b.amount : undefined, saw: had === undefined ? undefined : { customerId: Number(c.params.id), balance: shown(c)?.customers.find((x) => String(x.id) === c.params.id)?.balance ?? had } }
+      return { body: { ...b, deferDrawerKick: true }, cashIn: b.method === 'cash' ? b.amount : undefined, saw: had === undefined ? undefined : { customerId: Number(c.params.id), balance: shown(c)?.customers.find((x) => String(x.id) === c.params.id)?.balance ?? had } }
     },
     answer: (c) => ({ paymentId: tempNumber(c.ref), receiptNo: '', balanceAfter: '' }) },
 ]

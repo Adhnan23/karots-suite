@@ -5,7 +5,7 @@ import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
 import { loadWho, saveWho } from './session'
 import { getSale, clearRecent, recentCursor } from './store/recent'
-import { checkPC, flush, refresh, refreshParts, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
+import { checkPC, flush, refresh, refreshParts, refreshRecent, sendCall, sendNow, startSync, state, tempRef, type SyncState } from './sync'
 
 type Call = { url: string; init?: RequestInit }
 let recentPages: Record<string, unknown>[] = []
@@ -144,6 +144,16 @@ describe('moved', () => {
 })
 
 describe('the last 30 days', () => {
+  it('asks with when its newest sale was made, to notice a restored shop', async () => {
+    recentPages = [{ sales: [{ ...sale(1), createdAt: '2026-11-05T10:00:00Z' }], nextAfter: 1 }]
+    await clearRecent()
+    await refreshRecent()
+    recentPages = [{ nextAfter: 1 }]
+    calls = []
+    await refreshRecent()
+    expect(calls.find((c) => c.url.includes('/recent'))?.url).toContain('at=2026-11-05T10%3A00%3A00Z')
+  })
+
   beforeEach(async () => { recentPages = []; await clearRecent() })
 
   it('takes pages until the PC says done', async () => {
@@ -205,6 +215,55 @@ describe('noticing the PC has gone', () => {
     })))
     await checkPC(20)
     expect(state().live).toBe(false)
+  })
+})
+
+describe('whether the cashier has gone ahead', () => {
+  const sentHanded = () => JSON.parse(String(calls.find((c) => c.url.includes('/actions'))?.init?.body)).actions[0].handed
+  it('with the screen waiting on the answer, not yet', async () => {
+    await refresh()
+    calls = []
+    await sendNow({ kind: 'sale', userId: 7, body: {} })
+    expect(sentHanded()).toBe(false)
+  })
+  it('saved while offline, it has', async () => {
+    online = false
+    await refresh()
+    await addAction({ kind: 'sale', userId: 7, body: {} })
+    online = true
+    await refresh()
+    calls = []
+    await flush(() => 7)
+    expect(sentHanded()).toBe(true)
+  })
+  it('the answer never came: the screen said saved, so the retry says handed', async () => {
+    await refresh()
+    online = false
+    expect(await sendNow({ kind: 'sale', userId: 7, body: {} })).toBeNull()
+    online = true
+    calls = []
+    await flush(() => 7)
+    expect(sentHanded()).toBe(true)
+  })
+  it('a PC that takes nothing yet is tried again, without spinning or going amber', async () => {
+    await refresh()
+    await addAction({ kind: 'sale', userId: 7, body: {} })
+    results = () => []
+    calls = []
+    await flush(() => 7)
+    expect(calls.filter((c) => c.url.includes('/actions'))).toHaveLength(1)
+    expect((await pending()).length).toBeGreaterThan(0)
+    expect(state().live).toBe(true)
+    results = (refs) => refs.map((ref) => ({ ref, status: 'applied' }))
+    await flush(() => 7)
+  })
+  it('a send gives up rather than hang on a PC with no power', async () => {
+    let signal: AbortSignal | undefined
+    await refresh()
+    await addAction({ kind: 'sale', userId: 7, body: {} })
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, init?: RequestInit) => { signal = init?.signal ?? undefined; return new Response(JSON.stringify({ results: [] }), { status: 200 }) }))
+    await flush(() => 7)
+    expect(signal).toBeInstanceOf(AbortSignal)
   })
 })
 

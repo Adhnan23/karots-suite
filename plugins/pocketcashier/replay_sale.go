@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"karots-suite/internal/apperr"
 	"strings"
 	"time"
 
@@ -150,7 +151,7 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	case "withdraw", "deposit":
 		return h.runMove(ctx, a)
 	case "hold":
-		return h.runHold(ctx, a)
+		return h.runHold(ctx, p, a)
 	case "unhold":
 		var b UnholdBody
 		if err := json.Unmarshal(a.Body, &b); err != nil {
@@ -208,6 +209,9 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	}
 	d, err := h.p.core.Sales.Create(ctx, in, a.UserID)
 	if err != nil {
+		if ae, ok := apperr.As(err); (!ok || ae.Status >= 500) && keepTrying(a.Ref) { // the PC's own trouble
+			return ActionResult{Status: "retry", Note: err.Error()}
+		}
 		return failed(err)
 	}
 	r := ActionResult{Status: "applied", SaleID: d.Sale.ID, ReceiptNo: d.Sale.ReceiptNo}
@@ -321,9 +325,13 @@ func (h handlers) runMove(ctx context.Context, a Action) ActionResult {
 	return ActionResult{Status: "applied"}
 }
 
-func (h handlers) runHold(ctx context.Context, a Action) ActionResult {
+func (h handlers) runHold(ctx context.Context, p *Phone, a Action) ActionResult {
 	var b HoldBody
-	if err := json.Unmarshal(a.Body, &b); err != nil {
+	raw, err := h.resolveBodyFor(ctx, p, a.Body) // the cart may be on a customer made on the phone
+	if err != nil {
+		return failed(err)
+	}
+	if err := json.Unmarshal(raw, &b); err != nil {
 		return failed(err)
 	}
 	if !json.Valid([]byte(b.Cart)) {

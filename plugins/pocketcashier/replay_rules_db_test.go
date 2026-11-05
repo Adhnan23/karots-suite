@@ -319,6 +319,7 @@ func TestReplayRefusedSaleKeepsCash(t *testing.T) {
 	before, _ := f.en.p.core.CashRegister.Summary(context.Background(), f.cashier)
 	a := f.saleAct("s", ago(time.Minute), "1", "120")
 	a.Body, _ = json.Marshal(SaleBody{SaleType: "retail", Items: []SaleItem{{ProductID: 999999999, Quantity: "1"}}, Payments: []SalePayment{{Method: "cash", Amount: "120"}}})
+	a.Handed = true
 	r := f.send(nil, a).Results[0]
 	if r.Status != "failed" || !strings.Contains(r.Note, "120") {
 		t.Fatalf("%+v", r)

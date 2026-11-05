@@ -7,17 +7,19 @@ import { addRoutes, clearRoutesForTest, installOfflineFetch, RouteError, tempNum
 
 const real = vi.fn()
 let liveNow = false
-vi.mock('../sync', async (orig) => ({ ...(await orig<object>()), state: () => ({ live: liveNow }) }))
+const sendNow = vi.fn()
+vi.mock('../sync', async (orig) => ({ ...(await orig<object>()), state: () => ({ live: liveNow }), sendNow: (...a: unknown[]) => sendNow(...a) }))
 
 const json = (v: unknown, status = 200) => new Response(JSON.stringify(v), { status, headers: { 'Content-Type': 'application/json' } })
 
 describe('plugin calls with the PC down', () => {
   let uninstall: () => void
   beforeEach(async () => {
+    sendNow.mockReset()
     real.mockReset().mockImplementation(async () => json({ from: 'pc' }))
     window.fetch = real as never
     liveNow = false
-    saveWho({ id: 7, name: 'Nimal', role: 'cashier' })
+    saveWho({ id: 7, name: 'Nimal', role: 'cashier', session: true })
     await ack((await pending()).map((a) => a.ref))
     clearRoutesForTest()
     addRoutes([
@@ -88,6 +90,59 @@ describe('plugin calls with the PC down', () => {
     expect(onlineManager.isOnline()).toBe(true)
     window.dispatchEvent(new Event('offline'))
     expect(onlineManager.isOnline()).toBe(true)
+  })
+
+  it('a write while live goes through the outbox with a ref, and gets the route\'s reply', async () => {
+    liveNow = true
+    real.mockImplementation(async (u: string) => (String(u).includes('/actions')
+      ? json({ results: [{ ref: 'x', status: 'applied', reply: { id: 55, from: 'route' } }] })
+      : json({ from: 'pc' })))
+    sendNow.mockImplementation(async (a: { ref: string }) => ({ ref: a.ref, status: 'applied', reply: { id: 55, from: 'route' } }))
+    const r = await window.fetch('/api/v1/x/t/things', { method: 'POST', body: JSON.stringify({ name: 'A' }) })
+    expect(await r.json()).toEqual({ id: 55, from: 'route' })
+    expect(sendNow).toHaveBeenCalledWith(expect.objectContaining({ kind: 'call', userId: 7, ref: expect.any(String) }))
+    expect(real).not.toHaveBeenCalledWith('/api/v1/x/t/things', expect.anything())
+  })
+
+  it('a write refused while live reads as the PC\'s no', async () => {
+    liveNow = true
+    sendNow.mockResolvedValue({ ref: 'x', status: 'failed', note: 'already collected' })
+    const r = await window.fetch('/api/v1/x/t/things', { method: 'POST', body: '{}' })
+    expect(r.status).toBe(422)
+    expect(await r.json()).toMatchObject({ error: { message: 'already collected' } })
+  })
+
+  it('a write whose answer never came: the temporary answer, and it stays queued', async () => {
+    liveNow = true
+    sendNow.mockResolvedValue(null)
+    const r = await window.fetch('/api/v1/x/t/things', { method: 'POST', body: JSON.stringify({ name: 'A' }) })
+    expect(await r.json()).toMatchObject({ name: 'A' })
+  })
+
+  it('offline, a write is saved before the screen is told', async () => {
+    const r = await window.fetch('/api/v1/x/t/things', { method: 'POST', body: '{}' })
+    expect(r.ok).toBe(true)
+    expect(await pending()).toHaveLength(1)
+    expect(sendNow).not.toHaveBeenCalled()
+  })
+
+  it('signed in during a cut, the phone holds another person\'s session or none: reads stay local', async () => {
+    liveNow = true
+    saveWho({ id: 8, name: 'Sara', role: 'cashier' })
+    expect(await (await window.fetch('/api/v1/x/t/things/5')).json()).toMatchObject({ id: '5' })
+    expect(real).not.toHaveBeenCalled()
+  })
+
+  it('a locked session reads locally too', async () => {
+    liveNow = true
+    real.mockResolvedValue(json({ error: { code: 'SESSION_LOCKED' } }, 403))
+    expect(await (await window.fetch('/api/v1/x/t/things/5')).json()).toMatchObject({ id: '5' })
+  })
+
+  it('a record with a temporary number is only on the phone', async () => {
+    liveNow = true
+    await window.fetch('/api/v1/x/t/things/9000000000012345')
+    expect(real).not.toHaveBeenCalled()
   })
 
   it('uninstall puts fetch back', () => {

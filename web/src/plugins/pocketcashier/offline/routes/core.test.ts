@@ -39,7 +39,7 @@ describe('the till, answered from the copy', () => {
     const r = route('POST', '/till/customers/:id/payment')
     const c = ctx({ params: { id: '1' }, body: { amount: '300', method: 'cash' } })
     expect(r.queue).toBe(true)
-    expect(r.call!(c)).toEqual({ cashIn: '300', saw: { customerId: 1, balance: '900.00' } })
+    expect(r.call!(c)).toEqual({ cashIn: '300', saw: { customerId: 1, balance: '900.00' }, body: { amount: '300', method: 'cash', deferDrawerKick: true } })
     expect(r.answer(c)).toMatchObject({ paymentId: tempNumber('r1') })
   })
 })

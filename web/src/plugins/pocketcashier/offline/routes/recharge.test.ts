@@ -38,6 +38,7 @@ describe('Reload & Bills with the PC down', () => {
     expect(r.queue).toBe(true)
     expect(a).toMatchObject({ package: { id: tempNumber('r1'), name: '1GB', price: '199' }, created: true })
     expect(r.label!(ctx({ body: { name: '1GB' } }))).toContain('1GB')
+    expect(r.call!(ctx())).toEqual({ resultAt: 'package.id' })
   })
   it('drawer counts queue, and answer with what\'s expected', () => {
     const r = route('POST', '/x/recharge/counts/drawer')

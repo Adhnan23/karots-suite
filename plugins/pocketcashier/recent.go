@@ -27,7 +27,7 @@ func (h handlers) recent(c echo.Context) error {
 			return apperr.BadRequest("invalid cursor")
 		}
 	}
-	page, err := h.p.core.RecentSales(c.Request().Context(), after, since, recentPage)
+	page, err := h.p.core.RecentSales(c.Request().Context(), after, since, c.QueryParam("at"), recentPage)
 	if err != nil {
 		return err
 	}

@@ -54,5 +54,5 @@ type Core struct {
 	TillCopy        func(ctx context.Context) (any, error)
 	TillCopyVersion func(ctx context.Context) (string, error)
 	// RecentSales is one page of the last 30 days' sales (the API's RecentSales).
-	RecentSales func(ctx context.Context, after int64, since time.Time, limit int) (any, error)
+	RecentSales func(ctx context.Context, after int64, since time.Time, lastAt string, limit int) (any, error)
 }

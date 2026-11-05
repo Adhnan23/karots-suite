@@ -1,6 +1,7 @@
 /** Who is signed in on the phone: in memory, and in sessionStorage so a reload
  * keeps them (closing the app signs them out). */
-export type Who = { id: number; name: string; role: string; since?: string }
+/** session: signed in through the PC, so the phone's cookie is this person's. */
+export type Who = { id: number; name: string; role: string; since?: string; session?: boolean }
 
 const KEY = 'ks-pocket-who'
 

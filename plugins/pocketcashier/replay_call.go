@@ -11,8 +11,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
+	_ "embed"
+
+	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/middleware"
 
@@ -33,6 +38,8 @@ type CallBody struct {
 	Label   string   `json:"label"`  // what this was, in a person's words, for notes
 	Saw     *CallSaw `json:"saw"`    // what the phone showed, to flag when the PC knew better
 	TempID  int64    `json:"tempId"` // the number the phone calls what this makes, until the PC gives the real one
+	// ResultAt: where in the reply the id of what this made is, when it isn't at the top.
+	ResultAt string `json:"resultAt"`
 	// TempFields: other numbers the phone gave what this makes, each read from that field of the reply.
 	TempFields map[string]string `json:"tempFields"`
 }
@@ -46,25 +53,54 @@ type CallSaw struct {
 // lateAfter: older than this when it arrives, it says when it really happened.
 const lateAfter = 5 * time.Minute
 
-// callPrefixes are the routes a phone may replay: the till's own and the plugins'.
-// A person's rights are still checked by the route; this keeps a phone's key away
-// from admin pages, sign-in and the phones list, even for a manager.
-var callPrefixes = []string{"/api/v1/till/", "/api/v1/x/"}
+// callRoutesJSON is every route a phone may replay. A person's rights are still
+// checked by the route; this keeps a phone's key to what the phone really does, away
+// from admin and manager pages, sign-in and the phones list.
+//
+//go:embed call_routes.json
+var callRoutesJSON []byte
 
-const callBarred = "/api/v1/x/pocketcashier/"
+var callRoutes = func() []string {
+	var out []string
+	if err := json.Unmarshal(callRoutesJSON, &out); err != nil {
+		panic(err)
+	}
+	return out
+}()
+
+// extraCallRoutes is for tests' stand-in routes.
+var extraCallRoutes []string
+
+var callParam = regexp.MustCompile(`:[a-z]+`)
 
 func callAllowed(method, path string) bool {
-	if method != http.MethodPost && method != http.MethodPut && method != http.MethodDelete {
+	if strings.Contains(path, "..") {
 		return false
 	}
-	if strings.Contains(path, "..") || strings.HasPrefix(path, callBarred) {
-		return false
-	}
-	for _, p := range callPrefixes {
-		if strings.HasPrefix(path, p) {
-			return true
+	want := method + " " + path
+	for _, list := range [][]string{callRoutes, extraCallRoutes} {
+		for _, r := range list {
+			if ok, _ := regexp.MatchString("^"+callParam.ReplaceAllString(regexp.QuoteMeta(r), "[^/]+")+"$", want); ok {
+				return true
+			}
 		}
 	}
+	return false
+}
+
+// maxServerRetries: how many times the PC's own trouble (a 5xx) sends an action back
+// to wait, about 5 s apart, before it counts as refused, so nothing blocks a phone for good.
+var maxServerRetries = 20
+
+// ponytail: counted in memory: a restart starts the count again, which only means more tries.
+var serverRetries sync.Map
+
+func keepTrying(ref string) bool {
+	n, _ := serverRetries.LoadOrStore(ref, new(atomic.Int64))
+	if n.(*atomic.Int64).Add(1) <= int64(maxServerRetries) {
+		return true
+	}
+	serverRetries.Delete(ref)
 	return false
 }
 
@@ -213,14 +249,19 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 		return h.refused(ctx, a, b, err.Error())
 	}
 	stale := h.staleBalance(ctx, b.Saw)
+	if b.CashIn != "" || b.CashOut != "" {
+		if err := h.openLateTill(ctx, p, a.UserID); err != nil {
+			return h.refused(ctx, a, b, err.Error())
+		}
+	}
 	code, reply := h.dispatch(ctx, p, a.UserID, b.Method, path, body)
+	if code >= 500 && keepTrying(a.Ref) {
+		return ActionResult{Status: "retry", Note: replyMessage(code, reply)}
+	}
 	if code < 200 || code >= 300 {
 		return h.refused(ctx, a, b, replyMessage(code, reply))
 	}
-	r := ActionResult{Status: "applied", ResultID: replyID(reply), Note: stale, Flagged: stale != ""}
-	if len(b.TempFields) > 0 {
-		r.Reply = reply
-	}
+	r := ActionResult{Status: "applied", ResultID: replyID(reply, b.ResultAt), Note: stale, Flagged: stale != "", Reply: reply}
 	// ponytail: a replayed call counts on the day it arrives, marked late; give routes an "at" if owners need it dated back.
 	if time.Since(a.At) > lateAfter {
 		r.Note = strings.TrimSpace("Happened on the phone at " + a.At.Local().Format("15:04 on 2 Jan") + "; counted when it arrived. " + r.Note)
@@ -228,42 +269,89 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 	return r
 }
 
-// refused: the PC said no, so nothing changed, except that cash the cashier
-// already handed over really left the drawer.
+// refused: the PC said no, so nothing changed. Cash is booked only if the cashier
+// really handed it over: with the screen waiting they saw the refusal, and no money moved.
 func (h handlers) refused(ctx context.Context, a Action, b CallBody, why string) ActionResult {
-	label := b.Label
-	if label != "" {
-		why = label + ": " + why
+	if b.Label != "" {
+		why = b.Label + ": " + why
 	}
-	if b.CashOut == "" && b.CashIn == "" {
-		return ActionResult{Status: "failed", Note: why}
+	if !a.Handed || (b.CashOut == "" && b.CashIn == "") {
+		return ActionResult{Status: "failed", Note: why, Settled: a.Handed}
 	}
-	reason := "Taken on the phone but refused by the PC"
-	if label != "" {
-		reason += ": " + label
-	}
-	amount, moved, in := b.CashOut, "left", cashregister.MovementInput{Reason: reason, DeferDrawerKick: true}
-	var err error
-	if b.CashOut != "" {
-		in.Amount = b.CashOut
-		_, err = h.p.core.CashRegister.Withdraw(ctx, a.UserID, in)
-	} else {
-		amount, moved, in.Amount = b.CashIn, "came into", b.CashIn
-		_, err = h.p.core.CashRegister.PayIn(ctx, a.UserID, in)
-	}
-	if err != nil {
-		// ponytail: an untracked cash move is the only book entry without a locker; a shop that bars them or a closed till shows it at close, with this note.
-		return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s %s the drawer but couldn't be booked (%s): check the till", why, amount, moved, err.Error())}
-	}
-	return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, amount, moved)}
+	return ActionResult{Status: "failed", Note: h.bookCash(ctx, a, b, why), Settled: true}
 }
 
-// refusedSale: the PC can't take a sale at all, but the customer's cash really
-// went into the drawer (or a payout came out of it), so that's booked anyway.
+// bookCash puts cash that really moved on the books, and says so.
+func (h handlers) bookCash(ctx context.Context, a Action, b CallBody, why string) string {
+	reason := "Taken on the phone but refused by the PC"
+	if b.Label != "" {
+		reason += ": " + b.Label
+	}
+	till, outside := cashflow.Till(a.UserID), cashflow.External()
+	in := cashflow.MoveInput{From: outside, To: till, Reason: reason, ActorID: a.UserID, Recorded: true, ReceiptKind: "refused_on_phone"}
+	raw, moved := b.CashIn, "came into"
+	if b.CashOut != "" {
+		in.From, in.To = till, outside
+		raw, moved = b.CashOut, "left"
+	}
+	amount, err := decimal.NewFromString(raw)
+	if err == nil {
+		phone, _ := ctx.Value(phoneCtxKey{}).(*Phone) // set for every batch
+		err = h.openLateTill(ctx, phone, a.UserID)
+	}
+	if err == nil {
+		in.Amount = amount
+		_, err = h.p.core.Cashflow.Move(ctx, in)
+	}
+	if err != nil {
+		return fmt.Sprintf("%s. %s %s the drawer but couldn't be booked (%s): check the till", why, raw, moved, err.Error())
+	}
+	return fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, raw, moved)
+}
+
+// openLateTill: cash work needs an open till. Closed meanwhile, one is opened for it
+// and marked for review, as for a late sale.
+func (h handlers) openLateTill(ctx context.Context, p *Phone, userID int64) error {
+	sess, err := h.p.core.CashRegister.Current(ctx, userID)
+	if err != nil || sess != nil {
+		return err
+	}
+	_, err = h.p.core.CashRegister.Open(ctx, userID, cashregister.OpenInput{OpeningCash: "0", Remote: true, ReviewNote: "opened for late work from " + p.Name})
+	return err
+}
+
+// settleLate: an action refused with the cashier watching, whose reply never reached
+// them. The screen then said "saved" and the cash was handed over, and this retry says so.
+func (h handlers) settleLate(ctx context.Context, a Action, r ActionResult) ActionResult {
+	var settled bool
+	if err := h.p.core.DB.GetContext(ctx, &settled, `SELECT cash_settled FROM pocket_actions WHERE ref = $1`, a.Ref); err != nil || settled {
+		return r
+	}
+	b := CallBody{}
+	if a.Kind == "sale" {
+		b = saleCash(a)
+	} else if err := json.Unmarshal(a.Body, &b); err != nil {
+		return r
+	}
+	if b.CashOut != "" || b.CashIn != "" {
+		r.Note = h.bookCash(ctx, a, b, r.Note)
+	}
+	_, _ = h.p.core.DB.ExecContext(ctx, `UPDATE pocket_actions SET cash_settled = true, note = $2 WHERE ref = $1`, a.Ref, r.Note)
+	return r
+}
+
+// refusedSale: the PC can't take a sale at all, but a customer's cash may really be
+// in the drawer (or a payout out of it).
 func (h handlers) refusedSale(ctx context.Context, a Action, why string) ActionResult {
+	return h.refused(ctx, a, saleCash(a), why)
+}
+
+// saleCash is the cash a sale moved, as a call would say it.
+func saleCash(a Action) CallBody {
+	call := CallBody{Label: "A sale"}
 	var b SaleBody
 	if err := json.Unmarshal(a.Body, &b); err != nil {
-		return ActionResult{Status: "failed", Note: why}
+		return call
 	}
 	paid, cash := decimal.Zero, decimal.Zero
 	for _, p := range b.Payments {
@@ -283,14 +371,13 @@ func (h handlers) refusedSale(ctx context.Context, a Action, why string) ActionR
 		change = decimal.Max(paid.Sub(t), decimal.Zero)
 	}
 	net := cash.Sub(change)
-	call := CallBody{Label: "A sale"}
 	switch {
 	case net.IsPositive():
 		call.CashIn = net.StringFixed(2)
 	case net.IsNegative():
 		call.CashOut = net.Neg().StringFixed(2)
 	}
-	return h.refused(ctx, a, call, why)
+	return call
 }
 
 // staleBalance compares what the phone showed with what the PC has now.
@@ -360,11 +447,24 @@ func replyMessage(code int, reply []byte) string {
 	return "the PC answered " + strconv.Itoa(code)
 }
 
-// replyID is what the route made, from the field names the routes use.
-func replyID(reply []byte) int64 {
+// replyID is what the route made: at resultAt ("package.id") if given, otherwise from
+// the field names the routes use.
+func replyID(reply []byte, resultAt string) int64 {
 	var r map[string]any
 	if json.Unmarshal(reply, &r) != nil {
 		return 0
+	}
+	if resultAt != "" {
+		var at any = r
+		for _, k := range strings.Split(resultAt, ".") {
+			m, ok := at.(map[string]any)
+			if !ok {
+				return 0
+			}
+			at = m[k]
+		}
+		n, _ := at.(float64)
+		return int64(n)
 	}
 	for _, k := range []string{"id", "paymentId", "claimId", "saleId", "receiptId"} {
 		if n, ok := r[k].(float64); ok {

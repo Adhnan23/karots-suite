@@ -2,7 +2,7 @@ import { onlineManager } from '@tanstack/react-query'
 import { loadWho } from '../session'
 import { loadCopy, loadParts } from '../store/copy'
 import { pending, type Action } from '../store/outbox'
-import { sendNow, state, type CallInput } from '../sync'
+import { queueAction, sendNow, state, type CallInput } from '../sync'
 import type { TillCopy } from '@/api/types.gen'
 
 /** What something made offline is called until the PC gives it a real id: a number,
@@ -12,6 +12,7 @@ export function tempNumber(ref: string): number {
   return 9e15 + parseInt(ref.replace(/[^0-9a-f]/gi, '').slice(0, 10) || '0', 16) % 7e12
 }
 
+const TEMP_NUMBER = /\/9\d{15}(\/|$)/
 const API = '/api/v1'
 const OWN = `${API}/x/pocketcashier` // the phone's own calls always go to the PC
 
@@ -75,25 +76,34 @@ function bodyOf(init?: RequestInit): unknown {
 
 const reply = (v: unknown) => new Response(JSON.stringify(v ?? null), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
-async function answerLocally(hit: NonNullable<ReturnType<typeof find>>, method: string, url: URL, init?: RequestInit): Promise<Response> {
+const refusal = (message: string) => new Response(JSON.stringify({ error: { code: 'VALIDATION', message } }), { status: 422, headers: { 'Content-Type': 'application/json' } })
+
+/** A write always goes through the outbox, with a one-time ref: if the PC's reply is
+ * lost, the retry finds the first result instead of doing it twice. While the PC
+ * answers, the screen gets the route's own reply. */
+async function answer(hit: NonNullable<ReturnType<typeof find>>, method: string, url: URL, init?: RequestInit): Promise<Response> {
   const body = bodyOf(init)
   const ctx: RouteCtx = {
     parts: await loadParts(), copy: await loadCopy(), params: hit.params, query: url.searchParams, body,
     ref: crypto.randomUUID(), out: await pending(), userId: loadWho()?.id ?? 0,
   }
-  let answer: unknown
+  let local: unknown
   try {
-    answer = await hit.route.answer(ctx)
+    local = await hit.route.answer(ctx)
   } catch (e) {
     if (!(e instanceof RouteError)) throw e
-    return new Response(JSON.stringify({ error: { code: 'VALIDATION', message: e.message } }), { status: 422, headers: { 'Content-Type': 'application/json' } })
+    return refusal(e.message)
   }
-  if (hit.route.queue) {
-    const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, tempId: tempNumber(ctx.ref), ...hit.route.call?.(ctx) }
-    // Not awaited: with the PC off the send can take as long as the network gives up.
-    void sendNow({ ref: ctx.ref, kind: 'call', userId: ctx.userId, body: call }).catch(() => {})
+  if (!hit.route.queue) return reply(local)
+  const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, tempId: tempNumber(ctx.ref), ...hit.route.call?.(ctx) }
+  const action = { ref: ctx.ref, kind: 'call' as const, userId: ctx.userId, body: call }
+  if (!state().live) {
+    await queueAction(action)
+    return reply(local)
   }
-  return reply(answer)
+  const r = await sendNow(action)
+  if (r?.status === 'failed') return refusal(r.note || 'The PC could not do this')
+  return reply(r?.reply ?? local)
 }
 
 /** Lets the plugins' till screens run unchanged on the phone: while the PC answers
@@ -112,16 +122,18 @@ export function installOfflineFetch(): () => void {
     if (!path.startsWith(`${API}/`) || path.startsWith(`${OWN}/`)) return real(input, init)
     const hit = find(method, path.slice(API.length))
     if (!hit) return real(input, init)
-    if (state().live) {
-      try {
-        const res = await real(input, init)
-        // Signed in while the PC was down, so no session yet: carry on from the copy.
-        if (res.status !== 401) return res
-      } catch (e) {
-        if ((e as Error).name === 'AbortError') throw e
-      }
+    const local = () => answer(hit, method, url, init)
+    // A write goes through the outbox. A record with a temporary number is only here. So
+    // are reads when the phone's session isn't this person's: signed in during a cut, the
+    // cookie is someone else's or none, and their drawer mustn't be read for this one's.
+    if (hit.route.queue || TEMP_NUMBER.test(path) || !state().live || !loadWho()?.session) return local()
+    try {
+      const res = await real(input, init)
+      if (res.status !== 401 && res.status !== 403) return res
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') throw e
     }
-    return answerLocally(hit, method, url, init)
+    return local()
   }
   return () => { window.fetch = real }
 }

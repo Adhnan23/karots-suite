@@ -11,12 +11,13 @@ import { recentCursor, saveRecent } from './store/recent'
 export type SyncState = { live: boolean; copyAt: string | null; waiting: number; lastError?: string }
 
 /** The server's answer for one action (see the plugin's replay). */
-export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; resultId?: number; receiptNo?: string; heldId?: number; note?: string }
+export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; resultId?: number; reply?: unknown; receiptNo?: string; heldId?: number; note?: string }
 
 const REFRESH_EVERY = 60_000
 const LIVE_FOR = 25_000
 const LOOK_EVERY = 10_000 // also how soon a phone just approved gets what plugins read
 const LOOK_FOR = 5_000
+const SEND_FOR = 10_000 // the PC keeps working if the phone gives up; the retry finds the result
 const BATCH = 50
 
 let lastOk = 0
@@ -24,6 +25,8 @@ let s: SyncState = { live: false, copyAt: null, waiting: 0 }
 let notify: (s: SyncState) => void = () => {}
 let flushing: Promise<void> | null = null
 const answered = new Map<string, ActionResult>()
+// Actions a screen is waiting on right now: the cashier hasn't gone ahead yet.
+const watching = new Set<string>()
 
 export const state = () => s
 
@@ -92,6 +95,7 @@ export function refreshRecent(): Promise<void> {
         const c = await recentCursor()
         const qs = new URLSearchParams({ after: String(c.after) })
         if (c.since) qs.set('since', c.since)
+        if (c.lastAt) qs.set('at', c.lastAt)
         const res = await phoneFetch(`/recent?${qs}`)
         if (!res.ok) return
         const page = (await res.json()) as RecentSales
@@ -117,10 +121,11 @@ export function flush(signedIn: () => number | null): Promise<void> {
         set({ waiting: all.length })
         if (!all.length) return
         const batch = all.slice(0, BATCH)
-        const res = await phoneFetch('/actions', { method: 'POST', body: JSON.stringify({ signedIn: signedIn(), signedInAt: loadWho()?.since, actions: batch }) })
+        const res = await phoneFetch('/actions', { method: 'POST', signal: AbortSignal.timeout(SEND_FOR), body: JSON.stringify({ signedIn: signedIn(), signedInAt: loadWho()?.since, actions: batch.map((a) => ({ ...a, handed: !watching.has(a.ref) })) }) })
         if (!res.ok) throw new Error(`send: ${res.status}`)
         const { results } = (await res.json()) as { results: ActionResult[] }
         ok()
+        if (!results.length) return // the PC's own trouble: the 5 s retry sends it again
         for (const r of results) answered.set(r.ref, r)
         await ack(results.map((r) => r.ref))
       }
@@ -196,9 +201,11 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
 export async function sendNow(a: Omit<Action, 'ref' | 'at'> & { ref?: string }, signedIn: () => number | null = () => a.userId): Promise<ActionResult | null> {
   const saved = await addAction(a)
   set({ waiting: s.waiting + 1 })
+  if (s.live) watching.add(saved.ref)
   await flush(signedIn)
   // A flush already under way may have taken the outbox before this was added.
   if (!answered.has(saved.ref) && s.live) await flush(signedIn)
+  watching.delete(saved.ref) // no answer: the screen goes ahead, and the retry says so
   const r = answered.get(saved.ref) ?? null
   answered.delete(saved.ref)
   return r
@@ -219,10 +226,16 @@ export async function movedTo(userId: number): Promise<string> {
 /** Something done through a real route: at once when the PC answers, else when
  * it's back. cashOut / cashIn is cash that moves whatever the PC says; saw is the
  * balance the phone showed, flagged if the PC knew better. */
-export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; cashIn?: string; label: string; saw?: { customerId: number; balance: string }; tempId?: number; tempFields?: Record<string, string> }
+export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; cashIn?: string; label: string; saw?: { customerId: number; balance: string }; tempId?: number; tempFields?: Record<string, string>; resultAt?: string }
 
 export function sendCall(userId: number, call: CallInput, signedIn?: () => number | null): Promise<ActionResult | null> {
   return sendNow({ kind: 'call', userId, body: call }, signedIn)
+}
+
+/** Saved to send when the PC is back, with the phone offline: nothing to wait for. */
+export async function queueAction(a: Omit<Action, 'ref' | 'at'> & { ref?: string }): Promise<void> {
+  await addAction(a)
+  set({ waiting: s.waiting + 1 })
 }
 
 /** How a later action refers to something this phone made but the PC hasn't yet. */

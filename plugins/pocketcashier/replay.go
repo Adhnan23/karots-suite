@@ -27,6 +27,9 @@ type Action struct {
 	UserID int64           `json:"userId"`
 	At     time.Time       `json:"at"`
 	Body   json.RawMessage `json:"body"`
+	// Handed: the cashier has gone ahead (the sale is done, the cash handed over). False
+	// only while a screen waits for this very answer: a refusal then moved no money.
+	Handed bool `json:"handed"`
 }
 
 type ActionsRequest struct {
@@ -43,8 +46,11 @@ type ActionResult struct {
 	HeldID    int64  `json:"heldId,omitempty"`
 	ResultID  int64  `json:"resultId,omitempty"` // what a call made
 	Flagged   bool   `json:"-"`                  // applied, but someone should look
-	Reply     []byte `json:"-"`                  // kept when later actions read more than one id from it
-	Note      string `json:"note,omitempty"`
+	Settled   bool   `json:"-"`                  // its cash, if any, has been dealt with
+	// Reply is the route's own answer, for the screen waiting on it and for later
+	// actions that read more than one id from it.
+	Reply json.RawMessage `json:"reply,omitempty"`
+	Note  string          `json:"note,omitempty"`
 }
 
 type ActionsReply struct {
@@ -52,6 +58,8 @@ type ActionsReply struct {
 }
 
 const maxBatch = 50
+
+type phoneCtxKey struct{}
 
 // phoneLocks serialise each phone's sends, so two at once (a retry while the
 // first still applies) see each other's refs.
@@ -66,8 +74,12 @@ func (h handlers) actions(c echo.Context) error {
 	if len(req.Actions) > maxBatch {
 		return apperr.Validation("send at most 50 actions at a time")
 	}
-	ctx := c.Request().Context()
+	// The phone may go away mid-batch. The work must still finish and be recorded, or
+	// its retry would do it again.
+	// ponytail: a crash between a route's commit and the record below can still repeat a call; a claim row before dispatching if that ever shows up.
+	ctx := context.WithoutCancel(c.Request().Context())
 	p := phoneFrom(c)
+	ctx = context.WithValue(ctx, phoneCtxKey{}, p)
 	mu, _ := phoneLocks.LoadOrStore(p.ID, &sync.Mutex{})
 	mu.(*sync.Mutex).Lock()
 	defer mu.(*sync.Mutex).Unlock()
@@ -82,6 +94,9 @@ func (h handlers) actions(c echo.Context) error {
 		if r, ok, err := h.stored(ctx, a.Ref); err != nil {
 			return err
 		} else if ok {
+			if r.Status == "failed" && a.Handed {
+				r = h.settleLate(ctx, a, r)
+			}
 			out.Results = append(out.Results, r)
 			continue
 		}
@@ -93,7 +108,14 @@ func (h handlers) actions(c echo.Context) error {
 			send = s
 			defer h.closeSend(send)
 		}
-		out.Results = append(out.Results, h.apply(ctx, p, send, a))
+		r, err := h.apply(ctx, p, send, a)
+		if err != nil {
+			return err
+		}
+		if r.Status == "retry" { // the PC's own trouble: this and what follows wait their turn
+			break
+		}
+		out.Results = append(out.Results, r)
 	}
 	if req.SignedIn != nil {
 		h.signedIn(ctx, p, *req.SignedIn, req.SignedInAt)
@@ -123,10 +145,11 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 		SaleID    *int64  `db:"sale_id"`
 		HeldID    *int64  `db:"held_id"`
 		ResultID  *int64  `db:"result_id"`
+		Reply     []byte  `db:"result_reply"`
 		Note      string  `db:"note"`
 		ReceiptNo *string `db:"receipt_no"`
 	}
-	err := h.p.core.DB.GetContext(ctx, &row, `SELECT a.status, a.sale_id, a.held_id, a.result_id, a.note, s.receipt_no
+	err := h.p.core.DB.GetContext(ctx, &row, `SELECT a.status, a.sale_id, a.held_id, a.result_id, a.result_reply, a.note, s.receipt_no
 		FROM pocket_actions a LEFT JOIN sales s ON s.id = a.sale_id WHERE a.ref = $1`, ref)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ActionResult{}, false, nil
@@ -147,13 +170,17 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 	if row.ResultID != nil {
 		r.ResultID = *row.ResultID
 	}
+	r.Reply = row.Reply
 	return r, true, nil
 }
 
 // apply runs one new action and records its result under its ref.
-func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) ActionResult {
+func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (ActionResult, error) {
 	r := h.run(ctx, p, a)
 	r.Ref = a.Ref
+	if r.Status == "retry" {
+		return r, nil
+	}
 	s.actions++
 	if r.Status == "failed" {
 		s.failed++
@@ -176,10 +203,13 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) Act
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
-	_, _ = h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13) ON CONFLICT (ref) DO NOTHING`,
-		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note, replyJSON(r.Reply))
-	return r
+	_, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply, cash_settled)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13,$14) ON CONFLICT (ref) DO NOTHING`,
+		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note, replyJSON(r.Reply), r.Settled)
+	if err != nil {
+		return r, apperr.Internal("failed to record what the phone did", err)
+	}
+	return r, nil
 }
 
 func failed(err error) ActionResult {

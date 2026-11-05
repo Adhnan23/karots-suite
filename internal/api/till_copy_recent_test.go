@@ -33,7 +33,7 @@ func recentSale(t *testing.T, te *testEnv, f tillFix, ck *http.Cookie) int64 {
 
 func recentRead(t *testing.T, te *testEnv, after int64, since time.Time, limit int) *RecentSales {
 	t.Helper()
-	r, err := BuildRecentSales(context.Background(), te.db, sales.NewService(te.db), after, since, limit)
+	r, err := BuildRecentSales(context.Background(), te.db, sales.NewService(te.db), after, since, "", limit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,5 +160,26 @@ func TestRecentSalesChangedByAClaim(t *testing.T) {
 	p := recentRead(t, te, first.NextAfter, since, 50)
 	if len(p.Changed) != 1 || p.Changed[0].ID != id || p.Changed[0].Warranty.Units[0].Status != "replaced" {
 		t.Fatalf("a unit swapped on the PC must reach the phone: %+v", p.Changed)
+	}
+}
+
+// A restored shop that has since rung past the phone's cursor: the same id is now a
+// different sale.
+func TestRecentSalesResetWhenTheSaleAtTheCursorChanged(t *testing.T) {
+	te, f, ck, _ := recentFix(t)
+	id := recentSale(t, te, f, ck)
+	ctx := context.Background()
+	svc := sales.NewService(te.db)
+	d, err := svc.Get(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	same, err := BuildRecentSales(ctx, te.db, svc, id, time.Time{}, saleSummary(d.Sale).CreatedAt, 50)
+	if err != nil || same.Reset {
+		t.Fatalf("the same sale is no restore: %+v %v", same, err)
+	}
+	other, err := BuildRecentSales(ctx, te.db, svc, id, time.Time{}, "2001-01-01T00:00:00Z", 500)
+	if err != nil || !other.Reset {
+		t.Fatalf("a different sale at that id means a restore: %+v %v", other, err)
 	}
 }

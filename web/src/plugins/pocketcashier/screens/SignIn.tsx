@@ -38,7 +38,7 @@ export function SignIn({ copy, sync, phone, notice = '', onSignedIn }: { copy: T
         await api('/auth/logout', { method: 'POST' }).catch(() => undefined)
         return 'A sales person can’t sell on a phone.'
       }
-      onSignedIn({ id: r.user.id, name: r.user.name, role: r.user.role })
+      onSignedIn({ id: r.user.id, name: r.user.name, role: r.user.role, session: true })
       return 'ok'
     } catch (e) {
       if (e instanceof ApiError) return e.message

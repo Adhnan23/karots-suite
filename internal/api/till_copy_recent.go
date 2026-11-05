@@ -15,14 +15,21 @@ import (
 const RecentSalesDays = 30
 
 // BuildRecentSales reads one page of sales newer than after, plus the sales up
-// to after that were returned since `since`, each as the Returns tab sees it.
-func BuildRecentSales(ctx context.Context, db *sqlx.DB, svc *sales.Service, after int64, since time.Time, limit int) (*RecentSales, error) {
+// to after that were returned since `since`, each as the Returns tab sees it. lastAt
+// is when the client's newest sale was made, by which a restored shop is noticed even
+// once it has rung past the client's cursor: the same id is then a different sale.
+func BuildRecentSales(ctx context.Context, db *sqlx.DB, svc *sales.Service, after int64, since time.Time, lastAt string, limit int) (*RecentSales, error) {
 	now := time.Now().UTC()
 	r := &RecentSales{Sales: []SaleView{}, Changed: []SaleView{}, NextAfter: after, NextSince: now.Format(time.RFC3339Nano)}
 	if err := db.GetContext(ctx, &r.MaxID, `SELECT COALESCE(max(id), 0) FROM sales`); err != nil {
 		return nil, apperr.Internal("failed to read sales", err)
 	}
-	if after > r.MaxID {
+	moved := false
+	if after > 0 && lastAt != "" && after <= r.MaxID {
+		d, err := svc.Get(ctx, after)
+		moved = err != nil || saleSummary(d.Sale).CreatedAt != lastAt
+	}
+	if after > r.MaxID || moved {
 		r.Reset, after, since, r.NextAfter = true, 0, time.Time{}, 0
 	}
 	var ids []int64

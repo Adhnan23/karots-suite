@@ -101,9 +101,12 @@ The PC never refuses that work afterwards. It takes each sale in order and **fla
 - anything that happened on the phone a while before it arrived (it shows when; it counts on the day it arrives)
 
 A very few things the PC really can't take, such as goods already returned on the PC, or a repair already collected. The
-stock and the records don't change, but cash that left or entered the drawer is still booked, and the note says so (if the
-till was closed by then, or the shop bars cash moves with no locker, the note says to check the till by hand). What depended
-on a refused item is refused too, and names it.
+stock and the records don't change, but cash that left or entered the drawer is still booked, and the note says so. If the
+till was closed by then, one is opened for it and marked for review, as for a late sale. What depended on a refused item is
+refused too, and names it. While the PC answers, the cashier sees a refusal on the spot and no money moves.
+
+If the PC itself has trouble (a restart during an update), the phone just tries again, for a few minutes, before it counts
+as refused.
 
 **Phones → What came in** lists every batch a phone sent, with each action and its flags. A flagged sale opens in
 **Sales**, which is also where a mistaken sale is returned.

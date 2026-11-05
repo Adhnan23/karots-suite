@@ -39,6 +39,7 @@ export const rechargeRoutes: OfflineRoute[] = [
   { method: 'GET', path: '/x/recharge/sale-lines', answer: () => [] },
   { method: 'POST', path: '/x/recharge/packages/quick', queue: true,
     label: (c) => `New package: ${(c.body as PackageIn).name}`,
+    call: () => ({ resultAt: 'package.id' }),
     answer: (c) => {
       const b = c.body as PackageIn
       return { package: { id: tempNumber(c.ref), carrierId: b.carrierId, name: b.name, price: b.price, floatCost: '0', isActive: true, sort: 0, addedBy: '' }, created: true }
