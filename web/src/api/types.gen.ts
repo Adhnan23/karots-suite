@@ -349,6 +349,8 @@ export interface ProductRequest {
   supplierId: number /* int64 */;
   repriceStock: boolean;
   dupSourceName: string;
+  packs?: PackRequest[]; // create only
+  barcodes?: string[]; // create only: extra codes
   extra?: { [key: string]: unknown };
 }
 /**

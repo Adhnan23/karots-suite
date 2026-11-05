@@ -47,6 +47,29 @@ test('categories: a sub-category in place, and the picker finds-or-creates', asy
   await expect(page.getByRole('list', { name: 'Categories' }).last().getByRole('button', { name: new RegExp(`Crisps ${tag}`) })).toHaveCount(0)
 })
 
+test('products: a pack and an extra barcode can be set while creating', async ({ page }) => {
+  const extra = `PK${tag}`
+  await admin(page, '/admin/products')
+  await page.getByRole('button', { name: /New product/ }).click()
+  await page.getByLabel('Name').first().fill(`Panadol card ${tag}`)
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByLabel('Search categories').fill('E2E Goods')
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByLabel('Selling').fill('5')
+  await page.getByRole('button', { name: 'Add a pack' }).click()
+  await page.getByLabel('Units in one pack').fill('10')
+  await page.getByRole('button', { name: 'Add pack' }).click()
+  await page.getByLabel('Other barcode', { exact: true }).fill(extra)
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page.getByRole('button', { name: 'Add product' }).click()
+  await toast(page, /^Product added$/)
+
+  await page.getByLabel('Search products').fill(extra)
+  await page.getByRole('button', { name: new RegExp(`^Panadol card ${tag}`) }).first().click()
+  await expect(page.getByRole('region', { name: 'Packs' }).getByText('Card ×10')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Other barcodes' }).getByText(extra)).toBeVisible()
+})
+
 test('products: add, find by barcode, edit the price, disable and bring back', async ({ page }) => {
   await admin(page, '/admin/products')
   await page.getByRole('button', { name: /New product/ }).click()

@@ -80,28 +80,61 @@ func PackForBarcode(ctx context.Context, q sqlx.QueryerContext, code string) (pr
 	return r.ProductID, r.PackID, err
 }
 
+// parsePack validates a pack's own fields; nothing here needs the database.
+func parsePack(in PackInput) (name string, size, sell, whole decimal.Decimal, code string, err error) {
+	name = strings.TrimSpace(in.Name)
+	if name == "" || len([]rune(name)) > 30 {
+		return name, size, sell, whole, code, apperr.Validation("give the pack a name (up to 30 characters), e.g. Card")
+	}
+	if size, err = money.Parse(in.Size); err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) || !size.Equal(size.Round(3)) {
+		return name, size, sell, whole, code, apperr.Validation("how many in one " + name + "? It must be more than 1")
+	}
+	if sell, err = parsePrice(in.SellingPrice); err != nil {
+		return name, size, sell, whole, code, apperr.Validation("the pack price is not a valid amount")
+	}
+	if whole, err = parsePrice(in.WholesalePrice); err != nil {
+		return name, size, sell, whole, code, apperr.Validation("the pack wholesale price is not a valid amount")
+	}
+	if code = strings.TrimSpace(in.Barcode); len(code) > 50 {
+		return name, size, sell, whole, code, apperr.Validation("a barcode is up to 50 characters")
+	}
+	return name, size, sell, whole, code, nil
+}
+
+// CheckNewPacks refuses packs a new product could not save, before it is written:
+// a bad field, a name used twice, or a unit sold in decimals.
+func (s *Service) CheckNewPacks(ctx context.Context, unitID int64, packs []PackInput) error {
+	if len(packs) == 0 {
+		return nil
+	}
+	seen := map[string]bool{}
+	for _, in := range packs {
+		name, _, _, _, _, err := parsePack(in)
+		if err != nil {
+			return err
+		}
+		if key := strings.ToLower(name); seen[key] {
+			return apperr.Conflict("this item already has a pack called " + name)
+		} else {
+			seen[key] = true
+		}
+	}
+	var allowDecimal bool
+	if err := s.db.GetContext(ctx, &allowDecimal, `SELECT allow_decimal FROM units WHERE id = $1`, unitID); err != nil {
+		return apperr.Internal("failed to read unit", err)
+	}
+	if allowDecimal {
+		return apperr.Validation("packs are for items counted in whole units")
+	}
+	return nil
+}
+
 // SavePack creates or edits one of a product's packs (whole-unit, stocked
 // products only) and returns it.
 func (s *Service) SavePack(ctx context.Context, productID int64, in PackInput) (*Pack, error) {
-	name := strings.TrimSpace(in.Name)
-	if name == "" || len([]rune(name)) > 30 {
-		return nil, apperr.Validation("give the pack a name (up to 30 characters), e.g. Card")
-	}
-	size, err := money.Parse(in.Size)
-	if err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) || !size.Equal(size.Round(3)) {
-		return nil, apperr.Validation("how many in one " + name + "? It must be more than 1")
-	}
-	sell, err := parsePrice(in.SellingPrice)
+	name, size, sell, whole, code, err := parsePack(in)
 	if err != nil {
-		return nil, apperr.Validation("the pack price is not a valid amount")
-	}
-	whole, err := parsePrice(in.WholesalePrice)
-	if err != nil {
-		return nil, apperr.Validation("the pack wholesale price is not a valid amount")
-	}
-	code := strings.TrimSpace(in.Barcode)
-	if len(code) > 50 {
-		return nil, apperr.Validation("a barcode is up to 50 characters")
+		return nil, err
 	}
 	var id int64
 	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {

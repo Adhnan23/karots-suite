@@ -139,6 +139,14 @@ func bindProductReq(c echo.Context, req ProductRequest) (products.CreateInput, P
 	return in, req, c.Validate(&in)
 }
 
+// saveFailure is what a person is told when a part of a new product didn't save.
+func saveFailure(err error) string {
+	if e, ok := apperr.As(err); ok {
+		return e.Message
+	}
+	return "something went wrong"
+}
+
 func (h *handlers) AdminProductCreate(c echo.Context) error {
 	in, req, err := bindProduct(c)
 	if err != nil {
@@ -153,6 +161,13 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 	if err := checkExtras(ctx, req, x); err != nil {
 		return err
 	}
+	packs := make([]products.PackInput, 0, len(req.Packs))
+	for _, k := range req.Packs {
+		packs = append(packs, products.PackInput{Name: k.Name, Size: k.Size, SellingPrice: k.SellingPrice, WholesalePrice: k.WholesalePrice, Barcode: k.Barcode})
+	}
+	if err := h.t.products.CheckNewPacks(ctx, in.UnitID, packs); err != nil {
+		return err
+	}
 	p, err := h.t.products.Create(ctx, in)
 	if err != nil {
 		return err
@@ -163,7 +178,19 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 	}
 	h.relearn(c, p)
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "created "+in.Name)
-	return c.JSON(http.StatusCreated, ProductSaved{ID: p.ID, Message: "Product added"})
+	// A code another product carries only shows now: keep the product and say so.
+	msg := "Product added"
+	for _, k := range packs {
+		if _, err := h.t.products.SavePack(ctx, p.ID, k); err != nil {
+			msg += ". " + k.Name + " wasn't saved: " + saveFailure(err)
+		}
+	}
+	for _, code := range req.Barcodes {
+		if err := h.t.products.AddBarcode(ctx, p.ID, code, "form"); err != nil {
+			msg += ". " + code + " wasn't saved: " + saveFailure(err)
+		}
+	}
+	return c.JSON(http.StatusCreated, ProductSaved{ID: p.ID, Message: msg})
 }
 
 // AdminProductUpdate saves the form. Saving a quick-added item finishes it: the

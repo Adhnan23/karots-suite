@@ -9,6 +9,7 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
 
 - **New product:** name (in English and in Sinhala or Tamil if you like), barcode (one or more),
   category, unit, cost, price, wholesale price and reorder level.
+  Packs (a card of 10) and extra barcodes can be added while creating it, or later.
 - **Packs:** a product can sell whole or loose, such as a card of 10 tablets, a ream of 500
   sheets or a 25 kg sack. The till asks "loose or pack?" and stock is kept in the smallest unit.
 - **Items to review:** quick items sold at the till, barcodes and pack sizes a cashier set, and anything

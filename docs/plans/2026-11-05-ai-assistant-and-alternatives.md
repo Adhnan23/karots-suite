@@ -42,17 +42,17 @@
 **Interfaces:**
 - Produces: `ProductRequest.Packs []PackRequest` and `ProductRequest.Barcodes []string` (`json:"packs,omitempty"`, `json:"barcodes,omitempty"`), honoured on create only; `func (s *Service) CheckPack(in PackInput) error` holding `SavePack`'s validation.
 
-- [ ] **Step 1: Write the failing tests** in `admin_products_create_test.go`:
+- [x] **Step 1: Write the failing tests** in `admin_products_create_test.go`:
   - `TestCreateWithPacksAndBarcodes`: POST with `packs:[{name:"Card",size:"10"}]`, `barcodes:["X1"]`; `GET /products/:id/packs` has one Card, and the barcode resolves to the product.
   - `TestCreateRefusesBadPackBeforeWriting`: size `"1"` gives 422 and no product named that exists.
   - `TestCreatePackOnDecimalUnitRefused`: a unit with `allow_decimal` gives 422 and no product.
   - `TestCreateBarcodeTakenKeepsProduct`: a barcode taken by another product gives 201 with `Message` naming the barcode, and the product exists.
-- [ ] **Step 2: Run** `go test ./internal/api -run TestCreate` (with `DATABASE_URL`). Expected: FAIL.
-- [ ] **Step 3: Implement.** Move validation into `CheckPack`, called by `SavePack`. In `AdminProductCreate`, check packs before `Create`, then after it call `SavePack` / `AddBarcode(…, "form")`; a failure after the product exists goes in `ProductSaved.Message`, never rolling back the product. `make types`.
-- [ ] **Step 4: Form.** `NewPacks.tsx` keeps a local list using `PacksBlock`'s fields and `NAMES`, plus a local extra-barcode list. Show it when `!product && !svc && !allowDecimal` and put both lists in the POST body. A duplicate (`copyOf`) starts empty.
-- [ ] **Step 5: e2e:** create a product with Card × 10 in the form, then reopen it and see the pack. Add to `admin-catalog.spec.ts`.
-- [ ] **Step 6: Run** `go test ./internal/api` and that spec. Expected: PASS. Update `docs/guide/stock.md`.
-- [ ] **Step 7: Commit** `feat(products): set packs and extra barcodes while creating a product`
+- [x] **Step 2: Run** `go test ./internal/api -run TestCreate` (with `DATABASE_URL`). Expected: FAIL.
+- [x] **Step 3: Implement.** Move validation into `CheckPack`, called by `SavePack`. In `AdminProductCreate`, check packs before `Create`, then after it call `SavePack` / `AddBarcode(…, "form")`; a failure after the product exists goes in `ProductSaved.Message`, never rolling back the product. `make types`.
+- [x] **Step 4: Form.** `NewPacks.tsx` keeps a local list using `PacksBlock`'s fields and `NAMES`, plus a local extra-barcode list. Show it when `!product && !svc && !allowDecimal` and put both lists in the POST body. A duplicate (`copyOf`) starts empty.
+- [x] **Step 5: e2e:** create a product with Card × 10 in the form, then reopen it and see the pack. Add to `admin-catalog.spec.ts`.
+- [x] **Step 6: Run** `go test ./internal/api` and that spec. Expected: PASS. Update `docs/guide/stock.md`.
+- [x] **Step 7: Commit** `feat(products): set packs and extra barcodes while creating a product`
 
 ### Task 2: Replies survive real chatbots; prompts fit any shop
 

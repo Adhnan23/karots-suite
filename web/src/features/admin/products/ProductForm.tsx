@@ -3,7 +3,7 @@ import { Copy, Merge, Package, Scale, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdminProduct, GeneratedBarcode, ProductRequest, ProductSaved } from '@/api/types.gen'
+import type { AdminProduct, GeneratedBarcode, PackRequest, ProductRequest, ProductSaved } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { Field, INPUT, Toggle } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
@@ -15,6 +15,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { BarcodesBlock } from './BarcodesBlock'
 import { FoldPacks } from './FoldPacks'
+import { NewBarcodes, NewPacks } from './NewPacks'
 import { PacksBlock } from './PacksBlock'
 import { ReorderLevel } from './ReorderLevel'
 import { LooseVersion } from './LooseVersion'
@@ -56,6 +57,8 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
+  const [newPacks, setNewPacks] = useState<PackRequest[]>([])
+  const [newCodes, setNewCodes] = useState<string[]>([])
   const [loose, setLoose] = useState(false)
   const [fold, setFold] = useState(false)
   const set = (patch: Partial<ProductRequest>) => setF((x) => ({ ...x, ...patch }))
@@ -73,7 +76,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
       const body: ProductRequest = { ...f, unitId, costPrice: prices.cost, sellingPrice: prices.selling, repriceStock: priceChanged && f.repriceStock, extra: extraBody(extras) }
       const r = product
         ? await api<ProductSaved>(`/admin/products/${product.id}`, { method: 'PUT', json: body })
-        : await api<ProductSaved>('/admin/products', { json: body })
+        : await api<ProductSaved>('/admin/products', { json: { ...body, packs: newPacks, barcodes: newCodes } })
       toast.success(r.message)
       refresh()
       onClose()
@@ -177,6 +180,10 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
         </Field>
       </div>
       {product && <BarcodesBlock productId={product.id} onMain={(barcode) => set({ barcode })} />}
+      {!product && <NewBarcodes codes={newCodes} onChange={setNewCodes} />}
+      {!product && !svc && !units.find((u) => u.id === unitId)?.allowDecimal && (
+        <NewPacks packs={newPacks} onChange={setNewPacks} unit={units.find((u) => u.id === unitId)?.abbreviation ?? ''} unitPrice={prices.selling} sym={sym} />
+      )}
       {product && !svc && !units.find((u) => u.id === unitId)?.allowDecimal && (
         <PacksBlock productId={product.id} unit={product.unitAbbr} unitPrice={prices.selling} stockQty={product.stockQty} sym={sym} />
       )}

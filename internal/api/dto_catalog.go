@@ -221,6 +221,8 @@ type ProductRequest struct {
 	SupplierID     int64                      `json:"supplierId"`
 	RepriceStock   bool                       `json:"repriceStock"`
 	DupSourceName  string                     `json:"dupSourceName"`
+	Packs          []PackRequest              `json:"packs,omitempty"`    // create only
+	Barcodes       []string                   `json:"barcodes,omitempty"` // create only: extra codes
 	Extra          map[string]json.RawMessage `json:"extra,omitempty" tstype:"{ [key: string]: unknown }"`
 }
 

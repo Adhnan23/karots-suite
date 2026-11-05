@@ -4,16 +4,14 @@ import { useState } from 'react'
 import { api } from '@/api/client'
 import type { AdminPack, PackRequest } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
-import { INPUT } from '@/components/admin/fields'
 import { Button } from '@/components/ui/button'
 import { errMsg } from '@/features/till/api'
 import { packGross } from '@/features/till/cart/packs'
 import { money, num, qtyText } from '@/lib/money'
-import { cn } from '@/lib/utils'
+import { blankPack, PackFields } from './PackFields'
 import { packsQuery } from './queries'
 
-const NAMES = ['Card', 'Box', 'Packet', 'Strip', 'Tray', 'Bottle']
-const blank: PackRequest = { name: 'Card', size: '', sellingPrice: '', wholesalePrice: '', barcode: '' }
+const blank = blankPack
 
 /** Ways to sell (and buy) the item by more than one unit: Card ×12 with its own price and
  * the code printed on the card. Stock stays in units; full packs ring at the pack price. */
@@ -75,39 +73,8 @@ export function PacksBlock({ productId, unit, unitPrice, stockQty, sym }: { prod
         </ul>
       )}
       {edit ? (
-        <div className="grid gap-2 rounded-[var(--radius-sm)] bg-muted p-2.5" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void save() } }}>
-          <div className="flex flex-wrap gap-1.5">
-            {NAMES.map((n) => (
-              <button key={n} type="button" aria-pressed={edit.f.name === n} onClick={() => set({ name: n })}
-                className="rounded-pill border border-border bg-card px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{n}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <label className="grid gap-1 text-[12.5px] font-semibold">Name
-              <input aria-label="Pack name" value={edit.f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
-            </label>
-            <label className="grid gap-1 text-[12.5px] font-semibold">{unit} in one
-              <input aria-label="Units in one pack" inputMode="numeric" value={edit.f.size} onChange={(e) => set({ size: e.target.value.replace(/[^\d.]/g, '') })} className={cn(INPUT, 'tabular-nums')} placeholder="12" />
-            </label>
-            <label className="grid gap-1 text-[12.5px] font-semibold">Price
-              <input aria-label="Pack price" inputMode="decimal" value={edit.f.sellingPrice} onChange={(e) => set({ sellingPrice: e.target.value.replace(/[^\d.]/g, '') })}
-                className={cn(INPUT, 'tabular-nums')} placeholder={num(edit.f.size) > 1 ? (num(edit.f.size) * num(unitPrice)).toFixed(2) : '0.00'} />
-            </label>
-            <label className="grid gap-1 text-[12.5px] font-semibold">Wholesale
-              <input aria-label="Pack wholesale price" inputMode="decimal" value={edit.f.wholesalePrice} onChange={(e) => set({ wholesalePrice: e.target.value.replace(/[^\d.]/g, '') })} className={cn(INPUT, 'tabular-nums')} placeholder="—" />
-            </label>
-          </div>
-          <input aria-label="Pack barcode" name="pack-code" value={edit.f.barcode} onChange={(e) => set({ barcode: e.target.value })}
-            placeholder="Scan the code on the pack (optional)" className={cn(INPUT, 'tabular-nums')} />
-          <small className="text-faint">A blank price follows {unit} price × size. Full packs always ring at the cheaper of the two.</small>
-          {err && <small role="alert" className="text-danger">{err}</small>}
-          <div className="flex justify-end gap-1.5">
-            <Button type="button" variant="ghost" className="h-9" onClick={() => setEdit(null)}>Cancel</Button>
-            <Button type="button" className="h-9 font-bold" disabled={busy || !(num(edit.f.size) > 1) || !edit.f.name.trim()} onClick={() => void save()}>
-              {edit.id ? 'Save pack' : 'Add pack'}
-            </Button>
-          </div>
-        </div>
+        <PackFields f={edit.f} set={set} unit={unit} unitPrice={unitPrice} err={err} busy={busy} saveLabel={edit.id ? 'Save pack' : 'Add pack'}
+          onCancel={() => setEdit(null)} onSave={() => void save()} />
       ) : (
         <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 self-start px-3" onClick={() => { setErr(''); setEdit({ id: 0, f: blank }) }}>
           <Plus size={15} /> Add a pack
