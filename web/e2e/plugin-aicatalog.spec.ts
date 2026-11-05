@@ -242,7 +242,7 @@ test.describe('jobs that come with other plugins', () => {
     await page.getByRole('button', { name: 'Suggest combos' }).click()
     await paste(page, { combos: [{ name: `Baby ${stamp}`, product_ids: [a, b], reason: 'Bought together', price: 99 }, { name: `Second ${stamp}`, product_ids: [b, a], reason: 'Also together' }] })
     await expect(page.getByText('Bought together')).toBeVisible()
-    await page.getByRole('button', { name: 'Use', exact: true }).click()
+    await page.getByRole('button', { name: 'Use', exact: true }).first().click()
     const form = page.getByRole('dialog')
     await expect(form.locator('input').first()).toHaveValue(`Baby ${stamp}`)
     await expect(form.getByText(`Wipes ${stamp}`)).toBeVisible()

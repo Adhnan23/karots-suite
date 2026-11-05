@@ -16,7 +16,7 @@ import { PastePanel } from './PastePanel'
 import { jobControls } from './jobControls'
 import { useAsk } from './useAsk'
 
-const CARD = 'flex flex-col gap-3 rounded-[var(--radius)] border border-border bg-card p-4'
+const CARD = 'relative flex min-w-0 flex-col gap-3 overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4'
 
 
 /** The Jobs tab: the list, or one job. */
@@ -221,10 +221,10 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
             {g.rows.map(({ row, key }) => {
               const r = merged(row, key)
               return (
-                <label key={key} className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-2 text-[13.5px]">
-                  <input type="checkbox" aria-label={`${r.label}: ${r.new}`} disabled={!!r.needs} checked={ticks.has(key) && !r.needs} onChange={() => toggle(key)} className="mt-0.5 size-[18px]" />
+                <div key={key} className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-2 text-[13.5px]">
+                  <input type="checkbox" id={`job-row-${key}`} aria-label={`${r.label}: ${r.new}`} disabled={!!r.needs} checked={ticks.has(key) && !r.needs} onChange={() => toggle(key)} className="mt-0.5 size-[18px]" />
                   <span className="min-w-0">
-                    <b>{r.label}</b>{r.isNew && <span className="ml-1.5 rounded-md bg-brand-soft px-1.5 py-0.5 text-[11.5px] font-bold">new</span>}
+                    <label htmlFor={`job-row-${key}`} className="cursor-pointer font-bold">{r.label}</label>{r.isNew && <span className="ml-1.5 rounded-md bg-brand-soft px-1.5 py-0.5 text-[11.5px] font-bold">new</span>}
                     {r.old && <span className="block break-words whitespace-pre-line text-faint line-through">{r.old}</span>}
                     {r.new && <span className="block break-words whitespace-pre-line">{r.new}</span>}
                     {row.needs && !row.choices && (
@@ -249,7 +249,7 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
                     )}
                     {r.reason && <small className="block text-muted-foreground">{r.reason}</small>}
                   </span>
-                </label>
+                </div>
               )
             })}
           </li>
