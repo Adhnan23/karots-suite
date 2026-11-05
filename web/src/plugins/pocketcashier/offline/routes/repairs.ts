@@ -2,20 +2,19 @@ import { dec, num } from '@/lib/money'
 import type { Bill, Job, Status } from '@/plugins/repairs/types'
 import type { Action } from '../../store/outbox'
 import type { CallInput } from '../../sync'
-import { RouteError, type OfflineRoute, type RouteCtx } from '../fetch'
+import { RouteError, tempNumber, type OfflineRoute, type RouteCtx } from '../fetch'
 
 type Part = { config: unknown; suggest: unknown; labour: number; jobs: Job[]; bills: Record<string, Bill> }
 type JobIn = Partial<Job> & { customerId?: number }
 
 const partOf = (c: RouteCtx) => c.parts.repairs as Part | undefined
 const JOBS = '/x/repairs/jobs'
-const asId = (ref: string) => `temp:${ref}` as unknown as number
 const OPEN: Status[] = ['received', 'in_progress', 'ready']
 
 function newJob(c: RouteCtx, ref: string, b: JobIn): Job {
   const cust = c.copy?.customers.find((x) => x.id === b.customerId)
   return {
-    id: asId(ref), ticketNo: `New-${ref.slice(0, 4)}`, ticketCode: '', customerName: cust?.name ?? '', customerPhone: cust?.phone ?? '', repairType: b.repairType ?? '', deviceModel: b.deviceModel ?? '',
+    id: tempNumber(ref), ticketNo: `New-${ref.slice(0, 4)}`, ticketCode: '', customerName: cust?.name ?? '', customerPhone: cust?.phone ?? '', repairType: b.repairType ?? '', deviceModel: b.deviceModel ?? '',
     status: 'received', due: '', dueUrgent: false, createdAt: new Date().toISOString(), collectedAt: '', customerId: b.customerId ?? null, repairedBy: b.repairedBy ?? '', fault: b.fault ?? '', notes: b.notes ?? '',
     promisedDate: b.promisedDate ?? '', urgent: b.urgent ?? false, warrantyDays: 0, warrantyUntil: '', inWarranty: false, saleId: null, saleReceipt: '', reworkOf: null, readyAt: '', cancelledAt: '',
     parts: [], charges: [], estimate: '0.00', deposits: [], depositTotal: '0.00', legacyHeld: '0.00', outstanding: cust?.balance ?? '0.00', repairerPaid: '0.00', payouts: [], warrantyMode: 'days',
@@ -39,8 +38,7 @@ function applyCall(c: RouteCtx, j: Job, sub: string, call: CallInput, seq: numbe
   const gone = /^\/(parts|charges)\/(-?\d+)$/.exec(sub)
   if (gone && call.method === 'DELETE') return gone[1] === 'parts' ? { ...j, parts: j.parts.filter((p) => String(p.id) !== gone[2]) } : { ...j, charges: j.charges.filter((x) => String(x.id) !== gone[2]) }
   if (sub === '/deposits') {
-    const ref = String(b.paymentId).replace(/^temp:/, '')
-    const paid = out.find((a) => a.ref === ref)?.body as CallInput | undefined
+    const paid = out.find((a) => tempNumber(a.ref) === Number(b.paymentId))?.body as CallInput | undefined
     const amount = dec(num((paid?.body as { amount?: string } | undefined)?.amount))
     return { ...j, deposits: [...j.deposits, { paymentId: b.paymentId as unknown as number, amount, receiptNo: '', at: '' }], depositTotal: dec(num(j.depositTotal) + num(amount)) }
   }

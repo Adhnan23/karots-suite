@@ -267,3 +267,93 @@ func TestCallShowsItsLabelInReview(t *testing.T) {
 		t.Fatalf("%d %+v", rec.Code, got)
 	}
 }
+
+// Plugin screens only load a record whose id is a positive number, so what's made
+// offline gets a very large one, which the PC swaps for the real id.
+func TestCallTempNumberResolved(t *testing.T) {
+	f := newCallFix(t)
+	const temp = int64(9000000000012345)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`), Label: "New patient", TempID: temp})
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: fmt.Sprintf("/api/v1/till/t-pay/%d", temp),
+		Body: json.RawMessage(fmt.Sprintf(`{"patientId":%d,"ids":[%d],"barcode":"%d","small":12}`, temp, temp, temp))})
+	r := f.send(parent, child)
+	if r[1].Status != "applied" {
+		t.Fatalf("child: %+v", r[1])
+	}
+	if got := f.seen[1]["patientId"]; got != float64(1001) {
+		t.Fatalf("body: %v", got)
+	}
+	if got := f.seen[1]["ids"].([]any)[0]; got != float64(1001) {
+		t.Fatalf("list: %v", got)
+	}
+	if got := f.seen[1]["barcode"]; got != fmt.Sprint(temp) {
+		t.Fatalf("a text that looks like one must stay as it is: %v", got)
+	}
+	if got := f.seen[1]["path"]; got != "/api/v1/till/t-pay/1001" {
+		t.Fatalf("path: %v", got)
+	}
+}
+
+func TestCallTempNumberNothingMadeLeftAlone(t *testing.T) {
+	f := newCallFix(t)
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"qty":9000000000099999}`)}))
+	if r[0].Status != "applied" || f.seen[0]["qty"] != float64(9000000000099999) {
+		t.Fatalf("%+v %v", r[0], f.seen)
+	}
+}
+
+func TestCallTempNumberParentFailed(t *testing.T) {
+	f := newCallFix(t)
+	const temp = int64(9000000000054321)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), Label: "New patient Sunil", TempID: temp})
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(fmt.Sprintf(`{"patientId":%d}`, temp))})
+	r := f.send(parent, child)
+	if r[1].Status != "failed" || !strings.Contains(r[1].Note, "New patient Sunil") || len(f.seen) != 0 {
+		t.Fatalf("%+v, seen %v", r[1], f.seen)
+	}
+}
+
+// One thing made offline can make two: a new patient is also a new customer.
+func TestCallTempField(t *testing.T) {
+	f := newCallFix(t)
+	f.en.e.POST("/api/v1/till/t-both", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": 501, "customerId": 777})
+	}, middleware.JWTAuth(testSecret))
+	const temp, cust = int64(9000000000022222), int64(9000000000022223)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-both", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(cust): "customerId"}})
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(fmt.Sprintf(`{"patientId":%d,"customerId":%d}`, temp, cust))})
+	r := f.send(parent, child)
+	if r[1].Status != "applied" || f.seen[0]["patientId"] != float64(501) || f.seen[0]["customerId"] != float64(777) {
+		t.Fatalf("%+v, saw %v", r[1], f.seen)
+	}
+}
+
+func TestSaleOnACustomerMadeOffline(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	var cust int64
+	if err := f.en.db.Get(&cust, `INSERT INTO customers (name, credit_limit) VALUES ($1, 0) RETURNING id`, "T off "+f.refStamp); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.en.db.Exec(`UPDATE sales SET customer_id = NULL WHERE customer_id = $1`, cust); f.en.db.Exec(`DELETE FROM customers WHERE id = $1`, cust) }) //nolint:errcheck
+	f.en.e.POST("/api/v1/till/t-cust", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{"id": 502, "customerId": cust})
+	}, middleware.JWTAuth(testSecret))
+	const temp, tempCust = int64(9000000000033333), int64(9000000000033334)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cust", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(tempCust): "customerId"}})
+	sale := f.saleAct("s", ago(time.Second), "1", "120")
+	var b map[string]any
+	if err := json.Unmarshal(sale.Body, &b); err != nil {
+		t.Fatal(err)
+	}
+	b["customerId"] = tempCust
+	sale.Body, _ = json.Marshal(b)
+	r := f.send(parent, sale)
+	if r[1].Status != "applied" {
+		t.Fatalf("%+v", r[1])
+	}
+	var got int64
+	if err := f.en.db.Get(&got, `SELECT customer_id FROM sales WHERE id = $1`, r[1].SaleID); err != nil || got != cust {
+		t.Fatalf("customer %d, %v", got, err)
+	}
+}

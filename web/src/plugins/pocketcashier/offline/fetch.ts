@@ -1,8 +1,16 @@
+import { onlineManager } from '@tanstack/react-query'
 import { loadWho } from '../session'
 import { loadCopy, loadParts } from '../store/copy'
 import { pending, type Action } from '../store/outbox'
 import { sendNow, state, type CallInput } from '../sync'
 import type { TillCopy } from '@/api/types.gen'
+
+/** What something made offline is called until the PC gives it a real id: a number,
+ * because plugin screens only load a record with a positive one, and far above any
+ * real row. The same ref always gives the same number. */
+export function tempNumber(ref: string): number {
+  return 9e15 + parseInt(ref.replace(/[^0-9a-f]/gi, '').slice(0, 10) || '0', 16) % 7e12
+}
 
 const API = '/api/v1'
 const OWN = `${API}/x/pocketcashier` // the phone's own calls always go to the PC
@@ -81,7 +89,7 @@ async function answerLocally(hit: NonNullable<ReturnType<typeof find>>, method: 
     return new Response(JSON.stringify({ error: { code: 'VALIDATION', message: e.message } }), { status: 422, headers: { 'Content-Type': 'application/json' } })
   }
   if (hit.route.queue) {
-    const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, ...hit.route.call?.(ctx) }
+    const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, tempId: tempNumber(ctx.ref), ...hit.route.call?.(ctx) }
     // Not awaited: with the PC off the send can take as long as the network gives up.
     void sendNow({ ref: ctx.ref, kind: 'call', userId: ctx.userId, body: call }).catch(() => {})
   }
@@ -93,6 +101,9 @@ async function answerLocally(hit: NonNullable<ReturnType<typeof find>>, method: 
  * uninstall.
  * ponytail: wrapping fetch keeps core and the plugins untouched; a seam in api() if another caller needs it. */
 export function installOfflineFetch(): () => void {
+  // Queries pause with no network by default, and in a cut the router is off too.
+  onlineManager.setEventListener(() => undefined)
+  onlineManager.setOnline(true)
   const real = window.fetch
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(input instanceof Request ? input.url : String(input), window.location.href)

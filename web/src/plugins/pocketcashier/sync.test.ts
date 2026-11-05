@@ -5,7 +5,7 @@ import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
 import { loadWho, saveWho } from './session'
 import { getSale, clearRecent, recentCursor } from './store/recent'
-import { flush, refresh, refreshParts, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
+import { checkPC, flush, refresh, refreshParts, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
 
 type Call = { url: string; init?: RequestInit }
 let recentPages: Record<string, unknown>[] = []
@@ -186,6 +186,28 @@ describe('the last 30 days', () => {
   })
 })
 
+describe('noticing the PC has gone', () => {
+  it('a look that gets no answer stops the phone saying Live', async () => {
+    await refresh()
+    expect(state().live).toBe(true)
+    online = false
+    await checkPC()
+    expect(state().live).toBe(false)
+    online = true
+    await checkPC()
+    expect(state().live).toBe(true)
+  })
+
+  it('a PC that has lost power never answers: the look gives up', async () => {
+    await refresh()
+    vi.stubGlobal('fetch', vi.fn((_u: string, init?: RequestInit) => new Promise((_r, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('timed out', 'TimeoutError')))
+    })))
+    await checkPC(20)
+    expect(state().live).toBe(false)
+  })
+})
+
 describe('who the phone holds', () => {
   it('a send says when this person signed in', async () => {
     saveWho({ id: 7, name: 'Nimal', role: 'cashier' })
@@ -214,6 +236,15 @@ describe('what plugins read offline', () => {
     await refreshParts()
     expect((calls[1].init?.headers as Record<string, string>)['If-None-Match']).toBe('"abc"')
     expect(await loadParts()).toEqual({ t: { n: 1 } })
+  })
+})
+
+describe('what plugins read offline, before the phone is approved', () => {
+  it('says the refresh failed, so it is tried again soon, not in a minute', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    expect(await refreshParts()).toBe(false)
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 304 })))
+    expect(await refreshParts()).toBe(true)
   })
 })
 

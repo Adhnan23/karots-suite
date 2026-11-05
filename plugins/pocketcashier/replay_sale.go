@@ -166,7 +166,7 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 
 func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag string) ActionResult {
 	var b SaleBody
-	raw, err := h.resolveBody(ctx, a.Body) // a plugin's line may refer to something made on the phone
+	raw, err := h.resolveBodyFor(ctx, p, a.Body) // a plugin's line may refer to something made on the phone
 	if err != nil {
 		return failed(err)
 	}

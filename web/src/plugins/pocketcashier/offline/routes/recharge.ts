@@ -1,6 +1,6 @@
 import { dec, num } from '@/lib/money'
 import type { Action } from '../../store/outbox'
-import type { OfflineRoute, RouteCtx } from '../fetch'
+import { tempNumber, type OfflineRoute, type RouteCtx } from '../fetch'
 
 type Float = { id: number; balance: string }
 type Part = { floats: Float[] }
@@ -41,7 +41,7 @@ export const rechargeRoutes: OfflineRoute[] = [
     label: (c) => `New package: ${(c.body as PackageIn).name}`,
     answer: (c) => {
       const b = c.body as PackageIn
-      return { package: { id: `temp:${c.ref}`, carrierId: b.carrierId, name: b.name, price: b.price, floatCost: '0', isActive: true, sort: 0, addedBy: '' }, created: true }
+      return { package: { id: tempNumber(c.ref), carrierId: b.carrierId, name: b.name, price: b.price, floatCost: '0', isActive: true, sort: 0, addedBy: '' }, created: true }
     } },
   { method: 'POST', path: '/x/recharge/counts/drawer', queue: true,
     label: () => 'Float counts at closing',

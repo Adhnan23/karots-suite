@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { TillCopy } from '@/api/types.gen'
 import type { Action } from '../../store/outbox'
 import type { RouteCtx } from '../fetch'
+import { tempNumber } from '../fetch'
 import { coreRoutes } from './core'
 
 const copy = { symbol: 'Rs.', askToPrint: true, defaultSaleType: 'retail', tenderMethods: [], priceOptions: { 4: [{ batchId: 1 }] }, denominations: [{ value: '100', isNote: true }],
@@ -39,6 +40,6 @@ describe('the till, answered from the copy', () => {
     const c = ctx({ params: { id: '1' }, body: { amount: '300', method: 'cash' } })
     expect(r.queue).toBe(true)
     expect(r.call!(c)).toEqual({ cashIn: '300', saw: { customerId: 1, balance: '900.00' } })
-    expect(r.answer(c)).toMatchObject({ paymentId: 'temp:r1' })
+    expect(r.answer(c)).toMatchObject({ paymentId: tempNumber('r1') })
   })
 })

@@ -32,6 +32,9 @@ type CallBody struct {
 	CashIn  string   `json:"cashIn"` // the same for cash the cashier took
 	Label   string   `json:"label"`  // what this was, in a person's words, for notes
 	Saw     *CallSaw `json:"saw"`    // what the phone showed, to flag when the PC knew better
+	TempID  int64    `json:"tempId"` // the number the phone calls what this makes, until the PC gives the real one
+	// TempFields: other numbers the phone gave what this makes, each read from that field of the reply.
+	TempFields map[string]string `json:"tempFields"`
 }
 
 // CallSaw is the balance the phone showed when the cashier acted.
@@ -70,6 +73,10 @@ func callAllowed(method, path string) bool {
 var (
 	tempInBody = regexp.MustCompile(`"temp:([A-Za-z0-9-]+)"`)
 	tempInPath = regexp.MustCompile(`temp:([A-Za-z0-9-]+)`)
+	// Plugin screens only load a record whose id is a positive number, so what's made
+	// offline is called by a number no real row reaches (phones pick them, 9e15 up).
+	tempNumInBody = regexp.MustCompile(`([:\[,]\s*)(9\d{15})\b`)
+	tempNumInPath = regexp.MustCompile(`/(9\d{15})(/|$)`)
 )
 
 // resolveTemp swaps every temporary reference for its real id. An error names
@@ -115,6 +122,25 @@ func (h handlers) tempID(ctx context.Context, ref string) (int64, error) {
 	return 0, fmt.Errorf("depends on %s, which didn't go through", name)
 }
 
+// tempField finds a number that named a second thing a call made. ok is false if
+// no call on this phone gave out that number.
+func (h handlers) tempField(ctx context.Context, p *Phone, num string) (int64, bool, error) {
+	var row struct {
+		ID    *string `db:"id"`
+		Label string  `db:"label"`
+	}
+	err := h.p.core.DB.GetContext(ctx, &row, `SELECT result_reply->>(body->'tempFields'->>$2) AS id, COALESCE(body->>'label', '') AS label
+		FROM pocket_actions WHERE phone_id = $1 AND jsonb_exists(body->'tempFields', $2) LIMIT 1`, p.ID, num)
+	if err != nil {
+		return 0, false, nil
+	}
+	if row.ID == nil {
+		return 0, true, fmt.Errorf("depends on %s, which didn't go through", row.Label)
+	}
+	id, err := strconv.ParseInt(*row.ID, 10, 64)
+	return id, true, err
+}
+
 // resolveBody swaps temporary references in a JSON body.
 func (h handlers) resolveBody(ctx context.Context, body []byte) ([]byte, error) {
 	if !bytes.Contains(body, []byte("temp:")) {
@@ -122,6 +148,49 @@ func (h handlers) resolveBody(ctx context.Context, body []byte) ([]byte, error) 
 	}
 	s, err := h.resolveTemp(ctx, tempInBody, string(body), func(id int64) string { return strconv.FormatInt(id, 10) })
 	return []byte(s), err
+}
+
+// resolveBodyFor swaps both kinds of temporary reference in a body.
+func (h handlers) resolveBodyFor(ctx context.Context, p *Phone, body []byte) ([]byte, error) {
+	out, err := h.resolveBody(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	s, err := h.resolveNumbers(ctx, p, tempNumInBody, string(out))
+	return []byte(s), err
+}
+
+// resolveNumbers swaps each number this phone gave something it made. A number
+// nothing was given is just a number, and stays.
+func (h handlers) resolveNumbers(ctx context.Context, p *Phone, re *regexp.Regexp, s string) (string, error) {
+	var firstErr error
+	out := re.ReplaceAllStringFunc(s, func(m string) string {
+		g := re.FindStringSubmatch(m)
+		num := g[1]
+		if re == tempNumInBody {
+			num = g[2]
+		}
+		var ref string
+		err := h.p.core.DB.GetContext(ctx, &ref, `SELECT ref FROM pocket_actions WHERE phone_id = $1 AND body->>'tempId' = $2 LIMIT 1`, p.ID, num)
+		var id int64
+		switch {
+		case err == nil:
+			id, err = h.tempID(ctx, ref)
+		default:
+			var ok bool
+			if id, ok, err = h.tempField(ctx, p, num); !ok {
+				return m // not one of ours
+			}
+		}
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			return m
+		}
+		return strings.Replace(m, num, strconv.FormatInt(id, 10), 1)
+	})
+	return out, firstErr
 }
 
 func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult {
@@ -136,7 +205,10 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 	if err != nil {
 		return h.refused(ctx, a, b, err.Error())
 	}
-	body, err := h.resolveBody(ctx, b.Body)
+	if path, err = h.resolveNumbers(ctx, p, tempNumInPath, path); err != nil {
+		return h.refused(ctx, a, b, err.Error())
+	}
+	body, err := h.resolveBodyFor(ctx, p, b.Body)
 	if err != nil {
 		return h.refused(ctx, a, b, err.Error())
 	}
@@ -146,6 +218,9 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 		return h.refused(ctx, a, b, replyMessage(code, reply))
 	}
 	r := ActionResult{Status: "applied", ResultID: replyID(reply), Note: stale, Flagged: stale != ""}
+	if len(b.TempFields) > 0 {
+		r.Reply = reply
+	}
 	// ponytail: a replayed call counts on the day it arrives, marked late; give routes an "at" if owners need it dated back.
 	if time.Since(a.At) > lateAfter {
 		r.Note = strings.TrimSpace("Happened on the phone at " + a.At.Local().Format("15:04 on 2 Jan") + "; counted when it arrived. " + r.Note)

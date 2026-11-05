@@ -43,6 +43,7 @@ type ActionResult struct {
 	HeldID    int64  `json:"heldId,omitempty"`
 	ResultID  int64  `json:"resultId,omitempty"` // what a call made
 	Flagged   bool   `json:"-"`                  // applied, but someone should look
+	Reply     []byte `json:"-"`                  // kept when later actions read more than one id from it
 	Note      string `json:"note,omitempty"`
 }
 
@@ -175,9 +176,9 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) Act
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
-	_, _ = h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12) ON CONFLICT (ref) DO NOTHING`,
-		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note)
+	_, _ = h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13) ON CONFLICT (ref) DO NOTHING`,
+		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note, replyJSON(r.Reply))
 	return r
 }
 
@@ -190,6 +191,13 @@ func failed(err error) ActionResult {
 }
 
 // signedIn: the person on the phone now holds it as their one device.
+func replyJSON(b []byte) any {
+	if json.Valid(b) && len(b) > 0 {
+		return string(b)
+	}
+	return nil
+}
+
 // signedIn keeps the phone holding the person it shows, unless they have since
 // signed in somewhere else: whichever sign-in came last holds them. A send never
 // takes a cashier back from the PC they moved to.

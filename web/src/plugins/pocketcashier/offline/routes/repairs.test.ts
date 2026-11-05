@@ -3,6 +3,7 @@ import type { TillCopy } from '@/api/types.gen'
 import type { Job } from '@/plugins/repairs/types'
 import type { Action } from '../../store/outbox'
 import { RouteError, type RouteCtx } from '../fetch'
+import { tempNumber } from '../fetch'
 import { repairsRoutes } from './repairs'
 
 const job = { id: 3, ticketNo: 'R-0003', ticketCode: 'RPR000003', customerName: 'Sunil', customerPhone: '0771', repairType: 'Screen', deviceModel: 'Nokia', status: 'received', due: '', dueUrgent: false, createdAt: '', collectedAt: '', customerId: 1, repairedBy: '', fault: '', notes: '', promisedDate: '', urgent: false, warrantyDays: 0, warrantyUntil: '', inWarranty: false, saleId: null, saleReceipt: '', reworkOf: null, readyAt: '', cancelledAt: '', parts: [], charges: [{ id: 1, label: 'Labour', amount: '500.00' }], estimate: '500.00', deposits: [], depositTotal: '0.00', legacyHeld: '0.00', outstanding: '0.00', repairerPaid: '0.00', payouts: [], warrantyMode: 'days' } as unknown as Job
@@ -31,8 +32,8 @@ describe('Repairs with the PC down', () => {
     expect(r.queue).toBe(true)
     const body = { customerId: 1, repairType: 'Battery', deviceModel: 'Samsung', fault: 'Dead', notes: '', repairedBy: '', promisedDate: '', urgent: false }
     const made = r.answer(ctx({ body })) as Job
-    expect(made).toMatchObject({ id: 'temp:r1abcd', ticketNo: 'New-r1ab', customerName: 'Sunil', status: 'received', deviceModel: 'Samsung', parts: [] })
-    expect(read('temp:j1', [call('j1', 'POST', '/jobs', body)])).toMatchObject({ deviceModel: 'Samsung' })
+    expect(made).toMatchObject({ id: tempNumber('r1abcd'), ticketNo: 'New-r1ab', customerName: 'Sunil', status: 'received', deviceModel: 'Samsung', parts: [] })
+    expect(read(String(tempNumber('j1')), [call('j1', 'POST', '/jobs', body)])).toMatchObject({ deviceModel: 'Samsung' })
     const list = route('GET', '/x/repairs/jobs').answer(ctx({ out: [call('j1', 'POST', '/jobs', body)], query: new URLSearchParams('show=open') })) as Job[]
     expect(list.map((j) => j.deviceModel)).toEqual(['Samsung', 'Nokia'])
   })
@@ -52,7 +53,7 @@ describe('Repairs with the PC down', () => {
   })
   it('a deposit waiting on the phone shows, with its amount', () => {
     const pay: Action = { ref: 'p1', kind: 'call', userId: 7, at: '', body: { method: 'POST', path: '/api/v1/till/customers/1/payment', label: '', body: { amount: '200' } } }
-    const j = read('3', [pay, call('l', 'POST', '/jobs/3/deposits', { paymentId: 'temp:p1' })])
+    const j = read('3', [pay, call('l', 'POST', '/jobs/3/deposits', { paymentId: tempNumber('p1') })])
     expect(j.depositTotal).toBe('200.00')
     expect(j.deposits[0]).toMatchObject({ amount: '200.00' })
   })

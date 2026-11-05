@@ -14,7 +14,9 @@ export type SyncState = { live: boolean; copyAt: string | null; waiting: number;
 export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; resultId?: number; receiptNo?: string; heldId?: number; note?: string }
 
 const REFRESH_EVERY = 60_000
-const LIVE_FOR = 15_000
+const LIVE_FOR = 25_000
+const LOOK_EVERY = 10_000 // also how soon a phone just approved gets what plugins read
+const LOOK_FOR = 5_000
 const BATCH = 50
 
 let lastOk = 0
@@ -53,14 +55,28 @@ export async function refresh() {
 }
 
 /** What the plugins' screens read offline. A failure keeps the last good parts. */
-export async function refreshParts(): Promise<void> {
+export async function refreshParts(): Promise<boolean> {
   try {
     const have = await partsTag()
     const res = await phoneFetch('/parts', { headers: have ? { 'If-None-Match': have } : {} })
-    if (!res.ok || res.status === 304) return
+    if (res.status === 304) return true
+    if (!res.ok) return false
     await saveParts((await res.json()) as Record<string, unknown>, res.headers.get('ETag') ?? '')
+    return true
   } catch {
-    // the PC went away: try again on the next tick
+    return false // the PC went away: try again on the next tick
+  }
+}
+
+/** A quick look: a PC that loses power closes nothing, so an open feed can't tell. */
+export async function checkPC(lookFor = LOOK_FOR): Promise<void> {
+  try {
+    const res = await phoneFetch('/ping', { signal: AbortSignal.timeout(lookFor) })
+    if (!res.ok) throw new Error(`ping: ${res.status}`)
+    ok()
+    set({ lastError: undefined })
+  } catch (e) {
+    down(e)
   }
 }
 
@@ -131,8 +147,7 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
     void refreshRecent()
     // Parts are slower to build than the copy, and rarely change: once a minute will do.
     if (Date.now() - partsAt > REFRESH_EVERY) {
-      partsAt = Date.now()
-      void refreshParts()
+      void refreshParts().then((got) => { if (got) partsAt = Date.now() })
     }
   }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
@@ -159,11 +174,17 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   }
   void openFeed()
   const every = setInterval(tick, REFRESH_EVERY)
+  // Back after a cut: bring everything up to date at once, not at the next minute.
+  const look = setInterval(() => {
+    const was = s.live
+    void checkPC().then(() => { if (s.live && (!was || !partsAt)) tick() })
+  }, LOOK_EVERY)
   // A quick look while something waits, so a sale goes the moment the PC is back.
   const retry = setInterval(() => { if (s.waiting > 0) void flush(signedIn) }, 5_000)
   return () => {
     stopped = true
     clearInterval(every)
+    clearInterval(look)
     clearInterval(retry)
     es?.close()
     notify = () => {}
@@ -198,7 +219,7 @@ export async function movedTo(userId: number): Promise<string> {
 /** Something done through a real route: at once when the PC answers, else when
  * it's back. cashOut / cashIn is cash that moves whatever the PC says; saw is the
  * balance the phone showed, flagged if the PC knew better. */
-export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; cashIn?: string; label: string; saw?: { customerId: number; balance: string } }
+export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; cashIn?: string; label: string; saw?: { customerId: number; balance: string }; tempId?: number; tempFields?: Record<string, string> }
 
 export function sendCall(userId: number, call: CallInput, signedIn?: () => number | null): Promise<ActionResult | null> {
   return sendNow({ kind: 'call', userId, body: call }, signedIn)

@@ -2,7 +2,7 @@ import type { DrawerState, ProductPage, TillConfig, TillCustomer } from '@/api/t
 import { search } from '../../catalog'
 import { drawerOpen, expectedCash } from '../../drawer'
 import { withOverlay } from '../../overlay'
-import type { OfflineRoute, RouteCtx } from '../fetch'
+import { tempNumber, type OfflineRoute, type RouteCtx } from '../fetch'
 
 const shown = (c: RouteCtx) => (c.copy ? withOverlay(c.copy, c.out) : null)
 
@@ -53,5 +53,5 @@ export const coreRoutes: OfflineRoute[] = [
       const had = c.copy?.customers.find((x) => String(x.id) === c.params.id)?.balance
       return { cashIn: b.method === 'cash' ? b.amount : undefined, saw: had === undefined ? undefined : { customerId: Number(c.params.id), balance: shown(c)?.customers.find((x) => String(x.id) === c.params.id)?.balance ?? had } }
     },
-    answer: (c) => ({ paymentId: `temp:${c.ref}`, receiptNo: '', balanceAfter: '' }) },
+    answer: (c) => ({ paymentId: tempNumber(c.ref), receiptNo: '', balanceAfter: '' }) },
 ]

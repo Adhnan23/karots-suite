@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Action } from '../../store/outbox'
 import type { RouteCtx } from '../fetch'
+import { tempNumber } from '../fetch'
 import { rechargeRoutes } from './recharge'
 
 const part = { carriers: [], floats: [{ id: 3, label: 'Dialog', balance: '1000.00' }, { id: 4, label: 'Mobitel', balance: '50.00' }], packages: [], banks: [], billTypes: [], bills: [], products: { billpay: 1, deposit: 2, cashout: 3 } }
@@ -33,9 +34,9 @@ describe('Reload & Bills with the PC down', () => {
   })
   it('a quick package queues, with a temporary id for the cart line', () => {
     const r = route('POST', '/x/recharge/packages/quick')
-    const a = r.answer(ctx({ body: { carrierId: 1, name: '1GB', price: '199', commission: '10' } })) as { package: { id: string; name: string; price: string }; created: boolean }
+    const a = r.answer(ctx({ body: { carrierId: 1, name: '1GB', price: '199', commission: '10' } })) as { package: { id: number; name: string; price: string }; created: boolean }
     expect(r.queue).toBe(true)
-    expect(a).toMatchObject({ package: { id: 'temp:r1', name: '1GB', price: '199' }, created: true })
+    expect(a).toMatchObject({ package: { id: tempNumber('r1'), name: '1GB', price: '199' }, created: true })
     expect(r.label!(ctx({ body: { name: '1GB' } }))).toContain('1GB')
   })
   it('drawer counts queue, and answer with what\'s expected', () => {

@@ -1,8 +1,9 @@
 import 'fake-indexeddb/auto'
+import { onlineManager } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveWho } from '../session'
 import { ack, pending } from '../store/outbox'
-import { addRoutes, clearRoutesForTest, installOfflineFetch, RouteError } from './fetch'
+import { addRoutes, clearRoutesForTest, installOfflineFetch, RouteError, tempNumber } from './fetch'
 
 const real = vi.fn()
 let liveNow = false
@@ -59,7 +60,7 @@ describe('plugin calls with the PC down', () => {
     await vi.waitFor(async () => expect(await pending()).toHaveLength(1))
     const [a] = await pending()
     expect(made.id).toBe(`temp:${a.ref}`)
-    expect(a).toMatchObject({ kind: 'call', userId: 7, body: { method: 'POST', path: '/api/v1/x/t/things', body: { name: 'A' }, label: 'New thing' } })
+    expect(a).toMatchObject({ kind: 'call', userId: 7, body: { method: 'POST', path: '/api/v1/x/t/things', body: { name: 'A' }, label: 'New thing', tempId: tempNumber(a.ref) } })
   })
 
   it('an unknown route still fails as the network does', async () => {
@@ -80,9 +81,29 @@ describe('plugin calls with the PC down', () => {
     expect(await r.json()).toMatchObject({ error: { message: 'add a part first' } })
   })
 
+  it('screens keep asking with no network: the answers are on the phone', () => {
+    onlineManager.setOnline(false)
+    uninstall()
+    uninstall = installOfflineFetch()
+    expect(onlineManager.isOnline()).toBe(true)
+    window.dispatchEvent(new Event('offline'))
+    expect(onlineManager.isOnline()).toBe(true)
+  })
+
   it('uninstall puts fetch back', () => {
     uninstall()
     expect(window.fetch).toBe(real)
     uninstall = () => {}
+  })
+})
+
+describe('temporary numbers', () => {
+  it('are positive, safe, far above any real row, and the same for the same ref', () => {
+    const n = tempNumber('3f2a9c10-aaaa-4bbb-8ccc-1234567890ab')
+    expect(n).toBeGreaterThanOrEqual(9e15)
+    expect(Number.isSafeInteger(n)).toBe(true)
+    expect(String(n)).toMatch(/^9\d{15}$/)
+    expect(tempNumber('3f2a9c10-aaaa-4bbb-8ccc-1234567890ab')).toBe(n)
+    expect(tempNumber('ffffffff-ffff-4fff-8fff-ffffffffffff')).toBeLessThanOrEqual(Number.MAX_SAFE_INTEGER)
   })
 })
