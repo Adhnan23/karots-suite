@@ -355,6 +355,11 @@ func attrApply(setKey string) func(context.Context, *Plugin, *sqlx.Tx, JobRow) (
 		}
 		old := cur[r.ProductID][r.Key]
 		if old != r.Old {
+			// Another row just brought it to what this one wants (a controlled drug is
+			// prescription-only): done, nothing to save or undo.
+			if strings.EqualFold(old, r.New) && old != "" {
+				return nil, nil
+			}
 			return nil, errStale
 		}
 		if err := set.Set(ctx, r.ProductID, r.Key, r.New); err != nil {

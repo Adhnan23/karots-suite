@@ -102,7 +102,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
       const rows = pv.rows.map((r, i) => merged(r, rowKey(r, i)))
       const r = await jobApply(job.key, applyBody({ ...pv, rows }, new Set([...ticks].filter((k) => rows.some((x, i) => rowKey(x, i) === k && !x.needs)))))
       toast.success(r.summary)
-      setSkips(r.skipped)
+      setSkips(r.skipped.map((s) => ({ ...s, label: `${pv.names[s.productId] ?? `#${s.productId}`}, ${s.label}` })))
       setRedo(undefined)
       await qc.invalidateQueries({ queryKey: ['x', 'aicatalog'] }) // the last apply, and what's still unanswered
       await qc.invalidateQueries({ queryKey: ['admin'] })

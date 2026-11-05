@@ -366,3 +366,37 @@ func TestNoAnswerListFollowsRedo(t *testing.T) {
 		t.Fatalf("answered since: %v", got)
 	}
 }
+
+// Ticking both for a controlled drug: controlled brings Rx-only with it, so the Rx row
+// finds the value already as it wants. That's done, not "changed since".
+func TestBothMarksTicked(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_marks_both")
+	controlledSet(t, p, f)
+	ctx := context.Background()
+	a := prod(t, p.store.db, "Tramadol", c)
+	rows, err := marksParse(ctx, p, Batch{Products: []JobProduct{{ID: a}}}, fmt.Sprintf(`{"items":[{"id":%d,"rx_only":true,"controlled":true,"reason":"x"}]}`, a))
+	if err != nil || len(rows) != 2 {
+		t.Fatalf("%+v %v", rows, err)
+	}
+	res, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: rows, Asked: []int64{a}, Suggested: []int64{a}}, 0)
+	if err != nil || res.Applied != 2 || len(res.Skipped) != 0 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if _, err := p.store.Revert(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if f.vals[a]["controlled"] != "" || f.vals[a]["rx_only"] != "" {
+		t.Fatalf("undo: %+v", f.vals[a])
+	}
+}
+
+// Someone really did change it, to something else: that's still reported.
+func TestMarkChangedByHandStillReported(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_marks_hand")
+	a := prod(t, p.store.db, "A", c)
+	f.vals[a] = map[string]string{"rx_only": "yes"}
+	res, err := p.applyJob(context.Background(), p.job("marks"), JobApply{Asked: []int64{a}, Rows: []JobRow{{ProductID: a, Kind: "attr", Key: "rx_only", Label: "Rx", Old: "", New: "no"}}}, 0)
+	if err != nil || res.Applied != 0 || len(res.Skipped) != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+}
