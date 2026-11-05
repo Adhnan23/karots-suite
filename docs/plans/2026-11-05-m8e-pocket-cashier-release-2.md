@@ -151,16 +151,16 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 
 **Interfaces:** Consumes `findSales`, `getSale`, `saleWithOverlay`, `sendCall`.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `finds a sale from the copy offline`; `an older sale asks the PC when online`; `offline, says it's too old and to come back when the PC is on`.
   - `a waiting return lowers returnable quantity`.
   - `service lines aren't returnable`, matching `IsService`.
   - Go `TestSecondReturnRefused`: the same line replayed from two phones → first `applied`; second `failed` with `CashOut` taken from the till; `returned_qty` not above quantity; the batch counts it under What came in.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Refund amount from `refund.ts` in `features/counter/returns` (reuse it). Call `POST /api/v1/counter/sales/:id/return`, with `CashOut` the cash refund, `deferDrawerKick: true`. Temporary references let an offline sale be returned offline; the sale from the outbox shows in the finder through the overlay.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens** as Task 4.
-- [ ] **Step 6: Commit.** `feat(pocketcashier): returns on the phone, online and off`
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** Refund amount from `refund.ts` in `features/counter/returns` (reuse it). Call `POST /api/v1/counter/sales/:id/return`, with `CashOut` the cash refund, `deferDrawerKick: true`. Temporary references let an offline sale be returned offline; the sale from the outbox shows in the finder through the overlay.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens** as Task 4.
+- [x] **Step 6: Commit.** `feat(pocketcashier): returns on the phone, online and off`
 
 ### Task 6: Receipts
 

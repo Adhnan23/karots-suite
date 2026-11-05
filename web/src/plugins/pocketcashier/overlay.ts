@@ -1,4 +1,5 @@
-import type { TillCopy } from '@/api/types.gen'
+import type { SaleView, TillCopy } from '@/api/types.gen'
+import { refundOf } from '@/features/counter/returns/refund'
 import { dec, num } from '@/lib/money'
 import type { Action } from './store/outbox'
 import type { CallInput } from './sync'
@@ -19,4 +20,23 @@ export function withOverlay(copy: TillCopy, out: Action[]): TillCopy {
   }
   if (!moved.size) return copy
   return { ...copy, customers: copy.customers.map((c) => (moved.has(c.id) ? { ...c, balance: dec(num(c.balance) + moved.get(c.id)!) } : c)) }
+}
+
+/** A sale with this phone's waiting returns taken off, valued as the server will. */
+export function saleWithOverlay(sale: SaleView, out: Action[]): SaleView {
+  const waiting = callsIn(out).filter((c) => c.path.endsWith(`/till/sales/${sale.id}/return`))
+  if (!waiting.length) return sale
+  let lines = sale.lines
+  let owed = num(sale.owedOnSale)
+  for (const c of waiting) {
+    const back = (c.body as { lines?: { saleItemId: number; quantity: string }[] }).lines ?? []
+    lines = lines.map((l) => {
+      const b = back.find((x) => x.saleItemId === l.id)
+      if (!b) return l
+      const value = refundOf(l, num(b.quantity))
+      owed = Math.max(0, owed - value)
+      return { ...l, returnedQty: String(num(l.returnedQty) + num(b.quantity)), refundLeft: dec(num(l.refundLeft) - value) }
+    })
+  }
+  return { ...sale, lines, owedOnSale: dec(owed) }
 }
