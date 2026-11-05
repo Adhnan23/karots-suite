@@ -61,7 +61,7 @@ An unknown scan asks "a product you already have?" first on purchase screens and
 
 **Working here:**
 - **Tests:** `make test` runs one package at a time. Nothing reaches a real printer now (`testing.Testing()`, `KAROTS_NO_SPOOL` for Playwright's server). Playwright resets `suite_db`; never run it with `go test` on `suite_db`, or two builds at once (they share the plugin lists). `appearance-receipts.spec` resets the receipt style when it ends. Full Playwright 2026-11-04: 235 passed, 33 skipped, none failed; `make test` passed. Only the test for a scan before Enter and notes changed after.
-- **Power cuts happen here.** After one, check before anything else: `git fsck`, `make check-core` (a cut during a build leaves the plugin lists on: `make core-only`, then `git checkout -- internal/spa/dist/.gitkeep`). One cut emptied the newest commit's objects: back up `.git`, remove the empty files, point `main` at the last good commit, recommit. Backup from that repair: `../karots-suite-git-backup-20261104-1611` (delete when happy).
+- **Power cuts happen here.** After one, check before anything else: `git fsck`, `make check-core` (a cut during a build leaves the plugin lists on: `make core-only`, then `git checkout -- internal/spa/dist/.gitkeep`). One cut emptied the newest commit's objects: back up `.git`, remove the empty files, point `main` at the last good commit, recommit.
 - **The user tests with real sales and scans of real paper** (phone scans land in `/mnt/nvme_512GB/Downloads/`, screenshots in `~/Pictures/Screenshots/`). Don't print on the real printer yourself until a picture looks right.
 - A Windows or cashier install takes the shop's whole `dist/<key>/` folder.
 
