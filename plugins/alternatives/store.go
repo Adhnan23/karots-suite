@@ -158,7 +158,7 @@ func (s *Store) CreateGroup(ctx context.Context, name string) (int64, error) {
 	var id int64
 	err = s.db.GetContext(ctx, &id, `
 		WITH g AS (INSERT INTO alt_groups (name, sort_order) VALUES ($1, 0) RETURNING id),
-		     t AS (INSERT INTO alt_tiers (group_id, name) SELECT id, '' FROM g)
+		     t AS (INSERT INTO alt_tiers (group_id, name, level_auto) SELECT id, '', true FROM g)
 		SELECT id FROM g`, name)
 	return id, err
 }

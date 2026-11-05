@@ -147,7 +147,10 @@ func (p *Plugin) undoJobOp(ctx context.Context, tx *sqlx.Tx, raw map[string]any)
 		return nil // the plugin isn't in this build any more
 	}
 	if err := j.Undo(ctx, p, tx, op); err != nil && !errors.Is(err, errStale) {
-		return err
+		// Something already gone can't be put back; it must not jam every later undo.
+		if e, ok := apperr.As(err); !ok || e.Status != http.StatusNotFound {
+			return err
+		}
 	}
 	_, err = tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE (job = $1 OR job LIKE $1 || ':%') AND product_id = ANY($2)`, op.Job, pq.Array([]int64{op.ProductID}))
 	return err

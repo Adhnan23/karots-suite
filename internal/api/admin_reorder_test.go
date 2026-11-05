@@ -97,7 +97,7 @@ func TestAdminReorderAnnotated(t *testing.T) {
 		return out
 	}
 	l := decode[ReorderList](t, te.do(http.MethodGet, fmt.Sprintf("/api/v1/admin/reorder?supplier=%d", sup.ID), nil, ck))
-	if !l.Annotated || l.Total != 2 || l.Hidden != 0 || !slices.Contains(ids(l), f.lotID) {
+	if !l.Annotated || l.Total != 3 || l.Hidden != 0 || !slices.Contains(ids(l), f.lotID) || !slices.Contains(ids(l), f.plainID) || slices.Contains(ids(l), f.expiringID) {
 		t.Fatalf("annotated list: %+v", l)
 	}
 	for _, r := range l.Items {

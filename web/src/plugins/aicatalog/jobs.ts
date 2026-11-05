@@ -3,7 +3,7 @@ import type { AskReply } from './types'
 
 const base = '/x/aicatalog/jobs'
 
-export type JobInfo = { key: string; label: string; desc: string; warning: string; oneByOne: boolean; options?: unknown }
+export type JobInfo = { key: string; label: string; desc: string; warning: string; oneByOne: boolean; options?: unknown; noAnswer?: string[] }
 export type JobRow = {
   productId: number; kind: string; key: string; label: string; old: string; new: string; reason: string
   isNew: boolean; change: boolean; ticked: boolean; needs?: string; choices?: { value: string; label: string }[]; extra?: Record<string, string>

@@ -20,8 +20,8 @@ const marksWarning = "No suggestion does not mean cleared. The chatbot can miss 
 
 func marksJob() Job {
 	return Job{Key: "marks", Label: "Prescription and controlled marks",
-		Desc:      "Suggests which medicines need a prescription or go on the controlled register. Pick the medicines' category, and have the pharmacist check every one.",
-		Warning:   marksWarning,
+		Desc:    "Suggests which medicines need a prescription or go on the controlled register. Pick the medicines' category, and have the pharmacist check every one.",
+		Warning: marksWarning, ListNoAnswer: true,
 		Available: func(p *Plugin) bool { return p.attrSet("pharmacy") != nil },
 		Prompt: func(_ context.Context, _ *Plugin, b Batch) (string, string, error) {
 			var u strings.Builder
@@ -63,7 +63,7 @@ func marksParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRow
 		for _, m := range []struct {
 			key, label string
 			v          *bool
-		}{{"rx_only", "Needs a prescription", it.RxOnly}, {"controlled", "Controlled drug", it.Controlled}} {
+		}{{"controlled", "Controlled drug", it.Controlled}, {"rx_only", "Needs a prescription", it.RxOnly}} { // controlled first: while it's on, Rx-only can't clear
 			if m.v == nil { // not sure = no answer, which stays on the pharmacist's list
 				continue
 			}
@@ -256,6 +256,9 @@ func doseApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]UndoOp,
 	}
 	more, err := attrApply("pharmacy")(ctx, p, tx, r)
 	if err != nil {
+		if len(ops) > 0 {
+			_ = set.RemoveKnown(ctx, "dose", r.New) // nothing uses it now
+		}
 		return nil, err
 	}
 	return append(ops, more...), nil

@@ -21,7 +21,7 @@ import {
   setGroupActive, setTierActive, updateTier,
 } from './api'
 import { OrderSplit } from './OrderSplit'
-import { hasTiers } from './labels'
+import { staysAuto, hasTiers } from './labels'
 import type { Group, Tier } from './types'
 
 const SMALL = cn(INPUT, 'h-9 text-[14px]')
@@ -46,7 +46,7 @@ function TierHead({ t, tiered, first, last, canDelete }: { t: Tier; tiered: bool
   const [name, setName] = useState(t.name)
   const [level, setLevel] = useState(String(t.reorderLevel))
   const dirty = name.trim() !== t.name || num(level) !== t.reorderLevel
-  const save = () => void act(updateTier(t.id, name.trim(), num(level)), 'Saved')
+  const save = () => void act(updateTier(t.id, name.trim(), num(level), staysAuto(t, num(level))), 'Saved')
   const toAuto = () => void act(updateTier(t.id, name.trim(), t.reorderLevel, true), 'Back to Auto')
   const auto = t.levelAuto && !dirty
   const autoNote = auto
@@ -135,7 +135,7 @@ function AddTier({ g, onClose }: { g: Group; onClose: () => void }) {
   const [busy, setBusy] = useState(false)
   const submit = async () => {
     setBusy(true)
-    const ok = (!blank || await act(updateTier(blank.id, first.trim(), blank.reorderLevel))) && await act(createTier(g.id, name.trim(), num(level)), 'Tier added')
+    const ok = (!blank || await act(updateTier(blank.id, first.trim(), blank.reorderLevel, blank.levelAuto))) && await act(createTier(g.id, name.trim(), num(level)), 'Tier added')
     setBusy(false)
     if (ok) onClose()
   }

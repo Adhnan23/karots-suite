@@ -2187,6 +2187,7 @@ export interface ReorderRow {
   note: string; // a plugin's note (e.g. an equivalent in stock)
   covered: boolean; // a plugin says an equivalent covers it
   block?: string; // rows with the same block show together
+  blockKey?: string; // tells two sets with one name apart
   blockLine?: string; // the block's heading line
   /**
    * Smart reorder levels: the mode, the learned numbers (nil = not run yet) and

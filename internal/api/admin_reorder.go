@@ -54,8 +54,8 @@ func (h *handlers) walkLow(ctx context.Context, q products.ListQuery) ([]product
 
 // reorderRows picks the page's rows. all = every match on one page. With a
 // plugin annotator (generic: e.g. an equivalent product still in stock) every
-// match is annotated, and hideCovered drops the covered ones and pulls in the
-// products the plugins name — BEFORE paging, so the pager counts what shows.
+// match is annotated, the products the plugins name are pulled in, and hideCovered
+// drops the covered ones — BEFORE paging, so the pager counts what shows.
 // notes is nil when no plugin annotates. Annotators are best-effort.
 func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, hideCovered bool) (rows []products.Product, total int, notes map[int64]plugin.ReorderNote, hidden int, err error) {
 	anns := plugin.ProductReorderAnnotators()
@@ -67,14 +67,14 @@ func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, h
 		rows, total, err = h.t.products.List(ctx, q)
 		return rows, total, nil, 0, err
 	}
-	if hideCovered {
-		for _, a := range anns {
-			if a.LowMembers == nil {
-				continue
-			}
-			if ids, err := a.LowMembers(ctx); err == nil {
-				q.AlsoIDs = append(q.AlsoIDs, ids...)
-			}
+	// Always: a row in a low set may carry only its share, so a missing member would
+	// be a short order.
+	for _, a := range anns {
+		if a.LowMembers == nil {
+			continue
+		}
+		if ids, err := a.LowMembers(ctx); err == nil {
+			q.AlsoIDs = append(q.AlsoIDs, ids...)
 		}
 	}
 	every, err := h.walkLow(ctx, q)
@@ -97,9 +97,9 @@ func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, h
 				n.Note = cur.Note + " · " + n.Note
 			}
 			merged := plugin.ReorderNote{Covered: cur.Covered || n.Covered, Note: n.Note, Suggest: decimal.Max(cur.Suggest, n.Suggest),
-				Exact: cur.Exact || n.Exact, Block: cur.Block, BlockLine: cur.BlockLine}
+				Exact: cur.Exact || n.Exact, Block: cur.Block, BlockKey: cur.BlockKey, BlockLine: cur.BlockLine}
 			if n.Block != "" {
-				merged.Block, merged.BlockLine = n.Block, n.BlockLine
+				merged.Block, merged.BlockKey, merged.BlockLine = n.Block, n.BlockKey, n.BlockLine
 			}
 			notes[id] = merged
 		}

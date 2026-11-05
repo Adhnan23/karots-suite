@@ -92,6 +92,7 @@ type Job struct {
 	Key, Label, Desc string
 	Warning          string
 	OneByOne         bool // no tick-all: each row is a decision of its own
+	ListNoAnswer     bool // what the chatbot wouldn't answer stays in view on the job's page
 	Available        func(*Plugin) bool
 	Options          func(ctx context.Context, p *Plugin) (any, error)
 	Select           func(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) // nil = selectProducts
@@ -115,6 +116,7 @@ type JobRequest struct {
 	byName      bool    // alphabetical, so similar names land in one batch
 	wide        bool    // whatever the job's record says
 	noCap       bool    // every match: the job narrows them itself
+	noHint      bool    // only products with no hint yet
 }
 
 // JobPreview is the rows to tick. Asked is the whole batch, so apply can record a
@@ -129,12 +131,13 @@ type JobPreview struct {
 
 // JobInfo is a job on the page's list.
 type JobInfo struct {
-	Key      string `json:"key"`
-	Label    string `json:"label"`
-	Desc     string `json:"desc"`
-	Warning  string `json:"warning"`
-	OneByOne bool   `json:"oneByOne"`
-	Options  any    `json:"options,omitempty"`
+	Key      string   `json:"key"`
+	Label    string   `json:"label"`
+	Desc     string   `json:"desc"`
+	Warning  string   `json:"warning"`
+	OneByOne bool     `json:"oneByOne"`
+	Options  any      `json:"options,omitempty"`
+	NoAnswer []string `json:"noAnswer,omitempty"`
 }
 
 func (p *Plugin) job(key string) *Job {
@@ -167,6 +170,12 @@ func (h handlers) jobList(c echo.Context) error {
 			}
 			info.Options = opts
 		}
+		if j.ListNoAnswer {
+			if err := h.p.store.db.SelectContext(ctx, &info.NoAnswer, `SELECT p.name FROM aicatalog_job_items j JOIN products p ON p.id = j.product_id
+				WHERE j.job = $1 AND j.state = 'no_answer' AND p.is_active ORDER BY p.name LIMIT 200`, j.Key); err != nil {
+				return apperr.Internal("read the job's list", err)
+			}
+		}
 		out = append(out, info)
 	}
 	return c.JSON(http.StatusOK, out)
@@ -190,6 +199,9 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	if len(in.exclude) > 0 && len(in.IDs) == 0 {
 		args = append(args, pq.Array(in.exclude))
 		where += ` AND NOT p.id = ANY($` + num(len(args)) + `)`
+	}
+	if in.noHint {
+		where += ` AND COALESCE(i.specs, '') = '' AND COALESCE(i.user_explanation, '') = ''`
 	}
 	if in.needDetails && len(in.IDs) == 0 {
 		where += ` AND (p.name ~ '[0-9]' OR COALESCE(i.specs, '') <> '' OR COALESCE(i.user_explanation, '') <> '')`

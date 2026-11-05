@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/fs"
+	"strconv"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/money"
@@ -108,7 +109,7 @@ func (p *Plugin) reorderNotes(ctx context.Context, ids []int64) (map[int64]plugi
 		}
 		n := plugin.ReorderNote{Covered: c.Covered, Note: note, Suggest: c.Need}
 		if c.Low {
-			n.Exact, n.Block = true, where
+			n.Exact, n.Block, n.BlockKey = true, where, "t"+strconv.FormatInt(c.TierID, 10)
 			n.BlockLine = "LOW: " + total + " left in the group · reorder at " + itoa(c.ReorderLevel)
 		}
 		out[id] = n

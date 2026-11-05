@@ -11,6 +11,7 @@ import (
 	coremigrations "karots-suite/migrations"
 	"karots-suite/plugins/alternatives/migrations"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
 	"github.com/shopspring/decimal"
 )
@@ -209,5 +210,67 @@ func TestManualSplitAndCheck(t *testing.T) {
 	noErr(t, err)
 	if !cov[a].Need.Equal(decimal.NewFromInt(22)) {
 		t.Fatalf("the one left takes it all: %s", cov[a].Need)
+	}
+}
+
+// A backup from before Auto levels restores without these columns: its typed level
+// must stay typed, so the column's default can't be Auto.
+func TestOldRowsStayTyped(t *testing.T) {
+	s, db, sfx := testStore(t)
+	ctx := context.Background()
+	a := product(t, db, "A"+sfx, "1", false, true)
+	setLevel(t, s, a, 3)
+	gid, err := s.CreateGroup(ctx, "Old "+sfx)
+	noErr(t, err)
+	var tier int64
+	noErr(t, db.Get(&tier, `INSERT INTO alt_tiers (group_id, name, reorder_level) VALUES ($1, 'Restored', 50) RETURNING id`, gid))
+	got, err := s.tier(ctx, tier)
+	noErr(t, err)
+	if got.LevelAuto || got.ReorderLevel != 50 {
+		t.Fatalf("%+v", got)
+	}
+	g, _ := s.Group(ctx, gid)
+	if !g.Tiers[0].LevelAuto {
+		t.Fatalf("a new group still starts on Auto: %+v", g.Tiers[0])
+	}
+}
+
+// A brand made from another (loose from a bag) never shows on Reorder: it takes no share.
+func TestDerivedMemberTakesNoShare(t *testing.T) {
+	s, db, sfx := testStore(t)
+	ctx := context.Background()
+	a, b := product(t, db, "A"+sfx, "0", false, true), product(t, db, "B"+sfx, "0", false, true)
+	src := product(t, db, "Bag"+sfx, "5", false, true)
+	setLevel(t, s, a, 10)
+	setLevel(t, s, b, 10)
+	groupTier(t, s, "Derived "+sfx, a, b)
+	noErrExec(t, db, `INSERT INTO product_conversions (from_product_id, to_product_id, ratio) VALUES ($1, $2, 25)`, src, b)
+	cov, err := s.CoverageFor(ctx, []int64{a, b})
+	noErr(t, err)
+	if !cov[a].Need.Equal(decimal.NewFromInt(40)) || !cov[b].Need.IsZero() {
+		t.Fatalf("%s %s", cov[a].Need, cov[b].Need)
+	}
+}
+
+func TestSameNamedGroupsAreSeparateBlocks(t *testing.T) {
+	s, db, sfx := testStore(t)
+	ctx := context.Background()
+	p := &Plugin{store: s}
+	a, b := product(t, db, "A"+sfx, "0", false, true), product(t, db, "B"+sfx, "0", false, true)
+	setLevel(t, s, a, 5)
+	setLevel(t, s, b, 5)
+	groupTier(t, s, "Twin name "+sfx, a)
+	groupTier(t, s, "Twin name "+sfx, b)
+	notes, err := p.reorderNotes(ctx, []int64{a, b})
+	noErr(t, err)
+	if notes[a].BlockKey == "" || notes[a].BlockKey == notes[b].BlockKey || notes[a].Block != notes[b].Block {
+		t.Fatalf("%+v %+v", notes[a], notes[b])
+	}
+}
+
+func noErrExec(t *testing.T, db *sqlx.DB, q string, args ...any) {
+	t.Helper()
+	if _, err := db.Exec(q, args...); err != nil {
+		t.Fatal(err)
 	}
 }

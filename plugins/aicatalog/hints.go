@@ -18,10 +18,11 @@ import (
 
 // A hint is what the chatbot said about a product: specs + explanation.
 const (
-	maxHint     = 2000
-	hintLineLen = 80
-	hintCaution = "AI suggestion, confirm before selling"
-	hintHay     = `(specs || ' ' || user_explanation || ' ' || old_names || ' ' || raw_query)`
+	maxHint        = 2000
+	hintLineLen    = 80
+	hintCaution    = "AI suggestion, confirm before selling"
+	hintLinePrefix = "AI hint: "
+	hintHay        = `(specs || ' ' || user_explanation || ' ' || old_names || ' ' || raw_query)`
 )
 
 func capHint(s string) string {
@@ -40,12 +41,14 @@ func (s *Store) MatchHints(ctx context.Context, q string) ([]int64, error) {
 	if len(words) == 0 {
 		return nil, nil
 	}
-	pats := make([]string, len(words))
+	// One ILIKE per word, not ILIKE ALL: only these can use the trigram index.
+	where, args := make([]string, len(words)), make([]any, len(words))
 	for i, w := range words {
-		pats[i] = "%" + likeEscaper.Replace(w) + "%"
+		where[i] = hintHay + ` ILIKE $` + strconv.Itoa(i+1)
+		args[i] = "%" + likeEscaper.Replace(w) + "%"
 	}
 	var ids []int64
-	err := s.db.SelectContext(ctx, &ids, `SELECT product_id FROM aicatalog_items WHERE `+hintHay+` ILIKE ALL($1) ORDER BY product_id LIMIT 500`, pq.Array(pats))
+	err := s.db.SelectContext(ctx, &ids, `SELECT product_id FROM aicatalog_items WHERE `+strings.Join(where, " AND ")+` ORDER BY product_id LIMIT 500`, args...)
 	return ids, err
 }
 
@@ -63,7 +66,7 @@ func (s *Store) HintLines(ctx context.Context, ids []int64) (map[int64]string, e
 	out := make(map[int64]string, len(rows))
 	for _, r := range rows {
 		line := []rune(r.Line)
-		out[r.ID] = string(line[:min(len(line), hintLineLen)])
+		out[r.ID] = hintLinePrefix + string(line[:min(len(line), hintLineLen)])
 	}
 	return out, nil
 }

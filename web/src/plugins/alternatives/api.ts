@@ -29,7 +29,7 @@ export const renameGroup = (id: number, name: string) => write(api<Group>(`${bas
 export const setGroupActive = (id: number, active: boolean) => write(api(`${base}/${id}/active`, { json: { active } }))
 export const deleteGroup = (id: number) => write(api(`${base}/${id}`, { method: 'DELETE' }))
 export const createTier = (gid: number, name: string, reorderLevel: number) => write(api<Group>(`${base}/${gid}/tiers`, { json: { name, reorderLevel } }))
-export const updateTier = (tid: number, name: string, reorderLevel: number, levelAuto = false) => write(api<Group>(`${base}/tiers/${tid}`, { method: 'PUT', json: { name, reorderLevel, levelAuto } }))
+export const updateTier = (tid: number, name: string, reorderLevel: number, levelAuto: boolean) => write(api<Group>(`${base}/tiers/${tid}`, { method: 'PUT', json: { name, reorderLevel, levelAuto } }))
 export const updateSplit = (tid: number, auto: boolean, shares: Record<string, number> = {}) => write(api<Group>(`${base}/tiers/${tid}/split`, { method: 'PUT', json: { auto, shares } }))
 export const setTierActive = (tid: number, active: boolean) => write(api<Group>(`${base}/tiers/${tid}/active`, { json: { active } }))
 export const moveTier = (tid: number, up: boolean) => write(api<Group>(`${base}/tiers/${tid}/move`, { json: { up } }))

@@ -191,3 +191,40 @@ func TestCleanupRenameKeepsOldName(t *testing.T) {
 		t.Fatal("a clean-up rename lost the old name")
 	}
 }
+
+func TestIdentifyCategoryStale(t *testing.T) {
+	db := freshDB(t, "aicatalog_identify_catstale")
+	p, _ := testAPI(t, db)
+	p.jobs = []Job{identifyJob()}
+	old, moved := cat(t, db, "Old", nil), cat(t, db, "Moved by hand", nil)
+	a := prod(t, db, "A", old)
+	mustExec(t, db, nil, `UPDATE products SET category_id = $2 WHERE id = $1`, a, moved)
+	res := applyIdentify(t, p, JobRow{ProductID: a, Kind: "category", Label: "Category", Old: "Old", New: "Elsewhere"})
+	if res.Applied != 0 || len(res.Skipped) != 1 {
+		t.Fatalf("%+v", res)
+	}
+	var now int64
+	if err := db.Get(&now, `SELECT category_id FROM products WHERE id = $1`, a); err != nil || now != moved {
+		t.Fatalf("overwrote the shop's change: %d %v", now, err)
+	}
+}
+
+func TestIdentifySkipsHintedUnlessRedo(t *testing.T) {
+	db := freshDB(t, "aicatalog_identify_hinted")
+	p, _ := testAPI(t, db)
+	p.jobs = []Job{identifyJob()}
+	ctx := context.Background()
+	c := cat(t, db, "Goods", nil)
+	a, b := prod(t, db, "Hinted", c), prod(t, db, "Bare", c)
+	if err := p.store.SaveHint(ctx, a, "words", ""); err != nil {
+		t.Fatal(err)
+	}
+	got, total, err := p.job("identify").Select(ctx, p, JobRequest{Size: 5})
+	if err != nil || total != 1 || got.Products[0].ID != b {
+		t.Fatalf("%+v %d %v", got.Products, total, err)
+	}
+	got, _, err = p.job("identify").Select(ctx, p, JobRequest{IDs: []int64{a}})
+	if err != nil || len(got.Products) != 1 || got.Products[0].ID != a {
+		t.Fatalf("redo: %+v %v", got.Products, err)
+	}
+}

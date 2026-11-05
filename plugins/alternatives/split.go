@@ -116,7 +116,9 @@ func (s *Store) splitNeeds(ctx context.Context, short map[int64]int) (map[int64]
 		Auto      bool  `db:"split_auto"`
 	}
 	if err := s.db.SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, COALESCE(m.split_share, 0) AS share, t.split_auto
-		FROM `+liveMembers+` WHERE m.tier_id = ANY($1) ORDER BY m.product_id`, pq.Array(tierIDs)); err != nil {
+		FROM `+liveMembers+` WHERE m.tier_id = ANY($1)
+		AND NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = m.product_id AND pc.is_active) -- never listed: the original is ordered
+		ORDER BY m.product_id`, pq.Array(tierIDs)); err != nil {
 		return nil, err
 	}
 	ids := make([]int64, 0, len(rows))

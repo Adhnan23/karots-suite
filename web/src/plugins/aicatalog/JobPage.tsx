@@ -108,6 +108,12 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
         <b className="font-display text-lg">{job.label}</b>
       </div>
       {job.warning && <p role="note" className="flex items-start gap-2 rounded-[var(--radius-sm)] border border-border bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] p-3 text-[14px] font-semibold"><AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" /> {job.warning}</p>}
+      {job.noAnswer && job.noAnswer.length > 0 && (
+        <section aria-label="No answer yet" className={cn(CARD, 'gap-1 text-[13.5px]')}>
+          <b>The chatbot wasn't sure about these. Check them by hand:</b>
+          <p className="break-words text-muted-foreground">{job.noAnswer.join(' · ')}</p>
+        </section>
+      )}
       <LastRun label="Undo it" onUndone={() => { void qc.invalidateQueries({ queryKey: ['x', 'aicatalog'] }); void qc.invalidateQueries({ queryKey: ['admin'] }) }} />
       {skips.length > 0 && (
         <ul className={cn(CARD, 'gap-1 text-[13.5px]')} aria-label="Not applied">

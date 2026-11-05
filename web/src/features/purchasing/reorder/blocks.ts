@@ -12,10 +12,11 @@ export function blocks(rows: ReorderRow[]): RowBlock[] {
       out.push({ key: `p${r.productId}`, name: '', line: '', rows: [r] })
       continue
     }
-    let b = at.get(r.block)
+    const id = r.blockKey || r.block
+    let b = at.get(id)
     if (!b) {
-      b = { key: `b${r.block}`, name: r.block, line: r.blockLine ?? '', rows: [] }
-      at.set(r.block, b)
+      b = { key: `b${id}`, name: r.block, line: r.blockLine ?? '', rows: [] }
+      at.set(id, b)
       out.push(b)
     }
     b.rows.push(r)

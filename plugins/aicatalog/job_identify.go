@@ -26,7 +26,12 @@ Reuse an existing category's path exactly when one fits; only propose a new one 
 
 func identifyJob() Job {
 	return Job{Key: "identify", Label: "Identify a whole list",
-		Desc:   "Names, categories and searchable hints for many products. Prices and stock never change.",
+		Desc: "Names, categories and searchable hints for many products. Prices and stock never change.",
+		Select: func(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) {
+			in.noHint = len(in.IDs) == 0 && in.Filter == "" // products without hints; a redo picks its own
+			prods, total, err := selectProducts(ctx, p, "identify", in)
+			return Batch{Products: prods}, total, err
+		},
 		Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
 }
 
@@ -146,12 +151,16 @@ func identifyApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]Und
 		}
 		return []UndoOp{{RowKind: "name", ProductID: r.ProductID, Applied: r.New, Previous: old}}, nil
 	case "category":
-		var cur struct {
-			ID   int64  `db:"category_id"`
-			Name string `db:"name"`
-		}
-		if err := tx.GetContext(ctx, &cur, `SELECT p.category_id, c.name FROM products p JOIN categories c ON c.id = p.category_id WHERE p.id = $1`, r.ProductID); err != nil {
+		var curID int64
+		if err := tx.GetContext(ctx, &curID, `SELECT category_id FROM products WHERE id = $1`, r.ProductID); err != nil {
 			return nil, err
+		}
+		cats, err := p.store.Categories(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !strings.EqualFold(pathsByID(cats)[curID], r.Old) {
+			return nil, errStale
 		}
 		var maxBefore int64
 		if err := tx.GetContext(ctx, &maxBefore, `SELECT COALESCE(max(id), 0) FROM categories`); err != nil {
@@ -174,7 +183,7 @@ func identifyApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]Und
 		for _, id := range created {
 			ops = append(ops, UndoOp{RowKind: "created_category", ProductID: r.ProductID, Applied: strconv.FormatInt(id, 10)})
 		}
-		return append(ops, UndoOp{RowKind: "category", ProductID: r.ProductID, Applied: strconv.FormatInt(cat, 10), Previous: strconv.FormatInt(cur.ID, 10)}), nil
+		return append(ops, UndoOp{RowKind: "category", ProductID: r.ProductID, Applied: strconv.FormatInt(cat, 10), Previous: strconv.FormatInt(curID, 10)}), nil
 	}
 	return nil, errStale
 }

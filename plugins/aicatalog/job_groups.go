@@ -3,12 +3,14 @@ package aicatalog
 import (
 	"context"
 	"errors"
+	"slices"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 const groupsPrompt = `Find products of a shop that can replace each other, so a customer can be offered one when the other is out.
@@ -150,10 +152,12 @@ func groupsParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRo
 		var ids []string
 		var labels []string
 		first := int64(0)
+		seen := map[int64]bool{}
 		for _, id := range g.ProductIDs {
-			if names[id] == "" || used[id] {
+			if names[id] == "" || used[id] || seen[id] {
 				continue
 			}
+			seen[id] = true
 			ids, labels = append(ids, strconv.FormatInt(id, 10)), append(labels, names[id])
 			if first == 0 && place[id] {
 				first = id
@@ -185,7 +189,7 @@ func groupsParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRo
 			continue
 		}
 		used[j.ProductID] = true
-		row := JobRow{ProductID: j.ProductID, Kind: "join", Key: "tier", Label: "Join group", New: g.Name, Reason: strings.TrimSpace(j.Reason), Extra: map[string]string{}}
+		row := JobRow{ProductID: j.ProductID, Kind: "join", Key: "tier", Label: "Join group", New: g.Name, Reason: strings.TrimSpace(j.Reason), Extra: map[string]string{"group": strconv.FormatInt(g.ID, 10)}}
 		if len(g.Tiers) == 1 {
 			row.Extra["tier"] = strconv.FormatInt(g.Tiers[0].ID, 10)
 		} else {
@@ -219,7 +223,22 @@ func groupsApply(ctx context.Context, p *Plugin, _ *sqlx.Tx, r JobRow) ([]UndoOp
 		if id == 0 {
 			return nil, errors.New("those products are in other groups now")
 		}
-		return []UndoOp{{RowKind: "group", ProductID: r.ProductID, Applied: strconv.FormatInt(id, 10), Extra: map[string]string{"members": r.Extra["members"]}}}, nil
+		// What it really holds: the store may have skipped one taken since the preview.
+		members := r.Extra["members"]
+		groups, err := g.Groups(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, x := range groups {
+			if x.ID == id {
+				got := make([]string, len(x.Members))
+				for i, m := range x.Members {
+					got[i] = strconv.FormatInt(m, 10)
+				}
+				members = strings.Join(got, ",")
+			}
+		}
+		return []UndoOp{{RowKind: "group", ProductID: r.ProductID, Applied: strconv.FormatInt(id, 10), Extra: map[string]string{"members": members}}}, nil
 	case "join":
 		tier, err := strconv.ParseInt(r.Extra["tier"], 10, 64)
 		if err != nil || tier == 0 {
@@ -228,12 +247,12 @@ func groupsApply(ctx context.Context, p *Plugin, _ *sqlx.Tx, r JobRow) ([]UndoOp
 		if err := g.AddTo(ctx, tier, r.ProductID); err != nil {
 			return nil, err
 		}
-		return []UndoOp{{RowKind: "join", ProductID: r.ProductID}}, nil
+		return []UndoOp{{RowKind: "join", ProductID: r.ProductID, Applied: r.Extra["group"]}}, nil
 	}
 	return nil, errStale
 }
 
-func groupsUndo(ctx context.Context, p *Plugin, _ *sqlx.Tx, op UndoOp) error {
+func groupsUndo(ctx context.Context, p *Plugin, tx *sqlx.Tx, op UndoOp) error {
 	g := p.grouper()
 	if g == nil {
 		return nil
@@ -251,15 +270,37 @@ func groupsUndo(ctx context.Context, p *Plugin, _ *sqlx.Tx, op UndoOp) error {
 		}
 		for _, x := range groups {
 			if x.ID == id {
-				if len(x.Tiers) != 1 || len(x.Members) != len(strings.Split(op.Extra["members"], ",")) {
+				members := strings.Split(op.Extra["members"], ",")
+				if len(x.Tiers) != 1 || len(x.Members) != len(members) {
 					return errStale
 				}
-				return g.Delete(ctx, id)
+				if err := g.Delete(ctx, id); err != nil {
+					return err
+				}
+				// All of them go back on the list, not only the row's own product.
+				ids := make([]int64, 0, len(members))
+				for _, m := range members {
+					if n, err := strconv.ParseInt(m, 10, 64); err == nil {
+						ids = append(ids, n)
+					}
+				}
+				_, err := tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE job = 'groups' AND product_id = ANY($1)`, pq.Array(ids))
+				return err
 			}
 		}
 		return errStale
 	case "join":
-		return g.Remove(ctx, op.ProductID)
+		// Only if it's still where the job put it: moved or removed by hand, it stays so.
+		groups, err := g.Groups(ctx)
+		if err != nil {
+			return err
+		}
+		for _, x := range groups {
+			if strconv.FormatInt(x.ID, 10) == op.Applied && slices.Contains(x.Members, op.ProductID) {
+				return g.Remove(ctx, op.ProductID)
+			}
+		}
+		return errStale
 	}
 	return nil
 }

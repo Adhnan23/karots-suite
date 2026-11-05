@@ -171,13 +171,15 @@ type ProductLabelFieldProvider struct {
 // Suggest (optional) is the least quantity to suggest ordering — the row shows the
 // larger of it and core's own figure, unless Exact says it replaces that figure (a
 // share of something bigger, which core's own figure would undo). Block (optional)
-// names a set of rows to show together, under BlockLine.
+// is the name of a set of rows to show together, under BlockLine; BlockKey tells two
+// sets with one name apart.
 type ReorderNote struct {
 	Covered   bool
 	Note      string
 	Suggest   decimal.Decimal
 	Exact     bool
 	Block     string
+	BlockKey  string
 	BlockLine string
 }
 
@@ -185,10 +187,10 @@ type ReorderNote struct {
 // the visible low-stock product ids, it returns per product whether an equivalent
 // covers it and a short note. Batched, best-effort (an error drops the annotations).
 //
-// LowMembers (optional) returns product ids that must be PULLED INTO the worklist
-// when the "filter by alternatives" toggle is on — e.g. every member of a tier that
-// is low as a whole, so the whole low group is orderable even when an individual
-// member isn't below its own reorder level. nil = contribute nothing extra.
+// LowMembers (optional) returns product ids that must be PULLED INTO the worklist —
+// e.g. every member of a tier that is low as a whole, so the whole low group is
+// orderable even when an individual member isn't below its own reorder level.
+// nil = contribute nothing extra.
 type ProductReorderAnnotator struct {
 	Batch      func(ctx context.Context, productIDs []int64) (map[int64]ReorderNote, error)
 	LowMembers func(ctx context.Context) ([]int64, error)

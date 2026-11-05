@@ -153,7 +153,7 @@ func TestHintLines(t *testing.T) {
 		t.Fatal(err)
 	}
 	m, err := s.HintLines(ctx, []int64{a, b, c})
-	if err != nil || utf8.RuneCountInString(m[a]) != 80 || m[b] != "only explained" {
+	if err != nil || utf8.RuneCountInString(m[a]) != 80+utf8.RuneCountInString(hintLinePrefix) || m[b] != hintLinePrefix+"only explained" {
 		t.Fatalf("%v %v", m, err)
 	}
 	if _, ok := m[c]; ok {

@@ -124,3 +124,40 @@ func TestDashboardCountsCoverage(t *testing.T) {
 		t.Fatalf("dashboard %d, list %d", d.Attention.LowStock, l.Total)
 	}
 }
+
+// A low group's other brands are always listed, covered hidden or not: each row's order
+// is only a share, so a missing brand would be a short order.
+func TestLowMembersAlwaysPulled(t *testing.T) {
+	useFakeCover()
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	te.db.Exec(`UPDATE products SET reorder_level=0 WHERE id=$1`, f.plainID) //nolint:errcheck
+	fakeCoverMu.Lock()
+	pullIDs = []int64{f.plainID}
+	fakeCoverMu.Unlock()
+	t.Cleanup(func() { fakeCoverMu.Lock(); pullIDs = nil; fakeCoverMu.Unlock() })
+	l := decode[ReorderList](t, te.do(http.MethodGet, "/api/v1/admin/reorder?all=1", nil, ck))
+	for _, r := range l.Items {
+		if r.ProductID == f.plainID {
+			return
+		}
+	}
+	t.Fatalf("not pulled in: %d rows", l.Total)
+}
+
+func TestBlockKeyReachesTheRow(t *testing.T) {
+	useFakeExact()
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	te.db.Exec(`UPDATE products SET reorder_level=50 WHERE id=$1`, f.scarceID) //nolint:errcheck
+	setExact(t, map[int64]plugin.ReorderNote{f.scarceID: {Block: "Twins", BlockKey: "t7"}})
+	l := decode[ReorderList](t, te.do(http.MethodGet, "/api/v1/admin/reorder?all=1", nil, ck))
+	for _, r := range l.Items {
+		if r.ProductID == f.scarceID && r.BlockKey == "t7" {
+			return
+		}
+	}
+	t.Fatal("no block key")
+}

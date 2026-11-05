@@ -50,7 +50,7 @@ func TestMarksRealReplyAndNull(t *testing.T) {
 			t.Errorf("every mark starts unticked, with its reason: %+v", r)
 		}
 	}
-	res, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: rows[1:], Asked: []int64{tram, unsure}, Suggested: []int64{tram}}, 0)
+	res, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: rows[:1], Asked: []int64{tram, unsure}, Suggested: []int64{tram}}, 0)
 	if err != nil || res.Applied != 1 || f.vals[tram]["controlled"] != "yes" {
 		t.Fatalf("%+v %v %+v", res, err, f.vals)
 	}
@@ -188,5 +188,103 @@ func TestDosePromptRules(t *testing.T) {
 	j := doseJob()
 	if !j.OneByOne || j.Warning == "" {
 		t.Fatalf("%+v", j.Key)
+	}
+}
+
+// As Pharmacy does it: controlled implies prescription-only, in what's stored.
+func controlledSet(t *testing.T, p *Plugin, f *fakeAttrs) {
+	t.Helper()
+	prev := p.attrSets
+	p.attrSets = func() []plugin.ProductAttributeSet {
+		s := prev()[0]
+		s.Set = func(_ context.Context, id int64, a, v string) error {
+			m := f.vals[id]
+			if m == nil {
+				m = map[string]string{}
+				f.vals[id] = m
+			}
+			if v == "no" {
+				v = ""
+			}
+			m[a] = v
+			if m["controlled"] == "yes" {
+				m["rx_only"] = "yes"
+			}
+			return nil
+		}
+		return []plugin.ProductAttributeSet{s}
+	}
+}
+
+func TestUndoControlledClearsRxItBrought(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_marks_undo")
+	controlledSet(t, p, f)
+	ctx := context.Background()
+	a := prod(t, p.store.db, "Diazepam", c)
+	res, err := p.applyJob(ctx, p.job("marks"), JobApply{Asked: []int64{a}, Suggested: []int64{a}, Rows: []JobRow{{ProductID: a, Kind: "attr", Key: "controlled", Label: "Controlled", New: "yes"}}}, 0)
+	if err != nil || res.Applied != 1 || f.vals[a]["rx_only"] != "yes" {
+		t.Fatalf("%+v %v %+v", res, err, f.vals)
+	}
+	if _, err := p.store.Revert(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if f.vals[a]["controlled"] != "" || f.vals[a]["rx_only"] != "" {
+		t.Fatalf("back to no marks: %+v", f.vals[a])
+	}
+}
+
+// Clearing both marks at once: the controlled row must go first, or Rx-only stays.
+func TestMarksClearControlledFirst(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_marks_order")
+	controlledSet(t, p, f)
+	ctx := context.Background()
+	a := prod(t, p.store.db, "Was controlled", c)
+	f.vals[a] = map[string]string{"controlled": "yes", "rx_only": "yes"}
+	rows, err := marksParse(ctx, p, Batch{Products: []JobProduct{{ID: a}}}, fmt.Sprintf(`{"items":[{"id":%d,"rx_only":false,"controlled":false}]}`, a))
+	if err != nil || len(rows) != 2 || rows[0].Key != "controlled" {
+		t.Fatalf("%+v %v", rows, err)
+	}
+	if _, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: rows, Asked: []int64{a}, Suggested: []int64{a}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if f.vals[a]["controlled"] != "" || f.vals[a]["rx_only"] != "" {
+		t.Fatalf("%+v", f.vals[a])
+	}
+}
+
+// What the chatbot wouldn't answer stays in front of the pharmacist.
+func TestMarksListNoAnswer(t *testing.T) {
+	db := freshDB(t, "aicatalog_marks_list")
+	p, do := testAPI(t, db)
+	f := &fakeAttrs{vals: map[int64]map[string]string{}}
+	p.attrSets = func() []plugin.ProductAttributeSet { return []plugin.ProductAttributeSet{f.hook("pharmacy")} }
+	p.jobs = []Job{marksJob()}
+	c := cat(t, db, "Medicine", nil)
+	a, b := prod(t, db, "Unsure one", c), prod(t, db, "Answered", c)
+	if _, err := p.applyJob(context.Background(), p.job("marks"), JobApply{Asked: []int64{a, b}, Suggested: []int64{b}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	list := decode[[]JobInfo](t, do("GET", "/jobs", ""))
+	if len(list) != 1 || len(list[0].NoAnswer) != 1 || list[0].NoAnswer[0] != "Unsure one" {
+		t.Fatalf("%+v", list)
+	}
+}
+
+func TestDoseFailedSetLeavesNoOrphan(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_dose_orphan")
+	a := prod(t, p.store.db, "A", c)
+	prev := p.attrSets
+	p.attrSets = func() []plugin.ProductAttributeSet {
+		s := prev()[0]
+		s.Set = func(context.Context, int64, string, string) error { return fmt.Errorf("refused") }
+		return []plugin.ProductAttributeSet{s}
+	}
+	row := JobRow{ProductID: a, Kind: "dose", Key: "dose", Label: "Usual dose", New: "9-9-9", IsNew: true, Extra: map[string]string{"perDay": "27"}}
+	res, err := p.applyJob(context.Background(), p.job("dose"), JobApply{Rows: []JobRow{row}, Asked: []int64{a}}, 0)
+	if err != nil || res.Applied != 0 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if strings.Contains(strings.Join(f.known["dose"], ","), "9-9-9") {
+		t.Fatalf("a dose nobody uses was left on the list: %v", f.known["dose"])
 	}
 }

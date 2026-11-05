@@ -2,9 +2,11 @@
 -- A group or tier learns its level from its members' levels, and a low one's order
 -- follows what sells, unless the shop sets either by hand. Typed levels stay typed;
 -- an unset 0 becomes Auto, as core's 00009 did for products. A typed 0 means don't track.
-ALTER TABLE alt_tiers ADD COLUMN level_auto BOOLEAN NOT NULL DEFAULT true;
+-- The default is false so a restored older backup's typed levels stay typed; new tiers
+-- say Auto themselves.
+ALTER TABLE alt_tiers ADD COLUMN level_auto BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE alt_tiers ADD COLUMN split_auto BOOLEAN NOT NULL DEFAULT true;
-UPDATE alt_tiers SET level_auto = false WHERE reorder_level > 0;
+UPDATE alt_tiers SET level_auto = true WHERE reorder_level = 0;
 ALTER TABLE alt_members ADD COLUMN split_share INT CHECK (split_share BETWEEN 0 AND 100);
 
 -- +goose Down

@@ -65,7 +65,7 @@ func fieldsJob() Job {
 			}
 			return out, nil
 		},
-		Select: fieldsSelect, Prompt: fieldsPromptFor, Parse: fieldsParse, Apply: attrApply("productplus"), Undo: attrUndo("productplus")}
+		Select: fieldsSelect, Prompt: fieldsPromptFor, Parse: fieldsParse, Apply: fieldsApply, Undo: attrUndo("productplus")}
 }
 
 // tickedAttrs is the fields chosen on the page that still exist.
@@ -317,6 +317,28 @@ func attrValueOf(a plugin.ProductAttribute, raw any) (string, bool) {
 	return v, true
 }
 
+// fieldsApply checks again that the field applies: the plugin's save doesn't, and the
+// product's category may have changed since the preview.
+func fieldsApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]UndoOp, error) {
+	set := p.attrSet("productplus")
+	if set == nil {
+		return nil, errStale
+	}
+	attrs, err := set.Attributes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var cat int64
+	if err := tx.GetContext(ctx, &cat, `SELECT category_id FROM products WHERE id = $1`, r.ProductID); err != nil {
+		return nil, err
+	}
+	i := slices.IndexFunc(attrs, func(a plugin.ProductAttribute) bool { return a.Key == r.Key })
+	if i < 0 || !appliesTo(attrs[i], cat) {
+		return nil, errStale
+	}
+	return attrApply("productplus")(ctx, p, tx, r)
+}
+
 // attrApply saves through the plugin, if the value hasn't changed since the preview.
 func attrApply(setKey string) func(context.Context, *Plugin, *sqlx.Tx, JobRow) ([]UndoOp, error) {
 	return func(ctx context.Context, p *Plugin, _ *sqlx.Tx, r JobRow) ([]UndoOp, error) {
@@ -339,7 +361,20 @@ func attrApply(setKey string) func(context.Context, *Plugin, *sqlx.Tx, JobRow) (
 		if err != nil {
 			return nil, err
 		}
-		return []UndoOp{{RowKind: "attr", ProductID: r.ProductID, Key: r.Key, Applied: after[r.ProductID][r.Key], Previous: old}}, nil
+		// A plugin's own rule may change another value too (a controlled drug is
+		// prescription-only). Those undo as well, after the row itself: replay runs backwards.
+		var ops []UndoOp
+		keys := make([]string, 0, len(after[r.ProductID]))
+		for k := range after[r.ProductID] {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			if k != r.Key && after[r.ProductID][k] != cur[r.ProductID][k] {
+				ops = append(ops, UndoOp{RowKind: "attr", ProductID: r.ProductID, Key: k, Applied: after[r.ProductID][k], Previous: cur[r.ProductID][k]})
+			}
+		}
+		return append(ops, UndoOp{RowKind: "attr", ProductID: r.ProductID, Key: r.Key, Applied: after[r.ProductID][r.Key], Previous: old}), nil
 	}
 }
 

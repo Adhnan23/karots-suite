@@ -296,6 +296,9 @@ test('a group learns its level; a typed number overrides it; a manual split must
   if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/till-block.png` })
   await page.goto(`/admin/x/alternatives/${g.id}`)
 
+  // On the default view too, every brand of a low group is listed: each row is only a share.
+  const shown = (await json<{ items: Row[] }>(page.request.get(`/api/v1/admin/reorder?all=1&q=LV%20${stamp}`))).items
+  expect(shown.map((r) => r.productId)).toEqual(expect.arrayContaining([a, b]))
   await page.getByLabel('Reorder level').fill('5')
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByText('Set by you.')).toBeVisible()

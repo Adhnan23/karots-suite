@@ -202,6 +202,7 @@ type ReorderRow struct {
 	Note         string `json:"note"`                // a plugin's note (e.g. an equivalent in stock)
 	Covered      bool   `json:"covered"`             // a plugin says an equivalent covers it
 	Block        string `json:"block,omitempty"`     // rows with the same block show together
+	BlockKey     string `json:"blockKey,omitempty"`  // tells two sets with one name apart
 	BlockLine    string `json:"blockLine,omitempty"` // the block's heading line
 	// Smart reorder levels: the mode, the learned numbers (nil = not run yet) and
 	// whether a Fixed level is far from what sales suggest.

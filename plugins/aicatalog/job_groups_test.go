@@ -209,3 +209,63 @@ func TestUnavailableWithoutGrouper(t *testing.T) {
 		t.Fatalf("%+v", list)
 	}
 }
+
+func TestGroupsDuplicateIDs(t *testing.T) {
+	p, _, _ := groupEnv(t, "aicatalog_groups_dups")
+	b := Batch{Products: []JobProduct{{ID: 5, Name: "A"}, {ID: 6, Name: "B"}}}
+	rows, err := groupsParse(context.Background(), p, b, `{"groups":[{"name":"one thing twice","product_ids":[5,5]}]}`)
+	if err != nil || len(rows) != 0 {
+		t.Fatalf("%+v %v", rows, err)
+	}
+}
+
+// A product moved by hand, or taken out, after a join: undo leaves it, and doesn't jam.
+func TestJoinUndoLeavesLaterEdits(t *testing.T) {
+	p, f, c := groupEnv(t, "aicatalog_groups_join_undo")
+	ctx := context.Background()
+	a, b := prod(t, p.store.db, "A 5", c), prod(t, p.store.db, "B 5", c)
+	f.groups = []plugin.ProductGroupInfo{
+		{ID: 5, Name: "One", Tiers: []plugin.ProductGroupTier{{ID: 50}}},
+		{ID: 6, Name: "Other", Tiers: []plugin.ProductGroupTier{{ID: 60}}},
+	}
+	row := func(id int64) JobRow {
+		return JobRow{ProductID: id, Kind: "join", Label: "Join", Extra: map[string]string{"tier": "50", "group": "5"}}
+	}
+	if res, err := p.applyJob(ctx, p.job("groups"), JobApply{Rows: []JobRow{row(a), row(b)}, Asked: []int64{a, b}}, 0); err != nil || res.Applied != 2 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	f.groups[0].Members = []int64{} // a moved to Other by hand, b taken out
+	f.groups[1].Members = []int64{a}
+	if _, err := p.store.Revert(ctx); err != nil {
+		t.Fatalf("undo jammed: %v", err)
+	}
+	if len(f.groups[1].Members) != 1 {
+		t.Fatalf("undo removed a from where someone moved it: %+v", f.groups)
+	}
+}
+
+// A create that skipped a member still undoes, and every member goes back on the list.
+func TestGroupUndoAfterPartialCreate(t *testing.T) {
+	p, f, c := groupEnv(t, "aicatalog_groups_partial")
+	ctx := context.Background()
+	a, b, x := prod(t, p.store.db, "A 5", c), prod(t, p.store.db, "B 5", c), prod(t, p.store.db, "X 5", c)
+	hook := f.hook()
+	base := hook.Create
+	hook.Create = func(ctx context.Context, name string, ids []int64) (int64, error) {
+		return base(ctx, name, []int64{a, b})
+	}
+	p.groupers = func() []plugin.ProductGrouper { return []plugin.ProductGrouper{hook} }
+	row := JobRow{ProductID: a, Kind: "group", Label: "New group", Extra: map[string]string{"name": "T", "members": fmt.Sprintf("%d,%d,%d", a, b, x)}}
+	if res, err := p.applyJob(ctx, p.job("groups"), JobApply{Rows: []JobRow{row}, Asked: []int64{a, b}, Suggested: []int64{a}}, 0); err != nil || res.Applied != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if _, err := p.store.Revert(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.groups) != 0 {
+		t.Fatalf("undo refused: %+v", f.groups)
+	}
+	if n := count(t, p.store.db, `SELECT count(*) FROM aicatalog_job_items WHERE job = 'groups'`); n != 0 {
+		t.Fatalf("members stay off the list: %d", n)
+	}
+}

@@ -235,3 +235,16 @@ func TestFieldsSelectBringsBackForAnotherField(t *testing.T) {
 		t.Fatalf("batch of one, two to go: %+v %d %v", got, total, err)
 	}
 }
+
+// The product moved to another category after the preview: the field no longer applies.
+func TestFieldsScopeRecheckedAtApply(t *testing.T) {
+	e := fieldEnv(t, "aicatalog_fields_scope")
+	mustExec(t, e.p.store.db, nil, `UPDATE products SET category_id = $2 WHERE id = $1`, e.panadol, e.part)
+	res, err := e.p.applyJob(context.Background(), e.p.job("fields"), JobApply{Asked: []int64{e.panadol}, Rows: []JobRow{{ProductID: e.panadol, Kind: "attr", Key: "generic_name", Label: "Generic name", New: "Paracetamol"}}}, 0)
+	if err != nil || res.Applied != 0 || len(res.Skipped) != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if e.f.vals[e.panadol]["generic_name"] != "" {
+		t.Fatal("saved onto a product it doesn't apply to")
+	}
+}

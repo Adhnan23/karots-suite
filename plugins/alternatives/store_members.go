@@ -154,6 +154,7 @@ const liveMembersAs2 = `alt_members m2
 // Coverage says whether a tier still covers a low product.
 type Coverage struct {
 	Group, Tier  string
+	TierID       int64
 	Total        decimal.Decimal
 	ReorderLevel int
 	Covered      bool // tracked and the tier's total is above its level
@@ -192,7 +193,7 @@ func (s *Store) CoverageFor(ctx context.Context, ids []int64) (map[int64]Coverag
 	out := make(map[int64]Coverage, len(rows))
 	for _, r := range rows {
 		t := low(r.Tier)
-		out[r.ProductID] = Coverage{Group: r.Group, Tier: t.Name, Total: t.Total, ReorderLevel: t.ReorderLevel,
+		out[r.ProductID] = Coverage{Group: r.Group, Tier: t.Name, TierID: t.ID, Total: t.Total, ReorderLevel: t.ReorderLevel,
 			Covered: t.ReorderLevel > 0 && !t.Low, Low: t.Low, Need: needs[r.ProductID]}
 	}
 	return out, nil
