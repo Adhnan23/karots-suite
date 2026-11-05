@@ -206,3 +206,52 @@ func TestReplaySalesPersonSaleFlaggedButDrawerRefused(t *testing.T) {
 		t.Fatalf("a sales person moved drawer money: %+v", r.Results[1])
 	}
 }
+
+// What the desktop till sends about a line must survive the phone's replay.
+func TestReplayKeepsWhatTheTillSends(t *testing.T) {
+	f := newRfix(t, "10")
+	f.openAt(ago(time.Minute))
+	var svc int64
+	t.Cleanup(func() {
+		for _, q := range []string{`DELETE FROM sale_items WHERE product_id = $1`, `DELETE FROM stock_movements WHERE product_id = $1`} {
+			f.en.db.Exec(q, svc) //nolint:errcheck
+		}
+	})
+	if err := f.en.db.Get(&svc, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, is_service, pass_through)
+		VALUES ($1, (SELECT id FROM categories LIMIT 1), (SELECT id FROM units LIMIT 1), 0, 0, true, true) RETURNING id`, "T svc "+f.refStamp); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.en.db.Exec(`DELETE FROM products WHERE id = $1`, svc) }) //nolint:errcheck
+	seller, _ := f.en.user("cashier")
+	t.Cleanup(func() { f.en.db.Exec(`UPDATE sales SET prepared_by = NULL WHERE prepared_by = $1`, seller) }) //nolint:errcheck
+	body := map[string]any{
+		"saleType": "retail", "preparedBy": seller,
+		"items": []map[string]any{
+			{"productId": f.product, "quantity": "1", "group": map[string]any{"no": 1, "label": "Deal", "sets": "1"}},
+			{"productId": svc, "quantity": "1", "priceOverride": "50", "components": []map[string]any{{"productId": f.product, "quantity": "2"}}},
+			{"productId": svc, "quantity": "1", "priceOverride": "30", "payout": true},
+		},
+		"payments": []map[string]any{{"method": "cash", "amount": "140"}},
+	}
+	raw, _ := json.Marshal(body)
+	r := f.send(nil, Action{Ref: f.ref("s"), Kind: "sale", UserID: f.cashier, At: ago(time.Minute), Body: raw}).Results[0]
+	if r.Status != "applied" {
+		t.Fatalf("%+v", r)
+	}
+	var who *int64
+	if err := f.en.db.Get(&who, `SELECT prepared_by FROM sales WHERE id = $1`, r.SaleID); err != nil || who == nil || *who != seller {
+		t.Fatalf("prepared by: %v %v", who, err)
+	}
+	var group int
+	if err := f.en.db.Get(&group, `SELECT count(*) FROM sale_items WHERE sale_id = $1 AND line_group = 1 AND line_group_label = 'Deal'`, r.SaleID); err != nil || group != 1 {
+		t.Fatalf("group lines: %d %v", group, err)
+	}
+	var payout string
+	if err := f.en.db.Get(&payout, `SELECT subtotal::text FROM sale_items WHERE sale_id = $1 AND subtotal < 0`, r.SaleID); err != nil {
+		t.Fatalf("no payout line: %v", err)
+	}
+	var stock float64
+	if err := f.en.db.Get(&stock, `SELECT quantity FROM stock WHERE product_id = $1`, f.product); err != nil || stock != 7 {
+		t.Fatalf("stock %v: 10 − 1 sold − 2 used by the service: %v", stock, err)
+	}
+}

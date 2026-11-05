@@ -10,6 +10,8 @@ import (
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/heldsales"
 	"karots-suite/internal/features/sales"
+
+	"github.com/shopspring/decimal"
 )
 
 // The phone's bodies, in the till's JSON shapes.
@@ -25,6 +27,18 @@ type SaleItem struct {
 	Description   string         `json:"description"`
 	ExpectPrice   string         `json:"expectPrice"` // the unit price the phone showed
 	Plugin        map[string]any `json:"plugin,omitempty"`
+	Components    []struct {
+		ProductID int64  `json:"productId"`
+		Quantity  string `json:"quantity"`
+	} `json:"components"`
+	NoRecipe bool `json:"noRecipe"`
+	Payout   bool `json:"payout"`
+	Group    *struct {
+		No       int    `json:"no"`
+		Label    string `json:"label"`
+		Sets     string `json:"sets"`
+		Itemised bool   `json:"itemised"`
+	} `json:"group"`
 }
 
 type SaleCheque struct {
@@ -50,6 +64,7 @@ type SaleBody struct {
 	DiscountType      string        `json:"discountType"`
 	ChangeGiven       string        `json:"changeGiven"`
 	OnAccountRounding bool          `json:"onAccountRounding"`
+	PreparedBy        *int64        `json:"preparedBy,omitempty"` // the sales person whose ticket this was
 	Items             []SaleItem    `json:"items"`
 	Payments          []SalePayment `json:"payments"`
 }
@@ -203,7 +218,7 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 
 func toCreate(b SaleBody) sales.CreateInput {
 	in := sales.CreateInput{CustomerID: b.CustomerID, SaleType: b.SaleType, Discount: b.Discount, DiscountType: b.DiscountType,
-		ChangeGiven: b.ChangeGiven, OnAccountRounding: b.OnAccountRounding}
+		ChangeGiven: b.ChangeGiven, OnAccountRounding: b.OnAccountRounding, PreparedBy: b.PreparedBy}
 	for _, it := range b.Items {
 		var plug map[string]json.RawMessage
 		for k, v := range it.Plugin {
@@ -213,8 +228,17 @@ func toCreate(b SaleBody) sales.CreateInput {
 			}
 			plug[k] = raw
 		}
-		in.Items = append(in.Items, sales.ItemInput{ProductID: it.ProductID, Quantity: it.Quantity, Discount: it.Discount, DiscountType: it.DiscountType,
-			PriceOverride: it.PriceOverride, BatchID: it.BatchID, Serials: it.Serials, Description: it.Description, ExpectPrice: it.ExpectPrice, Plugin: plug})
+		item := sales.ItemInput{ProductID: it.ProductID, Quantity: it.Quantity, Discount: it.Discount, DiscountType: it.DiscountType,
+			PriceOverride: it.PriceOverride, BatchID: it.BatchID, Serials: it.Serials, Description: it.Description, ExpectPrice: it.ExpectPrice, Plugin: plug}
+		item.NoRecipe, item.Payout = it.NoRecipe, it.Payout
+		for _, c := range it.Components {
+			item.Components = append(item.Components, sales.ServiceComponent{ProductID: c.ProductID, Quantity: c.Quantity})
+		}
+		if g := it.Group; g != nil {
+			sets, _ := decimal.NewFromString(g.Sets) // a bad value stays 0 and is refused as a validation error
+			item.Group = &sales.LineGroup{No: g.No, Label: g.Label, Sets: sets, Itemised: g.Itemised}
+		}
+		in.Items = append(in.Items, item)
 	}
 	for _, p := range b.Payments {
 		pi := sales.PaymentInput{Method: p.Method, Amount: p.Amount, AccountID: p.AccountID, Meta: p.Meta}
