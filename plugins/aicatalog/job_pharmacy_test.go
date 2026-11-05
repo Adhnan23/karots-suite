@@ -400,3 +400,13 @@ func TestMarkChangedByHandStillReported(t *testing.T) {
 		t.Fatalf("%+v %v", res, err)
 	}
 }
+
+func TestDoseRedoAloneInARedoKeepsItsRecord(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_dose_redo_state")
+	a := prod(t, p.store.db, "A", c)
+	f.vals[a] = map[string]string{"dose": "1-0-1"}
+	got, _, err := doseSelect(context.Background(), p, JobRequest{Force: true, IDs: []int64{a}})
+	if err != nil || got.State != "dose:redo" || len(got.Products) != 1 {
+		t.Fatalf("%+v %v", got, err)
+	}
+}

@@ -196,6 +196,18 @@ test.describe('jobs that come with other plugins', () => {
     await page.getByRole('button', { name: /^Apply 1/ }).click()
     await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
 
+    // Not sure about one mark: the pharmacist's choice ticks it, so it can't be lost.
+    const b = await add(page, `Unsure ${stamp}`, cat)
+    await page.goto('/admin/x/aicatalog/jobs/marks')
+    await page.getByRole('button', { name: 'Start' }).click()
+    await paste(page, { items: [{ id: b, rx_only: null, controlled: false, reason: 'Not verified' }] })
+    const unsure = page.getByRole('checkbox', { name: /^Needs a prescription \(the chatbot isn't sure\)/ })
+    await expect(unsure).toBeDisabled()
+    await page.getByLabel('Pharmacist: choose').selectOption('yes')
+    await expect(unsure).toBeChecked()
+    await page.getByRole('button', { name: /^Apply 1/ }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
+
     await page.goto('/admin/x/aicatalog/jobs/dose')
     await expect(page.getByLabel('How many at a time', { exact: true })).toHaveValue('1')
     await pickCategory(page, `Meds ${stamp}`)

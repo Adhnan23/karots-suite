@@ -212,3 +212,16 @@ func TestCleanupPromptOnBrands(t *testing.T) {
 		t.Fatal(cleanupSystemPrompt)
 	}
 }
+
+func TestNotDuplicateWordings(t *testing.T) {
+	for reason, want := range map[string]bool{
+		"not duplicates": true, "Not a duplicate": true, "tablet and syrup differ; not duplicates.": true,
+		"Not the same product": true, "They are not the same": true, "aren't duplicates": true, "they aren’t the same": true,
+		"not exactly the same": true, "isn't a duplicate": true, "different brands, not the same item": true,
+		"the same drink": false, "same item listed twice": false, "Coke 1L and Coca Cola 1 Ltr are one product": false,
+	} {
+		if got := notDuplicate.MatchString(reason); got != want {
+			t.Errorf("%q: got %v", reason, got)
+		}
+	}
+}

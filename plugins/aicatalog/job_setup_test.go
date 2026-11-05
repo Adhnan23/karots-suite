@@ -92,3 +92,16 @@ func TestSetupPackBlankPriceAndUndo(t *testing.T) {
 }
 
 func packIn(name, size string) products.PackInput { return products.PackInput{Name: name, Size: size} }
+
+// A redo promises the old stays unless the new is ticked, packs included.
+func TestSetupRedoLeavesPacksUnticked(t *testing.T) {
+	p, c := setupEnv(t, "aicatalog_setup_redo")
+	a := prod(t, p.store.db, "Has a card", c)
+	if _, err := p.core.Products.SavePack(context.Background(), a, packIn("Card", "12")); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := setupParse(context.Background(), p, Batch{Redo: true, Products: []JobProduct{{ID: a}}}, fmt.Sprintf(`{"items":[{"id":%d,"pack_name":"Strip","pack_size":10}]}`, a))
+	if err != nil || len(rows) != 1 || rows[0].Ticked {
+		t.Fatalf("%+v %v", rows, err)
+	}
+}

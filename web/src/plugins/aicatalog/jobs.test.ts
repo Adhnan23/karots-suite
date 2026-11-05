@@ -43,4 +43,7 @@ describe('job rows', () => {
     expect(cleanupPart(600, 612)).toBe('Part 5 of 5: products 601–612 of 612')
     expect(cleanupPart(0, 0)).toBe('')
   })
+  it('a clean-up left past the end reads as the first part', () => {
+    expect(cleanupPart(600, 200)).toBe('Part 1 of 2: products 1–150 of 200')
+  })
 })

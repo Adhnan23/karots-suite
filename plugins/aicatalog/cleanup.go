@@ -263,7 +263,7 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 	return CleanupPreview{Plan: out, Categories: paths, Products: names, Duplicates: dups}, nil
 }
 
-var notDuplicate = regexp.MustCompile(`(?i)\bnot\s+(a\s+|the\s+same\s+)?(duplicates?|same)\b`)
+var notDuplicate = regexp.MustCompile(`(?i)\b(not|aren['’]t|isn['’]t)\s+((a|an|the|exactly|quite)\s+)*(duplicates?|same)\b`)
 
 func lastPart(path string) string {
 	parts := strings.Split(path, " > ")

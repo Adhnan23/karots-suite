@@ -111,8 +111,12 @@ func doseJob() Job {
 func doseSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) {
 	var b Batch
 	var err error
+	key := in.recordKey("dose")
+	if in.Force {
+		b.State = key
+	}
 	if len(in.IDs) > 0 {
-		b.Products, _, err = selectProducts(ctx, p, "dose", in)
+		b.Products, _, err = selectProducts(ctx, p, key, in)
 		return b, len(b.Products), err
 	}
 	size := in.Size
@@ -120,10 +124,6 @@ func doseSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, erro
 		size = 1
 	}
 	in.noCap = true
-	key := in.recordKey("dose")
-	if in.Force {
-		b.State = key
-	}
 	all, _, err := selectProducts(ctx, p, key, in)
 	if err != nil {
 		return b, 0, err

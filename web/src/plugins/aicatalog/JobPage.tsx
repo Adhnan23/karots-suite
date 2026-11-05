@@ -186,7 +186,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
         </section>
       )}
       {pv && (pv.asked.length === 0
-        ? <section className={CARD}><b>Nothing left here.</b><Button variant="outline" className="h-10 self-start" onClick={() => dispatch({ t: 'reset' })}>Back</Button></section>
+        ? <section className={CARD}><b>Nothing left with these choices.</b><Button variant="outline" className="h-10 self-start" onClick={() => dispatch({ t: 'reset' })}>Back</Button></section>
         : <Preview progress={progress} job={job} pv={pv} ticks={ticks} setTicks={setTicks} edits={edits} setEdits={setEdits} merged={merged} busy={busy} onApply={() => void apply()}
           onRedo={(id) => { setRedo([id]); dispatch({ t: 'reset' }) }} onCancel={() => dispatch({ t: 'reset' })} />)}
     </div>
@@ -198,6 +198,8 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
   edits: Record<string, Partial<JobRow>>; setEdits: (e: Record<string, Partial<JobRow>>) => void; merged: (r: JobRow, key: string) => JobRow
   busy: boolean; onApply: () => void; onRedo: (id: number) => void; onCancel: () => void
 }) {
+  // Answering what a row needs is the decision: tick it, so the answer can't be lost.
+  const tickAnswered = (k: string, on: boolean) => { const n = new Set(ticks); if (on) n.add(k); else n.delete(k); setTicks(n) }
   const toggle = (k: string) => { const n = new Set(ticks); if (n.has(k)) n.delete(k); else n.add(k); setTicks(n) }
   const groups = byProduct(pv.rows)
   const none = pv.asked.filter((id) => !groups.some((g) => g.productId === id))
@@ -227,7 +229,7 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
                     {r.new && <span className="block break-words whitespace-pre-line">{r.new}</span>}
                     {row.needs && !row.choices && (
                       <input aria-label={row.needs} placeholder={row.needs} name={`job-${key}`} autoComplete="off" value={edits[key]?.new ?? ''} className={cn(INPUT, 'mt-1')}
-                        onChange={(e) => setEdits({ ...edits, [key]: { ...edits[key], new: e.target.value, needs: answersNeed(e.target.value) ? '' : row.needs } })} />
+                        onChange={(e) => { setEdits({ ...edits, [key]: { ...edits[key], new: e.target.value, needs: answersNeed(e.target.value) ? '' : row.needs } }); tickAnswered(key, answersNeed(e.target.value)) }} />
                     )}
                     {row.isNew && r.extra?.perDay !== undefined && (
                       <span className="mt-1 grid gap-1 sm:grid-cols-[minmax(0,1fr)_120px]">
@@ -240,7 +242,7 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
                     )}
                     {row.needs && row.choices && (
                       <select aria-label={row.needs} value={edits[key]?.extra?.[row.key] ?? ''} className={cn(INPUT, 'mt-1')}
-                        onChange={(e) => setEdits({ ...edits, [key]: { extra: { [row.key]: e.target.value }, needs: e.target.value ? '' : row.needs } })}>
+                        onChange={(e) => { setEdits({ ...edits, [key]: { extra: { [row.key]: e.target.value }, needs: e.target.value ? '' : row.needs } }); tickAnswered(key, !!e.target.value) }}>
                         <option value="">{row.needs}</option>
                         {row.choices.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                       </select>

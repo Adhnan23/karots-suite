@@ -94,7 +94,7 @@ func setupParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRow
 		name := strings.TrimSpace(it.PackName)
 		size := strconv.FormatFloat(it.PackSize, 'f', -1, 64)
 		if name != "" && it.PackSize > 1 && it.PackSize == float64(int64(it.PackSize)) && !decimals[it.ID] && !hasPack[strconv.FormatInt(it.ID, 10)+"|"+strings.ToLower(name)] {
-			rows = append(rows, JobRow{ProductID: it.ID, Kind: "pack", Key: "pack", Label: "Pack", New: name + " ×" + size, Reason: it.Reason, Ticked: true, Extra: map[string]string{"name": name, "size": size}})
+			rows = append(rows, JobRow{ProductID: it.ID, Kind: "pack", Key: "pack", Label: "Pack", New: name + " ×" + size, Reason: it.Reason, Ticked: !b.Redo, Extra: map[string]string{"name": name, "size": size}})
 		}
 	}
 	return rows, nil

@@ -91,6 +91,7 @@ const CLEANUP_CHUNK = 150
 /** Clean up's place: "Part 2 of 5: products 151–300 of 612". */
 export function cleanupPart(offset: number, total: number): string {
   if (total <= 0) return ''
+  if (offset >= total) offset = 0 // the server starts over when the shop has fewer products now
   return `Part ${Math.floor(offset / CLEANUP_CHUNK) + 1} of ${Math.ceil(total / CLEANUP_CHUNK)}: products ${offset + 1}–${Math.min(offset + CLEANUP_CHUNK, total)} of ${total}`
 }
 
