@@ -271,6 +271,23 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	return rows, total, nil
 }
 
+// answered counts what this run has already answered, for "Batch 2 of 6". The filter and
+// a single redo only count what they show.
+func (p *Plugin) answered(ctx context.Context, job, state string, in JobRequest) (*int, error) {
+	n := 0
+	if in.Filter != "" || len(in.IDs) > 0 {
+		return &n, nil
+	}
+	key := job
+	if state != "" {
+		key = state
+	}
+	err := p.store.db.GetContext(ctx, &n, `SELECT COUNT(*) FROM aicatalog_job_items j JOIN products p ON p.id = j.product_id
+		WHERE j.job = $1 AND p.is_active AND ($2 = 0 OR p.category_id IN (WITH RECURSIVE sub(id) AS (
+			SELECT id FROM categories WHERE id = $2 UNION SELECT c.id FROM categories c JOIN sub ON c.parent_id = sub.id) SELECT id FROM sub))`, key, in.CategoryID)
+	return &n, err
+}
+
 // jobRedoOver starts a forced redo from the first product again.
 func (h handlers) jobRedoOver(c echo.Context) error {
 	j := h.p.job(c.Param("job"))
@@ -317,6 +334,9 @@ func (h handlers) jobNext(c echo.Context) error {
 	b.Options, b.Settings, b.Redo = in.Options, s, len(in.IDs) > 0 || in.Force
 	var out AskReply[JobPreview]
 	out.Left = &total
+	if out.Done, err = h.p.answered(ctx, j.Key, b.State, in); err != nil {
+		return apperr.Internal("read the job's progress", err)
+	}
 	if len(b.Products) == 0 {
 		out.Result = &JobPreview{Rows: []JobRow{}, Asked: []int64{}, Names: map[int64]string{}}
 		return c.JSON(http.StatusOK, out)

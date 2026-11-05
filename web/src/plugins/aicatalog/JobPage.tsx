@@ -11,7 +11,7 @@ import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { slots } from '../slots'
 import { LastRun } from './CleanupPage'
-import { answersNeed, applyBody, batchLabel, byProduct, initialTicks, jobApply, jobNext, jobRedoOver, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
+import { answersNeed, applyBody, batchLabel, byProduct, jobPlace, saveJobPlace, initialTicks, jobApply, jobNext, jobRedoOver, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
 import { PastePanel } from './PastePanel'
 import { jobControls } from './jobControls'
 import { useAsk } from './useAsk'
@@ -48,12 +48,13 @@ export function JobsPage({ jobKey }: { jobKey: string }) {
 function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
   const qc = useQueryClient()
   const { state, dispatch, ask, read } = useAsk<JobPreview>()
-  const [size, setSize] = useState(job.oneByOne ? 1 : 5)
-  const [categoryId, setCategoryId] = useState(0)
-  const [mode, setMode] = useState<'' | 'skipped' | 'redo'>('')
+  const [saved] = useState(() => jobPlace(job.key))
+  const [size, setSize] = useState(saved.size ?? (job.oneByOne ? 1 : 5))
+  const [categoryId, setCategoryId] = useState(saved.categoryId ?? 0)
+  const [mode, setMode] = useState<'' | 'skipped' | 'redo'>(saved.mode ?? '')
   const [left, setLeft] = useState(0)
-  const [firstLeft, setFirstLeft] = useState(0)
-  const [options, setOptions] = useState<unknown>(undefined)
+  const [done, setDone] = useState(0)
+  const [options, setOptions] = useState<unknown>(saved.options)
   const [redo, setRedo] = useState<number[] | undefined>()
   const [ticks, setTicks] = useState<Set<string>>(new Set())
   const [edits, setEdits] = useState<Record<string, Partial<JobRow>>>({})
@@ -63,13 +64,11 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
   // Every answer says how many are left, so each step can say where it stands.
   const next = async (b: JobAsk) => {
     const r = await jobNext(job.key, b)
-    if (r.left !== undefined) {
-      setLeft(r.left)
-      setFirstLeft((f) => f || r.left || 0)
-    }
+    setLeft(r.left ?? 0)
+    setDone(r.done ?? 0)
     return r
   }
-  const progress = batchLabel(firstLeft, left, redo?.length ?? size)
+  const progress = batchLabel(done, left, redo?.length ?? size)
   const Controls = jobControls[job.key]
 
   function ask_() {
@@ -79,7 +78,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
     ask(() => next(body())).catch((e) => toast.error(errMsg(e)))
   }
   function start() {
-    setFirstLeft(0)
+    saveJobPlace(job.key, { size, categoryId, mode, options })
     ask_()
   }
   const onReply = (reply: string) => void read(reply, (r) => next({ ...body(), reply: r }))

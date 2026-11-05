@@ -13,7 +13,7 @@ export type JobAsk = { size: number; categoryId: number; filter: '' | 'skipped';
 export type JobApplied = { applied: number; skipped: { productId: number; label: string; why: string }[]; summary: string }
 
 export const jobsQuery = { queryKey: ['x', 'aicatalog', 'jobs'], queryFn: () => api<JobInfo[]>(base) }
-export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview> & { left?: number }>(`${base}/${job}/next`, { json: b })
+export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview> & { left?: number; done?: number }>(`${base}/${job}/next`, { json: b })
 export const jobRedoOver = (job: string) => api(`${base}/${job}/redo-over`, { method: 'POST' })
 export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[]; open: number[]; state?: string }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
 
@@ -58,15 +58,33 @@ export function applyBody(pv: JobPreview, ticks: Set<string>) {
 /** A typed answer to what a row needs: "new" and blanks are no answer. */
 export const answersNeed = (typed: string) => typed.trim() !== '' && typed.trim().toLowerCase() !== 'new'
 
-/** Where a run of batches stands: "Batch 2 of 6: products 6–10 of 27". firstLeft is what was left when the run began. */
-export function batchLabel(firstLeft: number, left: number, size: number): string {
-  if (firstLeft <= 0) return ''
-  const done = Math.max(0, firstLeft - left)
+/** Where a run stands, however often it was left and picked up: "Batch 2 of 6: products 6–10 of 27". */
+export function batchLabel(done: number, left: number, size: number): string {
+  const total = done + left
+  if (total <= 0) return ''
   const each = Math.max(1, size)
-  const batches = Math.ceil(firstLeft / each)
-  const from = Math.min(done + 1, firstLeft)
-  const to = Math.min(done + each, firstLeft)
-  return `Batch ${Math.min(Math.floor(done / each) + 1, batches)} of ${batches}: ${from === to ? `product ${from}` : `products ${from}–${to}`} of ${firstLeft}`
+  const batches = Math.ceil(total / each)
+  const from = Math.min(done + 1, total)
+  const to = Math.min(done + each, total)
+  return `Batch ${Math.min(Math.floor(done / each) + 1, batches)} of ${batches}: ${from === to ? `product ${from}` : `products ${from}–${to}`} of ${total}`
+}
+
+const jobPlaceKey = (job: string) => `ks-ai-job-${job}`
+export type JobPlace = { size?: number; categoryId?: number; mode?: '' | 'skipped' | 'redo'; options?: unknown }
+/** A job's choices on this device, so coming back finds them as they were. A convenience: losing them is harmless. */
+export function jobPlace(job: string): JobPlace {
+  try {
+    return JSON.parse(localStorage.getItem(jobPlaceKey(job)) ?? '{}') as JobPlace
+  } catch {
+    return {}
+  }
+}
+export function saveJobPlace(job: string, place: JobPlace) {
+  try {
+    localStorage.setItem(jobPlaceKey(job), JSON.stringify(place))
+  } catch {
+    // private window: the page simply starts with its defaults
+  }
 }
 
 const CLEANUP_CHUNK = 150

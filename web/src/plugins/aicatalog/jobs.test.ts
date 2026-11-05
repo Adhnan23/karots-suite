@@ -31,11 +31,11 @@ describe('job rows', () => {
     expect(answersNeed('  ')).toBe(false)
     expect(answersNeed('New')).toBe(false)
   })
-  it('says where a run of batches stands', () => {
-    expect(batchLabel(27, 27, 5)).toBe('Batch 1 of 6: products 1–5 of 27')
-    expect(batchLabel(27, 22, 5)).toBe('Batch 2 of 6: products 6–10 of 27')
-    expect(batchLabel(27, 2, 5)).toBe('Batch 6 of 6: products 26–27 of 27')
-    expect(batchLabel(3, 2, 1)).toBe('Batch 2 of 3: product 2 of 3')
+  it('says where a run stands, also after coming back', () => {
+    expect(batchLabel(0, 27, 5)).toBe('Batch 1 of 6: products 1–5 of 27')
+    expect(batchLabel(5, 22, 5)).toBe('Batch 2 of 6: products 6–10 of 27')
+    expect(batchLabel(25, 2, 5)).toBe('Batch 6 of 6: products 26–27 of 27')
+    expect(batchLabel(1, 2, 1)).toBe('Batch 2 of 3: product 2 of 3')
     expect(batchLabel(0, 0, 5)).toBe('')
   })
   it('says which part of a clean-up this is', () => {

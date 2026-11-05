@@ -332,3 +332,32 @@ func TestLastRunJSON(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// Coming back to a run says how far it had got, in the same category.
+func TestNextSaysHowManyDone(t *testing.T) {
+	db := freshDB(t, "aicatalog_job_done")
+	p, do := testAPI(t, db)
+	p.jobs = []Job{fakeJob()}
+	c, other := cat(t, db, "Goods", nil), cat(t, db, "Other", nil)
+	a, b := prod(t, db, "A", c), prod(t, db, "B", c)
+	x := prod(t, db, "X", other)
+	if _, err := p.applyJob(context.Background(), p.job("fake"), JobApply{Asked: []int64{a, x}, Suggested: []int64{a, x}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	got := decode[AskReply[JobPreview]](t, do("POST", "/jobs/fake/next", fmt.Sprintf(`{"size":1,"categoryId":%d}`, c)))
+	if got.Done == nil || *got.Done != 1 || got.Left == nil || *got.Left != 1 || !strings.Contains(got.Prompt, fmt.Sprint(b)) {
+		t.Fatalf("one of two in this category: %+v", got)
+	}
+	got = decode[AskReply[JobPreview]](t, do("POST", "/jobs/fake/next", `{"size":1}`))
+	if *got.Done != 2 || *got.Left != 1 {
+		t.Fatalf("all categories: done %d left %d", *got.Done, *got.Left)
+	}
+	got = decode[AskReply[JobPreview]](t, do("POST", "/jobs/fake/next", `{"size":1,"filter":"skipped"}`))
+	if got.Done == nil || *got.Done != 0 {
+		t.Fatalf("the filter counts only what it shows: %+v", got.Done)
+	}
+	got = decode[AskReply[JobPreview]](t, do("POST", "/jobs/fake/next", `{"size":1,"force":true}`))
+	if *got.Done != 0 || *got.Left != 3 {
+		t.Fatalf("a redo has its own count: done %d left %d", *got.Done, *got.Left)
+	}
+}

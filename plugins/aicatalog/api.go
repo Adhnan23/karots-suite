@@ -33,6 +33,7 @@ type AskReply[T any] struct {
 	Prompt string `json:"prompt,omitempty"`
 	Error  string `json:"error,omitempty"`
 	Left   *int   `json:"left,omitempty"` // a job: products still to do, this batch included
+	Done   *int   `json:"done,omitempty"` // a job: products already answered in this run
 }
 
 type IdentifyRequest struct {
