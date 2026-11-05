@@ -290,3 +290,22 @@ func TestForceRedoHasItsOwnRecord(t *testing.T) {
 		t.Fatalf("start over: %+v", got)
 	}
 }
+
+// Skipped or no answer finds what a forced redo left too, by each product's latest answer.
+func TestSkippedFilterFollowsRedo(t *testing.T) {
+	p, next, ids, _ := jobEnv(t, "aicatalog_job_skip_redo", 3)
+	ctx := context.Background()
+	if _, err := p.applyJob(ctx, p.job("fake"), JobApply{State: "fake:redo", Asked: ids[:2], Suggested: ids[:1]}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := next("fake", `{"filter":"skipped"}`, reply()); !slices.Equal(got.Asked, ids[:2]) {
+		t.Fatalf("%+v", got)
+	}
+	// Answered since: it leaves the filter, and it isn't applied twice.
+	if _, err := p.applyJob(ctx, p.job("fake"), JobApply{Asked: ids[:1], Suggested: ids[:1], Rows: []JobRow{{ProductID: ids[0], New: "Done"}}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := next("fake", `{"filter":"skipped"}`, reply()); !slices.Equal(got.Asked, ids[1:2]) {
+		t.Fatalf("%+v", got)
+	}
+}

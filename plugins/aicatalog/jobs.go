@@ -206,7 +206,9 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 		args = append(args, pq.Array(in.IDs))
 		where += ` AND p.id = ANY($2)`
 	case in.Filter == "skipped":
-		where += ` AND j.state IN ('skipped', 'no_answer')`
+		// Each product's latest answer, whichever run gave it (a redo keeps its own record).
+		where += ` AND (SELECT x.state FROM aicatalog_job_items x WHERE x.product_id = p.id AND (x.job = $1 OR x.job LIKE $1 || ':%')
+			ORDER BY x.updated_at DESC, x.job DESC LIMIT 1) IN ('skipped', 'no_answer')`
 	case in.wide:
 	case in.moved:
 		where += ` AND (j.state IS NULL OR j.category_id IS DISTINCT FROM p.category_id)`
