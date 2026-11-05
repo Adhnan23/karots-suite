@@ -8,6 +8,10 @@ export const settingsQuery = queryOptions({ queryKey: ['x', 'aicatalog', 'settin
 export const lastRunQuery = queryOptions({ queryKey: ['x', 'aicatalog', 'last'], queryFn: () => api<{ run: Run | null }>(`${base}/cleanup/last`) })
 export const emptyQuery = queryOptions({ queryKey: ['x', 'aicatalog', 'empty'], queryFn: () => api<{ categories: EmptyCategory[] }>(`${base}/cleanup/empty-categories`) })
 
+export type Hint = { specs: string; explanation: string }
+export const hintQuery = (id: number) => queryOptions({ queryKey: ['x', 'aicatalog', 'hint', id], queryFn: () => api<Hint>(`${base}/items/${id}`) })
+export const saveHint = (id: number, h: Hint) => api<Hint>(`${base}/items/${id}`, { method: 'PUT', json: h })
+
 export type IdentifyAsk = { query: string; barcode: string; hint: string; short: boolean; reply?: string }
 export const identify = (b: IdentifyAsk) => api<AskReply<IdentifyResult>>(`${base}/identify`, { json: b })
 export const findCategory = (path: string) => api<{ id: number }>(`${base}/category`, { json: { path } })

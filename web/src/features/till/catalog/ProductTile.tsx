@@ -42,6 +42,7 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
         </span>
         <span className="line-clamp-2 pr-6 text-[16.5px] font-semibold leading-tight">{p.name}</span>
         {p.nameLocal && <span className="relative -mt-1 line-clamp-1 text-[14px] font-medium text-muted-foreground">{p.nameLocal}</span>}
+        {p.line && <span className="relative -mt-1 line-clamp-2 pr-6 text-[13px] leading-snug text-muted-foreground">{p.line}</span>}
         {(note || (p.lowStock && !out) || p.badges.length > 0) && (
           <span className="flex flex-wrap gap-1.5">
             {p.lowStock && !out && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-danger">Low stock</span>}

@@ -118,7 +118,7 @@ func TestAPICategoryOnceAndLearn(t *testing.T) {
 		t.Fatal(err)
 	}
 	rows, err := p.detailRows(ctx, pid)
-	if err != nil || len(rows) != 1 || rows[0].Value != "6201-2Z Ball Bearing — 12x32x10 mm" {
+	if err != nil || len(rows) != 2 || rows[0].Label != "AI hint" || rows[0].Value != "12x32x10 mm" || rows[1].Value != hintCaution {
 		t.Fatalf("ⓘ row %+v %v", rows, err)
 	}
 	if _, err := decodeExtra(json.RawMessage(`{"name":"x","source":"guess"}`)); err == nil {

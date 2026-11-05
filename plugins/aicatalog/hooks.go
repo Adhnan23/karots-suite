@@ -40,6 +40,8 @@ func (p *Plugin) registerHooks(reg *plugin.Registry) {
 		Save: p.learn,
 	})
 	reg.AddProductDetailContributor(plugin.ProductDetailContributor{Rows: p.detailRows})
+	reg.AddProductSearchContributor(plugin.ProductSearchContributor{Match: p.store.MatchHints})
+	reg.AddProductTillLineProvider(plugin.ProductTillLineProvider{Batch: p.store.HintLines})
 }
 
 func (p *Plugin) learn(ctx context.Context, x plugin.ExtraCtx, raw json.RawMessage) error {
@@ -51,15 +53,21 @@ func (p *Plugin) learn(ctx context.Context, x plugin.ExtraCtx, raw json.RawMessa
 		Specs: b.Specs, UserExplanation: b.Explanation, Source: b.Source, RawQuery: b.Query})
 }
 
-// detailRows: the ⓘ row "AI identified · <name> — <specs>".
+// detailRows: the ⓘ rows. Labelled as a hint: a chatbot wrote it.
 func (p *Plugin) detailRows(ctx context.Context, id int64) ([]plugin.DetailRow, error) {
 	it, err := p.store.GetItem(ctx, id)
-	if err != nil || it == nil || it.ResolvedName == "" {
+	if err != nil || it == nil {
 		return nil, err
 	}
-	v := it.ResolvedName
+	var rows []plugin.DetailRow
 	if s := strings.TrimSpace(it.Specs); s != "" {
-		v += " — " + s
+		rows = append(rows, plugin.DetailRow{Label: "AI hint", Value: s})
 	}
-	return []plugin.DetailRow{{Label: "AI identified", Value: v}}, nil
+	if s := strings.TrimSpace(it.UserExplanation); s != "" {
+		rows = append(rows, plugin.DetailRow{Label: "What it is", Value: s})
+	}
+	if len(rows) > 0 {
+		rows = append(rows, plugin.DetailRow{Label: "Note", Value: hintCaution})
+	}
+	return rows, nil
 }

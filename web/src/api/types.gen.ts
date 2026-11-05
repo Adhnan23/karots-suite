@@ -3836,6 +3836,7 @@ export interface TillProduct {
   lowStock: boolean;
   emoji: string;
   badges: string[];
+  line?: string; // a plugin's short line under the name, "" = none
   suggestion?: SaleSuggestion;
   /**
    * Packs: other ways to sell it (Card ×12), smallest first. ScannedPackID is

@@ -27,7 +27,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "aicatalog
 
 // dataGroup: the key never leaves the server — every dump and restore blanks it.
 var dataGroup = plugin.DataGroup{Key: "aicatalog", Name: "AI Assistant",
-	Tables: []string{"aicatalog_items", "aicatalog_optimize_runs", "aicatalog_settings"},
+	Tables: []string{"aicatalog_items", "aicatalog_job_items", "aicatalog_optimize_runs", "aicatalog_settings"},
 	Secret: []string{"aicatalog_settings.api_key"}}
 
 func (p *Plugin) Setup(reg *plugin.Registry) {

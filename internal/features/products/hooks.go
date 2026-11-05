@@ -17,6 +17,10 @@ var SearchContributor func(ctx context.Context, query string) ([]int64, error)
 // (set by the web layer from plugin badge providers). nil = no badges.
 var BadgeProvider func(ctx context.Context, productIDs []int64) map[int64][]string
 
+// TillLineProvider, when non-nil, returns one short line per product for the till's
+// results (set by the web layer from plugin providers). nil = no line.
+var TillLineProvider func(ctx context.Context, productIDs []int64) map[int64]string
+
 // SaleSuggestion mirrors plugin.SaleSuggestion (products must not import plugin;
 // the web layer converts and wires SaleSuggestionProvider from plugin hooks).
 type SaleSuggestion struct {
@@ -77,11 +81,18 @@ var LabelFieldProvider func(ctx context.Context, productID int64) []DetailRow
 // sale suggestions) on rows, exactly as the legacy List/Get handlers did. The
 // JSON till layer calls it for every product list it returns.
 func Decorate(ctx context.Context, rows []Product) {
-	if BadgeProvider != nil && len(rows) > 0 {
-		ids := make([]int64, len(rows))
-		for i := range rows {
-			ids[i] = rows[i].ID
+	ids := make([]int64, len(rows))
+	for i := range rows {
+		ids[i] = rows[i].ID
+	}
+	if TillLineProvider != nil && len(rows) > 0 {
+		if m := TillLineProvider(ctx, ids); m != nil {
+			for i := range rows {
+				rows[i].TillLine = m[rows[i].ID]
+			}
 		}
+	}
+	if BadgeProvider != nil && len(rows) > 0 {
 		if m := BadgeProvider(ctx, ids); m != nil {
 			for i := range rows {
 				rows[i].Badges = m[rows[i].ID]

@@ -85,7 +85,7 @@
 - Produces, generic hook: `plugin.ProductTillLineProvider{Batch func(ctx, ids []int64) (map[int64]string, error)}`, `reg.AddProductTillLineProvider`, `TillProduct.Line string` (`json:"line"`). Best-effort: an error shows no line.
 - Produces, route: `PUT /api/v1/x/aicatalog/items/:id` `{specs, explanation}`, `GET` the same.
 
-- [ ] **Step 1: Write the failing tests** in `hints_db_test.go`:
+- [x] **Step 1: Write the failing tests** in `hints_db_test.go`:
   - `TestMatchHints`: specs `Fits CT100` is found by `ct100` and by `100 ct` (every word must match, any order); not by `xyz`.
   - `TestMatchHintsLiteral`: `%` and `_` match only those characters.
   - `TestMatchOldName`: `AddOldName(…,"6201 ZZ")` is found by `6201`.
@@ -93,13 +93,13 @@
   - `TestDetailRows`: rows are `AI hint` with specs and `What it is` with explanation; empty ones are omitted; `Note` row reads `AI suggestion, confirm before selling`.
   - `TestMergeKeepsJobItems`: merging moves job rows and old names; kept product's row wins.
   - Restore: extend `restore_db_test.go` so a backup without `aicatalog_job_items` still restores.
-- [ ] **Step 2: Run** `go test ./plugins/aicatalog -run 'Hint|Merge|Detail'`. Expected: FAIL.
-- [ ] **Step 3: Implement** the migration and store. Register `AddProductSearchContributor{Match: MatchHints}` and the till-line provider. Escape `\ % _` for `ILIKE`; split on whitespace. `HintLines` gives the first 80 runes of specs (else explanation). Extend `mergeProduct`.
-- [ ] **Step 4: Core seam.** Add the hook, wire it like `MetaProvider` in `internal/app/plugins.go`, fill `TillProduct.Line` in the till catalogue handlers, `make types`, render one truncated muted line on `ProductTile` when non-empty. Test in `internal/api` with a fake provider.
-- [ ] **Step 5: `HintSection.tsx`:** a `productFormSections` section, shown when `productId > 0`: two text boxes saved through the route, plain text, label **AI hint**.
-- [ ] **Step 6: e2e** in `plugin-aicatalog.spec.ts`: pick an Identify answer with specs `Fits CT100`, save, search `CT100` at the till, the tile shows and ⓘ shows the hint. Screenshot the till at 1280 in Studio and Night, light and dark; review it.
-- [ ] **Step 7: Run** `make test`-scoped packages and the spec, `make check-core`. Expected: PASS.
-- [ ] **Step 8: Commit** `feat(aicatalog): searchable AI hints at the till and on the product page`
+- [x] **Step 2: Run** `go test ./plugins/aicatalog -run 'Hint|Merge|Detail'`. Expected: FAIL.
+- [x] **Step 3: Implement** the migration and store. Register `AddProductSearchContributor{Match: MatchHints}` and the till-line provider. Escape `\ % _` for `ILIKE`; split on whitespace. `HintLines` gives the first 80 runes of specs (else explanation). Extend `mergeProduct`.
+- [x] **Step 4: Core seam.** Add the hook, wire it like `MetaProvider` in `internal/app/plugins.go`, fill `TillProduct.Line` in the till catalogue handlers, `make types`, render one truncated muted line on `ProductTile` when non-empty. Test in `internal/api` with a fake provider.
+- [x] **Step 5: `HintSection.tsx`:** a `productFormSections` section, shown when `productId > 0`: two text boxes saved through the route, plain text, label **AI hint**.
+- [x] **Step 6: e2e** in `plugin-aicatalog.spec.ts`: pick an Identify answer with specs `Fits CT100`, save, search `CT100` at the till, the tile shows and ⓘ shows the hint. Screenshot the till at 1280 in Studio and Night, light and dark; review it.
+- [x] **Step 7: Run** `make test`-scoped packages and the spec, `make check-core`. Expected: PASS.
+- [x] **Step 8: Commit** `feat(aicatalog): searchable AI hints at the till and on the product page`
 
 ### Task 4: Job framework
 

@@ -77,6 +77,7 @@ type TillProduct struct {
 	LowStock   bool            `json:"lowStock"`
 	Emoji      string          `json:"emoji"`
 	Badges     []string        `json:"badges"`
+	Line       string          `json:"line,omitempty"` // a plugin's short line under the name, "" = none
 	Suggestion *SaleSuggestion `json:"suggestion,omitempty"`
 	// Packs: other ways to sell it (Card ×12), smallest first. ScannedPackID is
 	// set on a barcode lookup when the code was a pack's (add that pack).

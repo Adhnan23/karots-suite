@@ -94,7 +94,7 @@ func tillProduct(p products.Product) TillProduct {
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
 		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
-		Badges: p.Badges, Packs: []TillPack{},
+		Badges: p.Badges, Line: p.TillLine, Packs: []TillPack{},
 		LowStock: !p.IsService && p.ReorderLevel > 0 && p.IsLowStock(),
 	}
 	if out.Badges == nil {

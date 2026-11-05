@@ -56,7 +56,8 @@ type Product struct {
 	// TillPack names pack sizes a cashier set at the till ("Card ×28"); review list only.
 	TillPack *string `db:"till_pack" json:"-"`
 	// Plugin-contributed, not persisted: till-card badge pins (e.g. quality tier).
-	Badges []string `db:"-" json:"badges,omitempty"`
+	Badges   []string `db:"-" json:"badges,omitempty"`
+	TillLine string   `db:"-" json:"tillLine,omitempty"`
 	// Plugin-contributed, not persisted: an optional till line-discount suggestion
 	// (e.g. a plugin markdown) the cashier is prompted to apply.
 	Suggestion *SaleSuggestion `db:"-" json:"suggestion,omitempty"`

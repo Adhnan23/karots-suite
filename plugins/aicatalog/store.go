@@ -34,6 +34,7 @@ type LearnedItem struct {
 	UserExplanation   string `db:"user_explanation"`
 	Source            string `db:"source"`
 	RawQuery          string `db:"raw_query"`
+	OldNames          string `db:"old_names"`
 }
 
 func (s *Store) GetSettings(ctx context.Context) (Settings, error) {
@@ -61,8 +62,8 @@ func (s *Store) LearnItem(ctx context.Context, it LearnedItem) error {
 		ON CONFLICT (product_id) DO UPDATE SET
 		  resolved_name=$2, suggested_category=$3, specs=$4,
 		  user_explanation=$5, source=$6, raw_query=$7, updated_at=now()`,
-		it.ProductID, it.ResolvedName, it.SuggestedCategory, it.Specs,
-		it.UserExplanation, it.Source, it.RawQuery)
+		it.ProductID, it.ResolvedName, it.SuggestedCategory, capHint(it.Specs),
+		capHint(it.UserExplanation), it.Source, it.RawQuery)
 	return err
 }
 
@@ -70,7 +71,7 @@ func (s *Store) GetItem(ctx context.Context, productID int64) (*LearnedItem, err
 	var out LearnedItem
 	err := s.db.GetContext(ctx, &out, `
 		SELECT product_id, resolved_name, suggested_category, specs,
-		       user_explanation, source, raw_query
+		       user_explanation, source, raw_query, old_names
 		FROM aicatalog_items WHERE product_id = $1`, productID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

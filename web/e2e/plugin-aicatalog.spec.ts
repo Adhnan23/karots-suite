@@ -59,7 +59,45 @@ test('identify in the product form: a pasted answer in prose and a fence fills n
   await expect(dlg).toBeHidden()
   const id = await productId(page, name)
   const detail = await (await page.request.get(`/api/v1/till/products/${id}/detail`)).json()
-  expect(detail.rows).toContainEqual({ label: 'AI identified', value: `${name} — 12x32x10 mm` })
+  expect(detail.rows).toContainEqual({ label: 'AI hint', value: '12x32x10 mm' })
+})
+
+test('hints: corrected on the product page, found and shown at the till', async ({ page }) => {
+  test.setTimeout(90_000)
+  await login(page, '/admin/products')
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json())[0]
+  const name = `BP-114 ${tag}`
+  const saved = await page.request.post('/api/v1/admin/products', { data: { name, categoryId: cat.id, unitId: 1, sellingPrice: '450' } })
+  const { id } = await saved.json()
+  const search = async (q: string) => (await (await page.request.get(`/api/v1/till/products?search=${encodeURIComponent(q)}`)).json()).items as { id: number; line?: string }[]
+  expect((await search(`Bajaj${tag}`)).map((p) => p.id)).not.toContain(id)
+
+  await page.getByLabel('Search products').fill(name)
+  await page.getByRole('button', { name: new RegExp(`^BP-114 ${tag}`) }).first().click()
+  const hint = page.getByRole('region', { name: 'AI hint' })
+  await hint.getByLabel('AI hint details').fill(`Fits Bajaj${tag} CT100 <b>front</b> 100% wheels`)
+  await hint.getByLabel('What it is').fill('A brake pad')
+  await hint.getByRole('button', { name: 'Save hint' }).click()
+  await expect(hint.getByRole('button', { name: 'Save hint' })).toBeHidden()
+
+  const found = await search(`Bajaj${tag}`)
+  expect(found.map((p) => p.id)).toContain(id)
+  expect(found.find((p) => p.id === id)?.line).toContain('CT100')
+  expect((await search(`ct100 Bajaj${tag}`)).map((p) => p.id)).toContain(id)
+  const detail = await (await page.request.get(`/api/v1/till/products/${id}/detail`)).json()
+  expect(detail.rows).toContainEqual({ label: 'AI hint', value: `Fits Bajaj${tag} CT100 <b>front</b> 100% wheels` })
+  expect(detail.rows).toContainEqual({ label: 'What it is', value: 'A brake pad' })
+  expect(detail.rows).toContainEqual({ label: 'Note', value: 'AI suggestion, confirm before selling' })
+  expect((await page.request.put(`${base}/items/99999999`, { data: { specs: 'x', explanation: '' } })).status()).toBe(404)
+
+  // On the till itself: a customer asks for the bike, the tile comes up and says why.
+  const st = await (await page.request.get('/api/v1/till/drawer')).json()
+  if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 2 }, sourceLockerId: 0 } })
+  await page.goto('/till')
+  await page.getByPlaceholder(/scan|search/i).first().fill(`Bajaj${tag}`)
+  await expect(page.getByRole('button', { name: new RegExp(`BP-114 ${tag}`) }).first()).toContainText('CT100')
+  await expect(page.locator('b', { hasText: 'front' })).toHaveCount(0) // shown as plain text
+  if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/till-hint.png` })
 })
 
 test('a bad paste keeps the text and says why', async ({ page }) => {
@@ -100,7 +138,8 @@ test('identify from Items to review and from intake', async ({ page }) => {
   const id = await productId(page, name)
   const detail = await (await page.request.get(`/api/v1/till/products/${id}/detail`)).json()
   expect(detail.category).toBe(`Dairy ${tag}`)
-  expect(detail.rows).toContainEqual({ label: 'AI identified', value: name })
+  expect(detail.rows).toContainEqual({ label: 'What it is', value: 'Test item.' })
+  expect(detail.rows.map((r: { label: string }) => r.label)).not.toContain('AI hint') // this answer had no specs
 })
 
 test('coming back from the chatbot reads its answer from the clipboard', async ({ page, context }) => {

@@ -56,6 +56,13 @@ type ProductMetaProvider struct {
 	Batch func(ctx context.Context, productIDs []int64) (map[int64]string, error)
 }
 
+// ProductTillLineProvider supplies one short line under a product in the till's
+// results (what helps a cashier know it's the right item). Batched and best-effort:
+// an error shows no line. Counter-safe text only: the customer can see this screen.
+type ProductTillLineProvider struct {
+	Batch func(ctx context.Context, productIDs []int64) (map[int64]string, error)
+}
+
 // ProductBadgeProvider supplies short badge labels for products, shown as pins on
 // the till product card. Batch is called with the visible product ids and returns
 // each id's badges (omit an id for none). Best-effort: an error just drops the
@@ -163,6 +170,7 @@ var (
 	productDetailProviders   hook[ProductDetailContributor]
 	productLabelProviders    hook[ProductLabelFieldProvider]
 	productReorderAnnotators hook[ProductReorderAnnotator]
+	productTillLines         hook[ProductTillLineProvider]
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
@@ -189,6 +197,10 @@ func (r *Registry) AddProductDetailContributor(p ProductDetailContributor) {
 func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
 	productLabelProviders.add(p)
 }
+func (r *Registry) AddProductTillLineProvider(p ProductTillLineProvider) {
+	productTillLines.add(p)
+}
+
 func (r *Registry) AddProductReorderAnnotator(a ProductReorderAnnotator) {
 	productReorderAnnotators.add(a)
 }
@@ -205,4 +217,5 @@ func ProductSaleSuggestionProviders() []ProductSaleSuggestionProvider {
 }
 func ProductDetailContributors() []ProductDetailContributor   { return productDetailProviders.all() }
 func ProductLabelFieldProviders() []ProductLabelFieldProvider { return productLabelProviders.all() }
+func ProductTillLineProviders() []ProductTillLineProvider     { return productTillLines.all() }
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }
