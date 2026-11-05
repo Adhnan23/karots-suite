@@ -70,7 +70,7 @@ async function answerLocally(hit: NonNullable<ReturnType<typeof find>>, method: 
     parts: await loadParts(), copy: await loadCopy(), params: hit.params, query: url.searchParams, body,
     ref: crypto.randomUUID(), out: await pending(), userId: loadWho()?.id ?? 0,
   }
-  const answer = hit.route.answer(ctx)
+  const answer = await hit.route.answer(ctx)
   if (hit.route.queue) {
     const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, ...hit.route.call?.(ctx) }
     // Not awaited: with the PC off the send can take as long as the network gives up.

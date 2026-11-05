@@ -15,7 +15,7 @@ import { DrawerSheet, type DrawerKind } from './DrawerSheet'
 import { COUNTER_PAGES, type CounterPage } from './counter/pages'
 import { phoneActions, type PhoneAction } from './phoneActions'
 import { PinSheet } from './PinSheet'
-import { PluginPanel } from './PluginPanel'
+import { BarePanel } from './PluginPanel'
 import { TicketsBeforeClose } from './Tickets'
 
 const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cash taken out', deposit: 'Cash put in', close: 'Drawer closed' }
@@ -73,9 +73,7 @@ export function Menu({ who, copy, out, live, onSent, onSwitch, onPage, tickets =
         <button key={a.key} type="button" onClick={() => setAction(a)} className={cn(CARD, 'flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>{a.label}</button>
       ))}
       {action && till && (
-        <PluginPanel title={action.label} onClose={() => setAction(null)}>
-          <action.Panel till={till} onClose={() => setAction(null)} />
-        </PluginPanel>
+        <BarePanel><action.Panel till={till} onClose={() => setAction(null)} /></BarePanel>
       )}
       <button type="button" onClick={() => { setNotice(''); setPin(true) }} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
         <KeyRound size={19} className="text-muted-foreground" />Change my PIN

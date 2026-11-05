@@ -1,6 +1,7 @@
 package pharmacy
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -234,10 +235,17 @@ func (h handlers) scripts(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	ctx := c.Request().Context()
+	out, err := h.scriptDTOs(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h handlers) scriptDTOs(ctx context.Context, id int64) ([]ScriptDTO, error) {
 	scs, err := h.p.store.Scripts(ctx, id)
 	if err != nil {
-		return fail("load prescriptions", err)
+		return nil, fail("load prescriptions", err)
 	}
 	now := time.Now()
 	out := make([]ScriptDTO, 0, len(scs))
@@ -255,7 +263,7 @@ func (h handlers) scripts(c echo.Context) error {
 			if sc.Active && (it.ProductID != nil || it.GroupID != nil) {
 				sg, err := h.p.store.Suggest(ctx, it)
 				if err != nil {
-					return fail("suggest a product", err)
+					return nil, fail("suggest a product", err)
 				}
 				if sg != nil {
 					x.Suggest = &SuggestDTO{ProductID: sg.ProductID, Name: sg.Name, Stock: sg.Stock.String()}
@@ -265,7 +273,7 @@ func (h handlers) scripts(c echo.Context) error {
 		}
 		out = append(out, d)
 	}
-	return c.JSON(http.StatusOK, out)
+	return out, nil
 }
 
 type scriptIn struct {

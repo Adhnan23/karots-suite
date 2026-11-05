@@ -154,3 +154,31 @@ func TestAPILog(t *testing.T) {
 		t.Fatal("refills are for admin / manager")
 	}
 }
+
+func TestOfflineDataIsWhatTheTillReads(t *testing.T) {
+	db := testDB(t)
+	do := testAPI(t, db)
+	p := decode[PatientDTO](t, do("POST", "/patients", `{"name":"Offline Patient","phone":"0779991111","allergies":"Penicillin"}`))
+	rec := do("POST", "/prescriptions", fmt.Sprintf(`{"patientId":%d,"prescriberName":"Dr A","prescribedOn":"2026-11-01","items":[{"drugText":"Panadol","dosage":"1 x 3","quantity":"30","perDay":"3"}]}`, p.ID))
+	if rec.Code >= 300 {
+		t.Fatalf("script: %d %s", rec.Code, rec.Body)
+	}
+	v, err := handlers{&Plugin{store: NewStore(db)}}.offlineData(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	part := v.(OfflinePart)
+	var got *PatientDTO
+	for i := range part.Patients {
+		if part.Patients[i].ID == p.ID {
+			got = &part.Patients[i]
+		}
+	}
+	if got == nil || got.Allergies != "Penicillin" {
+		t.Fatalf("patient: %+v", got)
+	}
+	want := decode[[]ScriptDTO](t, do("GET", fmt.Sprintf("/patients/%d/scripts", p.ID), ""))
+	if gotS := part.Scripts[p.ID]; len(gotS) != 1 || len(want) != 1 || gotS[0].ID != want[0].ID || len(gotS[0].Items) != 1 {
+		t.Fatalf("scripts: %+v, want %+v", gotS, want)
+	}
+}

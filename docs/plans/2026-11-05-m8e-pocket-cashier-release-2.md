@@ -329,11 +329,11 @@ Routes: Documents `GET /till`, `GET /quote`, `POST /jobs` (queue), `POST /own-us
 
 Routes: `GET /patients`, `GET /patients/:id`, `GET /patients/:id/scripts`, `GET /medicines`, `GET /doses`, `GET /notes`, `GET /till-info`, `GET /sales/recent` (from the 30-day copy), `POST /patients`, `POST /patients/from-customer/:cid`, `PUT /patients/:id`, `POST /prescriptions`, `PUT /prescriptions/:id`, `POST /prescriptions/:id/active`, `POST /dispenses` (all writes queue).
 
-- [ ] **Step 1: Write failing tests:** `finds a patient offline`; `a script's medicines add to the cart`; `a new patient offline has a temp id, and a script and sale on it replay with the real id`; `a controlled medicine sells offline, and the dispense reaches the register when replayed`; `a dose label button is hidden offline`, if the print call fails offline instead, then `it shows a message, not an error`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** The part holds patients, active scripts, medicine details and doses.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Pharmacy on the phone, online and off`
+- [x] **Step 1: Write failing tests:** `finds a patient offline`; `a script's medicines add to the cart`; `a new patient offline has a temp id, and a script and sale on it replay with the real id`; `a controlled medicine sells offline, and the dispense reaches the register when replayed`; `a dose label button is hidden offline`, if the print call fails offline instead, then `it shows a message, not an error`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** The part holds patients, active scripts, medicine details and doses.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Pharmacy on the phone, online and off`
 
 ### Task 16: Repairs
 

@@ -17,7 +17,7 @@ import { PriceSheet } from './PriceSheet'
 import { QuickItemSheet } from './QuickItemSheet'
 import { UnknownCodeSheet } from './UnknownCodeSheet'
 import { Scanner } from './Scanner'
-import { PluginPanel } from './PluginPanel'
+import { BarePanel, PluginPanel } from './PluginPanel'
 import { phoneActions, type PhoneAction } from './phoneActions'
 
 type Pick = { kind: 'price' | 'pack'; product: CopyProduct; lots: Lot[]; units?: number; lot?: Lot }
@@ -142,9 +142,7 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
         </PluginPanel>
       )}
       {action && till && (
-        <PluginPanel title={action.item.label} onClose={() => setAction(null)}>
-          <action.item.Panel till={till} text={action.text} onClose={() => setAction(null)} />
-        </PluginPanel>
+        <BarePanel><action.item.Panel till={till} text={action.text} onClose={() => setAction(null)} /></BarePanel>
       )}
       {scan && <Scanner onCode={code} onClose={() => setScan(false)} />}
       {unknown && (

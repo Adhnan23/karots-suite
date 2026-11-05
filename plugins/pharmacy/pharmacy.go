@@ -33,6 +33,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "pharmacy"
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	reg.AddOfflineData(plugin.OfflineData{Key: "pharmacy", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "pharmacy", Name: "Pharmacy", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "pharmacy", Merge: mergeProduct})
 	reg.AddProductAttributeSet(p.store.attributes())

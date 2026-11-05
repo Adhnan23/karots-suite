@@ -10,6 +10,11 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   }
 }
 
+/** A till action's panel draws its own dialog, as on the PC. */
+export function BarePanel({ children }: { children: ReactNode }) {
+  return <Boundary><Suspense fallback={null}>{children}</Suspense></Boundary>
+}
+
 /** A plugin's till screen on the phone: the same component as on the PC, full height. */
 export function PluginPanel({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
