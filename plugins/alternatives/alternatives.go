@@ -111,6 +111,9 @@ func (p *Plugin) reorderNotes(ctx context.Context, ids []int64) (map[int64]plugi
 		if c.Low {
 			n.Exact, n.Block, n.BlockKey = true, where, "t"+strconv.FormatInt(c.TierID, 10)
 			n.BlockLine = "LOW: " + total + " left in the group · reorder at " + itoa(c.ReorderLevel)
+			if c.Faster != "" {
+				n.BlockLine += " · " + c.Faster + " is selling faster than its share. You can change the split on the group's page"
+			}
 		}
 		out[id] = n
 	}

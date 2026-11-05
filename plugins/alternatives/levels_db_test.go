@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	appdb "karots-suite/internal/db"
@@ -272,5 +273,40 @@ func noErrExec(t *testing.T, db *sqlx.DB, q string, args ...any) {
 	t.Helper()
 	if _, err := db.Exec(q, args...); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Split by hand, and another brand outsells its share: the low-stock block says so, as
+// well as the group page. Nothing changes by itself.
+func TestLowBlockSaysWhenABrandOutsellsItsShare(t *testing.T) {
+	s, db, sfx := testStore(t)
+	ctx := context.Background()
+	p := &Plugin{store: s}
+	a, b := product(t, db, "Fast"+sfx, "0", false, true), product(t, db, "Slow"+sfx, "0", false, true)
+	setLevel(t, s, a, 10)
+	setLevel(t, s, b, 10)
+	tid := groupTier(t, s, "Sells "+sfx, a, b)
+	var sale, user int64
+	noErr(t, db.Get(&user, `SELECT id FROM users ORDER BY id LIMIT 1`))
+	noErr(t, db.Get(&sale, `INSERT INTO sales (receipt_no, cashier_id) VALUES ($1, $2) RETURNING id`, "T"+sfx, user))
+	t.Cleanup(func() { db.Exec(`DELETE FROM sales WHERE id = $1`, sale) }) //nolint:errcheck
+	noErrExec(t, db, `INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal) VALUES ($1, $2, 30, 1, 30)`, sale, a)
+	line := func() string {
+		t.Helper()
+		notes, err := p.reorderNotes(ctx, []int64{a, b})
+		noErr(t, err)
+		return notes[a].BlockLine
+	}
+	if got := line(); strings.Contains(got, "selling faster") {
+		t.Fatalf("an automatic split follows sales already: %q", got)
+	}
+	noErr(t, s.SetSplit(ctx, tid, false, map[int64]int{a: 50, b: 50}))
+	if got := line(); !strings.Contains(got, "Fast"+sfx+" is selling faster than its share") {
+		t.Fatalf("%q", got)
+	}
+	cov, err := s.CoverageFor(ctx, []int64{a})
+	noErr(t, err)
+	if !cov[a].Need.Equal(decimal.NewFromInt(20)) {
+		t.Fatalf("the shop's shares still decide: %s", cov[a].Need)
 	}
 }

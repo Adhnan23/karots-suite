@@ -240,3 +240,43 @@ func (s *Store) suggestFor(ctx context.Context, t Tier) (*SplitSuggest, error) {
 	}
 	return &SplitSuggest{ProductID: id, Name: names[id], Shares: shares}, nil
 }
+
+// fasterIn names, per tier split by hand, a brand selling above its share.
+func (s *Store) fasterIn(ctx context.Context, tierIDs []int64) (map[int64]string, error) {
+	out := map[int64]string{}
+	if len(tierIDs) == 0 {
+		return out, nil
+	}
+	var rows []struct {
+		TierID    int64  `db:"tier_id"`
+		ProductID int64  `db:"product_id"`
+		Name      string `db:"name"`
+		Share     int    `db:"share"`
+	}
+	if err := s.db.SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, p.name, COALESCE(m.split_share, 0) AS share
+		FROM `+liveMembers+` WHERE m.tier_id = ANY($1) AND NOT t.split_auto`, pq.Array(tierIDs)); err != nil {
+		return nil, err
+	}
+	ids := make([]int64, len(rows))
+	for i, r := range rows {
+		ids[i] = r.ProductID
+	}
+	sold, err := s.soldLately(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	manual, inTier, names := map[int64]map[int64]int{}, map[int64]map[int64]int64{}, map[int64]string{}
+	for _, r := range rows {
+		if manual[r.TierID] == nil {
+			manual[r.TierID], inTier[r.TierID] = map[int64]int{}, map[int64]int64{}
+		}
+		manual[r.TierID][r.ProductID], inTier[r.TierID][r.ProductID] = r.Share, sold[r.ProductID]
+		names[r.ProductID] = r.Name
+	}
+	for tier := range manual {
+		if id, ok := fasterBrand(manual[tier], inTier[tier]); ok {
+			out[tier] = names[id]
+		}
+	}
+	return out, nil
+}

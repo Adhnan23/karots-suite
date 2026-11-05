@@ -162,6 +162,8 @@ type Coverage struct {
 	// Need is this member's share of a low tier's shortfall (2 × level − total, core's
 	// rule for a product), by what sells or the shop's split; 0 otherwise.
 	Need decimal.Decimal
+	// Faster names a brand selling above the share it was given by hand, "" = none.
+	Faster string
 }
 
 // CoverageFor computes each given live member's tier total against its level.
@@ -190,11 +192,19 @@ func (s *Store) CoverageFor(ctx context.Context, ids []int64) (map[int64]Coverag
 	if err != nil {
 		return nil, err
 	}
+	lowTiers := make([]int64, 0, len(short))
+	for id := range short {
+		lowTiers = append(lowTiers, id)
+	}
+	faster, err := s.fasterIn(ctx, lowTiers)
+	if err != nil {
+		return nil, err
+	}
 	out := make(map[int64]Coverage, len(rows))
 	for _, r := range rows {
 		t := low(r.Tier)
 		out[r.ProductID] = Coverage{Group: r.Group, Tier: t.Name, TierID: t.ID, Total: t.Total, ReorderLevel: t.ReorderLevel,
-			Covered: t.ReorderLevel > 0 && !t.Low, Low: t.Low, Need: needs[r.ProductID]}
+			Covered: t.ReorderLevel > 0 && !t.Low, Low: t.Low, Need: needs[r.ProductID], Faster: faster[t.ID]}
 	}
 	return out, nil
 }
