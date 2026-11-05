@@ -17,13 +17,16 @@ const SEG = 'flex-1 rounded-[var(--radius-sm)] px-3 py-2 text-[13px] font-semibo
 
 type Draft = { name: string; discountType: DiscountType; discountValue: string; startsOn: string; endsOn: string; members: Member[] }
 
+/** A new combo started with a name and items; the price stays the person's. */
+export type ComboDraft = Pick<Draft, 'name' | 'members'>
+
 const draftOf = (c: Combo | null): Draft => c
   ? { name: c.name, discountType: c.discountType, discountValue: String(Number(c.discountValue)), startsOn: c.startsOn, endsOn: c.endsOn, members: c.members }
   : { name: '', discountType: 'price', discountValue: '', startsOn: '', endsOn: '', members: [] }
 
 /** New / edit combo: name, how it's priced, the items (×qty) and optional dates. */
-export function ComboSheet({ combo, open, onClose, sym }: { combo: Combo | null; open: boolean; onClose: () => void; sym: string }) {
-  const [d, setD] = useState<Draft>(() => draftOf(combo))
+export function ComboSheet({ combo, draft, open, onClose, sym }: { combo: Combo | null; draft?: ComboDraft; open: boolean; onClose: () => void; sym: string }) {
+  const [d, setD] = useState<Draft>(() => ({ ...draftOf(combo), ...draft }))
   const [busy, setBusy] = useState(false)
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }))
   const setQty = (id: number, qty: number) =>

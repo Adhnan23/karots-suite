@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router'
 import { BarChart3, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { api } from '@/api/client'
+import type { AdminProduct } from '@/api/types.gen'
 import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
@@ -11,7 +13,8 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { combosQuery, deleteCombo, setActive } from './api'
-import { ComboSheet } from './ComboSheet'
+import { slots, type PageDraft } from '../slots'
+import { ComboSheet, type ComboDraft } from './ComboSheet'
 import { dealLabel, soldLabel } from './labels'
 import { setPrice } from './pricing'
 import { ComboReport } from './Report'
@@ -86,20 +89,30 @@ function ComboCard({ c, sym, onEdit }: { c: Combo; sym: string; onEdit: () => vo
 export function CombosPage({ path }: { path: string }) {
   const sym = useSuspenseQuery(configQuery).data.symbol
   const list = useQuery(combosQuery).data
-  const [editing, setEditing] = useState<{ c: Combo | null; n: number } | null>(null)
+  const [editing, setEditing] = useState<{ c: Combo | null; n: number; draft?: ComboDraft } | null>(null)
+  // A draft another plugin hands this page: names and products, never a price.
+  async function openDraft(d: PageDraft) {
+    try {
+      const members = await Promise.all(d.productIds.map((id) => api<AdminProduct>(`/admin/products/${id}`)))
+      setEditing({ c: null, n: Date.now(), draft: { name: d.name, members: members.map((p) => ({ productId: p.id, name: p.name, qty: '1', sellingPrice: p.sellingPrice, wholesalePrice: p.wholesalePrice, active: p.isActive, isService: false, stock: p.stockQty })) } })
+    } catch (e) {
+      toast.error(errMsg(e))
+    }
+  }
   if (path === 'report') return <ComboReport />
   const on = list?.filter((c) => c.active && c.window === 'on' && !c.problem).length ?? 0
   return (
     <>
       <PageHead title="Combos" sub={list ? `${on} on the till · ${list.length} in all` : 'Product deals rung in one tap.'}
         actions={<>
+          {slots.pageActions.filter((a) => a.page === 'combos').map((a) => <a.Action key={a.key} open={(draft) => void openDraft(draft)} />)}
           <Button asChild variant="secondary" className="h-10 px-4"><Link to="/admin/x/$key/$" params={{ key: 'combos', _splat: 'report' }}><BarChart3 size={16} /> Report</Link></Button>
           <Button className="h-10 px-4 font-bold" onClick={() => setEditing({ c: null, n: Date.now() })}><Plus size={16} /> New combo</Button>
         </>} />
       {list && list.length === 0
         ? <EmptyState title="No combos yet">Bundle products at a deal price — the till rings them as one set, and spots them when the items are scanned one by one.</EmptyState>
         : <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 xl:grid-cols-3">{list?.map((c) => <ComboCard key={c.id} c={c} sym={sym} onEdit={() => setEditing({ c, n: Date.now() })} />)}</div>}
-      {editing && <ComboSheet key={editing.n} combo={editing.c} sym={sym} open onClose={() => setEditing(null)} />}
+      {editing && <ComboSheet key={editing.n} combo={editing.c} draft={editing.draft} sym={sym} open onClose={() => setEditing(null)} />}
     </>
   )
 }

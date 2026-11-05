@@ -23,7 +23,7 @@ export function dosesPerDay(dosage: string): number {
     if (v === null) return 0
     sum += v
   }
-  return sum
+  return sum > 48 ? 0 : sum // not a dose: it can't tell (Go's maxDosesPerDay)
 }
 
 /** Whole days tablets last at perDay a day (0 = not tracked). */

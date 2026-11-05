@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyBody, byProduct, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
+import { answersNeed, applyBody, byProduct, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
 
 const row = (over: Partial<JobRow>): JobRow => ({ productId: 1, kind: 'hint', key: 'hint', label: 'Hint', old: '', new: 'x', reason: '', isNew: false, change: false, ticked: false, ...over })
 
@@ -23,5 +23,10 @@ describe('job rows', () => {
     expect(b.rows).toEqual([rows[0]])
     expect(b.asked).toEqual([1, 2, 3])
     expect(b.suggested).toEqual([1, 2])
+  })
+  it('a typed dose answers what a row needs; blank or "new" doesn\'t', () => {
+    expect(answersNeed('1-0-0')).toBe(true)
+    expect(answersNeed('  ')).toBe(false)
+    expect(answersNeed('New')).toBe(false)
   })
 })

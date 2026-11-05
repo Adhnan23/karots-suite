@@ -8,13 +8,13 @@ export type JobRow = {
   productId: number; kind: string; key: string; label: string; old: string; new: string; reason: string
   isNew: boolean; change: boolean; ticked: boolean; needs?: string; choices?: { value: string; label: string }[]; extra?: Record<string, string>
 }
-export type JobPreview = { rows: JobRow[]; asked: number[]; names: Record<string, string>; remaining: number }
+export type JobPreview = { rows: JobRow[]; asked: number[]; names: Record<string, string>; remaining: number; state?: string }
 export type JobAsk = { size: number; categoryId: number; filter: '' | 'skipped'; ids?: number[]; options?: unknown; reply?: string }
 export type JobApplied = { applied: number; skipped: { productId: number; label: string; why: string }[]; summary: string }
 
 export const jobsQuery = { queryKey: ['x', 'aicatalog', 'jobs'], queryFn: () => api<JobInfo[]>(base) }
 export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview>>(`${base}/${job}/next`, { json: b })
-export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[] }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
+export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[]; state?: string }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
 
 /** A row's identity on the page. */
 export const rowKey = (r: JobRow, i: number) => `${r.productId}:${r.kind}:${r.key}:${i}`
@@ -49,5 +49,9 @@ export function applyBody(pv: JobPreview, ticks: Set<string>) {
     rows: pv.rows.filter((r, i) => ticks.has(rowKey(r, i))),
     asked: pv.asked,
     suggested: [...new Set(pv.rows.map((r) => r.productId))],
+    state: pv.state,
   }
 }
+
+/** A typed answer to what a row needs: "new" and blanks are no answer. */
+export const answersNeed = (typed: string) => typed.trim() !== '' && typed.trim().toLowerCase() !== 'new'

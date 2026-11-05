@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
@@ -23,6 +24,7 @@ type JobApply struct {
 	Rows      []JobRow `json:"rows"`
 	Asked     []int64  `json:"asked"`
 	Suggested []int64  `json:"suggested"`
+	State     string   `json:"state"` // from the preview: the record's key
 }
 
 // JobSkip is a ticked row that couldn't be applied, and why.
@@ -78,10 +80,7 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 			return err
 		})
 		if err != nil {
-			why := err.Error()
-			if e, ok := apperr.As(err); ok {
-				why = e.Message
-			}
+			why := skipReason(err)
 			out.Skipped = append(out.Skipped, JobSkip{ProductID: r.ProductID, Label: r.Label, Why: why})
 			continue
 		}
@@ -100,6 +99,10 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 	for _, id := range in.Suggested {
 		suggested[id] = true
 	}
+	record := j.Key
+	if strings.HasPrefix(in.State, j.Key+":") {
+		record = in.State
+	}
 	err := appdb.WithTx(ctx, p.store.db, func(tx *sqlx.Tx) error {
 		for _, id := range in.Asked {
 			state := "no_answer"
@@ -111,7 +114,7 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 			}
 			if _, err := tx.ExecContext(ctx, `INSERT INTO aicatalog_job_items (job, product_id, state)
 				SELECT $1, id, $3 FROM products WHERE id = $2
-				ON CONFLICT (job, product_id) DO UPDATE SET state = $3, updated_at = now()`, j.Key, id, state); err != nil {
+				ON CONFLICT (job, product_id) DO UPDATE SET state = $3, updated_at = now()`, record, id, state); err != nil {
 				return err
 			}
 		}
@@ -146,7 +149,7 @@ func (p *Plugin) undoJobOp(ctx context.Context, tx *sqlx.Tx, raw map[string]any)
 	if err := j.Undo(ctx, p, tx, op); err != nil && !errors.Is(err, errStale) {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE job = $1 AND product_id = ANY($2)`, op.Job, pq.Array([]int64{op.ProductID}))
+	_, err = tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE (job = $1 OR job LIKE $1 || ':%') AND product_id = ANY($2)`, op.Job, pq.Array([]int64{op.ProductID}))
 	return err
 }
 
@@ -159,4 +162,17 @@ func staleIfNone(res sql.Result, err error) error {
 		return errStale
 	}
 	return nil
+}
+
+// skipReason is what a person is told about a row that didn't apply: a plugin's own
+// words, never a database's.
+func skipReason(err error) string {
+	if e, ok := apperr.As(err); ok {
+		return e.Message
+	}
+	var pe *pq.Error
+	if errors.As(err, &pe) {
+		return "it couldn't be saved"
+	}
+	return err.Error()
 }

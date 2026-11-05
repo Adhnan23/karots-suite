@@ -22,6 +22,7 @@ import (
 const (
 	jobBatchDefault = 10
 	jobBatchMax     = 50
+	jobSelectMax    = 100000
 )
 
 // JobProduct is a product as a job sees it.
@@ -45,6 +46,7 @@ type Batch struct {
 	Options  json.RawMessage
 	Redo     bool
 	Settings Settings
+	State    string // the record's key, when a job's list depends on its options ("" = the job's)
 }
 
 // JobRow is one suggestion, one tick box. Old and New are what the person compares.
@@ -112,6 +114,7 @@ type JobRequest struct {
 	needDetails bool    // only products a prompt could judge: a digit in the name, or a hint
 	byName      bool    // alphabetical, so similar names land in one batch
 	wide        bool    // whatever the job's record says
+	noCap       bool    // every match: the job narrows them itself
 }
 
 // JobPreview is the rows to tick. Asked is the whole batch, so apply can record a
@@ -121,6 +124,7 @@ type JobPreview struct {
 	Asked     []int64          `json:"asked"`
 	Names     map[int64]string `json:"names"`
 	Remaining int              `json:"remaining"`
+	State     string           `json:"state,omitempty"`
 }
 
 // JobInfo is a job on the page's list.
@@ -211,6 +215,9 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	if len(in.IDs) > 0 {
 		size = jobBatchMax
 	}
+	if in.noCap {
+		size = jobSelectMax
+	}
 	order := "p.id"
 	if in.byName {
 		order = "lower(p.name), p.id"
@@ -255,6 +262,9 @@ func (h handlers) jobNext(c echo.Context) error {
 		b.Products, total, err = selectProducts(ctx, h.p, j.Key, in)
 	}
 	if err != nil {
+		if _, ok := apperr.As(err); ok {
+			return err
+		}
 		return apperr.Internal("read the products", err)
 	}
 	b.Options, b.Settings, b.Redo = in.Options, s, len(in.IDs) > 0
@@ -265,6 +275,9 @@ func (h handlers) jobNext(c echo.Context) error {
 	}
 	system, user, err := j.Prompt(ctx, h.p, b)
 	if err != nil {
+		if _, ok := apperr.As(err); ok {
+			return err
+		}
 		return apperr.Internal("write the prompt", err)
 	}
 	full := withCustom(system, s.CustomPrompt) + "\n\n" + user + "\n\n" + jsonOnly
@@ -285,7 +298,7 @@ func (h handlers) jobNext(c echo.Context) error {
 		out.Prompt, out.Error = full, err.Error()
 		return c.JSON(http.StatusOK, out)
 	}
-	pv := JobPreview{Rows: []JobRow{}, Asked: make([]int64, 0, len(b.Products)), Names: map[int64]string{}, Remaining: total - len(b.Products)}
+	pv := JobPreview{State: b.State, Rows: []JobRow{}, Asked: make([]int64, 0, len(b.Products)), Names: map[int64]string{}, Remaining: total - len(b.Products)}
 	for _, x := range b.Products {
 		pv.Asked = append(pv.Asked, x.ID)
 		pv.Names[x.ID] = x.Name

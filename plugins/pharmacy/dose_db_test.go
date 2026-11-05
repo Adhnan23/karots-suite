@@ -108,3 +108,27 @@ func must[T any](v T, err error) T {
 	}
 	return v
 }
+
+// A dose read as absurd numbers isn't a save-breaking error: it joins the list with
+// doses a day unknown, for the shop to name.
+func TestLearnDoseAbsurdNumber(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	dose := "3-3-999999"
+	if err := f.st.SetFlags(ctx, f.pana, MedicineFlags{Dose: dose}); err != nil {
+		t.Fatal(err)
+	}
+	ds, err := f.st.Doses(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, d := range ds {
+		if d.Dose == dose {
+			if !d.PerDay.IsZero() {
+				t.Fatalf("doses a day: %s", d.PerDay)
+			}
+			return
+		}
+	}
+	t.Fatal("not on the list")
+}

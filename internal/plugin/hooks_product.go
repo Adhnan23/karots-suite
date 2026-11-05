@@ -56,6 +56,35 @@ type ProductMetaProvider struct {
 	Batch func(ctx context.Context, productIDs []int64) (map[int64]string, error)
 }
 
+// ProductAttribute is a value a plugin keeps per product. Type is text | textarea |
+// number | bool | select | date. CategoryIDs lists every category it applies to,
+// sub-categories included; none = all products.
+type ProductAttribute struct {
+	Key, Label, Type string
+	Options          []string
+	CategoryIDs      []int64
+}
+
+// KnownValue is a value already in use for an attribute, with what it means if the
+// plugin keeps that (Extra holds the plugin's own details).
+type KnownValue struct {
+	Value, Meaning string
+	Extra          map[string]string
+}
+
+// ProductAttributeSet lets a plugin say which per-product values it keeps and take
+// new ones through its own rules. Known is most used first. AddKnown and RemoveKnown
+// are nil when the plugin keeps no list of values; RemoveKnown leaves one still in use.
+type ProductAttributeSet struct {
+	Key         string
+	Attributes  func(ctx context.Context) ([]ProductAttribute, error)
+	Values      func(ctx context.Context, productIDs []int64) (map[int64]map[string]string, error)
+	Known       func(ctx context.Context, attr string, limit int) ([]KnownValue, error)
+	Set         func(ctx context.Context, productID int64, attr, value string) error
+	AddKnown    func(ctx context.Context, attr string, v KnownValue) error
+	RemoveKnown func(ctx context.Context, attr, value string) error
+}
+
 // ProductGroupTier is one tier of a group of interchangeable products.
 type ProductGroupTier struct {
 	ID   int64
@@ -202,6 +231,7 @@ var (
 	productReorderAnnotators hook[ProductReorderAnnotator]
 	productTillLines         hook[ProductTillLineProvider]
 	productGroupers          hook[ProductGrouper]
+	productAttributeSets     hook[ProductAttributeSet]
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
@@ -230,6 +260,8 @@ func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
 }
 func (r *Registry) AddProductGrouper(g ProductGrouper) { productGroupers.add(g) }
 
+func (r *Registry) AddProductAttributeSet(a ProductAttributeSet) { productAttributeSets.add(a) }
+
 func (r *Registry) AddProductTillLineProvider(p ProductTillLineProvider) {
 	productTillLines.add(p)
 }
@@ -250,6 +282,7 @@ func ProductSaleSuggestionProviders() []ProductSaleSuggestionProvider {
 }
 func ProductDetailContributors() []ProductDetailContributor   { return productDetailProviders.all() }
 func ProductLabelFieldProviders() []ProductLabelFieldProvider { return productLabelProviders.all() }
+func ProductAttributeSets() []ProductAttributeSet             { return productAttributeSets.all() }
 func ProductGroupers() []ProductGrouper                       { return productGroupers.all() }
 func ProductTillLineProviders() []ProductTillLineProvider     { return productTillLines.all() }
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }

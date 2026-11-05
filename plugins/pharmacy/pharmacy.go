@@ -35,6 +35,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "pharmacy", Name: "Pharmacy", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "pharmacy", Merge: mergeProduct})
+	reg.AddProductAttributeSet(p.store.attributes())
 	// No CategoryMerger: pharmacy keeps no category ids.
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till's 💊 panel and the pages

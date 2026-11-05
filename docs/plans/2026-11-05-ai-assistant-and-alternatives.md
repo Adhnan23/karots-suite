@@ -280,7 +280,7 @@
   // reg.AddProductAttributeSet(s); plugin.ProductAttributeSets()
   ```
 
-- [ ] **Step 1: Write the failing tests**, using prompt 5's real replies:
+- [x] **Step 1: Write the failing tests**, using prompt 5's real replies:
   - `TestFieldsOnlyTicked`: unticked fields are neither asked for nor applied, even if the reply has them.
   - `TestFieldsPerCategory`: a medicine is asked for `generic_name`, a part for `fits_model`, in one batch; a reply giving a part `generic_name` is dropped.
   - `TestFieldsKnownValues`: the prompt lists existing values capped at 30 per field, most-used first; `GSK` reused isn't `IsNew`; a new value is.
@@ -289,10 +289,10 @@
   - `TestFieldsNeverOverwrite`: an existing value gives a row `Old` set, unticked, only on Redo.
   - `TestFieldsBadTypes`: `abc` for a number or a bad date is reported, others save.
   - `attributes_db_test.go`: scope via `appliesSQL` including sub-categories; `Set` uses `coerce`.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement** the Product Plus provider, then the job (`Key: "fields"`, available when a set with key `productplus` exists). Page text says run after categories are right. Tick list starts with nothing ticked, so a rack number is never guessed by default.
-- [ ] **Step 4: e2e:** paste a canned reply on a build with Product Plus; only ticked fields save.
-- [ ] **Step 5: Commit** `feat(aicatalog): fill in the shop's own fields, respecting scope and types`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement** the Product Plus provider, then the job (`Key: "fields"`, available when a set with key `productplus` exists). Page text says run after categories are right. Tick list starts with nothing ticked, so a rack number is never guessed by default.
+- [x] **Step 4: e2e:** paste a canned reply on a build with Product Plus; only ticked fields save.
+- [x] **Step 5: Commit** `feat(aicatalog): fill in the shop's own fields, respecting scope and types`
 
 ### Task 10: Setup details
 
@@ -302,15 +302,15 @@
 **Interfaces:**
 - Reply: `{"items":[{"id":0,"has_expiry":true,"pack_name":"Card","pack_size":10,"reason":""}]}`. Available always. Applies through `products.Service` (`Update` for expiry, `SavePack` for the pack with blank prices).
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `TestSetupExpiryChangeUnticked`: suggesting yes on a current no is `Change:true`, unticked; `null` gives no row.
   - `TestSetupPackBlankPrice`: applying leaves pack prices 0, so size × unit price applies.
   - `TestSetupPackSkips`: existing same-name pack, size ≤ 1, a decimal unit, or a service give no row.
   - `TestSetupUndoPack`: undo removes the pack, unless it has been edited since.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(aicatalog): suggest expiry and pack size`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(aicatalog): suggest expiry and pack size`
 
 ### Task 11: Pharmacy marks
 
@@ -322,16 +322,16 @@
 - Consumes: `ProductAttributeSet` with `Key: "pharmacy"`, attributes `rx_only` (bool), `controlled` (bool), `dose` (text). `Set` is read-modify-write over `Flags` / `SetFlags`, so other marks survive. `controlled` true implies `rx_only` true, the rule in `0008`.
 - Job: `Key: "marks"`, `Warning: "No suggestion does not mean cleared. The chatbot can miss one. The pharmacist still checks the list."`
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `attributes_db_test.go`: setting `rx_only` keeps `dose` and `controlled`; `controlled` also sets `rx_only`; `Values` reads them.
   - `TestMarksRealReply`: prompt 6's replies give rows for each medicine, with reason.
   - `TestMarksNull`: `rx_only:null` gives no row and the product is `no_answer`, which stays visible under the filter.
   - `TestMarksUnticked`: every mark starts unticked; a change from yes to no is `Change:true`.
   - `TestMarksCategoryFilter`: `categoryId` limits the batch, so cleaning items aren't asked about.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run.** Expected: PASS. Controlled register page still reads the mark.
-- [ ] **Step 5: Commit** `feat(aicatalog): suggest Rx-only and controlled marks for the pharmacist to check`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run.** Expected: PASS. Controlled register page still reads the mark.
+- [x] **Step 5: Commit** `feat(aicatalog): suggest Rx-only and controlled marks for the pharmacist to check`
 
 ### Task 12: Usual dose
 
@@ -343,7 +343,7 @@
 - Job: `Key: "dose"`, `OneByOne: true`. Reply: `{"items":[{"id":0,"dose":"","new":false,"meaning":"","per_day":0,"reason":""}]}`.
 - Prompt includes: the whole dose list with meanings and per-day; "reuse exact wording"; "a new dose gives a short form like 1-0-0 or every 6 hours"; "as needed means per_day 0"; "leave dose empty if it depends on the patient"; usual adult dose.
 
-- [ ] **Step 1: Write the failing tests**, with real replies:
+- [x] **Step 1: Write the failing tests**, with real replies:
   - `TestDoseLiteralNew`: ChatGPT's `"dose":"new"` is never a dose; the row has no `New`, shows the meaning, and can't apply until the pharmacist types a form.
   - `TestDoseBlankNew`: Gemini's `dose:""`, `new:true` behaves the same.
   - `TestDoseOnList`: `1-1-1` isn't new; case and spacing are normalised to the list's own wording.
@@ -353,10 +353,10 @@
   - `TestDoseNewAddsToList`: applying a new dose adds it with words and `per_day`; undo removes it only if nothing else uses it.
   - `TestDosePerDayAsNeeded`: the prompt says as needed = 0; the preview shows `per_day`, editable.
   - `TestDoseNoTickAll`: `OneByOne` is true; the page has no tick-all.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Row inputs for dose form, meaning and per day when new.
-- [ ] **Step 4: e2e:** a canned reply, approving one row; the medicine's usual dose fills a prescription line.
-- [ ] **Step 5: Commit** `feat(aicatalog): suggest usual doses from the shop's own dose list`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** Row inputs for dose form, meaning and per day when new.
+- [x] **Step 4: e2e:** a canned reply, approving one row; the medicine's usual dose fills a prescription line.
+- [x] **Step 5: Commit** `feat(aicatalog): suggest usual doses from the shop's own dose list`
 
 ### Task 13: Combo suggestions
 
@@ -368,15 +368,15 @@
 - Consumes: `slots.pageActions` with `page: 'combos'`; `open(draft)` makes the page open `ComboSheet` with `draft.name` and `draftOf` lines from `draft.productIds`, and price blank.
 - Route: `POST /aicatalog/combo-suggest` `{reply, categoryId}`, same manual flow; no apply route, because the only save is the normal combo form. Reply: `{"combos":[{"name":"","product_ids":[],"reason":""}]}`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `TestCombosRealReply`: prompt 8's replies give 3 suggestions.
   - `TestCombosDrop`: foreign ids, fewer than 2 products, or a product marked `rx_only` by any attribute set are dropped; no price is read even if a reply has one.
   - `TestCombosPromptNoPrices`.
   - Combos page Vitest or e2e: `open` fills the sheet with products, price is empty, and nothing saves until Save.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Suggestions list with reason and **Use** on each. AI Assistant's Jobs tab links to the Combos page only when `slots.apps` has `combos`.
-- [ ] **Step 4: Run.** Expected: PASS. Grep: `plugins/combos` and `web/src/plugins/combos` still don't mention AI.
-- [ ] **Step 5: Commit** `feat(aicatalog): suggest combos from a button on the Combos page`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** Suggestions list with reason and **Use** on each. AI Assistant's Jobs tab links to the Combos page only when `slots.apps` has `combos`.
+- [x] **Step 4: Run.** Expected: PASS. Grep: `plugins/combos` and `web/src/plugins/combos` still don't mention AI.
+- [x] **Step 5: Commit** `feat(aicatalog): suggest combos from a button on the Combos page`
 
 ### Task 14: Docs and screenshots
 

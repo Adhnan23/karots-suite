@@ -56,6 +56,7 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	h.cleanupRoutes(a)
 	h.hintRoutes(a)
 	h.jobRoutes(a)
+	a.POST("/aicatalog/combo-suggest", h.comboSuggest)
 }
 
 func settingsDTO(s Settings) SettingsDTO {

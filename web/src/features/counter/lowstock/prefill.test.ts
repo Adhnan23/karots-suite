@@ -1,4 +1,3 @@
-import type { ReorderRow } from '@/api/types.gen'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { ReorderRow } from '@/api/types.gen'
 import { clearPrefill, linesFor, peekPrefill, savePrefill } from './prefill'

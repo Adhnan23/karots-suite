@@ -11,7 +11,7 @@ import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { slots } from '../slots'
 import { LastRun } from './CleanupPage'
-import { applyBody, byProduct, initialTicks, jobApply, jobNext, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
+import { answersNeed, applyBody, byProduct, initialTicks, jobApply, jobNext, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
 import { PastePanel } from './PastePanel'
 import { lastRunQuery } from './api'
 import { jobControls } from './jobControls'
@@ -85,7 +85,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
     setBusy(true)
     try {
       const rows = pv.rows.map((r, i) => merged(r, rowKey(r, i)))
-      const r = await jobApply(job.key, applyBody({ ...pv, rows }, ticks))
+      const r = await jobApply(job.key, applyBody({ ...pv, rows }, new Set([...ticks].filter((k) => rows.some((x, i) => rowKey(x, i) === k && !x.needs)))))
       toast.success(r.summary)
       setSkips(r.skipped)
       setRedo(undefined)
@@ -192,7 +192,20 @@ function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onAp
                   <span className="min-w-0">
                     <b>{r.label}</b>{r.isNew && <span className="ml-1.5 rounded-md bg-brand-soft px-1.5 py-0.5 text-[11.5px] font-bold">new</span>}
                     {r.old && <span className="block break-words whitespace-pre-line text-faint line-through">{r.old}</span>}
-                    <span className="block break-words whitespace-pre-line">{r.new}</span>
+                    {r.new && <span className="block break-words whitespace-pre-line">{r.new}</span>}
+                    {row.needs && !row.choices && (
+                      <input aria-label={row.needs} placeholder={row.needs} name={`job-${key}`} autoComplete="off" value={edits[key]?.new ?? ''} className={cn(INPUT, 'mt-1')}
+                        onChange={(e) => setEdits({ ...edits, [key]: { ...edits[key], new: e.target.value, needs: answersNeed(e.target.value) ? '' : row.needs } })} />
+                    )}
+                    {row.isNew && r.extra?.perDay !== undefined && (
+                      <span className="mt-1 grid gap-1 sm:grid-cols-[minmax(0,1fr)_120px]">
+                        <input aria-label="What it means" placeholder="What it means, for the label" name={`job-meaning-${key}`} autoComplete="off" value={r.extra.meaning ?? ''} className={INPUT}
+                          onChange={(e) => setEdits({ ...edits, [key]: { ...edits[key], extra: { ...edits[key]?.extra, meaning: e.target.value } } })} />
+                        <input aria-label="Doses a day" title="Doses a day (0 = when needed)" inputMode="decimal" name={`job-perday-${key}`} autoComplete="off" value={r.extra.perDay} className={cn(INPUT, 'tabular-nums')}
+                          onChange={(e) => setEdits({ ...edits, [key]: { ...edits[key], extra: { ...edits[key]?.extra, perDay: e.target.value.replace(/[^\d.]/g, '') } } })} />
+                        <small className="text-faint sm:col-span-2">Doses a day: 0 means only when needed.</small>
+                      </span>
+                    )}
                     {row.needs && row.choices && (
                       <select aria-label={row.needs} value={edits[key]?.extra?.[row.key] ?? ''} className={cn(INPUT, 'mt-1')}
                         onChange={(e) => setEdits({ ...edits, [key]: { extra: { [row.key]: e.target.value }, needs: e.target.value ? '' : row.needs } })}>
@@ -211,7 +224,7 @@ function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onAp
       {none.length > 0 && <p className="text-[13px] text-muted-foreground">No answer for: {none.map((id) => pv.names[id]).join(', ')}. They stay under "Skipped or no answer".</p>}
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="ghost" className="h-11" onClick={onCancel}>Cancel</Button>
-        <Button className="h-11 px-5 font-bold" disabled={busy} onClick={onApply}>Apply {ticks.size} and save the rest as skipped</Button>
+        <Button className="h-11 px-5 font-bold" disabled={busy} onClick={onApply}>Apply {pv.rows.filter((r, i) => ticks.has(rowKey(r, i)) && !merged(r, rowKey(r, i)).needs).length} and save the rest as skipped</Button>
       </div>
     </section>
   )

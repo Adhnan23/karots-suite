@@ -19,6 +19,9 @@ const (
 // doseWords are the Latin shorthands doctors write beside (or instead of) 1-0-1.
 var doseWords = map[string]int64{"od": 1, "mane": 1, "nocte": 1, "bd": 2, "bid": 2, "tds": 3, "tid": 3, "qds": 4, "qid": 4}
 
+// maxDosesPerDay is the most the dose list allows, too.
+const maxDosesPerDay = 48
+
 // DosesPerDay reads a Sri Lankan dosage — morning-noon-night counts such as 1-0-1
 // (2 a day), 1/2-0-1/2 (1) or 1-1-1-1 (4), or od / bd / tds / qid — as doses a
 // day. 0 when it can't tell (the pharmacist types it).
@@ -38,6 +41,9 @@ func DosesPerDay(dosage string) decimal.Decimal {
 			return decimal.Zero
 		}
 		sum = sum.Add(v)
+	}
+	if sum.GreaterThan(decimal.NewFromInt(maxDosesPerDay)) { // not a dose: it can't tell
+		return decimal.Zero
 	}
 	return sum
 }

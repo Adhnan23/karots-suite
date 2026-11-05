@@ -3,12 +3,16 @@ package aicatalog
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 	"testing"
 
+	"karots-suite/internal/apperr"
+
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // fakeJob renames a product from a reply of {"items":[{"id":1,"name":"x"}]}.
@@ -229,5 +233,17 @@ func TestUnavailableJob(t *testing.T) {
 	}
 	if rec := do("POST", "/jobs/fake/apply", `{}`); rec.Code != 404 {
 		t.Fatalf("apply: %d", rec.Code)
+	}
+}
+
+func TestSkipReasonHidesTheDatabase(t *testing.T) {
+	if got := skipReason(&pq.Error{Code: "22003", Message: "numeric field overflow"}); strings.Contains(got, "overflow") || strings.Contains(got, "pq") {
+		t.Fatal(got)
+	}
+	if got := skipReason(errors.New("Weight: not a number")); got != "Weight: not a number" {
+		t.Fatal(got)
+	}
+	if got := skipReason(apperr.Validation("pick one")); got != "pick one" {
+		t.Fatal(got)
 	}
 }

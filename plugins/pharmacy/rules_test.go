@@ -11,7 +11,7 @@ func TestDosesPerDay(t *testing.T) {
 	for in, want := range map[string]string{
 		"1-0-1": "2", "1-1-1": "3", "0-0-1": "1", "1/2-0-1/2": "1", "½-0-½": "1", "2-0-2": "4",
 		"1-1-1-1": "4", " 1 - 0 - 1 ": "2", "BD": "2", "tds": "3", "od": "1", "nocte": "1", "qid": "4",
-		"1 tablet twice daily": "0", "": "0", "1-0": "0", "a-b-c": "0",
+		"1 tablet twice daily": "0", "": "0", "1-0": "0", "a-b-c": "0", "3-3-999999": "0",
 	} {
 		if got := DosesPerDay(in); got.String() != want {
 			t.Errorf("DosesPerDay(%q) = %s, want %s", in, got, want)

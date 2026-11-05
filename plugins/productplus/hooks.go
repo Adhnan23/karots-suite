@@ -12,6 +12,7 @@ import (
 // sheet columns, search, the list line, till ⓘ rows and label lines.
 func (p *Plugin) registerHooks(reg *plugin.Registry) {
 	reg.AddProductExtras(plugin.ProductExtras{Key: "productplus", Validate: p.validateExtra, Save: p.saveExtra})
+	reg.AddProductAttributeSet(p.store.attributes())
 	reg.AddProductSheetColumns(plugin.ProductSheetColumns{Key: "productplus", Label: "Custom fields",
 		Columns: p.store.SheetColumns, Export: p.store.SheetExport, Import: p.store.SheetImport})
 	reg.AddProductSearchContributor(plugin.ProductSearchContributor{Match: p.store.MatchProductIDs})

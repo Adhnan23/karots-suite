@@ -22,6 +22,8 @@ type Plugin struct {
 	jobs  []Job
 	// groupers is plugin.ProductGroupers; a test gives its own.
 	groupers func() []plugin.ProductGrouper
+	// attrSets is plugin.ProductAttributeSets; a test gives its own.
+	attrSets func() []plugin.ProductAttributeSet
 }
 
 func (p *Plugin) Name() string                { return "AI Assistant" }
@@ -39,6 +41,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store.undoJob = p.undoJobOp
 	p.jobs = allJobs()
 	p.groupers = plugin.ProductGroupers
+	p.attrSets = plugin.ProductAttributeSets
 	p.cats = categories.NewService(reg.Core.DB)
 	reg.AddDataGroup(dataGroup)
 	p.registerHooks(reg)
@@ -46,4 +49,6 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 }
 
 // allJobs is every job in the page's order; each decides for itself if it's available.
-func allJobs() []Job { return []Job{identifyJob(), groupsJob()} }
+func allJobs() []Job {
+	return []Job{identifyJob(), groupsJob(), fieldsJob(), setupJob(), marksJob(), doseJob()}
+}

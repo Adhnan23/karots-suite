@@ -141,6 +141,116 @@ test('jobs: identify a whole list: unknown items wait, ticks apply, the next bat
   expect(back.name).toBe(`pn-${tag}-a`)
 })
 
+test.describe('jobs that come with other plugins', () => {
+  const stamp = `${Date.now()}`.slice(-6)
+  const add = async (page: Page, name: string, categoryId: number) => (await (await page.request.post('/api/v1/admin/products', { data: { name, categoryId, unitId: 1 } })).json()).id as number
+  const makeCat = async (page: Page, name: string) => (await (await page.request.post('/api/v1/admin/categories', { data: { name } })).json()).id as number
+  const pickCategory = async (page: Page, name: string) => {
+    await page.getByRole('button', { name: 'Category', exact: false }).first().click()
+    await page.getByLabel('Search categories').fill(name)
+    await page.getByLabel('Search categories').press('Enter')
+  }
+  const paste = async (page: Page, reply: unknown) => {
+    await page.getByLabel('Chatbot answer').fill(JSON.stringify(reply))
+    await page.getByLabel('Chatbot answer').press('Enter')
+  }
+
+  test('fill in details: only ticked fields are asked for and saved', async ({ page }) => {
+    await login(page, '/admin')
+    const cat = await makeCat(page, `Fields ${stamp}`)
+    const a = await add(page, `Panadol F ${stamp}`, cat)
+    const mk = async (label: string) => (await page.request.post('/api/v1/x/productplus/fields', { data: { label, type: 'text', scope: [] } }))
+    expect((await mk(`Generic ${stamp}`)).ok()).toBe(true)
+    expect((await mk(`Rack ${stamp}`)).ok()).toBe(true)
+    await page.goto('/admin/x/aicatalog/jobs/fields')
+    await pickCategory(page, `Fields ${stamp}`)
+    await page.getByRole('button', { name: 'Start' }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'tick the fields' }).first()).toBeVisible()
+    await page.getByLabel(new RegExp(`^Generic ${stamp}`)).check()
+    await page.getByRole('button', { name: 'Start' }).click()
+    const prompt = await page.getByLabel('Prompt to copy').inputValue()
+    expect(prompt).toContain(`Generic ${stamp}`)
+    expect(prompt).not.toContain(`Rack ${stamp}`)
+    const key = prompt.split('\n').find((l) => l.includes(`(Generic ${stamp}`))!.split(' (')[0]
+    const rack = `rack_${stamp}`
+    await paste(page, { items: [{ id: a, values: [{ field: key, value: 'Paracetamol' }, { field: rack, value: 'A1' }] }] })
+    await expect(page.getByRole('checkbox', { name: new RegExp(`^Generic ${stamp}: Paracetamol`) })).toBeChecked()
+    await expect(page.getByText('A1')).toHaveCount(0)
+    await page.getByRole('button', { name: /^Apply 1/ }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
+  })
+
+  test('marks warn the pharmacist; doses are approved one by one and "new" never saves', async ({ page }) => {
+    await login(page, '/admin')
+    const cat = await makeCat(page, `Meds ${stamp}`)
+    const a = await add(page, `Tramadol ${stamp}`, cat)
+    await page.goto('/admin/x/aicatalog/jobs/marks')
+    await expect(page.getByRole('note')).toContainText('does not mean cleared')
+    await pickCategory(page, `Meds ${stamp}`)
+    await page.getByRole('button', { name: 'Start' }).click()
+    await paste(page, { items: [{ id: a, rx_only: true, controlled: null, reason: 'An opioid' }] })
+    const rx = page.getByRole('checkbox', { name: /^Needs a prescription: yes/ })
+    await expect(rx).not.toBeChecked()
+    await rx.check()
+    await page.getByRole('button', { name: /^Apply 1/ }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
+
+    await page.goto('/admin/x/aicatalog/jobs/dose')
+    await expect(page.getByLabel('How many at a time', { exact: true })).toHaveValue('1')
+    await pickCategory(page, `Meds ${stamp}`)
+    await page.getByRole('button', { name: 'Start' }).click()
+    await paste(page, { items: [{ id: a, dose: 'new', new: true, meaning: 'As needed', per_day: 4, reason: 'x' }] })
+    await expect(page.getByRole('button', { name: /Tick all/ })).toHaveCount(0)
+    const box = page.getByRole('checkbox', { name: /^Usual dose/ })
+    await expect(box).toBeDisabled() // nothing to save until the pharmacist types it
+    await page.getByLabel('Type the dose, like 1-0-0').fill('new')
+    await expect(box).toBeDisabled()
+    const form = `3-3-${stamp}`
+    await page.getByLabel('Type the dose, like 1-0-0').fill(form)
+    await page.getByLabel('Doses a day').fill('0')
+    await page.getByRole('checkbox', { name: /^Usual dose/ }).check()
+    await page.getByRole('button', { name: /^Apply 1/ }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
+    const doses = (await (await page.request.get('/api/v1/x/pharmacy/doses')).json()) as { dose: string; perDay: string; words: string }[]
+    const d = doses.find((x) => x.dose === form)!
+    expect(Number(d.perDay)).toBe(0)
+    expect(d.words).toBe('As needed')
+    await page.setViewportSize({ width: 360, height: 780 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
+  })
+
+  test('combos: a suggestion opens the normal form with no price; nothing saves until Save', async ({ page }) => {
+    await login(page, '/admin')
+    const cat = await makeCat(page, `Combo ${stamp}`)
+    const a = await add(page, `Wipes ${stamp}`, cat)
+    const b = await add(page, `Powder ${stamp}`, cat)
+    const before = (await (await page.request.get('/api/v1/x/combos')).json()).length
+    await page.goto('/admin/x/combos')
+    await page.getByRole('button', { name: 'Suggest combos' }).click()
+    await paste(page, { combos: [{ name: `Baby ${stamp}`, product_ids: [a, b], reason: 'Bought together', price: 99 }] })
+    await expect(page.getByText('Bought together')).toBeVisible()
+    await page.getByRole('button', { name: 'Use', exact: true }).click()
+    const form = page.getByRole('dialog')
+    await expect(form.locator('input').first()).toHaveValue(`Baby ${stamp}`)
+    await expect(form.getByText(`Wipes ${stamp}`)).toBeVisible()
+    await expect(form.getByText(`Powder ${stamp}`)).toBeVisible()
+    await expect(form.locator('input[value="99"]')).toHaveCount(0)
+    expect((await (await page.request.get('/api/v1/x/combos')).json()).length).toBe(before)
+  })
+
+  test('the jobs list fits a phone', async ({ page }) => {
+    await login(page, '/admin/x/aicatalog/jobs')
+    await page.setViewportSize({ width: 360, height: 780 })
+    await expect(page.getByRole('button', { name: /Usual dose/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Combo suggestions/ })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
+    if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/jobs-360.png`, fullPage: true })
+    await page.goto('/admin/x/aicatalog/jobs/identify')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
+    if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/job-360.png`, fullPage: true })
+  })
+})
+
 test('a bad paste keeps the text and says why', async ({ page }) => {
   await login(page, '/admin/products')
   await page.getByRole('button', { name: 'New product' }).click()
