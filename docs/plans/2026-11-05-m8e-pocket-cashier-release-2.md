@@ -71,17 +71,17 @@
 
 Store: object store `recent`, keyed by sale id, one sealed row per sale, with an unencrypted `createdAt` index for pruning only. Search decrypts into an in-memory list on first use, so nothing searchable sits in the clear.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `upgrade keeps the outbox and the copy`: open a version 1 database holding a row in each, open version 2, both remain.
   - `pages until done`: mocks `More: true` then `false`; both saved; cursor at the last.
   - `a dropped download resumes`: page 2 fails; `ready` false, page 1 kept, the next call asks from page 1's cursor; selling isn't affected.
   - `changed sale replaces the row`; `prunes sales past 30 days`.
   - `reset clears then reloads`: `Reset: true` leaves only the new sales.
   - `findSales` matches receipt number, customer name and product name.
-- [ ] **Step 2: Run them.** `cd web && bunx vitest run src/plugins/pocketcashier/store/recent.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement.** `refreshRecent` runs from the same `tick` as `refresh()` in `sync.ts`; a failure sets nothing on `live` (the copy's sync owns that state).
-- [ ] **Step 4: Run** `bunx vitest run src/plugins/pocketcashier`. Expected: PASS.
-- [ ] **Step 5: Commit.** `feat(pocketcashier): the phone keeps the last 30 days and takes only what changed`
+- [x] **Step 2: Run them.** `cd web && bunx vitest run src/plugins/pocketcashier/store/recent.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement.** `refreshRecent` runs from the same `tick` as `refresh()` in `sync.ts`; a failure sets nothing on `live` (the copy's sync owns that state).
+- [x] **Step 4: Run** `bunx vitest run src/plugins/pocketcashier`. Expected: PASS.
+- [x] **Step 5: Commit.** `feat(pocketcashier): the phone keeps the last 30 days and takes only what changed`
 
 ---
 

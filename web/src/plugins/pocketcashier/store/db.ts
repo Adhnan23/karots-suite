@@ -1,18 +1,25 @@
-/** The phone's own database: the sealed till copy, the outbox of actions not yet
- * sent, the phone's pairing and the key that seals them. Plain IndexedDB. */
+/** The phone's own database: the sealed till copy, the last 30 days of sales, the
+ * outbox of actions not yet sent, the phone's pairing and the key that seals them.
+ * Plain IndexedDB. */
 const NAME = 'ks-pocket'
 
 let opening: Promise<IDBDatabase> | null = null
 
 export function openDb(): Promise<IDBDatabase> {
   opening ??= new Promise((resolve, reject) => {
-    const r = indexedDB.open(NAME, 1)
-    r.onupgradeneeded = () => {
+    const r = indexedDB.open(NAME, 2)
+    r.onupgradeneeded = (e) => {
       const db = r.result
-      db.createObjectStore('keys')
-      db.createObjectStore('copy')
-      db.createObjectStore('phone')
-      db.createObjectStore('outbox', { keyPath: 'seq', autoIncrement: true }).createIndex('ref', 'ref', { unique: true })
+      if (e.oldVersion < 1) {
+        db.createObjectStore('keys')
+        db.createObjectStore('copy')
+        db.createObjectStore('phone')
+        db.createObjectStore('outbox', { keyPath: 'seq', autoIncrement: true }).createIndex('ref', 'ref', { unique: true })
+      }
+      if (e.oldVersion < 2) {
+        db.createObjectStore('recent', { keyPath: 'id' }).createIndex('at', 'at')
+        db.createObjectStore('meta')
+      }
     }
     r.onsuccess = () => resolve(r.result)
     r.onerror = () => { opening = null; reject(r.error) }

@@ -1,8 +1,9 @@
-import type { TillCopy } from '@/api/types.gen'
+import type { RecentSales, TillCopy } from '@/api/types.gen'
 import { BASE, phoneFetch } from './api'
 import { loadCopy, saveCopy } from './store/copy'
 import { ack, addAction, pending, type Action } from './store/outbox'
 import { loadPhone } from './store/phone'
+import { recentCursor, saveRecent } from './store/recent'
 
 /** What the screens show: is the PC reachable, how fresh is the copy, how many
  * actions wait to be sent. */
@@ -50,6 +51,33 @@ export async function refresh() {
   }
 }
 
+let fetchingRecent: Promise<void> | null = null
+
+/** Brings the last 30 days of sales up to date, page by page. A failure just
+ * stops here (the next tick asks on from the last good page); whether the PC
+ * answers is the copy's call, so selling never waits on this. */
+export function refreshRecent(): Promise<void> {
+  fetchingRecent ??= (async () => {
+    try {
+      for (;;) {
+        const c = await recentCursor()
+        const qs = new URLSearchParams({ after: String(c.after) })
+        if (c.since) qs.set('since', c.since)
+        const res = await phoneFetch(`/recent?${qs}`)
+        if (!res.ok) return
+        const page = (await res.json()) as RecentSales
+        await saveRecent(page, new Date())
+        if (!page.more) return
+      }
+    } catch {
+      // the PC went away, or a reply that isn't a page: try again on the next tick
+    } finally {
+      fetchingRecent = null
+    }
+  })()
+  return fetchingRecent
+}
+
 /** Sends what waits, oldest first, 50 at a time; every answered ref (applied,
  * skipped or failed) is acknowledged and never sent again. */
 export function flush(signedIn: () => number | null): Promise<void> {
@@ -84,7 +112,10 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   notify = onState
   let es: EventSource | null = null
   let stopped = false
-  const tick = () => { void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined)) }
+  const tick = () => {
+    void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined))
+    void refreshRecent()
+  }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
   // A reopened app: what still waits from before (the count, and the 5 s retry, need it).
   void pending().then((a) => set({ waiting: a.length })).catch(() => {})

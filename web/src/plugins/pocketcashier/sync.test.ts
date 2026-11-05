@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveCopy } from './store/copy'
 import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
-import { flush, refresh, startSync, state, type SyncState } from './sync'
+import { getSale, clearRecent, recentCursor } from './store/recent'
+import { flush, refresh, refreshRecent, startSync, state, type SyncState } from './sync'
 
 type Call = { url: string; init?: RequestInit }
+let recentPages: Record<string, unknown>[] = []
+const sale = (id: number) => ({ id, receiptNo: `R-${id}`, createdAt: new Date().toISOString(), customerName: '', lines: [] })
 let calls: Call[] = []
 let online = true
 let copyVersion = 'v1'
@@ -23,6 +26,11 @@ function fakeFetch(url: string, init?: RequestInit) {
   if (url.includes('/actions')) {
     const body = JSON.parse(String(init?.body)) as { actions: { ref: string }[] }
     return Promise.resolve(new Response(JSON.stringify({ results: results(body.actions.map((a) => a.ref)) }), { status: 200 }))
+  }
+  if (url.includes('/recent')) {
+    const page = recentPages.shift()
+    if (!page) return Promise.reject(new TypeError('Failed to fetch'))
+    return Promise.resolve(new Response(JSON.stringify({ sales: [], changed: [], nextSince: '2026-11-05T10:00:00Z', more: false, maxId: 0, reset: false, ...page }), { status: 200 }))
   }
   return Promise.resolve(new Response(null, { status: 204 }))
 }
@@ -131,5 +139,48 @@ describe('moved', () => {
     expect(calls.at(-1)!.url).toContain('/moved?user=7')
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
     expect(await movedTo(7)).toBe('')
+  })
+})
+
+describe('the last 30 days', () => {
+  beforeEach(async () => { recentPages = []; await clearRecent() })
+
+  it('takes pages until the PC says done', async () => {
+    recentPages = [{ sales: [sale(1)], nextAfter: 1, more: true }, { sales: [sale(2)], nextAfter: 2 }]
+    await refreshRecent()
+    expect(await getSale(1)).not.toBeNull()
+    expect(await getSale(2)).not.toBeNull()
+    expect(await recentCursor()).toMatchObject({ after: 2, ready: true })
+  })
+
+  it('a dropped download keeps its pages and asks on from there, with live state untouched', async () => {
+    recentPages = [{ sales: [sale(1)], nextAfter: 1, more: true }]
+    await refresh()
+    const live = state().live
+    await refreshRecent()
+    expect(await getSale(1)).not.toBeNull()
+    expect(await recentCursor()).toMatchObject({ after: 1, ready: false })
+    expect(state().live).toBe(live)
+    calls = []
+    recentPages = [{ sales: [sale(2)], nextAfter: 2 }]
+    await refreshRecent()
+    expect(calls.find((c) => c.url.includes('/recent'))?.url).toContain('after=1')
+    expect(await recentCursor()).toMatchObject({ after: 2, ready: true })
+  })
+
+  it('a restored shop: what the phone held goes', async () => {
+    recentPages = [{ sales: [sale(9)], nextAfter: 9 }]
+    await refreshRecent()
+    recentPages = [{ reset: true, sales: [sale(2)], nextAfter: 2 }]
+    await refreshRecent()
+    expect(await getSale(9)).toBeNull()
+    expect(await getSale(2)).not.toBeNull()
+  })
+
+  it('two at once download once', async () => {
+    recentPages = [{ sales: [sale(1)], nextAfter: 1 }]
+    calls = []
+    await Promise.all([refreshRecent(), refreshRecent()])
+    expect(calls.filter((c) => c.url.includes('/recent'))).toHaveLength(1)
   })
 })
