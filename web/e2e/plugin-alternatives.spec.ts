@@ -240,6 +240,72 @@ test('Apps → Alternatives fits 360px', async ({ page }) => {
   }
 })
 
+test('a group learns its level; a typed number overrides it; a manual split must add up', async ({ page }) => {
+  await login(page, '/admin')
+  const stamp = `${Date.now()}`.slice(-6)
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json())[0]
+  const add = async (name: string, level: number) => (await (await page.request.post('/api/v1/admin/products', { data: { name, categoryId: cat.id, unitId: 1, reorderLevel: level, reorderAuto: false } })).json()).id as number
+  const a = await add(`LV A ${stamp}`, 10)
+  const b = await add(`LV B ${stamp}`, 20)
+  const g = await json<Group>(page.request.post(base, { data: { name: `LV ${stamp}` } }))
+  const tier = g.tiers[0].id
+  await page.request.post(`${base}/tiers/${tier}/members`, { data: { productId: a } })
+  await page.request.post(`${base}/tiers/${tier}/members`, { data: { productId: b } })
+  await page.goto(`/admin/x/alternatives/${g.id}`)
+  await expect(page.getByLabel('Reorder level')).toHaveValue('30') // 10 + 20
+  await expect(page.getByText(/^Auto: the levels of the products/)).toBeVisible()
+
+  // Nothing in stock, nothing sold: 2 × 30 − 0 = 60, evenly.
+  type Row = { productId: number; suggested: string }
+  const rows = async () => (await json<{ items: Row[] }>(page.request.get(`/api/v1/admin/reorder?all=1&hideCovered=1&q=LV%20${stamp}`))).items
+  const qty = async (id: number) => (await rows()).find((r) => r.productId === id)?.suggested
+  expect(await qty(a)).toBe('30')
+  expect(await qty(b)).toBe('30')
+
+  await page.getByRole('button', { name: 'Manual' }).click()
+  await page.getByLabel(`Share of LV A ${stamp}`).fill('80')
+  await page.getByLabel(`Share of LV B ${stamp}`).fill('10')
+  await expect(page.getByRole('button', { name: 'Save split' })).toBeDisabled()
+  await page.getByLabel(`Share of LV B ${stamp}`).fill('20')
+  await page.getByRole('button', { name: 'Save split' }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Split saved' }).first()).toBeVisible()
+  await expect.poll(() => qty(a)).toBe('48')
+  expect(await qty(b)).toBe('12')
+
+  // Both low-stock pages show them as one block, with the group's own line and the split.
+  await page.goto(`/admin/reorder?hideCovered=true&q=LV%20${stamp}`)
+  const block = page.getByRole('list', { name: `LV ${stamp}` })
+  await expect(block.getByLabel(`Quantity of LV A ${stamp}`)).toHaveValue('48')
+  await expect(block.getByLabel(`Quantity of LV B ${stamp}`)).toHaveValue('12')
+  await expect(page.getByText('LOW: 0 left in the group · reorder at 30')).toBeVisible()
+  if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/reorder-block.png` })
+  await page.goto('/till/low-stock')
+  await page.getByLabel('Search low stock').fill(`LV A ${stamp}`)
+  await expect(page.getByText(/^LOW: 0 left in the group/)).toBeVisible()
+  const covered = `LV Twin ${stamp}`
+  const twin = await add(covered, 5)
+  const usb = await json<Group>(page.request.get(`${base}/${ids.group}`))
+  await page.request.post(`${base}/tiers/${usb.tiers.find((t) => t.name === 'Genuine')!.id}/members`, { data: { productId: twin } })
+  await page.getByLabel('Search low stock').fill(covered)
+  const twinRow = page.getByRole('listitem').filter({ hasText: covered })
+  await expect(page.getByLabel(/^Show covered/)).toBeVisible()
+  await expect(twinRow).toHaveCount(0) // Genuine has 14 on the shelf
+  await page.getByLabel(/^Show covered/).check()
+  await expect(twinRow.getByText(/⇄ Covered/).first()).toBeVisible()
+  await page.getByLabel('Search low stock').fill(`LV A ${stamp}`)
+  if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/till-block.png` })
+  await page.goto(`/admin/x/alternatives/${g.id}`)
+
+  await page.getByLabel('Reorder level').fill('5')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByText('Set by you.')).toBeVisible()
+  await page.getByRole('button', { name: 'Use Auto' }).click()
+  await expect(page.getByLabel('Reorder level')).toHaveValue('30')
+  await page.setViewportSize({ width: 360, height: 780 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
+  if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/group-360.png`, fullPage: true })
+})
+
 test('group maker: the page offers it, a pasted reply makes a group, undo removes it', async ({ page }) => {
   const stamp = Date.now().toString().slice(-6)
   await page.goto('/login')

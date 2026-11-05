@@ -20,6 +20,7 @@ import {
   addMember, createTier, deleteGroup, deleteTier, groupQuery, membershipQuery, moveTier, removeMember, renameGroup,
   setGroupActive, setTierActive, updateTier,
 } from './api'
+import { OrderSplit } from './OrderSplit'
 import { hasTiers } from './labels'
 import type { Group, Tier } from './types'
 
@@ -46,6 +47,11 @@ function TierHead({ t, tiered, first, last, canDelete }: { t: Tier; tiered: bool
   const [level, setLevel] = useState(String(t.reorderLevel))
   const dirty = name.trim() !== t.name || num(level) !== t.reorderLevel
   const save = () => void act(updateTier(t.id, name.trim(), num(level)), 'Saved')
+  const toAuto = () => void act(updateTier(t.id, name.trim(), t.reorderLevel, true), 'Back to Auto')
+  const auto = t.levelAuto && !dirty
+  const autoNote = auto
+    ? <small className="basis-full text-faint">{t.reorderLevel > 0 ? `Auto: the levels of the products in here, added up. Type a number to set your own.` : `Auto: learns as these products sell. Type a number to set your own.`}</small>
+    : !dirty && <small className="basis-full text-faint">{t.reorderLevel > 0 ? 'Set by you.' : 'Not tracked: 0 means reorder ignores this as a group.'} <button type="button" className="font-semibold text-foreground underline underline-offset-2" onClick={toAuto}>Use Auto</button></small>
   const levelInput = (
     <input aria-label={tiered ? `Reorder level of ${t.name}` : 'Reorder level'} inputMode="numeric" value={level}
       onChange={(e) => setLevel(e.target.value.replace(/\D/g, ''))} className={cn(SMALL, 'w-16 text-right tabular-nums')} />
@@ -57,10 +63,12 @@ function TierHead({ t, tiered, first, last, canDelete }: { t: Tier; tiered: bool
           <input aria-label="Tier name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name this tier"
             className={cn(SMALL, 'min-w-0 basis-full font-display text-[15px] font-bold md:max-w-sm md:flex-1 md:basis-auto')} />
           <label className="flex items-center gap-1.5 text-[13px] text-muted-foreground">Reorder at ≤ {levelInput}</label>
+          {autoNote}
         </>
       ) : (
         <label className="flex flex-1 flex-wrap items-center gap-2 text-[13.5px] text-muted-foreground">Reorder when the group has ≤ {levelInput}
-          <small className="basis-full text-faint">0 = don't track. Reorder then lists this group's products when their total runs down.</small>
+          <small className="basis-full text-faint">Reorder lists this group's products when their total runs down.</small>
+          {autoNote}
         </label>
       )}
       {dirty && <Button type="submit" className="h-9 px-3 font-bold">Save</Button>}
@@ -87,13 +95,14 @@ function TierCard({ g, t, i, tiered, onPick }: { g: Group; t: Tier; i: number; t
   const mine = new Set(g.tiers.flatMap((x) => x.members.map((m) => m.productId)))
   return (
     <section aria-label={t.name || 'Products'} className={cn(SURFACE, 'flex flex-col gap-3 p-4', !t.active && 'opacity-70')}>
-      <TierHead key={`${t.name}|${t.reorderLevel}`} t={t} tiered={tiered} first={i === 0} last={i === g.tiers.length - 1}
+      <TierHead key={`${t.name}|${t.reorderLevel}|${t.levelAuto}`} t={t} tiered={tiered} first={i === 0} last={i === g.tiers.length - 1}
         canDelete={g.tiers.length > 1 && t.members.length === 0} />
       <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground tabular-nums">
         <span><b className="text-foreground">{qtyText(t.total)}</b> in stock</span>
         {t.low && <Tag tone="danger">Low</Tag>}
         {!t.active && <Tag tone="muted">Off — the till doesn't offer these</Tag>}
       </div>
+      <OrderSplit t={t} />
       <ul className="flex flex-col divide-y divide-border">
         {t.members.map((m) => (
           <li key={m.productId} className={cn('flex items-center gap-3 py-2 text-[14px]', !m.active && 'text-faint')}>

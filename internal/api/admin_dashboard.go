@@ -126,11 +126,22 @@ func (h *handlers) AdminDashboard(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
+// lowCount is how many products need ordering. With a plugin that knows a twin covers
+// one, it's the same count as the Reorder and Low stock pages, not every low product.
+func (h *handlers) lowCount(ctx context.Context) (int, error) {
+	if len(plugin.ProductReorderAnnotators()) > 0 {
+		_, total, _, _, err := h.reorderRows(ctx, products.ListQuery{LowStock: true, NotDerived: true}, true, true)
+		return total, err
+	}
+	_, low, err := h.t.products.List(ctx, products.ListQuery{LowStock: true, Limit: 1})
+	return low, err
+}
+
 // attention counts what needs someone: low stock, lots expired or inside
 // their warning days, quick-added items to review, customers over their limit.
 func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 	var a DashboardAttention
-	_, low, err := h.t.products.List(ctx, products.ListQuery{LowStock: true, Limit: 1})
+	low, err := h.lowCount(ctx)
 	if err != nil {
 		return a, err
 	}

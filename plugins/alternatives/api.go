@@ -21,16 +21,20 @@ type MemberDTO struct {
 	Stock     string `json:"stock"`
 	Active    bool   `json:"active"`
 	Unit      string `json:"unit"`
+	Share     *int   `json:"share"` // percent of the order when split by hand
 }
 
 type TierDTO struct {
-	ID           int64       `json:"id"`
-	Name         string      `json:"name"`
-	ReorderLevel int         `json:"reorderLevel"`
-	Active       bool        `json:"active"`
-	Total        string      `json:"total"`
-	Low          bool        `json:"low"`
-	Members      []MemberDTO `json:"members"`
+	ID           int64            `json:"id"`
+	Name         string           `json:"name"`
+	ReorderLevel int              `json:"reorderLevel"`
+	Active       bool             `json:"active"`
+	Total        string           `json:"total"`
+	Low          bool             `json:"low"`
+	Members      []MemberDTO      `json:"members"`
+	LevelAuto    bool             `json:"levelAuto"`
+	SplitAuto    bool             `json:"splitAuto"`
+	Suggest      *SplitSuggestDTO `json:"suggest,omitempty"`
 }
 
 type GroupDTO struct {
@@ -69,6 +73,20 @@ type NameRequest struct {
 type TierRequest struct {
 	Name         string `json:"name"`
 	ReorderLevel int    `json:"reorderLevel"`
+	LevelAuto    *bool  `json:"levelAuto,omitempty"`
+}
+
+// SplitRequest: automatic follows sales; otherwise Shares (product id → percent) add up to 100.
+type SplitRequest struct {
+	Auto   bool          `json:"auto"`
+	Shares map[int64]int `json:"shares"`
+}
+
+// SplitSuggestDTO offers the sales' own shares when a brand outsells its manual share.
+type SplitSuggestDTO struct {
+	ProductID int64         `json:"productId"`
+	Name      string        `json:"name"`
+	Shares    map[int64]int `json:"shares"`
 }
 
 type ActiveRequest struct {
@@ -87,10 +105,13 @@ type MemberRequest struct {
 func groupDTO(g Group) GroupDTO {
 	out := GroupDTO{ID: g.ID, Name: g.Name, Active: g.IsActive, Products: g.Products, Tiers: make([]TierDTO, 0, len(g.Tiers))}
 	for _, t := range g.Tiers {
-		td := TierDTO{ID: t.ID, Name: t.Name, ReorderLevel: t.ReorderLevel, Active: t.IsActive, Total: t.Total.String(), Low: t.Low,
+		td := TierDTO{ID: t.ID, Name: t.Name, ReorderLevel: t.ReorderLevel, LevelAuto: t.LevelAuto, SplitAuto: t.SplitAuto, Active: t.IsActive, Total: t.Total.String(), Low: t.Low,
 			Members: make([]MemberDTO, 0, len(t.Members))}
+		if t.Suggest != nil {
+			td.Suggest = &SplitSuggestDTO{ProductID: t.Suggest.ProductID, Name: t.Suggest.Name, Shares: t.Suggest.Shares}
+		}
 		for _, m := range t.Members {
-			td.Members = append(td.Members, MemberDTO{ProductID: m.ProductID, Name: m.Name, Stock: m.Stock.String(), Active: m.Active, Unit: m.Unit})
+			td.Members = append(td.Members, MemberDTO{Share: m.SplitShare, ProductID: m.ProductID, Name: m.Name, Stock: m.Stock.String(), Active: m.Active, Unit: m.Unit})
 		}
 		out.Tiers = append(out.Tiers, td)
 	}
@@ -136,9 +157,15 @@ func (h handlers) list(c echo.Context) error {
 }
 
 func (h handlers) sendGroup(c echo.Context, id int64) error {
-	g, err := h.p.store.Group(c.Request().Context(), id)
+	ctx := c.Request().Context()
+	g, err := h.p.store.Group(ctx, id)
 	if err != nil {
 		return err
+	}
+	for i := range g.Tiers {
+		if g.Tiers[i].Suggest, err = h.p.store.suggestFor(ctx, g.Tiers[i]); err != nil {
+			return err
+		}
 	}
 	return c.JSON(http.StatusOK, groupDTO(g))
 }
@@ -252,6 +279,16 @@ func (h handlers) tierEdit(c echo.Context, action, detail string, f func(tid int
 		return c.NoContent(http.StatusNoContent)
 	}
 	return h.sendGroup(c, t.GroupID)
+}
+
+func (h handlers) updateSplit(c echo.Context) error {
+	req, err := bind[SplitRequest](c)
+	if err != nil {
+		return err
+	}
+	return h.tierEdit(c, audit.ActionUpdate, "changed how a tier's order splits", func(tid int64) error {
+		return h.p.store.SetSplit(c.Request().Context(), tid, req.Auto, req.Shares)
+	})
 }
 
 func (h handlers) updateTier(c echo.Context) error {

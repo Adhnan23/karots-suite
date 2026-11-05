@@ -1,3 +1,4 @@
+import type { ReorderRow } from '@/api/types.gen'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { ReorderRow } from '@/api/types.gen'
 import { clearPrefill, linesFor, peekPrefill, savePrefill } from './prefill'
@@ -20,5 +21,8 @@ describe('Low stock → Suppliers Order prefill', () => {
     expect(peekPrefill(3)?.[0].quantity).toBe('164')
     clearPrefill()
     expect(peekPrefill(3)).toBeUndefined()
+  })
+  it('leaves out a row a twin covers', () => {
+    expect(linesFor([{ productId: 9, name: 'x', suggested: '10', cost: '5', covered: true } as ReorderRow])).toEqual([])
   })
 })

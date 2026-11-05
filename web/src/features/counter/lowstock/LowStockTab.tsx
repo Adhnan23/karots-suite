@@ -6,6 +6,8 @@ import type { ReorderRow } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { reorderQuery } from '@/features/purchasing/queries'
+import { blocks } from '@/features/purchasing/reorder/blocks'
+import { BlockHead } from '@/features/purchasing/reorder/ReorderBlock'
 import { ReasonLine } from '@/features/purchasing/reorder/ReorderBits'
 import { configQuery } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
@@ -34,15 +36,22 @@ export function LowStockTab() {
   const cfg = useSuspenseQuery(configQuery).data
   const [q, setQ] = useState('')
   const dq = useDeferredValue(q.trim())
-  const data = useQuery({ ...reorderQuery({ q: dq, category: 0, supplier: 0, page: 1, all: true, till: true }), placeholderData: keepPreviousData }).data
+  const [showCovered, setShowCovered] = useState(false)
+  const data = useQuery({ ...reorderQuery({ q: dq, category: 0, supplier: 0, page: 1, all: true, till: true, hideCovered: !showCovered }), placeholderData: keepPreviousData }).data
   const gs = groups(data?.items ?? [])
   return (
-    <CounterPage flush aside={<Aside canOrder={cfg.canHandleSuppliers} q={dq} count={data?.total ?? 0} />}>
+    <CounterPage flush aside={<Aside canOrder={cfg.canHandleSuppliers} q={dq} count={data?.total ?? 0} hideCovered={!showCovered} />}>
       <PaneTitle title="Low stock" sub={data ? `${data.total} item${data.total === 1 ? '' : 's'}` : undefined} />
       <div className="relative px-4 pb-3">
         <Search size={16} className="pointer-events-none absolute left-7 top-1/2 -translate-y-[calc(50%+6px)] text-faint" />
         <input aria-label="Search low stock" placeholder="Name or barcode" value={q} onChange={(e) => setQ(e.target.value)} className={cn(FIELD, 'w-full pl-9')} />
       </div>
+      {data?.annotated && (
+        <label className="flex items-center gap-2 px-4 pb-3 text-[13.5px] font-semibold">
+          <input type="checkbox" checked={showCovered} onChange={(e) => setShowCovered(e.target.checked)} className="size-[18px] accent-[var(--brand)]" />
+          Show covered{!showCovered && data.hidden > 0 && <span className="font-medium text-faint">({data.hidden} hidden: another brand has stock)</span>}
+        </label>
+      )}
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-4 pb-4">
         {data && gs.length === 0 && <p className="m-auto p-8 text-center text-faint">{dq ? 'Nothing matches' : 'Nothing is running low'}</p>}
         {gs.map((g) => <GroupBlock key={g.supplierId} g={g} canOrder={cfg.canHandleSuppliers} sym={cfg.symbol} />)}
@@ -60,6 +69,22 @@ function GroupBlock({ g, canOrder, sym }: { g: Group; canOrder: boolean; sym: st
     savePrefill(supplierId, linesFor(g.rows))
     void navigate({ to: '/till/suppliers', search: { supplier: supplierId, job: 'order' } })
   }
+  const rowOf = (r: ReorderRow) => (
+          <li key={r.productId} className="flex items-center gap-3 px-3 py-2.5">
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
+              <small className="text-[13px] text-faint tabular-nums">
+                <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel}{r.cost && ` · cost ${money(sym, r.cost)}`}
+              </small>
+              <ReasonLine r={r} />
+              {r.note && <small className={cn('font-semibold', r.covered ? 'text-success' : 'text-brand')}>{r.note}</small>}
+            </span>
+            <span className="shrink-0 text-right">
+              <small className="block text-[11px] text-faint">Order</small>
+              <b className="font-display text-lg tabular-nums">{qtyText(r.suggested)}</b>
+            </span>
+          </li>
+  )
   return (
     <section aria-label={g.name} className="shrink-0 overflow-hidden rounded-[var(--radius-sm)] border border-border">
       <header className="flex flex-wrap items-center gap-2 bg-muted px-3 py-2">
@@ -73,28 +98,16 @@ function GroupBlock({ g, canOrder, sym }: { g: Group; canOrder: boolean; sym: st
         {canOrder && <Button className="h-9 px-3 font-bold" disabled={!supplierId} onClick={order}>Order these →</Button>}
       </header>
       <ul className="divide-y divide-border">
-        {g.rows.map((r) => (
-          <li key={r.productId} className="flex items-center gap-3 px-3 py-2.5">
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
-              <small className="text-[13px] text-faint tabular-nums">
-                <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel}{r.cost && ` · cost ${money(sym, r.cost)}`}
-              </small>
-              <ReasonLine r={r} />
-            </span>
-            <span className="shrink-0 text-right">
-              <small className="block text-[11px] text-faint">Order</small>
-              <b className="font-display text-lg tabular-nums">{qtyText(r.suggested)}</b>
-            </span>
-          </li>
-        ))}
+        {blocks(g.rows).map((b) => (b.name
+          ? <li key={b.key}><BlockHead name={b.name} line={b.line} /><ul aria-label={b.name} className="divide-y divide-border">{b.rows.map(rowOf)}</ul></li>
+          : rowOf(b.rows[0])))}
       </ul>
     </section>
   )
 }
 
-function Aside({ canOrder, q, count }: { canOrder: boolean; q: string; count: number }) {
-  const href = (all: boolean) => `/print/low-stock?till=true&q=${encodeURIComponent(q)}${all ? '&all=1' : ''}`
+function Aside({ canOrder, q, count, hideCovered }: { canOrder: boolean; q: string; count: number; hideCovered: boolean }) {
+  const href = (all: boolean) => `/print/low-stock?till=true&hideCovered=${hideCovered}&q=${encodeURIComponent(q)}${all ? '&all=1' : ''}`
   return (
     <div className="flex flex-1 flex-col gap-4 p-5">
       <h2 className="font-display text-xl font-bold">What to order</h2>

@@ -20,6 +20,8 @@ import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { reorderQuery } from '../queries'
 import { type Cart, cartSummary, loadCart, saveCart } from './cart'
+import { blocks } from './blocks'
+import { BlockHead } from './ReorderBlock'
 import { LooksOffList, ReasonLine, useLooksOffCount, useSetLevels } from './ReorderBits'
 
 const route = getRouteApi('/_authed/admin/reorder')
@@ -92,6 +94,32 @@ export function ReorderPage() {
     }
   }
 
+  const rowOf = (r: ReorderRow) => {
+              const l = lineOf(r)
+              const on = !!cart[r.productId]
+              return (
+                <li key={r.productId} className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 md:grid-cols-[28px_minmax(0,1fr)_110px_220px]', on && 'bg-brand-soft/40')}>
+                  <input type="checkbox" aria-label={`Order ${r.name}`} checked={on} onChange={(e) => tick(r, e.target.checked)} className="size-5 accent-[var(--brand)]" />
+                  <span className="min-w-0">
+                    <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
+                    <small className="block text-faint tabular-nums">
+                      <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel} · cost {money(sym, r.cost)}
+                    </small>
+                    <ReasonLine r={r} onUse={(x) => void setLevels([x.productId], 'suggested')} />
+                    <small className="block text-faint tabular-nums">
+                      {!r.calc && (r.fromSales ? 'from sales · ' : 'no recent sales — 2× reorder level · ')}{[r.soldWeek && `${r.soldWeek} this week`, r.soldMonth && `${r.soldMonth} this month`, r.soldLastYear && `${r.soldLastYear} same time last year`].filter(Boolean).join(' · ')}
+                    </small>
+                    {r.note && <small className={cn('block font-semibold', r.covered ? 'text-success' : 'text-brand')}>{r.note}</small>}
+                  </span>
+                  <label className="col-start-2 flex items-center gap-2 text-[13px] text-muted-foreground md:col-start-auto">
+                    <span className="md:hidden">Order</span>
+                    <input aria-label={`Quantity of ${r.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => change(r, { quantity: e.target.value.replace(/[^\d.]/g, '') })} className={cn(CELL, 'w-24 text-right font-bold tabular-nums')} />
+                  </label>
+                  <div className="col-start-2 md:col-start-auto"><SupplierSelect label={`Supplier for ${r.name}`} value={l.supplierId} onChange={(supplierId) => change(r, { supplierId })} sups={sups} /></div>
+                </li>
+              )
+  }
+
   return (
     <>
       <PageHead title="Reorder" sub="What will run out before the next delivery, with how much to buy. Tick items, then make the orders."
@@ -142,31 +170,9 @@ export function ReorderPage() {
           </EmptyState>
         ) : (
           <ul aria-label="Running low" className="divide-y divide-border">
-            {data.items.map((r) => {
-              const l = lineOf(r)
-              const on = !!cart[r.productId]
-              return (
-                <li key={r.productId} className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 md:grid-cols-[28px_minmax(0,1fr)_110px_220px]', on && 'bg-brand-soft/40')}>
-                  <input type="checkbox" aria-label={`Order ${r.name}`} checked={on} onChange={(e) => tick(r, e.target.checked)} className="size-5 accent-[var(--brand)]" />
-                  <span className="min-w-0">
-                    <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
-                    <small className="block text-faint tabular-nums">
-                      <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel} · cost {money(sym, r.cost)}
-                    </small>
-                    <ReasonLine r={r} onUse={(x) => void setLevels([x.productId], 'suggested')} />
-                    <small className="block text-faint tabular-nums">
-                      {!r.calc && (r.fromSales ? 'from sales · ' : 'no recent sales — 2× reorder level · ')}{[r.soldWeek && `${r.soldWeek} this week`, r.soldMonth && `${r.soldMonth} this month`, r.soldLastYear && `${r.soldLastYear} same time last year`].filter(Boolean).join(' · ')}
-                    </small>
-                    {r.note && <small className={cn('block font-semibold', r.covered ? 'text-success' : 'text-brand')}>{r.note}</small>}
-                  </span>
-                  <label className="col-start-2 flex items-center gap-2 text-[13px] text-muted-foreground md:col-start-auto">
-                    <span className="md:hidden">Order</span>
-                    <input aria-label={`Quantity of ${r.name}`} inputMode="decimal" value={l.quantity} onChange={(e) => change(r, { quantity: e.target.value.replace(/[^\d.]/g, '') })} className={cn(CELL, 'w-24 text-right font-bold tabular-nums')} />
-                  </label>
-                  <div className="col-start-2 md:col-start-auto"><SupplierSelect label={`Supplier for ${r.name}`} value={l.supplierId} onChange={(supplierId) => change(r, { supplierId })} sups={sups} /></div>
-                </li>
-              )
-            })}
+            {blocks(data.items).map((b) => (b.name
+              ? <li key={b.key}><BlockHead name={b.name} line={b.line} /><ul aria-label={b.name} className="divide-y divide-border">{b.rows.map(rowOf)}</ul></li>
+              : rowOf(b.rows[0])))}
           </ul>
         )}
         {data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (x) => ({ ...x, page }) })} />}

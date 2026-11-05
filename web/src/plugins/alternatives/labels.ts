@@ -5,7 +5,7 @@ import type { Group, Tier } from './types'
 /** A group shows tiers once one is named or there are two; else it's a plain list. */
 export const hasTiers = (g: Group) => g.tiers.length > 1 || (g.tiers[0]?.name ?? '') !== ''
 
-export const tierStatus = (t: Tier) => (t.reorderLevel <= 0 ? 'Not tracked' : t.low ? 'Low' : 'OK')
+export const tierStatus = (t: Tier) => (t.reorderLevel <= 0 ? (t.levelAuto ? 'Learning' : 'Not tracked') : t.low ? 'Low' : 'OK')
 
 /** A plain cart line holding more than is in stock — the swap chip's cue. */
 export const isShort = (l: CartLine) => !l.group && !l.isService && l.qty > l.stock

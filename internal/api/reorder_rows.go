@@ -107,6 +107,10 @@ func (h *handlers) buildReorderList(c echo.Context, withCost bool) (ReorderList,
 			need = v.Div(decimal.NewFromInt(trailing)).Mul(decimal.NewFromInt(lead)).Sub(p.StockQty).Ceil()
 			r.FromSales = true
 		}
+		r.Block, r.BlockLine = notes[p.ID].Block, notes[p.ID].BlockLine
+		if notes[p.ID].Exact {
+			need = notes[p.ID].Suggest
+		}
 		r.Suggested = decimal.Max(need, notes[p.ID].Suggest, decimal.Zero).String()
 		out.Items = append(out.Items, r)
 	}

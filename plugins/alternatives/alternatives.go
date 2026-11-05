@@ -48,6 +48,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.DELETE("/alternatives/:id", h.deleteGroup)
 	a.POST("/alternatives/:id/tiers", h.createTier)
 	a.PUT("/alternatives/tiers/:tid", h.updateTier)
+	a.PUT("/alternatives/tiers/:tid/split", h.updateSplit)
 	a.POST("/alternatives/tiers/:tid/active", h.tierActive)
 	a.POST("/alternatives/tiers/:tid/move", h.moveTier)
 	a.DELETE("/alternatives/tiers/:tid", h.deleteTier)
@@ -101,11 +102,16 @@ func (p *Plugin) reorderNotes(ctx context.Context, ids []int64) (map[int64]plugi
 		note := "⇄ " + where + " has " + total
 		switch {
 		case c.Low:
-			note = "⇄ " + where + " is low: " + total + " (reorder at " + itoa(c.ReorderLevel) + ") — order ~" + money.Qty(c.Need) + " of each"
+			note = "⇄ " + where + " is low: " + total + " (reorder at " + itoa(c.ReorderLevel) + ") — order ~" + money.Qty(c.Need) + " of this"
 		case c.Covered:
 			note = "⇄ Covered — " + where + " has " + total
 		}
-		out[id] = plugin.ReorderNote{Covered: c.Covered, Note: note, Suggest: c.Need}
+		n := plugin.ReorderNote{Covered: c.Covered, Note: note, Suggest: c.Need}
+		if c.Low {
+			n.Exact, n.Block = true, where
+			n.BlockLine = "LOW: " + total + " left in the group · reorder at " + itoa(c.ReorderLevel)
+		}
+		out[id] = n
 	}
 	return out, nil
 }

@@ -33,26 +33,34 @@ type Tier struct {
 	ID           int64           `db:"id"`
 	GroupID      int64           `db:"group_id"`
 	Name         string          `db:"name"`
-	ReorderLevel int             `db:"reorder_level"`
+	ReorderLevel int             `db:"reorder_level"` // what applies: learned or typed
+	LevelAuto    bool            `db:"level_auto"`
+	SplitAuto    bool            `db:"split_auto"`
 	SortOrder    int             `db:"sort_order"`
 	IsActive     bool            `db:"is_active"`
 	Total        decimal.Decimal `db:"total"`
 	Low          bool            `db:"low"`
 	Members      []Member
+	Suggest      *SplitSuggest `db:"-"`
 }
 
 // Member is a product in a tier. Active is false for a disabled (or deleted)
 // product: it shows greyed and never counts.
 type Member struct {
-	ProductID int64           `db:"product_id"`
-	TierID    int64           `db:"tier_id"`
-	Name      string          `db:"name"`
-	Stock     decimal.Decimal `db:"stock"`
-	Active    bool            `db:"active"`
-	Unit      string          `db:"unit"` // abbreviation
+	ProductID  int64           `db:"product_id"`
+	TierID     int64           `db:"tier_id"`
+	Name       string          `db:"name"`
+	Stock      decimal.Decimal `db:"stock"`
+	Active     bool            `db:"active"`
+	Unit       string          `db:"unit"` // abbreviation
+	SplitShare *int            `db:"split_share"`
 }
 
-const tierCols = `t.id, t.group_id, t.name, t.reorder_level, t.sort_order, t.is_active,
+// tierLevelSQL is a tier's level: its live members' levels added up, or a typed number.
+const tierLevelSQL = `CASE WHEN t.level_auto THEN (SELECT COALESCE(SUM(lp.reorder_level), 0) FROM alt_members lm
+	JOIN products lp ON lp.id = lm.product_id AND lp.is_active WHERE lm.tier_id = t.id) ELSE t.reorder_level END`
+
+const tierCols = `t.id, t.group_id, t.name, ` + tierLevelSQL + ` AS reorder_level, t.level_auto, t.split_auto, t.sort_order, t.is_active,
 	COALESCE((SELECT SUM(st.quantity) FROM alt_members m JOIN products p ON p.id = m.product_id AND p.is_active
 	          LEFT JOIN stock st ON st.product_id = m.product_id WHERE m.tier_id = t.id), 0) AS total`
 
@@ -108,7 +116,7 @@ func (s *Store) Group(ctx context.Context, id int64) (Group, error) {
 	var ms []Member
 	if err := s.db.SelectContext(ctx, &ms, `
 		SELECT m.product_id, m.tier_id, COALESCE(p.name, 'Deleted product #' || m.product_id) AS name,
-		       COALESCE(st.quantity, 0) AS stock, COALESCE(p.is_active, false) AS active, COALESCE(u.abbreviation, '') AS unit
+		       COALESCE(st.quantity, 0) AS stock, COALESCE(p.is_active, false) AS active, m.split_share, COALESCE(u.abbreviation, '') AS unit
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
 		LEFT JOIN products p ON p.id = m.product_id LEFT JOIN stock st ON st.product_id = m.product_id
 		LEFT JOIN units u ON u.id = p.unit_id
@@ -201,6 +209,7 @@ func (s *Store) DeleteGroup(ctx context.Context, id int64) error {
 type TierInput struct {
 	Name         string
 	ReorderLevel int
+	LevelAuto    *bool // nil: typing a number means typed; a new tier with none is Auto
 }
 
 func (s *Store) tierCount(ctx context.Context, groupID int64) (int, error) {
@@ -228,9 +237,9 @@ func (s *Store) CreateTier(ctx context.Context, groupID int64, in TierInput) (in
 	}
 	var id int64
 	err = s.db.GetContext(ctx, &id, `
-		INSERT INTO alt_tiers (group_id, name, reorder_level, sort_order)
-		SELECT g.id, $2, $3, COALESCE((SELECT MAX(sort_order) + 1 FROM alt_tiers WHERE group_id = g.id), 0)
-		FROM alt_groups g WHERE g.id = $1 RETURNING id`, groupID, name, in.ReorderLevel)
+		INSERT INTO alt_tiers (group_id, name, reorder_level, level_auto, sort_order)
+		SELECT g.id, $2, $3, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM alt_tiers WHERE group_id = g.id), 0)
+		FROM alt_groups g WHERE g.id = $1 RETURNING id`, groupID, name, in.ReorderLevel, in.LevelAuto != nil && *in.LevelAuto || in.LevelAuto == nil && in.ReorderLevel == 0)
 	return id, notFound(err, "group")
 }
 
@@ -256,7 +265,7 @@ func (s *Store) UpdateTier(ctx context.Context, id int64, in TierInput) error {
 			return apperr.Validation("tier name is required")
 		}
 	}
-	return s.exec(ctx, "tier", `UPDATE alt_tiers SET name = $2, reorder_level = $3 WHERE id = $1`, id, in.Name, in.ReorderLevel)
+	return s.exec(ctx, "tier", `UPDATE alt_tiers SET name = $2, reorder_level = $3, level_auto = $4 WHERE id = $1`, id, in.Name, in.ReorderLevel, in.LevelAuto != nil && *in.LevelAuto)
 }
 
 func (s *Store) SetTierActive(ctx context.Context, id int64, on bool) error {

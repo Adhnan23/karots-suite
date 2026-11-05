@@ -3,10 +3,14 @@ import type { CartLine } from '@/features/till/cart/types'
 import { groupsCsv, hasTiers, isShort, tierStatus } from './labels'
 import type { Group, Tier } from './types'
 
-const tier = (p: Partial<Tier> = {}): Tier => ({ id: 1, name: '', reorderLevel: 0, active: true, total: '0', low: false, members: [], ...p })
+const tier = (p: Partial<Tier> = {}): Tier => ({ id: 1, name: '', reorderLevel: 0, levelAuto: false, splitAuto: true, active: true, total: '0', low: false, members: [], ...p })
 const group = (tiers: Tier[]): Group => ({ id: 1, name: 'USB "32GB"', active: true, products: 0, tiers })
 
 describe('alternatives labels', () => {
+  it('an Auto tier with no level yet is learning, a typed 0 is not tracked', () => {
+    expect(tierStatus(tier({ levelAuto: true }))).toBe('Learning')
+    expect(tierStatus(tier({ levelAuto: false }))).toBe('Not tracked')
+  })
   it('a group has tiers once one is named or there are two', () => {
     expect(hasTiers(group([tier()]))).toBe(false)
     expect(hasTiers(group([tier({ name: 'Genuine' })]))).toBe(true)

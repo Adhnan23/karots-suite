@@ -77,15 +77,15 @@ type PayAlloc struct {
 // allocations, advance or oldDebt, Amount waterfalls (Mode "pay" = invoices
 // first, "old" = old debt first); otherwise the split is exactly as given.
 type AdminSupplierPayRequest struct {
-	Amount      string     `json:"amount"`
-	Mode        string     `json:"mode"`
-	Allocations []PayAlloc `json:"allocations"`
-	Advance     string     `json:"advance"`
-	OldDebt     string     `json:"oldDebt"`
-	Method      string     `json:"method"`
-	Reference   string     `json:"reference"`
-	Note        string     `json:"note"`
-	Source      string       `json:"source"` // MoneySource value; "" = outside the shop (not for cash)
+	Amount      string       `json:"amount"`
+	Mode        string       `json:"mode"`
+	Allocations []PayAlloc   `json:"allocations"`
+	Advance     string       `json:"advance"`
+	OldDebt     string       `json:"oldDebt"`
+	Method      string       `json:"method"`
+	Reference   string       `json:"reference"`
+	Note        string       `json:"note"`
+	Source      string       `json:"source"`            // MoneySource value; "" = outside the shop (not for cash)
 	Cheques     []ChequeLine `json:"cheques,omitempty"` // Method cheque: drawn on bank places, adding up to the payment
 }
 
@@ -198,9 +198,11 @@ type ReorderRow struct {
 	FromSales    bool   `json:"fromSales"` // Suggested came from sales history
 	SoldWeek     string `json:"soldWeek"`
 	SoldMonth    string `json:"soldMonth"`
-	SoldLastYear string `json:"soldLastYear"` // the same 90 days a year ago
-	Note         string `json:"note"`         // a plugin's note (e.g. an equivalent in stock)
-	Covered      bool   `json:"covered"`      // a plugin says an equivalent covers it
+	SoldLastYear string `json:"soldLastYear"`        // the same 90 days a year ago
+	Note         string `json:"note"`                // a plugin's note (e.g. an equivalent in stock)
+	Covered      bool   `json:"covered"`             // a plugin says an equivalent covers it
+	Block        string `json:"block,omitempty"`     // rows with the same block show together
+	BlockLine    string `json:"blockLine,omitempty"` // the block's heading line
 	// Smart reorder levels: the mode, the learned numbers (nil = not run yet) and
 	// whether a Fixed level is far from what sales suggest.
 	Auto     bool             `json:"auto"`

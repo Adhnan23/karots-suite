@@ -2186,6 +2186,8 @@ export interface ReorderRow {
   soldLastYear: string; // the same 90 days a year ago
   note: string; // a plugin's note (e.g. an equivalent in stock)
   covered: boolean; // a plugin says an equivalent covers it
+  block?: string; // rows with the same block show together
+  blockLine?: string; // the block's heading line
   /**
    * Smart reorder levels: the mode, the learned numbers (nil = not run yet) and
    * whether a Fixed level is far from what sales suggest.

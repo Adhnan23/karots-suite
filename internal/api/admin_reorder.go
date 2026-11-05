@@ -96,7 +96,12 @@ func (h *handlers) reorderRows(ctx context.Context, q products.ListQuery, all, h
 			if cur.Note != "" && n.Note != "" {
 				n.Note = cur.Note + " · " + n.Note
 			}
-			notes[id] = plugin.ReorderNote{Covered: cur.Covered || n.Covered, Note: n.Note, Suggest: decimal.Max(cur.Suggest, n.Suggest)}
+			merged := plugin.ReorderNote{Covered: cur.Covered || n.Covered, Note: n.Note, Suggest: decimal.Max(cur.Suggest, n.Suggest),
+				Exact: cur.Exact || n.Exact, Block: cur.Block, BlockLine: cur.BlockLine}
+			if n.Block != "" {
+				merged.Block, merged.BlockLine = n.Block, n.BlockLine
+			}
+			notes[id] = merged
 		}
 	}
 	for _, p := range every {

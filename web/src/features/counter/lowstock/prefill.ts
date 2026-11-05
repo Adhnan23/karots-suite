@@ -5,9 +5,10 @@ import { num } from '@/lib/money'
 // job through sessionStorage (too long for a URL); the form clears it once read.
 const KEY = 'ks-order-prefill'
 
-/** Order lines for low-stock rows: the suggested quantity at the last cost; nothing to order → left out. */
+/** Order lines for low-stock rows: the suggested quantity at the last cost; nothing to order, or a twin
+ * covers it → left out. */
 export function linesFor(rows: ReorderRow[]): StockLine[] {
-  return rows.filter((r) => num(r.suggested) > 0).map((r) => ({
+  return rows.filter((r) => num(r.suggested) > 0 && !r.covered).map((r) => ({
     productId: r.productId, name: r.name, ordered: '', quantity: r.suggested, freeQty: '', costPrice: r.cost,
     sellingPrice: '', expiryDate: '', discount: '', discountType: 'fixed', packSize: '',
   }))

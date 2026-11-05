@@ -140,11 +140,16 @@ type ProductLabelFieldProvider struct {
 // means an interchangeable equivalent is in stock, so the item need not be
 // reordered even though it reads low; Note is a short explanation shown on the row;
 // Suggest (optional) is the least quantity to suggest ordering — the row shows the
-// larger of it and core's own figure.
+// larger of it and core's own figure, unless Exact says it replaces that figure (a
+// share of something bigger, which core's own figure would undo). Block (optional)
+// names a set of rows to show together, under BlockLine.
 type ReorderNote struct {
-	Covered bool
-	Note    string
-	Suggest decimal.Decimal
+	Covered   bool
+	Note      string
+	Suggest   decimal.Decimal
+	Exact     bool
+	Block     string
+	BlockLine string
 }
 
 // ProductReorderAnnotator lets a plugin annotate the low-stock/reorder page: given

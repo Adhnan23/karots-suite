@@ -1,5 +1,6 @@
 import type { ReorderList, ShopHeader } from '@/api/types.gen'
 import { money, qtyText } from '@/lib/money'
+import { blocks } from './blocks'
 
 /** The low-stock list on A4: what's at or under its
  * reorder level, the suggested quantity, and a blank Order column. */
@@ -22,14 +23,17 @@ export function LowStockPaper({ d, shop, sym, all }: { d: ReorderList; shop: Sho
           <tr className="border-b border-ink text-left"><th className="py-1.5">Product</th><th>Supplier</th><th className="text-right">On hand</th><th className="text-right">Reorder at</th><th className="text-right">Suggest</th>{cost && <th className="text-right">Cost</th>}<th className="w-20 text-right">Order</th></tr>
         </thead>
         <tbody>
-          {d.items.map((r) => (
+          {blocks(d.items).flatMap((b) => [
+            b.name && <tr key={b.key} className="break-inside-avoid border-b border-ink"><td colSpan={cost ? 7 : 6} className="pt-3 pb-1"><b>{b.name}</b> {b.line}</td></tr>,
+            ...b.rows.map((r) => (
             <tr key={r.productId} className="break-inside-avoid border-b border-ink/20">
               <td className="py-1.5">{r.name}</td><td>{r.supplierName || '—'}</td>
               <td className="text-right tabular-nums">{qtyText(r.onHand)} {r.unitAbbr}</td><td className="text-right tabular-nums">{r.reorderLevel}</td>
               <td className="text-right tabular-nums">{qtyText(r.suggested)}</td>{cost && <td className="text-right tabular-nums">{money(sym, r.cost)}</td>}
               <td className="border-b border-ink/60" />
             </tr>
-          ))}
+          )),
+          ])}
           {d.items.length === 0 && <tr><td colSpan={7} className="py-6 text-center">Nothing is under its reorder level.</td></tr>}
         </tbody>
       </table>

@@ -69,7 +69,7 @@ func (s *Store) AddMember(ctx context.Context, tierID, productID int64, move boo
 		}
 	}
 	_, err = s.db.ExecContext(ctx, `INSERT INTO alt_members (product_id, tier_id) VALUES ($1, $2)
-		ON CONFLICT (product_id) DO UPDATE SET tier_id = EXCLUDED.tier_id`, productID, tierID)
+		ON CONFLICT (product_id) DO UPDATE SET tier_id = EXCLUDED.tier_id, split_share = NULL`, productID, tierID)
 	_, was := cur[productID]
 	return was, err
 }
@@ -158,8 +158,8 @@ type Coverage struct {
 	ReorderLevel int
 	Covered      bool // tracked and the tier's total is above its level
 	Low          bool // tracked and the tier's total is at or under it
-	// Need is this member's share of a low tier's shortfall (2 × level − total,
-	// core's rule for a product), split evenly and rounded up; 0 otherwise.
+	// Need is this member's share of a low tier's shortfall (2 × level − total, core's
+	// rule for a product), by what sells or the shop's split; 0 otherwise.
 	Need decimal.Decimal
 }
 
@@ -178,16 +178,22 @@ func (s *Store) CoverageFor(ctx context.Context, ids []int64) (map[int64]Coverag
 		FROM `+liveMembers+` WHERE m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
+	short := map[int64]int{}
+	for _, r := range rows {
+		if t := low(r.Tier); t.Low && r.Members > 0 {
+			gap := decimal.NewFromInt(int64(2 * t.ReorderLevel)).Sub(t.Total).Ceil().IntPart()
+			short[t.ID] = int(max(gap, 0))
+		}
+	}
+	needs, err := s.splitNeeds(ctx, short)
+	if err != nil {
+		return nil, err
+	}
 	out := make(map[int64]Coverage, len(rows))
 	for _, r := range rows {
 		t := low(r.Tier)
-		c := Coverage{Group: r.Group, Tier: t.Name, Total: t.Total, ReorderLevel: t.ReorderLevel,
-			Covered: t.ReorderLevel > 0 && !t.Low, Low: t.Low}
-		if t.Low && r.Members > 0 {
-			short := decimal.NewFromInt(int64(2 * t.ReorderLevel)).Sub(t.Total)
-			c.Need = decimal.Max(short.Div(decimal.NewFromInt(r.Members)).Ceil(), decimal.Zero)
-		}
-		out[r.ProductID] = c
+		out[r.ProductID] = Coverage{Group: r.Group, Tier: t.Name, Total: t.Total, ReorderLevel: t.ReorderLevel,
+			Covered: t.ReorderLevel > 0 && !t.Low, Low: t.Low, Need: needs[r.ProductID]}
 	}
 	return out, nil
 }
@@ -198,7 +204,7 @@ func (s *Store) LowTierMemberIDs(ctx context.Context) ([]int64, error) {
 	var ids []int64
 	err := s.db.SelectContext(ctx, &ids, `
 		SELECT m.product_id FROM `+liveMembers+`
-		WHERE t.reorder_level > 0 AND t.reorder_level >= (SELECT COALESCE(SUM(st.quantity), 0) FROM `+liveMembersAs2+`
+		WHERE (`+tierLevelSQL+`) > 0 AND (`+tierLevelSQL+`) >= (SELECT COALESCE(SUM(st.quantity), 0) FROM `+liveMembersAs2+`
 		       LEFT JOIN stock st ON st.product_id = m2.product_id WHERE m2.tier_id = t.id)`)
 	return ids, err
 }

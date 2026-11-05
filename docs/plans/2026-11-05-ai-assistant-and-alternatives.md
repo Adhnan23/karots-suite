@@ -216,7 +216,7 @@
 - Produces, Go: `func splitOrder(total int, weights []int64) []int` (largest remainder, sums exactly to `total`; all-zero weights split evenly; extra units go to the highest weight first, ties by position); `Tier.Level` = effective level; `func fasterBrand(manual map[int64]int, sold map[int64]int64) (id int64, ok bool)` (a brand whose sales share exceeds its manual share by ≥ 20 points, with ≥ 10 sold in total).
 - Consumes: `Tier` used throughout; `alt_tiers.reorder_level` remains the typed number.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `TestSplitOrder`: `(100,[70,20,10])→[70,20,10]`; `(10,[1,1,1])→[4,3,3]`; `(5,[0,0])→[3,2]`; `(0,[3,1])→[0,0]`; the sum always equals total.
   - `TestAutoLevelSumsMembers`: members at levels 10 and 20 → tier level 30; a disabled member isn't counted; no live members → level 0, not low.
   - `TestMigrationKeepsTyped`: tier with typed 40 stays fixed 40; tier with 0 becomes Auto.
@@ -224,11 +224,11 @@
   - `TestNeedSplitBySales`: level 50, stock 12 → total 88, split by 90-day sales; even split with none.
   - `TestManualSplit`: shares 50/50 → 44/44; `fasterBrand` true when one brand holds 80% of sales; nothing changes without a tap.
   - `TestLowMembersUsesAuto`: `LowTierMemberIDs` uses the effective level.
-- [ ] **Step 2: Run** `go test ./plugins/alternatives`. Expected: FAIL.
-- [ ] **Step 3: Implement.** `tierLevelSQL` snippet shared by `tierCols` and `LowTierMemberIDs`: `CASE WHEN t.level_auto THEN (SUM of live members' reorder_level) ELSE t.reorder_level END`. Sales via `reports.ProductQtySold` over 90 days. `reorderNotes` sends each member's share.
-- [ ] **Step 4: Group page:** Auto / typed level like products, a line saying how Auto came out, Automatic / Manual split with percent inputs that must total 100, and a suggestion with a Use button when `fasterBrand`. Tests in `GroupPage`'s spec. Shots at 360px.
-- [ ] **Step 5: Run** package tests, `plugin-alternatives.spec.ts`. Expected: PASS; update any test pinning the old default `0` deliberately, without weakening what it checks.
-- [ ] **Step 6: Commit** `feat(alternatives): groups learn their level; orders split by what sells`
+- [x] **Step 2: Run** `go test ./plugins/alternatives`. Expected: FAIL.
+- [x] **Step 3: Implement.** `tierLevelSQL` snippet shared by `tierCols` and `LowTierMemberIDs`: `CASE WHEN t.level_auto THEN (SUM of live members' reorder_level) ELSE t.reorder_level END`. Sales via `reports.ProductQtySold` over 90 days. `reorderNotes` sends each member's share.
+- [x] **Step 4: Group page:** Auto / typed level like products, a line saying how Auto came out, Automatic / Manual split with percent inputs that must total 100, and a suggestion with a Use button when `fasterBrand`. Tests in `GroupPage`'s spec. Shots at 360px.
+- [x] **Step 5: Run** package tests, `plugin-alternatives.spec.ts`. Expected: PASS; update any test pinning the old default `0` deliberately, without weakening what it checks.
+- [x] **Step 6: Commit** `feat(alternatives): groups learn their level; orders split by what sells`
 
 ### Task 8: Low stock understands groups
 
@@ -240,22 +240,22 @@
 - Produces: `ReorderNote` gains `Exact bool` (Suggest replaces core's figure), `Block, BlockLine string`, doc-commented generically. `ReorderRow` gains `Block`, `BlockLine` (JSON `block`, `blockLine`). `blocks(rows): Block[]` groups rows sharing `block`, keeps others alone, keeps list order by first appearance.
 - Consumes: Task 7's split.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `TestExactReplacesOwnNeed`: fake annotator with `Exact:true, Suggest:3`; sales-based own need 40 → `Suggested == "3"`. Without `Exact`, max as today.
   - `TestTillListHidesCovered`: `/till/low-stock?all=1&hideCovered=1` hides a covered row, pulls in a low group's member.
   - `TestDashboardCountsCoverage`: with a covered product and a low-group member, the attention count matches the Reorder list's total.
   - `blocks.test.ts`: mixed rows, a block spanning pages of `data.items`, empty.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** `Suggested`: `Exact` wins, else `decimal.Max`. Dashboard uses `reorderRows(…, hideCovered=true)` when annotators exist. Alternatives fills `Block` (group · tier), `BlockLine` (`LOW: 12 left in the group · reorder at 50`), `Exact`, and `Suggest` from the split. `make types`.
-- [ ] **Step 4: Pages.**
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** `Suggested`: `Exact` wins, else `decimal.Max`. Dashboard uses `reorderRows(…, hideCovered=true)` when annotators exist. Alternatives fills `Block` (group · tier), `BlockLine` (`LOW: 12 left in the group · reorder at 50`), `Exact`, and `Suggest` from the split. `make types`.
+- [x] **Step 4: Pages.**
   - `ReorderBlock.tsx` renders the heading, line and member rows.
   - Reorder page: rows in a block sit together, each still ticked and editable alone.
   - Till tab: sections stay by supplier for the reps, with blocks inside each supplier; hide covered by default with a **Show covered** toggle; notes shown. A group's brand from another supplier appears under that supplier with the same heading line.
   - Printed list: same `hideCovered` and headings.
   - A product with no group looks exactly as today.
-- [ ] **Step 5: e2e** in `counter-lowstock.spec.ts`: a covered twin hidden then shown by the toggle; a low group shows one block; "Order these" fills split quantities. Shots at 1280 and 360, Studio and Night.
-- [ ] **Step 6: Run** `go test ./internal/api`, Vitest, the specs, `make check-core`. Expected: PASS.
-- [ ] **Step 7: Commit** `feat(reorder): low stock shows groups; till tab and dashboard respect coverage`
+- [x] **Step 5: e2e** in `counter-lowstock.spec.ts`: a covered twin hidden then shown by the toggle; a low group shows one block; "Order these" fills split quantities. Shots at 1280 and 360, Studio and Night.
+- [x] **Step 6: Run** `go test ./internal/api`, Vitest, the specs, `make check-core`. Expected: PASS.
+- [x] **Step 7: Commit** `feat(reorder): low stock shows groups; till tab and dashboard respect coverage`
 
 ### Task 9: Fill in details (generic attributes + Product Plus)
 
