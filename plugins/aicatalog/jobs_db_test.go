@@ -309,3 +309,24 @@ func TestSkippedFilterFollowsRedo(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// The page reads run.summary: without it "Last applied:" stands empty.
+func TestLastRunJSON(t *testing.T) {
+	p, _, ids, db := jobEnv(t, "aicatalog_last_run_json", 1)
+	if _, err := p.applyJob(context.Background(), p.job("fake"), JobApply{Asked: ids, Suggested: ids, Rows: []JobRow{{ProductID: ids[0], New: "Done"}}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	_, do := testAPI(t, db)
+	var got struct {
+		Run struct {
+			ID      int64  `json:"id"`
+			Summary string `json:"summary"`
+		} `json:"run"`
+	}
+	if err := json.Unmarshal(do("GET", "/cleanup/last", "").Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Run.ID == 0 || !strings.Contains(got.Run.Summary, "1 applied") {
+		t.Fatalf("%+v", got)
+	}
+}

@@ -15,8 +15,8 @@ import (
 
 // Run is one applied clean-up (a chunked session is one run).
 type Run struct {
-	ID      int64  `db:"id"`
-	Summary string `db:"summary"`
+	ID      int64  `db:"id" json:"id"`
+	Summary string `db:"summary" json:"summary"`
 }
 
 var errNothingToUndo = errors.New("nothing to undo")
