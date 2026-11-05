@@ -9,11 +9,12 @@ export type JobRow = {
   isNew: boolean; change: boolean; ticked: boolean; needs?: string; choices?: { value: string; label: string }[]; extra?: Record<string, string>
 }
 export type JobPreview = { rows: JobRow[]; asked: number[]; names: Record<string, string>; remaining: number; state?: string }
-export type JobAsk = { size: number; categoryId: number; filter: '' | 'skipped'; ids?: number[]; options?: unknown; reply?: string }
+export type JobAsk = { size: number; categoryId: number; filter: '' | 'skipped'; force?: boolean; ids?: number[]; options?: unknown; reply?: string }
 export type JobApplied = { applied: number; skipped: { productId: number; label: string; why: string }[]; summary: string }
 
 export const jobsQuery = { queryKey: ['x', 'aicatalog', 'jobs'], queryFn: () => api<JobInfo[]>(base) }
-export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview>>(`${base}/${job}/next`, { json: b })
+export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview> & { left?: number }>(`${base}/${job}/next`, { json: b })
+export const jobRedoOver = (job: string) => api(`${base}/${job}/redo-over`, { method: 'POST' })
 export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[]; state?: string }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
 
 /** A row's identity on the page. */
@@ -55,3 +56,14 @@ export function applyBody(pv: JobPreview, ticks: Set<string>) {
 
 /** A typed answer to what a row needs: "new" and blanks are no answer. */
 export const answersNeed = (typed: string) => typed.trim() !== '' && typed.trim().toLowerCase() !== 'new'
+
+/** Where a run of batches stands: "Batch 2 of 6: products 6–10 of 27". firstLeft is what was left when the run began. */
+export function batchLabel(firstLeft: number, left: number, size: number): string {
+  if (firstLeft <= 0) return ''
+  const done = Math.max(0, firstLeft - left)
+  const each = Math.max(1, size)
+  const batches = Math.ceil(firstLeft / each)
+  const from = Math.min(done + 1, firstLeft)
+  const to = Math.min(done + each, firstLeft)
+  return `Batch ${Math.min(Math.floor(done / each) + 1, batches)} of ${batches}: ${from === to ? `product ${from}` : `products ${from}–${to}`} of ${firstLeft}`
+}

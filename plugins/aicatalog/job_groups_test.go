@@ -269,3 +269,21 @@ func TestGroupUndoAfterPartialCreate(t *testing.T) {
 		t.Fatalf("members stay off the list: %d", n)
 	}
 }
+
+func TestGroupMembersRecordedAsApplied(t *testing.T) {
+	p, _, c := groupEnv(t, "aicatalog_groups_record")
+	a, b := prod(t, p.store.db, "A 5", c), prod(t, p.store.db, "B 5", c)
+	row := JobRow{ProductID: a, Kind: "group", Label: "New group", Extra: map[string]string{"name": "T", "members": fmt.Sprintf("%d,%d", a, b)}}
+	if _, err := p.applyJob(context.Background(), p.job("groups"), JobApply{Rows: []JobRow{row}, Asked: []int64{a, b}, Suggested: []int64{a}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if n := count(t, p.store.db, `SELECT count(*) FROM aicatalog_job_items WHERE job = 'groups' AND state = 'applied'`); n != 2 {
+		t.Fatalf("both are settled: %d", n)
+	}
+}
+
+func TestGroupPromptFitsAnyShop(t *testing.T) {
+	if strings.Contains(groupsPrompt, "paracetamol") {
+		t.Fatal("the example assumes a pharmacy")
+	}
+}

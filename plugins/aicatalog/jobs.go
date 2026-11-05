@@ -82,6 +82,7 @@ type UndoOp struct {
 	Applied   string            `json:"applied"`
 	Previous  string            `json:"previous"`
 	Extra     map[string]string `json:"extra,omitempty"`
+	Also      []int64           `json:"also,omitempty"` // other products this row settled
 }
 
 // errStale says a row no longer fits what's there: it is skipped and reported.
@@ -110,6 +111,7 @@ type JobRequest struct {
 	IDs        []int64         `json:"ids"`    // a redo: exactly these
 	Options    json.RawMessage `json:"options"`
 	Reply      string          `json:"reply"`
+	Force      bool            `json:"force"` // redo everything: has its own record, so it can continue too
 
 	exclude     []int64 // never these (a job's own rule)
 	needDetails bool    // only products a prompt could judge: a digit in the name, or a hint
@@ -149,10 +151,20 @@ func (p *Plugin) job(key string) *Job {
 	return nil
 }
 
+// recordKey is where a job's answers are kept: a forced redo keeps its own, so leaving
+// halfway continues there too, and the normal list is left as it was.
+func (in JobRequest) recordKey(key string) string {
+	if in.Force {
+		return key + ":redo"
+	}
+	return key
+}
+
 func (h handlers) jobRoutes(a plugin.Group) {
 	a.GET("/aicatalog/jobs", h.jobList)
 	a.POST("/aicatalog/jobs/:job/next", h.jobNext)
 	a.POST("/aicatalog/jobs/:job/apply", h.jobApply)
+	a.POST("/aicatalog/jobs/:job/redo-over", h.jobRedoOver)
 }
 
 func (h handlers) jobList(c echo.Context) error {
@@ -252,6 +264,18 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	return rows, total, nil
 }
 
+// jobRedoOver starts a forced redo from the first product again.
+func (h handlers) jobRedoOver(c echo.Context) error {
+	j := h.p.job(c.Param("job"))
+	if j == nil {
+		return apperr.NotFound("job")
+	}
+	if _, err := h.p.store.db.ExecContext(c.Request().Context(), `DELETE FROM aicatalog_job_items WHERE job LIKE $1 || ':%redo'`, j.Key); err != nil {
+		return apperr.Internal("start the redo over", err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (h handlers) jobNext(c echo.Context) error {
 	j := h.p.job(c.Param("job"))
 	if j == nil {
@@ -271,7 +295,11 @@ func (h handlers) jobNext(c echo.Context) error {
 	if j.Select != nil {
 		b, total, err = j.Select(ctx, h.p, in)
 	} else {
-		b.Products, total, err = selectProducts(ctx, h.p, j.Key, in)
+		key := in.recordKey(j.Key)
+		if in.Force {
+			b.State = key
+		}
+		b.Products, total, err = selectProducts(ctx, h.p, key, in)
 	}
 	if err != nil {
 		if _, ok := apperr.As(err); ok {
@@ -279,8 +307,9 @@ func (h handlers) jobNext(c echo.Context) error {
 		}
 		return apperr.Internal("read the products", err)
 	}
-	b.Options, b.Settings, b.Redo = in.Options, s, len(in.IDs) > 0
+	b.Options, b.Settings, b.Redo = in.Options, s, len(in.IDs) > 0 || in.Force
 	var out AskReply[JobPreview]
+	out.Left = &total
 	if len(b.Products) == 0 {
 		out.Result = &JobPreview{Rows: []JobRow{}, Asked: []int64{}, Names: map[int64]string{}}
 		return c.JSON(http.StatusOK, out)

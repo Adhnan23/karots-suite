@@ -86,6 +86,9 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 		}
 		for i := range ops {
 			ops[i].Kind, ops[i].Job = "job", j.Key
+			for _, id := range ops[i].Also {
+				done[id] = true
+			}
 		}
 		undo = append(undo, ops...)
 		done[r.ProductID] = true

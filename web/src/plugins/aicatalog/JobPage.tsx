@@ -11,7 +11,7 @@ import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { slots } from '../slots'
 import { LastRun } from './CleanupPage'
-import { answersNeed, applyBody, byProduct, initialTicks, jobApply, jobNext, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
+import { answersNeed, applyBody, batchLabel, byProduct, initialTicks, jobApply, jobNext, jobRedoOver, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
 import { PastePanel } from './PastePanel'
 import { lastRunQuery } from './api'
 import { jobControls } from './jobControls'
@@ -51,23 +51,39 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
   const { state, dispatch, ask, read } = useAsk<JobPreview>()
   const [size, setSize] = useState(job.oneByOne ? 1 : 5)
   const [categoryId, setCategoryId] = useState(0)
-  const [filter, setFilter] = useState<'' | 'skipped'>('')
+  const [mode, setMode] = useState<'' | 'skipped' | 'redo'>('')
+  const [left, setLeft] = useState(0)
+  const [firstLeft, setFirstLeft] = useState(0)
   const [options, setOptions] = useState<unknown>(undefined)
   const [redo, setRedo] = useState<number[] | undefined>()
   const [ticks, setTicks] = useState<Set<string>>(new Set())
   const [edits, setEdits] = useState<Record<string, Partial<JobRow>>>({})
   const [busy, setBusy] = useState(false)
   const [skips, setSkips] = useState<{ productId: number; label: string; why: string }[]>([])
-  const body = (): JobAsk => ({ size, categoryId, filter, ids: redo, options })
+  const body = (): JobAsk => ({ size, categoryId, filter: mode === 'skipped' ? 'skipped' : '', force: mode === 'redo', ids: redo, options })
+  // Every answer says how many are left, so each step can say where it stands.
+  const next = async (b: JobAsk) => {
+    const r = await jobNext(job.key, b)
+    if (r.left !== undefined) {
+      setLeft(r.left)
+      setFirstLeft((f) => f || r.left || 0)
+    }
+    return r
+  }
+  const progress = batchLabel(firstLeft, left, redo?.length ?? size)
   const Controls = jobControls[job.key]
 
-  function start() {
+  function ask_() {
     setEdits({})
     setSkips([])
     dispatch({ t: 'reset' })
-    ask(() => jobNext(job.key, body())).catch((e) => toast.error(errMsg(e)))
+    ask(() => next(body())).catch((e) => toast.error(errMsg(e)))
   }
-  const onReply = (reply: string) => void read(reply, (r) => jobNext(job.key, { ...body(), reply: r }))
+  function start() {
+    setFirstLeft(0)
+    ask_()
+  }
+  const onReply = (reply: string) => void read(reply, (r) => next({ ...body(), reply: r }))
   const pv = state.k === 'done' ? state.result : null
   const [seen, setSeen] = useState<JobPreview | null>(null)
   if (pv !== seen) {
@@ -91,7 +107,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
       setRedo(undefined)
       await qc.invalidateQueries({ queryKey: lastRunQuery.queryKey })
       await qc.invalidateQueries({ queryKey: ['admin'] })
-      if (pv.remaining > 0 && !r.skipped.length) start()
+      if (pv.remaining > 0 && !r.skipped.length) ask_()
       else dispatch({ t: 'reset' })
     } catch (e) {
       toast.error(errMsg(e))
@@ -136,11 +152,21 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
             <div className="grid min-w-52 gap-1 text-[12.5px] font-semibold">Category
               <CategoryPicker label="Only this category" noneLabel="All categories" value={categoryId} onChange={setCategoryId} />
             </div>
-            <label className="flex h-[var(--control-h)] items-center gap-2 text-[13.5px] font-semibold">
-              <input type="checkbox" checked={filter === 'skipped'} onChange={(e) => setFilter(e.target.checked ? 'skipped' : '')} className="size-[18px]" />
-              Skipped or no answer
-            </label>
+            <div role="radiogroup" aria-label="Which products" className="flex flex-wrap items-center gap-1.5">
+              {([['', 'Continue'], ['skipped', 'Skipped or no answer'], ['redo', 'Redo everything']] as const).map(([m, label]) => (
+                <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+                  className="min-h-[var(--control-h)] rounded-pill border border-border bg-card px-3 text-[13px] font-semibold aria-checked:border-selected aria-checked:bg-brand-soft">{label}</button>
+              ))}
+            </div>
           </div>
+          {mode === '' && <p className="text-[13px] text-faint">Carries on with the ones not done yet, even if you left halfway.</p>}
+          {mode === 'redo' && (
+            <p className="flex flex-wrap items-center gap-x-2 text-[13px] text-muted-foreground">
+              Asks again about products already done. You see old and new side by side, and the old stays unless you tick the new. Leave halfway and it continues here too.
+              <button type="button" className="font-semibold text-foreground underline underline-offset-2"
+                onClick={() => void jobRedoOver(job.key).then(() => toast.success('The redo starts from the first product'), (e) => toast.error(errMsg(e)))}>Start the redo over</button>
+            </p>
+          )}
           <p className="text-[13px] text-faint">One at a time gets the chatbot's full attention. Raise it once you trust the results.</p>
           {redo && <p className="text-[14px] font-semibold">Redoing one product. You'll see the old and new side by side.</p>}
           <div className="flex flex-wrap items-center gap-2">
@@ -155,21 +181,22 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
       )}
       {(state.k === 'awaiting' || state.k === 'reading') && (
         <section className={CARD}>
-          <b className="text-[15px]">Ask the chatbot</b>
+          <b className="text-[15px]">{progress || 'Ask the chatbot'}</b>
+          {progress && <small className="-mt-2 text-[13px] text-muted-foreground">Copy this to the chatbot, then paste its answer here.</small>}
           <PastePanel prompt={state.prompt} reply={state.reply} error={state.k === 'awaiting' ? state.error : undefined} reading={state.k === 'reading'}
             onType={(reply) => dispatch({ t: 'type', reply })} onReply={onReply} />
         </section>
       )}
       {pv && (pv.asked.length === 0
         ? <section className={CARD}><b>Nothing left here.</b><Button variant="outline" className="h-10 self-start" onClick={() => dispatch({ t: 'reset' })}>Back</Button></section>
-        : <Preview job={job} pv={pv} ticks={ticks} setTicks={setTicks} edits={edits} setEdits={setEdits} merged={merged} busy={busy} onApply={() => void apply()}
+        : <Preview progress={progress} job={job} pv={pv} ticks={ticks} setTicks={setTicks} edits={edits} setEdits={setEdits} merged={merged} busy={busy} onApply={() => void apply()}
           onRedo={(id) => { setRedo([id]); dispatch({ t: 'reset' }) }} onCancel={() => dispatch({ t: 'reset' })} />)}
     </div>
   )
 }
 
-function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onApply, onRedo, onCancel }: {
-  job: JobInfo; pv: JobPreview; ticks: Set<string>; setTicks: (t: Set<string>) => void
+function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, busy, onApply, onRedo, onCancel }: {
+  progress: string; job: JobInfo; pv: JobPreview; ticks: Set<string>; setTicks: (t: Set<string>) => void
   edits: Record<string, Partial<JobRow>>; setEdits: (e: Record<string, Partial<JobRow>>) => void; merged: (r: JobRow, key: string) => JobRow
   busy: boolean; onApply: () => void; onRedo: (id: number) => void; onCancel: () => void
 }) {
@@ -180,7 +207,7 @@ function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onAp
   return (
     <section className={CARD}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <b className="text-[15px]">{pv.asked.length} asked · {pv.remaining} left after this</b>
+        <b className="text-[15px]">{progress ? `${progress} · ` : ''}{pv.remaining} left after this</b>
         {names && <Button variant="outline" className="h-9" onClick={() => setTicks(tickAll(pv.rows, ticks, 'name', false))}>Tick all names</Button>}
       </div>
       <ul className="flex flex-col divide-y divide-border">

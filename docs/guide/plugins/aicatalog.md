@@ -26,7 +26,7 @@ A hint comes from a chatbot, so confirm it before relying on it. Two chatbots ca
 | **Usual dose** | [Pharmacy](pharmacy.md) is in the build | A dose in your dose list's own wording. The pharmacist approves one at a time, and it never replaces a dose already set |
 | **Combo suggestions** | [Combos](combos.md) is in the build | Products that go together, from **Suggest combos** on the Combos page. It opens the normal combo form: you set the price and save |
 
-A product leaves a job's list once it's been answered, so a long list keeps moving. **Skipped or no answer** brings back the ones you left, and **Redo a product** shows the old and new side by side. If the chatbot isn't sure, the product simply has no suggestion.
+A product leaves a job's list once it's been answered, so a long list keeps moving, and each step says where it stands: "Batch 2 of 6: products 6–10 of 27". Leave halfway and **Continue** carries on with the rest next time. **Skipped or no answer** brings back the ones you left, **Redo a product** shows the old and new side by side, and **Redo everything** does that for the whole list. If the chatbot isn't sure, the product simply has no suggestion.
 
 Fill in details, the marks and doses rely on the right category, so run **Identify a whole list** or **Clean up** first. Use the category filter so cleaning items aren't asked about prescriptions.
 

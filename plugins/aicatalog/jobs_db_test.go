@@ -247,3 +247,46 @@ func TestSkipReasonHidesTheDatabase(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestLeaveAndContinue(t *testing.T) {
+	p, next, ids, _ := jobEnv(t, "aicatalog_job_continue", 3)
+	if _, err := p.applyJob(context.Background(), p.job("fake"), JobApply{Rows: []JobRow{{ProductID: ids[0], New: "Done"}}, Asked: ids[:1], Suggested: ids[:1]}, 0); err != nil {
+		t.Fatal(err)
+	}
+	// Coming back later: only what's left, and asking without applying changes nothing.
+	for i := 0; i < 2; i++ {
+		if got := next("fake", `{"size":1}`, reply()); !slices.Equal(got.Asked, []int64{ids[1]}) {
+			t.Fatalf("%+v", got)
+		}
+	}
+}
+
+func TestForceRedoHasItsOwnRecord(t *testing.T) {
+	p, next, ids, db := jobEnv(t, "aicatalog_job_force", 2)
+	ctx, j := context.Background(), func() *Job { return p.job("fake") }
+	if _, err := p.applyJob(ctx, j(), JobApply{Asked: ids, Suggested: ids, Rows: []JobRow{{ProductID: ids[0], New: "A"}, {ProductID: ids[1], New: "B"}}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := next("fake", "", reply()); len(got.Asked) != 0 {
+		t.Fatalf("all done: %+v", got)
+	}
+	got := next("fake", `{"force":true,"size":1}`, reply())
+	if !slices.Equal(got.Asked, []int64{ids[0]}) || got.State != "fake:redo" || got.Remaining != 1 {
+		t.Fatalf("redo starts from the first: %+v", got)
+	}
+	if _, err := p.applyJob(ctx, j(), JobApply{State: got.State, Asked: ids[:1], Suggested: ids[:1]}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := next("fake", `{"force":true,"size":1}`, reply()); !slices.Equal(got.Asked, []int64{ids[1]}) {
+		t.Fatalf("a redo continues too: %+v", got)
+	}
+	if got := next("fake", "", reply()); len(got.Asked) != 0 {
+		t.Fatalf("the normal list isn't reopened: %+v", got)
+	}
+	if _, err := db.Exec(`DELETE FROM aicatalog_job_items WHERE job LIKE $1 || ':%redo'`, "fake"); err != nil {
+		t.Fatal(err)
+	}
+	if got := next("fake", `{"force":true,"size":1}`, reply()); !slices.Equal(got.Asked, []int64{ids[0]}) {
+		t.Fatalf("start over: %+v", got)
+	}
+}

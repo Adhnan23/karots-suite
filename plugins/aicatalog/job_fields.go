@@ -108,6 +108,9 @@ func fieldsSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, er
 	}
 	sort.Strings(keys)
 	b.State = "fields:" + strings.Join(keys, ",")
+	if in.Force {
+		b.State += ":redo"
+	}
 	size := in.Size
 	if size <= 0 {
 		size = jobBatchDefault
@@ -133,7 +136,7 @@ func fieldsSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, er
 	for _, x := range all {
 		wanted := false
 		for _, a := range ticked {
-			if appliesTo(a, x.CategoryID) && values[x.ID][a.Key] == "" {
+			if appliesTo(a, x.CategoryID) && (in.Force || values[x.ID][a.Key] == "") {
 				wanted = true
 				break
 			}

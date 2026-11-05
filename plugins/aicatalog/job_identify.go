@@ -28,9 +28,14 @@ func identifyJob() Job {
 	return Job{Key: "identify", Label: "Identify a whole list",
 		Desc: "Names, categories and searchable hints for many products. Prices and stock never change.",
 		Select: func(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) {
-			in.noHint = len(in.IDs) == 0 && in.Filter == "" // products without hints; a redo picks its own
-			prods, total, err := selectProducts(ctx, p, "identify", in)
-			return Batch{Products: prods}, total, err
+			in.noHint = len(in.IDs) == 0 && in.Filter == "" && !in.Force // products without hints; a redo picks its own
+			key := in.recordKey("identify")
+			prods, total, err := selectProducts(ctx, p, key, in)
+			b := Batch{Products: prods}
+			if in.Force {
+				b.State = key
+			}
+			return b, total, err
 		},
 		Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
 }

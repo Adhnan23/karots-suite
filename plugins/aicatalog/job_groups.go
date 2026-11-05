@@ -15,12 +15,12 @@ import (
 
 const groupsPrompt = `Find products of a shop that can replace each other, so a customer can be offered one when the other is out.
 Match the same kind of item with the same size, rating, fit or capacity.
-For medicines: the same active ingredients, the same strength and the same form. Never group different strengths or forms, or a product with an extra ingredient.
+If the products are medicines: the same active ingredients, the same strength and the same form. Never group different strengths or forms, or a product with an extra ingredient.
 Only products listed as PRODUCTS TO PLACE or OTHER PRODUCTS may be named. Every group must include at least one product to place.
 Put a product into an EXISTING GROUP when it belongs there. Leave out anything you aren't sure of: a wrong group means a customer can be offered the wrong item.
 Reply with STRICT JSON ONLY:
 {"groups":[{"name":"","product_ids":[],"reason":""}],"joins":[{"product_id":0,"group_id":0,"reason":""}]}
-"reason" says what they share, for example "both paracetamol 500mg tablets". Use empty arrays when nothing fits.`
+"reason" says briefly what they share. Use empty arrays when nothing fits.`
 
 func (p *Plugin) grouper() *plugin.ProductGrouper {
 	if p.groupers == nil {
@@ -48,18 +48,22 @@ func groupsSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, er
 		return b, 0, err
 	}
 	in.exclude, in.needDetails, in.byName = nil, true, true
+	key := in.recordKey("groups")
+	if in.Force {
+		b.State = key
+	}
 	for _, g := range groups {
 		in.exclude = append(in.exclude, g.Members...)
 	}
 	if in.CategoryID == 0 && len(in.IDs) == 0 {
-		first, _, err := selectProducts(ctx, p, "groups", JobRequest{Size: 1, Filter: in.Filter, exclude: in.exclude, needDetails: true, byName: true})
+		first, _, err := selectProducts(ctx, p, key, JobRequest{Size: 1, Filter: in.Filter, exclude: in.exclude, needDetails: true, byName: true})
 		if err != nil || len(first) == 0 {
 			return b, 0, err
 		}
 		in.CategoryID = first[0].CategoryID
 	}
 	var total int
-	if b.Products, total, err = selectProducts(ctx, p, "groups", in); err != nil || len(b.Products) == 0 {
+	if b.Products, total, err = selectProducts(ctx, p, key, in); err != nil || len(b.Products) == 0 {
 		return b, total, err
 	}
 	asked := map[int64]bool{}
@@ -238,7 +242,13 @@ func groupsApply(ctx context.Context, p *Plugin, _ *sqlx.Tx, r JobRow) ([]UndoOp
 				members = strings.Join(got, ",")
 			}
 		}
-		return []UndoOp{{RowKind: "group", ProductID: r.ProductID, Applied: strconv.FormatInt(id, 10), Extra: map[string]string{"members": members}}}, nil
+		also := []int64{}
+		for _, m := range strings.Split(members, ",") {
+			if n, err := strconv.ParseInt(m, 10, 64); err == nil {
+				also = append(also, n)
+			}
+		}
+		return []UndoOp{{RowKind: "group", ProductID: r.ProductID, Also: also, Applied: strconv.FormatInt(id, 10), Extra: map[string]string{"members": members}}}, nil
 	case "join":
 		tier, err := strconv.ParseInt(r.Extra["tier"], 10, 64)
 		if err != nil || tier == 0 {
@@ -284,7 +294,7 @@ func groupsUndo(ctx context.Context, p *Plugin, tx *sqlx.Tx, op UndoOp) error {
 						ids = append(ids, n)
 					}
 				}
-				_, err := tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE job = 'groups' AND product_id = ANY($1)`, pq.Array(ids))
+				_, err := tx.ExecContext(ctx, `DELETE FROM aicatalog_job_items WHERE (job = 'groups' OR job LIKE 'groups:%') AND product_id = ANY($1)`, pq.Array(ids))
 				return err
 			}
 		}

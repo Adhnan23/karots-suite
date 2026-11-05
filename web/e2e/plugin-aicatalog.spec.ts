@@ -111,6 +111,7 @@ test('jobs: identify a whole list: unknown items wait, ticks apply, the next bat
   await page.getByLabel('Search categories').fill(cat.name)
   await page.getByLabel('Search categories').press('Enter')
   await page.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByText(/^Batch 1 of \d+: products? 1/)).toBeVisible()
   const prompt = await page.getByLabel('Prompt to copy').inputValue()
   expect(prompt).toContain(`pn-${tag}-a`)
   expect(prompt).not.toContain('spare-part')

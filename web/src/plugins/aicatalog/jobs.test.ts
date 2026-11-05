@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answersNeed, applyBody, byProduct, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
+import { answersNeed, applyBody, batchLabel, byProduct, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
 
 const row = (over: Partial<JobRow>): JobRow => ({ productId: 1, kind: 'hint', key: 'hint', label: 'Hint', old: '', new: 'x', reason: '', isNew: false, change: false, ticked: false, ...over })
 
@@ -28,5 +28,12 @@ describe('job rows', () => {
     expect(answersNeed('1-0-0')).toBe(true)
     expect(answersNeed('  ')).toBe(false)
     expect(answersNeed('New')).toBe(false)
+  })
+  it('says where a run of batches stands', () => {
+    expect(batchLabel(27, 27, 5)).toBe('Batch 1 of 6: products 1–5 of 27')
+    expect(batchLabel(27, 22, 5)).toBe('Batch 2 of 6: products 6–10 of 27')
+    expect(batchLabel(27, 2, 5)).toBe('Batch 6 of 6: products 26–27 of 27')
+    expect(batchLabel(3, 2, 1)).toBe('Batch 2 of 3: product 2 of 3')
+    expect(batchLabel(0, 0, 5)).toBe('')
   })
 })
