@@ -50,12 +50,21 @@ test.beforeAll(async ({ browser }) => {
   const code = (await phone.getByLabel('Pairing code').textContent())!.trim()
   await admin.request.post('/api/v1/x/pocketcashier/phones/approve', { data: { code } })
   await pinIn(phone, 'E2E Cashier')
+  // Someone who owes, so Credit isn't empty.
+  const found = await (await admin.request.get('/api/v1/admin/customers?q=E2E%20Credit')).json() as { items: { id: number; name: string }[] }
+  await admin.request.post(`/api/v1/admin/customers/${found.items.find((c) => c.name === 'E2E Credit')!.id}/opening`, { data: { opening: '900', note: 'shots' } })
   // A float in the drawer and one held sale, so Menu and Held aren't empty.
   await phone.getByRole('button', { name: 'Menu', exact: true }).click()
   await phone.getByRole('button', { name: 'Open the drawer' }).click()
   await phone.getByLabel('Count of Rs. 1,000.00').fill('5')
   await phone.getByRole('button', { name: 'Open', exact: true }).click()
   await phone.getByRole('button', { name: 'Sell', exact: true }).click()
+  // One finished sale, so Returns and Receipts aren't empty.
+  await phone.getByRole('list', { name: 'Products' }).getByRole('button', { name: /E2E Milk/ }).first().click()
+  await phone.getByRole('button', { name: 'Pay ›' }).click()
+  await phone.getByRole('button', { name: 'Finish sale' }).click()
+  await phone.getByRole('dialog', { name: 'Print the receipt?' }).getByRole('button', { name: 'Skip' }).click()
+  await phone.getByRole('button', { name: 'New sale' }).click()
   await phone.getByRole('list', { name: 'Products' }).getByRole('button', { name: /E2E Yoghurt/ }).first().click()
   await phone.getByRole('dialog', { name: 'Which price?' }).getByRole('button').filter({ hasNotText: 'Expired' }).first().click() // its FEFO lot is expired
   await phone.getByRole('button', { name: 'Held', exact: true }).click()
@@ -104,6 +113,41 @@ for (const palette of (process.env.SHOTS_PALETTES ?? 'studio,night,bazaar').spli
       await shot(phone, 'held', palette, mode)
       await phone.getByRole('button', { name: 'Menu', exact: true }).click()
       await shot(phone, 'menu', palette, mode)
+
+      // The counter pages, at the narrowest size.
+      await phone.setViewportSize({ width: 360, height: 780 })
+      const page = async (name: string) => {
+        await phone.getByRole('button', { name: 'Menu', exact: true }).click()
+        await phone.getByRole('button', { name, exact: true }).click()
+        await phone.waitForTimeout(300)
+      }
+      await shot(phone, 'menu-360', palette, mode)
+      await page('Credit')
+      await shot(phone, 'credit', palette, mode)
+      await phone.getByRole('button', { name: /E2E Credit.*owes/ }).click()
+      await phone.getByLabel('Amount').fill('1000')
+      await shot(phone, 'credit-form', palette, mode)
+      await page('Returns')
+      await shot(phone, 'returns', palette, mode)
+      await phone.getByRole('button', { name: /^S-/ }).first().click()
+      await phone.getByRole('button', { name: /^More / }).first().click()
+      await phone.waitForTimeout(200)
+      await shot(phone, 'return-form', palette, mode)
+      await page('Receipts')
+      await shot(phone, 'receipts', palette, mode)
+      await page('Warranty')
+      await phone.getByLabel('Serial or receipt').fill('E2E-SN-0001')
+      await phone.getByRole('button', { name: 'Find' }).click()
+      await phone.waitForTimeout(400)
+      await shot(phone, 'warranty', palette, mode)
+      await page('Write-off')
+      await phone.getByLabel('Find a product').fill('E2E Lot Soap')
+      await phone.getByRole('button', { name: /E2E Lot Soap/ }).first().click()
+      await phone.waitForTimeout(200)
+      await shot(phone, 'write-off', palette, mode)
+      await page('Convert')
+      await shot(phone, 'convert', palette, mode)
+      await phone.setViewportSize({ width: 390, height: 844 })
 
       // PC down: the amber state.
       await ctx.setOffline(true)
