@@ -1,7 +1,6 @@
 import { ChevronLeft, Printer } from 'lucide-react'
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
-import { Button } from '@/components/ui/button'
 import type { Action } from '@/features/till/cart/store'
 import { effectivePayments } from '@/features/till/cart/checkout'
 import { changeDue, saleTotal } from '@/features/till/cart/totals'

@@ -36,7 +36,7 @@ export function Returns(p: CounterProps) {
   )
 }
 
-function ReturnForm({ who, copy, out, live, sale, onDone, onBack }: CounterProps & { sale: SaleView; onDone: (notice: string) => void }) {
+function ReturnForm({ who, copy, out, sale, onDone, onBack }: CounterProps & { sale: SaleView; onDone: (notice: string) => void }) {
   const sym = copy.symbol
   const [qty, setQty] = useState<Record<number, number>>({})
   const [faulty, setFaulty] = useState<Record<number, boolean>>({})

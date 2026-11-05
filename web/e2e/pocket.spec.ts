@@ -177,6 +177,48 @@ test.describe.serial('Pocket Cashier', () => {
     await phone.getByRole('button', { name: 'New sale' }).click()
   })
 
+  test('the counter with the PC off: credit and a return go through the real routes when it is back', async () => {
+    const list = async () => (await (await admin.request.get('/api/v1/admin/customers?q=E2E%20Credit')).json()).items as { id: number; name: string; owed: string }[]
+    const cust = (await list()).find((c) => c.name === 'E2E Credit')!
+    expect((await admin.request.post(`/api/v1/admin/customers/${cust.id}/opening`, { data: { opening: '900', note: 'e2e' } })).ok()).toBe(true)
+
+    // Wait until the phone's copy has the balance and its sales.
+    await phone.getByRole('button', { name: 'Menu', exact: true }).click()
+    await phone.getByRole('button', { name: 'Credit', exact: true }).click()
+    await expect(phone.getByRole('button', { name: /E2E Credit.*owes/ })).toBeVisible({ timeout: 90_000 })
+    await phone.getByRole('button', { name: 'Back' }).click()
+
+    await phoneCtx.setOffline(true)
+    await expect(phone.getByRole('note')).toBeVisible({ timeout: 30_000 })
+
+    await phone.getByRole('button', { name: 'Credit', exact: true }).click()
+    await phone.getByRole('button', { name: /E2E Credit.*owes/ }).click()
+    await phone.getByLabel('Amount').fill('300')
+    await phone.getByRole('button', { name: /Collect/ }).click()
+    await expect(phone.getByRole('status').filter({ hasText: /sends when the PC is back/ })).toBeVisible()
+    // What waits already shows on the phone.
+    await expect(phone.getByRole('button', { name: /E2E Credit.*600\.00.*owes/ })).toBeVisible()
+    await phone.getByRole('button', { name: 'Back' }).click()
+
+    await phone.getByRole('button', { name: 'Returns', exact: true }).click()
+    await phone.getByLabel('Find a sale').fill('E2E Milk')
+    await phone.getByRole('button', { name: /^S-/ }).first().click()
+    await phone.getByLabel('More E2E Milk').click()
+    await phone.getByRole('button', { name: /Refund .* cash/ }).click()
+    await expect(phone.getByRole('status').filter({ hasText: /Give back.*sends when the PC is back/ })).toBeVisible()
+    await phone.getByRole('button', { name: 'Back' }).click()
+
+    await phoneCtx.setOffline(false)
+    await expect.poll(async () => {
+      return Number((await list()).find((c) => c.name === 'E2E Credit')!.owed)
+    }, { timeout: 60_000 }).toBe(600)
+    const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number }[]
+    const details = await Promise.all(sends.slice(0, 5).map(async (x) => (await admin.request.get(`${API}/sends/${x.id}`)).json()))
+    const calls = details.flatMap((d: { actions: { kind: string; status: string; label: string; note: string }[] }) => d.actions).filter((a) => a.kind === 'call')
+    expect(calls.map((a) => `${a.status}:${a.label.split(':')[0]}`).sort()).toEqual(expect.arrayContaining(['applied:Credit from E2E Credit']))
+    expect(calls.some((a) => a.status === 'applied' && a.label.startsWith('Return on '))).toBe(true)
+  })
+
   test('the cashier moves from the phone to a PC: the phone signs out, its cart waits in Held', async ({ browser }) => {
     await phone.getByRole('button', { name: 'Sell', exact: true }).click()
     await phone.getByLabel('Search or scan').fill('E2E Milk')
