@@ -5,7 +5,7 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, 2026-11-05)
 
-**Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). It is not installed yet; the user is aiming for Friday 2026-11-06.
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). **The user is handling its install from here (2026-11-05: main PC installed and packed): not on our list unless the user brings it back.**
 Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
 
 **Built, hand-tested and Released 2026-11-05:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
@@ -19,21 +19,14 @@ Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives leve
 - **Dev DB note:** `0002_auto_levels.sql` was edited before release (`level_auto` default false, so a restored older backup keeps typed levels). An old dev DB needs `make db-down` and re-migrate, or `ALTER COLUMN level_auto SET DEFAULT false`.
 - **Tests 2026-11-05, final:** Playwright 248 passed, 33 skipped; web 939; `make test` passed. The user hand-tested every job on real Gemini and ChatGPT replies; bugs found were fixed. Partial builds compile, but no one has clicked through a running one. `TestTodayTraded` (Demo Room) failed once just after 09:00 and passed on two later runs: looks time-of-day dependent, not proven.
 
-**Next (user has his PC at home, 2026-11-05; said to install it there first, nothing done yet):** erase-install Xubuntu from the stick, Software Updater, copy the folder off the stick, `chmod +x`, Setup as main PC, then **disconnect the internet before any test sale** (cloud backup is on and test backups can't be deleted for 30 days). Test a sale, the plug-pull and printers there, then Setup -> Uninstall and install again so the shop starts clean, before real data. Take notes for the install stick idea. Check whether double-click on `karots-setup` works.
-
-**Next step (install day, user's call):**
-1. **The USB stick is ready (2026-11-05), not yet test-booted.** Kingston 57.8 GB: Ventoy, `iman-pharmacy-kalpitiya/` from Release 2026.11.05.1315 (identical to `dist/`, so a new Release means copying it again) and `xubuntu-26.04-desktop-amd64.iso` (SHA-256 `ae030dbd99426a4c7b2d1c96731e0f435ec9d18f6a28c9e76f077dd5f46364bc`, matches the official list; re-read from the stick after a remount). Copy kept in `/mnt/hdd_4TB/Software/OS/Linux/Debian/`. Not ZorinOS "by techrechard" (unofficial copy), not Alpine (no systemd or apk in Setup).
-2. **26.04, not 26.04.1:** both official; run Software Updater after installing, before Setup.
-3. **On his PC:** copy the folder off the stick first (exFAT drops the run permission; `chmod +x karots-setup karots-suite`; double-click from a Linux USB was never confirmed), Setup as main PC in the background, then the laptop as cashier PC. Shop name "Iman Pharmacy" goes in the shop's settings. The shop needs internet on the day: Setup may fetch programs.
-4. **Pull the plug once** on the real PC before real data: the VM can't show what his SSD does.
+**Next:** not chosen yet. On the list: the install stick, Pocket Cashier release 2, the whole-system check.
 
 **Test backups:** Cloudflare refused deleting them (the 30-day lock), and they sit in the old `aiman-pharmacy-kalpitiya` folder. The new key means a new cloud folder, so they shouldn't reach his Bring back list; they age out by about Dec 4. **Keep `karots-main` / `karots-cashier` off or expect uploads there** (they run old builds). Keep `SUITE_RELEASE_KEY`. His install id, channel and cloud key stayed in `shops.json`. His support PIN: `make support-pin ID=FC1A79F7`.
 
 **Screen:** the user looked at the till on a 20" 1600x900 monitor, like his: fine, roomy, no zoom. The dev DB was reset with `-seed` for that (Admin 0771234567 / 1234, Cashier 0771111111 / 1111).
 
 **Waiting on the user, in no hurry:**
-- A label roll, then the XP-365B on the real main PC: size, gap, drift, Image with Sinhala / Tamil, scanning a label back. Nothing has printed on it yet.
-- The pharmacist's trial, then the real install.
+- Anything the user reports back from Iman's install. The XP-365B label test (nothing has printed on it yet) decides Classic labels.
 - Iman's charges; the business registration number (don't sign shops before it); the lawyer meeting with `docs/legal/karots-suite-lawyer-review.pdf`.
 
 **Decisions made (user, 2026-11-04):**
