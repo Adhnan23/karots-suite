@@ -184,8 +184,10 @@ func (h handlers) jobList(c echo.Context) error {
 			info.Options = opts
 		}
 		if j.ListNoAnswer {
-			if err := h.p.store.db.SelectContext(ctx, &info.NoAnswer, `SELECT p.name FROM aicatalog_job_items j JOIN products p ON p.id = j.product_id
-				WHERE j.job = $1 AND j.state = 'no_answer' AND p.is_active ORDER BY p.name LIMIT 200`, j.Key); err != nil {
+			if err := h.p.store.db.SelectContext(ctx, &info.NoAnswer, `SELECT name FROM (
+				SELECT DISTINCT ON (p.id) p.name, j.state FROM aicatalog_job_items j JOIN products p ON p.id = j.product_id
+				WHERE (j.job = $1 OR j.job LIKE $1 || ':%') AND p.is_active ORDER BY p.id, j.updated_at DESC, j.job DESC
+				) latest WHERE state = 'no_answer' ORDER BY name LIMIT 200`, j.Key); err != nil {
 				return apperr.Internal("read the job's list", err)
 			}
 		}

@@ -334,3 +334,35 @@ func rowOf2(rows []JobRow, key string) *JobRow {
 	}
 	return nil
 }
+
+// A forced redo keeps its own record, and its unanswered medicines must still be listed;
+// the latest answer is what counts.
+func TestNoAnswerListFollowsRedo(t *testing.T) {
+	db := freshDB(t, "aicatalog_marks_redo_list")
+	p, do := testAPI(t, db)
+	f := &fakeAttrs{vals: map[int64]map[string]string{}}
+	p.attrSets = func() []plugin.ProductAttributeSet { return []plugin.ProductAttributeSet{f.hook("pharmacy")} }
+	p.jobs = []Job{marksJob()}
+	c := cat(t, db, "Medicine", nil)
+	a := prod(t, db, "Unsure one", c)
+	ctx := context.Background()
+	names := func() []string { return decode[[]JobInfo](t, do("GET", "/jobs", ""))[0].NoAnswer }
+	if _, err := p.applyJob(ctx, p.job("marks"), JobApply{State: "marks:redo", Asked: []int64{a}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := names(); len(got) != 1 || got[0] != "Unsure one" {
+		t.Fatalf("redo's list: %v", got)
+	}
+	if _, err := p.applyJob(ctx, p.job("marks"), JobApply{Asked: []int64{a}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := names(); len(got) != 1 {
+		t.Fatalf("listed once: %v", got)
+	}
+	if _, err := p.applyJob(ctx, p.job("marks"), JobApply{State: "marks:redo", Asked: []int64{a}, Suggested: []int64{a}, Rows: []JobRow{{ProductID: a, Kind: "attr", Key: "rx_only", Label: "x", New: "yes"}}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got := names(); len(got) != 0 {
+		t.Fatalf("answered since: %v", got)
+	}
+}

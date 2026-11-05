@@ -13,7 +13,6 @@ import { slots } from '../slots'
 import { LastRun } from './CleanupPage'
 import { answersNeed, applyBody, batchLabel, byProduct, initialTicks, jobApply, jobNext, jobRedoOver, jobsQuery, rowKey, tickAll, type JobAsk, type JobInfo, type JobPreview, type JobRow } from './jobs'
 import { PastePanel } from './PastePanel'
-import { lastRunQuery } from './api'
 import { jobControls } from './jobControls'
 import { useAsk } from './useAsk'
 
@@ -105,7 +104,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
       toast.success(r.summary)
       setSkips(r.skipped)
       setRedo(undefined)
-      await qc.invalidateQueries({ queryKey: lastRunQuery.queryKey })
+      await qc.invalidateQueries({ queryKey: ['x', 'aicatalog'] }) // the last apply, and what's still unanswered
       await qc.invalidateQueries({ queryKey: ['admin'] })
       if (pv.remaining > 0 && !r.skipped.length) ask_()
       else dispatch({ t: 'reset' })
@@ -204,6 +203,7 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
   const groups = byProduct(pv.rows)
   const none = pv.asked.filter((id) => !groups.some((g) => g.productId === id))
   const names = !job.oneByOne && pv.rows.some((r) => r.kind === 'name')
+  const picked = pv.rows.filter((r, i) => ticks.has(rowKey(r, i)) && !merged(r, rowKey(r, i)).needs).length
   return (
     <section className={CARD}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -257,7 +257,7 @@ function Preview({ progress, job, pv, ticks, setTicks, edits, setEdits, merged, 
       {none.length > 0 && <p className="text-[13px] text-muted-foreground">No answer for: {none.map((id) => pv.names[id]).join(', ')}. They stay under "Skipped or no answer".</p>}
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="ghost" className="h-11" onClick={onCancel}>Cancel</Button>
-        <Button className="h-11 px-5 font-bold" disabled={busy} onClick={onApply}>Apply {pv.rows.filter((r, i) => ticks.has(rowKey(r, i)) && !merged(r, rowKey(r, i)).needs).length} and save the rest as skipped</Button>
+        <Button className="h-11 px-5 font-bold" disabled={busy} onClick={onApply}>{picked ? `Apply ${picked} and save the rest as skipped` : 'Nothing ticked: skip these'}</Button>
       </div>
     </section>
   )
