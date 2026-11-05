@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveCopy } from './store/copy'
 import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
+import { loadWho, saveWho } from './session'
 import { getSale, clearRecent, recentCursor } from './store/recent'
 import { flush, refresh, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
 
@@ -182,6 +183,20 @@ describe('the last 30 days', () => {
     calls = []
     await Promise.all([refreshRecent(), refreshRecent()])
     expect(calls.filter((c) => c.url.includes('/recent'))).toHaveLength(1)
+  })
+})
+
+describe('who the phone holds', () => {
+  it('a send says when this person signed in', async () => {
+    saveWho({ id: 7, name: 'Nimal', role: 'cashier' })
+    const since = loadWho()?.since
+    expect(since).toBeTruthy()
+    await refresh()
+    calls = []
+    await addAction({ kind: 'sale', userId: 7, body: {} })
+    await flush(() => 7)
+    expect(JSON.parse(String(calls.find((c) => c.url.includes('/actions'))?.init?.body)).signedInAt).toBe(since)
+    saveWho(null)
   })
 })
 

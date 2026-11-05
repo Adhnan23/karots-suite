@@ -1,5 +1,6 @@
 import type { RecentSales, TillCopy } from '@/api/types.gen'
 import { BASE, phoneFetch } from './api'
+import { loadWho } from './session'
 import { loadCopy, saveCopy } from './store/copy'
 import { ack, addAction, pending, type Action } from './store/outbox'
 import { loadPhone } from './store/phone'
@@ -88,7 +89,7 @@ export function flush(signedIn: () => number | null): Promise<void> {
         set({ waiting: all.length })
         if (!all.length) return
         const batch = all.slice(0, BATCH)
-        const res = await phoneFetch('/actions', { method: 'POST', body: JSON.stringify({ signedIn: signedIn(), actions: batch }) })
+        const res = await phoneFetch('/actions', { method: 'POST', body: JSON.stringify({ signedIn: signedIn(), signedInAt: loadWho()?.since, actions: batch }) })
         if (!res.ok) throw new Error(`send: ${res.status}`)
         const { results } = (await res.json()) as { results: ActionResult[] }
         ok()

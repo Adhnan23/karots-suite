@@ -1,6 +1,7 @@
 package pocketcashier
 
 import (
+	"net/http"
 	"context"
 	"encoding/json"
 	"strings"
@@ -253,5 +254,59 @@ func TestReplayKeepsWhatTheTillSends(t *testing.T) {
 	var stock float64
 	if err := f.en.db.Get(&stock, `SELECT quantity FROM stock WHERE product_id = $1`, f.product); err != nil || stock != 7 {
 		t.Fatalf("stock %v: 10 − 1 sold − 2 used by the service: %v", stock, err)
+	}
+}
+
+func TestSendDoesntClaimBack(t *testing.T) {
+	f := newRfix(t, "10")
+	ctx := context.Background()
+	if err := f.en.p.core.Auth.ClaimDevice(ctx, f.cashier, f.device, "Phone T"); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.en.p.core.Auth.ClaimDevice(ctx, f.cashier, "the-pc", "Counter PC"); err != nil {
+		t.Fatal(err)
+	}
+	f.openAt(ago(time.Minute))
+	r := f.send(&f.cashier, f.saleAct("s", ago(time.Minute), "1", "120"))
+	if r.Results[0].Status != "applied" {
+		t.Fatalf("what the phone did still counts: %+v", r.Results[0])
+	}
+	active, _, err := f.en.p.core.Auth.DeviceOf(ctx, f.cashier)
+	if err != nil || active != "the-pc" {
+		t.Fatalf("the phone took them back from the PC: %q %v", active, err)
+	}
+}
+
+func TestSendClaimsAPersonWithNoDevice(t *testing.T) {
+	f := newRfix(t, "10")
+	ctx := context.Background()
+	if err := f.en.p.core.Auth.ReleaseDevice(ctx, f.cashier); err != nil {
+		t.Fatal(err)
+	}
+	f.openAt(ago(time.Minute))
+	f.send(&f.cashier, f.saleAct("s", ago(time.Minute), "1", "120"))
+	active, _, err := f.en.p.core.Auth.DeviceOf(ctx, f.cashier)
+	if err != nil || active != f.device {
+		t.Fatalf("signed in on the phone while the PC was down, the phone holds them: %q %v", active, err)
+	}
+}
+
+// Signed in on the phone during a cut, when the PC last held them: when the PC
+// is back the phone keeps them, and doesn't throw them out mid-sale.
+func TestSendClaimsWhenSignedInAfterThePC(t *testing.T) {
+	f := newRfix(t, "10")
+	ctx := context.Background()
+	if err := f.en.p.core.Auth.ClaimDevice(ctx, f.cashier, "the-pc", "Counter PC"); err != nil {
+		t.Fatal(err)
+	}
+	f.en.db.MustExec(`UPDATE users SET active_device_at = now() - interval '1 hour' WHERE id = $1`, f.cashier)
+	at := ago(10 * time.Minute)
+	rec := f.en.do(http.MethodPost, "/actions", ActionsRequest{SignedIn: &f.cashier, SignedInAt: &at}, nil, f.secret)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	active, _, err := f.en.p.core.Auth.DeviceOf(ctx, f.cashier)
+	if err != nil || active != f.device {
+		t.Fatalf("the later sign-in should hold them: %q %v", active, err)
 	}
 }

@@ -207,11 +207,11 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 
 **Files:** Modify `plugins/pocketcashier/replay.go:183` (`signedIn`), `web/src/plugins/pocketcashier/sync.ts`; Test `plugins/pocketcashier/replay_rules_db_test.go`.
 
-- [ ] **Step 1: Write the failing test** `TestSendDoesntClaimBack`: person signs in on the phone, then on a PC; the phone sends with `signedIn` set → the active device stays the PC, the action still applies.
-- [ ] **Step 2: Run it.** Expected: FAIL.
-- [ ] **Step 3: Implement.** A send only claims if that person has no active device on record; signing in on the phone stays the only deliberate takeover.
-- [ ] **Step 4: Run** `go test ./plugins/pocketcashier` and `bunx playwright test e2e/pocket.spec.ts`. Expected: PASS.
-- [ ] **Step 5: Commit.** `fix(pocketcashier): a phone's send doesn't take a cashier back from the PC`
+- [x] **Step 1: Write the failing test** `TestSendDoesntClaimBack`: person signs in on the phone, then on a PC; the phone sends with `signedIn` set → the active device stays the PC, the action still applies.
+- [x] **Step 2: Run it.** Expected: FAIL.
+- [x] **Step 3: Implement.** A send only claims if that person has no active device on record; signing in on the phone stays the only deliberate takeover.
+- [x] **Step 4: Run** `go test ./plugins/pocketcashier` and `bunx playwright test e2e/pocket.spec.ts`. Expected: PASS.
+- [x] **Step 5: Commit.** `fix(pocketcashier): a phone's send doesn't take a cashier back from the PC`
 
 ---
 

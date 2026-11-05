@@ -30,8 +30,9 @@ type Action struct {
 }
 
 type ActionsRequest struct {
-	SignedIn *int64   `json:"signedIn"` // who is signed in on the phone now (nil = nobody)
-	Actions  []Action `json:"actions"`
+	SignedIn   *int64     `json:"signedIn"`   // who is signed in on the phone now (nil = nobody)
+	SignedInAt *time.Time `json:"signedInAt"` // when they signed in on it
+	Actions    []Action   `json:"actions"`
 }
 
 type ActionResult struct {
@@ -94,7 +95,7 @@ func (h handlers) actions(c echo.Context) error {
 		out.Results = append(out.Results, h.apply(ctx, p, send, a))
 	}
 	if req.SignedIn != nil {
-		h.signedIn(ctx, p, *req.SignedIn)
+		h.signedIn(ctx, p, *req.SignedIn, req.SignedInAt)
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -189,11 +190,23 @@ func failed(err error) ActionResult {
 }
 
 // signedIn: the person on the phone now holds it as their one device.
-func (h handlers) signedIn(ctx context.Context, p *Phone, uid int64) {
-	var role string
-	var system bool
-	if err := h.p.core.DB.QueryRowxContext(ctx, `SELECT role::text, is_system FROM users WHERE id = $1`, uid).Scan(&role, &system); err != nil ||
-		system || role == "admin" {
+// signedIn keeps the phone holding the person it shows, unless they have since
+// signed in somewhere else: whichever sign-in came last holds them. A send never
+// takes a cashier back from the PC they moved to.
+func (h handlers) signedIn(ctx context.Context, p *Phone, uid int64, at *time.Time) {
+	var who struct {
+		Role     string     `db:"role"`
+		System   bool       `db:"is_system"`
+		Active   *string    `db:"active_device"`
+		ActiveAt *time.Time `db:"active_device_at"`
+	}
+	if err := h.p.core.DB.GetContext(ctx, &who, `SELECT role::text AS role, is_system, active_device, active_device_at FROM users WHERE id = $1`, uid); err != nil ||
+		who.System || who.Role == "admin" {
+		return
+	}
+	free := who.Active == nil || *who.Active == "" || *who.Active == p.Device
+	later := at != nil && (who.ActiveAt == nil || at.After(*who.ActiveAt))
+	if !free && !later {
 		return
 	}
 	if err := h.p.core.Auth.ClaimDevice(ctx, uid, p.Device, p.Name); err == nil {
