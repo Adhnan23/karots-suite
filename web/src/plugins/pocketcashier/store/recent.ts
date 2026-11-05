@@ -80,3 +80,13 @@ export async function clearRecent(): Promise<void> {
   await done(tx)
   opened = null
 }
+
+/** A unit sold in the last 30 days, by its serial. */
+export async function findUnit(serial: string): Promise<NonNullable<SaleView['warranty']>['units'][number] | null> {
+  const want = serial.trim().toLowerCase()
+  for (const s of await allSales()) {
+    const hit = s.warranty?.units.find((u) => u.serial.toLowerCase() === want)
+    if (hit) return hit
+  }
+  return null
+}

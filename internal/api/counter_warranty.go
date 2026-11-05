@@ -74,14 +74,7 @@ func (h *handlers) CounterWarrantyReceipt(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	v := WarrantyReceiptView{SaleID: d.Sale.SaleID, ReceiptNo: d.Sale.ReceiptNo, SoldAt: d.Sale.SoldAt.Format(time.RFC3339),
-		CustomerName: strOr(d.Sale.CustomerName), Lines: []WarrantyReceiptLine{}}
-	for _, l := range d.Lines {
-		v.Lines = append(v.Lines, WarrantyReceiptLine{ProductID: l.ProductID, Name: l.ProductName, UnitAbbr: l.UnitAbbr, Qty: l.Qty.String(),
-			Replaced: l.Replaced, Remaining: l.Remaining.String(), Months: l.WarrantyMonths,
-			Until: l.WarrantyUntil.UTC().Format("2006-01-02"), UnderWarranty: l.UnderWarranty})
-	}
-	return c.JSON(http.StatusOK, v)
+	return c.JSON(http.StatusOK, warrantyReceiptView(d))
 }
 
 // CounterWarrantyReplace swaps a faulty serial for a new one from stock.
@@ -176,4 +169,15 @@ func (h *handlers) CounterPrintWarrantySlip(c echo.Context) error {
 		return apperr.ConflictCode("PRINT_FAILED", printFailed)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func warrantyReceiptView(d *warranty.ReceiptDetail) WarrantyReceiptView {
+	v := WarrantyReceiptView{SaleID: d.Sale.SaleID, ReceiptNo: d.Sale.ReceiptNo, SoldAt: d.Sale.SoldAt.Format(time.RFC3339),
+		CustomerName: strOr(d.Sale.CustomerName), Lines: []WarrantyReceiptLine{}}
+	for _, l := range d.Lines {
+		v.Lines = append(v.Lines, WarrantyReceiptLine{ProductID: l.ProductID, Name: l.ProductName, UnitAbbr: l.UnitAbbr, Qty: l.Qty.String(),
+			Replaced: l.Replaced, Remaining: l.Remaining.String(), Months: l.WarrantyMonths,
+			Until: l.WarrantyUntil.UTC().Format("2006-01-02"), UnderWarranty: l.UnderWarranty})
+	}
+	return v
 }

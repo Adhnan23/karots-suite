@@ -182,11 +182,11 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 
 **Interfaces:** Produces `RecentSales.Units []CopyWarrantyUnit` (units sold on the page's sales, with the shape `/counter/warranty/serial/:serial` answers); `findUnit(serial: string)`.
 
-- [ ] **Step 1: Write failing tests:** Go: `a page carries its sales' warranty units`. Web: `finds a unit by serial offline`; `finds by receipt offline`; `saves a call to warranty/replace`; `a swap waiting on this phone blocks a second swap of the same unit on it`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement,** following `features/counter/warranty/UnitClaim.tsx` and `ReceiptClaim.tsx` for rules, `warranty/reasons.ts` for reasons.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens and commit.** `feat(pocketcashier): warranty swaps on the phone, online and off`
+- [x] **Step 1: Write failing tests:** Go: `a page carries its sales' warranty units`. Web: `finds a unit by serial offline`; `finds by receipt offline`; `saves a call to warranty/replace`; `a swap waiting on this phone blocks a second swap of the same unit on it`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement,** following `features/counter/warranty/UnitClaim.tsx` and `ReceiptClaim.tsx` for rules, `warranty/reasons.ts` for reasons.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens and commit.** `feat(pocketcashier): warranty swaps on the phone, online and off`
 
 ### Task 8: Tickets, online only
 

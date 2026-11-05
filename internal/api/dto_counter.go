@@ -193,6 +193,15 @@ type SaleView struct {
 	// TillSource is the money source of the open till that took it ("" once
 	// that till is closed): where a refund comes from by default.
 	TillSource string `json:"tillSource"`
+	// Warranty is only on a till's own copy of a sale (RecentSales): it lets a swap be
+	// looked up with the PC off.
+	Warranty *SaleWarranty `json:"warranty,omitempty"`
+}
+
+// SaleWarranty is what a sale's warranty looks like, as the Warranty tab shows it.
+type SaleWarranty struct {
+	Units   []WarrantyUnitRow    `json:"units"`
+	Receipt *WarrantyReceiptView `json:"receipt,omitempty"`
 }
 
 type SaleFlag struct {

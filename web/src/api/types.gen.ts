@@ -904,6 +904,18 @@ export interface SaleView extends SaleSummary {
    * that till is closed): where a refund comes from by default.
    */
   tillSource: string;
+  /**
+   * Warranty is only on a till's own copy of a sale (RecentSales): it lets a swap be
+   * looked up with the PC off.
+   */
+  warranty?: SaleWarranty;
+}
+/**
+ * SaleWarranty is what a sale's warranty looks like, as the Warranty tab shows it.
+ */
+export interface SaleWarranty {
+  units: WarrantyUnitRow[];
+  receipt?: WarrantyReceiptView;
 }
 export interface SaleFlag {
   kind: string; // price | oversold | over_limit | lookalike | late | clock | inactive_user | …

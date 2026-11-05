@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { RecentSales, SaleView } from '@/api/types.gen'
-import { clearRecent, findSales, getSale, recentCursor, saveRecent } from './recent'
+import { clearRecent, findSales, findUnit, getSale, recentCursor, saveRecent } from './recent'
 import { openDb, req } from './db'
 
 const NOW = new Date('2026-11-05T12:00:00Z')
@@ -65,5 +65,12 @@ describe('the sales kept on the phone', () => {
     expect(await recentCursor()).toMatchObject({ after: 1, since: '', ready: false })
     await saveRecent(aPage({ sales: [aSale(2)], nextAfter: 2, nextSince: daysAgo(0.1) }), NOW)
     expect(await recentCursor()).toMatchObject({ after: 2, since: first, ready: true })
+  })
+
+  it('finds a sold unit by serial, ignoring case and spaces', async () => {
+    const unit = { id: 3, serial: 'SN-77', productName: 'Phone' } as NonNullable<SaleView['warranty']>['units'][number]
+    await saveRecent(aPage({ nextAfter: 2, sales: [aSale(1), aSale(2, { warranty: { units: [unit] } })] }), NOW)
+    expect((await findUnit(' sn-77 '))?.id).toBe(3)
+    expect(await findUnit('nope')).toBeNull()
   })
 })

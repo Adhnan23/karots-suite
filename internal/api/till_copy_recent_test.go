@@ -109,3 +109,56 @@ func TestRecentSalesResetAfterRestore(t *testing.T) {
 		t.Fatalf("a cursor at the last sale isn't a restore: %+v", ok)
 	}
 }
+
+func TestRecentSalesCarryWarranty(t *testing.T) {
+	te, f, ck, last := recentFix(t)
+	te.db.MustExec(`UPDATE products SET warranty_months = 12 WHERE id = $1`, f.plainID)
+	t.Cleanup(func() { te.db.Exec(`UPDATE products SET warranty_months = 0 WHERE id = $1`, f.plainID) }) //nolint:errcheck
+	id := recentSale(t, te, f, ck)
+	serial := fmt.Sprintf("SN-%d", time.Now().UnixNano())
+	te.db.MustExec(`INSERT INTO warranty_units (product_id, serial_no, sale_id, sold_at, warranty_months, warranty_until)
+		VALUES ($1, $2, $3, now(), 12, now() + interval '1 year')`, f.plainID, serial, id)
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM warranty_units WHERE sale_id = $1`, id) }) //nolint:errcheck
+
+	p := recentRead(t, te, last, time.Time{}, 50)
+	w := p.Sales[0].Warranty
+	if w == nil || len(w.Units) != 1 || w.Units[0].Serial != serial || !w.Units[0].UnderWarranty {
+		t.Fatalf("a sold unit must be on the phone: %+v", w)
+	}
+	if w.Receipt == nil || w.Receipt.ReceiptNo != p.Sales[0].ReceiptNo {
+		t.Fatalf("a warranted receipt must be on the phone: %+v", w.Receipt)
+	}
+}
+
+func TestRecentSalesWithoutWarrantySaveNothing(t *testing.T) {
+	te, f, ck, last := recentFix(t)
+	recentSale(t, te, f, ck)
+	if w := recentRead(t, te, last, time.Time{}, 50).Sales[0].Warranty; w != nil {
+		t.Fatalf("a sale with no warranty carries none: %+v", w)
+	}
+}
+
+func TestRecentSalesChangedByAClaim(t *testing.T) {
+	te, f, ck, last := recentFix(t)
+	id := recentSale(t, te, f, ck)
+	var unit, boss int64
+	if err := te.db.Get(&unit, `INSERT INTO warranty_units (product_id, serial_no, sale_id, sold_at, warranty_months, warranty_until)
+		VALUES ($1, $2, $3, now(), 12, now() + interval '1 year') RETURNING id`, f.plainID, fmt.Sprintf("SN-%d", time.Now().UnixNano()), id); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		te.db.Exec(`DELETE FROM warranty_claims WHERE unit_id = $1`, unit) //nolint:errcheck
+		te.db.Exec(`DELETE FROM warranty_units WHERE id = $1`, unit)       //nolint:errcheck
+	})
+	first := recentRead(t, te, last, time.Time{}, 50)
+	since, _ := time.Parse(time.RFC3339Nano, first.NextSince)
+	if err := te.db.Get(&boss, `SELECT id FROM users LIMIT 1`); err != nil {
+		t.Fatal(err)
+	}
+	te.db.MustExec(`INSERT INTO warranty_claims (unit_id, resolution, handled_by) VALUES ($1, 'replaced', $2)`, unit, boss)
+	te.db.MustExec(`UPDATE warranty_units SET status = 'replaced' WHERE id = $1`, unit)
+	p := recentRead(t, te, first.NextAfter, since, 50)
+	if len(p.Changed) != 1 || p.Changed[0].ID != id || p.Changed[0].Warranty.Units[0].Status != "replaced" {
+		t.Fatalf("a unit swapped on the PC must reach the phone: %+v", p.Changed)
+	}
+}
