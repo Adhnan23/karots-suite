@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/middleware"
@@ -158,7 +159,7 @@ func TestAPILog(t *testing.T) {
 func TestOfflineDataIsWhatTheTillReads(t *testing.T) {
 	db := testDB(t)
 	do := testAPI(t, db)
-	p := decode[PatientDTO](t, do("POST", "/patients", `{"name":"Offline Patient","phone":"0779991111","allergies":"Penicillin"}`))
+	p := decode[PatientDTO](t, do("POST", "/patients", fmt.Sprintf(`{"name":"Offline Patient","phone":"077%07d","allergies":"Penicillin"}`, time.Now().UnixNano()%10_000_000)))
 	rec := do("POST", "/prescriptions", fmt.Sprintf(`{"patientId":%d,"prescriberName":"Dr A","prescribedOn":"2026-11-01","items":[{"drugText":"Panadol","dosage":"1 x 3","quantity":"30","perDay":"3"}]}`, p.ID))
 	if rec.Code >= 300 {
 		t.Fatalf("script: %d %s", rec.Code, rec.Body)
