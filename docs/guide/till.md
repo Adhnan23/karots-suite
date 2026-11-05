@@ -80,7 +80,7 @@ Users page, with their own login.
 
 A customer buying something small from the cashier is an ordinary sale; tickets keep waiting meanwhile. Tickets need the
 main PC, and a sales person can't sign in to Pocket Cashier: in a power cut, one cashier sells from the phone or tablet.
-Pocket Cashier can't open tickets yet.
+A cashier on [Pocket Cashier](plugins/pocketcashier.md) can open tickets while the PC answers.
 
 
 ![A sales person's cart, ready to send](../images/till/send-to-cashier.jpg)

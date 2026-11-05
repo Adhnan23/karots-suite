@@ -82,5 +82,12 @@
     "now": "Balance due within 90 days of installation; then a written 14-day notice; then the licence ends and Karots removes the software at the site, or remotely only with the shop's permission, after giving a full data backup. Payments made are not refunded.",
     "why": "Removing software remotely without permission could be an offence under the Computer Crimes Act No. 24 of 2007, so the software has no remote kill switch and the rules never allow it.",
     "ask": "Is this enforceable? What if the shop refuses access? Is the notice letter adequate (content, delivery by registered post / hand / WhatsApp)?"
+  },
+  {
+    "title": "A month of sales and patient details on a phone",
+    "where": "Third Schedule (personal data) · Pocket Cashier guide",
+    "now": "A shop using Pocket Cashier keeps on each paired phone or tablet: the last 30 days of sales with customer names, all customers and balances, and, in a pharmacy, patients, allergies and prescriptions. It is encrypted on the phone with a key that can't leave it, and a person's PIN opens the app. Block stops a phone only when it next connects to the shop, so a lost phone that never reconnects keeps its copy.",
+    "why": "This is the shop's personal data, some of it health data, on a device that can be lost or taken home. The Personal Data Protection Act treats health data as a special category and expects security suited to the risk.",
+    "ask": "Does the Third Schedule cover this, or does the shop need to be told more plainly? Should the shop rules require a phone lock, and that phones stay in the shop? Is a lost phone something the shop must report, and to whom?"
   }
 ]

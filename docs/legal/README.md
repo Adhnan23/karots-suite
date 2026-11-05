@@ -28,7 +28,7 @@ signs up.
 | [`karots-suite-agreement-sample.pdf`](karots-suite-agreement-sample.pdf) | A filled-in example with made-up data, marked SAMPLE (initialled on every page): shows how to fill one in |
 | [`karots-suite-balance-notice.pdf`](karots-suite-balance-notice.pdf) | The 14-day notice when a balance is unpaid 90 days after installation |
 | [`karots-suite-balance-notice-sample.pdf`](karots-suite-balance-notice-sample.pdf) | The same notice filled in for the sample shop, marked SAMPLE |
-| [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) | Take to the lawyer: the 12 points, each with opinion, change and decision boxes |
+| [`karots-suite-lawyer-review.pdf`](karots-suite-lawyer-review.pdf) | Take to the lawyer: the 13 points, each with opinion, change and decision boxes |
 
 All are built by `make agreement` from `agreement/` and `LICENSE`. **Print `karots-suite-agreement.pdf`** for each shop. It's laid out in the usual Sri Lankan form: place and date, the parties (with NIC and business registration), WHEREAS recitals, the terms, IN WITNESS WHEREOF with signatures and two witnesses, then the Schedules (the First is the Order Details) with blanks
 (shop details, plugins, the agreed price, advance and balance, signatures, seals and two witnesses) and the full terms, with
@@ -131,6 +131,8 @@ lawyer's opinion, the suggested change and the decision.
     notice, and Karots removes the software at the site, or remotely only with the shop's permission, giving the shop a
     data backup first. Is this enforceable? Removing it remotely *without* permission could fall under the Computer
     Crimes Act, No. 24 of 2007, which is why the rules never allow it and the software has no remote kill switch.
+13. Pocket Cashier keeps a month of sales, and patient details in a pharmacy, on a phone: is the Third Schedule enough, and
+   what should the shop rules say about a lost phone?
 
 ## Sources
 

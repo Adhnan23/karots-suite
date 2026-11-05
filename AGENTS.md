@@ -28,10 +28,12 @@ shipped as **one static binary**.
   the same generic slots and hooks the desktop till uses. When a new plugin (or a new till feature) should work on the
   phone, the change goes **in Pocket Cashier**: never in that plugin, and never a core change made for the phone. The one
   exception (user, 2026-11-05): a plugin may declare what its till screens read offline with `reg.AddOfflineData`; its logic
-  doesn't change and it never mentions Pocket Cashier. Today
-  it uses plugin payment methods (`slots.tillTenders`; `offline: true` = also from the copy) and leaves out products a
-  plugin menu claims (`tillMenu.claims`) or unpriced services (`catalog.ts` `sellable`); plugin till menus, tabs and
-  cart hints on the phone are release 2.
+  doesn't change and it never mentions Pocket Cashier. It
+  uses the slots the till does (`tillMenu`, `tillActions`, hints, `drawerSections`, `returnLineFields`, `tillTenders`,
+  `tillAfterSale`) over `phoneTillApi`. Offline, `offline/fetch.ts` answers the screens' calls from `offline/routes/<key>.ts`
+  and saves writes as `call` actions, which the server replays through the real route as that person; something made offline
+  is called by a `tempNumber` (9e15 up) until then. **A new plugin that sells needs its route file there**, or its screen
+  only works online.
 - **Money and sales.** `internal/features/*` holds the domain logic. Money goes only through `cashflow.Move/MoveTx`. Sales are the source of truth for revenue.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`

@@ -1,8 +1,9 @@
 # Pocket Cashier app
 
-A phone becomes a till on the shop's wifi. A cashier sells anywhere in the shop while the PC runs. When the PC or the
-power is down, the phone keeps selling from its own copy of the shop, and the PC rings those sales up in order once it
-is back.
+A phone or tablet as the shop's backup till. The PC or laptop stays the normal till. The phone is for two moments: going
+portable while the PC is on (walking with a customer), and keeping the shop off pen and paper when the PC or the power is
+down. Leave it on a charger with the app open: it keeps its copy of the shop up to date with nobody signed in. When the PC
+comes back, it takes everything the phone did, in order.
 
 ![Pocket Cashier](../../images/plugins/pocketcashier.jpg)
 
@@ -37,7 +38,11 @@ port 8443; Setup opens it in the PC's firewall.
     item** (give the code to the item it belongs to) or **New item**. Both need the PC: an admin finishes a quick
     item later.
 
-  Products a plugin opens its own form for (reloads, print & copy jobs) are sold at the counter for now.
+- **Plugins**: whatever the shop has works here too, with the same screens as the till, online and off.
+  - **Reload & Bills**, **Print & Copy** and **Combos** are buttons above the categories. Tapping a product one of them owns opens its screen.
+  - **Patient** (Pharmacy) and **Repairs** are on the Menu. A scanned repair ticket opens its job.
+  - **Alternatives** shows on an out-of-stock cart line, as a swap.
+  - Something made offline has a temporary number (a repair shows `New-xxxx`) until the PC gives it the real one.
 - **Pay**: cash, card, **online** (into a bank account), cheque, on account, and plugin payments — **several on one
   sale** (Add payment, remove one with ×). For cash, tap the **notes and coins** the customer hands over (or switch to
   the keypad, or tap a quick amount); the change to give is shown **note by note**, and the cashier can **keep the
@@ -48,6 +53,26 @@ port 8443; Setup opens it in the PC's firewall.
 - **Held** keeps sales for later, the same held sales as the till.
 - **Menu**: open the drawer, take cash out, put cash in, close the drawer, and switch person. The cash a phone takes
   is in that person's own drawer.
+- **Tickets** from a sales person show above the screen, with a beep, while the PC answers. Tap one to open it; closing the
+  drawer deals with what's waiting first, as on the PC. Sales people can't use the phone themselves.
+
+## The counter on the phone
+
+![The Menu](../../images/plugins/pocketcashier-menu.jpg)
+
+On the Menu, online and off:
+
+- **Credit**: take a payment or an advance from a customer, or refund one.
+- **Returns**: find a sale from the last 30 days by receipt, customer or product, take items back, refund.
+- **Receipts**: the sales of the last 30 days and what waits on this phone. The cash, credit and warranty slips, and any
+  reprint, need the PC.
+- **Warranty**: find a unit by serial or receipt and swap it.
+- **Write-off** and **Convert**: take stock out, or break open a pack.
+
+Labels, Suppliers, Expenses, Low stock and Customer requests stay on the PC.
+
+The phone keeps the last 30 days of sales, and every product, customer and patient. An older sale needs the PC: online the
+phone asks it; offline, ask the customer to come back when it's on.
 
 One person is on one device at a time. Signing in on the phone parks the cart that was on the PC in **Held**, and the
 PC locks with "now on …". It works the other way too: signing in on a PC signs the phone out, its cart waiting in
@@ -55,8 +80,13 @@ PC locks with "now on …". It works the other way too: signing in on a PC signs
 
 ## When the PC is down
 
-The phone turns amber: "Selling from the copy of 09:31". It keeps selling, holding and moving cash. Stock shows as
-"about", and nothing prints. Everything waits on the phone (encrypted) and goes to the PC the moment it is back.
+The phone notices within about 20 seconds and turns amber: "Selling from the copy of 09:31". Everything above keeps
+working from the phone's own copy. Stock and balances are as of the last sync, plus what this phone has done since, and
+nothing prints: print receipts, dose labels and repair slips from the PC afterwards. Everything waits on the phone
+(encrypted) and goes to the PC the moment it is back.
+
+Two phones during a cut don't see each other's work until the PC is back. A sale made during the cut can't be returned on
+the phone until the PC has it.
 
 The PC never refuses that work afterwards. It takes each sale in order and **flags** anything odd for a look:
 
@@ -67,9 +97,22 @@ The PC never refuses that work afterwards. It takes each sale in order and **fla
 - a sale whose till was closed meanwhile (it counts when it arrived)
 - a phone clock in the future
 - a cashier who was turned off meanwhile
+- a credit payment taken against an out-of-date balance
+- anything that happened on the phone a while before it arrived (it shows when; it counts on the day it arrives)
 
-**Phones → What came in** lists every batch a phone sent, with each sale and its flags. A flagged sale opens in
+A very few things the PC really can't take, such as goods already returned on the PC, or a repair already collected. The
+stock and the records don't change, but cash that left or entered the drawer is still booked, and the note says so (if the
+till was closed by then, or the shop bars cash moves with no locker, the note says to check the till by hand). What depended
+on a refused item is refused too, and names it.
+
+**Phones → What came in** lists every batch a phone sent, with each action and its flags. A flagged sale opens in
 **Sales**, which is also where a mistaken sale is returned.
+
+A reload past the float isn't flagged: as at the till, it goes through and the float shows red on the Reload page, asking
+for a count.
+
+**One person, one device:** whichever sign-in came last holds them. Someone who signed in on the phone during a cut stays
+on it when the PC is back; someone who has gone back to the PC stays there.
 
 ## A lost or broken phone
 
