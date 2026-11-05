@@ -345,11 +345,11 @@ Routes: `GET /patients`, `GET /patients/:id`, `GET /patients/:id/scripts`, `GET 
 
 Routes: `GET /config`, `GET /suggest`, `GET /jobs`, `GET /jobs/:id`, `GET /jobs/:id/bill`, and these writes (queue): `POST /jobs`, `PUT /jobs/:id`, `POST /jobs/:id/status`, `POST /jobs/:id/deposits`, `POST /jobs/:id/parts`, `POST /jobs/:id/charges`. Read `plugins/repairs` for what the panel's collect flow calls, and add any route it uses.
 
-- [ ] **Step 1: Write failing tests:** `a new job offline shows a temporary number and replays with a real one`; `a deposit on it replays against the real job`; `collecting a job offline sells its bill`; `a job collected on the PC and again on the phone fails with a note and keeps the cash`; `the job slip button shows a message offline`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** The part holds jobs not yet collected, and config.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Repairs on the phone, online and off`
+- [x] **Step 1: Write failing tests:** `a new job offline shows a temporary number and replays with a real one`; `a deposit on it replays against the real job`; `collecting a job offline sells its bill`; `a job collected on the PC and again on the phone fails with a note and keeps the cash`; `the job slip button shows a message offline`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** The part holds jobs not yet collected, and config.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Repairs on the phone, online and off`
 
 ---
 

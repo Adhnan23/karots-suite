@@ -183,6 +183,41 @@ func (h handlers) refused(ctx context.Context, a Action, b CallBody, why string)
 	return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, amount, moved)}
 }
 
+// refusedSale: the PC can't take a sale at all, but the customer's cash really
+// went into the drawer (or a payout came out of it), so that's booked anyway.
+func (h handlers) refusedSale(ctx context.Context, a Action, why string) ActionResult {
+	var b SaleBody
+	if err := json.Unmarshal(a.Body, &b); err != nil {
+		return ActionResult{Status: "failed", Note: why}
+	}
+	paid, cash := decimal.Zero, decimal.Zero
+	for _, p := range b.Payments {
+		amt, err := decimal.NewFromString(p.Amount)
+		if err != nil {
+			continue
+		}
+		paid = paid.Add(amt)
+		if p.Method == "cash" {
+			cash = cash.Add(amt)
+		}
+	}
+	change := decimal.Zero
+	if c, err := decimal.NewFromString(b.ChangeGiven); err == nil {
+		change = c
+	} else if t, err := decimal.NewFromString(b.Total); err == nil {
+		change = decimal.Max(paid.Sub(t), decimal.Zero)
+	}
+	net := cash.Sub(change)
+	call := CallBody{Label: "A sale"}
+	switch {
+	case net.IsPositive():
+		call.CashIn = net.StringFixed(2)
+	case net.IsNegative():
+		call.CashOut = net.Neg().StringFixed(2)
+	}
+	return h.refused(ctx, a, call, why)
+}
+
 // staleBalance compares what the phone showed with what the PC has now.
 func (h handlers) staleBalance(ctx context.Context, saw *CallSaw) string {
 	if saw == nil {

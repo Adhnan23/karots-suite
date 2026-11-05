@@ -42,6 +42,7 @@ const legacyDeposit = "deposit"
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	reg.AddOfflineData(plugin.OfflineData{Key: "repairs", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "repairs", Name: "Repairs", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "repairs", Merge: mergeProduct})
 	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "repairs", Record: recordPickup})

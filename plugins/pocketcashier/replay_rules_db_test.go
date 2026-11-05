@@ -1,9 +1,9 @@
 package pocketcashier
 
 import (
-	"net/http"
 	"context"
 	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -308,5 +308,23 @@ func TestSendClaimsWhenSignedInAfterThePC(t *testing.T) {
 	active, _, err := f.en.p.core.Auth.DeviceOf(ctx, f.cashier)
 	if err != nil || active != f.device {
 		t.Fatalf("the later sign-in should hold them: %q %v", active, err)
+	}
+}
+
+// A sale the PC can't take at all (a repair already collected on the PC): the
+// customer's cash is still in the drawer.
+func TestReplayRefusedSaleKeepsCash(t *testing.T) {
+	f := newRfix(t, "10")
+	f.openAt(ago(time.Minute))
+	before, _ := f.en.p.core.CashRegister.Summary(context.Background(), f.cashier)
+	a := f.saleAct("s", ago(time.Minute), "1", "120")
+	a.Body, _ = json.Marshal(SaleBody{SaleType: "retail", Items: []SaleItem{{ProductID: 999999999, Quantity: "1"}}, Payments: []SalePayment{{Method: "cash", Amount: "120"}}})
+	r := f.send(nil, a).Results[0]
+	if r.Status != "failed" || !strings.Contains(r.Note, "120") {
+		t.Fatalf("%+v", r)
+	}
+	after, _ := f.en.p.core.CashRegister.Summary(context.Background(), f.cashier)
+	if !after.Expected.Equal(before.Expected.Add(decimal.NewFromInt(120))) {
+		t.Fatalf("the customer's 120 isn't on the books: %s, was %s", after.Expected, before.Expected)
 	}
 }

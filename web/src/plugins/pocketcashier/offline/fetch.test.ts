@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveWho } from '../session'
 import { ack, pending } from '../store/outbox'
-import { addRoutes, clearRoutesForTest, installOfflineFetch } from './fetch'
+import { addRoutes, clearRoutesForTest, installOfflineFetch, RouteError } from './fetch'
 
 const real = vi.fn()
 let liveNow = false
@@ -71,6 +71,13 @@ describe('plugin calls with the PC down', () => {
     addRoutes([{ method: 'GET', path: '/x/pocketcashier/copy', answer: () => ({ fake: true }) }])
     await window.fetch('/api/v1/x/pocketcashier/copy')
     expect(real).toHaveBeenCalled()
+  })
+
+  it('a route\'s no reads as the PC\'s', async () => {
+    addRoutes([{ method: 'GET', path: '/x/t/no', answer: () => { throw new RouteError('add a part first') } }])
+    const r = await window.fetch('/api/v1/x/t/no')
+    expect(r.status).toBe(422)
+    expect(await r.json()).toMatchObject({ error: { message: 'add a part first' } })
   })
 
   it('uninstall puts fetch back', () => {

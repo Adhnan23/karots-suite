@@ -65,6 +65,7 @@ type SaleBody struct {
 	ChangeGiven       string        `json:"changeGiven"`
 	OnAccountRounding bool          `json:"onAccountRounding"`
 	PreparedBy        *int64        `json:"preparedBy,omitempty"` // the sales person whose ticket this was
+	Total             string        `json:"total"`                // the phone's own total, for what change it gave
 	Items             []SaleItem    `json:"items"`
 	Payments          []SalePayment `json:"payments"`
 }
@@ -135,7 +136,11 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	}
 	switch a.Kind {
 	case "sale":
-		return h.runSale(ctx, p, a, flag)
+		r := h.runSale(ctx, p, a, flag)
+		if r.Status == "failed" {
+			return h.refusedSale(ctx, a, r.Note)
+		}
+		return r
 	case "call":
 		return h.runCall(ctx, p, a)
 	case "open":

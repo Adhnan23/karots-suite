@@ -5,6 +5,7 @@ import { coreRoutes } from './routes/core'
 import { documentsRoutes } from './routes/documents'
 import { pharmacyRoutes } from './routes/pharmacy'
 import { rechargeRoutes } from './routes/recharge'
+import { repairsRoutes } from './routes/repairs'
 
 let added = false
 
@@ -19,4 +20,5 @@ export function setupOfflineRoutes() {
   addRoutes(combosRoutes)
   addRoutes(alternativesRoutes)
   addRoutes(pharmacyRoutes)
+  addRoutes(repairsRoutes)
 }

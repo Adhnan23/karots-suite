@@ -30,6 +30,9 @@ export type OfflineRoute = {
   call?: (ctx: RouteCtx) => Partial<CallInput>
 }
 
+/** A route's "no", as the PC would say it. */
+export class RouteError extends Error {}
+
 type Compiled = OfflineRoute & { re: RegExp; names: string[] }
 
 let routes: Compiled[] = []
@@ -70,7 +73,13 @@ async function answerLocally(hit: NonNullable<ReturnType<typeof find>>, method: 
     parts: await loadParts(), copy: await loadCopy(), params: hit.params, query: url.searchParams, body,
     ref: crypto.randomUUID(), out: await pending(), userId: loadWho()?.id ?? 0,
   }
-  const answer = await hit.route.answer(ctx)
+  let answer: unknown
+  try {
+    answer = await hit.route.answer(ctx)
+  } catch (e) {
+    if (!(e instanceof RouteError)) throw e
+    return new Response(JSON.stringify({ error: { code: 'VALIDATION', message: e.message } }), { status: 422, headers: { 'Content-Type': 'application/json' } })
+  }
   if (hit.route.queue) {
     const call: CallInput = { method, path: url.pathname, body, label: hit.route.label?.(ctx) ?? hit.route.path, ...hit.route.call?.(ctx) }
     // Not awaited: with the PC off the send can take as long as the network gives up.

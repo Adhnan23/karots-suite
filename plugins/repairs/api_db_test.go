@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -30,6 +31,7 @@ type fixture struct {
 	do               func(method, path, body string) *httptest.ResponseRecorder
 	sales            *sales.Service
 	cust, part, user int64
+	p                *Plugin
 }
 
 func newFixture(t *testing.T) fixture {
@@ -55,6 +57,7 @@ func newFixture(t *testing.T) fixture {
 	e.HTTPErrorHandler = middleware.ErrorHandler(false)
 	mux := plugin.NewMux()
 	p := &Plugin{}
+	f.p = p
 	p.Setup(plugin.NewRegistry(plugin.Core{DB: db, Products: products.NewService(db), Audit: audit.NewService(db),
 		Settings: settings.NewService(db), Sales: f.sales, Cashflow: cashflow.NewService(db, f.sales)}, mux, e))
 	x := e.Group("/api/v1/x")
@@ -256,5 +259,36 @@ func TestReportSharesBillDiscount(t *testing.T) {
 	rep := decode[ReportDTO](t, f.do("GET", "/report", ""))
 	if len(rep.Rows) != 1 || rep.Rows[0].Revenue != "900.00" {
 		t.Fatalf("report: %+v", rep)
+	}
+}
+
+func TestOfflineDataIsWhatTheTillReads(t *testing.T) {
+	f := newFixture(t)
+	open := decode[JobDTO](t, f.do("POST", "/jobs", fmt.Sprintf(`{"customerId":%d,"repairType":"Screen","deviceModel":"Offline Nokia","repairedBy":"Ali"}`, f.cust)))
+	rec := f.do("POST", fmt.Sprintf("/jobs/%d/charges", open.ID), `{"label":"Labour","amount":"500"}`)
+	if rec.Code >= 300 {
+		t.Fatalf("charge: %d %s", rec.Code, rec.Body)
+	}
+	v, err := handlers{f.p}.offlineData(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	part := v.(OfflinePart)
+	var got *JobDTO
+	for _, j := range part.Jobs {
+		if j.ID == open.ID {
+			got = j
+		}
+	}
+	if got == nil || got.DeviceModel != "Offline Nokia" || len(got.Charges) != 1 {
+		t.Fatalf("job: %+v", got)
+	}
+	want := decode[BillDTO](t, f.do("GET", fmt.Sprintf("/jobs/%d/bill", open.ID), ""))
+	bill := part.Bills[strconv.FormatInt(open.ID, 10)]
+	if bill == nil || len(bill.Lines) != len(want.Lines) || bill.Lines[0].Price != want.Lines[0].Price {
+		t.Fatalf("bill: %+v, want %+v", bill, want)
+	}
+	if part.Labour == 0 || part.Config == nil || part.Suggest == nil {
+		t.Fatalf("%+v", part)
 	}
 }

@@ -1,6 +1,7 @@
 package repairs
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,14 +24,21 @@ import (
 
 // respond answers with the job as the panels show it.
 func (h handlers) respond(c echo.Context, id int64) error {
-	ctx := c.Request().Context()
-	d, err := h.p.store.GetJob(ctx, id)
+	out, err := h.jobDTO(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h handlers) jobDTO(ctx context.Context, id int64) (*JobDTO, error) {
+	d, err := h.p.store.GetJob(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 	cfg, err := h.p.store.Config(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	out := JobDTO{RowDTO: rowDTO(d.Job, time.Now()),
 		CustomerID: d.Job.CustomerID, RepairedBy: d.Job.RepairedBy, Fault: d.Job.Fault, Notes: d.Job.Notes,
@@ -70,7 +78,7 @@ func (h handlers) respond(c echo.Context, id int64) error {
 			out.SaleReceipt = s.Sale.ReceiptNo
 		}
 	}
-	return c.JSON(http.StatusOK, out)
+	return &out, nil
 }
 
 func rowDTO(j Job, now time.Time) RowDTO {
@@ -113,10 +121,17 @@ func (h handlers) bill(c echo.Context) error {
 	if len(d.Parts) == 0 && len(d.Charges) == 0 {
 		return apperr.Validation("add a part or labour to the job first")
 	}
-	ctx := c.Request().Context()
-	labour, err := h.p.store.LabourID(ctx)
+	out, err := h.billOf(c.Request().Context(), d)
 	if err != nil {
 		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h handlers) billOf(ctx context.Context, d *Detail) (*BillDTO, error) {
+	labour, err := h.p.store.LabourID(ctx)
+	if err != nil {
+		return nil, err
 	}
 	free := d.Job.ReworkOf != nil
 	out := BillDTO{CustomerID: d.Job.CustomerID, Free: free, Lines: []BillLine{}, Deposits: dec2(deposits(d)),
@@ -146,7 +161,7 @@ func (h handlers) bill(c echo.Context) error {
 			out.OnAccount = dec2(onAccountPrefill(deposits(d), cust.OutstandingBalance, estimate(d)))
 		}
 	}
-	return c.JSON(http.StatusOK, out)
+	return &out, nil
 }
 
 // linkDeposit ties a core customer payment (taken in the core credit form) to
