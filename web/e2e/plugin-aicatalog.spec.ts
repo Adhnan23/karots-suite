@@ -228,7 +228,7 @@ test.describe('jobs that come with other plugins', () => {
     const before = (await (await page.request.get('/api/v1/x/combos')).json()).length
     await page.goto('/admin/x/combos')
     await page.getByRole('button', { name: 'Suggest combos' }).click()
-    await paste(page, { combos: [{ name: `Baby ${stamp}`, product_ids: [a, b], reason: 'Bought together', price: 99 }] })
+    await paste(page, { combos: [{ name: `Baby ${stamp}`, product_ids: [a, b], reason: 'Bought together', price: 99 }, { name: `Second ${stamp}`, product_ids: [b, a], reason: 'Also together' }] })
     await expect(page.getByText('Bought together')).toBeVisible()
     await page.getByRole('button', { name: 'Use', exact: true }).click()
     const form = page.getByRole('dialog')
@@ -237,6 +237,11 @@ test.describe('jobs that come with other plugins', () => {
     await expect(form.getByText(`Powder ${stamp}`)).toBeVisible()
     await expect(form.locator('input[value="99"]')).toHaveCount(0)
     expect((await (await page.request.get('/api/v1/x/combos')).json()).length).toBe(before)
+    // Using one keeps the others: close the form and come back for the next.
+    await form.getByRole('button', { name: /cancel|close/i }).first().click()
+    await page.getByRole('button', { name: 'Back to suggestions (1 left)' }).click()
+    await expect(page.getByText('Also together')).toBeVisible()
+    await expect(page.getByText('Opened')).toBeVisible()
   })
 
   test('the jobs list fits a phone', async ({ page }) => {

@@ -20,15 +20,26 @@ export function ComboSuggest({ open }: { open: (d: PageDraft) => void }) {
   const qc = useQueryClient()
   const { state, dispatch, ask, read } = useAsk<{ ideas: Idea[] }>()
   const [shown, setShown] = useState(false)
+  const [used, setUsed] = useState<Set<string>>(new Set())
+  const ideas = state.k === 'done' ? state.result.ideas : []
   const start = () => {
     setShown(true)
+    setUsed(new Set())
     dispatch({ t: 'reset' })
     ask(() => ask_()).catch((e) => toast.error(errMsg(e)))
   }
-  const close = () => { setShown(false); dispatch({ t: 'reset' }); void qc.invalidateQueries({ queryKey: ['x', 'combos'] }) }
+  // The list stays when the sheet closes: make one combo, come back for the next.
+  const close = () => { setShown(false); void qc.invalidateQueries({ queryKey: ['x', 'combos'] }) }
+  const use = (c: Idea) => {
+    setUsed((u) => new Set(u).add(c.name))
+    setShown(false)
+    open({ name: c.name, productIds: c.productIds })
+  }
   return (
     <>
-      <Button variant="secondary" className="h-10 gap-1.5 px-4" onClick={start}><Sparkles size={16} /> Suggest combos</Button>
+      {ideas.length > 0 && !shown
+        ? <Button variant="secondary" className="h-10 gap-1.5 px-4" onClick={() => setShown(true)}><Sparkles size={16} /> Back to suggestions ({ideas.length - ideas.filter((c) => used.has(c.name)).length} left)</Button>
+        : <Button variant="secondary" className="h-10 gap-1.5 px-4" onClick={start}><Sparkles size={16} /> Suggest combos</Button>}
       {shown && (
         <FormSheet open onOpenChange={(o) => !o && close()} title="Combo suggestions" busy={false} onSubmit={close} submit="Done">
           <p className="text-[13.5px] text-muted-foreground">Based on what usually sells together. You set the price, and nothing is saved until you do.</p>
@@ -48,11 +59,13 @@ export function ComboSuggest({ open }: { open: (d: PageDraft) => void }) {
                       <small className="block break-words">{c.names.join(' + ')}</small>
                       {c.reason && <small className="block text-muted-foreground">{c.reason}</small>}
                     </span>
-                    <Button type="button" variant="outline" className="h-9" onClick={() => { open({ name: c.name, productIds: c.productIds }); close() }}>Use</Button>
+                    {used.has(c.name) && <small className="font-semibold text-muted-foreground">Opened</small>}
+                    <Button type="button" variant="outline" className="h-9" onClick={() => use(c)}>{used.has(c.name) ? 'Use again' : 'Use'}</Button>
                   </li>
                 ))}
               </ul>
             ))}
+          {state.k === 'done' && <Button type="button" variant="ghost" className="h-9 self-start" onClick={start}>Ask for new suggestions</Button>}
         </FormSheet>
       )}
     </>
