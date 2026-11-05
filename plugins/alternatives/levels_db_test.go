@@ -288,7 +288,7 @@ func TestLowBlockSaysWhenABrandOutsellsItsShare(t *testing.T) {
 	tid := groupTier(t, s, "Sells "+sfx, a, b)
 	var sale, user int64
 	noErr(t, db.Get(&user, `SELECT id FROM users ORDER BY id LIMIT 1`))
-	noErr(t, db.Get(&sale, `INSERT INTO sales (receipt_no, cashier_id) VALUES ($1, $2) RETURNING id`, "T"+sfx, user))
+	noErr(t, db.Get(&sale, `INSERT INTO sales (receipt_no, cashier_id) VALUES ($1, $2) RETURNING id`, sfx[len(sfx)-12:], user))
 	t.Cleanup(func() { db.Exec(`DELETE FROM sales WHERE id = $1`, sale) }) //nolint:errcheck
 	noErrExec(t, db, `INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal) VALUES ($1, $2, 30, 1, 30)`, sale, a)
 	line := func() string {
