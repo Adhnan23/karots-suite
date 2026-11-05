@@ -15,11 +15,16 @@ Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives leve
 - **Alternatives:** Auto levels (members' levels added up; `alt_tiers.level_auto`), order split by 90-day sales or manual shares. Low groups always pull in every brand, so a row's share is never a short order. The till's Low stock tab hides covered by default.
 - **Core:** packs and extra barcodes while creating a product; the Pay panel fits at 1280; dashboard low-stock count follows coverage.
 - **Not decided:** saving a chatbot's dose reasons to the hint (left out for now). Real replies are pinned as tests; Rx marks and doses are unverified against Sri Lankan rules, so the warnings stay.
-- **Ideas for after Iman:** one stick that installs Xubuntu + Karots (autoinstall through Ventoy, or a golden image); take notes on Iman's install first. Then Pocket Cashier release 2.
+- **Ideas for after Iman:** one stick that installs Xubuntu + Karots (autoinstall through Ventoy, or a golden image); take notes on Iman's install first.
 - **Dev DB note:** `0002_auto_levels.sql` was edited before release (`level_auto` default false, so a restored older backup keeps typed levels). An old dev DB needs `make db-down` and re-migrate, or `ALTER COLUMN level_auto SET DEFAULT false`.
 - **Tests 2026-11-05, final:** Playwright 248 passed, 33 skipped; web 939; `make test` passed. The user hand-tested every job on real Gemini and ChatGPT replies; bugs found were fixed. Partial builds compile, but no one has clicked through a running one. `TestTodayTraded` (Demo Room) failed once just after 09:00 and passed on two later runs: looks time-of-day dependent, not proven.
 
-**Next:** Pocket Cashier release 2, on branch `m8e-pocket-release-2`: `docs/plans/2026-11-05-m8e-pocket-cashier-release-2.md`. Measured 2026-11-05, the last 30 days from Demo years: everything 3,577 sales, 330 KB gzip, 7.2 s on the server; grocery 2,653, 206 KB; pharmacy 2,196, 156 KB. About 1 KB raw per sale, so 1,000 sales a day is about 3 MB gzip.
+**Pocket Cashier release 2 is BUILT on branch `m8e-pocket-release-2`, not merged (2026-11-06).** The phone is the backup till: the last 30 days of sales, Credit, Returns, Receipts, Warranty, Write-off, Convert, tickets (online), and the plugins' own screens (Reload & Bills, Print & Copy, Combos, Pharmacy, Repairs, Alternatives), the same on or off the PC. Details in `docs/guide/plugins/pocketcashier.md`; how it works is under Pocket Cashier in `AGENTS.md`. Tests 2026-11-06: Go all passed, web 1,114, Playwright 259 passed, 33 skipped. `pocket-plugins.spec` runs a whole day with the PC off and checks the books. A fresh review found 3 critical and 6 important problems; all fixed test-first.
+**Not yet done:** no real phone or tablet has run this (timings were 4x-throttled Chromium on this PC, 30,000 sales: store 4.3 s, open 1.8 s, search 45 ms); the user hasn't hand-tested it. Sizes from Demo years: everything 3,577 sales, 330 KB gzip; about 1 KB raw per sale.
+**Known small gaps, left on purpose:** a repair made offline keeps "New-xxxx" in its sale line's text (the job itself gets its real number); on-account sales made offline don't lower the balance shown on the phone, and can raise a false stale-balance flag; a return's cash isn't compared with the PC's figure; an offline sign-in has no session after a cut until signing in again, so printing and tickets fail quietly; a person who must change their PIN gets calls refused while their sales stand; a refused sale's note has no items or total.
+**User's call, open:** Pharmacy cuts the patient's name short at 360 px and Print & Copy squeezes its total (fixing them means a layout-only change in the plugin, which the Pocket rule forbids without the user's say); a reload past the float isn't flagged under What came in (red float on the Reload page instead); a sale made during a cut can't be returned on the phone until the PC has it.
+
+**Next:** the user's hand test on a real phone, then merge; then the install stick or the whole-system check.
 
 **Test backups:** Cloudflare refused deleting them (the 30-day lock), and they sit in the old `aiman-pharmacy-kalpitiya` folder. The new key means a new cloud folder, so they shouldn't reach his Bring back list; they age out by about Dec 4. **Keep `karots-main` / `karots-cashier` off or expect uploads there** (they run old builds). Keep `SUITE_RELEASE_KEY`. His install id, channel and cloud key stayed in `shops.json`. His support PIN: `make support-pin ID=FC1A79F7`.
 
@@ -39,7 +44,7 @@ Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives leve
 - Recovering a shop already down from an update cut through Setup -> Update: untested, needs the user at the VM.
 - VM commands prompt for a password each connection until the user is in the `libvirt` group; keep one `virsh` connection open for a batch.
 - **Test backups in Iman's cloud folder:** the user deletes them in Cloudflare after testing. The bucket's 30-day lock may refuse recent ones.
-- Bigger: Pocket Cashier release 2 (counter pages, plugin menus, tickets on the phone; a ticket on a phone-only till waits unseen today); the whole-system check (a simulated year, the books balance).
+- Bigger: the whole-system check (a simulated year, the books balance).
 
 **Iman's setup:** new PC (i3 4th gen, 8 GB, 120 GB SATA SSD, 20") = **admin + main PC**, in the background; the **owner's own Linux
 laptop = cashier PC**, with the XP-80T (receipts) through the print helper; XP-365B (labels) on the main PC as the shop's label printer; one wired 2D scanner. Another PC only when needed. File mode, cloud backup on.
@@ -83,8 +88,6 @@ their data and a plugin's pre-filled payment; `e2e/ticket.ts` runs the money plu
 
 **Parked:** the open-price plugin (goods tracked by value, never count; only if Quick item is too much work for a shop); staff commission and delivery orders (only if a shop asks). **Future plugins, not now:** loyalty points, gift vouchers / credit notes, several shops.
 
-**Then: Pocket Cashier release 2** (spec decided in release 1): the counter pages on the phone (receipts, credit, returns, suppliers, expenses…) and plugin menus / tabs, online first. Known open item: a cashier who moves back to the PC while the phone still shows them is claimed back by the phone's next send.
-
 **Idea, parked (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
 
 **Unreliable e2e tests (each failed once in a full run and passed alone, not explained):** `palettes.spec.ts:45`, `plugin-repairs.spec.ts:145`.
@@ -100,7 +103,7 @@ productplus, combos, alternatives, documents, barcodes + merge, lots, AI Assista
 repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c self-update + Release · M8c2 backup copies
 + cloud · live users · till left open · smart reorder levels · print as image + receipt styles · palettes (Dock theme,
 22 built-ins, custom palettes) · labels as pictures + label styles · M8d Demo Room · docs + screenshots + legal pack ·
-cheques · M8e Pocket Cashier release 1 · pharmacy core work (warning days, give back, recall, credits on bills, supplier discount) · Send to cashier · print helper + cashier PCs' printers · receipts always pictures · power-cut test + fix · AI Assistant jobs + hints + Alternatives Auto levels.
+cheques · M8e Pocket Cashier release 1 and 2 · pharmacy core work (warning days, give back, recall, credits on bills, supplier discount) · Send to cashier · print helper + cashier PCs' printers · receipts always pictures · power-cut test + fix · AI Assistant jobs + hints + Alternatives Auto levels.
 
 ## How we work
 
