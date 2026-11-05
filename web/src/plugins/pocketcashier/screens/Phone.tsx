@@ -1,7 +1,7 @@
 import { Menu as MenuIcon, PauseCircle, ShoppingCart } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { api } from '@/api/client'
-import type { TillCopy } from '@/api/types.gen'
+import type { HeldSale, TillCopy } from '@/api/types.gen'
 import { MOVED_LABEL, toHeldBlob } from '@/features/till/cart/held'
 import { loadCart, saveCart } from '@/features/till/cart/persist'
 import { initialState, tillReducer } from '@/features/till/cart/store'
@@ -24,6 +24,7 @@ import { Menu } from './Menu'
 import { OpenFirst } from './OpenFirst'
 import { Pay } from './Pay'
 import { Sell } from './Sell'
+import { TicketStrip, useTickets } from './Tickets'
 import { OfflineBanner, TopBar } from './TopBar'
 
 type Tab = 'sell' | 'held' | 'menu'
@@ -41,6 +42,9 @@ export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: 
   const [out, setOut] = useState<Action[]>([])
   const [bump, setBump] = useState(0)
   useEffect(() => { void pending().then(setOut, () => {}) }, [sync.waiting, sync.copyAt, bump])
+  const [ticketBump, setTicketBump] = useState(0)
+  const tickets = useTickets(sync.live, ticketBump)
+  const openTicket = (held: HeldSale) => { dispatch({ type: 'resume', held }); setPaying(false); setTab('sell'); setPage(null); setTicketBump((n) => n + 1) }
   const copy = useMemo(() => (synced ? withOverlay(synced, out) : synced), [synced, out])
   const sent = useCallback(() => { setBump((n) => n + 1); void refresh() }, [])
   const drawerOpen = !!copy && isOpen(copy, who.id, out)
@@ -79,6 +83,7 @@ export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: 
     <Screen fixed>
       {!(tab === 'sell' && paying) && <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />}
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
+      {!paying && <TicketStrip tickets={tickets} sym={copy.symbol} cart={cart} onOpen={openTicket} />}
       <main className="flex min-h-0 flex-1 flex-col">
         {tab === 'sell' && !drawerOpen && <OpenFirst who={who} copy={copy} onSent={sent} />}
         {tab === 'sell' && drawerOpen && paying && <Pay who={who} copy={copy} cart={cart} dispatch={dispatch} live={sync.live} onBack={() => { setPaying(false); sent() }} />}
@@ -89,7 +94,7 @@ export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: 
           </>
         )}
         {tab === 'held' && <Held who={who} copy={copy} out={out} cart={cart} dispatch={dispatch} onSent={sent} onResumed={() => { setPaying(false); setTab('sell') }} />}
-        {tab === 'menu' && !CurrentPage && <Menu who={who} copy={copy} out={out} live={sync.live} onSent={sent} onSwitch={switchPerson} onPage={setPage} />}
+        {tab === 'menu' && !CurrentPage && <Menu who={who} copy={copy} out={out} live={sync.live} onSent={sent} onSwitch={switchPerson} onPage={setPage} tickets={tickets} cart={cart} onTicket={openTicket} onTicketsChanged={() => setTicketBump((n) => n + 1)} />}
         {tab === 'menu' && CurrentPage && <CurrentPage who={who} copy={copy} out={out} live={sync.live} onSent={sent} onBack={() => setPage(null)} />}
       </main>
       <nav aria-label="Phone tabs" className={cn('flex justify-around border-t border-border bg-bar px-2 pt-1.5 pb-3 text-[10.5px] font-semibold text-faint', GLASS)}>

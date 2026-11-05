@@ -1,6 +1,8 @@
 import { ArrowDownToLine, ArrowUpFromLine, KeyRound, Lock, LockOpen, UserRound } from 'lucide-react'
 import { useState } from 'react'
-import type { TillCopy } from '@/api/types.gen'
+import type { HeldSale, TillCopy } from '@/api/types.gen'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import type { TillState } from '@/features/till/cart/types'
 import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD } from '../bits'
@@ -11,17 +13,22 @@ import { refresh, sendNow } from '../sync'
 import { DrawerSheet, type DrawerKind } from './DrawerSheet'
 import { COUNTER_PAGES, type CounterPage } from './counter/pages'
 import { PinSheet } from './PinSheet'
+import { TicketsBeforeClose } from './Tickets'
 
 const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cash taken out', deposit: 'Cash put in', close: 'Drawer closed' }
 
 /** The drawer from the phone — open, take out, put in, close — online or from
  * the copy (sent when the PC is back), and switch person. */
-export function Menu({ who, copy, out, live, onSent, onSwitch, onPage }: { who: Who; copy: TillCopy; out: Action[]; live: boolean; onSent: () => void; onSwitch: () => void; onPage: (p: CounterPage) => void }) {
+export function Menu({ who, copy, out, live, onSent, onSwitch, onPage, tickets = [], cart, onTicket, onTicketsChanged }: {
+  who: Who; copy: TillCopy; out: Action[]; live: boolean; onSent: () => void; onSwitch: () => void; onPage: (p: CounterPage) => void
+  tickets?: HeldSale[]; cart?: TillState; onTicket?: (t: HeldSale) => void; onTicketsChanged?: () => void
+}) {
   const [sheet, setSheet] = useState<DrawerKind | null>(null)
   const [notice, setNotice] = useState('')
   const [pin, setPin] = useState(false)
   const open = drawerOpen(copy, who.id, out)
   const expected = expectedCash(copy, who.id, out)
+  const waitingOnMe = tickets.filter((t) => t.forMe)
 
   async function send(kind: DrawerKind, body: Record<string, unknown>): Promise<string> {
     const r = await sendNow({ kind, userId: who.id, body })
@@ -64,7 +71,14 @@ export function Menu({ who, copy, out, live, onSent, onSwitch, onPage }: { who: 
         <UserRound size={19} className="text-muted-foreground" />Switch person
       </button>
       {pin && <PinSheet live={live} onClose={() => setPin(false)} onDone={() => { setNotice('PIN changed'); void refresh() }} />}
-      {sheet && <DrawerSheet kind={sheet} copy={copy} expected={expected} lastCount={copy.people.find((p) => p.id === who.id)?.lastCount} onSend={(b) => send(sheet, b)} onClose={() => setSheet(null)} />}
+      {sheet === 'close' && waitingOnMe.length > 0 && cart && onTicket && onTicketsChanged ? (
+        <Sheet open onOpenChange={(o) => !o && setSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[85dvh] gap-3 overflow-y-auto p-4">
+            <SheetHeader className="sr-only p-0"><SheetTitle>Tickets on your till</SheetTitle><SheetDescription>Deal with these first</SheetDescription></SheetHeader>
+            <TicketsBeforeClose tickets={waitingOnMe} sym={copy.symbol} cart={cart} onOpen={onTicket} onChanged={onTicketsChanged} onClose={() => setSheet(null)} />
+          </SheetContent>
+        </Sheet>
+      ) : sheet && <DrawerSheet kind={sheet} copy={copy} expected={expected} lastCount={copy.people.find((p) => p.id === who.id)?.lastCount} onSend={(b) => send(sheet, b)} onClose={() => setSheet(null)} />}
     </div>
   )
 }

@@ -196,12 +196,12 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 
 **Interfaces:** Consumes `GET /till/tickets`, `POST /till/tickets/:id/open|pass|back`; loads a cart with the same action Held uses to resume.
 
-- [ ] **Step 1: Write failing tests:** `a ticket for this person pops up with a beep while live`; `offline shows no tickets and no error`; `opening is refused over a cart with items, as the PC does`; `closing the drawer with tickets waiting asks to deal with each, as CloseRegister does`; `a ticket's plugin lines and pre-filled payment survive`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement,** same rules and text as `features/till/cart-ui/Tickets.tsx`.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Add to** `web/e2e/pocket.spec.ts`: a sales person sends a ticket to a cashier on the phone; the cashier opens it and sells it; `sales.prepared_by` shows. Run: `bunx playwright test e2e/pocket.spec.ts`. Expected: PASS.
-- [ ] **Step 6: Commit.** `feat(pocketcashier): a cashier opens tickets on the phone`
+- [x] **Step 1: Write failing tests:** `a ticket for this person pops up with a beep while live`; `offline shows no tickets and no error`; `opening is refused over a cart with items, as the PC does`; `closing the drawer with tickets waiting asks to deal with each, as CloseRegister does`; `a ticket's plugin lines and pre-filled payment survive`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement,** same rules and text as `features/till/cart-ui/Tickets.tsx`.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Add to** `web/e2e/pocket.spec.ts`: a sales person sends a ticket to a cashier on the phone; the cashier opens it and sells it; `sales.prepared_by` shows. Run: `bunx playwright test e2e/pocket.spec.ts`. Expected: PASS.
+- [x] **Step 6: Commit.** `feat(pocketcashier): a cashier opens tickets on the phone`
 
 ### Task 9: The PC wins when a cashier moves back
 

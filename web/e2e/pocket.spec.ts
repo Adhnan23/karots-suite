@@ -1,5 +1,6 @@
 import type { Browser, BrowserContext, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
+import { viaTicket } from './ticket'
 
 // The phone app on its own HTTPS port (the shop CA isn't trusted here). One
 // phone context runs through the file: pair, takeover, sell live, sell offline.
@@ -217,6 +218,22 @@ test.describe.serial('Pocket Cashier', () => {
     const calls = details.flatMap((d: { actions: { kind: string; status: string; label: string; note: string }[] }) => d.actions).filter((a) => a.kind === 'call')
     expect(calls.map((a) => `${a.status}:${a.label.split(':')[0]}`).sort()).toEqual(expect.arrayContaining(['applied:Credit from E2E Credit']))
     expect(calls.some((a) => a.status === 'applied' && a.label.startsWith('Return on '))).toBe(true)
+  })
+
+  test('a sales person sends a ticket to the cashier on the phone, who sells it', async ({ browser }) => {
+    await phone.getByRole('button', { name: 'Sell', exact: true }).click()
+    await viaTicket(browser, phone, 'E2E Cashier', async (seller) => {
+      await seller.getByLabel('Scan a barcode or search products').fill('E2E Milk')
+      await seller.getByRole('button', { name: /E2E Milk/ }).first().click()
+    })
+    await phone.getByRole('button', { name: 'Pay ›' }).click()
+    await phone.getByRole('button', { name: 'Finish sale' }).click()
+    await phone.getByRole('dialog', { name: 'Print the receipt?' }).getByRole('button', { name: 'Skip' }).click()
+    const done = phone.getByRole('status').filter({ hasText: /Sale .* done/ })
+    const receipt = (await done.textContent())!.match(/Sale (\S+) done/)![1]
+    const rows = await (await admin.request.get(`/api/v1/admin/sales?q=${receipt}`)).json() as { receiptNo: string; preparedBy?: string }[]
+    expect(rows.find((r) => r.receiptNo === receipt)?.preparedBy).toBe('E2E Sales')
+    await phone.getByRole('button', { name: 'New sale' }).click()
   })
 
   test('the cashier moves from the phone to a PC: the phone signs out, its cart waits in Held', async ({ browser }) => {
