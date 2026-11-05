@@ -19,6 +19,7 @@ type Plugin struct {
 	core  plugin.Core
 	store *Store
 	cats  *categories.Service
+	jobs  []Job
 }
 
 func (p *Plugin) Name() string                { return "AI Assistant" }
@@ -33,8 +34,13 @@ var dataGroup = plugin.DataGroup{Key: "aicatalog", Name: "AI Assistant",
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	p.store.undoJob = p.undoJobOp
+	p.jobs = allJobs()
 	p.cats = categories.NewService(reg.Core.DB)
 	reg.AddDataGroup(dataGroup)
 	p.registerHooks(reg)
 	p.routes(reg)
 }
+
+// allJobs is every job in the page's order; each decides for itself if it's available.
+func allJobs() []Job { return []Job{identifyJob()} }

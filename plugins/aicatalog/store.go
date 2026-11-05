@@ -11,7 +11,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Store struct{ db *sqlx.DB }
+type Store struct {
+	db      *sqlx.DB
+	undoJob func(ctx context.Context, tx *sqlx.Tx, op map[string]any) error // set by the plugin
+}
 
 func NewStore(db *sqlx.DB) *Store { return &Store{db: db} }
 

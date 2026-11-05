@@ -132,7 +132,7 @@
 - Produces, routes (admin): `GET /aicatalog/jobs`; `POST /aicatalog/jobs/:job/next` `{size, categoryId, filter, ids, options, reply}` answers like `cleanup` (prompt in manual mode, preview otherwise) with `remaining`; `POST /aicatalog/jobs/:job/apply` `{runId, rows, answered}`; undo uses the existing `/aicatalog/cleanup/undo`.
 - Consumes: `aicatalog_job_items` (Task 3), `PastePanel`, `useAsk`, `decodeReply`.
 
-- [ ] **Step 1: Write the failing tests** in `jobs_db_test.go`, with a fake job:
+- [x] **Step 1: Write the failing tests** in `jobs_db_test.go`, with a fake job:
   - `TestNextSkipsAnswered`: of 3 products, an `applied` and a `skipped` one are not offered; `filter:"skipped"` returns them.
   - `TestRedoIDs`: `ids` offers those products whatever their state.
   - `TestParseDropsForeignIDs`: a reply naming a product outside the batch yields no row.
@@ -140,12 +140,12 @@
   - `TestApplySkipsChanged`: a row whose product is now disabled, merged, or whose `Old` no longer matches is reported skipped and the rest apply.
   - `TestUndoLeavesNewerEdit`: undo reverts only when the current value equals `Applied`.
   - `TestUnavailableJob404`: `Available` false gives 404 and it isn't listed.
-- [ ] **Step 2: Run** `go test ./plugins/aicatalog -run 'Next|Redo|Parse|Apply|Undo|Unavailable'`. Expected: FAIL.
-- [ ] **Step 3: Implement.** Apply runs in one transaction and writes one `aicatalog_optimize_runs` row; a new `revertOp` kind `job` handles `UndoOp`. Size clamps to 1..50, default 10. Batches keep id order. `Prompt` is called through `withCustom`.
-- [ ] **Step 4: `jobs.ts` + test:** pure `initialTicks(rows)` honours `Ticked`; `tickAll(rows, key, oneByOne)` is a no-op when `oneByOne`. Vitest.
-- [ ] **Step 5: `JobPage.tsx`:** job picker, category filter, batch-size stepper from 1, `Skipped / no answer` filter, `PastePanel`, rows grouped by product showing old → new, reason, a **new** tag, warning banner, Apply, Undo, and "next batch". A new tab **Jobs** on `AssistantPage`, path `jobs/<key>`. Works at 360px.
-- [ ] **Step 6: Run** the Go and Vitest tests. Expected: PASS.
-- [ ] **Step 7: Commit** `feat(aicatalog): job framework; batches, ticks, undo, skipped list`
+- [x] **Step 2: Run** `go test ./plugins/aicatalog -run 'Next|Redo|Parse|Apply|Undo|Unavailable'`. Expected: FAIL.
+- [x] **Step 3: Implement.** Apply runs in one transaction and writes one `aicatalog_optimize_runs` row; a new `revertOp` kind `job` handles `UndoOp`. Size clamps to 1..50, default 10. Batches keep id order. `Prompt` is called through `withCustom`.
+- [x] **Step 4: `jobs.ts` + test:** pure `initialTicks(rows)` honours `Ticked`; `tickAll(rows, key, oneByOne)` is a no-op when `oneByOne`. Vitest.
+- [x] **Step 5: `JobPage.tsx`:** job picker, category filter, batch-size stepper from 1, `Skipped / no answer` filter, `PastePanel`, rows grouped by product showing old → new, reason, a **new** tag, warning banner, Apply, Undo, and "next batch". A new tab **Jobs** on `AssistantPage`, path `jobs/<key>`. Works at 360px.
+- [x] **Step 6: Run** the Go and Vitest tests. Expected: PASS.
+- [x] **Step 7: Commit** `feat(aicatalog): job framework; batches, ticks, undo, skipped list`
 
 ### Task 5: Identify a whole list
 
@@ -157,17 +157,17 @@
 - Consumes: `Job`, `AddOldName`, `normPath`, `decodeReply`. Reply shape: `{"items":[{"id":0,"name":"","category":"","specs":"","explanation":"","confident":true}]}`.
 - Produces: rows of `Kind` `hint`, `name`, `category`.
 
-- [ ] **Step 1: Write the failing tests**, using the real replies:
+- [x] **Step 1: Write the failing tests**, using the real replies:
   - `TestIdentifyUnknownIsNoAnswer`: ChatGPT's `Unknown Product (XYZQ 77)` / `Unclassified` with `confident:false` and Gemini's blank row both give no rows.
   - `TestIdentifyTicks`: hint ticked; category ticked only when uncategorised, `IsNew` for a new path; a differing category and every name unticked.
   - `TestIdentifyKeepsPriceStock`: apply changes neither.
   - `TestRenameKeepsOldName`: applying a name adds the old name, which `MatchHints` finds. Clean up's `names` op does too.
   - `TestRedoShowsOld`: a product with a hint gives `Old` set and starts unticked.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement** the job, sending the shop's category paths like `identifyUserMsg`. Add a "tick all names" action on `JobPage` for `Key == "name"`.
-- [ ] **Step 4: e2e:** paste a canned reply for two products, tick, apply, the next batch excludes them, Undo restores.
-- [ ] **Step 5: Run** package tests and spec. Expected: PASS.
-- [ ] **Step 6: Commit** `feat(aicatalog): identify a whole list in batches`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement** the job, sending the shop's category paths like `identifyUserMsg`. Add a "tick all names" action on `JobPage` for `Key == "name"`.
+- [x] **Step 4: e2e:** paste a canned reply for two products, tick, apply, the next batch excludes them, Undo restores.
+- [x] **Step 5: Run** package tests and spec. Expected: PASS.
+- [x] **Step 6: Commit** `feat(aicatalog): identify a whole list in batches`
 
 ### Task 6: Alternative group maker
 

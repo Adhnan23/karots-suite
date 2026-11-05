@@ -182,14 +182,14 @@ function List({ title, rows, off, toggle, locked, empty }: { title: string; rows
   )
 }
 
-function LastRun({ onUndone }: { onUndone: () => void }) {
+export function LastRun({ onUndone, label = 'Undo last clean-up' }: { onUndone: () => void; label?: string }) {
   const run = useQuery(lastRunQuery).data?.run
   if (!run) return null
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius)] border border-border bg-muted px-4 py-3">
-      <span className="min-w-0 flex-1 text-[13px]"><b>Last clean-up:</b> <span className="text-muted-foreground">{run.summary}</span></span>
-      <ConfirmButton plain label="Undo last clean-up" title="Undo the last clean-up?" confirm="Undo" className="h-9 gap-1.5 border border-border bg-card px-3"
-        body="Puts categories, products and names back the way they were before it. Product merges are not undone."
+      <span className="min-w-0 flex-1 text-[13px]"><b>Last applied:</b> <span className="text-muted-foreground">{run.summary}</span></span>
+      <ConfirmButton plain label={label} title="Undo what was last applied?" confirm="Undo" className="h-9 gap-1.5 border border-border bg-card px-3"
+        body="Puts it back the way it was, unless someone has changed that value since. Product merges are not undone."
         onConfirm={async () => {
           try {
             toast.success(`Undone: ${(await undoCleanup()).summary}`)

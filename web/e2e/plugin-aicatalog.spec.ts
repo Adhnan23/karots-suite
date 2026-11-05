@@ -100,6 +100,47 @@ test('hints: corrected on the product page, found and shown at the till', async 
   if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/till-hint.png` })
 })
 
+test('jobs: identify a whole list: unknown items wait, ticks apply, the next batch moves on, undo puts it back', async ({ page }) => {
+  await login(page, '/admin/x/aicatalog/jobs')
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json())[0]
+  const add = async (name: string) => (await (await page.request.post('/api/v1/admin/products', { data: { name, categoryId: cat.id, unitId: 1 } })).json()).id as number
+  const a = await add(`pn-${tag}-a`)
+  const b = await add(`pn-${tag}-b`)
+  await page.getByRole('button', { name: /Identify a whole list/ }).click()
+  await page.getByRole('button', { name: 'Category', exact: false }).first().click()
+  await page.getByLabel('Search categories').fill(cat.name)
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByRole('button', { name: 'Start' }).click()
+  const prompt = await page.getByLabel('Prompt to copy').inputValue()
+  expect(prompt).toContain(`pn-${tag}-a`)
+  expect(prompt).not.toContain('spare-part')
+  const reply = JSON.stringify({ items: [
+    { id: a, confident: true, name: `Brake Pad ${tag}`, category: cat.name, specs: `Fits Hint${tag} (1/2")`, explanation: 'A brake pad' },
+    { id: b, confident: false, name: 'Unknown Product', category: 'Unclassified', specs: 'cannot tell', explanation: '' },
+  ] })
+  await page.getByLabel('Chatbot answer').fill(reply)
+  await page.getByLabel('Chatbot answer').press('Enter')
+  const hintBox = page.getByRole('checkbox', { name: new RegExp(`^Hint: Fits Hint${tag}`) })
+  await expect(hintBox).toBeChecked()
+  const nameBox = page.getByRole('checkbox', { name: new RegExp(`^Name: Brake Pad ${tag}`) })
+  await expect(nameBox).not.toBeChecked()
+  await expect(page.getByText(`pn-${tag}-b`)).toBeVisible() // named under "No answer for"
+  await nameBox.check()
+  await page.getByRole('button', { name: /^Apply 2/ }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: '2 applied' }).first()).toBeVisible()
+
+  const found = (await (await page.request.get(`/api/v1/till/products?search=Hint${tag}`)).json()).items as { id: number; name: string }[]
+  expect(found.map((p) => p.name)).toEqual([`Brake Pad ${tag}`])
+  const old = (await (await page.request.get(`/api/v1/till/products?search=pn-${tag}-a`)).json()).items as { id: number }[]
+  expect(old.map((p) => p.id)).toContain(a) // the old code still finds it
+
+  await page.getByRole('button', { name: 'Undo it' }).click()
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Undone' }).first()).toBeVisible()
+  const back = await (await page.request.get(`/api/v1/admin/products/${a}`)).json()
+  expect(back.name).toBe(`pn-${tag}-a`)
+})
+
 test('a bad paste keeps the text and says why', async ({ page }) => {
   await login(page, '/admin/products')
   await page.getByRole('button', { name: 'New product' }).click()

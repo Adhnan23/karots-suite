@@ -229,6 +229,9 @@ func (s *Store) ApplyPlan(ctx context.Context, plan CleanupPlan, userID, runID i
 		if _, err := tx.ExecContext(ctx, `UPDATE products SET name=$2 WHERE id=$1`, op.ProductID, to); err != nil {
 			return "", 0, err
 		}
+		if err := s.AddOldName(ctx, tx, op.ProductID, old); err != nil {
+			return "", 0, err
+		}
 		undo = append(undo, map[string]any{"kind": "rename_product", "id": op.ProductID, "name": old})
 		nName++
 	}
@@ -341,6 +344,12 @@ func (s *Store) Revert(ctx context.Context) (string, error) {
 	}
 	// Replay in reverse of how they were applied.
 	for i := len(ops) - 1; i >= 0; i-- {
+		if ops[i]["kind"] == "job" && s.undoJob != nil {
+			if err := s.undoJob(ctx, tx, ops[i]); err != nil {
+				return "", err
+			}
+			continue
+		}
 		if err := revertOp(ctx, tx, ops[i]); err != nil {
 			return "", err
 		}
