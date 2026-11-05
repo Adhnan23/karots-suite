@@ -1,7 +1,6 @@
 package aicatalog
 
 import (
-	"encoding/json"
 	"errors"
 	"strings"
 )
@@ -76,12 +75,8 @@ func jsonObject(raw string) (string, error) {
 
 func parseIdentify(raw string) (IdentifyResult, error) {
 	var out IdentifyResult
-	s, err := jsonObject(raw)
-	if err != nil {
-		return out, err
-	}
-	if json.Unmarshal([]byte(s), &out) != nil {
-		return IdentifyResult{}, errNoAnswer
+	if err := decodeReply(raw, &out); err != nil {
+		return IdentifyResult{}, err
 	}
 	out.Best.Category = normPath(out.Best.Category)
 	var opts []Candidate
@@ -109,12 +104,8 @@ func parseIdentify(raw string) (IdentifyResult, error) {
 
 func parseCleanup(raw string) (CleanupPlan, error) {
 	var out CleanupPlan
-	s, err := jsonObject(raw)
-	if err != nil {
-		return out, err
-	}
-	if json.Unmarshal([]byte(s), &out) != nil {
-		return CleanupPlan{}, errNoAnswer
+	if err := decodeReply(raw, &out); err != nil {
+		return CleanupPlan{}, err
 	}
 	for i := range out.Uncategorized {
 		out.Uncategorized[i].Category = normPath(out.Uncategorized[i].Category)

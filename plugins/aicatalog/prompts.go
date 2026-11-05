@@ -10,7 +10,7 @@ import (
 // answer, but asking keeps chatbots short.
 const jsonOnly = "Reply with JSON only."
 
-const systemPrompt = `You identify retail/spare-part products from a short code or name.
+const systemPrompt = `You identify the products of a shop in Sri Lanka, of any kind, from a short code or name.
 Reply with STRICT JSON ONLY, no prose, matching:
 {"confident":bool,"best":{"name":"","category":"","specs":"","explanation":""},
 "options":[{"name":"","category":"","specs":"","explanation":""}]}
@@ -18,10 +18,11 @@ Set confident=true and fill "best" only when you are sure. Otherwise set
 confident=false and give up to 4 "options". "category" uses " > " between levels,
 but keep it GENERAL and SHALLOW: usually ONE broad category, at most two levels.
 Only add a deeper sub-category when a shop would stock MANY items of that exact
-type. Never build long chains like A > B > C > D. Prefer "Bearings" (or at most
-"Bearings > Ball Bearings"), NOT "Automotive > Parts > Bearings > Deep Groove".
-"explanation" is one short sentence a non-expert understands. "specs" holds key
-dimensions/ratings if known.
+type. Never build long chains like A > B > C > D.
+"explanation" is one short sentence a non-expert understands: what the item is and what it's for.
+"specs" holds what a customer would ask to be sure it's the right item, as far as
+it applies: what it fits or works with (models, sizes), its size or strength, type,
+ingredients, what it's for. Leave out what you can't confirm.
 When web search is available, ALWAYS look the item up to confirm it rather than
 relying on memory — codes and part numbers are easily confused, so verify before
 answering. If you cannot confirm what it is, set confident=false and offer your

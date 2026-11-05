@@ -63,15 +63,15 @@
 **Interfaces:**
 - Produces: `func decodeReply(raw string, out any) error` (cuts with `jsonObject`, tries `json.Unmarshal`, then `repairQuotes`, else `errNoAnswer`); `func repairQuotes(s string) string`.
 
-- [ ] **Step 1: Write the failing tests** using the real replies from the spec:
+- [x] **Step 1: Write the failing tests** using the real replies from the spec:
   - `TestRepairInchMarks`: Gemini's `"specs":"Thread diameter: 10mm; Reach: 12.7mm (1/2"); Hex size: 16mm (5/8"); Type: …"` parses, and `Specs` contains `(1/2")`.
   - `TestRepairLeavesValidJSON`: valid JSON comes back byte-identical.
   - `TestRepairGivesUp`: `{"name":` returns `errNoAnswer`.
   - `TestSystemPromptAnyShop`: `IdentifyPrompt` doesn't contain `spare-part`, `Bearings`, `Automotive` or `cashier's hint`; it does contain the custom prompt when set.
-- [ ] **Step 2: Run** `go test ./plugins/aicatalog -run 'Repair|AnyShop'`. Expected: FAIL.
-- [ ] **Step 3: Implement.** `repairQuotes` scans strings: a `"` inside a string ends it only when the next non-space character is `,`, `}`, `]` or `:`; otherwise it is escaped. `parseIdentify` and `parseCleanup` use `decodeReply`. Prompt: "products of any kind of shop"; `specs` = "what a customer would ask to be sure it's the right item (what it fits or works with, size or strength, type, ingredients, what it's for)"; a neutral shallow-category example. Keep the JSON shape and the shallow rule.
-- [ ] **Step 4: Run** `go test ./plugins/aicatalog`. Expected: PASS (fix any test pinning old wording, without weakening it).
-- [ ] **Step 5: Commit** `fix(aicatalog): read replies with stray inch marks; prompts fit any shop`
+- [x] **Step 2: Run** `go test ./plugins/aicatalog -run 'Repair|AnyShop'`. Expected: FAIL.
+- [x] **Step 3: Implement.** `repairQuotes` scans strings: a `"` inside a string ends it only when the next non-space character is `,`, `}`, `]` or `:`; otherwise it is escaped. `parseIdentify` and `parseCleanup` use `decodeReply`. Prompt: "products of any kind of shop"; `specs` = "what a customer would ask to be sure it's the right item (what it fits or works with, size or strength, type, ingredients, what it's for)"; a neutral shallow-category example. Keep the JSON shape and the shallow rule.
+- [x] **Step 4: Run** `go test ./plugins/aicatalog`. Expected: PASS (fix any test pinning old wording, without weakening it).
+- [x] **Step 5: Commit** `fix(aicatalog): read replies with stray inch marks; prompts fit any shop`
 
 ### Task 3: Hints kept, shown, searchable, correctable
 
