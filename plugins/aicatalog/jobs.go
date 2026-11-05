@@ -59,8 +59,15 @@ type JobRow struct {
 	IsNew     bool              `json:"isNew"`  // not on the shop's list: look before ticking
 	Change    bool              `json:"change"` // differs from a value the shop has
 	Ticked    bool              `json:"ticked"`
-	Needs     string            `json:"needs,omitempty"` // what must be filled in first, "" = nothing
+	Needs     string            `json:"needs,omitempty"`   // what must be filled in first, "" = nothing
+	Choices   []JobChoice       `json:"choices,omitempty"` // Needs is answered by picking one
 	Extra     map[string]string `json:"extra,omitempty"`
+}
+
+// JobChoice is one answer to a row's Needs; it lands in Extra[JobRow.Key].
+type JobChoice struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
 }
 
 // UndoOp is what's needed to put a row back, as long as nobody has changed it since.
@@ -100,6 +107,11 @@ type JobRequest struct {
 	IDs        []int64         `json:"ids"`    // a redo: exactly these
 	Options    json.RawMessage `json:"options"`
 	Reply      string          `json:"reply"`
+
+	exclude     []int64 // never these (a job's own rule)
+	needDetails bool    // only products a prompt could judge: a digit in the name, or a hint
+	byName      bool    // alphabetical, so similar names land in one batch
+	wide        bool    // whatever the job's record says
 }
 
 // JobPreview is the rows to tick. Asked is the whole batch, so apply can record a
@@ -167,8 +179,16 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 		where += ` AND p.id = ANY($2)`
 	case in.Filter == "skipped":
 		where += ` AND j.state IN ('skipped', 'no_answer')`
+	case in.wide:
 	default:
 		where += ` AND j.state IS NULL`
+	}
+	if len(in.exclude) > 0 && len(in.IDs) == 0 {
+		args = append(args, pq.Array(in.exclude))
+		where += ` AND NOT p.id = ANY($` + num(len(args)) + `)`
+	}
+	if in.needDetails && len(in.IDs) == 0 {
+		where += ` AND (p.name ~ '[0-9]' OR COALESCE(i.specs, '') <> '' OR COALESCE(i.user_explanation, '') <> '')`
 	}
 	if in.CategoryID > 0 && len(in.IDs) == 0 {
 		args = append(args, in.CategoryID)
@@ -191,10 +211,14 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	if len(in.IDs) > 0 {
 		size = jobBatchMax
 	}
+	order := "p.id"
+	if in.byName {
+		order = "lower(p.name), p.id"
+	}
 	var rows []JobProduct
 	err := p.store.db.SelectContext(ctx, &rows, `SELECT p.id, p.name, p.category_id,
 		COALESCE(i.specs, '') AS specs, COALESCE(i.user_explanation, '') AS user_explanation,
-		COALESCE(i.specs, '') <> '' OR COALESCE(i.user_explanation, '') <> '' AS has_hint`+from+` ORDER BY p.id LIMIT `+num(size), args...)
+		COALESCE(i.specs, '') <> '' OR COALESCE(i.user_explanation, '') <> '' AS has_hint`+from+` ORDER BY `+order+` LIMIT `+num(size), args...)
 	if err != nil {
 		return nil, 0, err
 	}

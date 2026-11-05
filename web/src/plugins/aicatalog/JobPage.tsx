@@ -77,7 +77,7 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
   }
   const merged = (r: JobRow, key: string): JobRow => {
     const e = edits[key]
-    return e ? { ...r, ...e, extra: { ...r.extra, ...e.extra }, needs: edited(r, e) ? '' : r.needs } : r
+    return e ? { ...r, ...e, extra: { ...r.extra, ...e.extra } } : r
   }
 
   async function apply() {
@@ -162,8 +162,6 @@ function JobRun({ job, onBack }: { job: JobInfo; onBack: () => void }) {
   )
 }
 
-const edited = (r: JobRow, e: Partial<JobRow>) => (e.new ?? r.new).trim() !== '' && (e.new ?? r.new) !== 'new'
-
 function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onApply, onRedo, onCancel }: {
   job: JobInfo; pv: JobPreview; ticks: Set<string>; setTicks: (t: Set<string>) => void
   edits: Record<string, Partial<JobRow>>; setEdits: (e: Record<string, Partial<JobRow>>) => void; merged: (r: JobRow, key: string) => JobRow
@@ -190,13 +188,18 @@ function Preview({ job, pv, ticks, setTicks, edits, setEdits, merged, busy, onAp
               const r = merged(row, key)
               return (
                 <label key={key} className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-2 text-[13.5px]">
-                  <input type="checkbox" aria-label={`${r.label}: ${r.new}`} disabled={!!r.needs} checked={ticks.has(key)} onChange={() => toggle(key)} className="mt-0.5 size-[18px]" />
+                  <input type="checkbox" aria-label={`${r.label}: ${r.new}`} disabled={!!r.needs} checked={ticks.has(key) && !r.needs} onChange={() => toggle(key)} className="mt-0.5 size-[18px]" />
                   <span className="min-w-0">
                     <b>{r.label}</b>{r.isNew && <span className="ml-1.5 rounded-md bg-brand-soft px-1.5 py-0.5 text-[11.5px] font-bold">new</span>}
                     {r.old && <span className="block break-words whitespace-pre-line text-faint line-through">{r.old}</span>}
-                    {r.needs
-                      ? <input aria-label={`${r.label}: ${r.needs}`} placeholder={r.needs} name={`job-${key}`} autoComplete="off" value={edits[key]?.new ?? ''} onChange={(e) => setEdits({ ...edits, [key]: { new: e.target.value } })} className={cn(INPUT, 'mt-1')} />
-                      : <span className="block break-words whitespace-pre-line">{r.new}</span>}
+                    <span className="block break-words whitespace-pre-line">{r.new}</span>
+                    {row.needs && row.choices && (
+                      <select aria-label={row.needs} value={edits[key]?.extra?.[row.key] ?? ''} className={cn(INPUT, 'mt-1')}
+                        onChange={(e) => setEdits({ ...edits, [key]: { extra: { [row.key]: e.target.value }, needs: e.target.value ? '' : row.needs } })}>
+                        <option value="">{row.needs}</option>
+                        {row.choices.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                    )}
                     {r.reason && <small className="block text-muted-foreground">{r.reason}</small>}
                   </span>
                 </label>

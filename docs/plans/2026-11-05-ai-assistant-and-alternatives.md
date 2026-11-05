@@ -191,7 +191,7 @@
   ```
 - Produces, slot: `pageActions: [] as PageAction[]`, `type PageAction = { key: string; page: string; Action: ComponentType<{ open: (draft: PageDraft) => void }> }`, `type PageDraft = { name: string; productIds: number[] }`. Pages render `slots.pageActions.filter(a => a.page === '<own key>')` in `PageHead.actions`.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `TestGroupsRealReply`: both chatbots' prompt 4 replies give groups `{1,2}` and `{6,7}`.
   - `TestGroupsDropBad`: ids outside the category, a single-member new group, or already-grouped products are dropped.
   - `TestGroupsNeedDetails`: a product with no digit in its name and no hint isn't sent as a candidate.
@@ -199,11 +199,11 @@
   - `TestJoinMultiTierNeedsTier`: joining a multi-tier group has no tier chosen and can't apply until one is sent; a single-tier group fills it.
   - `grouper_db_test.go`: `Create` makes one tier, Auto level (after Task 7, assert `level_auto` there), single-tier name blank; `Delete` undoes.
   - `TestUnavailableWithoutGrouper`: no hook → job not listed.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Batches run per category, sending every ungrouped name and hint in that category; `size` counts products to place, and a big category splits alphabetically (override `Batch` selection via `Job.Select`, added to `Job` and defaulted). Existing groups are listed in the prompt. Rows: `Kind` `group` carries members and reason; joining a multi-tier group shows a tier picker with no default.
-- [ ] **Step 4: Slot + button.** Alternatives and Combos render the generic slot; AI Assistant pushes **✨ Suggest groups** (for `alternatives`), linking to its job page.
-- [ ] **Step 5: e2e** in `plugin-alternatives.spec.ts`: paste a canned reply, tick, apply, the group appears, Undo removes it. Build with `make plugins P=aicatalog` alone: no button and no job, and the app runs. `make check-core`. Grep: no `aicatalog` or `AI` in `plugins/alternatives`, `web/src/plugins/alternatives`, `plugins/combos`, `web/src/plugins/combos`.
-- [ ] **Step 6: Commit** `feat(aicatalog): alternative group maker through a generic grouper hook`
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.** Batches run per category, sending every ungrouped name and hint in that category; `size` counts products to place, and a big category splits alphabetically (override `Batch` selection via `Job.Select`, added to `Job` and defaulted). Existing groups are listed in the prompt. Rows: `Kind` `group` carries members and reason; joining a multi-tier group shows a tier picker with no default.
+- [x] **Step 4: Slot + button.** Alternatives and Combos render the generic slot; AI Assistant pushes **✨ Suggest groups** (for `alternatives`), linking to its job page.
+- [x] **Step 5: e2e** in `plugin-alternatives.spec.ts`: paste a canned reply, tick, apply, the group appears, Undo removes it. Build with `make plugins P=aicatalog` alone: no button and no job, and the app runs. `make check-core`. Grep: no `aicatalog` or `AI` in `plugins/alternatives`, `web/src/plugins/alternatives`, `plugins/combos`, `web/src/plugins/combos`.
+- [x] **Step 6: Commit** `feat(aicatalog): alternative group maker through a generic grouper hook`
 
 ### Task 7: Alternatives learns levels and splits orders
 

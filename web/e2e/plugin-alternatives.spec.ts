@@ -239,3 +239,38 @@ test('Apps → Alternatives fits 360px', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
   }
 })
+
+test('group maker: the page offers it, a pasted reply makes a group, undo removes it', async ({ page }) => {
+  const stamp = Date.now().toString().slice(-6)
+  await page.goto('/login')
+  await page.getByLabel('Phone').fill('0770000001')
+  await page.getByLabel('PIN').fill('1234')
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.waitForURL(/\/(till|admin)/)
+  await page.request.put('/api/v1/x/aicatalog/settings', { data: { manualMode: true, provider: 'gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'x', apiKey: '', webSearch: false, namingStyle: '', customPrompt: '' } })
+  const cat = (await (await page.request.post('/api/v1/admin/categories', { data: { name: `Twins ${stamp}` } })).json()) as { id: number }
+  const add = async (name: string) => (await (await page.request.post('/api/v1/admin/products', { data: { name, categoryId: cat.id, unitId: 1 } })).json()).id as number
+  const a = await add(`Panadol 500mg ${stamp}`)
+  const b = await add(`Cetamol 500mg ${stamp}`)
+  await page.goto('/admin/x/alternatives')
+  await page.getByRole('link', { name: 'Suggest groups' }).click()
+  await page.getByRole('button', { name: 'Category', exact: false }).first().click()
+  await page.getByLabel('Search categories').fill(`Twins ${stamp}`)
+  await page.getByLabel('Search categories').press('Enter')
+  await page.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Prompt to copy')).toHaveValue(new RegExp(`Panadol 500mg ${stamp}`))
+  await page.getByLabel('Chatbot answer').fill(JSON.stringify({ groups: [{ name: `Paracetamol ${stamp}`, product_ids: [a, b], reason: 'Both paracetamol 500mg tablets' }] }))
+  await page.getByLabel('Chatbot answer').press('Enter')
+  const box = page.getByRole('checkbox', { name: new RegExp(`^New group: Paracetamol ${stamp}`) })
+  await expect(box).not.toBeChecked() // a wrong group offers the wrong item at the till: nobody ticks by accident
+  await expect(page.getByText('Both paracetamol 500mg tablets')).toBeVisible()
+  await box.check()
+  await page.getByRole('button', { name: /^Apply 1/ }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
+  const groups = async () => ((await (await page.request.get('/api/v1/x/alternatives')).json()) as { name: string }[]).map((g) => g.name)
+  expect(await groups()).toContain(`Paracetamol ${stamp}`)
+  await page.getByRole('button', { name: 'Undo it' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Undo' }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Undone' }).first()).toBeVisible()
+  expect(await groups()).not.toContain(`Paracetamol ${stamp}`)
+})

@@ -56,6 +56,31 @@ type ProductMetaProvider struct {
 	Batch func(ctx context.Context, productIDs []int64) (map[int64]string, error)
 }
 
+// ProductGroupTier is one tier of a group of interchangeable products.
+type ProductGroupTier struct {
+	ID   int64
+	Name string
+}
+
+// ProductGroupInfo is a group of interchangeable products.
+type ProductGroupInfo struct {
+	ID      int64
+	Name    string
+	Tiers   []ProductGroupTier
+	Members []int64
+}
+
+// ProductGrouper lets a plugin that keeps groups of interchangeable products say what
+// it has and take new ones, through its own rules. Create skips products already
+// grouped and returns 0 if too few are left; AddTo refuses a product in another group.
+type ProductGrouper struct {
+	Groups func(ctx context.Context) ([]ProductGroupInfo, error)
+	Create func(ctx context.Context, name string, productIDs []int64) (int64, error)
+	AddTo  func(ctx context.Context, tierID, productID int64) error
+	Delete func(ctx context.Context, groupID int64) error
+	Remove func(ctx context.Context, productID int64) error
+}
+
 // ProductTillLineProvider supplies one short line under a product in the till's
 // results (what helps a cashier know it's the right item). Batched and best-effort:
 // an error shows no line. Counter-safe text only: the customer can see this screen.
@@ -171,6 +196,7 @@ var (
 	productLabelProviders    hook[ProductLabelFieldProvider]
 	productReorderAnnotators hook[ProductReorderAnnotator]
 	productTillLines         hook[ProductTillLineProvider]
+	productGroupers          hook[ProductGrouper]
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
@@ -197,6 +223,8 @@ func (r *Registry) AddProductDetailContributor(p ProductDetailContributor) {
 func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
 	productLabelProviders.add(p)
 }
+func (r *Registry) AddProductGrouper(g ProductGrouper) { productGroupers.add(g) }
+
 func (r *Registry) AddProductTillLineProvider(p ProductTillLineProvider) {
 	productTillLines.add(p)
 }
@@ -217,5 +245,6 @@ func ProductSaleSuggestionProviders() []ProductSaleSuggestionProvider {
 }
 func ProductDetailContributors() []ProductDetailContributor   { return productDetailProviders.all() }
 func ProductLabelFieldProviders() []ProductLabelFieldProvider { return productLabelProviders.all() }
+func ProductGroupers() []ProductGrouper                       { return productGroupers.all() }
 func ProductTillLineProviders() []ProductTillLineProvider     { return productTillLines.all() }
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }

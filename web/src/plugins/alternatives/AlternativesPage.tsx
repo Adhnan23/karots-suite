@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
+import { slots } from '../slots'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { errMsg } from '@/features/till/api'
@@ -103,6 +104,7 @@ export function AlternativesPage({ path }: { path: string }) {
       <PageHead title="Alternatives"
         sub={list ? `${list.length} group${list.length === 1 ? '' : 's'} · ${low.length} low` : 'Products that do the same job.'}
         actions={<>
+          {slots.pageActions.filter((a) => a.page === 'alternatives').map((a) => <a.Action key={a.key} open={() => {}} />)}
           <Button variant="secondary" className="h-10 px-4" disabled={!list?.length} onClick={() => list && download(list)}><Download size={16} /> CSV</Button>
           <Button className="h-10 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New group</Button>
         </>} />

@@ -135,7 +135,7 @@ test('jobs: identify a whole list: unknown items wait, ticks apply, the next bat
   expect(old.map((p) => p.id)).toContain(a) // the old code still finds it
 
   await page.getByRole('button', { name: 'Undo it' }).click()
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Undo' }).click()
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Undone' }).first()).toBeVisible()
   const back = await (await page.request.get(`/api/v1/admin/products/${a}`)).json()
   expect(back.name).toBe(`pn-${tag}-a`)

@@ -6,7 +6,7 @@ const base = '/x/aicatalog/jobs'
 export type JobInfo = { key: string; label: string; desc: string; warning: string; oneByOne: boolean; options?: unknown }
 export type JobRow = {
   productId: number; kind: string; key: string; label: string; old: string; new: string; reason: string
-  isNew: boolean; change: boolean; ticked: boolean; needs?: string; extra?: Record<string, string>
+  isNew: boolean; change: boolean; ticked: boolean; needs?: string; choices?: { value: string; label: string }[]; extra?: Record<string, string>
 }
 export type JobPreview = { rows: JobRow[]; asked: number[]; names: Record<string, string>; remaining: number }
 export type JobAsk = { size: number; categoryId: number; filter: '' | 'skipped'; ids?: number[]; options?: unknown; reply?: string }

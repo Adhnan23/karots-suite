@@ -3,6 +3,7 @@ import type { slots as Slots } from '../slots'
 import { AssistantPage } from './AssistantPage'
 import { HintSection } from './HintSection'
 import { Identify } from './Identify'
+import { SuggestGroups } from './PageAction'
 
 /** AI Assistant's React half: ✨ Identify under the product name (form + intake), and the Apps
  * page (Clean up, Settings). */
@@ -11,4 +12,5 @@ export default function aicatalog(s: typeof Slots) {
   s.adminPages.push({ key: 'aicatalog', Page: AssistantPage })
   s.productAssists.push({ key: 'aicatalog', Assist: Identify })
   s.productFormSections.push({ key: 'aicatalog', Section: HintSection })
+  s.pageActions.push({ key: 'aicatalog', page: 'alternatives', Action: SuggestGroups })
 }

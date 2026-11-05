@@ -170,6 +170,12 @@ export type ProductFormSection = {
   Section: ComponentType<{ productId: number; sourceId: number; kind?: 'copy' | 'loose'; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
 }
 
+/** A button in a plugin page's header, added by another plugin. page is that page's plugin key;
+ * the page renders whatever is here without knowing who put it. open hands the page a draft to
+ * start from, for pages with something to fill in. */
+export type PageDraft = { name: string; productIds: number[] }
+export type PageAction = { key: string; page: string; Action: ComponentType<{ open: (d: PageDraft) => void }> }
+
 /** A helper under the Name field of the product form and intake's New item (e.g. identify a
  * product from what was typed). fill sets the name and/or category on the form; extra lands in
  * extras[key], sent as ProductRequest.extra[key] when the person saves. */
@@ -208,6 +214,7 @@ export const slots = {
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],
   productAssists: [] as ProductAssist[],
+  pageActions: [] as PageAction[],
   /** Return an error message to block checkout, or null. */
   tillBeforeCheckout: [] as ((lines: CartLine[]) => Promise<string | null>)[],
   /** Best-effort bookkeeping after a sale commits; a failure never undoes the sale. */
