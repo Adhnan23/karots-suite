@@ -1,6 +1,7 @@
 package documents
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -79,21 +80,28 @@ type JobsRequest struct {
 }
 
 func (h handlers) till(c echo.Context) error {
-	ctx := c.Request().Context()
-	svcs, err := h.p.store.Services(ctx, true)
+	out, err := h.tillServices(c.Request().Context())
 	if err != nil {
 		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h handlers) tillServices(ctx context.Context) ([]TillService, error) {
+	svcs, err := h.p.store.Services(ctx, true)
+	if err != nil {
+		return nil, err
 	}
 	out := make([]TillService, 0, len(svcs))
 	for _, s := range svcs {
 		xs, err := h.p.store.Extras(ctx, s.ID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		ts := TillService{ID: s.ID, ProductID: s.ProductID, Name: s.Name, Kind: s.Kind, Category: s.Category, Offers: []TillOffer{}, Extras: extraDTOs(xs)}
 		prices, err := h.p.store.Prices(ctx, s.ID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		at := map[[4]string]int{}
 		for _, p := range prices { // ordered by size, type, min_qty
@@ -108,7 +116,7 @@ func (h handlers) till(c echo.Context) error {
 		}
 		out = append(out, ts)
 	}
-	return c.JSON(http.StatusOK, out)
+	return out, nil
 }
 
 // Plain jobs (laminate, bind) are priced by size and type only: no ink, no sides.

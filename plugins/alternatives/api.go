@@ -1,6 +1,7 @@
 package alternatives
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -396,9 +397,17 @@ func (h handlers) till(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	alts, err := h.p.store.Alternatives(c.Request().Context(), pid, 3)
+	out, err := h.altsOf(c.Request().Context(), pid)
 	if err != nil {
 		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (h handlers) altsOf(ctx context.Context, pid int64) ([]AltDTO, error) {
+	alts, err := h.p.store.Alternatives(ctx, pid, 3)
+	if err != nil {
+		return nil, err
 	}
 	out := make([]AltDTO, 0, len(alts))
 	for _, a := range alts {
@@ -406,5 +415,5 @@ func (h handlers) till(c echo.Context) error {
 			SellingPrice: a.SellingPrice.StringFixed(2), WholesalePrice: a.WholesalePrice.StringFixed(2),
 			Unit: a.Unit, SameUnit: a.SameUnit})
 	}
-	return c.JSON(http.StatusOK, out)
+	return out, nil
 }

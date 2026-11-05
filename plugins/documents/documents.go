@@ -24,6 +24,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "documents
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	reg.AddOfflineData(plugin.OfflineData{Key: "documents", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "documents", Name: "Print & Copy",
 		Tables: []string{"doc_service", "doc_price", "doc_consumable", "doc_extra", "doc_job", "doc_payout"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "documents", Merge: mergeProduct})

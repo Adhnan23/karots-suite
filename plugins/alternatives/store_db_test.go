@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -199,5 +200,28 @@ func TestGroupsTiersAndMembers(t *testing.T) {
 	noErr(t, s.DeleteGroup(ctx, gid))
 	if _, tid, _ = s.TierOf(ctx, sand); tid != 0 {
 		t.Fatal("deleting the group drops its memberships")
+	}
+}
+
+func TestOfflineDataIsWhatTheChipReads(t *testing.T) {
+	s, db, stamp := testStore(t)
+	ctx := context.Background()
+	a := product(t, db, stamp+" a", "5", false, true)
+	b := product(t, db, stamp+" b", "5", false, true)
+	alone := product(t, db, stamp+" alone", "5", false, true)
+	g := ok(s.CreateGroup(ctx, stamp+" g"))
+	tier := ok(s.Group(ctx, g)).Tiers[0].ID
+	ok(s.AddMember(ctx, tier, a, false))
+	ok(s.AddMember(ctx, tier, b, false))
+	v, err := handlers{&Plugin{store: s}}.offlineData(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	by := v.(map[string]any)["byProduct"].(map[string][]AltDTO)
+	if got := by[strconv.FormatInt(a, 10)]; len(got) != 1 || got[0].ProductID != b {
+		t.Fatalf("%+v", by)
+	}
+	if _, has := by[strconv.FormatInt(alone, 10)]; has {
+		t.Fatalf("a product in no group has no entry: %+v", by)
 	}
 }

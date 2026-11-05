@@ -125,10 +125,15 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   notify = onState
   let es: EventSource | null = null
   let stopped = false
+  let partsAt = 0
   const tick = () => {
     void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined))
     void refreshRecent()
-    void refreshParts()
+    // Parts are slower to build than the copy, and rarely change: once a minute will do.
+    if (Date.now() - partsAt > REFRESH_EVERY) {
+      partsAt = Date.now()
+      void refreshParts()
+    }
   }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
   // A reopened app: what still waits from before (the count, and the 5 s retry, need it).

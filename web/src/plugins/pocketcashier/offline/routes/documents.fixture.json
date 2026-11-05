@@ -1,0 +1,34 @@
+{
+  "note": "Read by Go (plugins/documents/quote_parity_test.go) and TS (documents.test.ts), so the phone's price and the PC's can't drift apart.",
+  "prices": [
+    { "size": null, "material": "", "color": false, "double": false, "minQty": 1, "unitPrice": "10.00" },
+    { "size": "A4", "material": "", "color": false, "double": false, "minQty": 1, "unitPrice": "8.00" },
+    { "size": "A4", "material": "", "color": false, "double": false, "minQty": 50, "unitPrice": "6.50" },
+    { "size": "A4", "material": "", "color": true, "double": false, "minQty": 1, "unitPrice": "40.00" },
+    { "size": "A4", "material": "", "color": false, "double": true, "minQty": 1, "unitPrice": "14.00" },
+    { "size": "A4", "material": "Photo", "color": true, "double": false, "minQty": 1, "unitPrice": "90.00" }
+  ],
+  "paper": [
+    { "size": "A4", "material": "", "productId": 1, "qtyPerUnit": "1" },
+    { "size": null, "material": "", "productId": 2, "qtyPerUnit": "0.5" },
+    { "size": null, "material": "Photo", "productId": 3, "qtyPerUnit": "1" }
+  ],
+  "recipe": [
+    { "productId": 9, "qtyPerUnit": null, "yieldUnits": "3000", "wholeUnits": false },
+    { "productId": 1, "qtyPerUnit": "1", "yieldUnits": null, "wholeUnits": true },
+    { "productId": 8, "qtyPerUnit": "0.25", "yieldUnits": null, "wholeUnits": true }
+  ],
+  "cases": [
+    { "name": "size's own price", "size": "A4", "material": "", "color": false, "double": false, "copies": 1,
+      "want": { "unitPrice": "8.00", "total": "8.00", "minQty": 1, "sheets": 1, "components": [{ "productId": 1, "quantity": "1" }, { "productId": 9, "quantity": "0.000333" }, { "productId": 8, "quantity": "1" }] } },
+    { "name": "the best band reached", "size": "A4", "material": "", "color": false, "double": false, "copies": 50,
+      "want": { "unitPrice": "6.50", "total": "325.00", "minQty": 50, "sheets": 50, "components": [{ "productId": 1, "quantity": "50" }, { "productId": 9, "quantity": "0.016667" }, { "productId": 8, "quantity": "13" }] } },
+    { "name": "any-size price, and any-size paper rounded up", "size": "A3", "material": "", "color": false, "double": false, "copies": 3,
+      "want": { "unitPrice": "10.00", "total": "30.00", "minQty": 1, "sheets": 3, "components": [{ "productId": 2, "quantity": "2" }, { "productId": 9, "quantity": "0.001" }, { "productId": 1, "quantity": "3" }, { "productId": 8, "quantity": "1" }] } },
+    { "name": "two sides: two impressions to a sheet", "size": "A4", "material": "", "color": false, "double": true, "copies": 3,
+      "want": { "unitPrice": "14.00", "total": "42.00", "minQty": 1, "sheets": 2, "components": [{ "productId": 1, "quantity": "2" }, { "productId": 9, "quantity": "0.001" }, { "productId": 8, "quantity": "1" }] } },
+    { "name": "a type is matched exactly", "size": "A4", "material": "Photo", "color": true, "double": false, "copies": 2,
+      "want": { "unitPrice": "90.00", "total": "180.00", "minQty": 1, "sheets": 2, "components": [{ "productId": 3, "quantity": "2" }, { "productId": 9, "quantity": "0.000667" }, { "productId": 1, "quantity": "2" }, { "productId": 8, "quantity": "1" }] } },
+    { "name": "no price set", "size": "A4", "material": "Photo", "color": false, "double": false, "copies": 2, "want": null }
+  ]
+}

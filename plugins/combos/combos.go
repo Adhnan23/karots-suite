@@ -27,6 +27,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "combos" }
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	reg.AddOfflineData(plugin.OfflineData{Key: "combos", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "combos", Name: "Combos / deals",
 		Tables: []string{"combos", "combo_items", "combo_sales", "combos_settings"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "combos", Merge: mergeProduct})

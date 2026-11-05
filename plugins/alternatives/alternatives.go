@@ -31,6 +31,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "alternati
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	reg.AddOfflineData(plugin.OfflineData{Key: "alternatives", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "alternatives", Name: "Alternatives / interchangeable",
 		Tables: []string{"alt_groups", "alt_members", "alt_tiers"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "alternatives", Merge: mergeProduct})

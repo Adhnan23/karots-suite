@@ -313,11 +313,11 @@ Routes: `GET /x/recharge/till`, `GET /x/recharge/sale-lines`, `POST /x/recharge/
 
 Routes: Documents `GET /till`, `GET /quote`, `POST /jobs` (queue), `POST /own-use` (queue). Combos `GET /till`, `GET /settings`, `POST /sold` (queue). Alternatives `GET /till/:pid`.
 
-- [ ] **Step 1: Write failing tests:** `an offline quote equals the server's for the same job`: run shared cases from a JSON fixture through the Go handler and through `documents.ts`; `combo deal rings at its price offline`; `combo sold replays with the real sale id`; `alternatives swap offers the group's products in stock offline`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** The quote logic exists in Go only; the phone's copy must match it, and the shared fixture keeps them equal.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Print & Copy, Combos and Alternatives on the phone`
+- [x] **Step 1: Write failing tests:** `an offline quote equals the server's for the same job`: run shared cases from a JSON fixture through the Go handler and through `documents.ts`; `combo deal rings at its price offline`; `combo sold replays with the real sale id`; `alternatives swap offers the group's products in stock offline`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** The quote logic exists in Go only; the phone's copy must match it, and the shared fixture keeps them equal.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens as Task 13, then commit.** `feat(pocketcashier): Print & Copy, Combos and Alternatives on the phone`
 
 ### Task 15: Pharmacy
 

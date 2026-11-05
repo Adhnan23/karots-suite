@@ -238,3 +238,19 @@ func TestSoldAndReport(t *testing.T) {
 		t.Fatal("a deleted combo's sales must stay in the report")
 	}
 }
+
+func TestOfflineDataIsWhatTheTillReads(t *testing.T) {
+	s, _, _ := testStore(t)
+	v, err := handlers{&Plugin{store: s}}.offlineData(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := s.Till(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	part := v.(map[string]any)
+	if len(part["till"].([]ComboDTO)) != len(cs) || part["settings"] == nil {
+		t.Fatalf("%+v", part)
+	}
+}

@@ -1,5 +1,8 @@
 import { addRoutes } from './fetch'
+import { alternativesRoutes } from './routes/alternatives'
+import { combosRoutes } from './routes/combos'
 import { coreRoutes } from './routes/core'
+import { documentsRoutes } from './routes/documents'
 import { rechargeRoutes } from './routes/recharge'
 
 let added = false
@@ -11,4 +14,7 @@ export function setupOfflineRoutes() {
   added = true
   addRoutes(coreRoutes)
   addRoutes(rechargeRoutes)
+  addRoutes(documentsRoutes)
+  addRoutes(combosRoutes)
+  addRoutes(alternativesRoutes)
 }

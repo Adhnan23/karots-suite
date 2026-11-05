@@ -1,6 +1,7 @@
 package documents
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
@@ -221,6 +222,7 @@ func TestPrintAndCopyFlow(t *testing.T) {
 
 	// The till lists it with its bands; 🖨 badges its product.
 	ts := decode[[]TillService](t, do("GET", "/till", ""))
+	checkOfflinePart(t, db, ts)
 	found := false
 	for _, s := range ts {
 		if s.ID == sid {
@@ -334,5 +336,22 @@ func TestExtras(t *testing.T) {
 		if s.ID == sid && (len(s.Extras) != 3 || s.Extras[2].Name != "Lanyard") {
 			t.Errorf("till extras: %+v", s.Extras)
 		}
+	}
+}
+
+// What the till reads is also what it can take with it, with no costs in it.
+func checkOfflinePart(t *testing.T, db *sqlx.DB, ts []TillService) {
+	t.Helper()
+	v, err := handlers{&Plugin{store: NewStore(db)}}.offlineData(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	part := v.(OfflinePart)
+	if len(part.Services) != len(ts) {
+		t.Fatalf("services %d, till has %d", len(part.Services), len(ts))
+	}
+	raw, _ := json.Marshal(part)
+	if strings.Contains(strings.ToLower(string(raw)), "cost") {
+		t.Fatalf("a cost in the phone's part: %s", raw)
 	}
 }
