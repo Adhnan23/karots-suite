@@ -3,10 +3,20 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (handoff, end of 2026-11-04)
+## Now (handoff, 2026-11-05)
 
-**Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). It is not installed yet.
+**Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). It is not installed yet; the user is aiming for Friday 2026-11-06.
 Latest Release, and the only one in the bucket: **2026.11.04.2021**, with the power-cut fix. **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
+
+**Built 2026-11-05 on `main`, not in any Release, not hand-tested by the user yet:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
+- **Hints:** the chatbot's specs and explanation are searchable at the till, shown on the tile (`AI hint: …`) and ⓘ, editable on the product page. A replaced name stays searchable.
+- **Jobs tab:** Identify a whole list, Setup details, Alternative group maker, Fill in details, Prescription and controlled marks, Usual dose; Combo suggestions from the Combos page. Framework `plugins/aicatalog/jobs*.go`; record `aicatalog_job_items`.
+- **Generic seams:** hooks `ProductTillLineProvider`, `ProductGrouper`, `ProductAttributeSet`; `ReorderNote.Exact/Block/BlockKey/BlockLine`; slot `pageActions`. Other plugins don't know AI exists; AI Assistant never imports them.
+- **Alternatives:** Auto levels (members' levels added up; `alt_tiers.level_auto`), order split by 90-day sales or manual shares. Low groups always pull in every brand, so a row's share is never a short order. The till's Low stock tab hides covered by default.
+- **Core:** packs and extra barcodes while creating a product; the Pay panel fits at 1280; dashboard low-stock count follows coverage.
+- **To decide:** a new Release for Friday (then copy the stick's shop folder again), or install 2026.11.04.2021 and update later. Hand-test first: real Gemini / ChatGPT pastes on real products, a low group's order, a dose approved by the pharmacist. Real replies are pinned as tests; Rx marks and doses are unverified against Sri Lankan rules, so the warnings stay.
+- **Dev DB note:** `0002_auto_levels.sql` was edited before release (`level_auto` default false, so a restored older backup keeps typed levels). An old dev DB needs `make db-down` and re-migrate, or `ALTER COLUMN level_auto SET DEFAULT false`.
+- **Tests 2026-11-05:** Playwright 248 passed, 33 skipped; web 935; `make test` passed. `TestTodayTraded` (Demo Room) failed once just after 09:00 and passed on two later runs: looks time-of-day dependent, not proven.
 
 **Next step (install day, user's call):**
 1. **The USB stick is ready (2026-11-05), not yet test-booted.** Kingston 57.8 GB: Ventoy, `iman-pharmacy-kalpitiya/` (identical to `dist/`, so a new Release means copying it again) and `xubuntu-26.04-desktop-amd64.iso` (SHA-256 `ae030dbd99426a4c7b2d1c96731e0f435ec9d18f6a28c9e76f077dd5f46364bc`, matches the official list; re-read from the stick after a remount). Copy kept in `/mnt/hdd_4TB/Software/OS/Linux/Debian/`. Not ZorinOS "by techrechard" (unofficial copy), not Alpine (no systemd or apk in Setup).
@@ -30,7 +40,6 @@ Latest Release, and the only one in the bucket: **2026.11.04.2021**, with the po
 - **No cash drawer at Iman for now** (opened with its key), so the drawer is untested on real hardware.
 
 **Small things for later, when the user asks:**
-- `make docs-shots`: the zoom fix moves the till's Warranty tab under More at 1280 wide, so some shots may differ slightly.
 - Recovering a shop already down from an update cut through Setup -> Update: untested, needs the user at the VM.
 - VM commands prompt for a password each connection until the user is in the `libvirt` group; keep one `virsh` connection open for a batch.
 - **Test backups in Iman's cloud folder:** the user deletes them in Cloudflare after testing. The bucket's 30-day lock may refuse recent ones.
@@ -95,7 +104,7 @@ productplus, combos, alternatives, documents, barcodes + merge, lots, AI Assista
 repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c self-update + Release · M8c2 backup copies
 + cloud · live users · till left open · smart reorder levels · print as image + receipt styles · palettes (Dock theme,
 22 built-ins, custom palettes) · labels as pictures + label styles · M8d Demo Room · docs + screenshots + legal pack ·
-cheques · M8e Pocket Cashier release 1 · pharmacy core work (warning days, give back, recall, credits on bills, supplier discount) · Send to cashier · print helper + cashier PCs' printers · receipts always pictures · power-cut test + fix.
+cheques · M8e Pocket Cashier release 1 · pharmacy core work (warning days, give back, recall, credits on bills, supplier discount) · Send to cashier · print helper + cashier PCs' printers · receipts always pictures · power-cut test + fix · AI Assistant jobs + hints + Alternatives Auto levels.
 
 ## How we work
 

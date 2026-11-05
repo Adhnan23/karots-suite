@@ -14,6 +14,8 @@ A hint comes from a chatbot, so confirm it before relying on it. Two chatbots ca
 
 ## Jobs
 
+![Jobs](../../images/plugins/aicatalog-jobs.jpg)
+
 | Job | Shows when | What it suggests |
 |---|---|---|
 | **Identify a whole list** | Always | Name, category and hint. Hints start ticked; a category starts ticked only if the product has none; names start unticked, with **Tick all names** once you've looked. An old name stays searchable after a rename |
