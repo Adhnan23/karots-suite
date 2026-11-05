@@ -158,3 +158,15 @@ func TestAPICleanupPreview(t *testing.T) {
 		t.Fatalf("undo with nothing: %d", rec.Code)
 	}
 }
+
+// Coming back to a run left at a part the shop no longer has starts from the first.
+func TestCleanupOffsetPastTheEnd(t *testing.T) {
+	db := freshDB(t, "aicatalog_cleanup_offset")
+	_, do := testAPI(t, db)
+	c := cat(t, db, "Drinks", nil)
+	prod(t, db, "Coke 1L", c)
+	out := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", `{"offset":450}`))
+	if !strings.Contains(out.Prompt, "Coke 1L") || out.Left == nil || *out.Left != 1 {
+		t.Fatalf("%+v", out)
+	}
+}

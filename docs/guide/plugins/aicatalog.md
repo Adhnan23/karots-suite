@@ -6,7 +6,7 @@ Help for whoever sets the shop up, and for the new cashier who doesn't know the 
 
 - **✨ Identify** inside the product form and intake: paste a name or code and get the details filled in.
 - **Hints:** what the chatbot said about a product is kept and searchable. A customer asks for a brake pad for a CT100, the cashier types "CT100", and the part comes up even if its name is only a part number. Hints show on the till's result and in ⓘ, marked as an AI hint, and you can correct them on the product page.
-- **Clean up** tidies categories, fills in uncategorised items, fixes names in your naming style and finds duplicates to merge.
+- **Clean up** tidies categories, fills in uncategorised items, fixes names in your naming style and finds duplicates to merge. A big catalogue goes in parts, and **Continue where you left off** picks up on the same device.
 - **Jobs** do the same for many products at a time. You choose how many at once, down to one for checking quality.
 - You tick what to keep. Nothing changes until you apply it, and **Undo it** puts back the last apply, unless someone has changed that value since.
 

@@ -67,3 +67,28 @@ export function batchLabel(firstLeft: number, left: number, size: number): strin
   const to = Math.min(done + each, firstLeft)
   return `Batch ${Math.min(Math.floor(done / each) + 1, batches)} of ${batches}: ${from === to ? `product ${from}` : `products ${from}–${to}`} of ${firstLeft}`
 }
+
+const CLEANUP_CHUNK = 150
+/** Clean up's place: "Part 2 of 5: products 151–300 of 612". */
+export function cleanupPart(offset: number, total: number): string {
+  if (total <= 0) return ''
+  return `Part ${Math.floor(offset / CLEANUP_CHUNK) + 1} of ${Math.ceil(total / CLEANUP_CHUNK)}: products ${offset + 1}–${Math.min(offset + CLEANUP_CHUNK, total)} of ${total}`
+}
+
+const CLEANUP_PLACE = 'ks-ai-cleanup-part'
+/** Where Clean up was left on this device (0 = nowhere). A convenience: losing it only means starting again. */
+export function cleanupPlace(): number {
+  try {
+    return Math.max(0, Number(localStorage.getItem(CLEANUP_PLACE)) || 0)
+  } catch {
+    return 0
+  }
+}
+export function saveCleanupPlace(offset: number) {
+  try {
+    if (offset > 0) localStorage.setItem(CLEANUP_PLACE, String(offset))
+    else localStorage.removeItem(CLEANUP_PLACE)
+  } catch {
+    // private window: it simply starts from the first part next time
+  }
+}

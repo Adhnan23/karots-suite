@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answersNeed, applyBody, batchLabel, byProduct, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
+import { answersNeed, applyBody, batchLabel, byProduct, cleanupPart, initialTicks, rowKey, tickAll, type JobRow } from './jobs'
 
 const row = (over: Partial<JobRow>): JobRow => ({ productId: 1, kind: 'hint', key: 'hint', label: 'Hint', old: '', new: 'x', reason: '', isNew: false, change: false, ticked: false, ...over })
 
@@ -35,5 +35,10 @@ describe('job rows', () => {
     expect(batchLabel(27, 2, 5)).toBe('Batch 6 of 6: products 26–27 of 27')
     expect(batchLabel(3, 2, 1)).toBe('Batch 2 of 3: product 2 of 3')
     expect(batchLabel(0, 0, 5)).toBe('')
+  })
+  it('says which part of a clean-up this is', () => {
+    expect(cleanupPart(0, 612)).toBe('Part 1 of 5: products 1–150 of 612')
+    expect(cleanupPart(600, 612)).toBe('Part 5 of 5: products 601–612 of 612')
+    expect(cleanupPart(0, 0)).toBe('')
   })
 })

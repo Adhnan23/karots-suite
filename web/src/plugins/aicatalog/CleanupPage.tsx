@@ -8,6 +8,7 @@ import { MergeConfirm } from '@/features/admin/products/MergeInto'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { applyCleanup, cleanup, deleteEmpty, emptyQuery, lastRunQuery, undoCleanup } from './api'
+import { cleanupPart, cleanupPlace, saveCleanupPlace } from './jobs'
 import { PastePanel } from './PastePanel'
 import type { CleanupPlan, CleanupPreview, DupPair } from './types'
 import { useAsk } from './useAsk'
@@ -62,8 +63,16 @@ export function CleanupPage() {
     setOff(new Set())
     setMerged(new Set())
     setApplied('')
-    ask(() => cleanup(at)).catch((e) => toast.error(errMsg(e)))
+    saveCleanupPlace(at)
+    setPlace(at)
+    ask(async () => {
+      const r = await cleanup(at)
+      if (r.left !== undefined) setTotal(r.left)
+      return r
+    }).catch((e) => toast.error(errMsg(e)))
   }
+  const [total, setTotal] = useState(0)
+  const [place, setPlace] = useState(cleanupPlace)
   const onReply = (t: string) => void read(t, (reply) => cleanup(offset, reply))
 
   async function apply(pv: CleanupPreview) {
@@ -100,12 +109,15 @@ export function CleanupPage() {
           <Button className="h-11 gap-1.5 px-5 font-bold" disabled={state.k === 'asking'} onClick={() => start(0)}>
             {state.k === 'asking' ? <><LoaderCircle size={16} className="animate-spin" /> Asking the AI…</> : <><Sparkles size={16} /> Start a clean-up</>}
           </Button>
+          {place > 0 && state.k === 'idle' && (
+            <Button variant="outline" className="h-11 px-5" onClick={() => start(place)}>Continue where you left off (from product {place + 1})</Button>
+          )}
         </section>
       )}
 
       {(state.k === 'awaiting' || state.k === 'reading') && (
         <section className="flex flex-col gap-3 rounded-[var(--radius)] border border-border bg-card p-4">
-          <b className="text-[15px]">Ask the chatbot{offset ? ` — products ${offset + 1} onwards` : ''}</b>
+          <b className="text-[15px]">{cleanupPart(offset, total) || 'Ask the chatbot'}</b>
           <PastePanel prompt={state.prompt} reply={state.reply} error={state.k === 'awaiting' ? state.error : undefined} reading={state.k === 'reading'}
             onType={(reply) => dispatch({ t: 'type', reply })} onReply={onReply} />
           <Button variant="ghost" className="h-9 self-start px-3" onClick={() => dispatch({ t: 'reset' })}>Cancel</Button>
@@ -124,7 +136,7 @@ export function CleanupPage() {
             {applied ? (
               <>
                 <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[14px] font-semibold"><Check size={16} className="flex-none text-brand" /> {applied}</span>
-                <Button variant={pv.next >= 0 ? 'ghost' : 'outline'} className="h-10 px-4" onClick={() => { dispatch({ t: 'reset' }); setRunId(0) }}>{pv.next >= 0 ? 'Stop here' : 'Done'}</Button>
+                <Button variant={pv.next >= 0 ? 'ghost' : 'outline'} className="h-10 px-4" onClick={() => { const at = Math.max(pv.next, 0); saveCleanupPlace(at); setPlace(at); dispatch({ t: 'reset' }); setRunId(0) }}>{pv.next >= 0 ? 'Stop here' : 'Done'}</Button>
                 {pv.next >= 0 && <Button className="h-10 px-4 font-bold" onClick={() => start(pv.next)}>Next part ({pv.chunk + 1} of {pv.chunks})</Button>}
               </>
             ) : (

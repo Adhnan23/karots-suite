@@ -141,6 +141,9 @@ func (h handlers) cleanup(c echo.Context) error {
 	if err != nil {
 		return apperr.Internal("count products", err)
 	}
+	if in.Offset >= total { // the shop has fewer products than when this run was left
+		in.Offset = 0
+	}
 	prods, err := h.p.store.CleanupProducts(ctx, cleanupChunk, in.Offset)
 	if err != nil {
 		return apperr.Internal("read products", err)
@@ -148,6 +151,7 @@ func (h handlers) cleanup(c echo.Context) error {
 	full := func() string { return CleanupPrompt(cats, paths, prods, s) }
 	var plan CleanupPlan
 	var out AskReply[CleanupPreview]
+	out.Left = &total
 	switch {
 	case strings.TrimSpace(in.Reply) != "":
 		if plan, err = parseCleanup(in.Reply); err != nil {
