@@ -6,9 +6,9 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 ## Now (handoff, 2026-11-05)
 
 **Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). It is not installed yet; the user is aiming for Friday 2026-11-06.
-Latest Release, and the only one in the bucket: **2026.11.04.2021**, with the power-cut fix. **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
+Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
 
-**Built and hand-tested 2026-11-05:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
+**Built, hand-tested and Released 2026-11-05:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
 - **Hints:** the chatbot's specs and explanation are searchable at the till, shown on the tile (`AI hint: …`) and ⓘ, editable on the product page. A replaced name stays searchable.
 - **Jobs tab:** Identify a whole list, Setup details, Alternative group maker, Fill in details, Prescription and controlled marks, Usual dose; Combo suggestions from the Combos page. Framework `plugins/aicatalog/jobs*.go`; record `aicatalog_job_items`.
 - **Generic seams:** hooks `ProductTillLineProvider`, `ProductGrouper`, `ProductAttributeSet`; `ReorderNote.Exact/Block/BlockKey/BlockLine`; slot `pageActions`. Other plugins don't know AI exists; AI Assistant never imports them.
@@ -20,7 +20,7 @@ Latest Release, and the only one in the bucket: **2026.11.04.2021**, with the po
 - **Tests 2026-11-05, final:** Playwright 248 passed, 33 skipped; web 939; `make test` passed. The user hand-tested every job on real Gemini and ChatGPT replies; bugs found were fixed. Partial builds compile, but no one has clicked through a running one. `TestTodayTraded` (Demo Room) failed once just after 09:00 and passed on two later runs: looks time-of-day dependent, not proven.
 
 **Next step (install day, user's call):**
-1. **The USB stick is ready (2026-11-05), not yet test-booted.** Kingston 57.8 GB: Ventoy, `iman-pharmacy-kalpitiya/` (identical to `dist/`, so a new Release means copying it again) and `xubuntu-26.04-desktop-amd64.iso` (SHA-256 `ae030dbd99426a4c7b2d1c96731e0f435ec9d18f6a28c9e76f077dd5f46364bc`, matches the official list; re-read from the stick after a remount). Copy kept in `/mnt/hdd_4TB/Software/OS/Linux/Debian/`. Not ZorinOS "by techrechard" (unofficial copy), not Alpine (no systemd or apk in Setup).
+1. **The USB stick is ready (2026-11-05), not yet test-booted.** Kingston 57.8 GB: Ventoy, `iman-pharmacy-kalpitiya/` from Release 2026.11.05.1315 (identical to `dist/`, so a new Release means copying it again) and `xubuntu-26.04-desktop-amd64.iso` (SHA-256 `ae030dbd99426a4c7b2d1c96731e0f435ec9d18f6a28c9e76f077dd5f46364bc`, matches the official list; re-read from the stick after a remount). Copy kept in `/mnt/hdd_4TB/Software/OS/Linux/Debian/`. Not ZorinOS "by techrechard" (unofficial copy), not Alpine (no systemd or apk in Setup).
 2. **26.04, not 26.04.1:** both official; run Software Updater after installing, before Setup.
 3. **On his PC:** copy the folder off the stick first (exFAT drops the run permission; `chmod +x karots-setup karots-suite`; double-click from a Linux USB was never confirmed), Setup as main PC in the background, then the laptop as cashier PC. Shop name "Iman Pharmacy" goes in the shop's settings. The shop needs internet on the day: Setup may fetch programs.
 4. **Pull the plug once** on the real PC before real data: the VM can't show what his SSD does.

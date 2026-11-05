@@ -28,15 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-04T14:51:40Z",
-        "commit": "cc0c154",
-        "version": "2026.11.04.2021",
-        "kind": "release"
+        "at": "2026-11-05T07:46:10Z",
+        "commit": "0532768",
+        "version": "2026.11.05.1315",
+        "kind": "release",
+        "notes": "• A job's row controls sit outside its label\n• Review findings: a pharmacist's choice ticks its row, more ways of saying not a duplicate, a redo leaves packs unticked\n• Clean up doesn't offer to merge different brands, or pairs the chatbot says aren't duplicates\n• A job's numbers count the whole run after coming back, and its choices stay\n• Using a combo suggestion keeps the others to come back to\n• Ticking both marks for a controlled drug applies both\n• Last applied shows what was applied\n• Skipped or no answer also finds what a redo left\n• Unanswered marks stay listed after a redo, and the list refreshes on apply\n• Read replies copied by hand from a chat page\n• A product moved to another category comes back on Fill in details for its new fields\n• Clean up says which part it's on and continues where you left off\n• Jobs say which batch they're on\n• The low-stock block says when a brand outsells its manual share\n• Review findings\n…and 8 more fixes"
       },
       "published": {
-        "version": "2026.11.04.2021",
-        "commit": "cc0c154",
-        "at": "2026-11-04T14:53:11Z"
+        "version": "2026.11.05.1315",
+        "commit": "0532768",
+        "at": "2026-11-05T07:49:05Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
