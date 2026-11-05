@@ -323,10 +323,12 @@ func TestLastRunJSON(t *testing.T) {
 			Summary string `json:"summary"`
 		} `json:"run"`
 	}
-	if err := json.Unmarshal(do("GET", "/cleanup/last", "").Body.Bytes(), &got); err != nil {
+	body := do("GET", "/cleanup/last", "").Body.Bytes()
+	if err := json.Unmarshal(body, &got); err != nil {
 		t.Fatal(err)
 	}
-	if got.Run.ID == 0 || !strings.Contains(got.Run.Summary, "1 applied") {
+	// Go's decoder ignores case; the page's JavaScript doesn't.
+	if !strings.Contains(string(body), `"summary"`) || got.Run.ID == 0 || !strings.Contains(got.Run.Summary, "1 applied") {
 		t.Fatalf("%+v", got)
 	}
 }
