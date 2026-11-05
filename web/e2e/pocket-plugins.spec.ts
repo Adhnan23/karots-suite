@@ -330,9 +330,15 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await expect(phone.getByRole('note')).toBeHidden({ timeout: 60_000 })
     await expect(phone.getByLabel(/waiting/)).toBeHidden({ timeout: 60_000 })
 
-    const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number; phone: string }[]
-    const details = await Promise.all(sends.filter((x) => x.phone === `Plugins ${tag}`).map(async (s) => (await admin.request.get(`${API}/sends/${s.id}`)).json()))
-    const actions = details.flatMap((d: { actions: { kind: string; status: string; label: string; note: string }[] }) => d.actions)
+    // The PC works through the batch one by one: the write-off was the last thing done.
+    type Act = { kind: string; status: string; label: string; note: string }
+    const allActions = async () => {
+      const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number; phone: string }[]
+      const details = await Promise.all(sends.filter((x) => x.phone === `Plugins ${tag}`).map(async (x) => (await admin.request.get(`${API}/sends/${x.id}`)).json()))
+      return details.flatMap((d: { actions: Act[] }) => d.actions)
+    }
+    await expect.poll(async () => (await allActions()).some((a) => a.label.startsWith('Write-off')), { timeout: 90_000 }).toBe(true)
+    const actions = await allActions()
     // Only the return the PC had already done is refused, and its cash is booked.
     const refused = actions.filter((a) => a.status !== 'applied')
     expect(refused.map((a) => a.label), JSON.stringify(actions.map((a) => `${a.kind}|${a.status}|${a.label}|${a.note}`))).toEqual([`Return on ${earlierReceipt}`])
