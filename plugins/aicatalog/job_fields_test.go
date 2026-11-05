@@ -270,6 +270,7 @@ func TestFieldsMovedProductComesBack(t *testing.T) {
 	if err != nil || total != 1 || got.Products[0].ID != e.panadol {
 		t.Fatalf("the moved product comes back: %+v %d %v", got.Products, total, err)
 	}
+	got.Options = ticks // as the page sends them
 	_, user, err := fieldsPromptFor(ctx, e.p, got)
 	if err != nil || !strings.Contains(user, "|fits_model") || strings.Contains(user, "|generic_name") {
 		t.Fatalf("asks for the new category's field only: %q %v", user, err)
