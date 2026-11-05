@@ -31,7 +31,13 @@ func marksJob() Job {
 			}
 			return marksPrompt, u.String(), nil
 		},
-		Parse: marksParse, Apply: attrApply("pharmacy"), Undo: attrUndo("pharmacy")}
+		Parse: marksParse, Undo: attrUndo("pharmacy"),
+		Apply: func(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]UndoOp, error) {
+			if v := r.Extra[r.Key]; v != "" { // the pharmacist's choice
+				r.New = v
+			}
+			return attrApply("pharmacy")(ctx, p, tx, r)
+		}}
 }
 
 func marksParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRow, error) {
@@ -64,7 +70,13 @@ func marksParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRow
 			key, label string
 			v          *bool
 		}{{"controlled", "Controlled drug", it.Controlled}, {"rx_only", "Needs a prescription", it.RxOnly}} { // controlled first: while it's on, Rx-only can't clear
-			if m.v == nil { // not sure = no answer, which stays on the pharmacist's list
+			if m.v == nil {
+				// Not sure about this mark but sure of the other: the pharmacist decides
+				// here. Not sure of either: no row, and it stays on the page's list.
+				if it.RxOnly != nil || it.Controlled != nil {
+					rows = append(rows, JobRow{ProductID: it.ID, Kind: "attr", Key: m.key, Label: m.label + " (the chatbot isn't sure)", Old: cur[it.ID][m.key], Reason: strings.TrimSpace(it.Reason),
+						Needs: "Pharmacist: choose", Choices: []JobChoice{{Value: "yes", Label: "Yes"}, {Value: "no", Label: "No"}}})
+				}
 				continue
 			}
 			old := cur[it.ID][m.key]

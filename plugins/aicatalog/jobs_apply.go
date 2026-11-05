@@ -25,6 +25,7 @@ type JobApply struct {
 	Asked     []int64  `json:"asked"`
 	Suggested []int64  `json:"suggested"`
 	State     string   `json:"state"` // from the preview: the record's key
+	Open      []int64  `json:"open"`  // a row still needs a person's answer: stays "no answer"
 }
 
 // JobSkip is a ticked row that couldn't be applied, and why.
@@ -98,6 +99,10 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 	if len(out.Skipped) > 0 {
 		out.Summary += ", " + num(len(out.Skipped)) + " no longer fit"
 	}
+	open := map[int64]bool{}
+	for _, id := range in.Open {
+		open[id] = true
+	}
 	suggested := map[int64]bool{}
 	for _, id := range in.Suggested {
 		suggested[id] = true
@@ -110,6 +115,7 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 		for _, id := range in.Asked {
 			state := "no_answer"
 			switch {
+			case open[id]:
 			case done[id]:
 				state = "applied"
 			case suggested[id]:

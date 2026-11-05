@@ -2,6 +2,8 @@ package aicatalog
 
 import (
 	"encoding/json"
+	"html"
+	"regexp"
 	"strings"
 )
 
@@ -18,7 +20,21 @@ func decodeReply(raw string, out any) error {
 	if json.Unmarshal([]byte(repairQuotes(s)), out) == nil {
 		return nil
 	}
+	clean := cleanMarkdown(s)
+	if json.Unmarshal([]byte(clean), out) == nil || json.Unmarshal([]byte(repairQuotes(clean)), out) == nil {
+		return nil
+	}
 	return errNoAnswer
+}
+
+var markdownEscape = regexp.MustCompile(`\\([_\[\]*#~.!(){}+>|`+"`"+`-])`)
+
+// cleanMarkdown undoes what a chat page does to JSON when its answer is selected and
+// copied by hand: HTML spaces (&#x20;), a backslash ending each line, \_ and \[.
+func cleanMarkdown(s string) string {
+	s = html.UnescapeString(s)
+	s = strings.NewReplacer("\\\r\n", "\n", "\\\n", "\n", "\u00a0", " ").Replace(s)
+	return markdownEscape.ReplaceAllString(s, "$1")
 }
 
 // repairQuotes escapes what chatbots leave raw inside strings: an inch mark

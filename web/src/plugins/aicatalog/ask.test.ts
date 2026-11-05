@@ -72,4 +72,9 @@ describe('new category levels', () => {
     expect(firstNew('Garden > Hoses', have)).toBe(0)
     expect(firstNew('Sealed', have)).toBe(0) // a sub-category name alone is a new top level
   })
+
+  it('reads an answer copied by hand from a chat page', () => {
+    expect(looksLikeAnswer('{\\\n&#x20; "items": []\\\n}')).toBe(true)
+    expect(looksLikeAnswer('{ not an answer }')).toBe(false)
+  })
 })

@@ -15,7 +15,7 @@ export type JobApplied = { applied: number; skipped: { productId: number; label:
 export const jobsQuery = { queryKey: ['x', 'aicatalog', 'jobs'], queryFn: () => api<JobInfo[]>(base) }
 export const jobNext = (job: string, b: JobAsk) => api<AskReply<JobPreview> & { left?: number }>(`${base}/${job}/next`, { json: b })
 export const jobRedoOver = (job: string) => api(`${base}/${job}/redo-over`, { method: 'POST' })
-export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[]; state?: string }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
+export const jobApply = (job: string, b: { rows: JobRow[]; asked: number[]; suggested: number[]; open: number[]; state?: string }) => api<JobApplied>(`${base}/${job}/apply`, { json: b })
 
 /** A row's identity on the page. */
 export const rowKey = (r: JobRow, i: number) => `${r.productId}:${r.kind}:${r.key}:${i}`
@@ -50,6 +50,7 @@ export function applyBody(pv: JobPreview, ticks: Set<string>) {
     rows: pv.rows.filter((r, i) => ticks.has(rowKey(r, i))),
     asked: pv.asked,
     suggested: [...new Set(pv.rows.map((r) => r.productId))],
+    open: [...new Set(pv.rows.filter((r) => r.needs).map((r) => r.productId))],
     state: pv.state,
   }
 }

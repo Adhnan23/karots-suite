@@ -23,6 +23,8 @@ describe('job rows', () => {
     expect(b.rows).toEqual([rows[0]])
     expect(b.asked).toEqual([1, 2, 3])
     expect(b.suggested).toEqual([1, 2])
+    expect(b.open).toEqual([])
+    expect(applyBody({ rows: [row({ needs: 'x' })], asked: [1], names: {}, remaining: 0 }, new Set()).open).toEqual([1])
   })
   it('a typed dose answers what a row needs; blank or "new" doesn\'t', () => {
     expect(answersNeed('1-0-0')).toBe(true)

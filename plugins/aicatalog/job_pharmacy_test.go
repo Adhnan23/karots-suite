@@ -66,7 +66,8 @@ func TestMarksYesToNoIsAChange(t *testing.T) {
 	a := prod(t, p.store.db, "A", c)
 	f.vals[a] = map[string]string{"rx_only": "yes"}
 	rows, err := marksParse(context.Background(), p, Batch{Products: []JobProduct{{ID: a}}}, fmt.Sprintf(`{"items":[{"id":%d,"rx_only":false,"controlled":null}]}`, a))
-	if err != nil || len(rows) != 1 || !rows[0].Change || rows[0].Ticked {
+	r := rowOf2(rows, "rx_only")
+	if err != nil || r == nil || !r.Change || r.Ticked {
 		t.Fatalf("%+v %v", rows, err)
 	}
 }
@@ -287,4 +288,49 @@ func TestDoseFailedSetLeavesNoOrphan(t *testing.T) {
 	if strings.Contains(strings.Join(f.known["dose"], ","), "9-9-9") {
 		t.Fatalf("a dose nobody uses was left on the list: %v", f.known["dose"])
 	}
+}
+
+// The real reply: sure it isn't controlled, not sure about the prescription. The "not
+// sure" stays in front of the pharmacist instead of vanishing.
+func TestMarksPartlyUnsure(t *testing.T) {
+	p, f, c := pharmEnv(t, "aicatalog_marks_partly")
+	ctx := context.Background()
+	a := prod(t, p.store.db, "Panadol Extra", c)
+	rows, err := marksParse(ctx, p, Batch{Products: []JobProduct{{ID: a}}}, fmt.Sprintf(`{"items":[{"id":%d,"rx_only":null,"controlled":false,"reason":"Not verified."}]}`, a))
+	if err != nil || len(rows) != 2 {
+		t.Fatalf("%+v %v", rows, err)
+	}
+	unsure := rowOf2(rows, "rx_only")
+	if unsure == nil || unsure.Needs == "" || len(unsure.Choices) != 2 || unsure.New != "" {
+		t.Fatalf("%+v", unsure)
+	}
+	// Left unpicked: the other mark applies, and the product stays on the list.
+	res, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: []JobRow{*rowOf2(rows, "controlled")}, Asked: []int64{a}, Suggested: []int64{a}, Open: []int64{a}}, 0)
+	if err != nil || res.Applied != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	var state string
+	mustExec2(t, p.store.db, &state, `SELECT state FROM aicatalog_job_items WHERE job = 'marks' AND product_id = $1`, a)
+	if state != "no_answer" {
+		t.Fatalf("a mark still open: %q", state)
+	}
+	// Picked by the pharmacist: that's what saves.
+	picked := *unsure
+	picked.Extra = map[string]string{"rx_only": "yes"}
+	picked.Needs = ""
+	if res, err := p.applyJob(ctx, p.job("marks"), JobApply{Rows: []JobRow{picked}, Asked: []int64{a}, Suggested: []int64{a}}, 0); err != nil || res.Applied != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if f.vals[a]["rx_only"] != "yes" {
+		t.Fatalf("%+v", f.vals[a])
+	}
+}
+
+func rowOf2(rows []JobRow, key string) *JobRow {
+	for i := range rows {
+		if rows[i].Key == key {
+			return &rows[i]
+		}
+	}
+	return nil
 }

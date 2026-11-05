@@ -41,10 +41,12 @@ export function looksLikeAnswer(text: string): boolean {
   const i = text.indexOf('{')
   const j = text.lastIndexOf('}')
   if (i < 0 || j <= i) return false
+  const body = text.slice(i, j + 1)
   try {
-    return typeof JSON.parse(text.slice(i, j + 1)) === 'object'
+    return typeof JSON.parse(body) === 'object'
   } catch {
-    return false
+    // Copied by hand from a chat page: backslashes at line ends and HTML spaces. The server cleans it.
+    return /\\\r?\n/.test(body) || body.includes('&#x20;')
   }
 }
 
