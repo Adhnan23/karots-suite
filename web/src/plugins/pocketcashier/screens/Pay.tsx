@@ -12,7 +12,8 @@ import { cn } from '@/lib/utils'
 import { CARD, LivePill } from '../bits'
 import { payIssue, saleBody } from '../sale'
 import type { Who } from '../session'
-import { sendNow } from '../sync'
+import { sendNow, tempRef } from '../sync'
+import { slots } from '@/plugins/slots'
 import { CartLines } from './CartBar'
 import { ChangeBox, ChangeNotes } from './ChangeBox'
 import { CustomerRow } from './CustomerSheet'
@@ -37,8 +38,13 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
       const ps = effectivePayments(cart, total)
       const body = saleBody(cart, ps)
       const change = body.changeGiven ? num(body.changeGiven) : changeDue(total, ps)
-      const r = await sendNow({ kind: 'sale', userId: who.id, body })
+      const ref = crypto.randomUUID()
+      const r = await sendNow({ ref, kind: 'sale', userId: who.id, body })
       if (r && r.status !== 'applied') return setError(r.note || 'The PC could not take this sale')
+      // A plugin's own record of the sale. Offline it refers to the sale by its
+      // temporary reference; the PC swaps in the real id when it takes them, in order.
+      const saleId = (r?.saleId ?? tempRef(ref)) as number
+      void Promise.allSettled(slots.tillAfterSale.map((fn) => fn({ saleId, lines: cart.lines, customerId: cart.customerId, meta: cart.meta ?? {} })))
       dispatch({ type: 'newSale', saleType: copy.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail' })
       if (!r) return setDone({ text: 'Saved — it will send when the PC is back. No receipt this time.', change })
       setDone({ text: `Sale ${r.receiptNo ?? ''} done. The receipt prints at the counter.`, change, print: copy.askToPrint ? r.saleId : undefined })

@@ -1,7 +1,7 @@
 import type { RecentSales, TillCopy } from '@/api/types.gen'
 import { BASE, phoneFetch } from './api'
 import { loadWho } from './session'
-import { loadCopy, saveCopy } from './store/copy'
+import { loadCopy, partsTag, saveCopy, saveParts } from './store/copy'
 import { ack, addAction, pending, type Action } from './store/outbox'
 import { loadPhone } from './store/phone'
 import { recentCursor, saveRecent } from './store/recent'
@@ -49,6 +49,18 @@ export async function refresh() {
     set({ copyAt: new Date().toISOString(), lastError: undefined })
   } catch (e) {
     down(e)
+  }
+}
+
+/** What the plugins' screens read offline. A failure keeps the last good parts. */
+export async function refreshParts(): Promise<void> {
+  try {
+    const have = await partsTag()
+    const res = await phoneFetch('/parts', { headers: have ? { 'If-None-Match': have } : {} })
+    if (!res.ok || res.status === 304) return
+    await saveParts((await res.json()) as Record<string, unknown>, res.headers.get('ETag') ?? '')
+  } catch {
+    // the PC went away: try again on the next tick
   }
 }
 
@@ -116,6 +128,7 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
   const tick = () => {
     void refresh().then(() => (s.waiting > 0 || s.live ? flush(signedIn) : undefined))
     void refreshRecent()
+    void refreshParts()
   }
   void loadCopy().then((c) => { if (c && !s.copyAt) set({ copyAt: c.takenAt }) })
   // A reopened app: what still waits from before (the count, and the 5 s retry, need it).
@@ -154,7 +167,7 @@ export function startSync(onState: (s: SyncState) => void, signedIn: () => numbe
 
 /** Saves an action and, when the PC answers, sends it at once: its result, or
  * null when it waits in the outbox (offline). */
-export async function sendNow(a: Omit<Action, 'ref' | 'at'>, signedIn: () => number | null = () => a.userId): Promise<ActionResult | null> {
+export async function sendNow(a: Omit<Action, 'ref' | 'at'> & { ref?: string }, signedIn: () => number | null = () => a.userId): Promise<ActionResult | null> {
   const saved = await addAction(a)
   set({ waiting: s.waiting + 1 })
   await flush(signedIn)

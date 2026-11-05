@@ -17,6 +17,7 @@ import { useIdle } from '../idle'
 import { pending, type Action } from '../store/outbox'
 import { movedTo, refresh, sendNow, type SyncState } from '../sync'
 import { withOverlay } from '../overlay'
+import { phoneTillApi, PhoneTillProvider } from '../tillApi'
 import { CartBar } from './CartBar'
 import { COUNTER_PAGES, type CounterPage } from './counter/pages'
 import { Held } from './Held'
@@ -79,7 +80,9 @@ export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: 
   const CurrentPage = COUNTER_PAGES.find((x) => x.key === page)?.Page
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 
+  const till = phoneTillApi(cart, dispatch, copy)
   return (
+    <PhoneTillProvider value={till}>
     <Screen fixed>
       {!(tab === 'sell' && paying) && <TopBar who={who} sync={sync} drawerOpen={drawerOpen} onSwitch={switchPerson} />}
       {!sync.live && <OfflineBanner copyAt={sync.copyAt} />}
@@ -104,5 +107,6 @@ export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: 
         ))}
       </nav>
     </Screen>
+    </PhoneTillProvider>
   )
 }

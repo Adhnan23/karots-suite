@@ -8,6 +8,8 @@ import type { CartLine, TillState } from '@/features/till/cart/types'
 import { money, num, qtyText } from '@/lib/money'
 import { CARD } from '../bits'
 import { CartSummary } from './CartSummary'
+import { slots } from '@/plugins/slots'
+import { usePhoneTill } from '../tillApi'
 import { LineSheet } from './LineSheet'
 
 /** The cart at the foot of Sell: items, customer, total and Pay; tap to see the lines. */
@@ -32,6 +34,7 @@ export function CartBar({ cart, dispatch, copy, onPay }: { cart: TillState; disp
 
 export function CartLines({ cart, dispatch, copy }: { cart: TillState; dispatch: (a: Action) => void; copy: TillCopy }) {
   const [edit, setEdit] = useState<number | null>(null)
+  const till = usePhoneTill()
   const editing = cart.lines.find((l) => l.key === edit)
   const qty = (l: CartLine, q: number) => dispatch(q <= 0 ? { type: 'remove', key: l.key } : { type: 'setQty', key: l.key, qty: q, lots: lotsFor(copy.priceOptions, l.productId) })
   return (
@@ -39,6 +42,7 @@ export function CartLines({ cart, dispatch, copy }: { cart: TillState; dispatch:
     {editing && <LineSheet key={editing.key} line={editing} cart={cart} dispatch={dispatch} copy={copy} onClose={() => setEdit(null)} />}
     <div className={`${CARD} mx-3 mb-2 max-h-[50dvh] overflow-y-auto rounded-[var(--radius)] p-0`}>
     <CartSummary cart={cart} dispatch={dispatch} copy={copy} />
+    {till && slots.tillCartHints.map(({ key, Hint }) => <Hint key={key} till={till} lines={cart.lines} />)}
     <ul aria-label="Cart">
       {cart.lines.map((l) => (
         <li key={l.key} className="flex items-center gap-2 border-b border-border px-3 py-2 text-[13px] last:border-b-0">

@@ -1,11 +1,11 @@
 import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { saveCopy } from './store/copy'
+import { loadParts, saveCopy } from './store/copy'
 import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
 import { loadWho, saveWho } from './session'
 import { getSale, clearRecent, recentCursor } from './store/recent'
-import { flush, refresh, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
+import { flush, refresh, refreshParts, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
 
 type Call = { url: string; init?: RequestInit }
 let recentPages: Record<string, unknown>[] = []
@@ -197,6 +197,23 @@ describe('who the phone holds', () => {
     await flush(() => 7)
     expect(JSON.parse(String(calls.find((c) => c.url.includes('/actions'))?.init?.body)).signedInAt).toBe(since)
     saveWho(null)
+  })
+})
+
+describe('what plugins read offline', () => {
+  it('saves the parts and asks with the tag next time', async () => {
+    const headers = new Headers({ ETag: '"abc"' })
+    const body = JSON.stringify({ t: { n: 1 } })
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url, init })
+      return (init?.headers as Record<string, string>)['If-None-Match'] ? new Response(null, { status: 304 }) : new Response(body, { status: 200, headers })
+    }))
+    calls = []
+    await refreshParts()
+    expect(await loadParts()).toEqual({ t: { n: 1 } })
+    await refreshParts()
+    expect((calls[1].init?.headers as Record<string, string>)['If-None-Match']).toBe('"abc"')
+    expect(await loadParts()).toEqual({ t: { n: 1 } })
   })
 })
 

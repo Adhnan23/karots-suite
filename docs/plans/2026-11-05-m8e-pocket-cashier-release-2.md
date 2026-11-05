@@ -275,16 +275,16 @@ a matching request that gets a real reply → pass it through untouched
 no route, network failed → the normal network error
 ```
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `fetch.test.ts`: `live calls go to the network`; `network failure answers from the route`; `a queued write saves a call and answers with temp id`; `an unknown route still fails`; `uninstall restores fetch`.
   - `tillApi.test.ts`: one test per `TillApi` method, each reaching the same reducer action the PC till uses.
   - `catalog.test.ts`: a product claimed by a plugin menu now opens that menu (update the existing test, don't delete its behaviour for unpriced services).
   - `Sell`: `shows tillMenu entries`. `Menu`: `shows tillActions`. `LineSheet`: `shows tillLineHints`. `CartBar`: `shows tillCartHints`. `DrawerSheet`: `shows drawerSections on close`. `Returns`: `shows returnLineFields`. `Pay`: `runs tillAfterSale, with temp:<ref> as the sale id offline`.
   - `no plugin compiled in`: no entry and no error.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** A panel opens in a full-height sheet (`PluginPanel`). The `ponytail:` comment on `fetch.ts`: wrapping fetch keeps core and plugins untouched; a seam in `api()` if another caller needs it.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Commit.** `feat(pocketcashier): plugin screens run on the phone`
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** A panel opens in a full-height sheet (`PluginPanel`). The `ponytail:` comment on `fetch.ts`: wrapping fetch keeps core and plugins untouched; a seam in `api()` if another caller needs it.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Commit.** `feat(pocketcashier): plugin screens run on the phone`
 
 ### Task 13: Reload & Bills
 

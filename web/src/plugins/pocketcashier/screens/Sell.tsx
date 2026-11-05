@@ -9,12 +9,16 @@ import { CARD, GLASS } from '../bits'
 import { byBarcode, search, sellable } from '../catalog'
 import { refresh } from '../sync'
 import { addFlow } from '../addFlow'
+import { usePhoneTill } from '../tillApi'
+import { slots, type TillMenuRoot } from '@/plugins/slots'
 import { InfoSheet } from './InfoSheet'
 import { PackSheet } from './PackSheet'
 import { PriceSheet } from './PriceSheet'
 import { QuickItemSheet } from './QuickItemSheet'
 import { UnknownCodeSheet } from './UnknownCodeSheet'
 import { Scanner } from './Scanner'
+import { PluginPanel } from './PluginPanel'
+import { phoneActions, type PhoneAction } from './phoneActions'
 
 type Pick = { kind: 'price' | 'pack'; product: CopyProduct; lots: Lot[]; units?: number; lot?: Lot }
 
@@ -27,7 +31,12 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
   const [miss, setMiss] = useState('')
   const [pick, setPick] = useState<Pick | null>(null)
   const [info, setInfo] = useState<CopyProduct | null>(null)
+  const till = usePhoneTill()
+  const [menu, setMenu] = useState<{ root: TillMenuRoot; product?: CopyProduct } | null>(null)
+  const [action, setAction] = useState<{ item: PhoneAction; text: string } | null>(null)
   const add = useCallback((p: CopyProduct, packId?: number) => {
+    const claimed = slots.tillMenu.find((m) => m.claims?.(p))
+    if (claimed) return setMenu({ root: claimed, product: p })
     const step = addFlow(copy, p, packId)
     if (step.kind === 'add') dispatch({ type: 'add', product: p, lots: step.lots, units: step.units })
     else setPick({ ...step, product: p })
@@ -43,6 +52,11 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
   const [unknown, setUnknown] = useState('')
   const code = useCallback((c: string) => {
     setScan(false)
+    const ticket = phoneActions().find((a) => a.claimsText?.(c))
+    if (ticket) {
+      setText('')
+      return setAction({ item: ticket, text: c })
+    }
     const hit = byBarcode(copy, c)
     const found = hit ? [] : search(copy, c)
     if (hit && !sellable(hit.product)) setMiss(`${hit.product.name}: sell this one at the counter`)
@@ -78,6 +92,15 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
           + Quick item
         </button>
       </div>
+      {slots.tillMenu.length > 0 && (
+        <div role="group" aria-label="Plugin menus" className="flex gap-1.5 overflow-x-auto px-3 pt-2.5">
+          {slots.tillMenu.map((m) => (
+            <button key={m.key} type="button" onClick={() => setMenu({ root: m })} className="min-h-9 shrink-0 whitespace-nowrap rounded-pill bg-brand-soft px-3 text-[13px] font-bold">
+              {m.emoji} {m.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex gap-1.5 overflow-x-auto px-3 pt-2.5 pb-1">
         {[{ id: 0, name: 'All' }, ...copy.categories].map((c) => (
           <button key={c.id} type="button" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}
@@ -113,6 +136,16 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
         })}
         {!rows.length && <li className="py-8 text-center text-sm text-muted-foreground">Nothing matches “{text}”</li>}
       </ul>
+      {menu && till && (
+        <PluginPanel title={menu.root.label} onClose={() => setMenu(null)}>
+          <menu.root.Panel till={till} product={menu.product} onDone={() => setMenu(null)} />
+        </PluginPanel>
+      )}
+      {action && till && (
+        <PluginPanel title={action.item.label} onClose={() => setAction(null)}>
+          <action.item.Panel till={till} text={action.text} onClose={() => setAction(null)} />
+        </PluginPanel>
+      )}
       {scan && <Scanner onCode={code} onClose={() => setScan(false)} />}
       {unknown && (
         <UnknownCodeSheet code={unknown} copy={copy} live={live} onClose={() => setUnknown('')}

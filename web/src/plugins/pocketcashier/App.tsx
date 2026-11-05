@@ -10,6 +10,8 @@ import { SignIn } from './screens/SignIn'
 import { loadWho, saveWho, type Who } from './session'
 import { loadCopy } from './store/copy'
 import { loadPhone, type PhoneId } from './store/phone'
+import { setupOfflineRoutes } from './offline'
+import { installOfflineFetch } from './offline/fetch'
 import { startSync, type SyncState } from './sync'
 
 /** The surface at /x/pocketcashier: `setup` is the plain-HTTP page that gets a
@@ -34,7 +36,10 @@ function PhoneApp() {
   }, [])
   useEffect(() => {
     if (!phone) return
-    return startSync(setSync, () => loadWho()?.id ?? null)
+    setupOfflineRoutes()
+    const uninstall = installOfflineFetch()
+    const stop = startSync(setSync, () => loadWho()?.id ?? null)
+    return () => { stop(); uninstall() }
   }, [phone])
   useEffect(() => { void loadCopy().then(setCopy) }, [sync.copyAt])
 

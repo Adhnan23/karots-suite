@@ -1,3 +1,5 @@
+import { slots } from '@/plugins/slots'
+import { usePhoneTill } from '../tillApi'
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -22,6 +24,7 @@ export function LineSheet({ line, cart, dispatch, copy, onClose }: {
   onClose: () => void
 }) {
   const [qty, setQty] = useState(qtyText(line.qty))
+  const till = usePhoneTill()
   const sym = copy.symbol
   const unit = cart.lines.find((l) => l.key === line.key) ?? line
   const gross = lineGross(unit)
@@ -43,6 +46,7 @@ export function LineSheet({ line, cart, dispatch, copy, onClose }: {
             {money(sym, unit.unitPrice)} each{unit.batchLabel && ` · ${unit.batchLabel}`} · {disc > 0 && <s>{money(sym, gross)}</s>} {money(sym, gross - disc)}
           </SheetDescription>
         </SheetHeader>
+        {till && slots.tillLineHints.map(({ key, Hint }) => <Hint key={key} till={till} line={unit} lines={cart.lines} />)}
 
         {!unit.fixedQty && !unit.payout && (
           <div className="flex flex-col gap-2">

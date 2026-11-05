@@ -7,6 +7,7 @@ import { printRefund } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { dec, money, num, qtyText, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { slots } from '@/plugins/slots'
 import { CARD } from '../../bits'
 import { drawerOpen } from '../../drawer'
 import { saleWithOverlay } from '../../overlay'
@@ -40,6 +41,7 @@ function ReturnForm({ who, copy, out, sale, onDone, onBack }: CounterProps & { s
   const sym = copy.symbol
   const [qty, setQty] = useState<Record<number, number>>({})
   const [faulty, setFaulty] = useState<Record<number, boolean>>({})
+  const [extra, setExtra] = useState<Record<number, Record<string, unknown>>>({}) // plugin fields, by line then key
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -57,7 +59,8 @@ function ReturnForm({ who, copy, out, sale, onDone, onBack }: CounterProps & { s
     const r = await sendCall(who.id, {
       method: 'POST', path: `/api/v1/till/sales/${sale.id}/return`, label: `Return on ${sale.receiptNo}`,
       cashOut: cash > 0 ? dec(cash) : undefined,
-      body: { reason: reason.trim(), deferDrawerKick: true, lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock' })) },
+      body: { reason: reason.trim(), deferDrawerKick: true, lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock',
+        ...(extra[l.id] && Object.keys(extra[l.id]).length ? { plugin: extra[l.id] } : {}) })) },
     })
     setBusy(false)
     if (r?.status === 'failed') return setError(r.note || 'The PC could not do this')
@@ -93,6 +96,10 @@ function ReturnForm({ who, copy, out, sale, onDone, onBack }: CounterProps & { s
                   </div>
                 )}
               </div>
+              {n > 0 && slots.returnLineFields.map(({ key, Field }) => (
+                <Field key={key} saleId={sale.id} line={l} qty={n} value={extra[l.id]?.[key]}
+                  onChange={(v) => setExtra((x) => ({ ...x, [l.id]: { ...x[l.id], [key]: v } }))} />
+              ))}
               {n > 0 && !l.isService && (
                 <label className="mt-2 flex min-h-8 items-center gap-2 text-[13px] text-muted-foreground">
                   <input type="checkbox" className="h-4 w-4 accent-[var(--brand)]" checked={!!faulty[l.id]} onChange={(e) => setFaulty((f) => ({ ...f, [l.id]: e.target.checked }))} />

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { slots } from '@/plugins/slots'
+import { useRef, useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { countTotal, fromBreakdown, toBreakdown, type Counts } from '@/features/till/drawer/count'
@@ -46,12 +47,18 @@ export function DrawerSheet({ kind, copy, expected, lastCount, onSend, onClose }
   const [locker, setLocker] = useState(first ? String(first.id) : '')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // A plugin's count around the move: false stops it, as at the PC.
+  const saves = useRef(new Map<string, () => Promise<boolean>>())
+  const sections = kind === 'open' || kind === 'close' ? slots.drawerSections.filter((x) => !x.on || x.on.includes(kind)) : []
 
   async function send() {
     const a = num(amount)
     if (kind !== 'open' && kind !== 'close' && a <= 0) return setError('Enter an amount')
     if (!untrackedOk && !num(locker) && a > 0) return setError(places.length ? 'Choose where the cash goes' : 'The shop has no cash locker for this — ask the owner')
     setBusy(true)
+    for (const save of saves.current.values()) {
+      if (!(await save().catch(() => false))) return setBusy(false)
+    }
     const id = num(locker)
     const breakdown = counting ? { breakdown: toBreakdown(denoms, counts) } : {}
     const body = kind === 'open' ? { openingCash: String(a), ...breakdown, sourceLockerId: id }
@@ -97,6 +104,7 @@ export function DrawerSheet({ kind, copy, expected, lastCount, onSend, onClose }
             </select>
           </label>
         )}
+        {sections.map(({ key, Section }) => <Section key={key} which={kind as 'open' | 'close'} register={(save) => { saves.current.set(key, save) }} />)}
         {error && <p role="alert" className="text-sm font-semibold text-destructive">{error}</p>}
         <button type="button" disabled={busy} onClick={() => void send()} className="rounded-[var(--radius)] bg-brand p-3.5 text-base font-extrabold text-brand-foreground disabled:opacity-60">
           {busy ? 'Sending…' : t.go}

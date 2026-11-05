@@ -8,8 +8,8 @@ const LIMIT = 50
  * opens that plugin's panel on the desktop) and a service with no price wait for
  * plugin menus on the phone (release 2); sell them at the counter. */
 export function sellable(p: TillProduct): boolean {
-  if (p.isService && num(p.sellingPrice) <= 0) return false
-  return !slots.tillMenu.some((m) => m.claims?.(p))
+  if (slots.tillMenu.some((m) => m.claims?.(p))) return true
+  return !(p.isService && num(p.sellingPrice) <= 0)
 }
 
 /** Name, local name or barcode start, any case — over the copy, so it works offline. */

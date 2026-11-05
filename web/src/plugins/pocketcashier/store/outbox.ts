@@ -9,8 +9,8 @@ export type Action = { ref: string; kind: ActionKind; userId: number; at: string
 
 type Row = { seq?: number; ref: string; sealed: Sealed }
 
-export async function addAction(a: Omit<Action, 'ref' | 'at'>): Promise<Action> {
-  const full: Action = { ...a, ref: crypto.randomUUID(), at: new Date().toISOString() }
+export async function addAction(a: Omit<Action, 'ref' | 'at'> & { ref?: string }): Promise<Action> {
+  const full: Action = { ...a, ref: a.ref ?? crypto.randomUUID(), at: new Date().toISOString() }
   const row: Row = { ref: full.ref, sealed: await seal(full) }
   const tx = (await openDb()).transaction('outbox', 'readwrite')
   tx.objectStore('outbox').add(row)

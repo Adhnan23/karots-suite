@@ -10,9 +10,12 @@ import { closeNote, drawerOpen, expectedCash } from '../drawer'
 import type { Who } from '../session'
 import type { Action } from '../store/outbox'
 import { refresh, sendNow } from '../sync'
+import { usePhoneTill } from '../tillApi'
 import { DrawerSheet, type DrawerKind } from './DrawerSheet'
 import { COUNTER_PAGES, type CounterPage } from './counter/pages'
+import { phoneActions, type PhoneAction } from './phoneActions'
 import { PinSheet } from './PinSheet'
+import { PluginPanel } from './PluginPanel'
 import { TicketsBeforeClose } from './Tickets'
 
 const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cash taken out', deposit: 'Cash put in', close: 'Drawer closed' }
@@ -29,6 +32,8 @@ export function Menu({ who, copy, out, live, onSent, onSwitch, onPage, tickets =
   const open = drawerOpen(copy, who.id, out)
   const expected = expectedCash(copy, who.id, out)
   const waitingOnMe = tickets.filter((t) => t.forMe)
+  const till = usePhoneTill()
+  const [action, setAction] = useState<PhoneAction | null>(null)
 
   async function send(kind: DrawerKind, body: Record<string, unknown>): Promise<string> {
     const r = await sendNow({ kind, userId: who.id, body })
@@ -64,6 +69,14 @@ export function Menu({ who, copy, out, live, onSent, onSwitch, onPage, tickets =
           <Icon size={19} className="text-muted-foreground" />{label}
         </button>
       ))}
+      {phoneActions().map((a) => (
+        <button key={a.key} type="button" onClick={() => setAction(a)} className={cn(CARD, 'flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>{a.label}</button>
+      ))}
+      {action && till && (
+        <PluginPanel title={action.label} onClose={() => setAction(null)}>
+          <action.Panel till={till} onClose={() => setAction(null)} />
+        </PluginPanel>
+      )}
       <button type="button" onClick={() => { setNotice(''); setPin(true) }} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
         <KeyRound size={19} className="text-muted-foreground" />Change my PIN
       </button>
