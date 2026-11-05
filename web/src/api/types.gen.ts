@@ -696,6 +696,20 @@ export interface CopyHeld {
   total: string;
   createdAt: string;
 }
+/**
+ * RecentSales is one page of the sales a till keeps with it. NextAfter and
+ * NextSince are the cursor for the next call. Reset says the cursor was beyond
+ * the newest sale (a restored backup): throw away what you hold and take this.
+ */
+export interface RecentSales {
+  sales: SaleView[];
+  changed: SaleView[]; // sales already held that changed (a return)
+  nextAfter: number /* int64 */;
+  nextSince: string;
+  more: boolean;
+  maxId: number /* int64 */;
+  reset: boolean;
+}
 
 //////////
 // source: dto_counter.go

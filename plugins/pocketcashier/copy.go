@@ -31,14 +31,19 @@ func (h handlers) copyFor(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	return sendZipped(c, cp)
+}
+
+// sendZipped answers with JSON, gzipped for a client that takes it.
+func sendZipped(c echo.Context, v any) error {
 	if !strings.Contains(c.Request().Header.Get("Accept-Encoding"), "gzip") {
-		return c.JSON(http.StatusOK, cp)
+		return c.JSON(http.StatusOK, v)
 	}
 	c.Response().Header().Set("Content-Encoding", "gzip")
 	c.Response().Header().Set("Content-Type", "application/json")
 	c.Response().WriteHeader(http.StatusOK)
 	zw := gzip.NewWriter(c.Response())
-	if err := json.NewEncoder(zw).Encode(cp); err != nil {
+	if err := json.NewEncoder(zw).Encode(v); err != nil {
 		return apperr.Internal("failed to send the copy", err)
 	}
 	return zw.Close()

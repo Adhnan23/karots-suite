@@ -46,18 +46,18 @@
 - Produces DTO: `RecentSales{Sales []SaleView; Changed []SaleView; NextAfter int64; NextSince string; More bool; MaxID int64; Reset bool}`.
 - Produces route: `GET /pocketcashier/recent?after=&since=` behind `h.phoneAuth`, gzip like `copyFor`.
 
-- [ ] **Step 1: Write failing tests** in `till_copy_recent_test.go`:
+- [x] **Step 1: Write failing tests** in `till_copy_recent_test.go`:
   - `TestRecentSalesPages`: 3 sales, limit 2 → 2 sales, `More` true; `after=NextAfter` → 1 sale, `More` false.
   - `TestRecentSalesWindow`: a sale dated 31 days ago is absent; 29 days ago is present.
   - `TestRecentSalesChanged`: a `sale_returns` row after `since` puts that older sale in `Changed` with its new `returnedQty`.
   - `TestRecentSalesResetAfterRestore`: `after` above the highest sale id → `Reset` true, sales from the start.
-- [ ] **Step 2: Run them.** `DATABASE_URL=… go test ./internal/api -run TestRecentSales -v`. Expected: FAIL, undefined.
-- [ ] **Step 3: Implement** using `saleView(d)` and `h.d.Sales.Get` so a line's `refundLeft` means what the PC's Returns tab shows. `Changed` = sales with a `sale_returns.created_at > since`. Limit 200 per page. `TillSource` and `Flags` stay empty on this path.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Test the route.** In `recent_db_test.go`, `TestRecentNeedsPhoneKey`: no key → 401; paired phone → 200.
-- [ ] **Step 6: Measure.** Temporary test `TestMeasureRecent` gated on `MEASURE_RECENT=1` against a database restored from a Demo Room year: logs sales count, total gzip bytes, and server time. Then open the phone in Playwright with 4× CPU throttle and record first download time and search time.
-- [ ] **Step 7: Gate.** Continue only if, on the busiest built-in shop: total gzip ≤ 30 MB, first download ≤ 2 minutes on wifi, product search stays ≤ 200 ms. **Otherwise stop and take the numbers to the user.** Write the numbers in `docs/status.md`; delete the temporary test.
-- [ ] **Step 8: Commit.** `feat(pocketcashier): the last 30 days of sales for the phone`
+- [x] **Step 2: Run them.** `DATABASE_URL=… go test ./internal/api -run TestRecentSales -v`. Expected: FAIL, undefined.
+- [x] **Step 3: Implement** using `saleView(d)` and `h.d.Sales.Get` so a line's `refundLeft` means what the PC's Returns tab shows. `Changed` = sales with a `sale_returns.created_at > since`. Limit 200 per page. `TillSource` and `Flags` stay empty on this path.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Test the route.** In `recent_db_test.go`, `TestRecentNeedsPhoneKey`: no key → 401; paired phone → 200.
+- [x] **Step 6: Measure.** Temporary test `TestMeasureRecent` gated on `MEASURE_RECENT=1` against a database restored from a Demo Room year: logs sales count, total gzip bytes, and server time. Then open the phone in Playwright with 4× CPU throttle and record first download time and search time.
+- [x] **Step 7: Gate.** Continue only if, on the busiest built-in shop: total gzip ≤ 30 MB, first download ≤ 2 minutes on wifi, product search stays ≤ 200 ms. **Otherwise stop and take the numbers to the user.** Write the numbers in `docs/status.md`; delete the temporary test.
+- [x] **Step 8: Commit.** `feat(pocketcashier): the last 30 days of sales for the phone`
 
 ### Task 2: The phone keeps those sales
 

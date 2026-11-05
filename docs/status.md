@@ -19,7 +19,7 @@ Latest Release: **2026.11.05.1315** (AI Assistant jobs, hints, Alternatives leve
 - **Dev DB note:** `0002_auto_levels.sql` was edited before release (`level_auto` default false, so a restored older backup keeps typed levels). An old dev DB needs `make db-down` and re-migrate, or `ALTER COLUMN level_auto SET DEFAULT false`.
 - **Tests 2026-11-05, final:** Playwright 248 passed, 33 skipped; web 939; `make test` passed. The user hand-tested every job on real Gemini and ChatGPT replies; bugs found were fixed. Partial builds compile, but no one has clicked through a running one. `TestTodayTraded` (Demo Room) failed once just after 09:00 and passed on two later runs: looks time-of-day dependent, not proven.
 
-**Next:** not chosen yet. On the list: the install stick, Pocket Cashier release 2, the whole-system check.
+**Next:** Pocket Cashier release 2, on branch `m8e-pocket-release-2`: `docs/plans/2026-11-05-m8e-pocket-cashier-release-2.md`. Measured 2026-11-05, the last 30 days from Demo years: everything 3,577 sales, 330 KB gzip, 7.2 s on the server; grocery 2,653, 206 KB; pharmacy 2,196, 156 KB. About 1 KB raw per sale, so 1,000 sales a day is about 3 MB gzip.
 
 **Test backups:** Cloudflare refused deleting them (the 30-day lock), and they sit in the old `aiman-pharmacy-kalpitiya` folder. The new key means a new cloud folder, so they shouldn't reach his Bring back list; they age out by about Dec 4. **Keep `karots-main` / `karots-cashier` off or expect uploads there** (they run old builds). Keep `SUITE_RELEASE_KEY`. His install id, channel and cloud key stayed in `shops.json`. His support PIN: `make support-pin ID=FC1A79F7`.
 

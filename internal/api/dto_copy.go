@@ -98,3 +98,16 @@ type CopyHeld struct {
 	Total      string `json:"total"`
 	CreatedAt  string `json:"createdAt"`
 }
+
+// RecentSales is one page of the sales a till keeps with it. NextAfter and
+// NextSince are the cursor for the next call. Reset says the cursor was beyond
+// the newest sale (a restored backup): throw away what you hold and take this.
+type RecentSales struct {
+	Sales     []SaleView `json:"sales"`
+	Changed   []SaleView `json:"changed"` // sales already held that changed (a return)
+	NextAfter int64      `json:"nextAfter"`
+	NextSince string     `json:"nextSince"`
+	More      bool       `json:"more"`
+	MaxID     int64      `json:"maxId"`
+	Reset     bool       `json:"reset"`
+}

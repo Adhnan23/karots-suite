@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"time"
 
 	"karots-suite/internal/config"
 	"karots-suite/internal/features/audit"
@@ -52,4 +53,6 @@ type Core struct {
 	// data, no admin or system PIN hashes); TillCopyVersion changes whenever it does.
 	TillCopy        func(ctx context.Context) (any, error)
 	TillCopyVersion func(ctx context.Context) (string, error)
+	// RecentSales is one page of the last 30 days' sales (the API's RecentSales).
+	RecentSales func(ctx context.Context, after int64, since time.Time, limit int) (any, error)
 }
