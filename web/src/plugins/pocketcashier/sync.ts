@@ -10,7 +10,7 @@ import { recentCursor, saveRecent } from './store/recent'
 export type SyncState = { live: boolean; copyAt: string | null; waiting: number; lastError?: string }
 
 /** The server's answer for one action (see the plugin's replay). */
-export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; receiptNo?: string; heldId?: number; note?: string }
+export type ActionResult = { ref: string; status: 'applied' | 'skipped' | 'failed'; saleId?: number; resultId?: number; receiptNo?: string; heldId?: number; note?: string }
 
 const REFRESH_EVERY = 60_000
 const LIVE_FOR = 15_000
@@ -175,3 +175,14 @@ export async function movedTo(userId: number): Promise<string> {
     return ''
   }
 }
+
+/** Something done through a real route: at once when the PC answers, else when
+ * it's back. cashOut is cash the cashier hands over whatever the PC says. */
+export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; label: string }
+
+export function sendCall(userId: number, call: CallInput, signedIn?: () => number | null): Promise<ActionResult | null> {
+  return sendNow({ kind: 'call', userId, body: call }, signedIn)
+}
+
+/** How a later action refers to something this phone made but the PC hasn't yet. */
+export const tempRef = (ref: string) => `temp:${ref}`

@@ -4,7 +4,7 @@ import { saveCopy } from './store/copy'
 import { addAction, pending } from './store/outbox'
 import { savePhone } from './store/phone'
 import { getSale, clearRecent, recentCursor } from './store/recent'
-import { flush, refresh, refreshRecent, startSync, state, type SyncState } from './sync'
+import { flush, refresh, refreshRecent, sendCall, startSync, state, tempRef, type SyncState } from './sync'
 
 type Call = { url: string; init?: RequestInit }
 let recentPages: Record<string, unknown>[] = []
@@ -182,5 +182,27 @@ describe('the last 30 days', () => {
     calls = []
     await Promise.all([refreshRecent(), refreshRecent()])
     expect(calls.filter((c) => c.url.includes('/recent'))).toHaveLength(1)
+  })
+})
+
+describe('sendCall', () => {
+  it('sends a call as an action, and gives the result when the PC answers', async () => {
+    await refresh()
+    calls = []
+    const r = await sendCall(7, { method: 'POST', path: '/api/v1/till/customers/1/payment', body: { amount: '50' }, cashOut: '50', label: 'Credit' })
+    expect(r?.status).toBe('applied')
+    const sent = JSON.parse(String(calls.find((c) => c.url.includes('/actions'))?.init?.body))
+    expect(sent.actions[0]).toMatchObject({ kind: 'call', userId: 7, body: { method: 'POST', path: '/api/v1/till/customers/1/payment', body: { amount: '50' }, cashOut: '50', label: 'Credit' } })
+  })
+
+  it('waits offline, and says so with null', async () => {
+    online = false
+    await refresh()
+    expect(await sendCall(7, { method: 'POST', path: '/api/v1/till/x', label: 'Y' })).toBeNull()
+    expect((await pending()).at(-1)).toMatchObject({ kind: 'call' })
+  })
+
+  it('names a temporary reference', () => {
+    expect(tempRef('abc')).toBe('temp:abc')
   })
 })

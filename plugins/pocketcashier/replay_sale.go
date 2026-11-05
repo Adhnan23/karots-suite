@@ -121,6 +121,8 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	switch a.Kind {
 	case "sale":
 		return h.runSale(ctx, p, a, flag)
+	case "call":
+		return h.runCall(ctx, p, a)
 	case "open":
 		return h.runOpen(ctx, p, a)
 	case "close":
@@ -144,7 +146,11 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 
 func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag string) ActionResult {
 	var b SaleBody
-	if err := json.Unmarshal(a.Body, &b); err != nil {
+	raw, err := h.resolveBody(ctx, a.Body) // a plugin's line may refer to something made on the phone
+	if err != nil {
+		return failed(err)
+	}
+	if err := json.Unmarshal(raw, &b); err != nil {
 		return failed(err)
 	}
 	now := time.Now()

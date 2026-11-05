@@ -1,7 +1,7 @@
 import { open, seal, type Sealed } from './crypto'
 import { done, openDb, req } from './db'
 
-export type ActionKind = 'open' | 'sale' | 'hold' | 'unhold' | 'withdraw' | 'deposit' | 'close'
+export type ActionKind = 'open' | 'sale' | 'hold' | 'unhold' | 'withdraw' | 'deposit' | 'close' | 'call'
 
 /** Something the phone did, waiting to be sent: its one-time ref makes a
  * repeated send harmless; `at` is when it happened on the phone. */

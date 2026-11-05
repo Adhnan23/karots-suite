@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"io/fs"
 
 	"karots-suite/internal/plugin"
@@ -23,6 +24,7 @@ func init() { plugin.Register(&Plugin{}) }
 
 type Plugin struct {
 	core    plugin.Core
+	echo    *echo.Echo // replayed calls go through the real routes
 	store   *Store
 	feed    *feedHub
 	tickets feedTickets
@@ -34,6 +36,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "pocketcas
 
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
+	p.echo = reg.Echo()
 	p.store = NewStore(reg.Core.DB)
 	p.feed = &feedHub{version: func(ctx context.Context) (string, error) { return p.core.TillCopyVersion(ctx) }}
 	reg.AddDataGroup(plugin.DataGroup{Key: "pocketcashier", Name: "Pocket Cashier phones",

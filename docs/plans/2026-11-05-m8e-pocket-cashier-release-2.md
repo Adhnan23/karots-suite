@@ -106,7 +106,7 @@ every "temp:<ref>" (quoted in JSON, bare in a path) → look up pocket_actions.r
 no such row or no id → fail this action: "depends on <label of the parent>, which didn't go through"
 ```
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `TestCallAppliesThroughRoute`: a credit payment `call` moves the customer's balance and returns `ResultID`.
   - `TestCallTwiceBooksOnce`: same ref twice → one payment.
   - `TestCallRunsAsThatPerson`: a route that person's rights forbid → `failed`, nothing booked.
@@ -115,11 +115,11 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
   - `TestCallParentFailed`: parent failed → child `failed`, note names the parent's label.
   - `TestCallLateIsMarked`: `At` 26 hours ago → `applied`, note starts `Happened on the phone at`, `at` stored.
   - `TestCallRefusedKeepsCash`: refused call with `CashOut: "500"` → the till shows 500 less, status `failed`, note says so; stock unchanged.
-- [ ] **Step 2: Run them.** `DATABASE_URL=… go test ./plugins/pocketcashier -run TestCall -v`. Expected: FAIL.
-- [ ] **Step 3: Implement.** Keep the existing person checks in `run`. Apply `CashOut` through `core.Cashflow` the way `runMove` does.
+- [x] **Step 2: Run them.** `DATABASE_URL=… go test ./plugins/pocketcashier -run TestCall -v`. Expected: FAIL.
+- [x] **Step 3: Implement.** Keep the existing person checks in `run`. Apply `CashOut` through `core.Cashflow` the way `runMove` does.
   `// ponytail: a replayed call counts on the day it arrives, marked late; give routes an "at" if owners need it dated back.`
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Commit.** `feat(pocketcashier): replay any action through its real route`
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Commit.** `feat(pocketcashier): replay any action through its real route`
 
 ### Task 4: Counter menu, overlay and Credit
 

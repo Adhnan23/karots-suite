@@ -1,0 +1,217 @@
+package pocketcashier
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
+	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/auth"
+	"karots-suite/internal/middleware"
+
+	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
+)
+
+// callFix adds stand-in routes for the real ones (the core API isn't mounted in
+// this harness): pay books a row in what's seen, and answers with its id.
+type callFix struct {
+	*rfix
+	seen []map[string]any
+	who  []int64
+}
+
+func newCallFix(t *testing.T) *callFix {
+	f := &callFix{rfix: newRfix(t, "10")}
+	jwt := middleware.JWTAuth(testSecret)
+	pay := func(c echo.Context) error {
+		var b map[string]any
+		if err := c.Bind(&b); err != nil {
+			return err
+		}
+		if b["refuse"] == true {
+			return apperr.ConflictCode("NO", "already returned")
+		}
+		b["path"] = c.Request().URL.Path
+		f.seen = append(f.seen, b)
+		f.who = append(f.who, middleware.CurrentUserID(c))
+		return c.JSON(http.StatusCreated, map[string]any{"id": 1000 + len(f.seen)})
+	}
+	f.en.e.POST("/api/v1/till/t-pay", pay, jwt)
+	f.en.e.POST("/api/v1/till/t-pay/:id", pay, jwt)
+	f.en.e.POST("/api/v1/till/t-boss", pay, jwt, middleware.RequireRole(auth.RoleAdmin))
+	f.en.e.POST("/api/v1/admin/t-pay", pay, jwt)
+	return f
+}
+
+func (f *callFix) call(ref string, at time.Time, b CallBody) Action {
+	raw, err := json.Marshal(b)
+	if err != nil {
+		f.en.t.Fatal(err)
+	}
+	return Action{Ref: f.ref(ref), Kind: "call", UserID: f.cashier, At: at, Body: raw}
+}
+
+func (f *callFix) expected() decimal.Decimal {
+	f.en.t.Helper()
+	sum, err := f.en.p.core.CashRegister.Summary(context.Background(), f.cashier)
+	if err != nil {
+		f.en.t.Fatal(err)
+	}
+	return sum.Expected
+}
+
+func (f *callFix) send(a ...Action) []ActionResult {
+	f.en.t.Helper()
+	rec := f.en.do(http.MethodPost, "/actions", ActionsRequest{Actions: a}, nil, f.secret)
+	if rec.Code != http.StatusOK {
+		f.en.t.Fatalf("send %d %s", rec.Code, rec.Body)
+	}
+	return decodeAs[ActionsReply](f.en.t, rec).Results
+}
+
+func TestCallAppliesThroughRoute(t *testing.T) {
+	f := newCallFix(t)
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"amount":"50"}`), Label: "Credit"}))
+	if r[0].Status != "applied" || r[0].ResultID != 1001 {
+		t.Fatalf("result: %+v", r[0])
+	}
+	if len(f.seen) != 1 || f.seen[0]["amount"] != "50" || f.who[0] != f.cashier {
+		t.Fatalf("the route saw %+v as %v", f.seen, f.who)
+	}
+}
+
+func TestCallTwiceBooksOnce(t *testing.T) {
+	f := newCallFix(t)
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)})
+	first, second := f.send(a), f.send(a)
+	if len(f.seen) != 1 || second[0].Status != first[0].Status || second[0].ResultID != first[0].ResultID {
+		t.Fatalf("booked %d; %+v then %+v", len(f.seen), first[0], second[0])
+	}
+}
+
+func TestCallRunsAsThatPerson(t *testing.T) {
+	f := newCallFix(t)
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-boss", Body: json.RawMessage(`{}`)}))
+	if r[0].Status != "failed" || len(f.seen) != 0 {
+		t.Fatalf("a cashier reached an admin's route: %+v", r[0])
+	}
+}
+
+func TestCallAfterMovingToThePC(t *testing.T) {
+	f := newCallFix(t)
+	if err := f.en.p.core.Auth.ClaimDevice(t.Context(), f.cashier, "the-pc", "Counter PC"); err != nil {
+		t.Fatal(err)
+	}
+	var dev string
+	f.en.e.POST("/api/v1/till/t-device", func(c echo.Context) error {
+		dev = c.Request().Header.Get("X-Ks-Device")
+		return c.NoContent(http.StatusNoContent)
+	}, middleware.JWTAuth(testSecret))
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-device", Body: json.RawMessage(`{}`)}))
+	if r[0].Status != "applied" || dev != "the-pc" {
+		t.Fatalf("a call made before the move must still go through: %+v, device %q", r[0], dev)
+	}
+}
+
+func TestCallOutsideAPIRefused(t *testing.T) {
+	f := newCallFix(t)
+	for i, b := range []CallBody{
+		{Method: "POST", Path: "/admin/x"},
+		{Method: "POST", Path: "/api/v1/admin/t-pay"},
+		{Method: "POST", Path: "/api/v1/auth/pin"},
+		{Method: "POST", Path: "/api/v1/x/pocketcashier/phones/approve"},
+		{Method: "POST", Path: "/api/v1/till/../admin/t-pay"},
+		{Method: "GET", Path: "/api/v1/till/t-pay"},
+	} {
+		r := f.send(f.call(string(rune('a'+i)), time.Now(), b))
+		if r[0].Status != "failed" || len(f.seen) != 0 {
+			t.Fatalf("%s %s: %+v, seen %v", b.Method, b.Path, r[0], f.seen)
+		}
+	}
+}
+
+func TestCallTempRefResolved(t *testing.T) {
+	f := newCallFix(t)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`), Label: "New patient"})
+	temp := "temp:" + parent.Ref
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay/" + temp, Body: json.RawMessage(`{"patientId":"` + temp + `"}`)})
+	r := f.send(parent, child)
+	if r[1].Status != "applied" {
+		t.Fatalf("child: %+v", r[1])
+	}
+	if got := f.seen[1]["patientId"]; got != float64(1001) {
+		t.Fatalf("body: %v", got)
+	}
+	if got := f.seen[1]["path"]; got != "/api/v1/till/t-pay/1001" {
+		t.Fatalf("path: %v", got)
+	}
+}
+
+func TestCallTempRefSale(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	s := f.saleAct("s", ago(time.Minute), "1", "120")
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"saleId":"temp:` + s.Ref + `"}`)})
+	r := f.send(s, child)
+	if r[0].SaleID == 0 || r[1].Status != "applied" || f.seen[0]["saleId"] != float64(r[0].SaleID) {
+		t.Fatalf("%+v, saw %v", r, f.seen)
+	}
+}
+
+func TestCallParentFailed(t *testing.T) {
+	f := newCallFix(t)
+	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), Label: "New patient Sunil"})
+	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"patientId":"temp:` + parent.Ref + `"}`)})
+	r := f.send(parent, child)
+	if r[1].Status != "failed" || !strings.Contains(r[1].Note, "New patient Sunil") || len(f.seen) != 0 {
+		t.Fatalf("%+v, seen %v", r[1], f.seen)
+	}
+}
+
+func TestCallLateIsMarked(t *testing.T) {
+	f := newCallFix(t)
+	at := ago(26 * time.Hour)
+	r := f.send(f.call("a", at, CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)}))
+	if r[0].Status != "applied" || !strings.HasPrefix(r[0].Note, "Happened on the phone at") {
+		t.Fatalf("%+v", r[0])
+	}
+	var stored time.Time
+	if err := f.en.db.Get(&stored, `SELECT at FROM pocket_actions WHERE ref = $1`, f.ref("a")); err != nil || !stored.Equal(at) {
+		t.Fatalf("when it happened must stay on record: %v %v", stored, err)
+	}
+	if r := f.send(f.call("b", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)})); r[0].Note != "" {
+		t.Fatalf("a call sent at once isn't late: %+v", r[0])
+	}
+}
+
+func TestCallRefusedKeepsCash(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	f.send(f.saleAct("s", ago(time.Minute), "1", "120"))
+	before := f.expected()
+	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return R-7"})
+	r := f.send(a)
+	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "100") || !strings.Contains(r[0].Note, "already returned") {
+		t.Fatalf("%+v", r[0])
+	}
+	want := before.Sub(decimal.NewFromInt(100))
+	if after := f.expected(); !after.Equal(want) {
+		t.Fatalf("the 100 that left the drawer isn't recorded: %s, want %s", after, want)
+	}
+	f.send(a)
+	if after := f.expected(); !after.Equal(want) {
+		t.Fatalf("a repeated send took the cash twice: %s", after)
+	}
+}
+
+func TestCallRefusedDrawerClosedSaysSo(t *testing.T) {
+	f := newCallFix(t)
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return R-7"}))
+	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "couldn't be booked") {
+		t.Fatalf("the owner must be told the cash isn't on the books: %+v", r[0])
+	}
+}

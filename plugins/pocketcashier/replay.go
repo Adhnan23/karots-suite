@@ -23,7 +23,7 @@ import (
 
 type Action struct {
 	Ref    string          `json:"ref"`
-	Kind   string          `json:"kind"` // open | sale | hold | unhold | withdraw | deposit | close
+	Kind   string          `json:"kind"` // open | sale | hold | unhold | withdraw | deposit | close | call
 	UserID int64           `json:"userId"`
 	At     time.Time       `json:"at"`
 	Body   json.RawMessage `json:"body"`
@@ -40,6 +40,7 @@ type ActionResult struct {
 	SaleID    int64  `json:"saleId,omitempty"`
 	ReceiptNo string `json:"receiptNo,omitempty"`
 	HeldID    int64  `json:"heldId,omitempty"`
+	ResultID  int64  `json:"resultId,omitempty"` // what a call made
 	Note      string `json:"note,omitempty"`
 }
 
@@ -118,10 +119,11 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 		Status    string  `db:"status"`
 		SaleID    *int64  `db:"sale_id"`
 		HeldID    *int64  `db:"held_id"`
+		ResultID  *int64  `db:"result_id"`
 		Note      string  `db:"note"`
 		ReceiptNo *string `db:"receipt_no"`
 	}
-	err := h.p.core.DB.GetContext(ctx, &row, `SELECT a.status, a.sale_id, a.held_id, a.note, s.receipt_no
+	err := h.p.core.DB.GetContext(ctx, &row, `SELECT a.status, a.sale_id, a.held_id, a.result_id, a.note, s.receipt_no
 		FROM pocket_actions a LEFT JOIN sales s ON s.id = a.sale_id WHERE a.ref = $1`, ref)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ActionResult{}, false, nil
@@ -138,6 +140,9 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 	}
 	if row.ReceiptNo != nil {
 		r.ReceiptNo = *row.ReceiptNo
+	}
+	if row.ResultID != nil {
+		r.ResultID = *row.ResultID
 	}
 	return r, true, nil
 }
@@ -165,9 +170,9 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) Act
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
-	_, _ = h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, note)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),$11) ON CONFLICT (ref) DO NOTHING`,
-		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.Note)
+	_, _ = h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12) ON CONFLICT (ref) DO NOTHING`,
+		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note)
 	return r
 }
 
