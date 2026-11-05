@@ -3,6 +3,7 @@ package aicatalog
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -139,7 +140,7 @@ func TestAPICleanupPreview(t *testing.T) {
 	if r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", `{"offset":0}`)); r.Result != nil || !strings.Contains(r.Prompt, "|Coke 1L|") {
 		t.Fatalf("paste mode prompt: %+v", r)
 	}
-	reply := `{"renames":[{"id":999999,"to":"x"}],"moves":[{"product_id":` + itoa(a) + `,"category_id":` + itoa(c) + `}],
+	reply := `{"renames":[{"id":999999,"to":"x"}],"moves":[{"product_id":` + itoa(a) + `,"category_id":` + itoa(cat(t, db, "Cold drinks", nil)) + `}],
 		"duplicates":[{"a":` + itoa(a) + `,"b":` + itoa(b) + `,"reason":"same drink"},{"a":` + itoa(b) + `,"b":` + itoa(a) + `},{"a":` + itoa(a) + `,"b":999999}]}`
 	body, _ := json.Marshal(CleanupRequest{Reply: reply})
 	r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
@@ -168,5 +169,46 @@ func TestCleanupOffsetPastTheEnd(t *testing.T) {
 	out := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", `{"offset":450}`))
 	if !strings.Contains(out.Prompt, "Coke 1L") || out.Left == nil || *out.Left != 1 {
 		t.Fatalf("%+v", out)
+	}
+}
+
+// The real reply from a hand test: brands of one medicine, and pairs the chatbot itself
+// says aren't duplicates. Offering those as merges would fold two brands into one.
+func TestCleanupDuplicatesAreReal(t *testing.T) {
+	db := freshDB(t, "aicatalog_cleanup_dups")
+	p, do := testAPI(t, db)
+	c := cat(t, db, "Medicines", nil)
+	pan, cet := prod(t, db, "Panadol 500mg", c), prod(t, db, "Cetamol 500mg", c)
+	tab, syr := prod(t, db, "piriton 4mg", c), prod(t, db, "Piriton Syrup", c)
+	coke, cola := prod(t, db, "Coke 1L", c), prod(t, db, "Coca Cola 1 Ltr", c)
+	p.groupers = func() []plugin.ProductGrouper {
+		return []plugin.ProductGrouper{{Groups: func(context.Context) ([]plugin.ProductGroupInfo, error) {
+			return []plugin.ProductGroupInfo{{ID: 1, Name: "Paracetamol", Members: []int64{pan, cet}}}, nil
+		}}}
+	}
+	reply := fmt.Sprintf(`{"renames":[{"id":%d,"to":"Medicines","reason":"no change needed"}],"moves":[{"product_id":%d,"category_id":%d,"reason":"same"}],
+		"duplicates":[{"a":%d,"b":%d,"reason":"both paracetamol 500mg"},
+		{"a":%d,"b":%d,"reason":"tablet and syrup forms differ; not duplicates."},
+		{"a":%d,"b":%d,"reason":"the same drink"}]}`, c, coke, c, pan, cet, tab, syr, coke, cola)
+	body, _ := json.Marshal(map[string]any{"offset": 0, "reply": reply})
+	out := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
+	if out.Result == nil {
+		t.Fatalf("%+v", out)
+	}
+	pv := out.Result
+	if len(pv.Duplicates) != 1 || pv.Duplicates[0].Reason != "the same drink" {
+		t.Fatalf("only the real one: %+v", pv.Duplicates)
+	}
+	if len(pv.Plan.Renames) != 0 {
+		t.Fatalf("a rename to the same name is no change: %+v", pv.Plan.Renames)
+	}
+	if len(pv.Plan.Moves) != 0 {
+		t.Fatalf("a move to where it already is: %+v", pv.Plan.Moves)
+	}
+}
+
+func TestCleanupPromptOnBrands(t *testing.T) {
+	if !strings.Contains(cleanupSystemPrompt, "different brands") {
+		t.Fatal(cleanupSystemPrompt)
 	}
 }

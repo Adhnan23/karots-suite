@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -195,7 +196,8 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 	prod := func(id int64) bool { _, ok := names[id]; return ok }
 	var out CleanupPlan
 	for _, o := range plan.Renames {
-		if cat(o.ID) && strings.TrimSpace(o.To) != "" {
+		// A rename to the name it already has is no change, whatever the chatbot calls it.
+		if cat(o.ID) && strings.TrimSpace(o.To) != "" && strings.TrimSpace(o.To) != lastPart(paths[o.ID]) {
 			out.Renames = append(out.Renames, o)
 		}
 	}
@@ -209,8 +211,12 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 			out.Merges = append(out.Merges, o)
 		}
 	}
+	where := map[int64]int64{}
+	for _, x := range prods {
+		where[x.ID] = x.CategoryID
+	}
 	for _, o := range plan.Moves {
-		if prod(o.ProductID) && cat(o.CategoryID) {
+		if prod(o.ProductID) && cat(o.CategoryID) && where[o.ProductID] != o.CategoryID {
 			out.Moves = append(out.Moves, o)
 		}
 	}
@@ -232,10 +238,19 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 	if err != nil {
 		return CleanupPreview{}, apperr.Internal("count sales", err)
 	}
+	twins, err := h.p.twins(ctx)
+	if err != nil {
+		return CleanupPreview{}, apperr.Internal("read the groups", err)
+	}
 	dups := []DupPair{}
 	seen := map[[2]int64]bool{}
 	for _, d := range plan.Duplicates {
 		if !prod(d.A) || !prod(d.B) || d.A == d.B || seen[[2]int64{min(d.A, d.B), max(d.A, d.B)}] {
+			continue
+		}
+		// Chatbots list pairs just to say they aren't duplicates; and products the shop
+		// keeps as alternatives are two things by its own word. A merge can't be undone.
+		if notDuplicate.MatchString(d.Reason) || (twins[d.A] != 0 && twins[d.A] == twins[d.B]) {
 			continue
 		}
 		seen[[2]int64{min(d.A, d.B), max(d.A, d.B)}] = true
@@ -246,6 +261,32 @@ func (h handlers) preview(ctx context.Context, plan CleanupPlan, paths map[int64
 		dups = append(dups, DupPair{Keep: a, Drop: b, Reason: d.Reason})
 	}
 	return CleanupPreview{Plan: out, Categories: paths, Products: names, Duplicates: dups}, nil
+}
+
+var notDuplicate = regexp.MustCompile(`(?i)\bnot\s+(a\s+|the\s+same\s+)?(duplicates?|same)\b`)
+
+func lastPart(path string) string {
+	parts := strings.Split(path, " > ")
+	return strings.TrimSpace(parts[len(parts)-1])
+}
+
+// twins maps each product in a group of alternatives to its group.
+func (p *Plugin) twins(ctx context.Context) (map[int64]int64, error) {
+	out := map[int64]int64{}
+	g := p.grouper()
+	if g == nil {
+		return out, nil
+	}
+	groups, err := g.Groups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range groups {
+		for _, id := range x.Members {
+			out[id] = x.ID
+		}
+	}
+	return out, nil
 }
 
 // referenced lists every product id the plan names.

@@ -115,7 +115,7 @@ Rules:
 - renames: fix casing/spelling/singular-plural for consistency.
 - moves: move an obviously mis-filed product to a better EXISTING category id.
 - uncategorized: for EVERY product flagged U, a "category" path using " > " between levels — an existing category's path verbatim when one fits, else a new GENERAL, SHALLOW one.
-- duplicates: pairs of products that are the SAME item listed twice (e.g. "Coke 1L" and "Coca Cola 1 Ltr"). Only when sure — a different size, flavour, colour or variant is NOT a duplicate.
+- duplicates: pairs of products that are the SAME item listed twice (e.g. "Coke 1L" and "Coca Cola 1 Ltr"). Only when sure — a different size, flavour, colour or variant is NOT a duplicate, and neither are different brands of the same kind of thing, however alike. Never list a pair just to say it isn't a duplicate.
 Only reference ids that appear in the lists; parent_id and category_id must be existing category ids. Use empty arrays when nothing needs changing. No prose.`
 
 const namesNone = `- names: always an empty array.`
