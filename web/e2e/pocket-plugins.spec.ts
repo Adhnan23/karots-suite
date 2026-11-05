@@ -20,6 +20,8 @@ const PART = `PPPart${tag}`
 const OWNER = `PPOwner${tag}`
 const DEVICE = `PPGalaxy${tag}`
 const DEBTOR = `PPDebtor${tag}`
+const GONE = `PPGone${tag}`
+const OTHER = `PPOther${tag}`
 
 let ctx: BrowserContext
 let phone: Page
@@ -89,6 +91,15 @@ async function setUpPlugins() {
   const combo = await admin.request.post('/api/v1/x/combos', { data: { name: DEAL, discountType: 'fixed', discountValue: '50', startsOn: '', endsOn: '', items: [{ productId: a, qty: '1' }, { productId: b, qty: '1' }] } })
   expect(combo.ok(), await combo.text()).toBe(true)
 
+  // Alternatives: an out-of-stock product and another in its group.
+  const gone = await product(GONE, '30', '0')
+  const other = await product(OTHER, '30')
+  const group = await (await admin.request.post('/api/v1/x/alternatives', { data: { name: `PPGroup${tag}` } })).json() as { tiers: { id: number }[] }
+  for (const productId of [gone, other]) {
+    const m = await admin.request.post(`/api/v1/x/alternatives/tiers/${group.tiers[0].id}/members`, { data: { productId } })
+    expect(m.ok(), await m.text()).toBe(true)
+  }
+
   await product(MED, '20')
   await product(PART, '1000')
   const debtor = await admin.request.post('/api/v1/till/customers', { data: { name: DEBTOR, phone: `07${tag}77`, creditLimit: '0' } })
@@ -110,6 +121,13 @@ async function finish(payExact = false) {
   await phone.getByRole('button', { name: 'New sale' }).click()
 }
 
+// UI gate: SHOTS=<gate> saves each plugin screen as it is seen, at 360 px.
+const shot = async (name: string) => {
+  if (!process.env.SHOTS) return
+  await phone.waitForTimeout(350)
+  await phone.screenshot({ path: `shots/${process.env.SHOTS}/${name}-${process.env.SHOTS_MODE ?? 'light'}.png` })
+}
+
 const closePanel = () => phone.keyboard.press('Escape')
 const sell = () => phone.getByRole('button', { name: 'Sell', exact: true }).click()
 
@@ -122,6 +140,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await setUpPlugins()
     ctx = await browser.newContext({ viewport: { width: 360, height: 780 }, ignoreHTTPSErrors: true, hasTouch: true, isMobile: true })
     phone = await ctx.newPage()
+    if (process.env.SHOTS_MODE) await phone.addInitScript((m) => localStorage.setItem('ks-mode', m), process.env.SHOTS_MODE)
     await phone.goto(APP)
     await phone.getByLabel('This phone’s name').fill(`Plugins ${tag}`)
     await phone.getByRole('button', { name: 'Pair this phone' }).click()
@@ -171,6 +190,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await phone.getByRole('group', { name: 'Plugin menus' }).getByRole('button', { name: /Reload & Bills/ }).click()
     await phone.getByLabel("Customer's number").fill('0771112223')
     await phone.getByLabel('Reload amount').fill('100')
+    await shot('p-reload')
     await phone.getByRole('button', { name: /Add reload/ }).click()
     await closePanel()
     await finish()
@@ -181,6 +201,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await phone.getByRole('button', { name: new RegExp(COPY) }).first().click()
     await phone.getByLabel('Number of copies').fill('12')
     await expect(phone.getByText('Rs. 120.00').first()).toBeVisible()
+    await shot('p-copy')
     await phone.getByLabel('Number of copies').press('Enter')
     await expect(phone.getByText(/×12 added/)).toBeVisible()
     await closePanel()
@@ -190,6 +211,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
   test('a combo', async () => {
     await phone.getByRole('group', { name: 'Plugin menus' }).getByRole('button', { name: /Combos/ }).click()
     await phone.getByRole('button', { name: new RegExp(DEAL) }).click()
+    await shot('p-combo')
     await phone.getByRole('button', { name: /Add combo/ }).click()
     await expect(phone.getByText(new RegExp(`${DEAL} added`))).toBeVisible()
     await closePanel()
@@ -205,12 +227,14 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await phone.getByLabel('Allergies').fill('Penicillin')
     await phone.getByRole('button', { name: 'Register', exact: true }).click()
     await expect(phone.getByText('⚠ Allergic to: Penicillin')).toBeVisible()
+    await shot('p-patient')
     await phone.getByRole('button', { name: 'Prescription' }).click()
     await phone.getByLabel('Doctor', { exact: true }).fill('Dr Silva')
     await phone.getByLabel('Medicine 1').fill(MED)
     await phone.getByRole('button', { name: new RegExp(MED) }).first().click()
     await phone.getByLabel('Dosage 1').fill('1-0-1')
     await phone.getByLabel('Days 1').fill('4')
+    await shot('p-script')
     await phone.getByRole('button', { name: 'Save prescription' }).click()
     await phone.getByRole('button', { name: new RegExp(`Add · ${MED}`) }).click()
     await expect(phone.getByText(new RegExp(`Added 8 × ${MED}`))).toBeVisible()
@@ -237,11 +261,25 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await d.getByLabel('Labour amount').fill('500')
     await d.getByRole('button', { name: 'Add labour' }).click()
     await expect(d.getByText(/Estimate\s*Rs\. 1,500\.00/)).toBeVisible()
+    await shot('p-repair')
     await d.getByRole('button', { name: 'Put on the bill' }).click()
     await expect(phone.getByText(/is on the bill/)).toBeVisible()
     await closePanel()
     await sell()
     await finish(true)
+  })
+
+  test('Alternatives: an out-of-stock line swaps for another in its group', async () => {
+    await sell()
+    await phone.getByLabel('Search or scan').fill(GONE)
+    await phone.getByRole('list', { name: 'Products' }).getByRole('button', { name: new RegExp(GONE) }).first().click()
+    await phone.getByRole('button', { name: /items? ·/ }).click()
+    await phone.getByRole('button', { name: new RegExp(`Edit ${GONE}`) }).click()
+    await shot('p-swap')
+    await phone.getByRole('button', { name: new RegExp(`^⇄.*${OTHER}`) }).click()
+    await phone.getByRole('button', { name: 'Done' }).click()
+    await expect(phone.getByRole('button', { name: new RegExp(`Edit ${OTHER}`) })).toBeVisible()
+    await finish()
   })
 
   test('the counter: credit, a return, a write-off', async () => {
@@ -294,7 +332,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     const refused = actions.filter((a) => a.status !== 'applied')
     expect(refused.map((a) => a.label)).toEqual([`Return on ${earlierReceipt}`])
     expect(refused[0].note).toContain('20.00 left the drawer and is booked')
-    expect(actions.filter((a) => a.kind === 'sale').length).toBeGreaterThanOrEqual(5)
+    expect(actions.filter((a) => a.kind === 'sale').length).toBeGreaterThanOrEqual(6)
 
     // Reload: the float dropped.
     const till = await (await admin.request.get('/api/v1/x/recharge/till')).json() as { floats: { id: number; balance: string }[] }
@@ -316,9 +354,9 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     expect(jobs[0].status).toBe('collected')
 
     // The books. The drawer: 5,000 float + 40 before the cut + reload 100 + copies 120
-    // + combo 250 + medicine 160 + repair 1,500 + credit 300 − the refund 20.
+    // + combo 250 + medicine 160 + repair 1,500 + the swapped item 30 + credit 300 − the refund 20.
     const drawer = await phone.evaluate(async () => (await fetch('/api/v1/till/drawer', { headers: { 'X-Ks-Device': localStorage.getItem('ks-device') ?? '' } })).json()) as { summary: { expected: string } }
-    expect(Number(drawer.summary.expected)).toBe(7450)
+    expect(Number(drawer.summary.expected)).toBe(7480)
     // Credit: 900 − 300.
     const debtors = await (await admin.request.get(`/api/v1/admin/customers?q=${DEBTOR}`)).json() as { items: { name: string; owed: string }[] }
     expect(Number(debtors.items.find((c) => c.name === DEBTOR)!.owed)).toBe(600)
@@ -331,6 +369,7 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     expect(await stockOf(MED)).toBe(42)
     expect(await stockOf(PART)).toBe(47)
     expect(await stockOf(A)).toBe(49)
+    expect(await stockOf(OTHER)).toBe(49)
     expect(await stockOf(PAPER)).toBe(488)
   })
 })
