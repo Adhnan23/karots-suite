@@ -15,6 +15,8 @@ import (
 
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/middleware"
+
+	"github.com/shopspring/decimal"
 )
 
 // CallBody is an action that goes through a real route, as the person who did it
@@ -26,8 +28,16 @@ type CallBody struct {
 	Body   json.RawMessage `json:"body"`
 	// CashOut is cash the cashier already handed over. If the PC refuses the call,
 	// that cash still left the drawer, so it is booked anyway.
-	CashOut string `json:"cashOut"`
-	Label   string `json:"label"` // what this was, in a person's words, for notes
+	CashOut string   `json:"cashOut"`
+	CashIn  string   `json:"cashIn"` // the same for cash the cashier took
+	Label   string   `json:"label"`  // what this was, in a person's words, for notes
+	Saw     *CallSaw `json:"saw"`    // what the phone showed, to flag when the PC knew better
+}
+
+// CallSaw is the balance the phone showed when the cashier acted.
+type CallSaw struct {
+	CustomerID int64  `json:"customerId"`
+	Balance    string `json:"balance"`
 }
 
 // lateAfter: older than this when it arrives, it says when it really happened.
@@ -130,14 +140,15 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 	if err != nil {
 		return h.refused(ctx, a, b, err.Error())
 	}
+	stale := h.staleBalance(ctx, b.Saw)
 	code, reply := h.dispatch(ctx, p, a.UserID, b.Method, path, body)
 	if code < 200 || code >= 300 {
 		return h.refused(ctx, a, b, replyMessage(code, reply))
 	}
-	r := ActionResult{Status: "applied", ResultID: replyID(reply)}
+	r := ActionResult{Status: "applied", ResultID: replyID(reply), Note: stale, Flagged: stale != ""}
 	// ponytail: a replayed call counts on the day it arrives, marked late; give routes an "at" if owners need it dated back.
 	if time.Since(a.At) > lateAfter {
-		r.Note = "Happened on the phone at " + a.At.Local().Format("15:04 on 2 Jan") + "; counted when it arrived"
+		r.Note = strings.TrimSpace("Happened on the phone at " + a.At.Local().Format("15:04 on 2 Jan") + "; counted when it arrived. " + r.Note)
 	}
 	return r
 }
@@ -149,19 +160,43 @@ func (h handlers) refused(ctx context.Context, a Action, b CallBody, why string)
 	if label != "" {
 		why = label + ": " + why
 	}
-	if b.CashOut == "" {
+	if b.CashOut == "" && b.CashIn == "" {
 		return ActionResult{Status: "failed", Note: why}
 	}
-	reason := "Paid on the phone but refused by the PC"
+	reason := "Taken on the phone but refused by the PC"
 	if label != "" {
 		reason += ": " + label
 	}
-	_, err := h.p.core.CashRegister.Withdraw(ctx, a.UserID, cashregister.MovementInput{Amount: b.CashOut, Reason: reason, DeferDrawerKick: true})
-	if err != nil {
-		// ponytail: an untracked cash-out is the only book entry without a locker; a shop that bars them or a closed till shows it as short at close, with this note.
-		return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s left the drawer but couldn't be booked (%s): check the till", why, b.CashOut, err.Error())}
+	amount, moved, in := b.CashOut, "left", cashregister.MovementInput{Reason: reason, DeferDrawerKick: true}
+	var err error
+	if b.CashOut != "" {
+		in.Amount = b.CashOut
+		_, err = h.p.core.CashRegister.Withdraw(ctx, a.UserID, in)
+	} else {
+		amount, moved, in.Amount = b.CashIn, "came into", b.CashIn
+		_, err = h.p.core.CashRegister.PayIn(ctx, a.UserID, in)
 	}
-	return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s left the drawer and is booked as cash out", why, b.CashOut)}
+	if err != nil {
+		// ponytail: an untracked cash move is the only book entry without a locker; a shop that bars them or a closed till shows it at close, with this note.
+		return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s %s the drawer but couldn't be booked (%s): check the till", why, amount, moved, err.Error())}
+	}
+	return ActionResult{Status: "failed", Note: fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, amount, moved)}
+}
+
+// staleBalance compares what the phone showed with what the PC has now.
+func (h handlers) staleBalance(ctx context.Context, saw *CallSaw) string {
+	if saw == nil {
+		return ""
+	}
+	var now decimal.Decimal
+	if err := h.p.core.DB.GetContext(ctx, &now, `SELECT outstanding_balance FROM customers WHERE id = $1`, saw.CustomerID); err != nil {
+		return ""
+	}
+	shown, err := decimal.NewFromString(saw.Balance)
+	if err != nil || shown.Equal(now) {
+		return ""
+	}
+	return fmt.Sprintf("The phone showed a balance of %s; the PC had %s", shown.StringFixed(2), now.StringFixed(2))
 }
 
 // dispatch runs the route in this process, signed in as that person. It carries
@@ -221,7 +256,7 @@ func replyID(reply []byte) int64 {
 	if json.Unmarshal(reply, &r) != nil {
 		return 0
 	}
-	for _, k := range []string{"id", "paymentId", "claimId", "saleId"} {
+	for _, k := range []string{"id", "paymentId", "claimId", "saleId", "receiptId"} {
 		if n, ok := r[k].(float64); ok {
 			return int64(n)
 		}

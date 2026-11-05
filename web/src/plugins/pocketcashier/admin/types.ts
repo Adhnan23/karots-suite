@@ -9,6 +9,7 @@ export type SendRow = { id: number; phone: string; receivedAt: string; actions: 
 export type SendAction = {
   ref: string
   kind: string
+  label?: string
   userName: string
   at: string
   status: 'applied' | 'skipped' | 'failed'

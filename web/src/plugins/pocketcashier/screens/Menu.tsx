@@ -9,13 +9,14 @@ import type { Who } from '../session'
 import type { Action } from '../store/outbox'
 import { refresh, sendNow } from '../sync'
 import { DrawerSheet, type DrawerKind } from './DrawerSheet'
+import { COUNTER_PAGES, type CounterPage } from './counter/pages'
 import { PinSheet } from './PinSheet'
 
 const DONE: Record<DrawerKind, string> = { open: 'Drawer opened', withdraw: 'Cash taken out', deposit: 'Cash put in', close: 'Drawer closed' }
 
 /** The drawer from the phone — open, take out, put in, close — online or from
  * the copy (sent when the PC is back), and switch person. */
-export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; copy: TillCopy; out: Action[]; live: boolean; onSent: () => void; onSwitch: () => void }) {
+export function Menu({ who, copy, out, live, onSent, onSwitch, onPage }: { who: Who; copy: TillCopy; out: Action[]; live: boolean; onSent: () => void; onSwitch: () => void; onPage: (p: CounterPage) => void }) {
   const [sheet, setSheet] = useState<DrawerKind | null>(null)
   const [notice, setNotice] = useState('')
   const [pin, setPin] = useState(false)
@@ -51,6 +52,11 @@ export function Menu({ who, copy, out, live, onSent, onSwitch }: { who: Who; cop
           {item('close', 'Close the drawer', Lock)}
         </>
       ) : item('open', 'Open the drawer', LockOpen)}
+      {COUNTER_PAGES.map(({ key, label, Icon }) => (
+        <button key={key} type="button" onClick={() => onPage(key)} className={cn(CARD, 'flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
+          <Icon size={19} className="text-muted-foreground" />{label}
+        </button>
+      ))}
       <button type="button" onClick={() => { setNotice(''); setPin(true) }} className={cn(CARD, 'mt-2 flex items-center gap-3 px-4 py-3.5 text-left text-[15px] font-bold')}>
         <KeyRound size={19} className="text-muted-foreground" />Change my PIN
       </button>

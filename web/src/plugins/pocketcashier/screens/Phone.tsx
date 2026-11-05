@@ -1,5 +1,5 @@
 import { Menu as MenuIcon, PauseCircle, ShoppingCart } from 'lucide-react'
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { api } from '@/api/client'
 import type { TillCopy } from '@/api/types.gen'
 import { MOVED_LABEL, toHeldBlob } from '@/features/till/cart/held'
@@ -16,7 +16,9 @@ import { drawerOpen as isOpen } from '../drawer'
 import { useIdle } from '../idle'
 import { pending, type Action } from '../store/outbox'
 import { movedTo, refresh, sendNow, type SyncState } from '../sync'
+import { withOverlay } from '../overlay'
 import { CartBar } from './CartBar'
+import { COUNTER_PAGES, type CounterPage } from './counter/pages'
 import { Held } from './Held'
 import { Menu } from './Menu'
 import { OpenFirst } from './OpenFirst'
@@ -29,15 +31,17 @@ const TABS: [Tab, string, typeof ShoppingCart][] = [['sell', 'Sell', ShoppingCar
 
 /** The signed-in phone: top bar, Sell / Held / Menu, and the amber state while
  * the PC is down. The cart is the desktop till's own (same reducer, same pricing). */
-export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignOut: (why?: string) => void }) {
+export function Phone({ who, copy: synced, sync, onSignOut }: { who: Who; copy: TillCopy | null; sync: SyncState; phone: PhoneId; onSignOut: (why?: string) => void }) {
   const [tab, setTab] = useState<Tab>('sell')
+  const [page, setPage] = useState<CounterPage | null>(null)
   const [paying, setPaying] = useState(false)
-  const [cart, dispatch] = useReducer(tillReducer, who.id, (id) => loadCart(id) ?? initialState(copy?.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'))
+  const [cart, dispatch] = useReducer(tillReducer, who.id, (id) => loadCart(id) ?? initialState(synced?.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'))
   useEffect(() => saveCart(who.id, cart), [who.id, cart])
   // What waits to be sent: the drawer and Held count it until the copy does.
   const [out, setOut] = useState<Action[]>([])
   const [bump, setBump] = useState(0)
   useEffect(() => { void pending().then(setOut, () => {}) }, [sync.waiting, sync.copyAt, bump])
+  const copy = useMemo(() => (synced ? withOverlay(synced, out) : synced), [synced, out])
   const sent = useCallback(() => { setBump((n) => n + 1); void refresh() }, [])
   const drawerOpen = !!copy && isOpen(copy, who.id, out)
   // One person, one device: signed in on the PC since, they moved there. Park the
@@ -68,6 +72,7 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
     if (sync.live) void api('/auth/lock', { method: 'POST' }).catch(() => {})
     onSignOut(`Locked after ${copy?.lockTimeoutMinutes} min with no use. Sign in to carry on.`)
   })
+  const CurrentPage = COUNTER_PAGES.find((x) => x.key === page)?.Page
   if (!copy) return <Screen><p className="p-6 text-center text-muted-foreground">Getting the shop’s copy…</p></Screen>
 
   return (
@@ -84,11 +89,12 @@ export function Phone({ who, copy, sync, onSignOut }: { who: Who; copy: TillCopy
           </>
         )}
         {tab === 'held' && <Held who={who} copy={copy} out={out} cart={cart} dispatch={dispatch} onSent={sent} onResumed={() => { setPaying(false); setTab('sell') }} />}
-        {tab === 'menu' && <Menu who={who} copy={copy} out={out} live={sync.live} onSent={sent} onSwitch={switchPerson} />}
+        {tab === 'menu' && !CurrentPage && <Menu who={who} copy={copy} out={out} live={sync.live} onSent={sent} onSwitch={switchPerson} onPage={setPage} />}
+        {tab === 'menu' && CurrentPage && <CurrentPage who={who} copy={copy} out={out} live={sync.live} onSent={sent} onBack={() => setPage(null)} />}
       </main>
       <nav aria-label="Phone tabs" className={cn('flex justify-around border-t border-border bg-bar px-2 pt-1.5 pb-3 text-[10.5px] font-semibold text-faint', GLASS)}>
         {TABS.map(([k, label, Icon]) => (
-          <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)}
+          <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => { setTab(k); setPage(null) }}
             className="flex min-w-16 flex-col items-center gap-0.5 aria-[current=page]:text-foreground"><Icon size={19} />{label}</button>
         ))}
       </nav>

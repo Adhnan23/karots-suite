@@ -31,6 +31,7 @@ type ActionFlag struct {
 type SendAction struct {
 	Ref       string       `json:"ref"`
 	Kind      string       `json:"kind"`
+	Label     string       `json:"label"` // a call's own words ("Credit from Sunil")
 	UserName  string       `json:"userName"`
 	At        string       `json:"at"`
 	Status    string       `json:"status"`
@@ -89,6 +90,7 @@ func (h handlers) sendDetail(c echo.Context) error {
 	var rows []struct {
 		Ref       string    `db:"ref"`
 		Kind      string    `db:"kind"`
+		Label     string    `db:"label"`
 		UserName  *string   `db:"user_name"`
 		At        time.Time `db:"at"`
 		Status    string    `db:"status"`
@@ -98,7 +100,7 @@ func (h handlers) sendDetail(c echo.Context) error {
 		Flags     []byte    `db:"flags"`
 	}
 	if err := h.p.core.DB.SelectContext(ctx, &rows, `
-		SELECT a.ref, a.kind, u.name AS user_name, a.at, a.status, a.note, a.sale_id, sa.receipt_no,
+		SELECT a.ref, a.kind, COALESCE(a.body->>'label', '') AS label, u.name AS user_name, a.at, a.status, a.note, a.sale_id, sa.receipt_no,
 		       COALESCE((SELECT json_agg(json_build_object('kind', f.kind, 'note', f.note) ORDER BY f.id) FROM sale_flags f WHERE f.sale_id = a.sale_id), '[]') AS flags
 		FROM pocket_actions a LEFT JOIN users u ON u.id = a.user_id LEFT JOIN sales sa ON sa.id = a.sale_id
 		WHERE a.send_id = $1 ORDER BY a.at, a.ref`, id); err != nil {
@@ -106,7 +108,7 @@ func (h handlers) sendDetail(c echo.Context) error {
 	}
 	out := SendDetail{SendRow: s.row(), Actions: make([]SendAction, 0, len(rows))}
 	for _, r := range rows {
-		a := SendAction{Ref: r.Ref, Kind: r.Kind, At: r.At.UTC().Format(time.RFC3339), Status: r.Status, Note: r.Note, Flags: []ActionFlag{}}
+		a := SendAction{Ref: r.Ref, Kind: r.Kind, Label: r.Label, At: r.At.UTC().Format(time.RFC3339), Status: r.Status, Note: r.Note, Flags: []ActionFlag{}}
 		if r.UserName != nil {
 			a.UserName = *r.UserName
 		}

@@ -20,7 +20,7 @@ export function SendDetail({ id }: { id: number }) {
         {s.actions.map((a) => (
           <li key={a.ref} className={cn(SURFACE, 'flex min-w-0 flex-col gap-1.5 p-3.5')}>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <b>{KIND[a.kind] ?? a.kind}</b>
+              <b>{a.label || (KIND[a.kind] ?? a.kind)}</b>
               {a.saleId > 0 && (
                 <Link to="/admin/sales" search={{ sale: a.saleId }} className="font-semibold text-brand underline-offset-2 hover:underline">{a.receiptNo || `#${a.saleId}`}</Link>
               )}

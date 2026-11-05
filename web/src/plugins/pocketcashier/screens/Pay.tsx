@@ -2,12 +2,12 @@ import { ChevronLeft, Printer } from 'lucide-react'
 import { useState } from 'react'
 import type { TillCopy } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Action } from '@/features/till/cart/store'
 import { effectivePayments } from '@/features/till/cart/checkout'
 import { changeDue, saleTotal } from '@/features/till/cart/totals'
 import type { TillState } from '@/features/till/cart/types'
 import { printSale } from '@/features/till/print'
+import { AskPrint } from './AskPrint'
 import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CARD, LivePill } from '../bits'
@@ -60,7 +60,7 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
           </div>
         )}
         <button type="button" onClick={onBack} className="mt-auto rounded-[var(--radius)] bg-brand p-3.5 text-base font-extrabold text-brand-foreground">New sale</button>
-        {done.print && <AskPrint saleId={done.print} onClose={() => setDone({ ...done, print: undefined })} />}
+        {done.print && <AskPrint onPrint={() => void printSale(done.print!).catch(() => {})} onClose={() => setDone({ ...done, print: undefined })} />}
       </div>
     )
   }
@@ -88,23 +88,5 @@ export function Pay({ who, copy, cart, dispatch, live, onBack }: { who: Who; cop
         {busy ? 'Sending…' : 'Finish sale'}
       </button>
     </div>
-  )
-}
-
-/** "Ask before printing" (Settings): the question is a dialog, never a toast. */
-function AskPrint({ saleId, onClose }: { saleId: number; onClose: () => void }) {
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Print the receipt?</DialogTitle>
-          <DialogDescription>It prints at the counter printer.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Skip</Button>
-          <Button onClick={() => { void printSale(saleId).catch(() => {}); onClose() }}>Print</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }

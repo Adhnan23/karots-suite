@@ -24,11 +24,12 @@ export function drawerOpen(copy: TillCopy, userId: number, out: Action[]): boole
 export function expectedCash(copy: TillCopy, userId: number, out: Action[]): string {
   let cash = num(copy.sessions.find((s) => s.userId === userId)?.expected ?? 0)
   for (const a of mine(out, userId)) {
-    const b = a.body as { openingCash?: string; amount?: string; total?: string; changeGiven?: string; payments?: Pay[] }
+    const b = a.body as { cashIn?: string; cashOut?: string; openingCash?: string; amount?: string; total?: string; changeGiven?: string; payments?: Pay[] }
     if (a.kind === 'open') cash = num(b.openingCash)
     if (a.kind === 'close') cash = 0
     if (a.kind === 'deposit') cash += num(b.amount)
     if (a.kind === 'withdraw') cash -= num(b.amount)
+    if (a.kind === 'call') cash += num(b.cashIn) - num(b.cashOut)
     if (a.kind === 'sale') {
       const ps = b.payments ?? []
       const paid = ps.reduce((n, p) => n + num(p.amount), 0)

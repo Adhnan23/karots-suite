@@ -177,8 +177,9 @@ export async function movedTo(userId: number): Promise<string> {
 }
 
 /** Something done through a real route: at once when the PC answers, else when
- * it's back. cashOut is cash the cashier hands over whatever the PC says. */
-export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; label: string }
+ * it's back. cashOut / cashIn is cash that moves whatever the PC says; saw is the
+ * balance the phone showed, flagged if the PC knew better. */
+export type CallInput = { method: string; path: string; body?: unknown; cashOut?: string; cashIn?: string; label: string; saw?: { customerId: number; balance: string } }
 
 export function sendCall(userId: number, call: CallInput, signedIn?: () => number | null): Promise<ActionResult | null> {
   return sendNow({ kind: 'call', userId, body: call }, signedIn)

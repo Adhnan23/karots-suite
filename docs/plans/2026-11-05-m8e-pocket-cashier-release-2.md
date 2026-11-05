@@ -132,16 +132,16 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 - Produces: `withOverlay(copy: TillCopy, out: Action[]): TillCopy` (balances after waiting credit calls), `saleWithOverlay(sale: SaleView, out: Action[]): SaleView`. Later tasks add to these.
 - Produces: `type CounterPage = 'credit' | 'returns' | 'receipts' | 'warranty' | 'writeoff' | 'convert'` and a Menu row per page.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `a waiting payment lowers the balance shown`.
   - `Credit offline saves a call to /api/v1/counter/customers/:id/payment and says it sends when the PC is back`.
   - `paying more than the shown balance is allowed and says the rest becomes an advance`, as the PC does.
   - `a refund is hidden from a person without canManageCredit`, if the PC's tab hides it; check `features/counter/credit/CreditTab.tsx`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Same fields as `CreditForm.tsx`, phone layout from `bits.tsx`. Online, print the debt slip through the existing print route, following `copy.askToPrint`. Body includes `sawBalance`; the note on arrival reports a difference.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens.** Take 360px shots in two palettes × light and dark; review them yourself.
-- [ ] **Step 6: Commit.** `feat(pocketcashier): take credit on the phone, online and off`
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** Same fields as `CreditForm.tsx`, phone layout from `bits.tsx`. Online, print the debt slip through the existing print route, following `copy.askToPrint`. Body includes `sawBalance`; the note on arrival reports a difference.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens.** Take 360px shots in two palettes × light and dark; review them yourself.
+- [x] **Step 6: Commit.** `feat(pocketcashier): take credit on the phone, online and off`
 
 ### Task 5: Returns
 

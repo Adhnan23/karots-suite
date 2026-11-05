@@ -41,6 +41,7 @@ type ActionResult struct {
 	ReceiptNo string `json:"receiptNo,omitempty"`
 	HeldID    int64  `json:"heldId,omitempty"`
 	ResultID  int64  `json:"resultId,omitempty"` // what a call made
+	Flagged   bool   `json:"-"`                  // applied, but someone should look
 	Note      string `json:"note,omitempty"`
 }
 
@@ -154,6 +155,9 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) Act
 	s.actions++
 	if r.Status == "failed" {
 		s.failed++
+	}
+	if r.Flagged {
+		s.flagged++
 	}
 	if r.SaleID != 0 {
 		var n int

@@ -3,6 +3,7 @@ package pocketcashier
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -213,5 +214,56 @@ func TestCallRefusedDrawerClosedSaysSo(t *testing.T) {
 	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashOut: "100", Label: "Return R-7"}))
 	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "couldn't be booked") {
 		t.Fatalf("the owner must be told the cash isn't on the books: %+v", r[0])
+	}
+}
+
+func TestCallRefusedBooksCashIn(t *testing.T) {
+	f := newCallFix(t)
+	f.openAt(ago(time.Minute))
+	before := f.expected()
+	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{"refuse":true}`), CashIn: "70", Label: "Credit"}))
+	if r[0].Status != "failed" || !strings.Contains(r[0].Note, "70") {
+		t.Fatalf("%+v", r[0])
+	}
+	if after := f.expected(); !after.Equal(before.Add(decimal.NewFromInt(70))) {
+		t.Fatalf("the 70 that came in isn't recorded: %s", after)
+	}
+}
+
+func TestCallStaleBalanceFlagged(t *testing.T) {
+	f := newCallFix(t)
+	var cust int64
+	if err := f.en.db.Get(&cust, `INSERT INTO customers (name, credit_limit, outstanding_balance) VALUES ($1, 0, 900) RETURNING id`, "T stale "+f.refStamp); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.en.db.Exec(`DELETE FROM customers WHERE id = $1`, cust) }) //nolint:errcheck
+	call := func(ref, saw string) ActionResult {
+		return f.send(f.call(ref, time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`), Saw: &CallSaw{CustomerID: cust, Balance: saw}}))[0]
+	}
+	if r := call("same", "900.00"); r.Status != "applied" || r.Note != "" {
+		t.Fatalf("the same balance needs no note: %+v", r)
+	}
+	r := call("stale", "500")
+	if r.Status != "applied" || !strings.Contains(r.Note, "500") || !strings.Contains(r.Note, "900") {
+		t.Fatalf("%+v", r)
+	}
+	var flagged int
+	if err := f.en.db.Get(&flagged, `SELECT s.flagged FROM pocket_sends s JOIN pocket_actions a ON a.send_id = s.id WHERE a.ref = $1`, f.ref("stale")); err != nil || flagged != 1 {
+		t.Fatalf("flagged %d, %v", flagged, err)
+	}
+}
+
+func TestCallShowsItsLabelInReview(t *testing.T) {
+	f := newCallFix(t)
+	f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`), Label: "Credit from Sunil"}))
+	var send int64
+	if err := f.en.db.Get(&send, `SELECT send_id FROM pocket_actions WHERE ref = $1`, f.ref("a")); err != nil {
+		t.Fatal(err)
+	}
+	_, admin := f.en.user("admin")
+	rec := f.en.do(http.MethodGet, fmt.Sprintf("/sends/%d", send), nil, admin, "")
+	got := decodeAs[SendDetail](t, rec)
+	if len(got.Actions) != 1 || got.Actions[0].Label != "Credit from Sunil" {
+		t.Fatalf("%d %+v", rec.Code, got)
 	}
 }
