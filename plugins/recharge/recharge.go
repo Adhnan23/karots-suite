@@ -54,6 +54,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddReadinessProvider(p.readiness)
 	reg.AddActivityContributor(plugin.ActivityContributor{Source: "recharge", List: p.store.activityRows})
 	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "recharge", Record: p.recordSale})
+	reg.AddOfflineData(plugin.OfflineData{Key: "recharge", Build: func(ctx context.Context) (any, error) { return handlers{p}.tillData(ctx) }})
 	reg.AddReturnLineHook(plugin.ReturnLineHook{Key: "recharge", Record: p.recordReturn})
 	p.routes(reg)
 	reg.AddTenderMethod(plugin.TenderMethod{Value: walletMethod, Label: "Mobile money", SettleTx: p.settleWallet})

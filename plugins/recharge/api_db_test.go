@@ -1,6 +1,7 @@
 package recharge
 
 import (
+	"context"
 	"encoding/json"
 	"net/http/httptest"
 	"strconv"
@@ -35,6 +36,7 @@ func decode[T any](t *testing.T, rec *httptest.ResponseRecorder) T {
 // safe with no expense; a count books the difference; the Float page, ledger
 // (and its CSV) and report read it back.
 func TestRechargeAPI(t *testing.T) {
+	t.Cleanup(plugin.ResetOfflineDataForTest)
 	db := freshDB(t)
 	db.Exec(`INSERT INTO units (name, abbreviation) VALUES ('Pieces', 'pcs') ON CONFLICT DO NOTHING`) //nolint:errcheck
 	var safe int64
@@ -71,6 +73,22 @@ func TestRechargeAPI(t *testing.T) {
 	}
 
 	td := decode[TillData](t, do("GET", "/till", ""))
+	// What the till reads is also what it can take with it, offline.
+	var part any
+	for _, d := range plugin.OfflineDataAll() {
+		if d.Key == "recharge" {
+			v, err := d.Build(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			part = v
+		}
+	}
+	got, _ := json.Marshal(part)
+	want, _ := json.Marshal(td)
+	if string(got) != string(want) {
+		t.Fatalf("offline part differs from the till's data:\n%s\n%s", got, want)
+	}
 	if len(td.Carriers) != 1 || len(td.Floats) != 1 || !td.Floats[0].Balance.Equal(d("1000")) || len(td.Packages) != 1 ||
 		len(td.Banks) != 1 || td.Products["cashout"] == 0 || !rateOf(td.Carriers[0].Rates, KindBillpay).Charge.Equal(d("30")) {
 		t.Fatalf("till data: %+v", td)

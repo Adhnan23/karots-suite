@@ -1,5 +1,6 @@
 import { addRoutes } from './fetch'
 import { coreRoutes } from './routes/core'
+import { rechargeRoutes } from './routes/recharge'
 
 let added = false
 
@@ -9,4 +10,5 @@ export function setupOfflineRoutes() {
   if (added) return
   added = true
   addRoutes(coreRoutes)
+  addRoutes(rechargeRoutes)
 }

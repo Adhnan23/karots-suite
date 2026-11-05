@@ -296,12 +296,12 @@ no route, network failed → the normal network error
 
 Routes: `GET /x/recharge/till`, `GET /x/recharge/sale-lines`, `POST /x/recharge/packages/quick` (queue), `POST /x/recharge/counts/drawer` (queue).
 
-- [ ] **Step 1: Write failing tests:** the part equals what `/recharge/till` answers; `till offline answers from the part`; `a waiting reload lowers the float shown`; Go `TestReloadOverFloatAfterReplay`: a reload beyond the float is `applied` and flagged; a bill payout offline sells as a payout line; commission books as on the PC.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** If the sale's `Review` path refuses a float shortfall, make `Review` take it as found, with a flag, using its existing mechanism.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens at 360px.** If the panel doesn't fit, record what's wrong and fix it in the sheet's styles from Pocket Cashier; if that can't work, ask the user.
-- [ ] **Step 6: Commit.** `feat(pocketcashier): Reload & Bills on the phone, online and off`
+- [x] **Step 1: Write failing tests:** the part equals what `/recharge/till` answers; `till offline answers from the part`; `a waiting reload lowers the float shown`; Go `TestReloadOverFloatAfterReplay`: a reload beyond the float is `applied` and flagged; a bill payout offline sells as a payout line; commission books as on the PC.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** If the sale's `Review` path refuses a float shortfall, make `Review` take it as found, with a flag, using its existing mechanism.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens at 360px.** If the panel doesn't fit, record what's wrong and fix it in the sheet's styles from Pocket Cashier; if that can't work, ask the user.
+- [x] **Step 6: Commit.** `feat(pocketcashier): Reload & Bills on the phone, online and off`
 
 ### Task 14: Print & Copy, Combos, Alternatives
 

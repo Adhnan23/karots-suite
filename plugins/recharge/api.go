@@ -108,28 +108,36 @@ type TillCarrier struct {
 }
 
 func (h handlers) till(c echo.Context) error {
-	ctx := c.Request().Context()
-	out := TillData{Carriers: []TillCarrier{}, Banks: []Bank{}, BillTypes: []string{}, Bills: []RecentBill{}}
-	cs, err := h.p.store.Carriers(ctx, false)
+	out, err := h.tillData(c.Request().Context())
 	if err != nil {
 		return err
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+// tillData is what the till's menu reads.
+func (h handlers) tillData(ctx context.Context) (*TillData, error) {
+	out := &TillData{Carriers: []TillCarrier{}, Banks: []Bank{}, BillTypes: []string{}, Bills: []RecentBill{}}
+	cs, err := h.p.store.Carriers(ctx, false)
+	if err != nil {
+		return nil, err
 	}
 	for _, cr := range cs {
 		rs, err := h.p.store.Rates(ctx, h.p.store.db, cr.ID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		out.Carriers = append(out.Carriers, TillCarrier{Carrier: cr, Rates: rs})
 	}
 	if out.Floats, err = h.p.store.Floats(ctx, h.p.store.db, false); err != nil {
-		return err
+		return nil, err
 	}
 	if out.Packages, err = h.p.store.Packages(ctx, false); err != nil {
-		return err
+		return nil, err
 	}
 	ls, err := h.p.core.Lockers.ListForCashier(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, l := range ls {
 		if l.Kind == "bank" {
@@ -141,19 +149,19 @@ func (h handlers) till(c echo.Context) error {
 			SELECT bill_type, created_at FROM recharge_bill_tx WHERE COALESCE(bill_type, '') <> ''
 			UNION ALL SELECT bill_type, created_at FROM recharge_transactions WHERE COALESCE(bill_type, '') <> '') x
 		GROUP BY bill_type) y ORDER BY at DESC LIMIT 30`); err != nil {
-		return err
+		return nil, err
 	}
 	if err := h.p.store.db.SelectContext(ctx, &out.Bills, `SELECT bill_type, ref FROM (
 		SELECT COALESCE(bill_type, '') AS bill_type, reference AS ref, max(created_at) AS at FROM (
 			SELECT bill_type, reference, created_at FROM recharge_bill_tx WHERE COALESCE(reference, '') <> '' AND type = 'billpay'
 			UNION ALL SELECT bill_type, reference, created_at FROM recharge_transactions WHERE COALESCE(reference, '') <> '' AND type = 'billpay') x
 		GROUP BY 1, 2) y ORDER BY at DESC LIMIT 200`); err != nil {
-		return err
+		return nil, err
 	}
 	if out.Products, err = h.p.store.ProductIDs(ctx); err != nil {
-		return err
+		return nil, err
 	}
-	return c.JSON(http.StatusOK, out)
+	return out, nil
 }
 
 // quickPackage: a new package turns up mid-rush — any cashier adds it with the
