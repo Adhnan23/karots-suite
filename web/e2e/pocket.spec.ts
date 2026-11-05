@@ -179,26 +179,30 @@ test.describe.serial('Pocket Cashier', () => {
   })
 
   test('the counter with the PC off: credit and a return go through the real routes when it is back', async () => {
-    const list = async () => (await (await admin.request.get('/api/v1/admin/customers?q=E2E%20Credit')).json()).items as { id: number; name: string; owed: string }[]
-    const cust = (await list()).find((c) => c.name === 'E2E Credit')!
+    // Their own customer: other specs move E2E Credit's balance in a full run.
+    const who = `Pocket Debtor ${Date.now() % 100000}`
+    const made = await admin.request.post('/api/v1/till/customers', { data: { name: who, phone: `07${Date.now() % 100000000}`, creditLimit: '0' } })
+    expect(made.ok(), await made.text()).toBe(true)
+    const cust = (await made.json()).customer as { id: number }
+    const list = async () => (await (await admin.request.get(`/api/v1/admin/customers?q=${encodeURIComponent(who)}`)).json()).items as { id: number; name: string; owed: string }[]
     expect((await admin.request.post(`/api/v1/admin/customers/${cust.id}/opening`, { data: { opening: '900', note: 'e2e' } })).ok()).toBe(true)
 
     // Wait until the phone's copy has the balance and its sales.
     await phone.getByRole('button', { name: 'Menu', exact: true }).click()
     await phone.getByRole('button', { name: 'Credit', exact: true }).click()
-    await expect(phone.getByRole('button', { name: /E2E Credit.*owes/ })).toBeVisible({ timeout: 90_000 })
+    await expect(phone.getByRole('button', { name: new RegExp(`${who}.*owes`) })).toBeVisible({ timeout: 90_000 })
     await phone.getByRole('button', { name: 'Back' }).click()
 
     await phoneCtx.setOffline(true)
     await expect(phone.getByRole('note')).toBeVisible({ timeout: 30_000 })
 
     await phone.getByRole('button', { name: 'Credit', exact: true }).click()
-    await phone.getByRole('button', { name: /E2E Credit.*owes/ }).click()
+    await phone.getByRole('button', { name: new RegExp(`${who}.*owes`) }).click()
     await phone.getByLabel('Amount').fill('300')
     await phone.getByRole('button', { name: /Collect/ }).click()
     await expect(phone.getByRole('status').filter({ hasText: /sends when the PC is back/ })).toBeVisible()
     // What waits already shows on the phone.
-    await expect(phone.getByRole('button', { name: /E2E Credit.*600\.00.*owes/ })).toBeVisible()
+    await expect(phone.getByRole('button', { name: new RegExp(`${who}.*600\\.00.*owes`) })).toBeVisible()
     await phone.getByRole('button', { name: 'Back' }).click()
 
     await phone.getByRole('button', { name: 'Returns', exact: true }).click()
@@ -211,12 +215,12 @@ test.describe.serial('Pocket Cashier', () => {
 
     await phoneCtx.setOffline(false)
     await expect.poll(async () => {
-      return Number((await list()).find((c) => c.name === 'E2E Credit')!.owed)
+      return Number((await list()).find((c) => c.name === who)!.owed)
     }, { timeout: 60_000 }).toBe(600)
     const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number }[]
     const details = await Promise.all(sends.slice(0, 5).map(async (x) => (await admin.request.get(`${API}/sends/${x.id}`)).json()))
     const calls = details.flatMap((d: { actions: { kind: string; status: string; label: string; note: string }[] }) => d.actions).filter((a) => a.kind === 'call')
-    expect(calls.map((a) => `${a.status}:${a.label.split(':')[0]}`).sort()).toEqual(expect.arrayContaining(['applied:Credit from E2E Credit']))
+    expect(calls.map((a) => `${a.status}:${a.label.split(':')[0]}`).sort()).toEqual(expect.arrayContaining([`applied:Credit from ${who}`]))
     expect(calls.some((a) => a.status === 'applied' && a.label.startsWith('Return on '))).toBe(true)
   })
 

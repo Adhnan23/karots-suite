@@ -99,7 +99,7 @@ func TestAdminIntakeRestockSetsAMissingSupplier(t *testing.T) {
 	te := newTestEnv(t)
 	te.stockTakeOn(t)
 	f := te.seedTill(t)
-	ck := te.login(t, "0770009584", "manager")
+	ck := te.login(t, devPhone(), "manager")
 	newSup := func(n string) int64 {
 		return decode[AdminSupplierRow](t, te.do(http.MethodPost, "/api/v1/admin/suppliers", SupplierRequest{Name: fmt.Sprintf("T Intake %s %d", n, time.Now().UnixNano())}, ck)).ID
 	}

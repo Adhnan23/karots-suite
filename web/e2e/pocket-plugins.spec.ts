@@ -28,6 +28,7 @@ let phone: Page
 let admin: Page
 let device = 0
 let debtorId = 0
+let drawerAtStart = 0
 let earlierSale = 0
 let earlierLine = 0
 let earlierReceipt = ''
@@ -121,6 +122,8 @@ async function finish(payExact = false) {
   await phone.getByRole('button', { name: 'New sale' }).click()
 }
 
+const drawerNow = async () => Number((await phone.evaluate(async () => (await fetch('/api/v1/till/drawer', { headers: { 'X-Ks-Device': localStorage.getItem('ks-device') ?? '' } })).json()) as { summary: { expected: string } }).summary.expected)
+
 // UI gate: SHOTS=<gate> saves each plugin screen as it is seen, at 360 px.
 const shot = async (name: string) => {
   if (!process.env.SHOTS) return
@@ -159,6 +162,8 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
       await phone.getByRole('button', { name: 'Open', exact: true }).click()
       await expect(close).toBeVisible()
     }
+    // The cashier's drawer may already hold money from another spec: the day counts from here.
+    drawerAtStart = await drawerNow()
     // A sale from before the cut, to bring back during it.
     await phone.getByRole('button', { name: 'Sell', exact: true }).click()
     await phone.getByLabel('Search or scan').fill(MED)
@@ -325,12 +330,12 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     await expect(phone.getByRole('note')).toBeHidden({ timeout: 60_000 })
     await expect(phone.getByLabel(/waiting/)).toBeHidden({ timeout: 60_000 })
 
-    const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number }[]
-    const details = await Promise.all(sends.slice(0, 5).map(async (s) => (await admin.request.get(`${API}/sends/${s.id}`)).json()))
+    const sends = await (await admin.request.get(`${API}/sends`)).json() as { id: number; phone: string }[]
+    const details = await Promise.all(sends.filter((x) => x.phone === `Plugins ${tag}`).map(async (s) => (await admin.request.get(`${API}/sends/${s.id}`)).json()))
     const actions = details.flatMap((d: { actions: { kind: string; status: string; label: string; note: string }[] }) => d.actions)
     // Only the return the PC had already done is refused, and its cash is booked.
     const refused = actions.filter((a) => a.status !== 'applied')
-    expect(refused.map((a) => a.label)).toEqual([`Return on ${earlierReceipt}`])
+    expect(refused.map((a) => a.label), JSON.stringify(actions.map((a) => `${a.kind}|${a.status}|${a.label}|${a.note}`))).toEqual([`Return on ${earlierReceipt}`])
     expect(refused[0].note).toContain('20.00 left the drawer and is booked')
     expect(actions.filter((a) => a.kind === 'sale').length).toBeGreaterThanOrEqual(6)
 
@@ -353,10 +358,9 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     expect(jobs[0].ticketNo).toMatch(/^R-\d+$/)
     expect(jobs[0].status).toBe('collected')
 
-    // The books. The drawer: 5,000 float + 40 before the cut + reload 100 + copies 120
+    // The books. The drawer: what it started with + 40 before the cut + reload 100 + copies 120
     // + combo 250 + medicine 160 + repair 1,500 + the swapped item 30 + credit 300 − the refund 20.
-    const drawer = await phone.evaluate(async () => (await fetch('/api/v1/till/drawer', { headers: { 'X-Ks-Device': localStorage.getItem('ks-device') ?? '' } })).json()) as { summary: { expected: string } }
-    expect(Number(drawer.summary.expected)).toBe(7480)
+    expect(await drawerNow() - drawerAtStart).toBe(2480)
     // Credit: 900 − 300.
     const debtors = await (await admin.request.get(`/api/v1/admin/customers?q=${DEBTOR}`)).json() as { items: { name: string; owed: string }[] }
     expect(Number(debtors.items.find((c) => c.name === DEBTOR)!.owed)).toBe(600)
