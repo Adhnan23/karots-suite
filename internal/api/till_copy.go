@@ -10,6 +10,7 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashregister"
+	"karots-suite/internal/features/conversions"
 	"karots-suite/internal/features/denominations"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/sales"
@@ -54,6 +55,11 @@ func BuildTillCopy(ctx context.Context, db *sqlx.DB) (*TillCopy, error) {
 	if err := copyMoney(ctx, db, c); err != nil {
 		return nil, err
 	}
+	packs, err := conversions.NewService(db).List(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+	c.Conversions = conversionRows(packs)
 	return c, nil
 }
 
@@ -195,6 +201,7 @@ func TillCopyVersion(ctx context.Context, db *sqlx.DB) (string, error) {
 		(SELECT md5(COALESCE(string_agg(concat_ws(':', t.id, t.selling_price, t.qty_remaining, t.expiry_date), ',' ORDER BY t.id), ''))
 			FROM stock_batches t WHERE t.qty_remaining > 0),
 		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM denominations t),
+		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM product_conversions t),
 		(SELECT md5(COALESCE(string_agg(t::text, ',' ORDER BY t.id), '')) FROM customers t),
 		(SELECT md5(COALESCE(string_agg(concat_ws(':', t.id, t.name, t.phone, t.role, t.pin_hash, t.is_active,
 			t.can_manage_credit, t.can_see_cost), ',' ORDER BY t.id), '')) FROM users t),

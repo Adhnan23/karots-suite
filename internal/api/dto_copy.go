@@ -27,6 +27,7 @@ type TillCopy struct {
 	// LockTimeoutMinutes: idle minutes before the phone locks (0 = never), as the PC.
 	LockTimeoutMinutes int  `json:"lockTimeoutMinutes"`
 	AllowContinueLast  bool `json:"allowContinueLast"` // the drawer may start from the last close's count
+	Conversions        []ConversionRow `json:"conversions"` // packs that break into units
 }
 
 // CopyProduct is a till card plus what an offline search needs: its category

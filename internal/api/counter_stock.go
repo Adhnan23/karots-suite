@@ -21,12 +21,7 @@ func (h *handlers) CounterConversions(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out := make([]ConversionRow, 0, len(rows))
-	for _, r := range rows {
-		out = append(out, ConversionRow{ID: r.ID, FromName: r.FromName, ToName: r.ToName, FromUnit: r.FromUnitAbbr,
-			ToUnit: r.ToUnitAbbr, Ratio: r.Ratio.String(), FromStock: r.FromStock.String(), ToStock: r.ToStock.String(), Note: strOr(r.Note)})
-	}
-	return c.JSON(http.StatusOK, out)
+	return c.JSON(http.StatusOK, conversionRows(rows))
 }
 
 // CounterConversionRun breaks N source units into Ratio×N target units.
@@ -61,4 +56,13 @@ func gotNote(got decimal.Decimal) string {
 		return ""
 	}
 	return " → got " + got.String()
+}
+
+func conversionRows(rows []conversions.Conversion) []ConversionRow {
+	out := make([]ConversionRow, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, ConversionRow{ID: r.ID, FromID: r.FromProductID, ToID: r.ToProductID, FromName: r.FromName, ToName: r.ToName, FromUnit: r.FromUnitAbbr,
+			ToUnit: r.ToUnitAbbr, Ratio: r.Ratio.String(), FromStock: r.FromStock.String(), ToStock: r.ToStock.String(), Note: strOr(r.Note)})
+	}
+	return out
 }

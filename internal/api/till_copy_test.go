@@ -181,3 +181,32 @@ func TestTillCopyLockAndLastCount(t *testing.T) {
 	}
 	t.Fatalf("no last count for the cashier: %+v", c.People)
 }
+
+func TestTillCopyCarriesConversions(t *testing.T) {
+	te := newTestEnv(t)
+	ctx := context.Background()
+	f := te.seedTill(t)
+	var id int64
+	if err := te.db.Get(&id, `INSERT INTO product_conversions (from_product_id, to_product_id, ratio) VALUES ($1, $2, 24) RETURNING id`, f.plainID, f.lotID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM product_conversions WHERE id = $1`, id) }) //nolint:errcheck
+	c, err := BuildTillCopy(ctx, te.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got *ConversionRow
+	for i := range c.Conversions {
+		if c.Conversions[i].ID == id {
+			got = &c.Conversions[i]
+		}
+	}
+	if got == nil || got.Ratio != "24" || got.FromID != f.plainID || got.ToID != f.lotID {
+		t.Fatalf("%+v", got)
+	}
+	v1, _ := TillCopyVersion(ctx, te.db)
+	te.db.MustExec(`UPDATE product_conversions SET ratio = 12 WHERE id = $1`, id)
+	if v2, _ := TillCopyVersion(ctx, te.db); v2 == v1 {
+		t.Fatal("a changed pack must reach the phone")
+	}
+}

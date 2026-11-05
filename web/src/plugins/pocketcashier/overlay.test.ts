@@ -33,4 +33,20 @@ describe('what waits on the phone shows in the copy', () => {
     const sale = { id: 6, owedOnSale: '0.00', lines: [] } as unknown as SaleView
     expect(saleWithOverlay(sale, [call('/api/v1/till/sales/5/return', { lines: [] })])).toBe(sale)
   })
+  it('a waiting write-off lowers the stock shown', () => {
+    const c = { customers: [], conversions: [], products: [{ id: 4, stockQty: '10' }] } as unknown as TillCopy
+    expect(withOverlay(c, [call('/api/v1/till/write-off', { productId: 4, quantity: '3' })]).products[0].stockQty).toBe('7')
+  })
+  it('a waiting convert moves stock from the pack to the units, and in the pack list', () => {
+    const c = { customers: [], products: [{ id: 4, stockQty: '5' }, { id: 5, stockQty: '2' }],
+      conversions: [{ id: 9, fromId: 4, toId: 5, ratio: '24', fromStock: '5', toStock: '2' }] } as unknown as TillCopy
+    const shown = withOverlay(c, [call('/api/v1/till/conversions/9/run', { quantity: '2', toQty: '47' })])
+    expect(shown.products.map((p) => p.stockQty)).toEqual(['3', '49'])
+    expect(shown.conversions[0]).toMatchObject({ fromStock: '3', toStock: '49' })
+  })
+  it('a convert with no count taken uses the ratio', () => {
+    const c = { customers: [], products: [{ id: 4, stockQty: '5' }, { id: 5, stockQty: '2' }],
+      conversions: [{ id: 9, fromId: 4, toId: 5, ratio: '24', fromStock: '5', toStock: '2' }] } as unknown as TillCopy
+    expect(withOverlay(c, [call('/api/v1/till/conversions/9/run', { quantity: '1' })]).products[1].stockQty).toBe('26')
+  })
 })

@@ -49,6 +49,8 @@ type ExpenseRequest struct {
 // ConversionRow is one "break a pack" recipe: 1 From = Ratio × To.
 type ConversionRow struct {
 	ID        int64  `json:"id"`
+	FromID    int64  `json:"fromId"`
+	ToID      int64  `json:"toId"`
 	FromName  string `json:"fromName"`
 	ToName    string `json:"toName"`
 	FromUnit  string `json:"fromUnit"`

@@ -5,6 +5,8 @@ import type { Action } from './store/outbox'
 import type { CallInput } from './sync'
 
 const CREDIT = /\/till\/customers\/(\d+)\/(payment|refund)$/
+const WRITE_OFF = /\/till\/write-off$/
+const CONVERT = /\/till\/conversions\/(\d+)\/run$/
 
 const callsIn = (out: Action[]) => out.filter((a) => a.kind === 'call').map((a) => a.body as CallInput)
 
@@ -18,9 +20,29 @@ export function withOverlay(copy: TillCopy, out: Action[]): TillCopy {
     const amount = num((c.body as { amount?: string }).amount)
     moved.set(Number(m[1]), (moved.get(Number(m[1])) ?? 0) + (m[2] === 'payment' ? -amount : amount))
   }
-  if (!moved.size) return copy
-  return { ...copy, customers: copy.customers.map((c) => (moved.has(c.id) ? { ...c, balance: dec(num(c.balance) + moved.get(c.id)!) } : c)) }
+  const stock = new Map<number, number>()
+  const add = (id: number, n: number) => stock.set(id, (stock.get(id) ?? 0) + n)
+  for (const c of callsIn(out)) {
+    const body = c.body as { productId?: number; quantity?: string; toQty?: string }
+    if (WRITE_OFF.test(c.path)) add(body.productId ?? 0, -num(body.quantity))
+    const m = CONVERT.exec(c.path)
+    const pack = m && copy.conversions?.find((x) => x.id === Number(m[1]))
+    if (pack) {
+      add(pack.fromId, -num(body.quantity))
+      add(pack.toId, body.toQty ? num(body.toQty) : num(body.quantity) * num(pack.ratio))
+    }
+  }
+  if (!moved.size && !stock.size) return copy
+  const moves = (id: number, was: string) => (stock.has(id) ? String(r3(num(was) + stock.get(id)!)) : was)
+  return {
+    ...copy,
+    customers: copy.customers.map((c) => (moved.has(c.id) ? { ...c, balance: dec(num(c.balance) + moved.get(c.id)!) } : c)),
+    products: stock.size ? copy.products.map((p) => ({ ...p, stockQty: moves(p.id, p.stockQty) })) : copy.products,
+    conversions: stock.size ? copy.conversions?.map((r) => ({ ...r, fromStock: moves(r.fromId, r.fromStock), toStock: moves(r.toId, r.toStock) })) : copy.conversions,
+  }
 }
+
+const r3 = (n: number) => Math.round(n * 1000) / 1000
 
 /** A sale with this phone's waiting returns taken off, valued as the server will. */
 export function saleWithOverlay(sale: SaleView, out: Action[]): SaleView {

@@ -626,6 +626,7 @@ export interface TillCopy {
    */
   lockTimeoutMinutes: number /* int */;
   allowContinueLast: boolean; // the drawer may start from the last close's count
+  conversions: ConversionRow[]; // packs that break into units
 }
 /**
  * CopyProduct is a till card plus what an offline search needs: its category
@@ -757,6 +758,8 @@ export interface ExpenseRequest extends CounterMoneyRequest {
  */
 export interface ConversionRow {
   id: number /* int64 */;
+  fromId: number /* int64 */;
+  toId: number /* int64 */;
   fromName: string;
   toName: string;
   fromUnit: string;

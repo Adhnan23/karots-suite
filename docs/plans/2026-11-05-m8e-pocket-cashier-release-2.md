@@ -227,11 +227,11 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 - Produces: `TillCopy.Conversions []ConversionRow` (the shape `/counter/conversions` answers).
 - Consumes: `sendCall`; the route `WriteOffTab.tsx` posts to, and `POST /api/v1/counter/conversions/:id/run`.
 
-- [ ] **Step 1: Write failing tests:** Go: `copy carries conversions`, and `TestTillCopyVersionChanges` covers a changed conversion. Web: `a waiting write-off lowers the stock shown`; `a waiting convert moves stock from the pack to the units`; `a write-off beyond the shown stock still saves`; `both save a call offline`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement,** following `features/counter/stock/WriteOffTab.tsx` and `ConvertTab.tsx`. A refused replay stays `failed` under What came in; no cash is involved.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens and commit.** `feat(pocketcashier): write-off and convert on the phone, online and off`
+- [x] **Step 1: Write failing tests:** Go: `copy carries conversions`, and `TestTillCopyVersionChanges` covers a changed conversion. Web: `a waiting write-off lowers the stock shown`; `a waiting convert moves stock from the pack to the units`; `a write-off beyond the shown stock still saves`; `both save a call offline`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement,** following `features/counter/stock/WriteOffTab.tsx` and `ConvertTab.tsx`. A refused replay stays `failed` under What came in; no cash is involved.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens and commit.** `feat(pocketcashier): write-off and convert on the phone, online and off`
 
 ---
 
