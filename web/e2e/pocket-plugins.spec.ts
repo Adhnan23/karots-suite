@@ -26,12 +26,17 @@ const OTHER = `PPOther${tag}`
 let ctx: BrowserContext
 let phone: Page
 let admin: Page
-let device = 0
+let floatsAtStart = 0
 let debtorId = 0
 let drawerAtStart = 0
 let earlierSale = 0
 let earlierLine = 0
 let earlierReceipt = ''
+
+const floatsNow = async () => {
+  const till = await (await admin.request.get('/api/v1/x/recharge/till')).json() as { floats: { balance: string }[] }
+  return till.floats.reduce((t, f) => t + Number(f.balance), 0)
+}
 
 async function product(name: string, price: string, stock = '50') {
   const cats = await (await admin.request.get('/api/v1/admin/categories')).json() as { id: number; name: string }[]
@@ -63,8 +68,7 @@ async function setUpPlugins() {
   await admin.getByLabel('Float on it now').fill('1000')
   await admin.getByRole('button', { name: 'Add', exact: true }).click()
   await expect(card.getByText('Shop phone')).toBeVisible()
-  const setup = await (await admin.request.get('/api/v1/x/recharge/setup')).json() as { carriers: { id: number; name: string }[]; devices: { id: number; carrierId: number }[] }
-  device = setup.devices.find((d) => d.carrierId === setup.carriers.find((c) => c.name === CARRIER)!.id)!.id
+  floatsAtStart = await floatsNow()
 
   // Print & Copy: a service priced from a grid, with paper.
   await product(PAPER, '5', '500')
@@ -345,9 +349,11 @@ test.describe.serial('Plugins on the phone with the PC down', () => {
     expect(refused[0].note).toContain('20.00 left the drawer and is booked')
     expect(actions.filter((a) => a.kind === 'sale').length).toBeGreaterThanOrEqual(6)
 
-    // Reload: the float dropped.
-    const till = await (await admin.request.get('/api/v1/x/recharge/till')).json() as { floats: { id: number; balance: string }[] }
-    expect(Number(till.floats.find((f) => f.id === device)!.balance)).toBeLessThan(1000)
+    // Reload: 100 of float went out on whichever device the panel offered first, less any
+    // commission that carrier pays back.
+    const moved = await floatsNow() - floatsAtStart
+    expect(moved).toBeLessThan(0)
+    expect(moved).toBeGreaterThanOrEqual(-100)
     // Print & Copy: the job is on the report.
     const doc = await (await admin.request.get('/api/v1/x/documents/report?preset=today')).json() as { rows: { name: string; copies: string }[] }
     expect(doc.rows.find((r) => r.name === COPY)?.copies).toBe('12')
