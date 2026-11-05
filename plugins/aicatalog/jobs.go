@@ -119,6 +119,7 @@ type JobRequest struct {
 	wide        bool    // whatever the job's record says
 	noCap       bool    // every match: the job narrows them itself
 	noHint      bool    // only products with no hint yet
+	moved       bool    // an answered product comes back if its category has changed since
 }
 
 // JobPreview is the rows to tick. Asked is the whole batch, so apply can record a
@@ -205,6 +206,8 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	case in.Filter == "skipped":
 		where += ` AND j.state IN ('skipped', 'no_answer')`
 	case in.wide:
+	case in.moved:
+		where += ` AND (j.state IS NULL OR j.category_id IS DISTINCT FROM p.category_id)`
 	default:
 		where += ` AND j.state IS NULL`
 	}

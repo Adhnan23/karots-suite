@@ -248,3 +248,30 @@ func TestFieldsScopeRecheckedAtApply(t *testing.T) {
 		t.Fatal("saved onto a product it doesn't apply to")
 	}
 }
+
+// Filled as a medicine, then moved to Parts: the new category's field is empty, so
+// the same job offers it again. A product that didn't move stays answered.
+func TestFieldsMovedProductComesBack(t *testing.T) {
+	e := fieldEnv(t, "aicatalog_fields_moved")
+	ctx := context.Background()
+	ticks := opts("generic_name", "fits_model")
+	got, _, err := fieldsSelect(ctx, e.p, JobRequest{Options: ticks, Size: 5})
+	if err != nil || len(got.Products) != 2 {
+		t.Fatalf("%+v %v", got.Products, err)
+	}
+	if _, err := e.p.applyJob(ctx, e.p.job("fields"), JobApply{State: got.State, Asked: []int64{e.panadol, e.spark}, Suggested: []int64{e.panadol, e.spark}}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if got, total, _ := fieldsSelect(ctx, e.p, JobRequest{Options: ticks, Size: 5}); total != 0 {
+		t.Fatalf("both answered: %+v", got.Products)
+	}
+	mustExec(t, e.p.store.db, nil, `UPDATE products SET category_id = $2 WHERE id = $1`, e.panadol, e.part)
+	got, total, err := fieldsSelect(ctx, e.p, JobRequest{Options: ticks, Size: 5})
+	if err != nil || total != 1 || got.Products[0].ID != e.panadol {
+		t.Fatalf("the moved product comes back: %+v %d %v", got.Products, total, err)
+	}
+	_, user, err := fieldsPromptFor(ctx, e.p, got)
+	if err != nil || !strings.Contains(user, "|fits_model") || strings.Contains(user, "|generic_name") {
+		t.Fatalf("asks for the new category's field only: %q %v", user, err)
+	}
+}

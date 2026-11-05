@@ -115,9 +115,9 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 			case suggested[id]:
 				state = "skipped"
 			}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO aicatalog_job_items (job, product_id, state)
-				SELECT $1, id, $3 FROM products WHERE id = $2
-				ON CONFLICT (job, product_id) DO UPDATE SET state = $3, updated_at = now()`, record, id, state); err != nil {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO aicatalog_job_items (job, product_id, state, category_id)
+				SELECT $1, id, $3, category_id FROM products WHERE id = $2
+				ON CONFLICT (job, product_id) DO UPDATE SET state = $3, category_id = EXCLUDED.category_id, updated_at = now()`, record, id, state); err != nil {
 				return err
 			}
 		}

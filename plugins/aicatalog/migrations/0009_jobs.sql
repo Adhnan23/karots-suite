@@ -11,6 +11,7 @@ CREATE TABLE aicatalog_job_items (
   job        TEXT   NOT NULL,
   product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   state      TEXT   NOT NULL CHECK (state IN ('applied', 'skipped', 'no_answer')),
+  category_id BIGINT, -- where it was when answered: moved, its category's fields are new to it
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (job, product_id)
 );

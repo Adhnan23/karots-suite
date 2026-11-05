@@ -119,7 +119,7 @@ func fieldsSelect(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, er
 		b.Products, _, err = selectProducts(ctx, p, b.State, in)
 		return b, len(b.Products), err
 	}
-	in.noCap = true
+	in.noCap, in.moved = true, true
 	all, _, err := selectProducts(ctx, p, b.State, in)
 	if err != nil {
 		return b, 0, err
