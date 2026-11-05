@@ -168,11 +168,11 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 
 **Interfaces:** Consumes `findSales`, `getSale`, `pending`.
 
-- [ ] **Step 1: Write failing tests:** `shows the shift's sales from the copy plus what waits on this phone`; `Print shows only when live and uses the receipt route with 80 or 58 mm`; `offline, a slip opens on screen with no Print button`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Online, also list money, debt and warranty slips from the existing routes. Offline, list sales and this phone's own waiting work: other slip kinds aren't in the copy. Mention this in the Task 17 guide text.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Screens and commit.** `feat(pocketcashier): the shift's receipts on the phone`
+- [x] **Step 1: Write failing tests:** `shows the shift's sales from the copy plus what waits on this phone`; `Print shows only when live and uses the receipt route with 80 or 58 mm`; `offline, a slip opens on screen with no Print button`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** Online, also list money, debt and warranty slips from the existing routes. Offline, list sales and this phone's own waiting work: other slip kinds aren't in the copy. Mention this in the Task 17 guide text.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Screens and commit.** `feat(pocketcashier): the shift's receipts on the phone`
 
 ### Task 7: Warranty
 
