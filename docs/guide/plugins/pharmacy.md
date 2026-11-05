@@ -9,6 +9,7 @@ Patients, prescriptions and the controlled-drug register for a pharmacy. It come
 - A **💊 Patient** panel at the till adds a script's medicines to the cart. The dispense is recorded from the sale itself, and a dose label can print.
 - **Refills due:** a call list of patients whose medicine is about to run out.
 - **Controlled-drug register:** read straight from stock movements, so it can't drift from the real stock.
+- With [AI Assistant](aicatalog.md), the prescription and controlled marks and usual doses can be suggested in bulk, for the pharmacist to check. A chatbot's answer is only a suggestion: it can miss a mark or be wrong about a dose.
 - Medicines use core [packs](../stock.md#products) (a card of 10 sold whole or loose) and [batches](../stock.md#batches-and-expiry).
 
 The admin page is under **Apps → Pharmacy** (`/admin/x/pharmacy`). A shop has this plugin only if it was built with it ([Install & Shop Builder](../install.md)).

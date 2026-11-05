@@ -28,6 +28,9 @@ quantities come from the [smart reorder levels](stock.md#smart-reorder-levels). 
 check the suppliers and make the orders: one purchase order per supplier. **Print** gives a
 paper list to take round.
 
+With [Alternatives](plugins/alternatives.md), an item whose twin still has stock is hidden as covered, here and on the till's
+Low stock tab, and a low group shows as one block with an order split across its brands. Tick **Show covered** on the till to see them.
+
 ## Purchase orders and receiving
 
 ![Purchases](../images/purchasing/purchases.jpg)

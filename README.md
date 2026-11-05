@@ -57,7 +57,7 @@ core never depends on any of them.
 | [Print & Copy](docs/guide/plugins/documents.md) | Photocopy, print, laminate and bind, priced by size × type, with extras |
 | [Alternatives](docs/guide/plugins/alternatives.md) | Interchangeable products and an in-stock swap at the till |
 | [Clearance](docs/guide/plugins/clearance.md) | Margin-safe markdowns for slow and expiring stock |
-| [AI Assistant](docs/guide/plugins/aicatalog.md) | Tidy the catalogue with any free chatbot, no API key |
+| [AI Assistant](docs/guide/plugins/aicatalog.md) | Identify and organise every product with any free chatbot, no API key; searchable hints at the till |
 | [Product Plus](docs/guide/plugins/productplus.md) | Extra product fields (brand, generic name, guarantee…) |
 | [Combos](docs/guide/plugins/combos.md) | Bundles and buy-3-get-1 deals the till spots by itself |
 | [Customer requests](docs/guide/plugins/requests.md) | Items customers asked for, and whom to call once they're in |

@@ -51,7 +51,8 @@ flowchart TB
 Registered with `reg.Add…`: `TenderMethod`, `SaleLineHook`, `ReturnLineHook`, `ProductMerger`,
 `CategoryMerger`, `ProductExtras`, `ProductSearchContributor`, `ProductDetailContributor`,
 `ProductBadgeProvider`, `ProductMetaProvider`, `ProductLabelFieldProvider`,
-`ProductSheetColumns`, `ProductReorderAnnotator`, `ProductSaleSuggestionProvider`,
+`ProductSheetColumns`, `ProductReorderAnnotator`, `ProductSaleSuggestionProvider`, `ProductTillLineProvider`,
+`ProductGrouper` and `ProductAttributeSet` (a plugin's groups and per-product values, offered to whoever asks),
 `MoneyLocationProvider`, `ExpenseOwner`, `PLIncome`, `ActivityContributor`, `DataGroup`,
 `ReadinessProvider`, `LogoutGuard`, `TakeoverGuard`. Also `reg.OneDevicePerPerson()` (one person, one device:
 signing in elsewhere moves them and parks the old device's cart in Held) and `reg.AddListener` (a plugin's own

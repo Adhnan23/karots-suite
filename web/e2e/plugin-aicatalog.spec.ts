@@ -246,6 +246,7 @@ test.describe('jobs that come with other plugins', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
     if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/jobs-360.png`, fullPage: true })
     await page.goto('/admin/x/aicatalog/jobs/identify')
+    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
     if (process.env.SHOTS) await page.screenshot({ path: `shots/${process.env.SHOTS}/job-360.png`, fullPage: true })
   })

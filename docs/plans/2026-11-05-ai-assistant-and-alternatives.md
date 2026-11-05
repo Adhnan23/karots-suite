@@ -383,7 +383,7 @@
 **Files:**
 - Modify: `docs/guide/plugins/aicatalog.md`, `alternatives.md`, `combos.md`, `pharmacy.md`, `productplus.md`, `docs/guide/stock.md`, `docs/guide/purchasing.md`, `web/docs-shots/shots.spec.ts`, `web/e2e/shot-prep-aicatalog.ts`, `web/e2e/shot-prep-alternatives.ts`, Demo Room gens if a shot needs hints, `README.md` if headline
 
-- [ ] **Step 1:** Write the guides in the user's plain style, including the warning on Rx and doses and that hints are hints.
+- [x] **Step 1:** Write the guides in the user's plain style, including the warning on Rx and doses and that hints are hints.
 - [ ] **Step 2:** Add shots for the Jobs tab, a low-stock group block and a hint at the till, filling empty states first. Run `make docs-shots` and review the images.
 - [ ] **Step 3:** Run `go test ./internal/docscheck`. Expected: PASS. No price or legal change.
 - [ ] **Step 4: Commit** `docs: AI Assistant jobs, hints, group levels, packs on create`
