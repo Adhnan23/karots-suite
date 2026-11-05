@@ -77,6 +77,16 @@ func (en *env) user(role string) (int64, *http.Cookie) {
 	return u.ID, &http.Cookie{Name: middleware.CookieName, Value: tok}
 }
 
+// doHeader sends a bare GET with the phone secret and one more header.
+func (en *env) doHeader(method, path, phone, k, v string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(method, "/api/v1/x/pocketcashier"+path, nil)
+	req.Header.Set(phoneHeader, phone)
+	req.Header.Set(k, v)
+	rec := httptest.NewRecorder()
+	en.e.ServeHTTP(rec, req)
+	return rec
+}
+
 // do sends a JSON request with optional cookie and phone secret.
 func (en *env) do(method, path string, body any, ck *http.Cookie, phone string) *httptest.ResponseRecorder {
 	var buf bytes.Buffer

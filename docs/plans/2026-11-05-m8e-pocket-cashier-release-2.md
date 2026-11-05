@@ -247,12 +247,12 @@ no such row or no id → fail this action: "depends on <label of the parent>, wh
 - Produces: `plugin.OfflineData{Key string; Build func(ctx context.Context) (any, error)}`; `(*Registry).AddOfflineData(d OfflineData)`; `plugin.OfflineDataAll() []OfflineData`.
 - Produces route: `GET /pocketcashier/parts`, behind `h.phoneAuth`, with ETag = a hash of the JSON; returns `{ "<key>": data }`.
 
-- [ ] **Step 1: Write failing tests:** `TestPartsHoldsWhatPluginsDeclare`; `TestPartsNotModified` (same ETag → 304); `TestPartsNeedPhoneKey`; `one part failing returns 500, so the phone keeps its last good parts`.
-- [ ] **Step 2: Run them.** Expected: FAIL.
-- [ ] **Step 3: Implement.** Follow the `hook[T]` pattern in `internal/plugin/hooks_attention.go`.
-- [ ] **Step 4: Run them.** Expected: PASS.
-- [ ] **Step 5: Update `AGENTS.md`:** a plugin may declare its offline data with `AddOfflineData`; its logic doesn't change and it never mentions Pocket Cashier. Run `make check-core`. Expected: PASS.
-- [ ] **Step 6: Commit.** `feat(plugin): a generic hook for what a plugin needs offline`
+- [x] **Step 1: Write failing tests:** `TestPartsHoldsWhatPluginsDeclare`; `TestPartsNotModified` (same ETag → 304); `TestPartsNeedPhoneKey`; `one part failing returns 500, so the phone keeps its last good parts`.
+- [x] **Step 2: Run them.** Expected: FAIL.
+- [x] **Step 3: Implement.** Follow the `hook[T]` pattern in `internal/plugin/hooks_attention.go`.
+- [x] **Step 4: Run them.** Expected: PASS.
+- [x] **Step 5: Update `AGENTS.md`:** a plugin may declare its offline data with `AddOfflineData`; its logic doesn't change and it never mentions Pocket Cashier. Run `make check-core`. Expected: PASS.
+- [x] **Step 6: Commit.** `feat(plugin): a generic hook for what a plugin needs offline`
 
 ### Task 12: Plugin screens run on the phone
 

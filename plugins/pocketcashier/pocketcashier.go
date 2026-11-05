@@ -61,6 +61,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	pub.GET("/pocketcashier/moved", h.moved, h.phoneAuth)
 	pub.GET("/pocketcashier/copy", h.copyFor, h.phoneAuth)
 	pub.GET("/pocketcashier/recent", h.recent, h.phoneAuth)
+	pub.GET("/pocketcashier/parts", h.parts, h.phoneAuth)
 	pub.POST("/pocketcashier/feed-ticket", h.feedTicket, h.phoneAuth)
 	pub.GET("/pocketcashier/feed", h.feed, h.feedAuth)
 	pub.POST("/pocketcashier/actions", h.actions, h.phoneAuth)

@@ -26,7 +26,9 @@ shipped as **one static binary**.
 - **Pocket Cashier adapts to the other plugins, from its own side.** The phone app (`plugins/pocketcashier`,
   `web/src/plugins/pocketcashier`) picks up whatever cashier-side features the compiled-in plugins register, through
   the same generic slots and hooks the desktop till uses. When a new plugin (or a new till feature) should work on the
-  phone, the change goes **in Pocket Cashier**: never in that plugin, and never a core change made for the phone. Today
+  phone, the change goes **in Pocket Cashier**: never in that plugin, and never a core change made for the phone. The one
+  exception (user, 2026-11-05): a plugin may declare what its till screens read offline with `reg.AddOfflineData`; its logic
+  doesn't change and it never mentions Pocket Cashier. Today
   it uses plugin payment methods (`slots.tillTenders`; `offline: true` = also from the copy) and leaves out products a
   plugin menu claims (`tillMenu.claims`) or unpriced services (`catalog.ts` `sellable`); plugin till menus, tabs and
   cart hints on the phone are release 2.
