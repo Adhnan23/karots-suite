@@ -28,16 +28,15 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-08T08:00:35Z",
-        "commit": "6e147db",
-        "version": "2026.11.08.1330",
-        "kind": "release",
-        "notes": "• A lot's expiry can be fixed (POST /admin/stock/batches/:id/expiry), for the setup app"
+        "at": "2026-11-08T08:18:38Z",
+        "commit": "fc58fdc",
+        "version": "2026.11.08.1348",
+        "kind": "release"
       },
       "published": {
-        "version": "2026.11.08.1330",
-        "commit": "6e147db",
-        "at": "2026-11-08T08:01:43Z"
+        "version": "2026.11.08.1348",
+        "commit": "fc58fdc",
+        "at": "2026-11-08T08:21:00Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
