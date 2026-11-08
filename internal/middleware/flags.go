@@ -37,6 +37,9 @@ type UserFlags struct {
 	// SendsToCashier marks a sales person: a cashier who prepares carts and sends
 	// them to the cashier, and never handles money (api/sales_person.go).
 	SendsToCashier bool
+	// CanUseShelf lets a cashier or sales person use Karots Shelf, the shop staff's
+	// product app (admins and managers always may: MayUseShelf).
+	CanUseShelf bool
 	// IsSystem marks the hidden system/support account. It gates vendor-only
 	// maintenance surfaces (e.g. the locked appearance panel) that not even the
 	// shop admin may reach.
@@ -69,6 +72,7 @@ const ctxCanSeeCost = "can_see_cost"
 
 const ctxCanSeeLowStock = "can_see_low_stock"
 const ctxSendsToCashier = "sends_to_cashier"
+const ctxCanUseShelf = "can_use_shelf"
 
 // CanHandleSuppliers reports the flag for the current request. Admins and
 // managers are NOT covered here — this is the raw per-user flag.
@@ -133,6 +137,18 @@ func SendsToCashier(c echo.Context) bool {
 func CanSeeLowStock(c echo.Context) bool {
 	b, _ := c.Get(ctxCanSeeLowStock).(bool)
 	return b
+}
+
+// CanUseShelf reports the raw per-user Karots Shelf flag for the current request.
+func CanUseShelf(c echo.Context) bool {
+	b, _ := c.Get(ctxCanUseShelf).(bool)
+	return b
+}
+
+// MayUseShelf is the full rule: an admin or manager always may; a cashier (or
+// sales person) only with the flag.
+func MayUseShelf(role string, flag bool) bool {
+	return role == "admin" || role == "manager" || flag
 }
 
 // MaySeeLowStock is the full rule: an admin or manager always may; a cashier

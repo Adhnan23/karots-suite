@@ -107,6 +107,7 @@ type StaffUser struct {
 	CanSeeCost         bool   `json:"canSeeCost"`
 	CanSeeLowStock     bool   `json:"canSeeLowStock"`
 	SendsToCashier     bool   `json:"sendsToCashier"`
+	CanUseShelf        bool   `json:"canUseShelf"` // Karots Shelf (cashier / sales person; admin and manager always)
 	Since              string `json:"since"`
 }
 
@@ -123,6 +124,7 @@ type StaffRequest struct {
 	CanSeeCost         bool   `json:"canSeeCost"`
 	CanSeeLowStock     bool   `json:"canSeeLowStock"`
 	SendsToCashier     bool   `json:"sendsToCashier"`
+	CanUseShelf        bool   `json:"canUseShelf"` // Karots Shelf (cashier / sales person; admin and manager always)
 }
 
 // PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and

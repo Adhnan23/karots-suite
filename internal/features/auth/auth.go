@@ -34,6 +34,8 @@ type User struct {
 	CanSeeLowStock bool      `db:"can_see_low_stock" json:"can_see_low_stock"`
 	// SendsToCashier makes a cashier a sales person: no money, carts go to the cashier.
 	SendsToCashier bool `db:"sends_to_cashier" json:"sends_to_cashier"`
+	// CanUseShelf lets a cashier or sales person use Karots Shelf (admins and managers always).
+	CanUseShelf bool      `db:"can_use_shelf" json:"can_use_shelf"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 	// The device they are signed in on now, when one person one device is on.
 	ActiveDevice      *string    `db:"active_device"       json:"-"`
@@ -84,6 +86,7 @@ type CreateUserInput struct {
 	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
 	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
 	SendsToCashier string `json:"sends_to_cashier" form:"sends_to_cashier" validate:"omitempty"`
+	CanUseShelf    string `json:"can_use_shelf" form:"can_use_shelf" validate:"omitempty"`
 }
 
 // UpdateUserInput edits a user's profile/role and optionally resets the PIN
@@ -106,6 +109,7 @@ type UpdateUserInput struct {
 	// CanSeeLowStock arrives as an HTML checkbox — see CanHandleSuppliers.
 	CanSeeLowStock string `json:"can_see_low_stock" form:"can_see_low_stock" validate:"omitempty"`
 	SendsToCashier string `json:"sends_to_cashier" form:"sends_to_cashier" validate:"omitempty"`
+	CanUseShelf    string `json:"can_use_shelf" form:"can_use_shelf" validate:"omitempty"`
 }
 
 // checkboxOn reads an HTML checkbox value. Browsers omit unticked boxes and

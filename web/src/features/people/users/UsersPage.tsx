@@ -24,11 +24,12 @@ const ROLES: { v: Role | 'sales'; label: string; what: string }[] = [
   { v: 'manager', label: 'Manager', what: 'Till plus the back office — stock, purchasing, customers.' },
   { v: 'admin', label: 'Admin', what: 'Everything, including staff logins and settings.' },
 ]
-const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'canSeeLowStock'; label: string; hint: string }[] = [
+const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'canSeeLowStock' | 'canUseShelf'; label: string; hint: string }[] = [
   { k: 'canHandleSuppliers', label: 'Counter operations', hint: 'Pay suppliers, take in deliveries, place orders and record expenses at the till. They will see cost prices.' },
   { k: 'canManageCredit', label: 'Manage credit at the till', hint: "Approve a credit sale over a customer's limit and raise a limit." },
   { k: 'canSeeCost', label: 'See product cost at the till', hint: "The ⓘ on a till card shows cost and margin — handy for deciding a discount." },
   { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. To place the orders as well they need the first permission above too.' },
+  { k: 'canUseShelf', label: 'Can use Karots Shelf', hint: 'Add and change products from the Karots Shelf phone app, during setup. Untick when setup is done.' },
 ]
 
 /** The Role choice: a sales person is a cashier who sends to the cashier. */
@@ -85,7 +86,7 @@ function Live({ r }: { r?: PresenceRow }) {
 function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose: () => void }) {
   const qc = useQueryClient()
   const [f, setF] = useState<StaffRequest>({ name: u?.name ?? '', phone: u?.phone ?? '', role: u?.role ?? 'cashier', pin: '', receiptPrinter: u?.receiptPrinter ?? '',
-    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false, canSeeLowStock: u?.canSeeLowStock ?? false, sendsToCashier: u?.sendsToCashier ?? false })
+    canHandleSuppliers: u?.canHandleSuppliers ?? false, canManageCredit: u?.canManageCredit ?? false, canSeeCost: u?.canSeeCost ?? false, canSeeLowStock: u?.canSeeLowStock ?? false, sendsToCashier: u?.sendsToCashier ?? false, canUseShelf: u?.canUseShelf ?? false })
   const [busy, setBusy] = useState(false)
   const up = (patch: Partial<StaffRequest>) => setF({ ...f, ...patch })
   const done = (msg: string) => { toast.success(msg); void qc.invalidateQueries({ queryKey: ['admin', 'users'] }); onClose() }
@@ -130,7 +131,7 @@ function UserForm({ u, self, onClose }: { u?: StaffUser; self: boolean; onClose:
         <input aria-label="PIN" name="ks-npn" type="text" inputMode="numeric" autoComplete="off" maxLength={6} value={f.pin} onChange={(e) => up({ pin: e.target.value.replace(/\D/g, '') })}
           style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties} className={cn(INPUT, 'tracking-[0.3em]')} placeholder={u ? 'unchanged' : '••••'} />
       </Field>
-      {f.role === 'cashier' && PERMS.filter((p) => !f.sendsToCashier || p.k === 'canSeeCost' || p.k === 'canSeeLowStock').map((p) => <Toggle key={p.k} label={p.label} hint={p.hint} checked={f[p.k]} onChange={(v) => up({ [p.k]: v })} />)}
+      {f.role === 'cashier' && PERMS.filter((p) => !f.sendsToCashier || p.k === 'canSeeCost' || p.k === 'canSeeLowStock' || p.k === 'canUseShelf').map((p) => <Toggle key={p.k} label={p.label} hint={p.hint} checked={f[p.k]} onChange={(v) => up({ [p.k]: v })} />)}
       <Field label="Receipt printer (this person's counter)" hint="Blank = the shop's printer. For a second counter, e.g. tcp://192.168.1.50:9100.">
         <input aria-label="Receipt printer" value={f.receiptPrinter} onChange={(e) => up({ receiptPrinter: e.target.value })} className={INPUT} placeholder="Shop default" />
       </Field>

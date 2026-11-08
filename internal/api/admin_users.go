@@ -26,7 +26,7 @@ func (h *handlers) registerAdminUsers(g *echo.Group) {
 
 func staffUser(u auth.User) StaffUser {
 	return StaffUser{ID: u.ID, Name: u.Name, Phone: strOr(u.Phone), Role: u.Role, Active: u.IsActive, MustChangePin: u.MustChangePin,
-		ReceiptPrinter: u.ReceiptPrinter, CanHandleSuppliers: u.CanHandleSuppliers, CanManageCredit: u.CanManageCredit, CanSeeCost: u.CanSeeCost, CanSeeLowStock: u.CanSeeLowStock, SendsToCashier: u.SendsToCashier,
+		ReceiptPrinter: u.ReceiptPrinter, CanHandleSuppliers: u.CanHandleSuppliers, CanManageCredit: u.CanManageCredit, CanSeeCost: u.CanSeeCost, CanSeeLowStock: u.CanSeeLowStock, SendsToCashier: u.SendsToCashier, CanUseShelf: u.CanUseShelf,
 		Since: u.CreatedAt.Format("2006-01-02")}
 }
 
@@ -64,7 +64,7 @@ func (h *handlers) AdminUserCreate(c echo.Context) error {
 	}
 	salesPerson(&req)
 	in := auth.CreateUserInput{Name: strings.TrimSpace(req.Name), Phone: strings.TrimSpace(req.Phone), Role: req.Role, PIN: strings.TrimSpace(req.Pin),
-		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier)}
+		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier), CanUseShelf: onOff(req.CanUseShelf)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (h *handlers) AdminUserUpdate(c echo.Context) error {
 		}
 	}
 	in := auth.UpdateUserInput{Name: strings.TrimSpace(req.Name), Phone: strings.TrimSpace(req.Phone), Role: req.Role, PIN: strings.TrimSpace(req.Pin),
-		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier)}
+		ReceiptPrinter: strings.TrimSpace(req.ReceiptPrinter), CanHandleSuppliers: onOff(req.CanHandleSuppliers), CanManageCredit: onOff(req.CanManageCredit), CanSeeCost: onOff(req.CanSeeCost), CanSeeLowStock: onOff(req.CanSeeLowStock), SendsToCashier: onOff(req.SendsToCashier), CanUseShelf: onOff(req.CanUseShelf)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}

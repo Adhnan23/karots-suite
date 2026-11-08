@@ -51,6 +51,7 @@ type Flags struct {
 	CanSeeLowStock     bool `json:"canSeeLowStock"` // the raw flag; MaySeeLowStock adds admin/manager
 	CanExitKiosk       bool `json:"canExitKiosk"`
 	IsSystem           bool `json:"isSystem"`
+	MayUseShelf        bool `json:"mayUseShelf"` // Karots Shelf: admin / manager, or the tick
 }
 
 // Appearance is the system-user-locked look. BrandColor / Radius are the legacy

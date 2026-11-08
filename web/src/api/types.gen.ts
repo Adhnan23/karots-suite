@@ -59,6 +59,7 @@ export interface Flags {
   canSeeLowStock: boolean; // the raw flag; MaySeeLowStock adds admin/manager
   canExitKiosk: boolean;
   isSystem: boolean;
+  mayUseShelf: boolean; // Karots Shelf: admin / manager, or the tick
 }
 /**
  * Appearance is the system-user-locked look. BrandColor / Radius are the legacy
@@ -1937,6 +1938,7 @@ export interface StaffUser {
   canSeeCost: boolean;
   canSeeLowStock: boolean;
   sendsToCashier: boolean;
+  canUseShelf: boolean; // Karots Shelf (cashier / sales person; admin and manager always)
   since: string;
 }
 /**
@@ -1954,6 +1956,7 @@ export interface StaffRequest {
   canSeeCost: boolean;
   canSeeLowStock: boolean;
   sendsToCashier: boolean;
+  canUseShelf: boolean; // Karots Shelf (cashier / sales person; admin and manager always)
 }
 /**
  * PresenceBeat is a signed-in screen's heartbeat (every 20 s, on route change and

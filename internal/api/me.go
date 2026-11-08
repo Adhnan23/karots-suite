@@ -45,6 +45,7 @@ func (h *handlers) Me(c echo.Context) error {
 			CanSeeLowStock:     middleware.CanSeeLowStock(c),
 			CanExitKiosk:       middleware.CanExitKioskCtx(ctx),
 			IsSystem:           middleware.IsSystemUserCtx(ctx),
+			MayUseShelf:        middleware.MayUseShelf(middleware.CurrentRole(c), middleware.CanUseShelf(c)),
 		},
 		Locked:        middleware.IsLocked(c),
 		MovedTo:       movedTo(c),
