@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -215,7 +216,14 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 	if err := extraCells(c, xs, ids, out); err != nil {
 		return err
 	}
-	return writeSheet(c, "products", productSheetHeader(withDisabled, xs), out)
+	header := productSheetHeader(withDisabled, xs)
+	if c.QueryParam("ids") == "1" { // the setup app links rows to their products
+		header = append(header, "id")
+		for i, id := range ids {
+			out[i] = append(out[i], strconv.FormatInt(id, 10))
+		}
+	}
+	return writeSheet(c, "products", header, out)
 }
 
 var productLabels = map[string]string{"cost_price": "cost price", "selling_price": "selling price",

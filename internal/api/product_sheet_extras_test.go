@@ -57,7 +57,9 @@ func TestProductSheetOptions(t *testing.T) {
 		te.db.Exec(`DELETE FROM products WHERE name LIKE $1`, tag+"%")   //nolint:errcheck
 		te.db.Exec(`DELETE FROM categories WHERE name LIKE $1`, tag+"%") //nolint:errcheck
 	})
-	export := func(qs string) string { return te.do(http.MethodGet, "/api/v1/admin/products/export"+qs, nil, ck).Body.String() }
+	export := func(qs string) string {
+		return te.do(http.MethodGet, "/api/v1/admin/products/export"+qs, nil, ck).Body.String()
+	}
 	header := func(body string) string { return strings.SplitN(body, "\n", 2)[0] }
 	line := func(body, name string) string {
 		for _, l := range strings.Split(body, "\n") {
@@ -92,7 +94,7 @@ func TestProductSheetOptions(t *testing.T) {
 	res := imp("", header(all)+"\n"+line(all, tag+" Off")+"\n")
 	var n int
 	var active bool
-	te.db.Get(&n, `SELECT count(*) FROM products WHERE name=$1`, tag+" Off")              //nolint:errcheck
+	te.db.Get(&n, `SELECT count(*) FROM products WHERE name=$1`, tag+" Off")               //nolint:errcheck
 	te.db.Get(&active, `SELECT is_active FROM products WHERE name=$1 LIMIT 1`, tag+" Off") //nolint:errcheck
 	if res.Updated != 1 || n != 1 || active {
 		t.Fatalf("re-import of a disabled row: %+v, %d rows, active %v", res, n, active)
@@ -144,5 +146,26 @@ func TestProductSheetNameTaken(t *testing.T) {
 		if got := ProductSheetNameTaken(name); got != want {
 			t.Errorf("%q: got %v, want %v", name, got, want)
 		}
+	}
+}
+
+// The setup app asks for each row's product id (?ids=1, last column); the default
+// export stays without it.
+func TestProductExportIDs(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009535", "manager")
+	export := func(qs string) string {
+		return te.do(http.MethodGet, "/api/v1/admin/products/export"+qs, nil, ck).Body.String()
+	}
+	if h := strings.SplitN(export("?format=csv"), "\n", 2)[0]; strings.HasSuffix(strings.TrimSpace(h), ",id") {
+		t.Fatalf("id in the default export: %s", h)
+	}
+	body := export("?format=csv&ids=1")
+	if h := strings.TrimSpace(strings.SplitN(body, "\n", 2)[0]); !strings.HasSuffix(h, ",id") {
+		t.Fatalf("no id column: %s", h)
+	}
+	if !strings.Contains(body, fmt.Sprintf(",%d\n", f.plainID)) && !strings.Contains(body, fmt.Sprintf(",%d\r\n", f.plainID)) {
+		t.Fatalf("no row ends with the product's id %d", f.plainID)
 	}
 }
