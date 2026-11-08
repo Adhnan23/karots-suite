@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-08T06:49:49Z",
-        "commit": "b5a1e54",
-        "version": "2026.11.08.1219",
+        "at": "2026-11-08T08:00:35Z",
+        "commit": "6e147db",
+        "version": "2026.11.08.1330",
         "kind": "release",
-        "notes": "• The supplier is searched for, not scrolled through (product form and intake)\n• Products export can carry each row's id (?ids=1) for the setup app\n• Every product's packs in one call (for the setup app)"
+        "notes": "• A lot's expiry can be fixed (POST /admin/stock/batches/:id/expiry), for the setup app"
       },
       "published": {
-        "version": "2026.11.08.1219",
-        "commit": "b5a1e54",
-        "at": "2026-11-08T06:51:38Z"
+        "version": "2026.11.08.1330",
+        "commit": "6e147db",
+        "at": "2026-11-08T08:01:43Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
