@@ -43,6 +43,7 @@ func (h *handlers) bindLogin(c echo.Context) (auth.LoginInput, string, error) {
 	if err := c.Validate(&in); err != nil {
 		return in, "", apperr.Validation("Enter a valid phone number and 4–6 digit PIN")
 	}
+	c.Set(loginAppKey, req.App)
 	return in, req.DeviceLabel, nil
 }
 
@@ -51,12 +52,24 @@ func (h *handlers) Login(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	shelf := c.Get(loginAppKey) == shelfApp
+	if shelf {
+		u, err := h.d.Auth.VerifyCredentials(c.Request().Context(), in)
+		if err != nil {
+			return err
+		}
+		if !middleware.MayUseShelf(u.Role, u.CanUseShelf) {
+			return shelfNoAccess()
+		}
+	}
 	pair, err := h.d.Auth.Login(c.Request().Context(), in)
 	if err != nil {
 		return err
 	}
-	if err := h.takeDevice(c, pair.User.ID, label); err != nil {
-		return err
+	if !shelf {
+		if err := h.takeDevice(c, pair.User.ID, label); err != nil {
+			return err
+		}
 	}
 	h.setCookie(c, pair.AccessToken)
 	return c.JSON(http.StatusOK, LoginResponse{User: SessionUser{ID: pair.User.ID, Name: pair.User.Name, Role: pair.User.Role, SendsToCashier: pair.User.SendsToCashier}})

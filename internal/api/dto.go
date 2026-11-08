@@ -17,6 +17,9 @@ type LoginRequest struct {
 	// DeviceLabel names this device for one person one device ("Phone 2");
 	// "" = named from its browser.
 	DeviceLabel string `json:"deviceLabel,omitempty"`
+	// App is "shelf" for Karots Shelf: only a person who may use it signs in,
+	// and the sign-in never takes their one device (a till stays where it is).
+	App string `json:"app,omitempty"`
 }
 
 type LoginResponse struct {

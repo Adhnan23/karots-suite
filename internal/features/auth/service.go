@@ -96,7 +96,7 @@ func (s *Service) VerifyCredentials(ctx context.Context, in LoginInput) (*UserPu
 	if !s.checkPIN(u, in.PIN) {
 		return nil, apperr.Unauthorized("invalid credentials")
 	}
-	return &UserPublic{ID: u.ID, Name: u.Name, Role: u.Role}, nil
+	return &UserPublic{ID: u.ID, Name: u.Name, Role: u.Role, CanUseShelf: u.CanUseShelf}, nil
 }
 
 func (s *Service) CreateUser(ctx context.Context, in CreateUserInput) (*User, error) {

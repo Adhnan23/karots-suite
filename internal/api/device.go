@@ -20,7 +20,7 @@ import (
 // this request comes from their device (or the rule is off).
 func movedTo(c echo.Context) string {
 	ctx := c.Request().Context()
-	if !plugin.OneDevice() || middleware.IsSystemUserCtx(ctx) {
+	if !plugin.OneDevice() || middleware.IsSystemUserCtx(ctx) || shelfRequest(c) {
 		return ""
 	}
 	dev, label := middleware.ActiveDeviceCtx(ctx)

@@ -50,6 +50,8 @@ type UserPublic struct {
 	Role string `db:"role" json:"role"`
 	// SendsToCashier: a sales person.
 	SendsToCashier bool `db:"sends_to_cashier" json:"sends_to_cashier"`
+	// CanUseShelf: the raw Karots Shelf flag (VerifyCredentials fills it).
+	CanUseShelf bool `db:"can_use_shelf" json:"-"`
 }
 
 type RefreshToken struct {
