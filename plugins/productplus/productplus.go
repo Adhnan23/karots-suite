@@ -36,6 +36,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	h := handlers{p}
 	a := reg.Admin() // /api/v1/x — admin + manager
 	a.GET("/productplus/fields", h.fields)
+	reg.AllowShelf("GET", "/productplus/fields") // Karots Shelf reads the fields to fill them
 	a.POST("/productplus/fields", h.create)
 	a.PUT("/productplus/fields/:id", h.update)
 	a.GET("/productplus/fields/:id/impact", h.impact)

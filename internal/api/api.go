@@ -70,7 +70,7 @@ func Register(e *echo.Echo, d Deps) {
 	h.registerAdmin(v1)
 	h.registerCheques(v1.Group("/cheques", h.protected...))
 	if d.MountPlugins != nil {
-		admin := slices.Concat(h.protected, []echo.MiddlewareFunc{middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)})
+		admin := slices.Concat(h.protected, []echo.MiddlewareFunc{adminOrShelf})
 		d.MountPlugins(v1.Group("/x"), v1.Group("/x", h.protected...), v1.Group("/x", admin...))
 	}
 

@@ -58,6 +58,8 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 	a.POST("/aicatalog/settings/models", h.models)
 	a.POST("/aicatalog/settings/test", h.test)
 	a.POST("/aicatalog/identify", h.identify)
+	reg.AllowShelf("GET", "/aicatalog/settings") // Karots Shelf's Identify follows the shop's settings
+	reg.AllowShelf("POST", "/aicatalog/identify")
 	a.POST("/aicatalog/category", h.category)
 	h.cleanupRoutes(a)
 	h.hintRoutes(a)
