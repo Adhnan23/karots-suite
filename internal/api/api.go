@@ -51,7 +51,7 @@ func Register(e *echo.Echo, d Deps) {
 	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
 	h.machines = printmachines.NewService(d.DB)
 	printing.SetMachineSender(h.machines.Send)
-	h.protected = []echo.MiddlewareFunc{jwt, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney, h.machinePrinters}
+	h.protected = []echo.MiddlewareFunc{jwt, shelfGate, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney, h.machinePrinters}
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/auth/login-info", h.LoginInfo)

@@ -43,6 +43,17 @@ func (s *Service) ReissueLocked(claims *middleware.Claims, locked bool) (string,
 	return tok.SignedString(s.secret)
 }
 
+// WithApp re-signs an access token naming the app it was signed in for
+// (Karots Shelf), so the server, not a header, knows a Shelf session.
+func (s *Service) WithApp(access, app string) (string, error) {
+	var c middleware.Claims
+	if _, err := jwt.ParseWithClaims(access, &c, func(*jwt.Token) (any, error) { return s.secret, nil }); err != nil {
+		return "", err
+	}
+	c.App = app
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(s.secret)
+}
+
 // newRefreshToken returns a high-entropy raw token (given to the client) and
 // its SHA-256 hash (stored in the DB).
 func newRefreshToken() (raw, hash string, err error) {

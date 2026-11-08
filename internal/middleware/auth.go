@@ -32,6 +32,7 @@ const (
 	ctxName          = "user_name"
 	ctxMustChangePin = "must_change_pin"
 	ctxLocked        = "locked"
+	ctxApp           = "token_app"
 
 	// CookieName is the httpOnly cookie that carries the access token for the
 	// server-rendered UI.
@@ -46,6 +47,9 @@ type Claims struct {
 	Name          string `json:"name"`
 	MustChangePin bool   `json:"mcp,omitempty"`
 	Locked        bool   `json:"lck,omitempty"`
+	// App names the app the session was signed in for ("shelf" = Karots Shelf,
+	// held to its own routes); "" for the browser.
+	App string `json:"app,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -90,6 +94,7 @@ func JWTAuth(secret string) echo.MiddlewareFunc {
 			c.Set(ctxName, claims.Name)
 			c.Set(ctxMustChangePin, claims.MustChangePin)
 			c.Set(ctxLocked, claims.Locked)
+			c.Set(ctxApp, claims.App)
 			c.Set(ctxCanSuppliers, flags.CanHandleSuppliers)
 			c.Set(ctxCanManageCredit, flags.CanManageCredit)
 			c.Set(ctxCanSeeCost, flags.CanSeeCost)
@@ -191,6 +196,12 @@ func RequirePinChosen() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+// TokenApp is the app the session's token was signed in for ("" = the browser).
+func TokenApp(c echo.Context) string {
+	a, _ := c.Get(ctxApp).(string)
+	return a
 }
 
 // IsLocked reports whether the current session is locked (screen lock, NOT a

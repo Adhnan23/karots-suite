@@ -162,6 +162,9 @@ func (h *handlers) AdminSupplierCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if fromShelf(c) {
+		in.OpeningBalance = "0" // Karots Shelf adds who supplies what, never money owed
+	}
 	s, err := suppliers.NewService(h.d.DB).Create(c.Request().Context(), in)
 	if err != nil {
 		return err

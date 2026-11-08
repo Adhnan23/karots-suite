@@ -54,8 +54,31 @@ func TestShelfLoginKeepsTheTill(t *testing.T) {
 	if r := te.shelf("dev-B", http.MethodGet, "/api/v1/me", nil, phone); r.Code != http.StatusOK || decode[Me](t, r).MovedTo != "" {
 		t.Fatalf("Shelf /me: %d %s", r.Code, r.Body)
 	}
-	if r := te.shelf("dev-B", http.MethodGet, "/api/v1/till/config", nil, phone); r.Code != http.StatusOK {
+	if r := te.shelf("dev-B", http.MethodGet, "/api/v1/admin/units", nil, phone); r.Code != http.StatusOK {
 		t.Fatalf("a Shelf call from the phone: %d %s", r.Code, r.Body)
+	}
+	// A Shelf session sells nothing: the till stays on the PC.
+	if r := te.shelf("dev-B", http.MethodGet, "/api/v1/till/config", nil, phone); r.Code != http.StatusForbidden {
+		t.Fatalf("a Shelf session reached the till: %d %s", r.Code, r.Body)
+	}
+}
+
+// The header alone is nothing: an admin's normal session sending it is still
+// held to one device, and a cashier's normal session still can't reach admin.
+func TestShelfHeaderIsNotAPass(t *testing.T) {
+	te := newTestEnv(t)
+	oneDevice(t)
+	ph := devPhone()
+	te.seedUser(t, ph, "admin")
+	a := te.signIn(t, "dev-A", "Phone 1", ph)
+	te.signIn(t, "dev-B", "Counter PC", ph)
+	if r := te.shelf("dev-A", http.MethodGet, "/api/v1/admin/units", nil, a); r.Code != http.StatusForbidden || errCode(r) != "SESSION_LOCKED" {
+		t.Fatalf("an admin's header dodged one device: %d %s", r.Code, r.Body)
+	}
+	cph := te.shelfCashier(t, true)
+	ck := te.signIn(t, "dev-C", "Counter 2", cph)
+	if r := te.shelf("dev-C", http.MethodGet, "/api/v1/admin/units", nil, ck); r.Code != http.StatusForbidden {
+		t.Fatalf("a ticked cashier's till session + header reached admin: %d", r.Code)
 	}
 }
 

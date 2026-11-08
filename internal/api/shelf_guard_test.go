@@ -10,8 +10,10 @@ import (
 
 func TestShelfGuard(t *testing.T) {
 	te := newTestEnv(t)
+	oneDevice(t, holdTill) // a shop with Pocket Cashier: the person's till is open on the PC
 	fx := te.seedTill(t)
 	ph := te.shelfCashier(t, true)
+	te.signIn(t, "dev-T", "Counter PC", ph)
 	ck := sessionCookie(t, te.shelf("dev-S", http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: ph, Pin: "1234", App: shelfApp}, nil))
 	get := func(path string, shelf bool) int {
 		if shelf {
@@ -31,8 +33,18 @@ func TestShelfGuard(t *testing.T) {
 			t.Fatalf("Shelf reached %s: %d", p, c)
 		}
 	}
-	if c := get("/api/v1/admin/units", false); c != http.StatusForbidden {
-		t.Fatalf("a ticked cashier without the Shelf header reached admin: %d", c)
+	if c := get("/api/v1/admin/suppliers/export", true); c != http.StatusForbidden {
+		t.Fatalf("Shelf read every supplier's balance: %d", c)
+	}
+	// A supplier made from Shelf never starts with money owed.
+	name := fmt.Sprintf("T Shelf supplier %d", fx.plainID)
+	if r := te.shelf("dev-S", http.MethodPost, "/api/v1/admin/suppliers", map[string]any{"name": name, "openingBalance": "5000"}, ck); r.Code >= 300 {
+		t.Fatalf("Shelf supplier: %d %s", r.Code, r.Body)
+	}
+	var owed string
+	te.db.Get(&owed, `SELECT opening_balance::text FROM suppliers WHERE name = $1`, name) //nolint:errcheck
+	if owed != "0.00" && owed != "0" {
+		t.Fatalf("a Shelf supplier starts owed %q", owed)
 	}
 	te.db.Exec(`UPDATE users SET can_use_shelf = false WHERE phone = $1`, ph) //nolint:errcheck
 	if r := te.shelf("dev-S", http.MethodGet, "/api/v1/admin/units", nil, ck); r.Code != http.StatusForbidden || errCode(r) != "SHELF_NO_ACCESS" {

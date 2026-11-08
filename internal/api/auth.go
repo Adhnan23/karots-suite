@@ -66,12 +66,15 @@ func (h *handlers) Login(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if !shelf {
-		if err := h.takeDevice(c, pair.User.ID, label); err != nil {
+	token := pair.AccessToken
+	if shelf {
+		if token, err = h.d.Auth.WithApp(token, shelfApp); err != nil {
 			return err
 		}
+	} else if err := h.takeDevice(c, pair.User.ID, label); err != nil {
+		return err
 	}
-	h.setCookie(c, pair.AccessToken)
+	h.setCookie(c, token)
 	return c.JSON(http.StatusOK, LoginResponse{User: SessionUser{ID: pair.User.ID, Name: pair.User.Name, Role: pair.User.Role, SendsToCashier: pair.User.SendsToCashier}})
 }
 
