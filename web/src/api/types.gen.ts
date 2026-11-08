@@ -23,6 +23,11 @@ export interface LoginRequest {
    * "" = named from its browser.
    */
   deviceLabel?: string;
+  /**
+   * App is "shelf" for Karots Shelf: only a person who may use it signs in,
+   * and the sign-in never takes their one device (a till stays where it is).
+   */
+  app?: string;
 }
 export interface LoginResponse {
   user: SessionUser;
