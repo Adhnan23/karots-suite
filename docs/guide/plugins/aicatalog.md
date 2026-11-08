@@ -18,7 +18,7 @@ A hint comes from a chatbot, so confirm it before relying on it. Two chatbots ca
 
 | Job | Shows when | What it suggests |
 |---|---|---|
-| **Identify a whole list** | Always | Name, category and hint. Hints start ticked; a category starts ticked only if the product has none; names start unticked, with **Tick all names** once you've looked. An old name stays searchable after a rename |
+| **Identify a whole list** | Always | Name, category and hint. Hints start ticked; a category starts ticked only if the product has none; names start unticked, with **Tick all names** once you've looked. An old name stays searchable after a rename. With [Product Plus](productplus.md), tick **Also fill these fields** (a generic name, say) and the same answer fills them, judged by the category it gives; these start ticked and **replace** a value already there |
 | **Setup details** | Always | Which products carry an expiry date, and their pack size. You fill in pack prices; a blank one follows the unit price |
 | **Alternative group maker** | [Alternatives](alternatives.md) is in the build | Products that can replace each other, with a reason for each group. Also from **Suggest groups** on the Alternatives page |
 | **Fill in details** | [Product Plus](productplus.md) is in the build | Your own fields, only the ones you tick, per category, reusing the values you already use. Don't tick something only your shop can know, like a rack number |

@@ -18,4 +18,5 @@ export default function aicatalog(s: typeof Slots) {
   s.pageActions.push({ key: 'aicatalog', page: 'alternatives', Action: SuggestGroups })
   s.pageActions.push({ key: 'aicatalog', page: 'combos', Action: ComboSuggest })
   jobControls.fields = FieldTicks
+  jobControls.identify = FieldTicks
 }

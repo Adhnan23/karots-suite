@@ -2,12 +2,14 @@ package aicatalog
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
 	"karots-suite/internal/features/categories"
+	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -24,9 +26,15 @@ Reuse an existing category's path exactly when one fits; only propose a new one 
 (models, sizes), its size or strength, type, ingredients, what it's for. Leave out what you can't confirm.
 "explanation": one short sentence a non-expert understands: what the item is and what it's for.`
 
+const identifyFieldsPrompt = `
+Also fill the FIELDS listed, in "values": [{"field":"","value":""}] on each item. Fill a field only when it fits
+the category you give the product (some are only for certain categories). Leave a value out if you aren't sure:
+never guess. Reuse an existing value exactly, spelling and all, when one fits. A yes/no field is "yes" or "no".
+A date is YYYY-MM-DD. A dropdown must be one of its options, exactly.`
+
 func identifyJob() Job {
 	return Job{Key: "identify", Label: "Identify a whole list",
-		Desc: "Names, categories and searchable hints for many products. Prices and stock never change.",
+		Desc: "Names, categories and searchable hints for many products, and any custom fields you tick (their answers replace what's there). Prices and stock never change.",
 		Select: func(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) {
 			in.noHint = len(in.IDs) == 0 && in.Filter == "" && !in.Force // products without hints; a redo picks its own
 			key := in.recordKey("identify")
@@ -37,7 +45,7 @@ func identifyJob() Job {
 			}
 			return b, total, err
 		},
-		Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
+		Options: fieldOptions, Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
 }
 
 func identifyPrompt(ctx context.Context, p *Plugin, b Batch) (string, string, error) {
@@ -55,12 +63,34 @@ func identifyPrompt(ctx context.Context, p *Plugin, b Batch) (string, string, er
 	if len(list) > 0 {
 		u.WriteString("EXISTING categories:\n- " + strings.Join(list, "\n- ") + "\n\n")
 	}
+	ticked, err := identifyTicked(ctx, p, b)
+	if err != nil {
+		return "", "", err
+	}
+	if len(ticked) > 0 {
+		if err := writeFields(ctx, &u, p.attrSet("productplus"), ticked, pathsByID(cats)); err != nil {
+			return "", "", err
+		}
+		u.WriteString("\n")
+	}
 	u.WriteString("PRODUCTS (id|name):\n")
 	for _, x := range b.Products {
 		u.WriteString(strconv.FormatInt(x.ID, 10) + "|" + x.Name + "\n")
 	}
 	system := identifyListPrompt
+	if len(ticked) > 0 {
+		system += identifyFieldsPrompt
+	}
 	return withNaming(system, b.Settings.NamingStyle), u.String(), nil
+}
+
+// identifyTicked is the Product Plus fields ticked for this run (none without the plugin).
+func identifyTicked(ctx context.Context, p *Plugin, b Batch) ([]plugin.ProductAttribute, error) {
+	set := p.attrSet("productplus")
+	if set == nil || len(b.Options) == 0 {
+		return nil, nil
+	}
+	return tickedAttrs(ctx, set, b.Options)
 }
 
 func hintText(specs, explanation string) string {
@@ -76,6 +106,10 @@ func identifyParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]Job
 			Category    string `json:"category"`
 			Specs       string `json:"specs"`
 			Explanation string `json:"explanation"`
+			Values      []struct {
+				Field string `json:"field"`
+				Value any    `json:"value"`
+			} `json:"values"`
 		} `json:"items"`
 	}
 	if err := decodeReply(reply, &r); err != nil {
@@ -87,8 +121,25 @@ func identifyParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]Job
 	}
 	paths := pathsByID(cats)
 	known := map[string]bool{}
-	for _, path := range paths {
+	catByPath := map[string]int64{}
+	for id, path := range paths {
 		known[strings.ToLower(path)] = true
+		catByPath[strings.ToLower(path)] = id
+	}
+	ticked, err := identifyTicked(ctx, p, b)
+	if err != nil {
+		return nil, err
+	}
+	var current map[int64]map[string]string
+	knownVals := map[string]map[string]string{}
+	if len(ticked) > 0 {
+		ids := make([]int64, len(b.Products))
+		for i, x := range b.Products {
+			ids[i] = x.ID
+		}
+		if current, err = p.attrSet("productplus").Values(ctx, ids); err != nil {
+			return nil, err
+		}
 	}
 	byID := map[int64]JobProduct{}
 	for _, x := range b.Products {
@@ -117,12 +168,39 @@ func identifyParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]Job
 		if name := strings.TrimSpace(it.Name); name != "" && utf8.RuneCountInString(name) <= 150 && !strings.EqualFold(name, x.Name) {
 			rows = append(rows, JobRow{ProductID: it.ID, Kind: "name", Key: "name", Label: "Name", Old: x.Name, New: name, Change: true})
 		}
+		// Fields come last, so the category applies first; they're judged by the category
+		// the chatbot gives (a new one only takes fields kept for every category).
+		catID := x.CategoryID
+		if path := normPath(it.Category); path != "" {
+			catID = catByPath[strings.ToLower(path)]
+		}
+		seenField := map[string]bool{}
+		for _, v := range it.Values {
+			i := slices.IndexFunc(ticked, func(a plugin.ProductAttribute) bool { return a.Key == v.Field })
+			if i < 0 || seenField[v.Field] || !appliesTo(ticked[i], catID) {
+				continue
+			}
+			row, ok, err := attrRow(ctx, p.attrSet("productplus"), ticked[i], v.Value, knownVals)
+			if err != nil {
+				return nil, err
+			}
+			old := current[it.ID][v.Field]
+			if !ok || strings.EqualFold(old, row.New) {
+				continue
+			}
+			seenField[v.Field] = true
+			// The shop asked for these to be filled: the chatbot's answer replaces what's there.
+			row.ProductID, row.Old, row.Change, row.Ticked = it.ID, old, old != "", true
+			rows = append(rows, row)
+		}
 	}
 	return rows, nil
 }
 
 func identifyApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]UndoOp, error) {
 	switch r.Kind {
+	case "attr":
+		return fieldsApply(ctx, p, tx, r)
 	case "hint":
 		var cur struct {
 			Specs   string `db:"specs"`
@@ -193,8 +271,10 @@ func identifyApply(ctx context.Context, p *Plugin, tx *sqlx.Tx, r JobRow) ([]Und
 	return nil, errStale
 }
 
-func identifyUndo(ctx context.Context, _ *Plugin, tx *sqlx.Tx, op UndoOp) error {
+func identifyUndo(ctx context.Context, p *Plugin, tx *sqlx.Tx, op UndoOp) error {
 	switch op.RowKind {
+	case "attr":
+		return attrUndo("productplus")(ctx, p, tx, op)
 	case "hint":
 		res, err := tx.ExecContext(ctx, `UPDATE aicatalog_items SET specs = $2, user_explanation = $3
 			WHERE product_id = $1 AND trim(both E'\n' FROM trim(specs) || E'\n' || trim(user_explanation)) = $4`,

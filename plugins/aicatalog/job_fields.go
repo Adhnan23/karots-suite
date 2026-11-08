@@ -54,18 +54,25 @@ func fieldsJob() Job {
 	return Job{Key: "fields", Label: "Fill in details",
 		Desc:      "Fills your own Product Plus fields, per category, reusing the values you already use. Tick only what a chatbot could know, not something like a rack number. Get categories right first: a wrong category asks for the wrong fields.",
 		Available: func(p *Plugin) bool { return p.attrSet("productplus") != nil },
-		Options: func(ctx context.Context, p *Plugin) (any, error) {
-			attrs, err := p.attrSet("productplus").Attributes(ctx)
-			if err != nil {
-				return nil, err
-			}
-			out := make([]FieldOption, 0, len(attrs))
-			for _, a := range attrs {
-				out = append(out, FieldOption{Key: a.Key, Label: a.Label, Type: a.Type, Scoped: len(a.CategoryIDs) > 0})
-			}
-			return out, nil
-		},
-		Select: fieldsSelect, Prompt: fieldsPromptFor, Parse: fieldsParse, Apply: fieldsApply, Undo: attrUndo("productplus")}
+		Options:   fieldOptions,
+		Select:    fieldsSelect, Prompt: fieldsPromptFor, Parse: fieldsParse, Apply: fieldsApply, Undo: attrUndo("productplus")}
+}
+
+// fieldOptions is the page's tick list of Product Plus fields; nil without the plugin.
+func fieldOptions(ctx context.Context, p *Plugin) (any, error) {
+	set := p.attrSet("productplus")
+	if set == nil {
+		return nil, nil
+	}
+	attrs, err := set.Attributes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]FieldOption, 0, len(attrs))
+	for _, a := range attrs {
+		out = append(out, FieldOption{Key: a.Key, Label: a.Label, Type: a.Type, Scoped: len(a.CategoryIDs) > 0})
+	}
+	return out, nil
 }
 
 // tickedAttrs is the fields chosen on the page that still exist.
@@ -159,32 +166,8 @@ func fieldsPromptFor(ctx context.Context, p *Plugin, b Batch) (string, string, e
 		return "", "", err
 	}
 	var u strings.Builder
-	u.WriteString("FIELDS:\n")
-	for _, a := range ticked {
-		kind := a.Type
-		switch a.Type {
-		case "select":
-			kind = "dropdown, pick one only: " + strings.Join(a.Options, ", ")
-		case "bool":
-			kind = "yes/no"
-		case "textarea":
-			kind = "text"
-		}
-		u.WriteString(a.Key + " (" + a.Label + ", " + kind + ")")
-		if a.Type == "text" || a.Type == "textarea" {
-			known, err := set.Known(ctx, a.Key, knownValuesMax)
-			if err != nil {
-				return "", "", err
-			}
-			if len(known) > 0 {
-				vals := make([]string, len(known))
-				for i, k := range known {
-					vals[i] = k.Value
-				}
-				u.WriteString(", existing: " + strings.Join(vals, ", "))
-			}
-		}
-		u.WriteString("\n")
+	if err := writeFields(ctx, &u, set, ticked, nil); err != nil {
+		return "", "", err
 	}
 	u.WriteString("\nPRODUCTS (id|name|category|details|fields to fill):\n")
 	for _, x := range b.Products {
@@ -197,6 +180,48 @@ func fieldsPromptFor(ctx context.Context, p *Plugin, b Batch) (string, string, e
 		u.WriteString(strconv.FormatInt(x.ID, 10) + "|" + x.Name + "|" + x.Category + "|" + strings.ReplaceAll(x.Hint(), "\n", " ") + "|" + strings.Join(want, ", ") + "\n")
 	}
 	return fieldsPrompt, u.String(), nil
+}
+
+// writeFields lists the ticked fields for a prompt: type, options and the values the
+// shop already uses. With paths, a field kept for chosen categories names them.
+func writeFields(ctx context.Context, u *strings.Builder, set *plugin.ProductAttributeSet, ticked []plugin.ProductAttribute, paths map[int64]string) error {
+	u.WriteString("FIELDS:\n")
+	for _, a := range ticked {
+		kind := a.Type
+		switch a.Type {
+		case "select":
+			kind = "dropdown, pick one only: " + strings.Join(a.Options, ", ")
+		case "bool":
+			kind = "yes/no"
+		case "textarea":
+			kind = "text"
+		}
+		u.WriteString(a.Key + " (" + a.Label + ", " + kind + ")")
+		if paths != nil && len(a.CategoryIDs) > 0 {
+			var for_ []string
+			for _, id := range a.CategoryIDs {
+				if p := paths[id]; p != "" {
+					for_ = append(for_, p)
+				}
+			}
+			u.WriteString(", only for categories: " + strings.Join(for_, "; "))
+		}
+		if a.Type == "text" || a.Type == "textarea" {
+			known, err := set.Known(ctx, a.Key, knownValuesMax)
+			if err != nil {
+				return err
+			}
+			if len(known) > 0 {
+				vals := make([]string, len(known))
+				for i, k := range known {
+					vals[i] = k.Value
+				}
+				u.WriteString(", existing: " + strings.Join(vals, ", "))
+			}
+		}
+		u.WriteString("\n")
+	}
+	return nil
 }
 
 func fieldsParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRow, error) {
@@ -243,31 +268,15 @@ func fieldsParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRo
 			if !ok || seen[v.Field] || !appliesTo(a, x.CategoryID) { // not ticked, or not this category's
 				continue
 			}
-			val, ok := attrValueOf(a, v.Value)
+			row, ok, err := attrRow(ctx, set, a, v.Value, known)
+			if err != nil {
+				return nil, err
+			}
 			if !ok {
 				continue
 			}
 			seen[v.Field] = true
-			if a.Type == "text" || a.Type == "textarea" {
-				if known[a.Key] == nil {
-					list, err := set.Known(ctx, a.Key, knownCheckMax)
-					if err != nil {
-						return nil, err
-					}
-					known[a.Key] = map[string]string{}
-					for _, k := range list {
-						known[a.Key][strings.ToLower(k.Value)] = k.Value
-					}
-				}
-			}
-			row := JobRow{ProductID: it.ID, Kind: "attr", Key: a.Key, Label: a.Label, New: val}
-			if a.Type == "text" || a.Type == "textarea" {
-				if same, ok := known[a.Key][strings.ToLower(val)]; ok {
-					row.New = same
-				} else {
-					row.IsNew = true
-				}
-			}
+			row.ProductID = it.ID
 			old := current[it.ID][a.Key]
 			if old != "" && !b.Redo {
 				continue // never over a value the shop has, unless asked to redo it
@@ -280,6 +289,35 @@ func fieldsParse(ctx context.Context, p *Plugin, b Batch, reply string) ([]JobRo
 		}
 	}
 	return rows, nil
+}
+
+// attrRow is a chatbot's value as a row, in the shop's own spelling when it already
+// uses that value; ok is false for no suggestion. known caches each field's values.
+func attrRow(ctx context.Context, set *plugin.ProductAttributeSet, a plugin.ProductAttribute, raw any, known map[string]map[string]string) (JobRow, bool, error) {
+	val, ok := attrValueOf(a, raw)
+	if !ok {
+		return JobRow{}, false, nil
+	}
+	row := JobRow{Kind: "attr", Key: a.Key, Label: a.Label, New: val}
+	if a.Type != "text" && a.Type != "textarea" {
+		return row, true, nil
+	}
+	if known[a.Key] == nil {
+		list, err := set.Known(ctx, a.Key, knownCheckMax)
+		if err != nil {
+			return row, false, err
+		}
+		known[a.Key] = map[string]string{}
+		for _, k := range list {
+			known[a.Key][strings.ToLower(k.Value)] = k.Value
+		}
+	}
+	if same, ok := known[a.Key][strings.ToLower(val)]; ok {
+		row.New = same
+	} else {
+		row.IsNew = true
+	}
+	return row, true, nil
 }
 
 // attrValueOf reads a chatbot's value for an attribute; ok is false for no suggestion.

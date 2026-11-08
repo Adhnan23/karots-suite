@@ -181,6 +181,28 @@ test.describe('jobs that come with other plugins', () => {
     await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
   })
 
+  test('identify also fills ticked custom fields, replacing what is there', async ({ page }) => {
+    await login(page, '/admin')
+    const cat = await makeCat(page, `IdFields ${stamp}`)
+    const a = await add(page, `panadl ${stamp}`, cat)
+    const field = await (await page.request.post('/api/v1/x/productplus/fields', { data: { label: `Chem ${stamp}`, type: 'text', scope: [] } })).json()
+    const put = await page.request.put('/api/v1/x/productplus/values', { data: [{ productId: a, fieldId: field.id, value: 'Typed by hand' }] })
+    expect((await put.json()).saved).toBe(1)
+    await page.goto('/admin/x/aicatalog/jobs/identify')
+    await expect(page.getByText('Also fill these fields')).toBeVisible()
+    await page.getByLabel(new RegExp(`^Chem ${stamp}`)).check()
+    await pickCategory(page, `IdFields ${stamp}`)
+    await page.getByRole('button', { name: 'Start' }).click()
+    const prompt = await page.getByLabel('Prompt to copy').inputValue()
+    expect(prompt).toContain(`${field.key} (Chem ${stamp}, text)`)
+    await paste(page, { items: [{ id: a, confident: true, name: `Panadol ${stamp}`, category: `IdFields ${stamp}`, values: [{ field: field.key, value: 'Paracetamol' }] }] })
+    await expect(page.getByRole('checkbox', { name: new RegExp(`^Chem ${stamp}: .*Paracetamol`) })).toBeChecked()
+    await page.getByRole('button', { name: /^Apply/ }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'applied' }).first()).toBeVisible()
+    const form = await (await page.request.get(`/api/v1/x/productplus/form?productId=${a}&categoryId=${cat}&where=form`)).json() as { key: string; value: string }[]
+    expect(form.find((f) => f.key === field.key)?.value).toBe('Paracetamol')
+  })
+
   test('marks warn the pharmacist; doses are approved one by one and "new" never saves', async ({ page }) => {
     await login(page, '/admin')
     const cat = await makeCat(page, `Meds ${stamp}`)
