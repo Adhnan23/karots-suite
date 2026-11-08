@@ -16,6 +16,7 @@ import (
 )
 
 func (h *handlers) registerAdminPacks(g *echo.Group) {
+	g.GET("/products/packs", h.AdminAllPacks)
 	g.GET("/products/:id/packs", h.AdminPacks)
 	g.POST("/products/:id/packs", h.AdminPackSave)
 	g.PUT("/products/:id/packs/:pid", h.AdminPackSave)
@@ -45,6 +46,28 @@ func (h *handlers) AdminPacks(c echo.Context) error {
 	out := make([]AdminPack, 0, len(ks))
 	for _, k := range ks {
 		out = append(out, packDTO(k))
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+// AdminAllPacks is every active product's packs, by product id, smallest first: the
+// setup app reads a whole shop's packs in one call.
+func (h *handlers) AdminAllPacks(c echo.Context) error {
+	ctx := c.Request().Context()
+	var ids []int64
+	if err := h.d.DB.SelectContext(ctx, &ids, `SELECT DISTINCT k.product_id FROM product_packs k
+		JOIN products p ON p.id = k.product_id WHERE p.is_active`); err != nil {
+		return apperr.Internal("failed to load packs", err)
+	}
+	byID, err := products.PacksFor(ctx, h.d.DB, ids)
+	if err != nil {
+		return apperr.Internal("failed to load packs", err)
+	}
+	out := make(map[string][]AdminPack, len(byID))
+	for id, ks := range byID {
+		for _, k := range ks {
+			out[strconv.FormatInt(id, 10)] = append(out[strconv.FormatInt(id, 10)], packDTO(k))
+		}
 	}
 	return c.JSON(http.StatusOK, out)
 }
