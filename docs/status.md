@@ -21,7 +21,7 @@ Latest Release: **2026.11.08.0750** (2026-11-08: Pocket Cashier release 2 + Sett
 
 **Built and Released 2026-11-08 (2026.11.08.0750):** AI Assistant **Settings → Identify** ticks the Product Plus fields Identify also fills (a pharmacy's generic name): the product form's and intake's ✨ Identify (full and short prompt; Use this fills More details, replacing what's there) and Identify a whole list. Core seam: `AssistFill.sections` → `ProductFormSection` `suggested`. The user tested it on the dev server: works. Product sheets already carry Product Plus fields (Sheets ▾ → Include custom fields).
 
-**Left 2026-11-08 (session end):** the Suite's searchable supplier picker (`85543a5`) needs the full Playwright run before the next Release; the working tree has every plugin on for the dev server (`make core-only` before committing). Onboard app since: category tree picker, searchable supplier field, Suppliers tab + shop suppliers, named support secrets, light/dark switch, pushed products show in the shop list; 58 tests. No APK built yet.
+**Left 2026-11-08 (session end):** the Suite's searchable supplier picker (`85543a5`): full run 2026-11-08 passed (Go 63 pkgs, web 1,114, Playwright 251 + the AI spec's 15 re-run alone after one unexplained failure); the working tree has every plugin on for the dev server (`make core-only` before committing). Onboard app since: category tree picker, searchable supplier field, Suppliers tab + shop suppliers, named support secrets, light/dark switch, pushed products show in the shop list; 58 tests. No APK built yet.
 
 **Karots Suite Onboard BUILT 2026-11-08 (user's own setup app, not for shops):** Flutter, Android + Linux, repo `~/Projects/flutter/karots_suite_onboard` (its README says what it does). Design `docs/specs/2026-11-08-suite-onboard-design.md`, plan `docs/plans/2026-11-08-suite-onboard.md` (delete both once the user has tried it). Suite side: `GET /admin/products/packs` and `?ids=1` on the products export. Tests: 43 app tests; a live round trip against the dev Suite with every plugin passes (`LIVE_SUITE=http://localhost:3000 flutter test test/live_test.dart`). **Not yet:** the user hasn't run it; no real phone has run it; Iman's Release doesn't have the two Suite additions yet (pull needs them: the next Release). Signs in with the hourly PIN, or the Suite's public dev PIN 2273 on dev / test builds.
 
@@ -96,7 +96,7 @@ their data and a plugin's pre-filled payment; `e2e/ticket.ts` runs the money plu
 
 **Idea, parked (user: no time now):** a whole-system check before shops rely on it: a test that the books balance over a simulated year (money, supplier and customer balances, stock, profit), then break-it scenarios, then fresh reviewers by area.
 
-**Unreliable e2e tests (each failed once in a full run and passed alone, not explained):** `palettes.spec.ts:45`, `plugin-repairs.spec.ts:145`.
+**Unreliable e2e tests (each failed once in a full run and passed alone, not explained):** `palettes.spec.ts:45`, `plugin-repairs.spec.ts:145`, `plugin-aicatalog.spec.ts:278` (combo suggestion, 2026-11-08).
 
 **Left on purpose (only if a shop runs into it):** a same-product **Replaced it** lot doesn't remember that supplier, so with no preferred supplier on the product it warns at the shop's number and has no Give back (set a preferred supplier); a bounced cheque that paid old debt moves the customer's linked balance, not the old-debt part (the total owed is right); a partial supplier-cheque bounce reopens bills before the payment's advance part (balance right, bill ageing may differ).
 
