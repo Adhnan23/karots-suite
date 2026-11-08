@@ -3,7 +3,31 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (handoff, 2026-11-05)
+## Now (handoff, 2026-11-08 night)
+
+**Start here tomorrow morning (user: "rerun the test in the morning", then Release if good):**
+1. **Free the ports first.** Last night's full Playwright run was **invalid**: a leftover `air` (from `make dev`) kept
+   restarting `tmp/main` on :3000, so Playwright's own all-plugin server couldn't bind (`address already in use` in the
+   log) and the tests hit a stale core-only server (`unknown product extra 'pharmacy'` etc.). The earlier "10 passed"
+   users/auth run was against that same stale server, so it doesn't count either. Before running:
+   `pgrep -a air` (kill them by pid) and `ss -ltnp | grep -E ':(3000|5173|8443) '` must show nothing.
+2. **Full run:** `make e2e-seed && cd web && bunx playwright test` (detached, log on disk, e.g. `~/karots-logs/`).
+   One real failure was already found and fixed: the Users-page Shelf hint said "phone app", which clashed with
+   `getByLabel('Phone')` (`ec0dca1`). Expect the known flaky three below; anything else is new.
+3. **If green: Release Iman** (user approved "if things are good do the release"): `make shop S=iman-pharmacy-kalpitiya`
+   (refuses uncommitted changes), then commit `shops.json` as before (`chore(shops): … released …`). This Release brings:
+   the shop's **default unit** (migration 00031), **Karots Shelf** access (00032, Users tick, `shelfGate`), and the
+   batch-expiry / packs / ids calls Onboard needs.
+4. APKs stay in `~/Downloads` (user): `karots-shelf.apk` and `karots-onboard.apk`, both built from the app repo's
+   `69a4028` (Android builds need `--flavor onboard|shelf`).
+
+**Done 2026-11-08 (all committed on `main`, nothing pushed):**
+- **Onboard fixes** (app repo): a scan counts only after 3 matching frames + EAN/UPC check digit; phone unlock works
+  (FragmentActivity) and falls back to the phone's PIN/pattern; support secrets travel as a passphrase-sealed copy
+  (AES-256-GCM); an unsaved New product is kept as a draft; leaving an edited product asks first.
+- **Default unit** (Suite `9b5372e`): see below.
+- **Karots Suite Shelf** built and reviewed: see below. Go 63 packages, web 1,114, app 108 + live round trip passed.
+
 
 **Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). **The user is handling its install from here (2026-11-05: main PC installed and packed): not on our list unless the user brings it back.**
 Latest Release: **2026.11.08.1330** (batch expiry fix for the Onboard app); before it **2026.11.08.1219** (searchable supplier picker; the Onboard app's packs call and export ids); before it 2026.11.08.0750 (Pocket Cashier release 2 + Settings → Identify custom fields) (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
