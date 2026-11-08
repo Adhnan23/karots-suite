@@ -29,7 +29,7 @@ const PERMS: { k: 'canHandleSuppliers' | 'canManageCredit' | 'canSeeCost' | 'can
   { k: 'canManageCredit', label: 'Manage credit at the till', hint: "Approve a credit sale over a customer's limit and raise a limit." },
   { k: 'canSeeCost', label: 'See product cost at the till', hint: "The ⓘ on a till card shows cost and margin — handy for deciding a discount." },
   { k: 'canSeeLowStock', label: 'See low stock at the till', hint: 'A Low stock tab with what to order and from whom. To place the orders as well they need the first permission above too.' },
-  { k: 'canUseShelf', label: 'Can use Karots Shelf', hint: 'Add and change products from the Karots Shelf phone app, during setup. Untick when setup is done.' },
+  { k: 'canUseShelf', label: 'Can use Karots Shelf', hint: 'Add and change products from the Karots Shelf app, during setup. Untick when setup is done.' },
 ]
 
 /** The Role choice: a sales person is a cashier who sends to the cashier. */
