@@ -29,6 +29,7 @@ func (h *handlers) registerAdminStock(g *echo.Group) {
 	g.POST("/stock/lots/:id/add", h.AdminAddBatch)
 	g.POST("/stock/lots/:id/merge", h.AdminMergeBatches)
 	g.POST("/stock/batches/:id/price", h.AdminBatchPrice)
+	g.POST("/stock/batches/:id/expiry", h.AdminBatchExpiry)
 	g.GET("/staff-options", h.AdminStaffOptions)
 }
 
@@ -163,6 +164,23 @@ func (h *handlers) AdminBatchPrice(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, "stock_batch", strconv.FormatInt(id, 10), "batch price set to "+price.String())
+	return c.NoContent(http.StatusNoContent)
+}
+
+// AdminBatchExpiry fixes one lot's expiry ("" clears it).
+func (h *handlers) AdminBatchExpiry(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	var req LotExpiryRequest
+	if err := c.Bind(&req); err != nil {
+		return apperr.BadRequest("invalid request body")
+	}
+	if err := h.t.stock.SetBatchExpiry(c.Request().Context(), id, req.Expiry); err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, "stock_batch", strconv.FormatInt(id, 10), "batch expiry set to "+strings.TrimSpace(req.Expiry))
 	return c.NoContent(http.StatusNoContent)
 }
 

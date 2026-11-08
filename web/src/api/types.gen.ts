@@ -3579,6 +3579,12 @@ export interface LotPriceRequest {
   sellingPrice: string;
 }
 /**
+ * LotExpiryRequest sets a lot's expiry: YYYY-MM-DD, or "" for none.
+ */
+export interface LotExpiryRequest {
+  expiry: string;
+}
+/**
  * BatchGroup is one product's live lots on the Batches page.
  */
 export interface BatchGroup {

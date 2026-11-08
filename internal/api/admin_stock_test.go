@@ -71,3 +71,38 @@ func TestAdminStockAdjustAndLots(t *testing.T) {
 		t.Fatalf("negative price: %d", rec.Code)
 	}
 }
+
+// A lot's expiry can be set or cleared (the setup app fixes old stock entered
+// with the wrong date); another product's lot or a bad date is refused.
+func TestAdminBatchExpiry(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009552", "admin")
+	pid := strconv.FormatInt(f.lotID, 10)
+	lot := decode[ProductLots](t, te.do(http.MethodGet, "/api/v1/admin/stock/lots/"+pid, nil, ck)).Lots[0]
+	path := "/api/v1/admin/stock/batches/" + strconv.FormatInt(lot.ID, 10) + "/expiry"
+	if rec := te.do(http.MethodPost, path, LotExpiryRequest{Expiry: "2028-06-30"}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("set: %d %s", rec.Code, rec.Body)
+	}
+	expiry := func() string {
+		for _, l := range decode[ProductLots](t, te.do(http.MethodGet, "/api/v1/admin/stock/lots/"+pid, nil, ck)).Lots {
+			if l.ID == lot.ID {
+				return l.ExpiryDate
+			}
+		}
+		return "?"
+	}
+	if got := expiry(); got != "2028-06-30" {
+		t.Fatalf("expiry %q", got)
+	}
+	te.do(http.MethodPost, path, LotExpiryRequest{Expiry: ""}, ck)
+	if got := expiry(); got != "" {
+		t.Fatalf("cleared %q", got)
+	}
+	if rec := te.do(http.MethodPost, path, LotExpiryRequest{Expiry: "31/12/2028"}, ck); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("bad date: %d", rec.Code)
+	}
+	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/batches/999999999/expiry", LotExpiryRequest{Expiry: "2028-01-01"}, ck); rec.Code != http.StatusNotFound {
+		t.Fatalf("no such lot: %d", rec.Code)
+	}
+}

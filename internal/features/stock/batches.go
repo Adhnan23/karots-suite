@@ -353,6 +353,16 @@ func (r *Repository) SetBatchSellingPrice(ctx context.Context, batchID int64, pr
 	return err
 }
 
+// SetBatchExpiry sets (or, with nil, clears) a lot's expiry; false when no such lot.
+func (r *Repository) SetBatchExpiry(ctx context.Context, batchID int64, expiry *time.Time) (bool, error) {
+	res, err := r.q.ExecContext(ctx, `UPDATE stock_batches SET expiry_date = $1 WHERE id = $2`, expiry, batchID)
+	if err != nil {
+		return false, err
+	}
+	n, err := res.RowsAffected()
+	return n > 0, err
+}
+
 // RestockLot puts returned units back into the lot they were sold from, and
 // reports whether it could.
 //

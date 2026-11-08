@@ -287,6 +287,26 @@ func (s *Service) SetBatchPrice(ctx context.Context, batchID int64, price decima
 	return nil
 }
 
+// SetBatchExpiry fixes a lot's expiry (YYYY-MM-DD, "" = none).
+func (s *Service) SetBatchExpiry(ctx context.Context, batchID int64, expiry string) error {
+	var at *time.Time
+	if e := strings.TrimSpace(expiry); e != "" {
+		d, err := time.Parse(time.DateOnly, e)
+		if err != nil {
+			return apperr.Validation("enter the expiry as YYYY-MM-DD")
+		}
+		at = &d
+	}
+	ok, err := s.repo.SetBatchExpiry(ctx, batchID, at)
+	if err != nil {
+		return apperr.Internal("failed to update batch expiry", err)
+	}
+	if !ok {
+		return apperr.NotFound("batch")
+	}
+	return nil
+}
+
 // AllBatches lists every batch that still has stock (the batch report).
 func (s *Service) AllBatches(ctx context.Context) ([]Batch, error) {
 	rows, err := s.repo.AllLiveBatches(ctx)

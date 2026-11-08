@@ -86,6 +86,11 @@ type LotPriceRequest struct {
 	SellingPrice string `json:"sellingPrice"`
 }
 
+// LotExpiryRequest sets a lot's expiry: YYYY-MM-DD, or "" for none.
+type LotExpiryRequest struct {
+	Expiry string `json:"expiry"`
+}
+
 // BatchGroup is one product's live lots on the Batches page.
 type BatchGroup struct {
 	ProductID    int64    `json:"productId"`
