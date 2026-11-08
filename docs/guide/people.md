@@ -32,7 +32,8 @@ Admins add staff logins here. Each login is a phone number and a PIN.
 
 Each cashier has rights you switch on: **counter operations** (pay suppliers, take in deliveries, place orders and record expenses at
 the till; they will see cost prices),
-**manage credit at the till**, **see product cost at the till** and **see low stock at the till**.
+**manage credit at the till**, **see product cost at the till**, **see low stock at the till** and
+**can use Karots Shelf** (the phone app for putting products in during setup, see [Karots Shelf](shelf.md)).
 A user can also have their own receipt printer.
 
 - With **force PIN change** on in Settings, a new user picks their own PIN the first time they
