@@ -6,7 +6,7 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 ## Now (handoff, 2026-11-05)
 
 **Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). **The user is handling its install from here (2026-11-05: main PC installed and packed): not on our list unless the user brings it back.**
-Latest Release: **2026.11.08.0750** (2026-11-08: Pocket Cashier release 2 + Settings → Identify custom fields; before it 2026.11.05.1315) (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
+Latest Release: **2026.11.08.1219** (searchable supplier picker; the Onboard app's packs call and export ids); before it 2026.11.08.0750 (Pocket Cashier release 2 + Settings → Identify custom fields) (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
 
 **Built, hand-tested and Released 2026-11-05:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
 - **Hints:** the chatbot's specs and explanation are searchable at the till, shown on the tile (`AI hint: …`) and ⓘ, editable on the product page. A replaced name stays searchable.

@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-08T02:21:02Z",
-        "commit": "33bbc87",
-        "version": "2026.11.08.0750",
+        "at": "2026-11-08T06:49:49Z",
+        "commit": "b5a1e54",
+        "version": "2026.11.08.1219",
         "kind": "release",
-        "notes": "• Settings → Identify picks the custom fields Identify fills\n• Identify also fills the custom fields you tick\n• Review findings: no cash booked for a refusal the cashier saw, writes go through the outbox, a dropped phone can't repeat work, an exact list of what a phone may replay\n• What a real offline day found: noticing the PC is gone, screens with no network, temporary ids as numbers\n• Repairs on the phone, online and off\n• Pharmacy on the phone, online and off\n• Print \u0026 Copy, Combos and Alternatives on the phone\n• Reload \u0026 Bills on the phone, online and off\n• Plugin screens run on the phone\n• A generic hook for what a plugin needs offline\n• Write-off and convert on the phone, online and off\n• A phone's send doesn't take a cashier back from the PC\n• A cashier opens tickets on the phone\n• A phone's sale keeps line groups, payouts, service stock and who prepared it\n• Warranty swaps on the phone, online and off\n…and 6 more fixes"
+        "notes": "• The supplier is searched for, not scrolled through (product form and intake)\n• Products export can carry each row's id (?ids=1) for the setup app\n• Every product's packs in one call (for the setup app)"
       },
       "published": {
-        "version": "2026.11.08.0750",
-        "commit": "33bbc87",
-        "at": "2026-11-08T02:21:10Z"
+        "version": "2026.11.08.1219",
+        "commit": "b5a1e54",
+        "at": "2026-11-08T06:51:38Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
