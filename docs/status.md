@@ -18,7 +18,14 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
    (refuses uncommitted changes), then commit `shops.json` as before (`chore(shops): … released …`). This Release brings:
    the shop's **default unit** (migration 00031), **Karots Shelf** access (00032, Users tick, `shelfGate`), and the
    batch-expiry / packs / ids calls Onboard needs.
-4. APKs stay in `~/Downloads` (user): `karots-shelf.apk` and `karots-onboard.apk`, both built from the app repo's
+4. **Hand test Karots Shelf on the user's phone against the dev server** (user, 2026-11-08), before or with the
+   Release: `make plugins P=all && make dev`; on Users make a cashier and tick **Can use Karots Shelf**; install
+   `~/Downloads/karots-shelf.apk` on the phone (USB + `adb install`, or copy the file); phone on the same Wi-Fi, shop
+   address = this PC's LAN IP (`ip -4 addr`), port 3000. Try: sign in, Pull, New product with stock + expiry, Quick
+   add by scan, edit a product, go out of Wi-Fi range and save (goes to Waiting to push, sent on return), lock and
+   unlock offline, untick the cashier on the PC (phone shows "Ask the owner…"), a second person on the same phone.
+   Afterwards: kill `air` by pid, `make core-only`, free the ports before any Playwright run.
+5. APKs stay in `~/Downloads` (user): `karots-shelf.apk` and `karots-onboard.apk`, both built from the app repo's
    `69a4028` (Android builds need `--flavor onboard|shelf`).
 
 **Done 2026-11-08 (all committed on `main`, nothing pushed):**
