@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { decline, deleteAsk, listQuery, makeProduct, merge, updateAsk, updateNote } from './api'
 import { askLabel } from './labels'
 import type { RequestRow } from './types'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 type SheetProps = { r: RequestRow; onClose: () => void }
 
@@ -38,7 +39,7 @@ export function ProductSheet({ r, onClose }: SheetProps) {
   const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const [f, setF] = useState({ name: r.note, categoryId: 0, unitId: 0, sellingPrice: '', costPrice: '', supplierId: 0 })
   const [busy, setBusy] = useState(false)
-  const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
+  const unitId = f.unitId || defaultUnit(units)?.id || 0
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title="Make a product" submit="Create product" busy={busy}
       onSubmit={() => {

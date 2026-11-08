@@ -25,6 +25,7 @@ import { BatchChoice } from './BatchChoice'
 import { PackEntry } from './PackEntry'
 import { initialLabels, LabelBlock, labelRequest, type LabelOpts } from './LabelBlock'
 import { printPriceLabels } from '@/features/counter/labels/LabelPreview'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 type Mode = { kind: 'restock'; p: AdminProductRow; scanned?: string } | { kind: 'new'; name: string; barcode: string } | null
 const clean = (v: string) => v.replace(/[^\d.]/g, '')
@@ -270,7 +271,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
   const [like, setLike] = useState(lastNew)
   const nameRef = useRef<HTMLInputElement>(null)
   const qtyRef = useRef<HTMLInputElement>(null)
-  const unitId = unit || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
+  const unitId = unit || defaultUnit(units)?.id || 0
   const prices: Prices = { cost: d.cost, markup: d.markup, selling: d.selling }
   const setPrice = (f: keyof Prices, v: string) => setD((x) => ({ ...x, ...editPrice({ cost: x.cost, markup: x.markup, selling: x.selling }, f, v, true) }))
 

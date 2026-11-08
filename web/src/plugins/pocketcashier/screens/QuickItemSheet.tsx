@@ -8,6 +8,7 @@ import { num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { createQuickItem, liveCall, PC_DOWN } from '../quickItem'
 import { Scanner } from './Scanner'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 /** Sell something not in the catalogue yet — the PC's Quick item (made on the PC
  * for admin review), so live only: offline it says so in place. */
@@ -31,7 +32,7 @@ export function QuickItemSheet({ name: firstName, barcode: firstCode, live, onAd
     if (live) api<Unit[]>('/till/units').then(setUnits, () => {})
   }, [live])
   const scanned = useCallback((c: string) => { setScan(false); setBarcode(c) }, [])
-  const unit = units.find((u) => u.id === unitId) ?? units.find((u) => u.abbreviation === 'pcs') ?? units[0]
+  const unit = units.find((u) => u.id === unitId) ?? defaultUnit(units)
 
   async function generate() {
     const r = await liveCall<GeneratedBarcode>('/till/barcode/generate', undefined)

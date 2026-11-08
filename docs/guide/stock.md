@@ -27,6 +27,8 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
 
 Categories, units, the cashier menu (the groups on the till) and services & recipes (a tea made
 from milk powder and sugar takes its ingredients off stock) are each a tab of their own.
+One unit is the shop's **default** (marked on the Units tab; open a unit and tick Default unit to
+change it): new products, quick items and services start with it.
 
 ![Categories](../images/stock/categories.jpg)
 

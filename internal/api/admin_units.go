@@ -24,7 +24,7 @@ func bindUnit(c echo.Context) (units.Input, error) {
 	if err := c.Bind(&req); err != nil {
 		return units.Input{}, apperr.BadRequest("invalid request body")
 	}
-	in := units.Input{Name: strings.TrimSpace(req.Name), Abbreviation: strings.TrimSpace(req.Abbreviation), AllowDecimal: req.AllowDecimal}
+	in := units.Input{Name: strings.TrimSpace(req.Name), Abbreviation: strings.TrimSpace(req.Abbreviation), AllowDecimal: req.AllowDecimal, IsDefault: req.IsDefault}
 	return in, c.Validate(&in)
 }
 
@@ -38,7 +38,7 @@ func (h *handlers) AdminUnitCreate(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "unit", strconv.FormatInt(u.ID, 10), "created unit "+u.Name)
-	return c.JSON(http.StatusCreated, Unit{ID: u.ID, Name: u.Name, Abbreviation: u.Abbreviation, AllowDecimal: u.AllowDecimal})
+	return c.JSON(http.StatusCreated, Unit{ID: u.ID, Name: u.Name, Abbreviation: u.Abbreviation, AllowDecimal: u.AllowDecimal, IsDefault: u.IsDefault})
 }
 
 func (h *handlers) AdminUnitUpdate(c echo.Context) error {

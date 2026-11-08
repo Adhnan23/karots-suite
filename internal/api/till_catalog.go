@@ -390,7 +390,7 @@ func (h *handlers) TillUnits(c echo.Context) error {
 	}
 	out := make([]Unit, 0, len(rows))
 	for _, u := range rows {
-		out = append(out, Unit{ID: u.ID, Name: u.Name, Abbreviation: u.Abbreviation, AllowDecimal: u.AllowDecimal})
+		out = append(out, Unit{ID: u.ID, Name: u.Name, Abbreviation: u.Abbreviation, AllowDecimal: u.AllowDecimal, IsDefault: u.IsDefault})
 	}
 	return c.JSON(http.StatusOK, out)
 }

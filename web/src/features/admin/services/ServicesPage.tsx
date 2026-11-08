@@ -18,6 +18,7 @@ import { money, num } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { servicesQuery } from './queries'
 import { RecipeEditor } from './RecipeEditor'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 /** Non-stocked lines and what each one consumes. */
 export function ServicesPage() {
@@ -57,7 +58,7 @@ function NewService({ onClose, onCreated }: { onClose: () => void; onCreated: (i
   const qc = useQueryClient()
   const [f, setF] = useState<ServiceRequest>({ name: '', categoryId: 0, unitId: 0, sellingPrice: '' })
   const [busy, setBusy] = useState(false)
-  const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
+  const unitId = f.unitId || defaultUnit(units)?.id || 0
   async function save() {
     setBusy(true)
     try {

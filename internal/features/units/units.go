@@ -15,12 +15,14 @@ type Unit struct {
 	Name         string `db:"name"          json:"name"`
 	Abbreviation string `db:"abbreviation"  json:"abbreviation"`
 	AllowDecimal bool   `db:"allow_decimal" json:"allow_decimal"`
+	IsDefault    bool   `db:"is_default"    json:"is_default"`
 }
 
 type Input struct {
 	Name         string `json:"name"          form:"name"          validate:"required,min=1,max=30"`
 	Abbreviation string `json:"abbreviation"  form:"abbreviation"  validate:"required,min=1,max=10"`
 	AllowDecimal bool   `json:"allow_decimal" form:"allow_decimal"`
+	IsDefault    bool   `json:"is_default"` // true makes it the shop's default; false never unsets one
 }
 
 type Repository struct{ db db.Queryer }
@@ -55,6 +57,15 @@ func (r *Repository) Update(ctx context.Context, id int64, name, abbr string, al
 	return nil
 }
 
+// MakeDefault makes id the unit new products start with (and no other).
+func (r *Repository) MakeDefault(ctx context.Context, id int64) error {
+	if _, err := r.db.ExecContext(ctx, `UPDATE units SET is_default = false WHERE is_default AND id <> $1`, id); err != nil {
+		return err
+	}
+	_, err := r.db.ExecContext(ctx, `UPDATE units SET is_default = true WHERE id = $1`, id)
+	return err
+}
+
 func (r *Repository) Delete(ctx context.Context, id int64) error {
 	_, err := r.db.ExecContext(ctx, `DELETE FROM units WHERE id = $1`, id)
 	return err
@@ -77,6 +88,12 @@ func (s *Service) Create(ctx context.Context, in Input) (*Unit, error) {
 	if err != nil {
 		return nil, apperr.Conflict("a unit with that name or abbreviation already exists")
 	}
+	if in.IsDefault {
+		if err := s.repo.MakeDefault(ctx, u.ID); err != nil {
+			return nil, apperr.Internal("failed to set the default unit", err)
+		}
+		u.IsDefault = true
+	}
 	return u, nil
 }
 
@@ -87,6 +104,11 @@ func (s *Service) Update(ctx context.Context, id int64, in Input) error {
 	}
 	if err != nil {
 		return apperr.Conflict("a unit with that name or abbreviation already exists")
+	}
+	if in.IsDefault {
+		if err := s.repo.MakeDefault(ctx, id); err != nil {
+			return apperr.Internal("failed to set the default unit", err)
+		}
 	}
 	return nil
 }

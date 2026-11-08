@@ -394,11 +394,11 @@ func ensureUncategorized(ctx context.Context, tx *sqlx.Tx) (int64, error) {
 	return id, err
 }
 
-// defaultUnitID picks a sensible default unit for quick-added items — the seeded
-// "Piece" (pcs) when present, otherwise the lowest-id unit.
+// defaultUnitID is the shop's default unit for quick-added items (Units page),
+// otherwise the lowest-id unit.
 func defaultUnitID(ctx context.Context, tx *sqlx.Tx) (int64, error) {
 	var id int64
 	err := tx.GetContext(ctx, &id,
-		`SELECT id FROM units ORDER BY (abbreviation = 'pcs') DESC, id ASC LIMIT 1`)
+		`SELECT id FROM units ORDER BY is_default DESC, id ASC LIMIT 1`)
 	return id, err
 }

@@ -26,7 +26,7 @@ export function UnitsPage() {
       <DataList label="Units" rows={rows ?? []} rowKey={(u) => u.id} onRow={setEditing}
         empty={<EmptyState title={rows ? 'No units yet' : 'Loading…'}>{rows && 'Add the units your products are sold in.'}</EmptyState>}
         columns={[
-          { key: 'name', header: 'Name', cell: (u) => <b>{u.name}</b> },
+          { key: 'name', header: 'Name', cell: (u) => <span className="inline-flex items-center gap-2"><b>{u.name}</b>{u.isDefault && <span className="rounded-pill bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">Default</span>}</span> },
           { key: 'abbr', header: 'Short', cell: (u) => <code className="rounded bg-muted px-1.5 py-0.5 text-[13px]">{u.abbreviation}</code> },
           { key: 'dec', header: 'Quantities', cell: (u) => u.allowDecimal ? 'Fractions allowed (1.25)' : 'Whole numbers only' },
         ]} />
@@ -37,7 +37,7 @@ export function UnitsPage() {
 
 function UnitForm({ unit, onClose }: { unit: Unit | null; onClose: () => void }) {
   const qc = useQueryClient()
-  const [f, setF] = useState<UnitRequest>({ name: unit?.name ?? '', abbreviation: unit?.abbreviation ?? '', allowDecimal: unit?.allowDecimal ?? false })
+  const [f, setF] = useState<UnitRequest>({ name: unit?.name ?? '', abbreviation: unit?.abbreviation ?? '', allowDecimal: unit?.allowDecimal ?? false, isDefault: unit?.isDefault ?? false })
   const [busy, setBusy] = useState(false)
   const done = (msg: string) => {
     toast.success(msg)
@@ -69,6 +69,9 @@ function UnitForm({ unit, onClose }: { unit: Unit | null; onClose: () => void })
         <Field label="Short"><input required maxLength={10} name="unit-abbr" value={f.abbreviation} onChange={(e) => setF({ ...f, abbreviation: e.target.value })} className={INPUT} placeholder="kg" /></Field>
       </div>
       <Toggle label="Allow fractions" hint="Sell 0.75 kg or 1.5 m. Leave off for things counted whole." checked={f.allowDecimal} onChange={(v) => setF({ ...f, allowDecimal: v })} />
+      {unit?.isDefault
+        ? <p className="text-sm text-muted-foreground">New products start with this unit. To change it, make another unit the default.</p>
+        : <Toggle label="Default unit" hint="New products, quick items and services start with this unit." checked={f.isDefault} onChange={(v) => setF({ ...f, isDefault: v })} />}
     </FormSheet>
   )
 }

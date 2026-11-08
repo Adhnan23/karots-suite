@@ -187,7 +187,7 @@ func (s *Store) LabourID(ctx context.Context) (int64, error) {
 		if err != nil {
 			return err
 		}
-		if err := tx.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY (abbreviation = 'pcs') DESC, id LIMIT 1`); err != nil {
+		if err := tx.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY is_default DESC, id LIMIT 1`); err != nil {
 			return apperr.Validation("add a unit first")
 		}
 		if id, err = products.CreateTx(ctx, tx, products.CreateInput{Name: "Repair labour", CategoryID: cat, UnitID: unit,

@@ -151,6 +151,7 @@ type Unit struct {
 	Name         string `json:"name"`
 	Abbreviation string `json:"abbreviation"`
 	AllowDecimal bool   `json:"allowDecimal"`
+	IsDefault    bool   `json:"isDefault"` // the unit new products start with
 }
 
 // ---- Till: customers ----

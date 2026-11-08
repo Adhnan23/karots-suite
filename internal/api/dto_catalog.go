@@ -8,6 +8,7 @@ type UnitRequest struct {
 	Name         string `json:"name"`
 	Abbreviation string `json:"abbreviation"`
 	AllowDecimal bool   `json:"allowDecimal"`
+	IsDefault    bool   `json:"isDefault"` // make it the unit new products start with
 }
 
 // CategoryNode is one row of the depth-first category tree. ParentID 0 = top level;

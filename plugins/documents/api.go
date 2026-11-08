@@ -102,7 +102,7 @@ func (h handlers) create(c echo.Context) error {
 			price = "0"
 		}
 		var unit int64
-		if err := h.p.core.DB.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY (abbreviation = 'pcs') DESC, id LIMIT 1`); err != nil {
+		if err := h.p.core.DB.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY is_default DESC, id LIMIT 1`); err != nil {
 			return apperr.Validation("add a unit first")
 		}
 		in := products.CreateInput{Name: name, CategoryID: req.CategoryID, UnitID: unit, SellingPrice: price,

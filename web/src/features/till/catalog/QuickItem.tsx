@@ -12,6 +12,7 @@ import { errMsg, unitsQuery } from '../api'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 import { FIELD } from '../ui'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 /** Sell something not in the catalogue yet (it's created for admin review). */
 export function QuickItem({ barcode: initialBarcode, name: initialName }: { barcode: string; name: string }) {
@@ -24,7 +25,7 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
   const [qty, setQty] = useState('1')
   const [barcode, setBarcode] = useState(initialBarcode)
   const [unitId, setUnitId] = useState<number>(0)
-  const unit = units.find((u) => u.id === unitId) ?? units.find((u) => u.abbreviation === 'pcs') ?? units[0]
+  const unit = units.find((u) => u.id === unitId) ?? defaultUnit(units)
 
   async function generate() {
     try {

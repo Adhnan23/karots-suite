@@ -25,6 +25,7 @@ import { extraBody, type Extras, ProductAssists, ProductExtras, type Suggested }
 import { SupplierPick } from '@/features/purchasing/SupplierPick'
 import { productQuery } from './queries'
 import { meQuery } from '@/api/session'
+import { defaultUnit } from '@/features/admin/units/defaultUnit'
 
 /** id 0 = new; copyOf = duplicate that product (saved as a new one, must be renamed). */
 export type Editing = { id: number; copyOf?: number }
@@ -53,7 +54,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const qc = useQueryClient()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const units = useQuery(unitsQuery).data ?? []
-  const [f, setF] = useState<ProductRequest>(() => ({ ...init, unitId: init.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || 0 }))
+  const [f, setF] = useState<ProductRequest>(() => ({ ...init, unitId: init.unitId || defaultUnit(units)?.id || 0 }))
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
@@ -64,7 +65,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const [fold, setFold] = useState(false)
   const set = (patch: Partial<ProductRequest>) => setF((x) => ({ ...x, ...patch }))
   const price = (field: keyof Prices, v: string) => setPrices((p) => editPrice(p, field, v.replace(/[^\d.]/g, '')))
-  const unitId = f.unitId || units.find((u) => u.abbreviation === 'pcs')?.id || units[0]?.id || 0
+  const unitId = f.unitId || defaultUnit(units)?.id || 0
   const priceChanged = !!product && num(prices.selling) !== num(product.sellingPrice)
   const onHand = product ? num(product.stockQty) : 0
   const isCopy = !!init.dupSourceName

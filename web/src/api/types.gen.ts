@@ -117,6 +117,7 @@ export interface UnitRequest {
   name: string;
   abbreviation: string;
   allowDecimal: boolean;
+  isDefault: boolean; // make it the unit new products start with
 }
 /**
  * CategoryNode is one row of the depth-first category tree. ParentID 0 = top level;
@@ -3948,6 +3949,7 @@ export interface Unit {
   name: string;
   abbreviation: string;
   allowDecimal: boolean;
+  isDefault: boolean; // the unit new products start with
 }
 /**
  * TillCustomer: Outstanding > 0 means they owe the shop; < 0 is an advance the

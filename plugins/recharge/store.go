@@ -307,7 +307,7 @@ func newProduct(ctx context.Context, tx *sqlx.Tx, name string, passThrough bool)
 	if err != nil {
 		return 0, err
 	}
-	if err := tx.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY (abbreviation = 'pcs') DESC, id LIMIT 1`); err != nil {
+	if err := tx.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY is_default DESC, id LIMIT 1`); err != nil {
 		return 0, apperr.Validation("add a unit first")
 	}
 	id, err := products.CreateTx(ctx, tx, products.CreateInput{Name: name, CategoryID: cat, UnitID: unit,
