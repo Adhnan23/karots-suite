@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-05T07:46:10Z",
-        "commit": "0532768",
-        "version": "2026.11.05.1315",
+        "at": "2026-11-08T02:21:02Z",
+        "commit": "33bbc87",
+        "version": "2026.11.08.0750",
         "kind": "release",
-        "notes": "• A job's row controls sit outside its label\n• Review findings: a pharmacist's choice ticks its row, more ways of saying not a duplicate, a redo leaves packs unticked\n• Clean up doesn't offer to merge different brands, or pairs the chatbot says aren't duplicates\n• A job's numbers count the whole run after coming back, and its choices stay\n• Using a combo suggestion keeps the others to come back to\n• Ticking both marks for a controlled drug applies both\n• Last applied shows what was applied\n• Skipped or no answer also finds what a redo left\n• Unanswered marks stay listed after a redo, and the list refreshes on apply\n• Read replies copied by hand from a chat page\n• A product moved to another category comes back on Fill in details for its new fields\n• Clean up says which part it's on and continues where you left off\n• Jobs say which batch they're on\n• The low-stock block says when a brand outsells its manual share\n• Review findings\n…and 8 more fixes"
+        "notes": "• Settings → Identify picks the custom fields Identify fills\n• Identify also fills the custom fields you tick\n• Review findings: no cash booked for a refusal the cashier saw, writes go through the outbox, a dropped phone can't repeat work, an exact list of what a phone may replay\n• What a real offline day found: noticing the PC is gone, screens with no network, temporary ids as numbers\n• Repairs on the phone, online and off\n• Pharmacy on the phone, online and off\n• Print \u0026 Copy, Combos and Alternatives on the phone\n• Reload \u0026 Bills on the phone, online and off\n• Plugin screens run on the phone\n• A generic hook for what a plugin needs offline\n• Write-off and convert on the phone, online and off\n• A phone's send doesn't take a cashier back from the PC\n• A cashier opens tickets on the phone\n• A phone's sale keeps line groups, payouts, service stock and who prepared it\n• Warranty swaps on the phone, online and off\n…and 6 more fixes"
       },
       "published": {
-        "version": "2026.11.05.1315",
-        "commit": "0532768",
-        "at": "2026-11-05T07:49:05Z"
+        "version": "2026.11.08.0750",
+        "commit": "33bbc87",
+        "at": "2026-11-08T02:21:10Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
