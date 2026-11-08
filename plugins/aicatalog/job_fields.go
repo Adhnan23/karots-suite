@@ -58,38 +58,14 @@ func fieldsJob() Job {
 		Select:    fieldsSelect, Prompt: fieldsPromptFor, Parse: fieldsParse, Apply: fieldsApply, Undo: attrUndo("productplus")}
 }
 
-// fieldOptions is the page's tick list of Product Plus fields; nil without the plugin.
-func fieldOptions(ctx context.Context, p *Plugin) (any, error) {
-	set := p.attrSet("productplus")
-	if set == nil {
-		return nil, nil
-	}
-	attrs, err := set.Attributes(ctx)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]FieldOption, 0, len(attrs))
-	for _, a := range attrs {
-		out = append(out, FieldOption{Key: a.Key, Label: a.Label, Type: a.Type, Scoped: len(a.CategoryIDs) > 0})
-	}
-	return out, nil
-}
+// fieldOptions is the page's tick list of Product Plus fields.
+func fieldOptions(ctx context.Context, p *Plugin) (any, error) { return p.fieldList(ctx) }
 
 // tickedAttrs is the fields chosen on the page that still exist.
 func tickedAttrs(ctx context.Context, set *plugin.ProductAttributeSet, raw json.RawMessage) ([]plugin.ProductAttribute, error) {
 	var o fieldsOptions
 	_ = json.Unmarshal(raw, &o)
-	attrs, err := set.Attributes(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var out []plugin.ProductAttribute
-	for _, a := range attrs {
-		if slices.Contains(o.Fields, a.Key) {
-			out = append(out, a)
-		}
-	}
-	return out, nil
+	return pickAttrs(ctx, set, o.Fields)
 }
 
 func appliesTo(a plugin.ProductAttribute, categoryID int64) bool {

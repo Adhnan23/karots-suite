@@ -24,6 +24,10 @@ type SettingsDTO struct {
 	WebSearch    bool   `json:"webSearch"`
 	NamingStyle  string `json:"namingStyle"`
 	CustomPrompt string `json:"customPrompt"`
+	// IdentifyFields: the Product Plus fields Identify also fills; FieldOptions (out only)
+	// is the tick list, nil without Product Plus.
+	IdentifyFields []string      `json:"identifyFields"`
+	FieldOptions   []FieldOption `json:"fieldOptions"`
 }
 
 // AskReply is every AI action's answer: the result, or the prompt to copy (paste
@@ -63,7 +67,8 @@ func (p *Plugin) routes(reg *plugin.Registry) {
 
 func settingsDTO(s Settings) SettingsDTO {
 	return SettingsDTO{ManualMode: s.ManualMode, Provider: s.Provider, BaseURL: s.BaseURL, Model: s.Model,
-		HasKey: s.APIKey != "", WebSearch: s.WebSearch, NamingStyle: s.NamingStyle, CustomPrompt: s.CustomPrompt}
+		HasKey: s.APIKey != "", WebSearch: s.WebSearch, NamingStyle: s.NamingStyle, CustomPrompt: s.CustomPrompt,
+		IdentifyFields: splitKeys(s.IdentifyFields)}
 }
 
 func (h handlers) settings(c echo.Context) (Settings, error) {
@@ -79,7 +84,11 @@ func (h handlers) getSettings(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, settingsDTO(s))
+	out := settingsDTO(s)
+	if out.FieldOptions, err = h.p.fieldList(c.Request().Context()); err != nil {
+		return apperr.Internal("read the fields", err)
+	}
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h handlers) saveSettings(c echo.Context) error {
@@ -94,6 +103,10 @@ func (h handlers) saveSettings(c echo.Context) error {
 		Model: strings.TrimSpace(in.Model), APIKey: in.APIKey, WebSearch: in.WebSearch,
 		NamingStyle: strings.TrimSpace(in.NamingStyle), CustomPrompt: strings.TrimSpace(in.CustomPrompt)}
 	ctx := c.Request().Context()
+	var err error
+	if s.IdentifyFields, err = h.p.keepFields(ctx, in.IdentifyFields); err != nil {
+		return apperr.Internal("read the fields", err)
+	}
 	if err := h.p.store.SaveSettings(ctx, s); err != nil {
 		return apperr.Internal("save AI settings", err)
 	}
@@ -164,7 +177,11 @@ func (h handlers) identify(c echo.Context) error {
 	if err != nil {
 		return apperr.Internal("read categories", err)
 	}
-	full := func() string { return IdentifyPrompt(in.Query, in.Barcode, in.Hint, cats, s) }
+	fields, ticked, err := h.p.formFieldsBlock(ctx, s)
+	if err != nil {
+		return apperr.Internal("read the fields", err)
+	}
+	full := func() string { return IdentifyPrompt(in.Query, in.Barcode, in.Hint, cats, s, fields) }
 	var out AskReply[IdentifyResult]
 	switch {
 	case strings.TrimSpace(in.Reply) != "":
@@ -172,20 +189,25 @@ func (h handlers) identify(c echo.Context) error {
 		if perr == nil {
 			out.Result = &r
 		} else if out.Error = perr.Error(); in.Short {
-			out.Prompt = IdentifyFollowUp(in.Query, in.Barcode, in.Hint)
+			out.Prompt = IdentifyFollowUp(in.Query, in.Barcode, in.Hint, fields)
 		} else {
 			out.Prompt = full()
 		}
 	case s.ManualMode && in.Short:
-		out.Prompt = IdentifyFollowUp(in.Query, in.Barcode, in.Hint)
+		out.Prompt = IdentifyFollowUp(in.Query, in.Barcode, in.Hint, fields)
 	case s.ManualMode:
 		out.Prompt = full()
 	default:
-		r, aerr := NewClient(s).Identify(ctx, in.Query, in.Barcode, in.Hint, cats)
+		r, aerr := NewClient(s).Identify(ctx, in.Query, in.Barcode, in.Hint, cats, fields)
 		if aerr == nil {
 			out.Result = &r
 		} else {
 			out.Prompt, out.Error = full(), "The AI didn't answer ("+aerr.Error()+") — copy the prompt to a chatbot instead."
+		}
+	}
+	if out.Result != nil {
+		if err := h.p.fillCandidates(ctx, out.Result, ticked); err != nil {
+			return apperr.Internal("read the fields", err)
 		}
 	}
 	return c.JSON(http.StatusOK, out)

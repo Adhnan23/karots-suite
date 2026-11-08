@@ -21,7 +21,7 @@ import { ReorderLevel } from './ReorderLevel'
 import { LooseVersion } from './LooseVersion'
 import { MergeInto } from './MergeInto'
 import { editPrice, marginText, markupOf, type Prices } from './price'
-import { extraBody, type Extras, ProductAssists, ProductExtras } from './ProductExtras'
+import { extraBody, type Extras, ProductAssists, ProductExtras, type Suggested } from './ProductExtras'
 import { SupplierPick } from '@/features/purchasing/SupplierPick'
 import { productQuery } from './queries'
 import { meQuery } from '@/api/session'
@@ -57,6 +57,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
   const [prices, setPrices] = useState<Prices>({ cost: init.costPrice, markup: markupOf(init.costPrice, init.sellingPrice), selling: init.sellingPrice })
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
+  const [suggested, setSuggested] = useState<Suggested>({})
   const [newPacks, setNewPacks] = useState<PackRequest[]>([])
   const [newCodes, setNewCodes] = useState<string[]>([])
   const [loose, setLoose] = useState(false)
@@ -140,7 +141,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
           <input autoFocus required maxLength={150} name="prod-name" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
         </Field>
         <div className="empty:hidden md:col-span-2 md:row-start-2">
-          <ProductAssists name={f.name} barcode={f.barcode} where="form" onFill={({ name, categoryId }) => set({ ...(name && { name }), ...(categoryId && { categoryId }) })} setExtras={setExtras} />
+          <ProductAssists name={f.name} barcode={f.barcode} where="form" onFill={({ name, categoryId }) => set({ ...(name && { name }), ...(categoryId && { categoryId }) })} setExtras={setExtras} setSuggested={setSuggested} />
         </div>
         <Field className="md:col-start-2 md:row-start-1" label="Local name" hint="Optional — Sinhala / Tamil, printed on receipts.">
           <input name="prod-local" value={f.nameLocal} onChange={(e) => set({ nameLocal: e.target.value })} className={INPUT} />
@@ -193,7 +194,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
           <input inputMode="numeric" aria-label="Warranty months" value={f.warrantyMonths || ''} onChange={(e) => set({ warrantyMonths: Math.min(600, Number(e.target.value.replace(/\D/g, '')) || 0) })} className={INPUT} placeholder="None" />
         </Field>
       </div>}
-      <ProductExtras productId={product?.id ?? 0} sourceId={sourceId} categoryId={f.categoryId} where="form" extras={extras} setExtras={setExtras} />
+      <ProductExtras productId={product?.id ?? 0} sourceId={sourceId} categoryId={f.categoryId} where="form" extras={extras} setExtras={setExtras} suggested={suggested} />
     </FormSheet>
     </>
   )

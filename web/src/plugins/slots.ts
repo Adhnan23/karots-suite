@@ -167,7 +167,7 @@ export type AdminPage = { key: string; Page: ComponentType<{ path: string }> }
  * 'loose' version of it (another unit, e.g. a 25 kg bag sold by the kg). */
 export type ProductFormSection = {
   key: string
-  Section: ComponentType<{ productId: number; sourceId: number; kind?: 'copy' | 'loose'; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void }>
+  Section: ComponentType<{ productId: number; sourceId: number; kind?: 'copy' | 'loose'; categoryId: number; where: 'form' | 'intake'; value: unknown; onChange: (v: unknown) => void; suggested?: unknown }>
 }
 
 /** A button in a plugin page's header, added by another plugin. page is that page's plugin key;
@@ -183,7 +183,8 @@ export type ProductAssist = {
   key: string
   Assist: ComponentType<{ name: string; barcode: string; where: 'form' | 'intake'; fill: (f: AssistFill) => void }>
 }
-export type AssistFill = { name?: string; categoryId?: number; extra?: unknown }
+/** sections: values offered to other form sections, by section key (it lands as their suggested). */
+export type AssistFill = { name?: string; categoryId?: number; extra?: unknown; sections?: Record<string, unknown> }
 
 /** customerId and meta (the plugins' notes set with TillApi.setSaleMeta) as they were at completion. */
 export type SaleHookCtx = { saleId: number; lines: CartLine[]; customerId: number | null; meta: Record<string, unknown> }

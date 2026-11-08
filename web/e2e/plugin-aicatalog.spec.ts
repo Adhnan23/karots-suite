@@ -181,16 +181,20 @@ test.describe('jobs that come with other plugins', () => {
     await expect(page.locator('[data-sonner-toast]').filter({ hasText: '1 applied' }).first()).toBeVisible()
   })
 
-  test('identify also fills ticked custom fields, replacing what is there', async ({ page }) => {
+  test('Settings → Identify: the ticked fields fill from Identify, on the list and on the product form', async ({ page }) => {
     await login(page, '/admin')
     const cat = await makeCat(page, `IdFields ${stamp}`)
     const a = await add(page, `panadl ${stamp}`, cat)
     const field = await (await page.request.post('/api/v1/x/productplus/fields', { data: { label: `Chem ${stamp}`, type: 'text', scope: [] } })).json()
     const put = await page.request.put('/api/v1/x/productplus/values', { data: [{ productId: a, fieldId: field.id, value: 'Typed by hand' }] })
     expect((await put.json()).saved).toBe(1)
-    await page.goto('/admin/x/aicatalog/jobs/identify')
-    await expect(page.getByText('Also fill these fields')).toBeVisible()
+    await page.goto('/admin/x/aicatalog/settings')
     await page.getByLabel(new RegExp(`^Chem ${stamp}`)).check()
+    await page.getByRole('button', { name: 'Save settings' }).click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'AI settings saved' }).first()).toBeVisible()
+
+    // The whole list: the answer replaces what was typed by hand.
+    await page.goto('/admin/x/aicatalog/jobs/identify')
     await pickCategory(page, `IdFields ${stamp}`)
     await page.getByRole('button', { name: 'Start' }).click()
     const prompt = await page.getByLabel('Prompt to copy').inputValue()
@@ -199,8 +203,25 @@ test.describe('jobs that come with other plugins', () => {
     await expect(page.getByRole('checkbox', { name: new RegExp(`^Chem ${stamp}: .*Paracetamol`) })).toBeChecked()
     await page.getByRole('button', { name: /^Apply/ }).click()
     await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'applied' }).first()).toBeVisible()
-    const form = await (await page.request.get(`/api/v1/x/productplus/form?productId=${a}&categoryId=${cat}&where=form`)).json() as { key: string; value: string }[]
-    expect(form.find((f) => f.key === field.key)?.value).toBe('Paracetamol')
+    const valueOf = async (id: number) => ((await (await page.request.get(`/api/v1/x/productplus/form?productId=${id}&categoryId=${cat}&where=form`)).json()) as { key: string; value: string }[]).find((f) => f.key === field.key)?.value
+    expect(await valueOf(a)).toBe('Paracetamol')
+
+    // The product form: the full and the short prompt both ask; Use this fills More details.
+    await page.goto('/admin/products')
+    await page.getByRole('button', { name: 'New product' }).click()
+    const dlg = await identifyInForm(page, `amoxl ${stamp}`)
+    expect(await dlg.getByLabel('Prompt to copy').inputValue()).toContain(`${field.key} (Chem ${stamp}, text)`)
+    const name = `Amoxil 250mg ${stamp}`
+    await dlg.getByLabel('Chatbot answer').fill(JSON.stringify({ confident: true, best: { name, category: `IdFields ${stamp}`, specs: '', explanation: 'An antibiotic.', values: { [field.key]: 'Amoxicillin' } } }))
+    await dlg.getByLabel('Chatbot answer').press('Enter')
+    await expect(dlg.getByText('Amoxicillin')).toBeVisible()
+    await dlg.getByRole('button', { name: 'Use this' }).click()
+    await expect(dlg.getByLabel(`Chem ${stamp}`)).toHaveValue('Amoxicillin')
+    await dlg.getByLabel('Selling').fill('120')
+    await dlg.getByRole('button', { name: 'Add product' }).click()
+    await expect(dlg).toBeHidden()
+    expect(await valueOf((await productId(page, name))!)).toBe('Amoxicillin')
+    await page.request.put(`${base}/settings`, { data: { manualMode: true, provider: 'gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-3.6-flash', webSearch: true, namingStyle: '', customPrompt: '', identifyFields: [] } })
   })
 
   test('marks warn the pharmacist; doses are approved one by one and "new" never saves', async ({ page }) => {

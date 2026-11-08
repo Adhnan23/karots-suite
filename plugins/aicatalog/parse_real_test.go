@@ -75,7 +75,7 @@ func TestParseIdentifyRealReply(t *testing.T) {
 }
 
 func TestPromptsFitAnyShop(t *testing.T) {
-	p := IdentifyPrompt("x", "", "", nil, Settings{CustomPrompt: "We are a bookshop."})
+	p := IdentifyPrompt("x", "", "", nil, Settings{CustomPrompt: "We are a bookshop."}, "")
 	for _, bad := range []string{"spare-part", "Bearings", "Automotive", "cashier's hint"} {
 		if strings.Contains(p, bad) {
 			t.Errorf("prompt assumes a kind of shop: %q", bad)

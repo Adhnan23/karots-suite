@@ -44,13 +44,13 @@ func TestParseCleanup(t *testing.T) {
 
 func TestPrompts(t *testing.T) {
 	s := Settings{NamingStyle: "Brand Model Size", CustomPrompt: "Use British spelling"}
-	full := IdentifyPrompt("6201 ZZ", "8901234", "", []string{"Bearings"}, s)
+	full := IdentifyPrompt("6201 ZZ", "8901234", "", []string{"Bearings"}, s, "")
 	for _, want := range []string{"Identify this item: 6201 ZZ", "Barcode: 8901234", "Brand Model Size", "Use British spelling", "- Bearings", jsonOnly} {
 		if !strings.Contains(full, want) {
 			t.Errorf("full prompt lacks %q", want)
 		}
 	}
-	short := IdentifyFollowUp("6202", "", "it is blue")
+	short := IdentifyFollowUp("6202", "", "it is blue", "")
 	if !strings.HasPrefix(short, "Next item: 6202") || !strings.Contains(short, "it is blue") || strings.Contains(short, "EXISTING") {
 		t.Errorf("short prompt: %q", short)
 	}
@@ -83,7 +83,7 @@ const answer = `{"confident":true,"best":{"name":"Coca-Cola 1L","category":"Drin
 func TestClientOpenAICompat(t *testing.T) {
 	var path string
 	srv := fake(t, 200, `{"choices":[{"message":{"role":"assistant","content":"`+strings.ReplaceAll(answer, `"`, `\"`)+`"}}]}`, &path)
-	r, err := NewClient(Settings{Provider: "openai", BaseURL: srv.URL + "/v1", APIKey: "k"}).Identify(context.Background(), "coke", "", "", nil)
+	r, err := NewClient(Settings{Provider: "openai", BaseURL: srv.URL + "/v1", APIKey: "k"}).Identify(context.Background(), "coke", "", "", nil, "")
 	if err != nil || r.Best.Name != "Coca-Cola 1L" || path != "/v1/chat/completions" {
 		t.Fatalf("%+v %v %s", r, err, path)
 	}
@@ -92,7 +92,7 @@ func TestClientOpenAICompat(t *testing.T) {
 func TestClientGeminiNative(t *testing.T) {
 	var path string
 	srv := fake(t, 200, `{"candidates":[{"content":{"parts":[{"text":"{\"confident\":true,"},{"text":"\"best\":{\"name\":\"Coca-Cola 1L\"}}"}]}}]}`, &path)
-	r, err := NewClient(Settings{Provider: "gemini", BaseURL: srv.URL + "/v1beta/openai", Model: "m", APIKey: "k"}).Identify(context.Background(), "coke", "", "", nil)
+	r, err := NewClient(Settings{Provider: "gemini", BaseURL: srv.URL + "/v1beta/openai", Model: "m", APIKey: "k"}).Identify(context.Background(), "coke", "", "", nil, "")
 	if err != nil || r.Best.Name != "Coca-Cola 1L" || path != "/v1beta/models/m:generateContent" {
 		t.Fatalf("%+v %v %s", r, err, path)
 	}

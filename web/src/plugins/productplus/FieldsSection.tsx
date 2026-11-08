@@ -14,9 +14,16 @@ const NONE: FormField[] = [] // stable: a fresh [] would re-run the effect every
  * edited, the product's own values (so a copy carries them) and any blank
  * required field (so the server refuses it) — never an untouched default, which
  * would turn "reads the default" into a value of its own. */
-export function FieldsSection({ productId, sourceId, categoryId, where, onChange }: Props) {
+export function FieldsSection({ productId, sourceId, categoryId, where, onChange, suggested }: Props) {
   const fields = useQuery(formQuery(productId || sourceId, categoryId, where)).data ?? NONE
   const [edits, setEdits] = useState<Record<string, string>>({}) // by key, kept across category switches
+
+  // A helper's answer (AI Assistant's Identify) fills its fields as edits: they replace
+  // what's there, and the person still sees them before saving.
+  useEffect(() => {
+    const values = (suggested as { values?: Record<string, string> } | undefined)?.values
+    if (values) setEdits((e) => ({ ...e, ...values }))
+  }, [suggested])
   const valueOf = (f: FormField) => edits[f.key] ?? f.value
 
   useEffect(() => {

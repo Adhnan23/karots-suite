@@ -27,6 +27,8 @@ type Settings struct {
 	CustomPrompt string `db:"custom_prompt"`
 	WebSearch    bool   `db:"web_search"`
 	NamingStyle  string `db:"naming_style"`
+	// IdentifyFields: the Product Plus field keys Identify also fills, comma-separated.
+	IdentifyFields string `db:"identify_fields"`
 }
 
 type LearnedItem struct {
@@ -43,7 +45,7 @@ type LearnedItem struct {
 func (s *Store) GetSettings(ctx context.Context) (Settings, error) {
 	var out Settings
 	err := s.db.GetContext(ctx, &out,
-		`SELECT provider, base_url, model, api_key, manual_mode, custom_prompt, web_search, naming_style FROM aicatalog_settings WHERE id = 1`)
+		`SELECT provider, base_url, model, api_key, manual_mode, custom_prompt, web_search, naming_style, identify_fields FROM aicatalog_settings WHERE id = 1`)
 	return out, err
 }
 
@@ -52,8 +54,8 @@ func (s *Store) GetSettings(ctx context.Context) (Settings, error) {
 func (s *Store) SaveSettings(ctx context.Context, in Settings) error {
 	_, err := s.db.ExecContext(ctx, `UPDATE aicatalog_settings SET provider=$1, base_url=$2, model=$3,
 		api_key = CASE WHEN $4 = '' THEN api_key ELSE $4 END,
-		manual_mode=$5, custom_prompt=$6, web_search=$7, naming_style=$8 WHERE id = 1`,
-		in.Provider, in.BaseURL, in.Model, strings.TrimSpace(in.APIKey), in.ManualMode, in.CustomPrompt, in.WebSearch, in.NamingStyle)
+		manual_mode=$5, custom_prompt=$6, web_search=$7, naming_style=$8, identify_fields=$9 WHERE id = 1`,
+		in.Provider, in.BaseURL, in.Model, strings.TrimSpace(in.APIKey), in.ManualMode, in.CustomPrompt, in.WebSearch, in.NamingStyle, in.IdentifyFields)
 	return err
 }
 

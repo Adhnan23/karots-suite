@@ -10,6 +10,9 @@ type Candidate struct {
 	Category    string `json:"category"`
 	Specs       string `json:"specs"`
 	Explanation string `json:"explanation"`
+	// Values is the chatbot's raw field answers; Fields what's kept of them (Settings → Identify).
+	Values map[string]any   `json:"values,omitempty"`
+	Fields []CandidateField `json:"fields,omitempty"`
 }
 
 type IdentifyResult struct {

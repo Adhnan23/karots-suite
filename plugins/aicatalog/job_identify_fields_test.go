@@ -15,21 +15,9 @@ func identifyFieldEnv(t *testing.T, name string) (fieldEnvT, int64) {
 	return e, prod(t, e.p.store.db, "panadol 500", un)
 }
 
-func TestIdentifyOffersFieldsOnlyWithProductPlus(t *testing.T) {
-	e, _ := identifyFieldEnv(t, "aicatalog_identify_fields_opts")
-	opts, err := e.p.job("identify").Options(context.Background(), e.p)
-	if err != nil || len(opts.([]FieldOption)) != 6 {
-		t.Fatalf("%+v %v", opts, err)
-	}
-	e.p.attrSets = nil
-	if o, _ := e.p.job("identify").Options(context.Background(), e.p); o != nil {
-		t.Fatalf("no Product Plus, no ticks: %+v", o)
-	}
-}
-
 func TestIdentifyPromptAsksTickedFields(t *testing.T) {
 	e, a := identifyFieldEnv(t, "aicatalog_identify_fields_prompt")
-	b := Batch{Options: opts("generic_name", "manufacturer"), Products: []JobProduct{{ID: a, Name: "panadol 500"}}}
+	b := Batch{Settings: Settings{IdentifyFields: "generic_name,manufacturer"}, Products: []JobProduct{{ID: a, Name: "panadol 500"}}}
 	sys, user, err := identifyPrompt(context.Background(), e.p, b)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +39,7 @@ func TestIdentifyPromptAsksTickedFields(t *testing.T) {
 func TestIdentifyFieldRows(t *testing.T) {
 	e, a := identifyFieldEnv(t, "aicatalog_identify_fields_rows")
 	e.f.vals[e.spark] = map[string]string{"manufacturer": "Bosch"}
-	b := Batch{Options: opts("generic_name", "manufacturer", "fits_model"), Products: []JobProduct{
+	b := Batch{Settings: Settings{IdentifyFields: "generic_name,manufacturer,fits_model"}, Products: []JobProduct{
 		{ID: a, Name: "panadol 500", Category: "Uncategorized"},
 		{ID: e.spark, Name: "NGK CR7HSA Spark Plug", CategoryID: e.part, Category: "Parts"}}}
 	rows, err := identifyParse(context.Background(), e.p, b, fmt.Sprintf(`{"items":[

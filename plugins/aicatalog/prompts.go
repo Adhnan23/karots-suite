@@ -72,13 +72,15 @@ func identifyUserMsg(query, barcode, hint string, cats []string) string {
 
 // IdentifyPrompt is the whole paste prompt: rules, naming style, custom
 // instructions, the item and the categories.
-func IdentifyPrompt(query, barcode, hint string, cats []string, s Settings) string {
+// fields is the Settings → Identify block ("" = none).
+func IdentifyPrompt(query, barcode, hint string, cats []string, s Settings, fields string) string {
 	return withCustom(withNaming(systemPrompt, s.NamingStyle), s.CustomPrompt) + "\n\n" +
-		identifyUserMsg(query, barcode, hint, cats) + "\n\n" + jsonOnly
+		identifyUserMsg(query, barcode, hint, cats) + fields + "\n\n" + jsonOnly
 }
 
 // IdentifyFollowUp is the short prompt for the same chat: it remembers the rules.
-func IdentifyFollowUp(query, barcode, hint string) string {
+// The fields go every time: they're why a short prompt would otherwise lose them.
+func IdentifyFollowUp(query, barcode, hint, fields string) string {
 	user := "Next item: " + strings.TrimSpace(query)
 	if b := strings.TrimSpace(barcode); b != "" && b != strings.TrimSpace(query) {
 		user += " (barcode " + b + ")"
@@ -86,11 +88,11 @@ func IdentifyFollowUp(query, barcode, hint string) string {
 	if strings.TrimSpace(hint) != "" {
 		user += "\nMore about it: " + strings.TrimSpace(hint)
 	}
-	return user + "\nSame rules as before. " + jsonOnly
+	return user + fields + "\nSame rules as before. " + jsonOnly
 }
 
-func (c *Client) Identify(ctx context.Context, query, barcode, hint string, cats []string) (IdentifyResult, error) {
-	content, err := c.complete(ctx, withNaming(systemPrompt, c.cfg.NamingStyle), identifyUserMsg(query, barcode, hint, cats), c.searchEnabled())
+func (c *Client) Identify(ctx context.Context, query, barcode, hint string, cats []string, fields string) (IdentifyResult, error) {
+	content, err := c.complete(ctx, withNaming(systemPrompt, c.cfg.NamingStyle), identifyUserMsg(query, barcode, hint, cats)+fields, c.searchEnabled())
 	if err != nil {
 		return IdentifyResult{}, err
 	}

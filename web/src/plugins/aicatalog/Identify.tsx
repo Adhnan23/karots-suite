@@ -42,7 +42,9 @@ export function Identify({ name, barcode, fill }: Props) {
     try {
       const categoryId = c.category ? (await findCategory(c.category)).id : undefined
       if (categoryId) await qc.invalidateQueries({ queryKey: ['admin', 'categories'] })
-      fill({ name: c.name, categoryId, extra: { ...c, source, query: asked.query } })
+      const values = Object.fromEntries((c.fields ?? []).map((f) => [f.key, f.value]))
+      fill({ name: c.name, categoryId, extra: { ...c, fields: undefined, source, query: asked.query },
+        ...(c.fields?.length && { sections: { productplus: { values } } }) })
       setPicked(c)
       dispatch({ t: 'reset' })
     } catch (e) {
@@ -133,6 +135,11 @@ function Answers({ r, busy, onPick }: { r: IdentifyResult; busy: boolean; onPick
           {c.category && <CategoryPath path={c.category} />}
           {c.explanation && <p className="text-[13px] text-foreground">{c.explanation}</p>}
           {c.specs && <p className="text-[12px] tabular-nums text-faint">{c.specs}</p>}
+          {!!c.fields?.length && (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[12px]">
+              {c.fields.map((f) => <div key={f.key} className="contents"><dt className="text-faint">{f.label}</dt><dd className="min-w-0 break-words font-semibold">{f.value}</dd></div>)}
+            </dl>
+          )}
         </article>
       ))}
     </div>

@@ -120,6 +120,23 @@ function Form({ init }: { init: Settings }) {
         </section>
       )}
 
+      {init.fieldOptions && (
+        <fieldset className="flex flex-col gap-1.5 rounded-[var(--radius-sm)] border border-border p-3">
+          <legend className="px-1 text-[12px] font-bold uppercase tracking-wide text-faint">Identify</legend>
+          <p className="text-[13px] text-muted-foreground">Also fill these fields from the same answer, on the product form and in Identify a whole list. The chatbot's answer replaces what's there; you see it before saving. Tick only what a chatbot could know, like a generic name, not a rack number.</p>
+          {init.fieldOptions.length ? (
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {init.fieldOptions.map((f) => (
+                <label key={f.key} className="flex items-center gap-2 text-[14px]">
+                  <input type="checkbox" checked={s.identifyFields.includes(f.key)} className="size-[18px] accent-[var(--brand)]"
+                    onChange={(e) => set({ identifyFields: e.target.checked ? [...s.identifyFields, f.key] : s.identifyFields.filter((k) => k !== f.key) })} />
+                  <span className="min-w-0">{f.label}{f.scoped && <small className="ml-1.5 text-faint">chosen categories</small>}</span>
+                </label>
+              ))}
+            </div>
+          ) : <p className="text-[13px] text-faint">Add fields in Product Plus first.</p>}
+        </fieldset>
+      )}
       <Field label="Naming style" hint="How product names should look, e.g. “Brand Product Size — Anchor Milk Powder 400g”. Used by Identify and the name clean-up.">
         <textarea aria-label="Naming style" value={s.namingStyle} onChange={(e) => set({ namingStyle: e.target.value })} className={AREA} />
       </Field>

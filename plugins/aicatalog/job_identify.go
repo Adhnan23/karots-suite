@@ -34,7 +34,7 @@ A date is YYYY-MM-DD. A dropdown must be one of its options, exactly.`
 
 func identifyJob() Job {
 	return Job{Key: "identify", Label: "Identify a whole list",
-		Desc: "Names, categories and searchable hints for many products, and any custom fields you tick (their answers replace what's there). Prices and stock never change.",
+		Desc: "Names, categories and searchable hints for many products, and the custom fields ticked in Settings → Identify (their answers replace what's there). Prices and stock never change.",
 		Select: func(ctx context.Context, p *Plugin, in JobRequest) (Batch, int, error) {
 			in.noHint = len(in.IDs) == 0 && in.Filter == "" && !in.Force // products without hints; a redo picks its own
 			key := in.recordKey("identify")
@@ -45,7 +45,7 @@ func identifyJob() Job {
 			}
 			return b, total, err
 		},
-		Options: fieldOptions, Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
+		Prompt: identifyPrompt, Parse: identifyParse, Apply: identifyApply, Undo: identifyUndo}
 }
 
 func identifyPrompt(ctx context.Context, p *Plugin, b Batch) (string, string, error) {
@@ -84,13 +84,9 @@ func identifyPrompt(ctx context.Context, p *Plugin, b Batch) (string, string, er
 	return withNaming(system, b.Settings.NamingStyle), u.String(), nil
 }
 
-// identifyTicked is the Product Plus fields ticked for this run (none without the plugin).
+// identifyTicked is the fields ticked in Settings → Identify (none without Product Plus).
 func identifyTicked(ctx context.Context, p *Plugin, b Batch) ([]plugin.ProductAttribute, error) {
-	set := p.attrSet("productplus")
-	if set == nil || len(b.Options) == 0 {
-		return nil, nil
-	}
-	return tickedAttrs(ctx, set, b.Options)
+	return p.identifyAttrs(ctx, b.Settings)
 }
 
 func hintText(specs, explanation string) string {

@@ -10,12 +10,16 @@ export type Settings = {
   webSearch: boolean
   namingStyle: string
   customPrompt: string
+  identifyFields: string[]
+  fieldOptions?: FieldOption[] | null // out only: Product Plus's fields, null without it
 }
+
+export type FieldOption = { key: string; label: string; type: string; scoped: boolean }
 
 /** Every AI action's answer: the result, or the prompt to copy (error says why when a paste or the API failed). */
 export type AskReply<T> = { result?: T; prompt?: string; error?: string }
 
-export type Candidate = { name: string; category: string; specs: string; explanation: string }
+export type Candidate = { name: string; category: string; specs: string; explanation: string; fields?: { key: string; label: string; value: string }[] }
 export type IdentifyResult = { confident: boolean; best: Candidate; options: Candidate[] | null }
 
 type Why = { reason: string }

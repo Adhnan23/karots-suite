@@ -13,7 +13,7 @@ import { packsQuery, productsQuery } from '@/features/admin/products/queries'
 import { SupplierPick } from '@/features/purchasing/SupplierPick'
 import { SameAsExisting } from '@/features/admin/products/SameAsExisting'
 import { unitsQuery } from '@/features/admin/units/UnitsPage'
-import { extraBody, type Extras, ProductAssists, ProductExtras } from '@/features/admin/products/ProductExtras'
+import { extraBody, type Extras, ProductAssists, ProductExtras, type Suggested } from '@/features/admin/products/ProductExtras'
 import { configQuery, errMsg } from '@/features/till/api'
 import { hasBarcode } from '@/lib/barcode'
 import { money, num, qtyText } from '@/lib/money'
@@ -265,6 +265,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
   const [supplier, setSupplier] = useState(sticky.supplierId)
   const [busy, setBusy] = useState(false)
   const [extras, setExtras] = useState<Extras>({})
+  const [suggested, setSuggested] = useState<Suggested>({})
   const [round, setRound] = useState(0) // remounts plugin sections after each save
   const [like, setLike] = useState(lastNew)
   const nameRef = useRef<HTMLInputElement>(null)
@@ -289,6 +290,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
       // Rapid loop: stay on New, keep category/unit/supplier/markup, clear the rest, back to the name.
       setD(blank('', ''))
       setExtras({})
+      setSuggested({})
       setRound((r) => r + 1)
       nameRef.current?.focus()
     } catch (err) {
@@ -321,7 +323,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
       </div>
       <div className="flex flex-col gap-2">
         <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
-        <ProductAssists key={round} name={d.name} barcode={d.barcode} where="intake" setExtras={setExtras}
+        <ProductAssists key={round} name={d.name} barcode={d.barcode} where="intake" setExtras={setExtras} setSuggested={setSuggested}
           onFill={({ name, categoryId }) => { if (name) setD((x) => ({ ...x, name })); if (categoryId) setCat(categoryId) }} />
       </div>
       <div className="grid gap-3 md:grid-cols-2">
@@ -346,7 +348,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
         <input ref={qtyRef} autoFocus={!!init.name} aria-label="Opening quantity" inputMode="decimal" value={d.qty} onChange={(e) => setD({ ...d, qty: clean(e.target.value) })} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} placeholder="0" />
       </Field>
       <Field label="Expiry" hint="Optional"><input aria-label="Expiry" type="date" value={d.expiry} onChange={(e) => setD({ ...d, expiry: e.target.value })} className={cn(INPUT, 'md:w-56')} /></Field>
-      <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} />
+      <ProductExtras key={round} productId={0} sourceId={0} categoryId={cat} where="intake" extras={extras} setExtras={setExtras} suggested={suggested} />
       <LabelBlock opts={labels} set={setLabels} name={d.name} price={d.selling} barcode={d.barcode} qty={d.qty} />
       <div className="flex gap-2">
         <Button type="button" variant="ghost" className="h-11 px-4" onClick={onCancel}>Cancel</Button>
