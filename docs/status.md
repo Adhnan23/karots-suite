@@ -26,21 +26,22 @@ over (restored as their own products), the two "Gamma Linolenic Acid" entries ar
 (merged), Natocare = DHA + folic acid (Alaris), Pregmax + Maxeval = MCW Healthcare (India, same barcode prefix), Enova =
 inositols + methylfolate + D3. Supplements aren't on the NMRA list (registered as food), so 334 missing OTC products
 came from Lanka Chemist's whole shop (605; name, brand, generic, pack; no maker on the site). One file:
-`Karots catalogue/Catalogue fixes + Lanka Chemist 2026-11-09 (import in Onboard).json` (+ "to read" CSV); scripts in
-`Karots catalogue/scripts/` now. Health Guard's site was down (try it next). Onboard `5d3f852`: catalogue search reads
+`Karots catalogue/1 Import in Onboard (in this order)/1 Fixes + Lanka Chemist.json` (CSVs in `2 To read (CSV)/`);
+scripts in `Karots catalogue/Scripts/`. Health Guard's site was down (try it next). Onboard `5d3f852`: catalogue search reads
 every field (generic, company, category, supplier, barcodes), forgives typos, exact and name matches first (~20 ms on
 7.6k). **Iman's own products aren't touched** (user): the matching sweep waits until they've added everything.
-Then sources 1–5 (medicine focus; user skipped Cargills / Keells): `Karots catalogue/More medicines 2026-11-09 (import
-in Onboard).json`, 273 new: NMRA borderline list 9 (the devices list is hospital kit, skipped), Siddhalepa's shop 96
+Then sources 1–5 (medicine focus; user skipped Cargills / Keells): `1 Import in Onboard (in this order)/2 More
+medicines.json`, 273 new: NMRA borderline list 9 (the devices list is hospital kit, skipped), Siddhalepa's shop 96
 (Ayurvedic medicines only), Lakpura's Link Natural + Beam 20, Jeewaka Pharmacy 144 (supplements, nutrition, dressings),
 Astron 4 (the rest were already in via NMRA). Dead ends: the Department of Ayurveda publishes no product list (its site
 is hacked, spam links: don't download from it); SLADC sits behind a bot wall; Health Guard (503) and carelink.lk (502)
 were down: retry them; pharmacylanka.com left out (sells alprazolam / Ritalin online: not a source to trust); GS Health,
-Sunshine and Hemas publish no product lists. Scripts: `Karots catalogue/scripts/more/`.
+Sunshine and Hemas publish no product lists. Scripts: `Karots catalogue/Scripts/more/`.
 Health Guard (still down) came from the Wayback Machine instead: 212 archived listing pages (health, pharma, devices,
 mother & baby) → 1,242 names → 246 new after dedupe (841 already in, 132 not medicine):
-`Karots catalogue/Health Guard 2026-11-09 (import in Onboard).json`. Names only (no generic / company on the
-listings); some are years old. Scripts: `Karots catalogue/scripts/healthguard/`.
+`1 Import in Onboard (in this order)/3 Health Guard.json`. Names only (no generic / company on the
+listings); some are years old. Scripts: `Karots catalogue/Scripts/healthguard/`. Folder sorted 2026-11-09: `1 Import…` (0 = the base
+catalogue, already imported; then 1, 2, 3), `2 To read (CSV)`, `Backups`, `Scripts`. Onboard APK rebuilt from `5d3f852`.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
