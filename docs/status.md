@@ -15,9 +15,12 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
    one file in `/mnt/nvme_512GB/Downloads/Karots catalogue/` with `Backups/` and the Iman checklist PDF (32 items).
 2. **Release import-by-ref to Iman** before the whole-list fix (`3ad406c`: Products → Sheets ▾ → Include ref; a ref
    updates its own product even after a rename / no barcode; another shop's ref is refused). Not Released yet.
-3. **Iman whole-list fix** (user's plan): after Iman has put everything in, export products with ref + Product Plus
-   fields → fix names / generic names / units, propose a category tree (user approves) → import → delete old empty
-   categories. Nobody touches their data until then.
+3. **Iman whole-list fix** (agreed 2026-11-09; Iman is still adding products, wait for the user): Release import-by-ref →
+   user exports Products → Sheets ▾ → Include ref + Include custom fields and sends the CSV → match every row to the
+   catalogue, fix name / generic / company / unit / category, list rows to clarify with Iman → user approves the
+   category tree → import the same CSV back (each row updates its own product by ref; the `category` column takes a
+   path and builds the tree) → delete old empty categories, merge true duplicates → **then stock** (held until the
+   list is clean). **Not** wipe and re-add: refs keep barcodes, packs, lots, suppliers and any sales.
 4. User's Onboard plan: install the 09:54 APK over the old one → Wipe all (saves a backup first) → add the support
    secret + Iman → import the Sri Lanka catalogue → pull Iman (their products land in Review).
 
