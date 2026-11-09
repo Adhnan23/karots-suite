@@ -58,8 +58,8 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 	// resulting line total, so the numbers add up on paper (a printer can't
 	// strike-through like the webview does).
 	if it.PackLabel != nil {
-		// Sold partly by the pack: the split is what adds up, not one unit price.
-		qty = money.Display(it.Quantity) + " " + ascii(it.UnitAbbr) + " (" + ascii(*it.PackLabel) + ")"
+		// Sold partly by the pack: just the quantity (packs price differently, so no one unit price).
+		qty = money.Display(it.Quantity) + " " + ascii(it.UnitAbbr)
 	} else if it.Discount.IsPositive() {
 		qty += " -> " + money.Display(it.NetUnitPrice())
 	}

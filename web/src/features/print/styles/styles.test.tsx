@@ -26,7 +26,6 @@ const MUST: Record<SampleName, string[]> = {
   busy: [
     'S-00231',
     'Panadol 500mg',
-    '1 Card + 2',
     'Samsung Charger 25W',
     '245.00',
     '2,450.00',
@@ -74,6 +73,8 @@ describe('every style renders every line', () => {
             const w = want === '80mm' ? `${width}mm` : want
             expect(got, `${s.key} ${name} ${width}: ${w}`).toContain(w.toLowerCase())
           }
+          // A line sold by the pack shows only its quantity, never the split (user, 2026-11-09).
+          expect(got, `${s.key} ${name} ${width}: pack split`).not.toContain('card + 2')
           // The serial comes labelled ("SN: …"); a style must not label it again.
           expect(got, `${s.key} ${name} ${width}: serial label`).not.toMatch(/(sn|serial)\s*sn:/)
         })

@@ -51,7 +51,7 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   const gross = pos(it.discount) ? ` (was ${display(it.gross)})` : ''
   if (it.payout) subs.push('Given')
   else if (it.group) subs.push(pretty(`${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')) + gross)
-  else if (it.packLabel) subs.push(`${it.unitAbbr} · ${it.packLabel}` + gross)
+  else if (it.packLabel) subs.push(it.unitAbbr + gross)
   else subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
   // No OFF column on 58 mm: the saving goes under the name.
   if (!wide && pos(it.discount)) subs.push(`saved ${display(it.discount)}${it.discountLabel}`)

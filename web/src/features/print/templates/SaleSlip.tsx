@@ -98,7 +98,8 @@ export function Extras({ warranty, serials, level, K }: { warranty: string; seri
 /** A line's quantity text, as Classic prints it. */
 export function qtyText(it: SlipItem) {
   if (it.group) return `${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')
-  if (it.packLabel) return `${display(it.quantity)} ${it.unitAbbr} (${it.packLabel})`
+  // Sold partly by the pack: just the quantity (packs price differently, so there's no one unit price; the split is noise).
+  if (it.packLabel) return `${display(it.quantity)} ${it.unitAbbr}`
   return `${display(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
 }
 
