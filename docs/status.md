@@ -30,6 +30,13 @@ came from Lanka Chemist's whole shop (605; name, brand, generic, pack; no maker 
 `Karots catalogue/scripts/` now. Health Guard's site was down (try it next). Onboard `5d3f852`: catalogue search reads
 every field (generic, company, category, supplier, barcodes), forgives typos, exact and name matches first (~20 ms on
 7.6k). **Iman's own products aren't touched** (user): the matching sweep waits until they've added everything.
+Then sources 1–5 (medicine focus; user skipped Cargills / Keells): `Karots catalogue/More medicines 2026-11-09 (import
+in Onboard).json`, 273 new: NMRA borderline list 9 (the devices list is hospital kit, skipped), Siddhalepa's shop 96
+(Ayurvedic medicines only), Lakpura's Link Natural + Beam 20, Jeewaka Pharmacy 144 (supplements, nutrition, dressings),
+Astron 4 (the rest were already in via NMRA). Dead ends: the Department of Ayurveda publishes no product list (its site
+is hacked, spam links: don't download from it); SLADC sits behind a bot wall; Health Guard (503) and carelink.lk (502)
+were down: retry them; pharmacylanka.com left out (sells alprazolam / Ritalin online: not a source to trust); GS Health,
+Sunshine and Hemas publish no product lists. Scripts: `Karots catalogue/scripts/more/`.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
