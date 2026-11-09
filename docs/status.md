@@ -5,19 +5,11 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, 2026-11-08 night)
 
-**Start here tomorrow morning (user: "rerun the test in the morning", then Release if good):**
-1. **Free the ports first.** Last night's full Playwright run was **invalid**: a leftover `air` (from `make dev`) kept
-   restarting `tmp/main` on :3000, so Playwright's own all-plugin server couldn't bind (`address already in use` in the
-   log) and the tests hit a stale core-only server (`unknown product extra 'pharmacy'` etc.). The earlier "10 passed"
-   users/auth run was against that same stale server, so it doesn't count either. Before running:
-   `pgrep -a air` (kill them by pid) and `ss -ltnp | grep -E ':(3000|5173|8443) '` must show nothing.
-2. **Full run:** `make e2e-seed && cd web && bunx playwright test` (detached, log on disk, e.g. `~/karots-logs/`).
-   One real failure was already found and fixed: the Users-page Shelf hint said "phone app", which clashed with
-   `getByLabel('Phone')` (`ec0dca1`). Expect the known flaky three below; anything else is new.
-3. **If green: Release Iman** (user approved "if things are good do the release"): `make shop S=iman-pharmacy-kalpitiya`
-   (refuses uncommitted changes), then commit `shops.json` as before (`chore(shops): … released …`). This Release brings:
-   the shop's **default unit** (migration 00031), **Karots Shelf** access (00032, Users tick, `shelfGate`), and the
-   batch-expiry / packs / ids calls Onboard needs.
+**Done 2026-11-09:** full Playwright run with free ports: 251 passed, 33 skipped, 1 known-unreliable failure
+(`plugin-aicatalog.spec.ts:278`; the whole file passed alone, 15/15). **Iman Released 2026.11.09.0655** (default unit,
+Karots Shelf access, Onboard's calls); `shops.json` committed. The shop takes it from Setup → Data → Updates.
+
+**Still to do:**
 4. **Hand test Karots Shelf on the user's phone against the dev server** (user, 2026-11-08), before or with the
    Release: `make plugins P=all && make dev`; on Users make a cashier and tick **Can use Karots Shelf**; install
    `~/Downloads/karots-shelf.apk` on the phone (USB + `adb install`, or copy the file); phone on the same Wi-Fi, shop
