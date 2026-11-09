@@ -56,7 +56,16 @@ earlier additions that were duplicates: they go out as deletions in the same fil
 lose them too; earlier additions keep their ids. Non-medicine products carry their type in Generic Name (Sunscreen,
 Knee Support, Pet Care…). The rebuild reads `Backups/Sri Lanka catalogue before variant rebuild.*` (keep it);
 `Scripts/rebuild/build_all.py` + `dedupe.py` (self-check: `python3 dedupe.py`) and the downloaded pages are there
-(the scripts' relative paths point at the old scratchpad layout). **Next: grocery** (user's list: ice cream —
+(the scripts' relative paths point at the old scratchpad layout). **Grocery collected (same evening):** the user will **wipe their Onboard catalogue and import one clean file at the end**
+(then sync with the shop), so the export now has no deletions and keeps no ids. Rules (user): every real product; no
+categories (each shop gets its own tree later, AI-made for that shop's size: idea); Generic Name only on medicines /
+supplements; kinds = Onboard's shop kinds (pharmacy, grocery, stationery, textile…; hardware / electronics in a later
+pass of its own). Arpico (myarpico.com OpenCart, all 5,081 by category → 4,970 new) and Keells (sitemap's 10,383
+till-style names, abbreviations expanded by `keells_build.py`, ~1,000 still-cut-short names left out → 8,503 new):
+**23,958 products** in the one file. Kapruka (kapruka.com product pages, 2,905 shelf products) is fetching slowly
+(it answers 429 to more than one worker). Not found anywhere: Lion Gate biscuits. Scripts: `Karots catalogue/Scripts/grocery/`
+(`export.py` builds the file; the pharmacy range is kept in `Backups/Pharmacy range 2026-11-09 (10,494).*`).
+**Next: grocery** (user's list: ice cream —
 Elephant House, Cargills Magic, Kotmale; soft drinks — EGB, Kist, Suncrush, Coca-Cola, Pepsi, 7Up; dairy — Kotmale,
 Highland, Pelwatte, Anchor; instant noodles — Maggi, Prima, Kist; biscuits — Munchee, Maliban, Lion Gate…), from an
 online grocery shop's whole list, kind `grocery`, same rules.
