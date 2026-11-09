@@ -16,6 +16,7 @@ const HELP: Record<Entity, string[]> = {
     'A product with the same barcode (or the same name, when it has none) is updated; anything else is added.',
     'Only the columns your sheet fills change — a sheet of names and prices leaves costs, categories and suppliers alone.',
     'Category can be a path like “Grocery > Rice”. opening_qty adds stock only to a product that has none.',
+    'A sheet exported with “Include ref” updates each row’s own product by its ref, even after a rename; a ref from another shop is refused.',
   ],
   customers: [
     'The phone number matches an existing customer (spaces and dashes don’t matter); without a phone, the name does.',
@@ -27,9 +28,10 @@ const HELP: Record<Entity, string[]> = {
   ],
 }
 
-/** Products' sheet options: skip disabled (on = core export as always) and the
- * plugin column groups to include. Remembered per device. */
-type Opts = { skipDisabled: boolean; extras: string[] }
+/** Products' sheet options: skip disabled (on = core export as always), the
+ * plugin column groups to include, and ref (a column that brings each row back
+ * to its own product on import). Remembered per device. */
+type Opts = { skipDisabled: boolean; extras: string[]; ref?: boolean }
 const OPTS_KEY = 'ks-sheets-products'
 function loadOpts(): Opts {
   try {
@@ -40,9 +42,9 @@ function loadOpts(): Opts {
 }
 
 /** The query string the options add (only what differs from the core sheet). */
-function optsQS(o: Opts, offered: SheetExtra[]) {
+export function optsQS(o: Opts, offered: SheetExtra[]) {
   const keys = o.extras.filter((k) => offered.some((x) => x.key === k))
-  return `${o.skipDisabled ? '' : '&disabled=1'}${keys.length ? `&extras=${keys.join(',')}` : ''}`
+  return `${o.skipDisabled ? '' : '&disabled=1'}${keys.length ? `&extras=${keys.join(',')}` : ''}${o.ref ? '&ref=1' : ''}`
 }
 
 /** Spreadsheets ▾ on a list page: export in three formats, a blank template,
@@ -76,6 +78,8 @@ export function SpreadsheetMenu({ entity }: { entity: Entity }) {
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem checked={opts.skipDisabled} onSelect={(e) => e.preventDefault()}
               onCheckedChange={(skipDisabled) => setOpts({ ...opts, skipDisabled })}>Skip disabled</DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem checked={!!opts.ref} onSelect={(e) => e.preventDefault()}
+              onCheckedChange={(ref) => setOpts({ ...opts, ref })}>Include ref (to fix and import back)</DropdownMenuCheckboxItem>
             {offered.map((x) => (
               <DropdownMenuCheckboxItem key={x.key} checked={opts.extras.includes(x.key)} onSelect={(e) => e.preventDefault()}
                 onCheckedChange={(on) => setOpts({ ...opts, extras: on ? [...opts.extras, x.key] : opts.extras.filter((k) => k !== x.key) })}>

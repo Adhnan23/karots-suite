@@ -21,7 +21,10 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   ![A barcode a cashier linked, on Items to review](../images/stock/review-barcode.jpg)
 
 - **Sheets:** export the product list to Excel / CSV / ODS, change it and import it back. A
-  price-only sheet changes prices only.
+  price-only sheet changes prices only. To tidy the whole list (names, categories, Product Plus
+  fields), tick **Include ref** before exporting: each row then carries its product's ref, and the
+  import updates that same product even after a rename or with no barcode. Sales, stock and
+  batches stay with it. A ref from another shop's sheet is refused.
 - **Merge:** two products that are really one become one, and their sales, stock and plugin
   records move with them.
 

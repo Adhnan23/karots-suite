@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -38,6 +39,9 @@ type ImportRow struct {
 	// barcode updates the right product (and is realigned) instead of duplicating.
 	// Off for routine imports; on for deliberate catalogue merges.
 	MatchByName bool
+	// ID, from a sheet's ref column, names the product to update: no matching by
+	// barcode or name (it may have been renamed), and nothing is ever created.
+	ID int64
 	// Active, when the sheet has an "active" column, enables or disables the
 	// product; it also lets the row match a disabled product (an export with
 	// disabled products round-trips instead of duplicating them). nil = leave as is.
@@ -136,7 +140,16 @@ func (s *Service) ImportOne(ctx context.Context, in ImportRow) (ImportResult, er
 		// Match an existing active product: prefer barcode, else fall back to name
 		// so barcode-less products round-trip on re-import instead of duplicating.
 		var existing *Product
-		if w.Barcode != nil {
+		if in.ID != 0 {
+			p, ferr := repo.FindByID(ctx, in.ID)
+			if errors.Is(ferr, sql.ErrNoRows) || (ferr == nil && p.MergedIntoID != nil) {
+				return apperr.Validation(fmt.Sprintf("product %d isn't in this shop (deleted or merged)", in.ID))
+			} else if ferr != nil {
+				return ferr
+			}
+			existing = p
+		}
+		if existing == nil && w.Barcode != nil {
 			if p, ferr := repo.FindByBarcode(ctx, *w.Barcode); ferr == nil {
 				existing = p
 			} else if !errors.Is(ferr, sql.ErrNoRows) {

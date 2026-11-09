@@ -217,6 +217,16 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 		return err
 	}
 	header := productSheetHeader(withDisabled, xs)
+	if c.QueryParam("ref") == "1" { // fix the sheet outside and import it back: each row finds its own product
+		install, err := h.installID(c)
+		if err != nil {
+			return err
+		}
+		header = append(header, "ref")
+		for i, id := range ids {
+			out[i] = append(out[i], fmt.Sprintf("%s-%d", install, id))
+		}
+	}
 	if c.QueryParam("ids") == "1" { // the setup app links rows to their products
 		header = append(header, "id")
 		for i, id := range ids {
@@ -253,6 +263,10 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 	}
 	cats, sups := categories.NewService(h.d.DB), suppliers.NewService(h.d.DB)
 	matchByName := yesCell(c.FormValue("matchByName"))
+	install, err := h.installID(c)
+	if err != nil {
+		return err
+	}
 	user := middleware.CurrentUserID(c)
 	res := newImportResult()
 	importRows(recs, col, &res, func(get func(string) string) (string, string, error) {
@@ -290,7 +304,12 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 			v := yesCell(a)
 			active = &v
 		}
+		byID, err := refID(get("ref"), install)
+		if err != nil {
+			return "", "", err
+		}
 		r, err := h.t.products.ImportOne(ctx, products.ImportRow{
+			ID:   byID,
 			Name: get("name"), NameLocal: get("name_local"), Barcode: get("barcode"),
 			CategoryID: catID, UnitID: unit, UserID: user, PreferredSupplier: supID,
 			Cost: amt["cost_price"], Selling: amt["selling_price"], Wholesale: amt["wholesale_price"], Tax: amt["tax_rate"],
@@ -309,6 +328,36 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		return r.Action, r.Note, nil
 	})
 	return h.finishImport(c, "product", res)
+}
+
+// installID is this shop's install ID, which a sheet's refs carry.
+func (h *handlers) installID(c echo.Context) (string, error) {
+	cfg, err := h.d.Settings.Get(c.Request().Context())
+	if err != nil {
+		return "", err
+	}
+	return cfg.InstallID, nil
+}
+
+// refID reads a row's ref ("<install id>-<product id>", from an export with
+// refs): 0 when the row has none. A ref from another shop's sheet is refused,
+// so one shop's list can never overwrite another's products.
+func refID(ref, install string) (int64, error) {
+	if ref == "" {
+		return 0, nil
+	}
+	i := strings.LastIndex(ref, "-")
+	if i < 0 {
+		return 0, apperr.Validation("ref '" + ref + "' isn't a product ref")
+	}
+	if !strings.EqualFold(ref[:i], install) {
+		return 0, apperr.Validation("ref '" + ref + "' is from another shop's sheet")
+	}
+	id, err := strconv.ParseInt(ref[i+1:], 10, 64)
+	if err != nil || id <= 0 {
+		return 0, apperr.Validation("ref '" + ref + "' isn't a product ref")
+	}
+	return id, nil
 }
 
 // importBarcodes adds a row's extra barcodes (";" or "," between them); it never
