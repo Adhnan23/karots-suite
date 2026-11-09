@@ -9,10 +9,10 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 1. **Grocery catalogues** (user, 2026-11-09): look at Cargills Food City, Keells and Lanka Sathosa online product lists
    the same way as mycare.lk (names, generic/brand, company; **never barcodes, prices or packs**), build an Onboard
    backup file (products only, no supplier, `updated_at` 2020 so a shop's own products always win on a name match).
-   Builder scripts live in the session scratchpad only: `names.py` (name style), `build_catalogue.py`, `nmra_parse.py`,
-   `combine.py`; re-create from these notes if gone. The Sri Lanka pharmacy catalogue (7,637: mycare.lk 11 vendor
-   lists + NMRA "List of Registered Drugs By brand-generic" xls 02.11.2026) is in
-   `/mnt/nvme_512GB/Downloads/Karots catalogue/` with the user's pre-wipe backup and the Iman checklist PDF (32 items).
+   The first catalogue's builder scripts (`names.py`, `build_catalogue.py`, `nmra_parse.py`, `combine.py`) were lost
+   with the scratchpad; today's are kept in `Karots catalogue/Scripts/`. The Sri Lanka pharmacy catalogue (mycare.lk
+   11 vendor lists + NMRA "List of Registered Drugs By brand-generic" xls 02.11.2026, plus 2026-11-09's additions) is
+   one file in `/mnt/nvme_512GB/Downloads/Karots catalogue/` with `Backups/` and the Iman checklist PDF (32 items).
 2. **Release import-by-ref to Iman** before the whole-list fix (`3ad406c`: Products → Sheets ▾ → Include ref; a ref
    updates its own product even after a rename / no barcode; another shop's ref is refused). Not Released yet.
 3. **Iman whole-list fix** (user's plan): after Iman has put everything in, export products with ref + Product Plus
@@ -40,8 +40,9 @@ Sunshine and Hemas publish no product lists. Scripts: `Karots catalogue/Scripts/
 Health Guard (still down) came from the Wayback Machine instead: 212 archived listing pages (health, pharma, devices,
 mother & baby) → 1,242 names → 246 new after dedupe (841 already in, 132 not medicine):
 `1 Import in Onboard (in this order)/3 Health Guard.json`. Names only (no generic / company on the
-listings); some are years old. Scripts: `Karots catalogue/Scripts/healthguard/`. Folder sorted 2026-11-09: `1 Import…` (0 = the base
-catalogue, already imported; then 1, 2, 3), `2 To read (CSV)`, `Backups`, `Scripts`. Onboard APK rebuilt from `5d3f852`.
+listings); some are years old. Scripts: `Karots catalogue/Scripts/healthguard/`. **All merged into one list (8,493):** `Karots catalogue/Sri Lanka catalogue
+2026-11-09 (import in Onboard).json` + its `(to read).csv` (Source column); the separate files above are gone. Also
+in the folder: `Backups/`, `Scripts/`, the Iman checklist. Onboard APK rebuilt from `5d3f852`.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
