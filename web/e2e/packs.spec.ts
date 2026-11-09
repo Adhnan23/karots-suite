@@ -70,7 +70,7 @@ test.beforeAll(async ({ browser }) => {
   await page.close()
 })
 
-test('a product sold by the card: chooser, 14 = 1 card + 2, the card code adds a card, the receipt shows the split', async ({ page }) => {
+test('a product sold by the card: chooser, 14 = 1 card + 2, the card code adds a card, the receipt shows qty x single price and the pack saving', async ({ page }) => {
   await till(page)
   await search(page, PANADOL)
   const pick = page.getByRole('dialog', { name: PANADOL })
@@ -89,7 +89,11 @@ test('a product sold by the card: chooser, 14 = 1 card + 2, the card code adds a
   const done = page.getByRole('dialog', { name: /complete/ })
   await expect(done).toContainText('Rs. 552.00')
   await expect(receiptPicture(done)).toBeVisible()
-  await expect.poll(words).toContain('(2 Cards + 2)')
+  // 26 × 26.00 = 676.00; two cards ring at 250.00, so the pack saves 124.00 (no split on paper).
+  await expect.poll(words).toMatch(/26 \S+ x 26\.00/)
+  expect(await words()).toContain('Pack price')
+  expect(await words()).toContain('-124.00')
+  expect(await words()).not.toContain('Cards + 2')
   await page.keyboard.press('Enter')
 })
 

@@ -123,7 +123,9 @@ test('the till menu adds a combo as one group; + scales it; the receipt prints o
   await expect(done).toContainText('Rs. 720.00')
   await expect(receiptPicture(done)).toBeVisible()
   await expect.poll(words).toContain(label)
-  expect(await words()).toMatch(/2 x 400\.00 -> 360\.00/)
+  expect(await words()).toMatch(/2 x 400\.00/)
+  expect(await words()).not.toContain('->') // one price per line; the saving has its own line
+  expect(await words()).toContain('-80.00')
   expect(await words()).toContain(`- ${TEA} x2`)
   await page.keyboard.press('Enter')
 })
