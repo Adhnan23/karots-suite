@@ -92,8 +92,8 @@ describe('a pack line reads qty × single price, a cheaper pack as its own savin
     it(s.key, () => {
       const got = text(draw(cheap(), s.key))
       expect(got).toContain('20.00')
-      expect(got).toContain('280.00') // 14 × 20 before the pack price
-      expect(got).toMatch(/pack price/)
+      expect(got).toContain('260.00') // the line's amount
+      expect(got).toMatch(/pack/) // the saving is named (Pack price, or Grid's OFF column)
       expect(got).not.toContain('card + 2')
     })
 })

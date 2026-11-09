@@ -54,7 +54,7 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   else if (it.packLabel) {
     subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
     const pack = packSaving(it)
-    if (pack > 0) subs.push(`pack price -${display(String(pack))} (was ${display(String(Number(it.gross) + pack))})`)
+    if (pack > 0 && !wide) subs.push(`pack price saved ${display(String(pack))}`) // 80 mm: in the OFF column
   }
   else subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
   // No OFF column on 58 mm: the saving goes under the name.
@@ -79,9 +79,15 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
       </td>
       {wide && (
         <td style={num}>
+          {packSaving(it) > 0 && (
+            <>
+              <div>-{display(String(packSaving(it)))}</div>
+              <div style={small}>pack</div>
+            </>
+          )}
           {pos(it.discount) && (
             <>
-              <div>{display(it.discount)}</div>
+              <div>-{display(it.discount)}</div>
               {it.discountLabel && <div style={small}>{it.discountLabel.trim().replace(/[()]/g, '')}</div>}
             </>
           )}

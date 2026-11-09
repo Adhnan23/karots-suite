@@ -47,7 +47,6 @@ export const minimal: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => {
     if (kind === 'total' || kind === 'given') return null // on the leader
-    if (kind === 'saving') return <Para style={small}>{`less ${r.replace(/^-/, '')}${l.replace('You saved', '')}`}</Para>
     return <LR l={pretty(l)} r={r} style={small} />
   },
   Member: ({ children }) => <Para style={small}>{pretty(children)}</Para>,

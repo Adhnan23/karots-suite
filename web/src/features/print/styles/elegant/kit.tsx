@@ -69,8 +69,7 @@ export const elegant: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => {
     if (kind === 'total' || kind === 'given') return null
-    if (kind === 'saving') return <Para style={{ ...small, fontStyle: 'italic' }}>{`${l.replace('You saved', 'saved')} ${r.replace(/^-/, '')}`}</Para>
-    return <LR l={pretty(l)} r={r} style={small} />
+    return <LR l={pretty(l)} r={r} style={kind === 'saving' ? { ...small, fontStyle: 'italic' } : small} />
   },
   Member: ({ children }) => <Para style={{ ...small, paddingLeft: 20 }}>{pretty(children)}</Para>,
   Note: ({ children, level }) => (

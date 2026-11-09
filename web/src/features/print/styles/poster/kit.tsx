@@ -58,7 +58,7 @@ export const poster: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => {
     if (kind === 'total' || kind === 'given') return null
-    return <LR l={kind === 'saving' ? `${l.replace('You saved', 'off')} ${r}` : pretty(l)} r={kind === 'saving' ? undefined : r} style={small} />
+    return <LR l={pretty(l)} r={r} style={small} />
   },
   Member: ({ children }) => <Para style={small}>{`· ${pretty(children)}`}</Para>,
   Note: ({ children, level }) => <Para style={{ ...small, paddingLeft: level === 1 ? 0 : 16 }}>{children}</Para>,

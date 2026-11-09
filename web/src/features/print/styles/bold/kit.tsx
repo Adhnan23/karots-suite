@@ -1,6 +1,6 @@
 import { SANS_FAMILY, SANS_FONTS } from '../../paper'
 import type { SlipKit } from '../kit'
-import { Credit, Line, Logo, LR, MARGIN, NumberCode, Para, Paper, pretty, Space, Tag } from '../parts'
+import { Credit, Line, Logo, LR, MARGIN, NumberCode, Para, Paper, pretty, Space } from '../parts'
 
 // Bold: a black header band, clean sans, savings as tags, a solid black TOTAL
 // band, the slip number as a barcode at the foot.
@@ -44,7 +44,6 @@ export const bold: SlipKit = {
   ),
   Sub: ({ l, r, kind }) => {
     if (kind === 'total') return null // on the name row
-    if (kind === 'saving') return <div style={{ ...small, margin: '2px 0' }}><Tag>{`saved ${r.replace(/^-/, '')}${l.replace('You saved', '')}`}</Tag></div>
     return <LR l={pretty(l)} r={kind === 'given' ? undefined : r} style={small} />
   },
   Member: ({ children }) => <Para style={{ ...small, paddingLeft: 16 }}>{`· ${pretty(children)}`}</Para>,
