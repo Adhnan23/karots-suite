@@ -46,6 +46,20 @@ mother & baby) → 1,242 names → 246 new after dedupe (841 already in, 132 not
 listings); some are years old. Scripts: `Karots catalogue/Scripts/healthguard/`. **All merged into one list (8,493):** `Karots catalogue/Sri Lanka catalogue
 2026-11-09 (import in Onboard).json` + its `(to read).csv` (Source column); the separate files above are gone. Also
 in the folder: `Backups/`, `Scripts/`, the Iman checklist. Onboard APK rebuilt from `5d3f852`.
+**Later 2026-11-09, the whole pharmacy range (user: take every real product, sizes / flavours are different products):**
+rebuilt every source with a variant-safe duplicate rule (only form words like tablets / capsules / original / box are
+ignored; any size or flavour word makes it a different product; spacing, hyphens and "50+" = "50 Plus" are the same):
+**10,494 products, 0 duplicates** (mycare.lk + NMRA 7,610, Health Guard 1,192 incl. its beauty / hair / personal-care /
+baby / pet / supports sections from the Wayback Machine, Jeewaka 961 whole shop, Lanka Chemist 447, Siddhalepa 242,
+Link + Beam 20, NMRA borderline 9, Astron 4, fixes 9). 22 duplicate pairs inside the first catalogue removed and 5
+earlier additions that were duplicates: they go out as deletions in the same file, so phones that imported them
+lose them too; earlier additions keep their ids. Non-medicine products carry their type in Generic Name (Sunscreen,
+Knee Support, Pet Care…). The rebuild reads `Backups/Sri Lanka catalogue before variant rebuild.*` (keep it);
+`Scripts/rebuild/build_all.py` + `dedupe.py` (self-check: `python3 dedupe.py`) and the downloaded pages are there
+(the scripts' relative paths point at the old scratchpad layout). **Next: grocery** (user's list: ice cream —
+Elephant House, Cargills Magic, Kotmale; soft drinks — EGB, Kist, Suncrush, Coca-Cola, Pepsi, 7Up; dairy — Kotmale,
+Highland, Pelwatte, Anchor; instant noodles — Maggi, Prima, Kist; biscuits — Munchee, Maliban, Lion Gate…), from an
+online grocery shop's whole list, kind `grocery`, same rules.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
