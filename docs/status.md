@@ -104,9 +104,10 @@ costs round to 2 places; lock = install-ID code, then the phone's unlock for 24 
 needs the code; Android cloud backup off); Wipe (products / suppliers / review / shops / secrets, or all) after the
 code and a saved backup; Backup popup scrolls; big catalogues (batched detail loads past SQLite's 32,766 values,
 product indexes DB v7, one-transaction import: 7.6k import 8 s → 0.9 s, 200k open 21 s → 3.3 s). Millions would need
-paged SQL search (not built; only if a real catalogue gets near it). Final review findings fixed; deferred minors:
-÷ accepts negative / Infinity, "E SX" / "1,250" refused with a code, Sinhala/Tamil code letters show no live number,
-corrupt cost_code JSON from sync throws.
+paged SQL search (not built; only if a real catalogue gets near it). Final review findings fixed; the deferred minors were fixed
+2026-11-09 evening (app `a757337`, `3022c37`): ÷ refuses negative / Infinity, commas and spaces ignored, any script's code
+letters, a broken synced cost code reads as none, drafts kept in the database; and (user's find) markup + selling price
+with no cost work the cost out, either order.
 
 
 **Done 2026-11-09:** full Playwright run with free ports: 251 passed, 33 skipped, 1 known-unreliable failure
@@ -121,7 +122,7 @@ Karots Shelf access, Onboard's calls); `shops.json` committed. The shop takes it
    unlock offline, untick the cashier on the PC (phone shows "Ask the owner…"), a second person on the same phone.
    Afterwards: kill `air` by pid, `make core-only`, free the ports before any Playwright run.
 5. APKs stay in `~/Downloads` (user): `karots-shelf.apk` and `karots-onboard.apk`, both built from the app repo's
-   `69a4028` (Android builds need `--flavor onboard|shelf`).
+   `3022c37` (2026-11-09 evening; Android builds need `--flavor onboard|shelf`).
 
 **Done 2026-11-08 (all committed on `main`, nothing pushed):**
 - **Onboard fixes** (app repo): a scan counts only after 3 matching frames + EAN/UPC check digit; phone unlock works
