@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { SlipData, SlipItem } from '@/api/types.gen'
-import { SaleHead, SaleMoney } from '../../templates/SaleSlip'
+import { packSaving, SaleHead, SaleMoney } from '../../templates/SaleSlip'
 import type { SlipKit } from '../kit'
 import { abs, display, pos, qty } from '../money'
 import { pretty } from '../parts'
@@ -51,7 +51,11 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   const gross = pos(it.discount) ? ` (was ${display(it.gross)})` : ''
   if (it.payout) subs.push('Given')
   else if (it.group) subs.push(pretty(`${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')) + gross)
-  else if (it.packLabel) subs.push(it.unitAbbr + gross)
+  else if (it.packLabel) {
+    subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
+    const pack = packSaving(it)
+    if (pack > 0) subs.push(`pack price -${display(String(pack))} (was ${display(String(Number(it.gross) + pack))})`)
+  }
   else subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
   // No OFF column on 58 mm: the saving goes under the name.
   if (!wide && pos(it.discount)) subs.push(`saved ${display(it.discount)}${it.discountLabel}`)

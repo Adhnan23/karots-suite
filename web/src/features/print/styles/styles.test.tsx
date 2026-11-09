@@ -80,6 +80,24 @@ describe('every style renders every line', () => {
         })
 })
 
+describe('a pack line reads qty × single price, a cheaper pack as its own saving', () => {
+  // 14 tabs at 20 = 280; a card of 12 rings at 220, so the line is 260.
+  const cheap = () => {
+    const d = sample('busy')
+    const sale = d.sale!
+    sale.items = sale.items.map((it) => (it.packLabel ? { ...it, gross: '260', subtotal: '260' } : it))
+    return d
+  }
+  for (const s of STYLES)
+    it(s.key, () => {
+      const got = text(draw(cheap(), s.key))
+      expect(got).toContain('20.00')
+      expect(got).toContain('280.00') // 14 × 20 before the pack price
+      expect(got).toMatch(/pack price/)
+      expect(got).not.toContain('card + 2')
+    })
+})
+
 it('an unknown style draws classic', () => {
   expect(draw(sample('busy'), 'modern')).toBe(draw(sample('busy'), 'classic'))
 })

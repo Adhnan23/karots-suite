@@ -57,15 +57,22 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 	// shows the discounted unit price (was -> now), its own reduction, and the
 	// resulting line total, so the numbers add up on paper (a printer can't
 	// strike-through like the webview does).
+	// Sold partly by the pack: qty x the single price like any line; full packs
+	// rung cheaper show as their own "Pack price" saving, so the lines add up.
+	packSave := decimal.Zero
 	if it.PackLabel != nil {
-		// Sold partly by the pack: just the quantity (packs price differently, so no one unit price).
-		qty = money.Qty(it.Quantity) + " " + ascii(it.UnitAbbr)
+		packSave = decimal.Max(decimal.Zero, it.Quantity.Mul(it.UnitPrice).Round(2).Sub(it.Gross()))
 	} else if it.Discount.IsPositive() {
 		qty += " -> " + money.Display(it.NetUnitPrice())
 	}
-	line(b, leftRight("  "+qty, money.Display(it.Gross()), w))
+	line(b, leftRight("  "+qty, money.Display(it.Gross().Add(packSave)), w))
+	if packSave.IsPositive() {
+		line(b, leftRight("  Pack price", "-"+money.Display(packSave), w))
+	}
 	if it.Discount.IsPositive() {
 		line(b, leftRight("  You saved"+discSuffix(it.DiscountType, it.DiscountValue), "-"+money.Display(it.Discount), w))
+	}
+	if it.Discount.IsPositive() || packSave.IsPositive() {
 		line(b, leftRight("  Line total", money.Display(it.Subtotal), w))
 	}
 	extras(b, it, soldAt, w, opts, "  ")

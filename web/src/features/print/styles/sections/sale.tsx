@@ -1,5 +1,5 @@
 import type { SlipData, SlipItem } from '@/api/types.gen'
-import { Extras, qtyText } from '../../templates/SaleSlip'
+import { Extras, packSaving, qtyText } from '../../templates/SaleSlip'
 import type { SlipKit } from '../kit'
 import { abs, display, money, neg, pos, qty } from '../money'
 import { Bar } from './kit'
@@ -11,6 +11,7 @@ export function SectionsSale({ d, kit: K }: { d: SlipData; kit: SlipKit }) {
   const sym = d.currency
   const items = s.items ?? []
   const savings = items.filter((it) => pos(it.discount))
+  const packs = items.filter((it) => packSaving(it) > 0)
   const payments = (s.payments ?? []).filter((p) => Number(p.amount) !== 0)
   return (
     <K.Page d={d}>
@@ -24,9 +25,12 @@ export function SectionsSale({ d, kit: K }: { d: SlipData; kit: SlipKit }) {
       {items.map((it, i) => (
         <Line key={i} it={it} K={K} />
       ))}
-      {(savings.length > 0 || pos(s.billSaving)) && (
+      {(savings.length > 0 || packs.length > 0 || pos(s.billSaving)) && (
         <>
           <Bar>You saved</Bar>
+          {packs.map((it, i) => (
+            <K.Money key={'p' + i} l={it.name + ' (pack price)'} r={'-' + display(String(packSaving(it)))} />
+          ))}
           {savings.map((it, i) => (
             <K.Money key={i} l={it.name + it.discountLabel} r={'-' + display(it.discount)} />
           ))}
@@ -71,7 +75,7 @@ function Line({ it, K }: { it: SlipItem; K: SlipKit }) {
   }
   return (
     <K.Item name={it.name} amount={display(it.subtotal)}>
-      <K.Sub kind="qty" l={qtyText(it)} r={pos(it.discount) ? display(it.gross) : ''} />
+      <K.Sub kind="qty" l={qtyText(it)} r={pos(it.discount) || packSaving(it) > 0 ? display(String(Number(it.gross) + packSaving(it))) : ''} />
       {(it.members ?? []).map((m, i) => (
         <div key={i}>
           <K.Member>{`${m.name} x${qty(m.quantity)}`}</K.Member>

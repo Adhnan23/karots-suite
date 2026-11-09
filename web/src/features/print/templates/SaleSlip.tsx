@@ -95,11 +95,18 @@ export function Extras({ warranty, serials, level, K }: { warranty: string; seri
   )
 }
 
+/** What a line saved by ringing full packs at the pack price (qty × single price − the line's gross), 0 if none. */
+export function packSaving(it: SlipItem) {
+  if (!it.packLabel) return 0
+  const full = Math.round(Number(it.quantity) * Number(it.unitPrice) * 100) / 100
+  return Math.max(0, Math.round((full - Number(it.gross)) * 100) / 100)
+}
+
 /** A line's quantity text, as Classic prints it. */
 export function qtyText(it: SlipItem) {
   if (it.group) return `${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')
-  // Sold partly by the pack: just the quantity (packs price differently, so there's no one unit price; the split is noise).
-  if (it.packLabel) return `${qty(it.quantity)} ${it.unitAbbr}`
+  // Sold partly by the pack: qty × the single price like any line; a cheaper pack shows as its own "Pack price" saving.
+  if (it.packLabel) return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}`
   return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
 }
 
@@ -113,15 +120,13 @@ function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
     )
   }
   const disc = pos(it.discount)
+  const pack = packSaving(it)
   return (
     <K.Item name={it.name} amount={display(it.subtotal)}>
-      <K.Sub kind="qty" l={qtyText(it)} r={display(it.gross)} />
-      {disc && (
-        <>
-          <K.Sub kind="saving" l={'You saved' + it.discountLabel} r={'-' + display(it.discount)} />
-          <K.Sub kind="total" l="Line total" r={display(it.subtotal)} />
-        </>
-      )}
+      <K.Sub kind="qty" l={qtyText(it)} r={display(pack > 0 ? String(pack + Number(it.gross)) : it.gross)} />
+      {pack > 0 && <K.Sub kind="saving" l="Pack price" r={'-' + display(String(pack))} />}
+      {disc && <K.Sub kind="saving" l={'You saved' + it.discountLabel} r={'-' + display(it.discount)} />}
+      {(disc || pack > 0) && <K.Sub kind="total" l="Line total" r={display(it.subtotal)} />}
       <Extras warranty={it.warranty} serials={it.serials} level={1} K={K} />
     </K.Item>
   )
