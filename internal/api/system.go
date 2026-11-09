@@ -50,6 +50,11 @@ func (h *handlers) PutAppearance(c echo.Context) error {
 	if skin != cur.Skin {
 		brand, radius = "", "rounded"
 	}
+	if in.ReceiptTextSize != 0 {
+		if err := h.d.Settings.SetReceiptTextSize(ctx, in.ReceiptTextSize); err != nil {
+			return err
+		}
+	}
 	st, err := h.d.Settings.SetAppearance(ctx, skin, in.ReceiptStyle, brand, radius, in.LabelStyles)
 	if err != nil {
 		return err

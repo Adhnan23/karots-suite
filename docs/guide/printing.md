@@ -57,6 +57,11 @@ to change it. Under the preview, the technician can pick any printer (this PC's,
 printer by its address) and press **Print this** to see that slip on paper before saving a style. It
 only tries that printer, so Settings stays as it is. It prints the sample only: no sale and no drawer.
 
+**Text size** (Normal, Large or Larger) makes everything on the shop's receipts bigger, for staff or
+customers who find the print small: the text, lines, logo and barcode grow together and long lines wrap
+onto the next line, so nothing is cut off. The preview and **Print this** show it. Larger receipts use
+more paper. On 58 mm paper, a line too long for one row puts its amount on the next row.
+
 ## Labels
 
 ![Barcode labels](../images/printing/labels.jpg)

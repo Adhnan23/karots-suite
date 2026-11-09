@@ -125,3 +125,34 @@ func TestAppearancePaletteRoundTripAndFallback(t *testing.T) {
 		t.Fatalf("unknown palette should fall back to studio: %+v", got)
 	}
 }
+
+func TestAppearanceReceiptTextSize(t *testing.T) {
+	te := newTestEnv(t)
+	ck := systemLogin(t, te, "0770009016")
+	var before Appearance
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/system/appearance", nil, ck).Body.Bytes(), &before) //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_text_size=100`) }) //nolint:errcheck
+	if before.ReceiptTextSize != 100 && before.ReceiptTextSize != 115 && before.ReceiptTextSize != 130 {
+		t.Fatalf("text size starts at %d", before.ReceiptTextSize)
+	}
+	put := func(a Appearance) Appearance {
+		var got Appearance
+		json.Unmarshal(te.do(http.MethodPut, "/api/v1/system/appearance", a, ck).Body.Bytes(), &got) //nolint:errcheck
+		return got
+	}
+	if got := put(Appearance{Palette: before.Palette, ReceiptStyle: "bold", ReceiptTextSize: 130}); got.ReceiptTextSize != 130 {
+		t.Fatalf("saved %d", got.ReceiptTextSize)
+	}
+	var cfg TillConfig
+	json.Unmarshal(te.do(http.MethodGet, "/api/v1/till/config", nil, ck).Body.Bytes(), &cfg) //nolint:errcheck
+	if cfg.ReceiptTextSize != 130 {
+		t.Fatalf("till config receiptTextSize = %d", cfg.ReceiptTextSize)
+	}
+	// Absent (0) keeps it; an unknown size reads as Normal.
+	if got := put(Appearance{Palette: before.Palette, ReceiptStyle: "bold"}); got.ReceiptTextSize != 130 {
+		t.Fatalf("a save without a size changed it: %d", got.ReceiptTextSize)
+	}
+	if got := put(Appearance{Palette: before.Palette, ReceiptStyle: "bold", ReceiptTextSize: 500}); got.ReceiptTextSize != 100 {
+		t.Fatalf("junk size kept: %d", got.ReceiptTextSize)
+	}
+}

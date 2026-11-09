@@ -32,6 +32,7 @@ type TillConfig struct {
 	Shop               ShopHeader        `json:"shop"`
 	ReceiptWidth       string            `json:"receiptWidth"` // "80" | "58" mm, the shop default
 	ReceiptStyle       string            `json:"receiptStyle"` // the saved Image-mode style (see Appearance)
+	ReceiptTextSize    int               `json:"receiptTextSize"` // the slips' text size in percent (see Appearance)
 	LabelPrintAs       string            `json:"labelPrintAs"` // "classic" | "image"
 	LabelStyles        map[string]string `json:"labelStyles"`  // Image-mode style per label kind; missing = classic
 	// The label text settings (Settings → Printers & labels): lines 1–4 and size "1"–"4" (XS–L)

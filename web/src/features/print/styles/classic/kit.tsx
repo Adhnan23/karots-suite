@@ -48,6 +48,16 @@ export function Hang({ lead, children }: { lead: string; children: ReactNode }) 
  * apart; the left side is cut when both don't fit. `big` is the double-height
  * bold line Classic prints for TOTAL, CHANGE and DUE. */
 export function Row({ l, r, bold, big }: { l: ReactNode; r: ReactNode; bold?: boolean; big?: boolean }) {
+  const cols = useContext(Cols)
+  // Too long for one line (narrow paper, bigger text): the words, then the amount on its own line, never cut off.
+  if (!big && typeof l === 'string' && typeof r === 'string' && l.trim() && r && l.length + 1 + r.length > cols) {
+    return (
+      <>
+        <Row l={l} r="" bold={bold} />
+        <Row l="" r={r} bold={bold} />
+      </>
+    )
+  }
   const row: CSSProperties = { display: 'flex', height: A.line, whiteSpace: 'pre' }
   const inner = (
     <div style={big ? { ...row, transform: 'scaleY(2)', transformOrigin: 'top' } : row}>

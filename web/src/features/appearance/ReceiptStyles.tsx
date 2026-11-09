@@ -40,17 +40,24 @@ export function Seg<T extends string>({ label, options, value, onChange }: { lab
   )
 }
 
+const TEXT_SIZES = [
+  { label: 'Normal', key: '100' },
+  { label: 'Large', key: '115' },
+  { label: 'Larger', key: '130' },
+] as const
+
 /** Appearance → Receipt style: live thumbnails of every style and the exact
- * picture the printer would get for any slip. Only `value` is saved (by the page). */
-export function ReceiptStyles({ value, onChange }: { value: string; onChange: (key: string) => void }) {
+ * picture the printer would get for any slip, at the shop's text size. Only
+ * `value` and `text` are saved (by the page). */
+export function ReceiptStyles({ value, onChange, text, onText }: { value: string; onChange: (key: string) => void; text: number; onText: (n: number) => void }) {
   const slips = [...CORE_SLIPS, ...slots.slipTemplates.filter((t) => t.sample).map((t) => ({ label: t.label, path: t.sample! }))]
   const [slip, setSlip] = useState(SAMPLE)
   const [size, setSize] = useState<'80' | '58'>('80')
   const [sale, setSale] = useState<(typeof SALES)[number]['key']>('busy')
   const path = slip === SAMPLE ? `${SAMPLE}?kind=sale&sample=${sale}` : slip
 
-  const thumbs = useQueries({ queries: STYLES.map((s) => slipPictureQuery(`${SAMPLE}?kind=sale&sample=busy`, '80', s.key)) })
-  const preview = useQuery(slipPictureQuery(path, size, value))
+  const thumbs = useQueries({ queries: STYLES.map((s) => slipPictureQuery(`${SAMPLE}?kind=sale&sample=busy`, '80', s.key, text)) })
+  const preview = useQuery(slipPictureQuery(path, size, value, text))
 
   return (
     <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -71,6 +78,10 @@ export function ReceiptStyles({ value, onChange }: { value: string; onChange: (k
               <span className="text-sm font-semibold">{s.label}</span>
             </button>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-muted-foreground">Text size</span>
+          <Seg label="Text size" options={TEXT_SIZES} value={String(text) as (typeof TEXT_SIZES)[number]['key']} onChange={(k) => onText(Number(k))} />
         </div>
         <TryPrint what="receipt" path={`/system/print/slip?size=${size}`} blob={preview.data?.blob} />
       </div>

@@ -96,6 +96,11 @@ func center(s string, w int) string {
 // leftRight pads a left and right label out to w columns. The left side is
 // truncated if the two together would overflow the line.
 func leftRight(l, r string, w int) string {
+	// Too long for one line: the words, then the amount right-aligned on its own
+	// line, never cut off (58 mm paper; the picture's Classic does the same).
+	if strings.TrimSpace(l) != "" && r != "" && len(l)+1+len(r) > w && len(l) <= w && len(r) < w {
+		return l + "\n" + strings.Repeat(" ", w-len(r)) + r
+	}
 	if len(l)+len(r) >= w {
 		max := w - len(r) - 1
 		if max < 0 {

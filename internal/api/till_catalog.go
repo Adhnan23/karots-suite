@@ -65,6 +65,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		LabelSize:          fmt.Sprintf("%dx%d", st.LabelWidthMM, st.LabelHeightMM),
 		ReceiptWidth:       st.ReceiptWidth,
 		ReceiptStyle:       settings.ValidReceiptStyle(st.ReceiptStyle),
+		ReceiptTextSize:    settings.ValidReceiptTextSize(st.ReceiptTextSize),
 		LabelPrintAs:       st.LabelPrintAs,
 		LabelStyles:        labelStylesOf(st),
 		LabelFirstLines:    max(st.LabelNameLines, 1),

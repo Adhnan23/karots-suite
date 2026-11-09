@@ -77,6 +77,10 @@ export interface Appearance {
   radius: string; // legacy "sharp" | "rounded" | "round"
   receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
   /**
+   * ReceiptTextSize is the slips' text size in percent: 100 | 115 | 130. On a save, 0 (absent) changes nothing.
+   */
+  receiptTextSize?: number /* int */;
+  /**
    * LabelStyles is the Image-mode style per label kind ("price", plugin kinds). On a
    * save it is merged: a kind set to "" goes back to classic, an absent map changes nothing.
    */
@@ -3837,6 +3841,7 @@ export interface TillConfig {
   shop: ShopHeader;
   receiptWidth: string; // "80" | "58" mm, the shop default
   receiptStyle: string; // the saved Image-mode style (see Appearance)
+  receiptTextSize: number /* int */; // the slips' text size in percent (see Appearance)
   labelPrintAs: string; // "classic" | "image"
   labelStyles: { [key: string]: string}; // Image-mode style per label kind; missing = classic
   /**

@@ -4,6 +4,7 @@ package settings
 import (
 	"context"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -68,6 +69,8 @@ type Settings struct {
 	// Settings UPDATE never touches them.
 	Skin         string `db:"skin"          json:"skin"`
 	ReceiptStyle string `db:"receipt_style" json:"receipt_style"`
+	// ReceiptTextSize is the slips' text size in percent (ReceiptTextSizes).
+	ReceiptTextSize int `db:"receipt_text_size" json:"receipt_text_size"`
 	Density      string `db:"density"       json:"-"` // unused since receipt styles; kept for SELECT *
 	// SkinCustom is a brand hex (e.g. "#7c3aed") used when Skin == "custom"; the
 	// full colour ramp is derived from it at render time. Blank otherwise.
@@ -131,6 +134,17 @@ func ValidSkin(v string) string {
 	return oneOf(v, Skins, "studio")
 }
 func ValidReceiptStyle(v string) string { return oneOf(v, ReceiptStyles, "classic") }
+
+// ReceiptTextSizes are the slip text sizes a shop can pick, in percent.
+var ReceiptTextSizes = []int{100, 115, 130}
+
+// ValidReceiptTextSize echoes a known size or Normal (100).
+func ValidReceiptTextSize(n int) int {
+	if slices.Contains(ReceiptTextSizes, n) {
+		return n
+	}
+	return 100
+}
 
 type UpdateInput struct {
 	ShopName              string  `json:"shop_name"         form:"shop_name"         validate:"required,min=1,max=150"`
@@ -311,6 +325,12 @@ func (r *Repository) SetAppearance(ctx context.Context, skin, receiptStyle, skin
 	return err
 }
 
+// SetReceiptTextSize writes the slips' text size (already validated).
+func (r *Repository) SetReceiptTextSize(ctx context.Context, n int) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE settings SET receipt_text_size=$1 WHERE id = 1`, n)
+	return err
+}
+
 // SetTillCash writes only the till's cash-move settings: the locker its
 // dialogs pre-select (nil = none) and whether cash may leave untracked.
 func (r *Repository) SetTillCash(ctx context.Context, defaultLockerID *int64, allowUntracked bool) error {
@@ -377,6 +397,14 @@ func (s *Service) SetAppearance(ctx context.Context, skin, receiptStyle, skinCus
 		return nil, apperr.Internal("failed to update appearance", err)
 	}
 	return s.Get(ctx)
+}
+
+// SetReceiptTextSize stores the slips' text size; an unknown size is Normal.
+func (s *Service) SetReceiptTextSize(ctx context.Context, n int) error {
+	if err := s.repo.SetReceiptTextSize(ctx, ValidReceiptTextSize(n)); err != nil {
+		return apperr.Internal("failed to update receipt text size", err)
+	}
+	return nil
 }
 
 // SetTillCash stores the till's default locker and untracked-cash toggle,

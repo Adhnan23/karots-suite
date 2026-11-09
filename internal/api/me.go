@@ -19,8 +19,9 @@ func appearanceOf(s *settings.Settings) Appearance {
 		Palette:      settings.ValidSkin(s.Skin),
 		BrandColor:   s.SkinCustom,
 		Radius:       s.SkinRadius,
-		ReceiptStyle: settings.ValidReceiptStyle(s.ReceiptStyle),
-		LabelStyles:  labelStylesOf(s),
+		ReceiptStyle:    settings.ValidReceiptStyle(s.ReceiptStyle),
+		ReceiptTextSize: settings.ValidReceiptTextSize(s.ReceiptTextSize),
+		LabelStyles:     labelStylesOf(s),
 	}
 }
 

@@ -86,8 +86,17 @@ function SystemAppearance() {
         <PalettePicker appearance={form} onSaved={setForm} onEdit={setEditing} />
       </Fold>
 
-      <Fold title="Receipt style" hint={STYLES.find((s) => s.key === form.receiptStyle)?.label ?? 'Classic'} remember="appearance.receipt">
-        <ReceiptStyles value={form.receiptStyle} onChange={(receiptStyle) => update({ receiptStyle })} />
+      <Fold
+        title="Receipt style"
+        hint={(STYLES.find((s) => s.key === form.receiptStyle)?.label ?? 'Classic') + ({ 115: ' · Large text', 130: ' · Larger text' }[form.receiptTextSize ?? 100] ?? '')}
+        remember="appearance.receipt"
+      >
+        <ReceiptStyles
+          value={form.receiptStyle}
+          onChange={(receiptStyle) => update({ receiptStyle })}
+          text={form.receiptTextSize ?? 100}
+          onText={(receiptTextSize) => update({ receiptTextSize })}
+        />
       </Fold>
 
       <Fold title="Label styles" hint={labelHint(form.labelStyles ?? {})} remember="appearance.labels">

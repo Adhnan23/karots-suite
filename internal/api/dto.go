@@ -65,6 +65,8 @@ type Appearance struct {
 	BrandColor   string `json:"brandColor"`   // legacy "#rrggbb" or ""
 	Radius       string `json:"radius"`       // legacy "sharp" | "rounded" | "round"
 	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+	// ReceiptTextSize is the slips' text size in percent: 100 | 115 | 130. On a save, 0 (absent) changes nothing.
+	ReceiptTextSize int `json:"receiptTextSize,omitempty" tstype:",optional"`
 	// LabelStyles is the Image-mode style per label kind ("price", plugin kinds). On a
 	// save it is merged: a kind set to "" goes back to classic, an absent map changes nothing.
 	LabelStyles map[string]string `json:"labelStyles,omitempty" tstype:",optional"`
