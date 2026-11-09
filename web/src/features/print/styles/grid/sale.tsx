@@ -50,7 +50,7 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   // The price before the saving, only when it differs from AMT.
   const gross = pos(it.discount) ? ` (was ${display(it.gross)})` : ''
   if (it.payout) subs.push('Given')
-  else if (it.group) subs.push(pretty(`${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')) + gross)
+  else if (it.group) subs.push(pretty(`${it.sets} x ${display(it.setGross)}`) + gross)
   else if (it.packLabel) {
     subs.push(`${it.unitAbbr} @ ${display(it.unitPrice)}` + gross)
     const pack = packSaving(it)

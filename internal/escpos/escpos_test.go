@@ -76,10 +76,13 @@ func TestDocumentLineDiscountAndWarranty(t *testing.T) {
 		Payments: []sales.Payment{{Method: "cash", Amount: d("225.00")}},
 	}
 	s := string(Document(det, cfg("80"), Options{}))
-	for _, want := range []string{"250.00", "You saved", "Line total", "-> 225.00", "225.00", "12-month warranty until 2027-06-10"} {
+	for _, want := range []string{"250.00", "You saved", "Line total", "1 pc x 250.00", "225.00", "12-month warranty until 2027-06-10"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("receipt missing %q\n%s", want, s)
 		}
+	}
+	if strings.Contains(s, "->") {
+		t.Errorf("a discounted line shows one price, no arrow (user, 2026-11-09)\n%s", s)
 	}
 	// The plain sample (no discounts, no warranty) must NOT sprout these lines.
 	plain := string(Document(sampleDetail(), cfg("80"), Options{}))
@@ -354,7 +357,7 @@ func TestDocumentPrintsALineGroupAsOneBlock(t *testing.T) {
 	det := sampleDetail()
 	det.Items = append([]sales.SaleItem{member("Milk 1L", "380.00", "50.68", "709.32"), member("Cookies 200g", "220.00", "29.32", "410.68")}, det.Items...)
 	s := string(Document(det, cfg("80"), Options{}))
-	for _, want := range []string{"Milk + Cookies (combo)", "2 x 600.00 -> 560.00", "1,200.00", "-80.00", "1,120.00", " - Milk 1L x2", " - Cookies 200g x2"} {
+	for _, want := range []string{"Milk + Cookies (combo)", "2 x 600.00", "1,200.00", "-80.00", "1,120.00", " - Milk 1L x2", " - Cookies 200g x2"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("receipt missing %q\n%s", want, s)
 		}

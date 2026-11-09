@@ -53,17 +53,13 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 		return decimal.Zero
 	}
 	qty := money.Qty(it.Quantity) + " " + ascii(it.UnitAbbr) + " x " + money.Display(it.UnitPrice)
-	// The qty line always shows the GROSS (qty × unit price); a discount then
-	// shows the discounted unit price (was -> now), its own reduction, and the
-	// resulting line total, so the numbers add up on paper (a printer can't
-	// strike-through like the webview does).
+	// One price per line: qty x price = the GROSS; a saving then gets its own
+	// line and the line total follows, so the numbers add up on paper.
 	// Sold partly by the pack: qty x the single price like any line; full packs
 	// rung cheaper show as their own "Pack price" saving, so the lines add up.
 	packSave := decimal.Zero
 	if it.PackLabel != nil {
 		packSave = decimal.Max(decimal.Zero, it.Quantity.Mul(it.UnitPrice).Round(2).Sub(it.Gross()))
-	} else if it.Discount.IsPositive() {
-		qty += " -> " + money.Display(it.NetUnitPrice())
 	}
 	line(b, leftRight("  "+qty, money.Display(it.Gross().Add(packSave)), w))
 	if packSave.IsPositive() {
@@ -80,7 +76,7 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 }
 
 // printGroup is a line group as one block, in a discounted line's shape:
-// sets x a set's full price -> its price, You saved, Line total, then the
+// sets x a set's full price, You saved, Line total, then the
 // members without prices. It returns the group's discount.
 func printGroup(b *bytes.Buffer, label string, sets decimal.Decimal, members []sales.SaleItem, soldAt time.Time, w int, opts Options) decimal.Decimal {
 	gross, disc, net := decimal.Zero, decimal.Zero, decimal.Zero
@@ -91,9 +87,6 @@ func printGroup(b *bytes.Buffer, label string, sets decimal.Decimal, members []s
 		line(b, ln)
 	}
 	qty := sets.String() + " x " + money.Display(gross.Div(sets).Round(2))
-	if disc.IsPositive() {
-		qty += " -> " + money.Display(net.Div(sets).Round(2))
-	}
 	line(b, leftRight("  "+qty, money.Display(gross), w))
 	if disc.IsPositive() {
 		line(b, leftRight("  You saved", "-"+money.Display(disc), w))

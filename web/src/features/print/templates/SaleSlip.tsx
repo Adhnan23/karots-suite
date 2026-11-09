@@ -104,10 +104,11 @@ export function packSaving(it: SlipItem) {
 
 /** A line's quantity text, as Classic prints it. */
 export function qtyText(it: SlipItem) {
-  if (it.group) return `${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')
+  // One price per line: qty × price = amount; a saving gets its own line (user, 2026-11-09).
+  if (it.group) return `${it.sets} x ${display(it.setGross)}`
   // Sold partly by the pack: qty × the single price like any line; a cheaper pack shows as its own "Pack price" saving.
   if (it.packLabel) return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}`
-  return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
+  return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}`
 }
 
 function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
