@@ -65,6 +65,13 @@ till-style names, abbreviations expanded by `keells_build.py`, ~1,000 still-cut-
 **23,958 products** in the one file. Kapruka (kapruka.com product pages, 2,905 shelf products) is fetching slowly
 (it answers 429 to more than one worker). Not found anywhere: Lion Gate biscuits. Scripts: `Karots catalogue/Scripts/grocery/`
 (`export.py` builds the file; the pharmacy range is kept in `Backups/Pharmacy range 2026-11-09 (10,494).*`).
+**Later the same evening:** + Cargills (its public search box, ~420 brand / snack / stationery words: 2,588 new; its
+token API was off-limits), Atlas Axillia product catalogue 2024 PDF (264), Atlas shop pages and Kapruka (shelf groups
++ children/stationery) **still downloading** → **27,499 products** so far. Everything now lives on the data disk:
+`Karots catalogue/Scripts/work/`: `./run.sh` starts / resumes the slow downloads (each skips what it saved),
+`./finish.sh` turns whatever is downloaded into the one catalogue file (safe any time). Stop a download with
+`pkill -f kap.py` / `pkill -f atlas.py` in a command of its own. Still missing: Natraj, Faber-Castell (Kapruka's
+children group may bring them), Lion Gate.
 **Next: grocery** (user's list: ice cream —
 Elephant House, Cargills Magic, Kotmale; soft drinks — EGB, Kist, Suncrush, Coca-Cola, Pepsi, 7Up; dairy — Kotmale,
 Highland, Pelwatte, Anchor; instant noodles — Maggi, Prima, Kist; biscuits — Munchee, Maliban, Lion Gate…), from an
