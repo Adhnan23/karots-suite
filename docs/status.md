@@ -37,6 +37,10 @@ Astron 4 (the rest were already in via NMRA). Dead ends: the Department of Ayurv
 is hacked, spam links: don't download from it); SLADC sits behind a bot wall; Health Guard (503) and carelink.lk (502)
 were down: retry them; pharmacylanka.com left out (sells alprazolam / Ritalin online: not a source to trust); GS Health,
 Sunshine and Hemas publish no product lists. Scripts: `Karots catalogue/scripts/more/`.
+Health Guard (still down) came from the Wayback Machine instead: 212 archived listing pages (health, pharma, devices,
+mother & baby) → 1,242 names → 246 new after dedupe (841 already in, 132 not medicine):
+`Karots catalogue/Health Guard 2026-11-09 (import in Onboard).json`. Names only (no generic / company on the
+listings); some are years old. Scripts: `Karots catalogue/scripts/healthguard/`.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
