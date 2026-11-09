@@ -12,7 +12,8 @@ forgives typos (APK rebuilt). The user's own catalogue mistakes are fixed inside
 
 **Next session:** (1) the user Pulls Iman in Onboard so its products match the new catalogue; (2) Iman is still adding
 products: when they finish, Release import-by-ref, then the whole-list fix (item 3 below) and only then stock;
-(3) missing brands get added to the catalogue as the user names them (Lion Gate, Natraj not found yet);
+(3) missing brands get added to the catalogue as the user names them (Lion Gate was a mistake, dropped; Natraj is
+spelled **Nataraj** in the sources: 8 pencils / erasers / geometry boxes already in, no Sri Lankan shop lists more);
 hardware / electronics are a later catalogue pass of their own.
 
 ## Earlier today (2026-11-09 morning; user went to Iman to help them add products)
@@ -84,18 +85,17 @@ supplements; kinds = Onboard's shop kinds (pharmacy, grocery, stationery, textil
 pass of its own). Arpico (myarpico.com OpenCart, all 5,081 by category → 4,970 new) and Keells (sitemap's 10,383
 till-style names, abbreviations expanded by `keells_build.py`, ~1,000 still-cut-short names left out → 8,503 new):
 **23,958 products** in the one file. Kapruka (kapruka.com product pages, 2,905 shelf products) is fetching slowly
-(it answers 429 to more than one worker). Not found anywhere: Lion Gate biscuits. Scripts: `Karots catalogue/Scripts/grocery/`
+(it answers 429 to more than one worker). Scripts: `Karots catalogue/Scripts/grocery/`
 (`export.py` builds the file; the pharmacy range is kept in `Backups/Pharmacy range 2026-11-09 (10,494).*`).
 **Later the same evening:** + Cargills (its public search box, ~420 brand / snack / stationery words: 2,588 new; its
 token API was off-limits), Atlas Axillia product catalogue 2024 PDF (264), Atlas shop pages and Kapruka (shelf groups
 + children/stationery) **still downloading** → **27,499 products** so far. Everything now lives on the data disk:
 `Karots catalogue/Scripts/work/`: `./run.sh` starts / resumes the slow downloads (each skips what it saved),
 `./finish.sh` turns whatever is downloaded into the one catalogue file (safe any time). Stop a download with
-`pkill -f kap.py` / `pkill -f atlas.py` in a command of its own. Still missing: Natraj, Faber-Castell (Kapruka's
-children group may bring them), Lion Gate.
+`pkill -f kap.py` / `pkill -f atlas.py` in a command of its own. Still missing: Faber-Castell.
 **Next: grocery** (user's list: ice cream —
 Elephant House, Cargills Magic, Kotmale; soft drinks — EGB, Kist, Suncrush, Coca-Cola, Pepsi, 7Up; dairy — Kotmale,
-Highland, Pelwatte, Anchor; instant noodles — Maggi, Prima, Kist; biscuits — Munchee, Maliban, Lion Gate…), from an
+Highland, Pelwatte, Anchor; instant noodles — Maggi, Prima, Kist; biscuits — Munchee, Maliban…), from an
 online grocery shop's whole list, kind `grocery`, same rules.
 
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
@@ -114,8 +114,7 @@ corrupt cost_code JSON from sync throws.
 Karots Shelf access, Onboard's calls); `shops.json` committed. The shop takes it from Setup → Data → Updates.
 
 **Still to do:**
-4. **Hand test Karots Shelf on the user's phone against the dev server** (user, 2026-11-08), before or with the
-   Release: `make plugins P=all && make dev`; on Users make a cashier and tick **Can use Karots Shelf**; install
+4. **Karots Shelf hand test PASSED** (user, 2026-11-09: "works perfectly" on a real phone). The steps, kept for a re-test: `make plugins P=all && make dev`; on Users make a cashier and tick **Can use Karots Shelf**; install
    `~/Downloads/karots-shelf.apk` on the phone (USB + `adb install`, or copy the file); phone on the same Wi-Fi, shop
    address = this PC's LAN IP (`ip -4 addr`), port 3000. Try: sign in, Pull, New product with stock + expiry, Quick
    add by scan, edit a product, go out of Wi-Fi range and save (goes to Waiting to push, sent on return), lock and
@@ -162,8 +161,8 @@ person's one device, and `shelfGate` holds it to the route list in `internal/api
 (5 wrong → online sign-in only), a queue per person, a save that fails for the network goes in the queue. No catalogue,
 no Alternatives, no supplier balances, suppliers made from it never owe money; Stock-take off → staff are told to ask the
 owner. Guide: `docs/guide/shelf.md`. Tests: Go 63 packages, web 1,114, Playwright users/auth 10, app 108 + a live round
-trip (`test/shelf_live_test.dart`). A fresh review found 4 important problems, all fixed test-first. **Not yet:** no real
-phone has run it; Iman's build doesn't have it (needs the next Release, user's call). Onboard's own `live_test` count
+trip (`test/shelf_live_test.dart`). A fresh review found 4 important problems, all fixed test-first. Real phone: the
+user's hand test passed 2026-11-09; Iman's build doesn't have it (needs the next Release, user's call). Onboard's own `live_test` count
 assertion fails on today's dev DB (also on the pre-Shelf code: dev data, reseed before relying on it).
 
 **Default unit 2026-11-08:** Units page → Default unit (`units.is_default`, starts as Piece); new products, quick items,
