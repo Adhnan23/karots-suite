@@ -21,6 +21,16 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 4. User's Onboard plan: install the 09:54 APK over the old one → Wipe all (saves a backup first) → add the support
    secret + Iman → import the Sri Lanka catalogue → pull Iman (their products land in Review).
 
+**Done 2026-11-09 afternoon:** the user's catalogue edits checked (backup 13:42): Obimin and Epo 1000mg had been typed
+over (restored as their own products), the two "Gamma Linolenic Acid" entries are the catalogue's Alaris Gla 100 / 120
+(merged), Natocare = DHA + folic acid (Alaris), Pregmax + Maxeval = MCW Healthcare (India, same barcode prefix), Enova =
+inositols + methylfolate + D3. Supplements aren't on the NMRA list (registered as food), so 334 missing OTC products
+came from Lanka Chemist's whole shop (605; name, brand, generic, pack; no maker on the site). One file:
+`Karots catalogue/Catalogue fixes + Lanka Chemist 2026-11-09 (import in Onboard).json` (+ "to read" CSV); scripts in
+`Karots catalogue/scripts/` now. Health Guard's site was down (try it next). Onboard `5d3f852`: catalogue search reads
+every field (generic, company, category, supplier, barcodes), forgives typos, exact and name matches first (~20 ms on
+7.6k). **Iman's own products aren't touched** (user): the matching sweep waits until they've added everything.
+
 **Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
 shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
 costs round to 2 places; lock = install-ID code, then the phone's unlock for 24 hours (fresh install / cleared storage
