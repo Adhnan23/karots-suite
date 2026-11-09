@@ -9,6 +9,8 @@ const thousands = (s: string) => {
 export const display = (s: string) => thousands(Number(s).toFixed(2))
 /** "Rs." + "1250.00" → "Rs. 1,250.00" */
 export const money = (sym: string, s: string) => `${sym} ${display(s)}`
+/** A quantity, as `money.Qty` prints it: decimals only for a fraction ("14.00" → "14", "0.250" → "0.25"). */
+export const qty = (s: string) => thousands(String(Number(Number(s).toFixed(3))))
 export const pos = (s: string) => Number(s) > 0
 export const neg = (s: string) => Number(s) < 0
 /** "-12.00" → "12.00" */

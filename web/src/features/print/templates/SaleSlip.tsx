@@ -1,6 +1,6 @@
 import type { SlipData, SlipItem, SlipSale } from '@/api/types.gen'
 import type { SlipKit } from '../styles/kit'
-import { abs, display, money, neg, pos } from '../styles/money'
+import { abs, display, money, neg, pos, qty } from '../styles/money'
 
 /** The sale receipt, line for line from `escpos.Document` + `printItems`. */
 export function SaleSlip({ d, kit: K }: { d: SlipData; kit: SlipKit }) {
@@ -99,8 +99,8 @@ export function Extras({ warranty, serials, level, K }: { warranty: string; seri
 export function qtyText(it: SlipItem) {
   if (it.group) return `${it.sets} x ${display(it.setGross)}` + (pos(it.discount) ? ` -> ${display(it.setNet)}` : '')
   // Sold partly by the pack: just the quantity (packs price differently, so there's no one unit price; the split is noise).
-  if (it.packLabel) return `${display(it.quantity)} ${it.unitAbbr}`
-  return `${display(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
+  if (it.packLabel) return `${qty(it.quantity)} ${it.unitAbbr}`
+  return `${qty(it.quantity)} ${it.unitAbbr} x ${display(it.unitPrice)}` + (pos(it.discount) ? ` -> ${display(it.netUnitPrice)}` : '')
 }
 
 function Item({ it, K }: { it: SlipItem; K: SlipKit }) {
@@ -133,7 +133,7 @@ function Itemised({ it, K }: { it: SlipItem; K: SlipKit }) {
     <K.Item name={it.name} amount={display(it.subtotal)}>
       {(it.members ?? []).map((m, i) => (
         <div key={i}>
-          <K.Sub kind="qty" l={`${m.name} x${m.quantity}`} r={display(m.subtotal)} />
+          <K.Sub kind="qty" l={`${m.name} x${qty(m.quantity)}`} r={display(m.subtotal)} />
           {pos(m.discount) && <K.Sub kind="saving" l="You saved" r={'-' + display(m.discount)} />}
           <Extras warranty={m.warranty} serials={m.serials} level={2} K={K} />
         </div>
@@ -157,7 +157,7 @@ function Group({ it, K }: { it: SlipItem; K: SlipKit }) {
       )}
       {(it.members ?? []).map((m, i) => (
         <div key={i}>
-          <K.Member>{`${m.name} x${m.quantity}`}</K.Member>
+          <K.Member>{`${m.name} x${qty(m.quantity)}`}</K.Member>
           <Extras warranty={m.warranty} serials={m.serials} level={2} K={K} />
         </div>
       ))}

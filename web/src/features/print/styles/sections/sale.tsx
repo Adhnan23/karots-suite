@@ -1,7 +1,7 @@
 import type { SlipData, SlipItem } from '@/api/types.gen'
 import { Extras, qtyText } from '../../templates/SaleSlip'
 import type { SlipKit } from '../kit'
-import { abs, display, money, neg, pos } from '../money'
+import { abs, display, money, neg, pos, qty } from '../money'
 import { Bar } from './kit'
 
 /** Sections' sale: RECEIPT, ITEMS, YOU SAVED (every
@@ -74,7 +74,7 @@ function Line({ it, K }: { it: SlipItem; K: SlipKit }) {
       <K.Sub kind="qty" l={qtyText(it)} r={pos(it.discount) ? display(it.gross) : ''} />
       {(it.members ?? []).map((m, i) => (
         <div key={i}>
-          <K.Member>{`${m.name} x${m.quantity}`}</K.Member>
+          <K.Member>{`${m.name} x${qty(m.quantity)}`}</K.Member>
           <Extras warranty={m.warranty} serials={m.serials} level={2} K={K} />
         </div>
       ))}

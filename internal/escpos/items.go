@@ -52,14 +52,14 @@ func printItem(b *bytes.Buffer, it sales.SaleItem, soldAt time.Time, w int, opts
 		extras(b, it, soldAt, w, opts, "  ")
 		return decimal.Zero
 	}
-	qty := money.Display(it.Quantity) + " " + ascii(it.UnitAbbr) + " x " + money.Display(it.UnitPrice)
+	qty := money.Qty(it.Quantity) + " " + ascii(it.UnitAbbr) + " x " + money.Display(it.UnitPrice)
 	// The qty line always shows the GROSS (qty × unit price); a discount then
 	// shows the discounted unit price (was -> now), its own reduction, and the
 	// resulting line total, so the numbers add up on paper (a printer can't
 	// strike-through like the webview does).
 	if it.PackLabel != nil {
 		// Sold partly by the pack: just the quantity (packs price differently, so no one unit price).
-		qty = money.Display(it.Quantity) + " " + ascii(it.UnitAbbr)
+		qty = money.Qty(it.Quantity) + " " + ascii(it.UnitAbbr)
 	} else if it.Discount.IsPositive() {
 		qty += " -> " + money.Display(it.NetUnitPrice())
 	}

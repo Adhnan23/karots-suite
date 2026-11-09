@@ -1,6 +1,6 @@
 import type { SlipShop } from '@/api/types.gen'
 import type { SlipKit } from '@/features/print/styles/kit'
-import { display, money, pos } from '@/features/print/styles/money'
+import { display, money, pos, qty } from '@/features/print/styles/money'
 
 /** What the job print path's ?data=1 answers (Go: slipData in api_print.go). */
 type JobSlipData = {
@@ -50,7 +50,7 @@ export function JobSlip({ d: raw, kit: K }: { d: unknown; kit: SlipKit }) {
         <>
           <K.Rule />
           {parts.map((p, i) => (
-            <K.Money key={i} l={p.name} r={'x' + display(p.qty)} />
+            <K.Money key={i} l={p.name} r={'x' + qty(p.qty)} />
           ))}
           {charges.map((c, i) => (
             <K.Text key={i}>{c}</K.Text>

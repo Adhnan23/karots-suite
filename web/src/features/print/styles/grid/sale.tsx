@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import type { SlipData, SlipItem } from '@/api/types.gen'
 import { SaleHead, SaleMoney } from '../../templates/SaleSlip'
 import type { SlipKit } from '../kit'
-import { abs, display, pos } from '../money'
+import { abs, display, pos, qty } from '../money'
 import { pretty } from '../parts'
 import { small } from './kit'
 
@@ -45,7 +45,7 @@ export function GridSale({ d, kit: K }: { d: SlipData; kit: SlipKit }) {
 }
 
 function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean }) {
-  const qty = it.payout ? '' : it.group ? it.sets : display(it.quantity).replace(/\.00$/, '')
+  const count = it.payout ? '' : it.group ? it.sets : qty(it.quantity)
   const subs: string[] = []
   // The price before the saving, only when it differs from AMT.
   const gross = pos(it.discount) ? ` (was ${display(it.gross)})` : ''
@@ -56,7 +56,7 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   // No OFF column on 58 mm: the saving goes under the name.
   if (!wide && pos(it.discount)) subs.push(`saved ${display(it.discount)}${it.discountLabel}`)
   for (const m of it.members ?? []) {
-    subs.push(`· ${pretty(`${m.name} x${m.quantity}`)}`)
+    subs.push(`· ${pretty(`${m.name} x${qty(m.quantity)}`)}`)
     if (m.warranty) subs.push(`  ${m.warranty}`)
     for (const sn of m.serials ?? []) subs.push(`  ${sn}`)
   }
@@ -64,7 +64,7 @@ function Row({ it, last, wide }: { it: SlipItem; last: boolean; wide: boolean })
   for (const sn of it.serials ?? []) subs.push(sn)
   return (
     <tr style={{ borderBottom: `${last ? 4 : 2}px solid #000` }}>
-      <td style={td}>{qty}</td>
+      <td style={td}>{count}</td>
       <td style={{ ...td, overflowWrap: 'anywhere' }}>
         <b>{it.name}</b>
         {subs.map((t, i) => (

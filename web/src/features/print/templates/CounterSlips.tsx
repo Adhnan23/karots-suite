@@ -1,6 +1,6 @@
 import type { SlipData } from '@/api/types.gen'
 import type { SlipKit } from '../styles/kit'
-import { display, money, pos } from '../styles/money'
+import { display, money, pos, qty } from '../styles/money'
 
 // The till's other slips, line for line from their Go builders.
 
@@ -23,7 +23,7 @@ export function RefundSlip({ d, kit: K }: P) {
       {(r.items ?? []).map((it, i) => (
         <div key={i}>
           <K.Item name={it.name} amount={money(sym, it.refund)}>
-            <K.Sub kind="qty" l={`${display(it.quantity)} ${it.unitAbbr}`} r={money(sym, it.refund)} />
+            <K.Sub kind="qty" l={`${qty(it.quantity)} ${it.unitAbbr}`} r={money(sym, it.refund)} />
           </K.Item>
         </div>
       ))}

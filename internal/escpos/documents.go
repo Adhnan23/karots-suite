@@ -208,7 +208,7 @@ func ReturnDocument(rr sales.ReturnReceipt, cfg settings.Settings, opts Options)
 		for _, ln := range wrap(ascii(it.ProductName), w) {
 			line(&b, ln)
 		}
-		qty := money.Display(it.Quantity) + " " + ascii(it.UnitAbbr)
+		qty := money.Qty(it.Quantity) + " " + ascii(it.UnitAbbr)
 		line(&b, leftRight("  "+qty, money.Format(sym, it.Refund), w))
 	}
 	divider(&b, cfg, w)
