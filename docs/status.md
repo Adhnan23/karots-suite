@@ -162,7 +162,7 @@ person's one device, and `shelfGate` holds it to the route list in `internal/api
 no Alternatives, no supplier balances, suppliers made from it never owe money; Stock-take off → staff are told to ask the
 owner. Guide: `docs/guide/shelf.md`. Tests: Go 63 packages, web 1,114, Playwright users/auth 10, app 108 + a live round
 trip (`test/shelf_live_test.dart`). A fresh review found 4 important problems, all fixed test-first. Real phone: the
-user's hand test passed 2026-11-09; Iman's build doesn't have it (needs the next Release, user's call). Onboard's own `live_test` count
+user's hand test passed 2026-11-09; Iman has it since Release 2026.11.09.0655. Onboard's own `live_test` count
 assertion fails on today's dev DB (also on the pre-Shelf code: dev data, reseed before relying on it).
 
 **Default unit 2026-11-08:** Units page → Default unit (`units.is_default`, starts as Piece); new products, quick items,
