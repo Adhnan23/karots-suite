@@ -3,7 +3,19 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (handoff, 2026-11-09 morning; user went to Iman to help them add products)
+## Now (handoff, 2026-11-09 evening)
+
+**Done today:** the **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`): 34,154 Sri Lankan pharmacy /
+grocery / stationery products, imported by the user into Onboard (Wipe → Products only → Import; every build gets
+fresh ids because a Wipe keeps the wiped ids as deleted). Onboard `5d3f852`: catalogue search reads every field and
+forgives typos (APK rebuilt). The user's own catalogue mistakes are fixed inside the file.
+
+**Next session:** (1) the user Pulls Iman in Onboard so its products match the new catalogue; (2) Iman is still adding
+products: when they finish, Release import-by-ref, then the whole-list fix (item 3 below) and only then stock;
+(3) missing brands get added to the catalogue as the user names them (Lion Gate, Natraj not found yet);
+hardware / electronics are a later catalogue pass of their own.
+
+## Earlier today (2026-11-09 morning; user went to Iman to help them add products)
 
 **The Karots Suite family (2026-11-09):** Karots Suite (this repo) · Karots Suite Onboard + Karots Shelf (one
 Flutter repo, `~/Projects/flutter/karots_suite_onboard`) · **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`,
