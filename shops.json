@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-09T01:26:05Z",
-        "commit": "97409e5",
-        "version": "2026.11.09.0655",
+        "at": "2026-11-09T17:03:31Z",
+        "commit": "3e908fa",
+        "version": "2026.11.09.2233",
         "kind": "release",
-        "notes": "• The Shelf hint doesn't say 'phone' (it clashed with the Phone field's label)\n• A Shelf session is marked in its token and held to Shelf's routes\n• Karots Shelf reaches only its own routes\n• A Karots Shelf sign-in never takes the person's device\n• Can use Karots Shelf (the shop staff's product app)\n• The shop picks its default unit (Units page"
+        "notes": "• Build type-check (unused imports, test config gets receiptTextSize)\n• Shop text size (Normal / Large / Larger) in Appearance\n• Savings sit on the amount side in Bold, Minimal, Poster and Elegant\n• A discounted line shows one price (qty x price = amount), the saving and line total on their own lines\n• A pack line reads qty x single price like any line\n• Quantities show decimals only for a fraction (14, 1.5, 0.25), every style + the plain backup\n• A line sold by the pack shows only its quantity, never the pack split (every style + the plain backup)\n• Products export with refs and import back by ref, so a whole list can be fixed outside and come back to the same products"
       },
       "published": {
-        "version": "2026.11.09.0655",
-        "commit": "97409e5",
-        "at": "2026-11-09T01:26:11Z"
+        "version": "2026.11.09.2233",
+        "commit": "3e908fa",
+        "at": "2026-11-09T17:06:13Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },

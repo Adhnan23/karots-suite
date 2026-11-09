@@ -3,7 +3,25 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (handoff, 2026-11-09 evening)
+## Now (handoff, 2026-11-09 night)
+
+**Iman Released 2026.11.09.2233** (user asked; full run first: Go 63 packages, web 1,126, Playwright 240 + the
+three specs re-run alone 27/27; `plugin-aicatalog:278` failed once in the full run as before). In it: **import by ref**
+(`3ad406c`); receipts: no pack split, a pack line reads qty x single price with a "Pack price" saving line, whole
+quantities without ".00", a discounted line shows one price (no "->"), savings on the amount side in every style
+(Sections keeps its YOU SAVED block, user); **receipt text size** Normal / Large / Larger (Appearance → Receipt
+style → Text size, shop-wide, migration 00033; the slip is laid out narrower and scaled up; barcode still scans);
+Classic and the plain backup put a too-long line's amount on the next row instead of cutting it (58 mm).
+Not yet printed on paper: one Larger receipt on the XP-80T.
+
+**Next session:** the user goes to Iman tomorrow (2026-11-10): Setup → Data → Updates → Update on the main PC, and
+helps add more items. When Iman finishes adding products: the whole-list fix (item 3 under "Earlier today", by ref),
+then stock. Onboard + Shelf APKs rebuilt from the app repo's `3022c37` (markup + selling work out the cost; drafts
+survive a closed app; the deferred minors). Catalogue: stationery kind for school / office goods (176 moved; no
+re-import needed, user); Lion Gate dropped, Natraj = Nataraj (8 in); products made by hand in Onboard reach the
+catalogue from a backup the user sends (no app feature, user).
+
+## Earlier (handoff, 2026-11-09 evening)
 
 **Done today:** the **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`): 34,154 Sri Lankan pharmacy /
 grocery / stationery products, imported by the user into Onboard (Wipe → Products only → Import; every build gets
@@ -133,7 +151,7 @@ Karots Shelf access, Onboard's calls); `shops.json` committed. The shop takes it
 
 
 **Where things stand:** the suite is feature-complete for a shop's day. The first shop was misnamed: it is **Iman Pharmacy Kalpitiya**, key `iman-pharmacy-kalpitiya` (renamed 2026-11-04). **The user is handling its install from here (2026-11-05: main PC installed and packed): not on our list unless the user brings it back.**
-Latest Release: **2026.11.08.1330** (batch expiry fix for the Onboard app); before it **2026.11.08.1219** (searchable supplier picker; the Onboard app's packs call and export ids); before it 2026.11.08.0750 (Pocket Cashier release 2 + Settings → Identify custom fields) (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
+Latest Release: **2026.11.09.2233** (see Now); before it 2026.11.09.0655; earlier **2026.11.08.1330** (batch expiry fix for the Onboard app); before it **2026.11.08.1219** (searchable supplier picker; the Onboard app's packs call and export ids); before it 2026.11.08.0750 (Pocket Cashier release 2 + Settings → Identify custom fields) (AI Assistant jobs, hints, Alternatives levels; 2026.11.04.2021 is also kept in the bucket). **Don't publish another before the user says.** `dist/iman-pharmacy-kalpitiya/` holds that build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed (old cloud folder).
 
 **Built, hand-tested and Released 2026-11-05:** AI Assistant jobs, searchable hints, Alternatives levels (details in `docs/guide/plugins/aicatalog.md`, `alternatives.md`).
 - **Hints:** the chatbot's specs and explanation are searchable at the till, shown on the tile (`AI hint: …`) and ⓘ, editable on the product page. A replaced name stays searchable.
