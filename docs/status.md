@@ -3,7 +3,34 @@
 Read this first in a fresh session, together with `AGENTS.md`. Update it at the end of every milestone. Older
 handoffs, finished plans and specs live in git history (`git log --diff-filter=D --name-only -- docs`).
 
-## Now (handoff, 2026-11-08 night)
+## Now (handoff, 2026-11-09 morning; user went to Iman to help them add products)
+
+**Next session, in order:**
+1. **Grocery catalogues** (user, 2026-11-09): look at Cargills Food City, Keells and Lanka Sathosa online product lists
+   the same way as mycare.lk (names, generic/brand, company; **never barcodes, prices or packs**), build an Onboard
+   backup file (products only, no supplier, `updated_at` 2020 so a shop's own products always win on a name match).
+   Builder scripts live in the session scratchpad only: `names.py` (name style), `build_catalogue.py`, `nmra_parse.py`,
+   `combine.py`; re-create from these notes if gone. The Sri Lanka pharmacy catalogue (7,637: mycare.lk 11 vendor
+   lists + NMRA "List of Registered Drugs By brand-generic" xls 02.11.2026) is in
+   `/mnt/nvme_512GB/Downloads/Karots catalogue/` with the user's pre-wipe backup and the Iman checklist PDF (32 items).
+2. **Release import-by-ref to Iman** before the whole-list fix (`3ad406c`: Products → Sheets ▾ → Include ref; a ref
+   updates its own product even after a rename / no barcode; another shop's ref is refused). Not Released yet.
+3. **Iman whole-list fix** (user's plan): after Iman has put everything in, export products with ref + Product Plus
+   fields → fix names / generic names / units, propose a category tree (user approves) → import → delete old empty
+   categories. Nobody touches their data until then.
+4. User's Onboard plan: install the 09:54 APK over the old one → Wipe all (saves a backup first) → add the support
+   secret + Iman → import the Sri Lanka catalogue → pull Iman (their products land in Review).
+
+**Done 2026-11-09 in Onboard (app repo, all committed):** cost code (Onboard only; letters → digits in the box, letters
+shown under it; syncs with the shop), optional "÷ how many" and Markup × (both apps; markup leads only when typed);
+costs round to 2 places; lock = install-ID code, then the phone's unlock for 24 hours (fresh install / cleared storage
+needs the code; Android cloud backup off); Wipe (products / suppliers / review / shops / secrets, or all) after the
+code and a saved backup; Backup popup scrolls; big catalogues (batched detail loads past SQLite's 32,766 values,
+product indexes DB v7, one-transaction import: 7.6k import 8 s → 0.9 s, 200k open 21 s → 3.3 s). Millions would need
+paged SQL search (not built; only if a real catalogue gets near it). Final review findings fixed; deferred minors:
+÷ accepts negative / Infinity, "E SX" / "1,250" refused with a code, Sinhala/Tamil code letters show no live number,
+corrupt cost_code JSON from sync throws.
+
 
 **Done 2026-11-09:** full Playwright run with free ports: 251 passed, 33 skipped, 1 known-unreliable failure
 (`plugin-aicatalog.spec.ts:278`; the whole file passed alone, 15/15). **Iman Released 2026.11.09.0655** (default unit,
