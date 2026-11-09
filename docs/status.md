@@ -5,6 +5,15 @@ handoffs, finished plans and specs live in git history (`git log --diff-filter=D
 
 ## Now (handoff, 2026-11-09 morning; user went to Iman to help them add products)
 
+**The Karots Suite family (2026-11-09):** Karots Suite (this repo) · Karots Suite Onboard + Karots Shelf (one
+Flutter repo, `~/Projects/flutter/karots_suite_onboard`) · **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`,
+git, local: 34,458 Sri Lankan pharmacy / grocery / stationery products, the builders, its README has the rules and
+every source). Onboard imports the catalogue; the user wipes Onboard's catalogue and imports
+`catalogue/Sri Lanka catalogue (import in Onboard).json` fresh, then syncs the shops. Missing brands are added as the
+user names them (README → Adding a source). Karots PIN Vault is the user's own app for **all** their projects (Demo
+Room, Suite shops' install IDs, Onboard…): never tie it to Karots Suite. The Downloads `Karots catalogue/` folder now
+holds only the user's pre-wipe Onboard backup and the Iman checklist; paths to it further down are historical.
+
 **Next session, in order:**
 1. **Grocery catalogues** (user, 2026-11-09): look at Cargills Food City, Keells and Lanka Sathosa online product lists
    the same way as mycare.lk (names, generic/brand, company; **never barcodes, prices or packs**), build an Onboard
