@@ -1,6 +1,6 @@
 import type { SlipData } from '@/api/types.gen'
 import type { SlipKit } from '../styles/kit'
-import { display, money, pos, qty } from '../styles/money'
+import { money, pos, qty } from '../styles/money'
 
 // The till's other slips, line for line from their Go builders.
 
