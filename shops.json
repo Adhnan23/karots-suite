@@ -28,15 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-08T08:18:38Z",
-        "commit": "fc58fdc",
-        "version": "2026.11.08.1348",
-        "kind": "release"
+        "at": "2026-11-09T01:26:05Z",
+        "commit": "97409e5",
+        "version": "2026.11.09.0655",
+        "kind": "release",
+        "notes": "• The Shelf hint doesn't say 'phone' (it clashed with the Phone field's label)\n• A Shelf session is marked in its token and held to Shelf's routes\n• Karots Shelf reaches only its own routes\n• A Karots Shelf sign-in never takes the person's device\n• Can use Karots Shelf (the shop staff's product app)\n• The shop picks its default unit (Units page"
       },
       "published": {
-        "version": "2026.11.08.1348",
-        "commit": "fc58fdc",
-        "at": "2026-11-08T08:21:00Z"
+        "version": "2026.11.09.0655",
+        "commit": "97409e5",
+        "at": "2026-11-09T01:26:11Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
