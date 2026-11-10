@@ -4,7 +4,7 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 handoffs, finished plans and specs live in git history (`git log -p -- docs/status.md`, `git log --diff-filter=D
 --name-only -- docs`). The catalogue and the Onboard / Shelf app keep their own details in their READMEs.
 
-## Now (2026-11-09 night)
+## Now (2026-11-10 night)
 
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
@@ -27,19 +27,41 @@ says.** `dist/iman-pharmacy-kalpitiya/` holds the build; `dist/aiman-pharmacy-ka
 
 ## Next
 
-1. **User at Iman (2026-11-10):** Setup → Data → Updates → Update on the main PC (check the version on the Data page),
-   then helps them add more items.
-2. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
-   Sheets ▾ → Include ref + Include custom fields and sends the CSV → match every row to the catalogue, fix name /
-   generic / company / unit / category, list rows to clarify with Iman → user approves the category tree → import the
-   same CSV back (each row updates its own product by ref; the `category` column takes a path and builds the tree) →
-   delete old empty categories, merge true duplicates → **then stock**. Never wipe and re-add: refs keep barcodes,
-   packs, lots, suppliers and sales.
-3. **Catalogue** (`~/Projects/karots-suite-catalogue`, private repo, 34,154 products): add brands as the user names
-   them (README → Adding a source); products the user makes by hand in Onboard come in from an Onboard backup he
-   sends (README → Products made by hand). Hardware / electronics are a later pass of their own.
-4. Later, user's call: the install stick (Xubuntu + Karots on one stick), the whole-system check (a simulated year,
-   the books balance), Pocket Cashier on a real phone / tablet.
+**Where 2026-11-10 ended (catalogue day, no suite changes):** the user is at Iman on 2026-11-11 with two printed
+lists, imports an update file into Onboard, adds products (picking from the catalogue, hand-typing the rest), pulls
+Iman, then brings a new Onboard backup. Everything below lives in `~/Projects/karots-suite-catalogue` (its README is
+the detail; `shops/iman-matches.md` for Iman).
+
+1. **When the user brings the new Onboard backup + the ticked lists:**
+   - put the answers into `shops/iman-decisions.json` (confirmed / found_online / missing). The lists:
+     `/mnt/nvme_512GB/Downloads/iman-checklist-2026-11-10.pdf` = the main 40 (A: 25 need the box, B: 14 found
+     online, C: does Iman sell Nervijen D?); `iman-matches-to-glance-2026-11-10.pdf` = the 113 safety net (our
+     close / brand picks). Their pages are in `shops/`.
+   - new hand-typed products in the backup → check each (box photos / trusted pages, like today's 13) → `hand_add.json`;
+     one marked `"checked"` (seen on the box) goes before mycare.
+   - `python3 shops/iman_matches.py <backup>` refreshes Iman's match list (new shop products marked "new since last
+     list"); unknown new ones → a new checklist PDF in the same style; new close / brand ones → a new safety-net list.
+   - after the user deletes them in Onboard by hand: "Concor 2.5mg" (old copy of Concor COR 2.5mg) and "Nvitor D" (typo
+     for Nvitor Capsules).
+2. **Resume the mycare download** (user wants it continued): `cd ~/Projects/karots-suite-catalogue/build/myc && nohup
+   python3 -I myc.py >> ~/.cache/karots-logs/myc.log 2>&1 &` (run detached; never `pkill -f` text in the same
+   command). Paused at 6,771 / 9,887 pages; the rest are products we already have (their tags fix generics). Only from
+   this PC: mycare shows datacenter IPs (the VPS) a bot page, and we never get round bot walls. When the log ends
+   `done`, run it once more (refetches pages skipped during outages), then `build/myc_build.py` → `build/export.py`.
+3. **Then the generic clean-up** (catalogue README → Next; decided: one standard spelling, "A + B + C", no salt or
+   strength, vague ones replaced where known, a change list for the user first), then a full Onboard update file:
+   `build/onboard_update.py <backup> <out>` without `--only-hand` (also carries mycare's ~680 corrections). Never
+   tell the user to wipe Onboard: the update merges in place by the user's own ids.
+4. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
+   Sheets ▾ → Include ref + Include custom fields and sends the CSV → match every row (start from
+   `shops/iman-matches.csv`) → user approves the category tree → import the same CSV back (each row updates its own
+   product by ref; `category` takes a path) → delete old empty categories, merge true duplicates → **then stock**
+   (Iman's trial month sells with "sell anyway"; a full stock-take starts them fresh — no trial / go-live tooling
+   unless the user asks). Never wipe and re-add: refs keep barcodes, packs, lots, suppliers and sales.
+5. **More sources** if wanted: Unique Pharmacy (2,157 product pages) and Beyond Health (1,142) not downloaded yet;
+   CareLink was down. The catalogue: 50,065 products (README → Sources; order in `export.py`: box-checked hand-made,
+   mycare, the older sources, hand-made, looked-up, the pharmacy sites).
+6. Later, user's call: the install stick, the whole-system check, Pocket Cashier on a real phone / tablet.
 
 ## The family
 
@@ -48,8 +70,9 @@ says.** `dist/iman-pharmacy-kalpitiya/` holds the build; `dist/aiman-pharmacy-ka
   flavours; Linux = Onboard). APKs in `~/Downloads` (`karots-onboard.apk`, `karots-shelf.apk`, built from `3022c37`;
   `--flavor onboard|shelf`). Onboard = the user's own setup app (install ID 3EE0E57C's hourly code). Shelf = shop
   staff's app, free; real-phone hand test PASSED 2026-11-09; in Iman's build since 2026.11.09.0655.
-- **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`): the file Onboard imports (wipe, then import fresh:
-  every build has fresh ids).
+- **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private, 50,065 products): Onboard gets it as an
+  **update file** (`build/onboard_update.py`, from the user's latest Onboard backup: same ids, merges in place; the
+  user's own edits win). The first full import was a wipe + import; never again unless the user asks.
 - Karots PIN Vault is the user's own app for all their projects: never tie it to Karots Suite.
 
 ## Not yet tried for real
