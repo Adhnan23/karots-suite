@@ -32,36 +32,44 @@ lists, imports an update file into Onboard, adds products (picking from the cata
 Iman, then brings a new Onboard backup. Everything below lives in `~/Projects/karots-suite-catalogue` (its README is
 the detail; `shops/iman-matches.md` for Iman).
 
-1. **When the user brings the new Onboard backup + the ticked lists:**
-   - put the answers into `shops/iman-decisions.json` (confirmed / found_online / missing). The lists:
-     `/mnt/nvme_512GB/Downloads/iman-checklist-2026-11-10.pdf` = the main 40 (A: 25 need the box, B: 14 found
-     online, C: does Iman sell Nervijen D?); `iman-matches-to-glance-2026-11-10.pdf` = the 113 safety net (our
-     close / brand picks). Their pages are in `shops/`.
-   - new hand-typed products in the backup → check each (box photos / trusted pages, like today's 13) → `hand_add.json`;
-     one marked `"checked"` (seen on the box) goes before mycare.
-   - `python3 shops/iman_matches.py <backup>` refreshes Iman's match list (new shop products marked "new since last
-     list"); unknown new ones → a new checklist PDF in the same style; new close / brand ones → a new safety-net list.
-   - after the user deletes them in Onboard by hand: "Concor 2.5mg" (old copy of Concor COR 2.5mg) and "Nvitor D" (typo
-     for Nvitor Capsules).
-2. **Resume the mycare download** (user wants it continued): `cd ~/Projects/karots-suite-catalogue/build/myc && nohup
-   python3 -I myc.py >> ~/.cache/karots-logs/myc.log 2>&1 &` (run detached; never `pkill -f` text in the same
-   command). Paused at 6,771 / 9,887 pages; the rest are products we already have (their tags fix generics). Only from
-   this PC: mycare shows datacenter IPs (the VPS) a bot page, and we never get round bot walls. When the log ends
-   `done`, run it once more (refetches pages skipped during outages), then `build/myc_build.py` → `build/export.py`.
-3. **Then the generic clean-up** (catalogue README → Next; decided: one standard spelling, "A + B + C", no salt or
-   strength, vague ones replaced where known, a change list for the user first), then a full Onboard update file:
-   `build/onboard_update.py <backup> <out>` without `--only-hand` (also carries mycare's ~680 corrections). Never
-   tell the user to wipe Onboard: the update merges in place by the user's own ids.
-4. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
+0. **Morning of 2026-11-11: DONE.** Unique Pharmacy (+1,555) and Beyond Health (+420) in (`build/makers/pages.py`:
+   product pages from the sitemap, ones the catalogue has skipped); the promo rule no longer drops "Soap Free" / "Sugar
+   Free" products; mycare's whole range downloaded (9,802 of 9,887; 85 gone from the site). Catalogue **52,357**.
+   The morning's update file was replaced by the full one (item 2). Karots files in the user's Downloads live in
+   `/mnt/nvme_512GB/Downloads/Karots/` (`catalogue-updates/`, `onboard-backups/`, `iman-lists/`).
+1. **The 40 checklist: DONE 2026-11-11 from box photos** (catalogue `9e90d54`; photos in `~/Desktop/40list/`). Iman: 47
+   confirmed, 0 waiting, NEX VITA sold out (no box; `sold_out` in the decisions). Found on the boxes: "Nvitor D" is a real
+   product (Nvitor-D, ACE), **not a typo — keep it in Onboard**; Iman typed cefuroxime for Mahacef (box: cefixime), +K2 for
+   Vidan D 2000 (none), 1200 IU for Dee K 2000 (2000); Becosip is tablets; a decision key may be `"name | generic"` (two
+   Sithara products share each name). The 113 safety-net list (`iman-lists/iman-matches-to-glance-2026-11-10.pdf`) is
+   not answered yet.
+   **Afternoon: Iman's 104 new products matched** (backup `onboard-backups/karots-onboard-backup-20261111-1328.json`:
+   Iman 652 products, typed on Iman's own PC; none hand-typed in Onboard). 53 confirmed, only NEX VITA missing; Baurs
+   celecoxib = Unichem's via A Baur & Co (NMRA register). Catalogue 52,429 (`b9da22f`). **Update file for the user:**
+   `catalogue-updates/karots-catalogue-update-2026-11-11-3.json` (from the 13:28 backup: 24 new, 15 refreshed, 0
+   doubles) — **imported and checked** (backup `karots-onboard-backup-20261111-1428.json`: 52,538 products, all 39 as
+   sent, 0 doubles, Concor 2.5mg deleted, Iman's 652 intact). **Catalogue work paused (user, 2026-11-11):** nothing
+   more until a shop needs it; missing generics stay as they are.
+   - **Iman's own categories and generics aren't reliable** (user: new staff, little English; ZyQ was under
+     Antibiotics). The whole-list fix (item 3) proposes categories from what each product is and takes box / catalogue
+     details over theirs; the user approves the tree.
+   - Still open, not urgent: the safety-net glance (the 113 list + ~10 brand / close picks among the 104), and
+     Immune Up's real contents (mycare / Topcure disagree; a box photo settles it).
+   - Next new Iman products: `python3 shops/iman_matches.py <latest backup>` marks them "new since last list".
+2. **Generic clean-up: DONE 2026-11-11, and in the user's Onboard** (backup `Downloads/Karots/onboard-backups/
+   karots-onboard-backup-20261111-0910.json` checked: 52,515 products, 13,005 generics all in line, 0 doubles, the
+   user's 261 products and Iman's 549 shop links intact). The morning file was built from an old backup and made 114
+   doubles; a deletion-only file removed them. **Rule: an update file only from the user's latest backup.**
+   Fixed the same day: `onboard_update.py` counts a product as the user's when Onboard stamped it (microseconds) or
+   its uid is in `build/onboard_yours.json` (every uid ever theirs, seeded from the 10 Nov backup); Onboard `b131b5b`
+   reads the deleted list once per import (not yet in an installed build).
+3. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
    Sheets ▾ → Include ref + Include custom fields and sends the CSV → match every row (start from
    `shops/iman-matches.csv`) → user approves the category tree → import the same CSV back (each row updates its own
    product by ref; `category` takes a path) → delete old empty categories, merge true duplicates → **then stock**
    (Iman's trial month sells with "sell anyway"; a full stock-take starts them fresh — no trial / go-live tooling
    unless the user asks). Never wipe and re-add: refs keep barcodes, packs, lots, suppliers and sales.
-5. **More sources** if wanted: Unique Pharmacy (2,157 product pages) and Beyond Health (1,142) not downloaded yet;
-   CareLink was down. The catalogue: 50,065 products (README → Sources; order in `export.py`: box-checked hand-made,
-   mycare, the older sources, hand-made, looked-up, the pharmacy sites).
-6. Later, user's call: the install stick, the whole-system check, Pocket Cashier on a real phone / tablet.
+4. Later, user's call: the install stick, the whole-system check, Pocket Cashier on a real phone / tablet.
 
 ## The family
 
@@ -77,8 +85,8 @@ the detail; `shops/iman-matches.md` for Iman).
 
 ## Not yet tried for real
 
-- **Pocket Cashier release 2** (on `main` since 2026-11-08): no real phone or tablet has run it; the user hasn't
-  hand-tested it. Known small gaps left on purpose: an offline repair keeps "New-xxxx" in its sale line; offline
+- **Pocket Cashier release 2** (on `main` since 2026-11-08): the user tried it on 2026-11-11 (dev server, the Demo
+  Room's every-plugin year restored, a 10-step test list) — "looks fine"; they'll report anything they find. Known small gaps left on purpose: an offline repair keeps "New-xxxx" in its sale line; offline
   on-account sales don't lower the balance on the phone (can raise a false stale flag); a return's cash isn't
   compared with the PC's; after a cut an offline sign-in has no session until signing in again (printing and tickets
   fail quietly); a person who must change their PIN gets calls refused while their sales stand; a refused sale's note
