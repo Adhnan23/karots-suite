@@ -1,5 +1,7 @@
 import { bold } from './bold/kit'
 import { classic } from './classic/kit'
+import { compact } from './compact/kit'
+import { CompactSale } from './compact/sale'
 import type { StyleDef } from './kit'
 import { cards } from './cards/kit'
 import { elegant } from './elegant/kit'
@@ -26,6 +28,7 @@ export const STYLES: StyleDef[] = [
   { key: 'elegant', label: 'Elegant', kit: elegant },
   { key: 'cards', label: 'Cards', kit: cards },
   { key: 'sections', label: 'Sections', kit: sections, overrides: { sale: SectionsSale } },
+  { key: 'compact', label: 'Compact', kit: compact, overrides: { sale: CompactSale } },
 ]
 
 /** The style for a saved key; unknown or old keys draw Classic. */

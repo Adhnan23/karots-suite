@@ -72,7 +72,7 @@ export const minimal: SlipKit = {
         </div>
       )}
       {shop.footer && <Para center style={{ ...small, marginTop: 10 }}>{shop.footer}</Para>}
-      <Para center style={{ ...caps, letterSpacing: 6, marginTop: 12 }}>Thank you</Para>
+      <Para center style={{ ...caps, letterSpacing: 6, marginTop: 12 }}>{shop.thanks || 'Thank you'}</Para>
       <Credit style={{ marginTop: 12 }} />
     </>
   ),

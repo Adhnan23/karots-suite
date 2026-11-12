@@ -12,7 +12,8 @@ browser.
 In **Setup → Settings**:
 
 - **Shop & receipt:** the shop name (also in your own language), address, phone, currency,
-  receipt footer, paper width (80 or 58 mm), the default sale type, and a logo. A live preview
+  receipt footer, the **thank-you line** under it (empty = each style's own "Thank you"; a pharmacy
+  might write "Get well soon!"), paper width (80 or 58 mm), the default sale type, and a logo. A live preview
   sits beside it.
 - **Ask before printing:** shows **Print / New sale** after each sale. With it off, the receipt
   prints straight away. Every slip follows this setting: sales, refunds, cash in / out, credit,
@@ -25,8 +26,8 @@ In **Setup → Settings**:
 
 ## Printers we've tested
 
-- **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): all ten receipt
-  styles, on the PC itself and from a cashier PC, on Linux; Windows 10 with the built-in **Generic / Text
+- **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): the first ten receipt
+  styles (not yet Compact), on the PC itself and from a cashier PC, on Linux; Windows 10 with the built-in **Generic / Text
   Only** driver prints its test slips.
 
 ## Printers on a cashier PC
@@ -49,8 +50,10 @@ printing there fails the way any printer that is off does; the sale itself still
 
 ![Receipt styles](../images/printing/receipt-styles.jpg)
 
-A receipt uses one of ten styles: **Classic, Bold, Minimal, Ticket, Poster, Grid,
-Stamp, Elegant, Cards** and **Sections**. The preview shows each kind of slip (sale, refund, cash
+A receipt uses one of eleven styles: **Classic, Bold, Minimal, Ticket, Poster, Grid,
+Stamp, Elegant, Cards, Sections** and **Compact**. **Compact** is the shortest, to save paper: the logo
+sits beside the shop's name, address and phone, each product is one row (name, quantity, single price,
+amount) with a small line under it only for a saving, a warranty or a serial, and there's no barcode. The preview shows each kind of slip (sale, refund, cash
 in / out, credit, warranty, test, and plugin slips such as repairs) at 80 and 58 mm, exactly as it
 prints. The style is set for the whole shop when the suite is set up; ask your Karots technician
 to change it. Under the preview, the technician can pick any printer (this PC's, a cashier PC's, or a network

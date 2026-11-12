@@ -64,7 +64,7 @@ type Appearance struct {
 	Palette      string `json:"palette"`      // a built-in id (settings.Skins) | "custom-<id>"
 	BrandColor   string `json:"brandColor"`   // legacy "#rrggbb" or ""
 	Radius       string `json:"radius"`       // legacy "sharp" | "rounded" | "round"
-	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+	ReceiptStyle string `json:"receiptStyle"` // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections" | "compact"
 	// ReceiptTextSize is the slips' text size in percent: 100 | 115 | 130. On a save, 0 (absent) changes nothing.
 	ReceiptTextSize int `json:"receiptTextSize,omitempty" tstype:",optional"`
 	// LabelStyles is the Image-mode style per label kind ("price", plugin kinds). On a

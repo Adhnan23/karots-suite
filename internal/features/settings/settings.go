@@ -21,6 +21,8 @@ type Settings struct {
 	CurrencyCode   string  `db:"currency_code"     json:"currency_code"`
 	CurrencySymbol string  `db:"currency_symbol"   json:"currency_symbol"`
 	ReceiptFooter  *string `db:"receipt_footer"    json:"receipt_footer,omitempty"`
+	// ReceiptThanks is the thank-you line under the footer; "" = each style's own wording.
+	ReceiptThanks string `db:"receipt_thanks" json:"receipt_thanks"`
 	ReceiptWidth   string  `db:"receipt_width"     json:"receipt_width"`
 	LogoURL        *string `db:"logo_url"          json:"logo_url,omitempty"`
 	LogoData       string  `db:"logo_data"         json:"logo_data,omitempty"`
@@ -91,7 +93,7 @@ type Settings struct {
 // bad or blank value never renders blank.
 var (
 	Skins         = []string{"studio", "night", "bazaar", "lagoon", "catppuccin", "gruvbox", "nord", "dracula", "tokyonight", "rosepine", "solarized", "everforest", "kanagawa", "synthwave", "monokai", "shadesofpurple", "cobalt2", "ayu", "mango", "pop", "aurora", "neumorph"}
-	ReceiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections"}
+	ReceiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections", "compact"}
 	Radii         = []string{"sharp", "rounded", "round"}
 )
 
@@ -125,7 +127,7 @@ func oneOf(v string, allowed []string, def string) string {
 var customSkin = regexp.MustCompile(`^custom-[1-9][0-9]{0,17}$`)
 
 // ValidSkin/ValidReceiptStyle echo a known value or the default (an old
-// modern / boxed / compact receipt style reads as classic). A custom palette's
+// modern / boxed receipt style reads as classic; an old "compact" was reset by migration 00034). A custom palette's
 // skin passes as-is; whether the row exists is the caller's check.
 func ValidSkin(v string) string {
 	if customSkin.MatchString(v) {
@@ -155,6 +157,7 @@ type UpdateInput struct {
 	CurrencySymbol        string  `json:"currency_symbol"   form:"currency_symbol"   validate:"required,max=5"`
 	LogoURL               *string `json:"logo_url"          form:"logo_url"`
 	ReceiptFooter         *string `json:"receipt_footer"    form:"receipt_footer"`
+	ReceiptThanks         string  `json:"receipt_thanks"    form:"receipt_thanks"    validate:"max=120"`
 	ReceiptWidth          string  `json:"receipt_width"     form:"receipt_width"     validate:"required,oneof=80 58"`
 	TaxRegistered         bool    `json:"tax_registered"    form:"tax_registered"`
 	TaxRegNo              *string `json:"tax_reg_no"        form:"tax_reg_no"`
@@ -266,7 +269,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 			label_name_lines=$29, label_bottom_lines=$30,
 			label_name_font=$31, label_bottom_font=$32,
 			reorder_default_days=$33, reorder_safety_days=$34,
-			label_print_as=$35, expiry_warn_days=$36
+			label_print_as=$35, expiry_warn_days=$36, receipt_thanks=$37
 		WHERE id = 1`,
 		in.ShopName, in.ShopNameSi, in.Address, in.Phone,
 		in.CurrencyCode, in.CurrencySymbol, in.ReceiptFooter,
@@ -282,7 +285,7 @@ func (r *Repository) Update(ctx context.Context, in UpdateInput) error {
 		nameLines, bottomLines,
 		nameFont, bottomFont,
 		in.ReorderDefaultDays, in.ReorderSafetyDays,
-		in.LabelPrintAs, in.ExpiryWarnDays)
+		in.LabelPrintAs, in.ExpiryWarnDays, strings.TrimSpace(in.ReceiptThanks))
 	return err
 }
 

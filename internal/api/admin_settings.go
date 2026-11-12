@@ -45,7 +45,7 @@ func toShopSettings(s *settings.Settings) ShopSettings {
 	out := ShopSettings{
 		ShopName: s.ShopName, ShopNameLocal: str(s.ShopNameSi), Address: str(s.Address), Phone: str(s.Phone),
 		CurrencyCode: s.CurrencyCode, CurrencySymbol: s.CurrencySymbol, LogoURL: str(s.LogoURL),
-		ReceiptFooter: str(s.ReceiptFooter), ReceiptWidth: s.ReceiptWidth, DefaultSaleType: s.DefaultSaleType,
+		ReceiptFooter: str(s.ReceiptFooter), ReceiptThanks: s.ReceiptThanks, ReceiptWidth: s.ReceiptWidth, DefaultSaleType: s.DefaultSaleType,
 		AskToPrint: s.AskToPrint, LabelPrintAs: s.LabelPrintAs, TaxRegistered: s.TaxRegistered, TaxRegNo: str(s.TaxRegNo),
 		OpenCashDrawer: s.OpenCashDrawer, DrawerKickPin: s.DrawerKickPin, AllowUntrackedCash: s.AllowUntrackedCash,
 		AllowContinueLastCount: s.AllowContinueLastCount, LowStockAlerts: s.LowStockAlerts, StockTakeEnabled: s.StockTakeEnabled,
@@ -112,7 +112,7 @@ func (h *handlers) AdminSettingsSave(c echo.Context) error {
 	up := settings.UpdateInput{
 		ShopName: strings.TrimSpace(in.ShopName), ShopNameSi: strPtr(in.ShopNameLocal), Address: strPtr(in.Address),
 		Phone: strPtr(in.Phone), CurrencyCode: strings.TrimSpace(in.CurrencyCode), CurrencySymbol: strings.TrimSpace(in.CurrencySymbol),
-		LogoURL: strPtr(in.LogoURL), ReceiptFooter: strPtr(in.ReceiptFooter), ReceiptWidth: in.ReceiptWidth,
+		LogoURL: strPtr(in.LogoURL), ReceiptFooter: strPtr(in.ReceiptFooter), ReceiptThanks: in.ReceiptThanks, ReceiptWidth: in.ReceiptWidth,
 		TaxRegistered: in.TaxRegistered, TaxRegNo: strPtr(in.TaxRegNo), LowStockAlerts: in.LowStockAlerts,
 		AskToPrint: in.AskToPrint, LabelPrintAs: in.LabelPrintAs, ForcePinChange: in.ForcePinChange, AllowCashierPinChange: in.AllowCashierPinChange,
 		DefaultSaleType: in.DefaultSaleType, ReceiptPrinter: strings.TrimSpace(in.ReceiptPrinter), LabelPrinter: strings.TrimSpace(in.LabelPrinter),

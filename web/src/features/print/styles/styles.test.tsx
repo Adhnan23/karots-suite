@@ -102,8 +102,44 @@ it('an unknown style draws classic', () => {
   expect(draw(sample('busy'), 'modern')).toBe(draw(sample('busy'), 'classic'))
 })
 
-it('styles are the ten keys in order', () => {
-  expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections'])
+it('styles are the eleven keys in order', () => {
+  expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections', 'compact'])
+})
+
+describe("the shop's thank-you line replaces every style's own (a pharmacy's Get well soon)", () => {
+  for (const s of STYLES)
+    for (const width of ['80', '58'] as const)
+      it(`${s.key} · ${width} mm`, () => {
+        const d = sample('busy', width)
+        d.shop = { ...d.shop, thanks: 'Get well soon' }
+        const got = text(draw(d, s.key))
+        expect(got).toContain('get well soon')
+        expect(got).not.toContain('thank you')
+      })
+})
+
+describe('compact: short and plain (Iman, 2026-11-12)', () => {
+  const html = (width: '80' | '58') => draw(sample('busy', width), 'compact')
+  for (const width of ['80', '58'] as const) {
+    it(`logo and shop details side by side · ${width} mm`, () => {
+      const d = sample('busy', width)
+      d.shop = { ...d.shop, logo: 'data:image/png;base64,iVBORw0KGgo=' }
+      const el = document.createElement('div')
+      el.innerHTML = draw(d, 'compact')
+      const img = el.querySelector('img')!
+      expect(img.parentElement!.textContent).toContain('Karots Store') // the name sits in the logo's row
+    })
+    it(`one row per product: name, qty, single price, amount · ${width} mm`, () => {
+      const el = document.createElement('div')
+      el.innerHTML = html(width)
+      const row = [...el.querySelectorAll('tr')].find((r) => r.textContent!.includes('Rice Samba 5kg'))!
+      expect(row.querySelectorAll('td').length).toBe(4)
+    })
+    it(`no barcode · ${width} mm`, () => {
+      // Code128 draws its bars as absolutely placed black blocks
+      expect(html(width)).not.toContain('position:absolute')
+    })
+  }
 })
 
 describe('a plugin slip follows every style', () => {

@@ -30,6 +30,7 @@ type SlipShop struct {
 	Phone     string `json:"phone"`
 	VatNo     string `json:"vatNo"` // "" unless the shop is tax registered
 	Footer    string `json:"footer"`
+	Thanks    string `json:"thanks"` // the thank-you line; "" = the style's own wording
 	Logo      string `json:"logo"` // PNG data URI of the printed logo raster (full dots wide), "" = none
 }
 

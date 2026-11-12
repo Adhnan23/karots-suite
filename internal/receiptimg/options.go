@@ -41,12 +41,13 @@ type Shop struct {
 	Phone     string `json:"phone"`
 	VatNo     string `json:"vatNo"` // "" unless the shop is tax registered
 	Footer    string `json:"footer"`
+	Thanks    string `json:"thanks"` // the thank-you line; "" = the style's own wording
 	Logo      string `json:"logo"`
 }
 
 func ShopFor(cfg *settings.Settings, opts escpos.Options) Shop {
 	s := Shop{Name: cfg.ShopName, NameLocal: deref(cfg.ShopNameSi), Address: deref(cfg.Address), Phone: deref(cfg.Phone),
-		Footer: deref(cfg.ReceiptFooter)}
+		Footer: deref(cfg.ReceiptFooter), Thanks: cfg.ReceiptThanks}
 	if cfg.TaxRegistered {
 		s.VatNo = deref(cfg.TaxRegNo)
 	}

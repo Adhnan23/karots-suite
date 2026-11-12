@@ -34,7 +34,7 @@ export function SettingsPage() {
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid min-w-0 gap-3">
           <Section title="Shop & receipt" sub="Your name, contact and currency — they head every receipt." saved={s}
-            keys={['shopName', 'shopNameLocal', 'address', 'phone', 'currencyCode', 'currencySymbol', 'receiptFooter', 'receiptWidth', 'defaultSaleType', 'askToPrint', 'logoUrl']}>
+            keys={['shopName', 'shopNameLocal', 'address', 'phone', 'currencyCode', 'currencySymbol', 'receiptFooter', 'receiptThanks', 'receiptWidth', 'defaultSaleType', 'askToPrint', 'logoUrl']}>
             {({ v, set }) => (
               <>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -46,7 +46,8 @@ export function SettingsPage() {
                     <Field label="Currency"><input className={INPUT} value={v.currencyCode} onChange={(e) => set('currencyCode', e.target.value)} /></Field>
                     <Field label="Symbol"><input className={INPUT} value={v.currencySymbol} onChange={(e) => set('currencySymbol', e.target.value)} /></Field>
                   </div>
-                  <Field label="Receipt footer" className="sm:col-span-2"><input className={INPUT} value={v.receiptFooter} placeholder="Thank you, come again!" onChange={(e) => set('receiptFooter', e.target.value)} /></Field>
+                  <Field label="Receipt footer"><input className={INPUT} value={v.receiptFooter} placeholder="Goods once sold are not returnable." onChange={(e) => set('receiptFooter', e.target.value)} /></Field>
+                  <Field label="Thank-you line"><input className={INPUT} value={v.receiptThanks} maxLength={120} placeholder="Thank you! Come again." onChange={(e) => set('receiptThanks', e.target.value)} /></Field>
                 </div>
                 <div className="flex flex-wrap gap-x-6 gap-y-3">
                   <Segmented label="Receipt paper" value={v.receiptWidth} onChange={(x) => set('receiptWidth', x)} options={[{ value: '80', label: '80 mm' }, { value: '58', label: '58 mm' }]} />

@@ -13,6 +13,7 @@ type ShopSettings struct {
 	CurrencySymbol         string `json:"currencySymbol"`
 	LogoURL                string `json:"logoUrl"`
 	ReceiptFooter          string `json:"receiptFooter"`
+	ReceiptThanks          string `json:"receiptThanks"` // "" = each receipt style's own thank-you wording
 	ReceiptWidth           string `json:"receiptWidth"`    // "80" | "58"
 	DefaultSaleType        string `json:"defaultSaleType"` // "retail" | "wholesale"
 	AskToPrint             bool   `json:"askToPrint"`

@@ -75,7 +75,7 @@ export interface Appearance {
   palette: string; // a built-in id (settings.Skins) | "custom-<id>"
   brandColor: string; // legacy "#rrggbb" or ""
   radius: string; // legacy "sharp" | "rounded" | "round"
-  receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections"
+  receiptStyle: string; // Image-mode style: "classic" | "bold" | "minimal" | "ticket" | "poster" | "grid" | "stamp" | "elegant" | "cards" | "sections" | "compact"
   /**
    * ReceiptTextSize is the slips' text size in percent: 100 | 115 | 130. On a save, 0 (absent) changes nothing.
    */
@@ -3248,6 +3248,7 @@ export interface ShopSettings {
   currencySymbol: string;
   logoUrl: string;
   receiptFooter: string;
+  receiptThanks: string; // "" = each receipt style's own thank-you wording
   receiptWidth: string; // "80" | "58"
   defaultSaleType: string; // "retail" | "wholesale"
   askToPrint: boolean;
@@ -3384,6 +3385,7 @@ export interface SlipShop {
   phone: string;
   vatNo: string; // "" unless the shop is tax registered
   footer: string;
+  thanks: string; // the thank-you line; "" = the style's own wording
   logo: string; // PNG data URI of the printed logo raster (full dots wide), "" = none
 }
 export interface SlipSale {

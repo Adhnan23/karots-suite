@@ -82,7 +82,7 @@ export const sections: SlipKit = {
           {shop.footer}
         </Para>
       )}
-      <Para center>Thank you! Come again.</Para>
+      <Para center>{shop.thanks || 'Thank you! Come again.'}</Para>
       <Credit style={{ marginTop: 8 }} />
     </>
   ),

@@ -161,7 +161,13 @@ func Footer(b *bytes.Buffer, cfg settings.Settings) {
 			line(b, center(ln, w))
 		}
 	}
-	line(b, center("Thank you! Come again.", w))
+	thanks := strings.TrimSpace(cfg.ReceiptThanks)
+	if thanks == "" {
+		thanks = "Thank you! Come again."
+	}
+	for _, ln := range wrap(ascii(thanks), w) {
+		line(b, center(ln, w))
+	}
 	line(b, "")
 	b.Write([]byte{esc, 'M', 1}) // select Font B (smaller)
 	// Font B is narrower (~42 cols on a 58mm roll), so pad over the wider budget.

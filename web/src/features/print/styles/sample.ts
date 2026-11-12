@@ -10,6 +10,7 @@ const shop = {
   phone: '081 222 3344',
   vatNo: '114-556677-7000',
   footer: 'Goods once sold are not returnable.',
+  thanks: '',
   logo: '',
 }
 

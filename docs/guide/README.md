@@ -15,7 +15,7 @@ whenever the screens change.
 | [Reports & dashboard](reports.md) | The dashboard, the 19 reports, exports and printing |
 | [People & users](people.md) | Customers and credit, staff logins, roles and rights, PINs, auto-lock, who's on now |
 | [Karots Shelf](shelf.md) | The phone app your staff use to put products in while the shop is being set up |
-| [Printing](printing.md) | Receipts as pictures, the ten receipt styles, labels, ask before printing |
+| [Printing](printing.md) | Receipts as pictures, the eleven receipt styles, labels, ask before printing |
 | [Appearance](appearance.md) | Palettes, your own palettes, light and dark |
 | [Plugins](plugins/README.md) | One page for each of the ten plugins |
 

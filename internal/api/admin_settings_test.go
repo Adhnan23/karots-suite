@@ -28,7 +28,7 @@ func TestAdminSettings(t *testing.T) {
 	})
 
 	in := orig
-	in.ShopName, in.ReceiptFooter, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", !orig.StockTakeEnabled, true, "123456789-7000"
+	in.ShopName, in.ReceiptFooter, in.ReceiptThanks, in.StockTakeEnabled, in.TaxRegistered, in.TaxRegNo = "Test Shop", "Come again", "Get well soon", !orig.StockTakeEnabled, true, "123456789-7000"
 	in.ReorderDefaultDays, in.ReorderSafetyDays = 10, 2
 	in.LabelPrintAs = "image"
 	in.ExpiryWarnDays = 45
@@ -37,7 +37,7 @@ func TestAdminSettings(t *testing.T) {
 		t.Fatalf("save: %d %s", rec.Code, rec.Body)
 	}
 	got := decode[SettingsPage](t, rec).Settings
-	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.StockTakeEnabled == orig.StockTakeEnabled ||
+	if got.ShopName != "Test Shop" || got.ReceiptFooter != "Come again" || got.ReceiptThanks != "Get well soon" || got.StockTakeEnabled == orig.StockTakeEnabled ||
 		got.ReorderDefaultDays != 10 || got.ReorderSafetyDays != 2 || got.ExpiryWarnDays != 45 || got.LabelPrintAs != "image" {
 		t.Fatalf("saved: %+v", got)
 	}

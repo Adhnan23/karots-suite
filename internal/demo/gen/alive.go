@@ -207,7 +207,7 @@ func (s *Sim) Cheat(name string) error {
 
 var palettes = []string{"studio", "night", "bazaar", "lagoon", "catppuccin", "gruvbox", "nord", "dracula", "tokyonight", "rosepine",
 	"solarized", "everforest", "kanagawa", "synthwave", "monokai", "shadesofpurple", "cobalt2", "ayu", "mango", "pop", "aurora", "neumorph"}
-var receiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections"}
+var receiptStyles = []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections", "compact"}
 
 func (s *Sim) cheat(name string) error {
 	g := s.g

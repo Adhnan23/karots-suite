@@ -70,7 +70,7 @@ export const ticket: SlipKit = {
         <span style={{ flex: 1, borderTop: '2px dashed #000' }} />
       </div>
       {shop.footer && <Para center>{shop.footer}</Para>}
-      <Para center>Thank you! Come again.</Para>
+      <Para center>{shop.thanks || 'Thank you! Come again.'}</Para>
       <Para center style={small}>Keep this slip for returns &amp; warranty</Para>
       <Credit style={{ marginTop: 10 }} />
     </>

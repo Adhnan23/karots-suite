@@ -153,7 +153,7 @@ export function Footer({ shop }: { shop: SlipShop }) {
     <>
       <Rule />
       {shop.footer && <Text center>{shop.footer}</Text>}
-      <Text center>Thank you! Come again.</Text>
+      <Text center>{shop.thanks || 'Thank you! Come again.'}</Text>
       <Blank />
       <Small>Karots Suite</Small>
       <Small>adhnanmsa@gmail.com | 0769626396</Small>

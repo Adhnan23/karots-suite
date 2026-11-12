@@ -179,6 +179,15 @@ func TestDocumentIsASCIIAndCut(t *testing.T) {
 	}
 }
 
+func TestDocumentPrintsTheShopsThankYouLine(t *testing.T) {
+	c := cfg("80")
+	c.ReceiptThanks = "Get well soon!"
+	text := string(Document(sampleDetail(), c, Options{}))
+	if !strings.Contains(text, "Get well soon!") || strings.Contains(text, "Thank you! Come again.") {
+		t.Errorf("want the shop's own thank-you line instead of the default")
+	}
+}
+
 func TestReturnDocumentIsASCIIAndCut(t *testing.T) {
 	d := decimal.RequireFromString
 	reason := "damaged item"

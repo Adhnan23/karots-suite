@@ -64,7 +64,7 @@ export const bold: SlipKit = {
     <>
       <NumberCode number={number} />
       {shop.footer && <Para center style={{ marginTop: 8 }}>{shop.footer}</Para>}
-      <Para center bold style={{ marginTop: 8 }}>Thank you! Come again.</Para>
+      <Para center bold style={{ marginTop: 8 }}>{shop.thanks || 'Thank you! Come again.'}</Para>
       <Credit style={{ marginTop: 10 }} />
     </>
   ),

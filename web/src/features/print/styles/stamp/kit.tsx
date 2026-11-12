@@ -124,7 +124,7 @@ export const stamp: SlipKit = {
         </Para>
       )}
       <Para center bold style={{ marginTop: 6 }}>
-        Thanks for shopping with us!
+        {shop.thanks || 'Thanks for shopping with us!'}
       </Para>
       <Credit style={{ marginTop: 8 }} />
     </>

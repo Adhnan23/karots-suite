@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './fixtures'
 
-// Appearance → Receipt style (spec 2026-10-21): the system user picks one of ten
+// Appearance → Receipt style (spec 2026-10-21): the system user picks one of eleven
 // Image-mode styles with a live preview; the saved one is what prints next.
 test.describe.configure({ mode: 'serial' })
 
@@ -80,7 +80,7 @@ test('pick a style with a live preview; the next print uses it', async ({ page, 
   await page.goto('/admin/system/appearance')
   await page.locator('summary', { hasText: 'Receipt style' }).click() // starts closed
   const styles = page.getByRole('group', { name: 'Receipt style' })
-  for (const name of ['Classic', 'Bold', 'Minimal', 'Ticket', 'Poster', 'Grid', 'Stamp', 'Elegant', 'Cards', 'Sections'])
+  for (const name of ['Classic', 'Bold', 'Minimal', 'Ticket', 'Poster', 'Grid', 'Stamp', 'Elegant', 'Cards', 'Sections', 'Compact'])
     await expect(styles.getByRole('img', { name })).toBeVisible()
 
   const preview = page.getByRole('img', { name: 'Receipt preview' })
@@ -158,7 +158,7 @@ test('every receipt style draws the same picture on a zoomed till', async ({ pag
       return { rows, zoom: parseFloat(getComputedStyle(document.documentElement).zoom) }
     })
   }
-  for (const style of ['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections']) {
+  for (const style of ['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections', 'compact']) {
     await setStyle(page, style)
     const plain = await draw(true)
     const zoomed = await draw(false)

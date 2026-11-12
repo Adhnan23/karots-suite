@@ -86,7 +86,7 @@ export const grid: SlipKit = {
         </Para>
       )}
       <Para center style={{ marginTop: 6 }}>
-        Thank you!
+        {shop.thanks || 'Thank you!'}
       </Para>
       <Credit style={{ marginTop: 8 }} />
     </>

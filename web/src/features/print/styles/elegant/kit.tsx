@@ -98,7 +98,7 @@ export const elegant: SlipKit = {
         </Para>
       )}
       <Para center style={{ fontStyle: 'italic', marginTop: 4 }}>
-        With thanks, until next time.
+        {shop.thanks || 'With thanks, until next time.'}
       </Para>
       <NumberCode number={number} />
       <Credit style={{ marginTop: 8 }} />

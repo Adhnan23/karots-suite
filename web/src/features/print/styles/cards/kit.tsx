@@ -75,7 +75,7 @@ export const cards: SlipKit = {
         </Para>
       )}
       <Para center bold style={{ marginTop: 6 }}>
-        Thank you!
+        {shop.thanks || 'Thank you!'}
       </Para>
       <Credit style={{ marginTop: 8 }} />
     </>

@@ -35,7 +35,7 @@ export type SlipKit = {
   fonts: string[]
 }
 
-export const STYLE_KEYS = ['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections'] as const
+export const STYLE_KEYS = ['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections', 'compact'] as const
 export type StyleKey = (typeof STYLE_KEYS)[number]
 
 export type SlipTemplateFC = FC<{ d: SlipData; kit: SlipKit }>

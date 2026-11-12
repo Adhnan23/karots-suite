@@ -29,7 +29,7 @@ func TestValidAppearanceFallsBack(t *testing.T) {
 }
 
 func TestValidReceiptStyle(t *testing.T) {
-	want := []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections"}
+	want := []string{"classic", "bold", "minimal", "ticket", "poster", "grid", "stamp", "elegant", "cards", "sections", "compact"}
 	if len(ReceiptStyles) != len(want) {
 		t.Fatalf("ReceiptStyles = %v", ReceiptStyles)
 	}
@@ -38,7 +38,7 @@ func TestValidReceiptStyle(t *testing.T) {
 			t.Errorf("%q: order or passthrough broken (%v)", k, ReceiptStyles)
 		}
 	}
-	for _, old := range []string{"modern", "boxed", "compact", "", "x"} {
+	for _, old := range []string{"modern", "boxed", "", "x"} {
 		if got := ValidReceiptStyle(old); got != "classic" {
 			t.Errorf("%q → %q, want classic", old, got)
 		}

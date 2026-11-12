@@ -78,7 +78,7 @@ export const poster: SlipKit = {
         </Para>
       )}
       <Para center style={{ fontWeight: 900, marginTop: 6, letterSpacing: 2 }}>
-        THANK YOU!
+        {(shop.thanks || 'Thank you!').toUpperCase()}
       </Para>
       <Credit style={{ marginTop: 10 }} />
     </>
