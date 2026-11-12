@@ -106,7 +106,7 @@ it('styles are the eleven keys in order', () => {
   expect(STYLES.map((s) => s.key)).toEqual(['classic', 'bold', 'minimal', 'ticket', 'poster', 'grid', 'stamp', 'elegant', 'cards', 'sections', 'compact'])
 })
 
-describe("the shop's thank-you line replaces every style's own ("Get well soon")", () => {
+describe("the shop's thank-you line replaces every style's own (Get well soon)", () => {
   for (const s of STYLES)
     for (const width of ['80', '58'] as const)
       it(`${s.key} · ${width} mm`, () => {
