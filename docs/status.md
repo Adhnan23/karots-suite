@@ -83,10 +83,12 @@ the detail; `shops/iman-matches.md` for Iman).
 ## The family
 
 - **Karots Suite** (this repo; pushes to GitHub `origin` and GitLab `gitlab`).
-- **Karots Suite Onboard + Karots Shelf** (`~/Projects/flutter/karots_suite_onboard`, one Flutter repo, two Android
-  flavours; Linux and Windows = Onboard; Windows built by GitHub Actions → artifact zip, Windows Hello unlock, tested in `win10` 2026-11-12). APKs in `~/Downloads` (`karots-onboard.apk`, `karots-shelf.apk`, built from `3022c37`;
-  `--flavor onboard|shelf`). Onboard = the user's own setup app (install ID 3EE0E57C's hourly code). Shelf = shop
-  staff's app, free; real-phone hand test PASSED 2026-11-09; in Iman's build since 2026.11.09.0655.
+- **Karots Suite Onboard + Karots Shelf** (`~/Projects/flutter/karots_suite_onboard`, one Flutter repo, both apps on
+  Android, Linux and Windows). `make` builds both APKs + both Linux apps into its `dist/` (`make install-linux` = app
+  menu launchers); Windows = GitHub Actions on push (both zips; kept in `dist/windows/`). Device unlock for 24 h after
+  the code: Android screen lock, Windows Hello, Linux password (polkit). Onboard = the user's own setup app (install ID
+  3EE0E57C's hourly code); on Windows for the Iman owner's laptop (tested in `win10` 2026-11-12). Shelf = shop staff's
+  app, free; real-phone hand test PASSED 2026-11-09; in Iman's build since 2026.11.09.0655.
 - **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private, 50,065 products): Onboard gets it as an
   **update file** (`build/onboard_update.py`, from the user's latest Onboard backup: same ids, merges in place; the
   user's own edits win). The first full import was a wipe + import; never again unless the user asks.
@@ -165,7 +167,9 @@ forced to disk (`internal/durable`). Not tested: the gap between Swap's two rena
   `make core-only`, then `git checkout -- internal/spa/dist/.gitkeep`).
 - **Dev server:** `make plugins P=all && make migrate && make dev`; dev logins Admin 0771234567 / 1234, Cashier
   0771111111 / 1111, system user 0000000001 / 2273. `make core-only` before committing.
-- **VMs** (`virsh -c qemu:///system`): `karots-main` (Xubuntu, snapshot `before-powercut`), `karots-cashier`, `win10`.
+- **VMs** (`virsh -c qemu:///system`): `karots-main` (Xubuntu, snapshot `before-powercut`), `karots-cashier`, `win10`. `win10`
+  has SSH with this PC's key (`ssh karots@<its IP>`); its printer passthrough (USB 0483:5743) was removed 2026-11-12:
+  `virsh … attach-device win10 /mnt/nvme_512GB/vmhd/win10-printer-hostdev.xml --config` puts it back.
   Only one VM can hold the XP-80T. Shop `windows-test` in `shops.json` is for Windows tests (never Released).
   Printer queues here: `XP80T`, `POS80` (default; `cancel -a POS80` before plugging an old one in), `XP365`.
 - **The user tests with real sales and scans of real paper** (phone scans in `/mnt/nvme_512GB/Downloads/`,
