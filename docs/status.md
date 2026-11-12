@@ -84,7 +84,7 @@ the detail; `shops/iman-matches.md` for Iman).
 
 - **Karots Suite** (this repo; pushes to GitHub `origin` and GitLab `gitlab`).
 - **Karots Suite Onboard + Karots Shelf** (`~/Projects/flutter/karots_suite_onboard`, one Flutter repo, two Android
-  flavours; Linux = Onboard). APKs in `~/Downloads` (`karots-onboard.apk`, `karots-shelf.apk`, built from `3022c37`;
+  flavours; Linux and Windows = Onboard; Windows built by GitHub Actions → artifact zip, Windows Hello unlock, tested in `win10` 2026-11-12). APKs in `~/Downloads` (`karots-onboard.apk`, `karots-shelf.apk`, built from `3022c37`;
   `--flavor onboard|shelf`). Onboard = the user's own setup app (install ID 3EE0E57C's hourly code). Shelf = shop
   staff's app, free; real-phone hand test PASSED 2026-11-09; in Iman's build since 2026.11.09.0655.
 - **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private, 50,065 products): Onboard gets it as an
