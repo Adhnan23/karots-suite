@@ -9,29 +9,25 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
-**Latest Release: 2026.11.09.2233** (user asked). Full run first: Go 63 packages, web 1,126, Playwright 240 passed +
-the three specs re-run alone 27/27 (`plugin-aicatalog:278` failed once in the full run, as before). In it:
-- **Import by ref** (`3ad406c`): Products → Sheets ▾ → Include ref; each row updates its own product even after a
-  rename or with no barcode; another shop's ref is refused; a sheet without refs imports as before.
-- **Receipt lines** (every style + the plain backup): one price per line ("qty x single price = amount"), a saving on
-  its own line with its minus amount on the right, then Line total; no "->" net price; no pack split ("1 Card + 2"),
-  a cheaper pack shows as a "Pack price" saving; quantities without ".00" unless a fraction. Sections keeps its own
-  YOU SAVED block (user).
-- **Receipt text size**: Appearance → Receipt style → Text size (Normal / Large / Larger, shop-wide, migration 00033).
-  The slip is laid out narrower and the picture scaled up to the paper; the barcode still scans. Classic and the plain
-  backup put a too-long line's amount on the next row instead of cutting the words (58 mm).
-- Not yet on paper: one Larger receipt on the XP-80T.
+**Latest Release: 2026.11.12.1741** (user asked). Full run first: Go 63 packages, web 1,174, Playwright 251 passed +
+`plugin-aicatalog.spec.ts` and `appearance-receipts.spec.ts` re-run alone 18/18 (`plugin-aicatalog:278` failed once in
+the full run, as before). In it:
+- **Compact**, the eleventh receipt style (`7d51d2f`): logo beside the shop's name, address and phone (no logo: centred);
+  receipt number + date on one line; one row per product (Item · Qty · Price · Amount), a small line only for a
+  saving / warranty / serial; no barcode; ~38% shorter on 80 mm. Iman's style is still what it was: switch it at the
+  shop (system user → Appearance → Receipt style → Compact) after the update.
+- **Thank-you line** in Settings (migration 00034, `receipt_thanks`): replaces every style's "Thank you" and the plain
+  backup's; empty = each style's own wording. Iman wants "Get well soon!"-type text — they set it themselves.
+- 2026.11.12.1736 went out a few minutes earlier with notes cut at a "; " in the commit title (the notes keep a title
+  only up to " — " or "; "); 1741 replaced it with written notes via the Builder app.
+- Not yet on paper: a Compact receipt and a Larger one on the XP-80T.
 
 Earlier Releases stay in the bucket (2026.11.09.0655, 2026.11.08.1330, …). **Don't publish another before the user
 says.** `dist/iman-pharmacy-kalpitiya/` holds the build; `dist/aiman-pharmacy-kalpitiya/` is old and must not be installed.
 
 ## Next
 
-**2026-11-12 (Iman asked): Compact receipt style + the shop's thank-you line** (`7d51d2f`, migration 00034) — the
-eleventh style: logo beside the shop's details, one row per product, no barcode, ~38% shorter on 80 mm; Settings →
-Thank-you line replaces every style's "Thank you" ("Get well soon!"). Not yet: the user's look on the dev server, a
-print on the XP-80T, `make docs-shots` (receipt styles + settings shots), the e2e run, and a Release to Iman (wait for
-the user).
+**More receipt styles only when a shop asks for a different one** (user, 2026-11-12).
 
 **Where 2026-11-10 ended (catalogue day, no suite changes):** the user is at Iman on 2026-11-11 with two printed
 lists, imports an update file into Onboard, adds products (picking from the catalogue, hand-typing the rest), pulls
