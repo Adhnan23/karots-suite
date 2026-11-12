@@ -56,6 +56,13 @@ the detail; `shops/iman-matches.md` for Iman).
    - Still open, not urgent: the safety-net glance (the 113 list + ~10 brand / close picks among the 104), and
      Immune Up's real contents (mycare / Topcure disagree; a box photo settles it).
    - Next new Iman products: `python3 shops/iman_matches.py <latest backup>` marks them "new since last list".
+   - **2026-11-12 (user at Iman again):** backup `karots-onboard-backup-20261112-1626.json`: Iman 739 products (+87),
+     **all matched**. CoQTen, Nifigen ER 20 and NEX VITA from box photos (`Karots/iman-photos-2026-11-12/`). The
+     user's Epnone 50 / Solotrate SR 30 / Tel OD 80 showed the catalogue held one medicine under two spellings
+     ("Tel OD 20" / "Tel Od 20mg"): **278 such pairs merged, only when the maker is the same** (user); the shop's
+     spelling wins. Catalogue 52,157 (catalogue `d10fe14`). **Update file for the user:**
+     `catalogue-updates/karots-catalogue-update-2026-11-12.json` (39 refreshed, Nex Vita new, 278 extra copies
+     deleted; none of them the user's or in a shop) — not imported yet.
 2. **Generic clean-up: DONE 2026-11-11, and in the user's Onboard** (backup `Downloads/Karots/onboard-backups/
    karots-onboard-backup-20261111-0910.json` checked: 52,515 products, 13,005 generics all in line, 0 doubles, the
    user's 261 products and Iman's 549 shop links intact). The morning file was built from an old backup and made 114
