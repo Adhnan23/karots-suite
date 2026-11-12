@@ -27,6 +27,12 @@ says.** `dist/iman-pharmacy-kalpitiya/` holds the build; `dist/aiman-pharmacy-ka
 
 ## Next
 
+**2026-11-12 (Iman asked): Compact receipt style + the shop's thank-you line** (`7d51d2f`, migration 00034) — the
+eleventh style: logo beside the shop's details, one row per product, no barcode, ~38% shorter on 80 mm; Settings →
+Thank-you line replaces every style's "Thank you" ("Get well soon!"). Not yet: the user's look on the dev server, a
+print on the XP-80T, `make docs-shots` (receipt styles + settings shots), the e2e run, and a Release to Iman (wait for
+the user).
+
 **Where 2026-11-10 ended (catalogue day, no suite changes):** the user is at Iman on 2026-11-11 with two printed
 lists, imports an update file into Onboard, adds products (picking from the catalogue, hand-typing the rest), pulls
 Iman, then brings a new Onboard backup. Everything below lives in `~/Projects/karots-suite-catalogue` (its README is
