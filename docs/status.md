@@ -62,7 +62,7 @@ the detail; `shops/iman-matches.md` for Iman).
      ("Tel OD 20" / "Tel Od 20mg"): **278 such pairs merged, only when the maker is the same** (user); the shop's
      spelling wins. Catalogue 52,157 (catalogue `d10fe14`). **Update file for the user:**
      `catalogue-updates/karots-catalogue-update-2026-11-12.json` (39 refreshed, Nex Vita new, 278 extra copies
-     deleted; none of them the user's or in a shop) — not imported yet.
+     deleted; none of them the user's or in a shop) — **imported and checked** (backup `karots-onboard-backup-20261112-1643.json`: 52,266 products, all 40 as sent, 278 deleted, 0 doubles, Iman 739 and 470 shop links intact).
 2. **Generic clean-up: DONE 2026-11-11, and in the user's Onboard** (backup `Downloads/Karots/onboard-backups/
    karots-onboard-backup-20261111-0910.json` checked: 52,515 products, 13,005 generics all in line, 0 doubles, the
    user's 261 products and Iman's 549 shop links intact). The morning file was built from an old backup and made 114
