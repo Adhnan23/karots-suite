@@ -13,7 +13,7 @@ adjustments still work. When a product's front shelf is nearly empty, someone **
 on the shelf, and from then on its sales reduce stock as normal.
 
 Example (user): 20 boxes × 10 pencils = 200 counted, front not counted, frozen. Pencils sell; stock stays 200. A box
-is opened → stock adjustment −10 → 190; those 10 sell without touching stock. Later, 3 left on the front + a new box
+is opened → "Opened to the shelf" 10 → 190; those 10 sell without touching stock. Later, 3 left on the front + a new box
 of 10 brought out → unfreeze, "13 on the shelf" → stock 190 + 13 = 203, and sales reduce it from now on.
 
 ## Goals
@@ -28,6 +28,9 @@ of 10 brought out → unfreeze, "13 on the shelf" → stock 190 + 13 = 203, and 
   frozen** until the shop is unfrozen. Unfreeze-all warns with the list of still-frozen products first (the admin may
   have counted the front shelves after closing).
 - A **list of frozen products** (how far onboarding has got).
+- **Losses are never adjustments** (user: an adjustment that hides a loss makes a fake picture). A loss goes only
+  through the damaged list. Opening a box while frozen is its own entry, **"Opened to the shelf"**: neither an
+  adjustment nor a loss, and reports never count it as one.
 - Nothing becomes invisible: a damaged frozen item is added as an extra and moved to damaged, so it shows on the damaged list with its cost.
 
 ## Non-goals
@@ -93,6 +96,4 @@ in this mode from day one. Separate repo; follows once the suite side is done.
 
 - Column and setting names, DTO shapes, exact screens and wording (plain, short, like the rest of the till).
 - How the till shows a frozen product (a small badge; no stock number shown while frozen).
-- How "take from stock" is booked (an adjustment movement with its own type or reason, so the history reads
-  "opened a box").
 - Whether the frozen list is its own page or a filter on the stock page.
