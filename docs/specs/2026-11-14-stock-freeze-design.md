@@ -62,7 +62,8 @@ of 10 brought out → unfreeze, "13 on the shelf" → stock 190 + 13 = 203, and 
 | Conversion (sack → packs) | Source taken from stock as normal; target not added if the target product is frozen |
 | Return to supplier | Normal (goods come from the counted stock) |
 | Customer return / void, not damaged | Added back only if the product is **not** frozen now (back on the shelf, which isn't counted while frozen) |
-| Damaged (till Write-off tab, or a return taken back as damaged) | Frozen = it came from the front: **added as one extra, then moved to damaged** (the existing found-at-till + write-off). Stock ends unchanged; the item is on the damaged list with its cost. No question asked. A damaged box in the back while frozen = a normal stock adjustment |
+| Damaged (till Write-off tab, admin damage) | Asks **"From the shelf or the back?"** Shelf = **added as one extra, then moved to damaged** (the existing found-at-till + write-off; stock unchanged). Back = moved to damaged as normal (stock goes down). Both on the damaged list with cost |
+| A return taken back as damaged | Always "shelf" (it came from a sale): extra in, then to damaged; no question |
 | Expiry lots (pharmacy) | Not used up by sales; the till still asks which price when lots differ (price matters, count doesn't) |
 | Reorder, low stock | Frozen products marked, not alerted |
 | Reports | Profit uses the product cost price for frozen lines; stock value says "frozen products: counted stock only" |
