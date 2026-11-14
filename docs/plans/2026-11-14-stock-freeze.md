@@ -173,7 +173,7 @@ type `to_shelf` books "Opened / moved to the shelf". A core hook `plugin.FreezeG
   - `FrozenProducts(ctx) ([]FrozenRow, error)` — id, name, stock, unit, frozen since.
 - [ ] **Step 1:** Tests: the pencil day — 200, freeze, sell 4 (via sales service) → 200, MoveToShelf 10 → 190 with a
   `to_shelf` movement, Unfreeze "13" → 203, sell 1 → 202. Plus: unfreeze twice refused; "0" ok; "-1" / "abc"
-  refused; `TestMoveToShelfMoreThanStock` (190, move 191 → error, still 190); MoveToShelf on unfrozen refused;
+  refused; `TestMoveToShelfMoreThanStock` (190, move 191 → error, still 190); `TestUnfreezeMidSale` (200 frozen, unfreeze "2" → 202, sell 4 → 198); MoveToShelf on unfrozen refused;
   FreezeShop skips a refused product and services and sets the setting; a product created afterwards is frozen;
   UnfreezeShop clears all and the setting.
 - [ ] **Step 2–4:** Fail, implement, pass.
