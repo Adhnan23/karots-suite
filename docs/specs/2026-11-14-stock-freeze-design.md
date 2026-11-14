@@ -96,7 +96,7 @@ running balance; they're counted in full on day one). Freeze-all skips refused p
 
 **Unfreeze permission:** sales person, cashier, admin (user). It can be done **in the middle of a sale** (user): 2
 pencils on the shelf, the customer wants 4 → unfreeze from the cart with 2 → 200 + 2 = 202; a box is opened, 4 sold
-→ 198. Lives where those people already work: the till's
+→ 198. It's a small dialog over the sale screen, never another page: the cart stays as it is. Lives where those people already work: the till's
 counter tab (find product → Unfreeze / Take from stock) and the admin product / stock screens.
 
 **Onboard (the user's app):** can push products to a shop already frozen (a field on the push), so a new shop starts
