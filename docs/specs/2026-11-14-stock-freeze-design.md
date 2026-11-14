@@ -72,6 +72,16 @@ of 10 brought out → unfreeze, "13 on the shelf" → stock 190 + 13 = 203, and 
 | Reports | Profit uses the product cost price for frozen lines; stock value says "frozen products: counted stock only" |
 | Old backups | Restore as not frozen |
 
+**Opening a box: two kinds of shop, and hybrids** (user). The **"Open a box"** action follows how the product is set up:
+
+| Shop's setup | Open a box while frozen |
+|---|---|
+| Box and single are **two products with a conversion** (Pencil Box → 10 Pencil) | Runs the conversion: box −1 in stock; the single gets the 10 only if it's **not** frozen (frozen = they're on the front shelf) |
+| **Single item only** (a box sold as a quantity with a discount, or a Pack on the product) | "Opened to the shelf" on that product: the quantity, or a Pack picked ("1 Box" = 10) |
+| Hybrid | Each product follows its own setup |
+
+Either way it is never an adjustment or a loss: a conversion stays a conversion, opening stays "Opened to the shelf".
+
 **Plugins that can't freeze:** a new core hook, e.g. `plugin.FreezeGuard` (`CanFreeze(ctx, productID) (ok bool,
 reason string)`), asked when freezing one product or all. **Pharmacy** refuses controlled drugs (its register keeps a
 running balance; they're counted in full on day one). Freeze-all skips refused products and says how many and why.
