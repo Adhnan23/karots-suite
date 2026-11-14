@@ -72,9 +72,17 @@ of 10 brought out → unfreeze, "13 on the shelf" → stock 190 + 13 = 203, and 
 | Reports | Profit uses the product cost price for frozen lines; stock value says "frozen products: counted stock only" |
 | Old backups | Restore as not frozen |
 
-**Opening a box: two kinds of shop, and hybrids** (user). The **"Open a box"** action follows how the product is set up:
+**One place: the existing Adjust screen** (user: keep it simple, no new buttons). Adjusting a **frozen** product
+first asks **"What happened?"**
+- **Moved to the shelf** (opened a box): see the table below.
+- **Damaged**: "From the shelf or the back?" (rules above); goes on the damaged list.
+- **Count changed** (a recount of the back): a normal adjustment.
 
-| Shop's setup | Open a box while frozen |
+The same choice is offered where cashiers / sales people adjust at the till (counter tab).
+
+**Moved to the shelf: two kinds of shop, and hybrids** (user). It follows how the product is set up:
+
+| Shop's setup | Moved to the shelf while frozen |
 |---|---|
 | Box and single are **two products with a conversion** (Pencil Box → 10 Pencil) | Runs the conversion: box −1 in stock; the single gets the 10 only if it's **not** frozen (frozen = they're on the front shelf) |
 | **Single item only** (a box sold as a quantity with a discount, or a Pack on the product) | "Opened to the shelf" on that product: the quantity, or a Pack picked ("1 Box" = 10) |
