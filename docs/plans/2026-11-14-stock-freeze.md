@@ -223,13 +223,20 @@ type `to_shelf` books "Opened / moved to the shelf". A core hook `plugin.FreezeG
   list, Unfreeze ("How many are on the shelf now?"), Moved to the shelf
 - Test: `web/e2e/stock-freeze.spec.ts`
 
+**Unfreeze in the middle of a sale** (user): a frozen line in the cart (and the product card) has an **Unfreeze**
+action on the sale screen, for the cashier and for the sales person's ticket screen; it asks the shelf count, calls
+the counter unfreeze endpoint, refreshes the catalog, and the cart line keeps its quantity (now checked against real
+stock as usual). Online only: the phone offline shows it disabled.
+
 **Moved to the shelf** follows the product's setup (spec table): if the product is the *from* side of a conversion,
 offer that conversion (existing run endpoint); else quantity, with a Pack picker when the product has packs.
 
 - [ ] **Step 1:** Playwright (import `test` from `e2e/fixtures.ts`): the pencil day through the UI — admin freezes
   Pencil (200), cashier sells 4 with no question (200), cashier moves 10 to the shelf (190), write-off 1 from the
   shelf (190, on the damaged list), cashier unfreezes with 13 (203), sells 1 (202). Then Freeze shop → a new product
-  is frozen → Unfreeze shop shows the warning list.
+  is frozen → Unfreeze shop shows the warning list. Then mid-sale (user's example): Pencil frozen with 200 counted,
+  cart has Pencil ×4, Unfreeze from the cart line with **2** on the shelf → 202, pay → **198**; the same from the
+  sales person's ticket screen.
 - [ ] **Step 2–4:** Fail, build the screens (360px, tokens), pass.
 - [ ] **Step 5:** Self-review screenshots (light + dark, 360px for admin) per `docs/status.md`'s gate; commit
   `feat(stock): freeze screens (adjust, write-off, counter Frozen tab, shop switch)`.

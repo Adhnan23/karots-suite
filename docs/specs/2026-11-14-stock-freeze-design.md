@@ -94,7 +94,9 @@ Either way it is never an adjustment or a loss: a conversion stays a conversion,
 reason string)`), asked when freezing one product or all. **Pharmacy** refuses controlled drugs (its register keeps a
 running balance; they're counted in full on day one). Freeze-all skips refused products and says how many and why.
 
-**Unfreeze permission:** sales person, cashier, admin (user). Lives where those people already work: the till's
+**Unfreeze permission:** sales person, cashier, admin (user). It can be done **in the middle of a sale** (user): 2
+pencils on the shelf, the customer wants 4 → unfreeze from the cart with 2 → 200 + 2 = 202; a box is opened, 4 sold
+→ 198. Lives where those people already work: the till's
 counter tab (find product → Unfreeze / Take from stock) and the admin product / stock screens.
 
 **Onboard (the user's app):** can push products to a shop already frozen (a field on the push), so a new shop starts
