@@ -9,6 +9,11 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
+**Next (decided 2026-11-14): Stock freeze**, a new core feature. Design `docs/specs/2026-11-14-stock-freeze-design.md`
+(approved), plan `docs/plans/2026-11-14-stock-freeze.md` (10 tasks). Start it in a new session ("execute the stock
+freeze plan"), subagent-driven, on branch `stock-freeze`; the user hand-tests on a dev server, then merge and Release
+to Iman. Count the back, sell the front freely, unfreeze product by product (also mid-sale, as a dialog).
+
 **Latest Release: 2026.11.12.1741** (user asked). Full run first: Go 63 packages, web 1,174, Playwright 251 passed +
 `plugin-aicatalog.spec.ts` and `appearance-receipts.spec.ts` re-run alone 18/18 (`plugin-aicatalog:278` failed once in
 the full run, as before). In it:
