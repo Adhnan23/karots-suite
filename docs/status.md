@@ -70,8 +70,8 @@ the detail; `shops/iman-matches.md` for Iman).
      Nexus), Tri Bull = Tribull Tabs, Livo-D a supplement. T4 50 Montpellier takes the place of three catalogue names
      (user); Onboard had saved **Thyronorm 50mcg twice** (same microsecond: an Onboard double-save?) → the unlinked
      one deleted. "Omega 3" generics no longer cut to "Omega". Catalogue 52,156 (catalogue `6932e0f`). **Update file:**
-     `catalogue-updates/karots-catalogue-update-2026-11-14.json` (35 products, 8 deleted: none linked to Iman) —
-     not imported yet. Open: Metrokeb-200 (Metroleb 200?) and IMOI-15's generic need a box photo.
+     `catalogue-updates/karots-catalogue-update-2026-11-14.json` (36 products, 9 deleted: none linked to Iman) —
+     not imported yet. Metrokeb-200 = Metroleb 200 (typo); IMOI-15 from its box (serratiopeptidase 15 mg): all 988 matched.
 2. **Generic clean-up: DONE 2026-11-11, and in the user's Onboard** (backup `Downloads/Karots/onboard-backups/
    karots-onboard-backup-20261111-0910.json` checked: 52,515 products, 13,005 generics all in line, 0 doubles, the
    user's 261 products and Iman's 549 shop links intact). The morning file was built from an old backup and made 114
