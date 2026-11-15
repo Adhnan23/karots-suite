@@ -36,7 +36,7 @@ The whole Sell page works without a mouse: a scanner and the keyboard are enough
 | **F4** | Hold the sale |
 | **F5** | Held sales: **↑ ↓** to choose, **Enter** resumes |
 | **F6** | Quantity of the line just added: type it, **Enter** goes back to search. **↑ ↓** move to other lines; **Delete** removes the line |
-| **F7** | Discount on the line just added: type an amount, or add **%** for a percentage; **Enter** goes back |
+| **F7** | Discount on the line just added: type an amount, or add **%** for a percentage; **↑ ↓** move to other lines; **Enter** goes back |
 | **F8** | Customer: type a name or phone, **↑ ↓**, **Enter** picks |
 | **F9** | Bill discount |
 | **F10** | Go to the amount; **F10 again** switches to the next payment method; **Enter** adds it, or completes the sale when the box is empty |

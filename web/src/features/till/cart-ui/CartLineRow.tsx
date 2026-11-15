@@ -23,7 +23,7 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
   const set = (discount: string, discountType = line.discountType) => dispatch({ type: 'lineDiscount', key: line.key, discount, discountType })
   if (!open) {
     return (
-      <button id={last ? 'till-disc-last' : undefined} type="button" onClick={() => setOpen(true)}
+      <button id={last ? 'till-disc-last' : undefined} data-disc type="button" onClick={() => setOpen(true)}
         className={cn('flex h-7 items-center gap-1 rounded-pill border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
         <Tag size={14} />
@@ -33,13 +33,21 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
   }
   return (
     <span className="flex items-center gap-1">
-      <input autoFocus aria-label={`Discount for ${line.name}`} inputMode="decimal" autoComplete="off" value={line.discount}
+      <input autoFocus data-disc aria-label={`Discount for ${line.name}`} inputMode="decimal" autoComplete="off" value={line.discount}
         onChange={(e) => {
           const v = e.target.value
           // Typing % makes it a percentage; typing a currency sign back makes it fixed.
           set(v.replace(/[^\d.]/g, ''), v.includes('%') ? 'percent' : /[^\d.%]/.test(v) ? 'fixed' : line.discountType)
         }}
         onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            // ↑ ↓: the line above / below opens its discount (as F6 moves between quantities).
+            e.preventDefault()
+            const all = [...document.querySelectorAll<HTMLElement>('[data-disc]')]
+            const next = all[all.indexOf(e.currentTarget) + (e.key === 'ArrowDown' ? 1 : -1)]
+            if (next) { setOpen(false); next.click() }
+            return
+          }
           if (e.key !== 'Enter' && e.key !== 'Escape') return
           e.preventDefault()
           setOpen(false)
