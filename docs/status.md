@@ -97,6 +97,9 @@ the detail; `shops/iman-matches.md` for Iman).
      `catalogue-updates/karots-catalogue-update-2026-11-14.json` (37 products, 10 deleted: none linked to Iman; METROLEB-400 merged with Metroleb 400mg) —
      **imported and checked** (backup `karots-onboard-backup-20261114-1818.json`: 52,263 products, all 37 as sent, 10
      deleted, 0 doubles, Iman 988 and its 674 links intact). Metrokeb-200 = Metroleb 200 (typo); IMOI-15 from its box.
+   - **2026-11-15:** backup `karots-onboard-backup-20261115-1955.json`: Iman 1,238 products (+250), **all matched**
+     (user confirmed the four same-brand picks). Iman renamed Linagliptin 5mg → "Linagliptin 5mg (SPC)": the
+     catalogue takes their name (catalogue `d5998dd`). Onboard already up to date: **no update file needed**.
 2. **Generic clean-up: DONE 2026-11-11, and in the user's Onboard** (backup `Downloads/Karots/onboard-backups/
    karots-onboard-backup-20261111-0910.json` checked: 52,515 products, 13,005 generics all in line, 0 doubles, the
    user's 261 products and Iman's 549 shop links intact). The morning file was built from an old backup and made 114
