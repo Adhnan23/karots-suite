@@ -27,7 +27,9 @@ export function CustomerPicker() {
   const qc = useQueryClient()
   const customers = useQuery(customersQuery).data ?? []
   const [open, setOpen] = useState(false)
-  const [hi, setHi] = useState(0) // ↑ ↓ in the search box: 0 = Walk-in, then the list
+  // ↑ ↓ in the search box: 0 = Walk-in, then the list. Worked out on the spot (never an effect
+  // behind the typing): Enter right after a name must pick its first match.
+  const [moved, setMoved] = useState<number | null>(null)
   const [q, setQ] = useState('')
   const [limit, setLimit] = useState<string | null>(null)
   const box = useRef<HTMLDivElement>(null)
@@ -44,11 +46,12 @@ export function CustomerPicker() {
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
-  useEffect(() => setHi(q.trim() && list.length ? 1 : 0), [q, list.length, open])
+  const hi = Math.min(moved ?? (q.trim() && list.length ? 1 : 0), list.length)
   const pick = (id: number | null) => {
     dispatch({ type: 'customer', id })
     setOpen(false)
     setQ('')
+    setMoved(null)
     document.getElementById('till-search')?.focus() // F8 → type → Enter, back to scanning
   }
   async function saveLimit() {
@@ -66,7 +69,7 @@ export function CustomerPicker() {
   return (
     <div ref={box} className="relative">
       <div className="flex gap-2">
-        <button id="till-customer" type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)}
+        <button id="till-customer" type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => { setOpen(!open); setMoved(null) }}
           className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2 text-left">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[13px] font-extrabold">
             {cur ? initials(cur.name) : <User size={16} />}
@@ -85,12 +88,12 @@ export function CustomerPicker() {
       </div>
       {open && (
         <div className="absolute inset-x-0 top-[calc(100%+6px)] z-30 rounded-[var(--radius-sm)] border border-border bg-popover p-1.5 shadow-[var(--shadow-float)]">
-          <input autoFocus aria-label="Search customers" placeholder="Name or phone" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)}
+          <input autoFocus aria-label="Search customers" placeholder="Name or phone" autoComplete="off" value={q} onChange={(e) => { setQ(e.target.value); setMoved(null) }}
             onKeyDown={(e) => {
               if (e.key === 'Escape') setOpen(false)
               if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                 e.preventDefault()
-                setHi((i) => Math.max(0, Math.min(list.length, i + (e.key === 'ArrowDown' ? 1 : -1))))
+                setMoved(Math.max(0, Math.min(list.length, hi + (e.key === 'ArrowDown' ? 1 : -1))))
               }
               if (e.key === 'Enter') pick(hi === 0 ? null : list[hi - 1].id)
             }} className={cn(FIELD, 'mb-1 h-9 w-full')} />
