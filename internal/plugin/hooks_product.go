@@ -299,6 +299,7 @@ type FreezeGuard struct {
 var freezeGuards hook[FreezeGuard]
 
 func (r *Registry) AddFreezeGuard(g FreezeGuard) { freezeGuards.add(g) }
+func FreezeGuards() []FreezeGuard                { return freezeGuards.all() }
 
 // FreezeRefusals merges every plugin's refusals for these products.
 func FreezeRefusals(ctx context.Context, ids []int64) (map[int64]string, error) {

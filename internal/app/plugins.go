@@ -157,6 +157,9 @@ func bridgeProductHooks() {
 			return out, nil
 		}
 	}
+	if len(plugin.FreezeGuards()) > 0 {
+		stock.FreezeRefusals = plugin.FreezeRefusals
+	}
 }
 
 func detailRows[P any](ctx context.Context, id int64, rows func(P) func(context.Context, int64) ([]plugin.DetailRow, error), ps []P) []products.DetailRow {
