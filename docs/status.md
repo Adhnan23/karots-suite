@@ -9,6 +9,17 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
+**Keyboard-only Sell page: Released to Iman as 2026.11.15.1525 (2026-11-15, binary only)** (user hand-tested on a dev
+server: "so far so good"; a pharmacy asked if the till is fully keyboard workable). ↑ ↓ in search pick a tile, Enter
+adds; F5 held sales, F6 the last line's quantity (↑ ↓ other lines, Delete removes), F7 its discount (↑ ↓ other lines),
+F8 customer, F10 again = next payment method, F12 new sale / clear, `/` = Rs ⇄ % in a line or bill discount; Ctrl K runs
+every other Sell page button (`theme/pageActions.ts`, filled by `checkout/SellActions.tsx`); hints sit on the controls.
+Guide: `docs/guide/till.md#keys`. Full run first: web 127 files, Playwright 240 passed + 3 failed → `cheques`, `till`,
+`till-shots`, `plugin-aicatalog` re-run alone 37/37 after fixing the customer pick (typed + Enter at once picked
+Walk-in; `aicatalog:278` as before); no Go changes since 0927. **Its published notes show "���" for an ↑** (the Builder
+cut the first letter by bytes, fixed `1725978`) and list that customer fix, which no shop ever had: the user said leave
+it; **write the next Release's notes by hand** so they also say what 1525 brought. Not on paper or a real counter yet.
+
 **Stock freeze: DONE, merged to main and Released to Iman as 2026.11.15.0927 (2026-11-15, binary only, notes written by hand)** (the user hand-tested it on a dev server and
 said "it worked"). A frozen product sells without touching stock or asking; what's **in storage** is counted, what's
 **out for sale** isn't (screen wording, never front/back/shelf). Admin freezes a product (Stock → On hand → Freeze) or
