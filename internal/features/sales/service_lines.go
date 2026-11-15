@@ -271,6 +271,20 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				if err != nil || !cq.IsPositive() {
 					return apperr.Validation(fmt.Sprintf("invalid consumable quantity for %s", p.Name))
 				}
+				// A frozen consumable (the open ream is the uncounted shelf) isn't
+				// drawn down; it still costs the line at its cost price.
+				frozen, err := stkRepo.Frozen(ctx, comp.ProductID)
+				if err != nil {
+					return apperr.Internal("failed to read stock", err)
+				}
+				if frozen {
+					compCost, err := stkRepo.ProductCost(ctx, comp.ProductID)
+					if err != nil {
+						return apperr.Internal("failed to read cost", err)
+					}
+					cost = cost.Add(compCost.Mul(cq))
+					continue
+				}
 				ok, err := stkRepo.DecrementGuarded(ctx, comp.ProductID, cq)
 				if err != nil {
 					return apperr.Internal("failed to update stock", err)
@@ -321,7 +335,12 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 				cost = cost.Div(qty).Round(4)
 			}
 		}
-		if !p.IsService {
+		if p.StockFrozen && !p.IsService {
+			// Stock freeze: sold from the uncounted front shelf, so stock, lots
+			// and the sale movement are left alone, and nothing is asked.
+			serviceProducts[p.ID] = true
+			cost = p.CostPrice
+		} else if !p.IsService {
 			// Atomic guard: prevents overselling under concurrency.
 			ok, err := stkRepo.DecrementGuarded(ctx, p.ID, qty)
 			if err != nil {
