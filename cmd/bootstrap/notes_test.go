@@ -17,3 +17,10 @@ func TestFriendlyNotes(t *testing.T) {
 		t.Fatalf("got\n%s\nwant\n%s", got, want)
 	}
 }
+
+func TestFriendlyNotesKeepsAWholeFirstLetter(t *testing.T) {
+	got := friendlyNotes([]string{"feat(till): ↑ ↓ in the search box pick a product; Enter adds it"}, nil, nil)
+	if want := "• ↑ ↓ in the search box pick a product"; got != want {
+		t.Fatalf("got %q want %q", got, want)
+	}
+}

@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // changesSince lists the fix/feat commit titles from `since` to HEAD as
@@ -46,7 +48,8 @@ func friendlyNotes(subjects, shopPlugins, allPlugins []string) string {
 		if text = strings.TrimSpace(text); text == "" {
 			continue
 		}
-		lines = append(lines, "• "+strings.ToUpper(text[:1])+text[1:])
+		r, n := utf8.DecodeRuneInString(text) // a whole letter, never a byte of "↑"
+		lines = append(lines, "• "+string(unicode.ToUpper(r))+text[n:])
 	}
 	if len(lines) > maxLines {
 		lines = append(lines[:maxLines], fmt.Sprintf("…and %d more fixes", len(lines)-maxLines))
