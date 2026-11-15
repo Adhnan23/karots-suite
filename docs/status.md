@@ -9,10 +9,18 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
-**Next (decided 2026-11-14): Stock freeze**, a new core feature. Design `docs/specs/2026-11-14-stock-freeze-design.md`
-(approved), plan `docs/plans/2026-11-14-stock-freeze.md` (10 tasks). Start it in a new session ("execute the stock
-freeze plan"), subagent-driven, on branch `stock-freeze`; the user hand-tests on a dev server, then merge and Release
-to Iman. Count the back, sell the front freely, unfreeze product by product (also mid-sale, as a dialog).
+**Stock freeze: DONE, merged to main 2026-11-15, not Released yet** (the user hand-tested it on a dev server and
+said "it worked"). A frozen product sells without touching stock or asking; what's **in storage** is counted, what's
+**out for sale** isn't (screen wording, never front/back/shelf). Admin freezes a product (Stock → On hand → Freeze) or
+the shop (Stock → Frozen → Freeze the shop: new products start frozen). Anyone at the till unfreezes with "how many
+are out for sale now" (Frozen tab, or the cart line mid-sale as a dialog). Adjust on a frozen product asks what
+happened (Put out for sale / Damaged → out for sale or in storage / Count changed); a conversion into a frozen loose
+product asks out for sale / into storage only when the bag isn't frozen. Every damage reaches the damage list and
+Losses (an out-for-sale write-off comes back as `to_shelf`, never an adjustment). Pharmacy refuses controlled drugs
+(`plugin.FreezeGuard`). Migration 00035. Guide: `docs/guide/stock.md#freezing-stock-while-a-shop-starts`.
+Full run before the merge: Go 63 packages, web 1,177, Playwright 256 passed + `plugin-aicatalog.spec.ts` alone 15/15
+(`:278` failed once in the full run, as before). Not done: Unfreeze on the phone cart (Pocket ships after release 2);
+Onboard pushing products already frozen (separate repo). **Next: Release to Iman when the user says.**
 
 **Latest Release: 2026.11.12.1741** (user asked). Full run first: Go 63 packages, web 1,174, Playwright 251 passed +
 `plugin-aicatalog.spec.ts` and `appearance-receipts.spec.ts` re-run alone 18/18 (`plugin-aicatalog:278` failed once in
