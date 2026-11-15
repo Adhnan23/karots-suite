@@ -5,8 +5,8 @@ import { Kbd } from '@/features/till/bits'
 
 const PIN_KEY = 'ks-till-keys-pinned'
 const KEYS: [string, string][] = [
-  ['F1', 'Menu'], ['F2', 'Search'], ['F4', 'Hold'], ['F9', 'Discount'], ['F10', 'Pay'],
-  ['Enter', 'Complete the sale'], ['Esc', 'Close a dialog'], ['Ctrl K', 'Jump to a tab'],
+  ['F1', 'Menu'], ['F2', 'Search'], ['F4', 'Hold'], ['F6', 'Quantity'], ['F9', 'Discount'], ['F10', 'Pay'],
+  ['↑ ↓', 'Pick a product'], ['Enter', 'Complete the sale'], ['Esc', 'Close a dialog'], ['Ctrl K', 'Jump to a tab'],
 ]
 const readPinned = () => {
   try { return localStorage.getItem(PIN_KEY) === '1' } catch { return false }
@@ -23,7 +23,7 @@ export function TillKeys() {
   if (pinned) {
     return (
       <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[12px] text-muted-foreground" aria-label="Keyboard shortcuts">
-        {KEYS.slice(0, 5).map(([k, l]) => <span key={k} className="flex items-center gap-1"><Kbd>{k}</Kbd>{l}</span>)}
+        {KEYS.slice(0, 6).map(([k, l]) => <span key={k} className="flex items-center gap-1"><Kbd>{k}</Kbd>{l}</span>)}
         <button type="button" onClick={() => pin(false)} aria-label="Fold the shortcuts away" title="Fold the shortcuts away"
           className="grid h-7 w-7 place-items-center rounded-full text-faint hover:bg-muted hover:text-foreground"><X size={14} /></button>
       </div>

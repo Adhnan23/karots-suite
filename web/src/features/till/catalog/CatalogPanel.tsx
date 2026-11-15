@@ -1,4 +1,5 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { ChevronLeft, RotateCcw, Search } from 'lucide-react'
 import type { TillGroup, TillProduct } from '@/api/types.gen'
 import { useDebounced } from '@/lib/useDebounced'
@@ -41,6 +42,10 @@ export function CatalogPanel() {
     products = group.data?.products ?? []
     children = group.data?.children ?? []
   }
+  // ↑ ↓ in the search box pick a tile, Enter adds it; typing starts over. A scanner never presses arrows.
+  const [hi, setHi] = useState(-1)
+  useEffect(() => setHi(-1), [ui.search, q, current, ui.menu])
+  const picked = hi >= 0 && ui.search === q ? products[hi] : undefined
   const openTop = (g: TillGroup) => {
     ui.setSearch('')
     ui.setMenu(null)
@@ -54,9 +59,16 @@ export function CatalogPanel() {
         <input id="till-search" aria-label="Scan a barcode or search products" placeholder="Scan a barcode or search products"
           autoComplete="off" autoFocus value={ui.search} onChange={(e) => ui.setSearch(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
               e.preventDefault()
-              void submit(ui.search)
+              const last = products.length - 1
+              setHi((i) => (e.key === 'ArrowDown' ? Math.min(i + 1, last) : Math.max(i - 1, 0)))
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              if (picked) {
+                ui.setSearch('')
+                add(picked)
+              } else void submit(ui.search)
             }
           }}
           className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint" />
@@ -102,8 +114,8 @@ export function CatalogPanel() {
           </div>
           <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(clamp(168px,11vw,230px),1fr))] gap-2.5 overflow-auto p-0.5">
             {!searching && children.map((g) => <GroupCard key={`g${g.id}`} group={g} onOpen={() => ui.setStack([...ui.stack, g])} />)}
-            {products.map((p) => (
-              <ProductTile key={p.id} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
+            {products.map((p, i) => (
+              <ProductTile key={p.id} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
                 onInfo={() => ui.open({ kind: 'info', product: p })} />
             ))}
             {!products.length && !(children.length && !searching) && (

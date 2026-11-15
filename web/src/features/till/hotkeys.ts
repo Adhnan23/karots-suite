@@ -1,7 +1,7 @@
-export type HotkeyAction = 'reset' | 'search' | 'hold' | 'discount' | 'pay' | 'blur' | 'newSale'
+export type HotkeyAction = 'reset' | 'search' | 'qty' | 'hold' | 'discount' | 'pay' | 'blur' | 'newSale'
 
 /** F1 ⟲ menu (search only — never the cart) · F2/F3 search · F4 hold · F9 bill
- * discount · F10 amount (then Enter completes) · Esc blur · Enter after a sale = next. */
+ * discount · F6 the last line's quantity · F10 amount (then Enter completes) · Esc blur · Enter after a sale = next. */
 export function hotkeyFor(key: string, ctx: { dialogOpen: boolean; saleDone: boolean }): HotkeyAction | null {
   switch (key) {
     case 'F1':
@@ -11,6 +11,8 @@ export function hotkeyFor(key: string, ctx: { dialogOpen: boolean; saleDone: boo
       return 'search'
     case 'F4':
       return ctx.dialogOpen ? null : 'hold'
+    case 'F6':
+      return ctx.dialogOpen ? null : 'qty'
     case 'F9':
       return 'discount'
     case 'F10':

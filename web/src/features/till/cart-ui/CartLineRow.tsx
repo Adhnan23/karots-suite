@@ -79,9 +79,14 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
       ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
-        <input aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
+        <input id={line.key === (state.lastAddedKey ?? state.lines.at(-1)?.key) ? 'till-qty-last' : undefined} // F6
+          aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
           onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))} onBlur={() => setQty(num(text))}
-          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            e.currentTarget.blur() // sets the quantity
+            document.getElementById('till-search')?.focus() // and back to scanning
+          }}
           className="w-10 bg-transparent text-center text-[14px] font-bold tabular-nums outline-none" />
         <button type="button" aria-label={`More ${line.name}`} onClick={() => setQty(line.qty + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
       </div>}

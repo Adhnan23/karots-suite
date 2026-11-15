@@ -14,12 +14,14 @@ export function lotNote(opts: Record<string, Lot[]> | undefined, id: number) {
   return lots[0].recalled ? 'Recalled lot first' : lotExpired(lots[0]) ? 'Expired lot first' : `${new Set(lots.map((l) => l.price)).size} prices`
 }
 
-export function ProductTile({ p, sym, note, onAdd, onInfo }: {
+export function ProductTile({ p, sym, note, onAdd, onInfo, active = false }: {
   p: TillProduct
   sym: string
   note: string | null
   onAdd: () => void
   onInfo: () => void
+  /** Picked with ↑ ↓ from the search box: Enter adds it. */
+  active?: boolean
 }) {
   const out = !p.isService && !p.stockFrozen && num(p.stockQty) <= 0
   // Counter-safe facts only (never cost, margin or the wholesale price — the customer
@@ -32,9 +34,10 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
     p.barcode.length > 4 && `#…${p.barcode.slice(-4)}`,
   ].filter(Boolean)
   return (
-    <div className="relative">
+    <div className="relative" ref={(el) => { if (active) el?.scrollIntoView({ block: 'nearest' }) }}>
       <motion.button type="button" onClick={onAdd} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
-        className={cn(TILE, 'justify-start', out && 'opacity-60')}>
+        aria-current={active || undefined}
+        className={cn(TILE, 'justify-start', out && 'opacity-60', active && 'ring-2 ring-ring')}>
         {/* A faint mark in the card's own tint fills the middle: the emoji, or the first letter. */}
         <span aria-hidden className="pointer-events-none absolute -right-1 -bottom-4 select-none font-display text-[96px] font-extrabold leading-none"
           style={{ color: `var(--chart-${(p.id % 6) + 1})`, opacity: p.emoji ? 0.3 : 0.14 }}>
@@ -57,7 +60,7 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
           <span className="text-[13px] text-faint">{p.isService ? 'service' : p.stockFrozen ? 'stock frozen' : `${qtyText(p.stockQty)} ${p.unitAbbr} left`}</span>
         </span>
       </motion.button>
-      <button type="button" aria-label={`About ${p.name}`} onClick={onInfo}
+      <button type="button" tabIndex={-1} aria-label={`About ${p.name}`} onClick={onInfo}
         className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full text-faint hover:bg-muted hover:text-foreground">
         <Info size={14} />
       </button>

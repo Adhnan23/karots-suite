@@ -30,6 +30,7 @@ export function Hotkeys() {
       e.preventDefault() // also stops F1 opening browser help, and Enter double-firing the focused button
       if (a === 'reset') ui.reset()
       else if (a === 'search') focus('till-search')
+      else if (a === 'qty') focus('till-qty-last')
       else if (a === 'discount') focus('till-bill-discount')
       else if (a === 'pay') focus('till-amount')
       else if (a === 'hold') void hold()
