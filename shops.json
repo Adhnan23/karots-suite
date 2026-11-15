@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-15T03:57:37Z",
-        "commit": "0fc7869",
-        "version": "2026.11.15.0927",
+        "at": "2026-11-15T09:56:13Z",
+        "commit": "22b0a1d",
+        "version": "2026.11.15.1525",
         "kind": "release",
-        "notes": "• Stock freeze, for a shop that is starting out: count only what's in storage, freeze, and the till sells freely without touching stock or asking\n• Freeze one product (Stock → On hand → Freeze) or the whole shop (Stock → Frozen); new products start frozen until the shop is unfrozen\n• Unfreeze with how many are out for sale now, from the till's Frozen tab or from the cart in the middle of a sale\n• Adjust on a frozen product asks what happened: put out for sale, damaged (out for sale or in storage), or count changed\n• Damage always goes on the damaged list and counts as a loss\n• Deliveries (GRN), stock-takes, returns and conversions still work while frozen\n• Controlled drugs can't be frozen: count them in full"
+        "notes": "• A customer name typed and Entered at once picks its first match, not Walk-in (the highlight was a step behind the typing)\n• The Sell page shows its keys where they work\n• / in a discount box switches amount ⇄ percent, for a line and the bill\n• In a line's discount ↑ ↓ move to the line above / below, as quantities do\n• F6 / F7 reach the bottom line after a resume or when the last-added line is gone\n• The whole Sell page by keyboard\n• ��� ↓ in the search box pick a product and Enter adds it"
       },
       "published": {
-        "version": "2026.11.15.0927",
-        "commit": "0fc7869",
-        "at": "2026-11-15T04:00:16Z"
+        "version": "2026.11.15.1525",
+        "commit": "22b0a1d",
+        "at": "2026-11-15T09:59:54Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
