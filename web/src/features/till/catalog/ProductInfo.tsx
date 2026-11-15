@@ -17,7 +17,7 @@ export function ProductInfo({ product }: { product: TillProduct }) {
   const d = useQuery({ queryKey: ['till', 'detail', product.id], queryFn: () => api<ProductDetail>(`/till/products/${product.id}/detail`) }).data
   const rows: [string, string][] = [
     ['Price', money(cfg.symbol, d?.sellingPrice ?? product.sellingPrice)],
-    ['In stock', product.isService ? 'service' : product.stockFrozen ? 'frozen: the shelf isn\'t counted' : `${qtyText(d?.stockQty ?? product.stockQty)} ${product.unitAbbr}`],
+    ['In stock', product.isService ? 'service' : product.stockFrozen ? 'frozen: what\'s out for sale isn\'t counted' : `${qtyText(d?.stockQty ?? product.stockQty)} ${product.unitAbbr}`],
   ]
   for (const k of product.packs ?? []) {
     rows.push([`${k.name} ×${qtyText(k.size)}`, num(k.sellingPrice) > 0 ? money(cfg.symbol, k.sellingPrice) : `${money(cfg.symbol, num(k.size) * num(product.sellingPrice))} (follows the unit price)`])

@@ -16,9 +16,13 @@ import (
 // Run converts fromQty units of the source product into toQty units of the
 // destination (zero toQty = fromQty × ratio), moving the value across in one
 // transaction.
-func (s *Service) Run(ctx context.Context, conversionID int64, fromQty, toQty decimal.Decimal, userID int64) error {
+//
+// intoStock matters only when the destination's stock is frozen and the
+// source's isn't: false = the pieces were put out for sale (not counted while
+// frozen), true = they went into storage and are added to stock.
+func (s *Service) Run(ctx context.Context, conversionID int64, fromQty, toQty decimal.Decimal, userID int64, intoStock bool) error {
 	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		return RunTx(ctx, tx, conversionID, fromQty, toQty, userID)
+		return runTx(ctx, tx, conversionID, fromQty, toQty, userID, intoStock)
 	})
 }
 
@@ -30,6 +34,10 @@ func (s *Service) Run(ctx context.Context, conversionID int64, fromQty, toQty de
 // vanishing. Each bag opened becomes its own loose batch with that bag's expiry,
 // batch no and cost, so FEFO and expiry prompts still see it.
 func RunTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty decimal.Decimal, userID int64) error {
+	return runTx(ctx, tx, conversionID, fromQty, toQty, userID, false)
+}
+
+func runTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty decimal.Decimal, userID int64, intoStock bool) error {
 	if !fromQty.IsPositive() {
 		return apperr.Validation("quantity must be greater than zero")
 	}
@@ -75,17 +83,24 @@ func RunTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty 
 		return apperr.Internal("failed to record source movement", err)
 	}
 
-	// A frozen destination's front shelf isn't counted: what was opened goes
-	// there, not into stock. Its movement records it with quantity 0.
+	// A frozen destination's pieces put out for sale aren't counted (they sell
+	// without touching stock); its movement records them with quantity 0.
 	frozen, err := stk.Frozen(ctx, cv.ToProductID)
 	if err != nil {
 		return apperr.Internal("failed to read destination stock", err)
 	}
+	// Bag and loose both frozen: nothing is asked, the pieces go out for sale.
+	if frozen && intoStock {
+		if intoStock, err = stk.Frozen(ctx, cv.FromProductID); err != nil {
+			return apperr.Internal("failed to read source stock", err)
+		}
+		intoStock = !intoStock
+	}
 	inQty := toQty
 	var note *string
-	if frozen {
+	if frozen && !intoStock {
 		inQty = decimal.Zero
-		n := toQty.String() + " to the shelf (frozen)"
+		n := toQty.String() + " put out for sale (frozen, not counted)"
 		note = &n
 	} else {
 		// One destination batch per bag opened, carrying that bag's value.

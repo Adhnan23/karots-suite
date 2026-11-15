@@ -11,9 +11,9 @@ import { num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { refreshStock, tillProductQuery } from './api'
 
-/** "Moved to the shelf": a frozen product's box opened onto the front shelf. It
- * follows how the product is set up: the box side of a conversion runs it (the
- * singles get them only if they aren't frozen); otherwise a quantity, or a pack.
+/** "Put out for sale": a frozen product's box opened for selling. It follows how
+ * the product is set up: the box side of a conversion runs it (frozen singles go
+ * out for sale uncounted, unfrozen ones into stock); otherwise a quantity, or a pack.
  * Never an adjustment, never a loss. */
 export function ToShelfDialog({ id, onClose }: { id: number; onClose: () => void }) {
   const qc = useQueryClient()
@@ -32,7 +32,7 @@ export function ToShelfDialog({ id, onClose }: { id: number; onClose: () => void
     try {
       if (conv) await api(`/till/conversions/${conv.id}/run`, { json: { quantity: qty } })
       else await api(`/till/stock/${id}/to-shelf`, { json: { quantity: String(units) } })
-      toast.success(conv ? `Opened ${qtyText(qty)} ${p!.name} → ${conv.toName}` : `${qtyText(units)} ${p!.unitAbbr} ${p!.name} moved to the shelf`)
+      toast.success(conv ? `Opened ${qtyText(qty)} ${p!.name} → ${conv.toName}` : `${qtyText(units)} ${p!.unitAbbr} ${p!.name} put out for sale`)
       refreshStock(qc)
       onClose()
     } catch (err) {
@@ -46,11 +46,11 @@ export function ToShelfDialog({ id, onClose }: { id: number; onClose: () => void
       <DialogContent className="sm:max-w-[420px]">
         <form onSubmit={save} autoComplete="off" className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Moved to the shelf</DialogTitle>
+            <DialogTitle>Put out for sale</DialogTitle>
             <DialogDescription>
               {conv
                 ? `Opens ${p.name} into ${conv.toName} (1 → ${qtyText(conv.ratio)}). ${p.name} comes out of the counted stock.`
-                : `${p.name} comes out of the counted stock (${qtyText(p.stockQty)} ${p.unitAbbr}) and goes on the shelf, which isn't counted while frozen.`}
+                : `${p.name} comes out of the counted stock (${qtyText(p.stockQty)} ${p.unitAbbr}) and is put out for sale, which isn't counted while frozen.`}
             </DialogDescription>
           </DialogHeader>
           {!conv && p.packs.length > 0 && (
@@ -71,7 +71,7 @@ export function ToShelfDialog({ id, onClose }: { id: number; onClose: () => void
           </label>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={busy || !(units > 0)}>{conv ? 'Open it' : 'Move to the shelf'}</Button>
+            <Button type="submit" disabled={busy || !(units > 0)}>{conv ? 'Open it' : 'Put out for sale'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

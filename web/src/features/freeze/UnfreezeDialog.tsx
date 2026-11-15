@@ -9,7 +9,7 @@ import { num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { refreshStock, unfreeze } from './api'
 
-/** "How many are on the shelf now?" — added to the counted stock; from then on
+/** "How many are out for sale now?" — added to the counted stock; from then on
  * sales reduce it. A small dialog over whatever screen asked (a full cart stays). */
 export function UnfreezeDialog({ id, name, unit, onDone, onClose }: {
   id: number
@@ -43,11 +43,11 @@ export function UnfreezeDialog({ id, name, unit, onDone, onClose }: {
         <form onSubmit={save} autoComplete="off" className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle>Unfreeze {name}</DialogTitle>
-            <DialogDescription>How many are on the shelf now? They're added to the counted stock, and sales count from now on.</DialogDescription>
+            <DialogDescription>How many are out for sale now? They're added to the counted stock, and sales count from now on.</DialogDescription>
           </DialogHeader>
           <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground">
-            On the shelf now{unit && ` (${unit})`}
-            <input autoFocus aria-label="On the shelf now" inputMode="decimal" value={qty} placeholder="0"
+            Out for sale now{unit && ` (${unit})`}
+            <input autoFocus aria-label="Out for sale now" inputMode="decimal" value={qty} placeholder="0"
               onChange={(e) => setQty(e.target.value.replace(/[^\d.]/g, ''))}
               className={cn(FIELD, 'h-12 font-display text-xl font-bold tabular-nums')} />
           </label>

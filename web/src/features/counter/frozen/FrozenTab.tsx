@@ -11,8 +11,8 @@ import { qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { CounterPage, PaneTitle } from '../ui'
 
-/** Stock freeze at the counter: the products whose shelf isn't counted yet. When a
- * shelf runs low, unfreeze it with what's left on it; opening a box is "Moved to the shelf". */
+/** Stock freeze at the counter: the products whose goods out for sale aren't counted
+ * yet. When they run low, unfreeze with how many are left; opening a box is "Put out for sale". */
 export function FrozenTab() {
   const data = useSuspenseQuery(frozenQuery).data
   const [q, setQ] = useState('')
@@ -22,7 +22,7 @@ export function FrozenTab() {
   return (
     <CounterPage flush aside={cur ? <Actions key={cur.id} p={cur} onDone={() => setId(null)} /> : (
       <p className="m-auto max-w-[280px] p-8 text-center text-faint">
-        {data.products.length ? 'Pick a product on the left to unfreeze it or move a box to the shelf.' : 'Nothing is frozen: every sale counts.'}
+        {data.products.length ? 'Pick a product on the left to unfreeze it or put a box out for sale.' : 'Nothing is frozen: every sale counts.'}
       </p>
     )}>
       <PaneTitle title="Frozen" sub={`${data.products.length} ${data.products.length === 1 ? 'product' : 'products'}${data.shopFrozen ? ' · new ones start frozen' : ''}`} />
@@ -55,12 +55,12 @@ function Actions({ p, onDone }: { p: FrozenProductDTO; onDone: () => void }) {
       <div>
         <h2 className="font-display text-xl font-bold">{p.name}</h2>
         <p className="text-[13px] text-muted-foreground tabular-nums">
-          {qtyText(p.stock)} {p.unit} counted in the back{p.since && ` · frozen since ${new Date(p.since).toLocaleDateString([], { day: 'numeric', month: 'short' })}`}
+          {qtyText(p.stock)} {p.unit} counted in storage{p.since && ` · frozen since ${new Date(p.since).toLocaleDateString([], { day: 'numeric', month: 'short' })}`}
         </p>
         <p className="mt-2 text-[13px] text-muted-foreground">Sales don't take it out of stock until it's unfrozen.</p>
       </div>
       <Button size="lg" className="h-12 text-[15px]" onClick={() => setOpen('unfreeze')}>Unfreeze…</Button>
-      <Button size="lg" variant="outline" className="h-12 text-[15px]" onClick={() => setOpen('shelf')}>Moved to the shelf…</Button>
+      <Button size="lg" variant="outline" className="h-12 text-[15px]" onClick={() => setOpen('shelf')}>Put out for sale…</Button>
       {open === 'unfreeze' && <UnfreezeDialog id={p.id} name={p.name} unit={p.unit} onDone={onDone} onClose={() => setOpen('')} />}
       {open === 'shelf' && <ToShelfDialog id={p.id} onClose={() => setOpen('')} />}
     </div>

@@ -8,16 +8,16 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { type From, ShelfOrBack } from '@/features/freeze/ShelfOrBack'
+import { type Where, WriteOffWhere } from '@/features/freeze/SaleOrStorage'
 import { ToShelfDialog } from '@/features/freeze/ToShelfDialog'
 import { lotsQuery } from './queries'
 
 const REASONS = ['Count correction', 'Found extra', 'Missing', 'Opening stock']
 type What = '' | 'shelf' | 'damage' | 'count'
 const WHAT: [What, string, string][] = [
-  ['shelf', 'Moved to the shelf', 'a box opened onto the front'],
+  ['shelf', 'Put out for sale', 'a box opened for selling'],
   ['damage', 'Damaged', 'goes on the damaged list'],
-  ['count', 'Count changed', 'a recount of the back'],
+  ['count', 'Count changed', 'a recount of what’s in storage'],
 ]
 
 /** Set a product's on-hand to what's really there.
@@ -31,7 +31,7 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
   const [lot, setLot] = useState(0)
   const [busy, setBusy] = useState(false)
   const [what, setWhat] = useState<What>('')
-  const [from, setFrom] = useState<From>('')
+  const [from, setFrom] = useState<Where>('')
   if (!p) return null
   // A frozen product: losses are never adjustments, and opening a box isn't one either.
   if (p.stockFrozen && what === 'shelf') return <ToShelfDialog id={productId} onClose={onClose} />
@@ -46,7 +46,7 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
     setBusy(true)
     try {
       if (what === 'damage') {
-        const body: ConsumeRequest = { productId, quantity: count, reason: 'damage', note, batchId: 0, fromShelf: from === 'shelf' }
+        const body: ConsumeRequest = { productId, quantity: count, reason: 'damage', note, batchId: 0, fromShelf: from === 'sale' }
         await api('/admin/stock/damage', { json: body })
         toast.success(`${p!.name}: ${qtyText(count)} ${p!.unitAbbr} on the damaged list`)
         void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -81,7 +81,7 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
       )}
       {what === 'damage' && (
         <>
-          <ShelfOrBack value={from} onChange={setFrom} />
+          <WriteOffWhere value={from} onChange={setFrom} />
           <Field label="How many">
             <input required inputMode="decimal" aria-label="How many" value={count} onChange={(e) => setCount(e.target.value.replace(/[^\d.]/g, ''))}
               className={cn(INPUT, 'h-[52px] font-display text-2xl font-bold tabular-nums')} placeholder="0" />

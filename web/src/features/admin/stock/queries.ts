@@ -17,6 +17,6 @@ export const staffQuery = queryOptions({ queryKey: ['admin', 'staff'], queryFn: 
 export const MOVE_TYPES: [string, string][] = [
   ['sale', 'Sale'], ['purchase', 'Delivery'], ['adjust', 'Adjustment'], ['return', 'Customer return'], ['damage', 'Damage / expired'],
   ['conversion', 'Conversion'], ['purchase_return', 'Returned to supplier'], ['warranty_replacement', 'Warranty swap'],
-  ['recovery', 'Recovered'], ['own_use', 'Shop use'], ['staff', 'Staff'], ['to_shelf', 'To the shelf (frozen)'],
+  ['recovery', 'Recovered'], ['own_use', 'Shop use'], ['staff', 'Staff'], ['to_shelf', 'Put out for sale (frozen)'],
 ]
 export const moveLabel = (t: string) => MOVE_TYPES.find(([v]) => v === t)?.[1] ?? t.replace(/_/g, ' ')

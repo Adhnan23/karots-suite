@@ -126,7 +126,7 @@ func shelfQty(raw string, what string) (decimal.Decimal, error) {
 // Unfreeze adds what's on the shelf now (0 allowed) to stock and unfreezes;
 // from then on its sales reduce stock.
 func (s *Service) Unfreeze(ctx context.Context, productID int64, shelf string, userID int64) error {
-	qty, err := shelfQty(shelf, "how many are on the shelf")
+	qty, err := shelfQty(shelf, "how many are out for sale")
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (s *Service) Unfreeze(ctx context.Context, productID int64, shelf string, u
 			return apperr.Internal("failed to open the shelf lot", err)
 		}
 		return repo.InsertMovement(ctx, MovementInput{ProductID: productID, Type: MoveToShelf, Quantity: qty,
-			UserID: userID, Note: nilIfEmpty("unfrozen: " + qty.String() + " on the shelf"), Cost: cost.Mul(qty)})
+			UserID: userID, Note: nilIfEmpty("unfrozen: " + qty.String() + " out for sale"), Cost: cost.Mul(qty)})
 	})
 }
 
@@ -183,7 +183,7 @@ func (s *Service) MoveToShelf(ctx context.Context, productID int64, raw string, 
 			return apperr.Internal("failed to deplete batches", err)
 		}
 		return repo.InsertMovement(ctx, MovementInput{ProductID: productID, Type: MoveToShelf, Quantity: qty.Neg(),
-			UserID: userID, Note: nilIfEmpty("opened to the shelf"), Cost: cost.Mul(qty)})
+			UserID: userID, Note: nilIfEmpty("put out for sale"), Cost: cost.Mul(qty)})
 	})
 }
 

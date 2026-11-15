@@ -123,15 +123,16 @@ Every slip of the shift (sales, cash, credit, warranty). Print one again at 80 o
 ### Write-off
 
 Take damaged, expired or shop-use stock out, from the oldest batch first. For a
-[frozen](stock.md#freezing-stock-while-a-shop-starts) product it asks **from the shelf or the back?**
-first: from the shelf, stock stays as counted and the write-off is still recorded with its cost.
+[frozen](stock.md#freezing-stock-while-a-shop-starts) product it asks
+**was it out for sale or in storage?** first: out for sale, stock stays as counted and the write-off is
+still recorded with its cost.
 
 ![Write-off](../images/till/write-off.jpg)
 
 ### Frozen
 
 Shows only while some products are [frozen](stock.md#freezing-stock-while-a-shop-starts). Pick one,
-then **Unfreeze** with how many are on the shelf now, or **Moved to the shelf** when a box is opened.
+then **Unfreeze** with how many are out for sale now, or **Put out for sale** when a box is opened.
 A frozen line in the cart has a **Frozen · Unfreeze** button too: it opens over the sale, so the cart
 stays as it is. Sales people can unfreeze as well.
 
@@ -139,7 +140,9 @@ stays as it is. Sales people can unfreeze as well.
 
 ### Convert
 
-Break open a pack (a 25 kg sack into 1 kg bags) and record what actually came out.
+Break open a pack (a 25 kg sack into 1 kg bags) and record what actually came out. When only the loose
+product is [frozen](stock.md#freezing-stock-while-a-shop-starts), it asks where they went: out for
+sale (not counted) or into storage (added to stock).
 
 ![Convert](../images/till/convert.jpg)
 

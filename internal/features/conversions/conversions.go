@@ -36,6 +36,9 @@ type Conversion struct {
 	// hiding the only number that answers it.
 	FromStock decimal.Decimal `db:"from_stock" json:"from_stock"`
 	ToStock   decimal.Decimal `db:"to_stock"   json:"to_stock"`
+	// AskWhere: the loose side is frozen and the bag isn't, so the till asks
+	// whether the pieces went out for sale or into storage.
+	AskWhere bool `db:"ask_where" json:"ask_where"`
 	// FromCost is the source's current cost: the run sheet's "cost per kg
 	// higher" hint when less comes out than the ratio says.
 	FromCost decimal.Decimal `db:"from_cost" json:"from_cost"`
@@ -67,7 +70,7 @@ const selectConversion = `
 	SELECT cv.*, fp.name AS from_name, tp.name AS to_name,
 	       fu.abbreviation AS from_unit_abbr, tu.abbreviation AS to_unit_abbr,
 	       COALESCE(fs.quantity, 0) AS from_stock,
-	       COALESCE(ts.quantity, 0) AS to_stock,
+	       COALESCE(ts.quantity, 0) AS to_stock, tp.stock_frozen AND NOT fp.stock_frozen AS ask_where,
 	       fp.cost_price AS from_cost
 	FROM product_conversions cv
 	JOIN products fp ON fp.id = cv.from_product_id

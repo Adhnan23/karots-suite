@@ -63,7 +63,7 @@ export function InventoryPage() {
       )}
       {d && d.frozen > 0 && (
         <p className="rounded-[var(--radius-sm)] bg-muted px-3 py-2 text-[13px] text-muted-foreground">
-          {d.frozen} frozen product{d.frozen === 1 ? '' : 's'}: counted stock only (the front shelf isn’t counted yet).
+          {d.frozen} frozen product{d.frozen === 1 ? '' : 's'}: counted stock only (what’s out for sale isn’t counted yet).
         </p>
       )}
       {d && d.children.length > 0 && (

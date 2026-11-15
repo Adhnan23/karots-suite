@@ -44,7 +44,7 @@ func (h *handlers) CounterConversionRun(c echo.Context) error {
 			return apperr.Validation("the amount you got is invalid")
 		}
 	}
-	if err := conversions.NewService(h.d.DB).Run(c.Request().Context(), id, qty, got, middleware.CurrentUserID(c)); err != nil {
+	if err := conversions.NewService(h.d.DB).Run(c.Request().Context(), id, qty, got, middleware.CurrentUserID(c), req.IntoStock); err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, "conversion", strconv.FormatInt(id, 10), "ran conversion ("+qty.String()+gotNote(got)+")")
@@ -62,7 +62,7 @@ func conversionRows(rows []conversions.Conversion) []ConversionRow {
 	out := make([]ConversionRow, 0, len(rows))
 	for _, r := range rows {
 		out = append(out, ConversionRow{ID: r.ID, FromID: r.FromProductID, ToID: r.ToProductID, FromName: r.FromName, ToName: r.ToName, FromUnit: r.FromUnitAbbr,
-			ToUnit: r.ToUnitAbbr, Ratio: r.Ratio.String(), FromStock: r.FromStock.String(), ToStock: r.ToStock.String(), Note: strOr(r.Note)})
+			ToUnit: r.ToUnitAbbr, Ratio: r.Ratio.String(), FromStock: r.FromStock.String(), ToStock: r.ToStock.String(), AskWhere: r.AskWhere, Note: strOr(r.Note)})
 	}
 	return out
 }

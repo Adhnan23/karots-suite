@@ -73,19 +73,19 @@ test('the pencil day: freeze, sell, open a box, shelf write-off, unfreeze', asyn
 
   await page.goto('/till/frozen')
   await page.getByRole('button', { name: new RegExp(p.name) }).click()
-  await page.getByRole('button', { name: 'Moved to the shelf…' }).click()
-  const shelf = page.getByRole('dialog', { name: 'Moved to the shelf' })
+  await page.getByRole('button', { name: 'Put out for sale…' }).click()
+  const shelf = page.getByRole('dialog', { name: 'Put out for sale' })
   await shelf.getByLabel('How many').fill('10')
-  await shelf.getByRole('button', { name: 'Move to the shelf' }).click()
+  await shelf.getByRole('button', { name: 'Put out for sale' }).click()
   await expect(shelf).toBeHidden()
   expect(await stockOf(page, p.id)).toBe(190)
 
   await page.goto('/till/write-off')
   await page.getByLabel('Find a product').fill(p.code)
   await page.getByLabel('Find a product').press('Enter')
-  await page.getByRole('radio', { name: /From the shelf/ }).click()
+  await page.getByRole('radio', { name: /Out for sale/ }).click()
   await page.getByLabel('Quantity').fill('1')
-  await page.getByRole('button', { name: /from the shelf/ }).click()
+  await page.getByRole('button', { name: /\(out for sale\)/ }).click()
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: /Written off/ })).toBeVisible()
   expect(await stockOf(page, p.id)).toBe(190)
 
@@ -93,7 +93,7 @@ test('the pencil day: freeze, sell, open a box, shelf write-off, unfreeze', asyn
   await page.getByRole('button', { name: new RegExp(p.name) }).click()
   await page.getByRole('button', { name: 'Unfreeze…' }).click()
   const thaw = page.getByRole('dialog', { name: `Unfreeze ${p.name}` })
-  await thaw.getByLabel('On the shelf now').fill('13')
+  await thaw.getByLabel('Out for sale now').fill('13')
   await thaw.getByRole('button', { name: 'Unfreeze' }).click()
   await expect(thaw).toBeHidden()
   expect(await stockOf(page, p.id)).toBe(203)
@@ -106,6 +106,40 @@ test('the pencil day: freeze, sell, open a box, shelf write-off, unfreeze', asyn
   await login(page, '0770000001', '/admin')
   const dmg = await (await page.request.get(`/api/v1/admin/stock/movements?product=${p.id}&type=damage`)).json()
   expect(dmg.items).toHaveLength(1) // on the damaged list, with its cost
+})
+
+test('a box opened into a frozen product asks where the pieces went', async ({ page }) => {
+  await login(page, '0770000001', '/admin')
+  const p = await pencil(page, 'conv')
+  const box = await pencil(page, 'box') // 200 boxes is plenty
+  const cv = await (await page.request.post('/api/v1/admin/conversions', { data: { fromProductId: box.id, toProductId: p.id, ratio: '10', note: '' } })).json()
+  expect((await page.request.post('/api/v1/admin/stock/freeze', { data: { productIds: [p.id] } })).ok()).toBe(true)
+  await login(page, '0770000003', '/till/convert')
+  const open = async (where: RegExp) => {
+    await page.getByRole('button', { name: new RegExp(box.name) }).first().click()
+    const go = page.getByRole('button', { name: /^Open 1 / })
+    await expect(go).toBeDisabled() // asks first
+    await page.getByRole('radio', { name: where }).click()
+    await go.click()
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /Opened 1/ }).last()).toBeVisible()
+  }
+  await open(/Out for sale/)
+  await expect.poll(() => stockOf(page, box.id)).toBe(199)
+  expect(await stockOf(page, p.id)).toBe(200)
+  await open(/Into storage/)
+  await expect.poll(() => stockOf(page, box.id)).toBe(198)
+  expect(await stockOf(page, p.id)).toBe(210)
+  // Box frozen too: no question, the pieces go out for sale.
+  expect((await page.request.post('/api/v1/admin/stock/freeze', { data: { productIds: [box.id] } })).status()).toBe(403) // the manager can't freeze
+  await login(page, '0770000001', '/admin')
+  expect((await page.request.post('/api/v1/admin/stock/freeze', { data: { productIds: [box.id] } })).ok()).toBe(true)
+  await login(page, '0770000003', '/till/convert')
+  await page.getByRole('button', { name: new RegExp(box.name) }).first().click()
+  await expect(page.getByRole('radio', { name: /Into storage/ })).toHaveCount(0)
+  await page.getByRole('button', { name: /^Open 1 / }).click()
+  await expect.poll(() => stockOf(page, box.id)).toBe(197)
+  expect(await stockOf(page, p.id)).toBe(210)
+  expect(cv.id).toBeGreaterThan(0)
 })
 
 test('unfreeze in the middle of a sale: the cart stays', async ({ page }) => {
@@ -121,7 +155,7 @@ test('unfreeze in the middle of a sale: the cart stays', async ({ page }) => {
   const url = page.url()
   await cart(page).getByRole('button', { name: `Unfreeze ${p.name}` }).click()
   const thaw = page.getByRole('dialog', { name: `Unfreeze ${p.name}` })
-  await thaw.getByLabel('On the shelf now').fill('2')
+  await thaw.getByLabel('Out for sale now').fill('2')
   await thaw.getByRole('button', { name: 'Unfreeze' }).click()
   await expect(thaw).toBeHidden()
   expect(page.url()).toBe(url)
@@ -141,7 +175,7 @@ test('a sales person unfreezes from the ticket screen', async ({ page }) => {
   await scanQty(page, p, '4')
   await cart(page).getByRole('button', { name: `Unfreeze ${p.name}` }).click()
   const thaw = page.getByRole('dialog', { name: `Unfreeze ${p.name}` })
-  await thaw.getByLabel('On the shelf now').fill('2')
+  await thaw.getByLabel('Out for sale now').fill('2')
   await thaw.getByRole('button', { name: 'Unfreeze' }).click()
   await expect(thaw).toBeHidden()
   await expect(cart(page).getByLabel(`Quantity of ${p.name}`)).toHaveValue('4')

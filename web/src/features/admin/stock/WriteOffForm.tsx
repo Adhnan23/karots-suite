@@ -10,7 +10,7 @@ import { Seg } from '@/features/till/bits'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
-import { type From, ShelfOrBack } from '@/features/freeze/ShelfOrBack'
+import { type Where, WriteOffWhere } from '@/features/freeze/SaleOrStorage'
 import { lotsQuery } from './queries'
 
 type Reason = 'damage' | 'own_use' | 'staff'
@@ -37,13 +37,13 @@ export function WriteOffForm({ onClose, onDamaged }: {
   const [reason, setReason] = useState<Reason>('damage')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
-  const [from, setFrom] = useState<From>('')
+  const [from, setFrom] = useState<Where>('')
   const chosen = lots.find((l) => l.id === (lot || lots[0]?.id))
   async function save() {
     if (!p) return
     setBusy(true)
     try {
-      const body: ConsumeRequest = { productId: p.id, quantity: qty, reason, note, batchId: lots.length > 1 ? chosen?.id ?? 0 : 0, fromShelf: !!p.stockFrozen && from === 'shelf' }
+      const body: ConsumeRequest = { productId: p.id, quantity: qty, reason, note, batchId: lots.length > 1 ? chosen?.id ?? 0 : 0, fromShelf: !!p.stockFrozen && from === 'sale' }
       const r = await api<ConsumeResult>('/admin/stock/damage', { json: body })
       if (r.lossId) onDamaged(r.lossId, p.id, p.name, qty, num(qty) * num(chosen?.costPrice ?? p.costPrice))
       else toast.success(`${p.name}: −${qtyText(qty)} ${p.unitAbbr} (${REASONS.find(([r]) => r === reason)?.[1].toLowerCase()})`)
@@ -63,7 +63,7 @@ export function WriteOffForm({ onClose, onDamaged }: {
           <button type="button" aria-label="Product" onClick={open} className={cn(INPUT, 'truncate text-left', !p && 'text-faint')}>{p ? `${p.name} · ${qtyText(p.stockQty)} ${p.unitAbbr} on hand` : 'Pick a product'}</button>
         )} />
       </Field>
-      {p?.stockFrozen && <ShelfOrBack value={from} onChange={setFrom} />}
+      {p?.stockFrozen && <WriteOffWhere value={from} onChange={setFrom} />}
       <div className="flex flex-col gap-1.5">
         <Seg label="Reason" value={reason} onChange={setReason} options={REASONS} />
         <small className="text-faint">{WHY[reason]}</small>

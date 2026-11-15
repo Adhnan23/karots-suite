@@ -50,8 +50,8 @@ export function FrozenView() {
       <div className="mb-3 flex flex-col gap-2 rounded-[var(--radius)] border border-border bg-card p-4 md:flex-row md:items-center">
         <p className="flex-1 text-sm text-muted-foreground">
           {data?.shopFrozen
-            ? 'The shop is frozen: sales don’t touch stock, and new products start frozen. Unfreeze each product when its shelf runs low.'
-            : 'Count only what doesn’t move (the back), then freeze: the till sells freely while the front shelf isn’t counted.'}
+            ? 'The shop is frozen: sales don’t touch stock, and new products start frozen. Unfreeze each product when what’s out for sale runs low.'
+            : 'Count only what’s in storage (closed boxes, sacks), then freeze: the till sells freely while what’s out for sale isn’t counted.'}
         </p>
         {admin && (data?.shopFrozen
           ? <Button variant="outline" disabled={busy} onClick={() => (rows.length ? setWarn(true) : void shop(false))}>Unfreeze the shop…</Button>
@@ -65,7 +65,7 @@ export function FrozenView() {
           { key: 'since', header: 'Frozen since', cell: (r) => <span className="text-muted-foreground">{r.since ? new Date(r.since).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '—'}</span> },
           { key: 'act', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (r) => (
             <span className="flex gap-1">
-              <Button variant="ghost" className="h-9 px-3" onClick={() => setAct({ id: r.id, kind: 'shelf' })}>To the shelf</Button>
+              <Button variant="ghost" className="h-9 px-3" onClick={() => setAct({ id: r.id, kind: 'shelf' })}>Put out for sale</Button>
               <Button variant="ghost" className="h-9 px-3" onClick={() => setAct({ id: r.id, kind: 'unfreeze' })}>Unfreeze</Button>
             </span>
           ) },
@@ -78,8 +78,8 @@ export function FrozenView() {
             <DialogHeader>
               <DialogTitle>Unfreeze the whole shop?</DialogTitle>
               <DialogDescription>
-                {rows.length} {rows.length === 1 ? 'product is' : 'products are'} still frozen. Their stock stays at what was counted in the back:
-                count their front shelves first, or unfreeze them one by one with the shelf count.
+                {rows.length} {rows.length === 1 ? 'product is' : 'products are'} still frozen. Their stock stays at what was counted in storage:
+                count what’s out for sale first, or unfreeze them one by one with that count.
               </DialogDescription>
             </DialogHeader>
             <ul aria-label="Still frozen" className="max-h-48 overflow-auto rounded-[var(--radius-sm)] bg-muted px-3 py-2 text-sm">

@@ -44,7 +44,7 @@ export function StockPage() {
   const claim = useSupplierClaim(useSuspenseQuery(configQuery).data.symbol)
   return (
     <>
-      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : view === 'frozen' ? 'Products whose sales don’t touch stock yet (the front shelf isn’t counted).' : 'Every unit in and out — who, when and why.'}
+      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : view === 'frozen' ? 'Products whose sales don’t touch stock yet (what’s out for sale isn’t counted).' : 'Every unit in and out — who, when and why.'}
         actions={<>
           <Button variant="outline" className="h-10 px-3" onClick={() => setWriteOff(true)}>Record write-off</Button>
           <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements'], ['frozen', 'Frozen']]} />

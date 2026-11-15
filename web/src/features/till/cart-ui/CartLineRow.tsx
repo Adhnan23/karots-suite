@@ -42,7 +42,7 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
   )
 }
 
-/** Stock freeze: sold from the uncounted shelf. Unfreezing mid-sale is a dialog
+/** Stock freeze: sold from what's out for sale (not counted). Unfreezing mid-sale is a dialog
  * over the sale — the cart, customer and discounts stay as they are. */
 function FrozenChip({ line }: { line: CartLine }) {
   const { dispatch } = useTill()

@@ -36,3 +36,37 @@ func TestConversionIntoFrozen(t *testing.T) {
 		t.Fatalf("loose %s, want 10", loose)
 	}
 }
+
+// Opened, but the pieces were put in storage: they count even while frozen.
+func TestConversionIntoFrozenStorage(t *testing.T) {
+	conn := testDB(t)
+	defer conn.Close()
+	ctx := context.Background()
+	f := bagAndLoose(t, ctx, conn)
+	_, err := f.tx.ExecContext(ctx, `UPDATE products SET stock_frozen = true WHERE id = $1`, f.loose)
+	must(t, err)
+	must(t, runTx(ctx, f.tx, f.convID, d("1"), d("10"), f.user, true))
+	var loose, lots decimal.Decimal
+	must(t, f.tx.GetContext(ctx, &loose, `SELECT quantity FROM stock WHERE product_id = $1`, f.loose))
+	must(t, f.tx.GetContext(ctx, &lots, `SELECT COALESCE(SUM(qty_remaining),0) FROM stock_batches WHERE product_id = $1`, f.loose))
+	if !loose.Equal(d("10")) || !lots.Equal(d("10")) {
+		t.Fatalf("loose %s lots %s; want 10, 10", loose, lots)
+	}
+}
+
+// Bag and loose both frozen: nothing to ask, the pieces go out for sale (uncounted).
+func TestConversionBothFrozen(t *testing.T) {
+	conn := testDB(t)
+	defer conn.Close()
+	ctx := context.Background()
+	f := bagAndLoose(t, ctx, conn)
+	_, err := f.tx.ExecContext(ctx, `UPDATE products SET stock_frozen = true WHERE id IN ($1, $2)`, f.bag, f.loose)
+	must(t, err)
+	must(t, runTx(ctx, f.tx, f.convID, d("1"), d("10"), f.user, true))
+	var bag, loose decimal.Decimal
+	must(t, f.tx.GetContext(ctx, &bag, `SELECT quantity FROM stock WHERE product_id = $1`, f.bag))
+	must(t, f.tx.GetContext(ctx, &loose, `SELECT quantity FROM stock WHERE product_id = $1`, f.loose))
+	if !bag.Equal(d("1")) || !loose.IsZero() {
+		t.Fatalf("bag %s loose %s; want 1, 0", bag, loose)
+	}
+}

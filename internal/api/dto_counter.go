@@ -58,11 +58,15 @@ type ConversionRow struct {
 	Ratio     string `json:"ratio"`
 	FromStock string `json:"fromStock"`
 	ToStock   string `json:"toStock"`
+	AskWhere  bool   `json:"askWhere,omitempty"` // only the loose side is frozen: ask out for sale or into storage
 	Note      string `json:"note"`
 }
 
 type RunConversionRequest struct {
 	Quantity string `json:"quantity"` // source units to convert
+	// IntoStock: the destination is frozen and the pieces went into storage
+	// (counted); false = put out for sale (not counted while frozen).
+	IntoStock bool `json:"intoStock,omitempty"`
 	// ToQty is what was really weighed out; blank = quantity × ratio. The
 	// bags' cost spreads over it.
 	ToQty string `json:"toQty,omitempty"`

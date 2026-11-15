@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { errMsg } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
 import { yieldNote } from '@/features/admin/conversions/yield'
+import { ConvertWhere, type Where } from '@/features/freeze/SaleOrStorage'
 import { conversionsQuery } from '../queries'
 import { CounterPage, PaneTitle } from '../ui'
 
@@ -57,6 +58,8 @@ function RunForm({ r }: { r: ConversionRow }) {
   // null = "what the ratio says"; typed = what was really weighed out.
   const [got, setGot] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [where, setWhere] = useState<Where>('')
+  const ask = !!r.askWhere && !where
   const n = num(qty)
   const expected = n * num(r.ratio)
   const out = got === null ? expected : num(got)
@@ -65,13 +68,14 @@ function RunForm({ r }: { r: ConversionRow }) {
 
   async function run(e: { preventDefault(): void }) {
     e.preventDefault()
-    if (!(n > 0) || tooMany || !(out > 0)) return
+    if (!(n > 0) || tooMany || !(out > 0) || ask) return
     setBusy(true)
     try {
-      await api(`/till/conversions/${r.id}/run`, { json: { quantity: qty, toQty: note ? String(out) : undefined } })
+      await api(`/till/conversions/${r.id}/run`, { json: { quantity: qty, toQty: note ? String(out) : undefined, intoStock: where === 'storage' } })
       toast.success(`Opened ${qtyText(n)} ${r.fromUnit} → ${qtyText(out)} ${r.toUnit} ${r.toName}`)
       setQty('1')
       setGot(null)
+      setWhere('')
       void qc.invalidateQueries({ queryKey: ['till'] })
     } catch (err) {
       toast.error(errMsg(err))
@@ -86,7 +90,7 @@ function RunForm({ r }: { r: ConversionRow }) {
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
         <Side name={r.fromName} qty={num(r.fromStock) - (n || 0)} was={r.fromStock} unit={r.fromUnit} />
         <ArrowRight className="text-faint" />
-        <Side name={r.toName} qty={num(r.toStock) + (out || 0)} was={r.toStock} unit={r.toUnit} />
+        <Side name={r.toName} qty={num(r.toStock) + (r.askWhere && where !== 'storage' ? 0 : out || 0)} was={r.toStock} unit={r.toUnit} />
       </div>
       <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground">
         How many {r.fromUnit} to open?
@@ -105,8 +109,9 @@ function RunForm({ r }: { r: ConversionRow }) {
           className={cn(FIELD, 'h-12 font-display text-xl font-bold tabular-nums', note && 'border-warning')} />
         <small className={note ? 'text-warning' : 'font-normal text-faint'}>{note || 'What really came out — leave it if it matched.'}</small>
       </label>
+      {r.askWhere && <ConvertWhere name={r.toName} value={where} onChange={setWhere} />}
       {r.note && <p className="text-[13px] text-muted-foreground">{r.note}</p>}
-      <Button type="submit" size="lg" disabled={busy || !(n > 0) || tooMany || !(out > 0)} className="h-12 text-[15px]">
+      <Button type="submit" size="lg" disabled={busy || !(n > 0) || tooMany || !(out > 0) || ask} className="h-12 text-[15px]">
         Open {qtyText(n || 0)} {r.fromUnit} → get {qtyText(out || 0)} {r.toUnit}
       </Button>
     </form>

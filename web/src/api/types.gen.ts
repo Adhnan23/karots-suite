@@ -779,10 +779,16 @@ export interface ConversionRow {
   ratio: string;
   fromStock: string;
   toStock: string;
+  askWhere?: boolean; // only the loose side is frozen: ask out for sale or into storage
   note: string;
 }
 export interface RunConversionRequest {
   quantity: string; // source units to convert
+  /**
+   * IntoStock: the destination is frozen and the pieces went into storage
+   * (counted); false = put out for sale (not counted while frozen).
+   */
+  intoStock?: boolean;
   /**
    * ToQty is what was really weighed out; blank = quantity × ratio. The
    * bags' cost spreads over it.

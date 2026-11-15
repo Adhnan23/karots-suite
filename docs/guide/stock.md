@@ -45,38 +45,41 @@ batches or **Adjust** a count. **Movements** lists every change with who made it
 
 ## Freezing stock while a shop starts
 
-A shop that is starting out can't close for a stock take: the open boxes on the front shelf sell all
-day. So count only what doesn't move (closed boxes and sacks in the back, sealed medicine boxes) and
-**freeze** the stock. A frozen product sells at the till without asking about stock and without taking
-it out. Deliveries, stock-takes, conversions and write-offs still work as usual.
+A shop that is starting out can't close for a stock take: what's **out for sale** sells all day, so
+any count of it is wrong by the time it's finished. So count only what's **in storage** (closed boxes
+and sacks, sealed medicine boxes) and **freeze** the stock. A frozen product sells at the till
+without asking about stock and without taking it out. Deliveries, stock-takes, conversions and
+write-offs still work as usual.
 
 ![Frozen products](../images/stock/frozen.jpg)
 
-An example. 20 boxes of 10 pencils are counted: 200, frozen. Pencils sell all morning and stock
-stays 200. A box is opened onto the shelf: **Adjust → Moved to the shelf**, 10, and stock is 190.
-Those 10 sell without touching it. Later 3 are left on the front and another box is opened, so 13 are
-on the shelf: **Unfreeze**, "13 on the shelf", and stock is 190 + 13 = 203. From then on every sale
-takes stock out.
+An example. 20 boxes of 10 pencils are in storage: 200, frozen. Pencils sell all morning and stock
+stays 200. A box is opened for selling: **Adjust → Put out for sale**, 10, and stock is 190. Those
+10 sell without touching it. Later 3 are left out for sale and another box is opened, so 13 are out:
+**Unfreeze**, "13 out for sale", and stock is 190 + 13 = 203. From then on every sale takes stock out.
 
 - **Freeze a product** with **Freeze** on its row under **Stock → On hand**. **Stock → Frozen** lists
   what's still frozen (how far you've got), with **Freeze the shop**: every product is frozen, and new
   ones start frozen until the shop is unfrozen. **Unfreeze the shop** first shows the products still
-  frozen, since their stock stays at what was counted in the back.
-- **Unfreeze** asks one thing: how many are on the shelf now (0 is fine). A cashier or a sales person
+  frozen, since their stock stays at what was counted in storage.
+- **Unfreeze** asks one thing: how many are out for sale now (0 is fine). A cashier or a sales person
   can do it from the till's **Frozen** tab, or from the cart in the middle of a sale (the sale stays
   as it is).
-- **Adjusting a frozen product** asks what happened. **Moved to the shelf** opens a box: if the box
-  and the single item are two products joined by a [conversion](#products), the conversion runs (the
-  singles get nothing while they're frozen; they're on the shelf); otherwise type how many, or pick a
-  pack. **Damaged** goes on the damaged list. **Count changed** is a recount of the back.
-- **Damage while frozen** asks **from the shelf or the back?** From the shelf, the item is added as an
-  extra and then written off, so stock stays as counted and the loss is still on the list with its
-  cost. From the back, it comes out of stock as usual. A damaged return is always from the shelf.
+- **Adjusting a frozen product** asks what happened. **Put out for sale** opens a box: if the box and
+  the single item are two products joined by a [conversion](#products), the conversion runs;
+  otherwise type how many, or pick a pack. **Damaged** goes on the damaged list. **Count changed** is
+  a recount of what's in storage.
+- **Opening a box into a frozen product** with the till's Convert tab, when the box itself isn't
+  frozen, asks where the pieces went: **out for sale** (not counted while frozen) or **into storage**
+  (added to stock). When both are frozen it doesn't ask: the pieces go out for sale.
+- **Damage while frozen** asks **was it out for sale or in storage?** Out for sale: the item is added
+  as an extra and then written off, so stock stays as counted and the loss is still on the list with
+  its cost. In storage: it comes out of stock as usual. A damaged return is always "out for sale".
 - A frozen product never shows as running low. Its sales use its cost price for profit, and the stock
-  value report says how many products are frozen (it counts only their back stock). Returns of a
-  frozen product don't go back into stock (they're back on the uncounted shelf).
-- A product with several batches still asks **which price?** at the till; the batch only sets the
-  price, and selling more than it holds is fine.
+  value report says how many products are frozen (it counts only what's in storage). Returns of a
+  frozen product don't go back into stock (they're back out for sale, uncounted).
+- A product with several batches still asks **which price?** at the till, and its batches keep the
+  counted quantities. The batch only sets the price; selling more than it holds is fine.
 
 ## Batches and expiry
 

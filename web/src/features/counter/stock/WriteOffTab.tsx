@@ -8,7 +8,7 @@ import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery, errMsg } from '@/features/till/api'
 import { FIELD } from '@/features/till/ui'
-import { type From, ShelfOrBack } from '@/features/freeze/ShelfOrBack'
+import { type Where, WriteOffWhere } from '@/features/freeze/SaleOrStorage'
 import { ProductFind } from '../ProductFind'
 import { CounterPage } from '../ui'
 
@@ -44,14 +44,14 @@ function WriteOffForm({ p, sym, onDone }: { p: TillProduct; sym: string; onDone:
   const [qty, setQty] = useState('1')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
-  const [from, setFrom] = useState<From>('')
-  const shelf = !!p.stockFrozen && from === 'shelf'
+  const [from, setFrom] = useState<Where>('')
+  const shelf = !!p.stockFrozen && from === 'sale'
   const max = lot ? num(lots.find((l) => l.batchId === lot)?.qtyRemaining) : num(p.stockQty)
 
   async function submit(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!(num(qty) > 0)) return void toast.error('Enter how many')
-    if (p.stockFrozen && !from) return void toast.error('Say if it came from the shelf or the back')
+    if (p.stockFrozen && !from) return void toast.error('Say if it was out for sale or in storage')
     setBusy(true)
     try {
       const body: WriteOffRequest = { productId: p.id, batchId: lot, quantity: qty, note, reason, fromShelf: shelf }
@@ -72,7 +72,7 @@ function WriteOffForm({ p, sym, onDone }: { p: TillProduct; sym: string; onDone:
         <h2 className="font-display text-xl font-bold">{p.name}</h2>
         <p className="text-[13px] text-muted-foreground tabular-nums">{qtyText(p.stockQty)} {p.unitAbbr} {p.stockFrozen ? 'counted (frozen)' : 'on hand'} · {money(sym, p.sellingPrice)}</p>
       </div>
-      {p.stockFrozen && <ShelfOrBack value={from} onChange={setFrom} />}
+      {p.stockFrozen && <WriteOffWhere value={from} onChange={setFrom} />}
       <div role="radiogroup" aria-label="Reason" className="grid grid-cols-3 gap-1.5">
         {REASONS.map((r) => (
           <button key={r.v} type="button" role="radio" aria-checked={reason === r.v} onClick={() => setReason(r.v)}
@@ -107,7 +107,7 @@ function WriteOffForm({ p, sym, onDone }: { p: TillProduct; sym: string; onDone:
         <input aria-label="Note" placeholder="What happened (optional)" value={note} onChange={(e) => setNote(e.target.value)} className={FIELD} />
       </label>
       <Button type="submit" size="lg" disabled={busy} className="h-12 text-[15px]">
-        {shelf ? `Write off ${qtyText(num(qty) || 0)} ${p.unitAbbr} from the shelf` : `Take ${qtyText(num(qty) || 0)} ${p.unitAbbr} out of stock`}
+        {shelf ? `Write off ${qtyText(num(qty) || 0)} ${p.unitAbbr} (out for sale)` : `Take ${qtyText(num(qty) || 0)} ${p.unitAbbr} out of stock`}
       </Button>
     </form>
   )
