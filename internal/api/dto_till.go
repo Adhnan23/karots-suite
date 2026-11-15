@@ -72,6 +72,7 @@ type TillProduct struct {
 	UnitAbbr         string `json:"unitAbbr"`
 	UnitAllowDecimal bool   `json:"unitAllowDecimal"`
 	IsService        bool   `json:"isService"`
+	StockFrozen      bool   `json:"stockFrozen"` // sells without touching stock: never ask about it
 	TrackSerial      bool   `json:"trackSerial"`
 	WarrantyMonths   int    `json:"warrantyMonths"`
 	// LowStock: on hand is at or below the product's reorder level (none set = never).

@@ -94,7 +94,7 @@ func tillProduct(p products.Product) TillProduct {
 		SellingPrice: dec2(p.SellingPrice), WholesalePrice: dec2(p.WholesalePrice),
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
-		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
+		IsService: p.IsService, StockFrozen: p.StockFrozen, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
 		Badges: p.Badges, Line: p.TillLine, Packs: []TillPack{},
 		LowStock: !p.IsService && p.ReorderLevel > 0 && p.IsLowStock(),
 	}
@@ -154,7 +154,7 @@ func groupProduct(p productgroups.GroupProduct) TillProduct {
 		SellingPrice: dec2(p.SellingPrice), WholesalePrice: dec2(p.WholesalePrice),
 		TaxRate: p.TaxRate.String(), StockQty: p.StockQty.String(),
 		UnitAbbr: p.UnitAbbr, UnitAllowDecimal: p.UnitAllowDecimal,
-		IsService: p.IsService, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
+		IsService: p.IsService, StockFrozen: p.StockFrozen, TrackSerial: p.TrackSerial, WarrantyMonths: p.WarrantyMonths,
 		Emoji: strOr(p.Emoji), Badges: []string{}, Packs: []TillPack{},
 		LowStock: !p.IsService && p.ReorderLevel > 0 && p.StockQty.LessThanOrEqual(decimal.NewFromInt(int64(p.ReorderLevel))),
 	}

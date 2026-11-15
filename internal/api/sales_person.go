@@ -28,6 +28,8 @@ var salesPersonWrites = []string{
 	"POST /api/v1/till/labels/preview",
 	"POST /api/v1/till/labels/text",
 	"POST /api/v1/till/labels/text/preview",
+	"POST /api/v1/till/stock/:id/unfreeze", // stock freeze: the shelf count (user, 2026-11-14)
+	"POST /api/v1/till/stock/:id/to-shelf",
 }
 
 // noMoney keeps a sales person's till to reading and preparing carts.

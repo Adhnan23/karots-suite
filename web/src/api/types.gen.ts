@@ -185,6 +185,7 @@ export interface AdminProductRow {
   low: boolean; // on hand at or below the reorder level
   isActive: boolean;
   isService: boolean;
+  stockFrozen: boolean;
   needsReview: boolean;
   trackSerial: boolean;
   hasExpiry: boolean;
@@ -3807,6 +3808,44 @@ export interface ConversionRunList {
   page: number /* int */;
   pageSize: number /* int */;
 }
+export interface FreezeRequest {
+  productIds: number /* int64 */[];
+}
+export interface FreezeRefusal {
+  productId: number /* int64 */;
+  name: string;
+  reason: string;
+}
+export interface FreezeResultDTO {
+  frozen: number /* int */;
+  refused: FreezeRefusal[];
+}
+/**
+ * UnfreezeRequest: how many are on the shelf now (0 allowed), added to stock.
+ */
+export interface UnfreezeRequest {
+  shelfQty: string;
+}
+/**
+ * ToShelfRequest: a frozen product's box opened onto the front shelf.
+ */
+export interface ToShelfRequest {
+  quantity: string;
+}
+export interface FrozenProductDTO {
+  id: number /* int64 */;
+  name: string;
+  stock: string;
+  unit: string;
+  since: string; // RFC 3339, "" = unknown
+}
+/**
+ * FrozenListDTO: ShopFrozen = new products start frozen (the shop switch is on).
+ */
+export interface FrozenListDTO {
+  shopFrozen: boolean;
+  products: FrozenProductDTO[];
+}
 
 //////////
 // source: dto_till.go
@@ -3883,6 +3922,7 @@ export interface TillProduct {
   unitAbbr: string;
   unitAllowDecimal: boolean;
   isService: boolean;
+  stockFrozen: boolean; // sells without touching stock: never ask about it
   trackSerial: boolean;
   warrantyMonths: number /* int */;
   /**

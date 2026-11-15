@@ -63,6 +63,7 @@ type AdminProductRow struct {
 	Low          bool             `json:"low"`         // on hand at or below the reorder level
 	IsActive     bool             `json:"isActive"`
 	IsService    bool             `json:"isService"`
+	StockFrozen  bool             `json:"stockFrozen"`
 	NeedsReview  bool             `json:"needsReview"`
 	TrackSerial  bool             `json:"trackSerial"`
 	HasExpiry    bool             `json:"hasExpiry"`

@@ -291,3 +291,44 @@ type ConversionRunList struct {
 	Page     int                `json:"page"`
 	PageSize int                `json:"pageSize"`
 }
+
+// Stock freeze (a frozen product sells without touching its stock).
+
+type FreezeRequest struct {
+	ProductIDs []int64 `json:"productIds"`
+}
+
+type FreezeRefusal struct {
+	ProductID int64  `json:"productId"`
+	Name      string `json:"name"`
+	Reason    string `json:"reason"`
+}
+
+type FreezeResultDTO struct {
+	Frozen  int             `json:"frozen"`
+	Refused []FreezeRefusal `json:"refused"`
+}
+
+// UnfreezeRequest: how many are on the shelf now (0 allowed), added to stock.
+type UnfreezeRequest struct {
+	ShelfQty string `json:"shelfQty"`
+}
+
+// ToShelfRequest: a frozen product's box opened onto the front shelf.
+type ToShelfRequest struct {
+	Quantity string `json:"quantity"`
+}
+
+type FrozenProductDTO struct {
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Stock string `json:"stock"`
+	Unit  string `json:"unit"`
+	Since string `json:"since"` // RFC 3339, "" = unknown
+}
+
+// FrozenListDTO: ShopFrozen = new products start frozen (the shop switch is on).
+type FrozenListDTO struct {
+	ShopFrozen bool               `json:"shopFrozen"`
+	Products   []FrozenProductDTO `json:"products"`
+}
