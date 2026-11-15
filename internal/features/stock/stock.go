@@ -27,6 +27,9 @@ const (
 	// shop absorbs them, and each gets its own P&L line.
 	MoveOwnUse = "own_use"
 	MoveStaff  = "staff"
+	// MoveToShelf: a frozen product's box opened onto the (uncounted) front shelf.
+	// Not an adjustment and not a loss.
+	MoveToShelf = "to_shelf"
 )
 
 type Movement struct {

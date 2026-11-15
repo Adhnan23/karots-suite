@@ -106,8 +106,10 @@ func (r *Repository) Insert(ctx context.Context, w writeRow) (int64, error) {
 			(name, name_local, barcode, category_id, unit_id,
 			 cost_price, selling_price, wholesale_price, tax_rate, reorder_level,
 			 track_serial, warranty_months, needs_review, created_by, preferred_supplier_id,
-			 is_service, reorder_start, reorder_auto)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,COALESCE($17::int, $10::int), COALESCE($18::boolean, true))
+			 is_service, reorder_start, reorder_auto, stock_frozen, stock_frozen_at)
+		SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,COALESCE($17::int, $10::int), COALESCE($18::boolean, true),
+		       f, CASE WHEN f THEN now() END
+		FROM (SELECT NOT $16::boolean AND COALESCE((SELECT freeze_new_products FROM settings WHERE id = 1), false) AS f) shop
 		RETURNING id`,
 		w.Name, w.NameLocal, w.Barcode, w.CategoryID, w.UnitID,
 		w.Cost, w.Selling, w.Wholesale, w.Tax, w.Reorder,

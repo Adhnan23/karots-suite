@@ -23,13 +23,15 @@ type Settings struct {
 	ReceiptFooter  *string `db:"receipt_footer"    json:"receipt_footer,omitempty"`
 	// ReceiptThanks is the thank-you line under the footer; "" = each style's own wording.
 	ReceiptThanks string `db:"receipt_thanks" json:"receipt_thanks"`
-	ReceiptWidth   string  `db:"receipt_width"     json:"receipt_width"`
-	LogoURL        *string `db:"logo_url"          json:"logo_url,omitempty"`
-	LogoData       string  `db:"logo_data"         json:"logo_data,omitempty"`
-	TaxRegistered  bool    `db:"tax_registered"    json:"tax_registered"`
-	TaxRegNo       *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
-	LowStockAlerts bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
-	AskToPrint     bool    `db:"ask_to_print"      json:"ask_to_print"`
+	// FreezeNewProducts: the shop is frozen, so new products start frozen (stock freeze).
+	FreezeNewProducts bool    `db:"freeze_new_products" json:"freeze_new_products"`
+	ReceiptWidth      string  `db:"receipt_width"     json:"receipt_width"`
+	LogoURL           *string `db:"logo_url"          json:"logo_url,omitempty"`
+	LogoData          string  `db:"logo_data"         json:"logo_data,omitempty"`
+	TaxRegistered     bool    `db:"tax_registered"    json:"tax_registered"`
+	TaxRegNo          *string `db:"tax_reg_no"        json:"tax_reg_no,omitempty"`
+	LowStockAlerts    bool    `db:"low_stock_alerts"  json:"low_stock_alerts"`
+	AskToPrint        bool    `db:"ask_to_print"      json:"ask_to_print"`
 	// LabelPrintAs is the same switch for the label printer; LabelStyles the
 	// Image-mode style per label kind (system user, Appearance).
 	LabelPrintAs          string      `db:"label_print_as" json:"label_print_as"`
@@ -72,8 +74,8 @@ type Settings struct {
 	Skin         string `db:"skin"          json:"skin"`
 	ReceiptStyle string `db:"receipt_style" json:"receipt_style"`
 	// ReceiptTextSize is the slips' text size in percent (ReceiptTextSizes).
-	ReceiptTextSize int `db:"receipt_text_size" json:"receipt_text_size"`
-	Density      string `db:"density"       json:"-"` // unused since receipt styles; kept for SELECT *
+	ReceiptTextSize int    `db:"receipt_text_size" json:"receipt_text_size"`
+	Density         string `db:"density"       json:"-"` // unused since receipt styles; kept for SELECT *
 	// SkinCustom is a brand hex (e.g. "#7c3aed") used when Skin == "custom"; the
 	// full colour ramp is derived from it at render time. Blank otherwise.
 	SkinCustom string `db:"skin_custom" json:"skin_custom"`

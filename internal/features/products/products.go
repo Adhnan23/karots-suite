@@ -27,19 +27,22 @@ type Product struct {
 	ReorderLevel   int             `db:"reorder_level"   json:"reorder_level"`
 	// ReorderAuto: the nightly run (internal/features/reorder) sets ReorderLevel,
 	// learning from ReorderStart. ReorderCalc is its last result (JSON), both modes.
-	ReorderAuto         bool      `db:"reorder_auto"  json:"reorder_auto"`
-	ReorderStart        int       `db:"reorder_start" json:"reorder_start"`
-	ReorderCalc         []byte    `db:"reorder_calc"  json:"-"`
-	HasExpiry           bool      `db:"has_expiry"      json:"has_expiry"`
-	TrackSerial         bool      `db:"track_serial"    json:"track_serial"`
-	WarrantyMonths      int       `db:"warranty_months"       json:"warranty_months"`
-	IsActive            bool      `db:"is_active"             json:"is_active"`
-	IsService           bool      `db:"is_service"            json:"is_service"`
-	PassThrough         bool      `db:"pass_through"          json:"pass_through"`
-	NeedsReview         bool      `db:"needs_review"          json:"needs_review"`
-	PreferredSupplierID *int64    `db:"preferred_supplier_id" json:"preferred_supplier_id,omitempty"`
-	CreatedBy           *int64    `db:"created_by"            json:"created_by,omitempty"`
-	CreatedAt           time.Time `db:"created_at"            json:"created_at"`
+	ReorderAuto    bool   `db:"reorder_auto"  json:"reorder_auto"`
+	ReorderStart   int    `db:"reorder_start" json:"reorder_start"`
+	ReorderCalc    []byte `db:"reorder_calc"  json:"-"`
+	HasExpiry      bool   `db:"has_expiry"      json:"has_expiry"`
+	TrackSerial    bool   `db:"track_serial"    json:"track_serial"`
+	WarrantyMonths int    `db:"warranty_months"       json:"warranty_months"`
+	IsActive       bool   `db:"is_active"             json:"is_active"`
+	IsService      bool   `db:"is_service"            json:"is_service"`
+	PassThrough    bool   `db:"pass_through"          json:"pass_through"`
+	NeedsReview    bool   `db:"needs_review"          json:"needs_review"`
+	// StockFrozen: sales don't touch its stock (the front shelf isn't counted); since StockFrozenAt.
+	StockFrozen         bool       `db:"stock_frozen"    json:"stock_frozen"`
+	StockFrozenAt       *time.Time `db:"stock_frozen_at" json:"stock_frozen_at,omitempty"`
+	PreferredSupplierID *int64     `db:"preferred_supplier_id" json:"preferred_supplier_id,omitempty"`
+	CreatedBy           *int64     `db:"created_by"            json:"created_by,omitempty"`
+	CreatedAt           time.Time  `db:"created_at"            json:"created_at"`
 	// BarcodeScannedAt is when the main barcode was last scanned (nil = never since
 	// extra barcodes arrived). MergedIntoID is set on a duplicate a merge retired.
 	BarcodeScannedAt *time.Time `db:"barcode_scanned_at" json:"barcode_scanned_at,omitempty"`
