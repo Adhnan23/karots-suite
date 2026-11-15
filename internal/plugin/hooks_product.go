@@ -290,7 +290,7 @@ func ProductTillLineProviders() []ProductTillLineProvider     { return productTi
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }
 
 // FreezeGuard lets a plugin refuse a stock freeze for products it must keep
-// counted (the pharmacy's controlled drugs keep a running register balance).
+// counted (e.g. drugs whose register keeps a running balance).
 // Refuse returns a reason per refused product id, shown to the person freezing.
 type FreezeGuard struct {
 	Refuse func(ctx context.Context, productIDs []int64) (map[int64]string, error)
