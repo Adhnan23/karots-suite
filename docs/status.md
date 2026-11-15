@@ -9,7 +9,7 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
-**Stock freeze: DONE, merged to main 2026-11-15, not Released yet** (the user hand-tested it on a dev server and
+**Stock freeze: DONE, merged to main and Released to Iman as 2026.11.15.0927 (2026-11-15, binary only, notes written by hand)** (the user hand-tested it on a dev server and
 said "it worked"). A frozen product sells without touching stock or asking; what's **in storage** is counted, what's
 **out for sale** isn't (screen wording, never front/back/shelf). Admin freezes a product (Stock → On hand → Freeze) or
 the shop (Stock → Frozen → Freeze the shop: new products start frozen). Anyone at the till unfreezes with "how many
@@ -20,9 +20,9 @@ Losses (an out-for-sale write-off comes back as `to_shelf`, never an adjustment)
 (`plugin.FreezeGuard`). Migration 00035. Guide: `docs/guide/stock.md#freezing-stock-while-a-shop-starts`.
 Full run before the merge: Go 63 packages, web 1,177, Playwright 256 passed + `plugin-aicatalog.spec.ts` alone 15/15
 (`:278` failed once in the full run, as before). Not done: Unfreeze on the phone cart (Pocket ships after release 2);
-Onboard pushing products already frozen (separate repo). **Next: Release to Iman when the user says.**
+Onboard pushing products already frozen (separate repo). At Iman: Setup → Data → Updates → Update.
 
-**Latest Release: 2026.11.12.1741** (user asked). Full run first: Go 63 packages, web 1,174, Playwright 251 passed +
+**Previous Release: 2026.11.12.1741** (user asked). Full run first: Go 63 packages, web 1,174, Playwright 251 passed +
 `plugin-aicatalog.spec.ts` and `appearance-receipts.spec.ts` re-run alone 18/18 (`plugin-aicatalog:278` failed once in
 the full run, as before). In it:
 - **Compact**, the eleventh receipt style (`7d51d2f`): logo beside the shop's name, address and phone (no logo: centred);
