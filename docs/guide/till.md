@@ -26,15 +26,26 @@ blocked: anything odd (selling below stock, a missing price) is sold first and f
 
 ### Keys
 
+The whole Sell page works without a mouse: a scanner and the keyboard are enough.
+
 | Key | Does |
 |---|---|
 | **F1** | Back to the menu. Clears the **search only**, never the cart |
 | **F2 / F3** | Jump to search |
+| **↑ ↓** then **Enter** (in search) | Pick a product from the tiles on screen and add it |
 | **F4** | Hold the sale |
+| **F5** | Held sales: **↑ ↓** to choose, **Enter** resumes |
+| **F6** | Quantity of the line just added: type it, **Enter** goes back to search. **↑ ↓** move to other lines; **Delete** removes the line |
+| **F7** | Discount on the line just added: type an amount, or add **%** for a percentage; **Enter** goes back |
+| **F8** | Customer: type a name or phone, **↑ ↓**, **Enter** picks |
 | **F9** | Bill discount |
-| **F10** | Go to the amount; then **Enter** completes the sale |
+| **F10** | Go to the amount; **F10 again** switches to the next payment method; **Enter** adds it, or completes the sale when the box is empty |
+| **F12** | New sale (asks first if the cart has items) |
+| **Ctrl K** | Every other button on the page and every tab: type a few letters, **↑ ↓**, **Enter** (Deposit, Withdraw, Quick item, Wholesale prices, a product group, Close the till…) |
 | **Enter** after a sale | Start the next sale |
 | **Esc** | Leave the field you're in |
+
+The keyboard button on the top bar lists them all.
 
 Only **New sale** clears the cart. On a kiosk the browser's own keys are switched off: no F5
 reload and no right-click outside text boxes.
@@ -52,7 +63,7 @@ reload and no right-click outside text boxes.
 
 ### Holds
 
-**Hold** (F4) parks the sale and frees the till. Resume a held sale from the Hold list. The till
+**Hold** (F4) parks the sale and frees the till. Resume a held sale from the Held list (F5). The till
 won't resume one over a cart that already has items in it.
 
 ![The till in dark mode](../images/till/sell-dark.jpg)
