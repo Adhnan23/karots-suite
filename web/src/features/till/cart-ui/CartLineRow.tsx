@@ -75,7 +75,9 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
   const [text, setText] = useState(qtyText(line.qty))
   useEffect(() => setText(qtyText(line.qty)), [line.qty])
   const setQty = (qty: number) => dispatch({ type: 'setQty', key: line.key, qty, lots: lotsFor(opts, line.productId) })
-  const last = line.key === (state.lastAddedKey ?? state.lines.at(-1)?.key) // F6 / F7 act on it
+  // F6 / F7 act on the line just added; after a resume (or once it's removed) the bottom line.
+  const target = state.lines.some((l) => l.key === state.lastAddedKey) ? state.lastAddedKey : state.lines.at(-1)?.key
+  const last = line.key === target
   const gross = lineGross(line)
   const disc = lineDiscount(line)
   const expired = line.batchLabel.startsWith('exp ') && line.batchLabel.slice(4) < new Date().toLocaleDateString('en-CA')
@@ -87,7 +89,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
       </div>
       {line.fixedQty ? (
         <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
-      ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5">
+      ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-ring">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
         <input id={last ? 'till-qty-last' : undefined} data-qty // F6; ↑ ↓ move between lines
           aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
