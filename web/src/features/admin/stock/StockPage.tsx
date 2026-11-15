@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { Download, Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -19,6 +19,14 @@ import { money, num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
 import { AdjustForm } from './AdjustForm'
+import { FrozenView, freezeToast } from './FrozenView'
+import { api } from '@/api/client'
+import type { FreezeResultDTO } from '@/api/types.gen'
+import { meQuery } from '@/api/session'
+import { refreshStock } from '@/features/freeze/api'
+import { UnfreezeDialog } from '@/features/freeze/UnfreezeDialog'
+import { errMsg } from '@/features/till/api'
+import { toast } from 'sonner'
 import { useSupplierClaim } from './claim'
 import { LotsSheet } from './LotsSheet'
 import { WriteOffForm } from './WriteOffForm'
@@ -36,14 +44,14 @@ export function StockPage() {
   const claim = useSupplierClaim(useSuspenseQuery(configQuery).data.symbol)
   return (
     <>
-      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : 'Every unit in and out — who, when and why.'}
+      <PageHead title="Stock" sub={view === 'levels' ? 'What’s on the shelf. Tap a product for its batches, or adjust a count.' : view === 'frozen' ? 'Products whose sales don’t touch stock yet (the front shelf isn’t counted).' : 'Every unit in and out — who, when and why.'}
         actions={<>
           <Button variant="outline" className="h-10 px-3" onClick={() => setWriteOff(true)}>Record write-off</Button>
-          <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements']]} />
+          <Seg label="View" value={view} onChange={(v) => void navigate({ search: { view: v } })} options={[['levels', 'On hand'], ['moves', 'Movements'], ['frozen', 'Frozen']]} />
         </>} />
       {writeOff && <WriteOffForm onClose={() => setWriteOff(false)} onDamaged={claim.ask} />}
       {claim.sheet}
-      {view === 'levels' ? <Levels /> : <Moves />}
+      {view === 'levels' ? <Levels /> : view === 'frozen' ? <FrozenView /> : <Moves />}
     </>
   )
 }
@@ -59,6 +67,17 @@ function Levels() {
   const data = useQuery({ ...productsQuery(f), placeholderData: keepPreviousData }).data
   const [lots, setLots] = useState(0)
   const [adjust, setAdjust] = useState(0)
+  const [thaw, setThaw] = useState<{ id: number; name: string; unit: string } | null>(null)
+  const admin = useQuery(meQuery).data?.user.role === 'admin'
+  const qc = useQueryClient()
+  async function freeze(id: number) {
+    try {
+      freezeToast(await api<FreezeResultDTO>('/admin/stock/freeze', { json: { productIds: [id] } }))
+      refreshStock(qc)
+    } catch (e) {
+      toast.error(errMsg(e))
+    }
+  }
   const set = (patch: Partial<typeof f>) => void navigate({ search: (x) => ({ ...x, page: 1, ...patch }) })
   return (
     <>
@@ -75,13 +94,21 @@ function Levels() {
         empty={<EmptyState title={data ? 'Nothing matches' : 'Loading…'} />}
         footer={data && <Pager page={data.page} pageSize={data.pageSize} total={data.total} onPage={(page) => void navigate({ search: (x) => ({ ...x, page }) })} />}
         columns={[
-          { key: 'name', header: 'Product', cell: (p) => <span className="flex flex-col"><span className="flex items-center gap-1.5"><b>{p.name}</b>{p.low && <Tag tone="danger">low</Tag>}</span><small className="text-faint">{p.categoryName}</small></span> },
+          { key: 'name', header: 'Product', cell: (p) => <span className="flex flex-col"><span className="flex items-center gap-1.5"><b>{p.name}</b>{p.stockFrozen ? <Tag tone="brand">frozen</Tag> : p.low && <Tag tone="danger">low</Tag>}</span><small className="text-faint">{p.categoryName}</small></span> },
           { key: 'qty', header: 'On hand', num: true, cell: (p) => <b className={cn(p.low && 'text-warning')}>{qtyText(p.stockQty)} <small className="font-normal text-faint">{p.unitAbbr}</small>{p.stockSplit && <small className="block font-normal text-faint">= {p.stockSplit}</small>}</b> },
           { key: 'reorder', header: 'Reorder at', num: true, cell: (p) => <span className="text-muted-foreground">{p.reorderLevel || '—'}</span> },
           { key: 'value', header: 'Value at cost', num: true, cell: (p) => <span className="text-muted-foreground">{money(sym, Math.max(0, num(p.stockQty)) * num(p.costPrice))}</span> },
-          { key: 'adj', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => <Button variant="ghost" className="h-9 px-3" onClick={() => setAdjust(p.id)}>Adjust</Button> },
+          { key: 'adj', header: '', wide: true, interactive: true, className: 'w-[1%]', cell: (p) => (
+            <span className="flex gap-1">
+              {p.stockFrozen
+                ? <Button variant="ghost" className="h-9 px-3" onClick={() => setThaw({ id: p.id, name: p.name, unit: p.unitAbbr })}>Unfreeze</Button>
+                : admin && !p.isService && <Button variant="ghost" className="h-9 px-3" onClick={() => void freeze(p.id)}>Freeze</Button>}
+              <Button variant="ghost" className="h-9 px-3" onClick={() => setAdjust(p.id)}>Adjust</Button>
+            </span>
+          ) },
         ]} />
       {lots > 0 && <LotsSheet key={lots} productId={lots} onClose={() => setLots(0)} />}
+      {thaw && <UnfreezeDialog id={thaw.id} name={thaw.name} unit={thaw.unit} onClose={() => setThaw(null)} />}
       {adjust > 0 && <AdjustForm key={adjust} productId={adjust} onClose={() => setAdjust(0)} />}
     </>
   )

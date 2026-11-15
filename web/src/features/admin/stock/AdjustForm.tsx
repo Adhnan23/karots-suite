@@ -2,15 +2,23 @@ import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-quer
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
-import type { AdjustRequest } from '@/api/types.gen'
+import type { AdjustRequest, ConsumeRequest } from '@/api/types.gen'
 import { Field, INPUT } from '@/components/admin/fields'
 import { FormSheet } from '@/components/admin/FormSheet'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { type From, ShelfOrBack } from '@/features/freeze/ShelfOrBack'
+import { ToShelfDialog } from '@/features/freeze/ToShelfDialog'
 import { lotsQuery } from './queries'
 
 const REASONS = ['Count correction', 'Found extra', 'Missing', 'Opening stock']
+type What = '' | 'shelf' | 'damage' | 'count'
+const WHAT: [What, string, string][] = [
+  ['shelf', 'Moved to the shelf', 'a box opened onto the front'],
+  ['damage', 'Damaged', 'goes on the damaged list'],
+  ['count', 'Count changed', 'a recount of the back'],
+]
 
 /** Set a product's on-hand to what's really there.
  * A reduction on a product with several lots asks which lot the units left. */
@@ -22,7 +30,12 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
   const [note, setNote] = useState('')
   const [lot, setLot] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [what, setWhat] = useState<What>('')
+  const [from, setFrom] = useState<From>('')
   if (!p) return null
+  // A frozen product: losses are never adjustments, and opening a box isn't one either.
+  if (p.stockFrozen && what === 'shelf') return <ToShelfDialog id={productId} onClose={onClose} />
+  const asking = !!p.stockFrozen && what !== 'count'
   const cur = num(p.stockQty)
   const delta = count === '' ? 0 : num(count) - cur
   const oldest = p.lots[0]?.id ?? 0
@@ -32,6 +45,14 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
   async function save() {
     setBusy(true)
     try {
+      if (what === 'damage') {
+        const body: ConsumeRequest = { productId, quantity: count, reason: 'damage', note, batchId: 0, fromShelf: from === 'shelf' }
+        await api('/admin/stock/damage', { json: body })
+        toast.success(`${p!.name}: ${qtyText(count)} ${p!.unitAbbr} on the damaged list`)
+        void qc.invalidateQueries({ queryKey: ['admin'] })
+        void qc.invalidateQueries({ queryKey: ['till'] })
+        return onClose()
+      }
       const body: AdjustRequest = { productId, newQuantity: count, note, batchId: delta < 0 && p!.lots.length > 1 ? lot || oldest : 0 }
       await api('/admin/stock/adjust', { json: body })
       toast.success(`${p!.name}: ${qtyText(cur)} → ${qtyText(count)} ${p!.unitAbbr}`)
@@ -45,7 +66,29 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Adjust ${p.name}`} submit="Save count" busy={busy || count === '' || delta === 0} onSubmit={save}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Adjust ${p.name}`} submit={what === 'damage' ? 'Write off' : 'Save count'}
+      busy={busy || (asking ? what !== 'damage' || !from || !(num(count) > 0) : count === '' || delta === 0)} onSubmit={save}>
+      {p.stockFrozen && (
+        <div role="radiogroup" aria-label="What happened?" className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-semibold text-muted-foreground">Frozen. What happened?</span>
+          {WHAT.map(([v, label, sub]) => (
+            <button key={v} type="button" role="radio" aria-checked={what === v} onClick={() => { setWhat(v); setCount('') }}
+              className="flex items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2 text-left text-sm aria-checked:border-selected aria-checked:bg-selected aria-checked:text-selected-foreground">
+              <b>{label}</b><small className="opacity-75">{sub}</small>
+            </button>
+          ))}
+        </div>
+      )}
+      {what === 'damage' && (
+        <>
+          <ShelfOrBack value={from} onChange={setFrom} />
+          <Field label="How many">
+            <input required inputMode="decimal" aria-label="How many" value={count} onChange={(e) => setCount(e.target.value.replace(/[^\d.]/g, ''))}
+              className={cn(INPUT, 'h-[52px] font-display text-2xl font-bold tabular-nums')} placeholder="0" />
+          </Field>
+        </>
+      )}
+      {!asking && <>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-[var(--radius-sm)] bg-muted px-3 py-2.5">
           <small className="text-muted-foreground">On the books</small>
@@ -84,6 +127,7 @@ export function AdjustForm({ productId, onClose }: { productId: number; onClose:
             className="rounded-pill border border-border px-3 py-1.5 text-[12px] font-semibold text-muted-foreground aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">{r}</button>
         ))}
       </div>
+      </>}
     </FormSheet>
   )
 }

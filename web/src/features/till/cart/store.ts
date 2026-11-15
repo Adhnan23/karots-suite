@@ -35,6 +35,8 @@ export type Action =
   | { type: 'lineDiscount'; key: number; discount: string; discountType: DiscountType }
   | { type: 'serial'; key: number; index: number; value: string }
   | { type: 'approveOversell'; key: number }
+  /** Stock freeze: the product was unfrozen mid-sale; its lines now count against stock. */
+  | { type: 'unfrozen'; productId: number; stock: number }
   | { type: 'approveConsumables' }
   | { type: 'saleType'; saleType: SaleType }
   | { type: 'customer'; id: number | null }
@@ -135,6 +137,8 @@ export function tillReducer(s: TillState, a: Action): TillState {
       return mapLine(s, a.key, (l) => syncSerials({ ...l, serials: l.serials.map((v, i) => (i === a.index ? a.value : v)) }))
     case 'approveOversell':
       return mapLine(s, a.key, (l) => ({ ...l, allowOversell: true }))
+    case 'unfrozen':
+      return { ...s, lines: s.lines.map((l) => (l.productId === a.productId && l.frozen ? { ...l, frozen: false, stock: a.stock } : l)) }
     case 'approveConsumables':
       return { ...s, lines: s.lines.map((l) => (l.isService || l.components.length ? { ...l, allowOversell: true } : l)) }
     case 'saleType':

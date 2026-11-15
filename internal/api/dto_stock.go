@@ -59,6 +59,7 @@ type ProductLots struct {
 	UnitAbbr     string   `json:"unitAbbr"`
 	SellingPrice string   `json:"sellingPrice"`
 	StockQty     string   `json:"stockQty"`
+	StockFrozen  bool     `json:"stockFrozen,omitempty"`
 	Lots         []LotRow `json:"lots"`
 }
 

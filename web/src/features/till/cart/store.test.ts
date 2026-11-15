@@ -56,4 +56,13 @@ describe('tillReducer', () => {
     s = tillReducer(s, { type: 'clearPostSaleChange' })
     expect(s.postSaleChange).toBe(0)
   })
+  it('unfrozen mid-sale: the lines keep everything, now counted against real stock', () => {
+    let s = tillReducer(initialState('retail'), { type: 'add', product: { ...p, stockQty: '200', stockFrozen: true }, lots: [] })
+    s = tillReducer(s, { type: 'setQty', key: s.lines[0].key, qty: 4, lots: [] })
+    s = tillReducer(s, { type: 'customer', id: 5 })
+    s = tillReducer(s, { type: 'unfrozen', productId: 1, stock: 202 })
+    expect(s.lines[0]).toMatchObject({ qty: 4, stock: 202, frozen: false })
+    expect(s.customerId).toBe(5)
+  })
 })
+

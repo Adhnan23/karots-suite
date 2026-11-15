@@ -16,6 +16,7 @@ type TillConfig struct {
 	Symbol             string            `json:"symbol"`
 	DefaultSaleType    string            `json:"defaultSaleType"` // "retail" | "wholesale"
 	AskToPrint         bool              `json:"askToPrint"`
+	HasFrozen          bool              `json:"hasFrozen,omitempty"` // some product's stock is frozen: the till shows the Frozen tab
 	OpenCashDrawer     bool              `json:"openCashDrawer"`
 	AllowUntrackedCash bool              `json:"allowUntrackedCash"`
 	DefaultLockerID    int64             `json:"defaultLockerId"` // 0 = none

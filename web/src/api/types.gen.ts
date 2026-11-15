@@ -3565,6 +3565,7 @@ export interface ProductLots {
   unitAbbr: string;
   sellingPrice: string;
   stockQty: string;
+  stockFrozen?: boolean;
   lots: LotRow[];
 }
 /**
@@ -3867,6 +3868,7 @@ export interface TillConfig {
   symbol: string;
   defaultSaleType: string; // "retail" | "wholesale"
   askToPrint: boolean;
+  hasFrozen?: boolean; // some product's stock is frozen: the till shows the Frozen tab
   openCashDrawer: boolean;
   allowUntrackedCash: boolean;
   defaultLockerId: number /* int64 */; // 0 = none

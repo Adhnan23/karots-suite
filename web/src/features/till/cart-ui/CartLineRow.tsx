@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Minus, Plus, Tag, X } from 'lucide-react'
+import { Minus, Plus, Snowflake, Tag, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { money, num, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
+import { UnfreezeDialog } from '@/features/freeze/UnfreezeDialog'
 import { slots } from '@/plugins/slots'
 import { priceOptionsQuery } from '../api'
 import { Seg } from '../bits'
@@ -38,6 +39,23 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
       <Seg label="Discount type" value={line.discountType} options={[['fixed', sym], ['percent', '%']]} onChange={(t) => set(line.discount, t)} />
       <button type="button" onClick={() => setOpen(false)} className="px-1 text-[12px] font-semibold text-muted-foreground">Done</button>
     </span>
+  )
+}
+
+/** Stock freeze: sold from the uncounted shelf. Unfreezing mid-sale is a dialog
+ * over the sale — the cart, customer and discounts stay as they are. */
+function FrozenChip({ line }: { line: CartLine }) {
+  const { dispatch } = useTill()
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button type="button" aria-label={`Unfreeze ${line.name}`} onClick={() => setOpen(true)}
+        className="flex h-7 items-center gap-1 rounded-pill bg-brand-soft px-2.5 text-[12.5px] font-semibold">
+        <Snowflake size={14} /> Frozen · Unfreeze
+      </button>
+      {open && <UnfreezeDialog id={line.productId} name={line.name} onClose={() => setOpen(false)}
+        onDone={(stock) => dispatch({ type: 'unfrozen', productId: line.productId, stock })} />}
+    </>
   )
 }
 
@@ -87,6 +105,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
           </span>
         )}
         {line.warrantyMonths > 0 && <span className="rounded-md bg-muted px-1.5">{line.warrantyMonths} mo warranty</span>}
+        {line.frozen && <FrozenChip line={line} />}
         {line.allowOversell && <span className="font-semibold text-warning">{line.isService ? 'material count corrected' : 'found at till'}</span>}
         <PackChips line={line} sym={sym} onQty={setQty} />
         {!line.payout && !line.noDiscount && <DiscountChip line={line} sym={sym} />}

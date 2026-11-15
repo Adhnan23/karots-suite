@@ -43,6 +43,7 @@ import { Route as AuthedTillIndexRouteImport } from './routes/_authed/till/index
 import { Route as AuthedTillConvertRouteImport } from './routes/_authed/till/convert'
 import { Route as AuthedTillCreditRouteImport } from './routes/_authed/till/credit'
 import { Route as AuthedTillExpensesRouteImport } from './routes/_authed/till/expenses'
+import { Route as AuthedTillFrozenRouteImport } from './routes/_authed/till/frozen'
 import { Route as AuthedTillLabelsRouteImport } from './routes/_authed/till/labels'
 import { Route as AuthedTillLowStockRouteImport } from './routes/_authed/till/low-stock'
 import { Route as AuthedTillReceiptsRouteImport } from './routes/_authed/till/receipts'
@@ -273,6 +274,11 @@ const AuthedTillCreditRoute = AuthedTillCreditRouteImport.update({
 const AuthedTillExpensesRoute = AuthedTillExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
+  getParentRoute: () => AuthedTillRoute,
+} as any)
+const AuthedTillFrozenRoute = AuthedTillFrozenRouteImport.update({
+  id: '/frozen',
+  path: '/frozen',
   getParentRoute: () => AuthedTillRoute,
 } as any)
 const AuthedTillLabelsRoute = AuthedTillLabelsRouteImport.update({
@@ -645,6 +651,7 @@ export interface FileRoutesByFullPath {
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/frozen': typeof AuthedTillFrozenRoute
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/low-stock': typeof AuthedTillLowStockRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
@@ -739,6 +746,7 @@ export interface FileRoutesByTo {
   '/till/convert': typeof AuthedTillConvertRoute
   '/till/credit': typeof AuthedTillCreditRoute
   '/till/expenses': typeof AuthedTillExpensesRoute
+  '/till/frozen': typeof AuthedTillFrozenRoute
   '/till/labels': typeof AuthedTillLabelsRoute
   '/till/low-stock': typeof AuthedTillLowStockRoute
   '/till/receipts': typeof AuthedTillReceiptsRoute
@@ -837,6 +845,7 @@ export interface FileRoutesById {
   '/_authed/till/convert': typeof AuthedTillConvertRoute
   '/_authed/till/credit': typeof AuthedTillCreditRoute
   '/_authed/till/expenses': typeof AuthedTillExpensesRoute
+  '/_authed/till/frozen': typeof AuthedTillFrozenRoute
   '/_authed/till/labels': typeof AuthedTillLabelsRoute
   '/_authed/till/low-stock': typeof AuthedTillLowStockRoute
   '/_authed/till/receipts': typeof AuthedTillReceiptsRoute
@@ -935,6 +944,7 @@ export interface FileRouteTypes {
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
+    | '/till/frozen'
     | '/till/labels'
     | '/till/low-stock'
     | '/till/receipts'
@@ -1029,6 +1039,7 @@ export interface FileRouteTypes {
     | '/till/convert'
     | '/till/credit'
     | '/till/expenses'
+    | '/till/frozen'
     | '/till/labels'
     | '/till/low-stock'
     | '/till/receipts'
@@ -1126,6 +1137,7 @@ export interface FileRouteTypes {
     | '/_authed/till/convert'
     | '/_authed/till/credit'
     | '/_authed/till/expenses'
+    | '/_authed/till/frozen'
     | '/_authed/till/labels'
     | '/_authed/till/low-stock'
     | '/_authed/till/receipts'
@@ -1438,6 +1450,13 @@ declare module '@tanstack/react-router' {
       path: '/expenses'
       fullPath: '/till/expenses'
       preLoaderRoute: typeof AuthedTillExpensesRouteImport
+      parentRoute: typeof AuthedTillRoute
+    }
+    '/_authed/till/frozen': {
+      id: '/_authed/till/frozen'
+      path: '/frozen'
+      fullPath: '/till/frozen'
+      preLoaderRoute: typeof AuthedTillFrozenRouteImport
       parentRoute: typeof AuthedTillRoute
     }
     '/_authed/till/labels': {
@@ -2024,6 +2043,7 @@ interface AuthedTillRouteChildren {
   AuthedTillConvertRoute: typeof AuthedTillConvertRoute
   AuthedTillCreditRoute: typeof AuthedTillCreditRoute
   AuthedTillExpensesRoute: typeof AuthedTillExpensesRoute
+  AuthedTillFrozenRoute: typeof AuthedTillFrozenRoute
   AuthedTillLabelsRoute: typeof AuthedTillLabelsRoute
   AuthedTillLowStockRoute: typeof AuthedTillLowStockRoute
   AuthedTillReceiptsRoute: typeof AuthedTillReceiptsRoute
@@ -2039,6 +2059,7 @@ const AuthedTillRouteChildren: AuthedTillRouteChildren = {
   AuthedTillConvertRoute: AuthedTillConvertRoute,
   AuthedTillCreditRoute: AuthedTillCreditRoute,
   AuthedTillExpensesRoute: AuthedTillExpensesRoute,
+  AuthedTillFrozenRoute: AuthedTillFrozenRoute,
   AuthedTillLabelsRoute: AuthedTillLabelsRoute,
   AuthedTillLowStockRoute: AuthedTillLowStockRoute,
   AuthedTillReceiptsRoute: AuthedTillReceiptsRoute,

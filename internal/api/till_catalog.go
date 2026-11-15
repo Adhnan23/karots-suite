@@ -79,6 +79,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 	if st.DefaultSaleType == "wholesale" {
 		out.DefaultSaleType = "wholesale"
 	}
+	_ = h.d.DB.GetContext(ctx, &out.HasFrozen, `SELECT EXISTS (SELECT 1 FROM products WHERE stock_frozen)`)
 	if st.DefaultLockerID != nil {
 		out.DefaultLockerID = *st.DefaultLockerID
 	}

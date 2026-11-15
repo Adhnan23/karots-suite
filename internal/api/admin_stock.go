@@ -20,7 +20,7 @@ const movementPageSize = 30
 
 // movementTypes are the stock_movement_type enum values a filter may name.
 var movementTypes = map[string]bool{"purchase": true, "sale": true, "adjust": true, "return": true, "damage": true, "conversion": true,
-	"purchase_return": true, "warranty_replacement": true, "recovery": true, "own_use": true, "staff": true}
+	"purchase_return": true, "warranty_replacement": true, "recovery": true, "own_use": true, "staff": true, "to_shelf": true}
 
 func (h *handlers) registerAdminStock(g *echo.Group) {
 	g.GET("/stock/movements", h.AdminStockMovements)
@@ -115,7 +115,7 @@ func (h *handlers) AdminProductLots(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out := ProductLots{ProductID: p.ID, Name: p.Name, UnitAbbr: p.UnitAbbr, SellingPrice: dec2(p.SellingPrice), StockQty: p.StockQty.String(), Lots: make([]LotRow, 0, len(rows))}
+	out := ProductLots{ProductID: p.ID, Name: p.Name, UnitAbbr: p.UnitAbbr, SellingPrice: dec2(p.SellingPrice), StockQty: p.StockQty.String(), StockFrozen: p.StockFrozen, Lots: make([]LotRow, 0, len(rows))}
 	for _, b := range rows {
 		out.Lots = append(out.Lots, lotRow(b))
 	}

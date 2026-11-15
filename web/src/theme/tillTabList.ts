@@ -12,6 +12,7 @@ export const PRIMARY: Tab[] = [
   { to: '/till/receipts', label: 'Receipts' },
 ]
 export const MORE: Tab[] = [
+  { to: '/till/frozen', label: 'Frozen', show: (c) => !!c.hasFrozen },
   { to: '/till/write-off', label: 'Write-off' },
   { to: '/till/convert', label: 'Convert' },
   { to: '/till/labels', label: 'Labels' },
@@ -22,7 +23,7 @@ export const MORE: Tab[] = [
 ]
 
 /** A sales person's till has no tab that touches money (plugin tabs included). */
-const SALES_PERSON = [...PRIMARY, ...MORE].filter((t) => ['/till', '/till/labels', '/till/low-stock'].includes(t.to))
+const SALES_PERSON = [...PRIMARY, ...MORE].filter((t) => ['/till', '/till/frozen', '/till/labels', '/till/low-stock'].includes(t.to))
 
 /** Every till tab this user may open, for the Ctrl K palette. */
 export const tillTabList = (config: TillConfig): Tab[] => config.sendsToCashier ? SALES_PERSON.filter((t) => !t.show || t.show(config)) : [

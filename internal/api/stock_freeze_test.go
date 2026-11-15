@@ -46,6 +46,9 @@ func TestStockFreezeAPI(t *testing.T) {
 	if !p.StockFrozen {
 		t.Fatal("till product not frozen")
 	}
+	if cfg := decode[TillConfig](t, te.do(http.MethodGet, "/api/v1/till/config", nil, ck)); !cfg.HasFrozen {
+		t.Fatal("till config: hasFrozen off")
+	}
 	list := decode[FrozenListDTO](t, te.do(http.MethodGet, "/api/v1/till/frozen", nil, ck)).Products
 	listed := false
 	for _, r := range list {
