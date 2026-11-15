@@ -20,6 +20,7 @@ import { configQuery, errMsg } from '@/features/till/api'
 import { num, qtyText } from '@/lib/money'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
+import { ConvertWhere, type Where } from '@/features/freeze/SaleOrStorage'
 import { yieldNote } from './yield'
 
 export const convQuery = (q: string, disabled: boolean) => queryOptions({ queryKey: ['admin', 'conversions', q, disabled], queryFn: () => api<AdminConversion[]>(`/admin/conversions?q=${encodeURIComponent(q)}&disabled=${disabled ? 1 : 0}`) })
@@ -161,13 +162,14 @@ function RunConversion({ c, onClose }: { c: AdminConversion; onClose: () => void
   // null = "what the ratio says"; typed = what was really weighed out.
   const [got, setGot] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [where, setWhere] = useState<Where>('')
   const expected = num(qty) * num(c.ratio)
   const makes = got === null ? expected : num(got)
   const note = yieldNote(num(qty), expected, makes, c.toUnit, { sym, perPack: num(c.fromCost) })
   async function save() {
     setBusy(true)
     try {
-      await api(`/admin/conversions/${c.id}/run`, { json: { quantity: qty, toQty: note ? String(makes) : undefined } })
+      await api(`/admin/conversions/${c.id}/run`, { json: { quantity: qty, toQty: note ? String(makes) : undefined, intoStock: where === 'storage' } })
       done(`${qtyText(qty)} ${c.fromUnit} → ${qtyText(makes)} ${c.toUnit} ${c.toName}`)
     } catch (e) {
       toast.error(errMsg(e))
@@ -176,7 +178,7 @@ function RunConversion({ c, onClose }: { c: AdminConversion; onClose: () => void
     }
   }
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Break ${c.fromName}`} submit={`Make ${qtyText(makes)} ${c.toUnit}`} busy={busy || !(num(qty) > 0) || num(qty) > num(c.fromStock) || !(makes > 0)} onSubmit={save}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Break ${c.fromName}`} submit={`Make ${qtyText(makes)} ${c.toUnit}`} busy={busy || !(num(qty) > 0) || num(qty) > num(c.fromStock) || !(makes > 0) || (!!c.askWhere && !where)} onSubmit={save}>
       <Field label={`How many ${c.fromUnit} to break`} hint={`${qtyText(c.fromStock)} ${c.fromUnit} on hand`}>
         <input autoFocus aria-label="Packs to break" inputMode="decimal" value={qty} onChange={(e) => setQty(clean(e.target.value))} className={cn(INPUT, 'h-14 font-display text-2xl font-bold tabular-nums')} />
       </Field>
@@ -184,9 +186,10 @@ function RunConversion({ c, onClose }: { c: AdminConversion; onClose: () => void
         <input aria-label="Got" inputMode="decimal" value={got ?? qtyText(expected)} onChange={(e) => setGot(clean(e.target.value))}
           className={cn(INPUT, 'tabular-nums', note && 'border-warning')} />
       </Field>
+      {c.askWhere && <ConvertWhere name={c.toName} value={where} onChange={setWhere} />}
       <div className="grid grid-cols-2 gap-2 text-center">
         <div className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] p-3"><small className="text-danger">↑ Out</small><b className="block font-display text-xl tabular-nums">{qtyText(qty)} {c.fromUnit}</b><small className="text-faint">{c.fromName}</small></div>
-        <div className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_10%,transparent)] p-3"><small className="text-success">↓ In</small><b className="block font-display text-xl tabular-nums">{qtyText(makes)} {c.toUnit}</b><small className="text-faint">{c.toName}</small></div>
+        <div className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_10%,transparent)] p-3"><small className="text-success">↓ In</small><b className="block font-display text-xl tabular-nums">{qtyText(makes)} {c.toUnit}</b><small className="text-faint">{c.toName}{c.askWhere && where !== 'storage' && ' · out for sale, not counted'}</small></div>
       </div>
     </FormSheet>
   )

@@ -264,6 +264,7 @@ type AdminConversion struct {
 	FromCost      string `json:"fromCost"` // source's cost: the run sheet's cost hint
 	Note          string `json:"note"`
 	IsActive      bool   `json:"isActive"`
+	AskWhere      bool   `json:"askWhere,omitempty"` // only the loose side is frozen: ask out for sale or into storage
 }
 
 // ConversionRequest creates (products + ratio) or edits (ratio + note) a conversion.

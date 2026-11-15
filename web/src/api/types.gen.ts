@@ -3789,6 +3789,7 @@ export interface AdminConversion {
   fromCost: string; // source's cost: the run sheet's cost hint
   note: string;
   isActive: boolean;
+  askWhere?: boolean; // only the loose side is frozen: ask out for sale or into storage
 }
 /**
  * ConversionRequest creates (products + ratio) or edits (ratio + note) a conversion.
