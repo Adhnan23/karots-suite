@@ -161,3 +161,24 @@ func TestReplayAfterUnfreeze(t *testing.T) {
 	mustSales(t, err)
 	eq(t, "stock", onHand(t, conn, pid), 7)
 }
+
+// A frozen product's picked lot only sets the price: selling more than the lot
+// holds is fine (the shelf isn't counted) and the lot stays as it was.
+func TestFrozenPickedLotNeverShort(t *testing.T) {
+	conn := salesTestDB(t)
+	defer conn.Close()
+	ctx := context.Background()
+	pid, uid := replayFixture(t, conn, "10")
+	var lot int64
+	mustSales(t, conn.GetContext(ctx, &lot, `
+		INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, selling_price) VALUES ($1, 2, 2, 60, 150) RETURNING id`, pid))
+	freeze(t, conn, pid, true)
+	d, err := NewService(conn).Create(ctx, CreateInput{SaleType: "retail",
+		Items:    []ItemInput{{ProductID: pid, Quantity: "5", BatchID: lot}},
+		Payments: []PaymentInput{{Method: "cash", Amount: "750"}}}, uid)
+	mustSales(t, err)
+	eq(t, "price", d.Items[0].UnitPrice, 150)
+	var left decimal.Decimal
+	mustSales(t, conn.GetContext(ctx, &left, `SELECT qty_remaining FROM stock_batches WHERE id = $1`, lot))
+	eq(t, "picked lot", left, 2)
+}

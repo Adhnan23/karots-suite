@@ -170,6 +170,11 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			}
 			short := err != nil || pickedBatch.QtyRemaining.LessThan(qty)
 			switch {
+			case p.StockFrozen && err != nil:
+				// Frozen: the lot only sets the price; a lot that's gone sells at the product's.
+				pickedBatch, it.BatchID = nil, 0
+			case p.StockFrozen:
+				// Frozen: more than the lot holds is fine (sold from the uncounted shelf).
 			case short && in.Review:
 				// Already sold elsewhere, and the lot has since gone (given back
 				// to its supplier, say): it comes out of what's left instead.

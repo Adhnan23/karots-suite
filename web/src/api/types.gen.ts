@@ -185,7 +185,7 @@ export interface AdminProductRow {
   low: boolean; // on hand at or below the reorder level
   isActive: boolean;
   isService: boolean;
-  stockFrozen: boolean;
+  stockFrozen?: boolean;
   needsReview: boolean;
   trackSerial: boolean;
   hasExpiry: boolean;
@@ -3638,7 +3638,7 @@ export interface ConsumeRequest {
   reason: string;
   note: string;
   batchId: number /* int64 */;
-  fromShelf: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
+  fromShelf?: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 /**
  * ConsumeResult answers a removal: LossID is the damage it booked (0 for shop
@@ -3922,7 +3922,7 @@ export interface TillProduct {
   unitAbbr: string;
   unitAllowDecimal: boolean;
   isService: boolean;
-  stockFrozen: boolean; // sells without touching stock: never ask about it
+  stockFrozen?: boolean; // sells without touching stock: never ask about it
   trackSerial: boolean;
   warrantyMonths: number /* int */;
   /**
@@ -4058,7 +4058,7 @@ export interface WriteOffRequest {
   quantity: string;
   note: string;
   reason: string; // damage (default) | own_use | staff — decides the P&L line
-  fromShelf: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
+  fromShelf?: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 /**
  * SlipPreview is a slip as the paper shows it: any slip print endpoint answers

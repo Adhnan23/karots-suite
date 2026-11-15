@@ -72,7 +72,7 @@ type TillProduct struct {
 	UnitAbbr         string `json:"unitAbbr"`
 	UnitAllowDecimal bool   `json:"unitAllowDecimal"`
 	IsService        bool   `json:"isService"`
-	StockFrozen      bool   `json:"stockFrozen"` // sells without touching stock: never ask about it
+	StockFrozen      bool   `json:"stockFrozen,omitempty"` // sells without touching stock: never ask about it
 	TrackSerial      bool   `json:"trackSerial"`
 	WarrantyMonths   int    `json:"warrantyMonths"`
 	// LowStock: on hand is at or below the product's reorder level (none set = never).
@@ -212,7 +212,7 @@ type WriteOffRequest struct {
 	Quantity  string `json:"quantity"`
 	Note      string `json:"note"`
 	Reason    string `json:"reason"` // damage (default) | own_use | staff — decides the P&L line
-	FromShelf bool   `json:"fromShelf"` // frozen product: it came off the uncounted shelf (stock unchanged)
+	FromShelf bool   `json:"fromShelf,omitempty"` // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 
 // SlipPreview is a slip as the paper shows it: any slip print endpoint answers

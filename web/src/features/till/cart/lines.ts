@@ -47,7 +47,9 @@ export function newLine(key: number, p: TillProduct, saleType: SaleType, lot?: L
     key, productId: p.id, name: p.name,
     unitPrice: lot ? num(lot.price) : unitPriceFor(p, saleType),
     taxRate: num(p.taxRate), qty: 1,
-    stock: p.isService ? MAX_STOCK : num(p.stockQty),
+    // A frozen product sells from the uncounted shelf: never asked about stock.
+    stock: p.isService || p.stockFrozen ? MAX_STOCK : num(p.stockQty),
+    ...(p.stockFrozen && !p.isService && { frozen: true }),
     isService: p.isService, allowDecimal: p.unitAllowDecimal,
     batchId: lot?.batchId ?? 0, batchRemaining: lot ? num(lot.qtyRemaining) : 0, batchLabel: lot ? lotLabel(lot) : '',
     allowOversell: false, discount: '', discountType: 'fixed',
@@ -117,7 +119,8 @@ export function setQty(lines: CartLine[], seq: number, key: number, qty: number,
  * lot at ITS price — two receipt lines, matching what leaves the shelf. */
 function spill(lines: CartLine[], seq: number, key: number, lots: Lot[]): LinesResult {
   const l = lines.find((x) => x.key === key)
-  if (!l || !l.batchId || !(l.batchRemaining > 0) || l.qty <= l.batchRemaining) return { lines, seq, key, notice: null }
+  // A frozen line's lot only sets the price: the shelf isn't counted, so no clamp.
+  if (!l || l.frozen || !l.batchId || !(l.batchRemaining > 0) || l.qty <= l.batchRemaining) return { lines, seq, key, notice: null }
   const over = l.qty - l.batchRemaining
   const clamped = syncSerials({ ...l, qty: l.batchRemaining })
   let next = lines.map((x) => (x.key === key ? clamped : x))

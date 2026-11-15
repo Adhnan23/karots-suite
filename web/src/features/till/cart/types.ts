@@ -12,6 +12,8 @@ export type CartLine = {
   qty: number
   stock: number // MAX_STOCK for services: they never trip the found-at-till prompt
   isService: boolean
+  /** Stock freeze: sold from the uncounted shelf; the line offers Unfreeze. */
+  frozen?: boolean
   allowDecimal: boolean
   batchId: number // the lot picked at "which price?" (0 = FEFO)
   batchRemaining: number

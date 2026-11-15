@@ -125,7 +125,7 @@ type ConsumeRequest struct {
 	Reason    string `json:"reason"`
 	Note      string `json:"note"`
 	BatchID   int64  `json:"batchId"`
-	FromShelf bool   `json:"fromShelf"` // frozen product: it came off the uncounted shelf (stock unchanged)
+	FromShelf bool   `json:"fromShelf,omitempty"` // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 
 // ConsumeResult answers a removal: LossID is the damage it booked (0 for shop

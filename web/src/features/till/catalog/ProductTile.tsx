@@ -21,7 +21,7 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
   onAdd: () => void
   onInfo: () => void
 }) {
-  const out = !p.isService && num(p.stockQty) <= 0
+  const out = !p.isService && !p.stockFrozen && num(p.stockQty) <= 0
   // Counter-safe facts only (never cost, margin or the wholesale price — the customer
   // can see this screen): what a cashier gets asked about.
   const facts = [
@@ -43,9 +43,10 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
         <span className="line-clamp-2 pr-6 text-[16.5px] font-semibold leading-tight">{p.name}</span>
         {p.nameLocal && <span className="relative -mt-1 line-clamp-1 text-[14px] font-medium text-muted-foreground">{p.nameLocal}</span>}
         {p.line && <span className="relative -mt-1 line-clamp-2 pr-6 text-[13px] leading-snug text-muted-foreground">{p.line}</span>}
-        {(note || (p.lowStock && !out) || p.badges.length > 0) && (
+        {(note || p.stockFrozen || (p.lowStock && !out) || p.badges.length > 0) && (
           <span className="flex flex-wrap gap-1.5">
-            {p.lowStock && !out && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-danger">Low stock</span>}
+            {p.stockFrozen && <span className="rounded-md bg-brand-soft px-2 py-0.5 text-[12.5px] font-bold">Frozen</span>}
+            {p.lowStock && !out && !p.stockFrozen && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-danger">Low stock</span>}
             {note && <span className="rounded-md bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-2 py-0.5 text-[12.5px] font-bold text-warning">{note}</span>}
             {p.badges.map((b) => <span key={b} className="rounded-md bg-brand-soft px-2 py-0.5 text-[12.5px] font-bold">{b}</span>)}
           </span>
@@ -53,7 +54,7 @@ export function ProductTile({ p, sym, note, onAdd, onInfo }: {
         {facts.length > 0 && <span className="relative line-clamp-2 text-[12.5px] font-medium text-muted-foreground">{facts.join(' · ')}</span>}
         <span className="relative mt-auto flex flex-col">
           <span className="whitespace-nowrap font-display text-[22px] font-bold leading-tight tabular-nums">{money(sym, p.sellingPrice)}</span>
-          <span className="text-[13px] text-faint">{p.isService ? 'service' : `${qtyText(p.stockQty)} ${p.unitAbbr} left`}</span>
+          <span className="text-[13px] text-faint">{p.isService ? 'service' : p.stockFrozen ? 'stock frozen' : `${qtyText(p.stockQty)} ${p.unitAbbr} left`}</span>
         </span>
       </motion.button>
       <button type="button" aria-label={`About ${p.name}`} onClick={onInfo}

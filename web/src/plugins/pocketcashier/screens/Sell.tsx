@@ -118,8 +118,8 @@ export function Sell({ copy, cart, dispatch, live }: { copy: TillCopy; cart: Til
                 <span className="min-w-0">
                   <span className="block truncate text-[13.5px] font-bold">{p.name}</span>
                   {!p.isService && (
-                    <span className={cn('block text-[11.5px] text-muted-foreground', p.lowStock && 'font-semibold text-warning')}>
-                      Stock {live ? qtyText(stock) : `~${qtyText(stock)} (copy)`}{p.lowStock ? ' · low' : ''}
+                    <span className={cn('block text-[11.5px] text-muted-foreground', p.lowStock && !p.stockFrozen && 'font-semibold text-warning')}>
+                      {p.stockFrozen ? 'Stock frozen' : <>Stock {live ? qtyText(stock) : `~${qtyText(stock)} (copy)`}{p.lowStock ? ' · low' : ''}</>}
                     </span>
                   )}
                 </span>

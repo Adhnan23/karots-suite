@@ -4,7 +4,7 @@ import { addProduct, lotExpired, lotsFor, serviceLine, setQty, swapProduct, unit
 
 const prod = (p: Partial<TillProduct> = {}): TillProduct => ({
   id: 7, name: 'Soap', nameLocal: '', barcode: '', sellingPrice: '100.00', wholesalePrice: '90.00', taxRate: '0',
-  stockQty: '10', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, trackSerial: false,
+  stockQty: '10', unitAbbr: 'pcs', unitAllowDecimal: false, isService: false, stockFrozen: false, trackSerial: false,
   warrantyMonths: 0, lowStock: false, emoji: '', badges: [], packs: [], ...p,
 })
 const lot = (batchId: number, price: string, qty: string, expiryDate = ''): Lot => ({
@@ -115,5 +115,26 @@ describe('swapping a line', () => {
     expect(swapProduct(grouped, grouped[0].key, prod({ id: 8 }), 'retail')).toBe(grouped)
     const svc = [serviceLine(1, { productId: 5, name: 'Fix', price: 50 })]
     expect(swapProduct(svc, 1, prod({ id: 8 }), 'retail')).toBe(svc)
+  })
+})
+
+describe('stock freeze', () => {
+  it('a frozen product never asks about stock; an unfrozen one still does', () => {
+    const frozen = addProduct([], 0, prod({ stockQty: '0', stockFrozen: true }), 'retail', undefined, [])
+    expect(frozen.lines[0]).toMatchObject({ frozen: true, allowOversell: false })
+    expect(frozen.lines[0].stock).toBeGreaterThan(1e9)
+    const more = setQty(frozen.lines, frozen.seq, frozen.key, 50, [])
+    expect(more.lines[0].stock).toBeGreaterThan(more.lines[0].qty)
+    const counted = addProduct([], 0, prod({ stockQty: '0' }), 'retail', undefined, [])
+    expect(counted.lines[0].frozen).toBeFalsy()
+    expect(counted.lines[0].stock).toBe(0)
+  })
+  it('a frozen line on a picked lot keeps its qty: no split, no "only N left"', () => {
+    const lots = [lot(1, '100', '2'), lot(2, '120', '5')]
+    const r = addProduct([], 0, prod({ stockFrozen: true }), 'retail', lots[0], lots)
+    const out = setQty(r.lines, r.seq, r.key, 4, lots)
+    expect(out.lines).toHaveLength(1)
+    expect(out.lines[0]).toMatchObject({ qty: 4, unitPrice: 100, batchId: 1 })
+    expect(out.notice).toBeNull()
   })
 })
