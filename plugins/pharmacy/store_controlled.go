@@ -206,3 +206,17 @@ func (s *Store) RegisterFor(ctx context.Context, productID int64, from *time.Tim
 		FROM pharmacy_cd_ledger WHERE product_id = $1 ORDER BY entry_at, id`, productID)
 	return r, err
 }
+
+// freezeRefusals: controlled drugs can't be frozen (their register keeps a
+// running balance, so they're counted in full on day one).
+func (s *Store) freezeRefusals(ctx context.Context, ids []int64) (map[int64]string, error) {
+	var hit []int64
+	if err := s.db.SelectContext(ctx, &hit, `SELECT product_id FROM pharmacy_controlled_products WHERE product_id = ANY($1)`, pq.Array(ids)); err != nil {
+		return nil, err
+	}
+	out := make(map[int64]string, len(hit))
+	for _, id := range hit {
+		out[id] = "a controlled drug: count it in full"
+	}
+	return out, nil
+}

@@ -288,3 +288,29 @@ func ProductAttributeSets() []ProductAttributeSet             { return productAt
 func ProductGroupers() []ProductGrouper                       { return productGroupers.all() }
 func ProductTillLineProviders() []ProductTillLineProvider     { return productTillLines.all() }
 func ProductReorderAnnotators() []ProductReorderAnnotator     { return productReorderAnnotators.all() }
+
+// FreezeGuard lets a plugin refuse a stock freeze for products it must keep
+// counted (the pharmacy's controlled drugs keep a running register balance).
+// Refuse returns a reason per refused product id, shown to the person freezing.
+type FreezeGuard struct {
+	Refuse func(ctx context.Context, productIDs []int64) (map[int64]string, error)
+}
+
+var freezeGuards hook[FreezeGuard]
+
+func (r *Registry) AddFreezeGuard(g FreezeGuard) { freezeGuards.add(g) }
+
+// FreezeRefusals merges every plugin's refusals for these products.
+func FreezeRefusals(ctx context.Context, ids []int64) (map[int64]string, error) {
+	out := map[int64]string{}
+	for _, g := range freezeGuards.all() {
+		got, err := g.Refuse(ctx, ids)
+		if err != nil {
+			return nil, err
+		}
+		for id, why := range got {
+			out[id] = why
+		}
+	}
+	return out, nil
+}
