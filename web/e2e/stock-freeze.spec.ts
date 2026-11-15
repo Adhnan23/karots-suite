@@ -64,7 +64,7 @@ test('the pencil day: freeze, sell, open a box, shelf write-off, unfreeze', asyn
   await row.getByRole('button', { name: 'Freeze' }).click()
   await expect(row.getByText('frozen')).toBeVisible()
 
-  await login(page, '0770000002')
+  await login(page, '0770000003') // the manager's till: till.spec expects the cashier's closed
   await ensureOpen(page)
   await scanQty(page, p, '4')
   await expect(cart(page).getByRole('button', { name: `Unfreeze ${p.name}` })).toBeVisible()
@@ -112,7 +112,7 @@ test('unfreeze in the middle of a sale: the cart stays', async ({ page }) => {
   await login(page, '0770000001', '/admin')
   const p = await pencil(page, 'mid')
   expect((await page.request.post('/api/v1/admin/stock/freeze', { data: { productIds: [p.id] } })).ok()).toBe(true)
-  await login(page, '0770000002')
+  await login(page, '0770000003') // the manager's till: till.spec expects the cashier's closed
   await ensureOpen(page)
   await page.locator('#till-search').fill('4790000000011')
   await page.keyboard.press('Enter')
