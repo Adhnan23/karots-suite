@@ -75,7 +75,7 @@ func (s *Service) ReorderNeeds(ctx context.Context, categoryID *int64) ([]Reorde
 		FROM products p
 		JOIN categories c ON c.id = p.category_id
 		LEFT JOIN stock st ON st.product_id = p.id
-		WHERE p.is_active AND NOT p.is_service AND NOT p.pass_through
+		WHERE p.is_active AND NOT p.is_service AND NOT p.pass_through AND NOT p.stock_frozen
 		  AND p.reorder_level > 0 AND COALESCE(st.quantity,0) <= p.reorder_level
 		  AND ($1::bigint IS NULL OR p.category_id IN (SELECT id FROM sub))
 		ORDER BY c.name, p.name`, categoryID); err != nil {

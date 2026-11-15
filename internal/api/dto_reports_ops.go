@@ -40,6 +40,7 @@ type InventoryReport struct {
 	MarginPct   string          `json:"marginPct"`
 	MissingCost int             `json:"missingCost"`
 	NegativeQty int             `json:"negativeQty"`
+	Frozen      int             `json:"frozen"` // stock-frozen products: counted stock only
 	Breadcrumb  []Crumb         `json:"breadcrumb"`
 	Children    []InventoryNode `json:"children"`
 }

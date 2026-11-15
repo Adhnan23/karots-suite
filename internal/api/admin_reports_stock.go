@@ -62,7 +62,7 @@ func (h *handlers) ReportInventory(c echo.Context) error {
 		return err
 	}
 	out := InventoryReport{SKUs: v.SKUs, InStock: v.InStock, Units: []UnitAmount{}, CostValue: dec2(v.CostValue), RetailValue: dec2(v.RetailValue),
-		Margin: dec2(v.Margin()), MarginPct: v.MarginPct().StringFixed(1), MissingCost: v.MissingCost, NegativeQty: v.NegativeQty,
+		Margin: dec2(v.Margin()), MarginPct: v.MarginPct().StringFixed(1), MissingCost: v.MissingCost, NegativeQty: v.NegativeQty, Frozen: v.Frozen,
 		Breadcrumb: []Crumb{}, Children: make([]InventoryNode, 0, len(v.Children))}
 	for _, u := range v.Units {
 		out.Units = append(out.Units, UnitAmount{Unit: u.Abbr, Qty: u.Qty.String()})

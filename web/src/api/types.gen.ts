@@ -2725,6 +2725,7 @@ export interface InventoryReport {
   marginPct: string;
   missingCost: number /* int */;
   negativeQty: number /* int */;
+  frozen: number /* int */; // stock-frozen products: counted stock only
   breadcrumb: Crumb[];
   children: InventoryNode[];
 }

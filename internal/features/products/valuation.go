@@ -78,6 +78,7 @@ type Valuation struct {
 	RetailValue decimal.Decimal
 	MissingCost int
 	NegativeQty int
+	Frozen      int // stock frozen: counted stock only (the front shelf isn't)
 	Children    []ValuationNode
 	Breadcrumb  []Crumb
 }
@@ -197,6 +198,7 @@ func (r *Repository) ValuationBranch(ctx context.Context, categoryID *int64) (Va
 		RetailValue decimal.Decimal `db:"retail_value"`
 		MissingCost int             `db:"missing_cost"`
 		NegativeQty int             `db:"negative_qty"`
+		Frozen      int             `db:"frozen"`
 	}
 	err := r.db.SelectContext(ctx, &rows, branchCTE+`
 		SELECT COALESCE(u.abbreviation, '')                           AS unit_abbr,
@@ -206,7 +208,8 @@ func (r *Repository) ValuationBranch(ctx context.Context, categoryID *int64) (Va
 		       `+costValueSQL+`                                      AS cost_value,
 		       `+retailValueSQL+`                                    AS retail_value,
 		       `+missingCostSQL+`                                    AS missing_cost,
-		       count(p.id) FILTER (WHERE COALESCE(st.quantity,0) < 0) AS negative_qty
+		       count(p.id) FILTER (WHERE COALESCE(st.quantity,0) < 0) AS negative_qty,
+		       count(p.id) FILTER (WHERE p.stock_frozen)              AS frozen
 		FROM sub s
 		LEFT JOIN products p ON p.category_id = s.id AND p.is_active AND NOT p.is_service
 		LEFT JOIN units u    ON u.id = p.unit_id
@@ -221,6 +224,7 @@ func (r *Repository) ValuationBranch(ctx context.Context, categoryID *int64) (Va
 		v.InStock += row.InStock
 		v.MissingCost += row.MissingCost
 		v.NegativeQty += row.NegativeQty
+		v.Frozen += row.Frozen
 		v.CostValue = v.CostValue.Add(row.CostValue)
 		v.RetailValue = v.RetailValue.Add(row.RetailValue)
 		if row.UnitAbbr != "" && row.Units.IsPositive() {

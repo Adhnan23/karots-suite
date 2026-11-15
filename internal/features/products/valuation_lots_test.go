@@ -179,3 +179,23 @@ func TestValuationResolvesTheLotPriceSentinel(t *testing.T) {
 		t.Errorf("retail value %s, want 450 — a sentinel lot follows the product's price", v.RetailValue)
 	}
 }
+
+// Stock value says how many frozen products it counts only the back of.
+func TestValuationCountsFrozen(t *testing.T) {
+	conn := valuationDB(t)
+	defer conn.Close()
+	ctx := context.Background()
+	tx, err := conn.BeginTxx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+	categoryID, productID := pricedStock(t, ctx, tx)
+	if _, err := tx.ExecContext(ctx, `UPDATE products SET stock_frozen = true WHERE id = $1`, productID); err != nil {
+		t.Fatal(err)
+	}
+	v, err := (&Repository{db: tx}).ValuationBranch(ctx, &categoryID)
+	if err != nil || v.Frozen != 1 {
+		t.Fatalf("frozen %d, %v", v.Frozen, err)
+	}
+}

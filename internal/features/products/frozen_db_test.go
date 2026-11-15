@@ -57,3 +57,34 @@ func TestNewProductStartsFrozenWhenShopFrozen(t *testing.T) {
 		t.Fatal("service started frozen")
 	}
 }
+
+// A frozen product's count is only the back: it's never "running low".
+func TestFrozenIsNeverLowStock(t *testing.T) {
+	conn, a, _ := barcodeFixture(t)
+	ctx := context.Background()
+	_, err := conn.ExecContext(ctx, `UPDATE products SET reorder_level = 5, reorder_auto = false WHERE id = $1`, a)
+	must(t, err)
+	listed := func() bool {
+		rows, _, err := NewService(conn).List(ctx, ListQuery{LowStock: true, Search: "TEST bc Coke", Limit: 50})
+		must(t, err)
+		for _, p := range rows {
+			if p.ID == a {
+				return p.IsLowStock()
+			}
+		}
+		return false
+	}
+	if !listed() {
+		t.Fatal("an unfrozen product at 0 isn't low")
+	}
+	_, err = conn.ExecContext(ctx, `UPDATE products SET stock_frozen = true WHERE id = $1`, a)
+	must(t, err)
+	if listed() {
+		t.Fatal("a frozen product is listed as low")
+	}
+	p, err := NewService(conn).Get(ctx, a)
+	must(t, err)
+	if p.IsLowStock() {
+		t.Fatal("IsLowStock on a frozen product")
+	}
+}

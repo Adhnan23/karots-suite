@@ -68,7 +68,8 @@ type Product struct {
 
 // IsLowStock reports whether on-hand quantity is at or below the reorder level.
 func (p Product) IsLowStock() bool {
-	return p.StockQty.LessThanOrEqual(decimal.NewFromInt(int64(p.ReorderLevel)))
+	// A frozen product's count is only the back (the front shelf isn't counted).
+	return !p.StockFrozen && p.StockQty.LessThanOrEqual(decimal.NewFromInt(int64(p.ReorderLevel)))
 }
 
 type CreateInput struct {
@@ -218,7 +219,7 @@ func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 		WHERE (p.is_active = true OR $9) AND p.merged_into_id IS NULL AND (p.is_service = false OR $8)
 		  AND (`+searchClause+` OR p.id = ANY($11::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
-		  AND ($5 = false OR COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[]))
+		  AND ($5 = false OR NOT p.stock_frozen AND (COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[])))
 		  AND ($10::bigint IS NULL OR p.preferred_supplier_id = $10)
 		  AND ($13 = false OR NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = p.id AND pc.is_active))
 		  AND ($14 = false OR (NOT p.reorder_auto AND p.reorder_calc IS NOT NULL))
@@ -253,7 +254,7 @@ func (r *Repository) FrequentProducts(ctx context.Context, since time.Time, limi
 		LEFT JOIN stock st ON st.product_id = p.id
 		WHERE s.status <> 'void' AND s.created_at >= $1
 		  AND p.is_active AND NOT p.is_service AND NOT p.pass_through
-		  AND COALESCE(st.quantity, 0) > 0
+		  AND (COALESCE(st.quantity, 0) > 0 OR p.stock_frozen)
 		GROUP BY si.product_id
 		HAVING SUM(si.quantity - si.returned_qty) > 0
 		ORDER BY SUM(si.quantity - si.returned_qty) DESC, MAX(s.created_at) DESC

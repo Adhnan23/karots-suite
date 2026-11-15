@@ -47,6 +47,7 @@ type Item struct {
 	Active         bool            `db:"is_active"`
 	IsService      bool            `db:"is_service"`
 	Stock          decimal.Decimal `db:"stock"`
+	Frozen         bool            `db:"stock_frozen"` // sells from the uncounted shelf: no stock warning
 }
 
 // Problems is why the combo can't be added at the till ("" = it can).
@@ -67,7 +68,7 @@ func (c Combo) Problems() string {
 func (c Combo) Warnings() []string {
 	var out []string
 	for _, it := range c.Items {
-		if it.Active && !it.IsService && it.Stock.LessThan(it.Qty) {
+		if it.Active && !it.IsService && !it.Frozen && it.Stock.LessThan(it.Qty) {
 			out = append(out, it.Name+": "+it.Stock.String()+" in stock")
 		}
 	}
@@ -125,7 +126,7 @@ func (s *Store) loadItems(ctx context.Context, cs []Combo) error {
 	}
 	q, args, err := sqlx.In(`
 		SELECT ci.combo_id, ci.product_id, ci.qty, p.name, p.selling_price, p.wholesale_price,
-		       p.is_active, p.is_service, COALESCE(st.quantity, 0) AS stock
+		       p.is_active, p.is_service, p.stock_frozen, COALESCE(st.quantity, 0) AS stock
 		FROM combo_items ci
 		JOIN products p ON p.id = ci.product_id
 		LEFT JOIN stock st ON st.product_id = p.id
