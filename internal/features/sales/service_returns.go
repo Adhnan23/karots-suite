@@ -221,6 +221,20 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 				}
 				continue
 			}
+			// Stock freeze: goods back on the (uncounted) shelf don't go into stock.
+			// The product's state now decides, not the sale's. Damaged ones still
+			// come in and go out below, so they reach the damaged list.
+			damaged := strings.EqualFold(strings.TrimSpace(ln.Disposition), "damage")
+			frozen, err := stkRepo.Frozen(ctx, it.ProductID)
+			if err != nil {
+				return apperr.Internal("failed to read stock", err)
+			}
+			if frozen && !damaged {
+				if err := saleRepo.InsertSaleReturnItem(ctx, returnID, it.ID, it.ProductID, qty, lineRefund); err != nil {
+					return apperr.Internal("failed to record return line", err)
+				}
+				continue
+			}
 			if err := stkRepo.Increment(ctx, it.ProductID, qty); err != nil {
 				return apperr.Internal("failed to restock", err)
 			}
@@ -253,7 +267,7 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			// path as the Damage screen — a damage movement valued at FEFO cost.
 			// Net sellable stock is unchanged and BOTH the returns and the
 			// damage/loss reports stay accurate. The refund is unaffected.
-			if strings.EqualFold(strings.TrimSpace(ln.Disposition), "damage") {
+			if damaged {
 				ok, err := stkRepo.DecrementGuarded(ctx, it.ProductID, qty)
 				if err != nil {
 					return apperr.Internal("failed to write off damaged return", err)

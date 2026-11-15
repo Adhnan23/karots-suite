@@ -211,6 +211,7 @@ type WriteOffRequest struct {
 	Quantity  string `json:"quantity"`
 	Note      string `json:"note"`
 	Reason    string `json:"reason"` // damage (default) | own_use | staff — decides the P&L line
+	FromShelf bool   `json:"fromShelf"` // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 
 // SlipPreview is a slip as the paper shows it: any slip print endpoint answers

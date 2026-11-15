@@ -123,7 +123,7 @@ func (h *handlers) TillWriteOff(c echo.Context) error {
 	if req.Reason == "" {
 		req.Reason = "damage"
 	}
-	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: req.Quantity, Reason: req.Reason, Note: req.Note, BatchID: req.BatchID}
+	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: req.Quantity, Reason: req.Reason, Note: req.Note, BatchID: req.BatchID, FromShelf: req.FromShelf}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}

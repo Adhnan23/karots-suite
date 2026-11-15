@@ -148,24 +148,16 @@ func (s *Service) RecordReceiptReplacement(ctx context.Context, saleID, productI
 		}
 
 		// 3. Ship one from stock as a warranty cost (not a sale).
-		one := decimal.NewFromInt(1)
-		ok, err := stk.DecrementGuarded(ctx, productID, one)
+		out, cost, err := shipOne(ctx, stk, productID)
 		if err != nil {
-			return apperr.Internal("failed to update stock", err)
-		}
-		if !ok {
-			return apperr.Conflict("no stock available to issue a replacement")
-		}
-		cost, err := stk.DepleteFEFO(ctx, productID, one)
-		if err != nil {
-			return apperr.Internal("failed to deplete batch", err)
+			return err
 		}
 		refType := "warranty"
 		note := "warranty replacement (by receipt)"
 		if err := stk.InsertMovement(ctx, stock.MovementInput{
 			ProductID:     productID,
 			Type:          stock.MoveWarranty,
-			Quantity:      one.Neg(),
+			Quantity:      out,
 			ReferenceID:   &claimID,
 			ReferenceType: &refType,
 			UserID:        userID,
@@ -294,24 +286,16 @@ func (s *Service) RecordReplacement(ctx context.Context, unitID int64, newSerial
 		}
 
 		// 4. Ship the new unit out of stock (a warranty cost, not a sale).
-		one := decimal.NewFromInt(1)
-		ok, err := stk.DecrementGuarded(ctx, old.ProductID, one)
+		out, cost, err := shipOne(ctx, stk, old.ProductID)
 		if err != nil {
-			return apperr.Internal("failed to update stock", err)
-		}
-		if !ok {
-			return apperr.Conflict("no stock available to issue a replacement")
-		}
-		cost, err := stk.DepleteFEFO(ctx, old.ProductID, one)
-		if err != nil {
-			return apperr.Internal("failed to deplete batch", err)
+			return err
 		}
 		refType := "warranty"
 		note := "warranty replacement: " + newSerial
 		if err := stk.InsertMovement(ctx, stock.MovementInput{
 			ProductID:     old.ProductID,
 			Type:          stock.MoveWarranty,
-			Quantity:      one.Neg(),
+			Quantity:      out,
 			ReferenceID:   &claimID,
 			ReferenceType: &refType,
 			UserID:        userID,
@@ -332,4 +316,34 @@ func (s *Service) RecordReplacement(ctx context.Context, unitID int64, newSerial
 		return nil, 0, err
 	}
 	return result, resultClaimID, nil
+}
+
+// shipOne takes the replacement unit from stock: -1 and its FEFO cost. A frozen
+// product's unit comes off the uncounted shelf: stock untouched (quantity 0), the
+// cost price still booked as the warranty cost.
+func shipOne(ctx context.Context, stk *stock.Repository, productID int64) (decimal.Decimal, decimal.Decimal, error) {
+	one := decimal.NewFromInt(1)
+	frozen, err := stk.Frozen(ctx, productID)
+	if err != nil {
+		return one, decimal.Zero, apperr.Internal("failed to read stock", err)
+	}
+	if frozen {
+		cost, err := stk.ProductCost(ctx, productID)
+		if err != nil {
+			return one, decimal.Zero, apperr.Internal("failed to read cost", err)
+		}
+		return decimal.Zero, cost, nil
+	}
+	ok, err := stk.DecrementGuarded(ctx, productID, one)
+	if err != nil {
+		return one, decimal.Zero, apperr.Internal("failed to update stock", err)
+	}
+	if !ok {
+		return one, decimal.Zero, apperr.Conflict("no stock available to issue a replacement")
+	}
+	cost, err := stk.DepleteFEFO(ctx, productID, one)
+	if err != nil {
+		return one, decimal.Zero, apperr.Internal("failed to deplete batch", err)
+	}
+	return one.Neg(), cost, nil
 }

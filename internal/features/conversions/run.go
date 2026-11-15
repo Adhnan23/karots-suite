@@ -75,19 +75,33 @@ func RunTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty 
 		return apperr.Internal("failed to record source movement", err)
 	}
 
-	// One destination batch per bag opened, carrying that bag's value.
-	if err := stk.Increment(ctx, cv.ToProductID, toQty); err != nil {
-		return apperr.Internal("failed to update destination stock", err)
+	// A frozen destination's front shelf isn't counted: what was opened goes
+	// there, not into stock. Its movement records it with quantity 0.
+	frozen, err := stk.Frozen(ctx, cv.ToProductID)
+	if err != nil {
+		return apperr.Internal("failed to read destination stock", err)
 	}
-	for _, b := range splitYield(lots, fromQty, toQty) {
-		b.ProductID = cv.ToProductID
-		if _, err := stk.InsertBatch(ctx, b); err != nil {
-			return apperr.Internal("failed to open destination batch", err)
+	inQty := toQty
+	var note *string
+	if frozen {
+		inQty = decimal.Zero
+		n := toQty.String() + " to the shelf (frozen)"
+		note = &n
+	} else {
+		// One destination batch per bag opened, carrying that bag's value.
+		if err := stk.Increment(ctx, cv.ToProductID, toQty); err != nil {
+			return apperr.Internal("failed to update destination stock", err)
+		}
+		for _, b := range splitYield(lots, fromQty, toQty) {
+			b.ProductID = cv.ToProductID
+			if _, err := stk.InsertBatch(ctx, b); err != nil {
+				return apperr.Internal("failed to open destination batch", err)
+			}
 		}
 	}
 	if err := stk.InsertMovement(ctx, stock.MovementInput{
-		ProductID: cv.ToProductID, Type: stock.MoveConversion, Quantity: toQty,
-		ReferenceID: &cid, ReferenceType: &refOut, UserID: userID,
+		ProductID: cv.ToProductID, Type: stock.MoveConversion, Quantity: inQty,
+		ReferenceID: &cid, ReferenceType: &refOut, UserID: userID, Note: note,
 	}); err != nil {
 		return apperr.Internal("failed to record destination movement", err)
 	}

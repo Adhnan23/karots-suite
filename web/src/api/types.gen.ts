@@ -3637,6 +3637,7 @@ export interface ConsumeRequest {
   reason: string;
   note: string;
   batchId: number /* int64 */;
+  fromShelf: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 /**
  * ConsumeResult answers a removal: LossID is the damage it booked (0 for shop
@@ -4017,6 +4018,7 @@ export interface WriteOffRequest {
   quantity: string;
   note: string;
   reason: string; // damage (default) | own_use | staff — decides the P&L line
+  fromShelf: boolean; // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 /**
  * SlipPreview is a slip as the paper shows it: any slip print endpoint answers

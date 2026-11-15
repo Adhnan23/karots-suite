@@ -130,7 +130,7 @@ func (h *handlers) AdminStockConsume(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: strings.TrimSpace(req.Quantity), Reason: req.Reason, Note: strings.TrimSpace(req.Note), BatchID: req.BatchID}
+	in := stock.ConsumeInput{ProductID: req.ProductID, Quantity: strings.TrimSpace(req.Quantity), Reason: req.Reason, Note: strings.TrimSpace(req.Note), BatchID: req.BatchID, FromShelf: req.FromShelf}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}

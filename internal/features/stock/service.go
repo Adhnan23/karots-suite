@@ -155,6 +155,10 @@ type ConsumeInput struct {
 	// what the shop is left holding, so guessing shows up in both the P&L and the
 	// price the till offers.
 	BatchID int64 `json:"batch_id" form:"batch_id"`
+	// FromShelf: a frozen product's item came off the uncounted front shelf, so it
+	// is added as an extra first (found-at-till) and then written off: stock
+	// unchanged, the write-off still on the list with its cost. Ignored unless frozen.
+	FromShelf bool `json:"from_shelf" form:"from_shelf"`
 }
 
 // consumeReasons maps a UI reason to its movement type. Anything not listed is
@@ -214,6 +218,21 @@ func consumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) 
 		return 0, apperr.Validation("quantity must be greater than zero")
 	}
 	repo := NewRepository(tx)
+	if in.FromShelf {
+		frozen, err := repo.Frozen(ctx, in.ProductID)
+		if err != nil {
+			return 0, apperr.Internal("failed to read stock", err)
+		}
+		if frozen {
+			cost, err := repo.ProductCost(ctx, in.ProductID)
+			if err != nil {
+				return 0, apperr.Internal("failed to read cost", err)
+			}
+			if err := repo.FoundAtTill(ctx, in.ProductID, in.BatchID, qty, cost, userID); err != nil {
+				return 0, apperr.Internal("failed to add the shelf item", err)
+			}
+		}
+	}
 	ok, err = repo.DecrementGuarded(ctx, in.ProductID, qty)
 	if err != nil {
 		return 0, apperr.Internal("failed to update stock", err)
