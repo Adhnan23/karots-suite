@@ -8,7 +8,7 @@ const KEYS: [string, string][] = [
   ['F1', 'Menu'], ['F2', 'Search'], ['F4', 'Hold'], ['F10', 'Pay'], ['F6', 'Quantity'], ['F7', 'Line discount'],
   ['F5', 'Held sales'], ['F8', 'Customer'], ['F9', 'Bill discount'], ['F12', 'New sale'],
   ['↑ ↓', 'Pick a product, line, customer or held sale'], ['F10 again', 'Next payment method'],
-  ['Delete', 'Remove the line (in its quantity)'], ['%', 'Percent (in a discount)'],
+  ['Delete', 'Remove the line (in its quantity)'], ['/', 'Amount ⇄ percent (in a discount)'],
   ['Enter', 'Add / complete the sale'], ['Esc', 'Close a dialog'], ['Ctrl K', 'Jump to a tab'],
 ]
 const readPinned = () => {

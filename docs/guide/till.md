@@ -38,7 +38,8 @@ The whole Sell page works without a mouse: a scanner and the keyboard are enough
 | **F6** | Quantity of the line just added: type it, **Enter** goes back to search. **↑ ↓** move to other lines; **Delete** removes the line |
 | **F7** | Discount on the line just added: type an amount, or add **%** for a percentage; **↑ ↓** move to other lines; **Enter** goes back |
 | **F8** | Customer: type a name or phone, **↑ ↓**, **Enter** picks |
-| **F9** | Bill discount |
+| **F9** | Bill discount; **Enter** goes back to search |
+| **/** (in a discount) | Switch between an amount (Rs) and a percentage, for a line or the bill |
 | **F10** | Go to the amount; **F10 again** switches to the next payment method; **Enter** adds it, or completes the sale when the box is empty |
 | **F12** | New sale (asks first if the cart has items) |
 | **Ctrl K** | Every other button on the page and every tab: type a few letters, **↑ ↓**, **Enter** (Deposit, Withdraw, Quick item, Wholesale prices, a product group, Close the till…) |

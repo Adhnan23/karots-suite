@@ -3,6 +3,7 @@ import { money } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { configQuery } from '../api'
 import { Kbd, Seg } from '../bits'
+import { flipped, flipsDiscount } from '../hotkeys'
 import { billDiscount, goodsSubtotal, itemDiscountTotal, payoutTotal, saleTotal, taxTotal } from '../cart/totals'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
@@ -25,7 +26,19 @@ export function Summary() {
         <span className="flex items-center gap-1.5">
           Bill discount
           <input id="till-bill-discount" aria-label="Bill discount" inputMode="decimal" placeholder="0" autoComplete="off" value={state.billDiscount}
-            onChange={(e) => dispatch({ type: 'billDiscount', value: e.target.value.replace(/[^\d.]/g, '') })}
+            onChange={(e) => {
+              const v = e.target.value
+              dispatch({ type: 'billDiscount', value: v.replace(/[^\d.]/g, ''), ...(v.includes('%') ? { discountType: 'percent' as const } : {}) })
+            }}
+            onKeyDown={(e) => {
+              if (flipsDiscount(e.key)) { // / : amount ⇄ percent
+                e.preventDefault()
+                dispatch({ type: 'billDiscount', discountType: flipped(state.billDiscountType) })
+              } else if (e.key === 'Enter') {
+                e.preventDefault()
+                document.getElementById('till-search')?.focus()
+              }
+            }}
             className={cn(FIELD, 'h-7 w-16 px-2 text-right text-[13px] tabular-nums')} />
           <Seg label="Bill discount type" value={state.billDiscountType} options={[['fixed', sym], ['percent', '%']]}
             onChange={(v) => dispatch({ type: 'billDiscount', discountType: v })} />

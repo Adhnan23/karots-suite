@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { hotkeyFor } from './hotkeys'
+import { flipped, flipsDiscount, hotkeyFor } from './hotkeys'
 
 describe('till hotkeys', () => {
+  it('/ flips a discount between amount and percent', () => {
+    expect(flipsDiscount('/')).toBe(true)
+    expect(flipsDiscount('5')).toBe(false)
+    expect(flipped('fixed')).toBe('percent')
+    expect(flipped('percent')).toBe('fixed')
+  })
   const idle = { dialogOpen: false, saleDone: false }
   it('maps the till keys', () => {
     expect(hotkeyFor('F1', idle)).toBe('reset')

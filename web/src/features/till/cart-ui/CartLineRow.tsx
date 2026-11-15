@@ -12,6 +12,7 @@ import { lotsFor } from '../cart/lines'
 import { lineDiscount, lineGross } from '../cart/totals'
 import type { CartLine } from '../cart/types'
 import { useTillApi } from '../TillUi'
+import { flipped, flipsDiscount } from '../hotkeys'
 import { PackChips } from './PackChips'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
@@ -40,6 +41,10 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
           set(v.replace(/[^\d.]/g, ''), v.includes('%') ? 'percent' : /[^\d.%]/.test(v) ? 'fixed' : line.discountType)
         }}
         onKeyDown={(e) => {
+          if (flipsDiscount(e.key)) {
+            e.preventDefault()
+            return set(line.discount, flipped(line.discountType))
+          }
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             // ↑ ↓: the line above / below opens its discount (as F6 moves between quantities).
             e.preventDefault()

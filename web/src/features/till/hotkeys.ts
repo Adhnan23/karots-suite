@@ -33,3 +33,7 @@ export function hotkeyFor(key: string, ctx: { dialogOpen: boolean; saleDone: boo
   }
   return null
 }
+
+/** In a discount box (a line's or the bill's): / switches between the amount and a percentage. */
+export const flipsDiscount = (key: string) => key === '/'
+export const flipped = (t: 'fixed' | 'percent') => (t === 'percent' ? 'fixed' : 'percent')
