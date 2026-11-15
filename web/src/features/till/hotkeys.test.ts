@@ -8,7 +8,11 @@ describe('till hotkeys', () => {
     expect(hotkeyFor('F2', idle)).toBe('search')
     expect(hotkeyFor('F3', idle)).toBe('search')
     expect(hotkeyFor('F4', idle)).toBe('hold')
+    expect(hotkeyFor('F5', idle)).toBe('held')
     expect(hotkeyFor('F6', idle)).toBe('qty')
+    expect(hotkeyFor('F7', idle)).toBe('lineDiscount')
+    expect(hotkeyFor('F8', idle)).toBe('customer')
+    expect(hotkeyFor('F12', idle)).toBe('clear')
     expect(hotkeyFor('F9', idle)).toBe('discount')
     expect(hotkeyFor('F10', idle)).toBe('pay')
     expect(hotkeyFor('Escape', idle)).toBe('blur')
@@ -17,7 +21,7 @@ describe('till hotkeys', () => {
   it('hold/pay/escape defer to an open dialog; Enter starts the next sale after completion', () => {
     const dlg = { dialogOpen: true, saleDone: false }
     expect(hotkeyFor('F4', dlg)).toBeNull()
-    expect(hotkeyFor('F6', dlg)).toBeNull()
+    for (const k of ['F5', 'F6', 'F7', 'F8', 'F12']) expect(hotkeyFor(k, dlg)).toBeNull()
     expect(hotkeyFor('F10', dlg)).toBeNull()
     expect(hotkeyFor('Escape', dlg)).toBeNull()
     expect(hotkeyFor('Enter', { dialogOpen: false, saleDone: true })).toBe('newSale')

@@ -7,6 +7,7 @@ import type { Me, TillConfig } from '@/api/types.gen'
 import { TouchToggle } from './TouchToggle'
 import { ModeToggle } from './ModeToggle'
 import { CommandPalette } from './CommandPalette'
+import { pageActions } from './pageActions'
 import { TillKeys } from './TillKeys'
 import { TillTabs } from './TillTabs'
 import { tillTabList } from './tillTabList'
@@ -23,7 +24,7 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
   const navigate = useNavigate()
   const onSell = useRouterState({ select: (s) => s.location.pathname.replace(/\/$/, '') === '/till' })
   const [palette, setPalette] = useState(false)
-  // Ctrl/Cmd K: jump to any till tab.
+  // Ctrl/Cmd K: jump to any till tab, or run anything on the Sell page.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -84,7 +85,7 @@ export function TillShell({ me, config, status, children }: { me: Me; config: Ti
         </div>
       </header>
       <div className="relative flex-1 overflow-hidden">{children}</div>
-      <CommandPalette open={palette} onOpenChange={setPalette} entries={jumps} />
+      <CommandPalette open={palette} onOpenChange={setPalette} entries={palette ? [...pageActions.current, ...jumps] : jumps} />
     </div>
   )
 }

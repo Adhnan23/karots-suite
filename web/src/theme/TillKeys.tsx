@@ -5,8 +5,11 @@ import { Kbd } from '@/features/till/bits'
 
 const PIN_KEY = 'ks-till-keys-pinned'
 const KEYS: [string, string][] = [
-  ['F1', 'Menu'], ['F2', 'Search'], ['F4', 'Hold'], ['F6', 'Quantity'], ['F9', 'Discount'], ['F10', 'Pay'],
-  ['↑ ↓', 'Pick a product'], ['Enter', 'Complete the sale'], ['Esc', 'Close a dialog'], ['Ctrl K', 'Jump to a tab'],
+  ['F1', 'Menu'], ['F2', 'Search'], ['F4', 'Hold'], ['F10', 'Pay'], ['F6', 'Quantity'], ['F7', 'Line discount'],
+  ['F5', 'Held sales'], ['F8', 'Customer'], ['F9', 'Bill discount'], ['F12', 'New sale'],
+  ['↑ ↓', 'Pick a product, line, customer or held sale'], ['F10 again', 'Next payment method'],
+  ['Delete', 'Remove the line (in its quantity)'], ['%', 'Percent (in a discount)'],
+  ['Enter', 'Add / complete the sale'], ['Esc', 'Close a dialog'], ['Ctrl K', 'Jump to a tab'],
 ]
 const readPinned = () => {
   try { return localStorage.getItem(PIN_KEY) === '1' } catch { return false }
@@ -37,7 +40,7 @@ export function TillKeys() {
           <Keyboard size={16} />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 p-3">
+      <DropdownMenuContent align="end" className="w-80 p-3">
         <p className="mb-2 text-[12px] font-semibold text-muted-foreground">Keyboard shortcuts</p>
         <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-sm">
           {KEYS.map(([k, l]) => <div key={k} className="contents"><dt><Kbd>{k}</Kbd></dt><dd>{l}</dd></div>)}

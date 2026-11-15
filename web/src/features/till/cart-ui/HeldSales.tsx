@@ -47,16 +47,23 @@ export function HeldSales() {
           <DialogTitle>Held sales</DialogTitle>
           <DialogDescription>{held.length ? 'Resume one to finish it.' : 'Nothing is held.'}</DialogDescription>
         </DialogHeader>
-        <ul className="flex flex-col gap-2">
-          {held.map((h) => (
+        <ul className="flex flex-col gap-2" onKeyDown={(e) => {
+          // ↑ ↓ move between the Resume buttons; Enter resumes the focused one.
+          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+          e.preventDefault()
+          const all = [...e.currentTarget.querySelectorAll<HTMLButtonElement>('[data-resume]')]
+          const at = all.indexOf(document.activeElement as HTMLButtonElement)
+          all[Math.max(0, Math.min(all.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus()
+        }}>
+          {held.map((h, i) => (
             <li key={h.id} className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted p-3">
               <span className="flex-1">
                 <b>{h.label || 'Sale'}</b>
                 <small className="block text-muted-foreground">{h.itemCount} {h.itemCount === 1 ? 'line' : 'lines'} · {new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
               </span>
               <b className="tabular-nums">{money(cfg.symbol, h.total)}</b>
-              <Button size="sm" onClick={() => void resume(h)}>Resume</Button>
-              <button type="button" aria-label={`Remove held sale ${h.label}`} onClick={() => void remove(h.id)} className="text-faint hover:text-danger"><X size={16} /></button>
+              <Button size="sm" data-resume autoFocus={i === 0} onClick={() => void resume(h)}>Resume</Button>
+              <button type="button" tabIndex={-1} aria-label={`Remove held sale ${h.label}`} onClick={() => void remove(h.id)} className="text-faint hover:text-danger"><X size={16} /></button>
             </li>
           ))}
         </ul>

@@ -9,6 +9,7 @@ import { CatalogPanel } from './catalog/CatalogPanel'
 import { CartPanel } from './cart-ui/CartPanel'
 import { CheckoutProvider } from './checkout/CheckoutProvider'
 import { Hotkeys } from './checkout/Hotkeys'
+import { SellActions } from './checkout/SellActions'
 import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
@@ -94,6 +95,7 @@ export function TillScreen({ logout = false, drawer }: { logout?: boolean; drawe
           <TillDialogs />
           <Prompts />
           <Hotkeys />
+          <SellActions />
           <LogoutClose logout={logout} />
           <DrawerMoveFromBar drawer={drawer} />
           <StaleClose />

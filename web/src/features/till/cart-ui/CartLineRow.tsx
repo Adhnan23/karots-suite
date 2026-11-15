@@ -16,14 +16,14 @@ import { PackChips } from './PackChips'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
-function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
+function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: boolean }) {
   const { dispatch } = useTill()
   const [open, setOpen] = useState(false)
   const on = num(line.discount) > 0
   const set = (discount: string, discountType = line.discountType) => dispatch({ type: 'lineDiscount', key: line.key, discount, discountType })
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)}
+      <button id={last ? 'till-disc-last' : undefined} type="button" onClick={() => setOpen(true)}
         className={cn('flex h-7 items-center gap-1 rounded-pill border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
         <Tag size={14} />
@@ -34,8 +34,17 @@ function DiscountChip({ line, sym }: { line: CartLine; sym: string }) {
   return (
     <span className="flex items-center gap-1">
       <input autoFocus aria-label={`Discount for ${line.name}`} inputMode="decimal" autoComplete="off" value={line.discount}
-        onChange={(e) => set(e.target.value.replace(/[^\d.]/g, ''))}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === 'Escape') && setOpen(false)} className={cn(FIELD, 'h-7 w-16 px-2 text-[13px]')} />
+        onChange={(e) => {
+          const v = e.target.value
+          // Typing % makes it a percentage; typing a currency sign back makes it fixed.
+          set(v.replace(/[^\d.]/g, ''), v.includes('%') ? 'percent' : /[^\d.%]/.test(v) ? 'fixed' : line.discountType)
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== 'Escape') return
+          e.preventDefault()
+          setOpen(false)
+          document.getElementById('till-search')?.focus()
+        }} className={cn(FIELD, 'h-7 w-16 px-2 text-[13px]')} />
       <Seg label="Discount type" value={line.discountType} options={[['fixed', sym], ['percent', '%']]} onChange={(t) => set(line.discount, t)} />
       <button type="button" onClick={() => setOpen(false)} className="px-1 text-[12px] font-semibold text-muted-foreground">Done</button>
     </span>
@@ -66,6 +75,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
   const [text, setText] = useState(qtyText(line.qty))
   useEffect(() => setText(qtyText(line.qty)), [line.qty])
   const setQty = (qty: number) => dispatch({ type: 'setQty', key: line.key, qty, lots: lotsFor(opts, line.productId) })
+  const last = line.key === (state.lastAddedKey ?? state.lines.at(-1)?.key) // F6 / F7 act on it
   const gross = lineGross(line)
   const disc = lineDiscount(line)
   const expired = line.batchLabel.startsWith('exp ') && line.batchLabel.slice(4) < new Date().toLocaleDateString('en-CA')
@@ -79,10 +89,23 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
       ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
-        <input id={line.key === (state.lastAddedKey ?? state.lines.at(-1)?.key) ? 'till-qty-last' : undefined} // F6
+        <input id={last ? 'till-qty-last' : undefined} data-qty // F6; ↑ ↓ move between lines
           aria-label={`Quantity of ${line.name}`} inputMode="decimal" autoComplete="off" value={text}
           onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))} onBlur={() => setQty(num(text))}
           onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault()
+              const all = [...document.querySelectorAll<HTMLInputElement>('input[data-qty]')]
+              const next = all[all.indexOf(e.currentTarget) + (e.key === 'ArrowDown' ? 1 : -1)]
+              if (next) { e.currentTarget.blur(); next.focus(); next.select() }
+              return
+            }
+            if (e.key === 'Delete') { // removes the line; Backspace still edits the number
+              e.preventDefault()
+              dispatch({ type: 'remove', key: line.key })
+              document.getElementById('till-search')?.focus()
+              return
+            }
             if (e.key !== 'Enter') return
             e.currentTarget.blur() // sets the quantity
             document.getElementById('till-search')?.focus() // and back to scanning
@@ -113,7 +136,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         {line.frozen && <FrozenChip line={line} />}
         {line.allowOversell && <span className="font-semibold text-warning">{line.isService ? 'material count corrected' : 'found at till'}</span>}
         <PackChips line={line} sym={sym} onQty={setQty} />
-        {!line.payout && !line.noDiscount && <DiscountChip line={line} sym={sym} />}
+        {!line.payout && !line.noDiscount && <DiscountChip line={line} sym={sym} last={last} />}
         <button type="button" aria-label={`Remove ${line.name}`} onClick={() => dispatch({ type: 'remove', key: line.key })}
           className="ml-auto grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
       </div>

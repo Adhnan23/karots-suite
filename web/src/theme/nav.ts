@@ -101,7 +101,8 @@ export function whereIs(areas: NavArea[], path: string): { area: NavArea; page: 
 /** The dock's Apps tile (theme.md §6): whatever the compiled-in plugins registered. */
 export const apps: AppEntry[] = slots.apps
 
-export type PaletteEntry = { key: string; label: string; to: string; icon: LucideIcon }
+/** A Ctrl K line: a page to open (to) or, from the open page itself, an action to run. */
+export type PaletteEntry = { key: string; label: string; to?: string; run?: () => void; icon: LucideIcon }
 
 /** Ctrl K's default list: Home, every page the user can reach, the plugin apps, the till. */
 export function paletteItems(areas: NavArea[]): PaletteEntry[] {

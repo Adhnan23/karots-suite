@@ -1,8 +1,17 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useHold } from '../cart-ui/useHold'
 import { hotkeyFor } from '../hotkeys'
+import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 import { useCheckoutCtx } from './CheckoutProvider'
+
+/** F10 in the amount box: the next payment method the sale can take (it refocuses the box). */
+function nextMethod() {
+  const all = [...document.querySelectorAll<HTMLButtonElement>('[aria-label="Payment method"] button:not(:disabled)')]
+  if (!all.length) return
+  const at = all.findIndex((b) => b.getAttribute('aria-pressed') === 'true')
+  all[(at + 1) % all.length].click()
+}
 
 const focus = (id: string) => {
   const el = document.getElementById(id) as HTMLInputElement | null
@@ -15,15 +24,16 @@ export function Hotkeys() {
   const ui = useTillUi()
   const co = useCheckoutCtx()
   const hold = useHold()
-  const live = useRef({ ui, co, hold })
+  const lines = useTill().state.lines.length
+  const live = useRef({ ui, co, hold, lines })
   // Before paint, not after: a key pressed the moment a scan lands must see that line.
   useLayoutEffect(() => {
-    live.current = { ui, co, hold }
+    live.current = { ui, co, hold, lines }
   })
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { ui, co, hold } = live.current
+      const { ui, co, hold, lines } = live.current
       const dialogOpen = !!document.querySelector('[role="dialog"],[role="alertdialog"]')
       const a = hotkeyFor(e.key, { dialogOpen, saleDone: !!co.done })
       if (!a) return
@@ -31,6 +41,13 @@ export function Hotkeys() {
       if (a === 'reset') ui.reset()
       else if (a === 'search') focus('till-search')
       else if (a === 'qty') focus('till-qty-last')
+      else if (a === 'lineDiscount') document.getElementById('till-disc-last')?.click()
+      else if (a === 'customer') document.getElementById('till-customer')?.click()
+      else if (a === 'held') ui.open({ kind: 'held' })
+      else if (a === 'clear') {
+        if (co.done || !lines) co.newSale()
+        else ui.open({ kind: 'clearSale' })
+      } else if (a === 'pay' && document.activeElement?.id === 'till-amount') nextMethod()
       else if (a === 'discount') focus('till-bill-discount')
       else if (a === 'pay') focus('till-amount')
       else if (a === 'hold') void hold()
