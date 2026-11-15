@@ -110,7 +110,10 @@ export function CatalogPanel() {
               )}
               {title}
             </span>
-            <span>{products.length} items</span>
+            <span className="flex items-center gap-1.5">
+              {products.length > 1 && <><Kbd>↑ ↓</Kbd> Enter ·</>}
+              {products.length} items
+            </span>
           </div>
           <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(clamp(168px,11vw,230px),1fr))] gap-2.5 overflow-auto p-0.5">
             {!searching && children.map((g) => <GroupCard key={`g${g.id}`} group={g} onOpen={() => ui.setStack([...ui.stack, g])} />)}

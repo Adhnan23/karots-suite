@@ -52,7 +52,7 @@ export function PayPanel() {
         </Button>
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={() => void hold()}>Hold <Kbd>F4</Kbd></Button>
-          <Button variant="secondary" className="flex-1" onClick={() => (state.lines.length ? ui.open({ kind: 'clearSale' }) : co.newSale())}>New sale</Button>
+          <Button variant="secondary" className="flex-1" onClick={() => (state.lines.length ? ui.open({ kind: 'clearSale' }) : co.newSale())}>New sale <Kbd>F12</Kbd></Button>
         </div>
       </div>
     </div>

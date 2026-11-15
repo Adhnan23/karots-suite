@@ -20,7 +20,7 @@ export function DrawerActions() {
   return (
     <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Till actions">
       <button type="button" className={CHIP} onClick={() => void hold()}>Hold <Kbd>F4</Kbd></button>
-      <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length})</button>
+      <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length}) <Kbd>F5</Kbd></button>
       {!cfg.sendsToCashier && <>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'deposit' })}>
         <span className="text-lg leading-none text-success">↓</span> Deposit

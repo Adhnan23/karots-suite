@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { UnfreezeDialog } from '@/features/freeze/UnfreezeDialog'
 import { slots } from '@/plugins/slots'
 import { priceOptionsQuery } from '../api'
-import { Seg } from '../bits'
+import { Kbd, Seg } from '../bits'
 import { lotsFor } from '../cart/lines'
 import { lineDiscount, lineGross } from '../cart/totals'
 import type { CartLine } from '../cart/types'
@@ -29,6 +29,7 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
         <Tag size={14} />
         {on ? (line.discountType === 'percent' ? `${line.discount}% off` : `${money(sym, line.discount)} off each`) : 'Discount'}
+        {last && <Kbd>F7</Kbd>}
       </button>
     )
   }
@@ -59,6 +60,7 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
           document.getElementById('till-search')?.focus()
         }} className={cn(FIELD, 'h-7 w-16 px-2 text-[13px]')} />
       <Seg label="Discount type" value={line.discountType} options={[['fixed', sym], ['percent', '%']]} onChange={(t) => set(line.discount, t)} />
+      <Kbd>/</Kbd>
       <button type="button" onClick={() => setOpen(false)} className="px-1 text-[12px] font-semibold text-muted-foreground">Done</button>
     </span>
   )
@@ -96,7 +98,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
   const expired = line.batchLabel.startsWith('exp ') && line.batchLabel.slice(4) < new Date().toLocaleDateString('en-CA')
   return (
     <motion.div initial={{ backgroundColor: 'var(--brand-soft)' }} animate={{ backgroundColor: 'rgba(0,0,0,0)' }} transition={{ duration: 0.7 /* not a UI transition: the new-line flash */ }}
-      className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 rounded-[var(--radius-sm)] border-t border-dashed border-border px-2 py-2.5 first:border-t-0">
+      className="group/line grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 rounded-[var(--radius-sm)] border-t border-dashed border-border px-2 py-2.5 first:border-t-0">
       <div className="min-w-0">
         <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
       </div>
@@ -127,6 +129,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
           }}
           className="w-10 bg-transparent text-center text-[14px] font-bold tabular-nums outline-none" />
         <button type="button" aria-label={`More ${line.name}`} onClick={() => setQty(line.qty + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
+        {last && <Kbd className="mr-1">F6</Kbd>}
       </div>}
       <div className="min-w-[84px] text-right text-[14.5px] font-bold tabular-nums">
         {disc > 0 && <s className="block text-[11.5px] font-medium text-faint">{money(sym, gross)}</s>}
@@ -152,8 +155,10 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         {line.allowOversell && <span className="font-semibold text-warning">{line.isService ? 'material count corrected' : 'found at till'}</span>}
         <PackChips line={line} sym={sym} onQty={setQty} />
         {!line.payout && !line.noDiscount && <DiscountChip line={line} sym={sym} last={last} />}
+        {/* In this line's quantity (F6), Delete removes it: the hint shows only then. */}
+        <Kbd className="ml-auto hidden group-has-[input[data-qty]:focus]/line:inline">Del</Kbd>
         <button type="button" aria-label={`Remove ${line.name}`} onClick={() => dispatch({ type: 'remove', key: line.key })}
-          className="ml-auto grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
+          className="ml-auto grid size-8 group-has-[input[data-qty]:focus]/line:ml-0 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
       </div>
       {line.trackSerial && line.serials.length > 0 && (
         <div className="col-span-full grid grid-cols-2 gap-1.5">

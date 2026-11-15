@@ -43,6 +43,7 @@ export function Summary() {
           <Seg label="Bill discount type" value={state.billDiscountType} options={[['fixed', sym], ['percent', '%']]}
             onChange={(v) => dispatch({ type: 'billDiscount', discountType: v })} />
           <Kbd>F9</Kbd>
+          <span className="text-[11px] text-faint" title="In the box: / switches Rs ⇄ %"><Kbd>/</Kbd></span>
         </span>
         <span className="tabular-nums">{bdisc > 0 ? `−${money(sym, bdisc)}` : '—'}</span>
       </div>}

@@ -11,6 +11,7 @@ import { configQuery, customersQuery, errMsg } from '../api'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 import { FIELD } from '../ui'
+import { Kbd } from '../bits'
 
 const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('')
 
@@ -76,6 +77,7 @@ export function CustomerPicker() {
               {cur ? `${cur.phone} · ${balanceText(cfg.symbol, cur)} · limit ${money(cfg.symbol, cur.creditLimit)}` : 'Cash sale, no account'}
             </span>
           </span>
+          <Kbd>F8</Kbd>
           <ChevronDown size={16} className="text-faint" />
         </button>
         <button type="button" aria-label="Add customer" onClick={() => ui.open({ kind: 'addCustomer' })}

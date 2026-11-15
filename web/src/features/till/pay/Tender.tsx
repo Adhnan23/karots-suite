@@ -18,6 +18,7 @@ import { FIELD } from '../ui'
 import { MethodBadge } from '@/components/admin/MethodBadge'
 import { METHOD_LABEL } from '@/lib/payMethods'
 import { ChequeFields } from './ChequeFields'
+import { Kbd } from '../bits'
 
 export { METHOD_LABEL }
 
@@ -62,6 +63,10 @@ export function Tender() {
 
   return (
     <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between text-[12px] font-semibold text-faint">
+        <span>Payment</span>
+        <span className="flex items-center gap-1"><Kbd>F10</Kbd> amount · <Kbd>F10</Kbd> again: next method</span>
+      </div>
       <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Payment method">
         {methods.map(({ value, label: text, Icon }) => {
           const needsCustomer = (value === 'credit' || value === 'cheque') && state.customerId === null

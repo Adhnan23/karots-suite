@@ -12,6 +12,7 @@ import { CartLineRow } from './CartLineRow'
 import { HeldStrip } from './HeldSales'
 import { TicketStrip } from './Tickets'
 import { PostSaleChange } from './PostSaleChange'
+import { Kbd } from '../bits'
 
 export function CartPanel() {
   const cfg = useSuspenseQuery(configQuery).data
@@ -36,7 +37,7 @@ export function CartPanel() {
           {state.lines.length > 0 && (
             <button type="button" onClick={() => ui.open({ kind: 'clearSale' })}
               className="flex h-8 items-center gap-1.5 rounded-pill border border-border px-3 text-[12.5px] font-semibold text-muted-foreground hover:border-danger hover:text-danger">
-              <Trash2 size={14} /> Clear
+              <Trash2 size={14} /> Clear <Kbd>F12</Kbd>
             </button>
           )}
         </span>
