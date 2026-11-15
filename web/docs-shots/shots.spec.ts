@@ -124,6 +124,21 @@ test('till', async ({ browser }) => {
   }
 })
 
+// Stock freeze: two products frozen (a shop part-way through starting), the admin list and the till tab.
+test('stock freeze', async ({ browser }) => {
+  if (only && !'stock/frozen till/frozen'.includes(only)) return
+  const page = await session(browser, owner)
+  const ids: number[] = []
+  for (const q of ['Milo', 'Anchor']) ids.push((await (await page.request.get(`/api/v1/admin/products?q=${q}`)).json()).items[0].id)
+  await page.request.post('/api/v1/admin/stock/freeze', { data: { productIds: ids } })
+  await shot(page, '/admin/stock?view=frozen', 'stock/frozen')
+  const till = await session(browser, cashier)
+  await shot(till, '/till/frozen', 'till/frozen', { prep: pickFirst('Frozen products') })
+  await page.request.post('/api/v1/admin/stock/unfreeze-shop')
+  await till.context().close()
+  await page.context().close()
+})
+
 // Send to cashier: a sales person's cart, the ticket on a cashier's till, and the close that waits for it.
 test('send to cashier', async ({ browser }) => {
   if (only && !'till/send-to-cashier till/tickets till/close-tickets'.includes(only)) return
