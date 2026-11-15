@@ -120,7 +120,7 @@ func runTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty 
 	}); err != nil {
 		return apperr.Internal("failed to record destination movement", err)
 	}
-	return repo.LogRun(ctx, conversionID, cv.FromProductID, cv.ToProductID, userID, fromQty, toQty)
+	return repo.LogRun(ctx, conversionID, cv.FromProductID, cv.ToProductID, userID, fromQty, toQty, inQty.IsZero())
 }
 
 // splitYield shares toQty among the consumed lots by what each gave

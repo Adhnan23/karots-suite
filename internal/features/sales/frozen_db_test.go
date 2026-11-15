@@ -16,7 +16,9 @@ func freeze(t *testing.T, conn *sqlx.DB, id int64, on bool) {
 	_, err := conn.ExecContext(context.Background(), `UPDATE products SET stock_frozen = $2 WHERE id = $1`, id, on)
 	mustSales(t, err)
 	// Leave nothing frozen behind (a fixture whose sale can't be deleted stays).
-	t.Cleanup(func() { conn.ExecContext(context.Background(), `UPDATE products SET stock_frozen = false WHERE id = $1`, id) }) //nolint:errcheck
+	t.Cleanup(func() {
+		conn.ExecContext(context.Background(), `UPDATE products SET stock_frozen = false WHERE id = $1`, id)
+	}) //nolint:errcheck
 }
 
 func onHand(t *testing.T, conn *sqlx.DB, id int64) decimal.Decimal {

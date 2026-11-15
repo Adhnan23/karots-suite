@@ -228,7 +228,7 @@ func consumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) 
 			if err != nil {
 				return 0, apperr.Internal("failed to read cost", err)
 			}
-			if err := repo.FoundAtTill(ctx, in.ProductID, in.BatchID, qty, cost, userID); err != nil {
+			if err := repo.BackFromSale(ctx, in.ProductID, in.BatchID, qty, cost, userID); err != nil {
 				return 0, apperr.Internal("failed to add the shelf item", err)
 			}
 		}

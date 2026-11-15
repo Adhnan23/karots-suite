@@ -154,10 +154,10 @@ func (r *Repository) Reactivate(ctx context.Context, id int64) error {
 	return err
 }
 
-func (r *Repository) LogRun(ctx context.Context, convID, fromID, toID, userID int64, fromQty, toQty decimal.Decimal) error {
+func (r *Repository) LogRun(ctx context.Context, convID, fromID, toID, userID int64, fromQty, toQty decimal.Decimal, outForSale bool) error {
 	_, err := r.q.ExecContext(ctx, `
-		INSERT INTO conversion_runs (conversion_id, from_product_id, to_product_id, from_qty, to_qty, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6)`, convID, fromID, toID, fromQty, toQty, userID)
+		INSERT INTO conversion_runs (conversion_id, from_product_id, to_product_id, from_qty, to_qty, created_by, out_for_sale)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)`, convID, fromID, toID, fromQty, toQty, userID, outForSale)
 	return err
 }
 

@@ -3810,6 +3810,10 @@ export interface ConversionRunRow {
   toUnit: string;
   userName: string;
   createdAt: string;
+  /**
+   * OutForSale: went out for sale into a frozen product — not added to stock.
+   */
+  outForSale?: boolean;
 }
 export interface ConversionRunList {
   items: ConversionRunRow[];

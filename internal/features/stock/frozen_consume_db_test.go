@@ -41,6 +41,14 @@ func TestFrozenWriteOffShelfAndBack(t *testing.T) {
 	_, err = consumeTx(ctx, tx, ConsumeInput{ProductID: pid, Quantity: "1", Reason: "damage", FromShelf: true}, uid)
 	must(t, err)
 	check(200, 1)
+	// The loss must reach profit: the extra isn't a stock correction (adjust), it's
+	// back from sale (to_shelf, which no report sums).
+	var adjusts, back int
+	must(t, tx.GetContext(ctx, &adjusts, `SELECT count(*) FROM stock_movements WHERE product_id = $1 AND type = 'adjust'`, pid))
+	must(t, tx.GetContext(ctx, &back, `SELECT count(*) FROM stock_movements WHERE product_id = $1 AND type = 'to_shelf' AND quantity = 1`, pid))
+	if adjusts != 0 || back != 1 {
+		t.Fatalf("adjust movements %d, back-from-sale %d; want 0, 1", adjusts, back)
+	}
 	_, err = consumeTx(ctx, tx, ConsumeInput{ProductID: pid, Quantity: "1", Reason: "damage"}, uid)
 	must(t, err)
 	check(199, 2)

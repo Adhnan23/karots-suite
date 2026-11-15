@@ -27,6 +27,11 @@ func TestConversionIntoFrozen(t *testing.T) {
 	if n != 2 {
 		t.Fatalf("conversion movements %d, want 2", n)
 	}
+	var outForSale bool
+	must(t, f.tx.GetContext(ctx, &outForSale, `SELECT out_for_sale FROM conversion_runs WHERE conversion_id = $1 ORDER BY id DESC LIMIT 1`, f.convID))
+	if !outForSale {
+		t.Fatal("the run doesn't say it went out for sale")
+	}
 	// Unfrozen: the 10 come into stock.
 	_, err = f.tx.ExecContext(ctx, `UPDATE products SET stock_frozen = false WHERE id = $1`, f.loose)
 	must(t, err)

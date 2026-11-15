@@ -285,6 +285,8 @@ type ConversionRunRow struct {
 	ToUnit    string `json:"toUnit"`
 	UserName  string `json:"userName"`
 	CreatedAt string `json:"createdAt"`
+	// OutForSale: went out for sale into a frozen product — not added to stock.
+	OutForSale bool `json:"outForSale,omitempty"`
 }
 
 type ConversionRunList struct {

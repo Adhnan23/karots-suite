@@ -71,10 +71,11 @@ stays 200. A box is opened for selling: **Adjust → Put out for sale**, 10, and
   a recount of what's in storage.
 - **Opening a box into a frozen product** with the till's Convert tab, when the box itself isn't
   frozen, asks where the pieces went: **out for sale** (not counted while frozen) or **into storage**
-  (added to stock). When both are frozen it doesn't ask: the pieces go out for sale.
+  (added to stock). When both are frozen it doesn't ask: the pieces go out for sale. Conversions → Run
+  history marks those runs "out for sale (not counted)".
 - **Damage while frozen** asks **was it out for sale or in storage?** Out for sale: the item is added
-  as an extra and then written off, so stock stays as counted and the loss is still on the list with
-  its cost. In storage: it comes out of stock as usual. A damaged return is always "out for sale".
+  as an extra and then written off, so stock stays as counted; the loss is on the damaged list with
+  its cost and comes off profit like any other loss. In storage: it comes out of stock as usual. A damaged return is always "out for sale".
 - A frozen product never shows as running low. Its sales use its cost price for profit, and the stock
   value report says how many products are frozen (it counts only what's in storage). Returns of a
   frozen product don't go back into stock (they're back out for sale, uncounted).

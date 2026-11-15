@@ -144,7 +144,7 @@ func (h *handlers) AdminConversionRuns(c echo.Context) error {
 	out := ConversionRunList{Items: make([]ConversionRunRow, 0, len(rows)), Total: total, Page: page, PageSize: runPageSize}
 	for _, r := range rows {
 		out.Items = append(out.Items, ConversionRunRow{ID: r.ID, FromName: r.FromName, ToName: r.ToName, FromQty: r.FromQty.String(), ToQty: r.ToQty.String(),
-			FromUnit: r.FromUnitAbbr, ToUnit: r.ToUnitAbbr, UserName: r.UserName, CreatedAt: r.CreatedAt.Format(time.RFC3339)})
+			FromUnit: r.FromUnitAbbr, ToUnit: r.ToUnitAbbr, UserName: r.UserName, CreatedAt: r.CreatedAt.Format(time.RFC3339), OutForSale: r.OutForSale})
 	}
 	return c.JSON(http.StatusOK, out)
 }

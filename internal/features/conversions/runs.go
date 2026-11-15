@@ -26,6 +26,7 @@ type Run struct {
 	ToQty         decimal.Decimal `db:"to_qty"          json:"to_qty"`
 	CreatedBy     int64           `db:"created_by"      json:"created_by"`
 	CreatedAt     time.Time       `db:"created_at"      json:"created_at"`
+	OutForSale    bool            `db:"out_for_sale"    json:"out_for_sale"` // into a frozen product, not counted
 	// joined
 	FromName     string `db:"from_name"      json:"from_name"`
 	ToName       string `db:"to_name"        json:"to_name"`

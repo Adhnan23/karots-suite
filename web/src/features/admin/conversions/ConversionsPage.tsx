@@ -222,7 +222,7 @@ function Runs() {
         columns={[
           { key: 'what', header: 'Conversion', cell: (r) => <span className="font-semibold">{r.fromName} → {r.toName}</span> },
           { key: 'out', header: 'Out', num: true, cell: (r) => <b className="text-danger">−{qtyText(r.fromQty)} <small className="font-normal text-faint">{r.fromUnit}</small></b> },
-          { key: 'in', header: 'In', num: true, cell: (r) => <b className="text-success">+{qtyText(r.toQty)} <small className="font-normal text-faint">{r.toUnit}</small></b> },
+          { key: 'in', header: 'In', num: true, cell: (r) => <b className={r.outForSale ? 'text-muted-foreground' : 'text-success'}>+{qtyText(r.toQty)} <small className="font-normal text-faint">{r.toUnit}{r.outForSale && ' out for sale (not counted)'}</small></b> },
           { key: 'by', header: 'By', cell: (r) => r.userName },
           { key: 'when', header: 'When', cell: (r) => <span className="whitespace-nowrap text-muted-foreground">{new Date(r.createdAt).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span> },
         ]} />

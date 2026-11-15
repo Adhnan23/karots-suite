@@ -137,6 +137,17 @@ func (r *Repository) InsertBatch(ctx context.Context, b NewBatch) (int64, error)
 // tops up the named lot (or opens a "found" lot when batchID is 0), bumps the
 // fast stock mirror, and records a positive adjust movement the owner can see.
 func (r *Repository) FoundAtTill(ctx context.Context, productID, batchID int64, qty, cost decimal.Decimal, userID int64) error {
+	return r.bringIn(ctx, productID, batchID, qty, cost, userID, MoveAdjust, "found", "found at till — count corrected before sale")
+}
+
+// BackFromSale brings a frozen product's item that was out for sale (uncounted)
+// back onto the books so it can be written off. A 'to_shelf' movement, not an
+// adjustment: no report sums it, so the write-off's loss reaches profit.
+func (r *Repository) BackFromSale(ctx context.Context, productID, batchID int64, qty, cost decimal.Decimal, userID int64) error {
+	return r.bringIn(ctx, productID, batchID, qty, cost, userID, MoveToShelf, "shelf", "back from sale (frozen) to write off")
+}
+
+func (r *Repository) bringIn(ctx context.Context, productID, batchID int64, qty, cost decimal.Decimal, userID int64, typ, source, note string) error {
 	if err := r.Increment(ctx, productID, qty); err != nil {
 		return err
 	}
@@ -147,15 +158,14 @@ func (r *Repository) FoundAtTill(ctx context.Context, productID, batchID int64, 
 		}
 	} else {
 		if _, err := r.InsertBatch(ctx, NewBatch{
-			ProductID: productID, Quantity: qty, CostPrice: cost, Source: "found",
+			ProductID: productID, Quantity: qty, CostPrice: cost, Source: source,
 		}); err != nil {
 			return err
 		}
 	}
-	note := "found at till — count corrected before sale"
 	return r.InsertMovement(ctx, MovementInput{
 		ProductID: productID,
-		Type:      MoveAdjust,
+		Type:      typ,
 		Quantity:  qty, // positive: stock coming in
 		UserID:    userID,
 		Note:      &note,
