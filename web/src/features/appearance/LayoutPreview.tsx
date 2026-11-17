@@ -65,11 +65,14 @@ function Body({ area, card }: { area: Area; card: string }) {
   )
 }
 
-function Section({ area, card, style, short }: { area: Area; card: string; style: object; short: boolean }) {
+function Section({ area, card, style, short, size }: { area: Area; card: string; style: object; short: boolean; size: string }) {
   return (
     <div className={cn('relative min-h-0 overflow-hidden', area !== 'cat' && 'rounded-[var(--radius)] border border-border bg-card')} style={style}>
       <Body area={area} card={card} />
-      <span className="absolute top-3 right-3 rounded-pill bg-foreground px-3 py-1 text-xl font-bold text-background">{AREA_NAME[area]}</span>
+      <span className="absolute top-3 right-3 flex flex-col items-end gap-1">
+        <span className="rounded-pill bg-foreground px-3 py-1 text-xl font-bold text-background">{AREA_NAME[area]}</span>
+        <span className="rounded-pill bg-brand px-3 py-1 text-xl font-bold tabular-nums text-brand-foreground">{size}</span>
+      </span>
       {short && <span className="absolute inset-x-3 bottom-3 rounded-[var(--radius-sm)] bg-danger px-3 py-2 text-center text-xl font-bold text-background">Too short for {AREA_NAME[area]}</span>}
     </div>
   )
@@ -114,6 +117,7 @@ export function LayoutPreview({ w, h, layout, onChange }: { w: number; h: number
   const mins = minsOf(a.id)
   const hIn = h - TOP - 2 * PAD - GAP
   const split = layout.split || 0.5
+  const sizeOf = (i: number) => `${Math.round(layout.fr[i] * inner)} px · ${Math.round(layout.fr[i] * 100)}%`
 
   return (
     <div ref={box} className="w-full">
@@ -130,13 +134,15 @@ export function LayoutPreview({ w, h, layout, onChange }: { w: number; h: number
                   onDrag={(d) => onChange({ ...layout, fr: dragBar(layout.fr, i, d / scale, inner, mins) })} />}
                 <div className="flex min-h-0 flex-col" style={{ width: layout.fr[i] * inner }}>
                   {col.length === 1 ? (
-                    <Section area={col[0]} card={layout.card} style={{ flex: 1 }} short={false} />
+                    <Section area={col[0]} card={layout.card} style={{ flex: 1 }} short={false} size={sizeOf(i)} />
                   ) : (
                     <>
-                      <Section area={col[0]} card={layout.card} style={{ height: split * hIn }} short={split * hIn < SHORT[col[0]]} />
+                      <Section area={col[0]} card={layout.card} style={{ height: split * hIn }} short={split * hIn < SHORT[col[0]]}
+                        size={`${sizeOf(i)} · ${Math.round(split * hIn)} px high`} />
                       <Bar vertical={false} label={`Between ${AREA_NAME[col[0]]} and ${AREA_NAME[col[1]]}`}
                         onDrag={(d) => onChange({ ...layout, split: Math.min(0.8, Math.max(0.2, split + d / scale / hIn)) })} />
-                      <Section area={col[1]} card={layout.card} style={{ flex: 1 }} short={(1 - split) * hIn < SHORT[col[1]]} />
+                      <Section area={col[1]} card={layout.card} style={{ flex: 1 }} short={(1 - split) * hIn < SHORT[col[1]]}
+                        size={`${sizeOf(i)} · ${Math.round((1 - split) * hIn)} px high`} />
                     </>
                   )}
                 </div>
