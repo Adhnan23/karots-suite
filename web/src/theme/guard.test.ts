@@ -29,3 +29,18 @@ describe('no raw look values outside tokens', () => {
     })
   }
 })
+
+// The Sell page's text comes from the till type scale (text-till-*, app.css), so one
+// Text size per screen (Appearance → Sell page layout) moves all of it. Decor is exempt.
+describe('till text uses the type scale', () => {
+  it('no pixel or stock text sizes under features/till', () => {
+    const hits: string[] = []
+    for (const [path, src] of Object.entries(files)) {
+      if (!path.startsWith('/src/features/till/')) continue
+      src.split('\n').forEach((line, i) => {
+        if (/\btext-(\[\d|(xs|sm|base|lg|xl|2xl|3xl|4xl)\b)/.test(line) && !line.includes('aria-hidden')) hits.push(`${path}:${i + 1}`)
+      })
+    }
+    expect(hits, hits.join('\n')).toEqual([])
+  })
+})

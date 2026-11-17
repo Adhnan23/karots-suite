@@ -25,31 +25,31 @@ export function CartGroup({ id, label, count, lines, sym }: { id: number; label:
       className="my-1 overflow-hidden rounded-[var(--radius-sm)] border-[1.5px] border-brand">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 bg-brand-soft px-2 py-2">
         <div className="min-w-0">
-          <div className="text-[14px] font-bold leading-snug">{label}</div>
-          {save > 0 && <div className="text-[12px] font-bold text-success tabular-nums">save {money(sym, save)}</div>}
+          <div className="text-till-body font-bold leading-snug">{label}</div>
+          {save > 0 && <div className="text-till-sm font-bold text-success tabular-nums">save {money(sym, save)}</div>}
         </div>
         {fixed ? <span /> : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-card p-0.5">
           <button type="button" aria-label={`Fewer ${label}`} onClick={() => setCount(count - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
-          <span aria-label={`Sets of ${label}`} className="w-8 text-center text-[14px] font-bold tabular-nums">{count}</span>
+          <span aria-label={`Sets of ${label}`} className="w-8 text-center text-till-body font-bold tabular-nums">{count}</span>
           <button type="button" aria-label={`More ${label}`} onClick={() => setCount(count + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
         </div>}
         <div className="flex items-center gap-1">
-          <span className="min-w-[72px] text-right text-[14.5px] font-bold tabular-nums">{money(sym, net)}</span>
+          <span className="min-w-[72px] text-right text-till-body font-bold tabular-nums">{money(sym, net)}</span>
           <button type="button" aria-label={`Remove ${label}`} onClick={() => dispatch({ type: 'removeGroup', id })} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>
         </div>
       </div>
       {lines.map((l) => (
         <div key={l.key} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 border-t border-border py-1.5 pl-5 pr-2">
-          <div className="min-w-0 text-[13.5px] font-semibold">{l.name} <span className="font-semibold text-muted-foreground tabular-nums">× {qtyText(l.qty)}</span></div>
-          <div className="text-right text-[13.5px] tabular-nums">
-            {lineDiscount(l) > 0 && <s className="mr-1.5 text-[11.5px] text-faint">{money(sym, lineGross(l))}</s>}{money(sym, lineGross(l) - lineDiscount(l))}
+          <div className="min-w-0 text-till-body font-semibold">{l.name} <span className="font-semibold text-muted-foreground tabular-nums">× {qtyText(l.qty)}</span></div>
+          <div className="text-right text-till-body tabular-nums">
+            {lineDiscount(l) > 0 && <s className="mr-1.5 text-till-xs text-faint">{money(sym, lineGross(l))}</s>}{money(sym, lineGross(l) - lineDiscount(l))}
           </div>
           {fixed ? <span className="size-8" /> : <button type="button" aria-label={`Remove ${l.name} from ${label}`} onClick={() => setBreaking(l)} className="grid size-8 place-items-center rounded-full text-faint hover:bg-muted hover:text-danger"><X size={17} /></button>}
           {l.trackSerial && l.serials.length > 0 && (
             <div className="col-span-full grid grid-cols-2 gap-1.5">
               {l.serials.map((s, i) => (
                 <input key={i} aria-label={`Serial ${i + 1} for ${l.name}`} placeholder={`Serial ${i + 1}`} autoComplete="off" value={s}
-                  onChange={(e) => dispatch({ type: 'serial', key: l.key, index: i, value: e.target.value })} className={cn(FIELD, 'h-8 text-[13px]')} />
+                  onChange={(e) => dispatch({ type: 'serial', key: l.key, index: i, value: e.target.value })} className={cn(FIELD, 'h-8 text-till-sm')} />
               ))}
             </div>
           )}

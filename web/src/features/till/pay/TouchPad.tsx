@@ -50,8 +50,8 @@ export function TouchPad() {
       {KEYS.map((k) => (
         <button key={k} type="button" onClick={() => press(k)}
           aria-label={k === 'back' ? 'Delete' : k === 'clear' ? 'Clear' : k === 'enter' ? 'Enter' : k}
-          className={cn('h-12 rounded-[var(--radius-sm)] border border-border font-display text-lg font-bold tabular-nums active:scale-95',
-            k === 'enter' ? 'row-span-2 h-auto bg-brand text-base text-brand-foreground' : k === 'back' || k === 'clear' ? 'bg-muted text-sm text-muted-foreground' : 'bg-card shadow-[var(--shadow)]')}>
+          className={cn('h-12 rounded-[var(--radius-sm)] border border-border font-display text-till-title leading-[1.556] font-bold tabular-nums active:scale-95',
+            k === 'enter' ? 'row-span-2 h-auto bg-brand text-till-lead leading-normal text-brand-foreground' : k === 'back' || k === 'clear' ? 'bg-muted text-till-body leading-[1.43] text-muted-foreground' : 'bg-card shadow-[var(--shadow)]')}>
           {k === 'back' ? <Delete size={18} className="mx-auto" /> : k === 'clear' ? 'Clear' : k === 'enter' ? 'Enter' : k}
         </button>
       ))}

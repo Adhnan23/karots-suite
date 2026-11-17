@@ -1,4 +1,4 @@
-import { cn } from 'cn'
+import { cn } from '@/lib/utils'
 import { useState, type Ref } from 'react'
 
 type Props = {

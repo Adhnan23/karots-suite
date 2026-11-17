@@ -71,7 +71,7 @@ export function CatalogPanel() {
               } else void submit(ui.search)
             }
           }}
-          className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint" />
+          className="h-full min-w-0 flex-1 bg-transparent text-till-lead outline-none placeholder:text-faint" />
         <Kbd>F2</Kbd>
         <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: '', name: '' })}
           title="Sell an item that isn't in the catalogue yet" className={CHIP}>
@@ -103,7 +103,7 @@ export function CatalogPanel() {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between text-[12px] font-semibold text-faint">
+          <div className="flex items-center justify-between text-till-sm font-semibold text-faint">
             <span className="flex items-center gap-2">
               {current && !searching && (
                 <button type="button" className={CHIP} onClick={() => ui.setStack(ui.stack.slice(0, -1))}><ChevronLeft size={14} /> Back</button>

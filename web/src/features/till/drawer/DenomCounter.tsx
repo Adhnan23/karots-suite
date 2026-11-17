@@ -15,7 +15,7 @@ export function DenomCounter({ denoms, counts, onChange, sym, label = 'Counted' 
     <div>
       <div className="grid gap-x-5 gap-y-1.5 sm:grid-cols-2">
         {denoms.map((d) => (
-          <label key={d.value} className="flex items-center gap-2 text-[13.5px]">
+          <label key={d.value} className="flex items-center gap-2 text-till-body">
             <span className="w-24 text-right font-semibold tabular-nums">{money(sym, d.value)}</span>
             <span className="text-faint">×</span>
             <input aria-label={`Count of ${money(sym, d.value)}`} inputMode="numeric" autoComplete="off"
@@ -27,7 +27,7 @@ export function DenomCounter({ denoms, counts, onChange, sym, label = 'Counted' 
       </div>
       <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
         <span className="font-semibold text-muted-foreground">{label}</span>
-        <span className="font-display text-2xl font-bold tabular-nums">{money(sym, countTotal(denoms, counts))}</span>
+        <span className="font-display text-till-big leading-[1.333] font-bold tabular-nums">{money(sym, countTotal(denoms, counts))}</span>
       </div>
     </div>
   )

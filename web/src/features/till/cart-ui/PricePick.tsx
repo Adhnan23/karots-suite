@@ -93,10 +93,10 @@ export function PricePick({ product, lots: cached, units }: { product: TillProdu
                   className={cn('flex w-full items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand', lotWarned(l) && 'border-danger')}>
                   <Kbd>{i + 1}</Kbd>
                   <span className="flex-1">
-                    <span className="font-display text-lg font-bold tabular-nums">{money(cfg.symbol, l.price)}</span>
-                    <span className="ml-2 text-[13px] text-muted-foreground">{lotLabel(l)} · {qtyText(l.qtyRemaining)} left</span>
+                    <span className="font-display text-till-title leading-[1.556] font-bold tabular-nums">{money(cfg.symbol, l.price)}</span>
+                    <span className="ml-2 text-till-sm text-muted-foreground">{lotLabel(l)} · {qtyText(l.qtyRemaining)} left</span>
                   </span>
-                  {lotWarned(l) && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-1.5 text-[11px] font-bold text-danger">{l.recalled ? 'Recalled' : 'Expired'}</span>}
+                  {lotWarned(l) && <span className="rounded-md bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-1.5 text-till-xs font-bold text-danger">{l.recalled ? 'Recalled' : 'Expired'}</span>}
                 </button>
               </li>
             ))}

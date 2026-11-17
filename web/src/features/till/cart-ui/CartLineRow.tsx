@@ -25,7 +25,7 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
   if (!open) {
     return (
       <button id={last ? 'till-disc-last' : undefined} data-disc type="button" onClick={() => setOpen(true)}
-        className={cn('flex h-7 items-center gap-1 rounded-pill border border-dashed border-border px-2.5 text-[12.5px] font-semibold',
+        className={cn('flex h-7 items-center gap-1 rounded-pill border border-dashed border-border px-2.5 text-till-sm font-semibold',
           on && 'border-solid border-transparent bg-[color-mix(in_srgb,var(--success)_18%,transparent)] text-success')}>
         <Tag size={14} />
         {on ? (line.discountType === 'percent' ? `${line.discount}% off` : `${money(sym, line.discount)} off each`) : 'Discount'}
@@ -58,10 +58,10 @@ function DiscountChip({ line, sym, last }: { line: CartLine; sym: string; last: 
           e.preventDefault()
           setOpen(false)
           document.getElementById('till-search')?.focus()
-        }} className={cn(FIELD, 'h-7 w-16 px-2 text-[13px]')} />
+        }} className={cn(FIELD, 'h-7 w-16 px-2 text-till-sm')} />
       <Seg label="Discount type" value={line.discountType} options={[['fixed', sym], ['percent', '%']]} onChange={(t) => set(line.discount, t)} />
       <Kbd>/</Kbd>
-      <button type="button" onClick={() => setOpen(false)} className="px-1 text-[12px] font-semibold text-muted-foreground">Done</button>
+      <button type="button" onClick={() => setOpen(false)} className="px-1 text-till-sm font-semibold text-muted-foreground">Done</button>
     </span>
   )
 }
@@ -74,7 +74,7 @@ function FrozenChip({ line }: { line: CartLine }) {
   return (
     <>
       <button type="button" aria-label={`Unfreeze ${line.name}`} onClick={() => setOpen(true)}
-        className="flex h-7 items-center gap-1 rounded-pill bg-brand-soft px-2.5 text-[12.5px] font-semibold">
+        className="flex h-7 items-center gap-1 rounded-pill bg-brand-soft px-2.5 text-till-sm font-semibold">
         <Snowflake size={14} /> Frozen · Unfreeze
       </button>
       {open && <UnfreezeDialog id={line.productId} name={line.name} onClose={() => setOpen(false)}
@@ -100,10 +100,10 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
     <motion.div initial={{ backgroundColor: 'var(--brand-soft)' }} animate={{ backgroundColor: 'rgba(0,0,0,0)' }} transition={{ duration: 0.7 /* not a UI transition: the new-line flash */ }}
       className="group/line grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 rounded-[var(--radius-sm)] border-t border-dashed border-border px-2 py-2.5 first:border-t-0">
       <div className="min-w-0">
-        <div className="text-[14px] font-semibold leading-snug">{line.description || line.name}</div>
+        <div className="text-till-body font-semibold leading-snug">{line.description || line.name}</div>
       </div>
       {line.fixedQty ? (
-        <span aria-label={`Quantity of ${line.name}`} className="px-3 text-[14px] font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
+        <span aria-label={`Quantity of ${line.name}`} className="px-3 text-till-body font-bold tabular-nums text-muted-foreground">×{qtyText(line.qty)}</span>
       ) : <div className="flex items-center gap-0.5 rounded-pill border border-border bg-muted p-0.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-ring">
         <button type="button" aria-label={`Fewer ${line.name}`} onClick={() => setQty(line.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Minus size={14} /></button>
         <input id={last ? 'till-qty-last' : undefined} data-qty // F6; ↑ ↓ move between lines
@@ -127,12 +127,12 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
             e.currentTarget.blur() // sets the quantity
             document.getElementById('till-search')?.focus() // and back to scanning
           }}
-          className="w-10 bg-transparent text-center text-[14px] font-bold tabular-nums outline-none" />
+          className="w-10 bg-transparent text-center text-till-body font-bold tabular-nums outline-none" />
         <button type="button" aria-label={`More ${line.name}`} onClick={() => setQty(line.qty + 1)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-border"><Plus size={14} /></button>
         {last && <Kbd className="mr-1">F6</Kbd>}
       </div>}
-      <div className="min-w-[84px] text-right text-[14.5px] font-bold tabular-nums">
-        {disc > 0 && <s className="block text-[11.5px] font-medium text-faint">{money(sym, gross)}</s>}
+      <div className="min-w-[84px] text-right text-till-body font-bold tabular-nums">
+        {disc > 0 && <s className="block text-till-xs font-medium text-faint">{money(sym, gross)}</s>}
         {gross < 0 ? `−${money(sym, -gross)}` : money(sym, gross - disc)}
       </div>
       {slots.tillLineHints.length > 0 && (
@@ -140,7 +140,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
           {slots.tillLineHints.map(({ key, Hint }) => <Hint key={key} till={till} line={line} lines={state.lines} />)}
         </div>
       )}
-      <div className="col-span-full flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
+      <div className="col-span-full flex flex-wrap items-center gap-1.5 text-till-sm text-muted-foreground">
         {line.payout ? <span className="font-semibold text-warning">Given to the customer</span> : <span className="tabular-nums">
           {money(sym, line.unitPrice)} each
           {line.packs?.map((k) => k.price > 0 && k.price < k.size * line.unitPrice && <span key={k.id}> · {k.name} {money(sym, k.price)}</span>)}
@@ -164,7 +164,7 @@ export function CartLineRow({ line, sym }: { line: CartLine; sym: string }) {
         <div className="col-span-full grid grid-cols-2 gap-1.5">
           {line.serials.map((s, i) => (
             <input key={i} aria-label={`Serial ${i + 1} for ${line.name}`} placeholder={`Serial ${i + 1}`} autoComplete="off" value={s}
-              onChange={(e) => dispatch({ type: 'serial', key: line.key, index: i, value: e.target.value })} className={cn(FIELD, 'h-8 text-[13px]')} />
+              onChange={(e) => dispatch({ type: 'serial', key: line.key, index: i, value: e.target.value })} className={cn(FIELD, 'h-8 text-till-sm')} />
           ))}
         </div>
       )}

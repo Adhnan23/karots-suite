@@ -39,19 +39,19 @@ export function SendPanel() {
           onChange={(v) => dispatch({ type: 'saleType', saleType: v })} />
         <CustomerPicker />
         <input aria-label="Name or note" placeholder="Name or note, e.g. blue shirt (optional)" autoComplete="off" value={note}
-          onChange={(e) => setNote(e.target.value)} className={`${FIELD} h-10 px-3 text-sm`} />
+          onChange={(e) => setNote(e.target.value)} className={`${FIELD} h-10 px-3 text-till-body leading-[1.43]`} />
         <Summary />
         {last !== null && !state.lines.length && (
-          <p aria-label="Last ticket" className="rounded-[var(--radius-sm)] bg-brand-soft p-3 text-center text-sm font-semibold">
+          <p aria-label="Last ticket" className="rounded-[var(--radius-sm)] bg-brand-soft p-3 text-center text-till-body leading-[1.43] font-semibold">
             Tell the customer: number
             <b className="block font-display text-5xl tabular-nums">{last}</b>
           </p>
         )}
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-border p-3.5">
-        {cashiers && !cashiers.length && <p className="text-center text-sm text-muted-foreground">No cashier has opened a till. Hold this sale for now.</p>}
+        {cashiers && !cashiers.length && <p className="text-center text-till-body leading-[1.43] text-muted-foreground">No cashier has opened a till. Hold this sale for now.</p>}
         {cashiers?.map((c) => (
-          <Button key={c.id} className="h-[54px] text-base" disabled={!state.lines.length} onClick={() => void send(c.id)}>Send to {c.name}</Button>
+          <Button key={c.id} className="h-[54px] text-till-lead leading-normal" disabled={!state.lines.length} onClick={() => void send(c.id)}>Send to {c.name}</Button>
         ))}
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={() => void hold()}>Hold <Kbd>F4</Kbd></Button>

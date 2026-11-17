@@ -40,7 +40,7 @@ export function ProductInfo({ product }: { product: TillProduct }) {
           <DialogTitle>{product.name}</DialogTitle>
           <DialogDescription>{d ? 'Product details' : 'Loading details…'}</DialogDescription>
         </DialogHeader>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[14px]">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-till-body">
           {rows.map(([k, v]) => (
             <div key={k} className="contents"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-semibold tabular-nums">{v}</dd></div>
           ))}

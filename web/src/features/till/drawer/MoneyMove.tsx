@@ -61,12 +61,12 @@ export function MoneyMove({ kind }: { kind: 'withdraw' | 'deposit' }) {
         </DialogHeader>
         <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); void submit() }}>
           <input autoFocus aria-label="Amount" placeholder="Amount" inputMode="decimal" autoComplete="off" value={amount}
-            onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'font-display text-lg font-bold tabular-nums')} />
+            onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'font-display text-till-title leading-[1.556] font-bold tabular-nums')} />
           <input aria-label="Reason" placeholder="Reason (optional)" autoComplete="off" value={reason}
             onChange={(e) => setReason(e.target.value)} className={FIELD} />
           <LockerSelect label={out ? 'Put into' : 'Taken from'} lockers={lockers} value={lockerId} onChange={setLockerId}
             untrackedLabel={untrackedOk ? '— untracked (no locker) —' : undefined} sym={cfg.symbol} />
-          {!untrackedOk && !lockers.length && <p className="text-sm text-danger">No cash locker set up — ask an admin to add one first.</p>}
+          {!untrackedOk && !lockers.length && <p className="text-till-body leading-[1.43] text-danger">No cash locker set up — ask an admin to add one first.</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={ui.close}>Cancel</Button>
             <Button type="submit" disabled={busy || (!untrackedOk && !lockers.length)}>{out ? 'Withdraw' : 'Deposit'}</Button>

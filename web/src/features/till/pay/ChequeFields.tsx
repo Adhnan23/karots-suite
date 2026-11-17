@@ -19,7 +19,7 @@ export function ChequeFields({ value, onChange }: { value: ChequeDraft; onChange
       <input aria-label="Cheque number" placeholder="Cheque no." inputMode="numeric" autoComplete="off" value={value.number}
         onChange={(e) => { set({ number: e.target.value }); setSeen(false) }} onBlur={check} className={FIELD} />
       <input aria-label="Cheque date" type="date" value={value.date} onChange={(e) => set({ date: e.target.value })} className={FIELD} />
-      {seen && <p role="status" className="col-span-2 text-[12px] font-semibold text-warning">This bank and cheque number were taken before — check it isn't the same cheque.</p>}
+      {seen && <p role="status" className="col-span-2 text-till-sm font-semibold text-warning">This bank and cheque number were taken before — check it isn't the same cheque.</p>}
     </div>
   )
 }

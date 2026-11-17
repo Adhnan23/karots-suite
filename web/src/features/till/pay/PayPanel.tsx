@@ -36,7 +36,7 @@ export function PayPanel() {
         <div className="flex items-center justify-between">
           <Seg label="Price list" value={state.saleType} options={[['retail', 'Retail'], ['wholesale', 'Wholesale']]}
             onChange={(v) => dispatch({ type: 'saleType', saleType: v })} />
-          <span className="text-[12px] text-faint">{cfg.askToPrint ? 'Asks before printing' : 'Prints automatically'}</span>
+          <span className="text-till-sm text-faint">{cfg.askToPrint ? 'Asks before printing' : 'Prints automatically'}</span>
         </div>
         <CustomerPicker />
         <Tender />
@@ -47,7 +47,7 @@ export function PayPanel() {
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-border p-3.5">
         {!totalsSeen && <TotalStrip />}
-        <Button className="h-[54px] text-base" disabled={!state.lines.length || co.busy} onClick={() => void co.run()}>
+        <Button className="h-[54px] text-till-lead leading-normal" disabled={!state.lines.length || co.busy} onClick={() => void co.run()}>
           {co.busy ? 'Completing…' : 'Complete sale'} <Kbd className="border-current bg-transparent text-current">Enter</Kbd>
         </Button>
         <div className="flex gap-2">

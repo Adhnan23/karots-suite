@@ -73,7 +73,7 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
             <Button type="button" variant="secondary" className="h-[var(--control-h)]" onClick={generate}>Generate</Button>
           </div>
           {slots.tillActions.filter((a) => a.noMatch).map((a) => (
-            <button key={a.key} type="button" className="col-span-2 justify-self-start text-sm font-medium text-brand hover:underline"
+            <button key={a.key} type="button" className="col-span-2 justify-self-start text-till-body leading-[1.43] font-medium text-brand hover:underline"
               onClick={() => ui.open({ kind: 'action', key: a.key, text: name.trim() })}>
               {a.noMatch}
             </button>

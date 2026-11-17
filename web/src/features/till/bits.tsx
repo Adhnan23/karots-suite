@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <kbd className={cn('rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-semibold text-muted-foreground', className)}>
+    <kbd className={cn('rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-till-xs font-semibold text-muted-foreground', className)}>
       {children}
     </kbd>
   )
@@ -20,7 +20,7 @@ export function Seg<T extends string>({ label, value, options, onChange }: {
     <div role="group" aria-label={label} className="inline-flex rounded-pill border border-border bg-muted p-0.5">
       {options.map(([v, text]) => (
         <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}
-          className="rounded-pill px-2.5 py-1 text-[12px] font-bold text-muted-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+          className="rounded-pill px-2.5 py-1 text-till-sm font-bold text-muted-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground">
           {text}
         </button>
       ))}

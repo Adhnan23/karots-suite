@@ -63,7 +63,7 @@ export function Tender() {
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex items-center justify-between text-[12px] font-semibold text-faint">
+      <div className="flex items-center justify-between text-till-sm font-semibold text-faint">
         <span>Payment</span>
         <span className="flex items-center gap-1"><Kbd>F10</Kbd> amount · <Kbd>F10</Kbd> again: next method</span>
       </div>
@@ -73,7 +73,7 @@ export function Tender() {
           return (
             <button key={value} type="button" aria-pressed={d.method === value} disabled={needsCustomer}
               title={needsCustomer ? (value === 'cheque' ? 'Pick a customer to take a cheque' : 'Pick a customer to sell on account') : undefined} onClick={() => choose(value)}
-              className="flex flex-col items-center gap-1 rounded-[var(--radius-sm)] border border-border bg-muted px-1 py-2 text-[12px] font-bold disabled:opacity-40 aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
+              className="flex flex-col items-center gap-1 rounded-[var(--radius-sm)] border border-border bg-muted px-1 py-2 text-till-sm font-bold disabled:opacity-40 aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">
               <Icon size={18} />{text}
             </button>
           )
@@ -101,7 +101,7 @@ export function Tender() {
             if (num(d.amount) > 0) commit()
             else void co.run() // F10 → amount → Enter: an empty box completes the sale
           }}
-          className={cn(FIELD, 'min-w-0 flex-1 font-display text-lg font-bold tabular-nums')} />
+          className={cn(FIELD, 'min-w-0 flex-1 font-display text-till-title leading-[1.556] font-bold tabular-nums')} />
         <Button variant="secondary" className="h-[var(--control-h)]" title="Fill the remaining balance"
           onClick={() => dispatch({ type: 'draft', patch: { amount: due > 0 ? dec(due) : '' } })}>Fill</Button>
         <Button className="h-[var(--control-h)]" disabled={!(num(d.amount) > 0)} onClick={commit}>Add</Button>
@@ -113,9 +113,9 @@ export function Tender() {
           {(d.method === 'cash' ? quickCash(due, notes.length ? notes : undefined).slice(0, 7) : [r2(due)]).map((v, i) => (
             <button key={v} type="button"
               onClick={() => chequeReady() && dispatch({ type: 'addTender', payment: d.method === 'cash' ? { ...blankDraft('cash'), amount: dec(v) } : { ...d, amount: dec(v) } })}
-              className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill border px-2 text-[13px] font-bold tabular-nums',
+              className={cn('flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-pill border px-2 text-till-sm font-bold tabular-nums',
                 i === 0 ? 'col-span-2 border-[color-mix(in_srgb,var(--brand)_45%,transparent)] bg-brand-soft hover:bg-[color-mix(in_srgb,var(--brand)_22%,transparent)]' : 'border-border bg-card hover:bg-muted')}>
-              {i === 0 && <span className="text-[11.5px] font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</span>}
+              {i === 0 && <span className="text-till-xs font-semibold text-muted-foreground">{state.tenders.length ? 'Remaining' : 'Exact'}</span>}
               {short(v)}
             </button>
           ))}
@@ -127,7 +127,7 @@ export function Tender() {
         <AnimatePresence initial={false}>
           {state.tenders.map((p, i) => (
             <motion.div key={`${i}-${p.method}-${p.amount}`} initial={{ y: -4, opacity: 0.3 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} transition={tx()}
-              className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-[13px]">
+              className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-till-sm">
               {p.method === 'cheque' ? <MethodBadge method="cheque" /> : label(p.method)}
               {p.cheque && <small className="min-w-0 truncate text-muted-foreground">{[p.cheque.bank, `#${p.cheque.number}`, p.cheque.date].filter(Boolean).join(' · ')}</small>}
               {p.accountId && <small className="text-muted-foreground">{[...card, ...bank].find((a) => String(a.id) === p.accountId)?.name}</small>}

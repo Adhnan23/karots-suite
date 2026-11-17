@@ -62,7 +62,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
         className={cn(PANEL, 'w-full p-6', sections.nodes.length > 0 ? 'max-w-[1040px]' : 'max-w-[760px]')}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 id="open-till-title" className="font-display text-2xl font-bold">Open the till</h2>
+            <h2 id="open-till-title" className="font-display text-till-big leading-[1.333] font-bold">Open the till</h2>
             <p className="text-muted-foreground">Count the float in the drawer, then open.</p>
           </div>
           {last && cfg.allowContinueLast && (
@@ -82,7 +82,7 @@ export function OpenRegister({ state }: { state: DrawerState }) {
           </div>
           {sections.nodes.length > 0 && <div className="flex flex-col gap-4">{sections.nodes}</div>}
         </div>
-        <Button className="mt-6 h-12 w-full text-base" disabled={busy} onClick={open}>Open the till</Button>
+        <Button className="mt-6 h-12 w-full text-till-lead leading-normal" disabled={busy} onClick={open}>Open the till</Button>
       </motion.div>
     </div>
   )

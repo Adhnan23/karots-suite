@@ -33,7 +33,7 @@ export function SaleComplete() {
         className={cn(PANEL, 'flex max-h-[calc(100%-32px)] items-stretch gap-5 p-5')}>
         <div className="flex flex-col items-center justify-center gap-2 px-6 py-3 text-center">
           <span className="grid h-16 w-16 place-items-center rounded-full bg-success text-background"><Check size={34} strokeWidth={3} /></span>
-          <h3 id="sale-done-title" className="mt-1.5 text-[22px] font-bold">Sale {res.receiptNo} complete</h3>
+          <h3 id="sale-done-title" className="mt-1.5 text-till-price font-bold">Sale {res.receiptNo} complete</h3>
           <p className="text-muted-foreground tabular-nums">
             {num(res.total) < 0 ? `${money(sym, -num(res.total))} given` : `${money(sym, res.total)} · ${methods}`}
             {num(res.roundingToAccount) > 0 && ` · ${money(sym, res.roundingToAccount)} to account`}
@@ -41,12 +41,12 @@ export function SaleComplete() {
           {change > 0 && (
             <>
               <p className="mt-2 text-muted-foreground">{num(res.total) < 0 ? 'Give the customer' : 'Give change'}</p>
-              <p className="font-display text-[40px] font-extrabold leading-none text-success tabular-nums">{money(sym, change)}</p>
-              <p className="text-[13px] text-muted-foreground tabular-nums">{notesFor(change, denoms).map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>
+              <p className="font-display text-till-hero font-extrabold leading-none text-success tabular-nums">{money(sym, change)}</p>
+              <p className="text-till-sm text-muted-foreground tabular-nums">{notesFor(change, denoms).map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</p>
             </>
           )}
           {bal !== null && (
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-till-sm text-muted-foreground">
               {res.customerName} {bal >= 0 ? `now owes ${money(sym, bal)}` : `has ${money(sym, -bal)} advance`}
             </p>
           )}

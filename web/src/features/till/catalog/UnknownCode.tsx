@@ -56,22 +56,22 @@ export function UnknownCode({ code }: { code: string }) {
                   <button type="button" onClick={() => void give(p)}
                     className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2 text-left hover:border-brand">
                     <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
-                    <span className="text-[13px] text-muted-foreground tabular-nums">{money(sym, p.sellingPrice)}</span>
+                    <span className="text-till-sm text-muted-foreground tabular-nums">{money(sym, p.sellingPrice)}</span>
                   </button>
                 </li>
               ))}
-              {term !== '' && !hits.length && <li className="py-4 text-center text-sm text-muted-foreground">No item matches “{term}”</li>}
+              {term !== '' && !hits.length && <li className="py-4 text-center text-till-body leading-[1.43] text-muted-foreground">No item matches “{term}”</li>}
             </ul>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <button type="button" autoFocus onClick={() => setFinding(true)}
               className={cn('flex flex-col gap-1 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand')}>
-              <b>Existing item</b><span className="text-[12.5px] text-muted-foreground">Same item, a different barcode — add this code to it</span>
+              <b>Existing item</b><span className="text-till-sm text-muted-foreground">Same item, a different barcode — add this code to it</span>
             </button>
             <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: code, name: '' })}
               className="flex flex-col gap-1 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand">
-              <b>New item</b><span className="text-[12.5px] text-muted-foreground">Not in the catalogue yet — sell it as a quick item</span>
+              <b>New item</b><span className="text-till-sm text-muted-foreground">Not in the catalogue yet — sell it as a quick item</span>
             </button>
           </div>
         )}

@@ -27,8 +27,8 @@ export function Suggestion({ product }: { product: TillProduct }) {
           <DialogTitle>{s.label || 'Suggested discount'}</DialogTitle>
           <DialogDescription>{s.prompt || 'Apply the suggested discount?'}</DialogDescription>
         </DialogHeader>
-        <p className="text-center text-[15px] tabular-nums">
-          <s className="text-faint">{money(cfg.symbol, unit)}</s> → <b className="font-display text-2xl">{money(cfg.symbol, next)}</b>
+        <p className="text-center text-till-lead tabular-nums">
+          <s className="text-faint">{money(cfg.symbol, unit)}</s> → <b className="font-display text-till-big leading-[1.333]">{money(cfg.symbol, next)}</b>
         </p>
         <DialogFooter>
           <Button variant="ghost" onClick={ui.close}>Skip</Button>

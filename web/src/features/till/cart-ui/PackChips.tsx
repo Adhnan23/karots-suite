@@ -12,7 +12,7 @@ import type { CartLine } from '../cart/types'
 import { useTill } from '../TillProvider'
 import { FIELD } from '../ui'
 
-const CHIP = 'flex h-7 items-center gap-1 rounded-pill px-2.5 text-[12.5px] font-semibold'
+const CHIP = 'flex h-7 items-center gap-1 rounded-pill px-2.5 text-till-sm font-semibold'
 const NAMES = ['Card', 'Box', 'Packet', 'Strip', 'Tray', 'Bottle']
 
 /** Under a cart line of something sold by the pack: the split as handed over
@@ -81,23 +81,23 @@ function PackSize({ line, onClose }: { line: CartLine; onClose: () => void }) {
         <div className="flex flex-wrap gap-1.5">
           {NAMES.map((n) => (
             <button key={n} type="button" aria-pressed={name === n} onClick={() => setName(n)}
-              className="rounded-pill border border-border px-3 py-1 text-[13px] font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
+              className="rounded-pill border border-border px-3 py-1 text-till-sm font-semibold aria-pressed:border-selected aria-pressed:bg-selected aria-pressed:text-selected-foreground">
               {n}
             </button>
           ))}
         </div>
-        <label className="grid gap-1 text-[13px] font-semibold">
+        <label className="grid gap-1 text-till-sm font-semibold">
           How many in one {name.toLowerCase() || 'pack'}?
           <input autoFocus inputMode="numeric" autoComplete="off" value={size} aria-label="Units in one pack"
             onChange={(e) => setSize(e.target.value.replace(/\D/g, ''))} className={FIELD} placeholder="e.g. 10" />
         </label>
-        <label className="grid gap-1 text-[13px] font-semibold">
+        <label className="grid gap-1 text-till-sm font-semibold">
           How many {packPlural(name.toLowerCase() || 'pack', 2)} to sell now?
           <input inputMode="numeric" autoComplete="off" value={count} aria-label="Packs to sell"
             onChange={(e) => setCount(e.target.value.replace(/\D/g, ''))} className={FIELD} />
         </label>
-        {ok && <p className="text-[13px] text-muted-foreground">= {num(count) * num(size)} on the line</p>}
-        {err && <p role="alert" className="text-[13px] font-semibold text-danger">{err}</p>}
+        {ok && <p className="text-till-sm text-muted-foreground">= {num(count) * num(size)} on the line</p>}
+        {err && <p role="alert" className="text-till-sm font-semibold text-danger">{err}</p>}
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Back</Button>
           <Button disabled={!ok || busy} onClick={() => void save()}>Save & add</Button>

@@ -53,6 +53,19 @@
 }
 
 @theme inline {
+    /* The till type scale: every Sell page text size, times --till-text (Appearance → Sell page layout). */
+    --text-till-micro: calc(9px * var(--till-text, 1));
+    --text-till-xs: calc(11px * var(--till-text, 1));
+    --text-till-sm: calc(12.5px * var(--till-text, 1));
+    --text-till-body: calc(14px * var(--till-text, 1));
+    --text-till-lead: calc(16px * var(--till-text, 1));
+    --text-till-title: calc(18px * var(--till-text, 1));
+    --text-till-xl: calc(20px * var(--till-text, 1));
+    --text-till-price: calc(22px * var(--till-text, 1));
+    --text-till-big: calc(24px * var(--till-text, 1));
+    --text-till-total: calc(32px * var(--till-text, 1));
+    --text-till-hero: calc(40px * var(--till-text, 1));
+    --text-till-icon: calc(36px * var(--till-text, 1));
     --font-sans: "Figtree", system-ui, sans-serif;
     --font-display: "Sora", var(--font-sans);
     --color-background: var(--background);

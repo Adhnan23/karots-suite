@@ -54,8 +54,8 @@ export function PackPick({ product, lot, lots }: { product: TillProduct; lot?: L
               <button type="button" autoFocus={i === 0} onClick={() => add(w.units)}
                 className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-muted p-3 text-left hover:border-brand focus-visible:border-brand focus-visible:outline-none">
                 <Kbd>{i + 1}</Kbd>
-                <span className="flex-1 text-[15px] font-bold">{w.title}</span>
-                <span className="font-display text-lg font-bold tabular-nums">{money(sym, w.price)}</span>
+                <span className="flex-1 text-till-lead font-bold">{w.title}</span>
+                <span className="font-display text-till-title leading-[1.556] font-bold tabular-nums">{money(sym, w.price)}</span>
               </button>
             </li>
           ))}

@@ -19,7 +19,7 @@ export function Summary() {
   const given = payoutTotal(ls)
   const t = saleTotal(state)
   return (
-    <div className="flex flex-col gap-1.5 text-[13.5px]">
+    <div className="flex flex-col gap-1.5 text-till-body">
       <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span className="tabular-nums">{money(sym, goodsSubtotal(ls))}</span></div>
       {idisc > 0 && <div className="flex justify-between text-success"><span>Item discounts</span><span className="tabular-nums">−{money(sym, idisc)}</span></div>}
       {!cfg.sendsToCashier && <div className="flex items-center justify-between gap-2 text-muted-foreground">
@@ -39,11 +39,11 @@ export function Summary() {
                 document.getElementById('till-search')?.focus()
               }
             }}
-            className={cn(FIELD, 'h-7 w-16 px-2 text-right text-[13px] tabular-nums')} />
+            className={cn(FIELD, 'h-7 w-16 px-2 text-right text-till-sm tabular-nums')} />
           <Seg label="Bill discount type" value={state.billDiscountType} options={[['fixed', sym], ['percent', '%']]}
             onChange={(v) => dispatch({ type: 'billDiscount', discountType: v })} />
           <Kbd>F9</Kbd>
-          <span className="text-[11px] text-faint" title="In the box: / switches Rs ⇄ %"><Kbd>/</Kbd></span>
+          <span className="text-till-xs text-faint" title="In the box: / switches Rs ⇄ %"><Kbd>/</Kbd></span>
         </span>
         <span className="tabular-nums">{bdisc > 0 ? `−${money(sym, bdisc)}` : '—'}</span>
       </div>}
@@ -51,7 +51,7 @@ export function Summary() {
       {given > 0 && <div className="flex justify-between text-warning"><span>Given to the customer</span><span className="tabular-nums">−{money(sym, given)}</span></div>}
       <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2">
         <span className="font-semibold text-muted-foreground">{t < 0 ? 'Give the customer' : 'Total'}</span>
-        <b className={cn('font-display text-[32px] font-extrabold tracking-tight tabular-nums', t < 0 && 'text-warning')}>{money(sym, Math.abs(t))}</b>
+        <b className={cn('font-display text-till-total font-extrabold tracking-tight tabular-nums', t < 0 && 'text-warning')}>{money(sym, Math.abs(t))}</b>
       </div>
     </div>
   )

@@ -71,12 +71,12 @@ export function CustomerPicker() {
       <div className="flex gap-2">
         <button id="till-customer" type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => { setOpen(!open); setMoved(null) }}
           className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--radius-sm)] border border-border bg-muted px-3 py-2 text-left">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[13px] font-extrabold">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-till-sm font-extrabold">
             {cur ? initials(cur.name) : <User size={16} />}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[14px] font-bold">{cur?.name ?? 'Walk-in customer'}</span>
-            <span className="line-clamp-2 text-[12px] text-muted-foreground">
+            <span className="block truncate text-till-body font-bold">{cur?.name ?? 'Walk-in customer'}</span>
+            <span className="line-clamp-2 text-till-sm text-muted-foreground">
               {cur ? `${cur.phone} · ${balanceText(cfg.symbol, cur)} · limit ${money(cfg.symbol, cur.creditLimit)}` : 'Cash sale, no account'}
             </span>
           </span>
@@ -99,11 +99,11 @@ export function CustomerPicker() {
             }} className={cn(FIELD, 'mb-1 h-9 w-full')} />
           <div role="listbox" aria-label="Customers" className="max-h-72 overflow-auto">
             <button type="button" role="option" aria-selected={!cur} onClick={() => pick(null)}
-              className={cn('w-full rounded-lg px-2.5 py-2 text-left text-[13.5px] hover:bg-muted', hi === 0 && 'bg-muted ring-2 ring-ring')}>Walk-in</button>
+              className={cn('w-full rounded-lg px-2.5 py-2 text-left text-till-body hover:bg-muted', hi === 0 && 'bg-muted ring-2 ring-ring')}>Walk-in</button>
             {list.map((c, i) => (
               <button key={c.id} type="button" role="option" aria-selected={c.id === cur?.id} onClick={() => pick(c.id)}
                 ref={(el) => { if (hi === i + 1) el?.scrollIntoView({ block: 'nearest' }) }}
-                className={cn('flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[13.5px] hover:bg-muted', hi === i + 1 && 'bg-muted ring-2 ring-ring')}>
+                className={cn('flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-till-body hover:bg-muted', hi === i + 1 && 'bg-muted ring-2 ring-ring')}>
                 <span>{c.name} <small className="text-muted-foreground">{c.phone}</small></span>
                 <small className="text-muted-foreground">{balanceText(cfg.symbol, c)}</small>
               </button>
@@ -113,12 +113,12 @@ export function CustomerPicker() {
       )}
       {cur && cfg.canManageCredit && (limit === null ? (
         <button type="button" onClick={() => setLimit(num(cur.creditLimit) ? String(num(cur.creditLimit)) : '')}
-          className="mt-1 text-[12px] font-semibold text-muted-foreground underline-offset-2 hover:underline">Adjust credit limit</button>
+          className="mt-1 text-till-sm font-semibold text-muted-foreground underline-offset-2 hover:underline">Adjust credit limit</button>
       ) : (
         <div className="mt-1.5 flex gap-1.5">
           <input autoFocus aria-label="New credit limit" inputMode="decimal" autoComplete="off" value={limit}
             onChange={(e) => setLimit(e.target.value.replace(/[^\d.]/g, ''))} onKeyDown={(e) => e.key === 'Enter' && void saveLimit()}
-            className={cn(FIELD, 'h-8 min-w-0 flex-1 text-[13px]')} />
+            className={cn(FIELD, 'h-8 min-w-0 flex-1 text-till-sm')} />
           <Button size="sm" onClick={() => void saveLimit()}>Save</Button>
           <Button size="sm" variant="ghost" onClick={() => setLimit(null)}>Cancel</Button>
         </div>

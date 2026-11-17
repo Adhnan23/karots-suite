@@ -63,17 +63,17 @@ export function TicketStrip() {
   const sorted = [...tickets].sort((a, b) => Number(b.forMe ?? false) - Number(a.forMe ?? false))
   return (
     <div role="group" aria-label="Tickets" className="flex max-h-44 flex-col gap-1.5 overflow-auto border-t border-border bg-brand-soft px-3 py-2.5">
-      <span className="flex items-center gap-1.5 text-[12.5px] font-semibold"><Send size={14} /> {cfg.sendsToCashier ? 'Sent · tap to take back' : 'Tickets'}</span>
+      <span className="flex items-center gap-1.5 text-till-sm font-semibold"><Send size={14} /> {cfg.sendsToCashier ? 'Sent · tap to take back' : 'Tickets'}</span>
       {sorted.map((t) => (
         <button key={t.id} type="button" onClick={() => void open(t.id)} aria-label={`Ticket ${t.ticketNo}, ${who(t)}`}
           className={cn('flex items-center gap-2.5 rounded-[var(--radius-sm)] border bg-card px-2.5 py-1.5 text-left text-foreground', t.forMe ? 'border-selected' : 'border-border')}>
-          <b className="font-display text-xl tabular-nums">{t.ticketNo}</b>
+          <b className="font-display text-till-xl leading-[1.4] tabular-nums">{t.ticketNo}</b>
           <span className="min-w-0 flex-1">
-            <span className="flex justify-between gap-2 text-[12.5px] font-semibold">
+            <span className="flex justify-between gap-2 text-till-sm font-semibold">
               <span className="truncate">{who(t)} · {cfg.sendsToCashier ? `for ${t.forCashierName}` : `from ${t.preparedByName}${t.forMe ? '' : ` · for ${t.forCashierName}`}`}</span>
               <span className="shrink-0 tabular-nums">{money(cfg.symbol, t.total)}</span>
             </span>
-            <small className="block truncate text-[11.5px] text-muted-foreground">{ticketItems(t)}</small>
+            <small className="block truncate text-till-xs text-muted-foreground">{ticketItems(t)}</small>
           </span>
         </button>
       ))}
@@ -132,8 +132,8 @@ export function TicketsBeforeClose({ tickets }: { tickets: HeldSale[] }) {
       <ul aria-label="Tickets to deal with" className="flex flex-col gap-2">
         {tickets.map((t) => (
           <li key={t.id} className="flex flex-col gap-2 rounded-[var(--radius-sm)] border border-border p-3">
-            <span className="flex items-center gap-2.5 text-sm font-semibold">
-              <b className="font-display text-xl tabular-nums">{t.ticketNo}</b>
+            <span className="flex items-center gap-2.5 text-till-body leading-[1.43] font-semibold">
+              <b className="font-display text-till-xl leading-[1.4] tabular-nums">{t.ticketNo}</b>
               <span className="min-w-0 flex-1 truncate">{who(t)} · from {t.preparedByName}</span>
               <span className="tabular-nums">{money(cfg.symbol, t.total)}</span>
             </span>

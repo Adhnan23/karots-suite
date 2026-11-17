@@ -26,9 +26,9 @@ export function PostSaleChange() {
         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={tx()}
           role="status" className="mx-2.5 mb-2 flex items-center gap-3 overflow-hidden rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--success)_16%,transparent)] px-3 py-2">
           <span className="flex-1">
-            <span className="text-[13px] font-semibold">Give change</span>{' '}
-            <b className="font-display text-xl text-success tabular-nums">{money(cfg.symbol, amt)}</b>
-            <span className="block text-[12px] text-muted-foreground tabular-nums">{notesFor(amt, denoms).map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</span>
+            <span className="text-till-sm font-semibold">Give change</span>{' '}
+            <b className="font-display text-till-xl leading-[1.4] text-success tabular-nums">{money(cfg.symbol, amt)}</b>
+            <span className="block text-till-sm text-muted-foreground tabular-nums">{notesFor(amt, denoms).map((n) => `${n.qty} × ${qtyText(n.value)}`).join(' · ')}</span>
           </span>
           <button type="button" aria-label="Dismiss change" onClick={() => dispatch({ type: 'clearPostSaleChange' })} className="text-faint hover:text-foreground"><X size={16} /></button>
         </motion.div>

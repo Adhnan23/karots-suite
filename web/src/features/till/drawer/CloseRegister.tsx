@@ -68,12 +68,12 @@ export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: str
         {!result && mine.length ? <TicketsBeforeClose tickets={mine} /> : !result ? (
           <>
             {stale && (
-              <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-sm font-semibold text-warning">
+              <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-till-body leading-[1.43] font-semibold text-warning">
                 Your till from {new Date(stale).toLocaleString([], { weekday: 'long', hour: '2-digit', minute: '2-digit' })} was never closed. Count the drawer to close it, then open today's.
               </p>
             )}
             {logout && (
-              <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-sm font-semibold text-warning">
+              <p className="rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] px-3 py-2 text-till-body leading-[1.43] font-semibold text-warning">
                 Close your till before signing out — count the drawer to finish.
               </p>
             )}
@@ -86,7 +86,7 @@ export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: str
                 <DenomCounter denoms={denoms} counts={counts} onChange={setCounts} sym={cfg.symbol} />
                 <LockerSelect label="Bank cash into" lockers={lockers} value={lockerId} onChange={setLockerId}
                   untrackedLabel={cfg.allowUntrackedCash ? '— leave cash in drawer —' : undefined} sym={cfg.symbol} />
-                {noLocker && <p className="text-sm text-danger">No cash locker set up. Ask an admin to add one to bank the closing cash (untracked cash is turned off).</p>}
+                {noLocker && <p className="text-till-body leading-[1.43] text-danger">No cash locker set up. Ask an admin to add one to bank the closing cash (untracked cash is turned off).</p>}
               </div>
               {sections.nodes.length > 0 && <div className="flex flex-col gap-4">{sections.nodes}</div>}
             </div>
@@ -98,12 +98,12 @@ export function CloseRegister({ logout, stale }: { logout?: boolean; stale?: str
         ) : (
           <>
             <DialogHeader><DialogTitle>Till closed</DialogTitle></DialogHeader>
-            <dl className="grid grid-cols-[1fr_auto] gap-y-1.5 text-[15px] tabular-nums">
+            <dl className="grid grid-cols-[1fr_auto] gap-y-1.5 text-till-lead tabular-nums">
               <dt className="text-muted-foreground">Cash sales</dt><dd>{money(cfg.symbol, result.cashSales)}</dd>
               <dt className="text-muted-foreground">Expected</dt><dd>{money(cfg.symbol, result.expectedCash)}</dd>
               <dt className="text-muted-foreground">Counted</dt><dd>{money(cfg.symbol, result.counted)}</dd>
               <dt className="font-semibold">Over / short</dt>
-              <dd className={cn('font-display text-xl font-bold', diff < 0 ? 'text-danger' : 'text-success')}>{diff > 0 ? '+' : ''}{money(cfg.symbol, diff)}</dd>
+              <dd className={cn('font-display text-till-xl leading-[1.4] font-bold', diff < 0 ? 'text-danger' : 'text-success')}>{diff > 0 ? '+' : ''}{money(cfg.symbol, diff)}</dd>
             </dl>
             <DialogFooter>
               <Button variant="secondary" asChild><a href={`/print/z/${result.sessionId}`} target="_blank" rel="noreferrer">Day-end (Z) report</a></Button>

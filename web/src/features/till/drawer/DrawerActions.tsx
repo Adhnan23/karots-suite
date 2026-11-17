@@ -23,10 +23,10 @@ export function DrawerActions() {
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length}) <Kbd>F5</Kbd></button>
       {!cfg.sendsToCashier && <>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'deposit' })}>
-        <span className="text-lg leading-none text-success">↓</span> Deposit
+        <span className="text-till-title leading-none text-success">↓</span> Deposit
       </button>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'withdraw' })}>
-        <span className="text-lg leading-none text-danger">↑</span> Withdraw
+        <span className="text-till-title leading-none text-danger">↑</span> Withdraw
       </button>
       {cfg.openCashDrawer && (
         <button type="button" className={CHIP} onClick={noSale} title="Open the cash drawer without a sale">

@@ -17,11 +17,11 @@ export function HeldStrip() {
   const ui = useTillUi()
   if (!held.length) return null
   return (
-    <div className="flex items-center gap-2 overflow-hidden border-t border-border px-3.5 py-2.5 text-[12.5px] text-muted-foreground">
+    <div className="flex items-center gap-2 overflow-hidden border-t border-border px-3.5 py-2.5 text-till-sm text-muted-foreground">
       <PauseCircle size={16} className="shrink-0" /> Held
       {held.slice(0, 3).map((h) => (
         <button key={h.id} type="button" onClick={() => void resume(h)}
-          className="truncate rounded-pill border border-border bg-muted px-2.5 py-1 text-[12px] font-semibold text-foreground">
+          className="truncate rounded-pill border border-border bg-muted px-2.5 py-1 text-till-sm font-semibold text-foreground">
           {h.label || 'Sale'} · {money(cfg.symbol, h.total)}
         </button>
       ))}

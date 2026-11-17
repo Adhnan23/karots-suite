@@ -14,7 +14,7 @@ export function LockerSelect({ label, lockers, value, onChange, untrackedLabel, 
 }) {
   if (!lockers.length) return null
   return (
-    <label className="flex flex-col gap-1 text-[13px] font-semibold text-muted-foreground">
+    <label className="flex flex-col gap-1 text-till-sm font-semibold text-muted-foreground">
       {label}
       <select value={value} onChange={(e) => onChange(e.target.value)} className={cn(FIELD, 'appearance-auto')}>
         {untrackedLabel && <option value="">{untrackedLabel}</option>}
