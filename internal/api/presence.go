@@ -56,6 +56,9 @@ func (h *handlers) PresenceBeat(c echo.Context) error {
 			Path: clip(req.Path, 200), IdleSec: req.IdleSec, CartItems: req.CartItems, CartTotal: clip(req.CartTotal, 20), Note: clip(req.Note, 80),
 			IP: c.RealIP(), UA: clip(c.Request().UserAgent(), 300),
 		}, time.Now())
+		if req.Path == "/till" && req.ViewW > 0 && req.ViewH > 0 {
+			h.screens.Seen(c.Request().Context(), device(c), req.ViewW, req.ViewH, claims.Name, time.Now())
+		}
 	}
 	return c.JSON(http.StatusOK, PresenceReply{Lock: lock, Moved: movedTo(c) != ""})
 }

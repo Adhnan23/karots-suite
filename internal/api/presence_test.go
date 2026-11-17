@@ -81,3 +81,27 @@ func TestPresenceLiveUsers(t *testing.T) {
 		t.Fatalf("after sign out %+v", rows)
 	}
 }
+
+// A till on the Sell page reports its window size; Appearance lists it with who used it.
+// Other pages and the system user don't count.
+func TestPresenceRecordsSellPageSize(t *testing.T) {
+	te := newTestEnv(t)
+	clean := func() { te.db.MustExec(`DELETE FROM screen_sizes WHERE (w, h) IN ((1234, 765), (1235, 766))`) }
+	clean()
+	defer clean()
+	te.seedUser(t, "0770009111", "cashier")
+	cashier := sessionCookie(t, te.do(http.MethodPost, "/api/v1/auth/login", LoginRequest{Phone: "0770009111", Pin: "1234"}, nil))
+
+	te.beat("pc-size-1", PresenceBeat{Path: "/till", ViewW: 1234, ViewH: 765}, cashier)
+	te.beat("pc-size-2", PresenceBeat{Path: "/till/returns", ViewW: 1235, ViewH: 766}, cashier)
+
+	var n int
+	te.db.Get(&n, `SELECT count(*) FROM screen_sizes WHERE w = 1234 AND h = 765`) //nolint:errcheck
+	if n != 1 {
+		t.Fatalf("the Sell page's size wasn't kept (%d rows)", n)
+	}
+	te.db.Get(&n, `SELECT count(*) FROM screen_sizes WHERE w = 1235 AND h = 766`) //nolint:errcheck
+	if n != 0 {
+		t.Fatal("another page's size was kept")
+	}
+}

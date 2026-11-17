@@ -7,6 +7,7 @@ import (
 	"context"
 	"karots-suite/internal/features/presence"
 	"karots-suite/internal/features/printmachines"
+	"karots-suite/internal/features/screens"
 	"karots-suite/internal/printing"
 	"slices"
 
@@ -43,6 +44,7 @@ type handlers struct {
 	t         tillServices
 	presence  *presence.Store
 	machines  *printmachines.Service
+	screens   *screens.Service
 }
 
 func Register(e *echo.Echo, d Deps) {
@@ -50,6 +52,7 @@ func Register(e *echo.Echo, d Deps) {
 	limiter := auth.NewLoginLimiter()
 	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
 	h.machines = printmachines.NewService(d.DB)
+	h.screens = screens.New(d.DB)
 	printing.SetMachineSender(h.machines.Send)
 	h.protected = []echo.MiddlewareFunc{jwt, shelfGate, middleware.RequireUnlocked(), middleware.RequirePinChosen(), h.onDevice, noMoney, h.machinePrinters}
 

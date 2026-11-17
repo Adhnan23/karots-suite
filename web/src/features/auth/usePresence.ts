@@ -38,6 +38,9 @@ export function usePresence(userId: number) {
         cartItems: cart?.lines.reduce((n, l) => n + l.qty, 0) ?? 0,
         cartTotal: cart?.lines.length ? saleTotal(cart).toFixed(2) : '',
         note,
+        // The Sell page's room (CSS px, so Windows scaling counts): Appearance → Sell page layout.
+        viewW: window.innerWidth,
+        viewH: window.innerHeight,
       }
       api<PresenceReply>('/presence', { json: body })
         .then((r) => {

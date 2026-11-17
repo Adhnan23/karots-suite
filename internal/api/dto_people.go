@@ -135,6 +135,9 @@ type PresenceBeat struct {
 	CartItems float64 `json:"cartItems"`
 	CartTotal string  `json:"cartTotal"`
 	Note      string  `json:"note"` // e.g. "Playing Blocks"
+	// ViewW / ViewH: the window's size in CSS px; kept from the Sell page (Appearance → Sell page layout).
+	ViewW int `json:"viewW,omitempty" tstype:",optional"`
+	ViewH int `json:"viewH,omitempty" tstype:",optional"`
 }
 
 // PresenceReply answers a heartbeat: lock = an admin asked this screen to lock now.

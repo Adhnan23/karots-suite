@@ -1984,6 +1984,11 @@ export interface PresenceBeat {
   cartItems: number /* float64 */;
   cartTotal: string;
   note: string; // e.g. "Playing Blocks"
+  /**
+   * ViewW / ViewH: the window's size in CSS px; kept from the Sell page (Appearance → Sell page layout).
+   */
+  viewW?: number /* int */;
+  viewH?: number /* int */;
 }
 /**
  * PresenceReply answers a heartbeat: lock = an admin asked this screen to lock now.
