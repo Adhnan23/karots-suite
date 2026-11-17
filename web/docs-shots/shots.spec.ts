@@ -220,6 +220,7 @@ test('appearance and palettes', async ({ browser }) => {
   }
   await section('Receipt style', 'printing/receipt-styles')
   await section('Label styles', 'printing/label-styles')
+  await section('Sell page layout', 'appearance/sell-layout')
   const cur = await (await light.request.get('/api/v1/system/appearance')).json()
   try {
     for (const palette of palettes) {
@@ -232,6 +233,23 @@ test('appearance and palettes', async ({ browser }) => {
   }
   await light.context().close()
   await dark.context().close()
+})
+
+// Sell page 2.0: the till with a layout saved for its size (products as a list, the cart wider).
+test('till with a list layout', async ({ browser }) => {
+  if (only && !'till/sell-list'.includes(only)) return
+  const sys = await session(browser, system)
+  const key = `${desk.width}x${desk.height}`
+  const before = (await (await sys.request.get('/api/v1/system/sell-layout')).json()).layouts
+  await sys.request.put('/api/v1/system/sell-layout', { data: { layouts: { ...before, [key]: { arr: 'PCY', fr: [0.36, 0.4, 0.24], split: 0, card: 'T', text: 100 } } } })
+  try {
+    const page = await session(browser, cashier)
+    await shot(page, '/till', 'till/sell-list', { prep: async (p) => { await p.locator('#till-search').fill('a'); await p.waitForTimeout(600) } })
+    await page.context().close()
+  } finally {
+    await sys.request.put('/api/v1/system/sell-layout', { data: { layouts: before } })
+    await sys.context().close()
+  }
 })
 
 // The Pocket Cashier app on a phone: paired, approved by the owner, a cashier selling.

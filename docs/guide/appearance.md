@@ -43,4 +43,34 @@ technician to change it.
 | Gruvbox | ![](../images/appearance/palette-gruvbox-light.jpg) | ![](../images/appearance/palette-gruvbox-dark.jpg) |
 | Synthwave '84 | ![](../images/appearance/palette-synthwave-light.jpg) | ![](../images/appearance/palette-synthwave-dark.jpg) |
 
+## Sell page layout
+
+![Sell page layout](../images/appearance/sell-layout.jpg)
+
+The Sell page can be laid out differently for each screen size the shop's tills have. A shop that
+watches the cart more than the product cards (keyboard and scanner cashiers) can have a narrow
+products column and a wide cart; an almost square 1280 × 1024 screen can stack products over
+payment and give the cart the full height.
+
+- **Screen sizes are found, not typed.** Every till that opens the Sell page reports the room it
+  really has (Windows scaling counts, so a 1920 × 1080 laptop at 125% is 1536 × 864), and the list
+  shows who uses each size. Tills of the same size share one layout. A dot marks a size that has
+  its own layout; a size left alone looks as it always has.
+- **Arrangement:** the three sections side by side in any order, or two of them stacked (Cart over
+  pay, Cart full height, Pay over cart, and their mirrors). An arrangement too wide for a screen is
+  greyed out.
+- **Widths:** drag the bars between sections on the preview, drawn at the screen's real shape.
+  Payment never goes below 330 px, the cart below 340 px or products below 300 px; a stacked part
+  that gets too short is marked.
+- **Product cards:** Large (as before), Medium (half the height), Small (name, price and stock) or a
+  **List** of rows. Frozen, low stock, "2 prices" and plugin marks stay on every size; ⓘ shows the rest.
+- **Text size:** Smaller, Normal or Larger moves all the Sell page's text together, plugin panels too.
+- **Reset this size** puts it back as it was; **Save layouts** saves every size at once. A till picks up
+  a new layout the next time it opens the Sell page.
+
+![A till with products as a list](../images/till/sell-list.jpg)
+
+Like the palette, only the Karots technician can change it: ask them if your counter wants a
+different shape.
+
 Receipt and label styles are on the same page: see [Printing](printing.md#receipt-styles).

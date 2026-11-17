@@ -9,6 +9,18 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
+**Sell page 2.0: BUILT on branch `sell-page-2` (2026-11-17), not merged, not released.** Asked for by the pharmacy
+the user showed the suite to (the one that asked for the keyboard till): "shrink the products, widen the cart". System
+user → Appearance → **Sell page layout**, per screen size the shop's tills report (window CSS px, so Windows scaling
+counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 10 arrangements
+(any column order + stacked: Cart over pay, Cart full height, Pay over cart, mirrors), drag the widths (Payment ≥ 330,
+Cart ≥ 340, Products ≥ 300 px, checked again by the server), product cards Large / Medium / Small / **List**, text
+size Smaller 90 / Normal / Larger 110. Nothing saved = exactly today's layout. To make Text size move everything, the
+Sell page's 22 px sizes became one scale (`text-till-*` in `app.css`, times `--till-text`; `theme/guard.test.ts`
+keeps `features/till` on it); plugin Sell page pieces moved onto it too. `cn` now knows `text-till-*` is a font size
+(`lib/utils.ts`). Migration 00036 (`settings.sell_layouts`, `screen_sizes`). Pocket Cashier untouched. Guide:
+`docs/guide/appearance.md#sell-page-layout`. Next: the user's hand test, then merge.
+
 **Keyboard-only Sell page: Released to Iman as 2026.11.15.1525 (2026-11-15, binary only)** (user hand-tested on a dev
 server: "so far so good"; a pharmacy asked if the till is fully keyboard workable). ↑ ↓ in search pick a tile, Enter
 adds; F5 held sales, F6 the last line's quantity (↑ ↓ other lines, Delete removes), F7 its discount (↑ ↓ other lines),

@@ -48,6 +48,10 @@ The whole Sell page works without a mouse: a scanner and the keyboard are enough
 
 The keyboard button on the top bar lists them all.
 
+The order of the three parts, their widths, the size of the product cards (down to a plain list)
+and the text size can be set for each screen size by your Karots technician: see
+[Appearance → Sell page layout](appearance.md#sell-page-layout).
+
 Only **New sale** clears the cart. On a kiosk the browser's own keys are switched off: no F5
 reload and no right-click outside text boxes.
 
