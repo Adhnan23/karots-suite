@@ -58,7 +58,7 @@ function Section({ area, card, style, short }: { area: Area; card: string; style
   )
 }
 
-function Bar({ vertical, onDrag, label }: { vertical: boolean; onDrag: (d: number) => void; label: string }): ReactNode {
+export function Bar({ vertical, onDrag, label }: { vertical: boolean; onDrag: (d: number) => void; label: string }): ReactNode {
   const from = useRef<number | null>(null)
   return (
     <div role="separator" aria-label={label} aria-orientation={vertical ? 'vertical' : 'horizontal'}
@@ -71,7 +71,9 @@ function Bar({ vertical, onDrag, label }: { vertical: boolean; onDrag: (d: numbe
         onDrag(at - from.current)
         from.current = at
       }}
-      onPointerUp={() => { from.current = null }}>
+      onPointerUp={() => { from.current = null }}
+      onPointerCancel={() => { from.current = null }}
+      onLostPointerCapture={() => { from.current = null }}>
       <span className={cn('rounded-pill bg-brand opacity-60 group-hover:opacity-100', vertical ? 'h-24 w-2' : 'h-2 w-24')} />
     </div>
   )

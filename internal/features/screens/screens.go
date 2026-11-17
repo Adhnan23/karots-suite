@@ -19,6 +19,9 @@ const (
 	every    = time.Hour           // a device rewrites its size at most this often, unless it changes
 	keepFor  = 90 * 24 * time.Hour // listed while seen within this
 	maxNames = 6
+	maxSizes = 32 // listed (the server keeps as many layouts)
+	// maxDevices bounds the throttle's memory; past it, it starts over (a few extra writes).
+	maxDevices = 500
 )
 
 // Size is one screen size and the last few people seen on it.
@@ -54,6 +57,9 @@ func (s *Service) Seen(ctx context.Context, device string, w, h int, name string
 		s.mu.Unlock()
 		return
 	}
+	if len(s.last) >= maxDevices {
+		s.last = map[string]seen{}
+	}
 	s.last[device] = seen{w, h, now}
 	s.mu.Unlock()
 	if err := s.write(ctx, w, h, name, now); err != nil {
@@ -75,10 +81,10 @@ func (s *Service) write(ctx context.Context, w, h int, name string, now time.Tim
 	return err
 }
 
-// List is every size seen in the last 90 days, the most recent first.
+// List is the sizes seen in the last 90 days, the 32 most recent first.
 func (s *Service) List(ctx context.Context, now time.Time) ([]Size, error) {
 	out := []Size{}
-	err := s.db.SelectContext(ctx, &out, `SELECT w, h, users, last_seen FROM screen_sizes WHERE last_seen >= $1 ORDER BY last_seen DESC`, now.Add(-keepFor))
+	err := s.db.SelectContext(ctx, &out, `SELECT w, h, users, last_seen FROM screen_sizes WHERE last_seen >= $1 ORDER BY last_seen DESC LIMIT $2`, now.Add(-keepFor), maxSizes)
 	return out, err
 }
 

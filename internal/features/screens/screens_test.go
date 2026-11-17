@@ -2,6 +2,7 @@ package screens
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -92,5 +93,45 @@ func TestKeepsLastSixNames(t *testing.T) {
 	}
 	if got := addName([]string{"a", "b"}, "a"); len(got) != 2 {
 		t.Fatalf("a name already there is added again: %v", got)
+	}
+}
+
+// A till user sending made-up sizes can't grow the list Appearance draws without end:
+// the 32 most recent sizes are listed, and the in-memory throttle forgets old devices.
+func TestListIsCapped(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	conn, err := appdb.Connect(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	ctx := context.Background()
+	clean := func() { conn.MustExec(`DELETE FROM screen_sizes WHERE w BETWEEN 3001 AND 3040`) }
+	clean()
+	defer clean()
+	s := New(conn)
+	now := time.Now()
+	for i := 1; i <= 40; i++ {
+		s.Seen(ctx, fmt.Sprintf("dev-%d", i), 3000+i, 2000, "x", now.Add(time.Duration(i)*time.Second))
+	}
+	list, err := s.List(ctx, now.Add(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) > 32 {
+		t.Fatalf("%d sizes listed, want at most 32", len(list))
+	}
+	for i := 0; i < 5000; i++ {
+		s.Seen(ctx, fmt.Sprintf("junk-%d", i), 100, 100, "x", now) // ignored sizes don't count
+		s.mu.Lock()
+		s.last[fmt.Sprintf("old-%d", i)] = seen{3001, 2000, now}
+		s.mu.Unlock()
+	}
+	s.Seen(ctx, "dev-new", 3040, 2000, "x", now.Add(2*time.Minute))
+	if n := len(s.last); n > maxDevices {
+		t.Fatalf("throttle remembers %d devices, want at most %d", n, maxDevices)
 	}
 }

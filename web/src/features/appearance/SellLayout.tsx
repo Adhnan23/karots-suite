@@ -25,7 +25,7 @@ function Picture({ cols }: { cols: (keyof typeof AREA_NAME)[][] }) {
     <span className="flex h-12 w-20 gap-0.5 rounded-sm border border-border bg-card p-0.5">
       {cols.map((c, i) => (
         <span key={i} className="flex flex-1 flex-col gap-0.5">
-          {c.map((a) => <span key={a} className={cn('flex-1 rounded-[2px]', tone[a])} />)}
+          {c.map((a) => <span key={a} className={cn('flex-1 rounded-[calc(var(--radius-sm)/4)]', tone[a])} />)}
         </span>
       ))}
     </span>
