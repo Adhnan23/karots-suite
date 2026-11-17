@@ -177,7 +177,8 @@ us, enter what they bring as a delivery, and the credit pays that bill (oldest o
 next, `loss_recoveries.credit_unapplied`). Damaged on arrival = a supplier return from that delivery's lot. No "who
 bought it" list for recalls unless a dangerous medicine needs customers called (sales record each line's lot).
 
-**Dropped (user):** prices per customer / customer group; promo videos. **Parked:** the open-price plugin; staff
+**Dropped (user):** prices per customer / customer group; promo videos. **Parked:** open-price items (brainstorm 2026-11-17, paused until the user
+has asked real shops; notes in memory `open-price-items`); staff
 commission; delivery orders; advance orders. **Future plugins, not now:** loyalty points, gift vouchers / credit
 notes, several shops.
 
