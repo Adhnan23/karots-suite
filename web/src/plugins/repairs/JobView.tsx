@@ -29,7 +29,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
   const job = useQuery(jobQuery(id)).data
   const cfg = useQuery(tillConfigQuery).data
   const [labelAsk, setLabelAsk] = useState(false)
-  if (!job || !cfg) return <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+  if (!job || !cfg) return <p className="py-8 text-center text-till-body leading-[1.43] text-muted-foreground">Loading…</p>
   const sym = cfg.symbol
   const open = job.status !== 'collected' && job.status !== 'cancelled'
   const act = (p: Promise<unknown>) => p.catch((e) => toast.error(errMsg(e)))
@@ -55,34 +55,34 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
       <div className="flex flex-wrap items-start gap-3">
         <button type="button" aria-label="Back to the list" onClick={onBack} className="mt-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"><ArrowLeft className="size-4" /></button>
         <div className="grid min-w-[68px] place-items-center rounded-[var(--radius)] bg-brand-soft px-2.5 py-2 text-center">
-          <span className="font-display text-lg leading-none font-bold tabular-nums">{job.ticketNo}</span>
-          <span className="mt-1 text-[10px] tracking-wide text-muted-foreground">{job.ticketCode}</span>
+          <span className="font-display text-till-title leading-none font-bold tabular-nums">{job.ticketNo}</span>
+          <span className="mt-1 text-till-micro tracking-wide text-muted-foreground">{job.ticketCode}</span>
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-xl font-bold">{device(job)}</h3>
-          <p className="text-[13px] text-muted-foreground">
+          <h3 className="truncate font-display text-till-xl leading-[1.4] font-bold">{device(job)}</h3>
+          <p className="text-till-sm text-muted-foreground">
             In {when(job.createdAt)}{job.promisedDate && <> · ready by <b className={cn(job.dueUrgent && open && 'text-danger')}>{when(job.promisedDate)}</b></>}
-            {job.due && open && <span className={cn('ml-1.5 rounded-pill px-2 py-0.5 text-[11px] font-bold', job.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted')}>{job.due}</span>}
+            {job.due && open && <span className={cn('ml-1.5 rounded-pill px-2 py-0.5 text-till-xs font-bold', job.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted')}>{job.due}</span>}
             {job.collectedAt && <> · collected {when(job.collectedAt)}</>}
           </p>
         </div>
-        <span className={cn('rounded-pill px-3 py-1 text-[12px] font-bold', statusTone[job.status])}>{STATUS[job.status]}</span>
+        <span className={cn('rounded-pill px-3 py-1 text-till-sm font-bold', statusTone[job.status])}>{STATUS[job.status]}</span>
       </div>
 
-      <div className="grid gap-2 rounded-[var(--radius)] bg-muted p-3 text-sm sm:grid-cols-2">
+      <div className="grid gap-2 rounded-[var(--radius)] bg-muted p-3 text-till-body leading-[1.43] sm:grid-cols-2">
         <div className="min-w-0">
           <b className="block truncate">{job.customerName || '—'}</b>
           {job.customerPhone && (
             <span className="mt-1 flex flex-wrap gap-1.5">
-              <a href={`tel:${job.customerPhone}`} className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><Phone size={12} />{job.customerPhone}</a>
+              <a href={`tel:${job.customerPhone}`} className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-till-sm font-semibold hover:border-brand"><Phone size={12} />{job.customerPhone}</a>
               {job.status === 'ready' && (
                 <a href={`https://wa.me/${waNumber(job.customerPhone)}?text=${encodeURIComponent(readyMessage(job, cfg.shop.name))}`} target="_blank" rel="noreferrer"
-                  className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-[12px] font-semibold hover:border-brand"><MessageCircle size={12} />Tell them it's ready</a>
+                  className="inline-flex h-7 items-center gap-1 rounded-pill border border-border bg-card px-2.5 text-till-sm font-semibold hover:border-brand"><MessageCircle size={12} />Tell them it's ready</a>
               )}
             </span>
           )}
         </div>
-        <div className="grid gap-0.5 text-[13px]">
+        <div className="grid gap-0.5 text-till-sm">
           {job.fault && <span><span className="text-muted-foreground">Fault · </span>{job.fault}</span>}
           {job.notes && <span><span className="text-muted-foreground">Notes · </span>{job.notes}</span>}
           <span className="text-muted-foreground">{job.repairedBy ? `Repaired by ${job.repairedBy}` : 'Repaired here'}
@@ -95,7 +95,7 @@ export function JobView({ id, till, onBack, onOpen, onEdit, onDone, extra }: {
         <div className="flex flex-wrap items-center gap-2">
           <Seg label="Status" value={job.status as 'received' | 'in_progress' | 'ready'} onChange={(s) => void act(setStatus(job.id, s))}
             options={[['received', 'Received'], ['in_progress', 'In progress'], ['ready', 'Ready']]} />
-          <label className="ml-auto flex items-center gap-2 text-sm font-semibold">
+          <label className="ml-auto flex items-center gap-2 text-till-body leading-[1.43] font-semibold">
             <input type="checkbox" checked={job.urgent} onChange={(e) => void act(setUrgent(job.id, e.target.checked))} className="size-4 accent-[var(--danger)]" /> Urgent
           </label>
         </div>

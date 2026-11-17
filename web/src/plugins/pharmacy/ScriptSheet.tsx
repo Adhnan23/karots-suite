@@ -59,12 +59,12 @@ export function ScriptSheet({ patientId, script, onClose }: { patientId: number;
         <Field label="Date"><input aria-label="Prescribed on" type="date" value={on} onChange={(e) => setOn(e.target.value)} className={INPUT} /></Field>
       </div>
       <div className="grid gap-2">
-        <div className="text-[13px] font-semibold text-muted-foreground">Medicines</div>
+        <div className="text-till-sm font-semibold text-muted-foreground">Medicines</div>
         {rows.map((r, i) => (
           <ItemRow key={r.key} row={r} n={i + 1} onChange={(p) => set(r.key, p)} onRemove={rows.length > 1 ? () => setRows((rs) => rs.filter((x) => x.key !== r.key)) : undefined} />
         ))}
         <button type="button" onClick={() => setRows((rs) => [...rs, blank()])}
-          className="flex items-center gap-1.5 self-start rounded-pill border border-dashed border-border px-3 py-1.5 text-[13px] font-semibold text-muted-foreground hover:border-brand hover:text-foreground">
+          className="flex items-center gap-1.5 self-start rounded-pill border border-dashed border-border px-3 py-1.5 text-till-sm font-semibold text-muted-foreground hover:border-brand hover:text-foreground">
           <Plus className="size-4" /> Another medicine
         </button>
       </div>
@@ -90,13 +90,13 @@ function ItemRow({ row, n, onChange, onRemove }: { row: Row; n: number; onChange
       <DoseInput label={`Dosage ${n}`} value={row.dosage} className={INPUT}
         onChange={(d, p) => onChange({ dosage: d, ...(!row.perDayTouched ? { perDay: p ? String(p) : '' } : {}) })} />
       {/* Days or tablets: type either, the other follows (doses a day). */}
-      <span className="flex items-center gap-1.5 text-[12px] text-faint">
+      <span className="flex items-center gap-1.5 text-till-sm text-faint">
         <input aria-label={`Days ${n}`} inputMode="numeric" placeholder="days" disabled={!per} value={days || ''} className={cn(INPUT, 'w-16 px-2 text-center')}
           onChange={(e) => onChange({ quantity: String(tabletsFor(per, Number(e.target.value.replace(/\D/g, '')) || 0) || '') })} />
         days =
         <input aria-label={`Tablets ${n}`} placeholder="qty" inputMode="decimal" value={row.quantity} onChange={(e) => onChange({ quantity: e.target.value })} className={cn(INPUT, 'w-16 px-2 text-center')} />
       </span>
-      <label className="flex items-center gap-1.5 text-[12px] text-faint">
+      <label className="flex items-center gap-1.5 text-till-sm text-faint">
         <input aria-label={`A day ${n}`} inputMode="decimal" value={row.perDay} onChange={(e) => onChange({ perDay: e.target.value, perDayTouched: true })} className={cn(INPUT, 'w-14 px-2 text-center')} />
         a day
       </label>
@@ -118,7 +118,7 @@ function MedicinePick({ row, n, onChange }: { row: Row; n: number; onChange: (p:
   const doses = useQuery(dosesQuery).data
   if (row.productId || row.groupId) {
     return (
-      <span className="flex h-[var(--control-h)] items-center gap-2 rounded-[var(--radius-sm)] border border-brand bg-brand-soft px-3 text-[14px] font-semibold">
+      <span className="flex h-[var(--control-h)] items-center gap-2 rounded-[var(--radius-sm)] border border-brand bg-brand-soft px-3 text-till-body font-semibold">
         <span className="min-w-0 flex-1 truncate">{row.label}</span>
         <small className="font-normal text-faint">{row.groupId ? 'any brand' : 'this product'}</small>
         <button type="button" aria-label={`Change medicine ${n}`} onClick={() => onChange({ productId: null, groupId: null, label: '', drugText: row.label })}><X className="size-4" /></button>
@@ -140,7 +140,7 @@ function MedicinePick({ row, n, onChange }: { row: Row; n: number; onChange: (p:
                 onChange({ ...(m.kind === 'group' ? { groupId: m.id } : { productId: m.id }), label: m.name, drugText: '', ...dose, ...note })
                 setOpen(false)
               }}
-              className="flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-[14px] hover:bg-muted">
+              className="flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-till-body hover:bg-muted">
               <span className="truncate font-medium">{m.name}</span>
               <small className="text-faint">{m.kind === 'group' ? `group · ${m.members} brand${m.members === 1 ? '' : 's'}` : 'product'}</small>
             </button>

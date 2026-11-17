@@ -21,7 +21,7 @@ function SuggestInput({ value, onChange, onPick, items, label, className, placeh
         onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={(e) => onChange(e.target.value)} />
       {open && hits.length > 0 && !exact && (
         <div role="listbox" aria-label={`${label} — choices`}
-          className="absolute left-0 top-full z-50 mt-1 grid max-h-64 min-w-56 overflow-auto rounded-[var(--radius-sm)] border border-border bg-popover p-1 text-[13px] shadow-[var(--shadow-float)]">
+          className="absolute left-0 top-full z-50 mt-1 grid max-h-64 min-w-56 overflow-auto rounded-[var(--radius-sm)] border border-border bg-popover p-1 text-till-sm shadow-[var(--shadow-float)]">
           {hits.map((d) => (
             <button key={d.value} type="button" role="option" aria-selected={d.value.toLowerCase() === k} onMouseDown={(e) => e.preventDefault()}
               onClick={() => { onPick(d.value); setOpen(false) }}

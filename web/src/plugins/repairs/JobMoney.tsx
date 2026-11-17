@@ -62,11 +62,11 @@ export function JobMoney({ job, sym, onOpen }: { job: Job; sym: string; onOpen: 
   }
   return (
     <section aria-label="Money" className="grid gap-2 rounded-[var(--radius)] border border-border p-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-till-body leading-[1.43]">
         <span>Deposit <b className="font-display tabular-nums">{money(sym, deposits + held)}</b></span>
-        {job.deposits.map((d) => <span key={d.paymentId} className="text-[12px] text-muted-foreground">{d.receiptNo} · {money(sym, num(d.amount))}</span>)}
-        {held > 0 && <span className="text-[12px] text-muted-foreground">{money(sym, held)} held from before</span>}
-        {cust && <span className="ml-auto text-[12px] text-muted-foreground">{advance > 0 ? `Advance on account ${money(sym, advance)}` : num(job.outstanding) > 0 ? `Owes ${money(sym, num(job.outstanding))}` : 'Nothing on account'}</span>}
+        {job.deposits.map((d) => <span key={d.paymentId} className="text-till-sm text-muted-foreground">{d.receiptNo} · {money(sym, num(d.amount))}</span>)}
+        {held > 0 && <span className="text-till-sm text-muted-foreground">{money(sym, held)} held from before</span>}
+        {cust && <span className="ml-auto text-till-sm text-muted-foreground">{advance > 0 ? `Advance on account ${money(sym, advance)}` : num(job.outstanding) > 0 ? `Owes ${money(sym, num(job.outstanding))}` : 'Nothing on account'}</span>}
       </div>
       <div className="flex flex-wrap gap-2">
         {handlesMoney && open && !job.reworkOf && cust && (

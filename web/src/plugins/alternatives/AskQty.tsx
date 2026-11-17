@@ -22,7 +22,7 @@ export function AskQty({ alt, onSwap, onCancel }: { alt: Alt; onSwap: (qty: numb
           </DialogHeader>
           <div className="flex items-center gap-2">
             <input autoFocus aria-label={`How many ${alt.unit}`} inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^\d.]/g, ''))}
-              className={cn(FIELD, 'h-12 flex-1 font-display text-xl font-bold tabular-nums', over && 'border-warning')} />
+              className={cn(FIELD, 'h-12 flex-1 font-display text-till-xl leading-[1.4] font-bold tabular-nums', over && 'border-warning')} />
             <span className="font-semibold text-muted-foreground">{alt.unit}</span>
           </div>
           {over && <small className="-mt-2 text-warning">More than the {qtyText(alt.stock)} {alt.unit} in stock.</small>}

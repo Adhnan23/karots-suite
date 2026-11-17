@@ -16,7 +16,7 @@ export function DoseLabelPreview({ d, className }: { d: DoseLabel; className?: s
   return (
     <div className={className ?? 'flex flex-col items-start gap-1.5'}>
       <LabelView kind="pharmacy.dose" data={d} size="" onCut={setCut} classic={<ClassicPreview lines={doseLabel(d)} />} />
-      {cut && <p className="text-[12px]">{CUT}</p>}
+      {cut && <p className="text-till-sm">{CUT}</p>}
     </div>
   )
 }
@@ -34,7 +34,7 @@ function ClassicPreview({ lines }: { lines: string[] }) {
   return (
     <figure className="flex flex-col items-start gap-1.5">
       <LabelSvg l={l} bars={null} label="Dose label" className="w-[min(260px,100%)] rounded-md bg-paper shadow-[var(--shadow)]" />
-      <figcaption className="text-[12px] text-muted-foreground">
+      <figcaption className="text-till-sm text-muted-foreground">
         {l.widthMm} × {l.heightMm} mm · as it prints
         {l.cut && CUT}
       </figcaption>

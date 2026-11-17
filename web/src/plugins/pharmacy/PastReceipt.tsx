@@ -36,12 +36,12 @@ export function PastReceipt({ patientId, onBack, onDone }: { patientId: number; 
           return (
             <button key={s.id} type="button" disabled={busy || !!why} onClick={() => void record(s.id, s.receipt)}
               className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 rounded-[var(--radius)] border border-border bg-card px-3 py-2 text-left enabled:hover:border-brand disabled:opacity-55">
-              <span className="font-mono text-sm font-bold">{s.receipt}</span>
-              <span className="truncate text-sm">{s.items || '—'}</span>
-              <span className="text-sm font-semibold">{money(sym, num(s.total))}</span>
-              <span className="text-xs text-muted-foreground">{new Date(s.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="truncate text-xs text-muted-foreground">{s.customer}</span>
-              <span className="text-xs font-semibold text-faint">{why}</span>
+              <span className="font-mono text-till-body leading-[1.43] font-bold">{s.receipt}</span>
+              <span className="truncate text-till-body leading-[1.43]">{s.items || '—'}</span>
+              <span className="text-till-body leading-[1.43] font-semibold">{money(sym, num(s.total))}</span>
+              <span className="text-till-sm leading-[1.333] text-muted-foreground">{new Date(s.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="truncate text-till-sm leading-[1.333] text-muted-foreground">{s.customer}</span>
+              <span className="text-till-sm leading-[1.333] font-semibold text-faint">{why}</span>
             </button>
           )
         })}

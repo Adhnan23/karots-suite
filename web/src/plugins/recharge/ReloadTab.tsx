@@ -49,7 +49,7 @@ export function ReloadTab({ till, data, sym }: { till: TillApi; data: TillData; 
         </div>
       )}
       {devices.length > 1 && <Pick label="Device" items={devices.map(floatItem)} value={`d${dev.id}`} onChange={setDid} sym={sym} />}
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-3 @min-[480px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <label className={LABEL}>
           Customer's number (optional)
           <input aria-label="Customer's number" inputMode="tel" autoComplete="off" placeholder="07X XXX XXXX" value={number}
@@ -63,18 +63,18 @@ export function ReloadTab({ till, data, sym }: { till: TillApi; data: TillData; 
       </div>
       <BelowZero show={goesBelow(dev, used + a)} />
       <section aria-label="Packages" className="flex flex-col gap-2">
-        <h3 className="text-[13px] font-bold text-muted-foreground">{carrier.name} packages</h3>
+        <h3 className="text-till-sm font-bold text-muted-foreground">{carrier.name} packages</h3>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
           {packages.map((p) => (
             <motion.button key={p.id} type="button" onClick={() => sell(p)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
               className={cn(TILE, 'min-h-[78px]')}>
-              <span className="text-[14px] font-semibold leading-tight">{p.name}</span>
-              <b className="font-display text-[15px] tabular-nums">{money(sym, p.price)}</b>
+              <span className="text-till-body font-semibold leading-tight">{p.name}</span>
+              <b className="font-display text-till-lead tabular-nums">{money(sym, p.price)}</b>
             </motion.button>
           ))}
           <button type="button" onClick={() => setAdding(true)} aria-expanded={adding}
             className={cn(TILE, 'min-h-[78px] items-center justify-center border-dashed text-muted-foreground')}>
-            <Plus className="size-5" /><span className="text-[13px] font-semibold">New package</span>
+            <Plus className="size-5" /><span className="text-till-sm font-semibold">New package</span>
           </button>
         </div>
         {adding && <NewPackage carrierId={carrier.id} sym={sym} onSold={(p) => { sell(p); setAdding(false) }} onCancel={() => setAdding(false)} />}
@@ -103,7 +103,7 @@ function NewPackage({ carrierId, sym, onSold, onCancel }: { carrierId: number; s
     }
   }
   return (
-    <div role="group" aria-label="New package" className="grid gap-3 rounded-[var(--radius-sm)] border border-border bg-muted/50 p-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+    <div role="group" aria-label="New package" className="grid gap-3 rounded-[var(--radius-sm)] border border-border bg-muted/50 p-3 @min-[480px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <label className={LABEL}>
         Package name
         <input autoFocus aria-label="Package name" autoComplete="off" placeholder="e.g. Night 50" value={name} onChange={(e) => setName(e.target.value)} className={cn(FIELD, "w-full min-w-0")} />
@@ -111,7 +111,7 @@ function NewPackage({ carrierId, sym, onSold, onCancel }: { carrierId: number; s
       <Amount label="Package price" value={price} onChange={setPrice} />
       <Amount label="Commission (app)" value={commission} onChange={setCommission} placeholder={money(sym, 0)} />
       <div className="flex items-center gap-2 sm:col-span-3">
-        <p className="mr-auto text-[12px] text-muted-foreground">Shown in the carrier's app for this package. An admin checks new packages later.</p>
+        <p className="mr-auto text-till-sm text-muted-foreground">Shown in the carrier's app for this package. An admin checks new packages later.</p>
         <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         <Button disabled={busy} onClick={() => void save()}>Save &amp; sell</Button>
       </div>

@@ -12,13 +12,13 @@ import type { TillApi } from '../slots'
 import { configQuery, createJob, jobQuery, suggestQuery, updateJob } from './api'
 import type { Job, JobInput } from './types'
 
-const LABEL = 'grid gap-1 text-[12px] font-semibold text-muted-foreground'
+const LABEL = 'grid gap-1 text-till-sm font-semibold text-muted-foreground'
 
 /** Take a job in (or edit it): who it belongs to — a customer we can call — and
  * what was left with us. */
 export function JobForm({ till, jobId = 0, onSaved, onCancel }: { till?: TillApi; jobId?: number; onSaved: (id: number) => void; onCancel: () => void }) {
   const job = useQuery(jobQuery(jobId)).data
-  if (jobId && !job) return <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+  if (jobId && !job) return <p className="py-8 text-center text-till-body leading-[1.43] text-muted-foreground">Loading…</p>
   return <Form key={job?.id ?? 0} job={job} seedCustomer={till?.customerId ?? null} onSaved={onSaved} onCancel={onCancel} />
 }
 
@@ -77,7 +77,7 @@ function Form({ job, seedCustomer, onSaved, onCancel }: { job?: Job; seedCustome
             onChange={(e) => setF({ ...f, warrantyDays: e.target.value.replace(/\D/g, '') })} className={FIELD} />
         </label>
       )}
-      <label className="flex items-center gap-2 self-end pb-2 text-sm font-semibold">
+      <label className="flex items-center gap-2 self-end pb-2 text-till-body leading-[1.43] font-semibold">
         <input type="checkbox" checked={f.urgent} onChange={(e) => setF({ ...f, urgent: e.target.checked })} className="size-4 accent-[var(--danger)]" /> Urgent
       </label>
       <label className={cn(LABEL, 'sm:col-span-2')}>Notes <span className="font-normal text-faint">for the shop</span>
@@ -125,7 +125,7 @@ function CustomerPick({ id, onPick }: { id: number | null; onPick: (id: number |
   if (cur) return <Picked c={cur} onClear={() => onPick(null)} />
   return (
     <div className="grid gap-1.5">
-      <span className="text-[12px] font-semibold text-muted-foreground">Customer</span>
+      <span className="text-till-sm font-semibold text-muted-foreground">Customer</span>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
@@ -138,7 +138,7 @@ function CustomerPick({ id, onPick }: { id: number | null; onPick: (id: number |
         <ul aria-label="Customers" className="grid gap-1">
           {list.map((c) => (
             <li key={c.id}>
-              <button type="button" onClick={() => onPick(c.id)} className="flex w-full items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2 text-left text-sm hover:border-brand">
+              <button type="button" onClick={() => onPick(c.id)} className="flex w-full items-center justify-between rounded-[var(--radius-sm)] border border-border px-3 py-2 text-left text-till-body leading-[1.43] hover:border-brand">
                 <b>{c.name}</b><span className="text-muted-foreground tabular-nums">{c.phone || 'no phone'}</span>
               </button>
             </li>
@@ -152,7 +152,7 @@ function CustomerPick({ id, onPick }: { id: number | null; onPick: (id: number |
 function Picked({ c, onClear }: { c: TillCustomer; onClear: () => void }) {
   return (
     <div className="flex items-center gap-3 rounded-[var(--radius)] border border-border bg-muted px-3 py-2">
-      <span className="grid size-9 place-items-center rounded-full bg-brand-soft text-sm font-bold">{c.name.slice(0, 1).toUpperCase()}</span>
+      <span className="grid size-9 place-items-center rounded-full bg-brand-soft text-till-body leading-[1.43] font-bold">{c.name.slice(0, 1).toUpperCase()}</span>
       <span className="min-w-0 flex-1">
         <b className="block truncate">{c.name}</b>
         <small className="text-muted-foreground tabular-nums">{c.phone || 'no phone'}</small>

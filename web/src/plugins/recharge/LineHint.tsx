@@ -5,5 +5,5 @@ import { tagOf } from './till'
 export function LineHint({ line }: { line: CartLine }) {
   const t = tagOf(line.plugin)
   if (!t?.label) return null
-  return <span className="text-[11px] font-semibold text-muted-foreground">{t.bank ? '🏦' : '📶'} {t.label}</span>
+  return <span className="text-till-xs font-semibold text-muted-foreground">{t.bank ? '🏦' : '📶'} {t.label}</span>
 }

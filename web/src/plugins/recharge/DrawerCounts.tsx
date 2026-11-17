@@ -33,14 +33,14 @@ export function DrawerCounts({ register }: { which: 'open' | 'close'; register: 
     return (
       <button type="button" onClick={() => setOpen(true)}
         className="flex flex-col items-start gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-border px-3 py-2.5 text-left hover:bg-muted">
-        <b className="text-[13.5px]">📲 Check the reload phones</b>
+        <b className="text-till-body">📲 Check the reload phones</b>
         <small className="text-muted-foreground">Optional — type what each phone shows</small>
       </button>
     )
   }
   return (
     <section aria-label="Reload float" className="flex flex-col gap-2">
-      <h3 className="text-[14px] font-bold">Reload float <small className="font-normal text-muted-foreground">— what each phone shows (blank = skip)</small></h3>
+      <h3 className="text-till-body font-bold">Reload float <small className="font-normal text-muted-foreground">— what each phone shows (blank = skip)</small></h3>
       <ul className="flex flex-col gap-1.5">
         {floats.map((f) => {
           const v = counted[f.id] ?? ''
@@ -48,7 +48,7 @@ export function DrawerCounts({ register }: { which: 'open' | 'close'; register: 
           return (
             <li key={f.id} className="grid grid-cols-[minmax(0,1fr)_120px] items-center gap-2">
               <span className="min-w-0">
-                <b className="block truncate text-[13.5px]">{f.carrier} · {f.label}</b>
+                <b className="block truncate text-till-body">{f.carrier} · {f.label}</b>
                 <small className="tabular-nums text-muted-foreground">
                   expected {money(sym, f.balance)}
                   {v !== '' && Math.abs(diff) > 0.005 && <span className={diff > 0 ? 'text-success' : 'text-danger'}> · {diff > 0 ? '+' : ''}{money(sym, diff)}</span>}

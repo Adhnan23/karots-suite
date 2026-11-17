@@ -74,7 +74,7 @@ function Home({ q, setQ, onOpen, onNew, onQuick }: { q: string; setQ: (v: string
       <ul aria-label="Repair jobs" className="grid max-h-[52vh] gap-1.5 overflow-auto">
         {rows?.map((r) => <JobRow key={r.id} r={r} onOpen={() => onOpen(r.id)} />)}
         {rows && rows.length === 0 && (
-          <li className="py-8 text-center text-sm text-muted-foreground">{dq ? `No repair matches “${dq}”.` : show === 'open' ? 'Nothing in for repair right now.' : 'None here.'}</li>
+          <li className="py-8 text-center text-till-body leading-[1.43] text-muted-foreground">{dq ? `No repair matches “${dq}”.` : show === 'open' ? 'Nothing in for repair right now.' : 'None here.'}</li>
         )}
       </ul>
     </div>
@@ -87,14 +87,14 @@ export function JobRow({ r, onOpen }: { r: Row; onOpen: () => void }) {
       <button type="button" onClick={onOpen}
         className={cn('flex w-full items-center gap-3 rounded-[var(--radius)] border bg-card px-3 py-2.5 text-left hover:border-brand',
           r.dueUrgent ? 'border-[color-mix(in_srgb,var(--danger)_45%,var(--border))]' : 'border-border')}>
-        <span className="grid min-w-[64px] place-items-center rounded-[var(--radius-sm)] bg-brand-soft px-2 py-1.5 font-display text-[13px] font-bold tabular-nums">{r.ticketNo}</span>
+        <span className="grid min-w-[64px] place-items-center rounded-[var(--radius-sm)] bg-brand-soft px-2 py-1.5 font-display text-till-sm font-bold tabular-nums">{r.ticketNo}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{device(r)}</span>
-          <span className="block truncate text-xs text-muted-foreground">{[r.customerName, r.customerPhone].filter(Boolean).join(' · ') || '—'}</span>
+          <span className="block truncate text-till-sm leading-[1.333] text-muted-foreground">{[r.customerName, r.customerPhone].filter(Boolean).join(' · ') || '—'}</span>
         </span>
-        {r.due && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due}</span>}
-        {!r.due && r.dueUrgent && <span className="rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">Urgent</span>}
-        <span className={cn('rounded-pill px-2.5 py-0.5 text-[11px] font-bold', statusTone[r.status])}>{STATUS[r.status]}</span>
+        {r.due && <span className={cn('rounded-pill px-2 py-0.5 text-till-xs font-bold', r.dueUrgent ? 'bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger' : 'bg-muted text-muted-foreground')}>{r.due}</span>}
+        {!r.due && r.dueUrgent && <span className="rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-till-xs font-bold text-danger">Urgent</span>}
+        <span className={cn('rounded-pill px-2.5 py-0.5 text-till-xs font-bold', statusTone[r.status])}>{STATUS[r.status]}</span>
       </button>
     </li>
   )
@@ -123,13 +123,13 @@ function QuickFix({ till, onDone, onBack }: { till: TillApi; onDone: () => void;
       <div className="flex flex-wrap gap-1.5">
         {picks.map((p) => (
           <button key={p} type="button" aria-pressed={what === p} onClick={() => setWhat(p)}
-            className="rounded-pill border border-border px-3 py-1 text-[13px] font-semibold hover:border-brand aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{p}</button>
+            className="rounded-pill border border-border px-3 py-1 text-till-sm font-semibold hover:border-brand aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground">{p}</button>
         ))}
       </div>
       <div className="grid gap-2 sm:grid-cols-[1fr_180px]">
         <input autoFocus aria-label="What was fixed" placeholder="What was fixed" value={what} onChange={(e) => setWhat(e.target.value)} className={FIELD} />
         <input aria-label="Price" placeholder={money(sym, 0)} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))}
-          className={cn(FIELD, 'font-display text-lg font-bold tabular-nums')} />
+          className={cn(FIELD, 'font-display text-till-title leading-[1.556] font-bold tabular-nums')} />
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" onClick={onBack}>Back</Button>

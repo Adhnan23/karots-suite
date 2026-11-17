@@ -12,14 +12,14 @@ export function FloatTab({ data, sym }: { data: TillData; sym: string }) {
         {data.floats.map((f) => (
           <li key={f.id} className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-muted px-3 py-2">
             <span className="min-w-0">
-              <b className="block truncate text-[14px]">{f.carrier} · {f.label}</b>
+              <b className="block truncate text-till-body">{f.carrier} · {f.label}</b>
               <small className="text-muted-foreground">counted {ago(f.lastCount)}</small>
             </span>
-            <b className={cn('shrink-0 whitespace-nowrap font-display text-lg tabular-nums', num(f.balance) < 0 && 'text-danger')}>{money(sym, f.balance)}</b>
+            <b className={cn('shrink-0 whitespace-nowrap font-display text-till-title leading-[1.556] tabular-nums', num(f.balance) < 0 && 'text-danger')}>{money(sym, f.balance)}</b>
           </li>
         ))}
       </ul>
-      <p className="text-[12.5px] text-muted-foreground">Buying float from the carrier is on the Suppliers tab.</p>
+      <p className="text-till-sm text-muted-foreground">Buying float from the carrier is on the Suppliers tab.</p>
     </div>
   )
 }

@@ -24,7 +24,7 @@ export function PatientView({ till, patientId, onChange, onPast, onClose }: {
   const scripts = useQuery(scriptsQuery(patientId)).data
   const [write, setWrite] = useState(false)
   const [showStopped, setShowStopped] = useState(false)
-  if (!p) return <p className="py-6 text-center text-sm text-muted-foreground">Loading…</p>
+  if (!p) return <p className="py-6 text-center text-till-body leading-[1.43] text-muted-foreground">Loading…</p>
   const onSale = salePatient(till)?.patientId === p.id
 
   const putOnSale = () => {
@@ -45,17 +45,17 @@ export function PatientView({ till, patientId, onChange, onPast, onClose }: {
     <div className="grid gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-lg font-bold">{p.name}</div>
-          <div className="text-xs text-muted-foreground">{[p.phone, p.nic].filter(Boolean).join(' · ')}{onSale && ' · on this sale'}</div>
+          <div className="truncate text-till-title leading-[1.556] font-bold">{p.name}</div>
+          <div className="text-till-sm leading-[1.333] text-muted-foreground">{[p.phone, p.nic].filter(Boolean).join(' · ')}{onSale && ' · on this sale'}</div>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onChange}>Change patient</Button>
         <Button type="button" variant="secondary" size="sm" onClick={() => setWrite(true)}><FilePlus2 className="size-4" /> Prescription</Button>
       </div>
       <Allergies p={p} />
-      {scripts && active.length === 0 && <p className="rounded-[var(--radius)] border border-dashed border-border p-3 text-sm text-muted-foreground">No prescriptions on file — add one, or sell as usual.</p>}
+      {scripts && active.length === 0 && <p className="rounded-[var(--radius)] border border-dashed border-border p-3 text-till-body leading-[1.43] text-muted-foreground">No prescriptions on file — add one, or sell as usual.</p>}
       {active.map((s) => <ScriptCard key={s.id} s={s} onAdd={(it, n) => it.suggest && void add(it.suggest.productId, it.suggest.name, n, { pharmacy: { rxItemId: it.id, drug: it.drug, dose: it.dosage, note: it.note } })} />)}
       {stopped.length > 0 && (
-        <button type="button" className="justify-self-start text-xs font-semibold text-muted-foreground underline" onClick={() => setShowStopped((v) => !v)}>
+        <button type="button" className="justify-self-start text-till-sm leading-[1.333] font-semibold text-muted-foreground underline" onClick={() => setShowStopped((v) => !v)}>
           {showStopped ? 'Hide' : 'Show'} {stopped.length} stopped prescription{stopped.length === 1 ? '' : 's'}
         </button>
       )}
@@ -95,14 +95,14 @@ function Allergies({ p }: { p: Patient }) {
       ⚠ Allergic to: {p.allergies}
     </button>
   ) : (
-    <button type="button" onClick={() => setEdit('')} className="justify-self-start text-xs text-muted-foreground underline">No allergies noted — add</button>
+    <button type="button" onClick={() => setEdit('')} className="justify-self-start text-till-sm leading-[1.333] text-muted-foreground underline">No allergies noted — add</button>
   )
 }
 
 function ScriptCard({ s, onAdd }: { s: Script; onAdd?: (it: ScriptItem, tablets: number) => void }) {
   return (
     <div className={cn('rounded-[var(--radius)] border border-border bg-card', !s.active && 'opacity-60')}>
-      <div className="flex flex-wrap items-baseline gap-x-2 border-b border-border px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-baseline gap-x-2 border-b border-border px-3 py-2 text-till-sm leading-[1.333] text-muted-foreground">
         <span className="font-semibold text-foreground">{s.prescriberName || 'Prescription'}</span>
         {s.prescribedOn && <span>{s.prescribedOn}</span>}
         {s.isRepeat && <span className="rounded-pill bg-brand-soft px-2 font-bold text-foreground">repeat</span>}
@@ -115,15 +115,15 @@ function ScriptCard({ s, onAdd }: { s: Script; onAdd?: (it: ScriptItem, tablets:
           <div key={it.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 not-last:border-b not-last:border-border">
             <div className="min-w-0 flex-1">
               <div className="truncate font-semibold">{it.drug}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-till-sm leading-[1.333] text-muted-foreground">
                 {[it.dosage, Number(it.perDay) ? `${qtyText(Number(it.perDay))} a day` : '', Number(it.quantity) ? `${qtyText(Number(it.quantity))} prescribed` : '',
                   Number(it.dispensed) ? `${qtyText(Number(it.dispensed))} given` : ''].filter(Boolean).join(' · ')}
               </div>
             </div>
-            {badge && <span className={cn('rounded-pill px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', TONE[badge.tone])}>{badge.text}</span>}
+            {badge && <span className={cn('rounded-pill px-2 py-0.5 text-till-xs font-bold whitespace-nowrap', TONE[badge.tone])}>{badge.text}</span>}
             {onAdd && (it.suggest ? (
               <AddFor it={it} onAdd={(n) => onAdd(it, n)} />
-            ) : <span className="text-[11px] text-faint">{owed > 0 || !Number(it.quantity) ? 'not in the catalogue' : ''}</span>)}
+            ) : <span className="text-till-xs text-faint">{owed > 0 || !Number(it.quantity) ? 'not in the catalogue' : ''}</span>)}
           </div>
         )
       })}
@@ -137,9 +137,9 @@ function AddFor({ it, onAdd }: { it: ScriptItem; onAdd: (tablets: number) => voi
   const per = Number(it.perDay) || 0
   const [tabs, setTabs] = useState(String(qtyOf(it)))
   const n = Number(tabs) || 0
-  const box = cn(FIELD, 'h-9 w-16 px-2 text-center text-[14px]')
+  const box = cn(FIELD, 'h-9 w-16 px-2 text-center text-till-body')
   return (
-    <form className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground" onSubmit={(e) => { e.preventDefault(); if (n > 0) onAdd(n) }}>
+    <form className="flex items-center gap-1.5 text-till-sm text-muted-foreground" onSubmit={(e) => { e.preventDefault(); if (n > 0) onAdd(n) }}>
       {per > 0 && (
         <>
           <input aria-label={`Days of ${it.drug}`} inputMode="numeric" value={supplyDays(n, per) || ''} className={box}

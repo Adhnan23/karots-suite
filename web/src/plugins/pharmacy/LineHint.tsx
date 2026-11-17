@@ -38,7 +38,7 @@ export function LineHint({ till, line }: { till: TillApi; line: CartLine }) {
   if (!notes.length && !f?.medicine && !tag) return null
   return (
     <div className="mt-1 grid gap-1">
-      <div className="flex flex-wrap items-center gap-1 text-[11.5px]">
+      <div className="flex flex-wrap items-center gap-1 text-till-xs">
         {notes.map((n) => (
           <span key={n.text} className={n.warn ? 'rounded-md bg-[color-mix(in_srgb,var(--warning)_14%,transparent)] px-1.5 py-0.5 font-semibold text-warning' : 'rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground'}>
             {n.text}
@@ -71,9 +71,9 @@ function DaysForm({ qty, usual, usualNote, onSet, onCancel }: { qty: number; usu
   const [typed, setDays] = useState<string | null>(null)
   const days = typed ?? (held > 0 && tabletsFor(perDay, held) === qty ? String(held) : '')
   const n = tabletsFor(perDay, Number(days) || 0)
-  const box = cn(FIELD, 'h-8 px-2 text-center text-[13px]')
+  const box = cn(FIELD, 'h-8 px-2 text-center text-till-sm')
   return (
-    <form className="flex flex-wrap items-center gap-1.5 text-[12.5px]" onSubmit={(e) => { e.preventDefault(); if (n > 0) onSet(n, dose.trim(), note.trim()) }}>
+    <form className="flex flex-wrap items-center gap-1.5 text-till-sm" onSubmit={(e) => { e.preventDefault(); if (n > 0) onSet(n, dose.trim(), note.trim()) }}>
       <DoseInput label="Dose" value={dose} onChange={(d, p) => { setDose(d); setPer(p) }} className={cn(box, 'w-24')} />
       <span>×</span>
       <input autoFocus aria-label="Days" inputMode="numeric" placeholder="days" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} className={cn(box, 'w-16')} />
@@ -106,8 +106,8 @@ function LabelForm({ lines: l, onDone }: { lines: { patient?: string; drug: stri
   return (
     <div className="flex flex-wrap items-end gap-2">
       <DoseLabelPreview d={label} />
-      <button type="button" disabled={busy} onClick={() => void print()} className="rounded-md bg-brand px-2.5 py-1 text-[12.5px] font-bold text-brand-foreground disabled:opacity-50">Print label</button>
-      <button type="button" onClick={onDone} className="px-1 text-[12.5px] text-muted-foreground hover:text-foreground">Close</button>
+      <button type="button" disabled={busy} onClick={() => void print()} className="rounded-md bg-brand px-2.5 py-1 text-till-sm font-bold text-brand-foreground disabled:opacity-50">Print label</button>
+      <button type="button" onClick={onDone} className="px-1 text-till-sm text-muted-foreground hover:text-foreground">Close</button>
     </div>
   )
 }

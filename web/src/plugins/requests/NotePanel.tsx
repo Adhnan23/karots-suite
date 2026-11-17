@@ -50,12 +50,12 @@ export function NotePanel({ onClose, text = '' }: { onClose: () => void; text?: 
             autoComplete="off" value={note} onChange={(e) => setNote(e.target.value)} className={cn(FIELD, 'col-span-2 h-auto py-2')} />
           {similar.length > 0 && (
             <div className="col-span-2 grid gap-1.5">
-              <div className="text-xs font-medium text-muted-foreground">Asked before</div>
+              <div className="text-till-sm leading-[1.333] font-medium text-muted-foreground">Asked before</div>
               {similar.map((r) => (
                 <div key={r.id} className="flex items-center gap-2 rounded-[var(--radius)] border border-border bg-muted/40 px-3 py-2">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{r.note}</div>
-                    <div className="truncate text-xs text-muted-foreground">
+                    <div className="truncate text-till-body leading-[1.43] font-medium">{r.note}</div>
+                    <div className="truncate text-till-sm leading-[1.333] text-muted-foreground">
                       {r.status === 'declined' ? `Won’t stock: ${r.reason}` : askLabel(r.askCount, r.lastAsked)}
                     </div>
                   </div>

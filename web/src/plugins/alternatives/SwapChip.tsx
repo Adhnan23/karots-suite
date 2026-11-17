@@ -32,7 +32,7 @@ export function SwapChip({ till, line, onDone }: { till: TillApi; line: CartLine
     onDone?.()
   }
   return (
-    <div className={inPrompt ? 'flex flex-col items-stretch gap-1.5 text-[13px]' : 'mt-1 flex flex-wrap items-center gap-1 text-[11.5px]'}>
+    <div className={inPrompt ? 'flex flex-col items-stretch gap-1.5 text-till-sm' : 'mt-1 flex flex-wrap items-center gap-1 text-till-xs'}>
       <span className="font-semibold text-warning">{inPrompt ? 'In stock instead — swap, no count change:' : `${line.stock <= 0 ? 'Out of stock' : `Only ${qtyText(line.stock)} left`} — swap for`}</span>
       {alts.map((a, i) => {
         const price = till.saleType === 'wholesale' && num(a.wholesalePrice) > 0 ? a.wholesalePrice : a.sellingPrice

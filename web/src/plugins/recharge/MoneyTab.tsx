@@ -52,11 +52,11 @@ export function MoneyTab({ mode, till, data, sym }: { mode: MoneyMode; till: Til
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <span className="text-[13px] font-semibold text-muted-foreground">{w.account}</span>
+        <span className="text-till-sm font-semibold text-muted-foreground">{w.account}</span>
         <Pick label={w.account} items={items} value={key} onChange={setAcct} sym={sym} />
       </div>
       {mode === 'billpay' && (
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid gap-3 @min-[480px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <label className={LABEL}>
             Bill
             <input aria-label="Bill" list="recharge-bill-types" autoComplete="off" placeholder="Electricity, Water, Phone…" value={billType}
@@ -87,13 +87,13 @@ export function MoneyTab({ mode, till, data, sym }: { mode: MoneyMode; till: Til
             onChange={(e) => setNumber(e.target.value.replace(/[^\d+ ]/g, ''))} className={cn(FIELD, 'tabular-nums')} />
         </label>
       )}
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-3 @min-[480px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Amount label={w.amount} value={amount} onChange={setAmount} big />
         <Amount label="Service charge" value={ch} onChange={setCharge} placeholder={money(sym, 0)} />
       </div>
       <BelowZero show={below} />
       <div className="flex items-center gap-3">
-        <p className="mr-auto text-[12.5px] text-muted-foreground">
+        <p className="mr-auto text-till-sm text-muted-foreground">
           {mode === 'cashout' ? 'Goes on the bill as money given; Pay hands it out (netted with anything they buy).' : 'Goes on the bill; they pay on the normal Pay — cash, card, split or on account.'}
         </p>
         <Button size="lg" onClick={add}>{w.add}{a > 0 && ` ${money(sym, a + num(ch))}`}</Button>

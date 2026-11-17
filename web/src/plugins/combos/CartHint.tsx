@@ -72,8 +72,8 @@ export function CartHint({ till, lines }: { till: TillApi; lines: CartLine[] }) 
       {shown.map((h) => (
         <div key={h.combo.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[var(--radius-sm)] border-[1.5px] border-dashed border-brand bg-brand-soft px-2.5 py-2">
           <span className="min-w-0">
-            <b className="block text-[13.5px] leading-snug">🎁 {h.combo.name}{h.sets > 1 && ` ×${h.sets}`}</b>
-            <span className="text-[12px] font-semibold text-success tabular-nums">save {money(sym, (setPrice(h.combo, till.saleType).off * h.sets) / 100)}</span>
+            <b className="block text-till-body leading-snug">🎁 {h.combo.name}{h.sets > 1 && ` ×${h.sets}`}</b>
+            <span className="text-till-sm font-semibold text-success tabular-nums">save {money(sym, (setPrice(h.combo, till.saleType).off * h.sets) / 100)}</span>
           </span>
           <Button className="h-8 px-3.5 font-bold" onClick={() => void run(addCombo(till, h.combo, h.sets, h.take), `${h.combo.name} applied`)}>Apply</Button>
           <button type="button" aria-label={`Not now: ${h.combo.name}`} onClick={() => hide(till, h.combo.id)} className="grid size-7 place-items-center text-faint hover:text-foreground"><X size={15} /></button>
@@ -92,7 +92,7 @@ export function LineHint({ till, line, lines }: { till: TillApi; line: CartLine;
   if (!p) return null
   return (
     <button type="button" onClick={() => void run(addCombo(till, p.combo, 1, p.take), `${p.combo.name} added`)}
-      className="mt-1 max-w-full rounded-md border border-dashed border-brand bg-brand-soft px-2 py-0.5 text-left text-[11.5px] font-semibold hover:border-solid">
+      className="mt-1 max-w-full rounded-md border border-dashed border-brand bg-brand-soft px-2 py-0.5 text-left text-till-xs font-semibold hover:border-solid">
       🎁 {p.combo.name} · add {p.missing.join(', ')} · save {money(sym, setPrice(p.combo, till.saleType).off / 100)}
     </button>
   )

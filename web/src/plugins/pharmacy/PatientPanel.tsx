@@ -65,16 +65,16 @@ function FindPatient({ onPick }: { onPick: (id: number) => void }) {
         {found?.map((f) => (
           <button key={f.customerId} type="button" disabled={busy} onClick={() => void pick(f)}
             className="flex items-center gap-3 rounded-[var(--radius)] border border-border bg-card px-3 py-2.5 text-left hover:border-brand">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-soft text-sm font-bold">{f.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-soft text-till-body leading-[1.43] font-bold">{f.name.slice(0, 1).toUpperCase()}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-semibold">{f.name}</span>
-              <span className="block truncate text-xs text-muted-foreground">{[f.phone, f.nic].filter(Boolean).join(' · ') || '—'}</span>
+              <span className="block truncate text-till-sm leading-[1.333] text-muted-foreground">{[f.phone, f.nic].filter(Boolean).join(' · ') || '—'}</span>
             </span>
-            {f.allergies && <span className="max-w-[40%] truncate rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-[11px] font-bold text-danger">⚠ {f.allergies}</span>}
-            {!f.patientId && <span className="text-[11px] text-faint">customer</span>}
+            {f.allergies && <span className="max-w-[40%] truncate rounded-pill bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] px-2 py-0.5 text-till-xs font-bold text-danger">⚠ {f.allergies}</span>}
+            {!f.patientId && <span className="text-till-xs text-faint">customer</span>}
           </button>
         ))}
-        {found && found.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{dq ? `No one matches “${dq}”.` : 'No patients yet.'}</p>}
+        {found && found.length === 0 && <p className="py-4 text-center text-till-body leading-[1.43] text-muted-foreground">{dq ? `No one matches “${dq}”.` : 'No patients yet.'}</p>}
       </div>
       <Button type="button" variant="secondary" className="justify-self-start" onClick={() => setReg(true)}><UserPlus className="size-4" /> Register a new patient</Button>
     </div>

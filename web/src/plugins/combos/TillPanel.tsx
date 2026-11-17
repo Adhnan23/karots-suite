@@ -37,11 +37,11 @@ export function TillPanel({ till }: { till: TillApi; onDone: () => void }) {
           return (
             <motion.button key={x.id} type="button" onClick={() => setPicked(x.id)} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={tx('fast')}
               aria-pressed={picked === x.id} className={cn(TILE, 'aria-pressed:border-selected aria-pressed:ring-1 aria-pressed:ring-selected', x.problem && 'opacity-60')}>
-              <span className="text-[13.5px] font-semibold leading-tight">{x.name}</span>
-              {x.problem && <span className="text-[11.5px] font-bold text-danger">{x.problem}</span>}
+              <span className="text-till-body font-semibold leading-tight">{x.name}</span>
+              {x.problem && <span className="text-till-xs font-bold text-danger">{x.problem}</span>}
               <span className="flex items-baseline gap-1.5 tabular-nums">
-                <b className="text-[15px]">{money(sym, price / 100)}</b>
-                {full > price && <s className="text-[11.5px] text-faint">{money(sym, full / 100)}</s>}
+                <b className="text-till-lead">{money(sym, price / 100)}</b>
+                {full > price && <s className="text-till-xs text-faint">{money(sym, full / 100)}</s>}
               </span>
             </motion.button>
           )
@@ -51,16 +51,16 @@ export function TillPanel({ till }: { till: TillApi; onDone: () => void }) {
         const { full, price } = setPrice(c, till.saleType)
         return (
           <section aria-label={c.name} className="flex max-w-md flex-col gap-2.5 border-t border-border pt-3">
-            <b className="font-display text-[16px]">{c.name}</b>
-            <ul className="flex flex-col gap-0.5 text-[13.5px]">
+            <b className="font-display text-till-lead">{c.name}</b>
+            <ul className="flex flex-col gap-0.5 text-till-body">
               {c.members.map((m) => (
                 <li key={m.productId} className="flex justify-between gap-3">
                   <span className={cn(!m.active && 'text-danger')}>{m.name} <span className="text-muted-foreground">× {Number(m.qty)}</span></span>
                 </li>
               ))}
             </ul>
-            {c.problem && <p className="text-[13px] font-semibold text-danger">{c.problem} — can't add</p>}
-            {c.warnings.map((w) => <p key={w} className="text-[12.5px] font-semibold text-warning">{w}</p>)}
+            {c.problem && <p className="text-till-sm font-semibold text-danger">{c.problem} — can't add</p>}
+            {c.warnings.map((w) => <p key={w} className="text-till-sm font-semibold text-warning">{w}</p>)}
             <Button className="h-11 justify-between font-bold" disabled={!!c.problem || busy} onClick={() => void add(c)}>
               <span>Add combo</span>
               <span className="tabular-nums">{full > price && <s className="mr-2 font-normal opacity-70">{money(sym, full / 100)}</s>}{money(sym, price / 100)}</span>

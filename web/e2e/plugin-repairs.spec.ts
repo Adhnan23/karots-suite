@@ -117,7 +117,7 @@ test('a job with a deposit is picked up on the normal Pay: the deposit pre-fille
   const lab = page.getByRole('dialog', { name: 'Print the ticket label?' })
   await expect(lab.getByLabel('Label preview')).toBeVisible()
   await lab.getByRole('button', { name: 'Cancel' }).click()
-  const ticket = (await d.locator('.font-display.text-lg').first().innerText()).trim()
+  const ticket = (await d.locator('.font-display.text-till-title').first().innerText()).trim()
   await page.keyboard.press('Escape')
 
   // Scanning the ticket on Sell opens its job.
@@ -218,7 +218,7 @@ test('a job picked up on a ticket keeps its deposit, and the sale collects it', 
   await d.getByLabel('Labour amount').fill('1500')
   await d.getByRole('button', { name: 'Add labour' }).click()
   await deposit(page, '500')
-  const ticket = (await d.locator('.font-display.text-lg').first().innerText()).trim()
+  const ticket = (await d.locator('.font-display.text-till-title').first().innerText()).trim()
   await page.keyboard.press('Escape')
   const job = await json<{ id: number; ticketCode: string }[]>(page.request.get(`/api/v1/x/repairs/jobs?show=all&q=${ticket}`))
   await viaTicket(browser, page, 'E2E Cashier', async (seller) => {

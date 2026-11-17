@@ -23,22 +23,22 @@ export function JobLines({ job, sym }: { job: Job; sym: string }) {
   return (
     <section aria-label="Parts and labour" className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-[var(--radius)] border border-border p-3">
       <div className="flex items-baseline justify-between">
-        <h3 className="font-display text-[15px] font-bold">Parts & labour</h3>
-        <span className="text-[13px] text-muted-foreground">{job.saleReceipt ? <>Paid on <b className="text-foreground">{job.saleReceipt}</b></> : job.reworkOf ? 'Free — warranty re-repair' : <>Estimate <b className="font-display text-base text-foreground tabular-nums">{money(sym, num(job.estimate))}</b></>}</span>
+        <h3 className="font-display text-till-lead font-bold">Parts & labour</h3>
+        <span className="text-till-sm text-muted-foreground">{job.saleReceipt ? <>Paid on <b className="text-foreground">{job.saleReceipt}</b></> : job.reworkOf ? 'Free — warranty re-repair' : <>Estimate <b className="font-display text-till-lead leading-normal text-foreground tabular-nums">{money(sym, num(job.estimate))}</b></>}</span>
       </div>
-      {empty && <p className="text-[13px] text-faint">Nothing yet — add the parts used and the labour.</p>}
+      {empty && <p className="text-till-sm text-faint">Nothing yet — add the parts used and the labour.</p>}
       <ul className="grid gap-1">
         {job.parts.map((p) => (
-          <li key={`p${p.id}`} className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-sm">
+          <li key={`p${p.id}`} className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-till-body leading-[1.43]">
             <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
-            {byPart && p.warrantyDays > 0 && <span className="text-[11px] text-muted-foreground">{p.warrantyDays}d warranty</span>}
-            {p.oldDiscount && <span className="text-[11px] text-muted-foreground">−{p.oldDiscount}</span>}
+            {byPart && p.warrantyDays > 0 && <span className="text-till-xs text-muted-foreground">{p.warrantyDays}d warranty</span>}
+            {p.oldDiscount && <span className="text-till-xs text-muted-foreground">−{p.oldDiscount}</span>}
             <span className="tabular-nums text-muted-foreground">{qtyText(num(p.qty))} × {money(sym, num(p.price))}</span>
             {open && <button type="button" aria-label={`Remove ${p.name}`} onClick={() => void act(removePart(job.id, p.id))} className="rounded p-1 text-faint hover:text-danger"><X className="size-4" /></button>}
           </li>
         ))}
         {job.charges.map((c) => (
-          <li key={`c${c.id}`} className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-sm">
+          <li key={`c${c.id}`} className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1.5 text-till-body leading-[1.43]">
             <Wrench className="size-3.5 text-faint" />
             <span className="min-w-0 flex-1 truncate font-semibold">{c.label}</span>
             <span className="tabular-nums text-muted-foreground">{money(sym, num(c.amount))}</span>
@@ -91,7 +91,7 @@ function AddPart({ job, sym, byPart }: { job: Job; sym: string; byPart: boolean 
         <ul className="absolute top-full z-10 mt-1 grid w-full gap-0.5 rounded-[var(--radius-sm)] border border-border bg-popover p-1 shadow-lg">
           {found.map((p) => (
             <li key={p.id}>
-              <button type="button" onClick={() => setPick(p)} className="flex w-full justify-between gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-muted">
+              <button type="button" onClick={() => setPick(p)} className="flex w-full justify-between gap-2 rounded px-2 py-1.5 text-left text-till-body leading-[1.43] hover:bg-muted">
                 <span className="truncate">{p.name}</span>
                 <span className="shrink-0 tabular-nums text-muted-foreground">{money(sym, num(p.sellingPrice))} · {qtyText(num(p.stockQty))} left</span>
               </button>

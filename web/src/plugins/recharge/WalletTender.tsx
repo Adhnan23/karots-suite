@@ -14,11 +14,11 @@ export function WalletTender({ meta, setMeta }: { meta: Record<string, string>; 
   return (
     <div className="flex flex-wrap gap-1.5">
       <select aria-label="Wallet money came to" value={meta.device ?? ''} onChange={(e) => setMeta({ ...meta, device: e.target.value })}
-        className={cn(FIELD, 'h-9 min-w-0 flex-1 appearance-auto text-[13px]')}>
+        className={cn(FIELD, 'h-9 min-w-0 flex-1 appearance-auto text-till-sm')}>
         {floats.map((f) => <option key={f.id} value={f.id}>{f.carrier} · {f.label}</option>)}
       </select>
       <input aria-label="Wallet reference" placeholder="Reference" autoComplete="off" value={meta.ref ?? ''} onChange={(e) => setMeta({ ...meta, ref: e.target.value })}
-        className={cn(FIELD, 'h-9 w-32 text-[13px]')} />
+        className={cn(FIELD, 'h-9 w-32 text-till-sm')} />
     </div>
   )
 }

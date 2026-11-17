@@ -11,7 +11,7 @@ export function Amount({ label, value, onChange, big, placeholder }: { label: st
       {label}
       <input aria-label={label} inputMode="decimal" autoComplete="off" placeholder={placeholder ?? '0.00'} value={value}
         onChange={(e) => onChange(e.target.value.replace(/[^\d.]/g, ''))}
-        className={cn(FIELD, 'w-full min-w-0 tabular-nums', big && 'h-14 font-display text-2xl font-bold')} />
+        className={cn(FIELD, 'w-full min-w-0 tabular-nums', big && 'h-14 font-display text-till-big leading-[1.333] font-bold')} />
     </label>
   )
 }
@@ -37,5 +37,5 @@ export function Pick<T extends { key: string; label: string; balance?: string }>
 /** A word when the float would go below zero — the sale still goes ahead. */
 export function BelowZero({ show }: { show: boolean }) {
   if (!show) return null
-  return <p role="status" className="text-[12.5px] font-semibold text-warning">This takes the float below zero — it still sells; count the phone after.</p>
+  return <p role="status" className="text-till-sm font-semibold text-warning">This takes the float below zero — it still sells; count the phone after.</p>
 }
