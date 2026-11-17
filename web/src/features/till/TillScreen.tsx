@@ -98,11 +98,12 @@ function Body() {
       <section aria-label="Payment" className={cn(PANEL, 'flex min-h-0 flex-col overflow-hidden [grid-area:pay]')}>
         {cfg.sendsToCashier ? <SendPanel /> : <PayPanel />}
       </section>
-      {drawer && !drawer.summary.session && !cfg.sendsToCashier && <OpenRegister state={drawer} />}
+      {/* Try here with no till open: look only, no opening count asked of the system user. */}
+      {drawer && !drawer.summary.session && !cfg.sendsToCashier && !trying && <OpenRegister state={drawer} />}
       <SaleComplete />
       {trying && (
         <div role="status" className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-pill bg-foreground py-1.5 pr-1.5 pl-4 text-till-sm font-semibold text-background shadow-[var(--shadow)]">
-          Trying an unsaved layout · sales here are real
+          Trying an unsaved layout · {drawer && !drawer.summary.session ? 'no till open, look only' : 'sales here are real'}
           <button type="button" onClick={() => void navigate({ to: '/admin/system/appearance' })}
             className="rounded-pill bg-brand px-3 py-1 text-brand-foreground">Back to Appearance</button>
         </div>
