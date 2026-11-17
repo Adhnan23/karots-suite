@@ -53,8 +53,8 @@ describe('todayLayout', () => {
 })
 
 it('every arrangement has its three sections once', () => {
-  expect(ARRANGEMENTS).toHaveLength(18)
-  for (const a of ARRANGEMENTS) expect(a.cols.flat().sort()).toEqual(['cart', 'cat', 'pay'])
+  expect(ARRANGEMENTS).toHaveLength(20)
+  for (const a of ARRANGEMENTS) expect([...a.cols.flat(), ...(a.strip ? ['cat'] : [])].sort()).toEqual(['cart', 'cat', 'pay'])
   expect(sizeKey(1366.4, 767.6)).toBe('1366x768')
 })
 
@@ -64,4 +64,13 @@ it('a text size other than 90, 100 or 110 is Normal (never 0 px fonts)', async (
   expect(textOf({ ...L('PCY', [0.4, 0.3, 0.3]), text: 0 })).toBe(100)
   expect(textOf({ ...L('PCY', [0.4, 0.3, 0.3]), text: 150 })).toBe(100)
   expect(textOf(null)).toBe(100)
+})
+
+it('search only: the search bar spans the top row, cart and pay share the rest', async () => {
+  const { isStrip } = await import('./arrangements')
+  const l = { arr: 'CY', fr: [0.6, 0.4], split: 0, card: 'L', text: 100 }
+  expect(gridOf(l)).toEqual({ gridTemplateColumns: 'minmax(0,0.6fr) minmax(0,0.4fr)', gridTemplateRows: 'auto minmax(0,1fr)', gridTemplateAreas: "'cat cat' 'cart pay'" })
+  expect(isStrip(l)).toBe(true)
+  expect(isStrip({ ...l, arr: 'PCY', fr: [0.4, 0.3, 0.3] })).toBe(false)
+  expect(isStrip(null)).toBe(false)
 })

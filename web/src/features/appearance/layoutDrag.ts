@@ -32,7 +32,9 @@ export function startShares(id: string, w: number): number[] | null {
   const mins = minsOf(id).map((m) => m / inner)
   if (mins.reduce((x, y) => x + y) > 1) return null
   let fr: number[]
-  if (a.cols.length === 3) {
+  if (a.strip) {
+    fr = a.cols.map((c) => (c[0] === 'cart' ? 0.58 : 0.42)) // the cart gets the room the products gave up
+  } else if (a.cols.length === 3) {
     const t = todayLayout(Math.max(w, 1200)).fr
     const today = { cat: t[0], cart: t[1], pay: t[2] }
     fr = a.cols.map((c) => today[c[0]])

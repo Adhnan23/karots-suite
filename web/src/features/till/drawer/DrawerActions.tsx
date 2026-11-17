@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Archive, Lock as LockIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,8 +10,8 @@ import { useHold } from '../cart-ui/useHold'
 import { useTillUi } from '../TillUi'
 import { CHIP } from '../ui'
 
-/** The till's action row (bottom of the catalogue): drawer moves + plugin actions. */
-export function DrawerActions() {
+/** The till's action row (bottom of the catalogue): drawer moves + plugin actions; lead goes first (search only: the plugin menus). */
+export function DrawerActions({ lead }: { lead?: ReactNode }) {
   const cfg = useSuspenseQuery(configQuery).data
   const ui = useTillUi()
   const hold = useHold()
@@ -19,6 +20,7 @@ export function DrawerActions() {
     api('/till/drawer/no-sale', { method: 'POST' }).then(() => toast.success('Drawer opened')).catch((e) => toast.error(errMsg(e)))
   return (
     <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Till actions">
+      {lead}
       <button type="button" className={CHIP} onClick={() => void hold()}>Hold <Kbd>F4</Kbd></button>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length}) <Kbd>F5</Kbd></button>
       {!cfg.sendsToCashier && <>

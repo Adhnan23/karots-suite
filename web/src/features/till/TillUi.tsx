@@ -36,6 +36,10 @@ type Ui = {
   menu: string | null // open plugin menu root (slots.tillMenu key)
   menuProduct: TillProduct | null // the picked product a menu root claimed
   setMenu: (k: string | null, product?: TillProduct) => void
+  /** Search only (Sell page layout): the groups' pop-up is open. It also opens on its own
+   * while a group or plugin menu is picked (Ctrl K), and closes with reset. */
+  browse: boolean
+  setBrowse: (b: boolean) => void
   /** F1 / ⟲ Menu: back to the top menu and refocus the scanner. NEVER touches the cart. */
   reset: () => void
   /** After a till cash move: prompt to print the CR- slip, or auto-print it. */
@@ -51,9 +55,10 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
   const [stack, setStack] = useState<TillGroup[]>([])
   const [menu, setMenuKey] = useState<string | null>(null)
   const [menuProduct, setMenuProduct] = useState<TillProduct | null>(null)
+  const [browse, setBrowse] = useState(false)
   const value = useMemo<Ui>(() => ({
     dialog, open: setDialog, close: () => setDialog(null),
-    search, setSearch, stack, setStack, menu, menuProduct,
+    search, setSearch, stack, setStack, menu, menuProduct, browse, setBrowse,
     setMenu: (k, product) => {
       setMenuKey(k)
       setMenuProduct(product ?? null)
@@ -63,6 +68,7 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
       setStack([])
       setMenuKey(null)
       setMenuProduct(null)
+      setBrowse(false)
       document.getElementById('till-search')?.focus()
     },
     afterMove: (id, mergeKick = false) => {
@@ -70,7 +76,7 @@ export function TillUiProvider({ children }: { children: ReactNode }) {
       if (cfg.askToPrint) askToPrint({ path: slipPath.money(id), title: 'Print the receipt?', note: 'A cash receipt was recorded for this drawer move.' })
       else void printMoneySlip(id, mergeKick)
     },
-  }), [dialog, search, stack, menu, menuProduct, cfg.askToPrint])
+  }), [dialog, search, stack, menu, menuProduct, browse, cfg.askToPrint])
   return <UiCtx.Provider value={value}>{children}</UiCtx.Provider>
 }
 

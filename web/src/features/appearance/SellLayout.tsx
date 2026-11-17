@@ -19,15 +19,18 @@ type Size = { key: string; w: number; h: number; users: string[] }
 const parse = (key: string) => key.split('x').map(Number) as [number, number]
 
 /** A small picture of an arrangement: its columns, a stacked one split in two. */
-function Picture({ cols }: { cols: (keyof typeof AREA_NAME)[][] }) {
+function Picture({ cols, strip }: { cols: (keyof typeof AREA_NAME)[][]; strip?: boolean }) {
   const tone = { cat: 'bg-brand-soft', cart: 'bg-foreground', pay: 'bg-brand' }
   return (
-    <span className="flex h-12 w-20 gap-0.5 rounded-sm border border-border bg-card p-0.5">
-      {cols.map((c, i) => (
-        <span key={i} className="flex flex-1 flex-col gap-0.5">
-          {c.map((a) => <span key={a} className={cn('flex-1 rounded-[calc(var(--radius-sm)/4)]', tone[a])} />)}
-        </span>
-      ))}
+    <span className="flex h-12 w-20 flex-col gap-0.5 rounded-sm border border-border bg-card p-0.5">
+      {strip && <span className={cn('h-1.5 shrink-0 rounded-[calc(var(--radius-sm)/4)]', tone.cat)} />}
+      <span className="flex min-h-0 flex-1 gap-0.5">
+        {cols.map((c, i) => (
+          <span key={i} className="flex flex-1 flex-col gap-0.5">
+            {c.map((a) => <span key={a} className={cn('flex-1 rounded-[calc(var(--radius-sm)/4)]', tone[a])} />)}
+          </span>
+        ))}
+      </span>
     </span>
   )
 }
@@ -102,7 +105,7 @@ export function SellLayout() {
               <button key={a.id} type="button" aria-label={a.label} aria-pressed={a.id === layout.arr} disabled={!fits} onClick={() => pick(a.id)}
                 title={fits ? undefined : 'Too narrow for this screen'}
                 className="flex w-24 flex-col items-center gap-1 rounded-[var(--radius-sm)] border-2 border-transparent p-1 text-xs font-semibold text-muted-foreground aria-pressed:border-brand aria-pressed:text-foreground disabled:opacity-40">
-                <Picture cols={a.cols} />
+                <Picture cols={a.cols} strip={a.strip} />
                 {a.label}
               </button>
             )

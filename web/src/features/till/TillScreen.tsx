@@ -6,6 +6,7 @@ import { api } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { configQuery, drawerQuery } from './api'
 import { CatalogPanel } from './catalog/CatalogPanel'
+import { SearchStrip } from './catalog/SearchStrip'
 import { CartPanel } from './cart-ui/CartPanel'
 import { CheckoutProvider } from './checkout/CheckoutProvider'
 import { Hotkeys } from './checkout/Hotkeys'
@@ -13,7 +14,7 @@ import { SellActions } from './checkout/SellActions'
 import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
-import { textOf } from './layout/arrangements'
+import { isStrip, textOf } from './layout/arrangements'
 import { useSellLayout } from './layout/useSellLayout'
 import { PayPanel } from './pay/PayPanel'
 import { SendPanel } from './pay/SendPanel'
@@ -77,6 +78,7 @@ function Body() {
   const { layout, grid } = useSellLayout()
   // Text size: on the page root, so the Sell page's dialogs (portals) and top bar follow it.
   const text = textOf(layout)
+  const strip = isStrip(layout)
   useEffect(() => {
     if (text === 100) return
     document.documentElement.style.setProperty('--till-text', String(text / 100))
@@ -85,8 +87,8 @@ function Body() {
   return (
     <div className={cn('relative grid h-full min-h-0 gap-[14px] p-[14px]', !grid && TODAY)}
       style={grid ?? undefined}>
-      <section aria-label="Catalogue" className="@container flex min-h-0 flex-col gap-3 [grid-area:cat]">
-        <CatalogPanel />
+      <section aria-label="Catalogue" className={cn('@container flex min-h-0 flex-col gap-3 [grid-area:cat]', strip && 'relative z-20')}>
+        {strip ? <SearchStrip /> : <CatalogPanel />}
       </section>
       <section aria-label="Cart" className={cn(PANEL, 'flex min-h-0 flex-col [grid-area:cart]')}>
         <CartPanel />

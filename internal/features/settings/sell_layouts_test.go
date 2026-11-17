@@ -95,8 +95,8 @@ func TestSellLayoutsScanJunk(t *testing.T) {
 }
 
 func TestSellArrangementsHoldEachSectionOnce(t *testing.T) {
-	if len(SellArrangements) != 18 {
-		t.Fatalf("%d arrangements, want 18 (the SPA's list)", len(SellArrangements))
+	if len(SellArrangements) != 20 {
+		t.Fatalf("%d arrangements, want 20 (the SPA's list)", len(SellArrangements))
 	}
 	for id, cols := range SellArrangements {
 		seen := map[rune]int{}
@@ -104,6 +104,9 @@ func TestSellArrangementsHoldEachSectionOnce(t *testing.T) {
 			for _, r := range c {
 				seen[r]++
 			}
+		}
+		if id == "CY" || id == "YC" { // search only: products are the strip across the top
+			seen['P']++
 		}
 		if seen['P'] != 1 || seen['C'] != 1 || seen['Y'] != 1 || len(seen) != 3 {
 			t.Errorf("%s: %v", id, cols)

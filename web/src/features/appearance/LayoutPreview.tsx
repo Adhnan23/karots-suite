@@ -127,6 +127,16 @@ export function LayoutPreview({ w, h, layout, onChange }: { w: number; h: number
             Sell <span className="font-medium text-muted-foreground">Returns · Credit · Receipts</span>
             <span className="ml-auto rounded-pill bg-foreground px-3 py-1 text-xl text-background">{w} × {h}</span>
           </div>
+          {a.strip && (
+            <div className="flex shrink-0 flex-col gap-3" style={{ padding: `${PAD}px ${PAD}px 0` }}>
+              <div className="flex h-[52px] items-center gap-3 rounded-[var(--radius)] border border-border bg-card px-4">
+                <span className="flex-1 text-till-lead text-muted-foreground">Scan a barcode or search products</span>
+                <span className="rounded-pill border border-border px-3 py-1 text-till-sm font-semibold">+ Quick item</span>
+                <span className="rounded-pill border border-border px-3 py-1 text-till-sm font-semibold">Browse F1</span>
+              </div>
+              <div className="flex gap-2">{['Hold F4', 'Held (0) F5', '↓ Deposit', '↑ Withdraw'].map((t) => <span key={t} className="rounded-pill border border-border bg-card px-3 py-1 text-till-sm font-semibold">{t}</span>)}</div>
+            </div>
+          )}
           <div className="flex min-h-0 flex-1" style={{ padding: PAD }}>
             {a.cols.map((col, i) => (
               <div key={`${a.id}-${i}`} className="contents">

@@ -64,6 +64,8 @@ var SellArrangements = map[string][]string{
 	"PCY": {"P", "C", "Y"}, "CPY": {"C", "P", "Y"}, "PYC": {"P", "Y", "C"}, "CYP": {"C", "Y", "P"}, "YCP": {"Y", "C", "P"}, "YPC": {"Y", "P", "C"},
 	"P_CY": {"P", "CY"}, "CY_P": {"CY", "P"}, "PY_C": {"PY", "C"}, "C_PY": {"C", "PY"}, "P_YC": {"P", "YC"},
 	"YC_P": {"YC", "P"}, "PC_Y": {"PC", "Y"}, "Y_PC": {"Y", "PC"}, "CP_Y": {"CP", "Y"}, "Y_CP": {"Y", "CP"}, "YP_C": {"YP", "C"}, "C_YP": {"C", "YP"},
+	// Search only: no products column (the search bar runs across the top).
+	"CY": {"C", "Y"}, "YC": {"Y", "C"},
 }
 
 // sellMin is each section's narrowest width in px; sellPad the page's padding on

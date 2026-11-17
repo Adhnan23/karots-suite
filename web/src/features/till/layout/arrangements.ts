@@ -4,8 +4,10 @@ import type { SellLayout } from '@/api/types.gen'
 export type Area = 'cat' | 'cart' | 'pay'
 
 /** Each arrangement's columns, left to right; a column of two stacks them top to
- * bottom. The server keeps the same ids (internal/features/settings/sell_layouts.go). */
-export const ARRANGEMENTS: { id: string; cols: Area[][]; label: string }[] = [
+ * bottom. A strip one has no products column: the search bar runs across the top and
+ * the groups open in a pop-up (F1). The server keeps the same ids
+ * (internal/features/settings/sell_layouts.go). */
+export const ARRANGEMENTS: { id: string; cols: Area[][]; label: string; strip?: true }[] = [
   { id: 'PCY', cols: [['cat'], ['cart'], ['pay']], label: 'Today' },
   { id: 'CPY', cols: [['cart'], ['cat'], ['pay']], label: 'Cart first' },
   { id: 'PYC', cols: [['cat'], ['pay'], ['cart']], label: 'Pay middle' },
@@ -24,6 +26,8 @@ export const ARRANGEMENTS: { id: string; cols: Area[][]; label: string }[] = [
   { id: 'Y_CP', cols: [['pay'], ['cart', 'cat']], label: '…on the left' },
   { id: 'YP_C', cols: [['pay', 'cat'], ['cart']], label: 'Pay over products' },
   { id: 'C_YP', cols: [['cart'], ['pay', 'cat']], label: '…on the left' },
+  { id: 'CY', cols: [['cart'], ['pay']], label: 'Search only', strip: true },
+  { id: 'YC', cols: [['pay'], ['cart']], label: '…pay first', strip: true },
 ]
 
 /** Each section's narrowest width in px (the server refuses less). */
@@ -65,9 +69,15 @@ export function pickLayout(layouts: Record<string, SellLayout> | undefined, w: n
 export function gridOf(l: SellLayout) {
   const a = ARRANGEMENTS.find((x) => x.id === l.arr)
   if (!a || l.fr.length !== a.cols.length || l.fr.some((f) => !(f > 0))) return null
+  const row = (i: number) => a.cols.map((c) => c[Math.min(i, c.length - 1)]).join(' ')
+  if (a.strip)
+    return {
+      gridTemplateColumns: l.fr.map((f) => `minmax(0,${n(f)}fr)`).join(' '),
+      gridTemplateRows: 'auto minmax(0,1fr)',
+      gridTemplateAreas: `'${a.cols.map(() => 'cat').join(' ')}' '${row(0)}'`,
+    }
   const stacked = a.cols.some((c) => c.length === 2)
   const split = clamp(0.2, l.split || 0.5, 0.8)
-  const row = (i: number) => a.cols.map((c) => c[Math.min(i, c.length - 1)]).join(' ')
   return {
     gridTemplateColumns: l.fr.map((f) => `minmax(0,${n(f)}fr)`).join(' '),
     gridTemplateRows: stacked ? `minmax(0,${n(split)}fr) minmax(0,${n(1 - split)}fr)` : 'minmax(0,1fr)',
@@ -88,6 +98,9 @@ export function todayLayout(w: number): SellLayout {
   const right = clamp(360, w * 0.4, 460)
   return { arr: 'P_CY', fr: [(inner - right) / inner, right / inner], split: 0.4, card: 'L', text: 100 }
 }
+
+/** Whether a layout has no products column (search bar across the top, groups in a pop-up). */
+export const isStrip = (l: SellLayout | null) => !!l && !!ARRANGEMENTS.find((a) => a.id === l.arr)?.strip
 
 /** The layout's text size in percent: 90, 100 or 110; anything else (missing, or a
  * size this build doesn't know) is Normal. */

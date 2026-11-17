@@ -3,6 +3,8 @@ import { useHold } from '../cart-ui/useHold'
 import { hotkeyFor } from '../hotkeys'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
+import { isStrip } from '../layout/arrangements'
+import { useSellLayout } from '../layout/useSellLayout'
 import { useCheckoutCtx } from './CheckoutProvider'
 
 /** F10 in the amount box: the next payment method the sale can take (it refocuses the box). */
@@ -25,20 +27,26 @@ export function Hotkeys() {
   const co = useCheckoutCtx()
   const hold = useHold()
   const lines = useTill().state.lines.length
-  const live = useRef({ ui, co, hold, lines })
+  const strip = isStrip(useSellLayout().layout)
+  const live = useRef({ ui, co, hold, lines, strip })
   // Before paint, not after: a key pressed the moment a scan lands must see that line.
   useLayoutEffect(() => {
-    live.current = { ui, co, hold, lines }
+    live.current = { ui, co, hold, lines, strip }
   })
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { ui, co, hold, lines } = live.current
+      const { ui, co, hold, lines, strip } = live.current
       const dialogOpen = !!document.querySelector('[role="dialog"],[role="alertdialog"]')
       const a = hotkeyFor(e.key, { dialogOpen, saleDone: !!co.done })
       if (!a) return
       e.preventDefault() // also stops F1 opening browser help, and Enter double-firing the focused button
-      if (a === 'reset') ui.reset()
+      if (a === 'reset') {
+        // Search only: F1 opens Browse (the groups' pop-up), and again closes it.
+        const browsing = ui.browse || !!ui.menu || ui.stack.length > 0
+        ui.reset()
+        if (strip && !browsing) ui.setBrowse(true)
+      }
       else if (a === 'search') focus('till-search')
       else if (a === 'qty') focus('till-qty-last')
       else if (a === 'lineDiscount') document.getElementById('till-disc-last')?.click()

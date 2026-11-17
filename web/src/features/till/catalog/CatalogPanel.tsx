@@ -1,6 +1,6 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { ChevronLeft, RotateCcw, Search } from 'lucide-react'
+import { ChevronLeft, LayoutGrid, RotateCcw, Search } from 'lucide-react'
 import type { TillGroup, TillProduct } from '@/api/types.gen'
 import { useDebounced } from '@/lib/useDebounced'
 import { cn } from '@/lib/utils'
@@ -25,26 +25,22 @@ const GRID = {
   T: 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]', // groups stay cards; the products' list spans the row
 } as const
 
-export function CatalogPanel() {
+/** What the products section shows: search results, the open group or the frequently
+ * sold, and the ↑ ↓ pick. Search only (strip) has no list until something is typed. */
+export function useCatalog(strip = false) {
   const cfg = useSuspenseQuery(configQuery).data
   const saved = useSellLayout().layout?.card ?? 'L'
   const card = (saved in GRID ? saved : 'L') as keyof typeof GRID
   const ui = useTillUi()
-  const till = useTillApi()
   const q = useDebounced(ui.search, 300)
   const searching = ui.search.trim() !== '' && q.trim() !== ''
   const current = ui.stack.at(-1)
-  const top = useQuery(groupsQuery).data ?? []
   const group = useQuery({ ...groupQuery(current?.id ?? 0), enabled: !!current && !searching })
   const results = useQuery({ ...searchQuery(q, true), enabled: searching })
   const picks = useQuery(quickPicksQuery).data ?? []
-  const opts = useQuery(priceOptionsQuery).data
-  const add = useAddProduct()
-  const submit = useEntry()
-  const menuRoot = slots.tillMenu.find((m) => m.key === ui.menu)
 
   let title = 'Frequently sold'
-  let products: TillProduct[] = picks
+  let products: TillProduct[] = strip ? [] : picks
   let children: TillGroup[] = []
   if (searching) {
     title = `Results for “${q}”`
@@ -58,45 +54,89 @@ export function CatalogPanel() {
   const [hi, setHi] = useState(-1)
   useEffect(() => setHi(-1), [ui.search, q, current, ui.menu])
   const picked = hi >= 0 && ui.search === q ? products[hi] : undefined
+  return { cfg, card, ui, q, searching, current, title, products, children, hi, setHi, picked }
+}
+
+type Catalog = ReturnType<typeof useCatalog>
+
+/** The search box with Quick item and Menu (or, search only, Browse: the groups' pop-up). */
+export function SearchRow({ cat, strip = false }: { cat: Catalog; strip?: boolean }) {
+  const { ui, products, picked, setHi } = cat
+  const add = useAddProduct()
+  const submit = useEntry()
+  return (
+    <div className={cn(PANEL, 'flex h-[52px] shrink-0 items-center gap-3 px-4')}>
+      <Search size={18} className="text-muted-foreground" />
+      <input id="till-search" aria-label="Scan a barcode or search products" placeholder="Scan a barcode or search products"
+        autoComplete="off" autoFocus value={ui.search} onChange={(e) => ui.setSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            const last = products.length - 1
+            setHi((i) => (e.key === 'ArrowDown' ? Math.min(i + 1, last) : Math.max(i - 1, 0)))
+          } else if (e.key === 'Enter') {
+            e.preventDefault()
+            if (picked) {
+              ui.setSearch('')
+              add(picked)
+            } else void submit(ui.search)
+          }
+        }}
+        className="h-full min-w-0 flex-1 bg-transparent text-till-lead outline-none placeholder:text-faint" />
+      {/* A narrow products column (Sell page layout) keeps the search box: the buttons drop their words. */}
+      <Kbd className="@max-[440px]:hidden">F2</Kbd>
+      <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: '', name: '' })}
+        title="Sell an item that isn't in the catalogue yet" aria-label="+ Quick item" className={CHIP}>
+        +<span className="@max-[440px]:hidden"> Quick item</span>
+      </button>
+      {strip ? (
+        <button type="button" onClick={() => { ui.reset(); ui.setBrowse(true) }} title="Groups, frequently sold and menus" aria-label="Browse" className={CHIP}>
+          <LayoutGrid size={14} /><span className="@max-[440px]:hidden"> Browse</span> <Kbd className="@max-[440px]:hidden">F1</Kbd>
+        </button>
+      ) : (
+        <button type="button" onClick={ui.reset} title="Back to the menu — the cart stays" aria-label="Menu" className={CHIP}>
+          <RotateCcw size={14} /><span className="@max-[440px]:hidden"> Menu</span> <Kbd className="@max-[440px]:hidden">F1</Kbd>
+        </button>
+      )}
+    </div>
+  )
+}
+
+/** The products as cards or a list, at the saved card size. */
+export function ProductList({ cat, rows = false }: { cat: Catalog; rows?: boolean }) {
+  const { cfg, card, ui, products, hi, picked } = cat
+  const opts = useQuery(priceOptionsQuery).data
+  const add = useAddProduct()
+  if (rows || card === 'T')
+    return products.length > 0 ? (
+      <div className={cn(PANEL, 'col-span-full overflow-hidden')}>
+        {products.map((p, i) => (
+          <ProductRow key={p.id} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
+            onInfo={() => ui.open({ kind: 'info', product: p })} />
+        ))}
+      </div>
+    ) : null
+  return products.map((p, i) => (
+    <ProductTile key={p.id} size={card} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
+      onInfo={() => ui.open({ kind: 'info', product: p })} />
+  ))
+}
+
+/** Groups and plugin menus, then the open one: what the products column shows under the search box. */
+export function Browser({ cat, popup = false }: { cat: Catalog; popup?: boolean }) {
+  const { card, ui, searching, current, title, products, children } = cat
+  const till = useTillApi()
+  const top = useQuery(groupsQuery).data ?? []
+  const menuRoot = slots.tillMenu.find((m) => m.key === ui.menu)
   const openTop = (g: TillGroup) => {
     ui.setSearch('')
     ui.setMenu(null)
     ui.setStack([g])
   }
-
   return (
     <>
-      <div className={cn(PANEL, 'flex h-[52px] shrink-0 items-center gap-3 px-4')}>
-        <Search size={18} className="text-muted-foreground" />
-        <input id="till-search" aria-label="Scan a barcode or search products" placeholder="Scan a barcode or search products"
-          autoComplete="off" autoFocus value={ui.search} onChange={(e) => ui.setSearch(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-              e.preventDefault()
-              const last = products.length - 1
-              setHi((i) => (e.key === 'ArrowDown' ? Math.min(i + 1, last) : Math.max(i - 1, 0)))
-            } else if (e.key === 'Enter') {
-              e.preventDefault()
-              if (picked) {
-                ui.setSearch('')
-                add(picked)
-              } else void submit(ui.search)
-            }
-          }}
-          className="h-full min-w-0 flex-1 bg-transparent text-till-lead outline-none placeholder:text-faint" />
-        {/* A narrow products column (Sell page layout) keeps the search box: the buttons drop their words. */}
-        <Kbd className="@max-[440px]:hidden">F2</Kbd>
-        <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: '', name: '' })}
-          title="Sell an item that isn't in the catalogue yet" aria-label="+ Quick item" className={CHIP}>
-          +<span className="@max-[440px]:hidden"> Quick item</span>
-        </button>
-        <button type="button" onClick={ui.reset} title="Back to the menu — the cart stays" aria-label="Menu" className={CHIP}>
-          <RotateCcw size={14} /><span className="@max-[440px]:hidden"> Menu</span> <Kbd className="@max-[440px]:hidden">F1</Kbd>
-        </button>
-      </div>
-
       <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Groups">
-        <button type="button" className={CHIP} aria-pressed={!current && !ui.menu && !searching} onClick={ui.reset}>Frequently sold</button>
+        <button type="button" className={CHIP} aria-pressed={!current && !ui.menu && !searching} onClick={popup ? () => { ui.setStack([]); ui.setMenu(null) } : ui.reset}>Frequently sold</button>
         {slots.tillMenu.map((m) => (
           <button key={m.key} type="button" className={CHIP} aria-pressed={ui.menu === m.key}
             onClick={() => { ui.setSearch(''); ui.setStack([]); ui.setMenu(m.key) }}>
@@ -124,23 +164,13 @@ export function CatalogPanel() {
               {title}
             </span>
             <span className="flex items-center gap-1.5">
-              {products.length > 1 && <><Kbd>↑ ↓</Kbd> Enter ·</>}
+              {products.length > 1 && !popup && <><Kbd>↑ ↓</Kbd> Enter ·</>}
               {products.length} items
             </span>
           </div>
           <div className={cn('grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-auto p-0.5', GRID[card])}>
             {!searching && children.map((g) => <GroupCard key={`g${g.id}`} group={g} onOpen={() => ui.setStack([...ui.stack, g])} />)}
-            {card === 'T' && products.length > 0 ? (
-              <div className={cn(PANEL, 'col-span-full overflow-hidden')}>
-                {products.map((p, i) => (
-                  <ProductRow key={p.id} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
-                    onInfo={() => ui.open({ kind: 'info', product: p })} />
-                ))}
-              </div>
-            ) : products.map((p, i) => (
-              <ProductTile key={p.id} size={card === 'T' ? 'L' : card} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
-                onInfo={() => ui.open({ kind: 'info', product: p })} />
-            ))}
+            <ProductList cat={cat} />
             {!products.length && !(children.length && !searching) && (
               <p className="col-span-full py-10 text-center text-faint">
                 {searching ? 'No product matches. Press Enter to add it as a quick item.' : current ? 'This group is empty.' : 'Frequently sold items appear here once the shop has sales.'}
@@ -149,6 +179,16 @@ export function CatalogPanel() {
           </div>
         </>
       )}
+    </>
+  )
+}
+
+export function CatalogPanel() {
+  const cat = useCatalog()
+  return (
+    <>
+      <SearchRow cat={cat} />
+      <Browser cat={cat} />
       <DrawerActions />
     </>
   )
