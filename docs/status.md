@@ -9,7 +9,13 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
-**Sell page 2.0: BUILT on branch `sell-page-2` (2026-11-17), not merged, not released.** Asked for by the pharmacy
+**Sell page 2.0: DONE, merged to main 2026-11-17** (user hand-tested: "everything looking good"; Release to Iman
+follows, notes written by hand, also covering 1525's keyboard Sell page).
+Full run before the merge: Go 64 packages, web 1,197, Playwright 259 passed + `appearance-layout.spec.ts` (fixed: an
+exact name; + a Search only test) and `plugin-aicatalog.spec.ts` alone 17/17 (`:278` failed once in the full run, as
+before). **Demo Room** rebuilt (`dist/demo`), with a new Demo moves cheat: **Open Appearance (as the Karots
+technician)** — the launcher signs in as the system user itself (`cmd/demo/system.go`), so a customer can be shown
+palettes, receipt styles and Sell page layouts. Asked for by the pharmacy
 the user showed the suite to (the one that asked for the keyboard till): "shrink the products, widen the cart". System
 user → Appearance → **Sell page layout**, per screen size the shop's tills report (window CSS px, so Windows scaling
 counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 20 arrangements
@@ -26,7 +32,7 @@ Touch counter, Square screen), **Try here** (the real Sell page with the unsaved
 and the cursor back in search after 20 s idle. **Direction (user):** instead of fixed themes, each shop gets its own
 cashier page and receipt (what customers see; nobody shows the admin pages), so it feels made for them; it's all the
 same pieces. **Idea, not built:** a practice mode (sales and printing that don't count) — needs its own design.
-Next: the user's hand test continues, retake `appearance/sell-layout` with `make docs-shots`, then merge.
+Not done: a Search only layout on a real counter at a shop.
 
 **Keyboard-only Sell page: Released to Iman as 2026.11.15.1525 (2026-11-15, binary only)** (user hand-tested on a dev
 server: "so far so good"; a pharmacy asked if the till is fully keyboard workable). ↑ ↓ in search pick a tile, Enter
