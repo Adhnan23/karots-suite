@@ -10,6 +10,7 @@ import { SearchStrip } from './catalog/SearchStrip'
 import { CartPanel } from './cart-ui/CartPanel'
 import { CheckoutProvider } from './checkout/CheckoutProvider'
 import { Hotkeys } from './checkout/Hotkeys'
+import { IdleRefocus } from './checkout/IdleRefocus'
 import { SellActions } from './checkout/SellActions'
 import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
@@ -120,6 +121,7 @@ export function TillScreen({ logout = false, drawer }: { logout?: boolean; drawe
           <TillDialogs />
           <Prompts />
           <Hotkeys />
+          <IdleRefocus />
           <SellActions />
           <LogoutClose logout={logout} />
           <DrawerMoveFromBar drawer={drawer} />
