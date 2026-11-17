@@ -75,7 +75,8 @@ function Body() {
   const drawer = useQuery(drawerQuery).data
   const cfg = useSuspenseQuery(configQuery).data
   // The layout saved for this screen size, or today's (Sell page 2.0).
-  const { layout, grid } = useSellLayout()
+  const { layout, grid, trying } = useSellLayout()
+  const navigate = useNavigate()
   // Text size: on the page root, so the Sell page's dialogs (portals) and top bar follow it.
   const text = textOf(layout)
   const strip = isStrip(layout)
@@ -98,6 +99,13 @@ function Body() {
       </section>
       {drawer && !drawer.summary.session && !cfg.sendsToCashier && <OpenRegister state={drawer} />}
       <SaleComplete />
+      {trying && (
+        <div role="status" className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-pill bg-foreground py-1.5 pr-1.5 pl-4 text-till-sm font-semibold text-background shadow-[var(--shadow)]">
+          Trying an unsaved layout · sales here are real
+          <button type="button" onClick={() => void navigate({ to: '/admin/system/appearance' })}
+            className="rounded-pill bg-brand px-3 py-1 text-brand-foreground">Back to Appearance</button>
+        </div>
+      )}
     </div>
   )
 }

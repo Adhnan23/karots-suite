@@ -1,8 +1,10 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import type { SellLayout } from '@/api/types.gen'
+import { meQuery } from '@/api/session'
 import { configQuery } from '../api'
 import { gridOf, pickLayout } from './arrangements'
+import { readTrial } from './trial'
 
 /** The window's size, kept current (resize, zoom, DevTools). */
 function useWindowSize() {
@@ -17,10 +19,13 @@ function useWindowSize() {
 
 /** The layout saved for this screen size (Appearance → Sell page layout), with its
  * CSS grid; layout null = today's. A layout this build can't draw counts as none. */
-export function useSellLayout(): { layout: SellLayout | null; grid: ReturnType<typeof gridOf> } {
+export function useSellLayout(): { layout: SellLayout | null; grid: ReturnType<typeof gridOf>; trying: boolean } {
   const cfg = useSuspenseQuery(configQuery).data
+  const system = useQuery(meQuery).data?.flags.isSystem ?? false
   const [w, h] = useWindowSize()
-  const picked = pickLayout(cfg.sellLayouts, w, h)
+  // The system user trying an unsaved layout (Try here) sees it whatever the size.
+  const trial = system ? readTrial() : null
+  const picked = trial?.layout ?? pickLayout(cfg.sellLayouts, w, h)
   const grid = picked ? gridOf(picked) : null
-  return grid ? { layout: picked, grid } : { layout: null, grid: null }
+  return grid ? { layout: picked, grid, trying: !!trial } : { layout: null, grid: null, trying: false }
 }

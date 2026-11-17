@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api, ApiError } from '@/api/client'
 import type { SellLayout as Layout, SellLayoutPage } from '@/api/types.gen'
 import { configQuery } from '@/features/till/api'
 import { ARRANGEMENTS, nearestKey, sizeKey, todayLayout } from '@/features/till/layout/arrangements'
+import { endTrial, readTrial, startTrial } from '@/features/till/layout/trial'
 import { cn } from '@/lib/utils'
 import { innerOf, startShares } from './layoutDrag'
 import { AREA_NAME, LayoutPreview } from './LayoutPreview'
@@ -14,6 +16,13 @@ export const sellLayoutQuery = { queryKey: ['system', 'sell-layout'], queryFn: (
 
 const CARDS = [{ label: 'Large', key: 'L' }, { label: 'Medium', key: 'M' }, { label: 'Small', key: 'S' }, { label: 'List', key: 'T' }] as const
 const TEXTS = [{ label: 'Smaller', key: '90' }, { label: 'Normal', key: '100' }, { label: 'Larger', key: '110' }] as const
+
+/** Starting points: one tap sets a whole layout for the size, then drag to fine-tune. */
+const PRESETS = [
+  { label: 'Scanner counter', note: 'search only, a wide cart, larger text', make: (w: number) => ({ arr: 'CY', card: 'T', text: 110, split: 0, fr: startShares('CY', w) }) },
+  { label: 'Touch counter', note: 'big product cards, as it always was', make: (w: number) => ({ ...todayLayout(w) }) },
+  { label: 'Square screen', note: 'products over pay, cart full height', make: (w: number) => ({ arr: 'PY_C', card: 'M', text: 100, split: 0.6, fr: startShares('PY_C', w) }) },
+] as const
 
 type Size = { key: string; w: number; h: number; users: string[] }
 const parse = (key: string) => key.split('x').map(Number) as [number, number]
@@ -43,7 +52,15 @@ export function SellLayout() {
   const [draft, setDraft] = useState<Record<string, Layout> | null>(null)
   const [sel, setSel] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  useEffect(() => { if (data && !draft) setDraft(data.layouts) }, [data, draft])
+  const navigate = useNavigate()
+  // Back from Try here: carry on with the draft that was being tried.
+  const [trial] = useState(readTrial) // read once: effects may run twice
+  useEffect(() => {
+    if (!data || draft) return
+    endTrial()
+    setDraft(trial?.draft ?? data.layouts)
+    if (trial) setSel(trial.sel)
+  }, [data, draft, trial])
   if (!data || !draft) return <p className="text-sm text-muted-foreground">Loading…</p>
 
   // Sizes the tills reported, then saved ones no till has shown lately, then this screen.
@@ -97,6 +114,23 @@ export function SellLayout() {
       </div>
 
       <div className="flex flex-col gap-2">
+        <span className="text-xs font-bold text-muted-foreground">Start from</span>
+        <div role="group" aria-label="Start from" className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => {
+            const l = p.make(cur.w)
+            return (
+              <button key={p.label} type="button" disabled={!l.fr} onClick={() => l.fr && set({ ...l, fr: l.fr })}
+                title={l.fr ? undefined : 'Too narrow for this screen'}
+                className="flex flex-col items-start rounded-[var(--radius-sm)] border border-border bg-card px-3 py-2 text-left disabled:opacity-40">
+                <span className="font-semibold">{p.label}</span>
+                <span className="text-xs text-muted-foreground">{p.note}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
         <span className="text-xs font-bold text-muted-foreground">Arrangement</span>
         <div role="group" aria-label="Arrangement" className="flex flex-wrap gap-2">
           {ARRANGEMENTS.map((a) => {
@@ -129,6 +163,9 @@ export function SellLayout() {
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={save} disabled={saving}
           className="h-11 rounded-[var(--radius-sm)] bg-brand px-5 font-semibold text-brand-foreground shadow-[var(--glow)] disabled:opacity-60">Save layouts</button>
+        <button type="button" onClick={() => { startTrial({ layout, draft, sel: cur.key }); void navigate({ to: '/till' }) }}
+          title="Open the Sell page with this layout before saving it (the real Sell page: a sale there counts)"
+          className="h-11 rounded-[var(--radius-sm)] border border-border bg-card px-4 font-semibold">Try here</button>
         <button type="button" onClick={reset} disabled={!draft[cur.key]}
           className="h-11 rounded-[var(--radius-sm)] border border-border bg-card px-4 font-semibold disabled:opacity-50">Reset this size</button>
       </div>
