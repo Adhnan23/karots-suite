@@ -34,8 +34,10 @@ type Settings struct {
 	AskToPrint        bool    `db:"ask_to_print"      json:"ask_to_print"`
 	// LabelPrintAs is the same switch for the label printer; LabelStyles the
 	// Image-mode style per label kind (system user, Appearance).
-	LabelPrintAs          string      `db:"label_print_as" json:"label_print_as"`
-	LabelStyles           LabelStyles `db:"label_styles"   json:"label_styles"`
+	LabelPrintAs string      `db:"label_print_as" json:"label_print_as"`
+	LabelStyles  LabelStyles `db:"label_styles"   json:"label_styles"`
+	// SellLayouts is the Sell page's layout per screen size (system user, Appearance).
+	SellLayouts           SellLayouts `db:"sell_layouts" json:"sell_layouts"`
 	ForcePinChange        bool        `db:"force_pin_change"          json:"force_pin_change"`
 	AllowCashierPinChange bool        `db:"allow_cashier_pin_change"  json:"allow_cashier_pin_change"`
 	DefaultSaleType       string      `db:"default_sale_type" json:"default_sale_type"`
@@ -331,6 +333,12 @@ func (r *Repository) SetAppearance(ctx context.Context, skin, receiptStyle, skin
 }
 
 // SetReceiptTextSize writes the slips' text size (already validated).
+// SetSellLayouts replaces every screen size's Sell page layout.
+func (r *Repository) SetSellLayouts(ctx context.Context, l SellLayouts) error {
+	_, err := r.db.ExecContext(ctx, `UPDATE settings SET sell_layouts=$1 WHERE id = 1`, l)
+	return err
+}
+
 func (r *Repository) SetReceiptTextSize(ctx context.Context, n int) error {
 	_, err := r.db.ExecContext(ctx, `UPDATE settings SET receipt_text_size=$1 WHERE id = 1`, n)
 	return err
@@ -402,6 +410,19 @@ func (s *Service) SetAppearance(ctx context.Context, skin, receiptStyle, skinCus
 		return nil, apperr.Internal("failed to update appearance", err)
 	}
 	return s.Get(ctx)
+}
+
+// SetSellLayouts checks and stores the Sell page layouts (the whole map: a size
+// left out goes back to today's layout).
+func (s *Service) SetSellLayouts(ctx context.Context, in map[string]SellLayout) (SellLayouts, error) {
+	l, err := ValidSellLayouts(in)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SetSellLayouts(ctx, l); err != nil {
+		return nil, apperr.Internal("failed to update the Sell page layouts", err)
+	}
+	return l, nil
 }
 
 // SetReceiptTextSize stores the slips' text size; an unknown size is Normal.

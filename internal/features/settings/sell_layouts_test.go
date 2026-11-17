@@ -1,0 +1,67 @@
+package settings
+
+import (
+	"math"
+	"strings"
+	"testing"
+)
+
+func TestValidSellLayouts(t *testing.T) {
+	t.Run("a good layout is kept and its shares add up to one", func(t *testing.T) {
+		got, err := ValidSellLayouts(map[string]SellLayout{"1366x768": {Arr: "PCY", Fr: []float64{42, 29, 29}, Card: "M"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		l := got["1366x768"]
+		if l.Arr != "PCY" || l.Card != "M" || l.Text != 100 || len(l.Fr) != 3 {
+			t.Fatalf("got %+v", l)
+		}
+		if s := l.Fr[0] + l.Fr[1] + l.Fr[2]; math.Abs(s-1) > 1e-9 {
+			t.Fatalf("shares sum to %v", s)
+		}
+	})
+	bad := []struct {
+		name string
+		in   map[string]SellLayout
+		msg  string
+	}{
+		{"unknown arrangement", map[string]SellLayout{"1366x768": {Arr: "PXY", Fr: []float64{.4, .3, .3}}}, "arrangement"},
+		{"key that isn't a size", map[string]SellLayout{"big": {Arr: "PCY", Fr: []float64{.4, .3, .3}}}, "size"},
+		{"size too small", map[string]SellLayout{"99x99": {Arr: "PCY", Fr: []float64{.4, .3, .3}}}, "size"},
+		{"wrong share count", map[string]SellLayout{"1366x768": {Arr: "P_CY", Fr: []float64{.4, .3, .3}, Split: .5}}, "share"},
+		{"payment too narrow", map[string]SellLayout{"1366x768": {Arr: "PCY", Fr: []float64{.45, .3, .25}}}, "Payment"},
+		{"split out of range", map[string]SellLayout{"1366x768": {Arr: "P_CY", Fr: []float64{.5, .5}, Split: .9}}, "split"},
+		{"unknown card size", map[string]SellLayout{"1366x768": {Arr: "PCY", Fr: []float64{.4, .3, .3}, Card: "X"}}, "card"},
+		{"unknown text size", map[string]SellLayout{"1366x768": {Arr: "PCY", Fr: []float64{.4, .3, .3}, Text: 95}}, "text"},
+	}
+	for _, c := range bad {
+		t.Run(c.name, func(t *testing.T) {
+			_, err := ValidSellLayouts(c.in)
+			if err == nil || !strings.Contains(strings.ToLower(err.Error()), strings.ToLower(c.msg)) {
+				t.Fatalf("want an error about %q, got %v", c.msg, err)
+			}
+		})
+	}
+	t.Run("defaults: card L, text 100, split dropped on three columns", func(t *testing.T) {
+		got, err := ValidSellLayouts(map[string]SellLayout{"1920x1080": {Arr: "CPY", Fr: []float64{.3, .45, .25}, Split: .7}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if l := got["1920x1080"]; l.Card != "L" || l.Text != 100 || l.Split != 0 {
+			t.Fatalf("got %+v", l)
+		}
+	})
+	t.Run("a stacked column needs the wider of its two", func(t *testing.T) {
+		// 1280 wide: inner 1280-28-14 = 1238; .25 → 309 px < Cart's 340.
+		_, err := ValidSellLayouts(map[string]SellLayout{"1280x1024": {Arr: "P_CY", Fr: []float64{.75, .25}, Split: .5}})
+		if err == nil || !strings.Contains(err.Error(), "Cart") {
+			t.Fatalf("want Cart too narrow, got %v", err)
+		}
+	})
+	t.Run("empty is fine (every size reset)", func(t *testing.T) {
+		got, err := ValidSellLayouts(nil)
+		if err != nil || len(got) != 0 {
+			t.Fatalf("got %v %v", got, err)
+		}
+	})
+}
