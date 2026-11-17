@@ -12,11 +12,23 @@ import { useTillApi, useTillUi } from '../TillUi'
 import { CHIP, PANEL } from '../ui'
 import { GroupCard } from './GroupCard'
 import { lotNote, ProductTile } from './ProductTile'
+import { ProductRow } from './ProductRow'
+import { useSellLayout } from '../layout/useSellLayout'
 import { useAddProduct } from './useAddProduct'
 import { useEntry } from './useEntry'
 
+/** The product grid per card size (Appearance → Sell page layout); List is one column of rows. */
+const GRID = {
+  L: 'grid-cols-[repeat(auto-fill,minmax(clamp(168px,11vw,230px),1fr))]',
+  M: 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]',
+  S: 'grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2',
+  T: 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]', // groups stay cards; the products' list spans the row
+} as const
+
 export function CatalogPanel() {
   const cfg = useSuspenseQuery(configQuery).data
+  const saved = useSellLayout().layout?.card ?? 'L'
+  const card = (saved in GRID ? saved : 'L') as keyof typeof GRID
   const ui = useTillUi()
   const till = useTillApi()
   const q = useDebounced(ui.search, 300)
@@ -115,10 +127,17 @@ export function CatalogPanel() {
               {products.length} items
             </span>
           </div>
-          <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(clamp(168px,11vw,230px),1fr))] gap-2.5 overflow-auto p-0.5">
+          <div className={cn('grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-auto p-0.5', GRID[card])}>
             {!searching && children.map((g) => <GroupCard key={`g${g.id}`} group={g} onOpen={() => ui.setStack([...ui.stack, g])} />)}
-            {products.map((p, i) => (
-              <ProductTile key={p.id} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
+            {card === 'T' && products.length > 0 ? (
+              <div className={cn(PANEL, 'col-span-full overflow-hidden')}>
+                {products.map((p, i) => (
+                  <ProductRow key={p.id} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
+                    onInfo={() => ui.open({ kind: 'info', product: p })} />
+                ))}
+              </div>
+            ) : products.map((p, i) => (
+              <ProductTile key={p.id} size={card === 'T' ? 'L' : card} active={i === hi && p === picked} p={p} sym={cfg.symbol} note={lotNote(opts, p.id)} onAdd={() => add(p)}
                 onInfo={() => ui.open({ kind: 'info', product: p })} />
             ))}
             {!products.length && !(children.length && !searching) && (
