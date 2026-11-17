@@ -1,4 +1,4 @@
-# Sell page layout (design)
+# Sell page 2.0 (design)
 
 2026-11-17. Approved mockup: `.superpowers/brainstorm/42445-1794886387/content/sell-layout-v2.html` (git-ignored).
 

@@ -1,4 +1,4 @@
-# Sell page layout Implementation Plan
+# Sell page 2.0 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -43,7 +43,7 @@
 - Modify: `internal/features/settings/settings.go` (field + `SetSellLayouts` on Repository and Service)
 
 **Interfaces:**
-- Produces: `type SellLayout struct { Arr string \`json:"arr"\`; Fr []float64 \`json:"fr"\`; Split float64 \`json:"split"\`; Card string \`json:"card"\` }`; `type SellLayouts map[string]SellLayout` (Scan / Value like `LabelStyles`); `func ValidSellLayouts(in map[string]SellLayout) (SellLayouts, error)`; `Settings.SellLayouts SellLayouts \`db:"sell_layouts"\``; `func (s *Service) SetSellLayouts(ctx, SellLayouts) error`.
+- Produces: `type SellLayout struct { Arr string \`json:"arr"\`; Fr []float64 \`json:"fr"\`; Split float64 \`json:"split"\`; Card string \`json:"card"\`; Text int \`json:"text"\` }`; `type SellLayouts map[string]SellLayout` (Scan / Value like `LabelStyles`); `func ValidSellLayouts(in map[string]SellLayout) (SellLayouts, error)`; `Settings.SellLayouts SellLayouts \`db:"sell_layouts"\``; `func (s *Service) SetSellLayouts(ctx, SellLayouts) error`.
 
 - [ ] **Step 1:** Migration: `ALTER TABLE settings ADD COLUMN sell_layouts JSONB NOT NULL DEFAULT '{}';` plus the `screen_sizes` table for Task 2: `(w int, h int, users text[] NOT NULL DEFAULT '{}', last_seen timestamptz NOT NULL, PRIMARY KEY (w, h))`. Down drops both. Header comment says what each is.
 - [ ] **Step 2: Failing tests** in `sell_layouts_test.go` (table-driven):
