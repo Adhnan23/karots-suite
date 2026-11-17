@@ -9,6 +9,7 @@ import { Fold } from '@/features/appearance/Fold'
 import { LabelStyles } from '@/features/appearance/LabelStyles'
 import { appearanceQuery } from '@/features/appearance/queries'
 import { ReceiptStyles } from '@/features/appearance/ReceiptStyles'
+import { SellLayout } from '@/features/appearance/SellLayout'
 import { labelKinds } from '@/features/print/labels/registry'
 import { STYLES } from '@/features/print/styles'
 import { configQuery } from '@/features/till/api'
@@ -98,6 +99,12 @@ function SystemAppearance() {
           onText={(receiptTextSize) => update({ receiptTextSize })}
         />
       </Fold>
+
+      <section aria-label="Sell page layout">
+        <Fold title="Sell page layout" hint="per screen size" remember="appearance.sell-layout">
+          <SellLayout />
+        </Fold>
+      </section>
 
       <Fold title="Label styles" hint={labelHint(form.labelStyles ?? {})} remember="appearance.labels">
         <LabelStyles value={form.labelStyles ?? {}} onChange={(labelStyles) => update({ labelStyles })} />

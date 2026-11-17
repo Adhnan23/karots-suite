@@ -29,21 +29,27 @@ export const sizeKey = (w: number, h: number) => `${Math.round(w)}x${Math.round(
 const n = (x: number) => String(+x.toFixed(4))
 const clamp = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
-/** The saved layout for the size nearest this window, when its width and height are
- * each within 10%; null = today's layout. */
-export function pickLayout(layouts: Record<string, SellLayout> | undefined, w: number, h: number): SellLayout | null {
-  let best: SellLayout | null = null
+/** Of keys "<w>x<h>", the one nearest this window whose width and height are each
+ * within 10%; null when none is that close. */
+export function nearestKey(keys: string[], w: number, h: number): string | null {
+  let best: string | null = null
   let bestD = Infinity
-  for (const [key, l] of Object.entries(layouts ?? {})) {
+  for (const key of keys) {
     const m = /^(\d+)x(\d+)$/.exec(key)
     if (!m) continue
     const dw = Math.abs(w - +m[1]) / +m[1]
     const dh = Math.abs(h - +m[2]) / +m[2]
     if (dw > 0.1 || dh > 0.1 || dw + dh >= bestD) continue
-    best = l
+    best = key
     bestD = dw + dh
   }
   return best
+}
+
+/** The saved layout for the size nearest this window (see nearestKey); null = today's layout. */
+export function pickLayout(layouts: Record<string, SellLayout> | undefined, w: number, h: number): SellLayout | null {
+  const key = nearestKey(Object.keys(layouts ?? {}), w, h)
+  return key ? layouts![key] : null
 }
 
 /** CSS grid for a layout; null when the arrangement is unknown or the shares don't
