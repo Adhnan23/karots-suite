@@ -84,7 +84,7 @@ function Body() {
   return (
     <div className={cn('relative grid h-full min-h-0 gap-[14px] p-[14px]', !grid && TODAY)}
       style={grid ?? undefined}>
-      <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
+      <section aria-label="Catalogue" className="@container flex min-h-0 flex-col gap-3 [grid-area:cat]">
         <CatalogPanel />
       </section>
       <section aria-label="Cart" className={cn(PANEL, 'flex min-h-0 flex-col [grid-area:cart]')}>

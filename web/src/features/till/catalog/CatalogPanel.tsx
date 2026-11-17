@@ -84,13 +84,14 @@ export function CatalogPanel() {
             }
           }}
           className="h-full min-w-0 flex-1 bg-transparent text-till-lead outline-none placeholder:text-faint" />
-        <Kbd>F2</Kbd>
+        {/* A narrow products column (Sell page layout) keeps the search box: the buttons drop their words. */}
+        <Kbd className="@max-[440px]:hidden">F2</Kbd>
         <button type="button" onClick={() => ui.open({ kind: 'quickItem', barcode: '', name: '' })}
-          title="Sell an item that isn't in the catalogue yet" className={CHIP}>
-          + Quick item
+          title="Sell an item that isn't in the catalogue yet" aria-label="+ Quick item" className={CHIP}>
+          +<span className="@max-[440px]:hidden"> Quick item</span>
         </button>
-        <button type="button" onClick={ui.reset} title="Back to the menu — the cart stays" className={CHIP}>
-          <RotateCcw size={14} /> Menu <Kbd>F1</Kbd>
+        <button type="button" onClick={ui.reset} title="Back to the menu — the cart stays" aria-label="Menu" className={CHIP}>
+          <RotateCcw size={14} /><span className="@max-[440px]:hidden"> Menu</span> <Kbd className="@max-[440px]:hidden">F1</Kbd>
         </button>
       </div>
 
