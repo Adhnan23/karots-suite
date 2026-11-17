@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** The system user sets, per screen size seen at the shop, the Sell page's arrangement, section widths and product card size; every till uses the layout for its size, or today's layout when none is set.
+**Goal:** The system user sets, per screen size seen at the shop, the Sell page's arrangement, section widths, product card size and text size; every till uses the layout for its size, or today's layout when none is set.
 
 **Architecture:** A shop-wide `settings.sell_layouts` map keyed `"<w>x<h>"` (validated in Go) reaches the till in `TillConfig`; pure TS (`till/layout/`) picks the layout for the window and turns it into CSS grid rows / columns / areas on the existing grid in `TillScreen`. Tills report their window size on the presence beat; the server keeps the sizes seen (with who used them) in a small table, which Appearance lists. Plugins are untouched until the last task, which checks each plugin's Sell-page pieces in the narrowest sections and fixes them inside the plugin.
 
@@ -16,7 +16,8 @@
 - No saved layout for a size, or one that fails validation → today's layout exactly (the current classes in `TillScreen.tsx:72`, untouched).
 - Arrangement ids (the only ones accepted): `PCY CPY PYC CYP YCP P_CY CY_P PY_C C_PY P_YC` (`_` = column break; letters in a column stack top→bottom; P products, C cart, Y pay).
 - Minimum section widths at the layout's own width: Payment 330 px, Cart 340 px, Products 300 px; a stacked column needs the larger of its two. Outer padding 14 px each side, gap 14 px.
-- Stacked split (top part's share): 0.2–0.8. Card sizes: `L` (today) · `M` · `S` · `T` (list).
+- Stacked split (top part's share): 0.2–0.8. Card sizes: `L` (today) · `M` · `S` · `T` (list). Text size: `90` · `100` (default) · `110` percent.
+- Sell page text comes only from the till type scale (Task 5); no `text-[Npx]` under `web/src/features/till` afterwards (guard test).
 - Matching: the saved size nearest the window whose width and height are each within ±10%; else today's.
 - Sizes are CSS px of the window (`window.innerWidth × innerHeight`), so Windows scaling is counted.
 - Seen sizes are recorded only from the Sell page (`path === '/till'`); one write per device per size change or per hour; listed while seen in the last 90 days (a layout is kept even after its size drops off).
@@ -51,7 +52,7 @@
   - `Arr:"P_CY"` with 3 shares → error (2 columns need 2).
   - `"1366x768"` `PCY` with Payment share giving 300 px (< 330) → error naming "Payment".
   - `Split` 0.9 on a stacked arrangement → error; Split ignored (set 0) on a 3-column one.
-  - `Card` `""` → `"L"`; `"X"` → error.
+  - `Card` `""` → `"L"`; `"X"` → error. `Text` 0 → 100; 95 → error.
   - Empty map → empty map (Reset of every size).
 - [ ] **Step 3:** Run `go test ./internal/features/settings -run SellLayouts` → FAIL.
 - [ ] **Step 4:** Implement `ValidSellLayouts` (arrangement table = column lists as in Global Constraints; width per column = share × (W − 28 − 14 × (cols − 1)) against the column's minimum). Errors are `apperr.BadRequest` with a plain message ("Payment is too narrow at 1366 × 768").
@@ -100,18 +101,30 @@
 - [ ] **Step 2:** `cd web && bunx vitest run src/features/till/layout` → FAIL.
 - [ ] **Step 3:** Implement. **Step 4:** PASS. **Step 5:** Commit `feat(till): Sell page arrangements and picking a layout for the window`.
 
-### Task 5: The Sell page uses it (UI gate)
+### Task 5: One type scale for the Sell page (UI gate)
+
+**Files:**
+- Modify: `web/src/theme/tokens.css` (+ `palettes/tokens.ts` if tokens are listed there): `--till-text: 1` and six steps, each `calc(<px> * var(--till-text))`: `--fs-till-xs` 11px, `--fs-till-sm` 12.5px, `--fs-till-body` 13.5px, `--fs-till-lead` 15px, `--fs-till-title` 17px, `--fs-till-price` 22px; the big numbers (`text-2xl`+, 32 / 40 px totals) get `--fs-till-total` 32px and `--fs-till-hero` 40px.
+- Modify: every `.tsx` under `web/src/features/till/` that uses `text-[Npx]` or `text-sm|base|lg|xl|2xl|3xl`: map each to the nearest step (11 / 11.5 → xs; 12 / 12.5 / 13 → sm; 13.5 / 14 / 14.5 → body; 15 / 16.5 → lead; 17 / 20 → title; 22 → price). The faint 96 px letter stays as it is.
+- Modify: `web/src/theme/guard.test.ts`: fail on `text-\[\d` or `text-(sm|base|lg|xl|2xl|3xl)` under `web/src/features/till/`.
+
+- [ ] **Step 1:** Add the guard rule → it FAILS listing the files.
+- [ ] **Step 2:** Add the tokens; replace sizes file by file (one Tailwind utility per step, e.g. `text-(length:--fs-till-sm)`); guard PASSES; `bunx vitest run src/features/till src/theme` PASS.
+- [ ] **Step 3: Gate:** before / after screenshots of the Sell page, each counter tab, the pay dialogs and open / close till at 1366×768: same look (±0.5 px is fine). Then set `--till-text: .9` and `1.1` by hand and look: everything moves together, nothing clips.
+- [ ] **Step 4:** Commit `refactor(till): one type scale for the Sell page instead of 22 pixel sizes`.
+
+### Task 6: The Sell page uses the layout (UI gate)
 
 **Files:**
 - Create: `web/src/features/till/layout/useSellLayout.ts` (window size via `resize` listener → `pickLayout(cfg.sellLayouts, …)`)
-- Modify: `web/src/features/till/TillScreen.tsx` (`Body`: when a layout is picked, put `gridOf(...)` in `style` and drop the template classes; else keep today's classes exactly; the three sections and overlays unchanged)
+- Modify: `web/src/features/till/TillScreen.tsx` (`Body`: when a layout is picked, put `gridOf(...)` in `style` and drop the template classes; else keep today's classes exactly; the three sections and overlays unchanged). Text size: `--till-text: <text/100>` on the till's root (counter tabs too), so dialogs on the till follow it.
 
 - [ ] **Step 1:** Extend `web/e2e/till-fit.spec.ts`: save `{"1366x768": {arr:'C_PY', fr:[.4,.6], split:.6, card:'L'}}` through the system API, open `/till` at 1366×768 → the Cart region's left edge is left of the Catalogue's, Payment's top is below the Catalogue's bottom; at 1600×900 the default order is back. Restore `{}` after.
 - [ ] **Step 2:** Run it → FAIL. **Step 3:** Implement. **Step 4:** PASS, with the existing fit tests.
 - [ ] **Step 5: Gate:** `make build`, server on :3100, screenshots at 1366×768 of `PCY` (no layout), `CPY`, `PY_C`, `P_YC` with a 7-line cart; the open-register overlay and the sale-complete card in `PY_C`; a sales person (Send panel) in `C_PY`; Studio light + Night dark. Check every edge (no clipped Pay buttons, no horizontal scroll). Restore Studio.
 - [ ] **Step 6:** Commit `feat(till): the Sell page follows the layout saved for its screen size`.
 
-### Task 6: Product card sizes (UI gate)
+### Task 7: Product card sizes (UI gate)
 
 **Files:**
 - Modify: `web/src/features/till/catalog/ProductTile.tsx` (`size?: 'L' | 'M' | 'S'`; M drops the faint letter and the facts line, ~half height; S = name (2 lines) · price · stock, status marks and plugin badges kept as small chips / red dot for low stock)
@@ -123,14 +136,14 @@
 - [ ] **Step 3: Gate:** screenshots of L / M / S / T at 1366×768 and 1280×1024 with a pharmacy-like list (packs, local names, a low and a frozen product, an Alternatives badge with P=all). Long names stay inside their card / row.
 - [ ] **Step 4:** Commit `feat(till): product cards Large, Medium, Small or a list, per screen size`.
 
-### Task 7: Appearance → Sell page layout (UI gate)
+### Task 8: Appearance → Sell page layout (UI gate)
 
 **Files:**
-- Create: `web/src/features/appearance/SellLayout.tsx` (the card: screens list with "used by …", "this screen", a dot on set sizes; arrangement pictures; card size pills; Reset this size; Save), `web/src/features/appearance/LayoutPreview.tsx` (wireframe at the size's real shape, scaled; vertical bars between columns and a horizontal bar in a stacked column; dragging clamps at `MIN`; px and % under it), `web/src/features/appearance/sellLayoutQuery.ts`
+- Create: `web/src/features/appearance/SellLayout.tsx` (the card: screens list with "used by …", "this screen", a dot on set sizes; arrangement pictures; card size pills; text size Smaller · Normal · Larger (the preview follows it); Reset this size; Save), `web/src/features/appearance/LayoutPreview.tsx` (wireframe at the size's real shape, scaled; vertical bars between columns and a horizontal bar in a stacked column; dragging clamps at `MIN`; px and % under it), `web/src/features/appearance/sellLayoutQuery.ts`
 - Modify: `web/src/routes/_authed/admin/system.appearance.tsx` (a `Fold` for the card, after Receipt style)
 
 **Interfaces:**
-- Consumes: Task 3 API; Task 4 `ARRANGEMENTS`, `MIN`, `todayLayout`, `sizeKey`.
+- Consumes: Task 3 API; Task 4 `ARRANGEMENTS`, `MIN`, `todayLayout`, `sizeKey`; Task 5 `--till-text`.
 
 - [ ] **Step 1:** Vitest for the drag maths in `LayoutPreview` (pure helper `dragBar(fr, i, dxPx, innerPx, mins) → fr`): never below a minimum, sum stays 1.
 - [ ] **Step 2:** Playwright `appearance-layout.spec.ts` (system user): a screen size reported by a till beat appears with the cashier's name; pick "Cart full height", Save; reload → still picked; the till at that size shows it; Reset this size + Save → today's.
@@ -138,16 +151,16 @@
 - [ ] **Step 4: Gate:** the card at 1440 and at 360 px (preview scales, pictures wrap, bars still draggable), light and dark. Edges checked.
 - [ ] **Step 5:** Commit `feat(appearance): Sell page layout per screen size — arrangement, widths, card size`.
 
-### Task 8: Plugins in every arrangement (gate)
+### Task 9: Plugins in every arrangement (gate)
 
 **Files:** only under `plugins/*` and `web/src/plugins/*`, as needed.
 
 - [ ] **Step 1:** `make plugins P=all`, `make build`, a layout per arrangement at 1280×1024 and 1366×768 with each section at its minimum width. Open and screenshot: Print & Copy job panel, Reload & Bills panel, 💊 Patient panel (products area); a combo group, a clearance markdown and a warranty line in the cart; a plugin tender (wallet) in Pay; the bottom row with every plugin action; tile badges in S and T.
-- [ ] **Step 2:** For each piece that clips, overflows or scrolls sideways: fix it **in that plugin** (wrap, `min-w-0`, line-clamp), never by giving core a plugin-specific case. Pocket Cashier unchanged.
+- [ ] **Step 2:** Plugin till pieces (menus, hints, tenders, actions) move their text onto the till type scale so Text size reaches them; for each piece that clips, overflows or scrolls sideways at Smaller and Larger: fix it **in that plugin** (wrap, `min-w-0`, line-clamp), never by giving core a plugin-specific case. Pocket Cashier unchanged.
 - [ ] **Step 3:** `make check-core`, `cd web && bunx vitest run src/plugins`, the plugin Playwright specs touched. `make core-only`.
 - [ ] **Step 4:** Commit per plugin fixed: `fix(<plugin>): its till panel fits a narrow products column`.
 
-### Task 9: Docs, shots, full run
+### Task 10: Docs, shots, full run
 
 **Files:**
 - Modify: `docs/guide/appearance.md` (a "Sell page layout" section: who sets it, sizes seen, arrangements, card sizes, Reset), `docs/guide/till.md` (one line: the layout and card size are set by Karots per screen size), `web/docs-shots/shots.spec.ts` (`appearance/sell-layout`, `till/sell-list` with a List layout), `docs/status.md`

@@ -44,6 +44,9 @@ and a laptop at 125% scaling gives the page far less room than its resolution sa
 - **Sizes are detected, not typed:** each till reports the room the Sell page really has (browser viewport, CSS px,
   so Windows scaling is counted). Appearance lists the sizes seen at this shop with **who uses each** ("1920 × 1080 —
   used by Shehan, Nimal"), marks **this screen** when opened on a till, and a dot on sizes that are set.
+- **Text size** per screen size: Smaller (90%) · Normal · Larger (110%). For it to move all the text, the Sell page's
+  22 fixed px font sizes become one small scale of tokens (about 6 steps) first, looking the same at Normal (user:
+  "even on a small screen, instead of crammed, it looks good").
 - **Reset this size** returns it to today's layout.
 
 ## Approaches considered
@@ -57,7 +60,7 @@ and a laptop at 125% scaling gives the page far less room than its resolution sa
 
 ## Builder's calls (mine, open to the user)
 
-- Storage: `settings.sell_layouts` jsonb, keyed `"<w>x<h>"`, each `{arr, fr[], split, card}`; validated on save
+- Storage: `settings.sell_layouts` jsonb, keyed `"<w>x<h>"`, each `{arr, fr[], split, card, text}`; validated on save
   (known arrangement, shares that sum to 1 and respect the minimums). Migration `00036_`.
 - Seen sizes: the till's presence beat carries its viewport; the server keeps a small table of sizes seen (size, user
   names, last seen) so the list survives a restart. Sizes not seen for 90 days drop off the list (their layout stays).
