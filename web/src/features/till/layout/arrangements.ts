@@ -80,3 +80,7 @@ export function todayLayout(w: number): SellLayout {
   const right = clamp(360, w * 0.4, 460)
   return { arr: 'P_CY', fr: [(inner - right) / inner, right / inner], split: 0.4, card: 'L', text: 100 }
 }
+
+/** The layout's text size in percent: 90, 100 or 110; anything else (missing, or a
+ * size this build doesn't know) is Normal. */
+export const textOf = (l: SellLayout | null) => (l && [90, 100, 110].includes(l.text) ? l.text : 100)

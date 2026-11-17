@@ -57,3 +57,11 @@ it('every arrangement has its three sections once', () => {
   for (const a of ARRANGEMENTS) expect(a.cols.flat().sort()).toEqual(['cart', 'cat', 'pay'])
   expect(sizeKey(1366.4, 767.6)).toBe('1366x768')
 })
+
+it('a text size other than 90, 100 or 110 is Normal (never 0 px fonts)', async () => {
+  const { textOf } = await import('./arrangements')
+  expect(textOf({ ...L('PCY', [0.4, 0.3, 0.3]), text: 90 })).toBe(90)
+  expect(textOf({ ...L('PCY', [0.4, 0.3, 0.3]), text: 0 })).toBe(100)
+  expect(textOf({ ...L('PCY', [0.4, 0.3, 0.3]), text: 150 })).toBe(100)
+  expect(textOf(null)).toBe(100)
+})

@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 
@@ -40,7 +41,10 @@ func (l *SellLayouts) Scan(src any) error {
 	}
 	m := SellLayouts{}
 	if err := json.Unmarshal(raw, &m); err != nil {
-		return err
+		// A shape this build can't read (written by a later one): today's layout
+		// everywhere, never an error that stops every settings read.
+		log.Printf("sell_layouts: ignored, can't read them: %v", err)
+		m = SellLayouts{}
 	}
 	*l = m
 	return nil
@@ -115,7 +119,7 @@ func ValidSellLayouts(in map[string]SellLayout) (SellLayouts, error) {
 		for i, col := range cols {
 			fr[i] = l.Fr[i] / sum
 			for _, a := range col {
-				if px := fr[i] * inner; px < sellMin[a] {
+				if px := fr[i] * inner; px < sellMin[a]-0.5 { // half a pixel for rounding: a bar dragged to its minimum
 					return nil, apperr.BadRequest(fmt.Sprintf("%s is too narrow at %d × %d (%.0f px, at least %.0f)", sellName[a], w, h, px, sellMin[a]))
 				}
 			}

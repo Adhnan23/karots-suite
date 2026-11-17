@@ -13,6 +13,7 @@ import { SellActions } from './checkout/SellActions'
 import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
+import { textOf } from './layout/arrangements'
 import { useSellLayout } from './layout/useSellLayout'
 import { PayPanel } from './pay/PayPanel'
 import { SendPanel } from './pay/SendPanel'
@@ -75,7 +76,7 @@ function Body() {
   // The layout saved for this screen size, or today's (Sell page 2.0).
   const { layout, grid } = useSellLayout()
   // Text size: on the page root, so the Sell page's dialogs (portals) and top bar follow it.
-  const text = layout?.text ?? 100
+  const text = textOf(layout)
   useEffect(() => {
     if (text === 100) return
     document.documentElement.style.setProperty('--till-text', String(text / 100))

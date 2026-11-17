@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -64,4 +65,31 @@ func TestValidSellLayouts(t *testing.T) {
 			t.Fatalf("got %v %v", got, err)
 		}
 	})
+}
+
+// A bar the Appearance card dragged hard against two minimums must still save (float
+// rounding put 339.99999999999994 below 340).
+func TestSellLayoutsAtTheirMinimums(t *testing.T) {
+	for w := 1000; w <= 2560; w++ {
+		inner := float64(w - 2*sellPad - 2*sellGap)
+		fr := []float64{1 - (340+330)/inner, 340 / inner, 330 / inner}
+		if fr[0]*inner < 300 {
+			continue
+		}
+		if _, err := ValidSellLayouts(map[string]SellLayout{fmt.Sprintf("%dx768", w): {Arr: "PCY", Fr: fr}}); err != nil {
+			t.Fatalf("%d wide: %v", w, err)
+		}
+	}
+}
+
+// Saved layouts a later build wrote in another shape read as none (today's layout),
+// never as an error that takes down every settings read.
+func TestSellLayoutsScanJunk(t *testing.T) {
+	var l SellLayouts
+	if err := l.Scan([]byte(`{"1366x768":{"arr":"PCY","fr":{"a":1},"text":105.5}}`)); err != nil {
+		t.Fatalf("junk returned an error: %v", err)
+	}
+	if len(l) != 0 {
+		t.Fatalf("junk kept: %v", l)
+	}
 }
