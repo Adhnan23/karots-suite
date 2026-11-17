@@ -13,6 +13,7 @@ import { SellActions } from './checkout/SellActions'
 import { Prompts } from './checkout/Prompts'
 import { SaleComplete } from './checkout/SaleComplete'
 import { OpenRegister } from './drawer/OpenRegister'
+import { useSellLayout } from './layout/useSellLayout'
 import { PayPanel } from './pay/PayPanel'
 import { SendPanel } from './pay/SendPanel'
 import { TillDialogs } from './TillDialogs'
@@ -65,11 +66,24 @@ function DrawerMoveFromBar({ drawer }: { drawer?: 'deposit' | 'withdraw' | 'clos
   return null
 }
 
+/** Today's grid: products | cart | pay from 1200 px, cart over pay below. */
+const TODAY = "grid-cols-[minmax(0,1fr)_clamp(360px,40vw,460px)] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[minmax(0,1fr)_clamp(392px,25vw,480px)_clamp(356px,23vw,440px)] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']"
+
 function Body() {
   const drawer = useQuery(drawerQuery).data
   const cfg = useSuspenseQuery(configQuery).data
+  // The layout saved for this screen size, or today's (Sell page 2.0).
+  const { layout, grid } = useSellLayout()
+  // Text size: on the page root, so the Sell page's dialogs (portals) and top bar follow it.
+  const text = layout?.text ?? 100
+  useEffect(() => {
+    if (text === 100) return
+    document.documentElement.style.setProperty('--till-text', String(text / 100))
+    return () => { document.documentElement.style.removeProperty('--till-text') }
+  }, [text])
   return (
-    <div className="relative grid h-full min-h-0 grid-cols-[minmax(0,1fr)_clamp(360px,40vw,460px)] grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-[14px] p-[14px] [grid-template-areas:'cat_cart'_'cat_pay'] min-[1200px]:grid-cols-[minmax(0,1fr)_clamp(392px,25vw,480px)_clamp(356px,23vw,440px)] min-[1200px]:grid-rows-[minmax(0,1fr)] min-[1200px]:[grid-template-areas:'cat_cart_pay']">
+    <div className={cn('relative grid h-full min-h-0 gap-[14px] p-[14px]', !grid && TODAY)}
+      style={grid ?? undefined}>
       <section aria-label="Catalogue" className="flex min-h-0 flex-col gap-3 [grid-area:cat]">
         <CatalogPanel />
       </section>
