@@ -13,7 +13,7 @@ function config(c: RouteCtx): Partial<TillConfig> {
     symbol: copy?.symbol ?? '', defaultSaleType: copy?.defaultSaleType ?? 'retail', askToPrint: copy?.askToPrint ?? false, openCashDrawer: false,
     allowUntrackedCash: copy?.allowUntrackedCash ?? false, defaultLockerId: copy?.defaultLockerId ?? 0, allowContinueLast: copy?.allowContinueLast ?? false,
     canManageCredit: me?.canManageCredit ?? false, canSeeCost: me?.canSeeCost ?? false, canHandleSuppliers: false, canSeeLowStock: false, canChangePin: false,
-    sendsToCashier: false, isManager: me?.role === 'manager', tenderMethods: copy?.tenderMethods ?? [], shop: copy?.shop, labelStyles: {},
+    sendsToCashier: false, isManager: me?.role === 'manager', tenderMethods: copy?.tenderMethods ?? [], shop: copy?.shop, labelStyles: {}, sellLayouts: {},
   }
 }
 
