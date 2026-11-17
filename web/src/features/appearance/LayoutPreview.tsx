@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { SellLayout } from '@/api/types.gen'
 import { ARRANGEMENTS, GAP, PAD, type Area } from '@/features/till/layout/arrangements'
 import { cn } from '@/lib/utils'
@@ -10,21 +10,33 @@ const TOP = 60
 const SHORT: Record<Area, number> = { cat: 260, cart: 240, pay: 430 }
 export const AREA_NAME: Record<Area, string> = { cat: 'Products', cart: 'Cart', pay: 'Payment' }
 
+/** Sample words, drawn at the till's own type scale so Text size shows. */
+const ITEMS = ['Panadol 500mg', 'Vitamin C 1000', 'Cetirizine 10mg', 'Omega 3', 'Bandage 5cm', 'Hand wash', 'Zinc 20mg', 'Amoxil 250mg', 'Glucose 500g']
+const price = (i: number) => `Rs ${(120 + i * 85).toLocaleString('en')}.00`
+
 /** A rough drawing of what each section holds, at the chosen card size. */
 function Body({ area, card }: { area: Area; card: string }) {
   if (area === 'cat') {
     const n = card === 'T' ? 10 : card === 'S' ? 18 : card === 'M' ? 12 : 6
     return (
       <div className="flex h-full flex-col gap-3">
-        <div className="h-12 rounded-[var(--radius-sm)] border border-border bg-card" />
+        <div className="flex h-12 items-center rounded-[var(--radius-sm)] border border-border bg-card px-4 text-till-body text-muted-foreground">Search products…</div>
         {card === 'T' ? (
           <div className="flex flex-col overflow-hidden rounded-[var(--radius-sm)] border border-border bg-card">
-            {Array.from({ length: n }, (_, i) => <div key={i} className="h-10 border-b border-border" />)}
+            {Array.from({ length: n }, (_, i) => (
+              <div key={i} className="flex h-10 items-center justify-between gap-2 border-b border-border px-3">
+                <span className="truncate text-till-body font-semibold">{ITEMS[i % ITEMS.length]}</span>
+                <span className="shrink-0 text-till-body font-bold">{price(i)}</span>
+              </div>
+            ))}
           </div>
         ) : (
           <div className={cn('grid gap-2.5', card === 'S' ? 'grid-cols-[repeat(auto-fill,minmax(140px,1fr))]' : card === 'M' ? 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]')}>
             {Array.from({ length: n }, (_, i) => (
-              <div key={i} className={cn('rounded-[var(--radius-sm)] border border-border bg-card', card === 'S' ? 'h-16' : card === 'M' ? 'h-24' : 'h-40')} />
+              <div key={i} className={cn('flex flex-col justify-end overflow-hidden rounded-[var(--radius-sm)] border border-border bg-card p-2', card === 'S' ? 'h-16' : card === 'M' ? 'h-24' : 'h-40')}>
+                <span className="truncate text-till-body font-semibold">{ITEMS[i % ITEMS.length]}</span>
+                <span className="text-till-lead font-bold">{price(i)}</span>
+              </div>
             ))}
           </div>
         )}
@@ -34,16 +46,21 @@ function Body({ area, card }: { area: Area; card: string }) {
   if (area === 'cart')
     return (
       <div className="flex flex-col">
-        <div className="h-14 border-b border-border" />
-        {Array.from({ length: 7 }, (_, i) => <div key={i} className="mx-4 h-20 border-b border-dashed border-border" />)}
+        <div className="flex h-14 items-center border-b border-border px-4 text-till-title font-bold">Cart · 7 items</div>
+        {Array.from({ length: 7 }, (_, i) => (
+          <div key={i} className="mx-4 flex h-20 items-center justify-between gap-2 border-b border-dashed border-border">
+            <span className="flex min-w-0 flex-col"><span className="truncate text-till-body font-semibold">{ITEMS[i]}</span><span className="text-till-sm text-muted-foreground">1 × {price(i)}</span></span>
+            <span className="shrink-0 text-till-price font-bold">{price(i)}</span>
+          </div>
+        ))}
       </div>
     )
   return (
     <div className="flex h-full flex-col gap-3 p-4">
-      <div className="h-14 rounded-[var(--radius-sm)] bg-muted" />
-      <div className="grid grid-cols-4 gap-2">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-14 rounded-[var(--radius-sm)] bg-muted" />)}</div>
-      <div className="h-12 rounded-[var(--radius-sm)] bg-muted" />
-      <div className="mt-auto h-14 rounded-[var(--radius-sm)] bg-brand" />
+      <div className="flex h-14 items-center justify-between rounded-[var(--radius-sm)] bg-muted px-4"><span className="text-till-lead">Total</span><span className="text-till-total font-bold">Rs 3,265.00</span></div>
+      <div className="grid grid-cols-4 gap-2">{['Cash', 'Card', 'Credit', 'Cheque'].map((m) => <div key={m} className="grid h-14 place-items-center rounded-[var(--radius-sm)] bg-muted text-till-sm font-semibold">{m}</div>)}</div>
+      <div className="flex h-12 items-center rounded-[var(--radius-sm)] bg-muted px-4 text-till-body text-muted-foreground">Amount given</div>
+      <div className="mt-auto grid h-14 place-items-center rounded-[var(--radius-sm)] bg-brand text-till-xl font-bold text-brand-foreground">Pay</div>
     </div>
   )
 }
@@ -101,7 +118,7 @@ export function LayoutPreview({ w, h, layout, onChange }: { w: number; h: number
   return (
     <div ref={box} className="w-full">
       <div className="relative mx-auto overflow-hidden rounded-[var(--radius-sm)] border border-border bg-background" style={{ width: w * scale, height: h * scale }}>
-        <div className="absolute top-0 left-0 flex origin-top-left flex-col" style={{ width: w, height: h, transform: `scale(${scale})` }}>
+        <div className="absolute top-0 left-0 flex origin-top-left flex-col" style={{ width: w, height: h, transform: `scale(${scale})`, '--till-text': (layout.text || 100) / 100 } as CSSProperties}>
           <div className="flex shrink-0 items-center gap-4 border-b border-border bg-card px-5 text-2xl font-bold" style={{ height: TOP }}>
             Sell <span className="font-medium text-muted-foreground">Returns · Credit · Receipts</span>
             <span className="ml-auto rounded-pill bg-foreground px-3 py-1 text-xl text-background">{w} × {h}</span>
