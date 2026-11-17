@@ -15,6 +15,8 @@ func (h *handlers) registerSystem(v1 *echo.Group) {
 	g := v1.Group("/system", append(h.protected, middleware.RequireSystemUser())...)
 	g.GET("/appearance", h.GetAppearance)
 	g.PUT("/appearance", h.PutAppearance)
+	g.GET("/sell-layout", h.GetSellLayout)
+	g.PUT("/sell-layout", h.PutSellLayout)
 	h.registerPalettes(g, v1)
 	h.registerSystemPrint(g)
 }

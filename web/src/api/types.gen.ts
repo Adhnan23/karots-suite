@@ -119,6 +119,42 @@ export interface Me {
   appearance: Appearance;
   plugins: string[];
 }
+/**
+ * SellLayout is the Sell page's look on one screen size (Appearance, system user):
+ * Arr = arrangement id (P products, C cart, Y pay; "_" = next column), Fr = each
+ * column's share of the width, Split = the top part's share of a stacked column,
+ * Card = "L" | "M" | "S" | "T" (list), Text = 90 | 100 | 110 (percent).
+ */
+export interface SellLayout {
+  arr: string;
+  fr: number /* float64 */[];
+  split: number /* float64 */;
+  card: string;
+  text: number /* int */;
+}
+/**
+ * ScreenSize is a size a till showed the Sell page at (CSS px), and who used it.
+ */
+export interface ScreenSize {
+  w: number /* int */;
+  h: number /* int */;
+  users: string[];
+  lastSeen: string;
+}
+/**
+ * SellLayoutPage is Appearance → Sell page layout: the saved layouts by "<w>x<h>"
+ * and the sizes seen in the last 90 days, most recent first.
+ */
+export interface SellLayoutPage {
+  layouts: { [key: string]: SellLayout};
+  screens: ScreenSize[];
+}
+/**
+ * SellLayoutSave replaces every saved layout (a size left out goes back to today's).
+ */
+export interface SellLayoutSave {
+  layouts: { [key: string]: SellLayout};
+}
 
 //////////
 // source: dto_catalog.go
@@ -3905,6 +3941,10 @@ export interface TillConfig {
   receiptTextSize: number /* int */; // the slips' text size in percent (see Appearance)
   labelPrintAs: string; // "classic" | "image"
   labelStyles: { [key: string]: string}; // Image-mode style per label kind; missing = classic
+  /**
+   * SellLayouts: the Sell page's layout per screen size "<w>x<h>" (Appearance); none = today's.
+   */
+  sellLayouts: { [key: string]: SellLayout};
   /**
    * The label text settings (Settings → Printers & labels): lines 1–4 and size "1"–"4" (XS–L)
    * for the first and second text.

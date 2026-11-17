@@ -68,6 +68,7 @@ func (h *handlers) TillConfig(c echo.Context) error {
 		ReceiptTextSize:    settings.ValidReceiptTextSize(st.ReceiptTextSize),
 		LabelPrintAs:       st.LabelPrintAs,
 		LabelStyles:        labelStylesOf(st),
+		SellLayouts:        sellLayoutsOf(st.SellLayouts),
 		LabelFirstLines:    max(st.LabelNameLines, 1),
 		LabelSecondLines:   max(st.LabelBottomLines, 1),
 		LabelFirstSize:     cmp.Or(st.LabelNameFont, "2"),

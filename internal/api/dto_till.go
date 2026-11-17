@@ -36,6 +36,8 @@ type TillConfig struct {
 	ReceiptTextSize    int               `json:"receiptTextSize"` // the slips' text size in percent (see Appearance)
 	LabelPrintAs       string            `json:"labelPrintAs"` // "classic" | "image"
 	LabelStyles        map[string]string `json:"labelStyles"`  // Image-mode style per label kind; missing = classic
+	// SellLayouts: the Sell page's layout per screen size "<w>x<h>" (Appearance); none = today's.
+	SellLayouts map[string]SellLayout `json:"sellLayouts"`
 	// The label text settings (Settings → Printers & labels): lines 1–4 and size "1"–"4" (XS–L)
 	// for the first and second text.
 	LabelFirstLines  int    `json:"labelFirstLines"`

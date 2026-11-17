@@ -103,3 +103,35 @@ type Me struct {
 	Appearance         Appearance `json:"appearance"`
 	Plugins            []string   `json:"plugins"`
 }
+
+// SellLayout is the Sell page's look on one screen size (Appearance, system user):
+// Arr = arrangement id (P products, C cart, Y pay; "_" = next column), Fr = each
+// column's share of the width, Split = the top part's share of a stacked column,
+// Card = "L" | "M" | "S" | "T" (list), Text = 90 | 100 | 110 (percent).
+type SellLayout struct {
+	Arr   string    `json:"arr"`
+	Fr    []float64 `json:"fr"`
+	Split float64   `json:"split"`
+	Card  string    `json:"card"`
+	Text  int       `json:"text"`
+}
+
+// ScreenSize is a size a till showed the Sell page at (CSS px), and who used it.
+type ScreenSize struct {
+	W        int      `json:"w"`
+	H        int      `json:"h"`
+	Users    []string `json:"users"`
+	LastSeen string   `json:"lastSeen"`
+}
+
+// SellLayoutPage is Appearance → Sell page layout: the saved layouts by "<w>x<h>"
+// and the sizes seen in the last 90 days, most recent first.
+type SellLayoutPage struct {
+	Layouts map[string]SellLayout `json:"layouts"`
+	Screens []ScreenSize          `json:"screens"`
+}
+
+// SellLayoutSave replaces every saved layout (a size left out goes back to today's).
+type SellLayoutSave struct {
+	Layouts map[string]SellLayout `json:"layouts"`
+}
