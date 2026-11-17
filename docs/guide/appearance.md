@@ -59,12 +59,22 @@ payment and give the cart the full height.
 - **Arrangement:** where each section goes: the three side by side in any order, or any two stacked
   in one column with the third full height beside it, on either side (18 in all). Sizes are set by
   dragging, not by the arrangement. An arrangement too wide for a screen is greyed out.
+- **Search only:** no products column. The search bar runs across the top and what's typed drops
+  a list below it (**↑ ↓**, **Enter**); a scan adds straight away. The plugin menus (Combos, Print &
+  Copy, Reload & Bills…) sit on the button row and open in a pop-up; **Browse** (**F1**) opens
+  the groups and frequently sold in the same pop-up, and F1 or Esc closes it.
+- **Start from:** Scanner counter (search only, a wide cart, larger text), Touch counter (as it
+  always was) or Square screen (products over pay, cart full height) sets the whole size in one
+  tap; drag from there.
 - **Widths:** drag the bars between sections on the preview, drawn at the screen's real shape.
-  Payment never goes below 330 px, the cart below 340 px or products below 300 px; a stacked part
-  that gets too short is marked.
+  Each section shows its width (px and %) as you drag. Payment never goes below 330 px, the cart
+  below 340 px or products below 300 px; a stacked part that gets too short is marked.
 - **Product cards:** Large (as before), Medium (half the height), Small (name, price and stock) or a
   **List** of rows. Frozen, low stock, "2 prices" and plugin marks stay on every size; ⓘ shows the rest.
 - **Text size:** Smaller, Normal or Larger moves all the Sell page's text together, plugin panels too.
+- **Try here** opens the Sell page with the unsaved layout and a banner back to Appearance, where
+  the draft is waiting. It is the real Sell page: a sale made there counts. With no till open it is
+  look only.
 - **Reset this size** puts it back as it was; **Save layouts** saves every size at once. A till picks up
   a new layout the next time it opens the Sell page.
 

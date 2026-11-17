@@ -12,14 +12,21 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **Sell page 2.0: BUILT on branch `sell-page-2` (2026-11-17), not merged, not released.** Asked for by the pharmacy
 the user showed the suite to (the one that asked for the keyboard till): "shrink the products, widen the cart". System
 user → Appearance → **Sell page layout**, per screen size the shop's tills report (window CSS px, so Windows scaling
-counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 18 arrangements
-(every placement: any column order, or any two stacked with the third full height on either side), drag the widths (Payment ≥ 330,
+counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 20 arrangements
+(every placement: any column order, any two stacked with the third full height on either side, or Search only), drag the widths (Payment ≥ 330,
 Cart ≥ 340, Products ≥ 300 px, checked again by the server), product cards Large / Medium / Small / **List**, text
 size Smaller 90 / Normal / Larger 110. Nothing saved = exactly today's layout. To make Text size move everything, the
 Sell page's 22 px sizes became one scale (`text-till-*` in `app.css`, times `--till-text`; `theme/guard.test.ts`
 keeps `features/till` on it); plugin Sell page pieces moved onto it too. `cn` now knows `text-till-*` is a font size
 (`lib/utils.ts`). Migration 00036 (`settings.sell_layouts`, `screen_sizes`). Pocket Cashier untouched. Guide:
-`docs/guide/appearance.md#sell-page-layout`. Next: the user's hand test, then merge.
+`docs/guide/appearance.md#sell-page-layout`. Added during the hand test (2026-11-17): every placement (20
+arrangements, incl. **Search only**: search bar across the top with a drop-down list, plugin menus on the button row,
+groups in Browse = F1 pop-up), a preview with sample words and px / % on each section, **Start from** (Scanner counter,
+Touch counter, Square screen), **Try here** (the real Sell page with the unsaved layout; no till open = look only),
+and the cursor back in search after 20 s idle. **Direction (user):** instead of fixed themes, each shop gets its own
+cashier page and receipt (what customers see; nobody shows the admin pages), so it feels made for them; it's all the
+same pieces. **Idea, not built:** a practice mode (sales and printing that don't count) — needs its own design.
+Next: the user's hand test continues, retake `appearance/sell-layout` with `make docs-shots`, then merge.
 
 **Keyboard-only Sell page: Released to Iman as 2026.11.15.1525 (2026-11-15, binary only)** (user hand-tested on a dev
 server: "so far so good"; a pharmacy asked if the till is fully keyboard workable). ↑ ↓ in search pick a tile, Enter

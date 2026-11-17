@@ -30,7 +30,7 @@ The whole Sell page works without a mouse: a scanner and the keyboard are enough
 
 | Key | Does |
 |---|---|
-| **F1** | Back to the menu. Clears the **search only**, never the cart |
+| **F1** | Back to the menu. Clears the **search only**, never the cart. With the Search only layout it opens and closes **Browse** |
 | **F2 / F3** | Jump to search |
 | **↑ ↓** then **Enter** (in search) | Pick a product from the tiles on screen and add it |
 | **F4** | Hold the sale |
@@ -46,7 +46,8 @@ The whole Sell page works without a mouse: a scanner and the keyboard are enough
 | **Enter** after a sale | Start the next sale |
 | **Esc** | Leave the field you're in |
 
-The keyboard button on the top bar lists them all.
+The keyboard button on the top bar lists them all. After 20 seconds with no key or tap the cursor
+goes back to the search box (never while a dialog is open), so the next scan always lands.
 
 The order of the three parts, their widths, the size of the product cards (down to a plain list)
 and the text size can be set for each screen size by your Karots technician: see
