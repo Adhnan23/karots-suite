@@ -139,6 +139,7 @@ func (l *launcher) handler() http.Handler {
 		}
 	})
 	m.HandleFunc("POST /__demo/cheat/{name}", l.cheat)
+	m.HandleFunc("POST /__demo/system", l.systemSignIn)
 	m.HandleFunc("GET /__demo/prints", l.prints)
 	m.HandleFunc("GET /__demo/print/{kind}/{id}", l.printPNG)
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

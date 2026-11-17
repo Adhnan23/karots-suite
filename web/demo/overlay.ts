@@ -203,6 +203,17 @@ export function openCheats() {
     b.addEventListener('click', () => void signIn(l))
     group('Sign in').append(b)
   }
+  // Show a customer what Karots can make theirs: palettes, receipt styles, Sell page layouts.
+  const look = el('button', { type: 'button' }, 'Open Appearance (as the Karots technician)')
+  look.addEventListener('click', async () => {
+    note.textContent = 'Signing in as the system user…'
+    const device = localStorage.getItem('ks-device') ?? ''
+    await fetch('/api/v1/auth/logout', { method: 'POST', headers: { 'X-Ks-Device': device } }).catch(() => {})
+    const r = await fetch('/__demo/system', { method: 'POST', headers: { 'X-Ks-Device': device } })
+    if (r.ok) location.replace('/admin/system/appearance')
+    else note.textContent = ((await r.json().catch(() => ({}))) as { error?: string }).error ?? 'Could not sign in'
+  })
+  group('Sign in').append(look)
   for (const c of st.cheats ?? []) {
     const b = el('button', { type: 'button' }, c.label)
     b.addEventListener('click', async () => {
