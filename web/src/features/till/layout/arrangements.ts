@@ -11,11 +11,19 @@ export const ARRANGEMENTS: { id: string; cols: Area[][]; label: string }[] = [
   { id: 'PYC', cols: [['cat'], ['pay'], ['cart']], label: 'Pay middle' },
   { id: 'CYP', cols: [['cart'], ['pay'], ['cat']], label: 'Products right' },
   { id: 'YCP', cols: [['pay'], ['cart'], ['cat']], label: 'Mirror' },
+  { id: 'YPC', cols: [['pay'], ['cat'], ['cart']], label: 'Pay first' },
   { id: 'P_CY', cols: [['cat'], ['cart', 'pay']], label: 'Cart over pay' },
   { id: 'CY_P', cols: [['cart', 'pay'], ['cat']], label: '…on the left' },
   { id: 'PY_C', cols: [['cat', 'pay'], ['cart']], label: 'Cart full height' },
   { id: 'C_PY', cols: [['cart'], ['cat', 'pay']], label: '…on the left' },
   { id: 'P_YC', cols: [['cat'], ['pay', 'cart']], label: 'Pay over cart' },
+  { id: 'YC_P', cols: [['pay', 'cart'], ['cat']], label: '…on the left' },
+  { id: 'PC_Y', cols: [['cat', 'cart'], ['pay']], label: 'Pay full height' },
+  { id: 'Y_PC', cols: [['pay'], ['cat', 'cart']], label: '…on the left' },
+  { id: 'CP_Y', cols: [['cart', 'cat'], ['pay']], label: 'Cart over products' },
+  { id: 'Y_CP', cols: [['pay'], ['cart', 'cat']], label: '…on the left' },
+  { id: 'YP_C', cols: [['pay', 'cat'], ['cart']], label: 'Pay over products' },
+  { id: 'C_YP', cols: [['cart'], ['pay', 'cat']], label: '…on the left' },
 ]
 
 /** Each section's narrowest width in px (the server refuses less). */

@@ -53,7 +53,7 @@ describe('todayLayout', () => {
 })
 
 it('every arrangement has its three sections once', () => {
-  expect(ARRANGEMENTS).toHaveLength(10)
+  expect(ARRANGEMENTS).toHaveLength(18)
   for (const a of ARRANGEMENTS) expect(a.cols.flat().sort()).toEqual(['cart', 'cat', 'pay'])
   expect(sizeKey(1366.4, 767.6)).toBe('1366x768')
 })

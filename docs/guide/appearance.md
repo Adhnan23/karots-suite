@@ -56,9 +56,9 @@ payment and give the cart the full height.
   really has (Windows scaling counts, so a 1920 × 1080 laptop at 125% is 1536 × 864), and the list
   shows who uses each size. Tills of the same size share one layout. A dot marks a size that has
   its own layout; a size left alone looks as it always has.
-- **Arrangement:** the three sections side by side in any order, or two of them stacked (Cart over
-  pay, Cart full height, Pay over cart, and their mirrors). An arrangement too wide for a screen is
-  greyed out.
+- **Arrangement:** where each section goes: the three side by side in any order, or any two stacked
+  in one column with the third full height beside it, on either side (18 in all). Sizes are set by
+  dragging, not by the arrangement. An arrangement too wide for a screen is greyed out.
 - **Widths:** drag the bars between sections on the preview, drawn at the screen's real shape.
   Payment never goes below 330 px, the cart below 340 px or products below 300 px; a stacked part
   that gets too short is marked.

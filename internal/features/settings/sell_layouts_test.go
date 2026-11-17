@@ -93,3 +93,20 @@ func TestSellLayoutsScanJunk(t *testing.T) {
 		t.Fatalf("junk kept: %v", l)
 	}
 }
+
+func TestSellArrangementsHoldEachSectionOnce(t *testing.T) {
+	if len(SellArrangements) != 18 {
+		t.Fatalf("%d arrangements, want 18 (the SPA's list)", len(SellArrangements))
+	}
+	for id, cols := range SellArrangements {
+		seen := map[rune]int{}
+		for _, c := range cols {
+			for _, r := range c {
+				seen[r]++
+			}
+		}
+		if seen['P'] != 1 || seen['C'] != 1 || seen['Y'] != 1 || len(seen) != 3 {
+			t.Errorf("%s: %v", id, cols)
+		}
+	}
+}

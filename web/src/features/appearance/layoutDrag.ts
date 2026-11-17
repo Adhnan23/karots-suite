@@ -22,7 +22,7 @@ export function dragBar(fr: number[], i: number, dx: number, inner: number, mins
 }
 
 /** Where an arrangement starts on a screen w wide: three columns take today's width of
- * each section; stacked ones give a lone products column 55%, a lone cart 50%. Columns
+ * each section; stacked ones give a lone products column 55%, a lone cart 50%, a lone payment 35%. Columns
  * below their minimum are raised and the rest shrink to pay for it; null when the three
  * minimums can't fit at all. */
 export function startShares(id: string, w: number): number[] | null {
@@ -38,7 +38,7 @@ export function startShares(id: string, w: number): number[] | null {
     fr = a.cols.map((c) => today[c[0]])
   } else {
     const lone = a.cols.findIndex((c) => c.length === 1)
-    const share = a.cols[lone][0] === 'cat' ? 0.55 : 0.5
+    const share = { cat: 0.55, cart: 0.5, pay: 0.35 }[a.cols[lone][0]]
     fr = a.cols.map((_, i) => (i === lone ? share : 1 - share))
   }
   const sum = fr.reduce((x, y) => x + y)

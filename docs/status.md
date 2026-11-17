@@ -12,8 +12,8 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **Sell page 2.0: BUILT on branch `sell-page-2` (2026-11-17), not merged, not released.** Asked for by the pharmacy
 the user showed the suite to (the one that asked for the keyboard till): "shrink the products, widen the cart". System
 user → Appearance → **Sell page layout**, per screen size the shop's tills report (window CSS px, so Windows scaling
-counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 10 arrangements
-(any column order + stacked: Cart over pay, Cart full height, Pay over cart, mirrors), drag the widths (Payment ≥ 330,
+counts; "used by …" names; same-size screens share one; user: only sizes differ, never per monitor): 18 arrangements
+(every placement: any column order, or any two stacked with the third full height on either side), drag the widths (Payment ≥ 330,
 Cart ≥ 340, Products ≥ 300 px, checked again by the server), product cards Large / Medium / Small / **List**, text
 size Smaller 90 / Normal / Larger 110. Nothing saved = exactly today's layout. To make Text size move everything, the
 Sell page's 22 px sizes became one scale (`text-till-*` in `app.css`, times `--till-text`; `theme/guard.test.ts`
