@@ -9,8 +9,10 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
-**Sell page 2.0: DONE, merged to main 2026-11-17** (user hand-tested: "everything looking good"; Release to Iman
-follows, notes written by hand, also covering 1525's keyboard Sell page).
+**Sell page 2.0: DONE, merged to main and Released to Iman as 2026.11.17.2028 (2026-11-17, binary only, `48a7e04`)**
+(user hand-tested: "everything looking good"). Notes written by hand in the Builder, also covering 1525's keyboard
+Sell page. At Iman: Setup → Data → Updates → Update; nothing changes on their till until a layout is set (system
+user → Appearance → Sell page layout).
 Full run before the merge: Go 64 packages, web 1,197, Playwright 259 passed + `appearance-layout.spec.ts` (fixed: an
 exact name; + a Search only test) and `plugin-aicatalog.spec.ts` alone 17/17 (`:278` failed once in the full run, as
 before). **Demo Room** rebuilt (`dist/demo`), with a new Demo moves cheat: **Open Appearance (as the Karots
