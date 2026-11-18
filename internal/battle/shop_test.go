@@ -68,7 +68,7 @@ func newShop(t ltest.T) *shop {
 	s.must(t, sqlxExec(ctx, db, `UPDATE users SET must_change_pin = false`))
 	var err error
 	for i, c := range []**client{&s.admin, &s.till1, &s.till2} {
-		if *c, err = newClient(h, fmt.Sprintf("077000000%d", i+1), "1234", fmt.Sprintf("battle-%d", i)); err != nil {
+		if *c, err = newClient(h, fmt.Sprintf("077000000%d", i+1), "1234", fmt.Sprintf("battle-%p-%d", s, i)); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -9,6 +9,7 @@ import (
 // SALE-50: the same sale sent twice (Pay pressed again after a lost answer, or
 // two requests at once) is one sale: the second gets the first back.
 func TestSALE50_SamePayTwiceIsOneSale(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	body := map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed", "clientRef": "till-battle-1",
@@ -39,6 +40,7 @@ func TestSALE50_SamePayTwiceIsOneSale(t *testing.T) {
 // product, and returning the same sale — never take stock below zero or bring
 // back more than was sold.
 func TestTwoTillsAtOnce(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	s.open(t, s.till2)

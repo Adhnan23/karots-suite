@@ -23,6 +23,7 @@ import (
 // payment is whole or absent — the auditor finds nothing — however often it
 // happens. A long test: it runs in make battle (KS_BATTLE_STEPS), not make test.
 func TestBattlePowerCut(t *testing.T) {
+	t.Parallel()
 	if os.Getenv("KS_BATTLE_STEPS") == "" {
 		t.Skip("power cuts run in make battle")
 	}

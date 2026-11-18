@@ -2,6 +2,9 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: suite_db
+    # Go test packages run side by side, each on its own database copy (scripts/testdb),
+    # and Playwright runs several servers: more connections than the default 100.
+    command: ["postgres", "-c", "max_connections=400", "-c", "shared_buffers=512MB"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: suite_db

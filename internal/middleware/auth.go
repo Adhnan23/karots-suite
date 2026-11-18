@@ -57,7 +57,12 @@ type Claims struct {
 // the httpOnly cookie (UI). On failure it returns an apperr the error handler
 // converts to a 401/redirect; this keeps the middleware free of rendering
 // concerns.
-func JWTAuth(secret string) echo.MiddlewareFunc {
+func JWTAuth(secret string) echo.MiddlewareFunc { return JWTAuthWith(secret, nil) }
+
+// JWTAuthWith is JWTAuth with its own account check (nil = the one set by
+// SetUserValidator). The server passes its own, so two servers in one process
+// (the battle tests' shops) never check accounts against each other's database.
+func JWTAuthWith(secret string, own UserValidator) echo.MiddlewareFunc {
 	key := []byte(secret)
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -79,8 +84,12 @@ func JWTAuth(secret string) echo.MiddlewareFunc {
 			// deactivated since the token was issued. Reject it so a fired/disabled
 			// user is forced out instead of riding their cookie until it expires.
 			var flags UserFlags
-			if userValidator != nil {
-				f, ok := userValidator(c.Request().Context(), claims.UserID)
+			check := own
+			if check == nil {
+				check = userValidator
+			}
+			if check != nil {
+				f, ok := check(c.Request().Context(), claims.UserID)
 				if !ok {
 					return apperr.Unauthorized("your account is no longer active — please sign in again")
 				}

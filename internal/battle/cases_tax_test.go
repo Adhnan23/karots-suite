@@ -5,6 +5,7 @@ import "testing"
 // SALE-35: a registered shop charges tax on what the customer pays — after the
 // item and bill discounts (user left it to us, 2026-11-18).
 func TestSALE35_TaxAfterTheBillDiscount(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.must(t, sqlxExec(t.Context(), s.db, `UPDATE settings SET tax_registered = true, tax_reg_no = 'VAT-1'`))
 	s.must(t, sqlxExec(t.Context(), s.db, `UPDATE products SET tax_rate = 18 WHERE name IN ('Battle plain', 'Battle odd')`))

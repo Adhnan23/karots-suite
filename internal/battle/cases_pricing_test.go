@@ -8,6 +8,7 @@ import (
 // packs at their wholesale pack price; a combo's lines never take a pack price.
 // (Gaps mutation testing found: nothing sold wholesale, or a pack in a combo.)
 func TestSALE3_WholesaleAndPacksInCombos(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.must(t, sqlxExec(t.Context(), s.db, `UPDATE products SET wholesale_price = 80 WHERE name = 'Battle plain'`))
 	s.must(t, sqlxExec(t.Context(), s.db, `UPDATE product_packs SET wholesale_price = 120`))
@@ -40,6 +41,7 @@ func TestSALE3_WholesaleAndPacksInCombos(t *testing.T) {
 // RET-8: goods sold from a picked lot go back to that lot, which keeps the
 // price it was sold at; any other line's return follows the product's price.
 func TestRET8_ReturnedLotKeepsItsPrice(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	var lot int64
 	s.must(t, s.db.Get(&lot, `SELECT id FROM stock_batches WHERE product_id = $1 ORDER BY id LIMIT 1`, s.prod["plain"]))

@@ -1,0 +1,1521 @@
+# 2026/11/18 16:19:13.628847 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.628853 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.628859 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.628860 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.628861 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.665529 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.665533 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:13.665534 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.665535 [TestBattleSales] [rapid] draw grams: 30
+# 2026/11/18 16:19:13.665536 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.665537 [TestBattleSales] [rapid] draw discPct: 0
+# 2026/11/18 16:19:13.665538 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:13.665539 [TestBattleSales] [rapid] draw qty: 20
+# 2026/11/18 16:19:13.665541 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.665541 [TestBattleSales] [rapid] draw discPct: 20
+# 2026/11/18 16:19:13.665542 [TestBattleSales] [rapid] draw combo: 1
+# 2026/11/18 16:19:13.665543 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:13.665544 [TestBattleSales] [rapid] draw billPct: 9
+# 2026/11/18 16:19:13.665554 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:13.665556 [TestBattleSales] [rapid] draw extra: 26
+# 2026/11/18 16:19:13.686595 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.686599 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.686604 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.708225 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:13.708228 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:1, total:decimal.Decimal{value:(*big.Int)(0x17944e4f6820), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f2f50c0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:1, qty:decimal.Decimal{value:(*big.Int)(0x17944eacfca0), exp:-2}, left:decimal.Decimal{value:(*big.Int)(0x17944eacfcc0), exp:-2}, group:0, sets:0}, battle.mLine{id:2, qty:decimal.Decimal{value:(*big.Int)(0x17944eacfce0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eacfd00), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:13.708241 [TestBattleSales] [rapid] draw backKg0: 2
+# 2026/11/18 16:19:13.708244 [TestBattleSales] [rapid] draw back1: 9
+# 2026/11/18 16:19:13.740275 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:13.740282 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:1, total:decimal.Decimal{value:(*big.Int)(0x17944e4f6820), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f2f50c0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(0x17944e9c07e0), exp:-2}, customer:false, lines:[]battle.mLine{battle.mLine{id:1, qty:decimal.Decimal{value:(*big.Int)(0x17944eacfca0), exp:-2}, left:decimal.Decimal{value:(*big.Int)(0x17944e9c0820), exp:-3}, group:0, sets:0}, battle.mLine{id:2, qty:decimal.Decimal{value:(*big.Int)(0x17944eacfce0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e9c0840), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:13.740294 [TestBattleSales] [rapid] draw backKg0: 21
+# 2026/11/18 16:19:13.740297 [TestBattleSales] [rapid] draw back1: 2
+# 2026/11/18 16:19:13.761417 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.761420 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.761426 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.761426 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.761428 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.761428 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.761429 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.761431 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:13.761432 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:13.761433 [TestBattleSales] [rapid] draw qty: 28
+# 2026/11/18 16:19:13.761434 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:13.761434 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:13.761435 [TestBattleSales] [rapid] draw qty: 30
+# 2026/11/18 16:19:13.761435 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:13.761437 [TestBattleSales] [rapid] draw discFixed: 0
+# 2026/11/18 16:19:13.761437 [TestBattleSales] [rapid] draw combo: 2
+# 2026/11/18 16:19:13.761438 [TestBattleSales] [rapid] draw bill: 0
+# 2026/11/18 16:19:13.761444 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:13.761445 [TestBattleSales] [rapid] draw extra: 160
+# 2026/11/18 16:19:13.784186 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.784189 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.784193 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.808295 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.808298 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.808303 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.808305 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.808307 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.808308 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.808309 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.808309 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.808310 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.808311 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.808312 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.808312 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.808313 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.826330 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.826336 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:13.826337 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.826338 [TestBattleSales] [rapid] draw grams: 2554
+# 2026/11/18 16:19:13.826338 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.826339 [TestBattleSales] [rapid] draw discPct: 18
+# 2026/11/18 16:19:13.826340 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.826340 [TestBattleSales] [rapid] draw grams: 4696
+# 2026/11/18 16:19:13.826341 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.826342 [TestBattleSales] [rapid] draw discPct: 89
+# 2026/11/18 16:19:13.826342 [TestBattleSales] [rapid] draw combo: 3
+# 2026/11/18 16:19:13.826343 [TestBattleSales] [rapid] draw bill: 0
+# 2026/11/18 16:19:13.826352 [TestBattleSales] [rapid] draw tender: "card"
+# 2026/11/18 16:19:13.849429 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.871080 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.871083 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.871088 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.871089 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.871091 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.871091 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.871092 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.871093 [TestBattleSales] owes nothing
+# 2026/11/18 16:19:13.871094 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.871096 [TestBattleSales] [rapid] draw lines: 3
+# 2026/11/18 16:19:13.871096 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:13.871097 [TestBattleSales] [rapid] draw qty: 5
+# 2026/11/18 16:19:13.871098 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:13.871099 [TestBattleSales] [rapid] draw discFixed: 27
+# 2026/11/18 16:19:13.871099 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.871100 [TestBattleSales] [rapid] draw grams: 100
+# 2026/11/18 16:19:13.871101 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.871101 [TestBattleSales] [rapid] draw discPct: 19
+# 2026/11/18 16:19:13.871102 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:13.871103 [TestBattleSales] [rapid] draw qty: 7
+# 2026/11/18 16:19:13.871103 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:13.871104 [TestBattleSales] [rapid] draw discFixed: 1263
+# 2026/11/18 16:19:13.871105 [TestBattleSales] [rapid] draw combo: 3
+# 2026/11/18 16:19:13.871105 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:13.871106 [TestBattleSales] [rapid] draw billPct: 0
+# 2026/11/18 16:19:13.871115 [TestBattleSales] [rapid] draw tender: "credit"
+# 2026/11/18 16:19:13.888811 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.888816 [TestBattleSales] [rapid] draw lines: 4
+# 2026/11/18 16:19:13.888818 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:13.888819 [TestBattleSales] [rapid] draw qty: 5
+# 2026/11/18 16:19:13.888820 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:13.888821 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:13.888822 [TestBattleSales] [rapid] draw qty: 19
+# 2026/11/18 16:19:13.888823 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.888824 [TestBattleSales] [rapid] draw discPct: 93
+# 2026/11/18 16:19:13.888825 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:13.888826 [TestBattleSales] [rapid] draw qty: 4
+# 2026/11/18 16:19:13.888826 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.888827 [TestBattleSales] [rapid] draw discPct: 3
+# 2026/11/18 16:19:13.888828 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.888829 [TestBattleSales] [rapid] draw grams: 1180
+# 2026/11/18 16:19:13.888830 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:13.888831 [TestBattleSales] [rapid] draw combo: 0
+# 2026/11/18 16:19:13.888832 [TestBattleSales] [rapid] draw sets: 3
+# 2026/11/18 16:19:13.888832 [TestBattleSales] [rapid] draw perSet: 2
+# 2026/11/18 16:19:13.888834 [TestBattleSales] [rapid] draw perSet: 1
+# 2026/11/18 16:19:13.888835 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:13.888836 [TestBattleSales] [rapid] draw billPct: 627
+# 2026/11/18 16:19:13.888856 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:13.888857 [TestBattleSales] [rapid] draw extra: 3
+# 2026/11/18 16:19:13.910801 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.932093 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.932096 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.932101 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.956861 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:13.976694 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:13.976699 [TestBattleSales] [rapid] draw lines: 4
+# 2026/11/18 16:19:13.976700 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:13.976701 [TestBattleSales] [rapid] draw qty: 8
+# 2026/11/18 16:19:13.976701 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:13.976702 [TestBattleSales] [rapid] draw discFixed: 1659
+# 2026/11/18 16:19:13.976703 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.976704 [TestBattleSales] [rapid] draw grams: 14
+# 2026/11/18 16:19:13.976704 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:13.976705 [TestBattleSales] [rapid] draw discPct: 270
+# 2026/11/18 16:19:13.976706 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:13.976706 [TestBattleSales] [rapid] draw grams: 1
+# 2026/11/18 16:19:13.976707 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:13.976708 [TestBattleSales] [rapid] draw discFixed: 87
+# 2026/11/18 16:19:13.976708 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:13.976709 [TestBattleSales] [rapid] draw qty: 12
+# 2026/11/18 16:19:13.976709 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:13.976710 [TestBattleSales] [rapid] draw combo: 3
+# 2026/11/18 16:19:13.976710 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:13.976711 [TestBattleSales] [rapid] draw billPct: 95
+# 2026/11/18 16:19:13.976728 [TestBattleSales] [rapid] draw tender: "credit"
+# 2026/11/18 16:19:13.997817 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.997819 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.997825 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:13.997825 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:13.997827 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:13.997829 [TestBattleSales] [rapid] draw pay: 3
+# 2026/11/18 16:19:14.017664 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.017668 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:14.017669 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.017670 [TestBattleSales] [rapid] draw qty: 1
+# 2026/11/18 16:19:14.017671 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.017672 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.017672 [TestBattleSales] [rapid] draw qty: 30
+# 2026/11/18 16:19:14.017673 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.017673 [TestBattleSales] [rapid] draw combo: 1
+# 2026/11/18 16:19:14.017674 [TestBattleSales] [rapid] draw bill: 1
+# 2026/11/18 16:19:14.017675 [TestBattleSales] [rapid] draw billFixed: 1
+# 2026/11/18 16:19:14.017683 [TestBattleSales] [rapid] draw tender: "card"
+# 2026/11/18 16:19:14.034132 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.034135 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.034140 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.034142 [TestBattleSales] [rapid] draw pay: 979
+# 2026/11/18 16:19:14.053406 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.053411 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.053417 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.053420 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 16:19:14.053421 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:14.053422 [TestBattleSales] [rapid] draw qty: 3
+# 2026/11/18 16:19:14.053422 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.053424 [TestBattleSales] [rapid] draw discFixed: 8772
+# 2026/11/18 16:19:14.053425 [TestBattleSales] [rapid] draw combo: 2
+# 2026/11/18 16:19:14.053426 [TestBattleSales] [rapid] draw bill: 1
+# 2026/11/18 16:19:14.053426 [TestBattleSales] [rapid] draw billFixed: 25
+# 2026/11/18 16:19:14.053432 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:14.053433 [TestBattleSales] [rapid] draw extra: 1
+# 2026/11/18 16:19:14.069465 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.069471 [TestBattleSales] [rapid] draw lines: 5
+# 2026/11/18 16:19:14.069472 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.069473 [TestBattleSales] [rapid] draw qty: 21
+# 2026/11/18 16:19:14.069473 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.069474 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:14.069475 [TestBattleSales] [rapid] draw qty: 22
+# 2026/11/18 16:19:14.069475 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.069476 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.069477 [TestBattleSales] [rapid] draw qty: 22
+# 2026/11/18 16:19:14.069478 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.069478 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:14.069479 [TestBattleSales] [rapid] draw qty: 1
+# 2026/11/18 16:19:14.069479 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.069481 [TestBattleSales] [rapid] draw discFixed: 392
+# 2026/11/18 16:19:14.069482 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:14.069483 [TestBattleSales] [rapid] draw qty: 1
+# 2026/11/18 16:19:14.069483 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.069485 [TestBattleSales] [rapid] draw combo: 0
+# 2026/11/18 16:19:14.069485 [TestBattleSales] [rapid] draw sets: 2
+# 2026/11/18 16:19:14.069486 [TestBattleSales] [rapid] draw perSet: 1
+# 2026/11/18 16:19:14.069486 [TestBattleSales] [rapid] draw perSet: 2
+# 2026/11/18 16:19:14.069487 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:14.069487 [TestBattleSales] [rapid] draw billPct: 7
+# 2026/11/18 16:19:14.069501 [TestBattleSales] [rapid] draw tender: "cheque"
+# 2026/11/18 16:19:14.098152 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.098156 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:8, total:decimal.Decimal{value:(*big.Int)(0x17944e239700), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944eab0f00), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:22, qty:decimal.Decimal{value:(*big.Int)(0x17944f2522e0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f252300), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:14.098167 [TestBattleSales] [rapid] draw back0: 1
+# 2026/11/18 16:19:14.124315 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.124319 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 16:19:14.124320 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.124321 [TestBattleSales] [rapid] draw qty: 12
+# 2026/11/18 16:19:14.124321 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:14.124322 [TestBattleSales] [rapid] draw discPct: 11
+# 2026/11/18 16:19:14.124323 [TestBattleSales] [rapid] draw combo: 4
+# 2026/11/18 16:19:14.124323 [TestBattleSales] [rapid] draw bill: 0
+# 2026/11/18 16:19:14.124330 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:14.124331 [TestBattleSales] [rapid] draw extra: 234
+# 2026/11/18 16:19:14.139360 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.164100 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.164105 [TestBattleSales] [rapid] draw pay: 61
+# 2026/11/18 16:19:14.179840 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.179844 [TestBattleSales] [rapid] draw pay: 1
+# 2026/11/18 16:19:14.199233 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.199236 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:9, total:decimal.Decimal{value:(*big.Int)(0x17944f253520), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f2539c0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:true, lines:[]battle.mLine{battle.mLine{id:23, qty:decimal.Decimal{value:(*big.Int)(0x17944e891380), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e8913a0), exp:0}, group:0, sets:0}, battle.mLine{id:24, qty:decimal.Decimal{value:(*big.Int)(0x17944e8913c0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e8913e0), exp:0}, group:0, sets:0}, battle.mLine{id:25, qty:decimal.Decimal{value:(*big.Int)(0x17944e891400), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e891420), exp:0}, group:0, sets:0}, battle.mLine{id:26, qty:decimal.Decimal{value:(*big.Int)(0x17944e891440), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e891460), exp:0}, group:0, sets:0}, battle.mLine{id:27, qty:decimal.Decimal{value:(*big.Int)(0x17944e891480), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e8914a0), exp:0}, group:0, sets:0}, battle.mLine{id:28, qty:decimal.Decimal{value:(*big.Int)(0x17944e8914c0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e8914e0), exp:0}, group:1, sets:2}, battle.mLine{id:29, qty:decimal.Decimal{value:(*big.Int)(0x17944e891500), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e891520), exp:0}, group:1, sets:2}}, cheque:1, chequeAmt:decimal.Decimal{value:(*big.Int)(0x17944f253520), exp:-2}}
+# 2026/11/18 16:19:14.199251 [TestBattleSales] [rapid] draw back0: 15
+# 2026/11/18 16:19:14.199253 [TestBattleSales] [rapid] draw back1: 19
+# 2026/11/18 16:19:14.199254 [TestBattleSales] [rapid] draw back2: 0
+# 2026/11/18 16:19:14.199255 [TestBattleSales] [rapid] draw back3: 0
+# 2026/11/18 16:19:14.199256 [TestBattleSales] [rapid] draw back4: 0
+# 2026/11/18 16:19:14.199259 [TestBattleSales] [rapid] draw setsBack: 0
+# 2026/11/18 16:19:14.199260 [TestBattleSales] [rapid] draw chequeBack: false
+# 2026/11/18 16:19:14.222858 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.222861 [TestBattleSales] [rapid] draw cheque: &battle.mSale{id:9, total:decimal.Decimal{value:(*big.Int)(0x17944f253520), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f2539c0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(0x17944eb921a0), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(0x17944eb92280), exp:-2}, customer:true, lines:[]battle.mLine{battle.mLine{id:23, qty:decimal.Decimal{value:(*big.Int)(0x17944e891380), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb922a0), exp:0}, group:0, sets:0}, battle.mLine{id:24, qty:decimal.Decimal{value:(*big.Int)(0x17944e8913c0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb922c0), exp:0}, group:0, sets:0}, battle.mLine{id:25, qty:decimal.Decimal{value:(*big.Int)(0x17944e891400), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb92300), exp:0}, group:0, sets:0}, battle.mLine{id:26, qty:decimal.Decimal{value:(*big.Int)(0x17944e891440), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb92340), exp:0}, group:0, sets:0}, battle.mLine{id:27, qty:decimal.Decimal{value:(*big.Int)(0x17944e891480), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb92380), exp:0}, group:0, sets:0}, battle.mLine{id:28, qty:decimal.Decimal{value:(*big.Int)(0x17944e8914c0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb923c0), exp:0}, group:1, sets:2}, battle.mLine{id:29, qty:decimal.Decimal{value:(*big.Int)(0x17944e891500), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944eb92400), exp:0}, group:1, sets:2}}, cheque:1, chequeAmt:decimal.Decimal{value:(*big.Int)(0x17944f253520), exp:-2}}
+# 2026/11/18 16:19:14.234210 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.234214 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:5, total:decimal.Decimal{value:(*big.Int)(0x17944f123c80), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f38cea0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:10, qty:decimal.Decimal{value:(*big.Int)(0x17944e9894e0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e989500), exp:0}, group:0, sets:0}, battle.mLine{id:11, qty:decimal.Decimal{value:(*big.Int)(0x17944e989520), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e989540), exp:0}, group:0, sets:0}, battle.mLine{id:12, qty:decimal.Decimal{value:(*big.Int)(0x17944e989560), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e989580), exp:0}, group:0, sets:0}, battle.mLine{id:13, qty:decimal.Decimal{value:(*big.Int)(0x17944e9895a0), exp:-2}, left:decimal.Decimal{value:(*big.Int)(0x17944e9895c0), exp:-2}, group:0, sets:0}, battle.mLine{id:14, qty:decimal.Decimal{value:(*big.Int)(0x17944e9895e0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e989600), exp:0}, group:1, sets:3}, battle.mLine{id:15, qty:decimal.Decimal{value:(*big.Int)(0x17944e989620), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e989640), exp:0}, group:1, sets:3}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:14.234225 [TestBattleSales] [rapid] draw back0: 0
+# 2026/11/18 16:19:14.234225 [TestBattleSales] [rapid] draw back1: 16
+# 2026/11/18 16:19:14.234227 [TestBattleSales] [rapid] draw back2: 1
+# 2026/11/18 16:19:14.234230 [TestBattleSales] [rapid] draw backKg3: 3
+# 2026/11/18 16:19:14.234232 [TestBattleSales] [rapid] draw setsBack: 2
+# 2026/11/18 16:19:14.271809 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.271815 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:2, total:decimal.Decimal{value:(*big.Int)(0x17944f361300), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f361aa0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:3, qty:decimal.Decimal{value:(*big.Int)(0x17944e3e4ae0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e3e4b00), exp:0}, group:0, sets:0}, battle.mLine{id:4, qty:decimal.Decimal{value:(*big.Int)(0x17944e3e4b20), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944e3e4b40), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:14.271827 [TestBattleSales] [rapid] draw back0: 0
+# 2026/11/18 16:19:14.271828 [TestBattleSales] [rapid] draw back1: 11
+# 2026/11/18 16:19:14.294011 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.294015 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.294019 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.318612 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.318618 [TestBattleSales] [rapid] draw pay: 154
+# 2026/11/18 16:19:14.341265 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.359356 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.382307 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.410862 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.410867 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:14.410868 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.410868 [TestBattleSales] [rapid] draw qty: 8
+# 2026/11/18 16:19:14.410869 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:14.410869 [TestBattleSales] [rapid] draw discPct: 12
+# 2026/11/18 16:19:14.410870 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:14.410871 [TestBattleSales] [rapid] draw qty: 20
+# 2026/11/18 16:19:14.410872 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.410873 [TestBattleSales] [rapid] draw discFixed: 25
+# 2026/11/18 16:19:14.410874 [TestBattleSales] [rapid] draw combo: 3
+# 2026/11/18 16:19:14.410874 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:14.410875 [TestBattleSales] [rapid] draw billPct: 628
+# 2026/11/18 16:19:14.410885 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:14.410886 [TestBattleSales] [rapid] draw extra: 2
+# 2026/11/18 16:19:14.426494 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.426496 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.426502 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.426502 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.426503 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.426505 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 16:19:14.426506 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.426507 [TestBattleSales] [rapid] draw qty: 14
+# 2026/11/18 16:19:14.426508 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.426509 [TestBattleSales] [rapid] draw discFixed: 0
+# 2026/11/18 16:19:14.426510 [TestBattleSales] [rapid] draw combo: 0
+# 2026/11/18 16:19:14.426510 [TestBattleSales] [rapid] draw sets: 1
+# 2026/11/18 16:19:14.426511 [TestBattleSales] [rapid] draw perSet: 2
+# 2026/11/18 16:19:14.426511 [TestBattleSales] [rapid] draw perSet: 1
+# 2026/11/18 16:19:14.426512 [TestBattleSales] [rapid] draw bill: 1
+# 2026/11/18 16:19:14.426513 [TestBattleSales] [rapid] draw billFixed: 72
+# 2026/11/18 16:19:14.426520 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:14.426520 [TestBattleSales] [rapid] draw extra: 26
+# 2026/11/18 16:19:14.443587 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.443591 [TestBattleSales] [rapid] draw lines: 3
+# 2026/11/18 16:19:14.443592 [TestBattleSales] [rapid] draw kind: "loose"
+# 2026/11/18 16:19:14.443592 [TestBattleSales] [rapid] draw grams: 4
+# 2026/11/18 16:19:14.443593 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.443595 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.443595 [TestBattleSales] [rapid] draw qty: 2
+# 2026/11/18 16:19:14.443596 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.443597 [TestBattleSales] [rapid] draw discFixed: 0
+# 2026/11/18 16:19:14.443598 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.443598 [TestBattleSales] [rapid] draw qty: 26
+# 2026/11/18 16:19:14.443599 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:14.443599 [TestBattleSales] [rapid] draw discPct: 873
+# 2026/11/18 16:19:14.443600 [TestBattleSales] [rapid] draw combo: 2
+# 2026/11/18 16:19:14.443601 [TestBattleSales] [rapid] draw bill: 0
+# 2026/11/18 16:19:14.443612 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 16:19:14.443612 [TestBattleSales] [rapid] draw extra: 775
+# 2026/11/18 16:19:14.469069 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.469075 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 16:19:14.469076 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:14.469077 [TestBattleSales] [rapid] draw qty: 2
+# 2026/11/18 16:19:14.469078 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.469079 [TestBattleSales] [rapid] draw combo: 4
+# 2026/11/18 16:19:14.469079 [TestBattleSales] [rapid] draw bill: 1
+# 2026/11/18 16:19:14.469080 [TestBattleSales] [rapid] draw billFixed: 12237
+# 2026/11/18 16:19:14.469084 [TestBattleSales] [rapid] draw tender: "split"
+# 2026/11/18 16:19:14.469085 [TestBattleSales] [rapid] draw extra: 2
+# 2026/11/18 16:19:14.484437 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.484441 [TestBattleSales] [rapid] draw lines: 3
+# 2026/11/18 16:19:14.484442 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 16:19:14.484443 [TestBattleSales] [rapid] draw qty: 2
+# 2026/11/18 16:19:14.484443 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:14.484444 [TestBattleSales] [rapid] draw discPct: 1
+# 2026/11/18 16:19:14.484445 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.484446 [TestBattleSales] [rapid] draw qty: 5
+# 2026/11/18 16:19:14.484446 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.484447 [TestBattleSales] [rapid] draw kind: "pack"
+# 2026/11/18 16:19:14.484447 [TestBattleSales] [rapid] draw qty: 9
+# 2026/11/18 16:19:14.484448 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.484449 [TestBattleSales] [rapid] draw discFixed: 0
+# 2026/11/18 16:19:14.484450 [TestBattleSales] [rapid] draw combo: 1
+# 2026/11/18 16:19:14.484450 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:14.484451 [TestBattleSales] [rapid] draw billPct: 201
+# 2026/11/18 16:19:14.484462 [TestBattleSales] [rapid] draw tender: "part"
+# 2026/11/18 16:19:14.484463 [TestBattleSales] [rapid] draw part: 1
+# 2026/11/18 16:19:14.505049 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.505051 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.505057 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.505059 [TestBattleSales] [rapid] draw pay: 1267
+# 2026/11/18 16:19:14.524158 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.546885 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.546889 [TestBattleSales] [rapid] draw lines: 2
+# 2026/11/18 16:19:14.546890 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.546891 [TestBattleSales] [rapid] draw qty: 28
+# 2026/11/18 16:19:14.546891 [TestBattleSales] [rapid] draw discType: 1
+# 2026/11/18 16:19:14.546892 [TestBattleSales] [rapid] draw discFixed: 5
+# 2026/11/18 16:19:14.546893 [TestBattleSales] [rapid] draw kind: "odd"
+# 2026/11/18 16:19:14.546894 [TestBattleSales] [rapid] draw qty: 29
+# 2026/11/18 16:19:14.546894 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 16:19:14.546895 [TestBattleSales] [rapid] draw discPct: 546
+# 2026/11/18 16:19:14.546896 [TestBattleSales] [rapid] draw combo: 4
+# 2026/11/18 16:19:14.546896 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:14.546897 [TestBattleSales] [rapid] draw billPct: 685
+# 2026/11/18 16:19:14.546905 [TestBattleSales] [rapid] draw tender: "split"
+# 2026/11/18 16:19:14.546906 [TestBattleSales] [rapid] draw part: 5
+# 2026/11/18 16:19:14.563630 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.584906 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.608139 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.608143 [TestBattleSales] [rapid] draw pay: 65
+# 2026/11/18 16:19:14.619320 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.643333 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.643337 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:14, total:decimal.Decimal{value:(*big.Int)(0x17944eb37700), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f243bc0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:39, qty:decimal.Decimal{value:(*big.Int)(0x17944f31f920), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f31f940), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:14.643348 [TestBattleSales] [rapid] draw back0: 1
+# 2026/11/18 16:19:14.670074 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 16:19:14.670078 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 16:19:14.670079 [TestBattleSales] [rapid] draw kind: "cheap"
+# 2026/11/18 16:19:14.670079 [TestBattleSales] [rapid] draw qty: 23
+# 2026/11/18 16:19:14.670080 [TestBattleSales] [rapid] draw discType: 0
+# 2026/11/18 16:19:14.670081 [TestBattleSales] [rapid] draw combo: 1
+# 2026/11/18 16:19:14.670081 [TestBattleSales] [rapid] draw bill: 2
+# 2026/11/18 16:19:14.670082 [TestBattleSales] [rapid] draw billPct: 879
+# 2026/11/18 16:19:14.670089 [TestBattleSales] [rapid] draw tender: "card"
+# 2026/11/18 16:19:14.684523 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.684525 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.684530 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.684532 [TestBattleSales] [rapid] draw pay: 168520
+# 2026/11/18 16:19:14.699289 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.699300 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.699306 [TestBattleSales] [rapid] draw action: "CustomerPay"
+# 2026/11/18 16:19:14.699310 [TestBattleSales] [rapid] draw pay: 9
+# 2026/11/18 16:19:14.720300 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 16:19:14.720306 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:5, total:decimal.Decimal{value:(*big.Int)(0x17944f123c80), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x17944f38cea0), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(0x17944f00ba00), exp:-2}, customer:false, lines:[]battle.mLine{battle.mLine{id:10, qty:decimal.Decimal{value:(*big.Int)(0x17944e9894e0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f00ba40), exp:0}, group:0, sets:0}, battle.mLine{id:11, qty:decimal.Decimal{value:(*big.Int)(0x17944e989520), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f00ba60), exp:0}, group:0, sets:0}, battle.mLine{id:12, qty:decimal.Decimal{value:(*big.Int)(0x17944e989560), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f00ba80), exp:0}, group:0, sets:0}, battle.mLine{id:13, qty:decimal.Decimal{value:(*big.Int)(0x17944e9895a0), exp:-2}, left:decimal.Decimal{value:(*big.Int)(0x17944f00bac0), exp:-3}, group:0, sets:0}, battle.mLine{id:14, qty:decimal.Decimal{value:(*big.Int)(0x17944e9895e0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f00bb00), exp:-16}, group:1, sets:3}, battle.mLine{id:15, qty:decimal.Decimal{value:(*big.Int)(0x17944e989620), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x17944f00bb40), exp:-16}, group:1, sets:3}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 16:19:14.720322 [TestBattleSales] [rapid] draw back0: 2
+# 2026/11/18 16:19:14.720324 [TestBattleSales] [rapid] draw back1: 1
+# 2026/11/18 16:19:14.720325 [TestBattleSales] [rapid] draw back2: 2
+# 2026/11/18 16:19:14.720327 [TestBattleSales] [rapid] draw backKg3: 197
+# 2026/11/18 16:19:14.720330 [TestBattleSales] [rapid] draw setsBack: 0
+# 2026/11/18 16:19:14.747395 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 2026/11/18 16:19:14.773443 [TestBattleSales] [rapid] draw action: "Bounce"
+# 2026/11/18 16:19:14.773446 [TestBattleSales] no cheque waiting
+# 2026/11/18 16:19:14.773451 [TestBattleSales] [rapid] draw action: "CloseOpen"
+# 
+v0.4.8#3165600609051331765
+0x1e341a121f3409
+0x1d94e87f0b1949
+0x5
+0x2
+0x172e2c54052a27
+0x2
+0x14fff5f42c0011
+0x1
+0x8765fb6e79c70
+0x1e12f96c69d190
+0x7
+0x6
+0x4
+0xec5a7b1a48adb
+0x3e6294670277a
+0x1
+0x97a8eb5833fc7
+0x6
+0x6
+0x3
+0xb123cc559e79b
+0xd585692e08fa3
+0x1d
+0x19062983f935a6
+0x52d71ce1fe62c
+0x2
+0x3332e65ce3b19
+0x3fb965fff1b32
+0x0
+0x11c21a346da491
+0x1
+0xc0142e9725384
+0x1d0c0369148cbe
+0x13
+0x1701b8747ec749
+0x177b9dab529b3c
+0x3
+0x3
+0x2
+0x1f740d548548b6
+0x19b30293ba8ab1
+0x14
+0xefedd49ce1beb
+0x1286cb1399df0d
+0x7
+0x1
+0x118cda979694dd
+0x3bf6a2a3081c2
+0x3
+0x2
+0x18f2cc6e65916
+0xfcdd3c12c094c
+0x9
+0x4e7a6724d9df1
+0x1
+0x1d07048c778d33
+0xc455ebef5b605
+0x1a
+0xf967e64586eee
+0x55cfba1147164
+0x0
+0xfe2d568704e0
+0x1
+0x1dd1760055f9f1
+0x683b8f75e33f8
+0x3
+0xabd58a07afa85
+0x0
+0xa29a1a1203096
+0x8d38c4013acc7
+0x2
+0x806138907230
+0xd47ec6343d9d9
+0x1b
+0x1f
+0x16
+0x9
+0x1c407e0e89ecc2
+0x9eeac0cedf947
+0x3
+0x11e52073349b91
+0x0
+0x1cbf9a62e8d08d
+0x1a921c4259f0cf
+0x15
+0x17fc640a9269e4
+0x51651b6a08089
+0x2
+0x15699a6b793d4c
+0x1731904a54f3b6
+0x7
+0x0
+0x1a75958d2dbbf4
+0x5
+0x2
+0xd0010521d2960
+0x2
+0xe49821a9ef4df
+0x4
+0x10db08c9b06a7b
+0x242e787d968d0
+0x1
+0x1ea13663f1101c
+0x7
+0x0
+0x16e43a9df669e0
+0x1a28e9cc82d4f8
+0x1e
+0x1b
+0x46a05ec75fca8
+0xdefc06b3a3cda
+0x0
+0x12be42549af68e
+0x5
+0x1
+0x15cf4b7d12cc5b
+0x19867493c8ef7f
+0x1d
+0x1f905b0e76dd80
+0x19175523d320d
+0x1
+0x96a91eb28c0a3
+0xcecdfdf1d3c8
+0x0
+0x23f774bae4ed8
+0xa4ba5ad053c60
+0x2
+0x1d8f26c52d35a4
+0x1e825764edee8f
+0x0
+0x84157e60ab7aa
+0x1
+0x1e0f904261f3b5
+0x1c9ef48c00bf95
+0xa0
+0x24373ae7867b5
+0xda6cbad4ea14
+0x0
+0x1394257e638d14
+0x6
+0x6
+0x1
+0x13a616edf450ac
+0x17e7fb63288af4
+0x0
+0x1d61dc874eec76
+0x6
+0x2
+0xbdc6dc7bd26ac
+0x6
+0x2
+0x152969dec544a7
+0x0
+0x1e89be9b872373
+0x2
+0x1f0bb114abb96a
+0x6
+0x2
+0x13459f13ac235e
+0x1
+0xeb2eb193afc61
+0x11888f6854909d
+0x4
+0x1712559f4949d5
+0x37d18fd2dbbe0
+0x1
+0xcf5232e8e4d1b
+0x3
+0x5c2f927d1c2e
+0x17544d493c7fba
+0x9f9
+0xfadc0f23ca216
+0x1c6290276f98b6
+0x3
+0x3
+0x2
+0x7f88661b8c303
+0xe73d7d8bb48aa
+0x12
+0xb989504359f71
+0x3
+0x1a84ac928255da
+0x1e5be4c3d9fc53
+0x1257
+0xdbb8b8940f7fb
+0x1d929cdb331adf
+0x2
+0x128f68feddc053
+0xff682453b13b5
+0x59
+0x1f68acc205fee4
+0x14a546b3e20526
+0x3
+0xd98380f48383a
+0x18999546e2e067
+0x0
+0x1b358649704e28
+0x2
+0xdd3efc74fd421
+0x1c57c023ed8dfe
+0x5
+0x1
+0x1b885ae0e5f046
+0x6683f339f3ad2
+0x2
+0x722b9a69e2702
+0x0
+0x1d0d403cc355f0
+0x2
+0x4e2ecd2ba07ad
+0x2
+0xfc637d56b6420
+0x4
+0xd49b00d436e55
+0x1592df353973cc
+0x2
+0x18a7b10846405c
+0x2
+0x176335c127558f
+0xcea67ff3d6f43
+0x4
+0x3255ac68252ab
+0x1bf0ab92174b7e
+0x1
+0x3f597954988b7
+0xdfb1a3b7bcd39
+0x1b
+0x1a428237fc2ffc
+0x6
+0x7
+0x3
+0x120b426eb5194
+0x10e30cffbd682d
+0x63
+0x15d508fb5f7cde
+0x125a10358b8062
+0x3
+0x2
+0xa2a0a19a4a5cf
+0xfa2490ff89018
+0x13
+0x3ff81c6f359c3
+0x1
+0x9d3e498c10ea
+0x1d9d1c6cf177fa
+0x1f
+0x6
+0x16cf7965b8643c
+0x1d30a26be299b4
+0x1
+0x1984944336e092
+0x182ad7a1bb68c3
+0x4ef
+0x63c1160fd93
+0x6b6931e70e16e
+0x3
+0x95888347b7b79
+0x1f406d48b0c530
+0xffffffffffffffff
+0x40992e93a817a
+0x4cf12e4645e0f
+0x0
+0xa66c8cbf468f7
+0x4
+0x195665dd0a17ab
+0x15e0de1d4331c7
+0x4
+0xc19214233cf34
+0x4791aa968608e
+0x3
+0x792fe3c29c2f4
+0x7
+0x0
+0xae44aef5d6baf
+0x9a4bcc8b6365e
+0x4
+0x1db806a5f0d4b6
+0x9c1317a27d79d
+0x3
+0x0
+0x16e09d0da702b7
+0x7
+0x0
+0x1c7618edda565f
+0x12ef5033e5592e
+0x12
+0x1b0b60d78bb4de
+0x16c100911fb77d
+0x2
+0x15dc4241eb99a0
+0x14fa87d8059959
+0x5d
+0x1b40981e874e79
+0x0
+0x22491d8d91e90
+0x84ec748fe352d
+0x3
+0x1249880a7f7115
+0x1edccddd58164d
+0x2
+0x5c4c29ee9fa25
+0x64263fa1eb28f
+0x3
+0x13f3dc4ff01547
+0x3
+0x1ed0a5936d2e8f
+0x17c836053b957c
+0x1944
+0x49b
+0x25280df3fc751
+0xff6955201a0d0
+0x0
+0x16a3543a76fc87
+0x14c85f0f59bfb4
+0x6
+0x6
+0x6
+0x6
+0x0
+0x245a5a711b7e6
+0x16fa647ab25adc
+0x2
+0xd66a7f757adcf
+0x556ec6b0de71d
+0x1
+0x9ffae459fa51f
+0x2c4c893a2bd0
+0x0
+0x15a778565dd8c0
+0x1a04eca0768c13
+0x2
+0x13c163971fab9c
+0x159c6f54417a9b
+0x273
+0x1dc5070d7dbc19
+0x0
+0x1efbe972c9c229
+0x915b5f87d07fb
+0x3
+0x17da4bf2d4582e
+0x11b51db80163e
+0x1
+0x354e74c1df7e9
+0x11f92ae5804eea
+0x0
+0xaa9615baa83ea
+0x1
+0x1177736824c3d1
+0x4a97a319f28b9
+0x1
+0x89b8e17a7d616
+0x1b58914520af16
+0x4
+0x1c13afeae5ffd4
+0xfea7eb9482e97
+0x7
+0x3
+0x74423937be610
+0x6
+0x1
+0x1a76783c93339
+0x136a519729ba86
+0x7
+0x114302f25de31d
+0x11a4431b9a7a5a
+0x1
+0x13a4e6c5920013
+0x1770c3c4e38994
+0x67b
+0xd98bdce7f4b58
+0x5
+0x5
+0x6
+0x7
+0x5
+0x7
+0x3
+0x11a2ce853b385e
+0x8fc9cc9bf525a
+0xd
+0x8e95f492937ff
+0x8558587ee5e92
+0x3
+0x2
+0xa0ced3f0b688d
+0x13fce650cda658
+0x10e
+0x12681328e2c0cc
+0x6
+0x3
+0x13b49de90a8938
+0x7da2b651a387c
+0x0
+0x15c509974d0bf9
+0x67a9ce667d625
+0x1
+0x1639130a419fe
+0x13c9c386d0a70a
+0x57
+0x17fd23db16e4c6
+0x5
+0x2
+0x1ec5ef67066eaa
+0x1476a976518786
+0xb
+0xf2e5edaa93af2
+0x1244ee7c8ee58b
+0x0
+0x1f16c7e37eb7a6
+0x1e4e7b1b026441
+0x3
+0x1c116e2f0738ed
+0x188cbbd0eafe22
+0x2
+0xa1b29e536527a
+0x113932656b21b8
+0x5f
+0x146d1cdbb4c5a1
+0x4
+0x52fb9002e0cd9
+0xc8170b4370c01
+0x0
+0x35b598b9810fc
+0x0
+0x10cbc958d8b54c
+0x5
+0x5
+0x2
+0x18fe1ae60a0bb3
+0x3b6710084f90f
+0x2
+0x137699efb72ced
+0x9222fdae7ee88
+0x4
+0x11b2cc40347742
+0x124b9ae1627c57
+0x6
+0x7
+0x7
+0x1
+0x1e968601255d6d
+0x5
+0x4
+0x9dbc96b51ff74
+0x163897f7e73861
+0x1f
+0x0
+0x1a3a375a76b3ad
+0xcb86714e3c9b
+0x0
+0x64ea0a29afa26
+0x2
+0x7c66799926df2
+0x1fbeb531345f1a
+0xffffffffffffffff
+0x979f3bd6a7f8b
+0x105150fd7ff3f7
+0x0
+0x1191a87d412390
+0x1a631ef476d494
+0x1
+0x3535c1ebdd7da
+0x15a06dd267a28f
+0x1
+0xf0b630bc8dfbd
+0x364f2958b7e3f
+0x1
+0xa775c0bbf1fab
+0x2
+0x1b55b4b10de2b4
+0x1c9ed6bfab0960
+0x0
+0x188039a8d2ec0b
+0x2
+0x68f920c928571
+0x1a51a53bc5d3d4
+0x3d2
+0x15ab572d8b36a6
+0x144ef358d28233
+0x0
+0x181aab7547c30f
+0x4
+0x25d53b50fd79a
+0x18baae2897e29c
+0x7
+0x0
+0x286a030da6cdf
+0x0
+0x114184737cd352
+0x4949cb3437ad8
+0x2
+0xdccd916b83501
+0x1606af2dab5e7d
+0x3
+0x1
+0x163328f43c18ae
+0x1a26e4ec68fdd1
+0x2244
+0x364bde9a3796f
+0xd0257f0054a76
+0x2
+0x1c2624413dc25b
+0x1f1e459438ab9c
+0x1
+0x1d827e5cc371da
+0xaf7eff7952a08
+0x19
+0x1b20840c88d394
+0x1
+0x7f869d21e36f9
+0x1bac676c9da4
+0x1
+0x1becb487ffd215
+0x1f046d9d6a649d
+0x6
+0x5
+0x5
+0x4
+0xc02fcca45887f
+0x1fcf39576cd889
+0xffffffffffffffff
+0x1e791cc96ef55f
+0x4
+0x1c9465f0301921
+0x139fd47180b6fd
+0x14
+0xc3e471ffd662f
+0x961620150912f
+0x0
+0x6a918d9e6f42b
+0x1
+0x1cdb478de37f0
+0x16de318be7bbf1
+0x15
+0x18b06fd85d60ce
+0x73e9405dcbc58
+0x0
+0x1ee962011fa0f7
+0x5
+0x4
+0x10eb8237e1d6e4
+0x139087474899fe
+0x15
+0xc18cf37aa2ed9
+0x1acd81726bba8a
+0x0
+0x1bf4110315b7f4
+0x0
+0x77a3a0b082b7d
+0x15db6bbe6a7369
+0x0
+0x107a09bab5bba8
+0x3a75dd9b4e87d
+0x3
+0x3
+0x1
+0xd69498459def7
+0x14277263456a5f
+0x188
+0x13af069c94e43e
+0x0
+0x8a690e3fa1ac0
+0x152e220c9e62b
+0x0
+0x1d1923436f8828
+0x27f95d23212e6
+0x0
+0x183e0d3d7f56c
+0x8801680907873
+0x7
+0x0
+0x1dd94093f5755c
+0xad3168970611f
+0x1
+0xd674cee85caa9
+0x1017d90a9c88de
+0x0
+0x1e201d387a54e1
+0x1fdd04fe29d027
+0xffffffffffffffff
+0x1561c3acc58c3
+0x70e77cd406515
+0x3
+0x3
+0x2
+0x175115f5a0e469
+0xa66665e24c0da
+0x7
+0x1299b8228e8a17
+0x6
+0x1ba2a225003f65
+0xb70820b337289
+0x5
+0x3
+0xbc3c2ab8a98a3
+0xc
+0xa
+0xe
+0x7
+0x9a5b24be50a83
+0x3570270893e0d
+0x1
+0x113ec61df2b9e0
+0x15383ca0546f12
+0x4
+0xcaabff5d71016
+0x10ba2cc29190df
+0x0
+0x60fc2fb9d7881
+0x2
+0x1a3de501582f02
+0x198aca40a98419
+0xb
+0xb965ceef40082
+0x9ebceef3f2436
+0x2
+0x1369b5ff8504e0
+0xb77b1da79989e
+0xb
+0x17f9ed4f859a4a
+0x1d3b3b0f0cd450
+0x4
+0x1fc08805635956
+0x13dd5bb5f9be85
+0x0
+0x10368e0525bf43
+0x1
+0x17b6f47156f62d
+0x1a653d90d1ac72
+0xea
+0xa972abd988bf3
+0x1dec8f9162281c
+0x1
+0xebab931a645ff
+0x4949c12c392ff
+0x2
+0x1ef6b50078f6f0
+0xfa73591a3dcc7
+0x3c
+0xc569ccd082b6b
+0x12f7e6939fb901
+0x2
+0xd5c3a0d4c4723
+0x4368b46d1c134
+0x0
+0x1d7d1d9f5598ef
+0x13020984439b66
+0x3
+0x190c8605da3be6
+0xf
+0x8
+0x1aacba153ef470
+0xbcea38d13f047
+0xf
+0x13376572a6fd2f
+0x1bf09f1eec5566
+0x13
+0xd1a18b0eedc5d
+0x46c019d894c29
+0x0
+0x12bb8751151180
+0xf016426769c44
+0x0
+0x315e208dfdf02
+0x1b95f41208bbdd
+0x0
+0x14632fbe9610c6
+0x61afba9a9a460
+0x0
+0x0
+0x1a6552f35d18d
+0xad4df48742405
+0x0
+0xe3b79670d323e
+0x0
+0xaa421490aa21a
+0xea469c9c5bbba
+0x3
+0x14ac94b55bcc29
+0xa
+0x4
+0x1de9ae3f6bb6da
+0x13abc880ce515f
+0x0
+0x15b872373bfe2e
+0x1e37bced9537da
+0x1d
+0x17
+0x19
+0x10
+0x1e1d135179e243
+0x15f9c202bb10f4
+0x5
+0x1
+0x1521b0187a4985
+0x5c92f317aa460
+0x3
+0xdb4791f97a33
+0x1c0bbd6913b8f6
+0x2
+0xce171af4f4c9c
+0x8bf257948dba8
+0x6
+0x5
+0x3
+0x43332020ddf51
+0x1
+0x9c390a0b21ed8
+0x41b06733d43c6
+0x0
+0x5c507cfb2b83
+0x1294d4d631d5aa
+0x1f
+0xb
+0x180cc6c94760d7
+0x158b7e3cd065ce
+0x0
+0x15b16b0e29af91
+0x5
+0x1
+0x706f01f468c1b
+0xb4699e0f766ad
+0x2
+0xded12850da5e6
+0x11fa8139f605c8
+0x99
+0x19a599f31bd6c6
+0xf96373d653a39
+0x7
+0x1
+0x8ca7f359dbb8c
+0x1900333c4b3b26
+0x1
+0x16b62816f5f93f
+0x1b8f3d169931ab
+0x1
+0x44769cee18b8d
+0x94d568faa8b50
+0x6
+0x4
+0xd712873198ca4
+0x9943ae1722b83
+0x5
+0x1
+0x1f978bdae0cd5f
+0xffffffffffffffff
+0x12a488b9c1d571
+0x8a89b24c8f13a
+0x7
+0x292d65608f5ab
+0xcf9a5bd78e3d0
+0x2
+0xf1bc26055fcf6
+0x94d0de2eb5788
+0xc
+0x283ae130ae2f0
+0x0
+0x60b6d334a869d
+0x14f66c7bddcd9b
+0x13
+0x1586bafc7a38d1
+0x11f337cedff4f3
+0x1
+0x1161e39bf749ed
+0xbbbf664694293
+0x19
+0x341a4f1bcc003
+0xc0af1eac88744
+0x5
+0x3
+0xa10df5ef08819
+0x1ce9364a6183b9
+0x2
+0x104a9081031e65
+0x1a78adcf0ace3f
+0x274
+0x10b096ab3e90de
+0x1
+0x34fa511d02dc4
+0x5f30add286ff0
+0x2
+0x167f7f8dda072c
+0xf8a219ab8b205
+0x0
+0x16bcb70684d93a
+0x0
+0x163f9a67c1f740
+0x4
+0x17376b7d7c70f
+0xae00b663daccd
+0x6
+0x0
+0x3ea04ae3527ed
+0x2
+0x1e7d40e5960ce0
+0x1c1929c90bac53
+0xd
+0x1d1c37cd96acc
+0x11219db508e051
+0x3
+0x1
+0x1fa9e0d032091
+0x24224ba714869
+0x0
+0x1bed1a8ccc2711
+0x36cfc09252731
+0x0
+0x1d12b9528b35b9
+0x1c2f173d6364fd
+0x0
+0x19373a6729cd89
+0xf2d22241f0382
+0x1
+0xec3ff0c1ffedb
+0xa9406bfead35e
+0x0
+0x1681dd708ca93e
+0x19d38b860accb3
+0x1
+0x10f7bb0ef8422e
+0x10cfa3e2bd52e0
+0x48
+0xebd131301f8da
+0x1
+0x15d1f7c16bacf
+0xbc061cfa6e883
+0x1a
+0x1d934c15a6f251
+0x1a56d5d76e0038
+0x4
+0x1883190d574f0d
+0x1cbd07c1117a26
+0x2
+0xe9761f5a75a27
+0x3
+0x16d39e10a4ba42
+0x76b820f87b4dc
+0x3
+0x5b9bcc60d115a
+0x1e41895d8694b3
+0x3
+0x0
+0xacaf5cf755ef7
+0x4
+0x1bb7b039dcc287
+0x4ea7cd87a9b55
+0x1
+0xcc5ec35568480
+0xc274698f7f64e
+0x1
+0xd872309cab33
+0x60c2c3b099402
+0x0
+0xfe12fccd30cc5
+0x2
+0x53b35946c1af5
+0xf611994a057eb
+0x19
+0x4f509be471f9d
+0x18c755bdd9a7d9
+0x2
+0x40d1725511338
+0x18d88af76c1e3a
+0x369
+0x55603bd8657e3
+0x5e85b9597edc9
+0x2
+0x38ef447057d63
+0x2785c795f5165
+0x0
+0x3f5746ce2a4f1
+0x0
+0x1945fdc585afee
+0x14aebb41215a4e
+0x307
+0x12b4e19906c440
+0x1a528569c1d8a3
+0x4
+0xc175fb9d303cc
+0x4781559e5e9b7
+0x0
+0x1bf3332017e70a
+0x7
+0x1
+0x1eea8af3d3f24e
+0x37931667ff7ef
+0x1
+0x188d9363b5ca9a
+0x105b50bc94171f
+0x0
+0xe836be26b37b5
+0xc93e22721614a
+0x4
+0x89a93afa45a66
+0xed11ff43b0a4a
+0x1
+0x1437b88d309d33
+0x1c5f9544c05280
+0x2fcd
+0x5413a1c78fd45
+0x3
+0x5f1ab024b3e41
+0x99fe5b9d36426
+0x2
+0x1faba835b47b65
+0x1a591cc15ccb38
+0x4
+0x4a9de94f07ac7
+0x4068c7d78ae36
+0x2
+0x1e9e4a6632f817
+0x0
+0x124462a663bf9f
+0xa3c78789ec0b7
+0x1
+0x1f9f739b819c6a
+0x1c22ed0cae2eb0
+0x2
+0x1454d024dc7a49
+0x1be2bf00ebb70
+0x1
+0xaab3236fc3147
+0x2
+0x1dbda91d40f63f
+0xdda9caa64d49e
+0x4
+0xe06016d4e8dba
+0x401507106aa7e
+0x0
+0xb86857c5da5c1
+0x4
+0x12597682aca9c4
+0xecf29e2bf7983
+0x8
+0x69f09f9e013e0
+0x1e25fda7cb4a34
+0x1
+0xcef7371e83488
+0x4cf5d680baf4
+0x0
+0x17b50815d5bfcb
+0x1a15fd54fb1b56
+0x1
+0xaa0a0a4c363a3
+0x4e94e66f5747d
+0x2
+0x796ef9b09c22c
+0x140bbe159e4c4f
+0xc9
+0x142ff0ca24c80e
+0x5
+0x6192a8415fe1d
+0x2cac2d2eeb493
+0x1
+0x9ea3ba1f776a7
+0x1559f1db2e2d3e
+0x0
+0x130a404821c16d
+0x6
+0x5
+0x7
+0x5
+0x2
+0x2ffc0f81d1542
+0x150acda1de66e2
+0x4f2
+0x1f721ffe06f783
+0x2c5fc1a9f9002
+0x1
+0x1c24c79bb51d5d
+0x1a8cbec8984f96
+0x4
+0x3470fd37cd7b0
+0x91fe3d3b02e06
+0x1
+0xc9cc78427c855
+0x7
+0x2
+0xde6c10f457458
+0x16d308e34b5b25
+0x1b
+0xdc8f4550abaf6
+0x735d5b40ec26f
+0x1
+0x143ac6f577f834
+0x9d31851b67ff4
+0x5
+0xed73c5074ae6
+0x1
+0x115b6d8bbc221e
+0x1e1e220ac0b035
+0x1c
+0x12c841a3f0305f
+0x1eb9cb031fac12
+0x2
+0x10be399eb3682d
+0x16310ee4e43abb
+0x222
+0x1b66112920c6b6
+0x18e742db87d07d
+0x4
+0x173ab9fefcb5f4
+0x151f6f25a3a855
+0x2
+0x2608ffafb79ab
+0x1dfb61ceb9ec96
+0x2ad
+0x794432e73e1bf
+0x3
+0x41e05c785b703
+0x8b8b70e860ebd
+0x5
+0x41887aab80b23
+0x1c81bf57d09b3
+0x1
+0xf80a2873793e6
+0x701a7b2a55339
+0x7
+0x1
+0x11311677e462dd
+0x10116d82c2e535
+0x2
+0x1eb03424c522a8
+0x126b352cc22795
+0x40
+0x17f92d0aeb5c95
+0x188ac9eb885154
+0x7
+0x1
+0x14db9da3b07b45
+0x19e74a3824e424
+0x3
+0x1695e6e280c6fe
+0xd
+0x1f8c686c3d260
+0x1d31d5cd289555
+0x3
+0x1
+0x1b0aa219496eb1
+0x114aa2869a26d4
+0x5
+0x4
+0x19f583bb52f507
+0xd8141d98970a9
+0x7
+0x0
+0x1e4991014bc25b
+0x2
+0x142a786befd7e8
+0x15f78d48d3bf00
+0x16
+0x8659acaa85bd6
+0x14b95f154606a8
+0x0
+0x1c95a6bbd2de12
+0x170b989bfad140
+0x5
+0x1
+0x1b869052bd8148
+0x13c1af780b98dc
+0x3
+0x2
+0xc3faca48c9aa9
+0x1da9194ab4cd83
+0x36f
+0x5635ececb4c61
+0x2
+0x124592ee9a07ae
+0x124ca950da3a23
+0x0
+0x1bab6b7474ac72
+0x5
+0x7
+0x2
+0x1a7ce903b92199
+0x1ae6712087f00f
+0x29247
+0x2aa162bb0c021
+0x182288ee422c86
+0x0
+0x1a56ab75ea8c8c
+0x2
+0x19b71b56414a23
+0x15d44982b37120
+0x8
+0x188e9214f821fb
+0x117058de83ad99
+0x6
+0x6
+0x7
+0x5
+0x3
+0xfee5761cb3deb
+0x4
+0x1da5885146ec05
+0xdde85b5dc0bf8
+0x2
+0x6f5170a43374a
+0x1882294f3a99b
+0x1
+0x1260b220ce54bd
+0x1a92481f7e5faa
+0x2
+0x4c91335aea95e
+0x11e86d89b27e69
+0xc5
+0x7c0ebd84e8667
+0x1a3b76cfc0580d
+0x0
+0x1bfebb02f40850
+0x522bb720b10e8
+0x1
+0x141253a8969e84
+0x108a3692eaaad2
+0x6
+0x7
+0x0
+0x1296af631df7fd
+0x7
+0x1
+0x231c11ca008b

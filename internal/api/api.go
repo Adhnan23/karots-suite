@@ -48,7 +48,7 @@ type handlers struct {
 }
 
 func Register(e *echo.Echo, d Deps) {
-	jwt := middleware.JWTAuth(d.Cfg.JWTSecret)
+	jwt := middleware.JWTAuthWith(d.Cfg.JWTSecret, middleware.DBUserValidator(d.DB))
 	limiter := auth.NewLoginLimiter()
 	h := &handlers{d: d, t: newTillServices(d.DB), presence: presence.New()}
 	h.machines = printmachines.NewService(d.DB)

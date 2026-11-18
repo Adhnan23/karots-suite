@@ -9,8 +9,12 @@ migrate: db-up
 	$(ENV) go run ./cmd/server -migrate
 run: db-up
 	$(ENV) go run ./cmd/server
+# Every package on its own copy of a seeded database (scripts/testdb), so they run
+# side by side on all cores instead of one at a time on suite_db.
 test:
-	$(ENV) go test -p 1 ./...
+	go build -o bin/testdb ./scripts/testdb
+	$(ENV) ./bin/testdb template > /dev/null
+	$(ENV) go test -exec "$(CURDIR)/bin/testdb exec" ./...
 types:
 	tygo generate
 web: types

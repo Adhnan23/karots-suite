@@ -4,6 +4,7 @@ import "testing"
 
 // The harness itself: a shop opens a till, sells, closes, and keeps every rule.
 func TestShopOpens(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	var sale saleResult

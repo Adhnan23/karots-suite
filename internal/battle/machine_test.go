@@ -15,6 +15,7 @@ import (
 // customer's balance, what each sale refunded) after every step. A failure
 // shrinks to the fewest steps that break it.
 func TestBattleSales(t *testing.T) {
+	t.Parallel()
 	setRapid(t)
 	rapid.Check(t, func(rt *rapid.T) {
 		m := &machine{s: newShop(rt), drawer: decimal.NewFromInt(5000)}

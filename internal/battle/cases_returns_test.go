@@ -8,6 +8,7 @@ import (
 // RET-5: returning every line of a bill-discounted sale, one at a time, refunds
 // exactly what was paid — even when the discount doesn't split evenly.
 func TestRET5_ReturnEveryLineRefundsWhatWasPaid(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name    string
 		product string
@@ -49,6 +50,7 @@ func TestRET5_ReturnEveryLineRefundsWhatWasPaid(t *testing.T) {
 
 // RET-4: a line returned one unit at a time refunds exactly its paid value.
 func TestRET4_LineInPartsRefundsItsPaidValue(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	r := s.sell(t, s.till1, "1", []line{{"productId": s.prod["plain"], "quantity": "3"}, {"productId": s.prod["odd"], "quantity": "1"}}, cash("1000"))
@@ -67,6 +69,7 @@ func TestRET4_LineInPartsRefundsItsPaidValue(t *testing.T) {
 // RET-10: a returned serial-tracked unit can be sold again, and its warranty
 // ends with the return.
 func TestRET10_ReturnedSerialSellsAgain(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": s.prod["serial"], "newQuantity": "1", "note": "one phone"}, nil))
 	s.open(t, s.till1)
@@ -90,6 +93,7 @@ func TestRET10_ReturnedSerialSellsAgain(t *testing.T) {
 // RET-19: a credit sale the customer has already paid off is refunded in cash
 // when it comes back; it never turns into credit with the shop.
 func TestRET19_PaidOffCreditSaleRefundsCash(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	var r saleResult
@@ -116,6 +120,7 @@ func TestRET19_PaidOffCreditSaleRefundsCash(t *testing.T) {
 // RET-18 / RET-19: still owing part of it, the return clears what they owe and
 // the rest is cash.
 func TestRET19_PartPaidCreditSaleClearsDebtThenCash(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	var r saleResult
@@ -141,6 +146,7 @@ func TestRET19_PartPaidCreditSaleClearsDebtThenCash(t *testing.T) {
 
 // RET-13: a combo comes back whole — every line, in whole sets — or not at all.
 func TestRET13_ComboComesBackWholeSets(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	combo := map[string]any{"no": 1, "label": "Combo", "sets": "2"}
@@ -181,6 +187,7 @@ func TestRET13_ComboComesBackWholeSets(t *testing.T) {
 // than was paid for it, at any point (each part used to round on its own: 1 kg at
 // Rs 245.50 back a gram at a time refunded Rs 0.25 a gram, past the Rs 245.50 paid).
 func TestRET4_ManySmallPartsNeverPassWhatWasPaid(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	r := s.sell(t, s.till1, "0", []line{{"productId": s.prod["loose"], "quantity": "1"}}, cash("300"))

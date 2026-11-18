@@ -26,6 +26,7 @@ func (s *shop) balance(t *testing.T) string {
 // RET-17: give the cheque back — the cheque is cancelled, no cash leaves the
 // drawer, and the customer owes nothing.
 func TestRET17_GiveTheChequeBack(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	saleID, lineID, chequeID := s.chequeSale(t)
@@ -49,6 +50,7 @@ func TestRET17_GiveTheChequeBack(t *testing.T) {
 // RET-17: give the cheque back on part of the sale — the cheque goes back, and
 // what they keep goes on their account.
 func TestRET17_GiveTheChequeBackOnPart(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	saleID, lineID, _ := s.chequeSale(t)
@@ -67,6 +69,7 @@ func TestRET17_GiveTheChequeBackOnPart(t *testing.T) {
 // RET-17: refund cash and keep the cheque — if it bounces later, its amount is
 // owed on the customer's account.
 func TestRET17_CashNowChequeBouncesLater(t *testing.T) {
+	t.Parallel()
 	s := newShop(t)
 	s.open(t, s.till1)
 	saleID, lineID, chequeID := s.chequeSale(t)
