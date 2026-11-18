@@ -120,6 +120,14 @@ func (r *Repository) ListMovements(ctx context.Context, sessionID int64) ([]Move
 	return rows, err
 }
 
+// FlagReview adds why an admin should look at a session to its review note.
+func (r *Repository) FlagReview(ctx context.Context, sessionID int64, note string) error {
+	_, err := r.q.ExecContext(ctx, `UPDATE cash_register
+		SET review_note = CASE WHEN COALESCE(review_note, '') = '' THEN $2 ELSE review_note || '; ' || $2 END
+		WHERE id = $1`, sessionID, note)
+	return err
+}
+
 // AdjustmentTotal sums the in/out movements that change expected drawer cash
 // (everything except the opening/closing/sale audit rows).
 func (r *Repository) AdjustmentTotal(ctx context.Context, sessionID int64) (decimal.Decimal, error) {

@@ -130,6 +130,10 @@ type MoveInput struct {
 	// days later): its locker rows and receipt carry that time. Locker legs only
 	// — a till leg is always now. nil = now.
 	At *time.Time
+	// ToCustomer is money handed to a customer at the counter (a sale return's
+	// cash refund): never refused for want of cash in the till (DRAW-3, never stop
+	// the counter) — a till it takes below zero is flagged for review instead.
+	ToCustomer bool
 }
 
 // Service performs atomic money moves.
@@ -218,7 +222,8 @@ func (s *Service) MoveTx(ctx context.Context, tx *sqlx.Tx, in MoveInput) (*Recei
 		}
 	}
 
-	if !in.Recorded {
+	tillToCustomer := in.ToCustomer && fromSess != nil
+	if !in.Recorded && !tillToCustomer {
 		if err := s.guardSource(ctx, crepo, lrepo, in, fromSess); err != nil {
 			return nil, err
 		}
@@ -229,7 +234,35 @@ func (s *Service) MoveTx(ctx context.Context, tx *sqlx.Tx, in MoveInput) (*Recei
 	if err := s.writeLeg(ctx, crepo, lrepo, in, false, fromSess, toSess); err != nil {
 		return nil, err
 	}
-	return s.writeReceipt(ctx, tx, lrepo, in, fromSess, toSess)
+	rec, err := s.writeReceipt(ctx, tx, lrepo, in, fromSess, toSess)
+	if err != nil || !tillToCustomer {
+		return rec, err
+	}
+	left, err := s.tillHolds(ctx, crepo, fromSess)
+	if err != nil {
+		return nil, err
+	}
+	if left.IsNegative() {
+		note := in.Reason + " took the till below zero (" + money.Display(left) + ")"
+		if err := crepo.FlagReview(ctx, fromSess.ID, note); err != nil {
+			return nil, apperr.Internal("failed to flag the till", err)
+		}
+	}
+	return rec, nil
+}
+
+// tillHolds is the cash a till session should hold now: opening float +
+// committed cash sales + net drawer moves — the figure the close reconciles to.
+func (s *Service) tillHolds(ctx context.Context, crepo *cashregister.Repository, sess *cashregister.Session) (decimal.Decimal, error) {
+	cashSales, err := s.sales.CashCollectedSince(ctx, sess.UserID, sess.OpenedAt)
+	if err != nil {
+		return decimal.Zero, err
+	}
+	adj, err := crepo.AdjustmentTotal(ctx, sess.ID)
+	if err != nil {
+		return decimal.Zero, apperr.Internal("failed to total cash movements", err)
+	}
+	return sess.OpeningCash.Add(cashSales).Add(adj), nil
 }
 
 // writeReceipt records the single money receipt for a move, deriving the from/to
@@ -311,17 +344,10 @@ func receiptKind(in MoveInput) string {
 func (s *Service) guardSource(ctx context.Context, crepo *cashregister.Repository, lrepo *lockers.Repository, in MoveInput, fromSess *cashregister.Session) error {
 	switch in.From.Kind {
 	case KindTill:
-		// Available = opening float + committed cash sales + net adjustments —
-		// the same figure the close reconciles to.
-		cashSales, err := s.sales.CashCollectedSince(ctx, in.From.ID, fromSess.OpenedAt)
+		available, err := s.tillHolds(ctx, crepo, fromSess)
 		if err != nil {
 			return err
 		}
-		adj, err := crepo.AdjustmentTotal(ctx, fromSess.ID)
-		if err != nil {
-			return apperr.Internal("failed to total cash movements", err)
-		}
-		available := fromSess.OpeningCash.Add(cashSales).Add(adj)
 		if in.Amount.GreaterThan(available) {
 			return apperr.Conflict("the till only has " + money.Display(available) + " available")
 		}

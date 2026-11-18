@@ -425,6 +425,11 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw, closedBy, in.At); cerr != nil {
 			return cerr
 		}
+		if expected.IsNegative() { // DRAW-3: change, payouts or refunds gave more than it held
+			if ferr := repo.FlagReview(ctx, sess.ID, "closed expecting "+money.Display(expected)); ferr != nil {
+				return ferr
+			}
+		}
 		if cerr := repo.AddMovement(ctx, sess.ID, userID, MoveClosing, closing, "counted at close", raw); cerr != nil {
 			return cerr
 		}

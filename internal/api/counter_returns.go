@@ -195,7 +195,7 @@ func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialRet
 		}
 		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: refund,
 			Reason: "cash refund: " + d.Sale.ReceiptNo, ReceiptKind: "refund", Party: strOr(d.Sale.CustomerName),
-			Ref: &cashflow.Ref{Kind: "sale_return", ID: returnID}, ActorID: userID})
+			Ref: &cashflow.Ref{Kind: "sale_return", ID: returnID}, ActorID: userID, ToCustomer: true})
 		return err
 	})
 	return cash, rec, err

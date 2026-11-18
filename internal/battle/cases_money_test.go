@@ -3,6 +3,7 @@ package battle
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -168,5 +169,38 @@ func TestLOCK10_NegativeOpeningOnlyWhereAllowed(t *testing.T) {
 		return s.admin.Do("POST", "/api/v1/admin/lockers", map[string]any{"name": "Safe", "kind": "safe", "openingBalance": "-5"}, nil)
 	})
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/lockers", map[string]any{"name": "Loan", "kind": "bank", "openingBalance": "-5", "overdraft": true}, nil))
+	s.audit(t)
+}
+
+// DRAW-3 (user, Q1): a cash refund is never stopped — beyond what the drawer
+// holds it goes through and the till is flagged; a withdrawal is still refused.
+func TestDRAW3_CashRefundBeyondDrawerGoesThroughFlagged(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	safe := s.locker(t, "Safe", "safe", "0")
+	s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{}}, nil))
+	r := s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "1"}}, cash("100"))
+	s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/withdraw", map[string]any{"amount": "100", "reason": "to safe", "lockerId": safe}, nil))
+	s.refused(t, "withdraw from an empty drawer", func() error {
+		return s.till1.Do("POST", "/api/v1/till/drawer/withdraw", map[string]any{"amount": "1", "reason": "x", "lockerId": safe}, nil)
+	})
+	if got := s.giveBack(t, s.till1, r.ID, s.sale(t, s.till1, r.ID).Lines[0].ID, "1"); got.String() != "100" {
+		t.Fatalf("refunded %s, want 100", got)
+	}
+	if got := s.expected(t, s.till1); got != "-100.00" {
+		t.Errorf("expected %s, want -100.00", got)
+	}
+	var note string
+	s.must(t, s.db.GetContext(context.Background(), &note, `SELECT COALESCE(review_note, '') FROM cash_register WHERE closed_at IS NULL`))
+	if note == "" {
+		t.Error("a till taken below zero by a refund isn't flagged")
+	}
+	// A till that still expects below zero at its close is flagged there too
+	// (change or a payout can take it there without a refund).
+	s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/close", map[string]any{"breakdown": map[string]int{}}, nil))
+	s.must(t, s.db.GetContext(context.Background(), &note, `SELECT review_note FROM cash_register`))
+	if !strings.Contains(note, "closed expecting") {
+		t.Errorf("close below zero not flagged: %q", note)
+	}
 	s.audit(t)
 }
