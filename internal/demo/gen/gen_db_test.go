@@ -19,6 +19,7 @@ import (
 	"karots-suite/internal/config"
 	"karots-suite/internal/db"
 	"karots-suite/internal/demo/shops"
+	"karots-suite/internal/ledgercheck/ltest"
 )
 
 // openShopDB makes an empty, migrated database of its own on the test server
@@ -366,4 +367,11 @@ func TestChequesInEveryState(t *testing.T) {
 			t.Errorf("no cheque %s", what)
 		}
 	}
+}
+
+// A year of a shop's life through the real API keeps every rule the auditor
+// knows (docs/rules).
+func TestYearKeepsTheRules(t *testing.T) {
+	d, _ := grocery(t)
+	ltest.Check(t, context.Background(), d)
 }
