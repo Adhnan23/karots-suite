@@ -122,6 +122,18 @@ goes back to Sell.
 
 Find the sale by receipt number, customer, phone or product. Pick what's coming back and why; the refund is what was paid for it.
 
+- **What was paid, to the cent.** A bill discount is shared over the lines, so returning every line one by one gives
+  back exactly what the customer paid, never a cent more.
+- **A combo comes back whole**: every item in it, in whole sets (2 of 3 sets is fine; one item of a combo on its own
+  isn't). Its lines move together on the screen.
+- **A credit sale** clears what the customer still owes on it first; anything they've already paid comes back as cash.
+- **A cheque that hasn't cleared**: the screen asks — **give the cheque back** (it's cancelled, no cash leaves the
+  drawer; what they keep goes on their account) or **refund cash and keep the cheque** (if it bounces, its amount goes
+  on their account).
+- **Card and online sales** are refunded in cash from the drawer.
+- **A phone or anything with a serial number** can be sold again after it comes back; its warranty ends with the
+  return.
+
 ![Returns](../images/till/returns.jpg)
 
 ### Credit

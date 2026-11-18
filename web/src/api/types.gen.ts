@@ -993,6 +993,11 @@ export interface ReturnRequest {
   reason: string;
   lines: ReturnLine[];
   deferDrawerKick: boolean;
+  /**
+   * ChequeBack: the sale's cheque hasn't cleared and goes back to the customer
+   * (cancelled) instead of cash out of the drawer (RET-17).
+   */
+  chequeBack: boolean;
 }
 export interface ReturnResult {
   cashRefund: string;
@@ -1775,6 +1780,10 @@ export interface AdminReturnRequest {
   reason: string;
   lines: ReturnLine[];
   source: string;
+  /**
+   * ChequeBack: as ReturnRequest.ChequeBack.
+   */
+  chequeBack: boolean;
 }
 /**
  * AdminReturnResult is the cash refunded and its CR- receipt (nil = no cash).

@@ -309,6 +309,8 @@ type AdminReturnRequest struct {
 	Reason string       `json:"reason"`
 	Lines  []ReturnLine `json:"lines"`
 	Source string       `json:"source"`
+	// ChequeBack: as ReturnRequest.ChequeBack.
+	ChequeBack bool `json:"chequeBack"`
 }
 
 // AdminReturnResult is the cash refunded and its CR- receipt (nil = no cash).

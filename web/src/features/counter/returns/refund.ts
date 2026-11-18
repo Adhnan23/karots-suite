@@ -1,4 +1,4 @@
-import type { SaleLine } from '@/api/types.gen'
+import type { SaleLine, SaleView } from '@/api/types.gen'
 import { num, r2 } from '@/lib/money'
 
 export const REASONS = ['Wrong item', 'Faulty', 'Changed mind', 'Expired']
@@ -28,4 +28,15 @@ export function bumpQty(lines: SaleLine[], qty: Record<number, number>, l: SaleL
   const next = { ...qty }
   for (const g of group) next[g.id] = r2(k * perSet(g))
   return next
+}
+
+/** How a refund of value splits, as the server pays it: what's still owed on the sale
+ *  comes off the customer's account first (RET-18); then, when the cashier gives the
+ *  sale's uncleared cheque back ('back'), up to the cheque's amount goes back as the
+ *  cheque (RET-17); the rest is cash. pendingCheque > 0 = the screen must ask. */
+export function refundSplit(sale: SaleView, value: number, way: 'back' | 'cash' | '') {
+  const pendingCheque = r2(sale.payments.filter((p) => p.method === 'cheque' && p.chequeStatus === 'pending').reduce((s, p) => s + num(p.amount), 0))
+  const offAccount = Math.min(value, num(sale.owedOnSale))
+  const chequeBack = way === 'back' ? r2(Math.min(value - offAccount, pendingCheque)) : 0
+  return { offAccount, chequeBack, cash: r2(value - offAccount - chequeBack), pendingCheque }
 }

@@ -10,7 +10,8 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
 import { saleQuery } from '@/features/counter/queries'
 import { SlipView } from '@/features/print/SlipView'
-import { bumpQty, left, REASONS, refundOf } from '@/features/counter/returns/refund'
+import { ChequeWay } from '@/features/counter/returns/ChequeWay'
+import { bumpQty, left, REASONS, refundOf, refundSplit } from '@/features/counter/returns/refund'
 import { ReviewBlock, returnSource } from './SaleReview'
 import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
@@ -55,8 +56,9 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
   const [busy, setBusy] = useState(false)
   const lines = sale.lines.filter((l) => left(l) > 0)
   const value = r2(lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))
-  const offAccount = Math.min(value, num(sale.owedOnSale))
-  const cash = r2(value - offAccount)
+  const [way, setWay] = useState<'back' | 'cash' | ''>('') // the sale's cheque hasn't cleared: give it back, or cash?
+  const { offAccount, chequeBack, cash, pendingCheque } = refundSplit(sale, value, way)
+  const mustAsk = pendingCheque > 0 && value > offAccount && !way
   const picked = lines.filter((l) => (qty[l.id] ?? 0) > 0)
   const bump = (l: SaleLine, d: number) => setQty((q) => bumpQty(sale.lines, q, l, d))
 
@@ -64,7 +66,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
     if (busy) return
     setBusy(true)
     try {
-      const body: AdminReturnRequest = { reason: reason.trim(), source, lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock' })) }
+      const body: AdminReturnRequest = { reason: reason.trim(), source, chequeBack: way === 'back', lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock' })) }
       const res = await api<AdminReturnResult>(`/admin/sales/${sale.id}/return`, { json: body })
       moneyDone(num(res.cashRefund) > 0 ? `Returned — ${money(sym, res.cashRefund)} refunded` : 'Return recorded', res)
       void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -78,8 +80,8 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
   }
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Return on ${sale.receiptNo}`} wide
-      submit={!picked.length ? 'Choose what comes back' : cash > 0 ? `↑ Refund ${money(sym, cash)}` : 'Record the return'}
-      busy={busy || !picked.length || (cash > 0 && !source)} onSubmit={() => void submit()}
+      submit={!picked.length ? 'Choose what comes back' : mustAsk ? 'Give the cheque back, or cash?' : cash > 0 ? `↑ Refund ${money(sym, cash)}` : 'Record the return'}
+      busy={busy || !picked.length || mustAsk || (cash > 0 && !source)} onSubmit={() => void submit()}
       extra={<Button type="button" variant="ghost" className="h-10 px-3" onClick={() => setQty(Object.fromEntries(lines.map((l) => [l.id, left(l)])))}>Return everything</Button>}>
       {head}
       <p className="text-[13px] text-muted-foreground">{sale.customerName || 'Walk-in'} · {money(sym, sale.total)} <PaymentBadges payments={sale.payments} className="ml-1 align-middle" /></p>
@@ -123,9 +125,11 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
         <div className="flex flex-col gap-1 rounded-[var(--radius-sm)] bg-muted px-3 py-2.5 text-sm">
           <span className="flex justify-between"><span className="text-muted-foreground">Worth (what was paid)</span><b className="tabular-nums">{money(sym, value)}</b></span>
           {offAccount > 0 && <span className="flex justify-between"><span className="text-muted-foreground">Comes off {sale.customerName}'s account</span><b className="tabular-nums">{money(sym, offAccount)}</b></span>}
+          {chequeBack > 0 && <span className="flex justify-between"><span className="text-muted-foreground">Cheque goes back to {sale.customerName}</span><b className="tabular-nums">{money(sym, chequeBack)}</b></span>}
           {cash > 0 && <span className="flex justify-between"><span className="text-muted-foreground">↑ Cash back</span><b className="tabular-nums text-danger">{money(sym, cash)}</b></span>}
         </div>
       )}
+      {picked.length > 0 && pendingCheque > 0 && value > offAccount && <ChequeWay way={way} onPick={setWay} customer={sale.customerName} />}
       {cash > 0 && (
         <Field label="↑ Refund cash from">
           <MoneySourcePicker method="cash" value={source} onChange={setSource} sym={sym} label="Refund cash from" />

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SaleLine } from '@/api/types.gen'
-import { bumpQty, refundOf } from './refund'
+import type { SaleView } from '@/api/types.gen'
+import { bumpQty, refundOf, refundSplit } from './refund'
 
 const line = (id: number, quantity: string, group = 0, sets = '', returnedQty = '0'): SaleLine => ({
   id, name: `L${id}`, unitAbbr: 'pc', quantity, returnedQty, unitPrice: '10.00', subtotal: '100.00', refundUnit: '10.00',
@@ -46,5 +47,27 @@ describe('refundOf agrees with the server to the cent', () => {
       }
     }
     expect(bad).toEqual([])
+  })
+})
+
+// RET-17 + RET-18: how a refund splits — debt on the sale first, then (if the
+// cashier gives the uncleared cheque back) the cheque, the rest in cash.
+describe('refundSplit', () => {
+  const sale = (owed: string, cheques: { amount: string; chequeStatus: string }[]) =>
+    ({ owedOnSale: owed, payments: cheques.map((c) => ({ method: 'cheque', ...c })) }) as unknown as SaleView
+
+  it('pays cash when there is no cheque waiting', () => {
+    expect(refundSplit(sale('0.00', []), 300, 'cash')).toEqual({ offAccount: 0, chequeBack: 0, cash: 300, pendingCheque: 0 })
+    expect(refundSplit(sale('0.00', [{ amount: '1000.00', chequeStatus: 'cleared' }]), 300, 'back').cash).toBe(300)
+  })
+  it('gives the cheque back instead of cash', () => {
+    expect(refundSplit(sale('0.00', [{ amount: '1000.00', chequeStatus: 'pending' }]), 400, 'back')).toEqual({ offAccount: 0, chequeBack: 400, cash: 0, pendingCheque: 1000 })
+    expect(refundSplit(sale('0.00', [{ amount: '300.00', chequeStatus: 'pending' }]), 400, 'back')).toEqual({ offAccount: 0, chequeBack: 300, cash: 100, pendingCheque: 300 })
+  })
+  it('keeps the cheque and pays cash when asked', () => {
+    expect(refundSplit(sale('0.00', [{ amount: '1000.00', chequeStatus: 'pending' }]), 400, 'cash').cash).toBe(400)
+  })
+  it('clears debt on the sale first', () => {
+    expect(refundSplit(sale('150.00', [{ amount: '1000.00', chequeStatus: 'pending' }]), 400, 'back')).toEqual({ offAccount: 150, chequeBack: 250, cash: 0, pendingCheque: 1000 })
   })
 })

@@ -131,7 +131,7 @@ func (h *handlers) AdminSaleReturn(c echo.Context) error {
 		src, err = h.cashPlace(ctx, req.Source, "comes from")
 		return src, err
 	}
-	cash, rec, err := h.returnSale(ctx, id, in, from, middleware.CurrentUserID(c))
+	cash, rec, err := h.returnSale(ctx, id, in, from, middleware.CurrentUserID(c), req.ChequeBack)
 	if err != nil {
 		return err
 	}

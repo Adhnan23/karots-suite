@@ -362,6 +362,23 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 	return detail, cashRefund, returnID, nil
 }
 
+// RefundToAccountTx moves amount of a return's cash refund onto the customer's
+// account instead (it clears what they owe: their cheque given back, RET-17),
+// keeping the return's refund + credit cleared = its lines (RET-21).
+func (s *Service) RefundToAccountTx(ctx context.Context, tx *sqlx.Tx, returnID, customerID int64, amount decimal.Decimal) error {
+	if !amount.IsPositive() {
+		return nil
+	}
+	if err := customers.NewRepository(tx).AddBalance(ctx, customerID, amount.Neg()); err != nil {
+		return apperr.Internal("failed to adjust customer balance", err)
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE sale_returns SET refund_amount = refund_amount - $1, credit_reduction = credit_reduction + $1
+		WHERE id = $2`, amount, returnID); err != nil {
+		return apperr.Internal("failed to record the return", err)
+	}
+	return nil
+}
+
 // owedNow is what a return clears off the customer's account before any cash:
 // what is still owed on this sale (total − paid − what earlier returns
 // cleared), and never more than they owe now — a credit sale they have paid off

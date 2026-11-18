@@ -231,6 +231,9 @@ type ReturnRequest struct {
 	Reason          string       `json:"reason"`
 	Lines           []ReturnLine `json:"lines"`
 	DeferDrawerKick bool         `json:"deferDrawerKick"`
+	// ChequeBack: the sale's cheque hasn't cleared and goes back to the customer
+	// (cancelled) instead of cash out of the drawer (RET-17).
+	ChequeBack bool `json:"chequeBack"`
 }
 
 type ReturnResult struct {

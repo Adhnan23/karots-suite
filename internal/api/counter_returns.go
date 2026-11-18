@@ -154,7 +154,7 @@ func (h *handlers) CounterReturn(c echo.Context) error {
 	}
 	ctx := c.Request().Context()
 	userID := middleware.CurrentUserID(c)
-	cash, _, err := h.returnSale(ctx, id, in, func() (cashflow.Location, error) { return cashflow.Till(userID), nil }, userID)
+	cash, _, err := h.returnSale(ctx, id, in, func() (cashflow.Location, error) { return cashflow.Till(userID), nil }, userID, req.ChequeBack)
 	if err != nil {
 		return err
 	}
@@ -168,14 +168,22 @@ func (h *handlers) CounterReturn(c echo.Context) error {
 // returnSale takes goods back (sales.PartialReturnTx: restock or damage, a
 // credit sale's debt cleared first) and pays the cash part out of from() in
 // the SAME tx. from is asked only when there is cash
-// to refund. Returns the cash refunded and its CR- receipt (nil when none).
-func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialReturnInput, from func() (cashflow.Location, error), userID int64) (decimal.Decimal, *cashflow.Receipt, error) {
+// to refund. chequeBack gives the sale's uncleared cheque back instead of cash
+// (RET-17): the cheque is cancelled — its amount goes back on the customer's
+// account — and the refund clears that, so cash leaves only for what's beyond it.
+// Returns the cash refunded and its CR- receipt (nil when none).
+func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialReturnInput, from func() (cashflow.Location, error), userID int64, chequeBack bool) (decimal.Decimal, *cashflow.Receipt, error) {
 	cash := decimal.Zero
 	var rec *cashflow.Receipt
 	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		d, refund, returnID, err := h.d.Sales.PartialReturnTx(ctx, tx, id, in, userID)
 		if err != nil {
 			return err
+		}
+		if chequeBack {
+			if refund, err = h.giveChequeBack(ctx, tx, d, returnID, refund, userID); err != nil {
+				return err
+			}
 		}
 		cash = refund
 		if !refund.IsPositive() {
@@ -240,4 +248,33 @@ func salePayment(p sales.Payment) SalePayment {
 		out.ChequeDate = p.ChequeDate.Format("2006-01-02")
 	}
 	return out
+}
+
+// giveChequeBack cancels the sale's cheques that haven't cleared (each puts its
+// amount back on the customer's account) and lets the refund clear that debt
+// instead of leaving the drawer as cash. It returns the cash still to refund.
+func (h *handlers) giveChequeBack(ctx context.Context, tx *sqlx.Tx, d *sales.Detail, returnID int64, refund decimal.Decimal, userID int64) (decimal.Decimal, error) {
+	var pending []struct {
+		ID     int64           `db:"id"`
+		Amount decimal.Decimal `db:"amount"`
+	}
+	if err := tx.SelectContext(ctx, &pending, `SELECT id, amount FROM cheques
+		WHERE sale_id = $1 AND direction = 'in' AND status = 'pending' ORDER BY id`, d.Sale.ID); err != nil {
+		return refund, apperr.Internal("failed to find the sale's cheque", err)
+	}
+	if len(pending) == 0 || d.Sale.CustomerID == nil {
+		return refund, apperr.Conflict("this sale has no cheque waiting to clear — refund it in cash")
+	}
+	back := decimal.Zero
+	for _, c := range pending {
+		if err := h.cheques().ReturnTx(ctx, tx, c.ID, "cancelled", userID); err != nil {
+			return refund, err
+		}
+		back = back.Add(c.Amount)
+	}
+	clear := decimal.Min(refund, back)
+	if err := h.d.Sales.RefundToAccountTx(ctx, tx, returnID, *d.Sale.CustomerID, clear); err != nil {
+		return refund, err
+	}
+	return refund.Sub(clear), nil
 }

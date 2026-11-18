@@ -15,7 +15,8 @@ import { FIELD } from '@/features/till/ui'
 import { SaleFind } from '../SaleFind'
 import { afterSlip } from '../slip'
 import { CounterPage } from '../ui'
-import { bumpQty, left, REASONS, refundOf } from './refund'
+import { ChequeWay } from './ChequeWay'
+import { bumpQty, left, REASONS, refundOf, refundSplit } from './refund'
 
 
 /** Take goods back against a receipt: pick the lines, say if they're faulty, refund. */
@@ -42,8 +43,9 @@ function ReturnForm({ sale }: { sale: SaleView }) {
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const value = r2(sale.lines.reduce((s, l) => s + refundOf(l, qty[l.id] ?? 0), 0))
-  const offAccount = Math.min(value, num(sale.owedOnSale))
-  const cash = r2(value - offAccount)
+  const [way, setWay] = useState<'back' | 'cash' | ''>('') // the sale's cheque hasn't cleared: give it back, or cash?
+  const { offAccount, chequeBack, cash, pendingCheque } = refundSplit(sale, value, way)
+  const mustAsk = pendingCheque > 0 && value > offAccount && !way
   const picked = sale.lines.filter((l) => (qty[l.id] ?? 0) > 0)
   const bump = (l: SaleLine, d: number) => setQty((q) => bumpQty(sale.lines, q, l, d))
 
@@ -52,7 +54,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
     setBusy(true)
     try {
       const body: ReturnRequest = {
-        reason: reason.trim(), deferDrawerKick: !cfg.askToPrint,
+        reason: reason.trim(), deferDrawerKick: !cfg.askToPrint, chequeBack: way === 'back',
         lines: picked.map((l) => ({ saleItemId: l.id, quantity: String(qty[l.id]), disposition: faulty[l.id] ? 'damage' : 'restock',
           plugin: extra[l.id] && Object.keys(extra[l.id]).length ? extra[l.id] : undefined })),
       }
@@ -130,8 +132,14 @@ function ReturnForm({ sale }: { sale: SaleView }) {
         {offAccount > 0 && (
           <p className="flex justify-between text-[13px] text-muted-foreground">Comes off {sale.customerName}'s account <b className="tabular-nums text-foreground">{money(sym, offAccount)}</b></p>
         )}
-        <Button size="lg" disabled={busy || !picked.length} onClick={() => void submit()} className="h-12 text-[15px]">
-          {!picked.length ? 'Choose what is coming back' : cash > 0 ? `Refund ${money(sym, cash)} cash` : 'Record the return'}
+        {picked.length > 0 && pendingCheque > 0 && value > offAccount && (
+          <ChequeWay way={way} onPick={setWay} customer={sale.customerName} />
+        )}
+        {chequeBack > 0 && (
+          <p className="flex justify-between text-[13px] text-muted-foreground">Cheque goes back to {sale.customerName} <b className="tabular-nums text-foreground">{money(sym, chequeBack)}</b></p>
+        )}
+        <Button size="lg" disabled={busy || !picked.length || mustAsk} onClick={() => void submit()} className="h-12 text-[15px]">
+          {!picked.length ? 'Choose what is coming back' : mustAsk ? 'Give the cheque back, or cash?' : cash > 0 ? `Refund ${money(sym, cash)} cash` : 'Record the return'}
         </Button>
       </footer>
     </div>
