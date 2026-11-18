@@ -52,13 +52,17 @@ func init() {
 			   OR (s.status = 'partially_returned') <> (x.some > 0 AND x.full < x.lines)`},
 
 		// RET-4: a line's refunds ≤ what was paid for it; fully back = exactly that.
+		// A line's paid share (sales.PaidShares) is its exact share rounded to a
+		// cent either way so the lines add up to the sale: within 0.01 of exact.
+		// RET-5 holds the sale to the cent.
 		check{"RET-4", `
-			SELECT 'sale item ' || i.id, format('refunded %s, paid %s, sold %s, returned %s', r.refunded, i.paid, i.quantity, i.returned_qty)
-			FROM (SELECT i.*, round(i.subtotal * ` + sales.PaidFactorSQL + `, 2) AS paid
+			SELECT 'sale item ' || i.id, format('refunded %s, paid ≈ %s, sold %s, returned %s', r.refunded, round(i.paid, 4), i.quantity, i.returned_qty)
+			FROM (SELECT i.*, i.subtotal * ` + sales.PaidFactorSQL + ` AS paid
 			      FROM sale_items i JOIN sales s ON s.id = i.sale_id) i
 			JOIN (SELECT sale_item_id, SUM(refund_amount) AS refunded FROM sale_return_items GROUP BY sale_item_id) r
 			  ON r.sale_item_id = i.id
-			WHERE r.refunded > i.paid OR (i.returned_qty >= i.quantity AND r.refunded <> i.paid)`},
+			WHERE r.refunded > ceil(i.paid * 100) / 100
+			   OR (i.returned_qty >= i.quantity AND abs(r.refunded - i.paid) >= 0.01)`},
 
 		// RET-5: a sale's refunds ≤ what its goods were paid; fully back = exactly that.
 		check{"RET-5", `

@@ -39,8 +39,8 @@ func TestPayoutLineGivesCashThroughTheSale(t *testing.T) {
 	d, err := svc.Create(ctx, in, cashierID)
 	mustSales(t, err)
 	defer conn.ExecContext(ctx, `DELETE FROM sales WHERE id = $1`, d.Sale.ID) //nolint:errcheck
-	if d.Sale.Total.String() != "-4100" || d.Sale.ChangeGiven.String() != "4100" || d.PaidFactor.StringFixed(2) != "0.90" {
-		t.Fatalf("total %s change %s factor %s, want -4100 / 4100 / 0.90", d.Sale.Total, d.Sale.ChangeGiven, d.PaidFactor)
+	if d.Sale.Total.String() != "-4100" || d.Sale.ChangeGiven.String() != "4100" || d.Paid[d.Items[0].ID].StringFixed(2) != "900.00" {
+		t.Fatalf("total %s change %s goods paid %s, want -4100 / 4100 / 900.00", d.Sale.Total, d.Sale.ChangeGiven, d.Paid[d.Items[0].ID])
 	}
 	after, err := svc.CashCollectedSince(ctx, cashierID, since)
 	mustSales(t, err)

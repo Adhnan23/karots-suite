@@ -163,10 +163,11 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 		ref := "sale"
 		totalRefundValue := decimal.Zero
 		var returned []ReturnedLine
-		factor, err := saleRepo.PaidFactor(ctx, saleID)
+		all, err := saleRepo.Items(ctx, saleID)
 		if err != nil {
 			return apperr.Internal("failed to value the return", err)
 		}
+		paid := PaidShares(sale.Total, all)
 		returnID, err = saleRepo.InsertSaleReturn(ctx, saleID, userID, decimal.Zero, decimal.Zero, in.Reason)
 		if err != nil {
 			return apperr.Internal("failed to open return", err)
@@ -187,7 +188,7 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			}
 			// Refund what the customer PAID for these units (it is read before
 			// AddReturnedQty, so ReturnableQty is what was left before this return).
-			lineRefund, err := s.lineRefund(ctx, saleRepo, *it, qty, factor)
+			lineRefund, err := s.lineRefund(ctx, saleRepo, *it, qty, paid[it.ID])
 			if err != nil {
 				return err
 			}
@@ -347,12 +348,11 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 	return detail, cashRefund, returnID, nil
 }
 
-// lineRefund values qty units of a line at what was paid: the line net (item
-// discount already off) shared down by the bill discount. The last of a line
-// takes exactly what's left of its paid value, so a line returned in parts
-// refunds what was paid, to the cent.
-func (s *Service) lineRefund(ctx context.Context, repo *Repository, it SaleItem, qty, factor decimal.Decimal) (decimal.Decimal, error) {
-	linePaid := it.PaidValue(factor)
+// lineRefund values qty units of a line at what was paid for it (linePaid, its
+// PaidShares share: the line net shared down by the bill discount, the lines
+// adding up to the sale to the cent). The last of a line takes exactly what's
+// left of its paid value, so a line returned in parts refunds what was paid.
+func (s *Service) lineRefund(ctx context.Context, repo *Repository, it SaleItem, qty, linePaid decimal.Decimal) (decimal.Decimal, error) {
 	if !qty.Equal(it.ReturnableQty()) {
 		return linePaid.Mul(qty).Div(it.Quantity).Round(2), nil
 	}

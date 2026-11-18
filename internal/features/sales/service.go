@@ -473,15 +473,11 @@ func (s *Service) loadDetail(ctx context.Context, repo *Repository, id int64) (*
 	if err != nil {
 		return nil, apperr.Internal("failed to load payments", err)
 	}
-	factor, err := repo.PaidFactor(ctx, id)
-	if err != nil {
-		return nil, apperr.Internal("failed to load sale", err)
-	}
 	credited, err := repo.CreditReduced(ctx, id)
 	if err != nil {
 		return nil, apperr.Internal("failed to load sale", err)
 	}
-	return &Detail{Sale: *sale, Items: items, Payments: payments, PaidFactor: factor, CreditReduced: credited}, nil
+	return &Detail{Sale: *sale, Items: items, Payments: payments, Paid: PaidShares(sale.Total, items), CreditReduced: credited}, nil
 }
 
 func (s *Service) List(ctx context.Context, f ListFilter) ([]Sale, error) {

@@ -43,7 +43,7 @@ func saleView(d *sales.Detail) SaleView {
 	for _, it := range d.Items {
 		// Valued exactly as sales.PartialReturnTx refunds: part of a line is
 		// paid × qty / quantity, the rest of it is what's left of paid.
-		paid, unit := it.PaidValue(d.PaidFactor), decimal.Zero
+		paid, unit := d.Paid[it.ID], decimal.Zero
 		if it.Quantity.IsPositive() {
 			unit = paid.Div(it.Quantity).Round(2)
 		}

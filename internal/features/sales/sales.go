@@ -89,12 +89,6 @@ type SaleItem struct {
 	Refunded decimal.Decimal `db:"refunded" json:"refunded"`
 }
 
-// PaidValue is what the customer paid for the whole line: its net shared down
-// by the bill discount (factor = Repository.PaidFactor).
-func (i SaleItem) PaidValue(factor decimal.Decimal) decimal.Decimal {
-	return i.Subtotal.Mul(factor).Round(2)
-}
-
 // ReturnableQty is how much of this line can still be sent back.
 // A payout line (negative: money handed over) is never returnable.
 func (i SaleItem) ReturnableQty() decimal.Decimal {
@@ -157,8 +151,8 @@ type Detail struct {
 	Sale     Sale       `json:"sale"`
 	Items    []SaleItem `json:"items"`
 	Payments []Payment  `json:"payments"`
-	// PaidFactor is what each Rs of line net was paid (Repository.PaidFactor).
-	PaidFactor decimal.Decimal `json:"paid_factor"`
+	// Paid is what the customer paid for each line, by item id (PaidShares).
+	Paid map[int64]decimal.Decimal `json:"paid"`
 	// CreditReduced is what returns already took off the customer's account.
 	CreditReduced decimal.Decimal `json:"credit_reduced"`
 	// Duplicate: Create found this sale by its ClientRef and made nothing new.

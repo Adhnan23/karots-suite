@@ -24,12 +24,6 @@ const PaidFactorSQL = `COALESCE((s.total - ` + PayoutsSQL + `) / NULLIF((SELECT 
 // customer. Correlated on `s`.
 const PayoutsSQL = `(SELECT COALESCE(SUM(x.subtotal), 0) FROM sale_items x WHERE x.sale_id = s.id AND x.subtotal < 0)`
 
-func (r *Repository) PaidFactor(ctx context.Context, saleID int64) (decimal.Decimal, error) {
-	var f decimal.Decimal
-	err := r.q.GetContext(ctx, &f, `SELECT `+PaidFactorSQL+` FROM sales s WHERE s.id = $1`, saleID)
-	return f, err
-}
-
 // CreditReduced is what earlier returns on a sale already took off the
 // customer's account. sales.paid_amount never changes, so the debt a return can
 // still clear is total − paid − this.
