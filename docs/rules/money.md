@@ -27,17 +27,17 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 |---|---|---|---|---|---|---|---|---|
 | Open, float from a locker | DRAW-9 | LOCK-1 | DRAW-13 | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-5 |
 | Open, float from nowhere | DRAW-9 | — e | — e | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-5 |
-| Cash sale, change | DRAW-1 (area 1) | DRAW-3 ? | DRAW-13 | RET (area 1) | DRAW-1,6 ? | CF-4 | — f | DRAW-7 |
-| Payout line (sale below zero) | DRAW-2 | DRAW-3 ? | DRAW-13 | RET-12 | DRAW-1 | CF-4 | — f | DRAW-7 |
+| Cash sale, change | DRAW-1 (area 1) | DRAW-3 | DRAW-13 | RET (area 1) | DRAW-1,6 | CF-4 | — f | DRAW-7 |
+| Payout line (sale below zero) | DRAW-2 | DRAW-3 | DRAW-13 | RET-12 | DRAW-1 | CF-4 | — f | DRAW-7 |
 | Card / online takings | LOCK-12 | — e | LOCK-11 | RET-16 | DRAW-4 | CF-1 | LOCK-4 | DRAW-7 |
-| Cash refund (a return) | DRAW-1 | DRAW-3 ? | DRAW-13 | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
+| Cash refund (a return) | DRAW-1 | DRAW-3 | DRAW-13 | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
 | Withdraw (to a locker / nowhere) | DRAW-10 | DRAW-3, LOCK-1 | DRAW-12,13 | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
 | Pay-in (from a locker / nowhere) | DRAW-10 | LOCK-1 | DRAW-13 | — d | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
-| Expense from the till | EXP-1 | DRAW-3 ? | DRAW-13 | EXP-2 | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
-| Supplier paid from the till | DRAW-1 (area 5) | DRAW-3 ? | LOCK-11 | — g | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
-| Credit collected / advance refunded in cash | DRAW-1 (area 3) | DRAW-3 ? | LOCK-11 | — g | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
+| Expense from the till | EXP-1 | DRAW-3 | DRAW-13 | EXP-2 | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
+| Supplier paid from the till | DRAW-1 (area 5) | DRAW-3 | LOCK-11 | — g | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
+| Credit collected / advance refunded in cash | DRAW-1 (area 3) | DRAW-3 | LOCK-11 | — g | DRAW-1 | CF-1 | LOCK-4 | DRAW-16 |
 | Close, counted cash banked | DRAW-9,11 | — e | DRAW-12,13 | — d | DRAW-1,7 | CF-4 | LOCK-4 | DRAW-7,8 |
-| Close, counted only | DRAW-9 | — e | DRAW-12 | — d | DRAW-1,7 | CF-2 ? | LOCK-4 | DRAW-7,8 |
+| Close, counted only | DRAW-9 | — e | DRAW-12 | — d | DRAW-1,7 | CF-2 | LOCK-4 | DRAW-7,8 |
 | Close for them (admin) | DRAW-8 | — e | DRAW-12,13 | — d | DRAW-1,7 | CF-4 | LOCK-4 | DRAW-8 |
 | Left open past the day (stale) | DRAW-15 | — e | — e | — d | DRAW-1 | CF-1 | — f | DRAW-7 |
 | Locker made with an opening balance | LOCK-10 | LOCK-10 | — e | — d | — h | CF-3 | — f | — i |
@@ -70,15 +70,18 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
   worked out again later from the rows; the difference stored = counted − expected. *Checked by: ledgercheck,
   machine.*
 - **DRAW-2** A payout leaves the drawer as change.
-- **DRAW-3** Cash out never takes the expected cash below zero **?** (Q1). *Today: withdrawals, cash refunds,
-  expenses, supplier cash and advance refunds are refused ("the till only has Rs …"); a sale's change and payouts are
-  never refused, so the expected can go below zero through a sale.*
+- **DRAW-3** Withdrawals, expenses, supplier cash and advance refunds never take the expected cash below zero (refused:
+  "the till only has Rs …"; take it from a locker). Money given to a **customer** at the counter — change, a payout, a
+  **cash refund** — is never stopped: it may take the expected below zero, and the session is then flagged for review.
+  *User, 2026-11-18 (Q1). Today a cash refund beyond the drawer is refused and a sale's change isn't flagged.*
+  *example, machine.*
 - **DRAW-4** Card / online / cheque / on account never change the drawer's expected cash.
 - **DRAW-5** One cashier has at most one open session; opening twice (double tap, two windows) opens one.
   *example.*
-- **DRAW-6** Every cash sale lands in exactly one session of its cashier **?** (Q2). *Today the server sells with no
-  open session (an offline sale replayed after the close; a phone till); that cash is in no drawer and no close
-  sees it.* *ledgercheck once answered.*
+- **DRAW-6** Every cash sale lands in exactly one session of its cashier: the one open when it was rung; if that one is
+  closed (an offline sale sent after the close), the next one they open — and both sessions are flagged for review
+  with the sale's number. *User, 2026-11-18 (Q2). Today the server sells with no open session and that cash is in no
+  drawer.* *ledgercheck, example.*
 - **DRAW-7** A closed session is final: no sale, refund or move booked after its close changes it, and nothing that
   happened before the close is missed by it — a sale paid while the till is being closed lands either in it (counted
   in its expected) or after it. *Checked by: ledgercheck (DRAW-1 recomputed), faults.*
@@ -149,9 +152,9 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **CF-1** Over any range: net = till cash sales + money in + opening balances − money out; a move between the
   shop's own places is neither in nor out and counts once in "moved". *Checked by: machine.*
 - **CF-2** With every close banked and nothing untracked, the net over a range = the change in what the shop holds
-  (every locker + every open drawer's expected). *machine.* Cash taken out into nowhere (an unbanked close or
-  withdrawal, when "untracked cash" is on) **?** (Q3). *Today it leaves no row: cash on hand falls but the page shows no
-  money out, so the net and what the shop holds stop agreeing.*
+  (every locker + every open drawer's expected). Cash taken out into nowhere (an unbanked close or withdrawal, when
+  "untracked cash" is on) shows as **money out** ("taken out, not tracked"). *User, 2026-11-18 (Q3). Today it leaves
+  no row: cash on hand falls but the page shows no money out.* *machine.*
 - **CF-3** Cash on hand never counts Cheques in hand. *Found in: 14f27b9. example.*
 - **CF-4** A till's cash sales are counted once: as till sales when rung; the close that banks them is a move, not
   money in. *machine.*

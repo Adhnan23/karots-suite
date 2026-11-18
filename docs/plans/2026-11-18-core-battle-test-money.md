@@ -36,8 +36,8 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 - [x] **Step 1:** Grid + rules in `docs/rules/money.md` (DRAW, LOCK, EXP, CF; past `fix(` commits as rules).
 - [x] **Step 2:** Q1–Q3 in `docs/rules/questions.md`; README links area 2; DRAW-1…4 moved from `returns.md`.
-- [ ] **Step 3: Commit** — `docs(rules): area 2 rule book — drawer, lockers, expenses, cash flow; questions Q1–Q3`
-- [ ] **Step 4:** Ask the user Q1–Q3 in one message; carry on with the rest.
+- [x] **Step 3: Commit** — `docs(rules): area 2 rule book — drawer, lockers, expenses, cash flow; questions Q1–Q3`
+- [x] **Step 4:** Asked; all three answered 2026-11-18 (DRAW-3, DRAW-6, CF-2 — each changes behaviour, built in Task 3).
 
 ### Task 2: Auditor checks (`internal/ledgercheck/money.go`)
 
@@ -63,6 +63,11 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
   LOCK-10, LOCK-11, EXP-2 (unpaid void, pending cheque, plugin-owned refused), EXP-3, EXP-4, CF-3. Each ends with the
   auditor.
 - [ ] **Step 3:** Run; each failure → fix test-first, one commit each.
+- [ ] **Step 3b: The user's answers, test-first, one commit each:** DRAW-3 (a cash refund beyond the drawer goes
+  through; change / payout / refund taking the expected below zero flags the session's `review_note`), DRAW-6 (a cash
+  sale with no open session: booked to the session open at its `rung_at`, else the cashier's next one; both flagged
+  with the sale number — needs a sale → session link, likely `sales.session_id`, migration 00038), CF-2 (an untracked
+  close / withdrawal shows as money out on the Cash flow page).
 - [ ] **Step 4: Commit** — `test(battle): area 2 cases — one per rule`
 
 ### Task 4: Random days with money (`internal/battle/machine_test.go` + `machine_money_test.go`)
@@ -95,7 +100,7 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 7: Close area 2
 
-- [ ] **Step 1:** The user's answers to Q1–Q3 folded into the rules; their tests written and passing.
+- [ ] **Step 1:** Q1–Q3's tests passing (Task 3b); `docs/guide/money.md` / `till.md` say what changed.
 - [ ] **Step 2:** Full run (`make test-all COVER=1`), one clean `make battle`.
 - [ ] **Step 3:** Coverage map updated (re-upload its four JSON datasets); `docs/status.md` — area 2 done, bugs found
   and fixed; `docs/guide/money.md` if a behaviour changed.
