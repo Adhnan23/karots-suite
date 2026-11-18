@@ -1,7 +1,8 @@
 import Karots
 
 /-!
-Writes `cases/refunds.json` from the proven model (Karots.Refund): the refund
+Writes `cases/refunds.json` (Karots.Refund) and `cases/shares.json` (Karots.Share)
+from the proven models: the refund
 for `n` more of a line paid `P` cents for `Q` thousandths when `R` were already
 back. The Go server (`sales.PartRefund`) and the till (`refund.ts`) must give
 each one to the cent. Seeded, so the file only changes when the model does.
@@ -23,8 +24,24 @@ def gen : Nat → Nat → List String → List String
     let line := s!"\{\"paid\":{P},\"qty\":{Q},\"before\":{R},\"back\":{n},\"refund\":{refund P Q R n}}"
     gen k s4 (line :: acc)
 
+/-- Sharing cases: an amount over up to 8 lines' nets (cents), and each share. -/
+def genShares : Nat → Nat → List String → List String
+  | 0, _, acc => acc.reverse
+  | k + 1, s, acc =>
+    let s1 := next s
+    let n := 1 + s1 / 65536 % 8
+    let (ws, s2) := (List.range n).foldl (fun (l, t) _ => let t' := next t; (l ++ [t' / 65536 % 200000], t')) ([], s1)
+    let s3 := next s2
+    let a := if ws.sum = 0 then 0 else s3 / 65536 % (ws.sum + 1)
+    let arr (l : List Nat) := "[" ++ ",".intercalate (l.map toString) ++ "]"
+    let line := s!"\{\"amount\":{a},\"weights\":{arr ws},\"shares\":{arr (shareOut a ws)}}"
+    genShares k s3 (line :: acc)
+
+def write (file : String) (rows : List String) : IO Unit := do
+  IO.FS.writeFile file ("[\n" ++ ",\n".intercalate rows ++ "\n]\n")
+  IO.println s!"{file}: {rows.length} cases"
+
 def main : IO Unit := do
   IO.FS.createDirAll "cases"
-  let rows := gen 3000 20261118 []
-  IO.FS.writeFile "cases/refunds.json" ("[\n" ++ ",\n".intercalate rows ++ "\n]\n")
-  IO.println s!"cases/refunds.json: {rows.length} cases"
+  write "cases/refunds.json" (gen 3000 20261118 [])
+  write "cases/shares.json" (genShares 3000 20261118 [])

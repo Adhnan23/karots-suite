@@ -31,6 +31,17 @@ RET-4  A line's refunds never add up to more than what was paid for that line.
   shop days, `internal/battle`), `lean` (proved in `proofs/`), `example` (a fixed case test).
 - A rule changes only when the user agrees; the commit says so.
 
+## Proved in Lean (`proofs/`, `make proofs`)
+
+| Proof | Rules | What it shows for every possible amount |
+|---|---|---|
+| `Karots/Refund.lean` | RET-4, RET-7 | A line returned in any parts never refunds more than was paid; all back = exactly what was paid |
+| `Karots/Share.lean` | DISC-5, RET-5, SALE-35 | Sharing an amount over lines: rounded-down shares never pass it and fall short by fewer cents than there are lines, so the shares add up exactly, each within a cent |
+
+`lake exe cases` writes `proofs/cases/*.json` from the proven models; the Go server (`sales/lean_cases_test.go`) and
+the till (`counter/returns/lean.cases.test.ts`) must give every case to the cent. GitHub Actions (`proofs.yml`)
+rebuilds the proofs and fails if the cases are stale.
+
 ## Areas
 
 1. [Sales, discounts, payment](sales.md) · [Returns](returns.md) — area 1
