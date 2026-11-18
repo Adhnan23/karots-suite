@@ -94,9 +94,11 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 6: Mutation
 
-- [ ] **Step 1:** `make mutate` on `internal/features/cashregister`, `cashflow`, `expenses`, `payout`, `lockers`;
+- [x] **Step 1:** (gremlins sees only a package's own tests, so its 49 survivors were replayed against the battle tests:
+  25 killed; of the 24 left, 4 touched a rule and now have tests — LOCK-2, EXP-1 by cheque, LOCK-4 ×2; the rest are
+  labels, the drawer pulse, the audit line, error plumbing) `make mutate` on `internal/features/cashregister`, `cashflow`, `expenses`, `payout`, `lockers`;
   each surviving mutant in money code gets the test that kills it.
-- [ ] **Step 2: Commit** — `test: area 2 mutants killed`
+- [x] **Step 2: Commit** — `test: area 2 mutants killed`
 
 ### Task 7: Close area 2
 

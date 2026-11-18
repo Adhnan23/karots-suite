@@ -165,7 +165,7 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 
 ## Where each `example` rule is tested
 
-`internal/battle/cases_money_test.go`: DRAW-5, DRAW-8, DRAW-12, DRAW-13 (+ LOCK-11 at the till), DRAW-17, LOCK-9,
+`internal/battle/cases_money_test.go`: LOCK-2 (no move to itself), LOCK-4 (receipt handed back), EXP-1 (by cheque), DRAW-3, DRAW-5, DRAW-6, DRAW-8, DRAW-12, DRAW-13 (+ LOCK-11 at the till), DRAW-17, LOCK-9,
 LOCK-10. Older tests that already pin a rule: DRAW-11 `api/till_drawer_test.go` (TestTillDrawerLifecycle,
 TestTillNoContinueAfterBankedClose); DRAW-12 `cashregister/withdraw_policy_test.go`; DRAW-14 `cashregister/at_db_test.go`;
 DRAW-15 `cashregister/stale_test.go`; LOCK-1 overdraw, LOCK-5, LOCK-7, LOCK-8 `api/admin_locker_moves_test.go`; LOCK-5

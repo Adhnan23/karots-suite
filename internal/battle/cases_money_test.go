@@ -268,3 +268,74 @@ func TestCF2_OverShortAtCloseShows(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// LOCK-2: money can't move from a place to itself. (Found by mutation testing.)
+func TestLOCK2_NoMoveToItself(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	safe := s.locker(t, "Safe", "safe", "1000")
+	s.refused(t, "safe → safe", func() error {
+		return s.admin.Do("POST", "/api/v1/admin/lockers/transfer", map[string]any{"fromId": safe, "toId": safe, "amount": "10"}, nil)
+	})
+	s.audit(t)
+}
+
+// EXP-1: an expense paid by cheque moves no money now; its cheques are written
+// for it and must add up to it. (Found by mutation testing.)
+func TestEXP1_ExpenseByChequeMovesNothingNow(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	bank := s.locker(t, "Bank", "bank", "1000")
+	cheque := func(second string) map[string]any {
+		return map[string]any{"category": "Rent", "amount": "600", "method": "cheque", "cheques": []map[string]any{
+			{"bank": "BOC", "lockerId": bank, "number": "77", "amount": "300", "date": "2026-12-01"},
+			{"bank": "BOC", "lockerId": bank, "number": "78", "amount": second, "date": "2027-01-01"}}}
+	}
+	s.refused(t, "cheques adding up to less", func() error { return s.admin.Do("POST", "/api/v1/admin/expenses", cheque("200"), nil) })
+	before := s.rows(t)
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/expenses", cheque("300"), nil))
+	if after := s.rows(t); after != before {
+		t.Errorf("a cheque expense moved money now (%d money rows)", after-before)
+	}
+	var n int
+	s.must(t, s.db.Get(&n, `SELECT count(*) FROM cheques c JOIN expenses e ON e.id = c.expense_id
+		WHERE e.category = 'Rent' AND c.status = 'pending' AND c.amount = 300`))
+	if n != 2 {
+		t.Errorf("%d pending cheques for the expense, want 2", n)
+	}
+	s.audit(t)
+}
+
+// LOCK-4: a till move that wrote a receipt hands its id back, so the till can print it.
+func TestLOCK4_TillMovesHandBackTheirReceipt(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	safe := s.locker(t, "Safe", "safe", "10000")
+	// An empty drawer opens and closes with no money moved: no receipt to hand back.
+	for _, path := range []string{"open", "close"} {
+		var none struct{ ReceiptID *int64 }
+		s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/"+path, map[string]any{"breakdown": map[string]int{}}, &none))
+		if none.ReceiptID != nil {
+			t.Errorf("empty %s handed back receipt %d", path, *none.ReceiptID)
+		}
+	}
+	var r struct{ ReceiptID int64 }
+	for _, c := range []struct {
+		path string
+		body map[string]any
+	}{
+		{"open", map[string]any{"breakdown": map[string]int{"1000": 2}, "sourceLockerId": safe}},
+		{"withdraw", map[string]any{"amount": "100", "reason": "x", "lockerId": safe}},
+		{"deposit", map[string]any{"amount": "50", "reason": "x"}},
+		{"close", map[string]any{"breakdown": map[string]int{"1950": 1}, "destLockerId": safe}},
+	} {
+		r.ReceiptID = 0
+		s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/"+c.path, c.body, &r))
+		var want int64
+		s.must(t, s.db.Get(&want, `SELECT max(id) FROM money_receipts`))
+		if r.ReceiptID != want {
+			t.Errorf("%s handed back receipt %d, the newest is %d", c.path, r.ReceiptID, want)
+		}
+	}
+	s.audit(t)
+}
