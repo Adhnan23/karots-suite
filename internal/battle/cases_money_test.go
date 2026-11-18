@@ -204,3 +204,31 @@ func TestDRAW3_CashRefundBeyondDrawerGoesThroughFlagged(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// DRAW-6 (user, Q2): a cash sale made while its cashier has no open till (the
+// page still up after the till was closed for them) lands in the next till
+// they open, and both tills are flagged with its number.
+func TestDRAW6_SaleWithNoOpenTillLandsInTheNext(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	ctx := context.Background()
+	s.open(t, s.till1)
+	s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "1"}}, cash("100"))
+	s.close(t, s.till1)
+	late := s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "2"}}, cash("200"))
+	var no string
+	s.must(t, s.db.GetContext(ctx, &no, `SELECT receipt_no FROM sales WHERE id = $1`, late.ID))
+	s.open(t, s.till1)
+	if got := s.expected(t, s.till1); got != "5200.00" {
+		t.Errorf("next till expects %s, want 5200.00 (5000 float + the late 200)", got)
+	}
+	var notes []string
+	s.must(t, s.db.SelectContext(ctx, &notes, `SELECT COALESCE(review_note, '') FROM cash_register ORDER BY id`))
+	for i, n := range notes {
+		if !strings.Contains(n, no) {
+			t.Errorf("till %d not flagged with %s: %q", i+1, no, n)
+		}
+	}
+	s.close(t, s.till1)
+	s.audit(t)
+}

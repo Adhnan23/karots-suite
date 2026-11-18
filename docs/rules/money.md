@@ -81,10 +81,11 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **DRAW-6** Every cash sale lands in exactly one session of its cashier: the one open when it was rung; if that one is
   closed (an offline sale sent after the close), the next one they open — and both sessions are flagged for review
   with the sale's number. *User, 2026-11-18 (Q2). Today the server sells with no open session and that cash is in no
-  drawer.* *ledgercheck, example.*
+  drawer.* Each sale stores its session (`sales.session_id`, 00038); the drawer and the Z count by it.
+  *ledgercheck, example.*
 - **DRAW-7** A closed session is final: no sale, refund or move booked after its close changes it, and nothing that
   happened before the close is missed by it — a sale paid while the till is being closed lands either in it (counted
-  in its expected) or after it. *Checked by: ledgercheck (DRAW-1 recomputed), faults.*
+  in its expected) or after it. (A sale takes its till shared-locked; the close locks it first or waits.) *Checked by: ledgercheck (DRAW-1 recomputed), faults.*
 - **DRAW-8** Two closes at once (the cashier and an admin's Close for them) close it once and bank the cash once; Close
   for them books the money as the cashier's own close and records who did it. *faults, example.*
 - **DRAW-9** Opening with a float from a locker takes it from that locker; with none, the float is money already in

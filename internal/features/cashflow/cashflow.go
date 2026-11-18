@@ -254,7 +254,7 @@ func (s *Service) MoveTx(ctx context.Context, tx *sqlx.Tx, in MoveInput) (*Recei
 // tillHolds is the cash a till session should hold now: opening float +
 // committed cash sales + net drawer moves — the figure the close reconciles to.
 func (s *Service) tillHolds(ctx context.Context, crepo *cashregister.Repository, sess *cashregister.Session) (decimal.Decimal, error) {
-	cashSales, err := s.sales.CashCollectedSince(ctx, sess.UserID, sess.OpenedAt)
+	cashSales, err := s.sales.CashCollectedIn(ctx, sess.ID)
 	if err != nil {
 		return decimal.Zero, err
 	}

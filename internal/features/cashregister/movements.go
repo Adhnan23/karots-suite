@@ -65,7 +65,7 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 	// A withdrawal can never exceed the cash currently in the drawer (opening +
 	// cash sales + net adjustments — the same balance the close reconciles to).
 	if mtype == MoveWithdrawal {
-		cashSales, cerr := s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
+		cashSales, cerr := s.sales.CashCollectedIn(ctx, sess.ID)
 		if cerr != nil {
 			return nil, cerr
 		}

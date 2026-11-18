@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -95,7 +96,8 @@ func TestTillStale(t *testing.T) {
 }
 
 // The dashboard flags a till left open from an earlier day, and cash taken by a
-// cashier with no till open (never refused — flagged).
+// cashier with no till open (never refused — flagged) until the next till they
+// open takes it in and names it (DRAW-6).
 func TestDashboardTillWarnings(t *testing.T) {
 	te := newTestEnv(t)
 	admin := te.login(t, fmt.Sprintf("07%08d", (time.Now().UnixNano()+21)%100_000_000), "admin")
@@ -106,21 +108,32 @@ func TestDashboardTillWarnings(t *testing.T) {
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM sales WHERE receipt_no LIKE 'T-NOTILL-%'`) }) //nolint:errcheck
 	sale := func(no string) {
 		var id int64
-		te.db.Get(&id, `INSERT INTO sales (receipt_no, subtotal, total, paid_amount, change_given, status, cashier_id) VALUES ($1, 450, 450, 500, 50, 'completed', $2) RETURNING id`, no, who) //nolint:errcheck
+		te.db.Get(&id, `INSERT INTO sales (receipt_no, subtotal, total, paid_amount, change_given, status, cashier_id, session_id)
+			VALUES ($1, 450, 450, 500, 50, 'completed', $2, (SELECT id FROM cash_register WHERE user_id = $2 AND closed_at IS NULL)) RETURNING id`, no, who) //nolint:errcheck
 		te.db.MustExec(`INSERT INTO payments (sale_id, method, amount) VALUES ($1, 'cash', 500)`, id)
 	}
+	listed := func() []NoTillSale {
+		var out []NoTillSale
+		for _, s := range decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin)).Attention.NoTillSales {
+			if s.ReceiptNo == "T-NOTILL-1" || s.ReceiptNo == "T-NOTILL-2" {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
 	sale("T-NOTILL-1") // no till open
+	if got := listed(); len(got) != 1 || got[0].ReceiptNo != "T-NOTILL-1" || got[0].Cash != "450.00" {
+		t.Fatalf("waiting no-till sales %+v", got)
+	}
 	te.do(http.MethodPost, "/api/v1/till/drawer/open", OpenDrawerRequest{Breakdown: map[string]float64{"100": 1}}, ck)
 	sale("T-NOTILL-2") // inside the session: fine
-	d := decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin))
-	var flagged []NoTillSale
-	for _, s := range d.Attention.NoTillSales {
-		if s.ReceiptNo == "T-NOTILL-1" || s.ReceiptNo == "T-NOTILL-2" {
-			flagged = append(flagged, s)
-		}
+	if got := listed(); len(got) != 0 {
+		t.Fatalf("the open till took the late sale in, still listed: %+v", got)
 	}
-	if len(flagged) != 1 || flagged[0].ReceiptNo != "T-NOTILL-1" || flagged[0].Cash != "450.00" {
-		t.Fatalf("no-till sales %+v", flagged)
+	var note string
+	te.db.Get(&note, `SELECT COALESCE(review_note, '') FROM cash_register WHERE user_id = $1 AND closed_at IS NULL`, who) //nolint:errcheck
+	if !strings.Contains(note, "T-NOTILL-1") {
+		t.Fatalf("the till that took it in doesn't name it: %q", note)
 	}
 	stale := func() bool {
 		for _, s := range decode[Dashboard](t, te.do(http.MethodGet, "/api/v1/admin/dashboard", nil, admin)).Attention.StaleTills {

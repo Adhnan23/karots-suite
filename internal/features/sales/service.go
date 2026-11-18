@@ -173,6 +173,15 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		custRepo := customers.NewRepository(tx)
 		warrRepo := warranty.NewRepository(tx)
 
+		// The cashier's open till takes the sale (DRAW-6). Shared-locked, so a close
+		// running now waits for this sale and counts it, or — if the close got
+		// there first — the sale finds no open till and the next one takes it.
+		var sessionID *int64
+		if err := tx.GetContext(ctx, &sessionID, `SELECT id FROM cash_register
+			WHERE user_id = $1 AND closed_at IS NULL FOR SHARE`, cashierID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return apperr.Internal("failed to find the till", err)
+		}
+
 		// Price every line, take stock, and collect the deferred records; the
 		// phases below need the sale id, so they run once it exists.
 		var sl saleLines
@@ -310,6 +319,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			ClientRef:            nilIfEmpty(in.ClientRef),
 			RungAt:               in.RungAt,
 			At:                   in.At,
+			SessionID:            sessionID,
 		})
 		if err != nil {
 			return apperr.Internal("failed to save sale", err)

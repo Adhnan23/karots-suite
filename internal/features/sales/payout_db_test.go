@@ -3,7 +3,6 @@ package sales
 import (
 	"context"
 	"testing"
-	"time"
 )
 
 // A payout line is money the shop hands the customer (a cash out): the
@@ -28,8 +27,13 @@ func TestPayoutLineGivesCashThroughTheSale(t *testing.T) {
 	defer conn.ExecContext(ctx, `DELETE FROM products WHERE id = ANY($1)`, []int64{goods, payout, plain}) //nolint:errcheck
 
 	svc := NewService(conn)
-	since := time.Now().Add(-time.Second)
-	before, err := svc.CashCollectedSince(ctx, cashierID, since)
+	// The cashier's open till takes the sale (DRAW-6); one is open unless an earlier test left it.
+	var sess int64
+	if err := conn.GetContext(ctx, &sess, `SELECT id FROM cash_register WHERE user_id = $1 AND closed_at IS NULL`, cashierID); err != nil {
+		mustSales(t, conn.GetContext(ctx, &sess, `INSERT INTO cash_register (user_id, opening_cash) VALUES ($1, 0) RETURNING id`, cashierID))
+		defer conn.ExecContext(ctx, `UPDATE cash_register SET closed_at = now() WHERE id = $1`, sess) //nolint:errcheck
+	}
+	before, err := svc.CashCollectedIn(ctx, sess)
 	mustSales(t, err)
 
 	in := CreateInput{SaleType: "retail", Discount: "100", Items: []ItemInput{
@@ -42,7 +46,7 @@ func TestPayoutLineGivesCashThroughTheSale(t *testing.T) {
 	if d.Sale.Total.String() != "-4100" || d.Sale.ChangeGiven.String() != "4100" || d.Paid[d.Items[0].ID].StringFixed(2) != "900.00" {
 		t.Fatalf("total %s change %s goods paid %s, want -4100 / 4100 / 900.00", d.Sale.Total, d.Sale.ChangeGiven, d.Paid[d.Items[0].ID])
 	}
-	after, err := svc.CashCollectedSince(ctx, cashierID, since)
+	after, err := svc.CashCollectedIn(ctx, sess)
 	mustSales(t, err)
 	if !after.Sub(before).Equal(d.Sale.ChangeGiven.Neg()) {
 		t.Fatalf("drawer moved %s, want -4100", after.Sub(before))

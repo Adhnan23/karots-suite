@@ -120,6 +120,36 @@ func (r *Repository) ListMovements(ctx context.Context, sessionID int64) ([]Move
 	return rows, err
 }
 
+// AdoptLateSales gives a newly opened session the cashier's sales that found no
+// open till (rung after their last close, DRAW-6): their cash is counted here.
+// Both this session and the one closed before them are flagged with the numbers
+// of those that took or gave cash. Older orphans (before the last close) stay
+// where they are — their cash was counted, as over or short, by that close.
+func (r *Repository) AdoptLateSales(ctx context.Context, sessionID, userID int64) error {
+	var nos []string
+	if err := r.q.SelectContext(ctx, &nos, `
+		WITH last AS (SELECT id, closed_at FROM cash_register
+		              WHERE user_id = $2 AND id <> $1 AND closed_at IS NOT NULL ORDER BY closed_at DESC LIMIT 1),
+		late AS (UPDATE sales s SET session_id = $1
+		         WHERE s.cashier_id = $2 AND s.session_id IS NULL
+		           AND s.created_at >= COALESCE((SELECT closed_at FROM last), '-infinity')
+		         RETURNING s.id, s.receipt_no, s.change_given)
+		SELECT l.receipt_no FROM late l
+		WHERE l.change_given <> 0 OR EXISTS (SELECT 1 FROM payments p WHERE p.sale_id = l.id AND p.method = 'cash')
+		ORDER BY l.id`, sessionID, userID); err != nil || len(nos) == 0 {
+		return err
+	}
+	list := strings.Join(nos, ", ")
+	if err := r.FlagReview(ctx, sessionID, list+" rung while no till was open — counted here"); err != nil {
+		return err
+	}
+	_, err := r.q.ExecContext(ctx, `
+		UPDATE cash_register SET review_note = CASE WHEN COALESCE(review_note, '') = '' THEN $2 ELSE review_note || '; ' || $2 END
+		WHERE id = (SELECT id FROM cash_register WHERE user_id = $1 AND closed_at IS NOT NULL ORDER BY closed_at DESC LIMIT 1)`,
+		userID, list+" rung after this till closed — counted in the next one")
+	return err
+}
+
 // FlagReview adds why an admin should look at a session to its review note.
 func (r *Repository) FlagReview(ctx context.Context, sessionID int64, note string) error {
 	_, err := r.q.ExecContext(ctx, `UPDATE cash_register

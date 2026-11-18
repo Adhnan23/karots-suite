@@ -256,7 +256,7 @@ func (s *Service) Summary(ctx context.Context, userID int64) (*Summary, error) {
 	}
 	out.Session = sess
 	out.Stale = Stale(sess.OpenedAt, time.Now())
-	out.CashSales, err = s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
+	out.CashSales, err = s.sales.CashCollectedIn(ctx, sess.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -315,6 +315,9 @@ func (s *Service) Open(ctx context.Context, userID int64, in OpenInput) (*Sessio
 			return ierr
 		}
 		if ierr = repo.AddMovement(ctx, sess.ID, userID, MoveOpening, opening, "opening cash", raw); ierr != nil {
+			return ierr
+		}
+		if ierr = repo.AdoptLateSales(ctx, sess.ID, userID); ierr != nil {
 			return ierr
 		}
 		// Book the money side + receipt. With a source locker chosen, the opening
@@ -412,7 +415,7 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		if in.At != nil && (in.At.Before(sess.OpenedAt) || in.At.After(time.Now().Add(clockSlack))) {
 			return apperr.Validation("a till closes after it opened, and not in the future")
 		}
-		cashSales, ferr = s.sales.CashCollectedSince(ctx, userID, sess.OpenedAt)
+		cashSales, ferr = s.sales.CashCollectedIn(ctx, sess.ID)
 		if ferr != nil {
 			return ferr
 		}

@@ -200,8 +200,7 @@ func (h *handlers) attention(ctx context.Context) (DashboardAttention, error) {
 		FROM sales s JOIN users u ON u.id = s.cashier_id
 		WHERE s.created_at >= $1 AND s.status <> 'void'
 		  AND EXISTS (SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = 'cash')
-		  AND NOT EXISTS (SELECT 1 FROM cash_register cr WHERE cr.user_id = s.cashier_id
-		                  AND cr.opened_at <= s.created_at AND (cr.closed_at IS NULL OR cr.closed_at >= s.created_at))
+		  AND s.session_id IS NULL
 		ORDER BY s.created_at DESC LIMIT 20`, shopDay(now)); err != nil {
 		return a, err
 	}

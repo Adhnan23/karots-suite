@@ -11,13 +11,27 @@ func init() {
 			FROM cash_register r
 			CROSS JOIN LATERAL (SELECT
 			    COALESCE((SELECT SUM(p.amount) FROM payments p JOIN sales s ON s.id = p.sale_id
-			              WHERE p.method = 'cash' AND s.cashier_id = r.user_id AND s.created_at >= r.opened_at AND s.created_at < r.closed_at), 0) AS cash,
-			    COALESCE((SELECT SUM(s.change_given) FROM sales s
-			              WHERE s.cashier_id = r.user_id AND s.created_at >= r.opened_at AND s.created_at < r.closed_at), 0) AS change,
+			              WHERE p.method = 'cash' AND s.session_id = r.id), 0) AS cash,
+			    COALESCE((SELECT SUM(s.change_given) FROM sales s WHERE s.session_id = r.id), 0) AS change,
 			    COALESCE((SELECT SUM(amount) FROM cash_movements
 			              WHERE session_id = r.id AND type IN ('withdrawal','pay_in','credit_payment','refund','expense')), 0) AS moves) x
 			WHERE r.closed_at IS NOT NULL
 			  AND (r.expected_cash <> r.opening_cash + x.cash - x.change + x.moves OR r.difference <> r.closing_cash - r.expected_cash)`},
+
+		// DRAW-6: a sale's till is its cashier's; one with no till yet is waiting for
+		// the next open — never one rung before a till its cashier has since opened.
+		check{"DRAW-6", `
+			SELECT 'sale ' || s.id, format('cashier %s, till %s of %s', s.cashier_id, s.session_id, r.user_id)
+			FROM sales s JOIN cash_register r ON r.id = s.session_id
+			WHERE r.user_id <> s.cashier_id`},
+		check{"DRAW-6", `
+			SELECT 'sale ' || s.id, format('no till, rung %s; till %s opened %s after it, no close between', s.created_at, n.id, n.opened_at)
+			FROM sales s
+			JOIN LATERAL (SELECT id, opened_at FROM cash_register r
+			              WHERE r.user_id = s.cashier_id AND r.opened_at > s.created_at ORDER BY r.opened_at LIMIT 1) n ON true
+			WHERE s.session_id IS NULL
+			  AND NOT EXISTS (SELECT 1 FROM cash_register c WHERE c.user_id = s.cashier_id
+			                  AND c.closed_at > s.created_at AND c.closed_at <= n.opened_at)`},
 
 		// DRAW-9: one opening record = the opening cash; a closed session has one closing record = what was counted.
 		check{"DRAW-9", `

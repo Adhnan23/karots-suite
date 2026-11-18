@@ -55,6 +55,12 @@ Every open and close: the opening float, what the drawer should have held, what 
 the over or short. Open a session for its **Z report**. A till left open is marked **open now**,
 and an admin or manager can close it for the cashier.
 
+Each sale belongs to the till that took its money. A sale rung when its cashier had no till open
+(the till page still up after it was closed for them) is counted in the next till that cashier
+opens. A till is marked **review** (open it for why) when that happens (both tills name the sale), when a cash
+refund took more than the drawer held — a refund is never stopped at the counter — or when it
+closed still expecting less than nothing.
+
 ## Expenses
 
 ![Expenses](../images/money/expenses.jpg)

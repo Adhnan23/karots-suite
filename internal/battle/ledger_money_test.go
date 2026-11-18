@@ -44,6 +44,7 @@ func TestMoneyRulesSeeCorruption(t *testing.T) {
 			`UPDATE cash_register SET expected_cash = expected_cash - 0.01, difference = difference + 0.01`},
 		{"DRAW-1", `UPDATE cash_register SET difference = difference + 1`, `UPDATE cash_register SET difference = difference - 1`},
 		{"DRAW-1", `UPDATE cash_movements SET amount = amount - 1 WHERE type = 'expense'`, `UPDATE cash_movements SET amount = amount + 1 WHERE type = 'expense'`},
+		{"DRAW-6", `UPDATE sales SET cashier_id = cashier_id + 1 WHERE id = SALE`, `UPDATE sales SET cashier_id = cashier_id - 1 WHERE id = SALE`},
 		{"DRAW-9", `UPDATE cash_movements SET amount = amount + 1 WHERE type = 'opening'`, `UPDATE cash_movements SET amount = amount - 1 WHERE type = 'opening'`},
 		{"DRAW-9", `UPDATE cash_movements SET type = 'sale' WHERE type = 'closing'`, `UPDATE cash_movements SET type = 'closing' WHERE type = 'sale'`},
 		{"LOCK-3", `UPDATE cash_movements SET amount = amount - 1 WHERE type = 'withdrawal'`, `UPDATE cash_movements SET amount = amount + 1 WHERE type = 'withdrawal'`},

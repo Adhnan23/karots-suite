@@ -2,7 +2,6 @@ package sales
 
 import (
 	"context"
-	"time"
 
 	"karots-suite/internal/apperr"
 
@@ -37,7 +36,7 @@ type PeriodSummary struct {
 
 // PeriodSummary totals a cashier's non-void sales between [from,to] and breaks
 // payments down by method.
-func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to time.Time) (*PeriodSummary, error) {
+func (s *Service) PeriodSummary(ctx context.Context, sessionID int64) (*PeriodSummary, error) {
 	out := &PeriodSummary{}
 	var agg struct {
 		Count    int             `db:"count"`
@@ -51,8 +50,7 @@ func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to t
 		       COALESCE(SUM(discount),0) AS discount,
 		       COALESCE(SUM(total),0)    AS net
 		FROM sales
-		WHERE cashier_id = $1 AND created_at >= $2 AND created_at <= $3 AND status <> 'void'`,
-		cashierID, from, to)
+		WHERE session_id = $1 AND status <> 'void'`, sessionID)
 	if err != nil {
 		return nil, apperr.Internal("failed to summarize sales", err)
 	}
@@ -65,8 +63,7 @@ func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to t
 	err = s.db.GetContext(ctx, &returns, `
 		SELECT COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+PaidFactorSQL+`), 0)
 		FROM sale_items si JOIN sales s ON s.id = si.sale_id
-		WHERE s.cashier_id = $1 AND s.created_at >= $2 AND s.created_at <= $3 AND s.status <> 'void'`,
-		cashierID, from, to)
+		WHERE s.session_id = $1 AND s.status <> 'void'`, sessionID)
 	if err != nil {
 		return nil, apperr.Internal("failed to summarize returns", err)
 	}
@@ -78,32 +75,27 @@ func (s *Service) PeriodSummary(ctx context.Context, cashierID int64, from, to t
 		SELECT pmt.method AS method,
 		       COALESCE(SUM(pmt.amount),0) - COALESCE(SUM(s.change_given) FILTER (WHERE pmt.method = 'cash'),0) AS amount
 		FROM payments pmt JOIN sales s ON s.id = pmt.sale_id
-		WHERE s.cashier_id = $1 AND s.created_at >= $2 AND s.created_at <= $3 AND s.status <> 'void'
-		GROUP BY pmt.method ORDER BY pmt.method`,
-		cashierID, from, to)
+		WHERE s.session_id = $1 AND s.status <> 'void'
+		GROUP BY pmt.method ORDER BY pmt.method`, sessionID)
 	if err != nil {
 		return nil, apperr.Internal("failed to summarize payments", err)
 	}
 	return out, nil
 }
 
-// CashCollectedSince totals cash payments taken by a cashier since a time,
-// used to compute the expected drawer cash at register close.
-// CashCollectedSince is the NET cash a cashier put in the drawer since `since`:
+// CashCollectedIn is the NET cash a till session's sales put in its drawer:
 // cash tendered minus change handed back (change is always cash), so an
 // overpaid sale doesn't overstate the expected drawer balance.
-func (s *Service) CashCollectedSince(ctx context.Context, cashierID int64, since time.Time) (decimal.Decimal, error) {
+func (s *Service) CashCollectedIn(ctx context.Context, sessionID int64) (decimal.Decimal, error) {
 	var total decimal.Decimal
 	err := s.db.GetContext(ctx, &total, `
 		SELECT COALESCE((
 			SELECT SUM(pmt.amount) FROM payments pmt
 			JOIN sales s ON s.id = pmt.sale_id
-			WHERE pmt.method = 'cash' AND s.cashier_id = $1 AND s.created_at >= $2
+			WHERE pmt.method = 'cash' AND s.session_id = $1
 		), 0) - COALESCE((
-			SELECT SUM(s.change_given) FROM sales s
-			WHERE s.cashier_id = $1 AND s.created_at >= $2
-		), 0)`,
-		cashierID, since)
+			SELECT SUM(s.change_given) FROM sales s WHERE s.session_id = $1
+		), 0)`, sessionID)
 	if err != nil {
 		return decimal.Zero, apperr.Internal("failed to total cash", err)
 	}

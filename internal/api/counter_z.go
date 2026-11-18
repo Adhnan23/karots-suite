@@ -45,7 +45,7 @@ func (h *handlers) CounterZReport(c echo.Context) error {
 		to = *sess.ClosedAt
 		out.ClosedAt = to.Format(time.RFC3339)
 	}
-	sum, err := h.d.Sales.PeriodSummary(ctx, sess.UserID, sess.OpenedAt, to)
+	sum, err := h.d.Sales.PeriodSummary(ctx, sess.ID)
 	if err != nil {
 		return err
 	}

@@ -41,6 +41,9 @@ type Sale struct {
 	CreatedAt            time.Time        `db:"created_at"   json:"created_at"`
 	ClientRef            *string          `db:"client_ref"   json:"client_ref,omitempty"`
 	RungAt               *time.Time       `db:"rung_at"      json:"rung_at,omitempty"`
+	// SessionID is the till session that took its cash (nil = none open yet; the
+	// cashier's next open takes it).
+	SessionID *int64 `db:"session_id" json:"session_id,omitempty"`
 	PreparedBy           *int64           `db:"prepared_by"  json:"prepared_by,omitempty"`
 	// joined
 	PreparedByName *string `db:"prepared_by_name" json:"prepared_by_name,omitempty"`
@@ -196,6 +199,7 @@ type saleRow struct {
 	Notes                *string
 	ClientRef            *string
 	RungAt, At           *time.Time
+	SessionID            *int64
 }
 
 func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
@@ -204,12 +208,12 @@ func (r *Repository) InsertSale(ctx context.Context, s saleRow) (int64, error) {
 		INSERT INTO sales
 			(receipt_no, customer_id, sale_type, subtotal, discount, discount_type, discount_value,
 			 tax, total, paid_amount, change_given, rounding_to_account, status, cashier_id, notes,
-			 customer_balance_after, client_ref, rung_at, prepared_by, created_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$20,COALESCE($19, now()))
+			 customer_balance_after, client_ref, rung_at, prepared_by, session_id, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$20,$21,COALESCE($19, now()))
 		RETURNING id`,
 		s.ReceiptNo, s.CustomerID, s.SaleType, s.Subtotal, s.Discount, s.DiscountType, s.DiscountValue,
 		s.Tax, s.Total, s.PaidAmount, s.ChangeGiven, s.RoundingToAccount, s.Status, s.CashierID, s.Notes,
-		s.CustomerBalanceAfter, s.ClientRef, s.RungAt, s.At, s.PreparedBy)
+		s.CustomerBalanceAfter, s.ClientRef, s.RungAt, s.At, s.PreparedBy, s.SessionID)
 	return id, err
 }
 
