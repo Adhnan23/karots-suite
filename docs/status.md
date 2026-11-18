@@ -244,11 +244,12 @@ forced to disk (`internal/durable`). Not tested: the gap between Swap's two rena
 
 ## Working here
 
-- **Tests:** `make test` (Go, one package at a time); `make test-web`; `make e2e-seed && cd web && bunx playwright
-  test` with ports 3000 / 5173 free and nothing else on `suite_db`. Nothing reaches a real printer. Run long tests
-  detached with logs in `~/.cache/karots-logs/`. Before a Release: the full run, then `make check-core`.
-- **Unreliable e2e tests** (each failed once in a full run and passed alone): `palettes.spec.ts:45`,
-  `plugin-repairs.spec.ts:145`, `plugin-aicatalog.spec.ts:278`. `TestTodayTraded` (Demo Room) once failed just after 09:00.
+- **Tests:** `make test-all` runs everything side by side in ~9½ min (Go, Vitest, Playwright with 3 workers, then
+  check-core; each Go package and Playwright worker on its own database). Details in AGENTS.md → Dev workflow and
+  **Rules and battle tests**. Before a Release: `make test-all`, then `make check-core`.
+- **Unreliable tests:** `plugin-aicatalog.spec.ts:278` fails when its worker's database holds over 200 products (combo
+  suggestions only look at the 200 oldest — a product question for the plugin pass); `palettes.spec.ts:45`,
+  `plugin-repairs.spec.ts:145` and Go `TestTodayTraded` each failed once long ago and haven't since.
 - **Type-check the build the way it runs:** `cd web && bunx tsc -b` (a plain `tsc --noEmit -p .` misses test files
   and unused imports, and the Playwright build then fails).
 - **Power cuts happen here.** After one: `git fsck`, `make check-core` (a cut during a build leaves the plugin lists on:

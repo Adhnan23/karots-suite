@@ -9,6 +9,8 @@ shipped as **one static binary**.
 - **Start here:** `docs/status.md` covers where the project is, what's next, how we work (Opus plans, executes and reviews; UI gates with self-reviewed screenshots) and the inputs for the next milestone.
 - **Architecture:** `docs/guide/architecture.md` (stack, core and plugins, the rules the code keeps). Read it before designing anything; a new milestone's spec goes in `docs/specs/` and is deleted with its plan when done.
 - **Design:** `docs/design/theme.md` (palettes, login, dock, till). Screens must match the approved mockups linked there; plain default-looking UI gets rejected.
+- **Rules:** `docs/rules/` is the rule book: what must always be true about money, stock and balances, as a grid of every
+  feature × every later action. Tests are measured against it, never the other way round (see **Rules and battle tests**).
 - **Plans:** `docs/plans/` holds only the plan being worked on. Execute tasks in order and tick the checkboxes; delete it once the milestone is done (git history keeps every finished plan and idea note).
 - **User docs and legal pack:** see **Docs and legal** below — they change with the product.
 
@@ -38,9 +40,37 @@ shipped as **one static binary**.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`
   when a plugin is missing from them.
+- **A money, stock or balance change starts in the rule book.** Write or change the rule in `docs/rules/` first (a
+  changed rule needs the user's yes; unknowns go in `questions.md`), then a failing test that names it, then the code.
+  A bug fixed = the rule it broke + a test that failed first. Never change a rule or weaken a test to fit the code.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
 - **Palettes, each with light and dark.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has 22 built-ins (Studio, Night, Bazaar, Lagoon, Catppuccin + 17 famous / colourful ones, theme.md §1) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
+
+## Rules and battle tests
+
+Core is proven area by area (spec `docs/specs/2026-11-18-core-battle-test-design.md`; areas listed in
+`docs/rules/README.md`; area 1 sales/returns done 2026-11-18). Each layer catches what the others miss:
+
+| Layer | Where | Runs in |
+|---|---|---|
+| Rule book: feature × action grid, rule ids (`SALE-`, `DISC-`, `TEND-`, `RET-`, `TILL-`, `DRAW-` …) | `docs/rules/` | — |
+| Auditor: read-only SQL, one check per rule visible in data | `internal/ledgercheck` (`ltest.Check`) | every battle test, a Demo Room year |
+| Battle: a throwaway shop on the real server; a case test per rule; random shop days (`rapid`, own price check); power cuts (the real binary killed); two tills; double Pay | `internal/battle` | `make test` (short), `make battle` (long) |
+| Proofs: money maths in Lean 4; Go and the till held to its cases | `proofs/` (`make proofs`, GitHub `proofs.yml`) | on change |
+| Mutation: planted mistakes the tests must notice | `make mutate` (gremlins, Stryker) | by hand, per area |
+
+**Doing the next area (or a new money feature):** fill its grid in `docs/rules/<area>.md` (every feature × every later
+action; past `fix(` commits become rules; unknowns to `questions.md`, asked in one batch) → add its checks to
+`internal/ledgercheck/<area>.go` (corrupt a row in the test to prove each fires) → case tests per rule in
+`internal/battle/cases_<area>_test.go` → its actions in a random-days machine → `make battle`, `make mutate` → close
+the gaps → `make test-all COVER=1` → update the coverage map (https://claude.ai/artifact/GSvAu11weLXS7PjRD4G8u9:
+re-upload its four JSON datasets). After the 7 core areas, each plugin the same way (its own rules and checks).
+
+**Writing tests that run side by side:** every Go package gets its own seeded database (`scripts/testdb`), every
+Playwright worker its own server and database (`scripts/e2e-servers.sh`, ports 3000+i, Pocket 8443+i). So a test
+never leans on what another file left behind (create what it needs, look things up exactly), a battle shop is
+`newShop(t)` (+ `t.Parallel()`), and a throwaway database in Go is `ltest.NewDB(t)` (a copy of a migrated template).
 
 ## Docs and legal
 
@@ -170,7 +200,13 @@ web/                  Vite + React + TS app → builds into internal/spa/dist
                         productFormSections, before/after-sale); TillApi.addGroup = cart line groups
                         (kept together, stored on sale_items.line_group*, printed as one block);
                         TillApi.addPayout = money given to the customer (a sale may total below zero)
-scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones) + e2e-till.sql, notices/
+scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed's demo ones) + e2e-till.sql, notices/,
+                      testdb/ (a database per Go test package), e2e-servers.sh (Playwright's servers), full-run.sh,
+                      test-times.sh (where a run's time goes)
+internal/ledgercheck/ the auditor (read-only rule checks); ltest/ = throwaway DBs + Check for tests
+internal/battle/      battle tests (test files only): throwaway shop, cases per rule, random days, power cuts
+proofs/               Lean 4.15 proofs of the money maths + cases/*.json the Go server and the till must match
+docs/rules/           the rule book (grid per area, questions.md)
 ```
 
 ## Stack
@@ -198,9 +234,14 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
 
 ## Dev workflow
 
-- **Ports:** Postgres `suite_db` on **5433**, Go server on **3000**, Vite on **5173** (proxies `/api`).
+- **Ports:** Postgres `suite_db` on **5433** (400 connections, `docker-compose.yml`), Go server on **3000**, Vite on **5173**
+  (proxies `/api`). Playwright's servers take **3000–3002** and Pocket **8443–8445** while it runs.
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
-- `make test` (Go, one package at a time, DB tests gated on `DATABASE_URL`; nothing reaches a real printer: `KAROTS_NO_SPOOL`, set for Playwright's server) · `make test-web` (Vitest) · `make e2e-seed && cd web && bunx playwright test`.
+- **Tests:** `make test-all` = everything before a Release, side by side (Go, Vitest, Playwright, then check-core; ~9½ min on
+  this PC, logs in `~/.cache/karots-logs/full-*`; `COVER=1` adds coverage). Alone: `make test` (Go, every package on its
+  own database, all cores), `make test-web` (Vitest), `cd web && bunx playwright test` (3 workers, `E2E_WORKERS=n`;
+  builds and seeds its own servers). `make battle` / `make proofs` / `make mutate` as above. Nothing reaches a real
+  printer (`KAROTS_NO_SPOOL`). Run long ones detached with logs on disk (power cuts).
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
 - **Demo Room:** `make demo` (or Shop Builder → Demo Room) → `dist/demo/karots-suite-demo-room` + `.exe` (every built-in shop's
   year, ~6 min, kept in the user cache and reused while nothing that shapes the data changed — `cmd/bootstrap/demoyears.go`;
@@ -255,8 +296,13 @@ scripts/              check-core.sh, e2e-users.sql (fixed e2e logins, not -seed'
 - `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
 - `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
 - The login limiter (burst 10, +1 per 2s) is keyed on the socket IP. The e2e specs import `test` from `e2e/fixtures.ts`, which waits out a 429. Import from there, not `@playwright/test`, or a full run fails on sign-in.
-- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3000/5173 — including a dev server you started by hand — and serves stale code with no warning. Kill anything on those ports before `bunx playwright test` if you've been poking at the app manually.
-- Go DB tests and Playwright share `suite_db`: never run `go test` while a Playwright run is going — it fails unrelated flows (a restore, the drawer, duplicate names).
+- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3000 — including a dev server you started by hand — and serves stale code with no warning. Stop `make dev` before a Playwright run.
+- A Go test that reads `DATABASE_URL` gets its package's own copy of a seeded database only through `make test` /
+  `make test-all` (`go test -exec bin/testdb`). A bare `go test` points it at `suite_db`, your dev data.
+- No process-wide state for anything a request reads: the battle tests run several servers in one process (the account
+  check was a global and signed other shops' cashiers out; `JWTAuthWith` now takes the server's own).
+- `gremlins` copies the whole repo per run: `make mutate` points its temp at `~/.cache/karots-gremlins` (it filled /tmp once).
+- Test databases left on the server on purpose: `test_tpl` (rebuilt each `make test`) and `ledger_tpl_<hash>` (per set of migrations).
 - A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.
 - **File mode never uses a plain `C` locale:** pg_trgm then treats every Sinhala / Tamil letter as punctuation and search finds nothing. Never let embedded-postgres see a data folder it can't use either — it **wipes and re-inits** one whose `PG_VERSION` doesn't match (`filedb.checkDataDir` refuses first).
 - **Windows file mode carries the VC++ runtime** (`internal/filedb/vcrt/`: msvcp140, vcruntime140, vcruntime140_1 — zonky's PostgreSQL needs them and a fresh Windows lacks them → initdb `0xc0000135`). They are written to `data\vcrt\` and put first on PATH. Keep them; update them only from a Microsoft vc_redist x64 copy and record the new SHA-256 in `embed_windows.go`.
