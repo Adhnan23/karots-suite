@@ -60,3 +60,26 @@ func TestRET4_LineInPartsRefundsItsPaidValue(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// RET-10: a returned serial-tracked unit can be sold again, and its warranty
+// ends with the return.
+func TestRET10_ReturnedSerialSellsAgain(t *testing.T) {
+	s := newShop(t)
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": s.prod["serial"], "newQuantity": "1", "note": "one phone"}, nil))
+	s.open(t, s.till1)
+	phone := line{"productId": s.prod["serial"], "quantity": "1", "serials": []string{"IMEI-0001"}}
+	first := s.sell(t, s.till1, "0", []line{phone}, cash("15000"))
+	s.giveBack(t, s.till1, first.ID, s.sale(t, s.till1, first.ID).Lines[0].ID, "1")
+
+	var r saleResult
+	if err := s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+		"items": []line{phone}, "payments": []pay{cash("15000")}}, &r); err != nil {
+		t.Fatalf("selling the returned phone again: %v", err)
+	}
+	var live int
+	s.must(t, s.db.Get(&live, `SELECT count(*) FROM warranty_units WHERE serial_no = 'IMEI-0001' AND sale_id = $1 AND status = 'active'`, first.ID))
+	if live != 0 {
+		t.Errorf("the returned sale still holds the phone's warranty")
+	}
+	s.audit(t)
+}

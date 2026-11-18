@@ -112,12 +112,25 @@ func (r *Repository) InsertUnit(ctx context.Context, u NewUnit) (int64, error) {
 	return id, err
 }
 
+// ReleaseReturned ends the warranty of n serial units of a product a return
+// takes back off a sale (status 'returned'), so the units can sell again under
+// their serials (RET-10). The newest live units go first: the return screen
+// doesn't name serials yet, and a line usually holds one.
+func (r *Repository) ReleaseReturned(ctx context.Context, saleID, productID int64, n int64) error {
+	_, err := r.q.ExecContext(ctx, `
+		UPDATE warranty_units SET status = 'returned'
+		WHERE id IN (SELECT id FROM warranty_units
+		             WHERE sale_id = $1 AND product_id = $2 AND serial_no IS NOT NULL AND status = 'active'
+		             ORDER BY id DESC LIMIT $3)`, saleID, productID, n)
+	return err
+}
+
 // SerialExists reports whether a serial is already on record (any product), so
 // the caller can reject a duplicate with a friendly message before inserting.
 func (r *Repository) SerialExists(ctx context.Context, serial string) (bool, error) {
 	var exists bool
 	err := r.q.GetContext(ctx, &exists,
-		`SELECT EXISTS(SELECT 1 FROM warranty_units WHERE serial_no = $1)`, serial)
+		`SELECT EXISTS(SELECT 1 FROM warranty_units WHERE serial_no = $1 AND status <> 'returned')`, serial)
 	return exists, err
 }
 
@@ -131,7 +144,7 @@ func (r *Repository) FindUnitByID(ctx context.Context, id int64) (*Unit, error) 
 
 func (r *Repository) FindUnitBySerial(ctx context.Context, serial string) (*Unit, error) {
 	var u Unit
-	if err := r.q.GetContext(ctx, &u, selectUnit+` WHERE wu.serial_no = $1`, serial); err != nil {
+	if err := r.q.GetContext(ctx, &u, selectUnit+` WHERE wu.serial_no = $1 ORDER BY wu.status = 'returned', wu.id DESC LIMIT 1`, serial); err != nil {
 		return nil, err
 	}
 	return &u, nil

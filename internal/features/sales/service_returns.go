@@ -12,6 +12,7 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/customers"
 	"karots-suite/internal/features/stock"
+	"karots-suite/internal/features/warranty"
 	"karots-suite/internal/money"
 
 	"github.com/jmoiron/sqlx"
@@ -198,6 +199,13 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			}
 			if !ok {
 				return apperr.Conflict("return quantity exceeds what was sold")
+			}
+			// A serial unit back on the shelf sells again under its serial; its
+			// warranty ends here (RET-10). Lines without serials have none to free.
+			if !it.IsService {
+				if err := warranty.NewRepository(tx).ReleaseReturned(ctx, saleID, it.ProductID, qty.IntPart()); err != nil {
+					return apperr.Internal("failed to end the returned unit's warranty", err)
+				}
 			}
 			totalRefundValue = totalRefundValue.Add(lineRefund)
 			returned = append(returned, ReturnedLine{SaleItemID: it.ID, ProductID: it.ProductID, Quantity: qty, Refund: lineRefund, Plugin: ln.Plugin})
