@@ -1,0 +1,24 @@
+# The money maths proved in Lean (proofs/): every proof must check, and the
+# test cases the Go server and the till are held to must be the ones the proven
+# model writes. Lean 4.15.0, core only (no Mathlib): a small download.
+name: proofs
+on:
+  push:
+    paths: ['proofs/**', '.github/workflows/proofs.yml']
+  pull_request:
+    paths: ['proofs/**']
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lean 4.15.0
+        run: |
+          curl -sSfL https://github.com/leanprover/lean4/releases/download/v4.15.0/lean-4.15.0-linux.tar.zst | tar --zstd -x
+          echo "$PWD/lean-4.15.0-linux/bin" >> "$GITHUB_PATH"
+      - name: Check the proofs
+        working-directory: proofs
+        run: lake build && ! grep -rn "sorry" Karots
+      - name: The cases are the proven model's
+        working-directory: proofs
+        run: lake exe cases && git diff --exit-code cases/

@@ -1,4 +1,4 @@
-.PHONY: battle demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -35,6 +35,11 @@ battle:
 	mkdir -p ~/.cache/karots-logs
 	$(ENV) KS_BATTLE_STEPS=$${KS_BATTLE_STEPS:-20000} go test -count=1 -run Battle -timeout 6h ./internal/battle/ \
 		> ~/.cache/karots-logs/battle-$$(date +%Y%m%d-%H%M).log 2>&1; tail -20 ~/.cache/karots-logs/battle-*.log | tail -20
+
+# The money maths proved in Lean (proofs/, Lean 4.15.0 in ~/.local/bin): check
+# every proof and rewrite the cases Go and the till are held to.
+proofs:
+	cd proofs && lake build && ! grep -rn sorry Karots && lake exe cases
 
 test-web:
 	cd web && bun run test

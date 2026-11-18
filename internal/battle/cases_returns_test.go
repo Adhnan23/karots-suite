@@ -176,3 +176,25 @@ func TestRET13_ComboComesBackWholeSets(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// RET-4 / RET-7: a loose line returned in many small parts never refunds more
+// than was paid for it, at any point (each part used to round on its own: 1 kg at
+// Rs 245.50 back a gram at a time refunded Rs 0.25 a gram, past the Rs 245.50 paid).
+func TestRET4_ManySmallPartsNeverPassWhatWasPaid(t *testing.T) {
+	s := newShop(t)
+	s.open(t, s.till1)
+	r := s.sell(t, s.till1, "0", []line{{"productId": s.prod["loose"], "quantity": "1"}}, cash("300"))
+	v := s.sale(t, s.till1, r.ID)
+	paid := dec(t, v.Lines[0].Paid)
+	got := dec(t, "0")
+	for i := 0; i < 990; i++ {
+		got = got.Add(s.giveBack(t, s.till1, r.ID, v.Lines[0].ID, "0.001"))
+		if got.GreaterThan(paid) {
+			t.Fatalf("after %d g back: refunded %s, paid %s", i+1, got.StringFixed(2), paid.StringFixed(2))
+		}
+	}
+	got = got.Add(s.giveBack(t, s.till1, r.ID, v.Lines[0].ID, "0.010"))
+	if !got.Equal(paid) {
+		t.Errorf("all back: refunded %s, paid %s", got.StringFixed(2), paid.StringFixed(2))
+	}
+}

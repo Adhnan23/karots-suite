@@ -395,13 +395,28 @@ func owedNow(ctx context.Context, q sqlx.QueryerContext, sale Sale, cleared deci
 	return decimal.Min(owed, decimal.Max(bal, decimal.Zero)), nil
 }
 
+// PartRefund is the refund for qty more of a line paid linePaid for quantity,
+// when before were already back: the rounded value of everything back so far
+// less that of what was back before. The roundings cancel, so however a line
+// comes back its refunds never pass what was paid and, all back, are exactly it
+// — proved in proofs/Karots/Refund.lean, whose cases lean_cases_test.go checks.
+// (Rounding each part alone passed it: 1 kg back a gram at a time refunded
+// Rs 245.75 of Rs 245.50.)
+func PartRefund(linePaid, quantity, before, qty decimal.Decimal) decimal.Decimal {
+	if !quantity.IsPositive() {
+		return decimal.Zero
+	}
+	worth := func(m decimal.Decimal) decimal.Decimal { return linePaid.Mul(m).Div(quantity).Round(2) }
+	return worth(before.Add(qty)).Sub(worth(before))
+}
+
 // lineRefund values qty units of a line at what was paid for it (linePaid, its
 // PaidShares share: the line net shared down by the bill discount, the lines
 // adding up to the sale to the cent). The last of a line takes exactly what's
 // left of its paid value, so a line returned in parts refunds what was paid.
 func (s *Service) lineRefund(ctx context.Context, repo *Repository, it SaleItem, qty, linePaid decimal.Decimal) (decimal.Decimal, error) {
 	if !qty.Equal(it.ReturnableQty()) {
-		return linePaid.Mul(qty).Div(it.Quantity).Round(2), nil
+		return PartRefund(linePaid, it.Quantity, it.ReturnedQty, qty), nil
 	}
 	prior, err := repo.RefundedForItem(ctx, it.ID)
 	if err != nil {

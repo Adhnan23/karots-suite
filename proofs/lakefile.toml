@@ -1,0 +1,9 @@
+name = "karots"
+defaultTargets = ["Karots", "cases"]
+
+[[lean_lib]]
+name = "Karots"
+
+[[lean_exe]]
+name = "cases"
+root = "Cases"

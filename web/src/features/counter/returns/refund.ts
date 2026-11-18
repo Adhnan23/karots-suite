@@ -6,13 +6,18 @@ export const REASONS = ['Wrong item', 'Faulty', 'Changed mind', 'Expired']
 export const left = (l: SaleLine) => (num(l.subtotal) < 0 ? 0 : num(l.quantity) - num(l.returnedQty))
 /** What returning n of a line refunds — the server's sales.lineRefund: part of a line
  *  is its paid value pro-rata, the rest of it is exactly what's left of that value. */
-export const refundOf = (l: SaleLine, n: number) => (n <= 0 ? 0 : n >= left(l) ? num(l.refundLeft) : partRefund(num(l.paid), n, num(l.quantity)))
+export const refundOf = (l: SaleLine, n: number) =>
+  n <= 0 ? 0 : n >= left(l) ? num(l.refundLeft) : partRefund(num(l.paid), num(l.quantity), num(l.returnedQty), n)
 
-/** paid × n ÷ qty to the cent, rounded half up as the server's decimals do — in whole
- *  numbers (cents, thousandths of a unit), since float maths put a .5 cent either side (TILL-2). */
-function partRefund(paid: number, n: number, qty: number) {
-  const cents = Math.round(paid * 100), N = Math.round(n * 1000), Q = Math.round(qty * 1000)
-  return Q > 0 ? Math.floor((2 * cents * N + Q) / (2 * Q)) / 100 : 0
+/** The server's sales.PartRefund: the value of everything back after this return less
+ *  that of what was back before, each paid × part ÷ qty rounded half up — so the
+ *  roundings cancel and a line never refunds past what was paid (proved in
+ *  proofs/Karots/Refund.lean). Whole numbers (cents, thousandths of a unit): float
+ *  maths put a .5 cent either side (TILL-2). */
+function partRefund(paid: number, qty: number, before: number, n: number) {
+  const P = Math.round(paid * 100), Q = Math.round(qty * 1000), R = Math.round(before * 1000), N = Math.round(n * 1000)
+  const worth = (m: number) => Math.floor((2 * P * m + Q) / (2 * Q))
+  return Q > 0 ? (worth(R + N) - worth(R)) / 100 : 0
 }
 /** Bumps how much of a line is coming back by d. A combo's lines move together, one
  *  whole set at a time, and stop at the sets still out — a group comes back only
