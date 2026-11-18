@@ -28,6 +28,14 @@ verify-portable:
 	  || { echo "FAIL: bin/karots-suite is NOT static"; exit 1; }
 dev: db-up types
 	$(ENV) air & cd web && bun run dev
+# Random shop days against a throwaway shop (docs/rules, internal/battle): the
+# long run. make test runs 200 steps; this runs KS_BATTLE_STEPS (default 20000).
+# Detached with a log on disk: power cuts happen here.
+battle:
+	mkdir -p ~/.cache/karots-logs
+	$(ENV) KS_BATTLE_STEPS=$${KS_BATTLE_STEPS:-20000} go test -count=1 -run Battle -timeout 6h ./internal/battle/ \
+		> ~/.cache/karots-logs/battle-$$(date +%Y%m%d-%H%M).log 2>&1; tail -20 ~/.cache/karots-logs/battle-*.log | tail -20
+
 test-web:
 	cd web && bun run test
 
