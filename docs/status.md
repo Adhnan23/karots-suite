@@ -4,10 +4,35 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 handoffs, finished plans and specs live in git history (`git log -p -- docs/status.md`, `git log --diff-filter=D
 --name-only -- docs`). The catalogue and the Onboard / Shelf app keep their own details in their READMEs.
 
-## Now (2026-11-10 night)
+## Now (2026-11-18)
 
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
+
+**Core battle test (user's top priority, 2026-11-18): area 1 of 7 — sales, discounts, payment, returns — built and
+being closed** (spec `docs/specs/2026-11-18-core-battle-test-design.md`, plan `docs/plans/2026-11-18-core-battle-test-sales.md`).
+Why: Iman found a discount sale refunding the full price; nobody had written that rule down. The method, kept for
+every area:
+- **Rule book** `docs/rules/`: a grid of every feature a sale can carry × every later action on it; each square a
+  numbered rule (SALE, DISC, TEND, RET, TILL), "can't happen", or a question for the user (`questions.md`).
+- **Auditor** `internal/ledgercheck` (read-only; after every battle test and over a Demo Room year).
+- **Battle** `internal/battle`: a throwaway shop on the real server (template DB copies, `ltest.NewDB`), fixed
+  cases per rule, random shop days (`rapid`, own price check), power cuts (the real binary killed mid-sale), two tills,
+  double Pay. `make test` runs a short version; `make battle` the long one (20,000 steps clean).
+- **Proofs** `proofs/` (Lean 4.15.0 in `~/.local/bin`, `make proofs`, GitHub Actions `proofs.yml`): part refunds
+  never pass what was paid; sharing an amount over lines adds up exactly. Go and the till are held to 6,000 cases.
+- **Mutation** `make mutate` (gremlins on sales 91%, Stryker on the till's money maths 86%); the money gaps got tests.
+Found and fixed (test-first, not yet Released): a bill-discounted sale returned line by line over-refunded (RET-5);
+a line returned in many small parts over-refunded (RET-4, proved); a returned serial item couldn't be resold
+(RET-10, migration 00037); a paid-off credit sale refunded as shop credit (RET-19); double Pay after a lost answer
+made two sales (SALE-50: the till's Pay carries a one-time reference); the till's total and the return screen's refund
+could be a cent off the server's (TILL-1, TILL-2). User's answers built: combos come back whole, in whole sets (RET-13);
+a cheque that hasn't cleared asks give-it-back or cash (RET-17); card refunds in cash (RET-16); a bill discount lowers
+tax (SALE-35). Known gap, not built: RET-14 (mixed tax rates, a line's refund share) needs line tax stored.
+**Next:** close area 1 (full run + coverage map for the user, review), then area 2 (drawer, cashflow, payouts,
+expenses, money sources) the same way; the full run's speed-up (Task 0: Playwright ~18 min, pocket.spec 3 min; Vitest
+makes jsdom 46×) after that. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
+specs once); battle / ledgercheck tests use their own databases and are safe beside it.
 
 **Sell page 2.0: DONE, merged to main and Released to Iman as 2026.11.17.2028 (2026-11-17, binary only, `48a7e04`)**
 (user hand-tested: "everything looking good"). Notes written by hand in the Builder, also covering 1525's keyboard
