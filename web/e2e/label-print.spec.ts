@@ -42,9 +42,12 @@ async function openTill(page: Page) {
   if (!st.summary.session) await page.request.post('/api/v1/till/drawer/open', { data: { breakdown: { '500': 4 }, sourceLockerId: 0 } })
 }
 
-/** The next job the label printer gets, as text (the bitmap's bytes stay bytes). */
-async function nextJob(): Promise<string> {
+/** Presses Print and returns the job the label printer gets for it, as text (the
+ *  bitmap's bytes stay bytes). The count is taken before the press: a job that lands
+ *  before we look is still this one, never missed. */
+async function printed(press: () => Promise<void>): Promise<string> {
   const n = jobs.length
+  await press()
   await expect.poll(() => jobs.length, { timeout: 20_000 }).toBeGreaterThan(n)
   return jobs[n].toString('latin1')
 }
@@ -66,8 +69,7 @@ test('counter labels: Image sends a BITMAP, Classic sends TEXT and BARCODE', asy
   await page.getByLabel('First text', { exact: true }).fill('Milk')
   await page.getByLabel('Copies').fill('3')
   await expect(page.getByRole('img', { name: 'Label as it prints' })).toHaveAttribute('src', /^blob:/)
-  await page.getByRole('button', { name: 'Print 3 labels' }).click()
-  let job = await nextJob()
+  let job = await printed(() => page.getByRole('button', { name: 'Print 3 labels' }).click())
   expect(job.startsWith('SIZE 50 mm, 25 mm')).toBe(true)
   expect(job).toContain('BITMAP 0,0,50,200,0,')
   expect(job).toContain('PRINT 3,1')
@@ -77,8 +79,7 @@ test('counter labels: Image sends a BITMAP, Classic sends TEXT and BARCODE', asy
   await page.reload()
   await page.getByLabel('Barcode', { exact: true }).fill('4792024012348')
   await page.getByLabel('First text', { exact: true }).fill('Milk')
-  await page.getByRole('button', { name: 'Print 1 label' }).click()
-  job = await nextJob()
+  job = await printed(() => page.getByRole('button', { name: 'Print 1 label' }).click())
   expect(job).toContain('TEXT ')
   expect(job).toContain('BARCODE ')
   expect(job).not.toContain('BITMAP')
@@ -104,8 +105,7 @@ test('Pharmacy’s dose label prints as a picture', async ({ page }) => {
   const cart = page.getByRole('region', { name: 'Cart' })
   await cart.getByRole('button', { name: 'Label' }).click()
   await expect(cart.getByRole('img', { name: 'Label as it prints' })).toHaveAttribute('src', /^blob:/)
-  await cart.getByRole('button', { name: 'Print label' }).click()
-  const job = await nextJob()
+  const job = await printed(() => cart.getByRole('button', { name: 'Print label' }).click())
   expect(job).toContain('BITMAP 0,0,50,200,0,')
   expect(job).toContain('PRINT 1,1')
 })
@@ -123,7 +123,6 @@ test('Repairs’ ticket label prints as a picture', async ({ page }) => {
   await page.getByRole('dialog').getByRole('button', { name: 'Label' }).click()
   const ask = page.getByRole('dialog', { name: 'Print the ticket label?' })
   await expect(ask.getByRole('img', { name: 'Label as it prints' })).toHaveAttribute('src', /^blob:/)
-  await ask.getByRole('button', { name: 'Print' }).click()
-  const job = await nextJob()
+  const job = await printed(() => ask.getByRole('button', { name: 'Print' }).click())
   expect(job).toContain('BITMAP 0,0,50,200,0,')
 })

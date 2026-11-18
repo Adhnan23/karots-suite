@@ -1,4 +1,4 @@
-.PHONY: battle proofs mutate demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -54,6 +54,11 @@ mutate:
 	$(ENV) TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/sales \
 		> ~/.cache/karots-logs/gremlins-sales.log 2>&1; tail -4 ~/.cache/karots-logs/gremlins-sales.log
 	cd web && bunx stryker run > ~/.cache/karots-logs/stryker.log 2>&1; grep -E "All files|\.ts " ~/.cache/karots-logs/stryker.log
+
+# Everything before a Release, side by side (Go, Vitest, Playwright, then check-core):
+# about 10 min. COVER=1 adds the coverage map's numbers. Logs: ~/.cache/karots-logs/full-*.
+test-all:
+	scripts/full-run.sh; cat $$(ls -td ~/.cache/karots-logs/full-* | head -1)/summary.txt
 
 test-web:
 	cd web && bun run test
