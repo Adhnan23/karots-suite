@@ -38,7 +38,8 @@ close and the Z count by it); the Cash flow page shows untracked till cash, and 
 Found and fixed: two withdrawals at once overdrew the drawer (DRAW-16); a sale paid during a close was missed by it
 (DRAW-7); a no-till sale could commit after the next open and stay in no till (power cuts). Not yet Released. Full run
 green in 9m52s (Go, Vitest, all Playwright, check-core); coverage map updated. **Next:** area 3 (customers: credit,
-advances, opening balances, payments) the same way. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
+advances, opening balances, payments) the same way. **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
+Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
 specs once); battle / ledgercheck tests use their own databases and are safe beside it.
 
 **Sell page 2.0: DONE, merged to main and Released to Iman as 2026.11.17.2028 (2026-11-17, binary only, `48a7e04`)**
