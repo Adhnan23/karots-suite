@@ -130,3 +130,33 @@ func TestLOCK1_TransfersAtOnceNeverOverdraw(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// SALE-14 / DRAW-3 (never stop a sale): one cashier selling and giving a cash
+// refund at the same moment (two windows) — both always go through.
+func TestDRAW3_SaleAndRefundAtOnceBothGoThrough(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	for round := range 30 {
+		r := s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "2"}}, cash("200"))
+		item := s.sale(t, s.till1, r.ID).Lines[0].ID
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			if err := s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+				"items": []line{{"productId": s.prod["plain"], "quantity": "1"}}, "payments": []pay{cash("100")}}, nil); err != nil {
+				t.Errorf("round %d sale: %v", round, err)
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			if err := s.till1.Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", r.ID), map[string]any{
+				"lines": []map[string]any{{"saleItemId": item, "quantity": "1"}}}, nil); err != nil {
+				t.Errorf("round %d refund: %v", round, err)
+			}
+		}()
+		wg.Wait()
+	}
+	s.audit(t)
+}
