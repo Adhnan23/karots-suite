@@ -22,7 +22,6 @@ import (
 	"karots-suite/internal/money"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/shopspring/decimal"
 )
 
 // Withdraw records cash taken out of the drawer mid-shift (e.g. banked, paid to
@@ -126,48 +125,4 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 		s.kick(ctx)
 	}
 	return sum, nil
-}
-
-// RecordCreditCash logs cash collected against a customer's credit into the
-// cashier's open drawer. It is a no-op when the cashier has no open session, so
-// callers (the credit-collection page) don't need to special-case the drawer.
-func (s *Service) RecordCreditCash(ctx context.Context, userID int64, amount decimal.Decimal, reason string) {
-	if !amount.IsPositive() {
-		return
-	}
-	sess, err := s.repo.FindOpen(ctx, userID)
-	if err != nil {
-		return
-	}
-	_ = s.repo.AddMovement(ctx, sess.ID, userID, MoveCreditPayment, amount, reason, nil)
-}
-
-// RecordRefundCash logs a cash refund paid out of the cashier's open drawer for
-// a return (negative, lowering expected cash). Like the other Record* helpers it
-// is a no-op when no session is open or the amount isn't positive, so the return
-// handler doesn't need to special-case the drawer.
-func (s *Service) RecordRefundCash(ctx context.Context, userID int64, amount decimal.Decimal, reason string) {
-	if !amount.IsPositive() {
-		return
-	}
-	sess, err := s.repo.FindOpen(ctx, userID)
-	if err != nil {
-		return
-	}
-	_ = s.repo.AddMovement(ctx, sess.ID, userID, MoveRefund, amount.Neg(), reason, nil)
-}
-
-// RecordSupplierCash logs cash paid out to a supplier from the cashier's open
-// drawer as a withdrawal (negative, lowering expected cash). Like
-// RecordCreditCash it is a no-op when no session is open, so the supplier-pay
-// page doesn't need to special-case the drawer.
-func (s *Service) RecordSupplierCash(ctx context.Context, userID int64, amount decimal.Decimal, reason string) {
-	if !amount.IsPositive() {
-		return
-	}
-	sess, err := s.repo.FindOpen(ctx, userID)
-	if err != nil {
-		return
-	}
-	_ = s.repo.AddMovement(ctx, sess.ID, userID, MoveWithdrawal, amount.Neg(), reason, nil)
 }
