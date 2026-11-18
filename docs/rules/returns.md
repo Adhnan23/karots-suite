@@ -60,9 +60,6 @@ screen `web/src/features/counter/returns/refund.ts`. The grid is in [sales.md](s
 - **RET-21** Every return has its return record, one row per line, its refund and credit totals = the sum of its
   lines. *ledgercheck.*
 
-## Drawer rules used here (area 2 owns them)
+## Drawer rules used here
 
-- **DRAW-1** A drawer's expected cash = opening + cash takings − change − cash refunds − cash out, to the cent.
-- **DRAW-2** A payout leaves the drawer as change.
-- **DRAW-3** Cash out (refunds, payouts) can't take the expected cash below zero **?** (area 2 decides).
-- **DRAW-4** Card / online / cheque / on account never change the drawer's expected cash.
+DRAW-1 … DRAW-4 live in [money.md](money.md) (area 2).
