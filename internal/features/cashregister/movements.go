@@ -55,40 +55,39 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 	if err != nil || !amt.IsPositive() {
 		return nil, apperr.Validation(label + " amount must be positive")
 	}
-	sess, err := s.repo.FindOpen(ctx, userID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, apperr.Conflict("open a register session first")
-		}
-		return nil, apperr.Internal("failed to load session", err)
-	}
-	// A withdrawal can never exceed the cash currently in the drawer (opening +
-	// cash sales + net adjustments — the same balance the close reconciles to).
-	if mtype == MoveWithdrawal {
-		cashSales, cerr := s.sales.CashCollectedIn(ctx, sess.ID)
-		if cerr != nil {
-			return nil, cerr
-		}
-		adj, aerr := s.repo.AdjustmentTotal(ctx, sess.ID)
-		if aerr != nil {
-			return nil, apperr.Internal("failed to total cash movements", aerr)
-		}
-		available := sess.OpeningCash.Add(cashSales).Add(adj)
-		if amt.GreaterThan(available) {
-			return nil, apperr.Validation("cannot withdraw more than the " + money.Display(available) + " currently in the drawer")
-		}
-	}
 	signed := amt
 	if negate {
 		signed = amt.Neg()
 	}
-	// The drawer movement and its money leg (locker side when a counterparty locker
-	// is chosen, plus the receipt) commit together so the till and locker can never
-	// drift.
+	// The session is locked first, and what the drawer holds is checked inside the
+	// same transaction, so two withdrawals at once can't both pass (DRAW-16). The
+	// drawer movement and its money leg (locker side when a counterparty locker is
+	// chosen, plus the receipt) commit together so the till and locker can never drift.
 	var receiptID int64
 	if err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		if merr := NewRepository(tx).AddMovement(ctx, sess.ID, userID, mtype, signed, in.Reason, nil); merr != nil {
-			return keepAppError(merr, "failed to record cash movement")
+		repo := NewRepository(tx)
+		sess, err := repo.FindOpenForUpdate(ctx, userID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return apperr.Conflict("open a register session first")
+		}
+		if err != nil {
+			return apperr.Internal("failed to load session", err)
+		}
+		if mtype == MoveWithdrawal { // never more than the cash in the drawer (DRAW-3)
+			cashSales, err := s.sales.CashCollectedIn(ctx, sess.ID)
+			if err != nil {
+				return err
+			}
+			adj, err := repo.AdjustmentTotal(ctx, sess.ID)
+			if err != nil {
+				return apperr.Internal("failed to total cash movements", err)
+			}
+			if available := sess.OpeningCash.Add(cashSales).Add(adj); amt.GreaterThan(available) {
+				return apperr.Validation("cannot withdraw more than the " + money.Display(available) + " currently in the drawer")
+			}
+		}
+		if err := repo.AddMovement(ctx, sess.ID, userID, mtype, signed, in.Reason, nil); err != nil {
+			return keepAppError(err, "failed to record cash movement")
 		}
 		if s.lockerLeg != nil {
 			kind := "withdraw"

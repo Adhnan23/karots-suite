@@ -63,12 +63,12 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
   LOCK-10, LOCK-11, EXP-2 (unpaid void, pending cheque, plugin-owned refused), EXP-3, EXP-4, CF-3. Each ends with the
   auditor.
 - [x] **Step 3:** Run; each failure → fix test-first, one commit each. (none failed)
-- [ ] **Step 3b: The user's answers, test-first, one commit each:** DRAW-3 (a cash refund beyond the drawer goes
+- [x] **Step 3b: The user's answers (d3e892f, 47484da, 457960c; CF-2 also counts a float from nowhere as money in), test-first, one commit each:** DRAW-3 (a cash refund beyond the drawer goes
   through; change / payout / refund taking the expected below zero flags the session's `review_note`), DRAW-6 (a cash
   sale with no open session: booked to the session open at its `rung_at`, else the cashier's next one; both flagged
   with the sale number — needs a sale → session link, likely `sales.session_id`, migration 00038), CF-2 (an untracked
   close / withdrawal shows as money out on the Cash flow page).
-- [ ] **Step 4: Commit** — `test(battle): area 2 cases — one per rule`
+- [x] **Step 4: Commit** — `test(battle): area 2 cases — one per rule`
 
 ### Task 4: Random days with money (`internal/battle/machine_test.go` + `machine_money_test.go`)
 
@@ -83,7 +83,7 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 5: Faults (`internal/battle/faults_money_test.go`)
 
-- [ ] **Step 1:** DRAW-16: two withdrawals at once that together pass the drawer (and a refund + a withdrawal) — one
+- [x] **Step 1:** (DRAW-16 was real: 8 at once all passed, drawer −3,000 — fixed) DRAW-16: two withdrawals at once that together pass the drawer (and a refund + a withdrawal) — one
   must be refused. LOCK-1: two transfers out of one no-negative locker at once.
 - [ ] **Step 2:** DRAW-7: a sale paid while an admin closes that till — afterwards the close's expected = the
   auditor's (the sale is in it or after it). DRAW-8: the cashier and an admin close at the same moment — one close,
