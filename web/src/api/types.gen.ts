@@ -3228,6 +3228,12 @@ export interface SaleRequest {
   changeGiven: string; // "" = full computed change
   onAccountRounding: boolean;
   preparedBy?: number /* int64 */; // the sales person whose ticket this was
+  /**
+   * ClientRef is this Pay's one-time reference (the till keeps it while the same
+   * cart is retried): sent again, the first sale comes back and nothing is booked
+   * twice — an answer lost on the network never makes a second sale (SALE-50).
+   */
+  clientRef?: string;
   items: SaleItemRequest[];
   payments: PaymentRequest[];
 }

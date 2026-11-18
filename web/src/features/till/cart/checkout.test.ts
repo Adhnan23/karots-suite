@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TillCustomer } from '@/api/types.gen'
-import { buildSaleRequest, checkoutGate, chequeMissing, effectivePayments, type GateCtx } from './checkout'
+import { buildSaleRequest, checkoutGate, chequeMissing, effectivePayments, payRef, type GateCtx } from './checkout'
 import { initialState, newChequeDraft, tillReducer } from './store'
 import type { TillState } from './types'
 
@@ -138,5 +138,20 @@ describe('cheque tender', () => {
     expect(req.payments[0]).toMatchObject({ method: 'cheque', amount: '60', cheque: { bank: 'Bank of Ceylon', number: '123456', date: '2026-10-29' } })
     expect(req.payments[1].cheque).toBeUndefined()
     expect(req.changeGiven).toBe('')
+  })
+})
+
+// SALE-50: Pay pressed again for the same cart (an answer lost on the network)
+// sends the same one-time reference, so the server books it once; a changed cart
+// is a new sale with a new reference.
+describe('payRef', () => {
+  it('keeps the reference while the same request is retried', () => {
+    const a = payRef({ items: [1] }, null)
+    expect(a.ref).toMatch(/^till-/)
+    expect(payRef({ items: [1] }, a).ref).toBe(a.ref)
+  })
+  it('makes a new one when the cart changed', () => {
+    const a = payRef({ items: [1] }, null)
+    expect(payRef({ items: [1, 2] }, a).ref).not.toBe(a.ref)
   })
 })

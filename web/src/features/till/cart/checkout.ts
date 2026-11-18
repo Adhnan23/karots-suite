@@ -102,3 +102,13 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
     })),
   }
 }
+
+/** The one-time reference a Pay carries (SALE-50): kept while the very same request
+ *  is sent again — Pay pressed after an answer was lost on the network — so the server
+ *  books the sale once; any change to the cart or payments makes a new one. */
+export type PayRef = { key: string; ref: string }
+export function payRef(req: unknown, last: PayRef | null): PayRef {
+  const key = JSON.stringify(req)
+  if (last && last.key === key) return last
+  return { key, ref: `till-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}` }
+}

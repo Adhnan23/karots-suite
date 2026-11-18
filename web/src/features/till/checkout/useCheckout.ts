@@ -6,7 +6,7 @@ import type { SaleResult } from '@/api/types.gen'
 import { num } from '@/lib/money'
 import { slots } from '@/plugins/slots'
 import { configQuery, customersQuery, errMsg, useRefreshTill } from '../api'
-import { buildSaleRequest, checkoutGate, type Prompt } from '../cart/checkout'
+import { buildSaleRequest, checkoutGate, payRef, type PayRef, type Prompt } from '../cart/checkout'
 import { tillReducer, type Action } from '../cart/store'
 import type { SaleType, TillState } from '../cart/types'
 import { printSale } from '../print'
@@ -22,6 +22,7 @@ export function useCheckout() {
   const [done, setDone] = useState<SaleResult | null>(null)
   const [busy, setBusy] = useState(false)
   const inFlight = useRef(false)
+  const lastPay = useRef<PayRef | null>(null) // the Pay being retried, until it succeeds
   const saleType: SaleType = cfg.defaultSaleType === 'wholesale' ? 'wholesale' : 'retail'
 
   /** Complete the sale. Re-entered with the next state after each prompt answer. */
@@ -40,7 +41,10 @@ export function useCheckout() {
         const msg = await guard(s.lines)
         if (msg) return void toast.error(msg)
       }
-      const res = await api<SaleResult>('/till/sales', { json: buildSaleRequest(s, gate.payments, { deferDrawerKick: !cfg.askToPrint }) })
+      const req = buildSaleRequest(s, gate.payments, { deferDrawerKick: !cfg.askToPrint })
+      lastPay.current = payRef(req, lastPay.current)
+      const res = await api<SaleResult>('/till/sales', { json: { ...req, clientRef: lastPay.current.ref } })
+      lastPay.current = null
       void Promise.allSettled(slots.tillAfterSale.map((fn) => fn({ saleId: res.id, lines: s.lines, customerId: s.customerId, meta: s.meta ?? {} })))
       if (cfg.askToPrint) {
         setDone(res)

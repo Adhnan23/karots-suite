@@ -32,7 +32,7 @@ func saleInput(r SaleRequest) sales.CreateInput {
 	in := sales.CreateInput{
 		CustomerID: r.CustomerID, SaleType: r.SaleType, Discount: r.Discount, DiscountType: r.DiscountType,
 		AllowOverLimit: r.AllowOverLimit, ChangeGiven: r.ChangeGiven, OnAccountRounding: r.OnAccountRounding,
-		DeferDrawerKick: r.DeferDrawerKick, PreparedBy: r.PreparedBy,
+		DeferDrawerKick: r.DeferDrawerKick, PreparedBy: r.PreparedBy, ClientRef: r.ClientRef,
 		Items:           make([]sales.ItemInput, 0, len(r.Items)),
 		Payments:        make([]sales.PaymentInput, 0, len(r.Payments)),
 	}

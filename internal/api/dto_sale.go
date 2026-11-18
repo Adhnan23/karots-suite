@@ -65,6 +65,10 @@ type SaleRequest struct {
 	ChangeGiven       string            `json:"changeGiven"` // "" = full computed change
 	OnAccountRounding bool              `json:"onAccountRounding"`
 	PreparedBy        *int64            `json:"preparedBy,omitempty"` // the sales person whose ticket this was
+	// ClientRef is this Pay's one-time reference (the till keeps it while the same
+	// cart is retried): sent again, the first sale comes back and nothing is booked
+	// twice — an answer lost on the network never makes a second sale (SALE-50).
+	ClientRef string `json:"clientRef,omitempty"`
 	Items             []SaleItemRequest `json:"items"`
 	Payments          []PaymentRequest  `json:"payments"`
 }
