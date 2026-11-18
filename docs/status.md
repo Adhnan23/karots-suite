@@ -29,9 +29,16 @@ made two sales (SALE-50: the till's Pay carries a one-time reference); the till'
 could be a cent off the server's (TILL-1, TILL-2). User's answers built: combos come back whole, in whole sets (RET-13);
 a cheque that hasn't cleared asks give-it-back or cash (RET-17); card refunds in cash (RET-16); a bill discount lowers
 tax (SALE-35). Known gap, not built: RET-14 (mixed tax rates, a line's refund share) needs line tax stored.
-**Area 1 closed 2026-11-18** (full run green but the known `aicatalog:278`; coverage map https://claude.ai/artifact/GSvAu11weLXS7PjRD4G8u9 — core Go 76.6%, screens' unit tests 61%). **Agreed flow (user):** area 2 next session; after every area a full run (`scripts/full-run.sh`) and the coverage map updated; when all 7 core areas are solid, each plugin the same way. **Now:** area 2 (drawer, cash flow, lockers,
-expenses) — rule book `docs/rules/money.md`, plan `docs/plans/2026-11-18-core-battle-test-money.md`; Tasks 1–3 done
-(auditor, cases, the user's Q1–Q3 built, DRAW-16 race fixed — not yet Released); next Task 4 (machine) and the rest of Task 5; the full run's speed-up (Task 0: Playwright ~18 min, pocket.spec 3 min; Vitest
+**Area 1 closed 2026-11-18** (full run green but the known `aicatalog:278`; coverage map https://claude.ai/artifact/GSvAu11weLXS7PjRD4G8u9 — core Go 76.6%, screens' unit tests 61%). **Agreed flow (user):** area 2 next session; after every area a full run (`scripts/full-run.sh`) and the coverage map updated; when all 7 core areas are solid, each plugin the same way. **Area 2 closed 2026-11-18** (drawer, cash flow, lockers, expenses; rule book `docs/rules/money.md`, plan in git
+history): auditor checks (`ledgercheck/money.go`), a case per rule, random money days (`TestBattleMoney`), faults
+(at-once moves, a sale during a close, power cuts while money moves), mutants replayed against the battle tests. User's
+answers built: a cash refund is never stopped (the till is flagged instead, DRAW-3); a sale rung with no till open lands
+in the cashier's next till, both flagged (DRAW-6; each sale stores its till session, migration 00038 — the drawer, the
+close and the Z count by it); the Cash flow page shows untracked till cash, and over / short, as money in / out (CF-2).
+Found and fixed: two withdrawals at once overdrew the drawer (DRAW-16); a sale paid during a close was missed by it
+(DRAW-7); a no-till sale could commit after the next open and stay in no till (power cuts). Not yet Released. Full run
+green in 9m52s (Go, Vitest, all Playwright, check-core); coverage map updated. **Next:** area 3 (customers: credit,
+advances, opening balances, payments) the same way; the full run's speed-up (Task 0: Playwright ~18 min, pocket.spec 3 min; Vitest
 makes jsdom 46×) after that. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
 specs once); battle / ledgercheck tests use their own databases and are safe beside it.
 
