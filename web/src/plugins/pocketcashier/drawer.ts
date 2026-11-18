@@ -1,11 +1,12 @@
 import type { CopyHeld, TillCopy } from '@/api/types.gen'
+import { holdsCash } from '@/features/till/api'
 import { dec, money, num, r2 } from '@/lib/money'
 import type { Action } from './store/outbox'
 
 type Pay = { method: string; amount: string }
 
 /** Cash places a till may take a float from or bank into (cards and banks hold no notes). */
-export const cashPlaces = (copy: TillCopy) => copy.places.filter((p) => p.cashierAccess && p.kind !== 'bank' && p.kind !== 'card')
+export const cashPlaces = (copy: TillCopy) => copy.places.filter((p) => p.cashierAccess && holdsCash(p))
 
 const mine = (out: Action[], userId: number) => out.filter((a) => a.userId === userId)
 

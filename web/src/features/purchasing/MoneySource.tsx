@@ -1,4 +1,5 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
+import { holdsCash } from '@/features/till/api'
 import { api } from '@/api/client'
 import type { MoneySource } from '@/api/types.gen'
 import { INPUT } from '@/components/admin/fields'
@@ -12,7 +13,7 @@ export const moneySourcesQuery = queryOptions({ queryKey: ['admin', 'money-sourc
 /** Where a method's money can sit: cash in a safe / pocket / till, card in a
  * card account, online in a bank account. */
 export const sourcesFor = (all: MoneySource[], m: Method) =>
-  all.filter((s) => (m === 'cash' ? s.kind !== 'card' && s.kind !== 'bank' : s.kind === (m === 'card' ? 'card' : 'bank')))
+  all.filter((s) => (m === 'cash' ? holdsCash(s) : s.kind === (m === 'card' ? 'card' : 'bank')))
 
 /** The shop's bank places a given cheque can be drawn on. */
 export const bankPlaces = (all: MoneySource[] | undefined) =>

@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { holdsCash } from '@/features/till/api'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -23,7 +24,7 @@ export function ExpensesTab() {
   const cfg = useSuspenseQuery(configQuery).data
   const page = useSuspenseQuery(expensesQuery).data
   const drawer = useQuery(drawerQuery).data
-  const lockers = (drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
+  const lockers = (drawer?.lockers ?? []).filter(holdsCash)
   const banks = lockersOf(drawer, 'bank')
   const [byCheque, setByCheque] = useState(false)
   const [cheques, setCheques] = useState<ChequeDraftLine[]>([])

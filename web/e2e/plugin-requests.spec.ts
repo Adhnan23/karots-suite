@@ -39,7 +39,7 @@ test('the till notes a request, and a second customer asks again instead of a du
   await page.getByRole('button', { name: 'Note request' }).click()
   await note(page).fill(umbrella)
   await page.getByLabel('Customer name').fill('Nimal')
-  await page.getByLabel('Phone').fill('0771234567')
+  await page.getByRole('textbox', { name: 'Phone', exact: true }).fill('0771234567')
   await page.getByRole('button', { name: 'Save request' }).click()
   await expect(page.getByText('Request noted')).toBeVisible()
 

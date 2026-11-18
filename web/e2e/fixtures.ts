@@ -4,6 +4,12 @@ import type { BrowserContext, Page } from '@playwright/test'
 
 export { expect, type Page } from '@playwright/test'
 
+/** This worker's own server (playwright.config.ts, scripts/e2e-servers.sh): the app at
+ *  3000 + i, Pocket Cashier's phone app at 8443 + i. */
+const worker = Number(process.env.TEST_PARALLEL_INDEX ?? 0)
+export const APP_URL = `http://localhost:${3000 + worker}`
+export const POCKET_URL = `https://localhost:${8443 + worker}/x/pocketcashier/`
+
 // Every spec signs in from one IP, so the suite outruns the login limiter
 // (burst 10, +1 per 2s; unlock shares it). Wait out a 429 instead of failing.
 async function waitOut429(page: Page | BrowserContext) {

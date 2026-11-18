@@ -1,4 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test'
+import { POCKET_URL } from './fixtures'
 
 // UI-gate screenshots of Pocket Cashier (not a behaviour test). Needs `make e2e-seed`
 // data and a server with the plugin built in.
@@ -10,7 +11,7 @@ test.describe.configure({ mode: 'serial' })
 test.use({ launchOptions: { args: ['--ignore-certificate-errors'] } })
 test.setTimeout(180_000)
 
-const APP = 'https://localhost:8443/x/pocketcashier/'
+const APP = POCKET_URL
 let ctx: BrowserContext
 let phone: Page
 

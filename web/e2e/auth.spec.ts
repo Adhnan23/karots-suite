@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, test, type Page, APP_URL } from './fixtures'
 
 // Seeded by `make e2e-seed` (Step 2): admin 0770000001 / cashier 0770000002, PIN 1234.
 const login = async (page: Page, phone: string) => {
@@ -9,7 +9,7 @@ const login = async (page: Page, phone: string) => {
 }
 
 test('bad cookie on load lands on login, not a blank page or loop', async ({ page, context }) => {
-  await context.addCookies([{ name: 'pos_token', value: 'garbage', url: 'http://localhost:3000' }])
+  await context.addCookies([{ name: 'pos_token', value: 'garbage', url: APP_URL }])
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()

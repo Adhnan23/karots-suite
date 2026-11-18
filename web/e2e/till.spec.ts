@@ -44,6 +44,12 @@ const done = (page: Page) => page.getByRole('dialog', { name: /complete/ })
 
 test('open the till with a counted float', async ({ page }) => {
   await login(page, '0770000002')
+  // Start from a closed till whatever ran before in this worker (files share a worker's database).
+  const st = await (await page.request.get('/api/v1/till/drawer')).json()
+  if (st.summary.session) {
+    await page.request.post('/api/v1/till/drawer/close', { data: { breakdown: { [st.summary.expected]: 1 } } })
+    await page.reload()
+  }
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
   await expect(dlg).toBeVisible()
   await dlg.getByLabel(/Count of .*500\.00/).fill('2')

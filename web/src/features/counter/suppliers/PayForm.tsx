@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { holdsCash } from '@/features/till/api'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -32,7 +33,7 @@ export function PayForm({ s }: { s: SupplierView }) {
   const [ref, setRef] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
-  const cashLockers = (drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank')
+  const cashLockers = (drawer?.lockers ?? []).filter(holdsCash)
   // A card machine only takes money in: paying a supplier by card is the owner's
   // card (outside the shop). Online may leave a shop bank account.
   const accounts = method === 'online' ? lockersOf(drawer, 'bank') : []

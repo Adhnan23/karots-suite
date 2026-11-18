@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { holdsCash } from '@/features/till/api'
 import { ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -44,7 +45,7 @@ export function StockForm({ mode, supplier, orderId }: { mode: 'receive' | 'orde
   const sym = cfg.symbol
   const { net, bill, total } = billTotals(shown, disc, discType)
   const froms = payMethod === 'cash'
-    ? [{ id: '', name: 'My drawer' }, ...(drawer?.lockers ?? []).filter((l) => l.kind !== 'card' && l.kind !== 'bank').map((l) => ({ id: String(l.id), name: `${l.name} (${money(sym, l.balance)})` }))]
+    ? [{ id: '', name: 'My drawer' }, ...(drawer?.lockers ?? []).filter(holdsCash).map((l) => ({ id: String(l.id), name: `${l.name} (${money(sym, l.balance)})` }))]
     : [{ id: '', name: 'Not from a shop account' }, ...(payMethod === 'online' ? lockersOf(drawer, 'bank') : []).map((l) => ({ id: String(l.id), name: l.name }))]
   const short = orderId !== null && shown.some((l) => num(l.quantity) < num(l.ordered))
 

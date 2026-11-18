@@ -1,9 +1,9 @@
 import type { BrowserContext, Page } from '@playwright/test'
-import { expect, test } from './fixtures'
+import { expect, test, POCKET_URL } from './fixtures'
 
 // The plugins' own till screens on the phone, with the PC down: everything is done
 // offline, then the PC takes it all when it's back.
-const APP = 'https://localhost:8443/x/pocketcashier/'
+const APP = POCKET_URL
 const API = '/api/v1/x/pocketcashier'
 test.use({ launchOptions: { args: ['--ignore-certificate-errors'] } })
 

@@ -1,10 +1,10 @@
 import type { Browser, BrowserContext, Page } from '@playwright/test'
-import { expect, test } from './fixtures'
+import { expect, test, POCKET_URL } from './fixtures'
 import { viaTicket } from './ticket'
 
 // The phone app on its own HTTPS port (the shop CA isn't trusted here). One
 // phone context runs through the file: pair, takeover, sell live, sell offline.
-const APP = 'https://localhost:8443/x/pocketcashier/'
+const APP = POCKET_URL
 const API = '/api/v1/x/pocketcashier'
 
 // Chromium won't register a service worker under a certificate error even with
