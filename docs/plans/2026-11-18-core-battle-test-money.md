@@ -41,7 +41,7 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 2: Auditor checks (`internal/ledgercheck/money.go`)
 
-- [ ] **Step 1: Failing test** `internal/ledgercheck/money_db_test.go`: a clean day (open from a locker, cash sale,
+- [x] **Step 1: Failing test** `internal/battle/ledger_money_test.go` (the API builds the day): a clean day (open from a locker, cash sale,
   withdraw to a locker, expense from the till, transfer, settle card, banked close, a voided expense) → no
   violations; then corrupt one row at a time and assert that rule's id: DRAW-1 (stored expected off by 0.01;
   difference ≠ counted − expected), DRAW-9 (opening record ≠ opening cash; banked close without its locker row),
@@ -49,10 +49,10 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
   transfer half), LOCK-6 (a card account row that isn't a sale, payment or settle), LOCK-7 / LOCK-8 (a bank charge
   without its expense), LOCK-12 (a card payment without its account row), EXP-1 (a paid expense whose money ≠ amount −
   unpaid), EXP-2 (a void that put back less).
-- [ ] **Step 2: Run, fail; write the checks; run, pass.**
-- [ ] **Step 3:** Run `Run` over the Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
+- [x] **Step 2: Run, fail; write the checks; run, pass.** LOCK-1 left to the machine (cleared cheques may overdraw).
+- [x] **Step 3:** (2026-11-18: grocery year clean; dev DB: no area 2 violations) Run `Run` over the Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
   (→ Task 3 test) or a wrong rule (→ the user).
-- [ ] **Step 4: Commit** — `test(ledgercheck): area 2 checks — drawer, lockers, expenses`
+- [x] **Step 4: Commit** — `test(ledgercheck): area 2 checks — drawer, lockers, expenses`
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_money_test.go`)
 

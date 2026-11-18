@@ -111,8 +111,8 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 
 - **LOCK-1** A locker's balance is the sum of its rows. A move the shop makes never takes a locker below zero unless
   it allows it; money that already moved outside the suite (a payment recorded after the bank's app made it) is
-  written as it happened. Two moves at once out of one locker can't together overdraw it. *ledgercheck (no
-  allow-negative locker ends below zero), machine, faults.*
+  written as it happened. Two moves at once out of one locker can't together overdraw it. *machine, faults* (not
+  ledgercheck: a cleared cheque may rightly take a bank below zero).
 - **LOCK-2** A transfer between lockers is two rows, equal and opposite, each naming the other. *ledgercheck.*
 - **LOCK-3** A till ↔ locker row names the session and matches the drawer movement of the same moment, opposite in
   sign. *ledgercheck.*
