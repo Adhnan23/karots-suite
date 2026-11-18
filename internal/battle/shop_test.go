@@ -16,7 +16,6 @@ import (
 
 	"karots-suite/internal/app"
 	"karots-suite/internal/config"
-	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/ledgercheck/ltest"
 )
@@ -26,7 +25,7 @@ import (
 type shop struct {
 	db                   *sqlx.DB
 	dsn                  string
-	admin, till1, till2  *gen.Client
+	admin, till1, till2  *client
 	prod                 map[string]int64
 	customer, cardAcct   int64
 	unitPcs, unitKg, cat int64
@@ -68,8 +67,8 @@ func newShop(t ltest.T) *shop {
 	}
 	s.must(t, sqlxExec(ctx, db, `UPDATE users SET must_change_pin = false`))
 	var err error
-	for i, c := range []**gen.Client{&s.admin, &s.till1, &s.till2} {
-		if *c, err = gen.NewClient(h, fmt.Sprintf("077000000%d", i+1), "1234", fmt.Sprintf("battle-%d", i)); err != nil {
+	for i, c := range []**client{&s.admin, &s.till1, &s.till2} {
+		if *c, err = newClient(h, fmt.Sprintf("077000000%d", i+1), "1234", fmt.Sprintf("battle-%d", i)); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -113,12 +112,12 @@ func (s *shop) fixtures(t ltest.T) {
 }
 
 // open starts a till with Rs 5,000 float.
-func (s *shop) open(t ltest.T, c *gen.Client) {
+func (s *shop) open(t ltest.T, c *client) {
 	s.must(t, c.Do("POST", "/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}}, nil))
 }
 
 // close counts exactly what the till expects.
-func (s *shop) close(t ltest.T, c *gen.Client) {
+func (s *shop) close(t ltest.T, c *client) {
 	var st struct {
 		Summary struct{ Expected string } `json:"summary"`
 	}

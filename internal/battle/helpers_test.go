@@ -5,7 +5,6 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"karots-suite/internal/demo/gen"
 	"karots-suite/internal/ledgercheck/ltest"
 )
 
@@ -31,7 +30,7 @@ type sale struct {
 }
 
 // sell rings a retail sale with a fixed bill discount.
-func (s *shop) sell(t ltest.T, c *gen.Client, billOff string, items []line, pays ...pay) saleResult {
+func (s *shop) sell(t ltest.T, c *client, billOff string, items []line, pays ...pay) saleResult {
 	var r saleResult
 	s.must(t, c.Do("POST", "/api/v1/till/sales", map[string]any{
 		"saleType": "retail", "discount": billOff, "discountType": "fixed", "items": items, "payments": pays,
@@ -39,14 +38,14 @@ func (s *shop) sell(t ltest.T, c *gen.Client, billOff string, items []line, pays
 	return r
 }
 
-func (s *shop) sale(t ltest.T, c *gen.Client, id int64) sale {
+func (s *shop) sale(t ltest.T, c *client, id int64) sale {
 	var v sale
 	s.must(t, c.Do("GET", fmt.Sprintf("/api/v1/till/sales/%d", id), nil, &v))
 	return v
 }
 
 // giveBack returns qty of one line at the counter; the cash refunded.
-func (s *shop) giveBack(t ltest.T, c *gen.Client, saleID, itemID int64, qty string) decimal.Decimal {
+func (s *shop) giveBack(t ltest.T, c *client, saleID, itemID int64, qty string) decimal.Decimal {
 	var r struct{ CashRefund string }
 	s.must(t, c.Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", saleID), map[string]any{
 		"lines": []map[string]any{{"saleItemId": itemID, "quantity": qty}}}, &r))

@@ -43,7 +43,7 @@ func TestBattlePowerCut(t *testing.T) {
 		}
 		time.Sleep(time.Duration(30+rand.IntN(400)) * time.Millisecond)
 		srv.cmd.Process.Signal(syscall.SIGKILL) //nolint:errcheck
-		srv.cmd.Wait()                         //nolint:errcheck
+		srv.cmd.Wait()                          //nolint:errcheck
 		close(stop)
 		wg.Wait()
 		s.audit(t)
@@ -75,7 +75,7 @@ func (s *shop) busyTill(c *hclient, stop chan struct{}) {
 		}
 		var r saleResult
 		err := c.postInto("/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "3", "discountType": "fixed",
-			"items": []line{{"productId": s.prod["plain"], "quantity": "2"}, {"productId": s.prod["odd"], "quantity": "1", "discount": "5", "discountType": "percent"}},
+			"items":    []line{{"productId": s.prod["plain"], "quantity": "2"}, {"productId": s.prod["odd"], "quantity": "1", "discount": "5", "discountType": "percent"}},
 			"payments": []pay{cash("300")}}, &r)
 		if err == nil {
 			last = r.ID

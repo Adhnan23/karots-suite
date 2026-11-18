@@ -188,7 +188,8 @@ func (g *gen) bills(day time.Time) error {
 	return nil
 }
 
-// aReturn takes back one line of one of today's sales — changed mind, wrong size.
+// aReturn takes back one line of one of today's sales — changed mind, wrong size;
+// never one item of a combo, which comes back only whole.
 func (g *gen) aReturn(day time.Time) error {
 	var line struct {
 		Sale int64           `db:"sale_id"`
@@ -200,6 +201,7 @@ func (g *gen) aReturn(day time.Time) error {
 		JOIN products p ON p.id = si.product_id
 		WHERE s.created_at >= $1 AND s.status = 'completed' AND s.customer_id IS NULL AND si.quantity > si.returned_qty
 		  AND NOT p.is_service AND NOT p.track_serial AND si.unit_price > 0 -- goods come back; a reload, a cash out or a phone (warranty) don't
+		  AND si.line_group IS NULL -- a combo comes back only whole (RET-13): one item of it never does
 		ORDER BY si.id DESC OFFSET $2 LIMIT 1`, g.tm.start, g.r.IntN(20))
 	if err != nil {
 		return nil // nothing sold yet this batch

@@ -52,13 +52,13 @@ type mLine struct {
 }
 
 type mSale struct {
-	id                        int64
-	total, paid, credit       decimal.Decimal // paid = money taken; credit = put on account
-	cleared, refunded         decimal.Decimal // debt cleared by returns; everything refunded
-	customer                  bool
-	lines                     []mLine
-	cheque                    int64 // a cheque still pending, 0 = none
-	chequeAmt                 decimal.Decimal
+	id                  int64
+	total, paid, credit decimal.Decimal // paid = money taken; credit = put on account
+	cleared, refunded   decimal.Decimal // debt cleared by returns; everything refunded
+	customer            bool
+	lines               []mLine
+	cheque              int64 // a cheque still pending, 0 = none
+	chequeAmt           decimal.Decimal
 }
 
 type machine struct {
