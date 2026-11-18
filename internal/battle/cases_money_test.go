@@ -232,3 +232,20 @@ func TestDRAW6_SaleWithNoOpenTillLandsInTheNext(t *testing.T) {
 	s.close(t, s.till1)
 	s.audit(t)
 }
+
+// CF-2 (user, Q3): cash taken out of a till into nowhere shows as money out —
+// and a float put in from nowhere as money in — so a day's net is what the
+// shop holds more at its end. Here the float stays in the drawer overnight.
+func TestCF2_UntrackedTillCashShowsOnTheCashFlow(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "2"}}, cash("200"))
+	s.close(t, s.till1)
+	var cf struct{ TillSales, In, Out, Net string }
+	s.must(t, s.admin.Do("GET", "/api/v1/admin/cashflow", nil, &cf))
+	if cf.TillSales != "200.00" || cf.In != "5000.00" || cf.Out != "5200.00" || cf.Net != "0.00" {
+		t.Errorf("cash flow %+v, want till sales 200, in 5000 (the float), out 5200 (the close), net 0", cf)
+	}
+	s.audit(t)
+}

@@ -42,7 +42,8 @@ const ledgerUnion = `
 	JOIN lockers l ON l.id = ll.locker_id
 	WHERE ll.created_at >= $1 AND ll.created_at < $2
 	UNION ALL
-	SELECT cm.created_at, 'till:' || cm.user_id, 'Till — ' || u.name, cm.type::text, cm.amount, COALESCE(cm.reason, ''),
+	SELECT cm.created_at, 'till:' || cm.user_id, 'Till — ' || u.name, cm.type::text,
+	       CASE WHEN cm.type = 'closing' THEN -cm.amount ELSE cm.amount END, COALESCE(cm.reason, ''),
 	       EXISTS (SELECT 1 FROM locker_ledger ll2
 	               WHERE ll2.counter_till_session = cm.session_id
 	                 AND ll2.created_at = cm.created_at
@@ -51,7 +52,12 @@ const ledgerUnion = `
 	FROM cash_movements cm
 	JOIN users u ON u.id = cm.user_id
 	WHERE cm.created_at >= $1 AND cm.created_at < $2
-	  AND cm.type IN ('withdrawal','pay_in','credit_payment','refund','expense')`
+	  AND (cm.type IN ('withdrawal','pay_in','credit_payment','refund','expense')
+	       -- CF-2: a float from nowhere is money in, a close into nowhere money out
+	       -- (a float left in the drawer overnight is both, and nets to nothing).
+	       OR (cm.type IN ('opening','closing') AND cm.amount <> 0
+	           AND NOT EXISTS (SELECT 1 FROM locker_ledger ll3
+	                           WHERE ll3.counter_till_session = cm.session_id AND ll3.created_at = cm.created_at)))`
 
 // LedgerFilter narrows the ledger page: Place is a MoneySource value, Kind a
 // locker_ledger kind or cash_movements type ("" = any). Limit <= 0 = the whole
