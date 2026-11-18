@@ -15,7 +15,7 @@ import { FIELD } from '@/features/till/ui'
 import { SaleFind } from '../SaleFind'
 import { afterSlip } from '../slip'
 import { CounterPage } from '../ui'
-import { left, REASONS, refundOf } from './refund'
+import { bumpQty, left, REASONS, refundOf } from './refund'
 
 
 /** Take goods back against a receipt: pick the lines, say if they're faulty, refund. */
@@ -45,7 +45,7 @@ function ReturnForm({ sale }: { sale: SaleView }) {
   const offAccount = Math.min(value, num(sale.owedOnSale))
   const cash = r2(value - offAccount)
   const picked = sale.lines.filter((l) => (qty[l.id] ?? 0) > 0)
-  const bump = (l: SaleLine, d: number) => setQty((q) => ({ ...q, [l.id]: Math.min(left(l), Math.max(0, (q[l.id] ?? 0) + d)) }))
+  const bump = (l: SaleLine, d: number) => setQty((q) => bumpQty(sale.lines, q, l, d))
 
   async function submit() {
     if (!picked.length) return void toast.error('Choose what is coming back')

@@ -138,3 +138,41 @@ func TestRET19_PartPaidCreditSaleClearsDebtThenCash(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// RET-13: a combo comes back whole — every line, in whole sets — or not at all.
+func TestRET13_ComboComesBackWholeSets(t *testing.T) {
+	s := newShop(t)
+	s.open(t, s.till1)
+	combo := map[string]any{"no": 1, "label": "Combo", "sets": "2"}
+	r := s.sell(t, s.till1, "0", []line{
+		{"productId": s.prod["plain"], "quantity": "2", "group": combo},
+		{"productId": s.prod["odd"], "quantity": "4", "group": combo},
+		{"productId": s.prod["cheap"], "quantity": "1"},
+	}, cash("1000"))
+	v := s.sale(t, s.till1, r.ID)
+	plain, odd, cheap := v.Lines[0].ID, v.Lines[1].ID, v.Lines[2].ID
+	back := func(lines ...map[string]any) error {
+		return s.till1.Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", r.ID), map[string]any{"lines": lines}, nil)
+	}
+	ln := func(id int64, q string) map[string]any { return map[string]any{"saleItemId": id, "quantity": q} }
+
+	if err := back(ln(plain, "2")); err == nil {
+		t.Error("one line of a combo came back on its own")
+	}
+	if err := back(ln(plain, "1"), ln(odd, "3")); err == nil {
+		t.Error("a combo came back in uneven parts (1 of 2 sets, 3 of 4)")
+	}
+	if err := back(ln(cheap, "1")); err != nil {
+		t.Errorf("a line outside the combo: %v", err)
+	}
+	if err := back(ln(plain, "1"), ln(odd, "2")); err != nil {
+		t.Errorf("one whole set: %v", err)
+	}
+	if err := back(ln(plain, "1"), ln(odd, "2")); err != nil {
+		t.Errorf("the other whole set: %v", err)
+	}
+	if st := s.sale(t, s.till1, r.ID).Status; st != "returned" {
+		t.Errorf("status %s, want returned", st)
+	}
+	s.audit(t)
+}

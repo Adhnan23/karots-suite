@@ -169,6 +169,9 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			return apperr.Internal("failed to value the return", err)
 		}
 		paid := PaidShares(sale.Total, all)
+		if err := checkWholeSets(all, in.Lines); err != nil {
+			return err
+		}
 		returnID, err = saleRepo.InsertSaleReturn(ctx, saleID, userID, decimal.Zero, decimal.Zero, in.Reason)
 		if err != nil {
 			return apperr.Internal("failed to open return", err)

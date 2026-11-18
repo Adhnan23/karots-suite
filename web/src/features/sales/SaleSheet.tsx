@@ -10,7 +10,7 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { Button } from '@/components/ui/button'
 import { saleQuery } from '@/features/counter/queries'
 import { SlipView } from '@/features/print/SlipView'
-import { left, REASONS, refundOf } from '@/features/counter/returns/refund'
+import { bumpQty, left, REASONS, refundOf } from '@/features/counter/returns/refund'
 import { ReviewBlock, returnSource } from './SaleReview'
 import { MoneySourcePicker } from '@/features/purchasing/MoneySource'
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
@@ -58,7 +58,7 @@ function ReturnSheet({ sale, head, onClose }: { sale: SaleView; head: ReactNode;
   const offAccount = Math.min(value, num(sale.owedOnSale))
   const cash = r2(value - offAccount)
   const picked = lines.filter((l) => (qty[l.id] ?? 0) > 0)
-  const bump = (l: SaleLine, d: number) => setQty((q) => ({ ...q, [l.id]: Math.min(left(l), Math.max(0, (q[l.id] ?? 0) + d)) }))
+  const bump = (l: SaleLine, d: number) => setQty((q) => bumpQty(sale.lines, q, l, d))
 
   async function submit() {
     if (busy) return

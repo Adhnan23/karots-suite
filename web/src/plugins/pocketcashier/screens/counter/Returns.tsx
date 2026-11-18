@@ -2,7 +2,7 @@ import { Minus, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { SaleLine, SaleView } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
-import { left, REASONS, refundOf } from '@/features/counter/returns/refund'
+import { bumpQty, left, REASONS, refundOf } from '@/features/counter/returns/refund'
 import { printRefund } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { dec, money, num, qtyText, r2 } from '@/lib/money'
@@ -51,7 +51,7 @@ function ReturnForm({ who, copy, out, sale, onDone, onBack }: CounterProps & { s
   const cash = r2(value - offAccount)
   const picked = sale.lines.filter((l) => (qty[l.id] ?? 0) > 0)
   const open = drawerOpen(copy, who.id, out)
-  const bump = (l: SaleLine, d: number) => setQty((q) => ({ ...q, [l.id]: Math.min(left(l), Math.max(0, (q[l.id] ?? 0) + d)) }))
+  const bump = (l: SaleLine, d: number) => setQty((q) => bumpQty(sale.lines, q, l, d))
 
   async function submit() {
     setBusy(true)
