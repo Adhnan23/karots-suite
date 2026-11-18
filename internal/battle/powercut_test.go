@@ -28,6 +28,8 @@ func TestBattlePowerCut(t *testing.T) {
 		t.Skip("power cuts run in make battle")
 	}
 	s := newShop(t)
+	safe := s.locker(t, "Safe", "safe", "100000")
+	s.must(t, sqlxExec(context.Background(), s.db, `UPDATE users SET can_handle_suppliers = true`)) // counter expenses
 	bin := serverBinary(t)
 	cuts := max(steps()/200, 10)
 	for cut := 0; cut < cuts; cut++ {
@@ -40,6 +42,10 @@ func TestBattlePowerCut(t *testing.T) {
 		stop := make(chan struct{})
 		for w := 0; w < 3; w++ {
 			wg.Add(1)
+			if w == 2 { // area 2: money moves while the power goes
+				go func() { defer wg.Done(); busyMoney(c, safe, stop) }()
+				continue
+			}
 			go func() { defer wg.Done(); s.busyTill(c, stop) }()
 		}
 		time.Sleep(time.Duration(30+rand.IntN(400)) * time.Millisecond)
@@ -55,6 +61,34 @@ func TestBattlePowerCut(t *testing.T) {
 	var n int
 	s.must(t, s.db.Get(&n, `SELECT count(*) FROM sales`))
 	t.Logf("%d power cuts, %d sales survived", cuts, n)
+}
+
+// busyMoney moves cash in and out of the drawer, pays expenses from it and
+// closes / reopens the till (banked into the safe) until the power goes: every
+// move whole or absent (DRAW-1, DRAW-9, DRAW-10, LOCK-3, EXP-1).
+func busyMoney(c *hclient, safe int64, stop chan struct{}) {
+	for {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		switch rand.IntN(5) {
+		case 0:
+			c.post("/api/v1/till/drawer/withdraw", map[string]any{"amount": "10.25", "reason": "cut", "lockerId": safe}) //nolint:errcheck
+		case 1:
+			c.post("/api/v1/till/drawer/deposit", map[string]any{"amount": "7.50", "reason": "cut", "lockerId": safe}) //nolint:errcheck
+		case 2:
+			c.post("/api/v1/till/expenses", map[string]any{"category": "Cut", "amount": "3.10"}) //nolint:errcheck
+		case 3:
+			var st struct{ Summary struct{ Expected string } }
+			if c.get("/api/v1/till/drawer", &st) == nil && st.Summary.Expected != "" {
+				c.post("/api/v1/till/drawer/close", map[string]any{"breakdown": map[string]int{st.Summary.Expected: 1}, "destLockerId": safe}) //nolint:errcheck
+			}
+		case 4:
+			c.post("/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}, "sourceLockerId": safe}) //nolint:errcheck
+		}
+	}
 }
 
 // busyTill sells and returns as fast as it can until the power goes.

@@ -13,6 +13,7 @@ package cashregister
 
 import (
 	"context"
+	"karots-suite/internal/features/sales"
 	"strings"
 	"time"
 
@@ -123,16 +124,22 @@ func (r *Repository) ListMovements(ctx context.Context, sessionID int64) ([]Move
 // AdoptLateSales gives a newly opened session the cashier's sales that found no
 // open till (rung after their last close, DRAW-6): their cash is counted here.
 // Both this session and the one closed before them are flagged with the numbers
-// of those that took or gave cash. Older orphans (before the last close) stay
-// where they are — their cash was counted, as over or short, by that close.
+// of those that took or gave cash. Older orphans (before the last till opened)
+// stay where they are — their cash was counted, as over or short, back then.
 func (r *Repository) AdoptLateSales(ctx context.Context, sessionID, userID int64) error {
+	// Alone on the cashier's lock: every sale that found no till has committed.
+	if _, err := r.q.ExecContext(ctx, `SELECT pg_advisory_xact_lock($1, $2::int)`, sales.TillLockSpace, userID); err != nil {
+		return err
+	}
+	// Since the last till opened, not closed: a sale's time is when it began,
+	// which can be just before the close it waited for.
 	var nos []string
 	if err := r.q.SelectContext(ctx, &nos, `
-		WITH last AS (SELECT id, closed_at FROM cash_register
-		              WHERE user_id = $2 AND id <> $1 AND closed_at IS NOT NULL ORDER BY closed_at DESC LIMIT 1),
+		WITH last AS (SELECT opened_at FROM cash_register
+		              WHERE user_id = $2 AND id <> $1 ORDER BY opened_at DESC LIMIT 1),
 		late AS (UPDATE sales s SET session_id = $1
 		         WHERE s.cashier_id = $2 AND s.session_id IS NULL
-		           AND s.created_at >= COALESCE((SELECT closed_at FROM last), '-infinity')
+		           AND s.created_at >= COALESCE((SELECT opened_at FROM last), '-infinity')
 		         RETURNING s.id, s.receipt_no, s.change_given)
 		SELECT l.receipt_no FROM late l
 		WHERE l.change_given <> 0 OR EXISTS (SELECT 1 FROM payments p WHERE p.sale_id = l.id AND p.method = 'cash')

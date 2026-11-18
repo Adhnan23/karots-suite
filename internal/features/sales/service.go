@@ -176,7 +176,13 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		// The cashier's open till takes the sale (DRAW-6). Shared-locked, so a close
 		// running now waits for this sale and counts it, or — if the close got
 		// there first — the sale finds no open till and the next one takes it.
+		// The cashier's lock is shared with their other sales and taken alone by
+		// their till's open, so a sale that finds no till is always committed
+		// before the next open takes the waiting sales in, or sees that till.
 		var sessionID *int64
+		if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock_shared($1, $2::int)`, TillLockSpace, cashierID); err != nil {
+			return apperr.Internal("failed to find the till", err)
+		}
 		if err := tx.GetContext(ctx, &sessionID, `SELECT id FROM cash_register
 			WHERE user_id = $1 AND closed_at IS NULL FOR SHARE`, cashierID); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return apperr.Internal("failed to find the till", err)

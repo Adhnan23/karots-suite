@@ -83,6 +83,10 @@ func (s *Service) PeriodSummary(ctx context.Context, sessionID int64) (*PeriodSu
 	return out, nil
 }
 
+// TillLockSpace names the per-cashier advisory lock a sale shares and a till's
+// open takes alone (DRAW-6): pg_advisory_xact_lock(TillLockSpace, cashier id).
+const TillLockSpace = 7311
+
 // CashCollectedIn is the NET cash a till session's sales put in its drawer:
 // cash tendered minus change handed back (change is always cash), so an
 // overpaid sale doesn't overstate the expected drawer balance.

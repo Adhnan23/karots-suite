@@ -35,14 +35,15 @@ func TestDRAW16_WithdrawalsAtOnceNeverOverdraw(t *testing.T) {
 	s.audit(t)
 }
 
-// DRAW-7: sales paid while an admin closes that till for the cashier land in
-// the close (counted in its expected) or after it (the next till) — the
-// auditor recounts every close from its sales.
+// DRAW-7 / DRAW-6: sales paid while an admin closes that till for the cashier,
+// who opens again at once, land in the close (counted in its expected) or in
+// the next till — never in none. The auditor recounts every close from its
+// sales and finds any sale left with no till.
 func TestDRAW7_SalesDuringACloseAreNeverMissed(t *testing.T) {
 	t.Parallel()
 	s := newShop(t)
-	for round := range 6 {
-		s.open(t, s.till1)
+	s.open(t, s.till1)
+	for round := range 8 {
 		var sess int64
 		s.must(t, s.db.Get(&sess, `SELECT id FROM cash_register WHERE closed_at IS NULL`))
 		var wg sync.WaitGroup
@@ -59,6 +60,7 @@ func TestDRAW7_SalesDuringACloseAreNeverMissed(t *testing.T) {
 			if err := s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/tills/%d/close", sess), map[string]any{"breakdown": map[string]int{}}, nil); err != nil {
 				t.Errorf("round %d close: %v", round, err)
 			}
+			s.open(t, s.till1)
 		}()
 		wg.Wait()
 	}

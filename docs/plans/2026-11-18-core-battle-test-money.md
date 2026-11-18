@@ -72,25 +72,25 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 4: Random days with money (`internal/battle/machine_test.go` + `machine_money_test.go`)
 
-- [ ] **Step 1:** The machine keeps books for both tills and every locker (a cash safe, a no-negative safe, a bank, a
+- [x] **Step 1:** (`machine_money_test.go`; found: over / short missing from Cash flow) The machine keeps books for both tills and every locker (a cash safe, a no-negative safe, a bank, a
   card account). New actions: open (float from a locker / none), withdraw / pay-in (locker / none), expense from the
   till / a locker / outside, void an expense (back to a till / locker), transfer, bank charge, interest, settle card,
   close (banked / counted only, the right amount or over / short), close for them, card / online sales. After every
   step: auditor, both drawers' expected = the books (DRAW-1), each locker's balance = the books (LOCK-1), a refused
   move changes nothing, Cash flow page totals for the day agree (CF-1, CF-2, CF-4) and receipts = moves (LOCK-4).
-- [ ] **Step 2:** Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
-- [ ] **Step 3: Commit** — `test(battle): random shop days move money between tills and lockers`
+- [x] **Step 2:** (3,000-step run clean) Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
+- [x] **Step 3: Commit** — `test(battle): random shop days move money between tills and lockers`
 
 ### Task 5: Faults (`internal/battle/faults_money_test.go`)
 
 - [x] **Step 1:** (DRAW-16 was real: 8 at once all passed, drawer −3,000 — fixed) DRAW-16: two withdrawals at once that together pass the drawer (and a refund + a withdrawal) — one
   must be refused. LOCK-1: two transfers out of one no-negative locker at once.
-- [ ] **Step 2:** DRAW-7: a sale paid while an admin closes that till — afterwards the close's expected = the
+- [x] **Step 2:** DRAW-7: a sale paid while an admin closes that till — afterwards the close's expected = the
   auditor's (the sale is in it or after it). DRAW-8: the cashier and an admin close at the same moment — one close,
   cash banked once.
-- [ ] **Step 3:** Power cut mid-move (the real binary killed during withdrawals / closes / expenses): each move whole
+- [x] **Step 3:** (found: a sale with no till committing after the next open — per-cashier lock) Power cut mid-move (the real binary killed during withdrawals / closes / expenses): each move whole
   or absent, the auditor clean.
-- [ ] **Step 4:** Each failure → fix test-first, one commit each; then `test(battle): area 2 faults`.
+- [x] **Step 4:** Each failure → fix test-first, one commit each; then `test(battle): area 2 faults`.
 
 ### Task 6: Mutation
 

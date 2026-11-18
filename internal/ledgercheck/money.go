@@ -25,13 +25,13 @@ func init() {
 			FROM sales s JOIN cash_register r ON r.id = s.session_id
 			WHERE r.user_id <> s.cashier_id`},
 		check{"DRAW-6", `
-			SELECT 'sale ' || s.id, format('no till, rung %s; till %s opened %s after it, no close between', s.created_at, n.id, n.opened_at)
+			SELECT 'sale ' || s.id, format('no till, rung %s; till %s opened %s after it and took nothing', s.created_at, n.id, n.opened_at)
 			FROM sales s
 			JOIN LATERAL (SELECT id, opened_at FROM cash_register r
 			              WHERE r.user_id = s.cashier_id AND r.opened_at > s.created_at ORDER BY r.opened_at LIMIT 1) n ON true
 			WHERE s.session_id IS NULL
-			  AND NOT EXISTS (SELECT 1 FROM cash_register c WHERE c.user_id = s.cashier_id
-			                  AND c.closed_at > s.created_at AND c.closed_at <= n.opened_at)`},
+			  AND COALESCE((SELECT max(c.opened_at) FROM cash_register c
+			                WHERE c.user_id = s.cashier_id AND c.opened_at < n.opened_at), '-infinity') <= s.created_at`},
 
 		// DRAW-9: one opening record = the opening cash; a closed session has one closing record = what was counted.
 		check{"DRAW-9", `
