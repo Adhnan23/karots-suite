@@ -51,8 +51,9 @@ proofs:
 # money-maths tests. Detached, logs in ~/.cache/karots-logs/. Slow: by hand.
 mutate:
 	mkdir -p ~/.cache/karots-logs ~/.cache/karots-gremlins
-	$(ENV) TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/sales \
-		> ~/.cache/karots-logs/gremlins-sales.log 2>&1; tail -4 ~/.cache/karots-logs/gremlins-sales.log
+	for p in sales cashregister cashflow expenses payout lockers; do \
+		$(ENV) TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/$$p \
+			> ~/.cache/karots-logs/gremlins-$$p.log 2>&1; echo "== $$p"; tail -4 ~/.cache/karots-logs/gremlins-$$p.log; done
 	cd web && bunx stryker run > ~/.cache/karots-logs/stryker.log 2>&1; grep -E "All files|\.ts " ~/.cache/karots-logs/stryker.log
 
 # Everything before a Release, side by side (Go, Vitest, Playwright, then check-core):
