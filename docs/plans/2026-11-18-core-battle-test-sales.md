@@ -46,6 +46,21 @@ Mathlib), GitHub Actions for Lean.
 
 ---
 
+### Task 0: Find where the hour goes (the full run is too slow to fix bugs quickly)
+
+**Files:**
+- Create: `scripts/test-times.sh` (Go: `go test -p 1 -json ./...` → seconds per package and per test, top 30;
+  Playwright: `--reporter=json` → seconds per spec, top 30), output to `~/.cache/karots-logs/test-times-<date>.txt`
+
+- [ ] **Step 1: Run it detached** on the current suite (needs ports 3000 / 5173 free, nothing else on `suite_db`).
+- [ ] **Step 2: Write the findings** in this plan under Task 0: where the time goes (DB packages forced one at a time
+  by the shared `suite_db`? Playwright's one worker? a few slow tests?) and the cheapest fix for each, biggest first.
+  Likely candidate: each Go DB package gets its own throwaway database (as `internal/demo/gen` already does) so
+  `go test` can run packages in parallel again.
+- [ ] **Step 3: Do the fixes that save the most time for the least change**, one commit each; never remove or weaken
+  a test. Measure again; record before / after in `docs/status.md`.
+- [ ] **Step 4: Commit** — `test: the full run in N minutes (was ~60) — …`
+
 ### Task 1: The rule book for area 1 (the grid)
 
 **Files:**
