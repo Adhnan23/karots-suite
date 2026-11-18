@@ -56,13 +56,13 @@ books for every drawer and locker → faults (two cash-outs at once, a sale duri
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_money_test.go`)
 
-- [ ] **Step 1:** Delete the dead `Record*` helpers (commit `refactor(cashregister): …`).
-- [ ] **Step 2:** One test per example rule: DRAW-5 (open twice), DRAW-8 (close for them books as the cashier's,
+- [x] **Step 1:** Delete the dead `Record*` helpers (commit `refactor(cashregister): …`).
+- [x] **Step 2:** (all pass; older tests mapped in money.md) One test per example rule: DRAW-5 (open twice), DRAW-8 (close for them books as the cashier's,
   records who), DRAW-11, DRAW-12, DRAW-13 (bank / card / Cheques in hand refused for every till cash path), DRAW-14,
   DRAW-15, DRAW-17, LOCK-5, LOCK-6 (transfer / expense / void into a card account refused), LOCK-7, LOCK-8, LOCK-9,
   LOCK-10, LOCK-11, EXP-2 (unpaid void, pending cheque, plugin-owned refused), EXP-3, EXP-4, CF-3. Each ends with the
   auditor.
-- [ ] **Step 3:** Run; each failure → fix test-first, one commit each.
+- [x] **Step 3:** Run; each failure → fix test-first, one commit each. (none failed)
 - [ ] **Step 3b: The user's answers, test-first, one commit each:** DRAW-3 (a cash refund beyond the drawer goes
   through; change / payout / refund taking the expected below zero flags the session's `review_note`), DRAW-6 (a cash
   sale with no open session: booked to the session open at its `rung_at`, else the cashier's next one; both flagged

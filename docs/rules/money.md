@@ -159,3 +159,13 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **CF-4** A till's cash sales are counted once: as till sales when rung; the close that banks them is a move, not
   money in. *machine.*
 - **CF-5** A cheque counts in "after cheques", never in cash on hand, until it clears (area 5).
+
+## Where each `example` rule is tested
+
+`internal/battle/cases_money_test.go`: DRAW-5, DRAW-8, DRAW-12, DRAW-13 (+ LOCK-11 at the till), DRAW-17, LOCK-9,
+LOCK-10. Older tests that already pin a rule: DRAW-11 `api/till_drawer_test.go` (TestTillDrawerLifecycle,
+TestTillNoContinueAfterBankedClose); DRAW-12 `cashregister/withdraw_policy_test.go`; DRAW-14 `cashregister/at_db_test.go`;
+DRAW-15 `cashregister/stale_test.go`; LOCK-1 overdraw, LOCK-5, LOCK-7, LOCK-8 `api/admin_locker_moves_test.go`; LOCK-5
+default cleared `api/admin_lockers_test.go`; LOCK-6 `api/money_places_test.go`; LOCK-11 (suppliers)
+`api/money_places_test.go`; EXP-1, EXP-2, EXP-3 `api/admin_expenses_test.go`; EXP-4 `api/expense_bounce_test.go`;
+CF-3 `api/admin_cashflow_test.go` (TestAdminCashflowChequesNotCash).
