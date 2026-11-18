@@ -1,0 +1,23 @@
+# 2026/11/18 19:55:00.448737 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/18 19:55:00.448744 [TestBattleMoney] [rapid] draw float: 0
+# 2026/11/18 19:55:00.448746 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/18 19:55:00.473509 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/18 19:55:00.473515 [TestBattleMoney] [rapid] draw overShort: 15
+# 2026/11/18 19:55:00.473521 [TestBattleMoney] [rapid] draw bank: false
+# 2026/11/18 19:55:00.496681 [TestBattleMoney] CF-2 today's net 69999.85, the shop holds 70000 (it held nothing this morning)
+# 
+v0.4.8#7818609022675519265
+0xc7ce0c7ce0c8
+0xed38bc9f06fae
+0x1
+0x3ed444542b0bf
+0x726a83b3ba63c
+0x0
+0x0
+0x1c694afdb5479d
+0x14a54ce477532
+0x1
+0x473d6c3892771
+0xadcedfd757637
+0xf
+0x0

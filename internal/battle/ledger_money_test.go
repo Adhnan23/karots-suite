@@ -1,6 +1,8 @@
 package battle
 
 import (
+	"karots-suite/internal/ledgercheck/ltest"
+
 	"context"
 	"fmt"
 	"slices"
@@ -82,13 +84,13 @@ func TestMoneyRulesSeeCorruption(t *testing.T) {
 }
 
 // locker makes a locker with an opening balance; its id.
-func (s *shop) locker(t testing.TB, name, kind, opening string) int64 {
+func (s *shop) locker(t ltest.T, name, kind, opening string) int64 {
 	var l struct{ ID int64 }
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/lockers", map[string]any{"name": name, "kind": kind, "openingBalance": opening, "cashierAccess": true}, &l))
 	return l.ID
 }
 
-func (s *shop) userID(t testing.TB, phone string) int64 {
+func (s *shop) userID(t ltest.T, phone string) int64 {
 	var id int64
 	s.must(t, s.db.GetContext(context.Background(), &id, `SELECT id FROM users WHERE phone = $1`, phone))
 	return id

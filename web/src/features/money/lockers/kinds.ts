@@ -21,5 +21,5 @@ export const LEDGER_KINDS: Record<string, string> = {
 /** Every kind a Cash flow row can be: a locker ledger kind or a till cash move. */
 export const FLOW_KINDS: Record<string, string> = {
   ...LEDGER_KINDS, withdrawal: 'Taken from a till', pay_in: 'Put into a till', credit_payment: 'Credit collected', refund: 'Refund', expense: 'Expense',
-  opening: 'Float put in (not tracked)', closing: 'Taken out at close (not tracked)',
+  opening: 'Float put in (not tracked)', closing: 'Taken out at close (not tracked)', over_short: 'Over / short at close',
 }

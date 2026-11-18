@@ -12,7 +12,8 @@ the cash flow always agree. Sales are the source of truth for revenue. You'll fi
 pick: cash sales at the tills, other money in (credit collected, interest, takings), money out
 (expenses, suppliers, refunds), money moved between your places, and the net change. Cash a till
 takes out at its close without putting it in a locker counts as money out, and a float put in
-from nowhere as money in — a float left in the drawer overnight is both, so it nets to nothing. **What the
+from nowhere as money in — a float left in the drawer overnight is both, so it nets to nothing.
+A till counted over or short at its close shows the difference as money in or out. **What the
 business is worth now** estimates cash, stock at cost, what customers owe and what you owe.
 
 ## Lockers

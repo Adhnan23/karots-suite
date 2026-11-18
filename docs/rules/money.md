@@ -155,7 +155,9 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **CF-2** With every close banked and nothing untracked, the net over a range = the change in what the shop holds
   (every locker + every open drawer's expected). Cash taken out into nowhere (an unbanked close or withdrawal, when
   "untracked cash" is on) shows as **money out** ("taken out, not tracked"). *User, 2026-11-18 (Q3). Today it leaves
-  no row: cash on hand falls but the page shows no money out.* *machine.*
+  no row: cash on hand falls but the page shows no money out.* A float put in from nowhere is money in (a float left
+  in the drawer overnight is both, netting to nothing), and a close counted over or short shows its difference as money
+  in or out, banked or not. *Found by the money machine, 2026-11-18. machine, example.*
 - **CF-3** Cash on hand never counts Cheques in hand. *Found in: 14f27b9. example.*
 - **CF-4** A till's cash sales are counted once: as till sales when rung; the close that banks them is a move, not
   money in. *machine.*

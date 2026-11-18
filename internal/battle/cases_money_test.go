@@ -1,6 +1,8 @@
 package battle
 
 import (
+	"karots-suite/internal/ledgercheck/ltest"
+
 	"context"
 	"fmt"
 	"strings"
@@ -11,7 +13,7 @@ import (
 // older tests name them there (internal/api/*_test.go).
 
 // rows counts the money rows, so a refused move can be shown to write nothing.
-func (s *shop) rows(t testing.TB) int {
+func (s *shop) rows(t ltest.T) int {
 	var n int
 	s.must(t, s.db.GetContext(context.Background(), &n, `SELECT
 		(SELECT count(*) FROM cash_movements) + (SELECT count(*) FROM locker_ledger) +
@@ -31,7 +33,7 @@ func (s *shop) refused(t testing.TB, what string, call func() error) {
 	}
 }
 
-func (s *shop) expected(t testing.TB, c *client) string {
+func (s *shop) expected(t ltest.T, c *client) string {
 	var st struct{ Summary struct{ Expected string } }
 	s.must(t, c.Do("GET", "/api/v1/till/drawer", nil, &st))
 	return st.Summary.Expected
@@ -246,6 +248,23 @@ func TestCF2_UntrackedTillCashShowsOnTheCashFlow(t *testing.T) {
 	s.must(t, s.admin.Do("GET", "/api/v1/admin/cashflow", nil, &cf))
 	if cf.TillSales != "200.00" || cf.In != "5000.00" || cf.Out != "5200.00" || cf.Net != "0.00" {
 		t.Errorf("cash flow %+v, want till sales 200, in 5000 (the float), out 5200 (the close), net 0", cf)
+	}
+	s.audit(t)
+}
+
+// CF-2: a close counted over or short changes what the shop holds, so the Cash
+// flow page shows the difference — over as money in, short as money out —
+// whether the cash was banked or left in the drawer. (Found by the money machine.)
+func TestCF2_OverShortAtCloseShows(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	safe := s.locker(t, "Safe", "safe", "0")
+	s.open(t, s.till1) // 5,000 from nowhere
+	s.must(t, s.till1.Do("POST", "/api/v1/till/drawer/close", map[string]any{"breakdown": map[string]int{"5000": 1, "0.50": 1}, "destLockerId": safe}, nil))
+	var cf struct{ In, Out, Net, CashOnHand string }
+	s.must(t, s.admin.Do("GET", "/api/v1/admin/cashflow", nil, &cf))
+	if cf.In != "5000.50" || cf.Net != "5000.50" || cf.CashOnHand != "5000.50" {
+		t.Errorf("cash flow %+v, want in 5000.50 (float + 0.50 over), net = cash on hand = 5000.50", cf)
 	}
 	s.audit(t)
 }

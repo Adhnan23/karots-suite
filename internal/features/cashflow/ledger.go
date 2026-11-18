@@ -57,7 +57,15 @@ const ledgerUnion = `
 	       -- (a float left in the drawer overnight is both, and nets to nothing).
 	       OR (cm.type IN ('opening','closing') AND cm.amount <> 0
 	           AND NOT EXISTS (SELECT 1 FROM locker_ledger ll3
-	                           WHERE ll3.counter_till_session = cm.session_id AND ll3.created_at = cm.created_at)))`
+	                           WHERE ll3.counter_till_session = cm.session_id AND ll3.created_at = cm.created_at)))
+	UNION ALL
+	-- CF-2: a close counted over is money that turned up, one counted short money
+	-- lost — what the shop holds changes by it either way.
+	SELECT r.closed_at, 'till:' || r.user_id, 'Till — ' || u.name, 'over_short', r.difference, 'counted at close',
+	       false, 'over_short', r.id, 'close'
+	FROM cash_register r
+	JOIN users u ON u.id = r.user_id
+	WHERE r.closed_at >= $1 AND r.closed_at < $2 AND r.difference <> 0`
 
 // LedgerFilter narrows the ledger page: Place is a MoneySource value, Kind a
 // locker_ledger kind or cash_movements type ("" = any). Limit <= 0 = the whole
