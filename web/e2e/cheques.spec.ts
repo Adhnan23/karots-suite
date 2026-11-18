@@ -174,3 +174,32 @@ test('admin expense by cheque: cancelled, then paid again', async ({ page }) => 
   await expect(pay).toBeHidden()
   await expect(page.getByRole('row', { name: new RegExp(what) }).or(page.getByRole('listitem').filter({ hasText: what })).first()).not.toContainText('Not paid')
 })
+
+// RET-17: returning a sale whose cheque hasn't cleared asks which way; giving the
+// cheque back cancels it and no cash leaves the drawer. SHOTS=<gate> also saves the
+// question in each palette and mode for the UI gate.
+test('returns: a cheque that has not cleared asks — give it back, or cash', async ({ page }) => {
+  await signIn(page)
+  const cust = await newCustomer(page)
+  const no = `7${uniq()}`
+  const milk = await json(page, `/api/v1/till/products/barcode/${MILK}`)
+  const sale = await post(page, '/api/v1/till/sales', { saleType: 'retail', discount: '0', discountType: 'fixed', customerId: cust.id,
+    items: [{ productId: milk.id, quantity: '2', discountType: 'fixed' }],
+    payments: [{ method: 'cheque', amount: '200', cheque: { bank: 'Bank of Ceylon', number: no, date: today() } }] })
+  await page.goto(`/till/returns?sale=${sale.id}`)
+  await page.getByRole('button', { name: 'More E2E Milk' }).click()
+  const ask = page.getByRole('radiogroup', { name: "The cheque hasn't cleared" })
+  await expect(ask).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Give the cheque back, or cash?' })).toBeDisabled()
+  if (process.env.SHOTS) {
+    for (const [skin, mode] of [['studio', 'light'], ['night', 'dark'], ['bazaar', 'light'], ['lagoon', 'dark']]) {
+      await page.evaluate(([s, m]) => { document.documentElement.dataset.palette = s; document.documentElement.dataset.theme = m }, [skin, mode])
+      await page.screenshot({ path: `shots/${process.env.SHOTS}/cheque-return-${skin}-${mode}.png` })
+    }
+  }
+  await ask.getByRole('radio', { name: 'Give the cheque back' }).click()
+  await expect(page.getByText('Cheque goes back to')).toBeVisible()
+  await page.getByRole('button', { name: 'Record the return' }).click()
+  await skipSlip(page)
+  expect((await chequeNo(page, no)).status).toBe('cancelled')
+})
