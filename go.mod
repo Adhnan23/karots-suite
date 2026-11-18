@@ -16,6 +16,7 @@ require (
 	golang.org/x/crypto v0.52.0
 	golang.org/x/image v0.42.0
 	golang.org/x/sys v0.45.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

@@ -1,0 +1,52 @@
+# 2026/11/18 14:20:39.992845 [TestBattleSales] [rapid] draw action: "Sell"
+# 2026/11/18 14:20:39.992852 [TestBattleSales] [rapid] draw lines: 1
+# 2026/11/18 14:20:39.992854 [TestBattleSales] [rapid] draw kind: "plain"
+# 2026/11/18 14:20:39.992856 [TestBattleSales] [rapid] draw qty: 17
+# 2026/11/18 14:20:39.992857 [TestBattleSales] [rapid] draw discType: 2
+# 2026/11/18 14:20:39.992858 [TestBattleSales] [rapid] draw discPct: 1000
+# 2026/11/18 14:20:39.992859 [TestBattleSales] [rapid] draw combo: 2
+# 2026/11/18 14:20:39.992859 [TestBattleSales] [rapid] draw bill: 0
+# 2026/11/18 14:20:39.992868 [TestBattleSales] [rapid] draw tender: "cash"
+# 2026/11/18 14:20:39.992868 [TestBattleSales] [rapid] draw extra: 106
+# 2026/11/18 14:20:40.019721 [TestBattleSales] [rapid] draw action: "Return"
+# 2026/11/18 14:20:40.019728 [TestBattleSales] [rapid] draw sale: &battle.mSale{id:1, total:decimal.Decimal{value:(*big.Int)(0x2eb995bba0c0), exp:-2}, paid:decimal.Decimal{value:(*big.Int)(0x2eb995ae8000), exp:-2}, credit:decimal.Decimal{value:(*big.Int)(nil), exp:0}, cleared:decimal.Decimal{value:(*big.Int)(nil), exp:0}, refunded:decimal.Decimal{value:(*big.Int)(nil), exp:0}, customer:false, lines:[]battle.mLine{battle.mLine{id:1, qty:decimal.Decimal{value:(*big.Int)(0x2eb99581b7a0), exp:0}, left:decimal.Decimal{value:(*big.Int)(0x2eb99581b7c0), exp:0}, group:0, sets:0}}, cheque:0, chequeAmt:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/18 14:20:40.019744 [TestBattleSales] [rapid] draw back0: 16
+# 2026/11/18 14:20:40.048353 [TestBattleSales] RET-15 cash refund 0.01, the rule book's 0 (value 0)
+# 
+v0.4.8#13062775256119030900
+0xc7ce0c7ce0c8
+0x100132a10c1f00
+0x4
+0x14b2df8b247965
+0x23d6c37bfd519
+0x0
+0x9108f4d474f60
+0x0
+0x15f1538e899f75
+0x154b30e6d027d2
+0x10
+0x1023b4219d3e30
+0xdde4e34db6c25
+0x2
+0x1c608f5e608df6
+0x1fcd022ef0ef7c
+0xffffffffffffffff
+0x166921df6c0be4
+0x90d98c03444a4
+0x2
+0x48e5f78c65eb0
+0x9dbb85b5e47f3
+0x0
+0x1093c32e818731
+0x1
+0xa3df4b0a9d52
+0x10938004d12e3e
+0x6a
+0x1abdb78ad71050
+0x1411f78787a1f4
+0x3
+0x163df953af9ea1
+0x0
+0x43d4e89382af9
+0x17f200ade4edf3
+0x10

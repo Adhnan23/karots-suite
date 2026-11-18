@@ -46,9 +46,8 @@ func steps() int {
 	return 200
 }
 
-func newShop(t testing.TB) *shop {
-	t.Helper()
-	if testing.Short() {
+func newShop(t ltest.T) *shop {
+	if testing.Short() { // the battle is skipped with -short
 		t.Skip("battle: skipped with -short")
 	}
 	ctx := context.Background()
@@ -79,8 +78,7 @@ func newShop(t testing.TB) *shop {
 
 // fixtures makes one product of every kind in the grid, each with plenty in
 // stock, a credit customer and a card account.
-func (s *shop) fixtures(t testing.TB) {
-	t.Helper()
+func (s *shop) fixtures(t ltest.T) {
 	var c struct{ ID int64 }
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/categories", map[string]string{"name": "Battle"}, &c))
 	s.cat = c.ID
@@ -114,14 +112,12 @@ func (s *shop) fixtures(t testing.TB) {
 }
 
 // open starts a till with Rs 5,000 float.
-func (s *shop) open(t testing.TB, c *gen.Client) {
-	t.Helper()
+func (s *shop) open(t ltest.T, c *gen.Client) {
 	s.must(t, c.Do("POST", "/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}}, nil))
 }
 
 // close counts exactly what the till expects.
-func (s *shop) close(t testing.TB, c *gen.Client) {
-	t.Helper()
+func (s *shop) close(t ltest.T, c *gen.Client) {
 	var st struct {
 		Summary struct{ Expected string } `json:"summary"`
 	}
@@ -134,13 +130,11 @@ func (s *shop) close(t testing.TB, c *gen.Client) {
 }
 
 // audit fails the test with every rule the shop's data breaks.
-func (s *shop) audit(t testing.TB) {
-	t.Helper()
+func (s *shop) audit(t ltest.T) {
 	ltest.Check(t, context.Background(), s.db)
 }
 
-func (s *shop) must(t testing.TB, err error) {
-	t.Helper()
+func (s *shop) must(t ltest.T, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}

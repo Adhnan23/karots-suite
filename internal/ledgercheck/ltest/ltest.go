@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"testing"
 
 	"github.com/jmoiron/sqlx"
 
@@ -21,13 +20,29 @@ import (
 	"karots-suite/migrations"
 )
 
+// T is what NewDB and Check need of a test: *testing.T and *rapid.T both fit
+// (rapid's has no Helper, so it's asked for only when there).
+type T interface {
+	Fatal(args ...any)
+	Fatalf(format string, args ...any)
+	Errorf(format string, args ...any)
+	Skip(args ...any)
+	Cleanup(func())
+}
+
+func helper(t T) {
+	if h, ok := t.(interface{ Helper() }); ok {
+		h.Helper()
+	}
+}
+
 // NewDB makes an empty, migrated database on the DATABASE_URL server (never
 // suite_db itself, so it can run beside Playwright) and drops it after the test.
 // It is a copy of a template migrated once per set of migrations (named by
 // their hash, kept on the server), so a fresh shop costs a file copy, not 38
 // migrations.
-func NewDB(t testing.TB) *sqlx.DB {
-	t.Helper()
+func NewDB(t T) *sqlx.DB {
+	helper(t)
 	base := os.Getenv("DATABASE_URL")
 	if base == "" {
 		t.Skip("DATABASE_URL not set")
@@ -127,8 +142,8 @@ func dsnFor(base, name string) string {
 }
 
 // Check runs the auditor and fails the test with every violation.
-func Check(t testing.TB, ctx context.Context, q sqlx.QueryerContext) {
-	t.Helper()
+func Check(t T, ctx context.Context, q sqlx.QueryerContext) {
+	helper(t)
 	vs, err := ledgercheck.Run(ctx, q)
 	if err != nil {
 		t.Fatalf("ledgercheck: %v", err)
