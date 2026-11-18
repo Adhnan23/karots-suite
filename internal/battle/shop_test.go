@@ -25,6 +25,7 @@ import (
 // in, and a product of every kind the rule grid names (prod["plain"], …).
 type shop struct {
 	db                   *sqlx.DB
+	dsn                  string
 	admin, till1, till2  *gen.Client
 	prod                 map[string]int64
 	customer, cardAcct   int64
@@ -51,12 +52,12 @@ func newShop(t ltest.T) *shop {
 		t.Skip("battle: skipped with -short")
 	}
 	ctx := context.Background()
-	db := ltest.NewDB(t)
+	db, dsn := ltest.NewDBWithDSN(t)
 	cfg := &config.Config{Env: "production", JWTSecret: strings.Repeat("x", 40), JWTAccessTTL: time.Hour, JWTRefreshTTL: time.Hour}
 	v := app.SystemPINValidator(nil)
 	svc := app.NewServices(db, cfg, v)
 	h := app.BuildServer(db, cfg, v)
-	s := &shop{db: db, prod: map[string]int64{}, unitPcs: 1, unitKg: 2}
+	s := &shop{db: db, dsn: dsn, prod: map[string]int64{}, unitPcs: 1, unitKg: 2}
 	for _, u := range []struct{ name, phone, role string }{
 		{"Admin", "0770000001", "admin"}, {"Till One", "0770000002", "cashier"}, {"Till Two", "0770000003", "cashier"},
 	} {

@@ -43,6 +43,14 @@ func helper(t T) {
 // migrations.
 func NewDB(t T) *sqlx.DB {
 	helper(t)
+	db, _ := NewDBWithDSN(t)
+	return db
+}
+
+// NewDBWithDSN is NewDB, also giving its connection string (for a server
+// started as its own process).
+func NewDBWithDSN(t T) (*sqlx.DB, string) {
+	helper(t)
 	base := os.Getenv("DATABASE_URL")
 	if base == "" {
 		t.Skip("DATABASE_URL not set")
@@ -59,7 +67,8 @@ func NewDB(t T) *sqlx.DB {
 	if _, err := admin.Exec(`CREATE DATABASE ` + name + ` TEMPLATE ` + tpl); err != nil {
 		t.Fatal(err)
 	}
-	sh, err := db.Connect(dsnFor(base, name))
+	dsn := dsnFor(base, name)
+	sh, err := db.Connect(dsn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +77,7 @@ func NewDB(t T) *sqlx.DB {
 		admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`) //nolint:errcheck
 		admin.Close()
 	})
-	return sh
+	return sh, dsn
 }
 
 var tplOnce struct {

@@ -1,0 +1,188 @@
+package battle
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"math/rand/v2"
+	"net"
+	"net/http"
+	"net/http/cookiejar"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sync"
+	"syscall"
+	"testing"
+	"time"
+)
+
+// Power cuts (Iman has generators, no UPS): the real server, killed without
+// warning mid-sale and mid-return, then started again. Every sale, return and
+// payment is whole or absent — the auditor finds nothing — however often it
+// happens. A long test: it runs in make battle (KS_BATTLE_STEPS), not make test.
+func TestBattlePowerCut(t *testing.T) {
+	if os.Getenv("KS_BATTLE_STEPS") == "" {
+		t.Skip("power cuts run in make battle")
+	}
+	s := newShop(t)
+	bin := serverBinary(t)
+	cuts := max(steps()/200, 10)
+	for cut := 0; cut < cuts; cut++ {
+		srv := startServer(t, bin, s.dsn)
+		c := httpClient(t, srv.url, "0770000002")
+		if cut == 0 {
+			c.post("/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}}) //nolint:errcheck
+		}
+		var wg sync.WaitGroup
+		stop := make(chan struct{})
+		for w := 0; w < 3; w++ {
+			wg.Add(1)
+			go func() { defer wg.Done(); s.busyTill(c, stop) }()
+		}
+		time.Sleep(time.Duration(30+rand.IntN(400)) * time.Millisecond)
+		srv.cmd.Process.Signal(syscall.SIGKILL) //nolint:errcheck
+		srv.cmd.Wait()                         //nolint:errcheck
+		close(stop)
+		wg.Wait()
+		s.audit(t)
+		if t.Failed() {
+			t.Fatalf("after power cut %d", cut+1)
+		}
+	}
+	var n int
+	s.must(t, s.db.Get(&n, `SELECT count(*) FROM sales`))
+	t.Logf("%d power cuts, %d sales survived", cuts, n)
+}
+
+// busyTill sells and returns as fast as it can until the power goes.
+func (s *shop) busyTill(c *hclient, stop chan struct{}) {
+	var last int64
+	for {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		if last != 0 && rand.IntN(3) == 0 {
+			var v sale
+			if c.get(fmt.Sprintf("/api/v1/till/sales/%d", last), &v) == nil && len(v.Lines) > 0 {
+				c.post(fmt.Sprintf("/api/v1/till/sales/%d/return", last), map[string]any{ //nolint:errcheck
+					"lines": []map[string]any{{"saleItemId": v.Lines[0].ID, "quantity": "1"}}})
+			}
+			continue
+		}
+		var r saleResult
+		err := c.postInto("/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "3", "discountType": "fixed",
+			"items": []line{{"productId": s.prod["plain"], "quantity": "2"}, {"productId": s.prod["odd"], "quantity": "1", "discount": "5", "discountType": "percent"}},
+			"payments": []pay{cash("300")}}, &r)
+		if err == nil {
+			last = r.ID
+		}
+	}
+}
+
+var buildOnce struct {
+	sync.Once
+	path string
+	err  error
+}
+
+// serverBinary builds cmd/server once (core only, as the working tree has it).
+func serverBinary(t *testing.T) string {
+	buildOnce.Do(func() {
+		dir, err := os.MkdirTemp("", "battle-server-")
+		if err != nil {
+			buildOnce.err = err
+			return
+		}
+		buildOnce.path = filepath.Join(dir, "karots-suite")
+		out, err := exec.Command("go", "build", "-o", buildOnce.path, "karots-suite/cmd/server").CombinedOutput()
+		if err != nil {
+			buildOnce.err = fmt.Errorf("%v: %s", err, out)
+		}
+	})
+	if buildOnce.err != nil {
+		t.Fatal(buildOnce.err)
+	}
+	return buildOnce.path
+}
+
+type server struct {
+	cmd *exec.Cmd
+	url string
+}
+
+func startServer(t *testing.T, bin, dsn string) server {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := l.Addr().(*net.TCPAddr).Port
+	l.Close()
+	cmd := exec.Command(bin)
+	cmd.Env = append(os.Environ(), "DATABASE_URL="+dsn, fmt.Sprintf("SERVER_PORT=%d", port), "APP_ENV=development",
+		"COOKIE_SECURE=false", "JWT_SECRET=battle-battle-battle-battle-battle-battle", "KAROTS_NO_SPOOL=1", "BACKUP_DIR="+t.TempDir(),
+		"BACKUP_INTERVAL=0", "CLOUD_BACKUP=", "BACKUP_COPY_DIR=")
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	url := fmt.Sprintf("http://127.0.0.1:%d", port)
+	for i := 0; i < 300; i++ {
+		if r, err := http.Get(url + "/api/v1/me"); err == nil {
+			r.Body.Close()
+			return server{cmd: cmd, url: url}
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	cmd.Process.Kill() //nolint:errcheck
+	t.Fatal("server didn't start")
+	return server{}
+}
+
+// hclient is a till over real HTTP (the in-process gen.Client can't lose power).
+type hclient struct {
+	base string
+	http *http.Client
+}
+
+func httpClient(t *testing.T, base, phone string) *hclient {
+	jar, _ := cookiejar.New(nil)
+	c := &hclient{base: base, http: &http.Client{Jar: jar, Timeout: 5 * time.Second}}
+	if err := c.postInto("/api/v1/auth/login", map[string]string{"phone": phone, "pin": "1234"}, nil); err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
+func (c *hclient) post(path string, in any) error { return c.postInto(path, in, nil) }
+
+func (c *hclient) postInto(path string, in, out any) error {
+	b, _ := json.Marshal(in)
+	req, _ := http.NewRequestWithContext(context.Background(), "POST", c.base+path, bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Ks-Device", "battle-powercut")
+	return c.do(req, out)
+}
+
+func (c *hclient) get(path string, out any) error {
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", c.base+path, nil)
+	req.Header.Set("X-Ks-Device", "battle-powercut")
+	return c.do(req, out)
+}
+
+func (c *hclient) do(req *http.Request, out any) error {
+	res, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode > 299 {
+		return fmt.Errorf("%s %s: %d", req.Method, req.URL.Path, res.StatusCode)
+	}
+	if out == nil {
+		return nil
+	}
+	return json.NewDecoder(res.Body).Decode(out)
+}
