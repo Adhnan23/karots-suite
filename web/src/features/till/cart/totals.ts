@@ -2,15 +2,19 @@ import { num, r2 } from '@/lib/money'
 import { packed, packGross } from './packs'
 import type { CartLine, DiscountType, Payment, TillState } from './types'
 
+/** To the cent, half away from zero — where and how the server's decimals round (TILL-1).
+ *  The nudge lifts a float like 1.0049999… back to the 1.005 it stands for. */
+export const cents = (x: number): number => (x < 0 ? -cents(-x) : Math.round(x * 100 + 1e-6) / 100)
+
 export const lineGross = (l: CartLine) =>
-  packed(l) ? packGross(num(l.qty), num(l.unitPrice), l.packs!).gross : num(l.qty) * num(l.unitPrice)
+  cents(packed(l) ? packGross(num(l.qty), num(l.unitPrice), l.packs!).gross : num(l.qty) * num(l.unitPrice))
 
 /** Fixed is per unit (× qty); percent is off the line gross; clamped to [0, gross]. */
 export function lineDiscount(l: CartLine) {
   if (l.payout) return 0
   const g = lineGross(l)
   const v = num(l.discount)
-  const d = l.discountType === 'percent' ? (g * v) / 100 : v * num(l.qty)
+  const d = cents(l.discountType === 'percent' ? (g * v) / 100 : v * num(l.qty))
   return Math.min(Math.max(d, 0), g)
 }
 
@@ -27,12 +31,12 @@ export const goodsSubtotal = (ls: CartLine[]) => subtotal(ls) + payoutTotal(ls)
 export function billDiscount(ls: CartLine[], value: string, type: DiscountType) {
   const base = goodsSubtotal(ls) - itemDiscountTotal(ls)
   const v = num(value)
-  const d = type === 'percent' ? (base * v) / 100 : v
-  return Math.min(Math.max(d, 0), base)
+  const d = type === 'percent' ? cents((base * v) / 100) : v
+  return Math.min(Math.max(d, 0), r2(base))
 }
 
 /** Tax on each discounted line net (the server's rule). */
-export const taxTotal = (ls: CartLine[]) => ls.reduce((s, l) => s + (lineNet(l) * l.taxRate) / 100, 0)
+export const taxTotal = (ls: CartLine[]) => ls.reduce((s, l) => s + cents((lineNet(l) * l.taxRate) / 100), 0)
 
 /** Below zero only through payouts: then it's what the customer is given (as change). */
 export const total = (ls: CartLine[], value: string, type: DiscountType) =>
