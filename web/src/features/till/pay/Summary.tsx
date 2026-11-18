@@ -15,7 +15,7 @@ export function Summary() {
   const ls = state.lines
   const idisc = itemDiscountTotal(ls)
   const bdisc = billDiscount(ls, state.billDiscount, state.billDiscountType)
-  const tax = taxTotal(ls)
+  const tax = taxTotal(ls, state.billDiscount, state.billDiscountType)
   const given = payoutTotal(ls)
   const t = saleTotal(state)
   return (

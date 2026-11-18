@@ -35,12 +35,32 @@ export function billDiscount(ls: CartLine[], value: string, type: DiscountType) 
   return Math.min(Math.max(d, 0), r2(base))
 }
 
-/** Tax on each discounted line net (the server's rule). */
-export const taxTotal = (ls: CartLine[]) => ls.reduce((s, l) => s + cents((lineNet(l) * l.taxRate) / 100), 0)
+/** amount split over weights to the cent, adding up exactly: each takes its share
+ *  rounded down, the cents left go to the largest remainders (ties: the earlier) —
+ *  the server's sales.shareOut. */
+export function shareOut(amount: number, weights: number[]): number[] {
+  const w = weights.map((x) => Math.max(0, Math.round(x * 100)))
+  const base = w.reduce((a, b) => a + b, 0)
+  const off = Math.round(amount * 100)
+  if (base === 0) return w.map(() => 0)
+  const share = w.map((x) => Math.floor((x * off) / base))
+  let left = off - share.reduce((a, b) => a + b, 0)
+  const order = w.flatMap((x, i) => (x > 0 ? [{ i, rem: (x * off) % base }] : [])).sort((a, b) => b.rem - a.rem || a.i - b.i)
+  for (let k = 0; left > 0; k = (k + 1) % order.length, left--) share[order[k].i]++
+  return share.map((c) => c / 100)
+}
+
+/** Tax on what the customer pays for each line: its net less its share of the bill
+ *  discount, each line to the cent (SALE-35, the server's rule). */
+export function taxTotal(ls: CartLine[], value = '', type: DiscountType = 'fixed') {
+  const bill = billDiscount(ls, value, type)
+  const shares = shareOut(bill, ls.map((l) => (l.payout ? 0 : lineNet(l))))
+  return ls.reduce((s, l, i) => s + (l.payout ? 0 : cents(((lineNet(l) - shares[i]) * l.taxRate) / 100)), 0)
+}
 
 /** Below zero only through payouts: then it's what the customer is given (as change). */
 export const total = (ls: CartLine[], value: string, type: DiscountType) =>
-  r2(Math.max(-payoutTotal(ls), subtotal(ls) - itemDiscountTotal(ls) - billDiscount(ls, value, type) + taxTotal(ls)))
+  r2(Math.max(-payoutTotal(ls), subtotal(ls) - itemDiscountTotal(ls) - billDiscount(ls, value, type) + taxTotal(ls, value, type)))
 
 export const saleTotal = (s: TillState) => total(s.lines, s.billDiscount, s.billDiscountType)
 

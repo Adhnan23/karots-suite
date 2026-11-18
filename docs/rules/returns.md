@@ -6,7 +6,8 @@ screen `web/src/features/counter/returns/refund.ts`. The grid is in [sales.md](s
 
 ## How a return is valued today
 
-- A line's **paid value** = its line net × the sale's paid factor, rounded per line.
+- A line's **paid value** = its share of what the goods were paid (`sales.PaidShares`, to the cent; the lines add
+  up to the sale exactly).
 - Returning **part** of a line refunds paid value × n ÷ qty, rounded; returning **the last** of a line refunds what's
   left of its paid value (paid − refunded so far).
 - A whole-sale return = a part return of every line still out.
@@ -38,7 +39,9 @@ screen `web/src/features/counter/returns/refund.ts`. The grid is in [sales.md](s
 - **RET-13** A line group (combo / job + add-ons) comes back only whole: every line of the group, in whole sets (2 of 3
   sets = each line's qty × 2⁄3). One line of a combo on its own is refused. *User, 2026-11-18 (Q5). Today any line
   can come back alone.* Whole sets rather than "all sets at once" is the builder's call: it is still the whole combo.
-- **RET-14** Tax comes back with the goods in the same share it was paid.
+- **RET-14** Tax comes back with the goods in the same share it was paid. *Known gap (tax-registered shops with
+  mixed rates only): a line's paid share is by its net, so a taxed line refunds a little less and an untaxed one a
+  little more (the sale's total is exact). Closing it needs each line's tax stored at sale time (a migration).*
 - **RET-15** The cash part of a refund leaves the drawer of the person doing the return, in the same transaction as
   the return; the drawer never goes below what it held (DRAW-3).
 - **RET-16** A card / online sale is refunded in **cash from the drawer**; the card / bank account keeps the money.

@@ -97,6 +97,28 @@ func clampDiscount(amt, base decimal.Decimal) decimal.Decimal {
 	return amt
 }
 
+// taxAfterBill: tax is charged on what the customer pays for each line — its
+// net less its share of the bill discount (shared to the cent, shareOut) —
+// each line's tax rounded to the cent (SALE-35). With no bill discount it is
+// the lines' own tax, unchanged.
+func taxAfterBill(lines []SaleItem, rates []decimal.Decimal, bill, lineTax decimal.Decimal) decimal.Decimal {
+	if !bill.IsPositive() || !lineTax.IsPositive() {
+		return lineTax
+	}
+	nets := make([]decimal.Decimal, len(lines))
+	for i, l := range lines {
+		nets[i] = l.Subtotal
+	}
+	shares := shareOut(bill, nets)
+	tax := decimal.Zero
+	for i, l := range lines {
+		if l.Subtotal.IsPositive() && rates[i].IsPositive() {
+			tax = tax.Add(l.Subtotal.Sub(shares[i]).Mul(rates[i]).Div(hundred).Round(2))
+		}
+	}
+	return tax
+}
+
 // Create writes a sale atomically. The whole computation — pricing, stock
 // guard, audit, customer credit — happens inside one transaction so a failure
 // at any step rolls everything back.
@@ -167,6 +189,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		// Resolve the bill discount against the pre-tax net (after item discounts)
 		// of the goods — a payout is money handed over, never discounted.
 		billDiscount := resolveBillDiscount(billDiscType, billDiscValue, subtotal.Sub(sl.payouts).Sub(itemDiscTotal))
+		taxTotal = taxAfterBill(lines, sl.taxRates, billDiscount, taxTotal)
 		discount := itemDiscTotal.Add(billDiscount)
 		total := subtotal.Sub(discount).Add(taxTotal).Round(2)
 		if total.Sub(sl.payouts).IsNegative() {

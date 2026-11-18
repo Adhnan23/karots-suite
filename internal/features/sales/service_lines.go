@@ -26,6 +26,7 @@ type saleLines struct {
 	lines           []SaleItem
 	subtotal        decimal.Decimal
 	taxTotal        decimal.Decimal
+	taxRates        []decimal.Decimal // each line's tax rate (0 when the shop charges none), with lines
 	itemDiscTotal   decimal.Decimal
 	payouts         decimal.Decimal // Σ payout lines (≤ 0), kept out of the bill discount
 	serviceProducts map[int64]bool
@@ -53,6 +54,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 	taxTotal := decimal.Zero
 	itemDiscTotal := decimal.Zero
 	payouts := decimal.Zero
+	var rates []decimal.Decimal
 	lines := make([]SaleItem, 0, len(in.Items))
 	serviceProducts := map[int64]bool{}
 	componentMoves := map[int][]ServiceComponentParsed{}
@@ -150,6 +152,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			subtotal = subtotal.Add(item.Subtotal)
 			payouts = payouts.Add(item.Subtotal)
 			lines = append(lines, item)
+			rates = append(rates, decimal.Zero)
 			continue
 		}
 		discValue, err := money.Parse(it.Discount)
@@ -235,9 +238,10 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		// Clamped to [0, lineGross] so the net is never negative.
 		disc := resolveItemDiscount(discType, discValue, lineGross, qty)
 		lineNet := lineGross.Sub(disc)
-		lineTax := decimal.Zero
+		lineTax, lineRate := decimal.Zero, decimal.Zero
 		if taxOn {
-			lineTax = lineNet.Mul(p.TaxRate).Div(hundred).Round(2)
+			lineRate = p.TaxRate
+			lineTax = lineNet.Mul(lineRate).Div(hundred).Round(2)
 		}
 
 		subtotal = subtotal.Add(lineGross)
@@ -431,6 +435,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 			item.LineGroup, item.LineGroupLabel, item.LineGroupSets, item.LineGroupItemised = &no, &label, &sets, g.Itemised
 		}
 		lines = append(lines, item)
+		rates = append(rates, lineRate)
 		if len(lineComps) > 0 {
 			componentMoves[len(lines)-1] = lineComps
 		}
@@ -440,6 +445,7 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		lines:           lines,
 		subtotal:        subtotal,
 		taxTotal:        taxTotal,
+		taxRates:        rates,
 		itemDiscTotal:   itemDiscTotal,
 		payouts:         payouts,
 		serviceProducts: serviceProducts,

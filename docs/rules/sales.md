@@ -8,11 +8,12 @@ Code: `internal/features/sales` (`service.go` Create, `service_lines.go` pricing
 - **Line gross** = qty × unit price, rounded to cents; a pack price replaces it for full packs (`PackGross`).
 - **Item discount** — fixed = Rs per unit × qty; percent = % of line gross; clamped to 0 … line gross.
 - **Line net** (`sale_items.subtotal`) = line gross − item discount. A payout line is negative, never discounted.
-- **Line tax** = line net × rate (only when the shop is tax-registered with a number), per line, before the bill
-  discount.
+- **Line tax** = (line net − its share of the bill discount) × rate, per line, to the cent (only when the shop is
+  tax-registered with a number).
 - **Bill discount** — fixed, or % of the goods' net (Σ line net of goods, payouts left out); clamped to that net.
 - **Total** = Σ gross − item discounts − bill discount + tax (with payouts, may be below zero).
-- **Paid share of a line** = line net × (total − payouts) ÷ Σ goods' line net (`PaidFactor`), rounded per line.
+- **Paid share of a line** = (total − payouts) shared over the goods' lines by their net, to the cent
+  (`sales.PaidShares`; the lines add up to the sale exactly).
 
 ## The grid
 
@@ -119,8 +120,8 @@ methods and tax don't move stock. `— c`: a held sale or ticket is not a sale u
 - **SALE-34** A payout is not revenue.
 - **SALE-35** Tax is charged on what the customer actually pays for the goods: **after item and bill discounts**
   (a discount given at the sale lowers the taxable value — the usual VAT rule). The tax report and the receipt show
-  that tax. *User left it to us (Q3, 2026-11-18). Today a bill discount does not lower the tax.* Only tax-registered
-  shops are touched; Iman isn't one.
+  that tax. *User left it to us (Q3, 2026-11-18); done: the bill discount is shared over the lines to the cent and each
+  line's tax is on what's left.* Only tax-registered shops are touched.
 - **SALE-36** By-method totals: each method's takings once; cash takings less change.
 - **SALE-37** Credit sales appear under receipts / dues, not as cash.
 - **SALE-38** A Review sale's flags are visible in the sale and the review list.

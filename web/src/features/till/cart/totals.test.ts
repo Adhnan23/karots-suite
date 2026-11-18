@@ -33,12 +33,13 @@ describe('bill totals', () => {
   it('bill percent applies to the net after item discounts', () => {
     expect(billDiscount(ls, '10', 'percent')).toBe(23) // (200-20+50) * 10%
   })
-  it('tax is on each line net, before the bill discount (server rule)', () => {
+  it('tax is on each line net less its share of the bill discount (SALE-35, the server rule)', () => {
     expect(taxTotal(ls)).toBe(5)
+    expect(taxTotal(ls, '10', 'percent')).toBe(4.5) // the bill's 23 falls 18 + 5: tax 10% of 45
   })
   it('total = gross − item disc − bill disc + tax, never negative', () => {
-    expect(total(ls, '10', 'percent')).toBe(212) // 250 - 20 - 23 + 5
-    expect(total(ls, '9999', 'fixed')).toBe(5)
+    expect(total(ls, '10', 'percent')).toBe(211.5) // 250 - 20 - 23 + 4.5
+    expect(total(ls, '9999', 'fixed')).toBe(0) // all of it off: nothing left to tax
   })
 })
 

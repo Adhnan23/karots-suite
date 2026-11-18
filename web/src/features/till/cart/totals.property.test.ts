@@ -6,8 +6,9 @@ import { total } from './totals'
 // TILL-1: the total the till shows = the total the server charges, to the cent,
 // for every cart. The reference below is the rule book's pricing (docs/rules/
 // sales.md) in whole numbers — cents, thousandths of a unit, tenths of a percent —
-// rounding half up at the server's places: each line's gross, each discount, each
-// line's tax, a percent bill discount.
+// rounding half up at the server's places: each line's gross, each discount, a
+// percent bill discount, each line's tax on its net less its share of the bill
+// discount (SALE-35).
 
 /** a ÷ d rounded half up, a ≥ 0 (whole numbers). */
 const half = (a: number, d: number) => Math.floor((2 * a + d) / (2 * d))
@@ -15,17 +16,21 @@ const half = (a: number, d: number) => Math.floor((2 * a + d) / (2 * d))
 type Gen = { priceC: number; qtyM: number; disc: '' | 'fixed' | 'percent'; discV: number; rateH: number }
 
 function reference(ls: Gen[], billType: 'fixed' | 'percent', billV: number) {
-  let net = 0
-  let tax = 0
-  for (const l of ls) {
+  const nets = ls.map((l) => {
     const gross = half(l.qtyM * l.priceC, 1000)
     const d = l.disc === 'fixed' ? half(l.discV * l.qtyM, 1000) : l.disc === 'percent' ? half(gross * l.discV, 1000) : 0
-    const n = gross - Math.min(Math.max(d, 0), gross)
-    net += n
-    tax += half(n * l.rateH, 10000)
-  }
-  const off = billType === 'percent' ? half(net * billV, 1000) : billV
-  return net - Math.min(off, net) + tax
+    return gross - Math.min(Math.max(d, 0), gross)
+  })
+  const net = nets.reduce((a, b) => a + b, 0)
+  const off = Math.min(billType === 'percent' ? half(net * billV, 1000) : billV, net)
+  // SALE-35: the bill discount shared over the lines to the cent (largest remainder,
+  // ties to the earlier line); tax on what each line is then paid.
+  const share = nets.map((n) => (net > 0 ? Math.floor((n * off) / net) : 0))
+  let left = off - share.reduce((a, b) => a + b, 0)
+  const order = nets.flatMap((n, i) => (n > 0 ? [{ i, rem: (n * off) % net }] : [])).sort((a, b) => b.rem - a.rem || a.i - b.i)
+  for (let k = 0; left > 0; k = (k + 1) % order.length, left--) share[order[k].i]++
+  const tax = nets.reduce((t, n, i) => t + half((n - share[i]) * ls[i].rateH, 10000), 0)
+  return net - off + tax
 }
 
 const toLine = (g: Gen, i: number): CartLine => ({
