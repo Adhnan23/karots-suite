@@ -31,16 +31,16 @@ Columns: **Sell** (total, payment, change) · **Ret** (return part / rest / whol
 | Picked lot price | SALE-5 | RET-8 | DRAW-1 | — a | SALE-22 | SALE-30 | SALE-40 | SALE-50 |
 | Oversell (found at till) | SALE-6 | RET-1 | DRAW-1 | — a | SALE-23 | SALE-30 | SALE-40 | SALE-50 |
 | Frozen product | SALE-7 | RET-9 | DRAW-1 | — a | SALE-24 | SALE-32 | SALE-40 | SALE-50 |
-| Serial numbers | SALE-8 | RET-10 **?** | DRAW-1 | — a | SALE-20 | SALE-30 | SALE-40 | SALE-50 |
+| Serial numbers | SALE-8 | RET-10 | DRAW-1 | — a | SALE-20 | SALE-30 | SALE-40 | SALE-50 |
 | Service line (+ components) | SALE-9 | RET-11 | DRAW-1 | — a | SALE-25 | SALE-33 | SALE-40 | SALE-50 |
 | Payout (money to customer) | SALE-10 | RET-12 | DRAW-2 | — a | — b | SALE-34 | SALE-43 | SALE-50 |
-| Line group (sets) | SALE-11 | RET-13 **?** | DRAW-1 | — a | SALE-20 | SALE-30 | SALE-44 | SALE-50 |
-| Tax-registered shop | SALE-12 | RET-14 | DRAW-1 | — a | — b | SALE-35 **?** | SALE-45 | SALE-50 |
+| Line group (sets) | SALE-11 | RET-13 | DRAW-1 | — a | SALE-20 | SALE-30 | SALE-44 | SALE-50 |
+| Tax-registered shop | SALE-12 | RET-14 | DRAW-1 | — a | — b | SALE-35 | SALE-45 | SALE-50 |
 | Cash, change, kept change | TEND-1,2,3 | RET-15 | DRAW-1,3 | TEND-4 | — b | SALE-36 | SALE-46 | SALE-50 |
-| Card / online | TEND-5,6 | RET-16 **?** | DRAW-4 | — a | — b | SALE-36 | SALE-46 | SALE-50 |
-| Cheque | TEND-7 | RET-17 **?** | DRAW-4 | TEND-8 | — b | SALE-36 | SALE-46 | SALE-50 |
+| Card / online | TEND-5,6 | RET-16 | DRAW-4 | — a | — b | SALE-36 | SALE-46 | SALE-50 |
+| Cheque | TEND-7 | RET-17 | DRAW-4 | TEND-8 | — b | SALE-36 | SALE-46 | SALE-50 |
 | Split tender | TEND-9 | RET-15 | DRAW-1 | TEND-10 | — b | SALE-36 | SALE-46 | SALE-50 |
-| On account (credit) | TEND-10,11 | RET-18,19 **?** | DRAW-4 | TEND-12 | — b | SALE-37 | SALE-47 | SALE-50 |
+| On account (credit) | TEND-10,11 | RET-18,19 | DRAW-4 | TEND-12 | — b | SALE-37 | SALE-47 | SALE-50 |
 | Over the credit limit | TEND-13 | RET-18 | DRAW-4 | TEND-12 | — b | SALE-37 | SALE-47 | SALE-51 |
 | Plugin tender (seam) | TEND-14 | RET-15 | DRAW-4 | — a | — b | SALE-36 | SALE-46 | SALE-50 |
 | Held sale / ticket | SALE-13 | — c | — c | — c | — c | — c | — c | SALE-52 |
@@ -117,8 +117,10 @@ methods and tax don't move stock. `— c`: a held sale or ticket is not a sale u
 - **SALE-32** A frozen line's cost still counts in profit.
 - **SALE-33** A service line's profit is its price − its components' cost.
 - **SALE-34** A payout is not revenue.
-- **SALE-35** **?** Tax report: tax is charged on the line net *before* the bill discount. Is that right for a
-  registered shop, or should the bill discount lower the tax too? (questions.md Q3)
+- **SALE-35** Tax is charged on what the customer actually pays for the goods: **after item and bill discounts**
+  (a discount given at the sale lowers the taxable value — the usual VAT rule). The tax report and the receipt show
+  that tax. *User left it to us (Q3, 2026-11-18). Today a bill discount does not lower the tax.* Only tax-registered
+  shops are touched; Iman isn't one.
 - **SALE-36** By-method totals: each method's takings once; cash takings less change.
 - **SALE-37** Credit sales appear under receipts / dues, not as cash.
 - **SALE-38** A Review sale's flags are visible in the sale and the review list.

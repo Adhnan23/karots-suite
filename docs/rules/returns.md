@@ -35,17 +35,23 @@ screen `web/src/features/counter/returns/refund.ts`. The grid is in [sales.md](s
   record").*
 - **RET-11** A returned service line puts nothing on a shelf; what it used is booked as a loss at its cost.
 - **RET-12** A payout line is never returned.
-- **RET-13** **?** A line group (combo / job + add-ons) can be returned line by line today. Should a group come back
-  only whole? (questions.md Q5)
+- **RET-13** A line group (combo / job + add-ons) comes back only whole: every line of the group, in whole sets (2 of 3
+  sets = each line's qty × 2⁄3). One line of a combo on its own is refused. *User, 2026-11-18 (Q5). Today any line
+  can come back alone.* Whole sets rather than "all sets at once" is the builder's call: it is still the whole combo.
 - **RET-14** Tax comes back with the goods in the same share it was paid.
 - **RET-15** The cash part of a refund leaves the drawer of the person doing the return, in the same transaction as
   the return; the drawer never goes below what it held (DRAW-3).
-- **RET-16** **?** A card / online sale is refunded in cash from the drawer today. (questions.md Q1)
-- **RET-17** **?** A cheque sale is refunded in cash at once, even if the cheque hasn't cleared. (questions.md Q2)
+- **RET-16** A card / online sale is refunded in **cash from the drawer**; the card / bank account keeps the money.
+  *User, 2026-11-18 (Q1): refunding to the account is messy.* (As today.)
+- **RET-17** A cheque sale whose cheque hasn't cleared asks the person doing the return which way: **give the cheque
+  back** (the cheque is cancelled, no cash), or **refund in cash and keep the cheque** — if it later bounces, its amount
+  goes onto the customer's account as debt (TEND-8). *User, 2026-11-18 (Q2). Today: cash at once, no question.*
+  A cleared cheque refunds in cash like any other sale.
 - **RET-18** A credit sale's return clears what is still owed **on that sale** first, never more than that; the rest
   is cash. Two returns never clear the same debt twice. *Found in: d17d7b7.*
-- **RET-19** **?** If the customer has already paid the debt (a customer payment), a return still lowers their balance
-  instead of giving cash — it becomes an advance. (questions.md Q4)
+- **RET-19** A return clears debt only while the customer **still owes it**: never more than their balance at the
+  time of the return. If they have paid the credit sale off, the refund is **cash**. *User, 2026-11-18 (Q4). Today it
+  lowers their balance instead (an advance).*
 - **RET-20** Damaged on return: refunded in full, goods come in and go straight out as damage at cost; sellable stock
   doesn't change.
 - **RET-21** Every return has its return record, one row per line, its refund and credit totals = the sum of its
