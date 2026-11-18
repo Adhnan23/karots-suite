@@ -1,4 +1,4 @@
-.PHONY: battle proofs demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs mutate demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -40,6 +40,16 @@ battle:
 # every proof and rewrite the cases Go and the till are held to.
 proofs:
 	cd proofs && lake build && ! grep -rn sorry Karots && lake exe cases
+
+# Mutation testing (docs/rules/README.md): plant small mistakes in the money code and
+# see which the tests miss. gremlins (Go, ~/.local/bin) copies the module per run,
+# so its temp goes on disk, not /tmp; Stryker (web/stryker.config.json) runs only the
+# money-maths tests. Detached, logs in ~/.cache/karots-logs/. Slow: by hand.
+mutate:
+	mkdir -p ~/.cache/karots-logs ~/.cache/karots-gremlins
+	$(ENV) TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/sales \
+		> ~/.cache/karots-logs/gremlins-sales.log 2>&1; tail -4 ~/.cache/karots-logs/gremlins-sales.log
+	cd web && bunx stryker run > ~/.cache/karots-logs/stryker.log 2>&1; grep -E "All files|\.ts " ~/.cache/karots-logs/stryker.log
 
 test-web:
 	cd web && bun run test

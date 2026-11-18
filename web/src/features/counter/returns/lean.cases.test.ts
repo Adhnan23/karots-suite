@@ -1,12 +1,22 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { SaleLine } from '@/api/types.gen'
 import { shareOut } from '@/features/till/cart/totals'
 import { refundOf } from './refund'
 
+/** proofs/cases/<name>, found by walking up (tests also run from a copy, e.g. Stryker's sandbox). */
+function proofCases(name: string) {
+  for (let dir = process.cwd(); ; dir = dirname(dir)) {
+    const f = join(dir, 'proofs', 'cases', name)
+    if (existsSync(f)) return JSON.parse(readFileSync(f, 'utf8'))
+    if (dirname(dir) === dir) throw new Error(`proofs/cases/${name} not found`)
+  }
+}
+
 // The proven model (proofs/Karots/Refund.lean) wrote these cases; the return
 // screen shows each refund to the cent, as the server pays it (RET-4, TILL-2).
-const cases = JSON.parse(readFileSync(`${process.cwd()}/../proofs/cases/refunds.json`, 'utf8')) as
+const cases = proofCases('refunds.json') as
   { paid: number; qty: number; before: number; back: number; refund: number }[]
 
 describe('the return screen agrees with the proof', () => {
@@ -22,7 +32,7 @@ describe('the return screen agrees with the proof', () => {
 
 // proofs/Karots/Share.lean: the till shares a bill discount over lines as the
 // server and the proven rule do (SALE-35).
-const shares = JSON.parse(readFileSync(`${process.cwd()}/../proofs/cases/shares.json`, 'utf8')) as
+const shares = proofCases('shares.json') as
   { amount: number; weights: number[]; shares: number[] }[]
 
 describe('the till shares like the proof', () => {

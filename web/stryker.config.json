@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "comment": "Mutation testing of the till's money maths (make mutate): every mutant that survives is a place the tests can't see.",
+  "testRunner": "vitest",
+  "plugins": [
+    "@stryker-mutator/vitest-runner"
+  ],
+  "mutate": [
+    "src/features/till/cart/totals.ts",
+    "src/features/till/cart/packs.ts",
+    "src/features/counter/returns/refund.ts"
+  ],
+  "coverageAnalysis": "perTest",
+  "concurrency": 2,
+  "tempDirName": ".stryker-tmp",
+  "reporters": [
+    "clear-text",
+    "json"
+  ],
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "thresholds": {
+    "high": 90,
+    "low": 75,
+    "break": null
+  },
+  "vitest": {
+    "configFile": "vitest.stryker.config.ts"
+  }
+}

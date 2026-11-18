@@ -66,3 +66,30 @@ func TestPaidSharesSumToGoodsPaid(t *testing.T) {
 		}
 	}
 }
+
+// DISC-1, DISC-2, DISC-3 (a gap mutation testing found): a fixed item discount
+// is per unit × qty, a percent one is off the line gross; both clamp to the
+// line; a percent bill discount is off its base, rounded once.
+func TestDiscountsResolve(t *testing.T) {
+	d := decimal.RequireFromString
+	cases := []struct {
+		name, typ, value, gross, qty, want string
+	}{
+		{"fixed per unit", "fixed", "5", "250", "3", "15"},
+		{"percent of the line", "percent", "5", "250", "3", "12.5"},
+		{"percent rounds once", "percent", "12.5", "33.33", "1", "4.17"},
+		{"fixed never past the line", "fixed", "150", "300", "3", "300"},
+		{"never below zero", "fixed", "-5", "300", "3", "0"},
+	}
+	for _, c := range cases {
+		if got := resolveItemDiscount(c.typ, d(c.value), d(c.gross), d(c.qty)); !got.Equal(d(c.want)) {
+			t.Errorf("item %s: %s, want %s", c.name, got, c.want)
+		}
+	}
+	if got := resolveBillDiscount("percent", d("10"), d("333.35")); !got.Equal(d("33.34")) {
+		t.Errorf("bill 10%% of 333.35: %s, want 33.34", got)
+	}
+	if got := resolveBillDiscount("fixed", d("500"), d("120")); !got.Equal(d("120")) {
+		t.Errorf("bill never past its base: %s, want 120", got)
+	}
+}

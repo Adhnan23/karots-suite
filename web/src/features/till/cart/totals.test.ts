@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CartLine, Payment } from './types'
 import {
-  accountTotal, billDiscount, changeDue, coinKeep, keptAmount, lineDiscount, lineNet, notesFor,
+  accountTotal, balanceDue, billDiscount, changeDue, shareOut, coinKeep, keptAmount, lineDiscount, lineNet, notesFor,
   paidTotal, quickCash, roundable, taxTotal, tenderIssue, total,
 } from './totals'
 
@@ -81,5 +81,16 @@ describe('tenders', () => {
   })
   it('quickCash follows the shop\'s own notes', () => {
     expect(quickCash(640, [100, 1000])).toEqual([640, 700, 1000])
+  })
+})
+
+// Blind spots mutation testing found (make mutate).
+describe('mutation gaps', () => {
+  it('balance due counts an on-account line as covered (TEND-1)', () => {
+    expect(balanceDue(500, [pay('cash', '200'), pay('credit', '100')])).toBe(200)
+  })
+  it('a leftover cent goes to the earlier of tied lines (DISC-5)', () => {
+    expect(shareOut(0.02, [1, 1, 1])).toEqual([0.01, 0.01, 0])
+    expect(shareOut(0.01, [0, 1, 1])).toEqual([0, 0.01, 0])
   })
 })

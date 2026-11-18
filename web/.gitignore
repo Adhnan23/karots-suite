@@ -23,3 +23,7 @@ shots
 *.njsproj
 *.sln
 *.sw?
+
+# Stryker (make mutate)
+.stryker-tmp/
+reports/mutation/

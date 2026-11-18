@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SaleLine } from '@/api/types.gen'
 import type { SaleView } from '@/api/types.gen'
-import { bumpQty, refundOf, refundSplit } from './refund'
+import { bumpQty, left, refundOf, refundSplit } from './refund'
 
 const line = (id: number, quantity: string, group = 0, sets = '', returnedQty = '0'): SaleLine => ({
   id, name: `L${id}`, unitAbbr: 'pc', quantity, returnedQty, unitPrice: '10.00', subtotal: '100.00', refundUnit: '10.00',
@@ -69,5 +69,14 @@ describe('refundSplit', () => {
   })
   it('clears debt on the sale first', () => {
     expect(refundSplit(sale('150.00', [{ amount: '1000.00', chequeStatus: 'pending' }]), 400, 'back')).toEqual({ offAccount: 150, chequeBack: 250, cash: 0, pendingCheque: 1000 })
+  })
+})
+
+// A free line (100% off) can still come back — its stock goes back on the shelf;
+// only a payout (money handed over) never does.
+describe('left', () => {
+  it('counts a free line, never a payout', () => {
+    expect(left({ ...line(1, '3'), subtotal: '0.00' })).toBe(3)
+    expect(left({ ...line(1, '1'), subtotal: '-500.00' })).toBe(0)
   })
 })
