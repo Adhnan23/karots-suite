@@ -10,7 +10,7 @@ handoffs, finished plans and specs live in git history (`git log -p -- docs/stat
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
 
 **Core battle test (user's top priority, 2026-11-18): area 1 of 7 — sales, discounts, payment, returns — built and
-being closed** (spec `docs/specs/2026-11-18-core-battle-test-design.md`, plan `docs/plans/2026-11-18-core-battle-test-sales.md`).
+being closed** (spec `docs/specs/2026-11-18-core-battle-test-design.md`, area 1 plan in git history, `4b4b68a`).
 Why: Iman found a discount sale refunding the full price; nobody had written that rule down. The method, kept for
 every area:
 - **Rule book** `docs/rules/`: a grid of every feature a sale can carry × every later action on it; each square a
