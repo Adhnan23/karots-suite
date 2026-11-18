@@ -36,9 +36,7 @@ func saleView(d *sales.Detail) SaleView {
 		PaidAmount: dec2(s.PaidAmount), ChangeGiven: dec2(s.ChangeGiven), OwedOnSale: "0.00", Lines: []SaleLine{}, Payments: []SalePayment{}}
 	if s.CustomerID != nil {
 		v.CustomerID = *s.CustomerID
-		if owed := s.Total.Sub(s.PaidAmount).Sub(d.CreditReduced); owed.IsPositive() {
-			v.OwedOnSale = dec2(owed)
-		}
+		v.OwedOnSale = dec2(d.Owed)
 	}
 	for _, it := range d.Items {
 		// Valued exactly as sales.PartialReturnTx refunds: part of a line is

@@ -155,6 +155,9 @@ type Detail struct {
 	Paid map[int64]decimal.Decimal `json:"paid"`
 	// CreditReduced is what returns already took off the customer's account.
 	CreditReduced decimal.Decimal `json:"credit_reduced"`
+	// Owed is what a return would clear off the customer's account first: what
+	// is still owed on this sale, never more than they owe now (RET-18, RET-19).
+	Owed decimal.Decimal `json:"owed"`
 	// Duplicate: Create found this sale by its ClientRef and made nothing new.
 	Duplicate bool `json:"duplicate,omitempty"`
 }

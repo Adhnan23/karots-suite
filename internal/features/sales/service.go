@@ -477,7 +477,11 @@ func (s *Service) loadDetail(ctx context.Context, repo *Repository, id int64) (*
 	if err != nil {
 		return nil, apperr.Internal("failed to load sale", err)
 	}
-	return &Detail{Sale: *sale, Items: items, Payments: payments, Paid: PaidShares(sale.Total, items), CreditReduced: credited}, nil
+	owed, err := owedNow(ctx, repo.q, *sale, credited)
+	if err != nil {
+		return nil, apperr.Internal("failed to load sale", err)
+	}
+	return &Detail{Sale: *sale, Items: items, Payments: payments, Paid: PaidShares(sale.Total, items), CreditReduced: credited, Owed: owed}, nil
 }
 
 func (s *Service) List(ctx context.Context, f ListFilter) ([]Sale, error) {

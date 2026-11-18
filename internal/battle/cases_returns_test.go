@@ -1,6 +1,9 @@
 package battle
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 // RET-5: returning every line of a bill-discounted sale, one at a time, refunds
 // exactly what was paid — even when the discount doesn't split evenly.
@@ -80,6 +83,58 @@ func TestRET10_ReturnedSerialSellsAgain(t *testing.T) {
 	s.must(t, s.db.Get(&live, `SELECT count(*) FROM warranty_units WHERE serial_no = 'IMEI-0001' AND sale_id = $1 AND status = 'active'`, first.ID))
 	if live != 0 {
 		t.Errorf("the returned sale still holds the phone's warranty")
+	}
+	s.audit(t)
+}
+
+// RET-19: a credit sale the customer has already paid off is refunded in cash
+// when it comes back; it never turns into credit with the shop.
+func TestRET19_PaidOffCreditSaleRefundsCash(t *testing.T) {
+	s := newShop(t)
+	s.open(t, s.till1)
+	var r saleResult
+	s.must(t, s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+		"customerId": s.customer, "items": []line{{"productId": s.prod["plain"], "quantity": "10"}},
+		"payments": []pay{{"method": "credit", "amount": "1000"}}}, &r))
+	s.must(t, s.till1.Do("POST", fmt.Sprintf("/api/v1/till/customers/%d/payment", s.customer), map[string]any{"amount": "1000", "method": "cash"}, nil))
+
+	if v := s.sale(t, s.till1, r.ID); v.OwedOnSale != "0.00" {
+		t.Errorf("return screen says %s still owed on the sale, want 0.00 (TILL-2)", v.OwedOnSale)
+	}
+	cashBack := s.giveBack(t, s.till1, r.ID, s.sale(t, s.till1, r.ID).Lines[0].ID, "10")
+	if cashBack.StringFixed(2) != "1000.00" {
+		t.Errorf("cash refunded %s, want 1000.00", cashBack.StringFixed(2))
+	}
+	var bal string
+	s.must(t, s.db.Get(&bal, `SELECT outstanding_balance FROM customers WHERE id = $1`, s.customer))
+	if bal != "0.00" {
+		t.Errorf("customer balance %s, want 0.00 (no credit with the shop)", bal)
+	}
+	s.audit(t)
+}
+
+// RET-18 / RET-19: still owing part of it, the return clears what they owe and
+// the rest is cash.
+func TestRET19_PartPaidCreditSaleClearsDebtThenCash(t *testing.T) {
+	s := newShop(t)
+	s.open(t, s.till1)
+	var r saleResult
+	s.must(t, s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+		"customerId": s.customer, "items": []line{{"productId": s.prod["plain"], "quantity": "10"}},
+		"payments": []pay{{"method": "credit", "amount": "1000"}}}, &r))
+	s.must(t, s.till1.Do("POST", fmt.Sprintf("/api/v1/till/customers/%d/payment", s.customer), map[string]any{"amount": "600", "method": "cash"}, nil))
+
+	if v := s.sale(t, s.till1, r.ID); v.OwedOnSale != "400.00" {
+		t.Errorf("return screen says %s still owed on the sale, want 400.00 (TILL-2)", v.OwedOnSale)
+	}
+	cashBack := s.giveBack(t, s.till1, r.ID, s.sale(t, s.till1, r.ID).Lines[0].ID, "10")
+	if cashBack.StringFixed(2) != "600.00" {
+		t.Errorf("cash refunded %s, want 600.00 (400 cleared the debt)", cashBack.StringFixed(2))
+	}
+	var bal string
+	s.must(t, s.db.Get(&bal, `SELECT outstanding_balance FROM customers WHERE id = $1`, s.customer))
+	if bal != "0.00" {
+		t.Errorf("customer balance %s, want 0.00", bal)
 	}
 	s.audit(t)
 }

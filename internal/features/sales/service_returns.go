@@ -316,7 +316,10 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			if err != nil {
 				return apperr.Internal("failed to read earlier returns", err)
 			}
-			owed := sale.Total.Sub(sale.PaidAmount).Sub(prior)
+			owed, err := owedNow(ctx, tx, *sale, prior)
+			if err != nil {
+				return apperr.Internal("failed to read the customer", err)
+			}
 			if owed.IsPositive() {
 				creditReduction = decimal.Min(totalRefundValue, owed)
 				if err := custRepo.AddBalance(ctx, *sale.CustomerID, creditReduction.Neg()); err != nil {
@@ -354,6 +357,22 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 		return nil, decimal.Zero, 0, err
 	}
 	return detail, cashRefund, returnID, nil
+}
+
+// owedNow is what a return clears off the customer's account before any cash:
+// what is still owed on this sale (total − paid − what earlier returns
+// cleared), and never more than they owe now — a credit sale they have paid off
+// comes back as cash, not as credit with the shop (RET-18, RET-19).
+func owedNow(ctx context.Context, q sqlx.QueryerContext, sale Sale, cleared decimal.Decimal) (decimal.Decimal, error) {
+	owed := sale.Total.Sub(sale.PaidAmount).Sub(cleared)
+	if sale.CustomerID == nil || !owed.IsPositive() {
+		return decimal.Zero, nil
+	}
+	var bal decimal.Decimal
+	if err := sqlx.GetContext(ctx, q, &bal, `SELECT outstanding_balance FROM customers WHERE id = $1`, *sale.CustomerID); err != nil {
+		return decimal.Zero, err
+	}
+	return decimal.Min(owed, decimal.Max(bal, decimal.Zero)), nil
 }
 
 // lineRefund values qty units of a line at what was paid for it (linePaid, its
