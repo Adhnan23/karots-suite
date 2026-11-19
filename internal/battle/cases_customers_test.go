@@ -408,3 +408,32 @@ func TestCUST17_DisabledCustomerSaleFlagged(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// CUST-16 on the other paths: the back office by cheque and by cash into a till,
+// each sent twice — one payment, one cheque, one money move, one audit line.
+func TestCUST16_BackOfficeSentTwice(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	id := s.newCustomer(t, "0712000141", "0", "1000")
+	till := fmt.Sprintf("till:%d", s.userID(t, "0770000002"))
+	for _, body := range []map[string]any{
+		{"method": "cheque", "clientRef": "admin-cheque", "cheques": []map[string]string{{"bank": "BOC", "number": "800100", "amount": "200", "date": "2026-12-01"}}},
+		{"amount": "100", "method": "cash", "source": till, "clientRef": "admin-cash"},
+	} {
+		for range 2 {
+			s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/payment", id), body, nil))
+		}
+	}
+	var pays, cheques, moves, audits int
+	s.must(t, s.db.Get(&pays, `SELECT count(*) FROM customer_payments WHERE customer_id = $1`, id))
+	s.must(t, s.db.Get(&cheques, `SELECT count(*) FROM cheques WHERE customer_id = $1`, id))
+	s.must(t, s.db.Get(&moves, `SELECT count(*) FROM money_receipts WHERE ref_kind = 'customer_payment'`))
+	s.must(t, s.db.Get(&audits, `SELECT count(*) FROM audit_log WHERE entity = 'customer' AND entity_id = $1 AND action = 'payment'`, fmt.Sprint(id)))
+	if pays != 2 || cheques != 1 || moves != 2 || audits != 2 { // moves: the cheque into Cheques in hand, the cash into the till
+		t.Errorf("CUST-16 payments %d, cheques %d, money moves %d, audit lines %d (want 2, 1, 2, 2)", pays, cheques, moves, audits)
+	}
+	wantDec(t, "CUST-16", "balance", s.acct(t, id).Balance, "700")
+	wantDec(t, "CUST-16", "drawer", dec(t, s.expected(t, s.till1)), "5100")
+	s.audit(t)
+}

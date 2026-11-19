@@ -95,9 +95,11 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit collected "+req.Amount+" from "+cust.Name)
-	if res.Method == "cash" && !req.DeferDrawerKick {
-		h.d.KickDrawer(ctx)
+	if !res.Again { // a repeated send logs nothing new and leaves the drawer shut (CUST-16)
+		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit collected "+req.Amount+" from "+cust.Name)
+		if res.Method == "cash" && !req.DeferDrawerKick {
+			h.d.KickDrawer(ctx)
+		}
 	}
 	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 }

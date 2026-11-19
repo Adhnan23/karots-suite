@@ -286,9 +286,11 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+in.Amount)
-	if dest.Kind == cashflow.KindTill {
-		h.d.KickDrawer(ctx)
+	if !res.Again { // a repeated send logs nothing new and leaves the drawer shut (CUST-16)
+		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+in.Amount)
+		if dest.Kind == cashflow.KindTill {
+			h.d.KickDrawer(ctx)
+		}
 	}
 	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 }
@@ -314,7 +316,9 @@ func (h *handlers) adminPluginPay(c echo.Context, id int64, req CustomerPayReque
 	if err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+in.Amount+" by "+tender.Label)
+	if !res.Again {
+		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+in.Amount+" by "+tender.Label)
+	}
 	return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 }
 
