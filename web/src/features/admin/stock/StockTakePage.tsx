@@ -80,7 +80,7 @@ export function StockTakePage() {
 
   return (
     <>
-      <PageHead title="Stock-take" sub="Type what’s really on the shelf. Blank rows stay as they are."
+      <PageHead title="Stock-take" sub="Type what’s really on the shelf, before selling again: a count replaces stock as it is when you save. Blank rows stay as they are."
         actions={<>
           <DownloadMenu />
           <Button variant="outline" className="h-10 gap-1.5 px-3" onClick={() => file.current?.click()}><Upload size={15} /> Import count</Button>

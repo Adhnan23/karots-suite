@@ -41,6 +41,7 @@ export function CountSheetPaper({ d, shop }: { d: CountSheet; shop: ShopHeader }
         </table>
       ))}
       {d.rows.length === 0 && <p className="py-6 text-center">No stocked products match.</p>}
+      <p className="border-t border-ink pt-2 text-[12px]">Type the counts in before selling again: a count replaces stock as it is when it's saved, so anything sold in between would be counted twice.</p>
     </article>
   )
 }

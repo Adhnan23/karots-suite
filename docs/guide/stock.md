@@ -112,7 +112,8 @@ product with no supplier can be given one as you restock it.
 
 Type what's really on the shelf. Blank rows stay as they are. Print a **count sheet** by category
 or supplier to count on paper, or **import** a count from a spreadsheet. The differences are
-saved as adjustments.
+saved as adjustments. Type the counts in **before selling again**: a count replaces stock as it is
+when it's saved, so anything sold between counting and saving would be counted twice.
 
 ## Smart reorder levels
 
