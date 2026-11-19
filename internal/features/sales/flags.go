@@ -14,14 +14,15 @@ import (
 // Flag kinds: something an admin should look at on a sale that was taken
 // rather than refused (a Review sale, or one a plugin marked).
 const (
-	FlagPrice        = "price"         // sold at the price the client showed, not today's
-	FlagOversold     = "oversold"      // sold more than the count showed
-	FlagOverLimit    = "over_limit"    // credit went past the customer's limit
-	FlagLookalike    = "lookalike"     // looks like another sale (rung twice?)
-	FlagLate         = "late"          // its session was closed; counted when it arrived
-	FlagClock        = "clock"         // the client's clock was off; counted when it arrived
-	FlagInactiveUser = "inactive_user" // the person may not sell now: deactivated, or made a sales person
-	FlagSerial       = "serial"        // a serial already on record, repeated, or not one per unit
+	FlagPrice        = "price"             // sold at the price the client showed, not today's
+	FlagOversold     = "oversold"          // sold more than the count showed
+	FlagOverLimit    = "over_limit"        // credit went past the customer's limit
+	FlagLookalike    = "lookalike"         // looks like another sale (rung twice?)
+	FlagLate         = "late"              // its session was closed; counted when it arrived
+	FlagClock        = "clock"             // the client's clock was off; counted when it arrived
+	FlagInactiveUser = "inactive_user"     // the person may not sell now: deactivated, or made a sales person
+	FlagSerial       = "serial"            // a serial already on record, repeated, or not one per unit
+	FlagCustomerOff  = "customer_disabled" // on account to a customer who was disabled (CUST-17)
 )
 
 // Flag is one review note on a sale.

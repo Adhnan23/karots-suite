@@ -211,7 +211,7 @@ type SaleWarranty struct {
 }
 
 type SaleFlag struct {
-	Kind      string `json:"kind"` // price | oversold | over_limit | lookalike | late | clock | inactive_user | …
+	Kind      string `json:"kind"` // price | oversold | over_limit | lookalike | late | clock | inactive_user | customer_disabled | …
 	Note      string `json:"note"`
 	CreatedAt string `json:"createdAt"`
 }

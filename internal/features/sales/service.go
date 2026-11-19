@@ -249,6 +249,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		if err := CheckTender(tender, total, in.CustomerID != nil, available, in.AllowOverLimit || in.Review); err != nil {
 			return err
 		}
+		if cust != nil && !cust.IsActive && tender.OnAccount.IsPositive() { // never stop a sale (CUST-17)
+			sl.flags = append(sl.flags, pendingFlag{FlagCustomerOff, "on account to " + cust.Name + ", who is disabled"})
+		}
 		if in.Review && !in.AllowOverLimit && tender.OnAccount.GreaterThan(available) {
 			sl.flags = append(sl.flags, pendingFlag{FlagOverLimit, "on account " + money.Display(tender.OnAccount) +
 				", available " + money.Display(available)})

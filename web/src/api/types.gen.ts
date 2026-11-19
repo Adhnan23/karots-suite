@@ -975,7 +975,7 @@ export interface SaleWarranty {
   receipt?: WarrantyReceiptView;
 }
 export interface SaleFlag {
-  kind: string; // price | oversold | over_limit | lookalike | late | clock | inactive_user | …
+  kind: string; // price | oversold | over_limit | lookalike | late | clock | inactive_user | customer_disabled | …
   note: string;
   createdAt: string;
 }
