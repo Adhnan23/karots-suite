@@ -31,7 +31,7 @@ type Statement struct {
 }
 
 // Statement builds the full credit ledger for a customer: credit-sale debits,
-// return credits, and repayment credits, time-ordered with a running balance.
+// return credits, change kept as an advance, and repayment credits, time-ordered with a running balance.
 // Note: repayments are only logged from migration 0028 onward, so the running
 // balance reconciles to the current outstanding balance for activity recorded
 // since then; the authoritative figure is always Customer.OutstandingBalance.
@@ -45,7 +45,7 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		Ref       string          `db:"ref"`
 		Amount    decimal.Decimal `db:"amount"`
 	}
-	var creditSales, returns []evRow
+	var creditSales, returns, kept []evRow
 	if err := s.db.SelectContext(ctx, &creditSales, `
 		SELECT created_at, receipt_no AS ref, (total - paid_amount) AS amount
 		FROM sales
@@ -58,6 +58,13 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 		FROM sale_returns sr JOIN sales s ON s.id = sr.sale_id
 		WHERE s.customer_id = $1 AND sr.credit_reduction > 0
 		ORDER BY sr.created_at`, id); err != nil {
+		return nil, err
+	}
+	// Change the customer left with the shop is an advance (CUST-10).
+	if err := s.db.SelectContext(ctx, &kept, `
+		SELECT created_at, receipt_no AS ref, rounding_to_account AS amount
+		FROM sales WHERE customer_id = $1 AND rounding_to_account > 0
+		ORDER BY created_at`, id); err != nil {
 		return nil, err
 	}
 	type payRow struct {
@@ -91,6 +98,9 @@ func (s *Service) Statement(ctx context.Context, id int64) (*Statement, error) {
 	}
 	for _, r := range creditSales {
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Credit sale", Ref: r.Ref, Debit: r.Amount})
+	}
+	for _, r := range kept {
+		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Change kept", Ref: r.Ref, Credit: r.Amount})
 	}
 	for _, r := range returns {
 		entries = append(entries, LedgerEntry{Date: r.CreatedAt, Kind: "Return", Ref: r.Ref, Credit: r.Amount})
