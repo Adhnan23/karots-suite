@@ -57,11 +57,12 @@ receipt) · **Undo** (put right) · **Limit** (credit limit, available) · **Sta
 - **CUST-1** A customer's balance = their opening + every sale's on-account part − kept change − what returns
   cleared − payments + advances refunded + bounced / cancelled cheques of theirs, to the cent, at every moment.
   *Checked by: ledgercheck, machine.*
-- **CUST-2** An opening is booked once, when the customer is made (by hand, at the till or by a sheet); a customer
-  reused by phone, or a sheet imported again, never adds it again. An opening at making is never below zero.
+- **CUST-2** An opening is booked once, when the customer is made (by hand, at the till or by a sheet): the till
+  reuses the customer whose phone it is, the back office refuses a phone in use, and a sheet imported again updates
+  without adding it. An opening at making is never below zero.
   *example.*
-- **CUST-3** One active customer per phone (spaces and dashes ignored): making one with a phone in use reuses that
-  customer, and changing a phone to, or bringing back a customer with, one in use is refused. Otherwise one person's
+- **CUST-3** One active customer per phone (spaces and dashes ignored): making one with a phone in use reuses or is
+  refused (CUST-2), and changing a phone to, or bringing back a customer with, one in use is refused. Otherwise one person's
   debt splits across two accounts. *Found in: 3ed448a (import doubled customers). ledgercheck, example.*
 - **CUST-4** Adjusting the opening moves the balance and the opening by the same difference and leaves the linked part
   unchanged; it may go below zero (an advance from before the suite). An advance they already hold pays a new old debt down (CUST-15). It is in the audit log with before and after.

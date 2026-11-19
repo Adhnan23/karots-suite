@@ -59,7 +59,7 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_customers_test.go`)
 
-- [ ] **Step 1:** One test per example rule: CUST-2 (reuse by phone and a re-import add no opening; a negative opening
+- [x] **Step 1:** (CUST-2: the back office refuses a phone in use, the till reuses — rule worded so; a sheet's opening is held by `import_dedup_test`) One test per example rule: CUST-2 (reuse by phone and a re-import add no opening; a negative opening
   refused), CUST-3 (phone changed to one in use / bringing back a customer whose phone is taken — refused), CUST-4
   (adjust up, down, below zero; linked unchanged; audit row), CUST-5 (card with no account, cash into a bank refused;
   each method's money where it belongs), CUST-6 (slip numbers and before / after), CUST-7 (overpay → advance → the
@@ -68,12 +68,12 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
   CUST-10 (statement ends at the balance after every kind of line), CUST-11 (more than the advance refused; from a
   till beyond the drawer refused), CUST-12 (dues and advances totals, a disabled customer who owes), CUST-14 (disabled
   customer pays and is refunded). Each ends with the auditor.
-- [ ] **Step 2:** Run; each failure → fix test-first, one commit each.
-- [ ] **Step 3: The user's answers**, test-first, one commit each: CUST-15 (`AdjustOpening` caps the old debt at
+- [x] **Step 2:** (real: CUST-3 phone clash 561e399, CUST-10 statement missed kept change 59fe908) Run; each failure → fix test-first, one commit each.
+- [x] **Step 3: The user's answers** (CUST-15 ae56d64, CUST-17 c30a601, CUST-16 05136c1 — after Task 5 Step 1's lock), test-first, one commit each: CUST-15 (`AdjustOpening` caps the old debt at
   the balance, never below zero unless set negative with no advance), CUST-16 (`clientRef` on counter + admin
   payments, unique per customer — likely migration 00039 `customer_payments.client_ref`; the counter screen sends
   one per Pay), CUST-17 (a sale on account to a disabled customer gets a review flag).
-- [ ] **Step 4: Commit** — `test(battle): area 3 cases — one per rule`
+- [x] **Step 4: Commit** — `test(battle): area 3 cases — one per rule`
 
 ### Task 4: Random days with customers (`internal/battle/machine_customers_test.go`)
 
@@ -88,7 +88,7 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 5: Faults (`internal/battle/faults_customers_test.go`)
 
-- [ ] **Step 1:** CUST-11: two advance refunds at once that together pass the advance — one refused. CUST-13 / CUST-6:
+- [x] **Step 1:** (done before CUST-16, which needs the lock; all three real — 8 refunds of a Rs 300 advance all went through, payments at once lost Rs 100 off the balance, two tills passed the limit by Rs 200 unflagged; fixed by `LockByID`, 29a532b; + the same Pay sent 4× at once is one) CUST-11: two advance refunds at once that together pass the advance — one refused. CUST-13 / CUST-6:
   several payments at once (plain and old debt first) — balance drops by all, every slip's before / after chain right.
   CUST-8: two sales on account at once that together pass the limit — one refused (or flagged on Review); each
   receipt's balance after right (TEND-12).
