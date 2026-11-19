@@ -138,14 +138,17 @@ func (r *Repository) PayOpening(ctx context.Context, id int64, amt decimal.Decim
 
 // AdjustOpening sets the still-unpaid opening (old pre-system debt) to newOpening
 // and shifts both the outstanding balance and the gross opening figure by the same
-// delta, so the transactional (linked) part is left untouched. newOpening must be
-// non-negative.
+// delta, so the transactional (linked) part is left untouched — except that an
+// advance the customer holds pays a new old debt down at once: the old debt is
+// never more than what they owe (CUST-15). A negative newOpening (an advance from
+// before the suite) is kept as it is.
 func (r *Repository) AdjustOpening(ctx context.Context, id int64, newOpening decimal.Decimal) error {
 	res, err := r.q.ExecContext(ctx, `
 		UPDATE customers SET
 			outstanding_balance = outstanding_balance + ($1 - opening_unlinked),
 			opening_balance     = opening_balance     + ($1 - opening_unlinked),
-			opening_unlinked    = $1
+			opening_unlinked    = CASE WHEN $1 > 0
+				THEN LEAST($1, GREATEST(outstanding_balance + ($1 - opening_unlinked), 0)) ELSE $1 END
 		WHERE id = $2 AND is_active = true`, newOpening, id)
 	if err != nil {
 		return err
