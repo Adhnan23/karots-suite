@@ -190,3 +190,42 @@ func TestRET18_TwoLinesOfOneSaleAtOnce(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// Never stop a sale: an admin collecting into, or refunding from, a cashier's
+// till while that cashier sells on account to the same customer — every one
+// goes through (no deadlock: both take the till before the customer).
+func TestCUST13_AdminIntoATillWhileItSells(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	id := s.newCustomer(t, "0712000261", "1000000", "0")
+	till := fmt.Sprintf("till:%d", s.userID(t, "0770000002"))
+	safe := s.locker(t, "Safe", "safe", "100000")
+	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/payment", id), map[string]any{"amount": "50000", "method": "cash", "source": fmt.Sprintf("locker:%d", safe)}, nil))
+	failed := 0
+	var errs sync.Map
+	for range 10 {
+		n := atOnce(6, func(i int) (err error) {
+			defer func() {
+				if err != nil {
+					errs.Store(err.Error(), true)
+				}
+			}()
+			switch i % 3 {
+			case 0:
+				_, err := s.onAccount(t, id, 1, "0", nil)
+				return err
+			case 1:
+				return s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/payment", id), map[string]any{"amount": "150", "method": "cash", "source": till}, nil)
+			default:
+				return s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/refund", id), map[string]any{"amount": "10", "source": till}, nil)
+			}
+		})
+		failed += 6 - n
+	}
+	if failed > 0 {
+		errs.Range(func(k, _ any) bool { t.Log(k); return true })
+		t.Errorf("%d of 60 refused or failed", failed)
+	}
+	s.audit(t)
+}

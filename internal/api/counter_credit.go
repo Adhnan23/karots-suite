@@ -67,6 +67,11 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	}
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if in.Method == "cash" || in.Method == "" {
+			if err := tillFirst(ctx, tx, cashflow.Till(userID)); err != nil {
+				return err
+			}
+		}
 		var err error
 		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || res.Again {
 			return err
@@ -116,6 +121,9 @@ func (h *handlers) CounterAdvanceRefund(c echo.Context) error {
 	till := cashflow.Till(userID)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := tillFirst(ctx, tx, till); err != nil {
+			return err
+		}
 		res, err := h.t.customers.RefundAdvanceTx(ctx, tx, id, req.Amount, userID)
 		if err != nil {
 			return err

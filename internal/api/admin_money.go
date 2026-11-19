@@ -2,15 +2,19 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/lockers"
 	"karots-suite/internal/money"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
@@ -98,4 +102,19 @@ func parseAmount(s, what string) (decimal.Decimal, error) {
 		return decimal.Zero, apperr.Validation("enter a valid " + what)
 	}
 	return v, nil
+}
+
+// tillFirst holds the till a customer's money goes into or comes from before the
+// customer is held: a sale takes its till, then the customer, so the same order
+// here means an admin collecting into a cashier's till while that cashier sells
+// on account never deadlocks (never stop a sale). No open till is left for the
+// move to report.
+func tillFirst(ctx context.Context, tx *sqlx.Tx, loc cashflow.Location) error {
+	if loc.Kind != cashflow.KindTill {
+		return nil
+	}
+	if _, err := cashregister.NewRepository(tx).FindOpenForUpdate(ctx, loc.ID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return apperr.Internal("failed to load till session", err)
+	}
+	return nil
 }

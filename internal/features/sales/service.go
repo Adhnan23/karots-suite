@@ -240,8 +240,11 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		var cust *customers.Customer
 		if (tender.OnAccount.IsPositive() || hasCheque) && in.CustomerID != nil {
 			c, err := custRepo.LockByID(ctx, *in.CustomerID) // CUST-8: two tills at once see each other
-			if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
 				return apperr.Validation("selected customer not found")
+			}
+			if err != nil {
+				return apperr.Internal("failed to load the customer", err)
 			}
 			cust = c
 			available = c.AvailableCredit()

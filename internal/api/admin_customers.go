@@ -265,6 +265,9 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	userID := middleware.CurrentUserID(c)
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := tillFirst(ctx, tx, dest); err != nil {
+			return err
+		}
 		var err error
 		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || res.Again {
 			return err
@@ -339,6 +342,9 @@ func (h *handlers) AdminCustomerRefund(c echo.Context) error {
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := tillFirst(ctx, tx, src); err != nil {
+			return err
+		}
 		res, err := h.t.customers.RefundAdvanceTx(ctx, tx, id, strings.TrimSpace(req.Amount), userID)
 		if err != nil {
 			return err
