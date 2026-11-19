@@ -41,12 +41,12 @@ cut, sent twice).
 | Write-off: damage / own use / staff | STK-8 | STK-6 | STK-7 | STK-3 | — d | STK-8 | STK-23 |
 | Write-off of a frozen item out for sale | STK-8 | STK-2 | STK-8 | — a | — d | STK-8 | — e |
 | Give back to the supplier (counted) | STK-9 | STK-9 | STK-9 | — b | — d | STK-8 | STK-23 |
-| Recall / undo recall | STK-10 | STK-10, Q2 | — c | — c | STK-10 | STK-10 | — e |
+| Recall / undo recall | STK-10 | STK-10,15 | — c | — c | STK-10 | STK-10 | — e |
 | Conversion run | STK-11 | STK-11 | STK-11 | STK-3,18 | — d | STK-22 | STK-23 |
 | Conversion into a frozen product | STK-13 | STK-13 | STK-11 | STK-3 | — d | STK-13 | STK-23 |
 | Make loose version | STK-11 | STK-11 | STK-11 | STK-3 | — d | STK-22 | — e |
 | Fold card + loose into a pack | STK-14 | STK-11 | STK-14 | STK-14 | — d | STK-22 | — e |
-| Lots merged | STK-15 | STK-15, Q2 | STK-15 | — c | — d | STK-22 | — e |
+| Lots merged | STK-15 | STK-15 | STK-15 | — c | — d | STK-22 | — e |
 | Lot price / expiry / cost edited | STK-20 | STK-20 | STK-20 | — c | STK-20 | STK-22 | — e |
 | Freeze / freeze the shop | STK-12 | — c | — c | — c | STK-12 | STK-12 | — e |
 | Put out for sale (frozen) | STK-12 | STK-6 | STK-12 | STK-3 | STK-12 | STK-12 | STK-23 |
@@ -54,7 +54,7 @@ cut, sent twice).
 | Warranty replacement shipped | STK-19 | STK-6 | STK-19 | STK-3 | — d | STK-8 | STK-23 |
 | Product merged into another | STK-16 | STK-16 | STK-16 | — a | — d | STK-22 | — e |
 | Pack saved | STK-17 | — c | — c | STK-17 | STK-17 | — c | — e |
-| Unit changed (a product's, or a unit's decimals) | Q3 | — c | — c | STK-18, Q3 | Q3 | — c | — e |
+| Unit changed (a product's, or a unit's decimals) | STK-18 | — c | — c | STK-18 | STK-18 | — c | — e |
 
 - `— a` Only adds stock; nothing to go below zero.
 - `— b` Never refused for a difference: what was counted wins (STK-9).
@@ -81,16 +81,21 @@ cut, sent twice).
   lot at the cost given (blank = the product's cost) and the price given (blank = follows the product). *example.*
 - **STK-18** A product sold in whole units (pieces, packets) never holds or moves a fraction: a count, a write-off, an
   addition, a conversion into it and a sale of it are whole numbers or refused. Only units marked decimal (kg, l) take
-  fractions. *Today only the sale checks.* *example.*
-- **STK-21** A sale, write-off or removal that names no lot takes FEFO: earliest expiry first, no expiry last, then
-  the oldest lot. *Which lots it may take when some are expired or recalled: Q1.* *example, machine.*
+  fractions. A product can't move to a whole unit, nor a unit lose its decimals, while one of its products holds a
+  fraction (count it whole first); a unit whose products have packs can't be given decimals. *User, 2026-11-19 (Q3).
+  Today only the sale checks, and unit changes are all allowed.* *example.*
+- **STK-21** A sale, write-off or removal that names no lot takes the **good** lots first — FEFO among them: earliest
+  expiry first, no expiry last, then the oldest — and an expired or recalled (stop selling) lot only when nothing else
+  is left. *User, 2026-11-19 (Q1). Today an expired lot sorts first, so the books say it went while it's still on the
+  shelf.* *example, machine.*
 
 ### Counts
 
 - **STK-4** A count sets on hand to exactly what was counted: its movement = counted − what the books held at that
   moment, worth that many units at their lot cost (a count's shortfall is a loss the P&L sees). A sale landing at the
   same moment is never lost: on hand still = Σ movements (STK-1) afterwards. Put right by counting again.
-  *Count sheets typed in after selling: Q4.* *example, fault.*
+  A count replaces stock as of when it's saved, so the stock-take screen and the count sheet say "type it in before
+  selling again". *User, 2026-11-19 (Q4).* *example, fault.*
 - **STK-5** A lot counted ends holding its count; the product's on hand moves by that lot's difference and no other
   lot changes — even when a sale takes from another lot at the same moment. *example, fault.*
 - **STK-24** Opening stock (a product made with stock, a sheet's stock column, a till quick-add) is one lot (source
@@ -135,7 +140,8 @@ cut, sent twice).
 
 - **STK-15** Merging lots keeps the oldest; it ends with all their units at the value-weighted cost (4 decimals) and
   the earliest expiry unless the admin set others; the rest go to 0 and stay as rows (sales and returns point at
-  them). On hand doesn't change and no movement is written. *Recalled lots: Q2.* *example.*
+  them). On hand doesn't change and no movement is written. A recalled lot can't be merged ("give it back or undo the recall first").
+  *User, 2026-11-19 (Q2). Today the oldest lot's marks win.* *example.*
 - **STK-20** Editing a lot's price (0 = follows the product), expiry or cost moves no stock and writes no movement; a
   cost edit changes stock value and the cost of what is sold from it next. *example.*
 

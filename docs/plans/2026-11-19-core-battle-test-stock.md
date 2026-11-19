@@ -45,7 +45,7 @@ per product and lot → faults (a count / lot count / write-off / give back besi
 - [x] **Step 1:** Grid + rules in `docs/rules/stock.md` (STK; past `fix(` commits as rules).
 - [x] **Step 2:** Q1–Q4 in `docs/rules/questions.md`; README links area 4.
 - [x] **Step 3: Commit** — `docs(rules): area 4 rule book — stock, lots, counts, write-offs, conversions, freeze; questions Q1–Q4`
-- [ ] **Step 4:** Ask Q1–Q4 in one batch; build the answers in Task 3 Step 3.
+- [x] **Step 4:** Asked; all four answered 2026-11-19 as suggested (STK-21 good lots first, STK-15 no merging a recalled lot, STK-18 unit changes refused while fractions / packs, STK-4 a "type it in before selling" note) — built in Task 3 Step 3.
 
 ### Task 2: Auditor checks (`internal/ledgercheck/stock.go`)
 
