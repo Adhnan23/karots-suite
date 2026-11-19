@@ -200,7 +200,14 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
 	if err != nil || limit.IsNegative() {
 		return apperr.Validation("credit limit must be a non-negative amount")
 	}
-	err = s.repo.Update(ctx, id, strings.TrimSpace(in.Name), in.Phone, in.Address, limit)
+	phone := in.Phone
+	if phone != nil {
+		phone = nilIfBlank(normalizePhone(*phone))
+	}
+	if err := s.phoneFree(ctx, id, phone); err != nil {
+		return err
+	}
+	err = s.repo.Update(ctx, id, strings.TrimSpace(in.Name), phone, in.Address, limit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperr.NotFound("customer")
 	}
@@ -348,8 +355,31 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-// Reactivate restores a soft-deleted customer.
+// phoneFree refuses a phone another active customer already has (CUST-3): one
+// person's debt would split across two accounts.
+func (s *Service) phoneFree(ctx context.Context, id int64, phone *string) error {
+	if phone == nil || *phone == "" {
+		return nil
+	}
+	other, err := s.repo.FindByPhone(ctx, normalizePhone(*phone))
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && other.ID == id) {
+		return nil
+	}
+	if err != nil {
+		return apperr.Internal("failed to check the phone", err)
+	}
+	return apperr.Conflict("this phone is " + other.Name + "'s — another active customer")
+}
+
+// Reactivate restores a soft-deleted customer, unless someone active has taken its phone (CUST-3).
 func (s *Service) Reactivate(ctx context.Context, id int64) error {
+	c, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := s.phoneFree(ctx, id, c.Phone); err != nil {
+		return err
+	}
 	if err := s.repo.Reactivate(ctx, id); err != nil {
 		return apperr.Internal("failed to reactivate customer", err)
 	}

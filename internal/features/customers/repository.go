@@ -75,7 +75,7 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*Customer, error) 
 func (r *Repository) FindByPhone(ctx context.Context, phone string) (*Customer, error) {
 	var c Customer
 	err := r.q.GetContext(ctx, &c,
-		`SELECT * FROM customers WHERE phone = $1 AND is_active = true ORDER BY id LIMIT 1`, phone)
+		`SELECT * FROM customers WHERE replace(replace(trim(phone), ' ', ''), '-', '') = $1 AND is_active = true ORDER BY id LIMIT 1`, phone)
 	if err != nil {
 		return nil, err
 	}
