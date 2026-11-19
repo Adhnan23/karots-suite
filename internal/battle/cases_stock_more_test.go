@@ -364,7 +364,7 @@ func TestSTK14Fold(t *testing.T) {
 	before := s.value(t, card)
 	fold := fmt.Sprintf("/api/v1/admin/products/%d/fold", tab)
 	s.mustRefuse(t, "a pack name of 31 letters", s.admin.Do("POST", fold, map[string]any{"conversionId": cv.ID, "name": strings.Repeat("c", 31)}, nil))
-	s.must(t, s.admin.Do("POST", fold, map[string]any{"conversionId": cv.ID, "name": "Card"}, nil))
+	s.must(t, s.admin.Do("POST", fold, map[string]any{"conversionId": cv.ID, "name": strings.Repeat("c", 30)}, nil)) // 30 is the most
 	var f struct {
 		Size   string `db:"size"`
 		Active bool   `db:"active"`

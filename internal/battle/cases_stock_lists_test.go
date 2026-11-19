@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // STK-11 (make loose version): the loose product, its conversion and the first
@@ -33,11 +35,12 @@ func TestSTK11MakeLoose(t *testing.T) {
 		ID      int64  `db:"id"`
 		Barcode string `db:"barcode"`
 		Cost    string `db:"cost"`
+		Price   string `db:"price"`
 	}
 	// The product's own cost is the sack's ÷ 25 (10 → 0.40); the lot carries what the sack really cost.
-	s.must(t, s.db.Get(&p, `SELECT p.id, COALESCE(p.barcode, '') AS barcode, b.cost_price::numeric(9,2)::text AS cost
+	s.must(t, s.db.Get(&p, `SELECT p.id, COALESCE(p.barcode, '') AS barcode, b.cost_price::numeric(9,2)::text AS cost, p.selling_price::numeric(9,2)::text AS price
 		FROM products p JOIN stock_batches b ON b.product_id = p.id WHERE p.name = 'Rice'`))
-	if s.onHand(t, p.ID) != "25.000" || s.onHand(t, bag) != "1.000" || p.Barcode != "LOOSE-1" || p.Cost != "100.00" {
+	if s.onHand(t, p.ID) != "25.000" || s.onHand(t, bag) != "1.000" || p.Barcode != "LOOSE-1" || p.Cost != "100.00" || p.Price != "120.00" {
 		t.Errorf("loose version %+v holds %s, sacks %s; want 25 kg in a lot at 100, barcode LOOSE-1, 1 sack", p, s.onHand(t, p.ID), s.onHand(t, bag))
 	}
 	var cv int64
@@ -160,4 +163,24 @@ func TestStockScreensShowTheBooks(t *testing.T) {
 // daysFromToday is a date n days from today, YYYY-MM-DD.
 func (s *shop) daysFromToday(n int) string {
 	return time.Now().AddDate(0, 0, n).Format(time.DateOnly)
+}
+
+// STK-8, STK-21: Write off all expired takes every expired lot out as damage, one
+// write-off each, and leaves good lots alone.
+func TestSTK8WriteOffAllExpired(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	p := s.stocked(t, "Old milk", s.unitPcs, 0, nil)
+	s.addLot(t, p, "3", "40", s.daysFromToday(-5))
+	s.addLot(t, p, "4", "40", s.daysFromToday(60))
+	ids := s.lotIDs(t, p)
+	var r struct{ Lots int }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/expired/write-off-all", nil, &r))
+	if r.Lots != 1 || s.lotLeft(t, ids[0]) != "0.000" || s.lotLeft(t, ids[1]) != "4.000" {
+		t.Errorf("wrote off %d lots; expired lot left %s, good lot %s (want 1, 0, 4)", r.Lots, s.lotLeft(t, ids[0]), s.lotLeft(t, ids[1]))
+	}
+	if typ, q, w := s.lastMove(t, p); typ != "damage" || !q.Equal(decimal.NewFromInt(-3)) || !w.Equal(decimal.NewFromInt(120)) {
+		t.Errorf("booked %s %s worth %s, want damage -3 worth 120", typ, q, w)
+	}
+	s.audit(t)
 }

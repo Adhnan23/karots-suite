@@ -99,13 +99,13 @@ per product and lot → faults (a count / lot count / write-off / give back besi
 
 ### Task 6: Mutation
 
-- [ ] **Step 1:** `make mutate` on `internal/features/stock` and `internal/features/conversions`; survivors replayed
+- [x] **Step 1:** (gremlins stock 99 killed / 5 lived / 90 not covered, conversions 26 / 3 / 35; every survivor replayed against the battle tests by a script: all but 8 killed by new tests — make loose version, conversion edit / off / search / run history, the stock screens, write off all expired, freeze-shop's new products, a fold's 30-letter name; unused Adjust price and old movement list deleted; left: 2 equivalent, 1 plugin seam, 1 cost lookup only a vanished product fails) `make mutate` on `internal/features/stock` and `internal/features/conversions`; survivors replayed
   against the battle tests; each surviving mutant in stock / value code gets the test that kills it.
-- [ ] **Step 2: Commit** — `test: area 4 mutants killed`
+- [x] **Step 2: Commit** — `test: area 4 mutants killed`
 
 ### Task 7: Close area 4
 
-- [ ] **Step 1:** Q1–Q4's tests passing; `docs/guide/stock.md` says what changed.
+- [x] **Step 1:** Q1–Q4's tests passing; `docs/guide/stock.md` says what changed.
 - [ ] **Step 2:** Full run (`scripts/full-run.sh`, `COVER=1`), one clean `make battle`.
 - [ ] **Step 3:** Coverage map updated (re-upload its four JSON datasets); `docs/status.md` — area 4 done, bugs found
   and fixed.
