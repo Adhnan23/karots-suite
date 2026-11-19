@@ -77,14 +77,14 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 4: Random days with customers (`internal/battle/machine_customers_test.go`)
 
-- [ ] **Step 1:** The machine keeps books for three customers (one with an opening, one with a low limit, one
+- [x] **Step 1:** (`machine_customers_test.go`; the drawer and every statement checked too) The machine keeps books for three customers (one with an opening, one with a low limit, one
   disabled mid-run). Actions: sale on account (part / whole, over the limit by confirm, Review), kept change to
   account, return of a credit sale, payment by cash / card / cheque / old debt first / more than owed, advance refund
   from the till or a locker, bounce a cheque, adjust the opening, change the limit, disable / bring back. After every
   step: the auditor, each balance = the books (CUST-1), each old debt = the books (CUST-9), the drawer = the books
   (DRAW-1), each statement ends at the balance (CUST-10), a refused action changes nothing.
-- [ ] **Step 2:** Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
-- [ ] **Step 3: Commit** — `test(battle): random shop days with customers paying, borrowing and getting advances back`
+- [x] **Step 2:** (3,000-step run clean, 197 s) Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
+- [x] **Step 3: Commit** — `test(battle): random shop days with customers paying, borrowing and getting advances back`
 
 ### Task 5: Faults (`internal/battle/faults_customers_test.go`)
 
@@ -92,8 +92,8 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
   several payments at once (plain and old debt first) — balance drops by all, every slip's before / after chain right.
   CUST-8: two sales on account at once that together pass the limit — one refused (or flagged on Review); each
   receipt's balance after right (TEND-12).
-- [ ] **Step 2:** Power cut mid-payment / mid-refund (the real binary killed): each whole or absent, the auditor clean.
-- [ ] **Step 3:** Each failure → fix test-first, one commit each; then `test(battle): area 3 faults`.
+- [x] **Step 2:** (clean; found the server crashing after its first backup when BACKUP_INTERVAL=0 — 6ef249f) Power cut mid-payment / mid-refund (the real binary killed): each whole or absent, the auditor clean.
+- [x] **Step 3:** (+ two returns at once cleared one debt twice, RET-19 — cf14231) Each failure → fix test-first, one commit each; then `test(battle): area 3 faults`.
 
 ### Task 6: Mutation
 
