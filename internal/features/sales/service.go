@@ -239,7 +239,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		available := decimal.Zero
 		var cust *customers.Customer
 		if (tender.OnAccount.IsPositive() || hasCheque) && in.CustomerID != nil {
-			c, err := custRepo.FindByID(ctx, *in.CustomerID)
+			c, err := custRepo.LockByID(ctx, *in.CustomerID) // CUST-8: two tills at once see each other
 			if err != nil {
 				return apperr.Validation("selected customer not found")
 			}

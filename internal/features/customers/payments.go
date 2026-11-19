@@ -65,7 +65,7 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 		}
 	}
 	r := NewRepository(tx)
-	cust, err := r.FindByID(ctx, id)
+	cust, err := r.LockByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("customer")
@@ -132,7 +132,7 @@ func (s *Service) RefundAdvanceTx(ctx context.Context, tx *sqlx.Tx, id int64, am
 		return nil, apperr.Validation("refund amount must be greater than zero")
 	}
 	r := NewRepository(tx)
-	cust, err := r.FindByID(ctx, id)
+	cust, err := r.LockByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("customer")

@@ -70,6 +70,17 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*Customer, error) 
 	return &c, nil
 }
 
+// LockByID loads a customer and holds their row until the transaction ends, so
+// two payments, refunds or sales on account for one customer at the same moment
+// each read the balance the other left (CUST-6, CUST-8, CUST-11, CUST-13).
+func (r *Repository) LockByID(ctx context.Context, id int64) (*Customer, error) {
+	var c Customer
+	if err := r.q.GetContext(ctx, &c, `SELECT * FROM customers WHERE id = $1 FOR UPDATE`, id); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 // FindByPhone looks up an active customer by exact phone (the bulk-import upsert
 // key). Returns sql.ErrNoRows when absent.
 func (r *Repository) FindByPhone(ctx context.Context, phone string) (*Customer, error) {
