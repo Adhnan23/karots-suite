@@ -78,24 +78,24 @@ per product and lot → faults (a count / lot count / write-off / give back besi
 
 ### Task 4: Random days with stock (`internal/battle/machine_stock_test.go`)
 
-- [ ] **Step 1:** The machine keeps books for a few products (one whole-unit with packs, one decimal loose product
+- [x] **Step 1:** (`machine_stock_test.go`: pills, a bag opened into loose rice, pencils frozen; returns and oversells left to area 1's machine) The machine keeps books for a few products (one whole-unit with packs, one decimal loose product
   fed by a bag conversion, one frozen part of the run) and each of their lots. Actions: intake (new / named lot),
   count, lot count, sale (FEFO / picked lot / pack / oversell), return, write-off (each reason, named / FEFO), give
   back, recall, conversion run (short weigh-out), lot merge, freeze / put out for sale / unfreeze, warranty
   replacement. After every step: the auditor, each on hand and lot = the books (STK-1, STK-2), stock value = the books
   (STK-7), a refused action changes nothing.
-- [ ] **Step 2:** Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
-- [ ] **Step 3: Commit** — `test(battle): random shop days counting, writing off, converting and freezing stock`
+- [ ] **Step 2:** (3,000 steps clean, 98 s; 20,000 in the closing `make battle`) Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
+- [x] **Step 3: Commit** — `test(battle): random shop days counting, writing off, converting and freezing stock`
 
 ### Task 5: Faults (`internal/battle/faults_stock_test.go`)
 
-- [ ] **Step 1:** STK-4: a count while sales land (many at once) — on hand = Σ movements, the count's movement =
+- [x] **Step 1:** (both suspected races real — a count beside sales left on hand 5–14 above its movements, a lot count beside another lot's sales lost units; fixed ba52d18; removals for the last units and give back while selling held) STK-4: a count while sales land (many at once) — on hand = Σ movements, the count's movement =
   counted − what was there. STK-5: a lot count beside a sale from another lot. STK-23: write-offs / conversions /
   give back racing a sale for the last units — never below zero, one refused; give back beside a sale from the same
   lot.
-- [ ] **Step 2:** Power cut mid-count / mid-conversion / mid-give-back (the real binary killed): each whole or absent,
+- [x] **Step 2:** (a stock worker in `TestBattlePowerCut`: 20 cuts, 468 stock moves, clean) Power cut mid-count / mid-conversion / mid-give-back (the real binary killed): each whole or absent,
   the auditor clean.
-- [ ] **Step 3:** Each failure → fix test-first, one commit each; then `test(battle): area 4 faults`.
+- [x] **Step 3:** Each failure → fix test-first, one commit each; then `test(battle): area 4 faults`.
 
 ### Task 6: Mutation
 

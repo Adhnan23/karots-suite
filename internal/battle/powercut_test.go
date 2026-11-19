@@ -30,6 +30,7 @@ func TestBattlePowerCut(t *testing.T) {
 	s := newShop(t)
 	safe := s.locker(t, "Safe", "safe", "100000")
 	s.must(t, sqlxExec(context.Background(), s.db, `UPDATE users SET can_handle_suppliers = true`)) // counter expenses
+	stk := s.stockForCuts(t)
 	bin := serverBinary(t)
 	cuts := max(steps()/200, 10)
 	for cut := 0; cut < cuts; cut++ {
@@ -40,8 +41,13 @@ func TestBattlePowerCut(t *testing.T) {
 		}
 		var wg sync.WaitGroup
 		stop := make(chan struct{})
-		for w := 0; w < 4; w++ {
+		admin := httpClient(t, srv.url, "0770000001")
+		for w := 0; w < 5; w++ {
 			wg.Add(1)
+			if w == 4 { // area 4: counts, write-offs and bags opened while the power goes
+				go func() { defer wg.Done(); stk.busy(admin, stop) }()
+				continue
+			}
 			if w == 2 { // area 2: money moves while the power goes
 				go func() { defer wg.Done(); busyMoney(c, safe, stop) }()
 				continue
@@ -64,7 +70,9 @@ func TestBattlePowerCut(t *testing.T) {
 	}
 	var n int
 	s.must(t, s.db.Get(&n, `SELECT count(*) FROM sales`))
-	t.Logf("%d power cuts, %d sales survived", cuts, n)
+	var moves int
+	s.must(t, s.db.Get(&moves, `SELECT count(*) FROM stock_movements WHERE note IN ('cut count', 'stock-take') OR type IN ('damage', 'conversion')`))
+	t.Logf("%d power cuts, %d sales and %d stock moves survived", cuts, n, moves)
 }
 
 // busyMoney moves cash in and out of the drawer, pays expenses from it and
@@ -272,4 +280,41 @@ func (c *hclient) do(req *http.Request, out any) error {
 		return nil
 	}
 	return json.NewDecoder(res.Body).Decode(out)
+}
+
+// cutStock is what the stock worker counts, writes off and opens.
+type cutStock struct{ product, lot, conv int64 }
+
+func (s *shop) stockForCuts(t *testing.T) cutStock {
+	p := s.stocked(t, "Cut soap", s.unitPcs, 0, nil)
+	s.addLot(t, p, "100000", "10", "")
+	bag := s.stocked(t, "Cut bag", s.unitPcs, 0, nil)
+	s.addLot(t, bag, "100000", "2500", "")
+	loose := s.stocked(t, "Cut loose", s.unitKg, 0, nil)
+	var cv struct{ ID int64 }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/conversions", map[string]any{"fromProductId": bag, "toProductId": loose, "ratio": "25"}, &cv))
+	return cutStock{product: p, lot: s.lotIDs(t, p)[0], conv: cv.ID}
+}
+
+// busy counts, counts a lot, writes off and opens bags until the power goes: each
+// whole or absent (STK-1, STK-2, STK-23).
+func (k cutStock) busy(c *hclient, stop chan struct{}) {
+	for {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		switch rand.IntN(4) {
+		case 0:
+			c.post("/api/v1/admin/stock/adjust", map[string]any{"productId": k.product, "newQuantity": fmt.Sprint(90000 + rand.IntN(1000)), "note": "cut count"}) //nolint:errcheck
+		case 1:
+			c.post("/api/v1/admin/stock/take", map[string]any{"lines": []map[string]any{{"productId": k.product, //nolint:errcheck
+				"batches": []map[string]any{{"batchId": k.lot, "counted": fmt.Sprint(50000 + rand.IntN(1000))}}}}})
+		case 2:
+			c.post("/api/v1/admin/stock/damage", map[string]any{"productId": k.product, "quantity": "1", "reason": "damage"}) //nolint:errcheck
+		case 3:
+			c.post(fmt.Sprintf("/api/v1/admin/conversions/%d/run", k.conv), map[string]string{"quantity": "1", "toQty": "24.6"}) //nolint:errcheck
+		}
+	}
 }
