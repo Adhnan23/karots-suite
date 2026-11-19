@@ -44,7 +44,8 @@ func costOfConsumed(lots []ConsumedLot, qty, productCost decimal.Decimal) decima
 	return total.Div(qty).Round(4)
 }
 
-// DepleteFEFO consumes qty from a product's batches, earliest-expiry-first, and
+// DepleteFEFO consumes qty from a product's batches, good lots first and
+// earliest-expiry-first among them (STK-21), and
 // returns the weighted-average cost of the consumed units (for COGS snapshots).
 // It assumes the caller already passed the atomic stock.quantity guard, so the
 // batches should always cover qty; if a rounding shortfall remains it is charged
@@ -72,12 +73,15 @@ func (r *Repository) DepleteFEFOLots(ctx context.Context, productID int64, qty d
 		BatchNo   *string         `db:"batch_no"`
 	}
 	var batches []batchRow
+	// Good lots first, FEFO among them; an expired or recalled (stop selling) lot
+	// only once nothing else is left (STK-21, user 2026-11-19) — with no lot named,
+	// the books mustn't say the expired box went while it's still on the shelf.
 	// FOR UPDATE locks the rows we are about to consume for the tx's lifetime.
 	if err := r.q.SelectContext(ctx, &batches, `
 		SELECT id, qty_remaining, cost_price, expiry_date, batch_no
 		FROM stock_batches
 		WHERE product_id = $1 AND qty_remaining > 0
-		ORDER BY expiry_date NULLS LAST, id
+		ORDER BY COALESCE(expiry_date < CURRENT_DATE, false) OR recall_stops, expiry_date NULLS LAST, id
 		FOR UPDATE`, productID); err != nil {
 		return nil, decimal.Zero, err
 	}

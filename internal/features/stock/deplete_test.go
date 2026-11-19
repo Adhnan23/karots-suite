@@ -26,8 +26,10 @@ func TestDepleteFEFOLotsReportsEachBatchTaken(t *testing.T) {
 		INSERT INTO products (name, category_id, unit_id, cost_price, selling_price)
 		VALUES ('TEST deplete lots', $1, $2, 60, 120) RETURNING id`, categoryID, unitID))
 
-	soon := time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC)
-	later := time.Date(2027, 3, 1, 0, 0, 0, 0, time.UTC)
+	// Both good lots (STK-21 sells expired ones last), dated from today.
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	soon := today.AddDate(0, 1, 0)
+	later := today.AddDate(0, 4, 0)
 	noA, noB := "A-1", "B-2"
 	// Inserted later-expiry first, so FEFO order differs from insert order.
 	lotLate, err := repo.InsertBatch(ctx, NewBatch{ProductID: productID, Quantity: d("5"),

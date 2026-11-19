@@ -95,8 +95,10 @@ func bagAndLoose(t *testing.T, ctx context.Context, conn *sqlx.DB) runFixture {
 			VALUES ($1, $2, $3, 2500, 3000) RETURNING id`, p.name, categoryID, unitID))
 	}
 	stk := stock.NewRepository(tx)
-	soon := time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC)
-	later := time.Date(2027, 2, 1, 0, 0, 0, 0, time.UTC)
+	// Both good lots (STK-21 sells expired ones last), dated from today.
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	soon := today.AddDate(0, 1, 0)
+	later := today.AddDate(0, 3, 0)
 	a, b := "A", "B"
 	for _, nb := range []stock.NewBatch{
 		{ProductID: f.bag, Quantity: d("1"), CostPrice: d("2500"), ExpiryDate: &soon, BatchNo: &a},
