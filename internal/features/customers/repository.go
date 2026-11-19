@@ -170,21 +170,6 @@ func (r *Repository) AdjustOpening(ctx context.Context, id int64, newOpening dec
 	return nil
 }
 
-// InsertPayment logs a credit repayment and returns its id. createdBy of 0
-// stores NULL.
-func (r *Repository) InsertPayment(ctx context.Context, customerID int64, amount decimal.Decimal, method string, reference, note *string, createdBy int64) (int64, error) {
-	var cb *int64
-	if createdBy > 0 {
-		cb = &createdBy
-	}
-	var id int64
-	err := r.q.GetContext(ctx, &id,
-		`INSERT INTO customer_payments (customer_id, amount, method, reference, note, created_by)
-		 VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-		customerID, amount, method, reference, note, cb)
-	return id, err
-}
-
 // ListAll includes inactive customers (for the admin list, so they can be
 // reactivated). Active first, then by name. Search matches name/phone.
 func (r *Repository) ListAll(ctx context.Context, search string) ([]Customer, error) {

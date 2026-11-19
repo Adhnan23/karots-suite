@@ -3,6 +3,7 @@ package battle
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -93,6 +94,15 @@ func TestCUST3_OnePhoneOneCustomer(t *testing.T) {
 	s.must(t, put(b, "0712000011")) // A is disabled: the phone is free
 	if err := s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/activate", a), nil, nil); err == nil {
 		t.Error("CUST-3 A brought back while B has its phone")
+	}
+	if err := put(a, "0712000019"); err == nil {
+		t.Error("CUST-3 a disabled customer was edited")
+	}
+	s.must(t, put(b, "071-200 0018")) // stored cleaned up, so the next lookup finds it
+	var phone string
+	s.must(t, s.db.Get(&phone, `SELECT phone FROM customers WHERE id = $1`, b))
+	if phone != "0712000018" {
+		t.Errorf("CUST-3 phone stored as %q", phone)
 	}
 	s.audit(t)
 }
@@ -253,13 +263,16 @@ func TestCUST10_StatementEndsAtBalance(t *testing.T) {
 		"customerId": id, "items": []line{{"productId": s.prod["plain"], "quantity": "2"}}, "payments": []pay{cash("250")},
 		"changeGiven": "30", "onAccountRounding": true}, nil))
 	s.giveBack(t, s.till1, r.ID, s.sale(t, s.till1, r.ID).Lines[0].ID, "1")
-	s.payCash(t, id, "100")
+	s.must(t, s.till1.Do("POST", fmt.Sprintf("/api/v1/till/customers/%d/payment", id), map[string]any{"amount": "100", "method": "cash", "reference": "slip 42"}, nil))
 	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/customers/%d/opening", id), map[string]string{"opening": "800"}, nil))
 	var st struct {
 		Balance string
-		Lines   []struct{ Kind, Balance string }
+		Lines   []struct{ Kind, Ref, Balance string }
 	}
 	s.must(t, s.admin.Do("GET", fmt.Sprintf("/api/v1/admin/customers/%d/statement", id), nil, &st))
+	if !slices.ContainsFunc(st.Lines, func(l struct{ Kind, Ref, Balance string }) bool { return l.Ref == "cash · slip 42" }) {
+		t.Errorf("CUST-10 the payment's reference isn't on the statement: %+v", st.Lines)
+	}
 	bal := s.acct(t, id).Balance
 	last := st.Lines[len(st.Lines)-1].Balance
 	if !dec(t, last).Equal(bal) || !dec(t, st.Balance).Equal(bal) {

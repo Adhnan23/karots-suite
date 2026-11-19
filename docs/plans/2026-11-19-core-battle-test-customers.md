@@ -97,9 +97,9 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 6: Mutation
 
-- [ ] **Step 1:** `make mutate` on `internal/features/customers` (+ the on-account parts of `sales`); survivors replayed
+- [x] **Step 1:** (gremlins 51 killed / 7 lived / 51 not covered; replayed against the battle tests: 36 killed, 9 not viable, 13 left — 3 got checks (phone stored cleaned, a disabled customer not edited, a payment's reference on the statement), dead `InsertPayment` deleted, the rest list paging / search / an import error path / a slice-size hint) `make mutate` on `internal/features/customers` (+ the on-account parts of `sales`); survivors replayed
   against the battle tests; each surviving mutant in money code gets the test that kills it.
-- [ ] **Step 2: Commit** — `test: area 3 mutants killed`
+- [x] **Step 2: Commit** — `test: area 3 mutants killed`
 
 ### Task 7: Close area 3
 
