@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"karots-suite/internal/ledgercheck"
+	"karots-suite/internal/ledgercheck/ltest"
 )
 
 // lots is a product's live lots, FEFO order (Batches).
-func (s *shop) lots(t testing.TB, id int64) []struct {
+func (s *shop) lots(t ltest.T, id int64) []struct {
 	ID           int64  `json:"id"`
 	QtyRemaining string `json:"qtyRemaining"`
 	CostPrice    string `json:"costPrice"`
@@ -30,7 +31,7 @@ func (s *shop) lots(t testing.TB, id int64) []struct {
 }
 
 // stocked makes a product in its own unit with a preferred supplier and no stock.
-func (s *shop) stocked(t testing.TB, name string, unit, supplier int64, extra map[string]any) int64 {
+func (s *shop) stocked(t ltest.T, name string, unit, supplier int64, extra map[string]any) int64 {
 	body := map[string]any{"name": name, "categoryId": s.cat, "unitId": unit, "costPrice": "10", "sellingPrice": "20",
 		"wholesalePrice": "20", "reorderAuto": false}
 	if supplier > 0 {
@@ -44,7 +45,7 @@ func (s *shop) stocked(t testing.TB, name string, unit, supplier int64, extra ma
 	return p.ID
 }
 
-func (s *shop) addLot(t testing.TB, id int64, qty, cost, expiry string) {
+func (s *shop) addLot(t ltest.T, id int64, qty, cost, expiry string) {
 	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/stock/lots/%d/add", id),
 		map[string]string{"qty": qty, "cost": cost, "expiry": expiry}, nil))
 }
