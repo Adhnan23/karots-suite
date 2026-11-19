@@ -28,11 +28,6 @@ type AdjustInput struct {
 	ProductID   int64  `json:"product_id"  form:"product_id"  validate:"required,gt=0"`
 	NewQuantity string `json:"new_quantity" form:"new_quantity" validate:"required"`
 	Note        string `json:"note"        form:"note"`
-	// SellingPrice optionally prices the lot this adjustment opens (stock intake
-	// entering a restock at a new price). Blank leaves the lot following the
-	// product, which is what every caller did before per-lot pricing. Ignored
-	// when the adjustment removes stock — there is no new lot to price.
-	SellingPrice string `json:"selling_price" form:"selling_price"`
 	// BatchID names the lot to take from when the adjustment REDUCES stock.
 	// Without it the shortfall comes off the oldest lot, which is a guess: the
 	// units that actually went missing may have been from the newest delivery,
@@ -116,17 +111,9 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 				cost = p
 			}
 			moved = cost.Mul(delta)
-			// A blank/unparseable price is simply no price: the lot follows the
-			// product, exactly as before.
-			sell := decimal.Zero
-			if s := strings.TrimSpace(in.SellingPrice); s != "" {
-				if v, perr := money.Parse(s); perr == nil && v.IsPositive() {
-					sell = v
-				}
-			}
+			// The lot follows the product's price (a lot of its own comes in by intake).
 			if _, err := repo.InsertBatch(ctx, NewBatch{
-				ProductID: in.ProductID, Quantity: delta, CostPrice: cost,
-				SellingPrice: sell, Source: "adjust",
+				ProductID: in.ProductID, Quantity: delta, CostPrice: cost, Source: "adjust",
 			}); err != nil {
 				return apperr.Internal("failed to open adjustment batch", err)
 			}
@@ -369,14 +356,6 @@ func (s *Service) Expiring(ctx context.Context, days int) ([]Batch, error) {
 	rows, err := s.repo.ExpiringBefore(ctx, cutoff)
 	if err != nil {
 		return nil, apperr.Internal("failed to load expiring stock", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) Movements(ctx context.Context, productID *int64, mtype string, limit int) ([]Movement, error) {
-	rows, err := s.repo.ListMovements(ctx, productID, mtype, limit)
-	if err != nil {
-		return nil, apperr.Internal("failed to load movements", err)
 	}
 	return rows, nil
 }

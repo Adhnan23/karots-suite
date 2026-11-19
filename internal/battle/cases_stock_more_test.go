@@ -2,6 +2,7 @@ package battle
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -156,6 +157,11 @@ func TestSTK8WriteOffReasons(t *testing.T) {
 			t.Errorf("%s: booked %s %s worth %s", r, typ, q, w)
 		}
 	}
+	var unnamed int
+	s.must(t, s.db.Get(&unnamed, `SELECT count(*) FROM stock_movements WHERE product_id = $1 AND type = 'staff' AND reference_type IS NOT NULL`, p))
+	if unnamed != 0 {
+		t.Errorf("a write-off that named no lot points at a lot")
+	}
 	s.mustRefuse(t, "reason 'lost'", s.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{"productId": p, "quantity": "1", "reason": "lost"}, nil))
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/freeze", map[string]any{"productIds": []int64{p}}, nil))
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{"productId": p, "quantity": "2", "reason": "damage", "fromShelf": true}, nil))
@@ -289,8 +295,19 @@ func TestSTK12FreezePencils(t *testing.T) {
 	if typ, q, _ := s.lastMove(t, p); typ != "to_shelf" || !q.Equal(decimal.NewFromInt(-10)) || s.onHand(t, p) != "190.000" {
 		t.Errorf("put out: %s %s, on hand %s", typ, q, s.onHand(t, p))
 	}
+	newFrozen := func(name string) bool {
+		var on bool
+		s.must(t, s.db.Get(&on, `SELECT stock_frozen FROM products WHERE id = $1`, s.stocked(t, name, s.unitPcs, 0, nil)))
+		return on
+	}
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/freeze-shop", nil, nil))
+	if !newFrozen("Crayon") {
+		t.Errorf("a product made after Freeze the shop isn't frozen")
+	}
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/unfreeze-shop", nil, nil))
+	if newFrozen("Marker") {
+		t.Errorf("a product made after Unfreeze the shop is frozen")
+	}
 	if s.onHand(t, p) != "190.000" {
 		t.Errorf("freezing / unfreezing the shop moved stock to %s", s.onHand(t, p))
 	}
@@ -345,7 +362,9 @@ func TestSTK14Fold(t *testing.T) {
 	var cv struct{ ID int64 }
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/conversions", map[string]any{"fromProductId": card, "toProductId": tab, "ratio": "10"}, &cv))
 	before := s.value(t, card)
-	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/fold", tab), map[string]any{"conversionId": cv.ID, "name": "Card"}, nil))
+	fold := fmt.Sprintf("/api/v1/admin/products/%d/fold", tab)
+	s.mustRefuse(t, "a pack name of 31 letters", s.admin.Do("POST", fold, map[string]any{"conversionId": cv.ID, "name": strings.Repeat("c", 31)}, nil))
+	s.must(t, s.admin.Do("POST", fold, map[string]any{"conversionId": cv.ID, "name": "Card"}, nil))
 	var f struct {
 		Size   string `db:"size"`
 		Active bool   `db:"active"`
@@ -430,6 +449,27 @@ func TestSTK22StockValue(t *testing.T) {
 	s.must(t, s.admin.Do("GET", fmt.Sprintf("/api/v1/admin/reports/inventory?category=%d", c.ID), nil, &r))
 	if r.CostValue != "110.00" {
 		t.Errorf("stock value %s, want 110.00", r.CostValue)
+	}
+	s.audit(t)
+}
+
+// STK-11: bags split three ways — the last lot takes what's left, so the loose
+// lots add up to exactly what was weighed out.
+func TestSTK11ThreeBagsAddUpExactly(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	bag := s.stocked(t, "Flour bag", s.unitPcs, 0, nil)
+	loose := s.stocked(t, "Flour loose", s.unitKg, 0, nil)
+	for _, e := range []string{"2027-01-31", "2027-02-28", "2027-03-31"} {
+		s.addLot(t, bag, "1", "2500", e)
+	}
+	var cv struct{ ID int64 }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/conversions", map[string]any{"fromProductId": bag, "toProductId": loose, "ratio": "25"}, &cv))
+	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/conversions/%d/run", cv.ID), map[string]string{"quantity": "3", "toQty": "74"}, nil))
+	var sum decimal.Decimal
+	s.must(t, s.db.Get(&sum, `SELECT SUM(qty_remaining) FROM stock_batches WHERE product_id = $1`, loose))
+	if !sum.Equal(decimal.NewFromInt(74)) || len(s.lotIDs(t, loose)) != 3 {
+		t.Errorf("three bags gave %d lots holding %s, want 3 holding 74", len(s.lotIDs(t, loose)), sum)
 	}
 	s.audit(t)
 }
