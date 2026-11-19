@@ -55,7 +55,9 @@ func (te *testEnv) seedTill(t *testing.T) tillFix {
 		must(err)
 	}
 	var f tillFix
-	f.plainBarcode = fmt.Sprintf("88%011d", sfx%100_000_000_000)
+	// Not the clock's own digits: the names carry sfx, and a barcode that's part of
+	// them made the barcode search find every product for a few minutes now and then.
+	f.plainBarcode = fmt.Sprintf("88%011d", (sfx/7)%100_000_000_000)
 	f.plainID = product("T plain", f.plainBarcode, "100", "10")
 	lot(f.plainID, "10", nil, nil)
 	f.lotID = product("T lot", "", "100", "10")
