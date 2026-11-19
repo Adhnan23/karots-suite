@@ -57,7 +57,25 @@ when next touched); the Opening sheet could say when an advance paid part of the
 Full run: Go, Vitest and check-core green; Playwright 256 passed, 4 timed out with Go's coverage run beside it and
 passed alone (admin-catalog, admin-money, admin-reports, palettes). Coverage map updated (core Go 76.8%, core
 screens 59.2%; customers' files 80–91%).
-**Next:** area 4 (stock: lots, packs, units, conversions, freeze, write-offs, give-back, recall) the same way.
+**Area 4 closed 2026-11-19** (stock: lots, packs, units, counts, write-offs, give back, recall, conversions, freeze;
+rule book `docs/rules/stock.md`, STK-1–24, plan in git history): auditor checks (`ledgercheck/stock.go`: lots add up
+to on hand, never below zero, every movement's worth, whole packs and units), a case per rule, random stock days
+(`TestBattleStock`: every lot held to the books), faults (at once, power cuts with a stock worker), mutants replayed
+against the battle tests by a script (every survivor killed or deleted but 2 equivalent, the plugin freeze guard and a
+vanished-product cost lookup). User's answers built: good lots first when no lot is named (STK-21); no merging a
+recalled lot (STK-15); unit changes refused while fractions or packs, a recipe may use part of a packet (STK-18);
+counts say "type it in before selling again" (STK-4). Found and fixed: a count saved while sales landed overwrote
+them (on hand 5–14 above its movements, STK-4); a lot counted while another lot sold lost units (STK-5); a sale of a
+picked lot was cancelled by a deadlock when a count / write-off / give-back of that lot landed at once (STK-23, never
+stop a sale); whole-unit products took fractions everywhere but the sale (STK-18); a pack of 2.5 pieces (STK-17); a
+sheet's opening stock booked worth Rs 0 (STK-7); the Playwright fixture's hand-set stock had no movements or lot;
+`TestTillCatalog` failed for a few minutes every few hours (its barcode was clock digits its names carry). The full
+run found one more, older: a cash refund at the till deadlocked against a sale on the same till and a sale was refused
+(DRAW-3; the return now takes the till first, as a sale does). Not yet Released. `make battle` 20,000 steps clean
+(39 min). Full run: Go, Vitest (1,218) and check-core green; Playwright 271 passed alone (3 timed out with Go's
+coverage run beside it: appearance-layout, palettes, till open). Coverage map updated (core Go 77.2%, core screens
+59.2%; stock 81.1%, conversions 75.6%).
+**Next:** area 5 (purchasing: purchases, receive, supplier returns, supplier pay, credits, cheques) the same way.
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
