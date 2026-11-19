@@ -29,12 +29,7 @@ func (h *handlers) countLot(ctx context.Context, productID, batchID int64, count
 	if lot.QtyRemaining.Equal(target) {
 		return false, nil
 	}
-	cur, err := h.t.stock.Quantity(ctx, productID)
-	if err != nil {
-		return false, err
-	}
-	total := cur.Sub(lot.QtyRemaining).Add(target)
-	return true, h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: productID, NewQuantity: total.String(), Note: note, BatchID: batchID}, userID)
+	return true, h.t.stock.Adjust(ctx, stock.AdjustInput{ProductID: productID, LotCounted: target.String(), Note: note, BatchID: batchID}, userID)
 }
 
 func (h *handlers) liveLot(ctx context.Context, productID, batchID int64) (*stock.Batch, error) {

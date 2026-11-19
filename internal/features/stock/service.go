@@ -40,12 +40,20 @@ type AdjustInput struct {
 	// price for stock the shop no longer has. Zero keeps the old FEFO behaviour.
 	// On an increase it names the lot to top up (zero opens an adjustment lot).
 	BatchID int64 `json:"batch_id" form:"batch_id"`
+	// LotCounted counts one lot (BatchID): the lot ends holding it and on hand moves
+	// by the lot's difference, both worked out under the locks, so a sale from
+	// another lot at the same moment isn't lost (STK-5). NewQuantity is then unused.
+	LotCounted string `json:"-" form:"-"`
 }
 
 // Adjust sets a product's stock to an absolute quantity, recording the signed
 // delta as an 'adjust' movement. The read-modify-write runs in one transaction.
 func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) error {
-	target, err := money.Parse(in.NewQuantity)
+	raw := in.NewQuantity
+	if in.LotCounted != "" {
+		raw = in.LotCounted
+	}
+	target, err := money.Parse(raw)
 	if err != nil || target.IsNegative() {
 		return apperr.Validation("new quantity must be a non-negative number")
 	}
@@ -54,12 +62,25 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 		if err := repo.CheckWhole(ctx, in.ProductID, target); err != nil {
 			return err
 		}
-		current, err := repo.GetQuantity(ctx, in.ProductID)
-		if err != nil {
+		// Held until commit, the stock row first (as a sale takes it): a sale
+		// between reading on hand and setting it would otherwise be overwritten
+		// and on hand would no longer be the sum of its movements (STK-4).
+		var current decimal.Decimal
+		if err := tx.GetContext(ctx, &current, `SELECT quantity FROM stock WHERE product_id = $1 FOR UPDATE`, in.ProductID); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return apperr.NotFound("product")
 			}
 			return apperr.Internal("failed to read stock", err)
+		}
+		if in.LotCounted != "" {
+			lot, err := repo.LockBatch(ctx, in.BatchID, in.ProductID)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return apperr.NotFound("batch")
+				}
+				return apperr.Internal("failed to read batch", err)
+			}
+			target = current.Sub(lot.QtyRemaining).Add(target)
 		}
 		delta := target.Sub(current)
 		if delta.IsZero() {
