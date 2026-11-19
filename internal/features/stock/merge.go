@@ -76,6 +76,10 @@ func (r *Repository) MergeBatches(ctx context.Context, in MergeInput) (int64, er
 		if !b.QtyRemaining.IsPositive() {
 			return 0, apperr.Validation("a batch picked is already empty")
 		}
+		// Merging would lose the recall or spread it to good stock (STK-15, user 2026-11-19).
+		if b.RecalledOn != nil {
+			return 0, apperr.Validation("a batch picked is recalled — give it back or undo the recall first")
+		}
 	}
 	kept, cost, _, _ := MergeDefaults(lots)
 	if strings.TrimSpace(in.Cost) != "" {
