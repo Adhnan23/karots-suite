@@ -81,7 +81,8 @@ cut, sent twice).
   lot at the cost given (blank = the product's cost) and the price given (blank = follows the product). *example.*
 - **STK-18** A product sold in whole units (pieces, packets) never holds or moves a fraction: a count, a write-off, an
   addition, a conversion into it and a sale of it are whole numbers or refused. Only units marked decimal (kg, l) take
-  fractions. A product can't move to a whole unit, nor a unit lose its decimals, while one of its products holds a
+  fractions — and a service's recipe may use part of one (a packet of tea opened for cups) unless it says whole units
+  (user, 2026-11-19: found by the auditor in a Demo Room year). A product can't move to a whole unit, nor a unit lose its decimals, while one of its products holds a
   fraction (count it whole first); a unit whose products have packs can't be given decimals. *User, 2026-11-19 (Q3).
   Today only the sale checks, and unit changes are all allowed.* *example.*
 - **STK-21** A sale, write-off or removal that names no lot takes the **good** lots first — FEFO among them: earliest

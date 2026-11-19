@@ -49,7 +49,7 @@ per product and lot → faults (a count / lot count / write-off / give back besi
 
 ### Task 2: Auditor checks (`internal/ledgercheck/stock.go`)
 
-- [ ] **Step 1: Failing test** `internal/battle/ledger_stock_test.go` (the API builds the day): opening stock, intake
+- [x] **Step 1:** (STK-11 left to the cases and the machine: a conversion's lots aren't linked to its run, so the data can't show value out = value in) **Failing test** `internal/battle/ledger_stock_test.go` (the API builds the day): opening stock, intake
   into a new lot and a named one, a count up and down, a lot count, a sale FEFO and by picked lot and by pack, an
   oversell, a return restocked, damage / own use / staff (named lot and FEFO), a give back with a difference, a
   recall, a conversion run with a short weigh-out, a lot merge, freeze → put out for sale → unfreeze, a warranty
@@ -57,10 +57,10 @@ per product and lot → faults (a count / lot count / write-off / give back besi
   by 1; a lot of another product), STK-3 (on hand below zero), STK-7 (a count's movement with worth 0 when it moved
   units at a cost), STK-11 (a conversion run whose lots in are worth more than the lots out by > 0.01 a lot),
   STK-18 (a fraction on hand of a whole-unit product), STK-17 (a pack of 2.5).
-- [ ] **Step 2: Run, fail; write the checks; run, pass.**
-- [ ] **Step 3:** Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
+- [x] **Step 2: Run, fail; write the checks; run, pass.**
+- [x] **Step 3:** (grocery year: STK-18 on two packets a tea recipe uses by the cup — rule worded so, user 2026-11-19; dev DB: the e2e fixture's hand-set stock had no movements / no lot — `e2e-till.sql` now writes them; a till quick-add's opening was rightly worth 0 — the STK-7 check skips it) Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
   (→ Task 3 test), a wrong rule (→ the user) or seed data (fix the seeder).
-- [ ] **Step 4: Commit** — `test(ledgercheck): area 4 checks — lots add up, never below zero, worth, conversions`
+- [x] **Step 4: Commit** — `test(ledgercheck): area 4 checks — lots add up, never below zero, worth, conversions`
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_stock_test.go`)
 

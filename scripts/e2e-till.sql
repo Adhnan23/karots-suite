@@ -79,3 +79,14 @@ INSERT INTO products (name, category_id, unit_id, cost_price, selling_price, cre
 SELECT 'E2E Shelf Fan', id, 1, 3000, 4200, now() - interval '9 months', false, 20 FROM categories WHERE name = 'E2E Goods';
 INSERT INTO stock (product_id, quantity) SELECT id, 25 FROM products WHERE name = 'E2E Shelf Fan'
 ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity;
+INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, source, created_at)
+SELECT id, 25, 25, 3000, 'opening', now() - interval '9 months' FROM products WHERE name = 'E2E Shelf Fan';
+
+-- The counts above as opening movements, so on hand = Σ movements as the rule book says (SALE-20 / STK-1, STK-2):
+-- a product whose stock this file set by hand gets one adjust movement of it, dated with the product.
+INSERT INTO stock_movements (product_id, type, quantity, user_id, note, cost, created_at)
+SELECT st.product_id, 'adjust', st.quantity - COALESCE(m.q, 0), (SELECT min(id) FROM users WHERE NOT is_system), 'opening stock',
+       (st.quantity - COALESCE(m.q, 0)) * p.cost_price, p.created_at
+FROM stock st JOIN products p ON p.id = st.product_id
+LEFT JOIN (SELECT product_id, SUM(quantity) AS q FROM stock_movements GROUP BY product_id) m ON m.product_id = st.product_id
+WHERE st.quantity <> COALESCE(m.q, 0);
