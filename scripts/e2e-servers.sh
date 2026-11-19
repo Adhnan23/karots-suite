@@ -6,7 +6,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 n=${E2E_WORKERS:-3}
-make plugins P=all >/dev/null && make build >/dev/null && make core-only >/dev/null
+# E2E_PREBUILT=1: the caller already built it (scripts/full-run.sh, so the plugin
+# lists never change under Go tests compiling beside it).
+[ -n "${E2E_PREBUILT:-}" ] || { make plugins P=all >/dev/null && make build >/dev/null && make core-only >/dev/null; }
 set -a; . ./.env; set +a
 base=${DATABASE_URL%/*}
 q=""; [[ "$DATABASE_URL" == *\?* ]] && q="?${DATABASE_URL#*\?}"

@@ -9,6 +9,10 @@ out=~/.cache/karots-logs/full-$(date +%Y%m%d-%H%M); mkdir -p "$out"
 set -a; . ./.env; set +a
 t0=$(date +%s)
 go build -o bin/testdb ./scripts/testdb && ./bin/testdb template > "$out/template.log" 2>&1
+# Playwright's server (every plugin) is built first, alone: building it switches
+# the plugin lists on, and Go tests compiling at that moment fail to build.
+make plugins P=all >/dev/null && make build > "$out/build.log" 2>&1; make core-only >/dev/null
+export E2E_PREBUILT=1
 cover=()
 if [ "${COVER:-}" = 1 ]; then
   pkgs=$(go list ./... | grep -v -e /internal/demo -e /cmd/demo -e /cmd/bootstrap -e /scripts | paste -sd, -)
