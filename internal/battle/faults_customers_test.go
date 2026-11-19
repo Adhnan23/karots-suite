@@ -104,3 +104,20 @@ func TestCUST8_CreditSalesAtOnceKeepTheLimit(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// CUST-16: the same Pay sent four times at the same moment is one payment.
+func TestCUST16_SamePayAtOnceIsOne(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	id := s.newCustomer(t, "0712000231", "0", "1000")
+	ok := atOnce(4, func(int) error {
+		return s.till1.Do("POST", fmt.Sprintf("/api/v1/till/customers/%d/payment", id), map[string]any{"amount": "100", "method": "cash", "clientRef": "same-pay"}, nil)
+	})
+	var n int
+	s.must(t, s.db.Get(&n, `SELECT count(*) FROM customer_payments WHERE customer_id = $1`, id))
+	if bal := s.acct(t, id).Balance; ok != 4 || n != 1 || !bal.Equal(decimal.NewFromInt(900)) {
+		t.Errorf("CUST-16 %d answered, %d payments, balance %s (want 4, 1, 900)", ok, n, bal)
+	}
+	s.audit(t)
+}

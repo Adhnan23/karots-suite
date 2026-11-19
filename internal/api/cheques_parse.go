@@ -38,7 +38,7 @@ func (h *handlers) customerChequePay(ctx context.Context, custID int64, party st
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
-		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, custID, in, userID); err != nil {
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, custID, in, userID); err != nil || res.Again {
 			return err
 		}
 		return h.takeChequesTx(ctx, tx, custID, res.PaymentID, party, ls, userID)

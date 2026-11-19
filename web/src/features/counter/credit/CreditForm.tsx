@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Banknote, CreditCard, ScrollText, Smartphone, Wallet } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { AdvanceRefundRequest, CreditPaymentRequest, CreditPaymentResult, ReceiptRef, TillCustomer } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Seg } from '@/features/till/bits'
 import { configQuery, drawerQuery, errMsg, lockersOf } from '@/features/till/api'
+import { payRef, type PayRef } from '@/features/till/cart/checkout'
 import { slipPath } from '@/features/till/print'
 import { FIELD } from '@/features/till/ui'
 import { dec, money, num } from '@/lib/money'
@@ -52,6 +53,7 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
   const byCheque = mode === 'pay' && method === 'cheque'
   const chequesOk = !byCheque || (chequesReady(cheques, 'in') && chequesTotal(cheques) === a)
 
+  const lastPay = useRef<PayRef | null>(null) // the Pay being retried: same reference, one payment (CUST-16)
   async function submit(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!(a > 0)) return void toast.error('Enter the amount')
@@ -60,7 +62,9 @@ export function CreditForm({ c, opts }: { c: TillCustomer; opts?: CreditFormOpts
       if (mode === 'pay') {
         const body: CreditPaymentRequest = { note, amount, method, accountId: num(account || accounts[0]?.id), reference: ref, deferDrawerKick: !cfg.askToPrint,
           meta: Object.keys(meta).length ? meta : undefined, cheques: byCheque ? toChequeLines(cheques) : undefined }
-        const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: body })
+        lastPay.current = payRef(body, lastPay.current)
+        const r = await api<CreditPaymentResult>(`/till/customers/${c.id}/payment`, { json: { ...body, clientRef: lastPay.current.ref } })
+        lastPay.current = null
         afterSlip(cfg, `${money(sym, a)} collected from ${c.name} · ${r.receiptNo}`, slipPath.debt(r.paymentId), method === 'cash')
         opts?.onDone?.({ mode, paymentId: r.paymentId, amount })
       } else {

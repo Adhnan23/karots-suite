@@ -251,6 +251,9 @@ type CreditPaymentRequest struct {
 	DeferDrawerKick bool              `json:"deferDrawerKick"`
 	Meta            map[string]string `json:"meta,omitempty"` // a plugin tender's detail (slots.tillTenders)
 	Cheques         []ChequeLine      `json:"cheques,omitempty"` // Method cheque: the amount is their total
+	// ClientRef is this Pay's one-time reference: sent again, the first payment
+	// comes back and nothing is booked twice (CUST-16).
+	ClientRef string `json:"clientRef,omitempty"`
 }
 
 type CreditPaymentResult struct {

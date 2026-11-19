@@ -35,7 +35,7 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	in := customers.PaymentInput{Amount: req.Amount, Method: req.Method, AccountID: req.AccountID}
+	in := customers.PaymentInput{Amount: req.Amount, Method: req.Method, AccountID: req.AccountID, ClientRef: strings.TrimSpace(req.ClientRef)}
 	tender, isPlugin := paymentTender(req.Method)
 	in.Plugin = isPlugin
 	if req.Reference != "" {
@@ -60,13 +60,15 @@ func (h *handlers) CounterCreditPayment(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit collected "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques))+" from "+cust.Name)
+		if !res.Again { // a repeated send logs nothing new (CUST-16)
+			h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit collected "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques))+" from "+cust.Name)
+		}
 		return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 	}
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
-		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || res.Again {
 			return err
 		}
 		if isPlugin { // the plugin books where the money landed

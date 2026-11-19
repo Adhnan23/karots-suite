@@ -84,6 +84,8 @@ type CustomerPayRequest struct {
 	Meta map[string]string `json:"meta,omitempty"`
 	// Cheques are the cheques of a Method "cheque" payment; Amount is their total.
 	Cheques []ChequeLine `json:"cheques,omitempty"`
+	// ClientRef is this Pay's one-time reference (CUST-16).
+	ClientRef string `json:"clientRef,omitempty"`
 }
 
 // CustomerRefundRequest hands a customer's advance back in cash from Source (a

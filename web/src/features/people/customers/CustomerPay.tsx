@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
 import type { AdminCustomerDetail, CreditPaymentResult, CustomerPayRequest, CustomerRefundRequest, ReceiptRef, TenderMethod } from '@/api/types.gen'
@@ -10,6 +10,7 @@ import { type Method, MoneySourcePicker, moneySourcesQuery, sourcesFor } from '@
 import { moneyDone } from '@/features/purchasing/suppliers/SupplierMoney'
 import { Seg } from '@/features/till/bits'
 import { errMsg } from '@/features/till/api'
+import { payRef, type PayRef } from '@/features/till/cart/checkout'
 import { slipPath } from '@/features/till/print'
 import { slipOut } from '@/features/till/SlipAsk'
 import { dec, money, num } from '@/lib/money'
@@ -46,12 +47,15 @@ export function PaySheet({ c, sym, onClose }: { c: AdminCustomerDetail; sym: str
   const byCheque = method === 'cheque'
   const chequesOk = !byCheque || (chequesReady(cheques, 'in') && chequesTotal(cheques) === a)
   const where = method === 'cash' ? 'Cash into' : method === 'card' ? 'Card account' : 'Bank account'
+  const lastPay = useRef<PayRef | null>(null) // the Pay being retried: same reference, one payment (CUST-16)
   async function save() {
     setBusy(true)
     try {
       const body: CustomerPayRequest = { amount, method, reference, note: '', source: core ? source : '', oldDebtFirst: oldFirst, meta: core || byCheque ? undefined : meta,
         cheques: byCheque ? toChequeLines(cheques) : undefined }
-      const r = await api<CreditPaymentResult>(`/admin/customers/${c.id}/payment`, { json: body })
+      lastPay.current = payRef(body, lastPay.current)
+      const r = await api<CreditPaymentResult>(`/admin/customers/${c.id}/payment`, { json: { ...body, clientRef: lastPay.current.ref } })
+      lastPay.current = null
       void slipOut(slipPath.debt(r.paymentId), `Collected ${money(sym, a)} · ${r.receiptNo}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
       void qc.invalidateQueries({ queryKey: ['till'] })

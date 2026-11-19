@@ -224,12 +224,14 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		in := customers.PaymentInput{Reference: optStr(req.Reference), Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst}
+		in := customers.PaymentInput{Reference: optStr(req.Reference), Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst, ClientRef: strings.TrimSpace(req.ClientRef)}
 		res, err := h.customerChequePay(ctx, id, cu.Name, req.Cheques, in, middleware.CurrentUserID(c))
 		if err != nil {
 			return err
 		}
-		h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques)))
+		if !res.Again { // a repeated send logs nothing new (CUST-16)
+			h.audit(c, audit.ActionPayment, "customer", strconv.FormatInt(id, 10), "credit payment "+dec2(res.Amount)+" by "+chequeCount(len(req.Cheques)))
+		}
 		return c.JSON(http.StatusCreated, CreditPaymentResult{PaymentID: res.PaymentID, ReceiptNo: res.ReceiptNo, BalanceAfter: dec2(res.BalanceAfter)})
 	}
 	method, ok := normSupplierMethod(req.Method)
@@ -248,7 +250,8 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	if method != "cash" && dest.Kind == cashflow.KindTill {
 		return apperr.Validation("a " + method + " payment lands in a card or bank account, not a till")
 	}
-	in := customers.PaymentInput{Amount: strings.TrimSpace(req.Amount), Method: method, Reference: optStr(req.Reference), Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst}
+	in := customers.PaymentInput{Amount: strings.TrimSpace(req.Amount), Method: method, Reference: optStr(req.Reference), Note: optStr(req.Note),
+		ApplyToOpening: req.OldDebtFirst, ClientRef: strings.TrimSpace(req.ClientRef)}
 	if method != "cash" && dest.Kind == cashflow.KindLocker {
 		in.AccountID = dest.ID // RecordPaymentTx refuses card/online with none
 	}
@@ -263,7 +266,7 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 	var res *customers.PaymentResult
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
-		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || res.Again {
 			return err
 		}
 		mv := cashflow.MoveInput{From: cashflow.External(), To: dest, Amount: res.Amount, Reason: "credit collected: " + cu.Name,
@@ -292,7 +295,7 @@ func (h *handlers) AdminCustomerPay(c echo.Context) error {
 func (h *handlers) adminPluginPay(c echo.Context, id int64, req CustomerPayRequest, tender plugin.TenderMethod) error {
 	ctx := c.Request().Context()
 	in := customers.PaymentInput{Amount: strings.TrimSpace(req.Amount), Method: tender.Value, Reference: optStr(req.Reference),
-		Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst, Plugin: true}
+		Note: optStr(req.Note), ApplyToOpening: req.OldDebtFirst, Plugin: true, ClientRef: strings.TrimSpace(req.ClientRef)}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
@@ -300,7 +303,7 @@ func (h *handlers) adminPluginPay(c echo.Context, id int64, req CustomerPayReque
 	var res *customers.PaymentResult
 	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		var err error
-		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil {
+		if res, err = h.t.customers.RecordPaymentTx(ctx, tx, id, in, userID); err != nil || res.Again {
 			return err
 		}
 		return tender.SettleTx(ctx, tx, plugin.TenderSettle{Amount: res.Amount, Meta: req.Meta, ActorID: userID, CustomerPaymentID: res.PaymentID, CustomerID: id})

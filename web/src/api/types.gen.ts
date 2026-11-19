@@ -1011,6 +1011,11 @@ export interface CreditPaymentRequest {
   deferDrawerKick: boolean;
   meta?: { [key: string]: string}; // a plugin tender's detail (slots.tillTenders)
   cheques?: ChequeLine[]; // Method cheque: the amount is their total
+  /**
+   * ClientRef is this Pay's one-time reference: sent again, the first payment
+   * comes back and nothing is booked twice (CUST-16).
+   */
+  clientRef?: string;
 }
 export interface CreditPaymentResult {
   paymentId: number /* int64 */; // for the debt slip
@@ -1974,6 +1979,10 @@ export interface CustomerPayRequest {
    * Cheques are the cheques of a Method "cheque" payment; Amount is their total.
    */
   cheques?: ChequeLine[];
+  /**
+   * ClientRef is this Pay's one-time reference (CUST-16).
+   */
+  clientRef?: string;
 }
 /**
  * CustomerRefundRequest hands a customer's advance back in cash from Source (a

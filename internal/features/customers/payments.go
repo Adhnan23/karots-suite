@@ -36,6 +36,9 @@ type PaymentResult struct {
 	ReceiptNo     string
 	BalanceBefore decimal.Decimal
 	BalanceAfter  decimal.Decimal
+	// Again: this Pay's reference was already booked; the first payment came
+	// back and the caller must not move its money a second time (CUST-16).
+	Again bool
 }
 
 // RecordPaymentTx records a credit repayment over an existing transaction, so the
@@ -72,6 +75,18 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 		}
 		return nil, apperr.Internal("failed to load customer", err)
 	}
+	if in.ClientRef != "" { // the customer's row is held, so a second send waits and finds the first
+		first := PaymentResult{Again: true}
+		err := tx.QueryRowxContext(ctx, `SELECT id, amount, method, COALESCE(receipt_no, ''), balance_before, balance_after
+			FROM customer_payments WHERE customer_id = $1 AND client_ref = $2`, id, in.ClientRef).
+			Scan(&first.PaymentID, &first.Amount, &first.Method, &first.ReceiptNo, &first.BalanceBefore, &first.BalanceAfter)
+		if err == nil {
+			return &first, nil
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, apperr.Internal("failed to look up the payment", err)
+		}
+	}
 	before := cust.OutstandingBalance
 	after := before.Sub(amt)
 	if in.ApplyToOpening {
@@ -107,11 +122,11 @@ func (s *Service) RecordPaymentTx(ctx context.Context, tx *sqlx.Tx, id int64, in
 	err = tx.QueryRowxContext(ctx, `
 		INSERT INTO customer_payments
 			(customer_id, amount, method, reference, note, created_by,
-			 receipt_no, balance_before, balance_after)
+			 receipt_no, balance_before, balance_after, client_ref)
 		VALUES ($1,$2,$3,$4,$5,$6,
-			'DP-' || lpad(nextval('debt_receipt_seq')::text, 6, '0'), $7, $8)
+			'DP-' || lpad(nextval('debt_receipt_seq')::text, 6, '0'), $7, $8, NULLIF($9, ''))
 		RETURNING id, receipt_no`,
-		id, amt, method, in.Reference, in.Note, cb, before, after,
+		id, amt, method, in.Reference, in.Note, cb, before, after, in.ClientRef,
 	).Scan(&payID, &receiptNo)
 	if err != nil {
 		return nil, apperr.Internal("failed to record payment", err)
