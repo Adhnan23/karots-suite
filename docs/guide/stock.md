@@ -12,6 +12,7 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   Packs (a card of 10) and extra barcodes can be added while creating it, or later.
 - **Packs:** a product can sell whole or loose, such as a card of 10 tablets, a ream of 500
   sheets or a 25 kg sack. The till asks "loose or pack?" and stock is kept in the smallest unit.
+  A pack holds a whole number of them.
 - **Items to review:** quick items sold at the till, barcodes and pack sizes a cashier set, and anything
   else that needs a look. A barcode a cashier linked works straight away; **Looks fine** keeps it, and
   **Remove** makes the code unknown again. Removing doesn't move stock already received against it, so
@@ -32,6 +33,10 @@ Categories, units, the cashier menu (the groups on the till) and services & reci
 from milk powder and sugar takes its ingredients off stock) are each a tab of their own.
 One unit is the shop's **default** (marked on the Units tab; open a unit and tick Default unit to
 change it): new products, quick items and services start with it.
+A unit counted in **whole** pieces (not ticked for decimals) never takes part of one: counts, intake,
+write-offs and conversions want whole numbers; only a recipe may use part of one (a packet of tea used by
+the cup). A product can't move to a whole unit while it holds part of one, nor to a decimal unit while it
+has packs — count it whole, or remove its packs, first; the same goes for changing a unit's decimals.
 
 ![Categories](../images/stock/categories.jpg)
 
@@ -87,7 +92,10 @@ stays 200. A box is opened for selling: **Adjust → Put out for sale**, 10, and
 ![Batches](../images/stock/batches.jpg)
 
 Stock received with an expiry date is kept as a batch. The till sells the oldest batch first, and
-asks before selling an expired one: sell anyway, write it off, or go back. The page shows what has
+asks before selling an expired one: sell anyway, write it off, or go back. When no batch is picked
+(a sale from a phone that was offline, a write-off with no batch named), good batches go first;
+an expired or recalled one only when nothing else is left. A recalled batch can't be merged with
+others: give it back, or undo the recall, first. The page shows what has
 expired, what is close to expiry and the value of live stock.
 
 **How early a batch warns** is up to you. Set a number of days in **Settings → Stock**, and give a
