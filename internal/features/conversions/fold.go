@@ -46,7 +46,7 @@ func FoldTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, name string, u
 		if !cv.IsActive {
 			return apperr.Validation("that conversion is turned off")
 		}
-		if cv.Ratio.LessThanOrEqual(decimal.NewFromInt(1)) || !cv.Ratio.Equal(cv.Ratio.Round(3)) {
+		if cv.Ratio.LessThanOrEqual(decimal.NewFromInt(1)) || !cv.Ratio.Equal(cv.Ratio.Truncate(0)) {
 			return apperr.Validation("a pack must hold more than one " + cv.ToUnitAbbr)
 		}
 		var to struct {

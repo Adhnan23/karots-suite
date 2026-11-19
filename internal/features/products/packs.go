@@ -86,8 +86,8 @@ func parsePack(in PackInput) (name string, size, sell, whole decimal.Decimal, co
 	if name == "" || len([]rune(name)) > 30 {
 		return name, size, sell, whole, code, apperr.Validation("give the pack a name (up to 30 characters), e.g. Card")
 	}
-	if size, err = money.Parse(in.Size); err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) || !size.Equal(size.Round(3)) {
-		return name, size, sell, whole, code, apperr.Validation("how many in one " + name + "? It must be more than 1")
+	if size, err = money.Parse(in.Size); err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) || !size.Equal(size.Truncate(0)) {
+		return name, size, sell, whole, code, apperr.Validation("how many in one " + name + "? It must be a whole number, more than 1")
 	}
 	if sell, err = parsePrice(in.SellingPrice); err != nil {
 		return name, size, sell, whole, code, apperr.Validation("the pack price is not a valid amount")
