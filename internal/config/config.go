@@ -140,6 +140,10 @@ func mustDuration(key string, fallback time.Duration) time.Duration {
 	if err != nil {
 		log.Fatalf("%s must be a duration (e.g. 15m, 168h)", key)
 	}
+	if d <= 0 { // "0" means not set: a zero backup interval crashed the ticker after every start
+		log.Printf("%s=%s is not a length of time; using %s", key, v, fallback)
+		return fallback
+	}
 	return d
 }
 
