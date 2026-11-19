@@ -159,3 +159,34 @@ func (s *shop) otherProduct(t *testing.T) int64 {
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": p.ID, "newQuantity": "1000", "note": "battle"}, nil))
 	return p.ID
 }
+
+// RET-18 / RET-19: two lines of one part-paid credit sale returned at once clear
+// only what is still owed on that sale (600 of 1,000); the rest comes back as cash,
+// even when the customer owes more elsewhere.
+func TestRET18_TwoLinesOfOneSaleAtOnce(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	s.open(t, s.till2)
+	id := s.newCustomer(t, "0712000251", "100000", "2000") // owes 2,000 from before
+	other := s.otherProduct(t)
+	var r saleResult
+	s.must(t, s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+		"customerId": id, "items": []line{{"productId": s.prod["plain"], "quantity": "5"}, {"productId": other, "quantity": "5"}},
+		"payments": []pay{cash("400"), {"method": "credit", "amount": "600"}}}, &r))
+	ls := s.sale(t, s.till1, r.ID).Lines
+	var cash [2]decimal.Decimal
+	atOnce(2, func(i int) error {
+		var out struct{ CashRefund string }
+		err := []*client{s.till1, s.till2}[i].Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", r.ID), map[string]any{
+			"lines": []map[string]any{{"saleItemId": ls[i].ID, "quantity": "5"}}}, &out)
+		if err == nil {
+			cash[i] = dec(t, out.CashRefund)
+		}
+		return err
+	})
+	if bal := s.acct(t, id).Balance; !bal.Equal(decimal.NewFromInt(2000)) || !cash[0].Add(cash[1]).Equal(decimal.NewFromInt(400)) {
+		t.Errorf("RET-18 balance %s, cash back %s + %s (want 2000, 400 in all)", bal, cash[0], cash[1])
+	}
+	s.audit(t)
+}

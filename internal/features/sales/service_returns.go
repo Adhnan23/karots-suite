@@ -315,13 +315,15 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			// Only the debt earlier returns haven't already cleared: two returns
 			// on a part-paid credit sale used to each clear up to the whole debt,
 			// over-crediting the customer and refunding no cash.
+			// Hold the customer first: two returns at once — on two sales, or two
+			// lines of one — each cleared the same debt (RET-18, RET-19). What
+			// earlier returns cleared is read only once the other has committed.
+			if _, err := custRepo.LockByID(ctx, *sale.CustomerID); err != nil {
+				return apperr.Internal("failed to read the customer", err)
+			}
 			prior, err := saleRepo.CreditReduced(ctx, saleID)
 			if err != nil {
 				return apperr.Internal("failed to read earlier returns", err)
-			}
-			// Hold the customer: two returns at once each cleared the same debt (RET-19).
-			if _, err := custRepo.LockByID(ctx, *sale.CustomerID); err != nil {
-				return apperr.Internal("failed to read the customer", err)
 			}
 			owed, err := owedNow(ctx, tx, *sale, prior)
 			if err != nil {
