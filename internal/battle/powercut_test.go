@@ -19,7 +19,7 @@ import (
 )
 
 // Power cuts (Iman has generators, no UPS): the real server, killed without
-// warning mid-sale and mid-return, then started again. Every sale, return and
+// warning mid-sale, mid-return, mid-move and mid-payment, then started again. Every sale, return and
 // payment is whole or absent — the auditor finds nothing — however often it
 // happens. A long test: it runs in make battle (KS_BATTLE_STEPS), not make test.
 func TestBattlePowerCut(t *testing.T) {
@@ -40,10 +40,14 @@ func TestBattlePowerCut(t *testing.T) {
 		}
 		var wg sync.WaitGroup
 		stop := make(chan struct{})
-		for w := 0; w < 3; w++ {
+		for w := 0; w < 4; w++ {
 			wg.Add(1)
 			if w == 2 { // area 2: money moves while the power goes
 				go func() { defer wg.Done(); busyMoney(c, safe, stop) }()
+				continue
+			}
+			if w == 3 { // area 3: a customer borrows, pays and is paid back
+				go func() { defer wg.Done(); s.busyCustomer(c, stop) }()
 				continue
 			}
 			go func() { defer wg.Done(); s.busyTill(c, stop) }()
@@ -87,6 +91,32 @@ func busyMoney(c *hclient, safe int64, stop chan struct{}) {
 			}
 		case 4:
 			c.post("/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}, "sourceLockerId": safe}) //nolint:errcheck
+		}
+	}
+}
+
+// busyCustomer puts sales on account, takes payments by cash and cheque and
+// hands an advance back until the power goes: each whole or absent (CUST-1,
+// CUST-5, CUST-6).
+func (s *shop) busyCustomer(c *hclient, stop chan struct{}) {
+	payPath := fmt.Sprintf("/api/v1/till/customers/%d/payment", s.customer)
+	for i := 0; ; i++ {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		switch rand.IntN(4) {
+		case 0:
+			c.post("/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed", "customerId": s.customer, //nolint:errcheck
+				"items": []line{{"productId": s.prod["plain"], "quantity": "1"}}, "payments": []pay{cash("40"), {"method": "credit", "amount": "60"}}})
+		case 1:
+			c.post(payPath, map[string]any{"amount": "45.50", "method": "cash", "clientRef": fmt.Sprintf("cut-%d-%d", time.Now().UnixNano(), i)}) //nolint:errcheck
+		case 2:
+			c.post(payPath, map[string]any{"method": "cheque", "cheques": []map[string]string{{"bank": "BOC", "number": fmt.Sprint(rand.IntN(1e9)), //nolint:errcheck
+				"amount": "20", "date": "2026-12-01"}}})
+		case 3:
+			c.post(fmt.Sprintf("/api/v1/till/customers/%d/refund", s.customer), map[string]any{"amount": "5"}) //nolint:errcheck
 		}
 	}
 }
@@ -144,6 +174,15 @@ func serverBinary(t *testing.T) string {
 	return buildOnce.path
 }
 
+var serverLog string // the latest server's output (power cuts run one server at a time)
+
+func tailOf(b []byte, n int) []byte {
+	if len(b) > n {
+		return b[len(b)-n:]
+	}
+	return b
+}
+
 type server struct {
 	cmd *exec.Cmd
 	url string
@@ -160,6 +199,12 @@ func startServer(t *testing.T, bin, dsn string) server {
 	cmd.Env = append(os.Environ(), "DATABASE_URL="+dsn, fmt.Sprintf("SERVER_PORT=%d", port), "APP_ENV=development",
 		"COOKIE_SECURE=false", "JWT_SECRET=battle-battle-battle-battle-battle-battle", "KAROTS_NO_SPOOL=1", "BACKUP_DIR="+t.TempDir(),
 		"BACKUP_INTERVAL=0", "CLOUD_BACKUP=", "BACKUP_COPY_DIR=")
+	logf, err := os.Create(filepath.Join(t.TempDir(), "server.log"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd.Stdout, cmd.Stderr = logf, logf
+	serverLog = logf.Name()
 	if err := cmd.Start(); err != nil {
 		t.Fatal(err)
 	}
@@ -185,9 +230,16 @@ type hclient struct {
 func httpClient(t *testing.T, base, phone string) *hclient {
 	jar, _ := cookiejar.New(nil)
 	c := &hclient{base: base, http: &http.Client{Jar: jar, Timeout: 5 * time.Second}}
-	if err := c.postInto("/api/v1/auth/login", map[string]string{"phone": phone, "pin": "1234"}, nil); err != nil {
-		t.Fatal(err)
+	// A fresh server can drop its first connection (EOF) while it settles: try again for a moment.
+	var err error
+	for range 20 {
+		if err = c.postInto("/api/v1/auth/login", map[string]string{"phone": phone, "pin": "1234"}, nil); err == nil {
+			return c
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
+	out, _ := os.ReadFile(serverLog)
+	t.Fatalf("%v\nserver log:\n%s", err, tailOf(out, 3000))
 	return c
 }
 
