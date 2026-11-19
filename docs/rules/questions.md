@@ -18,3 +18,7 @@ All three answered 2026-11-19 (CUST-15, CUST-16, CUST-17).
 ## Area 4 — stock
 
 All four answered 2026-11-19 (STK-21, STK-15, STK-18, STK-4).
+
+## Area 5 — purchasing
+
+All four answered 2026-11-19 (SUP-5, SUP-2, SUP-9, PUR-9).
