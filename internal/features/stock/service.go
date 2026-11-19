@@ -60,8 +60,8 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 		// Held until commit, the stock row first (as a sale takes it): a sale
 		// between reading on hand and setting it would otherwise be overwritten
 		// and on hand would no longer be the sum of its movements (STK-4).
-		var current decimal.Decimal
-		if err := tx.GetContext(ctx, &current, `SELECT quantity FROM stock WHERE product_id = $1 FOR UPDATE`, in.ProductID); err != nil {
+		current, err := repo.GetQuantityForUpdate(ctx, in.ProductID)
+		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return apperr.NotFound("product")
 			}

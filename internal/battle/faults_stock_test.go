@@ -2,6 +2,7 @@ package battle
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -102,4 +103,47 @@ func TestSTK9_GiveBackWhileSelling(t *testing.T) {
 			"items": []line{{"productId": p, "quantity": "1", "batchId": ids[0]}}, "payments": []pay{cash("20")}}, nil)
 	})
 	s.audit(t)
+}
+
+// STK-23 / never stop a sale: picked-lot sales and counts / write-offs naming the
+// same lot at the same moment — every sale goes through (no deadlock cancels one),
+// the books still add up.
+func TestSTK23_PickedLotSalesBesideLotWork(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	p := s.stocked(t, "Picked soap", s.unitPcs, 0, nil)
+	s.addLot(t, p, "1000", "10", "2027-01-31")
+	lot := s.lotIDs(t, p)[0]
+	s.open(t, s.till1)
+	s.open(t, s.till2)
+	for round := range 10 {
+		var failed []error
+		var mu sync.Mutex
+		atOnce(8, func(i int) error {
+			var err error
+			switch i {
+			case 0:
+				err = s.admin.Do("POST", "/api/v1/admin/stock/take", map[string]any{"lines": []map[string]any{{"productId": p,
+					"batches": []map[string]any{{"batchId": lot, "counted": fmt.Sprint(900 - round*20)}}}}}, nil)
+			case 1:
+				err = s.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{"productId": p, "quantity": "1", "reason": "damage", "batchId": lot}, nil)
+			default:
+				c := s.till1
+				if i%2 == 0 {
+					c = s.till2
+				}
+				if err = c.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+					"items": []line{{"productId": p, "quantity": "1", "batchId": lot}}, "payments": []pay{cash("20")}}, nil); err != nil {
+					mu.Lock()
+					failed = append(failed, err)
+					mu.Unlock()
+				}
+			}
+			return err
+		})
+		if len(failed) > 0 {
+			t.Fatalf("round %d: %d sales refused beside a count / write-off of their lot: %v", round, len(failed), failed[0])
+		}
+		s.audit(t)
+	}
 }

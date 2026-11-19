@@ -167,6 +167,12 @@ func (s *Service) buildSaleLines(ctx context.Context, tx *sqlx.Tx, in CreateInpu
 		// concurrent sale cannot empty it between the check and the take.
 		var pickedBatch *stock.Batch
 		if it.BatchID > 0 && !p.IsService {
+			// The stock row first, then the lot — the order counts, write-offs and
+			// give-backs take them in. Lot first deadlocked against those, and the
+			// database cancelled the sale (STK-23; never stop a sale).
+			if _, err := stkRepo.GetQuantityForUpdate(ctx, p.ID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return apperr.Internal("failed to read stock", err)
+			}
 			pickedBatch, err = stkRepo.LockBatch(ctx, it.BatchID, p.ID)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return apperr.Internal("failed to load batch", err)

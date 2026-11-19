@@ -65,6 +65,14 @@ type Repository struct{ q db.Queryer }
 
 func NewRepository(q db.Queryer) *Repository { return &Repository{q: q} }
 
+// GetQuantityForUpdate reads on hand and holds the stock row until the
+// transaction ends. Everything that also locks a lot takes this row first.
+func (r *Repository) GetQuantityForUpdate(ctx context.Context, productID int64) (decimal.Decimal, error) {
+	var qty decimal.Decimal
+	err := r.q.GetContext(ctx, &qty, `SELECT quantity FROM stock WHERE product_id = $1 FOR UPDATE`, productID)
+	return qty, err
+}
+
 func (r *Repository) GetQuantity(ctx context.Context, productID int64) (decimal.Decimal, error) {
 	var qty decimal.Decimal
 	err := r.q.GetContext(ctx, &qty,
