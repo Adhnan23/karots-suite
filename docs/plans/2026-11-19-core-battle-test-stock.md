@@ -64,7 +64,7 @@ per product and lot → faults (a count / lot count / write-off / give back besi
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_stock_test.go`)
 
-- [ ] **Step 1:** One test per example rule: STK-3 (write-off / put out for sale / conversion / warranty beyond on
+- [ ] **Step 1:** (so far, real: STK-17 pack of 2.5 3240ab4, STK-7 sheet opening worth 0 c9500bf, STK-18 fractions everywhere but the sale f359a19; still to write: STK-3,4,5,6,8–14,16,19,20,22) One test per example rule: STK-3 (write-off / put out for sale / conversion / warranty beyond on
   hand refused, nothing changed), STK-4 (count up, down, to 0; worth at lot cost), STK-5 (lot count: other lots
   unchanged), STK-6 (named short lot refused; top-up keeps cost / price / expiry; new lot blank cost = product's),
   STK-8 (each reason its type; unknown refused; frozen out-for-sale write-off), STK-9 (counted more / less / 0, with
@@ -73,7 +73,7 @@ per product and lot → faults (a count / lot count / write-off / give back besi
   (merge: weighted cost, earliest expiry, rows kept), STK-16 (product merge), STK-17, STK-18, STK-19, STK-20,
   STK-21, STK-22 (stock value = lots), STK-24. Each ends with the auditor.
 - [ ] **Step 2:** Run; each failure → fix test-first, one commit each.
-- [ ] **Step 3: The user's answers** (Q1–Q4), test-first, one commit each.
+- [x] **Step 3: The user's answers** (Q1–Q4), test-first, one commit each. (STK-21 933875f, STK-15 63ac4a8, STK-18 units dbc84cb, STK-4 note dc87986)
 - [ ] **Step 4: Commit** — `test(battle): area 4 cases — one per rule`
 
 ### Task 4: Random days with stock (`internal/battle/machine_stock_test.go`)
