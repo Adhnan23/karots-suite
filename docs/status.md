@@ -4,7 +4,7 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 handoffs, finished plans and specs live in git history (`git log -p -- docs/status.md`, `git log --diff-filter=D
 --name-only -- docs`). The catalogue and the Onboard / Shelf app keep their own details in their READMEs.
 
-## Now (2026-11-18)
+## Now (2026-11-19)
 
 **The suite is feature-complete for a shop's day; work follows real use at the first shop, Iman Pharmacy Kalpitiya**
 (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`).
@@ -37,8 +37,29 @@ in the cashier's next till, both flagged (DRAW-6; each sale stores its till sess
 close and the Z count by it); the Cash flow page shows untracked till cash, and over / short, as money in / out (CF-2).
 Found and fixed: two withdrawals at once overdrew the drawer (DRAW-16); a sale paid during a close was missed by it
 (DRAW-7); a no-till sale could commit after the next open and stay in no till (power cuts). Not yet Released. Full run
-green in 9m52s (Go, Vitest, all Playwright, check-core); coverage map updated. **Next:** area 3 (customers: credit,
-advances, opening balances, payments) the same way. **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
+green in 9m52s (Go, Vitest, all Playwright, check-core); coverage map updated. **Area 3 closed 2026-11-19**
+(customers: credit, advances, opening balances, payments; rule book `docs/rules/customers.md`, plan in git history):
+auditor checks (`ledgercheck/customers.go`: the balance rebuilt from its rows, one phone per active customer, every
+payment's money landed, slips chain, old debt never past the opening or the balance), a case per rule, random
+customer days (`TestBattleCustomers`), faults (at once, power cuts), mutants replayed against the battle tests.
+User's answers built: an advance pays a newly set old debt down (CUST-15); a credit payment sent twice is one
+(CUST-16, `clientRef`, migration 00039); a sale on account to a disabled customer is flagged (CUST-17). Found and
+fixed — most were two things at once, all fixed by holding the customer's row (`customers.LockByID`): eight advance
+refunds of a Rs 300 advance all went through (CUST-11); payments at once lost part of what was paid off the balance
+and printed wrong slips (CUST-13, CUST-6); two tills passed the credit limit unflagged (CUST-8); two returns cleared one
+debt twice, on two sales or two lines of one (RET-18, RET-19); an admin collecting into a cashier's till while that cashier sold
+on account deadlocked (now till first, then customer). Also: two active customers could share a phone (CUST-3); the
+statement missed kept change (CUST-10); `BACKUP_INTERVAL=0` crashed the server after its first backup; the full run's
+Go tests failed to build while Playwright switched the plugins on (`full-run.sh` now builds that server first).
+Known, not fixed: two phone edits at the very same moment can still pair a phone (needs a unique index after a
+duplicate clean-up; the auditor flags it); `sales/service.go` is 539 lines (over 500 before this area — split it
+when next touched); the Opening sheet could say when an advance paid part of the old balance. Not yet Released.
+Full run: Go, Vitest and check-core green; Playwright 256 passed, 4 timed out with Go's coverage run beside it and
+passed alone (admin-catalog, admin-money, admin-reports, palettes). Coverage map updated (core Go 75.8%, core
+screens 59.2%; customers' files 80–91%).
+**Next:** area 4 (stock: lots, packs, units, conversions, freeze, write-offs, give-back, recall) the same way.
+**Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
+has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
 specs once); battle / ledgercheck tests use their own databases and are safe beside it.
 
