@@ -10,9 +10,15 @@ running balance:
 - Sell **on account** at the till. A cashier can't go past the limit; an admin can approve it.
 - Take payments and advances at the till's [Credit tab](till.md#credit) or here. Change a
   customer leaves can be kept as an advance for next time.
-- Enter an **old balance** from before the suite as an opening balance.
+- Enter an **old balance** from before the suite as an opening balance. If the customer already
+  holds an advance, it pays the old balance down straight away.
 - Print a **statement** for any period. A bounced or cancelled cheque shows on it as a debit
-  (**Cheque bounced**), so the balance is what they really owe.
+  (**Cheque bounced**), and change they left as **Change kept**, so the balance is what they
+  really owe.
+- One phone, one customer: a phone another active customer already has is refused.
+- **Disable** a customer and their balance stays: they can still pay or get an advance back. A
+  sale put on a disabled customer's account still goes through and is marked **Needs review**.
+- Pressing Collect twice, or again after a lost connection, takes the payment once.
 - Import or export customers with **Sheets**.
 
 The top of the page shows what customers owe you in total and the advances you hold.
