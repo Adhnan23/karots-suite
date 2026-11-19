@@ -44,6 +44,9 @@ func (s *Service) GiveBack(ctx context.Context, in GiveBackInput, userID int64) 
 			}
 			return apperr.Internal("failed to read batch", err)
 		}
+		if err := repo.CheckWhole(ctx, productID, counted); err != nil {
+			return err
+		}
 		// The stock row first, then the lots: the order a sale takes them in.
 		var total decimal.Decimal
 		if err := tx.GetContext(ctx, &total, `SELECT COALESCE((SELECT quantity FROM stock WHERE product_id = $1 FOR UPDATE), 0)`, productID); err != nil {

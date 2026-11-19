@@ -84,7 +84,7 @@ func bagAndLoose(t *testing.T, ctx context.Context, conn *sqlx.DB) runFixture {
 	f := runFixture{tx: tx}
 	var categoryID, unitID int64
 	must(t, tx.GetContext(ctx, &categoryID, `SELECT id FROM categories LIMIT 1`))
-	must(t, tx.GetContext(ctx, &unitID, `SELECT id FROM units LIMIT 1`))
+	must(t, tx.GetContext(ctx, &unitID, `SELECT id FROM units WHERE allow_decimal ORDER BY id LIMIT 1`)) // loose rice is weighed (STK-18)
 	must(t, tx.GetContext(ctx, &f.user, `SELECT id FROM users LIMIT 1`))
 	for _, p := range []struct {
 		id   *int64

@@ -51,6 +51,9 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 	}
 	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
+		if err := repo.CheckWhole(ctx, in.ProductID, target); err != nil {
+			return err
+		}
 		current, err := repo.GetQuantity(ctx, in.ProductID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -218,6 +221,9 @@ func consumeTx(ctx context.Context, tx *sqlx.Tx, in ConsumeInput, userID int64) 
 		return 0, apperr.Validation("quantity must be greater than zero")
 	}
 	repo := NewRepository(tx)
+	if err := repo.CheckWhole(ctx, in.ProductID, qty); err != nil {
+		return 0, err
+	}
 	if in.FromShelf {
 		frozen, err := repo.Frozen(ctx, in.ProductID)
 		if err != nil {

@@ -68,6 +68,9 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 	if err != nil || !qty.IsPositive() {
 		return 0, apperr.Validation("enter a quantity to add")
 	}
+	if err := r.CheckWhole(ctx, in.ProductID, qty); err != nil {
+		return 0, err
+	}
 	var cost decimal.Decimal
 	batchID := in.BatchID
 	if batchID > 0 {
@@ -123,4 +126,29 @@ func (s *Service) AddStock(ctx context.Context, in AddStockInput, userID int64) 
 		return err
 	})
 	return id, err
+}
+
+// CheckWhole refuses a fraction of a product counted in whole units (pieces,
+// packets): only decimal units (kg, l) take fractions (STK-18). Every count,
+// addition, removal and conversion asks it; the sale has its own check.
+func (r *Repository) CheckWhole(ctx context.Context, productID int64, qty decimal.Decimal) error {
+	if qty.Equal(qty.Truncate(0)) {
+		return nil
+	}
+	var p struct {
+		Name    string `db:"name"`
+		Decimal bool   `db:"allow_decimal"`
+		Unit    string `db:"unit"`
+	}
+	if err := r.q.GetContext(ctx, &p, `SELECT p.name, u.allow_decimal, u.abbreviation AS unit
+		FROM products p JOIN units u ON u.id = p.unit_id WHERE p.id = $1`, productID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return apperr.NotFound("product")
+		}
+		return apperr.Internal("failed to read the unit", err)
+	}
+	if !p.Decimal {
+		return apperr.Validation(p.Name + " is counted in whole " + p.Unit + " — " + qty.String() + " can't be right")
+	}
+	return nil
 }

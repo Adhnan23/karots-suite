@@ -35,7 +35,7 @@ func giveBackFixture(t *testing.T, lot, other, stockQty string) giveBackFix {
 	must(t, conn.GetContext(ctx, &f.sup, `INSERT INTO suppliers (name) VALUES ($1) RETURNING id`, fmt.Sprintf("T give back %d", time.Now().UnixNano())))
 	var cat int64
 	must(t, conn.GetContext(ctx, &cat, `INSERT INTO categories (name) VALUES ($1) RETURNING id`, fmt.Sprintf("T give back %d", time.Now().UnixNano())))
-	must(t, conn.GetContext(ctx, &f.product, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price) VALUES ($1, $2, 1, 40, 60) RETURNING id`,
+	must(t, conn.GetContext(ctx, &f.product, `INSERT INTO products (name, category_id, unit_id, cost_price, selling_price) VALUES ($1, $2, (SELECT id FROM units WHERE allow_decimal ORDER BY id LIMIT 1), 40, 60) RETURNING id`,
 		fmt.Sprintf("T give back %d", time.Now().UnixNano()), cat))
 	_, err := conn.ExecContext(ctx, `INSERT INTO stock (product_id, quantity) VALUES ($1, $2) ON CONFLICT (product_id) DO UPDATE SET quantity = EXCLUDED.quantity`, f.product, stockQty)
 	must(t, err)

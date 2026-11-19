@@ -134,6 +134,9 @@ func (s *Service) Unfreeze(ctx context.Context, productID int64, shelf string, u
 		if err := lockFrozen(ctx, tx, productID); err != nil {
 			return err
 		}
+		if err := NewRepository(tx).CheckWhole(ctx, productID, qty); err != nil {
+			return err
+		}
 		if _, err := tx.ExecContext(ctx, `UPDATE products SET stock_frozen = false, stock_frozen_at = NULL WHERE id = $1`, productID); err != nil {
 			return apperr.Internal("failed to unfreeze", err)
 		}
@@ -168,6 +171,9 @@ func (s *Service) MoveToShelf(ctx context.Context, productID int64, raw string, 
 	}
 	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		if err := lockFrozen(ctx, tx, productID); err != nil {
+			return err
+		}
+		if err := NewRepository(tx).CheckWhole(ctx, productID, qty); err != nil {
 			return err
 		}
 		repo := NewRepository(tx)

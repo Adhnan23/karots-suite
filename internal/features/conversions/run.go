@@ -61,6 +61,12 @@ func runTx(ctx context.Context, tx *sqlx.Tx, conversionID int64, fromQty, toQty 
 	if !toQty.IsPositive() {
 		return apperr.Validation("the amount you got must be greater than zero")
 	}
+	if err := stk.CheckWhole(ctx, cv.FromProductID, fromQty); err != nil {
+		return err
+	}
+	if err := stk.CheckWhole(ctx, cv.ToProductID, toQty); err != nil {
+		return err
+	}
 
 	// Deplete the source product.
 	ok, err := stk.DecrementGuarded(ctx, cv.FromProductID, fromQty)
