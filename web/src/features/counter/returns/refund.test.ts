@@ -47,7 +47,7 @@ describe('refundOf agrees with the server to the cent', () => {
       }
     }
     expect(bad).toEqual([])
-  })
+  }, 30_000) // 450,000 cases: over 5 s with coverage on and Go running beside it
 })
 
 // RET-17 + RET-18: how a refund splits — debt on the sale first, then (if the

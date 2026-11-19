@@ -15,6 +15,7 @@ import (
 	"karots-suite/internal/escpos"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/middleware"
@@ -176,6 +177,15 @@ func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialRet
 	cash := decimal.Zero
 	var rec *cashflow.Receipt
 	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		// The till the cash comes from first, then stock — the order a sale takes
+		// them in. Stock first deadlocked against a sale on that till, and the
+		// database refused one of them (DRAW-3, never stop a sale). Only a lock: a
+		// source that can't be named yet is asked again when there is cash.
+		if loc, err := from(); err == nil && loc.Kind == cashflow.KindTill {
+			if _, err := cashregister.NewRepository(tx).FindOpenForUpdate(ctx, loc.ID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return apperr.Internal("failed to load till session", err)
+			}
+		}
 		d, refund, returnID, err := h.d.Sales.PartialReturnTx(ctx, tx, id, in, userID)
 		if err != nil {
 			return err

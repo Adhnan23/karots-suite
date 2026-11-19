@@ -160,3 +160,38 @@ func TestDRAW3_SaleAndRefundAtOnceBothGoThrough(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// DRAW-3 / never stop a sale: several sales beside a cash refund on the same till,
+// many rounds — a sale takes the till then stock, so the refund must too, or the
+// database breaks the deadlock by refusing one.
+func TestDRAW3_SalesBesideRefundsNeverDeadlock(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	for round := range 25 {
+		r := s.sell(t, s.till1, "0", []line{{"productId": s.prod["plain"], "quantity": "3"}}, cash("300"))
+		item := s.sale(t, s.till1, r.ID).Lines[0].ID
+		var mu sync.Mutex
+		var failed []string
+		atOnce(6, func(i int) error {
+			var err error
+			if i < 2 {
+				err = s.till1.Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", r.ID), map[string]any{
+					"lines": []map[string]any{{"saleItemId": item, "quantity": "1"}}}, nil)
+			} else {
+				err = s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+					"items": []line{{"productId": s.prod["plain"], "quantity": "1"}}, "payments": []pay{cash("100")}}, nil)
+			}
+			if err != nil {
+				mu.Lock()
+				failed = append(failed, err.Error())
+				mu.Unlock()
+			}
+			return err
+		})
+		if len(failed) > 0 {
+			t.Fatalf("round %d: %v", round, failed)
+		}
+	}
+	s.audit(t)
+}
