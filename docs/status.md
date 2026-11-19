@@ -75,7 +75,17 @@ run found one more, older: a cash refund at the till deadlocked against a sale o
 (39 min). Full run: Go, Vitest (1,218) and check-core green; Playwright 271 passed alone (3 timed out with Go's
 coverage run beside it: appearance-layout, palettes, till open). Coverage map updated (core Go 77.2%, core screens
 59.2%; stock 81.1%, conversions 75.6%).
-**Next:** area 5 (purchasing: purchases, receive, supplier returns, supplier pay, credits, cheques) the same way.
+**Area 5 started 2026-11-19 (purchasing: orders, deliveries, goods sent back, supplier pay, credits, cheques) — desk
+work done:** rule book `docs/rules/purchasing.md` (PUR-1–13, SUP-1–10, CHQ-1–6), plan
+`docs/plans/2026-11-19-core-battle-test-purchasing.md`, auditor checks (`ledgercheck/purchasing.go`: supplier balance
+rebuilt from its rows, old debt, bill maths, paid / credited / status, paid = money put on it, lines landed, debit
+notes, payments' money and allocations; each proved by a corrupted row, `battle/ledger_purchasing_test.go`). User's
+answers (2026-11-19): a typed advance pays what's owed first (SUP-5); a supplier's credit pays newly set old debt down
+(SUP-2, as CUST-15); nothing delivered, ordered or sent back for a disabled supplier (SUP-9); frozen pieces out for
+sale are sent back like a frozen write-off (PUR-9). Suspected from reading (the plan's Review Focus): an order
+received twice at once, refunds / old-debt payments reading the supplier stale, a bounced cheque's advance still
+paying bills, deliveries skipping whole units, a negative supplier opening. **Next session (PC left working):** plan
+Task 3 on — cases, machine, faults, mutation, `make battle`, full run.
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4

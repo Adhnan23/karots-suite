@@ -68,7 +68,7 @@ mutation, `make battle`, full run) the next day, one long run at a time.
 
 ### Task 2: Auditor checks (`internal/ledgercheck/purchasing.go`)
 
-- [ ] **Step 1: Failing test** `internal/battle/ledger_purchasing_test.go` (the API builds the day): a supplier with an
+- [x] **Step 1: Failing test** `internal/battle/ledger_purchasing_test.go` (the API builds the day): a supplier with an
   opening, an order received with free units + a line discount + a bill discount + a pack line, a delivery with no
   order paid on delivery in cash, a payment oldest first by card, an old-debt payment, an advance, a new bill settled
   from it, a discount, goods sent back against a delivery and with no delivery, a refund, a cheque payment cleared and
@@ -78,10 +78,10 @@ mutation, `make battle`, full run) the next day, one long run at a time.
   PUR-11 (paid + credited > total; status paid with something left), PUR-12 (paid ≠ Σ money allocations − reopened),
   PUR-13 (a line with no lot; movements ≠ paid + free), SUP-3 (a payment's money receipt ≠ its amount; cheques ≠ a
   cheque payment), SUP-4 (allocations above the payment).
-- [ ] **Step 2: Run, fail; write the checks; run, pass.**
-- [ ] **Step 3:** Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
+- [x] **Step 2: Run, fail; write the checks; run, pass.**
+- [x] **Step 3:** (grocery year clean, 91 s; dev DB: no area-5 violations, only the old hand-set seed stock under SALE-20 / STK-2) Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
   (→ Task 3 test), a wrong rule (→ the user) or seed data (fix the seeder).
-- [ ] **Step 4: Commit** — `test(ledgercheck): area 5 checks — supplier balances, bills, debit notes, payments`
+- [x] **Step 4: Commit** — `test(ledgercheck): area 5 checks — supplier balances, bills, debit notes, payments`
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_purchasing_test.go`)
 
