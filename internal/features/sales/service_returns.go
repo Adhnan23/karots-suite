@@ -319,6 +319,10 @@ func (s *Service) PartialReturnTx(ctx context.Context, tx *sqlx.Tx, saleID int64
 			if err != nil {
 				return apperr.Internal("failed to read earlier returns", err)
 			}
+			// Hold the customer: two returns at once each cleared the same debt (RET-19).
+			if _, err := custRepo.LockByID(ctx, *sale.CustomerID); err != nil {
+				return apperr.Internal("failed to read the customer", err)
+			}
 			owed, err := owedNow(ctx, tx, *sale, prior)
 			if err != nil {
 				return apperr.Internal("failed to read the customer", err)

@@ -83,13 +83,10 @@ func TestCUST8_CreditSalesAtOnceKeepTheLimit(t *testing.T) {
 	s.open(t, s.till1)
 	s.open(t, s.till2)
 	id := s.newCustomer(t, "0712000221", "1000", "0")
-	var other struct{ ID int64 } // one cashier's sales, and sales of one product, already wait for each other
-	s.must(t, s.admin.Do("POST", "/api/v1/admin/products", map[string]any{"name": "Battle other", "categoryId": s.cat, "unitId": s.unitPcs,
-		"costPrice": "1", "sellingPrice": "100", "wholesalePrice": "100", "reorderAuto": false}, &other))
-	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": other.ID, "newQuantity": "1000", "note": "battle"}, nil))
+	other := s.otherProduct(t) // one cashier's sales, and sales of one product, already wait for each other
 	ok := atOnce(8, func(i int) error {
 		return []*client{s.till1, s.till2}[i%2].Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0",
-			"discountType": "fixed", "customerId": id, "items": []line{{"productId": []int64{s.prod["plain"], other.ID}[i%2], "quantity": "2"}},
+			"discountType": "fixed", "customerId": id, "items": []line{{"productId": []int64{s.prod["plain"], other}[i%2], "quantity": "2"}},
 			"payments": []pay{{"method": "credit", "amount": "200"}}}, nil)
 	})
 	var after []decimal.Decimal
@@ -120,4 +117,45 @@ func TestCUST16_SamePayAtOnceIsOne(t *testing.T) {
 		t.Errorf("CUST-16 %d answered, %d payments, balance %s (want 4, 1, 900)", ok, n, bal)
 	}
 	s.audit(t)
+}
+
+// RET-19 / CUST-1: two returns at once, on two credit sales of a customer who now
+// owes only one of them, clear that debt once; the other comes back as cash.
+func TestRET19_ReturnsAtOnceClearDebtOnce(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.open(t, s.till1)
+	s.open(t, s.till2)
+	id := s.newCustomer(t, "0712000241", "100000", "0")
+	var lines [2][2]int64 // sale, line — two products, so stock doesn't make them wait
+	for i, p := range []int64{s.prod["plain"], s.otherProduct(t)} {
+		var r saleResult
+		s.must(t, s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed",
+			"customerId": id, "items": []line{{"productId": p, "quantity": "1"}}, "payments": []pay{{"method": "credit", "amount": "100"}}}, &r))
+		lines[i] = [2]int64{r.ID, s.sale(t, s.till1, r.ID).Lines[0].ID}
+	}
+	s.payCash(t, id, "100") // owes 100 now: one sale's worth
+	var cash [2]decimal.Decimal
+	atOnce(2, func(i int) error {
+		var r struct{ CashRefund string }
+		err := []*client{s.till1, s.till2}[i].Do("POST", fmt.Sprintf("/api/v1/till/sales/%d/return", lines[i][0]), map[string]any{
+			"lines": []map[string]any{{"saleItemId": lines[i][1], "quantity": "1"}}}, &r)
+		if err == nil {
+			cash[i] = dec(t, r.CashRefund)
+		}
+		return err
+	})
+	if bal := s.acct(t, id).Balance; !bal.IsZero() || !cash[0].Add(cash[1]).Equal(decimal.NewFromInt(100)) {
+		t.Errorf("RET-19 balance %s, cash back %s + %s (want 0, 100 in all)", bal, cash[0], cash[1])
+	}
+	s.audit(t)
+}
+
+// otherProduct makes a second Rs 100 product with stock; its id.
+func (s *shop) otherProduct(t *testing.T) int64 {
+	var p struct{ ID int64 }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/products", map[string]any{"name": "Battle other", "categoryId": s.cat, "unitId": s.unitPcs,
+		"costPrice": "1", "sellingPrice": "100", "wholesalePrice": "100", "reorderAuto": false}, &p))
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": p.ID, "newQuantity": "1000", "note": "battle"}, nil))
+	return p.ID
 }
