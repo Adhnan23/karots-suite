@@ -55,7 +55,7 @@ Known, not fixed: two phone edits at the very same moment can still pair a phone
 duplicate clean-up; the auditor flags it); `sales/service.go` is 539 lines (over 500 before this area — split it
 when next touched); the Opening sheet could say when an advance paid part of the old balance. Not yet Released.
 Full run: Go, Vitest and check-core green; Playwright 256 passed, 4 timed out with Go's coverage run beside it and
-passed alone (admin-catalog, admin-money, admin-reports, palettes). Coverage map updated (core Go 75.8%, core
+passed alone (admin-catalog, admin-money, admin-reports, palettes). Coverage map updated (core Go 76.8%, core
 screens 59.2%; customers' files 80–91%).
 **Next:** area 4 (stock: lots, packs, units, conversions, freeze, write-offs, give-back, recall) the same way.
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
