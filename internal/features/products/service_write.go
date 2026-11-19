@@ -334,26 +334,13 @@ func nilIfZero(p *int64) *int64 {
 	return p
 }
 
-// seedOpeningStock mirrors the till quick-add opening seed (service.go QuickCreate)
-// but with a real cost: bump the cached quantity, open a costing batch, and log a
-// stock-adjust movement — all within the caller's transaction.
+// seedOpeningStock books a sheet's opening stock the way any stock comes in
+// (stock.AddStock): one opening lot at the sheet's cost (blank = the product's)
+// and one adjust movement worth it — within the caller's transaction.
 func seedOpeningStock(ctx context.Context, tx *sqlx.Tx, productID int64, qty, cost decimal.Decimal, userID int64) error {
-	stk := stock.NewRepository(tx)
-	if err := stk.Increment(ctx, productID, qty); err != nil {
-		return apperr.Internal("failed to seed opening stock", err)
-	}
-	if _, err := stk.InsertBatch(ctx, stock.NewBatch{
-		ProductID: productID, Quantity: qty, CostPrice: cost, Source: "opening",
-	}); err != nil {
-		return apperr.Internal("failed to open stock batch", err)
-	}
-	note := "CSV import opening stock"
-	if err := stk.InsertMovement(ctx, stock.MovementInput{
-		ProductID: productID, Type: stock.MoveAdjust, Quantity: qty, UserID: userID, Note: &note,
-	}); err != nil {
-		return apperr.Internal("failed to record stock movement", err)
-	}
-	return nil
+	_, err := stock.NewRepository(tx).AddStock(ctx, stock.AddStockInput{ProductID: productID, Qty: qty.String(),
+		Cost: cost.String(), Source: "opening", Note: "CSV import opening stock"}, userID)
+	return err
 }
 
 func mapWriteErr(err error) error {
