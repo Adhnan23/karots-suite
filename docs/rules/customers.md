@@ -64,7 +64,7 @@ receipt) · **Undo** (put right) · **Limit** (credit limit, available) · **Sta
   customer, and changing a phone to, or bringing back a customer with, one in use is refused. Otherwise one person's
   debt splits across two accounts. *Found in: 3ed448a (import doubled customers). ledgercheck, example.*
 - **CUST-4** Adjusting the opening moves the balance and the opening by the same difference and leaves the linked part
-  unchanged; it may go below zero (an advance from before the suite); it is in the audit log with before and after.
+  unchanged; it may go below zero (an advance from before the suite). An advance they already hold pays a new old debt down (CUST-15). It is in the audit log with before and after.
   *example.*
 
 ### Payments and advances

@@ -46,17 +46,16 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 2: Auditor checks (`internal/ledgercheck/customers.go`)
 
-- [ ] **Step 1: Failing test** `internal/battle/ledger_customers_test.go` (the API builds the day): a customer made with
+- [x] **Step 1: Failing test** `internal/battle/ledger_customers_test.go` (the API builds the day): a customer made with
   an opening, a sale on account, kept change, a return on the credit sale, cash / card / cheque payments, old debt
   first, an overpayment, an advance refund, a bounced cheque, an opening adjusted → no violations; then corrupt one
   row at a time and assert that rule's id: CUST-1 (balance off by 0.01; a payment row with its amount changed),
   CUST-3 (a second active customer with the same phone, spaced differently), CUST-5 (a cash / card payment without its
-  money move; a cheque payment without its cheque), CUST-6 (after ≠ before − amount; two payments with one DP-
-  number), CUST-9 (old debt below zero when the opening isn't; old debt above the opening).
-- [ ] **Step 2: Run, fail; write the checks; run, pass.**
-- [ ] **Step 3:** Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
+  money move; a cheque payment without its cheque), CUST-6 (after ≠ before − amount; DP- numbers are unique in the database), CUST-9 (old debt above the opening), CUST-15 (old debt above the balance).
+- [x] **Step 2: Run, fail; write the checks; run, pass.**
+- [x] **Step 3:** (2026-11-19: grocery year clean; dev DB: no area 3 violations — only seed stock's SALE-20, area 4) Run `Run` over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug
   (→ Task 3 test) or a wrong rule (→ the user).
-- [ ] **Step 4: Commit** — `test(ledgercheck): area 3 checks — customers' balances and payments`
+- [x] **Step 4: Commit** — `test(ledgercheck): area 3 checks — customers' balances and payments`
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_customers_test.go`)
 
@@ -104,7 +103,8 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 
 ### Task 7: Close area 3
 
-- [ ] **Step 1:** Q1–Q3's tests passing; `docs/guide/people.md` says what changed.
+- [ ] **Step 1:** Q1–Q3's tests passing; `docs/guide/people.md` says what changed. `docs/status.md` gets the user's
+  later idea (2026-11-19): a note box on the till's plain Hold (only Send to cashier has one) — after all areas pass.
 - [ ] **Step 2:** Full run (`scripts/full-run.sh`, `COVER=1`), one clean `make battle`.
 - [ ] **Step 3:** Coverage map updated (re-upload its four JSON datasets); `docs/status.md` — area 3 done, bugs found
   and fixed.
