@@ -98,6 +98,26 @@ func (s *Service) Create(ctx context.Context, in Input) (*Unit, error) {
 }
 
 func (s *Service) Update(ctx context.Context, id int64, in Input) error {
+	// STK-18 (user, 2026-11-19): a unit can't lose its decimals while a product of it
+	// holds a fraction, nor gain them while one is sold by the pack.
+	var clash struct {
+		Fraction bool `db:"fraction"`
+		Packs    bool `db:"packs"`
+	}
+	if err := s.repo.db.GetContext(ctx, &clash, `
+		SELECT EXISTS (SELECT 1 FROM products p JOIN stock st ON st.product_id = p.id
+		               WHERE p.unit_id = u.id AND st.quantity <> trunc(st.quantity)) AND u.allow_decimal AND NOT $2 AS fraction,
+		       EXISTS (SELECT 1 FROM products p JOIN product_packs k ON k.product_id = p.id
+		               WHERE p.unit_id = u.id) AND NOT u.allow_decimal AND $2 AS packs
+		FROM units u WHERE u.id = $1`, id, in.AllowDecimal); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return apperr.Internal("failed to check the unit", err)
+	}
+	if clash.Fraction {
+		return apperr.Validation("some products of this unit hold part of one — count them whole first")
+	}
+	if clash.Packs {
+		return apperr.Validation("some products of this unit are sold by the pack, and packs need whole units")
+	}
 	err := s.repo.Update(ctx, id, in.Name, in.Abbreviation, in.AllowDecimal)
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperr.NotFound("unit")

@@ -229,7 +229,15 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (*Produc
 	}
 	// One transaction: a main barcode swapped with one of its own extras is several
 	// statements, and half of it would drop a code that still has to scan.
-	if err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return NewRepository(tx).Update(ctx, id, w) }); err != nil {
+	if err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		if err := unitFits(ctx, tx, id, w.UnitID); err != nil {
+			return err
+		}
+		return NewRepository(tx).Update(ctx, id, w)
+	}); err != nil {
+		if _, ok := apperr.As(err); ok {
+			return nil, err
+		}
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("product")
 		}
@@ -388,4 +396,35 @@ func defaultUnitID(ctx context.Context, tx *sqlx.Tx) (int64, error) {
 	err := tx.GetContext(ctx, &id,
 		`SELECT id FROM units ORDER BY is_default DESC, id ASC LIMIT 1`)
 	return id, err
+}
+
+// unitFits refuses moving a product to a whole unit while it holds a fraction, or
+// to a decimal unit while it has packs (packs are whole units) — STK-18, user
+// 2026-11-19. Count it whole, or remove its packs, first.
+func unitFits(ctx context.Context, tx *sqlx.Tx, productID, unitID int64) error {
+	var p struct {
+		Changed  bool `db:"changed"`
+		Decimal  bool `db:"allow_decimal"`
+		Fraction bool `db:"fraction"`
+		Packs    bool `db:"packs"`
+	}
+	if err := tx.GetContext(ctx, &p, `
+		SELECT pr.unit_id <> $2 AS changed, u.allow_decimal,
+		       COALESCE((SELECT quantity <> trunc(quantity) FROM stock WHERE product_id = pr.id), false) AS fraction,
+		       EXISTS (SELECT 1 FROM product_packs WHERE product_id = pr.id) AS packs
+		FROM products pr, units u WHERE pr.id = $1 AND u.id = $2`, productID, unitID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil // a missing product or unit is reported by the update itself
+		}
+		return apperr.Internal("failed to check the unit", err)
+	}
+	switch {
+	case !p.Changed:
+		return nil
+	case !p.Decimal && p.Fraction:
+		return apperr.Validation("it holds part of one now — count it in whole units first, then change its unit")
+	case p.Decimal && p.Packs:
+		return apperr.Validation("it is sold by the pack, and packs need whole units — remove its packs first")
+	}
+	return nil
 }
