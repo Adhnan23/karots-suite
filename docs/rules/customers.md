@@ -26,12 +26,12 @@ receipt) · **Undo** (put right) · **Limit** (credit limit, available) · **Sta
 |---|---|---|---|---|---|---|---|---|
 | Customer made with an opening | CUST-2 | — a | — b | CUST-4 | CUST-8 | CUST-10 | CUST-12 | CUST-3 |
 | Customer imported (sheet) | CUST-2 | — a | — b | CUST-4 | CUST-8 | CUST-10 | CUST-12 | CUST-3 |
-| Opening adjusted | CUST-4 | — a | — b | CUST-4 | CUST-8 | CUST-10 | CUST-12 | **?** Q1 |
+| Opening adjusted | CUST-4 | — a | — b | CUST-4 | CUST-8 | CUST-10 | CUST-12 | CUST-15 |
 | Sale on account | TEND-11 | DRAW-4 | TEND-12 | RET-18,19 | TEND-13, CUST-8 | CUST-10 | CUST-12 | CUST-8, SALE-50 |
 | Sale on account using an advance | CUST-7 | DRAW-4 | SALE-47 | RET-18,19 | CUST-8 | CUST-10 | CUST-12 | CUST-8 |
 | Change kept as an advance | TEND-4 | DRAW-1 | — c | — d | CUST-8 | CUST-10 | CUST-12 | SALE-50 |
 | Return on a credit sale | RET-18,19 | DRAW-1 | RET-21 | — d | CUST-8 | CUST-10 | CUST-12 | — e |
-| Payment, cash / card / online | CUST-5 | LOCK-11 | CUST-6 | — d | CUST-8 | CUST-10 | CUST-12 | CUST-13, **?** Q2 |
+| Payment, cash / card / online | CUST-5 | LOCK-11 | CUST-6 | — d | CUST-8 | CUST-10 | CUST-12 | CUST-13, CUST-16 |
 | Payment, old debt first | CUST-9 | LOCK-11 | CUST-6 | — d | CUST-8 | CUST-10 | CUST-12 | CUST-13 |
 | Payment by cheque | CUST-5 | TEND-8 | CUST-6 | TEND-8 | CUST-8 | CUST-10 | CUST-12 | CUST-13 |
 | Payment by a plugin tender (seam) | CUST-5 | TEND-14 | CUST-6 | — d | CUST-8 | CUST-10 | CUST-12 | CUST-13 |
@@ -40,7 +40,7 @@ receipt) · **Undo** (put right) · **Limit** (credit limit, available) · **Sta
 | Cheque bounced / cancelled | TEND-8 | LOCK-1 | — c | — d | CUST-8 | CUST-10 | CUST-12 | — e |
 | Credit limit changed | CUST-8 | — a | — b | CUST-8 | CUST-8 | — f | CUST-12 | — e |
 | Phone changed | CUST-3 | — a | — b | — d | — f | — f | — f | CUST-3 |
-| Customer disabled / brought back | CUST-14 | — a | — b | CUST-14 | **?** Q3 | CUST-10 | CUST-12 | — e |
+| Customer disabled / brought back | CUST-14 | — a | — b | CUST-14 | CUST-17 | CUST-10 | CUST-12 | — e |
 
 - `— a` No money moves.
 - `— b` No slip (the admin change is in the audit log).
@@ -86,6 +86,14 @@ receipt) · **Undo** (put right) · **Limit** (credit limit, available) · **Sta
 - **CUST-11** An advance refund hands back at most the advance; two at once never together pass it. The cash comes
   from a till (refused beyond what the drawer holds, DRAW-3) or a cash locker, and gets a CR- receipt. *example,
   fault.*
+- **CUST-15** The old debt is never more than what the customer owes: an advance they hold when an old debt is set
+  pays it down at once (an advance of 500, old debt set to 1,000 → old debt 500, balance 500). *User, 2026-11-19
+  (Q1). Today both stand side by side and the next payment quietly shrinks the old debt.* *ledgercheck, example.*
+- **CUST-16** The same payment sent twice (double tap, Pay again after a lost answer) is one payment: it carries a
+  one-time reference, and the second send gets the first back and books nothing. *User, 2026-11-19 (Q2). Today two
+  are recorded.* *example, fault.*
+- **CUST-17** A sale on account to a disabled customer goes through (never stop a sale) and is flagged for review,
+  "customer disabled". *User, 2026-11-19 (Q3). Today it goes through unflagged.* *example.*
 - **CUST-13** Two payments for one customer at the same moment both count: the balance drops by both (CUST-1), each
   slip right (CUST-6). *fault.*
 

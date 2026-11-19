@@ -42,7 +42,7 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
 - [x] **Step 1:** Grid + rules in `docs/rules/customers.md` (CUST; past `fix(` commits as rules).
 - [x] **Step 2:** Q1–Q3 in `docs/rules/questions.md`; README links area 3.
 - [x] **Step 3: Commit** — `docs(rules): area 3 rule book — customers' balances, payments, advances; questions Q1–Q3`
-- [ ] **Step 4:** Ask Q1–Q3 in one batch; answers into the rules (built in Task 3b).
+- [x] **Step 4:** Asked; all three answered 2026-11-19 as suggested (CUST-15, CUST-16, CUST-17 — built in Task 3 Step 3).
 
 ### Task 2: Auditor checks (`internal/ledgercheck/customers.go`)
 
@@ -70,7 +70,10 @@ keeps its own books per customer → faults (two payments / refunds / credit sal
   till beyond the drawer refused), CUST-12 (dues and advances totals, a disabled customer who owes), CUST-14 (disabled
   customer pays and is refunded). Each ends with the auditor.
 - [ ] **Step 2:** Run; each failure → fix test-first, one commit each.
-- [ ] **Step 3: The user's answers (Q1–Q3)**, test-first, one commit each.
+- [ ] **Step 3: The user's answers**, test-first, one commit each: CUST-15 (`AdjustOpening` caps the old debt at
+  the balance, never below zero unless set negative with no advance), CUST-16 (`clientRef` on counter + admin
+  payments, unique per customer — likely migration 00039 `customer_payments.client_ref`; the counter screen sends
+  one per Pay), CUST-17 (a sale on account to a disabled customer gets a review flag).
 - [ ] **Step 4: Commit** — `test(battle): area 3 cases — one per rule`
 
 ### Task 4: Random days with customers (`internal/battle/machine_customers_test.go`)
