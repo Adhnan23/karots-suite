@@ -26,7 +26,7 @@ RET-4  A line's refunds never add up to more than what was paid for that line.
 ```
 
 - **Ids** never change meaning and are never reused. `SALE` selling and totals · `DISC` discounts · `TEND` payment
-  and change · `RET` returns · `TILL` the till's screen vs the server · `DRAW` the drawer · `LOCK` lockers and moves · `EXP` expenses · `CF` the Cash flow page (area 2) · `CUST` customers' balances, payments and advances (area 3).
+  and change · `RET` returns · `TILL` the till's screen vs the server · `DRAW` the drawer · `LOCK` lockers and moves · `EXP` expenses · `CF` the Cash flow page (area 2) · `CUST` customers' balances, payments and advances (area 3) · `STK` stock, lots, counts, write-offs, conversions, freeze (area 4).
 - **Checked by** — `ledgercheck` (the auditor sees it in the database, `internal/ledgercheck`), `machine` (random
   shop days, `internal/battle`), `lean` (proved in `proofs/`), `example` (a fixed case test).
 - A rule changes only when the user agrees; the commit says so.
@@ -47,7 +47,7 @@ rebuilds the proofs and fails if the cases are stale.
 1. [Sales, discounts, payment](sales.md) · [Returns](returns.md) — area 1
 2. [Drawer, cash flow, lockers, expenses](money.md) — area 2
 3. [Customers: credit, advances, opening balances, payments](customers.md) — area 3
-4. Stock: lots, packs, units, conversions, freeze, write-offs — area 4
+4. [Stock: lots, packs, units, conversions, freeze, write-offs](stock.md) — area 4
 5. Purchasing, supplier pay, supplier returns, cheques — area 5
 6. Recovery and losses — area 6
 7. Reports and the Z report — area 7
