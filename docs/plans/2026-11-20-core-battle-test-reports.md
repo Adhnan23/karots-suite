@@ -133,9 +133,12 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 7: Mutation
 
-- [ ] **Step 1:** `make mutate` on `internal/features/reports` and `sales/service_summary.go`; replay LIVED / NOT
+- [x] **Step 1:** (gremlins on `reports`: 55 killed, the LIVED were report dates and a list clamp — dates now
+  tested, the clamp only trims a page; NOT COVERED = the `+` joining SQL strings and database-failure branches (the
+  coverage push). The reports are SQL, so `scripts/report-mutants.py` plants 21 SQL / Go mistakes in a scratch
+  copy: all killed after adding RPT-4 to the agreement check and a stock-take first lot to RPT-9's case.) `make mutate` on `internal/features/reports` and `sales/service_summary.go`; replay LIVED / NOT
   COVERED against the area's battle tests (`scripts/replay-mutants.py`, absolute testdb path); kill or explain each.
-- [ ] **Step 2: Commit** the tests that kill them.
+- [x] **Step 2: Commit** the tests that kill them.
 
 ### Task 8: Close the area
 

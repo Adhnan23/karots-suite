@@ -42,6 +42,13 @@ func TestReportsAgreeOverAShopDay(t *testing.T) {
 	s.sell(t, s.till2, "0", []line{{"productId": s.prod["loose"], "quantity": "0.375"}, {"productId": odd, "quantity": "3"}}, cash("500"))
 	s.sell(t, s.till1, "0", []line{{"productId": plain, "quantity": "3"}}, cash("100"), pay{"method": "card", "amount": "200", "accountId": s.cardAcct})
 	s.sell(t, s.till2, "0", []line{{"productId": plain, "quantity": "2"}, {"productId": air.ID, "quantity": "1", "payout": true, "priceOverride": "50"}}, cash("200"))
+	// A stocked product with no cost on the books (RPT-4): two sold, one back the same day.
+	var free struct{ ID int64 }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/products", map[string]any{"name": "Battle no cost", "categoryId": s.cat, "unitId": s.unitPcs,
+		"costPrice": "0", "sellingPrice": "45", "wholesalePrice": "45", "reorderAuto": false}, &free))
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": free.ID, "newQuantity": "10", "note": "battle"}, nil))
+	nc := s.sell(t, s.till2, "0", []line{{"productId": free.ID, "quantity": "2"}}, cash("100"))
+	s.giveBack(t, s.till2, nc.ID, s.sale(t, s.till2, nc.ID).Lines[0].ID, "1")
 	void := s.sell(t, s.till1, "0", []line{{"productId": s.prod["cheap"], "quantity": "4"}}, cash("10"))
 
 	// Returns today: part of yesterday's A, all of B's goods, one of C (on account), and part of a today's sale.

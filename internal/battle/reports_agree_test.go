@@ -138,6 +138,8 @@ func (a *agreeing) pl() {
 		Tax, Expenses, Losses, OwnUse, StaffWelfare   string
 		StockCorrections, Recoveries, OtherIncome     string
 		DiscountsReceived, RegisterDiff, NetProfit    string
+		ZeroCostRevenue                               string
+		ZeroCostLines                                 int
 		Receivables, CustomerAdvances, Payables       string
 		SupplierCredit                                string
 		Trend                                         []struct{ Revenue, Profit string }
@@ -188,6 +190,22 @@ func (a *agreeing) pl() {
 	net := a.finProfit.Sub(exp).Sub(loss).Sub(own).Sub(staff).Sub(corr).Add(rec).Add(interest).Add(disc).Add(diff)
 	a.eq("RPT-9", "net profit", a.d(f.NetProfit), net, cent)
 	a.finExpenses, a.finLosses, a.finRecoveries = a.d(f.Expenses), a.d(f.Losses), a.d(f.Recoveries)
+
+	// RPT-4: stocked own goods sold with no cost — the lines sold in the period, their revenue less what came back in it.
+	var noCostLines int
+	var noCostSold, noCostBack decimal.Decimal
+	noCost := ` JOIN products p ON p.id = si.product_id WHERE NOT p.pass_through AND NOT p.is_service AND COALESCE(si.cost_price,0) = 0 AND `
+	a.s.must(a.t, a.s.db.GetContext(a.ctx, &noCostLines, `SELECT COUNT(*) FROM sale_items si JOIN sales s ON s.id = si.sale_id`+noCost+saleIn, a.from, a.to))
+	a.sum(&noCostSold, `SELECT COALESCE(SUM(si.subtotal * (s.total - s.tax - (SELECT COALESCE(SUM(x.subtotal),0) FROM sale_items x JOIN products xp ON xp.id = x.product_id
+		WHERE x.sale_id = s.id AND xp.pass_through)) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x JOIN products xp ON xp.id = x.product_id
+		WHERE x.sale_id = s.id AND NOT xp.pass_through), 0)),0) FROM sale_items si JOIN sales s ON s.id = si.sale_id`+noCost+saleIn, a.from, a.to)
+	a.sum(&noCostBack, `SELECT COALESCE(SUM(ri.refund_amount * COALESCE((s.total - s.tax - `+payouts+`) / NULLIF(s.total - `+payouts+`, 0), 1)),0)
+		FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id JOIN sales s ON s.id = r.sale_id
+		JOIN sale_items si ON si.id = ri.sale_item_id`+noCost+retIn, a.from, a.to)
+	if f.ZeroCostLines != noCostLines {
+		a.t.Errorf("RPT-4 %s no-cost lines %d, want %d", a.q, f.ZeroCostLines, noCostLines)
+	}
+	a.eq("RPT-4", "no-cost revenue", a.d(f.ZeroCostRevenue), noCostSold.Sub(noCostBack), cent)
 
 	var owed, adv, pay, credit decimal.Decimal
 	a.sum(&owed, `SELECT COALESCE(SUM(outstanding_balance),0) FROM customers WHERE outstanding_balance > 0`)

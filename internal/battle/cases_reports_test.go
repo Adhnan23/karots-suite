@@ -195,8 +195,12 @@ func TestRPT9_StockOnTheBooksIsNotProfit(t *testing.T) {
 		t.Fatal(err)
 	}
 	s.addLot(t, s.prod["plain"], "30", "12", "") // + Add batch, no bill, on a product that has stock already
+	// A never-stocked product's first lot entered on the stock-take screen is its opening stock too (Q5).
+	fresh := s.stocked(t, "Battle first lot", s.unitPcs, 0, nil)
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/take", map[string]any{"lines": []map[string]any{{"productId": fresh,
+		"newBatches": []map[string]string{{"qty": "8", "cost": "30"}}}}}, nil))
 	if c := corrections(); !c.IsZero() {
-		t.Errorf("RPT-9 an opening quantity or + Add batch read as stock found: corrections %s, want 0", c)
+		t.Errorf("RPT-9 an opening quantity, + Add batch or a first lot read as stock found: corrections %s, want 0", c)
 	}
 	// A later count finding 2 more is a correction: 2 × the product's cost 10 = −20 (found = negative).
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": sheet, "newQuantity": "42", "note": "count"}, nil))
