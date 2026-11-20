@@ -120,7 +120,7 @@ export function PaySheet({ s, sym, onClose }: { s: AdminSupplierDetail; sym: str
             <label className="flex items-center gap-2"><span className="flex-1">Old debt <small className="block text-faint tabular-nums">owed {money(sym, old)}</small></span>
               <input aria-label="Pay on old debt" inputMode="decimal" placeholder="0.00" value={oldDebt} onChange={(e) => setOldDebt(amt(e.target.value))} className={cn(INPUT, 'h-10 w-28 text-right tabular-nums')} /></label>
           )}
-          <label className="flex items-center gap-2"><span className="flex-1">Advance <small className="block text-faint">sits as credit for their next delivery</small></span>
+          <label className="flex items-center gap-2"><span className="flex-1">Advance <small className="block text-faint">pays what is still owed first; the rest is credit for their next delivery</small></span>
             <input aria-label="Advance" inputMode="decimal" placeholder="0.00" value={advance} onChange={(e) => setAdvance(amt(e.target.value))} className={cn(INPUT, 'h-10 w-28 text-right tabular-nums')} /></label>
         </div>
       )}

@@ -87,7 +87,41 @@ func supplierPayInput(req AdminSupplierPayRequest, invoices []purchases.Purchase
 	if in.Opening, err = optAmount(req.OldDebt, "old-debt amount"); err != nil {
 		return in, err
 	}
-	return in, nil
+	return advanceOnOwed(in, invoices, opening), nil
+}
+
+// advanceOnOwed runs a typed advance through what's still owed once the typed
+// amounts are on (open bills oldest first, then the old debt): only the rest is
+// left with the supplier as credit (SUP-5), so no bill waits while they hold ours.
+func advanceOnOwed(in supplierpay.PayInput, invoices []purchases.Purchase, opening decimal.Decimal) supplierpay.PayInput {
+	if !in.Unallocated.IsPositive() {
+		return in
+	}
+	typed := map[int64]decimal.Decimal{}
+	for _, a := range in.Allocations {
+		typed[a.PurchaseID] = typed[a.PurchaseID].Add(a.Amount)
+	}
+	left := make([]purchases.Purchase, len(invoices))
+	for i, p := range invoices {
+		p.PaidAmount = p.PaidAmount.Add(typed[p.ID])
+		left[i] = p
+	}
+	d := supplierpay.Distribute(left, opening.Sub(in.Opening), in.Unallocated, "pay")
+	for _, a := range d.Allocations {
+		merged := false
+		for i := range in.Allocations {
+			if in.Allocations[i].PurchaseID == a.PurchaseID {
+				in.Allocations[i].Amount = in.Allocations[i].Amount.Add(a.Amount)
+				merged = true
+			}
+		}
+		if !merged {
+			in.Allocations = append(in.Allocations, a)
+		}
+	}
+	in.Opening = in.Opening.Add(d.Opening)
+	in.Unallocated = d.Unallocated
+	return in
 }
 
 // AdminSupplierPay pays a supplier from any locker or open till (or from
