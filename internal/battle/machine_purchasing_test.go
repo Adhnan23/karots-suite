@@ -9,12 +9,14 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Random shop days buying from and paying two suppliers (docs/rules/purchasing.md):
+// Random shop days buying from and paying two suppliers (docs/rules/purchasing.md,
+// recovery.md):
 // deliveries with no order (free units, line and bill discounts, packs, loose
 // goods) and orders received in part, paid on delivery or not; payments oldest
 // first / old debt first / a typed advance, by cash, card, from outside, by
 // cheque, or a discount; goods sent back; refunds; cheques cleared or bounced;
-// the opening adjusted; a supplier disabled and brought back. The machine keeps
+// the opening adjusted; a supplier disabled and brought back; their lots written
+// off, settled with them and undone (machine_recovery_test.go). The machine keeps
 // every balance, old debt and bill by the rule book; after every step the
 // auditor runs and the shop is held to the books (SUP-1, SUP-2, PUR-11, PUR-12).
 func TestBattlePurchasing(t *testing.T) {
@@ -32,6 +34,9 @@ func TestBattlePurchasing(t *testing.T) {
 			"Cheque":  m.cheque,
 			"Opening": m.opening,
 			"Disable": m.disable,
+			"Lose":    m.lose,
+			"Recover": m.recover,
+			"Undo":    m.undo,
 		})
 	})
 }
@@ -49,11 +54,13 @@ type purchasingMachine struct {
 	sups       []*pSup
 	cheques    []*pCheque
 	n          int // cheque numbers
+	losses     []*pLoss         // write-offs of a supplier's lots, waiting or settled
+	moves      map[int64]int    // stock movements per product so far (REC-8)
 }
 
 func newPurchasingMachine(t *rapid.T) *purchasingMachine {
 	s := newShop(t)
-	m := &purchasingMachine{s: s, safe: s.locker(t, "M safe", "safe", "10000000"), bank: s.locker(t, "M bank", "bank", "10000000")}
+	m := &purchasingMachine{moves: map[int64]int{}, s: s, safe: s.locker(t, "M safe", "safe", "10000000"), bank: s.locker(t, "M bank", "bank", "10000000")}
 	for _, x := range []struct{ name, opening string }{{"M Wholesale", "500"}, {"M Agency", ""}} {
 		body := map[string]string{"name": x.name}
 		if x.opening != "" {
@@ -62,7 +69,7 @@ func newPurchasingMachine(t *rapid.T) *purchasingMachine {
 		var r struct{ ID int64 }
 		s.must(t, s.admin.Do("POST", "/api/v1/admin/suppliers", body, &r))
 		o := decimal.RequireFromString("0" + x.opening)
-		m.sups = append(m.sups, &pSup{id: r.ID, name: x.name, bal: o, old: o, active: true})
+		m.sups = append(m.sups, &pSup{id: r.ID, name: x.name, bal: o, old: o, opening: o, active: true})
 	}
 	return m
 }
@@ -143,12 +150,14 @@ func (m *purchasingMachine) landed(t *rapid.T, sp *pSup, id int64, ls []dLine, s
 		if !lot.left.Equal(l.units) {
 			t.Fatalf("PUR-2 a line of %s units opened a lot of %s", l.units, lot.left)
 		}
-		lot.product, lot.whole, lot.share = l.product, l.whole, share[i]
+		lot.product, lot.whole, lot.share, lot.received = l.product, l.whole, share[i], lot.left
+		m.moves[l.product]++
 		b.lots = append(b.lots, &lot)
 	}
 	sp.book(b)
+	sp.events = append(sp.events, b)
 	if paid := decimal.Min(payNow, b.left()); paid.IsPositive() {
-		sp.pay(plan{allocs: []*pAlloc{{bill: b, amt: paid}}}, paid, false)
+		sp.events = append(sp.events, sp.pay(plan{allocs: []*pAlloc{{bill: b, amt: paid}}}, paid, false))
 	}
 }
 
@@ -271,6 +280,7 @@ func (m *purchasingMachine) pay(t *rapid.T) {
 		return
 	}
 	p := sp.pay(pl, amt, method == "discount")
+	sp.events = append(sp.events, p)
 	if method == "cheque" {
 		var id int64
 		m.s.must(t, m.s.db.Get(&id, `SELECT id FROM cheques WHERE number = $1`, fmt.Sprintf("9%05d", m.n)))
@@ -305,8 +315,10 @@ func (m *purchasingMachine) sendBack(t *rapid.T) {
 			"lines": []map[string]any{{"productId": l.product, "quantity": q.String(), "batchId": l.id}}}, nil)
 	}) {
 		v := l.value(q)
-		l.left, l.back = l.left.Sub(q), l.back.Add(v)
+		l.left, l.back, l.retQty = l.left.Sub(q), l.back.Add(v), l.retQty.Add(q)
 		sp.sendBack(b, v)
+		sp.events = append(sp.events, sp.rets[len(sp.rets)-1])
+		m.moves[l.product]++
 	}
 }
 
@@ -322,6 +334,7 @@ func (m *purchasingMachine) refund(t *rapid.T) {
 		return m.s.admin.Do("POST", supPath(sp.id, "refund"), map[string]string{"amount": amt.String(), "method": method, "source": fmt.Sprintf("locker:%d", place)}, nil)
 	}) {
 		sp.addBal(amt)
+		sp.events = append(sp.events, &amt)
 	}
 }
 
@@ -375,6 +388,13 @@ func (m *purchasingMachine) check(t *rapid.T) {
 			m.s.must(t, m.s.db.QueryRow(`SELECT paid_amount, credited_amount FROM purchases WHERE id = $1`, b.id).Scan(&paid, &credited))
 			if !paid.Equal(b.paid) || !credited.Equal(b.credited) {
 				t.Fatalf("PUR-12 %s bill %d paid %s credited %s, the books say %s and %s (total %s)", sp.name, b.id, paid, credited, b.paid, b.credited, b.total)
+			}
+		}
+		for _, c := range sp.creds {
+			var waiting decimal.Decimal
+			m.s.must(t, m.s.db.Get(&waiting, `SELECT credit_unapplied FROM loss_recoveries WHERE id = $1`, c.id))
+			if !waiting.Equal(c.waiting) {
+				t.Fatalf("REC-3 %s's credit %d waits %s, the books say %s", sp.name, c.id, waiting, c.waiting)
 			}
 		}
 	}

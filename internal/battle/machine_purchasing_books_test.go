@@ -9,17 +9,19 @@ import "github.com/shopspring/decimal"
 var zero = decimal.Zero
 
 type pLot struct {
-	id, product int64
-	left, cost  decimal.Decimal
-	share, back decimal.Decimal // the line's share of the bill; what's gone back so far
-	whole       bool
+	id, product      int64
+	left, cost       decimal.Decimal
+	share, back      decimal.Decimal // the line's share of the bill; what's gone back so far
+	received, retQty decimal.Decimal // units that came; units sent back so far
+	whole            bool
 }
 
 // value is what q units of the lot are worth going back: units × cost, but the
-// last units take what's left of the line's share (PUR-3, PUR-10, Q5).
+// last units of all that came take what's left of the line's share (PUR-3,
+// PUR-10, Q5) — not after some were written off.
 func (l *pLot) value(q decimal.Decimal) decimal.Decimal {
 	v := q.Mul(l.cost).Round(2)
-	if q.Equal(l.left) {
+	if l.retQty.Add(q).Equal(l.received) {
 		v = decimal.Max(l.share.Sub(l.back), zero)
 	}
 	return v
@@ -89,13 +91,15 @@ func (p *pPay) advance() decimal.Decimal {
 type pRet struct{ total, allocated decimal.Decimal }
 
 type pSup struct {
-	id       int64
-	name     string
-	bal, old decimal.Decimal
-	active   bool
-	bills    []*pBill
-	pays     []*pPay
-	rets     []*pRet
+	id                int64
+	name              string
+	bal, old, opening decimal.Decimal
+	active            bool
+	bills             []*pBill
+	pays              []*pPay
+	rets              []*pRet
+	creds             []*pRec // credits for losses, oldest first (PUR-8)
+	events            []any   // what's on their books, in order; an undone recovery leaves (REC-8)
 }
 
 func (s *pSup) open() []*pBill {
@@ -136,6 +140,16 @@ func (s *pSup) settle(b *pBill, balBefore decimal.Decimal) {
 		if take := decimal.Min(r.total.Sub(r.allocated), want); take.IsPositive() {
 			b.credited = b.credited.Add(take)
 			r.allocated = r.allocated.Add(take)
+			want = want.Sub(take)
+		}
+	}
+	for _, c := range s.creds {
+		if !want.IsPositive() {
+			return
+		}
+		if take := decimal.Min(c.waiting, want); take.IsPositive() {
+			b.credited = b.credited.Add(take)
+			c.waiting = c.waiting.Sub(take)
 			want = want.Sub(take)
 		}
 	}
@@ -247,6 +261,7 @@ func (s *pSup) bounce(p *pPay, amount decimal.Decimal) {
 // adjustOpening sets the old debt: the balance moves by the change; a credit
 // they hold pays the new old debt down (SUP-2).
 func (s *pSup) adjustOpening(to decimal.Decimal) {
+	s.opening = s.opening.Add(to.Sub(s.old))
 	s.bal = s.bal.Add(to.Sub(s.old))
 	s.old = decimal.Min(to, decimal.Max(s.bal, zero))
 }
