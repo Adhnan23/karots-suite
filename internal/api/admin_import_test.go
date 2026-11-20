@@ -94,6 +94,12 @@ func TestAdminImports(t *testing.T) {
 	if res.Updated != 1 || limit != "5000.00" {
 		t.Fatalf("customer partial re-import: %+v limit %s", res, limit)
 	}
+	// CUST-2: the same sheet again with a balance updates, never books the opening twice.
+	res = decode[EntityImportResult](t, te.upload("/api/v1/admin/customers/import", "file", "c3.csv", []byte("name,phone,balance\n"+tag+" Nimal,"+phone+",9999\n"), ck))
+	te.db.Get(&owed, `SELECT outstanding_balance::text FROM customers WHERE name=$1`, tag+" Nimal") //nolint:errcheck
+	if res.Updated != 1 || len(res.Notes) != 1 || owed != "1200.50" {
+		t.Fatalf("CUST-2 re-import with a balance: %+v owed %s, want updated, a note, still 1200.50", res, owed)
+	}
 	sup := "Vendor,Terms,Payable\n" + tag + " Sup,30,\"2,500\"\n" + tag + " New,x,\n"
 	res = decode[EntityImportResult](t, te.upload("/api/v1/admin/suppliers/import", "file", "s.csv", []byte(sup), ck))
 	if res.Updated != 1 || len(res.Errors) != 1 || len(res.Notes) != 1 {
