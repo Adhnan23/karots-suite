@@ -115,8 +115,12 @@ money: a write-off worth under half a cent books Rs 0 (STK-7, user's yes) and a 
 the supplier already held credit (REC-3). Not yet Released. `make battle` 20,000 steps clean (purchasing re-run alone,
 12 min). Full run: Go, Vitest and check-core green; Playwright 224 passed, 8 timed out beside Go's coverage run and
 passed alone. Coverage map updated (core Go 77.3%, screens 59.2%; recovery 78.3%, warranty 76.1%). Not covered by a
-machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). **Next: area 7 (reports and the
-Z report = the raw data).**
+machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). Dead code swept after it (`deadcode` with every plugin on, `70c14ad`):
+the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Next:
+area 7 (reports and the Z report = the raw data). Then (user, 2026-11-20): push core toward 100% coverage** — what's
+left after the areas is mostly database-failure branches (`if err != nil { return apperr.Internal(…) }`), list
+filters and screens; the failure branches need a way to make the database fail on purpose (a test DB wrapper that
+fails the Nth query), so plan that as its own piece of work.
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
