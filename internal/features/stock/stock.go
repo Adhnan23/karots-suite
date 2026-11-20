@@ -9,6 +9,7 @@ import (
 
 	"karots-suite/internal/db"
 
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -78,6 +79,18 @@ func (r *Repository) GetQuantity(ctx context.Context, productID int64) (decimal.
 	err := r.q.GetContext(ctx, &qty,
 		`SELECT quantity FROM stock WHERE product_id = $1`, productID)
 	return qty, err
+}
+
+// LockRows holds the stock rows of products, in product-id order, before a
+// transaction changes several of them. Every sale, delivery and return takes
+// them in the same order, so two of them never wait on each other in a circle
+// (the database would refuse one: "deadlock detected").
+func (r *Repository) LockRows(ctx context.Context, productIDs []int64) error {
+	if len(productIDs) < 2 {
+		return nil
+	}
+	_, err := r.q.ExecContext(ctx, `SELECT 1 FROM stock WHERE product_id = ANY($1) ORDER BY product_id FOR UPDATE`, pq.Array(productIDs))
+	return err
 }
 
 // DecrementGuarded subtracts qty only if enough stock exists. It returns true

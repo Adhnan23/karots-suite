@@ -188,6 +188,16 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			return apperr.Internal("failed to find the till", err)
 		}
 
+		// The till, then the stock rows in product-id order, as every delivery
+		// and return takes them (stock.LockRows: no deadlock against one).
+		ids := make([]int64, 0, len(in.Items))
+		for _, it := range in.Items {
+			ids = append(ids, it.ProductID)
+		}
+		if err := stkRepo.LockRows(ctx, ids); err != nil {
+			return apperr.Internal("failed to update stock", err)
+		}
+
 		// Price every line, take stock, and collect the deferred records; the
 		// phases below need the sale id, so they run once it exists.
 		var sl saleLines

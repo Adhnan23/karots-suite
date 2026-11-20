@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -124,6 +126,24 @@ func advanceOnOwed(in supplierpay.PayInput, invoices []purchases.Purchase, openi
 	return in
 }
 
+// owedNow holds the supplier (after any till: lockTillFirst first) and reads what is
+// owed inside the payment's own transaction, so a payment or delivery beside it
+// can't leave its split stale (SUP-8).
+func owedNow(ctx context.Context, tx *sqlx.Tx, id int64) (*suppliers.Supplier, []purchases.Purchase, error) {
+	sup, err := suppliers.NewRepository(tx).LockByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, apperr.NotFound("supplier")
+		}
+		return nil, nil, apperr.Internal("failed to load supplier", err)
+	}
+	inv, err := purchases.NewRepository(tx).OpenBySupplier(ctx, id)
+	if err != nil {
+		return nil, nil, apperr.Internal("failed to load open invoices", err)
+	}
+	return sup, inv, nil
+}
+
 // AdminSupplierPay pays a supplier from any locker or open till (or from
 // outside the shop by card / online); the payment and the money leaving commit
 // together.
@@ -144,22 +164,21 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 		return err
 	}
 	ctx := c.Request().Context()
-	sup, err := suppliers.NewService(h.d.DB).Get(ctx, id)
-	if err != nil {
-		return err
-	}
-	inv, err := supplierpay.NewService(h.d.DB).OpenInvoices(ctx, id)
-	if err != nil {
-		return err
-	}
-	in, err := supplierPayInput(req, inv, sup.OpeningUnlinked)
-	if err != nil {
-		return err
-	}
-	in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
+	var in supplierpay.PayInput
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, src.Loc); err != nil {
+			return err
+		}
+		sup, inv, err := owedNow(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		if in, err = supplierPayInput(req, inv, sup.OpeningUnlinked); err != nil {
+			return err
+		}
+		in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 		rec, err = h.paySupplierTx(ctx, tx, id, sup.Name, in, src, userID)
 		return err
 	})
@@ -178,24 +197,23 @@ func (h *handlers) AdminSupplierPay(c echo.Context) error {
 // owed like a payment, with no money moving, so it can't go past what's owed.
 func (h *handlers) adminSupplierDiscount(c echo.Context, id int64, req AdminSupplierPayRequest) error {
 	ctx := c.Request().Context()
-	sup, err := suppliers.NewService(h.d.DB).Get(ctx, id)
-	if err != nil {
+	var res *supplierpay.Result
+	err := appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		sup, inv, err := owedNow(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		in, err := supplierPayInput(req, inv, sup.OpeningUnlinked)
+		if err != nil {
+			return err
+		}
+		if in.Unallocated.IsPositive() {
+			return apperr.Validation("a discount can't be more than what you owe them")
+		}
+		in.Method, in.Reference, in.Note = supplierpay.MethodDiscount, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
+		res, err = supplierpay.NewService(h.d.DB).PayTx(ctx, tx, id, in, middleware.CurrentUserID(c))
 		return err
-	}
-	svc := supplierpay.NewService(h.d.DB)
-	inv, err := svc.OpenInvoices(ctx, id)
-	if err != nil {
-		return err
-	}
-	in, err := supplierPayInput(req, inv, sup.OpeningUnlinked)
-	if err != nil {
-		return err
-	}
-	if in.Unallocated.IsPositive() {
-		return apperr.Validation("a discount can't be more than what you owe them")
-	}
-	in.Method, in.Reference, in.Note = supplierpay.MethodDiscount, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
-	res, err := svc.Pay(ctx, id, in, middleware.CurrentUserID(c))
+	})
 	if err != nil {
 		return err
 	}
@@ -234,6 +252,9 @@ func (h *handlers) AdminSupplierRefund(c echo.Context) error {
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, dest); err != nil {
+			return err
+		}
 		r, err := supplierpay.NewService(h.d.DB).RefundTx(ctx, tx, id, supplierpay.RefundInput{Amount: amt, Method: method,
 			Reference: strings.TrimSpace(req.Reference), Note: strings.TrimSpace(req.Note)}, userID)
 		if err != nil || dest.Kind == cashflow.KindExternal {

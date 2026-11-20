@@ -126,20 +126,19 @@ func (h *handlers) CounterSupplierPay(c echo.Context) error {
 		return err
 	}
 	ctx := c.Request().Context()
-	sp := supplierpay.NewService(h.d.DB)
-	sup, err := suppliers.NewService(h.d.DB).Get(ctx, id)
-	if err != nil {
-		return err
-	}
-	inv, err := sp.OpenInvoices(ctx, id)
-	if err != nil {
-		return err
-	}
-	in := supplierpay.Distribute(inv, sup.OpeningUnlinked, amt, req.Mode)
-	in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
+	var in supplierpay.PayInput
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, src.Loc); err != nil {
+			return err
+		}
+		sup, inv, err := owedNow(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		in = supplierpay.Distribute(inv, sup.OpeningUnlinked, amt, req.Mode)
+		in.Method, in.Reference, in.Note = src.Method, strings.TrimSpace(req.Reference), strings.TrimSpace(req.Note)
 		rec, err = h.paySupplierTx(ctx, tx, id, sup.Name, in, src, userID)
 		return err
 	})
@@ -180,6 +179,9 @@ func (h *handlers) CounterSupplierRefund(c echo.Context) error {
 	userID := middleware.CurrentUserID(c)
 	var rec *cashflow.Receipt
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, dest); err != nil {
+			return err
+		}
 		r, err := supplierpay.NewService(h.d.DB).RefundTx(ctx, tx, id, supplierpay.RefundInput{Amount: amt, Method: method,
 			Reference: strings.TrimSpace(req.Reference), Note: strings.TrimSpace(req.Note)}, userID)
 		if err != nil || dest.Kind == cashflow.KindExternal {

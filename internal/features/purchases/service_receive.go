@@ -47,8 +47,14 @@ func applyReceivedLines(ctx context.Context, repo *Repository, stk *stock.Reposi
 	// so the basis is the line net untouched (and lotCost keeps the exact list
 	// cost when no discount or freebie touched the line at all).
 	netSum := decimal.Zero
+	ids := make([]int64, 0, len(lines))
 	for _, ln := range lines {
 		netSum = netSum.Add(ln.Subtotal)
+		ids = append(ids, ln.ProductID)
+	}
+	// Stock rows in product-id order, as a sale takes them (stock.LockRows).
+	if err := stk.LockRows(ctx, ids); err != nil {
+		return apperr.Internal("failed to update stock", err)
 	}
 	billScaled := owed.LessThan(netSum) && netSum.IsPositive()
 	for _, ln := range lines {

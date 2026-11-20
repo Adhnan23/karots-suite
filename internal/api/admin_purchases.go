@@ -11,6 +11,7 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/purchases"
 	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/middleware"
@@ -219,18 +220,15 @@ func (h *handlers) AdminPurchaseDelete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// adminPayOnDelivery pays on delivery from an admin money source, clamped to
-// what's left once supplier credit settled part of the bill.
-func (h *handlers) adminPayOnDelivery(ctx context.Context, tx *sqlx.Tx, d *purchases.Detail, pay AdminPayNow, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
+// adminDeliveryPay reads what's paid on delivery and from which admin money
+// source, before the delivery's transaction (a till is held first: lockTillFirst).
+func (h *handlers) adminDeliveryPay(ctx context.Context, pay AdminPayNow) (decimal.Decimal, payout.Source, error) {
 	amt, err := optAmount(pay.Amount, "payment amount")
 	if err != nil || !amt.IsPositive() {
-		return decimal.Zero, nil, cashflow.External(), err
+		return decimal.Zero, payout.Source{Loc: cashflow.External()}, err
 	}
 	src, err := h.adminGiven(ctx, pay.Method, pay.Source, pay.Cheques)
-	if err != nil {
-		return amt, nil, src.Loc, err
-	}
-	return h.settleDelivery(ctx, tx, d, amt, src, userID)
+	return amt, src, err
 }
 
 // receiveDone answers a receive: the purchase, what was paid, the slip.
@@ -258,11 +256,18 @@ func (h *handlers) AdminPurchaseReceiveNow(c echo.Context) error {
 	var rec *cashflow.Receipt
 	var src cashflow.Location
 	paid := decimal.Zero
+	amt, given, err := h.adminDeliveryPay(ctx, req.Pay)
+	if err != nil {
+		return err
+	}
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, given.Loc); err != nil {
+			return err
+		}
 		if d, err = purchases.CreateTx(ctx, tx, in, userID); err != nil {
 			return err
 		}
-		paid, rec, src, err = h.adminPayOnDelivery(ctx, tx, d, req.Pay, userID)
+		paid, rec, src, err = h.settleDelivery(ctx, tx, d, amt, given, userID)
 		return err
 	})
 	if err != nil {
@@ -291,11 +296,18 @@ func (h *handlers) AdminPurchaseReceive(c echo.Context) error {
 	var rec *cashflow.Receipt
 	var src cashflow.Location
 	paid := decimal.Zero
+	amt, given, err := h.adminDeliveryPay(ctx, req.Pay)
+	if err != nil {
+		return err
+	}
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, given.Loc); err != nil {
+			return err
+		}
 		if d, err = purchases.ReceiveTx(ctx, tx, id, rin, userID); err != nil {
 			return err
 		}
-		paid, rec, src, err = h.adminPayOnDelivery(ctx, tx, d, req.Pay, userID)
+		paid, rec, src, err = h.settleDelivery(ctx, tx, d, amt, given, userID)
 		return err
 	})
 	if err != nil {

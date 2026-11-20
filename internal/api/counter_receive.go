@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashflow"
+	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/payout"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/purchases"
@@ -50,32 +53,45 @@ func optStr(s string) *string {
 	return &s
 }
 
-// payOnDelivery settles up to what's still owed on the new purchase, in the same
-// tx as the stock landing.
-func (h *handlers) payOnDelivery(ctx context.Context, tx *sqlx.Tx, c echo.Context, pur *purchases.Detail, pay PayNow, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
-	src := cashflow.External()
+// deliveryPay reads what's paid on delivery and from where, before the
+// delivery's transaction: a till it comes from is held first (lockTillFirst), the
+// order a sale takes it in. Nothing to pay: zero and no source.
+func (h *handlers) deliveryPay(c echo.Context, pay PayNow) (decimal.Decimal, payout.Source, error) {
 	amt := decimal.Zero
 	if raw := strings.TrimSpace(pay.Amount); raw != "" {
 		v, err := money.Parse(raw)
 		if err != nil || v.IsNegative() {
-			return amt, nil, src, apperr.Validation("payment amount must be a non-negative number")
+			return amt, payout.Source{Loc: cashflow.External()}, apperr.Validation("payment amount must be a non-negative number")
 		}
 		amt = v
 	}
 	if !amt.IsPositive() {
-		return decimal.Zero, nil, src, nil
+		return decimal.Zero, payout.Source{Loc: cashflow.External()}, nil
 	}
 	given, err := h.counterGiven(c, pay.Method, pay.LockerID, pay.Cheques)
-	if err != nil {
-		return amt, nil, given.Loc, err
+	return amt, given, err
+}
+
+// lockTillFirst locks the open session of a till money will come from or go to,
+// first in the transaction — the till, then stock, lots, then the supplier
+// (never the other way round, or a sale on that till deadlocks against it).
+func lockTillFirst(ctx context.Context, tx *sqlx.Tx, loc cashflow.Location) error {
+	if loc.Kind != cashflow.KindTill {
+		return nil
 	}
-	return h.settleDelivery(ctx, tx, pur, amt, given, userID)
+	if _, err := cashregister.NewRepository(tx).FindOpenForUpdate(ctx, loc.ID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return apperr.Internal("failed to load till session", err)
+	}
+	return nil
 }
 
 // settleDelivery pays up to what's still owed on a just-booked purchase (credit
 // settlement may already have covered some of it) from src. Cheques must add
 // up to what is actually paid (payout refuses a mismatch).
 func (h *handlers) settleDelivery(ctx context.Context, tx *sqlx.Tx, pur *purchases.Detail, amt decimal.Decimal, src payout.Source, userID int64) (decimal.Decimal, *cashflow.Receipt, cashflow.Location, error) {
+	if !amt.IsPositive() {
+		return decimal.Zero, nil, src.Loc, nil
+	}
 	fresh, err := purchases.NewRepository(tx).FindByID(ctx, pur.Purchase.ID)
 	if err != nil {
 		return amt, nil, src.Loc, apperr.Internal("failed to re-read the invoice", err)
@@ -123,15 +139,22 @@ func (h *handlers) CounterReceiveWalkIn(c echo.Context) error {
 		return err
 	}
 	userID := middleware.CurrentUserID(c)
+	amt, given, err := h.deliveryPay(c, req.Pay)
+	if err != nil {
+		return err
+	}
 	var d *purchases.Detail
 	var rec *cashflow.Receipt
 	var src cashflow.Location
 	paid := decimal.Zero
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, given.Loc); err != nil {
+			return err
+		}
 		if d, err = purchases.CreateTx(ctx, tx, in, userID); err != nil {
 			return err
 		}
-		paid, rec, src, err = h.payOnDelivery(ctx, tx, c, d, req.Pay, userID)
+		paid, rec, src, err = h.settleDelivery(ctx, tx, d, amt, given, userID)
 		return err
 	})
 	if err != nil {
@@ -162,15 +185,22 @@ func (h *handlers) CounterReceiveOrder(c echo.Context) error {
 		return err
 	}
 	userID := middleware.CurrentUserID(c)
+	amt, given, err := h.deliveryPay(c, req.Pay)
+	if err != nil {
+		return err
+	}
 	var d *purchases.Detail
 	var rec *cashflow.Receipt
 	var src cashflow.Location
 	paid := decimal.Zero
 	err = appdb.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		if err := lockTillFirst(ctx, tx, given.Loc); err != nil {
+			return err
+		}
 		if d, err = purchases.ReceiveTx(ctx, tx, id, in, userID); err != nil {
 			return err
 		}
-		paid, rec, src, err = h.payOnDelivery(ctx, tx, c, d, req.Pay, userID)
+		paid, rec, src, err = h.settleDelivery(ctx, tx, d, amt, given, userID)
 		return err
 	})
 	if err != nil {

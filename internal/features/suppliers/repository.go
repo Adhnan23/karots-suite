@@ -66,10 +66,12 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*Supplier, error) 
 // sql.ErrNoRows when absent.
 // LockByID reads a supplier and holds the row until the transaction ends, so
 // two money actions on one supplier wait for each other (SUP-7, SUP-8). Taken
-// last: after the till, stock and lots.
+// last: after the till, stock and lots. NO KEY: a bill being inserted holds a
+// key-share on its supplier (the foreign key) before it reaches stock, and a
+// full FOR UPDATE would wait on it the wrong way round.
 func (r *Repository) LockByID(ctx context.Context, id int64) (*Supplier, error) {
 	var s Supplier
-	if err := r.q.GetContext(ctx, &s, `SELECT * FROM suppliers WHERE id = $1 FOR UPDATE`, id); err != nil {
+	if err := r.q.GetContext(ctx, &s, `SELECT * FROM suppliers WHERE id = $1 FOR NO KEY UPDATE`, id); err != nil {
 		return nil, err
 	}
 	return &s, nil

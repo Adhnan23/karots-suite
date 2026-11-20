@@ -215,6 +215,13 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 		if err := suppliers.RequireActive(ctx, tx, in.SupplierID); err != nil {
 			return err
 		}
+		ids := make([]int64, 0, len(in.Items))
+		for _, it := range in.Items {
+			ids = append(ids, it.ProductID)
+		}
+		if err := stk.LockRows(ctx, ids); err != nil { // product-id order, as a sale (stock.LockRows)
+			return apperr.Internal("failed to update stock", err)
+		}
 		ref := "purchase_return"
 		total := decimal.Zero
 		if in.PurchaseID > 0 {
