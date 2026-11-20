@@ -64,3 +64,20 @@ func TestDistribute(t *testing.T) {
 		t.Fatalf("old 1000 should not touch invoice 2: %v", am)
 	}
 }
+
+// A bill already paid off (or credited to zero) gets nothing and is skipped, and
+// a negative amount pays nothing at all — never a negative allocation or advance.
+func TestDistributeSkipsPaidBillsAndNegatives(t *testing.T) {
+	paid := dinv(1, "500")
+	paid.PaidAmount = decimal.RequireFromString("300")
+	paid.CreditedAmount = decimal.RequireFromString("200")
+	invoices := []purchases.Purchase{paid, dinv(2, "1000")}
+	in := Distribute(invoices, decimal.Zero, decimal.RequireFromString("700"), "pay")
+	if am := allocMap(in); len(am) != 1 || am[2] != "700.00" {
+		t.Errorf("700 over a paid bill and a 1000 one = %v, want {2:700}", am)
+	}
+	in = Distribute(invoices, decimal.RequireFromString("400"), decimal.RequireFromString("-50"), "old")
+	if len(in.Allocations) != 0 || !in.Opening.IsZero() || !in.Unallocated.IsZero() {
+		t.Errorf("-50 paid %+v, want nothing", in)
+	}
+}
