@@ -69,6 +69,7 @@ func TestBattlePowerCut(t *testing.T) {
 		close(stop)
 		wg.Wait()
 		s.audit(t)
+		s.agreeToday(t) // no report counts half of anything (RPT-36, area 7)
 		if t.Failed() {
 			t.Fatalf("after power cut %d", cut+1)
 		}
