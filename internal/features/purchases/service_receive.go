@@ -184,6 +184,9 @@ func ReceiveTx(ctx context.Context, tx *sqlx.Tx, id int64, in ReceiveInput, user
 		if err != nil {
 			return err
 		}
+		if err := wholeLines(ctx, tx, lines); err != nil {
+			return err
+		}
 		discount := resolveBillDiscount(billType, billValue, subtotal)
 		total := subtotal.Sub(discount)
 		notes := in.Notes

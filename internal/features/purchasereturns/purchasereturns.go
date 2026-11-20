@@ -227,6 +227,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 			if err != nil || !qty.IsPositive() {
 				return apperr.Validation("quantity must be greater than zero")
 			}
+			if err := stk.CheckWhole(ctx, it.ProductID, qty); err != nil {
+				return err
+			}
 			cost := decimal.Zero // the lot's own cost, below
 			ok, err := stk.DecrementGuarded(ctx, it.ProductID, qty)
 			if err != nil {

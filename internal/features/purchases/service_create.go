@@ -46,6 +46,9 @@ func CreateTx(ctx context.Context, tx *sqlx.Tx, in CreateInput, userID int64) (*
 	if err != nil {
 		return nil, err
 	}
+	if err := wholeLines(ctx, tx, lines); err != nil {
+		return nil, err
+	}
 
 	discount := resolveBillDiscount(billType, billValue, subtotal)
 	total := subtotal.Sub(discount)
@@ -151,8 +154,8 @@ func parseLines(items []ItemInput) ([]PurchaseItem, decimal.Decimal, error) {
 		// stock, batches and the unit cost are kept in units.
 		if strings.TrimSpace(it.PackSize) != "" {
 			size, err := money.Parse(it.PackSize)
-			if err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) {
-				return nil, decimal.Zero, apperr.Validation("pack size must be more than 1")
+			if err != nil || size.LessThanOrEqual(decimal.NewFromInt(1)) || !size.Equal(size.Truncate(0)) {
+				return nil, decimal.Zero, apperr.Validation("pack size must be a whole number more than 1")
 			}
 			qty, free, cost = qty.Mul(size), free.Mul(size), cost.Div(size).Round(4)
 			if discType == "fixed" {
@@ -167,6 +170,21 @@ func parseLines(items []ItemInput) ([]PurchaseItem, decimal.Decimal, error) {
 		})
 	}
 	return lines, subtotal, nil
+}
+
+// wholeLines refuses a fraction of a product counted in whole units, paid or
+// free (PUR-4, STK-18): checked in units, after a pack line is multiplied out.
+func wholeLines(ctx context.Context, q appdb.Queryer, lines []PurchaseItem) error {
+	stk := stock.NewRepository(q)
+	for _, ln := range lines {
+		if err := stk.CheckWhole(ctx, ln.ProductID, ln.Quantity.Add(ln.FreeQty)); err != nil {
+			return err
+		}
+		if err := stk.CheckWhole(ctx, ln.ProductID, ln.FreeQty); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // insertDraftLines saves planned lines on a draft (ordered_qty = quantity, no
@@ -201,6 +219,9 @@ func createDraftTx(ctx context.Context, tx *sqlx.Tx, in CreateInput, userID int6
 	}
 	lines, subtotal, err := parseLines(in.Items)
 	if err != nil {
+		return 0, err
+	}
+	if err := wholeLines(ctx, tx, lines); err != nil {
 		return 0, err
 	}
 	discount := resolveBillDiscount(billType, billValue, subtotal)
@@ -334,6 +355,9 @@ func (s *Service) UpdateDraft(ctx context.Context, id int64, in CreateInput, use
 		}
 		lines, subtotal, err := parseLines(in.Items)
 		if err != nil {
+			return err
+		}
+		if err := wholeLines(ctx, tx, lines); err != nil {
 			return err
 		}
 		discount := resolveBillDiscount(billType, billValue, subtotal)
