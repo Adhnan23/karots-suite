@@ -173,6 +173,12 @@ func ReceiveTx(ctx context.Context, tx *sqlx.Tx, id int64, in ReceiveInput, user
 		repo := NewRepository(tx)
 		stk := stock.NewRepository(tx)
 		sup := suppliers.NewRepository(tx)
+		// Hold the order first: two receives of it at once would both see a
+		// draft and book it twice (PUR-6). It is taken before stock and the
+		// supplier, as nothing else holds an order.
+		if _, err := tx.ExecContext(ctx, `SELECT 1 FROM purchases WHERE id = $1 FOR UPDATE`, id); err != nil {
+			return apperr.Internal("failed to hold the order", err)
+		}
 		cur, err := repo.FindByID(ctx, id)
 		if err != nil {
 			return notFoundOr(err)

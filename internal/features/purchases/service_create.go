@@ -352,6 +352,11 @@ func (s *Service) UpdateDraft(ctx context.Context, id int64, in CreateInput, use
 	var detail *Detail
 	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
+		// Held as a receive holds it: an edit beside a receive must never turn
+		// the bill back into an order (PUR-5, PUR-6).
+		if _, err := tx.ExecContext(ctx, `SELECT 1 FROM purchases WHERE id = $1 FOR UPDATE`, id); err != nil {
+			return apperr.Internal("failed to hold the order", err)
+		}
 		cur, err := repo.FindByID(ctx, id)
 		if err != nil {
 			return notFoundOr(err)
