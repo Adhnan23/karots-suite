@@ -72,18 +72,20 @@ func (h *handlers) AdminDashboard(c echo.Context) error {
 	ctx := c.Request().Context()
 	today := shopDay(time.Now())
 	tomorrow, yesterday := today.AddDate(0, 0, 1), today.AddDate(0, 0, -1)
-	rep := reports.NewService(h.d.DB)
-	pl, err := rep.Compute(ctx, today, tomorrow)
-	if err != nil {
-		return err
-	}
-	ypl, err := rep.Compute(ctx, yesterday, today)
-	if err != nil {
-		return err
-	}
+	// Today, yesterday and the spark from one moment (RPT-36).
 	sparkFrom := today.AddDate(0, 0, -13)
-	spark, err := rep.SalesByPeriod(ctx, sparkFrom, tomorrow, "day")
-	if err != nil {
+	var pl, ypl *reports.PL
+	var spark []reports.DayRow
+	if err := reports.NewService(h.d.DB).Snapshot(ctx, func(rep *reports.Service) (err error) {
+		if pl, err = rep.Compute(ctx, today, tomorrow); err != nil {
+			return err
+		}
+		if ypl, err = rep.Compute(ctx, yesterday, today); err != nil {
+			return err
+		}
+		spark, err = rep.SalesByPeriod(ctx, sparkFrom, tomorrow, "day")
+		return err
+	}); err != nil {
 		return err
 	}
 	out := Dashboard{Today: dashboardDay(pl), Yesterday: dashboardDay(ypl), Spark: periods(spark, sparkFrom, tomorrow, "day"),

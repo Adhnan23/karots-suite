@@ -69,10 +69,11 @@ const (
 	returnedSQL = `SELECT f.at, 0 AS n, f.user_id, f.revenue, f.cost FROM (` + flowSQL + `) f WHERE f.kind = 'r'`
 )
 
-// snapshot runs fn over one REPEATABLE READ, read-only transaction, so every
-// figure a report reads sees the same moment (RPT-36). A Service already
-// inside a transaction (a test's) runs fn as it is.
-func (s *Service) snapshot(ctx context.Context, fn func(q *Service) error) error {
+// Snapshot runs fn over one REPEATABLE READ, read-only transaction, so every
+// figure a page reads sees the same moment (RPT-36): a page showing several
+// reports reads them all through q. A Service already inside a transaction (a
+// test's) runs fn as it is.
+func (s *Service) Snapshot(ctx context.Context, fn func(q *Service) error) error {
 	db, ok := s.db.(*sqlx.DB)
 	if !ok {
 		return fn(s)

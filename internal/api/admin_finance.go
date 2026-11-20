@@ -33,18 +33,21 @@ func (h *handlers) AdminFinance(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	rep := reports.NewService(h.d.DB)
-	pl, err := rep.Compute(ctx, from, to)
-	if err != nil {
-		return err
-	}
+	// One moment for the whole page (RPT-36): the trend and categories add up to its P&L.
 	grain := financeGrain(int(to.Sub(from).Hours() / 24))
-	trend, err := rep.SalesByPeriod(ctx, from, to, grain)
-	if err != nil {
+	var pl *reports.PL
+	var trend []reports.DayRow
+	var cats []reports.CategoryProfit
+	if err := reports.NewService(h.d.DB).Snapshot(ctx, func(rep *reports.Service) (err error) {
+		if pl, err = rep.Compute(ctx, from, to); err != nil {
+			return err
+		}
+		if trend, err = rep.SalesByPeriod(ctx, from, to, grain); err != nil {
+			return err
+		}
+		cats, err = rep.ProfitByCategory(ctx, from, to)
 		return err
-	}
-	cats, err := rep.ProfitByCategory(ctx, from, to)
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 	// Plugin income (core stays plugin-free: the hooks are read here) adds to

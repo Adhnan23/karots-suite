@@ -84,7 +84,7 @@ func NewService(db *sqlx.DB) *Service { return &Service{db: db} }
 // Compute is the P&L for [from, to), read in one snapshot (RPT-36): a sale
 // landing while it reads is in every figure or none.
 func (s *Service) Compute(ctx context.Context, from, to time.Time) (pl *PL, err error) {
-	err = s.snapshot(ctx, func(q *Service) error {
+	err = s.Snapshot(ctx, func(q *Service) error {
 		pl, err = q.compute(ctx, from, to)
 		return err
 	})
