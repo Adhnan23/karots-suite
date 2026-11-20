@@ -269,6 +269,12 @@ func (c *hclient) postInto(path string, in, out any) error {
 	return c.do(req, out)
 }
 
+func (c *hclient) del(path string) error {
+	req, _ := http.NewRequestWithContext(context.Background(), "DELETE", c.base+path, nil)
+	req.Header.Set("X-Ks-Device", "battle-powercut")
+	return c.do(req, nil)
+}
+
 func (c *hclient) get(path string, out any) error {
 	req, _ := http.NewRequestWithContext(context.Background(), "GET", c.base+path, nil)
 	req.Header.Set("X-Ks-Device", "battle-powercut")

@@ -73,7 +73,7 @@ func TestRecoveryRulesSeeCorruption(t *testing.T) {
 		{"WAR-3", `UPDATE stock_movements SET quantity = -2 WHERE id = WMOVE`, `UPDATE stock_movements SET quantity = -1 WHERE id = WMOVE`},
 		{"WAR-2", `UPDATE warranty_units SET warranty_until = warranty_until + 1 WHERE serial_no = 'IMEI-L1-B'`,
 			`UPDATE warranty_units SET warranty_until = warranty_until - 1 WHERE serial_no = 'IMEI-L1-B'`},
-		{"WAR-4", `UPDATE sale_items SET returned_qty = quantity WHERE sale_id = RSALE`, `UPDATE sale_items SET returned_qty = 0 WHERE sale_id = RSALE`},
+		{"WAR-4", `UPDATE sale_items SET quantity = 0 WHERE sale_id = RSALE`, `UPDATE sale_items SET quantity = 3 WHERE sale_id = RSALE`},
 		{"WAR-4", `UPDATE sales SET status = 'void' WHERE id = RSALE`, `UPDATE sales SET status = 'STATUS' WHERE id = RSALE`},
 	}
 	var status, unapplied string

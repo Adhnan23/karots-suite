@@ -88,17 +88,18 @@ func init() {
 			WHERE n.product_id <> o.product_id OR n.customer_id IS DISTINCT FROM o.customer_id OR n.warranty_until <> o.warranty_until
 			   OR n.source <> 'replacement'`},
 
-		// WAR-4: a sale's by-receipt replacements of a product never pass the units sold
-		// less the units returned, and a void sale has none.
+		// WAR-4: a sale's by-receipt replacements of a product never pass the units sold,
+		// and a void sale has none. (Less the units returned holds at each swap — the
+		// customer may return the replacements afterwards — so cases and faults check it.)
 		check{"WAR-4", `
 			SELECT 'sale ' || wu.sale_id || ' product ' || wu.product_id,
-			       format('%s replaced, %s sold, %s returned, sale %s', count(*), COALESCE(si.sold, 0), COALESCE(si.back, 0), s.status)
+			       format('%s replaced, %s sold, sale %s', count(*), COALESCE(si.sold, 0), s.status)
 			FROM warranty_units wu
 			JOIN sales s ON s.id = wu.sale_id
-			LEFT JOIN LATERAL (SELECT SUM(quantity) AS sold, SUM(returned_qty) AS back
+			LEFT JOIN LATERAL (SELECT SUM(quantity) AS sold
 			                   FROM sale_items WHERE sale_id = wu.sale_id AND product_id = wu.product_id) si ON true
 			WHERE wu.serial_no IS NULL AND wu.source = 'sale' AND wu.status = 'replaced'
-			GROUP BY wu.sale_id, wu.product_id, si.sold, si.back, s.status
-			HAVING count(*) > COALESCE(si.sold, 0) - COALESCE(si.back, 0) OR s.status = 'void'`},
+			GROUP BY wu.sale_id, wu.product_id, si.sold, s.status
+			HAVING count(*) > COALESCE(si.sold, 0) OR s.status = 'void'`},
 	)
 }

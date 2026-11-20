@@ -75,7 +75,7 @@ a time.
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_recovery_test.go`)
 
-- [ ] **Step 1:** One test per example rule: WAR-1 (returned unit refused; out-of-date refused, last day allowed;
+- [x] **Step 1:** One test per example rule: WAR-1 (returned unit refused; out-of-date refused, last day allowed;
   already replaced refused), WAR-2 (serial used anywhere refused; last day and customer carried), WAR-3 (FEFO lot cost;
   no stock refused, nothing saved; frozen: movement 0, cost booked), WAR-4 (sold 3, returned 1 → 2 swaps, the third
   refused; void sale refused; two lines of one product summed), WAR-5 (no sale, drawer or customer change), REC-1
@@ -85,30 +85,30 @@ a time.
   refused), REC-4, REC-6 (another supplier's lot / settled loss never listed; give back of another's lot refused),
   REC-8 (undo each outcome back to exactly before; refused after a sale of the units / the credit spent). Each ends
   with the auditor.
-- [ ] **Step 2:** Run; each failure → fix test-first, one commit each.
-- [ ] **Step 3: The user's answers** (Q1–Q5), test-first, one commit each: WAR-1 server refuses; REC-2 blended top-up
+- [x] **Step 2:** Run; each failure → fix test-first, one commit each.
+- [x] **Step 3: The user's answers** (Q1–Q5), test-first, one commit each: WAR-1 server refuses; REC-2 blended top-up
   + the movement names its recovery; REC-3 the lot's supplier filled in on the form + disabled extra refused + the
   kept split (migration 00040 if needed); REC-8 undo (service, route, button, guide).
-- [ ] **Step 4: Commit** — `test(battle): area 6 cases — one per rule`
+- [x] **Step 4: Commit** — `test(battle): area 6 cases — one per rule`
 
 ### Task 4: Random days with losses (`internal/battle/machine_purchasing_test.go` or `machine_recovery_test.go`)
 
-- [ ] **Step 1:** The purchasing machine (it keeps every supplier's books) gains: write-off of a supplier's lot, give
-  back, a serial sale + swap, a by-receipt swap, a recovery of a waiting loss (each outcome, an extra charge), an undo.
+- [x] **Step 1:** The purchasing machine (it keeps every supplier's books) gains: write-off of a supplier's lot
+  (give back and swaps stay with cases and faults: this machine has no till), a recovery of a waiting loss (each outcome, an extra charge), an undo.
   After every step: the auditor, each balance and bill = the books (SUP-1, REC-3), each lot = the books, the claims
   list = the machine's waiting losses, a refused action changes nothing.
-- [ ] **Step 2:** Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
-- [ ] **Step 3: Commit** — `test(battle): random shop days with losses and what suppliers make good`
+- [x] **Step 2:** Short run in `make test`; `make battle` long, detached, until 20,000 steps clean.
+- [x] **Step 3: Commit** — `test(battle): random shop days with losses and what suppliers make good`
 
 ### Task 5: Faults (`internal/battle/faults_recovery_test.go`)
 
-- [ ] **Step 1:** WAR-6: two swaps of one unit, two by-receipt swaps of a line's last unit — one each. REC-1: eight
+- [x] **Step 1:** WAR-6: two swaps of one unit, two by-receipt swaps of a line's last unit — one each. REC-1: eight
   recoveries of one loss at once — one. REC-7: a recovery (replacement, credit) beside a sale of the product, a
   supplier payment, a delivery settling from credit, a refund — books hold, nothing refused that should pass (never
   stop a sale). REC-8: two undos; an undo beside a sale of the units. Power cuts: a recovery worker in the power-cut
   runs (each recovery whole or absent).
-- [ ] **Step 2:** Fix what they find, test-first, one commit each.
-- [ ] **Step 3: Commit** — `test(battle): area 6 faults`
+- [x] **Step 2:** Fix what they find, test-first, one commit each.
+- [x] **Step 3: Commit** — `test(battle): area 6 faults`
 
 ### Task 6: Mutation
 

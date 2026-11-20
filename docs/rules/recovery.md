@@ -66,7 +66,9 @@ once, power cut, sent twice).
   cost is the loss's worth. *ledgercheck, example.*
 - **WAR-4** By receipt, a sale line's replacements never pass the units sold less the units returned (summed over the
   product's lines on that sale), and a void sale has none. Each replacement is one unit with no serial, replaced at
-  once, its warranty continuing from the sale. *Today the units returned are not taken off.* *ledgercheck, example.*
+  once, its warranty continuing from the sale. The customer may later return the units they hold, replacements
+  included, so the auditor sees only swaps ≤ units sold. *Found in: the units returned were not taken off.*
+  *ledgercheck, example, fault.*
 - **WAR-5** A replacement is never a sale and never money: no sale, no drawer, no customer balance moves. It is a
   loss (worth WAR-3) that waits on Losses & Recovery for its supplier (REC-1). *example.*
 - **WAR-6** Two replacements of the same unit, or of a receipt line's last claimable unit, at the same moment: one
