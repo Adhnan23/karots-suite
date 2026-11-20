@@ -68,6 +68,7 @@ func TestBattlePowerCut(t *testing.T) {
 		srv.cmd.Wait()                          //nolint:errcheck
 		close(stop)
 		wg.Wait()
+		s.quiet(t) // a COMMIT sent just before the kill still lands a moment after it
 		s.audit(t)
 		s.agreeToday(t) // no report counts half of anything (RPT-36, area 7)
 		if t.Failed() {
@@ -332,4 +333,22 @@ func (k cutStock) busy(c *hclient, stop chan struct{}) {
 			c.post(fmt.Sprintf("/api/v1/admin/conversions/%d/run", k.conv), map[string]string{"quantity": "1", "toQty": "24.6"}) //nolint:errcheck
 		}
 	}
+}
+
+// quiet waits until no other connection to the shop's database is still at
+// work: Postgres finishes a COMMIT the killed server had already sent, a few
+// milliseconds after the kill, so checking at once can count a sale the next
+// read sees (make battle, 2026-11-20: 30 sales, then 31).
+func (s *shop) quiet(t *testing.T) {
+	t.Helper()
+	for i := 0; i < 100; i++ {
+		var busy int
+		s.must(t, s.db.Get(&busy, `SELECT count(*) FROM pg_stat_activity
+			WHERE datname = current_database() AND pid <> pg_backend_pid() AND state <> 'idle'`))
+		if busy == 0 {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatal("the database never went quiet after the power cut")
 }

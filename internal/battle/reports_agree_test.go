@@ -388,9 +388,14 @@ func (a *agreeing) zReports() {
 		a.sum(&gross, `SELECT COALESCE(SUM(subtotal),0) FROM sales WHERE session_id = $1 AND status <> 'void'`, se.ID)
 		a.sum(&disc, `SELECT COALESCE(SUM(discount),0) FROM sales WHERE session_id = $1 AND status <> 'void'`, se.ID)
 		a.sum(&total, `SELECT COALESCE(SUM(total),0) FROM sales WHERE session_id = $1 AND status <> 'void'`, se.ID)
+		// A refund belongs to the session its cash left from (the drawer's move, written in the
+		// return's own transaction: same moment, same cashier); one with no cash (on account, a
+		// cheque given back) to the session its cashier had open at the time.
 		a.sum(&refunds, `SELECT COALESCE(SUM(ri.refund_amount),0) FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id
 			JOIN sales s ON s.id = r.sale_id
-			WHERE s.status <> 'void' AND r.created_by = $1 AND r.created_at >= $2 AND r.created_at <= $3`, se.UserID, se.Opened, se.Closed)
+			LEFT JOIN cash_movements cm ON cm.user_id = r.created_by AND cm.created_at = r.created_at AND cm.reason LIKE 'cash refund:%'
+			WHERE s.status <> 'void' AND r.created_by = $1
+			  AND (cm.session_id = $4 OR (cm.id IS NULL AND r.created_at >= $2 AND r.created_at <= $3))`, se.UserID, se.Opened, se.Closed, se.ID)
 		ref := fmt.Sprintf("Z %d", se.ID)
 		if z.SalesCount != n {
 			a.t.Errorf("ZR-1 %s sales %d, want %d", ref, z.SalesCount, n)
