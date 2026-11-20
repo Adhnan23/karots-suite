@@ -120,7 +120,10 @@ the old template context, `JWTAuth`, two unused till-session lists; test-only he
 area 7 (reports and the Z report = the raw data). Then (user, 2026-11-20): push core toward 100% coverage** — what's
 left after the areas is mostly database-failure branches (`if err != nil { return apperr.Internal(…) }`), list
 filters and screens; the failure branches need a way to make the database fail on purpose (a test DB wrapper that
-fails the Nth query), so plan that as its own piece of work.
+fails the Nth query), so plan that as its own piece of work. The coverage map still shows the run before the sweep;
+area 7's full run updates it. **Plugins after area 7 (user, 2026-11-20): plan them simplest first**, each through the
+same layers; apps that build on other plugins (Pocket Cashier picks up every plugin's till features) come last, once
+the plugins they use have passed.
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
