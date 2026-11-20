@@ -55,6 +55,44 @@ func TestSplitYieldConservesQtyAndValue(t *testing.T) {
 	}
 }
 
+// STK-11: value out = value in even when shares round — a lot whose share rounds
+// to nothing folds into the next, and the last lot's never vanishes when the
+// earlier shares rounded up to the whole yield. No lots → one batch at cost 0.
+func TestSplitYieldRoundingKeepsValue(t *testing.T) {
+	for _, c := range []struct {
+		name        string
+		qtys, costs []string
+		from, to    string
+	}{
+		{"earlier shares round up to the whole yield", []string{"1", "1", "1"}, []string{"10", "20", "30"}, "3", "0.002"},
+		{"earlier shares round to nothing", []string{"1", "1", "1"}, []string{"10", "20", "30"}, "3", "0.001"},
+		{"a tiny lot between big ones", []string{"10", "0.0001", "10"}, []string{"5", "900", "7"}, "20.0001", "2"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			var lots []stock.ConsumedLot
+			in := decimal.Zero
+			for i := range c.qtys {
+				lots = append(lots, stock.ConsumedLot{Qty: d(c.qtys[i]), Cost: d(c.costs[i])})
+				in = in.Add(d(c.qtys[i]).Mul(d(c.costs[i])))
+			}
+			got := splitYield(lots, d(c.from), d(c.to))
+			qty, out := decimal.Zero, decimal.Zero
+			for _, b := range got {
+				if !b.Quantity.IsPositive() {
+					t.Errorf("a batch of %s", b.Quantity)
+				}
+				qty, out = qty.Add(b.Quantity), out.Add(b.Quantity.Mul(b.CostPrice))
+			}
+			if !qty.Equal(d(c.to)) || out.Sub(in).Abs().GreaterThan(d("0.01").Mul(decimal.NewFromInt(int64(len(got))))) {
+				t.Errorf("Σ qty %s (want %s), Σ value %s (want %s): %+v", qty, c.to, out, in, got)
+			}
+		})
+	}
+	if got := splitYield(nil, d("1"), d("25")); len(got) != 1 || !got[0].Quantity.Equal(d("25")) || !got[0].CostPrice.IsZero() {
+		t.Errorf("no lots: %+v, want one batch of 25 at cost 0", got)
+	}
+}
+
 func testDB(t *testing.T) *sqlx.DB {
 	t.Helper()
 	dsn := os.Getenv("DATABASE_URL")

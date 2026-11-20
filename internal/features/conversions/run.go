@@ -159,5 +159,11 @@ func splitYield(lots []stock.ConsumedLot, fromQty, toQty decimal.Decimal) []stoc
 			ExpiryDate: l.Expiry, BatchNo: l.BatchNo, Source: "conversion",
 		})
 	}
+	// The earlier shares rounded up to the whole yield, leaving the last lot(s)
+	// nothing: their value goes on the last batch made, never lost (STK-11).
+	if n := len(out); carry.IsPositive() && n > 0 {
+		b := &out[n-1]
+		b.CostPrice = b.CostPrice.Mul(b.Quantity).Add(carry).Div(b.Quantity).Round(4)
+	}
 	return out
 }
