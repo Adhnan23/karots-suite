@@ -84,16 +84,16 @@ func TestAdjustOpeningAndErosion(t *testing.T) {
 	}
 	check("after adjust down", "2000.00", "2000.00", "0.00")
 
-	// A negative opening is allowed: a pre-system credit/advance the supplier owes
-	// us. outstanding follows below zero; linked stays 0.
-	if _, _, err := svc.AdjustOpening(ctx, sup.ID, "-1500"); err != nil {
-		t.Fatal(err)
+	// A negative opening is refused (SUP-2, user 2026-11-19): a credit the
+	// supplier held before go-live is an advance paid, not a negative opening.
+	if _, _, err := svc.AdjustOpening(ctx, sup.ID, "-1500"); err == nil {
+		t.Fatal("negative opening went through")
 	}
-	check("after negative opening", "-1500.00", "-1500.00", "0.00")
+	check("after refused negative opening", "2000.00", "2000.00", "0.00")
 
-	// A later purchase raises linked without disturbing the negative opening credit.
+	// A later purchase raises linked without disturbing the opening.
 	if err := repo.AddBalance(ctx, sup.ID, decimal.RequireFromString("4000")); err != nil {
 		t.Fatal(err)
 	}
-	check("purchase over credit", "2500.00", "-1500.00", "4000.00")
+	check("purchase on top", "6000.00", "2000.00", "4000.00")
 }

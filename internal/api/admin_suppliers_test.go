@@ -49,7 +49,8 @@ func TestAdminSuppliers(t *testing.T) {
 		t.Fatalf("detail: %+v", d)
 	}
 
-	// Cash needs a source; then exact: 200 on the invoice + 100 old debt + 50 advance.
+	// Cash needs a source; then exact: 200 on the invoice + 100 old debt + 50 advance
+	// (the advance pays the open invoice first: SUP-5).
 	if rec := te.do(http.MethodPost, path(sup.ID, "/payment"), AdminSupplierPayRequest{Amount: "100", Method: "cash"}, ck); rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("cash without source: %d", rec.Code)
 	}
@@ -59,7 +60,7 @@ func TestAdminSuppliers(t *testing.T) {
 		t.Fatalf("exact pay: %d %s", rec.Code, rec.Body)
 	}
 	d = get(sup.ID)
-	if d.Owed != "1150.00" || d.OldDebt != "900.00" || d.Invoices[0].Balance != "300.00" || len(d.Money) != 1 || d.Money[0].Amount != "350.00" {
+	if d.Owed != "1150.00" || d.OldDebt != "900.00" || d.Invoices[0].Balance != "250.00" || len(d.Money) != 1 || d.Money[0].Amount != "350.00" {
 		t.Fatalf("after exact pay: %+v", d)
 	}
 	var bal string
@@ -86,11 +87,12 @@ func TestAdminSuppliers(t *testing.T) {
 		t.Fatalf("statement: %+v", st)
 	}
 
-	// Opening correction touches only the old debt; audited.
+	// Opening correction touches only the old debt; audited. The 40 they hold pays
+	// the new old debt down (SUP-2).
 	if rec := te.do(http.MethodPost, path(sup.ID, "/opening"), OpeningRequest{Opening: "200", Note: "found old bill"}, ck); rec.Code != http.StatusNoContent {
 		t.Fatalf("opening: %d %s", rec.Code, rec.Body)
 	}
-	if d = get(sup.ID); d.OldDebt != "200.00" || d.Owed != "160.00" {
+	if d = get(sup.ID); d.OldDebt != "160.00" || d.Owed != "160.00" {
 		t.Fatalf("after opening: %+v", d)
 	}
 
