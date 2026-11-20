@@ -93,8 +93,8 @@ once, power cut, sent twice).
 - **REC-3** Money with the supplier, with no money moving: a **credit** (paid) lowers the supplier's balance by the
   amount (above 0), goes on their open bills oldest first (credited, PUR-11), then the old debt (SUP-2), and only
   what's beyond everything they're owed waits as credit for the next bills (`credit_unapplied`, PUR-8); what it put
-  on each bill and on the old debt is kept, and with what waits never passes the amount (the rest went on what's owed
-  outside bills, an extra charge). An **extra
+  on each bill and how far the old debt fell are kept; the bills and what waits never pass the amount (the old debt can
+  fall by more: a credit the supplier already held pays it too once nothing else is owed, SUP-2). An **extra
   charge** (extra per unit × the units, to the cent; never below 0) raises their balance (SUP-1). Either needs a
   supplier: the form fills in the lot's supplier (changeable; a lot may have none). A credit may be any amount, even
   above the loss's worth (the form shows the worth beside it). A credit for a disabled supplier goes through (like a

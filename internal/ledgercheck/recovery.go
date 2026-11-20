@@ -40,15 +40,16 @@ func init() {
 			GROUP BY m.reference_id
 			HAVING SUM(m.quantity) <> 0`},
 
-		// REC-3: a credit's kept split — its bills (the supplier's own) + the old debt +
-		// what still waits — never passes it; only a credit has one.
+		// REC-3: a credit's kept split — its bills (the supplier's own) + what still
+		// waits — never passes it; only a credit has one. (The old debt it took down may:
+		// a credit the supplier already held pays the old debt too once nothing else is owed, SUP-2.)
 		check{"REC-3", `
 			SELECT 'recovery ' || lr.id, format('%s %s: on bills %s, old debt %s, waiting %s%s', lr.outcome, lr.recovered_value,
 			       COALESCE(x.v, 0), COALESCE(lr.old_debt, 0), lr.credit_unapplied, CASE WHEN x.other THEN ', another supplier''s bill' ELSE '' END)
 			FROM loss_recoveries lr
 			LEFT JOIN LATERAL (SELECT SUM(b.amount) AS v, bool_or(pu.supplier_id IS DISTINCT FROM lr.supplier_id) AS other
 			                   FROM loss_recovery_bills b JOIN purchases pu ON pu.id = b.purchase_id WHERE b.recovery_id = lr.id) x ON true
-			WHERE COALESCE(x.v, 0) + COALESCE(lr.old_debt, 0) + lr.credit_unapplied > lr.recovered_value OR x.other OR lr.old_debt < 0
+			WHERE COALESCE(x.v, 0) + lr.credit_unapplied > lr.recovered_value OR x.other OR lr.old_debt < 0
 			   OR lr.credit_unapplied > COALESCE(lr.credit_waited, lr.credit_unapplied)
 			   OR (lr.outcome <> 'paid' AND (x.v IS NOT NULL OR lr.old_debt IS NOT NULL))`},
 
