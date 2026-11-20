@@ -25,17 +25,24 @@ type pool struct {
 // invoice, oldest first. That is exactly what an advance is: cash handed over
 // before there was an invoice to put it against. A discount moved no money, so
 // the part of one that went on old debt is never an advance.
+//
+// A bounced or cancelled cheque takes its amount back: first off the bills the
+// payment paid (allocations' reopened), the rest off what was still unspent —
+// so that part is no advance and never pays a later bill (CHQ-4).
 func unappliedAdvances(ctx context.Context, tx *sqlx.Tx, supplierID int64) ([]pool, error) {
 	var rows []pool
 	err := tx.SelectContext(ctx, &rows, `
-		SELECT sp.id,
-		       sp.amount - COALESCE((SELECT SUM(a.amount) FROM supplier_payment_allocations a
-		                             WHERE a.payment_id = sp.id), 0) AS remaining
-		FROM supplier_payments sp
-		WHERE sp.supplier_id = $1 AND sp.method <> 'discount'
-		  AND sp.amount > COALESCE((SELECT SUM(a.amount) FROM supplier_payment_allocations a
-		                            WHERE a.payment_id = sp.id), 0)
-		ORDER BY sp.created_at, sp.id`, supplierID)
+		SELECT id, remaining FROM (
+			SELECT sp.id, sp.created_at,
+			       sp.amount - COALESCE(a.amount, 0) - GREATEST(COALESCE(c.back, 0) - COALESCE(a.reopened, 0), 0) AS remaining
+			FROM supplier_payments sp
+			LEFT JOIN LATERAL (SELECT SUM(amount) AS amount, SUM(reopened) AS reopened FROM supplier_payment_allocations
+			                   WHERE payment_id = sp.id) a ON true
+			LEFT JOIN LATERAL (SELECT SUM(amount) AS back FROM cheques
+			                   WHERE supplier_payment_id = sp.id AND status IN ('bounced', 'cancelled')) c ON true
+			WHERE sp.supplier_id = $1 AND sp.method <> 'discount') p
+		WHERE remaining > 0
+		ORDER BY created_at, id`, supplierID)
 	return rows, err
 }
 
