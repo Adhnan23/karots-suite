@@ -75,7 +75,7 @@ the only new maths is a refund's tax share, checked by cases.
   expense, damage, recovery + undo, count, delivery, supplier pay with discount, interest, over / short) → run
   `agree` over the sale day, the return day and both. Expected to FAIL today on RPT-6, 12, 14, 17, ZR-2: record which,
   each is a Task 4 fix.
-- [x] **Step 3:** (moved after Task 4. `year_reports_test.go`, make battle: a grocery year — 7,717 sales, 89
+- [x] **Step 3:** (moved after Task 4. `year_reports_test.go` (TestBattleReportsYear), make battle: a grocery year — 7,717 sales, 89
   returns, 124 expenses — agrees month by month and whole, ~150 s.) Run over a Demo Room year (gen test) per month and whole: every failure is a bug (→ Task 4), a
   wrong rule (→ the user) or seed data.
 - [ ] **Step 4: Commit** — `test(battle): area 7 agreement check — reports against each other and the raw rows`

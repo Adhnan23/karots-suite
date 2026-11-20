@@ -19,7 +19,7 @@ import (
 // A grocery's year through the real API (the Demo Room's generator, a test-sized
 // volume): every report agrees with the raw rows and each other, month by month
 // and over the whole year (area 7). Long — make battle only.
-func TestReportsAgreeOverAYear(t *testing.T) {
+func TestBattleReportsYear(t *testing.T) {
 	t.Parallel()
 	if os.Getenv("KS_BATTLE_STEPS") == "" {
 		t.Skip("a year of reports runs in make battle")
