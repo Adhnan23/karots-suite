@@ -171,7 +171,7 @@ func (a *agreeing) pl() {
 	a.sum(&own, mv+`type = 'own_use'`, a.from, a.to)
 	a.sum(&staff, mv+`type = 'staff'`, a.from, a.to)
 	a.sum(&corr, `SELECT COALESCE(SUM(CASE WHEN quantity < 0 THEN cost ELSE -cost END),0) FROM stock_movements
-		WHERE type = 'adjust' AND created_at >= $1 AND created_at < $2`, a.from, a.to)
+		WHERE type = 'adjust' AND reference_type IS DISTINCT FROM 'opening' AND created_at >= $1 AND created_at < $2`, a.from, a.to)
 	a.sum(&rec, `SELECT COALESCE(SUM(recovered_value),0) FROM loss_recoveries WHERE created_at >= $1 AND created_at < $2`, a.from, a.to)
 	a.sum(&interest, `SELECT COALESCE(SUM(balance_delta),0) FROM locker_ledger WHERE kind = 'interest' AND created_at >= $1 AND created_at < $2`, a.from, a.to)
 	a.sum(&disc, `SELECT COALESCE(SUM(amount),0) FROM supplier_payments WHERE method = 'discount' AND created_at >= $1 AND created_at < $2`, a.from, a.to)

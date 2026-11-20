@@ -163,10 +163,11 @@ func seed(db *sqlx.DB) error {
 		if err != nil {
 			return fmt.Errorf("seed product %s: %w", it.name, err)
 		}
-		if err := stockSvc.Adjust(ctx, stock.AdjustInput{
-			ProductID:   created.ID,
-			NewQuantity: it.qty,
-			Note:        "opening stock",
+		if _, err := stockSvc.AddStock(ctx, stock.AddStockInput{
+			ProductID: created.ID,
+			Qty:       it.qty,
+			Source:    "opening",
+			Note:      "opening stock",
 		}, adminID); err != nil {
 			return fmt.Errorf("seed stock %s: %w", it.name, err)
 		}

@@ -64,6 +64,10 @@ func optAmount(s, what string) (decimal.Decimal, error) {
 	return v, nil
 }
 
+// openingRef marks an opening-stock movement (a product sheet's opening
+// quantity): stock put on the books, which reports never count as found (RPT-9).
+var openingRef = "opening"
+
 // AddStock is the one way units come in outside a purchase or a return:
 // intake, Batches → + Add batch, stock-take's new batches. Returns the batch
 // the units went into. Runs on the caller's transaction (r.q).
@@ -125,7 +129,11 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 		in.ProductID, qty); err != nil {
 		return 0, apperr.Internal("failed to update stock", err)
 	}
-	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: in.RefType, ReferenceID: in.RefID,
+	refType := in.RefType
+	if refType == nil && in.Source == "opening" { // opening stock: on the books, never a count (RPT-9)
+		refType = &openingRef
+	}
+	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: refType, ReferenceID: in.RefID,
 		UserID: userID, Note: nilIfEmpty(in.Note), Cost: cost.Mul(qty)}); err != nil {
 		return 0, apperr.Internal("failed to record movement", err)
 	}

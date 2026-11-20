@@ -210,7 +210,8 @@ func (s *Service) compute(ctx context.Context, from, to time.Time) (*PL, error) 
 		return nil, apperr.Internal("failed to compute the P&L", err)
 	}
 
-	// Stock corrections: what counting the shelves added or took away, valued at
+	// Stock corrections: what counting the shelves added or took away (opening
+	// stock is no count — it puts stock on the books, RPT-9), valued at
 	// the cost of the lots involved. Kept off Losses because a correction is not
 	// breakage — it is the count disagreeing with the books, and it swings both
 	// ways. Positive here means value written OFF (quantity carries the sign, the
@@ -218,7 +219,7 @@ func (s *Service) compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	if err := s.db.GetContext(ctx, &pl.StockCorrections, `
 		SELECT COALESCE(SUM(CASE WHEN quantity < 0 THEN cost ELSE -cost END),0)
 		FROM stock_movements
-		WHERE type = 'adjust' AND created_at >= $1 AND created_at < $2`, from, to); err != nil {
+		WHERE type = 'adjust' AND reference_type IS DISTINCT FROM 'opening' AND created_at >= $1 AND created_at < $2`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute the P&L", err)
 	}
 
