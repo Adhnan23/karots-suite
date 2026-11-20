@@ -123,9 +123,12 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 6: Faults
 
-- [ ] **Step 1:** RPT-36 — a P&L, dashboard and Z read in a loop while two tills sell and return: each answer agrees
+- [x] **Step 1:** (`faults_reports_test.go`. Found: Finance's trend / categories and the dashboard's spark read outside
+  the P&L's snapshot and disagreed with it under load — now one `reports.Snapshot` per page; the Sales report took
+  returns off at a recomputed share, not the refund given (RPT-37, `ProfitAggSQL.ret_val`). Power cuts mid-return are
+  area 1's (whole or absent); the agreement check runs after them in `make battle`.) RPT-36 — a P&L, dashboard and Z read in a loop while two tills sell and return: each answer agrees
   with itself (Σ by method = received, Σ periods = revenue). A power cut mid-return: no report counts half a return.
-- [ ] **Step 2: Commit** — `test(battle): area 7 faults — a report is one moment`
+- [x] **Step 2: Commit** — `test(battle): area 7 faults — a report is one moment`
 
 ### Task 7: Mutation
 

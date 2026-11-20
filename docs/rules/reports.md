@@ -156,7 +156,8 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
 - **RPT-37** The Sales report and the sales list are the period's **receipts**: count = the P&L's (void left out
   unless asked for), each receipt's revenue before tax less pass-through face and what came back on it so far — so
   their totals match their rows. They differ from the P&L only by returns that cross the period's edge; the Sales
-  report's trend is the P&L's (RPT-10). *Found in Task 2: revenue had tax in, and void sales were counted.*
+  report's trend is the P&L's (RPT-10). *Found in Task 2: revenue had tax in, and void sales were counted. Found
+  in Task 6: returns came off at a share worked out again, not the refund given, a cent off per few returns.*
 - **RPT-31** Over any period: the P&L's returns = the Returns page's refunds less the tax report's given back;
   Σ Z reports' returns of the sessions = the refunds given in those sessions.
 - **RPT-32** Σ the P&L's by-method lines, on account left out, = received; Σ Z reports' by-method lines of the sessions = the same sales'

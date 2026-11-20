@@ -128,12 +128,15 @@ func searchMatch(p string) string {
 // match their rows. Correlated on `s` and `agg` (ProfitAggSQL).
 const netRevSQL = `(s.total - s.tax - agg.pt_face - agg.ret_val * COALESCE((s.total - s.tax - ` + PayoutsSQL + `) / NULLIF(s.total - ` + PayoutsSQL + `, 0), 1))`
 
-// ProfitAggSQL is the per-sale cost/pass-through/returns aggregate, mirroring
-// the Finance P&L definitions. Correlated on the outer `s`.
+// ProfitAggSQL is the per-sale cost/pass-through/returns aggregate. ret_val is
+// the refunds actually given on the sale so far (tax in, RPT-37) — never a
+// share worked out again, which drifts a cent from the rounded refunds.
+// Correlated on the outer `s`.
 const ProfitAggSQL = `
 	SELECT
 	  COALESCE(SUM(si.subtotal) FILTER (WHERE p.pass_through), 0)                                          AS pt_face,
-	  COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty) FILTER (WHERE NOT p.pass_through), 0) * ` + PaidFactorSQL + ` AS ret_val,
+	  COALESCE((SELECT SUM(ri.refund_amount) FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id
+	            JOIN products rp ON rp.id = ri.product_id WHERE r.sale_id = s.id AND NOT rp.pass_through), 0) AS ret_val,
 	  COALESCE(SUM((si.quantity - si.returned_qty) * si.cost_price) FILTER (WHERE NOT p.pass_through), 0)  AS cogs
 	FROM sale_items si JOIN products p ON p.id = si.product_id
 	WHERE si.sale_id = s.id`

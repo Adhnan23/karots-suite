@@ -229,7 +229,6 @@ func (a *agreeing) byTime() {
 	}
 	// The Sales report is the period's receipts, each less what came back on it so far (RPT-30).
 	var receipts, back, soldCost, backCost decimal.Decimal
-	var nBack int
 	a.sum(&receipts, `SELECT COALESCE(SUM(s.total - s.tax),0) - COALESCE((SELECT SUM(si.subtotal) FROM sale_items si
 		JOIN sales s ON s.id = si.sale_id JOIN products p ON p.id = si.product_id WHERE p.pass_through AND `+saleIn+`),0)
 		FROM sales s WHERE `+saleIn, a.from, a.to)
@@ -237,11 +236,10 @@ func (a *agreeing) byTime() {
 		JOIN sale_items si ON si.id = ri.sale_item_id WHERE ` + saleIn
 	a.sum(&back, `SELECT COALESCE(SUM(ri.refund_amount * COALESCE((s.total - s.tax - `+payouts+`) / NULLIF(s.total - `+payouts+`, 0), 1)),0)`+onThem, a.from, a.to)
 	a.sum(&backCost, `SELECT COALESCE(SUM(ri.quantity * si.cost_price),0)`+onThem, a.from, a.to)
-	a.s.must(a.t, a.s.db.GetContext(a.ctx, &nBack, `SELECT COUNT(*)`+onThem, a.from, a.to))
 	a.sum(&soldCost, `SELECT COALESCE(SUM(si.quantity * si.cost_price),0) FROM sale_items si JOIN sales s ON s.id = si.sale_id
 		JOIN products p ON p.id = si.product_id WHERE NOT p.pass_through AND `+saleIn, a.from, a.to)
-	a.eq("RPT-37", "Sales report revenue (its receipts)", a.d(sr.Sum.Revenue), receipts.Sub(back), halfCents(nBack))
-	a.eq("RPT-37", "Sales report profit (its receipts)", a.d(sr.Sum.Profit), receipts.Sub(back).Sub(soldCost).Add(backCost), halfCents(nBack))
+	a.eq("RPT-37", "Sales report revenue (its receipts)", a.d(sr.Sum.Revenue), receipts.Sub(back), cent)
+	a.eq("RPT-37", "Sales report profit (its receipts)", a.d(sr.Sum.Profit), receipts.Sub(back).Sub(soldCost).Add(backCost), cent)
 	rev := decimal.Zero
 	for _, p := range sr.Trend {
 		rev = rev.Add(a.d(p.Revenue))
