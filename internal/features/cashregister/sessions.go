@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
 
 	"karots-suite/internal/apperr"
 )
@@ -36,27 +35,11 @@ func (s *Service) Cashiers(ctx context.Context) ([]SessionRow, error) {
 	return rows, nil
 }
 
-func (s *Service) RecentSessions(ctx context.Context, limit int) ([]SessionRow, error) {
-	rows, err := s.repo.RecentSessions(ctx, limit)
-	if err != nil {
-		return nil, apperr.Internal("failed to list register sessions", err)
-	}
-	return rows, nil
-}
-
 // OpenSessions lists currently-open tills (for moving cash to/from a drawer).
 func (s *Service) OpenSessions(ctx context.Context) ([]SessionRow, error) {
 	rows, err := s.repo.OpenSessions(ctx)
 	if err != nil {
 		return nil, apperr.Internal("failed to list open tills", err)
-	}
-	return rows, nil
-}
-
-func (s *Service) SessionsInRange(ctx context.Context, from, to time.Time) ([]SessionRow, error) {
-	rows, err := s.repo.SessionsInRange(ctx, from, to)
-	if err != nil {
-		return nil, apperr.Internal("failed to list register sessions", err)
 	}
 	return rows, nil
 }

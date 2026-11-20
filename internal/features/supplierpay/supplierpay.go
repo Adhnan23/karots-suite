@@ -168,31 +168,6 @@ func validatePay(in PayInput) (method string, total decimal.Decimal, err error) 
 	return m, total, nil
 }
 
-// Pay records a supplier payment in one transaction: each allocation advances
-// its purchase's paid_amount/status (guarded against overpay), the payment and
-// allocation rows are written, and the supplier's aggregate balance drops by the
-// full amount. Returns the recorded total (for the cash-drawer mirror).
-func (s *Service) Pay(ctx context.Context, supplierID int64, in PayInput, userID int64) (*Result, error) {
-	// Validate before opening a transaction so bad input never touches the DB
-	// (and so unit tests can exercise these paths without a database).
-	if _, _, err := validatePay(in); err != nil {
-		return nil, err
-	}
-	var res Result
-	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		r, err := s.PayTx(ctx, tx, supplierID, in, userID)
-		if err != nil {
-			return err
-		}
-		res = *r
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
 // PayTx records the supplier payment over an existing transaction, so the caller
 // can book the matching cash move (cashflow.MoveTx) atomically in the same tx.
 // It re-validates the method/total so it is safe to call directly.

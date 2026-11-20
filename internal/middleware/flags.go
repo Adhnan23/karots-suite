@@ -81,12 +81,6 @@ func CanHandleSuppliers(c echo.Context) bool {
 	return b
 }
 
-// CanHandleSuppliersCtx is CanHandleSuppliers for a bare context, for templates.
-func CanHandleSuppliersCtx(ctx context.Context) bool {
-	f, _ := ctx.Value(ctxFlagsKey).(UserFlags)
-	return f.CanHandleSuppliers
-}
-
 // MaySeeSuppliers is the full rule: an admin or manager always may; a cashier
 // may only with the flag. Used by both the route gate and the nav tab, so the
 // tab can never appear on a page the gate would refuse.
@@ -99,12 +93,6 @@ func MaySeeSuppliers(role string, flag bool) bool {
 func CanManageCredit(c echo.Context) bool {
 	b, _ := c.Get(ctxCanManageCredit).(bool)
 	return b
-}
-
-// CanManageCreditCtx is CanManageCredit for a bare context, for templates.
-func CanManageCreditCtx(ctx context.Context) bool {
-	f, _ := ctx.Value(ctxFlagsKey).(UserFlags)
-	return f.CanManageCredit
 }
 
 // MayManageCredit is the full rule: an admin or manager always may; a cashier

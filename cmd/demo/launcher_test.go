@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -262,3 +263,7 @@ func TestExitClosesTheDemo(t *testing.T) {
 		t.Fatalf("exit = %d, the demo didn't close", w.Code)
 	}
 }
+
+func itoa(n int) string { return strconv.Itoa(n) }
+
+func (l *launcher) waitIdle() { l.busy.Wait() }

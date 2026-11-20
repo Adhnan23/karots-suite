@@ -70,19 +70,6 @@ func TestRequireSupplierAccess(t *testing.T) {
 	}
 }
 
-// TestCanHandleSuppliersCtx proves the flag survives into the request context,
-// which is what templates read to decide whether to draw the Suppliers tab.
-func TestCanHandleSuppliersCtx(t *testing.T) {
-	base := context.Background()
-	if CanHandleSuppliersCtx(base) {
-		t.Fatal("a bare context must not grant supplier access")
-	}
-	withFlag := context.WithValue(base, ctxFlagsKey, UserFlags{CanHandleSuppliers: true})
-	if !CanHandleSuppliersCtx(withFlag) {
-		t.Fatal("the stashed flag was not read back")
-	}
-}
-
 // TestMayManageCredit pins who may override/raise credit limits: admins and
 // managers always; a cashier only with the per-user flag.
 func TestMayManageCredit(t *testing.T) {
@@ -103,19 +90,6 @@ func TestMayManageCredit(t *testing.T) {
 				t.Fatalf("MayManageCredit(%q, %v) = %v, want %v", tc.role, tc.flag, got, tc.allowed)
 			}
 		})
-	}
-}
-
-// TestCanManageCreditCtx proves the credit flag survives into the request
-// context, which is what the till reads to show the credit controls.
-func TestCanManageCreditCtx(t *testing.T) {
-	base := context.Background()
-	if CanManageCreditCtx(base) {
-		t.Fatal("a bare context must not grant credit management")
-	}
-	withFlag := context.WithValue(base, ctxFlagsKey, UserFlags{CanManageCredit: true})
-	if !CanManageCreditCtx(withFlag) {
-		t.Fatal("the stashed flag was not read back")
 	}
 }
 

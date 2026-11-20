@@ -175,15 +175,6 @@ func (r *Repository) AdjustmentTotal(ctx context.Context, sessionID int64) (deci
 	return total, err
 }
 
-func (r *Repository) RecentSessions(ctx context.Context, limit int) ([]SessionRow, error) {
-	var rows []SessionRow
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT cr.*, u.name AS user_name
-		FROM cash_register cr JOIN users u ON u.id = cr.user_id
-		ORDER BY cr.opened_at DESC LIMIT $1`, limit)
-	return rows, err
-}
-
 // OpenSessions lists every currently-open till (closed_at IS NULL) with its
 // cashier name — for pickers that move cash to/from a specific drawer.
 func (r *Repository) OpenSessions(ctx context.Context) ([]SessionRow, error) {
@@ -193,17 +184,6 @@ func (r *Repository) OpenSessions(ctx context.Context) ([]SessionRow, error) {
 		FROM cash_register cr JOIN users u ON u.id = cr.user_id
 		WHERE cr.closed_at IS NULL
 		ORDER BY cr.opened_at`)
-	return rows, err
-}
-
-// SessionsInRange lists sessions opened within [from,to) for the period report.
-func (r *Repository) SessionsInRange(ctx context.Context, from, to time.Time) ([]SessionRow, error) {
-	var rows []SessionRow
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT cr.*, u.name AS user_name
-		FROM cash_register cr JOIN users u ON u.id = cr.user_id
-		WHERE cr.opened_at >= $1 AND cr.opened_at < $2
-		ORDER BY cr.opened_at DESC`, from, to)
 	return rows, err
 }
 

@@ -37,19 +37,6 @@ func searchTokens(raw string) []string {
 // index — all three must agree or the index stops being used.
 const squashChars = " -_/."
 
-// squashedName is the Go mirror of the SQL translate() call. It exists so tests
-// can assert the two implementations agree.
-func squashedName(s string) string {
-	var b strings.Builder
-	b.Grow(len(s))
-	for _, r := range strings.ToLower(s) {
-		if !strings.ContainsRune(squashChars, r) {
-			b.WriteRune(r)
-		}
-	}
-	return b.String()
-}
-
 // fuzzyThreshold is the minimum pg_trgm word_similarity for a token to count as
 // a typo of something in the name.
 //

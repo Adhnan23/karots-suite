@@ -53,14 +53,9 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTAuth authenticates a request from either a Bearer header (API clients) or
-// the httpOnly cookie (UI). On failure it returns an apperr the error handler
-// converts to a 401/redirect; this keeps the middleware free of rendering
-// concerns.
-func JWTAuth(secret string) echo.MiddlewareFunc { return JWTAuthWith(secret, nil) }
-
-// JWTAuthWith is JWTAuth with its own account check (nil = the one set by
-// SetUserValidator). The server passes its own, so two servers in one process
+// JWTAuthWith authenticates a request from either a Bearer header (API clients)
+// or the httpOnly cookie (UI); on failure it returns an apperr (401). own is its
+// account check (nil = the one set by SetUserValidator). The server passes its own, so two servers in one process
 // (the battle tests' shops) never check accounts against each other's database.
 func JWTAuthWith(secret string, own UserValidator) echo.MiddlewareFunc {
 	key := []byte(secret)

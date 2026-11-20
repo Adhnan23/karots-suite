@@ -85,8 +85,6 @@ func (l *launcher) set(f func(*State)) {
 	l.mu.Unlock()
 }
 
-func (l *launcher) waitIdle() { l.busy.Wait() }
-
 // job moves the state on for a new start / switch, then runs do behind any job
 // in flight. Only the newest job runs: one overtaken while it waited is dropped,
 // so only one child ever lives and the state shows the last pick.

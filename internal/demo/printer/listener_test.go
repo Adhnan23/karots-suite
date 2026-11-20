@@ -66,3 +66,11 @@ func TestRingKeepsTheLast(t *testing.T) {
 		t.Fatalf("kept %d prints, first %d", len(got), got[0].ID)
 	}
 }
+
+func (p *Printer) last() int64 {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.nextID
+}
+
+func (p *Printer) Close() error { return p.ln.Close() }

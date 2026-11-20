@@ -61,5 +61,3 @@ func inject(page []byte, plugins string) []byte {
 	out = append(out, tags...)
 	return append(out, page[i:]...)
 }
-
-func itoa(n int) string { return strconv.Itoa(n) }

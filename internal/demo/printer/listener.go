@@ -100,12 +100,4 @@ func (p *Printer) Since(id int64) []Print {
 	return out
 }
 
-func (p *Printer) last() int64 {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return p.nextID
-}
-
 func (p *Printer) Kind() Kind { return p.kind }
-
-func (p *Printer) Close() error { return p.ln.Close() }
