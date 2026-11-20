@@ -43,7 +43,9 @@ func breakdownTotal(raw json.RawMessage) (decimal.Decimal, []byte, bool) {
 			continue
 		}
 		v, err := decimal.NewFromString(k)
-		if err != nil || !v.IsPositive() {
+		// Under a cent can't be held: the drawer stores 2 decimals, so it would
+		// round away from its own count (DRAW-17).
+		if err != nil || !v.IsPositive() || !v.Equal(v.Round(2)) {
 			continue
 		}
 		total = total.Add(v.Mul(decimal.NewFromInt(int64(qty))))
