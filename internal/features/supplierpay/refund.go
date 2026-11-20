@@ -108,7 +108,7 @@ func (s *Service) RefundTx(ctx context.Context, tx *sqlx.Tx, supplierID int64, i
 	// committed refund row behind, claiming money came back that never did.
 	supRepo := suppliers.NewRepository(tx)
 	refundRepo := NewRepository(tx)
-	sup, err := supRepo.FindByID(ctx, supplierID)
+	sup, err := supRepo.LockByID(ctx, supplierID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("supplier")

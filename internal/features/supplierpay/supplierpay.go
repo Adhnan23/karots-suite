@@ -206,7 +206,7 @@ func (s *Service) PayTx(ctx context.Context, tx *sqlx.Tx, supplierID int64, in P
 	puRepo := purchases.NewRepository(tx)
 	payRepo := NewRepository(tx)
 
-	sup, err := supRepo.FindByID(ctx, supplierID)
+	sup, err := supRepo.LockByID(ctx, supplierID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("supplier")

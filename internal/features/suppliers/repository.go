@@ -64,6 +64,17 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*Supplier, error) 
 
 // FindByName looks up an active supplier by case-insensitive name. Returns
 // sql.ErrNoRows when absent.
+// LockByID reads a supplier and holds the row until the transaction ends, so
+// two money actions on one supplier wait for each other (SUP-7, SUP-8). Taken
+// last: after the till, stock and lots.
+func (r *Repository) LockByID(ctx context.Context, id int64) (*Supplier, error) {
+	var s Supplier
+	if err := r.q.GetContext(ctx, &s, `SELECT * FROM suppliers WHERE id = $1 FOR UPDATE`, id); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 func (r *Repository) FindByName(ctx context.Context, name string) (*Supplier, error) {
 	var s Supplier
 	err := r.q.GetContext(ctx, &s,
