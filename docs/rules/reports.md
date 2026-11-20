@@ -117,7 +117,9 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
 - **ZR-1** A Z report counts exactly its till session's non-void sales (DRAW-6: `sales.session_id`, never a time
   window): count, gross (before discount), discount, total.
 - **ZR-2** A Z report's returns are the refunds given **in that session** (by its cashier while it was open, whatever
-  day the goods were sold), cash and otherwise; net = its sales' total − those refunds. A closed Z never changes.
+  day the goods were sold), cash and otherwise; net = its sales' total − those refunds. A refund paid from a till
+  belongs to the session its cash left — even one opened while the return waited (*found by make battle's power
+  cuts, 2026-11-20*). A closed Z never changes.
   *User, 2026-11-20 (Q2): today it counts returns on its own sales at any time, so a Z printed at close changed when
   one of its sales came back next week.*
 - **ZR-3** A Z report's by-method lines = Σ its sales' payments per method, cash net of change; its cash line +

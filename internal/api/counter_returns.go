@@ -206,7 +206,16 @@ func (h *handlers) returnSale(ctx context.Context, id int64, in sales.PartialRet
 		rec, err = h.d.Cashflow.MoveTx(ctx, tx, cashflow.MoveInput{From: src, To: cashflow.External(), Amount: refund,
 			Reason: "cash refund: " + d.Sale.ReceiptNo, ReceiptKind: "refund", Party: strOr(d.Sale.CustomerName),
 			Ref: &cashflow.Ref{Kind: "sale_return", ID: returnID}, ActorID: userID, ToCustomer: true})
-		return err
+		if err != nil || src.Kind != cashflow.KindTill {
+			return err
+		}
+		// The refund belongs to the session its cash left (ZR-2): a till opened while
+		// this return waited is the one that paid, not the none open when it began.
+		if _, err := tx.ExecContext(ctx, `UPDATE sale_returns SET session_id = (SELECT id FROM cash_register
+			WHERE user_id = $1 AND closed_at IS NULL) WHERE id = $2`, src.ID, returnID); err != nil {
+			return apperr.Internal("failed to record the refund's till", err)
+		}
+		return nil
 	})
 	return cash, rec, err
 }
