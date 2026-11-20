@@ -98,11 +98,25 @@ out with Go's coverage run beside it and passed alone (admin-money, admin-data, 
 appearance-receipts, batches). Coverage map updated (core Go 77.3%, core screens 59.2%; purchases 81.7%, supplier
 pay 81.4%, supplier returns 81.3%, suppliers 78.5%, cheques 80.2%). Left for later: a return naming the same lot on
 two lines (the screen can't) prices the last units off the first only; kit components and sale returns' restock
-don't take the product-id lock order yet. **Area 6 started 2026-11-20** (recovery: warranty replacements and what a supplier makes good; rule book
-`docs/rules/recovery.md`, WAR-1–6, REC-1–8; plan `docs/plans/2026-11-20-core-battle-test-recovery.md`): desk work done —
-rules, the user's five answers (Q1–Q5, all as suggested: any credit amount, the lot's supplier filled in, a top-up
-blends the lot's cost, undo while nothing came after, the server refuses out-of-date / returned swaps), auditor checks
-(`ledgercheck/recovery.go`). **Next: Task 3 (cases and fixes), then the long runs.**
+don't take the product-id lock order yet. **Area 6 closed 2026-11-20** (recovery and losses: warranty swaps and what a supplier makes good; rule book
+`docs/rules/recovery.md`, WAR-1–6, REC-1–8, plan in git history): auditor checks (`ledgercheck/recovery.go`), a case
+per rule, the purchasing machine writes suppliers' lots off, settles and undoes them (`machine_recovery_test.go`), faults
+(swaps, settlements and undos at once, swaps beside returns, recoveries beside sales / deliveries / payments, a recovery
+worker in the power cuts), mutants replayed against the battle tests (97 killed; the rest are list filters, paging,
+wording and database-failure branches). User's answers built (Q1–Q5): a credit may be any amount; the lot's supplier is
+filled in on the form (the write-off answer and Losses lines carry it), a disabled one takes a credit but no extra
+charge; a replacement topped into a lot blends its cost; **Undo** on Losses & Recovery while nothing came after it
+(migration 00040: the lot and its cost before, a credit's bills / old debt / what waited, one recovery per loss); the
+server refuses swaps of out-of-date or returned units. Found and fixed: a serial unit could be swapped twice at once and
+a by-receipt line past what was kept (no lock; WAR-6); by receipt counted returned units and took a void sale (WAR-4);
+the server swapped returned / out-of-date units if the screen was skipped (WAR-1); a replacement's stock never named its
+recovery and a top-up ignored the loss and the extra (REC-2). `make battle` found two auditor checks too strict, not
+money: a write-off worth under half a cent books Rs 0 (STK-7, user's yes) and a credit's old-debt drop may pass it when
+the supplier already held credit (REC-3). Not yet Released. `make battle` 20,000 steps clean (purchasing re-run alone,
+12 min). Full run: Go, Vitest and check-core green; Playwright 224 passed, 8 timed out beside Go's coverage run and
+passed alone. Coverage map updated (core Go 77.3%, screens 59.2%; recovery 78.3%, warranty 76.1%). Not covered by a
+machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). **Next: area 7 (reports and the
+Z report = the raw data).**
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
