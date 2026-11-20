@@ -98,7 +98,11 @@ out with Go's coverage run beside it and passed alone (admin-money, admin-data, 
 appearance-receipts, batches). Coverage map updated (core Go 77.3%, core screens 59.2%; purchases 81.7%, supplier
 pay 81.4%, supplier returns 81.3%, suppliers 78.5%, cheques 80.2%). Left for later: a return naming the same lot on
 two lines (the screen can't) prices the last units off the first only; kit components and sale returns' restock
-don't take the product-id lock order yet. **Next: area 6 (recovery: losses a supplier covers).**
+don't take the product-id lock order yet. **Area 6 started 2026-11-20** (recovery: warranty replacements and what a supplier makes good; rule book
+`docs/rules/recovery.md`, WAR-1–6, REC-1–8; plan `docs/plans/2026-11-20-core-battle-test-recovery.md`): desk work done —
+rules, the user's five answers (Q1–Q5, all as suggested: any credit amount, the lot's supplier filled in, a top-up
+blends the lot's cost, undo while nothing came after, the server refuses out-of-date / returned swaps), auditor checks
+(`ledgercheck/recovery.go`). **Next: Task 3 (cases and fixes), then the long runs.**
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
