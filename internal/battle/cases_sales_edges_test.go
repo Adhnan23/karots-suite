@@ -69,3 +69,28 @@ func TestSALE7_FrozenGoneLotSellsAtProductPrice(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// RPT-22 / RPT-33: a warranty swap is a loss on the Losses page, at its movement's
+// worth, and the page agrees with the P&L — no random day swaps a unit, so the
+// agreement check never saw one.
+func TestRPT33_WarrantySwapOnTheLossesPage(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	ph := s.prod["serial"]
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": ph, "newQuantity": "10"}, nil))
+	s.open(t, s.till1)
+	s.must(t, s.swap(s.phoneSold(t, "RPT33-A", 0), "RPT33-B"))
+	s.damage(t, s.prod["plain"], 0, "2")
+	var worth string
+	s.must(t, s.db.Get(&worth, `SELECT SUM(cost)::text FROM stock_movements WHERE type = 'warranty_replacement'`))
+	var ls struct {
+		WarrantyCount int
+		WarrantyCost  string
+	}
+	s.must(t, s.admin.Do("GET", "/api/v1/admin/reports/losses", nil, &ls))
+	if ls.WarrantyCount != 1 || !dec(t, ls.WarrantyCost).Equal(dec(t, worth)) || !dec(t, worth).IsPositive() {
+		t.Errorf("RPT-22 Losses page: %d swaps worth %s, want 1 worth %s", ls.WarrantyCount, ls.WarrantyCost, worth)
+	}
+	s.agreeToday(t)
+	s.audit(t)
+}
