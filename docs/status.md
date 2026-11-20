@@ -75,17 +75,30 @@ run found one more, older: a cash refund at the till deadlocked against a sale o
 (39 min). Full run: Go, Vitest (1,218) and check-core green; Playwright 271 passed alone (3 timed out with Go's
 coverage run beside it: appearance-layout, palettes, till open). Coverage map updated (core Go 77.2%, core screens
 59.2%; stock 81.1%, conversions 75.6%).
-**Area 5 started 2026-11-19 (purchasing: orders, deliveries, goods sent back, supplier pay, credits, cheques) — desk
-work done:** rule book `docs/rules/purchasing.md` (PUR-1–13, SUP-1–10, CHQ-1–6), plan
-`docs/plans/2026-11-19-core-battle-test-purchasing.md`, auditor checks (`ledgercheck/purchasing.go`: supplier balance
-rebuilt from its rows, old debt, bill maths, paid / credited / status, paid = money put on it, lines landed, debit
-notes, payments' money and allocations; each proved by a corrupted row, `battle/ledger_purchasing_test.go`). User's
-answers (2026-11-19): a typed advance pays what's owed first (SUP-5); a supplier's credit pays newly set old debt down
-(SUP-2, as CUST-15); nothing delivered, ordered or sent back for a disabled supplier (SUP-9); frozen pieces out for
-sale are sent back like a frozen write-off (PUR-9). Suspected from reading (the plan's Review Focus): an order
-received twice at once, refunds / old-debt payments reading the supplier stale, a bounced cheque's advance still
-paying bills, deliveries skipping whole units, a negative supplier opening. **Next session (PC left working):** plan
-Task 3 on — cases, machine, faults, mutation, `make battle`, full run.
+**Area 5 closed 2026-11-20** (purchasing: orders, deliveries, goods sent back, supplier pay, credits, cheques; rule
+book `docs/rules/purchasing.md`, PUR-1–13, SUP-1–10, CHQ-1–6, plan in git history): auditor checks
+(`ledgercheck/purchasing.go`), a case per rule, random days buying from and paying two suppliers
+(`TestBattlePurchasing`: the machine keeps every balance, old debt and bill by the rule book), faults (at once, a
+purchasing worker in the power cuts), mutants replayed against the battle tests (136 killed; the 91 left are
+database-failure branches, list filters, wording, and cheque paths areas 1–3 test). User's answers built: a typed
+advance pays what's owed first (SUP-5); a credit pays new old debt down, a supplier's opening never below zero
+(SUP-2); nothing delivered, ordered or sent back for a disabled supplier (SUP-9); frozen pieces out for sale go back
+like a frozen write-off (PUR-9, a tick on the return line); Q5 (2026-11-20): the last units of a lot to go back take
+what's left of their line's share, so a whole delivery sent back clears its bill to the cent (PUR-3, PUR-10; a line
+that cost nothing gives nothing back). Found and fixed: eight receives of one order at once booked it eight times,
+and an edit beside a receive turned the bill back into an order (PUR-6); eight refunds of a Rs 300 credit all went
+through (the shop then owed Rs 500) and old-debt payments took Rs 800 for Rs 300 (SUP-7, SUP-8: payments and
+refunds now hold the supplier); deliveries, sales and payments from a till deadlocked or refused each other (39 of
+64 at once) — stock rows are now taken in product-id order by sales, deliveries and returns, a till money comes from
+is held first, a payment's split is read while it holds the supplier; a bounced cheque's unspent advance still paid
+later bills (CHQ-4); pieces and packs of 2.5 took fractions on deliveries, orders and returns (PUR-4); a whole
+delivery sent back left a cent of credit (PUR-3). `sales/service.go` split back under 500 lines. Not yet Released.
+`make battle` 20,000 steps clean (41 min). Full run: Go, Vitest and check-core green; Playwright 246 passed, 6 timed
+out with Go's coverage run beside it and passed alone (admin-money, admin-data, admin-people, admin-reports,
+appearance-receipts, batches). Coverage map updated (core Go 77.3%, core screens 59.2%; purchases 81.7%, supplier
+pay 81.4%, supplier returns 81.3%, suppliers 78.5%, cheques 80.2%). Left for later: a return naming the same lot on
+two lines (the screen can't) prices the last units off the first only; kit components and sale returns' restock
+don't take the product-id lock order yet. **Next: area 6 (recovery: losses a supplier covers).**
 **Later idea (user, 2026-11-19), after all areas pass:** a note box on the till's plain Hold (only Send to cashier
 has one; held sales are named after the customer or first item). **No Release until all 7 core areas and every plugin have passed** (user, 2026-11-18;
 Iman is still onboarding, no real sales yet) — the fixes wait on `main` until then. **Mistake to avoid:** never run DB tests on `suite_db` while Playwright runs (it broke 4
