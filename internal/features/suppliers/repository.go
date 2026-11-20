@@ -155,13 +155,14 @@ func (r *Repository) PayOpening(ctx context.Context, id int64, amt decimal.Decim
 // AdjustOpening sets the still-unpaid opening (old pre-system debt) to newOpening
 // and shifts both the outstanding payable and the gross opening figure by the same
 // delta, so the transactional (linked) part is left untouched. newOpening must be
-// non-negative.
+// non-negative. A credit the supplier holds pays the new old debt down (SUP-2,
+// as CUST-15): the old debt never passes what they're owed.
 func (r *Repository) AdjustOpening(ctx context.Context, id int64, newOpening decimal.Decimal) error {
 	res, err := r.q.ExecContext(ctx, `
 		UPDATE suppliers SET
 			outstanding_balance = outstanding_balance + ($1 - opening_unlinked),
 			opening_balance     = opening_balance     + ($1 - opening_unlinked),
-			opening_unlinked    = $1
+			opening_unlinked    = LEAST($1, GREATEST(outstanding_balance + ($1 - opening_unlinked), 0))
 		WHERE id=$2`, newOpening, id)
 	if err != nil {
 		return err

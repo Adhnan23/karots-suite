@@ -239,11 +239,11 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 // trail) and the refreshed supplier. The transactional (linked) part is never
 // touched — only the opening and, by the same delta, the outstanding payable.
 func (s *Service) AdjustOpening(ctx context.Context, id int64, newOpeningStr string) (before, after *Supplier, err error) {
-	// The opening (old pre-system balance) may be negative here: a supplier we were
-	// in credit with before go-live (an advance/overpayment they still owe us).
+	// Never below zero, as when the supplier is made (SUP-2): a credit they held
+	// before go-live is an advance paid, not a negative opening.
 	newOpening, perr := money.Parse(newOpeningStr)
-	if perr != nil {
-		return nil, nil, apperr.Validation("opening balance must be a valid amount")
+	if perr != nil || newOpening.IsNegative() {
+		return nil, nil, apperr.Validation("opening balance must be zero or more")
 	}
 	before, err = s.Get(ctx, id)
 	if err != nil {

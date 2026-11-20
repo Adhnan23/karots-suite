@@ -10,7 +10,7 @@ import { money, num, r2 } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 /** Correct the old (pre-system) balance of a customer or supplier. The part backed by bills, payments and returns is locked;
- * only the old part moves. Negative = they were in credit before go-live. */
+ * only the old part moves. A customer's may be negative (in credit before go-live); a supplier's never is (SUP-2). */
 export function OpeningSheet({ kind, id, name, owed, oldDebt, sym, onClose }: {
   kind: 'supplier' | 'customer'; id: number; name: string; owed: string; oldDebt: string; sym: string; onClose: () => void
 }) {
@@ -41,8 +41,8 @@ export function OpeningSheet({ kind, id, name, owed, oldDebt, sym, onClose }: {
         <div className={box}><small className="text-muted-foreground">Total ({who})</small><b className="block tabular-nums">{money(sym, owed)}</b></div>
         <div className={box}><small className="text-muted-foreground">From bills &amp; payments · locked</small><b className="block tabular-nums">{money(sym, locked)}</b></div>
       </div>
-      <Field label="Old balance (before the system)" hint="Negative if they were in credit before you started.">
-        <input autoFocus aria-label="Old balance" inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value.replace(/[^\d.-]/g, ''))}
+      <Field label="Old balance (before the system)" hint={kind === 'customer' ? 'Negative if they were in credit before you started.' : undefined}>
+        <input autoFocus aria-label="Old balance" inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value.replace(kind === 'customer' ? /[^\d.-]/g : /[^\d.]/g, ''))}
           className={cn(INPUT, 'h-[52px] font-display text-2xl font-bold tabular-nums')} />
       </Field>
       <p className="text-sm text-muted-foreground">New total <b className="text-foreground tabular-nums">{money(sym, next)}</b></p>
