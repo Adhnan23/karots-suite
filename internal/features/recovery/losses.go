@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/stock"
 
 	"github.com/shopspring/decimal"
 )
@@ -28,6 +29,27 @@ type Loss struct {
 	Outcome    *string         `db:"outcome"`
 	Recovered  decimal.Decimal `db:"recovered"`
 	GivenBack  bool            `db:"given_back"`
+	// RecoveryID is its recovery (nil while it waits); SupplierID who to settle
+	// it with: the recovery's supplier, else the one it was given back to, else
+	// the lot's (a warranty unit: the product's usual supplier).
+	RecoveryID *int64 `db:"recovery_id"`
+	SupplierID *int64 `db:"supplier_id"`
+}
+
+// LossSupplier is who to settle a damage write-off with: the supplier it was
+// given back to, else its lot's (REC-3); 0 when nobody is known.
+func (s *Service) LossSupplier(ctx context.Context, movementID int64) int64 {
+	var id *int64
+	_ = s.db.GetContext(ctx, &id, `
+		SELECT COALESCE(m.given_back_to, `+stock.LotSupplierSQL+`)
+		FROM stock_movements m
+		JOIN products p ON p.id = m.product_id
+		LEFT JOIN stock_batches b ON m.reference_type = 'batch' AND b.id = m.reference_id
+		WHERE m.id = $1`, movementID)
+	if id == nil {
+		return 0
+	}
+	return *id
 }
 
 // LossesIn pages the damage and warranty losses booked in [from,to), newest
@@ -38,16 +60,18 @@ func (s *Service) LossesIn(ctx context.Context, from, to time.Time, limit, offse
 		SELECT * FROM (
 			SELECT 'damage' AS kind, m.id AS source_id, m.id AS movement_id, p.id AS product_id, p.name AS product, ABS(m.quantity) AS quantity,
 			       m.cost AS loss_value, m.note, COALESCE(u.name, '') AS by, m.created_at,
-			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered, m.given_back_to IS NOT NULL AS given_back
+			       lr.outcome, COALESCE(lr.recovered_value, 0) AS recovered, m.given_back_to IS NOT NULL AS given_back,
+			       lr.id AS recovery_id, COALESCE(lr.supplier_id, m.given_back_to, `+stock.LotSupplierSQL+`) AS supplier_id
 			FROM stock_movements m
 			JOIN products p ON p.id = m.product_id
 			LEFT JOIN users u ON u.id = m.user_id
+			LEFT JOIN stock_batches b ON m.reference_type = 'batch' AND b.id = m.reference_id
 			LEFT JOIN loss_recoveries lr ON lr.source_type = 'damage' AND lr.source_id = m.id
 			WHERE m.type = 'damage' AND m.created_at >= $1 AND m.created_at < $2
 		  UNION ALL
 			SELECT 'warranty', wcl.unit_id, m.id, p.id, p.name, ABS(m.quantity),
 			       m.cost, m.note, COALESCE(u.name, ''), m.created_at,
-			       lr.outcome, COALESCE(lr.recovered_value, 0), false
+			       lr.outcome, COALESCE(lr.recovered_value, 0), false, lr.id, COALESCE(lr.supplier_id, p.preferred_supplier_id)
 			FROM stock_movements m
 			JOIN products p ON p.id = m.product_id
 			LEFT JOIN users u ON u.id = m.user_id

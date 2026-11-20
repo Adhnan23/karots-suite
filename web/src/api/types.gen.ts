@@ -2976,6 +2976,12 @@ export interface LossRow {
   outcome: string;
   recovered: string;
   givenBack: boolean; // handed to the supplier, waiting until settled
+  /**
+   * RecoveryID is its recovery (0 while it waits; Undo takes it); SupplierID who
+   * to settle it with (0 = nobody known) — the form fills it in.
+   */
+  recoveryId: number /* int64 */;
+  supplierId: number /* int64 */;
 }
 /**
  * RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we
@@ -3722,6 +3728,10 @@ export interface ConsumeRequest {
 export interface ConsumeResult {
   lossId: number /* int64 */;
   lossValue?: string; // what a give back booked
+  /**
+   * SupplierID is who to settle a damage loss with: its lot's supplier (0 = nobody known).
+   */
+  supplierId: number /* int64 */;
 }
 export interface WriteOffResult {
   lots: number /* int */;

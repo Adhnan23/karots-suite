@@ -65,7 +65,7 @@ export function useGiveBack(sym: string, base: '/admin' | '/till' = '/admin') {
       return
     }
     setAsked({ supplierId: g.supplierId, row: { kind: 'damage', sourceId: r.lossId, id: r.lossId, productId: g.productId, product: g.product, qty: counted,
-      loss: r.lossValue ?? '0.00', note: '', by: '', at: '', outcome: '', recovered: '', givenBack: true } })
+      loss: r.lossValue ?? '0.00', note: '', by: '', at: '', outcome: '', recovered: '', givenBack: true, recoveryId: 0, supplierId: g.supplierId } })
   }
   const sheet: ReactNode = (
     <>

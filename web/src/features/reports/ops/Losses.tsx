@@ -1,10 +1,13 @@
-import { keepPreviousData, useInfiniteQuery, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
+import { api } from '@/api/client'
 import type { LossRow } from '@/api/types.gen'
+import { ConfirmButton } from '@/components/admin/ConfirmButton'
 import { DataList } from '@/components/admin/DataList'
 import { EmptyState } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 import { Tag } from '@/features/admin/products/ProductsPage'
 import { countText } from '@/features/counter/queries'
 import { stamp } from '@/features/money/format'
@@ -22,7 +25,8 @@ const OUTCOME: Record<string, string> = { replacement: 'replaced by supplier', p
 
 /** Losses & Recovery (Damage and Warranty
  * together): stock lost to damage and warranty swaps, and what suppliers made
- * good. Record a recovery against any loss. */
+ * good. Record a recovery against any loss, or undo one while nothing came
+ * after it (REC-8). */
 export function LossesPage() {
   const r = rangeOf(route.useSearch())
   const navigate = route.useNavigate()
@@ -31,6 +35,12 @@ export function LossesPage() {
   const list = useInfiniteQuery({ ...lossLinesQuery(r), placeholderData: keepPreviousData })
   const rows = list.data?.pages.flat() ?? []
   const [recover, setRecover] = useState<LossRow | null>(null)
+  const qc = useQueryClient()
+  const undo = async (x: LossRow) => {
+    await api(`/admin/recovery/${x.recoveryId}`, { method: 'DELETE' })
+    toast.success('Recovery undone — the loss waits again')
+    void qc.invalidateQueries({ queryKey: ['admin'] })
+  }
   return (
     <ReportPage rows={list} title="Losses and recovery" sub="Stock lost to damage and warranty swaps, and what suppliers made good."
       range={r} onRange={(x) => void navigate({ search: (p) => ({ ...p, ...x }), replace: true })} caption={d && periodText(d.from, d.to)}
@@ -60,7 +70,9 @@ export function LossesPage() {
             ) },
             { key: 'loss', header: 'Lost', num: true, cell: (x) => <b>{money(sym, x.loss)}</b> },
             { key: 'rec', header: 'Recovery', num: true, cell: (x) => (x.outcome
-              ? <span className="flex flex-col items-end"><span className="text-success">{OUTCOME[x.outcome] ?? x.outcome}</span>{x.outcome !== 'written_off' && <small className="text-faint">{money(sym, x.recovered)}</small>}</span>
+              ? <span className="flex flex-col items-end gap-1"><span className="text-success">{OUTCOME[x.outcome] ?? x.outcome}</span>{x.outcome !== 'written_off' && <small className="text-faint">{money(sym, x.recovered)}</small>}
+                {x.recoveryId > 0 && <ConfirmButton plain className="h-7 px-2 text-[12px] print:hidden" label="Undo" title={`Undo the recovery of ${x.product}?`}
+                  body="It takes back exactly what it did — stock, what you owe the supplier — while nothing came after it." confirm="Undo it" onConfirm={() => undo(x)} />}</span>
               : x.sourceId
                 ? <Button variant="outline" className="h-8 px-3 text-[12px] print:hidden" onClick={() => setRecover(x)}>Recover</Button>
                 : <small className="text-faint">can’t be traced</small>) },

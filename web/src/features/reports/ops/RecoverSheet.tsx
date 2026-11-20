@@ -17,7 +17,8 @@ import { cn } from '@/lib/utils'
 /** What a supplier made good on one loss: replaced it (back in stock, asked
  * like intake — which batch, expiry, a new price, any extra they charged now
  * it costs more), credited us any amount (full or part), or nothing.
- * supplierId pre-picks the supplier (their delivery is being received);
+ * supplierId pre-picks the supplier (their delivery is being received), else the
+ * loss offers its lot's supplier (REC-3, changeable);
  * base '/till' is the counter's Suppliers tab (an extra paid now leaves the drawer). */
 export function RecoverSheet({ loss, sym, supplierId = 0, base = '/admin', onClose }: {
   loss: LossRow; sym: string; supplierId?: number; base?: '/admin' | '/till'; onClose: () => void
@@ -28,7 +29,7 @@ export function RecoverSheet({ loss, sym, supplierId = 0, base = '/admin', onClo
   const lots = lotsData?.lots ?? []
   const productPrice = lotsData?.sellingPrice ?? ''
   const [outcome, setOutcome] = useState<'replacement' | 'paid' | 'written_off'>('replacement')
-  const [supplier, setSupplier] = useState(supplierId)
+  const [supplier, setSupplier] = useState(supplierId || loss.supplierId)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [extra, setExtra] = useState('')

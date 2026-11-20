@@ -69,19 +69,8 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 
 	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
 		repo := NewRepository(tx)
-		stk := stock.NewRepository(tx)
-
-		// Resolve the loss being recovered.
-		var (
-			src *source
-			err error
-		)
-		switch in.SourceType {
-		case SourceWarranty:
-			src, err = repo.warrantySource(ctx, in.SourceID)
-		default:
-			src, err = repo.damageSource(ctx, in.SourceID)
-		}
+		// The loss first: it is held, so one loss is settled once (REC-1).
+		src, err := repo.lockSource(ctx, in.SourceType, in.SourceID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return apperr.NotFound("loss")
@@ -91,8 +80,6 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 		if in.SourceType == SourceWarranty && src.Status != "replaced" {
 			return apperr.Conflict("only a replaced unit can be recovered from the supplier")
 		}
-
-		// Don't recover the same loss twice.
 		already, err := repo.RecoveredQtyForSource(ctx, in.SourceType, in.SourceID)
 		if err != nil {
 			return apperr.Internal("failed to check existing recovery", err)
@@ -101,75 +88,105 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 			return apperr.Conflict("this loss has already been recovered")
 		}
 
-		rec := Recovery{
-			SourceType: in.SourceType,
-			SourceID:   in.SourceID,
-			ProductID:  src.ProductID,
-			SupplierID: in.SupplierID,
-			Outcome:    in.Outcome,
-			Quantity:   src.Quantity,
-			LossValue:  src.LossValue,
-			Note:       nilIfEmpty(in.Note),
-			HandledBy:  userID,
+		rec := Recovery{SourceType: in.SourceType, SourceID: in.SourceID, ProductID: src.ProductID, SupplierID: in.SupplierID,
+			Outcome: in.Outcome, Quantity: src.Quantity, LossValue: src.LossValue, Note: nilIfEmpty(in.Note), HandledBy: userID}
+		switch in.Outcome {
+		case OutcomeReplacement:
+			// The goods came back, so the loss is recovered in kind; any extra the
+			// supplier asked on top is owed to them.
+			rec.RecoveredValue = src.LossValue
+			rec.ExtraCharge = extra.Mul(src.Quantity).Round(2)
+		case OutcomePaid:
+			rec.RecoveredValue = paidAmount
+		}
+		// Saved first, so the stock that comes back names it (REC-2).
+		id, err := repo.Insert(ctx, rec)
+		if err != nil {
+			return apperr.Internal("failed to record recovery", err)
 		}
 
 		switch in.Outcome {
 		case OutcomeReplacement:
-			// Supplier returned goods → back into inventory where intake would
-			// put them: the batch picked (a top-up) or a new batch with its
-			// expiry, valued at what was lost per unit so the recovered value
-			// is the loss (the product's cost may have moved since).
-			// Any extra the supplier asked on top is owed to them and is part
-			// of what this stock cost.
+			// Back where intake would put it: the lot picked (a top-up blends its
+			// cost) or a new lot with its expiry, each unit worth what was lost
+			// plus the extra, so the stock carries the loss + the extra.
 			cost := decimal.Zero
 			if src.Quantity.IsPositive() {
 				cost = src.LossValue.Div(src.Quantity).Round(4)
 			}
 			cost = cost.Add(extra)
+			stk := stock.NewRepository(tx)
+			if _, err := tx.ExecContext(ctx, `SELECT 1 FROM stock WHERE product_id = $1 FOR UPDATE`, src.ProductID); err != nil {
+				return apperr.Internal("failed to hold stock", err)
+			}
+			var before *decimal.Decimal
+			if in.BatchID > 0 {
+				var c decimal.Decimal
+				if err := tx.GetContext(ctx, &c, `SELECT cost_price FROM stock_batches WHERE id = $1 AND product_id = $2`, in.BatchID, src.ProductID); err != nil {
+					return apperr.Validation("that batch is not this product's")
+				}
+				before = &c
+			}
 			refType := "recovery"
-			if _, err := stk.AddStock(ctx, stock.AddStockInput{ProductID: src.ProductID, BatchID: in.BatchID, Qty: src.Quantity.String(),
+			lot, err := stk.AddStock(ctx, stock.AddStockInput{ProductID: src.ProductID, BatchID: in.BatchID, Qty: src.Quantity.String(),
 				Cost: cost.String(), Price: in.Price, Expiry: in.Expiry, Note: "supplier replacement received", Source: "recovery",
-				Move: stock.MoveRecovery, RefType: &refType}, userID); err != nil {
+				Move: stock.MoveRecovery, RefType: &refType, RefID: &id, Blend: true}, userID)
+			if err != nil {
 				return err
 			}
-			if extra.IsPositive() {
-				rec.ExtraCharge = extra.Mul(src.Quantity).Round(2)
-				if err := suppliers.NewRepository(tx).AddBalance(ctx, *in.SupplierID, rec.ExtraCharge); err != nil {
+			if _, err := tx.ExecContext(ctx, `UPDATE loss_recoveries SET lot_id = $2, lot_cost_before = $3 WHERE id = $1`, id, lot, before); err != nil {
+				return apperr.Internal("failed to record recovery", err)
+			}
+			if rec.ExtraCharge.IsPositive() {
+				sup, err := lockSupplier(ctx, tx, *in.SupplierID)
+				if err != nil {
+					return err
+				}
+				if !sup.IsActive {
+					return apperr.Conflict("this supplier is disabled — bring them back first")
+				}
+				if err := suppliers.NewRepository(tx).AddBalance(ctx, sup.ID, rec.ExtraCharge); err != nil {
 					return apperr.Internal("failed to charge supplier", err)
 				}
 			}
-			// The goods came back, so the original loss is recovered in kind.
-			rec.RecoveredValue = src.LossValue
 
 		case OutcomePaid:
-			sup := suppliers.NewRepository(tx)
-			if err := sup.AddBalance(ctx, *in.SupplierID, paidAmount.Neg()); err != nil {
-				return apperr.Internal("failed to credit supplier", err)
-			}
-			rec.RecoveredValue = paidAmount
-			if rec.CreditUnapplied, err = creditBills(ctx, tx, *in.SupplierID, paidAmount); err != nil {
+			sup, err := lockSupplier(ctx, tx, *in.SupplierID)
+			if err != nil {
 				return err
 			}
-
-		case OutcomeWrittenOff:
-			rec.RecoveredValue = decimal.Zero
-		}
-
-		if _, err := repo.Insert(ctx, rec); err != nil {
-			return apperr.Internal("failed to record recovery", err)
+			if err := suppliers.NewRepository(tx).AddBalance(ctx, sup.ID, paidAmount.Neg()); err != nil {
+				return apperr.Internal("failed to credit supplier", err)
+			}
+			if err := creditBills(ctx, tx, id, sup, paidAmount); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
 }
 
-// creditBills puts a supplier's credit on their open bills, oldest first, and
-// answers what's left for their next delivery: only what they really owe us now,
-// since any more than the bills went on old debt.
-func creditBills(ctx context.Context, tx *sqlx.Tx, supplierID int64, amount decimal.Decimal) (decimal.Decimal, error) {
-	bills := purchases.NewRepository(tx)
-	open, err := bills.OpenBySupplier(ctx, supplierID)
+// lockSupplier holds the supplier (last, after any stock), as payments do.
+func lockSupplier(ctx context.Context, tx *sqlx.Tx, id int64) (*suppliers.Supplier, error) {
+	sup, err := suppliers.NewRepository(tx).LockByID(ctx, id)
 	if err != nil {
-		return decimal.Zero, apperr.Internal("failed to load open bills", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperr.NotFound("supplier")
+		}
+		return nil, apperr.Internal("failed to load the supplier", err)
+	}
+	return sup, nil
+}
+
+// creditBills puts a supplier's credit (already off their balance, which took
+// the old debt down with it) on their open bills, oldest first, and keeps where
+// it went: each bill, the old debt, and what's left for their next delivery —
+// only what they really owe us now (REC-3).
+func creditBills(ctx context.Context, tx *sqlx.Tx, recoveryID int64, before *suppliers.Supplier, amount decimal.Decimal) error {
+	bills := purchases.NewRepository(tx)
+	open, err := bills.OpenBySupplier(ctx, before.ID)
+	if err != nil {
+		return apperr.Internal("failed to load open bills", err)
 	}
 	left := amount
 	for _, pu := range open {
@@ -178,15 +195,26 @@ func creditBills(ctx context.Context, tx *sqlx.Tx, supplierID int64, amount deci
 		}
 		applied, err := bills.ApplyCredit(ctx, pu.ID, left)
 		if err != nil {
-			return decimal.Zero, apperr.Internal("failed to credit a bill", err)
+			return apperr.Internal("failed to credit a bill", err)
+		}
+		if applied.IsPositive() {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO loss_recovery_bills (recovery_id, purchase_id, amount) VALUES ($1, $2, $3)`,
+				recoveryID, pu.ID, applied); err != nil {
+				return apperr.Internal("failed to keep a bill's credit", err)
+			}
 		}
 		left = left.Sub(applied)
 	}
-	sup, err := suppliers.NewRepository(tx).FindByID(ctx, supplierID)
+	after, err := suppliers.NewRepository(tx).FindByID(ctx, before.ID)
 	if err != nil {
-		return decimal.Zero, apperr.Internal("failed to load the supplier", err)
+		return apperr.Internal("failed to load the supplier", err)
 	}
-	return decimal.Max(decimal.Min(left, sup.OutstandingBalance.Neg()), decimal.Zero), nil
+	unapplied := decimal.Max(decimal.Min(left, after.OutstandingBalance.Neg()), decimal.Zero)
+	if _, err := tx.ExecContext(ctx, `UPDATE loss_recoveries SET credit_unapplied = $2, old_debt = $3 WHERE id = $1`,
+		recoveryID, unapplied, before.OpeningUnlinked.Sub(after.OpeningUnlinked)); err != nil {
+		return apperr.Internal("failed to record recovery", err)
+	}
+	return nil
 }
 
 // LossProduct is the product a loss is of.

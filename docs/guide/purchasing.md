@@ -91,6 +91,17 @@ When a supplier takes a batch back, or you want to give it to them, and you'll s
 then enter what they bring as a normal delivery. A credit goes on their open bills, oldest first, and
 what's left pays their next delivery. If they brought less, the difference stays as what they owe you.
 
+When you settle a loss, the supplier of its batch is already picked; change it if someone else made it
+good. A credit can be any amount, even more than the loss was worth. A disabled supplier can still give
+you a credit, but they can't charge an extra for a replacement until you bring them back. A replacement
+put into a batch that's already on the shelf blends into that batch's cost, as above.
+
+**Settled it by mistake?** On **Reports → Losses and recovery**, press **Undo** on the loss. It takes
+back exactly what was recorded: the stock, what you owe the supplier, any extra. It works only while
+nothing came after it: no stock of that product has moved since a replacement, and nothing new
+(a delivery, a payment, a return, a refund) is on that supplier's account since a credit or an extra.
+After that, put it right by hand.
+
 Batches get mixed on the shelf, so the count wins. If it's more than the system says, the extra
 comes from the product's other batches. If it's less, the rest moves onto its next batch. Only when
 there's no other batch to take it does the stock total change, as an adjustment in **Movements**.

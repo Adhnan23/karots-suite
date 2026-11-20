@@ -1,6 +1,7 @@
 package api
 
 import (
+	"karots-suite/internal/features/recovery"
 	"net/http"
 	"slices"
 	"strconv"
@@ -142,6 +143,7 @@ func (h *handlers) AdminStockConsume(c echo.Context) error {
 	out := ConsumeResult{}
 	if req.Reason == "damage" {
 		out.LossID = id
+		out.SupplierID = recovery.NewService(h.d.DB).LossSupplier(c.Request().Context(), id)
 	}
 	return c.JSON(http.StatusOK, out)
 }

@@ -209,6 +209,10 @@ type LossRow struct {
 	Outcome   string `json:"outcome"`
 	Recovered string `json:"recovered"`
 	GivenBack bool   `json:"givenBack"` // handed to the supplier, waiting until settled
+	// RecoveryID is its recovery (0 while it waits; Undo takes it); SupplierID who
+	// to settle it with (0 = nobody known) — the form fills it in.
+	RecoveryID int64 `json:"recoveryId"`
+	SupplierID int64 `json:"supplierId"`
 }
 
 // RecoveryRequest books what a supplier made good on one loss: replacement (restocked) | paid (credited against what we

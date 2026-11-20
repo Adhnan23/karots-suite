@@ -57,9 +57,6 @@ func TestRecoveryRulesSeeCorruption(t *testing.T) {
 	s.must(t, s.db.GetContext(ctx, &claim, `SELECT id FROM warranty_claims WHERE unit_id = $1`, unit))
 	s.must(t, s.db.GetContext(ctx, &wmove, `SELECT id FROM stock_movements WHERE type = 'warranty_replacement' AND reference_id = $1`, claim))
 	cases := []struct{ rule, breakIt, mend string }{
-		{"REC-1", `INSERT INTO loss_recoveries (source_type, source_id, product_id, outcome, quantity, loss_value, recovered_value, handled_by)
-			SELECT source_type, source_id, product_id, outcome, quantity, loss_value, recovered_value, handled_by FROM loss_recoveries WHERE id = WOFF`,
-			`DELETE FROM loss_recoveries WHERE id = (SELECT MAX(id) FROM loss_recoveries)`},
 		{"REC-1", `UPDATE loss_recoveries SET loss_value = loss_value + 1 WHERE id = WOFF`, `UPDATE loss_recoveries SET loss_value = loss_value - 1 WHERE id = WOFF`},
 		{"REC-1", `UPDATE loss_recoveries SET quantity = quantity + 1 WHERE id = WOFF`, `UPDATE loss_recoveries SET quantity = quantity - 1 WHERE id = WOFF`},
 		{"REC-5", `UPDATE loss_recoveries SET recovered_value = 1 WHERE id = WOFF`, `UPDATE loss_recoveries SET recovered_value = 0 WHERE id = WOFF`},
@@ -67,6 +64,11 @@ func TestRecoveryRulesSeeCorruption(t *testing.T) {
 		{"REC-5", `UPDATE loss_recoveries SET supplier_id = NULL WHERE id = PAID`, `UPDATE loss_recoveries SET supplier_id = SUP WHERE id = PAID`},
 		{"REC-5", `UPDATE loss_recoveries SET credit_unapplied = recovered_value + 1 WHERE id = PAID`,
 			`UPDATE loss_recoveries SET credit_unapplied = UNAPPLIED WHERE id = PAID`},
+		{"REC-2", `UPDATE stock_movements SET quantity = quantity + 1 WHERE type = 'recovery' AND reference_id = REPL`,
+			`UPDATE stock_movements SET quantity = quantity - 1 WHERE type = 'recovery' AND reference_id = REPL`},
+		{"REC-3", `UPDATE loss_recovery_bills SET amount = amount + 10000 WHERE recovery_id = PAID`,
+			`UPDATE loss_recovery_bills SET amount = amount - 10000 WHERE recovery_id = PAID`},
+		{"REC-3", `UPDATE loss_recoveries SET old_debt = 5 WHERE id = WOFF`, `UPDATE loss_recoveries SET old_debt = NULL WHERE id = WOFF`},
 		{"WAR-3", `UPDATE stock_movements SET reference_id = NULL WHERE id = WMOVE`, `UPDATE stock_movements SET reference_id = CLAIM WHERE id = WMOVE`},
 		{"WAR-3", `UPDATE stock_movements SET quantity = -2 WHERE id = WMOVE`, `UPDATE stock_movements SET quantity = -1 WHERE id = WMOVE`},
 		{"WAR-2", `UPDATE warranty_units SET warranty_until = warranty_until + 1 WHERE serial_no = 'IMEI-L1-B'`,

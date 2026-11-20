@@ -91,7 +91,8 @@ once, power cut, sent twice).
 - **REC-3** Money with the supplier, with no money moving: a **credit** (paid) lowers the supplier's balance by the
   amount (above 0), goes on their open bills oldest first (credited, PUR-11), then the old debt (SUP-2), and only
   what's beyond everything they're owed waits as credit for the next bills (`credit_unapplied`, PUR-8); what it put
-  on each bill and on the old debt is kept, and with what waits adds up to the amount. An **extra
+  on each bill and on the old debt is kept, and with what waits never passes the amount (the rest went on what's owed
+  outside bills, an extra charge). An **extra
   charge** (extra per unit × the units, to the cent; never below 0) raises their balance (SUP-1). Either needs a
   supplier: the form fills in the lot's supplier (changeable; a lot may have none). A credit may be any amount, even
   above the loss's worth (the form shows the worth beside it). A credit for a disabled supplier goes through (like a
@@ -110,9 +111,10 @@ once, power cut, sent twice).
   refund, another recovery — lands whole: the stock, the lot, the balance and the bills move by exactly what each
   says (SUP-8). Lock order as areas 4–5: the loss's row, then stock rows, then lots, then the supplier last. A power
   cut leaves the recovery with all its stock and supplier effects, or none. *fault.*
-- **REC-8** A loss's recovery can be undone while nothing came after it: a replacement while its lot still
-  holds every unit it put back; a credit while what it left for the next bills is unspent (it is taken back off the
-  bills and old debt it went on, which then owe that again); written off always. Undo takes back exactly what it did —
+- **REC-8** A loss's recovery can be undone while nothing came after it: a replacement while no stock of its
+  product moved since; a credit (or an extra charge) while nothing since touched the supplier's books — no bill,
+  payment, goods sent back, refund or other recovery (it is taken back off the bills and old debt it went on, which
+  then owe that again); written off always. One recorded before undo existed can't be. Undo takes back exactly what it did —
   a `recovery` movement of the units out at their worth (a top-up's lot back to its cost before), the balance, the
   extra charge — removes the recovery, and the loss waits on the claims list again. Anything else is refused, saying
   what came after. Two undos, or an undo beside a sale of those units, at the same moment: one wins.

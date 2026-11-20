@@ -189,7 +189,11 @@ What will run out before the next delivery, by supplier (if the cashier may see 
 
 ### Warranty
 
-Find a unit by serial or receipt and swap it under warranty.
+Find a unit by serial or receipt and swap it under warranty. Only a unit still under warranty can be
+swapped, up to and including its last day. A unit that came back on a return has none, and by receipt
+you can swap only what the customer kept. The new unit's warranty goes on from the old one's; it
+doesn't start again. To do a favour after the warranty ends, write the unit off and sell the new one
+at Rs 0.
 
 ![Warranty](../images/till/warranty.jpg)
 

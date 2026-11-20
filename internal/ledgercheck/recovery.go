@@ -4,13 +4,7 @@ package ledgercheck
 // good on a loss (docs/rules/recovery.md).
 func init() {
 	checks = append(checks,
-		// REC-1: one recovery per loss.
-		check{"REC-1", `
-			SELECT source_type || ' ' || source_id, format('%s recoveries of one loss', count(*))
-			FROM loss_recoveries
-			GROUP BY source_type, source_id
-			HAVING count(*) > 1`},
-
+		// REC-1: one recovery per loss is the database's rule (loss_recoveries_one_per_loss).
 		// REC-1: a recovery's loss is its source's: a damage write-off's worth and units,
 		// or a replaced warranty unit (1 unit) worth its claim's movement.
 		check{"REC-1", `
@@ -29,6 +23,33 @@ func init() {
 				WHERE lr.source_type = 'warranty' AND wu.id = lr.source_id AND wu.status = 'replaced'
 			) src ON true
 			WHERE src.worth IS NULL OR src.worth <> lr.loss_value OR src.qty <> lr.quantity OR src.product_id <> lr.product_id`},
+
+		// REC-2: a replacement's stock came back under its name, its units exactly;
+		// an undone one's stock left again.
+		check{"REC-2", `
+			SELECT 'recovery ' || lr.id, format('%s units back, its movements say %s', lr.quantity, COALESCE(m.q, 0))
+			FROM loss_recoveries lr
+			LEFT JOIN LATERAL (SELECT SUM(quantity) AS q FROM stock_movements
+			                   WHERE type = 'recovery' AND reference_type = 'recovery' AND reference_id = lr.id) m ON true
+			WHERE lr.outcome = 'replacement' AND lr.lot_id IS NOT NULL AND COALESCE(m.q, 0) <> lr.quantity
+			UNION ALL
+			SELECT 'recovery ' || m.reference_id, format('undone, but %s units of it are still in', SUM(m.quantity))
+			FROM stock_movements m
+			WHERE m.type = 'recovery' AND m.reference_type = 'recovery'
+			  AND NOT EXISTS (SELECT 1 FROM loss_recoveries WHERE id = m.reference_id)
+			GROUP BY m.reference_id
+			HAVING SUM(m.quantity) <> 0`},
+
+		// REC-3: a credit's kept split — its bills (the supplier's own) + the old debt +
+		// what still waits — never passes it; only a credit has one.
+		check{"REC-3", `
+			SELECT 'recovery ' || lr.id, format('%s %s: on bills %s, old debt %s, waiting %s%s', lr.outcome, lr.recovered_value,
+			       COALESCE(x.v, 0), COALESCE(lr.old_debt, 0), lr.credit_unapplied, CASE WHEN x.other THEN ', another supplier''s bill' ELSE '' END)
+			FROM loss_recoveries lr
+			LEFT JOIN LATERAL (SELECT SUM(b.amount) AS v, bool_or(pu.supplier_id IS DISTINCT FROM lr.supplier_id) AS other
+			                   FROM loss_recovery_bills b JOIN purchases pu ON pu.id = b.purchase_id WHERE b.recovery_id = lr.id) x ON true
+			WHERE COALESCE(x.v, 0) + COALESCE(lr.old_debt, 0) + lr.credit_unapplied > lr.recovered_value OR x.other OR lr.old_debt < 0
+			   OR (lr.outcome <> 'paid' AND (x.v IS NOT NULL OR lr.old_debt IS NOT NULL))`},
 
 		// REC-5: what a recovery holds agrees with its outcome.
 		check{"REC-5", `

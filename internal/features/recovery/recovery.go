@@ -134,6 +134,14 @@ func (r *Repository) damageSource(ctx context.Context, movementID int64) (*sourc
 	return &s, nil
 }
 
+// lockSource resolves and holds the loss a recovery is raised against.
+func (r *Repository) lockSource(ctx context.Context, sourceType string, sourceID int64) (*source, error) {
+	if sourceType == SourceWarranty {
+		return r.warrantySource(ctx, sourceID)
+	}
+	return r.damageSource(ctx, sourceID)
+}
+
 // RecoveredQtyForSource is how much has already been recovered against a source.
 func (r *Repository) RecoveredQtyForSource(ctx context.Context, sourceType string, sourceID int64) (decimal.Decimal, error) {
 	var q decimal.Decimal

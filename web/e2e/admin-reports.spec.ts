@@ -115,6 +115,11 @@ test('losses: a damage write-off is recovered from the supplier', async ({ page 
   await page.getByRole('button', { name: 'Record', exact: true }).click()
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Recovery recorded' }).first()).toBeVisible()
   await expect(page.getByText('written off').first()).toBeVisible()
+  // REC-8: undone, the loss waits to be recovered again.
+  await page.getByRole('button', { name: 'Undo', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Undo it', exact: true }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Recovery undone' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Recover' }).first()).toBeVisible()
 })
 
 test('warranty register opens a unit; activity filters by who; the dashboard range switches', async ({ page }) => {

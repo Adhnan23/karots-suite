@@ -24,6 +24,7 @@ func (h *handlers) registerReportsOps(g *echo.Group) {
 	g.GET("/reports/losses", h.ReportLosses)
 	g.GET("/reports/losses/lines", h.ReportLossLines)
 	g.POST("/recovery", h.AdminRecovery)
+	g.DELETE("/recovery/:id", h.AdminRecoveryUndo)
 }
 
 // ReportRecipeVariance is expected vs actual ingredient use: a yield is an estimate, this shows the drift.
@@ -133,6 +134,12 @@ func (h *handlers) ReportLossLines(c echo.Context) error {
 		if l.SourceID != nil {
 			r.SourceID = *l.SourceID
 		}
+		if l.RecoveryID != nil {
+			r.RecoveryID = *l.RecoveryID
+		}
+		if l.SupplierID != nil {
+			r.SupplierID = *l.SupplierID
+		}
 		out = append(out, r)
 	}
 	return c.JSON(http.StatusOK, out)
@@ -165,5 +172,19 @@ func (h *handlers) AdminRecovery(c echo.Context) error {
 		}
 	}
 	h.audit(c, audit.ActionUpdate, req.SourceType, strconv.FormatInt(req.SourceID, 10), "supplier recovery: "+req.Outcome)
+	return c.NoContent(http.StatusNoContent)
+}
+
+// AdminRecoveryUndo takes a recovery back while nothing came after it (REC-8), audited.
+func (h *handlers) AdminRecoveryUndo(c echo.Context) error {
+	id, err := pathID(c)
+	if err != nil {
+		return err
+	}
+	r, err := recovery.NewService(h.d.DB).Undo(c.Request().Context(), id, middleware.CurrentUserID(c))
+	if err != nil {
+		return err
+	}
+	h.audit(c, audit.ActionUpdate, r.SourceType, strconv.FormatInt(r.SourceID, 10), "supplier recovery undone: "+r.Outcome)
 	return c.NoContent(http.StatusNoContent)
 }

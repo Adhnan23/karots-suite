@@ -102,7 +102,7 @@ function Stat({ label, value, sub, tone, action }: { label: string; value: strin
 }
 
 function Group({ g, sym, onLots, onDone, onClaim, onGiveBack, recall }: {
-  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, productId: number, product: string, qty: string, value: number) => void; onGiveBack: (l: GiveLot) => void; recall: ReturnType<typeof useRecall>
+  g: BatchGroup; sym: string; onLots: () => void; onDone: () => void; onClaim: (lossId: number, productId: number, product: string, qty: string, value: number, supplierId: number) => void; onGiveBack: (l: GiveLot) => void; recall: ReturnType<typeof useRecall>
 }) {
   const [open, setOpen] = useState(g.expired > 0 || g.expiringSoon > 0 || g.recalled > 0)
   return (
@@ -148,7 +148,7 @@ function Group({ g, sym, onLots, onDone, onClaim, onGiveBack, recall }: {
                         body={`Expired ${l.expiryDate}. It leaves the shelf as damage.`}
                         onConfirm={async () => {
                           const r = await api<ConsumeResult>('/admin/stock/damage', { json: { productId: g.productId, quantity: l.qtyRemaining, reason: 'damage', note: `expired ${l.expiryDate}`, batchId: l.id } })
-                          onClaim(r.lossId, g.productId, g.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice))
+                          onClaim(r.lossId, g.productId, g.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice), r.supplierId)
                           onDone()
                         }} />
                     </span>

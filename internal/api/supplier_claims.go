@@ -59,7 +59,7 @@ func (h *handlers) SupplierClaims(c echo.Context) error {
 	out := SupplierClaims{Recalled: claimLots(recalled), Expired: claimLots(expired), Expiring: claimLots(expiring), Waiting: make([]LossRow, 0, len(waiting))}
 	for _, l := range waiting {
 		out.Waiting = append(out.Waiting, LossRow{Kind: l.Kind, SourceID: l.MovementID, ID: l.MovementID, ProductID: l.ProductID, Product: l.Product,
-			Qty: l.Quantity.String(), Loss: dec2(l.LossValue), Note: strOr(l.Note), By: l.By, At: l.At.Format(time.RFC3339), GivenBack: l.GivenBack})
+			Qty: l.Quantity.String(), Loss: dec2(l.LossValue), Note: strOr(l.Note), By: l.By, At: l.At.Format(time.RFC3339), GivenBack: l.GivenBack, SupplierID: id})
 	}
 	return c.JSON(http.StatusOK, out)
 }

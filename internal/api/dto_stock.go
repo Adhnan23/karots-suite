@@ -134,6 +134,8 @@ type ConsumeRequest struct {
 type ConsumeResult struct {
 	LossID    int64  `json:"lossId"`
 	LossValue string `json:"lossValue,omitempty"` // what a give back booked
+	// SupplierID is who to settle a damage loss with: its lot's supplier (0 = nobody known).
+	SupplierID int64 `json:"supplierId"`
 }
 
 type WriteOffResult struct {

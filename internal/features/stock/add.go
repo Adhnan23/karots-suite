@@ -32,6 +32,10 @@ type AddStockInput struct {
 	Source  string
 	Move    string
 	RefType *string
+	RefID   *int64
+	// Blend tops BatchID up at Cost a unit, blending the lot's cost over all its
+	// units (a supplier's replacement, REC-2) instead of taking the lot's cost.
+	Blend bool
 }
 
 // ParseExpiry reads a YYYY-MM-DD expiry; blank is no expiry.
@@ -81,11 +85,20 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 			}
 			return 0, apperr.Internal("failed to read batch", err)
 		}
+		cost = b.CostPrice
+		lotCost := b.CostPrice
+		if in.Blend {
+			if cost, err = optAmount(in.Cost, "cost"); err != nil {
+				return 0, err
+			}
+			if held := b.QtyRemaining.Add(qty); held.IsPositive() {
+				lotCost = b.QtyRemaining.Mul(b.CostPrice).Add(qty.Mul(cost)).Div(held).Round(4)
+			}
+		}
 		if _, err := r.q.ExecContext(ctx, `UPDATE stock_batches SET qty_remaining = qty_remaining + $1,
-			qty_received = qty_received + $1 WHERE id = $2`, qty, batchID); err != nil {
+			qty_received = qty_received + $1, cost_price = $3 WHERE id = $2`, qty, batchID, lotCost); err != nil {
 			return 0, apperr.Internal("failed to top up batch", err)
 		}
-		cost = b.CostPrice
 	} else {
 		if cost, err = optAmount(in.Cost, "cost"); err != nil {
 			return 0, err
@@ -112,7 +125,7 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 		in.ProductID, qty); err != nil {
 		return 0, apperr.Internal("failed to update stock", err)
 	}
-	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: in.RefType,
+	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: in.RefType, ReferenceID: in.RefID,
 		UserID: userID, Note: nilIfEmpty(in.Note), Cost: cost.Mul(qty)}); err != nil {
 		return 0, apperr.Internal("failed to record movement", err)
 	}

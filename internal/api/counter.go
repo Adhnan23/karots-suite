@@ -54,6 +54,7 @@ func (h *handlers) registerCounter(g *echo.Group) {
 	sup.POST("/intake-products", h.CounterIntakeProduct)
 	registerSupplierClaims(sup, h)
 	sup.POST("/recovery", h.AdminRecovery)
+	sup.DELETE("/recovery/:id", h.AdminRecoveryUndo)
 	sup.GET("/stock/lots/:id", h.AdminProductLots)
 }
 
