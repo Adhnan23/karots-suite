@@ -110,6 +110,16 @@ func (s *Service) RecordReceiptReplacement(ctx context.Context, saleID, productI
 		repo := NewRepository(tx)
 		stk := stock.NewRepository(tx)
 
+		status, err := repo.LockSaleLines(ctx, saleID, productID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return apperr.NotFound("sale")
+			}
+			return apperr.Internal("failed to load sale", err)
+		}
+		if status == "void" {
+			return apperr.Conflict("that sale was voided; it has no warranty")
+		}
 		line, err := repo.NonSerialLine(ctx, saleID, productID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {

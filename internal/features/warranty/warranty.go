@@ -313,7 +313,7 @@ type ReceiptSale struct {
 }
 
 // ReceiptLine is one non-serial warranted product on a receipt. Qty is the total
-// sold across the sale's lines for that product; Replaced is how many have
+// sold across the sale's lines for that product less what came back (WAR-4); Replaced is how many have
 // already been handed out under warranty. WarrantyUntil / UnderWarranty /
 // Remaining are derived by the service.
 type ReceiptLine struct {
@@ -349,7 +349,7 @@ func (r *Repository) FindSaleByReceipt(ctx context.Context, receiptNo string) (*
 // of replacements already handed out. $2, when >0, narrows to one product.
 const nonSerialLinesSQL = `
 	SELECT si.product_id, p.name AS product_name, u.abbreviation AS unit_abbr,
-	       SUM(si.quantity) AS qty, p.warranty_months AS warranty_months, s.created_at AS sold_at,
+	       SUM(si.quantity - si.returned_qty) AS qty, p.warranty_months AS warranty_months, s.created_at AS sold_at,
 	       s.customer_id AS customer_id,
 	       (SELECT COUNT(*) FROM warranty_units wu
 	          WHERE wu.sale_id = s.id AND wu.product_id = si.product_id
@@ -367,6 +367,18 @@ func (r *Repository) NonSerialWarrantyLines(ctx context.Context, saleID int64) (
 	var rows []ReceiptLine
 	err := r.q.SelectContext(ctx, &rows, nonSerialLinesSQL, saleID, 0)
 	return rows, err
+}
+
+// LockSaleLines holds a sale's lines of one product (in id order, as a return
+// updates them) so two claims of its last unit can't both pass (WAR-6), and
+// answers the sale's status.
+func (r *Repository) LockSaleLines(ctx context.Context, saleID, productID int64) (string, error) {
+	if _, err := r.q.ExecContext(ctx, `SELECT 1 FROM sale_items WHERE sale_id = $1 AND product_id = $2 ORDER BY id FOR UPDATE`, saleID, productID); err != nil {
+		return "", err
+	}
+	var status string
+	err := r.q.GetContext(ctx, &status, `SELECT status FROM sales WHERE id = $1`, saleID)
+	return status, err
 }
 
 func (r *Repository) NonSerialLine(ctx context.Context, saleID, productID int64) (*ReceiptLine, error) {
