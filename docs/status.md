@@ -116,11 +116,28 @@ the supplier already held credit (REC-3). Not yet Released. `make battle` 20,000
 12 min). Full run: Go, Vitest and check-core green; Playwright 224 passed, 8 timed out beside Go's coverage run and
 passed alone. Coverage map updated (core Go 77.3%, screens 59.2%; recovery 78.3%, warranty 76.1%). Not covered by a
 machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). Dead code swept after it (`deadcode` with every plugin on, `70c14ad`):
-the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Area 7 started 2026-11-20** (reports and the Z report = the raw data): rule book `docs/rules/reports.md`
-(RPT-1–36, ZR-1–4), plan `docs/plans/2026-11-20-core-battle-test-reports.md`; Q1–Q4 answered as suggested (a return
-counts on its own day; a Z shows the refunds given in its session and never changes; line reports share a bill
-discount over the shop's own lines; the tax report shows tax given back and owed). Next: plan Task 2 (the agreement
-check). **After area 7 (user, 2026-11-20): push core toward 100% coverage** — what's
+the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Area 7 (reports and the Z report = the raw data), 2026-11-20 — built, closing** (rule book `docs/rules/reports.md`,
+RPT-1–37, ZR-1–4, plan `docs/plans/2026-11-20-core-battle-test-reports.md`). Reports store nothing, so the auditor
+layer is an **agreement check** (`internal/battle/reports_agree_test.go`): every report through the real API against
+plain sums over the raw rows and against each other — over a fixed day touching every grid row, in every random-days
+machine (every 25th check and each run's end; the sales machine's revenue against its own books), after every power
+cut, and over a grocery year (7,717 sales, `TestBattleReportsYear`, make battle). Users' answers built (Q1–Q6, all as
+suggested): a return counts on the day it was given, at the refund given (RPT-6); a Z shows the refunds given in its
+session and never changes (ZR-2, migration 00041); line reports share a bill discount over the shop's own lines
+(RPT-12); the Tax report shows tax given back and owed (RPT-17); a product's first stock and + Add batch / intake with
+no bill are stock on the books, never profit (RPT-9, Q5, Q6). Found and fixed: returns came off the sale's day; sales
+by cashier ignored returns; product / category reports took a discount share onto airtime; the Sales report counted
+tax as revenue, counted void sales and took returns off at a re-worked share instead of the refund given (RPT-37);
+Finance and the dashboard read their trend / spark outside the P&L's moment and disagreed with it under load, and the
+P&L swallowed 10 errors (RPT-36: one `reports.Snapshot` per page); **opening stock (a product sheet, a first count,
++ Add batch) was booked as profit by its whole worth** — the demo's net profit read Rs 63,245.95 for Rs 285.95, and
+Iman's first month is overstated the same way until this ships (migration 00042 marks the old rows). Mutation:
+gremlins on `reports` (the rest is SQL), and `scripts/report-mutants.py` plants 21 SQL mistakes — all killed. Screens
+checked at 360 px and desktop, light and dark (Tax, Z, P&L). Also fixed: Pocket Cashier's tests stopped building
+after the dead-code sweep (`deadcode` ignores tests — run `go vet ./...` after one). Small, not fixed (area 2): a
+cash refund's drawer move is stored and shown as a "Withdrawal" on the Z (numbers right, label wrong). Not yet
+Released. Left: `make battle`, the full run, retaken Tax / Z shots, the coverage map, then delete the plan.
+**After area 7 (user, 2026-11-20): push core toward 100% coverage** — what's
 left after the areas is mostly database-failure branches (`if err != nil { return apperr.Internal(…) }`), list
 filters and screens; the failure branches need a way to make the database fail on purpose (a test DB wrapper that
 fails the Nth query), so plan that as its own piece of work. The coverage map still shows the run before the sweep;
