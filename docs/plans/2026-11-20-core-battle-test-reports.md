@@ -47,6 +47,8 @@ the only new maths is a refund's tax share, checked by cases.
 - **RPT-4:** zero-cost revenue counts pass-through lines and returned units.
 - **RPT-36:** `Compute` runs ~20 queries outside a transaction (and swallows errors on 10 of them with `_ =`: errors
   must surface, RPT-1).
+- **RPT-30 (found in Task 2):** the Sales report (`sales.Summarize`, the sales list's totals) counts revenue with
+  tax in (`total − pass-through − returns`) and counts void sales (no status filter by default).
 - **RPT-21:** supplier spend's `paid` = `paid_amount` now, not paid in the period: fine as labelled, a case pins it.
 
 ---
@@ -61,17 +63,19 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 2: The agreement check (`internal/battle/reports_agree_test.go`)
 
-- [ ] **Step 1:** `agree(t, shop, from, to)`: GET the P&L, sales by period (day / week / month), peak hours, top
+- [x] **Step 1:** `agree(t, shop, from, to)`: GET the P&L, sales by period (day / week / month), peak hours, top
   products (limit 200) + product totals, categories, services, cashiers, returns, tax, expenses, losses, dues (both),
   supplier spend, purchases, stock value, the dashboard (when the range is today), and the Z of every session in
   range. Assert RPT-30–34 between them and RPT-1, 7, 9, 16, 17, 20–25 against plain SQL over the raw rows (written
   fresh in the test, never the report's own SQL constants).
-- [ ] **Step 2:** A fixed shop day that touches every grid row (sale with item + bill discount, pack, frozen, service,
+- [x] **Step 2:** (`ledger_reports_test.go`; skipped until Task 4 unless `KS_AREA7=1`. Found: RPT-6, 12, 14, 17,
+  ZR-2 as expected; the Sales report has tax in its revenue and counts void sales (RPT-30); RPT-32 worded "on account
+  left out" — the by-method list shows on account, which isn't received, RPT-7.) A fixed shop day that touches every grid row (sale with item + bill discount, pack, frozen, service,
   payout, pass-through + bill discount, tax shop, void, part / whole return the next day, every tender, credit,
   expense, damage, recovery + undo, count, delivery, supplier pay with discount, interest, over / short) → run
   `agree` over the sale day, the return day and both. Expected to FAIL today on RPT-6, 12, 14, 17, ZR-2: record which,
   each is a Task 4 fix.
-- [ ] **Step 3:** Run over a Demo Room year (gen test) per month and whole: every failure is a bug (→ Task 4), a
+- [ ] **Step 3:** (moved after Task 4: before the fixes every month fails RPT-6.) Run over a Demo Room year (gen test) per month and whole: every failure is a bug (→ Task 4), a
   wrong rule (→ the user) or seed data.
 - [ ] **Step 4: Commit** — `test(battle): area 7 agreement check — reports against each other and the raw rows`
 
@@ -89,6 +93,7 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 4: Fixes, one commit each, test first
 
+- [ ] **Step 0:** Remove the `KS_AREA7` skip in `ledger_reports_test.go`; each step below turns its failures green.
 - [ ] **Step 1:** Shared SQL pieces in `internal/features/reports` (`soldIn`, `returnedIn`: revenue before tax, cost,
   qty, by day / product / cashier) — the pre-tax share with pass-through left out (Q3).
 - [ ] **Step 2:** RPT-6 — `Compute`, `SalesByPeriod`, `PeakHours` (a return in its hour), `TopProducts`,
@@ -97,8 +102,9 @@ the only new maths is a refund's tax share, checked by cases.
 - [ ] **Step 4:** ZR-2 — migration 00041 `sale_returns.session_id` (set by the return beside its cash move; back-fill);
   `PeriodSummary` returns by session; the Z print page and `ZReport` DTO (`make types`) say "Refunds given".
 - [ ] **Step 5:** RPT-17 — `TaxSummary` given back + owed; the Tax page and its sheet.
-- [ ] **Step 6:** RPT-4, RPT-36 (one read-only snapshot per report; no swallowed errors), anything Tasks 2–3 found.
-- [ ] **Step 7:** Screens: Reports → P&L caption ("returns on the day they were made"), Tax, Z; check at 360 px and
+- [ ] **Step 6:** RPT-30 — the Sales report's revenue before tax, void sales out (`sales.Summarize`, the sales list).
+- [ ] **Step 7:** RPT-4, RPT-36 (one read-only snapshot per report; no swallowed errors), anything Tasks 2–3 found.
+- [ ] **Step 8:** Screens: Reports → P&L caption ("returns on the day they were made"), Tax, Z; check at 360 px and
   in two palettes; guide `docs/guide/reports.md` + the till's Z in `docs/guide/till.md`; `make docs-shots` for the
   shots that changed.
 

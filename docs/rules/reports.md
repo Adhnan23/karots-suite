@@ -150,12 +150,12 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
 
 ### Reports agree with each other
 
-- **RPT-30** Over any period: P&L revenue = Σ period rows = Σ peak-hour cells = Σ cashiers' net (RPT-14); P&L tax =
+- **RPT-30** Over any period: P&L revenue = the Sales report's revenue (and its count, profit) = Σ period rows = Σ peak-hour cells = Σ cashiers' net (RPT-14); P&L tax =
   the tax report's total; P&L sales count = Σ period counts = Σ cashiers' counts; the dashboard's today = the P&L of
   today. *machine (oracle), after every random day.*
 - **RPT-31** Over any period: the P&L's returns = the Returns page's refunds less the tax report's given back;
   Σ Z reports' returns of the sessions = the refunds given in those sessions.
-- **RPT-32** Σ the P&L's by-method lines = received; Σ Z reports' by-method lines of the sessions = the same sales'
+- **RPT-32** Σ the P&L's by-method lines, on account left out, = received; Σ Z reports' by-method lines of the sessions = the same sales'
   by-method lines in the P&L (sales with no session apart, DRAW-6).
 - **RPT-33** Losses & Recovery and the P&L show the same losses and recoveries for the same period (RPT-22).
 - **RPT-34** Σ supplier dues = the P&L's payables; Σ supplier credit = the P&L's supplier credit.
