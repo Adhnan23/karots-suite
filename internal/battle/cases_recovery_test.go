@@ -158,6 +158,13 @@ func TestWAR4ByReceiptNeverPastWhatsKept(t *testing.T) {
 	s.must(t, s.swapByReceipt(r.ID, p))
 	s.mustRefuse(t, "a third swap when one of three came back", s.swapByReceipt(r.ID, p))
 
+	// The last day of cover still counts; the day after doesn't.
+	l := s.sell(t, s.till1, "0", []line{{"productId": p, "quantity": "2"}}, cash("200"))
+	s.must(t, sqlxExec(t.Context(), s.db, fmt.Sprintf(`UPDATE sales SET created_at = CURRENT_DATE + interval '12 hours' - interval '6 months' WHERE id = %d`, l.ID)))
+	s.must(t, s.swapByReceipt(l.ID, p))
+	s.must(t, sqlxExec(t.Context(), s.db, fmt.Sprintf(`UPDATE sales SET created_at = CURRENT_DATE + interval '12 hours' - interval '6 months 1 day' WHERE id = %d`, l.ID)))
+	s.mustRefuse(t, "a swap the day after the cover ended", s.swapByReceipt(l.ID, p))
+
 	v := s.sell(t, s.till1, "0", []line{{"productId": p, "quantity": "1"}}, cash("100"))
 	s.must(t, sqlxExec(t.Context(), s.db, fmt.Sprintf(`UPDATE sales SET status = 'void' WHERE id = %d`, v.ID)))
 	s.mustRefuse(t, "a swap on a void sale", s.swapByReceipt(v.ID, p))
@@ -349,6 +356,32 @@ func TestREC6ClaimsListIsTheirOwn(t *testing.T) {
 	s.must(t, s.recover(map[string]any{"sourceType": "damage", "sourceId": mv, "outcome": "written_off"}))
 	if w := s.waiting(t, a); len(w) != 0 {
 		t.Errorf("a settled loss still listed: %v", w)
+	}
+
+	// A recalled lot is listed as recalled, and only on its own supplier's list.
+	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/suppliers/%d/claims/lots/%d/recall", b, lb), map[string]bool{"stopSelling": false}, nil))
+	var cl struct {
+		Recalled []struct{ LotID int64 } `json:"recalled"`
+	}
+	s.must(t, s.admin.Do("GET", supPath(b, "claims"), nil, &cl))
+	if len(cl.Recalled) != 1 || cl.Recalled[0].LotID != lb {
+		t.Errorf("B's recalled lots %+v, want [%d]", cl.Recalled, lb)
+	}
+	s.must(t, s.admin.Do("GET", supPath(a, "claims"), nil, &cl))
+	if len(cl.Recalled) != 0 {
+		t.Errorf("A's list shows B's recalled lot")
+	}
+
+	// A write-off of their lot waits 180 days; one given back to them waits until settled.
+	old, gone := s.damage(t, p, la, "1"), s.damage(t, p, la, "1")
+	s.must(t, sqlxExec(t.Context(), s.db, fmt.Sprintf(`UPDATE stock_movements SET created_at = NOW() - interval '179 days' WHERE id = %d;
+		UPDATE stock_movements SET created_at = NOW() - interval '181 days' WHERE id = %d`, old, gone)))
+	if w := s.waiting(t, a); len(w) != 1 || w[0] != old {
+		t.Errorf("A's list %v, want only the 179-day-old write-off %d", w, old)
+	}
+	s.must(t, sqlxExec(t.Context(), s.db, fmt.Sprintf(`UPDATE stock_movements SET given_back_to = %d WHERE id = %d`, a, gone)))
+	if w := s.waiting(t, a); len(w) != 2 {
+		t.Errorf("A's list %v, want the given-back one too, however old", w)
 	}
 	s.audit(t)
 }

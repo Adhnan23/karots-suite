@@ -112,11 +112,11 @@ a time.
 
 ### Task 6: Mutation
 
-- [ ] **Step 1:** `make mutate` on `internal/features/recovery` and `internal/features/warranty`; replay LIVED / NOT
+- [x] **Step 1:** `make mutate` on `internal/features/recovery` and `internal/features/warranty`; replay LIVED / NOT
   COVERED against the battle tests in a scratch copy (`scripts/replay-mutants.py`, absolute testdb path), record which
   test kills each.
-- [ ] **Step 2:** Close the money gaps (a test per survivor that matters, naming its rule); list the rest.
-- [ ] **Step 3: Commit** — `test: area 6 mutants killed — …`
+- [x] **Step 2:** Close the money gaps (a test per survivor that matters, naming its rule); list the rest.
+- [x] **Step 3: Commit** — `test: area 6 mutants killed — …`
 
 ### Task 7: Close the area
 
