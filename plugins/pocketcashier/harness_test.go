@@ -54,7 +54,7 @@ func newEnv(t *testing.T) *env {
 	en.p = &Plugin{}
 	en.p.Setup(plugin.NewRegistry(plugin.Core{DB: db, Cfg: &config.Config{ServerPort: 3000, Version: "test"}, Audit: audit.NewService(db),
 		Settings: settings.NewService(db), CashRegister: cr, Sales: ss, Cashflow: cf, Auth: en.auth, Held: heldsales.NewService(db)}, mux, en.e))
-	jwt := middleware.JWTAuth(testSecret)
+	jwt := middleware.JWTAuthWith(testSecret, nil)
 	v1 := en.e.Group("/api/v1")
 	mux.Mount(v1.Group("/x"), v1.Group("/x", jwt), v1.Group("/x", jwt, middleware.RequireRole(auth.RoleAdmin, auth.RoleManager)))
 	t.Cleanup(func() { plugin.SetOneDeviceForTest(false) })

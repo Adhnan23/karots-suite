@@ -30,7 +30,7 @@ type callFix struct {
 
 func newCallFix(t *testing.T) *callFix {
 	f := &callFix{rfix: newRfix(t, "10")}
-	jwt := middleware.JWTAuth(testSecret)
+	jwt := middleware.JWTAuthWith(testSecret, nil)
 	pay := func(c echo.Context) error {
 		var b map[string]any
 		if err := c.Bind(&b); err != nil {
@@ -116,7 +116,7 @@ func TestCallAfterMovingToThePC(t *testing.T) {
 	f.en.e.POST("/api/v1/till/t-device", func(c echo.Context) error {
 		dev = c.Request().Header.Get("X-Ks-Device")
 		return c.NoContent(http.StatusNoContent)
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	r := f.send(f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-device", Body: json.RawMessage(`{}`)}))
 	if r[0].Status != "applied" || dev != "the-pc" {
 		t.Fatalf("a call made before the move must still go through: %+v, device %q", r[0], dev)
@@ -330,7 +330,7 @@ func TestCallTempField(t *testing.T) {
 	f := newCallFix(t)
 	f.en.e.POST("/api/v1/till/t-both", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{"id": 501, "customerId": 777})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	const temp, cust = int64(9000000000022222), int64(9000000000022223)
 	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-both", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(cust): "customerId"}})
 	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(fmt.Sprintf(`{"patientId":%d,"customerId":%d}`, temp, cust))})
@@ -353,7 +353,7 @@ func TestSaleOnACustomerMadeOffline(t *testing.T) {
 	}) //nolint:errcheck
 	f.en.e.POST("/api/v1/till/t-cust", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{"id": 502, "customerId": cust})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	const temp, tempCust = int64(9000000000033333), int64(9000000000033334)
 	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cust", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(tempCust): "customerId"}})
 	sale := f.saleAct("s", ago(time.Second), "1", "120")
@@ -442,7 +442,7 @@ func TestCallSurvivesADroppedConnection(t *testing.T) {
 		booked++
 		cancel()
 		return c.JSON(http.StatusOK, map[string]any{"id": 900})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cancel", Body: json.RawMessage(`{}`)})
 	raw, _ := json.Marshal(ActionsRequest{Actions: []Action{a}})
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/x/pocketcashier/actions", bytes.NewReader(raw)).WithContext(ctx)
@@ -460,7 +460,7 @@ func TestCallResultInsideTheReply(t *testing.T) {
 	f := newCallFix(t)
 	f.en.e.POST("/api/v1/till/t-nested", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{"package": map[string]any{"id": 321}, "created": true})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	const temp = int64(9000000000044444)
 	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-nested", Body: json.RawMessage(`{}`), TempID: temp, ResultAt: "package.id"})
 	child := f.call("child", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(fmt.Sprintf(`{"pkg":%d}`, temp))})
@@ -493,7 +493,7 @@ func TestCallServerErrorIsTriedAgain(t *testing.T) {
 		}
 		booked++
 		return c.JSON(http.StatusOK, map[string]any{"id": 1})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-boom", Body: json.RawMessage(`{}`), CashIn: "50"})
 	after := f.call("b", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-pay", Body: json.RawMessage(`{}`)})
 	if r := f.send(a, after); len(r) != 0 || len(f.seen) != 0 {
@@ -513,7 +513,7 @@ func TestCallServerErrorGivesUpInTheEnd(t *testing.T) {
 	t.Cleanup(func() { maxServerRetries = was })
 	f.en.e.POST("/api/v1/till/t-boom", func(c echo.Context) error {
 		return apperr.Internal("always", errors.New("boom"))
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	a := f.call("a", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-boom", Body: json.RawMessage(`{}`)})
 	f.send(a)
 	f.send(a)
@@ -535,7 +535,7 @@ func TestHoldOnACustomerMadeOffline(t *testing.T) {
 	}) //nolint:errcheck
 	f.en.e.POST("/api/v1/till/t-cust", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{"id": 502, "customerId": cust})
-	}, middleware.JWTAuth(testSecret))
+	}, middleware.JWTAuthWith(testSecret, nil))
 	parent := f.call("parent", time.Now(), CallBody{Method: "POST", Path: "/api/v1/till/t-cust", Body: json.RawMessage(`{}`), TempID: temp, TempFields: map[string]string{fmt.Sprint(tempCust): "customerId"}})
 	hold := act(f.ref("h"), "hold", f.cashier, time.Now(), map[string]any{"label": "x", "saleType": "retail", "customerId": tempCust, "discount": "0", "cart": `{"v":2,"lines":[],"customerId":` + fmt.Sprint(tempCust) + `}`, "itemCount": 0, "total": "0"})
 	r := f.send(parent, hold)
