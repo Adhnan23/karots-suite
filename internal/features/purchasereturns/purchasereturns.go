@@ -208,6 +208,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 		sup := suppliers.NewRepository(tx)
 		puRepo := purchases.NewRepository(tx)
 
+		if err := suppliers.RequireActive(ctx, tx, in.SupplierID); err != nil {
+			return err
+		}
 		ref := "purchase_return"
 		total := decimal.Zero
 		if in.PurchaseID > 0 {

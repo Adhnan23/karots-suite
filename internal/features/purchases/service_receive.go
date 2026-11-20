@@ -180,6 +180,9 @@ func ReceiveTx(ctx context.Context, tx *sqlx.Tx, id int64, in ReceiveInput, user
 		if cur.Status != "draft" {
 			return apperr.Validation("this purchase has already been received")
 		}
+		if err := suppliers.RequireActive(ctx, tx, cur.SupplierID); err != nil {
+			return err
+		}
 		lines, subtotal, err := parseReceiveLines(in.Items)
 		if err != nil {
 			return err

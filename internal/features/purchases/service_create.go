@@ -38,6 +38,9 @@ func CreateTx(ctx context.Context, tx *sqlx.Tx, in CreateInput, userID int64) (*
 		dueDate = &d
 	}
 
+	if err := suppliers.RequireActive(ctx, tx, in.SupplierID); err != nil {
+		return nil, err
+	}
 	repo := NewRepository(tx)
 	stk := stock.NewRepository(tx)
 	sup := suppliers.NewRepository(tx)
@@ -203,6 +206,9 @@ func insertDraftLines(ctx context.Context, repo *Repository, purchaseID int64, l
 // createDraftTx inserts one draft purchase (status='draft', no stock/payable
 // effects) within the given transaction and returns its id.
 func createDraftTx(ctx context.Context, tx *sqlx.Tx, in CreateInput, userID int64) (int64, error) {
+	if err := suppliers.RequireActive(ctx, tx, in.SupplierID); err != nil {
+		return 0, err
+	}
 	repo := NewRepository(tx)
 	billValue, err := money.Parse(in.Discount)
 	if err != nil || billValue.IsNegative() {

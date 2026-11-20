@@ -261,3 +261,19 @@ func (s *Service) AdjustOpening(ctx context.Context, id int64, newOpeningStr str
 	}
 	return before, after, nil
 }
+
+// RequireActive refuses new business with a disabled supplier — a delivery, an
+// order or goods sent back (SUP-9). Paying or refunding one is still allowed.
+func RequireActive(ctx context.Context, q db.Queryer, id int64) error {
+	sup, err := NewRepository(q).FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return apperr.NotFound("supplier")
+		}
+		return apperr.Internal("failed to load supplier", err)
+	}
+	if !sup.IsActive {
+		return apperr.Validation(sup.Name + " is disabled — bring them back first")
+	}
+	return nil
+}
