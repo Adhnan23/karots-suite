@@ -118,10 +118,11 @@ passed alone. Coverage map updated (core Go 77.3%, screens 59.2%; recovery 78.3%
 machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). Dead code swept after it (`deadcode` with every plugin on, `70c14ad`):
 the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Area 7 (reports and the Z report = the raw data), 2026-11-20 — built, closing** (rule book `docs/rules/reports.md`,
 RPT-1–37, ZR-1–4, plan `docs/plans/2026-11-20-core-battle-test-reports.md`). Reports store nothing, so the auditor
-layer is an **agreement check** (`internal/battle/reports_agree_test.go`): every report through the real API against
+layer is an **agreement check** (`internal/ledgercheck/ltest/agree.go`): every report through the real API against
 plain sums over the raw rows and against each other — over a fixed day touching every grid row, in every random-days
 machine (every 25th check and each run's end; the sales machine's revenue against its own books), after every power
-cut, and over a grocery year (7,717 sales, `TestBattleReportsYear`, make battle). Users' answers built (Q1–Q6, all as
+cut, and over a grocery year (the Demo Room's tests, `TestYearReportsAgree`, in make test); the check is `ltest.Agree`, so
+the Demo Room and the battle tests share it. Users' answers built (Q1–Q6, all as
 suggested): a return counts on the day it was given, at the refund given (RPT-6); a Z shows the refunds given in its
 session and never changes (ZR-2, migration 00041); line reports share a bill discount over the shop's own lines
 (RPT-12); the Tax report shows tax given back and owed (RPT-17); a product's first stock and + Add batch / intake with
