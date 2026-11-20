@@ -364,5 +364,24 @@ func TestPUR8SettledFromCredit(t *testing.T) {
 	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/suppliers/%d/refund", other), map[string]string{"amount": "300", "method": "cash", "source": safe}, nil))
 	id2 := s.mustDeliver(t, other, []sl{{"productId": s.prod["plain"], "quantity": "10", "costPrice": "100"}}, nil)
 	eq(t, "paid from what's still held", s.bill(t, id2).Paid, "200")
+	// A credit for a loss (a write-off the supplier pays for, with no bill open)
+	// is credited to the next bill, never more than it holds.
+	lossy := s.newSup(t, "Loss Credit Ltd", "")
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{"productId": s.prod["odd"], "quantity": "2", "reason": "damage"}, nil))
+	var mv int64
+	s.must(t, s.db.Get(&mv, `SELECT id FROM stock_movements WHERE product_id = $1 AND type = 'damage' ORDER BY id DESC LIMIT 1`, s.prod["odd"]))
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/recovery", map[string]any{"sourceType": "damage", "sourceId": mv, "outcome": "paid", "supplierId": lossy, "amount": "30"}, nil))
+	if got := s.supBal(t, lossy); got != "-30.00" {
+		t.Fatalf("balance %s after a credit for a loss, want -30.00", got)
+	}
+	id3 := s.mustDeliver(t, lossy, []sl{{"productId": s.prod["plain"], "quantity": "1", "costPrice": "20"}}, nil)
+	eq(t, "credited from the loss credit", s.bill(t, id3).Credited, "20")
+	var left decimal.Decimal
+	s.must(t, s.db.Get(&left, `SELECT credit_unapplied FROM loss_recoveries WHERE supplier_id = $1`, lossy))
+	eq(t, "loss credit left", left, "10")
+	id4 := s.mustDeliver(t, lossy, []sl{{"productId": s.prod["plain"], "quantity": "1", "costPrice": "20"}}, nil)
+	eq(t, "the rest of it", s.bill(t, id4).Credited, "10")
+	s.must(t, s.db.Get(&left, `SELECT credit_unapplied FROM loss_recoveries WHERE supplier_id = $1`, lossy))
+	eq(t, "loss credit spent", left, "0")
 	s.audit(t)
 }
