@@ -16,15 +16,16 @@ func init() {
 			SELECT 'product ' || product_id, format('on hand %s', quantity) FROM stock WHERE quantity < 0`},
 
 		// STK-7: a non-sale movement that moved units records their worth, never below
-		// zero, and above zero when the product has a cost (a blank-cost lot is worth the
-		// product's cost). A till quick-add has no cost yet when it's added (the review
+		// zero, and above zero when they're worth half a cent or more at their lot's cost
+		// (a movement naming no lot: the product's cost; user, 2026-11-20). A till quick-add has no cost yet when it's added (the review
 		// queue fills it in later), so its opening was rightly worth 0.
 		check{"STK-7", `
 			SELECT 'movement ' || m.id, format('%s %s worth %s, product cost %s', m.type, m.quantity, m.cost, p.cost_price)
 			FROM stock_movements m JOIN products p ON p.id = m.product_id
+			LEFT JOIN stock_batches b ON m.reference_type = 'batch' AND b.id = m.reference_id
 			WHERE m.cost < 0
 			   OR (m.type IN ('adjust', 'damage', 'own_use', 'staff', 'warranty_replacement', 'to_shelf')
-			       AND m.quantity <> 0 AND m.cost = 0 AND p.cost_price > 0
+			       AND m.quantity <> 0 AND m.cost = 0 AND abs(m.quantity) * COALESCE(NULLIF(b.cost_price, 0), p.cost_price) >= 0.005
 			       AND m.note IS DISTINCT FROM 'quick-add opening (count pending)')`},
 
 		// STK-17: a pack holds a whole number of units.

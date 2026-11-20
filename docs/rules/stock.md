@@ -107,7 +107,8 @@ cut, sent twice).
 - **STK-7** Every movement other than a sale or return records its worth = the units × the cost of the lots they came
   from or went into (a lot with a blank cost at the product's cost): counts, write-offs, found at till, additions.
   Stock value only changes by what the movements say, a lot's cost edit (STK-20) or a merge's rounding (STK-15).
-  *ledgercheck, example.*
+  The worth is kept to the cent, so units worth under half a cent at their lot's cost book Rs 0. *User, 2026-11-20
+  (a pack bought at a big discount: 2 pieces at Rs 0.0023).* *ledgercheck, example.*
 
 ### Write-offs, giving back, recall
 
