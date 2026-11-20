@@ -36,6 +36,7 @@ func TestBattleStock(t *testing.T) {
 			"Merge":    m.merge,
 			"Freeze":   m.freeze,
 		})
+		m.s.agreeToday(rt)
 	})
 }
 
@@ -406,6 +407,7 @@ func (m *stockMachine) freeze(t *rapid.T) {
 
 func (m *stockMachine) check(t *rapid.T) {
 	m.s.audit(t)
+	m.s.agreeSometimes(t)
 	for _, p := range []*mProd{m.pills, m.bag, m.rice, m.pencl} {
 		var on decimal.Decimal
 		m.s.must(t, m.s.db.Get(&on, `SELECT quantity FROM stock WHERE product_id = $1`, p.id))

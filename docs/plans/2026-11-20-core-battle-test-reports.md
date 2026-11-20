@@ -115,10 +115,11 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 5: Machines run the agreement check
 
-- [ ] **Step 1:** Every random-days machine (sales, money, customers, stock, purchasing + recovery) calls `agree`
+- [x] **Step 1:** (every 25th check and at the end of each run — every step would add ~30 min to a long run; the
+  sales machine's `books`: P&L revenue = what it sold less what it refunded.) Every random-days machine (sales, money, customers, stock, purchasing + recovery) calls `agree`
   after each day and over the whole run; the sales machine's model also keeps its own revenue / cost / tax / refunds
   per day and per cashier, so RPT-1 is checked against the model too, not only SQL.
-- [ ] **Step 2:** Short in `make test`, long in `make battle`. Commit.
+- [x] **Step 2:** Short in `make test`, long in `make battle`. Commit.
 
 ### Task 6: Faults
 

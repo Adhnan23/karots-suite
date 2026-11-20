@@ -38,6 +38,7 @@ func TestBattlePurchasing(t *testing.T) {
 			"Recover": m.recover,
 			"Undo":    m.undo,
 		})
+		m.s.agreeToday(rt)
 	})
 }
 
@@ -53,9 +54,9 @@ type purchasingMachine struct {
 	safe, bank int64
 	sups       []*pSup
 	cheques    []*pCheque
-	n          int // cheque numbers
-	losses     []*pLoss         // write-offs of a supplier's lots, waiting or settled
-	moves      map[int64]int    // stock movements per product so far (REC-8)
+	n          int           // cheque numbers
+	losses     []*pLoss      // write-offs of a supplier's lots, waiting or settled
+	moves      map[int64]int // stock movements per product so far (REC-8)
 }
 
 func newPurchasingMachine(t *rapid.T) *purchasingMachine {
@@ -377,6 +378,7 @@ func (m *purchasingMachine) disable(t *rapid.T) {
 
 func (m *purchasingMachine) check(t *rapid.T) {
 	m.s.audit(t)
+	m.s.agreeSometimes(t)
 	for _, sp := range m.sups {
 		var bal, old decimal.Decimal
 		m.s.must(t, m.s.db.QueryRow(`SELECT outstanding_balance, opening_unlinked FROM suppliers WHERE id = $1`, sp.id).Scan(&bal, &old))

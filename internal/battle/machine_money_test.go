@@ -35,6 +35,7 @@ func TestBattleMoney(t *testing.T) {
 			"SettleCard": m.settleCard,
 			"CloseOpen":  m.closeOpen,
 		})
+		m.s.agreeToday(rt)
 	})
 }
 
@@ -355,6 +356,7 @@ func (m *moneyMachine) closeOpen(t *rapid.T) {
 
 func (m *moneyMachine) check(t *rapid.T) {
 	m.s.audit(t)
+	m.s.agreeSometimes(t)
 	held := decimal.Zero
 	for _, l := range m.lockers {
 		var bal decimal.Decimal

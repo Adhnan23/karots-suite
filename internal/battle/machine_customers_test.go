@@ -33,6 +33,7 @@ func TestBattleCustomers(t *testing.T) {
 			"Limit":      m.limit,
 			"Disable":    m.toggle,
 		})
+		m.s.agreeToday(rt)
 	})
 }
 
@@ -284,6 +285,7 @@ func (m *custMachine) toggle(t *rapid.T) {
 // check: the auditor, then every account, statement and the drawer against the books.
 func (m *custMachine) check(t *rapid.T) {
 	m.s.audit(t)
+	m.s.agreeSometimes(t)
 	for _, c := range m.custs {
 		a := m.s.acct(t, c.id)
 		if !a.Balance.Equal(c.bal) || !a.OldDebt.Equal(c.old) {

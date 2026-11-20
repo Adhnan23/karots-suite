@@ -133,16 +133,16 @@ func (a *agreeing) raw() {
 // pl: the P&L (Finance) against the raw rows — RPT-1, 3, 6, 7, 8, 9.
 func (a *agreeing) pl() {
 	var f struct {
-		SalesCount                                        int
-		Returns, Revenue, COGS, GrossProfit, Received     string
-		Tax, Expenses, Losses, OwnUse, StaffWelfare       string
-		StockCorrections, Recoveries, OtherIncome         string
-		DiscountsReceived, RegisterDiff, NetProfit        string
-		Receivables, CustomerAdvances, Payables           string
-		SupplierCredit                                    string
-		Trend                                             []struct{ Revenue, Profit string }
-		ByPayment                                         []struct{ Method, Total string }
-		Categories                                        []struct{ Revenue, Profit string }
+		SalesCount                                    int
+		Returns, Revenue, COGS, GrossProfit, Received string
+		Tax, Expenses, Losses, OwnUse, StaffWelfare   string
+		StockCorrections, Recoveries, OtherIncome     string
+		DiscountsReceived, RegisterDiff, NetProfit    string
+		Receivables, CustomerAdvances, Payables       string
+		SupplierCredit                                string
+		Trend                                         []struct{ Revenue, Profit string }
+		ByPayment                                     []struct{ Method, Total string }
+		Categories                                    []struct{ Revenue, Profit string }
 	}
 	a.get("/api/v1/admin/finance"+a.q, &f)
 	a.finRevenue, a.finProfit, a.finTax, a.finRecv = a.d(f.Revenue), a.d(f.GrossProfit), a.d(f.Tax), a.d(f.Received)
@@ -218,7 +218,7 @@ func (a *agreeing) pl() {
 func (a *agreeing) byTime() {
 	var sr struct {
 		Sum struct {
-			Count            int
+			Count           int
 			Revenue, Profit string
 		}
 		Trend []struct{ Revenue, Profit string }
@@ -408,5 +408,20 @@ func (a *agreeing) zReports() {
 func helperOf(t ltest.T) {
 	if h, ok := t.(interface{ Helper() }); ok {
 		h.Helper()
+	}
+}
+
+// agreeToday runs agree over today (the machines' shop lives in one day).
+func (s *shop) agreeToday(t ltest.T) {
+	helperOf(t)
+	today := time.Now().In(datetime.Location).Format("2006-01-02")
+	s.agree(t, today, today)
+}
+
+// agreeSometimes runs agreeToday every 25th machine check: every step would add
+// half an hour to a long run; each run also ends with one (area 7, Task 5).
+func (s *shop) agreeSometimes(t ltest.T) {
+	if s.checks++; s.checks%25 == 0 {
+		s.agreeToday(t)
 	}
 }

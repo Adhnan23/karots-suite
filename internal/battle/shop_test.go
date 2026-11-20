@@ -29,6 +29,7 @@ type shop struct {
 	prod                 map[string]int64
 	customer, cardAcct   int64
 	unitPcs, unitKg, cat int64
+	checks               int // agreeSometimes' count
 }
 
 type saleResult struct {

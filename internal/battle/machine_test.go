@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
+
+	"karots-suite/internal/datetime"
 
 	"github.com/shopspring/decimal"
 	"pgregory.net/rapid"
@@ -28,6 +31,8 @@ func TestBattleSales(t *testing.T) {
 			"Bounce":      m.bounce,
 			"CloseOpen":   m.closeOpen,
 		})
+		m.s.agreeToday(rt)
+		m.books(rt)
 	})
 }
 
@@ -301,6 +306,7 @@ func (m *machine) closeOpen(t *rapid.T) {
 // check: the auditor, then the machine's books against the server's.
 func (m *machine) check(t *rapid.T) {
 	m.s.audit(t)
+	m.s.agreeSometimes(t)
 	var st struct {
 		Summary struct{ Expected string } `json:"summary"`
 	}
@@ -324,5 +330,21 @@ func (m *machine) check(t *rapid.T) {
 		if done && !s.refunded.Equal(s.total) {
 			t.Fatalf("RET-5 sale %d fully back, refunded %s of %s", s.id, s.refunded, s.total)
 		}
+	}
+}
+
+// books: the P&L's revenue for today = what the machine sold less what it
+// refunded (RPT-1, RPT-6 — the shop has no tax or pass-through lines here), held
+// to its own books, not only to SQL.
+func (m *machine) books(t *rapid.T) {
+	want := decimal.Zero
+	for _, s := range m.sales {
+		want = want.Add(s.total).Sub(s.refunded)
+	}
+	today := time.Now().In(datetime.Location).Format("2006-01-02")
+	var f struct{ Revenue string }
+	m.s.must(t, m.s.admin.Do("GET", "/api/v1/admin/finance?from="+today+"&to="+today, nil, &f))
+	if got := dec(t, f.Revenue); !got.Equal(want) {
+		t.Fatalf("RPT-1 P&L revenue %s, the machine sold less refunded %s", got, want.StringFixed(2))
 	}
 }
