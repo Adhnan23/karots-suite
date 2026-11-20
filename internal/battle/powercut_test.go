@@ -19,7 +19,7 @@ import (
 )
 
 // Power cuts (Iman has generators, no UPS): the real server, killed without
-// warning mid-sale, mid-return, mid-move and mid-payment, then started again. Every sale, return and
+// warning mid-sale, mid-return, mid-move, mid-payment and mid-delivery, then started again. Every sale, return and
 // payment is whole or absent — the auditor finds nothing — however often it
 // happens. A long test: it runs in make battle (KS_BATTLE_STEPS), not make test.
 func TestBattlePowerCut(t *testing.T) {
@@ -31,6 +31,7 @@ func TestBattlePowerCut(t *testing.T) {
 	safe := s.locker(t, "Safe", "safe", "100000")
 	s.must(t, sqlxExec(context.Background(), s.db, `UPDATE users SET can_handle_suppliers = true`)) // counter expenses
 	stk := s.stockForCuts(t)
+	buy := s.buyingForCuts(t, safe)
 	bin := serverBinary(t)
 	cuts := max(steps()/200, 10)
 	for cut := 0; cut < cuts; cut++ {
@@ -42,8 +43,12 @@ func TestBattlePowerCut(t *testing.T) {
 		var wg sync.WaitGroup
 		stop := make(chan struct{})
 		admin := httpClient(t, srv.url, "0770000001")
-		for w := 0; w < 5; w++ {
+		for w := 0; w < 6; w++ {
 			wg.Add(1)
+			if w == 5 { // area 5: deliveries, supplier payments, refunds and goods sent back
+				go func() { defer wg.Done(); buy.busy(admin, stop) }()
+				continue
+			}
 			if w == 4 { // area 4: counts, write-offs and bags opened while the power goes
 				go func() { defer wg.Done(); stk.busy(admin, stop) }()
 				continue
@@ -72,7 +77,10 @@ func TestBattlePowerCut(t *testing.T) {
 	s.must(t, s.db.Get(&n, `SELECT count(*) FROM sales`))
 	var moves int
 	s.must(t, s.db.Get(&moves, `SELECT count(*) FROM stock_movements WHERE note IN ('cut count', 'stock-take') OR type IN ('damage', 'conversion')`))
-	t.Logf("%d power cuts, %d sales and %d stock moves survived", cuts, n, moves)
+	var buys, pays int
+	s.must(t, s.db.Get(&buys, `SELECT count(*) FROM purchases`))
+	s.must(t, s.db.Get(&pays, `SELECT count(*) FROM supplier_payments`))
+	t.Logf("%d power cuts, %d sales, %d stock moves, %d deliveries and %d supplier payments survived", cuts, n, moves, buys, pays)
 }
 
 // busyMoney moves cash in and out of the drawer, pays expenses from it and
