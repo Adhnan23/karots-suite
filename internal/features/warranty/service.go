@@ -232,15 +232,20 @@ func (s *Service) RecordReplacement(ctx context.Context, unitID int64, newSerial
 		repo := NewRepository(tx)
 		stk := stock.NewRepository(tx)
 
-		old, err := repo.FindUnitByID(ctx, unitID)
+		old, err := repo.LockUnitByID(ctx, unitID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return apperr.NotFound("warranty unit")
 			}
 			return apperr.Internal("failed to load unit", err)
 		}
-		if old.Status == "replaced" {
+		switch {
+		case old.Status == "replaced":
 			return apperr.Conflict("this unit has already been replaced")
+		case old.Status != "active":
+			return apperr.Conflict("this unit was returned; it has no warranty")
+		case !old.UnderWarranty():
+			return apperr.Validation("this item is out of warranty")
 		}
 
 		// Reject a duplicate serial up front with a clear message.

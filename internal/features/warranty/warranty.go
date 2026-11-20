@@ -142,6 +142,16 @@ func (r *Repository) FindUnitByID(ctx context.Context, id int64) (*Unit, error) 
 	return &u, nil
 }
 
+// LockUnitByID reads a unit and holds it for the transaction, so one fault is
+// swapped once (WAR-6).
+func (r *Repository) LockUnitByID(ctx context.Context, id int64) (*Unit, error) {
+	var u Unit
+	if err := r.q.GetContext(ctx, &u, selectUnit+` WHERE wu.id = $1 FOR UPDATE OF wu`, id); err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (r *Repository) FindUnitBySerial(ctx context.Context, serial string) (*Unit, error) {
 	var u Unit
 	if err := r.q.GetContext(ctx, &u, selectUnit+` WHERE wu.serial_no = $1 ORDER BY wu.status = 'returned', wu.id DESC LIMIT 1`, serial); err != nil {
