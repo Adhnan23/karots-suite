@@ -116,8 +116,8 @@ the supplier already held credit (REC-3). Not yet Released. `make battle` 20,000
 12 min). Full run: Go, Vitest and check-core green; Playwright 224 passed, 8 timed out beside Go's coverage run and
 passed alone. Coverage map updated (core Go 77.3%, screens 59.2%; recovery 78.3%, warranty 76.1%). Not covered by a
 machine: warranty swaps (no till in the purchasing machine; cases and faults hold them). Dead code swept after it (`deadcode` with every plugin on, `70c14ad`):
-the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Area 7 (reports and the Z report = the raw data), 2026-11-20 — built, closing** (rule book `docs/rules/reports.md`,
-RPT-1–37, ZR-1–4, plan `docs/plans/2026-11-20-core-battle-test-reports.md`). Reports store nothing, so the auditor
+the old template context, `JWTAuth`, two unused till-session lists; test-only helpers moved into their tests. **Area 7 (reports and the Z report = the raw data) closed 2026-11-20 — all 7 core areas done** (rule book `docs/rules/reports.md`,
+RPT-1–37, ZR-1–4, plan in git history). Reports store nothing, so the auditor
 layer is an **agreement check** (`internal/ledgercheck/ltest/agree.go`): every report through the real API against
 plain sums over the raw rows and against each other — over a fixed day touching every grid row, in every random-days
 machine (every 25th check and each run's end; the sales machine's revenue against its own books), after every power
@@ -136,9 +136,14 @@ Iman's first month is overstated the same way until this ships (migration 00042 
 gremlins on `reports` (the rest is SQL), and `scripts/report-mutants.py` plants 21 SQL mistakes — all killed. Screens
 checked at 360 px and desktop, light and dark (Tax, Z, P&L). Also fixed: Pocket Cashier's tests stopped building
 after the dead-code sweep (`deadcode` ignores tests — run `go vet ./...` after one). Small, not fixed (area 2): a
-cash refund's drawer move is stored and shown as a "Withdrawal" on the Z (numbers right, label wrong). Not yet
-Released. Left: `make battle`, the full run, retaken Tax / Z shots, the coverage map, then delete the plan.
-**After area 7 (user, 2026-11-20): push core toward 100% coverage** — what's
+cash refund's drawer move is stored and shown as a "Withdrawal" on the Z (numbers right, label wrong). `make battle` (49 min): every machine clean; the power cuts found a cash refund paid by a till
+opened while the return waited missing from that till's Z (fixed: a refund belongs to the session its cash left,
+ZR-2) and a check reading too soon after a cut (it now waits for the database to go quiet); power cuts then clean three
+times. Full run: Go, Vitest green; check-core green once the year test moved out of core; Playwright 262 passed beside
+Go's coverage run, admin-reports and palettes passed alone, **loose-versions (Alternatives plugin) fails the same way
+on the commit before area 7** — its till opens late and the spec misses the dialog; left for that plugin's pass.
+Coverage map updated (core Go 77.6%, reports 80.7%, screens 59.2%). Not yet Released.
+**Next (user, 2026-11-20): push core toward 100% coverage** — what's
 left after the areas is mostly database-failure branches (`if err != nil { return apperr.Internal(…) }`), list
 filters and screens; the failure branches need a way to make the database fail on purpose (a test DB wrapper that
 fails the Nth query), so plan that as its own piece of work. The coverage map still shows the run before the sweep;
