@@ -48,6 +48,14 @@ func TestTrendAgreesWithPLInShopTime(t *testing.T) {
 		INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal, cost_price, returned_qty)
 		VALUES ($1,$3,2,100,200,60,1), ($1,$4,1,500,500,0,0), ($2,$3,1,100,100,60,0)`, a, b, normalID, ptID)
 	mustR(t, err)
+	// One of A's two lines comes back that day: the refund is what was paid for it, 100 × 680/700 (RPT-6).
+	var ret, line int64
+	mustR(t, tx.GetContext(ctx, &line, `SELECT id FROM sale_items WHERE sale_id = $1 AND product_id = $2`, a, normalID))
+	mustR(t, tx.GetContext(ctx, &ret, `INSERT INTO sale_returns (sale_id, refund_amount, created_by, created_at)
+		VALUES ($1, 97.14, $2, $3) RETURNING id`, a, cashierID, day1.Add(11*time.Hour)))
+	_, err = tx.ExecContext(ctx, `INSERT INTO sale_return_items (return_id, sale_item_id, product_id, quantity, refund_amount)
+		VALUES ($1, $2, $3, 1, 97.14)`, ret, line, normalID)
+	mustR(t, err)
 
 	svc := &Service{db: tx}
 	from, to := day1, day1.AddDate(0, 0, 2)

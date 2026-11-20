@@ -2,7 +2,6 @@ package battle
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -15,11 +14,6 @@ import (
 // yesterday, today and both.
 func TestReportsAgreeOverAShopDay(t *testing.T) {
 	t.Parallel()
-	// Task 4 of docs/plans/2026-11-20-core-battle-test-reports.md removes this: today it fails on
-	// RPT-6 (returns on the sale's day), RPT-12 (Q3), RPT-14, RPT-17, RPT-30 (the Sales report) and ZR-2.
-	if os.Getenv("KS_AREA7") == "" {
-		t.Skip("area 7: the report fixes are pending (KS_AREA7=1 runs it)")
-	}
 	s := newShop(t)
 	ctx := t.Context()
 	// A tax-registered shop, an 18% product, and a pass-through service (airtime: a plugin's kind, set as one would).

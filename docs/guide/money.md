@@ -55,7 +55,8 @@ payment can carry several cheques, post-dated ones too, and each must add up to 
 ![Till sessions](../images/money/tills.jpg)
 
 Every open and close: the opening float, what the drawer should have held, what was counted, and
-the over or short. Open a session for its **Z report**. A till left open is marked **open now**,
+the over or short. Open a session for its **Z report**: its sales, the refunds given while it was
+open (whatever day those goods were sold) and its cash. A closed Z never changes. A till left open is marked **open now**,
 and an admin or manager can close it for the cashier.
 
 Each sale belongs to the till that took its money. A sale rung when its cashier had no till open

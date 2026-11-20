@@ -171,34 +171,43 @@ func (s *Service) WarrantyAndRecovery(ctx context.Context, from, to time.Time) (
 	return out, nil
 }
 
-// TaxDayRow is one day's taxable base (net sales excl. tax) and tax charged.
+// TaxDayRow is one day's taxable base (net sales excl. tax), tax charged, and
+// tax given back on that day's returns (RPT-17).
 type TaxDayRow struct {
-	Day   time.Time       `db:"day"   json:"day"`
-	Count int             `db:"count" json:"count"`
-	Base  decimal.Decimal `db:"base"  json:"base"`
-	Tax   decimal.Decimal `db:"tax"   json:"tax"`
+	Day       time.Time       `db:"day"        json:"day"`
+	Count     int             `db:"count"      json:"count"`
+	Base      decimal.Decimal `db:"base"       json:"base"`
+	Tax       decimal.Decimal `db:"tax"        json:"tax"`
+	GivenBack decimal.Decimal `db:"given_back" json:"given_back"`
 }
 
-// TaxSummary is the per-day and total tax charged on sales for a period.
+// TaxSummary is the per-day and total tax for a period.
 type TaxSummary struct {
-	Rows      []TaxDayRow     `json:"rows"`
-	Count     int             `json:"count"`
-	TotalBase decimal.Decimal `json:"total_base"`
-	TotalTax  decimal.Decimal `json:"total_tax"`
+	Rows           []TaxDayRow     `json:"rows"`
+	Count          int             `json:"count"`
+	TotalBase      decimal.Decimal `json:"total_base"`
+	TotalTax       decimal.Decimal `json:"total_tax"`
+	TotalGivenBack decimal.Decimal `json:"total_given_back"`
 }
 
-// TaxSummary aggregates tax charged on (non-void) sales per day. Base is the
-// pre-tax amount (total − tax); this reflects tax charged at sale time and is
-// not net of subsequent returns.
+// Owed is the tax charged less the tax given back on returns.
+func (t TaxSummary) Owed() decimal.Decimal { return t.TotalTax.Sub(t.TotalGivenBack) }
+
+// TaxSummary is the tax charged on (non-void) sales per day — base = total −
+// tax — and the tax part of each refund on the day it was given (RPT-17, user's
+// Q4, 2026-11-20). A day with only returns shows too.
 func (s *Service) TaxSummary(ctx context.Context, from, to time.Time) (*TaxSummary, error) {
 	var rows []TaxDayRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT date_trunc('day', created_at AT TIME ZONE $3) AS day,
-		       COUNT(*) AS count,
-		       COALESCE(SUM(total - tax),0) AS base,
-		       COALESCE(SUM(tax),0) AS tax
-		FROM sales
-		WHERE status <> 'void' AND created_at >= $1 AND created_at < $2
+		SELECT date_trunc('day', x.at AT TIME ZONE $3) AS day, SUM(x.n) AS count,
+		       COALESCE(SUM(x.base),0) AS base, COALESCE(SUM(x.tax),0) AS tax, COALESCE(SUM(x.back),0) AS given_back
+		FROM (
+			SELECT s.created_at AS at, 1 AS n, s.total - s.tax AS base, s.tax, 0 AS back `+salesInSQL+`
+			UNION ALL
+			SELECT r.created_at, 0, 0, 0, ri.refund_amount * `+taxBackSQL+`
+			FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id JOIN sales s ON s.id = r.sale_id
+			WHERE s.status <> 'void' AND r.created_at >= $1 AND r.created_at < $2
+		) x
 		GROUP BY 1 ORDER BY 1`, from, to, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load tax summary", err)
 	}
@@ -206,6 +215,7 @@ func (s *Service) TaxSummary(ctx context.Context, from, to time.Time) (*TaxSumma
 	for _, r := range rows {
 		out.TotalBase = out.TotalBase.Add(r.Base)
 		out.TotalTax = out.TotalTax.Add(r.Tax)
+		out.TotalGivenBack = out.TotalGivenBack.Add(r.GivenBack)
 		out.Count += r.Count
 	}
 	return out, nil
@@ -251,14 +261,9 @@ func (s *Service) ServiceProfit(ctx context.Context, from, to time.Time) ([]Serv
 	var rows []ServiceProfitRow
 	if err := s.db.SelectContext(ctx, &rows, `
 		WITH sold AS (
-			SELECT si.product_id,
-			       SUM(si.quantity - si.returned_qty) AS units,
-			       SUM( `+KeptRevenueSQL+` ) AS revenue,
-			       SUM( (si.quantity - si.returned_qty) * si.cost_price ) AS cogs
-			FROM sale_items si
-			JOIN sales s ON s.id = si.sale_id
-			WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-			GROUP BY si.product_id
+			SELECT f.product_id, SUM(f.qty) AS units, SUM(f.revenue) AS revenue, SUM(f.cost) AS cogs
+			FROM (`+flowSQL+`) f
+			GROUP BY f.product_id
 		),
 		tagged AS (
 			SELECT service_product_id AS product_id, SUM(amount) AS expenses

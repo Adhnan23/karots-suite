@@ -2713,13 +2713,14 @@ export interface ExpensesReport {
   rows: ExpenseCatTotal[];
 }
 /**
- * TaxDay is one shop day's tax charged at sale.
+ * TaxDay is one shop day's tax charged at sale and given back on its returns.
  */
 export interface TaxDay {
   day: string;
   count: number /* int */;
   base: string;
   tax: string;
+  givenBack: string;
 }
 /**
  * TaxReport is the Tax summary.
@@ -2730,6 +2731,11 @@ export interface TaxReport {
   count: number /* int */;
   base: string;
   tax: string;
+  /**
+   * GivenBack is the tax part of the period's refunds; Owed = Tax − GivenBack (RPT-17).
+   */
+  givenBack: string;
+  owed: string;
   rows: TaxDay[];
 }
 /**

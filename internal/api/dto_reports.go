@@ -267,22 +267,26 @@ type ExpensesReport struct {
 	Rows  []ExpenseCatTotal `json:"rows"`
 }
 
-// TaxDay is one shop day's tax charged at sale.
+// TaxDay is one shop day's tax charged at sale and given back on its returns.
 type TaxDay struct {
-	Day   string `json:"day"`
-	Count int    `json:"count"`
-	Base  string `json:"base"`
-	Tax   string `json:"tax"`
+	Day       string `json:"day"`
+	Count     int    `json:"count"`
+	Base      string `json:"base"`
+	Tax       string `json:"tax"`
+	GivenBack string `json:"givenBack"`
 }
 
 // TaxReport is the Tax summary.
 type TaxReport struct {
-	From  string   `json:"from"`
-	To    string   `json:"to"`
-	Count int      `json:"count"`
-	Base  string   `json:"base"`
-	Tax   string   `json:"tax"`
-	Rows  []TaxDay `json:"rows"`
+	From  string `json:"from"`
+	To    string `json:"to"`
+	Count int    `json:"count"`
+	Base  string `json:"base"`
+	Tax   string `json:"tax"`
+	// GivenBack is the tax part of the period's refunds; Owed = Tax − GivenBack (RPT-17).
+	GivenBack string   `json:"givenBack"`
+	Owed      string   `json:"owed"`
+	Rows      []TaxDay `json:"rows"`
 }
 
 // TillTotals is every till session the Till sessions filters match (SQL, not

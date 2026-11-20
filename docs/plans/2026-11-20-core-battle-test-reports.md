@@ -93,17 +93,20 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 4: Fixes, one commit each, test first
 
-- [ ] **Step 0:** Remove the `KS_AREA7` skip in `ledger_reports_test.go`; each step below turns its failures green.
-- [ ] **Step 1:** Shared SQL pieces in `internal/features/reports` (`soldIn`, `returnedIn`: revenue before tax, cost,
-  qty, by day / product / cashier) — the pre-tax share with pass-through left out (Q3).
-- [ ] **Step 2:** RPT-6 — `Compute`, `SalesByPeriod`, `PeakHours` (a return in its hour), `TopProducts`,
+- [x] **Step 0:** Remove the `KS_AREA7` skip in `ledger_reports_test.go`; each step below turns its failures green.
+- [x] **Step 1:** Shared SQL pieces (`reports/flow.go`: `flowSQL` = the period's sold own lines + returns given in
+  it, `soldSQL` / `returnedSQL` for time and people reports, `ownFactorSQL` — the bill discount over the shop's own
+  lines, Q3; `snapshot`). `KeptRevenueSQL` stays for the documents / repairs plugins (checked in the plugin phase).
+- [x] **Step 2:** RPT-6 — `Compute`, `SalesByPeriod`, `PeakHours` (a return in its hour), `TopProducts`,
   `ProductTotals`, `ProfitByCategory`, `ServiceProfit`, `ProductSalesByPeriod` on the shared pieces.
-- [ ] **Step 3:** RPT-14 — cashiers' net less the refunds each gave.
-- [ ] **Step 4:** ZR-2 — migration 00041 `sale_returns.session_id` (set by the return beside its cash move; back-fill);
+- [x] **Step 3:** RPT-14 — cashiers' net less the refunds each gave.
+- [x] **Step 4:** ZR-2 — migration 00041 `sale_returns.session_id` (set by the return beside its cash move; back-fill);
   `PeriodSummary` returns by session; the Z print page and `ZReport` DTO (`make types`) say "Refunds given".
-- [ ] **Step 5:** RPT-17 — `TaxSummary` given back + owed; the Tax page and its sheet.
-- [ ] **Step 6:** RPT-30 — the Sales report's revenue before tax, void sales out (`sales.Summarize`, the sales list).
-- [ ] **Step 7:** RPT-4, RPT-36 (one read-only snapshot per report; no swallowed errors), anything Tasks 2–3 found.
+- [x] **Step 5:** RPT-17 — `TaxSummary` given back + owed; the Tax page and its sheet.
+- [x] **Step 6:** RPT-37 (new rule: the Sales report and sales list are the period's receipts, so totals match rows)
+  — revenue before tax in rows and totals, void out of the totals unless filtered for.
+- [x] **Step 7:** RPT-4 (on the flow: own goods only, returns off on their day), RPT-36 for the P&L (`snapshot`; the
+  10 swallowed errors now fail it). The dashboard and the Z still read in several snapshots — Task 6 tests them first.
 - [ ] **Step 8:** Screens: Reports → P&L caption ("returns on the day they were made"), Tax, Z; check at 360 px and
   in two palettes; guide `docs/guide/reports.md` + the till's Z in `docs/guide/till.md`; `make docs-shots` for the
   shots that changed.

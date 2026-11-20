@@ -8,7 +8,6 @@ import (
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/datetime"
-	"karots-suite/internal/features/sales"
 
 	"github.com/shopspring/decimal"
 )
@@ -27,18 +26,20 @@ type CashierSalesRow struct {
 // over/short only) doesn't give.
 func (s *Service) SalesByCashier(ctx context.Context, from, to time.Time) ([]CashierSalesRow, error) {
 	var rows []CashierSalesRow
+	// A sale under its cashier; a return off the net of whoever gave the refund,
+	// on its day (RPT-14, RPT-6) — so the cashiers add up to the P&L.
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT u.name AS cashier, COUNT(*) AS count,
-		       COALESCE(SUM(s.subtotal),0) - COALESCE(SUM(pt.amt),0) AS gross,
-		       COALESCE(SUM(s.discount),0) AS discount,
-		       COALESCE(SUM(s.total - s.tax),0) - COALESCE(SUM(pt.amt),0) AS net
-		FROM sales s JOIN users u ON u.id = s.cashier_id
-		LEFT JOIN (
-			SELECT si.sale_id, SUM(si.subtotal) AS amt
-			FROM sale_items si JOIN products p ON p.id = si.product_id
-			WHERE p.pass_through GROUP BY si.sale_id
-		) pt ON pt.sale_id = s.id
-		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+		SELECT u.name AS cashier, SUM(x.n) AS count, SUM(x.gross) AS gross,
+		       SUM(x.discount) AS discount, SUM(x.net) AS net
+		FROM (
+			SELECT s.cashier_id AS user_id, 1 AS n,
+			       s.subtotal - (SELECT COALESCE(SUM(si.subtotal),0) FROM sale_items si JOIN products p ON p.id = si.product_id
+			                     WHERE si.sale_id = s.id AND p.pass_through) AS gross,
+			       s.discount, 0 AS net
+			`+salesInSQL+`
+			UNION ALL
+			SELECT x.user_id, 0, 0, 0, x.revenue FROM (`+soldSQL+` UNION ALL `+returnedSQL+`) x
+		) x JOIN users u ON u.id = x.user_id
 		GROUP BY u.id, u.name ORDER BY net DESC`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute sales by cashier", err)
 	}
@@ -130,9 +131,8 @@ type DayRow struct {
 
 // SalesByPeriod is net revenue/profit grouped by day, week or month. `gran` must
 // be one of day/week/month; anything else falls back to day. Each row's Day is
-// the period start in shop time. Revenue is counted exactly as Compute counts it
-// (sale total before tax, less pass-through face and returns at what was paid, via the same
-// per-sale aggregate the sales list uses), so the periods add up to the P&L.
+// the period start in shop time. It sums the same flow as Compute (a return on
+// its own day, RPT-6), so the periods add up to the P&L (RPT-10).
 func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran string) ([]DayRow, error) {
 	switch gran {
 	case "day", "week", "month":
@@ -141,18 +141,10 @@ func (s *Service) SalesByPeriod(ctx context.Context, from, to time.Time, gran st
 	}
 	var rows []DayRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT d.day, d.count, d.revenue, d.revenue - d.cogs AS profit
-		FROM (
-			SELECT date_trunc($3, s.created_at AT TIME ZONE $4) AS day,
-			       COUNT(*) AS count,
-			       COALESCE(SUM(s.total - s.tax - agg.pt_face - agg.ret_val * `+preTaxShareSQL+`),0) AS revenue,
-			       COALESCE(SUM(agg.cogs),0) AS cogs
-			FROM sales s
-			JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
-			WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-			GROUP BY 1
-		) d
-		ORDER BY d.day`, from, to, gran, datetime.Location.String()); err != nil {
+		SELECT date_trunc($3, x.at AT TIME ZONE $4) AS day, SUM(x.n) AS count,
+		       COALESCE(SUM(x.revenue),0) AS revenue, COALESCE(SUM(x.revenue - x.cost),0) AS profit
+		FROM (`+soldSQL+` UNION ALL `+returnedSQL+`) x
+		GROUP BY 1 ORDER BY 1`, from, to, gran, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load sales by period", err)
 	}
 	return rows, nil
@@ -168,19 +160,16 @@ type PeakBucket struct {
 }
 
 // PeakHours buckets non-void sales in [from,to) by local day-of-week and
-// hour-of-day, revenue counted as the P&L counts it — the staffing view (when are we busy). Timezone comes from the
+// hour-of-day (a return in the hour it was given), revenue counted as the P&L counts it — the staffing view (when are we busy). Timezone comes from the
 // same datetime package the rest of the app displays with.
 func (s *Service) PeakHours(ctx context.Context, from, to time.Time) ([]PeakBucket, error) {
 	tz := datetime.Location.String()
 	var rows []PeakBucket
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT EXTRACT(DOW  FROM (s.created_at AT TIME ZONE $3))::int AS dow,
-		       EXTRACT(HOUR FROM (s.created_at AT TIME ZONE $3))::int AS hour,
-		       COUNT(*) AS count,
-		       COALESCE(SUM(s.total - s.tax - agg.pt_face - agg.ret_val * `+preTaxShareSQL+`),0) AS revenue
-		FROM sales s
-		JOIN LATERAL (`+sales.ProfitAggSQL+`) agg ON true
-		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+		SELECT EXTRACT(DOW  FROM (x.at AT TIME ZONE $3))::int AS dow,
+		       EXTRACT(HOUR FROM (x.at AT TIME ZONE $3))::int AS hour,
+		       SUM(x.n) AS count, COALESCE(SUM(x.revenue),0) AS revenue
+		FROM (`+soldSQL+` UNION ALL `+returnedSQL+`) x
 		GROUP BY 1, 2 ORDER BY 1, 2`, from, to, tz); err != nil {
 		return nil, apperr.Internal("failed to load peak hours", err)
 	}

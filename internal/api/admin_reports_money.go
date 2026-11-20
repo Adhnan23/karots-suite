@@ -145,17 +145,18 @@ func (h *handlers) ReportTax(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out := TaxReport{From: fs, To: ts, Base: dec2(sum.TotalBase), Tax: dec2(sum.TotalTax), Rows: make([]TaxDay, 0, len(sum.Rows))}
+	out := TaxReport{From: fs, To: ts, Base: dec2(sum.TotalBase), Tax: dec2(sum.TotalTax), GivenBack: dec2(sum.TotalGivenBack),
+		Owed: dec2(sum.Owed()), Rows: make([]TaxDay, 0, len(sum.Rows))}
 	for _, r := range sum.Rows {
-		out.Rows = append(out.Rows, TaxDay{Day: r.Day.Format("2006-01-02"), Count: r.Count, Base: dec2(r.Base), Tax: dec2(r.Tax)})
+		out.Rows = append(out.Rows, TaxDay{Day: r.Day.Format("2006-01-02"), Count: r.Count, Base: dec2(r.Base), Tax: dec2(r.Tax), GivenBack: dec2(r.GivenBack)})
 		out.Count += r.Count
 	}
 	if wantsSheet(c) {
 		sheet := make([][]string, 0, len(out.Rows))
 		for _, r := range out.Rows {
-			sheet = append(sheet, []string{r.Day, strconv.Itoa(r.Count), r.Base, r.Tax})
+			sheet = append(sheet, []string{r.Day, strconv.Itoa(r.Count), r.Base, r.Tax, r.GivenBack})
 		}
-		return writeSheet(c, "tax_"+fs+"_"+ts, []string{"Date", "Sales", "Taxable base", "Tax"}, sheet)
+		return writeSheet(c, "tax_"+fs+"_"+ts, []string{"Date", "Sales", "Taxable base", "Tax", "Given back"}, sheet)
 	}
 	return c.JSON(http.StatusOK, out)
 }

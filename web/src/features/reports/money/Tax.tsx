@@ -12,21 +12,22 @@ import { taxQuery } from '../queries'
 
 const route = getRouteApi('/_authed/admin/reports/tax')
 
-/** Tax summary: tax
- * charged at sale per day, with the taxable amount. */
+/** Tax summary: tax charged at sale per day, with the taxable amount, the tax
+ * given back on that day's returns, and what's owed (RPT-17). */
 export function TaxPage() {
   const r = rangeOf(route.useSearch())
   const navigate = route.useNavigate()
   const sym = useSuspenseQuery(configQuery).data.symbol
   const d = useQuery({ ...taxQuery(r), placeholderData: keepPreviousData }).data
   return (
-    <ReportPage title="Tax" sub="Tax charged at the till, day by day, with the amount it was charged on."
+    <ReportPage title="Tax" sub="Tax charged at the till, day by day, the tax given back on returns, and what is owed."
       range={r} onRange={(x) => void navigate({ search: (p) => ({ ...p, ...x }), replace: true })} caption={d && periodText(d.from, d.to)}
       exportUrl={`/api/v1/admin/reports/tax?${reportQS(r)}`}>
-      <KpiStrip label="Headline" cols={3}>
+      <KpiStrip label="Headline" cols={4}>
+        <Kpi label="Tax owed" v={d ? money(sym, d.owed) : '…'} />
         <Kpi label="Tax charged" v={d ? money(sym, d.tax) : '…'} />
+        <Kpi label="Given back on returns" v={d ? money(sym, d.givenBack) : '…'} />
         <Kpi label="Taxable sales" v={d ? money(sym, d.base) : '…'} />
-        <Kpi label="Sales" v={d ? String(d.count) : '…'} className="phone:col-span-2" />
       </KpiStrip>
       <DataList label="Days" rows={d?.rows ?? []} rowKey={(x) => x.day}
         empty={<EmptyState title={d ? 'No sales in this period' : 'Loading…'} />}
@@ -35,6 +36,7 @@ export function TaxPage() {
           { key: 'n', header: 'Sales', num: true, cell: (x) => x.count },
           { key: 'base', header: 'Taxable', num: true, cell: (x) => money(sym, x.base) },
           { key: 'tax', header: 'Tax', num: true, cell: (x) => <b>{money(sym, x.tax)}</b> },
+          { key: 'back', header: 'Given back', num: true, cell: (x) => money(sym, x.givenBack) },
         ]} />
     </ReportPage>
   )

@@ -80,8 +80,10 @@ func (r *Repository) OutstandingItems(ctx context.Context, saleID int64) (int, e
 func (r *Repository) InsertSaleReturn(ctx context.Context, saleID, userID int64, refund, creditReduction decimal.Decimal, reason *string) (int64, error) {
 	var id int64
 	err := r.q.GetContext(ctx, &id, `
-		INSERT INTO sale_returns (sale_id, refund_amount, credit_reduction, reason, created_by)
-		VALUES ($1,$2,$3,$4,$5) RETURNING id`, saleID, refund, creditReduction, reason, userID)
+		INSERT INTO sale_returns (sale_id, refund_amount, credit_reduction, reason, created_by, session_id)
+		VALUES ($1,$2,$3,$4,$5,
+		        (SELECT id FROM cash_register WHERE user_id = $5 AND closed_at IS NULL ORDER BY id DESC LIMIT 1))
+		RETURNING id`, saleID, refund, creditReduction, reason, userID)
 	return id, err
 }
 

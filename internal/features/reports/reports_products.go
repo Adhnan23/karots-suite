@@ -29,18 +29,12 @@ func (s *Service) TopProducts(ctx context.Context, from, to time.Time, orderBy s
 		limit = 50
 	}
 	var rows []ProductRevenue
+	// The period's flow: sold less given back in it, each on its day (RPT-6, RPT-12).
 	q := `
 		SELECT p.id AS product_id, p.name AS product_name,
-		       SUM(si.quantity - si.returned_qty) AS qty,
-		       SUM( ` + KeptRevenueSQL + ` ) AS revenue,
-		       SUM( ` + KeptRevenueSQL + `
-		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+		       SUM(f.qty) AS qty, SUM(f.revenue) AS revenue, SUM(f.revenue - f.cost) AS profit
+		FROM (` + flowSQL + `) f JOIN products p ON p.id = f.product_id
 		GROUP BY p.id, p.name
-		HAVING SUM(si.quantity - si.returned_qty) > 0
 		ORDER BY ` + order + ` DESC
 		LIMIT $3`
 	if err := s.db.SelectContext(ctx, &rows, q, from, to, limit); err != nil {
@@ -49,7 +43,9 @@ func (s *Service) TopProducts(ctx context.Context, from, to time.Time, orderBy s
 	return rows, nil
 }
 
-// KeptRevenueSQL is what a sale line actually brought in for the units kept,
+// KeptRevenueSQL is what a sale line actually brought in for the units kept
+// (by the sale's day — plugins' own views use it; core's reports count the
+// flow, flow.go),
 // before tax: the line net (item discount off) per unit × kept qty × the sale's
 // pre-tax paid factor ((total − tax) ÷ its line nets), so a bill discount is shared
 // out across the lines. Without the factor every line-level report (categories,
@@ -93,18 +89,12 @@ func (s *Service) ProfitByCategory(ctx context.Context, from, to time.Time, cats
 	var rows []CategoryProfit
 	if err := s.db.SelectContext(ctx, &rows, `
 		SELECT cat.id AS cat_id, cat.parent_id, cat.name AS category,
-		       SUM( `+KeptRevenueSQL+` ) AS revenue,
-		       SUM( (si.quantity - si.returned_qty) * si.cost_price ) AS cogs,
-		       SUM( `+KeptRevenueSQL+`
-		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
-		FROM sale_items si
-		JOIN sales s     ON s.id = si.sale_id
-		JOIN products p  ON p.id = si.product_id
+		       SUM(f.revenue) AS revenue, SUM(f.cost) AS cogs, SUM(f.revenue - f.cost) AS profit
+		FROM (`+flowSQL+`) f
+		JOIN products p  ON p.id = f.product_id
 		JOIN categories cat ON cat.id = p.category_id
-		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-		  AND ($3::text[] IS NULL OR cardinality($3::text[]) = 0 OR cat.name = ANY($3::text[]))
+		WHERE ($3::text[] IS NULL OR cardinality($3::text[]) = 0 OR cat.name = ANY($3::text[]))
 		GROUP BY cat.id, cat.parent_id, cat.name
-		HAVING SUM(si.quantity - si.returned_qty) > 0
 		ORDER BY profit DESC`, from, to, pq.Array(cats)); err != nil {
 		return nil, apperr.Internal("failed to load category profit", err)
 	}
@@ -147,14 +137,11 @@ func (s *Service) ProductSalesByPeriod(ctx context.Context, productID int64, fro
 	}
 	var rows []ProductPeriodRow
 	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT date_trunc($4, s.created_at AT TIME ZONE $5) AS day,
-		       COALESCE(SUM(si.quantity - si.returned_qty),0) AS qty,
-		       COALESCE(SUM( `+KeptRevenueSQL+` ),0) AS revenue
-		FROM sales s
-		JOIN sale_items si ON si.sale_id = s.id
-		WHERE s.status <> 'void' AND si.product_id = $1
-		  AND s.created_at >= $2 AND s.created_at < $3
-		GROUP BY 1 ORDER BY 1`, productID, from, to, gran, datetime.Location.String()); err != nil {
+		SELECT date_trunc($4, f.at AT TIME ZONE $5) AS day,
+		       COALESCE(SUM(f.qty),0) AS qty, COALESCE(SUM(f.revenue),0) AS revenue
+		FROM (`+flowSQL+`) f
+		WHERE f.product_id = $3
+		GROUP BY 1 ORDER BY 1`, from, to, productID, gran, datetime.Location.String()); err != nil {
 		return nil, apperr.Internal("failed to load product sales", err)
 	}
 	return rows, nil
@@ -198,19 +185,9 @@ type ProductTotals struct {
 func (s *Service) ProductTotals(ctx context.Context, from, to time.Time) (*ProductTotals, error) {
 	var t ProductTotals
 	if err := s.db.GetContext(ctx, &t, `
-		SELECT COUNT(*) AS products, COALESCE(SUM(qty),0) AS qty, COALESCE(SUM(revenue),0) AS revenue, COALESCE(SUM(profit),0) AS profit
-		FROM (
-			SELECT SUM(si.quantity - si.returned_qty) AS qty,
-			       SUM( `+KeptRevenueSQL+` ) AS revenue,
-			       SUM( `+KeptRevenueSQL+`
-			            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
-			FROM sale_items si
-			JOIN sales s ON s.id = si.sale_id
-			JOIN products p ON p.id = si.product_id
-			WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-			GROUP BY p.id
-			HAVING SUM(si.quantity - si.returned_qty) > 0
-		) x`, from, to); err != nil {
+		SELECT COUNT(DISTINCT f.product_id) AS products, COALESCE(SUM(f.qty),0) AS qty,
+		       COALESCE(SUM(f.revenue),0) AS revenue, COALESCE(SUM(f.revenue - f.cost),0) AS profit
+		FROM (`+flowSQL+`) f`, from, to); err != nil {
 		return nil, apperr.Internal("failed to total products", err)
 	}
 	return &t, nil

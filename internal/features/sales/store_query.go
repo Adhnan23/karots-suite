@@ -67,10 +67,9 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 		SELECT s.*, u.name AS cashier_name, c.name AS customer_name,
 		       (SELECT p.name FROM users p WHERE p.id = s.prepared_by) AS prepared_by_name,
 		       agg.cogs AS cogs,
-		       (s.total - agg.pt_face - agg.ret_val - agg.cogs) AS profit,
-		       CASE WHEN (s.total - agg.pt_face - agg.ret_val) > 0
-		            THEN (s.total - agg.pt_face - agg.ret_val - agg.cogs)
-		                 / (s.total - agg.pt_face - agg.ret_val) * 100
+		       (`+netRevSQL+` - agg.cogs) AS profit,
+		       CASE WHEN `+netRevSQL+` > 0
+		            THEN (`+netRevSQL+` - agg.cogs) / `+netRevSQL+` * 100
 		            ELSE 0 END AS margin
 		FROM sales s
 		JOIN users u ON u.id = s.cashier_id
@@ -122,6 +121,12 @@ func searchMatch(p string) string {
 	                          OR translate(lower(pr.name || ' ' || COALESCE(si.description, '')), ' -_/.', '')
 	                             LIKE '%' || translate(tok, ' -_/.', '') || '%')))))`
 }
+
+// netRevSQL is a receipt's revenue: before tax (the government's, RPT-1), less
+// pass-through face and what came back on it so far at its pre-tax part. The
+// sales list and the Sales report count each receipt this way, so their totals
+// match their rows. Correlated on `s` and `agg` (ProfitAggSQL).
+const netRevSQL = `(s.total - s.tax - agg.pt_face - agg.ret_val * COALESCE((s.total - s.tax - ` + PayoutsSQL + `) / NULLIF(s.total - ` + PayoutsSQL + `, 0), 1))`
 
 // ProfitAggSQL is the per-sale cost/pass-through/returns aggregate, mirroring
 // the Finance P&L definitions. Correlated on the outer `s`.
@@ -175,7 +180,7 @@ func (s ListSummary) AvgBasket() decimal.Decimal {
 	return s.Net.Div(decimal.NewFromInt(int64(s.Count)))
 }
 
-// Summarize aggregates every sale matching f, ignoring Limit/Offset entirely.
+// Summarize (void sales left out unless asked for by status, RPT-5) aggregates every sale matching f, ignoring Limit/Offset entirely.
 // The WHERE clause is kept identical to List above — change one, change both.
 func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary, error) {
 	var status *string
@@ -202,15 +207,15 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		       COALESCE(SUM(s.total), 0)                        AS net,
 		       COALESCE(SUM(s.paid_amount - s.change_given), 0) AS paid,
 		       COALESCE(SUM(agg.cogs), 0)                       AS cogs,
-		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val - agg.cogs), 0) AS profit,
-		       COALESCE(SUM(s.total - agg.pt_face - agg.ret_val), 0)           AS net_rev
+		       COALESCE(SUM(`+netRevSQL+` - agg.cogs), 0) AS profit,
+		       COALESCE(SUM(`+netRevSQL+`), 0)           AS net_rev
 		FROM sales s
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
 		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
 		WHERE `+inRange("$1", "$2", "$7")+`
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
-		  AND ($4::text IS NULL OR s.status = $4::sale_status)
+		  AND (($4::text IS NULL AND s.status <> 'void') OR s.status = $4::sale_status)
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
 		  AND ($6::text IS NULL OR EXISTS (
 		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $6::payment_method))

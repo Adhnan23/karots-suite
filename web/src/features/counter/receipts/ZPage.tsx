@@ -43,7 +43,7 @@ export function ZPage({ z, shop, sym }: { z: ZReport; shop: ShopHeader; sym: str
           <Tr l="Sales count" r={z.salesCount} />
           <Tr l="Gross" r={money(sym, z.gross)} />
           <Tr l="Discounts" r={money(sym, z.discount)} />
-          <Tr l="Returns" r={money(sym, z.returns)} />
+          <Tr l="Refunds given" r={money(sym, z.returns)} />
           <Tr l="Net sales" r={money(sym, z.net)} b />
         </Section>
         <Section title="Payments by method">

@@ -32,10 +32,18 @@ phone.
 | Top products by revenue, units or profit | Profit by category | Batches and expiry |
 | Product sales: one product over time, beside last year | Expenses by category | Stock count sheet (printable) |
 | Sales by cashier | Cash register: till sessions, over / short | Top-up and reorder, against the money on hand |
-| Peak hours by day and hour | Tax charged at the till | Purchases and what's still to pay |
+| Peak hours by day and hour | Tax charged, given back on returns, and owed | Purchases and what's still to pay |
 | Returns | Service profit | Spend by supplier |
 | Customer dues, and for how long | Losses and recovery | Supplier dues and what's overdue |
 | | Recipe variance | |
+
+**How the numbers are counted.** Every report agrees with the others and with the P&L. A return
+counts on **the day it was given back**, at the refund actually given, so a month already over
+never changes when something comes back later. Tax is never revenue: the Tax report holds it, with
+the tax given back on returns and the tax still owed. Airtime and other money passing through is
+never revenue either, and a bill discount comes off the shop's own goods. The **Sales** report is
+the period's receipts, each less whatever came back on it so far, so its totals match the receipts
+listed.
 
 ![Sales report](../images/reports/sales.jpg)
 

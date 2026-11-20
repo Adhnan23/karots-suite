@@ -81,7 +81,17 @@ type Service struct{ db appdb.Queryer }
 
 func NewService(db *sqlx.DB) *Service { return &Service{db: db} }
 
-func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) {
+// Compute is the P&L for [from, to), read in one snapshot (RPT-36): a sale
+// landing while it reads is in every figure or none.
+func (s *Service) Compute(ctx context.Context, from, to time.Time) (pl *PL, err error) {
+	err = s.snapshot(ctx, func(q *Service) error {
+		pl, err = q.compute(ctx, from, to)
+		return err
+	})
+	return pl, err
+}
+
+func (s *Service) compute(ctx context.Context, from, to time.Time) (*PL, error) {
 	pl := &PL{From: from, To: to}
 
 	// Gross sales (every real sale at its original total, before tax — tax
@@ -123,29 +133,26 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	}
 	pl.GrossRevenue = pl.GrossRevenue.Sub(passThrough)
 
-	// Returns: value of returned lines at what was paid for them (line net / qty
-	// × the sale's paid factor, so a bill discount is shared out — the refund
-	// actually given), for sales in this period. Gross is the discounted total,
-	// so the line sticker price here would take back more than came in.
-	if err := s.db.GetContext(ctx, &pl.Returns, `
-		SELECT COALESCE(SUM( (si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+preTaxFactorSQL+` ),0)
-		FROM sale_items si JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`,
-		from, to); err != nil {
-		return nil, apperr.Internal("failed to compute returns", err)
+	// Returns on the day they were given, at the refund before tax; cost the
+	// period's sold lines less what came back in it (RPT-6).
+	var flow struct {
+		Returns decimal.Decimal `db:"returns"`
+		COGS    decimal.Decimal `db:"cogs"`
+		NoCost  decimal.Decimal `db:"no_cost"`
+		NoLines int             `db:"no_lines"`
 	}
+	if err := s.db.GetContext(ctx, &flow, `
+		SELECT COALESCE(-SUM(revenue) FILTER (WHERE kind = 'r'),0) AS returns,
+		       COALESCE(SUM(cost),0) AS cogs,
+		       COALESCE(SUM(revenue) FILTER (WHERE no_cost),0) AS no_cost,
+		       COUNT(*) FILTER (WHERE no_cost AND kind = 's') AS no_lines
+		FROM (`+flowSQL+`) f`, from, to); err != nil {
+		return nil, apperr.Internal("failed to compute returns and cost", err)
+	}
+	pl.Returns, pl.COGS = flow.Returns, flow.COGS
 	pl.Revenue = pl.GrossRevenue.Sub(pl.Returns)
-
-	// COGS net of returns — returned units are restocked, so their cost is excluded.
-	if err := s.db.GetContext(ctx, &pl.COGS, `
-		SELECT COALESCE(SUM( (si.quantity - si.returned_qty) * si.cost_price ),0)
-		FROM sale_items si JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`,
-		from, to); err != nil {
-		return nil, apperr.Internal("failed to compute COGS", err)
-	}
+	// Stocked lines kept with no cost on the books (RPT-4) read as pure profit.
+	pl.ZeroCostRevenue, pl.ZeroCostLines = flow.NoCost, flow.NoLines
 	pl.GrossProfit = pl.Revenue.Sub(pl.COGS)
 	pl.GrossMargin = grossMargin(pl.GrossProfit, pl.Revenue)
 
@@ -197,40 +204,29 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	// the locker "Adjust → Interest" path as a locker_ledger row). Bank charges
 	// already hit the P&L through expenses; interest is the symmetric income side,
 	// read straight from the ledger (no separate income subsystem).
-	_ = s.db.GetContext(ctx, &pl.OtherIncome, `
+	if err := s.db.GetContext(ctx, &pl.OtherIncome, `
 		SELECT COALESCE(SUM(balance_delta),0) FROM locker_ledger
-		WHERE kind = 'interest' AND created_at >= $1 AND created_at < $2`, from, to)
+		WHERE kind = 'interest' AND created_at >= $1 AND created_at < $2`, from, to); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 
 	// Stock corrections: what counting the shelves added or took away, valued at
 	// the cost of the lots involved. Kept off Losses because a correction is not
 	// breakage — it is the count disagreeing with the books, and it swings both
 	// ways. Positive here means value written OFF (quantity carries the sign, the
 	// cost column is always the positive worth moved).
-	_ = s.db.GetContext(ctx, &pl.StockCorrections, `
+	if err := s.db.GetContext(ctx, &pl.StockCorrections, `
 		SELECT COALESCE(SUM(CASE WHEN quantity < 0 THEN cost ELSE -cost END),0)
 		FROM stock_movements
-		WHERE type = 'adjust' AND created_at >= $1 AND created_at < $2`, from, to)
+		WHERE type = 'adjust' AND created_at >= $1 AND created_at < $2`, from, to); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 
-	// Stocked lines that cost nothing on the books. Services are excluded: they
-	// legitimately have no stock cost.
-	_ = s.db.GetContext(ctx, &pl.ZeroCostRevenue, `
-		SELECT COALESCE(SUM(si.subtotal),0)
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.is_service AND COALESCE(si.cost_price,0) = 0
-		  AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`, from, to)
-	_ = s.db.GetContext(ctx, &pl.ZeroCostLines, `
-		SELECT COUNT(*)
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.is_service AND COALESCE(si.cost_price,0) = 0
-		  AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`, from, to)
-
-	_ = s.db.GetContext(ctx, &pl.RegisterDiff, `
+	if err := s.db.GetContext(ctx, &pl.RegisterDiff, `
 		SELECT COALESCE(SUM(difference),0) FROM cash_register
-		WHERE closed_at >= $1 AND closed_at < $2`, from, to)
+		WHERE closed_at >= $1 AND closed_at < $2`, from, to); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 
 	// The till drawer coming up short is money gone, the same as any other loss —
 	// standard retail books it as "cash over/short". RegisterDiff is negative when
@@ -242,38 +238,42 @@ func (s *Service) Compute(ctx context.Context, from, to time.Time) (*PL, error) 
 	// Only customers who OWE count as receivables. One holding an advance has a
 	// negative balance; summing raw netted it against everyone else's dues and
 	// understated what the shop is owed. The advance is owed back — reported apart.
-	_ = s.db.GetContext(ctx, &pl.Receivables,
-		`SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM customers`)
-	_ = s.db.GetContext(ctx, &pl.CustomerAdvances,
-		`SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM customers`)
+	if err := s.db.GetContext(ctx, &pl.Receivables,
+		`SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM customers`); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
+	if err := s.db.GetContext(ctx, &pl.CustomerAdvances,
+		`SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM customers`); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 	// Only suppliers we actually OWE count as payables. A supplier in credit (goods
 	// returned, or an advance paid) has a negative balance, and summing it raw
 	// netted that credit against everyone else's invoices — understating the debt.
 	// The credit is a receivable, reported separately.
-	_ = s.db.GetContext(ctx, &pl.Payables,
-		`SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM suppliers`)
-	_ = s.db.GetContext(ctx, &pl.SupplierCredit,
-		`SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM suppliers`)
+	if err := s.db.GetContext(ctx, &pl.Payables,
+		`SELECT COALESCE(SUM(GREATEST(outstanding_balance,0)),0) FROM suppliers`); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
+	if err := s.db.GetContext(ctx, &pl.SupplierCredit,
+		`SELECT COALESCE(SUM(GREATEST(-outstanding_balance,0)),0) FROM suppliers`); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 
 	// Cash drawer: total withdrawn and the net over/short of sessions closed in
 	// the period (negative = short).
-	_ = s.db.GetContext(ctx, &pl.CashWithdrawn, `
+	if err := s.db.GetContext(ctx, &pl.CashWithdrawn, `
 		SELECT COALESCE(SUM(ABS(amount)),0) FROM cash_movements
-		WHERE type = 'withdrawal' AND created_at >= $1 AND created_at < $2`, from, to)
+		WHERE type = 'withdrawal' AND created_at >= $1 AND created_at < $2`, from, to); err != nil {
+		return nil, apperr.Internal("failed to compute the P&L", err)
+	}
 
-	// Top products on net (kept) quantities and value.
+	// Top products over the period's flow (sold less given back, RPT-12).
 	if err := s.db.SelectContext(ctx, &pl.TopProducts, `
-		SELECT p.name AS product_name,
-		       SUM(si.quantity - si.returned_qty) AS qty,
-		       SUM( `+KeptRevenueSQL+` ) AS revenue,
-		       SUM( `+KeptRevenueSQL+`
-		            - (si.quantity - si.returned_qty) * si.cost_price ) AS profit
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
-		GROUP BY p.name
-		HAVING SUM(si.quantity - si.returned_qty) > 0
+		SELECT p.id AS product_id, p.name AS product_name, SUM(f.qty) AS qty,
+		       SUM(f.revenue) AS revenue, SUM(f.revenue - f.cost) AS profit
+		FROM (`+flowSQL+`) f JOIN products p ON p.id = f.product_id
+		GROUP BY p.id, p.name
+		HAVING SUM(f.qty) > 0
 		ORDER BY revenue DESC
 		LIMIT 10`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute top products", err)

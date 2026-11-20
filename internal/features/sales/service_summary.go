@@ -29,8 +29,8 @@ type PeriodSummary struct {
 	Count    int             `json:"count"`
 	Gross    decimal.Decimal `json:"gross"`
 	Discount decimal.Decimal `json:"discount"`
-	Returns  decimal.Decimal `json:"returns"` // value of returned lines on these sales
-	Net      decimal.Decimal `json:"net"`     // sales total − returns
+	Returns  decimal.Decimal `json:"returns"` // refunds given in the session (ZR-2)
+	Net      decimal.Decimal `json:"net"`     // sales total − refunds given
 	ByMethod []MethodTotal   `json:"by_method"`
 }
 
@@ -56,14 +56,15 @@ func (s *Service) PeriodSummary(ctx context.Context, sessionID int64) (*PeriodSu
 	}
 	out.Count, out.Gross, out.Discount = agg.Count, agg.Gross, agg.Discount
 
-	// Returns booked against this cashier's sales in the window, valued at what
-	// was paid (line net shared down by the bill discount) — so the day-end Net
-	// is net of refunds and matches the cash actually kept in the drawer.
+	// The refunds given in this session (ZR-2): every return its cashier made
+	// while it was open, whatever day the goods were sold, at what was given back
+	// for them. A return of its sales made later lands on a later Z, so a closed
+	// Z never changes.
 	var returns decimal.Decimal
 	err = s.db.GetContext(ctx, &returns, `
-		SELECT COALESCE(SUM((si.subtotal / NULLIF(si.quantity,0)) * si.returned_qty * `+PaidFactorSQL+`), 0)
-		FROM sale_items si JOIN sales s ON s.id = si.sale_id
-		WHERE s.session_id = $1 AND s.status <> 'void'`, sessionID)
+		SELECT COALESCE(SUM(ri.refund_amount), 0)
+		FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id JOIN sales s ON s.id = r.sale_id
+		WHERE r.session_id = $1 AND s.status <> 'void'`, sessionID)
 	if err != nil {
 		return nil, apperr.Internal("failed to summarize returns", err)
 	}

@@ -82,7 +82,7 @@ function ProfitTab({ d, sym }: { d: AdminFinance; sym: string }) {
         <h2 className="mb-2 font-display text-lg font-bold">Profit and loss</h2>
         <ul className="divide-y divide-border text-sm">
           {line(num(d.tax) > 0 ? 'Sales (before tax)' : 'Sales', d.grossRevenue)}
-          {line('Returns', d.returns, { sign: '−', skipZero: true })}
+          {line('Returns (on the day given)', d.returns, { sign: '−', skipZero: true })}
           {line('Net revenue', d.revenue, { strong: true })}
           {line('Cost of goods sold', d.cogs, { sign: '−' })}
           {line('Gross profit', d.grossProfit, { strong: true })}
