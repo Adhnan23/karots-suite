@@ -20,7 +20,7 @@ import { QtyStepper } from '../QtyStepper'
 import { useFormKeys } from '../useFormKeys'
 
 /** Old stock going back: lots that came on no delivery (opening, counted, intake). */
-type Loose = { productId: number; name: string; unitAbbr: string; lots: LotRow[]; batchId: number }
+type Loose = { productId: number; name: string; unitAbbr: string; lots: LotRow[]; batchId: number; frozen: boolean }
 const OLD = -1
 
 /** Send goods back from one received delivery (not any product to any
@@ -45,27 +45,30 @@ export function ReturnEntry({ supplierId, purchaseId }: { supplierId: number; pu
   const lotOf = (l: Loose) => l.lots.find((x) => x.id === l.batchId)
   // One shape for both modes: what can go back, keyed by lot.
   const lines = pid === OLD
-    ? loose.map((l) => ({ productId: l.productId, name: l.name, unitAbbr: l.unitAbbr, batchId: l.batchId, left: lotOf(l)?.qtyRemaining ?? '0', received: lotOf(l)?.qtyReceived ?? '0', cost: lotOf(l)?.costPrice ?? '0', listCost: lotOf(l)?.costPrice ?? '0', expiry: lotOf(l)?.expiryDate ?? '' }))
+    ? loose.map((l) => ({ productId: l.productId, name: l.name, unitAbbr: l.unitAbbr, batchId: l.batchId, left: lotOf(l)?.qtyRemaining ?? '0', received: lotOf(l)?.qtyReceived ?? '0', cost: lotOf(l)?.costPrice ?? '0', listCost: lotOf(l)?.costPrice ?? '0', expiry: lotOf(l)?.expiryDate ?? '', frozen: l.frozen }))
     : delivered
   const [qty, setQty] = useState<Record<number, string>>({})
+  // A frozen product's pieces out for sale (off the books) going back: put back on, then sent (PUR-9).
+  const [shelf, setShelf] = useState<Record<number, boolean>>({})
+  const most = (l: { batchId: number; left: string; received: string }) => num(shelf[l.batchId] ? l.received : l.left)
   const [reference, setReference] = useState('')
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const picked = lines.filter((l) => num(qty[l.batchId]) > 0)
   const total = r2(picked.reduce((t, l) => t + num(qty[l.batchId]) * num(l.cost), 0))
-  const over = picked.some((l) => num(qty[l.batchId]) > num(l.left))
+  const over = picked.some((l) => num(qty[l.batchId]) > most(l))
 
   async function addLoose(p: AdminProductRow) {
     const lots = (await qc.fetchQuery(lotsQuery(p.id))).lots.filter((l) => !l.fromDelivery && num(l.qtyRemaining) > 0)
     if (!lots.length) return void toast.error(`All of ${p.name}'s stock came on deliveries — return it against the delivery`)
-    setLoose((ls) => [...ls, { productId: p.id, name: p.name, unitAbbr: p.unitAbbr, lots, batchId: lots[0].id }])
+    setLoose((ls) => [...ls, { productId: p.id, name: p.name, unitAbbr: p.unitAbbr, lots, batchId: lots[0].id, frozen: !!p.stockFrozen }])
   }
 
   async function save() {
     setBusy(true)
     try {
       const body: PurchaseReturnRequest = { supplierId: supplier, purchaseId: Math.max(pid, 0), reference, reason,
-        lines: picked.map((l) => ({ productId: l.productId, quantity: qty[l.batchId], costPrice: '', batchId: l.batchId })) }
+        lines: picked.map((l) => ({ productId: l.productId, quantity: qty[l.batchId], costPrice: '', batchId: l.batchId, fromShelf: l.frozen && !!shelf[l.batchId] })) }
       const r = await api<PurchaseReturnRow>('/admin/purchase-returns', { json: body })
       toast.success(`Returned ${money(sym, r.total)} of stock to ${r.supplierName}`)
       void qc.invalidateQueries({ queryKey: ['admin'] })
@@ -133,9 +136,15 @@ export function ReturnEntry({ supplierId, purchaseId }: { supplierId: number; pu
                           {disc && <> <s>{money(sym, l.listCost)}</s> after discounts</>}{l.expiry && ` · exp ${l.expiry}`}
                         </small>
                       )}
+                      {l.frozen && (
+                        <label className="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                          <input type="checkbox" aria-label={`${l.name} out for sale`} checked={!!shelf[l.batchId]} onChange={(e) => setShelf({ ...shelf, [l.batchId]: e.target.checked })} />
+                          Frozen — these are out for sale (not in storage)
+                        </label>
+                      )}
                     </span>
-                    <QtyStepper label={`Return how many ${l.name}`} name={l.name} value={q} max={num(l.left)} onChange={(v) => setQty({ ...qty, [l.batchId]: v })}
-                      className={cn(num(q) > num(l.left) && 'border-danger', num(l.left) === 0 && 'pointer-events-none')} />
+                    <QtyStepper label={`Return how many ${l.name}`} name={l.name} value={q} max={most(l)} onChange={(v) => setQty({ ...qty, [l.batchId]: v })}
+                      className={cn(num(q) > most(l) && 'border-danger', most(l) === 0 && 'pointer-events-none')} />
                   </li>
                 )
               })}

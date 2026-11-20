@@ -2386,6 +2386,7 @@ export interface PurchaseReturnItem {
   quantity: string;
   costPrice: string; // ignored: the lot's cost is what goes back
   batchId: number /* int64 */; // the lot the delivery created
+  fromShelf: boolean; // a frozen product's pieces out for sale (PUR-9)
 }
 /**
  * PurchaseReturnRequest sends part of one received delivery back, at what those
@@ -2414,6 +2415,7 @@ export interface ReturnableLine {
   cost: string;
   listCost: string;
   expiry: string;
+  frozen: boolean; // stock frozen: pieces out for sale may go back too
 }
 export interface ReturnableList {
   lines: ReturnableLine[];

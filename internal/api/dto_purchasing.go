@@ -294,6 +294,7 @@ type PurchaseReturnItem struct {
 	Quantity  string `json:"quantity"`
 	CostPrice string `json:"costPrice"` // ignored: the lot's cost is what goes back
 	BatchID   int64  `json:"batchId"`   // the lot the delivery created
+	FromShelf bool   `json:"fromShelf"` // a frozen product's pieces out for sale (PUR-9)
 }
 
 // PurchaseReturnRequest sends part of one received delivery back, at what those
@@ -320,6 +321,7 @@ type ReturnableLine struct {
 	Cost      string `json:"cost"`
 	ListCost  string `json:"listCost"`
 	Expiry    string `json:"expiry"`
+	Frozen    bool   `json:"frozen"` // stock frozen: pieces out for sale may go back too
 }
 
 type ReturnableList struct {

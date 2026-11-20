@@ -62,6 +62,10 @@ type ItemInput struct {
 	// left the shop's records claiming stock it no longer had, at a price the till
 	// would go on offering a customer. Zero keeps the old FEFO behaviour.
 	BatchID int64 `json:"batch_id"`
+	// FromShelf: a frozen product's pieces out for sale (off the books) going
+	// back. They're put back on the books first (to_shelf), then sent back, as a
+	// frozen write-off is (PUR-9, STK-8). Ignored unless the product is frozen.
+	FromShelf bool `json:"from_shelf"`
 }
 
 type CreateInput struct {
@@ -234,6 +238,21 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 				return err
 			}
 			cost := decimal.Zero // the lot's own cost, below
+			if it.FromShelf && it.BatchID > 0 {
+				frozen, ferr := stk.Frozen(ctx, it.ProductID)
+				if ferr != nil {
+					return apperr.Internal("failed to read stock", ferr)
+				}
+				if frozen {
+					pc, cerr := stk.ProductCost(ctx, it.ProductID)
+					if cerr != nil {
+						return apperr.Internal("failed to read cost", cerr)
+					}
+					if berr := stk.BackFromSale(ctx, it.ProductID, it.BatchID, qty, pc, userID); berr != nil {
+						return apperr.Internal("failed to put the shelf pieces back on the books", berr)
+					}
+				}
+			}
 			ok, err := stk.DecrementGuarded(ctx, it.ProductID, qty)
 			if err != nil {
 				return apperr.Internal("failed to update stock", err)

@@ -52,10 +52,11 @@ func (h *handlers) AdminPurchaseReturnable(c echo.Context) error {
 		Cost   decimal.Decimal `db:"cost_price"`
 		Expiry *time.Time      `db:"expiry_date"`
 		Unit   string          `db:"unit_abbr"`
+		Frozen bool            `db:"stock_frozen"`
 	}
 	var lots []lot
 	if err := h.d.DB.SelectContext(ctx, &lots, `
-		SELECT b.purchase_item_id, b.id, b.qty_received, b.qty_remaining, b.cost_price, b.expiry_date, COALESCE(u.abbreviation, '') AS unit_abbr
+		SELECT b.purchase_item_id, b.id, b.qty_received, b.qty_remaining, b.cost_price, b.expiry_date, COALESCE(u.abbreviation, '') AS unit_abbr, p.stock_frozen
 		FROM stock_batches b JOIN purchase_items pi ON pi.id = b.purchase_item_id
 		JOIN products p ON p.id = b.product_id LEFT JOIN units u ON u.id = p.unit_id
 		WHERE pi.purchase_id = $1`, id); err != nil {
@@ -72,7 +73,7 @@ func (h *handlers) AdminPurchaseReturnable(c echo.Context) error {
 			continue
 		}
 		out.Lines = append(out.Lines, ReturnableLine{ProductID: it.ProductID, Name: it.ProductName, UnitAbbr: l.Unit, BatchID: l.ID,
-			Received: l.Got.String(), Left: l.Left.String(), Cost: dec2(l.Cost), ListCost: dec2(it.CostPrice), Expiry: ymd(l.Expiry)})
+			Received: l.Got.String(), Left: l.Left.String(), Cost: dec2(l.Cost), ListCost: dec2(it.CostPrice), Expiry: ymd(l.Expiry), Frozen: l.Frozen})
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -133,7 +134,7 @@ func (h *handlers) AdminPurchaseReturnCreate(c echo.Context) error {
 	}
 	in := purchasereturns.CreateInput{SupplierID: req.SupplierID, PurchaseID: req.PurchaseID, Reference: optStr(req.Reference), Reason: optStr(req.Reason)}
 	for _, l := range req.Lines {
-		in.Items = append(in.Items, purchasereturns.ItemInput{ProductID: l.ProductID, Quantity: strings.TrimSpace(l.Quantity), CostPrice: strings.TrimSpace(l.CostPrice), BatchID: l.BatchID})
+		in.Items = append(in.Items, purchasereturns.ItemInput{ProductID: l.ProductID, Quantity: strings.TrimSpace(l.Quantity), CostPrice: strings.TrimSpace(l.CostPrice), BatchID: l.BatchID, FromShelf: l.FromShelf})
 	}
 	if err := c.Validate(&in); err != nil {
 		return err
