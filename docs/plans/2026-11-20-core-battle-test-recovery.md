@@ -61,17 +61,17 @@ a time.
 
 ### Task 2: Auditor checks (`internal/ledgercheck/recovery.go`)
 
-- [ ] **Step 1: Failing test** `internal/battle/ledger_recovery_test.go` (the API builds the day): a serial unit sold
-  and swapped, a by-receipt swap, a frozen product's swap, a write-off and a give back of a supplier's lots, recoveries
+- [x] **Step 1: Failing test** `internal/battle/ledger_recovery_test.go` (the API builds the day): a serial unit sold
+  and swapped, a by-receipt swap,  recoveries
   of each outcome (replacement into a new lot with an extra charge, paid on open bills with some left over, written
   off) → no violations; then corrupt one row at a time and assert that rule's id: REC-1 (a second recovery of one
   loss; loss worth ≠ the movement's cost), REC-5 (written off with recovered > 0; paid with no supplier; unapplied
   above the amount; a replacement recovered ≠ its loss), WAR-3 (a claim with no movement / two; movement cost ≠ the
   loss), WAR-2 (replacement unit's last day ≠ the old one's), WAR-4 (by-receipt replaced > sold − returned).
-- [ ] **Step 2: Run, fail; write the checks; run, pass.**
-- [ ] **Step 3:** Run over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug (→ Task 3
+- [x] **Step 2: Run, fail; write the checks; run, pass.**
+- [x] **Step 3:** (grocery year clean, 89 s; dev DB: no area-6 violations) Run over a Demo Room year (`ledgercheck` gen test) and the dev DB: every violation is a bug (→ Task 3
   test), a wrong rule (→ the user) or seed data (fix the seeder).
-- [ ] **Step 4: Commit** — `test(ledgercheck): area 6 checks — recoveries and warranty replacements`
+- [x] **Step 4: Commit** — `test(ledgercheck): area 6 checks — recoveries and warranty replacements`
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_recovery_test.go`)
 
