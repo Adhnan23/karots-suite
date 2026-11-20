@@ -37,13 +37,16 @@ func init() {
 			WHERE pu.total <> pu.subtotal - pu.discount OR pu.discount < 0 OR pu.discount > pu.subtotal
 			   OR (l.v IS NOT NULL AND l.v <> pu.subtotal)`},
 
-		// PUR-10: a debit note's total = Σ its lines (units × cost, to the cent); its
-		// credits to bills never pass it.
+		// PUR-10: a debit note's total = Σ its lines (units × cost, to the cent, but for
+		// the line sending a delivery's lot's last units back: what's left of its
+		// line's share, PUR-3); its credits to bills never pass it.
 		check{"PUR-10", `
 			SELECT 'purchase return ' || pr.id, format('total %s, lines %s, credited to bills %s', pr.total, COALESCE(l.v, 0), COALESCE(a.v, 0))
 			FROM purchase_returns pr
-			LEFT JOIN LATERAL (SELECT SUM(subtotal) AS v, bool_or(subtotal <> round(quantity * cost_price, 2)) AS off
-			                   FROM purchase_return_items WHERE purchase_return_id = pr.id) l ON true
+			LEFT JOIN LATERAL (SELECT SUM(i.subtotal) AS v, bool_or(i.subtotal <> round(i.quantity * i.cost_price, 2) AND NOT (b.purchase_item_id IS NOT NULL
+			                     AND (SELECT SUM(x.quantity) FROM purchase_return_items x WHERE x.batch_id = i.batch_id AND x.id <= i.id) = b.qty_received)) AS off
+			                   FROM purchase_return_items i LEFT JOIN stock_batches b ON b.id = i.batch_id
+			                   WHERE i.purchase_return_id = pr.id) l ON true
 			LEFT JOIN LATERAL (SELECT SUM(amount) AS v FROM purchase_return_allocations WHERE purchase_return_id = pr.id) a ON true
 			WHERE pr.total <> COALESCE(l.v, 0) OR l.off OR COALESCE(a.v, 0) > pr.total`},
 

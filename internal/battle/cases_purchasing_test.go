@@ -193,6 +193,22 @@ func TestPUR3LotCostIsWhatWasPaid(t *testing.T) {
 	if b.Status != "paid" || !b.Total.Sub(b.Paid).Sub(b.Credited).IsZero() {
 		t.Errorf("whole delivery sent back: bill %s with %s left, want paid and nothing left", b.Status, b.Total.Sub(b.Paid).Sub(b.Credited))
 	}
+	if got := s.supBal(t, sup); got != "0.00" {
+		t.Errorf("owed %s after sending it all back, want 0.00 (Q5: the last units take what's left of their share)", got)
+	}
+	// The last line cost nothing: the line before it takes what's left of the
+	// bill, and sending it all back still clears it exactly.
+	two := s.mustDeliver(t, sup, []sl{{"productId": s.prod["odd"], "quantity": "7", "costPrice": "3.33"},
+		{"productId": s.prod["plain"], "quantity": "13", "costPrice": "7.77"},
+		{"productId": s.prod["cheap"], "quantity": "1", "costPrice": "5", "discount": "100", "discountType": "percent"}},
+		map[string]any{"discount": "3", "discountType": "percent"})
+	for _, p := range []int64{s.prod["odd"], s.prod["plain"], s.prod["cheap"]} {
+		lot, qty, _ := s.lotOf(t, two, p)
+		s.must(t, s.sendBack(t, sup, two, map[string]any{"productId": p, "quantity": qty.String(), "batchId": lot}))
+	}
+	if got := s.supBal(t, sup); got != "0.00" {
+		t.Errorf("owed %s after sending back a bill whose last line cost nothing, want 0.00", got)
+	}
 	// Nothing paid on the line (fully discounted): the lot keeps the list cost.
 	free := s.mustDeliver(t, sup, []sl{{"productId": s.prod["odd"], "quantity": "2", "costPrice": "8", "discount": "100", "discountType": "percent"}}, nil)
 	_, _, cost := s.lotOf(t, free, s.prod["odd"])

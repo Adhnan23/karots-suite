@@ -162,6 +162,74 @@ func (r *Repository) purchaseOfLot(ctx context.Context, purchaseItemID *int64) (
 	return id, err
 }
 
+// lastUnits prices the units of a delivery's lot that go back last: what's left
+// of their line's share of the bill once earlier returns of the lot are taken
+// off, so a whole delivery sent back clears its bill exactly (PUR-3, PUR-10) —
+// a line that cost nothing gives nothing back. nil when these aren't the lot's
+// last units.
+func (r *Repository) lastUnits(ctx context.Context, itemID, batchID int64, qty, received decimal.Decimal) (*decimal.Decimal, error) {
+	var before struct {
+		Qty decimal.Decimal `db:"q"`
+		Sum decimal.Decimal `db:"s"`
+	}
+	if err := r.q.GetContext(ctx, &before, `SELECT COALESCE(SUM(quantity), 0) AS q, COALESCE(SUM(subtotal), 0) AS s
+		FROM purchase_return_items WHERE batch_id = $1`, batchID); err != nil {
+		return nil, err
+	}
+	if !before.Qty.Add(qty).Equal(received) {
+		return nil, nil
+	}
+	var lines []shareLine
+	if err := r.q.SelectContext(ctx, &lines, `SELECT pi.id, pi.subtotal, pu.total FROM purchase_items pi
+		JOIN purchases pu ON pu.id = pi.purchase_id
+		WHERE pi.purchase_id = (SELECT purchase_id FROM purchase_items WHERE id = $1) ORDER BY pi.id`, itemID); err != nil {
+		return nil, err
+	}
+	share, ok := lineShare(lines, itemID)
+	if !ok {
+		return nil, nil
+	}
+	left := decimal.Max(share.Sub(before.Sum), decimal.Zero)
+	return &left, nil
+}
+
+// lineShare is one line's share of its bill in cents: its net over the lines'
+// nets × the total, the last line that cost something taking what's left, so
+// the shares add up to the total exactly; a line that cost nothing has none.
+func lineShare(lines []shareLine, itemID int64) (decimal.Decimal, bool) {
+	nets := decimal.Zero
+	for _, l := range lines {
+		nets = nets.Add(l.Net)
+	}
+	if !nets.IsPositive() { // nothing on the bill cost anything
+		return decimal.Zero, true
+	}
+	last := 0 // the last line that cost something takes what's left
+	for i, l := range lines {
+		if l.Net.IsPositive() {
+			last = i
+		}
+	}
+	given := decimal.Zero
+	for i, l := range lines {
+		share := l.Net.Mul(l.Bill).DivRound(nets, 2)
+		if i == last {
+			share = l.Bill.Sub(given)
+		}
+		if l.ID == itemID {
+			return share, true
+		}
+		given = given.Add(share)
+	}
+	return decimal.Zero, false
+}
+
+type shareLine struct {
+	ID   int64           `db:"id"`
+	Net  decimal.Decimal `db:"subtotal"`
+	Bill decimal.Decimal `db:"total"`
+}
+
 func (r *Repository) Items(ctx context.Context, prID int64) ([]Item, error) {
 	var rows []Item
 	err := r.q.SelectContext(ctx, &rows, `
@@ -270,7 +338,8 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 			// Send back the lot that is actually going back. Without a named lot
 			// this falls to FEFO, which drains the oldest stock even when the
 			// delivery being returned is the newest.
-			var batchID *int64
+			var batchID, fromItem *int64 // the lot, and the delivery line it came on
+			var received decimal.Decimal
 			if it.BatchID > 0 {
 				b, berr := stk.LockBatch(ctx, it.BatchID, it.ProductID)
 				if berr != nil {
@@ -287,7 +356,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 				} else if b.PurchaseItemID != nil {
 					return apperr.Validation("that stock came on a delivery — return it against that delivery")
 				}
-				cost = b.CostPrice // what was really paid for these units
+				cost = b.CostPrice      // what was really paid for these units
 				if !cost.IsPositive() { // a lot entered with a blank cost: the product's cost, as COGS does
 					if cost, err = stk.ProductCost(ctx, it.ProductID); err != nil {
 						return apperr.Internal("failed to read product cost", err)
@@ -301,10 +370,20 @@ func (s *Service) Create(ctx context.Context, in CreateInput, userID int64) (*De
 				}
 				id := b.ID
 				batchID = &id
+				fromItem, received = b.PurchaseItemID, b.QtyReceived
 			} else {
 				return apperr.Validation("pick the lot going back for every line")
 			}
 			sub := qty.Mul(cost).Round(2)
+			if fromItem != nil {
+				last, lerr := repo.lastUnits(ctx, *fromItem, *batchID, qty, received)
+				if lerr != nil {
+					return apperr.Internal("failed to price the last units", lerr)
+				}
+				if last != nil {
+					sub = *last
+				}
+			}
 			total = total.Add(sub)
 			lines = append(lines, line{productID: it.ProductID, batchID: batchID, qty: qty, cost: cost, subtotal: sub})
 		}

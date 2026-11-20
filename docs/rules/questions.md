@@ -21,4 +21,5 @@ All four answered 2026-11-19 (STK-21, STK-15, STK-18, STK-4).
 
 ## Area 5 — purchasing
 
-All four answered 2026-11-19 (SUP-5, SUP-2, SUP-9, PUR-9).
+All four answered 2026-11-19 (SUP-5, SUP-2, SUP-9, PUR-9); Q5 (a whole delivery sent back left a cent) answered
+2026-11-20: the last units of a lot are priced at what's left of its line's share (PUR-3, PUR-10).

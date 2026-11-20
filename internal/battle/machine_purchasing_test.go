@@ -131,14 +131,19 @@ func (m *purchasingMachine) lines(t *rapid.T) []dLine {
 // lot — PUR-3 is the cases' job), the total, settlement, then pay on delivery.
 func (m *purchasingMachine) landed(t *rapid.T, sp *pSup, id int64, ls []dLine, sub, disc decimal.Decimal, percent bool, payNow decimal.Decimal) {
 	b := &pBill{id: id, total: billTotal(sub, disc, percent)}
+	var nets []decimal.Decimal
 	for _, l := range ls {
+		nets = append(nets, l.net)
+	}
+	share := shares(nets, b.total)
+	for i, l := range ls {
 		var lot pLot
 		m.s.must(t, m.s.db.QueryRow(`SELECT b.id, b.qty_received, b.cost_price FROM stock_batches b JOIN purchase_items pi ON pi.id = b.purchase_item_id
 			WHERE pi.purchase_id = $1 AND b.product_id = $2 AND b.id <> ALL($3::bigint[]) ORDER BY b.id LIMIT 1`, id, l.product, m.lotIDs(b)).Scan(&lot.id, &lot.left, &lot.cost))
 		if !lot.left.Equal(l.units) {
 			t.Fatalf("PUR-2 a line of %s units opened a lot of %s", l.units, lot.left)
 		}
-		lot.product, lot.whole = l.product, l.whole
+		lot.product, lot.whole, lot.share = l.product, l.whole, share[i]
 		b.lots = append(b.lots, &lot)
 	}
 	sp.book(b)
@@ -299,8 +304,9 @@ func (m *purchasingMachine) sendBack(t *rapid.T) {
 		return m.s.admin.Do("POST", "/api/v1/admin/purchase-returns", map[string]any{"supplierId": sp.id, "purchaseId": b.id,
 			"lines": []map[string]any{{"productId": l.product, "quantity": q.String(), "batchId": l.id}}}, nil)
 	}) {
-		l.left = l.left.Sub(q)
-		sp.sendBack(b, q.Mul(l.cost).Round(2))
+		v := l.value(q)
+		l.left, l.back = l.left.Sub(q), l.back.Add(v)
+		sp.sendBack(b, v)
 	}
 }
 

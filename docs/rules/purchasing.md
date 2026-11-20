@@ -82,9 +82,13 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   products deadlocked, and the database refused one; never stop a sale).* *ledgercheck, example, fault.*
 - **PUR-3** A lot's cost is what was really paid for its line — its net less its share of the bill discount (shared
   in proportion to the lines' nets) — over every unit that arrived, kept to 4 decimals; a line nothing reduced keeps
-  its list cost exactly. So a delivery's lots are worth its total to within a cent a line, and sending the whole
-  delivery back clears its bill exactly. A line that cost nothing takes the product's cost (as STK-7's blank-cost lot).
-  *Found in: a039cfb, 20c8b97.* *example.*
+  its list cost exactly. So a delivery's lots are worth its total to within a cent a line. Each line's share of the
+  total is its net less its part of the bill discount, in cents, the shares adding up to the total exactly (the last
+  line that cost something takes what's left); the units of a lot that go back last are priced at what's left of
+  that share, so sending the whole delivery back clears its bill exactly and leaves nothing owed either way (a line
+  that cost nothing gives nothing back). A line that cost nothing takes the product's cost as its lot's cost (as
+  STK-7's blank-cost lot). *Found in: a039cfb, 20c8b97; the last units: user, 2026-11-20 (Q5 —
+  a whole delivery sent back left a cent of credit).* *example.*
 - **PUR-4** Bought by the pack, a line is entered per pack and kept in units (packs × size, cost ÷ size); the pack size
   is a whole number above 1 (STK-17). A product counted in whole units gets whole units (STK-18): a delivery, an order
   or goods sent back of 2.5 pieces is refused. *Fixed in 4cd45e0.* *example.*
@@ -106,8 +110,9 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   left, oldest first; what's beyond every bill stays as a supplier credit. A frozen product's pieces out for sale are
   first put back on the books (to_shelf), then sent back, as a frozen write-off (STK-8). *User, 2026-11-19 (Q4).
   Fixed in d99efa5.* *example, machine.*
-- **PUR-10** A debit note's total = Σ its lines (units × cost, to the cent); what it credited to bills never passes
-  it. *ledgercheck.*
+- **PUR-10** A debit note's total = Σ its lines; each line is units × its lot's cost to the cent, except a line that
+  sends a delivery's lot's last units back, which is what's left of that line's share (PUR-3). What it credited to
+  bills never passes it. *User, 2026-11-20 (Q5).* *ledgercheck.*
 - **PUR-11** A bill's paid and credited are never below zero and never add up to more than its total; it reads
   **paid** exactly when nothing is left, **received** when nothing was paid, otherwise **partial**. *ledgercheck.*
 - **PUR-12** A bill's paid = Σ the money put on it (allocations of payments that aren't discounts) less what bounced

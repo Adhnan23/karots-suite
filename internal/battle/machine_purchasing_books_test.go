@@ -11,7 +11,46 @@ var zero = decimal.Zero
 type pLot struct {
 	id, product int64
 	left, cost  decimal.Decimal
+	share, back decimal.Decimal // the line's share of the bill; what's gone back so far
 	whole       bool
+}
+
+// value is what q units of the lot are worth going back: units × cost, but the
+// last units take what's left of the line's share (PUR-3, PUR-10, Q5).
+func (l *pLot) value(q decimal.Decimal) decimal.Decimal {
+	v := q.Mul(l.cost).Round(2)
+	if q.Equal(l.left) {
+		v = decimal.Max(l.share.Sub(l.back), zero)
+	}
+	return v
+}
+
+// shares splits a bill's total over its lines' nets in cents, the last line
+// that cost something taking what's left (PUR-3); a line that cost nothing gets 0.
+func shares(nets []decimal.Decimal, total decimal.Decimal) []decimal.Decimal {
+	all := zero
+	for _, n := range nets {
+		all = all.Add(n)
+	}
+	out := make([]decimal.Decimal, len(nets))
+	if !all.IsPositive() {
+		return out
+	}
+	last := 0
+	for i, n := range nets {
+		if n.IsPositive() {
+			last = i
+		}
+	}
+	given := zero
+	for i, n := range nets {
+		out[i] = n.Mul(total).DivRound(all, 2)
+		if i == last {
+			out[i] = total.Sub(given)
+		}
+		given = given.Add(out[i])
+	}
+	return out
 }
 
 type pBill struct {
