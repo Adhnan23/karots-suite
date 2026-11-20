@@ -35,3 +35,7 @@ WAR-1 the server refuses out-of-date and returned units).
 All four answered 2026-11-20 as suggested (RPT-6 a return counts on its own day; ZR-2 a Z shows the refunds given in
 its session and never changes; RPT-12 line reports share a bill discount over the shop's own lines only; RPT-17 tax
 given back and tax owed).
+
+Q5 and Q6 (found later, 2026-11-20: stock put on the books read as profit) answered as suggested the same day: a
+product's first stock is its opening stock, and + Add batch with no bill is stock on the books — neither is profit
+(RPT-9).

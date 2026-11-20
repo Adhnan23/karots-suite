@@ -33,6 +33,9 @@ type AddStockInput struct {
 	Move    string
 	RefType *string
 	RefID   *int64
+	// OnBooks: stock put on the books with no bill (+ Add batch, intake) —
+	// never found stock in the P&L (RPT-9, user's Q6, 2026-11-20).
+	OnBooks bool
 	// Blend tops BatchID up at Cost a unit, blending the lot's cost over all its
 	// units (a supplier's replacement, REC-2) instead of taking the lot's cost.
 	Blend bool
@@ -64,9 +67,20 @@ func optAmount(s, what string) (decimal.Decimal, error) {
 	return v, nil
 }
 
-// openingRef marks an opening-stock movement (a product sheet's opening
-// quantity): stock put on the books, which reports never count as found (RPT-9).
+// openingRef marks a movement that put stock on the books — an opening
+// quantity, stock added with no bill, a product's first stock — which reports
+// never count as found (RPT-9).
 var openingRef = "opening"
+
+// firstStock: the product has never had a stock movement, so whatever comes in
+// now is its opening stock (RPT-9, user's Q5, 2026-11-20).
+func (r *Repository) firstStock(ctx context.Context, productID int64) (bool, error) {
+	var moved bool
+	if err := r.q.GetContext(ctx, &moved, `SELECT EXISTS (SELECT 1 FROM stock_movements WHERE product_id = $1)`, productID); err != nil {
+		return false, apperr.Internal("failed to read stock movements", err)
+	}
+	return !moved, nil
+}
 
 // AddStock is the one way units come in outside a purchase or a return:
 // intake, Batches → + Add batch, stock-take's new batches. Returns the batch
@@ -130,8 +144,17 @@ func (r *Repository) AddStock(ctx context.Context, in AddStockInput, userID int6
 		return 0, apperr.Internal("failed to update stock", err)
 	}
 	refType := in.RefType
-	if refType == nil && in.Source == "opening" { // opening stock: on the books, never a count (RPT-9)
-		refType = &openingRef
+	if refType == nil && in.Move == "" {
+		// Stock put on the books is never a count that found more (RPT-9): an
+		// opening quantity, stock added with no bill (+ Add batch, intake — Q6),
+		// and a product's very first stock however it came in (Q5).
+		first, err := r.firstStock(ctx, in.ProductID)
+		if err != nil {
+			return 0, err
+		}
+		if in.Source == "opening" || in.OnBooks || first {
+			refType = &openingRef
+		}
 	}
 	if err := r.InsertMovement(ctx, MovementInput{ProductID: in.ProductID, Type: cmp.Or(in.Move, MoveAdjust), Quantity: qty, ReferenceType: refType, ReferenceID: in.RefID,
 		UserID: userID, Note: nilIfEmpty(in.Note), Cost: cost.Mul(qty)}); err != nil {

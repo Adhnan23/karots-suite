@@ -75,7 +75,7 @@ func (h *handlers) AdminIntakeCreate(c echo.Context) error {
 	var bid int64
 	if n.IsPositive() {
 		// The opening batch follows the product's price (stamping it would freeze it).
-		if bid, err = h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: p.ID, Qty: n.String(), Expiry: req.Expiry, Note: "stock intake"}, middleware.CurrentUserID(c)); err != nil {
+		if bid, err = h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: p.ID, Qty: n.String(), Expiry: req.Expiry, Note: "stock intake", OnBooks: true}, middleware.CurrentUserID(c)); err != nil {
 			return err
 		}
 	}
@@ -114,7 +114,7 @@ func (h *handlers) AdminIntakeRestock(c echo.Context) error {
 	// A top-up keeps that batch's own cost / price / expiry; a new price is
 	// stamped only on a new batch.
 	bid, err := h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: p.ID, BatchID: req.BatchID, Qty: add.String(),
-		Price: strings.TrimSpace(req.SellingPrice), Expiry: req.Expiry, Note: "stock intake restock"}, middleware.CurrentUserID(c))
+		Price: strings.TrimSpace(req.SellingPrice), Expiry: req.Expiry, Note: "stock intake restock", OnBooks: true}, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}

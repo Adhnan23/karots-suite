@@ -125,12 +125,24 @@ func (s *Service) Adjust(ctx context.Context, in AdjustInput, userID int64) erro
 			moved = cost.Mul(delta.Abs())
 		}
 		note := nilIfEmpty(in.Note)
+		// A product's first count is its opening stock, not stock found (RPT-9, Q5).
+		var ref *string
+		if delta.IsPositive() {
+			first, err := repo.firstStock(ctx, in.ProductID)
+			if err != nil {
+				return err
+			}
+			if first {
+				ref = &openingRef
+			}
+		}
 		if err := repo.InsertMovement(ctx, MovementInput{
-			ProductID: in.ProductID,
-			Type:      MoveAdjust,
-			Quantity:  delta,
-			UserID:    userID,
-			Note:      note,
+			ProductID:     in.ProductID,
+			ReferenceType: ref,
+			Type:          MoveAdjust,
+			Quantity:      delta,
+			UserID:        userID,
+			Note:          note,
 			// Always the positive worth moved — the sign lives on Quantity, the
 			// same convention every other movement type follows.
 			Cost: moved,

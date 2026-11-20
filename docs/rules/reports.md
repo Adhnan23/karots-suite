@@ -84,7 +84,10 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
 - **RPT-9** Net profit = gross profit − expenses (by expense date) − losses (damage incl. give back, warranty
   replacements, at their movements' worth) − own use − staff − stock corrections (counts: written off positive, found
   negative) + recoveries (live ones; an undone recovery is gone, REC-8) + locker interest + discounts received +
-  till over / short (sessions closed in the period). Each line = its raw rows' sum. A `to_shelf` move is none of
+  till over / short (sessions closed in the period). Each line = its raw rows' sum. Stock put on the books is
+  not a count and never profit: an opening quantity (a product sheet), a product's very first stock however it came
+  in (users' Q5), and + Add batch / intake with no bill (Q6) — *found 2026-11-20: each was booked as profit by its
+  whole worth; migration 00042 marks the old rows.* A `to_shelf` move is none of
   these (STK-24).
 
 ### By time and peak hours

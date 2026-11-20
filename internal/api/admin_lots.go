@@ -28,7 +28,7 @@ func (h *handlers) AdminAddBatch(c echo.Context) error {
 		return err
 	}
 	bid, err := h.t.stock.AddStock(ctx, stock.AddStockInput{ProductID: id, Qty: req.Qty, Cost: req.Cost, Price: req.SellingPrice,
-		Expiry: req.Expiry, Note: "batch added"}, middleware.CurrentUserID(c))
+		Expiry: req.Expiry, Note: "batch added", OnBooks: true}, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}
