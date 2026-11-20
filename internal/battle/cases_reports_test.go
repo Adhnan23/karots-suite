@@ -174,30 +174,34 @@ func TestRPT35_SheetHasEveryRow(t *testing.T) {
 	}
 }
 
-// RPT-9: opening stock (a product sheet's opening quantity) puts stock on the
-// books — it is not a count, and never profit. A count that finds more still is.
-func TestRPT9_OpeningStockIsNotProfit(t *testing.T) {
+// RPT-9: stock put on the books is never profit — a product sheet's opening
+// quantity, a product's first count (Q5), + Add batch with no bill (Q6). A later
+// count that finds more still is (users' answers, 2026-11-20).
+func TestRPT9_StockOnTheBooksIsNotProfit(t *testing.T) {
 	t.Parallel()
-	s := newShop(t)
-	p := s.stocked(t, "Battle opening", s.unitPcs, 0, nil)
-	if _, err := stock.NewRepository(s.db).AddStock(t.Context(), stock.AddStockInput{ProductID: p, Qty: "40", Cost: "25",
+	s := newShop(t) // its fixtures' stock came in by a first count each
+	corrections := func() decimal.Decimal {
+		today := time.Now().In(datetime.Location).Format(time.DateOnly)
+		var f struct{ StockCorrections string }
+		s.must(t, s.admin.Do("GET", "/api/v1/admin/finance?from="+today+"&to="+today, nil, &f))
+		return dec(t, f.StockCorrections)
+	}
+	if c := corrections(); !c.IsZero() {
+		t.Errorf("RPT-9 Q5 first counts read as stock found: corrections %s, want 0", c)
+	}
+	sheet := s.stocked(t, "Battle opening", s.unitPcs, 0, nil)
+	if _, err := stock.NewRepository(s.db).AddStock(t.Context(), stock.AddStockInput{ProductID: sheet, Qty: "40", Cost: "25",
 		Source: "opening", Note: "CSV import opening stock"}, s.userID(t, "0770000001")); err != nil {
 		t.Fatal(err)
 	}
-	today := time.Now().In(datetime.Location).Format(time.DateOnly)
-	var before, after struct{ StockCorrections string }
-	s.must(t, s.admin.Do("GET", "/api/v1/admin/finance?from="+today+"&to="+today, nil, &before))
-	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": p, "newQuantity": "42", "note": "count"}, nil))
-	s.must(t, s.admin.Do("GET", "/api/v1/admin/finance?from="+today+"&to="+today, nil, &after))
-	// The shop's fixtures came in by counts (−the worth found); the opening adds nothing; the count's
-	// +2 come in at the product's cost, 10 (area 4) = −20.
-	if d := dec(t, after.StockCorrections).Sub(dec(t, before.StockCorrections)); !d.Equal(dec(t, "-20")) {
-		t.Errorf("RPT-9 the count of +2 moved stock corrections by %s, want -20", d)
+	s.addLot(t, s.prod["plain"], "30", "12", "") // + Add batch, no bill, on a product that has stock already
+	if c := corrections(); !c.IsZero() {
+		t.Errorf("RPT-9 an opening quantity or + Add batch read as stock found: corrections %s, want 0", c)
 	}
-	var fixtures decimal.Decimal
-	s.must(t, s.db.Get(&fixtures, `SELECT COALESCE(SUM(-cost),0) FROM stock_movements WHERE type = 'adjust' AND note = 'battle'`))
-	if !dec(t, before.StockCorrections).Equal(fixtures) {
-		t.Errorf("RPT-9 before the count, stock corrections %s, want %s (the fixtures' counts only — the opening stock is no profit)", before.StockCorrections, fixtures)
+	// A later count finding 2 more is a correction: 2 × the product's cost 10 = −20 (found = negative).
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": sheet, "newQuantity": "42", "note": "count"}, nil))
+	if c := corrections(); !c.Equal(dec(t, "-20")) {
+		t.Errorf("RPT-9 a later count of +2: corrections %s, want -20", c)
 	}
 	s.agreeToday(t)
 }
