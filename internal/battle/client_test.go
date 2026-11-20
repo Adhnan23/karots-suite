@@ -54,5 +54,9 @@ func (c *client) Do(method, path string, in, out any) error {
 	if out == nil || w.Body.Len() == 0 {
 		return nil
 	}
+	if b, ok := out.(*[]byte); ok { // a download (csv / xlsx): the body as it came
+		*b = append((*b)[:0], w.Body.Bytes()...)
+		return nil
+	}
 	return json.Unmarshal(w.Body.Bytes(), out)
 }

@@ -81,15 +81,17 @@ the only new maths is a refund's tax share, checked by cases.
 
 ### Task 3: Case tests, one per `example` rule (`internal/battle/cases_reports_test.go`)
 
-- [ ] **Step 1:** RPT-4 (pass-through and fully returned lines not "no cost"), RPT-5 (void nowhere), RPT-6 (return
+- [x] **Step 1:** (`cases_reports_test.go`: ZR-2/4, RPT-11, 13, 20, 24, 35 as their own cases; RPT-4, 5, 6, 12, 14, 17
+  are held by the fixed day in `ledger_reports_test.go`.) RPT-4 (pass-through and fully returned lines not "no cost"), RPT-5 (void nowhere), RPT-6 (return
   next month: last month unchanged, this month −refund; whole return nets 0 over both), RPT-10/11 (23:59 and 00:01
   shop time; Monday week; `to` whole day; a day with no sales is 0), RPT-12 (pass-through + 10% bill discount →
   product totals = P&L), RPT-13 (service with expenses only), RPT-14 (cashier A sells, B refunds), RPT-17 (tax back
   on a return, owed), RPT-20/21 (disabled debtor listed; draft not a purchase), RPT-24 (lot cost vs product cost, no
   lot), ZR-1–4 (a Z closed, then a return of its sale in the next session: the first Z unchanged, the second shows the
   refund; a cashier can't read another's Z), RPT-35 (sheet rows = page rows past one page).
-- [ ] **Step 2:** Run; each failure → Task 4 (test first is already there).
-- [ ] **Step 3: Commit** — `test(battle): area 7 cases, one per rule`
+- [x] **Step 2:** (all pass after Task 4; ZR-2 failed before it. RPT-35 needed the right URL: the download is
+  `/reports/returns?format=csv`, `/lines` is the paged list.) Run; each failure → Task 4 (test first is already there).
+- [x] **Step 3: Commit** — `test(battle): area 7 cases, one per rule`
 
 ### Task 4: Fixes, one commit each, test first
 
