@@ -44,12 +44,6 @@ type Conversion struct {
 	FromCost decimal.Decimal `db:"from_cost" json:"from_cost"`
 }
 
-// Runnable reports whether there is any source stock to convert at all.
-func (c Conversion) Runnable() bool { return c.FromStock.IsPositive() }
-
-// MaxRuns is how many whole source units are available to convert.
-func (c Conversion) MaxRuns() decimal.Decimal { return c.FromStock }
-
 type CreateInput struct {
 	FromProductID int64   `json:"from_product_id" form:"from_product_id" validate:"required,gt=0"`
 	ToProductID   int64   `json:"to_product_id"   form:"to_product_id"   validate:"required,gt=0"`

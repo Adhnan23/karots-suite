@@ -159,14 +159,6 @@ func (s *Service) Quantity(ctx context.Context, productID int64) (decimal.Decima
 	return s.repo.GetQuantity(ctx, productID)
 }
 
-type DamageInput struct {
-	ProductID int64  `json:"product_id" form:"product_id" validate:"required,gt=0"`
-	Quantity  string `json:"quantity"   form:"quantity"   validate:"required"`
-	Note      string `json:"note"       form:"note"`
-	// BatchID names the lot being written off; zero falls back to FEFO.
-	BatchID int64 `json:"batch_id" form:"batch_id"`
-}
-
 // ConsumeInput records stock leaving for a non-sale reason.
 type ConsumeInput struct {
 	ProductID int64  `json:"product_id" form:"product_id" validate:"required,gt=0"`
@@ -191,18 +183,6 @@ var consumeReasons = map[string]string{
 	"damage":  MoveDamage,
 	"own_use": MoveOwnUse,
 	"staff":   MoveStaff,
-}
-
-// Damage writes off stock (spoilage, breakage). It decrements under the same
-// guard as a sale so quantity can never go negative, and audits the loss.
-func (s *Service) Damage(ctx context.Context, in DamageInput, userID int64) error {
-	return s.Consume(ctx, ConsumeInput{
-		ProductID: in.ProductID,
-		Quantity:  in.Quantity,
-		Reason:    "damage",
-		Note:      in.Note,
-		BatchID:   in.BatchID,
-	}, userID)
 }
 
 // Consume removes stock for a deliberate, non-sale reason and books its FEFO
