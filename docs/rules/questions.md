@@ -23,3 +23,9 @@ All four answered 2026-11-19 (STK-21, STK-15, STK-18, STK-4).
 
 All four answered 2026-11-19 (SUP-5, SUP-2, SUP-9, PUR-9); Q5 (a whole delivery sent back left a cent) answered
 2026-11-20: the last units of a lot are priced at what's left of its line's share (PUR-3, PUR-10).
+
+## Area 6 — recovery and losses
+
+All five answered 2026-11-20 as suggested (REC-3 any amount + the lot's supplier filled in, disabled: credit yes,
+extra charge no; REC-2 a top-up blends the lot's cost; REC-8 undo the newest recovery while nothing came after;
+WAR-1 the server refuses out-of-date and returned units).
