@@ -113,8 +113,9 @@ once, power cut, sent twice).
   cut leaves the recovery with all its stock and supplier effects, or none. *fault.*
 - **REC-8** A loss's recovery can be undone while nothing came after it: a replacement while no stock of its
   product moved since; a credit (or an extra charge) while nothing since touched the supplier's books — no bill,
-  payment, goods sent back, refund or other recovery (it is taken back off the bills and old debt it went on, which
-  then owe that again); written off always. One recorded before undo existed can't be. Undo takes back exactly what it did —
+  payment, goods sent back, refund or other recovery — and what it left waiting for the next bills is still unspent
+  (it is taken back off the bills and old debt it went on, which then owe that again; refused if the opening was
+  changed since so the old debt no longer fits, SUP-2); written off always. One recorded before undo existed can't be. Undo takes back exactly what it did —
   a `recovery` movement of the units out at their worth (a top-up's lot back to its cost before), the balance, the
   extra charge — removes the recovery, and the loss waits on the claims list again. Anything else is refused, saying
   what came after. Two undos, or an undo beside a sale of those units, at the same moment: one wins.

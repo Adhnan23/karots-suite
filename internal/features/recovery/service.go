@@ -210,7 +210,7 @@ func creditBills(ctx context.Context, tx *sqlx.Tx, recoveryID int64, before *sup
 		return apperr.Internal("failed to load the supplier", err)
 	}
 	unapplied := decimal.Max(decimal.Min(left, after.OutstandingBalance.Neg()), decimal.Zero)
-	if _, err := tx.ExecContext(ctx, `UPDATE loss_recoveries SET credit_unapplied = $2, old_debt = $3 WHERE id = $1`,
+	if _, err := tx.ExecContext(ctx, `UPDATE loss_recoveries SET credit_unapplied = $2, credit_waited = $2, old_debt = $3 WHERE id = $1`,
 		recoveryID, unapplied, before.OpeningUnlinked.Sub(after.OpeningUnlinked)); err != nil {
 		return apperr.Internal("failed to record recovery", err)
 	}

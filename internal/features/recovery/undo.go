@@ -44,8 +44,11 @@ func (s *Service) Undo(ctx context.Context, id, userID int64) (*Recovery, error)
 				return err
 			}
 		case OutcomePaid:
-			if r.OldDebt == nil {
+			if r.OldDebt == nil || r.CreditWaited == nil {
 				return apperr.Conflict("this credit was recorded before undo existed")
+			}
+			if !r.CreditUnapplied.Equal(*r.CreditWaited) {
+				return apperr.Conflict("part of this credit has paid a bill since — undo it by hand")
 			}
 			if err := holdUnchanged(ctx, tx, &r); err != nil {
 				return err
@@ -57,9 +60,17 @@ func (s *Service) Undo(ctx context.Context, id, userID int64) (*Recovery, error)
 				FROM loss_recovery_bills b WHERE b.recovery_id = $1 AND p.id = b.purchase_id`, r.ID); err != nil {
 				return apperr.Internal("failed to put the bills back", err)
 			}
-			if _, err := tx.ExecContext(ctx, `UPDATE suppliers SET outstanding_balance = outstanding_balance + $2,
-				opening_unlinked = opening_unlinked + $3 WHERE id = $1`, *r.SupplierID, r.RecoveredValue, *r.OldDebt); err != nil {
+			// The old debt it paid comes back — unless the opening was changed since
+			// and it no longer fits (SUP-2; an opening change leaves no row to see).
+			res, err := tx.ExecContext(ctx, `UPDATE suppliers SET outstanding_balance = outstanding_balance + $2,
+				opening_unlinked = opening_unlinked + $3 WHERE id = $1
+				AND opening_unlinked + $3 <= opening_balance AND opening_unlinked + $3 <= GREATEST(outstanding_balance + $2, 0)`,
+				*r.SupplierID, r.RecoveredValue, *r.OldDebt)
+			if err != nil {
 				return apperr.Internal("failed to put the balance back", err)
+			}
+			if n, _ := res.RowsAffected(); n != 1 {
+				return apperr.Conflict("the supplier's opening has changed since — undo it by hand")
 			}
 		}
 		if _, err := tx.ExecContext(ctx, `DELETE FROM loss_recoveries WHERE id = $1`, r.ID); err != nil {
@@ -80,6 +91,7 @@ type undoRow struct {
 	LotID         *int64           `db:"lot_id"`
 	LotCostBefore *decimal.Decimal `db:"lot_cost_before"`
 	OldDebt       *decimal.Decimal `db:"old_debt"`
+	CreditWaited  *decimal.Decimal `db:"credit_waited"`
 }
 
 func undoReplacement(ctx context.Context, tx *sqlx.Tx, r *undoRow, userID int64) error {

@@ -49,6 +49,7 @@ func init() {
 			LEFT JOIN LATERAL (SELECT SUM(b.amount) AS v, bool_or(pu.supplier_id IS DISTINCT FROM lr.supplier_id) AS other
 			                   FROM loss_recovery_bills b JOIN purchases pu ON pu.id = b.purchase_id WHERE b.recovery_id = lr.id) x ON true
 			WHERE COALESCE(x.v, 0) + COALESCE(lr.old_debt, 0) + lr.credit_unapplied > lr.recovered_value OR x.other OR lr.old_debt < 0
+			   OR lr.credit_unapplied > COALESCE(lr.credit_waited, lr.credit_unapplied)
 			   OR (lr.outcome <> 'paid' AND (x.v IS NOT NULL OR lr.old_debt IS NOT NULL))`},
 
 		// REC-5: what a recovery holds agrees with its outcome.
