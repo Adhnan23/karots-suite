@@ -78,7 +78,8 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
 - **PUR-2** A delivery is one transaction: each line opens one lot (source purchase, tied to its line) of paid + free
   units and writes one purchase movement of the same quantity; the supplier is owed the total; the product's cost and
   price change only to a figure above zero (a free line never zeroes them); its usual supplier is filled in only when
-  it has none. A power cut leaves all of it or none. *ledgercheck, example, fault.*
+  it has none. A power cut leaves all of it or none. *Found in: 6ee0595 (deliveries beside sales of the same
+  products deadlocked, and the database refused one; never stop a sale).* *ledgercheck, example, fault.*
 - **PUR-3** A lot's cost is what was really paid for its line — its net less its share of the bill discount (shared
   in proportion to the lines' nets) — over every unit that arrived, kept to 4 decimals; a line nothing reduced keeps
   its list cost exactly. So a delivery's lots are worth its total to within a cent a line, and sending the whole
@@ -86,13 +87,13 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   *Found in: a039cfb, 20c8b97.* *example.*
 - **PUR-4** Bought by the pack, a line is entered per pack and kept in units (packs × size, cost ÷ size); the pack size
   is a whole number above 1 (STK-17). A product counted in whole units gets whole units (STK-18): a delivery, an order
-  or goods sent back of 2.5 pieces is refused. *Today a delivery takes any fraction and a pack size of 2.5.* *example.*
+  or goods sent back of 2.5 pieces is refused. *Fixed in 4cd45e0.* *example.*
 - **PUR-5** An order moves nothing — no stock, no balance, no money, not on the statement or the payables. Only an
   order can be edited or deleted; a received bill never is (it is put right by goods sent back or a credit). *example.*
 - **PUR-6** An order is received once: its lines become what really came (a line that didn't come is left out);
   "keep the rest on order" puts every ordered item still short — read from the order's own lines, by product — on a
   new order. Two receives of the same order at the same moment book it once; the other is refused ("already
-  received"). *Found in: debc28c. Today nothing holds the order between the check and the receive.* *example, fault.*
+  received"). *Found in: debc28c, 5b5da99 (eight receives at once booked it eight times; an edit beside a receive turned the bill back into an order).* *example, fault.*
 - **PUR-7** Paying on delivery pays only that bill, after its supplier's credit has settled it (PUR-8): never more
   than is left on it, and only what was applied leaves the till or bank. *example.*
 - **PUR-8** A new bill is first settled out of what the supplier already holds for the shop: advances (as paid, oldest
@@ -104,7 +105,7 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   movement; the balance drops by the total; the delivery's own bill is credited first, then other bills with something
   left, oldest first; what's beyond every bill stays as a supplier credit. A frozen product's pieces out for sale are
   first put back on the books (to_shelf), then sent back, as a frozen write-off (STK-8). *User, 2026-11-19 (Q4).
-  Today they're refused when storage holds too few.* *example, machine.*
+  Fixed in d99efa5.* *example, machine.*
 - **PUR-10** A debit note's total = Σ its lines (units × cost, to the cent); what it credited to bills never passes
   it. *ledgercheck.*
 - **PUR-11** A bill's paid and credited are never below zero and never add up to more than its total; it reads
@@ -123,7 +124,7 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   that exists leaves their opening alone) and is never below zero. Adjusting it moves the balance and the opening by
   the same amount and never touches what bills, payments and returns made. The old debt never passes the opening
   nor what they're owed: old debt set while the supplier holds a credit is paid down by that credit, as CUST-15.
-  *User, 2026-11-19 (Q2). Today an adjusted opening may be set below zero, and a credit leaves the old debt whole.*
+  *User, 2026-11-19 (Q2). Fixed in f36d840.*
   *ledgercheck, example.*
 - **SUP-3** A payment's money lands where it says: cash from a till or a cash locker, card / online from a bank
   account (LOCK-11, `86dacd6`), a cheque as given cheques that add up to it exactly (CHQ-1); paid from outside moves
@@ -135,21 +136,20 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
 - **SUP-5** What's paid beyond the bills and the old debt is an advance: the balance goes below zero and the next
   bills are settled from it (PUR-8). An advance typed while something is owed pays that first — open bills oldest
   first, then the old debt — and only what's beyond all of it stays as credit, so the payment queue never shows a bill
-  owed while the shop holds credit with the same supplier. *User, 2026-11-19 (Q1). Today a typed advance sits as
-  credit while the bills stay open.* *example, machine.*
+  owed while the shop holds credit with the same supplier. *User, 2026-11-19 (Q1). Fixed in aee7488.* *example, machine.*
 - **SUP-6** A discount received lowers bills (credited, not paid) and the balance; no money moves, and it is never
   an advance — a discount beyond what's owed is refused. *example.*
 - **SUP-7** A refund received is at most the credit the supplier holds; its money lands in a till or a cash locker
   (cash) or a bank account (card / online, LOCK-11); the balance walks back toward zero and never past it. Two refunds
-  at the same moment never both pass the limit. *Today the credit is read without holding the supplier.* *example,
+  at the same moment never both pass the limit. *Found in: d7d2e0b (eight refunds of a Rs 300 credit all went through).* *example,
   fault.*
 - **SUP-8** Two money actions on one supplier at the same moment — payments, old-debt payments, refunds, an opening
   adjusted, a delivery settled from credit — each land whole: the balance moves by exactly what each says, and no bill,
-  old debt or credit is spent twice. *Today the old debt and the credit are read without holding the supplier, so two
-  old-debt payments can both pass and the second moves money but not the balance.* *fault.*
+  old debt or credit is spent twice. *Found in: d7d2e0b (eight Rs 100 old-debt payments of Rs 300 took Rs 800 from the safe),
+  6ee0595 (a payment's split read before it held the supplier was refused beside another).* *fault.*
 - **SUP-9** A disabled supplier keeps their balance, bills and history: still on Owing and the payables, and can still
   be paid or refunded. A delivery, an order or goods sent back for one is refused ("bring them back first").
-  *User, 2026-11-19 (Q3). Today the server takes them; only the pickers hide the supplier.* *example.*
+  *User, 2026-11-19 (Q3). Fixed in 3d401c6.* *example.*
 - **SUP-10** The statement's running balance ends at the supplier's balance (SUP-1's rows, oldest first); Owing lists
   every supplier owed (disabled too), with the oldest bill that still has something left. *Report sums are area 7.*
   *example.*
@@ -167,7 +167,7 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   bills it paid reopen, newest allocation first, never below nothing paid (a bill credits still cover stays paid). A
   given one for an expense makes the expense unpaid again (EXP-4). *Found in: 5f951cb.* *example.*
 - **CHQ-4** A bounced or cancelled cheque's payment never pays a bill again: what it didn't put on bills is no advance.
-  *Today the part of a bounced payment that sat as an advance can still settle a later bill as paid.* *example.*
+  *Found in: ea3af73.* *example.*
 - **CHQ-5** Only a pending cheque's details can be fixed (bank, number, date, note; a given one's bank place); its
   amount never changes. *example.*
 - **CHQ-6** Two status changes of one cheque at the same moment: one wins, the other is refused ("already …").

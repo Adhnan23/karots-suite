@@ -10,7 +10,17 @@ Suppliers, what you order from them, what arrives and what goes back. You'll fin
 The top of the page shows what you owe all suppliers and what they owe you. Each supplier has
 credit days, a running balance and a statement you can print. **Pay** a supplier against chosen
 bills, against an old debt, or split across them, from a locker or the till. An old balance from
-before the suite can be entered as an opening balance.
+before the suite can be entered as an opening balance. It is never below zero: if a supplier held money
+of yours before the suite, record it as an advance paid. If they already hold some of your money when
+you correct the old balance, that money pays the old balance down first.
+
+An **advance** typed while bills are still open pays those bills first, oldest first, then the old
+balance. Only what's beyond all of it stays with them, and their next delivery is paid from it. If a
+cheque you gave them bounces, what it hadn't yet paid is no longer an advance.
+
+A **disabled** supplier keeps their balance and history. You can still pay them or take a refund,
+but nothing can be ordered from them, received from them or sent back to them until you bring them
+back.
 
 If a supplier takes something off when you pay, pay what you agreed, then press **Pay** again with the
 rest and choose **Discount**. The bill closes and no money moves. It shows on their statement, and as
@@ -42,6 +52,8 @@ Low stock tab, and a low group shows as one block with an order split across its
   margin at the current price. Receiving prints a **GRN**.
 - Pay now or leave it on credit. The **Received** tab shows each delivery and what's still owed
   on it.
+- Things counted in pieces take whole numbers only, on an order, a delivery or a return. A pack
+  size is a whole number too (a card of 12, not 12.5). Loose goods (kg, litres) take parts.
 
 ### A product that isn't in the catalogue
 
@@ -59,6 +71,10 @@ existing one** adds the code to that product, or choose **It's a new product**.
 
 Send stock back against a delivery: short expiry, slow movers, damage. Each return takes the
 stock off and comes off what you owe that supplier.
+
+For a product whose stock is **frozen** (being counted), tick **out for sale** on its line when
+the pieces going back come off the shelf rather than from storage. They are put back on the books,
+then sent, as a frozen write-off is. Storage keeps its count.
 
 ## Giving a batch back
 
