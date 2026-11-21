@@ -230,7 +230,8 @@ rule's supplier (Reorder, purchase orders, a GRN's suggested supplier); its own 
 core seam (a fallback supplier for products that have none, asked by reorder / purchasing) so core never names
 Product Plus. User's answers: two rules matching one product → it shows under both suppliers, with a warning; the first
 delivery still fills in the product's own supplier (that supplier has it too; skippable). Why: at Iman most suppliers
-were typed product by product — a brand per product and a supplier per brand is far less work. When a brand changes
+were typed product by product — a brand per product and a supplier per brand is far less work. A supplier brings
+many brands: set it from the supplier's side too (this supplier brings brands A, B, C). When a brand changes
 supplier: change the rule once; to be designed — offer to move products whose own supplier is the old one too (else
 the first-delivery fill-in keeps them on it), besides the existing move-products-to-a-supplier.
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
