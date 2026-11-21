@@ -35,8 +35,8 @@ describe('Print & Copy with the PC down', () => {
     const q = route('GET', '/x/documents/quote').answer(ctx({ parts: { documents: plain }, query: new URLSearchParams('service=1&size=A4&material=&color=false&double=false&copies=1') }))
     expect(q).toMatchObject({ description: 'Photocopy A4' })
   })
-  it('recording jobs and shop use queues', () => {
-    expect(route('POST', '/x/documents/jobs').queue).toBe(true)
+  it('shop use queues; a sold job needs no call of its own (the sale carries it)', () => {
+    expect(documentsRoutes.some((r) => r.path === '/x/documents/jobs')).toBe(false)
     expect(route('POST', '/x/documents/own-use').queue).toBe(true)
   })
 })

@@ -33,4 +33,3 @@ export const saveGrid = (id: number, g: Grid) => write(api<Grid>(`${base}/servic
 export const saveExtras = (id: number, xs: Extra[]) => write(api<Extra[]>(`${base}/services/${id}/extras`, { method: 'PUT', json: xs }))
 export const ownUse = (j: JobAsk) =>
   api(`${base}/own-use`, { json: { serviceId: j.service, size: j.size, material: j.material, color: j.color, double: j.double, copies: j.copies } })
-export const recordJobs = (saleId: number, jobs: unknown[]) => api(`${base}/jobs`, { json: { saleId, jobs } })

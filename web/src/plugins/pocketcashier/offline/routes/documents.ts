@@ -78,6 +78,5 @@ function quote(c: RouteCtx) {
 export const documentsRoutes: OfflineRoute[] = [
   { method: 'GET', path: '/x/documents/till', answer: (c) => (c.parts.documents as DocPart | undefined)?.services ?? [] },
   { method: 'GET', path: '/x/documents/quote', answer: quote },
-  { method: 'POST', path: '/x/documents/jobs', queue: true, label: () => 'Print & Copy job record', answer: () => ({}) },
   { method: 'POST', path: '/x/documents/own-use', queue: true, label: () => 'Print & Copy: shop use', answer: () => ({}) },
 ]

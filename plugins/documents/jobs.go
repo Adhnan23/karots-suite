@@ -2,64 +2,14 @@ package documents
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"karots-suite/internal/features/reports"
 	"time"
 
-	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/reports"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/shopspring/decimal"
 )
-
-// SoldJob is one Print & Copy line of a sale, as the till reports it after the
-// sale. Money is NOT taken from it: the ledger copies the sale line's own qty,
-// price and cost, so a wrong or replayed post can't invent revenue.
-type SoldJob struct {
-	ServiceID   int64
-	Description string
-	Size        *string
-	Material    string
-	Color       *bool
-	Double      *bool
-	Sheets      *decimal.Decimal
-}
-
-// RecordSold writes one doc_job per job, each linked to a line of the sale with
-// the service's product and the job's description that no job holds yet.
-// A job matching no line is refused (nothing is written).
-func (s *Store) RecordSold(ctx context.Context, saleID int64, jobs []SoldJob) error {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback() //nolint:errcheck
-	for _, j := range jobs {
-		var itemID int64
-		err := tx.GetContext(ctx, &itemID, `
-			SELECT si.id FROM sale_items si JOIN doc_service sv ON sv.product_id = si.product_id
-			WHERE si.sale_id = $1 AND sv.id = $2 AND COALESCE(si.description, '') = $3
-			  AND NOT EXISTS (SELECT 1 FROM doc_job j WHERE j.sale_item_id = si.id)
-			ORDER BY si.id LIMIT 1 FOR UPDATE OF si`, saleID, j.ServiceID, j.Description)
-		if errors.Is(err, sql.ErrNoRows) {
-			return apperr.Validation("a job doesn't match a line of that sale")
-		}
-		if err != nil {
-			return err
-		}
-		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO doc_job (sale_id, sale_item_id, service_id, description, qty, unit_price, line_total,
-			                     consumable_cost, kind, size, color, double_side, sheets, material)
-			SELECT si.sale_id, si.id, $2, $3, si.quantity, si.unit_price, si.subtotal,
-			       ROUND(si.cost_price * si.quantity, 2), 'sale', $4, $5, $6, $7, LEFT($8, 30)
-			FROM sale_items si WHERE si.id = $1`, itemID, j.ServiceID, j.Description, j.Size, j.Color, j.Double, j.Sheets, j.Material); err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
-}
 
 // RecordOwnUse logs a shop-use job (no sale, no price).
 func (s *Store) RecordOwnUse(ctx context.Context, tx sqlx.ExecerContext, sv *Service, desc string, o JobOptions, cost decimal.Decimal) error {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { serviceLine } from '@/features/till/cart/lines'
-import { addJob, customLine, extraLine, extrasTotal, materials, meteredLine, offersFor, settle, sizes, soldJobs, startPick, varies } from './till'
+import { addJob, customLine, extraLine, extrasTotal, materials, meteredLine, offersFor, settle, sizes, startPick, varies } from './till'
 import type { Extra } from './types'
 import type { TillService } from './types'
 
@@ -33,13 +33,13 @@ describe('job lines', () => {
   it('a metered job is a fixed-qty line carrying its paper', () => {
     const l = serviceLine(1, meteredLine(svc, { size: 'A4', material: '', color: false, double: true }, 21, q))
     expect(l).toMatchObject({ qty: 21, unitPrice: 12, fixedQty: true, description: q.description, components: q.components })
-    expect(soldJobs([l])).toEqual([{ serviceId: 7, description: q.description, size: 'A4', material: '', color: false, double: true, sheets: 11 }])
+    expect(l.plugin).toEqual({ documents: { serviceId: 7, size: 'A4', material: '', color: false, double: true, sheets: 11 } }) // the server's job (sold.go)
   })
   it('a custom job puts the note on the line', () => {
     const l = serviceLine(2, customLine(svc, 1500, ' Nimal '))
     expect(l).toMatchObject({ qty: 1, unitPrice: 1500, description: 'Photocopy — Nimal' })
     expect(l.fixedQty).toBeUndefined()
-    expect(soldJobs([l])[0]).toMatchObject({ serviceId: 7, size: null, sheets: null })
+    expect(l.plugin).toEqual({ documents: { serviceId: 7 } })
   })
 })
 
@@ -67,7 +67,7 @@ describe('types (same size, other material)', () => {
   it('a laminate job carries its type, not ink or sides', () => {
     const q = { unitPrice: '120.00', total: '360.00', minQty: 1, description: 'Laminate A4 · Matte', sheets: 3, cost: '60', components: [{ productId: 31, quantity: '3' }] }
     const l = serviceLine(3, meteredLine(lam, { size: 'A4', material: 'Matte', color: false, double: false }, 3, q))
-    expect(soldJobs([l])).toEqual([{ serviceId: 9, description: q.description, size: 'A4', material: 'Matte', color: null, double: null, sheets: 3 }])
+    expect(l.plugin).toEqual({ documents: { serviceId: 9, size: 'A4', material: 'Matte', sheets: 3 } })
   })
 })
 
@@ -83,7 +83,7 @@ describe('extras', () => {
     expect(u).toMatchObject({ qty: 1, unitPrice: 100, description: 'Urgent', components: [], noRecipe: true })
     const l = serviceLine(5, extraLine(svc, lanyard, 3))
     expect(l).toMatchObject({ qty: 3, unitPrice: 80, fixedQty: true, components: [{ productId: 44, quantity: '3' }] })
-    expect(soldJobs([u, l])).toEqual([])
+    expect([u.plugin, l.plugin]).toEqual([{ documents: { extraOf: 7 } }, { documents: { extraOf: 7 } }]) // no serviceId: no job
   })
 })
 

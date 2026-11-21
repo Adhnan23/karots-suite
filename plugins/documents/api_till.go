@@ -66,19 +66,6 @@ type OwnUseRequest struct {
 	Copies    int    `json:"copies"`
 }
 
-type JobsRequest struct {
-	SaleID int64 `json:"saleId"`
-	Jobs   []struct {
-		ServiceID   int64   `json:"serviceId"`
-		Description string  `json:"description"`
-		Size        *string `json:"size"`
-		Material    string  `json:"material"`
-		Color       *bool   `json:"color"`
-		Double      *bool   `json:"double"`
-		Sheets      *int    `json:"sheets"`
-	} `json:"jobs"`
-}
-
 func (h handlers) till(c echo.Context) error {
 	out, err := h.tillServices(c.Request().Context())
 	if err != nil {
@@ -205,33 +192,5 @@ func (h handlers) ownUse(c echo.Context) error {
 		return err
 	}
 	h.audit(c, "documents_own_use", sv.ID, desc)
-	return c.NoContent(http.StatusNoContent)
-}
-
-// jobs records the Print & Copy lines of a sale just made (best-effort, after it).
-func (h handlers) jobs(c echo.Context) error {
-	var req JobsRequest
-	if err := c.Bind(&req); err != nil {
-		return apperr.BadRequest("invalid body")
-	}
-	if req.SaleID <= 0 || len(req.Jobs) == 0 {
-		return apperr.Validation("nothing to record")
-	}
-	jobs := make([]SoldJob, 0, len(req.Jobs))
-	for _, j := range req.Jobs {
-		var sheets *decimal.Decimal
-		if j.Sheets != nil {
-			d := decimal.NewFromInt(int64(*j.Sheets))
-			sheets = &d
-		}
-		size := j.Size
-		if size != nil && *size == "" {
-			size = nil
-		}
-		jobs = append(jobs, SoldJob{ServiceID: j.ServiceID, Description: j.Description, Size: size, Material: strings.TrimSpace(j.Material), Color: j.Color, Double: j.Double, Sheets: sheets})
-	}
-	if err := h.p.store.RecordSold(c.Request().Context(), req.SaleID, jobs); err != nil {
-		return err
-	}
 	return c.NoContent(http.StatusNoContent)
 }

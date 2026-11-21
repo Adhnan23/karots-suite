@@ -177,12 +177,16 @@ func TestPrintAndCopyFlow(t *testing.T) {
 			Components: []sales.ServiceComponent{{ProductID: paper, Quantity: q.Components[0].Quantity}}}},
 		Payments: []sales.PaymentInput{{Method: "cash", Amount: "252"}}}, cashier)
 	must(err)
-	job := fmt.Sprintf(`{"saleId":%d,"jobs":[{"serviceId":%d,"description":%q,"size":"A4","color":false,"double":true,"sheets":11}]}`, d.Sale.ID, sid, q.Description)
-	if rec := do("POST", "/jobs", job); rec.Code != 204 {
-		t.Fatalf("jobs = %d %s", rec.Code, rec.Body)
+	// The sale-line hook writes the job (here called as core calls it); twice is still one.
+	ev := plugin.SaleLines{SaleID: d.Sale.ID, Lines: []plugin.SaleLine{{ItemID: d.Items[0].ID, ProductID: pid,
+		Data: json.RawMessage(fmt.Sprintf(`{"serviceId":%d,"size":"A4","color":false,"double":true,"sheets":11}`, sid))}}}
+	for range 2 {
+		must(appdb.WithTx(t.Context(), db, func(tx *sqlx.Tx) error { return recordSale(t.Context(), tx, ev) }))
 	}
-	if rec := do("POST", "/jobs", job); rec.Code != 422 {
-		t.Errorf("the same job again = %d, want 422 (its line is taken)", rec.Code)
+	var jobs int
+	must(db.Get(&jobs, `SELECT count(*) FROM doc_job WHERE sale_id = $1`, d.Sale.ID))
+	if jobs != 1 {
+		t.Errorf("%d jobs for one line, want 1", jobs)
 	}
 
 	// Shop use of 5 single-sided: 5 sheets as own_use.

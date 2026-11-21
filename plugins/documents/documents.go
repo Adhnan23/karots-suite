@@ -28,12 +28,13 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddDataGroup(plugin.DataGroup{Key: "documents", Name: "Print & Copy",
 		Tables: []string{"doc_service", "doc_price", "doc_consumable", "doc_extra", "doc_job", "doc_payout"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "documents", Merge: mergeProduct})
+	// A sale's jobs are written with it, from its own lines (DOC-6).
+	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "documents", Record: recordSale})
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
 	t.GET("/documents/till", h.till)
 	t.GET("/documents/quote", h.quote)
 	t.POST("/documents/own-use", h.ownUse, middleware.RequireHandlesMoney())
-	t.POST("/documents/jobs", h.jobs, middleware.RequireHandlesMoney())
 	a := reg.Admin() // admin + manager
 	a.GET("/documents/services", h.services)
 	a.POST("/documents/services", h.create)

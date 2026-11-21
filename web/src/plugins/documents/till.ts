@@ -1,7 +1,6 @@
 import type { TillProduct } from '@/api/types.gen'
-import type { CartLine, ServiceLineInput } from '@/features/till/cart/types'
+import type { ServiceLineInput } from '@/features/till/cart/types'
 import type { TillApi } from '@/plugins/slots'
-import { recordJobs } from './api'
 import type { Extra, LineExtra, LineJob, Quote, TillOffer, TillService } from './types'
 
 export const BADGE = '🖨' // plugins/documents/store.go Badge
@@ -90,21 +89,4 @@ export function extraLine(s: TillService, x: Extra, pieces: number): ServiceLine
 export function addJob(till: { addServiceLine: TillApi['addServiceLine']; addServiceGroup: TillApi['addServiceGroup'] }, s: TillService, job: ServiceLineInput, extras: Extra[], pieces: number) {
   if (!extras.length) till.addServiceLine(job)
   else till.addServiceGroup({ label: s.name, lines: [job, ...extras.map((x) => extraLine(s, x, pieces))] })
-}
-
-const jobOf = (l: CartLine) => l.plugin?.documents as LineJob | undefined
-
-/** After a sale: one ledger job per Print & Copy line. */
-export function soldJobs(lines: CartLine[]) {
-  return lines.flatMap((l) => {
-    const j = jobOf(l)
-    if (!j?.serviceId) return []
-    return [{ serviceId: j.serviceId, description: l.description || l.name, size: j.size ?? null, material: j.material ?? '',
-      color: j.color ?? null, double: j.double ?? null, sheets: j.sheets ?? null }]
-  })
-}
-
-export async function afterSale({ saleId, lines }: { saleId: number; lines: CartLine[] }) {
-  const jobs = soldJobs(lines)
-  if (jobs.length) await recordJobs(saleId, jobs)
 }
