@@ -1,4 +1,7 @@
-package clearance
+// Package battle is the plugin's battle tests in a binary of their own: one
+// shop per process (plugin hooks are process-wide; the package's other tests
+// register their own).
+package battle
 
 import (
 	"context"
@@ -10,6 +13,7 @@ import (
 
 	"karots-suite/internal/ledgercheck"
 	"karots-suite/internal/ledgercheck/ltest"
+	"karots-suite/plugins/clearance"
 )
 
 // Clearance's battle tests (docs/rules/plugins/clearance.md): one throwaway shop
@@ -128,7 +132,7 @@ func TestCLR1_LiveMarkdownsOnly(t *testing.T) {
 // status is a product's row status on the page ("-" = not listed).
 func status(t *testing.T, s *ltest.Shop, p int64) string {
 	t.Helper()
-	var pg PageDTO
+	var pg clearance.PageDTO
 	s.Must(t, s.Admin.Do("GET", "/api/v1/x/clearance", nil, &pg))
 	for _, r := range pg.Rows {
 		if r.ProductID == p {
@@ -186,7 +190,7 @@ func TestCLR2_Refusals(t *testing.T) { // compares every table: runs alone
 }
 
 func settings(s *ltest.Shop, stale int, def, margin string) error {
-	return s.Admin.Do("PUT", "/api/v1/x/clearance/settings", SettingsDTO{StaleDays: stale, DefaultPercent: def, MinMarginPercent: margin, ExpiryDays: 14, DeadMonths: 6}, nil)
+	return s.Admin.Do("PUT", "/api/v1/x/clearance/settings", clearance.SettingsDTO{StaleDays: stale, DefaultPercent: def, MinMarginPercent: margin, ExpiryDays: 14, DeadMonths: 6}, nil)
 }
 
 // PLG-1: approve, snooze, bring back, settings and disable move no money or stock.
@@ -256,7 +260,7 @@ func TestCLR6_DisableOnlyDead(t *testing.T) {
 	fresh := s.Product(t, "New and empty", "100", "0", nil)
 	s.DB.MustExec(`UPDATE products SET created_at = now() - interval '2 years' WHERE id = $1`, dead)
 	s.DB.MustExec(`UPDATE products SET created_at = now() - interval '2 years' WHERE id = $1`, alive)
-	var pg PageDTO
+	var pg clearance.PageDTO
 	s.Must(t, s.Admin.Do("GET", "/api/v1/x/clearance", nil, &pg))
 	listed := map[int64]bool{}
 	for _, d := range pg.Dead {

@@ -1,4 +1,7 @@
-package requests
+// Package battle is the plugin's battle tests in a binary of their own: one
+// shop per process (plugin hooks are process-wide; the package's other tests
+// register their own).
+package battle
 
 import (
 	"context"
@@ -10,6 +13,7 @@ import (
 
 	"karots-suite/internal/ledgercheck"
 	"karots-suite/internal/ledgercheck/ltest"
+	"karots-suite/plugins/requests"
 )
 
 // Customer requests' battle tests (docs/rules/plugins/requests.md): one throwaway
@@ -19,7 +23,7 @@ func TestMain(m *testing.M) { os.Exit(ltest.Main(m)) }
 
 func note(t *testing.T, s *ltest.Shop, note, name, phone string) int64 {
 	t.Helper()
-	var r RequestRow
+	var r requests.RequestRow
 	s.Must(t, s.Cashier.Do("POST", "/api/v1/x/requests", map[string]string{"note": note, "name": name, "phone": phone}, &r))
 	return r.ID
 }
@@ -29,14 +33,14 @@ func askAgain(s *ltest.Shop, id int64, name, phone string) error {
 }
 
 // listed reads one request as the admin page shows it (its note searched on every tab).
-func listed(t *testing.T, s *ltest.Shop, id int64) (RequestRow, bool) {
+func listed(t *testing.T, s *ltest.Shop, id int64) (requests.RequestRow, bool) {
 	t.Helper()
 	var note string
 	if s.DB.Get(&note, `SELECT note FROM requests WHERE id = $1`, id) != nil {
-		return RequestRow{}, false
+		return requests.RequestRow{}, false
 	}
 	for _, tab := range []string{"open", "call", "done"} {
-		var l struct{ Rows []RequestRow }
+		var l struct{ Rows []requests.RequestRow }
 		s.Must(t, s.Admin.Do("GET", "/api/v1/x/requests?tab="+tab+"&q="+url.QueryEscape(note), nil, &l))
 		for _, r := range l.Rows {
 			if r.ID == id {
@@ -44,7 +48,7 @@ func listed(t *testing.T, s *ltest.Shop, id int64) (RequestRow, bool) {
 			}
 		}
 	}
-	return RequestRow{}, false
+	return requests.RequestRow{}, false
 }
 
 func asks(t *testing.T, s *ltest.Shop, id int64) int {
