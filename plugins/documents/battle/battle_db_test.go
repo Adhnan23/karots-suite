@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -278,8 +279,8 @@ func TestDOC8_ShopUse(t *testing.T) {
 		t.Errorf("DOC-8: %d shop-use jobs, want 1", n)
 	}
 	err := s.Cashier.Do("POST", "/api/v1/x/documents/own-use", map[string]any{"serviceId": c.id, "size": "A4", "copies": 600}, nil)
-	if se, ok := err.(*ltest.StatusError); !ok || se.Code != 409 {
-		t.Errorf("DOC-8: 600 sheets from 495 answered %v, want 409", err)
+	if se, ok := err.(*ltest.StatusError); !ok || se.Code != 409 || !strings.Contains(se.Msg, "correct the count") {
+		t.Errorf("DOC-8: 600 sheets from 495 answered %v, want 409 saying to correct the count", err)
 	}
 	if p := stock(t, s, c.paper); p != "495" {
 		t.Errorf("DOC-8: a refused shop use took paper: %s left", p)
@@ -303,6 +304,25 @@ func TestDOC2_TillOffers(t *testing.T) {
 	}
 	if x, ok := seen[on.id]; !ok || len(x.Offers) != 2 || len(x.Offers[0].Bands) != 2 || len(x.Extras) != 2 {
 		t.Errorf("DOC-2: the till's offer %+v", x)
+	}
+	if x := seen[on.id]; len(x.Offers) > 0 && x.Offers[0].Size != "A4" {
+		t.Errorf("DOC-2: the till's offer is for size %q, want A4", x.Offers[0].Size)
+	}
+	var list []documents.ServiceDTO
+	s.Must(t, s.Admin.Do("GET", "/api/v1/x/documents/services", nil, &list))
+	for _, x := range list {
+		if x.ID == on.id && (x.Prices != 3 || x.Paper != 1) {
+			t.Errorf("DOC-2: the services list says %d prices, %d paper; want 3 and 1", x.Prices, x.Paper)
+		}
+	}
+	// A service made with no price starts at 0.
+	var r struct{ ID, ProductID int64 }
+	s.Must(t, s.Admin.Do("POST", "/api/v1/x/documents/services", map[string]any{"name": fmt.Sprintf("CV %d", seq.Add(1)), "categoryId": s.Cat,
+		"kind": "custom", "category": "other"}, &r))
+	var price string
+	s.Must(t, s.DB.Get(&price, `SELECT selling_price::text FROM products WHERE id = $1`, r.ProductID))
+	if price != "0.00" {
+		t.Errorf("DOC-1: a service with no price costs %s, want 0.00", price)
 	}
 }
 
