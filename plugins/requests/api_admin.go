@@ -10,6 +10,7 @@ import (
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/middleware"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -126,25 +127,18 @@ func (h handlers) makeProduct(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if status, _, err := h.p.store.stage(ctx, h.p.store.db, id); err != nil {
-		return storeErr("make product", err)
-	} else if status != "open" {
-		return storeErr("make product", ErrClosed)
-	}
 	pin := products.CreateInput{Name: in.Name, CategoryID: in.CategoryID, UnitID: in.UnitID,
 		CostPrice: or0(in.CostPrice), SellingPrice: or0(in.SellingPrice)}
 	if in.SupplierID > 0 {
 		pin.PreferredSupplierID = &in.SupplierID
 	}
-	prod, err := h.p.core.Products.Create(ctx, pin)
+	pid, err := h.p.store.MakeProduct(ctx, id, func(tx *sqlx.Tx) (int64, error) { return products.CreateTx(ctx, tx, pin) })
 	if err != nil {
-		return err
-	}
-	if err := h.p.store.MarkConverted(ctx, id, prod.ID); err != nil {
 		return storeErr("make product", err)
 	}
-	h.audit(c, audit.ActionUpdate, strconv.FormatInt(id, 10), "made product "+prod.Name)
-	return c.JSON(http.StatusOK, map[string]int64{"productId": prod.ID})
+	// Saved: answered as done, never hanging on a read after it (as DRAW-18).
+	h.audit(c, audit.ActionUpdate, strconv.FormatInt(id, 10), "made product "+in.Name)
+	return c.JSON(http.StatusOK, map[string]int64{"productId": pid})
 }
 
 func (h handlers) link(c echo.Context) error {
@@ -157,6 +151,9 @@ func (h handlers) link(c echo.Context) error {
 	prod, err := h.p.core.Products.Get(c.Request().Context(), in.ProductID)
 	if err != nil {
 		return err
+	}
+	if prod.MergedIntoID != nil { // PLG-2: point at the product it went into
+		return apperr.Validation("that product was merged into another — pick the one kept")
 	}
 	return h.done(c, "linked to "+prod.Name, func(id int64) error { return h.p.store.MarkConverted(c.Request().Context(), id, prod.ID) })
 }

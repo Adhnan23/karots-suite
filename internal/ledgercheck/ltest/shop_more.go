@@ -125,8 +125,10 @@ func Changed(before, after map[string]string) []string {
 }
 
 // MoneyAndStock are the tables a product-data plugin never changes (PLG-1).
+// "stock" itself isn't one: a new product gets an empty row there; any change to
+// what's on hand is a movement and a lot.
 var MoneyAndStock = []string{"sales", "sale_items", "sale_payments", "sale_returns", "sale_return_items",
-	"stock", "stock_batches", "stock_movements", "cash_movements", "till_sessions", "lockers",
+	"stock_batches", "stock_movements", "cash_movements", "till_sessions", "lockers",
 	"customers", "customer_payments", "suppliers", "supplier_payments", "purchases", "purchase_items", "expenses"}
 
 // Untouched fails when any of tables changed between two States (a missing

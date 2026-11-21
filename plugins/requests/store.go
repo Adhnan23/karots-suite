@@ -188,17 +188,30 @@ func (s *Store) stage(ctx context.Context, q sqlx.QueryerContext, id int64) (sta
 }
 
 // AddAsk is "asked again": only while the item is still wanted or declined.
+// It holds the request row, so a merge running at the same time either moves
+// this ask with the rest or finds it after and the ask is refused — never
+// deleted with the merged request (REQ-2).
 func (s *Store) AddAsk(ctx context.Context, id int64, name, phone string, userID int64) error {
-	status, stage, err := s.stage(ctx, s.db, id)
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if _, err := tx.ExecContext(ctx, `SELECT 1 FROM requests WHERE id = $1 FOR SHARE`, id); err != nil {
+		return err
+	}
+	status, stage, err := s.stage(ctx, tx, id)
 	if err != nil {
 		return err
 	}
 	if stage != "open" && stage != "waiting" && status != "declined" {
 		return ErrClosed
 	}
-	_, err = s.db.ExecContext(ctx, `INSERT INTO request_asks (request_id, customer_name, customer_phone, created_by)
-		VALUES ($1, $2, $3, NULLIF($4, 0))`, id, name, phone, userID)
-	return err
+	if _, err = tx.ExecContext(ctx, `INSERT INTO request_asks (request_id, customer_name, customer_phone, created_by)
+		VALUES ($1, $2, $3, NULLIF($4, 0))`, id, name, phone, userID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // exec runs a one-row write and turns "no row" into ErrNotFound.
@@ -258,6 +271,34 @@ func (s *Store) MarkConverted(ctx context.Context, id, productID int64) error {
 		WHERE id = $2 AND status = 'open'`, productID, id)
 }
 
+// MakeProduct makes a product from an open request and closes the request onto
+// it in one transaction, holding the request row: sent twice, or twice at once,
+// it is still one product, and a failure part-way makes none (REQ-3, PLG-4, PLG-6).
+func (s *Store) MakeProduct(ctx context.Context, id int64, create func(tx *sqlx.Tx) (int64, error)) (int64, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	var status string
+	if err := tx.GetContext(ctx, &status, `SELECT status FROM requests WHERE id = $1 FOR UPDATE`, id); errors.Is(err, sql.ErrNoRows) {
+		return 0, ErrNotFound
+	} else if err != nil {
+		return 0, err
+	}
+	if status != "open" {
+		return 0, ErrClosed
+	}
+	pid, err := create(tx)
+	if err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE requests SET status = 'converted', product_id = $1, updated_at = now() WHERE id = $2`, pid, id); err != nil {
+		return 0, err
+	}
+	return pid, tx.Commit()
+}
+
 func (s *Store) Decline(ctx context.Context, id int64, reason string) error {
 	return s.close(ctx, id, `UPDATE requests SET status = 'declined', reason = $1, updated_at = now()
 		WHERE id = $2 AND status = 'open'`, reason, id)
@@ -278,6 +319,11 @@ func (s *Store) Merge(ctx context.Context, from, into int64) error {
 		return err
 	}
 	defer tx.Rollback() //nolint:errcheck
+	// Both rows held, lower id first: an ask or another merge waits for this one
+	// (REQ-2, REQ-4; two crossed merges can't both run).
+	if _, err := tx.ExecContext(ctx, `SELECT 1 FROM requests WHERE id IN ($1, $2) ORDER BY id FOR UPDATE`, from, into); err != nil {
+		return err
+	}
 	for _, id := range []int64{from, into} {
 		status, _, err := s.stage(ctx, tx, id)
 		if err != nil {
