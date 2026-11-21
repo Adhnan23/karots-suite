@@ -2,6 +2,7 @@ package alternatives
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 
 	"karots-suite/internal/plugin"
 )
@@ -26,18 +27,25 @@ func (s *Store) groupInfos(ctx context.Context) ([]plugin.ProductGroupInfo, erro
 	if err != nil {
 		return nil, err
 	}
+	var ms []struct {
+		GroupID   int64 `db:"group_id"`
+		ProductID int64 `db:"product_id"`
+	}
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &ms, `
+		SELECT t.group_id, m.product_id FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
+		LEFT JOIN products p ON p.id = m.product_id
+		ORDER BY t.sort_order, t.id, COALESCE(p.is_active, false) DESC, lower(COALESCE(p.name, '')), m.product_id`); err != nil {
+		return nil, err
+	}
+	members := map[int64][]int64{}
+	for _, m := range ms {
+		members[m.GroupID] = append(members[m.GroupID], m.ProductID)
+	}
 	out := make([]plugin.ProductGroupInfo, 0, len(groups))
 	for _, g := range groups {
-		full, err := s.Group(ctx, g.ID)
-		if err != nil {
-			return nil, err
-		}
-		info := plugin.ProductGroupInfo{ID: full.ID, Name: full.Name}
-		for _, t := range full.Tiers {
+		info := plugin.ProductGroupInfo{ID: g.ID, Name: g.Name, Members: members[g.ID]}
+		for _, t := range g.Tiers {
 			info.Tiers = append(info.Tiers, plugin.ProductGroupTier{ID: t.ID, Name: t.Name})
-			for _, m := range t.Members {
-				info.Members = append(info.Members, m.ProductID)
-			}
 		}
 		out = append(out, info)
 	}
