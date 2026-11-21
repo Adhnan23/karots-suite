@@ -224,6 +224,11 @@ become one group, shown first to untick wrong ones, then saved as ordinary group
 generic `ProductAttributeSet` hook (Product Plus registers its fields there), so Alternatives never names Product
 Plus: with no field plugin compiled in, there is nothing to pick. Pharmacy stays shipped with Product Plus and
 Alternatives (user: pharmacies need generic names, and they group medicines).
+**Idea (user, 2026-11-21), after the battle tests:** **a supplier by field** — Product Plus rules like "Brand = Nestlé
+→ supplier X": a product with no preferred supplier of its own (`products.preferred_supplier_id`) is ordered from the
+rule's supplier (Reorder, purchase orders, a GRN's suggested supplier); its own supplier always wins. Needs a generic
+core seam (a fallback supplier for products that have none, asked by reorder / purchasing) so core never names
+Product Plus; open: two rules matching one product, and whether the first delivery still fills in the product's own.
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
