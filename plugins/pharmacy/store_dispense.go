@@ -112,7 +112,7 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 	}
 	defer tx.Rollback() //nolint:errcheck
 	// One record per sale (the lock stops a double tap recording twice).
-	if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(hashtext('pharmacy_dispense'), $1::int)`, in.SaleID); err != nil {
+	if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(hashtextextended('pharmacy_dispense:' || $1::bigint, 0))`, in.SaleID); err != nil {
 		return 0, err
 	}
 	var who string

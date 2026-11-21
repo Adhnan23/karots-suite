@@ -62,7 +62,8 @@ PHA-5  One dispense per sale, never for a void or missing sale, for a script of 
        untagged one the first line of its group (or product), other medicines off-script. Sent twice or two
        at once = one record (the second is refused, naming the patient). A patient picked at the till is
        recorded with the sale (its transaction; skipped, never refused, when something's off â€” a sale is
-       never stopped); a past receipt is recorded by hand. (User, 2026-11-21.)
+       never stopped); a past receipt is recorded by hand. (User, 2026-11-21.) A dispense row never
+       gives more of a product than its sale sold.
        Checked by: example, faults (at once), ledgercheck.
 
 PHA-6  A return shrinks what a script line was given and the days it covers (read net of returns); the
@@ -92,6 +93,6 @@ PHA-11 The dose list has each dose once (case and spaces ignored), doses a day â
        Checked by: example, refusals.
 
 PHA-12 The data holds its own shape: dispense rows' qty above 0, a dispense row's script line belongs to the
-       dispense's script's patient, one dispense per sale, names kept, one patient per customer.
+       dispense's patient, one dispense per sale, one patient per customer (a unique key).
        Checked by: ledgercheck.
 ```

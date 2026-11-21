@@ -36,6 +36,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddOfflineData(plugin.OfflineData{Key: "pharmacy", Build: handlers{p}.offlineData})
 	reg.AddDataGroup(plugin.DataGroup{Key: "pharmacy", Name: "Pharmacy", Tables: dataTables})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "pharmacy", Merge: mergeProduct})
+	// A patient picked at the till gets the dispense written with the sale (PHA-5).
+	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "pharmacy", Record: p.recordSale})
 	reg.AddFreezeGuard(plugin.FreezeGuard{Refuse: p.store.freezeRefusals})
 	reg.AddProductAttributeSet(p.store.attributes())
 	// No CategoryMerger: pharmacy keeps no category ids.
