@@ -46,3 +46,9 @@ All three answered 2026-11-21 as suggested: Clearance's Disable skips products n
 that loses a member is rescaled to whole percents adding up to 100 (ALT-5); Suggest combos sends the 200 best
 sellers of the last 90 days, topped up with the newest (AIC-7).
 
+## Plugins, group 2 (sell through the till)
+
+All four answered 2026-11-21 as suggested: combos' and Print & Copy's sale records are written by the sale-line
+hook inside the sale, from its own lines (CMB-5, DOC-6); the till's combo discounts and print prices are trusted like
+any line discount / service price; the combo report takes returned sets off (CMB-6); a patient picked at the till
+gets the dispense written with the sale (PHA-5).

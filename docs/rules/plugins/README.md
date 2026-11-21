@@ -46,3 +46,6 @@ PLG-7  The plugin's data group lists every table it owns, so a backup carries al
 Group 1 — product data only (2026-11-21):
 [Clearance](clearance.md) (CLR) · [Customer requests](requests.md) (REQ) · [Product Plus](productplus.md) (PPF) ·
 [Alternatives](alternatives.md) (ALT) · [AI Assistant](aicatalog.md) (AIC)
+
+Group 2 — plugins that sell through core's till (2026-11-21):
+[Combos](combos.md) (CMB) · [Print & Copy](documents.md) (DOC) · [Pharmacy](pharmacy.md) (PHA)
