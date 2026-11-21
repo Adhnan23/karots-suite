@@ -371,6 +371,27 @@ func TestPLG4_Sweep(t *testing.T) { // compares every table: runs alone
 	s.Sweep(t, "undo a job", func() { ready(); apply(t, s.Shop, "fields", p, nil) }, func() error {
 		return s.Admin.Do("POST", "/api/v1/x/aicatalog/cleanup/undo", nil, nil)
 	})
+	tick := func(job string) func() error {
+		return func() error {
+			rows := p.Result.Rows
+			for i := range rows {
+				rows[i].Ticked = true
+			}
+			return s.Admin.Do("POST", "/api/v1/x/aicatalog/jobs/"+job+"/apply", aicatalog.JobApply{Rows: rows, Asked: p.Result.Asked, State: p.Result.State}, nil)
+		}
+	}
+	g := 0
+	s.Sweep(t, "apply a groups job (through Alternatives)", func() {
+		g++
+		x := s.Product(t, fmt.Sprintf("AI sweep amoxil %d", g), "10", "0", nil)
+		y := s.Product(t, fmt.Sprintf("AI sweep amoxicillin %d", g), "10", "0", nil)
+		p = next(t, s.Shop, "groups", []int64{x, y}, fmt.Sprintf(`{"groups":[{"name":"AI sweep group %d","product_ids":[%d,%d],"reason":"same"}]}`, g, x, y))
+	}, tick("groups"))
+	s.Sweep(t, "apply a setup job (expiry and a pack)", func() {
+		g++
+		x := s.Product(t, fmt.Sprintf("AI sweep tablets %d", g), "10", "0", nil)
+		p = next(t, s.Shop, "setup", []int64{x}, fmt.Sprintf(`{"items":[{"id":%d,"has_expiry":true,"pack_name":"Card","pack_size":10,"reason":"tablets"}]}`, x))
+	}, tick("setup"))
 	var c1, c2 struct{ ID int64 }
 	n := 0
 	s.Sweep(t, "apply a clean-up merge", func() {

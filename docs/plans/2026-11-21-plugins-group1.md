@@ -43,7 +43,7 @@ Pharmacy and Alternatives, so it goes after them and its tests compile them in, 
 ### Task 6: Alternatives — [x] ALT-5 rescale built, saved change answered, loose-versions spec fixed
 ### Task 7: AI Assistant — [~] seam (appdb.InTx) + one-tx apply / undo, category date on undo. LEFT:
 - [x] AIC-7: best sellers (90 days, then newest; the 50 batch cap no longer trims the 200), spec :278 passes
-- [ ] Sweep groups job and setup job too (grouper / SavePack under the joined tx).
+- [x] Sweep groups and setup jobs (groups: 31 statements, setup: 18, clean)
 ### Task 8: closing — [ ] `make mutate` (gremlins) on the five packages; docs: guide pages for CLR-6 (skipped
 count) and ALT-5 (rescale); full run with coverage (`scripts/full-run.sh`); coverage map Plugins rows; status;
 delete this plan.
