@@ -2,9 +2,10 @@ package productplus
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,7 +41,8 @@ func coerce(f Field, raw, current string) (string, error) {
 	}
 	switch f.Type {
 	case "number":
-		if _, err := strconv.ParseFloat(v, 64); err != nil {
+		// A plain decimal (PPF-1): ParseFloat alone also takes NaN, Inf and hex.
+		if !plainNumber.MatchString(v) {
 			return "", errors.New(f.Label + ": not a number")
 		}
 	case "date":
@@ -56,6 +58,9 @@ func coerce(f Field, raw, current string) (string, error) {
 	}
 	return v, nil
 }
+
+// plainNumber is the decimal a number field holds (the auditor's PPF-1 too).
+var plainNumber = regexp.MustCompile(`^[-+]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][-+]?[0-9]+)?$`)
 
 // FormField is a field shown for a product with the value to show.
 type FormField struct {
@@ -130,8 +135,19 @@ func (s *Store) SetValues(ctx context.Context, cells []Cell) (int, []CellError, 
 				bad = append(bad, CellError{c.ProductID, c.FieldID, "no such field"})
 				continue
 			}
+			// PLG-3: only a product that exists and wasn't merged away.
+			var real bool
+			if err := tx.GetContext(ctx, &real, `SELECT EXISTS (SELECT 1 FROM products WHERE id = $1 AND merged_into_id IS NULL)`, c.ProductID); err != nil {
+				return err
+			}
+			if !real {
+				bad = append(bad, CellError{c.ProductID, c.FieldID, "no such product"})
+				continue
+			}
 			var cur string
-			_ = tx.GetContext(ctx, &cur, `SELECT value FROM pp_values WHERE field_id=$1 AND product_id=$2`, f.ID, c.ProductID)
+			if err := tx.GetContext(ctx, &cur, `SELECT value FROM pp_values WHERE field_id=$1 AND product_id=$2`, f.ID, c.ProductID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
 			v, err := coerce(f, c.Value, cur)
 			if err != nil {
 				bad = append(bad, CellError{c.ProductID, c.FieldID, err.Error()})

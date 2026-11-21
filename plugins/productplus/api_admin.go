@@ -88,7 +88,13 @@ func (h handlers) create(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, strconv.FormatInt(id, 10), "added custom field "+f.Label+" ("+f.Type+")")
-	return h.one(c, id, http.StatusCreated)
+	if err := h.one(c, id, http.StatusCreated); err != nil {
+		// Saved: answered as done even when the read after it fails, so the
+		// screen doesn't offer to make it again (PLG-6, as DRAW-18).
+		f.ID = id
+		return c.JSON(http.StatusCreated, fieldDTO(f, Stats{}))
+	}
+	return nil
 }
 
 // labelFree refuses a label that would clash as a products sheet column: one
@@ -172,7 +178,7 @@ func (h handlers) setActive(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	if err := h.p.store.SetFieldActive(c.Request().Context(), id, r.Active); err != nil {
-		return err
+		return notFound(err)
 	}
 	h.audit(c, audit.ActionUpdate, strconv.FormatInt(id, 10), map[bool]string{true: "field enabled", false: "field disabled"}[r.Active])
 	return c.NoContent(http.StatusNoContent)
@@ -191,7 +197,7 @@ func (h handlers) move(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	if err := h.p.store.MoveField(c.Request().Context(), id, r.Dir == "up"); err != nil {
-		return err
+		return notFound(err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

@@ -2,6 +2,7 @@ package productplus
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -249,8 +250,14 @@ func (s *Store) Stats(ctx context.Context) (map[int64]Stats, error) {
 }
 
 func (s *Store) SetFieldActive(ctx context.Context, id int64, active bool) error {
-	_, err := s.db.ExecContext(ctx, `UPDATE pp_fields SET is_active=$2 WHERE id=$1`, id, active)
-	return err
+	res, err := s.db.ExecContext(ctx, `UPDATE pp_fields SET is_active=$2 WHERE id=$1`, id, active)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
 
 // MoveField shifts a field one place up or down, renumbering every field so
@@ -272,7 +279,10 @@ func (s *Store) MoveField(ctx context.Context, id int64, up bool) error {
 	if up {
 		j = i - 1
 	}
-	if i < 0 || j < 0 || j >= len(fields) {
+	if i < 0 {
+		return sql.ErrNoRows
+	}
+	if j < 0 || j >= len(fields) {
 		return nil
 	}
 	fields[i], fields[j] = fields[j], fields[i]
