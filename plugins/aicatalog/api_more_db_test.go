@@ -139,3 +139,37 @@ func TestAPICleanupPartsNamesAndKeeps(t *testing.T) {
 		t.Errorf("a 150-character name wasn't applied: %q %v", name, err)
 	}
 }
+
+// A product's hint through the API: none reads as blank, a saved one reads back capped
+// at 2,000 characters, a missing product is a 404, a bad id or body a 400.
+func TestAPIHints(t *testing.T) {
+	db := freshDB(t, "aicatalog_api_hints")
+	_, do := testAPI(t, db)
+	pid := prod(t, db, "Bearing", cat(t, db, "Parts", nil))
+	path := fmt.Sprintf("/items/%d", pid)
+	if h := decode[HintBody](t, do("GET", path, "")); h.Specs != "" || h.Explanation != "" {
+		t.Errorf("no hint yet: %+v", h)
+	}
+	exact, over := strings.Repeat("s", 2000), strings.Repeat("e", 2001)
+	body, _ := json.Marshal(HintBody{Specs: exact, Explanation: over})
+	if h := decode[HintBody](t, do("PUT", path, string(body))); h.Specs != exact || h.Explanation != over[:2000] {
+		t.Errorf("saved: %d / %d characters", len(h.Specs), len(h.Explanation))
+	}
+	if h := decode[HintBody](t, do("GET", path, "")); h.Specs != exact || len(h.Explanation) != 2000 {
+		t.Errorf("read back: %d / %d characters", len(h.Specs), len(h.Explanation))
+	}
+	for _, bad := range []string{"/items/0", "/items/-3", "/items/abc"} {
+		if rec := do("GET", bad, ""); rec.Code != 400 {
+			t.Errorf("GET %s: %d", bad, rec.Code)
+		}
+	}
+	if rec := do("PUT", "/items/999999999", `{"specs":"x"}`); rec.Code != 404 {
+		t.Errorf("a missing product: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("PUT", path, `[`); rec.Code != 400 {
+		t.Errorf("a bad body: %d", rec.Code)
+	}
+	if rec := do("PUT", "/items/0", `{}`); rec.Code != 400 {
+		t.Errorf("PUT a bad id: %d", rec.Code)
+	}
+}
