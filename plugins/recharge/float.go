@@ -8,6 +8,7 @@ import (
 	appdb "karots-suite/internal/db"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -120,21 +121,36 @@ type CountResult struct {
 	Diff     decimal.Decimal `json:"diff"`
 }
 
+// lockDevices locks the devices' rows (lowest id first) for the rest of tx: a
+// count reads a balance and books against it under the same lock every float
+// writer takes first, so nothing lands in between (RCH-8).
+func lockDevices(ctx context.Context, q appdb.Queryer, ids ...int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := q.ExecContext(ctx, `SELECT 1 FROM recharge_devices WHERE id = ANY($1) ORDER BY id FOR UPDATE`, pq.Array(ids))
+	return err
+}
+
 // Count records counts in one tx: each writes a recharge_counts row and, when
 // the phone and the suite disagree, a 'count' float row for the difference. The
 // device row is locked so a sale can't slip between reading and booking.
 func (s *Store) Count(ctx context.Context, counts []CountInput, sessionID *int64, by int64) ([]CountResult, error) {
 	out := []CountResult{}
 	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		ids := make([]int64, 0, len(counts))
+		for _, c := range counts {
+			ids = append(ids, c.DeviceID)
+		}
+		if err := lockDevices(ctx, tx, ids...); err != nil {
+			return err
+		}
 		for _, c := range counts {
 			if c.Counted.IsNegative() {
 				return apperr.Validation("a count can't be below zero")
 			}
 			dv, err := s.Device(ctx, tx, c.DeviceID)
 			if err != nil {
-				return err
-			}
-			if _, err := tx.ExecContext(ctx, `SELECT 1 FROM recharge_devices WHERE id = $1 FOR UPDATE`, dv.ID); err != nil {
 				return err
 			}
 			exp, err := balance(ctx, tx, dv.ID)

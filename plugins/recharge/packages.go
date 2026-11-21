@@ -83,6 +83,11 @@ func (s *Store) CreatePackage(ctx context.Context, in PackageInput, tillBy int64
 		if !c.IsActive {
 			return apperr.Validation(c.Name + " is turned off")
 		}
+		// One maker per carrier at a time: the same package added at once on two
+		// tills is one package, never a refused twin (RCH-2).
+		if _, err := tx.ExecContext(ctx, `SELECT 1 FROM recharge_carriers WHERE id = $1 FOR UPDATE`, c.ID); err != nil {
+			return err
+		}
 		var id int64
 		err = tx.GetContext(ctx, &id, `SELECT id FROM recharge_packages WHERE carrier_id = $1 AND lower(name) = lower($2) AND is_active`, in.CarrierID, name)
 		if errors.Is(err, sql.ErrNoRows) {

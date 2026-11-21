@@ -45,7 +45,7 @@ func TestMoneyThroughTheSale(t *testing.T) {
 		WithLineHook(func(ctx context.Context, tx *sqlx.Tx, ev sales.TaggedSale) error {
 			out := plugin.SaleLines{SaleID: ev.SaleID, ActorID: ev.ActorID}
 			for _, l := range ev.Lines {
-				out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Amount: l.Amount, Data: l.Plugin["recharge"]})
+				out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Amount: l.Amount, Gross: l.Gross, Data: l.Plugin["recharge"]})
 			}
 			return p.recordSale(ctx, tx, out)
 		}).

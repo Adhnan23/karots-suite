@@ -35,19 +35,30 @@ type lineData struct {
 // cashflow. It never refuses on a low balance — the money already moved on the
 // phone or in the bank's app; a float below zero shows red and asks for a count.
 func (p *Plugin) recordSale(ctx context.Context, tx *sqlx.Tx, ev plugin.SaleLines) error {
-	for _, l := range ev.Lines {
-		var ld lineData
-		if err := json.Unmarshal(l.Data, &ld); err != nil {
+	lds := make([]lineData, len(ev.Lines))
+	var devices []int64
+	for i, l := range ev.Lines {
+		if err := json.Unmarshal(l.Data, &lds[i]); err != nil {
 			return apperr.Validation("a reload line lost its details — add it again")
 		}
+		if lds[i].Device > 0 {
+			devices = append(devices, lds[i].Device)
+		}
+	}
+	// The sale's devices locked up front, in one order: a count can't slip between
+	// its read and its booking (RCH-8), and two sales never wait on each other in a ring.
+	if err := lockDevices(ctx, tx, devices...); err != nil {
+		return err
+	}
+	for i, l := range ev.Lines {
+		ld := lds[i]
 		if ld.Kind == "charge" {
 			continue // the service charge is ordinary revenue
 		}
 		saleID, itemID := ev.SaleID, l.ItemID
-		amt := l.Amount
-		if ld.Kind == KindCashout {
-			amt = amt.Neg() // a payout line is negative
-		}
+		// Face value: what the phone (or the bank) sent, before any discount —
+		// a discount is the shop's money, never the float's (RCH-3, user 2026-11-21).
+		amt := l.Gross.Abs()
 		if ld.Bank > 0 && (ld.Kind == KindBillpay || ld.Kind == KindCashout) {
 			if err := p.bankLeg(ctx, tx, ev.ActorID, saleID, itemID, ld, amt); err != nil {
 				return err
@@ -77,8 +88,9 @@ func (p *Plugin) recordSale(ctx context.Context, tx *sqlx.Tx, ev plugin.SaleLine
 			if err != nil {
 				return err
 			}
-			in.Type, in.PackageID, in.FloatDelta = KindReload, &pk.ID, pk.FloatCost.Neg()
-			comm = packageCommission(amt, pk.FloatCost)
+			used := pk.FloatCost.Mul(l.Quantity)
+			in.Type, in.PackageID, in.FloatDelta = KindReload, &pk.ID, used.Neg()
+			comm = packageCommission(amt, used)
 		default:
 			return apperr.Validation("unknown reload line: " + ld.Kind)
 		}
@@ -97,9 +109,11 @@ func (p *Plugin) bankLeg(ctx context.Context, tx *sqlx.Tx, actor, saleID, itemID
 		Name   string `db:"name"`
 		Usable bool   `db:"usable"`
 	}
-	err := tx.GetContext(ctx, &bank, `SELECT name, (kind = 'bank' AND is_active AND cashier_access) AS usable FROM lockers WHERE id = $1`, ld.Bank)
+	// A bank turned off (or closed to cashiers) since the line was rung still books:
+	// the money already moved in the bank's app (RCH-5, user 2026-11-21).
+	err := tx.GetContext(ctx, &bank, `SELECT name, kind = 'bank' AS usable FROM lockers WHERE id = $1`, ld.Bank)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && !bank.Usable) {
-		return apperr.Validation("that bank account can't be used at the till")
+		return apperr.Validation("that bank account isn't set up")
 	}
 	if err != nil {
 		return err
@@ -158,8 +172,9 @@ func (p *Plugin) recordReturn(ctx context.Context, tx *sqlx.Tx, ev plugin.Return
 			DeviceID  int64           `db:"device_id"`
 			Float     decimal.Decimal `db:"float_delta"`
 			Qty       decimal.Decimal `db:"qty"`
+			Returned  decimal.Decimal `db:"returned"` // with this return's units (core counts them first)
 		}
-		err := tx.GetContext(ctx, &orig, `SELECT t.id, t.carrier_id, t.device_id, t.float_delta, si.quantity AS qty
+		err := tx.GetContext(ctx, &orig, `SELECT t.id, t.carrier_id, t.device_id, t.float_delta, si.quantity AS qty, si.returned_qty AS returned
 			FROM recharge_transactions t JOIN sale_items si ON si.id = t.sale_item_id
 			WHERE t.sale_item_id = $1 AND t.parent_id IS NULL AND t.type IN ('reload','billpay','deposit') LIMIT 1`, l.SaleItemID)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -171,7 +186,14 @@ func (p *Plugin) recordReturn(ctx context.Context, tx *sqlx.Tx, ev plugin.Return
 		if err != nil {
 			return err
 		}
-		left := orig.Float.Neg().Mul(l.Quantity).Div(orig.Qty).Round(2)
+		if err := lockDevices(ctx, tx, orig.DeviceID); err != nil {
+			return err
+		}
+		// Parts add up: what left for the units returned so far, less what left for
+		// those before this return — the last part takes what remains (RCH-6).
+		out := orig.Float.Neg()
+		upTo := func(q decimal.Decimal) decimal.Decimal { return out.Mul(q).Div(orig.Qty).Round(2) }
+		left := upTo(orig.Returned).Sub(upTo(orig.Returned.Sub(l.Quantity)))
 		back := backOf(l.Data, left)
 		saleID, itemID := ev.SaleID, l.SaleItemID
 		typ := "reversal"
@@ -182,11 +204,22 @@ func (p *Plugin) recordReturn(ctx context.Context, tx *sqlx.Tx, ev plugin.Return
 			SaleID: &saleID, SaleItemID: &itemID, ParentID: &orig.ID, Note: "returned · return #" + strconv.FormatInt(ev.ReturnID, 10), CreatedBy: ev.ActorID}); err != nil {
 			return err
 		}
-		var comm decimal.Decimal
-		if err := tx.GetContext(ctx, &comm, `SELECT COALESCE(SUM(float_delta), 0) FROM recharge_transactions WHERE parent_id = $1 AND type = 'commission'`, orig.ID); err != nil {
+		// The commission taken back so far is always its share of all the float back
+		// so far: all of it once everything came back.
+		var sums struct {
+			Comm  decimal.Decimal `db:"comm"`
+			Taken decimal.Decimal `db:"taken"`
+			Back  decimal.Decimal `db:"back"`
+		}
+		if err := tx.GetContext(ctx, &sums, `SELECT
+				COALESCE(SUM(float_delta) FILTER (WHERE type = 'commission' AND float_delta > 0), 0) AS comm,
+				-COALESCE(SUM(float_delta) FILTER (WHERE type = 'commission' AND float_delta < 0), 0) AS taken,
+				COALESCE(SUM(float_delta) FILTER (WHERE type IN ('reversal','reversal_lost')), 0) AS back
+			FROM recharge_transactions WHERE parent_id = $1`, orig.ID); err != nil {
 			return err
 		}
-		if take := comm.Mul(back).Div(orig.Float.Neg()).Round(2); !take.IsZero() && orig.Float.IsNegative() {
+		// sums.Back already holds this return's own reversal row.
+		if take := sums.Comm.Mul(sums.Back).Div(out).Round(2).Sub(sums.Taken); !take.IsZero() && out.IsPositive() {
 			if _, err := recordTx(ctx, tx, TxInput{CarrierID: orig.CarrierID, DeviceID: orig.DeviceID, Type: "commission", Amount: take.Abs(),
 				FloatDelta: take.Neg(), SaleID: &saleID, SaleItemID: &itemID, ParentID: &orig.ID, Note: "commission back on a return", CreatedBy: ev.ActorID}); err != nil {
 				return err
@@ -239,6 +272,9 @@ func (p *Plugin) settleWallet(ctx context.Context, tx *sqlx.Tx, ev plugin.Tender
 	}
 	rs, err := p.store.Rates(ctx, tx, dv.CarrierID)
 	if err != nil {
+		return err
+	}
+	if err := lockDevices(ctx, tx, dv.ID); err != nil {
 		return err
 	}
 	in := TxInput{CarrierID: dv.CarrierID, DeviceID: dv.ID, Type: KindWalletIn, Amount: ev.Amount, FloatDelta: ev.Amount, CreatedBy: ev.ActorID,

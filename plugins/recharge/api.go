@@ -428,6 +428,9 @@ func (h handlers) refill(c echo.Context, in RefillInput, src cashflow.Location, 
 		if err != nil {
 			return err
 		}
+		if err := lockDevices(ctx, tx, dv.ID); err != nil {
+			return err
+		}
 		sup, err := suppliers.NewRepository(tx).FindByID(ctx, in.SupplierID)
 		if err != nil {
 			return apperr.NotFound("supplier")
