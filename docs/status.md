@@ -172,8 +172,11 @@ never tested ticked before), a new supplier from a sheet carries its opening onc
 nothing called was dropped (`48c4c576`). The rest are guards (settle's loops stop at the top first; a picked lot
 can't be short while its product isn't — a live sale refuses a short pick, a Review sale drops it), list filters /
 limits Playwright reaches (Go-only coverage doesn't count them), and old-data paths (a negative supplier opening). Left
-for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Next:** a full run with coverage
-(`COVER=1 make test-all`) and the coverage map, then plugins (another session). **Speed (user,
+for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Full run with coverage
+(2026-11-21, 8 min):** Go, Vitest (1,218) and check-core green; Playwright 266 passed, `admin-money` timed out beside
+Go's coverage run and passed alone. Coverage map updated: core Go 79.9% (was 77.8%), the money packages 88.9% (was
+81.8% — supplier returns 94.1, drawer 93.2, money moves 92.2, selling 92.0, purchases 90.6), screens 59.2%.
+**Core coverage push done. Next: plugins, simplest first (another session).** **Speed (user,
 2026-11-21):** test Postgres and the Go cache live on the NVMe, `synchronous_commit=off`; replays run 9 shards side
 by side (`scripts/replay-mutants.py … i/n`, `SKIP=` resumes) — stock replay ~80 min → ~10; `make test-all` 688 s →
 ~490 s. Full runs still show the known Playwright flakes (`till.spec` open with a float, sometimes `admin-money`,
