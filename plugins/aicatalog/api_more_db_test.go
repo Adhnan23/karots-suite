@@ -87,3 +87,55 @@ func TestAPICleanupKeepsRealChanges(t *testing.T) {
 		t.Errorf("the AI failing: %+v", r)
 	}
 }
+
+// Clean-up goes 150 products a part; a run left past the shop's end starts again.
+// Product names keep real changes only; of two duplicates with the same sales the older is kept;
+// a product name of 150 characters applies.
+func TestAPICleanupPartsNamesAndKeeps(t *testing.T) {
+	db := freshDB(t, "aicatalog_api_cleanup_parts")
+	_, do := testAPI(t, db)
+	c := cat(t, db, "Bulbs", nil)
+	var ids []int64
+	for i := range 151 {
+		ids = append(ids, prod(t, db, fmt.Sprintf("Bulb %03d", i), c))
+	}
+	part := func(off int) CleanupPreview {
+		body, _ := json.Marshal(CleanupRequest{Offset: off, Reply: `{"renames":[]}`})
+		r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
+		if r.Result == nil {
+			t.Fatalf("offset %d: %+v", off, r)
+		}
+		return *r.Result
+	}
+	if p := part(0); p.Chunk != 1 || p.Chunks != 2 || p.Next != 150 {
+		t.Errorf("part 1: %d of %d, next %d", p.Chunk, p.Chunks, p.Next)
+	}
+	if p := part(150); p.Chunk != 2 || p.Next != -1 {
+		t.Errorf("part 2: %d, next %d", p.Chunk, p.Next)
+	}
+	if p := part(151); p.Chunk != 1 {
+		t.Errorf("an offset at the end starts again: part %d", p.Chunk)
+	}
+	a, b := ids[0], ids[1]
+	reply := fmt.Sprintf(`{"names":[{"product_id":%d,"to":"Bulb 000"},{"product_id":%d,"to":" "},{"product_id":%d,"to":"LED Bulb 9W"}],
+		"duplicates":[{"a":%d,"b":%d,"reason":"same bulb"}]}`, a, a, b, b, a)
+	body, _ := json.Marshal(CleanupRequest{Reply: reply})
+	r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
+	if r.Result == nil {
+		t.Fatalf("%+v", r)
+	}
+	if n := r.Result.Plan.Names; len(n) != 1 || n[0].To != "LED Bulb 9W" {
+		t.Errorf("names kept: %+v", n)
+	}
+	if d := r.Result.Duplicates; len(d) != 1 || d[0].Keep.ID != a || d[0].Drop.ID != b {
+		t.Errorf("same sales keeps the older: %+v", d)
+	}
+	long := strings.Repeat("n", 150)
+	if rec := do("POST", "/cleanup/apply", fmt.Sprintf(`{"plan":{"names":[{"product_id":%d,"to":%q}]}}`, b, long)); rec.Code != 200 {
+		t.Fatalf("apply: %d %s", rec.Code, rec.Body)
+	}
+	var name string
+	if err := db.Get(&name, `SELECT name FROM products WHERE id = $1`, b); err != nil || name != long {
+		t.Errorf("a 150-character name wasn't applied: %q %v", name, err)
+	}
+}
