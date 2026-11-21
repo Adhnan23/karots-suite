@@ -188,7 +188,9 @@ func (h handlers) save(c echo.Context, cid int64) error {
 	h.audit(c, action, cid, in.Name)
 	cb, err := h.p.store.Get(ctx, cid)
 	if err != nil {
-		return err
+		// Saved: answer as done with just its id, so the page (which reloads after
+		// every save) never shows a saved combo as failed and saves it twice (PLG-6).
+		return c.JSON(http.StatusOK, map[string]int64{"id": cid})
 	}
 	return c.JSON(http.StatusOK, dto(cb))
 }
