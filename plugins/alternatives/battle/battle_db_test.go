@@ -268,20 +268,26 @@ func TestPLG5_Refusals(t *testing.T) { // compares every table: runs alone
 	s.Must(t, join(s, tid, p, false))
 	before := ltest.State(t, s.DB)
 	for name, do := range map[string]func() error{
-		"no product":        func() error { return join(s, tid, 999999, false) },
-		"a service":         func() error { return join(s, tid, svc, false) },
-		"a disabled one":    func() error { return join(s, tid, off, false) },
-		"no tier":           func() error { return join(s, 999999, p, true) },
-		"no name":           func() error { return s.Admin.Do("POST", "/api/v1/x/alternatives", map[string]string{"name": " "}, nil) },
-		"tier on no group":  func() error { return s.Admin.Do("POST", "/api/v1/x/alternatives/999999/tiers", map[string]any{"name": "x"}, nil) },
-		"remove no member":  func() error { return s.Admin.Do("DELETE", "/api/v1/x/alternatives/members/999999", nil, nil) },
-		"delete no group":   func() error { return s.Admin.Do("DELETE", "/api/v1/x/alternatives/999999", nil, nil) },
-		"split not 100":     func() error { return split(s, tid, map[int64]int{p: 90}) },
-		"split negative":    func() error { return split(s, tid, map[int64]int{p: 120, 999: -20}) },
-		"split a stranger":  func() error { return split(s, tid, map[int64]int{999999: 100}) },
-		"cashier makes one": func() error { return s.Cashier.Do("POST", "/api/v1/x/alternatives", map[string]string{"name": "c"}, nil) },
-		"rename no group":   func() error { return s.Admin.Do("PUT", "/api/v1/x/alternatives/999999", map[string]string{"name": "x"}, nil) },
-		"group bad id":      func() error { return s.Admin.Do("GET", fmt.Sprintf("/api/v1/x/alternatives/%dx", gid), nil, nil) },
+		"no product":     func() error { return join(s, tid, 999999, false) },
+		"a service":      func() error { return join(s, tid, svc, false) },
+		"a disabled one": func() error { return join(s, tid, off, false) },
+		"no tier":        func() error { return join(s, 999999, p, true) },
+		"no name":        func() error { return s.Admin.Do("POST", "/api/v1/x/alternatives", map[string]string{"name": " "}, nil) },
+		"tier on no group": func() error {
+			return s.Admin.Do("POST", "/api/v1/x/alternatives/999999/tiers", map[string]any{"name": "x"}, nil)
+		},
+		"remove no member": func() error { return s.Admin.Do("DELETE", "/api/v1/x/alternatives/members/999999", nil, nil) },
+		"delete no group":  func() error { return s.Admin.Do("DELETE", "/api/v1/x/alternatives/999999", nil, nil) },
+		"split not 100":    func() error { return split(s, tid, map[int64]int{p: 90}) },
+		"split negative":   func() error { return split(s, tid, map[int64]int{p: 120, 999: -20}) },
+		"split a stranger": func() error { return split(s, tid, map[int64]int{999999: 100}) },
+		"cashier makes one": func() error {
+			return s.Cashier.Do("POST", "/api/v1/x/alternatives", map[string]string{"name": "c"}, nil)
+		},
+		"rename no group": func() error {
+			return s.Admin.Do("PUT", "/api/v1/x/alternatives/999999", map[string]string{"name": "x"}, nil)
+		},
+		"group bad id": func() error { return s.Admin.Do("GET", fmt.Sprintf("/api/v1/x/alternatives/%dx", gid), nil, nil) },
 	} {
 		if err := do(); err == nil {
 			t.Errorf("PLG-5 %s: accepted", name)
