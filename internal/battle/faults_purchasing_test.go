@@ -189,7 +189,7 @@ func TestPUR2_DeliveriesBesideSales(t *testing.T) {
 			default:
 				return s.till1.Do("POST", fmt.Sprintf("/api/v1/till/suppliers/%d/receive", sup), map[string]any{"discountType": "fixed",
 					"lines": []sl{{"productId": s.prod["odd"], "quantity": "1", "costPrice": "10", "discountType": "fixed"}, {"productId": s.prod["plain"], "quantity": "1", "costPrice": "40", "discountType": "fixed"}},
-					"pay": map[string]string{"amount": "50", "method": "cash"}}, nil)
+					"pay":   map[string]string{"amount": "50", "method": "cash"}}, nil)
 			}
 		})
 		failed += 8 - n

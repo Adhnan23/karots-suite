@@ -18,7 +18,9 @@ func (s *shop) payByCheque(t *testing.T, sup, bank int64, amount, number, date s
 	return cheque
 }
 
-func (s *shop) chequeTo(id int64, what string) string { return fmt.Sprintf("/api/v1/admin/cheques/%d/%s", id, what) }
+func (s *shop) chequeTo(id int64, what string) string {
+	return fmt.Sprintf("/api/v1/admin/cheques/%d/%s", id, what)
+}
 
 // CHQ-1, CHQ-2: a given cheque pays the bill when written but moves no money
 // until it clears — once, not before its date nor in the future.

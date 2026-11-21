@@ -13,7 +13,9 @@ import (
 // Area 5 cases, one per rule (docs/rules/purchasing.md): goods sent back,
 // the supplier's balance and money.
 
-func supPath(id int64, what string) string { return fmt.Sprintf("/api/v1/admin/suppliers/%d/%s", id, what) }
+func supPath(id int64, what string) string {
+	return fmt.Sprintf("/api/v1/admin/suppliers/%d/%s", id, what)
+}
 
 // sendBack sends goods back (purchase 0 = against no delivery).
 func (s *shop) sendBack(t *testing.T, sup, purchase int64, lines ...map[string]any) error {
@@ -40,7 +42,7 @@ func TestPUR9GoodsSentBack(t *testing.T) {
 	t.Parallel()
 	s := newShop(t)
 	sup := s.newSup(t, "Returns Ltd", "")
-	old := s.mustDeliver(t, sup, []sl{{"productId": s.prod["odd"], "quantity": "10", "costPrice": "30"}}, nil)   // 300
+	old := s.mustDeliver(t, sup, []sl{{"productId": s.prod["odd"], "quantity": "10", "costPrice": "30"}}, nil)    // 300
 	mine := s.mustDeliver(t, sup, []sl{{"productId": s.prod["plain"], "quantity": "10", "costPrice": "20"}}, nil) // 200
 	other := s.mustDeliver(t, sup, []sl{{"productId": s.prod["cheap"], "quantity": "5", "costPrice": "4"}}, nil)  // 20
 	lot, _, _ := s.lotOf(t, mine, s.prod["plain"])
