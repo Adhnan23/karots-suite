@@ -26,6 +26,10 @@ type check struct {
 
 var checks []check
 
+// Add registers a check from outside core — a plugin's own rules (docs/rules/plugins),
+// from its init(). sql returns (ref, detail) text for every row breaking rule.
+func Add(rule, sql string) { checks = append(checks, check{rule, sql}) }
+
 // Run runs every check and returns all violations, in rule order.
 func Run(ctx context.Context, q sqlx.QueryerContext) ([]Violation, error) {
 	var out []Violation

@@ -17,6 +17,7 @@ import (
 	"karots-suite/internal/app"
 	"karots-suite/internal/db"
 	"karots-suite/internal/ledgercheck"
+	"karots-suite/internal/plugin"
 	"karots-suite/migrations"
 )
 
@@ -92,17 +93,28 @@ func template(admin *sqlx.DB, base string) (string, error) {
 	if tplOnce.name != "" {
 		return tplOnce.name, nil
 	}
+	// Named by core's migrations and every compiled-in plugin's: a plugin's test
+	// binary gets a template with its tables, a core one without.
 	h := sha256.New()
-	if err := fs.WalkDir(migrations.FS, ".", func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
+	sets := []fs.FS{migrations.FS}
+	for _, p := range plugin.All() {
+		if pfs, suffix := p.Migrations(); pfs != nil && suffix != "" {
+			h.Write([]byte("plugin:" + suffix))
+			sets = append(sets, pfs)
 		}
-		b, err := fs.ReadFile(migrations.FS, p)
-		h.Write([]byte(p))
-		h.Write(b)
-		return err
-	}); err != nil {
-		return "", err
+	}
+	for _, set := range sets {
+		if err := fs.WalkDir(set, ".", func(p string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return err
+			}
+			b, err := fs.ReadFile(set, p)
+			h.Write([]byte(p))
+			h.Write(b)
+			return err
+		}); err != nil {
+			return "", err
+		}
 	}
 	name := fmt.Sprintf("ledger_tpl_%x", h.Sum(nil)[:6])
 	var ok bool
