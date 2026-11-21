@@ -118,7 +118,6 @@ func (s *shop) sellWith(t *testing.T, extra map[string]any, items []line) saleRe
 	return r
 }
 
-
 // SALE-5: a lot's own price holds until the product's new price is applied "to
 // the stock I already have" — then the lot sells at the new price.
 func TestSALE5_RepriceStockClearsLotPrices(t *testing.T) {
