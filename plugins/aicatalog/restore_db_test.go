@@ -1,46 +1,20 @@
 package aicatalog
 
 import (
-	"net/url"
-	"os"
+	"karots-suite/internal/ledgercheck/ltest"
 	"testing"
-
-	appdb "karots-suite/internal/db"
-	coremigrations "karots-suite/migrations"
-	"karots-suite/plugins/aicatalog/migrations"
 
 	"github.com/jmoiron/sqlx"
 )
 
-func freshDB(t *testing.T, name string) *sqlx.DB {
+// freshDB is a test's own database: a copy of a template migrated once (core and
+// this plugin), not 40-odd migrations per test. name is kept for the callers' sake.
+//
+// ponytail: tests stay one at a time — each Setup adds hooks to core's process-wide
+// lists (a race side by side); a per-test registry would let them run in parallel.
+func freshDB(t *testing.T, _ string) *sqlx.DB {
 	t.Helper()
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		t.Skip("DATABASE_URL not set")
-	}
-	admin, err := appdb.Connect(dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { admin.Close() })
-	admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`) //nolint:errcheck
-	if _, err := admin.Exec(`CREATE DATABASE ` + name); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`) }) //nolint:errcheck
-	u, _ := url.Parse(dsn)
-	u.Path = "/" + name
-	db, err := appdb.Connect(u.String())
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { db.Close() })
-	if err := appdb.RunMigrations(db.DB, coremigrations.FS); err != nil {
-		t.Fatal(err)
-	}
-	if err := appdb.RunMigrationsTable(db.DB, migrations.FS, "goose_db_version_aicatalog"); err != nil {
-		t.Fatal(err)
-	}
+	db := ltest.NewDB(t)
 	mustExec(t, db, nil, `INSERT INTO categories (name) VALUES ('Old shop')`)
 	return db
 }
