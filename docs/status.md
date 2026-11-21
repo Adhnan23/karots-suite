@@ -232,8 +232,10 @@ Product Plus. User's answers: two rules matching one product → it shows under 
 delivery still fills in the product's own supplier (that supplier has it too; skippable). Why: at Iman most suppliers
 were typed product by product — a brand per product and a supplier per brand is far less work. A supplier brings
 many brands: set it from the supplier's side too (this supplier brings brands A, B, C). When a brand changes
-supplier: change the rule once; to be designed — offer to move products whose own supplier is the old one too (else
-the first-delivery fill-in keeps them on it), besides the existing move-products-to-a-supplier.
+supplier: change the rule once; to be designed — offer to move that brand's products whose own supplier is the old
+one too (else the first-delivery fill-in keeps them on it). Core already moves ALL of a supplier's products to another
+(`AdminSupplierReassign`, Suppliers page); the brand case needs only one brand's products moved, so it would be that
+move narrowed to the rule's products.
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
