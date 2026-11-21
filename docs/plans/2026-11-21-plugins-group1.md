@@ -35,11 +35,16 @@ Pharmacy and Alternatives, so it goes after them and its tests compile them in, 
 - ALT-5: hand split not rescaled when a member leaves (user's answer: rescale).
 - AIC-7: combos take the 200 oldest products (user's answer: best sellers).
 
-### Task 1: Rule book — [x] written, questions answered, committed
-### Task 2: Harness (ledgercheck.Add, plugin-aware template, ltest.NewShop) — [ ]
-### Task 3: Clearance — [ ]
-### Task 4: Customer requests — [ ]
-### Task 5: Product Plus — [ ]
-### Task 6: Alternatives (+ loose-versions spec) — [ ]
-### Task 7: AI Assistant (+ aicatalog:278) — [ ]
-### Task 8: Full run with coverage, coverage map Plugins rows, status — [ ]
+### Task 1: Rule book — [x]
+### Task 2: Harness — [x] (`ltest.Main` / `Shared`: one shop per test binary; battle tests in `plugins/<key>/battle/`)
+### Task 3: Clearance — [x] CLR-2, CLR-6 fixed
+### Task 4: Customer requests — [x] REQ-3 (4 products from one request), REQ-2 (lost ask), merged-away link
+### Task 5: Product Plus — [x] NaN/Inf/hex numbers, Fill in for missing products, 404s, saved field answered
+### Task 6: Alternatives — [x] ALT-5 rescale built, saved change answered, loose-versions spec fixed
+### Task 7: AI Assistant — [~] seam (appdb.InTx) + one-tx apply / undo, category date on undo. LEFT:
+- [ ] AIC-7: build best sellers for Suggest combos (`combo_suggest.go` / `selectProducts`), un-skip
+  `TestAIC7_CombosSendBestSellers`, then fix the `plugin-aicatalog.spec.ts:278` spec.
+- [ ] Sweep groups job and setup job too (grouper / SavePack under the joined tx).
+### Task 8: closing — [ ] `make mutate` (gremlins) on the five packages; docs: guide pages for CLR-6 (skipped
+count) and ALT-5 (rescale); full run with coverage (`scripts/full-run.sh`); coverage map Plugins rows; status;
+delete this plan.

@@ -177,6 +177,17 @@ for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Full 
 Go's coverage run and passed alone. Coverage map updated: core Go 79.9% (was 77.8%), the money packages 88.9% (was
 81.8% — supplier returns 94.1, drawer 93.2, money moves 92.2, selling 92.0, purchases 90.6), screens 59.2%.
 **Core coverage push done. Next: plugins, simplest first (another session).**
+**Plugins group 1, 2026-11-21 (pick up here: plan `docs/plans/2026-11-21-plugins-group1.md`, Task 7 rest + Task 8):**
+rule book `docs/rules/plugins/` (PLG + CLR / REQ / PPF / ALT / AIC); harness in `ltest` (plugin checks via
+`ledgercheck.Add`, template named by plugin migrations too, one shop per test binary — plugin hooks are
+process-wide — so battle tests live in `plugins/<key>/battle/`). Found and fixed: clearance marked down products
+that don't exist / services / disabled (CLR-2), Disable took products no longer dead (CLR-6, user's answer: skip);
+Make product sent 8× at once made 4 products, an ask during a merge was lost, a link to a merged-away product
+(requests); number fields took NaN/Inf/hex, Fill in stored values for missing products (Product Plus); hand splits
+now rescale to 100 (ALT-5, user's answer); saved changes answered as errors (Product Plus, Alternatives); the AI
+Assistant's job could apply with no undo after a failure — new core seam `appdb.InTx` (user's choice): Product Plus,
+Alternatives and Pharmacy stores join a caller's transaction. Not done: AIC-7 best-seller combos (test written,
+skipped), mutation, full run, docs, coverage map rows.
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
