@@ -9,6 +9,6 @@ Photocopy, print, laminate and bind, for a shop with a copier.
 - **Laminate and bind** are priced by size and type only.
 - **Extras** such as Urgent or Hole punch can be added per job or per piece, and may take stock of their own. They use none of the service's recipe (Urgent on a photocopy takes no toner).
 - A **job panel at the till** (it also opens from search and from a scan) builds the job. The job and its extras print on the receipt as one block, each line priced under the total.
-- Custom-priced jobs, shop use, and mistaken jobs returned through core Returns. A **copies report** shows what was done.
+- Custom-priced jobs, shop use, and mistaken jobs returned through core Returns. A **copies report** shows what was done: each job is written with its sale, so none goes missing, and returned copies come off it.
 
 The admin page is under **Apps → Print & Copy** (`/admin/x/documents`). A shop has this plugin only if it was built with it ([Install & Shop Builder](../install.md)).

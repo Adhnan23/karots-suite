@@ -34,8 +34,8 @@ after-sale calls, the till's `tillAfterSale` pushes and Pocket Cashier's offline
 - PHA-5: `RecordDispense` reads scripts outside its transaction; the advisory lock casts the sale id to `int`.
 
 ### Task 1: Rule book — [x] written, questions answered
-### Task 2: Combos — sold rows by the sale hook (CMB-5), returns off the report (CMB-6), checks, cases, faults — [ ]
-### Task 3: Print & Copy — jobs by the sale hook (DOC-6), checks, cases, refusals, faults, report agreement — [ ]
-### Task 4: Pharmacy — dispense in the sale (PHA-5), register, checks, cases, faults — [ ]
+### Task 2: Combos — sold rows by the sale hook (CMB-5), returns off the report (CMB-6), checks, cases, faults — [x]
+### Task 3: Print & Copy — jobs by the sale hook (DOC-6), checks, cases, refusals, faults, report agreement — [x]
+### Task 4: Pharmacy — dispense in the sale (PHA-5), register, checks, cases, faults — [x]
 ### Task 5: Mutation (gremlins on the three, replayed 9 side by side) — survivors read, tests added — [ ]
 ### Task 6: Docs (guides for the changed behaviour), full run with coverage, coverage map Plugins rows, status — [ ]
