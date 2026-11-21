@@ -105,4 +105,14 @@ func TestAdminImports(t *testing.T) {
 	if res.Updated != 1 || len(res.Errors) != 1 || len(res.Notes) != 1 {
 		t.Fatalf("suppliers: %+v", res)
 	}
+	// A new supplier comes in with its opening; the same sheet again never books it twice (SUP-2).
+	fresh := "Vendor,Terms,Payable\n" + tag + " Fresh,30,700\n"
+	for i, want := range []string{"created", "updated"} {
+		res = decode[EntityImportResult](t, te.upload("/api/v1/admin/suppliers/import", "file", "s2.csv", []byte(fresh), ck))
+		var owes string
+		te.db.Get(&owes, `SELECT outstanding_balance::text FROM suppliers WHERE name=$1`, tag+" Fresh") //nolint:errcheck
+		if (want == "created" && res.Created != 1) || (want == "updated" && (res.Updated != 1 || len(res.Notes) != 1)) || owes != "700.00" {
+			t.Fatalf("supplier import %d: %+v owes %s, want %s and 700.00", i+1, res, owes, want)
+		}
+	}
 }
