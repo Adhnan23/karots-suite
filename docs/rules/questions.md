@@ -52,3 +52,9 @@ All four answered 2026-11-21 as suggested: combos' and Print & Copy's sale recor
 hook inside the sale, from its own lines (CMB-5, DOC-6); the till's combo discounts and print prices are trusted like
 any line discount / service price; the combo report takes returned sets off (CMB-6); a patient picked at the till
 gets the dispense written with the sale (PHA-5).
+
+## Plugins, group 3 (money of their own)
+
+All three answered 2026-11-21 as suggested: a discounted reload, bill or deposit line moves the float by its face
+value (RCH-3); a line naming a device or bank turned off since still books, only a missing one is refused (RCH-5); a
+pickup sale returned in full leaves the job collected, its warranty standing (REP-6).

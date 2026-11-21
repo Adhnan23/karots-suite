@@ -49,3 +49,6 @@ Group 1 — product data only (2026-11-21):
 
 Group 2 — plugins that sell through core's till (2026-11-21):
 [Combos](combos.md) (CMB) · [Print & Copy](documents.md) (DOC) · [Pharmacy](pharmacy.md) (PHA)
+
+Group 3 — plugins with money of their own (2026-11-21):
+[Repairs](repairs.md) (REP) · [Reload & Bills](recharge.md) (RCH)
