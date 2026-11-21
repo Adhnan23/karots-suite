@@ -173,3 +173,84 @@ func TestAPIHints(t *testing.T) {
 		t.Errorf("PUT a bad id: %d", rec.Code)
 	}
 }
+
+// A merge into itself or a missing category, and a move to no category, are dropped;
+// empty categories list and delete, and a delete naming none is refused.
+func TestAPICleanupMergesAndEmpty(t *testing.T) {
+	db := freshDB(t, "aicatalog_api_cleanup_merges")
+	_, do := testAPI(t, db)
+	a, b := cat(t, db, "Soap", nil), cat(t, db, "Soaps", nil)
+	empty := cat(t, db, "Nothing here", nil)
+	pid := prod(t, db, "Lux", a)
+	prod(t, db, "Dove", b)
+	reply := fmt.Sprintf(`{"merges":[{"from":%d,"into":%d},{"from":%[1]d,"into":%[1]d},{"from":%[1]d,"into":999999}],
+		"uncategorized":[{"product_id":%[3]d,"category":""},{"product_id":%[3]d,"category":"Bath > Soap"}]}`, a, b, pid)
+	body, _ := json.Marshal(CleanupRequest{Reply: reply})
+	r := decode[AskReply[CleanupPreview]](t, do("POST", "/cleanup", string(body)))
+	if r.Result == nil {
+		t.Fatalf("%+v", r)
+	}
+	if m := r.Result.Plan.Merges; len(m) != 1 || m[0].From != a || m[0].Into != b {
+		t.Errorf("merges kept: %+v", m)
+	}
+	if u := r.Result.Plan.Uncategorized; len(u) != 1 || u[0].Category != "Bath > Soap" {
+		t.Errorf("moves out of no category kept: %+v", u)
+	}
+	list := decode[map[string][]EmptyCategory](t, do("GET", "/cleanup/empty-categories", ""))["categories"]
+	listed := map[int64]bool{}
+	for _, x := range list {
+		listed[x.ID] = true
+	}
+	if !listed[empty] || listed[a] || listed[b] {
+		t.Errorf("empty categories: %+v", list)
+	}
+	if rec := do("POST", "/cleanup/empty-categories", `{"ids":[]}`); rec.Code != 422 {
+		t.Errorf("deleting none: %d", rec.Code)
+	}
+	got := decode[map[string]int64](t, do("POST", "/cleanup/empty-categories", fmt.Sprintf(`{"ids":[%d,%d]}`, empty, a)))
+	if got["deleted"] != 1 {
+		t.Errorf("deleted %d, want only the empty one", got["deleted"])
+	}
+}
+
+// With the AI on: combos and a job's batch come back from it, or, when it fails, the
+// prompt to copy with the reason. An OpenAI-style error, as a 400 or inside a 200, is a failure.
+func TestAPIModeCombosAndJobs(t *testing.T) {
+	db := freshDB(t, "aicatalog_api_mode")
+	p, do := testAPI(t, db)
+	p.jobs = []Job{fakeJob()}
+	c := cat(t, db, "Baby", nil)
+	a, b := prod(t, db, "Wipes", c), prod(t, db, "Powder", c)
+	content := fmt.Sprintf(`{"combos":[{"name":"Baby set","product_ids":[%d,%d],"reason":"together"}]}`, a, b)
+	msg, _ := json.Marshal(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": content}}}})
+	use := func(status int, body string) {
+		srv, _ := capture(t, status, body)
+		if rec := do("PUT", "/settings", fmt.Sprintf(`{"manualMode":false,"provider":"openai","baseUrl":%q,"model":"m","apiKey":"k"}`, srv.URL)); rec.Code != 200 {
+			t.Fatalf("settings: %d %s", rec.Code, rec.Body)
+		}
+	}
+	type combos struct {
+		Result *comboReply `json:"result"`
+		Prompt string      `json:"prompt"`
+		Error  string      `json:"error"`
+	}
+	use(200, string(msg))
+	if r := decode[combos](t, do("POST", "/combo-suggest", `{}`)); r.Result == nil || len(r.Result.Ideas) != 1 || r.Prompt != "" {
+		t.Errorf("combos from the AI: %+v", r)
+	}
+	for _, bad := range []struct {
+		status int
+		body   string
+	}{{400, `{"error":{"message":"model gone"}}`}, {200, `{"error":{"message":"model gone"},"choices":[]}`}} {
+		use(bad.status, bad.body)
+		if r := decode[combos](t, do("POST", "/combo-suggest", `{}`)); r.Result != nil || r.Prompt == "" || !strings.Contains(r.Error, "model gone") {
+			t.Errorf("combos, AI failing (%d): %+v", bad.status, r)
+		}
+		if r := decode[AskReply[JobPreview]](t, do("POST", "/jobs/fake/next", `{}`)); r.Result != nil || r.Prompt == "" || !strings.Contains(r.Error, "model gone") {
+			t.Errorf("a job, AI failing (%d): %+v", bad.status, r)
+		}
+	}
+	if r := decode[combos](t, do("POST", "/combo-suggest", fmt.Sprintf(`{"reply":%q}`, content))); r.Result == nil || len(r.Result.Ideas) != 1 {
+		t.Errorf("a pasted answer is read even with the AI on: %+v", r)
+	}
+}
