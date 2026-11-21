@@ -3259,6 +3259,11 @@ export interface SaleRequest {
   clientRef?: string;
   items: SaleItemRequest[];
   payments: PaymentRequest[];
+  /**
+   * Plugin is the sale's own plugin data by plugin key (the till's sale meta);
+   * each plugin's sale-line hook reads its own key inside the sale's tx.
+   */
+  plugin?: { [key: string]: any};
 }
 export interface SaleResult {
   id: number /* int64 */;

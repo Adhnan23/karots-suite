@@ -55,6 +55,7 @@ type TaggedSale struct {
 	CustomerID *int64
 	ActorID    int64
 	Lines      []TaggedLine
+	Plugin     map[string]json.RawMessage // the sale's own plugin data (CreateInput.Plugin)
 }
 
 // LineHook lets plugins record what their tagged lines mean (a repair job picked

@@ -44,6 +44,18 @@ func TestLineHookSeesTaggedLinesInTheSaleTx(t *testing.T) {
 		t.Fatalf("hook saw %+v (in tx %v)", got, inTx)
 	}
 
+	// The sale's own plugin data (the till's sale meta) reaches the hook too, even
+	// with no tagged line (a patient on a sale of plain lines).
+	plain := CreateInput{SaleType: "retail", Items: in.Items[:1], Payments: []PaymentInput{{Method: "cash", Amount: "10"}},
+		Plugin: map[string]json.RawMessage{"x": json.RawMessage(`{"patientId":3}`)}}
+	got = TaggedSale{}
+	d2, err := NewService(conn).WithLineHook(func(_ context.Context, _ *sqlx.Tx, ev TaggedSale) error { got = ev; return nil }).Create(ctx, plain, cashierID)
+	mustSales(t, err)
+	defer conn.ExecContext(ctx, `DELETE FROM sales WHERE id = $1`, d2.Sale.ID) //nolint:errcheck
+	if got.SaleID != d2.Sale.ID || len(got.Lines) != 0 || string(got.Plugin["x"]) != `{"patientId":3}` {
+		t.Fatalf("hook saw %+v for a sale with only sale-level data", got)
+	}
+
 	mustSales(t, conn.GetContext(ctx, &before, `SELECT count(*) FROM sales`))
 	_, err = NewService(conn).WithLineHook(func(context.Context, *sqlx.Tx, TaggedSale) error { return errors.New("boom") }).Create(ctx, in, cashierID)
 	mustSales(t, conn.GetContext(ctx, &after, `SELECT count(*) FROM sales`))

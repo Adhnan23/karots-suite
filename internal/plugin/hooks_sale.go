@@ -11,7 +11,8 @@ import (
 // SaleLineHook records what a plugin's cart lines mean once the sale is saved —
 // inside the sale's transaction, so it commits with the sale. The till tags a
 // line with plugin data under the plugin's Key (CartLine.plugin[key]); Record
-// gets only the lines carrying its key, with that data. Record must not refuse
+// gets only the lines carrying its key, with that data, and the sale's own data
+// under its key (TillApi.setSaleMeta) — called when there is either. Record must not refuse
 // (an error rolls the whole sale back — a sale is never stopped); keep errors
 // for real failures.
 type SaleLineHook struct {
@@ -25,6 +26,7 @@ type SaleLines struct {
 	CustomerID *int64
 	ActorID    int64
 	Lines      []SaleLine
+	Data       json.RawMessage // the sale's own data under Key (the till's sale meta), nil when none
 }
 
 // SaleLine is a tagged line: its sale_items row, product, qty, net amount and

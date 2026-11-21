@@ -80,6 +80,12 @@ describe('buildSaleRequest plugin data', () => {
     const s = { ...two, lines: two.lines.map((l, i) => (i === 1 ? { ...l, plugin: { repairs: { job: 7, ticket: 'R-0007' } } } : l)) }
     const req = buildSaleRequest(s, [{ method: 'cash', amount: '200', reference: '', accountId: '', meta: {} }], { deferDrawerKick: true })
     expect(req.items.map((i) => i.plugin)).toEqual([undefined, { repairs: { job: 7, ticket: 'R-0007' } }])
+    expect(req.plugin).toBeUndefined()
+  })
+  it('sends the plugins\' notes on the sale (sale meta) as the sale\'s own plugin data', () => {
+    const s = tillReducer(withLine(initialState('retail')), { type: 'saleMeta', key: 'x', value: { patientId: 4, name: 'Nimal' } })
+    const req = buildSaleRequest(s, [], { deferDrawerKick: false })
+    expect(req.plugin).toEqual({ x: { patientId: 4, name: 'Nimal' } })
   })
 })
 

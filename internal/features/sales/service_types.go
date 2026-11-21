@@ -120,6 +120,9 @@ type CreateInput struct {
 	Notes        *string        `json:"notes"`
 	PreparedBy   *int64         `json:"prepared_by"` // the sales person whose ticket this was
 	Items        []ItemInput    `json:"items"    validate:"required,min=1,dive"`
+	// Plugin is the sale's own plugin data by plugin key (the till's sale meta, a
+	// patient on the sale…): each plugin's sale hook reads its own key in the sale's tx.
+	Plugin map[string]json.RawMessage `json:"plugin"`
 	Payments     []PaymentInput `json:"payments" validate:"dive"`
 	// AllowOverLimit permits an account line past the customer's credit limit.
 	// The web layer sets this only for a user with can_manage_credit — the

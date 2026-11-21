@@ -410,14 +410,14 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 		}
 
 		if s.lineHook != nil {
-			ev := TaggedSale{SaleID: saleID, CustomerID: in.CustomerID, ActorID: cashierID}
+			ev := TaggedSale{SaleID: saleID, CustomerID: in.CustomerID, ActorID: cashierID, Plugin: in.Plugin}
 			for i, it := range in.Items { // buildSaleLines makes one line per item, in order
 				if len(it.Plugin) > 0 {
 					ev.Lines = append(ev.Lines, TaggedLine{ItemID: lines[i].ID, ProductID: it.ProductID, Quantity: lines[i].Quantity,
 						Amount: lines[i].Subtotal, Plugin: it.Plugin})
 				}
 			}
-			if len(ev.Lines) > 0 {
+			if len(ev.Lines) > 0 || len(ev.Plugin) > 0 {
 				if err := s.lineHook(ctx, tx, ev); err != nil {
 					return err
 				}

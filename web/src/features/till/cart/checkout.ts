@@ -95,6 +95,8 @@ export function buildSaleRequest(s: TillState, payments: Payment[], opts: { defe
       plugin: l.plugin && Object.keys(l.plugin).length ? l.plugin : undefined,
       payout: l.payout || undefined,
     })),
+    // The plugins' notes on the sale (TillApi.setSaleMeta): each plugin's sale hook reads its own key in the sale's tx.
+    plugin: s.meta && Object.keys(s.meta).length ? s.meta : undefined,
     payments: payments.filter((p) => num(p.amount) > 0).map((p) => ({
       method: p.method, amount: String(num(p.amount)), reference: p.reference, accountId: num(p.accountId),
       meta: Object.keys(p.meta).length ? p.meta : undefined,

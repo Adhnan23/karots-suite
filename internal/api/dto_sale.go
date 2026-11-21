@@ -71,6 +71,9 @@ type SaleRequest struct {
 	ClientRef string `json:"clientRef,omitempty"`
 	Items             []SaleItemRequest `json:"items"`
 	Payments          []PaymentRequest  `json:"payments"`
+	// Plugin is the sale's own plugin data by plugin key (the till's sale meta);
+	// each plugin's sale-line hook reads its own key inside the sale's tx.
+	Plugin map[string]any `json:"plugin,omitempty"`
 }
 
 type SaleResult struct {

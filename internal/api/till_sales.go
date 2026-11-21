@@ -35,6 +35,7 @@ func saleInput(r SaleRequest) sales.CreateInput {
 		DeferDrawerKick: r.DeferDrawerKick, PreparedBy: r.PreparedBy, ClientRef: r.ClientRef,
 		Items:           make([]sales.ItemInput, 0, len(r.Items)),
 		Payments:        make([]sales.PaymentInput, 0, len(r.Payments)),
+		Plugin:          pluginData(r.Plugin),
 	}
 	for _, it := range r.Items {
 		comps := make([]sales.ServiceComponent, 0, len(it.Components))
