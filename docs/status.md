@@ -217,7 +217,23 @@ Full run: Vitest 1,219 and check-core green; Go and Playwright green after fixin
 Room's generator and Pocket's offline patient); `admin-money` timed out beside Go's coverage run, passes alone.
 **Raised, not changed:** saving a product with a plugin's section (Pharmacy marks, Product Plus fields) is not one
 change — core saves the product first and says so if a plugin's part fails (`internal/api/product_extras.go`, by design).
-**Next: group 3 — repairs, recharge (another session).**
+**Plugins group 3 closed 2026-11-21** (Repairs, Reload & Bills; plan in git history): rule book `docs/rules/plugins/`
+(REP / RCH), checks in each plugin's `ledger.go`, battle tests in `plugins/<key>/battle/`. User's answers built: the
+float moves by **face value** (a discount is the shop's money; new core seam `plugin.SaleLine.Gross`), a device or bank
+turned off since a line was rung still books (only a missing one is refused), a pickup returned in full stays collected.
+Found and fixed — Repairs: a cancel / status landing with the pickup left a collected job stamped cancelled (every write
+now checks "open" under the job's row lock); the report counted a second job's labour and a part sold loose on the same
+bill (`repair_pickup_lines`, migration repairs 0007, old jobs filled in as the report read them); saved changes answered
+as failed when the read-back failed (PLG-6); a settings read failing gave a new job no warranty; removing another job's
+part was a silent 200. Reload & Bills: a package of two used one package's float; a turned-off bank refused the sale; a
+line returned in parts left cents of float / commission (cumulative parts now); **a count and a sale at once counted the
+sale twice** (every float writer locks its devices, lowest id first); the same package added at once on two tills
+refused one; a drawer count could lose its session. **Mutation:** 499 of 502 caught (Repairs 264/266, Reload & Bills
+235/236); the two real ones got tests, the last is equivalent (`till:0` refused later). Coverage map's Plugins rows:
+Repairs 87.7%, Reload & Bills 85.8%; Go total with plugins 81.8%. Full run: Go, Vitest (1,219), check-core green;
+Playwright 231 passed, 6 timed out beside Go's coverage run (admin-money, admin-data, admin-people, admin-reports, auth
+konami, till open with a float) — all 47 tests of those files pass alone. The Demo Room year passes every new check.
+**Next: Pocket Cashier (another session) — the last plugin; it replays every till plugin offline.**
 **Idea (user, 2026-11-21), after the battle tests:** Alternatives → **Group by fields**, no AI: the admin picks one or
 more product fields (Generic name + Strength for a pharmacy; any field elsewhere) and products with the same values
 become one group, shown first to untick wrong ones, then saved as ordinary groups. The fields come through core's
