@@ -345,3 +345,27 @@ func TestRCH11_ProductMerge(t *testing.T) {
 	}
 	s.Audit(t)
 }
+
+// RCH-9: earnings are commission and count differences (and a dealer's bonus);
+// face value and the service charge never count. Runs alone: earnings are shop-wide.
+func TestRCH9_Earnings(t *testing.T) {
+	s := ltest.Shared(t).Shop
+	openTill(t, s)
+	n := newNet(t, s)
+	var sup struct{ ID int64 }
+	s.Must(t, s.Admin.Do("POST", "/api/v1/admin/suppliers", map[string]string{"name": fmt.Sprintf("Earn dealer %d", seq.Add(1)), "phone": fmt.Sprintf("011%07d", seq.Add(1))}, &sup))
+	today := func() decimal.Decimal {
+		var f recharge.FloatPage
+		s.Must(t, s.Admin.Do("GET", "/api/v1/x/recharge/float", nil, &f))
+		return f.Today
+	}
+	before := today()
+	_, err := sell(t, s, []map[string]any{svc(n.Product, "1", "100", tag("kind", "reload", "device", n.Device)),
+		svc(n.Own["charge"], "1", "30", tag("kind", "charge"))})
+	s.Must(t, err)
+	s.Must(t, s.Admin.Do("POST", "/api/v1/x/recharge/refill", map[string]any{"deviceId": n.Device, "supplierId": sup.ID, "amount": "1000", "bonus": "20", "credit": true}, nil))
+	// float now 5000 − 100 + 3 + 1000 + 20 = 5923; the phone shows 10 less
+	s.Must(t, s.Admin.Do("POST", "/api/v1/x/recharge/counts", map[string]any{"counts": []map[string]any{{"deviceId": n.Device, "counted": "5913"}}}, nil))
+	eq(t, "RCH-9", "earnings today up by", today().Sub(before), "13")
+	s.Audit(t)
+}
