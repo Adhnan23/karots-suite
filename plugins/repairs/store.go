@@ -267,23 +267,58 @@ func (s *Store) GetJob(ctx context.Context, id int64) (*Detail, error) {
 	return d, err
 }
 
+// whileOpen runs fn on the job in one tx with its row locked, only while it is
+// open: a closed job never changes, also when its pickup lands at the same moment
+// (the pickup's sale hook locks the same row).
+func (s *Store) whileOpen(ctx context.Context, id int64, fn func(tx *sqlx.Tx) error) error {
+	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		var st string
+		err := tx.GetContext(ctx, &st, `SELECT status FROM repair_jobs WHERE id = $1 FOR UPDATE`, id)
+		if errors.Is(err, sql.ErrNoRows) {
+			return apperr.NotFound("repair")
+		}
+		if err != nil {
+			return err
+		}
+		if st == "collected" || st == "cancelled" {
+			return apperr.Validation("this repair is " + st + " — it can't change now")
+		}
+		return fn(tx)
+	})
+}
+
+// one refuses a change that touched no row of this job.
+func one(res sql.Result, err error, what string) error {
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil || n == 0 {
+		return apperr.NotFound(what)
+	}
+	return nil
+}
+
 func (s *Store) UpdateJob(ctx context.Context, id int64, in JobInput) error {
-	_, err := s.db.ExecContext(ctx, `
-		UPDATE repair_jobs SET
-			customer_id = $2, customer_name = $3, customer_phone = $4,
-			repair_type = $5, device_model = $6, repaired_by = $7, fault = $8,
-			promised_date = $9, urgent = $10, warranty_days = $11, notes = $12
-		WHERE id = $1`,
-		id, in.CustomerID, in.CustomerName, in.CustomerPhone,
-		in.RepairType, in.DeviceModel, in.RepairedBy, in.Fault,
-		in.PromisedDate, in.Urgent, in.WarrantyDays, in.Notes)
-	return err
+	return s.whileOpen(ctx, id, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `
+			UPDATE repair_jobs SET
+				customer_id = $2, customer_name = $3, customer_phone = $4,
+				repair_type = $5, device_model = $6, repaired_by = $7, fault = $8,
+				promised_date = $9, urgent = $10, warranty_days = $11, notes = $12
+			WHERE id = $1`,
+			id, in.CustomerID, in.CustomerName, in.CustomerPhone,
+			in.RepairType, in.DeviceModel, in.RepairedBy, in.Fault,
+			in.PromisedDate, in.Urgent, in.WarrantyDays, in.Notes)
+		return err
+	})
 }
 
 func (s *Store) SetUrgent(ctx context.Context, id int64, urgent bool, promised *time.Time) error {
-	_, err := s.db.ExecContext(ctx,
-		`UPDATE repair_jobs SET urgent = $2, promised_date = COALESCE($3, promised_date) WHERE id = $1`, id, urgent, promised)
-	return err
+	return s.whileOpen(ctx, id, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx,
+			`UPDATE repair_jobs SET urgent = $2, promised_date = COALESCE($3, promised_date) WHERE id = $1`, id, urgent, promised)
+		return err
+	})
 }
 
 // SetStatus moves an open job and stamps ready_at / cancelled_at.
@@ -295,8 +330,10 @@ func (s *Store) SetStatus(ctx context.Context, id int64, status string) error {
 	case "cancelled":
 		q = `UPDATE repair_jobs SET status = $2, cancelled_at = now() WHERE id = $1`
 	}
-	_, err := s.db.ExecContext(ctx, q, id, status)
-	return err
+	return s.whileOpen(ctx, id, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, q, id, status)
+		return err
+	})
 }
 
 // MarkCollected links the pickup sale and stamps the warranty, once: a job
@@ -313,25 +350,33 @@ func (s *Store) MarkCollected(ctx context.Context, q appdb.Queryer, id, saleID i
 }
 
 func (s *Store) AddPart(ctx context.Context, jobID, productID int64, qty decimal.Decimal, warrantyDays int) error {
-	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO repair_parts (job_id, product_id, qty, warranty_days) VALUES ($1, $2, $3, $4)`,
-		jobID, productID, qty, warrantyDays)
-	return err
+	return s.whileOpen(ctx, jobID, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx,
+			`INSERT INTO repair_parts (job_id, product_id, qty, warranty_days) VALUES ($1, $2, $3, $4)`,
+			jobID, productID, qty, warrantyDays)
+		return err
+	})
 }
 
 func (s *Store) RemovePart(ctx context.Context, jobID, id int64) error {
-	_, err := s.db.ExecContext(ctx, `DELETE FROM repair_parts WHERE id = $1 AND job_id = $2`, id, jobID)
-	return err
+	return s.whileOpen(ctx, jobID, func(tx *sqlx.Tx) error {
+		res, err := tx.ExecContext(ctx, `DELETE FROM repair_parts WHERE id = $1 AND job_id = $2`, id, jobID)
+		return one(res, err, "part")
+	})
 }
 
 func (s *Store) AddCharge(ctx context.Context, jobID int64, label string, amount decimal.Decimal) error {
-	_, err := s.db.ExecContext(ctx, `INSERT INTO repair_charges (job_id, label, amount) VALUES ($1, $2, $3)`, jobID, label, amount)
-	return err
+	return s.whileOpen(ctx, jobID, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `INSERT INTO repair_charges (job_id, label, amount) VALUES ($1, $2, $3)`, jobID, label, amount)
+		return err
+	})
 }
 
 func (s *Store) RemoveCharge(ctx context.Context, jobID, id int64) error {
-	_, err := s.db.ExecContext(ctx, `DELETE FROM repair_charges WHERE id = $1 AND job_id = $2`, id, jobID)
-	return err
+	return s.whileOpen(ctx, jobID, func(tx *sqlx.Tx) error {
+		res, err := tx.ExecContext(ctx, `DELETE FROM repair_charges WHERE id = $1 AND job_id = $2`, id, jobID)
+		return one(res, err, "labour")
+	})
 }
 
 func addPayment(ctx context.Context, q appdb.Queryer, jobID int64, amount decimal.Decimal, kind string, userID int64) error {
@@ -355,19 +400,23 @@ func legacyHeldTx(ctx context.Context, tx *sqlx.Tx, jobID int64) (decimal.Decima
 
 // LinkDeposit ties a core customer payment to a job — only one of the job's
 // customer and not linked already.
+// LinkDeposit ties a core customer payment to an open job — only one of the
+// job's customer and not linked already.
 func (s *Store) LinkDeposit(ctx context.Context, jobID, paymentID int64) error {
-	res, err := s.db.ExecContext(ctx, `
-		INSERT INTO repair_deposits (job_id, payment_id)
-		SELECT j.id, cp.id FROM repair_jobs j JOIN customer_payments cp ON cp.customer_id = j.customer_id
-		WHERE j.id = $1 AND cp.id = $2
-		ON CONFLICT (payment_id) DO NOTHING`, jobID, paymentID)
-	if err != nil {
-		return err
-	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		return apperr.Validation("that payment isn't this customer's, or is already on a job")
-	}
-	return nil
+	return s.whileOpen(ctx, jobID, func(tx *sqlx.Tx) error {
+		res, err := tx.ExecContext(ctx, `
+			INSERT INTO repair_deposits (job_id, payment_id)
+			SELECT j.id, cp.id FROM repair_jobs j JOIN customer_payments cp ON cp.customer_id = j.customer_id
+			WHERE j.id = $1 AND cp.id = $2
+			ON CONFLICT (payment_id) DO NOTHING`, jobID, paymentID)
+		if err != nil {
+			return err
+		}
+		if n, _ := res.RowsAffected(); n == 0 {
+			return apperr.Validation("that payment isn't this customer's, or is already on a job")
+		}
+		return nil
+	})
 }
 
 func linkPayout(ctx context.Context, q appdb.Queryer, jobID, expenseID int64) error {
