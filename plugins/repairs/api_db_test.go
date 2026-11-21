@@ -42,7 +42,7 @@ func newFixture(t *testing.T) fixture {
 		out := plugin.SaleLines{SaleID: ev.SaleID, CustomerID: ev.CustomerID, ActorID: ev.ActorID}
 		for _, l := range ev.Lines {
 			if d, ok := l.Plugin["repairs"]; ok {
-				out.Lines = append(out.Lines, plugin.SaleLine{ProductID: l.ProductID, Quantity: l.Quantity, Data: d})
+				out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Data: d})
 			}
 		}
 		return recordPickup(ctx, tx, out)

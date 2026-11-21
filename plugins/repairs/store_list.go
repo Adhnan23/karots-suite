@@ -89,7 +89,7 @@ func (s *Store) Suggestions(ctx context.Context) (Suggestions, error) {
 }
 
 // ReportRow is one collected job: revenue and cost are its pickup sale's lines
-// of the job's parts and the labour product, kept qty, bill discount shared out —
+// tagged with the job (repair_pickup_lines), kept qty, bill discount shared out —
 // counted as core's category / product reports count a line (reports.KeptRevenueSQL).
 // A void sale counts 0.
 type ReportRow struct {
@@ -104,7 +104,7 @@ type ReportRow struct {
 	Repairer    decimal.Decimal `db:"repairer"`
 }
 
-func (s *Store) Report(ctx context.Context, from, to time.Time, labour int64) ([]ReportRow, error) {
+func (s *Store) Report(ctx context.Context, from, to time.Time) ([]ReportRow, error) {
 	rows := []ReportRow{}
 	err := s.db.SelectContext(ctx, &rows, `
 		SELECT j.id, j.ticket_no, j.device_model, j.customer_name, j.collected_at, j.rework_of,
@@ -115,11 +115,10 @@ func (s *Store) Report(ctx context.Context, from, to time.Time, labour int64) ([
 		LEFT JOIN LATERAL (
 			SELECT SUM(`+reports.KeptRevenueSQL+`) AS revenue,
 			       SUM(si.cost_price * (si.quantity - si.returned_qty)) AS cost
-			FROM sale_items si JOIN sales s ON s.id = si.sale_id
-			WHERE si.sale_id = j.sale_id AND s.status <> 'void'
-			  AND (si.product_id = $3 OR si.product_id IN (SELECT product_id FROM repair_parts WHERE job_id = j.id))
+			FROM repair_pickup_lines pl JOIN sale_items si ON si.id = pl.sale_item_id JOIN sales s ON s.id = si.sale_id
+			WHERE pl.job_id = j.id AND s.status <> 'void'
 		) r ON true
 		WHERE j.status = 'collected' AND j.collected_at >= $1 AND j.collected_at < $2
-		ORDER BY j.collected_at`, from, to, labour)
+		ORDER BY j.collected_at`, from, to)
 	return rows, err
 }

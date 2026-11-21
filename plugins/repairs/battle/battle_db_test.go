@@ -143,6 +143,7 @@ func TestLedgerChecksFire(t *testing.T) {
 		{"REP-2", fmt.Sprintf(`UPDATE repair_parts SET qty = 0 WHERE job_id = %d`, j.ID)},
 		{"REP-7", fmt.Sprintf(`UPDATE repair_jobs SET customer_id = %d WHERE id = %d`, other, open.ID)},
 		{"REP-7", fmt.Sprintf(`INSERT INTO repair_payments (job_id, amount, kind) VALUES (%d, 100, 'refund')`, open.ID)},
+		{"REP-8", fmt.Sprintf(`UPDATE repair_pickup_lines SET job_id = %d WHERE job_id = %d`, open.ID, j.ID)},
 		{"REP-10", fmt.Sprintf(`UPDATE products SET merged_into_id = %d WHERE id IN (SELECT product_id FROM repair_parts WHERE job_id = %d)`, dup, j.ID)},
 	} {
 		tx := s.DB.MustBegin()
@@ -358,6 +359,32 @@ func TestREP10_ProductMerge(t *testing.T) {
 	s.Must(t, s.Admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/merge/%d", p, kept), map[string]string{"lotPrice": "follow"}, nil))
 	if g := get(t, s, j.ID); g.Parts[0].ProductID != kept {
 		t.Errorf("REP-10: part on %d, want %d", g.Parts[0].ProductID, kept)
+	}
+	s.Audit(t)
+}
+
+// REP-8: two jobs collected on one sale (and the same part sold loose beside them)
+// each count only their own lines.
+func TestREP8_TwoJobsOneSale(t *testing.T) {
+	t.Parallel()
+	s := ltest.Shared(t).Shop
+	openTill(t, s)
+	a, b := job(t, s, 0), job(t, s, 0)
+	p := part(t, s, a.ID)
+	labour(t, s, a.ID, "1000")
+	labour(t, s, b.ID, "2000")
+	_, ia := billLines(t, s, a.ID)
+	_, ib := billLines(t, s, b.ID)
+	items := append(append(ia, ib...), map[string]any{"productId": p, "quantity": "1"})
+	_, err := pickup(t, s, nil, items)
+	s.Must(t, err)
+	var rep repairs.ReportDTO
+	s.Must(t, s.Admin.Do("GET", "/api/v1/x/repairs/report?preset=today", nil, &rep))
+	want := map[int64]string{a.ID: "5000.00", b.ID: "2000.00"}
+	for _, r := range rep.Rows {
+		if w, ok := want[r.ID]; ok && r.Revenue != w {
+			t.Errorf("REP-8: job %s revenue %s, want %s", r.TicketNo, r.Revenue, w)
+		}
 	}
 	s.Audit(t)
 }

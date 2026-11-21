@@ -33,7 +33,7 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "repairs" 
 
 // dataTables is every repair_* table, parents first.
 var dataTables = []string{"repair_config", "repair_jobs", "repair_parts", "repair_charges", "repair_payments",
-	"repair_deposits", "repair_payouts"}
+	"repair_deposits", "repair_payouts", "repair_pickup_lines"}
 
 // legacyDeposit is the old deposit tender: cash a job took before deposits were advances,
 // still in the books as held for it. Only Put on the bill pre-fills it.

@@ -29,6 +29,11 @@ func init() {
 		SELECT 'repair ' || j.ticket_no, format('old deposit held %s', SUM(CASE WHEN p.kind = 'deposit' THEN p.amount ELSE -p.amount END))
 		FROM repair_payments p JOIN repair_jobs j ON j.id = p.job_id
 		GROUP BY j.id, j.ticket_no HAVING SUM(CASE WHEN p.kind = 'deposit' THEN p.amount ELSE -p.amount END) < 0`)
+	// REP-8: a pickup line is a line of the job's own pickup sale.
+	ledgercheck.Add("REP-8", `
+		SELECT 'repair ' || j.ticket_no, format('pickup line %s is on sale %s, the job''s sale is %s', l.sale_item_id, si.sale_id, j.sale_id)
+		FROM repair_pickup_lines l JOIN repair_jobs j ON j.id = l.job_id LEFT JOIN sale_items si ON si.id = l.sale_item_id
+		WHERE si.sale_id IS DISTINCT FROM j.sale_id`)
 	// REP-10 / PLG-2: nothing names a product merged away.
 	ledgercheck.Add("REP-10", `
 		SELECT x.what, 'its product was merged into ' || p.merged_into_id

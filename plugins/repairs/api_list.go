@@ -70,11 +70,7 @@ func (h handlers) report(c echo.Context) error {
 		return apperr.Validation(err.Error())
 	}
 	ctx := c.Request().Context()
-	labour, err := h.p.store.LabourID(ctx)
-	if err != nil {
-		return err
-	}
-	rows, err := h.p.store.Report(ctx, from, to, labour)
+	rows, err := h.p.store.Report(ctx, from, to)
 	if err != nil {
 		return err
 	}
