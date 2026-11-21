@@ -6,10 +6,12 @@ import (
 	"strings"
 
 	"karots-suite/internal/apperr"
+	appdb "karots-suite/internal/db"
 	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/reports"
 	"karots-suite/internal/middleware"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -92,6 +94,7 @@ func (h handlers) create(c echo.Context) error {
 		return err
 	}
 	pid := req.ProductID
+	var in products.CreateInput
 	if pid == 0 {
 		name := strings.TrimSpace(req.Name)
 		if name == "" || req.CategoryID <= 0 {
@@ -105,18 +108,27 @@ func (h handlers) create(c echo.Context) error {
 		if err := h.p.core.DB.GetContext(ctx, &unit, `SELECT id FROM units ORDER BY is_default DESC, id LIMIT 1`); err != nil {
 			return apperr.Validation("add a unit first")
 		}
-		in := products.CreateInput{Name: name, CategoryID: req.CategoryID, UnitID: unit, SellingPrice: price,
+		in = products.CreateInput{Name: name, CategoryID: req.CategoryID, UnitID: unit, SellingPrice: price,
 			CostPrice: "0", WholesalePrice: "0", TaxRate: "0", IsService: true}
 		if err := c.Validate(&in); err != nil {
 			return err
 		}
-		p, err := h.p.core.Products.Create(ctx, in)
-		if err != nil {
-			return err
-		}
-		pid = p.ID
 	}
-	sid, err := h.p.store.Link(ctx, h.p.core.DB, pid, req.Kind, req.Category)
+	// The new service product and its link are one change (PLG-4): a failed link
+	// never leaves a stray service behind.
+	var sid int64
+	err := appdb.WithTx(ctx, h.p.core.DB, func(tx *sqlx.Tx) error {
+		if pid == 0 {
+			id, err := products.CreateTx(ctx, tx, in)
+			if err != nil {
+				return err
+			}
+			pid = id
+		}
+		var err error
+		sid, err = h.p.store.Link(ctx, tx, pid, req.Kind, req.Category)
+		return err
+	})
 	if err != nil {
 		return err
 	}
@@ -214,7 +226,11 @@ func (h handlers) saveGrid(c echo.Context) error {
 		return err
 	}
 	h.audit(c, "documents_grid_save", sid, strconv.Itoa(len(prices))+" prices, "+strconv.Itoa(len(paper))+" paper")
-	return h.grid(c)
+	if err := h.grid(c); err != nil {
+		// Saved: answer with what was saved, so the page never shows it failed (PLG-6).
+		return c.JSON(http.StatusOK, toGrid(prices, paper))
+	}
+	return nil
 }
 
 // ReportRowDTO is one service × options; options are null for custom and

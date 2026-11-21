@@ -151,7 +151,11 @@ func (h handlers) saveExtras(c echo.Context) error {
 		return err
 	}
 	h.audit(c, "documents_extras_save", sid, strings.Join(names(xs), ", "))
-	return h.extras(c)
+	if err := h.extras(c); err != nil {
+		// Saved: answer with what was saved, so the page never shows it failed (PLG-6).
+		return c.JSON(http.StatusOK, extraDTOs(xs))
+	}
+	return nil
 }
 
 func names(xs []Extra) []string {
