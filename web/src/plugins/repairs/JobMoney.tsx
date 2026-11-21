@@ -40,7 +40,7 @@ export function JobMoney({ job, sym, onOpen }: { job: Job; sym: string; onOpen: 
   async function rework() {
     try {
       const j = await startRework(job.id)
-      toast.success(`${j.ticketNo} opened — free under ${job.ticketNo}'s warranty`)
+      toast.success(`${j.ticketNo || 'The re-repair'} opened — free under ${job.ticketNo}'s warranty`)
       onOpen(j.id)
     } catch (e) {
       toast.error(errMsg(e))

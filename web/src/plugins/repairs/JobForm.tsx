@@ -44,7 +44,7 @@ function Form({ job, seedCustomer, onSaved, onCancel }: { job?: Job; seedCustome
     setBusy(true)
     try {
       const j = job ? await updateJob(job.id, body) : await createJob(body)
-      if (!job) toast.success(`${j.ticketNo} taken in`)
+      if (!job) toast.success(`${j.ticketNo || 'The repair'} taken in`)
       onSaved(j.id)
     } catch (e) {
       toast.error(errMsg(e))

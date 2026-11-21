@@ -238,7 +238,11 @@ func (h handlers) jobInput(c echo.Context, req JobRequest) (JobInput, error) {
 			return in, apperr.Validation("warranty days must be 0 to 3650")
 		}
 		in.WarrantyDays = *req.WarrantyDays
-	} else if cfg, err := h.p.store.Config(ctx); err == nil {
+	} else {
+		cfg, err := h.p.store.Config(ctx)
+		if err != nil {
+			return in, err // never a job silently without the shop's default warranty
+		}
 		in.WarrantyDays = cfg.DefaultWarrantyDays
 	}
 	return in, nil
@@ -258,7 +262,7 @@ func (h handlers) create(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, id, "repair opened: "+in.DeviceModel+" for "+in.CustomerName)
-	return h.respond(c, id)
+	return h.saved(c, id)
 }
 
 // open loads a job that may still change (not collected or cancelled).
@@ -303,7 +307,7 @@ func (h handlers) update(c echo.Context) error {
 		return err
 	}
 	h.auditDeadline(c, d.Job, in.PromisedDate)
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 // auditDeadline puts a pickup-date change in the audit log — for "you promised
@@ -339,7 +343,7 @@ func (h handlers) status(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, d.Job.ID, d.Job.TicketNo+" "+strings.ReplaceAll(req.Status, "_", " "))
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 func (h handlers) urgent(c echo.Context) error {
@@ -366,7 +370,7 @@ func (h handlers) urgent(c echo.Context) error {
 		return err
 	}
 	h.auditDeadline(c, d.Job, next)
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 // cancel closes an open job. Its deposit isn't touched here: the till then
@@ -380,7 +384,7 @@ func (h handlers) cancel(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, d.Job.ID, "repair cancelled: "+d.Job.TicketNo)
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 func (h handlers) addPart(c echo.Context) error {
@@ -414,7 +418,7 @@ func (h handlers) addPart(c echo.Context) error {
 	if err := h.p.store.AddPart(ctx, d.Job.ID, prod.ID, qty, req.WarrantyDays); err != nil {
 		return err
 	}
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 func (h handlers) removePart(c echo.Context) error {
@@ -429,7 +433,7 @@ func (h handlers) removePart(c echo.Context) error {
 	if err := h.p.store.RemovePart(c.Request().Context(), d.Job.ID, pid); err != nil {
 		return err
 	}
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 func (h handlers) addCharge(c echo.Context) error {
@@ -455,7 +459,7 @@ func (h handlers) addCharge(c echo.Context) error {
 	if err := h.p.store.AddCharge(c.Request().Context(), d.Job.ID, label, amt.Round(2)); err != nil {
 		return err
 	}
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 func (h handlers) removeCharge(c echo.Context) error {
@@ -470,5 +474,5 @@ func (h handlers) removeCharge(c echo.Context) error {
 	if err := h.p.store.RemoveCharge(c.Request().Context(), d.Job.ID, cid); err != nil {
 		return err
 	}
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }

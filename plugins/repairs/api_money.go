@@ -31,6 +31,17 @@ func (h handlers) respond(c echo.Context, id int64) error {
 	return c.JSON(http.StatusOK, out)
 }
 
+// saved answers a write that went through with the job — or, when reading it
+// back fails, with just its id: it was saved, so the panel must never show it
+// failed and the cashier do it twice (PLG-6).
+func (h handlers) saved(c echo.Context, id int64) error {
+	out, err := h.jobDTO(c.Request().Context(), id)
+	if err != nil {
+		return c.JSON(http.StatusOK, map[string]int64{"id": id})
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
 func (h handlers) jobDTO(ctx context.Context, id int64) (*JobDTO, error) {
 	d, err := h.p.store.GetJob(ctx, id)
 	if err != nil {
@@ -181,7 +192,7 @@ func (h handlers) linkDeposit(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionPayment, d.Job.ID, "deposit taken for "+d.Job.TicketNo)
-	return h.respond(c, d.Job.ID)
+	return h.saved(c, d.Job.ID)
 }
 
 // rework opens a free warranty re-repair of a collected job, linked to it.
@@ -207,7 +218,7 @@ func (h handlers) rework(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, nid, "warranty re-repair of "+o.Job.TicketNo)
-	return h.respond(c, nid)
+	return h.saved(c, nid)
 }
 
 // refundHeld hands an old held deposit back from this drawer — a cancelled
@@ -313,7 +324,7 @@ func (h handlers) payout(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionPayment, id, note)
-	return h.respond(c, id)
+	return h.saved(c, id)
 }
 
 // parseSource is a money place from the core picker: a locker or an open till.
