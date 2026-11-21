@@ -122,8 +122,17 @@ func (s *Service) Owing(ctx context.Context) ([]OwingRow, error) {
 	return rows, nil
 }
 
+// on is the repository on ctx's transaction when it carries one (db.InTx: a
+// caller making a customer as one part of a bigger change), else the pool's.
+func (s *Service) on(ctx context.Context) *Repository {
+	if db.TxFrom(ctx) != nil {
+		return NewRepository(db.On(ctx, s.db))
+	}
+	return s.repo
+}
+
 func (s *Service) Get(ctx context.Context, id int64) (*Customer, error) {
-	c, err := s.repo.FindByID(ctx, id)
+	c, err := s.on(ctx).FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, apperr.NotFound("customer")
@@ -157,12 +166,12 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*Customer, bool, 
 		return nil, false, apperr.Validation("a phone number is required")
 	}
 	phone := normalizePhone(*in.Phone)
-	if existing, ferr := s.repo.FindByPhone(ctx, phone); ferr == nil {
+	if existing, ferr := s.on(ctx).FindByPhone(ctx, phone); ferr == nil {
 		return existing, true, nil // reuse — do not create a duplicate
 	} else if !errors.Is(ferr, sql.ErrNoRows) {
 		return nil, false, apperr.Internal("failed to check for an existing customer", ferr)
 	}
-	c, err := s.repo.Create(ctx, strings.TrimSpace(in.Name), &phone, in.Address, limit, opening)
+	c, err := s.on(ctx).Create(ctx, strings.TrimSpace(in.Name), &phone, in.Address, limit, opening)
 	if err != nil {
 		return nil, false, apperr.Internal("failed to create customer", err)
 	}

@@ -104,28 +104,35 @@ func (s *Store) Register(ctx context.Context, name, phone string, pr Profile) (P
 	if len(name) < 2 {
 		return Patient{}, apperr.Validation("type the patient's name")
 	}
-	c, _, err := s.customers.Create(ctx, customers.CreateInput{Name: name, Phone: &phone})
-	if err != nil {
-		return Patient{}, err
-	}
-	p, err := s.FromCustomer(ctx, c.ID)
-	if err != nil {
-		return p, err
-	}
-	// A reused customer who is already a patient keeps what was on file unless typed now.
-	if pr.Allergies == "" && pr.NIC == "" && pr.DOB == nil && pr.Sex == "" && pr.Notes == "" {
-		return p, nil
-	}
-	if pr.Allergies == "" {
-		pr.Allergies = p.Allergies
-	}
-	if pr.Notes == "" {
-		pr.Notes = p.Notes
-	}
-	if err := s.UpdateProfile(ctx, p.ID, pr); err != nil {
-		return p, err
-	}
-	return s.Patient(ctx, p.ID)
+	// The customer, the patient and the profile are one change (PLG-4): core's
+	// customer joins this transaction (appdb.InTx).
+	var p Patient
+	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		ctx := appdb.InTx(ctx, tx)
+		c, _, err := s.customers.Create(ctx, customers.CreateInput{Name: name, Phone: &phone})
+		if err != nil {
+			return err
+		}
+		if p, err = s.FromCustomer(ctx, c.ID); err != nil {
+			return err
+		}
+		// A reused customer who is already a patient keeps what was on file unless typed now.
+		if pr.Allergies == "" && pr.NIC == "" && pr.DOB == nil && pr.Sex == "" && pr.Notes == "" {
+			return nil
+		}
+		if pr.Allergies == "" {
+			pr.Allergies = p.Allergies
+		}
+		if pr.Notes == "" {
+			pr.Notes = p.Notes
+		}
+		if err := s.UpdateProfile(ctx, p.ID, pr); err != nil {
+			return err
+		}
+		p, err = s.Patient(ctx, p.ID)
+		return err
+	})
+	return p, err
 }
 
 // UpdateProfile saves the pharmacy's profile (name and phone stay the core customer's).

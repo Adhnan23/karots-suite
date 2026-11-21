@@ -262,6 +262,10 @@ func saveItems(ctx context.Context, tx execer, rxID int64, items []ItemInput) er
 			res, err = tx.ExecContext(ctx, `INSERT INTO pharmacy_prescription_items (prescription_id, product_id, group_id, drug_text, dosage, quantity, per_day, note)
 				VALUES ($1, $2, `+group+`, $4, $5, $6, $7, $8)`, rxID, it.ProductID, it.GroupID, it.DrugText, it.Dosage, it.Quantity, it.PerDay, it.Note)
 		}
+		var pe *pq.Error
+		if errors.As(err, &pe) && pe.Code == "23503" { // a product or group that isn't there (PLG-3)
+			return apperr.Validation("a medicine on the script isn't in your products — pick it again")
+		}
 		if err != nil {
 			return err
 		}
