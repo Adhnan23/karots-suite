@@ -111,35 +111,6 @@ func TestReturnRefundsWhatWasPaidAfterBillDiscount(t *testing.T) {
 	}
 }
 
-// The whole-sale return records its refund like a line return does: what was
-// paid (360), not the line nets (370), and not nothing — it used to record no
-// return at all, so it never reached the refund slip or the reports.
-func TestWholeSaleReturnRecordsWhatWasPaid(t *testing.T) {
-	conn := salesTestDB(t)
-	t.Cleanup(func() { conn.Close() }) // registered first, so it runs after the helper's cleanup
-	ctx := context.Background()
-	svc, d, _, _, _ := discountedSale(t, ctx, conn)
-
-	got, err := svc.Return(ctx, d.Sale.ID, d.Sale.CashierID)
-	mustSales(t, err)
-	if got.Sale.Status != "returned" {
-		t.Errorf("status %q, want returned", got.Sale.Status)
-	}
-	var refunded decimal.Decimal
-	var lines int
-	mustSales(t, conn.GetContext(ctx, &refunded,
-		`SELECT COALESCE(SUM(refund_amount), 0) FROM sale_returns WHERE sale_id = $1`, d.Sale.ID))
-	mustSales(t, conn.GetContext(ctx, &lines, `
-		SELECT count(*) FROM sale_return_items sri JOIN sale_returns sr ON sr.id = sri.return_id
-		WHERE sr.sale_id = $1`, d.Sale.ID))
-	if !refunded.Equal(decimal.NewFromInt(360)) || lines != 2 {
-		t.Errorf("recorded refund %s over %d lines, want 360 over 2", refunded, lines)
-	}
-	if _, err := svc.Return(ctx, d.Sale.ID, d.Sale.CashierID); err == nil {
-		t.Error("a second whole-sale return was accepted")
-	}
-}
-
 // Returns on a part-paid credit sale clear only the debt that's left. Every
 // return used to take up to total − paid off the account, because paid_amount
 // never changes: 3 @ 100, 100 cash + 200 on account, three returns of 1 took

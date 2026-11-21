@@ -46,54 +46,6 @@ func (s *Service) ReturnReceipt(ctx context.Context, saleID int64) (*ReturnRecei
 	return rr, nil
 }
 
-// Return sends back everything still on a sale, in its own tx. See ReturnTx.
-func (s *Service) Return(ctx context.Context, id int64, userID int64) (*Detail, error) {
-	var detail *Detail
-	err := appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
-		d, _, _, err := s.ReturnTx(ctx, tx, id, userID)
-		detail = d
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
-	return detail, nil
-}
-
-// ReturnTx is a line return of every remaining line (restocked), so a whole-sale
-// return records its return and refund exactly as the line path does — what was
-// paid after item and bill discounts — and works after a partial return. Like
-// PartialReturnTx it returns the cash-refund portion and the return id, so the
-// caller moves that cash out of a named place in the same tx.
-func (s *Service) ReturnTx(ctx context.Context, tx *sqlx.Tx, id, userID int64) (*Detail, decimal.Decimal, int64, error) {
-	saleRepo := NewRepository(tx)
-	sale, err := saleRepo.FindByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, decimal.Zero, 0, apperr.NotFound("sale")
-		}
-		return nil, decimal.Zero, 0, apperr.Internal("failed to load sale", err)
-	}
-	if sale.Status == "returned" {
-		return nil, decimal.Zero, 0, apperr.Conflict("this sale has already been returned")
-	}
-	items, err := saleRepo.Items(ctx, id)
-	if err != nil {
-		return nil, decimal.Zero, 0, apperr.Internal("failed to load sale items", err)
-	}
-	var lines []ReturnLineInput
-	for _, it := range items {
-		if !it.ReturnableQty().IsPositive() {
-			continue
-		}
-		lines = append(lines, ReturnLineInput{SaleItemID: it.ID, Quantity: it.ReturnableQty().String()})
-	}
-	if len(lines) == 0 {
-		return nil, decimal.Zero, 0, apperr.Conflict("nothing left on this sale to return")
-	}
-	return s.PartialReturnTx(ctx, tx, id, PartialReturnInput{Lines: lines}, userID)
-}
-
 func strPtr(s string) *string { return &s }
 
 // ReturnLineInput is one line of a partial return: how much of a specific sale

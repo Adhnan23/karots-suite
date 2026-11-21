@@ -79,22 +79,13 @@ func TestServiceLineReturnRefundsAndBooksMaterialsAsLoss(t *testing.T) {
 		t.Errorf("paper %s after return, want %s (nothing restocked)", got, before)
 	}
 
-	// Whole-sale return no longer refuses a sale with a service line.
-	_, cash, _, err = func() (*Detail, decimal.Decimal, int64, error) {
-		tx, err := conn.BeginTxx(ctx, nil)
-		if err != nil {
-			return nil, decimal.Zero, 0, err
-		}
-		d, c, id, err := svc.ReturnTx(ctx, tx, d.Sale.ID, cashierID)
-		if err != nil {
-			tx.Rollback() //nolint:errcheck
-			return nil, decimal.Zero, 0, err
-		}
-		return d, c, id, tx.Commit()
-	}()
+	// The rest back, restocked: a service line has no shelf, so its paper is a loss too.
+	_, cash, err = svc.PartialReturn(ctx, d.Sale.ID, PartialReturnInput{
+		Lines: []ReturnLineInput{{SaleItemID: item.ID, Quantity: "2"}},
+	}, cashierID)
 	mustSales(t, err)
 	if !cash.Equal(decimal.NewFromInt(10)) {
-		t.Errorf("whole-sale refund %s, want the last 10", cash)
+		t.Errorf("refund of the rest %s, want the last 10", cash)
 	}
 	if got := losses(); !got.Equal(decimal.NewFromInt(8)) {
 		t.Errorf("losses %s, want all 8 of the paper", got)
