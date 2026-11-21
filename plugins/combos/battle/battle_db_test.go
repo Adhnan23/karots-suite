@@ -271,3 +271,29 @@ func TestCMB9_ProductMerge(t *testing.T) {
 	}
 	s.Audit(t)
 }
+
+// CMB-5: a combo of one product ×2 rings as a single line and still gets its row;
+// the till's list never sends warnings as null.
+func TestCMB5_OneLineCombo(t *testing.T) {
+	s := ltest.Shared(t).Shop
+	openTill(t, s)
+	p := s.Product(t, fmt.Sprintf("Twin %d", seq.Add(1)), "100", "10", nil)
+	var c combos.ComboDTO
+	s.Must(t, s.Admin.Do("POST", "/api/v1/x/combos", map[string]any{"name": "Two for 180", "discountType": "price", "discountValue": "180",
+		"items": []map[string]any{{"productId": p, "qty": "2"}}}, &c))
+	if c.Warnings == nil {
+		t.Error("CMB-2: warnings sent as null")
+	}
+	sale := sell(t, s, []map[string]any{{"productId": p, "quantity": "2", "discount": "10", "discountType": "fixed",
+		"group": map[string]any{"no": 1, "label": "Two for 180 (combo)", "sets": "1"}, "plugin": map[string]any{"combos": map[string]any{"comboId": c.ID}}}})
+	if sets, net, _, ok := row(t, s, sale.ID, c.ID); !ok || sets != "1.0000" || net != "180.00" {
+		t.Errorf("CMB-5: one-line combo row %v: %s sets, net %s; want 1, 180.00", ok, sets, net)
+	}
+	var v struct{ AutoApply bool }
+	s.Must(t, s.Admin.Do("PUT", "/api/v1/x/combos/settings", map[string]bool{"autoApply": true}, &v))
+	s.Must(t, s.Admin.Do("PUT", "/api/v1/x/combos/settings", map[string]bool{"autoApply": false}, nil))
+	if !v.AutoApply {
+		t.Error("CMB-7: saving settings doesn't answer what was saved")
+	}
+	s.Audit(t)
+}
