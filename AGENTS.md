@@ -242,6 +242,9 @@ docs/rules/           the rule book (grid per area, questions.md)
   own database, all cores), `make test-web` (Vitest), `cd web && bunx playwright test` (3 workers, `E2E_WORKERS=n`;
   builds and seeds its own servers). `make battle` / `make proofs` / `make mutate` as above. Nothing reaches a real
   printer (`KAROTS_NO_SPOOL`). Run long ones detached with logs on disk (power cuts).
+  **Use the machine fully:** Postgres data (`SUITE_PG_DATA` in `.env`) and heavy scratch dirs on the NVMe
+  (`/mnt/nvme_512GB/karots/`), mutant replays as side-by-side shards (`scripts/replay-mutants.py … i/n`, ~9 on this PC;
+  `SKIP=` resumes). Watch `vmstat` early in a long run and measure, never assume (2026-11-21: 5–8× faster).
 - `make types` after any `dto.go` change. `make build` → `make verify-portable` (static, `CGO_ENABLED=0 GOAMD64=v1`).
 - **Demo Room:** `make demo` (or Shop Builder → Demo Room) → `dist/demo/karots-suite-demo-room` + `.exe` (every built-in shop's
   year, ~6 min, kept in the user cache and reused while nothing that shapes the data changed — `cmd/bootstrap/demoyears.go`;
