@@ -99,6 +99,16 @@ func (s *Service) Record(ctx context.Context, in CreateInput, userID int64) erro
 		case OutcomePaid:
 			rec.RecoveredValue = paidAmount
 		}
+		// A supplier named must be one the shop has (else the save fails as a server error).
+		if in.SupplierID != nil && *in.SupplierID > 0 {
+			var ok bool
+			if err := tx.GetContext(ctx, &ok, `SELECT EXISTS (SELECT 1 FROM suppliers WHERE id = $1)`, *in.SupplierID); err != nil {
+				return apperr.Internal("failed to load the supplier", err)
+			}
+			if !ok {
+				return apperr.NotFound("supplier")
+			}
+		}
 		// Saved first, so the stock that comes back names it (REC-2).
 		id, err := repo.Insert(ctx, rec)
 		if err != nil {
