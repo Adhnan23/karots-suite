@@ -416,3 +416,32 @@ func TestREP5_FreeRerepair(t *testing.T) {
 	}
 	s.Audit(t)
 }
+
+// REP-5, REP-1: the warranty settings save, and a new job takes the default;
+// the form's suggestions list what was typed before (models, repairers, labour).
+// Runs alone: the settings are shop-wide.
+func TestREP5_SettingsAndSuggestions(t *testing.T) {
+	s := ltest.Shared(t).Shop
+	s.Must(t, s.Admin.Do("PUT", "/api/v1/x/repairs/config", map[string]any{"warrantyMode": "days", "defaultWarrantyDays": 14}, nil))
+	defer s.Admin.Do("PUT", "/api/v1/x/repairs/config", map[string]any{"warrantyMode": "days", "defaultWarrantyDays": 0}, nil) //nolint:errcheck
+	var j repairs.JobDTO
+	s.Must(t, s.Cashier.Do("POST", "/api/v1/x/repairs/jobs", map[string]any{"customerId": customer(t, s), "deviceModel": "Nokia 3310",
+		"repairedBy": "Sunil"}, &j))
+	labour(t, s, j.ID, "250")
+	if j.WarrantyDays != 14 {
+		t.Errorf("REP-5: new job has %d warranty days, want the default 14", j.WarrantyDays)
+	}
+	var sg repairs.Suggestions
+	s.Must(t, s.Cashier.Do("GET", "/api/v1/x/repairs/suggest", nil, &sg))
+	has := func(xs []string, v string) bool {
+		for _, x := range xs {
+			if x == v {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(sg.Models, "Nokia 3310") || !has(sg.Repairers, "Sunil") || !has(sg.Labour, "Fitting") {
+		t.Errorf("suggestions %+v; want the model, repairer and labour typed before", sg)
+	}
+}
