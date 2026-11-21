@@ -152,7 +152,7 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	case "close":
 		return h.runClose(ctx, a)
 	case "withdraw", "deposit":
-		return h.runMove(ctx, a)
+		return h.runMove(ctx, p, a)
 	case "hold":
 		return h.runHold(ctx, p, a)
 	case "unhold":
@@ -315,12 +315,24 @@ func (h handlers) runClose(ctx context.Context, a Action) ActionResult {
 	return ActionResult{Status: "applied"}
 }
 
-func (h handlers) runMove(ctx context.Context, a Action) ActionResult {
+// runMove books a cash out / in as the phone made it: it already happened, so it
+// goes past what the PC counts in the drawer (flagged), in a till opened for it when
+// none is (DRAW-19). Refused all the same (a locker gone), its cash is still booked.
+func (h handlers) runMove(ctx context.Context, p *Phone, a Action) ActionResult {
 	var b MoveBody
 	if err := json.Unmarshal(a.Body, &b); err != nil {
 		return failed(err)
 	}
-	in := cashregister.MovementInput{Amount: b.Amount, Reason: b.Reason, CounterLockerID: b.LockerID, DeferDrawerKick: true}
+	cash := CallBody{Label: "Cash in"}
+	if a.Kind == "withdraw" {
+		cash = CallBody{Label: "Cash out", CashOut: b.Amount}
+	} else {
+		cash.CashIn = b.Amount
+	}
+	if err := h.openLateTill(ctx, p, a.UserID); err != nil {
+		return h.refused(ctx, a, cash, err.Error())
+	}
+	in := cashregister.MovementInput{Amount: b.Amount, Reason: b.Reason, CounterLockerID: b.LockerID, DeferDrawerKick: true, Remote: true}
 	var err error
 	if a.Kind == "withdraw" {
 		_, err = h.p.core.CashRegister.Withdraw(ctx, a.UserID, in)
@@ -328,7 +340,7 @@ func (h handlers) runMove(ctx context.Context, a Action) ActionResult {
 		_, err = h.p.core.CashRegister.PayIn(ctx, a.UserID, in)
 	}
 	if err != nil {
-		return failed(err)
+		return h.refused(ctx, a, cash, failed(err).Note)
 	}
 	return ActionResult{Status: "applied"}
 }

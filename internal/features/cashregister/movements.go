@@ -15,6 +15,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"karots-suite/internal/apperr"
 	appdb "karots-suite/internal/db"
@@ -39,20 +40,24 @@ func (s *Service) untrackedCashOutAllowed(ctx context.Context) bool {
 }
 
 func (s *Service) Withdraw(ctx context.Context, userID int64, in MovementInput) (int64, error) {
+	var note string // DRAW-19: why a remote withdrawal needs a look
 	if in.CounterLockerID == 0 && !s.untrackedCashOutAllowed(ctx) {
-		return 0, apperr.Validation("untracked withdrawals are disabled — choose a locker to move the cash into")
+		if !in.Remote {
+			return 0, apperr.Validation("untracked withdrawals are disabled — choose a locker to move the cash into")
+		}
+		note = "cash taken out away from the PC without a locker, though untracked cash is off"
 	}
-	return s.adjust(ctx, userID, in, MoveWithdrawal, true, "withdrawal")
+	return s.adjust(ctx, userID, in, MoveWithdrawal, true, "withdrawal", note)
 }
 
 // PayIn records cash added to the drawer mid-shift (e.g. extra float).
 func (s *Service) PayIn(ctx context.Context, userID int64, in MovementInput) (int64, error) {
-	return s.adjust(ctx, userID, in, MovePayIn, false, "pay-in")
+	return s.adjust(ctx, userID, in, MovePayIn, false, "pay-in", "")
 }
 
 // adjust returns the move's receipt (0 when none). Nothing after the commit can
 // fail it: a saved move reported as an error would be done twice (DRAW-18).
-func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mtype string, negate bool, label string) (int64, error) {
+func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mtype string, negate bool, label, note string) (int64, error) {
 	amt, err := money.Parse(in.Amount)
 	if err != nil || !amt.IsPositive() {
 		return 0, apperr.Validation(label + " amount must be positive")
@@ -85,7 +90,15 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 				return apperr.Internal("failed to total cash movements", err)
 			}
 			if available := sess.OpeningCash.Add(cashSales).Add(adj); amt.GreaterThan(available) {
-				return apperr.Validation("cannot withdraw more than the " + money.Display(available) + " currently in the drawer")
+				if !in.Remote {
+					return apperr.Validation("cannot withdraw more than the " + money.Display(available) + " currently in the drawer")
+				}
+				note = strings.TrimPrefix(note+"; ", "; ") + money.Display(amt) + " taken out away from the PC with " + money.Display(available) + " in the drawer by its count"
+			}
+		}
+		if note != "" {
+			if err := repo.FlagReview(ctx, sess.ID, note); err != nil {
+				return apperr.Internal("failed to flag the till", err)
 			}
 		}
 		if err := repo.AddMovement(ctx, sess.ID, userID, mtype, signed, in.Reason, nil); err != nil {

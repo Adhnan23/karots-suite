@@ -103,7 +103,9 @@ type CloseInput struct {
 	DestLockerID int64 `json:"dest_locker_id" form:"dest_locker_id"`
 	// At is when it closed (nil = now), never before it opened or in the future.
 	At *time.Time `json:"-"`
-	// Remote: not closed at the counter, so the drawer doesn't pop.
+	// Remote: closed away from the PC (a phone), so the drawer doesn't pop, and it
+	// already happened: with no locker and untracked cash off it still closes, flagged
+	// (DRAW-19).
 	Remote bool `json:"-"`
 }
 
@@ -122,6 +124,10 @@ type MovementInput struct {
 	// single job — avoiding a second printer job and its inter-job gap. In prompt
 	// mode the client leaves this false so the drawer still pops at the cash event.
 	DeferDrawerKick bool `json:"defer_drawer_kick" form:"defer_drawer_kick"`
+	// Remote: made away from the PC (a phone while the PC was down), so it already
+	// happened: booked as made past what the drawer holds by the PC's count and with
+	// untracked cash off; the till is flagged instead (DRAW-19).
+	Remote bool `json:"-"`
 }
 
 // TillCashEvent describes a till cash event whose locker side must be booked.
@@ -387,8 +393,12 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 	if !ok || closing.IsNegative() {
 		return nil, apperr.Validation("closing cash must be a non-negative amount")
 	}
+	var untracked string // DRAW-19: why a remote close needs a look
 	if in.DestLockerID == 0 && closing.IsPositive() && !s.untrackedCashOutAllowed(ctx) {
-		return nil, apperr.Validation("banking to a locker is required — choose a locker to close the cash into")
+		if !in.Remote {
+			return nil, apperr.Validation("banking to a locker is required — choose a locker to close the cash into")
+		}
+		untracked = "closed away from the PC with " + money.Display(closing) + " not banked, though untracked cash is off"
 	}
 	var (
 		sess                      *Session
@@ -427,6 +437,11 @@ func (s *Service) close(ctx context.Context, userID, sessionID int64, by *closer
 		diff = closing.Sub(expected)
 		if cerr := repo.Close(ctx, sess.ID, closing, expected, diff, raw, closedBy, in.At); cerr != nil {
 			return cerr
+		}
+		if untracked != "" {
+			if ferr := repo.FlagReview(ctx, sess.ID, untracked); ferr != nil {
+				return ferr
+			}
 		}
 		if expected.IsNegative() { // DRAW-3: change, payouts or refunds gave more than it held
 			if ferr := repo.FlagReview(ctx, sess.ID, "closed expecting "+money.Display(expected)); ferr != nil {
