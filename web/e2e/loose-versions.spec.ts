@@ -116,6 +116,7 @@ test('a till swap to an alternative sold by the kg asks how many; Cancel leaves 
   expect((await page.request.post(`/api/v1/x/alternatives/tiers/${g.tiers[0].id}/members`, { data: { productId: ids.loose } })).ok()).toBe(true)
 
   await page.goto('/till')
+  await page.waitForLoadState('networkidle') // the open-the-till dialog shows once the drawer is read
   const open = page.getByRole('dialog', { name: 'Open the till' })
   if (await open.isVisible()) {
     await open.getByLabel(/Count of .*500\.00/).fill('2')
