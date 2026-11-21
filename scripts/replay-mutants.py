@@ -35,9 +35,12 @@ def mutate(line, col, kind):
     return None
 
 env = dict(os.environ)
+# TESTPKG: the packages to run (space-separated); a plugin's are its own and its battle/ (a gremlins --dry-run
+# log's RUNNABLE lines are replayed too: a plugin package's own tests reach little).
+pkgs = env.get('TESTPKG', './internal/battle').split()
 seen = set()
 for raw in open(log):
-    m = re.match(r'\s*(LIVED|NOT COVERED)\s+(\w+)\s+at\s+(\S+):(\d+):(\d+)', raw)
+    m = re.match(r'\s*(LIVED|NOT COVERED|RUNNABLE)\s+(\w+)\s+at\s+(\S+):(\d+):(\d+)', raw)
     if not m:
         continue
     _, kind, f, ln, col = m.groups()
@@ -60,7 +63,7 @@ for raw in open(log):
     src[int(ln)-1] = new
     open(path, 'w').write('\n'.join(src))
     try:
-        r = subprocess.run(['go', 'test', '-exec', os.path.join(root, 'bin/testdb') + ' exec', './internal/battle',
+        r = subprocess.run(['go', 'test', '-exec', os.path.join(root, 'bin/testdb') + ' exec', *pkgs,
                             '-run', run, '-count=1', '-failfast', '-timeout', '10m'], cwd=root, env=env,
                            capture_output=True, text=True)
         out = r.stdout + r.stderr
