@@ -40,6 +40,13 @@ func IsUniqueViolation(err error) bool {
 	return false
 }
 
+// IsForeignKeyViolation reports whether err is Postgres refusing a row that names
+// a missing one (SQLSTATE 23503) through the given constraint.
+func IsForeignKeyViolation(err error, constraint string) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23503" && pqErr.Constraint == constraint
+}
+
 // RunMigrations applies all embedded migrations. The migration FS is injected
 // (rather than embedded here) because go:embed cannot reference parent
 // directories — the embed lives in the migrations package alongside the .sql

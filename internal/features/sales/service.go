@@ -279,6 +279,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput, cashierID int64) (
 			At:                   in.At,
 			SessionID:            sessionID,
 		})
+		if appdb.IsForeignKeyViolation(err, "sales_customer_id_fkey") { // only looked up for credit / cheque (no extra query on cash)
+			return apperr.Validation("selected customer not found")
+		}
 		if err != nil {
 			return apperr.Internal("failed to save sale", err)
 		}
