@@ -117,3 +117,29 @@ func (s *shop) sellWith(t *testing.T, extra map[string]any, items []line) saleRe
 	s.must(t, s.till1.Do("POST", "/api/v1/till/sales", body, &r))
 	return r
 }
+
+
+// SALE-5: a lot's own price holds until the product's new price is applied "to
+// the stock I already have" — then the lot sells at the new price.
+func TestSALE5_RepriceStockClearsLotPrices(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	p := s.stocked(t, "Repriced tea", s.unitPcs, 0, nil) // sells at 20
+	s.addLot(t, p, "5", "10", "")
+	lot := s.lots(t, p)[0].ID
+	s.must(t, s.admin.Do("POST", fmt.Sprintf("/api/v1/admin/stock/batches/%d/price", lot), map[string]string{"sellingPrice": "25"}, nil))
+	put := func(reprice bool) {
+		s.must(t, s.admin.Do("PUT", fmt.Sprintf("/api/v1/admin/products/%d", p), map[string]any{"name": "Repriced tea", "categoryId": s.cat,
+			"unitId": s.unitPcs, "costPrice": "10", "sellingPrice": "30", "wholesalePrice": "30", "reorderAuto": false, "repriceStock": reprice}, nil))
+	}
+	s.open(t, s.till1)
+	put(false)
+	if r := s.sell(t, s.till1, "0", []line{{"productId": p, "quantity": "1", "batchId": lot}}, cash("100")); r.Total != "25.00" {
+		t.Errorf("SALE-5 the lot's own price after a plain price change: %s, want 25.00", r.Total)
+	}
+	put(true)
+	if r := s.sell(t, s.till1, "0", []line{{"productId": p, "quantity": "1", "batchId": lot}}, cash("100")); r.Total != "30.00" {
+		t.Errorf("SALE-5 after the new price is applied to stock on hand: %s, want 30.00", r.Total)
+	}
+	s.audit(t)
+}
