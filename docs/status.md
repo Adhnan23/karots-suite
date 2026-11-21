@@ -197,8 +197,9 @@ changes rewriting values, a manual split's offer, the product form's tier, the A
 hints, AI-on mode, limits); what lives is prompt wording (an empty section header), sort ties, batch-size defaults and
 equivalents. Full run with coverage: Go, Vitest (1,218) and check-core green; Playwright 264 passed, admin-reports
 timed out beside Go's coverage run and passed alone. Coverage map has a Plugins table (reached: clearance 92.1%,
-requests 93.9%, Product Plus 93.5%, Alternatives 89.3%, AI Assistant 88.6%); Go total with plugins 80.0%. Left:
-the AI Assistant's tests take ~36 s a run (most of the replay's time — worth a look before group 2).
+requests 93.9%, Product Plus 93.5%, Alternatives 89.3%, AI Assistant 88.6%); Go total with plugins 80.0%. The AI
+Assistant's tests took 36 s a run (each built a new database with every migration): now a template copy, 11 s (run
+one at a time — each test's Setup adds to core's process-wide hooks, so side by side they race).
 **Next: group 2 — combos, documents, pharmacy (another session).**
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
