@@ -106,7 +106,7 @@ func TestSweepSale(t *testing.T) {
 	cust := s.newCustomer(t, "0712000901", "100000", "")
 	s.sweep(t, "cash sale", nil, func() error {
 		return s.till1.Do("POST", "/api/v1/till/sales", map[string]any{"saleType": "retail", "discount": "5", "discountType": "fixed",
-			"items": []line{{"productId": s.prod["plain"], "quantity": "2"}, {"productId": s.prod["pack"], "quantity": "13"}},
+			"items":    []line{{"productId": s.prod["plain"], "quantity": "2"}, {"productId": s.prod["pack"], "quantity": "13"}},
 			"payments": []pay{cash("500")}}, nil)
 	})
 	s.sweep(t, "sale on account", nil, func() error {
