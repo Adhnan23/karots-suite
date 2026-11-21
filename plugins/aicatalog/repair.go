@@ -27,7 +27,7 @@ func decodeReply(raw string, out any) error {
 	return errNoAnswer
 }
 
-var markdownEscape = regexp.MustCompile(`\\([_\[\]*#~.!(){}+>|`+"`"+`-])`)
+var markdownEscape = regexp.MustCompile(`\\([_\[\]*#~.!(){}+>|` + "`" + `-])`)
 
 // cleanMarkdown undoes what a chat page does to JSON when its answer is selected and
 // copied by hand: HTML spaces (&#x20;), a backslash ending each line, \_ and \[.

@@ -62,13 +62,27 @@ func (h handlers) jobApply(c echo.Context) error {
 
 // applyJob gives every row its own transaction: one row that no longer fits is
 // skipped and reported, and the rest still apply.
+// applyJob applies the ticked rows and stores their undo in ONE transaction, which
+// other plugins' hooks join (appdb.InTx): a failure anywhere leaves nothing applied
+// and nothing recorded (PLG-4). Each row is a savepoint of its own, so a row that
+// no longer fits is skipped and the rest still apply (AIC-2).
 func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64) (JobApplied, error) {
+	var out JobApplied
+	err := appdb.WithTx(ctx, p.store.db, func(tx *sqlx.Tx) error {
+		var err error
+		out, err = p.applyJobTx(appdb.InTx(ctx, tx), tx, j, in, userID)
+		return err
+	})
+	return out, err
+}
+
+func (p *Plugin) applyJobTx(ctx context.Context, tx *sqlx.Tx, j *Job, in JobApply, userID int64) (JobApplied, error) {
 	out := JobApplied{Skipped: []JobSkip{}}
 	var undo []UndoOp
 	done := map[int64]bool{}
 	for _, r := range in.Rows {
 		var ops []UndoOp
-		err := appdb.WithTx(ctx, p.store.db, func(tx *sqlx.Tx) error {
+		err := appdb.WithTx(ctx, p.store.db, func(tx *sqlx.Tx) error { // a savepoint
 			var active bool
 			if err := tx.GetContext(ctx, &active, `SELECT COALESCE((SELECT is_active FROM products WHERE id = $1), false)`, r.ProductID); err != nil {
 				return err
@@ -80,9 +94,8 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 			ops, err = j.Apply(ctx, p, tx, r)
 			return err
 		})
-		if err != nil {
-			why := skipReason(err)
-			out.Skipped = append(out.Skipped, JobSkip{ProductID: r.ProductID, Label: r.Label, Why: why})
+		if err != nil { // its savepoint is rolled back; a broken transaction fails the commit
+			out.Skipped = append(out.Skipped, JobSkip{ProductID: r.ProductID, Label: r.Label, Why: skipReason(err)})
 			continue
 		}
 		for i := range ops {
@@ -111,32 +124,29 @@ func (p *Plugin) applyJob(ctx context.Context, j *Job, in JobApply, userID int64
 	if strings.HasPrefix(in.State, j.Key+":") {
 		record = in.State
 	}
-	err := appdb.WithTx(ctx, p.store.db, func(tx *sqlx.Tx) error {
-		for _, id := range in.Asked {
-			state := "no_answer"
-			switch {
-			case open[id]:
-			case done[id]:
-				state = "applied"
-			case suggested[id]:
-				state = "skipped"
-			}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO aicatalog_job_items (job, product_id, state, category_id)
-				SELECT $1, id, $3, category_id FROM products WHERE id = $2
-				ON CONFLICT (job, product_id) DO UPDATE SET state = $3, category_id = EXCLUDED.category_id, updated_at = now()`, record, id, state); err != nil {
-				return err
-			}
+	for _, id := range in.Asked {
+		state := "no_answer"
+		switch {
+		case open[id]:
+		case done[id]:
+			state = "applied"
+		case suggested[id]:
+			state = "skipped"
 		}
-		if len(undo) == 0 {
-			return nil
+		if _, err := tx.ExecContext(ctx, `INSERT INTO aicatalog_job_items (job, product_id, state, category_id)
+			SELECT $1, id, $3, category_id FROM products WHERE id = $2
+			ON CONFLICT (job, product_id) DO UPDATE SET state = $3, category_id = EXCLUDED.category_id, updated_at = now()`, record, id, state); err != nil {
+			return out, err
 		}
-		raw, err := json.Marshal(undo)
-		if err != nil {
-			return err
-		}
-		_, err = tx.ExecContext(ctx, `INSERT INTO aicatalog_optimize_runs (applied_by, summary, undo) VALUES (NULLIF($1, 0), $2, $3)`, userID, out.Summary, raw)
-		return err
-	})
+	}
+	if len(undo) == 0 {
+		return out, nil
+	}
+	raw, err := json.Marshal(undo)
+	if err != nil {
+		return out, err
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO aicatalog_optimize_runs (applied_by, summary, undo) VALUES (NULLIF($1, 0), $2, $3)`, userID, out.Summary, raw)
 	return out, err
 }
 

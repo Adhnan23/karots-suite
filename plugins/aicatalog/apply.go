@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	appdb "karots-suite/internal/db"
 	"strings"
 
 	"karots-suite/internal/features/categories"
@@ -51,12 +52,15 @@ func (s *Store) ApplyPlan(ctx context.Context, plan CleanupPlan, userID, runID i
 	var undo []map[string]any
 	var nRen, nRep, nMerge, nMove, nUncat, nName int
 
+	var made string // the merged category's created_at, so undo puts it back as it was (AIC-4)
 	catRow := func(id int64) (string, *int64, error) {
 		var r struct {
 			Name     string `db:"name"`
 			ParentID *int64 `db:"parent_id"`
+			Made     string `db:"made"`
 		}
-		err := tx.GetContext(ctx, &r, `SELECT name, parent_id FROM categories WHERE id=$1`, id)
+		err := tx.GetContext(ctx, &r, `SELECT name, parent_id, created_at::text AS made FROM categories WHERE id=$1`, id)
+		made = r.Made
 		return r.Name, r.ParentID, err
 	}
 	// move puts a product in a category, recording where it was.
@@ -163,7 +167,7 @@ func (s *Store) ApplyPlan(ctx context.Context, plan CleanupPlan, userID, runID i
 		}
 		catExists[op.From] = false
 		undo = append(undo, map[string]any{
-			"kind": "unmerge", "id": op.From, "name": name, "parent_id": parent,
+			"kind": "unmerge", "id": op.From, "name": name, "parent_id": parent, "created_at": made,
 			"products": prodIDs, "children": childIDs, "plugins": notes,
 		})
 		nMerge++
@@ -345,7 +349,8 @@ func (s *Store) Revert(ctx context.Context) (string, error) {
 	// Replay in reverse of how they were applied.
 	for i := len(ops) - 1; i >= 0; i-- {
 		if ops[i]["kind"] == "job" && s.undoJob != nil {
-			if err := s.undoJob(ctx, tx, ops[i]); err != nil {
+			// Other plugins' hooks join this transaction (PLG-4): the undo is whole or not at all.
+			if err := s.undoJob(appdb.InTx(ctx, tx), tx, ops[i]); err != nil {
 				return "", err
 			}
 			continue
@@ -384,8 +389,8 @@ func revertOp(ctx context.Context, tx *sqlx.Tx, op map[string]any) error {
 		id := toInt(op["id"])
 		// Recreate the deleted category with its original id.
 		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO categories (id, name, parent_id) VALUES ($1,$2,$3) ON CONFLICT (id) DO NOTHING`,
-			id, op["name"], toNullInt(op["parent_id"])); err != nil {
+			`INSERT INTO categories (id, name, parent_id, created_at) VALUES ($1,$2,$3, COALESCE(NULLIF($4, '')::timestamptz, now())) ON CONFLICT (id) DO NOTHING`,
+			id, op["name"], toNullInt(op["parent_id"]), madeAt(op["created_at"])); err != nil {
 			return err
 		}
 		for _, pid := range toIntSlice(op["products"]) {
@@ -455,4 +460,10 @@ func unmergePlugins(ctx context.Context, tx *sqlx.Tx, v any) error {
 		}
 	}
 	return nil
+}
+
+// madeAt is an undo op's created_at text, "" for runs recorded before it was kept.
+func madeAt(v any) string {
+	s, _ := v.(string)
+	return s
 }
