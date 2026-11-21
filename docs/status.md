@@ -160,8 +160,12 @@ battle package; cases added for what lived (STK-7 blank-cost lot write-off, RPT-
 a count's new lot, SALE-5/7 frozen picked lot, RET-8 non-picked return, SALE-9/25 recipe, SALE-15, RET-3); what
 still lives behaves the same, is plugin-only or is labels / limits. Not reachable through the API (left as guards):
 a negative opening / closing cash (a negative note count reads as none); a bill discount above the goods is capped
-(DISC-3). **Next:** the remaining ~66 uncovered refusals (warranty searches, conversions fold / loose, recovery
-undo's old-data conflicts, cheque edits) and the ~120 small branches (`go tool cover` on the newest
+(DISC-3). **Refusals, third batch (2026-11-21, `a1b756db`):** 52 more bad edits and lookups
+(`refusals_last_test.go`) — one bug: a loss settled naming a supplier that doesn't exist was a 500 (now "supplier not
+found"). Of the 112 uncovered refusals in money / stock code (fresh coverage run, Go 77.9%), 26 are now reached; the
+other 86 are almost all guards behind a check the handler makes first, plus recovery undo's old-data conflicts (rows
+from before migration 00040) and lots / tickets by a wrong id; disabling or bringing back a supplier that doesn't exist
+is a harmless no-op (204). **Next:** the ~120 small branches (`go tool cover` on the newest
 `~/.cache/karots-logs/full-*/go.cover`), then the coverage map, then plugins (another session). **Speed (user,
 2026-11-21):** test Postgres and the Go cache live on the NVMe, `synchronous_commit=off`; replays run 9 shards side
 by side (`scripts/replay-mutants.py … i/n`, `SKIP=` resumes) — stock replay ~80 min → ~10; `make test-all` 688 s →
