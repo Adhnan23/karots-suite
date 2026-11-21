@@ -69,7 +69,7 @@ func NewServices(db *sqlx.DB, cfg *config.Config, systemPIN func(pin string, now
 			out := plugin.SaleLines{SaleID: ev.SaleID, CustomerID: ev.CustomerID, ActorID: ev.ActorID, Data: ev.Plugin[h.Key]}
 			for _, l := range ev.Lines {
 				if d, ok := l.Plugin[h.Key]; ok {
-					out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Amount: l.Amount, Data: d})
+					out.Lines = append(out.Lines, plugin.SaleLine{ItemID: l.ItemID, ProductID: l.ProductID, Quantity: l.Quantity, Amount: l.Amount, Gross: l.Gross, Data: d})
 				}
 			}
 			if len(out.Lines) > 0 || len(out.Data) > 0 {

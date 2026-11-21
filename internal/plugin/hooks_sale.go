@@ -36,6 +36,7 @@ type SaleLine struct {
 	ProductID int64
 	Quantity  decimal.Decimal
 	Amount    decimal.Decimal // the line's net after its discount (a payout is negative)
+	Gross     decimal.Decimal // qty × unit price before its discount: what passes through (a payout: its amount)
 	Data      json.RawMessage
 }
 

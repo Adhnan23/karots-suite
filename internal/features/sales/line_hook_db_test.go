@@ -26,8 +26,8 @@ func TestLineHookSeesTaggedLinesInTheSaleTx(t *testing.T) {
 
 	in := CreateInput{SaleType: "retail", Items: []ItemInput{
 		{ProductID: productID, Quantity: "1", PriceOverride: "10"},
-		{ProductID: productID, Quantity: "2", PriceOverride: "10", Plugin: map[string]json.RawMessage{"x": json.RawMessage(`{"job":7}`)}},
-	}, Payments: []PaymentInput{{Method: "cash", Amount: "30"}}}
+		{ProductID: productID, Quantity: "2", PriceOverride: "10", Discount: "5", DiscountType: "fixed", Plugin: map[string]json.RawMessage{"x": json.RawMessage(`{"job":7}`)}},
+	}, Payments: []PaymentInput{{Method: "cash", Amount: "20"}}}
 
 	var got TaggedSale
 	var inTx bool
@@ -39,7 +39,7 @@ func TestLineHookSeesTaggedLinesInTheSaleTx(t *testing.T) {
 	}).Create(ctx, in, cashierID)
 	mustSales(t, err)
 	defer conn.ExecContext(ctx, `DELETE FROM sales WHERE id = $1`, d.Sale.ID) //nolint:errcheck
-	if got.SaleID != d.Sale.ID || len(got.Lines) != 1 || got.Lines[0].ItemID != d.Items[1].ID || got.Lines[0].Amount.String() != "20" ||
+	if got.SaleID != d.Sale.ID || len(got.Lines) != 1 || got.Lines[0].ItemID != d.Items[1].ID || got.Lines[0].Amount.String() != "10" || got.Lines[0].Gross.String() != "20" ||
 		got.Lines[0].Quantity.String() != "2" || string(got.Lines[0].Plugin["x"]) != `{"job":7}` || !inTx {
 		t.Fatalf("hook saw %+v (in tx %v)", got, inTx)
 	}

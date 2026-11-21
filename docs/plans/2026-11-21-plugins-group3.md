@@ -35,7 +35,7 @@ line's price × qty before discount) so a pass-through float moves by face value
   write is counted twice.
 
 ### Task 1: Rule book — [x] written, questions answered
-### Task 2: Repairs — checks, cases, refusals, failure sweep, at once (REP-1–10) — [ ]
+### Task 2: Repairs — checks, cases, refusals, failure sweep, at once (REP-1–10) — [x]
 ### Task 3: Recharge — face value seam, checks, cases, refusals, failure sweep, at once (RCH-1–11) — [ ]
 ### Task 4: Mutation (gremlins on both, replayed 9 side by side) — survivors read, tests added — [ ]
 ### Task 5: Docs (guides for changed behaviour), full run with coverage, coverage map Plugins rows, status — [ ]
