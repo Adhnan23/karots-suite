@@ -2,6 +2,7 @@ package productplus
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 	"strings"
 
 	"github.com/lib/pq"
@@ -48,11 +49,11 @@ func (s *Store) Grid(ctx context.Context, q GridQuery) ([]GridRow, int, error) {
 	from := strings.Replace(gridFrom, "%s", appliesSQL("f", "p.category_id"), 1)
 	args := []any{pq.Array(q.FieldIDs), q.CategoryID, strings.TrimSpace(q.Q), q.MissingOnly}
 	var total int
-	if err := s.db.GetContext(ctx, &total, `WITH `+covCTE+subCTE+` SELECT count(*) `+from, args...); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &total, `WITH `+covCTE+subCTE+` SELECT count(*) `+from, args...); err != nil {
 		return nil, 0, err
 	}
 	rows := []GridRow{}
-	if err := s.db.SelectContext(ctx, &rows, `WITH `+covCTE+subCTE+`
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `WITH `+covCTE+subCTE+`
 		SELECT p.id, p.name, c.name AS categoryname `+from+` ORDER BY p.name, p.id LIMIT $5 OFFSET $6`,
 		append(args, q.Limit, q.Offset)...); err != nil {
 		return nil, 0, err
@@ -71,7 +72,7 @@ func (s *Store) Grid(ctx context.Context, q GridQuery) ([]GridRow, int, error) {
 		FieldID   int64   `db:"field_id"`
 		Value     *string `db:"value"`
 	}
-	if err := s.db.SelectContext(ctx, &cells, `WITH `+covCTE+`
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &cells, `WITH `+covCTE+`
 		SELECT p.id AS product_id, f.id AS field_id, v.value FROM products p
 		JOIN pp_fields f ON f.id = ANY($1) AND `+appliesSQL("f", "p.category_id")+`
 		LEFT JOIN pp_values v ON v.field_id = f.id AND v.product_id = p.id
@@ -146,7 +147,7 @@ func (s *Store) SheetImport(ctx context.Context, productID, cat int64, cells map
 			notes = append(notes, err.Error())
 			continue
 		}
-		if err := upsert(ctx, s.db, ff.Field.ID, productID, v); err != nil {
+		if err := upsert(ctx, appdb.On(ctx, s.db), ff.Field.ID, productID, v); err != nil {
 			return "", err
 		}
 	}

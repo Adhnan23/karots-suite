@@ -3,6 +3,7 @@ package pharmacy
 import (
 	"context"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 
 	"karots-suite/internal/plugin"
@@ -33,7 +34,7 @@ func (s *Store) attrValues(ctx context.Context, ids []int64) (map[int64]map[stri
 		RxOnly     bool   `db:"rx_only"`
 		Dose       string `db:"dose"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `SELECT p.id AS product_id, c.product_id IS NOT NULL AS controlled,
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT p.id AS product_id, c.product_id IS NOT NULL AS controlled,
 		COALESCE(m.rx_only, false) AS rx_only, COALESCE(m.dose, '') AS dose
 		FROM unnest($1::bigint[]) AS p(id)
 		LEFT JOIN pharmacy_controlled_products c ON c.product_id = p.id

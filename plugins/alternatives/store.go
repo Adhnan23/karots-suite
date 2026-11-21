@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -74,7 +75,7 @@ func notFound(err error, what string) error {
 // Groups lists groups (on only, unless disabled) with their tiers in order.
 func (s *Store) Groups(ctx context.Context, disabled bool) ([]Group, error) {
 	var gs []Group
-	if err := s.db.SelectContext(ctx, &gs, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &gs, `
 		SELECT g.id, g.name, g.sort_order, g.is_active,
 		       (SELECT COUNT(*) FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
 		          JOIN products p ON p.id = m.product_id AND p.is_active WHERE t.group_id = g.id) AS products
@@ -82,7 +83,7 @@ func (s *Store) Groups(ctx context.Context, disabled bool) ([]Group, error) {
 		return nil, err
 	}
 	var ts []Tier
-	if err := s.db.SelectContext(ctx, &ts, `SELECT `+tierCols+` FROM alt_tiers t ORDER BY t.sort_order, t.id`); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &ts, `SELECT `+tierCols+` FROM alt_tiers t ORDER BY t.sort_order, t.id`); err != nil {
 		return nil, err
 	}
 	at := map[int64]int{}
@@ -106,15 +107,15 @@ func low(t Tier) Tier {
 // Group is one group with its tiers and every member (inactive ones too).
 func (s *Store) Group(ctx context.Context, id int64) (Group, error) {
 	var g Group
-	if err := s.db.GetContext(ctx, &g, `SELECT id, name, sort_order, is_active, 0 AS products FROM alt_groups WHERE id = $1`, id); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &g, `SELECT id, name, sort_order, is_active, 0 AS products FROM alt_groups WHERE id = $1`, id); err != nil {
 		return g, notFound(err, "group")
 	}
 	var ts []Tier
-	if err := s.db.SelectContext(ctx, &ts, `SELECT `+tierCols+` FROM alt_tiers t WHERE t.group_id = $1 ORDER BY t.sort_order, t.id`, id); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &ts, `SELECT `+tierCols+` FROM alt_tiers t WHERE t.group_id = $1 ORDER BY t.sort_order, t.id`, id); err != nil {
 		return g, err
 	}
 	var ms []Member
-	if err := s.db.SelectContext(ctx, &ms, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &ms, `
 		SELECT m.product_id, m.tier_id, COALESCE(p.name, 'Deleted product #' || m.product_id) AS name,
 		       COALESCE(st.quantity, 0) AS stock, COALESCE(p.is_active, false) AS active, m.split_share, COALESCE(u.abbreviation, '') AS unit
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id
@@ -156,7 +157,7 @@ func (s *Store) CreateGroup(ctx context.Context, name string) (int64, error) {
 		return 0, err
 	}
 	var id int64
-	err = s.db.GetContext(ctx, &id, `
+	err = appdb.On(ctx, s.db).GetContext(ctx, &id, `
 		WITH g AS (INSERT INTO alt_groups (name, sort_order) VALUES ($1, 0) RETURNING id),
 		     t AS (INSERT INTO alt_tiers (group_id, name, level_auto) SELECT id, '', true FROM g)
 		SELECT id FROM g`, name)
@@ -164,7 +165,7 @@ func (s *Store) CreateGroup(ctx context.Context, name string) (int64, error) {
 }
 
 func (s *Store) exec(ctx context.Context, what, q string, args ...any) error {
-	r, err := s.db.ExecContext(ctx, q, args...)
+	r, err := appdb.On(ctx, s.db).ExecContext(ctx, q, args...)
 	if err != nil {
 		return err
 	}
@@ -188,7 +189,7 @@ func (s *Store) SetGroupActive(ctx context.Context, id int64, on bool) error {
 
 // DeleteGroup removes the group, its tiers and memberships (the products stay).
 func (s *Store) DeleteGroup(ctx context.Context, id int64) error {
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -214,7 +215,7 @@ type TierInput struct {
 
 func (s *Store) tierCount(ctx context.Context, groupID int64) (int, error) {
 	var n int
-	err := s.db.GetContext(ctx, &n, `SELECT COUNT(*) FROM alt_tiers WHERE group_id = $1`, groupID)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &n, `SELECT COUNT(*) FROM alt_tiers WHERE group_id = $1`, groupID)
 	return n, err
 }
 
@@ -229,14 +230,14 @@ func (s *Store) CreateTier(ctx context.Context, groupID int64, in TierInput) (in
 		return 0, apperr.Validation("reorder level can't be negative")
 	}
 	var blank bool
-	if err := s.db.GetContext(ctx, &blank, `SELECT EXISTS (SELECT 1 FROM alt_tiers WHERE group_id = $1 AND name = '')`, groupID); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &blank, `SELECT EXISTS (SELECT 1 FROM alt_tiers WHERE group_id = $1 AND name = '')`, groupID); err != nil {
 		return 0, err
 	}
 	if blank {
 		return 0, apperr.Validation("name this group's first tier before adding another")
 	}
 	var id int64
-	err = s.db.GetContext(ctx, &id, `
+	err = appdb.On(ctx, s.db).GetContext(ctx, &id, `
 		INSERT INTO alt_tiers (group_id, name, reorder_level, level_auto, sort_order)
 		SELECT g.id, $2, $3, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM alt_tiers WHERE group_id = g.id), 0)
 		FROM alt_groups g WHERE g.id = $1 RETURNING id`, groupID, name, in.ReorderLevel, in.LevelAuto != nil && *in.LevelAuto || in.LevelAuto == nil && in.ReorderLevel == 0)
@@ -245,7 +246,7 @@ func (s *Store) CreateTier(ctx context.Context, groupID int64, in TierInput) (in
 
 func (s *Store) tier(ctx context.Context, id int64) (Tier, error) {
 	var t Tier
-	err := s.db.GetContext(ctx, &t, `SELECT `+tierCols+` FROM alt_tiers t WHERE t.id = $1`, id)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &t, `SELECT `+tierCols+` FROM alt_tiers t WHERE t.id = $1`, id)
 	return t, notFound(err, "tier")
 }
 
@@ -279,7 +280,7 @@ func (s *Store) MoveTier(ctx context.Context, id int64, up bool) error {
 	if err != nil {
 		return err
 	}
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -313,7 +314,7 @@ func (s *Store) DeleteTier(ctx context.Context, id int64) error {
 		return err
 	}
 	var members int
-	if err := s.db.GetContext(ctx, &members, `SELECT COUNT(*) FROM alt_members WHERE tier_id = $1`, id); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &members, `SELECT COUNT(*) FROM alt_members WHERE tier_id = $1`, id); err != nil {
 		return err
 	}
 	if members > 0 {

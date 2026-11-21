@@ -26,7 +26,7 @@ type Membership struct {
 // ids = every grouped product (the admin picker's hints).
 func (s *Store) Memberships(ctx context.Context, ids []int64) (map[int64]Membership, error) {
 	var rows []Membership
-	if err := s.db.SelectContext(ctx, &rows, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `
 		SELECT m.product_id, t.group_id, m.tier_id, g.name AS grp, t.name AS tier
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id JOIN alt_groups g ON g.id = t.group_id
 		WHERE COALESCE(cardinality($1::bigint[]), 0) = 0 OR m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
@@ -49,7 +49,7 @@ func (s *Store) AddMember(ctx context.Context, tierID, productID int64, move boo
 		Active  bool `db:"is_active"`
 		Service bool `db:"is_service"`
 	}
-	if err := s.db.GetContext(ctx, &p, `SELECT is_active, is_service FROM products WHERE id = $1`, productID); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &p, `SELECT is_active, is_service FROM products WHERE id = $1`, productID); err != nil {
 		return false, notFound(err, "product")
 	}
 	if !p.Active {
@@ -118,7 +118,7 @@ const liveMembers = `alt_members m
 // "Kingston" finds Kingston's siblings too.
 func (s *Store) MatchProductIDs(ctx context.Context, q string) ([]int64, error) {
 	var ids []int64
-	err := s.db.SelectContext(ctx, &ids, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &ids, `
 		WITH hit AS (
 			SELECT DISTINCT g.id FROM `+liveMembers+`
 			WHERE g.name ILIKE '%' || $1 || '%' OR (t.name <> '' AND t.name ILIKE '%' || $1 || '%') OR p.name ILIKE '%' || $1 || '%' OR p.name_local ILIKE '%' || $1 || '%')
@@ -132,7 +132,7 @@ func (s *Store) BadgesFor(ctx context.Context, ids []int64) (map[int64][]string,
 		ProductID int64  `db:"product_id"`
 		Tier      string `db:"tier"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `SELECT m.product_id, t.name AS tier FROM `+liveMembers+` WHERE m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT m.product_id, t.name AS tier FROM `+liveMembers+` WHERE m.product_id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 	out := make(map[int64][]string, len(rows))
@@ -162,7 +162,7 @@ type Alt struct {
 // most stock. None when the product itself isn't a live member.
 func (s *Store) Alternatives(ctx context.Context, productID int64, limit int) ([]Alt, error) {
 	rows := []Alt{}
-	err := s.db.SelectContext(ctx, &rows, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `
 		SELECT m.product_id, p.name, t.name AS tier, st.quantity AS stock, p.selling_price, p.wholesale_price,
 		       u.abbreviation AS unit, p.unit_id = (SELECT unit_id FROM products WHERE id = $1) AS same_unit
 		FROM `+liveMembers+` JOIN stock st ON st.product_id = m.product_id
@@ -202,7 +202,7 @@ func (s *Store) CoverageFor(ctx context.Context, ids []int64) (map[int64]Coverag
 		Members   int64  `db:"members"`
 		Tier
 	}
-	if err := s.db.SelectContext(ctx, &rows, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `
 		SELECT m.product_id, g.name AS grp, `+tierCols+`,
 		       (SELECT COUNT(*) FROM alt_members mc JOIN products pc ON pc.id = mc.product_id AND pc.is_active
 		        WHERE mc.tier_id = t.id) AS members
@@ -241,7 +241,7 @@ func (s *Store) CoverageFor(ctx context.Context, ids []int64) (map[int64]Coverag
 // into the reorder list even when the member isn't low on its own.
 func (s *Store) LowTierMemberIDs(ctx context.Context) ([]int64, error) {
 	var ids []int64
-	err := s.db.SelectContext(ctx, &ids, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &ids, `
 		SELECT m.product_id FROM `+liveMembers+`
 		WHERE (`+tierLevelSQL+`) > 0 AND (`+tierLevelSQL+`) >= (SELECT COALESCE(SUM(st.quantity), 0) FROM `+liveMembersAs2+`
 		       LEFT JOIN stock st ON st.product_id = m2.product_id WHERE m2.tier_id = t.id)`)
@@ -251,7 +251,7 @@ func (s *Store) LowTierMemberIDs(ctx context.Context) ([]int64, error) {
 // TierOf returns the product's tier id, 0 when it is in no group.
 func (s *Store) TierOf(ctx context.Context, productID int64) (groupID, tierID int64, err error) {
 	var m Membership
-	err = s.db.GetContext(ctx, &m, `SELECT m.product_id, t.group_id, m.tier_id, '' AS grp, '' AS tier
+	err = appdb.On(ctx, s.db).GetContext(ctx, &m, `SELECT m.product_id, t.group_id, m.tier_id, '' AS grp, '' AS tier
 		FROM alt_members m JOIN alt_tiers t ON t.id = m.tier_id WHERE m.product_id = $1`, productID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, 0, nil

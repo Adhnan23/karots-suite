@@ -2,6 +2,7 @@ package pharmacy
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 	"sort"
 	"time"
 
@@ -26,7 +27,7 @@ type Refill struct {
 // ponytail: loads every active line; fine at pharmacy scale, a SQL filter if it grows.
 func (s *Store) RefillsDue(ctx context.Context, now time.Time) ([]Refill, error) {
 	var items []ScriptItem
-	if err := s.db.SelectContext(ctx, &items, itemSelect+` WHERE rx.active ORDER BY i.id`); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &items, itemSelect+` WHERE rx.active ORDER BY i.id`); err != nil {
 		return nil, err
 	}
 	var out []Refill
@@ -54,7 +55,7 @@ func (s *Store) RefillsDue(ctx context.Context, now time.Time) ([]Refill, error)
 		Name  string `db:"name"`
 		Phone string `db:"phone"`
 	}
-	if err := s.db.SelectContext(ctx, &who, `SELECT p.id, c.name, COALESCE(c.phone, '') AS phone
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &who, `SELECT p.id, c.name, COALESCE(c.phone, '') AS phone
 		FROM pharmacy_patients p JOIN customers c ON c.id = p.customer_id WHERE p.id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func (s *Store) RefillsDue(ctx context.Context, now time.Time) ([]Refill, error)
 		ID  int64  `db:"id"`
 		Doc string `db:"prescriber_name"`
 	}
-	if err := s.db.SelectContext(ctx, &docs, `SELECT id, prescriber_name FROM pharmacy_prescriptions WHERE patient_id = ANY($1)`, pq.Array(ids)); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &docs, `SELECT id, prescriber_name FROM pharmacy_prescriptions WHERE patient_id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 	for i := range out {
@@ -83,7 +84,7 @@ func (s *Store) RefillsDue(ctx context.Context, now time.Time) ([]Refill, error)
 
 // MarkCalled stamps a drug line as phoned about (off the call list for a few days).
 func (s *Store) MarkCalled(ctx context.Context, itemID int64) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE pharmacy_prescription_items SET called_at = now() WHERE id = $1`, itemID)
+	res, err := appdb.On(ctx, s.db).ExecContext(ctx, `UPDATE pharmacy_prescription_items SET called_at = now() WHERE id = $1`, itemID)
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,7 @@ type LogItem struct {
 
 func (s *Store) Dispenses(ctx context.Context, f LogFilter) ([]LogRow, error) {
 	out := []LogRow{}
-	if err := s.db.SelectContext(ctx, &out, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		SELECT d.id, d.dispensed_at, d.patient_id, COALESCE(NULLIF(d.patient_name, ''), c.name) AS patient,
 		       COALESCE(NULLIF(d.prescriber_name, ''), rx.prescriber_name, '') AS prescriber,
 		       d.sale_id, d.sale_receipt, COALESCE(u.name, '') AS by,
@@ -157,7 +158,7 @@ func (s *Store) Dispenses(ctx context.Context, f LogFilter) ([]LogRow, error) {
 		ids[i] = r.ID
 	}
 	var items []LogItem
-	if err := s.db.SelectContext(ctx, &items, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &items, `
 		SELECT di.dispense_id, COALESCE(NULLIF(di.drug_text, ''), p.name, '') AS drug, di.quantity, di.days_supply,
 		       k.product_id IS NOT NULL AS controlled
 		FROM pharmacy_dispense_items di LEFT JOIN products p ON p.id = di.product_id

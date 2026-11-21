@@ -2,6 +2,7 @@ package alternatives
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 	"sort"
 	"time"
 
@@ -115,7 +116,7 @@ func (s *Store) splitNeeds(ctx context.Context, short map[int64]int) (map[int64]
 		Share     int64 `db:"share"`
 		Auto      bool  `db:"split_auto"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, COALESCE(m.split_share, 0) AS share, t.split_auto
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, COALESCE(m.split_share, 0) AS share, t.split_auto
 		FROM `+liveMembers+` WHERE m.tier_id = ANY($1)
 		AND NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = m.product_id AND pc.is_active) -- never listed: the original is ordered
 		ORDER BY m.product_id`, pq.Array(tierIDs)); err != nil {
@@ -164,7 +165,7 @@ func (s *Store) SetSplit(ctx context.Context, tierID int64, auto bool, shares ma
 			return apperr.Validation("the shares must add up to 100")
 		}
 		var in []int64
-		if err := s.db.SelectContext(ctx, &in, `SELECT product_id FROM alt_members WHERE tier_id = $1`, tierID); err != nil {
+		if err := appdb.On(ctx, s.db).SelectContext(ctx, &in, `SELECT product_id FROM alt_members WHERE tier_id = $1`, tierID); err != nil {
 			return err
 		}
 		member := map[int64]bool{}
@@ -177,7 +178,7 @@ func (s *Store) SetSplit(ctx context.Context, tierID int64, auto bool, shares ma
 			}
 		}
 	}
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -253,7 +254,7 @@ func (s *Store) fasterIn(ctx context.Context, tierIDs []int64) (map[int64]string
 		Name      string `db:"name"`
 		Share     int    `db:"share"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, p.name, COALESCE(m.split_share, 0) AS share
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT m.tier_id, m.product_id, p.name, COALESCE(m.split_share, 0) AS share
 		FROM `+liveMembers+` WHERE m.tier_id = ANY($1) AND NOT t.split_auto`, pq.Array(tierIDs)); err != nil {
 		return nil, err
 	}

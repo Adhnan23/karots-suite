@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 	"time"
 
@@ -77,12 +78,12 @@ const itemSelect = `
 	LEFT JOIN alt_groups g ON g.id = gg.gid
 	LEFT JOIN LATERAL (SELECT COALESCE(SUM(n.net), 0) AS dispensed FROM pharmacy_dispense_items di
 		JOIN pharmacy_dispenses d ON d.id = di.dispense_id
-		CROSS JOIN LATERAL (`+netOfReturns+`) n
+		CROSS JOIN LATERAL (` + netOfReturns + `) n
 		WHERE di.prescription_item_id = i.id) ds ON true
 	LEFT JOIN LATERAL (SELECT d.dispensed_at AS last_at,
 		       floor(MAX(di.days_supply) * SUM(n.net) / NULLIF(SUM(di.quantity), 0))::int AS days_supply
 		FROM pharmacy_dispense_items di JOIN pharmacy_dispenses d ON d.id = di.dispense_id
-		CROSS JOIN LATERAL (`+netOfReturns+`) n
+		CROSS JOIN LATERAL (` + netOfReturns + `) n
 		WHERE di.prescription_item_id = i.id
 		GROUP BY d.id, d.dispensed_at HAVING SUM(n.net) > 0
 		ORDER BY d.dispensed_at DESC, d.id DESC LIMIT 1) ld ON true`
@@ -100,12 +101,12 @@ const scriptSelect = `
 // Scripts lists a patient's prescriptions (active first, newest first) with their lines.
 func (s *Store) Scripts(ctx context.Context, patientID int64) ([]Script, error) {
 	out := []Script{}
-	if err := s.db.SelectContext(ctx, &out, scriptSelect+` WHERE patient_id = $1
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &out, scriptSelect+` WHERE patient_id = $1
 		ORDER BY active DESC, COALESCE(prescribed_on, created_at::date) DESC, id DESC`, patientID); err != nil {
 		return nil, err
 	}
 	var items []ScriptItem
-	if err := s.db.SelectContext(ctx, &items, itemSelect+` WHERE rx.patient_id = $1 ORDER BY i.id`, patientID); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &items, itemSelect+` WHERE rx.patient_id = $1 ORDER BY i.id`, patientID); err != nil {
 		return nil, err
 	}
 	at := make(map[int64]int, len(out))
@@ -120,14 +121,14 @@ func (s *Store) Scripts(ctx context.Context, patientID int64) ([]Script, error) 
 
 func (s *Store) Script(ctx context.Context, id int64) (Script, error) {
 	var sc Script
-	err := s.db.GetContext(ctx, &sc, scriptSelect+` WHERE id = $1`, id)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &sc, scriptSelect+` WHERE id = $1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return sc, apperr.NotFound("prescription")
 	}
 	if err != nil {
 		return sc, err
 	}
-	err = s.db.SelectContext(ctx, &sc.Items, itemSelect+` WHERE i.prescription_id = $1 ORDER BY i.id`, id)
+	err = appdb.On(ctx, s.db).SelectContext(ctx, &sc.Items, itemSelect+` WHERE i.prescription_id = $1 ORDER BY i.id`, id)
 	return sc, err
 }
 
@@ -188,7 +189,7 @@ func (s *Store) CreateScript(ctx context.Context, patientID, by int64, in Script
 	if _, err := s.Patient(ctx, patientID); err != nil {
 		return 0, err
 	}
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return 0, err
 	}
@@ -212,7 +213,7 @@ func (s *Store) UpdateScript(ctx context.Context, id int64, in ScriptInput) erro
 	if err := in.clean(); err != nil {
 		return err
 	}
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -276,7 +277,7 @@ func saveItems(ctx context.Context, tx execer, rxID int64, items []ItemInput) er
 
 // SetScriptActive stops (or resumes) a script: stopped ones never remind.
 func (s *Store) SetScriptActive(ctx context.Context, id int64, on bool) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE pharmacy_prescriptions SET active = $2 WHERE id = $1`, id, on)
+	res, err := appdb.On(ctx, s.db).ExecContext(ctx, `UPDATE pharmacy_prescriptions SET active = $2 WHERE id = $1`, id, on)
 	if err != nil {
 		return err
 	}
@@ -298,7 +299,7 @@ type Suggest struct {
 
 func (s *Store) Suggest(ctx context.Context, it ScriptItem) (*Suggest, error) {
 	var out Suggest
-	err := s.db.GetContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).GetContext(ctx, &out, `
 		SELECT p.id, p.name, COALESCE(st.quantity, 0) AS stock
 		FROM products p LEFT JOIN stock st ON st.product_id = p.id
 		LEFT JOIN alt_members m ON m.product_id = p.id
@@ -330,7 +331,7 @@ func (s *Store) Medicines(ctx context.Context, q string) ([]Medicine, error) {
 	if q = strings.TrimSpace(q); q == "" {
 		return out, nil
 	}
-	err := s.db.SelectContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		(SELECT 'group' AS kind, g.id, g.name, COUNT(m.product_id)::int AS members,
 		        COALESCE((array_agg(md.dose ORDER BY t.sort_order, t.id) FILTER (WHERE md.dose <> ''))[1], '') AS dose,
 		        COALESCE((array_agg(md.note ORDER BY t.sort_order, t.id) FILTER (WHERE md.note <> ''))[1], '') AS note

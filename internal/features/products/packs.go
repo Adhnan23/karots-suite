@@ -210,7 +210,7 @@ func (s *Service) SavePack(ctx context.Context, productID int64, in PackInput) (
 		return nil, err
 	}
 	var out Pack
-	if err := s.db.GetContext(ctx, &out, packSelect+` WHERE k.id = $1`, id); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &out, packSelect+` WHERE k.id = $1`, id); err != nil { // joins a caller's tx (appdb.InTx)
 		return nil, apperr.Internal("failed to read pack", err)
 	}
 	return &out, nil

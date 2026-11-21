@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 	"time"
 
@@ -54,7 +55,7 @@ type Found struct {
 // customers who aren't patients yet (the till makes one a patient on pick).
 func (s *Store) Search(ctx context.Context, q string, withCustomers bool, limit int) ([]Found, error) {
 	out := []Found{}
-	err := s.db.SelectContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		SELECT COALESCE(p.id, 0) AS patient_id, c.id AS customer_id, c.name, c.phone,
 		       COALESCE(p.nic, '') AS nic, COALESCE(p.allergies, '') AS allergies
 		FROM customers c LEFT JOIN pharmacy_patients p ON p.customer_id = c.id
@@ -66,7 +67,7 @@ func (s *Store) Search(ctx context.Context, q string, withCustomers bool, limit 
 
 func (s *Store) Patient(ctx context.Context, id int64) (Patient, error) {
 	var p Patient
-	err := s.db.GetContext(ctx, &p, patientSelect+` WHERE p.id = $1`, id)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &p, patientSelect+` WHERE p.id = $1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return p, apperr.NotFound("patient")
 	}
@@ -79,7 +80,7 @@ func (s *Store) FromCustomer(ctx context.Context, customerID int64) (Patient, er
 		return Patient{}, err
 	}
 	var id int64
-	err := s.db.GetContext(ctx, &id, `
+	err := appdb.On(ctx, s.db).GetContext(ctx, &id, `
 		WITH ins AS (INSERT INTO pharmacy_patients (customer_id) VALUES ($1) ON CONFLICT (customer_id) DO NOTHING RETURNING id)
 		SELECT id FROM ins UNION ALL SELECT id FROM pharmacy_patients WHERE customer_id = $1 LIMIT 1`, customerID)
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *Store) Register(ctx context.Context, name, phone string, pr Profile) (P
 
 // UpdateProfile saves the pharmacy's profile (name and phone stay the core customer's).
 func (s *Store) UpdateProfile(ctx context.Context, id int64, pr Profile) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE pharmacy_patients SET dob = $2, sex = $3, nic = $4, allergies = $5, notes = $6 WHERE id = $1`,
+	res, err := appdb.On(ctx, s.db).ExecContext(ctx, `UPDATE pharmacy_patients SET dob = $2, sex = $3, nic = $4, allergies = $5, notes = $6 WHERE id = $1`,
 		id, pr.DOB, strings.TrimSpace(pr.Sex), strings.TrimSpace(pr.NIC), strings.TrimSpace(pr.Allergies), strings.TrimSpace(pr.Notes))
 	if err != nil {
 		return err

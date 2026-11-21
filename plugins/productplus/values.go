@@ -77,7 +77,7 @@ func (s *Store) FormFields(ctx context.Context, productID, cat int64, where stri
 		Field
 		Value *string `db:"value"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `WITH `+covCTE+`
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `WITH `+covCTE+`
 		SELECT `+prefixed("f")+`, v.value FROM pp_fields f
 		LEFT JOIN pp_values v ON v.field_id = f.id AND v.product_id = $1
 		WHERE f.is_active AND ($3 <> 'intake' OR f.show_in_intake) AND `+appliesSQL("f", "$2::bigint")+`
@@ -248,7 +248,7 @@ type effective struct {
 // "true") narrows the fields.
 func (s *Store) effectiveValues(ctx context.Context, ids []int64, flag string) ([]effective, error) {
 	var rows []effective
-	err := s.db.SelectContext(ctx, &rows, `WITH `+covCTE+`
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `WITH `+covCTE+`
 		SELECT p.id AS product_id, f.label, f.type, COALESCE(v.value, f.default_value) AS value
 		FROM products p JOIN pp_fields f ON f.is_active AND f.`+flag+` AND `+appliesSQL("f", "p.category_id")+`
 		LEFT JOIN pp_values v ON v.field_id = f.id AND v.product_id = p.id
@@ -333,7 +333,7 @@ func (s *Store) detail(ctx context.Context, id int64, flag string, max int) ([]p
 // ever need ranges.
 func (s *Store) MatchProductIDs(ctx context.Context, q string) ([]int64, error) {
 	var ids []int64
-	err := s.db.SelectContext(ctx, &ids, `WITH `+covCTE+`
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &ids, `WITH `+covCTE+`
 		SELECT DISTINCT p.id FROM products p
 		JOIN pp_fields f ON f.is_active AND f.searchable AND `+appliesSQL("f", "p.category_id")+`
 		LEFT JOIN pp_values v ON v.field_id = f.id AND v.product_id = p.id

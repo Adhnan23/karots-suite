@@ -3,6 +3,7 @@ package productplus
 import (
 	"context"
 	"errors"
+	appdb "karots-suite/internal/db"
 
 	"karots-suite/internal/plugin"
 
@@ -24,7 +25,7 @@ func (s *Store) attrList(ctx context.Context) ([]plugin.ProductAttribute, error)
 		FieldID int64 `db:"field_id"`
 		Cat     int64 `db:"category_id"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `WITH `+covCTE+` SELECT field_id, category_id FROM cov`); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `WITH `+covCTE+` SELECT field_id, category_id FROM cov`); err != nil {
 		return nil, err
 	}
 	cats := map[int64][]int64{}
@@ -44,7 +45,7 @@ func (s *Store) attrValues(ctx context.Context, ids []int64) (map[int64]map[stri
 		Key   string `db:"key"`
 		Value string `db:"value"`
 	}
-	if err := s.db.SelectContext(ctx, &rows, `SELECT v.product_id, f.key, v.value FROM pp_values v
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT v.product_id, f.key, v.value FROM pp_values v
 		JOIN pp_fields f ON f.id = v.field_id WHERE v.product_id = ANY($1) AND v.value <> ''`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (s *Store) attrValues(ctx context.Context, ids []int64) (map[int64]map[stri
 
 func (s *Store) attrKnown(ctx context.Context, attr string, limit int) ([]plugin.KnownValue, error) {
 	var vals []string
-	if err := s.db.SelectContext(ctx, &vals, `SELECT v.value FROM pp_values v JOIN pp_fields f ON f.id = v.field_id
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &vals, `SELECT v.value FROM pp_values v JOIN pp_fields f ON f.id = v.field_id
 		WHERE f.key = $1 AND v.value <> '' GROUP BY v.value ORDER BY COUNT(*) DESC, v.value LIMIT $2`, attr, limit); err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (s *Store) attrKnown(ctx context.Context, attr string, limit int) ([]plugin
 
 func (s *Store) attrSet(ctx context.Context, productID int64, attr, value string) error {
 	var fieldID int64
-	if err := s.db.GetContext(ctx, &fieldID, `SELECT id FROM pp_fields WHERE key = $1 AND is_active`, attr); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &fieldID, `SELECT id FROM pp_fields WHERE key = $1 AND is_active`, attr); err != nil {
 		return errors.New("that field is gone")
 	}
 	_, bad, err := s.SetValues(ctx, []Cell{{ProductID: productID, FieldID: fieldID, Value: value}})

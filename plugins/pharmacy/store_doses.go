@@ -3,6 +3,7 @@ package pharmacy
 import (
 	"context"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 
 	"karots-suite/internal/apperr"
@@ -59,7 +60,7 @@ func (s *Store) Doses(ctx context.Context) ([]Dose, error) {
 		return nil, err
 	}
 	out := []Dose{}
-	err := s.db.SelectContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		SELECT d.id, d.dose, d.words, d.per_day,
 		       (SELECT COUNT(*) FROM pharmacy_prescription_items i WHERE lower(trim(i.dosage)) = lower(trim(d.dose)))
 		     + (SELECT COUNT(*) FROM pharmacy_medicines m WHERE lower(trim(m.dose)) = lower(trim(d.dose))) AS uses
@@ -96,7 +97,7 @@ func (s *Store) CreateDose(ctx context.Context, in DoseInput) (int64, error) {
 		return 0, err
 	}
 	var id int64
-	err := s.db.GetContext(ctx, &id, `INSERT INTO pharmacy_doses (dose, words, per_day) VALUES ($1, $2, $3) RETURNING id`, in.Dose, in.Words, in.PerDay)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &id, `INSERT INTO pharmacy_doses (dose, words, per_day) VALUES ($1, $2, $3) RETURNING id`, in.Dose, in.Words, in.PerDay)
 	return id, dupDose(err)
 }
 
@@ -109,7 +110,7 @@ func (s *Store) SaveDose(ctx context.Context, id int64, in DoseInput) error {
 	if err := in.clean(); err != nil {
 		return err
 	}
-	res, err := s.db.ExecContext(ctx, `UPDATE pharmacy_doses SET dose = $2, words = $3, per_day = $4 WHERE id = $1`, id, in.Dose, in.Words, in.PerDay)
+	res, err := appdb.On(ctx, s.db).ExecContext(ctx, `UPDATE pharmacy_doses SET dose = $2, words = $3, per_day = $4 WHERE id = $1`, id, in.Dose, in.Words, in.PerDay)
 	if err != nil {
 		return dupDose(err)
 	}
@@ -121,7 +122,7 @@ func (s *Store) SaveDose(ctx context.Context, id int64, in DoseInput) error {
 
 // DeleteDose takes a dose off the list (prescriptions keep what they say).
 func (s *Store) DeleteDose(ctx context.Context, id int64) error {
-	_, err := s.db.ExecContext(ctx, `DELETE FROM pharmacy_doses WHERE id = $1`, id)
+	_, err := appdb.On(ctx, s.db).ExecContext(ctx, `DELETE FROM pharmacy_doses WHERE id = $1`, id)
 	return err
 }
 
@@ -149,7 +150,7 @@ var commonNotes = []string{"After meals", "Before meals", "With meals", "Empty s
 // ones), most used first, then the common ones not used yet.
 func (s *Store) Notes(ctx context.Context) ([]string, error) {
 	var used []string
-	if err := s.db.SelectContext(ctx, &used, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &used, `
 		SELECT MIN(n) FROM (SELECT trim(note) AS n FROM pharmacy_prescription_items WHERE trim(note) <> ''
 		                    UNION ALL SELECT trim(note) FROM pharmacy_medicines WHERE trim(note) <> '') x
 		GROUP BY lower(n) ORDER BY COUNT(*) DESC, MIN(n) LIMIT 40`); err != nil {

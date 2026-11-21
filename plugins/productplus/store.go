@@ -57,7 +57,7 @@ func optionsJSON(opts []string) any {
 // Fields lists fields in display order with their scope.
 func (s *Store) Fields(ctx context.Context, includeDisabled bool) ([]Field, error) {
 	var rows []Field
-	if err := s.db.SelectContext(ctx, &rows, `SELECT `+fieldColumns+` FROM pp_fields
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `SELECT `+fieldColumns+` FROM pp_fields
 		WHERE ($1 OR is_active) ORDER BY sort_order, id`, includeDisabled); err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (s *Store) Fields(ctx context.Context, includeDisabled bool) ([]Field, erro
 
 func (s *Store) Field(ctx context.Context, id int64) (*Field, error) {
 	var f Field
-	if err := s.db.GetContext(ctx, &f, `SELECT `+fieldColumns+` FROM pp_fields WHERE id=$1`, id); err != nil {
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &f, `SELECT `+fieldColumns+` FROM pp_fields WHERE id=$1`, id); err != nil {
 		return nil, err
 	}
 	f.decodeOptions()
@@ -204,7 +204,7 @@ func (s *Store) Impact(ctx context.Context, id int64, newType string, options []
 		return im, err
 	}
 	var vals []string
-	if err := s.db.SelectContext(ctx, &vals, `SELECT value FROM pp_values WHERE field_id=$1`, id); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &vals, `SELECT value FROM pp_values WHERE field_id=$1`, id); err != nil {
 		return im, err
 	}
 	nf := *f
@@ -234,7 +234,7 @@ func (s *Store) Stats(ctx context.Context) (map[int64]Stats, error) {
 		UsingDefault int   `db:"using_default"`
 		Missing      int   `db:"missing"`
 	}
-	err := s.db.SelectContext(ctx, &rows, `WITH `+covCTE+`
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `WITH `+covCTE+`
 		SELECT f.id,
 			count(*) FILTER (WHERE v.value IS NULL) AS using_default,
 			count(*) FILTER (WHERE f.required AND f.type <> 'bool' AND btrim(COALESCE(v.value, f.default_value)) = '') AS missing
@@ -250,7 +250,7 @@ func (s *Store) Stats(ctx context.Context) (map[int64]Stats, error) {
 }
 
 func (s *Store) SetFieldActive(ctx context.Context, id int64, active bool) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE pp_fields SET is_active=$2 WHERE id=$1`, id, active)
+	res, err := appdb.On(ctx, s.db).ExecContext(ctx, `UPDATE pp_fields SET is_active=$2 WHERE id=$1`, id, active)
 	if err != nil {
 		return err
 	}

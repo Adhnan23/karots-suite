@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	appdb "karots-suite/internal/db"
 	"strings"
 	"time"
 
@@ -105,7 +106,7 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 	if err != nil {
 		return 0, err
 	}
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return 0, err
 	}
@@ -157,7 +158,7 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 		slots = append(slots, slot{ID: it.ID, GroupID: it.GroupID, ProductID: it.ProductID, PerDay: it.PerDay})
 	}
 	var lines []saleLine
-	if err := s.db.SelectContext(ctx, &lines, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &lines, `
 		SELECT si.product_id, p.name, SUM(si.quantity) AS qty, mem.group_id,
 		       (mem.group_id IS NOT NULL OR EXISTS (SELECT 1 FROM pharmacy_medicines m WHERE m.product_id = si.product_id)
 		        OR EXISTS (SELECT 1 FROM pharmacy_controlled_products c WHERE c.product_id = si.product_id)) AS medicine
@@ -189,7 +190,7 @@ func (s *Store) RecordDispense(ctx context.Context, in DispenseInput) (int64, er
 	}
 	prescriber := strings.TrimSpace(in.Prescriber)
 	if prescriber == "" && rxID > 0 {
-		if err := s.db.GetContext(ctx, &prescriber, `SELECT prescriber_name FROM pharmacy_prescriptions WHERE id = $1`, rxID); err != nil {
+		if err := appdb.On(ctx, s.db).GetContext(ctx, &prescriber, `SELECT prescriber_name FROM pharmacy_prescriptions WHERE id = $1`, rxID); err != nil {
 			return 0, err
 		}
 	}
@@ -235,7 +236,7 @@ type RecentSale struct {
 func (s *Store) RecentSales(ctx context.Context, q string, limit int) ([]RecentSale, error) {
 	out := []RecentSale{}
 	q = strings.TrimSpace(q)
-	err := s.db.SelectContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		SELECT s.id, s.receipt_no, s.created_at, s.total, COALESCE(c.name, '') AS customer,
 		       COALESCE((SELECT string_agg(p.name, ', ' ORDER BY si.id) FROM sale_items si JOIN products p ON p.id = si.product_id
 		                 WHERE si.sale_id = s.id), '') AS items,

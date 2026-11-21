@@ -2,6 +2,7 @@ package pharmacy
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 	"strings"
 	"time"
 
@@ -29,7 +30,7 @@ func (s *Store) Flags(ctx context.Context, ids []int64) (map[int64]MedicineFlags
 		ID int64 `db:"id"`
 		MedicineFlags
 	}
-	err := s.db.SelectContext(ctx, &rows, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `
 		SELECT p.id, c.product_id IS NOT NULL AS controlled, COALESCE(c.schedule, '') AS schedule, COALESCE(m.rx_only, false) AS rx_only,
 		       true AS medicine, COALESCE(m.dose, '') AS dose, COALESCE(m.note, '') AS note
 		FROM unnest($1::bigint[]) AS p(id)
@@ -45,7 +46,7 @@ func (s *Store) Flags(ctx context.Context, ids []int64) (map[int64]MedicineFlags
 
 // SetFlags saves a product's marks (the product form's Pharmacy section).
 func (s *Store) SetFlags(ctx context.Context, productID int64, f MedicineFlags) error {
-	tx, err := s.db.BeginTxx(ctx, nil)
+	tx, err := appdb.Begin(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,7 @@ const unrecordedSales = `
 
 func (s *Store) Controlled(ctx context.Context) ([]ControlledRow, error) {
 	out := []ControlledRow{}
-	err := s.db.SelectContext(ctx, &out, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `
 		SELECT c.product_id, p.name, c.schedule, COALESCE(st.quantity, 0) AS stock,
 		       (SELECT COUNT(*) FROM (`+unrecordedSales+`) u WHERE u.product_id = c.product_id) AS unrecorded,
 		       (SELECT COUNT(*) FROM pharmacy_cd_ledger l WHERE l.product_id = c.product_id) AS old_rows
@@ -117,7 +118,7 @@ type Unrecorded struct {
 
 func (s *Store) Unrecorded(ctx context.Context) ([]Unrecorded, error) {
 	out := []Unrecorded{}
-	err := s.db.SelectContext(ctx, &out, `SELECT * FROM (`+unrecordedSales+`) u ORDER BY created_at DESC, sale_id DESC`)
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &out, `SELECT * FROM (`+unrecordedSales+`) u ORDER BY created_at DESC, sale_id DESC`)
 	return out, err
 }
 
@@ -163,7 +164,7 @@ type Register struct {
 // without a movement (an opening count) is in it and the last balance = stock.
 func (s *Store) RegisterFor(ctx context.Context, productID int64, from *time.Time) (Register, error) {
 	var r Register
-	if err := s.db.GetContext(ctx, &r.ControlledRow, `
+	if err := appdb.On(ctx, s.db).GetContext(ctx, &r.ControlledRow, `
 		SELECT p.id AS product_id, p.name, COALESCE(c.schedule, '') AS schedule, COALESCE(st.quantity, 0) AS stock,
 		       0 AS unrecorded, (SELECT COUNT(*) FROM pharmacy_cd_ledger l WHERE l.product_id = p.id) AS old_rows
 		FROM products p LEFT JOIN pharmacy_controlled_products c ON c.product_id = p.id
@@ -171,7 +172,7 @@ func (s *Store) RegisterFor(ctx context.Context, productID int64, from *time.Tim
 		return r, apperr.NotFound("product")
 	}
 	r.From = from
-	if err := s.db.SelectContext(ctx, &r.Rows, `
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &r.Rows, `
 		SELECT m.id, m.created_at, m.type::text AS type, m.quantity,
 		       CASE WHEN m.reference_type = 'sale' THEN m.reference_id END AS sale_id,
 		       COALESCE(CASE WHEN m.reference_type = 'sale' THEN s.receipt_no
@@ -202,7 +203,7 @@ func (s *Store) RegisterFor(ctx context.Context, productID int64, from *time.Tim
 		r.Rows[i].Balance = bal
 	}
 	r.Old = []OldEntry{}
-	err := s.db.SelectContext(ctx, &r.Old, `SELECT entry_at, direction, quantity, patient_name, prescriber_name, reference, notes
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &r.Old, `SELECT entry_at, direction, quantity, patient_name, prescriber_name, reference, notes
 		FROM pharmacy_cd_ledger WHERE product_id = $1 ORDER BY entry_at, id`, productID)
 	return r, err
 }
@@ -211,7 +212,7 @@ func (s *Store) RegisterFor(ctx context.Context, productID int64, from *time.Tim
 // running balance, so they're counted in full on day one).
 func (s *Store) freezeRefusals(ctx context.Context, ids []int64) (map[int64]string, error) {
 	var hit []int64
-	if err := s.db.SelectContext(ctx, &hit, `SELECT product_id FROM pharmacy_controlled_products WHERE product_id = ANY($1)`, pq.Array(ids)); err != nil {
+	if err := appdb.On(ctx, s.db).SelectContext(ctx, &hit, `SELECT product_id FROM pharmacy_controlled_products WHERE product_id = ANY($1)`, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 	out := make(map[int64]string, len(hit))

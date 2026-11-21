@@ -2,6 +2,7 @@ package productplus
 
 import (
 	"context"
+	appdb "karots-suite/internal/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -38,7 +39,7 @@ func (s *Store) scopes(ctx context.Context) (map[int64][]Cat, error) {
 		FieldID int64 `db:"field_id"`
 		Cat
 	}
-	err := s.db.SelectContext(ctx, &rows, `
+	err := appdb.On(ctx, s.db).SelectContext(ctx, &rows, `
 		SELECT s.field_id, c.id, c.name FROM pp_field_categories s
 		JOIN categories c ON c.id = s.category_id ORDER BY c.name`)
 	out := map[int64][]Cat{}
