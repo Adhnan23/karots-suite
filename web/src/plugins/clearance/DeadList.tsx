@@ -11,7 +11,9 @@ export function DeadList({ data }: { data?: ClearancePageData }) {
   const months = data?.settings.deadMonths ?? 6
   const off = async (ids: number[]) => {
     const r = await disable(ids)
-    toast.success(r.disabled === 1 ? 'Product disabled' : `${r.disabled} products disabled`)
+    const done = r.disabled === 1 ? 'Product disabled' : `${r.disabled} products disabled`
+    // CLR-6: one that got stock or a sale since the list loaded stays on.
+    toast.success(r.skipped ? `${done} · ${r.skipped} skipped — sold or restocked since` : done)
   }
   return (
     <DataList label="Dead stock" rows={rows} rowKey={(r) => r.productId}

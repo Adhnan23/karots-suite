@@ -21,5 +21,5 @@ async function write<T>(p: Promise<T>): Promise<T> {
 export const approve = (id: number, percent: string) => write(api(`${base}/${id}/approve`, { json: { percent } }))
 export const snooze = (id: number) => write(api(`${base}/${id}/snooze`, { method: 'POST' }))
 export const unsnooze = (id: number) => write(api(`${base}/${id}/unsnooze`, { method: 'POST' }))
-export const disable = (productIds: number[]) => write(api<{ disabled: number }>(`${base}/disable`, { json: { productIds } }))
+export const disable = (productIds: number[]) => write(api<{ disabled: number; skipped: number }>(`${base}/disable`, { json: { productIds } }))
 export const saveRules = (s: ClearanceSettings) => write(api<ClearanceSettings>(`${base}/settings`, { method: 'PUT', json: s }))
