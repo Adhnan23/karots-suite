@@ -196,7 +196,11 @@ func (h handlers) drawerCounts(c echo.Context) error {
 	ctx := c.Request().Context()
 	uid := middleware.CurrentUserID(c)
 	var sess *int64
-	if s, err := h.p.core.CashRegister.Current(ctx, uid); err == nil && s != nil {
+	s, err := h.p.core.CashRegister.Current(ctx, uid)
+	if err != nil {
+		return err // never a drawer count silently without its session
+	}
+	if s != nil {
 		sess = &s.ID
 	}
 	res, err := h.p.store.Count(ctx, in.Counts, sess, uid)
