@@ -17,6 +17,7 @@ import (
 	"karots-suite/internal/ledgercheck"
 	"karots-suite/internal/ledgercheck/ltest"
 	"karots-suite/plugins/pocketcashier"
+	_ "karots-suite/plugins/repairs" // a plugin whose writes a phone replays
 )
 
 // Pocket Cashier's battle tests (docs/rules/plugins/pocketcashier.md): one

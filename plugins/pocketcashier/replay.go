@@ -106,7 +106,6 @@ func (h handlers) actions(c echo.Context) error {
 				return err
 			}
 			send = s
-			defer h.closeSend(send)
 		}
 		r, err := h.apply(ctx, p, send, a)
 		if err != nil {
@@ -123,8 +122,8 @@ func (h handlers) actions(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// sendRow counts one batch's new actions; written when the batch ends.
-type sendRow struct{ id, actions, failed, flagged int64 }
+// sendRow is the batch's send; its counts go up with each action's row.
+type sendRow struct{ id int64 }
 
 func (h handlers) newSend(ctx context.Context, phoneID int64) (*sendRow, error) {
 	s := &sendRow{}
@@ -132,10 +131,6 @@ func (h handlers) newSend(ctx context.Context, phoneID int64) (*sendRow, error) 
 		return nil, apperr.Internal("failed to record the send", err)
 	}
 	return s, nil
-}
-
-func (h handlers) closeSend(s *sendRow) {
-	_, _ = h.p.core.DB.Exec(`UPDATE pocket_sends SET actions = $2, failed = $3, flagged = $4 WHERE id = $1`, s.id, s.actions, s.failed, s.flagged)
 }
 
 // stored is the result a ref already got.
@@ -181,20 +176,6 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 	if r.Status == "retry" {
 		return r, nil
 	}
-	s.actions++
-	if r.Status == "failed" {
-		s.failed++
-	}
-	if r.Flagged {
-		s.flagged++
-	}
-	if r.SaleID != 0 {
-		var n int
-		_ = h.p.core.DB.GetContext(ctx, &n, `SELECT count(*) FROM sale_flags WHERE sale_id = $1`, r.SaleID)
-		if n > 0 {
-			s.flagged++
-		}
-	}
 	body := a.Body
 	if !json.Valid(body) {
 		body = json.RawMessage(`null`)
@@ -203,9 +184,15 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
-	_, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply, cash_settled)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13,$14) ON CONFLICT (ref) DO NOTHING`,
-		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note, replyJSON(r.Reply), r.Settled)
+	// The row and its send's counts in one statement: a cut between them would leave
+	// What came in saying less than came (PKT-12).
+	_, err := h.p.core.DB.ExecContext(ctx, `WITH a AS (
+		INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply, cash_settled)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13,$14) ON CONFLICT (ref) DO NOTHING RETURNING sale_id)
+		UPDATE pocket_sends SET actions = actions + 1, failed = failed + ($8 = 'failed')::int,
+			flagged = flagged + ($15 OR EXISTS (SELECT 1 FROM sale_flags f JOIN a ON f.sale_id = a.sale_id))::int
+		WHERE id = $3 AND EXISTS (SELECT 1 FROM a)`,
+		a.Ref, p.ID, s.id, a.Kind, uid, a.At, body, r.Status, r.SaleID, r.HeldID, r.ResultID, r.Note, replyJSON(r.Reply), r.Settled, r.Flagged)
 	if err != nil {
 		return r, apperr.Internal("failed to record what the phone did", err)
 	}
