@@ -264,16 +264,8 @@ func (g *gen) docSale(s docService) error {
 			it["group"] = map[string]any{"no": 1, "label": s.Name, "sets": "1", "itemised": true}
 		}
 	}
-	saleID, err := g.tillSale(g.cashier(), 0, items, total)
-	if err != nil {
-		return err
-	}
-	for _, k := range []string{"size", "color", "double", "sheets"} {
-		if _, ok := job[k]; !ok {
-			job[k] = nil
-		}
-	}
-	return g.lastTill.Do("POST", "/api/v1/x/documents/jobs", map[string]any{"saleId": saleID, "jobs": []any{job}}, nil)
+	_, err := g.tillSale(g.cashier(), 0, items, total) // the sale writes the job (its line's tag)
+	return err
 }
 
 func b2i(b bool) int {

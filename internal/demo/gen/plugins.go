@@ -69,6 +69,11 @@ func (g *gen) tillOf(c person) (*Client, error) {
 // tillSale rings items up at the till as cashier c and pays it in cash (or by
 // card), exactly as the Pay screen sends it.
 func (g *gen) tillSale(c person, customerID int64, items []map[string]any, total decimal.Decimal) (int64, error) {
+	return g.tillSaleWith(c, customerID, items, total, nil)
+}
+
+// tillSaleWith is tillSale carrying the sale's own plugin data (the till's sale meta).
+func (g *gen) tillSaleWith(c person, customerID int64, items []map[string]any, total decimal.Decimal, meta map[string]any) (int64, error) {
 	cl, err := g.tillOf(c)
 	if err != nil {
 		return 0, err
@@ -83,6 +88,9 @@ func (g *gen) tillSale(c person, customerID int64, items []map[string]any, total
 	in := map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed", "items": items, "payments": []any{pay}}
 	if customerID > 0 {
 		in["customerId"] = customerID
+	}
+	if meta != nil {
+		in["plugin"] = meta
 	}
 	var out struct {
 		ID int64 `json:"id"`

@@ -69,6 +69,9 @@ type SaleBody struct {
 	Total             string        `json:"total"`                // the phone's own total, for what change it gave
 	Items             []SaleItem    `json:"items"`
 	Payments          []SalePayment `json:"payments"`
+	// Plugin is the sale's own plugin data (the till's sale meta: a patient on the
+	// sale…), its temp numbers swapped with the rest of the body.
+	Plugin map[string]any `json:"plugin,omitempty"`
 }
 
 type OpenBody struct {
@@ -225,20 +228,25 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	return r
 }
 
+// rawPlugin is plugin data by key as the sale hooks read it.
+func rawPlugin(m map[string]any) map[string]json.RawMessage {
+	var out map[string]json.RawMessage
+	for k, v := range m {
+		raw, _ := json.Marshal(v)
+		if out == nil {
+			out = map[string]json.RawMessage{}
+		}
+		out[k] = raw
+	}
+	return out
+}
+
 func toCreate(b SaleBody) sales.CreateInput {
 	in := sales.CreateInput{CustomerID: b.CustomerID, SaleType: b.SaleType, Discount: b.Discount, DiscountType: b.DiscountType,
-		ChangeGiven: b.ChangeGiven, OnAccountRounding: b.OnAccountRounding, PreparedBy: b.PreparedBy}
+		ChangeGiven: b.ChangeGiven, OnAccountRounding: b.OnAccountRounding, PreparedBy: b.PreparedBy, Plugin: rawPlugin(b.Plugin)}
 	for _, it := range b.Items {
-		var plug map[string]json.RawMessage
-		for k, v := range it.Plugin {
-			raw, _ := json.Marshal(v)
-			if plug == nil {
-				plug = map[string]json.RawMessage{}
-			}
-			plug[k] = raw
-		}
 		item := sales.ItemInput{ProductID: it.ProductID, Quantity: it.Quantity, Discount: it.Discount, DiscountType: it.DiscountType,
-			PriceOverride: it.PriceOverride, BatchID: it.BatchID, Serials: it.Serials, Description: it.Description, ExpectPrice: it.ExpectPrice, Plugin: plug}
+			PriceOverride: it.PriceOverride, BatchID: it.BatchID, Serials: it.Serials, Description: it.Description, ExpectPrice: it.ExpectPrice, Plugin: rawPlugin(it.Plugin)}
 		item.NoRecipe, item.Payout = it.NoRecipe, it.Payout
 		for _, c := range it.Components {
 			item.Components = append(item.Components, sales.ServiceComponent{ProductID: c.ProductID, Quantity: c.Quantity})

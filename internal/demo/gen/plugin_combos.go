@@ -88,21 +88,16 @@ func combosDaily(g *gen, day time.Time, until float64) error {
 
 func (g *gen) comboSale(c combo) error {
 	var items []map[string]any
-	gross, net := decimal.Zero, decimal.Zero
+	net := decimal.Zero
 	for _, m := range c.members {
 		g.stock[m.id]--
 		price := g.priceOf(m.id)
-		gross = gross.Add(price)
 		net = net.Add(price.Mul(decimal.NewFromInt(100 - c.percent)).Div(decimal.NewFromInt(100)))
 		items = append(items, map[string]any{"productId": m.id, "quantity": "1", "discount": fmt.Sprint(c.percent), "discountType": "percent",
 			"group": map[string]any{"no": 1, "label": c.name + " (combo)", "sets": "1"}, "plugin": map[string]any{"combos": map[string]any{"comboId": c.id}}})
 	}
-	saleID, err := g.tillSale(g.cashier(), 0, items, net.Round(2))
-	if err != nil {
-		return err
-	}
-	return g.lastTill.Do("POST", "/api/v1/x/combos/sold", map[string]any{"saleId": saleID, "combos": []map[string]any{
-		{"comboId": c.id, "sets": "1", "net": net.StringFixed(2), "discount": gross.Sub(net).StringFixed(2)}}}, nil)
+	_, err := g.tillSale(g.cashier(), 0, items, net.Round(2)) // the sale writes what the combo sold (its lines' tag)
+	return err
 }
 
 // loadCombos finds a restored shop's combos again.

@@ -195,7 +195,6 @@ func pharmacyDaily(g *gen, day time.Time, until float64) error {
 		}
 		p := g.patients[g.r.IntN(len(g.patients))]
 		var items []map[string]any
-		var tags []map[string]int64
 		total := dec("0", "0")
 		for _, rx := range p.items {
 			if g.stock[rx.productID] < 1 {
@@ -204,7 +203,6 @@ func pharmacyDaily(g *gen, day time.Time, until float64) error {
 			g.stock[rx.productID]--
 			items = append(items, map[string]any{"productId": rx.productID, "quantity": "1", "discount": "0", "discountType": "fixed",
 				"plugin": map[string]any{"pharmacy": map[string]int64{"rxItemId": rx.id}}})
-			tags = append(tags, map[string]int64{"productId": rx.productID, "rxItemId": rx.id})
 			total = total.Add(g.priceOf(rx.productID))
 		}
 		if len(otc) > 0 && g.r.IntN(2) == 0 {
@@ -218,12 +216,9 @@ func pharmacyDaily(g *gen, day time.Time, until float64) error {
 			continue
 		}
 		g.tm.at(at(day, h))
-		saleID, err := g.tillSale(g.cashier(), 0, items, total)
-		if err != nil {
+		// The patient on the sale, as the till's 💊 panel puts it: the sale writes the dispense.
+		if _, err := g.tillSaleWith(g.cashier(), 0, items, total, map[string]any{"pharmacy": map[string]any{"patientId": p.id}}); err != nil {
 			return err
-		}
-		if err := g.lastTill.Do("POST", "/api/v1/x/pharmacy/dispenses", map[string]any{"saleId": saleID, "patientId": p.id, "lines": tags}, nil); err != nil {
-			return fmt.Errorf("dispense: %w", err)
 		}
 	}
 	return nil
