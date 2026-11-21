@@ -45,3 +45,32 @@ describe('combo pricing', () => {
     expect(charged(combo('price', '99999', [m(1, '10.00'), m(2, '5.00')]))).toBe(1500)
   })
 })
+
+// CMB-3 over random sets: the lines charge exactly the set's price, no line is
+// discounted below 0 or past its own price, and every unit of every member is rung.
+describe('combo pricing, random sets (CMB-3)', () => {
+  let seed = 7
+  const rnd = (n: number) => { seed = (seed * 1103515245 + 12345) % 2 ** 31; return seed % n }
+  it('adds up exactly for 3,000 sets', () => {
+    for (let i = 0; i < 3000; i++) {
+      const members = Array.from({ length: 1 + rnd(4) }, (_, k) => m(k + 1, (1 + rnd(50000) / 100).toFixed(2), String(1 + rnd(5)), rnd(2) ? (1 + rnd(40000) / 100).toFixed(2) : '0.00'))
+      const type = (['percent', 'fixed', 'price'] as const)[rnd(3)]
+      const value = type === 'percent' ? String(rnd(101)) : (rnd(200000) / 100 + (type === 'price' ? 0.01 : 0)).toFixed(2)
+      const c = combo(type, value, members)
+      for (const saleType of ['retail', 'wholesale'] as const) {
+        const { full, off, price } = setPrice(c, saleType)
+        expect(off).toBeGreaterThanOrEqual(0)
+        expect(off).toBeLessThanOrEqual(full)
+        expect(charged(c, saleType)).toBe(price)
+        const lines = setLines(c, saleType)
+        for (const mem of members) expect(lines.filter((l) => l.productId === mem.productId).reduce((s, l) => s + l.per, 0)).toBe(Number(mem.qty))
+        for (const l of lines) {
+          const mem = members.find((x) => x.productId === l.productId)!
+          const unit = saleType === 'wholesale' && Number(mem.wholesalePrice) > 0 ? Number(mem.wholesalePrice) : Number(mem.sellingPrice)
+          expect(Number(l.discount)).toBeGreaterThanOrEqual(0)
+          expect(Math.round(Number(l.discount) * 100)).toBeLessThanOrEqual(Math.round(unit * 100))
+        }
+      }
+    }
+  })
+})
