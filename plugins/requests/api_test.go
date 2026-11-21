@@ -145,3 +145,80 @@ func TestAPIListAndAsks(t *testing.T) {
 	}
 	_ = s
 }
+
+// A note and both kinds of ask can be edited; the first ask can't be removed on its own.
+func TestAPIEdits(t *testing.T) {
+	s, db, tag := testStore(t)
+	do := testAPI(t, db)
+	id := add(t, s, "Lamp "+tag, "Sunil", "0771112223")
+	if rec := do("PUT", fmt.Sprintf("/%d", id), `{"note":"  "}`); rec.Code != 422 {
+		t.Errorf("an empty note: %d", rec.Code)
+	}
+	if rec := do("PUT", fmt.Sprintf("/%d", id), fmt.Sprintf(`{"note":" Desk lamp %s "}`, tag)); rec.Code != 204 {
+		t.Errorf("edit the note: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("POST", fmt.Sprintf("/%d/asks", id), `{"name":"Mala","phone":""}`); rec.Code != 204 {
+		t.Fatalf("ask again: %d %s", rec.Code, rec.Body)
+	}
+	row := func() RequestRow {
+		l := decode[ListDTO](t, do("GET", "?tab=open&q="+tag, ""))
+		if len(l.Rows) != 1 {
+			t.Fatalf("list: %+v", l)
+		}
+		return l.Rows[0]
+	}
+	r := row()
+	if r.Note != "Desk lamp "+tag || len(r.Asks) != 2 {
+		t.Fatalf("after the note edit: %+v", r)
+	}
+	again := r.Asks[1].ID
+	if rec := do("PUT", fmt.Sprintf("/%d/asks/0", id), `{"name":"Sunil P","phone":"0771112224"}`); rec.Code != 204 {
+		t.Errorf("edit the first ask: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("PUT", fmt.Sprintf("/%d/asks/%d", id, again), `{"name":"Mala K","phone":"0773334445"}`); rec.Code != 204 {
+		t.Errorf("edit a repeat ask: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("PUT", fmt.Sprintf("/%d/asks/0", id), `[`); rec.Code != 422 {
+		t.Errorf("a bad ask body: %d", rec.Code)
+	}
+	r = row()
+	if r.Asks[0].Name != "Sunil P" || r.Asks[0].Phone != "0771112224" || r.Asks[1].Name != "Mala K" || r.Asks[1].Phone != "0773334445" {
+		t.Errorf("asks after the edits: %+v", r.Asks)
+	}
+	if rec := do("DELETE", fmt.Sprintf("/%d/asks/0", id), ""); rec.Code != 422 {
+		t.Errorf("remove the first ask: %d", rec.Code)
+	}
+	if rec := do("DELETE", fmt.Sprintf("/%d/asks/%d", id, again), ""); rec.Code != 204 {
+		t.Errorf("remove a repeat ask: %d", rec.Code)
+	}
+	if r = row(); len(r.Asks) != 1 {
+		t.Errorf("asks after removing one: %+v", r.Asks)
+	}
+	var cat int64
+	noErr(t, db.Get(&cat, `SELECT id FROM categories LIMIT 1`))
+	if rec := do("POST", fmt.Sprintf("/%d/product", id), fmt.Sprintf(`{"name":"Lamp","categoryId":%d,"unitId":0}`, cat)); rec.Code != 422 {
+		t.Errorf("a product with unit 0: %d", rec.Code)
+	}
+	if rec := do("POST", fmt.Sprintf("/%d/product", id), `{"name":"Lamp","categoryId":0,"unitId":1}`); rec.Code != 422 {
+		t.Errorf("a product with category 0: %d", rec.Code)
+	}
+}
+
+// Search words of two letters count; the list pages by 50.
+func TestAPISearchAndPages(t *testing.T) {
+	s, db, tag := testStore(t)
+	do := testAPI(t, db)
+	add(t, s, "Torch XL "+tag, "", "")
+	if l := decode[ListDTO](t, do("GET", "?tab=open&q=xl+"+tag, "")); len(l.Rows) != 1 {
+		t.Errorf("a two-letter word that matches: %d rows", len(l.Rows))
+	}
+	if l := decode[ListDTO](t, do("GET", "?tab=open&q=xq+"+tag, "")); len(l.Rows) != 0 {
+		t.Errorf("a two-letter word that doesn't match: %d rows", len(l.Rows))
+	}
+	for i := range 50 {
+		add(t, s, fmt.Sprintf("Bulb %d %s", i, tag), "", "")
+	}
+	if l := decode[ListDTO](t, do("GET", "?tab=open&page=2&q="+tag, "")); len(l.Rows) != 1 || l.Total != 51 {
+		t.Errorf("page 2: %d rows of %d", len(l.Rows), l.Total)
+	}
+}
