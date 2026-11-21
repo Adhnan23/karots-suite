@@ -52,3 +52,6 @@ Group 2 — plugins that sell through core's till (2026-11-21):
 
 Group 3 — plugins with money of their own (2026-11-21):
 [Repairs](repairs.md) (REP) · [Reload & Bills](recharge.md) (RCH)
+
+Last — the app that replays every till plugin (2026-11-21):
+[Pocket Cashier](pocketcashier.md) (PKT)

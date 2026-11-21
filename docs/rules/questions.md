@@ -58,3 +58,9 @@ gets the dispense written with the sale (PHA-5).
 All three answered 2026-11-21 as suggested: a discounted reload, bill or deposit line moves the float by its face
 value (RCH-3); a line naming a device or bank turned off since still books, only a missing one is refused (RCH-5); a
 pickup sale returned in full leaves the job collected, its warranty standing (REP-6).
+
+## Plugins, Pocket Cashier
+
+Both answered 2026-11-21 as suggested: a call that may have run but wasn't noted as done never runs again — it is
+flagged "may not have gone through — check", and a credit payment carries the action's ref (PKT-4); a cash out / in
+made on the phone and refused by the PC is booked as made, the till flagged (PKT-10, DRAW-19).

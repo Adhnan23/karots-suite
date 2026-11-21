@@ -110,6 +110,10 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **DRAW-18** A drawer move that was saved is answered as done: nothing read after the save can turn it into an error
   (the cashier would do it again and the cash would leave twice). A failure before the save changes nothing.
   *Found by the failure sweep, 2026-11-21. sweep.*
+- **DRAW-19** A cash out or cash in made away from the PC (a phone selling while the PC was down) already happened:
+  it is booked as made — into or out of the locker it named — even past what the drawer holds by the PC's count or
+  with untracked cash turned off since; the till is flagged for review instead. Only a locker that no longer exists
+  is refused (the cash is then booked without the locker side, PKT-7). *User, 2026-11-21 (Pocket Cashier Q2). example.*
 
 ### Lockers and moves
 
