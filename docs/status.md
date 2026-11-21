@@ -176,7 +176,16 @@ for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Full 
 (2026-11-21, 8 min):** Go, Vitest (1,218) and check-core green; Playwright 266 passed, `admin-money` timed out beside
 Go's coverage run and passed alone. Coverage map updated: core Go 79.9% (was 77.8%), the money packages 88.9% (was
 81.8% — supplier returns 94.1, drawer 93.2, money moves 92.2, selling 92.0, purchases 90.6), screens 59.2%.
-**Core coverage push done. Next: plugins, simplest first (another session).** **Speed (user,
+**Core coverage push done. Next: plugins, simplest first (another session).**
+**Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
+1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
+product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
+stock, offline data). 6 combos → 7 documents → 8 pharmacy (after productplus + alternatives; its controlled-drug
+register must agree with stock) — sell through core's till (core's money rules hold; the plugin adds prices, stock,
+records). 9 repairs → 10 recharge (riskiest: float per device / carrier, own tender, P&L income, carriers paid as
+suppliers; thinnest tests, 582 lines for 2,176) — own money, full rule book like a core area. 11 pocketcashier last
+(replays every till plugin offline). The coverage map gets a Plugins section (one row per plugin: code reached, tests,
+passed or not) when the first one passes. **Speed (user,
 2026-11-21):** test Postgres and the Go cache live on the NVMe, `synchronous_commit=off`; replays run 9 shards side
 by side (`scripts/replay-mutants.py … i/n`, `SKIP=` resumes) — stock replay ~80 min → ~10; `make test-all` 688 s →
 ~490 s. Full runs still show the known Playwright flakes (`till.spec` open with a float, sometimes `admin-money`,
