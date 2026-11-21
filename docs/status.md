@@ -185,7 +185,9 @@ register must agree with stock) — sell through core's till (core's money rules
 records). 9 repairs → 10 recharge (riskiest: float per device / carrier, own tender, P&L income, carriers paid as
 suppliers; thinnest tests, 582 lines for 2,176) — own money, full rule book like a core area. 11 pocketcashier last
 (replays every till plugin offline). The coverage map gets a Plugins section (one row per plugin: code reached, tests,
-passed or not) when the first one passes. **Speed (user,
+passed or not) when the first one passes. **One group per session (user, 2026-11-21):** next session = group 1
+(1–5), then group 2 (6–8), then group 3 (9–10), then Pocket Cashier; each session ends with a full run, the coverage
+map's plugin rows and this file updated. **Speed (user,
 2026-11-21):** test Postgres and the Go cache live on the NVMe, `synchronous_commit=off`; replays run 9 shards side
 by side (`scripts/replay-mutants.py … i/n`, `SKIP=` resumes) — stock replay ~80 min → ~10; `make test-all` 688 s →
 ~490 s. Full runs still show the known Playwright flakes (`till.spec` open with a float, sometimes `admin-money`,
