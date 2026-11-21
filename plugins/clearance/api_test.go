@@ -99,6 +99,8 @@ func TestAPIDisableAndSettings(t *testing.T) {
 	_, db, a := testStore(t, "0")
 	_, _, b := testStore(t, "0")
 	do := testAPI(t, db)
+	// Dead = idle past dead_months (CLR-6): brand-new products would be skipped.
+	mustExec(t, db, nil, `UPDATE products SET created_at = now() - interval '2 years' WHERE id IN ($1, $2)`, a, b)
 	body := `{"productIds":[` + strconv.FormatInt(a, 10) + `,` + strconv.FormatInt(b, 10) + `]}`
 	rec := do("POST", "/disable", body)
 	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"disabled":2`) {

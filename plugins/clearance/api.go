@@ -1,6 +1,7 @@
 package clearance
 
 import (
+	"errors"
 	"math"
 	"net/http"
 	"strconv"
@@ -163,7 +164,7 @@ func (h handlers) approve(c echo.Context) error {
 		return apperr.Validation("the markdown must be more than 0% and under 100%")
 	}
 	if err := h.p.store.Approve(c.Request().Context(), pid, pct, middleware.CurrentUserID(c)); err != nil {
-		return apperr.Internal("approve markdown", err)
+		return storeErr("approve markdown", err)
 	}
 	h.audit(c, audit.ActionUpdate, "clearance_markdown", strconv.FormatInt(pid, 10), "approved -"+pct.String()+"%")
 	return c.NoContent(http.StatusNoContent)
@@ -183,14 +184,22 @@ func (h handlers) byProduct(c echo.Context, what string, fn func(int64) error) e
 		return apperr.Validation("invalid product")
 	}
 	if err := fn(pid); err != nil {
-		return apperr.Internal("clearance "+what, err)
+		return storeErr("clearance "+what, err)
 	}
 	h.audit(c, audit.ActionUpdate, "clearance_markdown", strconv.FormatInt(pid, 10), what)
 	return c.NoContent(http.StatusNoContent)
 }
 
+func storeErr(what string, err error) error {
+	if errors.Is(err, ErrNotSellable) {
+		return apperr.Validation("that product isn't on sale (gone, disabled or a service)")
+	}
+	return apperr.Internal(what, err)
+}
+
 // disable retires dead products through core's product disable (reversible from
-// Products → show disabled), one or every product shown.
+// Products → show disabled), one or every product shown — only those still dead
+// now; the rest are skipped and counted (CLR-6).
 func (h handlers) disable(c echo.Context) error {
 	var in struct {
 		ProductIDs []int64 `json:"productIds"`
@@ -198,15 +207,19 @@ func (h handlers) disable(c echo.Context) error {
 	if err := c.Bind(&in); err != nil || len(in.ProductIDs) == 0 || len(in.ProductIDs) > 500 {
 		return apperr.Validation("pick between 1 and 500 products to disable")
 	}
+	ids, err := h.p.store.StillDead(c.Request().Context(), in.ProductIDs)
+	if err != nil {
+		return apperr.Internal("check dead stock", err)
+	}
 	n := 0
-	for _, id := range in.ProductIDs {
+	for _, id := range ids {
 		if err := h.p.core.Products.Delete(c.Request().Context(), id); err != nil {
 			return err
 		}
 		n++
 		h.audit(c, audit.ActionDelete, "product", strconv.FormatInt(id, 10), "disabled as dead stock (clearance)")
 	}
-	return c.JSON(http.StatusOK, map[string]int{"disabled": n})
+	return c.JSON(http.StatusOK, map[string]int{"disabled": n, "skipped": len(in.ProductIDs) - n})
 }
 
 func (h handlers) audit(c echo.Context, action, entity, id, detail string) {

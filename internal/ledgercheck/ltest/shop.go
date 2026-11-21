@@ -94,6 +94,14 @@ func (s *Shop) Product(t T, name, price, stock string, extra map[string]any) int
 	return p.ID
 }
 
+// Service makes a service (no stock) and returns its id.
+func (s *Shop) Service(t T, name, price string) int64 {
+	helper(t)
+	var p struct{ ID int64 }
+	s.Must(t, s.Admin.Do("POST", "/api/v1/admin/services", map[string]any{"name": name, "categoryId": s.Cat, "unitId": 1, "sellingPrice": price}, &p))
+	return p.ID
+}
+
 // OpenTill starts c's till with Rs 5,000 float.
 func (s *Shop) OpenTill(t T, c *Client) {
 	helper(t)

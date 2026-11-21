@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/shopspring/decimal"
+	"pgregory.net/rapid"
 )
 
 func dec(s string) decimal.Decimal { d, _ := decimal.NewFromString(s); return d }
@@ -36,4 +37,28 @@ func TestNewPrice(t *testing.T) {
 	if got := newPrice(dec("120"), dec("12.5")); !got.Equal(dec("105")) {
 		t.Errorf("newPrice = %s, want 105", got)
 	}
+}
+
+// CLR-3: for any price, cost, default and margin, the suggested price never
+// falls under the floor, and the suggestion is the default whenever that fits.
+func TestCLR3_SuggestionNeverUnderFloor(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		cents := func(name string, lo, hi int64) decimal.Decimal {
+			return decimal.New(rapid.Int64Range(lo, hi).Draw(t, name), -2)
+		}
+		sell, cost := cents("sell", 1, 10_000_000), cents("cost", 0, 10_000_000)
+		def, margin := decimal.New(rapid.Int64Range(1, 999).Draw(t, "def"), -1), decimal.New(rapid.Int64Range(0, 500).Draw(t, "margin"), -1)
+		pct := suggestPercent(sell, cost, def, margin)
+		if pct.IsNegative() || pct.GreaterThan(def) {
+			t.Fatalf("suggested %s%%, default %s%%", pct, def)
+		}
+		floor := cost.Mul(decimal.NewFromInt(100).Add(margin)).Div(decimal.NewFromInt(100))
+		after := sell.Mul(decimal.NewFromInt(100).Sub(pct)).Div(decimal.NewFromInt(100))
+		if pct.IsPositive() && after.LessThan(floor) {
+			t.Fatalf("%s at %s%% off is %s, under the floor %s", sell, pct, after, floor)
+		}
+		if atDef := sell.Mul(decimal.NewFromInt(100).Sub(def)).Div(decimal.NewFromInt(100)); !atDef.LessThan(floor) && !pct.Equal(def) {
+			t.Fatalf("default %s%% fits (%s ≥ %s) but %s%% suggested", def, atDef, floor, pct)
+		}
+	})
 }

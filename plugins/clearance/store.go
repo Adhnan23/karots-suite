@@ -2,11 +2,14 @@ package clearance
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -149,7 +152,21 @@ type DeadItem struct {
 // Dead lists active, out-of-stock products whose latest activity (stock
 // movement, sale, or creation) is older than dead_months — candidates to
 // retire. Services are excluded. Nothing is disabled automatically.
-func (s *Store) Dead(ctx context.Context) ([]DeadItem, error) {
+func (s *Store) Dead(ctx context.Context) ([]DeadItem, error) { return s.dead(ctx, nil) }
+
+// StillDead keeps the ids that are dead right now (CLR-6: a page loaded earlier
+// may name a product that has since had stock or a sale).
+func (s *Store) StillDead(ctx context.Context, ids []int64) ([]int64, error) {
+	rows, err := s.dead(ctx, ids)
+	out := make([]int64, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, r.ProductID)
+	}
+	return out, err
+}
+
+// dead lists dead products, only those in ids when ids isn't nil.
+func (s *Store) dead(ctx context.Context, ids []int64) ([]DeadItem, error) {
 	cfg, err := s.GetSettings(ctx)
 	if err != nil {
 		return nil, err
@@ -175,32 +192,49 @@ func (s *Store) Dead(ctx context.Context) ([]DeadItem, error) {
 		WHERE p.is_active = true AND p.is_service = false
 		  AND COALESCE(st.quantity, 0) = 0
 		  AND la.last_at < now() - ($1 || ' months')::interval
+		  AND ($2::bigint[] IS NULL OR p.id = ANY($2))
 		ORDER BY la.last_at ASC, p.name`,
-		cfg.DeadMonths)
+		cfg.DeadMonths, pq.Array(ids))
 	return rows, err
+}
+
+// ErrNotSellable: the product doesn't exist, was merged away, is disabled or is a
+// service — nothing to mark down (CLR-2).
+var ErrNotSellable = errors.New("not a product on sale")
+
+// sellableSQL picks $1 only when it's an active, unmerged, non-service product, so
+// a markdown never names anything else (CLR-2, PLG-3).
+const sellableSQL = `SELECT id FROM products WHERE id = $1 AND is_active AND NOT is_service AND merged_into_id IS NULL`
+
+func oneRow(res sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotSellable
+	}
+	return nil
 }
 
 // Approve sets a live percent markdown, re-stamping updated_at: it applies to
 // the stock on hand now, until that sells out or fresh stock arrives.
 func (s *Store) Approve(ctx context.Context, productID int64, pct decimal.Decimal, userID int64) error {
-	_, err := s.db.ExecContext(ctx, `
+	return oneRow(s.db.ExecContext(ctx, `
 		INSERT INTO clearance_markdowns (product_id, discount_type, discount_value, status, approved_by, updated_at)
-		VALUES ($1,'percent',$2,'approved',$3, now())
+		SELECT id,'percent',$2,'approved',$3, now() FROM (`+sellableSQL+`) p
 		ON CONFLICT (product_id) DO UPDATE
 		SET discount_type='percent', discount_value=$2, status='approved', approved_by=$3, updated_at=now()`,
-		productID, pct, userID)
-	return err
+		productID, pct, userID))
 }
 
 // Snooze hides a product for one stale period.
 func (s *Store) Snooze(ctx context.Context, productID, userID int64) error {
-	_, err := s.db.ExecContext(ctx, `
+	return oneRow(s.db.ExecContext(ctx, `
 		INSERT INTO clearance_markdowns (product_id, discount_type, discount_value, status, approved_by, updated_at)
-		VALUES ($1,'percent',0,'dismissed',$2, now())
+		SELECT id,'percent',0,'dismissed',$2, now() FROM (`+sellableSQL+`) p
 		ON CONFLICT (product_id) DO UPDATE
 		SET status='dismissed', discount_value=0, approved_by=$2, updated_at=now()`,
-		productID, userID)
-	return err
+		productID, userID))
 }
 
 // Unsnooze brings a snoozed product straight back.
