@@ -107,6 +107,9 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **DRAW-16** Two cash-outs at once from one drawer (two windows, a refund and a withdrawal) can't together take more
   than it holds (DRAW-3). *faults.*
 - **DRAW-17** A counted drawer (notes × count) adds up to the amount recorded. *example.*
+- **DRAW-18** A drawer move that was saved is answered as done: nothing read after the save can turn it into an error
+  (the cashier would do it again and the cash would leave twice). A failure before the save changes nothing.
+  *Found by the failure sweep, 2026-11-21. sweep.*
 
 ### Lockers and moves
 

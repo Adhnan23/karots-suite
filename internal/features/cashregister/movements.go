@@ -38,22 +38,24 @@ func (s *Service) untrackedCashOutAllowed(ctx context.Context) bool {
 	return allow
 }
 
-func (s *Service) Withdraw(ctx context.Context, userID int64, in MovementInput) (*Summary, error) {
+func (s *Service) Withdraw(ctx context.Context, userID int64, in MovementInput) (int64, error) {
 	if in.CounterLockerID == 0 && !s.untrackedCashOutAllowed(ctx) {
-		return nil, apperr.Validation("untracked withdrawals are disabled — choose a locker to move the cash into")
+		return 0, apperr.Validation("untracked withdrawals are disabled — choose a locker to move the cash into")
 	}
 	return s.adjust(ctx, userID, in, MoveWithdrawal, true, "withdrawal")
 }
 
 // PayIn records cash added to the drawer mid-shift (e.g. extra float).
-func (s *Service) PayIn(ctx context.Context, userID int64, in MovementInput) (*Summary, error) {
+func (s *Service) PayIn(ctx context.Context, userID int64, in MovementInput) (int64, error) {
 	return s.adjust(ctx, userID, in, MovePayIn, false, "pay-in")
 }
 
-func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mtype string, negate bool, label string) (*Summary, error) {
+// adjust returns the move's receipt (0 when none). Nothing after the commit can
+// fail it: a saved move reported as an error would be done twice (DRAW-18).
+func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mtype string, negate bool, label string) (int64, error) {
 	amt, err := money.Parse(in.Amount)
 	if err != nil || !amt.IsPositive() {
-		return nil, apperr.Validation(label + " amount must be positive")
+		return 0, apperr.Validation(label + " amount must be positive")
 	}
 	signed := amt
 	if negate {
@@ -103,18 +105,11 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 		}
 		return nil
 	}); err != nil {
-		return nil, err
+		return 0, err
 	}
 	if mtype == MoveWithdrawal {
 		s.recordAudit(ctx, userID, audit.ActionWithdraw,
 			"withdrew "+money.Display(amt)+" — "+in.Reason)
-	}
-	sum, err := s.Summary(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if receiptID > 0 {
-		sum.ReceiptID = &receiptID
 	}
 	// Skip the standalone pulse when the till will fold it into the receipt print
 	// (one job — see MovementInput.DeferDrawerKick). The drawer still pops there.
@@ -123,5 +118,5 @@ func (s *Service) adjust(ctx context.Context, userID int64, in MovementInput, mt
 	if !in.DeferDrawerKick || receiptID == 0 {
 		s.kick(ctx)
 	}
-	return sum, nil
+	return receiptID, nil
 }

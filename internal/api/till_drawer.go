@@ -112,7 +112,7 @@ func (h *handlers) TillCloseDrawer(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func (h *handlers) moneyMove(c echo.Context, move func(ctx echo.Context, in cashregister.MovementInput) (*cashregister.Summary, error)) error {
+func (h *handlers) moneyMove(c echo.Context, move func(ctx echo.Context, in cashregister.MovementInput) (int64, error)) error {
 	var req MoneyMoveRequest
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
@@ -121,21 +121,25 @@ func (h *handlers) moneyMove(c echo.Context, move func(ctx echo.Context, in cash
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
-	sum, err := move(c, in)
+	rid, err := move(c, in)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, ReceiptRef{ReceiptID: sum.ReceiptID})
+	out := ReceiptRef{}
+	if rid > 0 {
+		out.ReceiptID = &rid
+	}
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h *handlers) TillWithdraw(c echo.Context) error {
-	return h.moneyMove(c, func(c echo.Context, in cashregister.MovementInput) (*cashregister.Summary, error) {
+	return h.moneyMove(c, func(c echo.Context, in cashregister.MovementInput) (int64, error) {
 		return h.d.CashRegister.Withdraw(c.Request().Context(), middleware.CurrentUserID(c), in)
 	})
 }
 
 func (h *handlers) TillDeposit(c echo.Context) error {
-	return h.moneyMove(c, func(c echo.Context, in cashregister.MovementInput) (*cashregister.Summary, error) {
+	return h.moneyMove(c, func(c echo.Context, in cashregister.MovementInput) (int64, error) {
 		return h.d.CashRegister.PayIn(c.Request().Context(), middleware.CurrentUserID(c), in)
 	})
 }

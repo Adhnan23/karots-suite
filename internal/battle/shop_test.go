@@ -51,8 +51,13 @@ func newShop(t ltest.T) *shop {
 	if testing.Short() { // the battle is skipped with -short
 		t.Skip("battle: skipped with -short")
 	}
-	ctx := context.Background()
 	db, dsn := ltest.NewDBWithDSN(t)
+	return newShopOn(t, db, dsn)
+}
+
+// newShopOn opens the shop on a database already made (a faulty one, say).
+func newShopOn(t ltest.T, db *sqlx.DB, dsn string) *shop {
+	ctx := context.Background()
 	cfg := &config.Config{Env: "production", JWTSecret: strings.Repeat("x", 40), JWTAccessTTL: time.Hour, JWTRefreshTTL: time.Hour}
 	v := app.SystemPINValidator(nil)
 	svc := app.NewServices(db, cfg, v)
