@@ -153,7 +153,7 @@ func (g *gen) breakage(day time.Time) error {
 	m := g.mishapFor(it)
 	q := 1.0
 	if strings.HasPrefix(it.name, "Eggs") {
-		q = float64(2 + g.r.IntN(5)) // a tray slipped
+		q = min(float64(2+g.r.IntN(5)), g.stock[it.id]) // a tray slipped: never more eggs than are left
 	}
 	g.stock[it.id] -= q
 	g.tm.at(at(day, 15+3*g.r.Float64()))
