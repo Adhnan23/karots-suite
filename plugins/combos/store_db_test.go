@@ -198,13 +198,9 @@ func TestSoldAndReport(t *testing.T) {
 		return sid
 	}
 	s1, s2 := sale("completed"), sale("void")
-	if err := s.RecordSold(ctx, 999999999, []Sold{{ComboID: id, Sets: d("1"), Net: d("180"), Discount: d("20")}}); err == nil {
-		t.Fatal("an unknown sale must be refused")
-	}
-	for _, sid := range []int64{s1, s1, s2} { // s1 twice: an upsert, not a double count
-		if err := s.RecordSold(ctx, sid, []Sold{{ComboID: id, Sets: d("1"), Net: d("180"), Discount: d("20")}}); err != nil {
-			t.Fatal(err)
-		}
+	// Rows from before the sale hook (no lines named) are read as stored; a void sale's stays out.
+	for _, sid := range []int64{s1, s2} {
+		db.MustExec(`INSERT INTO combo_sales (combo_id, name, sale_id, sets, net, discount) VALUES ($1, $2, $3, 1, 180, 20)`, id, "Sold "+tag, sid)
 	}
 	from := time.Now().Add(-time.Hour)
 	to := time.Now().Add(time.Hour)

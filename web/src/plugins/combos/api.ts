@@ -25,6 +25,4 @@ export const saveCombo = (id: number, body: ComboRequest) =>
   write(api<Combo>(id ? `${base}/${id}` : base, { method: id ? 'PUT' : 'POST', json: body }))
 export const setActive = (id: number, active: boolean) => write(api(`${base}/${id}/active`, { json: { active } }))
 export const deleteCombo = (id: number) => write(api(`${base}/${id}`, { method: 'DELETE' }))
-export const recordSold = (saleId: number, combos: { comboId: number; sets: string; net: string; discount: string }[]) =>
-  api(`${base}/sold`, { json: { saleId, combos } })
 export const saveSettings = (v: Settings) => write(api<Settings>(`${base}/settings`, { method: 'PUT', json: v }))

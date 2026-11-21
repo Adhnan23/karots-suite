@@ -88,18 +88,14 @@ func TestAPI(t *testing.T) {
 	if n := countTill(t, do, c.ID); n != 0 {
 		t.Fatal("a disabled combo must leave the till list")
 	}
-	if rec := do("POST", "/sold", `{"saleId":999999999,"combos":[]}`); rec.Code != 404 {
-		t.Fatalf("unknown sale = %d, want 404", rec.Code)
-	}
 	var sid int64
 	if err := db.Get(&sid, `INSERT INTO sales (receipt_no, cashier_id, total) VALUES ($1, (SELECT id FROM users LIMIT 1), 1120) RETURNING id`,
 		fmt.Sprintf("ZA%d", time.Now().UnixNano()%1e12)); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Exec(`DELETE FROM sales WHERE id = $1`, sid) }) //nolint:errcheck
-	if rec := do("POST", "/sold", fmt.Sprintf(`{"saleId":%d,"combos":[{"comboId":%d,"sets":"2","net":"1120","discount":"80"}]}`, sid, c.ID)); rec.Code != 204 {
-		t.Fatalf("sold = %d %s", rec.Code, rec.Body)
-	}
+	// A row from before the sale hook (no lines named) is read as stored.
+	db.MustExec(`INSERT INTO combo_sales (combo_id, name, sale_id, sets, net, discount) VALUES ($1, $2, $3, 2, 1120, 80)`, c.ID, c.Name, sid)
 	day := time.Now().Format("2006-01-02")
 	rep := decode[ReportDTO](t, do("GET", "/report?preset=today", ""))
 	found := false

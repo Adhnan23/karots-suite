@@ -57,16 +57,6 @@ type ComboRequest struct {
 	} `json:"items"`
 }
 
-type SoldRequest struct {
-	SaleID int64 `json:"saleId"`
-	Combos []struct {
-		ComboID  int64  `json:"comboId"`
-		Sets     string `json:"sets"`
-		Net      string `json:"net"`
-		Discount string `json:"discount"`
-	} `json:"combos"`
-}
-
 type ReportRowDTO struct {
 	ComboID  *int64 `json:"comboId"`
 	Name     string `json:"name"`
@@ -240,33 +230,6 @@ func (h handlers) remove(c echo.Context) error {
 		return err
 	}
 	h.audit(c, "combo_delete", cid, "")
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (h handlers) sold(c echo.Context) error {
-	var req SoldRequest
-	if err := c.Bind(&req); err != nil {
-		return apperr.BadRequest("invalid body")
-	}
-	rows := make([]Sold, 0, len(req.Combos))
-	for _, x := range req.Combos {
-		var s Sold
-		var err error
-		s.ComboID = x.ComboID
-		if s.Sets, err = dec(x.Sets, "sets"); err != nil {
-			return err
-		}
-		if s.Net, err = dec(x.Net, "net"); err != nil {
-			return err
-		}
-		if s.Discount, err = dec(x.Discount, "discount"); err != nil {
-			return err
-		}
-		rows = append(rows, s)
-	}
-	if err := h.p.store.RecordSold(c.Request().Context(), req.SaleID, rows); err != nil {
-		return err
-	}
 	return c.NoContent(http.StatusNoContent)
 }
 

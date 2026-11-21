@@ -54,7 +54,7 @@ export function ComboReport() {
   return (
     <ReportPage title="Combos" sub="What each combo sold and what it gave away." range={range} onRange={setRange}
       filters={rows.length > 0 && <Button variant="outline" className="h-10 gap-1.5 px-4" onClick={() => downloadCsv(rows, range)}><Download size={16} /> CSV</Button>}
-      caption="Counts sales since Combos was added. A returned combo still counts as sold.">
+      caption="Counts sales since Combos was added. Returned sets are taken off.">
       {t && (
         <KpiStrip label="Combo totals" cols={3}>
           <Kpi label="Sets sold" v={String(num(t.sets))} />

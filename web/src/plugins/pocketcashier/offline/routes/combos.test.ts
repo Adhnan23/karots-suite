@@ -15,8 +15,8 @@ describe('Combos with the PC down', () => {
   it('with nothing stored yet, an empty list', () => {
     expect(route('GET', '/x/combos/till').answer(ctx({}))).toEqual([])
   })
-  it('a sold set queues', () => {
-    expect(route('POST', '/x/combos/sold').queue).toBe(true)
+  it('a sold set needs no call of its own (the sale carries it)', () => {
+    expect(combosRoutes.some((r) => r.path === '/x/combos/sold')).toBe(false)
   })
 })
 

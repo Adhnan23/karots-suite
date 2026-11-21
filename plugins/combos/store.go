@@ -2,12 +2,11 @@ package combos
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/reports"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
@@ -95,9 +94,22 @@ const comboCols = `c.id, c.name, c.discount_type, c.discount_value, c.is_active,
 	COALESCE(sold.sets, 0) AS sold_sets, COALESCE(sold.net, 0) AS sold_net, sold.last AS last_sold`
 
 const soldJoin = ` LEFT JOIN (
-	SELECT cs.combo_id, SUM(cs.sets) AS sets, SUM(cs.net) AS net, MAX(cs.created_at) AS last
-	FROM combo_sales cs JOIN sales s ON s.id = cs.sale_id AND s.status <> 'void'
+	SELECT cs.combo_id, SUM(` + keptSets + `) AS sets, SUM(` + keptNet + `) AS net, MAX(cs.created_at) AS last
+	FROM combo_sales cs JOIN sales s ON s.id = cs.sale_id AND s.status <> 'void'` + keptJoin + `
 	GROUP BY cs.combo_id) sold ON sold.combo_id = c.id`
+
+// What a sold row kept after returns (CMB-6, a combo comes back in whole sets):
+// its lines' kept revenue as core counts a line, and its sets and discount in the
+// same share as the units kept. A row from before the hook names no lines: as stored.
+// Correlated on cs and s.
+const keptJoin = ` LEFT JOIN LATERAL (SELECT SUM(si.quantity) AS q, SUM(si.quantity - si.returned_qty) AS k,
+	SUM(` + reports.KeptRevenueSQL + `) AS net FROM sale_items si WHERE si.id = ANY(cs.item_ids)) kept ON true`
+
+const (
+	keptSets = `CASE WHEN kept.q > 0 THEN ROUND(cs.sets * kept.k / kept.q, 4) ELSE cs.sets END`
+	keptNet  = `CASE WHEN kept.q > 0 THEN ROUND(kept.net, 2) ELSE cs.net END`
+	keptOff  = `CASE WHEN kept.q > 0 THEN ROUND(cs.discount * kept.k / kept.q, 2) ELSE cs.discount END`
+)
 
 // inWindow: active and today is within its dates.
 const inWindow = `c.is_active AND (c.starts_on IS NULL OR c.starts_on <= CURRENT_DATE) AND (c.ends_on IS NULL OR c.ends_on >= CURRENT_DATE)`
@@ -330,37 +342,6 @@ func (s *Store) BadgesFor(ctx context.Context, ids []int64) (map[int64][]string,
 		out[id] = []string{"🎁 Combo"}
 	}
 	return out, nil
-}
-
-// Sold is one combo's share of a sale, as the till worked it out.
-type Sold struct {
-	ComboID  int64
-	Sets     decimal.Decimal
-	Net      decimal.Decimal
-	Discount decimal.Decimal
-}
-
-// RecordSold stores a sale's combos (a resend replaces, never doubles).
-func (s *Store) RecordSold(ctx context.Context, saleID int64, rows []Sold) error {
-	var one int
-	if err := s.db.GetContext(ctx, &one, `SELECT 1 FROM sales WHERE id = $1`, saleID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return apperr.NotFound("sale")
-		}
-		return err
-	}
-	return s.withTx(ctx, func(tx *sqlx.Tx) error {
-		for _, r := range rows {
-			if _, err := tx.ExecContext(ctx, `
-				INSERT INTO combo_sales (combo_id, name, sale_id, sets, net, discount)
-				SELECT id, name, $2, $3, $4, $5 FROM combos WHERE id = $1
-				ON CONFLICT (sale_id, combo_id) DO UPDATE SET sets = EXCLUDED.sets, net = EXCLUDED.net, discount = EXCLUDED.discount`,
-				r.ComboID, saleID, r.Sets, r.Net, r.Discount); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
 }
 
 func (s *Store) withTx(ctx context.Context, fn func(*sqlx.Tx) error) error {

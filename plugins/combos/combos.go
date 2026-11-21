@@ -8,7 +8,6 @@ package combos
 import (
 	"io/fs"
 
-	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 	"karots-suite/plugins/combos/migrations"
 )
@@ -31,10 +30,11 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddDataGroup(plugin.DataGroup{Key: "combos", Name: "Combos / deals",
 		Tables: []string{"combos", "combo_items", "combo_sales", "combos_settings"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "combos", Merge: mergeProduct})
+	// A sale's combos are written with it, from its own lines (CMB-5).
+	reg.AddSaleLineHook(plugin.SaleLineHook{Key: "combos", Record: recordSale})
 	h := handlers{p}
 	t := reg.Cashier() // /api/v1/x — anyone signed in: the till
 	t.GET("/combos/till", h.till)
-	t.POST("/combos/sold", h.sold, middleware.RequireHandlesMoney())
 	t.GET("/combos/settings", h.settings)
 	a := reg.Admin() // admin + manager
 	a.GET("/combos", h.list)
