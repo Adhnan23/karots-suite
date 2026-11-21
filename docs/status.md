@@ -218,6 +218,10 @@ Room's generator and Pocket's offline patient); `admin-money` timed out beside G
 **Raised, not changed:** saving a product with a plugin's section (Pharmacy marks, Product Plus fields) is not one
 change — core saves the product first and says so if a plugin's part fails (`internal/api/product_extras.go`, by design).
 **Next: group 3 — repairs, recharge (another session).**
+**Idea (user, 2026-11-21), after the battle tests:** Alternatives → **Group by generic name**, no AI: products with the
+same Product Plus Generic name + Strength become one group, shown first to untick wrong ones, then saved as ordinary
+groups (Product Plus only read). Pharmacy stays shipped with Product Plus and Alternatives (user: pharmacies need
+generic names, and they group medicines).
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
