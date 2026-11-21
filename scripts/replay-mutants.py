@@ -4,11 +4,18 @@
 usage (from a scratch copy of the repo, so the working tree is never touched):
   rsync -a --exclude .git --exclude web/node_modules ./ ~/.cache/karots-mutant/ && cd ~/.cache/karots-mutant
   python3 scripts/replay-mutants.py ~/.cache/karots-logs/gremlins-<pkg>.log internal/features/<pkg> . 'TestSTK|TestStock'
-Prints KILLED (with the test that failed) / LIVED / NOT VIABLE per mutant. Run nothing else in the battle package meanwhile.
+Prints KILLED (with the test that failed) / LIVED / NOT VIABLE per mutant.
+Faster: an optional 5th argument i/n takes every n-th mutant from the i-th (0-based); run n of them side by side,
+each in its own scratch copy (test databases get random names, so copies never clash). Keep n ≤ 3: a battle test
+that times out under load would count a mutant as killed.
 """
 import os, re, subprocess, sys
 
 log, pkg, root, run = sys.argv[1:5]
+shard, shards = map(int, (sys.argv[5] if len(sys.argv) > 5 else '0/1').split('/'))
+n = -1
+# SKIP=<file>: mutants already decided in an earlier (stopped) run's output are left out.
+skip = set(re.findall(r'([A-Z_]+ \S+\.go:\d+:\d+)', open(os.environ['SKIP']).read())) if os.environ.get('SKIP') else set()
 root = os.path.abspath(root)
 NEG = {'==': '!=', '!=': '==', '<': '>=', '>': '<=', '<=': '>', '>=': '<'}
 BND = {'<': '<=', '<=': '<', '>': '>=', '>=': '>'}
@@ -38,6 +45,11 @@ for raw in open(log):
     if key in seen:
         continue
     seen.add(key)
+    if f'{kind} {f}:{ln}:{col}' in skip:
+        continue
+    n += 1
+    if n % shards != shard:
+        continue
     path = os.path.join(root, pkg, f)
     src = open(path).read().split('\n')
     new = mutate(src[int(ln)-1], int(col), kind)
@@ -49,7 +61,7 @@ for raw in open(log):
     open(path, 'w').write('\n'.join(src))
     try:
         r = subprocess.run(['go', 'test', '-exec', os.path.join(root, 'bin/testdb') + ' exec', './internal/battle',
-                            '-run', run, '-count=1', '-timeout', '10m'], cwd=root, env=env,
+                            '-run', run, '-count=1', '-failfast', '-timeout', '10m'], cwd=root, env=env,
                            capture_output=True, text=True)
         out = r.stdout + r.stderr
         if r.returncode == 0:

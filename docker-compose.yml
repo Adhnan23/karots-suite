@@ -4,14 +4,16 @@ services:
     container_name: suite_db
     # Go test packages run side by side, each on its own database copy (scripts/testdb),
     # and Playwright runs several servers: more connections than the default 100.
-    command: ["postgres", "-c", "max_connections=400", "-c", "shared_buffers=512MB"]
+    # synchronous_commit=off: tests make thousands of commits; a crash loses the last second, never corrupts.
+    command: ["postgres", "-c", "max_connections=400", "-c", "shared_buffers=512MB", "-c", "synchronous_commit=off"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: suite_db
       POSTGRES_USER: suite_user
       POSTGRES_PASSWORD: suite_password
     ports: ["5433:5432"]
-    volumes: [suite_pg:/var/lib/postgresql/data]
+    # SUITE_PG_DATA (.env) puts the data on a faster disk, e.g. an NVMe folder; default = the named volume.
+    volumes: ["${SUITE_PG_DATA:-suite_pg}:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U suite_user -d suite_db"]
       interval: 5s
