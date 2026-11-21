@@ -157,7 +157,9 @@ func TestCLR2_Refusals(t *testing.T) { // compares every table: runs alone
 		{"no product", func() error { return approve(s, 999999, "10") }},
 		{"a service", func() error { return approve(s, svc, "10") }},
 		{"a disabled product", func() error { return approve(s, off, "10") }},
-		{"bad id", func() error { return s.Admin.Do("POST", "/api/v1/x/clearance/abc/approve", map[string]string{"percent": "10"}, nil) }},
+		{"bad id", func() error {
+			return s.Admin.Do("POST", "/api/v1/x/clearance/abc/approve", map[string]string{"percent": "10"}, nil)
+		}},
 		{"snooze no product", func() error { return s.Admin.Do("POST", "/api/v1/x/clearance/999999/snooze", nil, nil) }},
 		{"cashier approves", func() error {
 			return s.Cashier.Do("POST", fmt.Sprintf("/api/v1/x/clearance/%d/approve", p), map[string]string{"percent": "10"}, nil)
@@ -165,7 +167,9 @@ func TestCLR2_Refusals(t *testing.T) { // compares every table: runs alone
 		{"settings 0 days", func() error { return settings(s, 0, "20", "5") }},
 		{"settings 100 %", func() error { return settings(s, 60, "100", "5") }},
 		{"settings -1 margin", func() error { return settings(s, 60, "20", "-1") }},
-		{"disable none", func() error { return s.Admin.Do("POST", "/api/v1/x/clearance/disable", map[string]any{"productIds": []int64{}}, nil) }},
+		{"disable none", func() error {
+			return s.Admin.Do("POST", "/api/v1/x/clearance/disable", map[string]any{"productIds": []int64{}}, nil)
+		}},
 	} {
 		if err := c.do(); err == nil {
 			t.Errorf("PLG-5 %s: accepted", c.name)
@@ -344,7 +348,9 @@ func TestPLG4_Sweep(t *testing.T) { // compares every table: runs alone
 	s.Sweep(t, "snooze", nil, func() error { return s.Admin.Do("POST", fmt.Sprintf("/api/v1/x/clearance/%d/snooze", p), nil, nil) })
 	s.Sweep(t, "settings", nil, func() error { return settings(s.Shop, 30, "15", "5") })
 	s.Sweep(t, "disable", func() { s.DB.MustExec(`UPDATE products SET is_active = true WHERE id = $1`, dead) },
-		func() error { return s.Admin.Do("POST", "/api/v1/x/clearance/disable", map[string]any{"productIds": []int64{dead}}, nil) })
+		func() error {
+			return s.Admin.Do("POST", "/api/v1/x/clearance/disable", map[string]any{"productIds": []int64{dead}}, nil)
+		})
 }
 
 // PLG-7: the data group holds every table.

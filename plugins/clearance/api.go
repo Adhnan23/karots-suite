@@ -171,7 +171,9 @@ func (h handlers) approve(c echo.Context) error {
 }
 
 func (h handlers) snooze(c echo.Context) error {
-	return h.byProduct(c, "snoozed", func(pid int64) error { return h.p.store.Snooze(c.Request().Context(), pid, middleware.CurrentUserID(c)) })
+	return h.byProduct(c, "snoozed", func(pid int64) error {
+		return h.p.store.Snooze(c.Request().Context(), pid, middleware.CurrentUserID(c))
+	})
 }
 
 func (h handlers) unsnooze(c echo.Context) error {
