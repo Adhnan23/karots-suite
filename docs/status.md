@@ -177,7 +177,7 @@ for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Full 
 Go's coverage run and passed alone. Coverage map updated: core Go 79.9% (was 77.8%), the money packages 88.9% (was
 81.8% — supplier returns 94.1, drawer 93.2, money moves 92.2, selling 92.0, purchases 90.6), screens 59.2%.
 **Core coverage push done. Next: plugins, simplest first (another session).**
-**Plugins group 1, 2026-11-21 (pick up here: plan `docs/plans/2026-11-21-plugins-group1.md`, Task 7 rest + Task 8):**
+**Plugins group 1 closed 2026-11-21** (clearance, requests, Product Plus, Alternatives, AI Assistant; plan in git history):
 rule book `docs/rules/plugins/` (PLG + CLR / REQ / PPF / ALT / AIC); harness in `ltest` (plugin checks via
 `ledgercheck.Add`, template named by plugin migrations too, one shop per test binary — plugin hooks are
 process-wide — so battle tests live in `plugins/<key>/battle/`). Found and fixed: clearance marked down products
@@ -186,8 +186,20 @@ Make product sent 8× at once made 4 products, an ask during a merge was lost, a
 (requests); number fields took NaN/Inf/hex, Fill in stored values for missing products (Product Plus); hand splits
 now rescale to 100 (ALT-5, user's answer); saved changes answered as errors (Product Plus, Alternatives); the AI
 Assistant's job could apply with no undo after a failure — new core seam `appdb.InTx` (user's choice): Product Plus,
-Alternatives and Pharmacy stores join a caller's transaction. Not done: AIC-7 best-seller combos (test written,
-skipped), mutation, full run, docs, coverage map rows.
+Alternatives and Pharmacy stores join a caller's transaction. Then: Suggest combos sends the 200 best sellers of 90
+days topped up with the newest (AIC-7, user's answer; it sent the 50 oldest, so a new product never got an idea —
+also what made `plugin-aicatalog.spec.ts:278` fail); the failure sweep covers the groups and setup jobs and found
+the groups job reading three statements per group the shop keeps (now one query). **Mutation:** gremlins' mutants
+of each plugin replayed against its own and battle tests (`scripts/replay-mutants.py` takes `TESTPKG` and a
+`--dry-run` log — a plugin package's own tests reach little), 9 side by side on the NVMe (~2 h, the AI Assistant's
+892 most of it): 954 of 1,138 caught; every survivor read, tests added where real (field moves, sheet export, type
+changes rewriting values, a manual split's offer, the product form's tier, the AI client, clean-up filters and parts,
+hints, AI-on mode, limits); what lives is prompt wording (an empty section header), sort ties, batch-size defaults and
+equivalents. Full run with coverage: Go, Vitest (1,218) and check-core green; Playwright 264 passed, admin-reports
+timed out beside Go's coverage run and passed alone. Coverage map has a Plugins table (reached: clearance 92.1%,
+requests 93.9%, Product Plus 93.5%, Alternatives 89.3%, AI Assistant 88.6%); Go total with plugins 80.0%. Left:
+the AI Assistant's tests take ~36 s a run (most of the replay's time — worth a look before group 2).
+**Next: group 2 — combos, documents, pharmacy (another session).**
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
