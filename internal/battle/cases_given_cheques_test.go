@@ -86,6 +86,37 @@ func TestCHQ3GivenChequeBounces(t *testing.T) {
 	s.audit(t)
 }
 
+// CHQ-3: one payment by two cheques over two bills, both bounce: the first
+// reopens the newest bill only, the second skips it (already reopened) and
+// reopens the older — never a bill past what the payment put on it.
+func TestCHQ3TwoChequesOnePaymentBounce(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	bank := s.locker(t, "Bank", "bank", "10000")
+	sup := s.newSup(t, "Two Cheques Ltd", "")
+	b1 := s.mustDeliver(t, sup, []sl{{"productId": s.prod["plain"], "quantity": "1", "costPrice": "150"}}, nil)
+	b2 := s.mustDeliver(t, sup, []sl{{"productId": s.prod["plain"], "quantity": "1", "costPrice": "150"}}, nil)
+	today := time.Now().Format("2006-01-02")
+	s.must(t, s.admin.Do("POST", supPath(sup, "payment"), map[string]any{"amount": "300", "method": "cheque", "cheques": []map[string]any{
+		{"lockerId": bank, "number": "715001", "amount": "150", "date": today},
+		{"lockerId": bank, "number": "715002", "amount": "150", "date": today}}}, nil))
+	eq(t, "b1 paid", s.bill(t, b1).Paid, "150")
+	eq(t, "b2 paid", s.bill(t, b2).Paid, "150")
+	var c1, c2 int64
+	s.must(t, s.db.Get(&c1, `SELECT id FROM cheques WHERE number = '715001'`))
+	s.must(t, s.db.Get(&c2, `SELECT id FROM cheques WHERE number = '715002'`))
+	s.must(t, s.admin.Do("POST", s.chequeTo(c1, "return"), map[string]string{"status": "bounced"}, nil))
+	eq(t, "b1 after one bounce", s.bill(t, b1).Paid, "150")
+	eq(t, "b2 after one bounce", s.bill(t, b2).Paid, "0")
+	s.must(t, s.admin.Do("POST", s.chequeTo(c2, "return"), map[string]string{"status": "bounced"}, nil))
+	eq(t, "b1 after both bounce", s.bill(t, b1).Paid, "0")
+	eq(t, "b2 after both bounce", s.bill(t, b2).Paid, "0")
+	if got := s.supBal(t, sup); got != "300.00" {
+		t.Errorf("owed %s after both bounce, want 300.00", got)
+	}
+	s.audit(t)
+}
+
 // CHQ-4: what a bounced cheque didn't put on bills is no advance — it never
 // pays a later bill.
 func TestCHQ4BouncedAdvanceNeverPays(t *testing.T) {

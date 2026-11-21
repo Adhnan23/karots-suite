@@ -333,3 +333,41 @@ func TestSUP10StatementAndOwing(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// PUR-9: the shop's own lot whose cost box was left blank goes back at the
+// product's cost (as a write-off does, STK-7), not Rs 0.
+func TestPUR9BlankCostOwnLotAtProductCost(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	sup := s.newSup(t, "Blank Back Ltd", "")
+	p := s.stocked(t, "Blank-cost torches", s.unitPcs, 0, nil) // product cost 10
+	s.addLot(t, p, "5", "10", "")
+	lot := s.lots(t, p)[0].ID
+	s.db.MustExec(`UPDATE stock_batches SET cost_price = 0 WHERE id = $1`, lot)
+	s.must(t, s.sendBack(t, sup, 0, map[string]any{"productId": p, "quantity": "2", "batchId": lot}))
+	var total decimal.Decimal
+	s.must(t, s.db.Get(&total, `SELECT total FROM purchase_returns WHERE supplier_id = $1`, sup))
+	eq(t, "debit note for 2 blank-cost units", total, "20")
+	if got := s.supBal(t, sup); got != "-20.00" {
+		t.Errorf("supplier balance %s, want -20.00 (the shop's credit)", got)
+	}
+	s.audit(t)
+}
+
+// PUR-10: a delivery where nothing cost anything (all free goods) sent back
+// whole credits nothing.
+func TestPUR10AllFreeDeliveryBackCreditsNothing(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	sup := s.newSup(t, "Free Goods Ltd", "")
+	got := s.mustDeliver(t, sup, []sl{{"productId": s.prod["plain"], "quantity": "4", "costPrice": "0"}}, nil)
+	lot, _, _ := s.lotOf(t, got, s.prod["plain"])
+	s.must(t, s.sendBack(t, sup, got, map[string]any{"productId": s.prod["plain"], "quantity": "4", "batchId": lot}))
+	var total decimal.Decimal
+	s.must(t, s.db.Get(&total, `SELECT total FROM purchase_returns WHERE supplier_id = $1`, sup))
+	eq(t, "debit note for free goods", total, "0")
+	if b := s.supBal(t, sup); b != "0.00" {
+		t.Errorf("supplier balance %s, want 0.00", b)
+	}
+	s.audit(t)
+}
