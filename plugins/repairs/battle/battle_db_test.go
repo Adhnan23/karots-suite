@@ -388,3 +388,31 @@ func TestREP8_TwoJobsOneSale(t *testing.T) {
 	}
 	s.Audit(t)
 }
+
+// REP-3, REP-5: a re-repair opens only from a collected job in warranty; its bill
+// is free and it has no warranty of its own.
+func TestREP5_FreeRerepair(t *testing.T) {
+	t.Parallel()
+	s := ltest.Shared(t).Shop
+	openTill(t, s)
+	j := job(t, s, 30)
+	part(t, s, j.ID)
+	labour(t, s, j.ID, "900")
+	collect(t, s, j.ID)
+	var re repairs.JobDTO
+	s.Must(t, s.Cashier.Do("POST", fmt.Sprintf("/api/v1/x/repairs/jobs/%d/rework", j.ID), nil, &re))
+	part(t, s, re.ID)
+	labour(t, s, re.ID, "900")
+	b, items := billLines(t, s, re.ID)
+	if !b.Free || b.OnAccount != "0.00" {
+		t.Errorf("REP-3: re-repair bill %+v; want free, nothing on account", b)
+	}
+	r, err := pickup(t, s, b.CustomerID, items, map[string]any{"method": "cash", "amount": "0"})
+	s.Must(t, err)
+	var total string
+	s.Must(t, s.DB.Get(&total, `SELECT total::numeric(14,2)::text FROM sales WHERE id = $1`, r.ID))
+	if g := get(t, s, re.ID); total != "0.00" || g.Status != "collected" || g.WarrantyUntil != "" || g.ReworkOf == nil || *g.ReworkOf != j.ID {
+		t.Errorf("REP-5: re-repair sale %s, job %+v", total, g.RowDTO)
+	}
+	s.Audit(t)
+}
