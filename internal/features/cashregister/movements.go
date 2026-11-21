@@ -27,13 +27,13 @@ import (
 // Withdraw records cash taken out of the drawer mid-shift (e.g. banked, paid to
 // a supplier). Stored as a negative movement so it lowers expected cash.
 // untrackedCashOutAllowed reports whether a till may move cash OUT of the drawer
-// without naming a locker (the money leg then goes to External — untracked). Reads
-// the shop policy directly; fails OPEN on a read error so a transient settings
-// hiccup can never block a money move. Cash-IN (open / deposit) never consults it.
+// without naming a locker (the money leg then goes to External — untracked). A
+// setting that can't be read counts as off: cash never leaves untracked by
+// accident (DRAW-12). Cash-IN (open / deposit) never consults it.
 func (s *Service) untrackedCashOutAllowed(ctx context.Context) bool {
 	var allow bool
 	if err := s.db.GetContext(ctx, &allow, `SELECT allow_untracked_cash FROM settings WHERE id = 1`); err != nil {
-		return true
+		return false
 	}
 	return allow
 }

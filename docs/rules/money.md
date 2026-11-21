@@ -96,7 +96,7 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
 - **DRAW-11** After a close that banked the cash the drawer starts empty: "continue with the last count" is not
   offered. An empty drawer opens and closes at zero. *Found in: d41bccc, 7dd16d2, e320d05. example.*
 - **DRAW-12** With "untracked cash" off, cash leaving a till (withdraw, close with cash in it) must name a locker.
-  *example.*
+  If the setting can't be read, it counts as off: the cash out is refused, never let through. *User, 2026-11-21. example.*
 - **DRAW-13** A till holds only cash: its float, deposits, withdrawals and close use a till or a cash locker, never a
   bank, card-machine account or Cheques in hand; the till's default locker is a cash locker. *Found in: fcf6aa2,
   f9341c1, 6382df9. example.*
