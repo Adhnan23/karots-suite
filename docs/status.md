@@ -228,7 +228,11 @@ Alternatives (user: pharmacies need generic names, and they group medicines).
 → supplier X": a product with no preferred supplier of its own (`products.preferred_supplier_id`) is ordered from the
 rule's supplier (Reorder, purchase orders, a GRN's suggested supplier); its own supplier always wins. Needs a generic
 core seam (a fallback supplier for products that have none, asked by reorder / purchasing) so core never names
-Product Plus; open: two rules matching one product, and whether the first delivery still fills in the product's own.
+Product Plus. User's answers: two rules matching one product → it shows under both suppliers, with a warning; the first
+delivery still fills in the product's own supplier (that supplier has it too; skippable). Why: at Iman most suppliers
+were typed product by product — a brand per product and a supplier per brand is far less work. When a brand changes
+supplier: change the rule once; to be designed — offer to move products whose own supplier is the old one too (else
+the first-delivery fill-in keeps them on it), besides the existing move-products-to-a-supplier.
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
