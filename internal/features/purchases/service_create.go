@@ -197,6 +197,9 @@ func insertDraftLines(ctx context.Context, repo *Repository, purchaseID int64, l
 		oq := ln.Quantity
 		ln.OrderedQty = &oq
 		if err := repo.InsertItem(ctx, purchaseID, ln); err != nil {
+			if ae, ok := apperr.As(err); ok {
+				return ae
+			}
 			return apperr.Internal("failed to save draft line", err)
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"context"
 	"time"
 
+	"karots-suite/internal/apperr"
 	"karots-suite/internal/db"
 
 	"github.com/shopspring/decimal"
@@ -111,6 +112,9 @@ func (r *Repository) InsertItemReturningID(ctx context.Context, purchaseID int64
 		INSERT INTO purchase_items (purchase_id, product_id, quantity, free_qty, ordered_qty, cost_price, selling_price, expiry_date, discount, discount_type, discount_value, subtotal)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
 		purchaseID, it.ProductID, it.Quantity, it.FreeQty, it.OrderedQty, it.CostPrice, it.SellingPrice, it.ExpiryDate, it.Discount, it.DiscountType, it.DiscountValue, it.Subtotal)
+	if db.IsForeignKeyViolation(err, "purchase_items_product_id_fkey") { // merged away since it was picked
+		return 0, apperr.Validation("a product on this list no longer exists — pick it again")
+	}
 	return id, err
 }
 

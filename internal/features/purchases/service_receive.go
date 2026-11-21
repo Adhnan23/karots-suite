@@ -61,6 +61,9 @@ func applyReceivedLines(ctx context.Context, repo *Repository, stk *stock.Reposi
 		ln.PurchaseID = purchaseID
 		itemID, err := repo.InsertItemReturningID(ctx, purchaseID, ln)
 		if err != nil {
+			if ae, ok := apperr.As(err); ok {
+				return ae
+			}
 			return apperr.Internal("failed to save purchase item", err)
 		}
 		// Free bonus units physically arrive, so stock, the batch, and the
