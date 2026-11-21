@@ -165,8 +165,15 @@ a negative opening / closing cash (a negative note count reads as none); a bill 
 found"). Of the 112 uncovered refusals in money / stock code (fresh coverage run, Go 77.9%), 26 are now reached; the
 other 86 are almost all guards behind a check the handler makes first, plus recovery undo's old-data conflicts (rows
 from before migration 00040) and lots / tickets by a wrong id; disabling or bringing back a supplier that doesn't exist
-is a harmless no-op (204). **Next:** the ~120 small branches (`go tool cover` on the newest
-`~/.cache/karots-logs/full-*/go.cover`), then the coverage map, then plugins (another session). **Speed (user,
+is a harmless no-op (204). **Small branches (2026-11-21):** 171 read; the money ones got cases — two cheques
+of one payment bouncing in turn (CHQ-3), a blank-cost own lot sent back at the product's cost (PUR-9), an all-free
+delivery sent back credits nothing (PUR-10), a lot's price through a price change "applied to stock on hand" (SALE-5,
+never tested ticked before), a new supplier from a sheet carries its opening once (SUP-2); the whole-sale return path
+nothing called was dropped (`48c4c576`). The rest are guards (settle's loops stop at the top first; a picked lot
+can't be short while its product isn't — a live sale refuses a short pick, a Review sale drops it), list filters /
+limits Playwright reaches (Go-only coverage doesn't count them), and old-data paths (a negative supplier opening). Left
+for the plugin pass: `pocketcashier/listener.go` `publicCert` is unused. **Next:** a full run with coverage
+(`COVER=1 make test-all`) and the coverage map, then plugins (another session). **Speed (user,
 2026-11-21):** test Postgres and the Go cache live on the NVMe, `synchronous_commit=off`; replays run 9 shards side
 by side (`scripts/replay-mutants.py … i/n`, `SKIP=` resumes) — stock replay ~80 min → ~10; `make test-all` 688 s →
 ~490 s. Full runs still show the known Playwright flakes (`till.spec` open with a float, sometimes `admin-money`,
