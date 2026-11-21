@@ -211,3 +211,21 @@ func TestSTK15NoMergingARecalledLot(t *testing.T) {
 	}
 	s.audit(t)
 }
+
+// STK-7: a write-off from a named lot whose cost box was left blank is worth the
+// product's cost, not Rs 0 (a sale has its own rescue; the write-off leans on the lot's).
+func TestSTK7_NamedZeroCostLotWriteOffAtProductCost(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	p := s.stocked(t, "Blank-cost bulbs", s.unitPcs, 0, nil) // product cost 10
+	s.addLot(t, p, "5", "10", "")
+	lot := s.lots(t, p)[0].ID
+	s.db.MustExec(`UPDATE stock_batches SET cost_price = 0 WHERE id = $1`, lot)
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/damage", map[string]any{"productId": p, "quantity": "2", "reason": "damage", "batchId": lot}, nil))
+	var worth string
+	s.must(t, s.db.Get(&worth, `SELECT cost FROM stock_movements WHERE product_id = $1 AND type = 'damage'`, p))
+	if !dec(t, worth).Equal(dec(t, "20")) {
+		t.Errorf("STK-7 2 written off a blank-cost lot are worth %s, want 2 × the product's 10", worth)
+	}
+	s.audit(t)
+}

@@ -195,6 +195,11 @@ func TestRPT9_StockOnTheBooksIsNotProfit(t *testing.T) {
 		t.Fatal(err)
 	}
 	s.addLot(t, s.prod["plain"], "30", "12", "") // + Add batch, no bill, on a product that has stock already
+	// An opening quantity for a product that has stock already (a sheet imported again) is on the books too.
+	if _, err := stock.NewRepository(s.db).AddStock(t.Context(), stock.AddStockInput{ProductID: s.prod["plain"], Qty: "5", Cost: "12",
+		Source: "opening", Note: "CSV import opening stock"}, s.userID(t, "0770000001")); err != nil {
+		t.Fatal(err)
+	}
 	// A never-stocked product's first lot entered on the stock-take screen is its opening stock too (Q5).
 	fresh := s.stocked(t, "Battle first lot", s.unitPcs, 0, nil)
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/take", map[string]any{"lines": []map[string]any{{"productId": fresh,
@@ -206,6 +211,12 @@ func TestRPT9_StockOnTheBooksIsNotProfit(t *testing.T) {
 	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/adjust", map[string]any{"productId": sheet, "newQuantity": "42", "note": "count"}, nil))
 	if c := corrections(); !c.Equal(dec(t, "-20")) {
 		t.Errorf("RPT-9 a later count of +2: corrections %s, want -20", c)
+	}
+	// A count that finds a new lot of a product already on the shelves is found stock too: 3 × its cost 30 = −90.
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/stock/take", map[string]any{"lines": []map[string]any{{"productId": s.prod["plain"],
+		"newBatches": []map[string]string{{"qty": "3", "cost": "30"}}}}}, nil))
+	if c := corrections(); !c.Equal(dec(t, "-110")) {
+		t.Errorf("RPT-9 a count that finds a new lot of 3 at 30: corrections %s, want -110", c)
 	}
 	s.agreeToday(t)
 }
