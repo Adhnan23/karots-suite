@@ -126,3 +126,45 @@ func TestAPIDisableAndSettings(t *testing.T) {
 }
 
 func mustJSON(v any) string { b, _ := json.Marshal(v); return string(b) }
+
+// The expiry window includes its last day, and a lot expiring today says so.
+func TestAPIExpiryEdges(t *testing.T) {
+	_, db, today := testStore(t, "4")
+	_, _, edge := testStore(t, "4")
+	do := testAPI(t, db)
+	var page PageDTO
+	json.Unmarshal(do("GET", "", "").Body.Bytes(), &page) //nolint:errcheck
+	mustExec(t, db, nil, `INSERT INTO stock_batches (product_id, qty_received, qty_remaining, cost_price, expiry_date)
+		VALUES ($1, 2, 2, 10, CURRENT_DATE), ($2, 2, 2, 10, CURRENT_DATE + $3::int)`, today, edge, page.Settings.ExpiryDays)
+	if r, _ := findRow(t, do, today); r.Reason != "expiring" || r.ReasonLabel != "expires today" {
+		t.Errorf("a lot expiring today: %+v", r)
+	}
+	if r, _ := findRow(t, do, edge); r.Reason != "expiring" {
+		t.Errorf("a lot expiring on the window's last day (%d days): %+v", page.Settings.ExpiryDays, r)
+	}
+}
+
+// Settings take 1 day / month; Disable takes up to 500 products and no more.
+func TestAPILimits(t *testing.T) {
+	_, db, _ := testStore(t, "0")
+	do := testAPI(t, db)
+	var before PageDTO
+	json.Unmarshal(do("GET", "", "").Body.Bytes(), &before) //nolint:errcheck
+	defer do("PUT", "/settings", mustJSON(before.Settings))
+	if rec := do("PUT", "/settings", `{"staleDays":1,"defaultPercent":"20","minMarginPercent":"5","expiryDays":1,"deadMonths":1}`); rec.Code != 200 {
+		t.Errorf("1 day / month refused: %d %s", rec.Code, rec.Body)
+	}
+	ids := func(n int) string {
+		s := make([]string, n)
+		for i := range s {
+			s[i] = strconv.Itoa(900000000 + i)
+		}
+		return `{"productIds":[` + strings.Join(s, ",") + `]}`
+	}
+	if rec := do("POST", "/disable", ids(500)); rec.Code != 200 {
+		t.Errorf("500 products refused: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do("POST", "/disable", ids(501)); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("501 products: %d", rec.Code)
+	}
+}

@@ -248,12 +248,8 @@ type markdown struct {
 	Value decimal.Decimal
 }
 
-func (m markdown) label() string {
-	if m.Type == "percent" {
-		return "Clearance -" + m.Value.String() + "%"
-	}
-	return "Clearance -" + m.Value.String()
-}
+// label: every markdown is a percent (Approve writes only those; the auditor checks it).
+func (m markdown) label() string { return "Clearance -" + m.Value.String() + "%" }
 
 // live returns the markdowns that still apply for the given products.
 func (s *Store) live(ctx context.Context, ids []int64) (map[int64]markdown, error) {
