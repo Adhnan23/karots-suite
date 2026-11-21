@@ -42,8 +42,7 @@ Pharmacy and Alternatives, so it goes after them and its tests compile them in, 
 ### Task 5: Product Plus — [x] NaN/Inf/hex numbers, Fill in for missing products, 404s, saved field answered
 ### Task 6: Alternatives — [x] ALT-5 rescale built, saved change answered, loose-versions spec fixed
 ### Task 7: AI Assistant — [~] seam (appdb.InTx) + one-tx apply / undo, category date on undo. LEFT:
-- [ ] AIC-7: build best sellers for Suggest combos (`combo_suggest.go` / `selectProducts`), un-skip
-  `TestAIC7_CombosSendBestSellers`, then fix the `plugin-aicatalog.spec.ts:278` spec.
+- [x] AIC-7: best sellers (90 days, then newest; the 50 batch cap no longer trims the 200), spec :278 passes
 - [ ] Sweep groups job and setup job too (grouper / SavePack under the joined tx).
 ### Task 8: closing — [ ] `make mutate` (gremlins) on the five packages; docs: guide pages for CLR-6 (skipped
 count) and ALT-5 (rescale); full run with coverage (`scripts/full-run.sh`); coverage map Plugins rows; status;

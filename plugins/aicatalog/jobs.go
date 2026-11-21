@@ -116,6 +116,7 @@ type JobRequest struct {
 	exclude     []int64 // never these (a job's own rule)
 	needDetails bool    // only products a prompt could judge: a digit in the name, or a hint
 	byName      bool    // alphabetical, so similar names land in one batch
+	bestSellers bool    // most sold in the last 90 days first, then the newest (AIC-7)
 	wide        bool    // whatever the job's record says
 	noCap       bool    // every match: the job narrows them itself
 	noHint      bool    // only products with no hint yet
@@ -242,7 +243,9 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	if size <= 0 {
 		size = jobBatchDefault
 	}
-	size = min(size, jobBatchMax)
+	if !in.bestSellers { // combos send a whole list at once, not a batch
+		size = min(size, jobBatchMax)
+	}
 	if len(in.IDs) > 0 {
 		size = jobBatchMax
 	}
@@ -252,6 +255,10 @@ func selectProducts(ctx context.Context, p *Plugin, job string, in JobRequest) (
 	order := "p.id"
 	if in.byName {
 		order = "lower(p.name), p.id"
+	}
+	if in.bestSellers {
+		order = `(SELECT COALESCE(SUM(si.quantity - si.returned_qty), 0) FROM sale_items si JOIN sales s ON s.id = si.sale_id
+			WHERE si.product_id = p.id AND s.status <> 'void' AND s.created_at > now() - interval '90 days') DESC, p.id DESC`
 	}
 	var rows []JobProduct
 	err := p.store.db.SelectContext(ctx, &rows, `SELECT p.id, p.name, p.category_id,

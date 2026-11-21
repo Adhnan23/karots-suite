@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -269,7 +270,6 @@ func TestAIC6_MalformedAnswer(t *testing.T) {
 // AIC-7: Suggest combos sends the best sellers, so a new product that sells is in
 // even when the shop already has 200 older ones.
 func TestAIC7_CombosSendBestSellers(t *testing.T) {
-	t.Skip("AIC-7 (user's answer 2026-11-21) not built yet: fails today (the 200 oldest are sent) — next session builds it")
 	t.Parallel()
 	s := ltest.Shared(t).Shop
 	for i := range 205 {
@@ -286,10 +286,13 @@ func TestAIC7_CombosSendBestSellers(t *testing.T) {
 	if !strings.Contains(r.Prompt, fmt.Sprintf("%d|AI hot seller", hot)) {
 		t.Errorf("AIC-7: the best seller isn't in the combos prompt")
 	}
-	if n := strings.Count(r.Prompt, "\n") - strings.Count(strings.SplitN(r.Prompt, "PRODUCTS", 2)[0], "\n"); n > 260 {
-		t.Errorf("AIC-7: the prompt lists about %d lines, want at most 200 products", n)
+	lines := len(regexp.MustCompile(`(?m)^\d+\|`).FindAllString(r.Prompt, -1))
+	if lines != 200 {
+		t.Errorf("AIC-7: the prompt lists %d products, want 200", lines)
 	}
-	_ = cold
+	if !strings.Contains(r.Prompt, fmt.Sprintf("%d|AI never sold", cold)) {
+		t.Errorf("AIC-7: the newest product isn't topping up the list")
+	}
 }
 
 // AIC-8: the API key is never sent back to a screen, and a backup marks it secret.

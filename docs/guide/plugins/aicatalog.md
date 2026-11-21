@@ -24,7 +24,7 @@ A hint comes from a chatbot, so confirm it before relying on it. Two chatbots ca
 | **Fill in details** | [Product Plus](productplus.md) is in the build | Your own fields, only the ones you tick, per category, reusing the values you already use. Don't tick something only your shop can know, like a rack number |
 | **Prescription and controlled marks** | [Pharmacy](pharmacy.md) is in the build | Which medicines need a prescription or go on the register. Every mark starts unticked. **No suggestion doesn't mean cleared**, so the pharmacist still checks the list |
 | **Usual dose** | [Pharmacy](pharmacy.md) is in the build | A dose in your dose list's own wording. The pharmacist approves one at a time, and it never replaces a dose already set |
-| **Combo suggestions** | [Combos](combos.md) is in the build | Products that go together, from **Suggest combos** on the Combos page. It opens the normal combo form: you set the price and save |
+| **Combo suggestions** | [Combos](combos.md) is in the build | Products that go together, from **Suggest combos** on the Combos page (the 200 best sellers of the last 90 days, topped up with the newest). It opens the normal combo form: you set the price and save |
 
 A product leaves a job's list once it's been answered, so a long list keeps moving, and each step says where it stands: "Batch 2 of 6: products 6–10 of 27". Leave halfway and **Continue** carries on with the rest next time. **Skipped or no answer** brings back the ones you left, **Redo a product** shows the old and new side by side, and **Redo everything** does that for the whole list. If the chatbot isn't sure, the product simply has no suggestion.
 

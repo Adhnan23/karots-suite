@@ -41,7 +41,7 @@ func (h handlers) comboSuggest(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in.Size, in.wide, in.noCap = comboProductsMax, true, false
+	in.Size, in.wide, in.noCap, in.bestSellers = comboProductsMax, true, false, true
 	prods, _, err := selectProducts(ctx, h.p, "combos", in)
 	if err != nil {
 		return apperr.Internal("read the products", err)
