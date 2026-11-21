@@ -200,7 +200,24 @@ timed out beside Go's coverage run and passed alone. Coverage map has a Plugins 
 requests 93.9%, Product Plus 93.5%, Alternatives 89.3%, AI Assistant 88.6%); Go total with plugins 80.0%. The AI
 Assistant's tests took 36 s a run (each built a new database with every migration): now a template copy, 11 s (run
 one at a time — each test's Setup adds to core's process-wide hooks, so side by side they race).
-**Next: group 2 — combos, documents, pharmacy (another session).**
+**Plugins group 2 closed 2026-11-21** (Combos, Print & Copy, Pharmacy; plan in git history): rule book
+`docs/rules/plugins/` (CMB / DOC / PHA), checks in each plugin's `ledger.go`, battle tests in `plugins/<key>/battle/`.
+User's answers built: what a sale did for a plugin is written **in the sale** — combos' sold rows, Print & Copy's jobs
+and a pharmacy dispense (patient picked at the till) were after-sale calls, lost on a blip and taking the till's word;
+now the sale hook writes them from the sale's own lines (new core seam: a sale carries its plugins' own data, the
+till's sale meta, `SaleRequest.plugin` → `plugin.SaleLines.Data`; Pocket Cashier sends it too); the combo report
+takes returned sets off (migration combos 0004: a sold row names its lines); the till's combo / print prices are
+trusted like any line. Also found and fixed: a saved combo / print grid / extras list answered as failed when the
+read-back failed (PLG-6); a new print service left a stray product when its link failed; registering a patient kept
+the customer when the patient part failed (core's customer Create / Get join a caller's tx, `appdb.InTx`); a script
+naming a missing product was a 500; the dispense lock cast the sale id to int. **Mutation:** 442 of 471 caught (combos
+61/68, Print & Copy 129/151, Pharmacy 252/252); survivors read, tests added (a one-line combo, name limits, grid
+order…). Coverage map's Plugins rows: combos 91.9%, Print & Copy 91.8%, Pharmacy 85.0%; Go total with plugins 80.8%.
+Full run: Vitest 1,219 and check-core green; Go and Playwright green after fixing what this group broke (the Demo
+Room's generator and Pocket's offline patient); `admin-money` timed out beside Go's coverage run, passes alone.
+**Raised, not changed:** saving a product with a plugin's section (Pharmacy marks, Product Plus fields) is not one
+change — core saves the product first and says so if a plugin's part fails (`internal/api/product_extras.go`, by design).
+**Next: group 3 — repairs, recharge (another session).**
 **Plugin order (decided 2026-11-21, from each plugin's size, tables, hooks and what it moves):**
 1 clearance → 2 requests → 3 productplus → 4 alternatives (fix the failing `loose-versions` spec) → 5 aicatalog —
 product data only, no money or stock (lighter: merge hooks keep their rows, own data consistent, never touches money /
