@@ -144,10 +144,11 @@ func (h *handlers) AdminPurchaseReturnCreate(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	d, err := svc.Get(c.Request().Context(), made.Return.ID) // Create's row has no supplier name / date
-	if err != nil {
-		return err
+	// Create's row has no supplier name / date; the saved send-back is answered as
+	// done even if reading them back fails (PUR-14: else it's sent back twice).
+	if d, gerr := svc.Get(c.Request().Context(), made.Return.ID); gerr == nil {
+		made = d
 	}
-	h.audit(c, audit.ActionCreate, "purchase_return", strconv.FormatInt(d.Return.ID, 10), "returned "+money.Display(d.Return.Total)+" of stock to "+d.Return.SupplierName)
-	return c.JSON(http.StatusCreated, purchaseReturnRow(d.Return))
+	h.audit(c, audit.ActionCreate, "purchase_return", strconv.FormatInt(made.Return.ID, 10), "returned "+money.Display(made.Return.Total)+" of stock to "+made.Return.SupplierName)
+	return c.JSON(http.StatusCreated, purchaseReturnRow(made.Return))
 }

@@ -119,6 +119,9 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
   or cancelled cheques took back off it. *ledgercheck.*
 - **PUR-13** A bill's lines landed: its purchase movements add up to Σ its lines' paid + free units, and every line
   has its lot. *ledgercheck.*
+- **PUR-14** Goods sent back that were saved are answered as done: nothing read after the save can turn the send-back
+  into an error (it would be sent back twice, the supplier credited twice). A failure before the save changes
+  nothing. *Found by the failure sweep, 2026-11-21. sweep.*
 
 ### Supplier balance and money
 
