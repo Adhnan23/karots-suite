@@ -171,6 +171,17 @@ func (h handlers) sendGroup(c echo.Context, id int64) error {
 	return c.JSON(http.StatusOK, groupDTO(g))
 }
 
+// savedGroup answers a change already saved: the group as it is now, or — when
+// that read fails — just its id, so the screen (which reloads after every
+// change) never shows a saved change as failed and offers it again (PLG-6, as
+// DRAW-18).
+func (h handlers) savedGroup(c echo.Context, id int64) error {
+	if err := h.sendGroup(c, id); err != nil {
+		return c.JSON(http.StatusOK, GroupDTO{ID: id, Tiers: []TierDTO{}})
+	}
+	return nil
+}
+
 func (h handlers) group(c echo.Context) error {
 	id, err := param(c, "id")
 	if err != nil {
@@ -189,7 +200,7 @@ func (h handlers) createGroup(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "alt_group", id, "created group "+strings.TrimSpace(req.Name))
-	return h.sendGroup(c, id)
+	return h.savedGroup(c, id)
 }
 
 func (h handlers) renameGroup(c echo.Context) error {
@@ -205,7 +216,7 @@ func (h handlers) renameGroup(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionUpdate, "alt_group", id, "renamed group to "+strings.TrimSpace(req.Name))
-	return h.sendGroup(c, id)
+	return h.savedGroup(c, id)
 }
 
 func onOff(on bool) string {
@@ -257,7 +268,7 @@ func (h handlers) createTier(c echo.Context) error {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "alt_tier", tid, "added tier "+strings.TrimSpace(req.Name))
-	return h.sendGroup(c, gid)
+	return h.savedGroup(c, gid)
 }
 
 // tierEdit runs a change to one tier, audits it and answers with its group.
@@ -279,7 +290,7 @@ func (h handlers) tierEdit(c echo.Context, action, detail string, f func(tid int
 	if action == audit.ActionDelete {
 		return c.NoContent(http.StatusNoContent)
 	}
-	return h.sendGroup(c, t.GroupID)
+	return h.savedGroup(c, t.GroupID)
 }
 
 func (h handlers) updateSplit(c echo.Context) error {

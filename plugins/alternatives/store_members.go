@@ -6,7 +6,9 @@ import (
 	"errors"
 
 	"karots-suite/internal/apperr"
+	appdb "karots-suite/internal/db"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
@@ -68,14 +70,40 @@ func (s *Store) AddMember(ctx context.Context, tierID, productID int64, move boo
 			return false, apperr.ConflictCode("IN_OTHER_GROUP", "Already in "+m.Group)
 		}
 	}
-	_, err = s.db.ExecContext(ctx, `INSERT INTO alt_members (product_id, tier_id) VALUES ($1, $2)
-		ON CONFLICT (product_id) DO UPDATE SET tier_id = EXCLUDED.tier_id, split_share = NULL`, productID, tierID)
+	err = appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		old, err := tierOf(ctx, tx, productID)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO alt_members (product_id, tier_id) VALUES ($1, $2)
+			ON CONFLICT (product_id) DO UPDATE SET tier_id = EXCLUDED.tier_id, split_share = NULL`, productID, tierID); err != nil {
+			return err
+		}
+		if old != 0 && old != tierID { // ALT-5: the tier it left
+			return rescaleSplit(ctx, tx, old)
+		}
+		return nil
+	})
 	_, was := cur[productID]
 	return was, err
 }
 
+// RemoveMember takes a product out of its group; a hand split it leaves is
+// rescaled (ALT-5).
 func (s *Store) RemoveMember(ctx context.Context, productID int64) error {
-	return s.exec(ctx, "member", `DELETE FROM alt_members WHERE product_id = $1`, productID)
+	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error {
+		tier, err := tierOf(ctx, tx, productID)
+		if err != nil {
+			return err
+		}
+		if tier == 0 {
+			return apperr.NotFound("member")
+		}
+		if _, err := tx.ExecContext(ctx, `DELETE FROM alt_members WHERE product_id = $1`, productID); err != nil {
+			return err
+		}
+		return rescaleSplit(ctx, tx, tier)
+	})
 }
 
 // liveMembers is the active members of on tiers of on groups — the only ones

@@ -1,6 +1,7 @@
 package alternatives
 
 import (
+	"pgregory.net/rapid"
 	"slices"
 	"testing"
 )
@@ -58,4 +59,30 @@ func TestFasterBrand(t *testing.T) {
 	if _, ok := fasterBrand(manual, nil); ok {
 		t.Error("no sales")
 	}
+}
+
+// ALT-5: any order, any weights — the parts add up to the order exactly, none is
+// negative, and a zero weight gets nothing while some weight is above zero.
+func TestALT5_SplitAddsUp(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		total := rapid.IntRange(0, 5000).Draw(t, "total")
+		w := rapid.SliceOfN(rapid.Int64Range(0, 100), 1, 12).Draw(t, "weights")
+		parts := splitOrder(total, w)
+		sum, any := 0, false
+		for i, n := range parts {
+			sum += n
+			any = any || w[i] > 0
+			if n < 0 {
+				t.Fatalf("part %d is %d", i, n)
+			}
+		}
+		if sum != total {
+			t.Fatalf("parts %v add up to %d, want %d", parts, sum, total)
+		}
+		for i, n := range parts {
+			if any && w[i] == 0 && n != 0 {
+				t.Fatalf("weight 0 got %d of %v", n, parts)
+			}
+		}
+	})
 }
