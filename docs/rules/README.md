@@ -51,3 +51,6 @@ rebuilds the proofs and fails if the cases are stale.
 5. [Purchasing, supplier pay, supplier returns, cheques](purchasing.md) — area 5
 6. [Recovery and losses: warranty replacements, what a supplier makes good](recovery.md) — area 6
 7. [Reports and the Z report](reports.md) — area 7
+
+Plugins: [the plugin rule book](plugins/README.md) — rules every plugin keeps (PLG) and one file per plugin
+(group 1: `CLR` clearance, `REQ` requests, `PPF` Product Plus, `ALT` alternatives, `AIC` AI Assistant).

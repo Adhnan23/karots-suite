@@ -39,3 +39,10 @@ given back and tax owed).
 Q5 and Q6 (found later, 2026-11-20: stock put on the books read as profit) answered as suggested the same day: a
 product's first stock is its opening stock, and + Add batch with no bill is stock on the books — neither is profit
 (RPT-9).
+
+## Plugins, group 1 (product data)
+
+All three answered 2026-11-21 as suggested: Clearance's Disable skips products no longer dead (CLR-6); a hand split
+that loses a member is rescaled to whole percents adding up to 100 (ALT-5); Suggest combos sends the 200 best
+sellers of the last 90 days, topped up with the newest (AIC-7).
+
