@@ -122,8 +122,13 @@ func Steps(j *Job) []Step {
 	all := []Step{
 		{ID: "checks", Title: "Check this PC", Applies: always, Do: checks,
 			Detail: func(*Job) string { return "Make sure this PC can run Karots (admin rights, the port is free)" }},
-		{ID: "safety-backup", Title: "Back up the shop first", Applies: func(j *Job) bool { return j.server() && j.FromMode != "" && !j.pendingRestore }, Do: safetyBackup,
-			Detail: func(j *Job) string { return "Back up the shop to " + j.keepDir() + " before changing how it is kept" }},
+		{ID: "safety-backup", Title: "Back up the shop first", Applies: func(j *Job) bool { return j.server() && j.Updating && !j.pendingRestore }, Do: safetyBackup,
+			Detail: func(j *Job) string {
+				if j.FromMode == "" {
+					return "Back up the shop to " + j.keepDir() + " before updating Karots"
+				}
+				return "Back up the shop to " + j.keepDir() + " before changing how it is kept"
+			}},
 		{ID: "database", Title: "Database", Applies: (*Job).serverDB, Do: pick(linuxDatabase, windowsDatabase),
 			Detail: func(j *Job) string {
 				if j.Conf.DB.Local {

@@ -180,19 +180,26 @@ func stopTill(j *Job) error {
 	return fmt.Errorf("Karots is still running (port %d is in use) — close it, then Try again", j.Conf.Port)
 }
 
-// safetyBackup is a mode change's first step: stop the till and have the old
-// program back the shop up, before anything changes. The restore step brings
-// that backup back with the new program.
+// safetyBackup is an Update's first step: stop the till and have the old
+// program back the shop up, before anything changes (SET-3). After a mode
+// change the restore step brings that backup back with the new program.
 func safetyBackup(j *Job) error {
 	if err := stopTill(j); err != nil {
 		return err
 	}
 	j.note("Backing the shop up to " + j.keepDir())
-	path, err := programBackup(j, "before-move")
+	tag := "before-move"
+	if j.FromMode == "" { // a plain Update (SET-3): kept, nothing brought back
+		tag = "before-update"
+	}
+	path, err := programBackup(j, tag)
 	if err != nil {
 		return fmt.Errorf("couldn't back the shop up, so nothing was changed: %w", err)
 	}
 	fmt.Fprintf(j.Log, "backup: %s\n", path)
+	if j.FromMode == "" {
+		return nil
+	}
 	j.Restore = path
 	return savePending(j)
 }

@@ -194,6 +194,7 @@ func TestRestoreRetryKeepsRestoring(t *testing.T) {
 // backup waits for it (stopping again once) instead of failing the first time.
 func TestBackupWaitsForTheTillToLetGo(t *testing.T) {
 	j, rc := windowsJob(t, "file")
+	j.FromMode = "server" // a mode change's backup (a plain Update's waits the same way)
 	busy := 3
 	tillPortFree = func(int) bool { busy--; return busy < 0 }
 	rc.answers[`C:\karots-suite\karots-suite.exe -backup C:\Karots backups -tag before-move`] = "backup: C:\\Karots backups\\x.json.gz\r\n"
@@ -266,5 +267,56 @@ func TestAnswerLineKeepsTheEnd(t *testing.T) {
 	_, err := answerLine(out, errors.New("exit status 1"), "restored: ")
 	if err == nil || len(err.Error()) > 400 || !strings.HasSuffix(err.Error(), `pq: extension "pg_trgm" is not available (0A000)`) {
 		t.Fatalf("%d chars: %.200s…", len(err.Error()), err)
+	}
+}
+
+const beforeUpdateCmd = "runuser -u shop -- /opt/karots-suite/karots-suite -backup /home/shop/Karots backups -tag before-update"
+
+// SET-3: an Update backs the shop up with the program already there before
+// anything is replaced; if that backup fails, nothing is changed.
+func TestSET3_UpdateBacksUpFirst(t *testing.T) {
+	j, rc, r := linuxJob(t, "server", true)
+	j.Updating = true
+	os.MkdirAll(filepath.Join(r, "opt/karots-suite"), 0o755)
+	if got := strings.Join(ids(Steps(j)), " "); !strings.HasPrefix(got, "checks safety-backup database program") {
+		t.Fatalf("SET-3: steps %s", got)
+	}
+	rc.answers[beforeUpdateCmd] = "backup: /home/shop/Karots backups/al-raj-before-update.json.gz\n"
+	var steps []Step
+	for _, s := range Steps(j) {
+		if s.ID != "checks" && s.ID != "health" {
+			steps = append(steps, s)
+		}
+	}
+	if err := runSteps(j, steps, func(string, error) {}); err != nil {
+		t.Fatal(err)
+	}
+	backup, copied := indexOf(rc.cmds, beforeUpdateCmd), indexOf(rc.cmds, "chown -R shop:shop /opt/karots-suite")
+	if backup < 0 || backup > copied || indexOf(rc.cmds, "systemctl stop karots-suite") > backup {
+		t.Fatalf("SET-3: order stop %d backup %d copy %d:\n%s", indexOf(rc.cmds, "systemctl stop karots-suite"), backup, copied, rc.all())
+	}
+	if j.Restore != "" {
+		t.Fatalf("SET-3: an Update brings nothing back (restore %q)", j.Restore)
+	}
+
+	j2, rc2, r2 := linuxJob(t, "server", true)
+	j2.Updating = true
+	os.MkdirAll(filepath.Join(r2, "opt/karots-suite"), 0o755)
+	rc2.fail = map[string]error{beforeUpdateCmd: errors.New("exit status 1")}
+	pause := retryPause
+	retryPause = 0
+	defer func() { retryPause = pause }()
+	steps = steps[:0]
+	for _, s := range Steps(j2) {
+		if s.ID != "checks" && s.ID != "health" {
+			steps = append(steps, s)
+		}
+	}
+	err := runSteps(j2, steps, func(string, error) {})
+	if err == nil || !strings.Contains(err.Error(), "nothing was changed") {
+		t.Fatalf("SET-3: err %v", err)
+	}
+	if indexOf(rc2.cmds, "chown -R shop:shop /opt/karots-suite") >= 0 {
+		t.Fatal("SET-3: the program was replaced after the backup failed")
 	}
 }
