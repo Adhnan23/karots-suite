@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -167,6 +168,38 @@ func TestDRAW19_PhoneCashBookedAsMade(t *testing.T) { // turns a shop setting of
 	}
 	if n := count(t, s, `SELECT count(*) FROM cash_register WHERE user_id = $1 AND COALESCE(review_note, '') <> ''`, uid); n != 2 {
 		t.Errorf("DRAW-19: want both tills flagged, %d are", n)
+	}
+	s.Audit(t)
+}
+
+// PKT-4: every kind of action, sent two at once and then again, is done once and
+// every send gets the same answer.
+func TestPKT4_EveryKindAtOnceAndTwice(t *testing.T) {
+	t.Parallel()
+	s := ltest.Shared(t).Shop
+	for _, kc := range sweepKinds {
+		p := newPhone(t, s)
+		a := kc.setup(t, s, p)
+		var wg sync.WaitGroup
+		codes := make([]int, 2)
+		for i := range codes {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				codes[i], _ = p.call("POST", "/actions", pocketcashier.ActionsRequest{Actions: []pocketcashier.Action{a}})
+			}()
+		}
+		wg.Wait()
+		if codes[0] != http.StatusOK || codes[1] != http.StatusOK {
+			t.Fatalf("%s: sends answered %v", kc.name, codes)
+		}
+		r := p.send(t, a)
+		if len(r.Results) != 1 || (r.Results[0].Status != "applied" && r.Results[0].Status != "skipped") {
+			t.Errorf("PKT-4 %s: %+v", kc.name, r.Results)
+		}
+		if did := kc.did(t, s, a); did != 1 {
+			t.Errorf("PKT-4 %s: done %d times", kc.name, did)
+		}
 	}
 	s.Audit(t)
 }

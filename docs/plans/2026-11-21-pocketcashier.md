@@ -38,7 +38,9 @@ sending `/api/v1/x/pocketcashier/actions` with its key). New core seam for DRAW-
     and a repeat finding the claim says "may not have gone through — check" (cash settled, never booked); a call
     body with no `clientRef` gets the action's ref. Core: a failed account lookup is a 500, not "no longer active".
     Empty sends no longer listed on What came in.
-### Task 5: Faults — failure sweep over every action kind (done, `TestPKT5_FailureSweep`), at once, sent twice, failure after the route answered — [ ]
+### Task 5: Faults — failure sweep over every action kind, at once, sent twice, failure after the route answered — [x]
+  (`TestPKT5_FailureSweep` — a failure at the record statement is the one after the route answered;
+  `TestPKT4_EveryKindAtOnceAndTwice`, proved to fail without the phone lock; a lost claim race now waits instead of running)
 ### Task 6: Phone side (Vitest) — outbox order / ack, temp numbers, the till's cases through the phone's sale request (PKT-14) — [ ]
 ### Task 7: Mutation (gremlins replayed 9 side by side) — survivors read, tests added — [ ]
 ### Task 8: Docs (guide for changed behaviour), full run with coverage, coverage map Plugins row, status — [ ]

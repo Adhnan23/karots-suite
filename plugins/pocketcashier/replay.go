@@ -63,7 +63,9 @@ type phoneCtxKey struct{}
 
 // phoneLocks serialise each phone's sends, so two at once (a retry while the
 // first still applies) see each other's refs.
-// ponytail: in-process locks — one server per shop; sales.client_ref is unique in the DB as the backstop.
+// The lock tells a send still working from one that stopped (a claim found under it is
+// a stopped one); the claim row and sales.client_ref are the backstops in the database.
+// ponytail: in-process locks — one server per shop.
 var phoneLocks sync.Map
 
 func (h handlers) actions(c echo.Context) error {
@@ -199,9 +201,13 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 	}
 	claim := a.Kind != "sale" // a sale's own ref (sales.client_ref) already stops it booking twice
 	if claim {
-		if _, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,'running') ON CONFLICT (ref) DO NOTHING`, a.Ref, p.ID, s.id, a.Kind, uid, a.At, body); err != nil {
+		res, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,'running') ON CONFLICT (ref) DO NOTHING`, a.Ref, p.ID, s.id, a.Kind, uid, a.At, body)
+		if err != nil {
 			return ActionResult{}, apperr.Internal("failed to record what the phone did", err)
+		}
+		if n, _ := res.RowsAffected(); n == 0 { // another send has it: this one waits, and gets its answer next time
+			return ActionResult{Ref: a.Ref, Status: "retry"}, nil
 		}
 	}
 	r := h.run(ctx, p, a)
