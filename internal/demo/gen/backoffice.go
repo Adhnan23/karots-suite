@@ -1,12 +1,16 @@
 package gen
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/shopspring/decimal"
+
+	"karots-suite/internal/datetime"
 )
 
 // The back room: what goes wrong and gets put right — breakage and who pays for
@@ -178,18 +182,28 @@ func (g *gen) breakage(day time.Time) error {
 	return nil
 }
 
+type claimUnit struct {
+	ID      int64 `db:"id"`
+	Product int64 `db:"product_id"`
+}
+
+// claimableUnit picks the offset-th newest active unit sold before this batch that is covered both on the day being
+// built and today. History is written now and moved into the past, so warranty_until is already a past date while
+// the server judges cover by today (WAR-1): a unit covered only in the past would be refused.
+func claimableUnit(ctx context.Context, d *sqlx.DB, before, day time.Time, offset int) (claimUnit, error) {
+	var u claimUnit
+	err := d.GetContext(ctx, &u, `
+		SELECT id, product_id FROM warranty_units
+		WHERE status = 'active' AND created_at < $1 AND warranty_until > $2 AND warranty_until >= $4::date
+		ORDER BY id DESC OFFSET $3 LIMIT 1`, before, day, offset, datetime.Date(time.Now()))
+	return u, err
+}
+
 // warrantyClaim: a customer brings a faulty unit back under warranty; the
 // counter swaps it from stock, and the faulty one goes back to the supplier,
 // who replaces it (or, now and then, credits it) a week or two later.
 func (g *gen) warrantyClaim(day time.Time) error {
-	var u struct {
-		ID      int64 `db:"id"`
-		Product int64 `db:"product_id"`
-	}
-	err := g.d.DB.GetContext(g.ctx, &u, `
-		SELECT id, product_id FROM warranty_units
-		WHERE status = 'active' AND created_at < $1 AND warranty_until > $2
-		ORDER BY id DESC OFFSET $3 LIMIT 1`, g.tm.start, day, g.r.IntN(15))
+	u, err := claimableUnit(g.ctx, g.d.DB, g.tm.start, day, g.r.IntN(15))
 	if err != nil {
 		return nil // nothing sold under warranty long enough ago
 	}
