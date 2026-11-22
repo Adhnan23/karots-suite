@@ -52,8 +52,8 @@ shipped as **one static binary**.
 
 ## Rules and battle tests
 
-Core is proven area by area (spec `docs/specs/2026-11-18-core-battle-test-design.md`; areas listed in
-`docs/rules/README.md`; area 1 sales/returns done 2026-11-18). Each layer catches what the others miss:
+Core, every plugin and installing / running a shop are proven area by area (areas listed in `docs/rules/README.md`;
+all done 2026-11-22). Each layer catches what the others miss:
 
 | Layer | Where | Runs in |
 |---|---|---|
