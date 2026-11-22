@@ -34,4 +34,7 @@ func (s *shop) agreeSometimes(t ltest.T) {
 	if s.checks++; s.checks%25 == 0 {
 		s.agreeToday(t)
 	}
+	if s.checks%100 == 0 { // BAK-1, BAK-2: the day so far backs up and comes back whole
+		ltest.RoundTrip(t, s.db)
+	}
 }

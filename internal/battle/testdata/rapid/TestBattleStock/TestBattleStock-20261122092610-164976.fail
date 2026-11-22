@@ -1,0 +1,1312 @@
+# 2026/11/22 09:26:10.899713 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:10.899725 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:10.899729 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:10.920679 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:10.940282 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:10.940289 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:10.940298 [TestBattleStock] [rapid] draw counted: 5
+# 2026/11/22 09:26:10.962092 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:10.962108 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:10.962112 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:10.982471 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:10.982480 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:10.982485 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:10.982487 [TestBattleStock] [rapid] draw short: 14
+# 2026/11/22 09:26:11.004428 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:11.004434 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:6, qty:decimal.Decimal{value:(*big.Int)(0x1f108eccede0), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:11.004441 [TestBattleStock] [rapid] draw stop selling: false
+# 2026/11/22 09:26:11.025000 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:11.025005 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.025011 [TestBattleStock] [rapid] draw qty: 41
+# 2026/11/22 09:26:11.047713 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:11.047719 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.047727 [TestBattleStock] [rapid] draw qty: 5
+# 2026/11/22 09:26:11.077820 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.077828 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.077839 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:11.077845 [TestBattleStock] [rapid] draw expiry: "2026-10-23"
+# 2026/11/22 09:26:11.077847 [TestBattleStock] [rapid] draw cost: 8
+# 2026/11/22 09:26:11.106414 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:11.106419 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.106429 [TestBattleStock] [rapid] draw counted: 0
+# 2026/11/22 09:26:11.126919 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:11.126925 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:6, qty:decimal.Decimal{value:(*big.Int)(0x1f108eccede0), exp:-6}, exp:"", recalled:true, stops:false}
+# 2026/11/22 09:26:11.126932 [TestBattleStock] [rapid] draw counted: 1
+# 2026/11/22 09:26:11.165109 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.165117 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:11.165122 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:11.165123 [TestBattleStock] [rapid] draw short: 13
+# 2026/11/22 09:26:11.188526 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:11.188533 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.188540 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:11.236220 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:11.236228 [TestBattleStock] [rapid] draw put out for sale: true
+# 2026/11/22 09:26:11.236231 [TestBattleStock] [rapid] draw out: 4
+# 2026/11/22 09:26:11.273710 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.273717 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot(nil)}
+# 2026/11/22 09:26:11.273725 [TestBattleStock] [rapid] draw qty: 1
+# 2026/11/22 09:26:11.273728 [TestBattleStock] [rapid] draw expiry: ""
+# 2026/11/22 09:26:11.273729 [TestBattleStock] [rapid] draw cost: 2
+# 2026/11/22 09:26:11.300948 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.300955 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:11.300960 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:11.340238 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.340246 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:11.340248 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:11.340249 [TestBattleStock] [rapid] draw short: 2
+# 2026/11/22 09:26:11.360427 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.360433 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0)}}
+# 2026/11/22 09:26:11.360439 [TestBattleStock] [rapid] draw qty: 69
+# 2026/11/22 09:26:11.360442 [TestBattleStock] [rapid] draw expiry: "2027-06-22"
+# 2026/11/22 09:26:11.360443 [TestBattleStock] [rapid] draw cost: 9
+# 2026/11/22 09:26:11.388580 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:11.388592 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140)}}
+# 2026/11/22 09:26:11.388605 [TestBattleStock] [rapid] draw counted: 1
+# 2026/11/22 09:26:11.413792 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:11.413805 [TestBattleStock] [rapid] draw put out for sale: true
+# 2026/11/22 09:26:11.413808 [TestBattleStock] [rapid] draw out: 1
+# 2026/11/22 09:26:11.435472 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:11.435478 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30)}}
+# 2026/11/22 09:26:11.435486 [TestBattleStock] [rapid] draw counted: 5
+# 2026/11/22 09:26:11.459573 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:11.459578 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90)}}
+# 2026/11/22 09:26:11.459586 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:11.459589 [TestBattleStock] [rapid] draw reason: "staff"
+# 2026/11/22 09:26:11.459590 [TestBattleStock] [rapid] draw name a lot: false
+# 2026/11/22 09:26:11.480328 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.480335 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0)}}
+# 2026/11/22 09:26:11.480344 [TestBattleStock] [rapid] draw qty: 1
+# 2026/11/22 09:26:11.480349 [TestBattleStock] [rapid] draw expiry: "2027-06-22"
+# 2026/11/22 09:26:11.480350 [TestBattleStock] [rapid] draw cost: 15
+# 2026/11/22 09:26:11.508944 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.508952 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90)}}
+# 2026/11/22 09:26:11.508962 [TestBattleStock] [rapid] draw qty: 11
+# 2026/11/22 09:26:11.508968 [TestBattleStock] [rapid] draw expiry: "2027-06-22"
+# 2026/11/22 09:26:11.508970 [TestBattleStock] [rapid] draw cost: 2
+# 2026/11/22 09:26:11.639740 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.639750 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:11.639753 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:11.664241 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:11.664246 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0)}}
+# 2026/11/22 09:26:11.664251 [TestBattleStock] [rapid] draw qty: 1
+# 2026/11/22 09:26:11.664254 [TestBattleStock] [rapid] draw reason: "damage"
+# 2026/11/22 09:26:11.664255 [TestBattleStock] [rapid] draw name a lot: false
+# 2026/11/22 09:26:11.689233 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.689246 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210)}}
+# 2026/11/22 09:26:11.689260 [TestBattleStock] [rapid] draw qty: 12
+# 2026/11/22 09:26:11.689267 [TestBattleStock] [rapid] draw expiry: "2027-01-22"
+# 2026/11/22 09:26:11.689268 [TestBattleStock] [rapid] draw cost: 33
+# 2026/11/22 09:26:11.717756 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:11.717763 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0)}}
+# 2026/11/22 09:26:11.717771 [TestBattleStock] [rapid] draw qty: 1
+# 2026/11/22 09:26:11.717773 [TestBattleStock] [rapid] draw reason: "staff"
+# 2026/11/22 09:26:11.717775 [TestBattleStock] [rapid] draw name a lot: true
+# 2026/11/22 09:26:11.717776 [TestBattleStock] [rapid] draw named: &battle.mLot{id:13, qty:decimal.Decimal{value:(*big.Int)(0x1f108eb204c0), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:11.740136 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:11.740142 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0)}}
+# 2026/11/22 09:26:11.740149 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:13, qty:decimal.Decimal{value:(*big.Int)(0x1f108ec2dd40), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:11.740154 [TestBattleStock] [rapid] draw lot counted: 6
+# 2026/11/22 09:26:11.766604 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:11.766610 [TestBattleStock] [rapid] draw put out for sale: false
+# 2026/11/22 09:26:11.766613 [TestBattleStock] [rapid] draw on the shelf: 12
+# 2026/11/22 09:26:11.792705 [TestBattleStock] [rapid] draw action: "Merge"
+# 2026/11/22 09:26:11.792711 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0)}}
+# 2026/11/22 09:26:11.792721 [TestBattleStock] [rapid] draw a: 0
+# 2026/11/22 09:26:11.792722 [TestBattleStock] [rapid] draw b: 1
+# 2026/11/22 09:26:11.816757 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.816766 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:11.816769 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:11.816770 [TestBattleStock] [rapid] draw short: 2
+# 2026/11/22 09:26:11.844843 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:11.844849 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:11.844856 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:15, qty:decimal.Decimal{value:(*big.Int)(0x1f108e3e3940), exp:-6}, exp:"2027-06-22", recalled:false, stops:false}
+# 2026/11/22 09:26:11.844861 [TestBattleStock] [rapid] draw lot counted: 1
+# 2026/11/22 09:26:11.872256 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.872265 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:11.872270 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:11.903927 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:11.903932 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:13, qty:decimal.Decimal{value:(*big.Int)(0x1f108ea74b20), exp:0}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:11.903937 [TestBattleStock] [rapid] draw counted: 1
+# 2026/11/22 09:26:11.932530 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:11.932537 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:11.932540 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:11.958437 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:11.958444 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0)}}
+# 2026/11/22 09:26:11.958451 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:11.958454 [TestBattleStock] [rapid] draw expiry: "2027-01-22"
+# 2026/11/22 09:26:11.958455 [TestBattleStock] [rapid] draw cost: 7
+# 2026/11/22 09:26:11.983878 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:11.983888 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:11.983903 [TestBattleStock] [rapid] draw counted: 0
+# 2026/11/22 09:26:12.014438 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.014449 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:12.014453 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:12.014454 [TestBattleStock] [rapid] draw short: 7
+# 2026/11/22 09:26:12.037816 [TestBattleStock] [rapid] draw action: "TopUp"
+# 2026/11/22 09:26:12.037822 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.037829 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:18, qty:decimal.Decimal{value:(*big.Int)(0x1f108e47e740), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.037833 [TestBattleStock] [rapid] draw more: 1
+# 2026/11/22 09:26:12.061980 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.061985 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:12.061988 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:12.086330 [TestBattleStock] [rapid] draw action: "TopUp"
+# 2026/11/22 09:26:12.086338 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.086347 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:16, qty:decimal.Decimal{value:(*big.Int)(0x1f108e503080), exp:-6}, exp:"2027-06-22", recalled:false, stops:false}
+# 2026/11/22 09:26:12.086355 [TestBattleStock] [rapid] draw more: 40
+# 2026/11/22 09:26:12.112287 [TestBattleStock] [rapid] draw action: "TopUp"
+# 2026/11/22 09:26:12.112291 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.112296 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:18, qty:decimal.Decimal{value:(*big.Int)(0x1f108ea75460), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.112299 [TestBattleStock] [rapid] draw more: 2
+# 2026/11/22 09:26:12.135117 [TestBattleStock] [rapid] draw action: "Merge"
+# 2026/11/22 09:26:12.135127 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.135138 [TestBattleStock] [rapid] draw a: 3
+# 2026/11/22 09:26:12.135139 [TestBattleStock] [rapid] draw b: 3
+# 2026/11/22 09:26:12.159570 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:12.159576 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:12.159584 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:12.159586 [TestBattleStock] [rapid] draw reason: "staff"
+# 2026/11/22 09:26:12.182533 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.182543 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:12.182548 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:12.206647 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.206653 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:12.206655 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:12.230176 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:12.230181 [TestBattleStock] no lot
+# 2026/11/22 09:26:12.230187 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:12.230189 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.230196 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:18, qty:decimal.Decimal{value:(*big.Int)(0x1f108e898f80), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.230200 [TestBattleStock] [rapid] draw lot counted: 1
+# 2026/11/22 09:26:12.257252 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:12.257262 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.257272 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:18, qty:decimal.Decimal{value:(*big.Int)(0x1f108e0f80e0), exp:0}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.257276 [TestBattleStock] [rapid] draw lot counted: 0
+# 2026/11/22 09:26:12.372280 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:12.372290 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0)}}
+# 2026/11/22 09:26:12.372299 [TestBattleStock] [rapid] draw qty: 11
+# 2026/11/22 09:26:12.372302 [TestBattleStock] [rapid] draw expiry: ""
+# 2026/11/22 09:26:12.372303 [TestBattleStock] [rapid] draw cost: 36
+# 2026/11/22 09:26:12.402816 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:12.402822 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.402834 [TestBattleStock] [rapid] draw qty: 39
+# 2026/11/22 09:26:12.402839 [TestBattleStock] [rapid] draw pick a lot: true
+# 2026/11/22 09:26:12.402841 [TestBattleStock] [rapid] draw picked: &battle.mLot{id:10, qty:decimal.Decimal{value:(*big.Int)(0x1f108ea90ca0), exp:-6}, exp:"2026-10-23", recalled:false, stops:false}
+# 2026/11/22 09:26:12.430616 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:12.430623 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.430631 [TestBattleStock] [rapid] draw qty: 13
+# 2026/11/22 09:26:12.430635 [TestBattleStock] [rapid] draw reason: "damage"
+# 2026/11/22 09:26:12.430636 [TestBattleStock] [rapid] draw name a lot: false
+# 2026/11/22 09:26:12.454848 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:12.454859 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:23, qty:decimal.Decimal{value:(*big.Int)(0x1f108ea030a0), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.454871 [TestBattleStock] [rapid] draw counted: 0
+# 2026/11/22 09:26:12.478770 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:12.478774 [TestBattleStock] no lot
+# 2026/11/22 09:26:12.478780 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.478782 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:12.478784 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:12.478786 [TestBattleStock] [rapid] draw short: 2
+# 2026/11/22 09:26:12.505689 [TestBattleStock] [rapid] draw action: "TopUp"
+# 2026/11/22 09:26:12.505693 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.505706 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:22, qty:decimal.Decimal{value:(*big.Int)(0x1f108e80b540), exp:-6}, exp:"2027-01-22", recalled:false, stops:false}
+# 2026/11/22 09:26:12.505710 [TestBattleStock] [rapid] draw more: 2
+# 2026/11/22 09:26:12.528455 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:12.528465 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90)}}
+# 2026/11/22 09:26:12.528477 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:12.528482 [TestBattleStock] [rapid] draw reason: "staff"
+# 2026/11/22 09:26:12.550618 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:12.550624 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:12.550633 [TestBattleStock] [rapid] draw qty: 1
+# 2026/11/22 09:26:12.550635 [TestBattleStock] [rapid] draw reason: "damage"
+# 2026/11/22 09:26:12.576912 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.576916 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:12.576919 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:12.576920 [TestBattleStock] [rapid] draw short: 19
+# 2026/11/22 09:26:12.599389 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:12.599394 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.599403 [TestBattleStock] [rapid] draw counted: 3
+# 2026/11/22 09:26:12.622805 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.622813 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:12.622818 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:12.622820 [TestBattleStock] [rapid] draw short: 9
+# 2026/11/22 09:26:12.646807 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:12.669920 [TestBattleStock] [rapid] draw action: "TopUp"
+# 2026/11/22 09:26:12.669925 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.669933 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:8, qty:decimal.Decimal{value:(*big.Int)(0x1f108ec16840), exp:-6}, exp:"2026-10-23", recalled:false, stops:false}
+# 2026/11/22 09:26:12.669936 [TestBattleStock] [rapid] draw more: 33
+# 2026/11/22 09:26:12.695313 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:12.695319 [TestBattleStock] no lot
+# 2026/11/22 09:26:12.695326 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:12.695328 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90)}}
+# 2026/11/22 09:26:12.695341 [TestBattleStock] [rapid] draw counted: 2
+# 2026/11/22 09:26:12.718336 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.718344 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:12.718348 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:12.741482 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:12.741486 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.741493 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:22, qty:decimal.Decimal{value:(*big.Int)(0x1f108ea1d100), exp:-6}, exp:"2027-01-22", recalled:false, stops:false}
+# 2026/11/22 09:26:12.741498 [TestBattleStock] [rapid] draw lot counted: 1
+# 2026/11/22 09:26:12.766384 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:12.766388 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650)}}
+# 2026/11/22 09:26:12.766397 [TestBattleStock] [rapid] draw counted: 2
+# 2026/11/22 09:26:12.790348 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:12.790358 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90), (*battle.mLot)(0x1f108e82aab0)}}
+# 2026/11/22 09:26:12.790371 [TestBattleStock] [rapid] draw qty: 10
+# 2026/11/22 09:26:12.790375 [TestBattleStock] [rapid] draw expiry: ""
+# 2026/11/22 09:26:12.790376 [TestBattleStock] [rapid] draw cost: 23
+# 2026/11/22 09:26:12.818934 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:12.818942 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0)}}
+# 2026/11/22 09:26:12.818953 [TestBattleStock] [rapid] draw counted: 2120
+# 2026/11/22 09:26:12.844204 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:12.844212 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0), (*battle.mLot)(0x1f108e9ce750)}}
+# 2026/11/22 09:26:12.844220 [TestBattleStock] [rapid] draw qty: 11
+# 2026/11/22 09:26:12.844224 [TestBattleStock] [rapid] draw expiry: "2027-06-22"
+# 2026/11/22 09:26:12.844225 [TestBattleStock] [rapid] draw cost: 13
+# 2026/11/22 09:26:12.874474 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:12.874481 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:12.874485 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:12.896913 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:12.896920 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:12.896929 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:12.896933 [TestBattleStock] [rapid] draw reason: "staff"
+# 2026/11/22 09:26:12.938977 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:12.938987 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90), (*battle.mLot)(0x1f108e82aab0), (*battle.mLot)(0x1f108e7bef30)}}
+# 2026/11/22 09:26:12.938998 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:12.939003 [TestBattleStock] [rapid] draw expiry: ""
+# 2026/11/22 09:26:12.939004 [TestBattleStock] [rapid] draw cost: 23
+# 2026/11/22 09:26:12.966029 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:12.966038 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:26, qty:decimal.Decimal{value:(*big.Int)(0x1f108e118d40), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:12.966046 [TestBattleStock] [rapid] draw stop selling: false
+# 2026/11/22 09:26:13.005009 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:13.005017 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0)}}
+# 2026/11/22 09:26:13.005028 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:13.005033 [TestBattleStock] [rapid] draw expiry: "2026-10-23"
+# 2026/11/22 09:26:13.005035 [TestBattleStock] [rapid] draw cost: 56
+# 2026/11/22 09:26:13.122794 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:13.122806 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90), (*battle.mLot)(0x1f108e82aab0), (*battle.mLot)(0x1f108e7bef30), (*battle.mLot)(0x1f108e528570)}}
+# 2026/11/22 09:26:13.122817 [TestBattleStock] [rapid] draw qty: 5
+# 2026/11/22 09:26:13.122821 [TestBattleStock] [rapid] draw pick a lot: true
+# 2026/11/22 09:26:13.122822 [TestBattleStock] [rapid] draw picked: &battle.mLot{id:29, qty:decimal.Decimal{value:(*big.Int)(0x1f108e503d60), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.167753 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:13.167765 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:13.167771 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:13.167774 [TestBattleStock] [rapid] draw short: 4
+# 2026/11/22 09:26:13.194134 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.194141 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:24, qty:decimal.Decimal{value:(*big.Int)(0x1f108e905d20), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.194148 [TestBattleStock] [rapid] draw counted: 0
+# 2026/11/22 09:26:13.223560 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:13.223571 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50)}}
+# 2026/11/22 09:26:13.223582 [TestBattleStock] [rapid] draw qty: 6
+# 2026/11/22 09:26:13.223585 [TestBattleStock] [rapid] draw expiry: ""
+# 2026/11/22 09:26:13.223586 [TestBattleStock] [rapid] draw cost: 55
+# 2026/11/22 09:26:13.253118 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:13.253127 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:29, qty:decimal.Decimal{value:(*big.Int)(0x1f108e503d60), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.253134 [TestBattleStock] [rapid] draw stop selling: true
+# 2026/11/22 09:26:13.281751 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:13.281757 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:29, qty:decimal.Decimal{value:(*big.Int)(0x1f108e503d60), exp:-6}, exp:"", recalled:true, stops:true}
+# 2026/11/22 09:26:13.307651 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:13.307656 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50), (*battle.mLot)(0x1f108ea3eb40)}}
+# 2026/11/22 09:26:13.307665 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:13.307667 [TestBattleStock] [rapid] draw pick a lot: false
+# 2026/11/22 09:26:13.340533 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:13.340542 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50), (*battle.mLot)(0x1f108ea3eb40)}}
+# 2026/11/22 09:26:13.340561 [TestBattleStock] [rapid] draw counted: 6
+# 2026/11/22 09:26:13.365688 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:13.365693 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:13.365696 [TestBattleStock] [rapid] draw weighed short: true
+# 2026/11/22 09:26:13.365697 [TestBattleStock] [rapid] draw short: 2
+# 2026/11/22 09:26:13.392702 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:13.392708 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M bag", id:8, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e105140), (*battle.mLot)(0x1f108de73e90), (*battle.mLot)(0x1f108e204210), (*battle.mLot)(0x1f108ec0d500)}}
+# 2026/11/22 09:26:13.392718 [TestBattleStock] [rapid] draw qty: 2
+# 2026/11/22 09:26:13.392721 [TestBattleStock] [rapid] draw reason: "own_use"
+# 2026/11/22 09:26:13.418255 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.418263 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:29, qty:decimal.Decimal{value:(*big.Int)(0x1f108e503d60), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.418271 [TestBattleStock] [rapid] draw counted: 5
+# 2026/11/22 09:26:13.448079 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:13.448084 [TestBattleStock] [rapid] draw put out for sale: true
+# 2026/11/22 09:26:13.448086 [TestBattleStock] [rapid] draw out: 2
+# 2026/11/22 09:26:13.476065 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:13.476072 [TestBattleStock] [rapid] draw bags: 1
+# 2026/11/22 09:26:13.476075 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:13.501485 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:13.501491 [TestBattleStock] [rapid] draw put out for sale: false
+# 2026/11/22 09:26:13.501496 [TestBattleStock] [rapid] draw on the shelf: 1
+# 2026/11/22 09:26:13.529825 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:13.553448 [TestBattleStock] [rapid] draw action: "Convert"
+# 2026/11/22 09:26:13.553458 [TestBattleStock] [rapid] draw bags: 2
+# 2026/11/22 09:26:13.553463 [TestBattleStock] [rapid] draw weighed short: false
+# 2026/11/22 09:26:13.579934 [TestBattleStock] [rapid] draw action: "WriteOff"
+# 2026/11/22 09:26:13.579941 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50), (*battle.mLot)(0x1f108ea3eb40), (*battle.mLot)(0x1f108e58f0b0)}}
+# 2026/11/22 09:26:13.579949 [TestBattleStock] [rapid] draw qty: 3
+# 2026/11/22 09:26:13.579952 [TestBattleStock] [rapid] draw reason: "own_use"
+# 2026/11/22 09:26:13.579954 [TestBattleStock] [rapid] draw name a lot: true
+# 2026/11/22 09:26:13.579955 [TestBattleStock] [rapid] draw named: &battle.mLot{id:32, qty:decimal.Decimal{value:(*big.Int)(0x1f108e304920), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.579958 [TestBattleStock] [rapid] draw off the shelf: false
+# 2026/11/22 09:26:13.605148 [TestBattleStock] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:13.605155 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:true, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50), (*battle.mLot)(0x1f108ea3eb40), (*battle.mLot)(0x1f108e58f0b0)}}
+# 2026/11/22 09:26:13.605164 [TestBattleStock] [rapid] draw qty: 5
+# 2026/11/22 09:26:13.605168 [TestBattleStock] [rapid] draw pick a lot: true
+# 2026/11/22 09:26:13.605169 [TestBattleStock] [rapid] draw picked: &battle.mLot{id:32, qty:decimal.Decimal{value:(*big.Int)(0x1f108e304920), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.631859 [TestBattleStock] [rapid] draw action: "Freeze"
+# 2026/11/22 09:26:13.631865 [TestBattleStock] [rapid] draw put out for sale: false
+# 2026/11/22 09:26:13.631868 [TestBattleStock] [rapid] draw on the shelf: 4
+# 2026/11/22 09:26:13.657839 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.657848 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:26, qty:decimal.Decimal{value:(*big.Int)(0x1f108e45ef40), exp:-6}, exp:"", recalled:true, stops:false}
+# 2026/11/22 09:26:13.657856 [TestBattleStock] [rapid] draw counted: 3
+# 2026/11/22 09:26:13.689489 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.689493 [TestBattleStock] no lot
+# 2026/11/22 09:26:13.689500 [TestBattleStock] [rapid] draw action: "LotCount"
+# 2026/11/22 09:26:13.689502 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pencil", id:10, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e7be240), (*battle.mLot)(0x1f108e9ceae0), (*battle.mLot)(0x1f108dd0f650), (*battle.mLot)(0x1f108e59cba0), (*battle.mLot)(0x1f108e59cd50), (*battle.mLot)(0x1f108ea3eb40), (*battle.mLot)(0x1f108e58f0b0), (*battle.mLot)(0x1f108e6f8d50)}}
+# 2026/11/22 09:26:13.689510 [TestBattleStock] [rapid] draw lot: &battle.mLot{id:33, qty:decimal.Decimal{value:(*big.Int)(0x1f108dc3e620), exp:-6}, exp:"", recalled:false, stops:false}
+# 2026/11/22 09:26:13.689515 [TestBattleStock] [rapid] draw lot counted: 2
+# 2026/11/22 09:26:13.715146 [TestBattleStock] [rapid] draw action: "Merge"
+# 2026/11/22 09:26:13.715151 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0), (*battle.mLot)(0x1f108e9ce750), (*battle.mLot)(0x1f108e4fb710)}}
+# 2026/11/22 09:26:13.715159 [TestBattleStock] [rapid] draw a: 1
+# 2026/11/22 09:26:13.715160 [TestBattleStock] [rapid] draw b: 1
+# 2026/11/22 09:26:13.744028 [TestBattleStock] [rapid] draw action: "Recall"
+# 2026/11/22 09:26:13.744036 [TestBattleStock] no lot
+# 2026/11/22 09:26:13.744043 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.744045 [TestBattleStock] no lot
+# 2026/11/22 09:26:13.744048 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:13.744050 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0), (*battle.mLot)(0x1f108e9ce750), (*battle.mLot)(0x1f108e4fb710)}}
+# 2026/11/22 09:26:13.744065 [TestBattleStock] [rapid] draw counted: 1
+# 2026/11/22 09:26:13.770002 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.770007 [TestBattleStock] no lot
+# 2026/11/22 09:26:13.770014 [TestBattleStock] [rapid] draw action: "GiveBack"
+# 2026/11/22 09:26:13.770014 [TestBattleStock] no lot
+# 2026/11/22 09:26:13.770016 [TestBattleStock] [rapid] draw action: "Count"
+# 2026/11/22 09:26:13.770017 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M pills", id:7, decimal:false, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108e928c30), (*battle.mLot)(0x1f108e5235f0), (*battle.mLot)(0x1f108e6a13e0), (*battle.mLot)(0x1f108e460c90), (*battle.mLot)(0x1f108e82aab0), (*battle.mLot)(0x1f108e7bef30), (*battle.mLot)(0x1f108e528570)}}
+# 2026/11/22 09:26:13.770026 [TestBattleStock] [rapid] draw counted: 4
+# 2026/11/22 09:26:13.794075 [TestBattleStock] [rapid] draw action: "Intake"
+# 2026/11/22 09:26:13.794082 [TestBattleStock] [rapid] draw product: &battle.mProd{name:"M rice", id:9, decimal:true, frozen:false, lots:[]*battle.mLot{(*battle.mLot)(0x1f108ddf7770), (*battle.mLot)(0x1f108e06ecf0), (*battle.mLot)(0x1f108e06f3e0), (*battle.mLot)(0x1f108e297bc0), (*battle.mLot)(0x1f108e523230), (*battle.mLot)(0x1f108e6a1080), (*battle.mLot)(0x1f108eb09ce0), (*battle.mLot)(0x1f108e9ce750), (*battle.mLot)(0x1f108e4fb710)}}
+# 2026/11/22 09:26:13.794091 [TestBattleStock] [rapid] draw qty: 48
+# 2026/11/22 09:26:13.794093 [TestBattleStock] [rapid] draw expiry: "2027-06-22"
+# 2026/11/22 09:26:13.794094 [TestBattleStock] [rapid] draw cost: 7
+# 2026/11/22 09:26:14.713439 [TestBattleStock] ROUNDTRIP RAN
+# 
+v0.4.8#8226808502265254899
+0x1024199ce4da8
+0x2269c21af0d4e
+0x0
+0x664b3af30bcc8
+0x1871f2de4332e5
+0x1
+0x0
+0x1fe90f22fd6160
+0x3ff51841fec8c
+0x2
+0x97ce2efb84533
+0x3a9d1964f853d
+0x1
+0x14117d59a68dbe
+0x0
+0x27b6b3d11ba7c
+0x11bde62a1dd40b
+0x5
+0x718d16c449857
+0x7aeecdcc0c327
+0x0
+0x17323daf6f728
+0x19e3617602c648
+0x1
+0x0
+0x16ef78a1c09c15
+0x17b5eca605fdb4
+0x0
+0x1f9062604b30bc
+0x64d24ad724c2f
+0x1
+0x1
+0x2c1a2ce38ad0e
+0x10def7c1c286a2
+0xd
+0x8764627f670ee
+0x1c32bd94509212
+0x7
+0x1d16be68abd018
+0x0
+0x0
+0x83477d8fd11a7
+0xd9bd237602568
+0x8
+0xfab8bf49ad764
+0x1
+0xa906c4ef0f4f8
+0xe19128884ea87
+0x1f
+0xfd4cd6d89940e
+0x15157afd7008f0
+0x8
+0x12f1481fa3d9ab
+0x2
+0xc919e806dd361
+0x1e25e3278d18e1
+0x4
+0xf3c254fe412a0
+0x8fd66408ef466
+0x4
+0x16c0c0bdb9ce11
+0x1
+0x80d5f817f6a06
+0x1c0beb243ffa0a
+0x2
+0x1f22c1af6b9d04
+0x1
+0x70838f8aac60e
+0x1dd8f6dfd9edb0
+0x7
+0x14d2320f0d548c
+0x2bc661beedf7e
+0x1
+0x11f4afe33530ab
+0x3
+0xd6985ff2a9584
+0xf38e68771b2ea
+0x0
+0x4bdeab5e8974b
+0x79a694cf04602
+0x3
+0x1a5d7c08a8a22b
+0x0
+0x69164c565aac9
+0x5336fb3488b30
+0x1
+0x1defb89b0ab940
+0x1833fb03fa353
+0x0
+0x95bdaa141b750
+0x13b9609b6652a8
+0x1
+0x1
+0x1c0a68775e974c
+0x1453d1aa142863
+0xc
+0x1c9aae96a594ee
+0x14f90fd72278cf
+0x8
+0x10a059b8229294
+0x2
+0x1b9e281a7863b8
+0x147eb0b9e76544
+0x1
+0x1ddfbe18cbb60d
+0x108f446861fc1f
+0x2
+0x1
+0x1bda3a0f07d9ce
+0x6483b1453f46d
+0x3
+0x81a68f44a668b
+0x7fc76eec612db
+0x4
+0x3aa7fe0359cda
+0x3
+0x45f488a1d314c
+0x1c999894830b6
+0x0
+0x15e88c6a86995c
+0x0
+0x9dc0055720e15
+0x1370caf523834
+0x1
+0x3e42cd066e95c
+0x47f57076a0db8
+0x0
+0x4b26c958e039d
+0x1eb343dde0f688
+0x0
+0x0
+0x1f78739ae496b1
+0xf5a948433e44f
+0x0
+0x9bc5b9791d6bb
+0x1bba9ece903edd
+0x1
+0x1
+0x1d1c9f57dd3d74
+0x4dfd2c4fb0e3
+0x1
+0x1239276c8ce7f6
+0x151352a5e7bfdb
+0x4
+0xdf5de36b164a1
+0x2
+0x38c9ef42e97e9
+0x1960ae347c835d
+0x3b
+0xb40371038499d
+0x3
+0x13a024164c165f
+0x9fcfb33a27903
+0x8
+0x191e23b3dcf638
+0x4e739aed77e42
+0x1
+0x2d55ad675a71d
+0x1
+0x84c0563123962
+0x25ca4fc9f5fd8
+0x1
+0x17515229bc9ba2
+0xe9c488588bae0
+0x2
+0x1
+0x183e7534707550
+0x22c3d0843db6b
+0x0
+0x1ceafee47a880f
+0x3e45165006440
+0x1
+0xc93720e6252d
+0x0
+0x10cea1cd4f56df
+0x1e19c7af7810a4
+0x5
+0x1f53c8cebc2c73
+0x16cfc6f2d41fe4
+0xa
+0x15bde480da1ec8
+0x1
+0x118a8c1377e632
+0xf36cadddef88b
+0x2
+0x59b4cf9524d3f
+0x2
+0x0
+0x1bf780ca817ddc
+0x195d1983a3ec8a
+0x4
+0x12be6db5a17390
+0x0
+0x8e6e93e30654b
+0x8ad5609a3de28
+0x0
+0xded11c87cdb29
+0x3
+0x90060fc063c14
+0x17e4a1a58c73b8
+0xe
+0x19f8b6bc5e41a0
+0xb3eb12c2246dc
+0x4
+0x16e9626a4a0a33
+0x1
+0x816569aa89171
+0xea4f150b9e14c
+0xa
+0xf082a100189e2
+0x3
+0x117a412f935745
+0x95ceb0ccbcbb
+0x1
+0x3cc9d52e256ff
+0x1518b7c62d1c77
+0x0
+0x1057e69536f2a3
+0x130ae5ce605c4
+0x1
+0x0
+0x1116d4d6d4e2e6
+0x1e95c350737f1e
+0xa
+0x1de5fe4054ee1d
+0x0
+0xc8bc89e6f6786
+0x1553aa61ec524b
+0x0
+0x14f4089f0b965a
+0x0
+0x0
+0x199b51ff8bac6c
+0x1d5c1704d90053
+0x4
+0x18695beb5508f0
+0x1
+0x2a71fea8e3fea
+0xcf44ce5dc0402
+0xb
+0x1062072fed9e71
+0x2
+0xa7bb60d1beb08
+0x173b90f9bc503a
+0x20
+0x1c48f188967a7b
+0x19f2a6e6b69a46
+0xa
+0x139a1b408fd777
+0x0
+0xa478cfddd098a
+0xe625de2c58333
+0x0
+0x1f9fb5bf145aaf
+0xffffffffffffffff
+0x1
+0x1bdbb8ee135f47
+0x0
+0x1daf09075e4189
+0x781d24cad39d8
+0x5
+0x37a38e63ed53e
+0x0
+0xfa1742224f647
+0x0
+0x4948d3d5ffc6f
+0x19109f2625dced
+0x6
+0x100edc4b19ff7a
+0x1a1e3ddf60d04a
+0x2
+0x0
+0x35056ffe9cf58
+0x17d5cb7b92168e
+0xc
+0x140b1f294c2212
+0x1ae254fa65107b
+0x6
+0xad98bc34f30c2
+0x2
+0x47a2e78e1cf
+0xd023f02fad9db
+0x0
+0xc8e25085e387b
+0xaa66b6fa27f5e
+0x1
+0x12752a8cde30d0
+0x10c77b37745426
+0x0
+0x6db0d588a30a3
+0x1ef18728c3726a
+0x0
+0x1
+0xcb915bc635493
+0x170c432f0deb3f
+0x1
+0x1f3326af68d7b4
+0x72752c070c302
+0x5
+0xa35abc34b90fe
+0x1
+0x17ffd88a35207e
+0x1
+0x1b5e4813aeed19
+0xb82e0f1c5f406
+0x1
+0x320627e924d2b
+0xbb130b60ed3f9
+0x0
+0x85fa353e36efa
+0x35ba703688247
+0x0
+0x0
+0x1e9d81331039cd
+0xcb04b05694cbe
+0x3
+0x16721e76fc7f8d
+0x0
+0x14ef3a15469b23
+0x53bf55b4f023f
+0x1
+0xe0421d5933de0
+0x198b3b891fba29
+0x0
+0x2bf9c1d39c07b
+0x151e80d4f07b77
+0x0
+0x0
+0x150a381303dd17
+0x82a87c874a4c0
+0x4
+0xd9eabd12dce3f
+0x3
+0xc278d67ae0101
+0x666c4da0c38d9
+0x2
+0xd5ab89dcf1f96
+0x2
+0x103fa63736ff13
+0xb8570fb6746cf
+0x6
+0x780913ef2f70c
+0x114de906e09e97
+0x1
+0xaabb1adf2bb4c
+0x1
+0x13dd29e9c64d11
+0x3d5ccd2a19fa6
+0x0
+0x958bb25ce8e03
+0x29cc93e85492e
+0x0
+0x8087e1ad33669
+0x130e0c4ecb763a
+0x1
+0x1
+0x69fc2e8ec476c
+0x15f3793a3397f8
+0x6
+0x2f2e269d73d8a
+0xd3e5deaac1e55
+0x9
+0xbf833dff9bab8
+0x3
+0x18eefd9b35df51
+0x0
+0x57fd922466a3c
+0x124b4ee90ac2ad
+0x0
+0x17b6f9edb656c7
+0x10632914f9b71
+0x0
+0x9783aa038f148
+0xdb5f8e95c5862
+0x0
+0x0
+0x1f2e650934ae24
+0xd0be1125f6042
+0x9
+0x1819c12b56a370
+0x2
+0x1ef8f46a279dc5
+0x2
+0x621c473745183
+0x1a59753ed232e4
+0x1e
+0x1e7b7ede768dc1
+0xede26358def4d
+0x9
+0x1b1b97e2eca810
+0x3
+0x11fedef3fe16
+0x0
+0x1ab636442003ad
+0x82a8a15af5725
+0x1
+0xe427b4f9c90b7
+0x831b1160937a2
+0x6
+0xf5cb2c10b0f6f
+0x2
+0x1799746659dcec
+0x4d20e8c7c3987
+0x3
+0xa49144153059
+0x178c2cc2427b3d
+0x3
+0x186a4aee2b8a84
+0x1f68ecc178a803
+0xffffffffffffffff
+0x20179069e6d17
+0x1
+0x683758cee24d8
+0xfaad8205feaee
+0x2
+0x4f3ecc65cbf3a
+0x2
+0x95a4831884832
+0x3fa495ba87af4
+0x0
+0x13dde36b1e4cb7
+0x1de361cc934a94
+0x1
+0x0
+0x3fc6a2f9db758
+0x1325e7d9d4c469
+0x0
+0xde853036b649
+0x89e4be36e6f61
+0x0
+0x0
+0xd2461403330df
+0xe7c414d3103e0
+0x3
+0x1393f6dec39f50
+0x5
+0x1e368694c49253
+0x3
+0x2794f3b313eb0
+0x0
+0x3e683edd65e24
+0xe21e13edd0c9
+0x1
+0x49b32a5f0e7d3
+0x135ad2e282e629
+0x5
+0x4b781ad8e011a
+0x3
+0x11afdef320ee64
+0x0
+0x16b1c5298afa28
+0x3b8fd283bba36
+0x0
+0xcd8186b44dfb4
+0x130cade6b2e054
+0x4
+0x154acccf451fa1
+0x0
+0x1a01c77098cabb
+0x1ee4dec71c1e6d
+0xa
+0xded121e5a9339
+0x0
+0x100da82aa4afcf
+0x153dc1974ee451
+0x23
+0xfc461229510ac
+0xc0734f4116980
+0x8
+0x9058ad002567
+0x1
+0x1634c33af41cff
+0x1deed1b132393b
+0x1d
+0x1
+0x1b8ae2d84a6615
+0x1
+0xb95ccb653ec1f
+0x1f12019044d242
+0xa
+0xc3e6c30eacbfc
+0x2
+0x16ae8f5e2d8f75
+0xbfaf95f8e0a9a
+0x3
+0x26e0fcba9cc77
+0x0
+0x0
+0x166a084db4c2ff
+0x40851670c7e94
+0x3
+0x1326a30d74e069
+0x0
+0x25fb19e335da1
+0x1980edb17f9fee
+0x0
+0x821aa63cf8428
+0x1692d68bbeb0ec
+0x7
+0x67ebe22d7e7c
+0x0
+0x1e4d7f6d9d6924
+0xa70abadc71b11
+0x0
+0x1
+0xdc6a193992cc2
+0x94ad0a7b90e1a
+0x1
+0x1ef82440a2053
+0x129c49b1b8551f
+0x9
+0x11d63fd81c3abc
+0x3
+0xd9251a4dbc63f
+0x0
+0xccb83eeb27af1
+0x3c93a5b21156e
+0x1
+0x16ee675fe08557
+0x1518c7860d1c2c
+0xa
+0x2112bc115b369
+0x0
+0x1677f66a926db7
+0x12962024008fce
+0x1
+0x14e71fa36b6c4e
+0x2
+0x13ddda59e35575
+0x1f99c513cdaf20
+0xffffffffffffffff
+0x1bd48ece418cb6
+0x1
+0x1923d1c73facf3
+0xc0876ce2c65b1
+0x0
+0x2460739fd3e90
+0x0
+0x15a27ffe7c3210
+0x10ea2a557c51ef
+0x0
+0x1caba4a763d61c
+0x818dad0e7e1df
+0x1
+0x1
+0x1f4ddcc2551946
+0x19549b2f286c61
+0x12
+0x1a5e3caaec159c
+0x2ab4036efa440
+0x1
+0xa10ce486b1835
+0x3
+0xee61035c9163e
+0x12832bb13864d8
+0x3
+0x1e2d06f3b5b2bb
+0x93f9fd0ce804
+0x0
+0x9da499852e1fe
+0x1a0c756c718e7f
+0x0
+0x1
+0x177f9e5e2611b6
+0x1d86b3fc8acf17
+0x8
+0x16df5e1590216c
+0x1a904811fbcdbb
+0x2
+0xdccc688d448c2
+0x11e1ce390c5d3a
+0x9
+0xc807e02879038
+0x2
+0x18e4a712fdb990
+0x0
+0x19c347fc7a4bab
+0x14a063eece0438
+0x17
+0x1df52d8a2a0bbc
+0xef450408e170b
+0x7
+0x3dcc003aa17d0
+0x1
+0x1ac51382b7e973
+0x0
+0x16dd9ba906b32f
+0x10a5853b3da07a
+0x2
+0x4f342b4d6b2ea
+0x1a218e84501410
+0x0
+0x13df5334aba3e2
+0x7c0d4cc0419d
+0x0
+0x0
+0x6d5a8c82d4a6e
+0x14d164ebfa7cad
+0x5
+0x1498a03980c672
+0x3
+0x2d8f7218833c5
+0x0
+0xccaf92a051c83
+0x234a15eeff829
+0x1
+0x39ecd841d19e5
+0x7d2de7585b65d
+0x1
+0x1bd696571a2a0a
+0x3
+0xc94d08cb27cf6
+0xb1dfe1cc44e9d
+0x2
+0x51e18af81ece4
+0x1318c1050e545b
+0x4
+0x111b7fc885b447
+0x0
+0xdb84d62405437
+0x165e8eb58d153d
+0x9
+0xcbf47657d6e35
+0x0
+0xa8ddeca7fec05
+0xcdb131aedde1f
+0x16
+0x3b0483f00f3aa
+0x4e6894363b3
+0x1
+0xfb309e1f9e536
+0x2
+0x14140df5227720
+0x1f0e4e15d93739
+0xffffffffffffffff
+0x19f40470406311
+0x16a4d675a0bf37
+0x4
+0x11c082cf3e98a4
+0x2
+0xc85e9206c2952
+0x614f50fc08d4b
+0x1
+0x956f9aed0a84c
+0x3
+0x9ac2e82755b2f
+0xf410dbc64e062
+0xc
+0x1a5c569f4306c3
+0xa639a4b740cbc
+0x0
+0x10cb23f0eb0a99
+0x1cec288d7b784
+0x1
+0x0
+0x10690eb67a5438
+0x1f73252dcf5890
+0xffffffffffffffff
+0x8459b9ce700b
+0x1
+0x17697dfec8b71e
+0xc14dc2daaf050
+0x2
+0xb75f024bd31cd
+0x2
+0x1ed02c2fb09844
+0x1bcd397578685a
+0x4
+0x99710aabdcbd6
+0x0
+0xa9d674aed2446
+0xa170881f5f3d3
+0x1
+0x12a96432d62752
+0x0
+0xbdfdf4bd5e327
+0x14fbe3a0d9b6c5
+0x16
+0x1a1d5eef858e24
+0x842a285838a9a
+0x7
+0x1e883c2323260e
+0x1
+0x0
+0x1087a9292e0c63
+0xe4bfc4d11486c
+0x4
+0x1a8038b6ae75b9
+0x3
+0x1db76a46882d37
+0x18745aaf0fe79
+0x1
+0x113c4dfbb59359
+0x1
+0x1bd54bddc64450
+0x1cddc65d25278b
+0x37
+0x1c653b434d2c61
+0x9ee9143632818
+0x8
+0x3e7c4124635b9
+0x0
+0x1d6d246aee877a
+0x15d20daad1ee35
+0x4
+0x1
+0xabca2e5293d2e
+0x2
+0xd538c71cfec7f
+0x3f551b0d585b2
+0x0
+0x1cb505ece33fac
+0x8e8859a328cb2
+0x1
+0x1
+0x1c0cf999544a98
+0x7e45f928fce22
+0x3
+0x717943821203d
+0x3b7213df479f6
+0x3
+0xc3b471774b8ed
+0x0
+0x42741064373a4
+0x917cb214cd0b0
+0x0
+0x114a0181623dcc
+0x717cec273fb22
+0x4
+0x19cc802006c80c
+0x3
+0x77c2028fb8725
+0x1abc98b0e831e6
+0x5
+0x13fadab56757af
+0x0
+0x12d6a364639232
+0x1e4c83c8e7020e
+0x36
+0x17b429b367972b
+0xcbe3a6d682768
+0x7
+0x598513f7c99b3
+0x1
+0x1
+0x88004fff49120
+0x10325f6e8eddf8
+0x7
+0x1336bdc694b31e
+0x1
+0x1df9a186a8f6d8
+0x1d7e96e94b2171
+0x8
+0x16b7fcdbdbe49e
+0x2
+0x141cbe991eb70c
+0x1408f373489852
+0x1
+0x0
+0x1d6faa545a8a52
+0x5cb186569a05a
+0x1
+0x882d79465d7d9
+0x3
+0x1712d1db330f99
+0x19d9ee061b6480
+0x6
+0x4c759a088c166
+0x1e756794fdab7f
+0x0
+0x1e82140bd9eee8
+0x13d0c3c931ad28
+0x1
+0x1
+0x1aa3d7e334fa7d
+0x18a19a310d0280
+0x1
+0xb41fefa5c8c8d
+0x1f89d3b8ca474f
+0xffffffffffffffff
+0x181dc8bdc87a2e
+0x1
+0x19df7f7af2909c
+0xbe77d0b111b25
+0x1
+0x13a0c14c61b573
+0x1
+0x1fc95bc53b8912
+0xf97c0d2652bfc
+0x3
+0x15da32b03a8786
+0x1
+0x18c09ad77482aa
+0x94c85b11dc941
+0x5
+0x2d38ecbf58912
+0x10cbc942c69d9a
+0x2
+0x1
+0x14f4c8237b8e49
+0x40d9f50937c3d
+0x1
+0xbb2d9d2e3fb25
+0x3b0f6d19f00d8
+0x0
+0x3cf7289f63ddc
+0xd2a64345e4f9a
+0x0
+0x0
+0x4273cbc8ed91b
+0x1ca84e87775bb2
+0x2
+0x0
+0x9ebbfbb31f900
+0x100b91b24f67c9
+0x1
+0x1d1c1a3d3d9cd
+0x17164756b9fb83
+0x2
+0x11b5c2cd83f122
+0x7a4233316fb97
+0x0
+0xb829bcb0e18ba
+0x3ce3b11649a40
+0x1
+0x0
+0x161ac28c1c386e
+0x1fe013b9f2b55a
+0xffffffffffffffff
+0x13498e3a1f27ae
+0x3
+0x14b8db5b960c6a
+0x41785d4a84d20
+0x2
+0x123a31d0ebb7b7
+0x1
+0x1
+0x1244a593864e97
+0x2
+0x0
+0x17c60b553544ff
+0x1eedc8e3eba64f
+0x8
+0x579c1f5a46d76
+0x2
+0x1a0f01c2057482
+0xfcc4693f0fe61
+0x4
+0x1
+0x101f7296bd463f
+0x2
+0x9d06d2d62e873
+0x1affd01ce392ea
+0x2
+0x0
+0x8d36db8e69644
+0x1e1bba56b66c8b
+0x4
+0x1a0a66ca322e3b
+0x8e7af5f7e8ec6
+0x3
+0x1b34e151569265
+0x0
+0x1a5c5579176449
+0x4a9c2343bfa1a
+0x3
+0x1b090f6db11c01
+0x48d91471ac1f8
+0x3
+0x17299917dc9724
+0x5
+0xbdb6ce578c062
+0x3
+0x1a56e1fc19bddd
+0x3
+0x25450ade6714c
+0x6ff319c5efa41
+0x2
+0x16b0e8524ecb17
+0x171c9f29555fd1
+0x6
+0x1c53aebcb7f450
+0x2
+0x1530b11eca378e
+0x1f82013e7fde6
+0x1
+0xbea6d45db832d
+0x19025e327dc92b
+0x1
+0x8d04c7d72e8a7
+0xc2c55e5537072
+0x7
+0xbf9bc71a574af
+0x3
+0x1a2b9ce99b34f
+0x1
+0xa067f65c0928b
+0x2
+0x1465f0c543d1d9
+0x30a8ec3644a10
+0x1
+0x1cc24ce1282b47
+0x4e8dabff106f1
+0x3
+0x1e897a93275fa2
+0x3
+0x38ba5c62219c1
+0x1
+0x7fc66b6e9e082
+0x0
+0x1244aa70445b2e
+0xcb8b717c3a97b
+0x4
+0x49757e48b594f
+0xf26af1cfc80bc
+0x4
+0x82bd5c3cb6320
+0x2
+0x1877d36a8b52aa
+0x1b2e5f94f61f47
+0x26
+0x1b2adb2b89ef60
+0x3
+0x843403ce565aa
+0x125e8c48859c73
+0x6

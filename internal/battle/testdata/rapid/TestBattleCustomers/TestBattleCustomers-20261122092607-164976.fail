@@ -1,0 +1,1215 @@
+# 2026/11/22 09:26:07.984733 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:07.984745 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ee166a0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee166a0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:true}
+# 2026/11/22 09:26:07.984754 [TestBattleCustomers] [rapid] draw opening: -7
+# 2026/11/22 09:26:08.012901 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.012909 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:true}
+# 2026/11/22 09:26:08.045467 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.045473 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:08.071527 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.071535 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:true}
+# 2026/11/22 09:26:08.097524 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:08.097530 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:08.097535 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:08.097537 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:false}
+# 2026/11/22 09:26:08.097544 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:08.097545 [TestBattleCustomers] [rapid] draw extra: 78
+# 2026/11/22 09:26:08.097546 [TestBattleCustomers] [rapid] draw kept: 35
+# 2026/11/22 09:26:08.162819 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.162827 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:08.193473 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:08.193479 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef00f00), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:08.193490 [TestBattleCustomers] [rapid] draw amount: 48
+# 2026/11/22 09:26:08.193495 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:08.223383 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.223389 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e304500), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:false}
+# 2026/11/22 09:26:08.250000 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:08.250006 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:08.250014 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:08.250015 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:08.250017 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:08.250019 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:false}
+# 2026/11/22 09:26:08.250029 [TestBattleCustomers] [rapid] draw limit: 1
+# 2026/11/22 09:26:08.276172 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:08.276177 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:false}
+# 2026/11/22 09:26:08.276183 [TestBattleCustomers] [rapid] draw opening: 1
+# 2026/11/22 09:26:08.300919 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:08.300926 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e304500), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:true}
+# 2026/11/22 09:26:08.300938 [TestBattleCustomers] [rapid] draw qty: 3
+# 2026/11/22 09:26:08.300939 [TestBattleCustomers] [rapid] draw extra: 1
+# 2026/11/22 09:26:08.300940 [TestBattleCustomers] [rapid] draw kept: 1
+# 2026/11/22 09:26:08.336158 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.336163 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e59b9e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:true}
+# 2026/11/22 09:26:08.361620 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.361625 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:false}
+# 2026/11/22 09:26:08.388684 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:08.388692 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e59b9e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:false}
+# 2026/11/22 09:26:08.388700 [TestBattleCustomers] [rapid] draw amount: 492
+# 2026/11/22 09:26:08.388702 [TestBattleCustomers] [rapid] draw how: "cash"
+# 2026/11/22 09:26:08.419355 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.419360 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c200), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:false}
+# 2026/11/22 09:26:08.444574 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:08.444579 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:08.444586 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:08.444588 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c200), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:true}
+# 2026/11/22 09:26:08.444595 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:08.444596 [TestBattleCustomers] [rapid] draw cash units: 1
+# 2026/11/22 09:26:08.444597 [TestBattleCustomers] [rapid] draw confirm over limit: true
+# 2026/11/22 09:26:08.476304 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:08.476311 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eabc200), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108eabc380), exp:-2}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:08.476320 [TestBattleCustomers] [rapid] draw opening: -62
+# 2026/11/22 09:26:08.501649 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.501655 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e80bb40), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:08.525471 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:08.525476 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ee166c0), exp:0}, active:true}
+# 2026/11/22 09:26:08.525482 [TestBattleCustomers] [rapid] draw limit: 1
+# 2026/11/22 09:26:08.549547 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:08.549553 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e80bb40), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:08.549561 [TestBattleCustomers] [rapid] draw amount: 26882
+# 2026/11/22 09:26:08.549563 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:08.575758 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:08.575763 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:08.575769 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:08.575771 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e8999e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108e3e60e0), exp:0}, active:true}
+# 2026/11/22 09:26:08.575779 [TestBattleCustomers] [rapid] draw limit: 1060
+# 2026/11/22 09:26:08.603254 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:08.603259 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:08.628794 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:08.628806 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e8999e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:08.628813 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:08.628814 [TestBattleCustomers] [rapid] draw extra: 2
+# 2026/11/22 09:26:08.628815 [TestBattleCustomers] [rapid] draw kept: 2
+# 2026/11/22 09:26:08.663979 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:08.663983 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:false}
+# 2026/11/22 09:26:08.663989 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:08.663990 [TestBattleCustomers] [rapid] draw cash units: 1
+# 2026/11/22 09:26:08.663991 [TestBattleCustomers] [rapid] draw confirm over limit: false
+# 2026/11/22 09:26:08.802088 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:08.802097 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:2, line:2, cust:2, left:3, owed:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/22 09:26:08.860050 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:08.860056 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108dc3fe60), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:08.860067 [TestBattleCustomers] [rapid] draw qty: 1
+# 2026/11/22 09:26:08.860068 [TestBattleCustomers] [rapid] draw extra: 4
+# 2026/11/22 09:26:08.860069 [TestBattleCustomers] [rapid] draw kept: 4
+# 2026/11/22 09:26:08.910773 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:08.910781 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e6424e0), exp:0}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e7ea0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:false}
+# 2026/11/22 09:26:08.910792 [TestBattleCustomers] [rapid] draw amount: 1
+# 2026/11/22 09:26:08.910795 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:08.947903 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:08.947910 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c620), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e3e60c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:08.947921 [TestBattleCustomers] [rapid] draw opening: -2
+# 2026/11/22 09:26:08.982118 [TestBattleCustomers] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:08.982123 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ebfbe80), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:08.982131 [TestBattleCustomers] [rapid] draw amount: 12
+# 2026/11/22 09:26:08.982132 [TestBattleCustomers] [rapid] draw from the till: false
+# 2026/11/22 09:26:09.013748 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.013753 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7cb00), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ea7ca60), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:false}
+# 2026/11/22 09:26:09.040491 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.040496 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.040501 [TestBattleCustomers] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:09.040503 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e304ea0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.040511 [TestBattleCustomers] [rapid] draw amount: 457
+# 2026/11/22 09:26:09.040512 [TestBattleCustomers] [rapid] draw from the till: true
+# 2026/11/22 09:26:09.091175 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.091181 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.091188 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:09.091191 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e0f88e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e0f84e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:09.091200 [TestBattleCustomers] [rapid] draw opening: -337
+# 2026/11/22 09:26:09.117890 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.117896 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.117903 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:09.117904 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e1a27c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.117913 [TestBattleCustomers] [rapid] draw opening: 115
+# 2026/11/22 09:26:09.161171 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.161175 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.161181 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:09.161182 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7cb00), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ea7ca60), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.161190 [TestBattleCustomers] [rapid] draw amount: 4
+# 2026/11/22 09:26:09.161193 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:09.206044 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.206049 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.206055 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:09.206056 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e8982a0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:09.206066 [TestBattleCustomers] [rapid] draw amount: 39
+# 2026/11/22 09:26:09.206068 [TestBattleCustomers] [rapid] draw how: "cash"
+# 2026/11/22 09:26:09.232854 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:09.232859 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e1a27c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.232866 [TestBattleCustomers] [rapid] draw limit: 0
+# 2026/11/22 09:26:09.259594 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.259601 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108dbc3a80), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:09.286664 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:09.286672 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ee17a40), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.286681 [TestBattleCustomers] [rapid] draw qty: 1
+# 2026/11/22 09:26:09.286682 [TestBattleCustomers] [rapid] draw extra: 5
+# 2026/11/22 09:26:09.286683 [TestBattleCustomers] [rapid] draw kept: 2
+# 2026/11/22 09:26:09.327038 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:09.327047 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:2, line:2, cust:2, left:2, owed:decimal.Decimal{value:(*big.Int)(0x1f108dc3fe00), exp:0}}
+# 2026/11/22 09:26:09.361702 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:09.361707 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e47eb80), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:09.361714 [TestBattleCustomers] [rapid] draw limit: 2
+# 2026/11/22 09:26:09.389037 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.389042 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb40dc0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.413960 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.413965 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e47eb80), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:09.439379 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:09.439386 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:1, line:1, cust:2, left:2, owed:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/22 09:26:09.475538 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:09.475546 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb40dc0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:false}
+# 2026/11/22 09:26:09.475557 [TestBattleCustomers] [rapid] draw limit: 0
+# 2026/11/22 09:26:09.500717 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.500721 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.500730 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.500731 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.500733 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:09.500736 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e1a27c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.500746 [TestBattleCustomers] [rapid] draw qty: 3
+# 2026/11/22 09:26:09.500747 [TestBattleCustomers] [rapid] draw cash units: 1
+# 2026/11/22 09:26:09.500748 [TestBattleCustomers] [rapid] draw confirm over limit: false
+# 2026/11/22 09:26:09.533959 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.533965 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea90f40), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:true}
+# 2026/11/22 09:26:09.562394 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:09.562399 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb207c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.562405 [TestBattleCustomers] [rapid] draw qty: 5
+# 2026/11/22 09:26:09.562406 [TestBattleCustomers] [rapid] draw cash units: 3
+# 2026/11/22 09:26:09.562407 [TestBattleCustomers] [rapid] draw confirm over limit: false
+# 2026/11/22 09:26:09.602212 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:09.602218 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:2, line:2, cust:2, left:1, owed:decimal.Decimal{value:(*big.Int)(0x1f108e47eb20), exp:0}}
+# 2026/11/22 09:26:09.638522 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:09.638527 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec16340), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e80b760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.638535 [TestBattleCustomers] [rapid] draw amount: 5770
+# 2026/11/22 09:26:09.638539 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:09.756201 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.756205 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.756211 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.756212 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb40dc0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:false}
+# 2026/11/22 09:26:09.783508 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:09.783513 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb40dc0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.783526 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:09.783527 [TestBattleCustomers] [rapid] draw extra: 67
+# 2026/11/22 09:26:09.783528 [TestBattleCustomers] [rapid] draw kept: 67
+# 2026/11/22 09:26:09.816618 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:09.816623 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e905420), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.816630 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:09.816631 [TestBattleCustomers] [rapid] draw extra: 77
+# 2026/11/22 09:26:09.816631 [TestBattleCustomers] [rapid] draw kept: 36
+# 2026/11/22 09:26:09.855893 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.855900 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec2d7e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.883252 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:09.883258 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e4d65e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ebfa320), exp:0}, active:true}
+# 2026/11/22 09:26:09.883265 [TestBattleCustomers] [rapid] draw limit: 11
+# 2026/11/22 09:26:09.911302 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:09.911310 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:5, line:5, cust:2, left:1, owed:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/22 09:26:09.945780 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:09.945785 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:09.945791 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:09.945792 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec2d7e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:09.976391 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:09.976397 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec2d7e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:09.976403 [TestBattleCustomers] [rapid] draw qty: 4
+# 2026/11/22 09:26:09.976403 [TestBattleCustomers] [rapid] draw cash units: 3
+# 2026/11/22 09:26:09.976404 [TestBattleCustomers] [rapid] draw confirm over limit: false
+# 2026/11/22 09:26:10.010813 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:10.010818 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e905ec0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:10.010825 [TestBattleCustomers] [rapid] draw limit: 1984
+# 2026/11/22 09:26:10.035764 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:10.035769 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec17660), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:10.035777 [TestBattleCustomers] [rapid] draw amount: 1
+# 2026/11/22 09:26:10.035780 [TestBattleCustomers] [rapid] draw how: "cash"
+# 2026/11/22 09:26:10.062247 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:10.062254 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:6, line:6, cust:3, left:1, owed:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/22 09:26:10.100409 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:10.100416 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c580), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:10.126451 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:10.126458 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:3, line:3, cust:2, left:2, owed:decimal.Decimal{value:(*big.Int)(0x1f108e898840), exp:0}}
+# 2026/11/22 09:26:10.172960 [TestBattleCustomers] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:10.172966 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c580), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:10.172975 [TestBattleCustomers] [rapid] draw amount: 332
+# 2026/11/22 09:26:10.172976 [TestBattleCustomers] [rapid] draw from the till: true
+# 2026/11/22 09:26:10.203514 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:10.203519 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e3e7740), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:true}
+# 2026/11/22 09:26:10.203527 [TestBattleCustomers] [rapid] draw amount: 2683
+# 2026/11/22 09:26:10.203529 [TestBattleCustomers] [rapid] draw how: "cheque"
+# 2026/11/22 09:26:10.232708 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:10.232711 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea03980), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:true}
+# 2026/11/22 09:26:10.273923 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:10.273926 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c580), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:10.298063 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:10.298068 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea03980), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ee179c0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.298077 [TestBattleCustomers] [rapid] draw amount: 10
+# 2026/11/22 09:26:10.298079 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:10.338614 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:10.338620 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e8743c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:10.338629 [TestBattleCustomers] [rapid] draw limit: 0
+# 2026/11/22 09:26:10.363280 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:10.363285 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea7c580), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:10.363291 [TestBattleCustomers] [rapid] draw qty: 3
+# 2026/11/22 09:26:10.363292 [TestBattleCustomers] [rapid] draw extra: 41
+# 2026/11/22 09:26:10.363292 [TestBattleCustomers] [rapid] draw kept: 2
+# 2026/11/22 09:26:10.415104 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:10.415109 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e59bd60), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.415116 [TestBattleCustomers] [rapid] draw qty: 1
+# 2026/11/22 09:26:10.415117 [TestBattleCustomers] [rapid] draw cash units: 0
+# 2026/11/22 09:26:10.415118 [TestBattleCustomers] [rapid] draw confirm over limit: true
+# 2026/11/22 09:26:10.463883 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:10.463888 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e8743c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:10.463894 [TestBattleCustomers] [rapid] draw qty: 1
+# 2026/11/22 09:26:10.463895 [TestBattleCustomers] [rapid] draw extra: 2
+# 2026/11/22 09:26:10.463895 [TestBattleCustomers] [rapid] draw kept: 2
+# 2026/11/22 09:26:10.508643 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:10.508650 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec17480), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.508657 [TestBattleCustomers] [rapid] draw limit: 3000
+# 2026/11/22 09:26:10.537945 [TestBattleCustomers] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:10.537949 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec17480), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.537959 [TestBattleCustomers] [rapid] draw amount: 2
+# 2026/11/22 09:26:10.537960 [TestBattleCustomers] [rapid] draw from the till: false
+# 2026/11/22 09:26:10.566356 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:10.566362 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e74b8c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:10.566370 [TestBattleCustomers] [rapid] draw limit: 1
+# 2026/11/22 09:26:10.731700 [TestBattleCustomers] [rapid] draw action: "OnAccount"
+# 2026/11/22 09:26:10.731707 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108e905140), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:10.731717 [TestBattleCustomers] [rapid] draw qty: 1
+# 2026/11/22 09:26:10.731718 [TestBattleCustomers] [rapid] draw cash units: 0
+# 2026/11/22 09:26:10.731720 [TestBattleCustomers] [rapid] draw confirm over limit: false
+# 2026/11/22 09:26:10.770753 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:10.770759 [TestBattleCustomers] [rapid] draw cheque: 0
+# 2026/11/22 09:26:10.802511 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:10.802518 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:4, line:4, cust:2, left:2, owed:decimal.Decimal{value:(*big.Int)(nil), exp:0}}
+# 2026/11/22 09:26:10.838911 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:10.838917 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108e59b8c0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.838923 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:10.838924 [TestBattleCustomers] [rapid] draw extra: 1
+# 2026/11/22 09:26:10.838925 [TestBattleCustomers] [rapid] draw kept: 1
+# 2026/11/22 09:26:10.879706 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:10.879711 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:4, line:4, cust:2, left:1, owed:decimal.Decimal{value:(*big.Int)(0x1f108e6432e0), exp:0}}
+# 2026/11/22 09:26:10.915332 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:10.915337 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eabc5e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:10.915343 [TestBattleCustomers] [rapid] draw opening: -188
+# 2026/11/22 09:26:10.942700 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:10.942707 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e4d72a0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ef000e0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:10.942720 [TestBattleCustomers] [rapid] draw amount: 6
+# 2026/11/22 09:26:10.942724 [TestBattleCustomers] [rapid] draw how: "old first"
+# 2026/11/22 09:26:10.972981 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:10.972987 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb12260), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:10.972997 [TestBattleCustomers] [rapid] draw limit: 126
+# 2026/11/22 09:26:11.000416 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:11.000422 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eabc5e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:11.000433 [TestBattleCustomers] [rapid] draw opening: -3
+# 2026/11/22 09:26:11.029303 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:11.029310 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e74bec0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.029316 [TestBattleCustomers] [rapid] draw limit: 0
+# 2026/11/22 09:26:11.058053 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.058060 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108eabc5e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:11.058069 [TestBattleCustomers] [rapid] draw amount: 59
+# 2026/11/22 09:26:11.058072 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:11.090768 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:11.090773 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e74bec0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.090781 [TestBattleCustomers] [rapid] draw opening: 3
+# 2026/11/22 09:26:11.116963 [TestBattleCustomers] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:11.116968 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e74bec0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.116977 [TestBattleCustomers] [rapid] draw amount: 4
+# 2026/11/22 09:26:11.116979 [TestBattleCustomers] [rapid] draw from the till: false
+# 2026/11/22 09:26:11.145635 [TestBattleCustomers] [rapid] draw action: "Return"
+# 2026/11/22 09:26:11.145641 [TestBattleCustomers] [rapid] draw sale: &battle.mCustSale{id:3, line:3, cust:2, left:1, owed:decimal.Decimal{value:(*big.Int)(0x1f108e874360), exp:0}}
+# 2026/11/22 09:26:11.201283 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:11.201293 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63b2e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.201304 [TestBattleCustomers] [rapid] draw opening: 3000
+# 2026/11/22 09:26:11.229587 [TestBattleCustomers] [rapid] draw action: "Bounce"
+# 2026/11/22 09:26:11.229593 [TestBattleCustomers] no cheque waiting
+# 2026/11/22 09:26:11.229601 [TestBattleCustomers] [rapid] draw action: "Limit"
+# 2026/11/22 09:26:11.229604 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb12260), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:11.229615 [TestBattleCustomers] [rapid] draw limit: 2
+# 2026/11/22 09:26:11.255324 [TestBattleCustomers] [rapid] draw action: "Opening"
+# 2026/11/22 09:26:11.255330 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63b2e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.255336 [TestBattleCustomers] [rapid] draw opening: -500
+# 2026/11/22 09:26:11.298177 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.298184 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea75620), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:11.298192 [TestBattleCustomers] [rapid] draw amount: 5
+# 2026/11/22 09:26:11.298194 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:11.340596 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.340598 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63b2e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.340605 [TestBattleCustomers] [rapid] draw amount: 48503
+# 2026/11/22 09:26:11.340608 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:11.368409 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.368415 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e119b80), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.368427 [TestBattleCustomers] [rapid] draw amount: 1194
+# 2026/11/22 09:26:11.368431 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:11.402584 [TestBattleCustomers] [rapid] draw action: "Disable"
+# 2026/11/22 09:26:11.402587 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb12260), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:false}
+# 2026/11/22 09:26:11.432403 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.432408 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:3, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea1c7e0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e59bce0), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea005c0), exp:0}, active:false}
+# 2026/11/22 09:26:11.432416 [TestBattleCustomers] [rapid] draw amount: 45825
+# 2026/11/22 09:26:11.432419 [TestBattleCustomers] [rapid] draw how: "cash"
+# 2026/11/22 09:26:11.462327 [TestBattleCustomers] [rapid] draw action: "KeepChange"
+# 2026/11/22 09:26:11.462331 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb12260), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:11.462337 [TestBattleCustomers] [rapid] draw qty: 2
+# 2026/11/22 09:26:11.462338 [TestBattleCustomers] [rapid] draw extra: 1
+# 2026/11/22 09:26:11.462338 [TestBattleCustomers] [rapid] draw kept: 1
+# 2026/11/22 09:26:11.499603 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.499608 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:2, bal:decimal.Decimal{value:(*big.Int)(0x1f108e47fbc0), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108e74be40), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ea00020), exp:0}, active:false}
+# 2026/11/22 09:26:11.499616 [TestBattleCustomers] [rapid] draw amount: 3953
+# 2026/11/22 09:26:11.499619 [TestBattleCustomers] [rapid] draw how: "cash"
+# 2026/11/22 09:26:11.529315 [TestBattleCustomers] [rapid] draw action: "Pay"
+# 2026/11/22 09:26:11.529320 [TestBattleCustomers] [rapid] draw customer: &battle.mCust{id:4, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea27220), exp:-2}, old:decimal.Decimal{value:(*big.Int)(0x1f108ec2d760), exp:0}, limit:decimal.Decimal{value:(*big.Int)(0x1f108ef00f20), exp:0}, active:true}
+# 2026/11/22 09:26:11.529331 [TestBattleCustomers] [rapid] draw amount: 1
+# 2026/11/22 09:26:11.529335 [TestBattleCustomers] [rapid] draw how: "card"
+# 2026/11/22 09:26:12.409397 [TestBattleCustomers] ROUNDTRIP RAN
+# 
+v0.4.8#17891207947314858633
+0xedb77dfacdbfb
+0xd147880057515
+0x5
+0x1412fcaac9243c
+0x1
+0x117ca4d3c9bfee
+0x169c287ddae735
+0x6
+0xeb506168739d8
+0x2
+0x1
+0x14746d16567184
+0x0
+0x1e9a5737a993f6
+0x1
+0x1
+0x14f1fcd5509ac7
+0x2
+0x18bd9d85ea6ffd
+0x1
+0x1
+0xcfdf78c3751aa
+0x1
+0x84ef48e7abdbd
+0x2
+0x0
+0x4c126c746d98a
+0x2
+0x2bf8544a81be8
+0x0
+0x1900c0990137c6
+0x857480c6c58c1
+0x1
+0xe2f44298ea814
+0x1e155c4cb39888
+0x4d
+0x1f5e49a8b0909c
+0x1d3ea01ff51483
+0x22
+0x9b40cfa3cfcd0
+0x14b02f9add2e5
+0x1
+0x18783ba93ea991
+0x2
+0xa1c3f7270ef47
+0x184442f5889b1d
+0x6
+0x622f407e80109
+0x2
+0x8535659818d92
+0xdd3eff77ebf39
+0x2f
+0x14ede652c20a51
+0x3
+0x12ebdd1a846c7f
+0x12cfda179a6adb
+0x1
+0x6641cced07e0c
+0x0
+0x1c7fec46b4d673
+0x111cb3725cedab
+0x0
+0xa6da82e21cea9
+0x0
+0x6c1c764388e20
+0x3
+0x0
+0x1
+0x3
+0x13d90373959609
+0x1
+0x9c2a5f501f715
+0xa0f1509f232ea
+0x5
+0x182ff856a2023
+0x1
+0x6
+0x1ee9bedca5423d
+0x1
+0x3035e7ce09c03
+0xa6483f9f2bffd
+0x2
+0x1c16c62e500bb2
+0x0
+0xa67e1c51c9eb7
+0x808beb7d818f8
+0x2
+0xb9f0cdbad719e
+0x0
+0x0
+0x71a2bc4ec917c
+0x1
+0x0
+0xbc6a67bb75716
+0x2
+0x1
+0x7100d76d87f8
+0x0
+0x1f24e7776c1bab
+0x1adabff004937
+0x1
+0x1a60ad5a9d694f
+0x1
+0x1d26b6fe18a7e
+0x13c335c0608620
+0x6
+0xe9c4f9e22403
+0x0
+0x115e3e3b238999
+0x15ee3e0fecdfa1
+0x1eb
+0xc510520408b6
+0x0
+0x1326e341c57de5
+0xa14175c4fc659
+0x1
+0xf4383223a03de
+0x0
+0xd69bf7e3ec03b
+0x146c17ab19494b
+0x0
+0x1a6082c9ef2bec
+0x4
+0x15935ecd348c98
+0x0
+0xcd011ed1443a5
+0x17bf598d4add83
+0x1
+0x1903aef298c14d
+0x132e895d34d54d
+0x1
+0x1
+0x36fa3cd1c8ff9
+0xb3475cee37fe8
+0x5
+0x1fad907395d2e9
+0xffffffffffffffff
+0x162130092f9184
+0x1c929c83450292
+0x3d
+0x150e54aed5c68a
+0xf73f10890e6c3
+0x1
+0x11e2b93878e204
+0x2
+0xc7952101f01ae
+0x16dbd6003d6893
+0x3
+0x1eb4b066e47588
+0x1
+0x311f832806320
+0x4d0c19ddb5ceb
+0x1
+0x17b90ea5cf1c30
+0x85a84bab2af0b
+0x6
+0xc0e66ede88c10
+0x2
+0x196c1ac063b700
+0x19528f489c59f9
+0x6901
+0x2dce67a12639e
+0x1
+0x6bec3e6991f04
+0x257386293e5f1
+0x0
+0x88361e1494e91
+0x3
+0xc1192bddd5d25
+0x0
+0x1a712aad6d6bce
+0x167620fa577d36
+0x424
+0x5064ae5ddbc6f
+0x2cd5d0c0cbdf5
+0x1
+0x4d728e717254e
+0x1
+0x15ee201ed548b5
+0x124e5b511282a0
+0x2
+0xfda7fe086823e
+0x0
+0x1cfaa44d303ece
+0x14d24bd05004d5
+0x1
+0xd446e1430a629
+0x49e947af06352
+0x1
+0x22204cb0074eb
+0xb2c63aa0bb48a
+0x1
+0x1df93afaa67e97
+0xc2969208a7e07
+0x4
+0x176fa717e1d2bf
+0x1
+0x103478a95c3450
+0x7acb71f78af67
+0x1
+0x1e77427ef3506e
+0x5c576b38d9cec
+0x1
+0x0
+0x12f77de4aa46d3
+0x1fd0e4fa78ea01
+0xffffffffffffffff
+0x1be5cd03b777e0
+0x1
+0x1edd30ef40392d
+0xb9ec9f3bfcf59
+0x2
+0x173242ffc0d6ad
+0x0
+0x13bf0c9a45e7f8
+0xb30edf384e50e
+0x0
+0x6d316cd36266d
+0x39243d4cef198
+0x3
+0x16a46e6149dfb2
+0x1d44fb6eaf14ab
+0x3
+0x7e0cc1e91c8be
+0x11a7729117460c
+0x6
+0x112ebb6b95a662
+0x1
+0x7b68b8f7df7db
+0x2dd5e4677d674
+0x0
+0x17cfc1871127f6
+0x3
+0x1955273cfe9a91
+0x73ad6889a4a44
+0x5
+0x1a54baff515011
+0x0
+0x1a00fa09332e04
+0x254d47933613d
+0x1
+0x1e6307736265d
+0xba8e196ed69fd
+0x7
+0x1dfbd91cf8a197
+0x2
+0x12a3dc922f1da9
+0x92cc0660d096b
+0xb
+0x0
+0x94cc01dc85e55
+0x128d6f630b8046
+0x1
+0x1a27320ad5c801
+0x1
+0x957bd1a09157d
+0x248d73a1c301c
+0x0
+0xd0d1c208ac23a
+0x7
+0x1f993b087e793b
+0xffffffffffffffff
+0x119f80ca655320
+0x1de16f13b8b5aa
+0x1c8
+0x1
+0x1bc6a89d672bbb
+0x1173ab0bf39d91
+0x0
+0x8d41a00fd65b9
+0x5
+0x6a9d07b70be4e
+0x0
+0x10b643ed4c27b1
+0x18cd59eb52eff7
+0x150
+0xa8b3dc16753a0
+0x558992b939311
+0x0
+0x1f1506632763cb
+0x5
+0x19b150770d1152
+0x2
+0xa9114136e8a1b
+0x10f638c2439239
+0x73
+0xac73aa474b8b5
+0x859a52d65cf9b
+0x0
+0x1e267925cc8bba
+0x6
+0x13ae1f568c3fec
+0x1
+0x3ee4cd911805f
+0x98948cad8b983
+0x3
+0x1f4f5e18e4e376
+0xffffffffffffffff
+0x1ce0a54088e786
+0x13357608002d29
+0x0
+0x1cb8176a46b26e
+0x6
+0x345af7612b418
+0x0
+0xfef1c0637d8a3
+0x10fa5c5e637468
+0x26
+0x94415d1499ebf
+0x0
+0x76adb5517f15a
+0x1dc51ced396ae8
+0x3
+0x14c635f8117625
+0x2
+0xeb63525ccbdf6
+0x3161cf4d0b0c5
+0x0
+0x13a4ae3c3a898f
+0x1be445296ce5d
+0x1
+0x277fcc329119e
+0x0
+0x1dd6af900c4c4b
+0xfcc08f8980d9c
+0x2
+0xa974734c4ba66
+0x1
+0x15b352309dbd07
+0x1eb4a1821034bd
+0x0
+0xe7fd37ae10c15
+0x8796a08523fe3
+0x4
+0x677889aff046d
+0x572af3af41a1e
+0x1
+0x1b0fe93bbac5f8
+0x15f30da26ec700
+0x8
+0x3b950668c242e
+0x1
+0x6352cbb1dd45d
+0x1d682aa01736f5
+0x3
+0xb886ec816e54b
+0x0
+0x1c5dbc89488a59
+0x7373eb30a88db
+0x2
+0x528d5cd08aefe
+0xb50c7e40d14a7
+0x1
+0x1a94dee29c18f2
+0x1
+0x7a6446d18e926
+0xc4b7c4320cec1
+0x1
+0x6954f4cde50e2
+0x0
+0xeff84028630d6
+0x10bdd16f2408ea
+0x8
+0xde183cf1d33eb
+0x0
+0x1740baf233b271
+0xc2690cbf49902
+0x3
+0xf9446875e66d9
+0x1
+0x1992613412552f
+0xb6a336b8e6b96
+0x0
+0x1b357547cd0993
+0x9d77ae3c9dda0
+0x0
+0x8a9c9b99fc3cd
+0x0
+0x1efdfc60c49ab5
+0x4
+0x1f7de017eb4946
+0xffffffffffffffff
+0x13eb3b630382fd
+0x1568a9b644c440
+0x2
+0x1f94c8579bcfaf
+0x1c9d704784bb9c
+0x1
+0x0
+0x1ee85b3c9f21bd
+0x1fccd84bc6e7e
+0x1
+0x1320b519a0c85f
+0x0
+0x654f75fd8cbfa
+0x18c5f1dbde61b7
+0x4
+0x1fd727ee74dcd0
+0xffffffffffffffff
+0xd5c0adc67ac70
+0x1f548528633981
+0xffffffffffffffff
+0x83818b166b1e4
+0x1a8690730f894f
+0x3
+0x0
+0x17c9808ba255f4
+0x1965a272767bbb
+0x8
+0x881633531662d
+0x1
+0x1fadfc82face84
+0x1cabe35d6930a1
+0x6
+0x14fbba97fcac9b
+0x2
+0x1c8e387ed9465f
+0x16f2a14d779e3d
+0x1689
+0xa887d33705e30
+0x3
+0x34cd0db7abdf7
+0xd05e72636283a
+0x0
+0x157a95f7068a4d
+0x1
+0xb245a1f83d4e
+0x1
+0xf95a86ffedfaa
+0x7ce8d729c8d5e
+0x2
+0x453c74a69b11b
+0x1
+0xf8c16f51534c3
+0xcab336d99c784
+0x1
+0x87711732cb350
+0x179cb97b27fe9b
+0x42
+0x1b01e24b7a6037
+0x1f70640cd0eb85
+0xffffffffffffffff
+0xe314f945f9200
+0x6d4d59a49e6a7
+0x2
+0x57bf8bbbbe862
+0x1
+0xdeae701b1454
+0xe330323155b2b
+0x1
+0x1ba1a99fc2da45
+0x1eaa55a202ce5e
+0x4c
+0x92e21660c8fc5
+0xebbc15602fb06
+0x23
+0x132cfe02ffec47
+0xb4ce77157429
+0x1
+0xcd7e687f45641
+0x2
+0x52794896580fa
+0xa890c2077e5a0
+0x3
+0x9fa4862363476
+0x1
+0x16e8ced1981a69
+0x9854e2c4a82d4
+0xb
+0x12cb7e4bdc7604
+0x159ac49c761dc0
+0x8
+0x8af001cc87ee6
+0x3
+0x207f545c8fcfc
+0xc0f2905459622
+0x0
+0x10368e839110f
+0x1
+0xfee6cafe4ab85
+0x2
+0x38b4c69fa2e80
+0x7807ee533a88e
+0x4
+0xb499e5c2d2da9
+0x2
+0x1aa80d156e561b
+0xc5afed080eff6
+0x3
+0x38fab9c49d144
+0x6f79394fe6a4e
+0x3
+0x0
+0xb75ecf3b5dbb5
+0x5aed4801c3b17
+0x3
+0xde9427c3f627d
+0x0
+0x1e967a95793b0
+0x158e90c9e8bc0d
+0x7c0
+0x9cdb3dcfac608
+0x1872af63ec5369
+0x6
+0x1a52e4a2ab39fb
+0x2
+0xf32c3eed668fd
+0x6661ba396e758
+0x0
+0x19be02024dbf9c
+0x0
+0x3807ba0036584
+0xfc8aaba55ce4a
+0x8
+0x4e6d1aaf55695
+0x3
+0x16f792847e8e7
+0x255f879f6aebd
+0x1
+0x16b3f8a3d8809c
+0x2
+0xc807601b47edb
+0x1fe8edd82120cc
+0xffffffffffffffff
+0x14233bebec4fe4
+0x1
+0xa7adaadccecc0
+0x18586cca18df1c
+0x7
+0x84daf79891784
+0x2
+0xbf7992a559407
+0x14c1f206e3034b
+0x14b
+0x1
+0x15c5aad89b9fde
+0x1856198da64b15
+0x6
+0x1cf032a7baa982
+0x1
+0x830811e947482
+0x1b83fc988768a2
+0xa7a
+0x165bba0930a519
+0x2
+0x1602a30cf07b90
+0xd554eea3813e
+0x1
+0xfa64deefbac1c
+0x1
+0x7c34150696c01
+0x221c2b807bb1f
+0x1
+0x546684f2f9033
+0x2
+0x4be2415db38c2
+0x1165381235e6d8
+0x6
+0xdb4a4e07df921
+0x1
+0x6ce95d6b68280
+0x9215b85aa2632
+0x9
+0x197b1f539e9778
+0x3
+0x97a39419d5ad3
+0x12a8737ec0861b
+0x3
+0x1be5c23d4760d2
+0x0
+0x154d8bca09fff8
+0x1f4472fec2df2
+0x0
+0x1d3d833e02ba17
+0x6a1466a9a4644
+0x2
+0xeacbfb1ed01bc
+0x2
+0x1853ff1eeafffe
+0x188706a395e850
+0x2
+0x3d12a7d42f73b
+0x1091f468d5c1c9
+0x28
+0xf8007a2f4ca18
+0x7ad1122e1d7eb
+0x1
+0xe24c226a027bd
+0x14d40d569eea8a
+0x4
+0x7ea66dc6330db
+0x1
+0xd28be03bb0721
+0x13482defe66e53
+0x0
+0x111cd3c16388e5
+0x1f35a8473e697
+0x0
+0x1
+0x1d6b34d7e7607c
+0x124b6a51501420
+0x2
+0x60ad80b9a6630
+0x0
+0x2676b77cf053
+0x29a90306ca054
+0x0
+0xd4402da156374
+0x203910c7afbb2
+0x1
+0xbca0993320b5c
+0x1b9e28c17257e3
+0x1
+0xc818674b0dbe3
+0x81fac1337c99f
+0x3
+0x2d2d14f357c81
+0x1
+0x1487c73571b197
+0x1efdbf064329d7
+0xffffffffffffffff
+0x15c3d8ac2b4e43
+0xe8d484c8cf9af
+0x7
+0x2b0cd2b85d690
+0x1
+0x1f15224df8aaa1
+0x823fd58fe04ae
+0x1
+0x0
+0x16ba8468c5c098
+0x1abce46b705dd7
+0x3
+0x11839adb491b0c
+0x0
+0x970154fbf9bc0
+0x46bbb99ded706
+0x1
+0x57a2f69f91f31
+0xdf93d9fa0e285
+0x4
+0x1f7a1c904fd7bb
+0xffffffffffffffff
+0x7968267c3fe96
+0x1351d78e6369a0
+0x0
+0x1a8ae4847a85d8
+0xf307c6780ca73
+0x0
+0x0
+0x128678f580e7fa
+0x1425d121b05a4c
+0x0
+0x158abc14c8c137
+0x66736e9a7587e
+0x0
+0x1f8d15f220186e
+0x19d5c2a3bd895a
+0x8
+0x670654095af21
+0x2
+0xe2f2d50850fd2
+0x55afc5f588e81
+0x2
+0x17979f3bf7bb40
+0x1
+0x1e9bd91bf31322
+0x14ae3bf14496f2
+0x1
+0xe258289940c07
+0x2d01115c0b470
+0x0
+0xe6e044c10ef7
+0x1110f063d71c21
+0x0
+0xa09b46c57851a
+0xb2a66985c85c3
+0x8
+0x644d2cca044b6
+0x2
+0x1ddebdfde49641
+0x84ab5fbfe7027
+0x5
+0x145f1a470194a6
+0x1
+0x119df81f9dfe6a
+0x122e51542961ca
+0xbb
+0x161e0fd953c8b6
+0x186f2de4b5bd5a
+0x6
+0x1a5e3449abddbd
+0x0
+0x5ae358aa9a6ed
+0x6fc13f121b252
+0x5
+0x1c7adb73141899
+0x3
+0x15e7a29168e95d
+0x6c0a184aa9506
+0x3
+0xeff57956e0e90
+0x2
+0xa0f7605f679ee
+0x152302a40e4063
+0x7e
+0x3b7d93f852adf
+0x7007c2e581ecb
+0x5
+0xfd362b014c90b
+0x1
+0x1d6e3fea1f647e
+0x911ab5e7cd601
+0x2
+0x129d319d7141be
+0x1e687f25507258
+0x3
+0x1bfa7e78527650
+0x0
+0x1490bda93bbf37
+0x20414a3e60eb8
+0x0
+0x725c8c55c9aa2
+0x161532888b2167
+0x6
+0x85c8d39b77c49
+0x1
+0xa000e33267e10
+0x133a2cfb76df6d
+0x3a
+0x14c145309abb8a
+0x1
+0xe6d74e86c3dd0
+0x12268f51aade87
+0x5
+0x1cc5aad68e06a0
+0x0
+0x756ab4396f5ba
+0x775cf8ae2299b
+0x3
+0x1d79de204bed6e
+0x131f9bb3bc9951
+0x7
+0xabb2a42ed433
+0x0
+0xd3e9b5299c472
+0x3fce8f7451e6c
+0x3
+0x0
+0x7c928e4281a38
+0x13059bcd237053
+0x8
+0x3fdb4d5dbb2c9
+0x1
+0x1a2e400e03ffca
+0x19a9809af8bf30
+0x5
+0x135e8006e31f62
+0x0
+0x301f4f7c1a0fc
+0x1f0e22579b087d
+0xffffffffffffffff
+0x1adb07b3819723
+0x7541615941c2b
+0x0
+0x1e84eef4e6776b
+0x3
+0x1aa14b11f66626
+0x2
+0xc61dac5105995
+0x43c767839a119
+0x2
+0x19c3e03562fc65
+0x149d881e2df697
+0x5
+0x2e1606a55bb95
+0x0
+0x1998e02336ba6a
+0x1f8610ab5c3f98
+0xffffffffffffffff
+0x1e941eb5609c96
+0x1e84b03efbb429
+0x6
+0x7dadaeb8d0559
+0x1
+0x71082177e22f0
+0x68e82bee444cb
+0x4
+0x144758ca0dee9
+0x1
+0x145fa98fdfc00d
+0x154ed3f538cfd4
+0x6
+0xfd9fd36f4c10
+0x0
+0xf3d3db9e41269
+0x1a5a2323522da7
+0xbd76
+0x1ef24743594fca
+0x1
+0x17775236b45f57
+0xcbb235c41730c
+0x6
+0x1da195013a8a78
+0x0
+0xfcba2d4291469
+0x15bd32d89af729
+0x4a9
+0x1450153a6d76e6
+0x1
+0x17a698ce0e57bc
+0x1515f138de14ab
+0x1
+0x1e95200a502dcd
+0x2
+0x13ba9ca2f1b6e1
+0xdcd920168e774
+0x6
+0xacc924477f232
+0x1
+0x137ea57012907
+0x1d575378fd76ba
+0xb300
+0x139cf4298843c5
+0x0
+0x1e28f685a68157
+0x5a1903a909340
+0x2
+0x190d713300473e
+0x2
+0x1a2226f9a98cc5
+0x1117c1ba96775d
+0x1
+0x1d01080a450897
+0xc65b028c92c6
+0x0
+0x18faf83634280f
+0x10391ef4c3a55b
+0x0
+0x17b63c135a3e48
+0x9fc6247dd42c7
+0x6
+0xbb8111ab3e8e7
+0x0
+0x46fe3ecd133ed
+0x1664645fea5604
+0xf70
+0xc41364106b582
+0x0
+0x1f047267031307
+0xd27b32ef979a7
+0x6
+0x125826e8e86553
+0x2
+0x8dbdb89df00ab
+0x57c2f047a589
+0x0
+0x8305ce2273096
+0x1

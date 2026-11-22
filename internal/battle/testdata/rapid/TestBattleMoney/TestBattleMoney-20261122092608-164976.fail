@@ -1,0 +1,1134 @@
+# 2026/11/22 09:26:09.339096 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:09.339104 [TestBattleMoney] [rapid] draw amount: 10
+# 2026/11/22 09:26:09.339107 [TestBattleMoney] [rapid] draw from: 1
+# 2026/11/22 09:26:09.339109 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:5, name:"Bank", cash:false, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e80a580), exp:0}}
+# 2026/11/22 09:26:09.363935 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:09.363939 [TestBattleMoney] [rapid] draw amount: 12
+# 2026/11/22 09:26:09.391999 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:09.392004 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:09.392006 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea01260), exp:0}}
+# 2026/11/22 09:26:09.416207 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:09.416212 [TestBattleMoney] [rapid] draw amount: 219
+# 2026/11/22 09:26:09.416213 [TestBattleMoney] [rapid] draw from: 1
+# 2026/11/22 09:26:09.416214 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e1a2e40), exp:-2}}
+# 2026/11/22 09:26:09.441729 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:09.441740 [TestBattleMoney] [rapid] draw amount: 6
+# 2026/11/22 09:26:09.470119 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:09.470126 [TestBattleMoney] [rapid] draw amount: 57
+# 2026/11/22 09:26:09.498035 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:09.498042 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:09.498044 [TestBattleMoney] [rapid] draw from: 2
+# 2026/11/22 09:26:09.520407 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:09.520413 [TestBattleMoney] [rapid] draw amount: 1
+# 2026/11/22 09:26:09.543610 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.543616 [TestBattleMoney] [rapid] draw float: 12
+# 2026/11/22 09:26:09.543619 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:09.543620 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e80a240), exp:0}}
+# 2026/11/22 09:26:09.575325 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:09.575333 [TestBattleMoney] [rapid] draw amount: 115865
+# 2026/11/22 09:26:09.575334 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:09.605690 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:09.605696 [TestBattleMoney] [rapid] draw amount: 5
+# 2026/11/22 09:26:09.605698 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:09.632025 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:09.632033 [TestBattleMoney] [rapid] draw amount: 3
+# 2026/11/22 09:26:09.632035 [TestBattleMoney] [rapid] draw toLocker: true
+# 2026/11/22 09:26:09.632036 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63a860), exp:-2}}
+# 2026/11/22 09:26:09.662644 [TestBattleMoney] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:09.662650 [TestBattleMoney] [rapid] draw qty: 5
+# 2026/11/22 09:26:09.662653 [TestBattleMoney] [rapid] draw card: 2
+# 2026/11/22 09:26:09.662654 [TestBattleMoney] [rapid] draw extra: 9
+# 2026/11/22 09:26:09.695083 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:09.695090 [TestBattleMoney] [rapid] draw amount: 1221
+# 2026/11/22 09:26:09.695091 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:09.695093 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e9058a0), exp:0}}
+# 2026/11/22 09:26:09.723373 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:09.723379 [TestBattleMoney] [rapid] draw amount: 6749
+# 2026/11/22 09:26:09.756651 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.756655 [TestBattleMoney] [rapid] draw overShort: -3
+# 2026/11/22 09:26:09.756658 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:09.756659 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec2d0a0), exp:-2}}
+# 2026/11/22 09:26:09.784352 [TestBattleMoney] [rapid] draw action: "Transfer"
+# 2026/11/22 09:26:09.784356 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ee80920), exp:-2}}
+# 2026/11/22 09:26:09.784361 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:5, name:"Bank", cash:false, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e502d00), exp:-2}}
+# 2026/11/22 09:26:09.784365 [TestBattleMoney] [rapid] draw amount: 20480
+# 2026/11/22 09:26:09.809284 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.809292 [TestBattleMoney] [rapid] draw float: 16
+# 2026/11/22 09:26:09.809296 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:09.839024 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:09.839030 [TestBattleMoney] nothing on the card account
+# 2026/11/22 09:26:09.839036 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:09.839042 [TestBattleMoney] nothing on the card account
+# 2026/11/22 09:26:09.839044 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:09.839046 [TestBattleMoney] [rapid] draw expense: 1
+# 2026/11/22 09:26:09.839047 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea1c940), exp:-2}}
+# 2026/11/22 09:26:09.866897 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:09.866907 [TestBattleMoney] [rapid] draw amount: 4
+# 2026/11/22 09:26:09.866908 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:09.896214 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.896219 [TestBattleMoney] [rapid] draw overShort: 50
+# 2026/11/22 09:26:09.896223 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:09.896225 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e305bc0), exp:-2}}
+# 2026/11/22 09:26:09.923093 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:09.923096 [TestBattleMoney] till closed
+# 2026/11/22 09:26:09.923102 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:09.923103 [TestBattleMoney] till closed
+# 2026/11/22 09:26:09.923104 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.923106 [TestBattleMoney] [rapid] draw float: 21
+# 2026/11/22 09:26:09.923110 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:09.923111 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea1c940), exp:-2}}
+# 2026/11/22 09:26:09.949269 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:09.949273 [TestBattleMoney] [rapid] draw amount: 38047
+# 2026/11/22 09:26:09.980158 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:09.980162 [TestBattleMoney] [rapid] draw overShort: -3
+# 2026/11/22 09:26:09.980168 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:09.980170 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e80ac80), exp:-2}}
+# 2026/11/22 09:26:10.092575 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:10.092579 [TestBattleMoney] nothing on the card account
+# 2026/11/22 09:26:10.092585 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.092587 [TestBattleMoney] [rapid] draw float: 6
+# 2026/11/22 09:26:10.092589 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:10.092591 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea75380), exp:-2}}
+# 2026/11/22 09:26:10.118724 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.118731 [TestBattleMoney] [rapid] draw amount: 40423
+# 2026/11/22 09:26:10.152274 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.152281 [TestBattleMoney] [rapid] draw overShort: 0
+# 2026/11/22 09:26:10.152286 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:10.152289 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108ee16ca0), exp:-2}}
+# 2026/11/22 09:26:10.182123 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:10.182131 [TestBattleMoney] [rapid] draw amount: 7
+# 2026/11/22 09:26:10.207109 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.207114 [TestBattleMoney] [rapid] draw amount: 8
+# 2026/11/22 09:26:10.231005 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:10.231012 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:10.271084 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:10.271090 [TestBattleMoney] [rapid] draw amount: 28449
+# 2026/11/22 09:26:10.293628 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.293634 [TestBattleMoney] [rapid] draw float: 50
+# 2026/11/22 09:26:10.293637 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:10.332415 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.332420 [TestBattleMoney] [rapid] draw overShort: 276
+# 2026/11/22 09:26:10.332425 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:10.332428 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e642960), exp:-2}}
+# 2026/11/22 09:26:10.357930 [TestBattleMoney] [rapid] draw action: "Transfer"
+# 2026/11/22 09:26:10.357934 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ee16240), exp:-2}}
+# 2026/11/22 09:26:10.357939 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e93c500), exp:-2}}
+# 2026/11/22 09:26:10.357944 [TestBattleMoney] [rapid] draw amount: 104
+# 2026/11/22 09:26:10.404182 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.404188 [TestBattleMoney] [rapid] draw float: 25
+# 2026/11/22 09:26:10.404190 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:10.445538 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:10.445545 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:10.482250 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.482257 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:10.510495 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.510499 [TestBattleMoney] [rapid] draw amount: 2009
+# 2026/11/22 09:26:10.535796 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:10.535812 [TestBattleMoney] [rapid] draw sale: 0
+# 2026/11/22 09:26:10.589045 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:10.589051 [TestBattleMoney] [rapid] draw amount: 194
+# 2026/11/22 09:26:10.589053 [TestBattleMoney] [rapid] draw from: 2
+# 2026/11/22 09:26:10.616555 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:10.616562 [TestBattleMoney] nothing sold
+# 2026/11/22 09:26:10.616568 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:10.616571 [TestBattleMoney] [rapid] draw amount: 52
+# 2026/11/22 09:26:10.616572 [TestBattleMoney] [rapid] draw from: 0
+# 2026/11/22 09:26:10.665011 [TestBattleMoney] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:10.665016 [TestBattleMoney] [rapid] draw qty: 15
+# 2026/11/22 09:26:10.665018 [TestBattleMoney] [rapid] draw card: 2
+# 2026/11/22 09:26:10.665019 [TestBattleMoney] [rapid] draw extra: 1
+# 2026/11/22 09:26:10.706626 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:10.706631 [TestBattleMoney] nothing on the card account
+# 2026/11/22 09:26:10.706636 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:10.706640 [TestBattleMoney] [rapid] draw amount: 63
+# 2026/11/22 09:26:10.706641 [TestBattleMoney] [rapid] draw toLocker: false
+# 2026/11/22 09:26:10.736089 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.736095 [TestBattleMoney] [rapid] draw amount: 8
+# 2026/11/22 09:26:10.764074 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.764081 [TestBattleMoney] [rapid] draw amount: 1
+# 2026/11/22 09:26:10.793003 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.793010 [TestBattleMoney] [rapid] draw overShort: 16
+# 2026/11/22 09:26:10.793015 [TestBattleMoney] [rapid] draw bank: false
+# 2026/11/22 09:26:10.822269 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:10.822276 [TestBattleMoney] [rapid] draw amount: 1
+# 2026/11/22 09:26:10.847153 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:10.847158 [TestBattleMoney] [rapid] draw amount: 8
+# 2026/11/22 09:26:10.878482 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:10.878487 [TestBattleMoney] [rapid] draw float: 6
+# 2026/11/22 09:26:10.878489 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:10.878491 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e305400), exp:-2}}
+# 2026/11/22 09:26:11.015622 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:11.015628 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:11.015629 [TestBattleMoney] [rapid] draw toLocker: false
+# 2026/11/22 09:26:11.043523 [TestBattleMoney] [rapid] draw action: "Transfer"
+# 2026/11/22 09:26:11.043528 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108dc3e540), exp:-2}}
+# 2026/11/22 09:26:11.043536 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e3053e0), exp:-2}}
+# 2026/11/22 09:26:11.043541 [TestBattleMoney] [rapid] draw amount: 33
+# 2026/11/22 09:26:11.073484 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.073489 [TestBattleMoney] [rapid] draw overShort: 10
+# 2026/11/22 09:26:11.073493 [TestBattleMoney] [rapid] draw bank: false
+# 2026/11/22 09:26:11.104238 [TestBattleMoney] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:11.104243 [TestBattleMoney] till closed
+# 2026/11/22 09:26:11.104250 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.104253 [TestBattleMoney] [rapid] draw float: 7
+# 2026/11/22 09:26:11.104256 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:11.104258 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea744e0), exp:-2}}
+# 2026/11/22 09:26:11.132186 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:11.132196 [TestBattleMoney] [rapid] draw amount: 35809
+# 2026/11/22 09:26:11.132198 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:11.132201 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea74500), exp:-2}}
+# 2026/11/22 09:26:11.175153 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:11.175162 [TestBattleMoney] [rapid] draw amount: 669
+# 2026/11/22 09:26:11.175164 [TestBattleMoney] [rapid] draw from: 1
+# 2026/11/22 09:26:11.175167 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108eabdca0), exp:-2}}
+# 2026/11/22 09:26:11.202123 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.202128 [TestBattleMoney] [rapid] draw overShort: 4
+# 2026/11/22 09:26:11.202131 [TestBattleMoney] [rapid] draw bank: false
+# 2026/11/22 09:26:11.246539 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:11.246546 [TestBattleMoney] [rapid] draw amount: 35
+# 2026/11/22 09:26:11.290876 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.290882 [TestBattleMoney] [rapid] draw float: 44
+# 2026/11/22 09:26:11.290884 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:11.331646 [TestBattleMoney] [rapid] draw action: "Sell"
+# 2026/11/22 09:26:11.331653 [TestBattleMoney] [rapid] draw qty: 15
+# 2026/11/22 09:26:11.331656 [TestBattleMoney] [rapid] draw card: 0
+# 2026/11/22 09:26:11.364555 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:11.364559 [TestBattleMoney] [rapid] draw sale: 1
+# 2026/11/22 09:26:11.402244 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:11.402249 [TestBattleMoney] [rapid] draw expense: 1
+# 2026/11/22 09:26:11.402251 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63b780), exp:-2}}
+# 2026/11/22 09:26:11.428485 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:11.428491 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:11.428493 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:11.458318 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:11.458324 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:11.458326 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e63b780), exp:-2}}
+# 2026/11/22 09:26:11.489965 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:11.489972 [TestBattleMoney] [rapid] draw sale: 0
+# 2026/11/22 09:26:11.527738 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:11.527745 [TestBattleMoney] [rapid] draw amount: 16091
+# 2026/11/22 09:26:11.559530 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:11.559535 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:11.559537 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e7205a0), exp:-2}}
+# 2026/11/22 09:26:11.587596 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:11.587604 [TestBattleMoney] [rapid] draw amount: 121
+# 2026/11/22 09:26:11.587605 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:11.587608 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea00b40), exp:-2}}
+# 2026/11/22 09:26:11.617987 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:11.617997 [TestBattleMoney] [rapid] draw amount: 16068
+# 2026/11/22 09:26:11.617999 [TestBattleMoney] [rapid] draw toLocker: true
+# 2026/11/22 09:26:11.618002 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e45ee60), exp:-2}}
+# 2026/11/22 09:26:11.647970 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:11.647976 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:11.675807 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:11.675815 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:11.675816 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e118760), exp:-2}}
+# 2026/11/22 09:26:11.703828 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.703834 [TestBattleMoney] [rapid] draw overShort: 1
+# 2026/11/22 09:26:11.703838 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:11.703840 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ed00220), exp:-2}}
+# 2026/11/22 09:26:11.730099 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:11.730103 [TestBattleMoney] no expense
+# 2026/11/22 09:26:11.730109 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:11.730112 [TestBattleMoney] [rapid] draw gross: 2
+# 2026/11/22 09:26:11.759823 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:11.759828 [TestBattleMoney] till closed
+# 2026/11/22 09:26:11.759835 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:11.759839 [TestBattleMoney] [rapid] draw amount: 139
+# 2026/11/22 09:26:11.789260 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:11.789267 [TestBattleMoney] [rapid] draw float: 14
+# 2026/11/22 09:26:11.789270 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:11.789272 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb21800), exp:-2}}
+# 2026/11/22 09:26:11.944650 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:11.944657 [TestBattleMoney] [rapid] draw amount: 113
+# 2026/11/22 09:26:11.971103 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:11.971107 [TestBattleMoney] nothing sold
+# 2026/11/22 09:26:11.971112 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:11.971116 [TestBattleMoney] [rapid] draw amount: 23
+# 2026/11/22 09:26:12.001001 [TestBattleMoney] [rapid] draw action: "Transfer"
+# 2026/11/22 09:26:12.001009 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e5ee5a0), exp:-2}}
+# 2026/11/22 09:26:12.001031 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:5, name:"Bank", cash:false, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108ea90a20), exp:-2}}
+# 2026/11/22 09:26:12.001039 [TestBattleMoney] [rapid] draw amount: 430582
+# 2026/11/22 09:26:12.033938 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.033947 [TestBattleMoney] [rapid] draw overShort: 0
+# 2026/11/22 09:26:12.033952 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:12.033955 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108e59a960), exp:-2}}
+# 2026/11/22 09:26:12.061225 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:12.061231 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.061237 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:12.061238 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.061239 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:12.061243 [TestBattleMoney] [rapid] draw amount: 1
+# 2026/11/22 09:26:12.087034 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:12.087037 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.087044 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:12.087048 [TestBattleMoney] [rapid] draw amount: 7
+# 2026/11/22 09:26:12.114017 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:12.114019 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.114025 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:12.114027 [TestBattleMoney] [rapid] draw amount: 10
+# 2026/11/22 09:26:12.114028 [TestBattleMoney] [rapid] draw from: 1
+# 2026/11/22 09:26:12.114030 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e47f140), exp:-2}}
+# 2026/11/22 09:26:12.142418 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:12.142422 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.142427 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.142430 [TestBattleMoney] [rapid] draw float: 2
+# 2026/11/22 09:26:12.142433 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:12.174598 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.174605 [TestBattleMoney] [rapid] draw overShort: -171
+# 2026/11/22 09:26:12.174609 [TestBattleMoney] [rapid] draw bank: true
+# 2026/11/22 09:26:12.174611 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e899380), exp:-2}}
+# 2026/11/22 09:26:12.204352 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:12.204358 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.204366 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:12.204370 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:12.204372 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108eb01460), exp:-2}}
+# 2026/11/22 09:26:12.231296 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:12.231301 [TestBattleMoney] [rapid] draw amount: 17988
+# 2026/11/22 09:26:12.257567 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.257571 [TestBattleMoney] [rapid] draw float: 19
+# 2026/11/22 09:26:12.257574 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:12.257576 [TestBattleMoney] [rapid] draw from: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108ec17080), exp:-2}}
+# 2026/11/22 09:26:12.290475 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:12.290481 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:12.290482 [TestBattleMoney] [rapid] draw from: 0
+# 2026/11/22 09:26:12.321301 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:12.321307 [TestBattleMoney] [rapid] draw amount: 61272
+# 2026/11/22 09:26:12.321309 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:12.349343 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.349348 [TestBattleMoney] [rapid] draw overShort: 15
+# 2026/11/22 09:26:12.349353 [TestBattleMoney] [rapid] draw bank: false
+# 2026/11/22 09:26:12.377529 [TestBattleMoney] [rapid] draw action: "Withdraw"
+# 2026/11/22 09:26:12.377533 [TestBattleMoney] till closed
+# 2026/11/22 09:26:12.377538 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:12.377542 [TestBattleMoney] [rapid] draw amount: 168
+# 2026/11/22 09:26:12.412444 [TestBattleMoney] [rapid] draw action: "CloseOpen"
+# 2026/11/22 09:26:12.412453 [TestBattleMoney] [rapid] draw float: 27
+# 2026/11/22 09:26:12.412457 [TestBattleMoney] [rapid] draw fromLocker: false
+# 2026/11/22 09:26:12.439569 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:12.439576 [TestBattleMoney] [rapid] draw expense: 0
+# 2026/11/22 09:26:12.439577 [TestBattleMoney] [rapid] draw to: &battle.mLocker{id:4, name:"Pocket", cash:true, negative:true, bal:decimal.Decimal{value:(*big.Int)(0x1f108dc3e940), exp:-2}}
+# 2026/11/22 09:26:12.467096 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:12.467103 [TestBattleMoney] [rapid] draw amount: 19412
+# 2026/11/22 09:26:12.493389 [TestBattleMoney] [rapid] draw action: "Refund"
+# 2026/11/22 09:26:12.493393 [TestBattleMoney] nothing sold
+# 2026/11/22 09:26:12.493399 [TestBattleMoney] [rapid] draw action: "Deposit"
+# 2026/11/22 09:26:12.493402 [TestBattleMoney] [rapid] draw amount: 10219
+# 2026/11/22 09:26:12.493403 [TestBattleMoney] [rapid] draw fromLocker: true
+# 2026/11/22 09:26:12.493405 [TestBattleMoney] [rapid] draw locker: &battle.mLocker{id:3, name:"Safe", cash:true, negative:false, bal:decimal.Decimal{value:(*big.Int)(0x1f108e517bc0), exp:-2}}
+# 2026/11/22 09:26:12.520455 [TestBattleMoney] [rapid] draw action: "BankCharge"
+# 2026/11/22 09:26:12.520463 [TestBattleMoney] [rapid] draw amount: 6917
+# 2026/11/22 09:26:12.550368 [TestBattleMoney] [rapid] draw action: "SettleCard"
+# 2026/11/22 09:26:12.550380 [TestBattleMoney] [rapid] draw gross: 19
+# 2026/11/22 09:26:12.583011 [TestBattleMoney] [rapid] draw action: "Interest"
+# 2026/11/22 09:26:12.583016 [TestBattleMoney] [rapid] draw amount: 7
+# 2026/11/22 09:26:12.610773 [TestBattleMoney] [rapid] draw action: "Void"
+# 2026/11/22 09:26:12.610778 [TestBattleMoney] no expense
+# 2026/11/22 09:26:12.610784 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:12.610787 [TestBattleMoney] [rapid] draw amount: 6
+# 2026/11/22 09:26:12.610788 [TestBattleMoney] [rapid] draw from: 0
+# 2026/11/22 09:26:12.638986 [TestBattleMoney] [rapid] draw action: "Expense"
+# 2026/11/22 09:26:12.638992 [TestBattleMoney] [rapid] draw amount: 2
+# 2026/11/22 09:26:12.638994 [TestBattleMoney] [rapid] draw from: 0
+# 2026/11/22 09:26:13.616101 [TestBattleMoney] ROUNDTRIP RAN
+# 
+v0.4.8#16928803521730828034
+0x335b5ce682a67
+0x1aaa4a1ce0f24f
+0x3
+0x739c3d3435bc4
+0x8b3a60e266831
+0x9
+0x5e2c84b4028ba
+0x76958b5219bb8
+0x1
+0x15918d7a418ee5
+0x2
+0xf713939f06afe
+0x4d80c12e7c271
+0x0
+0xe01682ac5f9
+0xe94b0be4e38e1
+0xb
+0x406527560a588
+0x992d7f17433e5
+0x9
+0xc186df6c66c51
+0x1d6d301053b33d
+0x0
+0x1c66433a2411aa
+0x1
+0x103453328d2392
+0x120b7b73258b48
+0x3
+0x1004da04cd53b6
+0x130b0050e04809
+0xda
+0x93e799289efe0
+0x14fe041e6b6a97
+0x1
+0x1c7aefce2d15af
+0x1
+0x165d4f5d781ee
+0x2de8177cdf75d
+0x0
+0x18831fc9b045a6
+0x97fa013b19cdf
+0x5
+0xb22a0682f174c
+0x1271a13d7ac167
+0x0
+0xeea6698ff1a54
+0xd4c40cbd95744
+0x38
+0x16bb21c25bd42a
+0x1e762c955c61c0
+0x3
+0x243a4c084b888
+0x52326cb9ba8b1
+0x1
+0x12249fdb321725
+0x7d05cdc297a2b
+0x2
+0x460412228b06c
+0xc8402541a28af
+0x4
+0x745b0d72f89d7
+0x4468deb04dee8
+0x0
+0x2c484b4b96a78
+0x34de5ae597535
+0x1
+0x184aaad5eea84e
+0x120285d6fddabc
+0xc
+0x1
+0x14ffcd5fb2e258
+0x0
+0x285ed561c8365
+0x4077d2362e594
+0x2
+0x5a264d946f730
+0x1a429cd3399a18
+0x1c498
+0x0
+0x11f455c6fb9905
+0xc8b6b63199239
+0x2
+0x7a2d14e0f4af8
+0x9d08344577640
+0x4
+0x0
+0x5f225628f5d27
+0x1f8d99ec384498
+0xffffffffffffffff
+0x3819262772124
+0x4bada10dd9115
+0x2
+0x1
+0xc1550a54660d5
+0x1
+0x3f598ec5f3d6a
+0x13578699320d87
+0x6
+0x1542da172c46e8
+0x156605ccd95225
+0x4
+0x17a79529ed3b56
+0x13421b32b27bdd
+0x2
+0xb7041a4fc3558
+0xb754e8e933c82
+0x9
+0x1a70cba5388de8
+0x76c0fe899c3a1
+0x2
+0x48af948d1b96
+0x15bd3daf288b8f
+0x4c4
+0x1
+0x1aaea8b5873cc6
+0x0
+0x1c2d151d4b24cd
+0x3c476b549004f
+0x0
+0x73f62d93e14ae
+0x1bf6b3a07c01e1
+0x1a5c
+0x1c690687ef2cab
+0x65c42d17aaf34
+0x1
+0x197238a551c565
+0x3cf5f6561a3f5
+0x2
+0x1
+0x373dcafd5a951
+0x1
+0xd3b1161620170
+0xed91296018957
+0x8
+0x596c5a2d15e2e
+0x1
+0x1c40624c3beba9
+0x2
+0x394025b8ca56d
+0x18f7b1b3ebd87b
+0x4fff
+0x1259c5b07427ae
+0x1c3d3cac7f77e
+0x1
+0x1b03e16d3dcd79
+0x1bb219c3690a5e
+0x10
+0x0
+0x19a30e2dcdef54
+0x11e19f6785c34e
+0x7
+0x182c1cb5de6efc
+0x7
+0xc80d02119b57b
+0x9
+0xca8513f4edfed
+0xa70a222eb2b08
+0x1
+0x1956799319d815
+0x0
+0x181c26b1a22ae
+0x1ecd183534c577
+0x2
+0x4e57f362d1655
+0x7652b47936323
+0x3
+0x0
+0xe9641f23104ce
+0x93864851a055f
+0x1
+0x53126e28f3e30
+0x1331dc99d2d46a
+0x32
+0x1
+0xe7808d2ad2fc0
+0x1
+0x28b8b86cd8f3e
+0xd70a278901ec7
+0x5
+0x1baadc6a5364b5
+0x5
+0x1f3f3f067528b
+0x1
+0xdecdd66ede990
+0x14d2e404fc5dfe
+0x15
+0x1
+0x937e080b6606d
+0x0
+0x9428fc6f44428
+0xdb7de4792cd99
+0x4
+0x1df5ae2ae8951d
+0x1ce6fa84057a44
+0x949e
+0x133d757f879da9
+0x1d378977d4b9c
+0x1
+0x11416f8b3a5467
+0x3e41ce794e170
+0x2
+0x1
+0x1a39e0594db152
+0x1
+0xa7d65eaffc196
+0xc3facc843a668
+0x7
+0x17a21e0e41da3d
+0x1
+0x1a43fe28695efb
+0xb5e8185be83ef
+0x6
+0x1
+0x16e71889b21d2c
+0x1
+0x194bebf7ade53d
+0x1bfc46788b31f
+0x0
+0x144c7e6880e576
+0x1ef0d1899a1553
+0x9de6
+0x41e76e847263d
+0x1229a473cedc85
+0x1
+0xc1d6976c5806c
+0x34fff39f3b884
+0x0
+0x1
+0xe8e71cc7d9b5b
+0x0
+0x110e5d71784366
+0x8a2e2d1ef72a1
+0x4
+0xa3eb7b666b90d
+0x94f782f5419a8
+0x6
+0x15015981f52fdb
+0x56c1eecad9646
+0x0
+0xeda4ac0f4ffde
+0xc5338c27a6a12
+0x7
+0x1ac39d96156727
+0x14ef692ce1f347
+0x4
+0x2f5125f019d73
+0x5a31a2ba03c4e
+0x1
+0x1c6a15bb278880
+0xd9c1dba915e5e
+0x4
+0x28aa55a80a704
+0x1b15c648065903
+0x6f20
+0xfaba47faae1e1
+0x1b7e5eebb5243
+0x1
+0x14440ff3cf428b
+0x1f8a446cef8037
+0xffffffffffffffff
+0x0
+0x3464164cc33cc
+0x4b2f99f279735
+0x1
+0xe80f9a443ec53
+0x1dca66a429bac9
+0x114
+0x1
+0x118b47af304e35
+0x1
+0x437ae7699e286
+0x195c737ea5dd41
+0x8
+0x19b095e9ad5be7
+0x1
+0x2b6d09b90f6bc
+0x0
+0xb3ff6167fdfe0
+0x130a880dcedbf9
+0x67
+0x171fdf76b2080
+0x3aafa28e0582e
+0x1
+0x136e0fe08c47b0
+0x10e7a1dbaea4d5
+0x19
+0x0
+0x14ea25bc5a22e7
+0x815784b2b9dc2
+0x4
+0x1f9bb1df2291f4
+0x7d678372c8cdb
+0x1
+0x9e44198051174
+0x3cff2fda123ba
+0x0
+0x1a61046316301
+0x977cb58798b15
+0x1
+0x1bbd18eecc8716
+0xcf9eec1e48aa6
+0x0
+0x2997a460c2eb3
+0x15f030a4d2aea0
+0x7d8
+0x180e8c15e69225
+0xdefd9f7ed7f1a
+0x5
+0x1be74a6915e6a3
+0x48e42a9c8ce0d
+0x0
+0x1406475323f207
+0x88b9c993bb557
+0x3
+0x162da1827917cb
+0x111d0b7a858a7e
+0xc1
+0x1c26a64ea38a5c
+0x1ff1837cefe7ad
+0xffffffffffffffff
+0x2cf6aefca05fe
+0xa6a1d30946801
+0x5
+0x4893ad2b4be39
+0x3
+0x1270246900f60e
+0xf9539d8ab77d0
+0x33
+0x11513fe9278fd3
+0xe4701b55e81ee
+0x0
+0x15112223314b92
+0x1d413c19966e86
+0x6
+0x110664e667b2bc
+0x1ea269309e2884
+0xe
+0x949b6f8bb5744
+0x118c61d527005b
+0x2
+0x13e4921e6bb930
+0x3d2f5d6c853a7
+0x1
+0x16321adc14e0ae
+0x6d11d285c4ea3
+0x7
+0x1ddc48fa2ab50a
+0xa
+0x1fd1c1637b0dd3
+0xdacee332496ca
+0x3e
+0x0
+0x77618ddc46a78
+0x135b933c2032
+0x0
+0xde63b1c740d17
+0xc506b15e233e8
+0x7
+0x129ec9bae04d47
+0x32e09e6e5d1d7
+0x0
+0x11ba3985d77d19
+0x60b793a3e289
+0x0
+0xf4588510d6e57
+0x13ef4747b06d1c
+0x1
+0xf4a4a53c1d27e
+0xd64c33dc407e1
+0x10
+0x0
+0x34a6f4060c1f2
+0x1ed5b202c62093
+0x0
+0x1ca3288fb475fd
+0xd5e040dd3360
+0x0
+0x139b01c0aed5c7
+0xb631022c2913b
+0x4
+0x1bc91dbe58513f
+0x7f3eda4411528
+0x7
+0xded8fb9173e1d
+0x17e5a39ebaad40
+0x1
+0x17c386f29bf5d7
+0xf6fd121c95e85
+0x6
+0x1
+0x1133e2f96fb5c8
+0x0
+0x1a914f5cdcddd
+0x1f7af3b77babda
+0xffffffffffffffff
+0x9054e899af3e6
+0x3bc02b35398ad
+0x1
+0x0
+0x1a7f54763e6636
+0x1028fd82dd20c6
+0x8
+0x1d89a66d2b405
+0x0
+0x18db3ae5a5d3a4
+0x1
+0x5983a07d62363
+0xeaaeb239d8eb6
+0x20
+0xc79bd5ed011d3
+0x1eb55aea8a0286
+0x1
+0xa102eb0726cd3
+0x1161a9aa312b2b
+0xa
+0x0
+0x4579563b780a1
+0x159f463b92f64a
+0x6
+0x128246bba18fcd
+0x1
+0x6580febb826cd
+0x855ea5fc2e07c
+0x7
+0x1
+0x1ed471dbe5a1a0
+0x0
+0x1944208fe9f742
+0x196fd25f45da13
+0x2
+0x5cb5926ff7a0f
+0x1904794f7def49
+0x8be0
+0x1
+0x1a8206a577c461
+0x1
+0x184ff7499b483c
+0x44c0844902181
+0x3
+0x69e6c1d03e95f
+0x1395d65666f350
+0x29c
+0x14b1830d93e883
+0x14f792c93bde6a
+0x1
+0x1950ef53bb5c09
+0x0
+0x17959e5be3501c
+0xd17dcfccd34b2
+0x1
+0x8a6d586e83dfb
+0xdb0e7a977f2be
+0x4
+0x0
+0x120df7d915f4b3
+0x157ac9ee90b853
+0x0
+0x132ec4d1afc51a
+0xd05df12473bf5
+0x22
+0x1d2b2d5e3db8ec
+0xe574971a77dd1
+0x1
+0x165eec9df44d03
+0x1354fefcb6db47
+0x2c
+0x0
+0x8e8e8a28c52ae
+0x80ac5f8eddffd
+0x6
+0x1cf01170f3870a
+0x13813d51b10473
+0xe
+0x1f0ae4f04e4fd2
+0xd732a9e209371
+0x0
+0x108b68c4a69173
+0x141fe077d983c8
+0x5
+0x6c73524332c9
+0x17281bceb858ea
+0x1
+0x172e1961cad7f6
+0x1af0cc2ffd1941
+0x9
+0x1780d8d6d843d6
+0x165c876a58696d
+0x1
+0x1a44d8b5eab9f7
+0x0
+0x550100997d4c2
+0x13e6a925a46354
+0x2
+0xa52bb67be1139
+0x4c065955b9cb4
+0x1
+0x0
+0x53b5e8b439405
+0x13f660c609bbfb
+0x9
+0x17f4c19500cbf5
+0x21be0d9824af8
+0x0
+0x1c1af5fb797dcd
+0x0
+0x148c010c2f6ff9
+0x10a920f69d839b
+0x5
+0x1420eda3d33312
+0xffcd0147e95ce
+0x0
+0xe3f1c6946bbb
+0x71eda3a638a72
+0x4
+0x1d0f51808a3178
+0x1ad7bbb3a0b98e
+0x3eda
+0x18a17acad12ea9
+0xa3e431a2e9294
+0x9
+0x1130634e05ce3a
+0x17e02e2e5f927e
+0x0
+0x17cef1181eff40
+0x0
+0x1566b905c00b02
+0x1c879a6409bf62
+0x2
+0x114c586181e809
+0x1807e2af9576bb
+0x78
+0x1
+0x149b32b5b7c45f
+0x1
+0x13265f8c640051
+0x1f684a88f87969
+0xffffffffffffffff
+0x113e4b73570243
+0x1760101baa7315
+0x3ec3
+0x1
+0xdb908cac35378
+0x1
+0x1c610c20e91393
+0xb11bba0db3306
+0x4
+0xdc0be46ea6875
+0x1c8bcba3316f
+0x1
+0x15ca1ddfe4d48a
+0x1b66a374591e93
+0x9
+0x1311afbc4a8f1c
+0x3e2332a3b10e6
+0x0
+0x10f7bf42f34550
+0x0
+0x1e028198d34597
+0x1024b8928f518b
+0x1
+0x9a148dc159ab1
+0x80a0e2ec654e0
+0x1
+0x1
+0x70c117ff2937a
+0x1
+0x12d97aed743987
+0x1039b9ed932d6b
+0x9
+0xedd07e129c9e0
+0x7
+0xc491737829808
+0x7bd70ac6290c
+0x1
+0x1eb3179bcd93ea
+0x164644016a555e
+0x5
+0x19b31845e2dcb2
+0x4
+0x1a475e81332d90
+0x11780f73e2f011
+0x8a
+0x1681afa2d017b4
+0x35804bd66b210
+0x1
+0x1f4639d20abf94
+0x118fffd7255490
+0xe
+0x1
+0x1eeef3b94477cb
+0x0
+0x11a965b1348705
+0x112542eac99799
+0x4
+0x10082037c44cd2
+0x107076d3180873
+0x70
+0x1ccd9306daaa8f
+0x16912e154e77f1
+0x5
+0x15648c4edf730
+0x0
+0xb8d40bf5434bf
+0x11f9505e71d2bc
+0x16
+0xfdb501e54ea63
+0x14dd7c033f3adf
+0x8
+0xea974f3c2959c
+0x0
+0x106240ff1987a4
+0x2
+0x1dbedca08cafc5
+0x1db0d5ba537a10
+0x691f5
+0x1ee54da104e38e
+0x99bf107953ba1
+0x1
+0xb898e394d6735
+0x2e1fbbc1f549a
+0x0
+0x1
+0xf5411a7ab7aa1
+0x1
+0x1c59580962fd9a
+0x174fb738ec547c
+0x2
+0x12f9a6707f4eed
+0xa
+0x1b1e514264d171
+0x4
+0x8b4b94ce2adb4
+0x9ca6837d6701
+0x0
+0xc2754e9d76aad
+0x50b0bdd861b67
+0x2
+0xa1790080cec44
+0x0
+0x5d94b7e44a674
+0x75c2a7c2cca1d
+0x6
+0x189e3eb8ac0f91
+0x169a785166f3f9
+0x5
+0x955a5d49fe25f
+0x3
+0xdf7c91648b14a
+0x8774ef92994bf
+0x9
+0x322adbc357ca
+0xfef8da801dd21
+0x1
+0x131ba426c60002
+0x0
+0x19d9b4e18aa42a
+0xf184779b34d12
+0xa
+0x97fe96272a345
+0x1
+0x29aedc7d06d2d
+0x4f6d26845f616
+0x2
+0x0
+0x15a502f3806bb7
+0x1a5eb0487b14f1
+0x1
+0x10eddab519e2f3
+0x1c2cbcd8b52dc2
+0xaa
+0x1
+0x13c97bdd80315a
+0x0
+0x18a45f210936b7
+0x13f27e3ab4f690
+0x5
+0x197d63d7945b28
+0x9
+0x10c6264482513
+0x642548a55070f
+0x0
+0x1fe68c2dc7f4cc
+0xffffffffffffffff
+0x94de749b8ff97
+0xc55a6327bc61b
+0x4
+0x1a2ca45ed7c2b2
+0x1cc91335d24cbe
+0x4643
+0x18075c5d80ff52
+0x16bb640c1cd608
+0x1
+0xed75a6695f53f
+0x199ea9f60dcfb7
+0x13
+0x1
+0x3d30deaa7e298
+0x1
+0x1693c634a49163
+0x1a4670d3d24ae5
+0x3
+0x120e5afed2f988
+0x3281e77e8cb6c
+0x1
+0x1b0c35a484971c
+0x17a4a02ffc44d6
+0x0
+0x8d26dd156166b
+0x562233e64435f
+0x2
+0xe5c5311e28540
+0x1e0534b0bfb102
+0xef57
+0x0
+0x25d73ab15512b
+0x185d34e2a29b92
+0x1
+0xc305fd08d488d
+0x969e89ed73a22
+0xf
+0x0
+0x1b1845b3640367
+0xc8a5b1d795e79
+0xa
+0x10c5670d528299
+0x0
+0x151a3ad3683c32
+0x11dfef273cbcb8
+0xa7
+0x183c2ed8b2767f
+0x63768ccf016b5
+0x1
+0x185e595934e3d2
+0x122d322a5f2523
+0x1b
+0x0
+0xec2c94f111e96
+0x195874e3aa6123
+0x9
+0x3666ac283f12e
+0x92b3194b920f0
+0x0
+0x186ee44a803730
+0x1
+0xfa7bac3b5cb34
+0x1b5e73fe0bdb78
+0x4
+0x4455d29f47f60
+0x1bcc0a5e05447c
+0x4bd3
+0x83d6841b57f18
+0x137dbd3525a491
+0x5
+0x168d58e17617af
+0x2
+0xe0dcb47eaf76b
+0x181248ef42fbcc
+0x27ea
+0x1
+0x4d6e1a6aa0699
+0x0
+0x19dae55959b4fc
+0x6cee0d1d95dbc
+0x0
+0x20f8b62a9b87e
+0x182a9fc3cd850b
+0x1b04
+0x7dcbeed9eb1b3
+0x7e26257eea060
+0x7
+0x15e290b3778bb5
+0xe77ffe6ce3ea8
+0x12
+0x3d80a74146916
+0x9f33d84a61b57
+0x4
+0x184433059d9687
+0x8a2b5fae6ccf7
+0x6
+0x1fc92ddb346e7b
+0x12ec1e53024f02
+0x9
+0x1e5824ed9baf9e
+0x3
+0x9f753b959368c
+0x6657ed132f27a
+0x5
+0x3878a929c4f77
+0x152119490110a7
+0x0
+0x2652ffac38c15
+0x195823c4bea65b
+0x3
+0x6059817de04fc
+0x5b367d08c2f7f
+0x1
+0x1789ec2e7b8939
+0x10d6db33f6410d
+0x0
