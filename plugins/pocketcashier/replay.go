@@ -47,6 +47,7 @@ type ActionResult struct {
 	ResultID  int64  `json:"resultId,omitempty"` // what a call made
 	Flagged   bool   `json:"-"`                  // applied, but someone should look
 	Settled   bool   `json:"-"`                  // its cash, if any, has been dealt with
+	bookSale  bool   // a sale the PC refused: apply claims it, then books its handed cash
 	// Reply is the route's own answer, for the screen waiting on it and for later
 	// actions that read more than one id from it.
 	Reply json.RawMessage `json:"reply,omitempty"`
@@ -199,18 +200,33 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
-	claim := a.Kind != "sale" // a sale's own ref (sales.client_ref) already stops it booking twice
-	if claim {
+	claimIt := func() (bool, error) {
 		res, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,'running') ON CONFLICT (ref) DO NOTHING`, a.Ref, p.ID, s.id, a.Kind, uid, a.At, body)
 		if err != nil {
-			return ActionResult{}, apperr.Internal("failed to record what the phone did", err)
+			return false, apperr.Internal("failed to record what the phone did", err)
 		}
-		if n, _ := res.RowsAffected(); n == 0 { // another send has it: this one waits, and gets its answer next time
-			return ActionResult{Ref: a.Ref, Status: "retry"}, nil
+		n, _ := res.RowsAffected() // 0: another send has it: this one waits, and gets its answer next time
+		return n > 0, nil
+	}
+	claim := a.Kind != "sale" // a sale's own ref (sales.client_ref) already stops it selling twice
+	if claim {
+		if ok, err := claimIt(); err != nil || !ok {
+			return ActionResult{Ref: a.Ref, Status: "retry"}, err
 		}
 	}
 	r := h.run(ctx, p, a)
+	if r.bookSale && a.Handed {
+		// Its cash is booked on its own: claimed first, so a stop between the booking and
+		// the record never books it again (PKT-4, PKT-7).
+		if ok, err := claimIt(); err != nil || !ok {
+			return ActionResult{Ref: a.Ref, Status: "retry"}, err
+		}
+		claim = true
+	}
+	if r.bookSale {
+		r = h.refusedSale(ctx, a, r.Note)
+	}
 	r.Ref = a.Ref
 	if r.Status == "retry" {
 		if claim { // nothing was done: the next try runs it afresh

@@ -88,9 +88,13 @@ PKT-6  A phone sale is an ordinary sale: core's sale rules hold and the auditor 
 PKT-7  Cash that moved is booked exactly once. When the PC refuses something the cashier already handed
        over, the cash it moved (a sale's net cash, a call's cash in / out) is booked as a move into or out
        of that person's till (one opened for it when none), and the note says so; a refusal the cashier
-       watched books nothing; a lost reply is booked by the retry that says it was handed, once.
-       Checked by: example, ledgercheck (every handed, refused action with cash is settled; never more
-       refused-on-phone moves than such actions).
+       watched books nothing; a lost reply is booked by the retry that says it was handed, once. A refused
+       sale is claimed before its cash is booked, so a stop between the booking and its record never books
+       it again; a booking the PC's own trouble stopped is tried again, never given up (PKT-5).
+       Found in: 2026-11-22 full run (a refused sale's record failing after its cash was booked booked it
+       twice on the retry; a database blip while booking left it "couldn't be booked" for good).
+       Checked by: example, failure sweep (a refused sale), ledgercheck (every handed, refused action with
+       cash is settled; never more refused-on-phone moves than such actions).
 
 PKT-8  A temp number becomes the real id of what this phone's earlier action made, in a path or a body; an
        action depending on one that was refused or never arrived is refused, naming it; a number nothing was

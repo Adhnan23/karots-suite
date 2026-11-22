@@ -21,6 +21,9 @@ type kindCase struct {
 	did   func(t *testing.T, s *ltest.Shop, a pocketcashier.Action) int
 }
 
+// refusedKind: the PC refuses it, and its handed cash is booked, once (PKT-7).
+const refusedKind = "refused sale"
+
 func opened(t *testing.T, s *ltest.Shop, p *phone) int64 {
 	uid := person(t, s, "cashier")
 	mustApplied(t, p.send(t, open(uid, ago(time.Hour), "1000")), 1)
@@ -63,6 +66,11 @@ var sweepKinds = []kindCase{
 		return cashSale(uid, ago(time.Minute), s.Product(t, fmt.Sprintf("Sweep tea %d", next()), "60", "5", nil), "1", "60", "60")
 	}, func(t *testing.T, s *ltest.Shop, a pocketcashier.Action) int {
 		return count(t, s, `SELECT count(*) FROM sales WHERE cashier_id = $1`, a.UserID)
+	}},
+	{refusedKind, func(t *testing.T, s *ltest.Shop, p *phone) pocketcashier.Action {
+		return cashSale(opened(t, s, p), ago(time.Minute), 999999999, "1", "75", "75") // a product the PC doesn't have
+	}, func(t *testing.T, s *ltest.Shop, a pocketcashier.Action) int {
+		return count(t, s, `SELECT count(*) FROM money_receipts WHERE kind = 'refused_on_phone' AND created_by = $1`, a.UserID)
 	}},
 	{"call", func(t *testing.T, s *ltest.Shop, p *phone) pocketcashier.Action {
 		uid := opened(t, s, p)
@@ -117,7 +125,7 @@ func TestPKT5_FailureSweep(t *testing.T) { // plants failures in the one shop: r
 			if code == http.StatusOK {
 				s.Must(t, json.Unmarshal(body, &r))
 			}
-			if len(r.Results) == 1 && r.Results[0].Status == "failed" {
+			if len(r.Results) == 1 && r.Results[0].Status == "failed" && (kc.name != refusedKind || strings.Contains(r.Results[0].Note, "couldn't be booked")) {
 				t.Errorf("PKT-5 %s: refused for the PC's own trouble at statement %d (%.80s): %s", kc.name, k, failed, r.Results[0].Note)
 				continue
 			}
@@ -133,6 +141,10 @@ func TestPKT5_FailureSweep(t *testing.T) { // plants failures in the one shop: r
 			case final.Status == "failed" && strings.Contains(final.Note, "may not have gone through"):
 				if did > 1 {
 					t.Errorf("PKT-4 %s: done %d times (statement %d)", kc.name, did, k)
+				}
+			case kc.name == refusedKind && final.Status == "failed":
+				if did != 1 {
+					t.Errorf("PKT-7 %s: its cash booked %d times (statement %d, %.80s)", kc.name, did, k, failed)
 				}
 			case final.Status == "applied" || final.Status == "skipped":
 				if did != 1 {
@@ -194,7 +206,14 @@ func TestPKT4_EveryKindAtOnceAndTwice(t *testing.T) {
 			t.Fatalf("%s: sends answered %v", kc.name, codes)
 		}
 		r := p.send(t, a)
-		if len(r.Results) != 1 || (r.Results[0].Status != "applied" && r.Results[0].Status != "skipped") {
+		if len(r.Results) != 1 {
+			t.Fatalf("PKT-4 %s: %+v", kc.name, r.Results)
+		}
+		want := r.Results[0].Status == "applied" || r.Results[0].Status == "skipped"
+		if kc.name == refusedKind {
+			want = r.Results[0].Status == "failed" // refused, its cash booked once (did, below)
+		}
+		if !want {
 			t.Errorf("PKT-4 %s: %+v", kc.name, r.Results)
 		}
 		if did := kc.did(t, s, a); did != 1 {

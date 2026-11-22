@@ -284,7 +284,11 @@ func (h handlers) refused(ctx context.Context, a Action, b CallBody, why string)
 	if !a.Handed || (b.CashOut == "" && b.CashIn == "") {
 		return ActionResult{Status: "failed", Note: why, Settled: a.Handed}
 	}
-	return ActionResult{Status: "failed", Note: h.bookCash(ctx, a, b, why), Settled: true}
+	note, err := h.bookCash(ctx, a, b, why)
+	if err != nil && fail(a, err).Status == "retry" { // the PC's own trouble: book it next time (PKT-5)
+		return ActionResult{Status: "retry", Note: err.Error()}
+	}
+	return ActionResult{Status: "failed", Note: note, Settled: true}
 }
 
 // withClientRef gives a body with no one-time reference of its own the action's ref:
@@ -312,8 +316,9 @@ func (h handlers) refusedErr(ctx context.Context, a Action, b CallBody, err erro
 	return h.refused(ctx, a, b, failed(err).Note)
 }
 
-// bookCash puts cash that really moved on the books, and says so.
-func (h handlers) bookCash(ctx context.Context, a Action, b CallBody, why string) string {
+// bookCash puts cash that really moved on the books, and says so; err is why it
+// couldn't (nothing was booked).
+func (h handlers) bookCash(ctx context.Context, a Action, b CallBody, why string) (string, error) {
 	reason := "Taken on the phone but refused by the PC"
 	if b.Label != "" {
 		reason += ": " + b.Label
@@ -335,9 +340,9 @@ func (h handlers) bookCash(ctx context.Context, a Action, b CallBody, why string
 		_, err = h.p.core.Cashflow.Move(ctx, in)
 	}
 	if err != nil {
-		return fmt.Sprintf("%s. %s %s the drawer but couldn't be booked (%s): check the till", why, raw, moved, err.Error())
+		return fmt.Sprintf("%s. %s %s the drawer but couldn't be booked (%s): check the till", why, raw, moved, err.Error()), err
 	}
-	return fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, raw, moved)
+	return fmt.Sprintf("%s. %s %s the drawer and is booked as a cash move", why, raw, moved), nil
 }
 
 // openLateTill: cash work needs an open till. Closed meanwhile, one is opened for it
@@ -354,20 +359,27 @@ func (h handlers) openLateTill(ctx context.Context, p *Phone, userID int64) erro
 // settleLate: an action refused with the cashier watching, whose reply never reached
 // them. The screen then said "saved" and the cash was handed over, and this retry says so.
 func (h handlers) settleLate(ctx context.Context, a Action, r ActionResult) ActionResult {
-	var settled bool
-	if err := h.p.core.DB.GetContext(ctx, &settled, `SELECT cash_settled FROM pocket_actions WHERE ref = $1`, a.Ref); err != nil || settled {
-		return r
-	}
 	b := CallBody{}
 	if a.Kind == "sale" {
 		b = saleCash(a)
 	} else if err := json.Unmarshal(a.Body, &b); err != nil {
 		return r
 	}
-	if b.CashOut != "" || b.CashIn != "" {
-		r.Note = h.bookCash(ctx, a, b, r.Note)
+	// Settled first: a stop after the booking never books it again (PKT-4, PKT-7).
+	var settled bool
+	if err := h.p.core.DB.GetContext(ctx, &settled, `WITH s AS (UPDATE pocket_actions SET cash_settled = true
+		WHERE ref = $1 AND NOT cash_settled RETURNING 1) SELECT EXISTS (SELECT 1 FROM s)`, a.Ref); err != nil || !settled {
+		return r
 	}
-	_, _ = h.p.core.DB.ExecContext(ctx, `UPDATE pocket_actions SET cash_settled = true, note = $2 WHERE ref = $1`, a.Ref, r.Note)
+	if b.CashOut != "" || b.CashIn != "" {
+		note, err := h.bookCash(ctx, a, b, r.Note)
+		if err != nil && fail(a, err).Status == "retry" { // the PC's own trouble: the next try books it
+			_, _ = h.p.core.DB.ExecContext(ctx, `UPDATE pocket_actions SET cash_settled = false WHERE ref = $1`, a.Ref)
+			return r
+		}
+		r.Note = note
+	}
+	_, _ = h.p.core.DB.ExecContext(ctx, `UPDATE pocket_actions SET note = $2 WHERE ref = $1`, a.Ref, r.Note)
 	return r
 }
 

@@ -1,4 +1,4 @@
-import type { SaleRequest, TillCopy } from '@/api/types.gen'
+import type { SaleItemRequest, SaleRequest, TillCopy } from '@/api/types.gen'
 import { buildSaleRequest, chequeMissing, effectivePayments } from '@/features/till/cart/checkout'
 import { accountTotal, paidTotal, saleTotal, tenderIssue } from '@/features/till/cart/totals'
 import type { Payment, TillState } from '@/features/till/cart/types'
@@ -35,7 +35,7 @@ export function payIssue(cart: TillState, copy: TillCopy): string {
 /** The sale action's body: the till's own request, the drawer never kicked, and
  * each line's unit price as the phone showed it (the server flags a difference).
  * total is the phone's own (the drawer's expected cash counts change from it). */
-export function saleBody(cart: TillState, ps: Payment[]): SaleRequest & { total: string; items: { expectPrice: string }[] } {
+export function saleBody(cart: TillState, ps: Payment[]): Omit<SaleRequest, 'items'> & { total: string; items: (SaleItemRequest & { expectPrice: string })[] } {
   const req = buildSaleRequest(cart, ps, { deferDrawerKick: true })
   return { ...req, total: dec(saleTotal(cart)), items: req.items.map((it, i) => ({ ...it, expectPrice: cart.lines[i].payout ? '' : String(cart.lines[i].unitPrice) })) }
 }

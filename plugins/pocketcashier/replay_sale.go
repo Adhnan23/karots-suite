@@ -144,9 +144,7 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 	switch a.Kind {
 	case "sale":
 		r := h.runSale(ctx, p, a, flag)
-		if r.Status == "failed" {
-			return h.refusedSale(ctx, a, r.Note)
-		}
+		r.bookSale = r.Status == "failed" // its cash is booked by apply (PKT-7)
 		return r
 	case "call":
 		return h.runCall(ctx, p, a)
