@@ -59,6 +59,12 @@ read from their trace, never waved off as flakes (the old "flakes" were all test
 - **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private): Onboard gets it as an **update file**
   built from the user's **latest** Onboard backup (never wipe and re-import). Catalogue work paused until a shop
   needs it. Karots files in the user's Downloads: `/mnt/nvme_512GB/Downloads/Karots/`.
+- **Karots Suite site** (`~/Projects/karots-pos-site`, to be renamed `karots-suite-site`; the old POS site on its
+  `archive/karots-pos` branch): suite.karots.lk, a Cloudflare Worker (`bunx wrangler deploy`). Guides, plugin pages
+  and screenshots come from this repo (`bun run sync`; tour frames: `make tour-shots`). Prices live in its
+  `src/data/pricing.ts` (2026-11-22 list; the legal pack still has the old one).
+- **Web Demo Room**: demo.karots.lk, a container on the OVH VPS behind nginx-proxy-manager (`deploy/demo-room/`,
+  `make demo-room-deploy` after `make demo`); still asks for the hourly code. The site offers it only when it answers.
 - Karots PIN Vault is the user's own app for all their projects: never tie it to Karots Suite.
 
 ## Not yet tried for real
