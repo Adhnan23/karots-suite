@@ -215,6 +215,9 @@ func TestPKT8_TempNumbers(t *testing.T) {
 	if n := count(t, s, `SELECT count(*) FROM repair_deposits WHERE job_id = $1 AND payment_id = $2`, jobID, payID); n != 1 {
 		t.Fatalf("PKT-8: the deposit didn't land on the real job and payment (%d, %d)", jobID, payID)
 	}
+	if n := count(t, s, `SELECT count(*) FROM customer_payments WHERE id = $1 AND client_ref = $2`, payID, pay.Ref); n != 1 {
+		t.Errorf("PKT-4: the credit payment doesn't carry its action's ref as its one-time reference (CUST-16)")
+	}
 	if !strings.Contains(r.Results[4].Note, "a phone can't do this") {
 		t.Errorf("PKT-9: %q", r.Results[4].Note)
 	}

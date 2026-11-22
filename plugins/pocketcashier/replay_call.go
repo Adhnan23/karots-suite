@@ -17,6 +17,7 @@ import (
 
 	_ "embed"
 
+	"karots-suite/internal/apperr"
 	"karots-suite/internal/features/cashflow"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/middleware"
@@ -140,7 +141,7 @@ func (h handlers) tempID(ctx context.Context, ref string) (int64, error) {
 	err := h.p.core.DB.GetContext(ctx, &row, `SELECT result_id, sale_id, kind, COALESCE(body->>'label', '') AS label
 		FROM pocket_actions WHERE ref = $1`, ref)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, errors.New("depends on something that never reached the PC")
+		return 0, apperr.Conflict("depends on something that never reached the PC")
 	}
 	if err != nil {
 		return 0, err
@@ -155,7 +156,7 @@ func (h handlers) tempID(ctx context.Context, ref string) (int64, error) {
 	if name == "" {
 		name = "a " + row.Kind
 	}
-	return 0, fmt.Errorf("depends on %s, which didn't go through", name)
+	return 0, apperr.Conflict(fmt.Sprintf("depends on %s, which didn't go through", name))
 }
 
 // tempField finds a number that named a second thing a call made. ok is false if
@@ -167,11 +168,14 @@ func (h handlers) tempField(ctx context.Context, p *Phone, num string) (int64, b
 	}
 	err := h.p.core.DB.GetContext(ctx, &row, `SELECT result_reply->>(body->'tempFields'->>$2) AS id, COALESCE(body->>'label', '') AS label
 		FROM pocket_actions WHERE phone_id = $1 AND jsonb_exists(body->'tempFields', $2) LIMIT 1`, p.ID, num)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
 		return 0, false, nil
 	}
+	if err != nil {
+		return 0, true, err // the PC's own trouble: never mistaken for "not one of ours"
+	}
 	if row.ID == nil {
-		return 0, true, fmt.Errorf("depends on %s, which didn't go through", row.Label)
+		return 0, true, apperr.Conflict(fmt.Sprintf("depends on %s, which didn't go through", row.Label))
 	}
 	id, err := strconv.ParseInt(*row.ID, 10, 64)
 	return id, true, err
@@ -212,6 +216,7 @@ func (h handlers) resolveNumbers(ctx context.Context, p *Phone, re *regexp.Regex
 		switch {
 		case err == nil:
 			id, err = h.tempID(ctx, ref)
+		case !errors.Is(err, sql.ErrNoRows): // the PC's own trouble
 		default:
 			var ok bool
 			if id, ok, err = h.tempField(ctx, p, num); !ok {
@@ -239,19 +244,20 @@ func (h handlers) runCall(ctx context.Context, p *Phone, a Action) ActionResult 
 	}
 	path, err := h.resolveTemp(ctx, tempInPath, b.Path, func(id int64) string { return strconv.FormatInt(id, 10) })
 	if err != nil {
-		return h.refused(ctx, a, b, err.Error())
+		return h.refusedErr(ctx, a, b, err)
 	}
 	if path, err = h.resolveNumbers(ctx, p, tempNumInPath, path); err != nil {
-		return h.refused(ctx, a, b, err.Error())
+		return h.refusedErr(ctx, a, b, err)
 	}
 	body, err := h.resolveBodyFor(ctx, p, b.Body)
 	if err != nil {
-		return h.refused(ctx, a, b, err.Error())
+		return h.refusedErr(ctx, a, b, err)
 	}
+	body = withClientRef(body, a.Ref)
 	stale := h.staleBalance(ctx, b.Saw)
 	if b.CashIn != "" || b.CashOut != "" {
 		if err := h.openLateTill(ctx, p, a.UserID); err != nil {
-			return h.refused(ctx, a, b, err.Error())
+			return h.refusedErr(ctx, a, b, err)
 		}
 	}
 	code, reply := h.dispatch(ctx, p, a.UserID, b.Method, path, body)
@@ -279,6 +285,31 @@ func (h handlers) refused(ctx context.Context, a Action, b CallBody, why string)
 		return ActionResult{Status: "failed", Note: why, Settled: a.Handed}
 	}
 	return ActionResult{Status: "failed", Note: h.bookCash(ctx, a, b, why), Settled: true}
+}
+
+// withClientRef gives a body with no one-time reference of its own the action's ref:
+// a route that takes one (a credit payment, CUST-16) then books it exactly once (PKT-4).
+// Routes that don't ignore it.
+func withClientRef(body []byte, ref string) []byte {
+	var m map[string]json.RawMessage
+	if json.Unmarshal(body, &m) != nil || m == nil || m["clientRef"] != nil {
+		return body
+	}
+	m["clientRef"], _ = json.Marshal(ref)
+	out, err := json.Marshal(m)
+	if err != nil {
+		return body
+	}
+	return out
+}
+
+// refusedErr: refused for err, unless it's the PC's own trouble — then it waits its
+// turn, and no cash is booked for it yet (PKT-5).
+func (h handlers) refusedErr(ctx context.Context, a Action, b CallBody, err error) ActionResult {
+	if r := fail(a, err); r.Status == "retry" {
+		return r
+	}
+	return h.refused(ctx, a, b, failed(err).Note)
 }
 
 // bookCash puts cash that really moved on the books, and says so.
@@ -401,7 +432,9 @@ func (h handlers) staleBalance(ctx context.Context, saw *CallSaw) string {
 // still go through.
 func (h handlers) dispatch(ctx context.Context, p *Phone, userID int64, method, path string, body []byte) (int, []byte) {
 	u, err := h.p.core.Auth.GetUser(ctx, userID)
-	if err != nil {
+	if trouble(err) {
+		return http.StatusInternalServerError, []byte(`{"error":{"message":"couldn't look up that person"}}`)
+	} else if err != nil {
 		return http.StatusUnauthorized, []byte(`{"error":{"message":"no such person"}}`)
 	}
 	tok, err := h.p.core.Auth.AccessTokenFor(u)

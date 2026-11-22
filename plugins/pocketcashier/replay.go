@@ -75,8 +75,7 @@ func (h handlers) actions(c echo.Context) error {
 		return apperr.Validation("send at most 50 actions at a time")
 	}
 	// The phone may go away mid-batch. The work must still finish and be recorded, or
-	// its retry would do it again.
-	// ponytail: a crash between a route's commit and the record below can still repeat a call; a claim row before dispatching if that ever shows up.
+	// its retry would do it again (and a stop in between is caught by the claim, PKT-4).
 	ctx := context.WithoutCancel(c.Request().Context())
 	p := phoneFrom(c)
 	ctx = context.WithValue(ctx, phoneCtxKey{}, p)
@@ -152,6 +151,9 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 	if err != nil {
 		return ActionResult{}, false, apperr.Internal("failed to read the action", err)
 	}
+	if row.Status == "running" {
+		return h.stopped(ctx, ref)
+	}
 	r := ActionResult{Ref: ref, Status: row.Status, Note: row.Note}
 	if row.SaleID != nil {
 		r.SaleID = *row.SaleID
@@ -169,13 +171,24 @@ func (h handlers) stored(ctx context.Context, ref string) (ActionResult, bool, e
 	return r, true, nil
 }
 
-// apply runs one new action and records its result under its ref.
-func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (ActionResult, error) {
-	r := h.run(ctx, p, a)
-	r.Ref = a.Ref
-	if r.Status == "retry" {
-		return r, nil
+// stoppedNote: what a claimed action says when the PC stopped part way through it.
+const stoppedNote = "the PC stopped part way through this; it may not have gone through — check before doing it again"
+
+// stopped: an action claimed but never recorded. It may have been done, so it is
+// never run again (PKT-4) and no cash is booked for it; it waits on the review screen.
+func (h handlers) stopped(ctx context.Context, ref string) (ActionResult, bool, error) {
+	_, err := h.p.core.DB.ExecContext(ctx, `WITH a AS (
+		UPDATE pocket_actions SET status = 'failed', note = $2, cash_settled = true WHERE ref = $1 AND status = 'running' RETURNING send_id)
+		UPDATE pocket_sends SET actions = actions + 1, failed = failed + 1 WHERE id IN (SELECT send_id FROM a)`, ref, stoppedNote)
+	if err != nil {
+		return ActionResult{}, false, apperr.Internal("failed to record the action", err)
 	}
+	return ActionResult{Ref: ref, Status: "failed", Note: stoppedNote}, true, nil
+}
+
+// apply runs one new action and records its result under its ref. Anything but a
+// sale is claimed first: a repeat finding the claim never runs it twice (PKT-4).
+func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (ActionResult, error) {
 	body := a.Body
 	if !json.Valid(body) {
 		body = json.RawMessage(`null`)
@@ -184,11 +197,32 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 	if a.UserID != 0 {
 		uid = &a.UserID
 	}
+	claim := a.Kind != "sale" // a sale's own ref (sales.client_ref) already stops it booking twice
+	if claim {
+		if _, err := h.p.core.DB.ExecContext(ctx, `INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,'running') ON CONFLICT (ref) DO NOTHING`, a.Ref, p.ID, s.id, a.Kind, uid, a.At, body); err != nil {
+			return ActionResult{}, apperr.Internal("failed to record what the phone did", err)
+		}
+	}
+	r := h.run(ctx, p, a)
+	r.Ref = a.Ref
+	if r.Status == "retry" {
+		if claim { // nothing was done: the next try runs it afresh
+			if _, err := h.p.core.DB.ExecContext(ctx, `DELETE FROM pocket_actions WHERE ref = $1 AND status = 'running'`, a.Ref); err != nil {
+				return r, apperr.Internal("failed to record what the phone did", err)
+			}
+		}
+		return r, nil
+	}
 	// The row and its send's counts in one statement: a cut between them would leave
 	// What came in saying less than came (PKT-12).
 	_, err := h.p.core.DB.ExecContext(ctx, `WITH a AS (
 		INSERT INTO pocket_actions (ref, phone_id, send_id, kind, user_id, at, body, status, sale_id, held_id, result_id, note, result_reply, cash_settled)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13,$14) ON CONFLICT (ref) DO NOTHING RETURNING sale_id)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NULLIF($9, 0),NULLIF($10, 0),NULLIF($11, 0),$12,$13,$14)
+		ON CONFLICT (ref) DO UPDATE SET status = EXCLUDED.status, sale_id = EXCLUDED.sale_id, held_id = EXCLUDED.held_id,
+			result_id = EXCLUDED.result_id, note = EXCLUDED.note, result_reply = EXCLUDED.result_reply, cash_settled = EXCLUDED.cash_settled
+			WHERE pocket_actions.status = 'running'
+		RETURNING sale_id)
 		UPDATE pocket_sends SET actions = actions + 1, failed = failed + ($8 = 'failed')::int,
 			flagged = flagged + ($15 OR EXISTS (SELECT 1 FROM sale_flags f JOIN a ON f.sale_id = a.sale_id))::int
 		WHERE id = $3 AND EXISTS (SELECT 1 FROM a)`,
@@ -197,6 +231,24 @@ func (h handlers) apply(ctx context.Context, p *Phone, s *sendRow, a Action) (Ac
 		return r, apperr.Internal("failed to record what the phone did", err)
 	}
 	return r, nil
+}
+
+// trouble: the PC's own (its database away, a 5xx), not a refusal.
+func trouble(err error) bool {
+	if err == nil {
+		return false
+	}
+	ae, ok := apperr.As(err)
+	return !ok || ae.Status >= 500
+}
+
+// fail: the PC's own trouble sends the action back to wait its turn, a few times
+// over, before anything is refused or booked for it (PKT-5); anything else is a refusal.
+func fail(a Action, err error) ActionResult {
+	if trouble(err) && keepTrying(a.Ref) {
+		return ActionResult{Status: "retry", Note: err.Error()}
+	}
+	return failed(err)
 }
 
 func failed(err error) ActionResult {

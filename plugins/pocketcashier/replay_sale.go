@@ -2,9 +2,10 @@ package pocketcashier
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"karots-suite/internal/apperr"
 	"strings"
 	"time"
 
@@ -119,8 +120,10 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 		Active bool   `db:"is_active"`
 		Sales  bool   `db:"sends_to_cashier"`
 	}
-	if err := h.p.core.DB.GetContext(ctx, &who, `SELECT role::text AS role, is_system, is_active, sends_to_cashier FROM users WHERE id = $1`, a.UserID); err != nil {
+	if err := h.p.core.DB.GetContext(ctx, &who, `SELECT role::text AS role, is_system, is_active, sends_to_cashier FROM users WHERE id = $1`, a.UserID); errors.Is(err, sql.ErrNoRows) {
 		return ActionResult{Status: "failed", Note: "no such person"}
+	} else if err != nil {
+		return fail(a, err)
 	}
 	if who.System || who.Role == "admin" {
 		return ActionResult{Status: "failed", Note: "admins sell from a cashier account on phones"}
@@ -160,7 +163,9 @@ func (h handlers) run(ctx context.Context, p *Phone, a Action) ActionResult {
 		if err := json.Unmarshal(a.Body, &b); err != nil {
 			return failed(err)
 		}
-		if err := h.p.core.Held.Delete(ctx, b.HeldID, a.UserID); err != nil {
+		if err := h.p.core.Held.Delete(ctx, b.HeldID, a.UserID); trouble(err) {
+			return fail(a, err)
+		} else if err != nil {
 			return ActionResult{Status: "skipped", Note: "already resumed"}
 		}
 		return ActionResult{Status: "applied", HeldID: b.HeldID}
@@ -172,7 +177,7 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	var b SaleBody
 	raw, err := h.resolveBodyFor(ctx, p, a.Body) // a plugin's line may refer to something made on the phone
 	if err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	if err := json.Unmarshal(raw, &b); err != nil {
 		return failed(err)
@@ -193,7 +198,7 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	// open session (a new one, flagged, when there is none).
 	sess, err := h.p.core.CashRegister.Current(ctx, a.UserID)
 	if err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	switch {
 	case sess != nil && !sess.OpenedAt.After(at):
@@ -203,7 +208,7 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	default:
 		if _, err := h.p.core.CashRegister.Open(ctx, a.UserID, cashregister.OpenInput{OpeningCash: "0", Remote: true,
 			ReviewNote: "opened for late sales from " + p.Name}); err != nil {
-			return failed(err)
+			return fail(a, err)
 		}
 		flags = append(flags, [2]string{sales.FlagLate, "rung at " + hhmm(rungAt) + " on " + p.Name + " after its till was closed; counted when it arrived"})
 	}
@@ -212,10 +217,7 @@ func (h handlers) runSale(ctx context.Context, p *Phone, a Action, personFlag st
 	}
 	d, err := h.p.core.Sales.Create(ctx, in, a.UserID)
 	if err != nil {
-		if ae, ok := apperr.As(err); (!ok || ae.Status >= 500) && keepTrying(a.Ref) { // the PC's own trouble
-			return ActionResult{Status: "retry", Note: err.Error()}
-		}
-		return failed(err)
+		return fail(a, err)
 	}
 	r := ActionResult{Status: "applied", SaleID: d.Sale.ID, ReceiptNo: d.Sale.ReceiptNo}
 	if d.Duplicate { // booked before (a send cut off before its reply): nothing more to add
@@ -276,18 +278,20 @@ func (h handlers) runOpen(ctx context.Context, p *Phone, a Action) ActionResult 
 		return failed(err)
 	}
 	if sess, err := h.p.core.CashRegister.Current(ctx, a.UserID); err != nil {
-		return failed(err)
+		return fail(a, err)
 	} else if sess != nil {
 		return ActionResult{Status: "skipped", Note: "already open since " + hhmm(sess.OpenedAt)}
 	}
 	in := cashregister.OpenInput{OpeningCash: b.OpeningCash, Breakdown: b.Breakdown, SourceLockerID: b.SourceLockerID, Remote: true}
 	at := a.At
 	in.At = &at
-	if _, err := h.p.core.CashRegister.Open(ctx, a.UserID, in); err != nil {
+	if _, err := h.p.core.CashRegister.Open(ctx, a.UserID, in); trouble(err) {
+		return fail(a, err)
+	} else if err != nil {
 		// Its time can't be used (a clock off, or a close came after it): open now, noted.
 		in.At, in.ReviewNote = nil, "opened on "+p.Name+" at "+hhmm(a.At)+"; counted from when it arrived"
 		if _, err := h.p.core.CashRegister.Open(ctx, a.UserID, in); err != nil {
-			return failed(err)
+			return fail(a, err)
 		}
 	}
 	return ActionResult{Status: "applied"}
@@ -300,7 +304,7 @@ func (h handlers) runClose(ctx context.Context, a Action) ActionResult {
 	}
 	sess, err := h.p.core.CashRegister.Current(ctx, a.UserID)
 	if err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	if sess == nil {
 		return ActionResult{Status: "skipped", Note: "no open till to close"}
@@ -310,7 +314,7 @@ func (h handlers) runClose(ctx context.Context, a Action) ActionResult {
 		in.At = &at
 	}
 	if _, err := h.p.core.CashRegister.Close(ctx, a.UserID, in); err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	return ActionResult{Status: "applied"}
 }
@@ -330,7 +334,7 @@ func (h handlers) runMove(ctx context.Context, p *Phone, a Action) ActionResult 
 		cash.CashIn = b.Amount
 	}
 	if err := h.openLateTill(ctx, p, a.UserID); err != nil {
-		return h.refused(ctx, a, cash, err.Error())
+		return h.refusedErr(ctx, a, cash, err)
 	}
 	in := cashregister.MovementInput{Amount: b.Amount, Reason: b.Reason, CounterLockerID: b.LockerID, DeferDrawerKick: true, Remote: true}
 	var err error
@@ -340,7 +344,7 @@ func (h handlers) runMove(ctx context.Context, p *Phone, a Action) ActionResult 
 		_, err = h.p.core.CashRegister.PayIn(ctx, a.UserID, in)
 	}
 	if err != nil {
-		return h.refused(ctx, a, cash, failed(err).Note)
+		return h.refusedErr(ctx, a, cash, err)
 	}
 	return ActionResult{Status: "applied"}
 }
@@ -349,7 +353,7 @@ func (h handlers) runHold(ctx context.Context, p *Phone, a Action) ActionResult 
 	var b HoldBody
 	raw, err := h.resolveBodyFor(ctx, p, a.Body) // the cart may be on a customer made on the phone
 	if err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	if err := json.Unmarshal(raw, &b); err != nil {
 		return failed(err)
@@ -360,7 +364,7 @@ func (h handlers) runHold(ctx context.Context, p *Phone, a Action) ActionResult 
 	held, err := h.p.core.Held.Hold(ctx, a.UserID, heldsales.Input{Label: b.Label, SaleType: b.SaleType, CustomerID: b.CustomerID,
 		Discount: b.Discount, Cart: json.RawMessage(b.Cart), ItemCount: b.ItemCount, Total: b.Total})
 	if err != nil {
-		return failed(err)
+		return fail(a, err)
 	}
 	return ActionResult{Status: "applied", HeldID: held.ID}
 }

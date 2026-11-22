@@ -16,9 +16,9 @@ func init() {
 		LEFT JOIN (SELECT user_id, count(*) AS n FROM pocket_actions WHERE status = 'failed' AND cash_settled GROUP BY user_id) a
 		  ON a.user_id = r.created_by
 		WHERE r.n > COALESCE(a.n, 0)`)
-	// PKT-12: a send's counts agree with its actions.
+	// PKT-12: a send's counts agree with its actions (a claimed one counts once it ends).
 	ledgercheck.Add("PKT-12", `
 		SELECT 'phone send ' || s.id, format('says %s actions, %s refused; has %s, %s', s.actions, s.failed, count(a.ref), count(a.ref) FILTER (WHERE a.status = 'failed'))
-		FROM pocket_sends s LEFT JOIN pocket_actions a ON a.send_id = s.id
+		FROM pocket_sends s LEFT JOIN pocket_actions a ON a.send_id = s.id AND a.status <> 'running'
 		GROUP BY s.id HAVING s.actions <> count(a.ref) OR s.failed <> count(a.ref) FILTER (WHERE a.status = 'failed')`)
 }

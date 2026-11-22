@@ -67,7 +67,7 @@ func (h handlers) sends(c echo.Context) error {
 		limit = 50
 	}
 	var rows []sendDB
-	if err := h.p.core.DB.SelectContext(c.Request().Context(), &rows, `SELECT `+sendCols+` ORDER BY s.id DESC LIMIT $1`, limit); err != nil {
+	if err := h.p.core.DB.SelectContext(c.Request().Context(), &rows, `SELECT `+sendCols+` WHERE s.actions > 0 ORDER BY s.id DESC LIMIT $1`, limit); err != nil {
 		return apperr.Internal("failed to list sends", err)
 	}
 	out := make([]SendRow, 0, len(rows))
