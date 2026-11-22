@@ -15,6 +15,8 @@ async function login(page: Page, phone: string, to = '/till') {
 }
 async function ensureOpen(page: Page) {
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
+  // isVisible doesn't wait: first the till is ready — asking to be opened, or open
+  await expect(dlg.or(page.getByRole('button', { name: /^Till open/ }))).toBeVisible()
   if (await dlg.isVisible()) {
     await dlg.getByLabel(/Count of .*500\.00/).fill('2')
     await dlg.getByRole('button', { name: 'Open the till' }).click()

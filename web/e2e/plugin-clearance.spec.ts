@@ -51,6 +51,8 @@ test('snooze hides a product until brought back', async ({ page }) => {
 test('the till offers the markdown, and it ends once the stock is sold', async ({ page }) => {
   await login(page, '0770000002', '/till')
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
+  // isVisible doesn't wait: first the till is ready — asking to be opened, or open
+  await expect(dlg.or(page.getByRole('button', { name: /^Till open/ }))).toBeVisible()
   if (await dlg.isVisible()) {
     await dlg.getByLabel(/Count of .*500\.00/).fill('2')
     await dlg.getByRole('button', { name: 'Open the till' }).click()

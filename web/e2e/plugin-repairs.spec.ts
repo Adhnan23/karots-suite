@@ -32,6 +32,8 @@ const panel = (page: Page) => page.getByRole('dialog').filter({ hasText: /Repair
 async function till(page: Page) {
   await login(page, '0770000002', '/till')
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
+  // isVisible doesn't wait: first the till is ready — asking to be opened, or open
+  await expect(dlg.or(page.getByRole('button', { name: /^Till open/ }))).toBeVisible()
   if (await dlg.isVisible()) {
     await dlg.getByLabel(/Count of .*500\.00/).fill('2')
     await dlg.getByRole('button', { name: 'Open the till' }).click()
