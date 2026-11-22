@@ -1,9 +1,11 @@
+import { writeFileSync } from 'node:fs'
 import { test, type Page } from '../e2e/fixtures'
 import { cashier, code, only, out, owner, phone, session, startShop } from './demo'
 
 // The website's phone tour (karots-suite-site /tour/<kind>/): per Demo Room shop, a sale as frames
 // (01–06) and the screens an owner asks about (07–12). `make tour-shots` against a running Demo Room.
-// Output: docs/images/tour/<kind>/<NN>-<name>.jpg — stable names, the site's tour lists them.
+// Output: docs/images/tour/<kind>/<NN>-<name>.jpg — stable names, the site's tour lists them — and receipt.png,
+// the printed slip as the printer got it (the site's home page shows one).
 test.skip(!code, 'set DOCS_CODE to the Demo Room hourly code')
 test.describe.configure({ mode: 'serial' })
 
@@ -98,7 +100,9 @@ for (const k of kinds) {
       return id
     }, { timeout: 20_000 }).toBeGreaterThan(0)
     const slip = await ctl.request.get(`/__demo/print/receipt/${id}`)
-    const png = (await slip.body()).toString('base64')
+    const raw = await slip.body()
+    writeFileSync(`${out}/tour/${k.kind}/receipt.png`, raw) // the slip itself, for the site's hero
+    const png = raw.toString('base64')
     const paper = await browser.newPage({ viewport: till })
     await paper.setContent(`<body style="margin:0;height:100vh;display:grid;place-items:center;background:#eef0f2">
       <img src="data:image/png;base64,${png}" style="max-height:92vh;box-shadow:0 12px 32px -12px rgb(0 0 0/.3)"></body>`)
