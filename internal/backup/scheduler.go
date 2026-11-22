@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -70,6 +71,18 @@ func writeSnapshot(ctx context.Context, db sqlx.QueryerContext, dir string, now 
 	return final, nil
 }
 
+// keepSafety is how long a safety copy or a fetched cloud backup is kept.
+const keepSafety = 30 * 24 * time.Hour
+
+// autoName is a scheduled backup's name: <shop>-<yyyymmdd>-<hhmmss>.json.gz.
+var autoName = regexp.MustCompile(`-\d{8}-\d{6}\.json\.gz$`)
+
+// automatic: a scheduled backup (or its copy), not a tagged safety copy or a
+// backup fetched from Karots cloud.
+func automatic(name string) bool {
+	return autoName.MatchString(name) && !strings.HasPrefix(name, "cloud-")
+}
+
 // Rotate deletes the oldest scheduled backups in dir, keeping the newest `keep`.
 // Files are matched by the *.json.gz name and ordered by modification time
 // (names now vary by shop slug, so name-sort alone no longer tracks age).
@@ -82,16 +95,21 @@ func Rotate(dir string, keep int) (pruned int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	// Empty ones (a power cut in an older build) aren't backups: never count them.
+	// Empty ones (a power cut in an older build) aren't backups: never count
+	// them. Safety copies and cloud fetches aren't counted either: each goes
+	// after keepSafety (BAK-4).
 	matches := found[:0]
 	for _, m := range found {
-		if fi, err := os.Stat(m); err == nil && fi.Size() == 0 {
+		fi, err := os.Stat(m)
+		if err == nil && (fi.Size() == 0 || (!automatic(filepath.Base(m)) && time.Since(fi.ModTime()) > keepSafety)) {
 			if os.Remove(m) == nil {
 				pruned++
 			}
 			continue
 		}
-		matches = append(matches, m)
+		if automatic(filepath.Base(m)) {
+			matches = append(matches, m)
+		}
 	}
 	if len(matches) <= keep {
 		return pruned, nil

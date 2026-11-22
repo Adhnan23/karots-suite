@@ -94,3 +94,48 @@ func TestRotateNoopWhenUnderLimit(t *testing.T) {
 		t.Fatalf("pruned = %d, want 0 when under the limit", pruned)
 	}
 }
+
+// BAK-4: safety copies (before a restore, an update, a move) and backups
+// fetched from Karots cloud are never counted by rotation: each is kept 30
+// days, then deleted.
+func TestBAK4_SafetyCopiesKept30Days(t *testing.T) {
+	dir := t.TempDir()
+	now := time.Now()
+	put := func(name string, age time.Duration) string {
+		p := filepath.Join(dir, name)
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		os.Chtimes(p, now.Add(-age), now.Add(-age))
+		return p
+	}
+	day := 24 * time.Hour
+	oldAuto := put(FileName("Acme", now.Add(-40*day), false), 40*day)
+	var autos []string
+	for i := range 3 {
+		autos = append(autos, put(FileName("Acme", now.Add(-time.Duration(i)*time.Hour), false), time.Duration(i)*time.Hour))
+	}
+	young := []string{
+		put("acme-20261101-100000-before-restore.json.gz", 20*day),
+		put("acme-20261101-110000-before-update-2026.11.17.2028.json.gz", 29*day),
+		put("acme-20261101-120000-before-move.json.gz", 2*day),
+		put("cloud-20261101-130000.json.gz", 10*day),
+	}
+	old := []string{
+		put("acme-20261001-100000-before-restore.json.gz", 31*day),
+		put("cloud-20261001-130000.json.gz", 45*day),
+	}
+	if _, err := Rotate(dir, 3); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range append(autos, young...) {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("BAK-4: %s should be kept", filepath.Base(p))
+		}
+	}
+	for _, p := range append(old, oldAuto) {
+		if _, err := os.Stat(p); !os.IsNotExist(err) {
+			t.Errorf("BAK-4: %s should be gone", filepath.Base(p))
+		}
+	}
+}
