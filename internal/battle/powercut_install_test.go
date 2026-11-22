@@ -122,3 +122,43 @@ func TestBattlePowerCutBackups(t *testing.T) {
 	}
 	t.Logf("%d cuts, %d backups checked", cuts, len(checked))
 }
+
+// UPD-8: an update's restart loses or doubles no sale — a Pay in flight when
+// the server stops, sent again with its one-time reference once it is back, is
+// one sale.
+func TestUPD8_PayAcrossARestart(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	bin := serverBinary(t)
+	srv := startServer(t, bin, s.dsn)
+	c := httpClient(t, srv.url, "0770000002")
+	s.must(t, c.post("/api/v1/till/drawer/open", map[string]any{"breakdown": map[string]int{"1000": 5}}))
+	body := func(ref string) map[string]any {
+		return map[string]any{"saleType": "retail", "discount": "0", "discountType": "fixed", "clientRef": ref,
+			"items": []line{{"productId": s.prod["plain"], "quantity": "1"}}, "payments": []pay{cash("100")}}
+	}
+	sent := 0
+	for i := range 6 {
+		ref := fmt.Sprintf("upd8-%d", i)
+		done := make(chan struct{})
+		go func() { c.post("/api/v1/till/sales", body(ref)); close(done) }() //nolint:errcheck // the answer may be lost
+		time.Sleep(time.Duration(rand.IntN(15)) * time.Millisecond)
+		srv.cmd.Process.Signal(os.Interrupt) //nolint:errcheck // the restart an update asks for
+		srv.cmd.Wait()                       //nolint:errcheck
+		<-done
+		s.quiet(t)
+		srv = startServer(t, bin, s.dsn)
+		c = httpClient(t, srv.url, "0770000002")
+		var r saleResult
+		s.must(t, c.postInto("/api/v1/till/sales", body(ref), &r)) // Pay again
+		sent++
+	}
+	srv.cmd.Process.Kill() //nolint:errcheck
+	srv.cmd.Wait()         //nolint:errcheck
+	var n int
+	s.must(t, s.db.Get(&n, `SELECT count(*) FROM sales WHERE client_ref LIKE 'upd8-%'`))
+	if n != sent {
+		t.Fatalf("UPD-8: %d Pays across restarts made %d sales", sent, n)
+	}
+	s.audit(t)
+}
