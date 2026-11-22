@@ -9,11 +9,12 @@ func init() {
 		SELECT 'phone action ' || a.ref, format('applied as sale %s, whose one-time ref is %s', a.sale_id, s.client_ref)
 		FROM pocket_actions a LEFT JOIN sales s ON s.id = a.sale_id
 		WHERE a.kind = 'sale' AND a.status = 'applied' AND s.client_ref IS DISTINCT FROM a.ref`)
-	// PKT-7: never more refused-on-phone cash moves for a person than their handed, refused actions.
+	// PKT-7: never more refused-on-phone cash moves for a person than their handed, refused actions
+	// (one still running may have booked its cash a moment before its record).
 	ledgercheck.Add("PKT-7", `
 		SELECT 'user ' || r.created_by, format('%s refused-on-phone cash moves for %s refused actions', r.n, COALESCE(a.n, 0))
 		FROM (SELECT created_by, count(*) AS n FROM money_receipts WHERE kind = 'refused_on_phone' GROUP BY created_by) r
-		LEFT JOIN (SELECT user_id, count(*) AS n FROM pocket_actions WHERE status = 'failed' AND cash_settled GROUP BY user_id) a
+		LEFT JOIN (SELECT user_id, count(*) AS n FROM pocket_actions WHERE (status = 'failed' AND cash_settled) OR status = 'running' GROUP BY user_id) a
 		  ON a.user_id = r.created_by
 		WHERE r.n > COALESCE(a.n, 0)`)
 	// PKT-12: a send's counts agree with its actions (a claimed one counts once it ends).
