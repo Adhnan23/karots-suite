@@ -64,3 +64,10 @@ pickup sale returned in full leaves the job collected, its warranty standing (RE
 Both answered 2026-11-21 as suggested: a call that may have run but wasn't noted as done never runs again — it is
 flagged "may not have gone through — check", and a credit payment carries the action's ref (PKT-4); a cash out / in
 made on the phone and refused by the PC is booked as made, the till flagged (PKT-10, DRAW-19).
+
+## Installing and running a shop
+
+All three answered 2026-11-22 as suggested: safety copies (before a restore, update or move, and backups fetched
+from a copy place) are not counted by rotation and are kept 30 days (BAK-4); after BootGuard goes back, the
+previous version runs on the migrated database — a release's migrations only add (UPD-6); Setup's Update backs
+the shop up first and changes nothing if that fails (SET-3).

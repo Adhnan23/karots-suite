@@ -26,7 +26,7 @@ RET-4  A line's refunds never add up to more than what was paid for that line.
 ```
 
 - **Ids** never change meaning and are never reused. `SALE` selling and totals · `DISC` discounts · `TEND` payment
-  and change · `RET` returns · `TILL` the till's screen vs the server · `DRAW` the drawer · `LOCK` lockers and moves · `EXP` expenses · `CF` the Cash flow page (area 2) · `CUST` customers' balances, payments and advances (area 3) · `STK` stock, lots, counts, write-offs, conversions, freeze (area 4) · `PUR` orders, deliveries, bills, goods sent back · `SUP` supplier balances and money · `CHQ` cheques given and received (area 5) · `WAR` warranty replacements · `REC` recoveries: what a supplier makes good on a loss (area 6) · `RPT` report figures and how reports agree · `ZR` the Z report (area 7).
+  and change · `RET` returns · `TILL` the till's screen vs the server · `DRAW` the drawer · `LOCK` lockers and moves · `EXP` expenses · `CF` the Cash flow page (area 2) · `CUST` customers' balances, payments and advances (area 3) · `STK` stock, lots, counts, write-offs, conversions, freeze (area 4) · `PUR` orders, deliveries, bills, goods sent back · `SUP` supplier balances and money · `CHQ` cheques given and received (area 5) · `WAR` warranty replacements · `REC` recoveries: what a supplier makes good on a loss (area 6) · `RPT` report figures and how reports agree · `ZR` the Z report (area 7) · `BAK` backups and restore · `CPY` copy folder and Karots cloud · `UPD` self-update · `SET` Setup · `BLD` the Shop Builder.
 - **Checked by** — `ledgercheck` (the auditor sees it in the database, `internal/ledgercheck`), `machine` (random
   shop days, `internal/battle`), `lean` (proved in `proofs/`), `example` (a fixed case test).
 - A rule changes only when the user agrees; the commit says so.
@@ -51,6 +51,9 @@ rebuilds the proofs and fails if the cases are stale.
 5. [Purchasing, supplier pay, supplier returns, cheques](purchasing.md) — area 5
 6. [Recovery and losses: warranty replacements, what a supplier makes good](recovery.md) — area 6
 7. [Reports and the Z report](reports.md) — area 7
+
+Installing and running a shop: [backups, copies, updates, Setup, the Shop Builder](install.md) (`BAK`, `CPY`, `UPD`,
+`SET`, `BLD`).
 
 Plugins: [the plugin rule book](plugins/README.md) — rules every plugin keeps (PLG) and one file per plugin
 (group 1: `CLR` clearance, `REQ` requests, `PPF` Product Plus, `ALT` alternatives, `AIC` AI Assistant).
