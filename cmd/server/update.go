@@ -51,7 +51,11 @@ func bootGuard() bool {
 	if !selfUpdate() {
 		return false
 	}
-	rolledBack, err := update.BootGuard(exePath())
+	v := version
+	if v == "" {
+		v = "dev"
+	}
+	rolledBack, err := update.BootGuard(exePath(), v)
 	if err != nil {
 		log.Printf("update: boot guard: %v", err)
 	}

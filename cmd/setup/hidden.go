@@ -54,6 +54,7 @@ func runHidden(args []string) {
 		out = f
 	}
 	os.Exit(runChild(func() (int, error) {
+		update.Recover(h.prog) // a power cut mid-update may have left no program (UPD-4)
 		cmd := exec.Command(h.prog, h.args...)
 		cmd.Dir = filepath.Dir(h.prog)
 		if out != nil {

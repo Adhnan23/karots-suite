@@ -14,7 +14,7 @@ func TestBootGuard(t *testing.T) {
 	exe := filepath.Join(dir, "karots-suite")
 	os.WriteFile(exe, []byte("old"), 0o755)
 
-	if rb, err := BootGuard(exe); rb || err != nil {
+	if rb, err := BootGuard(exe, "2026.10.19.1530"); rb || err != nil {
 		t.Fatalf("no marker: %v %v", rb, err)
 	}
 
@@ -26,7 +26,7 @@ func TestBootGuard(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, want := range []bool{false, false, true} {
-		rb, err := BootGuard(exe)
+		rb, err := BootGuard(exe, "2026.10.19.1530")
 		if err != nil || rb != want {
 			t.Fatalf("boot %d: rolledBack=%v err=%v, want %v", i+1, rb, err, want)
 		}
@@ -53,10 +53,10 @@ func TestMarkHealthy(t *testing.T) {
 	os.WriteFile(exe, []byte("new"), 0o755)
 	os.WriteFile(exe+".old", []byte("old"), 0o755)
 	markPending(exe, "2026.10.19.1530")
-	BootGuard(exe)
+	BootGuard(exe, "2026.10.19.1530")
 	MarkHealthy(exe, "2026.10.19.1530")
 	for range 3 {
-		if rb, _ := BootGuard(exe); rb {
+		if rb, _ := BootGuard(exe, "2026.10.19.1530"); rb {
 			t.Fatal("a healthy binary must never be rolled back")
 		}
 	}

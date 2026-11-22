@@ -75,13 +75,19 @@ func (u *Updater) apply(ctx context.Context, m *Manifest) error {
 			return fmt.Errorf("the backup before updating didn't work: %w", err)
 		}
 	}
-	if err := Swap(u.Exe, newPath); err != nil {
+	// The marker goes first: a power cut right after the swap must still count
+	// the new program's boots (UPD-4); before the swap BootGuard drops it.
+	if err := markPending(u.Exe, m.Version); err != nil {
 		os.Remove(newPath)
 		return err
 	}
-	err := markPending(u.Exe, m.Version)
+	if err := Swap(u.Exe, newPath); err != nil {
+		os.Remove(newPath)
+		os.Remove(markerPath(u.Exe))
+		return err
+	}
 	durable.SyncDir(filepath.Dir(u.Exe)) // the swap sticks, or the shop may wake on the old program: both start
-	return err
+	return nil
 }
 
 func (u *Updater) download(ctx context.Context, m *Manifest, dst string) error {
