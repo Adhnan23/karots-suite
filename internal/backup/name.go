@@ -30,9 +30,13 @@ func FileName(shop string, now time.Time, partial bool) string {
 
 // shopName reads the shop's display name for filename slugs; tolerant of a
 // missing settings row (returns "").
-func shopName(ctx context.Context, db *sqlx.DB) string {
+func shopName(ctx context.Context, db sqlx.QueryerContext) string {
 	var name sql.NullString
-	if err := db.GetContext(ctx, &name, `SELECT shop_name FROM settings ORDER BY id LIMIT 1`); err != nil {
+	var has bool // asked first: inside a snapshot a failed read would end it
+	if err := sqlx.GetContext(ctx, db, &has, `SELECT to_regclass('settings') IS NOT NULL`); err != nil || !has {
+		return ""
+	}
+	if err := sqlx.GetContext(ctx, db, &name, `SELECT shop_name FROM settings ORDER BY id LIMIT 1`); err != nil {
 		return ""
 	}
 	return name.String

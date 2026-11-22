@@ -17,13 +17,16 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"karots-suite/internal/plugin"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // FormatVersion is bumped if the on-disk shape ever changes incompatibly.
@@ -103,11 +106,17 @@ type DumpOpts struct {
 func Dump(ctx context.Context, sdb *sqlx.DB, generatedAt string, w io.Writer, opts DumpOpts) error {
 	// One snapshot for every table (BAK-1): read table by table, a sale landing
 	// in between came back without its payments or its stock movement.
-	db, err := sdb.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	tx, err := sdb.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
 	if err != nil {
 		return err
 	}
-	defer db.Rollback() //nolint:errcheck // read-only
+	defer tx.Rollback() //nolint:errcheck // read-only
+	return dumpFrom(ctx, tx, generatedAt, w, opts)
+}
+
+// dumpFrom is Dump through q, which must see one moment (a snapshot, or a
+// transaction holding every table).
+func dumpFrom(ctx context.Context, db sqlx.QueryerContext, generatedAt string, w io.Writer, opts DumpOpts) error {
 	names, err := publicTables(ctx, db)
 	if err != nil {
 		return err
@@ -186,7 +195,33 @@ func ReadArchive(r io.Reader) (*Archive, error) {
 
 // RestoreArchive loads a decoded archive (see Restore).
 func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreReport, error) {
+	rep, _, err := RestoreArchiveKeeping(ctx, db, arc, "")
+	return rep, err
+}
+
+// lockRetry is how long a restore keeps trying to hold the whole shop still.
+var lockRetry = time.Minute
+
+// RestoreArchiveKeeping is RestoreArchive while tills may be working: it holds
+// every table, writes a safety copy of the data as it is into safetyDir ("" =
+// none) and replaces it in the same transaction, so nothing lands between the
+// copy and the restore (BAK-6). It returns the safety copy's path.
+func RestoreArchiveKeeping(ctx context.Context, db *sqlx.DB, arc *Archive, safetyDir string) (RestoreReport, string, error) {
+	deadline := time.Now().Add(lockRetry)
+	for {
+		rep, safety, err := restoreArchive(ctx, db, arc, safetyDir)
+		var pe *pq.Error
+		if errors.As(err, &pe) && pe.Code == "55P03" && time.Now().Before(deadline) { // lock_not_available
+			time.Sleep(20 * time.Millisecond)
+			continue
+		}
+		return rep, safety, err
+	}
+}
+
+func restoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive, safetyDir string) (RestoreReport, string, error) {
 	var rep RestoreReport
+	var safety string
 	// A secret column comes in blank too — an older build's backup may carry it.
 	secret := secretColumns(plugin.CollectDataGroups())
 	for _, t := range arc.Tables {
@@ -195,7 +230,7 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 	// Which dumped tables actually exist in the current schema.
 	existing, err := publicTables(ctx, db)
 	if err != nil {
-		return rep, err
+		return rep, safety, err
 	}
 	exists := map[string]bool{}
 	for _, t := range existing {
@@ -204,9 +239,27 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
-		return rep, err
+		return rep, safety, err
 	}
 	defer tx.Rollback()
+
+	// Hold the whole shop still (NOWAIT: a restore waiting while holding some
+	// tables could deadlock a sale; the caller tries again instead), then keep
+	// a copy of it as it is.
+	if len(existing) > 0 {
+		quoted := make([]string, len(existing))
+		for i, t := range existing {
+			quoted[i] = quoteIdent(t)
+		}
+		if _, err := tx.ExecContext(ctx, `LOCK TABLE `+strings.Join(quoted, ", ")+` IN ACCESS EXCLUSIVE MODE NOWAIT`); err != nil {
+			return rep, safety, err
+		}
+	}
+	if safetyDir != "" {
+		if safety, err = writeSnapshot(ctx, tx, safetyDir, time.Now(), BeforeRestoreTag); err != nil {
+			return rep, safety, fmt.Errorf("could not save a copy of the current data first: %w", err)
+		}
+	}
 
 	// Clear the tables we're about to reload. For a full restore (ReplaceAll)
 	// this includes current tables absent from the archive — otherwise stale
@@ -227,7 +280,7 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 	}
 	if len(toClear) > 0 {
 		if _, err := tx.ExecContext(ctx, `TRUNCATE `+strings.Join(toClear, ", ")+` RESTART IDENTITY CASCADE`); err != nil {
-			return rep, fmt.Errorf("truncate failed: %w", err)
+			return rep, safety, fmt.Errorf("truncate failed: %w", err)
 		}
 	}
 
@@ -239,18 +292,18 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 	// superuser, so session_replication_role is not available to them.
 	fks, err := dropForeignKeys(ctx, tx)
 	if err != nil {
-		return rep, fmt.Errorf("drop foreign keys: %w", err)
+		return rep, safety, fmt.Errorf("drop foreign keys: %w", err)
 	}
 	var trigTables []string
 	if err := tx.SelectContext(ctx, &trigTables, `
 		SELECT DISTINCT tgrelid::regclass::text FROM pg_trigger t
 		JOIN pg_class c ON c.oid = t.tgrelid
 		WHERE NOT t.tgisinternal AND t.tgenabled <> 'D' AND c.relnamespace = 'public'::regnamespace`); err != nil {
-		return rep, err
+		return rep, safety, err
 	}
 	for _, tbl := range trigTables {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` DISABLE TRIGGER USER`); err != nil {
-			return rep, fmt.Errorf("disable triggers on %s: %w", tbl, err)
+			return rep, safety, fmt.Errorf("disable triggers on %s: %w", tbl, err)
 		}
 	}
 
@@ -264,17 +317,17 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 		}
 		cols, err := tableColumns(ctx, db, t.Name)
 		if err != nil {
-			return rep, err
+			return rep, safety, err
 		}
 		t, dropped := projectColumns(fillLegacyColumns(t, cols), cols)
 		rep.DroppedColumns = append(rep.DroppedColumns, dropped...)
 		rep.Tables++
 		rep.Rows += len(t.Rows)
 		if err := insertRows(ctx, tx, t); err != nil {
-			return rep, fmt.Errorf("restore %s: %w", t.Name, err)
+			return rep, safety, fmt.Errorf("restore %s: %w", t.Name, err)
 		}
 		if err := resetSequences(ctx, tx, t.Name, t.Columns); err != nil {
-			return rep, fmt.Errorf("reset sequences for %s: %w", t.Name, err)
+			return rep, safety, fmt.Errorf("reset sequences for %s: %w", t.Name, err)
 		}
 	}
 
@@ -283,23 +336,23 @@ func RestoreArchive(ctx context.Context, db *sqlx.DB, arc *Archive) (RestoreRepo
 	// Advance them explicitly or the first post-restore receipt collides on the
 	// unique receipt_no constraint.
 	if err := resetReceiptSequences(ctx, tx, exists); err != nil {
-		return rep, fmt.Errorf("reset receipt sequences: %w", err)
+		return rep, safety, fmt.Errorf("reset receipt sequences: %w", err)
 	}
 
 	for _, tbl := range trigTables {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+tbl+` ENABLE TRIGGER USER`); err != nil {
-			return rep, fmt.Errorf("enable triggers on %s: %w", tbl, err)
+			return rep, safety, fmt.Errorf("enable triggers on %s: %w", tbl, err)
 		}
 	}
 	// Re-adding validates every key, so a backup with dangling references fails
 	// here (and rolls back) instead of leaving broken data behind.
 	for _, fk := range fks {
 		if _, err := tx.ExecContext(ctx, `ALTER TABLE `+fk.Table+` ADD CONSTRAINT `+quoteIdent(fk.Name)+` `+fk.Def); err != nil {
-			return rep, fmt.Errorf("backup data breaks %s on %s: %w", fk.Name, fk.Table, err)
+			return rep, safety, fmt.Errorf("backup data breaks %s on %s: %w", fk.Name, fk.Table, err)
 		}
 	}
 
-	return rep, tx.Commit()
+	return rep, safety, tx.Commit()
 }
 
 type foreignKey struct{ Table, Name, Def string }

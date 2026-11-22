@@ -56,9 +56,15 @@ func newShop(t ltest.T) *shop {
 }
 
 // newShopOn opens the shop on a database already made (a faulty one, say).
-func newShopOn(t ltest.T, db *sqlx.DB, dsn string) *shop {
+func newShopOn(t ltest.T, db *sqlx.DB, dsn string) *shop { return newShopCfg(t, db, dsn, nil) }
+
+// newShopCfg is newShopOn with the server's config changed by mod first.
+func newShopCfg(t ltest.T, db *sqlx.DB, dsn string, mod func(*config.Config)) *shop {
 	ctx := context.Background()
 	cfg := &config.Config{Env: "production", JWTSecret: strings.Repeat("x", 40), JWTAccessTTL: time.Hour, JWTRefreshTTL: time.Hour}
+	if mod != nil {
+		mod(cfg)
+	}
 	v := app.SystemPINValidator(nil)
 	svc := app.NewServices(db, cfg, v)
 	h := app.BuildServer(db, cfg, v)

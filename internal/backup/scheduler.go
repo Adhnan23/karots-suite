@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -23,7 +24,17 @@ const fileSuffix = ".json.gz"
 // WriteSnapshot dumps all data to dir/<shop>-<timestamp>[-tag].json.gz, returning
 // the final path (tag "" for the scheduled ones, "before-restore" for the safety copy). It writes to a temporary file and renames it into place so a crash
 // mid-dump never leaves a half-written ".gz" that looks restorable.
-func WriteSnapshot(ctx context.Context, db *sqlx.DB, dir string, now time.Time, tag string) (string, error) {
+func WriteSnapshot(ctx context.Context, sdb *sqlx.DB, dir string, now time.Time, tag string) (string, error) {
+	tx, err := sdb.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback() //nolint:errcheck // read-only
+	return writeSnapshot(ctx, tx, dir, now, tag)
+}
+
+// writeSnapshot is WriteSnapshot through q, which sees one moment (BAK-1).
+func writeSnapshot(ctx context.Context, db sqlx.QueryerContext, dir string, now time.Time, tag string) (string, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("create backup dir: %w", err)
 	}
@@ -38,7 +49,7 @@ func WriteSnapshot(ctx context.Context, db *sqlx.DB, dir string, now time.Time, 
 	if err != nil {
 		return "", fmt.Errorf("create backup file: %w", err)
 	}
-	if err := Dump(ctx, db, now.Format(time.RFC3339), f, DumpOpts{}); err != nil {
+	if err := dumpFrom(ctx, db, now.Format(time.RFC3339), f, DumpOpts{}); err != nil {
 		f.Close()
 		os.Remove(tmp)
 		return "", err
