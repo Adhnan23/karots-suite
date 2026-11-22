@@ -9,7 +9,8 @@ export default defineConfig({
   testDir: 'e2e',
   workers,
   expect: { timeout: 15_000 }, // sign-ins may wait out the login limiter (e2e/fixtures.ts)
-  use: { baseURL: `http://localhost:${3000 + index}` },
+  // A failure keeps its trace (test-results/…/trace.zip): what the page did, step by step.
+  use: { baseURL: `http://localhost:${3000 + index}`, trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
     // Shops print from Firefox too: the receipt picture must come out the same there.

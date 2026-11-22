@@ -18,9 +18,11 @@ if [ "${COVER:-}" = 1 ]; then
   pkgs=$(go list ./... | grep -v -e /internal/demo -e /cmd/demo -e /cmd/bootstrap -e /scripts | paste -sd, -)
   cover=(-coverpkg="$pkgs" -coverprofile="$out/go.cover")
 fi
-( s=$(date +%s); go test -count=1 -exec "$PWD/bin/testdb exec" "${cover[@]}" ./... > "$out/go.log" 2>&1
+# Go and Vitest at low priority: their coverage runs take every core, and Playwright's
+# browsers starved behind them took seconds to start each page (2026-11-22).
+( s=$(date +%s); nice -n 15 go test -count=1 -exec "$PWD/bin/testdb exec" "${cover[@]}" ./... > "$out/go.log" 2>&1
   echo "go exit $? in $(( $(date +%s) - s ))s" >> "$out/summary.txt" ) &
-( s=$(date +%s); cd web && bunx vitest run ${COVER:+--coverage --coverage.reporter=json-summary --coverage.reportsDirectory="$out/web-cover"} > "$out/web.log" 2>&1
+( s=$(date +%s); cd web && nice -n 15 bunx vitest run ${COVER:+--coverage --coverage.reporter=json-summary --coverage.reportsDirectory="$out/web-cover"} > "$out/web.log" 2>&1
   echo "web exit $? in $(( $(date +%s) - s ))s" >> "$out/summary.txt" ) &
 ( s=$(date +%s); cd web && bunx playwright test > "$out/e2e.log" 2>&1
   echo "e2e exit $? in $(( $(date +%s) - s ))s" >> "$out/summary.txt" ) &

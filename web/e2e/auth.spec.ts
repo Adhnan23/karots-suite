@@ -26,6 +26,7 @@ test('wrong PIN shows an inline error and stays on login', async ({ page }) => {
 
 test('konami on login reveals the install id', async ({ page }) => {
   await page.goto('/login')
+  await expect(page.getByLabel('Phone')).toBeVisible() // the page listens for keys once it has drawn
   await expect(page.getByText(/install id/i)).toBeHidden()
   for (const k of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'])
     await page.keyboard.press(k)

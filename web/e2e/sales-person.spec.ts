@@ -66,7 +66,8 @@ test('a sales person sends a ticket and the cashier sells it', async ({ browser 
   await cashier.screenshot({ path: 'shots/sales-person/popup.png' })
   await expect(cashier.getByRole('group', { name: 'Tickets' })).toContainText('E2E Sales')
   await popup.getByRole('button', { name: 'Open' }).click()
-  await expect(cashier.getByRole('region', { name: 'Cart' }).getByText('E2E Milk')).toBeVisible()
+  // exact: for a moment the ticket's own button ("E2E Milk ×1") is still there too
+  await expect(cashier.getByRole('region', { name: 'Cart' }).getByText('E2E Milk', { exact: true })).toBeVisible()
 
   // Opened once: it's gone from both machines.
   await expect(cashier.getByRole('group', { name: 'Tickets' })).toHaveCount(0)

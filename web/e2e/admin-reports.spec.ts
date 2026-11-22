@@ -54,6 +54,7 @@ const PAGES: [string, string | RegExp][] = [
 
 for (const width of [1366, 360]) {
   test(`every report renders, with data and with an empty range, at ${width}`, async ({ page }) => {
+    test.setTimeout(90_000) // 26 pages: ~25 s on a quiet PC; each page still has its own 15 s
     await page.setViewportSize({ width, height: width < 768 ? 780 : 768 })
     await admin(page)
     await salesWithHistory(page)
