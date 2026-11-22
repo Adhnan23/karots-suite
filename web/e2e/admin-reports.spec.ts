@@ -58,7 +58,15 @@ for (const width of [1366, 360]) {
     await page.setViewportSize({ width, height: width < 768 ? 780 : 768 })
     await admin(page)
     await salesWithHistory(page)
-    await expensesWithHistory(page)
+    // The screenshots' data turns untracked cash off: later files in this worker close
+    // tills without a locker, so the till-cash setting goes back as it was.
+    const was = (await (await page.request.get('/api/v1/admin/settings')).json()).settings
+    try {
+      await expensesWithHistory(page)
+    } finally {
+      const back = await page.request.put('/api/v1/admin/settings/till-cash', { data: { defaultLockerId: was.defaultLockerId, allowUntracked: was.allowUntrackedCash } })
+      expect(back.ok(), await back.text()).toBe(true)
+    }
     for (const [path, heading] of PAGES) {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible()
