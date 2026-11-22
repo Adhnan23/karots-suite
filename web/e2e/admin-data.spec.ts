@@ -22,6 +22,7 @@ const toast = (page: Page, text: RegExp) => expect(page.locator('[data-sonner-to
 const noSideScroll = (page: Page) => expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
 
 test('data: download a backup, restore it behind RESTORE, sign in again, the shop is unchanged', async ({ page }) => {
+  test.setTimeout(90_000) // two backups, a restore and two sign-ins: 7 s on a quiet PC, past 30 s in a full run
   await signIn(page)
   await open(page, '/admin/data')
   const before = (await (await page.request.get('/api/v1/admin/products?limit=1')).json()).total as number

@@ -109,7 +109,7 @@ test('items to review: a till quick-add gets finished', async ({ page }) => {
   await page.request.post('/api/v1/till/quick-item', { data: { name: `Quick ${tag}`, price: '75', qty: '1', barcode: '', unitId: 0 } })
   await page.reload()
   await page.getByRole('button', { name: new RegExp(`^Quick ${tag}`) }).first().click()
-  await expect(page.getByText(/Quick-added at the till/)).toBeVisible()
+  await expect(page.getByText(/Quick-added at the till\. Set/)).toBeVisible() // the form's own note, not the page's intro
   await page.getByRole('button', { name: 'Category' }).click()
   await page.getByLabel('Search categories').fill('E2E Goods')
   await page.getByLabel('Search categories').press('Enter')

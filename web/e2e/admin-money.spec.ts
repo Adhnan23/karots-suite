@@ -34,6 +34,7 @@ async function newLocker(page: Page, name: string, kind: string, opening: string
 }
 
 test('lockers: create, move money, ledger, bank charge books an expense, settle the card machine', async ({ page }) => {
+  test.setTimeout(90_000) // ~45 steps: 5 s on a quiet PC, past 30 s in a full run (each step still has its own 15 s)
   await admin(page, '/admin/lockers')
   await newLocker(page, safe, 'Safe', '5000')
   await newLocker(page, bank, 'Bank account', '0')
