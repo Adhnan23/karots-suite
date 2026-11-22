@@ -26,7 +26,10 @@ func Connect(dsn string) (*sqlx.DB, error) {
 	db.SetMaxOpenConns(20)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	return db, nil
+	// A column this build doesn't know is skipped, not an error: after a bad
+	// update BootGuard puts this version back on the database the newer one
+	// migrated, and SELECT * there has the newer columns (UPD-6).
+	return db.Unsafe(), nil
 }
 
 // IsUniqueViolation reports whether err is a Postgres unique-constraint

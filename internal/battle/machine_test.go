@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"karots-suite/internal/datetime"
+	"karots-suite/internal/ledgercheck/ltest"
 
 	"github.com/shopspring/decimal"
 	"pgregory.net/rapid"
@@ -17,11 +18,17 @@ import (
 // real API, then the auditor and the machine's own books (drawer cash, the
 // customer's balance, what each sale refunded) after every step. A failure
 // shrinks to the fewest steps that break it.
-func TestBattleSales(t *testing.T) {
+func TestBattleSales(t *testing.T) { battleSales(t, newShop) }
+
+// UPD-6, forward: this build sells, returns and reports on a database a newer
+// release has already added columns to (BootGuard put this one back).
+func TestBattleSalesOnNextSchema(t *testing.T) { battleSales(t, newShopNextSchema) }
+
+func battleSales(t *testing.T, mk func(ltest.T) *shop) {
 	t.Parallel()
 	setRapid(t)
 	rapid.Check(t, func(rt *rapid.T) {
-		m := &machine{s: newShop(rt), drawer: decimal.NewFromInt(5000)}
+		m := &machine{s: mk(rt), drawer: decimal.NewFromInt(5000)}
 		m.s.open(rt, m.s.till1)
 		rt.Repeat(map[string]func(*rapid.T){
 			"":            m.check,

@@ -64,7 +64,7 @@ func NewFaultyDB(t T) (*sqlx.DB, string, *Fault) {
 		t.Fatal(err)
 	}
 	f := &Fault{}
-	db := sqlx.NewDb(sql.OpenDB(faultConnector{c, f}), "postgres")
+	db := sqlx.NewDb(sql.OpenDB(faultConnector{c, f}), "postgres").Unsafe() // as db.Connect
 	db.SetMaxOpenConns(20)
 	t.Cleanup(func() { db.Close() })
 	return db, dsn, f
