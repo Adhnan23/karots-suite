@@ -105,8 +105,10 @@ stock and the records don't change, but cash that left or entered the drawer is 
 till was closed by then, one is opened for it and marked for review, as for a late sale. What depended on a refused item is
 refused too, and names it. While the PC answers, the cashier sees a refusal on the spot and no money moves.
 
-If the PC itself has trouble (a restart during an update), the phone just tries again, for a few minutes, before it counts
-as refused.
+If the PC itself has trouble (a restart during an update, the database away for a moment), the phone just tries again,
+for a few minutes, before it counts as refused. Nothing is done twice: if the PC stopped part way through something
+(the power went), it is never done again and shows on What came in as **"may not have gone through — check before
+doing it again"**. Look at the till or the record it touched before redoing it.
 
 **Phones → What came in** lists every batch a phone sent, with each action and its flags. A flagged sale opens in
 **Sales**, which is also where a mistaken sale is returned.
