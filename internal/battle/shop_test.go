@@ -31,7 +31,8 @@ type shop struct {
 	prod                 map[string]int64
 	customer, cardAcct   int64
 	unitPcs, unitKg, cat int64
-	checks               int // agreeSometimes' count
+	checks               int  // agreeSometimes' count
+	nextSchema           bool // columns this build doesn't know: no round trip (they can't come back, BAK-7)
 }
 
 type saleResult struct {

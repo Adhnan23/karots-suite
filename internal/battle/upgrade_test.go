@@ -178,5 +178,7 @@ func newShopNextSchema(t ltest.T) *shop {
 			t.Fatal(err)
 		}
 	}
-	return newShopOn(t, db, dsn)
+	s := newShopOn(t, db, dsn)
+	s.nextSchema = true
+	return s
 }
