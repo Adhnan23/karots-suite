@@ -6,6 +6,7 @@ package battle
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ import (
 type shop struct {
 	db                   *sqlx.DB
 	dsn                  string
+	h                    http.Handler
 	admin, till1, till2  *client
 	prod                 map[string]int64
 	customer, cardAcct   int64
@@ -68,7 +70,7 @@ func newShopCfg(t ltest.T, db *sqlx.DB, dsn string, mod func(*config.Config)) *s
 	v := app.SystemPINValidator(nil)
 	svc := app.NewServices(db, cfg, v)
 	h := app.BuildServer(db, cfg, v)
-	s := &shop{db: db, dsn: dsn, prod: map[string]int64{}, unitPcs: 1, unitKg: 2}
+	s := &shop{db: db, dsn: dsn, h: h, prod: map[string]int64{}, unitPcs: 1, unitKg: 2}
 	for _, u := range []struct{ name, phone, role string }{
 		{"Admin", "0770000001", "admin"}, {"Till One", "0770000002", "cashier"}, {"Till Two", "0770000003", "cashier"},
 	} {
