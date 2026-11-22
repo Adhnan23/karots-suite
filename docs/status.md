@@ -246,8 +246,7 @@ till's). **Mutation:** 233 of 290 caught; the 5 on money paths and pairing's lim
 or OS-level. Coverage map's Plugins row: Pocket Cashier 84.6%; Go total with plugins 82.8%. Full run: Vitest (1,221),
 Playwright (271), check-core green; Go green but one audit beside another test (PKT-7 counted a running action's cash
 too early — the check now counts it; passed 3 runs after).
-**Installing and running a shop — desk work and cases done 2026-11-22 (pick up here: the Close section of
-`docs/plans/2026-11-22-install-battle-test.md`).** Rule book `docs/rules/install.md` (BAK backups / restore, CPY copy
+**Installing and running a shop — closed 2026-11-22.** Rule book `docs/rules/install.md` (BAK backups / restore, CPY copy
 folder + Karots cloud, UPD self-update, SET Setup, BLD Shop Builder); the auditor here is the round trip
 (`ltest.Restored` / `RoundTrip`: backup → restore into a fresh database → same rows, rule book holds), run by every
 random-days machine every 100th check. User's answers (Q1–Q3, as suggested): safety copies kept 30 days, not counted by
@@ -264,9 +263,29 @@ the till: reads now skip unknown columns (`db.Connect` → `Unsafe()`), 48a7e04 
 onboarding); Setup's Update took no backup (SET-3). New tests: power cuts during `-backup`, an automatic backup and
 `-restore` (BAK-3/5), a Pay across a real restart (UPD-8), the sales machine on a schema with extra columns, a guard
 that new migrations only add, each published release built from git and selling on this schema (make battle),
-SET-6, SET-8, CPY-2, CPY-3, BAK-2/9/10/11/12. **Left (next session, long runs):** mutation (gremlins on
-`internal/backup`, `internal/update`, `cmd/setup` replayed against own + battle tests), `make battle`, full run with
-coverage, coverage map rows, then the real-printer and real-phone tests before the Release.
+SET-6, SET-8, CPY-2, CPY-3, BAK-2/9/10/11/12. **Close (same day):** mutation (gremlins replayed against own + battle tests, each shard in a 1.8 GB memory
+cap): backup 153 caught / 30 lived, updates 61 / 23, Setup 186 / 150, the server's backup / update files 6 / 22; every
+survivor in backup, updates and the server files read, and Setup's that touch data and the install steps — 7 real
+gaps got tests (a happy update leaves its boot marker; Copy now on an unset place; the waiting count; self-update only
+in shop builds; an Update keeps this PC's till opening; a table of exactly 200 rows restores; BACKUP_KEEP=0 never
+prunes); the rest are timeouts, progress, log lines, disk / database error paths and Windows-only branches. **Not
+read:** 84 survivors in Setup's launcher (`main.go`) and print helper (`print_agent.go`) — read the print helper's
+before the real-printer test. `make battle` 29 min (was 49 before the NVMe), clean. **The full run found two more:**
+a sale the PC refused booked its handed cash twice when its record failed after the booking, and a database blip
+while booking left it "couldn't be booked" for good (PKT-7 / PKT-5, `e31f16fb`: claimed before the booking, retried
+on the PC's own trouble); `/tmp` (RAM here) was 98% full — every power-cut test left its 39 MB server build behind
+(now on disk, removed at the end), which is what OOM-killed the terminal. **Playwright's "known flakes" were all
+test bugs, now fixed at their cause:** keys / scans sent before the page was ready (konami; `ensureOpen`'s
+`isVisible` in 9 specs), loose text matches that hit two things (sales person, items to review), whole-test budgets
+too small for long flows (reports 26 pages, admin-money ~45 steps, admin-data — 90 s now, each step still 15 s; a
+failing test keeps its trace to show this), and Go / Vitest's coverage runs starving the browsers (they run at
+`nice 15` in the full run). Last full run (13:40): Go (77 packages), Vitest and check-core green; Playwright 252
+passed, **1 open:** till `open the till with a counted float` — the till left open by earlier specs couldn't be
+closed because "untracked cash" was off (server: "banking to a locker is required"); the reports test turned it off
+through the screenshots' data and now puts it back (`0e18a587`), but that isn't proven to be the only cause — the
+test now prints the server's refusal, so the next full run says. Coverage map updated (Go with every plugin 82.9%,
+core 80.6%; backup 86.5%, updates 78.0%, Setup 70.7%). Next: the real-printer and real-phone tests, then the Release (it moves Iman past
+2026.11.17.2028, which can't read a newer schema).
 **After Pocket Cashier (user, 2026-11-21): battle-test installing and running a shop the same way** — rule book first:
 karots-setup (install main / cashier PC, file and server mode, Update, mode change, Uninstall with its final backup,
 Bring back a shop), self-update (signed manifest, download, swap, BootGuard rollback), backups (automatic, copy folder,
