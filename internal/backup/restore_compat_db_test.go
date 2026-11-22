@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -167,5 +168,29 @@ CREATE TABLE sales (id serial PRIMARY KEY, receipt_no text UNIQUE);`); err != ni
 	db.Get(&next, `SELECT nextval('sales_receipt_seq')`)
 	if next <= 41 {
 		t.Errorf("sales_receipt_seq next = %d, want > 41", next)
+	}
+}
+
+// BAK-2: a table of exactly one full batch (200 rows), and one past it,
+// restore whole.
+func TestRestoreWholeBatches(t *testing.T) {
+	db := scratchDB(t, "restorebatch_db")
+	if _, err := db.Exec(`CREATE TABLE things (id serial PRIMARY KEY, name text)`); err != nil {
+		t.Fatal(err)
+	}
+	for _, n := range []int{200, 401} {
+		var rows [][]*string
+		for i := 1; i <= n; i++ {
+			rows = append(rows, []*string{s(strconv.Itoa(i)), s("x")})
+		}
+		arc := Archive{Version: FormatVersion, Tables: []Table{{Name: "things", Columns: []string{"id", "name"}, Rows: rows}}}
+		if _, err := Restore(context.Background(), db, gzArchive(t, arc)); err != nil {
+			t.Fatalf("BAK-2: %d rows: %v", n, err)
+		}
+		var got int
+		db.Get(&got, `SELECT count(*) FROM things`)
+		if got != n {
+			t.Fatalf("BAK-2: %d rows restored of %d", got, n)
+		}
 	}
 }

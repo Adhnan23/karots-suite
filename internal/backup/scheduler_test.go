@@ -176,3 +176,17 @@ func TestBAK12_SchedulerKeepsGoing(t *testing.T) {
 		t.Fatalf("BAK-12: %d backups in the folder (keep 5)", len(list))
 	}
 }
+
+// BAK-4: BACKUP_KEEP=0 never prunes an automatic backup.
+func TestRotateKeepZeroKeepsAll(t *testing.T) {
+	dir := t.TempDir()
+	for i := range 3 {
+		os.WriteFile(filepath.Join(dir, FileName("Acme", time.Now().Add(-time.Duration(i)*time.Hour), false)), []byte("x"), 0o644)
+	}
+	if _, err := Rotate(dir, 0); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ := ListBackups(dir); len(list) != 3 {
+		t.Fatalf("BAK-4: keep 0 left %d of 3", len(list))
+	}
+}
