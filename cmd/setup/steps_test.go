@@ -215,3 +215,37 @@ func TestApplyChoice(t *testing.T) {
 		t.Fatal("applyChoice changed the shared install.conf env")
 	}
 }
+
+// SET-8: Setup's log (support gets a copy) never shows the database passwords,
+// though the commands it runs carry them.
+func TestSET8_LogHidesPasswords(t *testing.T) {
+	for _, osName := range []string{"linux", "windows"} {
+		var j *Job
+		var rc *rec
+		if osName == "linux" {
+			j, rc, _ = linuxJob(t, "server", true)
+		} else {
+			j, rc = windowsJob(t, "server")
+		}
+		var log strings.Builder
+		j.Log = &log
+		for _, s := range Steps(j) {
+			if s.ID == "database" || s.ID == "settings" {
+				s.Do(j) //nolint:errcheck // only what it logs counts here
+			}
+		}
+		carried := false
+		for _, pw := range []string{j.Conf.DB.Password, j.Conf.DB.SuperPassword} {
+			if pw == "" {
+				continue
+			}
+			carried = carried || strings.Contains(rc.all(), pw)
+			if strings.Contains(log.String(), pw) {
+				t.Errorf("SET-8: %s: the log shows a database password", osName)
+			}
+		}
+		if !carried {
+			t.Errorf("%s: no command carried a password — the test sees nothing", osName)
+		}
+	}
+}

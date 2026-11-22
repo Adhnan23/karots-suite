@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -100,5 +102,23 @@ func TestSafetyCopyBeforeRestore(t *testing.T) {
 	}
 	if _, err := os.Stat(p); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// SET-6: Setup's -backup / -restore refuse while the till is serving (server
+// mode; file mode claims the port before its database starts).
+func TestSET6_RefusedWhileTheTillRuns(t *testing.T) {
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	t.Setenv("SERVER_PORT", strconv.Itoa(ln.Addr().(*net.TCPAddr).Port))
+	if err := tillStopped(); err == nil || !strings.Contains(err.Error(), "till is running") {
+		t.Fatalf("SET-6: err %v", err)
+	}
+	ln.Close()
+	if err := tillStopped(); err != nil {
+		t.Fatalf("a stopped till refused: %v", err)
 	}
 }
