@@ -40,9 +40,12 @@ shipped as **one static binary**.
 - **Docs and legal move with the product.** A new plugin, feature, screen, service or price isn't done until its docs,
   screenshots and legal pack are updated (checklist under **Docs and legal**). `internal/docscheck` fails `make test`
   when a plugin is missing from them.
-- **A money, stock or balance change starts in the rule book.** Write or change the rule in `docs/rules/` first (a
+- **Every change in behaviour starts in the rule book** — a new feature, plugin, screen action, report, install /
+  update / backup step, or a change to any of them (money, stock and balances most of all). First write the new rule,
+  or improve the existing one, in `docs/rules/` (new feature = a new row in its area's grid, every square filled; a
   changed rule needs the user's yes; unknowns go in `questions.md`), then a failing test that names it, then the code.
-  A bug fixed = the rule it broke + a test that failed first. Never change a rule or weaken a test to fit the code.
+  A bug fixed = the rule it broke (or the rule nobody had written) + a test that failed first. Never change a rule or
+  weaken a test to fit the code. Only look-and-feel (layout, colours, wording) skips the rule book.
 - **Files stay organised by concern, at 500 lines or fewer** (Go and TS).
 - **Desktop till, mobile admin.** Every admin page, report and chart must work at 360px. The till is desktop/kiosk only.
 - **Palettes, each with light and dark.** Components use theme tokens only (CSS variables — colours, `--radius`, `rounded-pill`, `--shadow`, `--glass`, `duration-(--dur)`, Motion via `tx()`), never raw colour classes, pixel corners or literal timings (`theme/guard.test.ts` fails on them), and never branch on which palette is active. See `docs/design/theme.md`: theme **Dock** has 22 built-ins (Studio, Night, Bazaar, Lagoon, Catppuccin + 17 famous / colourful ones, theme.md §1) and custom palettes, chosen shop-wide by the system user (`settings.skin`); **mode** (light/dark) is per device (`ks-mode` in `localStorage`). One CSS file per built-in in `web/src/theme/palettes/dock/`. Every screen works with every palette in both modes.
@@ -60,7 +63,7 @@ Core is proven area by area (spec `docs/specs/2026-11-18-core-battle-test-design
 | Proofs: money maths in Lean 4; Go and the till held to its cases | `proofs/` (`make proofs`, GitHub `proofs.yml`) | on change |
 | Mutation: planted mistakes the tests must notice | `make mutate` (gremlins, Stryker) | by hand, per area |
 
-**Doing the next area (or a new money feature):** fill its grid in `docs/rules/<area>.md` (every feature × every later
+**Doing a new area or feature (any behaviour, not only money):** fill its grid in `docs/rules/<area>.md` (every feature × every later
 action; past `fix(` commits become rules; unknowns to `questions.md`, asked in one batch) → add its checks to
 `internal/ledgercheck/<area>.go` (corrupt a row in the test to prove each fires) → case tests per rule in
 `internal/battle/cases_<area>_test.go` → its actions in a random-days machine → `make battle`, `make mutate` → close
