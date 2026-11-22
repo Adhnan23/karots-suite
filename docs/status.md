@@ -233,7 +233,20 @@ refused one; a drawer count could lose its session. **Mutation:** 499 of 502 cau
 Repairs 87.7%, Reload & Bills 85.8%; Go total with plugins 81.8%. Full run: Go, Vitest (1,219), check-core green;
 Playwright 231 passed, 6 timed out beside Go's coverage run (admin-money, admin-data, admin-people, admin-reports, auth
 konami, till open with a float) — all 47 tests of those files pass alone. The Demo Room year passes every new check.
-**Next: Pocket Cashier (another session) — the last plugin; it replays every till plugin offline.**
+**Pocket Cashier battle-tested (2026-11-22) — every plugin is done.** Rule book PKT-1–15 (`docs/rules/plugins/pocketcashier.md`),
+auditor checks PKT-4 / 7 / 12, battle cases in `plugins/pocketcashier/battle/`. **Found and fixed:** a send's counts were
+written only at batch end; a cash out / in or close made on the phone is now booked as made (DRAW-19, past the PC's drawer
+count, a late till opened, flagged); the PC's own trouble (database away, a 5xx) refused open / close / cash moves / hold /
+unhold for good — now every kind waits its turn first (PKT-5); anything but a sale is claimed (`running`, migration 0005)
+before it runs, so a stop between the work and its record never runs it again — it shows "may not have gone through —
+check" (PKT-4); a call with no one-time reference gets the action's ref (CUST-16). **Core:** a failed account lookup said
+"your account is no longer active" (401) on a database blip, signing a till out — now a 500. The failure sweep over every
+kind passes; every kind sent two at once and again is done once; PKT-14 fast-check (the phone's request and total = the
+till's). **Mutation:** 233 of 290 caught; the 5 on money paths and pairing's limit edges got tests, the rest equivalent
+or OS-level. Coverage map's Plugins row: Pocket Cashier 84.6%; Go total with plugins 82.8%. Full run: Vitest (1,221),
+Playwright (271), check-core green; Go green but one audit beside another test (PKT-7 counted a running action's cash
+too early — the check now counts it; passed 3 runs after).
+**Next: battle-test installing and running a shop (another session, user 2026-11-21, below).**
 **After Pocket Cashier (user, 2026-11-21): battle-test installing and running a shop the same way** — rule book first:
 karots-setup (install main / cashier PC, file and server mode, Update, mode change, Uninstall with its final backup,
 Bring back a shop), self-update (signed manifest, download, swap, BootGuard rollback), backups (automatic, copy folder,
