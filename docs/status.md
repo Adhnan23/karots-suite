@@ -285,8 +285,8 @@ closed because "untracked cash" was off (server: "banking to a locker is require
 through the screenshots' data and now puts it back (`0e18a587`), but that isn't proven to be the only cause — the
 test now prints the server's refusal, so the next full run says. Coverage map updated (Go with every plugin 82.9%,
 core 80.6%; backup 86.5%, updates 78.0%, Setup 70.7%). **Released to Iman as 2026.11.22.1407** (commit `03edc4df`,
-written notes, no Pocket Cashier mention). Once Iman has updated, drop 48a7e04 from `strictReads` in
-`internal/battle/upgrade_test.go`. Before the Release it was: the Release (it moves Iman past
+written notes, no Pocket Cashier mention). The old-version exception in `upgrade_test.go` is gone
+(the test follows the published release, which now reads newer schemas). Before the Release it was: the Release (it moves Iman past
 2026.11.17.2028, which can't read a newer schema).
 **After Pocket Cashier (user, 2026-11-21): battle-test installing and running a shop the same way** — rule book first:
 karots-setup (install main / cashier PC, file and server mode, Update, mode change, Uninstall with its final backup,

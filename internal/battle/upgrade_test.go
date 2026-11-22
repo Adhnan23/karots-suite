@@ -72,14 +72,6 @@ func TestUPD6_MigrationsOnlyAdd(t *testing.T) {
 	}
 }
 
-// strictReads are releases from before reads skipped unknown columns
-// (db.Connect's Unsafe): any column a newer build adds makes their SELECT *
-// fail, so they can't run on a newer schema at all. Once no shop runs one,
-// drop it from here.
-var strictReads = map[string]string{
-	"48a7e04": "2026.11.17.2028 refuses unknown columns (missing destination name session_id); Iman, still onboarding (no real sales), moves past it with the next Release",
-}
-
 // UPD-6: the version each shop runs now, put back by BootGuard after a bad
 // update, starts and sells on the database this build migrated. Builds each
 // published commit (shops.json) in a git worktree: long, so make battle only.
@@ -112,9 +104,6 @@ func TestBattlePreviousReleaseOnNewSchema(t *testing.T) {
 		seen[sh.Published.Commit] = true
 		commit, version := sh.Published.Commit, sh.Published.Version
 		t.Run(version, func(t *testing.T) {
-			if why, ok := strictReads[commit]; ok {
-				t.Skip(why)
-			}
 			wt := filepath.Join(t.TempDir(), "wt")
 			if out, err := exec.Command("git", "-C", root, "worktree", "add", "--detach", wt, commit).CombinedOutput(); err != nil {
 				t.Fatalf("worktree: %v %s", err, out)
