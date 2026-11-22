@@ -100,7 +100,14 @@ type DumpOpts struct {
 
 // Dump writes a gzipped JSON snapshot of public table data to w. opts narrows
 // which tables are included (zero value dumps everything).
-func Dump(ctx context.Context, db *sqlx.DB, generatedAt string, w io.Writer, opts DumpOpts) error {
+func Dump(ctx context.Context, sdb *sqlx.DB, generatedAt string, w io.Writer, opts DumpOpts) error {
+	// One snapshot for every table (BAK-1): read table by table, a sale landing
+	// in between came back without its payments or its stock movement.
+	db, err := sdb.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	if err != nil {
+		return err
+	}
+	defer db.Rollback() //nolint:errcheck // read-only
 	names, err := publicTables(ctx, db)
 	if err != nil {
 		return err
@@ -319,9 +326,9 @@ func dropForeignKeys(ctx context.Context, tx *sqlx.Tx) ([]foreignKey, error) {
 
 // --- helpers ---
 
-func publicTables(ctx context.Context, db *sqlx.DB) ([]string, error) {
+func publicTables(ctx context.Context, db sqlx.QueryerContext) ([]string, error) {
 	var all []string
-	err := db.SelectContext(ctx, &all,
+	err := sqlx.SelectContext(ctx, db, &all,
 		`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`)
 	if err != nil {
 		return nil, err
@@ -335,16 +342,16 @@ func publicTables(ctx context.Context, db *sqlx.DB) ([]string, error) {
 	return out, nil
 }
 
-func tableColumns(ctx context.Context, db *sqlx.DB, table string) ([]string, error) {
+func tableColumns(ctx context.Context, db sqlx.QueryerContext, table string) ([]string, error) {
 	var cols []string
-	err := db.SelectContext(ctx, &cols, `
+	err := sqlx.SelectContext(ctx, db, &cols, `
 		SELECT column_name FROM information_schema.columns
 		WHERE table_schema = 'public' AND table_name = $1
 		ORDER BY ordinal_position`, table)
 	return cols, err
 }
 
-func dumpRows(ctx context.Context, db *sqlx.DB, table string, cols []string) ([][]*string, error) {
+func dumpRows(ctx context.Context, db sqlx.QueryerContext, table string, cols []string) ([][]*string, error) {
 	sel := make([]string, len(cols))
 	for i, c := range cols {
 		sel[i] = quoteIdent(c) + "::text"
