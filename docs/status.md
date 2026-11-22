@@ -246,7 +246,27 @@ till's). **Mutation:** 233 of 290 caught; the 5 on money paths and pairing's lim
 or OS-level. Coverage map's Plugins row: Pocket Cashier 84.6%; Go total with plugins 82.8%. Full run: Vitest (1,221),
 Playwright (271), check-core green; Go green but one audit beside another test (PKT-7 counted a running action's cash
 too early — the check now counts it; passed 3 runs after).
-**Next: battle-test installing and running a shop (another session, user 2026-11-21, below).**
+**Installing and running a shop — desk work and cases done 2026-11-22 (pick up here: the Close section of
+`docs/plans/2026-11-22-install-battle-test.md`).** Rule book `docs/rules/install.md` (BAK backups / restore, CPY copy
+folder + Karots cloud, UPD self-update, SET Setup, BLD Shop Builder); the auditor here is the round trip
+(`ltest.Restored` / `RoundTrip`: backup → restore into a fresh database → same rows, rule book holds), run by every
+random-days machine every 100th check. User's answers (Q1–Q3, as suggested): safety copies kept 30 days, not counted by
+rotation (BAK-4); after BootGuard goes back the previous version sells on the migrated database — migrations only add
+(UPD-6); Setup's Update backs up first (SET-3). **Found and fixed:** a backup taken while tills sold restored sales
+without payments and stock off its movements — each table was read on its own (BAK-1, one snapshot now); a sale finishing
+between a restore's safety copy and the restore was in neither (BAK-6: the restore holds every table, NOWAIT + retry so it
+never deadlocks a sale); safety copies were pruned after ~7 days (BAK-4); a power cut between the update swap's two
+renames left no program, and one right after the swap left a new program BootGuard never counted (UPD-4: Linux links +
+one rename, the Windows launcher's `update.Recover`, marker before the swap, BootGuard drops a marker for a version that
+isn't running); **the released 2026.11.17.2028 can't sell on today's schema** — strict `SELECT *` into sqlx structs
+refuses any new column ("missing destination name session_id"), so a rollback after the next Release would have stopped
+the till: reads now skip unknown columns (`db.Connect` → `Unsafe()`), 48a7e04 stays a known exception (Iman still
+onboarding); Setup's Update took no backup (SET-3). New tests: power cuts during `-backup`, an automatic backup and
+`-restore` (BAK-3/5), a Pay across a real restart (UPD-8), the sales machine on a schema with extra columns, a guard
+that new migrations only add, each published release built from git and selling on this schema (make battle),
+SET-6, SET-8, CPY-2, CPY-3, BAK-2/9/10/11/12. **Left (next session, long runs):** mutation (gremlins on
+`internal/backup`, `internal/update`, `cmd/setup` replayed against own + battle tests), `make battle`, full run with
+coverage, coverage map rows, then the real-printer and real-phone tests before the Release.
 **After Pocket Cashier (user, 2026-11-21): battle-test installing and running a shop the same way** — rule book first:
 karots-setup (install main / cashier PC, file and server mode, Update, mode change, Uninstall with its final backup,
 Bring back a shop), self-update (signed manifest, download, swap, BootGuard rollback), backups (automatic, copy folder,

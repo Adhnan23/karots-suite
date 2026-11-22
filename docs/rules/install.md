@@ -58,7 +58,7 @@ apply (a read, a one-shot, or no state). d — the same build on both sides. e �
 BAK-1  A backup is one moment: every table is read in one snapshot, so a backup taken while tills sell restores
        to data the auditor passes — no sale without its lines, no payment without its sale.
        Tricky: a sale committing between two tables' reads; the safety copies (they use the same dump).
-       Found in: this area (each table was read on its own connection, no snapshot).
+       Found in: ff82edf8 (each table was read on its own connection, no snapshot).
        Checked by: machine (backups taken during random shop days, each restored and audited), example.
 
 BAK-2  The round trip: a full backup restored into an empty migrated database gives every table back row for row
@@ -83,7 +83,7 @@ BAK-5  A restore is all or nothing: a file that isn't a backup (not gzip, not JS
 BAK-6  A restore loses only what it means to replace: a safety copy of the data as it was is written first (no
        copy, no restore), and nothing a till does lands between that copy and the restore — it waits, then
        goes into the restored shop or is refused, never into neither.
-       Found in: this area (a sale finishing between the safety copy and the restore was in neither).
+       Found in: 996866fa (a sale finishing between the safety copy and the restore was in neither).
        Checked by: example (a sale at once with a restore).
 
 BAK-7  Versions: an older build's backup restores into a newer one (a missing column takes its default, or its
@@ -151,8 +151,10 @@ UPD-3  An install goes: download to .new and check → safety copy (before-updat
        Checked by: example.
 
 UPD-4  A power cut at any moment of an install leaves a program that starts — the old one or the new one, never
-       an empty or half-written file.
-       Checked by: faults (killed at each step).
+       an empty or half-written file, and a new one that can't start is still rolled back.
+       Found in: c1ecf742 (a cut between the swap's two renames left no program; a cut after the swap, before
+       the boot marker, left a new program BootGuard never counted).
+       Checked by: example (never a moment without a program; Recover; a marker for another version).
 
 UPD-5  BootGuard: a new version that fails to stay up twice (up = 2 minutes) is replaced by the previous one, and
        the Data page says so; a version that stayed up is marked healthy, and the old program's timer never
@@ -162,8 +164,11 @@ UPD-5  BootGuard: a new version that fails to stay up twice (up = 2 minutes) is 
 UPD-6  After going back, the previous version starts and sells on the database the new one migrated (all of it
        or part way): a release's migrations only add (new columns have defaults or allow empty; nothing the
        previous version reads or writes is dropped, renamed or made stricter in the same release).
-       User's answer: Q2 (2026-11-22).
-       Checked by: example (the previous release's program on the new schema).
+       And reads skip columns a build doesn't know (db.Connect: sqlx Unsafe).
+       User's answer: Q2 (2026-11-22). Found in: 5929334f (the released 2026.11.17.2028 refused every sale on
+       today's schema: "missing destination name session_id" — it stays a known exception).
+       Checked by: example (guard over new migrations), machine (the sales machine on a schema with extra
+       columns), battle (each published release built and selling on this schema, make battle).
 
 UPD-7  One install at a time; a download that receives nothing for 2 minutes gives up; offline is a calm state,
        never an error that stops anything.
