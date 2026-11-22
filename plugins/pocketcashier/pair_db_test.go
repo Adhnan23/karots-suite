@@ -3,6 +3,7 @@ package pocketcashier
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -116,5 +117,26 @@ func TestMovedSaysWhere(t *testing.T) {
 	en.db.Exec(`UPDATE users SET active_device = 'pc-1', active_device_label = 'Counter PC' WHERE id = $1`, uid) //nolint:errcheck
 	if m := ask(); m.MovedTo != "Counter PC" {
 		t.Fatalf("moved: %+v", m)
+	}
+}
+
+// A pairing request's limits, at their edges: a key of 32–200 characters, a name of
+// up to 40, a device id of up to 64.
+func TestPairLimits(t *testing.T) {
+	en := newEnv(t)
+	key := func(n int) string { return strings.Repeat("k", n) } // made unique per case below, at the same length
+	for i, x := range []struct {
+		name, device, secret string
+		ok                   bool
+	}{
+		{"Phone", "dev-a", key(31), false}, {"Phone", "dev-b", key(32), true},
+		{"Phone", "dev-c", key(200), true}, {"Phone", "dev-d", key(201), false},
+		{strings.Repeat("n", 40), "dev-e", key(40), true}, {strings.Repeat("n", 41), "dev-f", key(41), false},
+		{"Phone", strings.Repeat("d", 64), key(42), true}, {"Phone", strings.Repeat("d", 65), key(43), false},
+	} {
+		rec := en.do(http.MethodPost, "/pair", PairRequest{Name: x.name, Device: x.device, Secret: string(rune('a'+i)) + x.secret[1:]}, nil, "")
+		if (rec.Code == http.StatusOK) != x.ok {
+			t.Errorf("case %d (name %d, device %d, key %d): %d %s", i, len(x.name), len(x.device), len(x.secret), rec.Code, rec.Body)
+		}
 	}
 }

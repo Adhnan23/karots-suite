@@ -44,5 +44,10 @@ sending `/api/v1/x/pocketcashier/actions` with its key). New core seam for DRAW-
 ### Task 6: Phone side (Vitest) — outbox order / ack, temp numbers, the till's cases through the phone's sale request (PKT-14) — [x]
   (order / ack / temp numbers had tests; added: a reply answered part way keeps the rest in order; PKT-14 fast-check —
   the phone's request and total = the till's for any cart, proved to fail on a total of its own)
-### Task 7: Mutation (gremlins replayed 9 side by side) — survivors read, tests added — [ ]
+### Task 7: Mutation (gremlins replayed 9 side by side) — survivors read, tests added — [x]
+  (305 runnable: 233 killed, 57 lived, 65 not viable. The five on money paths now killed (`battle/mutants_db_test.go`:
+  a refused cash out booked out, an open at an unusable time, call cash after the till closed — taken or refused —
+  and a no-cash call opening no till); pairing's limits at their edges (`TestPairLimits`). The rest equivalent or
+  OS-level: retry / late-note / batch-size boundaries, note labels, interface flags, env vars, cert-file and
+  last-seen throttles, list limits.)
 ### Task 8: Docs (guide for changed behaviour), full run with coverage, coverage map Plugins row, status — [ ]
