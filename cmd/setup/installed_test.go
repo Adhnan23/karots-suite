@@ -101,3 +101,20 @@ func TestApplyInstalledCloudAndCopyDir(t *testing.T) {
 		t.Fatalf("%v", got.Env)
 	}
 }
+
+// SET-3: an Update keeps how this PC opens the till — what Setup recorded, else
+// a kiosk script found there, else the Builder's ("").
+func TestSET3_InstalledOpenKept(t *testing.T) {
+	dir := t.TempDir()
+	if got := installedOpen(dir); got != "" {
+		t.Fatalf("nothing recorded: %q", got)
+	}
+	os.WriteFile(filepath.Join(dir, "kiosk.sh"), []byte("#!/bin/sh"), 0o755)
+	if got := installedOpen(dir); got != "kiosk" {
+		t.Fatalf("a kiosk script: %q", got)
+	}
+	os.WriteFile(filepath.Join(dir, choicesFile), []byte(`{"open":"background"}`), 0o644)
+	if got := installedOpen(dir); got != "background" {
+		t.Fatalf("SET-3: the recorded choice lost to a guess: %q", got)
+	}
+}

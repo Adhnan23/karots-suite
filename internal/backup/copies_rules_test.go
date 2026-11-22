@@ -68,3 +68,25 @@ func TestCPY2_CopiesAtOnce(t *testing.T) {
 		t.Fatalf("CPY-2: half copies left: %v", left)
 	}
 }
+
+// CPY-6: Copy now on a place that isn't set up says so (nothing is tried); the
+// Data page's "waiting" is how many of the newest backups a place lacks.
+func TestCPY6_NotSetUpAndWaiting(t *testing.T) {
+	db, ctx := copiesDB(t), context.Background()
+	local, place := t.TempDir(), t.TempDir()
+	names := writeBackups(t, local, 0, 3)
+	now := copyBase.Add(4 * time.Hour)
+	c := newTestCopier(db, local, &fakeCloud{}, &now) // Keep 2
+	for _, k := range []string{KindFolder, KindCloud} {
+		if err := c.CopyNow(ctx, k); err == nil {
+			t.Errorf("CPY-6: Copy now to an unset %s went ahead", k)
+		}
+	}
+	os.WriteFile(filepath.Join(place, names[2]), []byte("x"), 0o644)
+	if n := c.Waiting(Copy{Kind: KindFolder, Path: place}); n != 1 {
+		t.Fatalf("CPY-6: waiting %d, want 1 (of the newest 2, one is there)", n)
+	}
+	if n := c.Waiting(Copy{Kind: KindFolder, Path: filepath.Join(place, "usb-out")}); n != 2 {
+		t.Fatalf("CPY-6: waiting %d for a folder that isn't there, want 2", n)
+	}
+}

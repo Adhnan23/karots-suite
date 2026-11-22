@@ -122,3 +122,20 @@ func TestSET6_RefusedWhileTheTillRuns(t *testing.T) {
 		t.Fatalf("a stopped till refused: %v", err)
 	}
 }
+
+// UPD-1: self-update is on only in a shop build (a channel and the bucket baked
+// in) and SELF_UPDATE=off switches it off (a Docker / VPS image).
+func TestSelfUpdateOnlyForShopBuilds(t *testing.T) {
+	ch, base := updateChannel, updateBaseURL
+	t.Cleanup(func() { updateChannel, updateBaseURL = ch, base })
+	for _, c := range []struct {
+		ch, base, env string
+		want          bool
+	}{{"c", "https://b", "", true}, {"", "https://b", "", false}, {"c", "", "", false}, {"c", "https://b", "off", false}} {
+		updateChannel, updateBaseURL = c.ch, c.base
+		t.Setenv("SELF_UPDATE", c.env)
+		if got := selfUpdate(); got != c.want {
+			t.Errorf("channel %q base %q SELF_UPDATE=%q: self-update %v, want %v", c.ch, c.base, c.env, got, c.want)
+		}
+	}
+}

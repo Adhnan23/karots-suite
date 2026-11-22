@@ -118,6 +118,9 @@ func TestApplyHappy(t *testing.T) {
 	if read(t, f.exe+".old") != "old binary" {
 		t.Fatal(".old should hold the previous binary")
 	}
+	if m := read(t, markerPath(f.exe)); m != "2026.10.19.1530\n0" { // UPD-5: its boots are counted
+		t.Fatalf("boot marker = %q", m)
+	}
 	if len(f.backups) != 1 || f.backups[0] != "2026.10.19.1530" {
 		t.Fatalf("backups = %v", f.backups)
 	}
