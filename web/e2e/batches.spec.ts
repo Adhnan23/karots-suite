@@ -61,7 +61,8 @@ test('intake: a restock tops up the batch that matches, not a new one', async ({
   const before = (await lots(page)).lots.length
   await page.goto('/admin/inventory/intake')
   await page.getByRole('textbox').first().fill(name)
-  await page.getByRole('button', { name: new RegExp(name) }).first().click()
+  // ^: the product's own result, not "New product “…”" (there before the results arrive)
+  await page.getByRole('button', { name: new RegExp(`^${name}`) }).first().click()
   // Cost 40 / price 60 typed = the product's: the batch added at the product's cost matches.
   await expect(page.getByRole('radio', { checked: true }).locator('xpath=ancestor::label')).toContainText('matches')
   await page.getByLabel('Quantity to add').fill('1')

@@ -49,7 +49,8 @@ test('open the till with a counted float', async ({ page }) => {
   // Start from a closed till whatever ran before in this worker (files share a worker's database).
   const st = await (await page.request.get('/api/v1/till/drawer')).json()
   if (st.summary.session) {
-    await page.request.post('/api/v1/till/drawer/close', { data: { breakdown: { [st.summary.expected]: 1 } } })
+    const res = await page.request.post('/api/v1/till/drawer/close', { data: { breakdown: { [st.summary.expected]: 1 } } })
+    expect(res.ok(), `closing the till left open: ${await res.text()}`).toBe(true)
     await page.reload()
   }
   const dlg = page.getByRole('dialog', { name: 'Open the till' })
