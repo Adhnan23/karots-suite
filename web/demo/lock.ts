@@ -1,6 +1,7 @@
 import './base.css'
 import './pages.css'
 import { call } from './api'
+import { askLinks } from './ask'
 
 const install = document.querySelector<HTMLElement>('#install')!
 const code = document.querySelector<HTMLInputElement>('#code')!
@@ -10,7 +11,17 @@ fetch('/__demo/state').then(async (r) => {
   if (r.ok) location.replace('/') // already unlocked
 }).catch(() => {})
 // The install ID is public (the PIN app needs it): it rides on the 401's page too.
-call<{ installId: string }>('/__demo/install').then((s) => (install.textContent = s.installId)).catch(() => (install.textContent = 'this demo'))
+call<{ installId: string; owner?: { phone: string } }>('/__demo/install').then((s) => {
+  install.textContent = s.installId
+  if (!s.owner?.phone) return
+  const a = askLinks(s.owner.phone, s.installId)
+  const wa = document.querySelector<HTMLAnchorElement>('#ask-wa')!
+  const tel = document.querySelector<HTMLAnchorElement>('#ask-tel')!
+  wa.href = a.whatsapp
+  tel.href = a.tel
+  tel.textContent = `Call ${a.shown}`
+  document.querySelector<HTMLElement>('#ask')!.hidden = false
+}).catch(() => (install.textContent = 'this demo'))
 
 code.addEventListener('input', () => (code.value = code.value.replace(/\D/g, '')))
 document.querySelector('form')!.addEventListener('submit', async (e) => {

@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -50,9 +51,9 @@ func wipeData(dir string) error {
 	return nil
 }
 
-// runLauncher is the double-clicked demo: lock → picker → shop.
-func runLauncher(port int) int {
-	addr, already := claimPort(port)
+// runLauncher is the double-clicked demo: lock → picker → shop. On a server (host not loopback) no browser opens.
+func runLauncher(host string, port int) int {
+	addr, already := claimPort(host, port)
 	if already != "" { // a demo is already open: show it instead of starting another
 		openBrowser(already)
 		return 0
@@ -107,18 +108,20 @@ func runLauncher(port int) int {
 	go func() { _ = srv.Serve(addr) }()
 	url := "http://" + addr.Addr().String() + "/"
 	log.Printf("Karots Demo Room: %s (install ID %s)", url, installID)
-	openBrowser(url)
+	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {
+		openBrowser(url)
+	}
 
 	<-quit
 	log.Println("demo: closing — nothing is kept")
 	return 0
 }
 
-// claimPort listens on 127.0.0.1:port or the next free one; if port already
+// claimPort listens on host:port or the next free one; if port already
 // answers as a Demo Room, it returns that URL instead.
-func claimPort(port int) (net.Listener, string) {
+func claimPort(host string, port int) (net.Listener, string) {
 	for p := port; p < port+20; p++ {
-		ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", p))
+		ln, err := net.Listen("tcp", net.JoinHostPort(host, strconv.Itoa(p)))
 		if err == nil {
 			return ln, ""
 		}

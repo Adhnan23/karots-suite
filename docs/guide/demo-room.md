@@ -27,6 +27,8 @@ demo logins (owner, manager, two cashiers, a sales person); tap one to sign in.
 The demo opens on a lock page showing its install ID. Enter the hourly code for that ID from
 the Karots PIN app. Five wrong codes make it wait a minute. A copy left on a customer's PC is
 useless without the code, and the left-edge **Demo** tab always shows the owner's contact.
+Under the code, **Want to try it?** offers WhatsApp (a message naming the install ID) and the owner's phone number,
+so someone who finds the Demo Room without a code knows whom to ask.
 
 ## While it runs
 
@@ -45,6 +47,12 @@ useless without the code, and the left-edge **Demo** tab always shows the owner'
   - Reset the shop.
 - **Pause** stops the staff's own sales. **Switch shop** asks first, then goes back to the
   picker. Invoices and statements printed or saved as PDF carry a diagonal **DEMO** mark.
+
+## On a server
+
+`-host 0.0.0.0` makes it listen beyond this PC (inside a container behind a reverse proxy; no browser opens then).
+The web Demo Room at demo.karots.lk runs that way: `deploy/demo-room/`. Visitors share the one running Demo Room,
+and each still needs the hourly code.
 
 ## Building it
 

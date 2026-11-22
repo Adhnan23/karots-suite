@@ -120,7 +120,8 @@ func (l *launcher) handler() http.Handler {
 	m.HandleFunc("GET /__demo/lock", l.page("lock.html"))
 	m.HandleFunc("POST /__demo/unlock", l.unlock)
 	m.HandleFunc("GET /__demo/install", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]string{"installId": l.installID}) // public: the PIN app needs it
+		// Public: the PIN app needs the install ID, and a visitor without a code needs to know whom to ask.
+		writeJSON(w, http.StatusOK, map[string]any{"installId": l.installID, "owner": Owner{demo.OwnerName, demo.OwnerPhone}})
 	})
 	if l.ui != nil {
 		m.Handle("GET /__demo/ui/", http.StripPrefix("/__demo/ui/", http.FileServerFS(l.ui)))

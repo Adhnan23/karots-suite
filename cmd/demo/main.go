@@ -11,7 +11,8 @@ import (
 
 func main() {
 	child := flag.Bool("child", false, "internal: run one shop (started by the launcher)")
-	port := flag.Int("port", 3200, "launcher port on 127.0.0.1 (the next free one if taken)")
+	port := flag.Int("port", 3200, "launcher port (the next free one if taken)")
+	host := flag.String("host", "127.0.0.1", "address to listen on: 0.0.0.0 inside a server's container, behind its reverse proxy")
 	tpl := flag.String("templates", "", "build every built-in shop's year into this folder and exit (make demo)")
 	flag.Parse()
 	if *tpl != "" {
@@ -20,5 +21,5 @@ func main() {
 	if *child {
 		os.Exit(runChild())
 	}
-	os.Exit(runLauncher(*port))
+	os.Exit(runLauncher(*host, *port))
 }
