@@ -14,7 +14,9 @@ import (
 // UserValidator reports whether the user behind a verified token may still act —
 // i.e. the account still exists and is active — and returns their per-user
 // flags. It is injected so this package keeps no dependency on the auth feature.
-type UserValidator func(ctx context.Context, userID int64) (UserFlags, bool)
+// err is the check's own trouble (the database away): the request fails, but the
+// person isn't signed out for it.
+type UserValidator func(ctx context.Context, userID int64) (f UserFlags, ok bool, err error)
 
 // userValidator is set once at startup (SetUserValidator) and consulted by every
 // JWTAuth instance. A package-level hook keeps JWTAuth's signature unchanged, so
@@ -84,7 +86,10 @@ func JWTAuthWith(secret string, own UserValidator) echo.MiddlewareFunc {
 				check = userValidator
 			}
 			if check != nil {
-				f, ok := check(c.Request().Context(), claims.UserID)
+				f, ok, err := check(c.Request().Context(), claims.UserID)
+				if err != nil {
+					return apperr.Internal("couldn't check your account", err)
+				}
 				if !ok {
 					return apperr.Unauthorized("your account is no longer active — please sign in again")
 				}

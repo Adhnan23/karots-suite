@@ -2,16 +2,18 @@ package middleware
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // DBUserValidator is the production UserValidator: one indexed lookup per
-// authenticated request that rejects deleted/deactivated accounts (fails closed)
+// authenticated request that rejects deleted/deactivated accounts (fails closed; a failed lookup is an error, not a sign-out)
 // and resolves the per-user flags guards and /me read. Shared by the server
 // (internal/app) and tests so the two can never drift.
 func DBUserValidator(db *sqlx.DB) UserValidator {
-	return func(ctx context.Context, userID int64) (UserFlags, bool) {
+	return func(ctx context.Context, userID int64) (UserFlags, bool, error) {
 		var row struct {
 			Active             bool   `db:"is_active"`
 			CanHandleSuppliers bool   `db:"can_handle_suppliers"`
@@ -28,8 +30,10 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 		}
 		if err := db.GetContext(ctx, &row,
 			`SELECT is_active, can_handle_suppliers, can_manage_credit, can_see_cost, can_see_low_stock, sends_to_cashier, can_use_shelf, is_system, role, name,
-			 COALESCE(active_device, '') AS active_device, COALESCE(active_device_label, '') AS active_device_label FROM users WHERE id = $1`, userID); err != nil {
-			return UserFlags{}, false
+			 COALESCE(active_device, '') AS active_device, COALESCE(active_device_label, '') AS active_device_label FROM users WHERE id = $1`, userID); errors.Is(err, sql.ErrNoRows) {
+			return UserFlags{}, false, nil
+		} else if err != nil {
+			return UserFlags{}, false, err
 		}
 		return UserFlags{
 			CanHandleSuppliers: row.CanHandleSuppliers,
@@ -45,6 +49,6 @@ func DBUserValidator(db *sqlx.DB) UserValidator {
 			Role:         row.Role,
 			ActiveDevice: row.ActiveDevice,
 			ActiveLabel:  row.ActiveLabel,
-		}, row.Active
+		}, row.Active, nil
 	}
 }
