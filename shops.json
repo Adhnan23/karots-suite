@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-17T14:59:16Z",
-        "commit": "48a7e04",
-        "version": "2026.11.17.2028",
+        "at": "2026-11-22T08:37:42Z",
+        "commit": "03edc4df",
+        "version": "2026.11.22.1407",
         "kind": "release",
-        "notes": "• The Sell page can now be laid out for each screen size (set by Karots): where products, cart and payment go, their widths, product cards (Large, Medium, Small or a list) and text size\n• Search only: a Sell page without product cards — type to see a list under the search bar, scan to add; groups and menus open in a pop-up (F1)\n• After 20 seconds with no key or tap, the cursor goes back to the search box, so the next scan always lands\n• The whole Sell page by keyboard: ↑ ↓ in the search box pick a product and Enter adds it; F6 quantity, F7 discount, F8 customer, F10 payment, / switches between Rs and %"
+        "notes": "• Returns: a discounted sale never refunds more than was paid — returned line by line, in small parts, or after the credit was paid off\n• Paying twice by mistake (Pay pressed again after a slow answer) makes one sale, not two\n• The drawer and the Z report: a sale paid during a close, cash refunds and two withdrawals at once are all counted right\n• Customers: payments and advance refunds at the same moment never pay off or refund twice; the credit limit holds on two tills\n• Stock: a count saved while selling no longer overwrites those sales; whole-piece items never take fractions\n• Suppliers: deliveries, payments and goods sent back at the same moment are booked once; sending a whole delivery back clears its bill to the cent\n• Reports: opening stock is no longer counted as profit; a return counts on the day it was given; the Sales report leaves out tax and voided sales; the Tax report shows tax given back\n• Pharmacy: a patient picked at the till gets the dispense written with the sale\n• Combos: the combo report takes returned sets off\n• Backups: a backup taken while selling restores whole, a restore never loses a sale made at that moment, and the copies kept before a restore or an update stay 30 days\n• Updates: a power cut during an update always leaves Karots able to start, and if a new version can't start, the old one comes back and keeps selling"
       },
       "published": {
-        "version": "2026.11.17.2028",
-        "commit": "48a7e04",
-        "at": "2026-11-17T15:05:51Z"
+        "version": "2026.11.22.1407",
+        "commit": "03edc4df",
+        "at": "2026-11-22T08:37:53Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
