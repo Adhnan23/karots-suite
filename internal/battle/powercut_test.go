@@ -173,9 +173,21 @@ var buildOnce struct {
 }
 
 // serverBinary builds cmd/server once (core only, as the working tree has it).
+func TestMain(m *testing.M) {
+	code := m.Run()
+	if buildOnce.path != "" {
+		os.RemoveAll(filepath.Dir(buildOnce.path))
+	}
+	os.Exit(code)
+}
+
 func serverBinary(t *testing.T) string {
 	buildOnce.Do(func() {
-		dir, err := os.MkdirTemp("", "battle-server-")
+		// On disk, not /tmp (RAM here), and removed when the tests end
+		// (TestMain): left behind, hundreds of mutant replays filled /tmp.
+		cache, _ := os.UserCacheDir()
+		os.MkdirAll(filepath.Join(cache, "karots-battle-bin"), 0o755) //nolint:errcheck // MkdirTemp says why
+		dir, err := os.MkdirTemp(filepath.Join(cache, "karots-battle-bin"), "server-")
 		if err != nil {
 			buildOnce.err = err
 			return

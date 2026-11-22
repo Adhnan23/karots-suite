@@ -7,19 +7,16 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
 	"karots-suite/internal/ledgercheck/ltest"
 )
 
-// migrationsChecked: migrations up to these were in a Release or read by hand
-// for UPD-6 (2026-11-22); every newer one is held to the guard below.
-var migrationsChecked = map[string]int{
-	"migrations": 42, "aicatalog": 10, "alternatives": 2, "clearance": 3, "combos": 4, "documents": 9,
-	"pharmacy": 9, "pocketcashier": 5, "productplus": 5, "recharge": 21, "repairs": 7, "requests": 2,
-}
+// migrationsBefore is the commit that added this guard: every migration there
+// was in a Release or read by hand for UPD-6 (2026-11-22); newer ones are held
+// to the guard. (A list by name would make core name the plugins.)
+const migrationsBefore = "5929334f"
 
 // stricter is what a migration may not do (UPD-6): the previous version, put
 // back by BootGuard, must still read and write the migrated database.
@@ -30,52 +27,46 @@ var notNullNoDefault = regexp.MustCompile(`(?i)ADD\s+COLUMN\s+[^,;]*\bNOT\s+NULL
 // says why the previous version is unaffected on a line "-- UPD-6: …".
 func TestUPD6_MigrationsOnlyAdd(t *testing.T) {
 	root := filepath.Join("..", "..")
-	dirs := map[string]string{"migrations": filepath.Join(root, "migrations")}
-	plugins, _ := filepath.Glob(filepath.Join(root, "plugins", "*", "migrations"))
-	for _, d := range plugins {
-		dirs[filepath.Base(filepath.Dir(d))] = d
+	out, err := exec.Command("git", "-C", root, "ls-tree", "-r", "--name-only", migrationsBefore).Output()
+	if err != nil {
+		t.Skip("no git history here: ", err)
 	}
-	num := regexp.MustCompile(`^(\d+)_`)
-	for key, dir := range dirs {
-		max, ok := migrationsChecked[key]
-		if !ok {
-			max = 0 // a new plugin: its first migrations make its own tables, the guard allows them below
+	checked := map[string]bool{}
+	for _, f := range strings.Split(string(out), "\n") {
+		checked[f] = true
+	}
+	files, _ := filepath.Glob(filepath.Join(root, "migrations", "*.sql"))
+	more, _ := filepath.Glob(filepath.Join(root, "plugins", "*", "migrations", "*.sql"))
+	for _, f := range append(files, more...) {
+		rel, _ := filepath.Rel(root, f)
+		if checked[filepath.ToSlash(rel)] {
+			continue
 		}
-		files, _ := filepath.Glob(filepath.Join(dir, "*.sql"))
-		for _, f := range files {
-			m := num.FindStringSubmatch(filepath.Base(f))
-			if m == nil {
-				continue
+		b, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		src := string(b)
+		if strings.Contains(src, "-- UPD-6:") {
+			continue
+		}
+		up, _, _ := strings.Cut(src, "-- +goose Down")
+		var code []string
+		for _, l := range strings.Split(up, "\n") {
+			if l, _, _ = strings.Cut(l, "--"); strings.TrimSpace(l) != "" {
+				code = append(code, l)
 			}
-			if n, _ := strconv.Atoi(m[1]); n <= max {
-				continue
+		}
+		body := strings.Join(code, "\n")
+		for _, stmt := range strings.Split(body, ";") {
+			if strings.Contains(strings.ToUpper(stmt), "CREATE TABLE") {
+				continue // a new table: the previous version never touches it
 			}
-			b, err := os.ReadFile(f)
-			if err != nil {
-				t.Fatal(err)
+			if s := stricter.FindString(stmt); s != "" {
+				t.Errorf("UPD-6: %s does %q — the previous version may break on it after a rollback", f, s)
 			}
-			src := string(b)
-			if strings.Contains(src, "-- UPD-6:") {
-				continue
-			}
-			up, _, _ := strings.Cut(src, "-- +goose Down")
-			var code []string
-			for _, l := range strings.Split(up, "\n") {
-				if l, _, _ = strings.Cut(l, "--"); strings.TrimSpace(l) != "" {
-					code = append(code, l)
-				}
-			}
-			body := strings.Join(code, "\n")
-			for _, stmt := range strings.Split(body, ";") {
-				if strings.Contains(strings.ToUpper(stmt), "CREATE TABLE") {
-					continue // a new table: the previous version never touches it
-				}
-				if s := stricter.FindString(stmt); s != "" {
-					t.Errorf("UPD-6: %s does %q — the previous version may break on it after a rollback", f, s)
-				}
-				if s := notNullNoDefault.FindString(stmt); s != "" && !strings.Contains(strings.ToUpper(stmt), "DEFAULT") {
-					t.Errorf("UPD-6: %s adds a NOT NULL column with no default — the previous version's inserts fail", f)
-				}
+			if s := notNullNoDefault.FindString(stmt); s != "" && !strings.Contains(strings.ToUpper(stmt), "DEFAULT") {
+				t.Errorf("UPD-6: %s adds a NOT NULL column with no default — the previous version's inserts fail", f)
 			}
 		}
 	}
