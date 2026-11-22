@@ -291,7 +291,7 @@ karots-setup (install main / cashier PC, file and server mode, Update, mode chan
 Bring back a shop), self-update (signed manifest, download, swap, BootGuard rollback), backups (automatic, copy folder,
 cloud), the Shop Builder (shop builds, Release vs Test build, plugin lists back to core-only). Then a fresh `make
 battle`, then the Release. (Real printer: the XP-80T printed receipts for real before the battle tests; no label
-printer yet, so labels stay Classic — user, 2026-11-22. Pocket Cashier release 2 was tested on a real phone and worked — user, 2026-11-22.)
+printer yet, so labels stay Classic — user, 2026-11-22. Pocket Cashier release 2 was tested on a real phone against the suite on the dev PC and worked — not at a shop yet; user, 2026-11-22.)
 **Idea (user, 2026-11-21), after the battle tests:** Alternatives → **Group by fields**, no AI: the admin picks one or
 more product fields (Generic name + Strength for a pharmacy; any field elsewhere) and products with the same values
 become one group, shown first to untick wrong ones, then saved as ordinary groups. The fields come through core's
@@ -464,7 +464,7 @@ the detail; `shops/iman-matches.md` for Iman).
    product by ref; `category` takes a path) → delete old empty categories, merge true duplicates → **then stock**
    (Iman's trial month sells with "sell anyway"; a full stock-take starts them fresh — no trial / go-live tooling
    unless the user asks). Never wipe and re-add: refs keep barcodes, packs, lots, suppliers and sales.
-4. Later, user's call: the install stick, the whole-system check, Pocket Cashier on a real phone / tablet.
+4. Later, user's call: the install stick, the whole-system check, Pocket Cashier on a phone / tablet at a shop (done on the dev PC, 2026-11-22).
 
 ## The family
 
