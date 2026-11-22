@@ -1,4 +1,4 @@
-.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots tour-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -123,6 +123,9 @@ demo-dev:
 # (dist/demo/karots-suite-demo-room); DOCS_ONLY=<substring> retakes some.
 docs-shots:
 	cd web && DOCS_CODE=$$(cd .. && $(ENV) go run ./cmd/server -support-pin $$(cat internal/demo/INSTALL_ID) | grep -o 'PIN [0-9]*' | cut -d' ' -f2) bunx playwright test -c playwright.docs.config.ts
+# The website's phone tour (docs/images/tour/<kind>) from a running Demo Room; DOCS_ONLY=<kind> retakes one.
+tour-shots:
+	cd web && DOCS_CODE=$$(cd .. && $(ENV) go run ./cmd/server -support-pin $$(cat internal/demo/INSTALL_ID) | grep -o 'PIN [0-9]*' | cut -d' ' -f2) bunx playwright test -c playwright.docs.config.ts tour.spec.ts
 # The printable agreement a shop signs (Order Form with blanks + the terms from LICENSE).
 agreement:
 	cd web && bun docs-shots/agreement.ts

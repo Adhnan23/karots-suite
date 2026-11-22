@@ -62,13 +62,19 @@ export const scan = (codes: string[], field: string) => async (p: Page) => {
   }
 }
 
-/** Starts the Super Store (every add-on) unless it's already up. */
-export async function superStore(page: Page) {
-  const st = await (await page.request.get('/__demo/state')).json()
-  if (st.phase === 'ready' && st.shop?.key === 'everything') return st
-  await page.request.post('/__demo/start', { data: { shop: 'everything' } })
-  await test.expect
-    .poll(async () => (await (await page.request.get('/__demo/state')).json()).phase, { timeout: 240_000, intervals: [2000] })
-    .toBe('ready')
+/** Starts a Demo Room shop by key (switching from another one first) unless it's already up. */
+export async function startShop(page: Page, key: string) {
+  const state = async () => (await page.request.get('/__demo/state')).json()
+  const st = await state()
+  if (st.phase === 'ready' && st.shop?.key === key) return st
+  if (st.phase === 'ready') {
+    await page.request.post('/__demo/switch')
+    await test.expect.poll(async () => (await state()).phase, { timeout: 60_000, intervals: [1000] }).toBe('picker')
+  }
+  await page.request.post('/__demo/start', { data: { shop: key } })
+  await test.expect.poll(async () => (await state()).phase, { timeout: 240_000, intervals: [2000] }).toBe('ready')
   return st
 }
+
+/** Starts the Super Store (every add-on) unless it's already up. */
+export const superStore = (page: Page) => startShop(page, 'everything')
