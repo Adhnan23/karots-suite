@@ -1,8 +1,10 @@
 package backup
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -137,5 +139,40 @@ func TestBAK4_SafetyCopiesKept30Days(t *testing.T) {
 		if _, err := os.Stat(p); !os.IsNotExist(err) {
 			t.Errorf("BAK-4: %s should be gone", filepath.Base(p))
 		}
+	}
+}
+
+// BAK-12: the scheduler backs up at start and every interval, and a failed
+// backup never stops it — the next one tries again.
+func TestBAK12_SchedulerKeepsGoing(t *testing.T) {
+	db := copiesDB(t)
+	parent := t.TempDir()
+	dir := filepath.Join(parent, "backups")
+	if err := os.WriteFile(dir, []byte("in the way"), 0o644); err != nil { // the folder can't be made: backups fail
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	var after atomic.Int32
+	go func() {
+		RunScheduler(ctx, db, dir, 50*time.Millisecond, 5, func() { after.Add(1) })
+		close(done)
+	}()
+	time.Sleep(200 * time.Millisecond)
+	if after.Load() != 0 {
+		t.Fatal("copies kicked for a backup that failed")
+	}
+	os.Remove(dir) // the folder can be made now
+	deadline := time.Now().Add(5 * time.Second)
+	for after.Load() < 2 && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	cancel()
+	<-done
+	if after.Load() < 2 {
+		t.Fatalf("BAK-12: %d backups after the folder came back", after.Load())
+	}
+	if list, _ := ListBackups(dir); len(list) == 0 || len(list) > 5 {
+		t.Fatalf("BAK-12: %d backups in the folder (keep 5)", len(list))
 	}
 }
