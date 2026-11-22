@@ -77,8 +77,8 @@ A Linux server with no screen runs `sudo ./karots-setup -yes -accept-terms` (the
 
 ## Changing a shop later
 
-Change the profile, build again, carry the files, and run **karots-setup → Update**. Data is
-untouched. Moving between **file and server mode** is noticed there: tick **Change it** and Setup
+Change the profile, build again, carry the files, and run **karots-setup → Update**. Setup backs
+the shop up to the Karots backups folder first (nothing changes if that fails); data is untouched. Moving between **file and server mode** is noticed there: tick **Change it** and Setup
 backs up, switches modes and restores.
 
 ## Moving a shop to another PC
