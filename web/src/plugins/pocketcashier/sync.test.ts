@@ -82,6 +82,16 @@ describe('sync', () => {
     expect(state().waiting).toBe(0)
     expect(state().live).toBe(true)
   })
+  it('answered part way (the PC\'s trouble stopped the batch): the rest stay, and go again oldest first (PKT-5)', async () => {
+    const refs = [await addAction({ kind: 'open', userId: 1, body: {} }), await addAction({ kind: 'sale', userId: 1, body: {} }),
+      await addAction({ kind: 'close', userId: 1, body: {} })].map((a) => a.ref)
+    results = (sent) => sent.slice(0, 1).map((ref) => ({ ref, status: 'applied' }))
+    calls = []
+    await flush(() => null)
+    const firsts = calls.filter((c) => c.url.includes('/actions')).map((c) => JSON.parse(String(c.init?.body)).actions[0].ref)
+    expect(firsts).toEqual(refs)
+    expect(await pending()).toHaveLength(0)
+  })
   it('a failed action is acknowledged too', async () => {
     results = (refs) => refs.map((ref) => ({ ref, status: 'failed' }))
     await addAction({ kind: 'sale', userId: 1, body: {} })
