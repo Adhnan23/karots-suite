@@ -1,0 +1,25 @@
+# demo.karots.lk — on the VPS in ~/docker/apps/fullstack/karots-demo-room, reached only through
+# nginx-proxy-manager on the shared `proxy` network (no ports published). Nothing is kept: every start wipes the shop.
+services:
+  demo-room:
+    build: .
+    image: karots-demo-room:latest
+    container_name: karots-demo-room
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - ./cache:/home/demo/.cache # PostgreSQL's programs and the running shop (wiped at each start)
+    tmpfs:
+      - /tmp
+    shm_size: 256m
+    mem_limit: 1536m # the other sites keep their room
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  proxy:
+    external: true

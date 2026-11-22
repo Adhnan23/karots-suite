@@ -1,4 +1,4 @@
-.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots tour-shots agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots tour-shots demo-room-deploy agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -123,6 +123,13 @@ demo-dev:
 # (dist/demo/karots-suite-demo-room); DOCS_ONLY=<substring> retakes some.
 docs-shots:
 	cd web && DOCS_CODE=$$(cd .. && $(ENV) go run ./cmd/server -support-pin $$(cat internal/demo/INSTALL_ID) | grep -o 'PIN [0-9]*' | cut -d' ' -f2) bunx playwright test -c playwright.docs.config.ts
+# The web Demo Room (demo.karots.lk) on the VPS: copy the built Demo Room up and restart it (deploy/demo-room/).
+DEMO_HOST ?= 144.217.83.102
+DEMO_DIR ?= docker/apps/fullstack/karots-demo-room
+demo-room-deploy:
+	ssh $(DEMO_HOST) 'mkdir -p $(DEMO_DIR)/cache && chmod 0777 $(DEMO_DIR)/cache' # the container runs as uid 1000
+	scp deploy/demo-room/Dockerfile deploy/demo-room/docker-compose.yml dist/demo/karots-suite-demo-room $(DEMO_HOST):$(DEMO_DIR)/
+	ssh $(DEMO_HOST) 'cd $(DEMO_DIR) && docker compose up -d --build && sleep 8 && docker logs --tail 5 karots-demo-room'
 # The website's phone tour (docs/images/tour/<kind>) from a running Demo Room; DOCS_ONLY=<kind> retakes one.
 tour-shots:
 	cd web && DOCS_CODE=$$(cd .. && $(ENV) go run ./cmd/server -support-pin $$(cat internal/demo/INSTALL_ID) | grep -o 'PIN [0-9]*' | cut -d' ' -f2) bunx playwright test -c playwright.docs.config.ts tour.spec.ts
