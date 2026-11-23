@@ -218,3 +218,27 @@ test('cashier menu page: Sheets ▾ exports the menu and imports through the sam
     expect((await page.request.post('/api/v1/admin/data/menu/import', { multipart: { file: { name: 'menu.csv', mimeType: 'text/csv', buffer: saved } } })).ok()).toBe(true)
   }
 })
+
+test('products import previews each change, then imports it (IMP-1, 4)', async ({ page }) => {
+  await signIn(page)
+  const code = `PRV${tag}`
+  const cat = (await (await page.request.get('/api/v1/admin/categories')).json())[0]
+  const unit = (await (await page.request.get('/api/v1/admin/units')).json())[0]
+  expect((await page.request.post('/api/v1/admin/products', { data: { name: `Prv old ${tag}`, barcode: code, categoryId: cat.id, unitId: unit.id, sellingPrice: '10', costPrice: '5', wholesalePrice: '10' } })).ok()).toBe(true)
+
+  await open(page, '/admin/products')
+  await page.getByRole('button', { name: 'Sheets' }).click()
+  await page.getByRole('menuitem', { name: /Import from a sheet/ }).click()
+  const csv = `barcode,name,selling_price\n${code},Prv new ${tag},12\n`
+  await page.locator('input[type=file][accept=".csv,.xlsx,.ods"]').setInputFiles({ name: 'products.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
+  const prev = page.getByLabel('Import preview')
+  await expect(prev.getByText('1 to update')).toBeVisible()
+  await expect(prev.getByText(`Prv old ${tag}`)).toBeVisible()
+  await expect(prev.getByText(`Prv new ${tag}`).first()).toBeVisible()
+  // Nothing changed yet.
+  expect(((await (await page.request.get(`/api/v1/admin/products?q=${code}`)).json()).items as { name: string }[])[0].name).toBe(`Prv old ${tag}`)
+
+  await page.getByRole('button', { name: 'Import', exact: true }).click()
+  await expect(page.getByLabel('Import result').getByText('1 updated')).toBeVisible()
+  expect(((await (await page.request.get(`/api/v1/admin/products?q=${code}`)).json()).items as { name: string }[])[0].name).toBe(`Prv new ${tag}`)
+})

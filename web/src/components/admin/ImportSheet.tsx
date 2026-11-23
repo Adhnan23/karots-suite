@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api, apiUpload } from '@/api/client'
 import type { EntityImportResult, SheetExtra } from '@/api/types.gen'
 import { FormSheet } from '@/components/admin/FormSheet'
+import { ImportPreview } from '@/components/admin/ImportPreview'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { errMsg } from '@/features/till/api'
@@ -94,20 +95,42 @@ export function SpreadsheetMenu({ entity }: { entity: Entity }) {
   )
 }
 
-function ImportSheet({ entity, qs, included, onClose }: { entity: Entity; qs: string; included: SheetExtra[]; onClose: () => void }) {
+export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity; qs: string; included: SheetExtra[]; onClose: () => void }) {
   const input = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [byName, setByName] = useState(false)
   const [busy, setBusy] = useState(false)
   const [res, setRes] = useState<EntityImportResult | null>(null)
+  const [preview, setPreview] = useState<EntityImportResult | null>(null)
   const qc = useQueryClient()
+  const products = entity === 'products'
+  const path = (dry: boolean) => `/admin/${entity}/import${(dry ? '&dry=1' : '') + qs}`.replace('&', '?')
 
-  const run = async () => {
-    if (!file) return void input.current?.click()
+  // Products preview first (IMP-1): the copy taken here is what Import sends (IMP-2).
+  const choose = async (picked: File | null, matchByName = byName) => {
+    setRes(null)
+    setPreview(null)
+    if (!picked) return setFile(null)
+    const copy = new File([await picked.arrayBuffer()], picked.name, { type: picked.type })
+    setFile(copy)
+    if (!products) return
     setBusy(true)
     try {
-      setRes(await apiUpload<EntityImportResult>(`/admin/${entity}/import${qs.replace('&', '?')}`, 'file', file, byName ? { matchByName: 'true' } : {}))
+      setPreview(await apiUpload<EntityImportResult>(path(true), 'file', copy, matchByName ? { matchByName: 'true' } : {}))
+    } catch (e) {
+      toast.error(errMsg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const run = async () => {
+    if (!file || (products && !preview)) return void input.current?.click()
+    setBusy(true)
+    try {
+      setRes(await apiUpload<EntityImportResult>(path(false), 'file', file, byName ? { matchByName: 'true' } : {}))
       setFile(null)
+      setPreview(null)
       void qc.invalidateQueries({ queryKey: ['admin'] })
     } catch (e) {
       toast.error(errMsg(e))
@@ -118,25 +141,26 @@ function ImportSheet({ entity, qs, included, onClose }: { entity: Entity; qs: st
 
   return (
     <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Import ${entity}`} submit={file ? 'Import' : 'Choose a file'} busy={busy} onSubmit={() => void run()}>
-      <ul className="grid list-disc gap-1 pl-5 text-[13px] text-muted-foreground">
+      {preview && !res && <ImportPreview r={preview} />}
+      {!preview && <ul className="grid list-disc gap-1 pl-5 text-[13px] text-muted-foreground">
         {HELP[entity].map((h) => <li key={h}>{h}</li>)}
-      </ul>
-      <div className="flex flex-wrap gap-2 text-sm">
+      </ul>}
+      {!preview && <div className="flex flex-wrap gap-2 text-sm">
         <span className="text-muted-foreground">Blank template:</span>
         {(['csv', 'xlsx', 'ods'] as const).map((f) => (
           <a key={f} className="font-semibold text-brand underline-offset-2 hover:underline" href={`/api/v1/admin/${entity}/import/template?format=${f}${qs}`} download>{f.toUpperCase()}</a>
         ))}
-      </div>
+      </div>}
       <button type="button" onClick={() => input.current?.click()}
         className="flex w-full flex-col items-center gap-1 rounded-[calc(var(--radius)-4px)] border-2 border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
         <FileUp size={22} className="text-brand" />
         <b className="break-all text-foreground">{file ? file.name : 'Choose a sheet'}</b>
         <span>CSV, Excel or LibreOffice</span>
       </button>
-      <input ref={input} type="file" hidden accept=".csv,.xlsx,.ods" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setRes(null); e.target.value = '' }} />
+      <input ref={input} type="file" hidden accept=".csv,.xlsx,.ods" onChange={(e) => { const f = e.target.files?.[0] ?? null; e.target.value = ''; void choose(f) }} />
       {entity === 'products' && (
         <label className="flex items-start gap-2 text-[13px]">
-          <input type="checkbox" className="mt-0.5 size-4 accent-[var(--brand)]" checked={byName} onChange={(e) => setByName(e.target.checked)} />
+          <input type="checkbox" className="mt-0.5 size-4 accent-[var(--brand)]" checked={byName} onChange={(e) => { setByName(e.target.checked); if (file) void choose(file, e.target.checked) }} />
           <span><b>Also match by name</b> — a row whose barcode isn’t found updates the product with the same name and takes its barcode. Leave off unless merging a catalogue.</span>
         </label>
       )}
