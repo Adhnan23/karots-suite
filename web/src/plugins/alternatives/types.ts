@@ -7,3 +7,8 @@ export type Tier = { id: number; name: string; reorderLevel: number; levelAuto: 
 export type Group = { id: number; name: string; active: boolean; products: number; tiers: Tier[] }
 export type Alt = { productId: number; name: string; tier: string; stock: string; sellingPrice: string; wholesalePrice: string; unit: string; sameUnit: boolean }
 export type Membership = { groupId: number; tierId: number; group: string; tier: string }
+/** The sheet import's answer (plugins/alternatives/api_sheet.go SheetImportDTO); skipped reads "line N: why". */
+export type SheetImport = {
+  groups: number; members: number; groupsAdded: number; groupsRemoved: number
+  placed: number; moved: number; takenOut: number; removed: string[]; skipped: string[]; applied: boolean
+}

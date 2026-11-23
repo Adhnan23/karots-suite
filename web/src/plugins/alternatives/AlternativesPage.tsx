@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Download, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Field, INPUT } from '@/components/admin/fields'
@@ -14,7 +14,8 @@ import { qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { createGroup, groupsQuery } from './api'
 import { GroupPage } from './GroupPage'
-import { groupsCsv, hasTiers } from './labels'
+import { hasTiers } from './labels'
+import { SheetMenu } from './SheetMenu'
 import type { Group, Tier } from './types'
 
 const CHIP = 'h-9 rounded-pill border border-border px-3.5 text-[13px] font-semibold text-muted-foreground aria-pressed:border-transparent aria-pressed:bg-selected aria-pressed:text-selected-foreground'
@@ -57,14 +58,6 @@ function GroupCard({ g }: { g: Group }) {
   )
 }
 
-function download(gs: Group[]) {
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(new Blob([groupsCsv(gs)], { type: 'text/csv' }))
-  a.download = 'alternatives.csv'
-  a.click()
-  URL.revokeObjectURL(a.href)
-}
-
 function NewGroup({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -105,7 +98,7 @@ export function AlternativesPage({ path }: { path: string }) {
         sub={list ? `${list.length} group${list.length === 1 ? '' : 's'} · ${low.length} low` : 'Products that do the same job.'}
         actions={<>
           {slots.pageActions.filter((a) => a.page === 'alternatives').map((a) => <a.Action key={a.key} open={() => {}} />)}
-          <Button variant="secondary" className="h-10 px-4" disabled={!list?.length} onClick={() => list && download(list)}><Download size={16} /> CSV</Button>
+          <SheetMenu />
           <Button className="h-10 px-4 font-bold" onClick={() => setAdding(true)}><Plus size={16} /> New group</Button>
         </>} />
       <div className="mb-3 flex flex-wrap gap-2">
