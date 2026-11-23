@@ -55,3 +55,35 @@ its files, and **Restore** brings one back through the normal restore.
 
 On a new PC, run **karots-setup** with the shop's folder and a backup. Setup offers it
 under **Bring back a shop**. See [Moving a shop](install.md#moving-a-shop-to-another-pc).
+
+## Spreadsheets
+
+**Setup → Data → Spreadsheets** moves lists in and out as CSV, Excel or ODS files. Products, customers and suppliers
+have their sheets on their own pages (linked from here); two live on this card:
+
+- **Settings:** copies one shop's receipt, tax and till rules to another. The shop's identity, printers and default
+  locker stay as they are.
+- **Cashier menu:** the till's whole menu (Setup → Cashier menu) as one sheet, so a menu can be built or reworked in a
+  spreadsheet — by hand or by AI — instead of tapped together card by card.
+
+### The cashier menu sheet
+
+| Group | Emoji | Active | Product | Barcode | Product emoji |
+|---|---|---|---|---|---|
+| Drinks | 🥤 | | | | |
+| Drinks > Soft drinks | | | Coca Cola 1050ml | 4791234500017 | 🥤 |
+| Drinks > Soft drinks | | | 7 Up 1L | | |
+| Specials | ⭐ | no | | | |
+
+- **The order of the lines is the order at the till.** A line without a product sets up a group (its emoji, and
+  `no` under Active to hide it); a line with a product puts that product in the group. Groups can sit inside groups
+  (`Parent > Child`), and a group named only on product lines is made anyway.
+- **A product is found by its barcode, then by its exact name** (capitals and extra spaces don't matter) — never by
+  the shop's own numbers, so a menu made in one shop imports into another that has the same products. A product the
+  shop hasn't got, or a name two products share, is skipped and listed. Products are never made from this sheet.
+- **Importing replaces the whole menu.** Before anything changes you see what the sheet will do — how many groups
+  and items, what goes from today's menu, which lines are skipped — and choose **Replace the menu** or **Cancel**.
+  It's all or nothing, and products, stock and sales don't change. A sheet with no menu lines is refused.
+
+**Setting up a new shop:** bring the products in first (Products → Sheets), then the cashier menu. A menu prepared on
+another copy of the shop (with the same products) fits as long as names or barcodes match.

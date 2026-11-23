@@ -29,6 +29,11 @@ read from their trace, never waved off as flakes (the old "flakes" were all test
 
 ## Next — the user's call
 
+**How a shop's catalogue is prepared (user, 2026-11-23):** after onboarding, the products are optimised on a
+**preview shop** here (catalogue names, generics, the category tree, units — Iman's at `localhost:3010`, database
+`iman_preview`, loader `/mnt/nvme_512GB/karots/iman-preview/load.py`), a proper cashier menu is built there, then
+both go into the real shop: products by the products sheet with refs, the menu by the cashier menu sheet.
+
 1. Whatever comes from Iman's use once they sell.
 2. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
    Sheets ▾ → Include ref + Include custom fields → match every row (catalogue repo `shops/iman-matches.csv`) → user
@@ -154,7 +159,7 @@ repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c se
 pictures + label styles · M8d Demo Room · docs + screenshots + legal pack · cheques · M8e Pocket Cashier release 1 and
 2 · pharmacy expiry work · Send to cashier · print helper + cashier PCs' printers · AI Assistant jobs · default unit ·
 Karots Shelf · import by ref · receipt line rules + text size · stock freeze · keyboard-only Sell page · Sell page
-layouts · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
+layouts · cashier menu sheet (Data → Spreadsheets: export / import, the sheet is the menu, MENU rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
 
 ## How we work
 
