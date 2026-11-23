@@ -12,6 +12,8 @@ import (
 	"strconv"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/features/auth"
+	"karots-suite/internal/middleware"
 	"karots-suite/internal/money"
 	"karots-suite/internal/plugin"
 	"karots-suite/plugins/alternatives/migrations"
@@ -44,6 +46,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.POST("/alternatives", h.createGroup)
 	a.GET("/alternatives/membership", h.membership)
 	a.GET("/alternatives/sheet", h.sheetExport)
+	a.POST("/alternatives/sheet/import", h.sheetImport, middleware.RequireRole(auth.RoleAdmin)) // ALT-16
 	a.GET("/alternatives/product/:pid", h.product)
 	a.GET("/alternatives/:id", h.group)
 	a.PUT("/alternatives/:id", h.renameGroup)
