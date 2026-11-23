@@ -85,7 +85,8 @@ ALT-13 A line's product is found by its barcode (any of its barcodes, or a pack'
        twice in one group and tier is one member. A product is never created.
        Checked by: example.
 
-ALT-14 A sheet with no product lines is refused; it is never read as "remove every group".
+ALT-14 A sheet with no product lines is refused; it is never read as "remove every group". Nor is one where no line
+       matches a product here (another shop's sheet).
        Checked by: example.
 
 ALT-15 A group matches an existing one by name, a tier one of its group's by name (case and spacing ignored; a blank
