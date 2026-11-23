@@ -22,24 +22,26 @@ almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before 
   starter data). The working tree has every plugin on (`make plugins P=all`): `make core-only` before committing.
 - **This week's sheet work:** the cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU
   rules), the products sheet preview (old → new, all or nothing, a till's product skipped not waited on, IMP-1…5),
-  "Empty cells clear the field" (IMP-6) and Categories → Delete empty… (CAT-1, 2). Not yet Released.
+  "Empty cells clear the field" (IMP-6), Categories → Delete empty… (CAT-1, 2) and **the Alternatives sheet** (Sheet ▾
+  on the Alternatives page: `Group, Tier, Product, Barcode`, the whole set, preview first, ALT-9…18; import admin
+  only). Not yet Released.
 - **Battle tests: all done** (7 core areas, every plugin, install / run). Rule first (AGENTS.md): rule, failing test, code.
 
-**Last full run (2026-11-23):** all green — Go, Vitest, check-core, Playwright 274 passed. Pocket reads
+**Last full run (2026-11-23, after the Alternatives sheet):** all green — Go, Vitest 1,228, check-core, Playwright
+275 passed. Mutation on `plugins/alternatives`: 0 lived. Pocket reads
 `KAROTS_POCKET_PORT` before `.env` is loaded (open bug): a dev shop must get it from the environment (`start.sh`
 does). Playwright now uses 3100+ / Pocket 8543+ (2026-11-23), so a dev server on 3000 / 8443 can keep running. Two specs race (`goto('/login')` right after an API
 logout: palettes, admin-people) — they pass on a rerun; make them wait for the redirect.
 
 ## Next — the user's call
 
-1. **Next: the Alternatives sheet** (spec `docs/specs/2026-11-23-alternatives-sheet.md`): Sheet ▾ on the
-   Alternatives page, export / import `Group, Tier, Product, Barcode`, the sheet is the whole set, preview first like
-   the menu sheet. Then Iman's `alternatives.csv` from the catalogue repo. **Group by fields was dropped** (user,
-   2026-11-23): exact field values miss twins (generic names with several ingredients joined by "+"); AI groups
-   better, a sheet is simpler. Later: the AI Assistant's group maker reads custom fields (today it sends only the
-   name and its own notes, and skips names with no digit). Then **supplier by field**: 550 Iman products have no
-   supplier, 431 of them a Distributor; 134 distributor spellings vs 31 suppliers, so it needs a distributor →
-   supplier mapping (several to one).
+1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
+   from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
+   shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
+   (generic names with several ingredients joined by "+"); AI groups better, a sheet is simpler. Later: the AI
+   Assistant's group maker reads custom fields (today it sends only the name and its own notes, and skips names with
+   no digit). Then **supplier by field**: 550 Iman products have no supplier, 431 of them a Distributor; 134
+   distributor spellings vs 31 suppliers, so it needs a distributor → supplier mapping (several to one).
 2. Iman's reset at the shop (the user), then the stock-take and the first real sale; a Release with this week's work
    first. Later product changes at Iman: a fresh Onboard backup → `shops/iman_reset.py` / the update file.
 3. Open for the user: ~12 catalogue generics that look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 /
@@ -159,7 +161,7 @@ repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c se
 pictures + label styles · M8d Demo Room · docs + screenshots + legal pack · cheques · M8e Pocket Cashier release 1 and
 2 · pharmacy expiry work · Send to cashier · print helper + cashier PCs' printers · AI Assistant jobs · default unit ·
 Karots Shelf · import by ref · receipt line rules + text size · stock freeze · keyboard-only Sell page · Sell page
-layouts · cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU rules) · products sheet preview (old → new, all or nothing, IMP rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
+layouts · Alternatives sheet · cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU rules) · products sheet preview (old → new, all or nothing, IMP rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
 
 ## How we work
 
