@@ -21,11 +21,9 @@ onboarding — products and one test sale, **no real sales yet**.
 - **Rule first (AGENTS.md, 2026-11-22):** every change in behaviour starts in the rule book — rule, failing test,
   code. Only look-and-feel skips it.
 
-**Last full run (2026-11-22):** Go, Vitest and check-core green; Playwright 252 passed, **1 open**: till "open the
-till with a counted float" couldn't close a till left open because "untracked cash" was off ("banking to a locker
-is required"). The reports test turned it off via the screenshots' data and now puts it back (`0e18a587`); not yet
-proven the only cause — the test prints the server's refusal, so the next full run says. Playwright failures are
-read from their trace, never waved off as flakes (the old "flakes" were all test bugs).
+**Last full run (2026-11-23):** all green — Go, Vitest, check-core, Playwright 272 passed (the 2026-11-22 open till
+float test passes). A dev server holding Pocket's port 8443 (e.g. a preview shop with Pocket Cashier) breaks
+Playwright's Pocket pairing: stop it, or give it another `KAROTS_POCKET_PORT`, before a full run.
 
 ## Next — the user's call
 
