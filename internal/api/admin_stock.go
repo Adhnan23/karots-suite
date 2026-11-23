@@ -89,13 +89,20 @@ func (h *handlers) AdminStockAdjust(c echo.Context) error {
 		return apperr.BadRequest("invalid request body")
 	}
 	in := stock.AdjustInput{ProductID: req.ProductID, NewQuantity: strings.TrimSpace(req.NewQuantity), Note: strings.TrimSpace(req.Note), BatchID: req.BatchID}
+	if lot := strings.TrimSpace(req.LotCount); lot != "" && req.BatchID > 0 {
+		in.LotCounted, in.NewQuantity = lot, lot // the batch's own count; the total is worked out live (STK-5)
+	}
 	if err := c.Validate(&in); err != nil {
 		return err
 	}
 	if err := h.t.stock.Adjust(c.Request().Context(), in, middleware.CurrentUserID(c)); err != nil {
 		return err
 	}
-	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(req.ProductID, 10), "adjusted to "+in.NewQuantity)
+	what := "adjusted to " + in.NewQuantity
+	if in.LotCounted != "" {
+		what = "batch " + strconv.FormatInt(in.BatchID, 10) + " counted at " + in.LotCounted
+	}
+	h.audit(c, audit.ActionUpdate, "stock", strconv.FormatInt(req.ProductID, 10), what)
 	return c.NoContent(http.StatusNoContent)
 }
 

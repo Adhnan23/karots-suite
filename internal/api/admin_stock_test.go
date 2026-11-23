@@ -106,3 +106,34 @@ func TestAdminBatchExpiry(t *testing.T) {
 		t.Fatalf("no such lot: %d", rec.Code)
 	}
 }
+
+// STK-5: Batches → Set count / Not there sends the batch's own count. The server
+// works out the product's total from live numbers, so a sheet showing old numbers
+// (a click before its refetch landed) can't set the wrong total.
+func TestSTK5_BatchCountIsTheLotsOwn(t *testing.T) {
+	te := newTestEnv(t)
+	f := te.seedTill(t)
+	ck := te.login(t, "0770009552", "admin")
+	t.Cleanup(func() {
+		te.db.Exec(`DELETE FROM stock_movements WHERE user_id IN (SELECT id FROM users WHERE phone='0770009552')`) //nolint:errcheck
+	})
+	pid := strconv.FormatInt(f.lotID, 10)
+	lots := decode[ProductLots](t, te.do(http.MethodGet, "/api/v1/admin/stock/lots/"+pid, nil, ck))
+	if len(lots.Lots) != 2 {
+		t.Fatalf("lots: %+v", lots)
+	}
+	one, other := lots.Lots[0], lots.Lots[1]
+	var before float64
+	te.db.Get(&before, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, other.ID) //nolint:errcheck
+	// newQuantity is what an out-of-date sheet worked out; lotCount wins.
+	if rec := te.do(http.MethodPost, "/api/v1/admin/stock/adjust", AdjustRequest{ProductID: f.lotID, NewQuantity: "999", LotCount: "0", Note: "Batch not there", BatchID: one.ID}, ck); rec.Code != http.StatusNoContent {
+		t.Fatalf("adjust: %d %s", rec.Code, rec.Body)
+	}
+	var gone, kept, onHand float64
+	te.db.Get(&gone, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, one.ID)   //nolint:errcheck
+	te.db.Get(&kept, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, other.ID) //nolint:errcheck
+	te.db.Get(&onHand, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID)    //nolint:errcheck
+	if gone != 0 || kept != before || onHand != kept {
+		t.Fatalf("lot %v (want 0), other lot %v (want %v), on hand %v (want %v)", gone, kept, before, onHand, kept)
+	}
+}

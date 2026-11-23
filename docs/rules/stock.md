@@ -99,7 +99,9 @@ cut, sent twice).
   A count replaces stock as of when it's saved, so the stock-take screen and the count sheet say "type it in before
   selling again". *User, 2026-11-19 (Q4).* *example, fault.*
 - **STK-5** A lot counted ends holding its count; the product's on hand moves by that lot's difference and no other
-  lot changes — even when a sale takes from another lot at the same moment. *example, fault.*
+  lot changes — even when a sale takes from another lot at the same moment, and when the screen that sent it was
+  showing old numbers (Batches → Set count / Not there send the lot's own count, never a total worked out on
+  screen). *example, fault.*
 - **STK-24** Opening stock (a product made with stock, a sheet's stock column, a till quick-add) is one lot (source
   opening) and one adjust movement of the same quantity. *example.*
 

@@ -31,6 +31,9 @@ type AdjustRequest struct {
 	NewQuantity string `json:"newQuantity"`
 	Note        string `json:"note"`
 	BatchID     int64  `json:"batchId"`
+	// LotCount, with BatchID, is that batch's own count: the server works out the
+	// product's total from live numbers and NewQuantity is unused (STK-5).
+	LotCount string `json:"lotCount,omitempty"`
 }
 
 // LotRow is one live lot. SellingPrice "" = follows the product's price.

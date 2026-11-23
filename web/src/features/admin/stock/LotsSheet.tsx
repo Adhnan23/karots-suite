@@ -41,16 +41,14 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
   const [tool, setTool] = useState<'add' | 'merge' | null>(null)
   const [ticked, setTicked] = useState<number[]>([])
   const claim = useSupplierClaim(sym, true)
-  const refresh = () => {
-    void qc.invalidateQueries({ queryKey: ['admin'] })
-    void qc.invalidateQueries({ queryKey: ['till'] })
-  }
+  /** Refetch; awaited by run, so the buttons wait for the batches as they now stand. */
+  const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ['admin'] }), qc.invalidateQueries({ queryKey: ['till'] })])
   async function price(l: LotRow, v: string) {
     if (v === l.sellingPrice) return
     try {
       await api(`/admin/stock/batches/${l.id}/price`, { json: { sellingPrice: v } })
       toast.success(v ? `Batch priced at ${money(sym, v)}` : 'Batch follows the product price again')
-      refresh()
+      void refresh()
     } catch (e) {
       toast.error(errMsg(e))
     }
@@ -61,7 +59,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
       await fn()
       if (msg) toast.success(msg)
       setEdit(null)
-      refresh()
+      await refresh()
     } catch (e) {
       toast.error(errMsg(e))
     } finally {
@@ -75,10 +73,10 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
     setTicked([])
   })
   const tick = (id: number) => setTicked((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]))
-  /** The product total that leaves this lot at n (the adjust API takes the product's count). */
-  const totalWith = (l: LotRow, n: number) => String(+(num(p!.stockQty) - num(l.qtyRemaining) + n).toFixed(3))
+  /** The batch's own count: the server works out the product's total from live numbers (STK-5). */
+  const lotCount = (l: LotRow, n: string): AdjustRequest => ({ productId, newQuantity: n, lotCount: n, batchId: l.id, note: '' })
   const setLotCount = (l: LotRow) => {
-    const body: AdjustRequest = { productId, newQuantity: totalWith(l, num(count)), note: 'Batch count', batchId: l.id }
+    const body: AdjustRequest = { ...lotCount(l, String(num(count))), note: 'Batch count' }
     return run(`Batch set to ${qtyText(count)} ${p!.unitAbbr}`, () => api('/admin/stock/adjust', { json: body }))
   }
   const removeLot = (l: LotRow, writeOff: boolean) => {
@@ -90,7 +88,7 @@ export function LotsSheet({ productId, onClose }: { productId: number; onClose: 
         claim.ask(r.lossId, productId, p!.name, l.qtyRemaining, num(l.qtyRemaining) * num(l.costPrice), r.supplierId)
       })
     }
-    const body: AdjustRequest = { productId, newQuantity: totalWith(l, 0), note: 'Batch not there', batchId: l.id }
+    const body: AdjustRequest = { ...lotCount(l, '0'), note: 'Batch not there' }
     return run(done, () => api('/admin/stock/adjust', { json: body }))
   }
   const open = (id: number, mode: 'count' | 'remove', l: LotRow) => {

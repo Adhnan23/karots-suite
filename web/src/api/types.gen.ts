@@ -3685,6 +3685,11 @@ export interface AdjustRequest {
   newQuantity: string;
   note: string;
   batchId: number /* int64 */;
+  /**
+   * LotCount, with BatchID, is that batch's own count: the server works out the
+   * product's total from live numbers and NewQuantity is unused (STK-5).
+   */
+  lotCount?: string;
 }
 /**
  * LotRow is one live lot. SellingPrice "" = follows the product's price.
