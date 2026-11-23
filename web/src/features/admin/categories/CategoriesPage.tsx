@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronRight, FolderTree, Plus, Search } from 'lucide-react'
+import { ChevronRight, FolderTree, Plus, Search, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/api/client'
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { CategoryPicker } from './CategoryPicker'
+import { EmptyCategories } from './EmptyCategories'
 import { categoriesQuery } from './queries'
 import { subtree, visibleTree } from './tree'
 
@@ -24,6 +25,7 @@ export function CategoriesPage() {
   const [q, setQ] = useState('')
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
   const [editing, setEditing] = useState<Editing | null>(null)
+  const [cleaning, setCleaning] = useState(false)
   const rows = visibleTree(nodes ?? [], q, collapsed)
   const products = (nodes ?? []).reduce((s, n) => s + n.productCount, 0)
   const toggle = (id: number) => setCollapsed((c) => { const n = new Set(c); if (!n.delete(id)) n.add(id); return n })
@@ -32,7 +34,8 @@ export function CategoriesPage() {
   return (
     <>
       <PageHead title="Categories" sub={nodes && `${nodes.length} categories · ${products} products filed`}
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New category</Button>} />
+        actions={<><Button variant="outline" className="h-10 gap-1.5 px-4" onClick={() => setCleaning(true)}><Trash2 size={16} /> Delete empty…</Button><Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New category</Button></>} />
+      {cleaning && <EmptyCategories onClose={() => setCleaning(false)} />}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1 md:max-w-sm">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />

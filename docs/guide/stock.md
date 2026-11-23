@@ -30,9 +30,15 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   how many products update, which are new, which lines are skipped and why, and for each product
   only the fields that change, old → new (Product Plus fields too), with a search box. **Import**
   then applies exactly that, all at once: if the power goes or a line fails, nothing half-done is
-  left behind. A blank cell leaves that field as it is.
+  left behind. A blank cell leaves that field as it is — unless you tick **Empty cells clear the field**, which
+  clears custom fields (Generic Name…), the local name and the supplier where the sheet's cell is empty (names,
+  categories, units, prices and barcodes are never cleared by a sheet).
 - **Merge:** two products that are really one become one, and their sales, stock and plugin
   records move with them.
+
+**Categories → Delete empty…** lists every category with no products and no sub-categories, all ticked: untick
+the ones to keep (say Plasters & Bandages, made for products you'll add later) and delete the rest in one go. A
+parent left empty appears the next time.
 
 Categories, units, the cashier menu (the groups on the till) and services & recipes (a tea made
 from milk powder and sugar takes its ingredients off stock) are each a tab of their own.

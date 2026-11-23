@@ -99,16 +99,17 @@ export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity;
   const input = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [byName, setByName] = useState(false)
+  const [clear, setClear] = useState(false) // IMP-6: empty cells clear custom fields, local name, supplier
   const [busy, setBusy] = useState(false)
   const [res, setRes] = useState<EntityImportResult | null>(null)
   const [preview, setPreview] = useState<EntityImportResult | null>(null)
   const seq = useRef(0) // the newest preview wins: an older reply that lands later is dropped (IMP-2)
   const qc = useQueryClient()
   const products = entity === 'products'
-  const path = (dry: boolean) => `/admin/${entity}/import${(dry ? '&dry=1' : '') + qs}`.replace('&', '?')
+  const path = (dry: boolean, clr = clear) => `/admin/${entity}/import${(dry ? '&dry=1' : '') + (clr ? '&clear=1' : '') + qs}`.replace('&', '?')
 
   // Products preview first (IMP-1): the copy taken here is what Import sends (IMP-2).
-  const choose = async (picked: File | null, matchByName = byName) => {
+  const choose = async (picked: File | null, matchByName = byName, clr = clear) => {
     const n = ++seq.current
     setRes(null)
     setPreview(null)
@@ -119,7 +120,7 @@ export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity;
     if (!products) return
     setBusy(true)
     try {
-      const p = await apiUpload<EntityImportResult>(path(true), 'file', copy, matchByName ? { matchByName: 'true' } : {})
+      const p = await apiUpload<EntityImportResult>(path(true, clr), 'file', copy, matchByName ? { matchByName: 'true' } : {})
       if (n === seq.current) setPreview(p)
     } catch (e) {
       if (n === seq.current) toast.error(errMsg(e))
@@ -166,6 +167,12 @@ export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity;
         <label className="flex items-start gap-2 text-[13px]">
           <input type="checkbox" className="mt-0.5 size-4 accent-[var(--brand)]" checked={byName} onChange={(e) => { setByName(e.target.checked); if (file) void choose(file, e.target.checked) }} />
           <span><b>Also match by name</b> — a row whose barcode isn’t found updates the product with the same name and takes its barcode. Leave off unless merging a catalogue.</span>
+        </label>
+      )}
+      {entity === 'products' && (
+        <label className="flex items-start gap-2 text-[13px]">
+          <input type="checkbox" className="mt-0.5 size-4 accent-[var(--brand)]" checked={clear} onChange={(e) => { setClear(e.target.checked); if (file) void choose(file, byName, e.target.checked) }} />
+          <span><b>Empty cells clear the field</b> — for custom fields, the local name and the supplier only. Names, categories, units, prices and barcodes are never cleared.</span>
         </label>
       )}
       {included.length > 0 && (

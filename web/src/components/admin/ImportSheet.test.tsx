@@ -97,5 +97,18 @@ describe('products import: preview first (IMP-1, 2, 4)', () => {
     await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
     expect(screen.queryAllByRole('button', { name: 'Import' })).toHaveLength(0)
   })
+
+  it('Empty cells clear the field: ticking it previews again with clear=1, and Import sends it too (IMP-6)', async () => {
+    upload.mockResolvedValue(preview)
+    renderSheet()
+    fireEvent.change(document.querySelector('input[type=file]')!, { target: { files: [new File(['x'], 'a.csv')] } })
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
+    fireEvent.click(screen.getAllByLabelText(/Empty cells clear/)[0])
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(2))
+    expect(upload.mock.calls[1][0]).toBe('/admin/products/import?dry=1&clear=1&extras=fields')
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Import' }))[0])
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(3))
+    expect(upload.mock.calls[2][0]).toBe('/admin/products/import?clear=1&extras=fields')
+  })
 })
 
