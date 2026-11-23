@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -167,6 +168,57 @@ func TestTreeDirtyIgnoresBuilderFiles(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "main.go"), []byte("b"), 0o644)
 	if dirty, _ := treeDirty(dir); !dirty {
 		t.Fatal("a changed source file must count as dirty")
+	}
+}
+
+// BLD-6: the commit make test-all passed on, or one that only changed shops.json,
+// the plugin lists or docs/ (not docs/legal/) since, is tested; anything else isn't.
+func TestBLD6_Untested(t *testing.T) {
+	dir := t.TempDir()
+	git := func(args ...string) string {
+		c := exec.Command("git", append([]string{"-c", "user.email=t@t", "-c", "user.name=t"}, args...)...)
+		c.Dir = dir
+		out, err := c.CombinedOutput()
+		if err != nil {
+			t.Fatalf("git %v: %v %s", args, err, out)
+		}
+		return strings.TrimSpace(string(out))
+	}
+	n := 0
+	commit := func(files ...string) string {
+		n++
+		for _, f := range files {
+			os.MkdirAll(filepath.Dir(filepath.Join(dir, f)), 0o755)
+			os.WriteFile(filepath.Join(dir, f), []byte(f+strconv.Itoa(n)), 0o644)
+		}
+		git("add", ".")
+		git("commit", "-qm", "x")
+		return git("rev-parse", "HEAD")
+	}
+	git("init", "-q")
+	commit("main.go", "docs/status.md", "docs/legal/terms.pdf", "shops.json")
+	passed := filepath.Join(t.TempDir(), "passed-commits")
+	if msg, err := untested(dir, passed); err != nil || !strings.Contains(msg, "make test-all") {
+		t.Fatalf("no run recorded: %q %v", msg, err)
+	}
+	os.WriteFile(passed, []byte(git("rev-parse", "HEAD")+"\n"), 0o644)
+	if msg, err := untested(dir, passed); msg != "" || err != nil {
+		t.Fatalf("the passed commit itself: %q %v", msg, err)
+	}
+	commit("docs/status.md", "shops.json", "cmd/server/enabled_plugins.go")
+	if msg, _ := untested(dir, passed); msg != "" {
+		t.Fatalf("docs, shops.json and plugin lists only: %q", msg)
+	}
+	commit("docs/legal/terms.pdf")
+	if msg, _ := untested(dir, passed); msg == "" {
+		t.Fatal("docs/legal changed: Setup embeds it, must need a run")
+	}
+	f, _ := os.OpenFile(passed, os.O_APPEND|os.O_WRONLY, 0)
+	f.WriteString(git("rev-parse", "HEAD") + "\n")
+	f.Close()
+	commit("main.go")
+	if msg, _ := untested(dir, passed); msg == "" {
+		t.Fatal("code changed after the last run: must need a run")
 	}
 }
 

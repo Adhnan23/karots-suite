@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -136,6 +137,10 @@ func buildShops(path, which string, all []manifest, add extras, test bool) error
 		return err
 	} else if dirty {
 		return fmt.Errorf(`uncommitted changes — commit first, so the shops' "what's new" matches what they get (or -test for a local build)`)
+	} else if why, err := cfg.untested(); err != nil {
+		return err
+	} else if why != "" {
+		return errors.New(why)
 	}
 	var mu sync.Mutex
 	version := versionAt(time.Now())

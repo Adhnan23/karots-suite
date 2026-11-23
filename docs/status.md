@@ -39,8 +39,7 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 0. **Next (decided with the user, 2026-11-23)** — the site review is audited (table in
    `docs/reviews/2026-11-23-site-review.md`); Demo Room + site deployed with noindex / descriptions / sitemap dates.
    In order:
-   1. **Release refuses untested code:** `make test-all` records the commit it passed on; the Builder's Release refuses
-      any other commit (rule in `docs/rules/install.md`).
+   1. ~~Release refuses untested code~~ — done (BLD-6, 2026-11-23).
    2. **Low-spec benchmark** on the `karots-main` (Xubuntu) and `win10` VMs, Iman's 1,723 products + a Demo Room
       year: 2 cores / 4 GB → 2 / 2 GB → 1 / 2 GB; start-up, till search (< 0.3 s), a sale (< 1 s), big reports,
       backup, update. Lowest pass = minimum, one up = recommended; publish as tested, never invented.
@@ -122,7 +121,7 @@ it. Al Raj, Mum Digital and MUM Motors stay on Karots POS.
 
 **Releases:** only when the user says. Notes are cut from feat/fix commit titles; for anything but a tiny release,
 write them by hand and publish through the Builder's release API (`POST /api/shops/<key>/release` with `{"Notes"}`).
-Before one: `make test-all`.
+Before one: `make test-all` (Release refuses code it hasn't passed, BLD-6).
 
 **Receipts:** pictures in the shop's style; the hidden plain text stays for a failed picture and slips with no
 template. Product local names don't print; only the shop's own local name does. Check slips on the till, not only in

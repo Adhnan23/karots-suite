@@ -12,6 +12,9 @@ import (
 
 // releaseApp is the shops app with a fake bucket, a temp .env and a chosen
 // tree state; openStore can be swapped to fail like a missing R2 setup.
+// notTested is what the last releaseApp's tested check answers ("" = tested).
+var notTested *string
+
 func releaseApp(t *testing.T, dirty bool) (shopsApp, *fakeStore, *error) {
 	t.Helper()
 	st, base := newFakeStore(t)
@@ -21,6 +24,7 @@ func releaseApp(t *testing.T, dirty bool) (shopsApp, *fakeStore, *error) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "shops.json")
 	storeErr := new(error)
+	notTested = new(string)
 	cfg := shopsCfg{Path: path, Out: filepath.Join(dir, "dist"), Setup: fakeSetup, Env: filepath.Join(dir, ".env"),
 		Store: func(io.Writer) (store, error) {
 			if *storeErr != nil {
@@ -28,7 +32,8 @@ func releaseApp(t *testing.T, dirty bool) (shopsApp, *fakeStore, *error) {
 			}
 			return st, nil
 		},
-		Dirty: func() (bool, error) { return dirty, nil },
+		Dirty:    func() (bool, error) { return dirty, nil },
+		Untested: func() (string, error) { return *notTested, nil },
 	}
 	a := shopsApp{appHandler([]manifest{{Key: "alpha", Name: "Alpha"}}, fakeBuild(&got), cfg), path}
 	a.do(t, "/api/shops", newShopBody)
@@ -87,6 +92,20 @@ func TestAppReleaseDirty(t *testing.T) {
 	a, _, _ := releaseApp(t, true)
 	if rec := a.do(t, "/api/shops/al-raj/release", `{"installer":true}`); rec.Code != http.StatusConflict || !strings.Contains(rec.Body.String(), "commit first") {
 		t.Fatalf("dirty release: %d %s", rec.Code, rec.Body)
+	}
+}
+
+// BLD-6: a Release (one shop or all) refuses code make test-all hasn't passed; a Test build goes ahead.
+func TestBLD6_AppReleaseUntested(t *testing.T) {
+	a, _, _ := releaseApp(t, false)
+	*notTested = "run make test-all first"
+	for _, path := range []string{"/api/shops/al-raj/release", "/api/shops/release-all"} {
+		if rec := a.do(t, path, `{"installer":true}`); rec.Code != http.StatusConflict || !strings.Contains(rec.Body.String(), "make test-all") {
+			t.Fatalf("%s untested: %d %s", path, rec.Code, rec.Body)
+		}
+	}
+	if body := a.do(t, "/api/shops/al-raj/build", `{"installer":true}`).Body.String(); !strings.Contains(body, resultMark) {
+		t.Fatalf("a test build must not need make test-all: %s", body)
 	}
 }
 

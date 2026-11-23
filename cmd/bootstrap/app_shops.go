@@ -25,7 +25,10 @@ type shopsCfg struct {
 	Env   string
 	Store func(log io.Writer) (store, error)
 	Dirty func() (bool, error)
-	Cloud func() (backup.CloudStore, error) // Karots cloud (default from .env; a fake in tests)
+	// Untested says why HEAD may not be released ("" = make test-all passed it;
+	// default untested(".", passedCommits()) — BLD-6).
+	Untested func() (string, error)
+	Cloud    func() (backup.CloudStore, error) // Karots cloud (default from .env; a fake in tests)
 }
 
 // mountShops adds the shop-profile routes. Every POST is JSON-only (jsonOnly);

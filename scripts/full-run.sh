@@ -8,6 +8,10 @@ cd "$(dirname "$0")/.."
 out=~/.cache/karots-logs/full-$(date +%Y%m%d-%H%M); mkdir -p "$out"
 set -a; . ./.env; set +a
 t0=$(date +%s)
+# BLD-6: what this run tests — the commit, and whether the tree held changes beyond the
+# files a build writes itself (then the run proves nothing about the commit).
+head=$(git rev-parse HEAD)
+dirty=$(git status --porcelain --untracked-files=no | cut -c4- | grep -vxF -e shops.json -e cmd/server/enabled_plugins.go -e web/src/plugins/enabled-plugins.ts)
 go build -o bin/testdb ./scripts/testdb && ./bin/testdb template > "$out/template.log" 2>&1
 # Playwright's server (every plugin) is built first, alone: building it switches
 # the plugin lists on, and Go tests compiling at that moment fail to build.
@@ -30,4 +34,11 @@ wait
 [ -f "$out/go.cover" ] && go tool cover -func="$out/go.cover" > "$out/go-func.txt" 2>/dev/null
 make check-core > "$out/core.log" 2>&1; echo "check-core exit $?" >> "$out/summary.txt"
 echo "total $(( $(date +%s) - t0 ))s" >> "$out/summary.txt"
+# A whole pass on a clean, unmoved commit lets the Shop Builder release it (BLD-6).
+if [ "$(grep -cE '^(go|web|e2e) exit 0 |^check-core exit 0$' "$out/summary.txt")" = 4 ]; then
+  if [ -n "$dirty" ]; then echo "not recorded for Release: uncommitted changes when the run started" >> "$out/summary.txt"
+  elif [ "$(git rev-parse HEAD)" != "$head" ]; then echo "not recorded for Release: a commit was made during the run" >> "$out/summary.txt"
+  else echo "$head" >> ~/.cache/karots-logs/passed-commits; echo "passed: $head can be Released" >> "$out/summary.txt"; fi
+else echo "not recorded for Release: something failed" >> "$out/summary.txt"
+fi
 echo DONE >> "$out/summary.txt"

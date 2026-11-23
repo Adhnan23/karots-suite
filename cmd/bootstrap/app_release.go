@@ -42,6 +42,13 @@ func (c shopsCfg) dirty() (bool, error) {
 	return treeDirty(".")
 }
 
+func (c shopsCfg) untested() (string, error) {
+	if c.Untested != nil {
+		return c.Untested()
+	}
+	return untested(".", passedCommits())
+}
+
 const notPublishedWarn = "! This shop has no release yet — the first install at a shop should be a Release"
 
 // shopRun is one shop's Test build (kind "test": local only) or Release (kind
@@ -118,6 +125,15 @@ func mountRelease(mux *http.ServeMux, all []manifest, b buildFn, cfg shopsCfg, b
 		}
 		if dirty {
 			writeErr(w, http.StatusConflict, `uncommitted changes — commit first, so the shops' "what's new" matches what they get (shops.json and the plugin lists don't count)`)
+			return false
+		}
+		why, err := cfg.untested()
+		if err != nil {
+			writeErr(w, http.StatusInternalServerError, err.Error())
+			return false
+		}
+		if why != "" {
+			writeErr(w, http.StatusConflict, why)
 			return false
 		}
 		return true

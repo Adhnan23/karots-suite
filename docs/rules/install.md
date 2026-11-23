@@ -47,7 +47,7 @@ way) · **Twice** (at once, or run again) · **Bad input** (damaged file, wrong 
 | Terms, Setup's log | SET-7,8 | — c | — c | — c | — c | — c | — c |
 | File mode | SET-9 | — c | SET-9 | SET-9 | SET-9 | SET-9 | SET-9 |
 | Shop Builder: build | BLD-1,2 | — c | BLD-1 | — c | BLD-2 | — d | BLD-1 |
-| Shop Builder: Release / Publish | BLD-3,4 | — c | BLD-3,5 | BLD-3 | BLD-4 | BLD-3 | BLD-5 |
+| Shop Builder: Release / Publish | BLD-3,4,6 | — c | BLD-3,5 | BLD-3 | BLD-4,6 | BLD-3 | BLD-5 |
 
 a — nothing to put in. b — streamed: a broken download is a broken file the restore refuses (BAK-5). c — doesn't
 apply (a read, a one-shot, or no state). d — the same build on both sides. e — Setup stops the till first.
@@ -233,5 +233,12 @@ BLD-4  Shops take only manifests signed by the release key (UPD-1); the key is m
        Checked by: example.
 
 BLD-5  A Release whose upload fails keeps its build; Publish sends it later without building again.
+       Checked by: example.
+
+BLD-6  A Release builds only code `make test-all` passed: the run records its commit only when Go, Vitest,
+       Playwright and check-core all passed, the tree had no uncommitted changes when it started and the commit
+       didn't move during it (`~/.cache/karots-logs/passed-commits`). Later commits still count as tested when
+       they change only shops.json, the plugin lists or `docs/` (never `docs/legal/`: Setup embeds its PDF).
+       Anything else is refused with "run make test-all first". A Test build is never held back.
        Checked by: example.
 ```

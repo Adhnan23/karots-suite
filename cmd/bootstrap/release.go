@@ -101,6 +101,43 @@ func treeDirty(dir string) (bool, error) {
 	return false, nil
 }
 
+// passedCommits is where make test-all records each commit it passed on whole (BLD-6).
+func passedCommits() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".cache", "karots-logs", "passed-commits")
+}
+
+// testFree: a change make test-all needn't see again — the shop list, the plugin
+// lists and docs/ (but docs/legal/: Setup embeds its PDF).
+func testFree(path string) bool {
+	return slices.Contains(builderWrites, path) || strings.HasPrefix(path, "docs/") && !strings.HasPrefix(path, "docs/legal/")
+}
+
+// untested says why dir's HEAD may not be released (BLD-6), or "" when make
+// test-all passed on it, or on a commit it differs from only by testFree files.
+func untested(dir, passed string) (string, error) {
+	const why = "this code hasn't passed make test-all — run make test-all first (about 10 minutes), commit nothing in between, then Release"
+	b, err := os.ReadFile(passed)
+	if errors.Is(err, os.ErrNotExist) {
+		return why, nil
+	}
+	if err != nil {
+		return "", err
+	}
+	for _, h := range slices.Backward(strings.Fields(string(b))) {
+		c := exec.Command("git", "diff", "--name-only", h, "HEAD")
+		c.Dir = dir
+		out, err := c.Output()
+		if err != nil {
+			continue // a commit no longer here (rebased away)
+		}
+		if !slices.ContainsFunc(strings.Fields(string(out)), func(p string) bool { return !testFree(p) }) {
+			return "", nil
+		}
+	}
+	return why, nil
+}
+
 // commitShops commits shops.json alone after a publish, so its record never sits
 // uncommitted. The release is already out, so a failure is only a note.
 func commitShops(path, msg string, log io.Writer) {
