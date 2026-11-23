@@ -11,7 +11,7 @@ import (
 // IMP-1, 4 with a plugin's columns: a products sheet preview lists a custom
 // field's change old → new and keeps nothing — the field's value is as before.
 func TestIMPPreviewWithCustomFields(t *testing.T) {
-	s := ltest.NewShop(t)
+	s := ltest.Shared(t).Shop // one shop per process (plugin hooks); not parallel: the whole-database check needs the others paused
 	g := field(t, s, map[string]any{"label": "Generic Name", "type": "text"})
 	p := s.Product(t, "Imp Pp Panadol", "50", "0", nil)
 	fill(t, s, cell(p, g.ID, "paracetamol 500"))
