@@ -39,7 +39,8 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 0. **Next (decided with the user, 2026-11-23)** — the site review is audited (table in
    `docs/reviews/2026-11-23-site-review.md`); Demo Room + site deployed with noindex / descriptions / sitemap dates.
    In order:
-   1. ~~Release refuses untested code~~ — done (BLD-6, 2026-11-23).
+   1. ~~Release refuses untested code~~ — done (BLD-6, 2026-11-23). Its first run caught a real bug: Batches → Set
+      count / Not there set the total from old numbers on a fast click (fixed, STK-5). Full run green on b3e5fd57.
    2. **Low-spec benchmark** on the `karots-main` (Xubuntu) and `win10` VMs, Iman's 1,723 products + a Demo Room
       year: 2 cores / 4 GB → 2 / 2 GB → 1 / 2 GB; start-up, till search (< 0.3 s), a sale (< 1 s), big reports,
       backup, update. Lowest pass = minimum, one up = recommended; publish as tested, never invented.
