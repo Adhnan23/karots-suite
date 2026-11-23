@@ -81,23 +81,41 @@ func WithTx(ctx context.Context, db *sqlx.DB, fn func(tx *sqlx.Tx) error) error 
 	return nil
 }
 
+// undoSavepoint rolls back to the newest ks_joined and releases it. PostgreSQL keeps a
+// savepoint after ROLLBACK TO, and with two of one name the newest answers: without the
+// release, an outer savepoint's rollback would only reach this inner one and keep what
+// the outer did before it (IMP-3: a sheet line's new category outliving the line).
+func undoSavepoint(ctx context.Context, tx *sqlx.Tx) error {
+	if _, err := tx.ExecContext(ctx, `ROLLBACK TO SAVEPOINT ks_joined`); err != nil {
+		return err
+	}
+	_, err := tx.ExecContext(ctx, `RELEASE SAVEPOINT ks_joined`)
+	return err
+}
+
 func joined(ctx context.Context, tx *sqlx.Tx, fn func(tx *sqlx.Tx) error) (err error) {
 	if _, err := tx.ExecContext(ctx, `SAVEPOINT ks_joined`); err != nil {
 		return fmt.Errorf("savepoint: %w", err)
 	}
 	defer func() {
 		if p := recover(); p != nil {
-			_, _ = tx.ExecContext(ctx, `ROLLBACK TO SAVEPOINT ks_joined`)
+			_ = undoSavepoint(ctx, tx)
 			panic(p)
 		}
 	}()
 	if err := fn(tx); err != nil {
-		if _, rb := tx.ExecContext(ctx, `ROLLBACK TO SAVEPOINT ks_joined`); rb != nil {
+		if rb := undoSavepoint(ctx, tx); rb != nil {
 			return fmt.Errorf("%w (and its rollback: %v)", err, rb)
 		}
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `RELEASE SAVEPOINT ks_joined`)
+	if _, err = tx.ExecContext(ctx, `RELEASE SAVEPOINT ks_joined`); err != nil {
+		// fn swallowed a failed statement (the transaction is aborted): undo this
+		// savepoint so the caller's transaction can go on, and report the failure.
+		if rb := undoSavepoint(ctx, tx); rb != nil {
+			return fmt.Errorf("%w (and its rollback: %v)", err, rb)
+		}
+	}
 	return err
 }
 
@@ -146,6 +164,5 @@ func (t *Tx) Rollback() error {
 		return sql.ErrTxDone
 	}
 	t.done = true
-	_, err := t.Tx.ExecContext(t.ctx, `ROLLBACK TO SAVEPOINT ks_joined`)
-	return err
+	return undoSavepoint(t.ctx, t.Tx)
 }

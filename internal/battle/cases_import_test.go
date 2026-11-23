@@ -190,3 +190,27 @@ func TestIMP2ApplyIsThePreview(t *testing.T) {
 		t.Fatalf("IMP-2: preview %+v\napply %+v", p, a)
 	}
 }
+
+// IMP-3 (review): a line that fails inside the product write itself — a ref of
+// this shop to a product that isn't there — still leaves nothing it made behind
+// (nested savepoints roll back to the line's own, not the inner one).
+func TestIMP3FailedInsideTheWrite(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.stocked(t, "Imp Anchor", s.unitPcs, 0, nil)
+	ref := s.refOf(t, "Imp Anchor")
+	missing := ref[:strings.LastIndex(ref, "-")] + "-999999"
+	r := s.importProducts(t, csvOf(
+		[]string{"ref", "name", "category", "supplier"},
+		[]string{missing, "Imp Gone", "Imp Inner Ghost Cat", "Imp Inner Ghost Supplier"},
+	), false)
+	if r.Skipped != 1 {
+		t.Fatalf("result %+v", r)
+	}
+	var cats, sups int
+	s.must(t, s.db.Get(&cats, `SELECT count(*) FROM categories WHERE name = 'Imp Inner Ghost Cat'`))
+	s.must(t, s.db.Get(&sups, `SELECT count(*) FROM suppliers WHERE name = 'Imp Inner Ghost Supplier'`))
+	if cats != 0 || sups != 0 {
+		t.Fatalf("IMP-3: a line that failed inside the write left %d categories and %d suppliers", cats, sups)
+	}
+}
