@@ -267,3 +267,23 @@ func TestExitClosesTheDemo(t *testing.T) {
 func itoa(n int) string { return strconv.Itoa(n) }
 
 func (l *launcher) waitIdle() { l.busy.Wait() }
+
+// The web Demo Room (demo.karots.lk) stays out of search engines: a robots.txt
+// that disallows everything, readable without a code, and a noindex header on
+// every answer, the shop's pages included.
+func TestSearchEnginesStayOut(t *testing.T) {
+	l, _, _ := newTestLauncher(t, func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "child") })
+	h := l.handler()
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/robots.txt", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "Disallow: /") {
+		t.Fatalf("robots.txt = %d %q", w.Code, w.Body.String())
+	}
+	for _, path := range []string{"/robots.txt", "/", "/__demo/lock", "/till"} {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+		if got := w.Header().Get("X-Robots-Tag"); got != "noindex, nofollow" {
+			t.Errorf("%s X-Robots-Tag = %q", path, got)
+		}
+	}
+}

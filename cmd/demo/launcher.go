@@ -156,7 +156,21 @@ func (l *launcher) handler() http.Handler {
 		}
 		l.page("index.html")(w, r) // the picker / progress screen
 	})
-	return l.guard(m)
+	return noIndex(l.guard(m))
+}
+
+// noIndex keeps the Demo Room out of search engines: robots.txt (before the
+// lock, so a crawler can read it) and a noindex header on every answer.
+func noIndex(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+		if r.URL.Path == "/robots.txt" {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			io.WriteString(w, "User-agent: *\nDisallow: /\n")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // page serves one of the chrome's HTML pages (a bare stand-in before Task 9's UI
