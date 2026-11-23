@@ -196,3 +196,25 @@ test('cashier menu sheet: preview, cancel, replace', async ({ page }) => {
     expect((await putBack()).ok()).toBe(true)
   }
 })
+
+test('cashier menu page: Sheets ▾ exports the menu and imports through the same preview', async ({ page }) => {
+  await signIn(page)
+  const saved = Buffer.from(await (await page.request.get('/api/v1/admin/data/menu/export?format=csv')).body())
+  try {
+    await open(page, '/admin/groups')
+    await page.getByRole('button', { name: 'Sheets' }).click()
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('menuitem', { name: 'CSV' }).click()])
+    expect(dl.suggestedFilename()).toBe('cashier-menu.csv')
+
+    await page.getByRole('button', { name: 'Sheets' }).click()
+    await page.getByRole('menuitem', { name: /Import from a sheet/ }).click()
+    await page.locator('input[type=file][data-sheet="menu"]').setInputFiles({ name: 'menu.csv', mimeType: 'text/csv', buffer: Buffer.from(`Group\nPage menu ${tag}\n`) })
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('Replace the cashier menu?')
+    await dialog.getByRole('button', { name: 'Replace the menu' }).click()
+    await toast(page, /Menu replaced: 1 group/)
+    await expect(page.getByRole('list', { name: 'Groups' })).toContainText(`Page menu ${tag}`)
+  } finally {
+    expect((await page.request.post('/api/v1/admin/data/menu/import', { multipart: { file: { name: 'menu.csv', mimeType: 'text/csv', buffer: saved } } })).ok()).toBe(true)
+  }
+})

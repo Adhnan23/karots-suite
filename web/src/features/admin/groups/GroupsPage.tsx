@@ -11,6 +11,7 @@ import { FormSheet } from '@/components/admin/FormSheet'
 import { EmptyState, PageHead, SURFACE } from '@/components/admin/PageHead'
 import { Button } from '@/components/ui/button'
 import { ProductPicker } from '@/features/admin/products/ProductPicker'
+import { MenuSheetsMenu } from '@/features/data/MenuSheet'
 import { configQuery, errMsg } from '@/features/till/api'
 import { money, qtyText } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -35,7 +36,7 @@ export function GroupsPage() {
   return (
     <>
       <PageHead title="Cashier menu" sub="The group cards on the till. Tap a group to choose which products show on it."
-        actions={<Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New group</Button>} />
+        actions={<><MenuSheetsMenu /><Button className="h-10 gap-1.5 px-4 font-bold" onClick={() => setEditing({ node: null, parentId: 0 })}><Plus size={16} /> New group</Button></>} />
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] md:items-start">
         <div className={cn(SURFACE, 'overflow-hidden')}>
           {!groups?.length ? <EmptyState title={groups ? 'No groups yet' : 'Loading…'}>{groups && 'Make a card for each shelf — Drinks, Snacks — then add the products the cashier reaches for.'}</EmptyState> : (

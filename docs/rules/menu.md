@@ -2,7 +2,7 @@
 
 Code: `internal/features/productgroups` (menu.go: the sheet's lines, `Rebuild`), `internal/features/products`
 (`FindForMenu`), `internal/api/admin_data_menu.go` (the Data page's **Cashier menu** row: export, preview, replace),
-`web/src/features/data/MenuSheet.tsx`.
+`web/src/features/data/MenuSheet.tsx` (the Data row, and **Sheets ▾** on Admin → Cashier menu: the same import and preview).
 
 The cashier menu (Admin → Groups) is the till's tree of groups and the products in them. It holds no money and no
 stock. What the sheet must never do is **leave a half-changed menu, change something it didn't show first, or touch

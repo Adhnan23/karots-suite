@@ -1,19 +1,23 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { Upload } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Download, FileSpreadsheet, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { apiUpload } from '@/api/client'
+import { meQuery } from '@/api/session'
 import type { MenuImportResult } from '@/api/types.gen'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { errMsg } from '@/features/till/api'
 
+const EXPORT = '/api/v1/admin/data/menu/export'
 const n = (k: number, one: string, many = one + 's') => `${k} ${k === 1 ? one : many}`
 
-/** Data → Spreadsheets → Cashier menu (docs/rules/menu.md): the till's whole menu
- *  as a sheet. An import replaces the whole menu, so it is previewed first. */
-export function MenuSheet() {
+/** The cashier menu sheet's import (docs/rules/menu.md): pick a file → its
+ *  preview in a dialog → Replace the menu. `pick` opens the file chooser;
+ *  `ui` is the hidden input and the dialog, rendered wherever it's used. */
+function useMenuImport() {
   const input = useRef<HTMLInputElement>(null)
   const qc = useQueryClient()
   const [pending, setPending] = useState<{ file: File; preview: MenuImportResult } | null>(null)
@@ -46,15 +50,9 @@ export function MenuSheet() {
   }
 
   const p = pending?.preview
-  return (
-    <div className="rounded-[calc(var(--radius)-4px)] border border-border p-3">
-      <b className="block text-sm">Cashier menu</b>
-      <p className="mb-2 text-xs text-muted-foreground">Build or rework the till's menu in a spreadsheet. Importing replaces the whole menu — you'll see what changes first.</p>
-      <div className="flex flex-wrap gap-2">
-        <ExportMenu url="/api/v1/admin/data/menu/export" />
-        <Button variant="outline" className="h-10 gap-1.5 px-4" onClick={() => input.current?.click()}><Upload size={16} /> Import</Button>
-        <input ref={input} data-sheet="menu" type="file" hidden accept=".csv,.xlsx,.ods" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void preview(f) }} />
-      </div>
+  const ui = (
+    <>
+      <input ref={input} data-sheet="menu" type="file" hidden accept=".csv,.xlsx,.ods" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void preview(f) }} />
       <Dialog open={!!p} onOpenChange={(o) => !o && !busy && setPending(null)}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>
@@ -83,6 +81,49 @@ export function MenuSheet() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  )
+  return { pick: () => input.current?.click(), ui }
+}
+
+/** Data → Spreadsheets → Cashier menu: the till's whole menu as a sheet. */
+export function MenuSheet() {
+  const { pick, ui } = useMenuImport()
+  return (
+    <div className="rounded-[calc(var(--radius)-4px)] border border-border p-3">
+      <b className="block text-sm">Cashier menu</b>
+      <p className="mb-2 text-xs text-muted-foreground">Build or rework the till's menu in a spreadsheet. Importing replaces the whole menu — you'll see what changes first.</p>
+      <div className="flex flex-wrap gap-2">
+        <ExportMenu url={EXPORT} />
+        <Button variant="outline" className="h-10 gap-1.5 px-4" onClick={pick}><Upload size={16} /> Import</Button>
+      </div>
+      {ui}
     </div>
+  )
+}
+
+/** Sheets ▾ on Admin → Cashier menu, like the other list pages. The sheet is
+ *  admin only (MENU-11), so a manager doesn't see it. */
+export function MenuSheetsMenu() {
+  const admin = useQuery(meQuery).data?.user.role === 'admin'
+  const { pick, ui } = useMenuImport()
+  if (!admin) return null
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="h-10 gap-1.5 px-4"><FileSpreadsheet size={16} /> Sheets</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-56">
+          <DropdownMenuItem onSelect={pick}><Upload size={15} /> Import from a sheet…</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Export the whole menu</DropdownMenuLabel>
+          {(['csv', 'xlsx', 'ods'] as const).map((f) => (
+            <DropdownMenuItem key={f} asChild><a href={`${EXPORT}?format=${f}`} download><Download size={15} /> {f.toUpperCase()}</a></DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {ui}
+    </>
   )
 }

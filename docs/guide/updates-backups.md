@@ -64,7 +64,8 @@ have their sheets on their own pages (linked from here); two live on this card:
 - **Settings:** copies one shop's receipt, tax and till rules to another. The shop's identity, printers and default
   locker stay as they are.
 - **Cashier menu:** the till's whole menu (Setup → Cashier menu) as one sheet, so a menu can be built or reworked in a
-  spreadsheet — by hand or by AI — instead of tapped together card by card.
+  spreadsheet — by hand or by AI — instead of tapped together card by card. The same sheet is under **Sheets ▾** on Setup → Cashier menu
+  itself (admins).
 
 ### The cashier menu sheet
 
