@@ -4,66 +4,51 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 short: history lives in git (`git log -p -- docs/status.md` has every older handoff, finished plan and area-by-area
 battle report). The catalogue and the Onboard / Shelf apps keep their own details in their READMEs.
 
-## Now (2026-11-22)
+## Now (2026-11-23)
 
 **The suite is feature-complete for a shop's day and battle-tested end to end.** First shop: Iman Pharmacy
-Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`), still
-onboarding — products and one test sale, **no real sales yet**.
+Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`): onboarding
+almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before this week's sheet work).
 
-- **Battle tests: all done.** The 7 core areas (sales / returns, drawer and money, customers, stock, purchasing,
-  recovery, reports), every plugin (groups 1–3, then Pocket Cashier) and installing / running a shop (backups, copy
-  folder and cloud, self-update, Setup, Shop Builder). Rule book `docs/rules/`, auditor `internal/ledgercheck`,
-  battle tests `internal/battle` + `plugins/<key>/battle`, proofs `proofs/`, mutation replays. Coverage map:
-  https://claude.ai/artifact/GSvAu11weLXS7PjRD4G8u9 (Go with every plugin 82.9%, core 80.6%).
-- **Released to Iman as 2026.11.22.1407** (commit `03edc4df`, notes written by hand, no Pocket Cashier mention).
-  Iman updates before the first real sale (Setup → Data → Updates → Update); it backs up first and changes none of
-  their products. Labels stay Classic (no label printer at hand); receipts printed for real on the XP-80T.
-- **Rule first (AGENTS.md, 2026-11-22):** every change in behaviour starts in the rule book — rule, failing test,
-  code. Only look-and-feel skips it.
+- **Iman's catalogue is fixed and ready for a fresh start** (user, 2026-11-23: reset Iman's database, then import):
+  `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` holds `suppliers.csv`, `products.csv` (1,723: catalogue names, the
+  new category tree, cleaned generics; Iman's barcodes, prices, suppliers), `cashier-menu.csv` and `README.md` (the
+  steps: units tab / cap and the Generic Name / Company / Distributor fields first). Built by the catalogue repo's
+  `shops/iman_reset.py` from an Onboard backup — rebuild it from a fresh backup if Iman's products change. After the
+  reset, Onboard must re-pull Iman's products (its links point at the old ones).
+- **A fresh empty Iman-style shop** runs here for the user to rehearse the reset: `/mnt/nvme_512GB/karots/iman-fresh`
+  (`./start.sh`, :3010, Pocket 8453, db `iman_fresh`, plugins aicatalog, alternatives, combos, pharmacy,
+  pocketcashier, productplus; sign in as the system user, PIN in its `.env`). Build its binary like a plugin dev
+  build (`make plugins P=…` → `make web` → `go build` → `make core-only`).
+- **This week's sheet work:** the cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU
+  rules), the products sheet preview (old → new, all or nothing, a till's product skipped not waited on, IMP-1…5),
+  "Empty cells clear the field" (IMP-6) and Categories → Delete empty… (CAT-1, 2). Not yet Released.
+- **Battle tests: all done** (7 core areas, every plugin, install / run). Rule first (AGENTS.md): rule, failing test, code.
 
-**Last full run (2026-11-23):** all green — Go, Vitest, check-core, Playwright 272 passed (the 2026-11-22 open till
-float test passes). A dev server holding Pocket's port 8443 (e.g. a preview shop with Pocket Cashier) breaks
-Playwright's Pocket pairing: stop it, or give it another `KAROTS_POCKET_PORT`, before a full run.
+**Last full run (2026-11-23):** all green — Go, Vitest, check-core, Playwright 274 passed. Pocket reads
+`KAROTS_POCKET_PORT` before `.env` is loaded (open bug): a dev shop must get it from the environment (`start.sh`
+does), or it takes 8443 and breaks Playwright's Pocket tests. Two specs race (`goto('/login')` right after an API
+logout: palettes, admin-people) — they pass on a rerun; make them wait for the redirect.
 
 ## Next — the user's call
 
-**Products sheet preview: done (2026-11-23).** Rehearsal ready: Iman as-is shop on :3011 (`/mnt/nvme_512GB/karots/iman-asis`,
-db `iman_asis`), fix sheet `iman-fix.csv` (by ref, 1,725 rows) previews in 9 s, not applied (the user tries it in the UI:
-Products → Sheets ▾ → Include custom fields → Import). Start the two Iman shops with `KAROTS_POCKET_PORT=8453` /
-`8454` in the environment: **Pocket reads that variable before `.env` is loaded**, so in `.env` it's ignored (open bug —
-the shops then take 8443 and break Playwright's Pocket tests). Open for the user: (1) a blank cell can't clear a field —
-66 Iman ayurvedic / supplement products keep a typed "generic"; a clear marker needs a rule; (2) ~12 catalogue generics
-look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D 2000; Chlofen DM and Sinarest Linctus +
-phenylephrine; Orofer + folic acid; Immune Up; Sucrafil + oxetacaine; GLA 120 + vitamin E; Nugesic: Iman says B
-vitamins, catalogue nimesulide) — `iman-asis/preview.json`; (3) units only where a product has no packs / stock.
-Test race seen twice: a spec's `goto('/login')` right after an API logout is aborted by the app's own redirect
-(palettes.spec, admin-people.spec) — make those wait for the redirect instead.
-
-**How a shop's catalogue is prepared (user, 2026-11-23):** after onboarding, the products are optimised on a
-**preview shop** here (catalogue names, generics, the category tree, units — Iman's at `localhost:3010`, database
-`iman_preview`, loader `/mnt/nvme_512GB/karots/iman-preview/load.py`), a proper cashier menu is built there, then
-both go into the real shop: products by the products sheet with refs, the menu by the cashier menu sheet.
-
-1. Whatever comes from Iman's use once they sell.
-2. **Iman whole-list fix**, when Iman has finished adding products (wait for the user): user exports Products →
-   Sheets ▾ → Include ref + Include custom fields → match every row (catalogue repo `shops/iman-matches.csv`) → user
-   approves the category tree → import the same CSV back (each row updates its product by ref) → delete empty
-   categories, merge true duplicates → **then stock** (a full stock-take; no go-live tooling unless asked). Never
-   wipe and re-add: refs keep barcodes, packs, lots, suppliers and sales. Iman's own categories and generics aren't
-   reliable (new staff): propose categories from what each product is.
-3. Ideas, built only when the user says:
-   - **Alternatives → Group by fields** (no AI): pick product fields (Generic name + Strength); same values = one
-     group, shown to untick wrong ones, saved as ordinary groups. Fields come through core's `ProductAttributeSet`
-     hook, so Alternatives never names Product Plus.
+1. **Next session: Alternatives → Group by fields** (no AI), tried on the fresh Iman shop: pick product fields
+   (Generic Name + Strength); same values = one group, shown to untick wrong ones, saved as ordinary groups. Fields
+   come through core's `ProductAttributeSet` hook, so Alternatives never names Product Plus.
+2. Iman's reset at the shop (the user), then the stock-take and the first real sale; a Release with this week's work
+   first. Later product changes at Iman: a fresh Onboard backup → `shops/iman_reset.py` / the update file.
+3. Open for the user: ~12 catalogue generics that look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 /
+   2000, Vidan D 2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 +
+   vitamin E; Nugesic: Iman says B vitamins, the catalogue nimesulide).
+4. Ideas, built only when the user says:
+   - **Onboarding without the mess** (for shop #2): products from the catalogue through Onboard into a ready-made
+     category tree per shop kind, staff adding only what's missing; and a `tidy` command for a shop already messy.
    - **A supplier by field**: Product Plus rules like "Brand = Nestlé → supplier X" for products with no preferred
-     supplier of their own (reorder, orders, a GRN's suggestion); own supplier wins; two rules → both, with a warning;
-     set from the supplier's side too; a brand changing supplier = move that brand's products (`AdminSupplierReassign`
-     narrowed). Needs a generic core seam (a fallback supplier) so core never names Product Plus.
+     supplier of their own; needs a generic core seam (a fallback supplier) so core never names Product Plus.
    - A note box on the till's plain Hold (only Send to cashier has one).
-   - Read the 84 unread mutation survivors in Setup's launcher and print helper (`cmd/setup/main.go`,
-     `print_agent.go`) when a cashier PC's printer is next touched.
-4. Later: the install stick, the whole-system check, Pocket Cashier on a phone / tablet at a shop (release 2 worked
-   on a real phone against the dev PC, 2026-11-22).
+   - Read the 84 unread mutation survivors in Setup's launcher and print helper when a cashier PC's printer is next
+     touched.
+5. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family
 
