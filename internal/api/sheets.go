@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"strings"
 
 	"karots-suite/internal/apperr"
 	"karots-suite/internal/sheet"
@@ -42,16 +41,7 @@ func readImportSheet(c echo.Context, synonyms map[string]string, required string
 	if len(rows) == 0 {
 		return nil, nil, apperr.BadRequest("the file is empty")
 	}
-	col := map[string]int{}
-	for i, h := range rows[0] {
-		key := strings.ToLower(strings.TrimSpace(strings.TrimPrefix(h, "\ufeff")))
-		if canon, ok := synonyms[key]; ok {
-			key = canon
-		}
-		if _, dup := col[key]; !dup {
-			col[key] = i
-		}
-	}
+	col := sheet.Columns(rows[0], synonyms)
 	if _, ok := col[required]; !ok {
 		return nil, nil, apperr.BadRequest("the file must have a '" + required + "' column")
 	}
@@ -60,12 +50,7 @@ func readImportSheet(c echo.Context, synonyms map[string]string, required string
 
 // cellGetter reads a canonical column from one row ("" when absent).
 func cellGetter(col map[string]int, rec []string) func(string) string {
-	return func(key string) string {
-		if i, ok := col[key]; ok && i < len(rec) {
-			return strings.TrimSpace(rec[i])
-		}
-		return ""
-	}
+	return func(key string) string { return sheet.Cell(col, rec, key) }
 }
 
 // importErrMsg unwraps an apperr to its user-facing message.

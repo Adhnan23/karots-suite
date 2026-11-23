@@ -101,3 +101,28 @@ func Write(w io.Writer, f Format, header []string, rows [][]string) error {
 	}
 	return errors.New("unknown sheet format")
 }
+
+// Columns maps a sheet's header row to canonical column → index: names are
+// trimmed and lower-cased, a leading BOM dropped, synonyms applied; the first of
+// two same-named columns wins.
+func Columns(header []string, synonyms map[string]string) map[string]int {
+	col := map[string]int{}
+	for i, h := range header {
+		key := strings.ToLower(strings.TrimSpace(strings.TrimPrefix(h, "\ufeff")))
+		if canon, ok := synonyms[key]; ok {
+			key = canon
+		}
+		if _, dup := col[key]; !dup {
+			col[key] = i
+		}
+	}
+	return col
+}
+
+// Cell reads a canonical column from one row, trimmed ("" when absent).
+func Cell(col map[string]int, rec []string, key string) string {
+	if i, ok := col[key]; ok && i < len(rec) {
+		return strings.TrimSpace(rec[i])
+	}
+	return ""
+}

@@ -125,3 +125,29 @@ func TestReadCSVKeepsBlankLines(t *testing.T) {
 		t.Fatalf("rows = %q, %v", rows, err)
 	}
 }
+
+func TestColumns(t *testing.T) {
+	col := Columns([]string{"\xef\xbb\xbfGroup Name", " Tier ", "Item", "Group"}, map[string]string{"group name": "group", "item": "product"})
+	want := map[string]int{"group": 0, "tier": 1, "product": 2}
+	if len(col) != len(want) {
+		t.Fatalf("got %v, want %v", col, want)
+	}
+	for k, v := range want {
+		if col[k] != v {
+			t.Fatalf("got %v, want %v", col, want)
+		}
+	}
+}
+
+func TestCell(t *testing.T) {
+	col := map[string]int{"a": 0, "b": 2}
+	if got := Cell(col, []string{" x "}, "a"); got != "x" {
+		t.Fatalf("trimmed: %q", got)
+	}
+	if got := Cell(col, []string{"x"}, "b"); got != "" {
+		t.Fatalf("short record: %q", got)
+	}
+	if got := Cell(col, []string{"x", "y", "z"}, "missing"); got != "" {
+		t.Fatalf("missing key: %q", got)
+	}
+}
