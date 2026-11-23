@@ -345,3 +345,40 @@ test('group maker: the page offers it, a pasted reply makes a group, undo remove
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Undone' }).first()).toBeVisible()
   expect(await groups()).not.toContain(`Paracetamol ${stamp}`)
 })
+
+// Last in this serial file: an import replaces every group, so it keeps what the
+// export had (this file's groups stay) and changes one thing on top (ALT-9…13).
+test('the sheet: export, edit, import, preview, Replace', async ({ page }) => {
+  await login(page, '/admin')
+  const NEW = `AL Sheet new ${tag}`
+  const SHEET = `AL Sheet group ${tag}`
+  await product(page, NEW, '400', '2')
+  const csv = await (await page.request.get(`${base}/sheet?format=csv`)).text()
+  const lines = csv.split(/\r?\n/).filter((l) => l && !l.includes(STRAY))
+  lines.push(`${SHEET},,${NEW},`, `${SHEET},,${STRAY},`, `${SHEET},,AL Nowhere ${tag},`)
+  const shots = process.env.ALT_SHOTS
+  for (const [w, h, mode] of [[1280, 800, 'light'], [360, 780, 'dark']] as const) {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto('/admin/x/alternatives')
+    await page.evaluate((m) => localStorage.setItem('ks-mode', m), mode)
+    await page.reload()
+    await page.getByRole('button', { name: 'Sheet' }).click()
+    await expect(page.getByRole('menuitem', { name: 'Import from a sheet…' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.locator('input[data-sheet="alternatives"]').setInputFiles({ name: 'alternatives.csv', mimeType: 'text/csv', buffer: Buffer.from(lines.join('\n')) })
+    const dlg = page.getByRole('dialog', { name: 'Replace your alternatives?' })
+    await expect(dlg.getByText(/1 product placed, 1 moved, 0 taken out/)).toBeVisible()
+    await expect(dlg.getByText(/line \d+: no product with this barcode or name/)).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(w)
+    if (shots) {
+      await page.waitForTimeout(800) // the dialog's open animation
+      await page.screenshot({ path: `${shots}/sheet-${w}-${mode}.png` })
+    }
+    if (w === 360) break
+    await dlg.getByRole('button', { name: 'Cancel' }).click()
+  }
+  await page.getByRole('dialog').getByRole('button', { name: 'Replace' }).click()
+  await toast(page, /Alternatives replaced/)
+  await expect(page.getByText(SHEET).first()).toBeVisible()
+  await page.evaluate(() => localStorage.removeItem('ks-mode'))
+})
