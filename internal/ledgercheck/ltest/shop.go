@@ -158,6 +158,10 @@ func (c *Client) Do(method, path string, in, out any) error {
 	if w.Code < 200 || w.Code > 299 {
 		return &StatusError{Code: w.Code, Msg: fmt.Sprintf("%s %s: %d %s", method, path, w.Code, bytes.TrimSpace(w.Body.Bytes()))}
 	}
+	if buf, raw := out.(*bytes.Buffer); raw { // a download (CSV, a sheet): the bytes as sent
+		_, err := buf.Write(w.Body.Bytes())
+		return err
+	}
 	if out == nil || w.Body.Len() == 0 {
 		return nil
 	}
