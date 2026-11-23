@@ -55,6 +55,7 @@ cut, sent twice).
 | Product merged into another | STK-16 | STK-16 | STK-16 | — a | — d | STK-22 | — e |
 | Pack saved | STK-17 | — c | — c | STK-17 | STK-17 | — c | — e |
 | Unit changed (a product's, or a unit's decimals) | STK-18 | — c | — c | STK-18 | STK-18 | — c | — e |
+| Products sheet import (preview, then import) | IMP-2,4 | STK-2 | STK-7 | IMP-3 | — d | STK-22 | IMP-1,3 |
 
 - `— a` Only adds stock; nothing to go below zero.
 - `— b` Never refused for a difference: what was counted wins (STK-9).
@@ -166,3 +167,21 @@ cut, sent twice).
   why. *Report sums are area 7.* *example.*
 - **STK-23** Two removals of the last units at the same moment never both pass (the guarded decrement); a power cut in
   any stock action leaves all of it or none of it; every rule above still holds after. *fault.*
+
+### The products sheet (IMP)
+
+Products → Sheets ▾ → Import (user, 2026-11-23: fix a shop's whole list from a sheet, safely, at the shop). Code:
+`internal/api/admin_import.go`, `import_diff.go`, `web/src/components/admin/ImportSheet.tsx`.
+
+- **IMP-1** Choosing a sheet previews it: the real import, run and thrown away. The preview changes nothing in any
+  table, plugins' included — no product, category, supplier, barcode, lot, stock or custom-field value. *example.*
+- **IMP-2** Import does exactly what the preview showed: the same products updated and added, the same changes, the
+  same skipped lines; it sends the very file that was previewed (a copy taken then), and if it still skips a line the
+  preview didn't, the result says so. *example.*
+- **IMP-3** An import is all or nothing: one transaction for the sheet, a savepoint per line. A line that fails is
+  skipped whole — nothing it made (a category, a supplier, a barcode, opening stock) stays; a database failure or a
+  power cut leaves the shop as it was. *example, fault.*
+- **IMP-4** Only the columns a sheet fills change (a sheet of names and categories leaves barcodes, packs, prices,
+  suppliers and stock alone), and the preview lists, for each product, exactly the fields that change, old → new —
+  plugin columns included when the plugin is in the shop. *example.*
+- **IMP-5** Customers' and suppliers' sheets import as before (no preview). *example.*
