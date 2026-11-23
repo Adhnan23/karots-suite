@@ -3,9 +3,11 @@ package productgroups_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	pg "karots-suite/internal/features/productgroups"
 	"karots-suite/internal/features/products"
@@ -237,5 +239,71 @@ func TestRebuildAllOrNothing(t *testing.T) {
 	}
 	if after := s.lines(t); !reflect.DeepEqual(after, before) {
 		t.Fatalf("menu changed:\n got %+v\nwant %+v", after, before)
+	}
+}
+
+// MENU-2 (review): today's groups are compared by their path read the way a
+// sheet's is, so "Soft  Drinks" made by hand is the sheet's "Soft Drinks".
+func TestRebuildComparesOldPathsLikeTheSheet(t *testing.T) {
+	s := newMenuShop(t)
+	if _, err := s.repo.Create(context.Background(), pg.CreateInput{Name: "Soft  Drinks"}); err != nil {
+		t.Fatal(err)
+	}
+	res, err := s.rebuild(t, []pg.MenuLine{{Line: 2, Group: "Soft Drinks"}}, s.find)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.RemovedGroups != 0 {
+		t.Fatalf("the same group counted as removed: %+v", res)
+	}
+}
+
+// MENU-8 (review): AI writes booleans — FALSE, 0, n, hidden all hide a group.
+func TestRebuildActiveWords(t *testing.T) {
+	s := newMenuShop(t)
+	var lines []pg.MenuLine
+	for i, w := range []string{"no", "FALSE", "0", "n", "Hidden", "yes", "TRUE", ""} {
+		lines = append(lines, pg.MenuLine{Line: i + 2, Group: fmt.Sprintf("G%d", i), Active: w})
+	}
+	if _, err := s.rebuild(t, lines, s.find); err != nil {
+		t.Fatal(err)
+	}
+	var hidden []string
+	for _, l := range s.lines(t) {
+		if l.Active == "no" {
+			hidden = append(hidden, l.Group)
+		}
+	}
+	if !reflect.DeepEqual(hidden, []string{"G0", "G1", "G2", "G3", "G4"}) {
+		t.Fatalf("hidden %v", hidden)
+	}
+}
+
+// MENU-4 (review): two imports at once never merge into a doubled menu; the
+// second waits and then replaces the first.
+func TestRebuildTwoAtOnce(t *testing.T) {
+	s := newMenuShop(t)
+	s.sample(t)
+	tx1, err := s.db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pg.Rebuild(context.Background(), tx1, []pg.MenuLine{{Line: 2, Group: "First"}}, s.find); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() {
+		_, err := s.rebuild(t, []pg.MenuLine{{Line: 2, Group: "Second"}}, s.find)
+		done <- err
+	}()
+	time.Sleep(300 * time.Millisecond) // the second import is waiting on the first
+	if err := tx1.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if got := s.lines(t); !reflect.DeepEqual(got, []pg.MenuLine{{Group: "Second"}}) {
+		t.Fatalf("menu after two imports: %+v", got)
 	}
 }

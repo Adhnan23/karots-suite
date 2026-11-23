@@ -2,6 +2,7 @@ package productgroups
 
 import (
 	"context"
+	"strings"
 
 	"karots-suite/internal/apperr"
 
@@ -65,9 +66,15 @@ func (s *Service) Breadcrumb(ctx context.Context, id int64) ([]Group, error) {
 	return path, nil
 }
 
+// errPathSeparator: the cashier menu sheet reads ">" as a path (MENU-16).
+var errPathSeparator = apperr.Validation(`a group name can't contain ">" (the menu sheet uses it between a group and the groups inside it)`)
+
 func (s *Service) Create(ctx context.Context, in CreateInput) (int64, error) {
 	if in.Name == "" {
 		return 0, apperr.Validation("group name is required")
+	}
+	if strings.Contains(in.Name, ">") {
+		return 0, errPathSeparator
 	}
 	id, err := s.repo.Create(ctx, in)
 	if err != nil {
@@ -79,6 +86,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (int64, error) {
 func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) error {
 	if in.Name == "" {
 		return apperr.Validation("group name is required")
+	}
+	if strings.Contains(in.Name, ">") {
+		return errPathSeparator
 	}
 	if err := s.repo.Update(ctx, id, in); err != nil {
 		return apperr.Internal("failed to update group", err)

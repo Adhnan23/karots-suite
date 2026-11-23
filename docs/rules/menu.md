@@ -26,7 +26,7 @@ is turned off) · **Setup backup** (a "catalogue & setup only" backup, restored)
 
 | Feature | Export | Import | Missing / shared product | Merged after | Disabled after | Setup backup |
 |---|---|---|---|---|---|---|
-| Group (top level) | MENU-1 | MENU-1,2,3,4,6 | — a | — b | — b | MENU-14 |
+| Group (top level) | MENU-1,16 | MENU-1,2,3,4,6 | — a | — b | — b | MENU-14 |
 | Sub-group (any depth) | MENU-1 | MENU-1,2,15 | — a | — b | — b | MENU-14 |
 | Hidden group | MENU-8 | MENU-8 | — a | — b | — b | MENU-14 |
 | Group emoji | MENU-1 | MENU-1,10 | — a | — b | — b | MENU-14 |
@@ -45,7 +45,8 @@ Who may: MENU-11 (every square). Nothing else moves: MENU-12 (every Import squar
 ```
 MENU-1  Export, then import that sheet unchanged, gives back the same menu: the same groups at the same places, the
         same names, emoji, Active and order, the same items with the same emoji.
-        Tricky: a hidden group; an empty group; a disabled product in a group; three levels deep.
+        Tricky: a hidden group; an empty group; a disabled product in a group; three levels deep. Two groups with the
+        same name under the same parent come back as one, holding both groups' items (the sheet can't tell them apart).
         Checked by: example.
 
 MENU-2  The sheet is the whole menu: after Apply the menu is exactly what the sheet says; a group or an item the sheet
@@ -54,11 +55,13 @@ MENU-2  The sheet is the whole menu: after Apply the menu is exactly what the sh
         Checked by: example.
 
 MENU-3  The preview changes nothing, and Apply does exactly what the preview reported: the same groups and items, the
-        same removed counts, the same skipped lines.
-        Checked by: example.
+        same removed counts, the same skipped lines. Replace sends the very sheet that was previewed (a file changed on
+        disk afterwards isn't read again), and if Apply still skips a line the preview didn't, the screen says so.
+        Checked by: example (also MenuSheet.test.tsx).
 
-MENU-4  Apply is all or nothing: if anything fails part way, the menu is exactly as it was before.
-        Tricky: a failure on a line after groups were already written.
+MENU-4  Apply is all or nothing: if anything fails part way, the menu is exactly as it was before. Two imports at
+        once never mix: the second waits for the first, then replaces it.
+        Tricky: a failure on a line after groups were already written; two admins pressing Replace together.
         Checked by: example.
 
 MENU-5  A line's product is found by its barcode (any of the product's barcodes, or a pack's), then by its exact name
@@ -76,7 +79,9 @@ MENU-7  The order of the lines is the order at the till: sibling groups in the o
         order of their lines. Skipped lines leave no gap.
         Checked by: example.
 
-MENU-8  A hidden group (Active = no) stays hidden through export and import; a blank Active means shown.
+MENU-8  A hidden group (Active = no) stays hidden through export and import; a blank Active means shown. no, n,
+        false, 0, off and hidden all mean hidden (any case: AI writes booleans). When a group has several group rows,
+        the last one's emoji and Active win.
         Checked by: example.
 
 MENU-9  A product twice in the same group is one item, with the first line's emoji; the same product in two
@@ -103,5 +108,9 @@ MENU-14 A "catalogue & setup only" backup carries the menu and its restore bring
 
 MENU-15 A group named only on product lines is still made, with every level of its path, in the order it first
         appears; the same path written with different spacing is one group.
+        Checked by: example.
+
+MENU-16 A group's name never holds ">" (Admin → Groups refuses it, as Categories does): the sheet reads ">" as a path,
+        so such a name couldn't survive a round trip.
         Checked by: example.
 ```

@@ -126,6 +126,11 @@ func menu(ctx context.Context, q db.Queryer) ([]menuItem, error) {
 // commits, or rolls back for a preview (MENU-3) or on an error (MENU-4).
 func Rebuild(ctx context.Context, tx *sqlx.Tx, lines []MenuLine, find FindProduct) (MenuResult, error) {
 	var res MenuResult
+	// Two imports at once would each delete only the rows they saw and leave both
+	// menus behind: the second waits here for the first. Tills still read.
+	if _, err := tx.ExecContext(ctx, `LOCK TABLE product_groups IN EXCLUSIVE MODE`); err != nil {
+		return res, err
+	}
 	old, err := menu(ctx, tx)
 	if err != nil {
 		return res, err
@@ -201,7 +206,7 @@ func Rebuild(ctx context.Context, tx *sqlx.Tx, lines []MenuLine, find FindProduc
 		}
 		if !product {
 			if _, err := tx.ExecContext(ctx, `UPDATE product_groups SET emoji = NULLIF($2, ''), is_active = $3 WHERE id = $1`,
-				gid, l.Emoji, !strings.EqualFold(strings.TrimSpace(l.Active), "no")); err != nil {
+				gid, l.Emoji, !hidden(l.Active)); err != nil {
 				return res, err
 			}
 			continue
@@ -219,10 +224,11 @@ func Rebuild(ctx context.Context, tx *sqlx.Tx, lines []MenuLine, find FindProduc
 		newItems[itemKey(strings.Join(parts, " > "), pid)] = true
 	}
 	for _, m := range old {
+		path := strings.Join(splitPath(m.line.Group), " > ") // today's names read the way the sheet's are
 		switch {
-		case m.pid == 0 && ids[m.line.Group] == 0:
+		case m.pid == 0 && ids[path] == 0:
 			res.RemovedGroups++
-		case m.pid != 0 && !newItems[itemKey(m.line.Group, m.pid)]:
+		case m.pid != 0 && !newItems[itemKey(path, m.pid)]:
 			res.RemovedItems++
 		}
 	}
@@ -230,6 +236,15 @@ func Rebuild(ctx context.Context, tx *sqlx.Tx, lines []MenuLine, find FindProduc
 }
 
 func itemKey(path string, pid int64) string { return path + "\x00" + strconv.FormatInt(pid, 10) }
+
+// hidden reads Active the ways a person or an AI writes "off" (MENU-8).
+func hidden(v string) bool {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "no", "n", "false", "0", "hidden", "off":
+		return true
+	}
+	return false
+}
 
 // splitPath reads "A > B" (spaces around ">" don't count) into its names.
 func splitPath(p string) []string {

@@ -19,8 +19,10 @@ export function MenuSheet() {
   const [pending, setPending] = useState<{ file: File; preview: MenuImportResult } | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const preview = async (file: File) => {
+  const preview = async (picked: File) => {
     try {
+      // The bytes as previewed: a file edited on disk after the preview must not be what Replace sends (MENU-3).
+      const file = new File([await picked.arrayBuffer()], picked.name, { type: picked.type })
       setPending({ file, preview: await apiUpload<MenuImportResult>('/admin/data/menu/import?dry=1', 'file', file) })
     } catch (e) {
       toast.error(errMsg(e))
@@ -32,6 +34,8 @@ export function MenuSheet() {
     try {
       const r = await apiUpload<MenuImportResult>('/admin/data/menu/import', 'file', pending.file)
       toast.success(`Menu replaced: ${n(r.groups, 'group')}, ${n(r.items, 'item')}`)
+      const unseen = r.skipped.filter((x) => !pending.preview.skipped.includes(x))
+      if (unseen.length > 0) toast.warning(`${n(unseen.length, 'line')} skipped that the preview didn't show: ${unseen.join('; ')}`)
       setPending(null)
       void qc.invalidateQueries()
     } catch (e) {

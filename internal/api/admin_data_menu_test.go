@@ -65,3 +65,20 @@ func TestAdminMenuSheet(t *testing.T) {
 		t.Fatalf("the preview changed the menu: %d groups → %d", before, after)
 	}
 }
+
+// MENU-16: a group's name can't hold ">" — the sheet reads it as a path, so
+// "Soft > Hard" would come back as two groups.
+func TestGroupNameRefusesPathSeparator(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, fmt.Sprintf("07%08d", time.Now().UnixNano()%100_000_000), "admin")
+	if rec := te.do(http.MethodPost, "/api/v1/admin/groups", GroupRequest{Name: "Soft > Hard"}, ck); rec.Code != http.StatusUnprocessableEntity && rec.Code != http.StatusBadRequest {
+		t.Fatalf("create with '>': %d %s", rec.Code, rec.Body.String())
+	}
+	rec := te.do(http.MethodPost, "/api/v1/admin/groups", GroupRequest{Name: "Menu sep test"}, ck)
+	var g Option
+	json.Unmarshal(rec.Body.Bytes(), &g) //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM product_groups WHERE id = $1`, g.ID) }) //nolint:errcheck
+	if rec := te.do(http.MethodPut, fmt.Sprintf("/api/v1/admin/groups/%d", g.ID), GroupRequest{Name: "A>B"}, ck); rec.Code != http.StatusUnprocessableEntity && rec.Code != http.StatusBadRequest {
+		t.Fatalf("rename with '>': %d %s", rec.Code, rec.Body.String())
+	}
+}
