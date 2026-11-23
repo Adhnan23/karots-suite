@@ -1,6 +1,7 @@
 # Alternatives (ALT)
 
-Code: `plugins/alternatives` (store.go groups + tiers, store_members.go, split.go, grouper.go, offline.go, api.go),
+Code: `plugins/alternatives` (store.go groups + tiers, store_members.go, split.go, grouper.go, offline.go, api.go,
+sheet.go + api_sheet.go the sheet),
 `web/src/plugins/alternatives`. Tables: `alt_groups` → `alt_tiers` → `alt_members` (one membership per product).
 
 ## The words the rules use
@@ -21,6 +22,7 @@ Columns: **Do** · **Till** (search, swap, ⓘ) · **Reorder** · **Merge** · *
 | A member (add, move, remove) | ALT-2 | ALT-3, ALT-4 | ALT-6 | ALT-7 | PLG-3,4,6 |
 | Hand split | ALT-5 | — a | ALT-5 | ALT-5 | PLG-5 |
 | Tier level | ALT-6 | — a | ALT-6 | — a | PLG-5 |
+| The sheet (export, import) | ALT-9…18 | ALT-3 | ALT-6 | ALT-7 | PLG-4,5 |
 
 a — not touched there.
 
@@ -55,5 +57,51 @@ ALT-7  A product merge keeps the kept product's membership; the duplicate's move
        Checked by: example, ledgercheck.
 
 ALT-8  Deleting a group or tier removes its tiers and memberships, never a product.
+       Checked by: example.
+
+ALT-9  Export, then import that sheet unchanged, gives back the same set: the same groups, tiers and members, the
+       same group and tier order, on / off, tier levels (typed or Auto) and hand splits.
+       Tricky: a turned-off group; a disabled member; two tiers; a hand split. An empty group or tier has no product
+       line, so it doesn't come back (the preview lists the group as removed).
+       Checked by: example.
+
+ALT-10 The sheet is the whole set (user, 2026-11-23): after Apply the groups are exactly what it says; a group, tier
+       or member it doesn't name is gone.
+       Tricky: a group dropped with its tiers; a member dropped from a group that stays.
+       Checked by: example.
+
+ALT-11 The preview changes nothing, and Apply does exactly what the preview reported. Replace sends the very sheet
+       that was previewed (a file changed on disk afterwards isn't read again), and if Apply still skips a line the
+       preview didn't, the screen says so.
+       Checked by: example (also SheetMenu.test.tsx).
+
+ALT-12 Apply is all or nothing; two imports at once never mix: the second waits for the first, then replaces it.
+       Checked by: example.
+
+ALT-13 A line's product is found by its barcode (any of its barcodes, or a pack's), then by its exact name (case and
+       spacing ignored), never by an id, so a sheet made outside the shop fits. Skipped and listed with its line
+       number and the reason: no match; a name two products share; a service; a disabled product not already in that
+       tier; a line with no group; a product an earlier line already put in another group or tier. The same product
+       twice in one group and tier is one member. A product is never created.
+       Checked by: example.
+
+ALT-14 A sheet with no product lines is refused; it is never read as "remove every group".
+       Checked by: example.
+
+ALT-15 A group matches an existing one by name, a tier one of its group's by name (case and spacing ignored; a blank
+       tier matches the blank tier). A kept group keeps its on / off; a kept tier its level, Auto and on / off; a
+       member that stays in its tier keeps its share; a hand split that lost or gained members follows ALT-5. New
+       groups and tiers start on, with Auto level and split. Groups and tiers take the sheet's order and the
+       spelling of their first line.
+       Checked by: example.
+
+ALT-16 Only an admin imports the sheet (it can remove every group); an admin or a manager exports it.
+       Checked by: example.
+
+ALT-17 Importing changes nothing outside Alternatives: products (their reorder levels too), stock, money and sales are
+       as they were, and the auditor agrees before and after.
+       Checked by: example, ledgercheck.
+
+ALT-18 A disabled product already in a tier stays there through an import, is exported, and is found again.
        Checked by: example.
 ```
