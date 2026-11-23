@@ -1,5 +1,8 @@
 # People & users
 
+Credit customers and their balances, the people who use the shop's tills with their own
+rights, auto-lock, and who is signed in now and what they did.
+
 ## Customers
 
 ![Customers](../images/people/customers.jpg)

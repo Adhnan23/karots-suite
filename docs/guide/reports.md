@@ -1,5 +1,8 @@
 # Reports & dashboard
 
+The dashboard shows today against yesterday the moment you sign in; the reports cover sales,
+profit, stock, suppliers and money for any period, and work on a phone.
+
 ## Dashboard
 
 ![Dashboard](../images/admin/dashboard.jpg)
