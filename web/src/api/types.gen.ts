@@ -1264,6 +1264,19 @@ export interface SettingsImportResult {
   unknown: string[]; // not a setting in this version
 }
 /**
+ * MenuImportResult answers a cashier menu sheet import (docs/rules/menu.md): the
+ * menu it makes, how much of today's menu goes, and the lines it skips ("line 7:
+ * two products have this name"). Applied = false for a preview (?dry=1).
+ */
+export interface MenuImportResult {
+  groups: number /* int */;
+  items: number /* int */;
+  removedGroups: number /* int */;
+  removedItems: number /* int */;
+  skipped: string[];
+  applied: boolean;
+}
+/**
  * EntityImportResult answers a product / customer / supplier import: the good
  * rows land, each bad one is reported by its line in the sheet.
  */

@@ -25,6 +25,8 @@ func (h *handlers) registerAdminData(g *echo.Group) {
 	d.POST("/restore", h.AdminDataRestore, echomw.BodyLimit("256M"))
 	d.GET("/settings/export", h.AdminSettingsExport)
 	d.POST("/settings/import", h.AdminSettingsImport)
+	d.GET("/menu/export", h.AdminMenuExport)
+	d.POST("/menu/import", h.AdminMenuImport)
 	d.GET("/backups/:name", h.AdminDataBackupFile)
 	d.POST("/backups/:name/restore", h.AdminDataRestoreFile)
 	h.registerAdminUpdate(d)

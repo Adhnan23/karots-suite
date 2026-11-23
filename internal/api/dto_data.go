@@ -51,6 +51,18 @@ type SettingsImportResult struct {
 	Unknown []string `json:"unknown"` // not a setting in this version
 }
 
+// MenuImportResult answers a cashier menu sheet import (docs/rules/menu.md): the
+// menu it makes, how much of today's menu goes, and the lines it skips ("line 7:
+// two products have this name"). Applied = false for a preview (?dry=1).
+type MenuImportResult struct {
+	Groups        int      `json:"groups"`
+	Items         int      `json:"items"`
+	RemovedGroups int      `json:"removedGroups"`
+	RemovedItems  int      `json:"removedItems"`
+	Skipped       []string `json:"skipped"`
+	Applied       bool     `json:"applied"`
+}
+
 // EntityImportResult answers a product / customer / supplier import: the good
 // rows land, each bad one is reported by its line in the sheet.
 type EntityImportResult struct {
