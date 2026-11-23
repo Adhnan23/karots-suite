@@ -188,3 +188,16 @@ Products → Sheets ▾ → Import (user, 2026-11-23: fix a shop's whole list fr
   suppliers and stock alone), and the preview lists, for each product, exactly the fields that change, old → new —
   plugin columns included when the plugin is in the shop. *example.*
 - **IMP-5** Customers' and suppliers' sheets import as before (no preview). *example.*
+- **IMP-6** **Empty cells clear the field** (a tick on the import, off by default): an empty cell in a column the sheet
+  has clears that field — custom (plugin) fields, the local name and the supplier only. Name, category, unit, prices,
+  tax, reorder level and barcodes are never cleared by a sheet (a stray empty cell there would do real damage). The
+  preview shows a clear as old → —. Off, an empty cell leaves the field as it is (IMP-4). *example.*
+
+### Categories (CAT)
+
+- **CAT-1** **Delete empty categories…** (Categories page) lists every category with no products and no
+  sub-categories, each ticked; the user unticks the ones to keep (one made for products still to come: Plasters &
+  Bandages). Only the ticked ones go. *example.*
+- **CAT-2** A category with products or sub-categories is never deleted by it, even if it was empty when the list was
+  drawn (it's checked again at the moment of deleting and reported as kept). A parent left empty shows up the next
+  time the list is drawn. *example.*
