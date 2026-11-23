@@ -27,6 +27,18 @@ Playwright's Pocket pairing: stop it, or give it another `KAROTS_POCKET_PORT`, b
 
 ## Next — the user's call
 
+**In progress (2026-11-23, session ended mid-task):** products sheet preview (plan `docs/plans/2026-11-23-products-sheet-preview.md`,
+ledger `.superpowers/sdd/2026-11-23-products-sheet-preview/progress.md`): Tasks 1–4 done and committed; Task 5 left:
+read `~/.cache/karots-logs/imp-test-all.log` (full run started) and the fresh review, fix Important findings test-first,
+delete spec + plan. Rehearsal: Iman as-is shop on :3011 (`/mnt/nvme_512GB/karots/iman-asis`, db `iman_asis`,
+`load_asis.py`), fix sheet `iman-fix.csv` (by ref, 1,725 rows) previews in 10.9 s, not applied yet — the user applies it
+in the UI (Products → Sheets ▾, tick Include custom fields, Import). Open for the user: (1) a blank cell can't clear a
+field — 66 Iman ayurvedic / supplement products keep a typed "generic"; a clear marker needs a rule (user's yes);
+(2) ~12 catalogue generics look short vs Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D 2000; Chlofen DM
+and Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; Sucrafil + oxetacaine; GLA 120 + vitamin E;
+Nugesic: Iman says B vitamins, catalogue nimesulide) — list in `iman-asis/preview.json`; (3) unit changes only where a
+product has no packs / stock at the real Iman.
+
 **How a shop's catalogue is prepared (user, 2026-11-23):** after onboarding, the products are optimised on a
 **preview shop** here (catalogue names, generics, the category tree, units — Iman's at `localhost:3010`, database
 `iman_preview`, loader `/mnt/nvme_512GB/karots/iman-preview/load.py`), a proper cashier menu is built there, then
