@@ -71,7 +71,7 @@ the gaps → `make test-all COVER=1` → update the coverage map (https://claude
 re-upload its four JSON datasets). After the 7 core areas, each plugin the same way (its own rules and checks).
 
 **Writing tests that run side by side:** every Go package gets its own seeded database (`scripts/testdb`), every
-Playwright worker its own server and database (`scripts/e2e-servers.sh`, ports 3000+i, Pocket 8443+i). So a test
+Playwright worker its own server and database (`scripts/e2e-servers.sh`, ports 3100+i, Pocket 8543+i). So a test
 never leans on what another file left behind (create what it needs, look things up exactly), a battle shop is
 `newShop(t)` (+ `t.Parallel()`), and a throwaway database in Go is `ltest.NewDB(t)` (a copy of a migrated template).
 
@@ -238,7 +238,8 @@ docs/rules/           the rule book (grid per area, questions.md)
 ## Dev workflow
 
 - **Ports:** Postgres `suite_db` on **5433** (400 connections, `docker-compose.yml`), Go server on **3000**, Vite on **5173**
-  (proxies `/api`). Playwright's servers take **3000–3002** and Pocket **8443–8445** while it runs.
+  (proxies `/api`). Playwright's servers take **3100–3102** and Pocket **8543–8545** while it runs, so a dev server on 3000 / 8443 can
+  keep running.
 - `make db-up` → `make migrate` → `make dev` (air + Vite).
 - **Tests:** `make test-all` = everything before a Release, side by side (Go, Vitest, Playwright, then check-core; ~9½ min on
   this PC, logs in `~/.cache/karots-logs/full-*`; `COVER=1` adds coverage). Alone: `make test` (Go, every package on its
@@ -302,7 +303,7 @@ docs/rules/           the rule book (grid per area, questions.md)
 - `migrations/00001_baseline.sql` re-randomises `settings.install_id`. Never hard-code one in a migration, or every shop shares a support PIN.
 - `go run` children can survive `pkill` and leave a stale server. Restart cleanly.
 - The login limiter (burst 10, +1 per 2s) is keyed on the socket IP. The e2e specs import `test` from `e2e/fixtures.ts`, which waits out a 429. Import from there, not `@playwright/test`, or a full run fails on sign-in.
-- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3000 — including a dev server you started by hand — and serves stale code with no warning. Stop `make dev` before a Playwright run.
+- Playwright's `webServer` (`reuseExistingServer: true`) happily reuses whatever is already listening on 3100 and serves stale code with no warning: keep dev servers off 3100–3102 (they belong on 3000).
 - A Go test that reads `DATABASE_URL` gets its package's own copy of a seeded database only through `make test` /
   `make test-all` (`go test -exec bin/testdb`). A bare `go test` points it at `suite_db`, your dev data.
 - No process-wide state for anything a request reads: the battle tests run several servers in one process (the account

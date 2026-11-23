@@ -17,7 +17,7 @@ almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before 
   `shops/iman_reset.py` from an Onboard backup — rebuild it from a fresh backup if Iman's products change. After the
   reset, Onboard must re-pull Iman's products (its links point at the old ones).
 - **A fresh empty Iman-style shop** runs here for the user to rehearse the reset: `/mnt/nvme_512GB/karots/iman-fresh`
-  (`./start.sh`, :3010, Pocket 8453, db `iman_fresh`, plugins aicatalog, alternatives, combos, pharmacy,
+  (`./start.sh`, :3000, Pocket 8453, db `iman_fresh`, plugins aicatalog, alternatives, combos, pharmacy,
   pocketcashier, productplus; sign in as the system user, PIN in its `.env`). Build its binary like a plugin dev
   build (`make plugins P=…` → `make web` → `go build` → `make core-only`).
 - **This week's sheet work:** the cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU
@@ -27,7 +27,7 @@ almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before 
 
 **Last full run (2026-11-23):** all green — Go, Vitest, check-core, Playwright 274 passed. Pocket reads
 `KAROTS_POCKET_PORT` before `.env` is loaded (open bug): a dev shop must get it from the environment (`start.sh`
-does), or it takes 8443 and breaks Playwright's Pocket tests. Two specs race (`goto('/login')` right after an API
+does). Playwright now uses 3100+ / Pocket 8543+ (2026-11-23), so a dev server on 3000 / 8443 can keep running. Two specs race (`goto('/login')` right after an API
 logout: palettes, admin-people) — they pass on a rerun; make them wait for the redirect.
 
 ## Next — the user's call
@@ -35,7 +35,7 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 1. **Next session: Alternatives → Group by fields** (no AI), tried on the fresh Iman shop: pick product fields
    (Generic Name + Strength); same values = one group, shown to untick wrong ones, saved as ordinary groups. Fields
    come through core's `ProductAttributeSet` hook, so Alternatives never names Product Plus. **Test shop: the
-   fresh Iman shop at :3010** (reset done by the user 2026-11-23: 1,723 products, all frozen; 235 generics shared by
+   fresh Iman shop at :3000** (reset done by the user 2026-11-23: 1,723 products, all frozen; 235 generics shared by
    1,417 products). Gap: no Strength field — Generic Name alone mixes Atorvastatin 5 / 10 / 20 / 40mg; add a Strength
    field filled from the names (one sheet import) before trying it. Then **supplier by field** on the same shop: 550
    products have no supplier, 431 of them a Distributor; but 134 distributor spellings vs Iman's 31 suppliers, so the

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Playwright's servers: the binary built once (every plugin), then for each of N
 # workers a fresh database seeded like `make e2e-seed` and its own server
-# (port 3000+i, Pocket Cashier 8443+i). Server 0 starts last, so Playwright's
-# ready check (port 3000) means every one is up. Ctrl-C / Playwright's stop ends them all.
+# (port 3100+i, Pocket Cashier 8543+i). Server 0 starts last, so Playwright's
+# ready check (port 3100) means every one is up. Ctrl-C / Playwright's stop ends them all.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 n=${E2E_WORKERS:-3}
@@ -22,11 +22,11 @@ for ((i = n - 1; i >= 0; i--)); do
   DATABASE_URL=$url ./bin/karots-suite -reset >/dev/null
   psql -d $db -f - < scripts/e2e-users.sql
   psql -d $db -f - < scripts/e2e-till.sql
-  DATABASE_URL=$url SERVER_PORT=$((3000 + i)) KAROTS_POCKET_PORT=$((8443 + i)) KAROTS_NO_SPOOL=1 ./bin/karots-suite \
+  DATABASE_URL=$url SERVER_PORT=$((3100 + i)) KAROTS_POCKET_PORT=$((8543 + i)) KAROTS_NO_SPOOL=1 ./bin/karots-suite \
     > ~/.cache/karots-logs/e2e-server-$i.log 2>&1 &
   pids+=($!)
   if ((i > 0)); then
-    until curl -sf "http://localhost:$((3000 + i))/api/v1/auth/login-info" >/dev/null; do sleep 0.3; done
+    until curl -sf "http://localhost:$((3100 + i))/api/v1/auth/login-info" >/dev/null; do sleep 0.3; done
   fi
 done
 wait
