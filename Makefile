@@ -1,4 +1,4 @@
-.PHONY: battle proofs mutate test-all demo demo-fresh demo-web demo-dev docs-shots tour-shots demo-room-deploy agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
+.PHONY: battle proofs mutate mutate-clean test-all demo demo-fresh demo-web demo-dev docs-shots tour-shots demo-room-deploy agreement db-up db-down migrate test run types web build verify-portable dev test-web test-fresh e2e-seed check-core bootstrap plugins core-only verify setup shop shop-test support-pin
 ENV = set -a && . ./.env && set +a &&
 
 db-up:
@@ -52,9 +52,13 @@ proofs:
 mutate:
 	mkdir -p ~/.cache/karots-logs ~/.cache/karots-gremlins
 	for p in sales cashregister cashflow expenses payout lockers customers; do \
-		$(ENV) TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/$$p \
+		$(ENV) GOCACHE=$$HOME/.cache/karots-go-build-mutants TMPDIR=$$HOME/.cache/karots-gremlins gremlins unleash --workers 1 --timeout-coefficient 3 ./internal/features/$$p \
 			> ~/.cache/karots-logs/gremlins-$$p.log 2>&1; echo "== $$p"; tail -4 ~/.cache/karots-logs/gremlins-$$p.log; done
 	cd web && bunx stryker run > ~/.cache/karots-logs/stryker.log 2>&1; grep -E "All files|\.ts " ~/.cache/karots-logs/stryker.log
+
+# After mutation work: the mutants' own Go cache and the replay copies (tens of GB; all rebuilt when next needed).
+mutate-clean:
+	rm -rf ~/.cache/karots-go-build-mutants/* ~/.cache/karots-gremlins/* ~/.cache/karots-mutant*/*
 
 # Everything before a Release, side by side (Go, Vitest, Playwright, then check-core):
 # about 10 min. COVER=1 adds the coverage map's numbers. Logs: ~/.cache/karots-logs/full-*.

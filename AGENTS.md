@@ -309,6 +309,8 @@ docs/rules/           the rule book (grid per area, questions.md)
 - No process-wide state for anything a request reads: the battle tests run several servers in one process (the account
   check was a global and signed other shops' cashiers out; `JWTAuthWith` now takes the server's own).
 - `gremlins` copies the whole repo per run: `make mutate` points its temp at `~/.cache/karots-gremlins` (it filled /tmp once).
+  Mutants compile into their own Go cache (`~/.cache/karots-go-build-mutants`; the shared one once reached 42 GB):
+  `make mutate-clean` after mutation work.
 - Test databases left on the server on purpose: `test_tpl` (rebuilt each `make test`) and `ledger_tpl_<hash>` (per set of migrations).
 - A CSS `background` shorthand silently drops the **whole declaration** if a colour lands on a non-final layer — which happens the moment a palette's `--bg-art` becomes a 2+ layer gradient (Night does; Studio's `none` doesn't). Set `background-color` / `background-image` / `background-attachment` as longhand instead of folding a token into the shorthand.
 - **File mode never uses a plain `C` locale:** pg_trgm then treats every Sinhala / Tamil letter as punctuation and search finds nothing. Never let embedded-postgres see a data folder it can't use either — it **wipes and re-inits** one whose `PG_VERSION` doesn't match (`filedb.checkDataDir` refuses first).
