@@ -20,7 +20,7 @@ const preview = {
 Object.defineProperty(window, 'matchMedia', { writable: true, value: (q: string) => ({ matches: false, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false }) })
 
 function renderSheet() {
-  render(<QueryClientProvider client={new QueryClient()}><ImportSheet entity="products" qs="&extras=productplus" included={[]} onClose={() => {}} /></QueryClientProvider>)
+  render(<QueryClientProvider client={new QueryClient()}><ImportSheet entity="products" qs="&extras=fields" included={[]} onClose={() => {}} /></QueryClientProvider>)
 }
 
 describe('products import: preview first (IMP-1, 2, 4)', () => {
@@ -33,7 +33,7 @@ describe('products import: preview first (IMP-1, 2, 4)', () => {
     fireEvent.change(document.querySelector('input[type=file]')!, { target: { files: [picked] } })
 
     await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
-    expect(upload.mock.calls[0][0]).toBe('/admin/products/import?dry=1&extras=productplus')
+    expect(upload.mock.calls[0][0]).toBe('/admin/products/import?dry=1&extras=fields')
     expect((await screen.findAllByText('2 to update')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('1 new').length).toBeGreaterThan(0)
     expect(screen.getAllByText('1 skipped').length).toBeGreaterThan(0)
@@ -47,7 +47,7 @@ describe('products import: preview first (IMP-1, 2, 4)', () => {
 
     fireEvent.click((await screen.findAllByRole('button', { name: 'Import' }))[0])
     await waitFor(() => expect(upload).toHaveBeenCalledTimes(2))
-    expect(upload.mock.calls[1][0]).toBe('/admin/products/import?extras=productplus')
+    expect(upload.mock.calls[1][0]).toBe('/admin/products/import?extras=fields')
     const sent = upload.mock.calls[1][2] as File
     expect(sent).not.toBe(picked)
     expect(await sent.text()).toBe('name\nGlucomet 500mg\n')
