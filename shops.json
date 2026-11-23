@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-22T08:37:42Z",
-        "commit": "03edc4df",
-        "version": "2026.11.22.1407",
+        "at": "2026-11-23T09:11:34Z",
+        "commit": "e011ae65",
+        "version": "2026.11.23.1441",
         "kind": "release",
-        "notes": "• Returns: a discounted sale never refunds more than was paid — returned line by line, in small parts, or after the credit was paid off\n• Paying twice by mistake (Pay pressed again after a slow answer) makes one sale, not two\n• The drawer and the Z report: a sale paid during a close, cash refunds and two withdrawals at once are all counted right\n• Customers: payments and advance refunds at the same moment never pay off or refund twice; the credit limit holds on two tills\n• Stock: a count saved while selling no longer overwrites those sales; whole-piece items never take fractions\n• Suppliers: deliveries, payments and goods sent back at the same moment are booked once; sending a whole delivery back clears its bill to the cent\n• Reports: opening stock is no longer counted as profit; a return counts on the day it was given; the Sales report leaves out tax and voided sales; the Tax report shows tax given back\n• Pharmacy: a patient picked at the till gets the dispense written with the sale\n• Combos: the combo report takes returned sets off\n• Backups: a backup taken while selling restores whole, a restore never loses a sale made at that moment, and the copies kept before a restore or an update stay 30 days\n• Updates: a power cut during an update always leaves Karots able to start, and if a new version can't start, the old one comes back and keeps selling"
+        "notes": "• Sheet ▾\n• Import the sheet with a preview (ALT-11, 14, 16)\n• Rebuild the groups from a sheet (ALT-10, 12–15)\n• Export the groups as a sheet (ALT-9, ALT-18)\n• The import's Empty cells clear the field tick\n• Empty cells can clear a field on a products import (custom fields, local name, supplier only)\n• The preview shows the import's notes, an older preview never replaces a newer one, and the button says Choose a file until a preview is there\n• A product a till holds is skipped after half a second with its reason, never waited on (never stop a sale)\n• A joined transaction's rollback releases its savepoint, so an outer one rolls back too, and a swallowed failure no longer leaves the caller aborted (IMP-3\n• Products → Sheets → Import shows what will change before it imports\n• The preview lists each product's changes, old → new, plugin columns too (IMP-2, 4)\n• The products sheet imports in one transaction, a savepoint per line, and can be previewed (IMP-1, 3)\n• Sheets ▾ on Setup → Cashier menu\n• Review\n• Cashier menu row on Data → Spreadsheets\n…and 5 more fixes"
       },
       "published": {
-        "version": "2026.11.22.1407",
-        "commit": "03edc4df",
-        "at": "2026-11-22T08:37:53Z"
+        "version": "2026.11.23.1441",
+        "commit": "e011ae65",
+        "at": "2026-11-23T09:11:54Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
