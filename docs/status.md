@@ -35,6 +35,12 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 
 ## Next — the user's call
 
+0. **Next session (user, 2026-11-23):** (a) the new Demo Room to demo.karots.lk (`make demo` was built today with
+   the Alternatives sheet; `make demo-room-deploy`); (b) the site changes; (c) **the site review** in
+   `docs/reviews/2026-11-23-site-review.md`: audit each point against the code, tests and the user's policies written
+   there (evidence first, nothing changed until the audit is done), then fix the site / guides / legal wording;
+   Shelf permissions as a security finding of its own. Release to Iman with this week's work: the user, from the
+   Builder (notes drafted 2026-11-23).
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
    from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
    shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
