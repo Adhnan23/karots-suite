@@ -8,6 +8,13 @@ time. Two uses, both the user's (2026-11-23):
 1. **Ready-made menus for new shops** — a pharmacy, a grocery, a bakery start from a good menu, not an empty one.
 2. **Bulk edits with AI** — export the menu, let AI regroup / rename / add emoji / reorder it, import it back.
 
+The workflow it serves (user): after a shop's onboarding, its products are optimised on a **preview shop** here
+(names, generics, categories, units — as done for Iman on 2026-11-23 at `localhost:3010`), a proper menu is built
+there, and then both are imported into the real shop: products by the products sheet (with refs), the menu by this
+sheet. AI does the optimising; the menu sheet must be easy for it to read and write. So a menu made in one shop
+must import into another shop whose products are the same but whose ids differ — products are matched by barcode
+and name, never by id.
+
 ## Goals
 
 - Export the whole cashier menu as a spreadsheet (CSV / XLSX / ODS, like every other sheet) and import it back.
