@@ -32,14 +32,14 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 
 ## Next — the user's call
 
-1. **Next session: Alternatives → Group by fields** (no AI), tried on the fresh Iman shop: pick product fields
-   (Generic Name + Strength); same values = one group, shown to untick wrong ones, saved as ordinary groups. Fields
-   come through core's `ProductAttributeSet` hook, so Alternatives never names Product Plus. **Test shop: the dev
-   server (`make dev`, Iman's data)** (reset done by the user 2026-11-23: 1,723 products, all frozen; 235 generics shared by
-   1,417 products). Gap: no Strength field — Generic Name alone mixes Atorvastatin 5 / 10 / 20 / 40mg; add a Strength
-   field filled from the names (one sheet import) before trying it. Then **supplier by field** on the same shop: 550
-   products have no supplier, 431 of them a Distributor; but 134 distributor spellings vs Iman's 31 suppliers, so the
-   design needs a distributor → supplier mapping (several to one).
+1. **Next: the Alternatives sheet** (spec `docs/specs/2026-11-23-alternatives-sheet.md`): Sheet ▾ on the
+   Alternatives page, export / import `Group, Tier, Product, Barcode`, the sheet is the whole set, preview first like
+   the menu sheet. Then Iman's `alternatives.csv` from the catalogue repo. **Group by fields was dropped** (user,
+   2026-11-23): exact field values miss twins (generic names with several ingredients joined by "+"); AI groups
+   better, a sheet is simpler. Later: the AI Assistant's group maker reads custom fields (today it sends only the
+   name and its own notes, and skips names with no digit). Then **supplier by field**: 550 Iman products have no
+   supplier, 431 of them a Distributor; 134 distributor spellings vs 31 suppliers, so it needs a distributor →
+   supplier mapping (several to one).
 2. Iman's reset at the shop (the user), then the stock-take and the first real sale; a Release with this week's work
    first. Later product changes at Iman: a fresh Onboard backup → `shops/iman_reset.py` / the update file.
 3. Open for the user: ~12 catalogue generics that look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 /
