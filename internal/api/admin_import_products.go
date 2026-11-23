@@ -49,6 +49,8 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 	}
 	sups := suppliers.NewService(h.d.DB)
 	matchByName := yesCell(c.FormValue("matchByName"))
+	clear := c.QueryParam("clear") == "1" // IMP-6: an empty cell clears the safe columns
+	inSheet := func(k string) bool { _, ok := col[k]; return ok }
 	install, err := h.installID(c)
 	if err != nil {
 		return err
@@ -101,7 +103,7 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 			CategoryID: catID, UnitID: unit, UserID: user, PreferredSupplier: supID,
 			Cost: amt["cost_price"], Selling: amt["selling_price"], Wholesale: amt["wholesale_price"], Tax: amt["tax_rate"],
 			Reorder: reorder, WarrantyMonths: warranty, TrackSerial: yesCell(get("track_serial")),
-			OpeningQty: amt["opening_qty"], MatchByName: matchByName, Given: givenCols(col, get), Active: active,
+			OpeningQty: amt["opening_qty"], MatchByName: matchByName, Given: clearedCols(givenCols(col, get), clear, inSheet), Active: active,
 		})
 		if err != nil {
 			return "", "", err
@@ -109,7 +111,7 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		if n := h.importBarcodes(ctx, r.ProductID, get("extra_barcodes")); n != "" {
 			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
 		}
-		if n := importExtras(ctx, xs, r.ProductID, catID, get); n != "" {
+		if n := importExtras(ctx, xs, r.ProductID, catID, get, clear, inSheet); n != "" {
 			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
 		}
 		lastID = r.ProductID
@@ -177,4 +179,20 @@ func busyProduct(err error) error {
 		return apperr.Validation("a till is using this product right now — import the sheet again in a moment")
 	}
 	return err
+}
+
+// clearableCols are the only core columns an empty cell may clear (IMP-6): never a
+// name, category, unit, price, tax, reorder level or barcode.
+var clearableCols = []string{"name_local", "supplier"}
+
+// clearedCols adds the clearable columns the sheet has (even empty) when clear is on.
+func clearedCols(given map[string]bool, clear bool, inSheet func(string) bool) map[string]bool {
+	if clear {
+		for _, k := range clearableCols {
+			if inSheet(k) {
+				given[k] = true
+			}
+		}
+	}
+	return given
 }

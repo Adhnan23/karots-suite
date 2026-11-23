@@ -240,3 +240,32 @@ func TestIMP3TillGoesFirst(t *testing.T) {
 		t.Fatalf("result %+v", r)
 	}
 }
+
+// IMP-6: with "empty cells clear" ticked, an empty local name or supplier clears it;
+// an empty price never does. Off, empty cells leave everything as it was.
+func TestIMP6EmptyCellsClear(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	var sup struct{ ID int64 }
+	s.must(t, s.admin.Do("POST", "/api/v1/admin/suppliers", map[string]any{"name": "Imp Clear Supplier"}, &sup))
+	p := s.stocked(t, "Imp Clear Me", s.unitPcs, sup.ID, map[string]any{"nameLocal": "ලංකා"})
+	sheet := csvOf([]string{"ref", "name", "name_local", "supplier", "selling_price"}, []string{s.refOf(t, "Imp Clear Me"), "Imp Clear Me", "", "", ""})
+	state := func() (local, supplier, price string) {
+		s.must(t, s.db.QueryRow(`SELECT COALESCE(name_local, ''), COALESCE(preferred_supplier_id::text, ''), selling_price::text FROM products WHERE id = $1`, p).Scan(&local, &supplier, &price))
+		return
+	}
+	l0, s0, p0 := state()
+	s.importProducts(t, sheet, false)
+	if l, su, pr := state(); l != l0 || su != s0 || pr != p0 {
+		t.Fatalf("IMP-4: empty cells changed %q %q %q", l, su, pr)
+	}
+	var r importResult
+	s.must(t, s.admin.upload("/api/v1/admin/products/import?clear=1&dry=1", "p.csv", sheet, &r))
+	if len(r.Changes) != 1 || len(r.Changes[0].Fields) != 2 {
+		t.Fatalf("IMP-6 preview: %+v", r.Changes)
+	}
+	s.must(t, s.admin.upload("/api/v1/admin/products/import?clear=1", "p.csv", sheet, nil))
+	if l, su, pr := state(); l != "" || su != "" || pr != p0 {
+		t.Fatalf("IMP-6: local %q, supplier %q, price %s (was %s)", l, su, pr, p0)
+	}
+}

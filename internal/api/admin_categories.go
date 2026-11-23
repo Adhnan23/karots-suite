@@ -19,6 +19,8 @@ func (h *handlers) registerAdminCategories(g *echo.Group) {
 	g.POST("/categories/quick", h.AdminCategoryQuick)
 	g.PUT("/categories/:id", h.AdminCategoryUpdate)
 	g.DELETE("/categories/:id", h.AdminCategoryDelete)
+	g.GET("/categories/empty", h.AdminCategoriesEmpty)
+	g.POST("/categories/delete-empty", h.AdminCategoriesDeleteEmpty)
 }
 
 func (h *handlers) categoryTree(c echo.Context) ([]CategoryNode, error) {

@@ -24,6 +24,23 @@ type CategoryNode struct {
 }
 
 // CategoryRequest creates or edits a category. ParentID 0 = top level.
+// EmptyCategory is a category with no products and no sub-categories (CAT-1).
+type EmptyCategory struct {
+	ID   int64  `json:"id"`
+	Path string `json:"path"`
+}
+
+// DeleteEmptyCategoriesRequest names the ticked ones.
+type DeleteEmptyCategoriesRequest struct {
+	IDs []int64 `json:"ids"`
+}
+
+// DeleteEmptyCategoriesResult: how many went, and the ticked ones kept (CAT-2).
+type DeleteEmptyCategoriesResult struct {
+	Deleted int      `json:"deleted"`
+	Kept    []string `json:"kept"`
+}
+
 type CategoryRequest struct {
 	Name     string `json:"name"`
 	ParentID int64  `json:"parentId"`

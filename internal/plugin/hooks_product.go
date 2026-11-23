@@ -30,7 +30,8 @@ type ProductExtras struct {
 // (export, template, import) when the admin ticks its toggle (Label) on
 // Products → Sheets. Columns names them (the header); Export returns each
 // product's cells in that order (omit an id for blanks); Import gets one row's
-// non-blank cells keyed by column, after core saved the product, and returns a
+// non-blank cells keyed by column (with the import's "empty cells clear" on, also its
+// empty ones: "" means clear that value), after core saved the product, and returns a
 // note for the import report (a bad cell is a note, not a failed row).
 type ProductSheetColumns struct {
 	Key, Label string

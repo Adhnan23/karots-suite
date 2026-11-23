@@ -40,3 +40,23 @@ func TestIMPPreviewWithCustomFields(t *testing.T) {
 		t.Fatalf("IMP-1: the preview kept %q", v)
 	}
 }
+
+// IMP-6: with "empty cells clear" on, an empty custom-field cell clears the value;
+// off, it's left as it was.
+func TestIMP6ClearsACustomField(t *testing.T) {
+	s := ltest.Shared(t).Shop
+	g := field(t, s, map[string]any{"label": "Clear Generic", "type": "text"})
+	p := s.Product(t, "Imp Pp Clear", "50", "0", nil)
+	fill(t, s, cell(p, g.ID, "herbal cough syrup"))
+	var b bytes.Buffer
+	w := csv.NewWriter(&b)
+	w.WriteAll([][]string{{"name", "Clear Generic"}, {"Imp Pp Clear", ""}}) //nolint:errcheck
+	s.Must(t, s.Admin.Upload("/api/v1/admin/products/import?extras=productplus", "p.csv", b.Bytes(), nil))
+	if v, ok := value(t, s, g.ID, p); !ok || v != "herbal cough syrup" {
+		t.Fatalf("IMP-4: an empty cell changed the value to %q", v)
+	}
+	s.Must(t, s.Admin.Upload("/api/v1/admin/products/import?extras=productplus&clear=1", "p.csv", b.Bytes(), nil))
+	if v, ok := value(t, s, g.ID, p); ok {
+		t.Fatalf("IMP-6: the value is still %q", v)
+	}
+}

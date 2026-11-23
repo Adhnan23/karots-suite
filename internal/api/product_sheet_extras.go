@@ -114,13 +114,13 @@ func extraCells(c echo.Context, xs []sheetExtra, ids []int64, rows [][]string) e
 
 // importExtras hands one imported row's plugin cells to each extra; a failure or
 // a bad cell comes back as a note on that line, the product stays imported.
-func importExtras(ctx context.Context, xs []sheetExtra, productID, categoryID int64, get func(string) string) string {
+func importExtras(ctx context.Context, xs []sheetExtra, productID, categoryID int64, get func(string) string, clear bool, inSheet func(string) bool) string {
 	var notes []string
 	for _, x := range xs {
 		cells := map[string]string{}
 		for _, col := range x.cols {
-			if v := get(strings.ToLower(col)); v != "" {
-				cells[col] = v
+			if v := get(strings.ToLower(col)); v != "" || clear && inSheet(strings.ToLower(col)) {
+				cells[col] = v // with clear on, an empty cell is passed on: the plugin clears that value (IMP-6)
 			}
 		}
 		if len(cells) == 0 {

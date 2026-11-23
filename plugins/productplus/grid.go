@@ -138,6 +138,12 @@ func (s *Store) SheetImport(ctx context.Context, productID, cat int64, cells map
 		if !ok {
 			continue
 		}
+		if strings.TrimSpace(raw) == "" { // an import clearing this field (IMP-6)
+			if _, err := appdb.On(ctx, s.db).ExecContext(ctx, `DELETE FROM pp_values WHERE field_id = $1 AND product_id = $2`, ff.Field.ID, productID); err != nil {
+				return "", err
+			}
+			continue
+		}
 		cur := ""
 		if ff.Own {
 			cur = ff.Value

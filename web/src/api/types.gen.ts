@@ -180,7 +180,25 @@ export interface CategoryNode {
 }
 /**
  * CategoryRequest creates or edits a category. ParentID 0 = top level.
+ * EmptyCategory is a category with no products and no sub-categories (CAT-1).
  */
+export interface EmptyCategory {
+  id: number /* int64 */;
+  path: string;
+}
+/**
+ * DeleteEmptyCategoriesRequest names the ticked ones.
+ */
+export interface DeleteEmptyCategoriesRequest {
+  ids: number /* int64 */[];
+}
+/**
+ * DeleteEmptyCategoriesResult: how many went, and the ticked ones kept (CAT-2).
+ */
+export interface DeleteEmptyCategoriesResult {
+  deleted: number /* int */;
+  kept: string[];
+}
 export interface CategoryRequest {
   name: string;
   parentId: number /* int64 */;
