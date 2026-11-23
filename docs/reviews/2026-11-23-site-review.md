@@ -49,3 +49,22 @@ the limit; negative stock and fixing it; imports with bad rows or duplicate barc
 migrating; the audit log; two tills selling the last unit.
 
 The review also says: keep the detailed everyday guides — the risk is the promises, not missing features.
+
+## Audit (2026-11-23, evidence from the code; nothing changed yet)
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 Power cuts | **Review is right.** Hero says "keeps selling when … the power goes" (`Hero.astro:12`). FAQ + Trust card are true. | `internal/battle/powercut_test.go` (real server killed mid-sale/return/payment/delivery; auditor clean), `powercut_install_test.go` (backups, updates). Fix: "a power cut loses no finished sale; a UPS keeps you selling". |
+| 2 Testing claims | **Half right.** Rule book, auditor, battle days, power cuts, previous Release on the new schema (`upgrade_test.go` UPD-6) are real. "Before any update reaches you" is our habit (`make test-all` before a Release), **not enforced**: the Builder's Release runs no tests (`cmd/bootstrap/app_release.go`). "Never get money and stock wrong" is a promise; word it as what we test. |
+| 3 Service plan | **Review is right.** `pricing.ts` SERVICE.gets = "Every new feature", "Help any time", "And more" — against the policy. |
+| 4 Bugs free forever | **Missing everywhere, and the legal pack says the opposite:** LICENSE 9.2 + Second Schedule 1 = bugs and updates free **for the first year**, then paid; site says 3 months' warranty. Policy: 3 months, bugs always free. |
+| 5 Licence terms | **Conflict.** LICENSE 3.1 = "as many of the Shop's own computers there [at the Site] as it needs"; policy = one device / installation per licence. Site's FAQ: "more counters can use more PCs". Nothing on the site about reinstall, moving (LICENSE 3.3 allows a move at the Site), ownership, Karots stopping. |
+| 6 Cloud after the plan | **Conflict with policy.** Bucket lifecycle deletes every copy after **30 days** (`docs/cloud-backup-bucket.md` step 3) — so "the last one stays the latest" lasts 30 days. Stopping cloud = Builder untick + Release + Update (no remote switch). Second Schedule 3 freezes after 7 days late. |
+| 7 Backups | Facts for the site: every 6 h, keep 28 (7 days) in `<install>/backups` (`cmd/bootstrap/profiles.go:77`); copy folder set in the Builder then the Data page; cloud sealed per shop key before upload (`internal/backup/seal.go`); local files and copies are **not** encrypted. Uninstall keeps a final backup. |
+| 8 Hardware | **No minimums anywhere** (`docs/guide/install.md`). Only real data: Iman's i3 4th gen / 8 GB / 120 GB SSD, Xubuntu VMs, a Windows 10 VM. |
+| 9 Shelf permissions | **Confirmed.** A cashier with the Shelf tick reaches `GET products/export`, `GET/PUT/DELETE products/:id`, `stock/adjust` … (`internal/api/shelf.go` shelfCore) with no `can_see_cost` check: sees and sets cost, can **delete products** and adjust stock. Untick works at once (gate re-checks the flag every request). Writes land in Activity under the person. |
+| 10 Pharmacy | No compliance claim is made, but none is denied either. Add one line: "a record to help you, not a check that you meet NMRA rules". |
+| 11 AI privacy | Prompts carry product names, barcodes, categories and the shop's custom instructions only — no customers, patients, phones or prices (`plugins/aicatalog/prompts.go`, `job_*.go`). Site can say so plainly. |
+| 12 Printers | `docs/guide/printing.md` already lists tested (XP-80T, USB, Linux; Win10 Generic/Text Only test slip). Site FAQ says "common … printers" with no tested list; XP-365B labels untested. |
+
+The "also worth a line" guide items are not audited yet.
