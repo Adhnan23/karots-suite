@@ -182,7 +182,8 @@ Products → Sheets ▾ → Import (user, 2026-11-23: fix a shop's whole list fr
   skipped whole — nothing it made (a category, a supplier, a barcode, opening stock) stays; a database failure or a
   power cut leaves the shop as it was. Tricky: a line that fails inside the product write itself, after it made a
   category (nested savepoints: each is released after its rollback); a plugin that swallows a failed statement (its
-  savepoint is undone, the import goes on). *example, fault.*
+  savepoint is undone, the import goes on); a product a till holds at that moment is skipped after half a second
+  with its reason, never waited on (never stop a sale). *example, fault.*
 - **IMP-4** Only the columns a sheet fills change (a sheet of names and categories leaves barcodes, packs, prices,
   suppliers and stock alone), and the preview lists, for each product, exactly the fields that change, old → new —
   plugin columns included when the plugin is in the shop. *example.*

@@ -15,6 +15,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"github.com/lib/pq"
 )
 
 // The products sheet import (docs/rules/stock.md IMP): one transaction, a
@@ -120,6 +121,10 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 	// line that fails leaves nothing behind); a preview is the same run, rolled back.
 	err = db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
 		tctx := db.InTx(ctx, tx)
+		// Never stop a sale: a product a till holds is skipped after a moment, not waited on.
+		if _, err := tx.ExecContext(ctx, `SET LOCAL lock_timeout = '500ms'`); err != nil {
+			return err
+		}
 		res = newImportResult()
 		res.Changes = []ImportChange{}
 		snaps, err := productSnaps(tctx, tx, nil, xs) // every product as it is now: a line's "before"
@@ -130,7 +135,7 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 			err = db.WithTx(tctx, h.d.DB, func(*sqlx.Tx) error {
 				var rerr error
 				if action, note, rerr = importProductRow(tctx, get); rerr != nil {
-					return rerr
+					return busyProduct(rerr)
 				}
 				after, rerr := productSnaps(tctx, tx, []int64{lastID}, xs)
 				if rerr != nil {
@@ -162,4 +167,14 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 	}
 	res.Applied = true
 	return h.finishImport(c, "product", res)
+}
+
+// busyProduct turns a lock timeout (a till using the product right now) into a
+// line the import skips with a plain reason.
+func busyProduct(err error) error {
+	var pe *pq.Error
+	if errors.As(err, &pe) && pe.Code == "55P03" || strings.Contains(err.Error(), "lock timeout") {
+		return apperr.Validation("a till is using this product right now — import the sheet again in a moment")
+	}
+	return err
 }

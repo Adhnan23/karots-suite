@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"karots-suite/internal/ledgercheck/ltest"
 )
@@ -212,5 +213,30 @@ func TestIMP3FailedInsideTheWrite(t *testing.T) {
 	s.must(t, s.db.Get(&sups, `SELECT count(*) FROM suppliers WHERE name = 'Imp Inner Ghost Supplier'`))
 	if cats != 0 || sups != 0 {
 		t.Fatalf("IMP-3: a line that failed inside the write left %d categories and %d suppliers", cats, sups)
+	}
+}
+
+// IMP-3 (never stop a sale): a product a till is busy with (its row locked) is
+// skipped by the import within a moment, never waited on — the till goes first.
+func TestIMP3TillGoesFirst(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	busy := s.stocked(t, "Imp Busy", s.unitPcs, 0, nil)
+	s.stocked(t, "Imp Free", s.unitPcs, 0, nil)
+	till, err := s.db.Beginx()
+	s.must(t, err)
+	defer till.Rollback() //nolint:errcheck
+	till.MustExec(`SELECT 1 FROM products WHERE id = $1 FOR UPDATE`, busy)
+	start := time.Now()
+	r := s.importProducts(t, csvOf(
+		[]string{"ref", "name", "selling_price"},
+		[]string{s.refOf(t, "Imp Busy"), "Imp Busy", "77"},
+		[]string{s.refOf(t, "Imp Free"), "Imp Free", "78"},
+	), false)
+	if took := time.Since(start); took > 5*time.Second {
+		t.Fatalf("the import waited %v on a till's product", took)
+	}
+	if r.Updated != 1 || r.Skipped != 1 || len(r.Errors) != 1 || r.Errors[0].Line != 2 {
+		t.Fatalf("result %+v", r)
 	}
 }
