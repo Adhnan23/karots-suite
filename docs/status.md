@@ -36,11 +36,27 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 
 ## Next — the user's call
 
-0. **Next session (user, 2026-11-23):** (a) the new Demo Room to demo.karots.lk (`make demo` was built today with
-   the Alternatives sheet; `make demo-room-deploy`); (b) the site changes; (c) **the site review** in
-   `docs/reviews/2026-11-23-site-review.md`: audit each point against the code, tests and the user's policies written
-   there (evidence first, nothing changed until the audit is done), then fix the site / guides / legal wording;
-   Shelf permissions as a security finding of its own.
+0. **Next (decided with the user, 2026-11-23)** — the site review is audited (table in
+   `docs/reviews/2026-11-23-site-review.md`); Demo Room + site deployed with noindex / descriptions / sitemap dates.
+   In order:
+   1. **Shelf follows the person's rights** (security): no cost seen or set without See cost; delete product and stock
+      adjust only for admin / manager. Rule book first, failing test, server (`internal/api/shelf.go`), then the Shelf
+      app hides the cost field (Flutter repo).
+   2. **Release refuses untested code:** `make test-all` records the commit it passed on; the Builder's Release refuses
+      any other commit (rule in `docs/rules/install.md`).
+   3. **Low-spec benchmark** on the `karots-main` (Xubuntu) and `win10` VMs, Iman's 1,723 products + a Demo Room
+      year: 2 cores / 4 GB → 2 / 2 GB → 1 / 2 GB; start-up, till search (< 0.3 s), a sale (< 1 s), big reports,
+      backup, update. Lowest pass = minimum, one up = recommended; publish as tested, never invented.
+   4. **One pass of wording** on the site, guides and legal pack (`LICENSE`, Shop Rules, `make agreement`) from the
+      user's policies: one licence = the one PC running the Suite (cashier PCs and phones only connect); 3 months'
+      warranty, **genuine bugs always fixed free**; service plan = cloud backups, support, major upgrades, small
+      changes, maintenance (not "every new feature" / "help any time"); support without a plan is charged; the last
+      cloud copy kept **30 days** after the plan ends (bucket lifecycle), local backups carry on; power cut = no
+      finished sale lost, a UPS keeps you selling; testing worded as what we test; who-pays table; backups (6 h, keep
+      28, copy folder, cloud sealed, local not encrypted); pharmacy register is a help, not NMRA compliance; AI
+      prompts carry only product names, barcodes, categories; tested printers.
+   5. Open for the user: Cloudflare's managed robots.txt (AI bots blocked on the site; its `Allow: /` overrides the
+      demo's `Disallow: /`, noindex still keeps the demo out).
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
    from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
    shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
