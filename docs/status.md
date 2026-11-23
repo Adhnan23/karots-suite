@@ -27,26 +27,17 @@ Playwright's Pocket pairing: stop it, or give it another `KAROTS_POCKET_PORT`, b
 
 ## Next — the user's call
 
-**In progress (2026-11-23, session ended mid-task):** products sheet preview (plan `docs/plans/2026-11-23-products-sheet-preview.md`,
-ledger `.superpowers/sdd/2026-11-23-products-sheet-preview/progress.md`): Tasks 1–4 done and committed; Task 5 left:
-read `~/.cache/karots-logs/imp-test-all.log` (full run started) and the fresh review, fix Important findings test-first,
-delete spec + plan. Rehearsal: Iman as-is shop on :3011 (`/mnt/nvme_512GB/karots/iman-asis`, db `iman_asis`,
-`load_asis.py`), fix sheet `iman-fix.csv` (by ref, 1,725 rows) previews in 10.9 s, not applied yet — the user applies it
-in the UI (Products → Sheets ▾, tick Include custom fields, Import). Open for the user: (1) a blank cell can't clear a
-field — 66 Iman ayurvedic / supplement products keep a typed "generic"; a clear marker needs a rule (user's yes);
-(2) ~12 catalogue generics look short vs Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D 2000; Chlofen DM
-and Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; Sucrafil + oxetacaine; GLA 120 + vitamin E;
-Nugesic: Iman says B vitamins, catalogue nimesulide) — list in `iman-asis/preview.json`; (3) unit changes only where a
-product has no packs / stock at the real Iman.
-**Review of the preview (fix test-first before using it at Iman):** CRITICAL — `internal/db/tx.go` `joined` /
-`Tx.Rollback` reuse the savepoint name `ks_joined` and never RELEASE after ROLLBACK TO, so a row that fails inside
-`ImportOne` keeps the category / supplier it created (IMP-3 broken; the AI Assistant's cross-plugin applies too) — add
-RELEASE after ROLLBACK TO (or unique names), with a failing case where ImportOne itself fails (a ref
-`<installID>-999999`, a barcode another product has). IMPORTANT — the preview doesn't show `r.notes` (refused plugin
-cells, skipped barcodes / opening stock); stale previews can land out of order (drop old responses, disable chooser and
-"match by name" while busy); row locks for ~11 s on every preview can deadlock a till sale (`SET LOCAL lock_timeout`,
-skip unchanged updates); a failed RELEASE in `joined` leaves the tx aborted (roll back to the savepoint). Minor:
-categoryPaths per row, label "Choose a file" until a preview exists. Don't apply the Iman fix until these are fixed.
+**Products sheet preview: done (2026-11-23).** Rehearsal ready: Iman as-is shop on :3011 (`/mnt/nvme_512GB/karots/iman-asis`,
+db `iman_asis`), fix sheet `iman-fix.csv` (by ref, 1,725 rows) previews in 9 s, not applied (the user tries it in the UI:
+Products → Sheets ▾ → Include custom fields → Import). Start the two Iman shops with `KAROTS_POCKET_PORT=8453` /
+`8454` in the environment: **Pocket reads that variable before `.env` is loaded**, so in `.env` it's ignored (open bug —
+the shops then take 8443 and break Playwright's Pocket tests). Open for the user: (1) a blank cell can't clear a field —
+66 Iman ayurvedic / supplement products keep a typed "generic"; a clear marker needs a rule; (2) ~12 catalogue generics
+look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D 2000; Chlofen DM and Sinarest Linctus +
+phenylephrine; Orofer + folic acid; Immune Up; Sucrafil + oxetacaine; GLA 120 + vitamin E; Nugesic: Iman says B
+vitamins, catalogue nimesulide) — `iman-asis/preview.json`; (3) units only where a product has no packs / stock.
+Test race seen twice: a spec's `goto('/login')` right after an API logout is aborted by the app's own redirect
+(palettes.spec, admin-people.spec) — make those wait for the redirect instead.
 
 **How a shop's catalogue is prepared (user, 2026-11-23):** after onboarding, the products are optimised on a
 **preview shop** here (catalogue names, generics, the category tree, units — Iman's at `localhost:3010`, database
@@ -178,7 +169,7 @@ repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c se
 pictures + label styles · M8d Demo Room · docs + screenshots + legal pack · cheques · M8e Pocket Cashier release 1 and
 2 · pharmacy expiry work · Send to cashier · print helper + cashier PCs' printers · AI Assistant jobs · default unit ·
 Karots Shelf · import by ref · receipt line rules + text size · stock freeze · keyboard-only Sell page · Sell page
-layouts · cashier menu sheet (Data → Spreadsheets: export / import, the sheet is the menu, MENU rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
+layouts · cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU rules) · products sheet preview (old → new, all or nothing, IMP rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
 
 ## How we work
 
