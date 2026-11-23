@@ -147,12 +147,13 @@ func (s *Service) FindOrCreateByName(ctx context.Context, name string) (*int64, 
 	if name == "" {
 		return nil, nil
 	}
-	if sup, err := s.repo.FindByName(ctx, name); err == nil {
+	repo := NewRepository(db.On(ctx, s.db)) // a sheet import's transaction, when ctx carries one (IMP-3)
+	if sup, err := repo.FindByName(ctx, name); err == nil {
 		return &sup.ID, nil
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return nil, apperr.Internal("failed to resolve supplier", err)
 	}
-	sup, err := s.repo.Create(ctx, CreateInput{Name: name}, decimal.Zero)
+	sup, err := repo.Create(ctx, CreateInput{Name: name}, decimal.Zero)
 	if err != nil {
 		return nil, apperr.Internal("failed to create supplier "+name, err)
 	}

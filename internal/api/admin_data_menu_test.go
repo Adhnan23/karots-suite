@@ -76,7 +76,7 @@ func TestGroupNameRefusesPathSeparator(t *testing.T) {
 	}
 	rec := te.do(http.MethodPost, "/api/v1/admin/groups", GroupRequest{Name: "Menu sep test"}, ck)
 	var g Option
-	json.Unmarshal(rec.Body.Bytes(), &g) //nolint:errcheck
+	json.Unmarshal(rec.Body.Bytes(), &g)                                               //nolint:errcheck
 	t.Cleanup(func() { te.db.Exec(`DELETE FROM product_groups WHERE id = $1`, g.ID) }) //nolint:errcheck
 	if rec := te.do(http.MethodPut, fmt.Sprintf("/api/v1/admin/groups/%d", g.ID), GroupRequest{Name: "A>B"}, ck); rec.Code != http.StatusUnprocessableEntity && rec.Code != http.StatusBadRequest {
 		t.Fatalf("rename with '>': %d %s", rec.Code, rec.Body.String())

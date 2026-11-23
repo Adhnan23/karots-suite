@@ -40,8 +40,8 @@ type RestoreReport struct {
 // RestoreResult is POST /admin/data/restore and /admin/data/backups/:name/restore.
 // The session is ended — the SPA sends the user to sign in again.
 type RestoreResult struct {
-	Report     RestoreReport  `json:"report"`
-	SafetyCopy string `json:"safetyCopy"` // file name of the copy taken first
+	Report     RestoreReport `json:"report"`
+	SafetyCopy string        `json:"safetyCopy"` // file name of the copy taken first
 }
 
 // SettingsImportResult is POST /admin/data/settings/import.
@@ -71,6 +71,8 @@ type EntityImportResult struct {
 	Skipped int              `json:"skipped"`
 	Errors  []ImportRowError `json:"errors"`
 	Notes   []string         `json:"notes"`
+	// Applied is false for a products sheet preview (?dry=1, IMP-1): nothing was kept.
+	Applied bool `json:"applied"`
 }
 
 // SetupStep is one go-live step on the dashboard's "Get the shop ready" card.

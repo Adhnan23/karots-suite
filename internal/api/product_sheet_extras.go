@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"slices"
 	"strings"
@@ -113,7 +114,7 @@ func extraCells(c echo.Context, xs []sheetExtra, ids []int64, rows [][]string) e
 
 // importExtras hands one imported row's plugin cells to each extra; a failure or
 // a bad cell comes back as a note on that line, the product stays imported.
-func importExtras(c echo.Context, xs []sheetExtra, productID, categoryID int64, get func(string) string) string {
+func importExtras(ctx context.Context, xs []sheetExtra, productID, categoryID int64, get func(string) string) string {
 	var notes []string
 	for _, x := range xs {
 		cells := map[string]string{}
@@ -125,7 +126,7 @@ func importExtras(c echo.Context, xs []sheetExtra, productID, categoryID int64, 
 		if len(cells) == 0 {
 			continue
 		}
-		note, err := x.hook.Import(c.Request().Context(), productID, categoryID, cells)
+		note, err := x.hook.Import(ctx, productID, categoryID, cells)
 		if err != nil {
 			note = x.hook.Label + " not saved: " + importErrMsg(err)
 		}

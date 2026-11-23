@@ -1286,6 +1286,10 @@ export interface EntityImportResult {
   skipped: number /* int */;
   errors: ImportRowError[];
   notes: string[];
+  /**
+   * Applied is false for a products sheet preview (?dry=1, IMP-1): nothing was kept.
+   */
+  applied: boolean;
 }
 /**
  * SetupStep is one go-live step on the dashboard's "Get the shop ready" card.

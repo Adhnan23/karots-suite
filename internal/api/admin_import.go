@@ -2,12 +2,14 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
+	"karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/categories"
 	"karots-suite/internal/features/customers"
@@ -15,6 +17,7 @@ import (
 	"karots-suite/internal/features/suppliers"
 	"karots-suite/internal/middleware"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/shopspring/decimal"
@@ -167,6 +170,9 @@ func (h *handlers) finishImport(c echo.Context, entity string, res EntityImportR
 	return c.JSON(http.StatusOK, res)
 }
 
+// errSheetPreview rolls a products sheet preview back once its result is known.
+var errSheetPreview = errors.New("sheet preview")
+
 // ---- products ----
 
 func (h *handlers) AdminProductsExport(c echo.Context) error {
@@ -261,15 +267,15 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		unitBy[strings.ToLower(u.Name)] = u.ID
 		unitBy[strings.ToLower(u.Abbreviation)] = u.ID
 	}
-	cats, sups := categories.NewService(h.d.DB), suppliers.NewService(h.d.DB)
+	sups := suppliers.NewService(h.d.DB)
 	matchByName := yesCell(c.FormValue("matchByName"))
 	install, err := h.installID(c)
 	if err != nil {
 		return err
 	}
 	user := middleware.CurrentUserID(c)
-	res := newImportResult()
-	importRows(recs, col, &res, func(get func(string) string) (string, string, error) {
+	importProductRow := func(ctx context.Context, get func(string) string) (string, string, error) {
+		cats := categories.NewService(db.TxFrom(ctx))
 		unit := unitList[0].ID
 		if u := get("unit"); u != "" {
 			id, ok := unitBy[strings.ToLower(u)]
@@ -322,11 +328,38 @@ func (h *handlers) AdminProductsImport(c echo.Context) error {
 		if n := h.importBarcodes(ctx, r.ProductID, get("extra_barcodes")); n != "" {
 			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
 		}
-		if n := importExtras(c, xs, r.ProductID, catID, get); n != "" {
+		if n := importExtras(ctx, xs, r.ProductID, catID, get); n != "" {
 			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
 		}
 		return r.Action, r.Note, nil
+	}
+	dry := c.QueryParam("dry") == "1"
+	var res EntityImportResult
+	// IMP-1, 3: the whole sheet in one transaction, each line in a savepoint (a
+	// line that fails leaves nothing behind); a preview is the same run, rolled back.
+	err = db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
+		tctx := db.InTx(ctx, tx)
+		res = newImportResult()
+		importRows(recs, col, &res, func(get func(string) string) (action, note string, err error) {
+			err = db.WithTx(tctx, h.d.DB, func(*sqlx.Tx) error {
+				var rerr error
+				action, note, rerr = importProductRow(tctx, get)
+				return rerr
+			})
+			return
+		})
+		if dry {
+			return errSheetPreview
+		}
+		return nil
 	})
+	if err != nil && !errors.Is(err, errSheetPreview) {
+		return err
+	}
+	if dry {
+		return c.JSON(http.StatusOK, res)
+	}
+	res.Applied = true
 	return h.finishImport(c, "product", res)
 }
 

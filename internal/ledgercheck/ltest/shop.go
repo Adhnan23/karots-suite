@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -161,6 +162,38 @@ func (c *Client) Do(method, path string, in, out any) error {
 		return nil
 	}
 	return json.Unmarshal(w.Body.Bytes(), out)
+}
+
+// Upload posts a file as the form field "file" (a sheet import), as a screen does.
+func (c *Client) Upload(path, name string, data []byte, out any) error {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	f, err := w.CreateFormFile("file", name)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(data); err != nil {
+		return err
+	}
+	if err := w.Close(); err != nil {
+		return err
+	}
+	req := httptest.NewRequest("POST", path, &b)
+	req.RemoteAddr = "127.0.0.1:1"
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("X-Ks-Device", c.device)
+	for _, k := range c.cookie {
+		req.AddCookie(k)
+	}
+	rec := httptest.NewRecorder()
+	c.h.ServeHTTP(rec, req)
+	if rec.Code < 200 || rec.Code > 299 {
+		return &StatusError{Code: rec.Code, Msg: fmt.Sprintf("POST %s: %d %s", path, rec.Code, bytes.TrimSpace(rec.Body.Bytes()))}
+	}
+	if out == nil || rec.Body.Len() == 0 {
+		return nil
+	}
+	return json.Unmarshal(rec.Body.Bytes(), out)
 }
 
 // StatusError is a reply outside 2xx.
