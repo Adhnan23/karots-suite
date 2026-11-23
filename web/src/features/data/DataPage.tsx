@@ -12,6 +12,7 @@ import { ExportMenu } from '@/features/reports/kit/ExportMenu'
 import { errMsg } from '@/features/till/api'
 import { cn } from '@/lib/utils'
 import { CopiesCard } from './CopiesCard'
+import { MenuSheet } from './MenuSheet'
 import { dataQuery, fileSize } from './queries'
 import { RestoreDialog, type RestoreSource } from './RestoreDialog'
 import { UpdateCard } from './UpdateCard'
@@ -239,6 +240,7 @@ function Sheets() {
           </p>
         )}
       </div>
+      <MenuSheet />
     </div>
   )
 }

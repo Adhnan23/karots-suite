@@ -157,3 +157,42 @@ test('setup checklist on the dashboard; Data and Settings fit a phone', async ({
     await noSideScroll(page)
   }
 })
+
+test('cashier menu sheet: preview, cancel, replace', async ({ page }) => {
+  await signIn(page)
+  // Every later spec on this worker reads the seeded menu: keep it and put it back.
+  const saved = Buffer.from(await (await page.request.get('/api/v1/admin/data/menu/export?format=csv')).body())
+  const putBack = () => page.request.post('/api/v1/admin/data/menu/import', { multipart: { file: { name: 'menu.csv', mimeType: 'text/csv', buffer: saved } } })
+  try {
+    for (const name of [`Menu A ${tag}`, `Menu B ${tag}`]) {
+      expect((await page.request.post('/api/v1/admin/groups', { data: { name, emoji: '', parentId: 0 } })).ok()).toBe(true)
+    }
+    const count = async () => ((await (await page.request.get('/api/v1/admin/groups')).json()) as unknown[]).length
+    const before = await count()
+    // every group there is now, hidden ones too: the export's group rows (no product) + the two just made
+    const all = saved.toString('utf8').replace(/^\uFEFF/, '').trim().split('\n').slice(1).filter((l) => l.split(',')[3] === '').length + 2
+    const sheet = { name: 'menu.csv', mimeType: 'text/csv', buffer: Buffer.from(`Group,Product\nMenu A ${tag},\nMenu A ${tag},No such product ${tag}\n`) }
+
+    await open(page, '/admin/data')
+    const row = page.getByRole('region', { name: 'Spreadsheets' }).getByText('Cashier menu', { exact: true })
+    await expect(row).toBeVisible()
+    await page.locator('input[type=file][data-sheet="menu"]').setInputFiles(sheet)
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('1 group')
+    await expect(dialog).toContainText(`${all - 1} groups removed`)
+    await expect(dialog).toContainText('1 line skipped')
+    await expect(dialog).toContainText(`line 3: no product with this barcode or name`)
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(dialog).toBeHidden()
+    expect(await count()).toBe(before)
+
+    await page.locator('input[type=file][data-sheet="menu"]').setInputFiles(sheet)
+    await page.getByRole('dialog').getByRole('button', { name: 'Replace the menu' }).click()
+    await toast(page, /Menu replaced: 1 group/)
+    expect(await count()).toBe(1)
+    await page.setViewportSize({ width: 360, height: 740 })
+    await noSideScroll(page)
+  } finally {
+    expect((await putBack()).ok()).toBe(true)
+  }
+})
