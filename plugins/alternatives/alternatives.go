@@ -43,6 +43,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.GET("/alternatives", h.list)
 	a.POST("/alternatives", h.createGroup)
 	a.GET("/alternatives/membership", h.membership)
+	a.GET("/alternatives/sheet", h.sheetExport)
 	a.GET("/alternatives/product/:pid", h.product)
 	a.GET("/alternatives/:id", h.group)
 	a.PUT("/alternatives/:id", h.renameGroup)
