@@ -8,8 +8,7 @@ battle report). The catalogue and the Onboard / Shelf apps keep their own detail
 
 **The suite is feature-complete for a shop's day and battle-tested end to end.** First shop: Iman Pharmacy
 Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`): onboarding
-almost done, **no real sales yet**. Released to Iman as **2026.11.23.1441** (this week's sheet work, the Alternatives
-sheet included).
+almost done, **no real sales yet**. Released to Iman as **2026.11.23.1850** (the Batches sheet fix; 1441 had this week's sheet work).
 
 - **Iman's catalogue is fixed and ready for a fresh start** (user, 2026-11-23: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` holds `suppliers.csv`, `products.csv` (1,723: catalogue names, the
