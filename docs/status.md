@@ -8,7 +8,8 @@ battle report). The catalogue and the Onboard / Shelf apps keep their own detail
 
 **The suite is feature-complete for a shop's day and battle-tested end to end.** First shop: Iman Pharmacy
 Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`): onboarding
-almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before this week's sheet work).
+almost done, **no real sales yet**. Released to Iman as **2026.11.23.1441** (this week's sheet work, the Alternatives
+sheet included).
 
 - **Iman's catalogue is fixed and ready for a fresh start** (user, 2026-11-23: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` holds `suppliers.csv`, `products.csv` (1,723: catalogue names, the
@@ -24,7 +25,7 @@ almost done, **no real sales yet**. Released to Iman as 2026.11.22.1407 (before 
   rules), the products sheet preview (old → new, all or nothing, a till's product skipped not waited on, IMP-1…5),
   "Empty cells clear the field" (IMP-6), Categories → Delete empty… (CAT-1, 2) and **the Alternatives sheet** (Sheet ▾
   on the Alternatives page: `Group, Tier, Product, Barcode`, the whole set, preview first, ALT-9…18; import admin
-  only). Not yet Released.
+  only). Released 2026.11.23.1441.
 - **Battle tests: all done** (7 core areas, every plugin, install / run). Rule first (AGENTS.md): rule, failing test, code.
 
 **Last full run (2026-11-23, after the Alternatives sheet):** all green — Go, Vitest 1,228, check-core, Playwright
@@ -39,8 +40,7 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
    the Alternatives sheet; `make demo-room-deploy`); (b) the site changes; (c) **the site review** in
    `docs/reviews/2026-11-23-site-review.md`: audit each point against the code, tests and the user's policies written
    there (evidence first, nothing changed until the audit is done), then fix the site / guides / legal wording;
-   Shelf permissions as a security finding of its own. Release to Iman with this week's work: the user, from the
-   Builder (notes drafted 2026-11-23).
+   Shelf permissions as a security finding of its own.
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
    from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
    shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
