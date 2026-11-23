@@ -71,8 +71,26 @@ type EntityImportResult struct {
 	Skipped int              `json:"skipped"`
 	Errors  []ImportRowError `json:"errors"`
 	Notes   []string         `json:"notes"`
+	// Changes: a products sheet's changes, old → new, line by line (IMP-4).
+	Changes []ImportChange `json:"changes,omitempty"`
 	// Applied is false for a products sheet preview (?dry=1, IMP-1): nothing was kept.
 	Applied bool `json:"applied"`
+}
+
+// ImportChange is one products sheet line's effect: a new product, or the fields
+// of an existing one that change (IMP-4).
+type ImportChange struct {
+	Line    int           `json:"line"`
+	Product string        `json:"product"`
+	New     bool          `json:"new"`
+	Fields  []FieldChange `json:"fields"`
+}
+
+// FieldChange is one field old → new, named as the sheet's column.
+type FieldChange struct {
+	Field string `json:"field"`
+	From  string `json:"from"`
+	To    string `json:"to"`
 }
 
 // SetupStep is one go-live step on the dashboard's "Get the shop ready" card.

@@ -1287,9 +1287,31 @@ export interface EntityImportResult {
   errors: ImportRowError[];
   notes: string[];
   /**
+   * Changes: a products sheet's changes, old → new, line by line (IMP-4).
+   */
+  changes?: ImportChange[];
+  /**
    * Applied is false for a products sheet preview (?dry=1, IMP-1): nothing was kept.
    */
   applied: boolean;
+}
+/**
+ * ImportChange is one products sheet line's effect: a new product, or the fields
+ * of an existing one that change (IMP-4).
+ */
+export interface ImportChange {
+  line: number /* int */;
+  product: string;
+  new: boolean;
+  fields: FieldChange[];
+}
+/**
+ * FieldChange is one field old → new, named as the sheet's column.
+ */
+export interface FieldChange {
+  field: string;
+  from: string;
+  to: string;
 }
 /**
  * SetupStep is one go-live step on the dashboard's "Get the shop ready" card.

@@ -2,22 +2,17 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/db"
 	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/categories"
 	"karots-suite/internal/features/customers"
-	"karots-suite/internal/features/products"
 	"karots-suite/internal/features/suppliers"
-	"karots-suite/internal/middleware"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/shopspring/decimal"
@@ -104,7 +99,7 @@ func money2(d decimal.Decimal) string { return d.StringFixed(2) }
 // importRows walks a sheet's data rows: blank rows are skipped silently, a row
 // without a name is an error, and each other row goes to fn (an error from fn
 // skips that row and is reported with its line). The header is line 1.
-func importRows(recs [][]string, col map[string]int, res *EntityImportResult, fn func(get func(string) string) (action, note string, err error)) {
+func importRows(recs [][]string, col map[string]int, res *EntityImportResult, fn func(line int, get func(string) string) (action, note string, err error)) {
 	for i, rec := range recs {
 		line := i + 2
 		if i >= maxImportRows {
@@ -119,7 +114,7 @@ func importRows(recs [][]string, col map[string]int, res *EntityImportResult, fn
 			}
 			continue
 		}
-		action, note, err := fn(get)
+		action, note, err := fn(line, get)
 		switch {
 		case err != nil:
 			res.Errors = append(res.Errors, ImportRowError{Line: line, Message: importErrMsg(err)})
@@ -169,9 +164,6 @@ func (h *handlers) finishImport(c echo.Context, entity string, res EntityImportR
 	h.audit(c, audit.ActionCreate, entity, "", fmt.Sprintf("sheet import: %d created, %d updated, %d skipped", res.Created, res.Updated, res.Skipped))
 	return c.JSON(http.StatusOK, res)
 }
-
-// errSheetPreview rolls a products sheet preview back once its result is known.
-var errSheetPreview = errors.New("sheet preview")
 
 // ---- products ----
 
@@ -245,124 +237,6 @@ func (h *handlers) AdminProductsExport(c echo.Context) error {
 var productLabels = map[string]string{"cost_price": "cost price", "selling_price": "selling price",
 	"wholesale_price": "wholesale price", "tax_rate": "tax rate", "opening_qty": "opening quantity"}
 
-func (h *handlers) AdminProductsImport(c echo.Context) error {
-	ctx := c.Request().Context()
-	col, recs, err := readImportSheet(c, productSynonyms, "name")
-	if err != nil {
-		return err
-	}
-	xs, err := sheetExtras(c)
-	if err != nil {
-		return err
-	}
-	unitList, err := h.t.units.List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(unitList) == 0 {
-		return apperr.Validation("add at least one unit before importing products")
-	}
-	unitBy := map[string]int64{}
-	for _, u := range unitList {
-		unitBy[strings.ToLower(u.Name)] = u.ID
-		unitBy[strings.ToLower(u.Abbreviation)] = u.ID
-	}
-	sups := suppliers.NewService(h.d.DB)
-	matchByName := yesCell(c.FormValue("matchByName"))
-	install, err := h.installID(c)
-	if err != nil {
-		return err
-	}
-	user := middleware.CurrentUserID(c)
-	importProductRow := func(ctx context.Context, get func(string) string) (string, string, error) {
-		cats := categories.NewService(db.TxFrom(ctx))
-		unit := unitList[0].ID
-		if u := get("unit"); u != "" {
-			id, ok := unitBy[strings.ToLower(u)]
-			if !ok {
-				return "", "", apperr.Validation("unknown unit '" + u + "'")
-			}
-			unit = id
-		}
-		amt, err := cellAmounts(get, productLabels, "cost_price", "selling_price", "wholesale_price", "tax_rate", "opening_qty")
-		if err != nil {
-			return "", "", err
-		}
-		reorder, rerr := wholeCell(get("reorder_level"))
-		warranty, werr := wholeCell(get("warranty_months"))
-		if rerr != nil || werr != nil {
-			return "", "", apperr.Validation("reorder level and warranty months must be whole numbers")
-		}
-		path := get("category")
-		if path == "" {
-			path = "Uncategorized"
-		}
-		catID, err := cats.FindOrCreateByPath(ctx, path)
-		if err != nil || catID == 0 {
-			return "", "", apperr.Validation("could not use the category '" + path + "'")
-		}
-		supID, err := sups.FindOrCreateByName(ctx, get("supplier"))
-		if err != nil {
-			return "", "", err
-		}
-		var active *bool
-		if a := get("active"); a != "" {
-			v := yesCell(a)
-			active = &v
-		}
-		byID, err := refID(get("ref"), install)
-		if err != nil {
-			return "", "", err
-		}
-		r, err := h.t.products.ImportOne(ctx, products.ImportRow{
-			ID:   byID,
-			Name: get("name"), NameLocal: get("name_local"), Barcode: get("barcode"),
-			CategoryID: catID, UnitID: unit, UserID: user, PreferredSupplier: supID,
-			Cost: amt["cost_price"], Selling: amt["selling_price"], Wholesale: amt["wholesale_price"], Tax: amt["tax_rate"],
-			Reorder: reorder, WarrantyMonths: warranty, TrackSerial: yesCell(get("track_serial")),
-			OpeningQty: amt["opening_qty"], MatchByName: matchByName, Given: givenCols(col, get), Active: active,
-		})
-		if err != nil {
-			return "", "", err
-		}
-		if n := h.importBarcodes(ctx, r.ProductID, get("extra_barcodes")); n != "" {
-			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
-		}
-		if n := importExtras(ctx, xs, r.ProductID, catID, get); n != "" {
-			r.Note = strings.TrimPrefix(r.Note+"; "+n, "; ")
-		}
-		return r.Action, r.Note, nil
-	}
-	dry := c.QueryParam("dry") == "1"
-	var res EntityImportResult
-	// IMP-1, 3: the whole sheet in one transaction, each line in a savepoint (a
-	// line that fails leaves nothing behind); a preview is the same run, rolled back.
-	err = db.WithTx(ctx, h.d.DB, func(tx *sqlx.Tx) error {
-		tctx := db.InTx(ctx, tx)
-		res = newImportResult()
-		importRows(recs, col, &res, func(get func(string) string) (action, note string, err error) {
-			err = db.WithTx(tctx, h.d.DB, func(*sqlx.Tx) error {
-				var rerr error
-				action, note, rerr = importProductRow(tctx, get)
-				return rerr
-			})
-			return
-		})
-		if dry {
-			return errSheetPreview
-		}
-		return nil
-	})
-	if err != nil && !errors.Is(err, errSheetPreview) {
-		return err
-	}
-	if dry {
-		return c.JSON(http.StatusOK, res)
-	}
-	res.Applied = true
-	return h.finishImport(c, "product", res)
-}
-
 // installID is this shop's install ID, which a sheet's refs carry.
 func (h *handlers) installID(c echo.Context) (string, error) {
 	cfg, err := h.d.Settings.Get(c.Request().Context())
@@ -432,7 +306,7 @@ func (h *handlers) AdminCustomersImport(c echo.Context) error {
 		return err
 	}
 	res := newImportResult()
-	importRows(recs, col, &res, func(get func(string) string) (string, string, error) {
+	importRows(recs, col, &res, func(_ int, get func(string) string) (string, string, error) {
 		amt, err := cellAmounts(get, peopleLabels, "credit_limit", "opening_balance")
 		if err != nil {
 			return "", "", err
@@ -472,7 +346,7 @@ func (h *handlers) AdminSuppliersImport(c echo.Context) error {
 	}
 	svc := suppliers.NewService(h.d.DB)
 	res := newImportResult()
-	importRows(recs, col, &res, func(get func(string) string) (string, string, error) {
+	importRows(recs, col, &res, func(_ int, get func(string) string) (string, string, error) {
 		amt, err := cellAmounts(get, peopleLabels, "opening_balance")
 		if err != nil {
 			return "", "", err

@@ -3,6 +3,7 @@ package battle
 import (
 	"bytes"
 	"encoding/csv"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -118,4 +119,74 @@ func TestIMP3FailedLineLeavesNothing(t *testing.T) {
 		t.Fatalf("IMP-3: the failed line left %d categories and %d suppliers", cats, sups)
 	}
 	s.audit(t)
+}
+
+func fieldsOf(c struct {
+	Line    int
+	Product string
+	New     bool
+	Fields  []struct{ Field, From, To string }
+}) map[string][2]string {
+	m := map[string][2]string{}
+	for _, f := range c.Fields {
+		m[f.Field] = [2]string{f.From, f.To}
+	}
+	return m
+}
+
+// IMP-4: the preview lists, per product, exactly the fields that change, old →
+// new; an untouched product isn't listed; a product named twice is listed twice;
+// a sheet matched by barcode instead of ref finds the same product.
+func TestIMP4PreviewListsTheChanges(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.stocked(t, "Imp Rename Me", s.unitPcs, 0, map[string]any{"barcode": "IMP-RN-1"})
+	s.stocked(t, "Imp Move Me", s.unitPcs, 0, nil)
+	s.stocked(t, "Imp Leave Me", s.unitPcs, 0, nil)
+	r := s.importProducts(t, csvOf(
+		[]string{"ref", "name", "category", "selling_price"},
+		[]string{s.refOf(t, "Imp Rename Me"), "Imp Renamed", "", ""},
+		[]string{s.refOf(t, "Imp Move Me"), "Imp Move Me", "Imp A > Imp B", ""},
+		[]string{s.refOf(t, "Imp Leave Me"), "Imp Leave Me", "", ""},
+		[]string{s.refOf(t, "Imp Move Me"), "Imp Move Me", "", "99"},
+	), true)
+	if r.Updated != 4 || len(r.Changes) != 3 {
+		t.Fatalf("IMP-4: %d updated, changes %+v", r.Updated, r.Changes)
+	}
+	if f := fieldsOf(r.Changes[0]); len(f) != 1 || f["name"] != [2]string{"Imp Rename Me", "Imp Renamed"} || r.Changes[0].Line != 2 {
+		t.Fatalf("IMP-4 rename: %+v", r.Changes[0])
+	}
+	if f := fieldsOf(r.Changes[1]); len(f) != 1 || f["category"][1] != "Imp A > Imp B" || r.Changes[1].Product != "Imp Move Me" {
+		t.Fatalf("IMP-4 move: %+v", r.Changes[1])
+	}
+	if f := fieldsOf(r.Changes[2]); len(f) != 1 || f["selling_price"][1] != "99" || r.Changes[2].Line != 5 {
+		t.Fatalf("IMP-4 second row of a product: %+v", r.Changes[2])
+	}
+	byBarcode := s.importProducts(t, csvOf([]string{"barcode", "name"}, []string{"IMP-RN-1", "Imp By Barcode"}), true)
+	if len(byBarcode.Changes) != 1 || fieldsOf(byBarcode.Changes[0])["name"] != [2]string{"Imp Rename Me", "Imp By Barcode"} {
+		t.Fatalf("IMP-4 by barcode: %+v", byBarcode.Changes)
+	}
+	nw := s.importProducts(t, csvOf([]string{"name", "selling_price"}, []string{"Imp Fresh", "12"}), true)
+	if len(nw.Changes) != 1 || !nw.Changes[0].New || nw.Changes[0].Product != "Imp Fresh" {
+		t.Fatalf("IMP-4 new: %+v", nw.Changes)
+	}
+}
+
+// IMP-2: Apply reports exactly what the preview did.
+func TestIMP2ApplyIsThePreview(t *testing.T) {
+	t.Parallel()
+	s := newShop(t)
+	s.stocked(t, "Imp Same", s.unitPcs, 0, nil)
+	sheet := csvOf(
+		[]string{"ref", "name", "category", "selling_price"},
+		[]string{s.refOf(t, "Imp Same"), "Imp Same Renamed", "Imp X", "33"},
+		[]string{"", "Imp Added", "Imp X", "5"},
+		[]string{"BAD-REF-1", "Imp Refused", "", ""},
+	)
+	p := s.importProducts(t, sheet, true)
+	a := s.importProducts(t, sheet, false)
+	a.Applied = false
+	if !reflect.DeepEqual(p, a) {
+		t.Fatalf("IMP-2: preview %+v\napply %+v", p, a)
+	}
 }
