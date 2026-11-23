@@ -52,6 +52,9 @@ export function ImportPreview({ r }: { r: EntityImportResult }) {
           <p className="max-h-28 overflow-y-auto break-words text-[13px] text-muted-foreground">{added.map((c) => c.product).join(' · ')}</p>
         </div>
       )}
+      {r.notes.length > 0 && (
+        <ul aria-label="Notes" className="grid max-h-28 gap-0.5 overflow-auto break-words text-[12px] text-muted-foreground">{r.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+      )}
       {r.errors.length > 0 && (
         <ul className="grid max-h-32 gap-0.5 overflow-auto text-[13px]">
           {r.errors.map((e) => <li key={e.line}><b className="tabular-nums">Line {e.line}</b> <span className="text-muted-foreground">{e.message} — skipped</span></li>)}

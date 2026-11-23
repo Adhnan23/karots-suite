@@ -63,4 +63,39 @@ describe('products import: preview first (IMP-1, 2, 4)', () => {
     await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
     expect(upload.mock.calls[0][0]).toBe('/admin/customers/import')
   })
+
+  it('the preview shows the import notes (a refused cell, a barcode in use)', async () => {
+    upload.mockResolvedValueOnce({ ...preview, notes: ['Line 3: Custom fields not saved: Strength must be a number'] })
+    renderSheet()
+    fireEvent.change(document.querySelector('input[type=file]')!, { target: { files: [new File(['x'], 'a.csv')] } })
+    expect((await screen.findAllByText(/Strength must be a number/)).length).toBeGreaterThan(0)
+  })
+
+  it('an older preview never replaces a newer one; Import sends the newer file', async () => {
+    let first!: (v: unknown) => void
+    upload.mockReturnValueOnce(new Promise((r) => { first = r }))
+      .mockResolvedValueOnce({ ...preview, changes: [{ line: 2, product: 'Newer sheet', new: false, fields: [{ field: 'name', from: 'a', to: 'Newer sheet' }] }] })
+      .mockResolvedValueOnce({ ...preview, applied: true })
+    renderSheet()
+    const input = document.querySelector('input[type=file]')!
+    fireEvent.change(input, { target: { files: [new File(['old'], 'old.csv')] } })
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
+    fireEvent.change(input, { target: { files: [new File(['new'], 'new.csv')] } })
+    expect((await screen.findAllByText('Newer sheet')).length).toBeGreaterThan(0)
+    first({ ...preview, changes: [{ line: 2, product: 'Older sheet', new: false, fields: [{ field: 'name', from: 'a', to: 'Older sheet' }] }] })
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryAllByText('Older sheet')).toHaveLength(0)
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Import' }))[0])
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(3))
+    expect(await (upload.mock.calls[2][2] as File).text()).toBe('new')
+  })
+
+  it('the button says Choose a file until a preview is there', async () => {
+    upload.mockReturnValueOnce(new Promise(() => {}))
+    renderSheet()
+    fireEvent.change(document.querySelector('input[type=file]')!, { target: { files: [new File(['x'], 'a.csv')] } })
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
+    expect(screen.queryAllByRole('button', { name: 'Import' })).toHaveLength(0)
+  })
 })
+

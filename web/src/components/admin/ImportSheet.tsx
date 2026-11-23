@@ -102,25 +102,29 @@ export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity;
   const [busy, setBusy] = useState(false)
   const [res, setRes] = useState<EntityImportResult | null>(null)
   const [preview, setPreview] = useState<EntityImportResult | null>(null)
+  const seq = useRef(0) // the newest preview wins: an older reply that lands later is dropped (IMP-2)
   const qc = useQueryClient()
   const products = entity === 'products'
   const path = (dry: boolean) => `/admin/${entity}/import${(dry ? '&dry=1' : '') + qs}`.replace('&', '?')
 
   // Products preview first (IMP-1): the copy taken here is what Import sends (IMP-2).
   const choose = async (picked: File | null, matchByName = byName) => {
+    const n = ++seq.current
     setRes(null)
     setPreview(null)
     if (!picked) return setFile(null)
     const copy = new File([await picked.arrayBuffer()], picked.name, { type: picked.type })
+    if (n !== seq.current) return
     setFile(copy)
     if (!products) return
     setBusy(true)
     try {
-      setPreview(await apiUpload<EntityImportResult>(path(true), 'file', copy, matchByName ? { matchByName: 'true' } : {}))
+      const p = await apiUpload<EntityImportResult>(path(true), 'file', copy, matchByName ? { matchByName: 'true' } : {})
+      if (n === seq.current) setPreview(p)
     } catch (e) {
-      toast.error(errMsg(e))
+      if (n === seq.current) toast.error(errMsg(e))
     } finally {
-      setBusy(false)
+      if (n === seq.current) setBusy(false)
     }
   }
 
@@ -140,7 +144,7 @@ export function ImportSheet({ entity, qs, included, onClose }: { entity: Entity;
   }
 
   return (
-    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Import ${entity}`} submit={file ? 'Import' : 'Choose a file'} busy={busy} onSubmit={() => void run()}>
+    <FormSheet open onOpenChange={(o) => !o && onClose()} title={`Import ${entity}`} submit={file && (!products || preview) ? 'Import' : 'Choose a file'} busy={busy} onSubmit={() => void run()}>
       {preview && !res && <ImportPreview r={preview} />}
       {!preview && <ul className="grid list-disc gap-1 pl-5 text-[13px] text-muted-foreground">
         {HELP[entity].map((h) => <li key={h}>{h}</li>)}
