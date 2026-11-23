@@ -26,6 +26,11 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   fields), tick **Include ref** before exporting: each row then carries its product's ref, and the
   import updates that same product even after a rename or with no barcode. Sales, stock and
   batches stay with it. A ref from another shop's sheet is refused.
+  **Import shows what will change first:** choosing the sheet previews it (nothing changes yet) —
+  how many products update, which are new, which lines are skipped and why, and for each product
+  only the fields that change, old → new (Product Plus fields too), with a search box. **Import**
+  then applies exactly that, all at once: if the power goes or a line fails, nothing half-done is
+  left behind. A blank cell leaves that field as it is.
 - **Merge:** two products that are really one become one, and their sales, stock and plugin
   records move with them.
 
