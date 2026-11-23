@@ -38,6 +38,15 @@ field — 66 Iman ayurvedic / supplement products keep a typed "generic"; a clea
 and Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; Sucrafil + oxetacaine; GLA 120 + vitamin E;
 Nugesic: Iman says B vitamins, catalogue nimesulide) — list in `iman-asis/preview.json`; (3) unit changes only where a
 product has no packs / stock at the real Iman.
+**Review of the preview (fix test-first before using it at Iman):** CRITICAL — `internal/db/tx.go` `joined` /
+`Tx.Rollback` reuse the savepoint name `ks_joined` and never RELEASE after ROLLBACK TO, so a row that fails inside
+`ImportOne` keeps the category / supplier it created (IMP-3 broken; the AI Assistant's cross-plugin applies too) — add
+RELEASE after ROLLBACK TO (or unique names), with a failing case where ImportOne itself fails (a ref
+`<installID>-999999`, a barcode another product has). IMPORTANT — the preview doesn't show `r.notes` (refused plugin
+cells, skipped barcodes / opening stock); stale previews can land out of order (drop old responses, disable chooser and
+"match by name" while busy); row locks for ~11 s on every preview can deadlock a till sale (`SET LOCAL lock_timeout`,
+skip unchanged updates); a failed RELEASE in `joined` leaves the tx aborted (roll back to the savepoint). Minor:
+categoryPaths per row, label "Choose a file" until a preview exists. Don't apply the Iman fix until these are fixed.
 
 **How a shop's catalogue is prepared (user, 2026-11-23):** after onboarding, the products are optimised on a
 **preview shop** here (catalogue names, generics, the category tree, units — Iman's at `localhost:3010`, database
