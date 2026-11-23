@@ -2,6 +2,7 @@ package battle
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http/httptest"
@@ -31,7 +32,10 @@ func (c *client) upload(path, name string, data []byte, out any) error {
 	if rec.Code < 200 || rec.Code > 299 {
 		return fmt.Errorf("POST %s: %d %s", path, rec.Code, bytes.TrimSpace(rec.Body.Bytes()))
 	}
-	return nil
+	if out == nil || rec.Body.Len() == 0 {
+		return nil
+	}
+	return json.Unmarshal(rec.Body.Bytes(), out)
 }
 
 // refused asserts the call failed and changed nothing the auditor can see.
