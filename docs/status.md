@@ -61,8 +61,9 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
       price needs a manager's review; who reviews quick items; card refunds recorded as cash; opening balances and
       advances; credit over the limit; negative stock and fixing it; imports with bad rows or duplicate barcodes; an
       update that fails after migrating; the audit log; two tills selling the last unit.
-   4. Open for the user: Cloudflare's managed robots.txt (AI bots blocked on the site; its `Allow: /` overrides the
-      demo's `Disallow: /`, noindex still keeps the demo out).
+   4. ~~Cloudflare's managed robots.txt~~ — the user turned Bot Preference Sync off (2026-11-24): each site serves its own.
+   5. **Released 2026.11.24.1053 to Iman** (test-all green on 68388099): RPT-38 reports, the new terms (Shop Rules 1.6,
+      Easy Pay, Complete Shop). Site: four plans + Compare plans, deployed.
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
    from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
    shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
