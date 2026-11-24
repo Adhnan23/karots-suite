@@ -29,6 +29,8 @@ In **Setup → Settings**:
 - **Xprinter XP-80T** (receipts, USB; it shows up as `POS-80`): the first ten receipt
   styles (not yet Compact), on the PC itself and from a cashier PC, on Linux; Windows 10 with the built-in **Generic / Text
   Only** driver prints its test slips.
+- **Label printers:** not yet tested on a real printer (the Xprinter XP-365B is next). Other 80 mm and 58 mm ESC/POS
+  receipt printers and TSPL label printers are expected to work, but we haven't tried them.
 
 ## Printers on a cashier PC
 

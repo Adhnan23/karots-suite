@@ -32,13 +32,17 @@ customers, staff, patients and the like.
 3. LICENCE
 
 3.1 Once the fees are paid, Karots gives you a non-exclusive, non-transferable licence to install
-    and use the Software in machine-readable form, for the Shop's own business at the Site, on as
-    many of the Shop's own computers there as it needs.
+    and use the Software in machine-readable form, for the Shop's own business at the Site, on one
+    computer there that runs it (the main PC). Cashier PCs and phones that only connect to the main
+    PC need no licence of their own. Running the Software on a second computer at the same time
+    needs a second licence.
 3.2 You may make the copies the law allows the lawful owner of a computer program: those needed
     to use it, and backup copies to replace a lost or damaged copy (Intellectual Property Act,
     No. 36 of 2003, section 12(7)). The Software's own backups of Shop Data are not limited by
     this clause.
-3.3 Moving the Shop to another computer at the Site is allowed. Moving to another site, or a
+3.3 Moving the Shop to a replacement computer at the Site, or reinstalling it on the same
+    computer, is allowed; Karots does it free when the Shop asks, and the old computer stops
+    running the Software. Moving to another site, or a
     change of owner, needs Karots' written consent, which will not be refused without good
     reason. A change of owner carries the transfer fee in the Shop Rules & Service Guide, and the
     new owner signs new Order Details.
@@ -102,9 +106,9 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 9.1 Karots will supply the Software with reasonable skill and care, and it will work materially
     as its documentation describes on supported computers.
 9.2 If it does not, tell Karots in writing. Karots will fix it, work around it or, if it cannot
-    within a reasonable time, refund the licence fee for the part that does not work. Bugs
-    reported in the first year after installation are fixed free; after that, as the Shop Rules
-    & Service Guide says.
+    within a reasonable time, refund the licence fee for the part that does not work. Genuine
+    bugs (the Software not working as its documentation describes) are fixed free for as long as
+    the licence lasts, whether or not the Shop has a service plan.
 9.3 Apart from clause 9 and anything the law does not allow to be excluded, the Software is
     supplied as it is. No other promise is made that it is free of all errors or fits a purpose
     Karots was not told about.
@@ -158,18 +162,21 @@ Breaking clause 4 may also be an offence under section 178 of the Intellectual P
 
 SECOND SCHEDULE — SERVICES
 
-1. Updates and bug fixes: free for the first year after installation. After that the Shop keeps
-   using the version it has, and updates, fixes and help are paid work or a renewal.
-2. Support: free remote help in the first year, personalised help free in the first 60 days, and
-   2 free visits in the first year, as the Shop Rules & Service Guide sets out. A support session
-   uses the Software's rotating support code, which works only for that Shop's install ID, and
-   remote access only when the Shop allows it.
-3. Karots cloud backup (if in the Order Details): a paid service, monthly or yearly. One encrypted
-   copy of the Shop's newest automatic backup about once a day, kept in Karots' storage. If a
-   payment is more than 7 days late the service is frozen (no new copies) until it is paid. The
-   Shop can switch it off at any time on the Data page. A copy can be brought back on request or
-   from the Data page.
-4. The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
+1. First 3 months: from installation, the Shop gets what the service plan gives (item 3), free.
+2. Bug fixes: always free (clause 9.2). Without a service plan the Shop keeps using the version
+   it has; fixes for genuine bugs still reach it free.
+3. Service plan (optional, monthly or yearly, in advance): technical support, major upgrades,
+   small changes, ongoing maintenance and Karots cloud backup, as the Shop Rules & Service Guide
+   sets out. Large new features and work made for one shop are quoted separately. Without a
+   plan, support is paid work. A support session uses the Software's rotating support code,
+   which works only for that Shop's install ID, and remote access only when the Shop allows it.
+   If a payment is more than 7 days late the plan is paused (no new cloud copies, support
+   charged) until it is paid. The till keeps working in every case.
+4. Karots cloud backup (part of the plan): one encrypted copy of the Shop's newest automatic
+   backup about once a day, kept in Karots' storage. When the plan ends no new copies are made;
+   the last copy is kept for 30 days and then deleted. The Shop can switch it off at any time
+   on the Data page. A copy can be brought back on request or from the Data page.
+5. The Shop's own copy folder (USB, drive or network share) is the Shop's responsibility.
 
 
 THIRD SCHEDULE — HOW KAROTS HANDLES PERSONAL DATA

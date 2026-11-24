@@ -123,16 +123,20 @@ lawyer's opinion, the suggested change and the decision.
 8. Should the licence also cover the **Demo Room** (given to prospects, not shops)? Today its
    lock code and watermark protect it. A short evaluation notice may help.
 9. Draft a **Reseller Agreement** when the first reseller signs.
-10. Shop Rules §7 refund scale: after day 7, Karots keeps the set-up fee plus 25 / 50 / 75 % of the licence by week,
+10. Shop Rules §7 refund scale: the licence is refunded in full in week 1 (installation is part of the price); after day 7, Karots keeps 25 / 50 / 75 % of the licence by week,
     with nothing refunded after day 30. Is this reasonable under UCTA s.4 and s.10? Is it fair when the shop paid only an advance?
-11. Shop Rules §5: freezing cloud backup after 7 days unpaid, and §1: no free updates or fixes after year 1. Does that sit
-    with `LICENSE` §9 (fit for purpose)?
+11. Shop Rules §1–5 (2026-11-24): genuine bugs fixed free for as long as the licence lasts; the first 3 months as the
+    service plan; after that the optional plan (support, major upgrades, small changes, cloud backup) or paid help; the plan
+    paused 7 days after a missed payment; the last cloud copy deleted 30 days after the plan ends. Is the "genuine bug"
+    line (§3, `LICENSE` 9.2) clear and fair under UCTA?
 12. `LICENSE` §7.3 and Shop Rules §8: the licence ends if the balance is unpaid 90 days after installation plus 14 days'
     notice, and Karots removes the software at the site, or remotely only with the shop's permission, giving the shop a
     data backup first. Is this enforceable? Removing it remotely *without* permission could fall under the Computer
     Crimes Act, No. 24 of 2007, which is why the rules never allow it and the software has no remote kill switch.
 13. Pocket Cashier keeps a month of sales, and patient details in a pharmacy, on a phone: is the Third Schedule enough, and
    what should the shop rules say about a lost phone?
+14. `LICENSE` 3.1 / Shop Rules §9–10: one licence = the one computer running the Software; a free move or reinstall; "your
+    copy keeps working if Karots stops trading". Clear and safe as written?
 
 ## Sources
 

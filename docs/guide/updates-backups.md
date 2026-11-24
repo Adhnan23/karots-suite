@@ -23,9 +23,10 @@ Update**, not just this button. See [Install](install.md#changing-a-shop-later).
 
 ## Backups
 
-- **Automatic backups** run every few hours on the main PC and the newest ones are kept. In
-  file mode they're in `data/backups`; in server mode, in the install folder's `backups`. A
-  backup is one moment: one taken while the tills sell restores whole.
+- **Automatic backups** run on the main PC every 6 hours, and the newest 28 are kept (about a
+  week; your installer can change both). In file mode they're in `data/backups`; in server mode,
+  in the install folder's `backups`. A backup is one moment: one taken while the tills sell
+  restores whole.
 - **Safety copies** — taken before a restore, an update or a mode change, and backups brought
   back from Karots cloud — don't count towards the newest kept; each stays 30 days.
 - **Download a backup** any time:
@@ -47,6 +48,14 @@ Every automatic backup can also be copied away from the PC:
 | Who turns it on | The shop's admin, on the Data page (or preset in the Builder) | Karots, for paying shops |
 | Files | Plain backup files, so the owner can bring the shop back with only the file | Encrypted per shop, about one a day |
 | Switch off | The admin | The admin can switch it off; only Karots can switch it on |
+
+- **A backup on the PC's own disk dies with that disk.** Keep the copy folder on a USB stick or
+  another PC, and take the stick home now and then.
+- **Backups on the PC and in the copy folder are plain files, not encrypted.** Keep the stick
+  somewhere safe: it holds your sales, customers and staff.
+- **Karots cloud comes with the service plan** (and your first 3 months). When the plan ends, new
+  cloud copies stop; the last one is kept 30 days, and Karots brings it back if you ask in that
+  time. The backups on your PC and in the copy folder carry on.
 
 A copy that hasn't worked for a day shows on the dashboard. **Backups here…** on each copy lists
 its files, and **Restore** brings one back through the normal restore.

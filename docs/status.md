@@ -48,15 +48,14 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
       slowly; 512 MB doesn't. Not run (user: not needed): Windows 10, the till open in a browser during a step.
       The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s here).
       Price lists / the site still to say the minimum and recommended PC (wording pass, item 3).
-   3. **One pass of wording** on the site, guides and legal pack (`LICENSE`, Shop Rules, `make agreement`) from the
-      user's policies: one licence = the one PC running the Suite (cashier PCs and phones only connect); 3 months'
-      warranty, **genuine bugs always fixed free**; service plan = cloud backups, support, major upgrades, small
-      changes, maintenance (not "every new feature" / "help any time"); support without a plan is charged; the last
-      cloud copy kept **30 days** after the plan ends (bucket lifecycle), local backups carry on; power cut = no
-      finished sale lost, a UPS keeps you selling; testing worded as what we test; who-pays table; backups (6 h, keep
-      28, copy folder, cloud sealed, local not encrypted); pharmacy register is a help, not NMRA compliance; AI
-      prompts carry only product names, barcodes, categories; tested printers; Shelf = full product rights, cost
-      included, given by the admin for setup only and taken away after (by design, user 2026-11-23: no code change).
+   3. ~~One pass of wording~~ — legal pack + guides done 2026-11-24 (Shop Rules 1.5, `LICENSE` 3.1 / 3.3 / 9.2 / Second
+      Schedule, Order Details, samples, lawyer items 10 + 14, `make agreement`); the site follows in karots-pos-site.
+      User's answers (2026-11-24): the 3 months = what the plan gives; installation + training in the price; the
+      30-day refund scale kept (no install fee in it); a Suite shop adds plugins free, Core → Suite = Rs 20,000.
+      Defaults taken (tell the user, change if he says): visits by distance; transfer Rs 5,000; balance in 90 days;
+      plan paused 7 days late; reinstall after a format free like a move; extra cashier PC set-up Rs 3,000; Tailscale
+      3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier app inside Karots Suite; "your copy keeps
+      working if Karots stops trading" (Guide 10, lawyer item 14).
    4. Open for the user: Cloudflare's managed robots.txt (AI bots blocked on the site; its `Allow: /` overrides the
       demo's `Disallow: /`, noindex still keeps the demo out).
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength

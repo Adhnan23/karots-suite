@@ -19,8 +19,11 @@ own name in Activity.
 - **Cashiers and sales people** only when you switch on **Can use Karots Shelf** for them on
   **Setup → Users**.
 
-Shelf can do everything above for anyone who has it: it doesn't look at their other rights (such
-as seeing cost prices). When setup is done, **switch it off again** for those people. A phone that
+Shelf can do everything above for anyone who has it: it doesn't look at their other rights. A
+cashier with Shelf **sees and changes cost prices, can delete products and adjusts stock**, even
+if their own login can't. It is meant for setting the shop up: give it only to people you trust
+with your products, and when setup is done, **switch it off again** for them. Everything they do
+shows in Activity under their name. A phone that
 is already signed in stops working for them the next time it reaches the shop.
 
 Signing in to Shelf doesn't take anyone off their till: a cashier can be selling at the counter

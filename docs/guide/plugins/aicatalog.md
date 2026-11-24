@@ -10,6 +10,9 @@ Help for whoever sets the shop up, and for the new cashier who doesn't know the 
 - **Jobs** do the same for many products at a time. You choose how many at once, down to one for checking quality.
 - You tick what to keep. Nothing changes until you apply it, and **Undo it** puts back the last apply, unless someone has changed that value since.
 
+**What goes to the chatbot:** only what you copy, and that is product names, barcodes, categories and your own
+instructions. Never customers, patients, phone numbers, prices or sales.
+
 A hint comes from a chatbot, so confirm it before relying on it. Two chatbots can give different vehicle lists for the same part, and both can say they're sure.
 
 ## Jobs

@@ -8,7 +8,8 @@ Patients, prescriptions and the controlled-drug register for a pharmacy. It come
 - **Prescriptions** understand dose shorthand like `1-0-1` and work out how much to give.
 - A **💊 Patient** panel at the till adds a script's medicines to the cart. The dispense (who was given what, for the controlled register) is saved with the sale itself, so it can't go missing; a receipt sold without a patient can be recorded later from the register. A dose label can print.
 - **Refills due:** a call list of patients whose medicine is about to run out.
-- **Controlled-drug register:** read straight from stock movements, so it can't drift from the real stock. A controlled drug can't be [frozen](../stock.md#freezing-stock-while-a-shop-starts): count it in full on day one.
+- **Controlled-drug register:** a record to help you, not a check that you meet NMRA or other rules; the pharmacist
+  stays responsible for those. It is read straight from stock movements, so it can't drift from the real stock. A controlled drug can't be [frozen](../stock.md#freezing-stock-while-a-shop-starts): count it in full on day one.
 - With [AI Assistant](aicatalog.md), the prescription and controlled marks and usual doses can be suggested in bulk, for the pharmacist to check. A chatbot's answer is only a suggestion: it can miss a mark or be wrong about a dose.
 - Medicines use core [packs](../stock.md#products) (a card of 10 sold whole or loose) and [batches](../stock.md#batches-and-expiry).
 
