@@ -131,7 +131,7 @@ func TestAppearanceReceiptTextSize(t *testing.T) {
 	ck := systemLogin(t, te, "0770009016")
 	var before Appearance
 	json.Unmarshal(te.do(http.MethodGet, "/api/v1/system/appearance", nil, ck).Body.Bytes(), &before) //nolint:errcheck
-	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_text_size=100`) })                     //nolint:errcheck
+	t.Cleanup(func() { te.db.Exec(`UPDATE settings SET receipt_text_size=100`) }) //nolint:errcheck
 	if before.ReceiptTextSize != 100 && before.ReceiptTextSize != 115 && before.ReceiptTextSize != 130 {
 		t.Fatalf("text size starts at %d", before.ReceiptTextSize)
 	}

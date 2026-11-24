@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"karots-suite/internal/apperr"
-	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/settings"
+	"karots-suite/internal/features/auth"
 	"karots-suite/internal/middleware"
 	"karots-suite/internal/plugin"
 

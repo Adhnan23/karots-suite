@@ -65,7 +65,7 @@ func TestAdminReorderSmart(t *testing.T) {
 
 	// Switch the whole category to Auto: starts from the current number.
 	var cat int64
-	te.db.Get(&cat, `SELECT category_id FROM products WHERE id = $1`, f.scarceID)      //nolint:errcheck
+	te.db.Get(&cat, `SELECT category_id FROM products WHERE id = $1`, f.scarceID) //nolint:errcheck
 	te.db.Exec(`UPDATE products SET reorder_auto = false WHERE category_id = $1`, cat) //nolint:errcheck
 	res := decode[ReorderAutoResult](t, te.do(http.MethodPost, "/api/v1/admin/products/reorder-auto", ReorderAutoRequest{CategoryID: cat}, ck))
 	if res.Switched < 4 {

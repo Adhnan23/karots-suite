@@ -347,16 +347,16 @@ type DashboardCharts struct {
 
 // ClaimLot is an expired batch still on the shelf, to settle with its supplier.
 type ClaimLot struct {
-	LotID       int64  `json:"lotId"`
-	ProductID   int64  `json:"productId"`
-	Product     string `json:"product"`
-	Unit        string `json:"unit"`
-	Qty         string `json:"qty"`
-	Expiry      string `json:"expiry"`
-	Cost        string `json:"cost"`
-	Supplier    string `json:"supplier"`
-	WarnDays    int    `json:"warnDays"`
-	ToldOn      string `json:"toldOn"`      // YYYY-MM-DD the supplier was told; "" = not yet
+	LotID     int64  `json:"lotId"`
+	ProductID int64  `json:"productId"`
+	Product   string `json:"product"`
+	Unit      string `json:"unit"`
+	Qty       string `json:"qty"`
+	Expiry    string `json:"expiry"`
+	Cost      string `json:"cost"`
+	Supplier  string `json:"supplier"`
+	WarnDays  int    `json:"warnDays"`
+	ToldOn    string `json:"toldOn"` // YYYY-MM-DD the supplier was told; "" = not yet
 	RecalledOn  string `json:"recalledOn"`  // YYYY-MM-DD; "" = not recalled
 	RecallStops bool   `json:"recallStops"` // the shop stopped selling it
 }

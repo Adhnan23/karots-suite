@@ -99,7 +99,7 @@ type AdminExpenseRow struct {
 	ServiceID   int64  `json:"serviceId"`
 	ServiceName string `json:"serviceName"`
 	PaidFrom    string `json:"paidFrom"`
-	Unpaid      string `json:"unpaid"`    // > 0: its cheque bounced / was cancelled — pay it again
+	Unpaid      string `json:"unpaid"` // > 0: its cheque bounced / was cancelled — pay it again
 	UnpaidWhy   string `json:"unpaidWhy"` // bounced | cancelled (the latest returned cheque), "" when paid
 	// ChequePending: a cheque written for it hasn't cleared yet (amount and void are locked).
 	ChequePending bool `json:"chequePending"`
@@ -127,10 +127,10 @@ type AdminExpenseSummary struct {
 // "till:5", "" = outside the shop) is read on create only; on edit Amount
 // may change only while no money moved for it.
 type AdminExpenseRequest struct {
-	Category    string       `json:"category"`
-	Amount      string       `json:"amount"`
-	Description string       `json:"description"`
-	Date        string       `json:"date"` // YYYY-MM-DD; "" = today
+	Category    string `json:"category"`
+	Amount      string `json:"amount"`
+	Description string `json:"description"`
+	Date        string `json:"date"` // YYYY-MM-DD; "" = today
 	ServiceID   int64        `json:"serviceId"`
 	Source      string       `json:"source"`
 	Method      string       `json:"method,omitempty"`  // "" = from Source; cheque = Cheques
@@ -289,7 +289,7 @@ type AdminSaleRow struct {
 	Paid        string `json:"paid"`
 	COGS        string `json:"cogs"`
 	Profit      string `json:"profit"`
-	Margin      string `json:"margin"`               // percent of net revenue, 1 dp
+	Margin      string `json:"margin"` // percent of net revenue, 1 dp
 	PreparedBy  string `json:"preparedBy,omitempty"` // the sales person whose ticket this was
 }
 
@@ -359,38 +359,38 @@ type FinanceProduct struct {
 // folded into net profit), the trend at a grain fitting the range, the payment
 // mix, profit by category, top products, and the money owed either way.
 type AdminFinance struct {
-	From              string            `json:"from"`
-	To                string            `json:"to"`
-	Grain             string            `json:"grain"` // day | week | month
-	SalesCount        int               `json:"salesCount"`
-	GrossRevenue      string            `json:"grossRevenue"`
-	Returns           string            `json:"returns"`
-	Revenue           string            `json:"revenue"`
-	COGS              string            `json:"cogs"`
-	GrossProfit       string            `json:"grossProfit"`
-	GrossMargin       string            `json:"grossMargin"` // percent, 1 dp
-	Expenses          string            `json:"expenses"`
-	Losses            string            `json:"losses"`
-	OwnUse            string            `json:"ownUse"`
-	StaffWelfare      string            `json:"staffWelfare"`
-	StockCorrection   string            `json:"stockCorrections"`
-	Recoveries        string            `json:"recoveries"`
-	OtherIncome       string            `json:"otherIncome"`
-	DiscountsReceived string            `json:"discountsReceived"`
-	PluginIncome      []FinanceLine     `json:"pluginIncome"`
-	NetProfit         string            `json:"netProfit"`
-	ZeroCostLines     int               `json:"zeroCostLines"`
-	ZeroCostRevenue   string            `json:"zeroCostRevenue"`
-	Received          string            `json:"received"`
-	Tax               string            `json:"tax"` // tax charged on the period's sales — owed to the tax office, not revenue
-	CashWithdrawn     string            `json:"cashWithdrawn"`
-	RegisterDiff      string            `json:"registerDiff"`
-	Receivables       string            `json:"receivables"`
-	Advances          string            `json:"customerAdvances"`
-	Payables          string            `json:"payables"`
-	SupplierCredit    string            `json:"supplierCredit"`
-	Trend             []FinancePoint    `json:"trend"`
-	ByPayment         []FinanceSlice    `json:"byPayment"`
-	Categories        []FinanceCategory `json:"categories"`
-	TopProducts       []FinanceProduct  `json:"topProducts"`
+	From            string            `json:"from"`
+	To              string            `json:"to"`
+	Grain           string            `json:"grain"` // day | week | month
+	SalesCount      int               `json:"salesCount"`
+	GrossRevenue    string            `json:"grossRevenue"`
+	Returns         string            `json:"returns"`
+	Revenue         string            `json:"revenue"`
+	COGS            string            `json:"cogs"`
+	GrossProfit     string            `json:"grossProfit"`
+	GrossMargin     string            `json:"grossMargin"` // percent, 1 dp
+	Expenses        string            `json:"expenses"`
+	Losses          string            `json:"losses"`
+	OwnUse          string            `json:"ownUse"`
+	StaffWelfare    string            `json:"staffWelfare"`
+	StockCorrection string            `json:"stockCorrections"`
+	Recoveries      string            `json:"recoveries"`
+	OtherIncome     string            `json:"otherIncome"`
+	DiscountsReceived string          `json:"discountsReceived"`
+	PluginIncome    []FinanceLine     `json:"pluginIncome"`
+	NetProfit       string            `json:"netProfit"`
+	ZeroCostLines   int               `json:"zeroCostLines"`
+	ZeroCostRevenue string            `json:"zeroCostRevenue"`
+	Received        string            `json:"received"`
+	Tax             string            `json:"tax"` // tax charged on the period's sales — owed to the tax office, not revenue
+	CashWithdrawn   string            `json:"cashWithdrawn"`
+	RegisterDiff    string            `json:"registerDiff"`
+	Receivables     string            `json:"receivables"`
+	Advances        string            `json:"customerAdvances"`
+	Payables        string            `json:"payables"`
+	SupplierCredit  string            `json:"supplierCredit"`
+	Trend           []FinancePoint    `json:"trend"`
+	ByPayment       []FinanceSlice    `json:"byPayment"`
+	Categories      []FinanceCategory `json:"categories"`
+	TopProducts     []FinanceProduct  `json:"topProducts"`
 }

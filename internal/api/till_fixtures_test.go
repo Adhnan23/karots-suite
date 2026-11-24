@@ -18,11 +18,10 @@ type tillFix struct {
 // seedTill makes a category, four products with stock + lots, and a group, all
 // with fresh names/barcodes. Rows are left behind on purpose: sales reference
 // them and the dev DB is disposable (make test-fresh).
-//
-//	plain     Rs 100, 10 in one lot
-//	lot       Rs 100, lots of 5 @ product price and 5 @ 120 (price disagreement)
-//	expiring  Rs 80, 3 expired yesterday (FEFO-first) + 3 fresh
-//	scarce    Rs 250, 1 on hand
+//   plain     Rs 100, 10 in one lot
+//   lot       Rs 100, lots of 5 @ product price and 5 @ 120 (price disagreement)
+//   expiring  Rs 80, 3 expired yesterday (FEFO-first) + 3 fresh
+//   scarce    Rs 250, 1 on hand
 func (te *testEnv) seedTill(t *testing.T) tillFix {
 	t.Helper()
 	ctx := context.Background()

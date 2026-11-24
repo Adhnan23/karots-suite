@@ -43,9 +43,9 @@ func TestStockTakeByBatch(t *testing.T) {
 		NewBatches: []AddBatchRequest{{Qty: "2", Cost: "40", Expiry: "2027-06-30"}},
 	}}}, ck))
 	var qa, qb, qty float64
-	te.db.Get(&qa, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, a.ID) //nolint:errcheck
-	te.db.Get(&qb, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, b.ID) //nolint:errcheck
-	te.db.Get(&qty, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID)  //nolint:errcheck
+	te.db.Get(&qa, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, a.ID)  //nolint:errcheck
+	te.db.Get(&qb, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, b.ID)  //nolint:errcheck
+	te.db.Get(&qty, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID) //nolint:errcheck
 	if res.Saved != 1 || qa != 3 || qb != 6 || qty != 11 {
 		t.Fatalf("by batch: saved %d, batches %v / %v, stock %v (want 3 / 6, 11)", res.Saved, qa, qb, qty)
 	}
