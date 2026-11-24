@@ -21,19 +21,17 @@ import (
 // usableTypes are the field types that can be the supplier field.
 const usableTypes = `('text', 'select')`
 
-// ruleRowsSQL is every product the rules give a supplier: the chosen field active
+// ruleCTE is every product the rules give a supplier: the chosen field active
 // and usable, the product in its scope, its value (own or the field's default)
 // matching a rule. Put it after `WITH ` + covCTE.
-const ruleRowsSQL = `, rule AS (
+var ruleCTE = `, rule AS (
 	SELECT p.id AS product_id, m.supplier_id, f.label || ': ' || btrim(COALESCE(v.value, f.default_value)) AS why
 	FROM pp_supplier_field sf
 	JOIN pp_fields f ON f.id = sf.field_id AND f.is_active AND f.type IN ` + usableTypes + `
-	JOIN products p ON p.merged_into_id IS NULL AND ` + `%APPLIES%` + `
+	JOIN products p ON p.merged_into_id IS NULL AND ` + appliesSQL("f", "p.category_id") + `
 	LEFT JOIN pp_values v ON v.field_id = f.id AND v.product_id = p.id
 	JOIN pp_supplier_map m ON m.value_key = lower(btrim(COALESCE(v.value, f.default_value)))
 )`
-
-var ruleCTE = strings.Replace(ruleRowsSQL, "%APPLIES%", appliesSQL("f", "p.category_id"), 1)
 
 func (s *Store) ruleSupplier() plugin.RuleSupplier {
 	return plugin.RuleSupplier{For: s.rulesFor, Products: s.ruleProducts}
