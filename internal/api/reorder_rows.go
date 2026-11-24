@@ -60,6 +60,9 @@ func (h *handlers) buildReorderList(c echo.Context, withCost bool) (ReorderList,
 	if all {
 		page = 1
 	}
+	if err := h.t.products.FillRuleSuppliers(ctx, rows); err != nil {
+		return ReorderList{}, err
+	}
 	ids := make([]int64, 0, len(rows))
 	for _, p := range rows {
 		ids = append(ids, p.ID)

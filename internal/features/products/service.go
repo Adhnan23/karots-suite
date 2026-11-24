@@ -43,9 +43,6 @@ func (s *Service) listOnce(ctx context.Context, q ListQuery) ([]Product, int, er
 	if err != nil {
 		return nil, 0, apperr.Internal("failed to list products", err)
 	}
-	if err := s.FillRuleSuppliers(ctx, rows); err != nil {
-		return nil, 0, err
-	}
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
 		return nil, 0, apperr.Internal("failed to count products", err)
@@ -103,11 +100,7 @@ func (s *Service) Get(ctx context.Context, id int64) (*Product, error) {
 		}
 		return nil, apperr.Internal("failed to load product", err)
 	}
-	one := []Product{*p}
-	if err := s.FillRuleSuppliers(ctx, one); err != nil {
-		return nil, err
-	}
-	return &one[0], nil
+	return p, nil
 }
 
 // FindByName returns the active product with this exact (case-insensitive) name,

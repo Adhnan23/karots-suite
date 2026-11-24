@@ -84,6 +84,9 @@ func (h *handlers) AdminProducts(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if err := h.t.products.FillRuleSuppliers(c.Request().Context(), rows); err != nil {
+		return err
+	}
 	out := ProductList{Items: make([]AdminProductRow, 0, len(rows)), Total: total, Page: max(page, 1), PageSize: productPageSize}
 	splits := h.stockSplits(c.Request().Context(), rows)
 	for _, p := range rows {
@@ -113,6 +116,11 @@ func (h *handlers) AdminProduct(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	one := []products.Product{*p}
+	if err := h.t.products.FillRuleSuppliers(c.Request().Context(), one); err != nil {
+		return err
+	}
+	p = &one[0]
 	var sup int64
 	if p.PreferredSupplierID != nil {
 		sup = *p.PreferredSupplierID

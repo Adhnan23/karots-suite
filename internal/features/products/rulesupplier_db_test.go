@@ -87,6 +87,12 @@ func TestSUP12_ListFillsRuleSupplier(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if len(asked) != 0 {
+		t.Fatalf("List asked for rule suppliers (%v): the till's search must not pay for them", asked)
+	}
+	if err := svc.FillRuleSuppliers(context.Background(), rows); err != nil {
+		t.Fatal(err)
+	}
 	m := byID(rows)
 	if m[f.a].RuleSupplierID != nil {
 		t.Errorf("A has its own supplier, got a rule supplier")
@@ -145,6 +151,14 @@ func TestSUP12_GetFillsRuleSupplier(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if len(asked) != 0 {
+		t.Fatalf("Get asked for rule suppliers: only the screens that show one should")
+	}
+	one := []Product{*p}
+	if err := svc.FillRuleSuppliers(context.Background(), one); err != nil {
+		t.Fatal(err)
+	}
+	p = &one[0]
 	if p.RuleSupplierID == nil || *p.RuleSupplierID != f.s2 || p.PreferredSupplierID != nil {
 		t.Errorf("B: rule %v own %v", p.RuleSupplierID, p.PreferredSupplierID)
 	}

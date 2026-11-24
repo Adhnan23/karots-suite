@@ -87,7 +87,8 @@ type RuledSupplier struct {
 }
 
 // FillRuleSuppliers sets the rule supplier on rows with no own supplier; a rule
-// naming a missing or disabled supplier gives none.
+// naming a missing or disabled supplier gives none. Only screens that show a
+// supplier call it (List and Get don't: the till's search never pays for it).
 func (s *Service) FillRuleSuppliers(ctx context.Context, rows []Product) error {
 	ids := make([]int64, 0, len(rows))
 	for _, p := range rows {
