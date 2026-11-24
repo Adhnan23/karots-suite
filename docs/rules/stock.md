@@ -203,3 +203,13 @@ Products → Sheets ▾ → Import (user, 2026-11-23: fix a shop's whole list fr
 - **CAT-2** A category with products or sub-categories is never deleted by it, even if it was empty when the list was
   drawn (it's checked again at the moment of deleting and reported as kept). A parent left empty shows up the next
   time the list is drawn. *example.*
+
+### Items to review (REV)
+
+- **REV-1** Items to review lists every product core flags (a till quick item, a barcode or pack size set at the
+  till) **and** every product a plugin adds through the generic review hook, with that plugin's note beside it (e.g.
+  "From the catalogue"). A product on it for several reasons is listed once, with every note. Core never names the
+  plugin. *example.*
+- **REV-2** **Mark reviewed** clears core's flags and asks every plugin to clear its own for that product; a plugin's
+  own buttons on a row (e.g. "Use the catalogue's") act only through that plugin. A merged-away or deleted product
+  leaves the list. *example.*
