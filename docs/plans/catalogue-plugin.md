@@ -8,7 +8,7 @@ Rule first, a failing test naming it, then code; one commit per task; `make test
 - [x] 2. Core: quick item and intake-products take `extra` (ProductExtras); `productAssists` renders in QuickItem and
       the purchase NewProduct (`where`); `AssistFill.unitId`. Tests: an extra on a quick item reaches its hook.
 - [x] 3. Plugin skeleton: plugin.json, migrations (4 tables), data group, status route, page; `make plugins P=catalogue`.
-- [ ] 4. Sync (CTL-2, 3): index → changes / whole, SHA-256, one transaction, forward only; boot + 03:30 + Check now.
+- [x] 4. Sync (CTL-2, 3): index → changes / whole, SHA-256, one transaction, forward only; boot + 03:30 + Check now.
       Tests against a local test server: both ways equal, bad hash, cut, missing change file, older index.
 - [ ] 5. Search (CTL-5) + the assist UI (From catalogue next to Identify; form, intake, quick, purchase).
 - [ ] 6. Pick → save (CTL-6, 7, 10): Validate / Save, link, empty Product Plus fields filled; review note "From the

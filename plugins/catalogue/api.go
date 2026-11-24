@@ -21,3 +21,9 @@ func (h handlers) status(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, Status{State: st, HasAddress: address() != ""})
 }
+
+// check is the page's Check now: a sync right away; a failure shows on the status (the copy stays).
+func (h handlers) check(c echo.Context) error {
+	_, _ = h.p.sync.Sync(c.Request().Context())
+	return h.status(c)
+}

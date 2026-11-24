@@ -30,6 +30,7 @@ func address() string {
 type Plugin struct {
 	core  plugin.Core
 	store *Store
+	sync  *Syncer
 }
 
 func (p *Plugin) Name() string                { return "Catalogue" }
@@ -39,10 +40,14 @@ func (p *Plugin) Migrations() (fs.FS, string) { return migrations.FS, "catalogue
 func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
+	p.sync = NewSyncer(reg.Core.DB, address())
+	reg.AddBackground(p.sync.Loop)
 	reg.AddDataGroup(plugin.DataGroup{Key: "catalogue", Name: "Catalogue (the shop's copy, links, reviews)",
 		Tables: []string{"catalogue_items", "catalogue_state", "catalogue_links", "catalogue_reviews"}})
 
 	h := handlers{p}
 	t := reg.Cashier() // anyone signed in: the till's quick item, Pocket Cashier, Shelf
 	t.GET("/catalogue/status", h.status)
+	a := reg.Admin()
+	a.POST("/catalogue/check", h.check)
 }
