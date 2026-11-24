@@ -19,6 +19,27 @@ flowchart LR
   R -.->|Data → Updates| T
 ```
 
+## The shop's PC
+
+| | CPU | Memory | Disk |
+|---|---|---|---|
+| **Recommended** | Core i3 2nd gen or newer | 4 GB | SSD (a hard disk works too) |
+| **Minimum** | Core 2 Duo | 2 GB | hard disk |
+
+Measured on the main PC holding a year of a busy shop (~40,000 sales, ~2,000 products), with
+`scripts/bench` (till search, sales, the year's reports, a backup through the real API) on a VM slowed to each PC:
+
+| PC | Till search (p95) | Sale (p95) | Finance, a year | Sales report, a year | Backup | Start |
+|---|---|---|---|---|---|---|
+| i3 2nd gen, 4 GB, SSD | 0.11 s | 0.02 s | 1.6 s | 2.3 s | 2.3 s | 0.7 s |
+| i3 2nd gen, 4 GB, hard disk | 0.12 s | 0.04 s | 1.6 s | 2.9 s | 2.5 s | 2.1 s |
+| Core 2 Duo, 2 GB, hard disk | 0.30 s | 0.06 s | 2.5 s | 4.0 s | 4.3 s | 4.2 s |
+
+The Core 2 Duo works but is at the edge: search reaches the 0.3 s a cashier notices, and a year's
+report nears 5 s as a shop grows. One core with 1 GB still works but slowly (search 0.6 s, already
+swapping); 512 MB does not (a search took minutes). A cashier PC only shows the till in a browser,
+so any PC that runs a current browser will do.
+
 ## 1. The shop's profile
 
 `make bootstrap` opens the Shop Builder in your browser. The **Shops** list holds one profile per

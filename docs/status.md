@@ -40,24 +40,14 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
    In order:
    1. ~~Release refuses untested code~~ — done (BLD-6, 2026-11-23). Its first run caught a real bug: Batches → Set
       count / Not there set the total from old numbers on a fast click (fixed, STK-5). Full run green on b3e5fd57.
-   2. **Low-spec benchmark** — IN PROGRESS. Targets (user): minimum = Core 2 Duo E7400 / 2 GB / hard disk (rare);
-      most shops now = i3 2nd gen / 4 GB; Iman = i3 4th gen / 8 GB / SSD. VM steps: Penryn CPU model (no AVX /
-      SSE4.2) + ~40 % per-core cap + 2 GB + HDD-speed disk; Core 2 Quad-like 4 cores / 4 GB; i3-2nd-gen-like 2c/4t
-      ~60 % / 4 GB, HDD then SSD; Windows 10 at the recommended step (+ one try at minimum). Pass: search p95 < 0.3 s,
-      sale p95 < 1 s, reports < 5 s, start < 60 s, backup < 2 min, no swapping with the till open in a browser.
-      **Ready** (all in `/mnt/nvme_512GB/karots/bench/`): `linux/karots-suite` + `windows/karots-suite.exe` (latest,
-      every plugin, file mode, no shop profile); `bench-shop.ksb` (1,915 products = demo everything + Iman's, 39,735
-      sales a year; admin 0771000001 / 1111); `scripts/bench` (`go run ./scripts/bench -url … -phone … -pin … -label
-      …`, one JSON line; results in `results.jsonl`). Baseline on this PC: search 59 ms, sale 6 ms, **Finance (year)
-      3.1 s (6.6 s first run)**, top products 1.8 s, sales (year) 1.4 s, backup 1.5 s — the year reports may need
-      speeding up for a Core 2.
-      **VM state:** `karots-main` has snapshot `before-bench` (revert it at the end) and its NIC on the isolated
-      libvirt net `bench` (192.168.122.0/24, no internet, `vm/bench-net.xml`; originals in `vm/*-original.xml`), so
-      its old install (cloud on) can't upload. **To go on:** `virsh net-destroy default; virsh net-start bench`, start
-      karots-main. **Blocker:** SSH isn't running inside it (refused on any subnet): the user enables it from the
-      console (`sudo systemctl enable --now ssh`; if not installed, stop the old Karots first, then a short internet
-      spell for the install). Then: stop/disable the old Karots, copy the bench binary + ksb, `-restore`, run, bench
-      each step. At the end: revert the snapshot, restore the original XML, `net-undefine bench`, `net-start default`.
+   2. ~~Low-spec benchmark~~ — done (2026-11-24). **Minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB**
+      (user; SSD nice, not needed) — table in `docs/guide/install.md` → The shop's PC; raw lines in
+      `/mnt/nvme_512GB/karots/bench/results.jsonl` (`step.sh` / `vmstep.sh` there drive a step over SSH; the VM is
+      reverted to `before-bench`, networks as before). It found RPT-38: the year reports walked the products list
+      for every sale (Finance (year) 35 s on a fast PC with Iman's products) — fixed, 1 s. 1 core / 1 GB works
+      slowly; 512 MB doesn't. Not run (user: not needed): Windows 10, the till open in a browser during a step.
+      The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s here).
+      Price lists / the site still to say the minimum and recommended PC (wording pass, item 3).
    3. **One pass of wording** on the site, guides and legal pack (`LICENSE`, Shop Rules, `make agreement`) from the
       user's policies: one licence = the one PC running the Suite (cashier PCs and phones only connect); 3 months'
       warranty, **genuine bugs always fixed free**; service plan = cloud backups, support, major upgrades, small
