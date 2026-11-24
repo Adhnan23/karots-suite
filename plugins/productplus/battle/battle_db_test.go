@@ -79,6 +79,7 @@ func TestLedgerChecksFire(t *testing.T) {
 	b := field(t, s, map[string]any{"label": "Fire yes", "type": "bool"})
 	p := s.Product(t, "Fire pp", "10", "0", nil)
 	dup := s.Product(t, "Fire pp dup", "10", "0", nil)
+	sup := supplier(t, s, "Fire supplier")
 	for _, c := range []struct{ rule, bad string }{
 		{"PPF-1", fmt.Sprintf(`INSERT INTO pp_values VALUES (%d, %d, 'NaN')`, n.ID, p)},
 		{"PPF-1", fmt.Sprintf(`INSERT INTO pp_values VALUES (%d, %d, '2026-02-30')`, d.ID, p)},
@@ -86,6 +87,8 @@ func TestLedgerChecksFire(t *testing.T) {
 		{"PPF-6", fmt.Sprintf(`INSERT INTO pp_values VALUES (%d, 999999, '1')`, n.ID)},
 		{"PPF-6", fmt.Sprintf(`UPDATE products SET merged_into_id = %d WHERE id = %d; INSERT INTO pp_values VALUES (%d, %[2]d, '1')`, p, dup, n.ID)},
 		{"PPF-9", fmt.Sprintf(`UPDATE pp_fields SET label = 'FIRE NUMBER' WHERE id = %d`, d.ID)},
+		{"PPF-10", fmt.Sprintf(`INSERT INTO pp_supplier_field (field_id) VALUES (%d) ON CONFLICT (id) DO UPDATE SET field_id = EXCLUDED.field_id`, n.ID)},
+		{"PPF-11", fmt.Sprintf(`INSERT INTO pp_supplier_map VALUES (' Fire Bosch', %d)`, sup)},
 	} {
 		tx := s.DB.MustBegin()
 		tx.MustExec(c.bad)

@@ -24,4 +24,13 @@ func init() {
 	ledgercheck.Add("PPF-9", `
 		SELECT 'field ' || min(id), format('%s fields called %L', count(*), lower(btrim(label)))
 		FROM pp_fields GROUP BY lower(btrim(label)) HAVING count(*) > 1`)
+	// PPF-10: the supplier field is a text or dropdown field.
+	ledgercheck.Add("PPF-10", `
+		SELECT 'supplier field ' || f.id, format('a %s field gives the supplier', f.type)
+		FROM pp_supplier_field sf JOIN pp_fields f ON f.id = sf.field_id
+		WHERE f.type NOT IN ('text', 'select')`)
+	// PPF-11: a rule's value is kept trimmed and lower-cased, or it never matches.
+	ledgercheck.Add("PPF-11", `
+		SELECT format('rule %L', value_key), 'value not trimmed and lower-cased'
+		FROM pp_supplier_map WHERE value_key <> lower(btrim(value_key))`)
 }
