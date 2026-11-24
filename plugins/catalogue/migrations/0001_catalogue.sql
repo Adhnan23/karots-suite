@@ -14,6 +14,7 @@ CREATE INDEX idx_catalogue_items_search ON catalogue_items USING gin (search gin
 CREATE TABLE catalogue_state (
     id         INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     version    INT   NOT NULL DEFAULT 0,
+    count      INT   NOT NULL DEFAULT 0,  -- the version's product count, from its index (CTL-2)
     fields     JSONB NOT NULL DEFAULT '[]', -- the catalogue's field list at that version
     checked_at TIMESTAMPTZ,
     synced_at  TIMESTAMPTZ,

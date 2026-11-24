@@ -45,6 +45,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddBackground(p.sync.Loop)
 	reg.AddProductExtras(p.store.extras())
 	reg.AddReviewSource(p.store.reviewSource())
+	reg.AddProductMerger(plugin.ProductMerger{Key: "catalogue", Merge: mergeProduct})
 	reg.AddDataGroup(plugin.DataGroup{Key: "catalogue", Name: "Catalogue (the shop's copy, links, reviews)",
 		Tables: []string{"catalogue_items", "catalogue_state", "catalogue_links", "catalogue_reviews"}})
 

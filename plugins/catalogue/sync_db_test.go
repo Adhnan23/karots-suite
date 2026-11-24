@@ -218,3 +218,41 @@ func TestSyncAllOrNothingForwardOnly(t *testing.T) {
 		t.Fatal("synced without an address")
 	}
 }
+
+// CTL-3, PLG-4: a database failure at any statement of a sync leaves the copy and its version as they were.
+func TestSyncFailureAtAnyStatement(t *testing.T) {
+	p := newPub(t)
+	ctx := context.Background()
+	db, _, f := ltest.NewFaultyDB(t)
+	if err := appdb.RunMigrationsTable(db.DB, migrations.FS, "goose_db_version_catalogue"); err != nil {
+		t.Fatal(err)
+	}
+	s := NewSyncer(db, p.srv.URL)
+	v1 := []Item{it(1, "A", "x"), it(2, "B", "")}
+	p.publish(v1, nil)
+	if _, err := s.Sync(ctx); err != nil {
+		t.Fatal(err)
+	}
+	p.publish([]Item{it(1, "A2", "y"), it(3, "C", "")}, nil)
+	for k := 1; ; k++ {
+		if k > 100 {
+			t.Fatal("still failing after 100 statements")
+		}
+		f.Arm(k)
+		_, err := s.Sync(ctx)
+		if !f.Fired() {
+			if err != nil {
+				t.Fatalf("failed with nothing planted: %v", err)
+			}
+			break
+		}
+		// Only whole versions: still 1, or 2 when what failed was the check's own note after the commit.
+		v, _ := versionOf(t, db)
+		if !(v == 1 && reflect.DeepEqual(copyOf(t, db), v1)) && !(v == 2 && err == nil && len(copyOf(t, db)) == 2) {
+			t.Fatalf("statement %d (%s) failed (%v) and left version %d, copy %+v", k, f.Failed(), err, v, copyOf(t, db))
+		}
+	}
+	if v, _ := versionOf(t, db); v != 2 || len(copyOf(t, db)) != 2 {
+		t.Fatalf("the clean run: version %d, %+v", v, copyOf(t, db))
+	}
+}

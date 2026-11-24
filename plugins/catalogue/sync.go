@@ -210,7 +210,7 @@ func (s *Syncer) sync(ctx context.Context) (int, error) {
 			}
 		}
 		fields, _ := json.Marshal(idx.Fields)
-		_, err := tx.ExecContext(ctx, `UPDATE catalogue_state SET version = $1, fields = $2, synced_at = now() WHERE id = 1`, idx.Version, fields)
+		_, err := tx.ExecContext(ctx, `UPDATE catalogue_state SET version = $1, fields = $2, count = $3, synced_at = now() WHERE id = 1`, idx.Version, fields, idx.Count)
 		return err
 	})
 	if errors.Is(err, errRaced) {

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"karots-suite/internal/db"
+
 	"github.com/lib/pq"
 
 	"github.com/shopspring/decimal"
@@ -81,9 +83,14 @@ func (r *Repository) Count(ctx context.Context, q ListQuery) (int, error) {
 
 // Rename updates just the name column. Returns sql.ErrNoRows if the id is unknown
 // so the service can report a 404 rather than a silent no-op.
+// It joins a transaction the context carries (db.InTx): a plugin renaming through a hook stays all-or-nothing.
 func (r *Repository) Rename(ctx context.Context, id int64, name string) error {
+	var q db.Queryer = r.db
+	if tx := db.TxFrom(ctx); tx != nil {
+		q = tx
+	}
 	var got int64
-	return r.db.GetContext(ctx, &got,
+	return q.GetContext(ctx, &got,
 		`UPDATE products SET name = $2 WHERE id = $1 RETURNING id`, id, name)
 }
 

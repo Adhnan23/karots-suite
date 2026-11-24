@@ -14,7 +14,7 @@ Rule first, a failing test naming it, then code; one commit per task; `make test
 - [x] 6. Pick → save (CTL-6, 7, 10): Validate / Save, link, empty Product Plus fields filled; review note "From the
       catalogue". With and without Product Plus.
 - [x] 7. Later changes (CTL-8, 9, 12): sync's review step, Use the catalogue's / Keep mine; gone into.
-- [ ] 8. Merge (CTL-11), ledger checks (CTL-2 count, CTL-7 links), battle file, faults (PLG-4, 6).
+- [x] 8. Merge (CTL-11), ledger checks (CTL-2 count, CTL-7 links), battle file, faults (PLG-4, 6).
 - [ ] 9. Pocket Cashier: offline route answers "offline"; online quick item shows the assist (CTL-4).
 - [ ] 10. Shop Builder bakes the address; `CATALOGUE_DIR` in the suite's `.env`; dev `KAROTS_CATALOGUE_URL`.
 - [ ] 11. Demo Room: a small sample copy (user, 2026-11-24) so its shops can pick. Docs + legal (README, guide, shots,

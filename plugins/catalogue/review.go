@@ -172,7 +172,7 @@ func unionKeys(a, b map[string]string) map[string]bool {
 // Waiting is a product's waiting catalogue change, for its Items to review buttons.
 func (s *Store) Waiting(ctx context.Context, productID int64) ([]change, error) {
 	var raw []byte
-	err := s.db.GetContext(ctx, &raw, `SELECT changes FROM catalogue_reviews WHERE product_id = $1`, productID)
+	err := appdb.On(ctx, s.db).GetContext(ctx, &raw, `SELECT changes FROM catalogue_reviews WHERE product_id = $1 FOR UPDATE`, productID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return []change{}, nil
 	}
@@ -186,6 +186,11 @@ func (s *Store) Waiting(ctx context.Context, productID int64) ([]change, error) 
 // useCatalogue writes the waiting change's name and fields (never the unit: stock is counted in it), then keeps
 // the link as the catalogue has it now (CTL-9). rename is core's rename.
 func (s *Store) useCatalogue(ctx context.Context, productID int64, rename func(ctx context.Context, id int64, name string) error) error {
+	// One transaction: core's rename and the fields' plugin join it through the context (PLG-4).
+	return appdb.WithTx(ctx, s.db, func(tx *sqlx.Tx) error { return s.useCatalogueTx(appdb.InTx(ctx, tx), productID, rename) })
+}
+
+func (s *Store) useCatalogueTx(ctx context.Context, productID int64, rename func(ctx context.Context, id int64, name string) error) error {
 	cs, err := s.Waiting(ctx, productID)
 	if err != nil {
 		return err
