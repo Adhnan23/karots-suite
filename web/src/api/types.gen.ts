@@ -335,6 +335,12 @@ export interface AdminProduct extends AdminProductRow {
   warrantyMonths: number /* int */;
   supplierId: number /* int64 */;
   /**
+   * The rule supplier (SUP-12) when there's no own one: a plugin's rule, shown as
+   * a hint ("By Brand: Lanka Auto Parts"); SupplierID stays the own one.
+   */
+  ruleSupplierName?: string;
+  ruleSupplierWhy?: string;
+  /**
    * FoldFrom: the card this loose product is cut from (an active conversion
    * into it), offered as "Fold <card> into packs". Nil when there is none.
    */

@@ -100,6 +100,7 @@ func (h *handlers) AdminProduct(c echo.Context) error {
 		sup = *p.PreferredSupplierID
 	}
 	out := AdminProduct{AdminProductRow: productRow(*p), UnitID: p.UnitID, TaxRate: p.TaxRate.String(), WarrantyMonths: p.WarrantyMonths, SupplierID: sup,
+		RuleSupplierName: p.RuleSupplierName, RuleSupplierWhy: p.RuleSupplierWhy,
 		ReorderAuto: p.ReorderAuto, ReorderStart: p.ReorderStart, ReorderCalc: calcView(calcOf(*p))}
 	out.FoldFrom = h.foldSource(c.Request().Context(), id)
 	return c.JSON(http.StatusOK, out)

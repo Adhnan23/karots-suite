@@ -28,10 +28,11 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
 	reg.AddDataGroup(plugin.DataGroup{Key: "productplus", Name: "Product Plus (custom fields)",
-		Tables: []string{"pp_fields", "pp_values", "pp_field_categories"}})
+		Tables: []string{"pp_fields", "pp_values", "pp_field_categories", "pp_supplier_field", "pp_supplier_map"}})
 	reg.AddProductMerger(plugin.ProductMerger{Key: "productplus", Merge: mergeProduct})
 	reg.AddCategoryMerger(plugin.CategoryMerger{Key: "productplus", Merge: mergeCategory, Unmerge: unmergeCategory})
 	p.registerHooks(reg)
+	reg.AddRuleSupplier(p.store.ruleSupplier())
 
 	h := handlers{p}
 	a := reg.Admin() // /api/v1/x — admin + manager
@@ -45,4 +46,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	a.GET("/productplus/form", h.form)
 	a.GET("/productplus/grid", h.grid)
 	a.PUT("/productplus/values", h.values)
+	a.GET("/productplus/supplier-rules", h.supplierRules)
+	a.PUT("/productplus/supplier-rules/field", h.supplierField)
+	a.PUT("/productplus/supplier-rules/value", h.supplierValue)
 }

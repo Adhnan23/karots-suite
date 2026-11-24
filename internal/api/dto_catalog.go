@@ -168,6 +168,10 @@ type AdminProduct struct {
 	TaxRate         string `json:"taxRate"`
 	WarrantyMonths  int    `json:"warrantyMonths"`
 	SupplierID      int64  `json:"supplierId"`
+	// The rule supplier (SUP-12) when there's no own one: a plugin's rule, shown as
+	// a hint ("By Brand: Lanka Auto Parts"); SupplierID stays the own one.
+	RuleSupplierName string `json:"ruleSupplierName,omitempty"`
+	RuleSupplierWhy  string `json:"ruleSupplierWhy,omitempty"`
 	// FoldFrom: the card this loose product is cut from (an active conversion
 	// into it), offered as "Fold <card> into packs". Nil when there is none.
 	FoldFrom *FoldSource `json:"foldFrom,omitempty"`
