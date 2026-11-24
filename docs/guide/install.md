@@ -21,10 +21,25 @@ flowchart LR
 
 ## The shop's PC
 
-| | CPU | Memory | Disk |
-|---|---|---|---|
-| **Recommended** | Core i3 2nd gen or newer | 4 GB | SSD (a hard disk works too) |
-| **Minimum** | Core 2 Duo | 2 GB | hard disk |
+The main PC (the one that runs Karots Suite):
+
+| | Minimum | Recommended |
+|---|---|---|
+| **Operating system** | Windows 10 (64-bit), or a 64-bit Linux | Windows 10 or 11 (64-bit), or Ubuntu / Xubuntu |
+| **Processor** | Intel Core 2 Duo, or any 64-bit Intel / AMD with 2 cores | Intel Core i3 2nd gen or newer, or AMD equal |
+| **Memory** | 2 GB | 4 GB or more |
+| **Storage** | 5 GB free, hard disk | 20 GB free, SSD |
+| **Screen** | 1024 × 768 (the till's two-column layout) | 1366 × 768 or larger (three columns) |
+| **Network** | None for one PC; cashier PCs and phones: the shop's wired network or wifi | The same, plus internet now and then (updates, cloud backup) |
+| **Receipt printer** | Optional | 80 mm thermal on USB (tested: Xprinter XP-80T) |
+| **Power** | A normal socket (a power cut loses no finished sale) | A UPS, to keep selling through a cut |
+
+**Cashier PCs** only show the till in a browser from the main PC: Windows 10 / 11 or Linux, 2 GB, a 1024 × 768
+screen, and Chrome, Edge or Firefox from 2023 or later. They need no licence.
+
+Why these: the program is built for any 64-bit x86 CPU (`GOAMD64=v1`, no AVX needed) and the Go it is built with
+needs Windows 10 or newer; 32-bit systems don't run it. Disk, measured: the program 46 MB, its own PostgreSQL 59 MB,
+a busy shop's year of data 271 MB and a week of backups (28) about 160 MB, so about 0.5 GB after a year.
 
 Measured on the main PC holding a year of a busy shop (~40,000 sales, ~2,000 products), with
 `scripts/bench` (till search, sales, the year's reports, a backup through the real API) on a VM slowed to each PC:
