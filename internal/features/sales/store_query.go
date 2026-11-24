@@ -131,15 +131,17 @@ const netRevSQL = `(s.total - s.tax - agg.pt_face - agg.ret_val * COALESCE((s.to
 // ProfitAggSQL is the per-sale cost/pass-through/returns aggregate. ret_val is
 // the refunds actually given on the sale so far (tax in, RPT-37) — never a
 // share worked out again, which drifts a cent from the rounded refunds.
-// Correlated on the outer `s`.
+// Correlated on the outer `s`. Each line finds its product by id (RPT-38): a
+// join here let the planner walk the products list once per sale.
 const ProfitAggSQL = `
 	SELECT
-	  COALESCE(SUM(si.subtotal) FILTER (WHERE p.pass_through), 0)                                          AS pt_face,
+	  COALESCE(SUM(si.subtotal) FILTER (WHERE si.pt), 0)                                                    AS pt_face,
 	  COALESCE((SELECT SUM(ri.refund_amount) FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id
-	            JOIN products rp ON rp.id = ri.product_id WHERE r.sale_id = s.id AND NOT rp.pass_through), 0) AS ret_val,
-	  COALESCE(SUM((si.quantity - si.returned_qty) * si.cost_price) FILTER (WHERE NOT p.pass_through), 0)  AS cogs
-	FROM sale_items si JOIN products p ON p.id = si.product_id
-	WHERE si.sale_id = s.id`
+	            WHERE r.sale_id = s.id AND NOT (SELECT rp.pass_through FROM products rp WHERE rp.id = ri.product_id)), 0) AS ret_val,
+	  COALESCE(SUM((si.quantity - si.returned_qty) * si.cost_price) FILTER (WHERE NOT si.pt), 0)           AS cogs
+	FROM (SELECT i.subtotal, i.quantity, i.returned_qty, i.cost_price,
+	             (SELECT p.pass_through FROM products p WHERE p.id = i.product_id) AS pt
+	      FROM sale_items i WHERE i.sale_id = s.id) si`
 
 // hourClause returns the shop-local hour-of-day window predicate (inclusive both
 // ends), or empty when both hour params are nil. tzP/fromP/toP are the SQL

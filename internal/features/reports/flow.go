@@ -15,14 +15,24 @@ import (
 // (RPT-6, user's Q1, 2026-11-20). A report sums these rows; none counts a
 // return its own way.
 
+// saleSumsSQL is each of the period's non-void sales' own figures, worked out
+// once (RPT-38): pt = its pass-through face, own = its own lines' nets (NULL when
+// it has none), cost = its own lines' cost. Joined on sale_id, never looked up
+// per line — a lookup per line walked the products list for every sale.
+const saleSumsSQL = `(SELECT x.sale_id,
+	       COALESCE(SUM(x.subtotal) FILTER (WHERE xp.pass_through), 0) AS pt,
+	       SUM(x.subtotal) FILTER (WHERE NOT xp.pass_through) AS own,
+	       COALESCE(SUM(x.quantity * COALESCE(x.cost_price,0)) FILTER (WHERE NOT xp.pass_through), 0) AS cost
+	FROM sale_items x JOIN sales xs ON xs.id = x.sale_id JOIN products xp ON xp.id = x.product_id
+	WHERE xs.status <> 'void' AND xs.created_at >= $1 AND xs.created_at < $2
+	GROUP BY x.sale_id)`
+
 // ownFactorSQL is what each Rs of the shop's own line net brought in before
 // tax: (total − tax − pass-through face) ÷ the shop's own line nets. The whole
 // bill discount lands on the shop's own lines — a pass-through line (airtime,
 // a payout) is never revenue and never takes a share (RPT-3, RPT-12, Q3), so
-// the lines add up to the P&L. Correlated on `s`.
-const ownFactorSQL = `COALESCE((s.total - s.tax - (SELECT COALESCE(SUM(x.subtotal),0) FROM sale_items x JOIN products xp ON xp.id = x.product_id
-	WHERE x.sale_id = s.id AND xp.pass_through)) / NULLIF((SELECT SUM(x.subtotal) FROM sale_items x JOIN products xp ON xp.id = x.product_id
-	WHERE x.sale_id = s.id AND NOT xp.pass_through), 0), 0)`
+// the lines add up to the P&L. Correlated on `s` and `t` (saleSumsSQL).
+const ownFactorSQL = `COALESCE((s.total - s.tax - t.pt) / NULLIF(t.own, 0), 0)`
 
 // refundPreTaxSQL turns a refund (tax in) into its part before tax; taxBackSQL
 // is its tax part (RPT-17). Correlated on `s`.
@@ -41,6 +51,7 @@ const flowSQL = `
 	       si.quantity * COALESCE(si.cost_price,0) AS cost,
 	       (NOT p.is_service AND COALESCE(si.cost_price,0) = 0) AS no_cost
 	FROM sale_items si JOIN sales s ON s.id = si.sale_id JOIN products p ON p.id = si.product_id
+	JOIN ` + saleSumsSQL + ` t ON t.sale_id = s.id
 	WHERE NOT p.pass_through AND s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
 	UNION ALL
 	SELECT 'r', r.created_at, s.id, ri.product_id, r.created_by,
@@ -62,10 +73,9 @@ const salesInSQL = `FROM sales s WHERE s.status <> 'void' AND s.created_at >= $1
 // time and people reports sum (RPT-10, RPT-14).
 const (
 	soldSQL = `SELECT s.created_at AS at, 1 AS n, s.cashier_id AS user_id,
-		s.total - s.tax - (SELECT COALESCE(SUM(si.subtotal),0) FROM sale_items si JOIN products p ON p.id = si.product_id
-		                   WHERE si.sale_id = s.id AND p.pass_through) AS revenue,
-		(SELECT COALESCE(SUM(si.quantity * COALESCE(si.cost_price,0)),0) FROM sale_items si JOIN products p ON p.id = si.product_id
-		 WHERE si.sale_id = s.id AND NOT p.pass_through) AS cost ` + salesInSQL
+		s.total - s.tax - COALESCE(t.pt, 0) AS revenue, COALESCE(t.cost, 0) AS cost
+		FROM sales s LEFT JOIN ` + saleSumsSQL + ` t ON t.sale_id = s.id
+		WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2`
 	returnedSQL = `SELECT f.at, 0 AS n, f.user_id, f.revenue, f.cost FROM (` + flowSQL + `) f WHERE f.kind = 'r'`
 )
 

@@ -17,7 +17,10 @@ import (
 
 // discountDB is a fresh database with core migrated: the sale goes through the
 // real sales.Create, so the reports read exactly what a till sale stores.
-func discountDB(t *testing.T) *sqlx.DB {
+func discountDB(t *testing.T) *sqlx.DB { t.Helper(); return freshDB(t, "reports_discount_test_db") }
+
+// freshDB is an empty database called name with core migrated, dropped after the test.
+func freshDB(t *testing.T, name string) *sqlx.DB {
 	t.Helper()
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
@@ -26,7 +29,6 @@ func discountDB(t *testing.T) *sqlx.DB {
 	admin, err := appdb.Connect(dsn)
 	mustR(t, err)
 	t.Cleanup(func() { admin.Close() })
-	const name = "reports_discount_test_db"
 	admin.Exec(`DROP DATABASE IF EXISTS ` + name + ` WITH (FORCE)`) //nolint:errcheck
 	_, err = admin.Exec(`CREATE DATABASE ` + name)
 	mustR(t, err)

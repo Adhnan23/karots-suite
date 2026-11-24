@@ -174,3 +174,9 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
 - **RPT-36** One report is one moment: every figure on a page (the P&L's ~20 sums, the dashboard, a Z) is read from
   the same snapshot, so a sale landing while it is read is in all of its figures or none. *Found by reading: each
   sum is its own query today.*
+- **RPT-38** A report's work grows with the period's sale lines, never with the number of products the shop has: each
+  sale's own figures (pass-through face, own line nets, cost) are worked out once per sale, and a line finds its
+  product by its id. A year's reports on a full shop (bench: ~40,000 sales, ~2,000 products) answer within the
+  hardware minimums (`docs/guide/install.md`). *Found by the low-spec bench (2026-11-24): a per-sale lookup walked the
+  products list from the start for every sale — Finance (year) took 35 s on a fast PC once Iman's products were in,
+  and a 50,000-product catalogue would make it far worse.*

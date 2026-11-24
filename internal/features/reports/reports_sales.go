@@ -28,23 +28,26 @@ func (s *Service) SalesByCashier(ctx context.Context, from, to time.Time) ([]Cas
 	var rows []CashierSalesRow
 	// A sale under its cashier; a return off the net of whoever gave the refund,
 	// on its day (RPT-14, RPT-6) — so the cashiers add up to the P&L.
-	if err := s.db.SelectContext(ctx, &rows, `
-		SELECT u.name AS cashier, SUM(x.n) AS count, SUM(x.gross) AS gross,
-		       SUM(x.discount) AS discount, SUM(x.net) AS net
-		FROM (
-			SELECT s.cashier_id AS user_id, 1 AS n,
-			       s.subtotal - (SELECT COALESCE(SUM(si.subtotal),0) FROM sale_items si JOIN products p ON p.id = si.product_id
-			                     WHERE si.sale_id = s.id AND p.pass_through) AS gross,
-			       s.discount, 0 AS net
-			`+salesInSQL+`
-			UNION ALL
-			SELECT x.user_id, 0, 0, 0, x.revenue FROM (`+soldSQL+` UNION ALL `+returnedSQL+`) x
-		) x JOIN users u ON u.id = x.user_id
-		GROUP BY u.id, u.name ORDER BY net DESC`, from, to); err != nil {
+	if err := s.db.SelectContext(ctx, &rows, byCashierSQL+`GROUP BY u.id, u.name ORDER BY net DESC`, from, to); err != nil {
 		return nil, apperr.Internal("failed to compute sales by cashier", err)
 	}
 	return rows, nil
 }
+
+// byCashierSQL is the period's sales and returns per person: gross and discount
+// from their own sales, net = their sold less the refunds they gave (RPT-14).
+const byCashierSQL = `
+		SELECT u.name AS cashier, SUM(x.n) AS count, SUM(x.gross) AS gross,
+		       SUM(x.discount) AS discount, SUM(x.net) AS net
+		FROM (
+			SELECT s.cashier_id AS user_id, 1 AS n,
+			       s.subtotal - COALESCE(t.pt, 0) AS gross, s.discount, 0 AS net
+			FROM sales s LEFT JOIN ` + saleSumsSQL + ` t ON t.sale_id = s.id
+			WHERE s.status <> 'void' AND s.created_at >= $1 AND s.created_at < $2
+			UNION ALL
+			SELECT x.user_id, 0, 0, 0, x.revenue FROM (` + soldSQL + ` UNION ALL ` + returnedSQL + `) x
+		) x JOIN users u ON u.id = x.user_id
+		`
 
 // ReturnLine is one returned line, dated when the money went back (the
 // return), with its sale's date beside it. Refund is what was actually given
