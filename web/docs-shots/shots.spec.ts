@@ -96,6 +96,7 @@ test('admin, desktop', async ({ browser }) => {
   for (const [path, name] of admin) await shot(page, path, name, { prep: preps[name] })
   for (const key of plugins) await shot(page, `/admin/x/${key}`, `plugins/${key}`)
   await shot(page, '/admin/x/aicatalog/jobs', 'plugins/aicatalog-jobs')
+  await shot(page, '/admin/x/productplus/suppliers', 'plugins/productplus-suppliers')
   await page.context().close()
 })
 
