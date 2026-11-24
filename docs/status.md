@@ -4,87 +4,55 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 short: history lives in git (`git log -p -- docs/status.md` has every older handoff, finished plan and area-by-area
 battle report). The catalogue and the Onboard / Shelf apps keep their own details in their READMEs.
 
-## Now (2026-11-23)
+## Now (2026-11-24)
 
-**The suite is feature-complete for a shop's day and battle-tested end to end.** First shop: Iman Pharmacy
-Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin ID=FC1A79F7`): onboarding
-almost done, **no real sales yet**. Released to Iman as **2026.11.23.1850** (the Batches sheet fix; 1441 had this week's sheet work).
+**The suite is feature-complete for a shop's day, battle-tested end to end, and measured on low-spec PCs.** First
+shop: Iman Pharmacy Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin
+ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Released to Iman as **2026.11.24.1053** (faster year
+reports, RPT-38; the new terms). Iman updates from Setup → Data → Updates.
 
-- **Iman's catalogue is fixed and ready for a fresh start** (user, 2026-11-23: reset Iman's database, then import):
-  `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` holds `suppliers.csv`, `products.csv` (1,723: catalogue names, the
-  new category tree, cleaned generics; Iman's barcodes, prices, suppliers), `cashier-menu.csv` and `README.md` (the
-  steps: units tab / cap and the Generic Name / Company / Distributor fields first). Built by the catalogue repo's
-  `shops/iman_reset.py` from an Onboard backup — rebuild it from a fresh backup if Iman's products change. After the
-  reset, Onboard must re-pull Iman's products (its links point at the old ones).
-- **The dev database (`suite_db`, `make dev`) is Iman's reset shop** (user, 2026-11-23): 1,723 products, all frozen,
-  31 suppliers, the new tree, the cashier menu; sign in as the system user (PIN in `.env`). Dumps in
-  `/mnt/nvme_512GB/karots/db-dumps/` (`iman_fresh-20261123.dump` = this data; `suite_db-before-iman-…` = the old
-  starter data). The working tree has every plugin on (`make plugins P=all`): `make core-only` before committing.
-- **This week's sheet work:** the cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU
-  rules), the products sheet preview (old → new, all or nothing, a till's product skipped not waited on, IMP-1…5),
-  "Empty cells clear the field" (IMP-6), Categories → Delete empty… (CAT-1, 2) and **the Alternatives sheet** (Sheet ▾
-  on the Alternatives page: `Group, Tier, Product, Barcode`, the whole set, preview first, ALT-9…18; import admin
-  only). Released 2026.11.23.1441.
-- **Battle tests: all done** (7 core areas, every plugin, install / run). Rule first (AGENTS.md): rule, failing test, code.
+- **Iman's catalogue is ready for a fresh start** (user: reset Iman's database, then import):
+  `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` (`suppliers.csv`, `products.csv` 1,723, `cashier-menu.csv`,
+  `README.md` with the steps), built by the catalogue repo's `shops/iman_reset.py` from an Onboard backup. After the
+  reset Onboard must re-pull Iman's products.
+- **The dev database (`suite_db`) is Iman's reset shop** (1,723 products, all frozen, 31 suppliers). Dumps in
+  `/mnt/nvme_512GB/karots/db-dumps/`.
+- **Selling terms (2026-11-24):** four plans (Core, Karots Suite, Easy Pay, Complete Shop), bugs always free, the
+  service plan, one licence per PC — on suite.karots.lk and in the legal pack (Shop Rules 1.6, `LICENSE`, DRAFT for
+  the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
+  results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
-**Last full run (2026-11-23, after the Alternatives sheet):** all green — Go, Vitest 1,228, check-core, Playwright
-275 passed. Mutation on `plugins/alternatives`: 0 lived. Pocket reads
-`KAROTS_POCKET_PORT` before `.env` is loaded (open bug): a dev shop must get it from the environment (`start.sh`
-does). Playwright now uses 3100+ / Pocket 8543+ (2026-11-23), so a dev server on 3000 / 8443 can keep running. Two specs race (`goto('/login')` right after an API
-logout: palettes, admin-people) — they pass on a rerun; make them wait for the redirect.
+**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). Known flakes:
+two specs race (`goto('/login')` right after an API logout: palettes, admin-people), pass on a rerun. Open bug: Pocket
+reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from the environment).
 
 ## Next — the user's call
 
-0. **Next (decided with the user, 2026-11-23)** — the site review is audited (table in
-   `docs/reviews/2026-11-23-site-review.md`); Demo Room + site deployed with noindex / descriptions / sitemap dates.
-   In order:
-   1. ~~Release refuses untested code~~ — done (BLD-6, 2026-11-23). Its first run caught a real bug: Batches → Set
-      count / Not there set the total from old numbers on a fast click (fixed, STK-5). Full run green on b3e5fd57.
-   2. ~~Low-spec benchmark~~ — done (2026-11-24). **Minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB**
-      (user; SSD nice, not needed) — table in `docs/guide/install.md` → The shop's PC; raw lines in
-      `/mnt/nvme_512GB/karots/bench/results.jsonl` (`step.sh` / `vmstep.sh` there drive a step over SSH; the VM is
-      reverted to `before-bench`, networks as before). It found RPT-38: the year reports walked the products list
-      for every sale (Finance (year) 35 s on a fast PC with Iman's products) — fixed, 1 s. 1 core / 1 GB works
-      slowly; 512 MB doesn't. Not run (user: not needed): Windows 10, the till open in a browser during a step.
-      The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s here).
-      Price lists / the site still to say the minimum and recommended PC (wording pass, item 3).
-   3. ~~One pass of wording~~ — legal pack + guides done 2026-11-24 (Shop Rules 1.5, `LICENSE` 3.1 / 3.3 / 9.2 / Second
-      Schedule, Order Details, samples, lawyer items 10 + 14, `make agreement`); the site follows in karots-pos-site.
-      User's answers (2026-11-24): the 3 months = what the plan gives; installation + training in the price; the
-      30-day refund scale kept (no install fee in it); a Suite shop adds plugins free, Core → Suite = Rs 20,000.
-      Defaults taken (tell the user, change if he says): visits by distance; transfer Rs 5,000; balance in 90 days;
-      plan paused 7 days late; reinstall after a format free like a move; extra cashier PC set-up Rs 3,000; Tailscale
-      3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier app inside Karots Suite; "your copy keeps
-      working if Karots stops trading" (Guide 10, lawyer item 14).
-      Site deployed 2026-11-24 (karots-pos-site e8acc37): pricing (who pays, licence, system requirements), FAQ,
-      hero, trust. Still open from the review (one line each in the guides, not audited): selling below stock / no
-      price needs a manager's review; who reviews quick items; card refunds recorded as cash; opening balances and
-      advances; credit over the limit; negative stock and fixing it; imports with bad rows or duplicate barcodes; an
-      update that fails after migrating; the audit log; two tills selling the last unit.
-   4. ~~Cloudflare's managed robots.txt~~ — the user turned Bot Preference Sync off (2026-11-24): each site serves its own.
-   5. **Released 2026.11.24.1053 to Iman** (test-all green on 68388099): RPT-38 reports, the new terms (Shop Rules 1.6,
-      Easy Pay, Complete Shop). Site: four plans + Compare plans, deployed.
-1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
-   from the names, AI where it helps; columns `Group, Tier, Product, Barcode`), for the user to import on the dev
-   shop and check the preview. **Group by fields was dropped** (user, 2026-11-23): exact field values miss twins
-   (generic names with several ingredients joined by "+"); AI groups better, a sheet is simpler. Later: the AI
-   Assistant's group maker reads custom fields (today it sends only the name and its own notes, and skips names with
-   no digit). Then **supplier by field**: 550 Iman products have no supplier, 431 of them a Distributor; 134
-   distributor spellings vs 31 suppliers, so it needs a distributor → supplier mapping (several to one).
-2. Iman's reset at the shop (the user), then the stock-take and the first real sale; a Release with this week's work
-   first. Later product changes at Iman: a fresh Onboard backup → `shops/iman_reset.py` / the update file.
-3. Open for the user: ~12 catalogue generics that look short of Iman's typed ones (D3 + K2: 1000D, D One 1000 /
-   2000, Vidan D 2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 +
-   vitamin E; Nugesic: Iman says B vitamins, the catalogue nimesulide).
-4. Ideas, built only when the user says:
-   - **Onboarding without the mess** (for shop #2): products from the catalogue through Onboard into a ready-made
-     category tree per shop kind, staff adding only what's missing; and a `tidy` command for a shop already messy.
-   - **A supplier by field**: Product Plus rules like "Brand = Nestlé → supplier X" for products with no preferred
-     supplier of their own; needs a generic core seam (a fallback supplier) so core never names Product Plus.
-   - A note box on the till's plain Hold (only Send to cashier has one).
-   - Read the 84 unread mutation survivors in Setup's launcher and print helper when a cashier PC's printer is next
-     touched.
-5. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
+1. **Confirm the defaults in the terms** (taken 2026-11-24, change if the user says): visits by distance; transfer
+   Rs 5,000; balance in 90 days; plan paused 7 days late; a reinstall after a format free like a move; extra cashier
+   PC set-up Rs 3,000; Tailscale 3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier inside Karots
+   Suite; "your copy keeps working if Karots stops trading" (Guide 10); Easy Pay's early stop = the rest of the Suite
+   price or the licence ends after notice.
+2. **Iman's `alternatives.csv`** in the catalogue repo (generic name + strength from the names, AI where it helps;
+   `Group, Tier, Product, Barcode`) for the user to import on the dev shop. Then **supplier by field**: 550 Iman
+   products have no supplier, 431 a Distributor; 134 spellings vs 31 suppliers → a distributor → supplier mapping.
+3. Iman's reset at the shop (the user), then the stock-take and the first real sale.
+4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
+   2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 + vitamin E; Nugesic).
+5. Site: a Karots Shelf screenshot from a phone (the user sends one; the home page shows only its icon). Guide
+   one-liners from the site review, not audited: selling below stock / no price needs a manager's review; who reviews
+   quick items; card refunds recorded as cash; opening balances and advances; credit over the limit; negative stock;
+   imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log; two tills
+   selling the last unit.
+6. Ideas, built only when the user says:
+   - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
+   - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`
+     command for a messy shop.
+   - **A supplier by field** (Product Plus rule "Brand = Nestlé → supplier X") through a generic core seam.
+   - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
+   - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
+   - Recharge through modems (memory `recharge-modems-idea`).
+7. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family
 
@@ -98,7 +66,7 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 - **Karots Suite site** (`~/Projects/karots-pos-site`, to be renamed `karots-suite-site`; the old POS site on its
   `archive/karots-pos` branch): suite.karots.lk, a Cloudflare Worker (`bunx wrangler deploy`). Guides, plugin pages
   and screenshots come from this repo (`bun run sync`; tour frames: `make tour-shots`). Prices live in its
-  `src/data/pricing.ts` (2026-11-22 list; the legal pack still has the old one).
+  `src/data/pricing.ts` (the four plans; the legal pack's Shop Rules §15 says the same).
 - **Web Demo Room**: demo.karots.lk, a container on the OVH VPS behind nginx-proxy-manager (`deploy/demo-room/`,
   `make demo-room-deploy` after `make demo`); still asks for the hourly code. The site offers it only when it answers.
 - Karots PIN Vault is the user's own app for all their projects: never tie it to Karots Suite.
@@ -119,7 +87,8 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
 - Iman's charges; the business registration number (don't sign shops before it); the lawyer meeting with
   `docs/legal/karots-suite-lawyer-review.pdf`.
 - Test backups in the old `aiman-pharmacy-kalpitiya` cloud folder age out by about Dec 4 (30-day lock; the user
-  deletes them in Cloudflare, not me). Keep `karots-main` / `karots-cashier` VMs off or expect uploads there.
+  deletes them in Cloudflare, not me). Keep `karots-main` / `karots-cashier` VMs off or on the isolated `bench`-style
+  net: `karots-main` still holds an old install with cloud on.
 
 ## Decisions and notes to keep
 
@@ -190,7 +159,10 @@ repairs, recharge) · M8a file mode · M8b Shop Builder + karots-setup · M8c se
 pictures + label styles · M8d Demo Room · docs + screenshots + legal pack · cheques · M8e Pocket Cashier release 1 and
 2 · pharmacy expiry work · Send to cashier · print helper + cashier PCs' printers · AI Assistant jobs · default unit ·
 Karots Shelf · import by ref · receipt line rules + text size · stock freeze · keyboard-only Sell page · Sell page
-layouts · Alternatives sheet · cashier menu sheet (Data → Spreadsheets and Sheets ▾ on the menu page, MENU rules) · products sheet preview (old → new, all or nothing, IMP rules) · **battle tests: 7 core areas, every plugin, installing and running a shop (2026-11-18 → 22)**.
+layouts · Alternatives sheet · cashier menu sheet (MENU rules) · products sheet preview (IMP rules) · **battle tests: 7 core
+areas, every plugin, installing and running a shop (2026-11-18 → 22)** · Release needs a green test-all (BLD-6) ·
+low-spec bench + RPT-38 year reports 35 s → 1 s · the new terms, four plans, system requirements, site redesign
+(2026-11-24).
 
 ## How we work
 
