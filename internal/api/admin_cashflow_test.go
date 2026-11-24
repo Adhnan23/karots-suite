@@ -21,7 +21,9 @@ func TestAdminCashflow(t *testing.T) {
 	for _, n := range []string{"T cf a", "T cf b"} {
 		ids = append(ids, decode[AdminLocker](t, te.do(http.MethodPost, "/api/v1/admin/lockers", LockerRequest{Name: n, Kind: "safe", OpeningBalance: "100"}, ck)).ID)
 	}
-	get := func() AdminCashflow { return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck)) }
+	get := func() AdminCashflow {
+		return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck))
+	}
 	d := func(s string) decimal.Decimal { v, _ := decimal.NewFromString(s); return v }
 	// The two test lockers' total (not cash on hand: parallel tests sell at open tills).
 	pair := func(cf AdminCashflow) string {
@@ -58,7 +60,9 @@ func TestAdminCashflowChequesNotCash(t *testing.T) {
 	if err := te.db.Get(&cid, `SELECT id FROM lockers WHERE kind='cheque'`); err != nil {
 		t.Fatal(err)
 	}
-	get := func() AdminCashflow { return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck)) }
+	get := func() AdminCashflow {
+		return decode[AdminCashflow](t, te.do(http.MethodGet, "/api/v1/admin/cashflow?preset=today", nil, ck))
+	}
 	before := get()
 	if _, err := te.db.Exec(`INSERT INTO locker_ledger (locker_id, balance_delta, kind, note) VALUES ($1, 777, 'adjust', 'T cf cheque')`, cid); err != nil {
 		t.Fatal(err)

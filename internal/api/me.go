@@ -16,9 +16,9 @@ import (
 // independent of which palette is picked, so it always round-trips.
 func appearanceOf(s *settings.Settings) Appearance {
 	return Appearance{
-		Palette:      settings.ValidSkin(s.Skin),
-		BrandColor:   s.SkinCustom,
-		Radius:       s.SkinRadius,
+		Palette:         settings.ValidSkin(s.Skin),
+		BrandColor:      s.SkinCustom,
+		Radius:          s.SkinRadius,
 		ReceiptStyle:    settings.ValidReceiptStyle(s.ReceiptStyle),
 		ReceiptTextSize: settings.ValidReceiptTextSize(s.ReceiptTextSize),
 		LabelStyles:     labelStylesOf(s),

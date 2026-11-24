@@ -119,7 +119,11 @@ func (h *handlers) AdminSupplier(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out := AdminSupplierDetail{AdminSupplierRow: adminSupplierRow(*sup), Invoices: []SupplierInvoice{}, Orders: []SupplierOrder{}, Money: []SupplierMoneyRow{}, Products: n}
+	byRule, err := h.t.products.CountByRuleSupplier(ctx, id)
+	if err != nil {
+		return err
+	}
+	out := AdminSupplierDetail{AdminSupplierRow: adminSupplierRow(*sup), Invoices: []SupplierInvoice{}, Orders: []SupplierOrder{}, Money: []SupplierMoneyRow{}, Products: n, ProductsByRule: byRule}
 	for _, p := range inv {
 		row := SupplierInvoice{ID: p.ID, InvoiceNo: strOr(p.InvoiceNo), Date: p.CreatedAt.Format(time.RFC3339), Total: dec2(p.Total), Balance: dec2(p.Balance())}
 		if p.DueDate != nil {

@@ -243,7 +243,8 @@ export interface AdminProductRow {
   needsReview: boolean;
   trackSerial: boolean;
   hasExpiry: boolean;
-  supplierName: string;
+  supplierName: string; // own, else the rule supplier (SUP-12)
+  supplierWhy?: string; // set when SupplierName is by a plugin's rule ("Brand: Bosch")
   createdBy: string; // who quick-added it (review queue)
   tillBarcodes?: TillBarcodeRow[]; // review queue
   tillPack: string; // pack sizes set at the till, to check (review queue)
@@ -2208,6 +2209,7 @@ export interface AdminSupplierDetail extends AdminSupplierRow {
   orders: SupplierOrder[]; // drafts not yet received
   money: SupplierMoneyRow[]; // newest first
   products: number /* int */; // products defaulting to this supplier
+  productsByRule: number /* int */; // products with no own supplier that get this one by a plugin's rule (SUP-12)
 }
 /**
  * SupplierRequest creates or edits a supplier. OpeningBalance is read on create
@@ -2350,6 +2352,7 @@ export interface ReorderRow {
   cost: string;
   supplierId: number /* int64 */; // preferred; 0 = none
   supplierName: string;
+  supplierWhy?: string; // the supplier is by a plugin's rule (SUP-12)
   suggested: string;
   fromSales: boolean; // Suggested came from sales history
   soldWeek: string;

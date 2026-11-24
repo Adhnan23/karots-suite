@@ -36,9 +36,9 @@ func ruleSetup(t *testing.T) (*Service, ruleFixture) {
 	}
 	f.a, f.b, f.c = mk("TEST rule A", &f.s1), mk("TEST rule B", nil), mk("TEST rule C", nil)
 	t.Cleanup(func() {
-		conn.ExecContext(ctx, `DELETE FROM products WHERE id IN ($1,$2,$3)`, f.a, f.b, f.c)    //nolint:errcheck
+		conn.ExecContext(ctx, `DELETE FROM products WHERE id IN ($1,$2,$3)`, f.a, f.b, f.c)      //nolint:errcheck
 		conn.ExecContext(ctx, `DELETE FROM suppliers WHERE id IN ($1,$2,$3)`, f.s1, f.s2, f.off) //nolint:errcheck
-		conn.ExecContext(ctx, `DELETE FROM categories WHERE id = $1`, cat)                      //nolint:errcheck
+		conn.ExecContext(ctx, `DELETE FROM categories WHERE id = $1`, cat)                       //nolint:errcheck
 	})
 	return NewService(conn), f
 }

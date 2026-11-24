@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"karots-suite/internal/features/products"
 	"log"
 	"time"
 
@@ -96,6 +97,17 @@ func RunIDs(ctx context.Context, db *sqlx.DB, now time.Time, ids []int64) error 
 		FROM products p LEFT JOIN stock s ON s.product_id = p.id
 		WHERE p.id = ANY($1)`, pq.Array(ids)); err != nil {
 		return fmt.Errorf("load products: %w", err)
+	}
+	// No own supplier: the rule supplier's deliveries set the rhythm (SUP-12).
+	ruled, err := products.RuleSuppliersFor(ctx, db, ids)
+	if err != nil {
+		return fmt.Errorf("rule suppliers: %w", err)
+	}
+	for i := range prods {
+		if r, ok := ruled[prods[i].ID]; ok && prods[i].Supplier == nil {
+			id := r.ID
+			prods[i].Supplier = &id
+		}
 	}
 	from := now.AddDate(0, 0, -historyDays)
 	load := func(what, q string, args ...any) (map[int64][]stamped, error) {

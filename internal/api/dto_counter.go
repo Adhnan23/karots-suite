@@ -36,8 +36,8 @@ type ExpensesPage struct {
 
 type ExpenseRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
-	Category            string `json:"category"`
-	Amount              string `json:"amount"`
+	Category            string       `json:"category"`
+	Amount              string       `json:"amount"`
 	Description         string       `json:"description"`
 	ServiceProductID    int64        `json:"serviceProductId"`
 	Method              string       `json:"method,omitempty"`  // "" = cash from the drawer / LockerID; cheque = Cheques
@@ -249,7 +249,7 @@ type CreditPaymentRequest struct {
 	AccountID       int64             `json:"accountId"` // card/bank locker the money lands in
 	Reference       string            `json:"reference"`
 	DeferDrawerKick bool              `json:"deferDrawerKick"`
-	Meta            map[string]string `json:"meta,omitempty"` // a plugin tender's detail (slots.tillTenders)
+	Meta            map[string]string `json:"meta,omitempty"`    // a plugin tender's detail (slots.tillTenders)
 	Cheques         []ChequeLine      `json:"cheques,omitempty"` // Method cheque: the amount is their total
 	// ClientRef is this Pay's one-time reference: sent again, the first payment
 	// comes back and nothing is booked twice (CUST-16).
@@ -380,8 +380,8 @@ type SupplierView struct {
 // Mode "pay" = open invoices oldest-first, "old" = old debt first; the rest is an advance.
 type SupplierPayRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
-	Amount              string `json:"amount"`
-	Mode                string `json:"mode"`
+	Amount              string       `json:"amount"`
+	Mode                string       `json:"mode"`
 	Method              string       `json:"method"` // cash | card | online | cheque
 	Reference           string       `json:"reference"`
 	Note                string       `json:"note"`

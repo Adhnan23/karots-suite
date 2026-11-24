@@ -148,18 +148,18 @@ type WriteOffResult struct {
 // StockTakeRow is one product on the count screen. MultiPrice = its live lots
 // carry different prices, so a count here can't say which lot a change is in.
 type StockTakeRow struct {
-	ID               int64  `json:"id"`
-	Name             string `json:"name"`
-	Barcode          string `json:"barcode"`
-	CategoryName     string `json:"categoryName"`
-	UnitAbbr         string `json:"unitAbbr"`
-	UnitAllowDecimal bool   `json:"unitAllowDecimal"`
-	StockQty         string `json:"stockQty"`
-	CostPrice        string `json:"costPrice"`
-	SellingPrice     string `json:"sellingPrice"`
-	WholesalePrice   string `json:"wholesalePrice"`
-	MultiPrice       bool   `json:"multiPrice"`
-	Lots             []LotRow `json:"lots"` // only when it has 2+ live batches (counted one by one)
+	ID               int64    `json:"id"`
+	Name             string   `json:"name"`
+	Barcode          string   `json:"barcode"`
+	CategoryName     string   `json:"categoryName"`
+	UnitAbbr         string   `json:"unitAbbr"`
+	UnitAllowDecimal bool     `json:"unitAllowDecimal"`
+	StockQty         string   `json:"stockQty"`
+	CostPrice        string   `json:"costPrice"`
+	SellingPrice     string   `json:"sellingPrice"`
+	WholesalePrice   string   `json:"wholesalePrice"`
+	MultiPrice       bool     `json:"multiPrice"`
+	Lots             []LotRow `json:"lots"`       // only when it has 2+ live batches (counted one by one)
 	StockSplit       string   `json:"stockSplit"` // on hand as packs ("2 Cards + 10")
 }
 
@@ -227,9 +227,9 @@ type IntakeRestockRequest struct {
 	CostPrice      string `json:"costPrice"`
 	SellingPrice   string `json:"sellingPrice"`
 	WholesalePrice string `json:"wholesalePrice"`
-	Scanned        string `json:"scanned"` // the code scanned to open it, if any (stamps its last scan)
-	BatchID        int64  `json:"batchId"` // the batch to top up; 0 = a new batch
-	Expiry         string `json:"expiry"`  // a new batch's expiry, YYYY-MM-DD or ""
+	Scanned        string `json:"scanned"`    // the code scanned to open it, if any (stamps its last scan)
+	BatchID        int64  `json:"batchId"`    // the batch to top up; 0 = a new batch
+	Expiry         string `json:"expiry"`     // a new batch's expiry, YYYY-MM-DD or ""
 	SupplierID     int64  `json:"supplierId"` // who it comes from, for a product with no supplier yet; 0 = none
 }
 

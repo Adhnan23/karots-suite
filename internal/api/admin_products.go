@@ -45,9 +45,27 @@ func productRow(p products.Product) AdminProductRow {
 		ID: p.ID, Name: p.Name, NameLocal: strOr(p.NameLocal), Barcode: strOr(p.Barcode), Barcodes: barcodesOf(p), CategoryID: p.CategoryID, CategoryName: p.CategoryName,
 		UnitAbbr: p.UnitAbbr, CostPrice: dec2(p.CostPrice), SellingPrice: dec2(p.SellingPrice), Wholesale: dec2(p.WholesalePrice),
 		StockQty: p.StockQty.String(), ReorderLevel: p.ReorderLevel, ReorderAuto: p.ReorderAuto, Low: !p.IsService && p.IsLowStock(), IsActive: p.IsActive, IsService: p.IsService, StockFrozen: p.StockFrozen,
-		NeedsReview: p.NeedsReview, TrackSerial: p.TrackSerial, HasExpiry: p.HasExpiry, SupplierName: strOr(p.PreferredSupplierName),
+		NeedsReview: p.NeedsReview, TrackSerial: p.TrackSerial, HasExpiry: p.HasExpiry, SupplierName: supplierName(p),
 		CreatedBy: strOr(p.CreatedByName), TillPack: strOr(p.TillPack), CreatedAt: p.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		SupplierWhy: ruleWhy(p),
 	}
+}
+
+// supplierName is the own supplier's name, else the rule supplier's.
+func supplierName(p products.Product) string {
+	if p.PreferredSupplierID == nil && p.RuleSupplierID != nil {
+		return p.RuleSupplierName
+	}
+	return strOr(p.PreferredSupplierName)
+}
+
+// ruleWhy fills a row's supplier from the rule supplier when it has no own one
+// (SUP-12); the reason, or "" when the supplier is its own.
+func ruleWhy(p products.Product) string {
+	if p.PreferredSupplierID != nil || p.RuleSupplierID == nil {
+		return ""
+	}
+	return p.RuleSupplierWhy
 }
 
 // AdminProducts is the paged catalog: search (name/barcode, ranked), category

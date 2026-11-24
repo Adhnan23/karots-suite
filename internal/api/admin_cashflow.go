@@ -105,7 +105,9 @@ func (h *handlers) AdminCashflow(c echo.Context) error {
 			return apperr.Internal("failed to compute net position", err)
 		}
 	}
-	line := func(label string, v decimal.Decimal, sign int) NetLine { return NetLine{Label: label, Amount: dec2(v), Sign: sign} }
+	line := func(label string, v decimal.Decimal, sign int) NetLine {
+		return NetLine{Label: label, Amount: dec2(v), Sign: sign}
+	}
 	out.NetLines = []NetLine{line("Cash on hand", cash, 1)}
 	if inHand.IsPositive() || written.IsPositive() {
 		out.NetLines = append(out.NetLines, line("Cheques in hand", inHand, 1))

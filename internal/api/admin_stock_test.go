@@ -132,7 +132,7 @@ func TestSTK5_BatchCountIsTheLotsOwn(t *testing.T) {
 	var gone, kept, onHand float64
 	te.db.Get(&gone, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, one.ID)   //nolint:errcheck
 	te.db.Get(&kept, `SELECT qty_remaining FROM stock_batches WHERE id=$1`, other.ID) //nolint:errcheck
-	te.db.Get(&onHand, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID)    //nolint:errcheck
+	te.db.Get(&onHand, `SELECT quantity FROM stock WHERE product_id=$1`, f.lotID)     //nolint:errcheck
 	if gone != 0 || kept != before || onHand != kept {
 		t.Fatalf("lot %v (want 0), other lot %v (want %v), on hand %v (want %v)", gone, kept, before, onHand, kept)
 	}

@@ -13,9 +13,9 @@ import (
 
 	"karots-suite/internal/config"
 	appdb "karots-suite/internal/db"
+	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/auth"
 	"karots-suite/internal/features/cashflow"
-	"karots-suite/internal/features/audit"
 	"karots-suite/internal/features/cashregister"
 	"karots-suite/internal/features/sales"
 	"karots-suite/internal/features/settings"

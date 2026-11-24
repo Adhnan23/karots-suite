@@ -84,7 +84,8 @@ type AdminProductRow struct {
 	NeedsReview  bool             `json:"needsReview"`
 	TrackSerial  bool             `json:"trackSerial"`
 	HasExpiry    bool             `json:"hasExpiry"`
-	SupplierName string           `json:"supplierName"`
+	SupplierName string           `json:"supplierName"`           // own, else the rule supplier (SUP-12)
+	SupplierWhy  string           `json:"supplierWhy,omitempty"`  // set when SupplierName is by a plugin's rule ("Brand: Bosch")
 	CreatedBy    string           `json:"createdBy"`              // who quick-added it (review queue)
 	TillBarcodes []TillBarcodeRow `json:"tillBarcodes,omitempty"` // review queue
 	TillPack     string           `json:"tillPack"`               // pack sizes set at the till, to check (review queue)

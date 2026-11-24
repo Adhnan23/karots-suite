@@ -37,24 +37,19 @@ func ruleProductIDs(ctx context.Context, q db.Queryer, supplierID *int64) ([]int
 	return RuleSupplierProducts(ctx, *supplierID)
 }
 
-// FillRuleSuppliers sets the rule supplier on rows with no own supplier; a rule
-// naming a missing or disabled supplier gives none.
-func (s *Service) FillRuleSuppliers(ctx context.Context, rows []Product) error {
-	if RuleSupplierFor == nil {
-		return nil
+// RuleSuppliersFor is the rule supplier of each of ids that has no own supplier
+// (active suppliers only, names filled). nil map when there are no rules.
+func RuleSuppliersFor(ctx context.Context, q db.Queryer, ids []int64) (map[int64]RuledSupplier, error) {
+	if RuleSupplierFor == nil || len(ids) == 0 {
+		return nil, nil
 	}
-	var ids []int64
-	for _, p := range rows {
-		if p.PreferredSupplierID == nil {
-			ids = append(ids, p.ID)
-		}
+	var bare []int64
+	if err := q.SelectContext(ctx, &bare, `SELECT id FROM products WHERE id = ANY($1) AND preferred_supplier_id IS NULL`, pq.Array(ids)); err != nil || len(bare) == 0 {
+		return nil, err
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	rules, err := RuleSupplierFor(ctx, ids)
+	rules, err := RuleSupplierFor(ctx, bare)
 	if err != nil || len(rules) == 0 {
-		return err
+		return nil, err
 	}
 	sups := make([]int64, 0, len(rules))
 	for _, r := range rules {
@@ -64,20 +59,58 @@ func (s *Service) FillRuleSuppliers(ctx context.Context, rows []Product) error {
 		ID   int64  `db:"id"`
 		Name string `db:"name"`
 	}
-	if err := s.db.SelectContext(ctx, &names, `SELECT id, name FROM suppliers WHERE id = ANY($1) AND is_active`, pq.Array(sups)); err != nil {
-		return err
+	if err := q.SelectContext(ctx, &names, `SELECT id, name FROM suppliers WHERE id = ANY($1) AND is_active`, pq.Array(sups)); err != nil {
+		return nil, err
 	}
 	name := map[int64]string{}
 	for _, n := range names {
 		name[n.ID] = n.Name
 	}
-	for i := range rows {
-		r, ok := rules[rows[i].ID]
-		if !ok || rows[i].PreferredSupplierID != nil || name[r.SupplierID] == "" {
-			continue
+	out := map[int64]RuledSupplier{}
+	for id, r := range rules {
+		if n, ok := name[r.SupplierID]; ok {
+			out[id] = RuledSupplier{ID: r.SupplierID, Name: n, Why: r.Why}
 		}
-		id := r.SupplierID
-		rows[i].RuleSupplierID, rows[i].RuleSupplierName, rows[i].RuleSupplierWhy = &id, name[id], r.Why
+	}
+	return out, nil
+}
+
+// RuledSupplier is a product's rule supplier, resolved.
+type RuledSupplier struct {
+	ID        int64
+	Name, Why string
+}
+
+// FillRuleSuppliers sets the rule supplier on rows with no own supplier; a rule
+// naming a missing or disabled supplier gives none.
+func (s *Service) FillRuleSuppliers(ctx context.Context, rows []Product) error {
+	ids := make([]int64, 0, len(rows))
+	for _, p := range rows {
+		if p.PreferredSupplierID == nil {
+			ids = append(ids, p.ID)
+		}
+	}
+	ruled, err := RuleSuppliersFor(ctx, s.db, ids)
+	if err != nil {
+		return err
+	}
+	for i := range rows {
+		if r, ok := ruled[rows[i].ID]; ok && rows[i].PreferredSupplierID == nil {
+			id := r.ID
+			rows[i].RuleSupplierID, rows[i].RuleSupplierName, rows[i].RuleSupplierWhy = &id, r.Name, r.Why
+		}
 	}
 	return nil
+}
+
+// CountByRuleSupplier counts the products supplierID gets by rule (no own
+// supplier, not merged away) — the supplier page's "by rule" count.
+func (s *Service) CountByRuleSupplier(ctx context.Context, supplierID int64) (int, error) {
+	ids, err := ruleProductIDs(ctx, s.db, &supplierID)
+	if err != nil || len(ids) == 0 {
+		return 0, err
+	}
+	var n int
+	err = s.db.GetContext(ctx, &n, `SELECT count(*) FROM products WHERE id = ANY($1) AND preferred_supplier_id IS NULL AND merged_into_id IS NULL`, pq.Array(ids))
+	return n, err
 }

@@ -50,10 +50,11 @@ type SupplierMoneyRow struct {
 
 type AdminSupplierDetail struct {
 	AdminSupplierRow `tstype:",extends"`
-	Invoices         []SupplierInvoice  `json:"invoices"` // open, oldest first
-	Orders           []SupplierOrder    `json:"orders"`   // drafts not yet received
-	Money            []SupplierMoneyRow `json:"money"`    // newest first
-	Products         int                `json:"products"` // products defaulting to this supplier
+	Invoices         []SupplierInvoice  `json:"invoices"`       // open, oldest first
+	Orders           []SupplierOrder    `json:"orders"`         // drafts not yet received
+	Money            []SupplierMoneyRow `json:"money"`          // newest first
+	Products         int                `json:"products"`       // products defaulting to this supplier
+	ProductsByRule   int                `json:"productsByRule"` // products with no own supplier that get this one by a plugin's rule (SUP-12)
 }
 
 // SupplierRequest creates or edits a supplier. OpeningBalance is read on create
@@ -194,6 +195,7 @@ type ReorderRow struct {
 	Cost         string `json:"cost"`
 	SupplierID   int64  `json:"supplierId"` // preferred; 0 = none
 	SupplierName string `json:"supplierName"`
+	SupplierWhy  string `json:"supplierWhy,omitempty"` // the supplier is by a plugin's rule (SUP-12)
 	Suggested    string `json:"suggested"`
 	FromSales    bool   `json:"fromSales"` // Suggested came from sales history
 	SoldWeek     string `json:"soldWeek"`

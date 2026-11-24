@@ -87,12 +87,14 @@ func (h *handlers) buildReorderList(c echo.Context, withCost bool) (ReorderList,
 		Annotated: notes != nil, Hidden: hidden}
 	for _, p := range rows {
 		r := ReorderRow{ProductID: p.ID, Name: p.Name, UnitAbbr: p.UnitAbbr, OnHand: p.StockQty.String(), ReorderLevel: p.ReorderLevel,
-			SupplierName: strOr(p.PreferredSupplierName), SoldWeek: txt(week, p.ID), SoldMonth: txt(month, p.ID), SoldLastYear: txt(ly, p.ID), Auto: p.ReorderAuto}
+			SupplierName: supplierName(p), SupplierWhy: ruleWhy(p), SoldWeek: txt(week, p.ID), SoldMonth: txt(month, p.ID), SoldLastYear: txt(ly, p.ID), Auto: p.ReorderAuto}
 		if withCost {
 			r.Cost = dec2(p.CostPrice)
 		}
 		if p.PreferredSupplierID != nil {
 			r.SupplierID = *p.PreferredSupplierID
+		} else if p.RuleSupplierID != nil {
+			r.SupplierID = *p.RuleSupplierID
 		}
 		r.Note, r.Covered = notes[p.ID].Note, notes[p.ID].Covered
 		need := decimal.NewFromInt(int64(2 * p.ReorderLevel)).Sub(p.StockQty)
