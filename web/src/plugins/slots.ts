@@ -176,19 +176,21 @@ export type ProductFormSection = {
 export type PageDraft = { name: string; productIds: number[] }
 export type PageAction = { key: string; page: string; Action: ComponentType<{ open: (d: PageDraft) => void }> }
 
-/** A helper under the Name field of the product form and intake's New item (e.g. identify a
- * product from what was typed). fill sets the name and/or category on the form; extra lands in
- * extras[key], sent as ProductRequest.extra[key] when the person saves. */
+/** A helper under the Name field of the product form, intake's New item, the till's quick item and a
+ * purchase's new product line (where; e.g. identify a product from what was typed). fill sets the name, unit
+ * and/or category on the form (a place without a category ignores it); extra lands in extras[key], sent as the
+ * request's extra[key] when the person saves. An assist meant only for some places returns null elsewhere. */
 /** Buttons on an Items to review row that a plugin put there (its notes' plugin = key, REV-2): the row
  * renders them without knowing who added them. The plugin refreshes ['admin'] when it changes something. */
 export type ReviewAction = { key: string; Action: ComponentType<{ productId: number; name: string }> }
 
 export type ProductAssist = {
   key: string
-  Assist: ComponentType<{ name: string; barcode: string; where: 'form' | 'intake'; fill: (f: AssistFill) => void }>
+  Assist: ComponentType<{ name: string; barcode: string; where: AssistWhere; fill: (f: AssistFill) => void }>
 }
 /** sections: values offered to other form sections, by section key (it lands as their suggested). */
-export type AssistFill = { name?: string; categoryId?: number; extra?: unknown; sections?: Record<string, unknown> }
+export type AssistFill = { name?: string; unitId?: number; categoryId?: number; extra?: unknown; sections?: Record<string, unknown> }
+export type AssistWhere = 'form' | 'intake' | 'quick' | 'purchase'
 
 /** customerId and meta (the plugins' notes set with TillApi.setSaleMeta) as they were at completion. */
 export type SaleHookCtx = { saleId: number; lines: CartLine[]; customerId: number | null; meta: Record<string, unknown> }

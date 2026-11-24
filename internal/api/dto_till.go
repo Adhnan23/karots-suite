@@ -1,5 +1,7 @@
 package api
 
+import "encoding/json"
+
 // ---- Till: config ----
 
 type TenderMethod struct {
@@ -31,11 +33,11 @@ type TillConfig struct {
 	TenderMethods      []TenderMethod    `json:"tenderMethods"`  // plugin tenders; core ones are fixed in the SPA
 	LabelSize          string            `json:"labelSize"`      // the shop's default sticker, "WxH" mm
 	Shop               ShopHeader        `json:"shop"`
-	ReceiptWidth       string            `json:"receiptWidth"` // "80" | "58" mm, the shop default
-	ReceiptStyle       string            `json:"receiptStyle"` // the saved Image-mode style (see Appearance)
+	ReceiptWidth       string            `json:"receiptWidth"`    // "80" | "58" mm, the shop default
+	ReceiptStyle       string            `json:"receiptStyle"`    // the saved Image-mode style (see Appearance)
 	ReceiptTextSize    int               `json:"receiptTextSize"` // the slips' text size in percent (see Appearance)
-	LabelPrintAs       string            `json:"labelPrintAs"` // "classic" | "image"
-	LabelStyles        map[string]string `json:"labelStyles"`  // Image-mode style per label kind; missing = classic
+	LabelPrintAs       string            `json:"labelPrintAs"`    // "classic" | "image"
+	LabelStyles        map[string]string `json:"labelStyles"`     // Image-mode style per label kind; missing = classic
 	// SellLayouts: the Sell page's layout per screen size "<w>x<h>" (Appearance); none = today's.
 	SellLayouts map[string]SellLayout `json:"sellLayouts"`
 	// The label text settings (Settings → Printers & labels): lines 1–4 and size "1"–"4" (XS–L)
@@ -189,11 +191,12 @@ type CreditLimitRequest struct {
 // ---- Till: quick item / write-off ----
 
 type QuickItemRequest struct {
-	Name    string `json:"name"`
-	Price   string `json:"price"`
-	Qty     string `json:"qty"`
-	Barcode string `json:"barcode"`
-	UnitID  int64  `json:"unitId"`
+	Name    string                     `json:"name"`
+	Price   string                     `json:"price"`
+	Qty     string                     `json:"qty"`
+	Barcode string                     `json:"barcode"`
+	UnitID  int64                      `json:"unitId"`
+	Extra   map[string]json.RawMessage `json:"extra,omitempty" tstype:"{ [key: string]: unknown }"` // plugins' data, as on the product form
 }
 
 // TillBarcodeRequest gives an existing product the code just scanned at the
@@ -214,7 +217,7 @@ type WriteOffRequest struct {
 	BatchID   int64  `json:"batchId"`
 	Quantity  string `json:"quantity"`
 	Note      string `json:"note"`
-	Reason    string `json:"reason"` // damage (default) | own_use | staff — decides the P&L line
+	Reason    string `json:"reason"`              // damage (default) | own_use | staff — decides the P&L line
 	FromShelf bool   `json:"fromShelf,omitempty"` // frozen product: it came off the uncounted shelf (stock unchanged)
 }
 

@@ -19,7 +19,12 @@ type Source = 'ai_confident' | 'user_picked' | 'user_explained'
 /** ✨ Identify under the product name: asks the AI (or hands over the prompt to paste into a
  * chatbot) what was typed, shows one sure answer or up to 4 options, and a pick fills the name and
  * category. The person still reviews and saves the form; the pick is learnt on save. */
-export function Identify({ name, barcode, fill }: Props) {
+export function Identify(p: Props) {
+  // the product form and intake only: never at the till's quick item or a purchase line
+  return p.where === 'form' || p.where === 'intake' ? <IdentifyHere {...p} /> : null
+}
+
+function IdentifyHere({ name, barcode, fill }: Props) {
   const qc = useQueryClient()
   const { state, dispatch, ask, read } = useAsk<IdentifyResult>()
   const [hint, setHint] = useState('')

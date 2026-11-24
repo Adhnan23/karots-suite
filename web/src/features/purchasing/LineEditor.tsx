@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { extraBody, type Extras, ProductAssists } from '@/features/admin/products/ProductExtras'
 import { Plus, Search, X } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
@@ -174,13 +175,14 @@ function MarginHint({ l, cur, sym, onUse }: { l: StockLine; cur?: Current; sym: 
 function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; onDone: (p: TillProduct | null, cost?: string) => void }) {
   // A scanned code that found nothing is the new product's barcode, not its name.
   const scanned = /^\d{6,}$/.test(name)
-  const [f, setF] = useState({ name: scanned ? '' : name, barcode: scanned ? name : '', cost: '', sell: '' })
+  const [f, setF] = useState({ name: scanned ? '' : name, barcode: scanned ? name : '', cost: '', sell: '', unitId: 0 })
+  const [extras, setExtras] = useState<Extras>({})
   const [busy, setBusy] = useState(false)
   const [asking, setAsking] = useState(scanned)
   async function save() {
     setBusy(true)
     try {
-      const body: IntakeProductRequest = { name: f.name, barcode: f.barcode, costPrice: f.cost, sellingPrice: f.sell, unitId: 0, wanted }
+      const body: IntakeProductRequest = { name: f.name, barcode: f.barcode, costPrice: f.cost, sellingPrice: f.sell, unitId: f.unitId, wanted, extra: extraBody(extras) }
       const p = await api<TillProduct>('/till/intake-products', { json: body })
       toast.success(`${p.name} added to the catalogue`)
       onDone(p, wanted ? '' : f.cost)
@@ -203,6 +205,8 @@ function NewProduct({ name, wanted, onDone }: { name: string; wanted: boolean; o
       )}
       <Button size="sm" disabled={busy} onClick={() => void save()}>Add</Button>
       <Button size="sm" variant="ghost" onClick={() => onDone(null)}>Cancel</Button>
+      <div className="w-full empty:hidden"><ProductAssists name={f.name} barcode={f.barcode} where="purchase" setExtras={setExtras}
+        onFill={(p) => setF((x) => ({ ...x, ...(p.name && { name: p.name }), ...(p.unitId && { unitId: p.unitId }) }))} /></div>
     </div>
   )
 }

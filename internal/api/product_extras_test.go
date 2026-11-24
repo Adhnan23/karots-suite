@@ -58,6 +58,7 @@ func lastFakeSave(t *testing.T) plugin.ExtraCtx {
 func TestProductExtras(t *testing.T) {
 	useFakeExtras()
 	te := newTestEnv(t)
+	te.stockTakeOn(t) // intake needs it: never lean on another test having turned it on
 	f := te.seedTill(t)
 	ck := te.login(t, "0770009532", "admin")
 	var cat int64
@@ -159,5 +160,47 @@ func TestProductListMeta(t *testing.T) {
 	}
 	if got != "Grade: B" || calls != 1 {
 		t.Fatalf("meta %q after %d calls (want one call for the page)", got, calls)
+	}
+}
+
+// The till's quick item and a purchase's new product line take plugin extras like the product form: refused
+// before anything is written, saved after with the new product (the Catalogue plugin's picks, CTL-6).
+func TestQuickItemAndIntakeProductTakeExtras(t *testing.T) {
+	useFakeExtras()
+	te := newTestEnv(t)
+	te.seedTill(t)
+	ck := te.login(t, "0770009533", "admin")
+	name := fmt.Sprintf("T qx %d", time.Now().UnixNano())
+	count := func(n string) (c int) {
+		te.db.Get(&c, `SELECT count(*) FROM products WHERE name = $1`, n) //nolint:errcheck
+		return
+	}
+	extra := func(ok bool) map[string]json.RawMessage {
+		return map[string]json.RawMessage{"fake": json.RawMessage(fmt.Sprintf(`{"ok":%v}`, ok))}
+	}
+	for _, c := range []struct {
+		path string
+		body func(n string, ok bool) any
+	}{
+		{"/api/v1/till/quick-item", func(n string, ok bool) any {
+			return QuickItemRequest{Name: n, Price: "10", Qty: "1", Extra: extra(ok)}
+		}},
+		{"/api/v1/till/intake-products", func(n string, ok bool) any {
+			return IntakeProductRequest{Name: n, CostPrice: "5", SellingPrice: "10", Extra: extra(ok)}
+		}},
+	} {
+		n := name + " " + c.path
+		if rec := te.do(http.MethodPost, c.path, c.body(n, false), ck); rec.Code < 400 || count(n) != 0 {
+			t.Fatalf("%s: a refused extra still saved (%d, %d products)", c.path, rec.Code, count(n))
+		}
+		rec := te.do(http.MethodPost, c.path, c.body(n, true), ck)
+		if rec.Code >= 300 {
+			t.Fatalf("%s: %d %s", c.path, rec.Code, rec.Body)
+		}
+		var id int64
+		te.db.Get(&id, `SELECT id FROM products WHERE name = $1`, n) //nolint:errcheck
+		if x := lastFakeSave(t); x.ProductID != id || !x.IsNew {
+			t.Fatalf("%s: Save got %+v, want product %d, new", c.path, x, id)
+		}
 	}
 }

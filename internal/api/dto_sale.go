@@ -20,7 +20,7 @@ type SaleItemRequest struct {
 	Description   string             `json:"description"`
 	Components    []ServiceComponent `json:"components"`
 	NoRecipe      bool               `json:"noRecipe,omitempty"` // a fee on a service: it uses none of the service's recipe
-	Group         *SaleLineGroup     `json:"group,omitempty"` // lines added together; receipts print them as one block
+	Group         *SaleLineGroup     `json:"group,omitempty"`    // lines added together; receipts print them as one block
 	// Plugin is the cart line's opaque plugin data by plugin key (CartLine.plugin);
 	// each plugin's sale-line hook reads its own key inside the sale's tx.
 	Plugin map[string]any `json:"plugin,omitempty"`
@@ -42,8 +42,8 @@ type PaymentRequest struct {
 	Method    string            `json:"method"` // cash | card | online | credit | <plugin tender>
 	Amount    string            `json:"amount"`
 	Reference string            `json:"reference"`
-	AccountID int64             `json:"accountId"`      // card/bank locker for card/online; 0 = none
-	Meta      map[string]string `json:"meta,omitempty"` // opaque plugin-tender data
+	AccountID int64             `json:"accountId"`        // card/bank locker for card/online; 0 = none
+	Meta      map[string]string `json:"meta,omitempty"`   // opaque plugin-tender data
 	Cheque    *SaleCheque       `json:"cheque,omitempty"` // required for a cheque line
 }
 
@@ -56,21 +56,21 @@ type SaleCheque struct {
 }
 
 type SaleRequest struct {
-	SaleType          string            `json:"saleType"` // retail | wholesale
-	CustomerID        *int64            `json:"customerId,omitempty"`
-	Discount          string            `json:"discount"`
-	DiscountType      string            `json:"discountType"`
-	AllowOverLimit    bool              `json:"allowOverLimit"`
-	DeferDrawerKick   bool              `json:"deferDrawerKick"`
-	ChangeGiven       string            `json:"changeGiven"` // "" = full computed change
-	OnAccountRounding bool              `json:"onAccountRounding"`
-	PreparedBy        *int64            `json:"preparedBy,omitempty"` // the sales person whose ticket this was
+	SaleType          string `json:"saleType"` // retail | wholesale
+	CustomerID        *int64 `json:"customerId,omitempty"`
+	Discount          string `json:"discount"`
+	DiscountType      string `json:"discountType"`
+	AllowOverLimit    bool   `json:"allowOverLimit"`
+	DeferDrawerKick   bool   `json:"deferDrawerKick"`
+	ChangeGiven       string `json:"changeGiven"` // "" = full computed change
+	OnAccountRounding bool   `json:"onAccountRounding"`
+	PreparedBy        *int64 `json:"preparedBy,omitempty"` // the sales person whose ticket this was
 	// ClientRef is this Pay's one-time reference (the till keeps it while the same
 	// cart is retried): sent again, the first sale comes back and nothing is booked
 	// twice — an answer lost on the network never makes a second sale (SALE-50).
-	ClientRef string `json:"clientRef,omitempty"`
-	Items             []SaleItemRequest `json:"items"`
-	Payments          []PaymentRequest  `json:"payments"`
+	ClientRef string            `json:"clientRef,omitempty"`
+	Items     []SaleItemRequest `json:"items"`
+	Payments  []PaymentRequest  `json:"payments"`
 	// Plugin is the sale's own plugin data by plugin key (the till's sale meta);
 	// each plugin's sale-line hook reads its own key inside the sale's tx.
 	Plugin map[string]any `json:"plugin,omitempty"`

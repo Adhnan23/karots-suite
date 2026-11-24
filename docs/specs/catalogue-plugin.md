@@ -63,5 +63,5 @@ Deleted with its plan when done.
 
 README plugin table + badge, `docs/guide/plugins/catalogue.md` + its row, `shots.spec.ts` key + `make docs-shots`,
 the First Schedule tick box, Shop Rules §15 row (Rs 500 / month, free while in testing) + the Everything row's count,
-`make agreement`; `internal/docscheck` passes. Demo Room: the plugin shows its "no address" state (no network in a
-throwaway shop) unless the user wants a sample copy.
+`make agreement`; `internal/docscheck` passes. **Demo Room** (user, 2026-11-24): a small sample copy embedded in the demo, loaded into each demo shop that has the
+plugin, so picking works there without network.

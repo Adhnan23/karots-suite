@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"karots-suite/internal/plugin"
 	"net/http"
 	"strconv"
 	"strings"
@@ -300,10 +301,19 @@ func (h *handlers) CounterIntakeProduct(c echo.Context) error {
 			}
 		}
 	}
-	p, err := h.t.products.CreateForIntake(c.Request().Context(), in, middleware.CurrentUserID(c))
+	ctx := c.Request().Context()
+	extras, x := ProductRequest{Extra: req.Extra}, plugin.ExtraCtx{IsNew: true}
+	if err := checkExtras(ctx, extras, x); err != nil { // refused before anything is written
+		return err
+	}
+	p, err := h.t.products.CreateForIntake(ctx, in, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), note+p.Name)
+	x.ProductID, x.CategoryID = p.ID, p.CategoryID
+	if err := saveExtras(ctx, extras, x); err != nil {
+		return err
+	}
 	return c.JSON(http.StatusCreated, tillProduct(*p))
 }

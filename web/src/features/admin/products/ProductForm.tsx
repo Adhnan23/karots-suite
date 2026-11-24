@@ -142,7 +142,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
           <input autoFocus required maxLength={150} name="prod-name" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
         </Field>
         <div className="empty:hidden md:col-span-2 md:row-start-2">
-          <ProductAssists name={f.name} barcode={f.barcode} where="form" onFill={({ name, categoryId }) => set({ ...(name && { name }), ...(categoryId && { categoryId }) })} setExtras={setExtras} setSuggested={setSuggested} />
+          <ProductAssists name={f.name} barcode={f.barcode} where="form" onFill={({ name, unitId, categoryId }) => set({ ...(name && { name }), ...(unitId && { unitId }), ...(categoryId && { categoryId }) })} setExtras={setExtras} setSuggested={setSuggested} />
         </div>
         <Field className="md:col-start-2 md:row-start-1" label="Local name" hint="Optional — Sinhala / Tamil, printed on receipts.">
           <input name="prod-local" value={f.nameLocal} onChange={(e) => set({ nameLocal: e.target.value })} className={INPUT} />

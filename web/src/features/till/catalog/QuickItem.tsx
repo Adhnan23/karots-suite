@@ -13,6 +13,7 @@ import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 import { FIELD } from '../ui'
 import { defaultUnit } from '@/features/admin/units/defaultUnit'
+import { extraBody, type Extras, ProductAssists } from '@/features/admin/products/ProductExtras'
 
 /** Sell something not in the catalogue yet (it's created for admin review). */
 export function QuickItem({ barcode: initialBarcode, name: initialName }: { barcode: string; name: string }) {
@@ -25,6 +26,7 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
   const [qty, setQty] = useState('1')
   const [barcode, setBarcode] = useState(initialBarcode)
   const [unitId, setUnitId] = useState<number>(0)
+  const [extras, setExtras] = useState<Extras>({})
   const unit = units.find((u) => u.id === unitId) ?? defaultUnit(units)
 
   async function generate() {
@@ -42,7 +44,7 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
     if (!(q > 0)) q = 1
     try {
       const p = await api<TillProduct>('/till/quick-item', {
-        json: { name: name.trim(), price: String(num(price)), qty: String(q), barcode: barcode.trim(), unitId: unit?.id ?? 0 },
+        json: { name: name.trim(), price: String(num(price)), qty: String(q), barcode: barcode.trim(), unitId: unit?.id ?? 0, extra: extraBody(extras) },
       })
       dispatch({ type: 'quickSet', product: p, qty: q })
       toast.success('Item added')
@@ -61,6 +63,8 @@ export function QuickItem({ barcode: initialBarcode, name: initialName }: { barc
         </DialogHeader>
         <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); void submit() }}>
           <input autoFocus aria-label="Item name" placeholder="Item name" autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} className={cn(FIELD, 'col-span-2')} />
+          <div className="col-span-2 empty:hidden"><ProductAssists name={name} barcode={barcode} where="quick" setExtras={setExtras}
+            onFill={(f) => { if (f.name) setName(f.name); if (f.unitId) setUnitId(f.unitId) }} /></div>
           <input aria-label="Price" placeholder="Price" inputMode="decimal" autoComplete="off" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} className={FIELD} />
           <div className="flex gap-2">
             <input aria-label="Quantity" inputMode="decimal" autoComplete="off" value={qty} onChange={(e) => setQty(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'w-20')} />

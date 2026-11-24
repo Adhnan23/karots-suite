@@ -325,7 +325,7 @@ function NewItem({ init, labels, setLabels, onSaved, onCancel, onLinked }: { ini
       <div className="flex flex-col gap-2">
         <Field label="Name"><input ref={nameRef} autoFocus={!init.name} required maxLength={150} name="in-name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} className={INPUT} /></Field>
         <ProductAssists key={round} name={d.name} barcode={d.barcode} where="intake" setExtras={setExtras} setSuggested={setSuggested}
-          onFill={({ name, categoryId }) => { if (name) setD((x) => ({ ...x, name })); if (categoryId) setCat(categoryId) }} />
+          onFill={({ name, unitId, categoryId }) => { if (name) setD((x) => ({ ...x, name })); if (unitId) setUnit(unitId); if (categoryId) setCat(categoryId) }} />
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Category"><CategoryPicker label="Category" allowCreate value={cat} onChange={setCat} /></Field>

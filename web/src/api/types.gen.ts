@@ -1238,6 +1238,7 @@ export interface IntakeProductRequest {
   sellingPrice: string;
   unitId: number /* int64 */;
   wanted: boolean;
+  extra?: { [key: string]: unknown }; // plugins' data, as on the product form
 }
 
 //////////
@@ -4221,6 +4222,7 @@ export interface QuickItemRequest {
   qty: string;
   barcode: string;
   unitId: number /* int64 */;
+  extra?: { [key: string]: unknown }; // plugins' data, as on the product form
 }
 /**
  * TillBarcodeRequest gives an existing product the code just scanned at the

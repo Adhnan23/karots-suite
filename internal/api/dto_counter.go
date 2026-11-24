@@ -1,5 +1,7 @@
 package api
 
+import "encoding/json"
+
 // ---- Till counter operations (M1b): shared ----
 
 // CounterMoneyRequest is the cash side of a counter action (expense, supplier
@@ -36,8 +38,8 @@ type ExpensesPage struct {
 
 type ExpenseRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
-	Category            string `json:"category"`
-	Amount              string `json:"amount"`
+	Category            string       `json:"category"`
+	Amount              string       `json:"amount"`
 	Description         string       `json:"description"`
 	ServiceProductID    int64        `json:"serviceProductId"`
 	Method              string       `json:"method,omitempty"`  // "" = cash from the drawer / LockerID; cheque = Cheques
@@ -249,7 +251,7 @@ type CreditPaymentRequest struct {
 	AccountID       int64             `json:"accountId"` // card/bank locker the money lands in
 	Reference       string            `json:"reference"`
 	DeferDrawerKick bool              `json:"deferDrawerKick"`
-	Meta            map[string]string `json:"meta,omitempty"` // a plugin tender's detail (slots.tillTenders)
+	Meta            map[string]string `json:"meta,omitempty"`    // a plugin tender's detail (slots.tillTenders)
 	Cheques         []ChequeLine      `json:"cheques,omitempty"` // Method cheque: the amount is their total
 	// ClientRef is this Pay's one-time reference: sent again, the first payment
 	// comes back and nothing is booked twice (CUST-16).
@@ -380,8 +382,8 @@ type SupplierView struct {
 // Mode "pay" = open invoices oldest-first, "old" = old debt first; the rest is an advance.
 type SupplierPayRequest struct {
 	CounterMoneyRequest `tstype:",extends"`
-	Amount              string `json:"amount"`
-	Mode                string `json:"mode"`
+	Amount              string       `json:"amount"`
+	Mode                string       `json:"mode"`
 	Method              string       `json:"method"` // cash | card | online | cheque
 	Reference           string       `json:"reference"`
 	Note                string       `json:"note"`
@@ -463,10 +465,11 @@ type NewSupplierRequest struct {
 // IntakeProductRequest creates a product first met on a delivery (Wanted = while
 // taking an order: prices are never taken from a quote).
 type IntakeProductRequest struct {
-	Name         string `json:"name"`
-	Barcode      string `json:"barcode"`
-	CostPrice    string `json:"costPrice"`
-	SellingPrice string `json:"sellingPrice"`
-	UnitID       int64  `json:"unitId"`
-	Wanted       bool   `json:"wanted"`
+	Name         string                     `json:"name"`
+	Barcode      string                     `json:"barcode"`
+	CostPrice    string                     `json:"costPrice"`
+	SellingPrice string                     `json:"sellingPrice"`
+	UnitID       int64                      `json:"unitId"`
+	Wanted       bool                       `json:"wanted"`
+	Extra        map[string]json.RawMessage `json:"extra,omitempty" tstype:"{ [key: string]: unknown }"` // plugins' data, as on the product form
 }

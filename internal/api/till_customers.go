@@ -1,6 +1,7 @@
 package api
 
 import (
+	"karots-suite/internal/plugin"
 	"net/http"
 	"strconv"
 	"strings"
@@ -99,13 +100,22 @@ func (h *handlers) TillQuickItem(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return apperr.BadRequest("invalid request body")
 	}
-	p, err := h.t.products.QuickCreate(c.Request().Context(), products.QuickInput{
+	ctx := c.Request().Context()
+	extras, x := ProductRequest{Extra: req.Extra}, plugin.ExtraCtx{IsNew: true}
+	if err := checkExtras(ctx, extras, x); err != nil { // refused before anything is written
+		return err
+	}
+	p, err := h.t.products.QuickCreate(ctx, products.QuickInput{
 		Name: req.Name, Price: req.Price, Qty: req.Qty, Barcode: req.Barcode, UnitID: req.UnitID,
 	}, middleware.CurrentUserID(c))
 	if err != nil {
 		return err
 	}
 	h.audit(c, audit.ActionCreate, "product", strconv.FormatInt(p.ID, 10), "quick-add at till: "+p.Name)
+	x.ProductID, x.CategoryID = p.ID, p.CategoryID
+	if err := saveExtras(ctx, extras, x); err != nil {
+		return err
+	}
 	return c.JSON(http.StatusOK, tillProduct(*p))
 }
 

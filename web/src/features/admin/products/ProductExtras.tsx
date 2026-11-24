@@ -1,4 +1,4 @@
-import { type AssistFill, slots } from '@/plugins/slots'
+import { type AssistFill, type AssistWhere, slots } from '@/plugins/slots'
 
 export type Extras = Record<string, unknown>
 /** What a helper offered each section (AssistFill.sections), by section key. */
@@ -18,11 +18,11 @@ export const extraBody = (x: Extras) => (Object.keys(x).length ? x : undefined)
 
 /** Plugin helpers under the Name field (slots.productAssists); fill patches the form and puts
  * the plugin's extra in extras[key]. Renders nothing in a core-only build. */
-export function ProductAssists({ name, barcode, where, onFill, setExtras, setSuggested }: { name: string; barcode: string; where: 'form' | 'intake'; onFill: (f: { name?: string; categoryId?: number }) => void; setExtras: (f: (x: Extras) => Extras) => void; setSuggested: (s: Suggested) => void }) {
+export function ProductAssists({ name, barcode, where, onFill, setExtras, setSuggested }: { name: string; barcode: string; where: AssistWhere; onFill: (f: { name?: string; unitId?: number; categoryId?: number }) => void; setExtras: (f: (x: Extras) => Extras) => void; setSuggested?: (s: Suggested) => void }) {
   return slots.productAssists.map(({ key, Assist }) => (
     <Assist key={key} name={name} barcode={barcode} where={where} fill={({ extra, sections, ...f }: AssistFill) => {
       onFill(f)
-      if (sections) setSuggested({ ...sections }) // a fresh object, so the same values offered again still land
+      if (sections) setSuggested?.({ ...sections }) // a fresh object, so the same values offered again still land
       if (extra !== undefined) setExtras((x) => ({ ...x, [key]: extra }))
     }} />
   ))
