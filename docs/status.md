@@ -35,8 +35,8 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
 2. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
    strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
    and checks the preview. (Iman's 550 products with no supplier are left alone: they get one from their first order /
-   delivery; the Distributor is the importer, not who delivers.) **Now: supplier by field** in Product Plus
-   (`docs/specs/supplier-by-field.md`, 2026-11-24) — spec waiting for the user's yes, then the plan.
+   delivery; the Distributor is the importer, not who delivers.) **Supplier by field** is built (Product Plus, 2026-11-24, see Done);
+   not Released yet.
 3. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
    real sale.
 4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
@@ -163,7 +163,9 @@ Karots Shelf · import by ref · receipt line rules + text size · stock freeze 
 layouts · Alternatives sheet · cashier menu sheet (MENU rules) · products sheet preview (IMP rules) · **battle tests: 7 core
 areas, every plugin, installing and running a shop (2026-11-18 → 22)** · Release needs a green test-all (BLD-6) ·
 low-spec bench + RPT-38 year reports 35 s → 1 s · the new terms, four plans, system requirements, site redesign
-(2026-11-24).
+(2026-11-24) · **Supplier by field** (Product Plus: one Brand / Company field gives products with no supplier of their
+own a supplier, until their first order or delivery; core hook `plugin.RuleSupplier`, SUP-11/12, PPF-10…13; test-all
+green on 0e56c4a, 2026-11-24).
 
 ## How we work
 
