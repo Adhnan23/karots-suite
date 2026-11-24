@@ -1,0 +1,7 @@
+{
+  "key": "catalogue",
+  "name": "Catalogue",
+  "import": "karots-suite/plugins/catalogue",
+  "version": "1.0.0",
+  "description": "The Karots Suite catalogue of Sri Lankan pharmacy, grocery and stationery products, kept on the main PC and checked for changes every night. Pick a product from it on the product form, intake, the till's quick item or a delivery: the name, unit and your own fields fill in. Picks and later catalogue fixes wait on Items to review."
+}

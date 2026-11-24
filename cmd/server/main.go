@@ -237,6 +237,11 @@ func run() int {
 	// Auto reorder levels: learned nightly from sales and deliveries.
 	go reorder.Loop(bgCtx, sqlxDB)
 
+	// Plugins' own background work (plugin.Registry.AddBackground).
+	for _, f := range plugin.Backgrounds() {
+		go f(bgCtx)
+	}
+
 	restart := make(chan struct{}, 1)
 	startUpdater(bgCtx, sqlxDB, cfg, restart)
 
