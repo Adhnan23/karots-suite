@@ -3,6 +3,7 @@ package catalogue
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"karots-suite/internal/apperr"
 
@@ -42,4 +43,49 @@ func (h handlers) search(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, out)
+}
+
+func productParam(c echo.Context) (int64, error) {
+	id, err := strconv.ParseInt(c.Param("product"), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, apperr.BadRequest("which product?")
+	}
+	return id, nil
+}
+
+// waiting is a product's waiting catalogue change (CTL-8), for its Items to review buttons.
+func (h handlers) waiting(c echo.Context) error {
+	id, err := productParam(c)
+	if err != nil {
+		return err
+	}
+	cs, err := h.p.store.Waiting(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, cs)
+}
+
+// use is "Use the catalogue's" (CTL-9): the name through core's rename, fields through their plugin.
+func (h handlers) use(c echo.Context) error {
+	id, err := productParam(c)
+	if err != nil {
+		return err
+	}
+	if err := h.p.store.useCatalogue(c.Request().Context(), id, h.p.core.Products.Rename); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// keep is "Keep mine" (CTL-9).
+func (h handlers) keep(c echo.Context) error {
+	id, err := productParam(c)
+	if err != nil {
+		return err
+	}
+	if err := h.p.store.keepMine(c.Request().Context(), id); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

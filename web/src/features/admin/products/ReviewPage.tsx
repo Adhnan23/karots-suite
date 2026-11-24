@@ -62,7 +62,7 @@ export function ReviewPage() {
                     : 'The code becomes unknown again, so its next scan asks what it is.'}
                   onConfirm={() => removeCode(p.id, b.barcode)} />
               ))}
-              {slots.reviewActions.filter((a) => p.reviewNotes?.some((n) => n.plugin === a.key)).map(({ key, Action }) => <Action key={key} productId={p.id} name={p.name} />)}
+              {slots.reviewActions.filter((a) => p.reviewNotes?.some((n) => n.plugin === a.key)).map(({ key, Action }) => <Action key={key} productId={p.id} name={p.name} notes={p.reviewNotes!.filter((n) => n.plugin === key).map((n) => n.text)} />)}
               <ConfirmButton plain label="Looks fine" className="h-9 px-3" title={`Mark ${p.name} as reviewed?`} confirm="Mark reviewed"
                 body={p.needsReview ? 'It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost.' : p.tillBarcodes?.length ? 'Its linked barcode stays on it.' : p.tillPack ? 'The pack size the cashier typed is right.' : 'It stays as it is.'} onConfirm={() => fine(p.id)} />
               <MergeInto from={p} onDone={() => undefined} trigger={(open) => (

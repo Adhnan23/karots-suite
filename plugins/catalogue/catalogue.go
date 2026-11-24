@@ -41,6 +41,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.core = reg.Core
 	p.store = NewStore(reg.Core.DB)
 	p.sync = NewSyncer(reg.Core.DB, address())
+	p.sync.afterChange = p.store.afterChange
 	reg.AddBackground(p.sync.Loop)
 	reg.AddProductExtras(p.store.extras())
 	reg.AddReviewSource(p.store.reviewSource())
@@ -53,4 +54,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t.GET("/catalogue/search", h.search)
 	a := reg.Admin()
 	a.POST("/catalogue/check", h.check)
+	a.GET("/catalogue/reviews/:product", h.waiting)
+	a.POST("/catalogue/reviews/:product/use", h.use)
+	a.POST("/catalogue/reviews/:product/keep", h.keep)
 }

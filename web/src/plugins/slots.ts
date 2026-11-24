@@ -181,8 +181,9 @@ export type PageAction = { key: string; page: string; Action: ComponentType<{ op
  * and/or category on the form (a place without a category ignores it); extra lands in extras[key], sent as the
  * request's extra[key] when the person saves. An assist meant only for some places returns null elsewhere. */
 /** Buttons on an Items to review row that a plugin put there (its notes' plugin = key, REV-2): the row
- * renders them without knowing who added them. The plugin refreshes ['admin'] when it changes something. */
-export type ReviewAction = { key: string; Action: ComponentType<{ productId: number; name: string }> }
+ * renders them without knowing who added them, with that plugin's own notes. The plugin refreshes ['admin']
+ * when it changes something. */
+export type ReviewAction = { key: string; Action: ComponentType<{ productId: number; name: string; notes: string[] }> }
 
 export type ProductAssist = {
   key: string

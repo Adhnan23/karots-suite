@@ -77,9 +77,10 @@ CTL-8  A sync that changes a linked item's name, unit or a field the shop has pu
        to a field the shop doesn't have, or to kinds, is not a review.
        Checked by: example.
 
-CTL-9  On Items to review: "Use the catalogue's" writes only the changed values (fields through Product
-       Plus's own hook) and updates the link; "Keep mine" keeps the product as it is and updates the link, so
-       the same change isn't asked again. Either clears that review.
+CTL-9  On Items to review: "Use the catalogue's" writes only the changed name and fields (the name through
+       core's rename, fields through Product Plus's own hook) and updates the link; a changed unit is shown but
+       never applied (stock is counted in it: the person changes it on the form). "Keep mine" keeps the product
+       as it is and updates the link, so the same change isn't asked again. Either clears that review.
        Checked by: example.
 
 CTL-10 The same pick saved twice, or a save that fails, never leaves two links or a link without its product.
