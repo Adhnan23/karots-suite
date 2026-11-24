@@ -47,7 +47,7 @@
   ;['Repairs', 'Reload', 'Combos', 'Built in', 'Phone', 'WhatsApp', 'Yearly', 'Cash', 'Bank transfer'].forEach(tick)
   for (const s of document.querySelectorAll('.boxes span')) if (s.textContent.trim().startsWith('Hours')) ink(s.querySelector('.line'), 'Mon–Sat 9–6')
   field('Installed on', '28 October 2026')
-  field('First 3 months end on', '28 January 2027')
+  field('Free months end on (3; 6 with Complete Shop)', '28 January 2027')
   k('s-contact', 'owner@example.com · 077 000 0000')
   const fees = document.querySelector('table.fees')
   row(fees, 'Licence', ['100,000', 'Karots Suite with Repairs, Reload, Combos; installation and training included'])

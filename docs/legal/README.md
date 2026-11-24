@@ -137,6 +137,10 @@ lawyer's opinion, the suggested change and the decision.
    what should the shop rules say about a lost phone?
 14. `LICENSE` 3.1 / Shop Rules §9–10: one licence = the one computer running the Software; a free move or reinstall; "your
     copy keeps working if Karots stops trading". Clear and safe as written?
+15. Shop Rules §6 (1.6): **Easy Pay** (Karots Suite Rs 50,000 + 2 years of the plan, or Rs 65,000 + 1 year; no
+    interest; stopping early = the rest of the Suite price or the licence ends after notice): a service contract, not
+    credit? **Complete Shop**: Karots resells hardware with its own 6-month repair-or-replace warranty: anything more
+    needed (Consumer Affairs Authority Act, warranty cards)?
 
 ## Sources
 

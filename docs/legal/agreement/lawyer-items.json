@@ -96,5 +96,12 @@
     "now": "A licence covers the one computer that runs the Software (cashier PCs and phones that only connect need none). Moving to a replacement PC or reinstalling after a format is free, and the old PC stops running it. The Guide says the software needs nothing from Karots to keep selling, so the shop carries on if Karots stops trading.",
     "why": "Clear limits on use, and a fair answer to 'what if the vendor disappears' without promising source code or escrow.",
     "ask": "Is 'one computer' clear enough (a replacement, a reinstall, a backup PC kept switched off)? Is the 'keeps working if Karots stops trading' statement safe to make as written?"
+  },
+  {
+    "title": "Easy Pay and Complete Shop",
+    "where": "Guide sections 6, 7, 15; Order Details",
+    "now": "Easy Pay: Karots Suite for Rs 50,000 with 2 years of the service plan, or Rs 65,000 with 1 year; no interest, each payment is for the service given in that time; after the term the licence is the shop's. Stopping early: pay the rest of the Suite price (Rs 50,000 / Rs 35,000) or, after 14 days' written notice, the licence ends (as for an unpaid balance). Complete Shop: Karots buys and sets up the shop's hardware (quoted, usually Rs 190,000–220,000) and repairs or replaces hardware it supplied that fails in 6 months (not damage, liquids, surges, theft).",
+    "why": "Easy Pay must not read as credit or hire purchase; Complete Shop makes Karots answerable for hardware it resells.",
+    "ask": "Is Easy Pay safely a service contract and not credit under Sri Lankan law (no interest, no finance charge)? Is ending the licence for an early stop fair under UCTA? For Complete Shop, does reselling hardware with our own 6-month warranty need anything more (Consumer Affairs Authority Act, warranty cards, invoices)?"
   }
 ]
