@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-23T13:21:00Z",
-        "commit": "fbe12d46",
-        "version": "2026.11.23.1850",
+        "at": "2026-11-24T05:23:50Z",
+        "commit": "68388099",
+        "version": "2026.11.24.1053",
         "kind": "release",
-        "notes": "• Stock → Batches: Set count and Not there now always use the batch as it really is, even when you click quickly after a change"
+        "notes": "• A year's reports (Finance, Sales, Top products) open much faster"
       },
       "published": {
-        "version": "2026.11.23.1850",
-        "commit": "fbe12d46",
-        "at": "2026-11-23T13:21:07Z"
+        "version": "2026.11.24.1053",
+        "commit": "68388099",
+        "at": "2026-11-24T05:23:57Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
