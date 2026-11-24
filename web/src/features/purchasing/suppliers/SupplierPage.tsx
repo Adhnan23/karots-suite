@@ -64,6 +64,7 @@ export function SupplierPage({ id }: { id: number }) {
             {s.name}{!s.active && <Tag tone="muted">disabled</Tag>}
           </h1>
           <p className="text-sm text-muted-foreground">{[s.contact, s.phone, s.address].filter(Boolean).join(' · ') || 'No contact details'} · {s.creditDays ? `${s.creditDays} days credit` : 'pays on delivery'}{s.expiryWarnDays != null && ` · warns ${s.expiryWarnDays} days before expiry`}</p>
+          {s.products + s.productsByRule > 0 && <p className="text-sm text-muted-foreground tabular-nums">{s.products} {s.products === 1 ? 'product' : 'products'}{s.productsByRule > 0 && ` + ${s.productsByRule} by rule (no supplier of their own yet)`}</p>}
           <div className="mt-3">
             <small className="block text-[12px] font-semibold text-muted-foreground">{owed < 0 ? '↓ They owe us' : owed > 0 ? '↑ We owe them' : 'Balance'}</small>
             <Owed sym={sym} owed={s.owed} big />

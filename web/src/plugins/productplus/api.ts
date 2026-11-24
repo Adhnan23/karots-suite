@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import { queryClient } from '@/api/query-client'
-import type { Cell, FieldDTO, FieldRequest, FieldType, FormField, Grid, Impact, SaveResult } from './types'
+import type { Cell, FieldDTO, FieldRequest, FieldType, FormField, Grid, Impact, SaveResult, SupplierRules } from './types'
 
 const base = '/x/productplus'
 
@@ -30,6 +30,8 @@ export const gridQuery = (fields: number[], categoryId: number, missing: boolean
     placeholderData: keepPreviousData,
   })
 
+export const supplierRulesQuery = queryOptions({ queryKey: ['x', 'productplus', 'supplier-rules'], queryFn: () => api<SupplierRules>(`${base}/supplier-rules`) })
+
 /** Every write refreshes the plugin's data (and product lists: list lines change). */
 async function write<T>(p: Promise<T>): Promise<T> {
   try {
@@ -45,3 +47,5 @@ export const updateField = (id: number, f: FieldRequest) => write(api<FieldDTO>(
 export const setActive = (id: number, active: boolean) => write(api(`${base}/fields/${id}/active`, { json: { active } }))
 export const moveField = (id: number, dir: 'up' | 'down') => write(api(`${base}/fields/${id}/move`, { json: { dir } }))
 export const saveValues = (cells: Cell[]) => write(api<SaveResult>(`${base}/values`, { method: 'PUT', json: cells }))
+export const setSupplierField = (fieldId: number, confirm: boolean) => write(api(`${base}/supplier-rules/field`, { method: 'PUT', json: { fieldId, confirm } }))
+export const setSupplierRule = (value: string, supplierId: number) => write(api(`${base}/supplier-rules/value`, { method: 'PUT', json: { value, supplierId } }))

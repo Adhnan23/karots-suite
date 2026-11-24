@@ -30,3 +30,7 @@ export const TYPE_LABEL: Record<FieldType, string> = { text: 'Text', textarea: '
 /** Fill in: a product × field cell's key, and the edits the grid holds. */
 export const cellKey = (productId: number, fieldId: number) => `${productId}:${fieldId}`
 export type Edits = { dirty: Record<string, string>; errors: Record<string, string>; edit: (productId: number, fieldId: number, v: string) => void }
+
+/** Supplier by field (plugins/productplus/api_suppliers.go). */
+export type SupplierValue = { value: string; products: number; supplierId: number; supplierName: string }
+export type SupplierRules = { fieldId: number; fields: { id: number; label: string }[]; values: SupplierValue[] }

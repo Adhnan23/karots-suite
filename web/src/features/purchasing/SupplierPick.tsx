@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils'
 import { SupplierForm } from './suppliers/SupplierForm'
 
 /** Pick a supplier by searching, or add one on the spot and carry on with the form behind it. */
-export function SupplierPick({ label, value, onChange }: { label: string; value: number; onChange: (id: number) => void }) {
+/** noAdd hides the New button beside it (long lists of pickers); the picker still offers New supplier. */
+export function SupplierPick({ label, value, onChange, noAdd }: { label: string; value: number; onChange: (id: number) => void; noAdd?: boolean }) {
   const qc = useQueryClient()
   const suppliers = useQuery(supplierOptionsQuery).data ?? []
   const [adding, setAdding] = useState(false)
@@ -25,7 +26,7 @@ export function SupplierPick({ label, value, onChange }: { label: string; value:
         <span className={cn('truncate', !name && 'text-faint')}>{name ?? 'None'}</span>
         <ChevronDown size={16} className="flex-none text-faint" />
       </button>
-      <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={() => setAdding(true)}><Plus size={14} /> New</Button>
+      {!noAdd && <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={() => setAdding(true)}><Plus size={14} /> New</Button>}
       <PickerShell open={open} onOpenChange={setOpen} title={label}>
         <div className="relative">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />

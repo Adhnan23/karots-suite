@@ -174,7 +174,7 @@ function Form({ product, sourceId, init, onEdit, onClose }: { product?: AdminPro
             <Button type="button" variant="outline" className="h-[var(--control-h)] gap-1.5 px-3" onClick={generate} disabled={!!f.barcode}><Wand2 size={15} /> Generate</Button>
           </div>
         </Field>
-        {!svc && <Field label="Preferred supplier"><SupplierPick label="Preferred supplier" value={f.supplierId} onChange={(supplierId) => set({ supplierId })} /></Field>}
+        {!svc && <Field label="Preferred supplier" hint={!f.supplierId && product?.ruleSupplierName ? `${product.ruleSupplierName} by ${product.ruleSupplierWhy}, until its first order or delivery sets its own.` : undefined}><SupplierPick label="Preferred supplier" value={f.supplierId} onChange={(supplierId) => set({ supplierId })} /></Field>}
         {!svc && <ReorderLevel product={product} value={{ auto: f.reorderAuto ?? true, level: f.reorderLevel, start: f.reorderStart ?? 0 }}
           onChange={(v) => set({ reorderAuto: v.auto, reorderLevel: v.level, reorderStart: v.start })} />}
         <Field label="Tax %" hint={me?.taxRegistered ? 'Leave empty for none.' : 'Not charged: the shop isn\'t registered for VAT (Settings → Tax).'}>

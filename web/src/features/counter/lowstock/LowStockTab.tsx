@@ -72,7 +72,7 @@ function GroupBlock({ g, canOrder, sym }: { g: Group; canOrder: boolean; sym: st
   const rowOf = (r: ReorderRow) => (
           <li key={r.productId} className="flex items-center gap-3 px-3 py-2.5">
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}</b>
+              <b className="flex items-center gap-1.5 truncate">{r.name}{num(r.onHand) <= 0 && <Tag tone="danger">out</Tag>}{r.calc?.notSelling && <Tag tone="muted">Not selling</Tag>}{r.supplierWhy && <Tag tone="muted">{`by ${r.supplierWhy}`}</Tag>}</b>
               <small className="text-[13px] text-faint tabular-nums">
                 <span className="font-semibold text-danger">{qtyText(r.onHand)} {r.unitAbbr} left</span> · reorder at {r.reorderLevel}{r.cost && ` · cost ${money(sym, r.cost)}`}
               </small>
