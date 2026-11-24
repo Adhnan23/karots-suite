@@ -59,6 +59,7 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
 | Refund received from the supplier | SUP-7 | — a | SUP-7 | — c | — d | SUP-10 | SUP-7 |
 | Supplier disabled / brought back | SUP-9 | — a | — a | — c | SUP-9 | SUP-10 | — e |
 | Credit for a loss, replacement charge | SUP-1 | area 6 | area 6 | PUR-8 | area 6 | SUP-10 | area 6 |
+| A product's supplier (own, or by a plugin's rule) | SUP-11, SUP-12 | — c | — a | — c | SUP-11 | — c | — e |
 
 - `— a` Nothing of this kind moves.
 - `— b` No bill: the opening is old debt, outside any bill.
@@ -161,6 +162,13 @@ statement, Owing, payables) · **Faults** (two at once, power cut, sent twice).
 - **SUP-10** The statement's running balance ends at the supplier's balance (SUP-1's rows, oldest first); Owing lists
   every supplier owed (disabled too), with the oldest bill that still has something left. *Report sums are area 7.*
   *example.*
+- **SUP-11** A product's own (preferred) supplier is set by hand, by a products sheet, by Move products, or by the first
+  order or delivery that has it while it has none — never by anything else (a plugin's rule included). Move products
+  carries plugins' rules for that supplier along in the same transaction. *example.*
+- **SUP-12** A product's supplier is its own, else the supplier a plugin's rule gives (a disabled supplier counts as
+  none), else none. The rule supplier counts in the products list, Low stock and the orders made from it, stock-take
+  and the count sheet, the supplier's product count (shown apart) and smart reorder levels; never in loss claims, a
+  lot's supplier, a products sheet export or an import preview. *User, 2026-11-24 (supplier by field).* *example.*
 
 ### Cheques
 
