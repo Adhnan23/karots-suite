@@ -53,7 +53,15 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
-7. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
+7. **Online catalogue** (order agreed 2026-11-24): piece 1 **done** in the catalogue repo — permanent ids, the
+   Catalogue app (`python3 build/app.py`, port 7710, PIN of install id 7586DBF6 in PIN Vault under Karots Suite),
+   Publish to R2 (hidden folder; **version 1 online**, 52,160 products). Next: 2) the suite's **Catalogue plugin**
+   (main PC keeps the whole catalogue, fetches changes; From catalogue next to Identify, quick add, receiving → Items
+   to review; fills **only the fields the shop has** in Product Plus); 3) Shelf's From catalogue; 4) Onboard syncs
+   with the Catalogue app directly by IP / Tailscale (no backup files). **Fields maker** (user, 2026-11-24): the
+   Catalogue app manages its own field list like Product Plus (starts from the fields products have; add more; all
+   show on the product form); Onboard sync brings a shop's new fields in. Details: the catalogue repo's README.
+8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family
 
@@ -61,7 +69,7 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
 - **Karots Suite Onboard + Karots Shelf** (`~/Projects/flutter/karots_suite_onboard`, one Flutter repo, both apps on
   Android, Linux and Windows). `make` builds both APKs + both Linux apps into its `dist/`; Windows = GitHub Actions on
   push. Onboard = the user's own setup app (install ID 3EE0E57C); Shelf = shop staff's app, free, in Iman's build.
-- **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private): Onboard gets it as an **update file**
+- **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private; its Catalogue app + Publish online since 2026-11-24): Onboard gets it as an **update file**
   built from the user's **latest** Onboard backup (never wipe and re-import). Catalogue work paused until a shop
   needs it. Karots files in the user's Downloads: `/mnt/nvme_512GB/Downloads/Karots/`.
 - **Karots Suite site** (`~/Projects/karots-pos-site`, to be renamed `karots-suite-site`; the old POS site on its
