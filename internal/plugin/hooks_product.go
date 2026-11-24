@@ -197,6 +197,22 @@ type ProductReorderAnnotator struct {
 	LowMembers func(ctx context.Context) ([]int64, error)
 }
 
+// RuleSupplier gives products with no own supplier a supplier by a plugin's rule
+// (SUP-12: "Brand = Bosch → Lanka Auto Parts"). For answers for the given products
+// (omit an id for none); Products lists the products whose rule gives supplierID.
+// Core applies own suppliers and drops disabled ones; errors are returned, never
+// read as "none". The plugin never writes products.preferred_supplier_id.
+type RuleSupplier struct {
+	For      func(ctx context.Context, productIDs []int64) (map[int64]RuleSupplierOf, error)
+	Products func(ctx context.Context, supplierID int64) ([]int64, error)
+}
+
+// RuleSupplierOf is one product's rule supplier and why ("Brand: Bosch").
+type RuleSupplierOf struct {
+	SupplierID int64
+	Why        string
+}
+
 // ProductMerger moves a plugin's own rows when core merges a duplicate product
 // (fromID) into the one the shop keeps (intoID). Merge runs inside core's merge
 // transaction, after core moved its tables and before the duplicate is retired; it
@@ -235,6 +251,7 @@ var (
 	productTillLines         hook[ProductTillLineProvider]
 	productGroupers          hook[ProductGrouper]
 	productAttributeSets     hook[ProductAttributeSet]
+	ruleSuppliers            hook[RuleSupplier]
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
@@ -264,6 +281,11 @@ func (r *Registry) AddProductLabelFieldProvider(p ProductLabelFieldProvider) {
 func (r *Registry) AddProductGrouper(g ProductGrouper) { productGroupers.add(g) }
 
 func (r *Registry) AddProductAttributeSet(a ProductAttributeSet) { productAttributeSets.add(a) }
+
+func (r *Registry) AddRuleSupplier(s RuleSupplier) { ruleSuppliers.add(s) }
+
+// RuleSuppliers are the registered supplier rules, in registration order.
+func RuleSuppliers() []RuleSupplier { return ruleSuppliers.all() }
 
 func (r *Registry) AddProductTillLineProvider(p ProductTillLineProvider) {
 	productTillLines.add(p)

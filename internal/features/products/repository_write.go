@@ -60,18 +60,22 @@ func (r *Repository) SyncCatalog(ctx context.Context) ([]SyncRow, error) {
 func (r *Repository) Count(ctx context.Context, q ListQuery) (int, error) {
 	var n int
 	toks, raw, fuzzy := q.searchArgs()
-	err := r.db.GetContext(ctx, &n, subcatsCTE+`
+	byRule, err := ruleProductIDs(ctx, r.db, q.PreferredSupplierID)
+	if err != nil {
+		return 0, err
+	}
+	err = r.db.GetContext(ctx, &n, subcatsCTE+`
 		SELECT COUNT(*) FROM products p
 		LEFT JOIN stock s ON s.product_id = p.id
 		WHERE (p.is_active = true OR $7) AND (p.is_service = false OR $6)
 		  AND (`+searchClause+` OR p.id = ANY($9::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
 		  AND ($5 = false OR NOT p.stock_frozen AND (COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($10::bigint[])))
-		  AND ($8::bigint IS NULL OR p.preferred_supplier_id = $8)
+		  AND ($8::bigint IS NULL OR p.preferred_supplier_id = $8 OR (p.preferred_supplier_id IS NULL AND p.id = ANY($13::bigint[])))
 		  AND ($11 = false OR NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = p.id AND pc.is_active))
 		  AND ($12 = false OR (NOT p.reorder_auto AND p.reorder_calc IS NOT NULL))`,
 		toks, raw, fuzzy, q.CategoryID, q.LowStock, q.IncludeServices, q.IncludeInactive, q.PreferredSupplierID,
-		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs), q.NotDerived, q.FixedLearned)
+		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs), q.NotDerived, q.FixedLearned, pq.Array(byRule))
 	return n, err
 }
 

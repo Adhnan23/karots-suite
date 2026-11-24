@@ -3,6 +3,7 @@ package products
 import (
 	"context"
 
+	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 )
 
@@ -41,9 +42,13 @@ func (r *Repository) CountSheet(ctx context.Context, categoryID, supplierID *int
 		LEFT JOIN stock s ON s.product_id = p.id
 		WHERE p.is_active AND NOT p.is_service
 		  AND ($1::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
-		  AND ($2::bigint IS NULL OR p.preferred_supplier_id = $2)
+		  AND ($2::bigint IS NULL OR p.preferred_supplier_id = $2 OR (p.preferred_supplier_id IS NULL AND p.id = ANY($3::bigint[])))
 		ORDER BY category_path, p.name, p.id`
+	byRule, err := ruleProductIDs(ctx, r.db, supplierID)
+	if err != nil {
+		return nil, err
+	}
 	var rows []CountSheetRow
-	err := r.db.SelectContext(ctx, &rows, q, categoryID, supplierID)
+	err = r.db.SelectContext(ctx, &rows, q, categoryID, supplierID, pq.Array(byRule))
 	return rows, err
 }

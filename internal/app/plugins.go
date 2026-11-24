@@ -157,6 +157,34 @@ func bridgeProductHooks() {
 			return out, nil
 		}
 	}
+	if rs := plugin.RuleSuppliers(); len(rs) > 0 {
+		products.RuleSupplierFor = func(ctx context.Context, ids []int64) (map[int64]products.RuleSupplierOf, error) {
+			out := map[int64]products.RuleSupplierOf{}
+			for _, r := range rs { // the first answer per product wins
+				m, err := r.For(ctx, ids)
+				if err != nil {
+					return nil, err
+				}
+				for id, v := range m {
+					if _, ok := out[id]; !ok {
+						out[id] = products.RuleSupplierOf{SupplierID: v.SupplierID, Why: v.Why}
+					}
+				}
+			}
+			return out, nil
+		}
+		products.RuleSupplierProducts = func(ctx context.Context, supplierID int64) ([]int64, error) {
+			var out []int64
+			for _, r := range rs {
+				ids, err := r.Products(ctx, supplierID)
+				if err != nil {
+					return nil, err
+				}
+				out = append(out, ids...)
+			}
+			return out, nil
+		}
+	}
 	if len(plugin.FreezeGuards()) > 0 {
 		stock.FreezeRefusals = plugin.FreezeRefusals
 	}

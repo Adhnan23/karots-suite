@@ -54,6 +54,11 @@ type Product struct {
 	StockQty              decimal.Decimal `db:"stock_qty"               json:"stock_qty"`
 	CreatedByName         *string         `db:"created_by_name"         json:"created_by_name,omitempty"`
 	PreferredSupplierName *string         `db:"preferred_supplier_name" json:"preferred_supplier_name,omitempty"`
+	// The rule supplier (SUP-12): only when there's no own supplier, from a plugin's
+	// rule (FillRuleSuppliers). Never stored; read sites opt in.
+	RuleSupplierID   *int64 `db:"-" json:"-"`
+	RuleSupplierName string `db:"-" json:"-"`
+	RuleSupplierWhy  string `db:"-" json:"-"`
 	// Barcodes are the extra codes (product_barcodes), oldest first; Barcode is the main one.
 	Barcodes pq.StringArray `db:"barcodes" json:"barcodes"`
 	// TillPack names pack sizes a cashier set at the till ("Card ×28"); review list only.
@@ -215,18 +220,22 @@ func (q ListQuery) searchArgs() (any, any, bool) {
 func (r *Repository) List(ctx context.Context, q ListQuery) ([]Product, error) {
 	toks, raw, fuzzy := q.searchArgs()
 	var rows []Product
-	err := r.db.SelectContext(ctx, &rows, subcatsCTE+selectProduct+`
+	byRule, err := ruleProductIDs(ctx, r.db, q.PreferredSupplierID)
+	if err != nil {
+		return nil, err
+	}
+	err = r.db.SelectContext(ctx, &rows, subcatsCTE+selectProduct+`
 		WHERE (p.is_active = true OR $9) AND p.merged_into_id IS NULL AND (p.is_service = false OR $8)
 		  AND (`+searchClause+` OR p.id = ANY($11::bigint[]))
 		  AND ($4::bigint IS NULL OR p.category_id IN (SELECT id FROM subcats))
 		  AND ($5 = false OR NOT p.stock_frozen AND (COALESCE(s.quantity,0) <= p.reorder_level OR p.id = ANY($12::bigint[])))
-		  AND ($10::bigint IS NULL OR p.preferred_supplier_id = $10)
+		  AND ($10::bigint IS NULL OR p.preferred_supplier_id = $10 OR (p.preferred_supplier_id IS NULL AND p.id = ANY($15::bigint[])))
 		  AND ($13 = false OR NOT EXISTS (SELECT 1 FROM product_conversions pc WHERE pc.to_product_id = p.id AND pc.is_active))
 		  AND ($14 = false OR (NOT p.reorder_auto AND p.reorder_calc IS NOT NULL))
 		ORDER BY `+searchRank+` p.name, p.id
 		LIMIT $6 OFFSET $7`,
 		toks, raw, fuzzy, q.CategoryID, q.LowStock, q.Limit, q.offset(), q.IncludeServices, q.IncludeInactive, q.PreferredSupplierID,
-		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs), q.NotDerived, q.FixedLearned)
+		pq.Array(searchMatchIDs(ctx, q)), pq.Array(q.AlsoIDs), q.NotDerived, q.FixedLearned, pq.Array(byRule))
 	return rows, err
 }
 
