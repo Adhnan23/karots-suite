@@ -42,12 +42,15 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	p.store = NewStore(reg.Core.DB)
 	p.sync = NewSyncer(reg.Core.DB, address())
 	reg.AddBackground(p.sync.Loop)
+	reg.AddProductExtras(p.store.extras())
+	reg.AddReviewSource(p.store.reviewSource())
 	reg.AddDataGroup(plugin.DataGroup{Key: "catalogue", Name: "Catalogue (the shop's copy, links, reviews)",
 		Tables: []string{"catalogue_items", "catalogue_state", "catalogue_links", "catalogue_reviews"}})
 
 	h := handlers{p}
 	t := reg.Cashier() // anyone signed in: the till's quick item, Pocket Cashier, Shelf
 	t.GET("/catalogue/status", h.status)
+	t.GET("/catalogue/search", h.search)
 	a := reg.Admin()
 	a.POST("/catalogue/check", h.check)
 }

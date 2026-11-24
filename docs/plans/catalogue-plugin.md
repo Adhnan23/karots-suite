@@ -10,8 +10,8 @@ Rule first, a failing test naming it, then code; one commit per task; `make test
 - [x] 3. Plugin skeleton: plugin.json, migrations (4 tables), data group, status route, page; `make plugins P=catalogue`.
 - [x] 4. Sync (CTL-2, 3): index → changes / whole, SHA-256, one transaction, forward only; boot + 03:30 + Check now.
       Tests against a local test server: both ways equal, bad hash, cut, missing change file, older index.
-- [ ] 5. Search (CTL-5) + the assist UI (From catalogue next to Identify; form, intake, quick, purchase).
-- [ ] 6. Pick → save (CTL-6, 7, 10): Validate / Save, link, empty Product Plus fields filled; review note "From the
+- [x] 5. Search (CTL-5) + the assist UI (From catalogue next to Identify; form, intake, quick, purchase).
+- [x] 6. Pick → save (CTL-6, 7, 10): Validate / Save, link, empty Product Plus fields filled; review note "From the
       catalogue". With and without Product Plus.
 - [ ] 7. Later changes (CTL-8, 9, 12): sync's review step, Use the catalogue's / Keep mine; gone into.
 - [ ] 8. Merge (CTL-11), ledger checks (CTL-2 count, CTL-7 links), battle file, faults (PLG-4, 6).
