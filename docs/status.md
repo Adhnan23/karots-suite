@@ -33,9 +33,10 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    PC set-up Rs 3,000; Tailscale 3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier inside Karots
    Suite; "your copy keeps working if Karots stops trading" (Guide 10); Easy Pay's early stop = the rest of the Suite
    price or the licence ends after notice.
-2. **Iman's `alternatives.csv`** in the catalogue repo (generic name + strength from the names, AI where it helps;
-   `Group, Tier, Product, Barcode`) for the user to import on the dev shop. Then **supplier by field**: 550 Iman
-   products have no supplier, 431 a Distributor; 134 spellings vs 31 suppliers → a distributor → supplier mapping.
+2. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
+   strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
+   and checks the preview. Then **supplier by field**: 550 Iman products have no supplier, 431 a Distributor; 134
+   spellings vs 31 suppliers → a distributor → supplier mapping.
 3. Iman's reset at the shop (the user), then the stock-take and the first real sale.
 4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
    2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 + vitamin E; Nugesic).
