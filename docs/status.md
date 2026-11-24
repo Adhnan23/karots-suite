@@ -58,9 +58,9 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    Publish to R2 (hidden folder; **version 1 online**, 52,160 products). Next: 2) the suite's **Catalogue plugin**
    (main PC keeps the whole catalogue, fetches changes; From catalogue next to Identify, quick add, receiving → Items
    to review; fills **only the fields the shop has** in Product Plus); 3) Shelf's From catalogue; 4) Onboard syncs
-   with the Catalogue app directly by IP / Tailscale (no backup files). **Fields maker** (user, 2026-11-24): the
-   Catalogue app manages its own field list like Product Plus (starts from the fields products have; add more; all
-   show on the product form); Onboard sync brings a shop's new fields in. Details: the catalogue repo's README.
+   with the Catalogue app directly by IP / Tailscale (no backup files). **Fields** (built 2026-11-24): the Catalogue
+   app's own field list like Product Plus (add, rename, order, remove; published with the catalogue); Onboard sync
+   brings a shop's new fields in. **The user tries the app before piece 2.** Details: the catalogue repo's README.
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family
