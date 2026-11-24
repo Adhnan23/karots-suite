@@ -34,8 +34,8 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    working"; Easy Pay's early stop. Still a DRAFT for the lawyer.
 2. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
    strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
-   and checks the preview. Then **supplier by field**: 550 Iman products have no supplier, 431 a Distributor; 134
-   spellings vs 31 suppliers → a distributor → supplier mapping.
+   and checks the preview. (Supplier by field dropped, 2026-11-24: Iman's 550 products with no supplier get one from
+   their first order / delivery; the Distributor is the importer, not who delivers, so a mapping would guess wrong.)
 3. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
    real sale.
 4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
@@ -49,7 +49,6 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
    - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`
      command for a messy shop.
-   - **A supplier by field** (Product Plus rule "Brand = Nestlé → supplier X") through a generic core seam.
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
