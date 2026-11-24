@@ -10,6 +10,11 @@ preferred supplier (PUR, "set if empty"). Until then it is missing from that sup
 sheet and product count. The shop should be able to say "Brand = Bosch → Lanka Auto Parts" once and have every Bosch
 product with no supplier of its own follow it.
 
+**Mainly for onboarding (user):** setting a supplier on every product while putting a shop's products in is slow.
+Instead the shop fills a Company / Brand field (on the form, or a column in the products sheet — Product Plus already
+carries its fields in sheets), then sets each value's supplier once. As time goes on, orders and deliveries give each
+product its own real supplier and the rule supplier fades out by itself.
+
 Not for Iman's 550 products with no supplier: those wait for their first order or delivery (user, 2026-11-24). Iman's
 Distributor field is the importer, not who delivers, so a rule there would guess wrong.
 
@@ -89,7 +94,8 @@ new (values already merge).
 move too, through a new generic hook in the same transaction (my call; core never names Product Plus).
 
 **Screen**: a "Supplier by field" section on Product Plus's admin page: field picker (eligible fields only), then one
-row per value — value, product count, supplier picker. Admin kit components, theme tokens, works at 360 px. The
+row per value — value, product count, supplier picker. Onboarding can bring many values (Iman's Distributor
+field has 94), so: a search box, values with no supplier first, then by product count (most first). Admin kit components, theme tokens, works at 360 px. The
 product form's hint comes from core (`fallbackSupplierName`, `fallbackSupplierWhy` on the product DTO), so core shows
 it without knowing who gave it.
 
