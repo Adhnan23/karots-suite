@@ -221,6 +221,13 @@ export interface TillBarcodeRow {
   addedAt: string;
   stockSince: boolean; // a delivery came in after the link
 }
+/**
+ * ReviewNoteRow is a plugin's reason a product is on Items to review; plugin keys its row buttons.
+ */
+export interface ReviewNoteRow {
+  plugin: string;
+  text: string;
+}
 export interface AdminProductRow {
   id: number /* int64 */;
   name: string;
@@ -247,6 +254,7 @@ export interface AdminProductRow {
   supplierWhy?: string; // set when SupplierName is by a plugin's rule ("Brand: Bosch")
   createdBy: string; // who quick-added it (review queue)
   tillBarcodes?: TillBarcodeRow[]; // review queue
+  reviewNotes?: ReviewNoteRow[]; // review queue: plugins' reasons (REV-1)
   tillPack: string; // pack sizes set at the till, to check (review queue)
   stockSplit: string; // on hand as packs ("2 Cards + 10"), "" = no packs
   createdAt: string;

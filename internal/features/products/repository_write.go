@@ -227,16 +227,16 @@ func (r *Repository) ReassignPreferredSupplier(ctx context.Context, fromID, toID
 
 // CountNeedsReview is the number of active products still flagged for review
 // (quick-added at the till). Powers the admin-panel badge.
-func (r *Repository) CountNeedsReview(ctx context.Context) (int, error) {
+func (r *Repository) CountNeedsReview(ctx context.Context, also []int64) (int, error) {
 	var n int
 	err := r.db.GetContext(ctx, &n,
-		`SELECT COUNT(*) FROM products p WHERE p.is_active = true AND `+reviewWhere)
+		`SELECT COUNT(*) FROM products p WHERE p.is_active = true AND (`+reviewWhere+` OR p.id = ANY($1))`, pq.Array(also))
 	return n, err
 }
 
 // ListNeedsReview returns the products awaiting review, newest first, with the
 // name of the user who quick-added each one.
-func (r *Repository) ListNeedsReview(ctx context.Context) ([]Product, error) {
+func (r *Repository) ListNeedsReview(ctx context.Context, also []int64) ([]Product, error) {
 	var rows []Product
 	err := r.db.SelectContext(ctx, &rows, `
 		SELECT p.*, c.name AS category_name, u.abbreviation AS unit_abbr,
@@ -250,8 +250,8 @@ func (r *Repository) ListNeedsReview(ctx context.Context) ([]Product, error) {
 		JOIN units u      ON u.id = p.unit_id
 		LEFT JOIN stock s ON s.product_id = p.id
 		LEFT JOIN users cb ON cb.id = p.created_by
-		WHERE p.is_active = true AND `+reviewWhere+`
-		ORDER BY p.created_at DESC`)
+		WHERE p.is_active = true AND (`+reviewWhere+` OR p.id = ANY($1))
+		ORDER BY p.created_at DESC`, pq.Array(also))
 	return rows, err
 }
 

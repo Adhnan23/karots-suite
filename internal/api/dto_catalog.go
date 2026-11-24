@@ -62,6 +62,12 @@ type TillBarcodeRow struct {
 	StockSince bool   `json:"stockSince"` // a delivery came in after the link
 }
 
+// ReviewNoteRow is a plugin's reason a product is on Items to review; plugin keys its row buttons.
+type ReviewNoteRow struct {
+	Plugin string `json:"plugin"`
+	Text   string `json:"text"`
+}
+
 type AdminProductRow struct {
 	ID           int64            `json:"id"`
 	Name         string           `json:"name"`
@@ -88,6 +94,7 @@ type AdminProductRow struct {
 	SupplierWhy  string           `json:"supplierWhy,omitempty"`  // set when SupplierName is by a plugin's rule ("Brand: Bosch")
 	CreatedBy    string           `json:"createdBy"`              // who quick-added it (review queue)
 	TillBarcodes []TillBarcodeRow `json:"tillBarcodes,omitempty"` // review queue
+	ReviewNotes  []ReviewNoteRow  `json:"reviewNotes,omitempty"`  // review queue: plugins' reasons (REV-1)
 	TillPack     string           `json:"tillPack"`               // pack sizes set at the till, to check (review queue)
 	StockSplit   string           `json:"stockSplit"`             // on hand as packs ("2 Cards + 10"), "" = no packs
 	CreatedAt    string           `json:"createdAt"`

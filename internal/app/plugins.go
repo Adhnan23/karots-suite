@@ -156,6 +156,31 @@ func bridgeProductHooks() {
 			}, ps)
 		}
 	}
+	if rs := plugin.ReviewSources(); len(rs) > 0 { // REV-1, REV-2
+		products.ReviewSource = func(ctx context.Context) (map[int64][]products.ReviewNote, error) {
+			out := map[int64][]products.ReviewNote{}
+			for _, r := range rs {
+				m, err := r.Notes(ctx)
+				if err != nil {
+					continue // one plugin failing never hides core's list
+				}
+				for id, texts := range m {
+					for _, t := range texts {
+						out[id] = append(out[id], products.ReviewNote{Plugin: r.Key, Text: t})
+					}
+				}
+			}
+			return out, nil
+		}
+		products.ReviewClear = func(ctx context.Context, id int64) error {
+			for _, r := range rs {
+				if err := r.Clear(ctx, id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}
 	if ps := plugin.ProductSearchContributors(); len(ps) > 0 {
 		products.SearchContributor = func(ctx context.Context, q string) ([]int64, error) {
 			var out []int64

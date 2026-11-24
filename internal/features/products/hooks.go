@@ -101,3 +101,16 @@ func Decorate(ctx context.Context, rows []Product) {
 	}
 	applySuggestions(ctx, rows)
 }
+
+// ReviewNote is a plugin's reason a product is on Items to review (REV-1); Plugin keys the row's own buttons.
+type ReviewNote struct {
+	Plugin string `json:"plugin"`
+	Text   string `json:"text"`
+}
+
+// ReviewSource, when non-nil, adds plugins' products to Items to review with their notes (set by the web layer
+// from plugin review sources). ReviewClear asks them to clear a product when it is marked reviewed (REV-2).
+var (
+	ReviewSource func(ctx context.Context) (map[int64][]ReviewNote, error)
+	ReviewClear  func(ctx context.Context, productID int64) error
+)

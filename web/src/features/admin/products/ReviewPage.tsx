@@ -11,6 +11,7 @@ import { money, qtyText } from '@/lib/money'
 import { MergeInto } from './MergeInto'
 import { ProductForm, type Editing } from './ProductForm'
 import { reviewQuery } from './queries'
+import { slots } from '@/plugins/slots'
 
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
@@ -41,13 +42,14 @@ export function ReviewPage() {
   }
   return (
     <>
-      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, or given a pack size or barcode there. Give each its real details, or check what was set." />
+      <PageHead title="Items to review" sub="Quick-added at the till with only a name and price, given a pack size or barcode there, or flagged by an app (its note says why). Give each its real details, or check what was set." />
       <DataList label="Items to review" rows={rows ?? []} rowKey={(p) => p.id} onRow={(p) => setEditing({ id: p.id })}
         empty={<EmptyState title={rows ? 'All caught up' : 'Loading…'}>{rows && 'Nothing quick-added is waiting for details.'}</EmptyState>}
         columns={[
           { key: 'name', header: 'Item', cell: (p) => <span className="flex flex-col"><b>{p.name}</b><small className="text-faint">{p.barcode || 'no barcode'}</small>
             {p.tillPack && <small className="font-semibold text-warning">{p.tillPack} set at the till — check the size</small>}
-            {p.tillBarcodes?.map((b) => <small key={b.barcode} className="font-semibold text-warning">Barcode {b.barcode} linked here by {b.by || 'a cashier'} — is it this product?</small>)}</span> },
+            {p.tillBarcodes?.map((b) => <small key={b.barcode} className="font-semibold text-warning">Barcode {b.barcode} linked here by {b.by || 'a cashier'} — is it this product?</small>)}
+            {p.reviewNotes?.map((n, i) => <small key={i} className="font-semibold text-brand">{n.text}</small>)}</span> },
           { key: 'by', header: 'Added', cell: (p) => <span className="text-muted-foreground">{p.createdBy || '—'} · {when(p.createdAt)}</span> },
           { key: 'price', header: 'Sold at', num: true, cell: (p) => money(sym, p.sellingPrice) },
           { key: 'stock', header: 'On hand', num: true, cell: (p) => `${qtyText(p.stockQty)} ${p.unitAbbr}` },
@@ -60,8 +62,9 @@ export function ReviewPage() {
                     : 'The code becomes unknown again, so its next scan asks what it is.'}
                   onConfirm={() => removeCode(p.id, b.barcode)} />
               ))}
+              {slots.reviewActions.filter((a) => p.reviewNotes?.some((n) => n.plugin === a.key)).map(({ key, Action }) => <Action key={key} productId={p.id} name={p.name} />)}
               <ConfirmButton plain label="Looks fine" className="h-9 px-3" title={`Mark ${p.name} as reviewed?`} confirm="Mark reviewed"
-                body={p.tillBarcodes?.length && !p.needsReview ? 'Its linked barcode stays on it.' : p.needsReview ? 'It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost.' : 'The pack size the cashier typed is right.'} onConfirm={() => fine(p.id)} />
+                body={p.needsReview ? 'It keeps the name, price and zero cost it was quick-added with. Finish it instead to give it a real cost.' : p.tillBarcodes?.length ? 'Its linked barcode stays on it.' : p.tillPack ? 'The pack size the cashier typed is right.' : 'It stays as it is.'} onConfirm={() => fine(p.id)} />
               <MergeInto from={p} onDone={() => undefined} trigger={(open) => (
                 <Button variant="outline" className="h-9 px-3" onClick={open}>Same as an existing one</Button>
               )} />

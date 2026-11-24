@@ -179,6 +179,10 @@ export type PageAction = { key: string; page: string; Action: ComponentType<{ op
 /** A helper under the Name field of the product form and intake's New item (e.g. identify a
  * product from what was typed). fill sets the name and/or category on the form; extra lands in
  * extras[key], sent as ProductRequest.extra[key] when the person saves. */
+/** Buttons on an Items to review row that a plugin put there (its notes' plugin = key, REV-2): the row
+ * renders them without knowing who added them. The plugin refreshes ['admin'] when it changes something. */
+export type ReviewAction = { key: string; Action: ComponentType<{ productId: number; name: string }> }
+
 export type ProductAssist = {
   key: string
   Assist: ComponentType<{ name: string; barcode: string; where: 'form' | 'intake'; fill: (f: AssistFill) => void }>
@@ -214,6 +218,7 @@ export const slots = {
   reportCards: [] as ReportCard[],
   settingsSections: [] as SettingsSection[],
   productFormSections: [] as ProductFormSection[],
+  reviewActions: [] as ReviewAction[],
   productAssists: [] as ProductAssist[],
   pageActions: [] as PageAction[],
   /** Return an error message to block checkout, or null. */

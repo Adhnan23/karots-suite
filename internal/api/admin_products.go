@@ -304,6 +304,9 @@ func (h *handlers) AdminProductReview(c echo.Context) error {
 	out := make([]AdminProductRow, 0, len(rows))
 	for _, p := range rows {
 		row := productRow(p)
+		for _, n := range p.ReviewNotes {
+			row.ReviewNotes = append(row.ReviewNotes, ReviewNoteRow{Plugin: n.Plugin, Text: n.Text})
+		}
 		for _, b := range linked[p.ID] {
 			row.TillBarcodes = append(row.TillBarcodes, TillBarcodeRow{Barcode: b.Barcode, By: b.By, AddedAt: b.AddedAt.Format(time.RFC3339), StockSince: b.StockSince})
 		}

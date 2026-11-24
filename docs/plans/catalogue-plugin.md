@@ -3,7 +3,7 @@
 Rule first, a failing test naming it, then code; one commit per task; `make test` green before each commit.
 
 - [x] 0. Rules: `docs/rules/plugins/catalogue.md` (CTL-1…12), REV-1/2 in `stock.md`, spec + plan.
-- [ ] 1. Core review hook (REV-1, 2): `plugin.ReviewSource` + the review list / Mark reviewed / `reviewActions` slot;
+- [x] 1. Core review hook (REV-1, 2): `plugin.ReviewSource` + the review list / Mark reviewed / `reviewActions` slot;
       a test plugin in the test proves notes, one row per product, clear.
 - [ ] 2. Core: quick item and intake-products take `extra` (ProductExtras); `productAssists` renders in QuickItem and
       the purchase NewProduct (`where`); `AssistFill.unitId`. Tests: an extra on a quick item reaches its hook.

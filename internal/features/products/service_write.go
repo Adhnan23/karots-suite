@@ -126,16 +126,38 @@ func (s *Service) QuickCreate(ctx context.Context, in QuickInput, userID int64) 
 
 // NeedsReview lists the products awaiting admin review (quick-added at the till).
 func (s *Service) NeedsReview(ctx context.Context) ([]Product, error) {
-	rows, err := s.repo.ListNeedsReview(ctx)
+	notes, ids := pluginReviews(ctx)
+	rows, err := s.repo.ListNeedsReview(ctx, ids)
 	if err != nil {
 		return nil, apperr.Internal("failed to list items needing review", err)
+	}
+	for i := range rows {
+		rows[i].ReviewNotes = notes[rows[i].ID]
 	}
 	return rows, nil
 }
 
+// pluginReviews is every plugin's products for Items to review (REV-1). Best-effort: a plugin that fails
+// adds nothing, never breaks core's list.
+func pluginReviews(ctx context.Context) (map[int64][]ReviewNote, []int64) {
+	if ReviewSource == nil {
+		return nil, nil
+	}
+	notes, err := ReviewSource(ctx)
+	if err != nil {
+		return nil, nil
+	}
+	ids := make([]int64, 0, len(notes))
+	for id := range notes {
+		ids = append(ids, id)
+	}
+	return notes, ids
+}
+
 // CountNeedsReview powers the admin-panel badge.
 func (s *Service) CountNeedsReview(ctx context.Context) (int, error) {
-	n, err := s.repo.CountNeedsReview(ctx)
+	_, ids := pluginReviews(ctx)
+	n, err := s.repo.CountNeedsReview(ctx, ids)
 	if err != nil {
 		return 0, apperr.Internal("failed to count items needing review", err)
 	}
@@ -217,6 +239,11 @@ func (s *Service) SetPrices(ctx context.Context, id int64, selling, wholesale de
 func (s *Service) MarkReviewed(ctx context.Context, id int64) error {
 	if err := s.repo.ClearReview(ctx, id); err != nil {
 		return apperr.Internal("failed to mark reviewed", err)
+	}
+	if ReviewClear != nil { // REV-2: the plugins clear their own
+		if err := ReviewClear(ctx, id); err != nil {
+			return apperr.Internal("failed to mark reviewed", err)
+		}
 	}
 	return nil
 }

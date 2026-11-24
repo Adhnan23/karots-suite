@@ -63,6 +63,8 @@ type Product struct {
 	Barcodes pq.StringArray `db:"barcodes" json:"barcodes"`
 	// TillPack names pack sizes a cashier set at the till ("Card ×28"); review list only.
 	TillPack *string `db:"till_pack" json:"-"`
+	// ReviewNotes are plugins' reasons it is on Items to review (REV-1); review list only.
+	ReviewNotes []ReviewNote `db:"-" json:"review_notes,omitempty"`
 	// Plugin-contributed, not persisted: till-card badge pins (e.g. quality tier).
 	Badges   []string `db:"-" json:"badges,omitempty"`
 	TillLine string   `db:"-" json:"tillLine,omitempty"`
