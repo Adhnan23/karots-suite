@@ -28,16 +28,16 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
 
 ## Next — the user's call
 
-1. **Confirm the defaults in the terms** (taken 2026-11-24, change if the user says): visits by distance; transfer
-   Rs 5,000; balance in 90 days; plan paused 7 days late; a reinstall after a format free like a move; extra cashier
-   PC set-up Rs 3,000; Tailscale 3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier inside Karots
-   Suite; "your copy keeps working if Karots stops trading" (Guide 10); Easy Pay's early stop = the rest of the Suite
-   price or the licence ends after notice.
+1. ~~Confirm the defaults in the terms~~ — the user confirmed them all (2026-11-24): visits by distance; transfer
+   Rs 5,000; balance in 90 days; plan paused 7 days late; reinstall after a format free; extra cashier PC Rs 3,000;
+   Tailscale 3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier inside Karots Suite; "your copy keeps
+   working"; Easy Pay's early stop. Still a DRAFT for the lawyer.
 2. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
    strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
    and checks the preview. Then **supplier by field**: 550 Iman products have no supplier, 431 a Distributor; 134
    spellings vs 31 suppliers → a distributor → supplier mapping.
-3. Iman's reset at the shop (the user), then the stock-take and the first real sale.
+3. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
+   real sale.
 4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
    2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 + vitamin E; Nugesic).
 5. Site: a Karots Shelf screenshot from a phone (the user sends one; the home page shows only its icon). Guide
