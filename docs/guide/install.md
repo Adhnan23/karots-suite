@@ -30,7 +30,7 @@ The main PC (the one that runs Karots Suite):
 | **Memory** | 2 GB | 4 GB or more |
 | **Storage** | 5 GB free, hard disk | 20 GB free, SSD |
 | **Screen** | 1024 × 768 (the till's two-column layout) | 1366 × 768 or larger (three columns) |
-| **Network** | None for one PC; cashier PCs and phones: the shop's wired network or wifi | The same, plus internet now and then (updates, cloud backup) |
+| **Network** | One PC alone: none. More devices (cashier PCs, phones, Karots Shelf): a wifi router or wired network in the shop | A wifi router, the main PC on a cable to it, plus internet now and then (updates, cloud backup) |
 | **Receipt printer** | Optional | 80 mm thermal on USB (tested: Xprinter XP-80T) |
 | **Power** | A normal socket (a power cut loses no finished sale) | A UPS, to keep selling through a cut |
 
