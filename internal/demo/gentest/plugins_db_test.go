@@ -11,6 +11,7 @@ import (
 	"math/rand/v2"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -227,5 +228,16 @@ func TestEachPluginHasAPast(t *testing.T) {
 			t.Errorf("%s: %d rows, %d older than 45 days", k, total, old)
 		}
 		_ = d
+	}
+}
+
+// Product Plus shows Supplier by field: its Brand gives suppliers (PPF-10…12).
+func TestSupplierByFieldSetUp(t *testing.T) {
+	need(t)
+	if !slices.Contains(shop.Plugins, "productplus") {
+		t.Skip("no Product Plus in this shop")
+	}
+	if count(t, `SELECT count(*) FROM pp_supplier_field`) != 1 || count(t, `SELECT count(*) FROM pp_supplier_map`) == 0 {
+		t.Errorf("Supplier by field isn't set up")
 	}
 }

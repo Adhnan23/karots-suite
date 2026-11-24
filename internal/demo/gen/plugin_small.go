@@ -226,7 +226,39 @@ func productplusSetup(g *gen) error {
 			}
 		}
 	}
-	return g.admin.Do("PUT", "/api/v1/x/productplus/values", cells, nil)
+	if err := g.admin.Do("PUT", "/api/v1/x/productplus/values", cells, nil); err != nil {
+		return err
+	}
+	return ppSupplierRules(g, made)
+}
+
+// ppSupplierRules shows Supplier by field: the shop's Brand (a pharmacy's
+// Manufacturer) gives each value a supplier, round the shop's suppliers.
+func ppSupplierRules(g *gen, made map[string]int64) error {
+	id := made["Brand"]
+	if id == 0 {
+		id = made["Manufacturer"]
+	}
+	var sups []struct{ ID int64 }
+	if err := g.admin.Do("GET", "/api/v1/admin/supplier-options", nil, &sups); err != nil || id == 0 || len(sups) == 0 {
+		return err
+	}
+	if err := g.admin.Do("PUT", "/api/v1/x/productplus/supplier-rules/field", map[string]any{"fieldId": id}, nil); err != nil {
+		return err
+	}
+	var rules struct{ Values []struct{ Value string } }
+	if err := g.admin.Do("GET", "/api/v1/x/productplus/supplier-rules", nil, &rules); err != nil {
+		return err
+	}
+	for i, v := range rules.Values {
+		if i%4 == 3 { // a few left for the owner to set
+			continue
+		}
+		if err := g.admin.Do("PUT", "/api/v1/x/productplus/supplier-rules/value", map[string]any{"value": v.Value, "supplierId": sups[i%len(sups)].ID}, nil); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func clearanceSetup(g *gen) error {
