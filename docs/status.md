@@ -56,6 +56,11 @@ logout: palettes, admin-people) — they pass on a rerun; make them wait for the
       plan paused 7 days late; reinstall after a format free like a move; extra cashier PC set-up Rs 3,000; Tailscale
       3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier app inside Karots Suite; "your copy keeps
       working if Karots stops trading" (Guide 10, lawyer item 14).
+      Site deployed 2026-11-24 (karots-pos-site e8acc37): pricing (who pays, licence, system requirements), FAQ,
+      hero, trust. Still open from the review (one line each in the guides, not audited): selling below stock / no
+      price needs a manager's review; who reviews quick items; card refunds recorded as cash; opening balances and
+      advances; credit over the limit; negative stock and fixing it; imports with bad rows or duplicate barcodes; an
+      update that fails after migrating; the audit log; two tills selling the last unit.
    4. Open for the user: Cloudflare's managed robots.txt (AI bots blocked on the site; its `Allow: /` overrides the
       demo's `Disallow: /`, noindex still keeps the demo out).
 1. **Next: Iman's `alternatives.csv`** in the catalogue repo beside the iman-reset files (generic name + strength
