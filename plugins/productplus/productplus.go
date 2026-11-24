@@ -33,6 +33,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.AddCategoryMerger(plugin.CategoryMerger{Key: "productplus", Merge: mergeCategory, Unmerge: unmergeCategory})
 	p.registerHooks(reg)
 	reg.AddRuleSupplier(p.store.ruleSupplier())
+	reg.AddSupplierMover(plugin.SupplierMover{Key: "productplus", Move: moveRules})
 
 	h := handlers{p}
 	a := reg.Admin() // /api/v1/x — admin + manager

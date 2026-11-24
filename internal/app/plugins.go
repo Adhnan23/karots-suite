@@ -65,6 +65,16 @@ func bridgeProductHooks() {
 			return nil
 		}
 	}
+	if ms := plugin.SupplierMovers(); len(ms) > 0 {
+		products.SupplierMoveHook = func(ctx context.Context, tx *sqlx.Tx, from, to int64) error {
+			for _, m := range ms {
+				if err := m.Move(ctx, tx, from, to); err != nil {
+					return fmt.Errorf("%s: %w", m.Key, err)
+				}
+			}
+			return nil
+		}
+	}
 	if ps := plugin.ProductBadgeProviders(); len(ps) > 0 {
 		products.BadgeProvider = func(ctx context.Context, ids []int64) map[int64][]string {
 			out := map[int64][]string{}

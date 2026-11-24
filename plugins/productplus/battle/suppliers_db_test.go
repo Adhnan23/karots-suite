@@ -197,3 +197,23 @@ func TestPPF12_ValueList(t *testing.T) {
 		t.Errorf("PPF-12: order %v, want no-supplier first (most products first), NGK last", order)
 	}
 }
+
+func TestPPF13_MoveProductsMovesRules(t *testing.T) {
+	s := ltest.Shared(t).Shop
+	clearField(t, s)
+	brand := field(t, s, map[string]any{"label": "Sup brand E", "type": "text"})
+	s1, s2 := supplier(t, s, "PPF13 S1"), supplier(t, s, "PPF13 S2")
+	p1 := s.Product(t, "PPF13 one", "20", "0", extra(map[string]string{brand.Key: "Valeo"}))
+	s.Must(t, chooseField(s, brand.ID, false))
+	setRule(t, s, "Valeo", s1)
+	s.Must(t, s.Admin.Do("POST", fmt.Sprintf("/api/v1/admin/suppliers/%d/reassign", s1), map[string]any{"toId": s2}, nil))
+	for _, v := range rules(t, s).Values {
+		if v.Value == "Valeo" && v.SupplierID != s2 {
+			t.Errorf("PPF-13: the rule still points at %d", v.SupplierID)
+		}
+	}
+	if ids, _ := bySupplier(t, s, s2); !slices.Contains(ids, p1) {
+		t.Errorf("PPF-13: S2 doesn't get the rule's products after the move")
+	}
+	s.Audit(t)
+}

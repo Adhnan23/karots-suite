@@ -63,6 +63,12 @@ func (s *Store) ruleProducts(ctx context.Context, supplierID int64) ([]int64, er
 	return ids, err
 }
 
+// moveRules points rules at the supplier whose products moved (PPF-13).
+func moveRules(ctx context.Context, tx *sqlx.Tx, fromID, toID int64) error {
+	_, err := tx.ExecContext(ctx, `UPDATE pp_supplier_map SET supplier_id = $2 WHERE supplier_id = $1`, fromID, toID)
+	return err
+}
+
 // SupplierValue is one distinct value of the supplier field (PPF-12).
 type SupplierValue struct {
 	Value        string `db:"value"`

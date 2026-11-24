@@ -160,8 +160,22 @@ func (s *Service) ReassignPreferredSupplier(ctx context.Context, fromID, toID in
 	if fromID == toID {
 		return 0, apperr.Validation("pick a different supplier to move to")
 	}
-	n, err := s.repo.ReassignPreferredSupplier(ctx, fromID, toID)
+	tx, err := s.db.BeginTxx(ctx, nil)
 	if err != nil {
+		return 0, apperr.Internal("failed to reassign products", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+	n, err := NewRepository(tx).ReassignPreferredSupplier(ctx, fromID, toID)
+	if err != nil {
+		return 0, apperr.Internal("failed to reassign products", err)
+	}
+	// Plugins' rules for that supplier move along (SUP-11, PPF-13).
+	if SupplierMoveHook != nil {
+		if err := SupplierMoveHook(ctx, tx, fromID, toID); err != nil {
+			return 0, apperr.Internal("failed to move the supplier's rules", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
 		return 0, apperr.Internal("failed to reassign products", err)
 	}
 	return n, nil

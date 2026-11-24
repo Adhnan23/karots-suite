@@ -5,6 +5,7 @@ import (
 
 	"karots-suite/internal/db"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
@@ -23,6 +24,10 @@ var (
 	RuleSupplierFor      func(ctx context.Context, productIDs []int64) (map[int64]RuleSupplierOf, error)
 	RuleSupplierProducts func(ctx context.Context, supplierID int64) ([]int64, error)
 )
+
+// SupplierMoveHook, when set, moves plugins' rows for a supplier along when its
+// products move to another (SUP-11), inside the move's transaction.
+var SupplierMoveHook func(ctx context.Context, tx *sqlx.Tx, fromID, toID int64) error
 
 // ruleProductIDs is the products supplierID gets by rule; none when there are no
 // rules, no supplier filter, or the supplier is disabled (it counts as none).

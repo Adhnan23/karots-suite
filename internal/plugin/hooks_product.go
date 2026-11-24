@@ -207,6 +207,13 @@ type RuleSupplier struct {
 	Products func(ctx context.Context, supplierID int64) ([]int64, error)
 }
 
+// SupplierMover moves a plugin's own rows for a supplier when core moves that
+// supplier's products to another (SUP-11), inside core's transaction.
+type SupplierMover struct {
+	Key  string
+	Move func(ctx context.Context, tx *sqlx.Tx, fromID, toID int64) error
+}
+
 // RuleSupplierOf is one product's rule supplier and why ("Brand: Bosch").
 type RuleSupplierOf struct {
 	SupplierID int64
@@ -252,6 +259,7 @@ var (
 	productGroupers          hook[ProductGrouper]
 	productAttributeSets     hook[ProductAttributeSet]
 	ruleSuppliers            hook[RuleSupplier]
+	supplierMovers           hook[SupplierMover]
 )
 
 func (r *Registry) AddProductExtras(x ProductExtras)   { productExtras.add(x) }
@@ -286,6 +294,11 @@ func (r *Registry) AddRuleSupplier(s RuleSupplier) { ruleSuppliers.add(s) }
 
 // RuleSuppliers are the registered supplier rules, in registration order.
 func RuleSuppliers() []RuleSupplier { return ruleSuppliers.all() }
+
+func (r *Registry) AddSupplierMover(m SupplierMover) { supplierMovers.add(m) }
+
+// SupplierMovers are the registered supplier movers, in registration order.
+func SupplierMovers() []SupplierMover { return supplierMovers.all() }
 
 func (r *Registry) AddProductTillLineProvider(p ProductTillLineProvider) {
 	productTillLines.add(p)
