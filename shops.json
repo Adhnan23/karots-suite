@@ -28,16 +28,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-24T05:23:50Z",
-        "commit": "68388099",
-        "version": "2026.11.24.1053",
+        "at": "2026-11-24T13:17:50Z",
+        "commit": "e8d1c190",
+        "version": "2026.11.24.1847",
         "kind": "release",
-        "notes": "• A year's reports (Finance, Sales, Top products) open much faster"
+        "notes": "• Product Plus — Supplier by field: pick one field (like Company) and set a supplier for each of its values. Products with no supplier of their own then show under that supplier on Low stock, orders, count sheets and the supplier’s page, until their first order or delivery gives them their own.\n• The product form shows that supplier under Preferred supplier."
       },
       "published": {
-        "version": "2026.11.24.1053",
-        "commit": "68388099",
-        "at": "2026-11-24T05:23:57Z"
+        "version": "2026.11.24.1847",
+        "commit": "e8d1c190",
+        "at": "2026-11-24T13:17:58Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
