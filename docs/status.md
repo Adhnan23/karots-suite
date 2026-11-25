@@ -60,8 +60,8 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    to review; fills **only the fields the shop has** in Product Plus); 3) Shelf's From catalogue; 4) Onboard syncs
    with the Catalogue app directly by IP / Tailscale (no backup files). **Fields** (built 2026-11-24): the Catalogue
    app's own field list like Product Plus. **Piece 2 (the suite's Catalogue plugin) in progress**: plan
-   `docs/plans/catalogue-plugin.md`, tasks 0–9 done (review hook, quick item / purchase extras, sync, search,
-   From catalogue, picks, later changes, merge, battle tests, Pocket); next task 10 (Shop Builder bakes the address). The dev
+   `docs/plans/catalogue-plugin.md`, tasks 0–10 done (review hook, quick item / purchase extras, sync, search,
+   From catalogue, picks, later changes, merge, battle tests, Pocket, Builder address); next task 11 (Demo Room sample, docs + legal). The dev
    `suite_db` holds catalogue version 1 (the plugin's tables, synced once). `internal/docscheck` is red until task 11
    (docs + legal; Rs 500 / month, free while in testing). Iman gets it in the next Release (user). Details: the catalogue repo's README.
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.

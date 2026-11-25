@@ -46,7 +46,7 @@ way) · **Twice** (at once, or run again) · **Bad input** (damaged file, wrong 
 | Setup: Bring back a shop | SET-6 | — e | BAK-5 | SET-6 | BAK-5 | BAK-7 | SET-6 |
 | Terms, Setup's log | SET-7,8 | — c | — c | — c | — c | — c | — c |
 | File mode | SET-9 | — c | SET-9 | SET-9 | SET-9 | SET-9 | SET-9 |
-| Shop Builder: build | BLD-1,2 | — c | BLD-1 | — c | BLD-2 | — d | BLD-1 |
+| Shop Builder: build | BLD-1,2,7 | — c | BLD-1 | — c | BLD-2 | — d | BLD-1 |
 | Shop Builder: Release / Publish | BLD-3,4,6 | — c | BLD-3,5 | BLD-3 | BLD-4,6 | BLD-3 | BLD-5 |
 
 a — nothing to put in. b — streamed: a broken download is a broken file the restore refuses (BAK-5). c — doesn't
@@ -240,5 +240,10 @@ BLD-6  A Release builds only code `make test-all` passed: the run records its co
        didn't move during it (`~/.cache/karots-logs/passed-commits`). Later commits still count as tested when
        they change only shops.json, the plugin lists or `docs/` (never `docs/legal/`: Setup embeds its PDF).
        Anything else is refused with "run make test-all first". A Test build is never held back.
+       Checked by: example.
+
+BLD-7  Every shop build carries the published catalogue's address, `UPDATE_BASE_URL/CATALOGUE_DIR` (CTL-2):
+       a shop with the Catalogue plugin syncs from it; a build without the plugin ignores it. No CATALOGUE_DIR
+       in the Builder's .env → no address, and the plugin's page says so (the build still goes).
        Checked by: example.
 ```

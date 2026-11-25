@@ -263,7 +263,7 @@ docs/rules/           the rule book (grid per area, questions.md)
 - **Shop builds:** `make bootstrap` → Shops → **Release…** (build + publish to the shop's folder in the `karots-suite`
   R2 bucket; `make shop S=al-raj`) or **Test build** (local only, marked "Test build" on the Data page; `make shop-test
   S=al-raj`). A shop's **first install must be a Release**, or its Data page says "No update published". Release refuses
-  uncommitted changes (except `shops.json` and the plugin lists) and code `make test-all` hasn't passed (BLD-6: a whole pass records its commit in `~/.cache/karots-logs/passed-commits`; later `docs/`-only commits still count). `.env` needs `POS_SUPPORT_SECRET`, `R2_*`,
+  uncommitted changes (except `shops.json` and the plugin lists) and code `make test-all` hasn't passed (BLD-6: a whole pass records its commit in `~/.cache/karots-logs/passed-commits`; later `docs/`-only commits still count). `.env` needs `POS_SUPPORT_SECRET`, `R2_*`, `CATALOGUE_DIR` (BLD-7),
   `UPDATE_BASE_URL`; `SUITE_RELEASE_KEY` is made on the first build — **keep a copy** (shops only take updates signed by
   it). Shops update from Setup → Data → Updates → Update (never by themselves). **Backup copies** (M8c2): every
   automatic backup is also copied to the shop's copy folder (USB / network; Builder preset `BACKUP_COPY_DIR`, then the

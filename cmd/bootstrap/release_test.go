@@ -225,18 +225,34 @@ func TestBLD6_Untested(t *testing.T) {
 func TestShopBuildBakesVersion(t *testing.T) {
 	out := t.TempDir()
 	s := mustShop(t, "al-raj", "linux", "server")
-	t.Setenv("UPDATE_BASE_URL", "https://pub-x.r2.dev")
+	t.Setenv("UPDATE_BASE_URL", "https://pub-x.r2.dev/")
+	t.Setenv("CATALOGUE_DIR", "/cat-abc/")
 	var got buildOpts
 	if _, err := buildShop(&s, nil, shopBuildOpts{Out: out, Version: "2026.10.19.1530", Kind: "test", PubKey: "PUBKEY"}, fakeBuild(&got), fakeSetup, io.Discard); err != nil {
 		t.Fatal(err)
 	}
-	for _, x := range []string{"main.version=2026.10.19.1530", "main.buildKind=test", "main.updateBaseURL=https://pub-x.r2.dev", "main.updateChannel=" + s.Channel, "main.updatePubKey=PUBKEY"} {
+	for _, x := range []string{"main.version=2026.10.19.1530", "main.buildKind=test", "main.updateBaseURL=https://pub-x.r2.dev", "main.updateChannel=" + s.Channel, "main.updatePubKey=PUBKEY",
+		"karots-suite/plugins/catalogue.baseURL=https://pub-x.r2.dev/cat-abc"} { // BLD-7
 		if !strings.Contains(got.ExtraX, x) {
 			t.Errorf("ExtraX %q lacks %q", got.ExtraX, x)
 		}
 	}
 	if s.LastBuilt == nil || s.LastBuilt.Version != "2026.10.19.1530" || s.LastBuilt.Kind != "test" {
 		t.Fatalf("lastBuilt = %+v", s.LastBuilt)
+	}
+}
+
+// BLD-7: no CATALOGUE_DIR → no catalogue address, and the build still goes.
+func TestShopBuildWithoutCatalogueDir(t *testing.T) {
+	s := mustShop(t, "al-raj", "linux", "server")
+	t.Setenv("UPDATE_BASE_URL", "https://pub-x.r2.dev")
+	t.Setenv("CATALOGUE_DIR", "")
+	var got buildOpts
+	if _, err := buildShop(&s, nil, shopBuildOpts{Out: t.TempDir(), Version: "2026.10.19.1530", Kind: "test", PubKey: "P"}, fakeBuild(&got), fakeSetup, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(got.ExtraX, "catalogue") {
+		t.Fatalf("ExtraX %q carries a catalogue address", got.ExtraX)
 	}
 }
 

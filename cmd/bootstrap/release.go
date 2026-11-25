@@ -148,11 +148,16 @@ func commitShops(path, msg string, log io.Writer) {
 	}
 }
 
-// updateX is the -X flags that give a shop build its version and updater.
+// updateX is the -X flags that give a shop build its version, updater and the
+// published catalogue's address (BLD-7; ignored by a build without the plugin).
 func updateX(s Shop, version, kind, pub string) string {
-	return "main.version=" + version + " main.buildKind=" + kind +
-		" main.updateBaseURL=" + strings.TrimRight(os.Getenv("UPDATE_BASE_URL"), "/") +
-		" main.updateChannel=" + s.Channel + " main.updatePubKey=" + pub
+	base := strings.TrimRight(os.Getenv("UPDATE_BASE_URL"), "/")
+	x := "main.version=" + version + " main.buildKind=" + kind +
+		" main.updateBaseURL=" + base + " main.updateChannel=" + s.Channel + " main.updatePubKey=" + pub
+	if dir := strings.Trim(os.Getenv("CATALOGUE_DIR"), "/"); dir != "" {
+		x += " karots-suite/plugins/catalogue.baseURL=" + base + "/" + dir
+	}
+	return x
 }
 
 // defaultNotes offers the commits since the shop's last release.
