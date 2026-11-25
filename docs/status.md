@@ -67,7 +67,7 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    Onboard's ☁ *New from the Karots catalogue* (adds only what it hasn't got, from R2) and ⇄ *Sync with the Catalogue
    app* (catalogue fixes, your products moved there, selling prices + barcodes both ways, never published); the
    Catalogue app's Backup / Restore and Makefile (catalogue repo README). The 5 products moved there go online at the
-   next Publish (the user's call). The site has the Catalogue page and the plan wording (karots-pos-site 015ade6), waiting for a deploy.
+   next Publish (the user's call). The site has the Catalogue page and the plan wording (karots-pos-site 015ade6, live 2026-11-25).
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
    2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
    `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
