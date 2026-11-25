@@ -13,7 +13,7 @@ const root = "../../.."
 func TestBuiltInsAreTheFive(t *testing.T) {
 	want := map[string][]string{
 		"grocery":  nil,
-		"pharmacy": {"pharmacy", "alternatives", "productplus", "requests"},
+		"pharmacy": {"pharmacy", "alternatives", "catalogue", "productplus", "requests"},
 		"phone":    {"repairs", "recharge", "combos", "documents"},
 		"hardware": {"clearance", "productplus", "documents", "requests"},
 	}

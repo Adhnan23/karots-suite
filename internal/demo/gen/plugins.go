@@ -27,6 +27,7 @@ var pluginGens = map[string]pluginGen{
 	"alternatives": {setup: alternativesSetup},
 	"productplus":  {setup: productplusSetup},
 	"clearance":    {setup: clearanceSetup, daily: clearanceDaily},
+	"catalogue":    {setup: catalogueSetup},
 }
 
 func (g *gen) on(key string) bool { return slices.Contains(g.s.p.Plugins, key) }

@@ -5,6 +5,7 @@ package allplugins
 import (
 	_ "karots-suite/plugins/aicatalog"
 	_ "karots-suite/plugins/alternatives"
+	_ "karots-suite/plugins/catalogue"
 	_ "karots-suite/plugins/clearance"
 	_ "karots-suite/plugins/combos"
 	_ "karots-suite/plugins/documents"

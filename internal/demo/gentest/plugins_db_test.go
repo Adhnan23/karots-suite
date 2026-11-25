@@ -51,6 +51,14 @@ func TestMain(m *testing.M) {
 		keys = []string{}
 	}
 	plugin.Only(keys)
+	if shop.Has("catalogue") { // the demo's own sample, as the child serves it — never the real one in .env
+		url, err := gen.ServeCatalogueSample()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(2)
+		}
+		os.Setenv("KAROTS_CATALOGUE_URL", url)
+	}
 	shop.Volume = 15 // a test-sized shop
 	drop, err := build()
 	shopErr = err
@@ -200,7 +208,7 @@ var pluginTables = map[string][2]string{
 }
 
 // setupTables: plugins set up once, with no daily life.
-var setupTables = map[string]string{"alternatives": "alt_members", "productplus": "pp_values", "clearance": "clearance_settings"}
+var setupTables = map[string]string{"alternatives": "alt_members", "productplus": "pp_values", "clearance": "clearance_settings", "catalogue": "catalogue_items"}
 
 func TestEachPluginIsSetUp(t *testing.T) {
 	need(t)

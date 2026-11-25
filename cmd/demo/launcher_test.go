@@ -143,7 +143,7 @@ func TestProxyInjectsChromeIntoHTML(t *testing.T) {
 	h.ServeHTTP(w, req)
 	body := w.Body.String()
 	for _, want := range []string{
-		`<meta name="ks-plugins" content="pharmacy,alternatives,productplus,requests">`,
+		`<meta name="ks-plugins" content="pharmacy,alternatives,catalogue,productplus,requests">`,
 		`/__demo/ui/overlay.js`,
 		`/__demo/ui/overlay.css`,
 	} {

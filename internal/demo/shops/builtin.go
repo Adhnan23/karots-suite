@@ -32,7 +32,7 @@ func BuiltIn() []Profile {
 		}, "Nimal Perera", "Sanduni Silva", "Kasun Fernando", "Tharushi Mendis", "Roshan Peiris", "Dilani", "Ruwan"),
 		mk(Profile{
 			Key: "pharmacy", Name: "CityCare Pharmacy", Blurb: "Prescriptions, dose labels, batches and expiry, alternatives.",
-			Plugins: []string{"pharmacy", "alternatives", "productplus", "requests"},
+			Plugins: []string{"pharmacy", "alternatives", "catalogue", "productplus", "requests"},
 			Palette: "lagoon", ReceiptStyle: "minimal", Catalogue: "pharmacy", Volume: 70,
 			LabelStyles: map[string]string{"price": "minimal", "pharmacy.dose": "clear"},
 		}, "Dr. Fathima Rizvi", "Tharindu Jayasuriya", "Ishara Bandara", "Nimesha Gunawardena", "Aslam Farook", "Malsha", "Fazil"),
@@ -50,7 +50,7 @@ func BuiltIn() []Profile {
 		}, "Sunil Rajapaksha", "Priyantha Kumara", "Hasini Dias", "Janaka Silva", "Mahesh Karunaratne", "Lahiru", "Kumari"),
 		mk(Profile{
 			Key: "everything", Name: "Karots Super Store", Blurb: "Every plugin at once, for the customer who wants to see it all.",
-			Plugins: []string{"aicatalog", "alternatives", "clearance", "combos", "documents", "pharmacy", "pocketcashier", "productplus", "recharge", "repairs", "requests"},
+			Plugins: []string{"aicatalog", "alternatives", "catalogue", "clearance", "combos", "documents", "pharmacy", "pocketcashier", "productplus", "recharge", "repairs", "requests"},
 			Palette: "aurora", ReceiptStyle: "cards", Catalogue: "mixed", Volume: 110,
 			LabelStyles: map[string]string{"price": "dual", "pharmacy.dose": "boxed", "repairs.ticket": "job"},
 		}, "Mohamed Imran", "Gayani Ekanayake", "Pradeep Senanayake", "Rukshan Nazeer", "Thilini Weerasinghe", "Shehan", "Amaya", "Kavindu"),

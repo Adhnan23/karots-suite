@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"time"
 
 	"karots-suite/internal/app"
@@ -62,6 +63,14 @@ func runChild() int {
 		keys = []string{} // nil would keep every compiled plugin
 	}
 	plugin.Only(keys)
+	if slices.Contains(keys, "catalogue") { // its own small copy to sync, never the shops' real one
+		url, err := gen.ServeCatalogueSample()
+		if err != nil {
+			log.Printf("demo child: the sample catalogue: %v", err)
+			return 1
+		}
+		_ = os.Setenv("KAROTS_CATALOGUE_URL", url)
+	}
 	sqlxDB, err := db.Connect(a.DB)
 	if err != nil {
 		log.Printf("demo child: %v", err)
