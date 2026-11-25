@@ -61,7 +61,8 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    form, intake, the till's quick item (Pocket too, online) and a delivery's new line; picks fill only the fields the
    shop has; quick-item / delivery picks and later catalogue fixes wait on Items to review (product form / intake
    picks don't: user); the Demo Room has a 204-item sample. **Price: inside the service plan** (Shop Rules 1.7); no
-   plan → copy taken off (written, not built). Released to Iman as 2026.11.25.0859. Next:
+   plan → copy taken off (written, not built). Released to Iman as 2026.11.25.0859; Shelf's From catalogue in 2026.11.25.0951 (**hand-tested 2026-11-25** on the
+   real build: picks, stock-take off, off the Wi-Fi, no plugin → the service-plan note). Next:
    3) Shelf's From catalogue (Onboard repo, new APK); 4) Onboard syncs with the Catalogue app directly by IP /
    Tailscale (no backup files); then **the site** (suite.karots.lk): the Catalogue in the service plan.
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
