@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { createQuickItem, liveCall, PC_DOWN } from '../quickItem'
 import { Scanner } from './Scanner'
 import { defaultUnit } from '@/features/admin/units/defaultUnit'
+import { extraBody, type Extras, ProductAssists } from '@/features/admin/products/ProductExtras'
 
 /** Sell something not in the catalogue yet — the PC's Quick item (made on the PC
  * for admin review), so live only: offline it says so in place. */
@@ -25,6 +26,7 @@ export function QuickItemSheet({ name: firstName, barcode: firstCode, live, onAd
   const [barcode, setBarcode] = useState(firstCode)
   const [units, setUnits] = useState<Unit[]>([])
   const [unitId, setUnitId] = useState(0)
+  const [extras, setExtras] = useState<Extras>({})
   const [scan, setScan] = useState(false)
   const [error, setError] = useState(live ? '' : PC_DOWN)
   const [busy, setBusy] = useState(false)
@@ -46,7 +48,7 @@ export function QuickItemSheet({ name: firstName, barcode: firstCode, live, onAd
     if (!unit?.allowDecimal) q = Math.round(q)
     if (!(q > 0)) q = 1
     setBusy(true)
-    const r = await createQuickItem({ name: name.trim(), price: String(num(price)), qty: String(q), barcode: barcode.trim(), unitId: unit?.id ?? 0 })
+    const r = await createQuickItem({ name: name.trim(), price: String(num(price)), qty: String(q), barcode: barcode.trim(), unitId: unit?.id ?? 0, extra: extraBody(extras) })
     setBusy(false)
     if ('error' in r) return setError(r.error)
     onAdded(r.product, q)
@@ -62,6 +64,8 @@ export function QuickItemSheet({ name: firstName, barcode: firstCode, live, onAd
         </SheetHeader>
         <form className="grid grid-cols-2 gap-2.5" onSubmit={(e) => { e.preventDefault(); void submit() }}>
           <input aria-label="Item name" placeholder="Item name" autoComplete="off" value={name} onChange={(e) => { setName(e.target.value); setError(live ? '' : PC_DOWN) }} className={cn(FIELD, 'col-span-2')} />
+          {live && <div className="col-span-2 empty:hidden"><ProductAssists name={name} barcode={barcode} where="quick" setExtras={setExtras}
+            onFill={(f) => { if (f.name) setName(f.name); if (f.unitId) setUnitId(f.unitId) }} /></div>}
           <input aria-label="Price" placeholder="Price" inputMode="decimal" autoComplete="off" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} className={FIELD} />
           <div className="flex gap-2">
             <input aria-label="Quantity" inputMode="decimal" autoComplete="off" value={qty} onChange={(e) => setQty(e.target.value.replace(/[^\d.]/g, ''))} className={cn(FIELD, 'w-16')} />

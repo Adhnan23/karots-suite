@@ -12,6 +12,13 @@ describe('quick item from the phone', () => {
     expect(await createQuickItem(input)).toEqual({ product: { id: 9, name: 'Brand new thing' } })
   })
 
+  it('sends what a helper picked (a catalogue pick: CTL-7) with the item', async () => {
+    const f = vi.fn(async () => new Response(JSON.stringify({ id: 9, name: 'Panadol' }), { status: 201 }))
+    vi.stubGlobal('fetch', f)
+    await createQuickItem({ ...input, extra: { catalogue: { itemId: 5 } } })
+    expect(JSON.parse(String((f.mock.calls[0] as unknown as [string, RequestInit])[1].body))).toMatchObject({ extra: { catalogue: { itemId: 5 } } })
+  })
+
   it('says the PC is down when it cannot be reached', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch') }))
     expect(await createQuickItem(input)).toEqual({ error: PC_DOWN })

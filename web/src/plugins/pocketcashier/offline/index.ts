@@ -1,5 +1,6 @@
 import { addRoutes } from './fetch'
 import { alternativesRoutes } from './routes/alternatives'
+import { catalogueRoutes } from './routes/catalogue'
 import { combosRoutes } from './routes/combos'
 import { coreRoutes } from './routes/core'
 import { documentsRoutes } from './routes/documents'
@@ -21,4 +22,5 @@ export function setupOfflineRoutes() {
   addRoutes(alternativesRoutes)
   addRoutes(pharmacyRoutes)
   addRoutes(repairsRoutes)
+  addRoutes(catalogueRoutes)
 }

@@ -15,7 +15,7 @@ export async function liveCall<T>(path: string, json: unknown, down = PC_DOWN, m
   }
 }
 
-export type QuickItemInput = { name: string; price: string; qty: string; barcode: string; unitId: number }
+export type QuickItemInput = { name: string; price: string; qty: string; barcode: string; unitId: number; extra?: Record<string, unknown> }
 
 /** The PC's quick item (created for admin review), from the phone. */
 export async function createQuickItem(input: QuickItemInput): Promise<{ product: TillProduct } | { error: string }> {
