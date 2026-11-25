@@ -21,7 +21,8 @@ kept on the shop's main PC and checked for changes every night.
   with what changed, old → new. **Use the catalogue's** takes the fix; **Keep mine** leaves your product as it is.
   Nothing changes by itself, and your own changes never go back to the catalogue. The unit is never changed later.
 - **No internet?** The copy is on the PC, so search and picks keep working. A PC that never had a copy says so, and
-  you type the product in. Cashier PCs search the main PC's copy; a phone off the shop network types by hand.
+  you type the product in. Cashier PCs and [Karots Shelf](../shelf.md) search the main PC's copy; a phone off the shop
+  network types by hand.
   Nothing ever stops a form or a sale.
 - **Apps → Catalogue** shows the copy's version, how many products it holds, the last check and **Check now**. A
   failed check (no internet, a broken download) says why and leaves the copy as it was.

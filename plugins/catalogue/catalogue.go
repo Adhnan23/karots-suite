@@ -53,6 +53,8 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	t := reg.Cashier() // anyone signed in: the till's quick item, Pocket Cashier, Shelf
 	t.GET("/catalogue/status", h.status)
 	t.GET("/catalogue/search", h.search)
+	reg.AllowShelf("GET", "/catalogue/status") // Karots Shelf's From catalogue searches this PC's copy (CTL-13)
+	reg.AllowShelf("GET", "/catalogue/search")
 	a := reg.Admin()
 	a.POST("/catalogue/check", h.check)
 	a.GET("/catalogue/reviews/:product", h.waiting)

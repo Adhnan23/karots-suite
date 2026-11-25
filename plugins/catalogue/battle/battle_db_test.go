@@ -20,6 +20,7 @@ import (
 
 	"karots-suite/internal/ledgercheck"
 	"karots-suite/internal/ledgercheck/ltest"
+	"karots-suite/internal/plugin"
 	_ "karots-suite/plugins/catalogue"
 	_ "karots-suite/plugins/productplus"
 )
@@ -307,4 +308,20 @@ func TestPLG7_DataGroup(t *testing.T) {
 	t.Parallel()
 	shop(t)
 	ltest.DataGroupHoldsTables(t, "catalogue")
+}
+
+// CTL-13: a Karots Shelf session may read the catalogue's status and search it, and nothing else of the plugin.
+func TestCTL13_ShelfRoutes(t *testing.T) {
+	shop(t)
+	got := plugin.ShelfRoutes()
+	for _, want := range []string{"GET /api/v1/x/catalogue/status", "GET /api/v1/x/catalogue/search"} {
+		if !slices.Contains(got, want) {
+			t.Errorf("Shelf may not call %s", want)
+		}
+	}
+	for _, r := range got {
+		if strings.HasPrefix(r, "POST /api/v1/x/catalogue/") {
+			t.Errorf("Shelf may call %s", r)
+		}
+	}
 }

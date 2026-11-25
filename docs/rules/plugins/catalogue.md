@@ -33,6 +33,7 @@ Columns: **Do** · **Review** (Items to review) · **Core** (money, stock — PL
 | A later catalogue change | CTL-8 | CTL-8 | CTL-1 | CTL-11 | — c | PLG-4 |
 | Use the catalogue's / keep mine | CTL-9 | CTL-9 | CTL-1 | CTL-11 | — c | PLG-4,5,6 |
 | Catalogue item gone (merged, dropped) | CTL-12 | CTL-12 | CTL-1 | — a | — c | PLG-4 |
+| Karots Shelf: From catalogue | CTL-13 | CTL-7 | CTL-1 | CTL-11 | CTL-13 | CTL-13 |
 
 a — a sync and a search never touch shop products. b — a search changes nothing. c — server-side, on the main PC.
 
@@ -96,6 +97,14 @@ CTL-12 A catalogue item merged into another (gone into): its links follow to the
        that changes something the shop has (CTL-8). Gone with nothing in its place: the link stays, nothing to
        review.
        Checked by: example.
+
+CTL-13 Karots Shelf's From catalogue searches the shop PC's copy (the catalogue's status and search are open to a
+       Shelf session; nothing else of the plugin is). A pick fills the name, the unit and the shop's own fields;
+       the product it makes is linked like intake's (no review, CTL-7). A shop without the Catalogue plugin: the
+       button says the shop needs it (it comes with the service plan), never an empty list. Off the shop's
+       network: it says so and the person types. A pick saved offline keeps its link in the queue; if the item
+       has left the copy by the time it reaches the PC, the product is made without the link — never refused.
+       Checked by: example (suite: the Shelf routes; Shelf: its own tests).
 ```
 
 ## The core seam

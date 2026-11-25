@@ -7,6 +7,9 @@ into Karots Suite one at a time:
 - scan the barcode with the camera,
 - read the name, price or expiry off the label with the camera instead of typing,
 - ✨ Identify, when the shop has AI Assistant,
+- **From catalogue**, when the shop has the [Catalogue](plugins/catalogue.md): search the Karots catalogue on the
+  shop's PC and pick the product, and its name, unit and the shop's own fields fill in (on the shop's Wi-Fi; a shop
+  without the Catalogue is told it needs it),
 - set the category, unit, supplier, cost and selling prices, packs, and the stock already on the
   shelf (with its batches and expiry dates).
 
