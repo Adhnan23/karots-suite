@@ -6,7 +6,7 @@ Deleted with its plan when done.
 
 ## Decisions (user, 2026-11-11 → 2026-11-24)
 
-- A paid plugin: **Rs 500 a month, free while in testing**. Iman gets it in the next Release.
+- Part of the **service plan** (Rs 5,000 a month), no price of its own (user, 2026-11-25); without a plan the shop's copy is taken off (not built yet). Iman gets it in the next Release.
 - The shop's **main PC keeps the whole catalogue** (not split by shop kind) and checks for changes; search is local,
   instant and works offline. Cashier PCs, Pocket Cashier and Shelf search through the main PC.
 - Picked at: **From catalogue next to Identify** (product form, intake's New item), the cashier's **quick item**,

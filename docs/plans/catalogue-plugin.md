@@ -17,7 +17,7 @@ Rule first, a failing test naming it, then code; one commit per task; `make test
 - [x] 8. Merge (CTL-11), ledger checks (CTL-2 count, CTL-7 links), battle file, faults (PLG-4, 6).
 - [x] 9. Pocket Cashier: offline route answers "offline"; online quick item shows the assist (CTL-4).
 - [x] 10. Shop Builder bakes the address; `CATALOGUE_DIR` in the suite's `.env`; dev `KAROTS_CATALOGUE_URL`.
-- [ ] 11. Demo Room: a small sample copy (user, 2026-11-24) so its shops can pick. Docs + legal (README, guide, shots,
-      First Schedule, §15 Rs 500 free in testing, agreement), docscheck.
+- [x] 11. Demo Room: a small sample copy (user, 2026-11-24) so its shops can pick. Docs + legal (README, guide, shots,
+      First Schedule, §15 "in the service plan", agreement), docscheck.
 - [ ] 12. `make test-all`, look at every screen at 360 px light + dark, Iman's profile gets the plugin; delete spec +
       plan; status.

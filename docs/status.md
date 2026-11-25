@@ -18,7 +18,7 @@ reports, RPT-38; the new terms). Iman updates from Setup → Data → Updates.
 - **The dev database (`suite_db`) is Iman's reset shop** (1,723 products, all frozen, 31 suppliers). Dumps in
   `/mnt/nvme_512GB/karots/db-dumps/`.
 - **Selling terms (2026-11-24):** four plans (Core, Karots Suite, Easy Pay, Complete Shop), bugs always free, the
-  service plan, one licence per PC — on suite.karots.lk and in the legal pack (Shop Rules 1.6, `LICENSE`, DRAFT for
+  service plan, one licence per PC — on suite.karots.lk and in the legal pack (Shop Rules 1.7, `LICENSE`, DRAFT for
   the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
@@ -60,10 +60,10 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    to review; fills **only the fields the shop has** in Product Plus); 3) Shelf's From catalogue; 4) Onboard syncs
    with the Catalogue app directly by IP / Tailscale (no backup files). **Fields** (built 2026-11-24): the Catalogue
    app's own field list like Product Plus. **Piece 2 (the suite's Catalogue plugin) in progress**: plan
-   `docs/plans/catalogue-plugin.md`, tasks 0–10 done (review hook, quick item / purchase extras, sync, search,
-   From catalogue, picks, later changes, merge, battle tests, Pocket, Builder address); next task 11 (Demo Room sample, docs + legal). The dev
+   `docs/plans/catalogue-plugin.md`, tasks 0–11 done (review hook, quick item / purchase extras, sync, search,
+   From catalogue, picks, later changes, merge, battle tests, Pocket, Builder address, Demo sample, docs + legal); next task 12 (make test-all, 360 px checks; the user is trying it on the dev server). The dev
    `suite_db` holds catalogue version 1 (the plugin's tables, synced once). `internal/docscheck` is red until task 11
-   (docs + legal; Rs 500 / month, free while in testing). Iman gets it in the next Release (user). Details: the catalogue repo's README.
+   (docs + legal; the Catalogue comes with the service plan, no price of its own — user 2026-11-25; the site needs the same change after the plugin ships). Iman gets it in the next Release (user). Details: the catalogue repo's README.
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family

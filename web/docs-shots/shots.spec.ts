@@ -89,7 +89,7 @@ const admin: [string, string][] = [
   ['/admin/settings', 'admin/settings'],
   ['/admin/data', 'install/data'],
 ]
-const plugins = ['recharge', 'pharmacy', 'repairs', 'documents', 'alternatives', 'clearance', 'aicatalog', 'productplus', 'combos', 'requests']
+const plugins = ['recharge', 'pharmacy', 'repairs', 'documents', 'alternatives', 'clearance', 'aicatalog', 'productplus', 'combos', 'requests', 'catalogue']
 
 test('admin, desktop', async ({ browser }) => {
   const page = await session(browser, owner)
@@ -97,6 +97,12 @@ test('admin, desktop', async ({ browser }) => {
   for (const key of plugins) await shot(page, `/admin/x/${key}`, `plugins/${key}`)
   await shot(page, '/admin/x/aicatalog/jobs', 'plugins/aicatalog-jobs')
   await shot(page, '/admin/x/productplus/suppliers', 'plugins/productplus-suppliers')
+  await shot(page, '/admin/products', 'plugins/catalogue-pick', { prep: async (p) => {
+    await p.getByRole('button', { name: /New product/ }).click()
+    await p.getByRole('button', { name: 'From catalogue' }).click()
+    await p.getByLabel('Search the catalogue').fill('amlodipine')
+    await p.getByRole('button', { name: 'Use this' }).first().waitFor()
+  } })
   await page.context().close()
 })
 

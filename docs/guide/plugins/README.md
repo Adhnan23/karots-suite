@@ -14,6 +14,7 @@ A shop gets only the plugins it needs. Each one is compiled into that shop's pro
 | [Product Plus](productplus.md) | Extra product fields for the things your shop cares about: brand, generic name, manufacturer, guarantee, fits… |
 | [Combos](combos.md) | Product deals: a group of products, or one product in bulk such as buy 3 get 1 free. |
 | [Customer requests](requests.md) | Remember what customers ask for that the shop doesn't carry. |
+| [Catalogue](catalogue.md) | Make a product from the Karots Suite catalogue: pick it, and the name, unit and your own fields fill in. |
 
 ## Apps
 

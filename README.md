@@ -15,7 +15,7 @@
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white">
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
   <img alt="Platforms" src="https://img.shields.io/badge/runs%20on-Windows%20·%20Linux-555">
-  <img alt="Plugins" src="https://img.shields.io/badge/plugins-10-F28C28">
+  <img alt="Plugins" src="https://img.shields.io/badge/plugins-11-F28C28">
   <img alt="License" src="https://img.shields.io/badge/license-proprietary-critical">
 </p>
 
@@ -61,6 +61,7 @@ core never depends on any of them.
 | [Product Plus](docs/guide/plugins/productplus.md) | Extra product fields (brand, generic name, guarantee…) |
 | [Combos](docs/guide/plugins/combos.md) | Bundles and buy-3-get-1 deals the till spots by itself |
 | [Customer requests](docs/guide/plugins/requests.md) | Items customers asked for, and whom to call once they're in |
+| [Catalogue](docs/guide/plugins/catalogue.md) | Tens of thousands of real products on the PC: pick one and its name, unit and your fields fill in; later fixes wait for your yes |
 
 ## Apps
 
