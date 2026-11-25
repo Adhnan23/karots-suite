@@ -55,15 +55,15 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    - Recharge through modems (memory `recharge-modems-idea`).
 7. **Online catalogue** (order agreed 2026-11-24): piece 1 **done** in the catalogue repo — permanent ids, the
    Catalogue app (`python3 build/app.py`, port 7710, PIN of install id 7586DBF6 in PIN Vault under Karots Suite),
-   Publish to R2 (hidden folder; **version 1 online**, 52,160 products). Next: 2) the suite's **Catalogue plugin**
-   (main PC keeps the whole catalogue, fetches changes; From catalogue next to Identify, quick add, receiving → Items
-   to review; fills **only the fields the shop has** in Product Plus); 3) Shelf's From catalogue; 4) Onboard syncs
-   with the Catalogue app directly by IP / Tailscale (no backup files). **Fields** (built 2026-11-24): the Catalogue
-   app's own field list like Product Plus. **Piece 2 (the suite's Catalogue plugin) in progress**: plan
-   `docs/plans/catalogue-plugin.md`, tasks 0–11 done (review hook, quick item / purchase extras, sync, search,
-   From catalogue, picks, later changes, merge, battle tests, Pocket, Builder address, Demo sample, docs + legal); next task 12 (make test-all, 360 px checks; the user is trying it on the dev server). The dev
-   `suite_db` holds catalogue version 1 (the plugin's tables, synced once). `internal/docscheck` is red until task 11
-   (docs + legal; the Catalogue comes with the service plan, no price of its own — user 2026-11-25; the site needs the same change after the plugin ships). Iman gets it in the next Release (user). Details: the catalogue repo's README.
+   Publish to R2 (hidden folder; **version 1 online**, 52,160 products). **Piece 2 done (2026-11-25): the suite's
+   Catalogue plugin** (`plugins/catalogue`, rules CTL-1…12 + REV-1/2 + BLD-7, guide `docs/guide/plugins/catalogue.md`):
+   the main PC keeps the whole copy and syncs it (boot when stale, 03:30, Check now); From catalogue on the product
+   form, intake, the till's quick item (Pocket too, online) and a delivery's new line; picks fill only the fields the
+   shop has; quick-item / delivery picks and later catalogue fixes wait on Items to review (product form / intake
+   picks don't: user); the Demo Room has a 204-item sample. **Price: inside the service plan** (Shop Rules 1.7); no
+   plan → copy taken off (written, not built). Iman's profile has it — **Release when the user says**. Next:
+   3) Shelf's From catalogue (Onboard repo, new APK); 4) Onboard syncs with the Catalogue app directly by IP /
+   Tailscale (no backup files); then **the site** (suite.karots.lk): the Catalogue in the service plan.
 8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
 
 ## The family
