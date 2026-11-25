@@ -29,16 +29,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-25T03:30:18Z",
-        "commit": "7789fc30",
-        "version": "2026.11.25.0859",
+        "at": "2026-11-25T04:21:46Z",
+        "commit": "3e4e3c91",
+        "version": "2026.11.25.0951",
         "kind": "release",
-        "notes": "• A pick on the product form or intake's new item is linked without a review\n• A small sample catalogue (204 real items) the demo shops sync from their own process\n• Shop builds carry the published catalogue's address, UPDATE_BASE_URL/CATALOGUE_DIR (BLD-7)\n• From catalogue on the phone's quick item while the PC answers\n• Product merges move the link (CTL-11)\n• A later catalogue change to a linked product waits on Items to review with Use the catalogue's / Keep mine (name and fields, never the unit)\n• From catalogue on the product form, intake, the till's quick item and a delivery\n• Sync the shop's copy from the published catalogue\n• The Catalogue plugin's tables, data group, status and page\n• The till's quick item and a purchase's new product line take plugin extras and show the product assists (unit too)\n• Plugins can put products on Items to review with a note and their own buttons, cleared by Mark reviewed (REV-1, REV-2)"
+        "notes": "• Karots Shelf may search the shop PC's catalogue"
       },
       "published": {
-        "version": "2026.11.25.0859",
-        "commit": "7789fc30",
-        "at": "2026-11-25T03:30:26Z"
+        "version": "2026.11.25.0951",
+        "commit": "3e4e3c91",
+        "at": "2026-11-25T04:21:57Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
