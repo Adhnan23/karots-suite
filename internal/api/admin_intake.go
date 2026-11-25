@@ -59,7 +59,7 @@ func (h *handlers) AdminIntakeCreate(c echo.Context) error {
 			return apperr.Validation("the quantity must be a number")
 		}
 	}
-	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true}
+	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true, Whole: true}
 	if err := checkExtras(ctx, req.Product, x); err != nil {
 		return err
 	}

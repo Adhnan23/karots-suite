@@ -10,10 +10,14 @@ import (
 
 // ExtraCtx is the product a plugin's extras belong to. ProductID is 0 while
 // validating a new product; IsNew is true on create (admin form and intake).
+// Whole is true when it came from a whole product form (the product form,
+// intake's new item: category and prices set) rather than a quick one (the
+// till's quick item, a delivery's new line) that waits on Items to review.
 type ExtraCtx struct {
 	ProductID  int64
 	CategoryID int64
 	IsNew      bool
+	Whole      bool
 }
 
 // ProductExtras lets a plugin carry its own data on the product form and intake

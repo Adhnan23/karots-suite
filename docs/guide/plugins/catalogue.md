@@ -14,8 +14,9 @@ kept on the shop's main PC and checked for changes every night.
   ![From catalogue on a new product](../../images/plugins/catalogue-pick.jpg)
 
 - A result you already have says **You have it**, so you don't make it twice.
-- **Everything picked waits on Items to review** ("From the catalogue"), like a cashier's quick item, until someone
-  checks it and presses **Mark reviewed**.
+- **A pick on the New product form or Intake's new item is done**: you set its category and prices there, so it
+  doesn't go to review. **A pick on the till's quick item or a delivery's new line waits on Items to review** ("From
+  the catalogue") until someone finishes it and presses **Mark reviewed**.
 - **When the catalogue fixes something you took** (a name, a generic name…), the product shows on Items to review
   with what changed, old → new. **Use the catalogue's** takes the fix; **Keep mine** leaves your product as it is.
   Nothing changes by itself, and your own changes never go back to the catalogue. The unit is never changed later.

@@ -68,8 +68,10 @@ CTL-6  A pick fills the name, the unit (the shop's unit with that short name, el
        filled value wins. Without Product Plus a pick fills the name and unit only.
        Checked by: example (with and without Product Plus).
 
-CTL-7  A product saved from a pick is linked to its catalogue item and shows on Items to review ("From the
-       catalogue") until it is marked reviewed. One product, one link.
+CTL-7  A product saved from a pick is linked to its catalogue item. One product, one link. A pick on the till's
+       quick item or a delivery's new product line (made in a hurry, no category) shows on Items to review ("From
+       the catalogue") until it is marked reviewed; a pick on the product form or intake's new item (the whole
+       product: category, prices) doesn't (user, 2026-11-25). A later catalogue change is a review either way (CTL-8).
        Checked by: example, ledgercheck (no link names a missing product).
 
 CTL-8  A sync that changes a linked item's name, unit or a field the shop has puts that product on Items to

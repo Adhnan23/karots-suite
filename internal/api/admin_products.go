@@ -184,7 +184,7 @@ func (h *handlers) AdminProductCreate(c echo.Context) error {
 		return apperr.Validation("change the name before saving the copy")
 	}
 	ctx := c.Request().Context()
-	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true}
+	x := plugin.ExtraCtx{CategoryID: in.CategoryID, IsNew: true, Whole: true}
 	if err := checkExtras(ctx, req, x); err != nil {
 		return err
 	}
@@ -232,7 +232,7 @@ func (h *handlers) AdminProductUpdate(c echo.Context) error {
 		return err
 	}
 	ctx := c.Request().Context()
-	x := plugin.ExtraCtx{ProductID: id, CategoryID: in.CategoryID}
+	x := plugin.ExtraCtx{ProductID: id, CategoryID: in.CategoryID, Whole: true}
 	if err := checkExtras(ctx, req, x); err != nil {
 		return err
 	}

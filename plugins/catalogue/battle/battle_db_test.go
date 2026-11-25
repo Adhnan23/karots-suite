@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -168,12 +169,8 @@ func TestCTL7_PickToReview(t *testing.T) {
 	if g := generic(t, s, pid); g != "Bisoprolol" {
 		t.Errorf("CTL-6: generic %q", g)
 	}
-	if n := onReview(t, s, pid); len(n) != 1 || n[0] != "From the catalogue" {
-		t.Errorf("CTL-7: review notes %v", n)
-	}
-	s.Must(t, s.Admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/review-done", pid), nil, nil))
 	if n := onReview(t, s, pid); n != nil {
-		t.Errorf("REV-2: still on review %v", n)
+		t.Errorf("CTL-7: a pick on the whole product form is on review: %v", n)
 	}
 
 	var q struct{ ID int64 }
@@ -184,6 +181,13 @@ func TestCTL7_PickToReview(t *testing.T) {
 	s.Must(t, s.DB.Get(&linked, `SELECT item_id FROM catalogue_links WHERE product_id = $1`, q.ID))
 	if linked != 2 || generic(t, s, q.ID) != "Bisoprolol" {
 		t.Errorf("CTL-7 quick item: linked to %d, generic %q", linked, generic(t, s, q.ID))
+	}
+	if n := onReview(t, s, q.ID); !slices.Contains(n, "From the catalogue") {
+		t.Errorf("CTL-7: the quick item's pick isn't on review: %v", n)
+	}
+	s.Must(t, s.Admin.Do("POST", fmt.Sprintf("/api/v1/admin/products/%d/review-done", q.ID), nil, nil))
+	if n := onReview(t, s, q.ID); n != nil {
+		t.Errorf("REV-2: still on review %v", n)
 	}
 	s.Audit(t)
 }

@@ -57,21 +57,22 @@ func (s *Store) extras() plugin.ProductExtras {
 			if err != nil {
 				return err
 			}
-			return s.link(ctx, x.ProductID, e.ItemID)
+			return s.link(ctx, x.ProductID, e.ItemID, x.Whole)
 		},
 	}
 }
 
-// link records the pick and fills the shop's fields the person left empty; typed values win (CTL-6).
-func (s *Store) link(ctx context.Context, productID, itemID int64) error {
+// link records the pick and fills the shop's fields the person left empty; typed values win (CTL-6). A pick from
+// a whole product form is already reviewed; a quick one waits on Items to review (CTL-7).
+func (s *Store) link(ctx context.Context, productID, itemID int64, whole bool) error {
 	it, err := s.item(ctx, itemID)
 	if err != nil {
 		return err
 	}
 	t, _ := json.Marshal(took{Name: it.Name, Unit: it.Unit, Fields: it.Fields})
-	if _, err := s.db.ExecContext(ctx, `INSERT INTO catalogue_links (product_id, item_id, took) VALUES ($1, $2, $3)
-		ON CONFLICT (product_id) DO UPDATE SET item_id = EXCLUDED.item_id, took = EXCLUDED.took, reviewed = false`,
-		productID, itemID, t); err != nil {
+	if _, err := s.db.ExecContext(ctx, `INSERT INTO catalogue_links (product_id, item_id, took, reviewed) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (product_id) DO UPDATE SET item_id = EXCLUDED.item_id, took = EXCLUDED.took, reviewed = EXCLUDED.reviewed`,
+		productID, itemID, t, whole); err != nil {
 		return err
 	}
 	f, err := s.filler(ctx)

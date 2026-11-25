@@ -31,7 +31,7 @@ func TestLaterChangesWaitForReview(t *testing.T) {
 	}
 	a, b, c, d := shopProduct(t, db, "Panadol 500mg"), shopProduct(t, db, "Old Twin"), shopProduct(t, db, "Panadol 500mg B"), shopProduct(t, db, "Steady")
 	for pid, item := range map[int64]int64{a: 1, b: 2, c: 1, d: 4} {
-		if err := s.link(ctx, pid, item); err != nil {
+		if err := s.link(ctx, pid, item, false); err != nil {
 			t.Fatal(err)
 		}
 	}

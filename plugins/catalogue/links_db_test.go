@@ -84,4 +84,17 @@ func TestPickLinksFillsAndWaitsForReview(t *testing.T) {
 	if notes, _ = rs.Notes(ctx); len(notes[pid]) != 0 {
 		t.Fatalf("still waiting after review: %v", notes[pid])
 	}
+
+	// CTL-7: a pick saved from the whole product form is linked, not put on review.
+	whole := shopProduct(t, db, "Panadol 500mg form")
+	if err := x.Save(ctx, plugin.ExtraCtx{ProductID: whole, IsNew: true, Whole: true}, raw(7)); err != nil {
+		t.Fatal(err)
+	}
+	if notes, _ = rs.Notes(ctx); len(notes[whole]) != 0 {
+		t.Fatalf("a whole-form pick waits on review: %v", notes[whole])
+	}
+	db.Get(&links, `SELECT count(*) FROM catalogue_links WHERE product_id = $1`, whole) //nolint:errcheck
+	if links != 1 {
+		t.Fatalf("whole-form pick: %d links", links)
+	}
 }
