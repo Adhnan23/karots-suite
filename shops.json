@@ -9,6 +9,7 @@
       "plugins": [
         "aicatalog",
         "alternatives",
+        "catalogue",
         "combos",
         "pharmacy",
         "pocketcashier",
