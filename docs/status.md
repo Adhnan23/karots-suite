@@ -22,8 +22,8 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
   the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
-**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). Known flakes:
-two specs race (`goto('/login')` right after an API logout: palettes, admin-people), pass on a rerun. Open bug: Pocket
+**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). The two specs that
+raced (`goto('/login')` right after signing out: palettes, admin-people) leave the page first now (2026-11-25). Open bug: Pocket
 reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from the environment).
 
 ## Next — the user's call

@@ -106,6 +106,7 @@ test('users: add a cashier with counter rights, they sign in; reset their PIN; d
 
   // A manager: no Users in the nav, and the page sends them back.
   await page.context().clearCookies()
+  await page.goto('about:blank') // the open app sends itself to /login once signed out: that would abort this goto
   await page.goto('/login')
   await page.getByLabel('Phone').fill('0770000003')
   await page.getByLabel('PIN').fill('1234')

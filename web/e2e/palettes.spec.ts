@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, signOutTo, test, type Page } from './fixtures'
 
 // Custom palettes. Every test puts Studio back.
 const SYSTEM_PIN = process.env.POS_SYSTEM_PIN ?? '2273'
@@ -26,8 +26,7 @@ test('the active custom palette shows on the login page, before and after sign-i
     // This device signed in before: the custom palette paints with the first frame.
     await page.goto('/admin')
     await expect(page.locator('html')).toHaveAttribute('data-palette', `custom-${made.id}`)
-    await page.request.post('/api/v1/auth/logout')
-    await page.goto('/login', { waitUntil: 'domcontentloaded' })
+    await signOutTo(page, '/login', { waitUntil: 'domcontentloaded' })
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(18, 52, 86)')
 
     // A device that never signed in learns it from login-info.
@@ -144,8 +143,7 @@ test('every built-in palette is in the picker; a new one saves and shows on the 
     await expect(page.getByRole('group', { name: 'Kanagawa', exact: true })).toHaveAttribute('data-active', 'true')
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'kanagawa')
-    await page.request.post('/api/v1/auth/logout')
-    await page.goto('/login')
+    await signOutTo(page, '/login')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'kanagawa')
   } finally {
     await systemLogin(page)

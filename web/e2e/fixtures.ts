@@ -85,3 +85,11 @@ export async function slipAsked(page: Page, text: RegExp) {
   await dlg.getByRole('button', { name: 'Skip' }).click()
   await pwExpect(dlg).toBeHidden()
 }
+
+/** Signs out over the API and opens path. The page is left first: once the session is gone the open app sends
+ * itself to /login, and that navigation would abort the test's own goto (ERR_ABORTED). */
+export async function signOutTo(page: Page, path: string, opts?: Parameters<Page['goto']>[1]) {
+  await page.request.post('/api/v1/auth/logout')
+  await page.goto('about:blank')
+  await page.goto(path, opts)
+}
