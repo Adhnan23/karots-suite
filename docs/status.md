@@ -64,7 +64,10 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    plan → copy taken off (written, not built). Released to Iman as 2026.11.25.0859. Next:
    3) Shelf's From catalogue (Onboard repo, new APK); 4) Onboard syncs with the Catalogue app directly by IP /
    Tailscale (no backup files); then **the site** (suite.karots.lk): the Catalogue in the service plan.
-8. Later: the install stick, the whole-system check, Pocket Cashier at a shop.
+8. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
+   2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
+   `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
+   a fixed signing key so an APK built elsewhere still installs over the old one (today: this PC's debug key).
 
 ## The family
 
