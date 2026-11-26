@@ -27,8 +27,10 @@ commit first (BLD-6). Next: this Release.
   the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
-**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). Since then
-(2026-11-26) `make test`, Vitest and the till's Playwright spec pass; one flake seen (`TestRCH6_AmountBack`, Ideas).
+**Last full run (2026-11-26, on fef40579):** all green — Go, Vitest, Playwright (276), check-core (568 s); recorded
+for Release. The run before it on the same commit had 5 Playwright failures under load (lots, receipt styles, sales
+person ×2, Pocket's cart move) that passed alone (22/22) and in the next whole run. Flake seen earlier:
+`TestRCH6_AmountBack` (Ideas).
 
 ## Next — the user's call
 
