@@ -28,7 +28,7 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
 
 1. **Iman's visit** (the user has the reset files in `iman-reset/`): reset the database, import suppliers, products
    and cashier menu, then **the Alternatives sheet** (`alternatives.csv`: 243 groups, 971 products; same generic,
-   strength and form; already imported and checked on the dev shop 2026-11-23), then the stock-take and the first
+   strength and form; imported on the dev shop 2026-11-23; the user's re-import on 2026-11-26 matched it row for row, so it's proven), then the stock-take and the first
    real sale. (Iman's 550 products with no supplier get one from their first order / delivery.)
 2. Site: guide one-liners from the site review, not audited: selling below stock / no price needs a manager's review;
    who reviews quick items; card refunds recorded as cash; opening balances and advances; credit over the limit;
