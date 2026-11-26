@@ -131,6 +131,11 @@ PKT-14 The phone's total, change and refunds come from the till's own maths (the
 
 PKT-15 A backup carries the shop's certificate and every phone; restored, the phones keep working (PLG-7).
        Checked by: example.
+
+PKT-16 The phones' port is 8443 unless `KAROTS_POCKET_PORT` says otherwise, and it is read when the plugin
+       starts, so a value in the shop's `.env` counts the same as one in the environment (the listener and
+       the pairing links use the same port).
+       Checked by: example.
 ```
 
 ## Suspected (from reading, 2026-11-21)

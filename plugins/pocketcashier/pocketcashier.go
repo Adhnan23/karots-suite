@@ -20,13 +20,14 @@ import (
 )
 
 // Port is the phones' HTTPS port: 8443 in every shop. KAROTS_POCKET_PORT moves it
-// only for the browser tests, which run several servers on one PC.
-var Port = func() int {
+// only for the browser tests, which run several servers on one PC. Read when
+// asked, never at package load, so a value from the shop's .env counts (PKT-16).
+func Port() int {
 	if n, err := strconv.Atoi(os.Getenv("KAROTS_POCKET_PORT")); err == nil && n > 0 {
 		return n
 	}
 	return 8443
-}()
+}
 
 func init() { plugin.Register(&Plugin{}) }
 
@@ -52,7 +53,7 @@ func (p *Plugin) Setup(reg *plugin.Registry) {
 	reg.OneDevicePerPerson()
 	reg.AddTakeoverGuard(p.store.takeoverGuard)
 	reg.AddAttention(p.attention)
-	reg.AddListener(plugin.Listener{Key: "pocketcashier", Addr: fmt.Sprintf(":%d", Port),
+	reg.AddListener(plugin.Listener{Key: "pocketcashier", Addr: fmt.Sprintf(":%d", Port()),
 		TLS: &tls.Config{GetCertificate: certSource(p.store), MinVersion: tls.VersionTLS12}})
 
 	h := handlers{p}

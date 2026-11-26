@@ -212,7 +212,7 @@ func (h handlers) addresses(c echo.Context) error {
 			continue
 		}
 		out.Setup = append(out.Setup, fmt.Sprintf("http://%s:%d/x/pocketcashier/setup", ip, h.p.core.Cfg.ServerPort))
-		out.App = append(out.App, fmt.Sprintf("https://%s:%d/x/pocketcashier/", ip, Port))
+		out.App = append(out.App, fmt.Sprintf("https://%s:%d/x/pocketcashier/", ip, Port()))
 	}
 	return c.JSON(http.StatusOK, out)
 }

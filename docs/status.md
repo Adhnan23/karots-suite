@@ -23,8 +23,8 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
 **Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). The two specs that
-raced (`goto('/login')` right after signing out: palettes, admin-people) leave the page first now (2026-11-25). Open bug: Pocket
-reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from the environment).
+raced (`goto('/login')` right after signing out: palettes, admin-people) leave the page first now (2026-11-25). Pocket's port is now
+read after `.env` is loaded (PKT-16, 2026-11-26; not released).
 
 ## Next — the user's call
 
@@ -41,7 +41,7 @@ reads `KAROTS_POCKET_PORT` before `.env` is loaded (a dev shop must get it from 
    real sale.
 4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
    2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 + vitamin E; Nugesic).
-5. Site: a Karots Shelf screenshot from a phone (the user sends one; the home page shows only its icon). Guide
+5. Site: Karots Shelf's screenshots are up (user checked, 2026-11-26). Guide
    one-liners from the site review, not audited: selling below stock / no price needs a manager's review; who reviews
    quick items; card refunds recorded as cash; opening balances and advances; credit over the limit; negative stock;
    imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log; two tills
