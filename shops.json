@@ -29,16 +29,16 @@
         "cloud": true
       },
       "lastBuilt": {
-        "at": "2026-11-25T04:21:46Z",
-        "commit": "3e4e3c91",
-        "version": "2026.11.25.0951",
+        "at": "2026-11-26T08:03:22Z",
+        "commit": "f3aed0cd",
+        "version": "2026.11.26.1332",
         "kind": "release",
-        "notes": "• Karots Shelf may search the shop PC's catalogue"
+        "notes": "• A cashier PC's main-PC address pasted with a space before http:// is cleaned, not kept as http://… (SET-10)\n• Hold asks for an optional note to find the sale again\n• The sign-in page shows when a till was last closed\n• Read the phones' port after .env is loaded (PKT-16)"
       },
       "published": {
-        "version": "2026.11.25.0951",
-        "commit": "3e4e3c91",
-        "at": "2026-11-25T04:21:57Z"
+        "version": "2026.11.26.1332",
+        "commit": "f3aed0cd",
+        "at": "2026-11-26T08:03:31Z"
       },
       "cloudKey": "312f5b79fb325eb01f494853109463a11f48aacf1f572555812ad259a6dadc80"
     },
