@@ -40,10 +40,7 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
-4. Later: the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
-   2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
-   `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
-   a fixed signing key so an APK built elsewhere still installs over the old one (today: this PC's debug key).
+4. Later: the whole-system check, Pocket Cashier at a shop.
 
 ## The family
 
@@ -61,6 +58,9 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
 - **Web Demo Room**: demo.karots.lk, a container on the OVH VPS behind nginx-proxy-manager (`deploy/demo-room/`,
   `make demo-room-deploy` after `make demo`); still asks for the hourly code. The site offers it only when it answers.
 - Karots PIN Vault is the user's own app for all their projects: never tie it to Karots Suite.
+- **Karots secrets** (`~/Projects/karots-secrets`, private GitHub `karots-secrets`, 2026-11-26): every key and `.env`
+  of the family and the user's other projects (`files.txt`) in one gpg-encrypted file; `./secrets.sh save` after any
+  key or `.env` change, then push. The password lives only with the user (paper + PIN Vault).
 
 ## Not yet tried for real
 
@@ -158,7 +158,10 @@ own a supplier, until their first order or delivery; core hook `plugin.RuleSuppl
 green on 0e56c4a, 2026-11-24) · **online catalogue** (2026-11-25: the Catalogue app + Publish to R2, the
 Catalogue plugin `plugins/catalogue` CTL rules, Shelf's From catalogue, Onboard ☁ / ⇄ sync, the site's Catalogue page;
 all hand-tested; catalogue **version 3** online 2026-11-26 with 8 of Iman's generics fixed) · terms defaults confirmed
-(2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release).
+(2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release) · the sign-in page's
+"Last closed" pill (DRAW-20, 2026-11-26; the receipt card and Counter pill dropped: the page is public) · Onboard /
+Shelf on Windows (2026-11-26: the catalogue secret on GitHub, Windows build green; the apps' fixed key =
+`~/.config/karots/karots-apps.keystore`, this PC's old debug key, so phones update without a reinstall).
 
 ## How we work
 
