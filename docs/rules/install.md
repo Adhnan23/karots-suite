@@ -39,7 +39,8 @@ way) · **Twice** (at once, or run again) · **Bad input** (damaged file, wrong 
 | Update: check | UPD-1,2 | — c | — c | — c | UPD-1 | UPD-2 | UPD-7 |
 | Update: install | UPD-3 | UPD-8 | UPD-4 | UPD-7 | UPD-1 | UPD-6 | UPD-3,7 |
 | BootGuard (went back) | UPD-5 | — c | UPD-5 | UPD-5 | — c | UPD-6 | — c |
-| Setup: install (main / cashier PC) | SET-1,2 | — e | SET-2 | SET-2 | SET-1 | — d | SET-2 |
+| Setup: install (main / cashier PC) | SET-1,2,10 | — e | SET-2 | SET-2 | SET-1,10 | — d | SET-2 |
+| Setup: a cashier PC's print helper | SET-11 | SET-11 | SET-2 | SET-11 | SET-11 | — d | SET-11 |
 | Setup: Update | SET-3 | — e | SET-2 | SET-2 | SET-1 | SET-3 | SET-2 |
 | Setup: mode change (file ⇄ server) | SET-4 | — e | SET-4 | SET-4 | — c | BAK-7 | SET-4 |
 | Setup: Uninstall | SET-5 | — e | SET-5 | SET-2 | SET-5 | — d | SET-5 |
@@ -215,6 +216,22 @@ SET-8  Setup's log (support gets a copy) never shows the database passwords.
 
 SET-9  File mode: one running copy per shop (the till's port is claimed before the database starts); a data
        folder of another PostgreSQL version is refused, never wiped; the database never uses the plain C locale.
+       Checked by: example.
+
+SET-10 This PC's choices are checked before any step runs: backups every 30 minutes or more, 1 to 999 kept (0 =
+       the Shop Builder's), every folder a full path on the shop's system (`D:\…`, `\\server\…` or `/…`). A cashier
+       PC needs the main PC's address: the one typed, else the Builder's LAN address, `http://` and a trailing `/`
+       dropped, the till port added when it has none. A cashier PC's Update never takes the main PC's kept choices
+       (SET-3). The shop user is whoever started Setup (the launcher's, then sudo's), never root.
+       Checked by: example.
+
+SET-11 The print helper on a cashier PC prints only on this PC's own printers: a job for any other name is answered
+       "no printer called …", never sent anywhere. Every job it took is answered, done or with its error. A main PC
+       that refuses (any answer but 2xx) or can't be reached is an error, and the helper calls again later. Its
+       token is made once (64 hex), kept readable by the shop user only, and reused. It runs as the shop user,
+       pointed at the main PC: a systemd service on Linux (the running copy stopped before it is replaced), a
+       sign-in task on Windows. A USB printer with no queue gets one named after its model (letters, digits, `-`,
+       `_` only), never a name already taken.
        Checked by: example.
 
 BLD-1  A build leaves the tree core-only — plugin lists and the PostgreSQL bundle put back — whether it worked

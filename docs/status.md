@@ -12,9 +12,9 @@ ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Latest Release to 
 plugin + Shelf's From catalogue; Shop Rules 1.7). Iman updates from Setup → Data → Updates.
 
 **Waiting for the next Release** (committed 2026-11-26, not released): Pocket's port after `.env` (PKT-16), the
-sign-in page's "Last closed" pill (DRAW-20), the faster sales list (RPT-38), the note on Hold (SALE-53). A Release
-needs a green `make test-all` on that commit first (BLD-6). Plan (user, 2026-11-26): the 84 test gaps next session,
-then this Release.
+sign-in page's "Last closed" pill (DRAW-20), the faster sales list (RPT-38), the note on Hold (SALE-53), a cashier
+PC's main-PC address pasted with a space before `http://` (SET-10). A Release needs a green `make test-all` on that
+commit first (BLD-6). Next: this Release.
 
 - **Iman's catalogue is ready for a fresh start** (user: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` (`suppliers.csv`, `products.csv` 1,723, `cashier-menu.csv`,
@@ -39,7 +39,6 @@ then this Release.
 2. Ideas, built only when the user says:
    - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops; a fresh
      session with a design talk first (user, 2026-11-26).
-   - The 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`) — parked until the user has the hardware.
    - Dropped (user, 2026-11-26): a ready category tree per shop kind (each shop has its own; Iman's was tidied with AI).
    - A flaky test to look at: `TestRCH6_AmountBack` (recharge battle) failed once in a full `make test`, passed 8/8
@@ -163,7 +162,9 @@ green on 0e56c4a, 2026-11-24) · **online catalogue** (2026-11-25: the Catalogue
 Catalogue plugin `plugins/catalogue` CTL rules, Shelf's From catalogue, Onboard ☁ / ⇄ sync, the site's Catalogue page;
 all hand-tested; catalogue **version 3** online 2026-11-26 with 8 of Iman's generics fixed) · terms defaults confirmed
 (2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release) · the site review's guide one-liners (live 2026-11-26) · the sales list and its totals 3–14× faster (RPT-38, 2026-11-26: a page 0.51 → 0.04 s, Sales (year) 0.98 → 0.39 s)
-· a note on Hold (SALE-53, 2026-11-26) · the sign-in page's
+· a note on Hold (SALE-53, 2026-11-26) · Setup's launcher and print helper: the 84 mutation survivors read
+(2026-11-26; SET-10 this PC's choices, SET-11 the print helper; 45 killed, the 39 left are the process entry points
+— start / launch / worker / headless, the helper's endless loop — and timers) · the sign-in page's
 "Last closed" pill (DRAW-20, 2026-11-26; the receipt card and Counter pill dropped: the page is public) · Onboard /
 Shelf on Windows (2026-11-26: the catalogue secret on GitHub, Windows build green; the apps' fixed key =
 `~/.config/karots/karots-apps.keystore`, this PC's old debug key, so phones update without a reinstall).

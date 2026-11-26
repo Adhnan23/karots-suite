@@ -197,6 +197,11 @@ func newJob(ch Choice) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
+	return jobIn(dir, ch)
+}
+
+// jobIn is newJob for the install.conf in dir.
+func jobIn(dir string, ch Choice) (*Job, error) {
 	c, err := loadConf(dir)
 	if err != nil {
 		return nil, err
@@ -353,7 +358,7 @@ func absFor(osName, p string) bool {
 
 // withPort adds the till port when the address has none.
 func withPort(addr string, port int) string {
-	addr = strings.TrimSpace(strings.TrimPrefix(strings.TrimPrefix(addr, "http://"), "https://"))
+	addr = strings.TrimPrefix(strings.TrimPrefix(strings.TrimSpace(addr), "http://"), "https://")
 	addr = strings.TrimRight(addr, "/")
 	if addr == "" || strings.Contains(addr, ":") {
 		return addr
