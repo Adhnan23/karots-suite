@@ -63,6 +63,14 @@ func (r *Repository) LastClosed(ctx context.Context, userID int64) (*Session, er
 	return &s, nil
 }
 
+// ShopLastClosedAt is the latest close of any till, nil if none ever closed (the
+// sign-in page's "Last closed", DRAW-20).
+func (r *Repository) ShopLastClosedAt(ctx context.Context) (*time.Time, error) {
+	var at *time.Time
+	err := r.q.GetContext(ctx, &at, `SELECT max(closed_at) FROM cash_register`)
+	return at, err
+}
+
 func (r *Repository) Open(ctx context.Context, userID int64, opening decimal.Decimal, breakdown []byte, at *time.Time, reviewNote string) (*Session, error) {
 	var s Session
 	var note *string

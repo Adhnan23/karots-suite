@@ -128,8 +128,9 @@ The reference is the mockup's login frame.
     - the brand mark and shop name
     - a large live clock (updates every 15s)
     - the date
-    - status pills: server online, counter, and last closed
-    - a small tilted thermal-receipt card showing yesterday's close (`login-info` may add yesterday's totals; omit the receipt if the API doesn't give them)
+    - status pills: server online, and when a till was last closed (time only, hidden if never). The page is public, so
+      no takings, sales count, counter name or who closed it (user, 2026-11-26: DRAW-20; the old receipt card and
+      Counter pill are dropped)
   - **Right:** heading "Sign in to the counter", then the phone field, a PIN field with dots, the 3×4 keypad (Clear, 0, Delete), the Sign in button and ModeToggle (top right).
 - **Phone:** the hero becomes a header strip (clock at 64px); the fields and keypad follow.
 - **PIN entry:**

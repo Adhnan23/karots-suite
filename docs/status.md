@@ -180,6 +180,4 @@ What the user rejects: plain or default-looking UI — every screen must look li
 
 ## Open items
 
-- **Login hero:** the tilted receipt card (yesterday's close) and the "Counter 1 / last closed" pills wait for an API
-  that gives that data.
 - **Till top bar:** the counter name on the drawer pill has no data source yet.

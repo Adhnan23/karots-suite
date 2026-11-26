@@ -51,6 +51,11 @@ export interface LoginInfo {
    * The receipt header every customer already gets on paper (the shop game's receipt).
    */
   receipt: ShopHeader;
+  /**
+   * When a till was last closed (RFC3339 UTC; "" if never): the time only, never
+   * an amount or who — the page is public (DRAW-20).
+   */
+  lastClosedAt: string;
 }
 export interface ChangePinRequest {
   currentPin: string;

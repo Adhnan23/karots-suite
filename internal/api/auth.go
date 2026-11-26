@@ -21,6 +21,9 @@ func (h *handlers) LoginInfo(c echo.Context) error {
 		info.Palette = settings.ValidSkin(cfg.Skin)
 		info.Receipt = ShopHeader{Name: cfg.ShopName, Address: strOr(cfg.Address), Phone: strOr(cfg.Phone), Footer: strOr(cfg.ReceiptFooter)}
 	}
+	if at, err := h.d.CashRegister.ShopLastClosedAt(c.Request().Context()); err == nil && at != nil {
+		info.LastClosedAt = at.UTC().Format(time.RFC3339)
+	}
 	info.Notes, info.Coins = []string{}, []string{}
 	if rows, err := h.t.denoms.List(c.Request().Context(), true); err == nil {
 		for _, d := range rows {

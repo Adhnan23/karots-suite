@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 )
@@ -134,5 +135,30 @@ func TestEditingYourselfKeepsYourSession(t *testing.T) {
 	}
 	if rec := te.do(http.MethodGet, "/api/v1/me", nil, sessionCookie(t, rec)); rec.Code != http.StatusOK {
 		t.Fatalf("me after renaming yourself: %d", rec.Code)
+	}
+}
+
+// DRAW-20: the public sign-in page gets the latest till close's time, and never
+// its money.
+func TestLoginInfoLastClosed(t *testing.T) {
+	te := newTestEnv(t)
+	uid := te.seedUser(t, "0770009020", "cashier")
+	at := time.Now().Add(24 * time.Hour).UTC().Truncate(time.Second) // later than any other close in this database
+	if _, err := te.db.Exec(`INSERT INTO cash_register (user_id, opening_cash, closing_cash, expected_cash, difference, opened_at, closed_at)
+		VALUES ($1, 1234.56, 98765.43, 98765.43, 0, $2, $3)`, uid, at.Add(-time.Hour), at); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { te.db.Exec(`DELETE FROM cash_register WHERE user_id=$1`, uid) }) //nolint:errcheck
+	rec := te.do(http.MethodGet, "/api/v1/auth/login-info", nil, nil)
+	var li LoginInfo
+	json.Unmarshal(rec.Body.Bytes(), &li) //nolint:errcheck
+	got, err := time.Parse(time.RFC3339, li.LastClosedAt)
+	if err != nil || !got.Equal(at) {
+		t.Fatalf("lastClosedAt %q, want %s", li.LastClosedAt, at)
+	}
+	for _, money := range []string{"98765", "1234.56"} {
+		if strings.Contains(rec.Body.String(), money) {
+			t.Fatalf("login-info shows a till amount: %s", rec.Body)
+		}
 	}
 }

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/api/client'
+import type { LoginInfo } from '@/api/types.gen'
 import { GameMenu } from './GameMenu'
+import { lastClosedText } from './lastClosed'
 
 
 function useClock() {
@@ -12,10 +16,12 @@ function useClock() {
 }
 
 /** Left panel of login/lock (theme.md §5): brand on top, a live clock and the date
- * in the middle, the server status at the foot. Collapses to a compact header strip
+ * in the middle, the server status and when a till was last closed (time only: DRAW-20) at the foot. Collapses to a compact header strip
  * on a phone. Tapping the clock 7 times opens a games menu (coins, blocks, the shop) (an easter egg). */
 export function LoginHero({ shopName }: { shopName: string }) {
   const now = useClock()
+  const { data: info } = useQuery({ queryKey: ['auth', 'login-info'], queryFn: () => api<LoginInfo>('/auth/login-info') })
+  const lastClosed = lastClosedText(info?.lastClosedAt, now)
   const h24 = now.getHours()
   const minutes = String(now.getMinutes()).padStart(2, '0')
   const ampm = h24 < 12 ? 'AM' : 'PM'
@@ -48,6 +54,9 @@ export function LoginHero({ shopName }: { shopName: string }) {
           <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_0_4px_color-mix(in_srgb,var(--success)_20%,transparent)]" />
           Server online
         </span>
+        {lastClosed && (
+          <span className="rounded-pill border border-hero-foreground/15 bg-hero-foreground/10 px-3.5 py-2 text-sm">{lastClosed}</span>
+        )}
       </div>
       {games && <GameMenu onClose={close} />}
     </div>

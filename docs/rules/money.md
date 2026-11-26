@@ -114,6 +114,9 @@ cash on hand) · **Slip** (the CR- receipt) · **Faults** (power cut, twice, two
   it is booked as made — into or out of the locker it named — even past what the drawer holds by the PC's count or
   with untracked cash turned off since; the till is flagged for review instead. Only a locker that no longer exists
   is refused (the cash is then booked without the locker side, PKT-7). *User, 2026-11-21 (Pocket Cashier Q2). example.*
+- **DRAW-20** The sign-in page (public: anyone at the counter or on the shop's network sees it) shows when a till
+  was last closed — the time only, the latest close of any till. Never an amount, a count of sales or who closed
+  it; nothing at all when no till was ever closed. *User, 2026-11-26. example.*
 
 ### Lockers and moves
 

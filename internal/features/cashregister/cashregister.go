@@ -192,6 +192,11 @@ func NewService(db *sqlx.DB, salesSvc *sales.Service) *Service {
 
 // WithAudit attaches an audit recorder so drawer withdrawals and closes are
 // logged. Returns the service for chaining.
+// ShopLastClosedAt is when any till was last closed (nil: never) — DRAW-20.
+func (s *Service) ShopLastClosedAt(ctx context.Context) (*time.Time, error) {
+	return s.repo.ShopLastClosedAt(ctx)
+}
+
 func (s *Service) WithAudit(a *audit.Service) *Service {
 	s.audit = a
 	return s
