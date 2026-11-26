@@ -26,24 +26,22 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
 
 ## Next — the user's call
 
-1. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
-   strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
-   and checks the preview. (Iman's 550 products with no supplier are left alone: they get one from their first order /
-   delivery; the Distributor is the importer, not who delivers.)
-2. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
-   real sale.
-3. Site: guide one-liners from the site review, not audited: selling below stock / no price needs a manager's review;
+1. **Iman's visit** (the user has the reset files in `iman-reset/`): reset the database, import suppliers, products
+   and cashier menu, then **the Alternatives sheet** (`alternatives.csv`: 243 groups, 971 products; same generic,
+   strength and form; already imported and checked on the dev shop 2026-11-23), then the stock-take and the first
+   real sale. (Iman's 550 products with no supplier get one from their first order / delivery.)
+2. Site: guide one-liners from the site review, not audited: selling below stock / no price needs a manager's review;
    who reviews quick items; card refunds recorded as cash; opening balances and advances; credit over the limit;
    negative stock; imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log;
    two tills selling the last unit.
-4. Ideas, built only when the user says:
+3. Ideas, built only when the user says:
    - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
    - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`
      command for a messy shop.
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
-5. Later: the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
+4. Later: the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
    2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
    `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
    a fixed signing key so an APK built elsewhere still installs over the old one (today: this PC's debug key).
