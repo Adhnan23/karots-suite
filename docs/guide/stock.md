@@ -27,7 +27,8 @@ stock-take, intake and conversions. Admins and managers can use it on a phone to
   import updates that same product even after a rename or with no barcode. Sales, stock and
   batches stay with it. A ref from another shop's sheet is refused.
   **Import shows what will change first:** choosing the sheet previews it (nothing changes yet) —
-  how many products update, which are new, which lines are skipped and why, and for each product
+  how many products update, which are new, which lines are skipped and why (a barcode another product already has,
+for one: that line is skipped whole and the rest still go in), and for each product
   only the fields that change, old → new (Product Plus fields too), with a search box. **Import**
   then applies exactly that, all at once: if the power goes or a line fails, nothing half-done is
   left behind. A blank cell leaves that field as it is — unless you tick **Empty cells clear the field**, which
@@ -58,6 +59,13 @@ has packs — count it whole, or remove its packs, first; the same goes for chan
 **On hand** shows each product's stock, reorder level and value at cost. Tap a product to see its
 batches or **Adjust** a count. **Movements** lists every change with who made it and why.
 **Record write-off** takes damaged or expired stock out.
+
+**Stock never goes below zero.** When the till sells more than the count shows, the cashier is asked
+*Sell more than the count shows?*; if the customer is holding it, the count is corrected up first and the line says
+**found at till**, so the sale goes through and on hand ends at 0. The same happens when two tills sell the last unit
+at the same moment: both sales stand, and the second one corrects the count. The correction shows in **Movements**;
+do a quick count of that product when you can. Write-offs and other removals are different: two at once can't both
+take the last units.
 
 ## Freezing stock while a shop starts
 

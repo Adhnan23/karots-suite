@@ -30,10 +30,9 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
    and cashier menu, then **the Alternatives sheet** (`alternatives.csv`: 243 groups, 971 products; same generic,
    strength and form; imported on the dev shop 2026-11-23; the user's re-import on 2026-11-26 matched it row for row, so it's proven), then the stock-take and the first
    real sale. (Iman's 550 products with no supplier get one from their first order / delivery.)
-2. Site: guide one-liners from the site review, not audited: selling below stock / no price needs a manager's review;
-   who reviews quick items; card refunds recorded as cash; opening balances and advances; credit over the limit;
-   negative stock; imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log;
-   two tills selling the last unit.
+2. Site: the guide one-liners from the site review are in (2026-11-26: who reviews flagged items, overselling and two
+   tills on the last unit, a skipped import line, an update that fails after migrating; the rest were already there)
+   — `bun run sync` + deploy in the site repo to put them online.
 3. Ideas, built only when the user says:
    - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
    - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`

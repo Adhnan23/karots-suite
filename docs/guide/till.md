@@ -22,7 +22,8 @@ and price, and the item goes to admin's review list. A scanned barcode no produc
 (the same item with a different barcode: find it, and the code becomes one of its barcodes) or **New item** (a quick
 item with the code filled in). A cashier's choice works straight away and goes to admin's review list. Receiving
 stock on the **Suppliers** tab asks the same question, and **+ New product** there adds something by name. A sale is never
-blocked: anything odd (selling below stock, a missing price) is sold first and flagged for review.
+blocked: anything odd (selling below stock, a missing price) is sold first and flagged for review. Admins and
+managers see the flagged items on **Inventory → Items to review** (see [Stock](stock.md#products)).
 
 ### Keys
 

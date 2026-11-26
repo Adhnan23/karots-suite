@@ -16,6 +16,12 @@ is signed with your release key and put in the shop's folder in the Karots bucke
 3. If the new version fails to start, it rolls back to the old one by itself, and the old one keeps
    selling on the updated data.
 
+**If an update fails after it changed the database:** nothing is lost. An update only ever adds to the database
+(new columns and tables), so the old version still reads and sells on it. If the new version doesn't stay up for 2
+minutes, twice, the PC goes back to the old one by itself and **Setup → Data → Updates** says so. The shop keeps
+selling; call us and we fix it in the next update. The backup made just before the update
+(`…-before-update-<version>`) is there too, but it is rarely needed.
+
 > Keep a copy of `SUITE_RELEASE_KEY`. Shops only accept updates signed with it.
 
 A changed **profile** (plugins, ports, database mode) needs the Builder and **karots-setup →
