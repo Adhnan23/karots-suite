@@ -63,27 +63,7 @@ func (r *Repository) List(ctx context.Context, f ListFilter) ([]Sale, error) {
 		query = &f.Query
 	}
 	var rows []Sale
-	err := r.q.SelectContext(ctx, &rows, `
-		SELECT s.*, u.name AS cashier_name, c.name AS customer_name,
-		       (SELECT p.name FROM users p WHERE p.id = s.prepared_by) AS prepared_by_name,
-		       agg.cogs AS cogs,
-		       (`+netRevSQL+` - agg.cogs) AS profit,
-		       CASE WHEN `+netRevSQL+` > 0
-		            THEN (`+netRevSQL+` - agg.cogs) / `+netRevSQL+` * 100
-		            ELSE 0 END AS margin
-		FROM sales s
-		JOIN users u ON u.id = s.cashier_id
-		LEFT JOIN customers c ON c.id = s.customer_id
-		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
-		WHERE `+inRange("$1", "$2", "$9")+`
-		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
-		  AND ($4::text IS NULL OR s.status = $4::sale_status)
-		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
-		  AND ($8::text IS NULL OR EXISTS (
-		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $8::payment_method))
-		  AND `+searchMatch("$9")+hourClause("s", "$10", "$11", "$12")+`
-		ORDER BY lower(s.receipt_no) = lower(COALESCE($9::text, '')) DESC, s.created_at DESC, s.id DESC
-		LIMIT $6 OFFSET $7`,
+	err := r.q.SelectContext(ctx, &rows, ListSQL,
 		f.From, f.To, f.CashierID, status, receipt, f.Limit, f.Offset, method, query,
 		tzName(), f.FromHour, f.ToHour)
 	return rows, err
@@ -125,27 +105,35 @@ func searchMatch(p string) string {
 // netRevSQL is a receipt's revenue: before tax (the government's, RPT-1), less
 // pass-through face and what came back on it so far at its pre-tax part. The
 // sales list and the Sales report count each receipt this way, so their totals
-// match their rows. Correlated on `s` and `agg` (ProfitAggSQL).
-const netRevSQL = `(s.total - s.tax - agg.pt_face - agg.ret_val * COALESCE((s.total - s.tax - ` + PayoutsSQL + `) / NULLIF(s.total - ` + PayoutsSQL + `, 0), 1))`
+// match their rows. Uses `s` and `agg` (saleAggCTE).
+const netRevSQL = `(s.total - s.tax - agg.pt_face - agg.ret_val * COALESCE((s.total - s.tax - agg.payouts) / NULLIF(s.total - agg.payouts, 0), 1))`
 
-// ProfitAggSQL is the per-sale cost/pass-through/returns aggregate. ret_val is
-// the refunds actually given on the sale so far (tax in, RPT-37) — never a
-// share worked out again, which drifts a cent from the rounded refunds.
-// Correlated on the outer `s`. Each line finds its product by id (RPT-38): a
-// join here let the planner walk the products list once per sale.
-const ProfitAggSQL = `
-	SELECT
-	  COALESCE(SUM(si.subtotal) FILTER (WHERE si.pt), 0)                                                    AS pt_face,
-	  COALESCE((SELECT SUM(ri.refund_amount) FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id
-	            WHERE r.sale_id = s.id AND NOT (SELECT rp.pass_through FROM products rp WHERE rp.id = ri.product_id)), 0) AS ret_val,
-	  COALESCE(SUM((si.quantity - si.returned_qty) * si.cost_price) FILTER (WHERE NOT si.pt), 0)           AS cogs
-	FROM (SELECT i.subtotal, i.quantity, i.returned_qty, i.cost_price,
-	             (SELECT p.pass_through FROM products p WHERE p.id = i.product_id) AS pt
-	      FROM sale_items i WHERE i.sale_id = s.id) si`
+// saleAggCTE works out the chosen sales' figures once for the whole set (RPT-38):
+// ss = the chosen sales (picked selects sales rows), agg = one row per sale —
+// pt_face (pass-through lines' face), cogs (own lines' cost, less what came
+// back), payouts (lines below zero) and ret_val: the refunds actually given on
+// the sale so far, own goods only (tax in, RPT-37 — never a share worked out
+// again, which drifts a cent from the rounded refunds). Lines and returns are
+// each added up in one pass, joined by sale: never a step run once per sale.
+func saleAggCTE(picked string) string {
+	return `WITH ss AS MATERIALIZED (` + picked + `),
+	li AS (SELECT i.sale_id,
+	              SUM(i.subtotal) FILTER (WHERE p.pass_through)                                  AS pt_face,
+	              SUM((i.quantity - i.returned_qty) * i.cost_price) FILTER (WHERE NOT p.pass_through) AS cogs,
+	              SUM(i.subtotal) FILTER (WHERE i.subtotal < 0)                                  AS payouts
+	       FROM sale_items i JOIN ss ON ss.id = i.sale_id JOIN products p ON p.id = i.product_id
+	       GROUP BY i.sale_id),
+	rv AS (SELECT r.sale_id, SUM(ri.refund_amount) AS ret_val
+	       FROM sale_return_items ri JOIN sale_returns r ON r.id = ri.return_id JOIN ss ON ss.id = r.sale_id
+	       JOIN products rp ON rp.id = ri.product_id
+	       WHERE NOT rp.pass_through
+	       GROUP BY r.sale_id),
+	agg AS (SELECT ss.id AS sale_id, COALESCE(li.pt_face, 0) AS pt_face, COALESCE(rv.ret_val, 0) AS ret_val,
+	               COALESCE(li.cogs, 0) AS cogs, COALESCE(li.payouts, 0) AS payouts
+	        FROM ss LEFT JOIN li ON li.sale_id = ss.id LEFT JOIN rv ON rv.sale_id = ss.id)
+	`
+}
 
-// hourClause returns the shop-local hour-of-day window predicate (inclusive both
-// ends), or empty when both hour params are nil. tzP/fromP/toP are the SQL
-// placeholders (e.g. "$10"). alias is the sales-table alias.
 func hourClause(alias, tzP, fromP, toP string) string {
 	h := "EXTRACT(HOUR FROM (" + alias + ".created_at AT TIME ZONE " + tzP + "))::int"
 	return `
@@ -205,27 +193,61 @@ func (r *Repository) Summarize(ctx context.Context, f ListFilter) (*ListSummary,
 		query = &f.Query
 	}
 	var out ListSummary
-	err := r.q.GetContext(ctx, &out, `
-		SELECT count(*)                                         AS count,
-		       COALESCE(SUM(s.subtotal), 0)                     AS gross,
-		       COALESCE(SUM(s.discount), 0)                     AS discount,
-		       COALESCE(SUM(s.total), 0)                        AS net,
-		       COALESCE(SUM(s.paid_amount - s.change_given), 0) AS paid,
-		       COALESCE(SUM(agg.cogs), 0)                       AS cogs,
-		       COALESCE(SUM(`+netRevSQL+` - agg.cogs), 0) AS profit,
-		       COALESCE(SUM(`+netRevSQL+`), 0)           AS net_rev
-		FROM sales s
+	err := r.q.GetContext(ctx, &out, SummarySQL,
+		f.From, f.To, f.CashierID, status, receipt, method, query,
+		tzName(), f.FromHour, f.ToHour)
+	return &out, err
+}
+
+// ListSQL is a page of the sales list: $1 from, $2 to, $3 cashier, $4 status,
+// $5 receipt, $6 limit, $7 offset, $8 method, $9 query, $10 tz, $11/$12 hours.
+// The page's sales are picked first; only those get their figures (RPT-38).
+var ListSQL = saleAggCTE(`
+		SELECT s.* FROM sales s
 		JOIN users u ON u.id = s.cashier_id
 		LEFT JOIN customers c ON c.id = s.customer_id
-		JOIN LATERAL (`+ProfitAggSQL+`) agg ON true
+		WHERE `+inRange("$1", "$2", "$9")+`
+		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
+		  AND ($4::text IS NULL OR s.status = $4::sale_status)
+		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
+		  AND ($8::text IS NULL OR EXISTS (
+		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $8::payment_method))
+		  AND `+searchMatch("$9")+hourClause("s", "$10", "$11", "$12")+`
+		ORDER BY lower(s.receipt_no) = lower(COALESCE($9::text, '')) DESC, s.created_at DESC, s.id DESC
+		LIMIT $6 OFFSET $7`) + `
+		SELECT s.*, u.name AS cashier_name, c.name AS customer_name,
+		       (SELECT p.name FROM users p WHERE p.id = s.prepared_by) AS prepared_by_name,
+		       agg.cogs AS cogs,
+		       (` + netRevSQL + ` - agg.cogs) AS profit,
+		       CASE WHEN ` + netRevSQL + ` > 0
+		            THEN (` + netRevSQL + ` - agg.cogs) / ` + netRevSQL + ` * 100
+		            ELSE 0 END AS margin
+		FROM ss s
+		JOIN users u ON u.id = s.cashier_id
+		LEFT JOIN customers c ON c.id = s.customer_id
+		JOIN agg ON agg.sale_id = s.id
+		ORDER BY lower(s.receipt_no) = lower(COALESCE($9::text, '')) DESC, s.created_at DESC, s.id DESC`
+
+// SummarySQL is the whole filter's totals (the list's and the Sales report's):
+// $1 from, $2 to, $3 cashier, $4 status, $5 receipt, $6 method, $7 query, $8 tz,
+// $9/$10 hours.
+var SummarySQL = saleAggCTE(`
+		SELECT s.* FROM sales s
+		JOIN users u ON u.id = s.cashier_id
+		LEFT JOIN customers c ON c.id = s.customer_id
 		WHERE `+inRange("$1", "$2", "$7")+`
 		  AND ($3::bigint IS NULL OR s.cashier_id = $3)
 		  AND (($4::text IS NULL AND s.status <> 'void') OR s.status = $4::sale_status)
 		  AND ($5::text IS NULL OR s.receipt_no ILIKE '%' || $5 || '%')
 		  AND ($6::text IS NULL OR EXISTS (
 		      SELECT 1 FROM payments p WHERE p.sale_id = s.id AND p.method = $6::payment_method))
-		  AND `+searchMatch("$7")+hourClause("s", "$8", "$9", "$10"),
-		f.From, f.To, f.CashierID, status, receipt, method, query,
-		tzName(), f.FromHour, f.ToHour)
-	return &out, err
-}
+		  AND `+searchMatch("$7")+hourClause("s", "$8", "$9", "$10")) + `
+		SELECT count(*)                                         AS count,
+		       COALESCE(SUM(s.subtotal), 0)                     AS gross,
+		       COALESCE(SUM(s.discount), 0)                     AS discount,
+		       COALESCE(SUM(s.total), 0)                        AS net,
+		       COALESCE(SUM(s.paid_amount - s.change_given), 0) AS paid,
+		       COALESCE(SUM(agg.cogs), 0)                       AS cogs,
+		       COALESCE(SUM(` + netRevSQL + ` - agg.cogs), 0) AS profit,
+		       COALESCE(SUM(` + netRevSQL + `), 0)           AS net_rev
+		FROM ss s JOIN agg ON agg.sale_id = s.id`

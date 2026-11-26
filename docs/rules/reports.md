@@ -180,3 +180,7 @@ top-up) · **Agree** (two reports showing the same thing show the same number).
   hardware minimums (`docs/guide/install.md`). *Found by the low-spec bench (2026-11-24): a per-sale lookup walked the
   products list from the start for every sale — Finance (year) took 35 s on a fast PC once Iman's products were in,
   and a 50,000-product catalogue would make it far worse.*
+  The sales list too (user, 2026-11-26: speed is what sells it): its totals and the Sales report add up the matching
+  sales' lines and returns in one pass each, never a step run once per sale; a page of the list works out its
+  figures for its own rows only (50 sales, not the year's). *Found by the bench: the year's totals ran four small
+  queries for each of ~39,000 sales (0.7 s on a fast PC, twice per Sales report), and a page of 50 did the same.*
