@@ -8,13 +8,11 @@ battle report). The catalogue and the Onboard / Shelf apps keep their own detail
 
 **The suite is feature-complete for a shop's day, battle-tested end to end, and measured on low-spec PCs.** First
 shop: Iman Pharmacy Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin
-ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Latest Release to Iman: **2026.11.25.0951** (the Catalogue
-plugin + Shelf's From catalogue; Shop Rules 1.7). Iman updates from Setup → Data → Updates.
+ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Latest Release to Iman: **2026.11.26.1332** (Pocket's port
+PKT-16, the sign-in page's "Last closed" pill DRAW-20, the faster sales list RPT-38, the note on Hold SALE-53, Setup's
+cashier address fix SET-10; notes by hand). Iman updates from Setup → Data → Updates.
 
-**Waiting for the next Release** (committed 2026-11-26, not released): Pocket's port after `.env` (PKT-16), the
-sign-in page's "Last closed" pill (DRAW-20), the faster sales list (RPT-38), the note on Hold (SALE-53), a cashier
-PC's main-PC address pasted with a space before `http://` (SET-10). A Release needs a green `make test-all` on that
-commit first (BLD-6). Next: this Release.
+**Waiting for the next Release:** nothing yet.
 
 - **Iman's catalogue is ready for a fresh start** (user: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` (`suppliers.csv`, `products.csv` 1,723, `cashier-menu.csv`,
