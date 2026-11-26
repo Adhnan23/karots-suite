@@ -43,7 +43,7 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
-5. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
+5. Later: the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
    2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
    `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
    a fixed signing key so an APK built elsewhere still installs over the old one (today: this PC's debug key).
