@@ -31,12 +31,13 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
    strength and form; imported on the dev shop 2026-11-23; the user's re-import on 2026-11-26 matched it row for row, so it's proven), then the stock-take and the first
    real sale. (Iman's 550 products with no supplier get one from their first order / delivery.)
 2. Ideas, built only when the user says:
-   - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
-   - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`
-     command for a messy shop.
-   - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
-   - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
-   - Recharge through modems (memory `recharge-modems-idea`).
+   - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops; a fresh
+     session with a design talk first (user, 2026-11-26).
+   - The 84 unread mutation survivors in Setup's launcher and print helper.
+   - Recharge through modems (memory `recharge-modems-idea`) — parked until the user has the hardware.
+   - Dropped (user, 2026-11-26): a ready category tree per shop kind (each shop has its own; Iman's was tidied with AI).
+   - A flaky test to look at: `TestRCH6_AmountBack` (recharge battle) failed once in a full `make test`, passed 8/8
+     alone — it audits the shared shop while other tests write to it.
 3. Later: the whole-system check, Pocket Cashier at a shop.
 
 ## The family
@@ -155,7 +156,8 @@ own a supplier, until their first order or delivery; core hook `plugin.RuleSuppl
 green on 0e56c4a, 2026-11-24) · **online catalogue** (2026-11-25: the Catalogue app + Publish to R2, the
 Catalogue plugin `plugins/catalogue` CTL rules, Shelf's From catalogue, Onboard ☁ / ⇄ sync, the site's Catalogue page;
 all hand-tested; catalogue **version 3** online 2026-11-26 with 8 of Iman's generics fixed) · terms defaults confirmed
-(2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release) · the site review's guide one-liners (live 2026-11-26) · the sign-in page's
+(2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release) · the site review's guide one-liners (live 2026-11-26) · the sales list and its totals 3–14× faster (RPT-38, 2026-11-26: a page 0.51 → 0.04 s, Sales (year) 0.98 → 0.39 s)
+· a note on Hold (SALE-53, 2026-11-26) · the sign-in page's
 "Last closed" pill (DRAW-20, 2026-11-26; the receipt card and Counter pill dropped: the page is public) · Onboard /
 Shelf on Windows (2026-11-26: the catalogue secret on GitHub, Windows build green; the apps' fixed key =
 `~/.config/karots/karots-apps.keystore`, this PC's old debug key, so phones update without a reinstall).
