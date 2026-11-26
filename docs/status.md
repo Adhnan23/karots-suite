@@ -54,7 +54,7 @@ person ×2, Pocket's cart move) that passed alone (22/22) and in the next whole 
 - **Karots Suite Catalogue** (`~/Projects/karots-suite-catalogue`, private; its Catalogue app + Publish online since 2026-11-24): Onboard gets it as an **update file**
   built from the user's **latest** Onboard backup (never wipe and re-import). Catalogue work paused until a shop
   needs it. Karots files in the user's Downloads: `/mnt/nvme_512GB/Downloads/Karots/`.
-- **Karots Suite site** (`~/Projects/karots-pos-site`, to be renamed `karots-suite-site`; the old POS site on its
+- **Karots Suite site** (`~/Projects/karots-suite-site`, GitHub `karots-suite-site`; the old POS site on its
   `archive/karots-pos` branch): suite.karots.lk, a Cloudflare Worker (`bunx wrangler deploy`). Guides, plugin pages
   and screenshots come from this repo (`bun run sync`; tour frames: `make tour-shots`). Prices live in its
   `src/data/pricing.ts` (the four plans; the legal pack's Shop Rules §15 says the same).
