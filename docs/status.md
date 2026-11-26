@@ -39,8 +39,10 @@ read after `.env` is loaded (PKT-16, 2026-11-26; not released).
    and Released to Iman as **2026.11.24.1847**.
 3. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
    real sale.
-4. Open for the user: ~12 catalogue generics short of Iman's typed ones (D3 + K2: 1000D, D One 1000 / 2000, Vidan D
-   2000; Chlofen DM, Sinarest Linctus + phenylephrine; Orofer + folic acid; Immune Up; GLA 120 + vitamin E; Nugesic).
+4. ~~Catalogue generics short of Iman's typed ones~~ — done (2026-11-26): 8 fixed after a web search (Nugesic is
+   B1 + B6 + B12, not Nimesulide; Orofer Capsules + folic acid; GLA 120 + vitamin E; D3 + K2 for 1000D, D One
+   1000 / 2000, Vidan D 2000; Immune Up chewable in full) and published as **catalogue version 3**. Sinarest Linctus
+   and Chlofen DM stay Chlorphenamine + Dextromethorphan (no phenylephrine found online).
 5. Site: Karots Shelf's screenshots are up (user checked, 2026-11-26). Guide
    one-liners from the site review, not audited: selling below stock / no price needs a manager's review; who reviews
    quick items; card refunds recorded as cash; opening balances and advances; credit over the limit; negative stock;
