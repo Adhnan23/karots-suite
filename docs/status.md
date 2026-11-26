@@ -22,55 +22,28 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
   the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
-**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). The two specs that
-raced (`goto('/login')` right after signing out: palettes, admin-people) leave the page first now (2026-11-25). Pocket's port is now
-read after `.env` is loaded (PKT-16, 2026-11-26; not released).
+**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s).
 
 ## Next — the user's call
 
-1. ~~Confirm the defaults in the terms~~ — the user confirmed them all (2026-11-24): visits by distance; transfer
-   Rs 5,000; balance in 90 days; plan paused 7 days late; reinstall after a format free; extra cashier PC Rs 3,000;
-   Tailscale 3,000 / 500; help without a plan Rs 1,500 / hour; Pocket Cashier inside Karots Suite; "your copy keeps
-   working"; Easy Pay's early stop. Still a DRAFT for the lawyer.
-2. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
+1. **Iman's Alternatives sheet is built** (catalogue `shops/iman_alternatives.py`, 2026-11-23: same generic, same
    strength, same form) → `iman-reset/alternatives.csv`. The user imports it on the dev shop (Alternatives → Sheet ▾)
    and checks the preview. (Iman's 550 products with no supplier are left alone: they get one from their first order /
-   delivery; the Distributor is the importer, not who delivers.) **Supplier by field** is built (Product Plus, 2026-11-24, see Done)
-   and Released to Iman as **2026.11.24.1847**.
-3. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
+   delivery; the Distributor is the importer, not who delivers.)
+2. Iman's reset at the shop (the user, on his next visit; he has the reset files), then the stock-take and the first
    real sale.
-4. ~~Catalogue generics short of Iman's typed ones~~ — done (2026-11-26): 8 fixed after a web search (Nugesic is
-   B1 + B6 + B12, not Nimesulide; Orofer Capsules + folic acid; GLA 120 + vitamin E; D3 + K2 for 1000D, D One
-   1000 / 2000, Vidan D 2000; Immune Up chewable in full) and published as **catalogue version 3**. Sinarest Linctus
-   and Chlofen DM stay Chlorphenamine + Dextromethorphan (no phenylephrine found online).
-5. Site: Karots Shelf's screenshots are up (user checked, 2026-11-26). Guide
-   one-liners from the site review, not audited: selling below stock / no price needs a manager's review; who reviews
-   quick items; card refunds recorded as cash; opening balances and advances; credit over the limit; negative stock;
-   imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log; two tills
-   selling the last unit.
-6. Ideas, built only when the user says:
+3. Site: guide one-liners from the site review, not audited: selling below stock / no price needs a manager's review;
+   who reviews quick items; card refunds recorded as cash; opening balances and advances; credit over the limit;
+   negative stock; imports with bad rows or duplicate barcodes; an update that fails after migrating; the audit log;
+   two tills selling the last unit.
+4. Ideas, built only when the user says:
    - **Payment tracking in the Builder** (memory `payment-reminder-idea`) — needed before many Easy Pay shops.
    - **Onboarding without the mess** (shop #2): catalogue → Onboard → a ready category tree per shop kind; a `tidy`
      command for a messy shop.
    - The sales list's totals (`sales.ProfitAggSQL`, per sale) are now Sales (year)'s biggest part (0.9 s on a fast PC).
    - A note box on the till's plain Hold; the 84 unread mutation survivors in Setup's launcher and print helper.
    - Recharge through modems (memory `recharge-modems-idea`).
-7. **Online catalogue** (order agreed 2026-11-24): piece 1 **done** in the catalogue repo — permanent ids, the
-   Catalogue app (`python3 build/app.py`, port 7710, PIN of install id 7586DBF6 in PIN Vault under Karots Suite),
-   Publish to R2 (hidden folder; **version 1 online**, 52,160 products). **Piece 2 done (2026-11-25): the suite's
-   Catalogue plugin** (`plugins/catalogue`, rules CTL-1…12 + REV-1/2 + BLD-7, guide `docs/guide/plugins/catalogue.md`):
-   the main PC keeps the whole copy and syncs it (boot when stale, 03:30, Check now); From catalogue on the product
-   form, intake, the till's quick item (Pocket too, online) and a delivery's new line; picks fill only the fields the
-   shop has; quick-item / delivery picks and later catalogue fixes wait on Items to review (product form / intake
-   picks don't: user); the Demo Room has a 204-item sample. **Price: inside the service plan** (Shop Rules 1.7); no
-   plan → copy taken off (written, not built). Released to Iman as 2026.11.25.0859; Shelf's From catalogue in 2026.11.25.0951 (**hand-tested 2026-11-25** on the
-   real build: picks, stock-take off, off the Wi-Fi, no plugin → the service-plan note). **Pieces 3 and 4 done
-   (2026-11-25, hand-tested):** Shelf's From catalogue (searches the shop PC: CTL-13; new APK in `~/Downloads`);
-   Onboard's ☁ *New from the Karots catalogue* (adds only what it hasn't got, from R2) and ⇄ *Sync with the Catalogue
-   app* (catalogue fixes, your products moved there, selling prices + barcodes both ways, never published); the
-   Catalogue app's Backup / Restore and Makefile (catalogue repo README). The 5 products moved there go online at the
-   next Publish (the user's call). The site has the Catalogue page and the plan wording (karots-pos-site 015ade6, live 2026-11-25).
-8. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
+5. Later: the install stick, the whole-system check, Pocket Cashier at a shop. **Onboard / Shelf on Windows** (user,
    2026-11-25: later): push the Onboard repo (GitHub Actions builds Windows), add the repo secret
    `KAROTS_CATALOGUE_URL` (value: `make -n apk-onboard` in that repo shows it) or Windows Onboard has no ☁ button, and
    a fixed signing key so an APK built elsewhere still installs over the old one (today: this PC's debug key).
@@ -185,7 +158,10 @@ areas, every plugin, installing and running a shop (2026-11-18 → 22)** · Rele
 low-spec bench + RPT-38 year reports 35 s → 1 s · the new terms, four plans, system requirements, site redesign
 (2026-11-24) · **Supplier by field** (Product Plus: one Brand / Company field gives products with no supplier of their
 own a supplier, until their first order or delivery; core hook `plugin.RuleSupplier`, SUP-11/12, PPF-10…13; test-all
-green on 0e56c4a, 2026-11-24).
+green on 0e56c4a, 2026-11-24) · **online catalogue** (2026-11-25: the Catalogue app + Publish to R2, the
+Catalogue plugin `plugins/catalogue` CTL rules, Shelf's From catalogue, Onboard ☁ / ⇄ sync, the site's Catalogue page;
+all hand-tested; catalogue **version 3** online 2026-11-26 with 8 of Iman's generics fixed) · terms defaults confirmed
+(2026-11-24) · Pocket's port read after `.env` (PKT-16, 2026-11-26; in the next release).
 
 ## How we work
 
