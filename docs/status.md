@@ -4,12 +4,16 @@ Read this first in a fresh session, together with `AGENTS.md`. Update it at the 
 short: history lives in git (`git log -p -- docs/status.md` has every older handoff, finished plan and area-by-area
 battle report). The catalogue and the Onboard / Shelf apps keep their own details in their READMEs.
 
-## Now (2026-11-24)
+## Now (2026-11-26)
 
 **The suite is feature-complete for a shop's day, battle-tested end to end, and measured on low-spec PCs.** First
 shop: Iman Pharmacy Kalpitiya (`iman-pharmacy-kalpitiya`, install id FC1A79F7, support PIN `make support-pin
-ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Released to Iman as **2026.11.25.0859** (the Catalogue
-plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the update the PC downloads the catalogue itself.
+ID=FC1A79F7`): onboarding almost done, **no real sales yet**. Latest Release to Iman: **2026.11.25.0951** (the Catalogue
+plugin + Shelf's From catalogue; Shop Rules 1.7). Iman updates from Setup → Data → Updates.
+
+**Waiting for the next Release** (committed 2026-11-26, not released): Pocket's port after `.env` (PKT-16), the
+sign-in page's "Last closed" pill (DRAW-20), the faster sales list (RPT-38), the note on Hold (SALE-53). A Release
+needs a green `make test-all` on that commit first (BLD-6).
 
 - **Iman's catalogue is ready for a fresh start** (user: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` (`suppliers.csv`, `products.csv` 1,723, `cashier-menu.csv`,
@@ -22,7 +26,8 @@ plugin; Shop Rules 1.7). Iman updates from Setup → Data → Updates; after the
   the lawyer). **PC:** minimum Core 2 Duo / 2 GB, recommended i3 2nd gen / 4 GB (`docs/guide/install.md`; bench
   results in `/mnt/nvme_512GB/karots/bench/results.jsonl`).
 
-**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s).
+**Last full run (2026-11-24, on 68388099):** all green — Go, Vitest, Playwright, check-core (579 s). Since then
+(2026-11-26) `make test`, Vitest and the till's Playwright spec pass; one flake seen (`TestRCH6_AmountBack`, Ideas).
 
 ## Next — the user's call
 
