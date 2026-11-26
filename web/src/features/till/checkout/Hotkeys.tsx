@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useHold } from '../cart-ui/useHold'
+import { useAskHold } from '../cart-ui/useHold'
 import { hotkeyFor } from '../hotkeys'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
@@ -25,18 +25,18 @@ const focus = (id: string) => {
 export function Hotkeys() {
   const ui = useTillUi()
   const co = useCheckoutCtx()
-  const hold = useHold()
+  const askHold = useAskHold()
   const lines = useTill().state.lines.length
   const strip = isStrip(useSellLayout().layout)
-  const live = useRef({ ui, co, hold, lines, strip })
+  const live = useRef({ ui, co, askHold, lines, strip })
   // Before paint, not after: a key pressed the moment a scan lands must see that line.
   useLayoutEffect(() => {
-    live.current = { ui, co, hold, lines, strip }
+    live.current = { ui, co, askHold, lines, strip }
   })
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { ui, co, hold, lines, strip } = live.current
+      const { ui, co, askHold, lines, strip } = live.current
       const dialogOpen = !!document.querySelector('[role="dialog"],[role="alertdialog"]')
       const a = hotkeyFor(e.key, { dialogOpen, saleDone: !!co.done })
       if (!a) return
@@ -58,7 +58,7 @@ export function Hotkeys() {
       } else if (a === 'pay' && document.activeElement?.id === 'till-amount') nextMethod()
       else if (a === 'discount') focus('till-bill-discount')
       else if (a === 'pay') focus('till-amount')
-      else if (a === 'hold') void hold()
+      else if (a === 'hold') askHold()
       else if (a === 'newSale') co.newSale()
       else if (a === 'blur') (document.activeElement as HTMLElement | null)?.blur()
     }

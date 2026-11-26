@@ -6,7 +6,7 @@ import { api } from '@/api/client'
 import { slots } from '@/plugins/slots'
 import { configQuery, errMsg, heldQuery } from '../api'
 import { Kbd } from '../bits'
-import { useHold } from '../cart-ui/useHold'
+import { useAskHold } from '../cart-ui/useHold'
 import { useTillUi } from '../TillUi'
 import { CHIP } from '../ui'
 
@@ -14,14 +14,14 @@ import { CHIP } from '../ui'
 export function DrawerActions({ lead }: { lead?: ReactNode }) {
   const cfg = useSuspenseQuery(configQuery).data
   const ui = useTillUi()
-  const hold = useHold()
+  const askHold = useAskHold()
   const held = useQuery(heldQuery).data ?? []
   const noSale = () =>
     api('/till/drawer/no-sale', { method: 'POST' }).then(() => toast.success('Drawer opened')).catch((e) => toast.error(errMsg(e)))
   return (
     <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Till actions">
       {lead}
-      <button type="button" className={CHIP} onClick={() => void hold()}>Hold <Kbd>F4</Kbd></button>
+      <button type="button" className={CHIP} onClick={() => askHold()}>Hold <Kbd>F4</Kbd></button>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'held' })}>Held ({held.length}) <Kbd>F5</Kbd></button>
       {!cfg.sendsToCashier && <>
       <button type="button" className={CHIP} onClick={() => ui.open({ kind: 'deposit' })}>

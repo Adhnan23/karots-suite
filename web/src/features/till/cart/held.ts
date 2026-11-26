@@ -30,6 +30,11 @@ export function ticketItems(h: HeldSale) {
   return fromHeld(h, 0).lines.map((l) => `${l.name} ×${l.qty}`).join(', ')
 }
 
+/** What a held sale is called (SALE-53): the note typed when holding (cut to the
+ * 120 letters the server keeps), else its customer, else its first item. */
+export const heldLabel = (note: string, customer: string | undefined, firstItem: string) =>
+  Array.from(note.trim()).slice(0, 120).join('') || customer || firstItem
+
 export const MOVED_LABEL = 'Moved to another device'
 
 /** The person signed in on another device: park what was on this till in Held,

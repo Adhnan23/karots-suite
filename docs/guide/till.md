@@ -70,8 +70,10 @@ reload and no right-click outside text boxes.
 
 ### Holds
 
-**Hold** (F4) parks the sale and frees the till. Resume a held sale from the Held list (F5). The till
-won't resume one over a cart that already has items in it.
+**Hold** (F4) parks the sale and frees the till. It asks for a short note to find it again ("gone to the ATM",
+"blue shirt"); leave it empty and press **F4** again (or Enter) to hold straight away, named after the customer or
+the first item. Resume a held sale from the Held list (F5), where the note shows. The till won't resume one over a
+cart that already has items in it.
 
 ![The till in dark mode](../images/till/sell-dark.jpg)
 

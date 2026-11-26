@@ -138,6 +138,9 @@ methods and tax don't move stock. `— c`: a held sale or ticket is not a sale u
   first back and books nothing.
 - **SALE-51** A Review sale is never refused for price, oversell or credit limit; it is flagged.
 - **SALE-52** A held sale / ticket is paid at most once.
+- **SALE-53** Holding asks for an optional note ("gone to the ATM"); the held list shows it. With no note the held
+  sale is named after its customer, else its first item. A note never stops the hold: Enter or F4 again holds at once,
+  and a note past 120 characters is cut, never refused. *User, 2026-11-26.*
 
 ### The till's screen vs the server
 

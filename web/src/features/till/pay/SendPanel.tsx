@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cashiersQuery } from '../api'
 import { Kbd, Seg } from '../bits'
-import { useHold } from '../cart-ui/useHold'
+import { useAskHold, useHold } from '../cart-ui/useHold'
 import { useOpenTicket } from '../cart-ui/Tickets'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
@@ -16,6 +16,7 @@ import { Summary } from './Summary'
 export function SendPanel() {
   const { state, dispatch } = useTill()
   const hold = useHold()
+  const askHold = useAskHold()
   const ui = useTillUi()
   const open = useOpenTicket()
   const cashiers = useQuery(cashiersQuery).data
@@ -54,7 +55,7 @@ export function SendPanel() {
           <Button key={c.id} className="h-[54px] text-till-lead leading-normal" disabled={!state.lines.length} onClick={() => void send(c.id)}>Send to {c.name}</Button>
         ))}
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={() => void hold()}>Hold <Kbd>F4</Kbd></Button>
+          <Button variant="secondary" className="flex-1" onClick={() => askHold()}>Hold <Kbd>F4</Kbd></Button>
           <Button variant="secondary" className="flex-1" disabled={!state.lines.length} onClick={() => ui.open({ kind: 'clearSale' })}>Clear</Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { api } from '@/api/client'
 import type { HeldSale } from '@/api/types.gen'
 import { dec, num } from '@/lib/money'
 import { configQuery, customersQuery, errMsg, heldQuery, ticketsQuery } from '../api'
-import { toHeldBlob } from '../cart/held'
+import { heldLabel, toHeldBlob } from '../cart/held'
 import { saleTotal } from '../cart/totals'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
@@ -15,11 +15,12 @@ export function useHold() {
   const cfg = useSuspenseQuery(configQuery).data
   const customers = useQuery(customersQuery).data ?? []
   const qc = useQueryClient()
-  return useCallback(async (send?: { forCashier: number; note: string }): Promise<HeldSale | undefined> => {
+  return useCallback(async (opts?: { forCashier?: number; note?: string }): Promise<HeldSale | undefined> => {
     if (!state.lines.length) return void toast.error('Cart is empty')
+    const send = opts?.forCashier != null ? { forCashier: opts.forCashier } : undefined
     const customer = customers.find((c) => c.id === state.customerId)?.name
     // A ticket with no name shows as a walk-in, with its items beside it.
-    const label = send ? send.note.trim() || customer || '' : customer ?? state.lines[0].name
+    const label = send ? (opts?.note ?? '').trim() || customer || '' : heldLabel(opts?.note ?? '', customer, state.lines[0].name)
     try {
       const held = await api<HeldSale>('/till/held', {
         json: {
@@ -35,6 +36,16 @@ export function useHold() {
       toast.error(errMsg(e))
     }
   }, [state, customers, cfg.defaultSaleType, dispatch, qc])
+}
+
+/** Hold, asking for an optional note first (SALE-53): every Hold button and F4. */
+export function useAskHold() {
+  const lines = useTill().state.lines.length
+  const ui = useTillUi()
+  return useCallback(() => {
+    if (!lines) return void toast.error('Cart is empty')
+    ui.open({ kind: 'hold' })
+  }, [lines, ui])
 }
 
 /** Resume a held sale. Refuses while another sale is in the cart (replacing it

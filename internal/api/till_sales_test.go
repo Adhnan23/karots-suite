@@ -139,3 +139,15 @@ func TestUnknownPreparedByKeepsTheSale(t *testing.T) {
 		t.Fatalf("the sale was lost: %d %s", rec.Code, rec.Body)
 	}
 }
+
+// SALE-53: a long hold note is cut to fit, never refused (a hold never fails over it).
+func TestTillHeldLongNote(t *testing.T) {
+	te := newTestEnv(t)
+	ck := te.login(t, "0770009453", "cashier")
+	note := strings.Repeat("ශ", 150) // a Sinhala letter: cut by letters, not bytes
+	rec := te.do(http.MethodPost, "/api/v1/till/held", HoldRequest{Label: note, SaleType: "retail", Cart: `{"v":2,"lines":[]}`, ItemCount: 1, Total: "10"}, ck)
+	held := decode[HeldSale](t, rec)
+	if rec.Code != 201 || held.Label != strings.Repeat("ශ", 120) {
+		t.Fatalf("long note: %d, %d letters kept", rec.Code, len([]rune(held.Label)))
+	}
+}

@@ -16,6 +16,7 @@ export type Dialog =
   | { kind: 'close'; logout?: boolean; stale?: string }
   | { kind: 'held' }
   | { kind: 'clearSale' }
+  | { kind: 'hold' }
   | { kind: 'quickItem'; barcode: string; name: string }
   | { kind: 'unknownCode'; code: string }
   | { kind: 'addCustomer' }

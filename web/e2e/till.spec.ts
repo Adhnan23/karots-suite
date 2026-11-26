@@ -238,9 +238,20 @@ test('hold (F4) and resume', async ({ page }) => {
   await ensureOpen(page)
   await scan(page, MILK)
   await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1') // the scan resolves async
+  // SALE-53: F4 asks for a note; F4 again holds at once, named after the first item.
+  await page.keyboard.press('F4')
+  await expect(page.getByRole('dialog', { name: 'Hold this sale' })).toBeVisible()
   await page.keyboard.press('F4')
   await expect(cart(page).getByText(/Cart is empty/)).toBeVisible()
   await cart(page).getByRole('button', { name: /E2E Milk ·/ }).click()
+  await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1')
+  // A note names it; Enter holds.
+  await page.keyboard.press('F4')
+  await expect(page.getByLabel('Hold note')).toBeFocused() // type straight away
+  await page.keyboard.type('gone to the ATM')
+  await page.keyboard.press('Enter')
+  await expect(cart(page).getByText(/Cart is empty/)).toBeVisible()
+  await cart(page).getByRole('button', { name: /gone to the ATM ·/ }).click()
   await expect(cart(page).getByLabel('Quantity of E2E Milk')).toHaveValue('1')
 })
 

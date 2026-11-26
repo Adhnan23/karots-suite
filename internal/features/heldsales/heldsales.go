@@ -76,7 +76,16 @@ func (r *Repository) List(ctx context.Context, cashierID int64) ([]HeldSale, err
 	return rows, err
 }
 
+// maxLabel is held_sales.label's size: a longer note is cut, never refused (SALE-53).
+const maxLabel = 120
+
 func (r *Repository) Create(ctx context.Context, h HeldSale) (*HeldSale, error) {
+	if h.Label != nil {
+		if l := []rune(*h.Label); len(l) > maxLabel {
+			cut := string(l[:maxLabel])
+			h.Label = &cut
+		}
+	}
 	var out HeldSale
 	err := r.q.GetContext(ctx, &out, `
 		INSERT INTO held_sales (cashier_id, label, sale_type, customer_id, discount, cart, item_count, total, to_cashier, for_cashier,

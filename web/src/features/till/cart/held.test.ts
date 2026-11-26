@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HeldSale } from '@/api/types.gen'
-import { fromHeld, toHeldBlob } from './held'
+import { fromHeld, heldLabel, toHeldBlob } from './held'
 import { initialState, tillReducer } from './store'
 
 const held = (cart: string): HeldSale => ({
@@ -19,5 +19,16 @@ describe('held sales', () => {
   })
   it('an unreadable cart resumes empty instead of crashing', () => {
     expect(fromHeld(held('{oops'), 0).lines).toEqual([])
+  })
+})
+
+describe('heldLabel (SALE-53)', () => {
+  it('the note first, else the customer, else the first item', () => {
+    expect(heldLabel('  gone to the ATM ', 'Kamal', 'Panadol')).toBe('gone to the ATM')
+    expect(heldLabel('', 'Kamal', 'Panadol')).toBe('Kamal')
+    expect(heldLabel('   ', undefined, 'Panadol')).toBe('Panadol')
+  })
+  it('a long note is cut to 120 letters, never refused', () => {
+    expect(Array.from(heldLabel('ශ'.repeat(150), undefined, 'x'))).toHaveLength(120)
   })
 })

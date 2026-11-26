@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { configQuery } from '../api'
 import { Kbd, Seg } from '../bits'
-import { useHold } from '../cart-ui/useHold'
+import { useAskHold } from '../cart-ui/useHold'
 import { useCheckoutCtx } from '../checkout/CheckoutProvider'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
@@ -17,7 +17,7 @@ export function PayPanel() {
   const cfg = useSuspenseQuery(configQuery).data
   const { state, dispatch } = useTill()
   const co = useCheckoutCtx()
-  const hold = useHold()
+  const askHold = useAskHold()
   const ui = useTillUi()
   // Is the Total + change block fully on screen? On a short kiosk screen it scrolls
   // away, and the pinned TotalStrip stands in for it.
@@ -51,7 +51,7 @@ export function PayPanel() {
           {co.busy ? 'Completing…' : 'Complete sale'} <Kbd className="border-current bg-transparent text-current">Enter</Kbd>
         </Button>
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={() => void hold()}>Hold <Kbd>F4</Kbd></Button>
+          <Button variant="secondary" className="flex-1" onClick={() => askHold()}>Hold <Kbd>F4</Kbd></Button>
           <Button variant="secondary" className="flex-1" onClick={() => (state.lines.length ? ui.open({ kind: 'clearSale' }) : co.newSale())}>New sale <Kbd>F12</Kbd></Button>
         </div>
       </div>

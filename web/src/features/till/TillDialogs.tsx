@@ -5,6 +5,7 @@ import { ProductInfo } from './catalog/ProductInfo'
 import { QuickItem } from './catalog/QuickItem'
 import { UnknownCode } from './catalog/UnknownCode'
 import { HeldSales } from './cart-ui/HeldSales'
+import { HoldNote } from './cart-ui/HoldNote'
 import { PackPick } from './cart-ui/PackPick'
 import { PricePick } from './cart-ui/PricePick'
 import { Suggestion } from './cart-ui/Suggestion'
@@ -63,6 +64,8 @@ export function TillDialogs() {
       return <AddCustomer />
     case 'clearSale':
       return <ClearSale />
+    case 'hold':
+      return <HoldNote />
     case 'action': {
       const a = slots.tillActions.find((x) => x.key === d.key)
       return a ? <a.Panel till={till} onClose={ui.close} text={d.text} /> : null

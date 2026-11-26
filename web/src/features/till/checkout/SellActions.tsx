@@ -7,7 +7,7 @@ import { slots } from '@/plugins/slots'
 import type { PaletteEntry } from '@/theme/nav'
 import { pageActions } from '@/theme/pageActions'
 import { configQuery, errMsg, groupsQuery, heldQuery } from '../api'
-import { useHold } from '../cart-ui/useHold'
+import { useAskHold } from '../cart-ui/useHold'
 import { useTill } from '../TillProvider'
 import { useTillUi } from '../TillUi'
 import { useCheckoutCtx } from './CheckoutProvider'
@@ -18,7 +18,7 @@ export function SellActions() {
   const cfg = useSuspenseQuery(configQuery).data
   const ui = useTillUi()
   const co = useCheckoutCtx()
-  const hold = useHold()
+  const askHold = useAskHold()
   const { state, dispatch } = useTill()
   const held = useQuery(heldQuery).data ?? []
   const groups = useQuery(groupsQuery).data ?? []
@@ -28,7 +28,7 @@ export function SellActions() {
     const money = !cfg.sendsToCashier
     pageActions.current = [
       a('new', 'New sale (F12)', () => (state.lines.length ? ui.open({ kind: 'clearSale' }) : co.newSale())),
-      a('hold', 'Hold the sale (F4)', () => void hold()),
+      a('hold', 'Hold the sale (F4)', () => askHold()),
       a('held', `Held sales (F5) · ${held.length}`, () => ui.open({ kind: 'held' })),
       a('customer', 'Customer (F8)', () => document.getElementById('till-customer')?.click()),
       a('addCustomer', 'Add a customer', () => ui.open({ kind: 'addCustomer' })),
