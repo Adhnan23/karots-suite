@@ -180,4 +180,4 @@ What the user rejects: plain or default-looking UI — every screen must look li
 
 ## Open items
 
-- **Till top bar:** the counter name on the drawer pill has no data source yet.
+None. (The till top bar's counter name was dropped, user 2026-11-26: the suite has no counter names.)
