@@ -13,7 +13,8 @@ plugin + Shelf's From catalogue; Shop Rules 1.7). Iman updates from Setup → Da
 
 **Waiting for the next Release** (committed 2026-11-26, not released): Pocket's port after `.env` (PKT-16), the
 sign-in page's "Last closed" pill (DRAW-20), the faster sales list (RPT-38), the note on Hold (SALE-53). A Release
-needs a green `make test-all` on that commit first (BLD-6).
+needs a green `make test-all` on that commit first (BLD-6). Plan (user, 2026-11-26): the 84 test gaps next session,
+then this Release.
 
 - **Iman's catalogue is ready for a fresh start** (user: reset Iman's database, then import):
   `/mnt/nvme_512GB/Downloads/Karots/iman-reset/` (`suppliers.csv`, `products.csv` 1,723, `cashier-menu.csv`,
